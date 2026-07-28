@@ -10,13 +10,16 @@
 #ifndef _I3_CLIENT_H_
 #define _I3_CLIENT_H_
 
+#include <stddef.h>
+
 /* Configuration constants */
 #define I3_MAX_STRING_LENGTH 4096
+#define I3_MAX_RECEIVE_LENGTH (1024 * 1024)
 #define I3_MAX_QUEUE_SIZE 1000
 #define I3_RECONNECT_DELAY 30
 #define I3_HEARTBEAT_INTERVAL 30
 #define I3_DEFAULT_PORT 8081
-#define I3_MAX_CHANNELS 20
+#define I3_MAX_CHANNELS 512
 
 /* I3 Connection states */
 typedef enum
@@ -40,6 +43,7 @@ typedef enum
   I3_MSG_FINGER_REPLY,
   I3_MSG_LOCATE_REPLY,
   I3_MSG_MUDLIST_REPLY,
+  I3_MSG_CHANNEL_LIST_REPLY,
   I3_MSG_ERROR,
   I3_MSG_CHANNEL_JOIN,
   I3_MSG_CHANNEL_LEAVE
@@ -111,12 +115,17 @@ typedef struct
   int authenticated;
   time_t last_heartbeat;
   time_t connect_time;
+  char *receive_buffer;
+  size_t receive_length;
+  size_t receive_capacity;
 
   /* Threading - using void pointers for pthread types */
   void *thread_id;
   void *command_mutex;
   void *event_mutex;
   void *state_mutex;
+  int event_signal_read_fd;
+  int event_signal_write_fd;
 
   /* Message queues */
   i3_command_t *command_queue_head;
@@ -166,6 +175,7 @@ int i3_is_connected(void);
 /* Thread functions */
 void *i3_client_thread(void *arg);
 void i3_process_events(void);
+int i3_get_event_fd(void);
 
 /* Command functions */
 int i3_send_tell(const char *from_user, const char *target_mud, const char *target_user,
@@ -174,9 +184,9 @@ int i3_send_emoteto(const char *from_user, const char *target_mud, const char *t
                     const char *emote);
 int i3_send_channel_message(const char *channel, const char *from_user, const char *message);
 int i3_send_channel_emote(const char *channel, const char *from_user, const char *emote);
-int i3_request_who(const char *target_mud);
-int i3_request_finger(const char *target_mud, const char *target_user);
-int i3_request_locate(const char *target_user);
+int i3_request_who(const char *target_mud, const char *requester);
+int i3_request_finger(const char *target_mud, const char *target_user, const char *requester);
+int i3_request_locate(const char *target_user, const char *requester);
 int i3_request_mudlist(void);
 int i3_join_channel(const char *channel, const char *user_name);
 int i3_leave_channel(const char *channel, const char *user_name);
@@ -205,6 +215,7 @@ void i3_debug(const char *format, ...);
 void *i3_create_request(const char *method, void *params);
 int i3_send_json(void *obj);
 int i3_parse_response(const char *json_str);
+int i3_process_input(const char *data, size_t length);
 
 /* Internal queue management */
 void i3_queue_command(i3_command_t *cmd);

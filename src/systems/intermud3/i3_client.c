@@ -44,13 +44,14 @@ i3_client_t *i3_client = NULL;
 /* Forward declarations */
 static int i3_socket_connect(const char *host, int port);
 static int i3_authenticate(void);
-static void i3_handle_message(const char *json_str);
 void i3_queue_command(i3_command_t *cmd);
 static void i3_queue_event(i3_event_t *event);
 static i3_command_t *i3_pop_command(void);
 static void i3_free_command(i3_command_t *cmd);
 static void i3_heartbeat(void);
 static void i3_reconnect(void);
+static void i3_update_mudlist(json_object *result_obj);
+static void i3_update_channel_list(json_object *result_obj);
 
 /* Initialize the I3 client */
 int i3_initialize(void)
@@ -70,6 +71,8 @@ int i3_initialize(void)
     i3_log("I3: Failed to allocate client structure");
     return -1;
   }
+  i3_client->event_signal_read_fd = -1;
+  i3_client->event_signal_write_fd = -1;
 
   /* Allocate pthread structures */
   i3_client->thread_id = calloc(1, sizeof(pthread_t));
@@ -81,6 +84,32 @@ int i3_initialize(void)
   pthread_mutex_init((pthread_mutex_t *)i3_client->command_mutex, NULL);
   pthread_mutex_init((pthread_mutex_t *)i3_client->event_mutex, NULL);
   pthread_mutex_init((pthread_mutex_t *)i3_client->state_mutex, NULL);
+
+  {
+    int event_signal_fds[2];
+    int flags;
+
+    if (pipe(event_signal_fds) == 0)
+    {
+      i3_client->event_signal_read_fd = event_signal_fds[0];
+      i3_client->event_signal_write_fd = event_signal_fds[1];
+
+      flags = fcntl(i3_client->event_signal_read_fd, F_GETFL, 0);
+      if (flags >= 0)
+      {
+        fcntl(i3_client->event_signal_read_fd, F_SETFL, flags | O_NONBLOCK);
+      }
+      flags = fcntl(i3_client->event_signal_write_fd, F_GETFL, 0);
+      if (flags >= 0)
+      {
+        fcntl(i3_client->event_signal_write_fd, F_SETFL, flags | O_NONBLOCK);
+      }
+    }
+    else
+    {
+      i3_error("Unable to create the I3 main-loop wake pipe: %s", strerror(errno));
+    }
+  }
 
   /* Set defaults */
   i3_client->state = I3_STATE_DISCONNECTED;
@@ -118,6 +147,14 @@ int i3_initialize(void)
     free(i3_client->command_mutex);
     free(i3_client->event_mutex);
     free(i3_client->state_mutex);
+    if (i3_client->event_signal_read_fd >= 0)
+    {
+      close(i3_client->event_signal_read_fd);
+    }
+    if (i3_client->event_signal_write_fd >= 0)
+    {
+      close(i3_client->event_signal_write_fd);
+    }
     free(i3_client);
     i3_client = NULL;
     /* i3_shutdown_security_system();
@@ -185,6 +222,15 @@ void i3_shutdown(void)
   free(i3_client->command_mutex);
   free(i3_client->event_mutex);
   free(i3_client->state_mutex);
+  free(i3_client->receive_buffer);
+  if (i3_client->event_signal_read_fd >= 0)
+  {
+    close(i3_client->event_signal_read_fd);
+  }
+  if (i3_client->event_signal_write_fd >= 0)
+  {
+    close(i3_client->event_signal_write_fd);
+  }
 
   /* Free client structure */
   free(i3_client);
@@ -204,7 +250,6 @@ void *i3_client_thread(void *arg)
   time_t last_heartbeat = time(NULL);
   time_t now;
   int result, bytes;
-  char *line;
   i3_command_t *cmd;
   json_object *request;
 
@@ -225,7 +270,15 @@ void *i3_client_thread(void *arg)
     /* Check for reconnection */
     if (i3_client->state == I3_STATE_DISCONNECTED && i3_client->auto_reconnect)
     {
-      sleep(i3_client->reconnect_delay);
+      for (result = 0; result < i3_client->reconnect_delay && i3_client->state != I3_STATE_SHUTDOWN;
+           result++)
+      {
+        sleep(1);
+      }
+      if (i3_client->state == I3_STATE_SHUTDOWN)
+      {
+        continue;
+      }
       i3_reconnect();
       continue;
     }
@@ -235,7 +288,11 @@ void *i3_client_thread(void *arg)
     if (cmd)
     {
       request = (json_object *)i3_create_request(cmd->method, cmd->params);
-      i3_send_json(request);
+      cmd->params = NULL;
+      if (i3_send_json(request) < 0)
+      {
+        i3_disconnect();
+      }
       json_object_put(request);
       i3_free_command(cmd);
     }
@@ -257,20 +314,30 @@ void *i3_client_thread(void *arg)
           buffer[bytes] = '\0';
           i3_log("DEBUG: Received %d bytes: %.200s%s", bytes, buffer, (bytes > 200 ? "..." : ""));
 
-          /* Handle line-delimited JSON */
-          line = strtok(buffer, "\n");
-          while (line)
+          if (i3_process_input(buffer, (size_t)bytes) < 0)
           {
-            i3_log("DEBUG: Processing message: %.100s%s", line, (strlen(line) > 100 ? "..." : ""));
-            i3_handle_message(line);
-            line = strtok(NULL, "\n");
+            i3_error("Invalid or oversized response from I3 gateway");
+            i3_disconnect();
           }
         }
-        else if (bytes == 0 || (bytes < 0 && errno != EAGAIN))
+        else if (bytes == 0 ||
+                 (bytes < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
         {
-          i3_error("Connection lost: %s", strerror(errno));
+          if (bytes == 0)
+          {
+            i3_error("Connection closed by I3 gateway");
+          }
+          else
+          {
+            i3_error("Connection lost: %s", strerror(errno));
+          }
           i3_disconnect();
         }
+      }
+      else if (result < 0 && errno != EINTR)
+      {
+        i3_error("I3 socket select failed: %s", strerror(errno));
+        i3_disconnect();
       }
     }
 
@@ -335,6 +402,7 @@ void i3_disconnect(void)
   pthread_mutex_unlock(mutex_ptr);
 
   i3_client->authenticated = 0;
+  i3_client->receive_length = 0;
   i3_log("Disconnected from I3 gateway");
 }
 
@@ -448,73 +516,181 @@ static void i3_reconnect(void)
   }
 }
 
-/* Handle incoming message */
-static void i3_handle_message(const char *json_str)
+/* Parse one complete JSON-RPC message from the gateway. */
+int i3_parse_response(const char *json_str)
 {
-  json_object *root, *method_obj, *params_obj;
+  json_object *root;
+  json_object *method_obj;
+  json_object *params_obj;
+  json_object *result_obj;
+  json_object *status_obj;
+  json_object *mud_name_obj;
+  json_object *session_obj;
+  json_object *error_obj;
+  json_object *message_obj;
+  json_object *service_obj;
+  json_object *version_obj;
+  json_object *from_user_obj;
+  json_object *from_mud_obj;
+  json_object *to_user_obj;
+  json_object *channel_obj;
+  json_object *muds_obj;
+  json_object *channels_obj;
   const char *method;
+  const char *status;
+  i3_event_t *event;
   pthread_mutex_t *mutex_ptr;
 
-  root = json_tokener_parse(json_str);
-  if (!root)
+  if (!i3_client || !json_str)
   {
-    i3_error("Failed to parse JSON: %s", json_str);
-    return;
+    return -1;
   }
 
-  /* Check for method field */
+  root = json_tokener_parse(json_str);
+  if (!root || !json_object_is_type(root, json_type_object))
+  {
+    i3_error("Failed to parse JSON response");
+    if (root)
+    {
+      json_object_put(root);
+    }
+    return -1;
+  }
+
+  i3_client->messages_received++;
+  method_obj = NULL;
+  params_obj = NULL;
+  result_obj = NULL;
+  error_obj = NULL;
+
   if (!json_object_object_get_ex(root, "method", &method_obj))
   {
-    /* This might be a response to our request */
-    json_object *result_obj, *id_obj, *status_obj;
-
-    /* Check if this is an authentication response */
-    if (json_object_object_get_ex(root, "id", &id_obj) &&
-        json_object_object_get_ex(root, "result", &result_obj))
+    if (json_object_object_get_ex(root, "error", &error_obj))
     {
-      if (json_object_object_get_ex(result_obj, "status", &status_obj))
+      event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+      if (event)
       {
-        const char *status = json_object_get_string(status_obj);
-        if (strcmp(status, "authenticated") == 0)
+        event->type = I3_MSG_ERROR;
+        if (json_object_object_get_ex(error_obj, "message", &message_obj))
         {
-          mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
-          pthread_mutex_lock(mutex_ptr);
-          i3_client->state = I3_STATE_CONNECTED;
-          pthread_mutex_unlock(mutex_ptr);
-          i3_client->authenticated = 1;
+          strlcpy(event->message, json_object_get_string(message_obj), sizeof(event->message));
+        }
+        else
+        {
+          strlcpy(event->message, "Unknown JSON-RPC error", sizeof(event->message));
+        }
+        event->data = json_object_get(error_obj);
+        i3_queue_event(event);
+      }
+      json_object_put(root);
+      return 0;
+    }
 
-          /* Get session info */
-          json_object *mud_name_obj = json_object_object_get(result_obj, "mud_name");
-          json_object *session_obj = json_object_object_get(result_obj, "session_id");
+    if (!json_object_object_get_ex(root, "result", &result_obj) ||
+        !json_object_is_type(result_obj, json_type_object))
+    {
+      json_object_put(root);
+      return 0;
+    }
 
-          i3_log("Successfully authenticated with I3 gateway");
-          if (mud_name_obj)
+    status_obj = NULL;
+    if (json_object_object_get_ex(result_obj, "status", &status_obj))
+    {
+      status = json_object_get_string(status_obj);
+      if (status && strcmp(status, "authenticated") == 0)
+      {
+        mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
+        pthread_mutex_lock(mutex_ptr);
+        i3_client->state = I3_STATE_CONNECTED;
+        i3_client->authenticated = 1;
+        pthread_mutex_unlock(mutex_ptr);
+
+        mud_name_obj = NULL;
+        session_obj = NULL;
+        json_object_object_get_ex(result_obj, "mud_name", &mud_name_obj);
+        json_object_object_get_ex(result_obj, "session_id", &session_obj);
+
+        i3_log("Successfully authenticated with I3 gateway");
+        if (mud_name_obj)
+        {
+          i3_log("MUD Name confirmed: %s", json_object_get_string(mud_name_obj));
+        }
+        if (session_obj)
+        {
+          strlcpy(i3_client->session_id, json_object_get_string(session_obj),
+                  sizeof(i3_client->session_id));
+          i3_log("Session established");
+        }
+
+        /* Prime the local caches as soon as the authenticated session is ready. */
+        i3_request_mudlist();
+        i3_list_channels();
+      }
+      else if (status && (!strcmp(status, "joined") || !strcmp(status, "left")))
+      {
+        channel_obj = NULL;
+        if (json_object_object_get_ex(result_obj, "channel", &channel_obj))
+        {
+          event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+          if (event)
           {
-            i3_log("MUD Name confirmed: %s", json_object_get_string(mud_name_obj));
-          }
-          if (session_obj)
-          {
-            i3_log("Session ID: %s", json_object_get_string(session_obj));
+            event->type = !strcmp(status, "joined") ? I3_MSG_CHANNEL_JOIN : I3_MSG_CHANNEL_LEAVE;
+            strlcpy(event->channel, json_object_get_string(channel_obj), sizeof(event->channel));
+            i3_queue_event(event);
           }
         }
       }
     }
 
+    muds_obj = NULL;
+    if (json_object_object_get_ex(result_obj, "muds", &muds_obj) &&
+        json_object_is_type(muds_obj, json_type_array))
+    {
+      event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+      if (event)
+      {
+        event->type = I3_MSG_MUDLIST_REPLY;
+        event->data = json_object_get(result_obj);
+        i3_queue_event(event);
+      }
+    }
+
+    channels_obj = NULL;
+    if (json_object_object_get_ex(result_obj, "channels", &channels_obj) &&
+        json_object_is_type(channels_obj, json_type_array))
+    {
+      event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+      if (event)
+      {
+        event->type = I3_MSG_CHANNEL_LIST_REPLY;
+        event->data = json_object_get(result_obj);
+        i3_queue_event(event);
+      }
+    }
+
     json_object_put(root);
-    return;
+    return 0;
   }
 
   method = json_object_get_string(method_obj);
   json_object_object_get_ex(root, "params", &params_obj);
 
-  /* Handle welcome message - triggers authentication */
+  if (!method)
+  {
+    json_object_put(root);
+    return -1;
+  }
+
+  /* The welcome notification is the signal to authenticate. */
   if (strcmp(method, "welcome") == 0)
   {
     i3_log("DEBUG: Received welcome message from gateway");
     if (params_obj)
     {
-      json_object *service_obj = json_object_object_get(params_obj, "service");
-      json_object *version_obj = json_object_object_get(params_obj, "version");
+      service_obj = NULL;
+      version_obj = NULL;
+      json_object_object_get_ex(params_obj, "service", &service_obj);
+      json_object_object_get_ex(params_obj, "version", &version_obj);
       if (service_obj)
       {
         i3_log("Gateway service: %s", json_object_get_string(service_obj));
@@ -524,60 +700,218 @@ static void i3_handle_message(const char *json_str)
         i3_log("Gateway version: %s", json_object_get_string(version_obj));
       }
     }
-
-    /* Now authenticate */
     i3_authenticate();
   }
-  /* Handle incoming tell */
-  else if (strcmp(method, "tell_received") == 0)
+  else if (strcmp(method, "tell_received") == 0 || strcmp(method, "emoteto_received") == 0)
   {
-    i3_event_t *event;
-    json_object *from_user_obj, *from_mud_obj, *to_user_obj, *message_obj;
-
+    from_user_obj = NULL;
+    from_mud_obj = NULL;
+    to_user_obj = NULL;
+    message_obj = NULL;
     if (params_obj && json_object_object_get_ex(params_obj, "from_user", &from_user_obj) &&
         json_object_object_get_ex(params_obj, "from_mud", &from_mud_obj) &&
         json_object_object_get_ex(params_obj, "to_user", &to_user_obj) &&
         json_object_object_get_ex(params_obj, "message", &message_obj))
     {
       event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
-      event->type = I3_MSG_TELL;
-      strncpy(event->from_user, json_object_get_string(from_user_obj),
-              sizeof(event->from_user) - 1);
-      strncpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud) - 1);
-      strncpy(event->to_user, json_object_get_string(to_user_obj), sizeof(event->to_user) - 1);
-      strncpy(event->message, json_object_get_string(message_obj), sizeof(event->message) - 1);
-
-      i3_queue_event(event);
-      i3_log("Queued tell from %s@%s to %s: %.100s", event->from_user, event->from_mud,
-             event->to_user, event->message);
+      if (event)
+      {
+        event->type = strcmp(method, "tell_received") == 0 ? I3_MSG_TELL : I3_MSG_EMOTETO;
+        strlcpy(event->from_user, json_object_get_string(from_user_obj), sizeof(event->from_user));
+        strlcpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud));
+        strlcpy(event->to_user, json_object_get_string(to_user_obj), sizeof(event->to_user));
+        strlcpy(event->message, json_object_get_string(message_obj), sizeof(event->message));
+        i3_queue_event(event);
+      }
     }
   }
-  /* Handle incoming channel message */
-  else if (strcmp(method, "channel_message") == 0)
+  else if (strcmp(method, "channel_message") == 0 || strcmp(method, "channel_emote") == 0)
   {
-    i3_event_t *event;
-    json_object *channel_obj, *from_user_obj, *from_mud_obj, *message_obj;
-
+    channel_obj = NULL;
+    from_user_obj = NULL;
+    from_mud_obj = NULL;
+    message_obj = NULL;
     if (params_obj && json_object_object_get_ex(params_obj, "channel", &channel_obj) &&
         json_object_object_get_ex(params_obj, "from_user", &from_user_obj) &&
         json_object_object_get_ex(params_obj, "from_mud", &from_mud_obj) &&
         json_object_object_get_ex(params_obj, "message", &message_obj))
     {
       event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
-      event->type = I3_MSG_CHANNEL;
-      strncpy(event->channel, json_object_get_string(channel_obj), sizeof(event->channel) - 1);
-      strncpy(event->from_user, json_object_get_string(from_user_obj),
-              sizeof(event->from_user) - 1);
-      strncpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud) - 1);
-      strncpy(event->message, json_object_get_string(message_obj), sizeof(event->message) - 1);
+      if (event)
+      {
+        event->type =
+            strcmp(method, "channel_message") == 0 ? I3_MSG_CHANNEL : I3_MSG_CHANNEL_EMOTE;
+        strlcpy(event->channel, json_object_get_string(channel_obj), sizeof(event->channel));
+        strlcpy(event->from_user, json_object_get_string(from_user_obj), sizeof(event->from_user));
+        strlcpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud));
+        strlcpy(event->message, json_object_get_string(message_obj), sizeof(event->message));
+        i3_queue_event(event);
+      }
+    }
+  }
+  else if (strcmp(method, "who_reply") == 0 || strcmp(method, "finger_reply") == 0 ||
+           strcmp(method, "locate_reply") == 0)
+  {
+    event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+    if (event && params_obj)
+    {
+      if (strcmp(method, "who_reply") == 0)
+      {
+        event->type = I3_MSG_WHO_REPLY;
+      }
+      else if (strcmp(method, "finger_reply") == 0)
+      {
+        event->type = I3_MSG_FINGER_REPLY;
+      }
+      else
+      {
+        event->type = I3_MSG_LOCATE_REPLY;
+      }
 
+      from_mud_obj = NULL;
+      to_user_obj = NULL;
+      json_object_object_get_ex(params_obj, "from_mud", &from_mud_obj);
+      json_object_object_get_ex(params_obj, "to_user", &to_user_obj);
+      if (from_mud_obj)
+      {
+        strlcpy(event->from_mud, json_object_get_string(from_mud_obj), sizeof(event->from_mud));
+      }
+      if (to_user_obj)
+      {
+        strlcpy(event->to_user, json_object_get_string(to_user_obj), sizeof(event->to_user));
+      }
+      event->data = json_object_get(params_obj);
       i3_queue_event(event);
-      i3_log("Queued channel message from %s@%s on %s: %.100s", event->from_user, event->from_mud,
-             event->channel, event->message);
+    }
+    else
+    {
+      free(event);
+    }
+  }
+  else if (strcmp(method, "error_occurred") == 0)
+  {
+    event = (i3_event_t *)calloc(1, sizeof(i3_event_t));
+    if (event)
+    {
+      event->type = I3_MSG_ERROR;
+      if (params_obj && (json_object_object_get_ex(params_obj, "error_message", &message_obj) ||
+                         json_object_object_get_ex(params_obj, "message", &message_obj)))
+      {
+        strlcpy(event->message, json_object_get_string(message_obj), sizeof(event->message));
+      }
+      else
+      {
+        strlcpy(event->message, "Unknown I3 gateway error", sizeof(event->message));
+      }
+      if (params_obj)
+      {
+        to_user_obj = NULL;
+        if (json_object_object_get_ex(params_obj, "to_user", &to_user_obj))
+        {
+          strlcpy(event->to_user, json_object_get_string(to_user_obj), sizeof(event->to_user));
+        }
+        event->data = json_object_get(params_obj);
+      }
+      i3_queue_event(event);
     }
   }
 
   json_object_put(root);
+  return 0;
+}
+
+/* Accumulate newline-delimited JSON across arbitrary TCP recv() boundaries. */
+int i3_process_input(const char *data, size_t length)
+{
+  char *new_buffer;
+  char *newline;
+  size_t needed;
+  size_t capacity;
+  size_t consumed;
+  size_t line_length;
+  int processed;
+
+  if (!i3_client || (!data && length > 0))
+  {
+    return -1;
+  }
+
+  if (length == 0)
+  {
+    return 0;
+  }
+
+  if (length > I3_MAX_RECEIVE_LENGTH - i3_client->receive_length)
+  {
+    i3_error("Gateway response exceeded %d bytes", I3_MAX_RECEIVE_LENGTH);
+    i3_client->receive_length = 0;
+    return -1;
+  }
+
+  needed = i3_client->receive_length + length;
+  if (needed > i3_client->receive_capacity)
+  {
+    capacity = i3_client->receive_capacity ? i3_client->receive_capacity : 8192;
+    while (capacity < needed)
+    {
+      if (capacity >= I3_MAX_RECEIVE_LENGTH / 2)
+      {
+        capacity = I3_MAX_RECEIVE_LENGTH;
+        break;
+      }
+      capacity *= 2;
+    }
+
+    new_buffer = (char *)realloc(i3_client->receive_buffer, capacity + 1);
+    if (!new_buffer)
+    {
+      i3_error("Unable to allocate I3 receive buffer");
+      return -1;
+    }
+    i3_client->receive_buffer = new_buffer;
+    i3_client->receive_capacity = capacity;
+  }
+
+  memcpy(i3_client->receive_buffer + i3_client->receive_length, data, length);
+  i3_client->receive_length += length;
+  i3_client->receive_buffer[i3_client->receive_length] = '\0';
+
+  consumed = 0;
+  processed = 0;
+  while ((newline = memchr(i3_client->receive_buffer + consumed, '\n',
+                           i3_client->receive_length - consumed)) != NULL)
+  {
+    line_length = (size_t)(newline - (i3_client->receive_buffer + consumed));
+    while (line_length > 0 && i3_client->receive_buffer[consumed + line_length - 1] == '\r')
+    {
+      line_length--;
+    }
+    i3_client->receive_buffer[consumed + line_length] = '\0';
+
+    if (line_length > 0)
+    {
+      i3_parse_response(i3_client->receive_buffer + consumed);
+      processed++;
+    }
+    consumed = (size_t)(newline - i3_client->receive_buffer) + 1;
+  }
+
+  if (consumed > 0)
+  {
+    i3_client->receive_length -= consumed;
+    memmove(i3_client->receive_buffer, i3_client->receive_buffer + consumed,
+            i3_client->receive_length);
+    i3_client->receive_buffer[i3_client->receive_length] = '\0';
+  }
+
+  if (i3_client->receive_length == I3_MAX_RECEIVE_LENGTH)
+  {
+    i3_error("Gateway sent an unterminated oversized response");
+    i3_client->receive_length = 0;
+    return -1;
+  }
+
+  return processed;
 }
 
 /* Queue command for sending */
@@ -618,6 +952,7 @@ void i3_queue_command(i3_command_t *cmd)
 static void i3_queue_event(i3_event_t *event)
 {
   pthread_mutex_t *mutex_ptr;
+  unsigned char signal_byte;
 
   mutex_ptr = (pthread_mutex_t *)i3_client->event_mutex;
   pthread_mutex_lock(mutex_ptr);
@@ -642,6 +977,16 @@ static void i3_queue_event(i3_event_t *event)
   i3_client->event_queue_size++;
 
   pthread_mutex_unlock(mutex_ptr);
+
+  if (i3_client->event_signal_write_fd >= 0)
+  {
+    signal_byte = 1;
+    if (write(i3_client->event_signal_write_fd, &signal_byte, sizeof(signal_byte)) < 0 &&
+        errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+    {
+      i3_error("Unable to signal the main loop for an I3 event: %s", strerror(errno));
+    }
+  }
 }
 
 /* Pop command from queue */
@@ -734,30 +1079,94 @@ void *i3_create_request(const char *method, void *params)
 int i3_send_json(void *obj)
 {
   const char *json_str;
-  char buffer[I3_MAX_STRING_LENGTH];
-  int len, sent;
+  const char *method;
+  char *buffer;
+  json_object *method_obj;
+  fd_set write_set;
+  struct timeval timeout;
+  size_t json_length;
+  size_t total_length;
+  size_t offset;
+  ssize_t sent;
+  int result;
+  int send_flags;
 
-  if (!obj || i3_client->socket_fd < 0)
+  if (!obj || !i3_client || i3_client->socket_fd < 0)
   {
     return -1;
   }
 
-  json_str = json_object_to_json_string((json_object *)obj);
-  len = snprintf(buffer, sizeof(buffer), "%s\n", json_str);
-
-  i3_log("DEBUG: Sending %d bytes: %s", len, buffer);
-
-  sent = send(i3_client->socket_fd, buffer, len, 0);
-  if (sent < 0)
+  json_str = json_object_to_json_string_ext((json_object *)obj, JSON_C_TO_STRING_PLAIN);
+  json_length = strlen(json_str);
+  if (json_length >= I3_MAX_RECEIVE_LENGTH)
   {
-    i3_error("Failed to send JSON: %s", strerror(errno));
+    i3_error("Refusing to send oversized JSON request");
     return -1;
   }
-  else
+
+  total_length = json_length + 1;
+  buffer = (char *)malloc(total_length);
+  if (!buffer)
   {
-    i3_log("DEBUG: Successfully sent %d bytes", sent);
+    i3_error("Unable to allocate I3 send buffer");
+    return -1;
+  }
+  memcpy(buffer, json_str, json_length);
+  buffer[json_length] = '\n';
+
+  method = "response";
+  method_obj = NULL;
+  if (json_object_object_get_ex((json_object *)obj, "method", &method_obj))
+  {
+    method = json_object_get_string(method_obj);
+  }
+  i3_log("DEBUG: Sending %zu-byte JSON-RPC %s", total_length, method ? method : "request");
+
+  send_flags = 0;
+#ifdef MSG_NOSIGNAL
+  send_flags = MSG_NOSIGNAL;
+#endif
+
+  offset = 0;
+  while (offset < total_length)
+  {
+    sent = send(i3_client->socket_fd, buffer + offset, total_length - offset, send_flags);
+    if (sent > 0)
+    {
+      offset += (size_t)sent;
+      continue;
+    }
+    if (sent < 0 && errno == EINTR)
+    {
+      continue;
+    }
+    if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    {
+      FD_ZERO(&write_set);
+      FD_SET(i3_client->socket_fd, &write_set);
+      timeout.tv_sec = 5;
+      timeout.tv_usec = 0;
+      result = select(i3_client->socket_fd + 1, NULL, &write_set, NULL, &timeout);
+      if (result > 0)
+      {
+        continue;
+      }
+      if (result < 0 && errno == EINTR)
+      {
+        continue;
+      }
+      i3_error("Timed out sending JSON to I3 gateway");
+    }
+    else
+    {
+      i3_error("Failed to send JSON: %s", sent == 0 ? "connection closed" : strerror(errno));
+    }
+    free(buffer);
+    return -1;
   }
 
+  free(buffer);
+  i3_log("DEBUG: Successfully sent %zu bytes", total_length);
   i3_client->messages_sent++;
   return 0;
 }
@@ -772,6 +1181,17 @@ int i3_send_tell(const char *from_user, const char *target_mud, const char *targ
   /* i3_security_context_t *sec_ctx; */
   void *sec_ctx;
   /* char sanitized_message[I3_MAX_MESSAGE_LENGTH]; */
+
+  if (!i3_client)
+  {
+    return -1;
+  }
+
+  if (!from_user || !target_mud || !target_user || !message)
+  {
+    i3_log("I3: Invalid tell parameters");
+    return -1;
+  }
 
   if (!i3_client->enable_tell)
   {
@@ -837,7 +1257,7 @@ int i3_send_tell(const char *from_user, const char *target_mud, const char *targ
     return -1;
   }
 
-  cmd->id = i3_client->next_request_id++;
+  cmd->id = 0;
   strncpy(cmd->method, "tell", sizeof(cmd->method) - 1);
   cmd->method[sizeof(cmd->method) - 1] = '\0';
   cmd->params = params;
@@ -862,6 +1282,17 @@ int i3_send_channel_message(const char *channel, const char *from_user, const ch
   /* i3_security_context_t *sec_ctx; */
   void *sec_ctx;
   /* char sanitized_message[I3_MAX_MESSAGE_LENGTH]; */
+
+  if (!i3_client)
+  {
+    return -1;
+  }
+
+  if (!channel || !from_user || !message)
+  {
+    i3_log("I3: Invalid channel message parameters");
+    return -1;
+  }
 
   if (!i3_client->enable_channels)
   {
@@ -920,7 +1351,7 @@ int i3_send_channel_message(const char *channel, const char *from_user, const ch
     return -1;
   }
 
-  cmd->id = i3_client->next_request_id++;
+  cmd->id = 0;
   strncpy(cmd->method, "channel_send", sizeof(cmd->method) - 1);
   cmd->method[sizeof(cmd->method) - 1] = '\0';
   cmd->params = params;
@@ -936,34 +1367,498 @@ int i3_send_channel_message(const char *channel, const char *from_user, const ch
   return 0;
 }
 
+static void i3_copy_json_string(json_object *object, const char *key, char *destination,
+                                size_t destination_size)
+{
+  json_object *value;
+  const char *text;
+
+  value = NULL;
+  if (!object || !json_object_object_get_ex(object, key, &value))
+  {
+    return;
+  }
+
+  text = json_object_get_string(value);
+  if (text)
+  {
+    strlcpy(destination, text, destination_size);
+  }
+}
+
+/* Replace the main-thread MUD cache with a complete gateway snapshot. */
+static void i3_update_mudlist(json_object *result_obj)
+{
+  json_object *muds_obj;
+  json_object *mud_obj;
+  json_object *value_obj;
+  json_object *services_obj;
+  i3_mud_t *new_head;
+  i3_mud_t *new_tail;
+  i3_mud_t *mud;
+  i3_mud_t *old_mud;
+  i3_mud_t *next_mud;
+  const char *status;
+  size_t mud_count;
+  size_t index;
+  size_t used;
+  int allocation_failed;
+
+  muds_obj = NULL;
+  if (!result_obj || !json_object_object_get_ex(result_obj, "muds", &muds_obj) ||
+      !json_object_is_type(muds_obj, json_type_array))
+  {
+    i3_error("MUD list response did not contain a valid array");
+    return;
+  }
+
+  new_head = NULL;
+  new_tail = NULL;
+  allocation_failed = 0;
+  mud_count = json_object_array_length(muds_obj);
+
+  for (index = 0; index < mud_count; index++)
+  {
+    mud_obj = json_object_array_get_idx(muds_obj, index);
+    if (!mud_obj || !json_object_is_type(mud_obj, json_type_object))
+    {
+      continue;
+    }
+
+    value_obj = NULL;
+    if (!json_object_object_get_ex(mud_obj, "name", &value_obj) ||
+        !json_object_get_string(value_obj) || !*json_object_get_string(value_obj))
+    {
+      continue;
+    }
+
+    mud = (i3_mud_t *)calloc(1, sizeof(i3_mud_t));
+    if (!mud)
+    {
+      allocation_failed = 1;
+      break;
+    }
+
+    i3_copy_json_string(mud_obj, "name", mud->name, sizeof(mud->name));
+    i3_copy_json_string(mud_obj, "driver", mud->driver, sizeof(mud->driver));
+    i3_copy_json_string(mud_obj, "mud_type", mud->mud_type, sizeof(mud->mud_type));
+    i3_copy_json_string(mud_obj, "admin_email", mud->admin_email, sizeof(mud->admin_email));
+
+    value_obj = NULL;
+    if (json_object_object_get_ex(mud_obj, "port", &value_obj))
+    {
+      mud->port = json_object_get_int(value_obj);
+    }
+
+    status = NULL;
+    value_obj = NULL;
+    if (json_object_object_get_ex(mud_obj, "status", &value_obj))
+    {
+      status = json_object_get_string(value_obj);
+    }
+    mud->online = status && (!strcasecmp(status, "up") || !strcasecmp(status, "online"));
+
+    services_obj = NULL;
+    if (json_object_object_get_ex(mud_obj, "services", &services_obj) &&
+        json_object_is_type(services_obj, json_type_object))
+    {
+      json_object_object_foreach(services_obj, service_name, service_value)
+      {
+        UNUSED_VAR(service_value);
+        used = strlen(mud->services);
+        if (used > 0 && used < sizeof(mud->services) - 1)
+        {
+          strlcat(mud->services, ",", sizeof(mud->services));
+        }
+        strlcat(mud->services, service_name, sizeof(mud->services));
+      }
+    }
+
+    if (new_tail)
+    {
+      new_tail->next = mud;
+    }
+    else
+    {
+      new_head = mud;
+    }
+    new_tail = mud;
+  }
+
+  if (allocation_failed)
+  {
+    while (new_head)
+    {
+      next_mud = new_head->next;
+      free(new_head);
+      new_head = next_mud;
+    }
+    i3_error("Unable to allocate the I3 MUD list");
+    return;
+  }
+
+  old_mud = i3_client->mud_list;
+  i3_client->mud_list = new_head;
+  i3_client->mud_list_updated = time(NULL);
+  while (old_mud)
+  {
+    next_mud = old_mud->next;
+    free(old_mud);
+    old_mud = next_mud;
+  }
+
+  i3_log("Updated local MUD list with %zu entries", mud_count);
+}
+
+/* Replace the main-thread channel cache with a complete gateway snapshot. */
+static void i3_update_channel_list(json_object *result_obj)
+{
+  json_object *channels_obj;
+  json_object *subscribed_obj;
+  json_object *channel_obj;
+  json_object *value_obj;
+  json_object *subscribed_value;
+  i3_channel_t *new_channels;
+  const char *channel_name;
+  const char *subscribed_name;
+  size_t channel_total;
+  size_t channel_index;
+  size_t subscribed_total;
+  size_t subscribed_index;
+  int channel_count;
+
+  channels_obj = NULL;
+  if (!result_obj || !json_object_object_get_ex(result_obj, "channels", &channels_obj) ||
+      !json_object_is_type(channels_obj, json_type_array))
+  {
+    i3_error("Channel list response did not contain a valid array");
+    return;
+  }
+
+  new_channels = (i3_channel_t *)calloc(I3_MAX_CHANNELS, sizeof(i3_channel_t));
+  if (!new_channels)
+  {
+    i3_error("Unable to allocate the I3 channel list");
+    return;
+  }
+
+  subscribed_obj = NULL;
+  json_object_object_get_ex(result_obj, "subscribed_channels", &subscribed_obj);
+  subscribed_total = subscribed_obj && json_object_is_type(subscribed_obj, json_type_array)
+                         ? json_object_array_length(subscribed_obj)
+                         : 0;
+
+  channel_count = 0;
+  channel_total = json_object_array_length(channels_obj);
+  for (channel_index = 0; channel_index < channel_total && channel_count < I3_MAX_CHANNELS;
+       channel_index++)
+  {
+    channel_obj = json_object_array_get_idx(channels_obj, channel_index);
+    if (!channel_obj || !json_object_is_type(channel_obj, json_type_object))
+    {
+      continue;
+    }
+
+    value_obj = NULL;
+    if (!json_object_object_get_ex(channel_obj, "name", &value_obj))
+    {
+      continue;
+    }
+    channel_name = json_object_get_string(value_obj);
+    if (!channel_name || !*channel_name)
+    {
+      continue;
+    }
+
+    strlcpy(new_channels[channel_count].name, channel_name,
+            sizeof(new_channels[channel_count].name));
+    i3_copy_json_string(channel_obj, "owner", new_channels[channel_count].owner,
+                        sizeof(new_channels[channel_count].owner));
+
+    value_obj = NULL;
+    if (json_object_object_get_ex(channel_obj, "type", &value_obj))
+    {
+      new_channels[channel_count].type = json_object_get_int(value_obj);
+    }
+    value_obj = NULL;
+    if (json_object_object_get_ex(channel_obj, "member_count", &value_obj))
+    {
+      new_channels[channel_count].member_count = json_object_get_int(value_obj);
+    }
+
+    for (subscribed_index = 0; subscribed_index < subscribed_total; subscribed_index++)
+    {
+      subscribed_value = json_object_array_get_idx(subscribed_obj, subscribed_index);
+      subscribed_name = json_object_get_string(subscribed_value);
+      if (subscribed_name && !strcasecmp(channel_name, subscribed_name))
+      {
+        new_channels[channel_count].subscribed = 1;
+        break;
+      }
+    }
+    channel_count++;
+  }
+
+  memcpy(i3_client->channels, new_channels, sizeof(i3_client->channels));
+  i3_client->channel_count = channel_count;
+  free(new_channels);
+
+  i3_log("Updated local channel list with %d entries", channel_count);
+}
+
+static struct char_data *i3_reply_recipient(i3_event_t *event)
+{
+  if (!event->to_user[0] || !strcmp(event->to_user, "*"))
+  {
+    return NULL;
+  }
+  return get_player_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
+}
+
+static void i3_deliver_who_reply(i3_event_t *event)
+{
+  struct char_data *victim;
+  json_object *params_obj;
+  json_object *users_obj;
+  json_object *user_obj;
+  json_object *value_obj;
+  const char *name;
+  const char *extra;
+  size_t user_count;
+  size_t index;
+  int idle;
+  int level;
+
+  victim = i3_reply_recipient(event);
+  params_obj = (json_object *)event->data;
+  users_obj = NULL;
+  if (!victim || !params_obj || !json_object_object_get_ex(params_obj, "users", &users_obj) ||
+      !json_object_is_type(users_obj, json_type_array))
+  {
+    i3_log("Who reply from %s had no online recipient", event->from_mud);
+    return;
+  }
+
+  user_count = json_object_array_length(users_obj);
+  send_to_char(victim, "%sI3 who list for %s (%zu player%s):%s\r\n", CCYEL(victim, C_NRM),
+               event->from_mud, user_count, user_count == 1 ? "" : "s", CCNRM(victim, C_NRM));
+  for (index = 0; index < user_count; index++)
+  {
+    user_obj = json_object_array_get_idx(users_obj, index);
+    if (!user_obj || !json_object_is_type(user_obj, json_type_object))
+    {
+      continue;
+    }
+
+    name = "Unknown";
+    extra = "";
+    idle = 0;
+    level = 0;
+    value_obj = NULL;
+    if (json_object_object_get_ex(user_obj, "name", &value_obj))
+    {
+      name = json_object_get_string(value_obj);
+    }
+    value_obj = NULL;
+    if (json_object_object_get_ex(user_obj, "extra", &value_obj))
+    {
+      extra = json_object_get_string(value_obj);
+    }
+    value_obj = NULL;
+    if (json_object_object_get_ex(user_obj, "idle", &value_obj))
+    {
+      idle = json_object_get_int(value_obj);
+    }
+    value_obj = NULL;
+    if (json_object_object_get_ex(user_obj, "level", &value_obj))
+    {
+      level = json_object_get_int(value_obj);
+    }
+    send_to_char(victim, "  %-20s level %-4d idle %-6d %s\r\n", name ? name : "Unknown", level,
+                 idle, extra ? extra : "");
+  }
+}
+
+static void i3_deliver_finger_reply(i3_event_t *event)
+{
+  struct char_data *victim;
+  json_object *params_obj;
+  json_object *info_obj;
+  json_object *value_obj;
+  const char *name;
+  const char *title;
+  const char *real_name;
+  const char *email;
+  int level;
+  int idle;
+
+  victim = i3_reply_recipient(event);
+  params_obj = (json_object *)event->data;
+  info_obj = NULL;
+  if (!victim || !params_obj || !json_object_object_get_ex(params_obj, "user_info", &info_obj) ||
+      !json_object_is_type(info_obj, json_type_object))
+  {
+    i3_log("Finger reply from %s had no online recipient", event->from_mud);
+    return;
+  }
+
+  if (json_object_object_length(info_obj) == 0)
+  {
+    send_to_char(victim, "No finger information was returned by %s.\r\n", event->from_mud);
+    return;
+  }
+
+  name = "Unknown";
+  title = "";
+  real_name = "";
+  email = "";
+  level = 0;
+  idle = 0;
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "name", &value_obj))
+  {
+    name = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "title", &value_obj))
+  {
+    title = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "real_name", &value_obj))
+  {
+    real_name = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "email", &value_obj))
+  {
+    email = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "level", &value_obj))
+  {
+    level = json_object_get_int(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(info_obj, "idle_time", &value_obj))
+  {
+    idle = json_object_get_int(value_obj);
+  }
+
+  send_to_char(victim, "%sI3 finger for %s@%s:%s\r\n", CCYEL(victim, C_NRM),
+               name ? name : "Unknown", event->from_mud, CCNRM(victim, C_NRM));
+  send_to_char(victim, "  Title: %s\r\n", title ? title : "");
+  send_to_char(victim, "  Real name: %s\r\n", real_name ? real_name : "");
+  send_to_char(victim, "  Email: %s\r\n", email ? email : "");
+  send_to_char(victim, "  Level: %d  Idle: %d seconds\r\n", level, idle);
+}
+
+static void i3_deliver_locate_reply(i3_event_t *event)
+{
+  struct char_data *victim;
+  json_object *params_obj;
+  json_object *value_obj;
+  const char *located_mud;
+  const char *located_user;
+  const char *status;
+  int idle;
+
+  victim = i3_reply_recipient(event);
+  params_obj = (json_object *)event->data;
+  if (!victim || !params_obj)
+  {
+    i3_log("Locate reply from %s had no online recipient", event->from_mud);
+    return;
+  }
+
+  located_mud = "";
+  located_user = "";
+  status = "";
+  idle = 0;
+  value_obj = NULL;
+  if (json_object_object_get_ex(params_obj, "located_mud", &value_obj))
+  {
+    located_mud = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(params_obj, "located_user", &value_obj))
+  {
+    located_user = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(params_obj, "status", &value_obj))
+  {
+    status = json_object_get_string(value_obj);
+  }
+  value_obj = NULL;
+  if (json_object_object_get_ex(params_obj, "idle", &value_obj))
+  {
+    idle = json_object_get_int(value_obj);
+  }
+
+  if (!located_mud || !*located_mud)
+  {
+    send_to_char(victim, "No matching I3 user was reported by %s.\r\n", event->from_mud);
+    return;
+  }
+
+  send_to_char(victim, "%sI3 locate:%s %s is on %s (idle %d seconds)%s%s\r\n", CCYEL(victim, C_NRM),
+               CCNRM(victim, C_NRM), located_user && *located_user ? located_user : "User",
+               located_mud, idle, status && *status ? " - " : "", status && *status ? status : "");
+}
+
 /* Process events from the queue - called from main thread */
 void i3_process_events(void)
 {
   i3_event_t *event;
   struct char_data *victim;
+  unsigned char signal_buffer[64];
+
+  if (!i3_client)
+  {
+    return;
+  }
+
+  if (i3_client->event_signal_read_fd >= 0)
+  {
+    while (read(i3_client->event_signal_read_fd, signal_buffer, sizeof(signal_buffer)) > 0)
+    {
+      /* Drain all pending wake bytes before processing the event queue. */
+    }
+  }
 
   while ((event = i3_pop_event()) != NULL)
   {
     switch (event->type)
     {
     case I3_MSG_TELL:
+    case I3_MSG_EMOTETO:
       /* Find the target player and deliver the tell */
       victim = get_player_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
       if (victim)
       {
-        send_to_char(victim, "%s[I3 Tell] %s@%s tells you: %s%s\r\n", CCYEL(victim, C_NRM),
-                     event->from_user, event->from_mud, event->message, CCNRM(victim, C_NRM));
-        i3_log("Delivered tell from %s@%s to %s", event->from_user, event->from_mud,
+        if (event->type == I3_MSG_TELL)
+        {
+          send_to_char(victim, "%s[I3 Tell] %s@%s tells you: %s%s\r\n", CCYEL(victim, C_NRM),
+                       event->from_user, event->from_mud, event->message, CCNRM(victim, C_NRM));
+        }
+        else
+        {
+          send_to_char(victim, "%s[I3 Emote] %s@%s %s%s\r\n", CCYEL(victim, C_NRM),
+                       event->from_user, event->from_mud, event->message, CCNRM(victim, C_NRM));
+        }
+        i3_log("Delivered direct message from %s@%s to %s", event->from_user, event->from_mud,
                event->to_user);
       }
       else
       {
-        i3_log("Tell from %s@%s to %s: player not found", event->from_user, event->from_mud,
-               event->to_user);
+        i3_log("Direct message from %s@%s to %s: player not found", event->from_user,
+               event->from_mud, event->to_user);
       }
       break;
 
     case I3_MSG_CHANNEL:
+    case I3_MSG_CHANNEL_EMOTE:
       /* Broadcast channel message to all online players */
       /* TODO: Implement channel subscription system */
       {
@@ -972,9 +1867,18 @@ void i3_process_events(void)
         {
           if (STATE(d) == CON_PLAYING && d->character)
           {
-            send_to_char(d->character, "%s[I3:%s] %s@%s: %s%s\r\n", CCYEL(d->character, C_NRM),
-                         event->channel, event->from_user, event->from_mud, event->message,
-                         CCNRM(d->character, C_NRM));
+            if (event->type == I3_MSG_CHANNEL)
+            {
+              send_to_char(d->character, "%s[I3:%s] %s@%s: %s%s\r\n", CCYEL(d->character, C_NRM),
+                           event->channel, event->from_user, event->from_mud, event->message,
+                           CCNRM(d->character, C_NRM));
+            }
+            else
+            {
+              send_to_char(d->character, "%s[I3:%s] * %s@%s %s%s\r\n", CCYEL(d->character, C_NRM),
+                           event->channel, event->from_user, event->from_mud, event->message,
+                           CCNRM(d->character, C_NRM));
+            }
           }
         }
         i3_log("Broadcast channel message from %s@%s on %s", event->from_user, event->from_mud,
@@ -982,9 +1886,49 @@ void i3_process_events(void)
       }
       break;
 
+    case I3_MSG_WHO_REPLY:
+      i3_deliver_who_reply(event);
+      break;
+
+    case I3_MSG_FINGER_REPLY:
+      i3_deliver_finger_reply(event);
+      break;
+
+    case I3_MSG_LOCATE_REPLY:
+      i3_deliver_locate_reply(event);
+      break;
+
+    case I3_MSG_MUDLIST_REPLY:
+      i3_update_mudlist((json_object *)event->data);
+      break;
+
+    case I3_MSG_CHANNEL_LIST_REPLY:
+      i3_update_channel_list((json_object *)event->data);
+      break;
+
+    case I3_MSG_CHANNEL_JOIN:
+    case I3_MSG_CHANNEL_LEAVE:
+    {
+      i3_channel_t *channel;
+
+      channel = i3_find_channel(event->channel);
+      if (channel)
+      {
+        channel->subscribed = event->type == I3_MSG_CHANNEL_JOIN;
+      }
+      i3_log("%s channel %s", event->type == I3_MSG_CHANNEL_JOIN ? "Joined" : "Left",
+             event->channel);
+    }
+    break;
+
     case I3_MSG_ERROR:
       /* Log errors */
       i3_error("I3 Error: %s", event->message);
+      victim = i3_reply_recipient(event);
+      if (victim)
+      {
+        send_to_char(victim, "Intermud3 error: %s\r\n", event->message);
+      }
       break;
 
     default:
@@ -994,6 +1938,16 @@ void i3_process_events(void)
 
     i3_free_event(event);
   }
+}
+
+int i3_get_event_fd(void)
+{
+  if (!i3_client)
+  {
+    return -1;
+  }
+
+  return i3_client->event_signal_read_fd;
 }
 
 /* Logging functions */

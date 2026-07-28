@@ -180,6 +180,27 @@ void TestWebOnboardingPasswordScreensAreMarkedSensitive(CuTest *tc)
   }
 }
 
+void TestWebOnboardingNameValidationErrorsAreStructured(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  init_test_descriptor(&d, CON_GET_NAME);
+  web_onboarding_set_error(&d, WEB_ONBOARDING_ERROR_NAME_TAKEN);
+
+  CuAssertTrue(tc, d.web_onboarding_dirty);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"name\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"code\":\"name-taken\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"field\":\"name\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "already in use"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"sensitiveInput\":false"));
+
+  web_onboarding_reset(&d);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strstr(payload, "\"error\":") == NULL);
+}
+
 void TestWebOnboardingSexChoicesUseServerWireValues(CuTest *tc)
 {
   struct descriptor_data d;

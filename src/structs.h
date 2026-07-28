@@ -7453,6 +7453,7 @@ struct descriptor_data
   int web_onboarding_revision;   /**< Increases on every emitted onboarding state */
   int web_onboarding_last_state; /**< Last CON_ state emitted, -1 = none */
   bool web_onboarding_dirty;     /**< Force a re-emit at the same state */
+  int web_onboarding_error;      /**< Bounded validation error enum, 0 = none */
 };
 
 /* other miscellaneous structures */

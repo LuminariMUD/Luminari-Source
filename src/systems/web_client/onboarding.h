@@ -23,6 +23,14 @@ struct descriptor_data;
 /* Keep well under protocol.h's MAX_VARIABLE_LENGTH of 16384. */
 #define WEB_ONBOARDING_MAX_PAYLOAD 15000
 
+/* Bounded, server-authored validation failures that may be shown to clients. */
+enum web_onboarding_error
+{
+  WEB_ONBOARDING_ERROR_NONE = 0,
+  WEB_ONBOARDING_ERROR_INVALID_NAME,
+  WEB_ONBOARDING_ERROR_NAME_TAKEN
+};
+
 /* Record the client-declared protocol version during MSDP negotiation. */
 void web_onboarding_set_capability(struct descriptor_data *d, const char *value);
 
@@ -34,6 +42,9 @@ void web_onboarding_tick(struct descriptor_data *d);
 
 /* Force the next tick to re-emit, e.g. after a validation failure. */
 void web_onboarding_mark_dirty(struct descriptor_data *d);
+
+/* Attach a bounded validation failure and force a same-state refresh. */
+void web_onboarding_set_error(struct descriptor_data *d, enum web_onboarding_error error);
 
 /* Clear per-connection onboarding tracking. */
 void web_onboarding_reset(struct descriptor_data *d);

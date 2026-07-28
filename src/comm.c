@@ -952,11 +952,24 @@ void game_loop(socket_t local_mother_desc)
     /* Sleep if we don't have any connections */
     if (descriptor_list == NULL)
     {
+      int i3_event_fd;
+      int max_sleep_desc;
+      int select_result;
+
       log("No connections.  Going to sleep.");
       FD_ZERO(&input_set);
       FD_SET(local_mother_desc, &input_set);
 
-      int max_sleep_desc = local_mother_desc;
+      max_sleep_desc = local_mother_desc;
+      i3_event_fd = i3_get_event_fd();
+      if (i3_event_fd >= 0)
+      {
+        FD_SET(i3_event_fd, &input_set);
+        if (i3_event_fd > max_sleep_desc)
+        {
+          max_sleep_desc = i3_event_fd;
+        }
+      }
 
       /* Add terrain bridge server socket to wake up on API connections */
       if (terrain_api_is_running())
@@ -970,12 +983,17 @@ void game_loop(socket_t local_mother_desc)
         }
       }
 
-      if (select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL) < 0)
+      select_result = select(max_sleep_desc + 1, &input_set, (fd_set *)0, (fd_set *)0, NULL);
+      if (select_result < 0)
       {
         if (errno == EINTR)
           log("Waking up to process signal.");
         else
           perror("SYSERR: Select coma");
+      }
+      else if (i3_event_fd >= 0 && FD_ISSET(i3_event_fd, &input_set))
+      {
+        i3_process_events();
       }
       else
         log("New connection.  Waking up.");
