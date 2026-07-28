@@ -939,6 +939,8 @@ static void build_actions(struct json_writer *w, const struct onboarding_screen_
 
   if (!strcmp(screen->input_kind, "confirm"))
     json_raw(w, "\"confirm\",\"reselect\"");
+  else if (screen->state == CON_ACCOUNT_ADD)
+    json_raw(w, "\"submit\",\"cancel\"");
   else if (!strcmp(screen->input_kind, "choice"))
     json_raw(w, "\"select\",\"detail\"");
   else
@@ -1017,11 +1019,11 @@ static void build_choices(struct json_writer *w, struct descriptor_data *d,
                         "Leave every setting as it is; you can change them in game.");
     break;
   case CON_CHAR_RP_DECIDE:
-    build_simple_choice(w, "roleplayer", "Fill in role-play details", "1",
+    build_simple_choice(w, "roleplayer", "Fill in role-play details", "2",
                         "roleplay/choice-roleplayer",
                         "Describe your character's background, goals, and personality.");
     json_raw(w, ",");
-    build_simple_choice(w, "non-roleplayer", "Skip role-play details", "2",
+    build_simple_choice(w, "non-roleplayer", "Skip role-play details", "1",
                         "roleplay/choice-non-roleplayer", "Head straight into the world.");
     json_raw(w, ",");
     build_simple_choice(w, "later", "Decide later", "3", "roleplay/choice-later",

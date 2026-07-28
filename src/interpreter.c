@@ -7013,6 +7013,14 @@ void nanny(struct descriptor_data *d, char *arg)
       GET_HOST(d->character) = strdup(d->host);
       d->character->desc = d;
     }
+    if (!strcasecmp(arg, "q"))
+    {
+      free_char(d->character);
+      d->character = NULL;
+      show_account_menu(d);
+      STATE(d) = CON_ACCOUNT_MENU;
+      return;
+    }
     if (!*arg)
       STATE(d) = CON_CLOSE;
     else

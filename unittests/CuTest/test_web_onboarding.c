@@ -238,6 +238,29 @@ void TestWebOnboardingBuildChoicesUseStateMachineWireValues(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(payload, "build/custom"));
 }
 
+void TestWebOnboardingRoleplayChoicesUseStateMachineWireValues(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  init_test_descriptor(&d, CON_CHAR_RP_DECIDE);
+
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, json_is_balanced(payload));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"roleplay-decision\""));
+
+  /* CON_CHAR_RP_DECIDE uses 1 for non-role-player, 2 for role-player, and 3
+   * for deciding later. The media labels must preserve that exact mapping. */
+  CuAssertPtrNotNull(tc, strstr(payload,
+                                "\"id\":\"roleplayer\",\"label\":\"Fill in role-play details\","
+                                "\"wireValue\":\"2\""));
+  CuAssertPtrNotNull(tc, strstr(payload,
+                                "\"id\":\"non-roleplayer\",\"label\":\"Skip role-play details\","
+                                "\"wireValue\":\"1\""));
+  CuAssertPtrNotNull(
+      tc, strstr(payload, "\"id\":\"later\",\"label\":\"Decide later\",\"wireValue\":\"3\""));
+}
+
 void TestWebOnboardingPersistenceReportsTheSaveBoundary(CuTest *tc)
 {
   struct descriptor_data d;
@@ -375,4 +398,11 @@ void TestWebOnboardingChoiceScreensOfferTheRightActions(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(payload, "\"create-character\""));
   CuAssertPtrNotNull(tc, strstr(payload, "\"link-character\""));
   CuAssertPtrNotNull(tc, strstr(payload, "\"quit\""));
+
+  /* Linking has an explicit return path instead of treating an empty response
+   * as a disconnect. */
+  init_test_descriptor(&d, CON_ACCOUNT_ADD);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"submit\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"cancel\""));
 }
