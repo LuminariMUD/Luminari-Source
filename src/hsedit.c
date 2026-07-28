@@ -169,7 +169,7 @@ void hsedit_save_to_disk(void)
 
 /*------------------------------------------------------------------------*/
 
-void free_house(struct house_control_rec *house)
+void free_house(struct house_control_rec *house __attribute__((unused)))
 {
   /* House structure has no strings to free                */
   /* This function is here in case someone adds some later */
@@ -179,29 +179,30 @@ void free_house(struct house_control_rec *house)
 
 void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
 {
-  house_rnum i;
-  int j;
+  house_rnum house_index;
+  int i, j;
   room_rnum real_atrium, real_house;
 
-  if ((i = find_house(house_vnum)) == NOWHERE)
+  if ((house_index = find_house(house_vnum)) == NOWHERE)
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: hsedit: Invalid house vnum in hedit_delete_house\r\n");
     cleanup_olc(d, CLEANUP_STRUCTS);
     return;
   }
-  if ((real_atrium = real_room(house_control[i].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %d!", house_vnum, house_control[i].atrium);
+  if ((real_atrium = real_room(house_control[house_index].atrium)) == NOWHERE)
+    log("SYSERR: House %d had invalid atrium %d!", house_vnum,
+        house_control[house_index].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 
-  if ((real_house = real_room(house_control[i].vnum)) == NOWHERE)
-    log("SYSERR: House %d had invalid vnum %d!", house_vnum, house_control[i].vnum);
+  if ((real_house = real_room(house_control[house_index].vnum)) == NOWHERE)
+    log("SYSERR: House %d had invalid vnum %d!", house_vnum, house_control[house_index].vnum);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE | ROOM_PRIVATE | ROOM_HOUSE_CRASH);
 
-  House_delete_file(house_control[i].vnum);
+  House_delete_file(house_control[house_index].vnum);
 
-  for (j = i; j < num_of_houses - 1; j++)
+  for (j = (int)house_index; j < num_of_houses - 1; j++)
     house_control[j] = house_control[j + 1];
 
   num_of_houses--;
@@ -272,13 +273,14 @@ void hsedit_dir_menu(struct descriptor_data *d)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   struct house_control_rec *house;
-  int house_rnum, newroom[6], i;
+  room_rnum house_room, newroom[6];
+  int i;
 
   house = OLC_HOUSE(d);
 
-  house_rnum = real_room(house->vnum);
+  house_room = real_room(house->vnum);
 
-  if ((house_rnum < 0) || (house_rnum == NOWHERE))
+  if (house_room == NOWHERE)
   {
     snprintf(
         buf, sizeof(buf),
@@ -293,8 +295,9 @@ void hsedit_dir_menu(struct descriptor_data *d)
     /* Grab exit rooms */
     for (i = 0; i < 6; i++)
     {
-      if (world[house_rnum].dir_option[i])
-        newroom[i] = world[house_rnum].dir_option[i]->to_room;
+      if (world[house_room].dir_option[i] &&
+          world[house_room].dir_option[i]->to_room <= top_of_world)
+        newroom[i] = world[house_room].dir_option[i]->to_room;
       else
         newroom[i] = NOWHERE;
     }
@@ -1102,7 +1105,7 @@ void hsedit_parse(struct descriptor_data *d, char *arg)
   hsedit_disp_menu(d);
 }
 
-void hsedit_string_cleanup(struct descriptor_data *d, int terminator)
+void hsedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {
@@ -1112,7 +1115,8 @@ void hsedit_string_cleanup(struct descriptor_data *d, int terminator)
 
 ACMD(do_oasis_hsedit)
 {
-  int number = NOWHERE, save = 0;
+  room_vnum number = NOWHERE;
+  int save = 0;
   house_rnum real_num;
   struct descriptor_data *d;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
@@ -1140,7 +1144,7 @@ ACMD(do_oasis_hsedit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = atoidx(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
@@ -1148,7 +1152,7 @@ ACMD(do_oasis_hsedit)
       if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
         number = NOWHERE;
       else
-        number = genolc_zone_bottom(zlok);
+        number = zone_table[zlok].number;
     }
 
     if (number == NOWHERE)
@@ -1162,7 +1166,7 @@ ACMD(do_oasis_hsedit)
   /** If a numeric argument was given, get it.                               **/
   /****************************************************************************/
   if (number == NOWHERE)
-    number = atoi(buf1);
+    number = atoidx(buf1);
 
   /****************************************************************************/
   /** Check that whatever it is isn't already being edited.                  **/

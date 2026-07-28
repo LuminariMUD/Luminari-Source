@@ -450,7 +450,7 @@ int stats_cost_chart[11] = {/* cost for total points */
                             /*0  1  2  3  4  5  6  7  8   9   10 */
                             0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16};
 
-int comp_base_dex(struct char_data *ch)
+int comp_base_dex(struct char_data *ch __attribute__((unused)))
 {
   int base_dex = BASE_STAT;
   /*
@@ -476,7 +476,7 @@ int comp_dex_cost(struct char_data *ch, int number)
   return stats_cost_chart[current_dex - base_dex];
 }
 
-int comp_base_str(struct char_data *ch)
+int comp_base_str(struct char_data *ch __attribute__((unused)))
 {
   int base_str = BASE_STAT;
   /*
@@ -505,7 +505,7 @@ int comp_str_cost(struct char_data *ch, int number)
   return stats_cost_chart[current_str - base_str];
 }
 
-int comp_base_con(struct char_data *ch)
+int comp_base_con(struct char_data *ch __attribute__((unused)))
 {
   int base_con = BASE_STAT;
   /*
@@ -537,7 +537,7 @@ int comp_con_cost(struct char_data *ch, int number)
   return stats_cost_chart[current_con - base_con];
 }
 
-int comp_base_inte(struct char_data *ch)
+int comp_base_inte(struct char_data *ch __attribute__((unused)))
 {
   int base_inte = BASE_STAT;
   /*
@@ -561,7 +561,7 @@ int comp_inte_cost(struct char_data *ch, int number)
   return stats_cost_chart[current_inte - base_inte];
 }
 
-int comp_base_wis(struct char_data *ch)
+int comp_base_wis(struct char_data *ch __attribute__((unused)))
 {
   int base_wis = BASE_STAT;
   /*
@@ -585,7 +585,7 @@ int comp_wis_cost(struct char_data *ch, int number)
   return stats_cost_chart[current_wis - base_wis];
 }
 
-int comp_base_cha(struct char_data *ch)
+int comp_base_cha(struct char_data *ch __attribute__((unused)))
 {
   int base_cha = BASE_STAT;
   /*
@@ -1292,7 +1292,7 @@ int check_npc_followers(struct char_data *ch, int mode, int variable)
         break;
 
       case NPC_MODE_SPECIFIC:
-        if (GET_MOB_VNUM(pet) == variable)
+        if (GET_MOB_VNUM(pet) == (mob_vnum)variable)
         {
           vnum_count++;
         }
@@ -3900,8 +3900,10 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
                  bool show_nums)
 {
   size_t max_len = 0;
-  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len;
+  int num_per_col, col_width, r, c, i, offset = 0, temp_len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char entry[MAX_STRING_LENGTH] = {'\0'};
+  bool overflow = false;
 
   /* Work out the longest list item */
   for (i = 0; i < list_length; i++)
@@ -3912,6 +3914,86 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
   if (num_cols == 0)
   {
     num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / ((int)max_len + (show_nums ? 5 : 1));
+  }
+
+  /* Ensure that the number of columns is in the range 1-10 */
+  num_cols = MIN(MAX(num_cols, 1), 10);
+
+  /* Calculate the width of each column */
+  if (IS_NPC(ch))
+    col_width = 80 / num_cols;
+  else
+    col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
+
+  if (show_nums)
+    col_width -= 4;
+
+  if (col_width < 0 || (size_t)col_width < max_len)
+    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)",
+        GET_NAME(ch));
+
+  /* Calculate how many list items there should be per column */
+  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
+
+  /* Fill 'buf' with the columnised list */
+  for (r = 0; r < num_per_col && !overflow; r++)
+  {
+    for (c = 0; c < num_cols; c++)
+    {
+      offset = (c * num_per_col) + r;
+      if (offset < list_length)
+      {
+        if (show_nums)
+          temp_len = snprintf(entry, sizeof(entry), "%2d) %-*s", offset + 1, col_width,
+                              list[offset]);
+        else
+          temp_len = snprintf(entry, sizeof(entry), "%-*s", col_width, list[offset]);
+        if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
+            strlcat(buf, entry, sizeof(buf)) >= sizeof(buf))
+        {
+          overflow = true;
+          break;
+        }
+      }
+    }
+    if (!overflow && strlcat(buf, "\r\n", sizeof(buf)) >= sizeof(buf))
+      overflow = true;
+  }
+
+  if (overflow)
+    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
+
+  /* Send the list to the player */
+  page_string(ch->desc, buf, TRUE);
+}
+
+/* column_list
+   The list is output in a fixed format, and only the number of columns can be adjusted
+   This function will output the list to the player
+   Vars:
+     ch          - the player
+     num_cols    - the desired number of columns
+     list        - a pointer to a list of strings
+     list_length - So we can work with lists that don't end with /n
+     show_nums   - when set to TRUE, it will show a number before the list entry.
+ */
+void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
+                         const char **list, int list_length, bool show_nums)
+{
+  size_t max_len = 0;
+  int num_per_col, col_width, r, c, i, offset = 0, temp_len;
+  char buf[MAX_STRING_LENGTH] = {'\0'};
+  char entry[MAX_STRING_LENGTH] = {'\0'};
+  bool highlight = false;
+  bool overflow = false;
+
+  if (!ch || !obj)
+    return;
+
+  /* auto columns case */
+  if (num_cols == 0)
+  {
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
   }
 
   /* Ensure that the number of columns is in the range 1-10 */
@@ -3939,89 +4021,7 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
   num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
 
   /* Fill 'buf' with the columnised list */
-  for (r = 0; r < num_per_col; r++)
-  {
-    for (c = 0; c < num_cols; c++)
-    {
-      offset = (c * num_per_col) + r;
-      if (offset < list_length)
-      {
-        if (show_nums)
-          temp_len = snprintf(buf + len, sizeof(buf) - len, "%2d) %-*s", offset + 1, col_width,
-                              list[(offset)]);
-        else
-          temp_len = snprintf(buf + len, sizeof(buf) - len, "%-*s", col_width, list[(offset)]);
-        len += temp_len;
-      }
-    }
-    temp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
-    len += temp_len;
-  }
-
-  if (len >= sizeof(buf))
-    snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
-
-  /* Send the list to the player */
-  page_string(ch->desc, buf, TRUE);
-}
-
-/* column_list
-   The list is output in a fixed format, and only the number of columns can be adjusted
-   This function will output the list to the player
-   Vars:
-     ch          - the player
-     num_cols    - the desired number of columns
-     list        - a pointer to a list of strings
-     list_length - So we can work with lists that don't end with /n
-     show_nums   - when set to TRUE, it will show a number before the list entry.
- */
-void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_cols,
-                         const char **list, int list_length, bool show_nums)
-{
-  if (!ch || !obj)
-    return;
-
-  int num_per_col, col_width, r, c, i, offset = 0, len = 0, temp_len, max_len = 0;
-  char buf[MAX_STRING_LENGTH] = {'\0'};
-  bool highlight = false;
-
-  /* Work out the longest list item */
-  for (i = 0; i < list_length; i++)
-    if (max_len < strlen(list[i]))
-      max_len = strlen(list[i]);
-
-  /* auto columns case */
-  if (num_cols == 0)
-  {
-    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
-  }
-
-  /* Ensure that the number of columns is in the range 1-10 */
-  num_cols = MIN(MAX(num_cols, 1), 10);
-
-  /* Work out the longest list item */
-  for (i = 0; i < list_length; i++)
-    if (max_len < strlen(list[i]))
-      max_len = strlen(list[i]);
-
-  /* Calculate the width of each column */
-  if (IS_NPC(ch))
-    col_width = 80 / num_cols;
-  else
-    col_width = (GET_SCREEN_WIDTH(ch)) / num_cols;
-
-  if (show_nums)
-    col_width -= 4;
-
-  if (col_width < max_len)
-    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)",
-        GET_NAME(ch));
-
-  /* Calculate how many list items there should be per column */
-  num_per_col = (list_length / num_cols) + ((list_length % num_cols) ? 1 : 0);
-
-  /* Fill 'buf' with the columnised list */
-  for (r = 0; r < num_per_col; r++)
+  for (r = 0; r < num_per_col && !overflow; r++)
   {
     for (c = 0; c < num_cols; c++)
     {
@@ -4031,19 +4031,24 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
         highlight = highlight_apply_by_obj(obj, offset);
 
         if (show_nums)
-          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%2d) %-*s\tn",
-                              highlight ? "\tC" : "", offset + 1, col_width, list[(offset)]);
+          temp_len = snprintf(entry, sizeof(entry), "%s%2d) %-*s\tn",
+                              highlight ? "\tC" : "", offset + 1, col_width, list[offset]);
         else
-          temp_len = snprintf(buf + len, sizeof(buf) - len, "%s%-*s\tn", highlight ? "\tC" : "",
-                              col_width, list[(offset)]);
-        len += temp_len;
+          temp_len = snprintf(entry, sizeof(entry), "%s%-*s\tn", highlight ? "\tC" : "",
+                              col_width, list[offset]);
+        if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
+            strlcat(buf, entry, sizeof(buf)) >= sizeof(buf))
+        {
+          overflow = true;
+          break;
+        }
       }
     }
-    temp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
-    len += temp_len;
+    if (!overflow && strlcat(buf, "\r\n", sizeof(buf)) >= sizeof(buf))
+      overflow = true;
   }
 
-  if (len >= sizeof(buf))
+  if (overflow)
     snprintf((buf + MAX_STRING_LENGTH) - 22, 22, "\r\n*** OVERFLOW ***\r\n");
 
   /* Send the list to the player */
@@ -4333,7 +4338,7 @@ IDXTYPE atoidx(const char *str_to_conv)
    next line will start with the same color.
    Ends every line with \tn to prevent color bleeds.
  */
-char *strfrmt(char *str, int w, int h, int justify, int hpad, int vpad)
+char *strfrmt(char *str, int w, int h, int justify __attribute__((unused)), int hpad, int vpad)
 {
   static char ret[MAX_STRING_LENGTH] = {'\0'};
   char line[MAX_INPUT_LENGTH] = {'\0'};
@@ -6377,7 +6382,7 @@ bool is_fear_spell(int spellnum)
   return false;
 }
 
-void remove_fear_affects(struct char_data *ch, sbyte display)
+void remove_fear_affects(struct char_data *ch, sbyte display __attribute__((unused)))
 {
   // aura of cowardice nullifies any fear immunity
   if (affected_by_aura_of_cowardice(ch))
@@ -6813,13 +6818,13 @@ int find_ability_num_by_name(char *name)
   char skOne[MEDIUM_STRING] = {'\0'};
   int i = 0, j = 0;
 
-  for (i = 0; i < strlen(name); i++)
+  for (i = 0; (size_t)i < strlen(name); i++)
     name[i] = tolower(name[i]);
 
   for (j = START_GENERAL_ABILITIES; j < NUM_ABILITIES; j++)
   {
     snprintf(skOne, sizeof(skOne), "%s", ability_names[j]);
-    for (i = 0; i < strlen(skOne); i++)
+    for (i = 0; (size_t)i < strlen(skOne); i++)
       skOne[i] = tolower(skOne[i]);
     if (!strcmp(name, skOne))
       return j;
@@ -8500,7 +8505,7 @@ int count_teamwork_feats_available(struct char_data *ch)
   return (available - known);
 }
 
-bool can_silence(struct char_data *ch)
+bool can_silence(struct char_data *ch __attribute__((unused)))
 {
   return true;
 }
@@ -8918,7 +8923,7 @@ char *apply_types_lowercase(int apply_type)
 
   snprintf(apply_text, sizeof(apply_text), "%s", apply_types[apply_type]);
 
-  for (i = 0; i < strlen(apply_text); i++)
+  for (i = 0; (size_t)i < strlen(apply_text); i++)
   {
     apply_text[i] = tolower(apply_text[i]);
     if (apply_text[i] == '-')
@@ -9985,8 +9990,7 @@ int countlines(char *filename)
   int lines = 0;
 
   if (fp == NULL)
-    ;
-  return 0;
+    return 0;
 
   lines++;
   while ((ch = fgetc(fp)) != EOF)
@@ -10191,21 +10195,24 @@ int get_bonus_from_liquid_type(int liquid)
 
 bool is_road_room(room_rnum room, int type)
 {
+  zone_rnum zone;
+
   if (room == NOWHERE)
     return false;
 
   // log("R: %d, Z: %d, T: %d\n", room, GET_ROOM_ZONE(room), type);
 
-  if (GET_ROOM_ZONE(room) == -1)
+  zone = GET_ROOM_ZONE(room);
+  if (zone == NOWHERE)
     return false;
 
-  if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_MISSIONS) && type == 1)
+  if (ZONE_FLAGGED(zone, ZONE_MISSIONS) && type == 1)
     return true;
-  else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_HUNTS) && type == 2)
+  else if (ZONE_FLAGGED(zone, ZONE_HUNTS) && type == 2)
     return true;
-  else if (ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_RANDOM_ENCOUNTERS) && type == 3)
+  else if (ZONE_FLAGGED(zone, ZONE_RANDOM_ENCOUNTERS) && type == 3)
     return true;
-  else if (!ZONE_FLAGGED(GET_ROOM_ZONE(room), ZONE_OPEN))
+  else if (!ZONE_FLAGGED(zone, ZONE_OPEN))
     return false;
   else if (world[room].sector_type == SECT_ROAD_EW)
     return true;
@@ -10465,7 +10472,7 @@ bool has_sage_mob_bonus(struct char_data *ch)
         {
           if (!IS_NPC(mob))
             continue;
-          if (GET_MOB_VNUM(mob) == GET_SAGE_MOB_VNUM(tch))
+          if (GET_MOB_VNUM(mob) == (mob_vnum)GET_SAGE_MOB_VNUM(tch))
           {
             result = true;
             break;
@@ -11391,7 +11398,7 @@ bool has_intro(struct char_data *ch, struct char_data *target)
   return FALSE;
 }
 
-char *which_desc(struct char_data *ch, struct char_data *target)
+char *which_desc(struct char_data *ch __attribute__((unused)), struct char_data *target)
 {
   if (!target)
     return strdup("error");

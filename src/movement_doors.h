@@ -30,7 +30,7 @@
 #define DOOR_IS_LOCKED(ch, obj, door) (!(DOOR_IS_UNLOCKED(ch, obj, door)))
 #define DOOR_KEY(ch, obj, door)                                                                    \
   ((obj) ? ((GET_OBJ_TYPE(obj) == ITEM_TREASURE_CHEST) ? 0 : GET_OBJ_VAL(obj, 2))                  \
-         : (EXIT(ch, door)->key))
+         : (int)(EXIT(ch, door)->key))
 
 /* Function declarations for door handling */
 int is_evaporating_key(struct char_data *ch, obj_vnum key);

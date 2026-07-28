@@ -84,9 +84,8 @@ if test "x$GCC" = xyes; then
     CFLAGS=$OLDCFLAGS
   ])
 
-  dnl Since char-subscript warnings have been fixed, use -Wall
-  dnl -Wunused-parameter generates too many warnings in this codebase
-  MYFLAGS="-Wall"
+  dnl Keep the default warning set aligned with the CMake build.
+  MYFLAGS="-Wall -Wextra"
 
 else
   dnl We aren't using gcc so we can't assume any special flags.

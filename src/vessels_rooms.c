@@ -200,7 +200,7 @@ static const struct room_template *resolve_room_template(enum ship_room_type typ
     return &db_room_templates[type];
   }
 
-  for (i = 0; i < sizeof(room_templates) / sizeof(room_templates[0]); i++)
+  for (i = 0; (size_t)i < sizeof(room_templates) / sizeof(room_templates[0]); i++)
   {
     if (room_templates[i].type == type)
     {
@@ -453,7 +453,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 /* Add a room to the ship */
 void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
 {
-  int room_vnum;
+  room_vnum room_vnum;
 
   if (ship->num_rooms >= MAX_SHIP_ROOMS)
   {
@@ -852,7 +852,7 @@ struct greyhawk_ship_data *get_ship_from_room(room_rnum room)
 {
   int i;
 
-  if (room == NOWHERE || room < 0 || room > top_of_world)
+  if (room == NOWHERE || room > top_of_world)
   {
     return NULL;
   }
@@ -1095,7 +1095,7 @@ room_rnum get_ship_exit(struct greyhawk_ship_data *ship, room_rnum current, int 
     return NOWHERE;
   }
 
-  if (current == NOWHERE || current < 0 || current > top_of_world)
+  if (current == NOWHERE || current > top_of_world)
   {
     return NOWHERE;
   }
@@ -1150,7 +1150,7 @@ bool is_passage_blocked(struct greyhawk_ship_data *ship, room_rnum room, int dir
     return FALSE;
   }
 
-  if (room == NOWHERE || room < 0 || room > top_of_world)
+  if (room == NOWHERE || room > top_of_world)
   {
     return FALSE;
   }

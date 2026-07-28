@@ -487,7 +487,7 @@ static enum rename_tilde_block rename_tilde_block_start(const char *line)
     return RENAME_TILDE_BLOCK_INTRODUCTIONS_START;
   if (rename_line_has_pfile_tag(line, "Todo"))
     return RENAME_TILDE_BLOCK_TODO;
-  for (i = 0; i < sizeof(string_tags) / sizeof(string_tags[0]); i++)
+  for (i = 0; (size_t)i < sizeof(string_tags) / sizeof(string_tags[0]); i++)
     if (rename_line_has_pfile_tag(line, string_tags[i]))
       return RENAME_TILDE_BLOCK_STRING;
   return RENAME_TILDE_BLOCK_NONE;

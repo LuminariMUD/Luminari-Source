@@ -1208,7 +1208,7 @@ void hedit_parse(struct descriptor_data *d, char *arg)
   hedit_disp_menu(d);
 }
 
-void hedit_string_cleanup(struct descriptor_data *d, int terminator)
+void hedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {
@@ -2850,7 +2850,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
 
     /* Add line to content */
     int line_len = strlen(line);
-    if (content_len + line_len < sizeof(content) - 1)
+    if ((size_t)(content_len + line_len) < sizeof(content) - 1)
     {
       strcat(content, line);
       content_len += line_len;
@@ -2885,7 +2885,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
  * Import a single entry with conflict resolution
  * Modes: "preview" = don't save, "force" = overwrite, "merge" = intelligent merge
  */
-static int import_entry_with_resolution(struct char_data *ch, struct help_entry_list *entry,
+static int import_entry_with_resolution(struct char_data *ch __attribute__((unused)), struct help_entry_list *entry,
                                         int min_level, const char *mode, char *msg_buf,
                                         size_t msg_size)
 {

@@ -2006,7 +2006,7 @@ char *generate_fallback_response(const char *prompt)
 /**
  * Generate room description (stub for now)
  */
-char *ai_generate_room_desc(int room_vnum, int sector_type)
+char *ai_generate_room_desc(int room_vnum __attribute__((unused)), int sector_type __attribute__((unused)))
 {
   /* TODO: Implement room description generation */
   return NULL;
@@ -2015,7 +2015,7 @@ char *ai_generate_room_desc(int room_vnum, int sector_type)
 /**
  * Content moderation (stub for now)
  */
-bool ai_moderate_content(const char *text)
+bool ai_moderate_content(const char *text __attribute__((unused)))
 {
   /* TODO: Implement content moderation */
   return TRUE;

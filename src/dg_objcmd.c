@@ -22,7 +22,9 @@
 #include "fight.h"  /* for die() */
 
 /* Local functions */
-#define OCMD(name) void(name)(obj_data * obj, char *argument, int cmd, int subcmd)
+#define OCMD(name)                                                                                 \
+  void(name)(obj_data * obj __attribute__((unused)), char *argument __attribute__((unused)),      \
+             int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 static void obj_log(obj_data *obj, const char *format, ...);
 static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr);
@@ -135,7 +137,7 @@ static room_rnum find_obj_target_room(obj_data *obj, char *rawroomstr)
 /* Object commands */
 static OCMD(do_oecho)
 {
-  int room;
+  room_rnum room;
 
   skip_spaces(&argument);
 
@@ -175,7 +177,7 @@ static OCMD(do_ogecho)
 static OCMD(do_oforce)
 {
   char_data *ch, *next_ch;
-  int room;
+  room_rnum room;
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, *line;
 
   line = one_argument_u(argument, arg1);
@@ -218,7 +220,7 @@ static OCMD(do_oforce)
 
 static OCMD(do_ozoneecho)
 {
-  int zone;
+  zone_rnum zone;
   char room_number[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'}, *msg;
 
   msg = any_one_arg(argument, room_number);
@@ -361,7 +363,7 @@ static OCMD(do_opurge)
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char_data *ch, *next_ch;
   obj_data *o, *next_obj;
-  int rm;
+  room_rnum rm;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -511,7 +513,8 @@ static OCMD(do_oteleport)
 static OCMD(do_dgoload)
 {
   char arg1[MAX_INPUT_LENGTH] = {'\0'}, arg2[MAX_INPUT_LENGTH] = {'\0'};
-  int number = 0, room;
+  room_rnum room;
+  int number = 0;
   char_data *mob;
   obj_data *object;
   char *target;
@@ -693,7 +696,8 @@ static OCMD(do_odoor)
   char choices[256] = {'\0'};
   room_data *rm;
   struct room_direction_data *newexit;
-  int dir, fd, to_room;
+  room_rnum to_room;
+  int dir, fd;
 
   const char *const door_field[] = {"purge", "description", "flags", "key", "name", "room", "\n"};
 

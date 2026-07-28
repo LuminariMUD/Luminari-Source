@@ -61,7 +61,7 @@ void event_init(void)
 struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
 {
   struct event *new_event = NULL;
-  unsigned long target_time;
+  long target_time;
 
   /* Safety check: ensure event_q is initialized */
   if (!event_q)
@@ -105,14 +105,14 @@ struct event *event_create(EVENTFUNC(*func), void *event_obj, long when)
    *
    * SOLUTION: Check for overflow before doing the addition.
    * If overflow would occur, cap at maximum safe value. */
-  if (when > (LONG_MAX - pulse))
+  if (pulse > LONG_MAX || when > LONG_MAX - (long)pulse)
   {
     log("WARNING: event_create overflow prevented. Event scheduled for maximum future time.");
     target_time = LONG_MAX;
   }
   else
   {
-    target_time = when + pulse;
+    target_time = when + (long)pulse;
   }
 
   CREATE(new_event, struct event, 1);
@@ -313,14 +313,14 @@ void event_process(void)
     {
       /* FIX FOR INTEGER OVERFLOW when re-queueing:
        * Same overflow check as in event_create() */
-      if (new_time > (LONG_MAX - pulse))
+      if (pulse > LONG_MAX || new_time > LONG_MAX - (long)pulse)
       {
         log("WARNING: event re-queue overflow prevented. Event scheduled for maximum future time.");
         target_time = LONG_MAX;
       }
       else
       {
-        target_time = new_time + pulse;
+        target_time = new_time + (long)pulse;
       }
       the_event->q_el = queue_enq(event_q, the_event, target_time);
     }

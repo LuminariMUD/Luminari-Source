@@ -950,7 +950,7 @@ const char *get_depletion_level_name(float resource_level)
 /* ===== CONSERVATION FUNCTIONS ===== */
 
 /* Update a player's conservation score */
-void update_conservation_score(struct char_data *ch, int resource_type, bool sustainable)
+void update_conservation_score(struct char_data *ch, int resource_type __attribute__((unused)), bool sustainable)
 {
   char query[MAX_STRING_LENGTH];
   long player_id;

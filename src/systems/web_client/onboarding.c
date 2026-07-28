@@ -461,7 +461,7 @@ static const struct onboarding_screen_info *find_screen(int state)
 {
   size_t i = 0;
 
-  for (i = 0; i < sizeof(onboarding_screens) / sizeof(onboarding_screens[0]); i++)
+  for (i = 0; (size_t)i < sizeof(onboarding_screens) / sizeof(onboarding_screens[0]); i++)
   {
     if (onboarding_screens[i].state == state)
       return &onboarding_screens[i];
@@ -910,8 +910,8 @@ static const struct onboarding_error_info *find_onboarding_error(int error)
 {
   size_t index = 0;
 
-  for (index = 0; index < sizeof(onboarding_errors) / sizeof(onboarding_errors[0]); index++)
-    if (onboarding_errors[index].error == error)
+  for (index = 0; (size_t)index < sizeof(onboarding_errors) / sizeof(onboarding_errors[0]); index++)
+    if ((int)onboarding_errors[index].error == error)
       return &onboarding_errors[index];
 
   return NULL;

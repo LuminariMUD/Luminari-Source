@@ -273,6 +273,7 @@ static int evaluate_expression(struct obj_data *obj, char *expr)
 {
   struct stack_data ops, vals;
   char *ptr, *end, name[MAX_STRING_LENGTH] = {'\0'};
+  size_t token_len;
   int temp, eindex;
 
   if (!expr || !*expr) /* Allows opening ( first. */
@@ -286,13 +287,14 @@ static int evaluate_expression(struct obj_data *obj, char *expr)
       ptr++;
     else
     {
-      if ((temp = find_oper_num(*ptr)) == NOTHING)
+      if ((temp = find_oper_num(*ptr)) == (int)NOTHING)
       {
         end = ptr;
-        while (*ptr && !isspace(*ptr) && find_oper_num(*ptr) == NOTHING)
+        while (*ptr && !isspace(*ptr) && find_oper_num(*ptr) == (int)NOTHING)
           ptr++;
-        strncpy(name, end, ptr - end); /* strncpy: OK (name/end:MAX_STRING_LENGTH) */
-        name[ptr - end] = '\0';
+        token_len = MIN((size_t)(ptr - end), sizeof(name) - 1);
+        memcpy(name, end, token_len);
+        name[token_len] = '\0';
         for (eindex = 0; *extra_bits[eindex] != '\n'; eindex++)
           if (!str_cmp(name, extra_bits[eindex]))
           {
@@ -343,7 +345,7 @@ static int trade_with(struct obj_data *item, int shop_nr)
   if (OBJ_FLAGGED(item, ITEM_NOSELL))
     return (OBJECT_NOTOK);
 
-  for (counter = 0; SHOP_BUYTYPE(shop_nr, counter) != NOTHING; counter++)
+  for (counter = 0; SHOP_BUYTYPE(shop_nr, counter) != (int)NOTHING; counter++)
     if (SHOP_BUYTYPE(shop_nr, counter) == GET_OBJ_TYPE(item))
     {
       if (GET_OBJ_VAL(item, 2) == 0 &&
@@ -1331,13 +1333,13 @@ int ok_damage_shopkeeper(struct char_data *ch, struct char_data *victim)
 /* val == obj_vnum and obj_rnum (?) */
 static int add_to_shop_list(struct shop_buy_data *list, int type, int *len, int *val)
 {
-  if (*val != NOTHING && *val >= 0)
+  if (*val != (int)NOTHING && *val >= 0)
   { /* necessary after changing to unsigned v/rnums -- Welcor */
     if (*len < MAX_SHOP_OBJ)
     {
       if (type == LIST_PRODUCE)
         *val = real_object(*val);
-      if (*val != NOTHING)
+      if (*val != (int)NOTHING)
       {
         BUY_TYPE(list[*len]) = *val;
         BUY_WORD(list[(*len)++]) = NULL;
@@ -1698,7 +1700,8 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
   for (sindex = 0; SHOP_ROOM(shop_nr, sindex) != NOWHERE; sindex++)
   {
     char buf1[128];
-    int linelen, temp;
+    room_rnum temp;
+    int linelen;
 
     if (sindex)
     {
@@ -1805,7 +1808,7 @@ static void list_detailed_shop(struct char_data *ch, int shop_nr)
 
   send_to_char(ch, "\r\nBuys:       ");
   column = 12; /* ^^^ strlen ^^^ */
-  for (sindex = 0; SHOP_BUYTYPE(shop_nr, sindex) != NOTHING; sindex++)
+  for (sindex = 0; SHOP_BUYTYPE(shop_nr, sindex) != (int)NOTHING; sindex++)
   {
     char buf1[128];
     size_t linelen;
@@ -1911,7 +1914,7 @@ void destroy_shops(void)
 
     if (shop_index[cnt].type)
     {
-      for (itr = 0; BUY_TYPE(shop_index[cnt].type[itr]) != NOTHING; itr++)
+      for (itr = 0; BUY_TYPE(shop_index[cnt].type[itr]) != (int)NOTHING; itr++)
         if (BUY_WORD(shop_index[cnt].type[itr]))
           free(BUY_WORD(shop_index[cnt].type[itr]));
       free(shop_index[cnt].type);

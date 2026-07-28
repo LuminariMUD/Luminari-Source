@@ -826,6 +826,7 @@ SAVING_WILL here...  */
       break;
     }
 
+    __attribute__((fallthrough));
   default:
     savetype = SAVING_WILL;
     spell_level = level;
@@ -6832,7 +6833,7 @@ sbyte isFaeMagic(struct char_data *ch, int spellnum)
   return false;
 }
 
-sbyte isPrimordialMagic(struct char_data *ch, int spellnum)
+sbyte isPrimordialMagic(struct char_data *ch __attribute__((unused)), int spellnum)
 {
   switch (spellnum)
   {
@@ -6861,7 +6862,7 @@ sbyte isPrimordialMagic(struct char_data *ch, int spellnum)
   return false;
 }
 
-void handle_npc_cast(struct char_data *ch, char *argument, int subcmd)
+void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribute__((unused)))
 {
   struct char_data *out_to = ch;
   struct char_data *victim = NULL;

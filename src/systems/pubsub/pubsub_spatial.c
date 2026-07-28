@@ -520,7 +520,7 @@ static struct spatial_audio_source *get_nearby_audio_sources(int x, int y, int m
   return nearby;
 }
 
-static char *blend_audio_sources(struct char_data *ch, struct spatial_audio_source *sources)
+static char *blend_audio_sources(struct char_data *ch __attribute__((unused)), struct spatial_audio_source *sources)
 {
   char *result;
   struct spatial_audio_source *source;

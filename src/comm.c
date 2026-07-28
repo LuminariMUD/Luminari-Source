@@ -3455,12 +3455,12 @@ void nonblock(socket_t s)
 /*  signal-handling functions (formerly signals.c).  UNIX only. */
 #if defined(CIRCLE_UNIX) || defined(CIRCLE_MACINTOSH)
 
-static RETSIGTYPE reread_wizlists(int sig)
+static RETSIGTYPE reread_wizlists(int sig __attribute__((unused)))
 {
   reread_wizlist = TRUE;
 }
 
-static RETSIGTYPE unrestrict_game(int sig)
+static RETSIGTYPE unrestrict_game(int sig __attribute__((unused)))
 {
   emergency_unban = TRUE;
 }
@@ -3468,7 +3468,7 @@ static RETSIGTYPE unrestrict_game(int sig)
 #ifdef CIRCLE_UNIX
 
 /* clean up our zombie kids to avoid defunct processes */
-static RETSIGTYPE reap(int sig)
+static RETSIGTYPE reap(int sig __attribute__((unused)))
 {
   while (waitpid(-1, NULL, WNOHANG) > 0)
     ;
@@ -3477,7 +3477,7 @@ static RETSIGTYPE reap(int sig)
 }
 
 /* Dying anyway... */
-static RETSIGTYPE checkpointing(int sig)
+static RETSIGTYPE checkpointing(int sig __attribute__((unused)))
 {
 #ifndef MEMORY_DEBUG
   if (!tics_passed)
@@ -3770,7 +3770,7 @@ void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
 {
   struct char_data *i;
   va_list args;
-  int j;
+  room_rnum j;
 
   if (start > finish)
   {
@@ -4092,7 +4092,7 @@ const char *act(const char *str, int hide_invisible, struct char_data *ch, struc
 }
 
 /* Prefer the file over the descriptor. */
-static void setup_log(const char *filename, int fd)
+static void setup_log(const char *filename, int fd __attribute__((unused)))
 {
   FILE *s_fp;
 
@@ -4729,13 +4729,14 @@ void update_msdp_room(struct char_data *ch)
     /* Location information */
     /*  Only update room stuff if they've changed room */
     if (IN_ROOM(ch) != NOWHERE && VALID_ROOM_RNUM(IN_ROOM(ch)) &&
-        GET_ROOM_VNUM(IN_ROOM(ch)) != ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
+        (int)GET_ROOM_VNUM(IN_ROOM(ch)) !=
+            ch->desc->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
     {
       room_rnum room = IN_ROOM(ch);
       zone_rnum zone = GET_ROOM_ZONE(room);
       const char *zone_name = "Unknown";
 
-      if (zone != NOWHERE && zone >= 0 && zone <= top_of_zone_table && zone_table[zone].name)
+      if (zone != NOWHERE && zone <= top_of_zone_table && zone_table[zone].name)
         zone_name = zone_table[zone].name;
 
       /* Format for the room data is:
@@ -4927,7 +4928,8 @@ static void msdp_update(void)
       /* Location information */
       /*  Only update room stuff if they've changed room */
       if (IN_ROOM(ch) != NOWHERE &&
-          GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
+          (int)GET_ROOM_VNUM(IN_ROOM(ch)) !=
+              d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
       {
         /* Format for the room data is:
          * ROOM

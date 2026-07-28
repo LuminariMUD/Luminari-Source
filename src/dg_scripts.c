@@ -460,7 +460,7 @@ obj_data *get_obj_near_obj(obj_data *obj, char *name)
 {
   obj_data *i = NULL;
   char_data *ch;
-  int rm;
+  room_rnum rm;
   long id;
 
   if (!str_cmp(name, "self") || !str_cmp(name, "me"))
@@ -595,7 +595,7 @@ char_data *get_char_by_room(room_data *room, char *name)
 obj_data *get_obj_by_obj(obj_data *obj, char *name)
 {
   obj_data *i = NULL;
-  int rm;
+  room_rnum rm;
 
   if (*name == UID_CHAR)
     return find_obj(atoi(name + 1));
@@ -669,7 +669,7 @@ void script_trigger_check(void)
   char_data *ch;
   obj_data *obj;
   struct room_data *room = NULL;
-  int nr;
+  room_rnum nr;
   struct script_data *sc;
 
   char_data *next_ch;
@@ -717,7 +717,7 @@ void check_time_triggers(void)
   char_data *ch, *next_ch;
   obj_data *obj;
   struct room_data *room = NULL;
-  int nr;
+  room_rnum nr;
   struct script_data *sc;
 
   for (ch = character_list; ch; ch = next_ch)
@@ -1029,7 +1029,9 @@ ACMD(do_attach)
   trig_data *trig;
   char targ_name[MAX_INPUT_LENGTH] = {'\0'}, trig_name[MAX_INPUT_LENGTH] = {'\0'};
   char loc_name[MAX_INPUT_LENGTH] = {'\0'}, arg[MAX_INPUT_LENGTH] = {'\0'};
-  int loc, tn, rn, num_arg;
+  trig_vnum tn;
+  trig_rnum rn;
+  int loc, num_arg;
   room_rnum rnum;
 
   argument = two_arguments(argument, arg, sizeof(arg), trig_name, sizeof(trig_name));
@@ -1051,7 +1053,7 @@ ACMD(do_attach)
     if (!victim)
     { /* search room for one with this vnum */
       for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
-        if (GET_MOB_VNUM(victim) == num_arg)
+        if ((int)GET_MOB_VNUM(victim) == num_arg)
           break;
 
       if (!victim)
@@ -1095,13 +1097,13 @@ ACMD(do_attach)
     if (!object)
     { /* search room for one with this vnum */
       for (object = world[IN_ROOM(ch)].contents; object; object = object->next_content)
-        if (GET_OBJ_VNUM(object) == num_arg)
+        if ((int)GET_OBJ_VNUM(object) == num_arg)
           break;
 
       if (!object)
       { /* search inventory for one with this vnum */
         for (object = ch->carrying; object; object = object->next_content)
-          if (GET_OBJ_VNUM(object) == num_arg)
+          if ((int)GET_OBJ_VNUM(object) == num_arg)
             break;
 
         if (!object)
@@ -1213,7 +1215,7 @@ static int remove_trigger(struct script_data *sc, char *name)
        * is found. originally the number was position-only. */
     else if (++n >= num)
       break;
-    else if (trig_index[i->nr]->vnum == num)
+    else if ((int)trig_index[i->nr]->vnum == num)
       break;
   }
 
@@ -1298,7 +1300,7 @@ ACMD(do_detach)
       if (!victim)
       { /* search room for one with this vnum */
         for (victim = world[IN_ROOM(ch)].people; victim; victim = victim->next_in_room)
-          if (GET_MOB_VNUM(victim) == num_arg)
+          if ((int)GET_MOB_VNUM(victim) == num_arg)
             break;
 
         if (!victim)
@@ -1319,13 +1321,13 @@ ACMD(do_detach)
       if (!object)
       { /* search room for one with this vnum */
         for (object = world[IN_ROOM(ch)].contents; object; object = object->next_content)
-          if (GET_OBJ_VNUM(object) == num_arg)
+          if ((int)GET_OBJ_VNUM(object) == num_arg)
             break;
 
         if (!object)
         { /* search inventory for one with this vnum */
           for (object = ch->carrying; object; object = object->next_content)
-            if (GET_OBJ_VNUM(object) == num_arg)
+            if ((int)GET_OBJ_VNUM(object) == num_arg)
               break;
 
           if (!object)
@@ -1485,8 +1487,8 @@ static int is_num(char *arg)
 }
 
 /* evaluates 'lhs op rhs', and copies to result */
-static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go,
-                    struct script_data *sc, trig_data *trig)
+static void eval_op(const char *op, char *lhs, char *rhs, char *result, void *go __attribute__((unused)),
+                    struct script_data *sc __attribute__((unused)), trig_data *trig __attribute__((unused)))
 {
   unsigned char *p = NULL;
   int n = 0;
@@ -2955,7 +2957,7 @@ int script_driver(struct script_call_args *args)
   if (type < MOB_TRIGGER || type > WLD_TRIGGER)
   {
     script_log("CRITICAL: Invalid trigger type %d received for trigger %d. Attempting recovery.",
-               type, trig ? GET_TRIG_VNUM(trig) : -1);
+               type, trig ? (int)GET_TRIG_VNUM(trig) : -1);
 
     /* Try to determine correct type from trigger flags
      * We only try to recover if we have a clear indication of what type it should be */
@@ -3021,7 +3023,7 @@ int script_driver(struct script_call_args *args)
     break;
   default:
     script_log("FATAL: Invalid type %d after validation for trigger %d", type,
-               trig ? GET_TRIG_VNUM(trig) : -1);
+               trig ? (int)GET_TRIG_VNUM(trig) : -1);
     return 0;
   }
 
@@ -3030,7 +3032,7 @@ int script_driver(struct script_call_args *args)
   {
     script_log("ERROR: Script is NULL for trigger %d after type correction (type=%d, go=%p). "
                "Cannot execute.",
-               trig ? GET_TRIG_VNUM(trig) : -1, type, go);
+               trig ? (int)GET_TRIG_VNUM(trig) : -1, type, go);
     /* Additional debug to understand why sc is NULL */
     if (go)
     {
@@ -3348,7 +3350,7 @@ trig_rnum real_trigger(trig_vnum vnum)
 
 ACMDU(do_tstat)
 {
-  int rnum;
+  trig_rnum rnum;
   char str[MAX_INPUT_LENGTH] = {'\0'};
 
   half_chop(argument, str, argument);
@@ -3831,7 +3833,7 @@ int trig_is_attached(struct script_data *sc, int trig_num)
     return 0;
 
   for (t = TRIGGERS(sc); t; t = t->next)
-    if (GET_TRIG_VNUM(t) == trig_num)
+    if ((int)GET_TRIG_VNUM(t) == trig_num)
       return 1;
 
   return 0;

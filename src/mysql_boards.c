@@ -55,7 +55,7 @@ static struct mysql_board_config default_boards[] = {
     // No boards listed. Boards are now added with bedit command.
     // View current boards with the blist command.
 
-    {-1, NULL, 0, 0, 0, 0, 0, 0, false} /* End marker */
+    {-1, NULL, 0, 0, 0, 0, 0, 0, 0, false} /* End marker */
 };
 
 /*
@@ -369,16 +369,21 @@ struct obj_data *find_board_obj_in_room(struct char_data *ch)
 /*
  * Legacy function - now finds board by checking for board objects in room
  */
-struct mysql_board_config *mysql_board_get_config_by_room(int room_vnum)
+struct mysql_board_config *mysql_board_get_config_by_room(int vnum)
 {
   struct obj_data *obj;
   struct mysql_board_config *board_config;
+  room_rnum room;
 
-  if (room_vnum < 0 || room_vnum > top_of_world)
+  if (vnum < 0)
+    return NULL;
+
+  room = real_room((room_vnum)vnum);
+  if (room == NOWHERE)
     return NULL;
 
   /* Check objects in room for board objects */
-  for (obj = world[real_room(room_vnum)].contents; obj; obj = obj->next_content)
+  for (obj = world[room].contents; obj; obj = obj->next_content)
   {
     board_config = mysql_board_get_config_by_obj(GET_OBJ_VNUM(obj));
     if (board_config)
@@ -826,7 +831,7 @@ bool mysql_board_can_read(struct char_data *ch, struct mysql_board_config *board
   /* If this is a clan board (clan_id != 0), check clan membership */
   if (board->clan_id != 0)
   {
-    if (GET_CLAN(ch) != board->clan_id)
+    if ((int)GET_CLAN(ch) != board->clan_id)
     {
       return false;
     }
@@ -869,7 +874,7 @@ bool mysql_board_can_write(struct char_data *ch, struct mysql_board_config *boar
   /* If this is a clan board (clan_id != 0), check clan membership */
   if (board->clan_id != 0)
   {
-    if (GET_CLAN(ch) != board->clan_id)
+    if ((int)GET_CLAN(ch) != board->clan_id)
     {
       return false;
     }
@@ -924,7 +929,7 @@ bool mysql_board_can_delete(struct char_data *ch, struct mysql_board_config *boa
   /* If this is a clan board (clan_id != 0), check clan membership */
   if (board->clan_id != 0)
   {
-    if (GET_CLAN(ch) != board->clan_id)
+    if ((int)GET_CLAN(ch) != board->clan_id)
     {
       return false;
     }
@@ -960,7 +965,7 @@ bool mysql_board_can_delete(struct char_data *ch, struct mysql_board_config *boa
 /*
  * Delete a post
  */
-bool mysql_board_delete_post(struct char_data *ch, int board_id, int post_id)
+bool mysql_board_delete_post(struct char_data *ch __attribute__((unused)), int board_id, int post_id)
 {
   char query[256];
 
@@ -2092,7 +2097,7 @@ ACMD(do_boardfind)
     /* Search for this board's object in the game world */
     for (obj = object_list; obj; obj = obj->next)
     {
-      if (GET_OBJ_VNUM(obj) != board->obj_vnum)
+      if ((int)GET_OBJ_VNUM(obj) != board->obj_vnum)
         continue;
 
       found_board = true;

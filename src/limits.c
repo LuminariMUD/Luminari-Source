@@ -1623,7 +1623,7 @@ void recharge_activated_items(void)
               {
                 obj->activate_spell[ACT_SPELL_CURRENT_USES]++;
                 snprintf(where_name, sizeof(where_name), "%s", equipment_types[i]);
-                for (j = 0; j < strlen(where_name); j++)
+                for (j = 0; (size_t)j < strlen(where_name); j++)
                 {
                   where_name[j] = tolower(where_name[j]);
                 }
@@ -3190,7 +3190,7 @@ void self_buffing(void)
           if (GET_BUFF_TARGET(ch) && IN_ROOM(GET_BUFF_TARGET(ch)) == IN_ROOM(ch))
           {
             snprintf(buf1, sizeof(buf1), "%s", GET_NAME(GET_BUFF_TARGET(ch)));
-            for (i = 0; i < strlen(buf1); i++)
+            for (i = 0; (size_t)i < strlen(buf1); i++)
               if (buf1[i] == ' ')
                 buf1[i] = '-';
             snprintf(buf2, sizeof(buf2), "%s %s", spellname, buf1);

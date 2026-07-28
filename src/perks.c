@@ -3946,7 +3946,7 @@ bool has_blackguard_blasphemous_warding(struct char_data *ch)
  * @return SR bonus (0 if not applicable, +5 vs divine/good casters)
  */
 int get_blackguard_blasphemous_warding_sr(struct char_data *ch, struct char_data *caster,
-                                          int spellnum)
+                                          int spellnum __attribute__((unused)))
 {
   if (!has_blackguard_blasphemous_warding(ch))
     return 0;
@@ -20516,87 +20516,87 @@ bool check_monk_extra_flurry_attack(struct char_data *ch)
 /* DRUID PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)      */
 /* =============================================================== */
 
-int get_druid_wild_shape_attack_bonus(struct char_data *ch)
+int get_druid_wild_shape_attack_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_wild_shape_damage_bonus(struct char_data *ch)
+int get_druid_wild_shape_damage_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_natural_armor_bonus(struct char_data *ch)
+int get_druid_natural_armor_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_wild_shape_hp_bonus(struct char_data *ch)
+int get_druid_wild_shape_hp_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_natural_weapons_damage_dice(struct char_data *ch)
+int get_druid_natural_weapons_damage_dice(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_druid_natural_weapons_improved_crit(struct char_data *ch)
+bool has_druid_natural_weapons_improved_crit(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_druid_elemental_attack_bonus(struct char_data *ch)
+int get_druid_elemental_attack_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_elemental_damage_bonus(struct char_data *ch)
+int get_druid_elemental_damage_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_elemental_armor_bonus(struct char_data *ch)
+int get_druid_elemental_armor_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_elemental_hp_bonus(struct char_data *ch)
+int get_druid_elemental_hp_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_druid_primal_avatar(struct char_data *ch)
+bool has_druid_primal_avatar(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_druid_natural_fury(struct char_data *ch)
+bool has_druid_natural_fury(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_druid_spell_power_bonus(struct char_data *ch)
+int get_druid_spell_power_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_spell_dc_bonus(struct char_data *ch)
+int get_druid_spell_dc_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_druid_elemental_damage_dice(struct char_data *ch)
+int get_druid_elemental_damage_dice(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool check_druid_spell_critical(struct char_data *ch)
+bool check_druid_spell_critical(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-float get_druid_spell_critical_multiplier(struct char_data *ch)
+float get_druid_spell_critical_multiplier(struct char_data *ch __attribute__((unused)))
 {
   return 1.0;
 }
-int get_druid_bonus_spell_slots(struct char_data *ch)
+int get_druid_bonus_spell_slots(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_druid_force_of_nature(struct char_data *ch)
+bool has_druid_force_of_nature(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_druid_storm_caller(struct char_data *ch)
+bool has_druid_storm_caller(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_druid_elemental_mastery(struct char_data *ch)
+bool has_druid_elemental_mastery(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
@@ -20605,179 +20605,179 @@ bool has_druid_elemental_mastery(struct char_data *ch)
 /* BERSERKER PERK HELPER FUNCTIONS - STUBS (NOT YET IMPLEMENTED)  */
 /* =============================================================== */
 
-int get_berserker_power_attack_bonus(struct char_data *ch)
+int get_berserker_power_attack_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_rage_damage_bonus(struct char_data *ch)
+int get_berserker_rage_damage_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_critical_bonus(struct char_data *ch)
+int get_berserker_critical_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_cleaving_strikes(struct char_data *ch)
+bool has_berserker_cleaving_strikes(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_cleave_bonus(struct char_data *ch)
+int get_berserker_cleave_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_blood_frenzy(struct char_data *ch)
+bool has_berserker_blood_frenzy(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_devastating_critical_dice(struct char_data *ch)
+int get_berserker_devastating_critical_dice(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch)
+int get_berserker_power_attack_mastery_3_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_overwhelming_force(struct char_data *ch)
+bool has_berserker_overwhelming_force(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_crimson_rage_bonus(struct char_data *ch)
+int get_berserker_crimson_rage_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_carnage(struct char_data *ch)
+bool has_berserker_carnage(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_frenzied_berserker(struct char_data *ch)
+bool has_berserker_frenzied_berserker(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_relentless_assault(struct char_data *ch)
+bool has_berserker_relentless_assault(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_death_from_above(struct char_data *ch)
+bool has_berserker_death_from_above(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_thick_skin_bonus(struct char_data *ch)
+int get_berserker_thick_skin_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_damage_reduction(struct char_data *ch)
+int get_berserker_damage_reduction(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_elemental_resistance(struct char_data *ch)
+int get_berserker_elemental_resistance(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_hardy(struct char_data *ch)
+bool has_berserker_hardy(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_savage_defiance_dr(struct char_data *ch)
+int get_berserker_savage_defiance_dr(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_damage_reduction_3(struct char_data *ch)
+int get_berserker_damage_reduction_3(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_spell_resistance(struct char_data *ch)
+int get_berserker_spell_resistance(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_pain_tolerance(struct char_data *ch)
+bool has_berserker_pain_tolerance(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_deathless_frenzy(struct char_data *ch)
+bool has_berserker_deathless_frenzy(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_unstoppable_dr(struct char_data *ch)
+int get_berserker_unstoppable_dr(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_indomitable_will(struct char_data *ch)
+bool has_berserker_indomitable_will(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_raging_defender(struct char_data *ch)
+bool has_berserker_raging_defender(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_fleet_of_foot_bonus(struct char_data *ch)
+int get_berserker_fleet_of_foot_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_intimidating_presence_bonus(struct char_data *ch)
+int get_berserker_intimidating_presence_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch)
+int get_berserker_intimidating_presence_morale_penalty(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_mighty_leap(struct char_data *ch)
+bool has_berserker_mighty_leap(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_mighty_leap_bonus(struct char_data *ch)
+int get_berserker_mighty_leap_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_thick_headed_bonus(struct char_data *ch)
+int get_berserker_thick_headed_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_sprint(struct char_data *ch)
+bool has_berserker_sprint(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_intimidating_presence_2(struct char_data *ch)
+bool has_berserker_intimidating_presence_2(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_crippling_blow_chance(struct char_data *ch)
+int get_berserker_crippling_blow_chance(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_reckless_abandon(struct char_data *ch)
+bool has_berserker_reckless_abandon(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_blinding_rage(struct char_data *ch)
+bool has_berserker_blinding_rage(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_stunning_blow(struct char_data *ch)
+bool has_berserker_stunning_blow(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_uncanny_dodge_mastery(struct char_data *ch)
+bool has_berserker_uncanny_dodge_mastery(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch)
+int get_berserker_uncanny_dodge_perception_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch)
+int get_berserker_uncanny_dodge_ac_bonus(struct char_data *ch __attribute__((unused)))
 {
   return 0;
 }
-bool has_berserker_savage_charge(struct char_data *ch)
+bool has_berserker_savage_charge(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_war_cry(struct char_data *ch)
+bool has_berserker_war_cry(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }
-bool has_berserker_earthshaker(struct char_data *ch)
+bool has_berserker_earthshaker(struct char_data *ch __attribute__((unused)))
 {
   return FALSE;
 }

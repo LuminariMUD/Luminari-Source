@@ -519,7 +519,7 @@ static int weather_terrain_audio_calculate_interference(struct spatial_context *
  * Modify audio message based on environmental conditions
  */
 static int weather_terrain_audio_modify_message(struct spatial_context *ctx, char *message,
-                                                size_t max_len)
+                                                size_t max_len __attribute__((unused)))
 {
   if (!ctx || !message)
   {

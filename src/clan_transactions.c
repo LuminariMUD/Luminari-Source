@@ -155,7 +155,7 @@ bool add_clan_trans_treasury(struct clan_transaction *trans, clan_rnum clan, lon
 {
   struct trans_operation *op;
 
-  if (!trans || clan < 0 || clan >= num_of_clans)
+  if (!trans || clan == NO_CLAN || clan >= (clan_rnum)num_of_clans)
   {
     log("SYSERR: add_clan_trans_treasury called with invalid parameters");
     return FALSE;
@@ -219,7 +219,8 @@ bool commit_clan_transaction(struct clan_transaction *trans)
     /* Save affected clans */
     for (i = 0; i < trans->num_operations; i++)
     {
-      if (trans->operations[i].clan >= 0 && trans->operations[i].clan < num_of_clans)
+      if (trans->operations[i].clan != NO_CLAN &&
+          trans->operations[i].clan < (clan_rnum)num_of_clans)
       {
         mark_clan_modified(trans->operations[i].clan);
         save_single_clan(trans->operations[i].clan);
@@ -268,7 +269,8 @@ bool rollback_clan_transaction(struct clan_transaction *trans)
   /* Save affected clans */
   for (i = 0; i < trans->num_operations; i++)
   {
-    if (trans->operations[i].clan >= 0 && trans->operations[i].clan < num_of_clans)
+    if (trans->operations[i].clan != NO_CLAN &&
+        trans->operations[i].clan < (clan_rnum)num_of_clans)
     {
       mark_clan_modified(trans->operations[i].clan);
       save_single_clan(trans->operations[i].clan);
@@ -283,7 +285,7 @@ static bool execute_operation(struct trans_operation *op)
 {
   struct char_data *victim;
 
-  if (!op || op->clan < 0 || op->clan >= num_of_clans)
+  if (!op || op->clan == NO_CLAN || op->clan >= (clan_rnum)num_of_clans)
   {
     return FALSE;
   }
@@ -409,7 +411,7 @@ static bool rollback_operation(struct trans_operation *op)
 {
   struct char_data *victim;
 
-  if (!op || op->clan < 0 || op->clan >= num_of_clans)
+  if (!op || op->clan == NO_CLAN || op->clan >= (clan_rnum)num_of_clans)
   {
     return FALSE;
   }
@@ -619,7 +621,7 @@ void cleanup_clan_transactions(void)
 }
 
 /* Update player index clan data (for offline players) */
-void update_player_index_clan(long player_id, clan_vnum clan, int rank)
+void update_player_index_clan(long player_id, clan_vnum clan, int rank __attribute__((unused)))
 {
   int i;
 

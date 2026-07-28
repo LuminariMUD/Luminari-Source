@@ -26,6 +26,7 @@ BUILD_DIR = build
 CUTEST_OBJ = $(BUILD_DIR)/CuTest.o
 PROTOCOL_PARSER_TEST_OBJ = $(BUILD_DIR)/test_protocol_parser.o
 PROTOCOL_SOURCE_OBJ = $(BUILD_DIR)/protocol.o
+PROTOCOL_ONBOARDING_OBJ = $(BUILD_DIR)/onboarding.o
 PROTOCOL_PARSER_TEST_EXE = protocol_parser_tests
 PROTOCOL_FUZZ_OBJ = $(BUILD_DIR)/fuzz_protocol_parser.o
 PROTOCOL_FUZZ_SOURCE_OBJ = $(BUILD_DIR)/protocol_fuzz.o
@@ -49,19 +50,24 @@ $(PROTOCOL_PARSER_TEST_OBJ): test_protocol_parser.c CuTest.h \
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -c test_protocol_parser.c -o $@
 
 $(PROTOCOL_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
-		../../src/structs.h | $(BUILD_DIR)
+		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c ../../src/protocol.c -o $@
 
+$(PROTOCOL_ONBOARDING_OBJ): ../../src/systems/web_client/onboarding.c \
+		../../src/systems/web_client/onboarding.h ../../src/structs.h | $(BUILD_DIR)
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src \
+		-c ../../src/systems/web_client/onboarding.c -o $@
+
 $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
-		$(PROTOCOL_SOURCE_OBJ)
+		$(PROTOCOL_SOURCE_OBJ) $(PROTOCOL_ONBOARDING_OBJ)
 	$(CC) $(PROTOCOL_TEST_CFLAGS) -o $@ $^ $(PROTOCOL_TEST_LDFLAGS)
 
 $(PROTOCOL_FUZZ_OBJ): fuzz_protocol_parser.c ../../src/protocol.h \
-		../../src/structs.h | $(BUILD_DIR)
+		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)
 	$(FUZZ_CC) $(FUZZ_CFLAGS) -c fuzz_protocol_parser.c -o $@
 
 $(PROTOCOL_FUZZ_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
-		../../src/structs.h | $(BUILD_DIR)
+		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)
 	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c ../../src/protocol.c -o $@
 
 $(PROTOCOL_FUZZ_EXE): $(PROTOCOL_FUZZ_OBJ) $(PROTOCOL_FUZZ_SOURCE_OBJ)

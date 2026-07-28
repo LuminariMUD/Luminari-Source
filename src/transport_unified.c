@@ -182,7 +182,7 @@ enum transport_type get_transport_type_in_room(room_rnum room)
   struct vehicle_data *vehicle;
   struct greyhawk_ship_data *vessel;
 
-  if (room == NOWHERE || room < 0)
+  if (room == NOWHERE)
   {
     return TRANSPORT_NONE;
   }
@@ -224,7 +224,7 @@ int get_transport_in_room(room_rnum room, struct transport_data *td)
   td->type = TRANSPORT_NONE;
   td->data.vehicle = NULL;
 
-  if (room == NOWHERE || room < 0)
+  if (room == NOWHERE)
   {
     return 0;
   }

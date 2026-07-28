@@ -97,7 +97,7 @@ static const char *quest_imm_usage =
 /* given a quest virtual number, return its real-number */
 qst_rnum real_quest(qst_vnum vnum)
 {
-  int rnum;
+  qst_rnum rnum;
 
   for (rnum = 0; rnum < total_quests; rnum++)
     if (QST_NUM(rnum) == vnum)
@@ -123,7 +123,7 @@ int is_accepted_not_complete(struct char_data *ch, qst_vnum vnum)
 
   /* Check if quest is in active quests (accepted) */
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
-    if (GET_QUEST(ch, i) == vnum)
+    if (GET_QUEST(ch, i) >= 0 && (qst_vnum)GET_QUEST(ch, i) == vnum)
       return TRUE;
   return FALSE;
 }
@@ -139,7 +139,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(ch, index) == NOTHING)
+    if (GET_QUEST(ch, index) == (int)NOTHING)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
@@ -149,7 +149,7 @@ int is_quest_target_mob(struct char_data *ch, struct char_data *mob)
     /* Check if this quest involves this mob */
     if ((QST_TYPE(rnum) == AQ_MOB_FIND || QST_TYPE(rnum) == AQ_MOB_KILL ||
          QST_TYPE(rnum) == AQ_MOB_SAVE) &&
-        QST_TARGET(rnum) == GET_MOB_VNUM(mob))
+        QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(mob))
       return TRUE;
 
     /* Check for AQ_MOB_MULTI_KILL quests with comma-separated mob vnum list */
@@ -187,7 +187,7 @@ int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(ch, index) == NOTHING)
+    if (GET_QUEST(ch, index) == (int)NOTHING)
       continue;
 
     rnum = real_quest(GET_QUEST(ch, index));
@@ -196,7 +196,7 @@ int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
 
     /* Check if this quest involves this object */
     if ((QST_TYPE(rnum) == AQ_OBJ_FIND || QST_TYPE(rnum) == AQ_OBJ_RETURN) &&
-        QST_TARGET(rnum) == GET_OBJ_VNUM(obj))
+        QST_TARGET(rnum) >= 0 && (obj_vnum)QST_TARGET(rnum) == GET_OBJ_VNUM(obj))
       return TRUE;
   }
 
@@ -204,7 +204,7 @@ int is_quest_target_obj(struct char_data *ch, struct obj_data *obj)
 }
 
 /* given ch, quest-master, quest-number, return quest virtual-number */
-qst_vnum find_quest_by_qmnum(struct char_data *ch, mob_vnum qm, int num)
+qst_vnum find_quest_by_qmnum(struct char_data *ch __attribute__((unused)), mob_vnum qm, int num)
 {
   qst_rnum rnum;
   int found = 0;
@@ -244,7 +244,8 @@ void destroy_quests(void)
 /* count how many quests between two vnums */
 int count_quests(qst_vnum low, qst_vnum high)
 {
-  int i, j;
+  int j;
+  qst_rnum i;
 
   if (!aquest_table)
     return 0;
@@ -331,12 +332,12 @@ void parse_quest(FILE *quest_f, int nr)
 
   /* now assign the values to the quest table */
   aquest_table[i].type = t[0];
-  aquest_table[i].qm = (real_mobile(t[1]) == NOBODY) ? NOBODY : t[1];
+  aquest_table[i].qm = (real_mobile(t[1]) == NOBODY) ? NOBODY : (mob_vnum)t[1];
   aquest_table[i].flags = asciiflag_conv(f1);
-  aquest_table[i].target = (t[2] == -1) ? NOTHING : t[2];
-  aquest_table[i].prev_quest = (t[3] == -1) ? NOTHING : t[3];
-  aquest_table[i].next_quest = (t[4] == -1) ? NOTHING : t[4];
-  aquest_table[i].prereq = (t[5] == -1) ? NOTHING : t[5];
+  aquest_table[i].target = (t[2] == -1) ? (int)NOTHING : t[2];
+  aquest_table[i].prev_quest = (t[3] == -1) ? NOTHING : (qst_vnum)t[3];
+  aquest_table[i].next_quest = (t[4] == -1) ? NOTHING : (qst_vnum)t[4];
+  aquest_table[i].prereq = (t[5] == -1) ? NOTHING : (obj_vnum)t[5];
 
   /* parse the next line of values */
   if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2,
@@ -365,7 +366,7 @@ void parse_quest(FILE *quest_f, int nr)
   /* assign for 3 values */
   aquest_table[i].gold_reward = t[0];
   aquest_table[i].exp_reward = t[1];
-  aquest_table[i].obj_reward = (t[2] == -1) ? NOTHING : t[2];
+  aquest_table[i].obj_reward = (t[2] == -1) ? NOTHING : (obj_vnum)t[2];
 
   /* if 7 values, finish the last 4 assigns */
   if (retval == 7)
@@ -547,7 +548,7 @@ void complete_quest(struct char_data *ch, int index)
   struct char_data *mob = NULL;
 
   /* dummy check */
-  if (GET_QUEST(ch, index) == NOTHING)
+  if (GET_QUEST(ch, index) == (int)NOTHING)
   {
     log("UH OH: complete_quest() called without a quest VNUM!");
     return;
@@ -595,7 +596,7 @@ void complete_quest(struct char_data *ch, int index)
 
   /* is the race reward follower (if there is one) valid?  the full processing is below
        this is "pre-flight" */
-  if (QST_FOLLOWER(rnum) != NOBODY)
+  if (QST_FOLLOWER(rnum) != (int)NOBODY)
   {
     if (!(mob = read_mobile(QST_FOLLOWER(rnum), VIRTUAL)))
     {
@@ -752,7 +753,7 @@ void complete_quest(struct char_data *ch, int index)
   }
 
   /* is there a follower reward for this quest?  "pre-flight" was checked above */
-  if (QST_FOLLOWER(rnum) != NOBODY)
+  if (QST_FOLLOWER(rnum) != (int)NOBODY)
   {
     if (!mob)
     {
@@ -812,7 +813,7 @@ void generic_complete_quest(struct char_data *ch, int index)
     remove_duplicate_quests(ch);
 
   /* more work to do on this quest! make sure to decrement counter  */
-  if (GET_QUEST(ch, index) != NOTHING && --GET_QUEST_COUNTER(ch, index) > 0)
+  if (GET_QUEST(ch, index) != (int)NOTHING && --GET_QUEST_COUNTER(ch, index) > 0)
   {
     qst_rnum rnum = -1;
     qst_vnum vnum = GET_QUEST(ch, index);
@@ -826,7 +827,7 @@ void generic_complete_quest(struct char_data *ch, int index)
 
     /* the quest is truly complete? */
   }
-  else if (GET_QUEST(ch, index) != NOTHING)
+  else if (GET_QUEST(ch, index) != (int)NOTHING)
   {
     struct mud_event_data *pMudEvent = NULL;
     char buf[128] = {'\0'};
@@ -838,7 +839,7 @@ void generic_complete_quest(struct char_data *ch, int index)
       event_quest_num = atoi((char *)pMudEvent->sVariables);
 
       /* make sure we do not already have an event for this quest! */
-      if (event_quest_num == GET_QUEST(ch, index))
+      if (GET_QUEST(ch, index) >= 0 && event_quest_num == (qst_vnum)GET_QUEST(ch, index))
       {
         /* get out of here, we are already processing this particular
            quest completion */
@@ -865,7 +866,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
+    if (GET_QUEST(ch, index) == (int)NOTHING) /* No current quest, skip this */
       continue;
 
     if (GET_QUEST_TYPE(ch, index) != type)
@@ -902,7 +903,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_OBJ_FIND:
-      if (QST_TARGET(rnum) == GET_OBJ_VNUM(object))
+      if (QST_TARGET(rnum) >= 0 && (obj_vnum)QST_TARGET(rnum) == GET_OBJ_VNUM(object))
         generic_complete_quest(ch, index);
       break;
 
@@ -944,20 +945,21 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_ROOM_FIND:
-      if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+      if (QST_TARGET(rnum) >= 0 &&
+          (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
         generic_complete_quest(ch, index);
       break;
 
     case AQ_MOB_FIND:
       for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
         if (IS_NPC(i))
-          if (QST_TARGET(rnum) == GET_MOB_VNUM(i))
+          if (QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(i))
             generic_complete_quest(ch, index);
       break;
 
     case AQ_MOB_KILL:
       if (!IS_NPC(ch) && IS_NPC(vict) && (ch != vict))
-        if (QST_TARGET(rnum) == GET_MOB_VNUM(vict))
+        if (QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(vict))
           generic_complete_quest(ch, index);
       break;
 
@@ -969,7 +971,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         char *pt = strtok(kill_list, ",");
         while (pt != NULL)
         {
-          if (atoi(pt) == GET_MOB_VNUM(vict))
+          if (atoi(pt) >= 0 && (mob_vnum)atoi(pt) == GET_MOB_VNUM(vict))
           {
             generic_complete_quest(ch, index);
             break;
@@ -984,15 +986,18 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
         found = FALSE;
       for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
         if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
-          if ((GET_MOB_VNUM(i) != QST_TARGET(rnum)) && !AFF_FLAGGED(i, AFF_CHARM))
+          if ((QST_TARGET(rnum) < 0 || GET_MOB_VNUM(i) != (mob_vnum)QST_TARGET(rnum)) &&
+              !AFF_FLAGGED(i, AFF_CHARM))
             found = FALSE;
       if (found)
         generic_complete_quest(ch, index);
       break;
 
     case AQ_OBJ_RETURN:
-      if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
-        if (object && (GET_OBJ_VNUM(object) == QST_TARGET(rnum)))
+      if (IS_NPC(vict) && QST_RETURNMOB(rnum) >= 0 &&
+          GET_MOB_VNUM(vict) == (mob_vnum)QST_RETURNMOB(rnum))
+        if (object && QST_TARGET(rnum) >= 0 &&
+            GET_OBJ_VNUM(object) == (obj_vnum)QST_TARGET(rnum))
         {
           generic_complete_quest(ch, index);
           extract_obj(object);
@@ -1000,7 +1005,8 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_GIVE_GOLD:
-      if (IS_NPC(vict) && (GET_MOB_VNUM(vict) == QST_RETURNMOB(rnum)))
+      if (IS_NPC(vict) && QST_RETURNMOB(rnum) >= 0 &&
+          GET_MOB_VNUM(vict) == (mob_vnum)QST_RETURNMOB(rnum))
         if (GET_GOLD(vict) >= QST_TARGET(rnum))
         {
           generic_complete_quest(ch, index);
@@ -1011,7 +1017,8 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_ROOM_CLEAR:
-      if (QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+      if (QST_TARGET(rnum) >= 0 &&
+          (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
       {
         for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
           if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
@@ -1031,7 +1038,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
 /* process (clear) a quest that has timed out */
 void quest_timeout(struct char_data *ch, int index)
 {
-  if ((GET_QUEST(ch, index) != NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
+  if ((GET_QUEST(ch, index) != (int)NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
   {
     clear_quest(ch, index);
     send_to_char(ch, "You have run out of time to complete the quest index: %d.\r\n", index);
@@ -1050,7 +1057,7 @@ void check_timed_quests(void)
 
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
     { /* loop through all the character's quest slots */
-      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
+      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != (int)NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
       {
         if (--GET_QUEST_TIME(ch, index) == 0)
         {
@@ -1184,7 +1191,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   /* got a spare slot to join a quest? */
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(ch, index) == NOTHING)
+    if (GET_QUEST(ch, index) == (int)NOTHING)
     {
       found = TRUE;
       break; /* we need index for later */
@@ -1222,7 +1229,7 @@ void quest_join(struct char_data *ch, struct char_data *qm, char argument[MAX_IN
   /* already on this particular quest? */
   found = FALSE; /* reset variable */
   for (sr_index = 0; sr_index < MAX_CURRENT_QUESTS; sr_index++)
-    if (GET_QUEST(ch, sr_index) == vnum)
+    if (GET_QUEST(ch, sr_index) >= 0 && (qst_vnum)GET_QUEST(ch, sr_index) == vnum)
       found = TRUE;
   if (found)
   {
@@ -1429,7 +1436,7 @@ void quest_quit(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     return;
   }
 
-  if (GET_QUEST(ch, index) == NOTHING)
+  if (GET_QUEST(ch, index) == (int)NOTHING)
   {
     send_to_char(ch, "But you currently aren't on a quest in that index!\r\n");
   }
@@ -1493,7 +1500,7 @@ void quest_progress(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     return;
   }
 
-  if (GET_QUEST(ch, index) == NOTHING)
+  if (GET_QUEST(ch, index) == (int)NOTHING)
   {
     send_to_char(ch, "But you currently aren't on a quest in that slot!\r\n");
   }
@@ -1694,7 +1701,7 @@ void quest_assign(struct char_data *ch, char argument[MAX_STRING_LENGTH])
   /* got a spare slot to join a quest? */
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(victim, index) == NOTHING)
+    if (GET_QUEST(victim, index) == (int)NOTHING)
     {
       found = TRUE;
       break;
@@ -1818,7 +1825,7 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
     }
 
     /* follower reward info */
-    if (QST_FOLLOWER(rnum) != NOBODY)
+    if (QST_FOLLOWER(rnum) != (int)NOBODY)
     {
       snprintf(followername, sizeof(followername), "%s",
                real_mobile(QST_FOLLOWER(rnum)) == NOBODY
@@ -1844,20 +1851,20 @@ void quest_stat(struct char_data *ch, char argument[MAX_STRING_LENGTH])
         "Quest Follower Reward: %s (%d)\r\n"
         "Flags : \tc%s\tn\r\n",
 
-        QST_NUM(rnum), rnum, QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum),
+        QST_NUM(rnum), rnum, QST_MASTER(rnum) == NOBODY ? -1 : (int)QST_MASTER(rnum),
         (qmrnum == NOBODY) ? "(Invalid vnum)" : GET_NAME(&mob_proto[(qmrnum)]), QST_NAME(rnum),
         QST_DESC(rnum), QST_INFO(rnum), QST_DONE(rnum),
         (QST_QUIT(rnum) && (str_cmp(QST_QUIT(rnum), "undefined") != 0) ? QST_QUIT(rnum)
                                                                        : "Nothing\r\n"),
-        quest_types[QST_TYPE(rnum)], QST_TARGET(rnum) == NOBODY ? -1 : QST_TARGET(rnum), targetname,
-        QST_QUANTITY(rnum), QST_POINTS(rnum) /*val0*/, QST_PENALTY(rnum) /*val1*/,
+        quest_types[QST_TYPE(rnum)], QST_TARGET(rnum) == (int)NOBODY ? -1 : QST_TARGET(rnum),
+        targetname, QST_QUANTITY(rnum), QST_POINTS(rnum) /*val0*/, QST_PENALTY(rnum) /*val1*/,
         QST_MINLEVEL(rnum) /*val2*/, QST_MAXLEVEL(rnum) /*val3*/, QST_GOLD(rnum), QST_EXP(rnum),
         QST_OBJ(rnum), rewardname, valid_race ? racename : "N/A", QST_RACE(rnum),
         valid_follower ? followername : "N/A", QST_FOLLOWER(rnum), buf);
 
     if (QST_PREREQ(rnum) != NOTHING)
       send_to_char(ch, "Preq  : [\ty%5d\tn] \ty%s\tn\r\n",
-                   QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum),
+                   QST_PREREQ(rnum) == NOTHING ? -1 : (int)QST_PREREQ(rnum),
                    QST_PREREQ(rnum) == NOTHING ? ""
                    : real_object(QST_PREREQ(rnum)) == NOTHING
                        ? "an unknown object"
@@ -2111,14 +2118,14 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     qst_rnum qrnum = real_quest(next_quest_vnum);
     char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
                                                                              : QST_NAME(qrnum);
-    int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY)
+    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                         ? "(no master)"
                         : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
     char *qm_room = "(not found)";
-    if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
+    if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
       for (mob_instance = character_list; mob_instance; mob_instance = mob_instance->next)
@@ -2126,7 +2133,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
         if (IS_NPC(mob_instance) && GET_MOB_VNUM(mob_instance) == qm_vnum)
         {
           room_rnum mob_room = IN_ROOM(mob_instance);
-          if (mob_room != NOWHERE && mob_room >= 0)
+          if (mob_room != NOWHERE)
             qm_room = world[mob_room].name;
           break;
         }
@@ -2152,14 +2159,14 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
     qst_rnum qrnum = real_quest(current_quest_vnum);
     char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
                                                                              : QST_NAME(qrnum);
-    int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY)
+    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                         ? "(no master)"
                         : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
     char *qm_room = "(not found)";
-    if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
+    if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
       for (mob_instance = character_list; mob_instance; mob_instance = mob_instance->next)
@@ -2167,7 +2174,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
         if (IS_NPC(mob_instance) && GET_MOB_VNUM(mob_instance) == qm_vnum)
         {
           room_rnum mob_room = IN_ROOM(mob_instance);
-          if (mob_room != NOWHERE && mob_room >= 0)
+          if (mob_room != NOWHERE)
             qm_room = world[mob_room].name;
           break;
         }
@@ -2219,14 +2226,14 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
 
     char *qname = (qrnum == NOTHING || qrnum == NOWHERE || !QST_NAME(qrnum)) ? "(missing quest)"
                                                                              : QST_NAME(qrnum);
-    int qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? -1 : QST_MASTER(qrnum);
-    char *qm_name = (qm_vnum == -1 || real_mobile(qm_vnum) == NOBODY)
+    mob_vnum qm_vnum = (qrnum == NOTHING || qrnum == NOWHERE) ? NOBODY : QST_MASTER(qrnum);
+    char *qm_name = (qm_vnum == NOBODY || real_mobile(qm_vnum) == NOBODY)
                         ? "(no master)"
                         : GET_NAME(&mob_proto[real_mobile(qm_vnum)]);
 
     /* Find the quest master's room */
     char *qm_room = "(not found)";
-    if (qm_vnum != -1 && real_mobile(qm_vnum) != NOBODY)
+    if (qm_vnum != NOBODY && real_mobile(qm_vnum) != NOBODY)
     {
       struct char_data *mob_instance;
       for (mob_instance = character_list; mob_instance; mob_instance = mob_instance->next)
@@ -2234,7 +2241,7 @@ static void questline_show(struct char_data *ch, int quest_line_id, int limit)
         if (IS_NPC(mob_instance) && GET_MOB_VNUM(mob_instance) == qm_vnum)
         {
           room_rnum mob_room = IN_ROOM(mob_instance);
-          if (mob_room != NOWHERE && mob_room >= 0)
+          if (mob_room != NOWHERE)
             qm_room = world[mob_room].name;
           break;
         }
@@ -2574,10 +2581,10 @@ ACMDU(do_questline)
 /* with a given object vnum, finds references to quests in game */
 ACMD(do_aqref)
 {
-  int i = 0;
   bool found = FALSE;
   obj_vnum vnum = 0;
   obj_rnum real_num = 0;
+  qst_rnum i = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, buf, sizeof(buf));
@@ -2620,7 +2627,8 @@ ACMD(do_aqref)
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
-    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) > 0 &&
+        (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) for %s (\tW%d\tn)\r\n", QST_NUM(i),
@@ -2628,7 +2636,8 @@ ACMD(do_aqref)
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
-    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) && QST_TARGET(i) == vnum)
+    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) > 0 &&
+        (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) to %s (\tW%d\tn)\r\n", QST_NUM(i),
@@ -2729,7 +2738,8 @@ bool is_dialogue_quest_failed(struct char_data *ch, qst_vnum q_vnum)
 
   for (i = 0; i < 100; i++)
   {
-    if (ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
+    if (ch->player_specials->saved.failed_dialogue_quests[i] >= 0 &&
+        (qst_vnum)ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
     {
       failed = true;
       break;
@@ -2791,7 +2801,8 @@ void set_dialogue_quest_succeeded(struct char_data *ch, qst_vnum q_vnum)
 
   for (i = 0; i < 100; i++)
   {
-    if (ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
+    if (ch->player_specials->saved.failed_dialogue_quests[i] >= 0 &&
+        (qst_vnum)ch->player_specials->saved.failed_dialogue_quests[i] == q_vnum)
     {
       ch->player_specials->saved.failed_dialogue_quests[i] = 0;
       break;
@@ -2838,7 +2849,7 @@ bool has_duplicate_quest(struct char_data *ch)
 
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
   {
-    if (GET_QUEST(ch, i) == NOTHING)
+    if (GET_QUEST(ch, i) == (int)NOTHING)
       continue;
     for (j = i + 1; j < MAX_CURRENT_QUESTS; j++)
     {
@@ -2861,7 +2872,7 @@ void remove_duplicate_quests(struct char_data *ch)
 
   for (i = 0; i < MAX_CURRENT_QUESTS; i++)
   {
-    if (GET_QUEST(ch, i) == NOTHING)
+    if (GET_QUEST(ch, i) == (int)NOTHING)
       continue;
     for (j = i + 1; j < MAX_CURRENT_QUESTS; j++)
     {

@@ -3,7 +3,7 @@
 ## Getting Started
 - Enter the editor with `oedit <vnum>` to modify an existing object or `oedit create <vnum>` for a fresh prototype.
 - Work is buffered in memory until you quit with `Q` followed by `Y`. Choosing `N` abandons your changes.
-- Menus accept single‐character choices. Numeric submenus expect plain numbers (type `10`, not `a`).
+- Menus accept single-character choices. Numeric submenus expect plain numbers (type `10`, not `a`).
 - String entries use the standard line editor (`~` on a blank line finishes multiline input).
 - All edits target the prototype; mobile/program reloads pick up the new values after you `Q`+`Y` or `redit save` the zone.
 
@@ -24,7 +24,7 @@
                           S) Script  
 ```
 
-### Text Fields (1–4)
+### Text Fields (1-4)
 - `1) Keywords` populate the name list used by `get`/`oload`.
 - `2) Short description` shows in room/inventory lists.
 - `3) Long description` is what appears on the ground.
@@ -47,7 +47,7 @@
 ### Derived Power
 - `P) Permanent affects` toggles permanent `affected_by` flags (e.g., `SANCTUARY`). Use these sparingly; they behave like always-on spell affects.
 - `D) Applies menu` manages up to `MAX_OBJ_AFFECT` (5) slot entries.
-  - Choose a slot (1–5) to edit.
+  - Choose a slot (1-5) to edit.
   - Select the apply from the list (`STR`, `DEX`, `AC`, `FEAT`, etc.). Applies that require a specific school/skill prompt for a follow-up selection.
   - Enter the modifier and pick a bonus type (stacking rules). A value of `0/None` clears the slot.
 - The main menu shows an **EQ Rating** and **Suggested affects** after you save and re-enter; use them as guidance, not hard rules.
@@ -65,16 +65,17 @@ Selecting `C` zeroes all 16 value slots before prompting. The sequence of prompt
 - You can revisit `C` if you need to tweak damage dice (`Value2/Value3`) or attack type (`Value4`); be aware that re-running `C` resets enhancements.
 
 ### Armor (`ITEM_ARMOR` and `ITEM_CLANARMOR`)
-- Selecting the armor subtype (`Value2`) auto-fills AC, size, material, and wear flags via `set_armor_object`.
-- Enhancement bonus is collected at `Value5` (0–10). Clan armor prompts for clan ID at `Value2`.
+- Normal armor uses `Value2` for its subtype and auto-fills AC, size, material, and wear flags via `set_armor_object`.
+- Clan armor uses `Value2` for the clan vnum. The value must identify an existing clan.
+- Both armor types collect an enhancement bonus at `Value5` (0-10).
 
 ### Ammunition & Ranged
-- `ITEM_FIREWEAPON`: `Value1` sets damage dice, `Value3` sets break chance (2–98), `Value5` is enhancement.
+- `ITEM_FIREWEAPON`: `Value1` sets damage dice, `Value3` sets break chance (2-98), `Value5` is enhancement.
 - `ITEM_MISSILE`: `Value0` picks ammo category, `Value3` sets break chance, `Value5` handles enhancement.
 - `ITEM_AMMO_POUCH` / `ITEM_CONTAINER`: `Value0` capacity (lbs; `-1` unlimited). `Value1` opens a flag toggle for closeable/lockable bits; enter `0` when done. `Value2` key vnum (`-1` none).
 
 ### Consumables
-- `ITEM_POTION` / `ITEM_SCROLL`: `Value0` spell level. `Value1–3` choose spells (use `-1` or `0` to clear a slot). `Value4` accepts an optional third spell.
+- `ITEM_POTION` / `ITEM_SCROLL`: `Value0` spell level. `Value1-3` choose spells (use `-1` or `0` to clear a slot). `Value4` accepts an optional third spell.
 - `ITEM_WAND` / `ITEM_STAFF`: `Value0` spell level, `Value1` max charges, `Value2` current charges, `Value3` spell to cast. A value of `-1` clears a spell slot.
 - `ITEM_POISON`: prompts for poison spell, level, applications, and hits per application across the first four values.
 
@@ -83,26 +84,26 @@ Selecting `C` zeroes all 16 value slots before prompting. The sequence of prompt
 - `ITEM_DRINKCON` / `ITEM_FOUNTAIN`: values cover capacity, remaining units, and liquid type.
 - `ITEM_PORTAL`: values depend on portal mode; the prompts call out the required vnums or ranges.
 - `ITEM_TREASURE_CHEST`: values cover loot tier, guaranteed loot type, random chest flag, search DC, pick DC, and optional trap type.
-- `ITEM_GEAR_OUTFIT`: values configure preset gear bundles—type, enhancement, material, applies, and bonus types.
+- `ITEM_GEAR_OUTFIT`: values configure preset gear bundles--type, enhancement, material, applies, and bonus types.
 
 For unusual object types, read the prompts carefully; each menu is sourced from `src/oedit.c` and mirrors the in-game expectations.
 
 ## Combat Enhancements
 - `F) Weapon Spells` manages up to `MAX_WEAPON_SPELLS` (4) procs.
   - Choose the slot number. Enter `-1` at the spell list to clear the slot.
-  - Set the cast level (≥1), the chance to proc (`1–50`%), then whether it fires only in combat (`1` offensive) or defensively (`0`).
+  - Set the cast level (>=1), the chance to proc (`1-50`%), then whether it fires only in combat (`1` offensive) or defensively (`0`).
 - `J) Special Abilities` attaches structured weapon spec-abilities.
   - `N` creates a new ability; `E` selects an existing one by position; `C` removes all.
-  - For each ability choose the type, minimum level (1–34), activation methods (toggle numbers; `0` finishes), optional command word, and ability-specific values (e.g., Bane race/subrace).
+  - For each ability choose the type, minimum level (1-34), activation methods (toggle numbers; `0` finishes), optional command word, and ability-specific values (e.g., Bane race/subrace).
 - `K) Activated Spells` configures a charged use effect (wands, staves, oddities).
   - Enter `0` at the level prompt to remove the activation.
-  - Valid levels are 1–30; spells are chosen from the filtered list that follows.
+  - Valid levels are 1-30; spells are chosen from the filtered list that follows.
   - Uses must be between 1 and `MAX_NUMBER_OF_ACTIVATED_SPELL_USES` (5). Items regenerate one use every five minutes in-game.
 
 ## Spellbooks (`T`)
 - Spellbooks can store up to `SPELLBOOK_SIZE` entries (200). The prompt shows existing spells grouped by circle and the next empty slot.
 - Selecting a slot opens the spell-picker. Enter `0` to clear the slot.
-- Pages are assigned automatically to at least 1 and default to half of the spell’s minimum wizard level (integer division). Builders cannot override pages directly in OEDIT.
+- Pages are assigned automatically to at least 1 and default to half of the spell's minimum wizard level (integer division). Builders cannot override pages directly in OEDIT.
 
 ## Copying, Deleting, and Saving
 - `W) Copy object` clones an existing prototype into the current buffer (useful for variants). You still need to `Q`+`Y` to persist the changes.

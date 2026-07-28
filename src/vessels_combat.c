@@ -867,7 +867,7 @@ ACMD(do_claimship)
     return;
   }
 
-  if (world[IN_ROOM(ch)].number != ship->bridge_room)
+  if (world[IN_ROOM(ch)].number != (room_vnum)ship->bridge_room)
   {
     send_to_char(ch, "Ships are claimed from the bridge.\r\n");
     return;

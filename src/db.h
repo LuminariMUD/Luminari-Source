@@ -365,7 +365,7 @@ void init_obj_rnum_hash(void);
 void add_obj_to_rnum_hash(struct obj_data *obj);
 void remove_obj_from_rnum_hash(struct obj_data *obj);
 
-void setup_dir(FILE *fl, int room, int dir);
+void setup_dir(FILE *fl, room_rnum room, int dir);
 void index_boot(int mode);
 void discrete_load(FILE *fl, int mode, char *filename);
 void parse_room(FILE *fl, int virtual_nr, const char *filename);

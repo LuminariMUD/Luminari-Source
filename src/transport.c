@@ -410,7 +410,7 @@ ACMDU(do_carriage)
 
   while (get_carriage_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_carriage_locale_vnum(i))
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == (room_vnum)get_carriage_locale_vnum(i))
     {
       found = true;
       break;
@@ -439,7 +439,7 @@ ACMDU(do_carriage)
     send_to_char(ch, "\r\n");
     while (get_carriage_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) &&
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != (room_vnum)get_carriage_locale_vnum(i) &&
           ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i))
                          : TRUE))
       {
@@ -469,7 +469,7 @@ ACMDU(do_carriage)
     found = false;
     while (get_carriage_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_carriage_locale_vnum(i) &&
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != (room_vnum)get_carriage_locale_vnum(i) &&
           ((here != 999) ? (get_carriage_locale_region(here) == get_carriage_locale_region(i))
                          : TRUE))
       {
@@ -516,7 +516,7 @@ ACMDU(do_sail)
 
   while (get_sailing_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_sailing_locale_vnum(i))
+    if (GET_ROOM_VNUM(IN_ROOM(ch)) == (room_vnum)get_sailing_locale_vnum(i))
     {
       found = true;
       break;
@@ -542,7 +542,8 @@ ACMDU(do_sail)
                  "~~~~", "~~~~", "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     while (get_sailing_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_sailing_locale_vnum(i) && valid_sailing_travel(here, i))
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != (room_vnum)get_sailing_locale_vnum(i) &&
+          valid_sailing_travel(here, i))
       {
         found = true;
         cost = get_sailing_locale_cost(i);
@@ -591,7 +592,8 @@ ACMDU(do_sail)
     found = false;
     while (get_sailing_locale_vnum(i) != 0)
     {
-      if (GET_ROOM_VNUM(IN_ROOM(ch)) != get_sailing_locale_vnum(i) && valid_sailing_travel(here, i))
+      if (GET_ROOM_VNUM(IN_ROOM(ch)) != (room_vnum)get_sailing_locale_vnum(i) &&
+          valid_sailing_travel(here, i))
       {
         if (is_abbrev(argument, get_transport_sailing_name(i)))
         {
@@ -637,7 +639,7 @@ ACMDU(do_sail)
   }
 }
 
-int valid_sailing_travel(int here, int i)
+int valid_sailing_travel(int here __attribute__((unused)), int i __attribute__((unused)))
 {
   // When sailing is set up, this will make any checks necessary to allow sailing travel from the existing locale
 
@@ -646,7 +648,11 @@ int valid_sailing_travel(int here, int i)
 
 void enter_transport(struct char_data *ch, int locale, int type, int here)
 {
-  int cnt = 0;
+  room_rnum cnt;
+  room_rnum taxi = NOWHERE;
+  room_rnum to_room = NOWHERE;
+  struct follow_type *f = NULL;
+  struct char_data *tch = NULL;
   char air[200], car[200];
 
   for (cnt = 0; cnt <= top_of_world; cnt++)
@@ -656,12 +662,11 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     if (world[cnt].people)
       continue;
     /* found available transport room */
+    taxi = cnt;
     break;
   }
 
   /* transport type handling */
-
-  room_rnum to_room = NOWHERE;
 
   if (type == TRAVEL_CARRIAGE)
   {
@@ -693,8 +698,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
     return;
   }
 
-  room_rnum taxi = cnt;
-
   if (taxi == NOWHERE)
   {
     if (type == TRAVEL_CARRIAGE)
@@ -705,9 +708,6 @@ void enter_transport(struct char_data *ch, int locale, int type, int here)
       send_to_char(ch, "The skies are too tumultous right now.\r\n");
     return;
   }
-
-  struct follow_type *f = NULL;
-  struct char_data *tch = NULL;
 
   for (f = ch->followers; f; f = f->next)
   {
@@ -800,7 +800,6 @@ void travel_tickdown(void)
   struct char_data *ch = NULL;
   struct descriptor_data *d = NULL;
   room_rnum to_room = NOWHERE;
-  char sail[200], car[200];
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -817,13 +816,19 @@ void travel_tickdown(void)
     if (world[IN_ROOM(ch)].number < 66700 || world[IN_ROOM(ch)].number > 66799)
       continue;
 
-    if (ch->player_specials->destination == 0 || ch->player_specials->destination == NOWHERE)
+    if (ch->player_specials->destination == 0 ||
+        ch->player_specials->destination == (int)NOWHERE)
     {
 #if defined(CAMPAIGN_DL)
       to_room = real_room(16500);
 #else
       to_room = real_room(14100);
 #endif
+      if (to_room == NOWHERE)
+      {
+        log("SYSERR: travel_tickdown could not resolve the emergency destination.");
+        continue;
+      }
       char_from_room(ch);
       char_to_room(ch, to_room);
       char_pets_to_char_loc(ch);
@@ -831,6 +836,10 @@ void travel_tickdown(void)
       entry_memory_mtrigger(ch);
       greet_mtrigger(ch, -1);
       greet_memory_mtrigger(ch);
+      ch->player_specials->destination = (int)NOWHERE;
+      ch->player_specials->travel_timer = 0;
+      ch->player_specials->travel_type = 0;
+      ch->player_specials->travel_locale = 0;
 
       continue;
     }
@@ -839,66 +848,21 @@ void travel_tickdown(void)
       ch->player_specials->travel_timer--;
       if (ch->player_specials->travel_timer < 1)
       {
-        if (ch->player_specials->travel_type == TRAVEL_CARRIAGE ||
-            ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT)
+        to_room = (room_rnum)ch->player_specials->destination;
+        if (to_room == NOWHERE || to_room > top_of_world)
         {
-          snprintf(car, sizeof(car), "%d", get_carriage_locale_vnum(ch->player_specials->travel_locale));
-        }
-        else if (ch->player_specials->travel_type == TRAVEL_SAILING ||
-                 ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
-        {
-          snprintf(sail, sizeof(sail), "%d", get_sailing_locale_vnum(ch->player_specials->travel_locale));
-        }
-
-        if (ch->player_specials->travel_type == TRAVEL_SAILING || 
-            ch->player_specials->travel_type == TRAVEL_OVERLAND_FLIGHT_SAIL)
-        {
-          if (atoi(sail) < 1000000)
+          log("SYSERR: travel_tickdown found invalid destination rnum %u for %s.", to_room,
+              GET_NAME(ch));
+#if defined(CAMPAIGN_DL)
+          to_room = real_room(16500);
+#else
+          to_room = real_room(14100);
+#endif
+          if (to_room == NOWHERE)
           {
-            if ((to_room = find_target_room(ch, (char *)(sail))) == NOWHERE)
-            {
-              char_from_room(ch);
-              char_to_room(ch, to_room);
-              char_pets_to_char_loc(ch);
-              look_at_room(ch, 0);
-              entry_memory_mtrigger(ch);
-              greet_mtrigger(ch, -1);
-              greet_memory_mtrigger(ch);
-            }
+            send_to_char(ch, "Your journey cannot be completed. Please contact a staff member.\r\n");
+            continue;
           }
-          /* Have two args, that means coordinates (potentially) */
-          else if ((to_room = find_room_by_coordinates(
-                        get_sailing_locale_x(ch->player_specials->travel_locale),
-                        get_sailing_locale_y(ch->player_specials->travel_locale))) == NOWHERE)
-          {
-            if ((to_room = find_available_wilderness_room()) == NOWHERE)
-            {
-              char_from_room(ch);
-              char_to_room(ch, to_room);
-              char_pets_to_char_loc(ch);
-              look_at_room(ch, 0);
-              entry_memory_mtrigger(ch);
-              greet_mtrigger(ch, -1);
-              greet_memory_mtrigger(ch);
-            }
-            else
-            {
-              /* Must set the coords, etc in the going_to room. */
-              assign_wilderness_room(to_room,
-                                     get_sailing_locale_x(ch->player_specials->travel_locale),
-                                     get_sailing_locale_y(ch->player_specials->travel_locale));
-            }
-          }
-        }
-        else if ((to_room = find_target_room(ch, (char *)(car))) == NOWHERE)
-        {
-          char_from_room(ch);
-          char_to_room(ch, to_room);
-          char_pets_to_char_loc(ch);
-          look_at_room(ch, 0);
-          entry_memory_mtrigger(ch);
-          greet_mtrigger(ch, -1);
-          greet_memory_mtrigger(ch);
         }
 
         char_from_room(ch);
@@ -1122,13 +1086,13 @@ ACMDU(do_walkto_full)
     else
     {
       snprintf(landmark_name, sizeof(landmark_name), "%s", argument);
-      for (j = 0; j < strlen(landmark_name); j++)
+      for (j = 0; (size_t)j < strlen(landmark_name); j++)
       {
         landmark_name[j] = LOWER(landmark_name[j]);
       }
 
       snprintf(specified_name, sizeof(specified_name), "%s", get_walkto_landmark_name(i));
-      for (j = 0; j < strlen(specified_name); j++)
+      for (j = 0; (size_t)j < strlen(specified_name); j++)
       {
         specified_name[j] = LOWER(specified_name[j]);
       }
@@ -1159,8 +1123,8 @@ ACMDU(do_walkto_city)
 {
   int i = 0;
   bool found = false;
-  int zone = 0;
-  int landmark = 0;
+  zone_vnum zone = 0;
+  room_vnum landmark = 0;
 
   skip_spaces(&argument);
 
@@ -1186,7 +1150,7 @@ ACMDU(do_walkto_city)
     return;
   }
 
-  while ((zone = atoi(get_walkto_landmark_region(i))) != 0)
+  while ((zone = atoidx(get_walkto_landmark_region(i))) != 0)
   {
     if (zone == zone_table[world[IN_ROOM(ch)].zone].number)
     {
@@ -1214,7 +1178,8 @@ ACMDU(do_walkto_city)
 
 ACMD(do_landmarks_full)
 {
-  int i = 0, count = 0, j = 0, destination = NOWHERE, dir = 0;
+  int i = 0, count = 0, j = 0, dir = 0, distance = -1;
+  room_rnum destination = NOWHERE;
   bool found = false;
   char buf[200], arg1[200], direction[50];
 
@@ -1243,7 +1208,7 @@ ACMD(do_landmarks_full)
   while (get_walkto_landmark_region(i)[0] != '0')
   {
     snprintf(buf, sizeof(buf), "%s", get_walkto_landmark_region(i));
-    for (j = 0; j < strlen(buf); j++)
+    for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = LOWER(buf[j]);
     if (is_abbrev(arg1, buf))
     {
@@ -1252,18 +1217,20 @@ ACMD(do_landmarks_full)
         send_to_char(ch, "\tC%-35s | %6.6s | %-15s | %s\tn\r\n", "LANDMARK NAME", "ROOM #",
                      "DIRECTION", "DISTANCE");
       }
+      distance = -1;
       destination = real_room(get_walkto_landmark_vnum(i));
       if (destination == NOWHERE)
         snprintf(direction, sizeof(direction), "Not Accessible From Here");
-      if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
+      else if ((dir = find_first_step(IN_ROOM(ch), destination)) == BFS_ALREADY_THERE)
         snprintf(direction, sizeof(direction), "You've Arrived!");
       else if (dir < 0)
         snprintf(direction, sizeof(direction), "Not Accessible");
       else
         snprintf(direction, sizeof(direction), "%s", dirs[dir]);
+      if (destination != NOWHERE)
+        distance = count_rooms_between(IN_ROOM(ch), destination);
       send_to_char(ch, "%-35s | %-6.6d | %-15s | %3d rooms\r\n", get_walkto_landmark_name(i),
-                   get_walkto_landmark_vnum(i), direction,
-                   count_rooms_between(IN_ROOM(ch), destination));
+                   get_walkto_landmark_vnum(i), direction, distance);
       found = true;
       count++;
     }
@@ -1278,7 +1245,8 @@ ACMD(do_landmarks_full)
 
 ACMD(do_landmarks_city)
 {
-  int i = 0, zone = 0, count = 0;
+  int i = 0, count = 0;
+  zone_vnum zone = 0;
   bool found = false;
 
   if (IN_ROOM(ch) == NOWHERE)
@@ -1287,7 +1255,7 @@ ACMD(do_landmarks_city)
     return;
   }
 
-  while ((zone = atoi(get_walkto_landmark_region(i))) != 0)
+  while ((zone = atoidx(get_walkto_landmark_region(i))) != 0)
   {
     if (zone == zone_table[world[IN_ROOM(ch)].zone].number)
     {

@@ -266,27 +266,27 @@ void hlqedit_save_internally(struct descriptor_data *d)
 
 /* writing the hlq file to disk
  */
-void hlqedit_save_to_disk(int zone_num)
+void hlqedit_save_to_disk(zone_rnum zone_num)
 {
   FILE *fp;
   struct char_data *ch;
   struct quest_entry *quest;
   struct quest_command *qcom;
   char command = 'Q';
-  int zone;
-  int top;
-  int i;
-  int rmob_num;
+  mob_vnum zone;
+  mob_vnum top;
+  mob_vnum i;
+  mob_rnum rmob_num;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (zone_num < 0 || zone_num > top_of_zone_table)
+  if (zone_num == NOWHERE || zone_num > top_of_zone_table)
   {
     log("SYSERR: hlqedit_save_to_disk: Invalid real zone passed!");
     return;
   }
 
-  snprintf(buf, sizeof(buf), "%s/%d.new", HLQST_PREFIX, zone_table[zone_num].number);
+  snprintf(buf, sizeof(buf), "%s/%u.new", HLQST_PREFIX, zone_table[zone_num].number);
   if (!(fp = fopen(buf, "w+")))
   {
     log("SYSERR: OLC: Cannot open hl quest file!");
@@ -308,7 +308,7 @@ void hlqedit_save_to_disk(int zone_num)
       ch = &mob_proto[rmob_num];
       if (ch->mob_specials.quest)
       {
-        if (fprintf(fp, "#%d\n", i) < 0)
+        if (fprintf(fp, "#%u\n", i) < 0)
         {
           log("SYSERR: OLC: Cannot write hl quest file!\r\n");
           fclose(fp);
@@ -467,7 +467,7 @@ void hlqedit_disp_menu(struct descriptor_data *d)
                quest->room);
     else
     {
-      if (quest->in > 0)
+      if (quest->in != NULL)
       {
         if (quest->in->type == QUEST_COMMAND_ITEM)
           snprintf(buf, sizeof(buf), "%d) (%s) GIVE %s", num, quest->approved ? "OK" : "-",
@@ -663,7 +663,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
     break;
   case HLQEDIT_IN_ITEM:
-    if ((number = real_object(atoi(arg))) != NOWHERE)
+    if ((number = real_object(atoi(arg))) != (int)NOWHERE)
     {
       OLC_QUESTENTRY(d)->in->value = atoi(arg);
       hlqedit_disp_incommand_menu(d);
@@ -821,7 +821,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_ITEM:
-    if ((number = real_object(atoi(arg))) != NOTHING)
+    if ((number = real_object(atoi(arg))) != (int)NOTHING)
     {
       OLC_QCOM(d)->value = atoi(arg);
       hlqedit_disp_outcommand_menu(d);
@@ -833,7 +833,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_OBJECT:
-    if ((number = real_object(atoi(arg))) != NOTHING)
+    if ((number = real_object(atoi(arg))) != (int)NOTHING)
     {
       OLC_QCOM(d)->value = atoi(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_OBJECT_ROOM;
@@ -846,7 +846,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_LOAD_MOB:
-    if ((number = real_mobile(atoi(arg))) != NOBODY)
+    if ((number = real_mobile(atoi(arg))) != (int)NOBODY)
     {
       OLC_QCOM(d)->value = atoi(arg);
       OLC_MODE(d) = HLQEDIT_OUT_LOAD_MOB_ROOM;
@@ -870,7 +870,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
   case HLQEDIT_OUT_LOAD_OBJECT_ROOM:
   case HLQEDIT_OUT_LOAD_MOB_ROOM:
-    if ((number = real_room(atoi(arg))) != NOWHERE)
+    if ((number = real_room(atoi(arg))) != (int)NOWHERE)
       OLC_QCOM(d)->location = atoi(arg);
     else
     {
@@ -915,7 +915,7 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case HLQEDIT_OUT_OPEN_DOOR:
-    if ((number = real_room(atoi(arg))) != NOWHERE)
+    if ((number = real_room(atoi(arg))) != (int)NOWHERE)
     {
       OLC_QCOM(d)->location = atoi(arg);
       send_to_char(d->character, "Which direction? (0 = North, 1 = East, "
@@ -1074,7 +1074,9 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 /* entry point for hl quest editor */
 ACMD(do_hlqedit)
 {
-  int number = NOBODY, save = 0, real_num;
+  IDXTYPE number = NOBODY;
+  mob_rnum real_num;
+  int save = 0;
   struct descriptor_data *d;
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -1103,7 +1105,7 @@ ACMD(do_hlqedit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = atoidx(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
@@ -1111,7 +1113,7 @@ ACMD(do_hlqedit)
       if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
         number = NOWHERE;
       else
-        number = genolc_zone_bottom(zlok);
+        number = zone_table[zlok].number;
     }
 
     if (number == NOWHERE)
@@ -1123,10 +1125,10 @@ ACMD(do_hlqedit)
 
   // if numberic arg was given, get it
   if (number == NOBODY)
-    number = atoi(buf1);
+    number = atoidx(buf1);
 
   /* debug */
-  send_to_char(ch, "Number inputed: %d\r\n", number);
+  send_to_char(ch, "Number inputed: %u\r\n", number);
 
   // make sure not already being editted
   for (d = descriptor_list; d; d = d->next)
@@ -1155,7 +1157,7 @@ ACMD(do_hlqedit)
   OLC_ZNUM(d) = save ? real_zone(number) : real_zone_by_thing(number);
 
   /* debug */
-  send_to_char(ch, "OLC Zone Number: %d\r\n", OLC_ZNUM(d));
+  send_to_char(ch, "OLC Zone Number: %u\r\n", OLC_ZNUM(d));
 
   if (OLC_ZNUM(d) == NOWHERE)
   {
@@ -1177,8 +1179,8 @@ ACMD(do_hlqedit)
 
   if (save)
   {
-    send_to_char(ch, "Saving all hlquest info in zone %d.\r\n", zone_table[OLC_ZNUM(d)].number);
-    log("OLC: %s saves hlquest info for zone %d.", GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
+    send_to_char(ch, "Saving all hlquest info in zone %u.\r\n", zone_table[OLC_ZNUM(d)].number);
+    log("OLC: %s saves hlquest info for zone %u.", GET_NAME(ch), zone_table[OLC_ZNUM(d)].number);
 
     send_to_char(ch, "Saving to disk...");
     hlqedit_save_to_disk(OLC_ZNUM(d));
@@ -1208,6 +1210,6 @@ ACMD(do_hlqedit)
   act("$n starts using OLC (hlqedit).", TRUE, d->character, 0, 0, TO_ROOM);
   SET_BIT_AR(PLR_FLAGS(ch), PLR_WRITING);
 
-  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %d allowed zone %d", GET_NAME(ch),
+  mudlog(BRF, LVL_IMMORT, TRUE, "OLC: %s starts editing zone %u allowed zone %d", GET_NAME(ch),
          zone_table[OLC_ZNUM(d)].number, GET_OLC_ZONE(ch));
 }

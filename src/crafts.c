@@ -914,7 +914,7 @@ ACMD(do_oasis_craftedit)
   }
 
   for (d = descriptor_list; d; d = d->next)
-    if (STATE(d) == CON_CRAFTEDIT && d->olc && OLC_NUM(d) == idnum)
+    if (STATE(d) == CON_CRAFTEDIT && d->olc && (int)OLC_NUM(d) == idnum)
     {
       send_to_char(ch, "Someone is currently editing that craft.\r\n");
       return;

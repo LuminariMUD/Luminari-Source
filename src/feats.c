@@ -6401,7 +6401,7 @@ int critical_feat_total(struct char_data *ch)
 
 /* The follwing function is used to check if the character satisfies the various prerequisite(s) (if any)
    of a feat in order to learn it. */
-int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg)
+int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg __attribute__((unused)))
 {
   struct feat_prerequisite *prereq = NULL;
 

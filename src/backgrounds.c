@@ -1323,7 +1323,7 @@ void show_background_help(struct char_data *ch, int background)
 
   snprintf(buf, sizeof(buf), "%s BACKGROUND", background_list[background].name);
 
-  for (i = 0; i < strlen(buf); i++)
+  for (i = 0; (size_t)i < strlen(buf); i++)
   {
     buf[i] = toupper(buf[i]);
   }

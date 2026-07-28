@@ -46,7 +46,8 @@ static void sedit_save_to_disk(int num)
 /* utility functions */
 ACMD(do_oasis_sedit)
 {
-  int number = NOWHERE, save = 0;
+  shop_vnum number = NOWHERE;
+  int save = 0;
   shop_rnum real_num;
   struct descriptor_data *d;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
@@ -75,7 +76,7 @@ ACMD(do_oasis_sedit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = atoidx(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
@@ -83,7 +84,7 @@ ACMD(do_oasis_sedit)
       if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
         number = NOWHERE;
       else
-        number = genolc_zone_bottom(zlok);
+        number = zone_table[zlok].number;
     }
 
     if (number == NOWHERE)
@@ -95,7 +96,7 @@ ACMD(do_oasis_sedit)
 
   /* If a numeric argument was given, get it. */
   if (number == NOWHERE)
-    number = atoi(buf1);
+    number = atoidx(buf1);
 
   /* Check that the shop isn't already being edited. */
   for (d = descriptor_list; d; d = d->next)
@@ -211,7 +212,7 @@ static void sedit_setup_new(struct descriptor_data *d)
   OLC_SHOP(d) = shop;
 }
 
-void sedit_setup_existing(struct descriptor_data *d, int rshop_num, int mode)
+void sedit_setup_existing(struct descriptor_data *d, int rshop_num, int mode __attribute__((unused)))
 {
   /* Create a scratch shop structure. */
   CREATE(OLC_SHOP(d), struct shop_data, 1);
@@ -324,7 +325,7 @@ static void sedit_namelist_menu(struct descriptor_data *d)
 
   clear_screen(d);
   write_to_output(d, "##              Type   Namelist\r\n\r\n");
-  for (i = 0; S_BUYTYPE(shop, i) != NOTHING; i++)
+  for (i = 0; S_BUYTYPE(shop, i) != (int)NOTHING; i++)
   {
     write_to_output(d, "%2d - %s%15s%s - %s%s%s\r\n", i, cyn, item_types[S_BUYTYPE(shop, i)], nrm,
                     yel, S_BUYWORD(shop, i) ? S_BUYWORD(shop, i) : "<None>", nrm);
@@ -429,7 +430,7 @@ static void sedit_disp_menu(struct descriptor_data *d)
                   "Enter Choice : ",
 
                   cyn, OLC_NUM(d), nrm, grn, nrm, cyn,
-                  S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum, nrm, yel,
+                  S_KEEPER(shop) == NOBODY ? -1 : (int)mob_index[S_KEEPER(shop)].vnum, nrm, yel,
                   S_KEEPER(shop) == NOBODY ? "None" : mob_proto[S_KEEPER(shop)].player.short_descr,
                   grn, nrm, cyn, S_OPEN1(shop), nrm, grn, nrm, cyn, S_CLOSE1(shop), grn, nrm, cyn,
                   S_OPEN2(shop), nrm, grn, nrm, cyn, S_CLOSE2(shop), grn, nrm, cyn,
@@ -708,7 +709,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
   case SEDIT_KEEPER:
     i = atoi(arg);
     if ((i = atoi(arg)) != -1)
-      if ((i = real_mobile(i)) == NOBODY)
+      if ((i = real_mobile(i)) == (int)NOBODY)
       {
         write_to_output(d, "That mobile does not exist, try again : ");
         return;
@@ -749,7 +750,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     return;
   case SEDIT_NEW_PRODUCT:
     if ((i = atoi(arg)) != -1)
-      if ((i = real_object(i)) == NOTHING)
+      if ((i = real_object(i)) == (int)NOTHING)
       {
         write_to_output(d, "That object does not exist, try again : ");
         return;
@@ -764,7 +765,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     return;
   case SEDIT_NEW_ROOM:
     if ((i = atoi(arg)) != -1)
-      if ((i = real_room(i)) == NOWHERE)
+      if ((i = real_room(i)) == (int)NOWHERE)
       {
         write_to_output(d, "That room does not exist, try again : ");
         return;
@@ -794,7 +795,7 @@ void sedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case SEDIT_COPY:
-    if ((i = real_shop(atoi(arg))) != NOWHERE)
+    if ((i = real_shop(atoi(arg))) != (int)NOWHERE)
     {
       sedit_setup_existing(d, i, QMODE_QCOPY);
     }

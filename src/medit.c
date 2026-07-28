@@ -184,7 +184,9 @@ void medit_disp_add_spells(struct descriptor_data *d)
 /*  utility functions */
 ACMD(do_oasis_medit)
 {
-  int number = NOBODY, save = 0, real_num;
+  mob_vnum number = NOBODY;
+  mob_rnum real_num;
+  int save = 0;
   struct descriptor_data *d;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -212,7 +214,7 @@ ACMD(do_oasis_medit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = atoidx(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
@@ -220,7 +222,7 @@ ACMD(do_oasis_medit)
       if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
         number = NOWHERE;
       else
-        number = genolc_zone_bottom(zlok);
+        number = zone_table[zlok].number;
     }
 
     if (number == NOWHERE)
@@ -232,7 +234,7 @@ ACMD(do_oasis_medit)
 
   /* If a numeric argument was given (like a room number), get it. */
   if (number == NOBODY)
-    number = atoi(buf1);
+    number = atoidx(buf1);
 
   /* Check that whatever it is isn't already being edited. */
   for (d = descriptor_list; d; d = d->next)
@@ -350,7 +352,7 @@ void medit_setup_new(struct descriptor_data *d)
   OLC_ITEM_TYPE(d) = MOB_TRIGGER;
 }
 
-void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode)
+void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode __attribute__((unused)))
 {
   struct char_data *mob;
 
@@ -369,7 +371,7 @@ void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode)
   SCRIPT(mob) = NULL;
   OLC_MOB(d)->proto_script = NULL;
   /* Initialize current spec proc selection from prototype index */
-  if (rmob_num != NOBODY)
+  if (rmob_num != (int)NOBODY)
     OLC(d)->specmob = mob_index[rmob_num].func;
 }
 
@@ -460,7 +462,8 @@ void medit_save_internally(struct descriptor_data *d)
     if (STATE(dsc) == CON_ZEDIT)
       for (i = 0; OLC_ZONE(dsc)->cmd[i].command != 'S'; i++)
         if (OLC_ZONE(dsc)->cmd[i].command == 'M')
-          if (OLC_ZONE(dsc)->cmd[i].arg1 >= new_rnum)
+          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 &&
+              (mob_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= new_rnum)
             OLC_ZONE(dsc)->cmd[i].arg1++;
 }
 
@@ -2338,7 +2341,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case MEDIT_COPY:
-    if ((i = real_mobile(atoi(arg))) != NOWHERE)
+    if ((i = real_mobile(atoi(arg))) != (int)NOWHERE)
     {
       medit_setup_existing(d, i, QMODE_QCOPY);
     }
@@ -2349,7 +2352,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
   case MEDIT_DELETE:
     if (*arg == 'y' || *arg == 'Y')
     {
-      if (delete_mobile(GET_MOB_RNUM(OLC_MOB(d))) != NOBODY)
+      if (delete_mobile(GET_MOB_RNUM(OLC_MOB(d))) != (int)NOBODY)
         write_to_output(d, "Mobile deleted.\r\n");
       else
         write_to_output(d, "Couldn't delete the mobile!\r\n");
@@ -2382,7 +2385,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
   medit_disp_menu(d);
 }
 
-void medit_string_cleanup(struct descriptor_data *d, int terminator)
+void medit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {
@@ -2399,7 +2402,7 @@ void medit_string_cleanup(struct descriptor_data *d, int terminator)
    2)  their BAB will match their class/level
    3)  their saving-throws will match their class/level
  */
-void autoroll_mob(struct char_data *mob, bool realmode, bool summoned)
+void autoroll_mob(struct char_data *mob, bool realmode, bool summoned __attribute__((unused)))
 {
   int level = 0, bonus = 0;
   int armor_class = 100; /* base 10 AC */

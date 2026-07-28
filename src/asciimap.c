@@ -358,11 +358,13 @@ static void MapArea(room_rnum room, struct char_data *ch, int x, int y, int min,
       {
       case NORTH:
         prospect_xpos = ns_size;
+        __attribute__((fallthrough));
       case SOUTH:
         prospect_ypos = world[prospect_room].dir_option[rev_dir[door]] ? y_exit_pos : ew_size / 2;
         break;
       case WEST:
         prospect_ypos = ew_size;
+        __attribute__((fallthrough));
       case EAST:
         prospect_xpos = world[prospect_room].dir_option[rev_dir[door]] ? x_exit_pos : ns_size / 2;
         break;

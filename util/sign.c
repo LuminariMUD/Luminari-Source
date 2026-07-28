@@ -163,7 +163,7 @@ char *get_text(char *fname)
  *
  * @param sig Signal number (SIGCHLD)
  */
-RETSIGTYPE reap(int sig)
+RETSIGTYPE reap(int sig __attribute__((unused)))
 {
   /* Reap all available zombie children */
   while (waitpid(-1, NULL, WNOHANG) > 0)

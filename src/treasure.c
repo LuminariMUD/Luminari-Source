@@ -1368,7 +1368,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
     if (roll >= 91)
     {
       snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
-      for (i = 0; i < strlen(keywords); i++)
+      for (i = 0; (size_t)i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s %s", colors[color1], colors[color2],
@@ -1386,7 +1386,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
     else if (roll >= 66)
     {
       snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
-      for (i = 0; i < strlen(keywords); i++)
+      for (i = 0; (size_t)i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s", colors[color1],
@@ -1404,7 +1404,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
     else if (roll >= 41)
     {
       snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
-      for (i = 0; i < strlen(keywords); i++)
+      for (i = 0; (size_t)i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s %s", colors[color1], colors[color2],
@@ -1422,7 +1422,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
     else
     {
       snprintf(keywords, MEDIUM_STRING, "potion-%s", spell_info[spell_num].name);
-      for (i = 0; i < strlen(keywords); i++)
+      for (i = 0; (size_t)i < strlen(keywords); i++)
         if (keywords[i] == ' ')
           keywords[i] = '-';
       snprintf(buf, MAX_STRING_LENGTH, "vial potion %s %s %s", colors[color1],
@@ -1445,7 +1445,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
   case TYPE_WAND:
     snprintf(keywords, MEDIUM_STRING, "wand-%s", spell_info[spell_num].name);
-    for (i = 0; i < strlen(keywords); i++)
+    for (i = 0; (size_t)i < strlen(keywords); i++)
       if (keywords[i] == ' ')
         keywords[i] = '-';
 
@@ -1473,7 +1473,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
   case TYPE_STAFF:
     snprintf(keywords, MEDIUM_STRING, "staff-%s", spell_info[spell_num].name);
-    for (i = 0; i < strlen(keywords); i++)
+    for (i = 0; (size_t)i < strlen(keywords); i++)
       if (keywords[i] == ' ')
         keywords[i] = '-';
 
@@ -1500,7 +1500,7 @@ void award_expendable_item(struct char_data *ch, int grade, int type)
 
   default: // Type-Scrolls
     snprintf(keywords, MEDIUM_STRING, "scroll-%s", spell_info[spell_num].name);
-    for (i = 0; i < strlen(keywords); i++)
+    for (i = 0; (size_t)i < strlen(keywords); i++)
       if (keywords[i] == ' ')
         keywords[i] = '-';
 
@@ -3672,7 +3672,7 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     material = MATERIAL_WOOD;
     instrument_type = dice(1, MAX_INSTRUMENTS) - 1;
     snprintf(armor_name, MEDIUM_STRING, "%s", instrument_names[instrument_type]);
-    for (i = 0; i < strlen(armor_name); i++)
+    for (i = 0; (size_t)i < strlen(armor_name); i++)
     {
       armor_name[i] = LOWER(armor_name[i]);
     }
@@ -6139,7 +6139,8 @@ int get_suggested_enhancement_bonus(int olevel, bool boss_mob)
 void assign_weighted_bonuses(void)
 {
   struct obj_data *obj;
-  int i, j, k;
+  obj_rnum j;
+  int i, k;
   int apply;
 
   // initialize first (moved outside the loop)
@@ -6151,7 +6152,7 @@ void assign_weighted_bonuses(void)
     }
   }
 
-  for (j = 0; j < top_of_objt; j++)
+  for (j = 0; j <= top_of_objt; j++)
   {
     // we have issues with obj vnums above this number.
     // all zones that are made should be below these vnums anyway.
@@ -6473,6 +6474,7 @@ bool is_valid_spell_circle_for_class(int circle, int ch_class)
     case CLASS_BLACKGUARD:
       return false; // these classes can only cast up to circle 4 spells
     }
+    __attribute__((fallthrough));
   case APPLY_SPELL_CIRCLE_7:
   case APPLY_SPELL_CIRCLE_8:
   case APPLY_SPELL_CIRCLE_9:
@@ -6660,6 +6662,6 @@ int get_apply_no_repeat_category(int apply)
 // this function will assign random bonuses to an object based on its level and the number of bonuses specified.
 // the bonuses assigned will be weighted based on how common the bonuses are in existing gear.
 // can be used for random treasure, creating items with oedit, bazaars, treasure chests and more.
-void assign_weighted_random_bonuses(struct obj_data *obj, int olevel, int num_bonuses)
+void assign_weighted_random_bonuses(struct obj_data *obj __attribute__((unused)), int olevel __attribute__((unused)), int num_bonuses __attribute__((unused)))
 {
 }

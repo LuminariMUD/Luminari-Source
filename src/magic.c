@@ -1485,7 +1485,7 @@ void mag_loops(int level, struct char_data *ch, struct char_data *victim, struct
 // default    ->  magic resistance
 // returns damage, -1 if dead
 
-int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct obj_data *wpn,
+int mag_damage(int level, struct char_data *ch, struct char_data *victim, struct obj_data *wpn __attribute__((unused)),
                int spellnum, int metamagic, int savetype, int casttype)
 {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, min_dice_roll = 0,
@@ -7219,6 +7219,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
   case SPELL_SPIRITUAL_WEAPON:
     to_room = "A spiritual weapon appears beside $n!";
     to_vict = "A spiritual weapons appears beside you!";
+    af[0].duration = level;
+    break;
   case SPELL_DANCING_WEAPON:
     to_room = "A dancing weapon appears beside $n!";
     to_vict = "A dancing weapons appears beside you!";
@@ -11665,8 +11667,8 @@ bool isSummonMob(int vnum)
   return false;
 }
 
-void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
-                 int casttype)
+void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype __attribute__((unused)),
+                 int casttype __attribute__((unused)))
 {
   struct char_data *mob = NULL;
   struct obj_data *tobj, *next_obj;
@@ -11741,7 +11743,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       send_to_char(ch, "You are too giddy to have any followers!\r\n");
       return;
     }
-    // fall through is intentional here.
+    __attribute__((fallthrough));
   case SPELL_ANIMATE_DEAD: // necromancy
     if (obj == NULL || !IS_CORPSE(obj))
     {
@@ -12025,10 +12027,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   case SPELL_SUMMON_NATURES_ALLY_9:
   case SPELL_SUMMON_CREATURE_9: // conjuration
     mob_level = 18;
+    __attribute__((fallthrough));
   case SPELL_SUMMON_NATURES_ALLY_8:
   case SPELL_SUMMON_CREATURE_8: // conjuration
     if (!mob_level)
       mob_level = 16;
+    __attribute__((fallthrough));
   case SPELL_SUMMON_NATURES_ALLY_7:
   case SPELL_SUMMON_CREATURE_7: // conjuration
     if (!mob_level)
@@ -12669,8 +12673,8 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   return FALSE;
 }
 
-void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
-                int spellnum, int savetype, int casttype)
+void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj __attribute__((unused)),
+                int spellnum, int savetype __attribute__((unused)), int casttype)
 {
   int healing = 0, move = 0, psp = 0, max_psp = 0;
   struct char_data *tch = NULL;
@@ -13143,8 +13147,8 @@ void mag_points(int level, struct char_data *ch, struct char_data *victim, struc
   process_healing(ch, victim, spellnum, healing, move, psp);
 }
 
-void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
-                   int spellnum, int type, int casttype)
+void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj __attribute__((unused)),
+                   int spellnum, int type __attribute__((unused)), int casttype __attribute__((unused)))
 {
   int spell = 0, msg_not_affected = TRUE, affect = 0, affect2 = 0, found = FALSE;
   const char *to_vict = NULL, *to_char = NULL, *to_notvict = NULL;
@@ -13486,7 +13490,7 @@ void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, st
 }
 
 void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int spellnum,
-                    int savetype, int casttype)
+                    int savetype __attribute__((unused)), int casttype __attribute__((unused)))
 {
   const char *to_char = NULL, *to_room = NULL;
 
@@ -13579,8 +13583,8 @@ void mag_alter_objs(int level, struct char_data *ch, struct obj_data *obj, int s
 
 #define LOOP_LIMIT_MAGCREATE 1000
 /* this function will hand spells that create objects */
-void mag_creations(int level, struct char_data *ch, struct char_data *vict, struct obj_data *obj,
-                   int spellnum, int casttype)
+void mag_creations(int level, struct char_data *ch, struct char_data *vict, struct obj_data *obj __attribute__((unused)),
+                   int spellnum, int casttype __attribute__((unused)))
 {
   struct obj_data *tobj = NULL, *portal = NULL;
   obj_vnum object_vnum = 0;
@@ -14030,7 +14034,7 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict, stru
 
 /* so this function is becoming a beast, we have to support both
    room-affections AND room-events now */
-void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int casttype)
+void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute__((unused)), int spellnum, int casttype __attribute__((unused)))
 {
   long aff = -1;  /* what affection, -1 means it must be an event */
   int rounds = 0; /* how many rounds this spell lasts (duration) */
@@ -14041,7 +14045,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
   extern struct raff_node *raff_list;
   room_rnum rnum = NOWHERE;
   bool failure = FALSE;
-  event_id IdNum = -1; /* which event? -1 means it must be an affection */
+  event_id IdNum = eNULL; /* eNULL means it must be an affection */
 
   if (ch == NULL)
     return;
@@ -14216,7 +14220,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
   }
 
   /* no event data or room-affection */
-  if (IdNum == -1 && aff == -1)
+  if (IdNum == eNULL && aff == -1)
   {
     send_to_char(ch, "Your spell is inert!\r\n");
     return;
@@ -14230,7 +14234,7 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
   }
 
   /* first check if this is a room event */
-  if (IdNum != -1)
+  if (IdNum != eNULL)
   {
     /* note, as of now we are setting the room flag in the switch() above */
     NEW_EVENT(IdNum, &world[rnum].number, NULL, rounds * PULSE_VIOLENCE);

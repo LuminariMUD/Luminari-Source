@@ -224,7 +224,7 @@ EVENTFUNC(event_countdown)
   case eQUEST_COMPLETE:
     qvnum = atoi((char *)pMudEvent->sVariables);
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
-      if (qvnum != NOTHING && qvnum == GET_QUEST(ch, index))
+      if (qvnum != (int)NOTHING && qvnum == GET_QUEST(ch, index))
         complete_quest(ch, index);
     break;
 
@@ -553,7 +553,7 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
      * real_room() returns NOWHERE (-1) if the vnum doesn't exist.
      * Accessing world[-1] would cause memory corruption! */
     room_rnum room_index = real_room(*rvnum);
-    if (room_index == NOWHERE || room_index < 0)
+    if (room_index == NOWHERE)
     {
       log("SYSERR: Attempt to attach event to non-existent room vnum %d!", *rvnum);
       free(rvnum); /* Clean up the memory we just allocated */
@@ -732,7 +732,7 @@ void free_mud_event(struct mud_event_data *pMudEvent)
     free(pMudEvent->pStruct);
 
     /* Safety: Only proceed if room exists */
-    if (room_index == NOWHERE || room_index < 0)
+    if (room_index == NOWHERE)
     {
       log("Info: Event for room vnum %d cancelled, but room no longer exists", vnum_copy);
       break; /* Exit early - can't remove from non-existent room's list */

@@ -5408,7 +5408,7 @@ bitvector_t find_race_bitvector(const char *arg)
 {
   size_t rpos, ret = 0;
 
-  for (rpos = 0; rpos < strlen(arg); rpos++)
+  for (rpos = 0; (size_t)rpos < strlen(arg); rpos++)
     ret |= (1 << parse_race(arg[rpos]));
 
   return (ret);
@@ -6266,7 +6266,7 @@ const char *get_region_info(int region)
 }
 #else
 /* Default LuminariMUD campaign - region info not yet implemented */
-const char *get_region_info(int region)
+const char *get_region_info(int region __attribute__((unused)))
 {
   return "This region's detailed information is not yet available.";
 }
@@ -6420,7 +6420,7 @@ int get_region_language(int region)
 }
 #else
 /* Default LuminariMUD campaign - region language not yet implemented */
-int get_region_language(int region)
+int get_region_language(int region __attribute__((unused)))
 {
   return LANG_COMMON;
 }

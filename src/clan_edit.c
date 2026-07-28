@@ -191,7 +191,7 @@ void save_single_clan(clan_rnum c)
   int j, x, gl, current_clan = -1;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (c < 0 || c >= num_of_clans)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans)
   {
     log("SYSERR: save_single_clan called with invalid clan rnum %d", c);
     return;
@@ -236,7 +236,7 @@ void save_single_clan(clan_rnum c)
       current_clan = atoi(line + 1);
 
       /* Check if this is the clan we're updating */
-      if (current_clan == clan_list[c].vnum)
+      if (current_clan >= 0 && (clan_vnum)current_clan == clan_list[c].vnum)
       {
         /* Write the updated clan data */
         fprintf(new_fl, "#%d\n", clan_list[c].vnum);
@@ -393,7 +393,7 @@ void save_single_clan(clan_rnum c)
  */
 void mark_clan_modified(clan_rnum c)
 {
-  if (c >= 0 && c < num_of_clans)
+  if (c != NO_CLAN && c < (clan_rnum)num_of_clans)
   {
     clan_list[c].modified = TRUE;
   }
@@ -935,7 +935,7 @@ ACMD(do_clanedit)
   {
     if (STATE(d) == CON_CLANEDIT)
     {
-      if (d->olc && OLC_NUM(d) == c_id)
+      if (d->olc && (int)OLC_NUM(d) == c_id)
       {
         send_to_char(ch, "The clan is currently being edited by %s.\r\n", PERS(d->character, ch));
         return;
@@ -1320,7 +1320,7 @@ static void clanedit_priv_menu(struct descriptor_data *d)
  * Used for selecting allies or enemies. Shows all clans with
  * their current relationship status (allied/at war).
  */
-static void clanedit_clans_menu(struct descriptor_data *d, int player_clan)
+static void clanedit_clans_menu(struct descriptor_data *d, int player_clan __attribute__((unused)))
 {
   int i;
 
@@ -2454,7 +2454,7 @@ void clanedit_parse(struct descriptor_data *d, char *arg)
  * Called when the user finishes editing a multi-line string
  * (like clan description). Returns to the appropriate menu.
  */
-void clanedit_string_cleanup(struct descriptor_data *d, int terminator)
+void clanedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

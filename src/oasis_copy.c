@@ -39,7 +39,8 @@ static room_vnum redit_find_new_vnum(zone_rnum zone);
  ***********************************************************/
 ACMD(do_oasis_copy)
 {
-  int i, src_vnum, src_rnum, dst_vnum, dst_rnum; //, copy_mode = QMODE_QCOPY;
+  int i, src_vnum, dst_vnum; //, copy_mode = QMODE_QCOPY;
+  IDXTYPE src_rnum, dst_rnum;
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct descriptor_data *d;
@@ -109,7 +110,7 @@ ACMD(do_oasis_copy)
   {
     if (STATE(d) == subcmd)
     {
-      if (d->olc && OLC_NUM(d) == dst_vnum)
+      if (d->olc && (int)OLC_NUM(d) == dst_vnum)
       {
         send_to_char(ch, "The target %s (#%d) is currently being edited by %s.\r\n",
                      oasis_copy_info[i].text, dst_vnum, GET_NAME(d->character));
@@ -559,7 +560,7 @@ ACMDU(do_buildwalk)
       for (i = 0; i < NUM_ROOM_FLAGS; i++)
       {
         snprintf(temp, sizeof(temp), "%s", room_bits[i]);
-        for (j = 0; j < strlen(room_bits[i]); j++)
+        for (j = 0; (size_t)j < strlen(room_bits[i]); j++)
         {
           temp[j] = LOWER(temp[j]);
           if (temp[j] == '-')
@@ -571,7 +572,7 @@ ACMDU(do_buildwalk)
     for (i = 0; i < NUM_ROOM_FLAGS; i++)
     {
       snprintf(temp, sizeof(temp), "%s", room_bits[i]);
-      for (j = 0; j < strlen(room_bits[i]); j++)
+      for (j = 0; (size_t)j < strlen(room_bits[i]); j++)
       {
         temp[j] = LOWER(temp[j]);
         if (temp[j] == '-')
@@ -634,7 +635,7 @@ ACMDU(do_buildwalk)
       if (IS_SET_AR(GET_BUILDWALK_FLAGS(ch), i))
       {
         snprintf(temp, sizeof(temp), "%s", room_bits[i]);
-        for (j = 0; j < strlen(room_bits[i]); j++)
+        for (j = 0; (size_t)j < strlen(room_bits[i]); j++)
         {
           temp[j] = LOWER(temp[j]);
           if (temp[j] == '-')

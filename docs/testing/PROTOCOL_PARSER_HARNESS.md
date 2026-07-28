@@ -17,8 +17,9 @@ cd /home/aiwithapex/projects/Luminari-Source/unittests/CuTest
 make protocol-parser
 ```
 
-The target builds `test_protocol_parser.c` and `../../src/protocol.c`, then
-runs `./protocol_parser_tests`.
+The target builds `test_protocol_parser.c`, `../../src/protocol.c`, and the
+production web-onboarding capability handler, then runs
+`./protocol_parser_tests`.
 
 The focused target uses the same GNU C23 mode as the server and the other
 CuTest targets.
@@ -79,6 +80,7 @@ protocol grammar and document the grammar source. Do not paste live bytes.
 | TTYPE | `TestProtocolParser_TtypeAndNawsNegotiation` | Validates TTYPE request output, client ID storage, and xterm 256-color detection. |
 | NAWS | `TestProtocolParser_TtypeAndNawsNegotiation` | Validates valid four-byte NAWS payload updates width and height. |
 | Unsupported options | `TestProtocolParser_UnsupportedOptionNegotiation` | Validates unknown `WILL`/`DO` options produce deterministic `DONT`/`WONT` replies. |
+| Web onboarding capability | `TestProtocolParser_WebOnboardingCapability` | Validates the reserved MSDP capability reaches the production handler and records the negotiated version. |
 | MSDP oversized response | `TestProtocolParser_OversizedResponsePaths` | Validates oversized MSDP list output is rejected and logged instead of emitted. |
 | MXP oversized tag | `TestProtocolParser_OversizedResponsePaths` | Validates overlong MXP tags are returned unchanged. |
 | Copyover string | `TestProtocolParser_OversizedResponsePaths` | Validates copyover protocol flags fit the bounded static buffer. |

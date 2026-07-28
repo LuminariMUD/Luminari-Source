@@ -42,7 +42,9 @@ static void zedit_disp_arg3(struct descriptor_data *d);
 
 ACMD(do_oasis_zedit)
 {
-  int number = NOWHERE, save = 0, real_num;
+  room_vnum number = NOWHERE;
+  room_rnum real_num;
+  int save = 0;
   struct descriptor_data *d;
   const char *stop;
   char sbot[MAX_STRING_LENGTH] = {'\0'};
@@ -98,8 +100,11 @@ ACMD(do_oasis_zedit)
           return;
         }
         number = atoidx(buf2);
-        if (number < 0)
-          number = NOWHERE;
+        if (number == NOWHERE)
+        {
+          send_to_char(ch, "Invalid zone number.\r\n");
+          return;
+        }
         bottom = atoidx(sbot);
         top = atoidx(stop);
 
@@ -322,7 +327,7 @@ static void zedit_setup(struct descriptor_data *d, int room_num)
 static void zedit_new_zone(struct char_data *ch, zone_vnum vzone_num, room_vnum bottom,
                            room_vnum top)
 {
-  int result;
+  zone_rnum result;
   const char *error;
   struct descriptor_data *dsc;
 
@@ -1407,7 +1412,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case 'L':
-      if ((pos = real_object(atoi(arg))) != NOTHING)
+      if ((pos = real_object(atoi(arg))) != (int)NOTHING)
       {
         OLC_CMD(d).arg3 = pos;
         zedit_disp_arg2(d);
@@ -1429,7 +1434,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case 'M':
-      if ((pos = real_mobile(atoi(arg))) != NOBODY)
+      if ((pos = real_mobile(atoi(arg))) != (int)NOBODY)
       {
         OLC_CMD(d).arg1 = pos;
         zedit_disp_arg2(d);
@@ -1441,7 +1446,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
     case 'P':
     case 'E':
     case 'G':
-      if ((pos = real_object(atoi(arg))) != NOTHING)
+      if ((pos = real_object(atoi(arg))) != (int)NOTHING)
       {
         OLC_CMD(d).arg1 = pos;
         zedit_disp_arg2(d);
@@ -1542,7 +1547,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case 'R':
-      if ((pos = real_object(atoi(arg))) != NOTHING)
+      if ((pos = real_object(atoi(arg))) != (int)NOTHING)
       {
         OLC_CMD(d).arg2 = pos;
         zedit_disp_menu(d);
@@ -1602,7 +1607,7 @@ void zedit_parse(struct descriptor_data *d, char *arg)
       }
       break;
     case 'P':
-      if ((pos = real_object(atoi(arg))) != NOTHING)
+      if ((pos = real_object(atoi(arg))) != (int)NOTHING)
       {
         OLC_CMD(d).arg3 = pos;
         zedit_disp_arg4(d);

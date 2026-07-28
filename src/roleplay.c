@@ -1399,7 +1399,7 @@ ACMD(do_rpsheet)
 
   snprintf(buf, sizeof(buf), " RP SHEET FOR %s ", GET_NAME(t));
 
-  for (i = 0; i < strlen(buf); i++)
+  for (i = 0; (size_t)i < strlen(buf); i++)
     buf[i] = toupper(buf[i]);
 
   send_to_char(ch, "\r\n");
@@ -1488,7 +1488,7 @@ ACMD(do_showrpinfo)
 
   snprintf(buf, sizeof(buf), "%s", GET_NAME(t));
 
-  for (i = 0; i < strlen(buf); i++)
+  for (i = 0; (size_t)i < strlen(buf); i++)
     buf[i] = toupper(buf[i]);
 
   switch (subcmd)

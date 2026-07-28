@@ -191,7 +191,7 @@ int parse_metamagic_for_consumables(struct char_data *ch, char **argument, int s
 }
 
 /* Calculate additional charges needed for metamagic on wands/staves */
-int calculate_metamagic_charge_cost(int metamagic, int base_spell_level)
+int calculate_metamagic_charge_cost(int metamagic, int base_spell_level __attribute__((unused)))
 {
   int additional_charges = 0;
 

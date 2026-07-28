@@ -215,7 +215,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
     fprintf(out, "%s\n", curr_level->params->level_name);
     for (j = 1; j <= i; j++)
       fputc(' ', out);
-    for (j = 1; j <= strlen(curr_level->params->level_name); j++)
+    for (j = 1; (size_t)j <= strlen(curr_level->params->level_name); j++)
       fputc('~', out);
     fprintf(out, "\n");
 
@@ -241,7 +241,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
       {
         if (curr_level->params->level <= COL_LEVEL)
         {
-          for (j = 1; j <= (IMM_NSIZE - strlen(curr_name->name)); j++)
+    for (j = 1; strlen(curr_name->name) + (size_t)j <= IMM_NSIZE; j++)
             strcat(buf, " ");
         }
         if (curr_level->params->level > COL_LEVEL)

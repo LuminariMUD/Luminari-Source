@@ -515,7 +515,7 @@ float apply_region_resource_modifiers(int resource_type, int x, int y, float bas
 }
 
 /* Placeholder for region resource modifiers - will be implemented in Phase 2 */
-void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resource_node *resources)
+void apply_region_resource_modifiers_to_node(struct char_data *ch __attribute__((unused)), struct resource_node *resources __attribute__((unused)))
 {
   /* TODO: Implement when character-based region detection is available */
   /* For now, this function does nothing but maintains the interface */
@@ -523,8 +523,8 @@ void apply_region_resource_modifiers_to_node(struct char_data *ch, struct resour
 }
 
 // Helper function to parse and apply JSON resource modifiers
-void apply_json_resource_modifiers(struct resource_node *resources, const char *json_data,
-                                   double intensity)
+void apply_json_resource_modifiers(struct resource_node *resources __attribute__((unused)), const char *json_data __attribute__((unused)),
+                                   double intensity __attribute__((unused)))
 {
   /* TODO: Implement when resource_node structure is properly defined */
   /* For now, this function does nothing but maintains the interface */
@@ -725,7 +725,7 @@ void cleanup_old_resource_nodes(void)
 
 /* ===== RESOURCE QUALITY AND DESCRIPTION FUNCTIONS ===== */
 
-int determine_resource_quality(int resource_type, int x, int y, float level)
+int determine_resource_quality(int resource_type, int x __attribute__((unused)), int y __attribute__((unused)), float level)
 {
   if (resource_type < 0 || resource_type >= NUM_RESOURCE_TYPES || level <= 0.0)
   {
@@ -755,7 +755,7 @@ int determine_resource_quality(int resource_type, int x, int y, float level)
 const char *get_abundance_description(float level)
 {
   int i;
-  for (i = 0; i < sizeof(abundance_levels) / sizeof(struct resource_abundance); i++)
+  for (i = 0; (size_t)i < sizeof(abundance_levels) / sizeof(struct resource_abundance); i++)
   {
     if (level >= abundance_levels[i].min_level)
     {
@@ -1295,8 +1295,7 @@ void show_debug_survey(struct char_data *ch)
 
         for (curr_region = regions; curr_region != NULL; curr_region = curr_region->next)
         {
-          if (curr_region->rnum != NOWHERE && curr_region->rnum >= 0 &&
-              curr_region->rnum <= top_of_region_table)
+          if (curr_region->rnum != NOWHERE && curr_region->rnum <= top_of_region_table)
           {
             region_vnum vnum = region_table[curr_region->rnum].vnum;
             char *name = region_table[curr_region->rnum].name;
@@ -1854,7 +1853,7 @@ int get_max_subtypes_for_category(int category)
   }
 }
 
-bool is_wilderness_only_material(int category, int subtype)
+bool is_wilderness_only_material(int category __attribute__((unused)), int subtype __attribute__((unused)))
 {
   /* All Phase 4.5 materials are wilderness-only for now */
   /* TODO: Phase 5 may add some materials that can be found in zones */
@@ -1892,7 +1891,7 @@ int determine_harvested_material_subtype(int resource_type, int x, int y, float 
   }
 }
 
-int calculate_material_quality_from_resource(int resource_type, int x, int y, float level)
+int calculate_material_quality_from_resource(int resource_type __attribute__((unused)), int x __attribute__((unused)), int y __attribute__((unused)), float level)
 {
   /* Map resource level to quality tiers */
   if (level >= 0.9)
@@ -2760,7 +2759,7 @@ int get_harvest_difficulty(int resource_type, float resource_level)
   return base_difficulty;
 }
 
-int calculate_harvest_quality(struct char_data *ch, int resource_type, int success_roll,
+int calculate_harvest_quality(struct char_data *ch __attribute__((unused)), int resource_type __attribute__((unused)), int success_roll,
                               int skill_level)
 {
   /* Quality determination based on skill and success */
@@ -2777,7 +2776,7 @@ int calculate_harvest_quality(struct char_data *ch, int resource_type, int succe
   return MATERIAL_QUALITY_POOR;
 }
 
-int calculate_harvest_quantity(struct char_data *ch, int resource_type, int success_roll,
+int calculate_harvest_quantity(struct char_data *ch __attribute__((unused)), int resource_type __attribute__((unused)), int success_roll,
                                int skill_level)
 {
   /* Base quantity with skill and success modifiers */

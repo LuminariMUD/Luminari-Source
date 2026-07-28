@@ -1314,9 +1314,9 @@ void boot_db(void)
 
 #if 1
   {
-    int j;
+    obj_rnum j;
 
-    for (j = 0; j < top_of_objt; j++)
+    for (j = 0; j <= top_of_objt; j++)
     {
       if (obj_proto[j].script == (struct script_data *)&shop_keeper)
       {
@@ -1989,7 +1989,8 @@ static void ensure_newline_terminated(struct extra_descr_data *new_descr)
 /* load the rooms */
 void parse_room(FILE *fl, int virtual_nr, const char *filename)
 {
-  static int room_nr = 0, zone = 0;
+  static room_rnum room_nr = 0;
+  static zone_rnum zone = 0;
   int t[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int i = 0, retval = 0;
   char line[READ_SIZE] = {'\0'};
@@ -2005,7 +2006,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   /* This really had better fit or there are other problems. */
   snprintf(buf2, sizeof(buf2), "room #%d", virtual_nr);
 
-  if (virtual_nr < zone_table[zone].bot)
+  if (virtual_nr < 0 || (room_vnum)virtual_nr < zone_table[zone].bot)
   {
     log("SYSERR: (parse_room) Room #%d in file '%s' is below zone %d's range (expected: %d-%d, "
         "got: %d).\n"
@@ -2016,7 +2017,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         zone_table[zone].number);
     exit(1);
   }
-  while (virtual_nr > zone_table[zone].top)
+  while ((room_vnum)virtual_nr > zone_table[zone].top)
     if (++zone > top_of_zone_table)
     {
       log("SYSERR: Room #%d in file '%s' is outside of any zone's range.\n"
@@ -2027,7 +2028,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       exit(1);
     }
   world[room_nr].zone = zone;
-  world[room_nr].number = virtual_nr;
+  world[room_nr].number = (room_vnum)virtual_nr;
   world[room_nr].name = fread_string(fl, buf2);
   world[room_nr].description = fread_string(fl, buf2);
 
@@ -2480,7 +2481,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
 }
 
 /* read direction data */
-void setup_dir(FILE *fl, int room, int dir)
+void setup_dir(FILE *fl, room_rnum room, int dir)
 {
   int t[5];
   char line[READ_SIZE], buf2[128];
@@ -2518,9 +2519,10 @@ void setup_dir(FILE *fl, int room, int dir)
   else
     world[room].dir_option[dir]->exit_info = 0;
 
-  world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : t[1]);
+  world[room].dir_option[dir]->key =
+      ((t[1] == -1 || t[1] == 65535) ? NOTHING : (obj_vnum)t[1]);
   world[room].dir_option[dir]->to_room =
-      ((t[2] == -1 || t[2] == 0 || t[2] == 65535) ? NOWHERE : t[2]);
+      ((t[2] == -1 || t[2] == 0 || t[2] == 65535) ? NOWHERE : (room_rnum)t[2]);
 }
 
 /* make sure the start rooms exist & resolve their vnums to rnums */
@@ -2548,7 +2550,8 @@ static void check_start_rooms(void)
 /* resolve all vnums into rnums in the world */
 void renum_world(void)
 {
-  int room, door;
+  room_rnum room;
+  int door;
 
   for (room = 0; room <= top_of_world; room++)
     for (door = 0; door < NUM_OF_DIRS; door++)
@@ -2607,7 +2610,7 @@ static void renum_zone_table(void)
         {
           ZCMD.arg1 = a;
         }
-        if (ZCMD.arg3 != NOWHERE)
+        if (ZCMD.arg3 != (int)NOWHERE)
           c = ZCMD.arg3 = real_room(ZCMD.arg3);
         break;
       case 'G':
@@ -4460,7 +4463,8 @@ static int help_sort(const void *a, const void *b)
 
 int vnum_mobile(char *searchname, struct char_data *ch)
 {
-  int nr, found = 0;
+  mob_rnum nr;
+  int found = 0;
 
   for (nr = 0; nr <= top_of_mobt; nr++)
     if (isname(searchname, mob_proto[nr].player.name))
@@ -4472,7 +4476,8 @@ int vnum_mobile(char *searchname, struct char_data *ch)
 
 int vnum_object(char *searchname, struct char_data *ch)
 {
-  int nr, found = 0;
+  obj_rnum nr;
+  int found = 0;
 
   for (nr = 0; nr <= top_of_objt; nr++)
     if (isname(searchname, obj_proto[nr].name))
@@ -4484,7 +4489,8 @@ int vnum_object(char *searchname, struct char_data *ch)
 
 int vnum_room(char *searchname, struct char_data *ch)
 {
-  int nr, found = 0;
+  room_rnum nr;
+  int found = 0;
 
   for (nr = 0; nr <= top_of_world; nr++)
     if (isname(searchname, world[nr].name))
@@ -4687,7 +4693,7 @@ void init_obj_rnum_hash(void)
 static int obj_rnum_hash_key(obj_rnum rnum)
 {
   /* Simple modulo hash function */
-  if (rnum < 0)
+  if (rnum == NOTHING)
     return 0;
   return (rnum % OBJ_RNUM_HASH_SIZE);
 }
@@ -4883,7 +4889,7 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
 /* update zone ages, queue for reset if necessary, and dequeue when possible */
 void zone_update(void)
 {
-  int i;
+  zone_rnum i;
   struct reset_q_element *update_u, *temp;
   static int timer = 0;
 
@@ -5134,7 +5140,7 @@ void reset_zone(zone_rnum zone)
 
     case 'O': /* read an object (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'O' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
@@ -5154,7 +5160,7 @@ void reset_zone(zone_rnum zone)
       if ((obj_index[ZCMD.arg1].number < ZCMD.arg2 || (ZCMD.arg2 == 0 && boot_time <= 1)) &&
           rand_number(1, 100) <= ZCMD.arg4)
       {
-        if (ZCMD.arg3 != NOWHERE)
+        if (ZCMD.arg3 != (int)NOWHERE)
         {
           obj = read_object(ZCMD.arg1, REAL);
           /* CRITICAL FIX: Check for NULL object before use */
@@ -5233,7 +5239,7 @@ void reset_zone(zone_rnum zone)
 
     case 'P': /* object to object (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'P' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
@@ -5304,7 +5310,7 @@ void reset_zone(zone_rnum zone)
 
     case 'G': /* obj_to_char (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'G' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
@@ -5417,7 +5423,7 @@ void reset_zone(zone_rnum zone)
 
     case 'E': /* object to equipment list (with percentage loads) */
       /* CRITICAL FIX: Validate array bounds BEFORE accessing obj_index */
-      if (ZCMD.arg1 < 0 || ZCMD.arg1 > top_of_objt)
+      if (ZCMD.arg1 < 0 || (obj_rnum)ZCMD.arg1 > top_of_objt)
       {
         log("SYSERR: Zone %d cmd %d: Invalid object rnum %d in 'E' command",
             zone_table[zone].number, cmd_no, ZCMD.arg1);
@@ -5673,10 +5679,10 @@ void reset_zone(zone_rnum zone)
       }
       else if (ZCMD.arg1 == WLD_TRIGGER)
       {
-        if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world)
+        if (ZCMD.arg3 < 0 || (room_rnum)ZCMD.arg3 > top_of_world)
         {
           ZONE_ERROR("Invalid room number in trigger assignment");
-          // ZCMD.command = '*';
+          break;
         }
         if (!world[ZCMD.arg3].script)
           CREATE(world[ZCMD.arg3].script, struct script_data, 1);
@@ -5711,7 +5717,7 @@ void reset_zone(zone_rnum zone)
       }
       else if (ZCMD.arg1 == WLD_TRIGGER)
       {
-        if (ZCMD.arg3 == NOWHERE || ZCMD.arg3 > top_of_world)
+        if (ZCMD.arg3 < 0 || (room_rnum)ZCMD.arg3 > top_of_world)
         {
           ZONE_ERROR("Invalid room number in variable assignment");
           // ZCMD.command = '*';
@@ -6424,7 +6430,7 @@ void free_char(struct char_data *ch)
     /* free script proto list */
     free_proto_script(ch, MOB_TRIGGER);
   }
-  else if ((i = GET_MOB_RNUM(ch)) != NOBODY)
+  else if ((i = GET_MOB_RNUM(ch)) != (int)NOBODY)
   {
     /* otherwise, free strings only if the string is not pointing at proto */
     if (ch->player.name && ch->player.name != mob_proto[i].player.name)
@@ -7187,7 +7193,7 @@ region_rnum real_region(region_vnum vnum)
   region_rnum bot, top, mid;
 
   /* Check if region_table is NULL or empty */
-  if (!region_table || top_of_region_table < 0)
+  if (!region_table || top_of_region_table == NOWHERE)
     return (NOWHERE);
 
   bot = 0;
@@ -7392,7 +7398,7 @@ static int check_bitvector_names(bitvector_t bits, size_t namecount, const char 
   if (bits <= (~(bitvector_t)0 >> (sizeof(bitvector_t) * 8 - namecount)))
     return (FALSE);
 
-  for (flagnum = namecount; flagnum < sizeof(bitvector_t) * 8; flagnum++)
+  for (flagnum = namecount; (size_t)flagnum < sizeof(bitvector_t) * 8; flagnum++)
     if ((1 << flagnum) & bits)
     {
       log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits,
@@ -8031,9 +8037,10 @@ void set_db_happy_hour(int status)
   }
 }
 
-void save_objects_to_database(struct char_data *ch)
+void save_objects_to_database(struct char_data *ch __attribute__((unused)))
 {
-  int j, i;
+  obj_rnum j;
+  int i;
   int zone_num = 0;
   int obj_idnum = 0;
   struct obj_data *obj = NULL;
@@ -8076,7 +8083,7 @@ void save_objects_to_database(struct char_data *ch)
 
   // We have to do this loop in multiple stages to prevent the MUD from crashing
 
-  for (j = 0; j < top_of_objt; j++)
+  for (j = 0; j <= top_of_objt; j++)
   {
     // we have issues with obj vnums above this number.
     // all zones that are made should be below these vnums anyway.

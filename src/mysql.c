@@ -2125,13 +2125,13 @@ void load_regions()
        * This prevents use-after-free when events try to access region_table
        * during cancellation. We must clear events for ALL regions before
        * freeing ANY region memory. */
-      for (j = 0; j <= top_of_region_table; j++)
+      for (j = 0; j <= (int)top_of_region_table; j++)
       {
         clear_region_event_list(&region_table[j]);
       }
 
       /* Now it's safe to free region memory */
-      for (j = 0; j <= top_of_region_table; j++)
+      for (j = 0; j <= (int)top_of_region_table; j++)
       {
         free(region_table[j].name);
         free(region_table[j].vertices);
@@ -2241,7 +2241,7 @@ void load_regions()
     log("Info: Loaded %d regions, top_of_region_table set to %d", i, top_of_region_table);
 
     /* Now create events after top_of_region_table is set */
-    for (j = 0; j <= top_of_region_table; j++)
+    for (j = 0; j <= (int)top_of_region_table; j++)
     {
       if (region_table[j].region_type == REGION_ENCOUNTER && region_table[j].reset_time > 0)
       {
@@ -2645,7 +2645,7 @@ void load_paths()
     if (path_table != NULL)
     {
       /* Clear it */
-      for (j = 0; j <= top_of_path_table; j++)
+      for (j = 0; j <= (int)top_of_path_table; j++)
       {
         free(path_table[j].name);
         // free(path_table[i].glyphs[GLYPH_TYPE_PATH_NS]);
@@ -2735,7 +2735,8 @@ void insert_path(struct path_data *path)
   size_t linestring_size, query_size;
   int vtx = 0;
 
-  if (!path || !path->name || !path->vertices || path->num_vertices <= 0 || path->zone < 0 ||
+  if (!path || !path->name || !path->vertices || path->num_vertices <= 0 ||
+      path->zone == NOWHERE ||
       path->zone > top_of_zone_table)
   {
     log("SYSERR: %s: Invalid path data", __func__);

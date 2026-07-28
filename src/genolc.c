@@ -115,7 +115,7 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
 static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *saved_path, size_t saved_path_size);
 static int export_full_worldmap_html(const char *output_file, char *saved_path, size_t saved_path_size);
 
-int genolc_checkstring(struct descriptor_data *d, char *arg)
+int genolc_checkstring(struct descriptor_data *d __attribute__((unused)), char *arg)
 {
   smash_tilde(arg);
   parse_at(arg);
@@ -153,7 +153,7 @@ static bool worldmap_vnum_to_xy(zone_vnum zvnum, room_vnum rvnum, int *x, int *y
 static int worldmap_zone_height(zone_rnum zrnum)
 {
   zone_vnum zvnum = zone_table[zrnum].number;
-  int i;
+  room_vnum i;
   int x;
   int y;
   int max_y = -1;
@@ -390,7 +390,7 @@ static void worldmap_collect_zone_grid(const struct worldmap_zone_export_data *z
                                        int sector_grid[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
                                        int *max_x, int *max_y)
 {
-  int i;
+  room_vnum i;
   int x;
   int y;
 
@@ -422,6 +422,7 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
                                           int marker_lookup[WORLDMAP_EXPORT_MAX_HEIGHT][WORLDMAP_EXPORT_MAX_WIDTH],
                                           struct worldmap_marker_data *markers, int *marker_count)
 {
+  room_vnum rvnum;
   int i;
   int x;
   int y;
@@ -450,9 +451,9 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
     return;
   }
 
-  for (i = genolc_zone_bottom(zone->zrnum); i <= zone_table[zone->zrnum].top; i++)
+  for (rvnum = genolc_zone_bottom(zone->zrnum); rvnum <= zone_table[zone->zrnum].top; rvnum++)
   {
-    room_rnum rnum = real_room(i);
+    room_rnum rnum = real_room(rvnum);
     int map_x;
     int map_y;
     char title_buf[MAX_INPUT_LENGTH];
@@ -460,7 +461,7 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
     if (rnum == NOWHERE)
       continue;
 
-    if (!worldmap_vnum_to_xy(zone->zvnum, i, &x, &y))
+    if (!worldmap_vnum_to_xy(zone->zvnum, rvnum, &x, &y))
       continue;
 
     if (world[rnum].sector_type != SECT_ZONE_START && world[rnum].sector_type != SECT_SEAPORT)
@@ -468,7 +469,8 @@ static void worldmap_collect_zone_markers(const struct worldmap_zone_export_data
 
     map_x = x + zone->x_offset;
     map_y = y + zone->y_offset;
-    snprintf(title_buf, sizeof(title_buf), "%s (%d)", world[rnum].name ? world[rnum].name : "Unknown Room", i);
+    snprintf(title_buf, sizeof(title_buf), "%s (%d)",
+             world[rnum].name ? world[rnum].name : "Unknown Room", (int)rvnum);
     if (!worldmap_add_marker(markers, marker_lookup, marker_count, map_x, map_y, world[rnum].sector_type, title_buf))
       mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: marker table full for zone %d", zone->zvnum);
   }
@@ -1083,7 +1085,7 @@ ACMD(do_export_worldmap)
 
 static int export_info_file(zone_rnum zrnum)
 {
-  int i;
+  room_vnum i;
   FILE *info_file;
 
   if (!(info_file = fopen("world/export/qq.info", "w")))
@@ -1163,7 +1165,9 @@ static int export_info_file(zone_rnum zrnum)
 
 static int export_save_shops(zone_rnum zrnum)
 {
-  int i, j, rshop;
+  shop_vnum i;
+  shop_rnum rshop;
+  int j;
   FILE *shop_file;
   struct shop_data *shop;
 
@@ -1204,7 +1208,7 @@ static int export_save_shops(zone_rnum zrnum)
               S_BUYPROFIT(shop), S_SELLPROFIT(shop));
 
       /* Save the buy types and namelists. */
-      for (j = 0; S_BUYTYPE(shop, j) != NOTHING; j++)
+      for (j = 0; S_BUYTYPE(shop, j) != (int)NOTHING; j++)
         fprintf(shop_file, "%d%s\n", S_BUYTYPE(shop, j),
                 S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
       fprintf(shop_file, "-1\n");
@@ -1550,7 +1554,7 @@ static int export_save_objects(zone_rnum zrnum)
 
 static int export_save_rooms(zone_rnum zrnum)
 {
-  int i;
+  room_vnum i;
   struct room_data *room;
   FILE *room_file;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -1617,17 +1621,23 @@ static int export_save_rooms(zone_rnum zrnum)
             *buf1 = '\0';
 
           /* Now write the exit to the file. */
-          if (R_EXIT(room, j)->to_room == NOWHERE || world[R_EXIT(room, j)->to_room].zone == zrnum)
+          if (R_EXIT(room, j)->to_room == NOWHERE ||
+              R_EXIT(room, j)->to_room > top_of_world ||
+              world[R_EXIT(room, j)->to_room].zone == zrnum)
             fprintf(room_file,
                     "D%d\n"
                     "%s~\n"
                     "%s~\n"
                     "%d %s%02d %s%02d\n",
                     j, buf, buf1, dflag, R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
-                    R_EXIT(room, j)->key == NOTHING ? -1 : R_EXIT(room, j)->key % 100,
-                    R_EXIT(room, j)->to_room == NOTHING ? "" : "QQ",
-                    R_EXIT(room, j)->to_room != NOTHING
-                        ? (world[R_EXIT(room, j)->to_room].number % 100)
+                    R_EXIT(room, j)->key == NOTHING ? -1 : (int)(R_EXIT(room, j)->key % 100),
+                    R_EXIT(room, j)->to_room == NOWHERE ||
+                            R_EXIT(room, j)->to_room > top_of_world
+                        ? ""
+                        : "QQ",
+                    R_EXIT(room, j)->to_room != NOWHERE &&
+                            R_EXIT(room, j)->to_room <= top_of_world
+                        ? (int)(world[R_EXIT(room, j)->to_room].number % 100)
                         : -1);
           else
           {
@@ -1637,8 +1647,8 @@ static int export_save_rooms(zone_rnum zrnum)
                     "%s~\n"
                     "%d %s%02d ZZ%02d\n",
                     j, buf, buf1, dflag, R_EXIT(room, j)->key == NOTHING ? "" : "QQ",
-                    R_EXIT(room, j)->key == NOTHING ? -1 : R_EXIT(room, j)->key % 100,
-                    world[R_EXIT(room, j)->to_room].number % 100);
+                    R_EXIT(room, j)->key == NOTHING ? -1 : (int)(R_EXIT(room, j)->key % 100),
+                    (int)(world[R_EXIT(room, j)->to_room].number % 100));
             zone_exits++;
           }
         }
@@ -1698,7 +1708,7 @@ static void export_script_save_to_disk(FILE *fp, void *item, int type)
 /* save the zone's triggers to internal memory and to disk */
 static int export_save_triggers(zone_rnum zrnum)
 {
-  int i;
+  trig_vnum i;
   trig_data *trig;
   struct cmdlist_element *cmd;
   FILE *trig_file;

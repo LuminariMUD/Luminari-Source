@@ -138,7 +138,8 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
 {
   char line[READ_SIZE];
   char junk[8];
-  int vnum, rnum, count;
+  trig_rnum rnum;
+  int vnum, count;
   char_data *mob;
   room_data *room;
   struct trig_proto_list *trg_proto, *new_trg;
@@ -254,10 +255,11 @@ void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum)
 void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
 {
   char junk[8];
-  int vnum, rnum, count;
+  trig_rnum rnum;
+  int vnum, count;
   struct trig_proto_list *trg_proto, *new_trg;
 
-  count = sscanf(line, "%s %d", junk, &vnum);
+  count = sscanf(line, "%7s %d", junk, &vnum);
 
   if (count != 2)
   {
@@ -305,7 +307,7 @@ void assign_triggers(void *i, int type)
   struct char_data *mob = NULL;
   struct obj_data *obj = NULL;
   struct room_data *room = NULL;
-  int rnum;
+  trig_rnum rnum;
   struct trig_proto_list *trg_proto;
 
   switch (type)

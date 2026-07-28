@@ -32,25 +32,33 @@
 
 /* homeland-port this eventually can be used to have special class
    quests */
-int has_race_kit(int race, int c)
+int has_race_kit(int race __attribute__((unused)), int c __attribute__((unused)))
 {
   // return has_kit[race][c];
   return TRUE;
 }
 
 /* this function will have the quest mob open a specific door */
-void quest_open_door(int room, int door)
+void quest_open_door(room_rnum room, int door)
 {
-  int other_room = 0;
-  struct obj_data *dummy = 0;
-  struct room_direction_data *back = 0;
+  room_rnum other_room = NOWHERE;
+  struct obj_data *dummy = NULL;
+  struct room_direction_data *back = NULL;
 
-  if ((other_room = EXITN(room, door)->to_room) != NOWHERE)
+  if (room == NOWHERE || room > top_of_world || door < 0 || door >= NUM_OF_DIRS ||
+      !EXITN(room, door))
   {
-    if ((back = world[other_room].dir_option[rev_dir[door]]))
+    log("SYSERR: quest_open_door called with invalid room (%u) or door (%d).", room, door);
+    return;
+  }
+
+  other_room = EXITN(room, door)->to_room;
+  if (other_room != NOWHERE && other_room <= top_of_world)
+  {
+    if ((back = world[other_room].dir_option[rev_dir[door]]) != NULL)
     {
       if (back->to_room != room)
-        back = 0;
+        back = NULL;
     }
   }
 
@@ -229,10 +237,11 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
 /* utility function to check if there is a spell reward for all quests */
 bool has_spell_a_quest(int spell)
 {
-  int i;
+  mob_rnum i;
   struct quest_entry *quest;
   struct quest_command *qcom;
-  for (i = 0; i < top_of_mobt; i++)
+
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (mob_proto[i].mob_specials.quest)
     {
@@ -274,7 +283,7 @@ void give_back_items(struct char_data *questor, struct char_data *player, struct
 /* utility function will identify if given item is involved in a quest */
 bool is_object_in_a_quest(struct obj_data *obj)
 {
-  int i;
+  mob_rnum i;
   int vnum = 0;
   struct quest_entry *quest;
   struct quest_command *qcom;
@@ -284,7 +293,7 @@ bool is_object_in_a_quest(struct obj_data *obj)
 
   vnum = GET_OBJ_VNUM(obj);
 
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (mob_proto[i].mob_specials.quest)
     {
@@ -319,7 +328,7 @@ bool is_object_in_a_quest(struct obj_data *obj)
 /* this is the main driver for the quest-out quest-reward system */
 
 void perform_out_chain(struct char_data *ch, struct char_data *victim, struct quest_entry *quest,
-                       char *name)
+                       char *name __attribute__((unused)))
 {
   struct descriptor_data *pt = NULL;
   struct char_data *mob = NULL;
@@ -844,7 +853,7 @@ int quest_location_vnum(struct quest_command *qcom)
 /*-----------------------------------*/
 
 /* loading the quests from disk */
-void boot_the_quests(FILE *quest_f, char *filename, int rec_count)
+void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__((unused)))
 {
   char str[256] = {'\0'};
   char line[256] = {'\0'};
@@ -890,6 +899,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count)
     case 'R':
       get_line(quest_f, inner);
       sscanf(inner, "%d", &temp);
+      __attribute__((fallthrough));
     case 'Q':
       CREATE(quest, struct quest_entry, 1);
       clear_hlquest(quest);
@@ -1000,8 +1010,10 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count)
    CURRENTLY unfinished */
 ACMD(do_qinfo)
 {
-  int i = 0, j = 0, start_num = 0, end_num = 0, number = 0, found = 0;
-  int realnum = -1;
+  mob_vnum i = 0, start_num = 0, end_num = 0;
+  zone_rnum j = 0;
+  mob_rnum realnum = NOWHERE;
+  int number = 0, found = 0;
   struct quest_entry *quest = NULL;
   struct quest_command *qcmd = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
@@ -1015,7 +1027,7 @@ ACMD(do_qinfo)
     send_to_char(ch, "qinfo what object?\r\n");
     return;
   }
-  if ((number = atoi(arg)) == NOTHING)
+  if ((number = atoi(arg)) < 0)
   {
     send_to_char(ch, "No such object.\r\n");
     return;
@@ -1024,7 +1036,7 @@ ACMD(do_qinfo)
   for (j = 0; j <= top_of_zone_table; j++)
   {
     start_num = zone_table[j].number * 100;
-    end_num = zone_table[real_zone(start_num)].top;
+    end_num = zone_table[j].top;
     for (i = start_num; i <= end_num; i++)
     {
       if ((realnum = real_mobile(i)) != NOWHERE)
@@ -1160,13 +1172,13 @@ ACMD(do_qinfo)
 /* command to check for any unapproved quests in given zone/mob vnum range */
 ACMD(do_checkapproved)
 {
-  int i;
+  mob_rnum i;
   int count;
   int total;
   struct quest_entry *quest;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (mob_proto[i].mob_specials.quest)
     {
@@ -1192,6 +1204,9 @@ ACMD(do_checkapproved)
 ACMD(do_kitquests)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  mob_rnum i;
+  struct quest_entry *quest;
+  struct quest_command *qcom;
 
   if (GET_LEVEL(ch) < LVL_IMMORT)
   {
@@ -1199,11 +1214,7 @@ ACMD(do_kitquests)
     log("%s", buf);
   }
 
-  int i;
-  struct quest_entry *quest;
-  struct quest_command *qcom;
-
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (mob_proto[i].mob_specials.quest)
     {
@@ -1239,6 +1250,7 @@ ACMD(do_spellquests)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   int i;
+  mob_rnum mob;
   struct quest_entry *quest;
   struct quest_command *qcom;
 
@@ -1265,11 +1277,11 @@ ACMD(do_spellquests)
   }
 
   send_to_char(ch, "\r\n\tCCurrent quests:\tn\r\n\tc-------------------\tn\r\n");
-  for (i = 0; i < top_of_mobt; i++)
+  for (mob = 0; mob <= top_of_mobt; mob++)
   {
-    if (mob_proto[i].mob_specials.quest)
+    if (mob_proto[mob].mob_specials.quest)
     {
-      for (quest = mob_proto[i].mob_specials.quest; quest; quest = quest->next)
+      for (quest = mob_proto[mob].mob_specials.quest; quest; quest = quest->next)
       {
         // check in.
         for (qcom = quest->out; qcom; qcom = qcom->next)
@@ -1277,8 +1289,8 @@ ACMD(do_spellquests)
           if (qcom->type == QUEST_COMMAND_TEACH_SPELL)
           {
             snprintf(buf, sizeof(buf), "\tc%-32s\tn - %s(\tW%d\tn)\r\n",
-                     spell_info[qcom->value].name, mob_proto[i].player.short_descr,
-                     mob_index[i].vnum);
+                     spell_info[qcom->value].name, mob_proto[mob].player.short_descr,
+                     mob_index[mob].vnum);
             send_to_char(ch, "%s", buf);
           }
         }
@@ -1290,10 +1302,10 @@ ACMD(do_spellquests)
 /* with a given object vnum, finds references to quests in game */
 ACMD(do_qref)
 {
-  int i;
+  mob_rnum i;
+  obj_rnum real_num;
   int count = 0;
   int vnum = 0;
-  int real_num = 0;
   struct quest_entry *quest;
   struct quest_command *qcom;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
@@ -1321,7 +1333,7 @@ ACMD(do_qref)
     log("%s", buf);
   }
 
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (mob_proto[i].mob_specials.quest)
     {
@@ -1378,7 +1390,7 @@ ACMD(do_qref)
 ACMD(do_qview)
 {
   struct quest_entry *quest;
-  int num;
+  mob_rnum num;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
 
   one_argument(argument, buf, sizeof(buf));

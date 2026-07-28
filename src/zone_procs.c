@@ -146,7 +146,7 @@ void assign_kings_castle(void)
  * castle staff. Used mainly by BANZAI:ng NPC:s. */
 static int member_of_staff(struct char_data *chChar)
 {
-  int ch_num;
+  mob_vnum ch_num;
 
   if (!IS_NPC(chChar))
     return (FALSE);
@@ -172,7 +172,7 @@ static int member_of_staff(struct char_data *chChar)
  * duty, otherwise FALSE. Used by Peter the captain of the royal guard. */
 static int member_of_royal_guard(struct char_data *chChar)
 {
-  int ch_num;
+  mob_vnum ch_num;
 
   if (!chChar || !IS_NPC(chChar))
     return (FALSE);
@@ -300,7 +300,7 @@ int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
 
 /* Procedure to block a person trying to enter a room. Used by Tim/Tom at Kings
  * bedroom and Dick/David at treasury. */
-static int block_way(struct char_data *ch, int cmd, char *arg, room_vnum iIn_room,
+static int block_way(struct char_data *ch, int cmd, char *arg __attribute__((unused)), room_vnum iIn_room,
                      int iProhibited_direction)
 {
   if (cmd != ++iProhibited_direction)
@@ -832,7 +832,7 @@ SPECIAL(jerry)
 #define ZONE_VNUM 1423
 
 /* just made this to help facilitate switching of zone vnums if needed */
-int calc_room_num(int value)
+static room_vnum calc_room_num(int value)
 {
   return (ZONE_VNUM * 100) + value;
 }
@@ -842,6 +842,8 @@ SPECIAL(abyss_randomizer)
 {
   struct char_data *i = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  room_vnum room;
+  room_rnum current_room, temp1, temp2;
 
   if (cmd)
     return 0;
@@ -849,110 +851,112 @@ SPECIAL(abyss_randomizer)
   if (rand_number(0, 9))
     return 0;
 
-  int room, temp1, temp2;
-
   for (room = calc_room_num(1); room <= calc_room_num(18); room++)
   {
+    current_room = real_room(room);
+    if (current_room == NOWHERE)
+      continue;
+
     /* Swapping North and South */
-    if (world[real_room(room)].dir_option[NORTH] &&
-        world[real_room(room)].dir_option[NORTH]->to_room != NOWHERE)
-      temp1 = world[real_room(room)].dir_option[NORTH]->to_room;
+    if (world[current_room].dir_option[NORTH] &&
+        world[current_room].dir_option[NORTH]->to_room != NOWHERE)
+      temp1 = world[current_room].dir_option[NORTH]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[SOUTH] &&
-        world[real_room(room)].dir_option[SOUTH]->to_room != NOWHERE)
-      temp2 = world[real_room(room)].dir_option[SOUTH]->to_room;
+    if (world[current_room].dir_option[SOUTH] &&
+        world[current_room].dir_option[SOUTH]->to_room != NOWHERE)
+      temp2 = world[current_room].dir_option[SOUTH]->to_room;
     else
       temp2 = NOWHERE;
     if (temp2 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[NORTH])
-        CREATE(world[real_room(room)].dir_option[NORTH], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[NORTH]->to_room = temp2;
+      if (!world[current_room].dir_option[NORTH])
+        CREATE(world[current_room].dir_option[NORTH], struct room_direction_data, 1);
+      world[current_room].dir_option[NORTH]->to_room = temp2;
     }
-    else if (world[real_room(room)].dir_option[NORTH])
+    else if (world[current_room].dir_option[NORTH])
     {
-      free(world[real_room(room)].dir_option[NORTH]);
-      world[real_room(room)].dir_option[NORTH] = NULL;
+      free(world[current_room].dir_option[NORTH]);
+      world[current_room].dir_option[NORTH] = NULL;
     }
     if (temp1 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[SOUTH])
-        CREATE(world[real_room(room)].dir_option[SOUTH], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[SOUTH]->to_room = temp1;
+      if (!world[current_room].dir_option[SOUTH])
+        CREATE(world[current_room].dir_option[SOUTH], struct room_direction_data, 1);
+      world[current_room].dir_option[SOUTH]->to_room = temp1;
     }
-    else if (world[real_room(room)].dir_option[SOUTH])
+    else if (world[current_room].dir_option[SOUTH])
     {
-      free(world[real_room(room)].dir_option[SOUTH]);
-      world[real_room(room)].dir_option[SOUTH] = NULL;
+      free(world[current_room].dir_option[SOUTH]);
+      world[current_room].dir_option[SOUTH] = NULL;
     }
 
     /* Swapping East and West */
-    if (world[real_room(room)].dir_option[EAST] &&
-        world[real_room(room)].dir_option[EAST]->to_room != NOWHERE)
-      temp1 = world[real_room(room)].dir_option[EAST]->to_room;
+    if (world[current_room].dir_option[EAST] &&
+        world[current_room].dir_option[EAST]->to_room != NOWHERE)
+      temp1 = world[current_room].dir_option[EAST]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[WEST] &&
-        world[real_room(room)].dir_option[WEST]->to_room != NOWHERE)
-      temp2 = world[real_room(room)].dir_option[WEST]->to_room;
+    if (world[current_room].dir_option[WEST] &&
+        world[current_room].dir_option[WEST]->to_room != NOWHERE)
+      temp2 = world[current_room].dir_option[WEST]->to_room;
     else
       temp2 = NOWHERE;
     if (temp2 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[EAST])
-        CREATE(world[real_room(room)].dir_option[EAST], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[EAST]->to_room = temp2;
+      if (!world[current_room].dir_option[EAST])
+        CREATE(world[current_room].dir_option[EAST], struct room_direction_data, 1);
+      world[current_room].dir_option[EAST]->to_room = temp2;
     }
-    else if (world[real_room(room)].dir_option[EAST])
+    else if (world[current_room].dir_option[EAST])
     {
-      free(world[real_room(room)].dir_option[EAST]);
-      world[real_room(room)].dir_option[EAST] = NULL;
+      free(world[current_room].dir_option[EAST]);
+      world[current_room].dir_option[EAST] = NULL;
     }
     if (temp1 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[WEST])
-        CREATE(world[real_room(room)].dir_option[WEST], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[WEST]->to_room = temp1;
+      if (!world[current_room].dir_option[WEST])
+        CREATE(world[current_room].dir_option[WEST], struct room_direction_data, 1);
+      world[current_room].dir_option[WEST]->to_room = temp1;
     }
-    else if (world[real_room(room)].dir_option[WEST])
+    else if (world[current_room].dir_option[WEST])
     {
-      free(world[real_room(room)].dir_option[WEST]);
-      world[real_room(room)].dir_option[WEST] = NULL;
+      free(world[current_room].dir_option[WEST]);
+      world[current_room].dir_option[WEST] = NULL;
     }
 
     /* Swapping Up and Down */
-    if (world[real_room(room)].dir_option[UP] &&
-        world[real_room(room)].dir_option[UP]->to_room != NOWHERE)
-      temp1 = world[real_room(room)].dir_option[UP]->to_room;
+    if (world[current_room].dir_option[UP] &&
+        world[current_room].dir_option[UP]->to_room != NOWHERE)
+      temp1 = world[current_room].dir_option[UP]->to_room;
     else
       temp1 = NOWHERE;
-    if (world[real_room(room)].dir_option[DOWN] &&
-        world[real_room(room)].dir_option[DOWN]->to_room != NOWHERE)
-      temp2 = world[real_room(room)].dir_option[DOWN]->to_room;
+    if (world[current_room].dir_option[DOWN] &&
+        world[current_room].dir_option[DOWN]->to_room != NOWHERE)
+      temp2 = world[current_room].dir_option[DOWN]->to_room;
     else
       temp2 = NOWHERE;
     if (temp2 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[UP])
-        CREATE(world[real_room(room)].dir_option[UP], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[UP]->to_room = temp2;
+      if (!world[current_room].dir_option[UP])
+        CREATE(world[current_room].dir_option[UP], struct room_direction_data, 1);
+      world[current_room].dir_option[UP]->to_room = temp2;
     }
-    else if (world[real_room(room)].dir_option[UP])
+    else if (world[current_room].dir_option[UP])
     {
-      free(world[real_room(room)].dir_option[UP]);
-      world[real_room(room)].dir_option[UP] = NULL;
+      free(world[current_room].dir_option[UP]);
+      world[current_room].dir_option[UP] = NULL;
     }
     if (temp1 != NOWHERE)
     {
-      if (!world[real_room(room)].dir_option[DOWN])
-        CREATE(world[real_room(room)].dir_option[DOWN], struct room_direction_data, 1);
-      world[real_room(room)].dir_option[DOWN]->to_room = temp1;
+      if (!world[current_room].dir_option[DOWN])
+        CREATE(world[current_room].dir_option[DOWN], struct room_direction_data, 1);
+      world[current_room].dir_option[DOWN]->to_room = temp1;
     }
-    else if (world[real_room(room)].dir_option[DOWN])
+    else if (world[current_room].dir_option[DOWN])
     {
-      free(world[real_room(room)].dir_option[DOWN]);
-      world[real_room(room)].dir_option[DOWN] = NULL;
+      free(world[current_room].dir_option[DOWN]);
+      world[current_room].dir_option[DOWN] = NULL;
     }
   }
 
@@ -1006,10 +1010,14 @@ SPECIAL(cf_trainingmaster)
     for (i = character_list; i; i = i->next)
     {
       if (!FIGHTING(i) && IS_NPC(i) &&
-          (GET_MOB_VNUM(i) == cf_converter(32) || GET_MOB_VNUM(i) == cf_converter(33) ||
-           GET_MOB_VNUM(i) == cf_converter(34) || GET_MOB_VNUM(i) == cf_converter(35) ||
-           GET_MOB_VNUM(i) == cf_converter(36) || GET_MOB_VNUM(i) == cf_converter(37) ||
-           GET_MOB_VNUM(i) == cf_converter(38) || GET_MOB_VNUM(i) == cf_converter(39)) &&
+          (GET_MOB_VNUM(i) == (mob_vnum)cf_converter(32) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(33) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(34) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(35) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(36) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(37) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(38) ||
+           GET_MOB_VNUM(i) == (mob_vnum)cf_converter(39)) &&
           ch != i)
       {
         if (ch->in_room != i->in_room)
@@ -1539,7 +1547,8 @@ void prisoner_gear_loading(struct char_data *ch)
   struct obj_data *olist = NULL;
   // struct obj_data *tobj = NULL;
   bool loaded = FALSE;
-  int ovnum = NOTHING, loop_counter = 0, num_items = 0, num_treasure = 0;
+  obj_vnum ovnum = NOTHING;
+  int loop_counter = 0, num_items = 0, num_treasure = 0;
 
   int objNums[TOP_UNIQUES + 1] = {
       MALEVOLENCE,      /* for warrior, berserker, giantslayer, battlerager */
@@ -2720,7 +2729,7 @@ SPECIAL(jot_invasion_loader)
   {
     chmove = tch->next_in_room;
     /* glammad */
-    if (GET_MOB_VNUM(tch) == jot_converter(80))
+    if (GET_MOB_VNUM(tch) == (mob_vnum)jot_converter(80))
     {
       if ((roomrnum = real_room(jot_converter(204))) != NOWHERE)
       {
@@ -2732,7 +2741,7 @@ SPECIAL(jot_invasion_loader)
       }
     }
     /* fire giant captain(s) */
-    if (GET_MOB_VNUM(tch) == jot_converter(81))
+    if (GET_MOB_VNUM(tch) == (mob_vnum)jot_converter(81))
     {
       if ((roomrnum = real_room(jot_converter(204))) != NOWHERE)
       {
@@ -2741,7 +2750,7 @@ SPECIAL(jot_invasion_loader)
       }
     }
     /* sirthon quilen */
-    if (GET_MOB_VNUM(tch) == jot_converter(83))
+    if (GET_MOB_VNUM(tch) == (mob_vnum)jot_converter(83))
     {
       if ((roomrnum = real_room(jot_converter(115))) != NOWHERE)
       {
@@ -3011,7 +3020,7 @@ SPECIAL(jot_invasion_loader)
 
   /* Remove Brunnhilde */
   for (mob = character_list; mob; mob = mob->next)
-    if (GET_MOB_VNUM(mob) == jot_converter(68))
+    if (GET_MOB_VNUM(mob) == (mob_vnum)jot_converter(68))
       extract_char(mob);
 
   PROC_FIRED(ch) = TRUE;

@@ -1655,7 +1655,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   int i = 0;
   while (get_carriage_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_carriage_locale_vnum(i))
+    if ((int)GET_ROOM_VNUM(IN_ROOM(ch)) == get_carriage_locale_vnum(i))
     {
       send_to_char(
           ch,
@@ -1669,7 +1669,7 @@ void look_at_room(struct char_data *ch, int ignore_brief)
   i = 0;
   while (get_sailing_locale_vnum(i) != 0)
   {
-    if (GET_ROOM_VNUM(IN_ROOM(ch)) == get_sailing_locale_vnum(i))
+    if ((int)GET_ROOM_VNUM(IN_ROOM(ch)) == get_sailing_locale_vnum(i))
     {
       send_to_char(
           ch, "\r\nThis room is a ferry dock.  Use the \tYsail\tn command to see options.\r\n");
@@ -2164,7 +2164,7 @@ static void look_at_target(struct char_data *ch, char *arg)
         if (OBJ_FLAGGED(GET_EQ(ch, j), ITEM_CRAFTED))
         {
           snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
-          for (x = 0; x < strlen(desc_out); x++)
+          for (x = 0; (size_t)x < strlen(desc_out); x++)
           {
             if (desc_out[x] == '~')
               desc_out[x] = '\0';
@@ -2213,7 +2213,7 @@ static void look_at_target(struct char_data *ch, char *arg)
         if (OBJ_FLAGGED(obj, ITEM_CRAFTED))
         {
           snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
-          for (x = 0; x < strlen(desc_out); x++)
+          for (x = 0; (size_t)x < strlen(desc_out); x++)
           {
             if (desc_out[x] == '~')
               desc_out[x] = '\0';
@@ -2263,7 +2263,7 @@ static void look_at_target(struct char_data *ch, char *arg)
         if (OBJ_FLAGGED(obj, ITEM_CRAFTED))
         {
           snprintf(desc_out, sizeof(desc_out), "%s", strfrmt(desc, 80, 1, FALSE, FALSE, FALSE));
-          for (x = 0; x < strlen(desc_out); x++)
+          for (x = 0; (size_t)x < strlen(desc_out); x++)
           {
             if (desc_out[x] == '~')
               desc_out[x] = '\0';
@@ -2993,6 +2993,7 @@ void perform_resistances(struct char_data *ch, struct char_data *k)
           break;
         case DR_BYPASS_CAT_ALIGNMENT:
           send_to_char(ch, "%s", dr_aligns[dr->bypass_val[i]]);
+          break;
         default:
           send_to_char(ch, "???");
         }
@@ -9312,7 +9313,7 @@ ACMD(do_areas)
   else
     len = snprintf(buf, sizeof(buf), "Checking all areas.\r\n");
 
-  for (i = 0; i <= top_of_zone_table; i++)
+  for (i = 0; i <= (int)top_of_zone_table; i++)
   { /* Go through the whole zone table */
     show_zone = FALSE;
     overlap = FALSE;
@@ -9603,7 +9604,8 @@ ACMD(do_survey)
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
-  int first, last, j, x, y, i;
+  room_vnum first, last;
+  int j, x, y, i;
   float resource_level;
   struct room_data *target_room = NULL;
   char arg[MAX_INPUT_LENGTH];
@@ -9611,7 +9613,11 @@ ACMD(do_survey)
   one_argument(argument, arg, sizeof(arg));
 
   zrnum = world[IN_ROOM(ch)].zone;
-  zvnum = zone_table[zrnum].number;
+  if (zrnum == NOWHERE || zrnum > top_of_zone_table)
+  {
+    send_to_char(ch, "Let a staff member know: this room has an invalid zone.\n\r");
+    return;
+  }
 
   if (!ZONE_FLAGGED(zrnum, ZONE_WILDERNESS))
   {
@@ -9619,7 +9625,8 @@ ACMD(do_survey)
     return;
   }
 
-  if (zrnum == NOWHERE || zvnum == NOWHERE)
+  zvnum = zone_table[zrnum].number;
+  if (zvnum == NOWHERE)
   {
     send_to_char(ch, "Let a staff know about this, error with survey.\n\r");
     return;
@@ -11267,7 +11274,7 @@ ACMDU(do_wearapplies)
   for (i = 1; i < NUM_ITEM_WEARS; i++)
   {
     snprintf(wears, sizeof(wears), "%s", wear_bits[i]);
-    for (j = 0; j < strlen(wears); j++)
+    for (j = 0; (size_t)j < strlen(wears); j++)
       wears[j] = tolower(wears[j]);
 
     if (is_abbrev(argument, wears))

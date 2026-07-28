@@ -34,7 +34,7 @@ ACMD_DECL(do_show_save_list);
 
 struct save_list_data
 {
-  int zone;
+  zone_vnum zone;
   int type;
   struct save_list_data *next;
 };

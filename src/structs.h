@@ -7293,7 +7293,7 @@ message to dest room when docking~
 */
 
 #define MAX_MOVING_ROOMS 150 /* # of connectiong rooms             */
-#define ENDMOVING -2         /* end of moving room list in from[]  */
+#define ENDMOVING ((room_num)-2) /* end of moving room list in from[] */
 
 struct moving_room_data
 { /*  all room num are VNUM  */

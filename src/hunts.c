@@ -465,7 +465,7 @@ void create_hunt_mob(room_rnum room, int which_hunt)
   mob->player.name = strdup(hunt_table[which_hunt].name);
 
   sprintf(mob_descs, "\tn%s %s", AN(hunt_table[which_hunt].name), hunt_table[which_hunt].name);
-  for (i = 0; i < strlen(mob_descs); i++)
+  for (i = 0; (size_t)i < strlen(mob_descs); i++)
     mob_descs[i] = tolower(mob_descs[i]);
   mob->player.short_descr = strdup(mob_descs);
 
@@ -969,21 +969,21 @@ SPECIAL(huntsmaster)
       // set item descriptions
       snprintf(objdesc, sizeof(objdesc), "%s %s", subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "%s %s of %s lies here.", AN(subdesc), subdesc,
                affected_bits[hunts_special_armor_type(GET_OBJ_VAL(obj1, 0))]);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }
@@ -1013,21 +1013,21 @@ SPECIAL(huntsmaster)
       // set item descriptions
       snprintf(objdesc, sizeof(objdesc), "vial weapon oil %s",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }
       obj2->name = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "a vial of -%s- weapon oil",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }
       obj2->short_description = strdup(objdesc);
       snprintf(objdesc, sizeof(objdesc), "A vial of -%s- weapon oil lies here.",
                special_ability_info[hunts_special_weapon_type(GET_OBJ_VAL(obj1, 0))].name);
-      for (i = 0; i < sizeof(objdesc); i++)
+      for (i = 0; (size_t)i < sizeof(objdesc); i++)
       {
         objdesc[i] = tolower(objdesc[i]);
       }

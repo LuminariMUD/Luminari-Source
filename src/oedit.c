@@ -83,7 +83,9 @@ static void oedit_disp_assign_weapon_specab_menu(struct descriptor_data *d);
 /* Utility and exported functions */
 ACMD(do_oasis_oedit)
 {
-  int number = NOWHERE, save = 0, real_num;
+  obj_vnum number = NOTHING;
+  obj_rnum real_num;
+  int save = 0;
   struct descriptor_data *d;
   char buf1[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -112,18 +114,18 @@ ACMD(do_oasis_oedit)
     save = TRUE;
 
     if (is_number(buf2))
-      number = atoi(buf2);
+      number = atoidx(buf2);
     else if (GET_OLC_ZONE(ch) > 0)
     {
       zone_rnum zlok;
 
       if ((zlok = real_zone(GET_OLC_ZONE(ch))) == NOWHERE)
-        number = NOWHERE;
+        number = NOTHING;
       else
-        number = genolc_zone_bottom(zlok);
+        number = zone_table[zlok].number;
     }
 
-    if (number == NOWHERE)
+    if (number == NOTHING)
     {
       send_to_char(ch, "Save which zone?\r\n");
       return;
@@ -131,8 +133,8 @@ ACMD(do_oasis_oedit)
   }
 
   /* If a numeric argument was given, get it. */
-  if (number == NOWHERE)
-    number = atoi(buf1);
+  if (number == NOTHING)
+    number = atoidx(buf1);
 
   /* Check that whatever it is isn't already being edited. */
   for (d = descriptor_list; d; d = d->next)
@@ -240,7 +242,7 @@ static void oedit_setup_new(struct descriptor_data *d)
   OLC_SPECAB(d) = NULL;
 }
 
-void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode)
+void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode __attribute__((unused)))
 {
   struct obj_data *obj;
 
@@ -258,7 +260,7 @@ void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode)
   SCRIPT(obj) = NULL;
   OLC_OBJ(d)->proto_script = NULL;
   /* Initialize current spec proc selection from prototype index */
-  if (real_num != NOTHING)
+  if (real_num != (int)NOTHING)
     OLC(d)->specobj = obj_index[real_num].func;
 }
 
@@ -318,15 +320,21 @@ void oedit_save_internally(struct descriptor_data *d)
         switch (OLC_ZONE(dsc)->cmd[i].command)
         {
         case 'P':
-          OLC_ZONE(dsc)->cmd[i].arg3 += (OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num);
+          if (OLC_ZONE(dsc)->cmd[i].arg3 >= 0 &&
+              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num)
+            OLC_ZONE(dsc)->cmd[i].arg3++;
           /* Fall through. */
         case 'E':
         case 'G':
         case 'O':
-          OLC_ZONE(dsc)->cmd[i].arg1 += (OLC_ZONE(dsc)->cmd[i].arg1 >= robj_num);
+          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 &&
+              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= robj_num)
+            OLC_ZONE(dsc)->cmd[i].arg1++;
           break;
         case 'R':
-          OLC_ZONE(dsc)->cmd[i].arg2 += (OLC_ZONE(dsc)->cmd[i].arg2 >= robj_num);
+          if (OLC_ZONE(dsc)->cmd[i].arg2 >= 0 &&
+              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg2 >= robj_num)
+            OLC_ZONE(dsc)->cmd[i].arg2++;
           break;
         default:
           break;
@@ -1192,7 +1200,7 @@ static void oedit_disp_val2_menu(struct descriptor_data *d)
     write_to_output(d, "Initial drink units : ");
     break;
   case ITEM_CLANARMOR:
-    write_to_output(d, "Clan ID Number: ");
+    write_to_output(d, "Clan vnum: ");
     break;
   case ITEM_INSTRUMENT:
     write_to_output(d, "Enter how much instrument reduces difficulty (0-30): ");
@@ -1395,6 +1403,7 @@ static void oedit_disp_val5_menu(struct descriptor_data *d)
     write_to_output(d, "Enhancement bonus : ");
     break;
   case ITEM_ARMOR:
+  case ITEM_CLANARMOR:
     write_to_output(d,
                     "\tcSuggested Enhancement Bonused based on Object Level: Drops From... Normal "
                     "Mob (%d) Boss Mob (%d)\tn\r\n",
@@ -1799,7 +1808,7 @@ static void oedit_disp_wear_menu(struct descriptor_data *d)
                   cyn, bits, nrm);
 }
 
-bool remove_special_ability(struct obj_data *obj, int number)
+bool remove_special_ability(struct obj_data *obj, int number __attribute__((unused)))
 {
   // struct obj_special_ability *current = obj->special_abilities;
   // struct obj_special_ability *next;
@@ -2584,6 +2593,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         GET_OBJ_VAL(OLC_OBJ(d), OUTFIT_VAL_TYPE) = number;
         oedit_disp_val2_menu(d);
       }
+      break;
 
     case ITEM_FURNITURE:
       if (number < 0 || number > MAX_PEOPLE)
@@ -2725,8 +2735,13 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       // return;
       break;
     case ITEM_CLANARMOR:
-      GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, num_of_clans);
-      oedit_disp_val3_menu(d);
+      if (number < 0 || real_clan((clan_vnum)number) == NO_CLAN)
+      {
+        write_to_output(d, "That clan vnum does not exist. Enter a valid clan vnum: ");
+        return;
+      }
+      GET_OBJ_VAL(OLC_OBJ(d), 1) = number;
+      oedit_disp_val5_menu(d);
       break;
     case ITEM_SWITCH:
       GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 1, 999999);
@@ -3404,7 +3419,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
           OLC_DESC(d) = OLC_DESC(d)->next;
         }
       }
-      /* No break - drop into default case. */
+      __attribute__((fallthrough));
     default:
       oedit_disp_extradesc_menu(d);
       return;
@@ -3412,7 +3427,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     break;
 
   case OEDIT_COPY:
-    if ((number = real_object(atoi(arg))) != NOTHING)
+    if ((number = real_object(atoi(arg))) != (int)NOTHING)
     {
       oedit_setup_existing(d, number, QMODE_QCOPY);
     }
@@ -3423,7 +3438,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   case OEDIT_DELETE:
     if (*arg == 'y' || *arg == 'Y')
     {
-      if (delete_object(GET_OBJ_RNUM(OLC_OBJ(d))) != NOTHING)
+      if (delete_object(GET_OBJ_RNUM(OLC_OBJ(d))) != (int)NOTHING)
         write_to_output(d, "Object deleted.\r\n");
       else
         write_to_output(d, "Couldn't delete the object!\r\n");
@@ -3932,7 +3947,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
   oedit_disp_menu(d);
 }
 
-void oedit_string_cleanup(struct descriptor_data *d, int terminator)
+void oedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

@@ -161,7 +161,7 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *msg)
+void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *msg __attribute__((unused)))
 {
   switch (loc)
   {
@@ -1538,7 +1538,7 @@ void char_from_room(struct char_data *ch)
 }
 
 /* place a char at the specified coord location in the wilderness specified. */
-void char_to_coords(struct char_data *ch, int x, int y, int wilderness)
+void char_to_coords(struct char_data *ch, int x, int y, int wilderness __attribute__((unused)))
 {
   room_rnum room = NOWHERE;
 
@@ -1640,7 +1640,7 @@ void char_to_room(struct char_data *ch, room_rnum room)
   {
     /* If this is a wilderness room, set coords. */
     zone_rnum zone = GET_ROOM_ZONE(room);
-    bool is_wilderness_room = (zone != NOWHERE && zone >= 0 && zone <= top_of_zone_table &&
+    bool is_wilderness_room = (zone != NOWHERE && zone <= top_of_zone_table &&
                                ZONE_FLAGGED(zone, ZONE_WILDERNESS));
 
     if (is_wilderness_room)
@@ -2304,7 +2304,7 @@ struct obj_data *get_obj_in_list_num(int num, struct obj_data *list)
   struct obj_data *i;
 
   for (i = list; i; i = i->next_content)
-    if (GET_OBJ_RNUM(i) == num)
+    if (num >= 0 && GET_OBJ_RNUM(i) == (obj_rnum)num)
       return (i);
 
   return (NULL);
@@ -2385,9 +2385,8 @@ void obj_to_room(struct obj_data *object, room_rnum room)
     if (ROOM_FLAGGED(room, ROOM_HOUSE))
       SET_BIT_AR(ROOM_FLAGS(room), ROOM_HOUSE_CRASH);
 
-    /* falling check */
-    if (obj_should_fall(object))
-      ; // fall event for objects
+    /* Falling objects are not implemented yet; retain float-message side effects. */
+    (void)obj_should_fall(object);
   }
 }
 

@@ -368,7 +368,7 @@ ACMD(do_mzoneecho)
   if (!*room_number || !*msg)
     mob_log(ch, "mzoneecho called with too few args");
 
-  else if ((zone = real_zone_by_thing(atoi(room_number))) == NOWHERE)
+  else if ((zone = (int)real_zone_by_thing(atoi(room_number))) == (int)NOWHERE)
     mob_log(ch, "mzoneecho called for nonexistant zone");
 
   else
@@ -1331,7 +1331,7 @@ ACMD(do_mdoor)
       strcpy(newexit->keyword, value);
       break;
     case 5: /* room        */
-      if ((to_room = real_room(atoi(value))) != NOWHERE)
+  if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
         newexit->to_room = to_room;
       else
       {

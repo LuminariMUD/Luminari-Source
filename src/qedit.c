@@ -418,7 +418,8 @@ static void qedit_disp_menu(struct descriptor_data *d)
   }
 
   if (quest->type != AQ_MOB_MULTI_KILL)
-    snprintf(buf3, sizeof(buf3), "%6d", (quest->target == NOBODY ? -1 : quest->target));
+    snprintf(buf3, sizeof(buf3), "%6d",
+             (quest->target == (int)NOBODY ? -1 : quest->target));
 
   write_to_output(
       d,
@@ -456,30 +457,31 @@ static void qedit_disp_menu(struct descriptor_data *d)
       quest->quit && (str_cmp(quest->quit, "undefined")) ? quest->quit : "Nothing\r\n", quest_flags,
       quest->type == AQ_UNDEFINED ? "undefined" : quest_types[quest->type],
       (quest->type == AQ_OBJ_RETURN || quest->type == AQ_GIVE_GOLD) ? buf2 : "",
-      quest->qm == NOBODY ? -1 : quest->qm,
+      quest->qm == NOBODY ? -1 : (int)quest->qm,
       real_mobile(quest->qm) == NOBODY ? "Invalid Mob"
                                        : mob_proto[(real_mobile(quest->qm))].player.short_descr,
 
       buf3, targetname,
 
       quest->coord_x, quest->coord_y, quest->value[6], quest->value[0], quest->value[1],
-      quest->gold_reward, quest->exp_reward, quest->obj_reward == NOTHING ? -1 : quest->obj_reward,
+      quest->gold_reward, quest->exp_reward,
+      quest->obj_reward == NOTHING ? -1 : (int)quest->obj_reward,
       quest->race_reward,
       (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES)
           ? race_list[quest->race_reward].type_color
           : "n/a",
-      quest->follower_reward == NOBODY ? -1 : quest->follower_reward,
+      quest->follower_reward == (int)NOBODY ? -1 : quest->follower_reward,
       real_mobile(quest->follower_reward) == NOBODY
           ? "Invalid Mob"
           : mob_proto[(real_mobile(quest->follower_reward))].player.short_descr,
-      quest->value[2], quest->value[3], quest->prereq == NOTHING ? -1 : quest->prereq,
+      quest->value[2], quest->value[3], quest->prereq == NOTHING ? -1 : (int)quest->prereq,
       quest->prereq == NOTHING ? ""
       : real_object(quest->prereq) == NOTHING
           ? "an unknown object"
           : obj_proto[real_object(quest->prereq)].short_description,
-      quest->value[4], quest->next_quest == NOTHING ? -1 : quest->next_quest,
+      quest->value[4], quest->next_quest == NOTHING ? -1 : (int)quest->next_quest,
       real_quest(quest->next_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->next_quest)),
-      quest->prev_quest == NOTHING ? -1 : quest->prev_quest,
+      quest->prev_quest == NOTHING ? -1 : (int)quest->prev_quest,
       real_quest(quest->prev_quest) == NOTHING ? "" : QST_DESC(real_quest(quest->prev_quest)));
 
   OLC_MODE(d) = QEDIT_MAIN_MENU;
@@ -840,7 +842,8 @@ void qedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC_QUEST(d)->dialogue_alternative_quest = (number == -1 ? NOTHING : atoi(arg));
+    OLC_QUEST(d)->dialogue_alternative_quest =
+        (number == -1 ? NOTHING : (qst_vnum)number);
     show_quest_dialogue_menu(d);
     OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
     return;
@@ -1000,7 +1003,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC_QUEST(d)->next_quest = (number == -1 ? NOTHING : atoi(arg));
+    OLC_QUEST(d)->next_quest = (number == -1 ? NOTHING : (qst_vnum)number);
     break;
 
   case QEDIT_PREVQUEST:
@@ -1012,7 +1015,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC_QUEST(d)->prev_quest = (number == -1 ? NOTHING : atoi(arg));
+    OLC_QUEST(d)->prev_quest = (number == -1 ? NOTHING : (qst_vnum)number);
     break;
   case QEDIT_GOLD:
     OLC_QUEST(d)->gold_reward = LIMIT(number, 0, 99999);
@@ -1078,7 +1081,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
 }
 
 /* doesn't really do much */
-void qedit_string_cleanup(struct descriptor_data *d, int terminator)
+void qedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

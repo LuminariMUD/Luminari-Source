@@ -3980,24 +3980,31 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_SMALL:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
             break;
+          __attribute__((fallthrough));
         case SIZE_MEDIUM:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE))
             break;
+          __attribute__((fallthrough));
         case SIZE_TINY:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
             break;
+          __attribute__((fallthrough));
         case SIZE_LARGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
             break;
+          __attribute__((fallthrough));
         case SIZE_DIMINUTIVE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+          __attribute__((fallthrough));
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+          __attribute__((fallthrough));
         case SIZE_GARGANTUAN:
           if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
             break;
+          __attribute__((fallthrough));
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
@@ -4015,18 +4022,23 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_SMALL:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+          __attribute__((fallthrough));
         case SIZE_MEDIUM:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+          __attribute__((fallthrough));
         case SIZE_LARGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
             break;
+          __attribute__((fallthrough));
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
             break;
+          __attribute__((fallthrough));
         case SIZE_GARGANTUAN:
           if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
             break;
+          __attribute__((fallthrough));
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
@@ -4046,18 +4058,23 @@ int display_eligible_wildshape_races(struct char_data *ch, const char *argument,
         case SIZE_SMALL:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_2))
             break;
+          __attribute__((fallthrough));
         case SIZE_MEDIUM:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_3))
             break;
+          __attribute__((fallthrough));
         case SIZE_LARGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_4))
             break;
+          __attribute__((fallthrough));
         case SIZE_HUGE:
           if (HAS_FEAT(ch, FEAT_WILD_SHAPE_5))
             break;
+          __attribute__((fallthrough));
         case SIZE_GARGANTUAN:
           if (HAS_FEAT(ch, FEAT_GARGANTUAN_WILD_SHAPE))
             break;
+          __attribute__((fallthrough));
         case SIZE_COLOSSAL:
           if (HAS_FEAT(ch, FEAT_COLOSSAL_WILD_SHAPE))
             break;
@@ -4363,36 +4380,43 @@ void assign_wildshape_feats(struct char_data *ch)
   case 30:
   case 29:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 28:
   case 27:
   case 26:
   case 25:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 24:
   case 23:
   case 22:
   case 21:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 20:
   case 19:
   case 18:
   case 17:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 16:
   case 15:
   case 14:
   case 13:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 12:
   case 11:
   case 10:
   case 9:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 8:
   case 7:
   case 6:
   case 5:
     MOB_SET_FEAT(ch, FEAT_NATURAL_ATTACK, MOB_HAS_FEAT(ch, FEAT_NATURAL_ATTACK) + 1);
+    __attribute__((fallthrough));
   case 4:
   case 3:
   case 2:
@@ -5414,7 +5438,7 @@ void record_quit_feedback(struct char_data *ch, const char *reason)
 
   fprintf(logfile, "[%s] %s (Account: %s, %s %s, Room: %d, Host: %s): %s\n", time_buf, GET_NAME(ch),
           account, race_name, class_breakdown,
-          IN_ROOM(ch) != NOWHERE ? GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
+          IN_ROOM(ch) != NOWHERE ? (int)GET_ROOM_VNUM(IN_ROOM(ch)) : -1, host,
           *cleaned ? cleaned : "(no reason provided)");
 
   fclose(logfile);
@@ -7785,7 +7809,8 @@ ACMD(do_use)
     break;
   }
 
-  if ((GET_OBJ_BOUND_ID(mag_item) != NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(mag_item) != (int)NOBODY) &&
+      (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(mag_item)) != NULL)
     {
@@ -8234,7 +8259,7 @@ ACMD(do_display)
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPMEMTIME);
     REMOVE_BIT_AR(PRF_FLAGS(ch), PRF_DISPACTIONS);
 
-    for (i = 0; i < strlen(argument); i++)
+    for (i = 0; (size_t)i < strlen(argument); i++)
     {
       switch (LOWER(argument[i]))
       {

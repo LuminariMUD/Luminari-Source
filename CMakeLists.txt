@@ -51,10 +51,14 @@ if (CMAKE_COMPILER_IS_GNUCC)
     include(CheckCCompilerFlag)
 
     check_c_compiler_flag(-Wall SUPPORTS_WALL)
+    check_c_compiler_flag(-Wextra SUPPORTS_WEXTRA)
     check_c_compiler_flag(-Wno-char-subscripts SUPPORTS_WNO_CHAR_SUBSCRIPTS)
 
     if (SUPPORTS_WALL)
         set(MYFLAGS "-Wall")
+        if (SUPPORTS_WEXTRA)
+            set(MYFLAGS "${MYFLAGS} -Wextra")
+        endif()
         if (SUPPORTS_WNO_CHAR_SUBSCRIPTS)
             set(MYFLAGS "${MYFLAGS} -Wno-char-subscripts")
         endif()
@@ -716,7 +720,7 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCC)
     # Additional warnings for development
     if (DEVELOPER_MODE)
-        target_compile_options(circle PRIVATE -Wextra -Wshadow -Wcast-qual
+        target_compile_options(circle PRIVATE -Wshadow -Wcast-qual
                                -Wwrite-strings -Wconversion -Wunreachable-code)
     endif()
 endif()
@@ -767,13 +771,10 @@ if (BUILD_UTILS)
 endif()
 
 # ========== Build unit tests AFTER main executable ==========
-# The production-linked CuTest target is currently built through Autotools:
-#   make test
 # The focused protocol parser harness remains available under unittests/CuTest.
-option(BUILD_TESTS "Build unit tests (disabled - use Autotools make test)" OFF)
+option(BUILD_TESTS "Build production-linked unit tests" OFF)
 
-# Keep this list synchronized with cutest_test_files in Makefile.am. The
-# production-linked CuTest target is currently built through Autotools.
+# Keep this list synchronized with cutest_test_files in Makefile.am.
 set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_web_onboarding.c
     unittests/CuTest/test_i3_client_production.c
@@ -798,6 +799,61 @@ set(PROTOCOL_FOCUSED_TEST_SOURCES
     unittests/CuTest/test_protocol_parser.c
     unittests/CuTest/fuzz_protocol_parser.c
 )
+
+if (BUILD_TESTS)
+    enable_testing()
+
+    set(CUTEST_GENERATOR
+        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest/make-tests.sh)
+    set(CUTEST_ALL_TESTS_SOURCE
+        ${CMAKE_CURRENT_BINARY_DIR}/AllTests.c)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        ${CUTEST_GENERATOR}
+        ${CUTEST_TEST_SOURCES})
+
+    execute_process(
+        COMMAND ${CUTEST_GENERATOR} ${CUTEST_TEST_SOURCES}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_FILE ${CUTEST_ALL_TESTS_SOURCE}
+        RESULT_VARIABLE CUTEST_GENERATOR_RESULT)
+    if (NOT CUTEST_GENERATOR_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to generate the CuTest test registry")
+    endif()
+
+    add_executable(cutest
+        unittests/CuTest/CuTest.c
+        ${CUTEST_TEST_SOURCES}
+        ${CUTEST_ALL_TESTS_SOURCE}
+        ${SRC_FILES})
+    set_target_properties(cutest PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(cutest PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/unittests/CuTest)
+
+    get_target_property(CIRCLE_COMPILE_DEFINITIONS
+        circle COMPILE_DEFINITIONS)
+    target_compile_definitions(cutest PRIVATE
+        ${CIRCLE_COMPILE_DEFINITIONS}
+        LUMINARI_CUTEST)
+
+    get_target_property(CIRCLE_COMPILE_OPTIONS circle COMPILE_OPTIONS)
+    if (CIRCLE_COMPILE_OPTIONS)
+        target_compile_options(cutest PRIVATE ${CIRCLE_COMPILE_OPTIONS})
+    endif()
+
+    get_target_property(CIRCLE_LINK_LIBRARIES circle LINK_LIBRARIES)
+    target_link_libraries(cutest PRIVATE ${CIRCLE_LINK_LIBRARIES})
+
+    add_test(NAME production-cutest COMMAND cutest)
+    set_tests_properties(production-cutest PROPERTIES
+        ENVIRONMENT "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME autorun-supervision
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_autorun_supervision.sh)
+    set_tests_properties(autorun-supervision PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 add_custom_target(test-autorun-supervision
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_autorun_supervision.sh

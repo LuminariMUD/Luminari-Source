@@ -237,7 +237,7 @@ static void House_restore_weight(struct obj_data *obj)
 /* Save all objects in a house */
 void House_crashsave(room_vnum vnum)
 {
-  int rnum;
+  room_rnum rnum;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   FILE *fp;
   char del_buf[2048];
@@ -248,7 +248,7 @@ void House_crashsave(room_vnum vnum)
     return;
   }
   /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%d';", vnum);
+  snprintf(del_buf, sizeof(del_buf), "delete from house_data where vnum = '%u';", vnum);
   if (mysql_query(conn, del_buf))
   {
     log("SYSERR: Unable to delete house data: %s", mysql_error(conn));
@@ -361,11 +361,11 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
 /* Functions for house administration (creation, deletion, etc. */
 house_rnum find_house(room_vnum vnum)
 {
-  house_rnum i;
+  int i;
 
   for (i = 0; i < num_of_houses; i++)
     if (house_control[i].vnum == vnum)
-      return (i);
+      return ((house_rnum)i);
 
   return (NOWHERE);
 }
@@ -458,7 +458,8 @@ const char *HCONTROL_FORMAT =
 
 void hcontrol_list_houses(struct char_data *ch, char *arg)
 {
-  house_rnum i;
+  house_rnum house;
+  int i;
   char *timestr, *temp;
   char built_on[128], last_pay[128], own_name[MAX_NAME_LENGTH + 1];
 
@@ -471,7 +472,7 @@ void hcontrol_list_houses(struct char_data *ch, char *arg)
     else
       toshow = atoi(arg);
 
-    if ((i = find_house(toshow)) == NOWHERE)
+    if ((house = find_house(toshow)) == NOWHERE)
     {
       send_to_char(ch, "Unknown house, \"%s\".\r\n", arg);
       return;
@@ -634,8 +635,8 @@ static void hcontrol_build_house(struct char_data *ch, char *arg)
 /* destroying a house */
 static void hcontrol_destroy_house(struct char_data *ch, char *arg)
 {
-  house_rnum i;
-  int j;
+  house_rnum house;
+  int i, j;
   room_rnum real_atrium, real_house;
 
   if (!*arg)
@@ -644,19 +645,19 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
     return;
   }
 
-  if ((i = find_house(atoi(arg))) == NOWHERE)
+  if ((house = find_house(atoi(arg))) == NOWHERE)
   {
     send_to_char(ch, "Unknown house.\r\n");
     return;
   }
 
-  if ((real_atrium = real_room(house_control[i].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %d!", atoi(arg), house_control[i].atrium);
+  if ((real_atrium = real_room(house_control[house].atrium)) == NOWHERE)
+    log("SYSERR: House %d had invalid atrium %d!", atoi(arg), house_control[house].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 
-  if ((real_house = real_room(house_control[i].vnum)) == NOWHERE)
-    log("SYSERR: House %d had invalid vnum %d!", atoi(arg), house_control[i].vnum);
+  if ((real_house = real_room(house_control[house].vnum)) == NOWHERE)
+    log("SYSERR: House %d had invalid vnum %d!", atoi(arg), house_control[house].vnum);
   else
   {
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE);
@@ -664,9 +665,9 @@ static void hcontrol_destroy_house(struct char_data *ch, char *arg)
     REMOVE_BIT_AR(ROOM_FLAGS(real_house), ROOM_HOUSE_CRASH);
   }
 
-  House_delete_file(house_control[i].vnum);
+  House_delete_file(house_control[house].vnum);
 
-  for (j = i; j < num_of_houses - 1; j++)
+  for (j = (int)house; j < num_of_houses - 1; j++)
     house_control[j] = house_control[j + 1];
 
   num_of_houses--;
@@ -796,14 +797,14 @@ void House_list_guests(struct char_data *ch, int i, int quiet)
   send_to_char(ch, "\r\n");
 }
 
-bool is_house_owner(struct char_data *ch, int room_vnum)
+bool is_house_owner(struct char_data *ch, room_vnum room)
 {
   int i;
   bool bRet = FALSE;
 
   for (i = 0; i < num_of_houses; i++)
   {
-    if ((house_control[i].vnum == room_vnum) || (house_control[i].atrium == room_vnum))
+    if ((house_control[i].vnum == room) || (house_control[i].atrium == room))
     {
       if (house_control[i].owner == GET_IDNUM(ch))
       {

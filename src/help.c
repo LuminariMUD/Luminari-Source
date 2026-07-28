@@ -1248,8 +1248,8 @@ int handle_region_help(struct char_data *ch, const char *argument, const char *r
 /**
  * Handler for background information.
  */
-int handle_background_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                           struct help_context *ctx)
+int handle_background_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                           struct help_context *ctx __attribute__((unused)))
 {
   int i;
   char *bg_arg = strdup(raw_argument);
@@ -1296,8 +1296,8 @@ int handle_background_help(struct char_data *ch, const char *argument, const cha
 /**
  * Handler for alchemist discoveries.
  */
-int handle_discovery_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                          struct help_context *ctx)
+int handle_discovery_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                          struct help_context *ctx __attribute__((unused)))
 {
   /* Alchemy functions require non-const char*, so we make a copy */
   char *arg_copy = strdup(raw_argument);
@@ -1309,8 +1309,8 @@ int handle_discovery_help(struct char_data *ch, const char *argument, const char
 /**
  * Handler for grand alchemist discoveries.
  */
-int handle_grand_discovery_help(struct char_data *ch, const char *argument,
-                                const char *raw_argument, struct help_context *ctx)
+int handle_grand_discovery_help(struct char_data *ch, const char *argument __attribute__((unused)),
+                                const char *raw_argument, struct help_context *ctx __attribute__((unused)))
 {
   /* Alchemy functions require non-const char*, so we make a copy */
   char *arg_copy = strdup(raw_argument);
@@ -1322,8 +1322,8 @@ int handle_grand_discovery_help(struct char_data *ch, const char *argument,
 /**
  * Handler for bomb types.
  */
-int handle_bomb_types_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                           struct help_context *ctx)
+int handle_bomb_types_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                           struct help_context *ctx __attribute__((unused)))
 {
   /* Alchemy functions require non-const char*, so we make a copy */
   char *arg_copy = strdup(raw_argument);
@@ -1335,8 +1335,8 @@ int handle_bomb_types_help(struct char_data *ch, const char *argument, const cha
 /**
  * Handler for discovery types.
  */
-int handle_discovery_types_help(struct char_data *ch, const char *argument,
-                                const char *raw_argument, struct help_context *ctx)
+int handle_discovery_types_help(struct char_data *ch, const char *argument __attribute__((unused)),
+                                const char *raw_argument, struct help_context *ctx __attribute__((unused)))
 {
   /* Alchemy functions require non-const char*, so we make a copy */
   char *arg_copy = strdup(raw_argument);
@@ -1348,8 +1348,8 @@ int handle_discovery_types_help(struct char_data *ch, const char *argument,
 /**
  * Handler for feat information.
  */
-int handle_feat_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                     struct help_context *ctx)
+int handle_feat_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                     struct help_context *ctx __attribute__((unused)))
 {
   if (display_feat_info(ch, raw_argument))
   {
@@ -1361,8 +1361,8 @@ int handle_feat_help(struct char_data *ch, const char *argument, const char *raw
 /**
  * Handler for evolution information.
  */
-int handle_evolution_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                          struct help_context *ctx)
+int handle_evolution_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                          struct help_context *ctx __attribute__((unused)))
 {
   if (display_evolution_info(ch, raw_argument))
   {
@@ -1374,8 +1374,8 @@ int handle_evolution_help(struct char_data *ch, const char *argument, const char
 /**
  * Handler for weapon information.
  */
-int handle_weapon_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                       struct help_context *ctx)
+int handle_weapon_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                       struct help_context *ctx __attribute__((unused)))
 {
   if (display_weapon_info(ch, raw_argument))
   {
@@ -1387,8 +1387,8 @@ int handle_weapon_help(struct char_data *ch, const char *argument, const char *r
 /**
  * Handler for armor information.
  */
-int handle_armor_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                      struct help_context *ctx)
+int handle_armor_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                      struct help_context *ctx __attribute__((unused)))
 {
   if (display_armor_info(ch, raw_argument))
   {
@@ -1400,8 +1400,8 @@ int handle_armor_help(struct char_data *ch, const char *argument, const char *ra
 /**
  * Handler for class information.
  */
-int handle_class_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                      struct help_context *ctx)
+int handle_class_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                      struct help_context *ctx __attribute__((unused)))
 {
   if (display_class_info(ch, raw_argument))
   {
@@ -1413,8 +1413,8 @@ int handle_class_help(struct char_data *ch, const char *argument, const char *ra
 /**
  * Handler for race information.
  */
-int handle_race_help(struct char_data *ch, const char *argument, const char *raw_argument,
-                     struct help_context *ctx)
+int handle_race_help(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
+                     struct help_context *ctx __attribute__((unused)))
 {
   if (display_race_info(ch, raw_argument))
   {
@@ -1428,7 +1428,7 @@ int handle_race_help(struct char_data *ch, const char *argument, const char *raw
  * This is the fallback when no exact match is found.
  * Enhanced to work with partial matches from database handler.
  */
-int handle_soundex_suggestions(struct char_data *ch, const char *argument, const char *raw_argument,
+int handle_soundex_suggestions(struct char_data *ch, const char *argument __attribute__((unused)), const char *raw_argument,
                                struct help_context *ctx)
 {
   struct help_keyword_list *keywords = NULL, *tmp_keyword = NULL;

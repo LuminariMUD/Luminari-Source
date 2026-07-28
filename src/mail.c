@@ -127,7 +127,7 @@ int scan_file(void)
  * Returns true or false.
  *
  * A simple little function which tells you if the player has mail or not. */
-int has_mail(long recipient)
+int has_mail(long recipient __attribute__((unused)))
 {
   // old mail system no longer in use -- Gicker Feb 13, 2023
   return 0;
@@ -295,7 +295,7 @@ SPECIAL(postmaster)
     return (0);
 }
 
-static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd,
+static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
                                  char *arg)
 {
   long recipient = 0;
@@ -349,8 +349,8 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
   string_write(ch->desc, mailwrite, MAX_MAIL_SIZE, recipient, NULL);
 }
 
-static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd,
-                                  char *arg)
+static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
+                                  char *arg __attribute__((unused)))
 {
   if (has_mail(GET_IDNUM(ch)))
     act("$n tells you, 'You have mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
@@ -358,8 +358,8 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
     act("$n tells you, 'Sorry, you don't have any mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
 }
 
-static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd,
-                                    char *arg)
+static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
+                                    char *arg __attribute__((unused)))
 {
   char buf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;

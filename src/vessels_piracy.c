@@ -315,7 +315,7 @@ ACMD(do_plunder)
     return;
   }
 
-  if (world[IN_ROOM(ch)].number != prize->bridge_room)
+  if (world[IN_ROOM(ch)].number != (room_vnum)prize->bridge_room)
   {
     send_to_char(ch, "Take the bridge first - that is where a prize is claimed.\r\n");
     return;

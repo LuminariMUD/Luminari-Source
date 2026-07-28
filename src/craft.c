@@ -635,7 +635,7 @@ int random_node_material(int allowed)
  */
 void reset_harvesting_rooms(void)
 {
-  int cnt = 0;
+  room_rnum cnt = 0;
   int num_rooms = 0;
   int nodes_allowed = 0;
   struct obj_data *obj = NULL;
@@ -676,7 +676,7 @@ void reset_harvesting_rooms(void)
       farming_nodes >= nodes_allowed && hunting_nodes >= nodes_allowed)
     return;
 
-  for (cnt = 0; cnt < top_of_world; cnt++)
+  for (cnt = 0; cnt <= top_of_world; cnt++)
   {
     if (!VALID_ROOM_RNUM(cnt))
       continue;

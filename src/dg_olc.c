@@ -53,7 +53,7 @@ ACMD(do_oasis_trigedit)
   {
     if (STATE(d) == CON_TRIGEDIT)
     {
-      if (d->olc && OLC_NUM(d) == number)
+      if (d->olc && (int)OLC_NUM(d) == number)
       {
         send_to_char(ch, "That trigger is currently being edited by %s.\r\n",
                      GET_NAME(d->character));
@@ -92,7 +92,7 @@ ACMD(do_oasis_trigedit)
 
   /* If this is a new trigger, setup a new one, otherwise, setup the a copy of
    * the existing trigger. */
-  if ((real_num = real_trigger(number)) == NOTHING)
+  if ((real_num = (int)real_trigger(number)) == (int)NOTHING)
     trigedit_setup_new(d);
   else
     trigedit_setup_existing(d, real_num, QMODE_NONE);
@@ -155,7 +155,7 @@ static void trigedit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0; /* Has changed flag. (It hasn't so far, we just made it.) */
 }
 
-void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode)
+void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode __attribute__((unused)))
 {
   struct trig_data *trig;
   struct cmdlist_element *c;
@@ -392,7 +392,7 @@ void trigedit_parse(struct descriptor_data *d, char *arg)
     return;
 
   case TRIGEDIT_COPY:
-    if ((i = real_trigger(atoi(arg))) != NOWHERE)
+    if ((i = (int)real_trigger(atoi(arg))) != (int)NOWHERE)
     {
       trigedit_setup_existing(d, i, QMODE_QCOPY);
     }
@@ -936,7 +936,7 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
   return 1;
 }
 
-void trigedit_string_cleanup(struct descriptor_data *d, int terminator)
+void trigedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

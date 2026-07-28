@@ -322,7 +322,7 @@ struct trap_data *copy_trap(struct trap_data *source)
  */
 void attach_trap_to_room(struct trap_data *trap, room_rnum room)
 {
-  if (!trap || room < 0 || room > top_of_world)
+  if (!trap || room == NOWHERE || room > top_of_world)
     return;
 
   // Add to front of room's trap list
@@ -356,7 +356,7 @@ void remove_trap_from_room(struct trap_data *trap, room_rnum room)
 {
   struct trap_data *temp, *prev = NULL;
 
-  if (!trap || room < 0 || room > top_of_world)
+  if (!trap || room == NOWHERE || room > top_of_world)
     return;
 
   for (temp = world[room].traps; temp; prev = temp, temp = temp->next)
@@ -490,7 +490,7 @@ void auto_generate_room_trap(room_rnum room, int zone_level)
 {
   struct trap_data *trap;
 
-  if (room < 0 || room > top_of_world)
+  if (room == NOWHERE || room > top_of_world)
     return;
 
   // Don't add if room already has traps
@@ -550,7 +550,7 @@ void auto_generate_zone_traps(zone_rnum zone)
   int num_traps = 0, zone_level, total_rooms = 0;
   bool zone_has_flag;
 
-  if (zone < 0 || zone > top_of_zone_table)
+  if (zone == NOWHERE || zone > top_of_zone_table)
     return;
 
   zone_level = zone_table[zone].min_level;
@@ -633,11 +633,11 @@ int get_trap_disarm_dc(struct trap_data *trap, struct char_data *ch)
 /**
  * Find the first undetected trap in a room.
  */
-struct trap_data *find_trap_in_room(struct char_data *ch, room_rnum room)
+struct trap_data *find_trap_in_room(struct char_data *ch __attribute__((unused)), room_rnum room)
 {
   struct trap_data *trap;
 
-  if (room < 0 || room > top_of_world)
+  if (room == NOWHERE || room > top_of_world)
     return NULL;
 
   for (trap = world[room].traps; trap; trap = trap->next)
@@ -762,7 +762,7 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
     return FALSE;
 
   // Check room traps
-  if (room >= 0 && room <= top_of_world)
+  if (room != NOWHERE && room <= top_of_world)
   {
     for (trap = world[room].traps; trap; trap = trap->next)
     {
@@ -926,12 +926,12 @@ void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
 /**
  * Apply trap effects to area (multiple targets).
  */
-void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data *triggerer)
+void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data *triggerer __attribute__((unused)))
 {
   struct char_data *vict, *next_vict;
   int targets_hit = 0;
 
-  if (!trap || room < 0 || room > top_of_world)
+  if (!trap || room == NOWHERE || room > top_of_world)
     return;
 
   // Apply to all characters in room
@@ -1488,7 +1488,7 @@ bool check_trap(struct char_data *ch, int trap_type, int room, struct obj_data *
 
   return check_trap_trigger(ch, trigger_type, room, obj, dir);
 }
-void set_off_trap(struct char_data *ch, struct obj_data *trap)
+void set_off_trap(struct char_data *ch, struct obj_data *trap __attribute__((unused)))
 {
   // This is for old ITEM_TRAP objects - kept for compatibility
   // New system uses trap_data structures instead

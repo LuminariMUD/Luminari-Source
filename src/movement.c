@@ -1584,10 +1584,10 @@ ACMD(do_sorcerer_draconic_wings)
 ACMD(do_pullswitch)
 {
   //- item-switch( command(push/pull), room, dir, unhide/unlock/open)
-  int other_room = 0;
+  room_rnum other_room = NOWHERE;
   struct room_direction_data *back = 0;
   int door = 0;
-  int room = 0;
+  room_rnum room = NOWHERE;
   struct obj_data *obj;
   struct char_data *tmp_ch;
   struct obj_data *dummy = 0;
@@ -1628,7 +1628,7 @@ ACMD(do_pullswitch)
   room = real_room(GET_OBJ_VAL(obj, 1));
   door = GET_OBJ_VAL(obj, 2);
 
-  if (room < 0)
+  if (room == NOWHERE)
   {
     send_to_char(ch, "Bug in switch here, contact an immortal\r\n");
     log("SYSERR: Broken switch: real_room() for %s (VNUM %ld) evaluated to -1", obj->name, obj->id);

@@ -18,6 +18,7 @@
 #include "../../src/structs.h"
 #include "../../src/comm.h"
 #include "../../src/protocol.h"
+#include "../../src/systems/web_client/onboarding.h"
 
 #define TEST_CAPTURE_SIZE 65536
 #define TEST_FIXTURE_SIZE 8192
@@ -414,6 +415,35 @@ void TestProtocolParser_GmcpAndMsdpCanCoexist(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_WebOnboardingCapability(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  harness.descriptor.web_onboarding_last_state = 42;
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SB);
+  fixture_byte(&fixture, (unsigned char)TELOPT_MSDP);
+  fixture_byte(&fixture, MSDP_VAR);
+  fixture_text(&fixture, WEB_ONBOARDING_CAPABILITY_VARIABLE);
+  fixture_byte(&fixture, MSDP_VAL);
+  fixture_text(&fixture, "1");
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SE);
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, WEB_ONBOARDING_PROTOCOL_VERSION,
+                    harness.descriptor.web_onboarding_version);
+  CuAssertIntEquals(tc, -1, harness.descriptor.web_onboarding_last_state);
+
+  harness_destroy(&harness);
+}
+
 void TestProtocolParser_NullAndInvalidMsdpInputsAreSafe(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -564,6 +594,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_TtypeAndNawsNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpAndMsdpCanCoexist);
+  SUITE_ADD_TEST(suite, TestProtocolParser_WebOnboardingCapability);
   SUITE_ADD_TEST(suite, TestProtocolParser_NullAndInvalidMsdpInputsAreSafe);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);

@@ -492,7 +492,7 @@ void cedit_save_to_disk(void)
   save_config(NOWHERE);
 }
 
-int save_config(IDXTYPE nowhere)
+int save_config(IDXTYPE nowhere __attribute__((unused)))
 {
   FILE *fl;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -711,9 +711,9 @@ int save_config(IDXTYPE nowhere)
           "donation_room_1 = %d\n"
           "donation_room_2 = %d\n"
           "donation_room_3 = %d\n\n",
-          CONFIG_DON_ROOM_1 != NOWHERE ? CONFIG_DON_ROOM_1 : -1,
-          CONFIG_DON_ROOM_2 != NOWHERE ? CONFIG_DON_ROOM_2 : -1,
-          CONFIG_DON_ROOM_3 != NOWHERE ? CONFIG_DON_ROOM_3 : -1);
+          CONFIG_DON_ROOM_1 != NOWHERE ? (int)CONFIG_DON_ROOM_1 : -1,
+          CONFIG_DON_ROOM_2 != NOWHERE ? (int)CONFIG_DON_ROOM_2 : -1,
+          CONFIG_DON_ROOM_3 != NOWHERE ? (int)CONFIG_DON_ROOM_3 : -1);
 
   fprintf(fl, "\n\n\n* [ Game Operation Options ]\n");
 
@@ -3706,14 +3706,14 @@ static void reassign_rooms(void)
   int i;
 
   /* remove old funcs */
-  for (i = 0; i < top_of_world; i++)
+  for (i = 0; i <= (int)top_of_world; i++)
     world[i].func = NULL;
 
   /* reassign spec_procs */
   assign_rooms();
 }
 
-void cedit_string_cleanup(struct descriptor_data *d, int terminator)
+void cedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

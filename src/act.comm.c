@@ -1080,7 +1080,7 @@ ACMD(do_diceroll)
   num = atoi(narg);
   size = atoi(sarg);
 
-  if (num <= 0 || sarg <= 0)
+  if (num <= 0 || size <= 0)
   {
     send_to_char(ch, "You must choose a number and/or size of dice equal to 1 or greater.\r\n");
     return;
@@ -1186,7 +1186,7 @@ ACMDU(do_skillcheck)
       if (!is_valid_ability_number(i))
         continue;
       snprintf(abilname, sizeof(abilname), "%s", ability_names[i]);
-      for (j = 0; j < strlen(abilname); j++)
+      for (j = 0; (size_t)j < strlen(abilname); j++)
         abilname[j] = tolower(abilname[j]);
       if (is_abbrev(skill, abilname))
       {
@@ -1250,7 +1250,7 @@ ACMD(do_dialogue_quest)
 
   for (index = 0; index < MAX_CURRENT_QUESTS; index++)
   {
-    if (GET_QUEST(ch, index) == NOTHING) /* No current quest, skip this */
+    if (GET_QUEST(ch, index) == (int)NOTHING) /* No current quest, skip this */
       continue;
 
     if (GET_QUEST_TYPE(ch, index) != AQ_DIALOGUE)
@@ -1264,7 +1264,8 @@ ACMD(do_dialogue_quest)
     {
       if (IS_NPC(i))
       {
-        if (QST_TARGET(rnum) == GET_MOB_VNUM(i) && CAN_SEE(ch, i))
+        if (QST_TARGET(rnum) >= 0 && (mob_vnum)QST_TARGET(rnum) == GET_MOB_VNUM(i) &&
+            CAN_SEE(ch, i))
         {
           target = i;
           quest = rnum;

@@ -2133,7 +2133,7 @@ static int level_to_circle_conversion(int min_level, int caster_type)
  *
  * Returns: Override circle or 0 if no override
  */
-static int check_campaign_spell_override(int spellnum)
+static int check_campaign_spell_override(int spellnum __attribute__((unused)))
 {
 #ifdef CAMPAIGN_FR
   switch (spellnum)
@@ -2498,7 +2498,7 @@ int compute_spells_circle(struct char_data *ch, int char_class, int spellnum, in
  * out: the circle this power (now) belongs, above num-circles if failed
  * given above info, compute which circle this spell belongs to
  * in addition we have metamagic that can modify the spell-circle as well */
-int compute_powers_circle(int class, int spellnum, int metamagic)
+int compute_powers_circle(int class, int spellnum, int metamagic __attribute__((unused)))
 {
   int metamagic_mod = 0;
   int spell_circle = 0;

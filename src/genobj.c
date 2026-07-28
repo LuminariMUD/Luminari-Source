@@ -88,7 +88,8 @@ static int update_all_objects(struct obj_data *refobj)
  * for some reason. */
 obj_rnum adjust_objects(obj_rnum refpt)
 {
-  int shop, i, zone, cmd_no;
+  zone_rnum zone;
+  int shop, i, cmd_no;
   struct obj_data *obj;
 
 #if CIRCLE_UNSIGNED_INDEX
@@ -110,15 +111,15 @@ obj_rnum adjust_objects(obj_rnum refpt)
       switch (ZCMD(zone, cmd_no).command)
       {
       case 'P':
-        ZCMD(zone, cmd_no).arg3 += (ZCMD(zone, cmd_no).arg3 >= refpt);
-        /* No break here - drop into next case. */
+        ZCMD(zone, cmd_no).arg3 += (ZCMD(zone, cmd_no).arg3 >= (int)refpt);
+        __attribute__((fallthrough));
       case 'O':
       case 'G':
       case 'E':
-        ZCMD(zone, cmd_no).arg1 += (ZCMD(zone, cmd_no).arg1 >= refpt);
+        ZCMD(zone, cmd_no).arg1 += (ZCMD(zone, cmd_no).arg1 >= (int)refpt);
         break;
       case 'R':
-        ZCMD(zone, cmd_no).arg2 += (ZCMD(zone, cmd_no).arg2 >= refpt);
+        ZCMD(zone, cmd_no).arg2 += (ZCMD(zone, cmd_no).arg2 >= (int)refpt);
         break;
       }
     }
@@ -210,7 +211,9 @@ int save_objects(zone_rnum zone_num)
        pbuf3[MAX_STRING_LENGTH] = {'\0'}, pbuf4[MAX_STRING_LENGTH] = {'\0'};
   char p2buf1[MAX_STRING_LENGTH] = {'\0'}, p2buf2[MAX_STRING_LENGTH] = {'\0'},
        p2buf3[MAX_STRING_LENGTH] = {'\0'}, p2buf4[MAX_STRING_LENGTH] = {'\0'};
-  int counter, counter2, realcounter;
+  obj_vnum counter;
+  obj_rnum realcounter;
+  int counter2;
   FILE *fp;
   struct obj_data *obj;
   struct extra_descr_data *ex_desc;
@@ -528,7 +531,7 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
-int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object)
+int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object __attribute__((unused)))
 {
   *to = *from;
   copy_object_strings(to, from);
@@ -538,9 +541,9 @@ int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object
 int delete_object(obj_rnum rnum)
 {
   obj_rnum i;
-  zone_rnum zrnum;
+  zone_rnum zone, zrnum;
   struct obj_data *obj, *tmp, *next_obj;
-  int shop, j, zone, cmd_no;
+  int shop, j, cmd_no;
 
   if (rnum == NOTHING || rnum > top_of_objt)
     return NOTHING;
@@ -566,7 +569,7 @@ int delete_object(obj_rnum rnum)
       for (this_content = tmp->contains; this_content; this_content = next_content)
       {
         next_content = this_content->next_content;
-        if (IN_ROOM(tmp))
+        if (IN_ROOM(tmp) != NOWHERE)
         {
           /* Transfer stuff from object to room. */
           obj_from_obj(this_content);
@@ -575,8 +578,8 @@ int delete_object(obj_rnum rnum)
         else if (tmp->worn_by || tmp->carried_by)
         {
           /* Transfer stuff from object to person inventory. */
-          obj_from_char(this_content);
-          obj_to_char(this_content, tmp->carried_by);
+          obj_from_obj(this_content);
+          obj_to_char(this_content, tmp->worn_by ? tmp->worn_by : tmp->carried_by);
         }
         else if (tmp->in_obj)
         {
@@ -627,30 +630,34 @@ int delete_object(obj_rnum rnum)
       switch (ZCMD(zone, cmd_no).command)
       {
       case 'P':
-        if (ZCMD(zone, cmd_no).arg3 == rnum)
+        if (ZCMD(zone, cmd_no).arg3 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          cmd_no--;
+          break;
         }
         else
-          ZCMD(zone, cmd_no).arg3 -= (ZCMD(zone, cmd_no).arg3 > rnum);
-        /* No break here - drop into next case. */
+          ZCMD(zone, cmd_no).arg3 -= (ZCMD(zone, cmd_no).arg3 > (int)rnum);
+        __attribute__((fallthrough));
       case 'O':
       case 'G':
       case 'E':
-        if (ZCMD(zone, cmd_no).arg1 == rnum)
+        if (ZCMD(zone, cmd_no).arg1 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          cmd_no--;
         }
         else
-          ZCMD(zone, cmd_no).arg1 -= (ZCMD(zone, cmd_no).arg1 > rnum);
+          ZCMD(zone, cmd_no).arg1 -= (ZCMD(zone, cmd_no).arg1 > (int)rnum);
         break;
       case 'R':
-        if (ZCMD(zone, cmd_no).arg2 == rnum)
+        if (ZCMD(zone, cmd_no).arg2 == (int)rnum)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          cmd_no--;
         }
         else
-          ZCMD(zone, cmd_no).arg2 -= (ZCMD(zone, cmd_no).arg2 > rnum);
+          ZCMD(zone, cmd_no).arg2 -= (ZCMD(zone, cmd_no).arg2 > (int)rnum);
         break;
       }
     }
@@ -664,8 +671,8 @@ int delete_object(obj_rnum rnum)
 /* oset handling, this location should be temporary */
 bool oset_alias(struct obj_data *obj, const char *argument)
 {
-  static int max_len = 64;
-  int i = GET_OBJ_RNUM(obj);
+  static const size_t max_len = 64;
+  obj_rnum i = GET_OBJ_RNUM(obj);
 
   skip_spaces_c(&argument);
 
@@ -742,8 +749,8 @@ bool oset_apply(struct obj_data *obj, const char *argument)
 
 bool oset_short_description(struct obj_data *obj, const char *argument)
 {
-  static int max_len = 64;
-  int i = GET_OBJ_RNUM(obj);
+  static const size_t max_len = 64;
+  obj_rnum i = GET_OBJ_RNUM(obj);
 
   skip_spaces_c(&argument);
 
@@ -761,8 +768,8 @@ bool oset_short_description(struct obj_data *obj, const char *argument)
 
 bool oset_long_description(struct obj_data *obj, const char *argument)
 {
-  static int max_len = 128;
-  int i = GET_OBJ_RNUM(obj);
+  static const size_t max_len = 128;
+  obj_rnum i = GET_OBJ_RNUM(obj);
 
   skip_spaces_c(&argument);
 

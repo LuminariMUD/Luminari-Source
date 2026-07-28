@@ -390,10 +390,10 @@ void assign_class_saves(int class_num, int save_fort, int save_refl, int save_wi
  or class-skill */
 void assign_class_abils(int class_num, int acrobatics, int stealth, int perception, int heal,
                         int intimidate, int concentration, int spellcraft, int appraise,
-                        int discipline, int total_defense, int lore, int ride, int climb,
+                        int discipline, int total_defense, int lore __attribute__((unused)), int ride, int climb,
                         int sleight_of_hand, int bluff, int diplomacy, int disable_device,
                         int disguise, int escape_artist, int handle_animal, int sense_motive,
-                        int survival, int swim, int use_magic_device, int perform)
+                        int survival __attribute__((unused)), int swim __attribute__((unused)), int use_magic_device, int perform)
 {
   class_list[class_num].class_abil[ABILITY_ACROBATICS] = acrobatics;
   class_list[class_num].class_abil[ABILITY_STEALTH] = stealth;
@@ -797,7 +797,7 @@ void display_all_classes(struct char_data *ch)
 }
 
 /* determines if ch qualifies for a class */
-bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg)
+bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg __attribute__((unused)))
 {
   struct class_prerequisite *prereq = NULL;
   int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
@@ -1042,7 +1042,7 @@ bool display_class_info(struct char_data *ch, const char *classname)
                                             : "imbibe");
     char spellList[30];
     snprintf(spellList, sizeof(spellList), "spells %s", CLSLIST_NAME(class));
-    for (i = 0; i < strlen(spellList); i++)
+    for (i = 0; (size_t)i < strlen(spellList); i++)
       spellList[i] = tolower(spellList[i]);
     send_to_char(ch, "\tcSpell List Command  : \tn%s\r\n",
                  (class != CLASS_ALCHEMIST)
@@ -1704,7 +1704,7 @@ bitvector_t find_class_bitvector(const char *arg)
 {
   size_t rpos, ret = 0;
 
-  for (rpos = 0; rpos < strlen(arg); rpos++)
+  for (rpos = 0; (size_t)rpos < strlen(arg); rpos++)
     ret |= (1 << parse_class(arg[rpos]));
 
   return (ret);
@@ -2633,6 +2633,7 @@ void newbieEquipment(struct char_data *ch)
   case CLASS_WIZARD:
     newbie_give_obj(ch, NOOB_WIZ_NOTE, FALSE);      // wizard note
     newbie_give_obj(ch, NOOB_WIZ_SPELLBOOK, FALSE); // spellbook
+    __attribute__((fallthrough));
   case CLASS_ALCHEMIST:
   case CLASS_SUMMONER:
 
@@ -2641,7 +2642,7 @@ void newbieEquipment(struct char_data *ch)
     newbie_give_obj(ch, NOOB_IRON_MACE, FALSE);       // slender iron mace
     newbie_give_obj(ch, NOOB_STUD_LEATHER, TRUE);     // studded leather
 
-    /* switch fallthrough */
+    __attribute__((fallthrough));
   case CLASS_SORCERER:
   case CLASS_PSIONICIST:
   case CLASS_WARLOCK:
@@ -2812,7 +2813,7 @@ void newbieEquipment(struct char_data *ch)
 }
 
 /* this is used to assign all the spells */
-void init_class(struct char_data *ch, int class, int level)
+void init_class(struct char_data *ch, int class, int level __attribute__((unused)))
 {
   struct class_spell_assign *spell_assign = NULL;
 
@@ -3475,7 +3476,7 @@ void process_conditional_class_level_feats(struct char_data *ch, int class)
 /* deprecated */
 /* at each level we run this function to assign free RACE feats */
 
-void process_level_feats(struct char_data *ch, int class)
+void process_level_feats(struct char_data *ch, int class __attribute__((unused)))
 {
   char featbuf[MAX_STRING_LENGTH] = {'\0'};
   char tmp_buf[MAX_STRING_LENGTH] = {'\0'};
@@ -3860,7 +3861,7 @@ int backstab_mult(struct char_data *ch)
 
 // used by handler.c, completely depreacted function right now
 
-int invalid_class(struct char_data *ch, struct obj_data *obj)
+int invalid_class(struct char_data *ch __attribute__((unused)), struct obj_data *obj __attribute__((unused)))
 {
   return FALSE;
 }

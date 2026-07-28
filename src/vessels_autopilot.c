@@ -3184,7 +3184,8 @@ struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship)
   /* Search bridge room for NPC matching pilot VNUM */
   for (tch = world[bridge_room].people; tch != NULL; tch = tch->next_in_room)
   {
-    if (IS_NPC(tch) && GET_MOB_VNUM(tch) == ship->autopilot->pilot_mob_vnum)
+    if (IS_NPC(tch) && ship->autopilot->pilot_mob_vnum >= 0 &&
+        GET_MOB_VNUM(tch) == (mob_vnum)ship->autopilot->pilot_mob_vnum)
     {
       return tch;
     }

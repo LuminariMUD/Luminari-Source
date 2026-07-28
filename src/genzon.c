@@ -21,7 +21,7 @@ static void remove_cmd_from_list(struct reset_com **list, int pos);
 zone_rnum real_zone_by_thing(room_vnum vznum)
 {
   zone_rnum bot, top, mid;
-  int low, high;
+  room_vnum low, high;
 
   bot = 0;
   top = top_of_zone_table;
@@ -41,7 +41,11 @@ zone_rnum real_zone_by_thing(room_vnum vznum)
     if (low <= vznum && vznum <= high)
       return mid;
     if (low > vznum)
+    {
+      if (mid == 0)
+        break;
       top = mid - 1;
+    }
     else
       bot = mid + 1;
   }
@@ -52,9 +56,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 {
   FILE *fp;
   struct zone_data *zone;
-  // int i, max_zone;
-  int i, max_zone = IDXTYPE_MAX / 100;
-  zone_rnum rznum;
+  zone_vnum max_zone = IDXTYPE_MAX / 100;
+  zone_rnum i, rznum;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
 #if CIRCLE_UNSIGNED_INDEX
@@ -234,7 +237,8 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
     rznum = top_of_zone_table + 1;
   else
   {
-    int j, room;
+    room_vnum j;
+    room_rnum room;
     for (i = top_of_zone_table + 1; i > 0 && vzone_num < zone_table[i - 1].number; i--)
     {
       zone_table[i] = zone_table[i - 1];
@@ -389,7 +393,7 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
     default:
       break;
     }
-    if (cmd_room == room_num)
+    if (cmd_room >= 0 && (room_rnum)cmd_room == room_num)
       remove_cmd_from_list(&zone_table[zone].cmd, subcmd);
     else
       subcmd++;

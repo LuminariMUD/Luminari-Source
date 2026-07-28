@@ -507,7 +507,7 @@ bool auto_reload_weapon(struct char_data *ch, bool silent_mode)
 
 #define MAX_AMMO_INSIDE_WEAPON 5 // unused
 
-bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode)
+bool reload_weapon(struct char_data *ch, struct obj_data *wielded, bool silent_mode __attribute__((unused)))
 {
   int load_amount = 0;
 

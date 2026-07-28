@@ -104,7 +104,8 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
   static char line_buf[4096]; /* For building MySQL insert statement - reduced size */
 #endif
 
-  int counter2, i = 0, x = 0;
+  int counter2, i = 0;
+  size_t x;
   struct extra_descr_data *ex_desc;
   char buf1[4096]; /* Reduced from MAX_STRING_LENGTH */
   struct obj_data *temp = NULL;
@@ -1706,7 +1707,7 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep, int d
   return (totalcost);
 }
 
-static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd, char *arg,
+static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd, char *arg __attribute__((unused)),
                             int mode)
 {
   int cost;
@@ -1892,7 +1893,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
          * does not exist, skip it. If the object has a VNUM of NOTHING or
          * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
          * Coins, Corpse, etc...) */
-        if (real_object(nr) == NOTHING && nr != NOTHING)
+        if (real_object(nr) == NOTHING && nr != (int)NOTHING)
         {
           log("SYSERR: Prevented loading of non-existant item #%d.", nr);
           /* MEMORY LEAK FIX: Free any existing temp object before continuing */
@@ -1918,7 +1919,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
         continue;
 
       /* we have the number, check it, load obj. */
-      if (nr == NOTHING)
+      if (nr == (int)NOTHING)
       { /* then it is unique */
         /* MEMORY LEAK FIX: Free any existing temp object before creating unique object */
         if (temp)
@@ -2030,6 +2031,7 @@ obj_save_data *objsave_parse_objects(FILE *fl)
           free(temp->arcane_mark);
         temp->arcane_mark = strdup(line);
       }
+      break;
     case 'C':
       if (!strcmp(tag, "Cost"))
         GET_OBJ_COST(temp) = num;
@@ -2378,7 +2380,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
            * Coins, Corpse, etc...) */
-          if (real_object(nr) == NOTHING && nr != NOTHING)
+          if (real_object(nr) == NOTHING && nr != (int)NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
             /* CRITICAL FIX: Free any existing temp object before continuing */
@@ -2416,7 +2418,7 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum)
         }
 
         /* we have the number, check it, load obj. */
-        if (nr == NOTHING)
+        if (nr == (int)NOTHING)
         { /* then it is unique */
           temp = create_obj();
           temp->item_number = NOTHING;
@@ -3075,7 +3077,7 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate,
 }
 
 
-int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch,
+int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch __attribute__((unused)),
                                    struct char_data *owner, long int pet_idnum, int locate)
 {
   static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */
@@ -3434,7 +3436,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
            * Coins, Corpse, etc...) */
-          if (real_object(nr) == NOTHING && nr != NOTHING)
+          if (real_object(nr) == NOTHING && nr != (int)NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
             /* CRITICAL FIX: Free any existing temp object before continuing */
@@ -3472,7 +3474,7 @@ obj_save_data *objsave_parse_objects_db_pet(char *name, long int pet_idnum)
         }
 
         /* we have the number, check it, load obj. */
-        if (nr == NOTHING)
+        if (nr == (int)NOTHING)
         { /* then it is unique */
           temp = create_obj();
           temp->item_number = NOTHING;
@@ -4141,7 +4143,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
            * does not exist, skip it. If the object has a VNUM of NOTHING or
            * NOWHERE, then we assume it doesn't exist on purpose. (Custom Item,
            * Coins, Corpse, etc...) */
-          if (real_object(nr) == NOTHING && nr != NOTHING)
+          if (real_object(nr) == NOTHING && nr != (int)NOTHING)
           {
             log("SYSERR: Prevented loading of non-existant item #%d.", nr);
             /* CRITICAL FIX: Free any existing temp object before continuing */
@@ -4179,7 +4181,7 @@ obj_save_data *objsave_parse_objects_db_sheath(char *name, long int sheath_idnum
         }
 
         /* we have the number, check it, load obj. */
-        if (nr == NOTHING)
+        if (nr == (int)NOTHING)
         { /* then it is unique */
           temp = create_obj();
           temp->item_number = NOTHING;

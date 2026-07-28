@@ -1195,7 +1195,7 @@ void set_crafting_extra_desc(struct char_data *ch, const char *arg2)
   return;
 }
 
-int get_enhancement_mote_type(struct char_data *ch, int type, int spec)
+int get_enhancement_mote_type(struct char_data *ch __attribute__((unused)), int type, int spec)
 {
   switch (type)
   {
@@ -1751,7 +1751,7 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
     if (!is_valid_apply(i))
       continue;
     snprintf(temp, sizeof(temp), "%s", apply_types[i]);
-    for (j = 0; j < strlen(temp); j++)
+    for (j = 0; (size_t)j < strlen(temp); j++)
     {
       temp[j] = tolower(temp[j]);
     }
@@ -1790,7 +1790,7 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
   for (i = 0; i < NUM_BONUS_TYPES; i++)
   {
     snprintf(temp, sizeof(temp), "%s", bonus_types[i]);
-    for (j = 0; j < strlen(temp); j++)
+    for (j = 0; (size_t)j < strlen(temp); j++)
     {
       temp[j] = tolower(temp[j]);
     }
@@ -1891,7 +1891,7 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
         if (!is_valid_craft_ability(i))
           continue;
         snprintf(temp, sizeof(temp), "%s", ability_names[i]);
-        for (j = 0; j < strlen(temp); j++)
+        for (j = 0; (size_t)j < strlen(temp); j++)
         {
           temp[j] = tolower(temp[j]);
         }
@@ -1913,7 +1913,7 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
         if (!is_valid_craft_feat(i))
           continue;
         snprintf(temp, sizeof(temp), "%s", feat_list[i].name);
-        for (j = 0; j < strlen(temp); j++)
+        for (j = 0; (size_t)j < strlen(temp); j++)
         {
           temp[j] = tolower(temp[j]);
         }
@@ -1948,7 +1948,7 @@ void set_crafting_bonuses(struct char_data *ch, const char *argument)
         if (!is_valid_craft_class(i, location))
           continue;
         snprintf(temp, sizeof(temp), "%s", class_list[i].name);
-        for (j = 0; j < strlen(temp); j++)
+        for (j = 0; (size_t)j < strlen(temp); j++)
         {
           temp[j] = tolower(temp[j]);
         }
@@ -2959,7 +2959,7 @@ void set_craft_item_affects(struct char_data *ch, struct obj_data *obj)
   }
 }
 
-void set_craft_item_flags(struct char_data *ch, struct obj_data *obj)
+void set_craft_item_flags(struct char_data *ch __attribute__((unused)), struct obj_data *obj)
 {
   SET_OBJ_FLAG(obj, ITEM_CRAFTED);
   SET_OBJ_FLAG(obj, ITEM_IDENTIFIED);
@@ -3827,7 +3827,7 @@ int craft_instrument_type_to_actual(int type)
   return INSTRUMENT_LYRE; // default to lyre if not found
 }
 
-struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type)
+struct obj_data *setup_craft_instrument(struct char_data *ch, int a_type __attribute__((unused)))
 {
   struct obj_data *obj;
   int skill = 0;
@@ -4447,7 +4447,7 @@ const int craft_skills_alphabetic[END_HARVEST_ABILITIES - START_CRAFT_ABILITIES 
     ABILITY_CRAFT_POISONMAKING,   ABILITY_CRAFT_TAILORING,     ABILITY_CRAFT_TRAPMAKING,
     ABILITY_CRAFT_WEAPONSMITHING, ABILITY_CRAFT_WOODWORKING};
 
-void show_craft_score(struct char_data *ch, const char *arg2)
+void show_craft_score(struct char_data *ch, const char *arg2 __attribute__((unused)))
 {
   int i = 0, abil = 0, base_rank = 0, modifier = 0, total = 0;
 
@@ -4692,7 +4692,7 @@ void newcraft_create(struct char_data *ch, const char *argument)
   }
 }
 
-void newcraft_survey(struct char_data *ch, const char *argument)
+void newcraft_survey(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   int seconds = 0;
 
@@ -4972,7 +4972,7 @@ void harvest_complete(struct char_data *ch)
   }
 }
 
-void newcraft_harvest(struct char_data *ch, const char *argument)
+void newcraft_harvest(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   int seconds = 0;
   int harvest_skill = 0;
@@ -5381,7 +5381,7 @@ void newcraft_refine(struct char_data *ch, const char *argument)
     send_to_char(ch, "\tc");
     snprintf(output, sizeof(output), "REFINING %s",
              crafting_materials[GET_CRAFT(ch).refining_result[0]]);
-    for (i = 0; i < strlen(output); i++)
+    for (i = 0; (size_t)i < strlen(output); i++)
       output[i] = toupper(output[i]);
     text_line(ch, output, 80, '-', '-');
     send_to_char(ch, "\tc");
@@ -5802,7 +5802,7 @@ void craft_update(void)
         case SCMD_NEWCRAFT_HARVEST:
           if (GET_CRAFT(ch).craft_duration && !PRF_FLAGGED(ch, PRF_NO_CRAFT_PROGRESS))
           {
-            if (crafting_material_nodes[world[IN_ROOM(ch)].harvest_material_amount] <= 0)
+            if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
             {
               send_to_char(ch, "The resource is depleted.\r\n");
               GET_CRAFT(ch).crafting_method = 0;
@@ -5880,7 +5880,7 @@ void craft_update(void)
           }
           break;
           case SCMD_NEWCRAFT_HARVEST:
-            if (crafting_material_nodes[world[IN_ROOM(ch)].harvest_material_amount] <= 0)
+            if (world[IN_ROOM(ch)].harvest_material_amount <= 0)
             {
               send_to_char(ch, "The resource is depleted.\r\n");
               GET_CRAFT(ch).crafting_method = 0;
@@ -5946,7 +5946,7 @@ ACMD(do_setmaterial)
 
   for (i = 1; i < NUM_CRAFT_MATS; i++)
   {
-    for (j = 0; j < strlen(mat_type); j++)
+    for (j = 0; (size_t)j < strlen(mat_type); j++)
       if (mat_type[j] == '-')
         mat_type[j] = ' ';
     if (is_abbrev(mat_type, crafting_materials[i]))
@@ -5960,7 +5960,7 @@ ACMD(do_setmaterial)
   {
     for (i = 1; i < NUM_CRAFT_MOTES; i++)
     {
-      for (j = 0; j < strlen(mat_type); j++)
+      for (j = 0; (size_t)j < strlen(mat_type); j++)
         if (mat_type[j] == '-')
           mat_type[j] = ' ';
       if (is_abbrev(mat_type, crafting_motes[i]))
@@ -9315,7 +9315,7 @@ bool is_special_event_active(void)
   return get_event_contract_availability() > 0;
 }
 
-void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch)
+void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch __attribute__((unused)))
 {
   // Prestige contracts are high-level, high-reward contracts
   contract->contract_type = SUPPLY_CONTRACT_PRESTIGE;
@@ -9342,7 +9342,7 @@ void generate_prestige_contract(struct supply_contract *contract, struct char_da
   contract->requirements = strdup(req_buf);
 }
 
-void generate_event_contract(struct supply_contract *contract, struct char_data *ch)
+void generate_event_contract(struct supply_contract *contract, struct char_data *ch __attribute__((unused)))
 {
   // Event contracts are time-limited special opportunities
   contract->contract_type = SUPPLY_CONTRACT_EVENT;
@@ -9570,12 +9570,12 @@ void show_craft_equipment(struct char_data *ch)
 }
 
 // Main craft equipment command handler
-void newcraft_equipment(struct char_data *ch, const char *argument)
+void newcraft_equipment(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   show_craft_equipment(ch);
 }
 
-void newcraft_show_tools(struct char_data *ch, const char *argument)
+void newcraft_show_tools(struct char_data *ch, const char *argument __attribute__((unused)))
 {
   struct obj_data *tool = NULL;
   int ability, i, found_tools = 0;
@@ -10276,7 +10276,7 @@ void craft_golem_complete(struct char_data *ch)
     // Get the appropriate VNUM for this golem
     golem_vnum = get_golem_vnum(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size);
 
-    if (golem_vnum == NOBODY)
+  if (golem_vnum == (int)NOBODY)
     {
       send_to_char(ch, "\tRError:\tn Invalid golem type/size combination!\r\n");
       reset_current_golem_craft(ch);

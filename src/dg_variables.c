@@ -72,7 +72,7 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
   strcpy(vd->value, value); /* strcpy: ok*/
 }
 
-int dg_has_feat(char_data *ch, const char *feat, int return_type)
+int dg_has_feat(char_data *ch, const char *feat, int return_type __attribute__((unused)))
 {
   int featnum;
 
@@ -1071,7 +1071,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           {
             for (obj = c->carrying; obj; obj = obj->next_content)
             {
-              if (GET_OBJ_VNUM(obj) == atoi(subfield))
+              if (GET_OBJ_VNUM(obj) == atoidx(subfield))
               {
                 snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(obj)); /* arg given, found */
                 return;
@@ -1218,7 +1218,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           int flag = get_flag_by_name(action_bits, subfield);
 
           snprintf(str, slen, "%d",
-                   IS_NPC(c) && flag != NOFLAG && MOB_FLAGGED(c, flag) ? TRUE : FALSE);
+                   IS_NPC(c) && flag != (int)NOFLAG && MOB_FLAGGED(c, flag) ? TRUE : FALSE);
         }
         else if (!str_cmp(field, "next_in_room"))
         {
@@ -1261,7 +1261,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
           if (subfield && *subfield)
           {
             int pref = get_flag_by_name(preference_bits, subfield);
-            if (!IS_NPC(c) && pref != NOFLAG && PRF_FLAGGED(c, pref))
+            if (!IS_NPC(c) && pref != (int)NOFLAG && PRF_FLAGGED(c, pref))
               strcpy(str, "1");
             else
               strcpy(str, "0");
@@ -1290,7 +1290,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
 
           for (index = 0; index < MAX_CURRENT_QUESTS; index++)
           { /* loop through all the character's quest slots */
-            if (!IS_NPC(c) && (GET_QUEST(c, index) != NOTHING) &&
+            if (!IS_NPC(c) && (GET_QUEST(c, index) != (int)NOTHING) &&
                 (real_quest(GET_QUEST(c, index)) != NOTHING))
             {
               snprintf(str, slen, "%d", GET_QUEST(c, index));
@@ -1739,12 +1739,13 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            snprintf(str, slen, "%d", IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoi(subfield)) : 0);
+            snprintf(str, slen, "%d",
+                     IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoidx(subfield)) : 0);
           }
           else
           {
             if (IS_NPC(c))
-              snprintf(str, slen, "%d", GET_MOB_VNUM(c));
+              snprintf(str, slen, "%u", GET_MOB_VNUM(c));
             else
               /*
                * for compatibility with unsigned indexes
@@ -1794,7 +1795,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             script_log("Trigger: %s, VNum %d. ERROR: Unknown character field '%s' (char: %s [%d], "
                        "attempted: %%<char_var>.%s%%)",
                        GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), field, c ? GET_NAME(c) : "NULL",
-                       c ? GET_MOB_VNUM(c) : -1, field);
+                       c && IS_NPC(c) ? (int)GET_MOB_VNUM(c) : -1, field);
           }
         }
         else
@@ -1825,13 +1826,14 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             else
               snprintf(str, slen, "0");
           }
-          else
-            snprintf(str, slen, "0");
-        }
-      case 'b':
+        else
+          snprintf(str, slen, "0");
+      }
+      break;
+    case 'b':
         if (!str_cmp(field, "bound"))
         {
-          if (GET_OBJ_BOUND_ID(o) != NOBODY)
+          if (GET_OBJ_BOUND_ID(o) != (int)NOBODY)
           {
             snprintf(str, slen, "%c%ld", UID_CHAR, (long)GET_OBJ_BOUND_ID(o));
           }
@@ -1983,11 +1985,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         if (!str_cmp(field, "vnum"))
           if (subfield && *subfield)
           {
-            snprintf(str, slen, "%d", (int)(GET_OBJ_VNUM(o) == atoi(subfield)));
+            snprintf(str, slen, "%d", (int)(GET_OBJ_VNUM(o) == atoidx(subfield)));
           }
           else
           {
-            snprintf(str, slen, "%d", GET_OBJ_VNUM(o));
+            snprintf(str, slen, "%u", GET_OBJ_VNUM(o));
           }
         else if (!str_cmp(field, "val0"))
           snprintf(str, slen, "%d", GET_OBJ_VAL(o, 0));
@@ -2048,7 +2050,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown object field '%s' (obj: %s "
                        "[%d], attempted: %%<obj_var>.%s%%)",
                        GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field,
-                       o ? o->short_description : "NULL", o ? GET_OBJ_VNUM(o) : -1, field);
+                       o ? o->short_description : "NULL", o ? (int)GET_OBJ_VNUM(o) : -1, field);
           }
         }
         else
@@ -2094,11 +2096,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
       {
         if (subfield && *subfield)
         {
-          snprintf(str, slen, "%d", (int)(r->number == atoi(subfield)));
+          snprintf(str, slen, "%d", (int)(r->number == atoidx(subfield)));
         }
         else
         {
-          snprintf(str, slen, "%d", r->number);
+          snprintf(str, slen, "%u", r->number);
         }
       }
       else if (!str_cmp(field, "contents"))
@@ -2107,7 +2109,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           for (obj = r->contents; obj; obj = obj->next_content)
           {
-            if (GET_OBJ_VNUM(obj) == atoi(subfield))
+            if (GET_OBJ_VNUM(obj) == atoidx(subfield))
             {
               /* arg given, found */
               snprintf(str, slen, "%c%ld", UID_CHAR, obj_script_id(obj));
@@ -2375,7 +2377,8 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             *str = '\0';
             script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room vnum: "
                        "%d, attempted access: %%<room_var>.%s%%)",
-                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field, r ? r->number : -1,
+                       GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field,
+                       r ? (int)r->number : -1,
                        field);
           }
         }

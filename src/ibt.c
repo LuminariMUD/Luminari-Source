@@ -973,7 +973,7 @@ ACMD(do_oasis_ibtedit)
   }
 
   /* If a numeric argument was given (like a room number), get it. */
-  if (number == NOTHING)
+  if (number == (int)NOTHING)
     number = atoi(buf1);
 
   /* Validate that the IBT number exists */
@@ -988,7 +988,7 @@ ACMD(do_oasis_ibtedit)
   {
     if (STATE(d) == CON_IBTEDIT)
     {
-      if (d->olc && OLC_NUM(d) == number)
+      if (d->olc && (int)OLC_NUM(d) == number)
       {
         send_to_char(ch, "That %s is currently being edited by %s.\r\n", ibt_types[subcmd],
                      GET_NAME(d->character));
@@ -1374,7 +1374,7 @@ void ibtedit_parse(struct descriptor_data *d, char *arg)
 }
 
 /*-------------------------------------------------------------------*/
-void ibtedit_string_cleanup(struct descriptor_data *d, int terminator)
+void ibtedit_string_cleanup(struct descriptor_data *d, int terminator __attribute__((unused)))
 {
   switch (OLC_MODE(d))
   {

@@ -88,11 +88,11 @@ ACMD(do_oasis_aedit)
   OLC_NUM(d) = 0;
   OLC_STORAGE(d) = strdup(arg);
 
-  for (OLC_ZNUM(d) = 0; (OLC_ZNUM(d) <= top_of_socialt); OLC_ZNUM(d)++)
+  for (OLC_ZNUM(d) = 0; (int)OLC_ZNUM(d) <= top_of_socialt; OLC_ZNUM(d)++)
     if (is_abbrev(OLC_STORAGE(d), soc_mess_list[OLC_ZNUM(d)].command))
       break;
 
-  if (OLC_ZNUM(d) > top_of_socialt)
+  if ((int)OLC_ZNUM(d) > top_of_socialt)
   {
     if ((i = aedit_find_command(OLC_STORAGE(d))) != -1)
     {
@@ -186,7 +186,7 @@ static void aedit_save_internally(struct descriptor_data *d)
   int i;
 
   /* add a new social into the list */
-  if (OLC_ZNUM(d) > top_of_socialt)
+  if ((int)OLC_ZNUM(d) > top_of_socialt)
   {
     CREATE(new_soc_mess_list, struct social_messg, top_of_socialt + 2);
     for (i = 0; i <= top_of_socialt; i++)
@@ -213,7 +213,7 @@ static void aedit_save_internally(struct descriptor_data *d)
   aedit_save_to_disk(d); /* autosave by Rumble */
 }
 
-static void aedit_save_to_disk(struct descriptor_data *d)
+static void aedit_save_to_disk(struct descriptor_data *d __attribute__((unused)))
 {
   FILE *fp;
   int i;
@@ -359,11 +359,11 @@ void aedit_parse(struct descriptor_data *d, char *arg)
     case 'N':
       OLC_ZNUM(d)
       ++;
-      for (; (OLC_ZNUM(d) <= top_of_socialt); OLC_ZNUM(d)++)
+      for (; (int)OLC_ZNUM(d) <= top_of_socialt; OLC_ZNUM(d)++)
         if (is_abbrev(OLC_STORAGE(d), soc_mess_list[OLC_ZNUM(d)].command))
           break;
 
-      if (OLC_ZNUM(d) > top_of_socialt)
+      if ((int)OLC_ZNUM(d) > top_of_socialt)
       {
         if (aedit_find_command(OLC_STORAGE(d)) != -1)
         {

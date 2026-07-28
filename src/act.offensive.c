@@ -542,7 +542,7 @@ void perform_voidstrike(struct char_data *ch)
 }
 
 /* Way of Four Elements - Tier 3 Abilities */
-int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *data)
+int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -610,7 +610,7 @@ void perform_flamesofphoenix(struct char_data *ch)
   }
 }
 
-int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, void *data)
+int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int dam, save_level;
 
@@ -889,7 +889,7 @@ EVENTFUNC(event_fist_of_four_thunders)
   return 0;
 }
 
-int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, void *data)
+int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int dam;
 
@@ -976,7 +976,7 @@ void perform_riverofhungryflame(struct char_data *ch, int dir)
 /* Way of Four Elements - Tier 4 Capstone Abilities */
 
 /* Callback for Breath of Winter AoE effect */
-int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *data)
+int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;
@@ -4698,7 +4698,7 @@ ACMD(do_hit)
         // ok we found one
         found = true;
         snprintf(mob_keys, sizeof(mob_keys), "%s", (mob)->player.name);
-        for (i = 0; i < strlen(mob_keys); i++)
+        for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
         do_hit(ch, strdup(mob_keys), cmd, subcmd);
@@ -5598,7 +5598,7 @@ ACMD(do_manyshot)
 }
 
 /* Callback for arrow swarm AoE */
-static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data)
+static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   /* ammo check! */
   if (can_fire_ammo(ch, TRUE))
@@ -5611,7 +5611,7 @@ static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void
 }
 
 /* Callback for Arrow Storm AoE - applies flat 6d6 damage per target if ammo is available */
-static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data)
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   if (can_fire_ammo(ch, TRUE))
   {
@@ -6138,7 +6138,7 @@ ACMDCHECK(can_tailspikes)
 }
 
 /* Callback for tailspikes AoE damage */
-static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tch, void *data)
+static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   damage(ch, tch, dice(3, 6) + 10, SPELL_GENERIC_AOE, DAM_PUNCTURE, FALSE);
   return 1;
@@ -11115,7 +11115,7 @@ ACMD(do_charge)
         // ok we found one
         found = true;
         snprintf(mob_keys, sizeof(mob_keys), "%s", (mob)->player.name);
-        for (i = 0; i < strlen(mob_keys); i++)
+        for (i = 0; (size_t)i < strlen(mob_keys); i++)
           if (mob_keys[i] == ' ')
             mob_keys[i] = '-';
         do_charge(ch, strdup(mob_keys), cmd, subcmd);
@@ -15654,7 +15654,7 @@ ACMD(do_fistair)
 /* Flowing River - AoE water attack that damages and extinguishes fire effects */
 
 /* Callback for flowing river AoE effect */
-int flowingriver_callback(struct char_data *ch, struct char_data *tch, void *data)
+int flowingriver_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int dam;
 
@@ -15735,7 +15735,7 @@ ACMD(do_flowingriver)
 /* Sweeping Cinder Strike - Cone AoE fire attack that damages and sets targets on fire */
 
 /* Callback for sweeping cinder strike AoE effect */
-int sweepingcinder_callback(struct char_data *ch, struct char_data *tch, void *data)
+int sweepingcinder_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -15818,7 +15818,7 @@ ACMD(do_sweepingcinder)
 /* Rush of the Gale Spirits - Creates a gust of wind that knocks down flying enemies and pushes back others */
 
 /* Callback for gale rush AoE effect */
-int galerush_callback(struct char_data *ch, struct char_data *tch, void *data)
+int galerush_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;

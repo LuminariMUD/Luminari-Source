@@ -528,6 +528,7 @@ void create_mission_mobs(char_data *ch)
         increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
       else
         increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+      break;
     case MISSION_DIFF_SEVERE:
       if (i == 0)
         increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
@@ -590,7 +591,7 @@ void create_mission_mobs(char_data *ch)
   }
 
   snprintf(player_name, sizeof(player_name), "%s", GET_NAME(ch));
-  for (i = 0; i < strlen(player_name); i++)
+  for (i = 0; (size_t)i < strlen(player_name); i++)
     player_name[i] = tolower(player_name[i]);
 
   char buf[MAX_STRING_LENGTH];
@@ -642,6 +643,7 @@ void create_mission_mobs(char_data *ch)
         increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
       else
         increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+      break;
     case MISSION_DIFF_SEVERE:
       if (i == 0)
         increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);
@@ -744,6 +746,7 @@ void create_mission_mobs(char_data *ch)
         increase_mob_difficulty(mob, MISSION_DIFF_ARDUOUS);
       else
         increase_mob_difficulty(mob, MISSION_DIFF_TOUGH);
+      break;
     case MISSION_DIFF_SEVERE:
       if (i == 0)
         increase_mob_difficulty(mob, MISSION_DIFF_SEVERE);

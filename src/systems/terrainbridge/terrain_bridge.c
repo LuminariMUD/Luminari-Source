@@ -546,7 +546,7 @@ char *process_terrain_request(const char *json_request)
                                      : "unknown"));
 
       /* Zone name only */
-      if (zone_rnum_val >= 0 && zone_rnum_val <= top_of_zone_table)
+      if (zone_rnum_val != NOWHERE && zone_rnum_val <= top_of_zone_table)
       {
         char clean_zone_name[256];
         const char *zone_name =
@@ -626,7 +626,7 @@ char *process_terrain_request(const char *json_request)
 
         /* Zone information */
         zone_rnum_val = world[target_rnum].zone;
-        if (zone_rnum_val >= 0 && zone_rnum_val <= top_of_zone_table)
+        if (zone_rnum_val != NOWHERE && zone_rnum_val <= top_of_zone_table)
         {
           char clean_zone_name[256];
           const char *zone_name =
@@ -667,7 +667,7 @@ char *process_terrain_request(const char *json_request)
             room_vnum exit_room_vnum;
 
             exit_room_rnum = room->dir_option[dir]->to_room;
-            exit_room_vnum = (exit_room_rnum >= 0 && exit_room_rnum <= top_of_world)
+            exit_room_vnum = (exit_room_rnum != NOWHERE && exit_room_rnum <= top_of_world)
                                  ? GET_ROOM_VNUM(exit_room_rnum)
                                  : NOWHERE;
 
@@ -694,7 +694,7 @@ char *process_terrain_request(const char *json_request)
 
               /* Zone info for exit room */
               zone_rnum_val = world[exit_room_rnum].zone;
-              if (zone_rnum_val >= 0 && zone_rnum_val <= top_of_zone_table)
+              if (zone_rnum_val != NOWHERE && zone_rnum_val <= top_of_zone_table)
               {
                 json_object_object_add(exit_obj, "to_zone_vnum",
                                        json_object_new_int(zone_table[zone_rnum_val].number));
@@ -806,7 +806,8 @@ char *process_terrain_request(const char *json_request)
               }
 
               /* Add zone name if available */
-              if (world[target_room].zone >= 0 && world[target_room].zone <= top_of_zone_table &&
+              if (world[target_room].zone != NOWHERE &&
+                  world[target_room].zone <= top_of_zone_table &&
                   zone_table[world[target_room].zone].name)
               {
                 char *clean_zone_name = strdup(zone_table[world[target_room].zone].name);
@@ -994,7 +995,7 @@ char *process_terrain_request(const char *json_request)
 
         /* Zone information */
         zone_rnum zone_rnum_val = world[static_room].zone;
-        if (zone_rnum_val >= 0 && zone_rnum_val <= top_of_zone_table)
+        if (zone_rnum_val != NOWHERE && zone_rnum_val <= top_of_zone_table)
         {
           json_object_object_add(room_obj, "zone_vnum",
                                  json_object_new_int(zone_table[zone_rnum_val].number));

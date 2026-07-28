@@ -32,7 +32,7 @@
  * system is designed to have a character caster, and this cast routine may
  * overlook certain issues. LIMITATION: a target MUST exist for the spell unless
  * the spell is set to TAR_IGNORE. Also, group spells are not permitted. */
-void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, char *cmd)
+void do_dg_cast(void *go, struct script_data *sc __attribute__((unused)), trig_data *trig, int type, char *cmd)
 {
   struct char_data *caster = NULL;
   struct char_data *tch = NULL;
@@ -162,7 +162,7 @@ void do_dg_cast(void *go, struct script_data *sc, trig_data *trig, int type, cha
 #define APPLY_TYPE 1
 #define AFFECT_TYPE 2
 
-void do_dg_affect(void *go, struct script_data *sc, trig_data *trig, int script_type, char *cmd)
+void do_dg_affect(void *go __attribute__((unused)), struct script_data *sc __attribute__((unused)), trig_data *trig, int script_type __attribute__((unused)), char *cmd)
 {
   struct char_data *ch = NULL;
   int value = 0, duration = 0;

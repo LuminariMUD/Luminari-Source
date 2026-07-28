@@ -85,10 +85,10 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
 
 /*
         case ITEM_CLANARMOR:
-          if (GET_OBJ_VAL(obj, 2) == NO_CLAN) {
+          if (GET_OBJ_CLAN(obj) == NO_CLAN) {
             len += snprintf(buf + len, sizeof (buf) - len,
                     "- Clan ID not set on CLANARMOR\r\n");
-          } else if (real_clan(GET_OBJ_VAL(obj, 2)) == NO_CLAN) {
+          } else if (real_clan(GET_OBJ_CLAN(obj)) == NO_CLAN) {
             len += snprintf(buf + len, sizeof (buf) - len,
                     "- Invalid Clan ID on CLANARMOR\r\n");
           }
@@ -1988,7 +1988,8 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   if (!has_obj_by_uid_in_lookup_table(object_id))
     return;
 
-  if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) &&
+      (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {
@@ -2290,7 +2291,8 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
     return;
   }
 
-  if ((GET_OBJ_BOUND_ID(cont) != NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) &&
+      (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {
@@ -3215,12 +3217,14 @@ void name_from_drinkcon(struct obj_data *obj)
 void name_to_drinkcon(struct obj_data *obj, int type)
 {
   char *new_name;
+  size_t new_name_size;
 
   if (!obj || (GET_OBJ_TYPE(obj) != ITEM_DRINKCON && GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN))
     return;
 
-  CREATE(new_name, char, strlen(obj->name) + strlen(drinknames[type]) + 2);
-  sprintf(new_name, "%s %s", obj->name, drinknames[type]); /* sprintf: OK */
+  new_name_size = strlen(obj->name) + strlen(drinknames[type]) + 2;
+  CREATE(new_name, char, new_name_size);
+  snprintf(new_name, new_name_size, "%s %s", obj->name, drinknames[type]);
 
   if (GET_OBJ_RNUM(obj) == NOTHING || obj->name != obj_proto[GET_OBJ_RNUM(obj)].name)
     free(obj->name);
@@ -3491,7 +3495,7 @@ ACMD(do_drink_old)
     return;
   }
 
-  if (GET_OBJ_BOUND_ID(temp) != NOBODY)
+  if (GET_OBJ_BOUND_ID(temp) != (int)NOBODY)
   {
     if (GET_OBJ_BOUND_ID(temp) != GET_IDNUM(ch))
     {
@@ -3503,6 +3507,7 @@ ACMD(do_drink_old)
                  CCNRM(ch, C_NRM), CAP(get_name_by_id(GET_OBJ_BOUND_ID(temp))));
 
       act(buf, FALSE, ch, temp, 0, TO_CHAR);
+      return;
     }
   }
 
@@ -3674,7 +3679,7 @@ ACMD(do_eat_old)
     send_to_char(ch, "You can't eat THAT!\r\n");
     return;
   }
-  if (GET_OBJ_BOUND_ID(food) != NOBODY)
+  if (GET_OBJ_BOUND_ID(food) != (int)NOBODY)
   {
     if (GET_OBJ_BOUND_ID(food) != GET_IDNUM(ch))
     {
@@ -3686,6 +3691,7 @@ ACMD(do_eat_old)
                  CAP(get_name_by_id(GET_OBJ_BOUND_ID(food))));
 
       act(buf, FALSE, ch, food, 0, TO_CHAR);
+      return;
     }
   }
   if (GET_COND(ch, HUNGER) > 20)
@@ -4281,7 +4287,7 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
     return;
   }
 
-  if (GET_OBJ_BOUND_ID(obj) != NOBODY)
+  if (GET_OBJ_BOUND_ID(obj) != (int)NOBODY)
   {
     if (GET_OBJ_BOUND_ID(obj) != GET_IDNUM(ch))
     {
@@ -4564,9 +4570,9 @@ ACMD(do_wear)
                        "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n",
                        GET_OBJ_SHORT(obj));
         else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-                 (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
+                 (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
           send_to_char(ch, "You are in clan %d, This belongs to clan %d.\r\n", GET_CLAN(ch),
-                       GET_OBJ_VAL(obj, 2));
+                       GET_OBJ_CLAN(obj));
         else
         {
           items_worn++; /* counting how many items we equipped */
@@ -4593,9 +4599,9 @@ ACMD(do_wear)
                    "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n",
                    GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-             (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
+             (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch),
-                   GET_OBJ_VAL(obj, 2));
+                   GET_OBJ_CLAN(obj));
     else
     { /* engine! */
       while (obj)
@@ -4620,9 +4626,9 @@ ACMD(do_wear)
                    "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n",
                    GET_OBJ_SHORT(obj));
     else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-             (GET_CLAN(ch) == NO_CLAN || (GET_OBJ_VAL(obj, 2) + 1) != GET_CLAN(ch)))
+             (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
       send_to_char(ch, "You are in clan %d, That belongs to clan %d.\r\n", GET_CLAN(ch),
-                   GET_OBJ_VAL(obj, 2));
+                   GET_OBJ_CLAN(obj));
     else
     {
       if ((where = find_eq_pos(ch, obj, arg2)) >= 0)
@@ -4664,7 +4670,7 @@ bool perform_wield(struct char_data *ch, struct obj_data *obj, bool not_silent)
                        "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n");
   }
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-           (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
+           (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
   {
     if (not_silent)
       send_to_char(ch, "You are not in the right clan to use that.\r\n");
@@ -4779,7 +4785,7 @@ ACMD(do_grab)
     send_to_char(ch, "You are not experienced enough to use that.\r\n"
                      "You can downgrade the item to a lower level. See HELP DOWNGRADE\r\n");
   else if (GET_OBJ_TYPE(obj) == ITEM_CLANARMOR &&
-           (GET_CLAN(ch) == NO_CLAN || GET_OBJ_VAL(obj, 2) != GET_CLAN(ch)))
+           (GET_CLAN(ch) == NO_CLAN || GET_OBJ_CLAN(obj) != GET_CLAN(ch)))
     send_to_char(ch, "You are not in the right clan to use that.\r\n");
   else
   {
@@ -5953,7 +5959,7 @@ ACMD(do_setbaneweapon)
   for (i = 1; i < NUM_RACE_TYPES; i++)
   {
     snprintf(buf, sizeof(buf), "%s", race_family_types[i]);
-    for (j = 0; j < sizeof(buf); j++)
+    for (j = 0; (size_t)j < sizeof(buf); j++)
       buf[j] = tolower(buf[j]);
     if (!strcmp(buf, arg1))
       break;
@@ -5976,7 +5982,7 @@ ACMD(do_setbaneweapon)
     for (i = 1; i < NUM_SUB_RACES; i++)
     {
       snprintf(buf, sizeof(buf), "%s", npc_subrace_types[i]);
-      for (j = 0; j < sizeof(buf); j++)
+      for (j = 0; (size_t)j < sizeof(buf); j++)
         buf[j] = tolower(buf[j]);
       if (!strcmp(buf, arg2))
         break;
@@ -8231,7 +8237,7 @@ void auto_store_obj(struct char_data *ch, struct obj_data *obj)
 
   snprintf(objname, sizeof(objname), "%s", obj->name);
 
-  for (i = 0; i < strlen(objname); i++)
+  for (i = 0; (size_t)i < strlen(objname); i++)
     if (objname[i] == ' ')
       objname[i] = '-';
 
@@ -8258,7 +8264,7 @@ void auto_sort_obj(struct char_data *ch, struct obj_data *obj)
 
   snprintf(objname, sizeof(objname), "%s", obj->name);
 
-  for (i = 0; i < strlen(objname); i++)
+  for (i = 0; (size_t)i < strlen(objname); i++)
     if (objname[i] == ' ')
       objname[i] = '-';
 

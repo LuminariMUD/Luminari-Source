@@ -56,7 +56,8 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
 /* unfinished, wanted to build a mobile name lookup (prototypes) */
 void perform_mob_name_list(struct char_data *ch, char *arg)
 {
-  int num = 0, mob_flag = -1, found = 0, len = 0;
+  mob_rnum num = 0;
+  int mob_flag = -1, found = 0, len = 0;
   struct char_data *mob = NULL;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -84,7 +85,7 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
                      GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
                      GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
-        if (len > sizeof(buf))
+        if ((size_t)len >= sizeof(buf))
           break;
       }
     }
@@ -98,7 +99,8 @@ void perform_mob_name_list(struct char_data *ch, char *arg)
 
 void perform_mob_flag_list(struct char_data *ch, char *arg)
 {
-  int num, mob_flag, found = 0, len;
+  mob_rnum num;
+  int mob_flag, found = 0, len;
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -126,7 +128,7 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
                      GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), CCYEL(ch, C_NRM),
                      GET_LEVEL(mob), CCNRM(ch, C_NRM), GET_NAME(mob), CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
-        if (len > sizeof(buf))
+        if ((size_t)len >= sizeof(buf))
           break;
       }
     }
@@ -140,7 +142,8 @@ void perform_mob_flag_list(struct char_data *ch, char *arg)
 
 void perform_mob_level_list(struct char_data *ch, char *arg)
 {
-  int num, mob_level, found = 0, len;
+  mob_rnum num;
+  int mob_level, found = 0, len;
   struct char_data *mob;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -165,7 +168,7 @@ void perform_mob_level_list(struct char_data *ch, char *arg)
                         GET_MOB_VNUM(mob), CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), GET_NAME(mob),
                         CCNRM(ch, C_NRM));
         extract_char(mob); /* Finished with the mob - remove it from the MUD */
-        if (len > sizeof(buf))
+        if ((size_t)len >= sizeof(buf))
           break;
       }
     }
@@ -202,7 +205,9 @@ void add_to_obj_list(struct obj_list_item *lst, int num_items, obj_vnum nvo, int
 /* list objects by type */
 void perform_obj_type_list(struct char_data *ch, char *arg)
 {
-  int num, itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0, len = 0, tmp_len = 0;
+  obj_rnum num;
+  int itemtype, v1, v2 = -1, v3 = -1, v4 = -1, v5 = -1, found = 0, len = 0;
+  int tmp_len = 0;
   obj_vnum ov;
   obj_rnum r_num, target_obj = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -556,7 +561,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
           send_to_char(ch, "Not a valid item type (request coders to add)");
           return;
         }
-        if (len + tmp_len < sizeof(buf) - 1)
+        if (tmp_len > 0 && (size_t)len + (size_t)tmp_len < sizeof(buf))
           len += tmp_len;
         else
         {
@@ -572,7 +577,8 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 /* this function is ran for doing:  olist worn <slot> */
 void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
-  int num, wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
+  obj_rnum num;
+  int wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH] = {'\0'}, bitbuf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
@@ -652,7 +658,8 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
 
 void perform_obj_aff_list(struct char_data *ch, char *arg)
 {
-  int num, i, apply, v1 = 0, found = 0, len = 0, tmp_len = 0;
+  obj_rnum num;
+  int i, apply, v1 = 0, found = 0, len = 0, tmp_len = 0;
   struct obj_list_item lst[MAX_OBJ_LIST];
   obj_rnum r_num;
   obj_vnum ov;
@@ -701,10 +708,10 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
         tmp_len = snprintf(buf + len, sizeof(buf) - len,
                            "%s%3d%s) %s[%s%5d%s] %s%3d %s%-*s %s[%s]%s%s\r\n", QGRN, ++found, QNRM,
                            QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
-                           42 + count_color_chars(obj_proto[num].short_description),
+                           42 + count_color_chars(obj_proto[r_num].short_description),
                            obj_proto[r_num].short_description, QYEL,
-                           item_types[obj_proto[num].obj_flags.type_flag], QNRM,
-                           obj_proto[num].proto_script ? " [TRIG]" : "");
+                           item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
+                           obj_proto[r_num].proto_script ? " [TRIG]" : "");
         len += tmp_len;
         if (len >= (MAX_STRING_LENGTH - SMALL_STRING))
           break; /* zusuk put this check here */
@@ -739,7 +746,7 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
       tmp_len =
           snprintf(buf + len, sizeof(buf) - len, "%s%3d%s) %s[%s%8d%s] %s%3d %s%-*s %s[%s]%s%s\r\n",
                    QGRN, ++found, QNRM, QCYN, QYEL, lst[i].vobj, QCYN, QYEL, lst[i].val, QCYN,
-                   42 + count_color_chars(obj_proto[num].short_description),
+                   42 + count_color_chars(obj_proto[r_num].short_description),
                    obj_proto[r_num].short_description, QYEL,
                    item_types[obj_proto[r_num].obj_flags.type_flag], QNRM,
                    obj_proto[r_num].proto_script ? " [TRIG]" : "");
@@ -753,7 +760,8 @@ void perform_obj_aff_list(struct char_data *ch, char *arg)
 
 void perform_obj_perms_list(struct char_data *ch, char *arg)
 {
-  int num = 0, found = 0, len = 0, tmp_len = 0;
+  obj_rnum num = 0;
+  int found = 0, len = 0, tmp_len = 0;
   int flag_num = atoi(arg);
   obj_vnum ov = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -798,7 +806,8 @@ void perform_obj_perms_list(struct char_data *ch, char *arg)
 
 void perform_obj_perms2_list(struct char_data *ch, char *arg)
 {
-  int num = 0, found = 0, len = 0, tmp_len = 0;
+  obj_rnum num = 0;
+  int found = 0, len = 0, tmp_len = 0;
   int flag_num = atoi(arg);
   obj_vnum ov = NOTHING;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -843,7 +852,8 @@ void perform_obj_perms2_list(struct char_data *ch, char *arg)
 
 void perform_obj_name_list(struct char_data *ch, char *arg)
 {
-  int num, found = 0, len = 0, tmp_len = 0;
+  obj_rnum num;
+  int found = 0, len = 0, tmp_len = 0;
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1287,7 +1297,7 @@ ACMD(do_oasis_links)
 /* List all regions in wilderness. */
 static void list_regions(struct char_data *ch)
 {
-  int i;
+  region_rnum i;
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1296,7 +1306,7 @@ static void list_regions(struct char_data *ch)
               "Ind|VNum   | Name                                |Type        |Properties\r\n"
               "--- ------- ------------------------------------- ------------ ---------------\r\n",
               sizeof(buf));
-  if (!top_of_region_table)
+  if (!region_table || top_of_region_table == NOWHERE)
     return;
 
   for (i = 0; i <= top_of_region_table; i++)
@@ -1317,7 +1327,7 @@ static void list_regions(struct char_data *ch)
         (region_table[i].region_type == 4 ? sector_types[region_table[i].region_props] : "[N/A]"),
         QNRM);
 
-    if (len > sizeof(buf))
+    if ((size_t)len >= sizeof(buf))
       break;
   }
 
@@ -1330,7 +1340,7 @@ static void list_regions(struct char_data *ch)
 /* List all paths in wilderness. */
 static void list_paths(struct char_data *ch)
 {
-  int i;
+  path_rnum i;
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1339,7 +1349,7 @@ static void list_paths(struct char_data *ch)
               "Ind|VNum   | Name                                |Type        |Glyphs\r\n"
               "--- ------- ------------------------------------- ------------ ---------------\r\n",
               sizeof(buf));
-  if (!top_of_path_table)
+  if (!path_table)
     return;
 
   for (i = 0; i <= top_of_path_table; i++)
@@ -1357,7 +1367,7 @@ static void list_paths(struct char_data *ch)
                     QNRM, QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1],
                     path_table[i].glyphs[2], QNRM);
 
-    if (len > sizeof(buf))
+    if ((size_t)len >= sizeof(buf))
       break;
   }
 
@@ -1371,8 +1381,8 @@ static void list_paths(struct char_data *ch)
 static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, room_vnum vmax)
 {
   room_rnum i;
-  room_vnum bottom, top;
-  int j, counter = 0, len, temp_num = 0, subcmd = 0;
+  room_vnum bottom, top, temp_num = 0;
+  int j, counter = 0, len, subcmd = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   bool *has_zcmds = NULL;
 
@@ -1389,6 +1399,12 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     top = vmax;
   }
 
+  if (rnum == NOWHERE || top < bottom)
+  {
+    send_to_char(ch, "No valid room range was found.\r\n");
+    return;
+  }
+
   len = strlcpy(buf,
                 "Index  VNum    Room Name                                    Exits\r\n"
                 "-----  ------- -------------------------------------------- -----\r\n",
@@ -1397,23 +1413,24 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
   if (!top_of_world)
     return;
 
-  CREATE(has_zcmds, bool, top - bottom);
-  for (subcmd = 0; ZCMD(real_zone_by_thing(bottom), subcmd).command != 'S'; subcmd++)
+  CREATE(has_zcmds, bool, (size_t)(top - bottom) + 1);
+  for (subcmd = 0; ZCMD(rnum, subcmd).command != 'S'; subcmd++)
   {
-    switch (ZCMD(real_zone_by_thing(bottom), subcmd).command)
+    temp_num = NOWHERE;
+    switch (ZCMD(rnum, subcmd).command)
     {
     case 'D':
     case 'R':
-      temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg1);
+      temp_num = GET_ROOM_VNUM(ZCMD(rnum, subcmd).arg1);
       // send_to_char(ch, "D/R subcmd: %d\r\n", temp_num);
       break;
     case 'O':
     case 'M':
-      temp_num = GET_ROOM_VNUM(ZCMD(real_zone_by_thing(bottom), subcmd).arg3);
+      temp_num = GET_ROOM_VNUM(ZCMD(rnum, subcmd).arg3);
       // send_to_char(ch, "O/M subcmd: %d\r\n", temp_num);
       break;
     }
-    if (temp_num >= bottom && temp_num <= top)
+    if (temp_num != NOWHERE && temp_num >= bottom && temp_num <= top)
       has_zcmds[temp_num - bottom] = TRUE;
   }
 
@@ -1444,7 +1461,7 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
 
       len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
 
-      if (len > sizeof(buf))
+      if ((size_t)len >= sizeof(buf))
         break;
 
       /* still having issues with overflow, guessing it is a miscalculation with color codes -zusuk */
@@ -1521,7 +1538,7 @@ static void list_mobiles(struct char_data *ch, zone_rnum rnum, mob_vnum vmin, mo
                       count_color_chars(mob_proto[i].player.short_descr) + 44,
                       mob_proto[i].player.short_descr, QNRM);
 
-      if (len > sizeof(buf))
+      if ((size_t)len >= sizeof(buf))
         break;
     }
   }
@@ -1650,7 +1667,7 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
 
       len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
 
-      if (len > sizeof(buf))
+      if ((size_t)len >= sizeof(buf))
         break;
     }
   }
@@ -1684,7 +1701,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
   send_to_char(ch, "Index VNum    RNum    Mob Name and Shop Room(s)\r\n"
                    "----- ------- ------- -----------------------------------------\r\n");
 
-  for (i = 0; i <= top_shop; i++)
+  for (i = 0; (int)i <= top_shop; i++)
   {
     if (SHOP_NUM(i) >= bottom && SHOP_NUM(i) <= top)
     {
@@ -1808,7 +1825,9 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
 void print_zone(struct char_data *ch, zone_vnum vnum)
 {
   zone_rnum rnum;
-  int size_rooms, size_objects, size_mobiles, size_quests, size_shops, size_trigs, i, largest_table;
+  IDXTYPE i, largest_table;
+  int size_rooms, size_objects, size_mobiles, size_quests, size_shops, size_trigs;
+  int shop, trigger;
   room_vnum top, bottom;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -1850,12 +1869,12 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
       if (mob_index[i].vnum >= bottom && mob_index[i].vnum <= top)
         size_mobiles++;
   }
-  for (i = 0; i <= top_shop; i++)
-    if (SHOP_NUM(i) >= bottom && SHOP_NUM(i) <= top)
+  for (shop = 0; shop <= top_shop; shop++)
+    if (SHOP_NUM(shop) >= bottom && SHOP_NUM(shop) <= top)
       size_shops++;
 
-  for (i = 0; i < top_of_trigt; i++)
-    if (trig_index[i]->vnum >= bottom && trig_index[i]->vnum <= top)
+  for (trigger = 0; trigger < top_of_trigt; trigger++)
+    if (trig_index[trigger]->vnum >= bottom && trig_index[trigger]->vnum <= top)
       size_trigs++;
 
   size_quests = count_quests(bottom, top);
@@ -1899,7 +1918,8 @@ void print_zone(struct char_data *ch, zone_vnum vnum)
 /* List code by Ronald Evers. */
 static void list_triggers(struct char_data *ch, zone_rnum rnum, trig_vnum vmin, trig_vnum vmax)
 {
-  int i, bottom, top, counter = 0;
+  trig_vnum bottom, top;
+  int i, counter = 0;
   char trgtypes[MEDIUM_STRING] = {'\0'};
 
   /* Expect a minimum / maximum number if the rnum for the zone is NOWHERE. */

@@ -238,7 +238,7 @@ clan_rnum real_clan(clan_vnum c)
     if (entry->vnum == c)
     {
       /* Validate the rnum is still valid */
-      if (entry->rnum < num_of_clans && clan_list[entry->rnum].vnum == c)
+      if (entry->rnum < (clan_rnum)num_of_clans && clan_list[entry->rnum].vnum == c)
       {
         return entry->rnum;
       }
@@ -279,7 +279,7 @@ clan_rnum get_clan_by_name(const char *c_n)
   {
     for (i = 0; i < num_of_clans; i++)
     {
-      if (clan_list[i].vnum == v)
+      if (clan_list[i].vnum == (clan_vnum)v)
         return i;
     }
   }
@@ -293,13 +293,13 @@ void update_clan_member_cache(clan_rnum c)
 {
   int i, count = 0, power = 0;
 
-  if (c >= num_of_clans || c < 0)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans)
     return;
 
   /* Calculate member count and total power */
   for (i = 0; i <= top_of_p_table; i++)
   {
-    if (player_table[i].clan == clan_list[c].vnum)
+    if (player_table[i].clan == (int)clan_list[c].vnum)
     {
       count++;
       power += player_table[i].level;
@@ -454,7 +454,7 @@ bool remove_clan(clan_vnum c_v)
       {
         if (!(found))
         {
-          if (i == c_n)
+          if (i == (int)c_n)
           {
             found = TRUE; /* Skip this one and set found flag */
           }
@@ -686,7 +686,7 @@ bool auto_appoint_new_clan_leader(clan_rnum c_n)
   bool loaded = FALSE;
 
   /* Verify c_n */
-  if (c_n >= num_of_clans)
+  if (c_n >= (clan_rnum)num_of_clans)
     return FALSE;
 
   /* Set the max rank as lowest possible rank */
@@ -694,7 +694,7 @@ bool auto_appoint_new_clan_leader(clan_rnum c_n)
 
   for (i = 0; i <= top_of_p_table; i++)
   {
-    if (player_table[i].clan == clan_list[c_n].vnum)
+    if (player_table[i].clan == (int)clan_list[c_n].vnum)
     {
       if ((v = is_playing(player_table[i].name)) != NULL)
       {
@@ -852,7 +852,7 @@ void update_clan_activity(clan_vnum c)
 {
   clan_rnum cr = real_clan(c);
 
-  if (cr != NO_CLAN && cr < num_of_clans)
+  if (cr != NO_CLAN && cr < (clan_rnum)num_of_clans)
   {
     clan_list[cr].last_activity = time(0);
   }
@@ -869,7 +869,7 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   char *tmstr;
   clan_rnum cr = real_clan(c);
 
-  if (cr == NO_CLAN || cr >= num_of_clans)
+  if (cr == NO_CLAN || cr >= (clan_rnum)num_of_clans)
     return;
 
   /* Create filename */
@@ -1146,7 +1146,7 @@ bool validate_clan_membership(bool fix_errors)
       continue;
 
     /* Skip players not in a clan */
-    if (player_table[i].clan == 0 || player_table[i].clan == NO_CLAN)
+    if (player_table[i].clan == 0 || player_table[i].clan == (int)NO_CLAN)
     {
       /* Note: Can't check rank without loading player file */
       /* TODO: Consider adding clanrank to player_index_element */
@@ -1804,7 +1804,8 @@ ACMD(do_clancreate)
   char c_n[MAX_INPUT_LENGTH] = {'\0'}, c_l[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *l;
   struct clan_data new_clan;
-  int i, v;
+  clan_vnum v;
+  int i;
 
   half_chop_c(argument, c_l, sizeof(c_l), c_n, sizeof(c_n));
 
@@ -1868,7 +1869,7 @@ ACMD(do_clancreate)
   v = highest_clan_vnum() + 1;
 
   /* Check for VNUM overflow */
-  if (v >= NO_CLAN || v < 1)
+  if (v == NO_CLAN || v < 1)
   {
     send_to_char(ch, "Maximum number of clans reached. Cannot create new clan.\r\n");
     return;
@@ -2007,7 +2008,7 @@ ACMD(do_clandemote)
   {
     if (!str_cmp(player_table[j].name, buf))
     {
-      if (!immcom && (player_table[j].clan != GET_CLAN(ch)))
+      if (!immcom && (player_table[j].clan != (int)GET_CLAN(ch)))
       {
         send_to_char(ch, "That player isn't in your clan!\r\n");
         return;
@@ -2417,7 +2418,7 @@ ACMD(do_clandestroy)
       c_lid = j;
 
     /* Are they in the clan? */
-    if (player_table[j].clan == clan_list[c_n].vnum)
+    if (player_table[j].clan == (int)clan_list[c_n].vnum)
     {
       /* If currently playing */
       if ((vict = is_playing(player_table[j].name)) != NULL)
@@ -2535,7 +2536,7 @@ ACMD(do_clanenrol)
   {
     for (i = 0; i <= top_of_p_table; i++)
     {
-      if (player_table[i].clan == clan_list[c_n].vnum)
+      if (player_table[i].clan == (int)clan_list[c_n].vnum)
       {
         if ((v = is_playing(player_table[i].name)) != NULL)
         {
@@ -2723,7 +2724,7 @@ ACMD(do_clanexpel) /* Expel a member */
     return;
   }
 
-  if (!immcom && (player_table[(v_id)].clan != clan_list[(c_n)].vnum))
+  if (!immcom && (player_table[v_id].clan != (int)clan_list[c_n].vnum))
   {
     send_to_char(ch, "They aren't in YOUR clan!\r\n");
     return;
@@ -2834,7 +2835,7 @@ ACMD(do_claninfo) /* Information about clans */
   }
   else
   { /* There is an arg - check it */
-    if ((i = get_clan_by_name(argument)) == NO_CLAN)
+    if ((i = get_clan_by_name(argument)) == (int)NO_CLAN)
     {
       send_to_char(ch, "There is no such clan!\r\n");
     }
@@ -2896,7 +2897,7 @@ ACMD(do_claninfo) /* Information about clans */
       /* Show clan hall zone if set */
       if (clan_list[i].hall != 0)
       {
-        int zr = real_zone(clan_list[i].hall);
+        zone_rnum zr = real_zone(clan_list[i].hall);
         if (zr != NOWHERE)
         {
           send_to_char(ch, "Hall Zone: %s%s (#%d)%s\r\n", QCYN, zone_table[zr].name,
@@ -3100,7 +3101,7 @@ ACMD(do_clanlist) /* List of clan members */
 
   for (i = 0; i <= top_of_p_table; i++)
   {
-    if (player_table[i].clan == clan_list[c].vnum)
+    if (player_table[i].clan == (int)clan_list[c].vnum)
     {
       if ((v = is_playing(player_table[i].name)) != NULL)
       {
@@ -3253,7 +3254,7 @@ ACMD(do_clanpromote)
   {
     if (!str_cmp(player_table[j].name, buf))
     {
-      if (!immcom && (player_table[j].clan != GET_CLAN(ch)))
+      if (!immcom && (player_table[j].clan != (int)GET_CLAN(ch)))
       {
         send_to_char(ch, "That player isn't in your clan!\r\n");
         return;
@@ -3482,7 +3483,7 @@ ACMD(do_clanwhere)
 
   for (i = 0; i <= top_of_p_table; i++)
   {
-    if (player_table[i].clan == clan_list[c].vnum)
+    if (player_table[i].clan == (int)clan_list[c].vnum)
     {
       if ((vict = is_playing(player_table[i].name)) != NULL)
       {
@@ -3626,7 +3627,8 @@ ACMD(do_clanwithdraw)
 
 ACMD(do_clanunclaim)
 {
-  int z, zr;
+  zone_vnum z;
+  zone_rnum zr;
   bool found = FALSE;
   struct claim_data *this_claim;
 
@@ -3678,8 +3680,8 @@ ACMD(do_clanunclaim)
 ACMD(do_clanally)
 {
   clan_rnum my_clan, target_clan;
+  clan_rnum i;
   char arg[MAX_INPUT_LENGTH];
-  int i;
 
   /* Check if player is in a clan */
   if (!IS_IN_CLAN(ch))
@@ -3823,7 +3825,7 @@ ACMD(do_clanally)
   }
 
   /* Save modified clans */
-  for (i = 0; i < num_of_clans; i++)
+  for (i = 0; i < (clan_rnum)num_of_clans; i++)
   {
     if (i == my_clan || i == target_clan)
     {
@@ -3836,8 +3838,8 @@ ACMD(do_clanally)
 ACMD(do_clanwar)
 {
   clan_rnum my_clan, target_clan;
+  clan_rnum i;
   char arg[MAX_INPUT_LENGTH];
-  int i;
 
   /* Check if player is in a clan */
   if (!IS_IN_CLAN(ch))
@@ -3979,7 +3981,7 @@ ACMD(do_clanwar)
   }
 
   /* Save modified clans */
-  for (i = 0; i < num_of_clans; i++)
+  for (i = 0; i < (clan_rnum)num_of_clans; i++)
   {
     if (i == my_clan || i == target_clan)
     {
@@ -4452,7 +4454,7 @@ void show_claims(struct char_data *ch, char *arg)
   {
     send_to_char(ch, "Listing all zone claims, by clan:\r\n");
     // Show all clans
-    for (i = 0; i < num_of_clans; i++)
+    for (i = 0; i < (clan_rnum)num_of_clans; i++)
     {
       show_clan_claims(ch, clan_list[i].vnum);
       cc++;
@@ -4623,7 +4625,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
 
   for (i = 0; i < MAX_CLANS; i++)
   {
-    if ((found_claim->popularity[i] > 0) && (i != c_r))
+    if ((found_claim->popularity[i] > 0) && (i != (int)c_r))
       tot_vals += found_claim->popularity[i];
   }
 
@@ -4637,7 +4639,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
     share_vals = MAX_POPULARITY - found_claim->popularity[c_r];
     for (i = 0; i < MAX_CLANS; i++)
     {
-      if ((found_claim->popularity[i] > 0) && (i != c_r))
+      if ((found_claim->popularity[i] > 0) && (i != (int)c_r))
       {
         vals[i] = (found_claim->popularity[i] * share_vals) / tot_vals;
       }
@@ -4657,7 +4659,8 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
       while (val_diff > 0 && count < 50)
       {
         i_rand = rand_number(1, MAX_CLANS);
-        if (i_rand != c_r && vals[i_rand] > 0 && vals[i_rand] < found_claim->popularity[i_rand])
+        if (i_rand != (int)c_r && vals[i_rand] > 0 &&
+            vals[i_rand] < found_claim->popularity[i_rand])
         {
           vals[i_rand] += 0.1;
           val_diff -= 0.1;
@@ -4668,7 +4671,7 @@ void increase_popularity(zone_vnum zn, clan_vnum cn, float amt)
     /* Copy it back */
     for (i = 0; i < MAX_CLANS; i++)
     {
-      if (i != c_r)
+      if (i != (int)c_r)
       {
         found_claim->popularity[i] = vals[i];
       }
@@ -4851,7 +4854,7 @@ ACMD(do_clanset)
   int spellid, spellnum;
   */
   int value = 0, rankid, i, l, x;
-  int clannum = -1; /* The 'real' number of the clan */
+  clan_rnum clannum = NO_CLAN; /* The 'real' number of the clan */
 
   const struct clanset_struct
   {
@@ -5668,7 +5671,7 @@ bool acquire_clan_lock(clan_rnum c, struct char_data *ch)
 {
   time_t current_time;
 
-  if (c < 0 || c >= num_of_clans || !ch)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans || !ch)
     return FALSE;
 
   current_time = time(0);
@@ -5691,7 +5694,7 @@ bool acquire_clan_lock(clan_rnum c, struct char_data *ch)
 /* Release a lock on a clan */
 bool release_clan_lock(clan_rnum c, struct char_data *ch)
 {
-  if (c < 0 || c >= num_of_clans || !ch)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans || !ch)
     return FALSE;
 
   /* Only the lock holder or an implementor can release */
@@ -5709,7 +5712,7 @@ bool is_clan_locked(clan_rnum c)
 {
   time_t current_time;
 
-  if (c < 0 || c >= num_of_clans)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans)
     return FALSE;
 
   current_time = time(0);
@@ -5722,7 +5725,7 @@ bool can_modify_clan(clan_rnum c, struct char_data *ch)
 {
   time_t current_time;
 
-  if (c < 0 || c >= num_of_clans || !ch)
+  if (c == NO_CLAN || c >= (clan_rnum)num_of_clans || !ch)
     return FALSE;
 
   /* Implementors can always modify */

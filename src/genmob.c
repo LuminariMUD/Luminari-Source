@@ -23,9 +23,10 @@
 /* local functions */
 static void extract_mobile_all(mob_vnum vnum);
 
-int add_mobile(struct char_data *mob, mob_vnum vnum)
+mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
 {
-  int rnum, i, found = FALSE, shop, cmd_no;
+  mob_rnum rnum, i, found = 0;
+  int shop, cmd_no;
   zone_rnum zone;
   struct char_data *live_mob;
 
@@ -39,7 +40,11 @@ int add_mobile(struct char_data *mob, mob_vnum vnum)
       if (rnum == live_mob->nr)
         update_mobile_strings(live_mob, &mob_proto[rnum]);
 
-    add_to_save_list(zone_table[real_zone_by_thing(vnum)].number, SL_MOB);
+    zone = real_zone_by_thing(vnum);
+    if (zone != NOWHERE)
+      add_to_save_list(zone_table[zone].number, SL_MOB);
+    else
+      log("SYSERR: GenOLC: Cannot determine save zone for mobile #%u.", vnum);
     log("GenOLC: add_mobile: Updated existing mobile #%d.", vnum);
     return rnum;
   }
@@ -86,14 +91,20 @@ int add_mobile(struct char_data *mob, mob_vnum vnum)
   for (zone = 0; zone <= top_of_zone_table; zone++)
     for (cmd_no = 0; ZCMD(zone, cmd_no).command != 'S'; cmd_no++)
       if (ZCMD(zone, cmd_no).command == 'M')
-        ZCMD(zone, cmd_no).arg1 += (ZCMD(zone, cmd_no).arg1 >= found);
+        if (ZCMD(zone, cmd_no).arg1 >= 0 &&
+            (mob_rnum)ZCMD(zone, cmd_no).arg1 >= found)
+          ZCMD(zone, cmd_no).arg1++;
 
   /* Update shop keepers. */
   if (shop_index)
     for (shop = 0; shop <= top_shop; shop++)
-      SHOP_KEEPER(shop) += (SHOP_KEEPER(shop) != NOTHING && SHOP_KEEPER(shop) >= found);
+      SHOP_KEEPER(shop) += (SHOP_KEEPER(shop) != NOBODY && SHOP_KEEPER(shop) >= found);
 
-  add_to_save_list(zone_table[real_zone_by_thing(vnum)].number, SL_MOB);
+  zone = real_zone_by_thing(vnum);
+  if (zone != NOWHERE)
+    add_to_save_list(zone_table[zone].number, SL_MOB);
+  else
+    log("SYSERR: GenOLC: Cannot determine save zone for mobile #%u.", vnum);
   return found;
 }
 
@@ -109,7 +120,7 @@ int copy_mobile(struct char_data *to, struct char_data *from)
 static void extract_mobile_all(mob_vnum vnum)
 {
   struct char_data *next, *ch;
-  int i;
+  mob_rnum i;
 
   for (ch = character_list; ch; ch = next)
   {
@@ -160,7 +171,8 @@ int delete_mobile(mob_rnum refpt)
 {
   struct char_data *live_mob;
   struct char_data *proto;
-  int counter, cmd_no;
+  mob_rnum counter;
+  int shop, cmd_no;
   mob_vnum vnum;
   zone_rnum zone;
 
@@ -194,25 +206,36 @@ int delete_mobile(mob_rnum refpt)
 
   /* Update live mobile rnums. */
   for (live_mob = character_list; live_mob; live_mob = live_mob->next)
-    GET_MOB_RNUM(live_mob) -= (GET_MOB_RNUM(live_mob) >= refpt);
+    if (GET_MOB_RNUM(live_mob) != NOBODY && GET_MOB_RNUM(live_mob) >= refpt)
+      GET_MOB_RNUM(live_mob)--;
 
   /* Update zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
-    for (cmd_no = 0; ZCMD(zone, cmd_no).command != 'S'; cmd_no++)
+  {
+    cmd_no = 0;
+    while (ZCMD(zone, cmd_no).command != 'S')
+    {
       if (ZCMD(zone, cmd_no).command == 'M')
       {
-        if (ZCMD(zone, cmd_no).arg1 == refpt)
+        if (ZCMD(zone, cmd_no).arg1 >= 0 &&
+            (mob_rnum)ZCMD(zone, cmd_no).arg1 == refpt)
         {
           delete_zone_command(&zone_table[zone], cmd_no);
+          continue;
         }
-        else
-          ZCMD(zone, cmd_no).arg1 -= (ZCMD(zone, cmd_no).arg1 > refpt);
+        if (ZCMD(zone, cmd_no).arg1 >= 0 &&
+            (mob_rnum)ZCMD(zone, cmd_no).arg1 > refpt)
+          ZCMD(zone, cmd_no).arg1--;
       }
+      cmd_no++;
+    }
+  }
 
   /* Update shop keepers. */
   if (shop_index)
-    for (counter = 0; counter <= top_shop; counter++)
-      SHOP_KEEPER(counter) -= (SHOP_KEEPER(counter) >= refpt);
+    for (shop = 0; shop <= top_shop; shop++)
+      if (SHOP_KEEPER(shop) != NOBODY && SHOP_KEEPER(shop) >= refpt)
+        SHOP_KEEPER(shop)--;
 
   save_mobiles(real_zone_by_thing(vnum));
 

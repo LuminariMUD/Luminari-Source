@@ -164,7 +164,7 @@ static void show_messages(struct char_data *ch)
   len = snprintf(buf, sizeof(buf), "\t1Message List:\tn \r\n");
 
   for (i = 0; i < MAX_MESSAGES / 2; i++, half++)
-    if (fight_messages[i].msg != NULL && len < sizeof(buf))
+    if (fight_messages[i].msg != NULL && (size_t)len < sizeof(buf))
     {
       count += fight_messages[i].number_of_attacks;
       len += snprintf(buf + len, sizeof(buf) - len, "%-2d) [%-3d] %d, %-18s%s", i,
@@ -352,7 +352,7 @@ ACMD(do_msgedit)
   for (d = descriptor_list; d; d = d->next)
     if (STATE(d) == CON_MSGEDIT)
     {
-      if (OLC_MSG_LIST(d) && OLC_NUM(d) == num)
+      if (OLC_MSG_LIST(d) && (int)OLC_NUM(d) == num)
       {
         send_to_char(ch, "Someone is already editing that message.\r\n");
         return;

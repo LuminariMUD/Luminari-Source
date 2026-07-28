@@ -1297,7 +1297,7 @@ static void favored_enemy_submenu(struct descriptor_data *d, int favored)
 int stat_cost_chart[11] = {/* cost for total points */
                            /*0  1  2  3  4  5  6  7  8   9   10 */
                            0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16};
-int compute_base_dex(struct char_data *ch)
+int compute_base_dex(struct char_data *ch __attribute__((unused)))
 {
   int base_dex = BASE_STAT;
   /*
@@ -1327,7 +1327,7 @@ int compute_dex_cost(struct char_data *ch, int number)
   int base_dex = compute_base_dex(ch), current_dex = LEVELUP(ch)->dex + number;
   return stat_cost_chart[current_dex - base_dex];
 }
-int compute_base_str(struct char_data *ch)
+int compute_base_str(struct char_data *ch __attribute__((unused)))
 {
   int base_str = BASE_STAT;
   /*
@@ -1363,7 +1363,7 @@ int compute_str_cost(struct char_data *ch, int number)
   int base_str = compute_base_str(ch), current_str = LEVELUP(ch)->str + number;
   return stat_cost_chart[current_str - base_str];
 }
-int compute_base_con(struct char_data *ch)
+int compute_base_con(struct char_data *ch __attribute__((unused)))
 {
   int base_con = BASE_STAT;
   /*
@@ -1402,7 +1402,7 @@ int compute_con_cost(struct char_data *ch, int number)
   int base_con = compute_base_con(ch), current_con = LEVELUP(ch)->con + number;
   return stat_cost_chart[current_con - base_con];
 }
-int compute_base_inte(struct char_data *ch)
+int compute_base_inte(struct char_data *ch __attribute__((unused)))
 {
   int base_inte = BASE_STAT;
   /*
@@ -1429,7 +1429,7 @@ int compute_inte_cost(struct char_data *ch, int number)
   int base_inte = compute_base_inte(ch), current_inte = LEVELUP(ch)->inte + number;
   return stat_cost_chart[current_inte - base_inte];
 }
-int compute_base_wis(struct char_data *ch)
+int compute_base_wis(struct char_data *ch __attribute__((unused)))
 {
   int base_wis = BASE_STAT;
   /*
@@ -1456,7 +1456,7 @@ int compute_wis_cost(struct char_data *ch, int number)
   int base_wis = compute_base_wis(ch), current_wis = LEVELUP(ch)->wis + number;
   return stat_cost_chart[current_wis - base_wis];
 }
-int compute_base_cha(struct char_data *ch)
+int compute_base_cha(struct char_data *ch __attribute__((unused)))
 {
   int base_cha = BASE_STAT;
   /*
@@ -3242,7 +3242,7 @@ void study_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    for (i = 0; i < strlen(arg); i++)
+    for (i = 0; (size_t)i < strlen(arg); i++)
       arg[i] = tolower(arg[i]);
 
     if (is_abbrev(arg, "quit"))

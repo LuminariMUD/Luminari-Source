@@ -313,7 +313,7 @@ size_t PERF_repr(char *out_buf, size_t n)
                get_interval_avg(&hour_data), hour_min, get_interval_max(&hour_data), max_pulse);
 
   /* Add threshold statistics */
-  for (i = 0; i < sizeof(thresholds) / sizeof(thresholds[0]) && written < n - 1; i++)
+  for (i = 0; (size_t)i < sizeof(thresholds) / sizeof(thresholds[0]) && written < n - 1; i++)
   {
     double percent = (total_pulses > 0) ? (100.0 * thresholds[i].count / total_pulses) : 0.0;
 

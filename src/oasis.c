@@ -389,7 +389,7 @@ int can_edit_zone(struct char_data *ch, zone_rnum rnum)
       return (TRUE);
 
   /* no access if you haven't been assigned a zone */
-  if (GET_OLC_ZONE(ch) == NOWHERE)
+  if (GET_OLC_ZONE(ch) == (int)NOWHERE)
   {
     return FALSE;
   }
@@ -409,7 +409,7 @@ void send_cannot_edit(struct char_data *ch, zone_vnum zone)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (GET_OLC_ZONE(ch) != NOWHERE)
+  if (GET_OLC_ZONE(ch) != (int)NOWHERE)
   {
     send_to_char(ch, "You do not have permission to edit zone %d.  Try zone %d or ZUNLOCK.\r\n",
                  zone, GET_OLC_ZONE(ch));

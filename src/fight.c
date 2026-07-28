@@ -4376,7 +4376,7 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
 /* this is straight damage reduction, applies to ALL attacks
  (not melee exclusive damage reduction) */
-int compute_damage_reduction_full(struct char_data *ch, int dam_type, bool display)
+int compute_damage_reduction_full(struct char_data *ch, int dam_type __attribute__((unused)), bool display)
 {
   int damage_reduction = 0;
 
@@ -8526,8 +8526,8 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
-int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type, int diceroll,
-                       int mode, bool is_critical, int attack_type, int dam_type)
+int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type, int diceroll __attribute__((unused)),
+                       int mode, bool is_critical, int attack_type, int dam_type __attribute__((unused)))
 {
   int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
@@ -10104,7 +10104,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
     calc_bab += IS_PSI_TYPE(ch) / 5;
     if (display)
       send_to_char(ch, "%2d: %-50s\r\n", IS_PSI_TYPE(ch) / 5, "Psionic Level");
-    /* FALLTHROUGH, no break please */
+    __attribute__((fallthrough));
   case ATTACK_TYPE_OFFHAND:
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
@@ -10143,7 +10143,7 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       calc_bab += 1;
     if (HAS_COMBAT_FEAT(ch, feat_to_cfeat(FEAT_GREATER_WEAPON_FOCUS), WEAPON_FAMILY_RANGED))
       calc_bab += 1;
-    /* fall through is intentional here */
+    __attribute__((fallthrough));
   case ATTACK_TYPE_RANGED:
     calc_bab += GET_DEX_BONUS(ch);
     if (display)
@@ -11541,7 +11541,7 @@ int attack_roll(struct char_data *ch,     /* Attacker */
                 struct char_data *victim, /* Defender */
                 int attack_type,          /* Type of attack */
                 int is_touch,             /* TRUE/FALSE this is a touch attack? */
-                int attack_number)        /* Attack number, determines penalty. */
+                int attack_number __attribute__((unused)))        /* Attack number, determines penalty. */
 {
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
 
@@ -11650,7 +11650,7 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
                               struct char_data *victim, /* Defender */
                               int attack_type,          /* Type of attack */
                               int is_touch,             /* TRUE/FALSE this is a touch attack? */
-                              int attack_number,        /* Attack number, determines penalty. */
+                              int attack_number __attribute__((unused)),        /* Attack number, determines penalty. */
                               int critical_threshold)   /* Minimum roll # required to crit */
 {
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
@@ -11851,7 +11851,7 @@ int wildshape_weapon_type(struct char_data *ch)
 
 /* a function that will return the weapon-type being used based on attack_type
  * and wielded data */
-int determine_weapon_type(struct char_data *ch, struct char_data *victim, struct obj_data *wielded,
+int determine_weapon_type(struct char_data *ch, struct char_data *victim __attribute__((unused)), struct obj_data *wielded,
                           int attack_type)
 {
   int w_type = TYPE_HIT, count = 0;

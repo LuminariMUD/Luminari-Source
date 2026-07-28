@@ -89,7 +89,7 @@ static void copy_shop_type_list(struct shop_buy_data **tlist, struct shop_buy_da
     free_shop_type_list(tlist);
 
   /* Count number of entries. */
-  for (i = 0; BUY_TYPE(flist[i]) != NOTHING; i++)
+  for (i = 0; BUY_TYPE(flist[i]) != (int)NOTHING; i++)
     ;
   num_items = i + 1;
 
@@ -111,7 +111,7 @@ void remove_shop_from_type_list(struct shop_buy_data **list, int num)
   struct shop_buy_data *nlist;
 
   /* Count number of entries. */
-  for (i = 0; (*list)[i].type != NOTHING; i++)
+  for (i = 0; (*list)[i].type != (int)NOTHING; i++)
     ;
 
   if (num < 0 || num >= i)
@@ -134,7 +134,7 @@ void add_shop_to_type_list(struct shop_buy_data **list, struct shop_buy_data *ne
   struct shop_buy_data *nlist;
 
   /* Count number of entries. */
-  for (i = 0; (*list)[i].type != NOTHING; i++)
+  for (i = 0; (*list)[i].type != (int)NOTHING; i++)
     ;
   num_items = i;
 
@@ -243,7 +243,7 @@ static void free_shop_type_list(struct shop_buy_data **list)
 {
   int i;
 
-  for (i = 0; (*list)[i].type != NOTHING; i++)
+  for (i = 0; (*list)[i].type != (int)NOTHING; i++)
     if (BUY_WORD((*list)[i]))
       free(BUY_WORD((*list)[i]));
 
@@ -362,7 +362,9 @@ int add_shop(struct shop_data *nshp)
 
 int save_shops(zone_rnum zone_num)
 {
-  int i, j, rshop, num_shops = 0;
+  room_vnum i;
+  shop_rnum rshop;
+  int j, num_shops = 0;
   FILE *shop_file;
   char fname[128], oldname[128], buf[MAX_STRING_LENGTH] = {'\0'};
   struct shop_data *shop;
@@ -411,7 +413,7 @@ int save_shops(zone_rnum zone_num)
               S_BUYPROFIT(shop), S_SELLPROFIT(shop));
 
       /* Save the buy types and namelists. */
-      for (j = 0; S_BUYTYPE(shop, j) != NOTHING; j++)
+      for (j = 0; S_BUYTYPE(shop, j) != (int)NOTHING; j++)
         fprintf(shop_file, "%d%s\n", S_BUYTYPE(shop, j),
                 S_BUYWORD(shop, j) ? S_BUYWORD(shop, j) : "");
       fprintf(shop_file, "-1\n");
@@ -435,7 +437,8 @@ int save_shops(zone_rnum zone_num)
           S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
           S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!", S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
           S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?", S_BROKE_TEMPER(shop), S_BITVECTOR(shop),
-          S_KEEPER(shop) == NOBODY ? -1 : mob_index[S_KEEPER(shop)].vnum, S_NOTRADE(shop));
+          S_KEEPER(shop) == NOBODY ? -1 : (int)mob_index[S_KEEPER(shop)].vnum,
+          S_NOTRADE(shop));
 
       fputs(convert_from_tabs(buf), shop_file);
 

@@ -1048,7 +1048,7 @@ int command_otrigger(char_data *actor, char *cmd, char *argument)
   return 0;
 }
 
-int wear_otrigger(obj_data *obj, char_data *actor, int where)
+int wear_otrigger(obj_data *obj, char_data *actor, int where __attribute__((unused)))
 {
   trig_data *t = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};

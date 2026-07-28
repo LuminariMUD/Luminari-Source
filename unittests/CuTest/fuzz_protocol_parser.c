@@ -15,9 +15,22 @@
 #include "../../src/structs.h"
 #include "../../src/comm.h"
 #include "../../src/protocol.h"
+#include "../../src/systems/web_client/onboarding.h"
 
 struct config_data config_info;
 struct player_special_data dummy_mob;
+
+/*
+ * Keep the parser fuzzer isolated from onboarding's world/class dependencies.
+ * The deterministic protocol harness links and verifies the production handler.
+ */
+void web_onboarding_set_capability(struct descriptor_data *d, const char *value)
+{
+  if (d == NULL || value == NULL)
+    return;
+
+  d->web_onboarding_version = WEB_ONBOARDING_PROTOCOL_VERSION;
+}
 
 void basic_mud_log(const char *format, ...)
 {

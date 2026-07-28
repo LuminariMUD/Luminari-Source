@@ -616,7 +616,7 @@ ACMD(do_goto)
 
   if (!*arg2)
   {
-    for (i = 1; i < strlen(argument); i++)
+    for (i = 1; (size_t)i < strlen(argument); i++)
     {
       if (isspace(argument[i]))
         has_space = true;
@@ -1038,7 +1038,7 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
 
     send_to_char(ch, "Exit %s%-5s%s:  To: [%s], Key: [%5d], Keywords: %s, Type: %s\r\n%s",
                  CCCYN(ch, C_NRM), dirs[i], CCNRM(ch, C_NRM), buf1,
-                 rm->dir_option[i]->key == NOTHING ? -1 : rm->dir_option[i]->key,
+                 rm->dir_option[i]->key == NOTHING ? -1 : (int)rm->dir_option[i]->key,
                  rm->dir_option[i]->keyword ? rm->dir_option[i]->keyword : "None", buf2,
                  rm->dir_option[i]->general_description ? rm->dir_option[i]->general_description
                                                         : "  No exit description.\r\n");
@@ -1255,7 +1255,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
         send_to_char(ch, "\tC, OLC[\tnHedit\tC]\tn");
       else if (GET_OLC_ZONE(k) == ALL_PERMISSION)
         send_to_char(ch, "\tC, OLC[\tnAll\tC]\tn");
-      else if (GET_OLC_ZONE(k) == NOWHERE)
+      else if (GET_OLC_ZONE(k) == (int)NOWHERE)
         send_to_char(ch, "\tC, OLC[\tnOFF\tC]\tn");
       else
         send_to_char(ch, "\tC, OLC[\tn%d\tC]\tn", GET_OLC_ZONE(k));
@@ -1354,7 +1354,7 @@ static void do_stat_character(struct char_data *ch, struct char_data *k)
 
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
     { /* loop through all the character's quest slots */
-      if (GET_QUEST(k, index) == NOTHING)
+      if (GET_QUEST(k, index) == (int)NOTHING)
       {
         send_to_char(ch, "\tCIndex %d, Currently not on a Quest.\tn\r\n", index);
       }
@@ -2078,7 +2078,7 @@ ACMD(do_vstat)
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_INPUT_LENGTH] = {'\0'};
   struct char_data *mob;
   struct obj_data *obj;
-  int r_num;
+  IDXTYPE r_num;
 
   ACMD_DECL(do_tstat);
 
@@ -3147,6 +3147,7 @@ ACMDU(do_wiznet)
   {
   case '*':
     emote = TRUE;
+    __attribute__((fallthrough));
 
   case '#':
     one_argument(argument + 1, buf1, sizeof(buf1));
@@ -3477,15 +3478,15 @@ static size_t print_zone_to_buf(char *bufptr, size_t left, zone_rnum zone, int l
                    zone_table[zone].show_weather, zone_table[zone].bot, zone_table[zone].top);
     i = j = k = l = m = n = o = 0;
 
-    for (i = 0; i < top_of_world; i++)
+    for (i = 0; i <= (int)top_of_world; i++)
       if (world[i].number >= zone_table[zone].bot && world[i].number <= zone_table[zone].top)
         j++;
 
-    for (i = 0; i < top_of_objt; i++)
+    for (i = 0; i <= (int)top_of_objt; i++)
       if (obj_index[i].vnum >= zone_table[zone].bot && obj_index[i].vnum <= zone_table[zone].top)
         k++;
 
-    for (i = 0; i < top_of_mobt; i++)
+    for (i = 0; i <= (int)top_of_mobt; i++)
       if (mob_index[i].vnum >= zone_table[zone].bot && mob_index[i].vnum <= zone_table[zone].top)
         l++;
 
@@ -3724,7 +3725,7 @@ ACMD(do_show)
     }
     for (obj = object_list; obj; obj = obj->next)
       k++; // number of objects in game
-    for (l = 0; l < top_of_mobt; l++)
+    for (l = 0; l <= (int)top_of_mobt; l++)
     {
       if (mob_proto[l].mob_specials.quest)
       {
@@ -3757,7 +3758,7 @@ ACMD(do_show)
     /* show errors */
   case 5:
     len = strlcpy(buf, "Errant Rooms\r\n------------\r\n", sizeof(buf));
-    for (i = 0, k = 0; i <= top_of_world; i++)
+    for (i = 0, k = 0; i <= (int)top_of_world; i++)
       for (j = 0; j < DIR_COUNT; j++)
       {
         if (!W_EXIT(i, j))
@@ -3787,7 +3788,7 @@ ACMD(do_show)
     /* show death */
   case 6:
     len = strlcpy(buf, "Death Traps\r\n-----------\r\n", sizeof(buf));
-    for (i = 0, j = 0; i <= top_of_world; i++)
+    for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
       {
         nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
@@ -3802,7 +3803,7 @@ ACMD(do_show)
     /* show godrooms */
   case 7:
     len = strlcpy(buf, "Godrooms\r\n--------------------------\r\n", sizeof(buf));
-    for (i = 0, j = 0; i <= top_of_world; i++)
+    for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_STAFFROOM))
       {
         nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
@@ -4011,7 +4012,7 @@ ACMD(do_shoplist)
     {
       /* Get zone information */
       zone_idx = world[room_rnum_val].zone;
-      if (zone_idx >= 0 && zone_idx <= top_of_zone_table)
+      if (zone_idx != NOWHERE && zone_idx <= top_of_zone_table)
         snprintf(zone_name, sizeof(zone_name), "%.24s", zone_table[zone_idx].name);
       else
         strlcpy(zone_name, "Unknown Zone", sizeof(zone_name));
@@ -4028,7 +4029,7 @@ ACMD(do_shoplist)
     else
     {
       /* Use the mob prototype name directly instead of loading a mob */
-      if (SHOP_KEEPER(shop_nr) >= 0 && SHOP_KEEPER(shop_nr) <= top_of_mobt)
+      if (SHOP_KEEPER(shop_nr) != NOBODY && SHOP_KEEPER(shop_nr) <= top_of_mobt)
       {
         snprintf(keeper_name, sizeof(keeper_name), "%.20s",
                  mob_proto[SHOP_KEEPER(shop_nr)].player.short_descr);
@@ -4041,9 +4042,12 @@ ACMD(do_shoplist)
 
     send_to_char(
         ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", SHOP_NUM(shop_nr),
-        (zone_idx >= 0 && zone_idx <= top_of_zone_table) ? zone_table[zone_idx].number : -1,
+        (zone_idx != NOWHERE && zone_idx <= top_of_zone_table)
+            ? (int)zone_table[zone_idx].number
+            : -1,
         zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
-        SHOP_KEEPER(shop_nr) == NOBODY ? -1 : mob_index[SHOP_KEEPER(shop_nr)].vnum, keeper_name);
+        SHOP_KEEPER(shop_nr) == NOBODY ? -1 : (int)mob_index[SHOP_KEEPER(shop_nr)].vnum,
+        keeper_name);
     shop_count++;
   }
 
@@ -4175,7 +4179,7 @@ ACMD(do_shopstat)
     room_vnum rvn = SHOP_ROOM(shop_nr, i);
     room_rnum rrn = real_room(rvn);
     const char *rname = (rrn != NOWHERE) ? world[rrn].name : "<Unknown Room>";
-    int znum = (rrn != NOWHERE) ? zone_table[world[rrn].zone].number : -1;
+    int znum = (rrn != NOWHERE) ? (int)zone_table[world[rrn].zone].number : -1;
     const char *zname = (rrn != NOWHERE) ? zone_table[world[rrn].zone].name : "<Unknown Zone>";
     send_to_char(ch, "  %d: %d - %s | Zone %d - %s\r\n", i + 1, rvn, rname, znum, zname);
   }
@@ -4190,7 +4194,7 @@ ACMD(do_shopstat)
   for (i = 0; SHOP_PRODUCT(shop_nr, i) != NOTHING; i++)
   {
     obj_rnum orn = SHOP_PRODUCT(shop_nr, i);
-    if (orn < 0 || orn > top_of_objt)
+    if (orn == NOTHING || orn > top_of_objt)
     {
       send_to_char(ch, "  %-3d <Invalid rnum %d>\r\n", i + 1, orn);
       continue;
@@ -4266,7 +4270,7 @@ ACMD(do_shopstat)
 
   /* Accepted types */
   send_to_char(ch, "Accepted Types:\r\n");
-  for (i = 0; BUY_TYPE(shop_index[shop_nr].type[i]) != NOTHING; i++)
+  for (i = 0; BUY_TYPE(shop_index[shop_nr].type[i]) != (int)NOTHING; i++)
   {
     int atype = BUY_TYPE(shop_index[shop_nr].type[i]);
     const char *akey =
@@ -4308,115 +4312,115 @@ const struct set_struct
   /* Stored one-based so zero means this is not a class-level field. */
   const int class_num_plus_one;
 } set_fields[] = {
-    {"ac", LVL_BUILDER, BOTH, NUMBER}, /* 0  */
-    {"afk", LVL_BUILDER, PC, BINARY},  /* 1  */
-    {"age", LVL_STAFF, BOTH, NUMBER},
-    {"align", LVL_BUILDER, BOTH, NUMBER},
-    {"bank", LVL_BUILDER, PC, NUMBER},
-    {"brief", LVL_STAFF, PC, BINARY}, /* 5  */
-    {"cha", LVL_IMPL, BOTH, NUMBER},
-    {"clan", LVL_STAFF, PC, NUMBER},
-    {"clanrank", LVL_STAFF, PC, NUMBER},
-    {"class", LVL_IMPL, BOTH, MISC},
-    {"color", LVL_STAFF, PC, BINARY},
-    {"con", LVL_IMPL, BOTH, NUMBER},
-    {"damroll", LVL_IMPL, BOTH, NUMBER}, /* 12 */
-    {"deleted", LVL_IMPL, PC, BINARY},
-    {"dex", LVL_BUILDER, BOTH, NUMBER},
-    {"drunk", LVL_BUILDER, BOTH, MISC},
-    {"exp", LVL_IMPL, BOTH, NUMBER},
-    {"frozen", LVL_GRSTAFF, PC, BINARY}, /* 17 */
-    {"gold", LVL_IMPL, BOTH, NUMBER},
-    {"height", LVL_BUILDER, BOTH, NUMBER},
-    {"hitpoints", LVL_IMPL, BOTH, NUMBER},
-    {"hitroll", LVL_IMPL, BOTH, NUMBER},
-    {"hunger", LVL_BUILDER, BOTH, MISC}, /* 22 */
-    {"int", LVL_BUILDER, BOTH, NUMBER},
-    {"invis", LVL_STAFF, PC, NUMBER},
-    {"invstart", LVL_BUILDER, PC, BINARY},
-    {"killer", LVL_STAFF, PC, BINARY},
-    {"level", LVL_GRSTAFF, BOTH, NUMBER}, /* 27 */
-    {"loadroom", LVL_BUILDER, PC, MISC},
-    {"psp", LVL_IMPL, BOTH, NUMBER},
-    {"maxhit", LVL_IMPL, BOTH, NUMBER},
-    {"maxpsp", LVL_IMPL, BOTH, NUMBER},
-    {"maxmove", LVL_IMPL, BOTH, NUMBER}, /* 32 */
-    {"move", LVL_IMPL, BOTH, NUMBER},
-    {"name", LVL_IMMORT, PC, MISC},
-    {"nodelete", LVL_STAFF, PC, BINARY},
-    {"nohassle", LVL_STAFF, PC, BINARY},
-    {"nosummon", LVL_BUILDER, PC, BINARY}, /* 37 */
-    {"nowizlist", LVL_GRSTAFF, PC, BINARY},
-    {"olc", LVL_GRSTAFF, PC, MISC},
-    {"password", LVL_GRSTAFF, PC, MISC},
-    {"poofin", LVL_IMMORT, PC, MISC},
-    {"poofout", LVL_IMMORT, PC, MISC}, /* 42 */
-    {"practices", LVL_IMPL, PC, NUMBER},
-    {"quest", LVL_STAFF, PC, NUMBER},
-    {"room", LVL_BUILDER, BOTH, NUMBER},
-    {"screenwidth", LVL_STAFF, PC, NUMBER},
-    {"sex", LVL_STAFF, BOTH, MISC}, /* 47 */
-    {"showvnums", LVL_BUILDER, PC, BINARY},
-    {"siteok", LVL_STAFF, PC, BINARY},
-    {"str", LVL_IMPL, BOTH, NUMBER},
-    {"stradd", LVL_IMPL, BOTH, NUMBER},
-    {"thief", LVL_STAFF, PC, BINARY}, /* 52 */
-    {"thirst", LVL_BUILDER, BOTH, MISC},
-    {"title", LVL_STAFF, PC, MISC},
-    {"variable", LVL_GRSTAFF, PC, MISC},
-    {"weight", LVL_BUILDER, BOTH, NUMBER},
-    {"wis", LVL_IMPL, BOTH, NUMBER}, /* 57 */
-    {"questpoints", LVL_IMPL, PC, NUMBER},
-    {"questhistory", LVL_STAFF, PC, NUMBER},
-    {"trains", LVL_IMPL, PC, NUMBER}, /* 60 */
-    {"race", LVL_IMPL, BOTH, MISC},
-    {"spellres", LVL_IMPL, PC, NUMBER},                                                   /* 62 */
-    {"size", LVL_IMPL, PC, NUMBER},                                                       /* 63 */
+    {"ac", LVL_BUILDER, BOTH, NUMBER, 0}, /* 0  */
+    {"afk", LVL_BUILDER, PC, BINARY, 0},  /* 1  */
+    {"age", LVL_STAFF, BOTH, NUMBER, 0},
+    {"align", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"bank", LVL_BUILDER, PC, NUMBER, 0},
+    {"brief", LVL_STAFF, PC, BINARY, 0}, /* 5  */
+    {"cha", LVL_IMPL, BOTH, NUMBER, 0},
+    {"clan", LVL_STAFF, PC, NUMBER, 0},
+    {"clanrank", LVL_STAFF, PC, NUMBER, 0},
+    {"class", LVL_IMPL, BOTH, MISC, 0},
+    {"color", LVL_STAFF, PC, BINARY, 0},
+    {"con", LVL_IMPL, BOTH, NUMBER, 0},
+    {"damroll", LVL_IMPL, BOTH, NUMBER, 0}, /* 12 */
+    {"deleted", LVL_IMPL, PC, BINARY, 0},
+    {"dex", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"drunk", LVL_BUILDER, BOTH, MISC, 0},
+    {"exp", LVL_IMPL, BOTH, NUMBER, 0},
+    {"frozen", LVL_GRSTAFF, PC, BINARY, 0}, /* 17 */
+    {"gold", LVL_IMPL, BOTH, NUMBER, 0},
+    {"height", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"hitpoints", LVL_IMPL, BOTH, NUMBER, 0},
+    {"hitroll", LVL_IMPL, BOTH, NUMBER, 0},
+    {"hunger", LVL_BUILDER, BOTH, MISC, 0}, /* 22 */
+    {"int", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"invis", LVL_STAFF, PC, NUMBER, 0},
+    {"invstart", LVL_BUILDER, PC, BINARY, 0},
+    {"killer", LVL_STAFF, PC, BINARY, 0},
+    {"level", LVL_GRSTAFF, BOTH, NUMBER, 0}, /* 27 */
+    {"loadroom", LVL_BUILDER, PC, MISC, 0},
+    {"psp", LVL_IMPL, BOTH, NUMBER, 0},
+    {"maxhit", LVL_IMPL, BOTH, NUMBER, 0},
+    {"maxpsp", LVL_IMPL, BOTH, NUMBER, 0},
+    {"maxmove", LVL_IMPL, BOTH, NUMBER, 0}, /* 32 */
+    {"move", LVL_IMPL, BOTH, NUMBER, 0},
+    {"name", LVL_IMMORT, PC, MISC, 0},
+    {"nodelete", LVL_STAFF, PC, BINARY, 0},
+    {"nohassle", LVL_STAFF, PC, BINARY, 0},
+    {"nosummon", LVL_BUILDER, PC, BINARY, 0}, /* 37 */
+    {"nowizlist", LVL_GRSTAFF, PC, BINARY, 0},
+    {"olc", LVL_GRSTAFF, PC, MISC, 0},
+    {"password", LVL_GRSTAFF, PC, MISC, 0},
+    {"poofin", LVL_IMMORT, PC, MISC, 0},
+    {"poofout", LVL_IMMORT, PC, MISC, 0}, /* 42 */
+    {"practices", LVL_IMPL, PC, NUMBER, 0},
+    {"quest", LVL_STAFF, PC, NUMBER, 0},
+    {"room", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"screenwidth", LVL_STAFF, PC, NUMBER, 0},
+    {"sex", LVL_STAFF, BOTH, MISC, 0}, /* 47 */
+    {"showvnums", LVL_BUILDER, PC, BINARY, 0},
+    {"siteok", LVL_STAFF, PC, BINARY, 0},
+    {"str", LVL_IMPL, BOTH, NUMBER, 0},
+    {"stradd", LVL_IMPL, BOTH, NUMBER, 0},
+    {"thief", LVL_STAFF, PC, BINARY, 0}, /* 52 */
+    {"thirst", LVL_BUILDER, BOTH, MISC, 0},
+    {"title", LVL_STAFF, PC, MISC, 0},
+    {"variable", LVL_GRSTAFF, PC, MISC, 0},
+    {"weight", LVL_BUILDER, BOTH, NUMBER, 0},
+    {"wis", LVL_IMPL, BOTH, NUMBER, 0}, /* 57 */
+    {"questpoints", LVL_IMPL, PC, NUMBER, 0},
+    {"questhistory", LVL_STAFF, PC, NUMBER, 0},
+    {"trains", LVL_IMPL, PC, NUMBER, 0}, /* 60 */
+    {"race", LVL_IMPL, BOTH, MISC, 0},
+    {"spellres", LVL_IMPL, PC, NUMBER, 0},                                                   /* 62 */
+    {"size", LVL_IMPL, PC, NUMBER, 0},                                                       /* 63 */
     {"wizard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WIZARD)},                      /* 64 */
     {"cleric", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_CLERIC)},                      /* 65 */
     {"rogue", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ROGUE)},                        /* 66 */
     {"warrior", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARRIOR)},                    /* 67 */
     {"monk", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MONK)},                          /* 68 */
     {"druid", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DRUID)},                        /* 69 */
-    {"boost", LVL_IMPL, PC, NUMBER},                                                      /* 70 */
+    {"boost", LVL_IMPL, PC, NUMBER, 0},                                                      /* 70 */
     {"berserker", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BERSERKER)},                /* 71 */
     {"sorcerer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SORCERER)},                  /* 72 */
     {"paladin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PALADIN)},                    /* 73 */
     {"ranger", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_RANGER)},                      /* 74 */
     {"bard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BARD)},                          /* 75 */
-    {"featpoints", LVL_IMPL, PC, NUMBER},                                                 /* 76 */
-    {"epicfeatpoints", LVL_IMPL, PC, NUMBER},                                             /* 77 */
-    {"classfeats", LVL_IMPL, PC, MISC},                                                   /* 78 */
-    {"epicclassfeats", LVL_IMPL, PC, MISC},                                               /* 79 */
-    {"accexp", LVL_IMPL, PC, NUMBER},                                                     /* 80 */
+    {"featpoints", LVL_IMPL, PC, NUMBER, 0},                                                 /* 76 */
+    {"epicfeatpoints", LVL_IMPL, PC, NUMBER, 0},                                             /* 77 */
+    {"classfeats", LVL_IMPL, PC, MISC, 0},                                                   /* 78 */
+    {"epicclassfeats", LVL_IMPL, PC, MISC, 0},                                               /* 79 */
+    {"accexp", LVL_IMPL, PC, NUMBER, 0},                                                     /* 80 */
     {"weaponmaster", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WEAPON_MASTER)},         /* 81 */
     {"arcanearcher", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_ARCHER)},         /* 82 */
     {"stalwartdefender", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_STALWART_DEFENDER)}, /* 83 */
     {"shifter", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHIFTER)},                    /* 84 */
     {"duelist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DUELIST)},                    /* 85 */
-    {"guimode", LVL_BUILDER, PC, BINARY},                                                 /* 86 */
-    {"rpmode", LVL_BUILDER, PC, BINARY},                                                  /* 87 */
+    {"guimode", LVL_BUILDER, PC, BINARY, 0},                                                 /* 86 */
+    {"rpmode", LVL_BUILDER, PC, BINARY, 0},                                                  /* 87 */
     {"mystictheurge", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MYSTIC_THEURGE)},       /* 88 */
-    {"addaccexp", LVL_IMPL, PC, ADDER},                                                   /* 89 */
+    {"addaccexp", LVL_IMPL, PC, ADDER, 0},                                                   /* 89 */
     {"alchemist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ALCHEMIST)},                /* 90 */
     {"arcaneshadow", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_SHADOW)},         /* 91 */
     {"sacredfist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SACRED_FIST)},             /* 92 */
-    {"premadebuild", LVL_STAFF, PC, MISC},                                                /* 93 */
+    {"premadebuild", LVL_STAFF, PC, MISC, 0},                                                /* 93 */
     {"psionicist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PSIONICIST)},              /* 94 */
-    {"deity", LVL_BUILDER, PC, MISC},                                                     /* 95 */
+    {"deity", LVL_BUILDER, PC, MISC, 0},                                                     /* 95 */
     {"eldritchknight", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ELDRITCH_KNIGHT)},     /* 96 */
     {"spellsword", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SPELLSWORD)},              /* 97 */
     {"shadowdancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHADOW_DANCER)},         /* 98 */
     {"blackguard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BLACKGUARD)},              /* 99 */
     {"assassin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ASSASSIN)},                  /* 100 */
     {"inquisitor", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_INQUISITOR)},              /* 101 */
-    {"homeland", LVL_STAFF, PC, NUMBER},                                                  /* 102 */
-    {"region", LVL_STAFF, PC, NUMBER},                                                    /* 103 */
-    {"shortdesc", LVL_STAFF, PC, MISC},                                                   /* 104 */
+    {"homeland", LVL_STAFF, PC, NUMBER, 0},                                                  /* 102 */
+    {"region", LVL_STAFF, PC, NUMBER, 0},                                                    /* 103 */
+    {"shortdesc", LVL_STAFF, PC, MISC, 0},                                                   /* 104 */
     {"necromancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_NECROMANCER)},            /* 105 */
-    {"background", LVL_STAFF, PC, MISC},                                                  /* 106 */
-    {"arcanemark", LVL_STAFF, PC, MISC},                                                  /* 107 */
-    {"arcaneschool", LVL_STAFF, PC, MISC},                                                /* 108 */
+    {"background", LVL_STAFF, PC, MISC, 0},                                                  /* 106 */
+    {"arcanemark", LVL_STAFF, PC, MISC, 0},                                                  /* 107 */
+    {"arcaneschool", LVL_STAFF, PC, MISC, 0},                                                /* 108 */
     {"summoner", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SUMMONER)},                  /* 109 */
     {"warlock", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARLOCK)},                    /* 110 */
     {"knightoftheluminousthread", LVL_IMPL, PC, NUMBER,
@@ -4430,7 +4434,7 @@ const struct set_struct
     {"dragonrider", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DRAGONRIDER)}, /* 115 */
     {"artificer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARTIFICER)},     /* 116 */
 
-    {"\n", 0, BOTH, MISC},
+    {"\n", 0, BOTH, MISC, 0},
 };
 
 static int find_set_field(const char *field)
@@ -4571,7 +4575,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "%s is now in no clan.\r\n", GET_NAME(vict));
       break;
     }
-    else if ((i = real_clan(value)) == NO_CLAN)
+    else if ((i = real_clan(value)) == (int)NO_CLAN)
     {
       send_to_char(ch, "Invalid clan VNUM!\r\nSee clan info for a list.\r\n");
       return (0);
@@ -4581,7 +4585,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
                  CCNRM(ch, C_NRM));
     break;
   case 8: /* clanrank */
-    if ((i = real_clan(GET_CLAN(vict))) == NO_CLAN)
+    if ((i = real_clan(GET_CLAN(vict))) == (int)NO_CLAN)
     {
       send_to_char(ch, "%s isn't in a clan, so can't have a rank!\r\n", GET_NAME(vict));
       return (0);
@@ -4851,7 +4855,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       send_to_char(ch, "%s is an NPC and this command cannot be used on NPCs.\r\n", GET_NAME(vict));
       return (0);
     }
-    if (value <= 0 || value >= NOTHING)
+    if (value <= 0)
     {
       send_to_char(
           ch, "That quest vnum is out of bounds. Must be greater than 1 and less than 65555.\r\n");
@@ -4862,7 +4866,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
     {
       if ((qnum = real_quest(vict->player_specials->saved.completed_quests[i])) != NOTHING)
       {
-        if (QST_NUM(qnum) == value)
+        if (QST_NUM(qnum) == (qst_vnum)value)
         {
           send_to_char(ch, "Quest %d (%s) has been removed from %s's completed quest history.\r\n",
                        value, QST_NAME(qnum), GET_NAME(vict));
@@ -4873,19 +4877,22 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       }
     }
 
-    if (((qnum = real_quest(GET_QUEST(vict, 0))) != NOTHING) && QST_NUM(qnum) == value)
+    if (((qnum = real_quest(GET_QUEST(vict, 0))) != NOTHING) &&
+        QST_NUM(qnum) == (qst_vnum)value)
     {
       send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value,
                    QST_NAME(qnum), GET_NAME(vict));
       GET_QUEST(vict, 0) = NOTHING;
     }
-    else if (((qnum = real_quest(GET_QUEST(vict, 1))) != NOTHING) && QST_NUM(qnum) == value)
+    else if (((qnum = real_quest(GET_QUEST(vict, 1))) != NOTHING) &&
+             QST_NUM(qnum) == (qst_vnum)value)
     {
       send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value,
                    QST_NAME(qnum), GET_NAME(vict));
       GET_QUEST(vict, 1) = NOTHING;
     }
-    else if (((qnum = real_quest(GET_QUEST(vict, 2))) != NOTHING) && QST_NUM(qnum) == value)
+    else if (((qnum = real_quest(GET_QUEST(vict, 2))) != NOTHING) &&
+             QST_NUM(qnum) == (qst_vnum)value)
     {
       send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value,
                    QST_NAME(qnum), GET_NAME(vict));
@@ -5528,7 +5535,7 @@ ACMD(do_keycheck)
       }
     }
 
-    if (len > sizeof(buf))
+    if ((size_t)len >= sizeof(buf))
       break;
   }
 
@@ -5542,7 +5549,7 @@ ACMD(do_keycheck)
   for (i = bottom; i <= top; i++)
   {
     /* in case we overflowed earlier */
-    if (len > sizeof(buf))
+    if ((size_t)len >= sizeof(buf))
       break;
 
     /* easy out, object doesn't exist */
@@ -5562,7 +5569,7 @@ ACMD(do_keycheck)
     /* has to be a container and out of bottom/top range */
     if (GET_OBJ_TYPE(obj) == ITEM_CONTAINER || GET_OBJ_TYPE(obj) == ITEM_AMMO_POUCH)
     {
-      if (GET_OBJ_VAL(obj, 2) < bottom || GET_OBJ_VAL(obj, 2) > top)
+      if ((room_vnum)GET_OBJ_VAL(obj, 2) < bottom || (room_vnum)GET_OBJ_VAL(obj, 2) > top)
       {
         len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n", QGRN, i,
                         QNRM, QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44, GET_OBJ_SHORT(obj),
@@ -5583,7 +5590,8 @@ ACMD(do_links)
   zone_rnum zrnum;
   zone_vnum zvnum;
   room_rnum nr, to_room;
-  int first, last, j;
+  room_vnum first, last;
+  int j;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
 
   skip_spaces_c(&argument);
@@ -5767,7 +5775,8 @@ ACMD(do_zcheck)
   room_vnum exroom = 0;
   int ac = 0;
   int affs = 0, tohit, todam, value;
-  int i = 0, j = 0, k = 0, l = 0, m = 0, found = 0; /* found is used as a 'send now' flag*/
+  IDXTYPE i = 0;
+  int j = 0, k = 0, l = 0, m = 0, found = 0; /* found is used as a 'send now' flag*/
   char buf[MAX_STRING_LENGTH] = {'\0'};
   float avg_dam;
   size_t len = 0;
@@ -5791,7 +5800,7 @@ ACMD(do_zcheck)
 
   send_to_char(ch, "Checking Mobs for limits...\r\n");
   /*check mobs first*/
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (real_zone_by_thing(mob_index[i].vnum) == zrnum)
     { /*is mob in this zone?*/
@@ -5882,7 +5891,7 @@ ACMD(do_zcheck)
 
   /* Check objects */
   send_to_char(ch, "\r\nChecking Objects for limits...\r\n");
-  for (i = 0; i < top_of_objt; i++)
+  for (i = 0; i <= top_of_objt; i++)
   {
     if (real_zone_by_thing(obj_index[i].vnum) == zrnum)
     { /*is object in this zone?*/
@@ -5904,15 +5913,17 @@ ACMD(do_zcheck)
                           GET_OBJ_AVG_DAM(obj), MAX_DAM_ALLOWED);
         break;
       case ITEM_CLANARMOR:
-        if (GET_OBJ_VAL(obj, 2) == NO_CLAN)
+        if (GET_OBJ_CLAN(obj) == 0 || GET_OBJ_CLAN(obj) == NO_CLAN)
         {
+          found = 1;
           len += snprintf(buf + len, sizeof(buf) - len, "- Clan ID not set on CLANARMOR\r\n");
         }
-        else if (real_clan(GET_OBJ_VAL(obj, 2)) == NO_CLAN)
+        else if (real_clan(GET_OBJ_CLAN(obj)) == NO_CLAN)
         {
+          found = 1;
           len += snprintf(buf + len, sizeof(buf) - len, "- Invalid Clan ID on CLANARMOR\r\n");
         }
-        /* drop through to normal armor checks */
+        __attribute__((fallthrough));
       case ITEM_ARMOR:
         ac = GET_OBJ_VAL(obj, 0);
         for (j = 0; j < TOTAL_WEAR_CHECKS; j++)
@@ -6022,7 +6033,7 @@ ACMD(do_zcheck)
 
   /* Check rooms */
   send_to_char(ch, "\r\nChecking Rooms for limits...\r\n");
-  for (i = 0; i < top_of_world; i++)
+  for (i = 0; i <= top_of_world; i++)
   {
     if (world[i].zone == zrnum)
     {
@@ -6094,7 +6105,7 @@ ACMD(do_zcheck)
     } /*is room in this zone?*/
   } /*checking rooms*/
 
-  for (i = 0; i < top_of_world; i++)
+  for (i = 0; i <= top_of_world; i++)
   {
     if (world[i].zone == zrnum)
     {
@@ -6133,7 +6144,7 @@ static void mob_checkload(struct char_data *ch, mob_vnum mvnum)
         continue;
 
       /* read a mobile */
-      if (ZCMD2.arg1 == mrnum)
+      if (ZCMD2.arg1 == (int)mrnum)
       {
         send_to_char(ch, "  [%5d] %s (%d MAX)\r\n", world[ZCMD2.arg3].number,
                      world[ZCMD2.arg3].name, ZCMD2.arg2);
@@ -6173,23 +6184,23 @@ static void obj_checkload(struct char_data *ch, obj_vnum ovnum)
       case 'O': /* read an object */
         lastroom_v = world[ZCMD2.arg3].number;
         lastroom_r = ZCMD2.arg3;
-        if (ZCMD2.arg1 == ornum)
+        if (ZCMD2.arg1 == (int)ornum)
           send_to_char(ch, "  [%5d] %s (%d Max)\r\n", lastroom_v, world[lastroom_r].name,
                        ZCMD2.arg2);
         break;
       case 'P': /* object to object */
-        if (ZCMD2.arg1 == ornum)
+        if (ZCMD2.arg1 == (int)ornum)
           send_to_char(ch, "  [%5d] %s (Put in another object [%d Max])\r\n", lastroom_v,
                        world[lastroom_r].name, ZCMD2.arg2);
         break;
       case 'G': /* obj_to_char */
-        if (ZCMD2.arg1 == ornum)
+        if (ZCMD2.arg1 == (int)ornum)
           send_to_char(ch, "  [%5d] %s (Given to %s [%d][%d Max])\r\n", lastroom_v,
                        world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
                        mob_index[lastmob_r].vnum, ZCMD2.arg2);
         break;
       case 'E': /* object to equipment list */
-        if (ZCMD2.arg1 == ornum)
+        if (ZCMD2.arg1 == (int)ornum)
           send_to_char(ch, "  [%5d] %s (Equipped to %s [%d][%d Max])\r\n", lastroom_v,
                        world[lastroom_r].name, mob_proto[lastmob_r].player.short_descr,
                        mob_index[lastmob_r].vnum, ZCMD2.arg2);
@@ -6197,7 +6208,7 @@ static void obj_checkload(struct char_data *ch, obj_vnum ovnum)
       case 'R': /* rem obj from room */
         lastroom_v = world[ZCMD2.arg1].number;
         lastroom_r = ZCMD2.arg1;
-        if (ZCMD2.arg2 == ornum)
+        if (ZCMD2.arg2 == (int)ornum)
           send_to_char(ch, "  [%5d] %s (Removed from room)\r\n", lastroom_v,
                        world[lastroom_r].name);
         break;
@@ -6259,8 +6270,9 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
         lastroom_r = 0;
         lastobj_r = 0;
         lastmob_r = 0;
+        break;
       case 'T': /* trigger to something */
-        if (ZCMD2.arg2 != trnum)
+        if (ZCMD2.arg2 != (int)trnum)
           break;
         if (ZCMD2.arg1 == MOB_TRIGGER)
         {
@@ -6284,39 +6296,39 @@ static void trg_checkload(struct char_data *ch, trig_vnum tvnum)
     } /*for cmd_no......*/
   } /*for zone...*/
 
-  for (i = 0; i < top_of_mobt; i++)
+  for (i = 0; i <= top_of_mobt; i++)
   {
     if (!mob_proto[i].proto_script)
       continue;
 
     for (tpl = mob_proto[i].proto_script; tpl; tpl = tpl->next)
-      if (tpl->vnum == tvnum)
+      if (tpl->vnum == (int)tvnum)
       {
         send_to_char(ch, "mob [%5d] %s\r\n", mob_index[i].vnum, mob_proto[i].player.short_descr);
         found = 1;
       }
   }
 
-  for (j = 0; j < top_of_objt; j++)
+  for (j = 0; j <= top_of_objt; j++)
   {
     if (!obj_proto[j].proto_script)
       continue;
 
     for (tpl = obj_proto[j].proto_script; tpl; tpl = tpl->next)
-      if (tpl->vnum == tvnum)
+      if (tpl->vnum == (int)tvnum)
       {
         send_to_char(ch, "obj [%5d] %s\r\n", obj_index[j].vnum, obj_proto[j].short_description);
         found = 1;
       }
   }
 
-  for (k = 0; k < top_of_world; k++)
+  for (k = 0; k <= top_of_world; k++)
   {
     if (!world[k].proto_script)
       continue;
 
     for (tpl = world[k].proto_script; tpl; tpl = tpl->next)
-      if (tpl->vnum == tvnum)
+      if (tpl->vnum == (int)tvnum)
       {
         send_to_char(ch, "room[%5d] %s\r\n", world[k].number, world[k].name);
         found = 1;
@@ -7366,7 +7378,10 @@ ACMD(do_ai)
 
 ACMD(do_zpurge)
 {
-  int vroom, room, vzone = 0, zone = 0;
+  room_vnum vroom;
+  room_rnum room;
+  zone_vnum vzone = 0;
+  zone_rnum zone = 0;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   int purge_all = FALSE;
   one_argument(argument, arg, sizeof(arg));
@@ -7403,7 +7418,9 @@ ACMD(do_zpurge)
   {
     for (vroom = zone_table[zone].bot; vroom <= zone_table[zone].top; vroom++)
     {
-      purge_room(real_room(vroom));
+      room = real_room(vroom);
+      if (room != NOWHERE)
+        purge_room(room);
     }
     send_to_char(ch, "Purged zone #%d: %s.\r\n", zone_table[zone].number, zone_table[zone].name);
     mudlog(NRM, MAX(LVL_GRSTAFF, GET_INVIS_LEV(ch)), TRUE, "(GC) %s purged zone %d (%s)",
@@ -7922,7 +7939,7 @@ ACMD(do_zlock)
 
   /* Check the builder list */
   if (GET_LEVEL(ch) < LVL_GRSTAFF && !is_name(GET_NAME(ch), zone_table[zn].builders) &&
-      GET_OLC_ZONE(ch) != znvnum)
+      GET_OLC_ZONE(ch) != (int)znvnum)
   {
     send_to_char(ch, "You do not have sufficient access to lock that zone!\r\n");
     return;
@@ -8037,7 +8054,7 @@ ACMD(do_zunlock)
 
   /* Check the builder list */
   if (GET_LEVEL(ch) < LVL_GRSTAFF && !is_name(GET_NAME(ch), zone_table[zn].builders) &&
-      GET_OLC_ZONE(ch) != znvnum)
+      GET_OLC_ZONE(ch) != (int)znvnum)
   {
     send_to_char(ch, "You do not have sufficient access to unlock that zone!\r\n");
     return;
@@ -8296,7 +8313,11 @@ ACMD(do_objlist)
 {
   bool quest = FALSE;
 
-  int i, j, k, l, m;
+  zone_vnum requested_zone;
+  zone_rnum zone;
+  obj_vnum first, last, i;
+  obj_rnum object;
+  int m;
   char value[MAX_INPUT_LENGTH] = {'\0'};
   struct obj_data *obj;
   char buf[8192];
@@ -8308,28 +8329,32 @@ ACMD(do_objlist)
   one_argument(argument, value, sizeof(value));
 
   if (*value && is_number(value))
-    j = atoi(value);
+    requested_zone = atoi(value);
   else
-    j = zone_table[world[ch->in_room].zone].number;
-  // j *= 100;
-  if (real_zone(j) == NOWHERE)
+    requested_zone = zone_table[world[ch->in_room].zone].number;
+
+  zone = real_zone(requested_zone);
+  if (zone == NOWHERE)
   {
-    snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", j);
+    snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n",
+             (int)requested_zone);
     send_to_char(ch, "%s", buf);
     return;
   }
-  k = real_zone(j);
-  k = zone_table[k].top;
-  snprintf(buf, sizeof(buf), "Detailed Object list : From %d to %d\r\n", j, k);
-  for (i = j; i <= k; i++)
+
+  first = zone_table[zone].bot;
+  last = zone_table[zone].top;
+  snprintf(buf, sizeof(buf), "Detailed Object list : From %d to %d\r\n", (int)first, (int)last);
+  for (i = first; i <= last; i++)
   {
-    if ((l = real_object(i)) != NOWHERE)
+    object = real_object(i);
+    if (object != NOTHING)
     {
-      obj = &obj_proto[l];
+      obj = &obj_proto[object];
 
       quest = is_object_in_a_quest(obj);
 
-      snprintf(tmp_buf, sizeof(tmp_buf), "[%5d] %s   %s\r\n", i, obj->short_description,
+      snprintf(tmp_buf, sizeof(tmp_buf), "[%5d] %s   %s\r\n", (int)i, obj->short_description,
                (quest ? "(\tcUsed in Quests\tn)" : ""));
       strlcat(buf, tmp_buf, sizeof(buf));
       switch (GET_OBJ_TYPE(obj))
@@ -8397,7 +8422,8 @@ ACMD(do_hlqlist)
   mob_vnum bottom = NOBODY, top = NOBODY;
   mob_rnum realnum = 0;
   int temp_num = 0, num_found = 0;
-  int i = 0, len = 0;
+  mob_vnum i = 0;
+  int len = 0;
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf1[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
@@ -8443,7 +8469,7 @@ ACMD(do_hlqlist)
     }
   }
 
-  if (bottom >= NOWHERE || top >= NOWHERE)
+  if (bottom == NOBODY || top == NOBODY)
   {
     send_to_char(ch, "Invalid values!\r\n");
     return;
@@ -8482,7 +8508,7 @@ ACMD(do_hlqlist)
                         mob_proto[realnum].player.short_descr, temp_num, num_found);
 
         /* Large buf can't hold that much memory so cut off list */
-        if (len > sizeof(buf))
+        if ((size_t)len >= sizeof(buf))
           break;
       }
       else
@@ -8543,6 +8569,7 @@ ACMD(do_genriver)
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   const char *name = NULL;
   int dir = 0;
+  long parsed_vnum;
   region_vnum vnum;
 
   /* genreiver north 100011 FooBar River
@@ -8589,14 +8616,14 @@ ACMD(do_genriver)
     return;
   }
 
-  vnum = atoi(arg2);
-
   /* tested upper limited -zusuk */
-  if (vnum < 0 || vnum > 1215752191)
+  parsed_vnum = strtol(arg2, NULL, 10);
+  if (!is_number(arg2) || parsed_vnum < 0 || parsed_vnum > 1215752191)
   {
     send_to_char(ch, "Invalid VNum.\r\n");
     return;
   }
+  vnum = (region_vnum)parsed_vnum;
 
   generate_river(ch, dir, vnum, name);
   load_paths();
@@ -8607,6 +8634,7 @@ ACMD(do_genriver)
 ACMD(do_deletepath)
 {
   char arg1[MAX_STRING_LENGTH] = {'\0'};
+  long parsed_vnum;
   region_vnum vnum;
 
   one_argument(argument, arg1, sizeof(arg1));
@@ -8618,13 +8646,13 @@ ACMD(do_deletepath)
     return;
   }
 
-  vnum = atoi(arg1);
-
-  if (vnum < 0 || vnum > 1215752191)
+  parsed_vnum = strtol(arg1, NULL, 10);
+  if (!is_number(arg1) || parsed_vnum < 0 || parsed_vnum > 1215752191)
   {
     send_to_char(ch, "\tnInvalid VNum.\r\n");
     return;
   }
+  vnum = (region_vnum)parsed_vnum;
 
   if (delete_path(vnum))
   {
@@ -8645,6 +8673,7 @@ ACMD(do_genmap)
   char arg2[MAX_STRING_LENGTH] = {'\0'};
   const char *name = NULL;
   int dir = 0;
+  long parsed_vnum;
   region_vnum vnum;
 
   /* genmap north 100011 FooBar River
@@ -8691,14 +8720,14 @@ ACMD(do_genmap)
     return;
   }
 
-  vnum = atoi(arg2);
-
   /* tested upper limited -zusuk */
-  if (vnum < 0 || vnum > 1215752191)
+  parsed_vnum = strtol(arg2, NULL, 10);
+  if (!is_number(arg2) || parsed_vnum < 0 || parsed_vnum > 1215752191)
   {
     send_to_char(ch, "Invalid VNum.\r\n");
     return;
   }
+  vnum = (region_vnum)parsed_vnum;
 
   /*debug*/ send_to_char(ch, "Debug- dir: %d, vnum: %d, name: %s\r\n", dir, vnum, name);
 
@@ -8730,7 +8759,8 @@ ACMD(do_analyze_world)
  * AC system.  ONLY USE THIS ONE TIME! */
 ACMD(do_acconvert)
 {
-  int num, found = 0, total = 0;
+  obj_rnum num;
+  int found = 0, total = 0;
 
   for (num = 0; num <= top_of_objt; num++)
   {
@@ -8762,7 +8792,8 @@ ACMD(do_oconvert)
   // struct object_data *obj = NULL;
   int i = 0, j = 0;
   int hitroll = 0, damroll = 0;
-  int num, found = 0, total = 0;
+  obj_rnum num;
+  int found = 0, total = 0;
   // obj_vnum ov;
   // char buf[MAX_STRING_LENGTH] = {'\0'};
 
@@ -9452,13 +9483,13 @@ ACMD(do_eqrating)
   {
     zone = atoi(arg2);
 
-    for (i = 0; i <= top_of_zone_table; i++)
+    for (i = 0; i <= (int)top_of_zone_table; i++)
     {
       if (zone_table[i].number == zone) /* found a matching zone? */
         break;
     }
 
-    if (i <= 0 || i > top_of_zone_table)
+    if (i <= 0 || i > (int)top_of_zone_table)
     {
       send_to_char(ch, "Zone %d does not exist.\r\n", zone);
       return;
@@ -9469,14 +9500,14 @@ ACMD(do_eqrating)
   }
 
   /* allocate memory for our tables */
-  CREATE(index, int, top_of_objt);
-  CREATE(score, int, top_of_objt);
+  CREATE(index, int, (size_t)top_of_objt + 1);
+  CREATE(score, int, (size_t)top_of_objt + 1);
 
   /* Create tables of eq worn at that slot, with rating */
 
   /* the table index is going to be "j", the object real-num "i" will be
    * stored in the index-table along with the score in the score-table */
-  for (i = 0; i <= top_of_objt; i++)
+  for (i = 0; i <= (int)top_of_objt; i++)
   {
     if (IS_SET_AR(obj_proto[i].obj_flags.wear_flags, wearloc))
     {
@@ -9664,7 +9695,8 @@ ACMD(do_coordconvert)
 ACMD(do_findmagic)
 {
   char spellname[MAX_INPUT_LENGTH] = {'\0'}, objname[MAX_INPUT_LENGTH] = {'\0'};
-  int spellnum, hits = 0, r_num, num;
+  int spellnum, hits = 0;
+  obj_rnum r_num, num;
   struct obj_data *obj;
 
   half_chop_c(argument, objname, sizeof(objname), spellname, sizeof(spellname));
@@ -9814,7 +9846,7 @@ ACMD(do_unbind)
     return;
   }
 
-  if (GET_OBJ_BOUND_ID(obj) == NOBODY)
+  if (GET_OBJ_BOUND_ID(obj) == (int)NOBODY)
   {
     send_to_char(ch, "But, the %s@n is not bound to anyone!\r\n", obj->short_description);
     return;
@@ -9866,7 +9898,7 @@ ACMD(do_obind)
     return;
   }
 
-  if (GET_OBJ_BOUND_ID(obj) != NOBODY)
+  if (GET_OBJ_BOUND_ID(obj) != (int)NOBODY)
   {
     if (GET_OBJ_BOUND_ID(obj) == GET_IDNUM(vict))
     {
@@ -10013,9 +10045,12 @@ ACMDU(do_plist) {
 /* do_finddoor, finds the door(s) that a key goes to */
 ACMD(do_finddoor)
 {
-  int d, vnum = NOTHING, num = 0;
-  size_t len, nlen;
+  int d, nlen, num = 0;
+  long parsed_vnum;
+  size_t len;
   room_rnum i;
+  obj_rnum rnum;
+  obj_vnum vnum = NOTHING;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
   char buf[MAX_STRING_LENGTH] = {0};
   struct char_data *tmp_char;
@@ -10033,15 +10068,25 @@ ACMD(do_finddoor)
   }
   else if (is_number(arg))
   {
-    vnum = atoi(arg);
-    obj = &obj_proto[real_object(vnum)];
+    parsed_vnum = strtol(arg, NULL, 10);
+    if (parsed_vnum < 0 || parsed_vnum > (long)IDXTYPE_MAX ||
+        (rnum = real_object((obj_vnum)parsed_vnum)) == NOTHING)
+    {
+      send_to_char(ch, "No key with that VNum exists.\r\n");
+      return;
+    }
+    vnum = (obj_vnum)parsed_vnum;
+    obj = &obj_proto[rnum];
   }
   else
   {
     generic_find(arg, FIND_OBJ_INV | FIND_OBJ_ROOM | FIND_OBJ_WORLD | FIND_OBJ_EQUIP, ch, &tmp_char,
                  &obj);
     if (!obj)
+    {
       send_to_char(ch, "What key do you want to find a door for?\r\n");
+      return;
+    }
     else
       vnum = GET_OBJ_VNUM(obj);
   }
@@ -10059,7 +10104,7 @@ ACMD(do_finddoor)
         {
           nlen = snprintf(buf + len, sizeof(buf) - len, "[%3d] Room %d, %s (%s)\r\n", ++num,
                           world[i].number, dirs[d], world[i].dir_option[d]->keyword);
-          if (len + nlen >= sizeof(buf) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf) - len)
             break;
           len += nlen;
         }
@@ -10135,42 +10180,70 @@ ACMD(do_players)
 
 ACMD(do_copyroom)
 {
+  room_vnum source_vnum;
+  room_rnum source_room, target_room;
+  char *new_name, *new_description;
+
   skip_spaces_c(&argument);
-
-  int i = 0;
-
   if (!*argument)
   {
     send_to_char(ch, "You need to specify the source room vnum.\r\n");
     return;
   }
 
-  for (i = 0; i < top_of_world; i++)
+  if (!is_number(argument))
   {
-    if (GET_ROOM_VNUM(i) == atoi(argument))
-      break;
+    send_to_char(ch, "The source room vnum must be a positive number.\r\n");
+    return;
   }
 
-  if (i >= top_of_world)
+  source_vnum = atoidx(argument);
+  if (source_vnum == NOWHERE)
+  {
+    send_to_char(ch, "The source room vnum is out of range.\r\n");
+    return;
+  }
+
+  source_room = real_room(source_vnum);
+  if (source_room == NOWHERE)
   {
     send_to_char(ch, "That room vnum doesn't exist. You need to specify the source room vnum.\r\n");
     return;
   }
 
-  world[IN_ROOM(ch)].sector_type = world[i].sector_type;
-  world[IN_ROOM(ch)].name = world[i].name;
-  world[IN_ROOM(ch)].description = world[i].description;
-  world[IN_ROOM(ch)].room_flags[0] = world[i].room_flags[0];
-  world[IN_ROOM(ch)].room_flags[1] = world[i].room_flags[1];
-  world[IN_ROOM(ch)].room_flags[2] = world[i].room_flags[2];
-  world[IN_ROOM(ch)].room_flags[3] = world[i].room_flags[3];
+  target_room = IN_ROOM(ch);
+  if (source_room == target_room)
+  {
+    send_to_char(ch, "That is already the room you are standing in.\r\n");
+    return;
+  }
+
+  new_name = strdup(world[source_room].name ? world[source_room].name : "An Unnamed Room");
+  new_description =
+      strdup(world[source_room].description ? world[source_room].description : "Nothing.\r\n");
+  if (!new_name || !new_description)
+  {
+    free(new_name);
+    free(new_description);
+    log("SYSERR: do_copyroom: unable to duplicate room text");
+    send_to_char(ch, "The room could not be copied due to an allocation failure.\r\n");
+    return;
+  }
+
+  free(world[target_room].name);
+  free(world[target_room].description);
+  world[target_room].name = new_name;
+  world[target_room].description = new_description;
+  world[target_room].sector_type = world[source_room].sector_type;
+  memcpy(world[target_room].room_flags, world[source_room].room_flags,
+         sizeof(world[target_room].room_flags));
 
   send_to_char(ch,
                "You have copied this room with the name, description, sector and room flags of "
                "room vnum %d.\r\n",
-               GET_ROOM_VNUM(i));
+               GET_ROOM_VNUM(source_room));
 
-  add_to_save_list(zone_table[world[IN_ROOM(ch)].zone].number, SL_WLD);
+  add_to_save_list(zone_table[world[target_room].zone].number, SL_WLD);
 }
 
 void check_auto_shutdown(void)
@@ -10644,13 +10717,13 @@ ACMDU(do_setworldsect)
   char buf[200];
   char arg[200];
   sprintf(arg, "%s", argument);
-  for (j = 0; j < strlen(arg); j++)
+  for (j = 0; (size_t)j < strlen(arg); j++)
     arg[j] = tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
     sprintf(buf, "%s", sector_types[i]);
-    for (j = 0; j < strlen(buf); j++)
+    for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
@@ -10696,13 +10769,13 @@ ACMDU(do_setroomsect)
   char buf[200];
   char arg[200];
   sprintf(arg, "%s", argument);
-  for (j = 0; j < strlen(arg); j++)
+  for (j = 0; (size_t)j < strlen(arg); j++)
     arg[j] = tolower(arg[j]);
 
   for (i = 0; i < NUM_ROOM_SECTORS; i++)
   {
     sprintf(buf, "%s", sector_types[i]);
-    for (j = 0; j < strlen(buf); j++)
+    for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
@@ -10753,7 +10826,7 @@ ACMDU(do_setroomflag)
   char buf[200];
   char arg[200];
   sprintf(arg, "%s", argument);
-  for (j = 0; j < strlen(arg); j++)
+  for (j = 0; (size_t)j < strlen(arg); j++)
   {
     arg[j] = tolower(arg[j]);
   }
@@ -10761,7 +10834,7 @@ ACMDU(do_setroomflag)
   for (i = 0; i < NUM_ROOM_FLAGS; i++)
   {
     sprintf(buf, "%s", room_bits[i]);
-    for (j = 0; j < strlen(buf); j++)
+    for (j = 0; (size_t)j < strlen(buf); j++)
       buf[j] = tolower(buf[j]);
     if (is_abbrev(arg, buf))
       break;
@@ -10842,7 +10915,7 @@ ACMD(do_save_objects_to_database)
 
 ACMD(do_save_everything)
 {
-  int i = 0;
+  zone_rnum i = 0;
   send_to_char(ch, "You are now saving every zone.\r\n");
   for (i = 0; i <= top_of_zone_table; i++)
   {
@@ -10861,10 +10934,13 @@ ACMD(do_save_everything)
 /* Check object index integrity */
 ACMD(do_objcheck)
 {
-  int i, errors = 0, warnings = 0;
+  obj_rnum i;
+  int errors = 0, warnings = 0;
   struct obj_data *obj;
-  int actual_count[65536]; /* Assuming max objects < 65536 */
+  int *actual_count;
   char buf[MAX_STRING_LENGTH];
+
+  CREATE(actual_count, int, (size_t)top_of_objt + 1);
 
   /* Initialize counts */
   for (i = 0; i <= top_of_objt; i++)
@@ -10875,7 +10951,7 @@ ACMD(do_objcheck)
   /* Count all objects in game */
   for (obj = object_list; obj; obj = obj->next)
   {
-    if (GET_OBJ_RNUM(obj) >= 0 && GET_OBJ_RNUM(obj) <= top_of_objt)
+    if (GET_OBJ_RNUM(obj) != NOTHING && GET_OBJ_RNUM(obj) <= top_of_objt)
     {
       actual_count[GET_OBJ_RNUM(obj)]++;
     }
@@ -10926,6 +11002,8 @@ ACMD(do_objcheck)
     mudlog(BRF, LVL_IMMORT, TRUE, "OBJCHECK: %s found and fixed %d object count errors",
            GET_NAME(ch), errors);
   }
+
+  free(actual_count);
 }
 
 /* Resource System Admin Command */

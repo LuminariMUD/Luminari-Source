@@ -25,7 +25,7 @@
  * Begin event structures and defines.
  **************************************************************************/
 /** All Functions handled by the event system must be of this format. */
-#define EVENTFUNC(name) long(name)(void *event_obj)
+#define EVENTFUNC(name) long(name)(void *event_obj __attribute__((unused)))
 
 /** The event structure. Events get attached to the queue and are executed
  * when their turn comes up in the queue. */

@@ -408,7 +408,7 @@ char *current_short_desc(struct char_data *ch)
 
   snprintf(final, sizeof(final), "%s%s%s", desc, adj1, adj2);
 
-  for (i = 0; i < strlen(final); i++)
+  for (i = 0; (size_t)i < strlen(final); i++)
     final[i] = tolower((unsigned char) final[i]);
 
   return strdup(final);
@@ -697,7 +697,7 @@ int count_adjective_types(int which_desc)
   return i;
 }
 
-void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg)
+void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg __attribute__((unused)))
 {
   int changeStateTo = STATE(d);
   SEND_TO_Q("Current short description: \tW", d);
@@ -811,7 +811,7 @@ void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
   STATE(d) = changeStateTo;
 }
 
-void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg)
+void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg __attribute__((unused)))
 {
   int changeStateTo = STATE(d);
 

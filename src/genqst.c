@@ -235,7 +235,8 @@ int save_quests(zone_rnum zone_num)
   char quest_desc[MAX_STRING_LENGTH] = {'\0'}, quest_info[MAX_STRING_LENGTH] = {'\0'};
   char quest_done[MAX_STRING_LENGTH] = {'\0'}, quest_quit[MAX_STRING_LENGTH] = {'\0'};
   char quest_kill_list[MAX_STRING_LENGTH] = {'\0'};
-  int i, num_quests = 0;
+  qst_vnum i;
+  int num_quests = 0;
 
 #if CIRCLE_UNSIGNED_INDEX
   if (zone_num == NOWHERE || zone_num > top_of_zone_table)
@@ -294,16 +295,16 @@ int save_quests(zone_rnum zone_num)
               "D\n"
               "%d %d %d %d\n"
               "S\n",
-              QST_TYPE(rnum), QST_MASTER(rnum) == NOBODY ? -1 : QST_MASTER(rnum), quest_flags,
-              QST_TARGET(rnum) == NOTHING ? -1 : QST_TARGET(rnum),
-              QST_PREV(rnum) == NOTHING ? -1 : QST_PREV(rnum),
-              QST_NEXT(rnum) == NOTHING ? -1 : QST_NEXT(rnum),
-              QST_PREREQ(rnum) == NOTHING ? -1 : QST_PREREQ(rnum), QST_POINTS(rnum),
+              QST_TYPE(rnum), QST_MASTER(rnum) == NOBODY ? -1 : (int)QST_MASTER(rnum), quest_flags,
+              QST_TARGET(rnum) == (int)NOTHING ? -1 : QST_TARGET(rnum),
+              QST_PREV(rnum) == NOTHING ? -1 : (int)QST_PREV(rnum),
+              QST_NEXT(rnum) == NOTHING ? -1 : (int)QST_NEXT(rnum),
+              QST_PREREQ(rnum) == NOTHING ? -1 : (int)QST_PREREQ(rnum), QST_POINTS(rnum),
               QST_PENALTY(rnum), QST_MINLEVEL(rnum), QST_MAXLEVEL(rnum), QST_TIME(rnum),
-              QST_RETURNMOB(rnum) == NOBODY ? -1 : QST_RETURNMOB(rnum), QST_QUANTITY(rnum),
-              QST_GOLD(rnum), QST_EXP(rnum), QST_OBJ(rnum), QST_RACE(rnum), QST_COORD_X(rnum),
+              QST_RETURNMOB(rnum) == (int)NOBODY ? -1 : QST_RETURNMOB(rnum), QST_QUANTITY(rnum),
+              QST_GOLD(rnum), QST_EXP(rnum), (int)QST_OBJ(rnum), QST_RACE(rnum), QST_COORD_X(rnum),
               QST_COORD_Y(rnum), QST_FOLLOWER(rnum), QST_DIPLM(rnum), QST_INTIM(rnum),
-              QST_BLUFF(rnum), QST_DIAGN(rnum));
+              QST_BLUFF(rnum), (int)QST_DIAGN(rnum));
 
       num_quests++;
     }

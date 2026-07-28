@@ -525,7 +525,8 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
 {
   int i = 0, slot = 0, sinfo = 0;
   int bottom = 0, top = 0;
-  size_t len = 0, nlen = 0;
+  size_t len = 0;
+  int nlen = 0;
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   char cname[100];
   const char *overflow = "\r\n**OVERFLOW**\r\n";
@@ -594,7 +595,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -611,7 +612,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -620,7 +621,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -635,7 +636,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -652,7 +653,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -661,7 +662,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -676,7 +677,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -693,7 +694,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -702,7 +703,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -717,7 +718,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -734,7 +735,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -743,7 +744,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -759,7 +760,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -776,7 +777,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -785,7 +786,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -800,7 +801,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -817,7 +818,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -826,7 +827,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -842,7 +843,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -859,7 +860,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -868,7 +869,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -887,7 +888,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -904,7 +905,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -913,7 +914,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -932,7 +933,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (!header_added)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%s", header_buf);
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -949,7 +950,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-20s %2dbst  ", spell_info[i].name,
                             spell_info[i].time);
           }
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           {
             break;
           }
@@ -958,7 +959,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
           if (col == 3)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             {
               break;
             }
@@ -971,7 +972,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       if (header_added && col != 0)
       {
         nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-        if (len + nlen >= sizeof(buf2) || nlen < 0)
+        if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
         {
           break;
         }
@@ -997,7 +998,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       nlen =
           snprintf(buf2 + len, sizeof(buf2) - len, "\r\n\tC%s Circle Level %d\tn\r\n",
                    is_psionic ? "Power" : (class == CLASS_ALCHEMIST ? "Extract" : "Spell"), slot);
-      if (len + nlen >= sizeof(buf2) || nlen < 0)
+      if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
         break;
       len += nlen;
 
@@ -1016,14 +1017,14 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
         {
           nlen = snprintf(buf2 + len, sizeof(buf2) - len, "%-30s %-15s  ", spell_info[i].name,
                           school_names_specific[spell_info[i].schoolOfMagic]);
-          if (len + nlen >= sizeof(buf2) || nlen < 0)
+          if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
             break;
           len += nlen;
           col++;
           if (col == 2)
           {
             nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-            if (len + nlen >= sizeof(buf2) || nlen < 0)
+            if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
               break;
             len += nlen;
             col = 0;
@@ -1033,7 +1034,7 @@ void list_spells(struct char_data *ch, int mode, int class, int circle)
       if (col != 0)
       {
         nlen = snprintf(buf2 + len, sizeof(buf2) - len, "\r\n");
-        if (len + nlen >= sizeof(buf2) || nlen < 0)
+        if (nlen < 0 || (size_t)nlen >= sizeof(buf2) - len)
           break;
         len += nlen;
       }
@@ -2451,8 +2452,8 @@ bool yan_yell(struct char_data *ch)
   struct char_data *i;
   struct char_data *vict;
   struct descriptor_data *d;
-  int room = 0;
-  int zone = world[ch->in_room].zone;
+  room_rnum room = 0;
+  zone_rnum zone = world[ch->in_room].zone;
   room_rnum start = 0;
   room_rnum end = 0;
   vict = FIGHTING(ch);
@@ -2466,6 +2467,7 @@ bool yan_yell(struct char_data *ch)
     for (d = descriptor_list; d; d = d->next)
     {
       if (STATE(d) == CON_PLAYING && d->character != NULL &&
+          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
           zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tcYan-C-Bin the Master of Evil Air\tw shouts, '\tcI "
@@ -2476,6 +2478,11 @@ bool yan_yell(struct char_data *ch)
 
   start = real_room(136100);
   end = real_room(136224);
+  if (start == NOWHERE || end == NOWHERE || start > end)
+  {
+    log("SYSERR: yan_yell could not resolve its reinforcement room range.");
+    return FALSE;
+  }
 
   for (room = start; room <= end; room++)
   {
@@ -2611,7 +2618,7 @@ bool chan_yell(struct char_data *ch)
   struct char_data *vict;
   struct descriptor_data *d;
   room_rnum room = 0;
-  int zone = world[ch->in_room].zone;
+  zone_rnum zone = world[ch->in_room].zone;
   room_rnum start = 0;
   room_rnum end = 0;
 
@@ -2625,6 +2632,7 @@ bool chan_yell(struct char_data *ch)
     for (d = descriptor_list; d; d = d->next)
     {
       if (STATE(d) == CON_PLAYING && d->character != NULL &&
+          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
           zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI "
@@ -2635,6 +2643,11 @@ bool chan_yell(struct char_data *ch)
 
   start = real_room(136100);
   end = real_room(136224);
+  if (start == NOWHERE || end == NOWHERE || start > end)
+  {
+    log("SYSERR: chan_yell could not resolve its reinforcement room range.");
+    return FALSE;
+  }
 
   for (room = start; room <= end; room++)
   {
@@ -3230,7 +3243,7 @@ SPECIAL(ogremoch)
   struct char_data *vict;
   struct descriptor_data *d;
   room_rnum room = 0;
-  int zone = world[ch->in_room].zone;
+  zone_rnum zone = world[ch->in_room].zone;
   room_rnum start = 0;
   room_rnum end = 0;
 
@@ -3250,6 +3263,7 @@ SPECIAL(ogremoch)
     for (d = descriptor_list; d; d = d->next)
     {
       if (STATE(d) == CON_PLAYING && d->character != NULL &&
+          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
           zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tLOgremoch \tw shouts, '\tLI have been "
@@ -3260,6 +3274,11 @@ SPECIAL(ogremoch)
 
   start = real_room(136700);
   end = real_room(136802);
+  if (start == NOWHERE || end == NOWHERE || start > end)
+  {
+    log("SYSERR: ogremoch could not resolve its reinforcement room range.");
+    return FALSE;
+  }
 
   for (room = start; room <= end; room++)
   {
@@ -6669,19 +6688,26 @@ int ship_info[NUM_OF_SHIPS][4] = {
     {120013, 120010, 120036, 120040},
 };
 
-struct obj_data *find_ship(int room)
+struct obj_data *find_ship(room_rnum room)
 {
   int i, j;
+  room_rnum ship_room;
+  room_rnum route_room;
   struct obj_data *obj;
+
   for (i = 0; i < NUM_OF_SHIPS; i++)
   {
-    if (room == real_room(ship_info[i][0]))
+    ship_room = real_room(ship_info[i][0]);
+    if (ship_room != NOWHERE && room == ship_room)
     {
       for (j = ship_info[i][2]; j <= ship_info[i][3]; j++)
       {
-        for (obj = world[real_room(j)].contents; obj; obj = obj->next_content)
+        route_room = real_room(j);
+        if (route_room == NOWHERE)
+          continue;
+        for (obj = world[route_room].contents; obj; obj = obj->next_content)
         {
-          if (GET_OBJ_VNUM(obj) == ship_info[i][1])
+          if (GET_OBJ_VNUM(obj) == (obj_vnum)ship_info[i][1])
             return obj;
         }
       }
@@ -6693,12 +6719,13 @@ struct obj_data *find_ship(int room)
 
 void move_ship(struct obj_data *ship, int dir)
 {
-  int new_room = 0;
-  const char *msg = 0;
+  room_rnum new_room;
+  room_rnum ship_room;
+  const char *msg = NULL;
   int i;
   char buf2[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (dir < 0 || dir >= 6)
+  if (!ship || ship->in_room == NOWHERE || ship->in_room > top_of_world || dir < 0 || dir >= 6)
     return;
 
   if (!world[ship->in_room].dir_option[dir])
@@ -6706,7 +6733,7 @@ void move_ship(struct obj_data *ship, int dir)
 
   new_room = world[ship->in_room].dir_option[dir]->to_room;
 
-  if (new_room == 0)
+  if (new_room == NOWHERE || new_room > top_of_world)
     return;
 
   snprintf(buf2, sizeof(buf2), "$p floats %s.", dirs[dir]);
@@ -6722,11 +6749,14 @@ void move_ship(struct obj_data *ship, int dir)
 
   for (i = 0; i < NUM_OF_SHIPS; i++)
   {
-    if (GET_OBJ_VNUM(ship) == ship_info[i][1])
+    if (GET_OBJ_VNUM(ship) == (obj_vnum)ship_info[i][1])
     {
-      send_to_room(real_room(ship_info[i][0]), "%s", buf2);
+      ship_room = real_room(ship_info[i][0]);
+      if (ship_room == NOWHERE)
+        continue;
+      send_to_room(ship_room, "%s", buf2);
       if (msg)
-        send_to_room(real_room(ship_info[i][0]), "%s", msg);
+        send_to_room(ship_room, "%s", msg);
     }
   }
 
@@ -6737,12 +6767,18 @@ void move_ship(struct obj_data *ship, int dir)
 // use timer for count.
 // weight is wether towards start or end.
 
-void update_ship(struct obj_data *ship, int start, int end, int movedelay, int waitdelay)
+void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int movedelay, int waitdelay)
 {
-  int dest = real_room(end);
+  room_rnum dest = real_room(end);
 
   if (!ship->obj_flags.weight)
     dest = real_room(start);
+
+  if (dest == NOWHERE)
+  {
+    log("SYSERR: update_ship could not resolve destination room.");
+    return;
+  }
 
   ship->obj_flags.timer--;
 
@@ -8245,8 +8281,8 @@ SPECIAL(tyrantseye)
         call_magic(ch, i, 0, SPELL_CURSE, 0, 30, CAST_WEAPON_SPELL);
         call_magic(ch, i, 0, SPELL_POISON, 0, 30, CAST_WEAPON_SPELL);
       }
-      return TRUE;
     }
+    return TRUE;
   default:
     return FALSE;
   }
@@ -10282,7 +10318,7 @@ SPECIAL(clanportal)
 
   iPlayerClan = GET_CLAN(ch);
 
-  if (iPlayerClan == NO_CLAN)
+  if (iPlayerClan == (int)NO_CLAN)
   {
     send_to_char(ch, "You try to enter the portal, but it returns you back to the same room!\n\r");
     return TRUE;
@@ -11055,7 +11091,7 @@ void set_magical_obj_name(struct obj_data *obj, int level)
   if (GET_OBJ_TYPE(obj) == ITEM_WEAPON)
   {
     snprintf(buf, sizeof(buf), "%s", weapon_list[GET_OBJ_VAL(obj, 0)].name);
-    for (i = 0; i < strlen(buf); i++)
+    for (i = 0; (size_t)i < strlen(buf); i++)
       if (buf[i] == ' ')
         buf[i] = '-';
     char res_buf[128];
@@ -12023,7 +12059,7 @@ SPECIAL(replace_quest_item)
           obj = read_object(QST_OBJ(rnum), VIRTUAL);
           if (obj)
           {
-            if (atoi(arg1) == QST_NUM(rnum))
+            if (atoidx(arg1) == QST_NUM(rnum))
             {
               counter++;
               obj_to_char(obj, ch);

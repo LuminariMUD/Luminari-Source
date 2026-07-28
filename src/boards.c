@@ -192,7 +192,7 @@ SPECIAL(gen_board)
   {
     /* Enhanced error logging to help diagnose board issues */
     log("SYSERR: degenerate board! Character %s in room #%d, board obj #%d", GET_NAME(ch),
-        GET_ROOM_VNUM(IN_ROOM(ch)), board ? GET_OBJ_VNUM(board) : -1);
+        GET_ROOM_VNUM(IN_ROOM(ch)), board ? (int)GET_OBJ_VNUM(board) : -1);
 
     /* Log all configured boards for debugging */
     int i;
@@ -214,7 +214,7 @@ SPECIAL(gen_board)
     return (0);
 }
 
-int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
+int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board __attribute__((unused)))
 {
   time_t ct;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[32] = {'\0'};
@@ -393,7 +393,7 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
   return (1);
 }
 
-int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board)
+int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board __attribute__((unused)))
 {
   int ind, msg, slot_num;
   char number[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};

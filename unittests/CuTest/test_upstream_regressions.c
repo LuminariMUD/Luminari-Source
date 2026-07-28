@@ -29,6 +29,16 @@ void Test_upstream_random_generator_sequence(CuTest *tc)
   circle_srandom((unsigned long)time(NULL));
 }
 
+void Test_clan_armor_uses_builder_value_two(CuTest *tc)
+{
+  struct obj_data obj = {0};
+
+  GET_OBJ_VAL(&obj, 1) = 42;
+  GET_OBJ_VAL(&obj, 2) = 7;
+
+  CuAssertIntEquals(tc, 42, GET_OBJ_CLAN(&obj));
+}
+
 void Test_upstream_random_range_and_dice(CuTest *tc)
 {
   int i, value;

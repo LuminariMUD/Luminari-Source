@@ -45,7 +45,8 @@
     impl_##name##_(ch, argument, cmd, subcmd);                                                     \
     PERF_PROF_EXIT(pr_);                                                                           \
   }                                                                                                \
-  static void impl_##name##_(struct char_data *ch, const char *argument,                           \
+  static void impl_##name##_(struct char_data *ch __attribute__((unused)),                         \
+                             const char *argument __attribute__((unused)),                         \
                              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* "unsafe" version of ACMD. Commands that still require non const argument due to using
@@ -67,7 +68,8 @@
     }                                                                                              \
     PERF_PROF_EXIT(pr_);                                                                           \
   }                                                                                                \
-  static void impl_##name##_(struct char_data *ch, char *argument,                                 \
+  static void impl_##name##_(struct char_data *ch __attribute__((unused)),                         \
+                             char *argument __attribute__((unused)),                               \
                              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /** Definition of the helper function for checking if a command can be used.
@@ -78,7 +80,8 @@
  *   1 if the character lacks prerequsites
  *   2 if the character would normally be able to use the command, but temporarily can't.
  */
-#define ACMDCHECK(name) int name(struct char_data *ch, bool show_error)
+#define ACMDCHECK(name)                                                                            \
+  int name(struct char_data *ch __attribute__((unused)), bool show_error __attribute__((unused)))
 #define ACMD_ERRORMSG(error)                                                                       \
   if (show_error == true)                                                                          \
     send_to_char(ch, error);
@@ -901,7 +904,8 @@ void char_from_furniture(struct char_data *ch);
 #ifndef VALID_ROOM_RNUM
 #if CIRCLE_UNSIGNED_INDEX
 /* For unsigned types, no need to check >= 0 */
-#define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) <= top_of_world)
+#define VALID_ROOM_RNUM(rnum)                                                                \
+  ((room_rnum)(rnum) != NOWHERE && (room_rnum)(rnum) <= top_of_world)
 #else
 /* For signed types, check >= 0 */
 #define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) <= top_of_world)
@@ -1914,6 +1918,9 @@ int ACTUAL_BAB(struct char_data *ch);
 
 /** Return value val for obj. */
 #define GET_OBJ_VAL(obj, val) ((obj)->obj_flags.value[(val)])
+
+/** Clan vnum assigned to ITEM_CLANARMOR objects (builder value 2). */
+#define GET_OBJ_CLAN(obj) ((clan_vnum)GET_OBJ_VAL((obj), 1))
 
 /** Object size */
 #define GET_OBJ_SIZE(obj) ((obj)->obj_flags.size)

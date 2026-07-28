@@ -1250,7 +1250,7 @@ int pubsub_db_save_metadata(int message_id, struct pubsub_message_metadata *meta
 }
 
 /* Save V3 custom fields to database */
-int pubsub_db_save_fields(int message_id, struct pubsub_message_fields *fields)
+int pubsub_db_save_fields(int message_id __attribute__((unused)), struct pubsub_message_fields *fields __attribute__((unused)))
 {
   /* TODO: Implement custom fields saving */
   /* This is a placeholder for the full fields implementation */

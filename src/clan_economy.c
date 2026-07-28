@@ -134,7 +134,7 @@ int apply_clan_shop_discount(int price, struct char_data *ch, int shop_nr)
 }
 
 /* Collect taxes on transactions */
-void collect_clan_transaction_tax(struct char_data *ch, int amount, int transaction_type)
+void collect_clan_transaction_tax(struct char_data *ch, int amount, int transaction_type __attribute__((unused)))
 {
   clan_rnum clan_r;
   int tax_amount;
@@ -237,7 +237,7 @@ void process_clan_investments(void)
                         (invest->amount * invest_returns[invest->type] * invest->duration / 100);
 
         /* Find clan and add returns */
-        for (clan_r = 0; clan_r < num_of_clans; clan_r++)
+        for (clan_r = 0; clan_r < (clan_rnum)num_of_clans; clan_r++)
         {
           /* This is simplified - in real implementation we'd track clan ownership */
           /* For now, just give to first clan as example */

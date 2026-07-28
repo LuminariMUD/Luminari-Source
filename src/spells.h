@@ -1712,8 +1712,10 @@ struct wall_information
 
 /* manual spell header info */
 #define ASPELL(spellname)                                                                          \
-  void spellname(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,  \
-                 int casttype)
+  void spellname(int level __attribute__((unused)),                                                \
+                 struct char_data *ch __attribute__((unused)),                                     \
+                 struct char_data *victim __attribute__((unused)),                                 \
+                 struct obj_data *obj __attribute__((unused)), int casttype __attribute__((unused)))
 
 #define MANUAL_SPELL(spellname) spellname(level, caster, cvict, ovict, casttype);
 

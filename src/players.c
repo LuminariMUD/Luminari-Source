@@ -38,6 +38,7 @@
 #include "oasis.h"
 #include "crafting_new.h"
 #include "resource_system.h"
+#include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -326,7 +327,7 @@ bool save_player_index_checked(void)
     if (player_table[i].name && *player_table[i].name)
     {
       sprintascii(bits, player_table[i].flags);
-      if (player_table[i].clan == NO_CLAN)
+      if (player_table[i].clan == (int)NO_CLAN)
       {
         if (fprintf(index_file, "%ld %s %d %s %ld\n", player_table[i].id, player_table[i].name,
                     player_table[i].level, *bits ? bits : "0", (long)player_table[i].last) < 0)
@@ -2035,24 +2036,22 @@ int load_char(const char *name, struct char_data *ch)
 
 /* Write the vital data of a player to the player file. */
 
+static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
+                                      const char *format, ...);
+
 /* Helper function for save_char to optimize string operations */
-static inline void buffer_write_string_field(char *buffer, size_t *buffer_used, size_t buffer_size,
-                                             const char *field_name, const char *field_value,
-                                             char *temp_buf, size_t temp_buf_size)
+static bool buffer_write_string_field(char **buffer, size_t *capacity, size_t *used,
+                                      const char *field_name, const char *field_value)
 {
   if (field_value && *field_value)
   {
     char stripped[MAX_STRING_LENGTH];
+
     strlcpy(stripped, field_value, sizeof(stripped));
     strip_cr(stripped);
-
-    int len = snprintf(temp_buf, temp_buf_size, "%s:\n%s~\n", field_name, stripped);
-    if (len > 0 && *buffer_used + len < buffer_size)
-    {
-      memcpy(buffer + *buffer_used, temp_buf, len);
-      *buffer_used += len;
-    }
+    return append_player_save_buffer(buffer, capacity, used, "%s:\n%s~\n", field_name, stripped);
   }
+  return true;
 }
 
 /* This is the ASCII Player Files save routine. */
@@ -2085,11 +2084,11 @@ static bool apply_clone_owner_identity(struct char_data *mob, const char *owner_
   }
 
   prototype_rnum = GET_MOB_RNUM(mob);
-  if (mob->player.name && !(mob_proto && prototype_rnum >= 0 && prototype_rnum <= top_of_mobt &&
+  if (mob->player.name && !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
                             mob->player.name == mob_proto[prototype_rnum].player.name))
     free(mob->player.name);
   if (mob->player.short_descr &&
-      !(mob_proto && prototype_rnum >= 0 && prototype_rnum <= top_of_mobt &&
+      !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
         mob->player.short_descr == mob_proto[prototype_rnum].player.short_descr))
     free(mob->player.short_descr);
   mob->player.name = name;
@@ -2103,6 +2102,58 @@ bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owne
   return apply_clone_owner_identity(mob, owner_name);
 }
 #endif
+
+static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *used,
+                                      const char *format, ...)
+{
+  va_list args;
+  va_list args_copy;
+  char *new_buffer;
+  size_t required, new_capacity;
+  int needed, written;
+
+  va_start(args, format);
+  va_copy(args_copy, args);
+  needed = vsnprintf(NULL, 0, format, args);
+  va_end(args);
+  if (needed < 0 || (size_t)needed > SIZE_MAX - *used - 1)
+  {
+    va_end(args_copy);
+    return false;
+  }
+
+  required = *used + (size_t)needed + 1;
+  if (required > *capacity)
+  {
+    new_capacity = *capacity;
+    while (new_capacity < required)
+    {
+      if (new_capacity > SIZE_MAX / 2)
+      {
+        new_capacity = required;
+        break;
+      }
+      new_capacity *= 2;
+    }
+
+    new_buffer = realloc(*buffer, new_capacity);
+    if (!new_buffer)
+    {
+      va_end(args_copy);
+      return false;
+    }
+    *buffer = new_buffer;
+    *capacity = new_capacity;
+  }
+
+  written = vsnprintf(*buffer + *used, *capacity - *used, format, args_copy);
+  va_end(args_copy);
+  if (written != needed)
+    return false;
+
+  *used += (size_t)written;
+  return true;
+}
 
 void save_char(struct char_data *ch, int mode)
 {
@@ -2122,7 +2173,6 @@ void save_char(struct char_data *ch, int mode)
   char *write_buffer = NULL;
   size_t buffer_size = 65536; /* 64KB initial buffer */
   size_t buffer_used = 0;
-  char temp_buf[2048]; /* Temporary buffer for sprintf operations */
 
   /* Performance timing */
   struct timeval start_time, end_time;
@@ -2143,25 +2193,23 @@ void save_char(struct char_data *ch, int mode)
 #define BUFFER_WRITE(...)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    int len = snprintf(temp_buf, sizeof(temp_buf), __VA_ARGS__);                                   \
-    if (len > 0)                                                                                   \
+    if (!append_player_save_buffer(&write_buffer, &buffer_size, &buffer_used, __VA_ARGS__))         \
     {                                                                                              \
-      if (buffer_used + len >= buffer_size)                                                        \
-      {                                                                                            \
-        /* Expand buffer if needed */                                                              \
-        size_t new_size = buffer_size * 2;                                                         \
-        char *new_buffer = realloc(write_buffer, new_size);                                        \
-        if (!new_buffer)                                                                           \
-        {                                                                                          \
-          log("SYSERR: save_char: Buffer realloc failed");                                         \
-          free(write_buffer);                                                                      \
-          return;                                                                                  \
-        }                                                                                          \
-        write_buffer = new_buffer;                                                                 \
-        buffer_size = new_size;                                                                    \
-      }                                                                                            \
-      memcpy(write_buffer + buffer_used, temp_buf, len);                                           \
-      buffer_used += len;                                                                          \
+      log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
+      free(write_buffer);                                                                          \
+      return;                                                                                      \
+    }                                                                                              \
+  } while (0)
+
+#define BUFFER_WRITE_STRING(field_name, field_value)                                               \
+  do                                                                                               \
+  {                                                                                                \
+    if (!buffer_write_string_field(&write_buffer, &buffer_size, &buffer_used, field_name,          \
+                                   field_value))                                                   \
+    {                                                                                              \
+      log("SYSERR: save_char: String buffer formatting or allocation failed");                     \
+      free(write_buffer);                                                                          \
+      return;                                                                                      \
     }                                                                                              \
   } while (0)
 
@@ -2299,20 +2347,13 @@ void save_char(struct char_data *ch, int mode)
   }
 
   /* Optimize string field writes */
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Desc", ch->player.description,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "BGrd", ch->player.background,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Goal", ch->player.goals,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Pers", ch->player.personality,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Idel", ch->player.ideals,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Bond", ch->player.bonds,
-                            temp_buf, sizeof(temp_buf));
-  buffer_write_string_field(write_buffer, &buffer_used, buffer_size, "Flaw", ch->player.flaws,
-                            temp_buf, sizeof(temp_buf));
+  BUFFER_WRITE_STRING("Desc", ch->player.description);
+  BUFFER_WRITE_STRING("BGrd", ch->player.background);
+  BUFFER_WRITE_STRING("Goal", ch->player.goals);
+  BUFFER_WRITE_STRING("Pers", ch->player.personality);
+  BUFFER_WRITE_STRING("Idel", ch->player.ideals);
+  BUFFER_WRITE_STRING("Bond", ch->player.bonds);
+  BUFFER_WRITE_STRING("Flaw", ch->player.flaws);
   if (BLASTING(ch))
     BUFFER_WRITE("Blst: 1\n");
   if (POOFIN(ch))
@@ -2742,7 +2783,7 @@ void save_char(struct char_data *ch, int mode)
   if (GET_PSIONIC_ENERGY_TYPE(ch) != PFDEF_PSIONIC_ENERGY_TYPE)
     BUFFER_WRITE("PsET: %d\n", GET_PSIONIC_ENERGY_TYPE(ch));
 
-  if (GET_OLC_ZONE(ch) != PFDEF_OLC)
+  if (GET_OLC_ZONE(ch) != (int)PFDEF_OLC)
     BUFFER_WRITE("Olc : %d\n", GET_OLC_ZONE(ch));
   if (GET_PAGE_LENGTH(ch) != PFDEF_PAGELENGTH)
     BUFFER_WRITE("Page: %d\n", GET_PAGE_LENGTH(ch));
@@ -2761,7 +2802,7 @@ void save_char(struct char_data *ch, int mode)
     BUFFER_WRITE("Qest:\n");
     for (i = 0; i < GET_NUM_QUESTS(ch); i++)
       BUFFER_WRITE("%d\n", ch->player_specials->saved.completed_quests[i]);
-    BUFFER_WRITE("%d\n", NOTHING);
+    BUFFER_WRITE("%d\n", (int)NOTHING);
   }
 
   /* Save introduction list */
@@ -2784,11 +2825,11 @@ void save_char(struct char_data *ch, int mode)
   if (GET_NSUPPLY_NUM_MADE(ch) != 0)
     BUFFER_WRITE("SpNM: %d\n", GET_NSUPPLY_NUM_MADE(ch));
 
-  if (GET_QUEST(ch, 0) != PFDEF_CURRQUEST)
+  if (GET_QUEST(ch, 0) != (int)PFDEF_CURRQUEST)
     BUFFER_WRITE("Qcur: %d\n", GET_QUEST(ch, 0));
-  if (GET_QUEST(ch, 1) != PFDEF_CURRQUEST)
+  if (GET_QUEST(ch, 1) != (int)PFDEF_CURRQUEST)
     BUFFER_WRITE("Qcu1: %d\n", GET_QUEST(ch, 1));
-  if (GET_QUEST(ch, 2) != PFDEF_CURRQUEST)
+  if (GET_QUEST(ch, 2) != (int)PFDEF_CURRQUEST)
     BUFFER_WRITE("Qcu2: %d\n", GET_QUEST(ch, 2));
   if (GET_QUEST_TIME(ch, 0) != 0)
     BUFFER_WRITE("Qtim: %d\n", GET_QUEST_TIME(ch, 0));
@@ -3898,6 +3939,7 @@ void save_char(struct char_data *ch, int mode)
   /* Free the write buffer */
   free(write_buffer);
 #undef BUFFER_WRITE
+#undef BUFFER_WRITE_STRING
 
   /* add affects, dr, etc back in */
 
@@ -5099,16 +5141,16 @@ static void load_events(FILE *fl, struct char_data *ch)
 
 void load_quests(FILE *fl, struct char_data *ch)
 {
-  int num = NOTHING;
+  int num = (int)NOTHING;
   char line[MAX_INPUT_LENGTH + 1];
 
   do
   {
     get_line(fl, line);
     sscanf(line, "%d", &num);
-    if (num != NOTHING)
+    if (num != (int)NOTHING)
       add_completed_quest(ch, num);
-  } while (num != NOTHING);
+  } while (num != (int)NOTHING);
 }
 
 /* Load introduction list */

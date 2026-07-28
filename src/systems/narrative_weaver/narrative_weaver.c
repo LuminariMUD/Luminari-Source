@@ -398,7 +398,7 @@ double parse_json_double_value(const char *json, const char *key)
   // Extract and convert
   char value_str[32];
   int len = end - start;
-  if (len >= sizeof(value_str))
+  if ((size_t)len >= sizeof(value_str))
     len = sizeof(value_str) - 1;
   strncpy(value_str, start, len);
   value_str[len] = '\0';
@@ -796,7 +796,7 @@ double calculate_regional_influence(int x, int y, int region_x, int region_y,
  * @param region_vnum Current region
  * @return Boundary proximity factor: 0.0 (center) to 1.0 (edge)
  */
-double detect_region_boundary_proximity(int x, int y, int region_vnum)
+double detect_region_boundary_proximity(int x, int y, int region_vnum __attribute__((unused)))
 {
   /* This is a simplified implementation - a full version would check actual region boundaries */
 
@@ -2105,7 +2105,7 @@ const char *get_time_of_day_category(void)
  * Extract narrative elements from regional hints for semantic integration
  */
 struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
-                                                      const char *weather, const char *time,
+                                                      const char *weather __attribute__((unused)), const char *time,
                                                       int region_vnum)
 {
   struct narrative_elements *elements;
@@ -3533,7 +3533,7 @@ char *load_region_characteristics(int region_vnum)
 /**
  * Intelligently weave hints into unified description with AI mood-based weighting
  */
-char *weave_unified_description(const char *base_description, struct region_hint *hints,
+char *weave_unified_description(const char *base_description __attribute__((unused)), struct region_hint *hints,
                                 const char *weather_condition, const char *time_category, int x,
                                 int y)
 {
@@ -3958,7 +3958,7 @@ char *weave_unified_description(const char *base_description, struct region_hint
  * Enhance base resource-aware description with regional hints
  * This implements the core vision: base descriptions + regional specificity
  */
-char *enhance_base_description_with_hints(char *base_description, struct char_data *ch,
+char *enhance_base_description_with_hints(char *base_description, struct char_data *ch __attribute__((unused)),
                                           zone_rnum zone, int x, int y)
 {
   struct region_list *regions = NULL;
@@ -3989,7 +3989,7 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
 
   while (curr_region)
   {
-    if (curr_region->rnum != NOWHERE && curr_region->rnum >= 0)
+    if (curr_region->rnum != NOWHERE)
     {
       int region_type = region_table[curr_region->rnum].region_type;
 
@@ -4464,7 +4464,7 @@ char *create_unified_wilderness_description(zone_rnum zone, int x, int y)
 
   while (curr_region)
   {
-    if (curr_region->rnum != NOWHERE && curr_region->rnum >= 0)
+    if (curr_region->rnum != NOWHERE)
     {
       int region_type = region_table[curr_region->rnum].region_type;
       log("DEBUG: Found region vnum %d (type %d) from region_table[%d]",
