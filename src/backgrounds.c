@@ -30,6 +30,120 @@ int backgrounds_listed_alphabetically[NUM_BACKGROUNDS] = {
     BACKGROUND_SAILOR,      BACKGROUND_SOLDIER,   BACKGROUND_SQUIRE,    BACKGROUND_TRADER,
     BACKGROUND_URCHIN};
 
+/*
+ * Stable presentation identity for each background.
+ *
+ * These values are deliberately keyed by the persistent background constant,
+ * not generated from the display name. The same wire value is accepted by
+ * the terminal parser and published to structured clients, so either surface
+ * reaches one authoritative selection path.
+ */
+struct background_identity
+{
+  const char *id;
+  const char *wire;
+  const char *media_key;
+};
+
+static const struct background_identity background_identities[NUM_BACKGROUNDS] = {
+    [BACKGROUND_NONE] = {"none", "none", "background/fallback"},
+    [BACKGROUND_ACOLYTE] = {"acolyte", "acolyte", "background/acolyte"},
+    [BACKGROUND_CHARLATAN] = {"charlatan", "charlatan", "background/charlatan"},
+    [BACKGROUND_CRIMINAL] = {"criminal-spy", "criminal-spy", "background/criminal-spy"},
+    [BACKGROUND_ENTERTAINER] = {"entertainer", "entertainer", "background/entertainer"},
+    [BACKGROUND_FOLK_HERO] = {"folk-hero", "folk-hero", "background/folk-hero"},
+    [BACKGROUND_GLADIATOR] = {"gladiator", "gladiator", "background/gladiator"},
+    [BACKGROUND_TRADER] = {"trader", "trader", "background/trader"},
+    [BACKGROUND_HERMIT] = {"hermit", "hermit", "background/hermit"},
+    [BACKGROUND_SQUIRE] = {"squire", "squire", "background/squire"},
+    [BACKGROUND_NOBLE] = {"noble", "noble", "background/noble"},
+    [BACKGROUND_OUTLANDER] = {"outlander", "outlander", "background/outlander"},
+    [BACKGROUND_PIRATE] = {"pirate", "pirate", "background/pirate"},
+    [BACKGROUND_SAGE] = {"sage", "sage", "background/sage"},
+    [BACKGROUND_SAILOR] = {"sailor", "sailor", "background/sailor"},
+    [BACKGROUND_SOLDIER] = {"soldier", "soldier", "background/soldier"},
+    [BACKGROUND_URCHIN] = {"urchin", "urchin", "background/urchin"},
+};
+
+static bool background_identity_is_valid(int background)
+{
+  return background >= BACKGROUND_NONE && background < NUM_BACKGROUNDS &&
+         background_identities[background].id != NULL;
+}
+
+const char *background_stable_id(int background)
+{
+  if (!background_identity_is_valid(background))
+    return "unknown";
+
+  return background_identities[background].id;
+}
+
+const char *background_wire_value(int background)
+{
+  if (!background_identity_is_valid(background))
+    return "";
+
+  return background_identities[background].wire;
+}
+
+const char *background_media_key(int background)
+{
+  if (!background_identity_is_valid(background))
+    return "background/fallback";
+
+  return background_identities[background].media_key;
+}
+
+/*
+ * Accept the stable structured wire values while retaining the terminal's
+ * historical case-insensitive abbreviation behavior. Spaces, slashes,
+ * underscores, and dashes name the same boundary, so both "folk hero" and
+ * "folk-hero" select BACKGROUND_FOLK_HERO.
+ */
+int background_from_input(const char *input)
+{
+  char normalized[MAX_INPUT_LENGTH];
+  size_t read_index = 0;
+  size_t write_index = 0;
+  int background = BACKGROUND_NONE;
+
+  if (input == NULL)
+    return BACKGROUND_NONE;
+
+  for (read_index = 0; input[read_index] != '\0' && write_index < sizeof(normalized) - 1;
+       read_index++)
+  {
+    char current = LOWER(input[read_index]);
+    bool is_separator = current == ' ' || current == '/' || current == '_' || current == '-';
+
+    if (is_separator)
+    {
+      if (write_index == 0 || normalized[write_index - 1] == '-')
+        continue;
+      normalized[write_index++] = '-';
+      continue;
+    }
+
+    normalized[write_index++] = current;
+  }
+
+  if (write_index > 0 && normalized[write_index - 1] == '-')
+    write_index--;
+  normalized[write_index] = '\0';
+
+  if (write_index == 0)
+    return BACKGROUND_NONE;
+
+  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  {
+    if (is_abbrev(normalized, background_wire_value(background)))
+      return background;
+  }
+
+  return BACKGROUND_NONE;
+}
+
 int compare_backgrounds(const void *x, const void *y)
 {
   int a = *(const int *)x, b = *(const int *)y;

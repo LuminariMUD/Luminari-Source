@@ -43,6 +43,13 @@ void HandleStateGenericDescsDescriptors2(struct descriptor_data *d, char *arg);
 void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg);
 void HandleStateGenericDescsDescriptors1(struct descriptor_data *d, char *arg);
 void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg);
+const char *short_desc_feature_id(int feature);
+const char *short_desc_feature_label(int feature);
+bool short_desc_feature_allowed(struct char_data *ch, int feature);
+int short_desc_adjective_count(int feature);
+const char *short_desc_adjective_label(int feature, int adjective);
+char *current_short_desc_for_values(struct char_data *ch, int descriptor_1, int adjective_1,
+                                    int descriptor_2, int adjective_2);
 char *current_short_desc(struct char_data *ch);
 char *current_disguise_desc(struct char_data *ch);
 char *current_wildshape_desc(struct char_data *ch);

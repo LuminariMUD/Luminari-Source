@@ -32,6 +32,17 @@ void web_onboarding_set_capability(struct descriptor_data *d, const char *value)
   d->web_onboarding_version = WEB_ONBOARDING_PROTOCOL_VERSION;
 }
 
+void web_onboarding_set_version_list(struct descriptor_data *d, const char *value)
+{
+  web_onboarding_set_capability(d, value);
+}
+
+void web_onboarding_handle_action(struct descriptor_data *d, const char *payload)
+{
+  (void)d;
+  (void)payload;
+}
+
 void basic_mud_log(const char *format, ...)
 {
   va_list args;

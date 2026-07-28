@@ -2084,8 +2084,9 @@ static bool apply_clone_owner_identity(struct char_data *mob, const char *owner_
   }
 
   prototype_rnum = GET_MOB_RNUM(mob);
-  if (mob->player.name && !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
-                            mob->player.name == mob_proto[prototype_rnum].player.name))
+  if (mob->player.name &&
+      !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
+        mob->player.name == mob_proto[prototype_rnum].player.name))
     free(mob->player.name);
   if (mob->player.short_descr &&
       !(mob_proto && prototype_rnum != NOBODY && prototype_rnum <= top_of_mobt &&
@@ -2155,9 +2156,19 @@ static bool append_player_save_buffer(char **buffer, size_t *capacity, size_t *u
   return true;
 }
 
-void save_char(struct char_data *ch, int mode)
+/**
+ * Write a player file, reporting whether the write actually succeeded.
+ *
+ * This is the real implementation; save_char() below is a result-discarding
+ * wrapper kept for the many legacy call sites. Every allocation, open, write,
+ * flush, close, and player-index failure returns FALSE, so a caller that must
+ * not acknowledge durable success until the bytes are down (the structured
+ * onboarding role-play commits) can tell the difference.
+ */
+bool save_char_checked(struct char_data *ch, int mode)
 {
   FILE *fl;
+  bool save_ok = TRUE;
   const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
@@ -2179,25 +2190,25 @@ void save_char(struct char_data *ch, int mode)
   gettimeofday(&start_time, NULL);
 
   if (IS_NPC(ch) || GET_PFILEPOS(ch) < 0)
-    return;
+    return FALSE;
 
   /* Allocate write buffer for performance */
   CREATE(write_buffer, char, buffer_size);
   if (!write_buffer)
   {
     log("SYSERR: save_char: Could not allocate write buffer for %s", GET_NAME(ch));
-    return;
+    return FALSE;
   }
 
 /* Helper macro for buffered writes */
 #define BUFFER_WRITE(...)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if (!append_player_save_buffer(&write_buffer, &buffer_size, &buffer_used, __VA_ARGS__))         \
+    if (!append_player_save_buffer(&write_buffer, &buffer_size, &buffer_used, __VA_ARGS__))        \
     {                                                                                              \
       log("SYSERR: save_char: Buffer formatting or allocation failed");                            \
       free(write_buffer);                                                                          \
-      return;                                                                                      \
+      return FALSE;                                                                                \
     }                                                                                              \
   } while (0)
 
@@ -2209,7 +2220,7 @@ void save_char(struct char_data *ch, int mode)
     {                                                                                              \
       log("SYSERR: save_char: String buffer formatting or allocation failed");                     \
       free(write_buffer);                                                                          \
-      return;                                                                                      \
+      return FALSE;                                                                                \
     }                                                                                              \
   } while (0)
 
@@ -2239,13 +2250,13 @@ void save_char(struct char_data *ch, int mode)
   if (!get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch)))
   {
     free(write_buffer);
-    return;
+    return FALSE;
   }
   if (!(fl = fopen(filename, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     free(write_buffer);
-    return;
+    return FALSE;
   }
 
   /* Unaffect everything a character can be affected by. */
@@ -3930,11 +3941,28 @@ void save_char(struct char_data *ch, int mode)
     if (fwrite(write_buffer, 1, buffer_used, fl) != buffer_used)
     {
       log("SYSERR: save_char: Failed to write buffer for %s", GET_NAME(ch));
+      save_ok = FALSE;
     }
   }
 
+  /*
+   * Flush explicitly so a full disk or quota is reported here rather than
+   * being swallowed. Deliberately no early return: the code below restores the
+   * equipment and affects that were stripped for serialization, and skipping
+   * that would corrupt the in-memory character on top of a failed save.
+   */
+  if (fflush(fl) != 0)
+  {
+    log("SYSERR: save_char: Failed to flush player file for %s", GET_NAME(ch));
+    save_ok = FALSE;
+  }
+
   /* FILE CLOSED!!! */
-  fclose(fl);
+  if (fclose(fl) != 0)
+  {
+    log("SYSERR: save_char: Failed to close player file for %s", GET_NAME(ch));
+    save_ok = FALSE;
+  }
 
   /* Free the write buffer */
   free(write_buffer);
@@ -3978,7 +4006,7 @@ void save_char(struct char_data *ch, int mode)
   /* end char_to_store code */
 
   if ((id = get_ptable_by_name(GET_NAME(ch))) < 0)
-    return;
+    return FALSE;
 
   /* update the player in the player index */
   if (player_table[id].level != GET_LEVEL(ch))
@@ -4021,6 +4049,18 @@ void save_char(struct char_data *ch, int mode)
     log("PERF: save_char(%s) took %ldms (buffer: %zu bytes)", GET_NAME(ch), elapsed_ms,
         buffer_used);
   }
+
+  return save_ok;
+}
+
+/**
+ * Compatibility wrapper for the existing call sites, which have no way to act
+ * on a failure. New code that must confirm durability should call
+ * save_char_checked() directly.
+ */
+void save_char(struct char_data *ch, int mode)
+{
+  (void)save_char_checked(ch, mode);
 }
 
 /* Separate a 4-character id tag from the data it precedes */

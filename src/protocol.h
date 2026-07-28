@@ -280,7 +280,28 @@ typedef struct descriptor_data descriptor_t;
 #define MSDP_TABLE_CLOSE 4 /**< End of MSDP table structure */
 #define MSDP_ARRAY_OPEN 5  /**< Start of MSDP array structure */
 #define MSDP_ARRAY_CLOSE 6 /**< End of MSDP array structure */
-#define MAX_MSDP_SIZE 200  /**< Maximum number of MSDP variables */
+/**
+ * Maximum length in BYTES of one MSDP variable name.
+ *
+ * The old comment described this as "maximum number of MSDP variables", which
+ * it has never been: it is and always was a byte length, used to bound the
+ * name and value buffers in ParseMSDP(). The name is corrected here so the
+ * split below is not misread.
+ */
+#define MAX_MSDP_SIZE 200
+
+/**
+ * Maximum length in bytes of one MSDP variable VALUE.
+ *
+ * Names stay small; only values need room, because onboarding protocol v2
+ * carries base64 editor chunks in a value. This is deliberately separate from
+ * MAX_MSDP_SIZE so widening values does not also widen every name buffer.
+ *
+ * Note that MAX_PROTOCOL_BUFFER (12 KiB), not this constant, is the governing
+ * wire limit: a fully serialized subnegotiation must fit the smaller outer
+ * buffer, so senders must stay well below this ceiling.
+ */
+#define MAX_MSDP_VALUE_SIZE MAX_VARIABLE_LENGTH
 
 /**
  * MSSP (MUD Server Status Protocol) data markers

@@ -16,6 +16,8 @@
 #include "dg_scripts.h"
 #include "class.h"
 #include "mail.h"
+#include "roleplay.h"
+#include "systems/web_client/onboarding.h"
 
 /* External function declarations */
 void update_player_last_on(void);
@@ -261,7 +263,132 @@ const char *horn_descriptions[] = {"a pair of short horns",  "a pair of long hor
                                    "a crown of short horns", "a ridge of short horns",
                                    "ridges of short horns",  "\n"};
 
-char *current_short_desc(struct char_data *ch)
+struct short_desc_feature_info
+{
+  const char *id;
+  const char *label;
+};
+
+static const struct short_desc_feature_info short_desc_features[NUM_FEATURE_TYPES + 1] = {
+    [FEATURE_TYPE_UNDEFINED] = {"undefined", "Undefined"},
+    [FEATURE_TYPE_EYES] = {"eyes", "Eyes"},
+    [FEATURE_TYPE_NOSE] = {"nose", "Nose"},
+    [FEATURE_TYPE_EARS] = {"ears", "Ears"},
+    [FEATURE_TYPE_FACE] = {"face", "Face"},
+    [FEATURE_TYPE_SCAR] = {"scars", "Scars"},
+    [FEATURE_TYPE_HAIR] = {"hair", "Hair"},
+    [FEATURE_TYPE_BUILD] = {"build", "Build"},
+    [FEATURE_TYPE_COMPLEXION] = {"complexion", "Complexion"},
+    [FEATURE_TYPE_FUR] = {"fur", "Fur"},
+    [FEATURE_TYPE_SKIN] = {"skin", "Skin color"},
+    [FEATURE_TYPE_HORNS] = {"horns", "Horns"},
+    [FEATURE_TYPE_SCALES] = {"scales", "Scales"},
+};
+
+const char *short_desc_feature_id(int feature)
+{
+  if (feature < 1 || feature > NUM_FEATURE_TYPES)
+    return "unknown";
+
+  return short_desc_features[feature].id;
+}
+
+const char *short_desc_feature_label(int feature)
+{
+  if (feature < 1 || feature > NUM_FEATURE_TYPES)
+    return "Unknown";
+
+  return short_desc_features[feature].label;
+}
+
+bool short_desc_feature_allowed(struct char_data *ch, int feature)
+{
+  if (ch == NULL || feature < 1 || feature > NUM_FEATURE_TYPES)
+    return FALSE;
+
+  if (feature == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(ch)))
+    return FALSE;
+  if (feature == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(ch)))
+    return FALSE;
+  if (feature == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(ch)))
+    return FALSE;
+  if (feature == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(ch)))
+    return FALSE;
+
+  return TRUE;
+}
+
+int short_desc_adjective_count(int feature)
+{
+  switch (feature)
+  {
+  case FEATURE_TYPE_FUR:
+    return NUM_FUR_DESCRIPTORS - 1;
+  case FEATURE_TYPE_SKIN:
+    return NUM_SKIN_DESCRIPTORS - 1;
+  case FEATURE_TYPE_HORNS:
+    return NUM_HORNS_DESCRIPTORS - 1;
+  case FEATURE_TYPE_SCALES:
+    return NUM_SCALES_DESCRIPTORS - 1;
+  case FEATURE_TYPE_EYES:
+    return NUM_EYE_DESCRIPTORS - 1;
+  case FEATURE_TYPE_NOSE:
+    return NUM_NOSE_DESCRIPTORS - 1;
+  case FEATURE_TYPE_EARS:
+    return NUM_EAR_DESCRIPTORS - 1;
+  case FEATURE_TYPE_FACE:
+    return NUM_FACE_DESCRIPTORS - 1;
+  case FEATURE_TYPE_SCAR:
+    return NUM_SCAR_DESCRIPTORS - 1;
+  case FEATURE_TYPE_HAIR:
+    return NUM_HAIR_DESCRIPTORS - 1;
+  case FEATURE_TYPE_BUILD:
+    return NUM_BUILD_DESCRIPTORS - 1;
+  case FEATURE_TYPE_COMPLEXION:
+    return NUM_COMPLEXION_DESCRIPTORS - 1;
+  default:
+    return 0;
+  }
+}
+
+const char *short_desc_adjective_label(int feature, int adjective)
+{
+  if (adjective < 1 || adjective > short_desc_adjective_count(feature))
+    return NULL;
+
+  switch (feature)
+  {
+  case FEATURE_TYPE_FUR:
+    return fur_descriptions[adjective];
+  case FEATURE_TYPE_SKIN:
+    return skin_descriptions[adjective];
+  case FEATURE_TYPE_HORNS:
+    return horn_descriptions[adjective];
+  case FEATURE_TYPE_SCALES:
+    return scales_descriptions[adjective];
+  case FEATURE_TYPE_EYES:
+    return eye_descriptions[adjective];
+  case FEATURE_TYPE_NOSE:
+    return nose_descriptions[adjective];
+  case FEATURE_TYPE_EARS:
+    return ear_descriptions[adjective];
+  case FEATURE_TYPE_FACE:
+    return face_descriptions[adjective];
+  case FEATURE_TYPE_SCAR:
+    return scar_descriptions[adjective];
+  case FEATURE_TYPE_HAIR:
+    return hair_descriptions[adjective];
+  case FEATURE_TYPE_BUILD:
+    return build_descriptions[adjective];
+  case FEATURE_TYPE_COMPLEXION:
+    return complexion_descriptions[adjective];
+  default:
+    return NULL;
+  }
+}
+
+char *current_short_desc_for_values(struct char_data *ch, int descriptor_1, int adjective_1,
+                                    int descriptor_2, int adjective_2)
 {
   int i = 0;
   char desc[MEDIUM_STRING];
@@ -271,10 +398,10 @@ char *current_short_desc(struct char_data *ch)
 
   int race = GET_RACE(ch);
   int sex = GET_SEX(ch);
-  int pcd1 = GET_PC_DESCRIPTOR_1(ch);
-  int pca1 = GET_PC_ADJECTIVE_1(ch);
-  int pcd2 = GET_PC_DESCRIPTOR_2(ch);
-  int pca2 = GET_PC_ADJECTIVE_2(ch);
+  int pcd1 = descriptor_1;
+  int pca1 = adjective_1;
+  int pcd2 = descriptor_2;
+  int pca2 = adjective_2;
 
   /*
         if (AFF_FLAGGED(ch, AFF_DISGUISED) && !DISGUISE_SEEN(ch))
@@ -342,7 +469,7 @@ char *current_short_desc(struct char_data *ch)
 
   case FEATURE_TYPE_COMPLEXION:
     snprintf(adj1, sizeof(adj1), " with %s %s %s", AN(complexion_descriptions[pca1]),
-             complexion_descriptions[GET_PC_ADJECTIVE_1(ch)], "complexion");
+             complexion_descriptions[pca1], "complexion");
     break;
   }
 
@@ -412,6 +539,12 @@ char *current_short_desc(struct char_data *ch)
     final[i] = tolower((unsigned char) final[i]);
 
   return strdup(final);
+}
+
+char *current_short_desc(struct char_data *ch)
+{
+  return current_short_desc_for_values(ch, GET_PC_DESCRIPTOR_1(ch), GET_PC_ADJECTIVE_1(ch),
+                                       GET_PC_DESCRIPTOR_2(ch), GET_PC_ADJECTIVE_2(ch));
 }
 
 char *current_morphed_desc(struct char_data *ch)
@@ -640,68 +773,35 @@ void short_desc_adjectives_menu(struct char_data *ch, int which_desc)
 
 int count_adjective_types(int which_desc)
 {
-  int i = 0;
-
-  switch (which_desc)
-  {
-  case FEATURE_TYPE_FUR:
-    while (i < NUM_FUR_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_SKIN:
-    while (i < NUM_SKIN_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_HORNS:
-    while (i < NUM_HORNS_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_SCALES:
-    while (i < NUM_SCALES_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_EYES:
-    while (i < NUM_EYE_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_NOSE:
-    while (i < NUM_NOSE_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_EARS:
-    while (i < NUM_EAR_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_FACE:
-    while (i < NUM_FACE_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_SCAR:
-    while (i < NUM_SCAR_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_HAIR:
-    while (i < NUM_HAIR_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_BUILD:
-    while (i < NUM_BUILD_DESCRIPTORS)
-      i++;
-    break;
-  case FEATURE_TYPE_COMPLEXION:
-    while (i < NUM_COMPLEXION_DESCRIPTORS)
-      i++;
-    break;
-  }
-
-  return i;
+  return short_desc_adjective_count(which_desc);
 }
 
-void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg __attribute__((unused)))
+void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg)
 {
   int changeStateTo = STATE(d);
+  char *tmpdesc = NULL;
+
+  if (arg != NULL && !strcmp(arg, "0") && !d->forced_short_desc_setup)
+  {
+    roleplay_pending_clear(d);
+    show_character_rp_menu(d);
+    STATE(d) = CON_CHAR_RP_MENU;
+    return;
+  }
+
+  if (!d->roleplay_pending.short_description_active)
+  {
+    d->roleplay_pending.short_description_active = TRUE;
+    d->roleplay_pending.short_descriptor_1 = 0;
+    d->roleplay_pending.short_adjective_1 = 0;
+    d->roleplay_pending.short_descriptor_2 = 0;
+    d->roleplay_pending.short_adjective_2 = 0;
+  }
+
   SEND_TO_Q("Current short description: \tW", d);
-  char *tmpdesc = current_short_desc(d->character);
+  tmpdesc = current_short_desc_for_values(
+      d->character, d->roleplay_pending.short_descriptor_1, d->roleplay_pending.short_adjective_1,
+      d->roleplay_pending.short_descriptor_2, d->roleplay_pending.short_adjective_2);
   SEND_TO_Q(tmpdesc, d);
   free(tmpdesc);
   SEND_TO_Q("\tn\r\n\r\n", d);
@@ -712,27 +812,29 @@ void HandleStateGenericsDescsIntro(struct descriptor_data *d, char *arg __attrib
 
 void HandleStateGenericDescsDescriptors1(struct descriptor_data *d, char *arg)
 {
-  if (!*arg || !d || !d->character)
+  int changeStateTo;
+  int type;
+
+  if (d == NULL || arg == NULL || !*arg || d->character == NULL)
     return;
 
-  int changeStateTo = STATE(d);
-  int type = atoi(arg);
+  changeStateTo = STATE(d);
+  type = atoi(arg);
 
   if (type < 1 || type > NUM_FEATURE_TYPES)
   {
     SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
   }
-  else if ((type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
+  else if (!short_desc_feature_allowed(d->character, type))
   {
     write_to_output(d, "Your race cannot select that descriptor type.\r\n");
   }
   else
   {
-    GET_PC_DESCRIPTOR_1(d->character) = type;
-    short_desc_adjectives_menu(d->character, GET_PC_DESCRIPTOR_1(d->character));
+    d->roleplay_pending.short_description_active = TRUE;
+    d->roleplay_pending.short_descriptor_1 = type;
+    d->roleplay_pending.short_adjective_1 = 0;
+    short_desc_adjectives_menu(d->character, type);
 
     changeStateTo = CON_GEN_DESCS_ADJECTIVES_1;
   }
@@ -743,7 +845,7 @@ void HandleStateGenericDescsDescriptors1(struct descriptor_data *d, char *arg)
 void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg)
 {
   int changeStateTo = STATE(d);
-  int count = count_adjective_types(GET_PC_DESCRIPTOR_1(d->character));
+  int count = count_adjective_types(d->roleplay_pending.short_descriptor_1);
 
   if (atoi(arg) < 1 || atoi(arg) > count)
   {
@@ -751,7 +853,7 @@ void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg)
   }
   else
   {
-    GET_PC_ADJECTIVE_1(d->character) = atoi(arg);
+    d->roleplay_pending.short_adjective_1 = atoi(arg);
 
     SEND_TO_Q("\tY(Press enter to continue)\tn", d);
     changeStateTo = CON_GEN_DESCS_MENU;
@@ -762,28 +864,29 @@ void HandleStateGenericDescsAdjectives1(struct descriptor_data *d, char *arg)
 
 void HandleStateGenericDescsDescriptors2(struct descriptor_data *d, char *arg)
 {
-  if (!*arg || !d || !d->character)
+  int changeStateTo;
+  int type;
+
+  if (d == NULL || arg == NULL || !*arg || d->character == NULL)
     return;
 
-  int changeStateTo = STATE(d);
-  int type = atoi(arg);
+  changeStateTo = STATE(d);
+  type = atoi(arg);
 
   if (type < 1 || type > NUM_FEATURE_TYPES)
   {
     SEND_TO_Q("That number is out of range.  Please choose again.\r\n\r\n", d);
   }
-  else if ((type == FEATURE_TYPE_FUR && !is_furry(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_HORNS && !has_horns(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_HAIR && race_has_no_hair(GET_REAL_RACE(d->character))) ||
-           (type == FEATURE_TYPE_SCALES && !has_scales(GET_REAL_RACE(d->character))))
+  else if (!short_desc_feature_allowed(d->character, type))
   {
     write_to_output(d, "Your race cannot select that descriptor type.\r\n");
   }
   else
   {
-    GET_PC_DESCRIPTOR_2(d->character) = atoi(arg);
+    d->roleplay_pending.short_descriptor_2 = type;
+    d->roleplay_pending.short_adjective_2 = 0;
 
-    short_desc_adjectives_menu(d->character, GET_PC_DESCRIPTOR_2(d->character));
+    short_desc_adjectives_menu(d->character, type);
 
     changeStateTo = CON_GEN_DESCS_ADJECTIVES_2;
   }
@@ -794,7 +897,7 @@ void HandleStateGenericDescsDescriptors2(struct descriptor_data *d, char *arg)
 void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
 {
   int changeStateTo = STATE(d);
-  int count = count_adjective_types(GET_PC_DESCRIPTOR_2(d->character));
+  int count = count_adjective_types(d->roleplay_pending.short_descriptor_2);
 
   if (atoi(arg) < 1 || atoi(arg) > count)
   {
@@ -802,7 +905,7 @@ void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
   }
   else
   {
-    GET_PC_ADJECTIVE_2(d->character) = atoi(arg);
+    d->roleplay_pending.short_adjective_2 = atoi(arg);
 
     SEND_TO_Q("\tY(Press enter to continue)\tn", d);
     changeStateTo = CON_GEN_DESCS_MENU;
@@ -814,10 +917,15 @@ void HandleStateGenericDescsAdjectives2(struct descriptor_data *d, char *arg)
 void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg __attribute__((unused)))
 {
   int changeStateTo = STATE(d);
-
   int options = 2;
+  char *tmpdesc = NULL;
+
   SEND_TO_Q("Current short description: \tW", d);
-  write_to_output(d, "%s", current_short_desc(d->character));
+  tmpdesc = current_short_desc_for_values(
+      d->character, d->roleplay_pending.short_descriptor_1, d->roleplay_pending.short_adjective_1,
+      d->roleplay_pending.short_descriptor_2, d->roleplay_pending.short_adjective_2);
+  write_to_output(d, "%s", tmpdesc);
+  free(tmpdesc);
   SEND_TO_Q("\tn\r\n\r\n", d);
   SEND_TO_Q("Are you happy with this short description?\r\n", d);
   SEND_TO_Q("\r\n", d);
@@ -825,7 +933,7 @@ void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg __attribut
   SEND_TO_Q("1) I'm happy with it and want to save it to my character!\r\n", d);
   SEND_TO_Q("2) I'm not happy with it and want to start over.\r\n", d);
 
-  if (GET_PC_DESCRIPTOR_2(d->character) == 0)
+  if (d->roleplay_pending.short_descriptor_2 == 0)
   {
     SEND_TO_Q("3) I'm not done yet, as I want to add a second descriptor.\r\n", d);
     ++options;
@@ -842,14 +950,18 @@ void HandleStateGenericDescsMenu(struct descriptor_data *d, char *arg __attribut
 void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg)
 {
   int changeStateTo = STATE(d);
+  int x = 0;
+  char *tmpdesc = NULL;
+  enum roleplay_commit_result commit_result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
   switch (atoi(arg))
   {
   case 0:
-    GET_PC_DESCRIPTOR_1(d->character) = 0;
-    GET_PC_ADJECTIVE_1(d->character) = 0;
-    GET_PC_DESCRIPTOR_2(d->character) = 0;
-    GET_PC_ADJECTIVE_2(d->character) = 0;
+    d->roleplay_pending.short_description_active = TRUE;
+    d->roleplay_pending.short_descriptor_1 = 0;
+    d->roleplay_pending.short_adjective_1 = 0;
+    d->roleplay_pending.short_descriptor_2 = 0;
+    d->roleplay_pending.short_adjective_2 = 0;
 
     /* If forced setup, can't cancel - send back to menu */
     if (d->forced_short_desc_setup)
@@ -862,6 +974,7 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
     }
     else
     {
+      roleplay_pending_clear(d);
       changeStateTo = CON_CHAR_RP_MENU;
       SEND_TO_Q("\tcCharacter short description setting cancelled.\r\n\tn", d);
       show_character_rp_menu(d);
@@ -869,6 +982,16 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
     break;
 
   case 1:
+    commit_result = roleplay_commit_short_description(d);
+    if (commit_result != ROLEPLAY_COMMIT_OK)
+    {
+      web_onboarding_report_roleplay_commit(d, commit_result);
+      SEND_TO_Q("\tcThat description could not be saved. Your character was not changed.\r\n\tn",
+                d);
+      changeStateTo = CON_GEN_DESCS_MENU_PARSE;
+      break;
+    }
+
     SEND_TO_Q("\tcYour character descriptions are complete.\r\n\tn", d);
 
     /* If this was a forced setup (from game entry), enter the game now */
@@ -911,7 +1034,6 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
       d->has_prompt = 0;
       REMOVE_BIT_AR(PRF_FLAGS(d->character), PRF_BUILDWALK);
 
-      int x;
       for (x = 0; x < NUM_CASTERS; x++)
         IS_PREPARING(d->character, x) = FALSE;
     }
@@ -924,22 +1046,25 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
     break;
 
   case 2:
-
-    GET_PC_DESCRIPTOR_1(d->character) = 0;
-    GET_PC_ADJECTIVE_1(d->character) = 0;
-    GET_PC_DESCRIPTOR_2(d->character) = 0;
-    GET_PC_ADJECTIVE_2(d->character) = 0;
+    d->roleplay_pending.short_description_active = TRUE;
+    d->roleplay_pending.short_descriptor_1 = 0;
+    d->roleplay_pending.short_adjective_1 = 0;
+    d->roleplay_pending.short_descriptor_2 = 0;
+    d->roleplay_pending.short_adjective_2 = 0;
     changeStateTo = CON_GEN_DESCS_INTRO;
     SEND_TO_Q("\tYPress enter to continue)\tn\r\n", d);
     break;
 
   case 3:
-    if (GET_PC_DESCRIPTOR_2(d->character) == 0)
+    if (d->roleplay_pending.short_descriptor_2 == 0)
     {
       changeStateTo = CON_GEN_DESCS_DESCRIPTORS_2;
 
       SEND_TO_Q("Current short description: \tW", d);
-      char *tmpdesc = current_short_desc(d->character);
+      tmpdesc = current_short_desc_for_values(d->character, d->roleplay_pending.short_descriptor_1,
+                                              d->roleplay_pending.short_adjective_1,
+                                              d->roleplay_pending.short_descriptor_2,
+                                              d->roleplay_pending.short_adjective_2);
       SEND_TO_Q(tmpdesc, d);
       free(tmpdesc);
       SEND_TO_Q("\tn\r\n\r\n", d);
@@ -959,6 +1084,8 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
   }
 
   STATE(d) = changeStateTo;
+  if (commit_result == ROLEPLAY_COMMIT_OK)
+    web_onboarding_report_roleplay_commit(d, commit_result);
 }
 
 char *show_pers(struct char_data *ch, struct char_data *vict)
