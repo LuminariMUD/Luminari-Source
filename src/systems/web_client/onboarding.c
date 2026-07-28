@@ -38,55 +38,150 @@ struct onboarding_screen_info
   const char *mode;       /* contract mode */
   const char *title;      /* short heading */
   const char *prompt;     /* one-line instruction */
-  const char *input_kind; /* none | text | password | choice | confirm */
+  const char *input_kind; /* none | text | password | choice | confirm | multiline */
   bool sensitive;         /* password entry */
+  int min_version;        /* lowest protocol version that may see this screen */
 };
 
 /* Every state this adapter presents. Any other state falls back to the
  * classic terminal, which keeps working unchanged. */
 static const struct onboarding_screen_info onboarding_screens[] = {
     {CON_ACCOUNT_NAME, "account-name", "account", "Welcome to Luminari",
-     "Enter your account name, or a new one to create an account.", "text", FALSE},
+     "Enter your account name, or a new one to create an account.", "text", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_ACCOUNT_NAME_CONFIRM, "account-name-confirm", "account", "Confirm your account name",
-     "Is the account name you entered spelled correctly?", "confirm", FALSE},
+     "Is the account name you entered spelled correctly?", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_PASSWORD, "account-password", "account", "Account password",
-     "Enter the password for this account.", "password", TRUE},
+     "Enter the password for this account.", "password", TRUE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_NEWPASSWD, "account-new-password", "account", "Choose a password",
-     "Choose a password for your new account.", "password", TRUE},
+     "Choose a password for your new account.", "password", TRUE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_CNFPASSWD, "account-confirm-password", "account", "Confirm your password",
-     "Enter the same password once more.", "password", TRUE},
+     "Enter the same password once more.", "password", TRUE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_ACCOUNT_MENU, "account-menu", "account", "Your characters",
-     "Choose a character to play, or create a new one.", "choice", FALSE},
+     "Choose a character to play, or create a new one.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_ACCOUNT_ADD, "account-link", "account", "Link an existing character",
-     "Enter the name of the character you want to add to this account.", "text", FALSE},
+     "Enter the name of the character you want to add to this account.", "text", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_ACCOUNT_ADD_PWD, "account-link-password", "account", "Prove ownership",
-     "Enter that character's own password.", "password", TRUE},
+     "Enter that character's own password.", "password", TRUE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_GET_NAME, "name", "character-creation", "Name your character",
-     "Enter the name your character will be known by.", "text", FALSE},
+     "Enter the name your character will be known by.", "text", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_NAME_CNFRM, "name-confirm", "character-creation", "Confirm the name",
-     "Did you spell that name the way you meant to?", "confirm", FALSE},
+     "Did you spell that name the way you meant to?", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QSEX, "sex", "character-creation", "Choose an identity",
-     "Select the sex your character is recorded as.", "choice", FALSE},
+     "Select the sex your character is recorded as.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QRACE, "race", "character-creation", "Choose your ancestry",
-     "Select an ancestry to continue.", "choice", FALSE},
+     "Select an ancestry to continue.", "choice", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QRACE_HELP, "race-detail", "character-creation", "Keep this ancestry?",
-     "Confirm this ancestry, or go back and choose another.", "confirm", FALSE},
+     "Confirm this ancestry, or go back and choose another.", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QCLASS, "class", "character-creation", "Choose your path", "Select a class to continue.",
-     "choice", FALSE},
+     "choice", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QCLASS_HELP, "class-detail", "character-creation", "Keep this path?",
-     "Confirm this class, or go back and choose another.", "confirm", FALSE},
+     "Confirm this class, or go back and choose another.", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_CONFIRM_PREMADE, "build", "character-creation", "Guided or custom build",
-     "Choose how your character's build is decided.", "choice", FALSE},
+     "Choose how your character's build is decided.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_QALIGN, "alignment", "character-creation", "Choose an alignment",
-     "Only alignments valid for your ancestry and path are shown.", "choice", FALSE},
+     "Only alignments valid for your ancestry and path are shown.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_SETPREFS, "preferences", "character-creation", "Recommended settings",
-     "Apply the recommended settings bundle, or keep the defaults.", "choice", FALSE},
+     "Apply the recommended settings bundle, or keep the defaults.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_CHAR_RP_DECIDE, "roleplay-decision", "character-creation", "Role-play details",
-     "Decide whether to fill in role-play details now.", "choice", FALSE},
+     "Decide whether to fill in role-play details now.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_RMOTD, "motd", "character-menu", "Message of the day",
-     "Read the message of the day, then continue.", "confirm", FALSE},
+     "Read the message of the day, then continue.", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION},
     {CON_MENU, "character-menu", "character-menu", "Character menu",
-     "Choose what to do with this character.", "choice", FALSE},
+     "Choose what to do with this character.", "choice", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION},
+
+    /* Protocol v2: the role-play identity suite. A v1 client never sees any of
+     * these; find_screen() filters them out and the flow falls back to the
+     * classic terminal exactly as it did before. */
+    {CON_CHAR_RP_MENU, "roleplay-hub", "roleplay-profile", "Role-play profile",
+     "Choose a detail to fill in. Everything here is optional.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_INTRO, "short-desc-intro", "roleplay-profile", "Describe yourself",
+     "Others see this description before they learn your name.", "none", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_DESCRIPTORS_1, "short-desc-feature-1", "roleplay-profile", "Choose a feature",
+     "Which feature should others notice first?", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_ADJECTIVES_1, "short-desc-adjective-1", "roleplay-profile",
+     "Choose a descriptor", "Pick the word that fits best.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_MENU, "short-desc-preview", "roleplay-profile", "Your description",
+     "Review the description built so far.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_MENU_PARSE, "short-desc-review", "roleplay-profile", "Your description",
+     "Keep this description, or start again.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_DESCRIPTORS_2, "short-desc-feature-2", "roleplay-profile",
+     "Choose a second feature", "Add another detail, or keep what you have.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_GEN_DESCS_ADJECTIVES_2, "short-desc-adjective-2", "roleplay-profile",
+     "Choose a second descriptor", "Pick the word that fits best.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_PLR_DESC, "long-description", "roleplay-profile", "Long description",
+     "Describe what others see when they look closely.", "multiline", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_PLR_BG, "background-story", "roleplay-profile", "Background story",
+     "Write your history. Leave it blank to skip.", "multiline", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_BACKGROUND_ARCHTYPE, "background-catalog", "roleplay-profile", "Background",
+     "Pick the life you led before adventuring.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_BACKGROUND_ARCHTYPE_CONFIRM, "background-confirm", "roleplay-profile",
+     "Confirm this background", "This choice is permanent.", "confirm", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_GOALS_IDEAS, "goals-ideas", "roleplay-profile", "Goals",
+     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_GOALS_ENTER, "goals-editor", "roleplay-profile", "Goals",
+     "What is your character trying to achieve?", "multiline", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_PERSONALITY_IDEAS, "personality-ideas", "roleplay-profile", "Personality",
+     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_PERSONALITY_ENTER, "personality-editor", "roleplay-profile", "Personality",
+     "How does your character behave?", "multiline", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_IDEALS_IDEAS, "ideals-ideas", "roleplay-profile", "Ideals",
+     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_IDEALS_ENTER, "ideals-editor", "roleplay-profile", "Ideals",
+     "What does your character believe in?", "multiline", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_BONDS_IDEAS, "bonds-ideas", "roleplay-profile", "Bonds",
+     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_BONDS_ENTER, "bonds-editor", "roleplay-profile", "Bonds",
+     "Who or what is your character tied to?", "multiline", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_FLAWS_IDEAS, "flaws-ideas", "roleplay-profile", "Flaws",
+     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_FLAWS_ENTER, "flaws-editor", "roleplay-profile", "Flaws",
+     "What holds your character back?", "multiline", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_AGE_SELECT, "age-select", "roleplay-profile", "Age",
+     "Choose how many years your character carries.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_QREGION, "region-catalog", "roleplay-profile", "Homeland",
+     "Choose the region your character comes from.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_QREGION_HELP, "region-confirm", "roleplay-profile", "Confirm this homeland",
+     "This choice is permanent.", "confirm", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_FACTION_SELECT, "faction-select", "roleplay-profile", "Faction",
+     "Choose an allegiance, or remain unaffiliated.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_HOMETOWN_SELECT, "hometown-select", "roleplay-profile", "Hometown",
+     "Choose where your character calls home.", "choice", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_DEITY_SELECT, "deity-select", "roleplay-profile", "Deity",
+     "Choose a deity to follow, or none.", "choice", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_DEITY_CONFIRM, "deity-confirm", "roleplay-profile", "Confirm this deity",
+     "This choice is permanent.", "confirm", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
 };
 
 struct onboarding_error_info
@@ -559,14 +654,28 @@ const char *web_onboarding_class_media_key(int chclass)
 /* Catalog builders                                                       */
 /* --------------------------------------------------------------------- */
 
-static const struct onboarding_screen_info *find_screen(int state)
+/*
+ * Find the presentation for a state, but only if the client negotiated a
+ * version that understands it.
+ *
+ * A v1 client asking about a role-play state gets NULL, which is exactly the
+ * pre-existing behaviour: no structured presentation, so the flow hands off to
+ * the classic terminal. This is what keeps v2 screens from ever reaching a
+ * client that could not render them.
+ */
+static const struct onboarding_screen_info *find_screen_for_version(int state, int version)
 {
   size_t i = 0;
 
-  for (i = 0; (size_t)i < sizeof(onboarding_screens) / sizeof(onboarding_screens[0]); i++)
+  for (i = 0; i < sizeof(onboarding_screens) / sizeof(onboarding_screens[0]); i++)
   {
-    if (onboarding_screens[i].state == state)
-      return &onboarding_screens[i];
+    if (onboarding_screens[i].state != state)
+      continue;
+
+    if (onboarding_screens[i].min_version > version)
+      return NULL;
+
+    return &onboarding_screens[i];
   }
 
   return NULL;
@@ -1035,11 +1144,153 @@ static void build_error(struct json_writer *w, int error)
   json_raw(w, "}");
 }
 
+/* --------------------------------------------------------------------- */
+/* Protocol v2: role-play profile hub                                     */
+/* --------------------------------------------------------------------- */
+
+/*
+ * One hub item as the source sees it.
+ *
+ * `wire` is the exact menu value the existing CON_CHAR_RP_MENU parser already
+ * accepts, so opening an item drives the unchanged terminal handler rather
+ * than a second, parallel code path.
+ */
+struct rp_hub_item
+{
+  const char *id;
+  const char *label;
+  const char *wire;
+  const char *media_key;
+};
+
+static const struct rp_hub_item rp_hub_items[] = {
+    {"profile/short-description", "Short description", "1", "roleplay/short-description"},
+    {"profile/long-description", "Long description", "2", "roleplay/long-description"},
+    {"profile/background-story", "Background story", "3", "roleplay/background-story"},
+    {"profile/background", "Background", "4", "background/fallback"},
+    {"profile/goals", "Goals", "5", "roleplay/goals"},
+    {"profile/personality", "Personality", "6", "roleplay/personality"},
+    {"profile/ideals", "Ideals", "7", "roleplay/ideals"},
+    {"profile/bonds", "Bonds", "8", "roleplay/bonds"},
+    {"profile/flaws", "Flaws", "9", "roleplay/flaws"},
+    {"profile/age", "Age", "10", "age/fallback"},
+    {"profile/region", "Homeland", "11", "region/fallback"},
+    {"profile/faction", "Faction", "12", "faction/fallback"},
+    {"profile/hometown", "Hometown", "13", "hometown/fallback"},
+    {"profile/deity", "Deity", "14", "deity/fallback"},
+};
+
+/*
+ * Whether a stored string counts as set.
+ *
+ * The source uses both NULL and empty strings for "unset" depending on the
+ * field, so both are treated the same rather than trusting one convention.
+ */
+static bool rp_text_is_set(const char *value)
+{
+  return value != NULL && *value != '\0';
+}
+
+/* Current value of a hub item's backing field, or NULL when unset. */
+static const char *rp_item_value(struct char_data *ch, const char *id)
+{
+  if (ch == NULL)
+    return NULL;
+
+  /*
+   * The seven multiline fields live directly on player. Short description is
+   * different: it is generated from descriptor/adjective selections, so
+   * "set" means those selections exist, not that the string is non-empty.
+   */
+  if (!strcmp(id, "profile/short-description"))
+    return (GET_PC_DESCRIPTOR_1(ch) > 0) ? ch->player.short_descr : NULL;
+  if (!strcmp(id, "profile/long-description"))
+    return ch->player.description;
+  if (!strcmp(id, "profile/background-story"))
+    return ch->player.background;
+  if (!strcmp(id, "profile/goals"))
+    return ch->player.goals;
+  if (!strcmp(id, "profile/personality"))
+    return ch->player.personality;
+  if (!strcmp(id, "profile/ideals"))
+    return ch->player.ideals;
+  if (!strcmp(id, "profile/bonds"))
+    return ch->player.bonds;
+  if (!strcmp(id, "profile/flaws"))
+    return ch->player.flaws;
+
+  /*
+   * The catalog choices (background, age, region, faction, hometown, deity)
+   * are not plain strings and each carries its own one-time rules, so they
+   * are reported as unset until their source helpers are extracted. That is
+   * conservative in the right direction: an item shown as unset is still
+   * openable, and the terminal handler behind it remains authoritative.
+   */
+  return NULL;
+}
+
+/*
+ * Emit the hub summary.
+ *
+ * Deliberately metadata only: whether a field is set, and a short safe label
+ * where one exists. The bodies of the private text fields never appear here,
+ * both to stay inside the 15,000-byte document cap and because the hub is
+ * re-sent on every revision.
+ */
+static void build_profile_items(struct json_writer *w, struct descriptor_data *d)
+{
+  struct char_data *ch = d->character;
+  size_t i = 0;
+
+  json_raw(w, "\"profile\":[");
+
+  for (i = 0; i < sizeof(rp_hub_items) / sizeof(rp_hub_items[0]); i++)
+  {
+    const struct rp_hub_item *item = &rp_hub_items[i];
+    const char *value = rp_item_value(ch, item->id);
+    bool is_set = rp_text_is_set(value);
+
+    if (i > 0)
+      json_raw(w, ",");
+
+    json_raw(w, "{");
+    json_field_string(w, "id", item->id, 64);
+    json_raw(w, ",");
+    json_field_string(w, "label", item->label, 64);
+    json_raw(w, ",");
+    json_field_string(w, "wireValue", item->wire, 8);
+    json_raw(w, ",");
+    json_field_string(w, "status", is_set ? "configured" : "unset", 16);
+    json_raw(w, ",");
+    json_field_bool(w, "mutable", TRUE);
+    json_raw(w, ",");
+    json_field_bool(w, "required", FALSE);
+    json_raw(w, ",");
+    json_field_string(w, "mediaKey", item->media_key, 64);
+    json_raw(w, "}");
+  }
+
+  json_raw(w, "],");
+}
+
 static void build_actions(struct json_writer *w, const struct onboarding_screen_info *screen)
 {
   json_raw(w, "\"actions\":[");
 
-  if (!strcmp(screen->input_kind, "confirm"))
+  if (screen->state == CON_CHAR_RP_MENU)
+  {
+    /* The hub opens items and leaves; it never selects a catalog entry. */
+    json_raw(w, "\"open\",\"quit\"");
+  }
+  else if (!strcmp(screen->input_kind, "multiline"))
+  {
+    /*
+     * Editors are driven entirely by the chunked transfer path. `submit` is
+     * deliberately absent: profile text must never travel as a command line.
+     */
+    json_raw(w, "\"save-text\",\"cancel-editor\"");
+  }
+  else if (!strcmp(screen->input_kind, "confirm"))
     json_raw(w, "\"confirm\",\"reselect\"");
   else if (screen->state == CON_ACCOUNT_ADD)
     json_raw(w, "\"submit\",\"cancel\"");
@@ -1196,6 +1447,8 @@ static bool build_state_payload(struct descriptor_data *d,
   build_error(&writer, d->web_onboarding_error);
   json_raw(&writer, ",");
   build_selected_detail(&writer, d, screen);
+  if (screen->state == CON_CHAR_RP_MENU)
+    build_profile_items(&writer, d);
   build_choices(&writer, d, screen);
   json_raw(&writer, ",\"characters\":[");
   if (screen->state == CON_ACCOUNT_MENU)
@@ -1227,7 +1480,7 @@ bool web_onboarding_build_payload(struct descriptor_data *d, char *buf, size_t b
 
   buf[0] = '\0';
 
-  screen = find_screen(d->connected);
+  screen = find_screen_for_version(d->connected, web_onboarding_payload_version(d));
   if (screen == NULL)
     return FALSE;
 
@@ -1264,7 +1517,7 @@ void web_onboarding_tick(struct descriptor_data *d)
   d->web_onboarding_last_state = d->connected;
   d->web_onboarding_dirty = FALSE;
 
-  screen = find_screen(d->connected);
+  screen = find_screen_for_version(d->connected, web_onboarding_payload_version(d));
   if (screen == NULL)
   {
     /* Entering play, or entering a state this adapter does not present (OLC,
