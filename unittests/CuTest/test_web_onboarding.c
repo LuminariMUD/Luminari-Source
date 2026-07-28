@@ -936,6 +936,7 @@ static bool init_editor_descriptor(struct descriptor_data *d, struct char_data *
   return TRUE;
 }
 
+#if WEB_ONBOARDING_ENABLE_V2
 static void reset_editor_test_output(struct descriptor_data *d)
 {
   if (d == NULL)
@@ -955,6 +956,7 @@ static void reset_editor_test_output(struct descriptor_data *d)
   d->output[0] = '\0';
   d->bufptr = 0;
 }
+#endif
 
 static void cleanup_editor_descriptor(struct descriptor_data *d)
 {
@@ -1450,7 +1452,9 @@ void TestWebOnboardingEditorRejectsDigestOrderTimeoutAndDuplicateKeys(CuTest *tc
   struct char_data ch;
   struct player_special_data specials;
   const unsigned char content[] = "synthetic";
+#if WEB_ONBOARDING_ENABLE_V2
   const unsigned char one_byte[] = "f";
+#endif
   const char *wrong_digest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
   char envelope[1200];
 
@@ -1549,11 +1553,13 @@ void TestWebOnboardingEditorEnforcesCommitAndByteRateBudgets(CuTest *tc)
   struct descriptor_data d;
   struct char_data ch;
   struct player_special_data specials;
+#if WEB_ONBOARDING_ENABLE_V2
   const unsigned char short_content[] = "x";
-  unsigned char *large_content = NULL;
   char transfer_id[64];
   int64_t byte_window_ms = 1000 + WEB_ONBOARDING_EDITOR_RATE_WINDOW_MS + 1;
   int index = 0;
+#endif
+  unsigned char *large_content = NULL;
 
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_PLR_BG));
   if (d.pProtocol == NULL)
