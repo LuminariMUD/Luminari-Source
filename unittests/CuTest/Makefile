@@ -47,7 +47,7 @@ $(CUTEST_OBJ): CuTest.c CuTest.h | $(BUILD_DIR)
 
 $(PROTOCOL_PARSER_TEST_OBJ): test_protocol_parser.c CuTest.h \
 		../../src/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) -c test_protocol_parser.c -o $@
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c test_protocol_parser.c -o $@
 
 $(PROTOCOL_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
 		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)
@@ -55,7 +55,7 @@ $(PROTOCOL_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
 
 $(PROTOCOL_ONBOARDING_OBJ): ../../src/systems/web_client/onboarding.c \
 		../../src/systems/web_client/onboarding.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src \
+	$(CC) $(PROTOCOL_TEST_CFLAGS) -DWEB_ONBOARDING_FOCUSED_PROTOCOL_HARNESS=1 -I../../src \
 		-c ../../src/systems/web_client/onboarding.c -o $@
 
 $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
@@ -64,7 +64,7 @@ $(PROTOCOL_PARSER_TEST_EXE): $(CUTEST_OBJ) $(PROTOCOL_PARSER_TEST_OBJ) \
 
 $(PROTOCOL_FUZZ_OBJ): fuzz_protocol_parser.c ../../src/protocol.h \
 		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)
-	$(FUZZ_CC) $(FUZZ_CFLAGS) -c fuzz_protocol_parser.c -o $@
+	$(FUZZ_CC) $(FUZZ_CFLAGS) -I../../src -c fuzz_protocol_parser.c -o $@
 
 $(PROTOCOL_FUZZ_SOURCE_OBJ): ../../src/protocol.c ../../src/protocol.h \
 		../../src/structs.h ../../src/systems/web_client/onboarding.h | $(BUILD_DIR)

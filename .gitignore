@@ -402,6 +402,7 @@ unittests/CuTest/test_waypoint_cache
 unittests/CuTest/vessel_tests
 unittests/CuTest/vessel_stress_test
 unittests/CuTest/protocol_parser_tests
+unittests/CuTest/protocol_parser_fuzz
 ascii_map.txt
 FRMUD-HEX-Aunauroch.jpg
 plan.md

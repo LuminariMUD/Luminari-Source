@@ -437,9 +437,37 @@ void TestProtocolParser_WebOnboardingCapability(CuTest *tc)
   assert_fixture_valid(tc, &fixture);
 
   CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
-  CuAssertIntEquals(tc, WEB_ONBOARDING_PROTOCOL_VERSION,
-                    harness.descriptor.web_onboarding_version);
+  CuAssertIntEquals(tc, WEB_ONBOARDING_PROTOCOL_VERSION, harness.descriptor.web_onboarding_version);
   CuAssertIntEquals(tc, -1, harness.descriptor.web_onboarding_last_state);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_WebOnboardingActionUsesReservedVariable(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  const char *payload = "{\"v\":2,\"action\":\"cancel-editor\",\"phase\":\"cancel\"}";
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SB);
+  fixture_byte(&fixture, (unsigned char)TELOPT_MSDP);
+  fixture_byte(&fixture, MSDP_VAR);
+  fixture_text(&fixture, WEB_ONBOARDING_ACTION_VARIABLE);
+  fixture_byte(&fixture, MSDP_VAL);
+  fixture_text(&fixture, payload);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SE);
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertTrue(tc, harness.descriptor.web_onboarding_dirty);
+  CuAssertIntEquals(tc, (int)strlen(payload), harness.descriptor.web_onboarding_revision);
+  CuAssertStrEquals(tc, "", harness.output);
 
   harness_destroy(&harness);
 }
@@ -595,6 +623,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpAndMsdpCanCoexist);
   SUITE_ADD_TEST(suite, TestProtocolParser_WebOnboardingCapability);
+  SUITE_ADD_TEST(suite, TestProtocolParser_WebOnboardingActionUsesReservedVariable);
   SUITE_ADD_TEST(suite, TestProtocolParser_NullAndInvalidMsdpInputsAreSafe);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);

@@ -24,6 +24,10 @@
 
 void assign_backgrounds(void);
 void sort_backgrounds(void);
+const char *background_stable_id(int background);
+const char *background_wire_value(int background);
+const char *background_media_key(int background);
+int background_from_input(const char *input);
 bool has_acolyte_in_group(struct char_data *ch);
 void show_background_help(struct char_data *ch, int background);
 ACMD_DECL(do_swindle);

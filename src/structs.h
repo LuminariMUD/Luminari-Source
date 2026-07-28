@@ -7292,8 +7292,8 @@ message to dest room when docking~
 ~
 */
 
-#define MAX_MOVING_ROOMS 150 /* # of connectiong rooms             */
-#define ENDMOVING ((room_num)-2) /* end of moving room list in from[] */
+#define MAX_MOVING_ROOMS 150       /* # of connectiong rooms             */
+#define ENDMOVING ((room_num) - 2) /* end of moving room list in from[] */
 
 struct moving_room_data
 { /*  all room num are VNUM  */
@@ -7404,6 +7404,40 @@ struct txt_q
   struct txt_block *tail; /**< ? */
 };
 
+/* Opaque descriptor-local state owned by systems/web_client/onboarding.c. */
+struct web_onboarding_session;
+
+/*
+ * Descriptor-local role-play candidates.
+ *
+ * Catalog previews and the generated short-description flow must not mutate
+ * the character before the final checked save. These values are shared by
+ * Telnet and structured presentation and are discarded on every completed or
+ * abandoned flow.
+ */
+#define ROLEPLAY_MAX_EXAMPLES 3
+#define ROLEPLAY_EXAMPLE_MAX_BYTES 512
+
+struct roleplay_pending_data
+{
+  bool short_description_active;
+  int short_descriptor_1;
+  int short_adjective_1;
+  int short_descriptor_2;
+  int short_adjective_2;
+
+  bool background_active;
+  int background;
+  bool region_active;
+  int region;
+  bool deity_active;
+  int deity;
+
+  int example_state;
+  int example_count;
+  char examples[ROLEPLAY_MAX_EXAMPLES][ROLEPLAY_EXAMPLE_MAX_BYTES];
+};
+
 /** Master structure players. Holds the real players connection to the mud.
  * An analogy is the char_data is the body of the character, the descriptor_data
  * is the soul. */
@@ -7454,6 +7488,8 @@ struct descriptor_data
 
   /* Short description setup tracking */
   bool forced_short_desc_setup; /**< TRUE if forced to set short desc before game entry */
+  struct roleplay_pending_data
+      roleplay_pending; /**< Uncommitted RP previews; never character authority */
 
   /* Structured web onboarding (src/systems/web_client/onboarding.c) */
   int web_onboarding_version;    /**< Client-declared protocol version, 0 = none */
@@ -7461,6 +7497,8 @@ struct descriptor_data
   int web_onboarding_last_state; /**< Last CON_ state emitted, -1 = none */
   bool web_onboarding_dirty;     /**< Force a re-emit at the same state */
   int web_onboarding_error;      /**< Bounded validation error enum, 0 = none */
+  struct web_onboarding_session
+      *web_onboarding_session; /**< Private v2 transfer, result, and rate state */
 };
 
 /* other miscellaneous structures */

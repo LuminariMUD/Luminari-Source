@@ -6714,7 +6714,7 @@ void nanny(struct descriptor_data *d, char *arg)
 {
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
-  int i = 0, l = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
+  int i = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
 
   /* OasisOLC states */
   struct
@@ -7836,8 +7836,13 @@ void nanny(struct descriptor_data *d, char *arg)
 
   case CON_QREGION:
 
+    if (web_onboarding_handle_catalog_control(d, arg))
+      return;
+
     if (is_abbrev(arg, "quit") || is_abbrev(arg, "Quit"))
     {
+      d->roleplay_pending.region_active = FALSE;
+      d->roleplay_pending.region = REGION_NONE;
       write_to_output(d, "Homeland region selection aborted.\r\n");
       STATE(d) = CON_CHAR_RP_MENU;
       show_character_rp_menu(d);
@@ -7852,7 +7857,10 @@ void nanny(struct descriptor_data *d, char *arg)
       return;
     }
     else
-      GET_REGION(d->character) = load_result;
+    {
+      d->roleplay_pending.region_active = TRUE;
+      d->roleplay_pending.region = load_result;
+    }
 
     display_region_info(d->character, load_result);
 
@@ -7864,7 +7872,18 @@ void nanny(struct descriptor_data *d, char *arg)
   case CON_QREGION_HELP:
 
     if (UPPER(*arg) == 'Y')
+    {
+      enum roleplay_commit_result result = roleplay_commit_region(d);
+
+      if (result != ROLEPLAY_COMMIT_OK)
+      {
+        web_onboarding_report_roleplay_commit(d, result);
+        write_to_output(d, "\r\nThat homeland could not be saved. Your character was not "
+                           "changed.\r\n");
+        return;
+      }
       write_to_output(d, "\r\nRegion Confirmed! Press Enter to Continue.\r\n");
+    }
     else if (UPPER(*arg) != 'N')
     {
       write_to_output(d, "\r\nY)es to confirm N)o to reselect.\r\n");
@@ -7874,6 +7893,8 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
+      d->roleplay_pending.region_active = FALSE;
+      d->roleplay_pending.region = REGION_NONE;
 #ifdef CAMPAIGN_DL
       write_to_output(d, "\tcRegions of Krynn\tn\r\n\r\n");
 #else
@@ -7917,6 +7938,7 @@ void nanny(struct descriptor_data *d, char *arg)
 
     STATE(d) = CON_CHAR_RP_MENU;
     show_character_rp_menu(d);
+    web_onboarding_report_roleplay_commit(d, ROLEPLAY_COMMIT_OK);
     break;
 
   case CON_QCLASS:
@@ -8329,6 +8351,11 @@ void nanny(struct descriptor_data *d, char *arg)
       show_character_goal_edit(d);
       STATE(d) = CON_CHARACTER_GOALS_ENTER;
       return;
+    case '0':
+      roleplay_pending_clear_examples(d);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
     default:
       write_to_output(d, "\r\n");
       write_to_output(
@@ -8338,6 +8365,13 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_CHARACTER_PERSONALITY_IDEAS:
+    if (!strcmp(arg, "0"))
+    {
+      roleplay_pending_clear_examples(d);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
+    }
     if (*arg == 'Q' || *arg == 'q')
     {
       show_character_personality_edit(d);
@@ -8363,6 +8397,13 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_CHARACTER_IDEALS_IDEAS:
+    if (!strcmp(arg, "0"))
+    {
+      roleplay_pending_clear_examples(d);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
+    }
     if (*arg == 'Q' || *arg == 'q')
     {
       show_character_ideals_edit(d);
@@ -8387,9 +8428,16 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_CHARACTER_BONDS_IDEAS:
+    if (!strcmp(arg, "0"))
+    {
+      roleplay_pending_clear_examples(d);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
+    }
     if (*arg == 'Q' || *arg == 'q')
     {
-      show_character_ideals_edit(d);
+      show_character_bonds_edit(d);
       STATE(d) = CON_CHARACTER_BONDS_ENTER;
       return;
     }
@@ -8411,6 +8459,13 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_CHARACTER_FLAWS_IDEAS:
+    if (!strcmp(arg, "0"))
+    {
+      roleplay_pending_clear_examples(d);
+      show_character_rp_menu(d);
+      STATE(d) = CON_CHAR_RP_MENU;
+      return;
+    }
     if (*arg == 'Q' || *arg == 'q')
     {
       show_character_flaws_edit(d);
@@ -8577,6 +8632,7 @@ void nanny(struct descriptor_data *d, char *arg)
     switch (*arg)
     {
     case '0':
+      roleplay_pending_clear(d);
       show_short_description_main_menu(d);
       break;
     case '1':
@@ -8586,25 +8642,32 @@ void nanny(struct descriptor_data *d, char *arg)
       show_character_background_story_menu(d);
       break;
     case '3':
+      d->roleplay_pending.background_active = FALSE;
+      d->roleplay_pending.background = BACKGROUND_NONE;
       show_character_background_archtype_menu(d);
       break;
     case '4':
+      roleplay_pending_clear_examples(d);
       show_character_goal_idea_menu(d->character);
       STATE(d) = CON_CHARACTER_GOALS_IDEAS;
       break;
     case '5':
+      roleplay_pending_clear_examples(d);
       show_character_personality_idea_menu(d->character);
       STATE(d) = CON_CHARACTER_PERSONALITY_IDEAS;
       break;
     case '6':
+      roleplay_pending_clear_examples(d);
       show_character_ideals_idea_menu(d->character);
       STATE(d) = CON_CHARACTER_IDEALS_IDEAS;
       break;
     case '7':
+      roleplay_pending_clear_examples(d);
       show_character_bonds_idea_menu(d->character);
       STATE(d) = CON_CHARACTER_BONDS_IDEAS;
       break;
     case '8':
+      roleplay_pending_clear_examples(d);
       show_character_flaws_idea_menu(d->character);
       STATE(d) = CON_CHARACTER_FLAWS_IDEAS;
       break;
@@ -8627,6 +8690,8 @@ void nanny(struct descriptor_data *d, char *arg)
     case 'A':
     case 'a':
 
+      d->roleplay_pending.region_active = FALSE;
+      d->roleplay_pending.region = REGION_NONE;
       show_homeland_region_main_menu(d);
       break;
     case 'B':
@@ -8659,11 +8724,14 @@ void nanny(struct descriptor_data *d, char *arg)
                                    "member if you would like to change it.\r\n");
         return;
       }
+      d->roleplay_pending.deity_active = FALSE;
+      d->roleplay_pending.deity = 0;
       display_deity_menu(d);
       STATE(d) = CON_CHARACTER_DEITY_SELECT;
       break;
     case 'Q':
     case 'q':
+      roleplay_pending_clear(d);
       write_to_output(d, "%s", CONFIG_MENU);
       STATE(d) = CON_MENU;
       break;
@@ -8675,38 +8743,28 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_BACKGROUND_ARCHTYPE:
-
-    for (l = 0; *(arg + l); l++)
-    {
-      /* convert to lower case */
-      *(arg + l) = LOWER(*(arg + l));
-      if (*(arg + l) == ' ')
-        *(arg + l) = '-';
-    }
+    if (web_onboarding_handle_catalog_control(d, arg))
+      return;
 
     if (is_abbrev(arg, "quit"))
     {
+      d->roleplay_pending.background_active = FALSE;
+      d->roleplay_pending.background = BACKGROUND_NONE;
       show_character_rp_menu(d);
       STATE(d) = CON_CHAR_RP_MENU;
       return;
     }
 
-    for (i = 1; i < NUM_BACKGROUNDS; i++)
-    {
-      if (is_abbrev(arg, background_list[i].name))
-      {
-        GET_BACKGROUND(d->character) = i;
-        break;
-      }
-    }
-
-    if (i >= NUM_BACKGROUNDS)
+    i = background_from_input(arg);
+    if (i == BACKGROUND_NONE)
     {
       write_to_output(d, "That is not a valid background archtype. Please select again: ");
       return;
     }
 
-    show_background_help(d->character, GET_BACKGROUND(d->character));
+    d->roleplay_pending.background_active = TRUE;
+    d->roleplay_pending.background = i;
+    show_background_help(d->character, i);
 
     write_to_output(d, "\r\n");
     write_to_output(d, "Do you wish to choose this background archtype? (Y|N) ");
@@ -8717,10 +8775,19 @@ void nanny(struct descriptor_data *d, char *arg)
   case CON_BACKGROUND_ARCHTYPE_CONFIRM:
     if (UPPER(*arg) == 'Y')
     {
+      enum roleplay_commit_result result = roleplay_commit_background(d);
+
+      if (result != ROLEPLAY_COMMIT_OK)
+      {
+        web_onboarding_report_roleplay_commit(d, result);
+        write_to_output(d, "\r\nThat background could not be saved. Your character was not "
+                           "changed.\r\n");
+        return;
+      }
       write_to_output(d, "\r\nBackground Confirmed!\r\n");
-      SET_FEAT(d->character, background_list[GET_BACKGROUND(d->character)].feat, 1);
       show_character_rp_menu(d);
       STATE(d) = CON_CHAR_RP_MENU;
+      web_onboarding_report_roleplay_commit(d, ROLEPLAY_COMMIT_OK);
       return;
     }
     else if (UPPER(*arg) != 'N')
@@ -8732,11 +8799,8 @@ void nanny(struct descriptor_data *d, char *arg)
     }
     else
     {
-      if (GET_BACKGROUND(d->character) > 0)
-      {
-        SET_FEAT(d->character, background_list[GET_BACKGROUND(d->character)].feat, 0);
-        GET_BACKGROUND(d->character) = 0;
-      }
+      d->roleplay_pending.background_active = FALSE;
+      d->roleplay_pending.background = BACKGROUND_NONE;
       show_character_background_archtype_menu(d);
       return;
     }
@@ -8752,6 +8816,7 @@ void nanny(struct descriptor_data *d, char *arg)
       add_llog_entry(d->character, LAST_QUIT);
       //          STATE(d) = CON_CLOSE;
       STATE(d) = CON_ACCOUNT_MENU;
+      roleplay_pending_clear(d);
       show_account_menu(d);
       save_char(d->character, 0);
       free_char(d->character);
@@ -8823,6 +8888,7 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
 
     case '2':
+      roleplay_pending_clear(d);
       show_character_rp_menu(d);
       STATE(d) = CON_CHAR_RP_MENU;
       break;
@@ -9207,33 +9273,37 @@ void show_homeland_region_main_menu(struct descriptor_data *d)
 
 void show_character_long_description_menu(struct descriptor_data *d)
 {
-  if (d->character->player.description)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current description:\r\n%s", d->character->player.description);
+    write_to_output(d, "Current description:\r\n%s", *slot);
     /* Don't free this now... so that the old description gets loaded as the
       * current buffer in the editor.  Do setup the ABORT buffer here, however. */
-    d->backstr = strdup(d->character->player.description);
+    d->backstr = strdup(*slot);
   }
   write_to_output(d, "Enter the new text you'd like others to see when they look at you.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.description;
-  d->max_str = PLR_DESC_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION);
   STATE(d) = CON_PLR_DESC;
 }
 
 void show_character_background_story_menu(struct descriptor_data *d)
 {
-  if (d->character->player.background)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Background:\r\n%s", d->character->player.background);
+    write_to_output(d, "Current Character Background:\r\n%s", *slot);
     /* Don't free this now... so that the old background gets loaded as the
       * current buffer in the editor.  Do setup the ABORT buffer here, however. */
-    d->backstr = strdup(d->character->player.background);
+    d->backstr = strdup(*slot);
   }
   write_to_output(d, "Enter your character background story.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.background;
-  d->max_str = PLR_BG_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY);
   STATE(d) = CON_PLR_BG;
 }
 
@@ -9248,6 +9318,11 @@ void show_short_description_main_menu(struct descriptor_data *d)
   }
   else
   {
+    d->roleplay_pending.short_description_active = TRUE;
+    d->roleplay_pending.short_descriptor_1 = 0;
+    d->roleplay_pending.short_adjective_1 = 0;
+    d->roleplay_pending.short_descriptor_2 = 0;
+    d->roleplay_pending.short_adjective_2 = 0;
     send_to_char(d->character, "\r\n");
     send_to_char(d->character, "SET CHARACTER SHORT DESCRIPTION: PRESS ENTER\r\n");
     send_to_char(d->character, "\r\n");

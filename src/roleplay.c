@@ -27,11 +27,783 @@
 #include "deities.h"
 #include "char_descs.h"
 #include "modify.h"
+#include "systems/web_client/onboarding.h"
 
 extern const char *personality_traits[NUM_BACKGROUNDS][10];
 extern const char *character_ideals[NUM_BACKGROUNDS][8];
 extern const char *character_bonds[NUM_BACKGROUNDS][8];
 extern const char *character_flaws[NUM_BACKGROUNDS][8];
+
+struct roleplay_text_field_definition
+{
+  enum roleplay_text_field field;
+  const char *id;
+  int state;
+  size_t max_bytes;
+};
+
+static const struct roleplay_text_field_definition roleplay_text_fields[] = {
+    {ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION, "long-description", CON_PLR_DESC, PLR_DESC_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY, "background-story", CON_PLR_BG, PLR_BG_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_GOALS, "goals", CON_CHARACTER_GOALS_ENTER, PLR_GOALS_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_PERSONALITY, "personality", CON_CHARACTER_PERSONALITY_ENTER,
+     PLR_PERSONALITY_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_IDEALS, "ideals", CON_CHARACTER_IDEALS_ENTER, PLR_IDEALS_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_BONDS, "bonds", CON_CHARACTER_BONDS_ENTER, PLR_BONDS_LENGTH},
+    {ROLEPLAY_TEXT_FIELD_FLAWS, "flaws", CON_CHARACTER_FLAWS_ENTER, PLR_FLAWS_LENGTH},
+};
+
+#ifdef LUMINARI_CUTEST
+static roleplay_text_save_callback roleplay_text_test_save_callback;
+static roleplay_index_save_callback roleplay_index_test_save_callback;
+
+void roleplay_text_set_save_callback_for_test(roleplay_text_save_callback callback)
+{
+  roleplay_text_test_save_callback = callback;
+}
+
+void roleplay_index_set_save_callback_for_test(roleplay_index_save_callback callback)
+{
+  roleplay_index_test_save_callback = callback;
+}
+#endif
+
+static const struct roleplay_text_field_definition *
+roleplay_text_definition(enum roleplay_text_field field)
+{
+  size_t index = 0;
+
+  for (index = 0; index < sizeof(roleplay_text_fields) / sizeof(roleplay_text_fields[0]); index++)
+    if (roleplay_text_fields[index].field == field)
+      return &roleplay_text_fields[index];
+
+  return NULL;
+}
+
+enum roleplay_text_field roleplay_text_field_from_state(int state)
+{
+  size_t index = 0;
+
+  for (index = 0; index < sizeof(roleplay_text_fields) / sizeof(roleplay_text_fields[0]); index++)
+    if (roleplay_text_fields[index].state == state)
+      return roleplay_text_fields[index].field;
+
+  return ROLEPLAY_TEXT_FIELD_INVALID;
+}
+
+enum roleplay_text_field roleplay_text_field_from_id(const char *field_id)
+{
+  size_t index = 0;
+
+  if (field_id == NULL)
+    return ROLEPLAY_TEXT_FIELD_INVALID;
+
+  for (index = 0; index < sizeof(roleplay_text_fields) / sizeof(roleplay_text_fields[0]); index++)
+    if (!strcmp(roleplay_text_fields[index].id, field_id))
+      return roleplay_text_fields[index].field;
+
+  return ROLEPLAY_TEXT_FIELD_INVALID;
+}
+
+const char *roleplay_text_field_id(enum roleplay_text_field field)
+{
+  const struct roleplay_text_field_definition *definition = roleplay_text_definition(field);
+
+  return definition != NULL ? definition->id : "";
+}
+
+size_t roleplay_text_field_max_bytes(enum roleplay_text_field field)
+{
+  const struct roleplay_text_field_definition *definition = roleplay_text_definition(field);
+
+  return definition != NULL ? definition->max_bytes : 0;
+}
+
+char **roleplay_text_field_slot(struct char_data *ch, enum roleplay_text_field field)
+{
+  if (ch == NULL)
+    return NULL;
+
+  switch (field)
+  {
+  case ROLEPLAY_TEXT_FIELD_LONG_DESCRIPTION:
+    return &ch->player.description;
+  case ROLEPLAY_TEXT_FIELD_BACKGROUND_STORY:
+    return &ch->player.background;
+  case ROLEPLAY_TEXT_FIELD_GOALS:
+    return &ch->player.goals;
+  case ROLEPLAY_TEXT_FIELD_PERSONALITY:
+    return &ch->player.personality;
+  case ROLEPLAY_TEXT_FIELD_IDEALS:
+    return &ch->player.ideals;
+  case ROLEPLAY_TEXT_FIELD_BONDS:
+    return &ch->player.bonds;
+  case ROLEPLAY_TEXT_FIELD_FLAWS:
+    return &ch->player.flaws;
+  default:
+    return NULL;
+  }
+}
+
+const char *roleplay_text_field_value(const struct char_data *ch, enum roleplay_text_field field)
+{
+  char **slot = NULL;
+
+  if (ch == NULL)
+    return NULL;
+
+  slot = roleplay_text_field_slot((struct char_data *)ch, field);
+  return slot != NULL ? *slot : NULL;
+}
+
+static void roleplay_text_wipe(void *memory, size_t bytes)
+{
+  volatile unsigned char *cursor = memory;
+
+  while (cursor != NULL && bytes > 0)
+  {
+    *cursor++ = 0;
+    bytes--;
+  }
+}
+
+/*
+ * Decode one UTF-8 scalar, rejecting overlong encodings, surrogate code
+ * points, values beyond U+10FFFF, and the C0/C1 controls that the browser
+ * contract disallows. Tab, LF, and CR are the only permitted controls.
+ */
+static bool roleplay_text_valid_utf8(const unsigned char *content, size_t bytes)
+{
+  size_t offset = 0;
+
+  while (offset < bytes)
+  {
+    unsigned int codepoint = 0;
+    size_t width = 0;
+    unsigned char first = content[offset];
+    size_t index = 0;
+
+    if (first < 0x80)
+    {
+      codepoint = first;
+      width = 1;
+    }
+    else if (first >= 0xc2 && first <= 0xdf)
+    {
+      codepoint = first & 0x1f;
+      width = 2;
+    }
+    else if (first >= 0xe0 && first <= 0xef)
+    {
+      codepoint = first & 0x0f;
+      width = 3;
+    }
+    else if (first >= 0xf0 && first <= 0xf4)
+    {
+      codepoint = first & 0x07;
+      width = 4;
+    }
+    else
+    {
+      return FALSE;
+    }
+
+    if (offset + width > bytes)
+      return FALSE;
+
+    for (index = 1; index < width; index++)
+    {
+      unsigned char continuation = content[offset + index];
+
+      if ((continuation & 0xc0) != 0x80)
+        return FALSE;
+      codepoint = (codepoint << 6) | (continuation & 0x3f);
+    }
+
+    if ((width == 2 && codepoint < 0x80) || (width == 3 && codepoint < 0x800) ||
+        (width == 4 && codepoint < 0x10000) || (codepoint >= 0xd800 && codepoint <= 0xdfff) ||
+        codepoint > 0x10ffff)
+      return FALSE;
+
+    if ((codepoint <= 0x1f && codepoint != '\t' && codepoint != '\n' && codepoint != '\r') ||
+        (codepoint >= 0x7f && codepoint <= 0x9f))
+      return FALSE;
+
+    offset += width;
+  }
+
+  return TRUE;
+}
+
+enum roleplay_text_commit_result
+roleplay_text_normalize_copy(enum roleplay_text_field field, const unsigned char *content,
+                             size_t content_bytes, char **normalized, size_t *normalized_bytes)
+{
+  char *result = NULL;
+  size_t max_bytes = roleplay_text_field_max_bytes(field);
+  size_t read_offset = 0;
+  size_t write_offset = 0;
+
+  if (normalized == NULL || normalized_bytes == NULL)
+    return ROLEPLAY_TEXT_COMMIT_INVALID_CONTENT;
+
+  *normalized = NULL;
+  *normalized_bytes = 0;
+
+  if (max_bytes == 0)
+    return ROLEPLAY_TEXT_COMMIT_INVALID_FIELD;
+  if ((content == NULL && content_bytes != 0) || content_bytes > max_bytes)
+    return content_bytes > max_bytes ? ROLEPLAY_TEXT_COMMIT_TOO_LARGE
+                                     : ROLEPLAY_TEXT_COMMIT_INVALID_CONTENT;
+  if (!roleplay_text_valid_utf8(content, content_bytes))
+    return ROLEPLAY_TEXT_COMMIT_INVALID_CONTENT;
+
+  result = calloc(content_bytes + 1, sizeof(char));
+  if (result == NULL)
+    return ROLEPLAY_TEXT_COMMIT_NO_MEMORY;
+
+  while (read_offset < content_bytes)
+  {
+    if (content[read_offset] == '\r')
+    {
+      result[write_offset++] = '\n';
+      read_offset++;
+      if (read_offset < content_bytes && content[read_offset] == '\n')
+        read_offset++;
+      continue;
+    }
+
+    result[write_offset++] = (char)content[read_offset++];
+  }
+  result[write_offset] = '\0';
+
+  /* This is the same source helper invoked by the Telnet string editor. */
+  smash_tilde(result);
+
+  if (write_offset == 0)
+  {
+    roleplay_text_wipe(result, content_bytes + 1);
+    free(result);
+    result = NULL;
+  }
+
+  *normalized = result;
+  *normalized_bytes = write_offset;
+  return ROLEPLAY_TEXT_COMMIT_OK;
+}
+
+static bool roleplay_text_save(struct char_data *ch)
+{
+#ifdef LUMINARI_CUTEST
+  if (roleplay_text_test_save_callback != NULL)
+    return roleplay_text_test_save_callback(ch, 0);
+#endif
+
+  return save_char_checked(ch, 0);
+}
+
+static bool roleplay_index_save(void)
+{
+#ifdef LUMINARI_CUTEST
+  if (roleplay_index_test_save_callback != NULL)
+    return roleplay_index_test_save_callback();
+#endif
+
+  return save_player_index_checked();
+}
+
+enum roleplay_text_commit_result roleplay_text_commit_checked(struct char_data *ch,
+                                                              enum roleplay_text_field field,
+                                                              const unsigned char *content,
+                                                              size_t content_bytes)
+{
+  enum roleplay_text_commit_result result = ROLEPLAY_TEXT_COMMIT_OK;
+  char **slot = NULL;
+  char *replacement = NULL;
+  char *original = NULL;
+  size_t replacement_bytes = 0;
+  size_t max_bytes = roleplay_text_field_max_bytes(field);
+
+  if (ch == NULL || IS_NPC(ch) || max_bytes == 0 ||
+      (slot = roleplay_text_field_slot(ch, field)) == NULL)
+    return ROLEPLAY_TEXT_COMMIT_INVALID_FIELD;
+
+  result =
+      roleplay_text_normalize_copy(field, content, content_bytes, &replacement, &replacement_bytes);
+  if (result != ROLEPLAY_TEXT_COMMIT_OK)
+    return result;
+
+  original = *slot;
+  *slot = replacement;
+
+  if (!roleplay_text_save(ch))
+  {
+    *slot = original;
+    if (replacement != NULL)
+    {
+      roleplay_text_wipe(replacement, replacement_bytes + 1);
+      free(replacement);
+    }
+    return ROLEPLAY_TEXT_COMMIT_SAVE_FAILED;
+  }
+
+  if (original != NULL)
+  {
+    roleplay_text_wipe(original, strlen(original));
+    free(original);
+  }
+
+  return ROLEPLAY_TEXT_COMMIT_OK;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Shared role-play selection authority                                      */
+/* ------------------------------------------------------------------------- */
+
+static const char *const roleplay_age_ids[NUM_CHARACTER_AGES] = {
+    "age/adult", "age/adolescent", "age/middle-aged", "age/old-aged", "age/venerable"};
+
+static const char *const roleplay_age_media_keys[NUM_CHARACTER_AGES] = {
+    "age/adult", "age/adolescent", "age/middle-aged", "age/old-aged", "age/venerable"};
+
+const char *roleplay_age_stable_id(int age)
+{
+  if (age < 0 || age >= NUM_CHARACTER_AGES)
+    return "unknown";
+  return roleplay_age_ids[age];
+}
+
+const char *roleplay_age_media_key(int age)
+{
+  if (age < 0 || age >= NUM_CHARACTER_AGES)
+    return "roleplay/profile-hub";
+  return roleplay_age_media_keys[age];
+}
+
+void roleplay_region_stable_id(int region, char *buf, size_t buf_size)
+{
+  if (buf == NULL || buf_size == 0)
+    return;
+  if (region <= REGION_NONE || region >= NUM_REGIONS)
+  {
+    strlcpy(buf, "region/unknown", buf_size);
+    return;
+  }
+  snprintf(buf, buf_size, "region/%d", region);
+}
+
+const char *roleplay_region_media_key(int region)
+{
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  static const char *const keys[NUM_REGIONS] = {
+      [REGION_NONE] = "region/fallback",           [REGION_ASHENPORT] = "region/ashenport",
+      [REGION_SANCTUS] = "region/sanctus",         [REGION_ONDUIS] = "region/onduis",
+      [REGION_SELERISH] = "region/selerish",       [REGION_CARSTAN] = "region/carstan",
+      [REGION_AXTROS] = "region/axtros",           [REGION_HIR] = "region/hir",
+      [REGION_QUECHIAN] = "region/quechian",       [REGION_VAILAND] = "region/vailand",
+      [REGION_OORPII] = "region/oorpii",           [REGION_KELLUST] = "region/kellust",
+      [REGION_EAST_UBDINA] = "region/east-ubdina", [REGION_WEST_UBDINA] = "region/west-ubdina",
+  };
+
+  if (region > REGION_NONE && region < NUM_REGIONS && keys[region] != NULL)
+    return keys[region];
+#else
+  (void)region;
+#endif
+
+  return "region/fallback";
+}
+
+void roleplay_faction_stable_id(int faction_vnum, char *buf, size_t buf_size)
+{
+  if (buf == NULL || buf_size == 0)
+    return;
+  if (faction_vnum < 0)
+  {
+    strlcpy(buf, "faction/unknown", buf_size);
+    return;
+  }
+  snprintf(buf, buf_size, "faction/%d", faction_vnum);
+}
+
+const char *roleplay_faction_media_key(int faction_vnum)
+{
+  if (faction_vnum == 0)
+    return "faction/adventurer";
+  if (faction_vnum == 1)
+    return "faction/pyrets-pirates";
+  return "faction/fallback";
+}
+
+bool roleplay_hometown_is_selectable(int hometown)
+{
+#if defined(CAMPAIGN_DL)
+  return hometown >= 1 && hometown <= 3;
+#else
+  return hometown == 1;
+#endif
+}
+
+void roleplay_hometown_stable_id(int hometown, char *buf, size_t buf_size)
+{
+  if (buf == NULL || buf_size == 0)
+    return;
+  if (!roleplay_hometown_is_selectable(hometown))
+  {
+    strlcpy(buf, "hometown/unknown", buf_size);
+    return;
+  }
+  snprintf(buf, buf_size, "hometown/%d", hometown);
+}
+
+const char *roleplay_hometown_media_key(int hometown)
+{
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  if (hometown == 1)
+    return "hometown/ashenport";
+#else
+  (void)hometown;
+#endif
+  return "hometown/fallback";
+}
+
+void roleplay_deity_stable_id(int deity, char *buf, size_t buf_size)
+{
+  if (buf == NULL || buf_size == 0)
+    return;
+  if (deity < 0 || deity >= NUM_DEITIES)
+  {
+    strlcpy(buf, "deity/unknown", buf_size);
+    return;
+  }
+  snprintf(buf, buf_size, "deity/%d", deity);
+}
+
+const char *roleplay_deity_media_key(int deity)
+{
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  static const char *const keys[NUM_DEITIES] = {
+      [0] = "deity/none",
+      [DEITY_LUMINARI] = "deity/aethyra",
+      [DEITY_MORTIS] = "deity/nethris",
+      [DEITY_VITALIA] = "deity/seraphine",
+      [DEITY_CHRONOS] = "deity/kaelthir",
+      [DEITY_PYRONIS] = "deity/pyrion",
+      [DEITY_AQUARIA] = "deity/vaelith",
+      [DEITY_TERRANUS] = "deity/orith",
+      [DEITY_AERION] = "deity/aerion",
+      [DEITY_BELLUM] = "deity/kordran",
+      [DEITY_SAPIENS] = "deity/thalos",
+      [DEITY_FORTUNA] = "deity/lumerion",
+      [DEITY_UMBRA] = "deity/nyxara",
+      [DEITY_CONCORDIA] = "deity/myrr",
+      [DEITY_DECEPTOR] = "deity/vespera",
+      [DEITY_JUSTICIA] = "deity/calystral",
+      [DEITY_STONEFATHER] = "deity/borhild",
+      [DEITY_MOONWHISPER] = "deity/selithiel",
+      [DEITY_HEARTHKEEPER] = "deity/pella",
+      [DEITY_GEARMASTER] = "deity/gearmaster",
+      [DEITY_BLOODFANG] = "deity/ghorak",
+      [DEITY_ZORREN] = "deity/zorren",
+  };
+
+  if (deity >= 0 && deity < NUM_DEITIES && keys[deity] != NULL)
+    return keys[deity];
+#else
+  if (deity == 0)
+    return "deity/none";
+#endif
+  return "deity/fallback";
+}
+
+void roleplay_pending_clear_examples(struct descriptor_data *d)
+{
+  if (d == NULL)
+    return;
+
+  d->roleplay_pending.example_state = 0;
+  d->roleplay_pending.example_count = 0;
+  memset(d->roleplay_pending.examples, 0, sizeof(d->roleplay_pending.examples));
+}
+
+void roleplay_pending_clear(struct descriptor_data *d)
+{
+  if (d == NULL)
+    return;
+  memset(&d->roleplay_pending, 0, sizeof(d->roleplay_pending));
+}
+
+static bool roleplay_short_description_is_valid(struct descriptor_data *d)
+{
+  struct roleplay_pending_data *pending = NULL;
+
+  if (d == NULL || d->character == NULL)
+    return FALSE;
+  pending = &d->roleplay_pending;
+
+  if (!pending->short_description_active ||
+      !short_desc_feature_allowed(d->character, pending->short_descriptor_1) ||
+      short_desc_adjective_label(pending->short_descriptor_1, pending->short_adjective_1) == NULL)
+    return FALSE;
+
+  if (pending->short_descriptor_2 == 0 && pending->short_adjective_2 == 0)
+    return TRUE;
+
+  return short_desc_feature_allowed(d->character, pending->short_descriptor_2) &&
+         short_desc_adjective_label(pending->short_descriptor_2, pending->short_adjective_2) !=
+             NULL;
+}
+
+enum roleplay_commit_result roleplay_commit_short_description(struct descriptor_data *d)
+{
+  struct char_data *ch = NULL;
+  struct roleplay_pending_data *pending = NULL;
+  int old_descriptor_1 = 0;
+  int old_adjective_1 = 0;
+  int old_descriptor_2 = 0;
+  int old_adjective_2 = 0;
+
+  if (!roleplay_short_description_is_valid(d))
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  pending = &d->roleplay_pending;
+
+  old_descriptor_1 = GET_PC_DESCRIPTOR_1(ch);
+  old_adjective_1 = GET_PC_ADJECTIVE_1(ch);
+  old_descriptor_2 = GET_PC_DESCRIPTOR_2(ch);
+  old_adjective_2 = GET_PC_ADJECTIVE_2(ch);
+
+  GET_PC_DESCRIPTOR_1(ch) = pending->short_descriptor_1;
+  GET_PC_ADJECTIVE_1(ch) = pending->short_adjective_1;
+  GET_PC_DESCRIPTOR_2(ch) = pending->short_descriptor_2;
+  GET_PC_ADJECTIVE_2(ch) = pending->short_adjective_2;
+
+  if (!roleplay_text_save(ch))
+  {
+    GET_PC_DESCRIPTOR_1(ch) = old_descriptor_1;
+    GET_PC_ADJECTIVE_1(ch) = old_adjective_1;
+    GET_PC_DESCRIPTOR_2(ch) = old_descriptor_2;
+    GET_PC_ADJECTIVE_2(ch) = old_adjective_2;
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  pending->short_description_active = FALSE;
+  pending->short_descriptor_1 = 0;
+  pending->short_adjective_1 = 0;
+  pending->short_descriptor_2 = 0;
+  pending->short_adjective_2 = 0;
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d)
+{
+  struct char_data *ch = NULL;
+  struct roleplay_pending_data *pending = NULL;
+  int background = BACKGROUND_NONE;
+  int feat = 0;
+  int old_background = BACKGROUND_NONE;
+  int old_feat = 0;
+
+  if (d == NULL || d->character == NULL || !d->roleplay_pending.background_active)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  pending = &d->roleplay_pending;
+  background = pending->background;
+
+  if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
+      background_list[background].name == NULL)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  if (GET_BACKGROUND(ch) != BACKGROUND_NONE)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  feat = background_list[background].feat;
+  if (feat <= 0 || feat >= NUM_FEATS)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+
+  old_background = GET_BACKGROUND(ch);
+  old_feat = ch->char_specials.saved.feats[feat];
+  GET_BACKGROUND(ch) = background;
+  SET_FEAT(ch, feat, 1);
+
+  if (!roleplay_text_save(ch))
+  {
+    GET_BACKGROUND(ch) = old_background;
+    SET_FEAT(ch, feat, old_feat);
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  pending->background_active = FALSE;
+  pending->background = BACKGROUND_NONE;
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_age(struct descriptor_data *d, int age)
+{
+  struct char_data *ch = NULL;
+  int old_age = 0;
+  bool old_saved = FALSE;
+
+  if (d == NULL || d->character == NULL || age < 0 || age >= NUM_CHARACTER_AGES)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+
+  if (IS_DRACONIAN(ch) || ch->player_specials->saved.character_age_saved)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  old_age = ch->player_specials->saved.character_age;
+  old_saved = ch->player_specials->saved.character_age_saved;
+  ch->player_specials->saved.character_age = age;
+  ch->player_specials->saved.character_age_saved = TRUE;
+
+  if (!roleplay_text_save(ch))
+  {
+    ch->player_specials->saved.character_age = old_age;
+    ch->player_specials->saved.character_age_saved = old_saved;
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_region(struct descriptor_data *d)
+{
+  struct char_data *ch = NULL;
+  int region = REGION_NONE;
+  int old_region = REGION_NONE;
+
+  if (d == NULL || d->character == NULL || !d->roleplay_pending.region_active)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  region = d->roleplay_pending.region;
+
+  if (region <= REGION_NONE || region >= NUM_REGIONS || !is_selectable_region(region))
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  if (GET_REGION(ch) != REGION_NONE)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  old_region = GET_REGION(ch);
+  GET_REGION(ch) = region;
+  if (!roleplay_text_save(ch))
+  {
+    GET_REGION(ch) = old_region;
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  d->roleplay_pending.region_active = FALSE;
+  d->roleplay_pending.region = REGION_NONE;
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_faction(struct descriptor_data *d, int selection)
+{
+  struct char_data *ch = NULL;
+  clan_rnum clan = NO_CLAN;
+  long player_index = -1;
+  int old_clan = 0;
+  int old_rank = 0;
+  int old_index_clan = 0;
+  int new_clan = 0;
+  bool rollback_index_saved = TRUE;
+
+  if (d == NULL || d->character == NULL || selection < 0 || selection > num_of_clans)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  if (GET_CLAN(ch) > 0)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  if (selection > 0)
+  {
+    clan = real_clan(selection);
+    if (clan == NO_CLAN)
+      return ROLEPLAY_COMMIT_INVALID_SELECTION;
+    new_clan = clan_list[clan].vnum;
+  }
+
+  player_index = get_ptable_by_name(GET_NAME(ch));
+  if (player_index < 0)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+
+  old_clan = GET_CLAN(ch);
+  old_rank = GET_CLANRANK(ch);
+  old_index_clan = player_table[player_index].clan;
+
+  GET_CLAN(ch) = new_clan;
+  GET_CLANRANK(ch) = selection > 0 ? 6 : 0;
+  player_table[player_index].clan = new_clan;
+
+  if (!roleplay_index_save())
+  {
+    GET_CLAN(ch) = old_clan;
+    GET_CLANRANK(ch) = old_rank;
+    player_table[player_index].clan = old_index_clan;
+    return ROLEPLAY_COMMIT_INDEX_SAVE_FAILED;
+  }
+
+  if (!roleplay_text_save(ch))
+  {
+    GET_CLAN(ch) = old_clan;
+    GET_CLANRANK(ch) = old_rank;
+    player_table[player_index].clan = old_index_clan;
+    rollback_index_saved = roleplay_index_save();
+    return rollback_index_saved ? ROLEPLAY_COMMIT_SAVE_FAILED : ROLEPLAY_COMMIT_INDEX_SAVE_FAILED;
+  }
+
+  if (clan != NO_CLAN)
+    clan_list[clan].cache_timestamp = 0;
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_hometown(struct descriptor_data *d, int hometown)
+{
+  struct char_data *ch = NULL;
+  int old_hometown = 0;
+
+  if (d == NULL || d->character == NULL || !roleplay_hometown_is_selectable(hometown))
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  if (GET_HOMETOWN(ch) != 0)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  old_hometown = GET_HOMETOWN(ch);
+  GET_HOMETOWN(ch) = hometown;
+  if (!roleplay_text_save(ch))
+  {
+    GET_HOMETOWN(ch) = old_hometown;
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  return ROLEPLAY_COMMIT_OK;
+}
+
+enum roleplay_commit_result roleplay_commit_deity(struct descriptor_data *d)
+{
+  struct char_data *ch = NULL;
+  int deity = 0;
+  int old_deity = 0;
+
+  if (d == NULL || d->character == NULL || !d->roleplay_pending.deity_active)
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  ch = d->character;
+  deity = d->roleplay_pending.deity;
+
+  if (deity < 0 || deity >= NUM_DEITIES ||
+      (deity > 0 && deity_list[deity].pantheon == DEITY_PANTHEON_NONE))
+    return ROLEPLAY_COMMIT_INVALID_SELECTION;
+  if (GET_DEITY(ch) != 0)
+    return ROLEPLAY_COMMIT_LOCKED;
+
+  old_deity = GET_DEITY(ch);
+  GET_DEITY(ch) = deity;
+  if (!roleplay_text_save(ch))
+  {
+    GET_DEITY(ch) = old_deity;
+    return ROLEPLAY_COMMIT_SAVE_FAILED;
+  }
+
+  d->roleplay_pending.deity_active = FALSE;
+  d->roleplay_pending.deity = 0;
+  return ROLEPLAY_COMMIT_OK;
+}
 
 #define GOAL_DESCRIPTION                                                                           \
   ("Character goals are an important part of role playing. A character usually has "               \
@@ -687,12 +1459,45 @@ const char *character_flaws[NUM_BACKGROUNDS][8] = {
      "It's not stealing if I need it more than someone else.",
      "People who can't take care of themselves get what they deserve.", ""}};
 
+static void store_roleplay_examples(struct char_data *ch, int state, const char *first,
+                                    const char *second, const char *third)
+{
+  struct descriptor_data *d = NULL;
+  const char *values[ROLEPLAY_MAX_EXAMPLES] = {first, second, third};
+  int index = 0;
+
+  if (ch == NULL || (d = ch->desc) == NULL)
+    return;
+
+  roleplay_pending_clear_examples(d);
+  d->roleplay_pending.example_state = state;
+  for (index = 0; index < ROLEPLAY_MAX_EXAMPLES; index++)
+  {
+    if (values[index] == NULL || *values[index] == '\0')
+      continue;
+    strlcpy(d->roleplay_pending.examples[d->roleplay_pending.example_count], values[index],
+            ROLEPLAY_EXAMPLE_MAX_BYTES);
+    d->roleplay_pending.example_count++;
+  }
+}
+
 void choose_random_roleplay_goal(struct char_data *ch)
 {
   int objective = dice(1, 20), reason = dice(1, 20), complication = dice(1, 20);
+  char objective_text[ROLEPLAY_EXAMPLE_MAX_BYTES];
+  char reason_text[ROLEPLAY_EXAMPLE_MAX_BYTES];
+  char complication_text[ROLEPLAY_EXAMPLE_MAX_BYTES];
 
   if (!ch)
     return;
+
+  snprintf(objective_text, sizeof(objective_text), "Objective: %s.",
+           character_rp_goal_objectives[objective]);
+  snprintf(reason_text, sizeof(reason_text), "Reason: %s.", character_rp_goal_reasons[reason]);
+  snprintf(complication_text, sizeof(complication_text), "Complication: %s.",
+           character_rp_goal_complications[complication]);
+  store_roleplay_examples(ch, CON_CHARACTER_GOALS_IDEAS, objective_text, reason_text,
+                          complication_text);
 
   draw_line(ch, 80, '-', '-');
   text_line(ch, "EXAMPLE GOAL OUTLINE", 80, '-', '-');
@@ -707,17 +1512,17 @@ void choose_random_roleplay_goal(struct char_data *ch)
 
 void choose_random_roleplay_personality(struct char_data *ch, int background)
 {
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
   int choiceOne = 0, choiceTwo = 0;
   char buf[200];
 
   if (!ch)
     return;
+
+  if (background < 1 || background >= NUM_BACKGROUNDS)
+  {
+    send_to_char(ch, "That is an invalid background.\r\n");
+    return;
+  }
 
   draw_line(ch, 80, '-', '-');
   text_line(ch, "EXAMPLE PERSONALITY QUALITIES", 80, '-', '-');
@@ -727,6 +1532,9 @@ void choose_random_roleplay_personality(struct char_data *ch, int background)
   choiceTwo = dice(1, 8);
   while (choiceTwo == choiceOne)
     choiceTwo = dice(1, 8);
+  store_roleplay_examples(ch, CON_CHARACTER_PERSONALITY_IDEAS,
+                          personality_traits[background][choiceOne],
+                          personality_traits[background][choiceTwo], NULL);
 
   snprintf(buf, sizeof(buf), "%s", personality_traits[background][choiceOne]);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
@@ -739,17 +1547,17 @@ void choose_random_roleplay_personality(struct char_data *ch, int background)
 
 void choose_random_roleplay_ideals(struct char_data *ch, int background)
 {
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
   int choiceOne = 0, choiceTwo = 0;
   char buf[200];
 
   if (!ch)
     return;
+
+  if (background < 1 || background >= NUM_BACKGROUNDS)
+  {
+    send_to_char(ch, "That is an invalid background.\r\n");
+    return;
+  }
 
   draw_line(ch, 80, '-', '-');
   text_line(ch, "EXAMPLE CHARACTER IDEALS", 80, '-', '-');
@@ -759,6 +1567,8 @@ void choose_random_roleplay_ideals(struct char_data *ch, int background)
   choiceTwo = dice(1, 6);
   while (choiceTwo == choiceOne)
     choiceTwo = dice(1, 6);
+  store_roleplay_examples(ch, CON_CHARACTER_IDEALS_IDEAS, character_ideals[background][choiceOne],
+                          character_ideals[background][choiceTwo], NULL);
 
   snprintf(buf, sizeof(buf), "%s", character_ideals[background][choiceOne]);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
@@ -771,17 +1581,17 @@ void choose_random_roleplay_ideals(struct char_data *ch, int background)
 
 void choose_random_roleplay_bonds(struct char_data *ch, int background)
 {
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
   int choiceOne = 0, choiceTwo = 0;
   char buf[200];
 
   if (!ch)
     return;
+
+  if (background < 1 || background >= NUM_BACKGROUNDS)
+  {
+    send_to_char(ch, "That is an invalid background.\r\n");
+    return;
+  }
 
   draw_line(ch, 80, '-', '-');
   text_line(ch, "EXAMPLE CHARACTER BONDS", 80, '-', '-');
@@ -791,6 +1601,8 @@ void choose_random_roleplay_bonds(struct char_data *ch, int background)
   choiceTwo = dice(1, 6);
   while (choiceTwo == choiceOne)
     choiceTwo = dice(1, 6);
+  store_roleplay_examples(ch, CON_CHARACTER_BONDS_IDEAS, character_bonds[background][choiceOne],
+                          character_bonds[background][choiceTwo], NULL);
 
   snprintf(buf, sizeof(buf), "%s", character_bonds[background][choiceOne]);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
@@ -803,17 +1615,17 @@ void choose_random_roleplay_bonds(struct char_data *ch, int background)
 
 void choose_random_roleplay_flaws(struct char_data *ch, int background)
 {
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
   int choiceOne = 0, choiceTwo = 0;
   char buf[200];
 
   if (!ch)
     return;
+
+  if (background < 1 || background >= NUM_BACKGROUNDS)
+  {
+    send_to_char(ch, "That is an invalid background.\r\n");
+    return;
+  }
 
   draw_line(ch, 80, '-', '-');
   text_line(ch, "EXAMPLE CHARACTER FLAWS", 80, '-', '-');
@@ -823,6 +1635,8 @@ void choose_random_roleplay_flaws(struct char_data *ch, int background)
   choiceTwo = dice(1, 6);
   while (choiceTwo == choiceOne)
     choiceTwo = dice(1, 6);
+  store_roleplay_examples(ch, CON_CHARACTER_FLAWS_IDEAS, character_flaws[background][choiceOne],
+                          character_flaws[background][choiceTwo], NULL);
 
   snprintf(buf, sizeof(buf), "%s", character_flaws[background][choiceOne]);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
@@ -928,76 +1742,86 @@ void show_character_flaws_idea_menu(struct char_data *ch)
 
 void show_character_goal_edit(struct descriptor_data *d)
 {
-  if (d->character->player.goals)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_GOALS);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Goals:\r\n%s", d->character->player.goals);
-    d->backstr = strdup(d->character->player.goals);
+    write_to_output(d, "Current Character Goals:\r\n%s", *slot);
+    d->backstr = strdup(*slot);
   }
 
   write_to_output(d, "Enter your character goals.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.goals;
-  d->max_str = PLR_GOALS_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_GOALS);
   STATE(d) = CON_CHARACTER_GOALS_ENTER;
 }
 
 void show_character_personality_edit(struct descriptor_data *d)
 {
-  if (d->character->player.personality)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_PERSONALITY);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Personality:\r\n%s", d->character->player.personality);
-    d->backstr = strdup(d->character->player.personality);
+    write_to_output(d, "Current Character Personality:\r\n%s", *slot);
+    d->backstr = strdup(*slot);
   }
 
   write_to_output(d, "Enter your character personality.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.personality;
-  d->max_str = PLR_PERSONALITY_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_PERSONALITY);
   STATE(d) = CON_CHARACTER_PERSONALITY_ENTER;
 }
 
 void show_character_ideals_edit(struct descriptor_data *d)
 {
-  if (d->character->player.ideals)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_IDEALS);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Ideals:\r\n%s", d->character->player.ideals);
-    d->backstr = strdup(d->character->player.ideals);
+    write_to_output(d, "Current Character Ideals:\r\n%s", *slot);
+    d->backstr = strdup(*slot);
   }
 
   write_to_output(d, "Enter your character ideals.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.ideals;
-  d->max_str = PLR_IDEALS_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_IDEALS);
   STATE(d) = CON_CHARACTER_IDEALS_ENTER;
 }
 
 void show_character_bonds_edit(struct descriptor_data *d)
 {
-  if (d->character->player.bonds)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_BONDS);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Bonds:\r\n%s", d->character->player.bonds);
-    d->backstr = strdup(d->character->player.bonds);
+    write_to_output(d, "Current Character Bonds:\r\n%s", *slot);
+    d->backstr = strdup(*slot);
   }
 
   write_to_output(d, "Enter your character bonds.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.bonds;
-  d->max_str = PLR_BONDS_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_BONDS);
   STATE(d) = CON_CHARACTER_BONDS_ENTER;
 }
 
 void show_character_flaws_edit(struct descriptor_data *d)
 {
-  if (d->character->player.flaws)
+  char **slot = roleplay_text_field_slot(d->character, ROLEPLAY_TEXT_FIELD_FLAWS);
+
+  if (slot != NULL && *slot != NULL)
   {
-    write_to_output(d, "Current Character Flaws:\r\n%s", d->character->player.flaws);
-    d->backstr = strdup(d->character->player.flaws);
+    write_to_output(d, "Current Character Flaws:\r\n%s", *slot);
+    d->backstr = strdup(*slot);
   }
 
   write_to_output(d, "Enter your character flaws.\r\n");
   send_editor_help(d);
-  d->str = &d->character->player.flaws;
-  d->max_str = PLR_FLAWS_LENGTH;
+  d->str = slot;
+  d->max_str = roleplay_text_field_max_bytes(ROLEPLAY_TEXT_FIELD_FLAWS);
   STATE(d) = CON_CHARACTER_FLAWS_ENTER;
 }
 
@@ -1085,6 +1909,17 @@ void HandleStateCharacterAgeParseMenuChoice(struct descriptor_data *d, char *arg
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
   int age = atoi(arg) - 1;
+  enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
+
+  if (web_onboarding_handle_catalog_control(d, arg))
+    return;
+  if (is_abbrev(arg, "quit"))
+  {
+    changeStateTo = CON_CHAR_RP_MENU;
+    show_character_rp_menu(d);
+    STATE(d) = changeStateTo;
+    return;
+  }
 
   switch (age)
   {
@@ -1093,17 +1928,22 @@ void HandleStateCharacterAgeParseMenuChoice(struct descriptor_data *d, char *arg
   case 2:
   case 3:
   case 4:
-    ch->player_specials->saved.character_age = age;
-    ch->player_specials->saved.character_age_saved = true;
-    send_to_char(ch, "You've decided your character will be: %s.\r\n", character_ages[age]);
-    changeStateTo = CON_CHAR_RP_MENU;
-    show_character_rp_menu(d);
+    result = roleplay_commit_age(d, age);
+    if (result == ROLEPLAY_COMMIT_OK)
+    {
+      send_to_char(ch, "You've decided your character will be: %s.\r\n", character_ages[age]);
+      changeStateTo = CON_CHAR_RP_MENU;
+      show_character_rp_menu(d);
+    }
+    else
+      send_to_char(ch, "That age could not be saved. Your character was not changed.\r\n");
     break;
   default:
     send_to_char(ch, "That is not a valid age. Please select again: ");
     break;
   }
   STATE(d) = changeStateTo;
+  web_onboarding_report_roleplay_commit(d, result);
 }
 
 void display_faction_menu(struct descriptor_data *d)
@@ -1145,10 +1985,19 @@ void HandleStateCharacterFactionParseMenuChoice(struct descriptor_data *d, char 
   int clan = atoi(arg);
   clan_rnum c_n;
   int i = 0;
-  long v_id;
   char letter;
   char alphabet[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
                      'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+  enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
+
+  if (web_onboarding_handle_catalog_control(d, arg))
+    return;
+  if (is_abbrev(arg, "quit"))
+  {
+    STATE(d) = CON_CHAR_RP_MENU;
+    show_character_rp_menu(d);
+    return;
+  }
 
   if (is_clan)
   {
@@ -1158,28 +2007,23 @@ void HandleStateCharacterFactionParseMenuChoice(struct descriptor_data *d, char 
       return;
     }
 
-    GET_CLAN(ch) = clan;
-    if (clan == 0)
-    {
-      if ((v_id = get_ptable_by_name(GET_NAME(ch))) < 0)
-      {
-        send_to_char(ch, "There was an error setting your faction as adventurer. Please inform "
-                         "staff ERRCHMNFC001.\r\n");
-        return;
-      }
-      player_table[v_id].clan = 0;
-      GET_CLANRANK(ch) = 0;
-      send_to_char(
-          ch, "You have elected to be of no specific faction and are known as an adventurer.\r\n");
-    }
-    else
-    {
-      GET_CLANRANK(ch) = 6;
+    if (clan > 0)
       c_n = real_clan(clan);
-      set_clan(ch, clan_list[c_n].vnum);
+    result = roleplay_commit_faction(d, clan);
+    if (result != ROLEPLAY_COMMIT_OK)
+    {
+      send_to_char(ch, "That faction could not be saved. Your character was not changed.\r\n");
+      web_onboarding_report_roleplay_commit(d, result);
+      return;
+    }
+
+    if (clan == 0)
+      send_to_char(ch, "You have elected to be of no specific faction and are known as an "
+                       "adventurer.\r\n");
+    else
       send_to_char(ch, "You have selected the clan %s and your new rank in that clan is %s.\r\n",
                    CLAN_NAME(c_n), clan_list[c_n].rank_name[5]);
-    }
+
     changeStateTo = CON_CHAR_RP_MENU;
     show_character_rp_menu(d);
   }
@@ -1222,6 +2066,8 @@ void HandleStateCharacterFactionParseMenuChoice(struct descriptor_data *d, char 
   }
 
   STATE(d) = changeStateTo;
+  if (result == ROLEPLAY_COMMIT_OK)
+    web_onboarding_report_roleplay_commit(d, result);
 }
 
 void display_hometown_menu(struct descriptor_data *d)
@@ -1257,24 +2103,35 @@ void HandleStateCharacterHometownParseMenuChoice(struct descriptor_data *d, char
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
   int hometown = atoi(arg);
+  enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
-  switch (hometown)
+  if (web_onboarding_handle_catalog_control(d, arg))
+    return;
+  if (is_abbrev(arg, "quit"))
   {
-  case 1:
-#if defined(CAMPAIGN_DL)
-  case 2:
-  case 3:
-#endif
-    GET_HOMETOWN(ch) = hometown;
-    send_to_char(ch, "You've decided your character's hometown will be: %s.\r\n", cities[hometown]);
-    changeStateTo = CON_CHAR_RP_MENU;
+    STATE(d) = CON_CHAR_RP_MENU;
     show_character_rp_menu(d);
-    break;
-  default:
-    send_to_char(ch, "That is not a valid hometown. Please select again: ");
-    break;
+    return;
   }
+
+  if (roleplay_hometown_is_selectable(hometown))
+  {
+    result = roleplay_commit_hometown(d, hometown);
+    if (result == ROLEPLAY_COMMIT_OK)
+    {
+      send_to_char(ch, "You've decided your character's hometown will be: %s.\r\n",
+                   cities[hometown]);
+      changeStateTo = CON_CHAR_RP_MENU;
+      show_character_rp_menu(d);
+    }
+    else
+      send_to_char(ch, "That hometown could not be saved. Your character was not changed.\r\n");
+  }
+  else
+    send_to_char(ch, "That is not a valid hometown. Please select again: ");
+
   STATE(d) = changeStateTo;
+  web_onboarding_report_roleplay_commit(d, result);
 }
 
 void display_deity_menu(struct descriptor_data *d)
@@ -1303,6 +2160,7 @@ void display_deity_menu(struct descriptor_data *d)
   }
 
   send_to_char(ch, "\r\n");
+  send_to_char(ch, " 0) %-25s - %-15s - %s\r\n", "None", "Unaligned", "Follow no deity.");
   send_to_char(ch, "Select Your Deity: ");
 }
 
@@ -1314,15 +2172,28 @@ void display_deity_info(struct descriptor_data *d)
   if (!ch)
     return;
 
-  snprintf(dname, sizeof(dname), "%s", deity_list[GET_DEITY(ch)].name);
+  if (!d->roleplay_pending.deity_active)
+    return;
+
+  if (d->roleplay_pending.deity == 0)
+  {
+    send_to_char(ch, "\tANone\r\n\tn\r\n");
+    send_to_char(ch, "Your character will follow no deity.\r\n\r\n");
+    send_to_char(ch, "Do you wish to select this deity? (Y|N) ");
+    return;
+  }
+
+  snprintf(dname, sizeof(dname), "%s", deity_list[d->roleplay_pending.deity].name);
   send_to_char(ch, "\tA%s\r\n\tn", CAP(dname));
   send_to_char(ch, "\r\n");
-  send_to_char(ch, "\tAPantheon:\tn %s\r\n", pantheons[deity_list[GET_DEITY(ch)].pantheon]);
-  send_to_char(
-      ch, "\tAAlignment:\tn %s\r\n",
-      GET_ALIGN_STRING(deity_list[GET_DEITY(ch)].ethos, deity_list[GET_DEITY(ch)].alignment));
-  send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[GET_DEITY(ch)].portfolio);
-  send_to_char(ch, "\tADescription:\tn\r\n%s\r\n", deity_list[GET_DEITY(ch)].description);
+  send_to_char(ch, "\tAPantheon:\tn %s\r\n",
+               pantheons[deity_list[d->roleplay_pending.deity].pantheon]);
+  send_to_char(ch, "\tAAlignment:\tn %s\r\n",
+               GET_ALIGN_STRING(deity_list[d->roleplay_pending.deity].ethos,
+                                deity_list[d->roleplay_pending.deity].alignment));
+  send_to_char(ch, "\tAPortfolio:\tn %s\r\n", deity_list[d->roleplay_pending.deity].portfolio);
+  send_to_char(ch, "\tADescription:\tn\r\n%s\r\n",
+               deity_list[d->roleplay_pending.deity].description);
 
   send_to_char(ch, "\r\n");
   send_to_char(ch, "Do you wish to select this deity? (Y|N) ");
@@ -1334,10 +2205,21 @@ void HandleStateCharacterDeityParseMenuChoice(struct descriptor_data *d, char *a
   struct char_data *ch = d->character;
   int deity = atoi(arg);
 
-
-  if (deity >= 0 && deity < NUM_DEITIES)
+  if (web_onboarding_handle_catalog_control(d, arg))
+    return;
+  if (is_abbrev(arg, "quit"))
   {
-    GET_DEITY(ch) = deity;
+    d->roleplay_pending.deity_active = FALSE;
+    STATE(d) = CON_CHAR_RP_MENU;
+    show_character_rp_menu(d);
+    return;
+  }
+
+  if (deity >= 0 && deity < NUM_DEITIES &&
+      (deity == 0 || deity_list[deity].pantheon != DEITY_PANTHEON_NONE))
+  {
+    d->roleplay_pending.deity_active = TRUE;
+    d->roleplay_pending.deity = deity;
     display_deity_info(d);
     changeStateTo = CON_CHARACTER_DEITY_CONFIRM;
   }
@@ -1352,19 +2234,26 @@ void HandleStateCharacterDeityConfirmParseMenuChoice(struct descriptor_data *d, 
 {
   int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
+  enum roleplay_commit_result result = ROLEPLAY_COMMIT_INVALID_SELECTION;
 
   switch (*arg)
   {
   case 'Y':
   case 'y':
-    send_to_char(ch, "You've decided your character's deity will be: %s.\r\n",
-                 deity_list[GET_DEITY(ch)].name);
-    changeStateTo = CON_CHAR_RP_MENU;
-    show_character_rp_menu(d);
+    result = roleplay_commit_deity(d);
+    if (result == ROLEPLAY_COMMIT_OK)
+    {
+      send_to_char(ch, "Your deity selection was saved.\r\n");
+      changeStateTo = CON_CHAR_RP_MENU;
+      show_character_rp_menu(d);
+    }
+    else
+      send_to_char(ch, "That deity could not be saved. Your character was not changed.\r\n");
     break;
   case 'N':
   case 'n':
-    GET_DEITY(ch) = 0;
+    d->roleplay_pending.deity_active = FALSE;
+    d->roleplay_pending.deity = 0;
     display_deity_menu(d);
     changeStateTo = CON_CHARACTER_DEITY_SELECT;
     break;
@@ -1374,6 +2263,8 @@ void HandleStateCharacterDeityConfirmParseMenuChoice(struct descriptor_data *d, 
   }
 
   STATE(d) = changeStateTo;
+  if (UPPER(*arg) == 'Y')
+    web_onboarding_report_roleplay_commit(d, result);
 }
 
 // shows:

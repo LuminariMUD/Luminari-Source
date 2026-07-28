@@ -2953,6 +2953,14 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
        * A client that omits this keeps whatever the v1 variable selected. */
       web_onboarding_set_version_list(apDescriptor, apValue);
     }
+    else if (MatchString(apVariable, WEB_ONBOARDING_ACTION_VARIABLE))
+    {
+      /*
+       * Structured editor traffic is isolated from nanny() command input.
+       * The handler revalidates every envelope and never logs the value.
+       */
+      web_onboarding_handle_action(apDescriptor, apValue);
+    }
     else if (MatchString(apVariable, "RESET"))
     {
       if (MatchString(apValue, "REPORTABLE_VARIABLES") ||

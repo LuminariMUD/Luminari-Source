@@ -99,6 +99,7 @@
 #include "spell_prep.h"
 #include "perfmon.h"
 #include "systems/web_client/onboarding.h"
+#include "roleplay.h"
 #include "help.h"
 #include "transport.h"
 #include "hunts.h"
@@ -1270,7 +1271,14 @@ void game_loop(socket_t local_mother_desc)
         else if (d->str) /* Writing boards, mail, etc. */
           string_add(d, comm);
         else if (STATE(d) != CON_PLAYING) /* In menus, etc. */
+        {
           nanny(d, comm);
+          /*
+           * Same-state validation, generated examples, and page changes need
+           * a fresh revision just as much as an ordinary state transition.
+           */
+          web_onboarding_mark_dirty(d);
+        }
         else
         {                         /* else: we're playing normally. */
           if (aliased)            /* To prevent recursive aliases. */
@@ -2545,6 +2553,7 @@ static void init_descriptor(struct descriptor_data *newd, int desc)
   newd->pProtocol = ProtocolCreate(); /* KaVir's plugin*/
   newd->events = create_list();
   web_onboarding_reset(newd);
+  roleplay_pending_clear(newd);
 }
 
 static int new_descriptor(socket_t s)
@@ -3208,6 +3217,10 @@ void close_socket(struct descriptor_data *d)
   REMOVE_FROM_LIST(d, descriptor_list, next);
   CLOSE_SOCKET(d->descriptor);
   flush_queues(d);
+  /* Overwrite and release any private structured-editor content before the
+   * attached character or account can be freed or switched. */
+  web_onboarding_reset(d);
+  roleplay_pending_clear(d);
 
   /* Forget snooping */
   if (d->snooping)
@@ -4928,8 +4941,7 @@ static void msdp_update(void)
       /* Location information */
       /*  Only update room stuff if they've changed room */
       if (IN_ROOM(ch) != NOWHERE &&
-          (int)GET_ROOM_VNUM(IN_ROOM(ch)) !=
-              d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
+          (int)GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
       {
         /* Format for the room data is:
          * ROOM
