@@ -4,6 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/db.h"
 #include "../../src/systems/intermud3/i3_client.h"
 
 #include <json-c/json.h>
@@ -306,4 +307,39 @@ void Test_i3_authentication_primes_network_caches(CuTest *tc)
   CuAssertStrEquals(tc, "channel_list", command->method);
 
   i3_test_cleanup();
+}
+
+void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
+{
+  const char *notification;
+  struct char_data player;
+  struct player_special_data player_specials;
+  struct char_data *saved_character_list;
+
+  memset(&player, 0, sizeof(player));
+  memset(&player_specials, 0, sizeof(player_specials));
+  player.player.name = "TargetPlayer";
+  player.player_specials = &player_specials;
+
+  saved_character_list = character_list;
+  character_list = &player;
+  i3_test_setup();
+
+  CuAssertPtrEquals(tc, &player, i3_find_online_player_for_test("targetplayer"));
+  CuAssertPtrEquals(tc, NULL, i3_find_online_player_for_test("MissingPlayer"));
+  CuAssertPtrEquals(tc, NULL, i3_find_online_player_for_test(NULL));
+
+  notification = "{\"jsonrpc\":\"2.0\",\"method\":\"tell_received\",\"params\":{\"from_user\":"
+                 "\"RemotePlayer\",\"from_mud\":\"RemoteMUD\",\"to_user\":\"TargetPlayer\","
+                 "\"message\":\"safe delivery\"}}\n";
+  CuAssertIntEquals(tc, 1, i3_process_input(notification, strlen(notification)));
+  CuAssertIntEquals(tc, 1, i3_client->event_queue_size);
+
+  i3_process_events();
+
+  CuAssertIntEquals(tc, 0, i3_client->event_queue_size);
+  CuAssertIntEquals(tc, 1, i3_client->messages_received);
+
+  i3_test_cleanup();
+  character_list = saved_character_list;
 }

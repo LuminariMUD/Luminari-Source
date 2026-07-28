@@ -202,6 +202,10 @@ void i3_get_statistics(char *buf, size_t bufsize);
 i3_mud_t *i3_find_mud(const char *name);
 i3_channel_t *i3_find_channel(const char *name);
 
+#ifdef LUMINARI_CUTEST
+struct char_data *i3_find_online_player_for_test(const char *name);
+#endif
+
 /* Configuration */
 int i3_load_config(const char *filename);
 int i3_save_config(const char *filename);

@@ -52,6 +52,7 @@ static void i3_heartbeat(void);
 static void i3_reconnect(void);
 static void i3_update_mudlist(json_object *result_obj);
 static void i3_update_channel_list(json_object *result_obj);
+static struct char_data *i3_find_online_player(const char *name);
 
 /* Initialize the I3 client */
 int i3_initialize(void)
@@ -1612,8 +1613,35 @@ static struct char_data *i3_reply_recipient(i3_event_t *event)
   {
     return NULL;
   }
-  return get_player_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
+  return i3_find_online_player(event->to_user);
 }
+
+static struct char_data *i3_find_online_player(const char *name)
+{
+  struct char_data *candidate;
+
+  if (!name || !*name)
+  {
+    return NULL;
+  }
+
+  for (candidate = character_list; candidate; candidate = candidate->next)
+  {
+    if (!IS_NPC(candidate) && GET_NAME(candidate) && !str_cmp(GET_NAME(candidate), name))
+    {
+      return candidate;
+    }
+  }
+
+  return NULL;
+}
+
+#ifdef LUMINARI_CUTEST
+struct char_data *i3_find_online_player_for_test(const char *name)
+{
+  return i3_find_online_player(name);
+}
+#endif
 
 static void i3_deliver_who_reply(i3_event_t *event)
 {
@@ -1834,7 +1862,7 @@ void i3_process_events(void)
     case I3_MSG_TELL:
     case I3_MSG_EMOTETO:
       /* Find the target player and deliver the tell */
-      victim = get_player_vis(NULL, event->to_user, NULL, FIND_CHAR_WORLD);
+      victim = i3_find_online_player(event->to_user);
       if (victim)
       {
         if (event->type == I3_MSG_TELL)
