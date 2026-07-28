@@ -23,7 +23,7 @@ The Intermud3 integration has been repaired and enhanced to provide a complete, 
 - `i3locate <user>` - Search for user across network
 - `i3mudlist` - List all MUDs on network
 - `i3channels list|join|leave [channel]` - Channel management
-- `i3config` - Toggle features on/off
+- `i3config` - Toggle server-wide features on/off (immortal only)
 - `i3admin` - Administrative functions (immortal only)
 
 #### Protocol Features

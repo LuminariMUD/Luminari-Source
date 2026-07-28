@@ -2407,7 +2407,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"i3admin", "i3admin", POS_DEAD, do_i3admin, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3channels", "i3channels", POS_DEAD, do_i3channels, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3chat", "i3chat", POS_DEAD, do_i3chat, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"i3config", "i3config", POS_DEAD, do_i3config, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
+    {"i3config", "i3config", POS_DEAD, do_i3config, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3finger", "i3finger", POS_DEAD, do_i3finger, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3locate", "i3locate", POS_DEAD, do_i3locate, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"i3mudlist", "i3mudlist", POS_DEAD, do_i3mudlist, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},

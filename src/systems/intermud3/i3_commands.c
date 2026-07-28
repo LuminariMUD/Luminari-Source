@@ -65,6 +65,11 @@ void do_i3tell(struct char_data *ch, const char *argument, int cmd, int subcmd)
   }
 
   *at_sign = '\0';
+  if (!*target || !*(at_sign + 1))
+  {
+    send_to_char(ch, "You must specify both user and MUD: <user>@<mud>\r\n");
+    return;
+  }
   if (strlen(target) >= sizeof(target_user) || strlen(at_sign + 1) >= sizeof(target_mud))
   {
     send_to_char(ch, "The user or MUD name is too long.\r\n");
@@ -106,6 +111,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
   char arg_copy[MAX_INPUT_LENGTH];
   const char *message;
   char *arg_ptr;
+  i3_channel_t *channel_info;
 
   UNUSED_VAR(cmd);
   UNUSED_VAR(subcmd);
@@ -141,6 +147,18 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
     return;
   }
 
+  channel_info = i3_find_channel(channel);
+  if (!channel_info)
+  {
+    send_to_char(ch, "Unknown I3 channel: %s\r\n", channel);
+    return;
+  }
+  if (!channel_info->subscribed)
+  {
+    send_to_char(ch, "Join channel '%s' with 'i3channels join %s' first.\r\n", channel, channel);
+    return;
+  }
+
   /* Send the channel message */
   if (i3_send_channel_message(channel, GET_NAME(ch), message) == 0)
   {
@@ -156,6 +174,7 @@ void do_i3chat(struct char_data *ch, const char *argument, int cmd, int subcmd)
 void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
 {
   char target_mud[128];
+  i3_mud_t *mud;
 
   UNUSED_VAR(cmd);
   UNUSED_VAR(subcmd);
@@ -177,6 +196,18 @@ void do_i3who(struct char_data *ch, const char *argument, int cmd, int subcmd)
   {
     send_to_char(ch, "Usage: i3who <mud_name>\r\n");
     send_to_char(ch, "Use 'i3mudlist' to see available MUDs.\r\n");
+    return;
+  }
+
+  mud = i3_find_mud(target_mud);
+  if (!mud)
+  {
+    send_to_char(ch, "Unknown MUD: %s\r\n", target_mud);
+    return;
+  }
+  if (!mud->online)
+  {
+    send_to_char(ch, "That MUD is currently offline.\r\n");
     return;
   }
 
@@ -227,6 +258,11 @@ void do_i3finger(struct char_data *ch, const char *argument, int cmd, int subcmd
   }
 
   *at_sign = '\0';
+  if (!*target || !*(at_sign + 1))
+  {
+    send_to_char(ch, "You must specify both user and MUD: <user>@<mud>\r\n");
+    return;
+  }
   if (strlen(target) >= sizeof(target_user) || strlen(at_sign + 1) >= sizeof(target_mud))
   {
     send_to_char(ch, "The user or MUD name is too long.\r\n");
@@ -340,6 +376,7 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
   char channel[64];
   char arg_copy[MAX_INPUT_LENGTH];
   const char *arg_ptr;
+  i3_channel_t *channel_info;
   int i;
 
   UNUSED_VAR(cmd);
@@ -381,6 +418,17 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
       send_to_char(ch, "Usage: i3channels join <channel>\r\n");
       return;
     }
+    channel_info = i3_find_channel(channel);
+    if (!channel_info)
+    {
+      send_to_char(ch, "Unknown I3 channel: %s\r\n", channel);
+      return;
+    }
+    if (channel_info->subscribed)
+    {
+      send_to_char(ch, "Already subscribed to channel '%s'.\r\n", channel);
+      return;
+    }
     if (i3_join_channel(channel, GET_NAME(ch)) == 0)
     {
       send_to_char(ch, "Joining channel '%s'...\r\n", channel);
@@ -395,6 +443,17 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
     if (!*channel)
     {
       send_to_char(ch, "Usage: i3channels leave <channel>\r\n");
+      return;
+    }
+    channel_info = i3_find_channel(channel);
+    if (!channel_info)
+    {
+      send_to_char(ch, "Unknown I3 channel: %s\r\n", channel);
+      return;
+    }
+    if (!channel_info->subscribed)
+    {
+      send_to_char(ch, "Not subscribed to channel '%s'.\r\n", channel);
       return;
     }
     if (i3_leave_channel(channel, GET_NAME(ch)) == 0)
@@ -415,7 +474,9 @@ void do_i3channels(struct char_data *ch, const char *argument, int cmd, int subc
 /* I3 Config command - configure I3 settings */
 void do_i3config(struct char_data *ch, const char *argument, int cmd, int subcmd)
 {
-  char arg[MAX_INPUT_LENGTH];
+  char feature[MAX_INPUT_LENGTH];
+  char state[MAX_INPUT_LENGTH];
+  int enabled;
 
   UNUSED_VAR(cmd);
   UNUSED_VAR(subcmd);
@@ -426,9 +487,10 @@ void do_i3config(struct char_data *ch, const char *argument, int cmd, int subcmd
     return;
   }
 
-  i3_one_argument(argument, arg, sizeof(arg));
+  argument = i3_one_argument(argument, feature, sizeof(feature));
+  i3_one_argument(argument, state, sizeof(state));
 
-  if (!*arg)
+  if (!*feature)
   {
     send_to_char(ch, "%sIntermud3 Configuration:%s\r\n", CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
     send_to_char(ch, "  Tells:    %s\r\n", i3_client->enable_tell ? "Enabled" : "Disabled");
@@ -438,26 +500,25 @@ void do_i3config(struct char_data *ch, const char *argument, int cmd, int subcmd
     return;
   }
 
-  /* Toggle settings */
-  if (!strcasecmp(arg, "tells"))
+  if (!*state || i3_configure_feature(feature, state) < 0)
   {
-    i3_client->enable_tell = !i3_client->enable_tell;
-    send_to_char(ch, "I3 tells %s.\r\n", i3_client->enable_tell ? "enabled" : "disabled");
+    send_to_char(ch, "Usage: i3config <tells|channels|who> <on|off>\r\n");
+    return;
   }
-  else if (!strcasecmp(arg, "channels"))
+
+  if (!strcasecmp(feature, "tells"))
   {
-    i3_client->enable_channels = !i3_client->enable_channels;
-    send_to_char(ch, "I3 channels %s.\r\n", i3_client->enable_channels ? "enabled" : "disabled");
+    enabled = i3_client->enable_tell;
   }
-  else if (!strcasecmp(arg, "who"))
+  else if (!strcasecmp(feature, "channels"))
   {
-    i3_client->enable_who = !i3_client->enable_who;
-    send_to_char(ch, "I3 who %s.\r\n", i3_client->enable_who ? "enabled" : "disabled");
+    enabled = i3_client->enable_channels;
   }
   else
   {
-    send_to_char(ch, "Usage: i3config <tells|channels|who> <on|off>\r\n");
+    enabled = i3_client->enable_who;
   }
+  send_to_char(ch, "I3 %s %s.\r\n", feature, enabled ? "enabled" : "disabled");
 }
 
 /* I3 Admin command - admin functions */
@@ -477,7 +538,7 @@ void do_i3admin(struct char_data *ch, const char *argument, int cmd, int subcmd)
 
   i3_one_argument(argument, arg, sizeof(arg));
 
-  if (!*arg)
+  if (!*arg || !strcasecmp(arg, "help"))
   {
     send_to_char(ch, "I3 Admin Commands:\r\n");
     send_to_char(ch, "  i3admin status     - Show connection status\r\n");

@@ -81,6 +81,31 @@ void Test_command_dispatch_lookup(CuTest *tc)
     free_command_list();
 }
 
+void Test_i3_server_configuration_requires_immortal_level(CuTest *tc)
+{
+  int admin_command;
+  int config_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  admin_command = find_command("i3admin");
+  config_command = find_command("i3config");
+
+  CuAssertTrue(tc, admin_command >= 0);
+  CuAssertTrue(tc, config_command >= 0);
+  CuAssertIntEquals(tc, LVL_IMMORT, complete_cmd_info[admin_command].minimum_level);
+  CuAssertIntEquals(tc, LVL_IMMORT, complete_cmd_info[config_command].minimum_level);
+
+  if (created_command_list)
+    free_command_list();
+}
+
 void Test_command_dispatch_numeric_and_reserved_parsing(CuTest *tc)
 {
   char reserved_name[] = "self";

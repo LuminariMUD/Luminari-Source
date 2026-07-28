@@ -625,7 +625,7 @@ wilderness contract, remaining work).
   - `i3locate <user>` - Search for users across network
   - `i3mudlist` - List all connected MUDs on network
   - `i3channels list|join|leave [channel]` - Channel subscription management
-  - `i3config` - Toggle I3 features on/off
+  - `i3config` - Toggle server-wide I3 features on/off (immortal only)
   - `i3admin status|stats|reconnect|reload|save` - Administrative functions
 - **JSON-RPC 2.0 protocol compliance** - Full implementation of I3 Gateway protocol
 - **Configuration system** - File-based configuration in `lib/i3_config`

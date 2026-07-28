@@ -18,6 +18,8 @@
 #define I3_MAX_QUEUE_SIZE 1000
 #define I3_RECONNECT_DELAY 30
 #define I3_HEARTBEAT_INTERVAL 30
+#define I3_PRESENCE_INTERVAL 5
+#define I3_MAX_PRESENCE_USERS 512
 #define I3_DEFAULT_PORT 8081
 #define I3_MAX_CHANNELS 512
 
@@ -114,6 +116,7 @@ typedef struct
   int socket_fd;
   int authenticated;
   time_t last_heartbeat;
+  time_t last_presence_sync;
   time_t connect_time;
   char *receive_buffer;
   size_t receive_length;
@@ -175,6 +178,7 @@ int i3_is_connected(void);
 /* Thread functions */
 void *i3_client_thread(void *arg);
 void i3_process_events(void);
+int i3_sync_presence(void);
 int i3_get_event_fd(void);
 
 /* Command functions */
@@ -209,6 +213,7 @@ struct char_data *i3_find_online_player_for_test(const char *name);
 /* Configuration */
 int i3_load_config(const char *filename);
 int i3_save_config(const char *filename);
+int i3_configure_feature(const char *feature, const char *state);
 
 /* Logging */
 void i3_log(const char *format, ...);

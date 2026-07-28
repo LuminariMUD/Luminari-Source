@@ -14,6 +14,7 @@
 #include "db.h"
 #include "screen.h"
 #include "act.h"
+#include "modify.h"
 
 #include "systems/intermud3/i3_client.h"
 /* Temporarily disabled for compilation
@@ -53,6 +54,10 @@ static void i3_reconnect(void);
 static void i3_update_mudlist(json_object *result_obj);
 static void i3_update_channel_list(json_object *result_obj);
 static struct char_data *i3_find_online_player(const char *name);
+static int i3_config_line_key(const char *line, char *key, size_t key_size,
+                              const char **value_start, const char **value_end);
+static int i3_mutable_config_value(const char *key, char *value, size_t value_size,
+                                   int *setting_index);
 
 /* Initialize the I3 client */
 int i3_initialize(void)
@@ -604,6 +609,7 @@ int i3_parse_response(const char *json_str)
         pthread_mutex_lock(mutex_ptr);
         i3_client->state = I3_STATE_CONNECTED;
         i3_client->authenticated = 1;
+        i3_client->last_presence_sync = 0;
         pthread_mutex_unlock(mutex_ptr);
 
         mud_name_obj = NULL;
@@ -1188,7 +1194,8 @@ int i3_send_tell(const char *from_user, const char *target_mud, const char *targ
     return -1;
   }
 
-  if (!from_user || !target_mud || !target_user || !message)
+  if (!from_user || !*from_user || !target_mud || !*target_mud || !target_user || !*target_user ||
+      !message || !*message)
   {
     i3_log("I3: Invalid tell parameters");
     return -1;
@@ -1289,7 +1296,7 @@ int i3_send_channel_message(const char *channel, const char *from_user, const ch
     return -1;
   }
 
-  if (!channel || !from_user || !message)
+  if (!channel || !*channel || !from_user || !*from_user || !message || !*message)
   {
     i3_log("I3: Invalid channel message parameters");
     return -1;
@@ -1978,6 +1985,125 @@ int i3_get_event_fd(void)
   return i3_client->event_signal_read_fd;
 }
 
+/* Publish an authoritative online-player snapshot from the main MUD thread. */
+int i3_sync_presence(void)
+{
+  struct descriptor_data *descriptor;
+  struct char_data *character;
+  i3_command_t *command;
+  json_object *params;
+  json_object *users;
+  json_object *user;
+  pthread_mutex_t *state_mutex;
+  char title[256];
+  const char *race;
+  time_t now;
+  int ready;
+  int user_count;
+
+  if (!i3_client)
+  {
+    return -1;
+  }
+
+  state_mutex = (pthread_mutex_t *)i3_client->state_mutex;
+  now = time(NULL);
+  pthread_mutex_lock(state_mutex);
+  ready = i3_client->state == I3_STATE_CONNECTED && i3_client->authenticated;
+  if (ready && i3_client->last_presence_sync &&
+      now - i3_client->last_presence_sync < I3_PRESENCE_INTERVAL)
+  {
+    ready = 0;
+  }
+  if (ready)
+  {
+    i3_client->last_presence_sync = now;
+  }
+  pthread_mutex_unlock(state_mutex);
+  if (!ready)
+  {
+    return 0;
+  }
+
+  params = json_object_new_object();
+  users = json_object_new_array();
+  if (!params || !users)
+  {
+    if (params)
+    {
+      json_object_put(params);
+    }
+    if (users)
+    {
+      json_object_put(users);
+    }
+    return -1;
+  }
+
+  user_count = 0;
+  for (descriptor = descriptor_list; descriptor && user_count < I3_MAX_PRESENCE_USERS;
+       descriptor = descriptor->next)
+  {
+    if (STATE(descriptor) != CON_PLAYING)
+    {
+      continue;
+    }
+
+    character = descriptor->original ? descriptor->original : descriptor->character;
+    if (!character || IS_NPC(character) || !GET_NAME(character) || !*GET_NAME(character))
+    {
+      continue;
+    }
+
+    user = json_object_new_object();
+    if (!user)
+    {
+      json_object_put(params);
+      json_object_put(users);
+      return -1;
+    }
+
+    title[0] = '\0';
+    if (GET_TITLE(character))
+    {
+      strlcpy(title, GET_TITLE(character), sizeof(title));
+      strip_colors(title);
+    }
+
+    race = "";
+    if (valid_luminari_race(GET_REAL_RACE(character)) && race_list[GET_REAL_RACE(character)].type)
+    {
+      race = race_list[GET_REAL_RACE(character)].type;
+    }
+
+    json_object_object_add(user, "name", json_object_new_string(GET_NAME(character)));
+    json_object_object_add(user, "level", json_object_new_int(GET_LEVEL(character)));
+    json_object_object_add(user, "title", json_object_new_string(title));
+    json_object_object_add(user, "race", json_object_new_string(race));
+    json_object_object_add(
+        user, "idle",
+        json_object_new_int(MAX(0, character->char_specials.timer * SECS_PER_MUD_HOUR)));
+    json_object_object_add(user, "status", json_object_new_string("online"));
+    json_object_object_add(user, "login_time",
+                           json_object_new_int64((int64_t)descriptor->login_time));
+    json_object_array_add(users, user);
+    user_count++;
+  }
+
+  json_object_object_add(params, "users", users);
+  command = (i3_command_t *)calloc(1, sizeof(i3_command_t));
+  if (!command)
+  {
+    json_object_put(params);
+    return -1;
+  }
+
+  strlcpy(command->method, "presence_sync", sizeof(command->method));
+  command->params = params;
+  i3_queue_command(command);
+  return user_count;
+}
+
 /* Logging functions */
 void i3_log(const char *format, ...)
 {
@@ -2157,6 +2283,18 @@ int i3_load_config(const char *filename)
       {
         i3_client->enable_who = atoi(value);
       }
+      else if (strcmp(key, "auto_reconnect") == 0)
+      {
+        i3_client->auto_reconnect = atoi(value);
+      }
+      else if (strcmp(key, "reconnect_delay") == 0)
+      {
+        i3_client->reconnect_delay = atoi(value);
+      }
+      else if (strcmp(key, "max_queue_size") == 0)
+      {
+        i3_client->max_queue_size = atoi(value);
+      }
     }
   }
 
@@ -2166,47 +2304,283 @@ int i3_load_config(const char *filename)
   return 0;
 }
 
-/* Save configuration to file */
+/* Locate a configuration key and its replaceable value within one line. */
+static int i3_config_line_key(const char *line, char *key, size_t key_size,
+                              const char **value_start, const char **value_end)
+{
+  const char *cursor;
+  const char *key_start;
+  const char *key_end;
+  const char *end;
+  size_t key_length;
+
+  cursor = line;
+  while (*cursor == ' ' || *cursor == '\t')
+  {
+    cursor++;
+  }
+  if (!*cursor || *cursor == '#' || *cursor == '\r' || *cursor == '\n')
+  {
+    return 0;
+  }
+
+  key_start = cursor;
+  while (*cursor && *cursor != '=' && !isspace((unsigned char)*cursor))
+  {
+    cursor++;
+  }
+  key_end = cursor;
+  key_length = (size_t)(key_end - key_start);
+  if (!key_length || key_length >= key_size)
+  {
+    return 0;
+  }
+  memcpy(key, key_start, key_length);
+  key[key_length] = '\0';
+
+  while (*cursor == ' ' || *cursor == '\t')
+  {
+    cursor++;
+  }
+  if (*cursor == '=')
+  {
+    cursor++;
+    while (*cursor == ' ' || *cursor == '\t')
+    {
+      cursor++;
+    }
+  }
+  *value_start = cursor;
+
+  end = cursor;
+  while (*end && *end != '#' && *end != '\r' && *end != '\n')
+  {
+    end++;
+  }
+  while (end > cursor && (end[-1] == ' ' || end[-1] == '\t'))
+  {
+    end--;
+  }
+  *value_end = end;
+  return 1;
+}
+
+/* Return the current value for settings that an in-game command may save. */
+static int i3_mutable_config_value(const char *key, char *value, size_t value_size,
+                                   int *setting_index)
+{
+  if (!strcmp(key, "default_channel"))
+  {
+    strlcpy(value, i3_client->default_channel, value_size);
+    *setting_index = 0;
+  }
+  else if (!strcmp(key, "enable_tell"))
+  {
+    snprintf(value, value_size, "%d", i3_client->enable_tell);
+    *setting_index = 1;
+  }
+  else if (!strcmp(key, "enable_channels"))
+  {
+    snprintf(value, value_size, "%d", i3_client->enable_channels);
+    *setting_index = 2;
+  }
+  else if (!strcmp(key, "enable_who"))
+  {
+    snprintf(value, value_size, "%d", i3_client->enable_who);
+    *setting_index = 3;
+  }
+  else if (!strcmp(key, "auto_reconnect"))
+  {
+    snprintf(value, value_size, "%d", i3_client->auto_reconnect);
+    *setting_index = 4;
+  }
+  else if (!strcmp(key, "reconnect_delay"))
+  {
+    snprintf(value, value_size, "%d", i3_client->reconnect_delay);
+    *setting_index = 5;
+  }
+  else if (!strcmp(key, "max_queue_size"))
+  {
+    snprintf(value, value_size, "%d", i3_client->max_queue_size);
+    *setting_index = 6;
+  }
+  else
+  {
+    return 0;
+  }
+
+  return 1;
+}
+
+/* Save mutable settings atomically while preserving credentials and comments. */
 int i3_save_config(const char *filename)
 {
-  FILE *fp;
-  int fd;
+  static const char *const setting_names[] = {
+      "default_channel", "enable_tell",     "enable_channels", "enable_who",
+      "auto_reconnect",  "reconnect_delay", "max_queue_size"};
+  FILE *input;
+  FILE *output;
+  char *line;
+  char key[128];
+  char value[256];
+  char temporary_path[PATH_MAX];
+  const char *value_start;
+  const char *value_end;
+  size_t line_capacity;
+  ssize_t line_length;
+  int found[7] = {0};
+  int setting_index;
+  int temporary_fd;
+  int result;
+  int index;
+  int last_line_had_newline;
 
-  fd = open(filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-  if (fd < 0)
+  if (!i3_client || !filename || !*filename)
   {
     return -1;
   }
 
-  if (fchmod(fd, S_IRUSR | S_IWUSR) < 0)
+  input = fopen(filename, "r");
+  if (!input)
   {
-    close(fd);
+    return -1;
+  }
+  if (snprintf(temporary_path, sizeof(temporary_path), "%s.tmp.XXXXXX", filename) >=
+      (int)sizeof(temporary_path))
+  {
+    fclose(input);
     return -1;
   }
 
-  if (ftruncate(fd, 0) < 0)
+  temporary_fd = mkstemp(temporary_path);
+  if (temporary_fd < 0)
   {
-    close(fd);
+    fclose(input);
+    return -1;
+  }
+  if (fchmod(temporary_fd, S_IRUSR | S_IWUSR) < 0)
+  {
+    fclose(input);
+    close(temporary_fd);
+    unlink(temporary_path);
     return -1;
   }
 
-  fp = fdopen(fd, "w");
-  if (!fp)
+  output = fdopen(temporary_fd, "w");
+  if (!output)
   {
-    close(fd);
+    fclose(input);
+    close(temporary_fd);
+    unlink(temporary_path);
     return -1;
   }
 
-  fprintf(fp, "# Intermud3 Configuration\n");
-  fprintf(fp, "gateway_host %s\n", i3_client->gateway_host);
-  fprintf(fp, "gateway_port %d\n", i3_client->gateway_port);
-  fprintf(fp, "api_key %s\n", i3_client->api_key);
-  fprintf(fp, "mud_name %s\n", i3_client->mud_name);
-  fprintf(fp, "default_channel %s\n", i3_client->default_channel);
-  fprintf(fp, "enable_tell %d\n", i3_client->enable_tell);
-  fprintf(fp, "enable_channels %d\n", i3_client->enable_channels);
-  fprintf(fp, "enable_who %d\n", i3_client->enable_who);
+  line = NULL;
+  line_capacity = 0;
+  result = 0;
+  last_line_had_newline = 1;
+  while ((line_length = getline(&line, &line_capacity, input)) >= 0)
+  {
+    last_line_had_newline =
+        line_length > 0 && (line[line_length - 1] == '\n' || line[line_length - 1] == '\r');
+    setting_index = -1;
+    if (i3_config_line_key(line, key, sizeof(key), &value_start, &value_end) &&
+        i3_mutable_config_value(key, value, sizeof(value), &setting_index))
+    {
+      found[setting_index] = 1;
+      if (fwrite(line, 1, (size_t)(value_start - line), output) != (size_t)(value_start - line) ||
+          fputs(value, output) == EOF || fputs(value_end, output) == EOF)
+      {
+        result = -1;
+        break;
+      }
+    }
+    else if (fwrite(line, 1, (size_t)line_length, output) != (size_t)line_length)
+    {
+      result = -1;
+      break;
+    }
+  }
+  if (ferror(input))
+  {
+    result = -1;
+  }
 
-  fclose(fp);
+  if (!result)
+  {
+    if (!last_line_had_newline && fputc('\n', output) == EOF)
+    {
+      result = -1;
+    }
+    for (index = 0; index < 7 && !result; index++)
+    {
+      if (!found[index] &&
+          (!i3_mutable_config_value(setting_names[index], value, sizeof(value), &setting_index) ||
+           fprintf(output, "%s=%s\n", setting_names[index], value) < 0))
+      {
+        result = -1;
+      }
+    }
+  }
+
+  free(line);
+  fclose(input);
+  if (fflush(output) < 0 || fsync(fileno(output)) < 0)
+  {
+    result = -1;
+  }
+  if (fclose(output) < 0)
+  {
+    result = -1;
+  }
+
+  if (!result && rename(temporary_path, filename) == 0)
+  {
+    return 0;
+  }
+
+  unlink(temporary_path);
+  return -1;
+}
+
+/* Apply an explicit, idempotent on/off state to an I3 feature. */
+int i3_configure_feature(const char *feature, const char *state)
+{
+  int enabled;
+
+  if (!i3_client || !feature || !state)
+  {
+    return -1;
+  }
+  if (!strcasecmp(state, "on"))
+  {
+    enabled = 1;
+  }
+  else if (!strcasecmp(state, "off"))
+  {
+    enabled = 0;
+  }
+  else
+  {
+    return -1;
+  }
+
+  if (!strcasecmp(feature, "tells"))
+  {
+    i3_client->enable_tell = enabled;
+  }
+  else if (!strcasecmp(feature, "channels"))
+  {
+    i3_client->enable_channels = enabled;
+  }
+  else if (!strcasecmp(feature, "who"))
+  {
+    i3_client->enable_who = enabled;
+  }
+  else
+  {
+    return -1;
+  }
+
   return 0;
 }

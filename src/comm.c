@@ -1439,6 +1439,8 @@ void heartbeat(int heart_pulse)
     pubsub_process_message_queue();
     /* Process Intermud3 events from the I3 thread */
     i3_process_events();
+    /* Publish I3 presence from the main thread */
+    i3_sync_presence();
     /* Update supply order slots for all online players */
     update_supply_slots_for_all_players();
   }
@@ -4928,8 +4930,7 @@ static void msdp_update(void)
       /* Location information */
       /*  Only update room stuff if they've changed room */
       if (IN_ROOM(ch) != NOWHERE &&
-          (int)GET_ROOM_VNUM(IN_ROOM(ch)) !=
-              d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
+          (int)GET_ROOM_VNUM(IN_ROOM(ch)) != d->pProtocol->pVariables[eMSDP_ROOM_VNUM]->ValueInt)
       {
         /* Format for the room data is:
          * ROOM

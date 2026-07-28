@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/comm.h"
 #include "../../src/systems/intermud3/i3_client.h"
 
 #include <json-c/json.h>
@@ -12,6 +13,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 static void i3_test_setup(void)
@@ -285,6 +287,26 @@ void Test_i3_gateway_method_contract(CuTest *tc)
   i3_test_cleanup();
 }
 
+void Test_i3_outbound_messages_reject_empty_fields(CuTest *tc)
+{
+  i3_test_setup();
+
+  CuAssertIntEquals(tc, -1, i3_send_tell("", "RemoteMUD", "Target", "hello"));
+  CuAssertIntEquals(tc, -1, i3_send_tell("Tester", "", "Target", "hello"));
+  CuAssertIntEquals(tc, -1, i3_send_tell("Tester", "RemoteMUD", "", "hello"));
+  CuAssertIntEquals(tc, -1, i3_send_tell("Tester", "RemoteMUD", "Target", ""));
+  CuAssertIntEquals(tc, -1, i3_send_channel_message("", "Tester", "hello"));
+  CuAssertIntEquals(tc, -1, i3_send_channel_message("I3testers", "", "hello"));
+  CuAssertIntEquals(tc, -1, i3_send_channel_message("I3testers", "Tester", ""));
+  CuAssertIntEquals(tc, 0, i3_client->command_queue_size);
+
+  CuAssertIntEquals(tc, 0, i3_send_tell("Tester", "RemoteMUD", "Target", "hello"));
+  CuAssertIntEquals(tc, 0, i3_send_channel_message("I3testers", "Tester", "hello"));
+  CuAssertIntEquals(tc, 2, i3_client->command_queue_size);
+
+  i3_test_cleanup();
+}
+
 void Test_i3_authentication_primes_network_caches(CuTest *tc)
 {
   i3_command_t *command;
@@ -342,4 +364,146 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
 
   i3_test_cleanup();
   character_list = saved_character_list;
+}
+
+void Test_i3_config_states_are_explicit_and_idempotent(CuTest *tc)
+{
+  i3_test_setup();
+
+  i3_client->enable_tell = 0;
+  CuAssertIntEquals(tc, 0, i3_configure_feature("tells", "on"));
+  CuAssertIntEquals(tc, 1, i3_client->enable_tell);
+  CuAssertIntEquals(tc, 0, i3_configure_feature("tells", "on"));
+  CuAssertIntEquals(tc, 1, i3_client->enable_tell);
+  CuAssertIntEquals(tc, 0, i3_configure_feature("tells", "off"));
+  CuAssertIntEquals(tc, 0, i3_client->enable_tell);
+  CuAssertIntEquals(tc, 0, i3_configure_feature("tells", "off"));
+  CuAssertIntEquals(tc, 0, i3_client->enable_tell);
+
+  i3_client->enable_channels = 1;
+  CuAssertIntEquals(tc, -1, i3_configure_feature("channels", "maybe"));
+  CuAssertIntEquals(tc, 1, i3_client->enable_channels);
+  CuAssertIntEquals(tc, -1, i3_configure_feature("unknown", "off"));
+  CuAssertIntEquals(tc, 1, i3_client->enable_channels);
+
+  i3_test_cleanup();
+}
+
+void Test_i3_config_save_preserves_credentials_and_comments(CuTest *tc)
+{
+  char filename[] = "/tmp/luminari-i3-config-test-XXXXXX";
+  char contents[4096];
+  struct stat file_status;
+  FILE *file;
+  size_t bytes_read;
+  int file_descriptor;
+
+  i3_test_setup();
+  file_descriptor = mkstemp(filename);
+  CuAssertTrue(tc, file_descriptor >= 0);
+  file = fdopen(file_descriptor, "w");
+  CuAssertPtrNotNull(tc, file);
+  fputs("# retained heading\n", file);
+  fputs("I3_GATEWAY_URL=ws://127.0.0.1\n", file);
+  fputs("I3_API_KEY=dummy-preserved-token\n", file);
+  fputs("I3_MUD_NAME=TestMUD\n", file);
+  fputs("default_channel=old-channel\n", file);
+  fputs("enable_tell=0 # retained inline comment\n", file);
+  fputs("enable_channels=1\n", file);
+  fputs("enable_who=0\n", file);
+  fputs("custom_future_setting=keep-me\n", file);
+  fclose(file);
+
+  strlcpy(i3_client->default_channel, "new-channel", sizeof(i3_client->default_channel));
+  i3_client->enable_tell = 1;
+  i3_client->enable_channels = 0;
+  i3_client->enable_who = 1;
+  i3_client->auto_reconnect = 1;
+  i3_client->reconnect_delay = 17;
+  i3_client->max_queue_size = 321;
+
+  CuAssertIntEquals(tc, 0, i3_save_config(filename));
+  CuAssertIntEquals(tc, 0, stat(filename, &file_status));
+  CuAssertIntEquals(tc, S_IRUSR | S_IWUSR, file_status.st_mode & 0777);
+
+  file = fopen(filename, "r");
+  CuAssertPtrNotNull(tc, file);
+  bytes_read = fread(contents, 1, sizeof(contents) - 1, file);
+  contents[bytes_read] = '\0';
+  fclose(file);
+
+  CuAssertPtrNotNull(tc, strstr(contents, "# retained heading\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "I3_API_KEY=dummy-preserved-token\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "custom_future_setting=keep-me\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "default_channel=new-channel\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "enable_tell=1 # retained inline comment\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "enable_channels=0\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "enable_who=1\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "auto_reconnect=1\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "reconnect_delay=17\n"));
+  CuAssertPtrNotNull(tc, strstr(contents, "max_queue_size=321\n"));
+
+  unlink(filename);
+  i3_test_cleanup();
+}
+
+void Test_i3_presence_snapshot_uses_playing_descriptors(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+  struct descriptor_data *saved_descriptor_list;
+  struct char_data player;
+  struct player_special_data player_specials;
+  i3_command_t *command;
+  json_object *params;
+  json_object *users;
+  json_object *user;
+  json_object *value;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player, 0, sizeof(player));
+  memset(&player_specials, 0, sizeof(player_specials));
+  player.player.name = "PresenceTester";
+  player.player.title = "\tCthe Network Tester\tn";
+  player.player.level = 34;
+  player.player.race = RACE_HUMAN;
+  player.player_specials = &player_specials;
+  player.char_specials.timer = 2;
+  descriptor.connected = CON_PLAYING;
+  descriptor.character = &player;
+  descriptor.login_time = 1700000000;
+  player.desc = &descriptor;
+
+  saved_descriptor_list = descriptor_list;
+  descriptor_list = &descriptor;
+  i3_test_setup();
+  i3_client->state = I3_STATE_CONNECTED;
+  i3_client->authenticated = 1;
+
+  CuAssertIntEquals(tc, 1, i3_sync_presence());
+  command = i3_client->command_queue_head;
+  CuAssertPtrNotNull(tc, command);
+  CuAssertStrEquals(tc, "presence_sync", command->method);
+  params = (json_object *)command->params;
+  users = NULL;
+  CuAssertTrue(tc, json_object_object_get_ex(params, "users", &users));
+  CuAssertIntEquals(tc, 1, (int)json_object_array_length(users));
+  user = json_object_array_get_idx(users, 0);
+  value = NULL;
+  CuAssertTrue(tc, json_object_object_get_ex(user, "name", &value));
+  CuAssertStrEquals(tc, "PresenceTester", json_object_get_string(value));
+  value = NULL;
+  CuAssertTrue(tc, json_object_object_get_ex(user, "title", &value));
+  CuAssertStrEquals(tc, "the Network Tester", json_object_get_string(value));
+  value = NULL;
+  CuAssertTrue(tc, json_object_object_get_ex(user, "level", &value));
+  CuAssertIntEquals(tc, 34, json_object_get_int(value));
+  value = NULL;
+  CuAssertTrue(tc, json_object_object_get_ex(user, "idle", &value));
+  CuAssertIntEquals(tc, 2 * SECS_PER_MUD_HOUR, json_object_get_int(value));
+
+  CuAssertIntEquals(tc, 0, i3_sync_presence());
+  CuAssertIntEquals(tc, 1, i3_client->command_queue_size);
+
+  i3_test_cleanup();
+  descriptor_list = saved_descriptor_list;
 }
