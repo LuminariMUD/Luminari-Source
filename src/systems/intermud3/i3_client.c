@@ -1643,10 +1643,26 @@ static struct char_data *i3_find_online_player(const char *name)
   return NULL;
 }
 
+static int i3_is_local_channel_sender(const i3_event_t *event, struct char_data *character)
+{
+  if (!i3_client || !event || !character || !GET_NAME(character) || !i3_client->mud_name[0])
+  {
+    return 0;
+  }
+
+  return !strcasecmp(event->from_mud, i3_client->mud_name) &&
+         !str_cmp(event->from_user, GET_NAME(character));
+}
+
 #ifdef LUMINARI_CUTEST
 struct char_data *i3_find_online_player_for_test(const char *name)
 {
   return i3_find_online_player(name);
+}
+
+int i3_is_local_channel_sender_for_test(const i3_event_t *event, struct char_data *character)
+{
+  return i3_is_local_channel_sender(event, character);
 }
 #endif
 
@@ -1902,6 +1918,15 @@ void i3_process_events(void)
         {
           if (STATE(d) == CON_PLAYING && d->character)
           {
+            /*
+             * The command path already acknowledges the sender immediately.
+             * Suppress only that character's returned network echo while still
+             * delivering the channel event to every other local player.
+             */
+            if (i3_is_local_channel_sender(event, d->character))
+            {
+              continue;
+            }
             if (event->type == I3_MSG_CHANNEL)
             {
               send_to_char(d->character, "%s[I3:%s] %s@%s: %s%s\r\n", CCYEL(d->character, C_NRM),

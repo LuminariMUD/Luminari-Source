@@ -208,6 +208,7 @@ i3_channel_t *i3_find_channel(const char *name);
 
 #ifdef LUMINARI_CUTEST
 struct char_data *i3_find_online_player_for_test(const char *name);
+int i3_is_local_channel_sender_for_test(const i3_event_t *event, struct char_data *character);
 #endif
 
 /* Configuration */

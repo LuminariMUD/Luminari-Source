@@ -366,6 +366,35 @@ void Test_i3_direct_message_lookup_does_not_require_a_viewer(CuTest *tc)
   character_list = saved_character_list;
 }
 
+void Test_i3_channel_echo_suppression_matches_only_local_sender(CuTest *tc)
+{
+  struct char_data player;
+  struct player_special_data player_specials;
+  i3_event_t event;
+
+  memset(&player, 0, sizeof(player));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&event, 0, sizeof(event));
+  player.player.name = "Kohdee";
+  player.player_specials = &player_specials;
+
+  i3_test_setup();
+  strlcpy(i3_client->mud_name, "LuminariLocal", sizeof(i3_client->mud_name));
+  strlcpy(event.from_user, "Kohdee", sizeof(event.from_user));
+  strlcpy(event.from_mud, "LuminariLocal", sizeof(event.from_mud));
+
+  CuAssertIntEquals(tc, 1, i3_is_local_channel_sender_for_test(&event, &player));
+
+  strlcpy(event.from_user, "OtherPlayer", sizeof(event.from_user));
+  CuAssertIntEquals(tc, 0, i3_is_local_channel_sender_for_test(&event, &player));
+
+  strlcpy(event.from_user, "Kohdee", sizeof(event.from_user));
+  strlcpy(event.from_mud, "RemoteMUD", sizeof(event.from_mud));
+  CuAssertIntEquals(tc, 0, i3_is_local_channel_sender_for_test(&event, &player));
+
+  i3_test_cleanup();
+}
+
 void Test_i3_config_states_are_explicit_and_idempotent(CuTest *tc)
 {
   i3_test_setup();
