@@ -245,6 +245,52 @@ void TestWebOnboardingSurvivesADetachedCharacter(CuTest *tc)
   }
 }
 
+/*
+ * The CON_ constants are not ordered by flow position, so the selection
+ * summary must be driven by explicit state lists. A numeric comparison would
+ * report GET_CLASS()'s default of 0 as "Wizard" before the class step.
+ */
+void TestWebOnboardingDoesNotReportUnmadeChoices(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  /* Ancestry confirmation happens before any class is chosen. */
+  init_test_descriptor(&d, CON_QRACE_HELP);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  /* Match the field form, not the bare word: "screen":"race" is not a
+     selection, and neither is a "race/human" media key. */
+  CuAssertTrue(tc, strstr(payload, "\"className\":\"") == NULL);
+  CuAssertTrue(tc, strstr(payload, "\"alignment\":\"") == NULL);
+
+  /* Ancestry itself is not settled while the player is still choosing one. */
+  init_test_descriptor(&d, CON_QRACE);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strstr(payload, "\"race\":\"") == NULL);
+
+  /* Alignment is only known after the alignment step completes. */
+  init_test_descriptor(&d, CON_QALIGN);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strstr(payload, "\"alignment\":\"") == NULL);
+}
+
+/*
+ * The confirm-or-reselect screens carry no choices, so they must supply the
+ * selected entry's art and description instead of rendering an empty catalog.
+ */
+void TestWebOnboardingDetailScreensCarryTheirSelection(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  init_test_descriptor(&d, CON_QRACE_HELP);
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, json_is_balanced(payload));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"race-detail\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"confirm\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"reselect\""));
+}
+
 void TestWebOnboardingUnsupportedStatesHaveNoPayload(CuTest *tc)
 {
   struct descriptor_data d;

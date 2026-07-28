@@ -211,6 +211,12 @@ static void json_number(struct json_writer *w, int value)
 
 /* Write a JSON string, stripping MUD colour codes, ANSI escapes, and control
  * bytes so the payload cannot forge layout or terminal output. */
+/*
+ * Long catalog text is cut to fit the payload budget. Cutting mid-word reads
+ * as corruption, so back up to the last word boundary and mark the elision.
+ */
+static void json_string_truncated(struct json_writer *w, const char *value, size_t max_chars);
+
 static void json_string(struct json_writer *w, const char *value, size_t max_chars)
 {
   size_t written = 0;
@@ -281,6 +287,52 @@ static void json_string(struct json_writer *w, const char *value, size_t max_cha
   json_raw(w, "\"");
 }
 
+/*
+ * Copy at most max_chars display characters from value, stopping at the last
+ * word boundary and appending an ellipsis when text was dropped. Colour codes
+ * and control bytes are removed by json_string(), so the count here is a safe
+ * upper bound rather than an exact glyph count.
+ */
+static void json_string_truncated(struct json_writer *w, const char *value, size_t max_chars)
+{
+  char scratch[1024];
+  size_t limit = 0;
+  size_t index = 0;
+  size_t last_space = 0;
+
+  if (value == NULL)
+  {
+    json_string(w, NULL, max_chars);
+    return;
+  }
+
+  limit = max_chars;
+  if (limit > sizeof(scratch) - 4)
+    limit = sizeof(scratch) - 4;
+
+  if (strlen(value) <= limit)
+  {
+    json_string(w, value, max_chars);
+    return;
+  }
+
+  for (index = 0; index < limit; index++)
+  {
+    scratch[index] = value[index];
+    if (value[index] == ' ')
+      last_space = index;
+  }
+
+  /* Only honour the word boundary if it does not throw away most of the text. */
+  if (last_space > limit / 2)
+    index = last_space;
+
+  scratch[index] = '\0';
+  strcat(scratch, "...");
+
+  json_string(w, scratch, max_chars + 4);
+}
+
 static void json_field_string(struct json_writer *w, const char *name, const char *value,
                               size_t max_chars)
 {
@@ -288,6 +340,15 @@ static void json_field_string(struct json_writer *w, const char *name, const cha
   json_raw(w, name);
   json_raw(w, "\":");
   json_string(w, value, max_chars);
+}
+
+static void json_field_string_truncated(struct json_writer *w, const char *name, const char *value,
+                                        size_t max_chars)
+{
+  json_raw(w, "\"");
+  json_raw(w, name);
+  json_raw(w, "\":");
+  json_string_truncated(w, value, max_chars);
 }
 
 static void json_field_number(struct json_writer *w, const char *name, int value)
@@ -444,7 +505,7 @@ static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
     json_raw(w, ",");
     json_field_string(w, "mediaKey", web_onboarding_race_media_key(race), 64);
     json_raw(w, ",");
-    json_field_string(w, "summary", race_list[race].descrip, 220);
+    json_field_string_truncated(w, "summary", race_list[race].descrip, 220);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Size", 24);
     json_raw(w, ",");
@@ -510,7 +571,7 @@ static void build_class_choices(struct json_writer *w, struct descriptor_data *d
     json_raw(w, ",");
     json_field_string(w, "mediaKey", web_onboarding_class_media_key(chclass), 64);
     json_raw(w, ",");
-    json_field_string(w, "summary", CLSLIST_DESCRIP(chclass), 220);
+    json_field_string_truncated(w, "summary", CLSLIST_DESCRIP(chclass), 220);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Hit die", 24);
     json_raw(w, ",\"value\":\"d");
@@ -671,9 +732,74 @@ static void build_account_characters(struct json_writer *w, struct descriptor_da
 /* State emission                                                         */
 /* --------------------------------------------------------------------- */
 
+/*
+ * Which parts of the character the server has actually decided yet.
+ *
+ * The CON_ constants are not in flow order, so these must be explicit state
+ * lists rather than numeric comparisons. Reporting a field early shows the
+ * player a choice they have not made: GET_CLASS() defaults to 0, which would
+ * otherwise display "Wizard" before the class step is even reached.
+ */
+static bool selection_has_race(int state)
+{
+  switch (state)
+  {
+  case CON_QRACE_HELP:
+  case CON_QCLASS:
+  case CON_QCLASS_HELP:
+  case CON_CONFIRM_PREMADE:
+  case CON_QALIGN:
+  case CON_SETPREFS:
+  case CON_CHAR_RP_DECIDE:
+  case CON_RMOTD:
+  case CON_MENU:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+static bool selection_has_class(int state)
+{
+  switch (state)
+  {
+  case CON_QCLASS_HELP:
+  case CON_CONFIRM_PREMADE:
+  case CON_QALIGN:
+  case CON_SETPREFS:
+  case CON_CHAR_RP_DECIDE:
+  case CON_RMOTD:
+  case CON_MENU:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
+static bool selection_has_sex(int state)
+{
+  return state == CON_QRACE || selection_has_race(state);
+}
+
+/* Alignment is set as the alignment step is completed. */
+static bool selection_has_alignment(int state)
+{
+  switch (state)
+  {
+  case CON_SETPREFS:
+  case CON_CHAR_RP_DECIDE:
+  case CON_RMOTD:
+  case CON_MENU:
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+
 static void build_selection(struct json_writer *w, struct descriptor_data *d)
 {
   struct char_data *ch = d->character;
+  int state = d->connected;
   bool first = TRUE;
 
   json_raw(w, "\"selection\":{");
@@ -690,7 +816,7 @@ static void build_selection(struct json_writer *w, struct descriptor_data *d)
     first = FALSE;
   }
 
-  if (GET_SEX(ch) == SEX_MALE || GET_SEX(ch) == SEX_FEMALE)
+  if (selection_has_sex(state) && (GET_SEX(ch) == SEX_MALE || GET_SEX(ch) == SEX_FEMALE))
   {
     if (!first)
       json_raw(w, ",");
@@ -698,7 +824,7 @@ static void build_selection(struct json_writer *w, struct descriptor_data *d)
     json_field_string(w, "sex", GET_SEX(ch) == SEX_MALE ? "Male" : "Female", 16);
   }
 
-  if (GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_RACES && d->connected > CON_QRACE)
+  if (selection_has_race(state) && GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_RACES)
   {
     if (!first)
       json_raw(w, ",");
@@ -708,14 +834,22 @@ static void build_selection(struct json_writer *w, struct descriptor_data *d)
     json_field_string(w, "raceMediaKey", web_onboarding_race_media_key(GET_REAL_RACE(ch)), 64);
   }
 
-  if (GET_CLASS(ch) >= 0 && GET_CLASS(ch) < NUM_CLASSES && d->connected > CON_QCLASS_HELP)
+  if (selection_has_class(state) && GET_CLASS(ch) >= 0 && GET_CLASS(ch) < NUM_CLASSES)
   {
     if (!first)
       json_raw(w, ",");
     first = FALSE;
-    json_field_string(w, "className", CLSLIST_NAME(GET_CLASS(ch)), 40);
+    json_field_string(w, "className", CLSLIST_MENU(GET_CLASS(ch)), 40);
     json_raw(w, ",");
     json_field_string(w, "classMediaKey", web_onboarding_class_media_key(GET_CLASS(ch)), 64);
+  }
+
+  if (selection_has_alignment(state) && GET_ALIGNMENT(ch) >= -1000 && GET_ALIGNMENT(ch) <= 1000)
+  {
+    if (!first)
+      json_raw(w, ",");
+    first = FALSE;
+    json_field_string(w, "alignment", get_align_by_num(GET_ALIGNMENT(ch)), 32);
   }
 
   json_raw(w, "}");
@@ -762,6 +896,38 @@ static void build_actions(struct json_writer *w, const struct onboarding_screen_
     json_raw(w, ",\"create-character\",\"link-character\",\"quit\"");
 
   json_raw(w, ",\"classic-terminal\"]");
+}
+
+/*
+ * The confirm-or-reselect screens carry no choice list: the MUD is asking a
+ * yes/no question about the selection it already holds. Emit that selection's
+ * artwork and description so the client can present a real screen instead of
+ * an empty catalog.
+ */
+static void build_selected_detail(struct json_writer *w, struct descriptor_data *d,
+                                  const struct onboarding_screen_info *screen)
+{
+  struct char_data *ch = d->character;
+
+  if (ch == NULL)
+    return;
+
+  if (screen->state == CON_QRACE_HELP && GET_REAL_RACE(ch) >= 0 && GET_REAL_RACE(ch) < NUM_RACES)
+  {
+    json_field_string(w, "mediaKey", web_onboarding_race_media_key(GET_REAL_RACE(ch)), 64);
+    json_raw(w, ",");
+    json_field_string_truncated(w, "help", race_list[GET_REAL_RACE(ch)].descrip, 900);
+    json_raw(w, ",");
+    return;
+  }
+
+  if (screen->state == CON_QCLASS_HELP && GET_CLASS(ch) >= 0 && GET_CLASS(ch) < NUM_CLASSES)
+  {
+    json_field_string(w, "mediaKey", web_onboarding_class_media_key(GET_CLASS(ch)), 64);
+    json_raw(w, ",");
+    json_field_string_truncated(w, "help", CLSLIST_DESCRIP(GET_CLASS(ch)), 900);
+    json_raw(w, ",");
+  }
 }
 
 static void build_choices(struct json_writer *w, struct descriptor_data *d,
@@ -871,6 +1037,7 @@ static bool build_state_payload(struct descriptor_data *d,
   json_raw(&writer, ",");
   json_field_string(&writer, "persistence", persistence_for_state(screen->state), 16);
   json_raw(&writer, ",");
+  build_selected_detail(&writer, d, screen);
   build_choices(&writer, d, screen);
   json_raw(&writer, ",\"characters\":[");
   if (screen->state == CON_ACCOUNT_MENU)

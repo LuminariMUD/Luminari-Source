@@ -465,31 +465,31 @@ approval gate.
       primitive caricature.
 - [x] `race/half-drow` - Half Drow; mixed heritage with a distinct identity and
       without automatic villain framing.
-- [ ] `race/dragonborn` - Dragonborn; draconic ancestry and heroic personhood;
+- [x] `race/dragonborn` - Dragonborn; draconic ancestry and heroic personhood;
       derive scale, horn, and color range from repository evidence and fall
       back when the evidence is absent.
-- [ ] `race/tiefling` - Tiefling; planar heritage with varied heroic
+- [x] `race/tiefling` - Tiefling; planar heritage with varied heroic
       possibilities. Use the corrected stable media key.
-- [ ] `race/stout-halfling` - Stout Halfling; sturdy community and grounded
+- [x] `race/stout-halfling` - Stout Halfling; sturdy community and grounded
       courage, visibly distinct from Lightfoot Halfling.
-- [ ] `race/forest-gnome` - Forest Gnome; woodland craft, concealment, and
+- [x] `race/forest-gnome` - Forest Gnome; woodland craft, concealment, and
       animal affinity distinct from Rock Gnome.
-- [ ] `race/gold-dwarf` - Gold Dwarf; ceremonial metalwork and established
+- [x] `race/gold-dwarf` - Gold Dwarf; ceremonial metalwork and established
       tradition distinct from Mountain and Crystal Dwarves.
-- [ ] `race/aasimar` - Aasimar; celestial heritage through restrained light,
+- [x] `race/aasimar` - Aasimar; celestial heritage through restrained light,
       not a fixed angel costume.
-- [ ] `race/tabaxi` - Tabaxi; agile feline personhood, curiosity, and travel;
+- [x] `race/tabaxi` - Tabaxi; agile feline personhood, curiosity, and travel;
       derive coat and anatomy range from repository evidence and fall back when
       the evidence is absent.
-- [ ] `race/goliath` - Goliath; mountain endurance and scale without reducing
+- [x] `race/goliath` - Goliath; mountain endurance and scale without reducing
       the ancestry to brute force.
-- [ ] `race/shade` - Shade; shadow-touched personhood and controlled negative
+- [x] `race/shade` - Shade; shadow-touched personhood and controlled negative
       space. Use evidence-bound origin and anatomy or `race/fallback`.
-- [ ] `race/fae` - Fae; tiny scale, flight, glamour, and alien woodland magic.
+- [x] `race/fae` - Fae; tiny scale, flight, glamour, and alien woodland magic.
       Use evidence-bound wing and scale treatment or `race/fallback`.
-- [ ] `race/goblin` - Goblin; clever playable personhood without disposable
+- [x] `race/goblin` - Goblin; clever playable personhood without disposable
       enemy framing.
-- [ ] `race/hobgoblin` - Hobgoblin; disciplined martial culture and distinct
+- [x] `race/hobgoblin` - Hobgoblin; disciplined martial culture and distinct
       stature from Goblin without automatic villain framing.
 
 Do not produce Lich or Vampire creation cards for this scope. They are
@@ -501,13 +501,13 @@ records exist elsewhere in the source.
 Each entry includes the complete race/class pack deliverables. Art must remain
 usable for any compatible race and sex.
 
-- [ ] `class/wizard` - Studied arcane mastery, spellbook or equivalent focus,
+- [x] `class/wizard` - Studied arcane mastery, spellbook or equivalent focus,
       and deliberate control.
-- [ ] `class/cleric` - Divine channeling and service without depicting one
+- [x] `class/cleric` - Divine channeling and service without depicting one
       specific deity as mandatory.
-- [ ] `class/rogue` - Skill, mobility, tools, and opportunism without making
+- [x] `class/rogue` - Skill, mobility, tools, and opportunism without making
       criminality mandatory.
-- [ ] `class/warrior` - Broad weapons-and-armor mastery rather than one fixed
+- [x] `class/warrior` - Broad weapons-and-armor mastery rather than one fixed
       weapon style.
 - [ ] `class/monk` - Disciplined unarmed motion, balance, and inner focus.
 - [ ] `class/druid` - Nature magic and shapechanging suggested through layered
