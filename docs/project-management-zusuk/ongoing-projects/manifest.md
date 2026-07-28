@@ -509,32 +509,32 @@ usable for any compatible race and sex.
       criminality mandatory.
 - [x] `class/warrior` - Broad weapons-and-armor mastery rather than one fixed
       weapon style.
-- [ ] `class/monk` - Disciplined unarmed motion, balance, and inner focus.
-- [ ] `class/druid` - Nature magic and shapechanging suggested through layered
+- [x] `class/monk` - Disciplined unarmed motion, balance, and inner focus.
+- [x] `class/druid` - Nature magic and shapechanging suggested through layered
       animal and elemental forms.
-- [ ] `class/berserker` - Controlled battle rage, momentum, and resilience
+- [x] `class/berserker` - Controlled battle rage, momentum, and resilience
       without mindless caricature.
-- [ ] `class/sorcerer` - Innate arcane power emerging from within, visually
+- [x] `class/sorcerer` - Innate arcane power emerging from within, visually
       distinct from the Wizard.
-- [ ] `class/paladin` - Protective holy champion and radiant defense without
+- [x] `class/paladin` - Protective holy champion and radiant defense without
       binding the art to one race or deity.
-- [ ] `class/blackguard` - Dark divine champion, fear, and command; maintain
+- [x] `class/blackguard` - Dark divine champion, fear, and command; maintain
       readability without relying on pure black.
-- [ ] `class/ranger` - Tracking, wilderness mastery, and flexible ranged or
+- [x] `class/ranger` - Tracking, wilderness mastery, and flexible ranged or
       dual-weapon combat.
-- [ ] `class/bard` - Performance, inspiration, lore, and magic without choosing
+- [x] `class/bard` - Performance, inspiration, lore, and magic without choosing
       one mandatory instrument.
-- [ ] `class/psionicist` - Focused mental power, geometric thought, and altered
+- [x] `class/psionicist` - Focused mental power, geometric thought, and altered
       reality distinct from arcane spell effects.
-- [ ] `class/alchemist` - Extracts, mutagens, bombs, and a controlled workshop
+- [x] `class/alchemist` - Extracts, mutagens, bombs, and a controlled workshop
       silhouette.
-- [ ] `class/inquisitor` - Investigation, judgment, divine pursuit, and
+- [x] `class/inquisitor` - Investigation, judgment, divine pursuit, and
       determination.
-- [ ] `class/summoner` - Bond between summoner and eidolon without defining one
+- [x] `class/summoner` - Bond between summoner and eidolon without defining one
       permanent eidolon anatomy.
-- [ ] `class/warlock` - Pact-driven power and dangerous magic without depicting
+- [x] `class/warlock` - Pact-driven power and dangerous magic without depicting
       one mandatory patron.
-- [ ] `class/artificer` - Magical engineering, tools, and devices distinct from
+- [x] `class/artificer` - Magical engineering, tools, and devices distinct from
       the Alchemist.
 
 Existing account characters may have prestige or multiclass summaries. Their
@@ -543,11 +543,11 @@ base-class emblems. Do not block a card because prestige-class art is absent.
 
 ### 11. Build, alignment, preferences, and role-play decision
 
-- [ ] `build/premade` - Clearly guided path with a completed map, steady
+- [x] `build/premade` - Clearly guided path with a completed map, steady
       lantern, or assembled kit.
-- [ ] `build/custom` - Player-directed path with open tools, branching plan,
+- [x] `build/custom` - Player-directed path with open tools, branching plan,
       or unassembled kit.
-- [ ] `build/compare` - Neutral split-path illustration used when comparing the
+- [x] `build/compare` - Neutral split-path illustration used when comparing the
       two choices.
 
 - [ ] `alignment/lawful-good` - Ordered good seal; readable with text and
@@ -571,30 +571,30 @@ base-class emblems. Do not block a card because prestige-class art is absent.
 - [ ] `alignment/compass` - One nine-position static compass plate on which the
       client places the individual seals.
 
-- [ ] `preferences/recommended` - Coherent bundle or packed adventuring kit.
-- [ ] `preferences/manual` - Open controls or unpacked kit; does not suggest the
+- [x] `preferences/recommended` - Coherent bundle or packed adventuring kit.
+- [x] `preferences/manual` - Open controls or unpacked kit; does not suggest the
       player is making a wrong choice.
-- [ ] `roleplay/choice-roleplayer` - Open journal, character keepsake, and
+- [x] `roleplay/choice-roleplayer` - Open journal, character keepsake, and
       invitation to define identity.
-- [ ] `roleplay/choice-non-roleplayer` - Direct road into play; respectful and
+- [x] `roleplay/choice-non-roleplayer` - Direct road into play; respectful and
       equal in visual weight.
-- [ ] `roleplay/choice-later` - Bookmarked journal that can be resumed later.
+- [x] `roleplay/choice-later` - Bookmarked journal that can be resumed later.
 - [ ] `roleplay/core-summary` - Composite summary frame for name, race, class,
       build, and alignment. It must not imply unsupported Back editing.
 
 ### 12. Role-play editor shared images
 
-- [ ] `roleplay/profile-hub` - Character-options desk with fourteen clearly
+- [x] `roleplay/profile-hub` - Character-options desk with fourteen clearly
       separated symbolic slots.
-- [ ] `roleplay/short-description` - Anonymous character silhouette with
+- [x] `roleplay/short-description` - Anonymous character silhouette with
       descriptor tags; not a persistent avatar builder.
-- [ ] `roleplay/long-description` - Full blank character folio.
-- [ ] `roleplay/background-story` - Bound journal with blank pages.
-- [ ] `roleplay/goals` - Distant marker, path, and star.
-- [ ] `roleplay/personality` - Faceted but coherent mask or mirrored portrait.
-- [ ] `roleplay/ideals` - Guiding flame or compass-star.
-- [ ] `roleplay/bonds` - Interlinked keepsakes or threads.
-- [ ] `roleplay/flaws` - Repaired fracture or shadowed mirror; avoid stigmatizing
+- [x] `roleplay/long-description` - Full blank character folio.
+- [x] `roleplay/background-story` - Bound journal with blank pages.
+- [x] `roleplay/goals` - Distant marker, path, and star.
+- [x] `roleplay/personality` - Faceted but coherent mask or mirrored portrait.
+- [x] `roleplay/ideals` - Guiding flame or compass-star.
+- [x] `roleplay/bonds` - Interlinked keepsakes or threads.
+- [x] `roleplay/flaws` - Repaired fracture or shadowed mirror; avoid stigmatizing
       imagery.
 
 All free-text editor art must keep the writing area visually quiet and must not
@@ -602,25 +602,25 @@ contain rasterized example text.
 
 ### 13. Background archetypes: 16 small catalog packs
 
-- [ ] `background/acolyte` - Temple service, ritual light, and sacred study.
-- [ ] `background/charlatan` - Disguise, cards, or a convincing false remedy.
-- [ ] `background/criminal-spy` - Coded message, lock tools, and hidden route.
-- [ ] `background/entertainer` - Stage light and varied performance tools.
-- [ ] `background/folk-hero` - Humble village token and symbol of local courage.
-- [ ] `background/gladiator` - Arena sand, showmanship, and martial spectacle.
-- [ ] `background/hermit` - Secluded shelter, lamp, and solitary discovery.
-- [ ] `background/noble` - Signet, estate record, and civic responsibility.
-- [ ] `background/outlander` - Trail markers and survival gear beyond a city.
-- [ ] `background/pirate` - Weathered chart, cut rope, and open sea.
-- [ ] `background/sage` - Manuscripts, diagrams, and patient research.
-- [ ] `background/sailor` - Working vessel, knots, and horizon distinct from the
+- [x] `background/acolyte` - Temple service, ritual light, and sacred study.
+- [x] `background/charlatan` - Disguise, cards, or a convincing false remedy.
+- [x] `background/criminal-spy` - Coded message, lock tools, and hidden route.
+- [x] `background/entertainer` - Stage light and varied performance tools.
+- [x] `background/folk-hero` - Humble village token and symbol of local courage.
+- [x] `background/gladiator` - Arena sand, showmanship, and martial spectacle.
+- [x] `background/hermit` - Secluded shelter, lamp, and solitary discovery.
+- [x] `background/noble` - Signet, estate record, and civic responsibility.
+- [x] `background/outlander` - Trail markers and survival gear beyond a city.
+- [x] `background/pirate` - Weathered chart, cut rope, and open sea.
+- [x] `background/sage` - Manuscripts, diagrams, and patient research.
+- [x] `background/sailor` - Working vessel, knots, and horizon distinct from the
       Pirate.
-- [ ] `background/soldier` - Campaign kit, banner remnant, and disciplined
+- [x] `background/soldier` - Campaign kit, banner remnant, and disciplined
       service.
-- [ ] `background/squire` - Maintained armor, training weapon, and unfinished
+- [x] `background/squire` - Maintained armor, training weapon, and unfinished
       heraldry.
-- [ ] `background/trader` - Scales, trade ledger, and artisan goods.
-- [ ] `background/urchin` - Rooftop route, improvised kit, and survival without
+- [x] `background/trader` - Scales, trade ledger, and artisan goods.
+- [x] `background/urchin` - Rooftop route, improvised kit, and survival without
       demeaning poverty.
 
 The pipeline must pass the background names and descriptions through automated
@@ -630,11 +630,11 @@ games.
 
 ### 14. Character age: 5 small catalog packs
 
-- [ ] `age/adult` - Established adult life stage; neutral silhouette.
-- [ ] `age/adolescent` - Younger life stage; nonsexualized neutral silhouette.
-- [ ] `age/middle-aged` - Midlife stage expressed without caricature.
-- [ ] `age/old-aged` - Older life stage expressed with capability and dignity.
-- [ ] `age/venerable` - Venerable life stage expressed with dignity and
+- [x] `age/adult` - Established adult life stage; neutral silhouette.
+- [x] `age/adolescent` - Younger life stage; nonsexualized neutral silhouette.
+- [x] `age/middle-aged` - Midlife stage expressed without caricature.
+- [x] `age/old-aged` - Older life stage expressed with capability and dignity.
+- [x] `age/venerable` - Venerable life stage expressed with dignity and
       experience.
 
 Age art must work across all playable ancestries. Use symbolic life-stage
@@ -642,22 +642,22 @@ motifs rather than a human-only aging sequence.
 
 ### 15. Homeland regions: map plus 13 location packs
 
-- [ ] `region/luminari-world-map` - Canonical world/continent map with a quiet
+- [x] `region/luminari-world-map` - Canonical world/continent map with a quiet
       base and separate SVG markers. Do not invent borders or geography.
-- [ ] `region/ashenport` - Ashenport region landscape; major port and starting
+- [x] `region/ashenport` - Ashenport region landscape; major port and starting
       hub.
-- [ ] `region/sanctus` - Sanctus region landscape; major city identity.
-- [ ] `region/onduis` - Evidence-bound landscape and marker.
-- [ ] `region/selerish` - Evidence-bound landscape and marker.
-- [ ] `region/carstan` - Evidence-bound landscape and marker.
-- [ ] `region/axtros` - Evidence-bound landscape and marker.
-- [ ] `region/hir` - Evidence-bound landscape and marker.
-- [ ] `region/quechian` - Evidence-bound landscape and marker.
-- [ ] `region/vailand` - Evidence-bound landscape and marker.
-- [ ] `region/oorpii` - Evidence-bound landscape and marker.
-- [ ] `region/kellust` - Evidence-bound landscape and marker.
-- [ ] `region/east-ubdina` - Evidence-bound landscape and marker.
-- [ ] `region/west-ubdina` - Evidence-bound landscape and marker.
+- [x] `region/sanctus` - Sanctus region landscape; major city identity.
+- [x] `region/onduis` - Evidence-bound landscape and marker.
+- [x] `region/selerish` - Evidence-bound landscape and marker.
+- [x] `region/carstan` - Evidence-bound landscape and marker.
+- [x] `region/axtros` - Evidence-bound landscape and marker.
+- [x] `region/hir` - Evidence-bound landscape and marker.
+- [x] `region/quechian` - Evidence-bound landscape and marker.
+- [x] `region/vailand` - Evidence-bound landscape and marker.
+- [x] `region/oorpii` - Evidence-bound landscape and marker.
+- [x] `region/kellust` - Evidence-bound landscape and marker.
+- [x] `region/east-ubdina` - Evidence-bound landscape and marker.
+- [x] `region/west-ubdina` - Evidence-bound landscape and marker.
 
 Autonomous no-invention policy: default-campaign `get_region_info()` currently
 returns the same "not yet available" placeholder for every region. The pipeline
@@ -668,9 +668,9 @@ blocking the job.
 
 ### 16. Factions: current runtime catalog plus fallback
 
-- [ ] `faction/adventurer` - No faction; independent road, blank banner, and no
+- [x] `faction/adventurer` - No faction; independent road, blank banner, and no
       implied political allegiance.
-- [ ] `faction/pyrets-pirates` - Crest and banner for the current clan entry
+- [x] `faction/pyrets-pirates` - Crest and banner for the current clan entry
       "Pyret's Pirates"; preserve the runtime spelling and use only
       repository-supported heraldry, otherwise use `faction/fallback`.
 - [ ] Export the runtime faction catalog immediately before final validation.
@@ -684,7 +684,7 @@ Darklings, or Criminals solely from that constant. The required
 
 ### 17. Hometowns: current selector plus fallback
 
-- [ ] `hometown/ashenport` - Bustling port-city establishing image, distinct
+- [x] `hometown/ashenport` - Bustling port-city establishing image, distinct
       enough to serve as the selected hometown confirmation.
 
 Although the default `cities[]` array also names Sanctus, the current default
@@ -698,38 +698,38 @@ Each named deity pack should center the holy symbol described in the
 authoritative deity text. The vignette supports the symbol and portfolio; it
 must not define a single mandatory bodily depiction of the deity.
 
-- [ ] `deity/none` - Empty shrine or unmarked stone for no deity; neutral, not
+- [x] `deity/none` - Empty shrine or unmarked stone for no deity; neutral, not
       ominous or dismissive.
-- [ ] `deity/aethyra` - Lady of the Loom; magic, oaths, hidden patterns, memory,
+- [x] `deity/aethyra` - Lady of the Loom; magic, oaths, hidden patterns, memory,
       and the Weave.
-- [ ] `deity/nethris` - Gravewarden; death, fate, proper rites, and endings.
-- [ ] `deity/seraphine` - Dawnstar; sun, renewal, harvest, redemption, and
+- [x] `deity/nethris` - Gravewarden; death, fate, proper rites, and endings.
+- [x] `deity/seraphine` - Dawnstar; sun, renewal, harvest, redemption, and
       second chances.
-- [ ] `deity/kaelthir` - Starwarden; ancient knowledge, time, prophecy, and old
+- [x] `deity/kaelthir` - Starwarden; ancient knowledge, time, prophecy, and old
       names.
-- [ ] `deity/pyrion` - First Flame; primal fire, creation through destruction,
+- [x] `deity/pyrion` - First Flame; primal fire, creation through destruction,
       forge heat, and passion.
-- [ ] `deity/vaelith` - Whispering Tide; sea, storms, currents, horizons, and
+- [x] `deity/vaelith` - Whispering Tide; sea, storms, currents, horizons, and
       the deep.
-- [ ] `deity/orith` - Stonefather; earth, mountains, patience, endurance, and
+- [x] `deity/orith` - Stonefather; earth, mountains, patience, endurance, and
       shelter.
-- [ ] `deity/aerion` - Swiftwind; air, migratory paths, messengers, and true
+- [x] `deity/aerion` - Swiftwind; air, migratory paths, messengers, and true
       tidings.
-- [ ] `deity/kordran` - Hammer of Dawn; war, duty, resolve, banners, and
+- [x] `deity/kordran` - Hammer of Dawn; war, duty, resolve, banners, and
       righteous defense.
-- [ ] `deity/thalos` - Scales Unblinking; judgment, law, scholarship, cities,
+- [x] `deity/thalos` - Scales Unblinking; judgment, law, scholarship, cities,
       and records.
-- [ ] `deity/lumerion` - Lantern-Bearer; luck, travel, wayfinding, small
+- [x] `deity/lumerion` - Lantern-Bearer; luck, travel, wayfinding, small
       chances, and crossroads.
-- [ ] `deity/nyxara` - Of the Veil; night, secrets, thresholds, lost names, and
+- [x] `deity/nyxara` - Of the Veil; night, secrets, thresholds, lost names, and
       hidden knowledge.
-- [ ] `deity/myrr` - Quiet Brook; peace, healing, sanctuaries, kindness, and
+- [x] `deity/myrr` - Quiet Brook; peace, healing, sanctuaries, kindness, and
       wells.
-- [ ] `deity/vespera` - Of the Many Masks; trickery, performance, reinvention,
+- [x] `deity/vespera` - Of the Many Masks; trickery, performance, reinvention,
       and revolution through mockery.
-- [ ] `deity/calystral` - Flameheart; love, art, passion, creative fire, and
+- [x] `deity/calystral` - Flameheart; love, art, passion, creative fire, and
       beauty.
-- [ ] `deity/borhild` - Emberforge; forgecraft, innovation, consecrated labor,
+- [x] `deity/borhild` - Emberforge; forgecraft, innovation, consecrated labor,
       and dwarven craft.
 - [ ] `deity/selithiel` - Moonbough; moon, dreams, passage between worlds, and
       elven mysticism.
