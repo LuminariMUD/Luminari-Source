@@ -2853,19 +2853,41 @@ static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProto
 
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData)
 {
-  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {{'\0'}, {'\0'}};
+  /*
+   * Name and value are bounded separately. They shared one 201-byte cap until
+   * onboarding protocol v2 needed to carry base64 editor chunks in a value;
+   * widening that shared buffer would have made every variable NAME 16 KiB of
+   * stack too. The value buffer is heap-allocated because MAX_MSDP_VALUE_SIZE
+   * is far too large to place on the stack of a per-packet parser.
+   */
+  char VariableName[MAX_MSDP_SIZE + 1] = {'\0'};
+  char *pVariableValue = NULL;
   char *pPos = NULL, *pStart = NULL;
+  size_t MaxLength = 0;
+
+  pVariableValue = (char *)calloc(MAX_MSDP_VALUE_SIZE + 1, sizeof(char));
+  if (pVariableValue == NULL)
+  {
+    /* Out of memory: drop the subnegotiation rather than parse it partially. */
+    return;
+  }
 
   while (*apData)
   {
     switch (*apData)
     {
     case MSDP_VAR:
+      pPos = pStart = VariableName;
+      MaxLength = MAX_MSDP_SIZE;
+      ++apData;
+      break;
     case MSDP_VAL:
-      pPos = pStart = Variable[*apData++ - 1];
+      pPos = pStart = pVariableValue;
+      MaxLength = MAX_MSDP_VALUE_SIZE;
+      ++apData;
       break;
     default: /* Anything else */
-      if (pPos && pPos - pStart < MAX_MSDP_SIZE)
+      if (pPos && (size_t)(pPos - pStart) < MaxLength)
       {
         *pPos++ = *apData;
         *pPos = '\0';
@@ -2875,9 +2897,16 @@ static void ParseMSDP(descriptor_t *apDescriptor, const char *apData)
         continue;
     }
 
-    ExecuteMSDPPair(apDescriptor, Variable[MSDP_VAR - 1], Variable[MSDP_VAL - 1]);
-    Variable[MSDP_VAL - 1][0] = '\0';
+    ExecuteMSDPPair(apDescriptor, VariableName, pVariableValue);
+    pVariableValue[0] = '\0';
   }
+
+  /*
+   * Values can hold private profile text, so the buffer is overwritten rather
+   * than merely released.
+   */
+  memset(pVariableValue, 0, MAX_MSDP_VALUE_SIZE + 1);
+  free(pVariableValue);
 }
 
 static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, const char *apValue)
@@ -2916,6 +2945,13 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
       /* Capability negotiation for the structured web onboarding UI. Any
        * client that does not send this simply keeps the text menus. */
       web_onboarding_set_capability(apDescriptor, apValue);
+    }
+    else if (MatchString(apVariable, WEB_ONBOARDING_VERSIONS_CAPABILITY_VARIABLE))
+    {
+      /* Protocol v2 negotiation. Sent after the single-version variable above,
+       * so an old server has already settled on v1 and a new one can upgrade.
+       * A client that omits this keeps whatever the v1 variable selected. */
+      web_onboarding_set_version_list(apDescriptor, apValue);
     }
     else if (MatchString(apVariable, "RESET"))
     {

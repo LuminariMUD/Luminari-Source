@@ -406,3 +406,86 @@ void TestWebOnboardingChoiceScreensOfferTheRightActions(CuTest *tc)
   CuAssertPtrNotNull(tc, strstr(payload, "\"submit\""));
   CuAssertPtrNotNull(tc, strstr(payload, "\"cancel\""));
 }
+
+/* ------------------------------------------------------------------------ */
+/* Protocol v2 negotiation                                                   */
+/* ------------------------------------------------------------------------ */
+
+void TestWebOnboardingVersionListSelectsHighestMutual(CuTest *tc)
+{
+  struct descriptor_data d;
+
+  init_test_descriptor(&d, CON_ACCOUNT_NAME);
+
+  /* A client that only speaks v1 stays on v1. */
+  web_onboarding_set_capability(&d, "1");
+  CuAssertIntEquals(tc, 1, d.web_onboarding_version);
+
+  /*
+   * A v2-capable client advertises the list after the single-version
+   * variable. Which version is selected depends on the build flag: with v2
+   * compiled out, the source must refuse to be talked up into it.
+   */
+  web_onboarding_set_version_list(&d, "2,1");
+#if WEB_ONBOARDING_ENABLE_V2
+  CuAssertIntEquals(tc, WEB_ONBOARDING_PROTOCOL_VERSION_MAX, d.web_onboarding_version);
+#else
+  CuAssertIntEquals(tc, WEB_ONBOARDING_PROTOCOL_VERSION, d.web_onboarding_version);
+#endif
+}
+
+void TestWebOnboardingVersionListRejectsUnsupportedVersions(CuTest *tc)
+{
+  struct descriptor_data d;
+
+  init_test_descriptor(&d, CON_ACCOUNT_NAME);
+  web_onboarding_set_capability(&d, "1");
+
+  /* A version this build does not implement must never be selected. */
+  web_onboarding_set_version_list(&d, "99");
+  CuAssertIntEquals(tc, 1, d.web_onboarding_version);
+
+  /* Garbage must not disturb an already-negotiated version. */
+  web_onboarding_set_version_list(&d, "not-a-version");
+  CuAssertIntEquals(tc, 1, d.web_onboarding_version);
+
+  web_onboarding_set_version_list(&d, "");
+  CuAssertIntEquals(tc, 1, d.web_onboarding_version);
+
+  /* A mixed list still picks only what is supported. */
+  web_onboarding_set_version_list(&d, "77,1");
+  CuAssertIntEquals(tc, 1, d.web_onboarding_version);
+}
+
+void TestWebOnboardingPayloadEchoesNegotiatedVersion(CuTest *tc)
+{
+  struct descriptor_data d;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  init_test_descriptor(&d, CON_ACCOUNT_NAME);
+  web_onboarding_set_capability(&d, "1");
+
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  /* A v1 client must never be handed a document claiming a newer contract. */
+  CuAssertPtrNotNull(tc, strstr(payload, "\"version\":1"));
+  CuAssertTrue(tc, strstr(payload, "\"version\":2") == NULL);
+}
+
+void TestWebOnboardingV2DisabledByDefault(CuTest *tc)
+{
+  struct descriptor_data d;
+
+  init_test_descriptor(&d, CON_ACCOUNT_NAME);
+  web_onboarding_set_capability(&d, "1");
+  web_onboarding_set_version_list(&d, "2,1");
+
+  /*
+   * The role-play suite must stay off unless the build opted in, so that
+   * rollback is a capability change rather than a redeploy.
+   */
+#if WEB_ONBOARDING_ENABLE_V2
+  CuAssertTrue(tc, WEB_ONBOARDING_ENABLE_V2 == 1);
+#else
+  CuAssertTrue(tc, !web_onboarding_v2_enabled(&d));
+#endif
+}

@@ -402,12 +402,114 @@ void web_onboarding_set_capability(struct descriptor_data *d, const char *value)
   d->web_onboarding_dirty = TRUE;
 }
 
+/*
+ * Highest version this build will agree to. v2 is offered only when the build
+ * flag is on, so an operator can roll back to v1 by capability alone.
+ */
+static int web_onboarding_max_offered_version(void)
+{
+#if WEB_ONBOARDING_ENABLE_V2
+  return WEB_ONBOARDING_PROTOCOL_VERSION_MAX;
+#else
+  return WEB_ONBOARDING_PROTOCOL_VERSION;
+#endif
+}
+
+void web_onboarding_set_version_list(struct descriptor_data *d, const char *value)
+{
+  const char *cursor = NULL;
+  int best = 0;
+  int ceiling = web_onboarding_max_offered_version();
+
+  if (d == NULL || value == NULL)
+    return;
+
+  /*
+   * Pick the highest version both sides support. The list is client-supplied,
+   * so it is scanned defensively: only digits and separators are meaningful
+   * and anything above our ceiling is ignored rather than trusted.
+   */
+  for (cursor = value; *cursor != '\0';)
+  {
+    if (*cursor >= '0' && *cursor <= '9')
+    {
+      int candidate = 0;
+
+      while (*cursor >= '0' && *cursor <= '9')
+      {
+        if (candidate < 10000)
+          candidate = (candidate * 10) + (*cursor - '0');
+        ++cursor;
+      }
+
+      if (candidate >= WEB_ONBOARDING_PROTOCOL_VERSION && candidate <= ceiling && candidate > best)
+        best = candidate;
+    }
+    else
+    {
+      ++cursor;
+    }
+  }
+
+  if (best == 0)
+    return;
+
+  d->web_onboarding_version = best;
+  d->web_onboarding_last_state = -1;
+  d->web_onboarding_dirty = TRUE;
+}
+
+/*
+ * Version to stamp on an emitted document.
+ *
+ * Deliberately not web_onboarding_version(), which also asserts that MSDP is
+ * ready: by the time a payload is being built the descriptor's version has
+ * already been negotiated, and a document must never claim v0. An unset
+ * version means "no list was advertised", which is exactly v1.
+ */
+static int web_onboarding_payload_version(struct descriptor_data *d)
+{
+  int version = (d != NULL) ? d->web_onboarding_version : 0;
+  int ceiling = web_onboarding_max_offered_version();
+
+  if (version < WEB_ONBOARDING_PROTOCOL_VERSION)
+    return WEB_ONBOARDING_PROTOCOL_VERSION;
+  if (version > ceiling)
+    return ceiling;
+
+  return version;
+}
+
+int web_onboarding_version(struct descriptor_data *d)
+{
+  if (!web_onboarding_enabled(d))
+    return 0;
+
+  return d->web_onboarding_version;
+}
+
+bool web_onboarding_v2_enabled(struct descriptor_data *d)
+{
+#if WEB_ONBOARDING_ENABLE_V2
+  return web_onboarding_version(d) >= WEB_ONBOARDING_PROTOCOL_VERSION_MAX;
+#else
+  (void)d;
+  return FALSE;
+#endif
+}
+
 bool web_onboarding_enabled(struct descriptor_data *d)
 {
   if (d == NULL || d->pProtocol == NULL || !d->pProtocol->bMSDP)
     return FALSE;
 
-  return d->web_onboarding_version == WEB_ONBOARDING_PROTOCOL_VERSION;
+  /*
+   * Any version from v1 up to what this build offers is acceptable. The
+   * capability handlers already clamped the value, so a client cannot select
+   * a version this build does not implement.
+   */
+  return d->web_onboarding_version >= WEB_ONBOARDING_PROTOCOL_VERSION &&
+         d->web_onboarding_version <= web_onboarding_max_offered_version();
 }
 
 void web_onboarding_mark_dirty(struct descriptor_data *d)
@@ -1050,7 +1152,7 @@ static void emit_cleared(struct descriptor_data *d)
            "\"screen\":\"handoff\",\"title\":\"In the world\",\"prompt\":\"\","
            "\"inputKind\":\"none\",\"sensitiveInput\":false,\"persistence\":\"none\","
            "\"choices\":[],\"characters\":[],\"selection\":{},\"actions\":[]}",
-           WEB_ONBOARDING_PROTOCOL_VERSION, flow_id, d->web_onboarding_revision);
+           web_onboarding_payload_version(d), flow_id, d->web_onboarding_revision);
 
   MSDPSendPair(d, WEB_ONBOARDING_MSDP_VARIABLE, payload);
 }
@@ -1071,7 +1173,8 @@ static bool build_state_payload(struct descriptor_data *d,
   snprintf(flow_id, sizeof(flow_id), "%d-%ld", d->desc_num, (long)d->login_time);
 
   json_raw(&writer, "{");
-  json_field_number(&writer, "version", WEB_ONBOARDING_PROTOCOL_VERSION);
+  /* Echo the negotiated version, not the build's maximum. */
+  json_field_number(&writer, "version", web_onboarding_payload_version(d));
   json_raw(&writer, ",");
   json_field_string(&writer, "flowId", flow_id, 63);
   json_raw(&writer, ",");

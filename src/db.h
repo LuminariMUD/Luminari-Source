@@ -332,6 +332,16 @@ SPECIAL_DECL(cryogenicist);
 /* Functions from players.c */
 void tag_argument(char *argument, char *tag);
 int load_char(const char *name, struct char_data *ch);
+/**
+ * Save a player file and report whether the write is durable.
+ *
+ * Returns FALSE on any allocation, open, write, flush, close, or player-index
+ * failure. Callers that must not acknowledge success until the data is on disk
+ * must use this rather than save_char().
+ */
+bool save_char_checked(struct char_data *ch, int mode);
+
+/** Result-discarding wrapper over save_char_checked(), for legacy callers. */
 void save_char(struct char_data *ch, int mode);
 void init_char(struct char_data *ch);
 struct char_data *create_char(void);
