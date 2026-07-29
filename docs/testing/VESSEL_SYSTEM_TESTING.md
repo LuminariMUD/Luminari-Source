@@ -271,6 +271,12 @@ numbered gameplay flow:
   final restart restored the exact paused coordinate and route under a new
   PID, and Kohdee resumed the ferry. This validates the monitor path, not the
   outstanding 24-hour duration.
+- A follow-up provenance shakedown pinned source commit
+  `0afad17bdb8fd67a78a58fa1af9e41d6ccc79efc` and executable SHA-256
+  `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`.
+  The final restart launched the identical hash and restored exact state.
+  Deliberate SIGTERM on a separate run wrote a terminal `FAIL` artifact
+  immediately instead of leaving stale `RUNNING` state.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

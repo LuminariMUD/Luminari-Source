@@ -40,9 +40,15 @@ recording enduring behavior or evidence in the permanent documentation.
   `ABANDONED`. The corrected 150-second replacement shakedown passed. A second
   full window started at 01:16:31 IDT and ran correctly, but was intentionally
   superseded after source audit showed the monitor did not pin the installed
-  executable across its final restart. The next launch records and enforces
-  the source commit, executable fingerprint, and SHA-256. Leave this item open
-  until that provenance-aware run passes its final exact-state restart.
+  executable across its final restart. Provenance and interruption
+  shakedowns now pass. The definitive local-development window started July
+  30 at 01:27:19 IDT and reaches 24 hours on July 31 at 01:27:19 IDT. Its run
+  directory is
+  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T222703Z-4128760`;
+  check it with `./scripts/run_vessel_ferry_soak.sh status`. It pins source
+  `0afad17bdb8fd67a78a58fa1af9e41d6ccc79efc` and executable SHA-256
+  `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`.
+  Leave this item open until it passes the final exact-state restart.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.

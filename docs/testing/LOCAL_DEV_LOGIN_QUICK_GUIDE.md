@@ -96,6 +96,10 @@ logins to wake a sleeping loop. The corrected July 30, 2026 shakedown ran 150
 continuous seconds with 84 movement steps, 22 distinct cells, both docks, 5
 Kohdee samples, 16 database/process samples, an unchanged travel PID, exact
 state recovery across the final restart, and automatic resume.
+A separate provenance shakedown proved the same executable SHA-256 before and
+after restart. Deliberate SIGTERM then produced an immediate terminal `FAIL`
+artifact, so an interrupted agent or service does not leave a false `RUNNING`
+result.
 
 ## Fast Vessel Builder Gate
 

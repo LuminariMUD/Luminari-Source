@@ -84,6 +84,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   steps, 22 distinct positions, both dock arrivals, 5 actual Kohdee samples,
   16 database/process samples, one travel PID, exact post-restart coordinate
   and route recovery, and automatic resume.
+- A provenance shakedown retained executable SHA-256
+  `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`
+  through restart. A separate deliberate SIGTERM wrote a terminal failure
+  artifact with its reason and sample counts.
 
 ### Documentation - vessel source-of-truth consolidation
 
