@@ -69,6 +69,7 @@ ACMD(do_tedit)
   int l, i = 0;
   char field[MAX_INPUT_LENGTH] = {'\0'};
   char *backstr = NULL;
+  struct oasis_olc_data *new_olc = NULL;
 
   const struct
   {
@@ -137,13 +138,14 @@ ACMD(do_tedit)
   send_editor_help(ch->desc);
   send_to_char(ch, "Edit file below:\r\n\r\n");
 
+  CREATE(new_olc, struct oasis_olc_data, 1);
   if (ch->desc->olc)
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_tedit: Player already had olc structure.");
     free(ch->desc->olc);
     ch->desc->olc = NULL;
   }
-  CREATE(ch->desc->olc, struct oasis_olc_data, 1);
+  ch->desc->olc = new_olc;
 
   if (*fields[l].buffer)
   {
@@ -151,7 +153,7 @@ ACMD(do_tedit)
     backstr = strdup(*fields[l].buffer);
   }
 
-  OLC_STORAGE(ch->desc) = strdup(fields[l].filename);
+  new_olc->storage = strdup(fields[l].filename);
   string_write(ch->desc, (char **)fields[l].buffer, fields[l].size, 0, backstr);
 
   act("$n begins editing a scroll.", TRUE, ch, 0, 0, TO_ROOM);

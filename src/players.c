@@ -130,6 +130,7 @@ void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_i
 void build_player_index(void)
 {
   int rec_count = 0, i, nr;
+  size_t name_length;
   FILE *plr_index;
   char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
   char arg2[80];
@@ -182,8 +183,9 @@ void build_player_index(void)
       }
       player_table[i].clan = NO_CLAN;
     }
-    CREATE(player_table[i].name, char, strlen(arg2) + 1);
-    strcpy(player_table[i].name, arg2);
+    name_length = strlen(arg2) + 1;
+    CREATE(player_table[i].name, char, name_length);
+    memcpy(player_table[i].name, arg2, name_length);
     player_table[i].flags = asciiflag_conv(bits);
     top_idnum = MAX(top_idnum, player_table[i].id);
   }

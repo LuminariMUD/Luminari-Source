@@ -154,7 +154,7 @@ void add_name(byte level, char *name)
     fprintf(stderr, "Error: Failed to allocate memory for name record\n");
     return;
   }
-  strcpy(tmp->name, name);
+  strlcpy(tmp->name, name, sizeof(tmp->name));
   tmp->next = 0;
 
   /* Find the appropriate level list */

@@ -200,7 +200,12 @@ const char *familiar_names[] = {
 void init_study(struct descriptor_data *d, int class)
 {
   struct char_data *ch = d->character;
+  struct oasis_olc_data *new_olc = NULL;
+  struct level_data *new_levelup = NULL;
   int i = 0, j = 0;
+
+  CREATE(new_olc, struct oasis_olc_data, 1);
+  CREATE(new_levelup, struct level_data, 1);
 
   if (d->olc)
   {
@@ -208,7 +213,7 @@ void init_study(struct descriptor_data *d, int class)
     free(d->olc);
     d->olc = NULL;
   }
-  CREATE(d->olc, struct oasis_olc_data, 1);
+  d->olc = new_olc;
 
   if (LEVELUP(ch))
   {
@@ -216,66 +221,66 @@ void init_study(struct descriptor_data *d, int class)
     free(LEVELUP(ch));
     LEVELUP(ch) = NULL;
   }
-  CREATE(LEVELUP(ch), struct level_data, 1);
-
-  STATE(d) = CON_STUDY;
 
   /* Now copy the player's data to the levelup structure - a scratch area
    * used during the study process. */
-  LEVELUP(ch)->class = class;
-  LEVELUP(ch)->level = CLASS_LEVEL(ch, class);
-  LEVELUP(ch)->feat_points = MAX(0, GET_FEAT_POINTS(ch));
-  LEVELUP(ch)->class_feat_points = MAX(0, GET_CLASS_FEATS(ch, class));
-  LEVELUP(ch)->epic_feat_points = MAX(0, GET_EPIC_FEAT_POINTS(ch));
-  LEVELUP(ch)->epic_class_feat_points = MAX(0, GET_EPIC_CLASS_FEATS(ch, class));
-  LEVELUP(ch)->teamwork_feat_points = MAX(0, GET_TEAMWORK_FEAT_POINTS(ch));
+  new_levelup->class = class;
+  new_levelup->level = CLASS_LEVEL(ch, class);
+  new_levelup->feat_points = MAX(0, GET_FEAT_POINTS(ch));
+  new_levelup->class_feat_points = MAX(0, GET_CLASS_FEATS(ch, class));
+  new_levelup->epic_feat_points = MAX(0, GET_EPIC_FEAT_POINTS(ch));
+  new_levelup->epic_class_feat_points = MAX(0, GET_EPIC_CLASS_FEATS(ch, class));
+  new_levelup->teamwork_feat_points = MAX(0, GET_TEAMWORK_FEAT_POINTS(ch));
 
-  LEVELUP(ch)->practices = GET_PRACTICES(ch);
-  LEVELUP(ch)->trains = GET_TRAINS(ch);
-  LEVELUP(ch)->num_boosts = GET_BOOSTS(ch);
+  new_levelup->practices = GET_PRACTICES(ch);
+  new_levelup->trains = GET_TRAINS(ch);
+  new_levelup->num_boosts = GET_BOOSTS(ch);
 
-  LEVELUP(ch)->str = GET_REAL_STR(ch);
-  LEVELUP(ch)->dex = GET_REAL_DEX(ch);
-  LEVELUP(ch)->con = GET_REAL_CON(ch);
-  LEVELUP(ch)->inte = GET_REAL_INT(ch);
-  LEVELUP(ch)->wis = GET_REAL_WIS(ch);
-  LEVELUP(ch)->cha = GET_REAL_CHA(ch);
+  new_levelup->str = GET_REAL_STR(ch);
+  new_levelup->dex = GET_REAL_DEX(ch);
+  new_levelup->con = GET_REAL_CON(ch);
+  new_levelup->inte = GET_REAL_INT(ch);
+  new_levelup->wis = GET_REAL_WIS(ch);
+  new_levelup->cha = GET_REAL_CHA(ch);
 
   /* The following data elements are used to store the player's choices during the
    * study process - Just initialize these values. */
-  LEVELUP(ch)->spell_circle = -1;
-  LEVELUP(ch)->favored_slot = -1;
-  LEVELUP(ch)->feat_type = -1;
+  new_levelup->spell_circle = -1;
+  new_levelup->favored_slot = -1;
+  new_levelup->feat_type = -1;
 
-  LEVELUP(ch)->tempFeat = 0;
+  new_levelup->tempFeat = 0;
 
   for (i = 0; i < 6; i++)
-    LEVELUP(ch)->boosts[i] = 0;
+    new_levelup->boosts[i] = 0;
   for (i = 0; i < NUM_FEATS; i++)
   {
-    LEVELUP(ch)->feats[i] = 0;
-    LEVELUP(ch)->feat_weapons[i] = 0;
-    LEVELUP(ch)->feat_skills[i] = 0;
+    new_levelup->feats[i] = 0;
+    new_levelup->feat_weapons[i] = 0;
+    new_levelup->feat_skills[i] = 0;
   }
   for (i = 0; i < NUM_CFEATS; i++)
     for (j = 0; j < FT_ARRAY_MAX; j++)
-      LEVELUP(ch)->combat_feats[i][j] = 0;
+      new_levelup->combat_feats[i][j] = 0;
   for (i = 0; i < MAX_ABILITIES; i++)
     for (j = 0; j < NUM_SKFEATS; j++)
-      LEVELUP(ch)->skill_focus[i][j] = FALSE;
+      new_levelup->skill_focus[i][j] = FALSE;
   for (i = 0; i < NUM_SFEATS; i++)
-    LEVELUP(ch)->school_feats[i] = 0;
+    new_levelup->school_feats[i] = 0;
 
-  LEVELUP(ch)->eidolon_base_form = GET_EIDOLON_BASE_FORM(ch);
+  new_levelup->eidolon_base_form = GET_EIDOLON_BASE_FORM(ch);
   for (i = 1; i < NUM_EVOLUTIONS; i++)
   {
-    LEVELUP(ch)->eidolon_evolutions[i] = KNOWS_EVOLUTION(ch, i);
-    LEVELUP(ch)->summoner_aspects[i] = HAS_REAL_EVOLUTION(ch, i);
+    new_levelup->eidolon_evolutions[i] = KNOWS_EVOLUTION(ch, i);
+    new_levelup->summoner_aspects[i] = HAS_REAL_EVOLUTION(ch, i);
   }
-  LEVELUP(ch)->necromancer_bonus_levels = NECROMANCER_CAST_TYPE(ch);
+  new_levelup->necromancer_bonus_levels = NECROMANCER_CAST_TYPE(ch);
 
-  LEVELUP(ch)->dragon_rider_dragon_type = GET_DRAGON_RIDER_DRAGON_TYPE(ch);
-  LEVELUP(ch)->dragon_rider_bond_type = GET_DRAGON_BOND_TYPE(ch);
+  new_levelup->dragon_rider_dragon_type = GET_DRAGON_RIDER_DRAGON_TYPE(ch);
+  new_levelup->dragon_rider_bond_type = GET_DRAGON_BOND_TYPE(ch);
+
+  LEVELUP(ch) = new_levelup;
+  STATE(d) = CON_STUDY;
 }
 
 void finalize_study(struct descriptor_data *d)
