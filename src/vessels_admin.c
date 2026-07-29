@@ -420,7 +420,7 @@ ACMD(do_shippurge)
   struct greyhawk_ship_data *ship;
   struct obj_data *hull;
   char arg[MAX_INPUT_LENGTH];
-  char ship_name[MAX_NAME_LENGTH];
+  char ship_name[sizeof(greyhawk_ships[0].name)];
   char *end;
   room_rnum exterior;
   long parsed_slot;

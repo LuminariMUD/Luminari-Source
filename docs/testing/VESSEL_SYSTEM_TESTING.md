@@ -6,7 +6,7 @@ regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
 findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
-**Current run status (July 29, 2026): all 30 steps pass on local development.**
+**Current run status (July 30, 2026): all 30 steps pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
@@ -42,6 +42,20 @@ It uses the existing master account and Kohdee character; do not create a new
 account or perform one login per command. The first run includes ferry creation
 and a second restart. Later idempotent runs reuse the ferry and complete in
 about 30 seconds on the current development host.
+
+For the builder-independence timing gate, run:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+```
+
+This keeps one real Kohdee session open, derives the new prototype ID and ship
+slot from in-game output, creates/tunes/shows/spawns the vessel through
+`vedit`, sails it one cell, and removes both temporary records. The July 30,
+2026 local run took 2.7 seconds for the in-game workflow and 8 seconds
+including login, cleanup, character logout, and account logout. The generated
+Boat moved from `(-66, 92)` to `(-67, 92)`. The creation and spawn path made no
+C, SQL, world-file, or configuration edits.
 
 ## A. Legacy world-file vessel (zone 700 test object)
 
@@ -163,7 +177,7 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
 
 ## Release-Boundary Evidence
 
-The July 29, 2026 local-development run also proved the boundaries around the
+The July 29-30, 2026 local-development runs also proved the boundaries around the
 numbered gameplay flow:
 
 - With a real autopilot route active, cedit `Off` held Test Vessel at
@@ -196,6 +210,12 @@ numbered gameplay flow:
   and hourly schedule. Speech diagnostics fired trigger 70001 on the generated
   bridge and 70002 in the generated cargo hold. An idempotent rerun reused the
   same public ferry and finished in about 30 seconds.
+- The single-session builder gate used Kohdee and only `vedit` for
+  prototype creation, tuning, inspection, and spawn. It discovered generated
+  IDs from game output, sailed the Boat west one cell, and removed all
+  temporary data in 2.7 seconds of workflow time and 8 seconds end to end. The
+  run also exposed and fixed truncated long vessel names in `shippurge`
+  diagnostics.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

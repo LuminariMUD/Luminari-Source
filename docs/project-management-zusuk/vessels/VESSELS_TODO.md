@@ -1,17 +1,16 @@
 # Vessel System Remaining Work
 
-**Last audited:** July 29, 2026
+**Last audited:** July 30, 2026
 
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, dock fees,
 offline insurance delivery, player-removal recovery, and the multi-character
 PvP logout lifecycle pass with actual characters are proven. Immediate
 autopilot command durability, write-failure rollback, and static/dynamic
-exterior-hull
-co-location through restart and zone reset are also proven. The shared
+exterior-hull co-location through restart and zone reset are also proven. The shared
 two-dock harbor, representative prototypes, persistent scheduled ferry, and
-generated-room DG triggers are available. Timed validation, scale, content,
-beta, and production release work remain.
+generated-room DG triggers are available. Continuous validation, scale,
+content, beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -26,13 +25,11 @@ recording enduring behavior or evidence in the permanent documentation.
 
 ## 1. Validate the Shared Harbor
 
-- [ ] Time a builder with no C knowledge creating and spawning a sailable vessel
-  using only `vedit`; target less than 15 minutes.
 - [ ] Run the scheduled ferry continuously for 24 hours without route,
   coordinate, room, or persistence desynchronization.
 
-Use the provisioned harbor for the builder timing and continuous ferry run
-before meaningful merchant, copyover, and multiplayer encounter testing.
+Use the provisioned harbor for the continuous ferry run before meaningful
+merchant, copyover, and multiplayer encounter testing.
 
 ## 2. Prove Scale, Stability, and Economy
 

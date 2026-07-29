@@ -1,6 +1,6 @@
 # Local Development Login Quick Guide
 
-**Last verified:** July 29, 2026
+**Last verified:** July 30, 2026
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -53,6 +53,34 @@ local MUD, and verifies the two docks, public ferry, NPC pilot, hourly route,
 and generated bridge/cargo triggers in one batched login. The first run may
 need about one minute because it creates the ferry and proves a second restart.
 An already provisioned harbor takes about 30 seconds.
+
+## Fast Vessel Builder Gate
+
+Use one logged-in Kohdee session to exercise the complete no-C builder path:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+```
+
+The helper reads `vedit` usage, moves to the shared harbor, creates a uniquely
+named Boat prototype, tunes and shows it, spawns it with `vedit`, discovers the
+returned prototype ID and fleet slot, and verifies that the generated hull
+sails from `(-66, 92)` to `(-67, 92)`. It then stops and purges the temporary
+hull, deletes the temporary prototype, and confirms the prototype is gone.
+Creation, editing, and spawning use only the builder-facing `vedit` command;
+staff commands are used afterward for sailing verification and cleanup.
+
+Do not split this workflow across logins or query MySQL for generated IDs. The
+helper derives both IDs from actual game output in the same connection. The
+July 30, 2026 local run completed the in-game workflow in 2.7 seconds and the
+entire login, test, cleanup, character logout, and account logout in 8 seconds.
+Success ends with:
+
+```text
+PASS: builder created, tuned, spawned, and sailed a vessel in N.N seconds.
+PASS: temporary ship N and prototype N were removed.
+PASS: Kohdee completed the vessel builder check and logged out cleanly (Ns total).
+```
 
 ## Fast Command Batches
 

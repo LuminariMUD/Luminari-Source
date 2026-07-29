@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - July 29, 2026
+## [Unreleased] - July 30, 2026
 
 ### Vessel system - shared development harbor
 
@@ -17,6 +17,9 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   room types through `ship_room_template_triggers`.
 - `vedit spawnpublic <id>` for unclaimed NPC/public hulls that do not accrue
   player-owner dock fees.
+- A one-login `--vessel-builder-check` that derives live IDs from game output,
+  creates, tunes, shows, and spawns through `vedit`, proves the generated hull
+  can sail, and removes its disposable ship and prototype.
 
 #### Fixed
 
@@ -25,6 +28,8 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   prior memory and compensate any partial durable change.
 - The harbor world-data merger inserts missing records in VNUM order while
   preserving existing builder-authored records.
+- `shippurge` now retains the full vessel name in its operator confirmation
+  and log instead of copying it through the shorter player-name buffer.
 
 #### Validated
 
@@ -32,6 +37,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   route progress, and ferrymaster across a hard restart. Both generated-room
   DG triggers fired, and the east dock loaded as seaport room 1000390 at
   `(-62, 82)`.
+- Kohdee completed the no-C builder workflow in 2.7 seconds in game and 8
+  seconds including login, cleanup, character logout, and account logout. The
+  generated Boat sailed from `(-66, 92)` to `(-67, 92)`, and all temporary
+  data was removed.
 
 ### Documentation - vessel source-of-truth consolidation
 

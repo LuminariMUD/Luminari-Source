@@ -42,8 +42,11 @@ if [[ $# -gt 0 ]]; then
       mode="help-check"
       generated_vessel_help=true
       ;;
+    --vessel-builder-check)
+      mode="vessel-builder-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check]"
       ;;
   esac
   shift
@@ -73,6 +76,8 @@ if [[ $# -gt 0 ]]; then
     ((${#vessel_help_keywords[@]} > 0)) ||
       fail "could not derive vessel commands from src/interpreter.c"
     set -- "${vessel_help_keywords[@]}"
+  elif [[ "$mode" == "vessel-builder-check" ]]; then
+    [[ $# -eq 0 ]] || fail "--vessel-builder-check does not accept additional arguments"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -251,6 +256,82 @@ proc run_game_command {command} {
   } else {
     puts "(no game output)"
   }
+
+  return $cleaned
+}
+
+proc require_game_output {output expected context} {
+  if {[string first $expected $output] < 0} {
+    fail "$context did not contain '$expected'"
+  }
+}
+
+proc run_vessel_builder_check {} {
+  set workflow_started_at [clock milliseconds]
+  set prototype_name "Builder Timing Cutter [clock seconds]"
+
+  set output [run_game_command "vedit"]
+  require_game_output $output "vedit new <class> <name>" "vedit usage"
+  require_game_output $output "vedit spawn <id>" "vedit usage"
+
+  set output [run_game_command "goto -66 92"]
+  require_game_output $output "Current Location  : (-66, 92)" "builder staging teleport"
+
+  set output [run_game_command "vedit new 1 $prototype_name"]
+  if {![regexp {Created Boat prototype ([0-9]+):} $output ignored prototype_id]} {
+    fail "could not read the new vessel prototype id"
+  }
+
+  set output [run_game_command "vedit set $prototype_id speed 8"]
+  require_game_output $output "Prototype $prototype_id updated: speed = 8." \
+    "prototype speed update"
+
+  set output [run_game_command "vedit show $prototype_id"]
+  require_game_output $output "Prototype $prototype_id: $prototype_name" "prototype detail"
+  require_game_output $output "Speed : 8" "prototype detail"
+
+  set output [run_game_command "vedit spawn $prototype_id"]
+  if {![regexp {as ship ([0-9]+):} $output ignored ship_slot]} {
+    fail "could not read the spawned vessel slot"
+  }
+
+  set output [run_game_command "shipgoto $ship_slot"]
+  require_game_output $output "Aboard $prototype_name (slot $ship_slot)." \
+    "spawned vessel teleport"
+
+  set output [run_game_command "shipstatus"]
+  if {![regexp {Coordinates: \((-?[0-9]+), (-?[0-9]+)\)} $output ignored before_x before_y]} {
+    fail "could not read the spawned vessel coordinates"
+  }
+
+  set output [run_game_command "speed 2"]
+  require_game_output $output "Speed set to 2." "vessel speed command"
+  run_game_command "setsail west"
+
+  set output [run_game_command "shipstatus"]
+  if {![regexp {Coordinates: \((-?[0-9]+), (-?[0-9]+)\)} $output ignored after_x after_y]} {
+    fail "could not read the sailed vessel coordinates"
+  }
+  if {$after_x != ($before_x - 1) || $after_y != $before_y} {
+    fail "spawned vessel did not sail west: before=($before_x,$before_y) after=($after_x,$after_y)"
+  }
+
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  run_game_command "speed 0"
+
+  set output [run_game_command "shippurge $ship_slot"]
+  require_game_output $output "Purged ship $ship_slot '$prototype_name'" "vessel cleanup"
+
+  set output [run_game_command "vedit delete $prototype_id"]
+  require_game_output $output "Prototype $prototype_id deleted." "prototype cleanup"
+
+  set output [run_game_command "vedit list"]
+  if {[string first $prototype_name $output] >= 0} {
+    fail "temporary builder prototype remained after cleanup"
+  }
+
+  puts "\nPASS: builder created, tuned, spawned, and sailed a vessel in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+  puts "PASS: temporary ship $ship_slot and prototype $prototype_id were removed."
 }
 
 proc clean_dialog_output {raw commands marker} {
@@ -470,7 +551,7 @@ if {!$entered_world} {
 
 after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
-    $mode eq "help-check"} {
+    $mode eq "help-check" || $mode eq "vessel-builder-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -507,8 +588,12 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_game_command $game_command
     }
   } else {
-    foreach help_keyword $game_commands {
-      run_help_check $help_keyword
+    if {$mode eq "help-check"} {
+      foreach help_keyword $game_commands {
+        run_help_check $help_keyword
+      }
+    } else {
+      run_vessel_builder_check
     }
   }
 }
@@ -567,6 +652,9 @@ elif [[ "$mode" == "copyover-check" ]]; then
 elif [[ "$mode" == "help-check" ]]; then
   printf 'PASS: %s verified %d authoritative help keyword(s) and logged out cleanly (%ss).\n' \
     "$smoke_character" "$#" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-builder-check" ]]; then
+  printf 'PASS: %s completed the vessel builder check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \
     "$smoke_character" "$elapsed_seconds"

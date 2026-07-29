@@ -600,6 +600,18 @@ route, so it has no player-owner dock fees. Both paths allocate a free slot,
 generate the interior, link the exterior object, and persist the complete
 instance before reporting success.
 
+On local development, the complete builder gate is:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+```
+
+It uses one actual Kohdee session, parses the generated IDs from in-game
+output, verifies a one-cell sail, and removes the disposable hull and
+prototype. The July 30, 2026 run took 2.7 seconds in game and 8 seconds
+including login and clean account logout, well inside the 15-minute builder
+independence budget.
+
 Interior room text comes from `ship_room_templates`. DG trigger attachments
 come from `ship_room_template_triggers`, keyed by generated room type. Changes
 to either table take effect on the next boot; compiled-in room templates
