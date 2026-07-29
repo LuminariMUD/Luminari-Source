@@ -437,6 +437,9 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
 this is the guard against vessels starving other systems (see
 [Wilderness Integration Contract](#wilderness-integration-contract)).
+`shipfix` commits the repaired condition before reporting success. If that
+runtime write fails, it restores the prior condition instead of presenting a
+RAM-only repair.
 
 MSDP ship variables (`src/vessels_admin.c`, pushed on the vessel tick to
 anyone aboard): `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
@@ -453,8 +456,9 @@ Hazards and encounters (`src/vessels_hazards.c`) read only wilderness
 signals - no vessel-private geography:
 
 - **Weather**: severity bands from `get_weather(x,y)` (the same field a
-  coastal walker sees). Squall/storm/gale degrade rigging; a gale with no
-  sailmaster aboard damages the hull. Submerged submarines are sheltered.
+  coastal walker sees). Squall/storm/gale degrade rigging; a gale with neither
+  a sailmaster nor the assigned pilot at the bridge damages the hull.
+  Submerged submarines are sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
 - **Visibility**: `vessel_sight_range()` shrinks in fog, extended by a
@@ -832,7 +836,9 @@ Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
 airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
 ferry, mobile 70001 as its persistent pilot, and bridge/cargo DG diagnostics
 70001/70002. Re-running the command reuses the same ferry and account rather
-than duplicating either.
+than duplicating either. An assigned pilot at the bridge is excluded from
+ordinary mobile wandering; the fixture ferrymaster is also authored Sentinel
+so it remains at its duty station.
 
 ### Interior VNUM Allocation
 

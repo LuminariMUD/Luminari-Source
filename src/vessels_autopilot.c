@@ -3352,6 +3352,33 @@ struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Is this NPC the assigned pilot standing at its vessel's bridge?
+ *
+ * Mobile activity uses this to keep an active pilot at the helm instead of
+ * applying ordinary random room movement.
+ */
+bool vessel_npc_is_on_pilot_duty(const struct char_data *npc)
+{
+  struct greyhawk_ship_data *ship;
+
+  if (npc == NULL || !IS_NPC(npc) || IN_ROOM(npc) == NOWHERE ||
+      IN_ROOM(npc) > top_of_world)
+  {
+    return FALSE;
+  }
+
+  ship = world[IN_ROOM(npc)].ship;
+  if (!is_valid_ship(ship) || ship->autopilot == NULL ||
+      real_room(ship->bridge_room) != IN_ROOM(npc))
+  {
+    return FALSE;
+  }
+
+  return ship->autopilot->pilot_mob_vnum >= 0 &&
+         GET_MOB_VNUM(npc) == (mob_vnum)ship->autopilot->pilot_mob_vnum;
+}
+
+/**
  * Announces waypoint arrival to all vessel occupants.
  * Called when a piloted vessel arrives at a waypoint.
  *

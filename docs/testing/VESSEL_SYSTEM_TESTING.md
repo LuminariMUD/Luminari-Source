@@ -216,6 +216,14 @@ numbered gameplay flow:
   temporary data in 2.7 seconds of workflow time and 8 seconds end to end. The
   run also exposed and fixed truncated long vessel names in `shippurge`
   diagnostics.
+- The unattended ferry pre-soak exposed a gale hit while its assigned
+  ferrymaster wandered out of the bridge. Assigned pilots now skip ordinary
+  mobile wandering, the fixture mob is Sentinel, and structural gale damage
+  requires both no sailmaster and no pilot physically at the bridge. In a
+  60-second live storm run, the ferrymaster remained at the helm through
+  multiple hazard pulses and the repaired hull stayed 20/20 on all sides.
+  `shipfix` persisted the repair, and a full service restart restored the same
+  full condition and pilot.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

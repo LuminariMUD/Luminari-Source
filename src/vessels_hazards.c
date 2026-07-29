@@ -262,8 +262,10 @@ void vessel_weather_tick(void)
       {
         ship->mainsail -= 2;
       }
-      /* An unmanaged helm in a gale costs structure */
-      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE)
+      /* A gale costs structure only when neither a sailmaster nor the
+       * vessel's assigned pilot is physically at the helm. */
+      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE &&
+          get_pilot_from_ship(ship) == NULL)
       {
         vessel_apply_damage(i, dice(1, 6), GREYHAWK_PORT, "The gale");
       }

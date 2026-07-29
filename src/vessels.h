@@ -1437,6 +1437,14 @@ int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
 struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship);
 
 /**
+ * Checks whether an NPC is the assigned pilot at its vessel's bridge.
+ *
+ * @param npc The NPC to inspect
+ * @return TRUE while the NPC is on active pilot duty
+ */
+bool vessel_npc_is_on_pilot_duty(const struct char_data *npc);
+
+/**
  * Announces waypoint arrival to all vessel occupants.
  *
  * @param ship The vessel arriving at waypoint

@@ -373,6 +373,16 @@ ACMD(do_shipfix)
 {
   struct greyhawk_ship_data *ship;
   char arg[MAX_INPUT_LENGTH];
+  unsigned char old_farmor;
+  unsigned char old_rarmor;
+  unsigned char old_parmor;
+  unsigned char old_sarmor;
+  unsigned char old_finternal;
+  unsigned char old_rinternal;
+  unsigned char old_pinternal;
+  unsigned char old_sinternal;
+  unsigned char old_mainsail;
+  unsigned char old_turnrate;
   int slot;
 
   one_argument_u((char *)argument, arg);
@@ -396,6 +406,17 @@ ACMD(do_shipfix)
     return;
   }
 
+  old_farmor = ship->farmor;
+  old_rarmor = ship->rarmor;
+  old_parmor = ship->parmor;
+  old_sarmor = ship->sarmor;
+  old_finternal = ship->finternal;
+  old_rinternal = ship->rinternal;
+  old_pinternal = ship->pinternal;
+  old_sinternal = ship->sinternal;
+  old_mainsail = ship->mainsail;
+  old_turnrate = ship->turnrate;
+
   ship->farmor = ship->maxfarmor;
   ship->rarmor = ship->maxrarmor;
   ship->parmor = ship->maxparmor;
@@ -406,6 +427,24 @@ ACMD(do_shipfix)
   ship->sinternal = ship->maxsinternal;
   ship->mainsail = ship->maxmainsail;
   ship->turnrate = ship->maxturnrate;
+
+  if (!vessel_db_save_runtime(ship))
+  {
+    ship->farmor = old_farmor;
+    ship->rarmor = old_rarmor;
+    ship->parmor = old_parmor;
+    ship->sarmor = old_sarmor;
+    ship->finternal = old_finternal;
+    ship->rinternal = old_rinternal;
+    ship->pinternal = old_pinternal;
+    ship->sinternal = old_sinternal;
+    ship->mainsail = old_mainsail;
+    ship->turnrate = old_turnrate;
+    send_to_char(ch, "The repair could not be saved, so the prior condition was restored.\r\n");
+    log("SYSERR: %s could not persist force-repair for ship %d '%s'", GET_NAME(ch), slot,
+        ship->name);
+    return;
+  }
 
   send_to_char(ch, "%s (slot %d) restored to full condition.\r\n", ship->name, slot);
   send_to_ship(ship, "A divine hand mends every timber and line.");

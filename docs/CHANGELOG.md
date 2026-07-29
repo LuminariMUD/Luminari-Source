@@ -30,6 +30,11 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   preserving existing builder-authored records.
 - `shippurge` now retains the full vessel name in its operator confirmation
   and log instead of copying it through the shorter player-name buffer.
+- Assigned vessel pilots at the bridge no longer take ordinary random mobile
+  exits. The harbor ferrymaster is also Sentinel, and an actively staffed helm
+  prevents the unmanaged-helm structural hit during a gale.
+- `shipfix` now persists the repaired runtime condition before reporting
+  success and restores the prior condition if that write fails.
 
 #### Validated
 
@@ -41,6 +46,9 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   seconds including login, cleanup, character logout, and account logout. The
   generated Boat sailed from `(-66, 92)` to `(-67, 92)`, and all temporary
   data was removed.
+- During a 60-second live storm check, the ferrymaster remained at the bridge
+  through multiple hazard pulses and the repaired ferry stayed 20/20 on all
+  sides. A full service restart retained the repair and restored the pilot.
 
 ### Documentation - vessel source-of-truth consolidation
 
