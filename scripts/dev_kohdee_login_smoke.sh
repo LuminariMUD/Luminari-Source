@@ -88,12 +88,17 @@ if [[ $# -gt 0 ]]; then
   done
 fi
 
-for command_name in expect nc ss awk grep systemctl systemd-run; do
+for command_name in expect nc ss awk flock grep systemctl systemd-run; do
   need_command "$command_name"
 done
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; build and install first"
+
+login_lock="${TMPDIR:-/tmp}/luminari-dev-character-login-${UID}.lock"
+exec 9>"$login_lock"
+flock -w 180 9 ||
+  fail "timed out waiting for another local character session to finish"
 
 set +x
 # shellcheck disable=SC1091

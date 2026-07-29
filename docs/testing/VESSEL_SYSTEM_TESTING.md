@@ -44,6 +44,21 @@ account or perform one login per command. The first run includes ferry creation
 and a second restart. Later idempotent runs reuse the ferry and complete in
 about 30 seconds on the current development host.
 
+Run the continuous ferry release gate through its supervised monitor:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh status
+```
+
+This keeps the otherwise idle game loop awake without occupying a character,
+checks the unchanged process and database invariants every minute, and uses
+the existing account and Kohdee for hourly live checks. It records movement
+and both dock arrivals from the server log. After the requested duration, it
+pauses through the game, hard-restarts local development, compares the exact
+coordinates, route, pilot, schedule, rooms, and structure, then resumes the
+ferry. The run is incomplete until `status` reports `PASS`.
+
 For the builder-independence timing gate, run:
 
 ```bash
@@ -237,6 +252,13 @@ numbered gameplay flow:
   east dock, with no ship-5 impassable-terrain stall. A simultaneous one-point
   decrease across all armor arcs was the expected persisted
   `SHIP_WEAR_INTERVAL`, not a gale hit.
+- A 90-second accelerated shakedown of the supervised soak monitor recorded
+  34 movement steps, 22 distinct positions, both dock arrivals, 5 actual
+  Kohdee inspections, and 18 database/process samples. One MUD PID served the
+  continuous phase. The final controlled restart restored the exact paused
+  coordinate and four-waypoint route under a new PID, after which Kohdee
+  resumed the ferry. This validates the monitor, not the outstanding 24-hour
+  duration gate.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

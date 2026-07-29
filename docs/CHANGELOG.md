@@ -21,6 +21,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 - A one-login `--vessel-builder-check` that derives live IDs from game output,
   creates, tunes, shows, and spawns through `vedit`, proves the generated hull
   can sail, and removes its disposable ship and prototype.
+- A supervised `run_vessel_ferry_soak.sh` gate that keeps the idle local game
+  loop awake, samples database/process state, performs periodic live Kohdee
+  checks, records ferry movement, and proves exact state recovery through a
+  final controlled restart before resuming service.
 
 #### Fixed
 
@@ -42,6 +46,9 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 - The harbor route now uses the navigable channel at `(-64, 82)` in both
   directions instead of drawing a direct leg through Beach at `(-63, 84)`.
   Provisioning verifies the exact four-waypoint loop.
+- Local character helper sessions now share a timed lock, preventing hourly
+  soak samples and interactive tests from colliding on the same multi-character
+  account.
 
 #### Validated
 
@@ -61,6 +68,11 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   through distinct negative coordinates without an impassable-terrain stall.
   A simultaneous one-point reduction on all armor arcs was the expected
   persisted 900-tick underway-wear interval, not gale structure damage.
+- A 90-second monitor shakedown recorded 34 movement steps, 22 distinct
+  positions, both dock arrivals, 5 actual Kohdee samples, and 18
+  database/process samples under one unchanged MUD PID. Its final restart
+  recovered the exact paused coordinate and route, then resumed the ferry.
+  This proves the monitor path; the 24-hour duration remains in progress.
 
 ### Documentation - vessel source-of-truth consolidation
 

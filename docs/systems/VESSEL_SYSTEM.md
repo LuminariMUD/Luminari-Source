@@ -843,6 +843,22 @@ route entries: west dock, channel turn at `(-64, 82)`, east dock, and the same
 channel turn for the return leg. This keeps both straight-line legs off the
 Beach cells. The provisioner validates that exact topology.
 
+The 24-hour ferry gate is run independently of an agent session:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh status
+```
+
+The transient user service keeps one pre-login connection open so the
+descriptor-driven game loop remains awake, samples database and process
+invariants every minute, and serializes hourly Kohdee checks through the
+shared login-helper lock. It fails on a PID change, route/room/pilot/schedule
+drift, structure loss, out-of-corridor coordinates, or a ferry-specific
+movement/persistence error. A successful run ends with a controlled local
+restart that proves exact paused-coordinate recovery, then resumes the ferry.
+Artifacts live in the run directory printed by `start`.
+
 ### Interior VNUM Allocation
 
 ```

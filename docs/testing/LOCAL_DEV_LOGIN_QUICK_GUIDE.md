@@ -54,6 +54,40 @@ and generated bridge/cargo triggers in one batched login. The first run may
 need about one minute because it creates the ferry and proves a second restart.
 An already provisioned harbor takes about 30 seconds.
 
+## Durable Vessel Ferry Soak
+
+Start the release-gate ferry run as a user service:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh status
+```
+
+The default is 24 continuous hours with database/process checks every 60
+seconds and an actual Kohdee inspection every hour. The monitor refuses
+non-development environments, discovers the ferry and route IDs instead of
+assuming slot 5, repairs the ferry once before starting, and holds a
+non-character connection open so the game loop does not sleep between
+inspections. It uses the configured master account and existing Kohdee
+character; it does not create an account or character.
+
+At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
+coordinates and route were committed, hard-restarts the local service, checks
+the recovered state, and resumes the ferry. Results and every sample remain
+under the run directory printed by `start`. Only `PASS` from `status` closes
+the gate.
+
+For a short monitor shakedown:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start 90 5 30
+```
+
+The three values are duration, database/process interval, and live-character
+interval in seconds. The July 30, 2026 shakedown logged 34 movement steps, 22
+distinct cells, both dock arrivals, 5 Kohdee samples, 18 database/process
+samples, and exact state recovery across its final restart.
+
 ## Fast Vessel Builder Gate
 
 Use one logged-in Kohdee session to exercise the complete no-C builder path:
