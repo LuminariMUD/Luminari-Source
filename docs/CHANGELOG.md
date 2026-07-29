@@ -124,6 +124,10 @@ from planning items into tested behavior.
   pending claim and one underwriter receipt when Kohdee sank the raft through
   actual gunfire. Her next login showed 10,040 gold and a paid claim; a second
   login kept the same balance and created no duplicate.
+- Corven's reversible deleted flag blocked login while preserving a raft deed
+  and Tern helm permit; restoration returned Corven aboard the same raft. The
+  actual fast-wipe character-menu deletion then removed the player, made the
+  raft unclaimed, removed the permit, and voided a controlled pending claim.
 - All 75 help keywords resolved to database help in one 54-second Kohdee
   session, all SQL help checks passed, and all 21 current component migrations
   applied independently to a fresh MariaDB 10.11 master schema. Cleanup left

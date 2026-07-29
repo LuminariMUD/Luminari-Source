@@ -110,7 +110,9 @@ with no overrides remains the exact level-34 `Kohdee` path.
 
 The helper validates the alternate name, finds exactly one matching Name
 column, uses non-staff completion markers, and performs the same clean
-character/account logout. Keep one entire command sequence in one invocation.
+character/account logout. It also reports a soft-deleted selection immediately
+instead of waiting for the normal login timeout. Keep one entire command
+sequence in one invocation.
 
 For menu-driven editors, use one `--dialog` invocation. Each argument is one
 input line; the helper confirms that the final input returned to normal command

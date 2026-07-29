@@ -440,6 +440,9 @@ set entered_world 0
 expect {
   -re {PRESS RETURN} {}
   -re {Reconnecting\.} { set entered_world 1 }
+  -re {This character has been deleted} {
+    fail "$smoke_character is soft-deleted and cannot enter the game"
+  }
   timeout { fail "timed out while loading $smoke_character" }
   eof { fail "connection closed while loading $smoke_character" }
 }

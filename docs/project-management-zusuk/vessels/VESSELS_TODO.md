@@ -5,8 +5,8 @@
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, and dock
 fees pass. Offline insurance delivery also passes with an actual owner. Shared
-validation, deletion and PvP lifecycle verification, scale, content, beta, and
-production release work remain.
+validation, deletion failure injection, PvP lifecycle verification, scale,
+content, beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -34,10 +34,10 @@ and multiplayer encounter testing.
 
 ## 2. Close Persistence and Lifecycle Gaps
 
-- [ ] Live-test the implemented player-deletion policy with a disposable owner:
-  soft deletion and restoration retain deeds; permanent removal makes ships
-  unowned, removes helm permits, voids pending claims, and fails closed if the
-  transaction cannot commit.
+- [ ] Inject a database transaction failure during permanent removal of a
+  disposable owner. Prove player files and vessel ownership remain recoverable,
+  then restore the character and cleanly repeat or cancel the deletion. The
+  normal soft-delete/restore and permanent-removal paths already pass live.
 - [ ] With two actual PvP-enabled characters, live-test the persisted,
   opponent-specific five-minute combat logout grace. Prove the original
   aggressor can continue only inside the window, a third party cannot, expiry

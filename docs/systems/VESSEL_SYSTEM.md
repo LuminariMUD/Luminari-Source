@@ -827,6 +827,15 @@ paid, and saved claim high-water mark 1. Her second login retained 10,040 gold
 without another credit. Production-snapshot rehearsal remains a release
 prerequisite.
 
+The normal player-removal paths have actual-character evidence. A reversible
+deleted flag blocked Corven's login without changing the owned raft or Tern
+permit, and clearing it restored Corven aboard the same ship. Corven then used
+the real character-menu password/confirmation flow with fast wipe enabled.
+The player file and database membership were removed, the raft became
+unclaimed in memory and SQL, the permit was removed, and a controlled pending
+claim became `void`. Deliberate database-failure injection is still required to
+prove deferred removal under transaction failure.
+
 ---
 
 ## File Inventory
@@ -1106,7 +1115,7 @@ or keyword count is insufficient once later phases extend the system.
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Permanent player removal | `vessels_ownership.c`, `players.c` | Transactional unown/permit/claim policy is implemented; deletion and restoration still need live proof |
+| Player-removal transaction failure | `vessels_ownership.c`, `players.c` | Soft restore and normal permanent cleanup pass live; database-failure defer/recovery still needs injection |
 | Owner logout during PvP | `vessels_combat.c` | Persisted five-minute opponent grace is implemented and unit-tested; two-player logout/expiry behavior still needs live proof |
 
 See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
