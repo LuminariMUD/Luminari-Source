@@ -2,6 +2,43 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel system - benchmark instrumentation
+
+Added the measurement layer required to collect a reproducible complete-fleet
+performance result without treating historical navigation timings as release
+evidence.
+
+#### Added
+
+- Monotonic cumulative profiling with opt-in 16,384-sample rolling windows and
+  linearly interpolated median, p95, and p99 section timings. Sampling is
+  enabled only for the ten benchmark sections, bounding its storage at about
+  1.25 MiB instead of allocating a window for every command or special.
+- Complete vessel-tick attribution plus separate sections for autopilot,
+  combat, crew wages, upkeep, trade, weather, encounters, MSDP, and scheduled
+  departures.
+- `perfmon reset` and `perfmon csv` staff controls for bounded measurement
+  windows and machine-readable evidence.
+- A process-wide atomic SQL execution counter covering direct, safe, pooled,
+  and prepared-statement execution attempts.
+
+#### Fixed
+
+- Performance hierarchy rollups now promote each completed buffer exactly
+  once. Hourly maxima now come from the completed minute buffer instead of the
+  previous hour buffer.
+- Profiling reports saturate safely when an output buffer is too small, and
+  stale or duplicate section exits no longer contaminate timing samples.
+
+#### Validated
+
+- The isolated GNU C23 build completed with `-Wall -Wextra`; all 227
+  production-linked root tests passed, and `make install` removed the
+  worktree's root-level `circle`.
+- The true 500-active-ship workload and 25 ms result remain open. Source audit
+  found that the current 500-entry array reserves slot 0 and therefore permits
+  only 499 simultaneously active ships.
+
 ### Vessel system - shared development harbor
 
 Built the persistent shared harbor fixture required for repeatable builder,

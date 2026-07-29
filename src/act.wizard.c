@@ -10369,6 +10369,8 @@ ACMD(do_perfmon)
     send_to_char(ch, "perfmon all             - Print all perfmon info.\r\n"
                      "perfmon summ            - Print summary,\r\n"
                      "perfmon prof            - Print profiling info.\r\n"
+                     "perfmon csv             - Print cumulative profiling CSV.\r\n"
+                     "perfmon reset           - Start a new measurement window.\r\n"
                      "perfmon sect <section>  - Print profiling info for section.\r\n");
     return;
   }
@@ -10376,9 +10378,12 @@ ACMD(do_perfmon)
   if (!str_cmp(arg1, "all"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
 
-    size_t written = PERF_repr(buf, sizeof(buf));
-    written = PERF_prof_repr_total(buf + written, sizeof(buf) - written);
+    written = (int)PERF_repr(buf, sizeof(buf));
+    written += (int)PERF_prof_repr_total(buf + written, sizeof(buf) - (size_t)written);
+    snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
 
     page_string(ch->desc, buf, TRUE);
 
@@ -10395,10 +10400,32 @@ ACMD(do_perfmon)
   else if (!str_cmp(arg1, "prof"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
 
-    PERF_prof_repr_total(buf, sizeof(buf));
+    written = (int)PERF_prof_repr_total(buf, sizeof(buf));
+    snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
     page_string(ch->desc, buf, TRUE);
 
+    return;
+  }
+  else if (!str_cmp(arg1, "csv"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
+
+    written = (int)PERF_prof_repr_csv(buf, sizeof(buf));
+    snprintf_append(buf, sizeof(buf), written, "# database_queries=%llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
+    page_string(ch->desc, buf, TRUE);
+
+    return;
+  }
+  else if (!str_cmp(arg1, "reset"))
+  {
+    PERF_reset();
+    mysql_query_counter_reset();
+    send_to_char(ch, "Performance and database-query counters reset.\r\n");
     return;
   }
   else if (!str_cmp(arg1, "sect"))

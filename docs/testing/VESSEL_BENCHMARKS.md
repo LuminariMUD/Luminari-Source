@@ -1,10 +1,10 @@
 # Vessel System Benchmarks
 
-**Version:** 3.0
+**Version:** 3.1
 
-**Evidence snapshot:** July 26, 2026
+**Evidence snapshot:** July 30, 2026
 
-**Last updated:** July 29, 2026
+**Last updated:** July 30, 2026
 
 This document records measured vessel-system evidence and the remaining release
 performance gate. It intentionally separates completed foundation measurements
@@ -14,11 +14,12 @@ from the full live-game benchmark that still must be run.
 
 | Measure | Result | Status |
 |---|---:|---|
-| Configured maximum vessels | 500 | Foundation validated |
+| Configured fleet-array slots | 500 | Slot 0 is reserved; current active maximum is 499 |
 | Base `greyhawk_ship_data` size | 4,744 bytes | Within 5 KB budget |
-| Base storage for 500 ships | 2,372,000 bytes (about 2.26 MiB) | Within about 3 MB budget |
+| Base storage for 500 array entries | 2,372,000 bytes (about 2.26 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
+| Root suite on July 30, 2026 | 227 of 227 passing | Current instrumentation gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -120,22 +121,50 @@ threshold and operational effect must be documented before release.
 
 ### Instrumentation Readiness
 
-The July 30, 2026 source audit found three blockers that must be corrected
-before collecting the release benchmark:
+The July 30 instrumentation prerequisites are implemented and covered by the
+current production-linked root suite:
 
-- `PERF_repr()` exposes average, minimum, and maximum pulse use but does not
-  retain or report the required median, p95, or p99 distribution.
-- The heartbeat calls the eight vessel subsystems as one unprofiled group, so
-  current `perfmon` output cannot attribute time to autopilot, combat, crew
-  wages, upkeep, trade, weather, encounters, and MSDP.
-- When the minute buffer rolls into the hour buffer, `aggregate_data()` passes
-  the existing hour-buffer maximum instead of the completed minute-buffer
-  maximum. Hourly maximum evidence is therefore not trustworthy.
+- Section timings use a monotonic clock. The ten explicitly sampled vessel
+  benchmark sections each retain up to 16,384 rolling microsecond samples.
+  Sampling is opt-in so ordinary command and special-function sections cannot
+  accumulate unbounded profiler memory. The ten windows use about 1.25 MiB.
+- The complete half-second vessel group is recorded as `vessel_tick`.
+  Its separately attributed children are `vessel_autopilot`, `vessel_combat`,
+  `vessel_crew_wages`, `vessel_upkeep`, `vessel_trade`, `vessel_weather`,
+  `vessel_encounters`, and `vessel_msdp`.
+- The 75-second schedule path is recorded separately as `vessel_schedules`.
+- `perfmon reset` starts a new pulse, section, and process-wide SQL execution
+  window. The SQL counter includes direct, safe, and pooled `mysql_query()`
+  attempts plus prepared-statement executions.
+- `perfmon csv` emits machine-readable rows for the sampled vessel sections,
+  including calls, total, average, median, p95, p99, maximum, samples stored,
+  and samples seen. It ends with `# database_queries=<count>`. `perfmon prof`
+  remains the human-readable view of every section.
+- Interval promotion now occurs once per completed lower-level buffer, and an
+  hourly maximum is derived from the completed minute buffer instead of the
+  prior hour buffer.
 
-The benchmark also needs a reproducible development-only 500-vessel workload
-and database-query counter. Until the instrumentation and workload are
-implemented and independently checked, do not treat `perfmon` summary output
-or the historical navigation microbenchmark as the release measurement.
+Use this collection sequence:
+
+1. Start the representative workload and allow caches, sections, and database
+   connections to warm up.
+2. Run `perfmon reset`.
+3. Hold the steady workload for at least 75 seconds so `vessel_schedules` runs
+   at least once.
+4. Run `perfmon csv` and capture the complete output with process memory,
+   missed-heartbeat, slow-query, and message-throttling evidence.
+
+At two complete vessel ticks per second, the 16,384-sample window covers about
+2 hours 16 minutes. Longer runs remain valid rolling-window observations, but
+the reported `samples_stored` and `samples_seen` values must be preserved so
+the evidence is not mistaken for a full-run distribution.
+
+Two prerequisites remain before collecting the release result. The current
+500-entry array reserves slot 0, leaving only 499 active slots, so capacity
+must be corrected to support 500 simultaneously active ships. A reproducible
+development-only workload must then populate all 500 ships with the complete
+gameplay mix above. The instrumentation passing its tests is not evidence that
+the live 25 ms gate itself passes.
 
 ## Automated-Test Evidence
 
@@ -147,8 +176,14 @@ ERROR SUMMARY: 0 errors from 0 contexts
 All heap blocks were freed -- no leaks are possible
 ```
 
-This is historical evidence, not a substitute for rerunning the current root
-suite. The authoritative workflow is:
+The instrumentation work was built with GNU C23 and `-Wall -Wextra` in an
+isolated worktree on July 30, 2026. The production-linked root suite passed
+227 of 227 tests, including percentile interpolation, interval promotion,
+CSV/reset behavior, truncation safety, and stale-exit handling. `make install`
+completed in that isolated worktree and removed its root-level `circle`.
+
+The older vessel-only result remains historical evidence, not a substitute for
+rerunning the current root suite. The authoritative workflow is:
 
 ```bash
 make test

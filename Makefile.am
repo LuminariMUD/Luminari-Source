@@ -255,6 +255,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -278,6 +279,7 @@ cutest_test_files = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \

@@ -10,6 +10,7 @@
 
 #include <mariadb/mysql.h> /* System headerfile for MariaDB/MySQL. */
 #include <pthread.h>
+#include <stdint.h>
 #include <time.h>
 
 /* Connection Pool Configuration */
@@ -94,6 +95,16 @@ void mysql_pool_stats(char *buf, size_t size); /* Get pool statistics */
 /* Thread-safe MySQL query wrappers */
 int mysql_query_safe(MYSQL *mysql_conn, const char *query);
 MYSQL_RES *mysql_store_result_safe(MYSQL *mysql_conn);
+
+/* Process-wide SQL execution counter used by reproducible benchmarks. */
+int luminari_mysql_query(MYSQL *mysql_conn, const char *query);
+uint64_t mysql_query_counter_value(void);
+void mysql_query_counter_reset(void);
+
+/* Count direct mysql_query() calls without changing their return semantics.
+ * The parenthesized library symbol in luminari_mysql_query() bypasses this
+ * function-like macro and prevents recursion. */
+#define mysql_query(mysql_conn, query) luminari_mysql_query((mysql_conn), (query))
 
 /* Pool-aware query functions - automatically acquire/release connections */
 int mysql_pool_query(const char *query, MYSQL_RES **result);

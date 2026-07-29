@@ -9,10 +9,13 @@ PvP logout lifecycle pass with actual characters are proven. Immediate
 autopilot command durability, write-failure rollback, and static/dynamic
 exterior-hull co-location through restart and zone reset are also proven. The shared
 two-dock harbor, representative prototypes, persistent scheduled ferry, and
-generated-room DG triggers are available. Continuous validation, scale,
-content, beta, and production release work remain. Pre-soak testing repaired
-signed-coordinate movement and both unsafe legs of the sample ferry route; an
-actual Kohdee session now completes the full four-waypoint loop. The
+generated-room DG triggers are available. Monotonic per-subsystem timing,
+rolling percentiles, CSV output, correct interval promotion, and a process-wide
+SQL execution counter are now available for the scale gate. Continuous
+validation, the reproducible 500-ship workload, content, beta, and production
+release work remain. Pre-soak testing repaired signed-coordinate movement and
+both unsafe legs of the sample ferry route; an actual Kohdee session now
+completes the full four-waypoint loop. The
 first monitor shakedown was rejected when its idle pre-login descriptor
 expired and let the game loop sleep; the corrected confirmation-state
 keepalive then passed a 150-second replacement with 84 continuous movement
@@ -60,10 +63,14 @@ merchant, copyover, and multiplayer encounter testing.
   enabled. The complete vessel work must remain within 25 ms per tick; record
   median, p95, p99, maximum, memory, query volume, and subsystem attribution in
   [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md).
-  Before running it, fix hourly maximum aggregation in `perfmon.c`, add
-  median/p95/p99 capture, profile each vessel heartbeat subsystem separately,
-  and create a reproducible development-only 500-vessel workload plus query
-  counter. The current avg/min/max summary cannot prove this gate.
+  The July 30 instrumentation prerequisite is complete: `perfmon reset` and
+  `perfmon csv` provide monotonic aggregate and per-subsystem timing,
+  median/p95/p99/max, rolling-sample counts, correct one-time hierarchy
+  promotion, and a process-wide direct/prepared SQL execution count. The
+  isolated GNU C23 production-linked suite passes 227 tests. Before running
+  the gate, correct the current 499-active-slot ceiling and create the
+  reproducible development-only 500-vessel gameplay workload. Instrumentation
+  readiness does not itself prove the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
   schedule desynchronization, with the tick budget held.
