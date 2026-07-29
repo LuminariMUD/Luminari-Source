@@ -149,8 +149,10 @@ Use this collection sequence:
 1. Start the representative workload and allow caches, sections, and database
    connections to warm up.
 2. Run `perfmon reset`.
-3. Hold the steady workload for at least 75 seconds so `vessel_schedules` runs
-   at least once.
+3. Hold the steady workload for at least 10 minutes so the 1,200-vessel-tick
+   trade interval runs at least once. This also covers the 75-second schedule,
+   60-tick weather, 180-tick encounter, 600-tick wage, and 900-tick wear
+   intervals.
 4. Run `perfmon csv` and capture the complete output with process memory,
    missed-heartbeat, slow-query, and message-throttling evidence.
 
@@ -159,12 +161,14 @@ At two complete vessel ticks per second, the 16,384-sample window covers about
 the reported `samples_stored` and `samples_seen` values must be preserved so
 the evidence is not mistaken for a full-run distribution.
 
-Two prerequisites remain before collecting the release result. The current
-500-entry array reserves slot 0, leaving only 499 active slots, so capacity
-must be corrected to support 500 simultaneously active ships. A reproducible
-development-only workload must then populate all 500 ships with the complete
-gameplay mix above. The instrumentation passing its tests is not evidence that
-the live 25 ms gate itself passes.
+The capacity prerequisite is corrected: the fleet array now contains 501
+entries, reserving slot 0 while allowing active slots 1-500, and the final
+slot's interior allocation extends through VNUM 80019. The development
+provisioner extends zone 700 only from the former expected upper bound and
+rejects overlaps. A reproducible development-only workload must still populate
+all 500 ships with the complete gameplay mix above. Instrumentation or
+capacity tests passing are not evidence that the live 25 ms gate itself
+passes.
 
 ## Automated-Test Evidence
 
@@ -178,9 +182,12 @@ All heap blocks were freed -- no leaks are possible
 
 The instrumentation work was built with GNU C23 and `-Wall -Wextra` in an
 isolated worktree on July 30, 2026. The production-linked root suite passed
-227 of 227 tests, including percentile interpolation, interval promotion,
-CSV/reset behavior, truncation safety, and stale-exit handling. `make install`
-completed in that isolated worktree and removed its root-level `circle`.
+228 of 228 tests, including percentile interpolation, interval promotion,
+CSV/reset behavior, truncation safety, stale-exit handling, and the
+500-active-slot/final-interior boundary. `make install` completed in that
+isolated worktree and removed its root-level `circle`. Isolated provisioner
+fixtures also passed the idempotent zone-extension and overlap-rejection
+paths.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

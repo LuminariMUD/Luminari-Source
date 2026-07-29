@@ -63,8 +63,10 @@
 /* ========================================================================= */
 
 #ifndef GREYHAWK_MAXSHIPS
-#define GREYHAWK_MAXSHIPS 500 /* Maximum number of ships in game */
+#define GREYHAWK_MAXSHIPS 501 /* Fleet slots, including reserved slot 0 */
 #endif
+
+#define GREYHAWK_ACTIVE_SHIP_CAPACITY (GREYHAWK_MAXSHIPS - 1)
 
 #ifndef GREYHAWK_MAXSLOTS
 #define GREYHAWK_MAXSLOTS 10 /* Maximum equipment slots per ship */
@@ -891,9 +893,9 @@ struct greyhawk_ship_crew
 #define MAX_SHIP_CONNECTIONS 40 /* Maximum connections between rooms */
 
 /* VNUM range for dynamically generated ship interior rooms */
-/* Using 70000-79999 range (zones 700-799 are unused by builders) */
+/* Slot 0 is reserved; active slots 1-500 use 70020-80019. */
 #define SHIP_INTERIOR_VNUM_BASE 70000 /* Base VNUM for ship interiors */
-#define SHIP_INTERIOR_VNUM_MAX 79999  /* Maximum VNUM for ship interiors */
+#define SHIP_INTERIOR_VNUM_MAX 80019  /* Last interior VNUM for ship slot 500 */
 #define VESSEL_BASE_HULL_OBJ_VNUM 70002 /* Generic boardable vessel object */
 
 /* Ship room types for multi-room vessels */

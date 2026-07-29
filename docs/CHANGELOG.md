@@ -2,6 +2,30 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel system - 500-active-ship capacity
+
+Corrected the fleet-slot and interior-room bounds required by the release
+benchmark.
+
+#### Fixed
+
+- The fleet array now contains 501 entries: reserved sentinel slot 0 plus 500
+  usable active slots. Operator capacity output reports 500 rather than the
+  array length.
+- Dynamic interior allocation now reaches VNUM 80019, covering all 20 rooms
+  for ship slot 500 without shifting any persisted room mapping.
+- The development harbor provisioner safely extends the expected zone 700
+  range from 79999 to 80019 and rejects conflicting world ranges.
+
+#### Validated
+
+- The GNU C23 production-linked root suite passes 228 of 228 tests, including
+  the active-slot and final-room boundary regression. `make install` completed
+  in the isolated worktree and removed its root-level `circle`.
+- Isolated provisioner fixtures proved both idempotent 79999-to-80019
+  extension and fail-closed overlap rejection without touching the running
+  development world.
+
 ### Vessel system - benchmark instrumentation
 
 Added the measurement layer required to collect a reproducible complete-fleet
@@ -35,9 +59,9 @@ evidence.
 - The isolated GNU C23 build completed with `-Wall -Wextra`; all 227
   production-linked root tests passed, and `make install` removed the
   worktree's root-level `circle`.
-- The true 500-active-ship workload and 25 ms result remain open. Source audit
-  found that the current 500-entry array reserves slot 0 and therefore permits
-  only 499 simultaneously active ships.
+- The true 500-active-ship workload and 25 ms result remain open. The source
+  audit that exposed the former 499-active-ship ceiling led to the capacity
+  correction documented above.
 
 ### Vessel system - shared development harbor
 

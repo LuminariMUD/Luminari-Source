@@ -11,6 +11,20 @@
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
+void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
+{
+  int final_room_vnum;
+
+  final_room_vnum = SHIP_INTERIOR_VNUM_BASE +
+                    ((GREYHAWK_MAXSHIPS - 1) * MAX_SHIP_ROOMS) +
+                    (MAX_SHIP_ROOMS - 1);
+
+  CuAssertIntEquals(tc, 501, GREYHAWK_MAXSHIPS);
+  CuAssertIntEquals(tc, 500, GREYHAWK_ACTIVE_SHIP_CAPACITY);
+  CuAssertIntEquals(tc, 80019, SHIP_INTERIOR_VNUM_MAX);
+  CuAssertIntEquals(tc, SHIP_INTERIOR_VNUM_MAX, final_room_vnum);
+}
+
 void Test_vessel_hull_keywords_split_readable_name_tokens(CuTest *tc)
 {
   char keywords[128];

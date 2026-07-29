@@ -183,6 +183,88 @@ provision_world_file()
   ensure_index_entry "$destination_dir/index" "$filename"
 }
 
+zone_range()
+{
+  local zone_file=$1
+
+  awk '
+    $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ {
+      print $1, $2
+      exit
+    }
+  ' "$zone_file"
+}
+
+ensure_vessel_zone_range()
+{
+  local package_file="$package_dir/700.zon"
+  local destination_dir="$repo_root/lib/world/zon"
+  local live_file="$destination_dir/700.zon"
+  local updated_file="$temporary_dir/700.zon.updated"
+  local candidate
+  local range_values
+  local range_min
+  local range_max
+
+  [[ -f "$package_file" ]] || fail "missing package file: $package_file"
+  mkdir -p "$destination_dir"
+
+  for candidate in "$destination_dir"/*.zon; do
+    [[ -e "$candidate" ]] || continue
+    [[ "$candidate" == "$live_file" ]] && continue
+    range_values=$(zone_range "$candidate")
+    [[ -n "$range_values" ]] ||
+      fail "$candidate has no numeric zone range"
+    read -r range_min range_max <<<"$range_values"
+    if ((range_min <= 80019 && range_max >= 80000)); then
+      fail "$candidate overlaps required vessel interior VNUMs 80000-80019"
+    fi
+  done
+
+  if [[ ! -f "$live_file" ]]; then
+    cp "$package_file" "$live_file"
+    ensure_index_entry "$destination_dir/index" "700.zon"
+    return
+  fi
+
+  [[ $(awk 'NR == 1 { print; exit }' "$live_file") == "#700" ]] ||
+    fail "$live_file is not zone 700"
+  range_values=$(zone_range "$live_file")
+  [[ -n "$range_values" ]] || fail "$live_file has no numeric zone range"
+  read -r range_min range_max <<<"$range_values"
+  [[ "$range_min" == 70000 ]] ||
+    fail "$live_file starts at $range_min instead of reserved VNUM 70000"
+
+  case "$range_max" in
+    80019)
+      ;;
+    79999)
+      awk '
+        !updated && $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ {
+          sub(/^[[:space:]]*[0-9]+[[:space:]]+[0-9]+/, "70000 80019")
+          updated = 1
+        }
+        {
+          print
+        }
+        END {
+          if (!updated) {
+            exit 42
+          }
+        }
+      ' "$live_file" >"$updated_file" ||
+        fail "could not extend $live_file"
+      chmod --reference="$live_file" "$updated_file"
+      mv "$updated_file" "$live_file"
+      ;;
+    *)
+      fail "$live_file ends at unexpected VNUM $range_max"
+      ;;
+  esac
+
+  ensure_index_entry "$destination_dir/index" "700.zon"
+}
+
 database_scalar()
 {
   local query=$1
@@ -249,6 +331,7 @@ database_password=$(config_value "$repo_root/lib/mysql_config" mysql_password)
 [[ -n "$database_host" && -n "$database_name" && -n "$database_user" ]] ||
   fail "lib/mysql_config is incomplete"
 
+ensure_vessel_zone_range
 provision_world_file wld 10000.wld
 provision_world_file mob 700.mob
 provision_world_file trg 700.trg

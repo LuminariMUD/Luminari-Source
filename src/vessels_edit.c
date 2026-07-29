@@ -436,7 +436,8 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
   if (slot < 0)
   {
     mysql_free_result(result);
-    send_to_char(ch, "The fleet is full (%d ships) - no free ship slots.\r\n", GREYHAWK_MAXSHIPS);
+    send_to_char(ch, "The fleet is full (%d ships) - no free ship slots.\r\n",
+                 GREYHAWK_ACTIVE_SHIP_CAPACITY);
     return -1;
   }
 

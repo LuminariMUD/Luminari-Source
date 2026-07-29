@@ -293,7 +293,8 @@ ACMD(do_shiplist)
     send_to_char(ch, "  (no active vessels)\r\n");
   }
 
-  send_to_char(ch, "\r\n%d of %d fleet slots in use.\r\n", listed, GREYHAWK_MAXSHIPS);
+  send_to_char(ch, "\r\n%d of %d active fleet slots in use.\r\n", listed,
+               GREYHAWK_ACTIVE_SHIP_CAPACITY);
 
   wilderness_pool_usage(&in_use, &pool_total);
   if (pool_total > 0)

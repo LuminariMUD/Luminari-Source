@@ -157,7 +157,7 @@ UNIFIED TRANSPORT SYSTEM
     +-- VESSEL TIER (Heavy Transport)
     |       +-- Vessel Type System (8 vessel classes)
     |       |       RAFT, BOAT, SHIP, WARSHIP, AIRSHIP, SUBMARINE, TRANSPORT, MAGICAL
-    |       +-- Multi-Room Interiors (VNUM Range: 70000-79999)
+    |       +-- Multi-Room Interiors (VNUM Range: 70020-80019)
     |       +-- Automation Layer (autopilot, waypoints, NPC pilots)
     |       +-- Docking and Boarding Systems
     |
@@ -769,12 +769,13 @@ historical measurements, and the limits of the current evidence.
 
 | Constant | Value | Description |
 |----------|-------|-------------|
-| `GREYHAWK_MAXSHIPS` | 500 | Maximum concurrent vessels |
+| `GREYHAWK_MAXSHIPS` | 501 | Fleet-slot array entries, including reserved slot 0 |
+| `GREYHAWK_ACTIVE_SHIP_CAPACITY` | 500 | Maximum concurrent active vessels |
 | `MAX_SHIP_ROOMS` | 20 | Maximum interior rooms per vessel |
 | `MAX_DOCKING_RANGE` | 2.0 | Maximum distance for docking |
 | `BOARDING_DIFFICULTY` | 15 | DC for hostile boarding attempts |
 | `SHIP_INTERIOR_VNUM_BASE` | 70000 | Start of interior room VNUMs |
-| `SHIP_INTERIOR_VNUM_MAX` | 79999 | End of interior room VNUMs |
+| `SHIP_INTERIOR_VNUM_MAX` | 80019 | End of interior room VNUMs |
 
 ---
 
@@ -826,10 +827,12 @@ make install
 
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
-world files, applies Phase 11 and the development seed, restarts the supervised
+world files, extends the reserved zone 700 upper bound from 79999 to 80019
+when needed, applies Phase 11 and the development seed, restarts the supervised
 local MUD, creates the ferry only when absent, and verifies the result through
-one batched Kohdee session. It is intentionally not part of `make install`,
-`setup.sh`, or `deploy.sh`.
+one batched Kohdee session. It rejects any conflicting zone range instead of
+overwriting it. It is intentionally not part of `make install`, `setup.sh`, or
+`deploy.sh`.
 
 The environment contains Testing Dock at room 1000389 and `(-66, 92)`, Harbor
 Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
@@ -869,8 +872,9 @@ printed by `start`.
 
 ```
 Formula: 70000 + (ship_number * 20) + room_index
-Range:   70000 - 79999 (reserved for vessel interiors, zones 700-799)
-Maximum: 500 vessels * 20 rooms = 10,000 rooms
+Active:  70020 - 80019 (ship slots 1-500)
+Reserve: 70000 - 80019 (slot 0 remains unused)
+Maximum: 500 active vessels * 20 rooms = 10,000 rooms
 ```
 
 ### Persistence Lifecycle
@@ -1032,7 +1036,8 @@ and the trigger was removed.
 
 ### Reserved Resources
 
-- **VNUM Range 70000-79999:** Reserved for dynamic ship interior rooms (zones 700-799)
+- **VNUM Range 70000-80019:** Reserved for dynamic ship interior rooms; zone 700 must own
+  the complete range
 - **Item Type 56:** ITEM_GREYHAWK_SHIP
 - **Room Flags:** ROOM_VEHICLE (40), ROOM_DOCKABLE (41)
 
