@@ -533,22 +533,24 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
     return -1;
   }
 
-  /* Wire object <-> ship linkages (same contract as the boarding spec). */
-  GET_OBJ_VAL(obj, 0) = ship->entrance_room;
-  GET_OBJ_VAL(obj, 1) = slot;
-  ship->shipobj = obj;
-  ship->shiproom = ship->entrance_room;
-
   /* Give the instance the prototype's name. Instance strings may point at
    * the object prototype's strings, so assign fresh copies without freeing
    * the originals. */
-  snprintf(buf, sizeof(buf), "ship vessel %s", row[1]);
+  vessel_build_hull_keywords(buf, sizeof(buf), row[1]);
   obj->name = strdup(buf);
   obj->short_description = strdup(row[1]);
   snprintf(buf, sizeof(buf), "%s is moored here.", row[1]);
   obj->description = strdup(buf);
 
-  obj_to_room(obj, IN_ROOM(ch));
+  if (!vessel_place_hull_object(ship, obj))
+  {
+    vessel_reclaim_interior_rooms(ship, IN_ROOM(ch));
+    extract_obj(obj);
+    memset(ship, 0, sizeof(*ship));
+    mysql_free_result(result);
+    send_to_char(ch, "The ship's exterior could not be placed - spawn aborted.\r\n");
+    return -1;
+  }
 
   /* Persist immediately so both the interior and the live instance survive
    * reboot/copyover. Abort the spawn if either half cannot be committed. */
@@ -734,7 +736,7 @@ ACMD(do_shipchristen)
 
   if (ship->shipobj != NULL)
   {
-    snprintf(buf, sizeof(buf), "ship vessel %s", ship->name);
+    vessel_build_hull_keywords(buf, sizeof(buf), ship->name);
     ship->shipobj->name = strdup(buf);
     ship->shipobj->short_description = strdup(ship->name);
     snprintf(buf, sizeof(buf), "%s is moored here.", ship->name);

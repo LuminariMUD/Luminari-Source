@@ -11,6 +11,44 @@
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
+void Test_vessel_hull_keywords_split_readable_name_tokens(CuTest *tc)
+{
+  char keywords[128];
+
+  vessel_build_hull_keywords(keywords, sizeof(keywords), "Persistence_Dinghy");
+  CuAssertTrue(tc, isname("Persistence_Dinghy", keywords));
+  CuAssertTrue(tc, isname("persistence", keywords));
+  CuAssertTrue(tc, isname("dinghy", keywords));
+  CuAssertTrue(tc, isname("ship", keywords));
+
+  vessel_build_hull_keywords(keywords, sizeof(keywords), "The Sea-Witch");
+  CuAssertTrue(tc, isname("sea-witch", keywords));
+  CuAssertTrue(tc, isname("witch", keywords));
+}
+
+void Test_vessel_managed_hulls_survive_zone_cleanup(CuTest *tc)
+{
+  const int slot = 487;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+  struct obj_data hull;
+
+  memset(ship, 0, sizeof(*ship));
+  memset(&hull, 0, sizeof(hull));
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  GET_OBJ_TYPE(&hull) = ITEM_GREYHAWK_SHIP;
+  GET_OBJ_VAL(&hull, 1) = slot;
+
+  CuAssertTrue(tc, !vessel_hull_is_managed(&hull));
+  ship->shipobj = &hull;
+  CuAssertTrue(tc, vessel_hull_is_managed(&hull));
+
+  GET_OBJ_VAL(&hull, 1) = slot - 1;
+  CuAssertTrue(tc, !vessel_hull_is_managed(&hull));
+
+  memset(ship, 0, sizeof(*ship));
+}
+
 void Test_vehicle_production_lifecycle_and_lookup(CuTest *tc)
 {
   struct vehicle_data *vehicle;

@@ -226,7 +226,20 @@ numbered gameplay flow:
   Kohdee tried to resume from Paused. The command reported that the change
   could not be saved, `autopilot status` remained Paused on `persistroute`,
   SQL remained state 3/route 3, and the trigger count returned to zero.
-- The full production-linked root suite passed 218 tests, followed by
+- Hull recovery resolved saved wilderness locations from authoritative
+  coordinates instead of trusting recycled VNUMs. Tern and Dinghy moved from
+  stale 1000121/1000120 snapshots to the current Testing Dock room 1000389;
+  Goshawk retained dynamic room 1004000 at `(-62, 82)`.
+- A fifth prototype-spawned Dinghy shared Goshawk's dynamic exterior room.
+  Both hulls were visible and independently boardable, consumed one pool room
+  after a 15-second unattended interval, restored together after a hard
+  restart, and survived `zreset 10000`. The fixture Test Vessel and two other
+  hulls at Testing Dock survived the same reset.
+- Generated exterior keywords retained exact names while splitting readable
+  tokens. Live `board test`, `board tern`, `board dinghy`, and
+  `board goshawk` all entered the intended vessel. The temporary slot 5 then
+  purged its two rooms and all persistence, leaving the four durable fixtures.
+- The full production-linked root suite passed 220 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
 ## Known Findings
@@ -281,5 +294,12 @@ numbered gameplay flow:
   success output and restore the exact prior state if the write fails - FIXED
   and live-tested with Kohdee, hard restarts, direct SQL, and failure
   injection.
+- Persisted exterior hulls previously trusted recycled wilderness room VNUMs,
+  did not hold dynamic rooms occupied without a character, exposed generated
+  names only as punctuation-bound tokens, and could be removed by a zone reset
+  sharing prototype 70002. Recovery now resolves wilderness coordinates,
+  hulls participate in dynamic-room lifetime, readable name tokens are added,
+  and zone cleanup preserves active fleet objects - FIXED and live-tested with
+  static and dynamic co-location, hard restarts, reset, boarding, and purge.
 
 # EoF

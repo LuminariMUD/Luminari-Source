@@ -1066,7 +1066,8 @@ static room_rnum vessel_resolve_exterior_room(struct greyhawk_ship_data *ship)
   }
 
   location = ship->location > 0 ? real_room(ship->location) : NOWHERE;
-  if (location != NOWHERE && !ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
+  if (location != NOWHERE && !IS_WILDERNESS_VNUM(world[location].number) &&
+      !ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
   {
     return location;
   }
@@ -1107,6 +1108,7 @@ bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *
     }
     obj_to_room(obj, destination);
   }
+  mark_wilderness_room_occupied(destination);
 
   ship->shipobj = obj;
   ship->shiproom = ship->entrance_room;
@@ -1145,7 +1147,7 @@ static bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
     return FALSE;
   }
 
-  snprintf(buffer, sizeof(buffer), "ship vessel %s", ship->name);
+  vessel_build_hull_keywords(buffer, sizeof(buffer), ship->name);
   obj->name = strdup(buffer);
   obj->short_description = strdup(ship->name);
   snprintf(buffer, sizeof(buffer), "%s is moored here.", ship->name);
@@ -1682,6 +1684,11 @@ void load_all_ship_interiors(void)
       }
       log("Info: Legacy ship %d has no runtime snapshot; using compiled defaults", shipnum);
     }
+    if (shipnum == 1)
+    {
+      /* The compiled fixture uses the ordinary runtime hull prototype. */
+      ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
+    }
     if (!vessel_db_load_weapons(ship))
     {
       log("SYSERR: Ship %d weapon rows could not be restored", shipnum);
@@ -1709,6 +1716,10 @@ void load_all_ship_interiors(void)
         memset(ship, 0, sizeof(*ship));
         continue;
       }
+    }
+    else if (!vessel_create_runtime_hull(ship))
+    {
+      log("SYSERR: Legacy ship %d exterior hull could not be reconstructed", shipnum);
     }
 
     vessel_db_load_owner(ship);

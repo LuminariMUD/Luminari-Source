@@ -102,7 +102,7 @@ Vessels extend the wilderness system; they do not create a separate geography.
 
 | Wilderness signal | Vessel behavior |
 |-------------------|-----------------|
-| Dynamic room pool | A moving ship occupies the room assigned to its wilderness coordinate |
+| Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
 | Generated sector | `can_vessel_traverse_terrain()` and speed rules gate movement |
 | Bathymetry | Draft, grounding, and submarine crush depth |
 | Weather field | Speed, visibility, helm risk, and storm damage |
@@ -123,6 +123,11 @@ Permanent invariants:
    same `(x, y)` coordinate.
 5. Keep core integration campaign-neutral and setting content in world or
    database data.
+6. Treat X/Y as authoritative for a wilderness hull. A saved wilderness room
+   VNUM may be recycled; recovery resolves the current room from coordinates
+   and repairs the runtime snapshot.
+7. Zone resets may remove stale hull objects, but never a hull currently owned
+   by an active fleet slot.
 
 ### State Machine
 
@@ -797,7 +802,10 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 ### Persistence Lifecycle
 
 1. **Boot**: Schemas are created or migrated, templates and gameplay data load,
-   and saved ship, route, schedule, crew, cargo, and ownership state is restored.
+   and saved ship, route, schedule, crew, cargo, and ownership state is
+   restored. Every active slot, including the legacy fixture, reconstructs its
+   exterior hull. World resets preserve managed hulls, then the boot pass
+   relinks them to their fleet slots.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
@@ -820,6 +828,14 @@ normalized weapon rows. A separate owned-transport run proved one 35-gold dock
 fee per port visit, departure and autopilot blocking, payment, and unpaid
 balance recovery across copyover and full restart, including recycled dynamic
 wilderness rooms.
+
+Exterior-hull recovery has direct local evidence as well. Three hulls shared
+the static Testing Dock, while two persisted hulls shared one dynamic room at
+`(-62, 82)`. All five relinked after a hard restart, survived `zreset 10000`,
+and remained independently boardable. After the player left and the recycle
+interval elapsed, `shiplist` still reported one occupied dynamic room. The
+temporary fifth hull then purged cleanly. Runtime rows converged on the generic
+70002 hull prototype and current room VNUMs derived from their coordinates.
 
 The offline-owner insurance path also has live evidence. Veska bought a
 50-gold policy for 10 gold and logged out at 9,990 gold. Kohdee sank the raft

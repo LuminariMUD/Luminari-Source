@@ -1003,6 +1003,27 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   free_path_list(paths);
 }
 
+/**
+ * Reserve a dynamic wilderness room while a character or object uses it.
+ *
+ * The occupancy event releases the room after its last character, object, or
+ * room effect leaves. Callers that place persistent objects must mark the room
+ * just as character placement does, or the allocator can reuse a live room.
+ */
+void mark_wilderness_room_occupied(room_rnum room)
+{
+  if (room == NOWHERE || room > top_of_world || !IS_DYNAMIC(room))
+  {
+    return;
+  }
+
+  SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
+  if (!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
+  {
+    NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, 10 RL_SEC);
+  }
+}
+
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)
 {
   int i = 0;

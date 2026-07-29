@@ -1672,17 +1672,7 @@ void char_to_room(struct char_data *ch, room_rnum room)
 
       // log("room: %d real_room(worroom): %d top_of_world: %d is_dynamic(room) %d\n", room, real_room(room), top_of_world, IS_DYNAMIC(room));
 
-      if (real_room(world[room].number) != NOWHERE && IS_DYNAMIC(room))
-      {
-        // log("Setting occupied bit to room: %d", room); /* spams syslogs */
-        SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
-        /* Create the event to clear the flag, if it is not already set. */
-        if (!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
-          NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, 10 RL_SEC);
-      }
-      else
-      {
-      }
+      mark_wilderness_room_occupied(room);
     }
 
     ch->next_in_room = world[room].people;

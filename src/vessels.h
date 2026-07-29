@@ -1161,6 +1161,8 @@ struct greyhawk_ship_map
 /* Core Ship Management Functions */
 void greyhawk_initialize_ships(void);
 int vessel_relink_world_objects(void);
+void vessel_build_hull_keywords(char *buffer, size_t buffer_size, const char *name);
+bool vessel_hull_is_managed(const struct obj_data *obj);
 int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
                       short int z_cord);
 void greyhawk_nameship(char *name, int shipnum);

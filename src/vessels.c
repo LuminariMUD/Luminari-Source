@@ -682,6 +682,83 @@ room_rnum get_or_allocate_wilderness_room(int x, int y)
   return room;
 }
 
+/**
+ * Build exterior hull keywords from both the literal and readable ship name.
+ *
+ * Prototype and player names may contain underscores or punctuation. Retain
+ * the literal spelling for exact references and append alphanumeric words so
+ * ordinary commands such as "board dinghy" remain discoverable.
+ */
+void vessel_build_hull_keywords(char *buffer, size_t buffer_size, const char *name)
+{
+  size_t length;
+  size_t i;
+  bool separator;
+
+  if (buffer == NULL || buffer_size == 0)
+  {
+    return;
+  }
+
+  if (name == NULL)
+  {
+    name = "";
+  }
+
+  snprintf(buffer, buffer_size, "ship vessel %s", name);
+  length = strlen(buffer);
+  if (length >= buffer_size - 1 || *name == '\0')
+  {
+    return;
+  }
+
+  buffer[length++] = ' ';
+  separator = TRUE;
+  for (i = 0; name[i] != '\0' && length < buffer_size - 1; i++)
+  {
+    if (isalnum((unsigned char)name[i]))
+    {
+      buffer[length++] = name[i];
+      separator = FALSE;
+    }
+    else if (!separator)
+    {
+      buffer[length++] = ' ';
+      separator = TRUE;
+    }
+  }
+  while (length > 0 && buffer[length - 1] == ' ')
+  {
+    length--;
+  }
+  buffer[length] = '\0';
+}
+
+/**
+ * Return whether an exterior hull is owned by an active fleet slot.
+ *
+ * Zone reset remove commands must not extract these runtime-managed objects.
+ * Unlinked or stale hull objects remain eligible for ordinary zone cleanup.
+ */
+bool vessel_hull_is_managed(const struct obj_data *obj)
+{
+  int shipnum;
+
+  if (obj == NULL || GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP)
+  {
+    return FALSE;
+  }
+
+  shipnum = GET_OBJ_VAL(obj, 1);
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
+  {
+    return FALSE;
+  }
+
+  return greyhawk_ships[shipnum].shipobj == obj;
+}
+
 /* ========================================================================= */
 /* GREYHAWK SHIP UTILITY FUNCTIONS                                         */
 /* ========================================================================= */
@@ -1093,6 +1170,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
 
     obj_from_room(greyhawk_ships[shipnum].shipobj);
     obj_to_room(greyhawk_ships[shipnum].shipobj, wilderness_room);
+    mark_wilderness_room_occupied(wilderness_room);
   }
 
   vessel_update_port_berth(&greyhawk_ships[shipnum], old_room, wilderness_room,

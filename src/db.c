@@ -5600,7 +5600,10 @@ void reset_zone(zone_rnum zone)
 
     case 'R': /* rem obj from room */
       if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
-        extract_obj(obj);
+      {
+        if (!vessel_hull_is_managed(obj))
+          extract_obj(obj);
+      }
       push_result(1);
       tmob = NULL;
       tobj = NULL;

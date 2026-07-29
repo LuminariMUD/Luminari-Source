@@ -101,6 +101,10 @@ from planning items into tested behavior.
 - Player `setroute` and autopilot on/off/pause/resume controls now persist the
   runtime row before reporting success. A failed write restores the exact
   previous route and state instead of leaving RAM and MariaDB divergent.
+- Persisted hull recovery now treats wilderness coordinates as authoritative,
+  keeps object-only dynamic rooms occupied, and splits generated names into
+  readable boarding keywords. Every active slot reconstructs a runtime hull,
+  while zone reset cleanup preserves hulls already managed by the fleet.
 
 #### Validated
 
@@ -113,7 +117,7 @@ from planning items into tested behavior.
   option restored tick processing.
 - An explicit debug build emitted only the requested movement category; the
   restored default build reported debug support compiled out. The root
-  production-linked suite passed 218 tests and was installed with no
+  production-linked suite passed 220 tests and was installed with no
   root-level `circle` artifact.
 - A dynamic transport carrying cargo, crew, a refit, insurance, ownership, and
   combat damage, plus a damaged scheduled warship mid-route, retained all
@@ -128,6 +132,11 @@ from planning items into tested behavior.
   hard replacements retained Off, assigned-route, Paused, Traveling, and
   disengaged states exactly. A targeted MariaDB failure injection rejected a
   resume write and both memory and SQL remained on the prior Paused state.
+- Three hulls co-located at Testing Dock and two hulls co-located in one
+  dynamic wilderness room remained visible and independently boardable through
+  hard restart and `zreset 10000`. The unattended dynamic room stayed
+  occupied, boot relinked all five hulls, readable `board` keywords worked,
+  and purging the temporary fifth hull left no persistence.
 - Veska bought a 50-gold policy, logged out at 9,990 gold, and received one
   pending claim and one underwriter receipt when Kohdee sank the raft through
   actual gunfire. Her next login showed 10,040 gold and a paid claim; a second
