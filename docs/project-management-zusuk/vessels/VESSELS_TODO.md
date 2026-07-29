@@ -4,8 +4,9 @@
 
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, and dock
-fees pass. Shared validation, remaining lifecycle verification, scale, content,
-beta, and production release work remain.
+fees pass. Offline insurance delivery also passes with an actual owner. Shared
+validation, deletion and PvP lifecycle verification, scale, content, beta, and
+production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -33,9 +34,6 @@ and multiplayer encounter testing.
 
 ## 2. Close Persistence and Lifecycle Gaps
 
-- [ ] Live-test an insured loss while its owner is offline. Confirm claim and
-  receipt mail creation, one-time delivery on the next login, no duplicate
-  payment after another login or recovery, and correct claim status.
 - [ ] Live-test the implemented player-deletion policy with a disposable owner:
   soft deletion and restoration retain deeds; permanent removal makes ships
   unowned, removes helm permits, voids pending claims, and fails closed if the

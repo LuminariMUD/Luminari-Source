@@ -817,7 +817,15 @@ generated rooms, cargo, hired crew, a refit, insurance, combat damage, and four
 normalized weapon rows. A separate owned-transport run proved one 35-gold dock
 fee per port visit, departure and autopilot blocking, payment, and unpaid
 balance recovery across copyover and full restart, including recycled dynamic
-wilderness rooms. Production-snapshot rehearsal remains a release prerequisite.
+wilderness rooms.
+
+The offline-owner insurance path also has live evidence. Veska bought a
+50-gold policy for 10 gold and logged out at 9,990 gold. Kohdee sank the raft
+with actual gunfire; one pending claim and one receipt mail existed before
+Veska returned. Her first login credited exactly 50 gold, marked the claim
+paid, and saved claim high-water mark 1. Her second login retained 10,040 gold
+without another credit. Production-snapshot rehearsal remains a release
+prerequisite.
 
 ---
 
@@ -1098,7 +1106,6 @@ or keyword count is insufficient once later phases extend the system.
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Offline insurance settlement | `vessels_upgrades.c` | Queue, mail, login delivery, and duplicate guard are implemented; actual offline-owner loss still needs live proof |
 | Permanent player removal | `vessels_ownership.c`, `players.c` | Transactional unown/permit/claim policy is implemented; deletion and restoration still need live proof |
 | Owner logout during PvP | `vessels_combat.c` | Persisted five-minute opponent grace is implemented and unit-tested; two-player logout/expiry behavior still needs live proof |
 

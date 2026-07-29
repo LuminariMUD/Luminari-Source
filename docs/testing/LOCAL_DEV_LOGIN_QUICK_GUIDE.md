@@ -72,6 +72,16 @@ If a later command depends on an ID printed by an earlier command, run the
 smallest useful first batch, capture the ID, and put the remaining commands in
 one second batch. This should be the exception, not one login per command.
 
+`@wait N` is a helper-side pause of 1-60 seconds and is not sent to the game.
+Use it only to synchronize two local character sessions or wait for a real
+heartbeat/reload interval:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands \
+  "@wait 2" \
+  "trans Testcaptain"
+```
+
 ## Alternate Local Test Characters
 
 The same fast path can enter another character by exact name. This is intended

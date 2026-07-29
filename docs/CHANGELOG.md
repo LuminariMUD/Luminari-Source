@@ -120,6 +120,10 @@ from planning items into tested behavior.
 - An owned transport incurred one 35-gold charge on arrival, could not depart
   while indebted, retained that debt through copyover and restart, paid it,
   departed, returned, and incurred exactly one new charge for the new visit.
+- Veska bought a 50-gold policy, logged out at 9,990 gold, and received one
+  pending claim and one underwriter receipt when Kohdee sank the raft through
+  actual gunfire. Her next login showed 10,040 gold and a paid claim; a second
+  login kept the same balance and created no duplicate.
 - All 75 help keywords resolved to database help in one 54-second Kohdee
   session, all SQL help checks passed, and all 21 current component migrations
   applied independently to a fresh MariaDB 10.11 master schema. Cleanup left

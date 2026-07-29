@@ -16,9 +16,9 @@ outstanding work.
    encounters, economy, wear, persistence, and client updates active. Historical
    navigation microbenchmarks are not release evidence.
 2. Copyover/reboot recovery, normalized weapon mounts, and dock-fee recovery
-   have live evidence. Offline insurance delivery, permanent player removal,
-   and the opponent-specific combat logout grace are implemented but still
-   need actual-character lifecycle verification.
+   have live evidence, as does one-time offline insurance delivery. Permanent
+   player removal and the opponent-specific combat logout grace are implemented
+   but still need actual-character lifecycle verification.
 3. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
    a 72-hour soak, player beta, and migration rollback rehearsal before broad
    release.

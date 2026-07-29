@@ -179,6 +179,12 @@ numbered gameplay flow:
   then paid 35 gold, departed, returned, received exactly one new fee for the
   new visit, paid it, and departed again. The final balance was clear. These
   runs also exposed and fixed stale dynamic-room port identity after recovery.
+- The level-1 Veska bought a 50-gold policy for 10 gold, verified a 9,990-gold
+  balance, and logged out as owner of the insured raft. Kohdee then sank it
+  with `shipfire`. Before Veska returned, one pending claim and one underwriter
+  receipt mail existed. Her next actual login showed 10,040 gold and changed
+  the claim to paid with player-file high-water mark `VIns: 1`; a second login
+  remained at 10,040 with no duplicate claim or payment.
 - The full production-linked root suite passed 218 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
@@ -215,5 +221,8 @@ numbered gameplay flow:
   copyover and restart, cannot depart or resume autopilot while indebted, and
   can settle safely after dynamic wilderness rooms are recycled - FIXED and
   live-tested.
+- An insured loss queues exactly one claim and underwriter receipt while its
+  owner is offline, then credits the owner once on login without duplication on
+  a later login - FIXED and live-tested with Veska and Kohdee.
 
 # EoF

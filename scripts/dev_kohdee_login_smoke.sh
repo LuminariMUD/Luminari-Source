@@ -211,6 +211,16 @@ set command_index 0
 proc run_game_command {command} {
   global command_index smoke_character
 
+  if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {
+    if {$wait_seconds < 1 || $wait_seconds > 60} {
+      fail "@wait must be between 1 and 60 seconds"
+    }
+    puts "\n>>> $command"
+    puts "Paused the local test session for $wait_seconds second(s)."
+    after [expr {$wait_seconds * 1000}]
+    return
+  }
+
   incr command_index
   set marker "__MUD_SMOKE_COMMAND_${command_index}_DONE__"
   set output ""
