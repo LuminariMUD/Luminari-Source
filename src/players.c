@@ -38,6 +38,7 @@
 #include "oasis.h"
 #include "crafting_new.h"
 #include "resource_system.h"
+#include "character_creation.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -631,6 +632,12 @@ int load_char(const char *name, struct char_data *ch)
     GET_WALKTO_LOC(ch) = 0;
     GET_TEMPLATE(ch) = PFDEF_TEMPLATE;
     GET_BACKGROUND(ch) = 0;
+    /*
+     * Legacy player files predate the idempotency tag. Treat their permanent
+     * effects as already applied; a newly chosen background resets this flag.
+     */
+    BACKGROUND_EFFECTS_APPLIED(ch) = TRUE;
+    CREATION_STAGE(ch) = CHARACTER_CREATION_STAGE_NONE;
     GET_PREMADE_BUILD_CLASS(ch) = PFDEF_PREMADE_BUILD;
     init_spell_prep_queue(ch);
     init_innate_magic_queue(ch);
@@ -860,6 +867,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BAD_PWS(ch) = atoi(line);
         else if (!strcmp(tag, "BGnd"))
           GET_BACKGROUND(ch) = atoi(line);
+        else if (!strcmp(tag, "BgFx"))
+          BACKGROUND_EFFECTS_APPLIED(ch) = atoi(line) != 0;
         else if (!strcmp(tag, "Bond"))
           ch->player.bonds = fread_string(fl, buf2);
         else if (!strcmp(tag, "Bag1"))
@@ -976,6 +985,13 @@ int load_char(const char *name, struct char_data *ch)
           GET_CRAFT(ch).skill_type = atoi(line);
         else if (!strcmp(tag, "CrRe"))
           GET_CRAFT(ch).crafting_recipe = atoi(line);
+        else if (!strcmp(tag, "CrSt"))
+        {
+          int stage = atoi(line);
+
+          CREATION_STAGE(ch) =
+              character_creation_stage_is_valid(stage) ? stage : CHARACTER_CREATION_STAGE_NONE;
+        }
         else if (!strcmp(tag, "CrVt"))
           GET_CRAFT(ch).craft_variant = atoi(line);
         else if (!strcmp(tag, "CrMe"))
@@ -1404,8 +1420,7 @@ int load_char(const char *name, struct char_data *ch)
           else if (parsed == 1)
             PRF_FLAGS(ch)
           [0] = asciiflag_conv(f1);
-          else
-            log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
+          else log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
         }
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
@@ -2573,6 +2588,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("Badp: %d\n", GET_BAD_PWS(ch));
   if (GET_BACKGROUND(ch) != 0)
     BUFFER_WRITE("BGnd: %d\n", GET_BACKGROUND(ch));
+  BUFFER_WRITE("BgFx: %d\n", BACKGROUND_EFFECTS_APPLIED(ch) ? 1 : 0);
+  BUFFER_WRITE("CrSt: %d\n", CREATION_STAGE(ch));
   if (GET_PRACTICES(ch) != PFDEF_PRACTICES)
     BUFFER_WRITE("Lern: %d\n", GET_PRACTICES(ch));
   if (GET_TRAINS(ch) != PFDEF_TRAINS)
@@ -4097,6 +4114,178 @@ void tag_argument(char *argument, char *tag)
 
 /* Stuff related to the player file cleanup system. */
 
+struct player_removal_transaction
+{
+  int index_position;
+  struct player_index_element index_entry;
+  char original_paths[MAX_FILES][MAX_FILEPATH];
+  char staged_paths[MAX_FILES][MAX_FILEPATH];
+  bool staged[MAX_FILES];
+  bool index_removed;
+};
+
+static bool restore_player_index_entry(struct player_removal_transaction *transaction)
+{
+  int index = 0;
+  int position = 0;
+
+  if (transaction == NULL || !transaction->index_removed || transaction->index_entry.name == NULL)
+    return FALSE;
+
+  position = MIN(transaction->index_position, top_of_p_table + 1);
+  top_of_p_table++;
+  RECREATE(player_table, struct player_index_element, top_of_p_table + 1);
+
+  for (index = top_of_p_table; index > position; index--)
+    player_table[index] = player_table[index - 1];
+
+  player_table[position] = transaction->index_entry;
+  transaction->index_entry.name = NULL;
+  transaction->index_removed = FALSE;
+  return TRUE;
+}
+
+static void free_player_removal_transaction(struct player_removal_transaction *transaction)
+{
+  if (transaction == NULL)
+    return;
+
+  if (transaction->index_entry.name != NULL)
+    free(transaction->index_entry.name);
+  free(transaction);
+}
+
+bool rollback_player_removal_checked(struct player_removal_transaction *transaction)
+{
+  bool restored = TRUE;
+  int file_type = 0;
+
+  if (transaction == NULL)
+    return FALSE;
+
+  if (transaction->index_removed)
+  {
+    if (!restore_player_index_entry(transaction) || !save_player_index_checked())
+      restored = FALSE;
+  }
+
+  for (file_type = MAX_FILES - 1; file_type >= 0; file_type--)
+  {
+    if (!transaction->staged[file_type])
+      continue;
+
+    if (rename(transaction->staged_paths[file_type], transaction->original_paths[file_type]) != 0)
+    {
+      log("SYSERR: Could not restore staged player file %s: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      restored = FALSE;
+    }
+  }
+
+  free_player_removal_transaction(transaction);
+  return restored;
+}
+
+struct player_removal_transaction *prepare_player_removal_checked(int pfilepos)
+{
+  struct player_removal_transaction *transaction = NULL;
+  struct stat file_status;
+  int file_type = 0;
+  int path_attempt = 0;
+  int written = 0;
+
+  if (pfilepos < 0 || pfilepos > top_of_p_table || player_table[pfilepos].name == NULL ||
+      !*player_table[pfilepos].name)
+    return NULL;
+
+  CREATE(transaction, struct player_removal_transaction, 1);
+  transaction->index_position = pfilepos;
+  transaction->index_entry = player_table[pfilepos];
+  transaction->index_entry.name = strdup(player_table[pfilepos].name);
+  if (transaction->index_entry.name == NULL)
+  {
+    free_player_removal_transaction(transaction);
+    return NULL;
+  }
+
+  for (file_type = 0; file_type < MAX_FILES; file_type++)
+  {
+    if (!get_filename(transaction->original_paths[file_type],
+                      sizeof(transaction->original_paths[file_type]), file_type,
+                      transaction->index_entry.name))
+      continue;
+
+    if (lstat(transaction->original_paths[file_type], &file_status) != 0)
+    {
+      if (errno == ENOENT)
+        continue;
+      log("SYSERR: Could not inspect player file %s before removal: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      rollback_player_removal_checked(transaction);
+      return NULL;
+    }
+
+    for (path_attempt = 0; path_attempt < 100; path_attempt++)
+    {
+      written = snprintf(transaction->staged_paths[file_type],
+                         sizeof(transaction->staged_paths[file_type]), "%s.creation-restart-%ld-%d",
+                         transaction->original_paths[file_type], (long)getpid(), path_attempt);
+      if (written < 0 || written >= (int)sizeof(transaction->staged_paths[file_type]))
+      {
+        log("SYSERR: Staged player-file path is too long");
+        rollback_player_removal_checked(transaction);
+        return NULL;
+      }
+      if (lstat(transaction->staged_paths[file_type], &file_status) != 0 && errno == ENOENT)
+        break;
+    }
+
+    if (path_attempt >= 100 ||
+        rename(transaction->original_paths[file_type], transaction->staged_paths[file_type]) != 0)
+    {
+      log("SYSERR: Could not stage player file %s for removal: %s",
+          transaction->original_paths[file_type], strerror(errno));
+      rollback_player_removal_checked(transaction);
+      return NULL;
+    }
+    transaction->staged[file_type] = TRUE;
+  }
+
+  remove_player_from_index(pfilepos);
+  transaction->index_removed = TRUE;
+  if (!save_player_index_checked())
+  {
+    rollback_player_removal_checked(transaction);
+    return NULL;
+  }
+
+  return transaction;
+}
+
+bool commit_player_removal_checked(struct player_removal_transaction *transaction)
+{
+  bool removed = TRUE;
+  int file_type = 0;
+
+  if (transaction == NULL || !transaction->index_removed)
+    return FALSE;
+
+  for (file_type = 0; file_type < MAX_FILES; file_type++)
+  {
+    if (!transaction->staged[file_type])
+      continue;
+    if (unlink(transaction->staged_paths[file_type]) != 0 && errno != ENOENT)
+    {
+      log("SYSERR: Could not delete staged player file %s: %s",
+          transaction->staged_paths[file_type], strerror(errno));
+      removed = FALSE;
+    }
+  }
+
+  free_player_removal_transaction(transaction);
+  return removed;
+}
+
 /* remove_player() removes all files associated with a player who is self-deleted,
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
 void remove_player(int pfilepos)
@@ -4727,11 +4916,13 @@ static void load_languages(FILE *fl, struct char_data *ch)
 
   do
   {
-    get_line(fl, line);
+    if (!get_line(fl, line))
+      break;
     sscanf(line, "%d", &num);
     if (num != -1)
     {
-      ch->player_specials->saved.languages_known[i] = num;
+      if (i < NUM_LANGUAGES)
+        ch->player_specials->saved.languages_known[i] = num;
       i++;
     }
   } while (num != -1);
@@ -5392,8 +5583,7 @@ void update_player_last_on(void)
         {
           if (classCount)
             len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
-          len =
-              snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
+          len = snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
           classCount++;
         }
       }

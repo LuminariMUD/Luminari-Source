@@ -358,6 +358,17 @@ void save_player_index(void);
 bool save_player_index_checked(void);
 long get_ptable_by_name(const char *name);
 void remove_player(int pfilepos);
+
+/*
+ * Two-phase removal used by character-creation restart. Preparing moves all
+ * player-owned files out of their live paths and durably removes the index
+ * entry. Commit deletes the staged files; rollback restores both sides.
+ */
+struct player_removal_transaction;
+struct player_removal_transaction *prepare_player_removal_checked(int pfilepos);
+bool commit_player_removal_checked(struct player_removal_transaction *transaction);
+bool rollback_player_removal_checked(struct player_removal_transaction *transaction);
+
 void clean_pfiles(void);
 void build_player_index(void);
 

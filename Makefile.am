@@ -43,6 +43,8 @@ circle_SOURCES = \
 	src/asciimap.c \
 	src/assign_wpn_armor.c \
 	src/backgrounds.c \
+	src/character_creation.c \
+	src/character_creation_content.c \
 	src/ban.c \
 	src/bardic_performance.c \
 	src/boards.c \
@@ -317,6 +319,7 @@ EXTRA_DIST = \
 	unittests/CuTest/test_protocol_parser.c \
 	scripts/test_character_rename_schema.sh \
 	scripts/test_character_rename_static.sh \
+	scripts/test_background_help_entries.sh \
 	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
 	lib/world/artifacts/1699.mob \
@@ -325,15 +328,16 @@ EXTRA_DIST = \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \
 	sql/components/character_rename_transactional_schema.sql \
+	sql/components/help_character_backgrounds.sql \
 	sql/components/ci_schema_manifest.txt \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision
+test: check test-autorun-supervision test-background-help-entries
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: test-all test-protocol test-protocol-fuzz test-character-rename-static \
-	test-character-rename-schema test-autorun-supervision
+	test-character-rename-schema test-background-help-entries test-autorun-supervision
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser
@@ -346,6 +350,9 @@ test-character-rename-static:
 
 test-character-rename-schema:
 	./scripts/test_character_rename_schema.sh
+
+test-background-help-entries:
+	./scripts/test_background_help_entries.sh
 
 test-autorun-supervision:
 	./scripts/test_autorun_supervision.sh

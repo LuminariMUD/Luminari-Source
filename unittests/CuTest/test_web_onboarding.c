@@ -18,13 +18,20 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/comm.h"
+#include "../../src/account.h"
 #include "../../src/backgrounds.h"
+#include "../../src/character_creation.h"
+#include "../../src/character_creation_content.h"
 #include "../../src/char_descs.h"
 #include "../../src/constants.h"
 #include "../../src/db.h"
 #include "../../src/deities.h"
+#include "../../src/feats.h"
+#include "../../src/premadebuilds.h"
 #include "../../src/protocol.h"
 #include "../../src/roleplay.h"
+#include "../../src/shop.h"
+#include "../../src/spells.h"
 #include "../../src/systems/web_client/onboarding.h"
 
 /* A descriptor with just enough state for the adapter to read. */
@@ -183,6 +190,249 @@ void TestBackgroundSortKeepsEveryPlayableBackgroundInBounds(CuTest *tc)
 
   for (position = 1; position < NUM_BACKGROUNDS; position++)
     CuAssertTrue(tc, seen[position]);
+}
+
+void TestCharacterCreationCanonRegistryIsCompleteAndDistinct(CuTest *tc)
+{
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  CuAssertTrue(tc, character_creation_content_provenance() == NULL);
+  CuAssertTrue(tc, character_creation_homeland_for_region(1) == NULL);
+  CuAssertTrue(tc, character_creation_language_for_index(0) == NULL);
+  CuAssertTrue(tc, character_creation_guidance_for_profile("profile/goals") == NULL);
+  CuAssertTrue(tc, character_creation_background_for_value(BACKGROUND_ACOLYTE) == NULL);
+#else
+  const char *profile_ids[] = {
+      "profile/goals", "profile/personality", "profile/ideals", "profile/bonds", "profile/flaws",
+  };
+  const char *seeds[(NUM_BACKGROUNDS - 1) * NUM_CHARACTER_CREATION_INSPIRATION_KINDS * 2];
+  int homeland_count = 0;
+  int language_count = 0;
+  int seed_count = 0;
+  int region = 0;
+  int language = 0;
+  int background = 0;
+  int kind = 0;
+  int seed_index = 0;
+  size_t profile_index = 0;
+
+  CuAssertStrEquals(tc, "homelands-1.0.0", CHARACTER_CREATION_HOMELAND_CANON_VERSION);
+  CuAssertStrEquals(tc, "homeland-languages-1.0.0", CHARACTER_CREATION_LANGUAGE_CANON_VERSION);
+  CuAssertStrEquals(tc, "character-compass-1.0.0", CHARACTER_CREATION_COMPASS_CANON_VERSION);
+  CuAssertPtrNotNull(tc, (void *)character_creation_content_provenance());
+
+  for (region = 1; region < NUM_REGIONS; region++)
+  {
+    const struct character_creation_homeland *homeland =
+        character_creation_homeland_for_region(region);
+    int previous = 0;
+
+    CuAssertPtrNotNull(tc, (void *)homeland);
+    if (homeland == NULL)
+      continue;
+    homeland_count++;
+    CuAssertIntEquals(tc, region, homeland->region);
+    CuAssertTrue(tc, homeland->content_id != NULL && homeland->content_id[0] != '\0');
+    CuAssertTrue(tc, homeland->display_name != NULL && homeland->display_name[0] != '\0');
+    CuAssertTrue(tc, homeland->place_kind != NULL && homeland->place_kind[0] != '\0');
+    CuAssertTrue(tc, homeland->political_sphere != NULL && homeland->political_sphere[0] != '\0');
+    CuAssertTrue(tc, homeland->summary != NULL && homeland->summary[0] != '\0');
+    CuAssertTrue(tc, homeland->description != NULL && strlen(homeland->description) > 200);
+    CuAssertTrue(tc, homeland->provenance != NULL && homeland->provenance[0] != '\0');
+    CuAssertTrue(tc, homeland->language != LANG_COMMON);
+    CuAssertPtrNotNull(tc, (void *)character_creation_language_for_index(homeland->language));
+
+    for (previous = 1; previous < region; previous++)
+    {
+      const struct character_creation_homeland *other =
+          character_creation_homeland_for_region(previous);
+
+      if (other != NULL)
+      {
+        CuAssertTrue(tc, strcmp(homeland->content_id, other->content_id) != 0);
+        CuAssertTrue(tc, strcmp(homeland->display_name, other->display_name) != 0);
+      }
+    }
+  }
+  CuAssertIntEquals(tc, 13, homeland_count);
+
+  for (language = 0; language < NUM_LANGUAGES; language++)
+  {
+    const struct character_creation_language *heart_tongue =
+        character_creation_language_for_index(language);
+
+    if (heart_tongue == NULL)
+      continue;
+    language_count++;
+    CuAssertIntEquals(tc, language, heart_tongue->language);
+    CuAssertTrue(tc, heart_tongue->content_id != NULL && heart_tongue->content_id[0] != '\0');
+    CuAssertTrue(tc, heart_tongue->display_name != NULL && heart_tongue->display_name[0] != '\0');
+    CuAssertTrue(tc, strcmp(heart_tongue->display_name, "Common") != 0);
+    CuAssertTrue(tc, heart_tongue->help_summary != NULL && heart_tongue->help_summary[0] != '\0');
+  }
+  CuAssertIntEquals(tc, 12, language_count);
+
+  for (profile_index = 0; profile_index < sizeof(profile_ids) / sizeof(profile_ids[0]);
+       profile_index++)
+  {
+    const struct character_creation_guidance *guidance =
+        character_creation_guidance_for_profile(profile_ids[profile_index]);
+
+    CuAssertPtrNotNull(tc, (void *)guidance);
+    if (guidance == NULL)
+      continue;
+    CuAssertTrue(tc, guidance->hub_summary != NULL && guidance->hub_summary[0] != '\0');
+    CuAssertTrue(tc,
+                 guidance->screen_introduction != NULL && guidance->screen_introduction[0] != '\0');
+    CuAssertTrue(tc, guidance->editor_prompt != NULL && guidance->editor_prompt[0] != '\0');
+    CuAssertTrue(tc, guidance->generator_shape != NULL && guidance->generator_shape[0] != '\0');
+  }
+
+  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  {
+    const struct character_creation_background *content =
+        character_creation_background_for_value(background);
+
+    CuAssertPtrNotNull(tc, (void *)content);
+    if (content == NULL)
+      continue;
+    CuAssertIntEquals(tc, background, content->background);
+    CuAssertTrue(tc, content->content_id != NULL && content->content_id[0] != '\0');
+    CuAssertTrue(tc, content->story_promise != NULL && content->story_promise[0] != '\0');
+    CuAssertTrue(tc, content->biography != NULL && strlen(content->biography) > 100);
+
+    for (kind = 0; kind < NUM_CHARACTER_CREATION_INSPIRATION_KINDS; kind++)
+    {
+      for (seed_index = 0; seed_index < 2; seed_index++)
+      {
+        const char *seed = character_creation_inspiration_seed(
+            background, (enum character_creation_inspiration_kind)kind, seed_index);
+        int previous_seed = 0;
+
+        CuAssertPtrNotNull(tc, (void *)seed);
+        if (seed == NULL)
+          continue;
+        CuAssertTrue(tc, seed[0] != '\0');
+        for (previous_seed = 0; previous_seed < seed_count; previous_seed++)
+          CuAssertTrue(tc, strcmp(seed, seeds[previous_seed]) != 0);
+        seeds[seed_count++] = seed;
+      }
+    }
+  }
+  CuAssertIntEquals(tc, 128, seed_count);
+#endif
+}
+
+void TestEveryBackgroundHasNonPlaceholderMechanicMetadata(CuTest *tc)
+{
+  int background = 0;
+
+  assign_feats();
+  assign_backgrounds();
+
+  for (background = 1; background < NUM_BACKGROUNDS; background++)
+  {
+    int feat = background_list[background].feat;
+
+    CuAssertTrue(tc, feat > 0 && feat < NUM_FEATS);
+    CuAssertPtrNotNull(tc, (void *)feat_list[feat].name);
+    CuAssertPtrNotNull(tc, (void *)feat_list[feat].description);
+    CuAssertTrue(tc,
+                 feat_list[feat].name != NULL && strcmp(feat_list[feat].name, "Unused Feat") != 0);
+    CuAssertTrue(tc, feat_list[feat].description != NULL &&
+                         strcmp(feat_list[feat].description, "ask staff") != 0 &&
+                         feat_list[feat].description[0] != '\0');
+  }
+}
+
+void TestBackgroundPermanentAndCompanionMechanicsAreExact(CuTest *tc)
+{
+  struct char_data outlander;
+  struct char_data *outlander_character = &outlander;
+  struct player_special_data outlander_specials;
+  struct char_data soldier;
+  struct char_data *soldier_character = &soldier;
+  struct char_data companion;
+  struct char_data *companion_character = &companion;
+  struct player_special_data soldier_specials;
+  struct player_special_data companion_specials;
+  struct group_data group;
+  struct room_data room;
+  struct room_data *saved_world = world;
+  room_rnum saved_top_of_world = top_of_world;
+  struct follow_type follower;
+
+  memset(&outlander, 0, sizeof(outlander));
+  memset(&outlander_specials, 0, sizeof(outlander_specials));
+  outlander.player_specials = &outlander_specials;
+  GET_LEVEL(outlander_character) = 5;
+  GET_BACKGROUND(outlander_character) = BACKGROUND_OUTLANDER;
+  GET_REAL_MAX_HIT(outlander_character) = 100;
+  GET_MAX_HIT(outlander_character) = 100;
+  GET_HIT(outlander_character) = 50;
+
+  apply_background_permanent_effects(outlander_character);
+  CuAssertIntEquals(tc, 120, GET_REAL_MAX_HIT(outlander_character));
+  CuAssertIntEquals(tc, 120, GET_MAX_HIT(outlander_character));
+  CuAssertIntEquals(tc, 70, GET_HIT(outlander_character));
+  CuAssertIntEquals(tc, 0, background_forage_check_bonus(FALSE));
+  CuAssertIntEquals(tc, 5, background_forage_check_bonus(TRUE));
+  CuAssertTrue(tc, BACKGROUND_EFFECTS_APPLIED(outlander_character));
+
+  apply_background_permanent_effects(outlander_character);
+  CuAssertIntEquals(tc, 120, GET_REAL_MAX_HIT(outlander_character));
+  CuAssertIntEquals(tc, 120, GET_MAX_HIT(outlander_character));
+  CuAssertIntEquals(tc, 70, GET_HIT(outlander_character));
+
+  memset(&soldier, 0, sizeof(soldier));
+  memset(&companion, 0, sizeof(companion));
+  memset(&soldier_specials, 0, sizeof(soldier_specials));
+  memset(&companion_specials, 0, sizeof(companion_specials));
+  memset(&group, 0, sizeof(group));
+  memset(&room, 0, sizeof(room));
+  memset(&follower, 0, sizeof(follower));
+  soldier.player_specials = &soldier_specials;
+  companion.player_specials = &companion_specials;
+  IN_ROOM(soldier_character) = 0;
+  IN_ROOM(companion_character) = 0;
+  SET_FEAT(soldier_character, FEAT_BG_SOLDIER, 1);
+  GROUP(soldier_character) = &group;
+  room.people = &soldier;
+  world = &room;
+  top_of_world = 0;
+
+  CuAssertTrue(tc, !is_grouped_with_soldier(soldier_character));
+  soldier.next_in_room = &companion;
+  CuAssertTrue(tc, !is_grouped_with_soldier(soldier_character));
+  GROUP(companion_character) = &group;
+  CuAssertTrue(tc, is_grouped_with_soldier(soldier_character));
+  CuAssertTrue(tc, !HAS_REAL_FEAT(companion_character, FEAT_BG_SOLDIER));
+
+  soldier.followers = NULL;
+  CuAssertIntEquals(tc, 1, get_party_size_same_room(soldier_character));
+  follower.follower = &companion;
+  soldier.followers = &follower;
+  CuAssertIntEquals(tc, 2, get_party_size_same_room(soldier_character));
+  IN_ROOM(companion_character) = 1;
+  CuAssertIntEquals(tc, 1, get_party_size_same_room(soldier_character));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
+void TestBackgroundShopAccessAndHometownPricingAreExact(CuTest *tc)
+{
+  CuAssertTrue(tc, shop_background_access_allowed(0, FALSE, FALSE));
+  CuAssertTrue(tc, shop_background_access_allowed(BLACK_MARKET_SHOP, TRUE, FALSE));
+  CuAssertTrue(tc, !shop_background_access_allowed(BLACK_MARKET_SHOP, FALSE, TRUE));
+  CuAssertTrue(tc, shop_background_access_allowed(NOBLE_SHOP, FALSE, TRUE));
+  CuAssertTrue(tc, !shop_background_access_allowed(NOBLE_SHOP, TRUE, FALSE));
+  CuAssertTrue(tc, shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, TRUE));
+  CuAssertTrue(tc, !shop_background_access_allowed(BLACK_MARKET_SHOP | NOBLE_SHOP, TRUE, FALSE));
+
+  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, TRUE) == 0.90f);
+  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, TRUE, FALSE) == 1.10f);
+  CuAssertTrue(tc, shop_background_hometown_price_multiplier(FALSE, TRUE, TRUE) == 1.0f);
+  CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE) == 1.0f);
 }
 
 void TestWebOnboardingCapabilityNegotiation(CuTest *tc)
@@ -812,12 +1062,19 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
   CuAssertTrue(tc, json_is_balanced(payload));
   CuAssertTrue(tc, !has_control_bytes(payload));
   CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
-  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":0,\"count\":2,\"totalItems\":16}"));
-  CuAssertPtrNotNull(tc,
-                     strstr(payload, "\"actions\":[\"select\",\"detail\",\"next-page\",\"cancel\","
-                                     "\"classic-terminal\"]"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":0,\"count\":3,\"totalItems\":16}"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"actions\":[\"select\",\"next-page\",\"cancel\","
+                                         "\"classic-terminal\"]"));
+  CuAssertTrue(tc, strstr(payload, "\"detail\"") == NULL);
+  CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  CuAssertTrue(tc, strstr(payload, "\"canonVersion\":\"character-compass-1.0.0\"") == NULL);
+#else
+  CuAssertPtrNotNull(tc, strstr(payload, "\"canonVersion\":\"character-compass-1.0.0\""));
+#endif
+  CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Ability effect\""));
 
-  for (index = 0; index < 12; index++)
+  for (index = 0; index < 6; index++)
   {
     int background = backgrounds_listed_alphabetically[index + 1];
     char fragment[256];
@@ -831,7 +1088,7 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
   }
 
   {
-    int background = backgrounds_listed_alphabetically[13];
+    int background = backgrounds_listed_alphabetically[7];
     char fragment[80];
 
     snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background));
@@ -839,12 +1096,12 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
   }
   CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
   CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
-  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":1,\"count\":2,\"totalItems\":16}"));
-  CuAssertPtrNotNull(tc, strstr(payload,
-                                "\"actions\":[\"select\",\"detail\",\"previous-page\",\"cancel\","
-                                "\"classic-terminal\"]"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":1,\"count\":3,\"totalItems\":16}"));
+  CuAssertPtrNotNull(
+      tc, strstr(payload, "\"actions\":[\"select\",\"previous-page\",\"next-page\",\"cancel\","
+                          "\"classic-terminal\"]"));
 
-  for (index = 12; index < NUM_BACKGROUNDS - 1; index++)
+  for (index = 6; index < 12; index++)
   {
     int background = backgrounds_listed_alphabetically[index + 1];
     char fragment[256];
@@ -862,6 +1119,24 @@ void TestWebOnboardingBackgroundCatalogUsesStableIdentityAndFitsPayloadCap(CuTes
 
     snprintf(fragment, sizeof(fragment), "\"id\":\"%s\"", background_stable_id(background));
     CuAssertTrue(tc, strstr(payload, fragment) == NULL);
+  }
+  CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":2,\"count\":3,\"totalItems\":16}"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"actions\":[\"select\",\"previous-page\",\"cancel\","
+                                         "\"classic-terminal\"]"));
+
+  for (index = 12; index < NUM_BACKGROUNDS - 1; index++)
+  {
+    int background = backgrounds_listed_alphabetically[index + 1];
+    char fragment[256];
+
+    snprintf(fragment, sizeof(fragment),
+             "\"id\":\"%s\",\"label\":\"%s\",\"wireValue\":\"%s\","
+             "\"enabled\":true,\"mediaKey\":\"%s\"",
+             background_stable_id(background), background_list[background].name,
+             background_wire_value(background), background_media_key(background));
+    CuAssertPtrNotNull(tc, strstr(payload, fragment));
   }
   web_onboarding_reset(&d);
   ProtocolDestroy(d.pProtocol);
@@ -899,6 +1174,19 @@ static bool editor_test_save_result = TRUE;
 static int editor_test_save_calls = 0;
 static bool editor_test_index_save_result = TRUE;
 static int editor_test_index_save_calls = 0;
+static int restart_test_lookup_result = 0;
+static bool restart_test_begin_result = TRUE;
+static bool restart_test_prepare_result = TRUE;
+static bool restart_test_account_commit_result = TRUE;
+static bool restart_test_player_rollback_result = TRUE;
+static bool restart_test_player_commit_result = TRUE;
+static int restart_test_begin_calls = 0;
+static int restart_test_account_rollback_calls = 0;
+static int restart_test_prepare_calls = 0;
+static int restart_test_account_commit_calls = 0;
+static int restart_test_player_rollback_calls = 0;
+static int restart_test_player_commit_calls = 0;
+static char restart_test_transaction_sentinel;
 
 static bool editor_test_save_callback(struct char_data *ch, int mode)
 {
@@ -912,6 +1200,82 @@ static bool editor_test_index_save_callback(void)
 {
   editor_test_index_save_calls++;
   return editor_test_index_save_result;
+}
+
+static int restart_test_lookup_player(const char *name)
+{
+  (void)name;
+  return restart_test_lookup_result;
+}
+
+static bool restart_test_begin_account_removal(struct char_data *ch, struct account_data *account)
+{
+  (void)ch;
+  (void)account;
+  restart_test_begin_calls++;
+  return restart_test_begin_result;
+}
+
+static void restart_test_rollback_account_removal(void)
+{
+  restart_test_account_rollback_calls++;
+}
+
+static struct player_removal_transaction *restart_test_prepare_player_removal(int player_position)
+{
+  (void)player_position;
+  restart_test_prepare_calls++;
+  if (!restart_test_prepare_result)
+    return NULL;
+  return (struct player_removal_transaction *)&restart_test_transaction_sentinel;
+}
+
+static bool restart_test_commit_account_removal(struct account_data *account)
+{
+  (void)account;
+  restart_test_account_commit_calls++;
+  return restart_test_account_commit_result;
+}
+
+static bool restart_test_rollback_player_removal(struct player_removal_transaction *transaction)
+{
+  (void)transaction;
+  restart_test_player_rollback_calls++;
+  return restart_test_player_rollback_result;
+}
+
+static bool restart_test_commit_player_removal(struct player_removal_transaction *transaction)
+{
+  (void)transaction;
+  restart_test_player_commit_calls++;
+  return restart_test_player_commit_result;
+}
+
+static void reset_restart_test_hooks(void)
+{
+  const struct character_creation_restart_test_hooks hooks = {
+      restart_test_lookup_player,
+      restart_test_begin_account_removal,
+      restart_test_rollback_account_removal,
+      restart_test_prepare_player_removal,
+      restart_test_commit_account_removal,
+      restart_test_rollback_player_removal,
+      restart_test_commit_player_removal,
+  };
+
+  restart_test_lookup_result = 0;
+  restart_test_begin_result = TRUE;
+  restart_test_prepare_result = TRUE;
+  restart_test_account_commit_result = TRUE;
+  restart_test_player_rollback_result = TRUE;
+  restart_test_player_commit_result = TRUE;
+  restart_test_begin_calls = 0;
+  restart_test_account_rollback_calls = 0;
+  restart_test_prepare_calls = 0;
+  restart_test_account_commit_calls = 0;
+  restart_test_player_rollback_calls = 0;
+  restart_test_player_commit_calls = 0;
+  character_creation_set_restart_hooks_for_test(&hooks);
 }
 
 static bool init_editor_descriptor(struct descriptor_data *d, struct char_data *ch,
@@ -938,6 +1302,7 @@ static bool init_editor_descriptor(struct descriptor_data *d, struct char_data *
   editor_test_index_save_calls = 0;
   roleplay_text_set_save_callback_for_test(editor_test_save_callback);
   roleplay_index_set_save_callback_for_test(editor_test_index_save_callback);
+  character_creation_set_save_callback_for_test(editor_test_save_callback);
   return TRUE;
 }
 
@@ -978,6 +1343,340 @@ static void cleanup_editor_descriptor(struct descriptor_data *d)
   }
   roleplay_text_set_save_callback_for_test(NULL);
   roleplay_index_set_save_callback_for_test(NULL);
+  character_creation_set_save_callback_for_test(NULL);
+  character_creation_set_restart_hooks_for_test(NULL);
+}
+
+void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct char_data ch;
+  struct char_data *character = &ch;
+  struct player_special_data specials;
+  struct account_data account;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+  const char stale_back[] = "{\"v\":2,\"action\":\"back\",\"flowId\":\"42-1000\",\"revision\":6}";
+  const char current_back[] = "{\"v\":2,\"action\":\"back\",\"flowId\":\"42-1000\",\"revision\":7}";
+
+  memset(&account, 0, sizeof(account));
+  CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QCLASS));
+  if (d.pProtocol == NULL)
+    return;
+  d.account = &account;
+  GET_REAL_RACE(character) = RACE_HUMAN;
+  GET_CLASS(character) = CLASS_WIZARD;
+  GET_PREMADE_BUILD_CLASS(character) = CLASS_WIZARD;
+  GET_ALIGNMENT(character) = 500;
+
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"back\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"restart-character\""));
+
+  web_onboarding_handle_action_at_for_test(&d, stale_back, 1000);
+  CuAssertIntEquals(tc, CON_QCLASS, STATE(&d));
+  CuAssertIntEquals(tc, CLASS_WIZARD, GET_CLASS(character));
+  CuAssertIntEquals(tc, WEB_ONBOARDING_ERROR_WORKFLOW_STALE, d.web_onboarding_error);
+
+  d.web_onboarding_error = WEB_ONBOARDING_ERROR_NONE;
+  web_onboarding_handle_action_at_for_test(&d, current_back, 1001);
+  CuAssertIntEquals(tc, CON_QRACE, STATE(&d));
+  CuAssertIntEquals(tc, RACE_HUMAN, GET_REAL_RACE(character));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, GET_CLASS(character));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, GET_PREMADE_BUILD_CLASS(character));
+  CuAssertIntEquals(tc, 0, GET_ALIGNMENT(character));
+
+  STATE(&d) = CON_QRACE;
+  GET_REAL_RACE(character) = RACE_HUMAN;
+  GET_CLASS(character) = CLASS_WIZARD;
+  GET_PREMADE_BUILD_CLASS(character) = CLASS_WIZARD;
+  GET_ALIGNMENT(character) = 500;
+  CuAssertTrue(tc, character_creation_back(&d));
+  CuAssertIntEquals(tc, CON_QSEX, STATE(&d));
+  CuAssertIntEquals(tc, RACE_UNDEFINED, GET_REAL_RACE(character));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, GET_CLASS(character));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, GET_PREMADE_BUILD_CLASS(character));
+  CuAssertIntEquals(tc, 0, GET_ALIGNMENT(character));
+
+  STATE(&d) = CON_CONFIRM_PREMADE;
+  GET_CLASS(character) = CLASS_WIZARD;
+  GET_PREMADE_BUILD_CLASS(character) = CLASS_WIZARD;
+  GET_ALIGNMENT(character) = 500;
+  CuAssertTrue(tc, character_creation_back(&d));
+  CuAssertIntEquals(tc, CON_QCLASS, STATE(&d));
+  CuAssertIntEquals(tc, CLASS_WIZARD, GET_CLASS(character));
+  CuAssertIntEquals(tc, CLASS_UNDEFINED, GET_PREMADE_BUILD_CLASS(character));
+  CuAssertIntEquals(tc, 0, GET_ALIGNMENT(character));
+
+  STATE(&d) = CON_QALIGN;
+  GET_CLASS(character) = CLASS_WIZARD;
+  GET_PREMADE_BUILD_CLASS(character) = CLASS_WIZARD;
+  GET_ALIGNMENT(character) = 500;
+  CuAssertTrue(tc, character_creation_back(&d));
+  CuAssertIntEquals(tc, CON_CONFIRM_PREMADE, STATE(&d));
+  CuAssertIntEquals(tc, CLASS_WIZARD, GET_CLASS(character));
+  CuAssertIntEquals(tc, CLASS_WIZARD, GET_PREMADE_BUILD_CLASS(character));
+  CuAssertIntEquals(tc, 0, GET_ALIGNMENT(character));
+
+  editor_test_save_result = TRUE;
+  CuAssertTrue(
+      tc, character_creation_set_stage_checked(character, CHARACTER_CREATION_STAGE_PREFERENCES));
+  CuAssertTrue(tc, character_creation_is_active(character));
+  editor_test_save_result = FALSE;
+  CuAssertTrue(tc, !character_creation_set_stage_checked(
+                       character, CHARACTER_CREATION_STAGE_ROLEPLAY_DECISION));
+  CuAssertIntEquals(tc, CHARACTER_CREATION_STAGE_PREFERENCES, CREATION_STAGE(character));
+
+  CuAssertTrue(tc, character_creation_resume(&d));
+  CuAssertIntEquals(tc, CON_SETPREFS, STATE(&d));
+  CuAssertTrue(tc, !character_creation_can_back(&d));
+  CuAssertTrue(tc, character_creation_can_restart(&d));
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"restart-character\""));
+  CuAssertTrue(tc, strstr(payload, "\"back\"") == NULL);
+
+  STATE(&d) = CON_CHAR_RP_MENU;
+  CREATION_STAGE(character) = CHARACTER_CREATION_STAGE_ROLEPLAY_PROFILE;
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"restart-character\""));
+  CuAssertTrue(tc, strstr(payload, "\"back\"") == NULL);
+
+  GET_LEVEL(character) = 1;
+  CuAssertTrue(tc, !character_creation_is_active(character));
+  CuAssertTrue(tc, !character_creation_can_restart(&d));
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strstr(payload, "\"restart-character\"") == NULL);
+
+  GET_LEVEL(character) = 0;
+  editor_test_save_result = TRUE;
+  CuAssertTrue(tc, character_creation_finish_checked(character));
+  CuAssertIntEquals(tc, CHARACTER_CREATION_STAGE_NONE, CREATION_STAGE(character));
+
+  cleanup_editor_descriptor(&d);
+}
+
+void TestCharacterCreationRestartFailurePathsPreserveRecoverableCharacter(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct account_data account;
+  enum character_creation_restart_result result;
+
+  memset(&account, 0, sizeof(account));
+  init_test_descriptor(&d, CON_SETPREFS);
+  d.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, d.pProtocol);
+  if (d.pProtocol == NULL)
+    return;
+  d.account = &account;
+  d.character = new_char();
+  CuAssertPtrNotNull(tc, d.character);
+  if (d.character == NULL)
+    return;
+  d.character->desc = &d;
+  d.character->player.name = strdup("synthetic-restart-character");
+  GET_LEVEL(d.character) = 0;
+  CREATION_STAGE(d.character) = CHARACTER_CREATION_STAGE_PREFERENCES;
+
+  reset_restart_test_hooks();
+  restart_test_begin_result = FALSE;
+  result = character_creation_restart(&d);
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_ACCOUNT_FAILED, result);
+  CuAssertPtrNotNull(tc, d.character);
+  CuAssertIntEquals(tc, 1, restart_test_begin_calls);
+  CuAssertIntEquals(tc, 0, restart_test_prepare_calls);
+
+  reset_restart_test_hooks();
+  restart_test_prepare_result = FALSE;
+  result = character_creation_restart(&d);
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_PLAYER_FAILED, result);
+  CuAssertPtrNotNull(tc, d.character);
+  CuAssertIntEquals(tc, 1, restart_test_account_rollback_calls);
+  CuAssertIntEquals(tc, 0, restart_test_account_commit_calls);
+
+  reset_restart_test_hooks();
+  restart_test_account_commit_result = FALSE;
+  result = character_creation_restart(&d);
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_ACCOUNT_FAILED, result);
+  CuAssertPtrNotNull(tc, d.character);
+  CuAssertIntEquals(tc, 1, restart_test_player_rollback_calls);
+  CuAssertIntEquals(tc, 0, restart_test_player_commit_calls);
+
+  reset_restart_test_hooks();
+  restart_test_account_commit_result = FALSE;
+  restart_test_player_rollback_result = FALSE;
+  result = character_creation_restart(&d);
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_ROLLBACK_FAILED, result);
+  CuAssertPtrNotNull(tc, d.character);
+
+  reset_restart_test_hooks();
+  result = character_creation_restart(&d);
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_OK, result);
+  CuAssertPtrEquals(tc, NULL, d.character);
+  CuAssertIntEquals(tc, CON_ACCOUNT_MENU, STATE(&d));
+  CuAssertIntEquals(tc, 1, restart_test_account_commit_calls);
+  CuAssertIntEquals(tc, 1, restart_test_player_commit_calls);
+
+  character_creation_set_restart_hooks_for_test(NULL);
+  web_onboarding_reset(&d);
+  ProtocolDestroy(d.pProtocol);
+  d.pProtocol = NULL;
+}
+
+void TestCharacterCreationRestartDiscardsOnlyUnsavedDraftBeforeAlignment(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct account_data account;
+
+  memset(&account, 0, sizeof(account));
+  init_test_descriptor(&d, CON_QCLASS);
+  d.pProtocol = ProtocolCreate();
+  CuAssertPtrNotNull(tc, d.pProtocol);
+  if (d.pProtocol == NULL)
+    return;
+  d.account = &account;
+  d.character = new_char();
+  CuAssertPtrNotNull(tc, d.character);
+  if (d.character == NULL)
+    return;
+  d.character->desc = &d;
+  d.character->player.name = strdup("synthetic-unsaved-draft");
+  CREATION_STAGE(d.character) = CHARACTER_CREATION_STAGE_NONE;
+
+  reset_restart_test_hooks();
+  CuAssertIntEquals(tc, CHARACTER_CREATION_RESTART_OK, character_creation_restart(&d));
+  CuAssertPtrEquals(tc, NULL, d.character);
+  CuAssertIntEquals(tc, CON_ACCOUNT_MENU, STATE(&d));
+  CuAssertIntEquals(tc, 0, restart_test_begin_calls);
+  CuAssertIntEquals(tc, 0, restart_test_prepare_calls);
+  CuAssertIntEquals(tc, 0, restart_test_account_commit_calls);
+
+  character_creation_set_restart_hooks_for_test(NULL);
+  web_onboarding_reset(&d);
+  ProtocolDestroy(d.pProtocol);
+  d.pProtocol = NULL;
+}
+
+void TestRoleplayGuidanceAndInspirationPayloadsAreContextSpecific(CuTest *tc)
+{
+  const int states[] = {
+      CON_CHARACTER_PERSONALITY_IDEAS,
+      CON_CHARACTER_IDEALS_IDEAS,
+      CON_CHARACTER_BONDS_IDEAS,
+      CON_CHARACTER_FLAWS_IDEAS,
+  };
+  struct descriptor_data d;
+  struct char_data ch;
+  struct player_special_data specials;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+  size_t state_index = 0;
+
+  CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, states[0]));
+  if (d.pProtocol == NULL)
+    return;
+  assign_backgrounds();
+
+  for (state_index = 0; state_index < sizeof(states) / sizeof(states[0]); state_index++)
+  {
+    int background = 0;
+
+    STATE(&d) = states[state_index];
+    d.roleplay_pending.example_state = states[state_index];
+    CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+    CuAssertTrue(tc, json_is_balanced(payload));
+    CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+    CuAssertTrue(tc, strstr(payload, "\"help\":") == NULL);
+    CuAssertTrue(tc, strstr(payload, "\"generatorShape\":") == NULL);
+    CuAssertTrue(tc, strstr(payload, "\"nonPersistenceNotice\":") == NULL);
+#else
+    CuAssertPtrNotNull(tc, strstr(payload, "\"help\":"));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"generatorShape\":"));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"nonPersistenceNotice\":"));
+    CuAssertPtrNotNull(tc, strstr(payload, "will not set or change your permanent Background"));
+#endif
+    CuAssertTrue(tc, strstr(payload, "Palanthas") == NULL);
+
+    for (background = 1; background < NUM_BACKGROUNDS; background++)
+    {
+      char id[96];
+
+      snprintf(id, sizeof(id), "\"id\":\"%s\"", background_stable_id(background));
+      CuAssertPtrNotNull(tc, strstr(payload, id));
+    }
+  }
+
+  STATE(&d) = CON_CHARACTER_GOALS_IDEAS;
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  CuAssertTrue(tc, strstr(payload, "\"help\":") == NULL);
+  CuAssertTrue(tc, strstr(payload, "\"generatorShape\":") == NULL);
+#else
+  CuAssertPtrNotNull(tc, strstr(payload, "\"help\":"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"generatorShape\":"));
+#endif
+  CuAssertTrue(tc, strstr(payload, "\"nonPersistenceNotice\":") == NULL);
+
+  cleanup_editor_descriptor(&d);
+}
+
+void TestHomelandAndHometownPayloadsPublishCanonDetails(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct char_data ch;
+  struct player_special_data specials;
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  bool seen[NUM_REGIONS] = {FALSE};
+#endif
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  int page = 0;
+  int region = 0;
+#endif
+
+  CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QREGION));
+  if (d.pProtocol == NULL)
+    return;
+
+#if defined(CAMPAIGN_DL) || defined(CAMPAIGN_FR)
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, json_is_balanced(payload));
+  CuAssertTrue(tc, strstr(payload, "\"canonVersion\":\"homelands-1.0.0\"") == NULL);
+#else
+  for (page = 0; page < 5; page++)
+  {
+    CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+    CuAssertTrue(tc, json_is_balanced(payload));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"canonVersion\":\"homelands-1.0.0\""));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Language\""));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Place kind\""));
+    CuAssertPtrNotNull(tc, strstr(payload, "\"label\":\"Political sphere\""));
+    CuAssertTrue(tc, strstr(payload, "\"value\":\"Common\"") == NULL);
+
+    for (region = 1; region < NUM_REGIONS; region++)
+    {
+      char id[80];
+
+      snprintf(id, sizeof(id), "\"contentId\":\"homeland/%s\"",
+               character_creation_homeland_for_region(region)->content_id + strlen("homeland/"));
+      if (strstr(payload, id) != NULL)
+        seen[region] = TRUE;
+    }
+
+    if (page < 4)
+      CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
+  }
+
+  for (region = 1; region < NUM_REGIONS; region++)
+    CuAssertTrue(tc, seen[region]);
+
+  STATE(&d) = CON_CHARACTER_HOMETOWN_SELECT;
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"id\":\"hometown/1\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
+  CuAssertPtrNotNull(tc, strstr(payload, "principal adventuring hub"));
+  CuAssertPtrNotNull(tc, strstr(payload, "practical point of return"));
+#endif
+
+  cleanup_editor_descriptor(&d);
 }
 
 static void editor_test_digest(const unsigned char *content, size_t content_bytes, char digest[65])

@@ -4376,7 +4376,8 @@ int compute_damage_reduction(struct char_data *ch, int dam_type)
 
 /* this is straight damage reduction, applies to ALL attacks
  (not melee exclusive damage reduction) */
-int compute_damage_reduction_full(struct char_data *ch, int dam_type __attribute__((unused)), bool display)
+int compute_damage_reduction_full(struct char_data *ch, int dam_type __attribute__((unused)),
+                                  bool display)
 {
   int damage_reduction = 0;
 
@@ -7426,7 +7427,7 @@ int compute_damage_bonus(struct char_data *ch, struct char_data *vict, struct ob
       send_to_char(ch, "deadly aim bonus: \tR%d\tn\r\n", COMBAT_MODE_VALUE(ch) * 2);
   }
 
-  if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch))
+  if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch) == 1)
   {
     if (display_mode)
       send_to_char(ch, "Hermit Fighting Solo: \tR+1\tn\r\n");
@@ -8526,8 +8527,9 @@ int is_critical_hit(struct char_data *ch, struct obj_data *wielded, int diceroll
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand  */
-int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type, int diceroll __attribute__((unused)),
-                       int mode, bool is_critical, int attack_type, int dam_type __attribute__((unused)))
+int compute_hit_damage(struct char_data *ch, struct char_data *victim, int w_type,
+                       int diceroll __attribute__((unused)), int mode, bool is_critical,
+                       int attack_type, int dam_type __attribute__((unused)))
 {
   int dam = 0, damage_holder = 0, base_weapon_damage = 0;
   int loop = 1;
@@ -11537,11 +11539,11 @@ int combat_maneuver_check(struct char_data *ch, struct char_data *vict, int comb
  *   ATTACK_TYPE_BOMB_TOSS     : Alchemist - tossing bombs
  *   ATTACK_TYPE_PRIMARY_SNEAK : impromptu sneak attack, primary hand
  *   ATTACK_TYPE_OFFHAND_SNEAK : impromptu sneak attack, offhand   */
-int attack_roll(struct char_data *ch,     /* Attacker */
-                struct char_data *victim, /* Defender */
-                int attack_type,          /* Type of attack */
-                int is_touch,             /* TRUE/FALSE this is a touch attack? */
-                int attack_number __attribute__((unused)))        /* Attack number, determines penalty. */
+int attack_roll(struct char_data *ch,                      /* Attacker */
+                struct char_data *victim,                  /* Defender */
+                int attack_type,                           /* Type of attack */
+                int is_touch,                              /* TRUE/FALSE this is a touch attack? */
+                int attack_number __attribute__((unused))) /* Attack number, determines penalty. */
 {
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
 
@@ -11650,8 +11652,9 @@ int attack_roll_with_critical(struct char_data *ch,     /* Attacker */
                               struct char_data *victim, /* Defender */
                               int attack_type,          /* Type of attack */
                               int is_touch,             /* TRUE/FALSE this is a touch attack? */
-                              int attack_number __attribute__((unused)),        /* Attack number, determines penalty. */
-                              int critical_threshold)   /* Minimum roll # required to crit */
+                              int attack_number
+                              __attribute__((unused)), /* Attack number, determines penalty. */
+                              int critical_threshold)  /* Minimum roll # required to crit */
 {
   //  struct obj_data *wielded = get_wielded(ch, attack_type);
 
@@ -11851,8 +11854,8 @@ int wildshape_weapon_type(struct char_data *ch)
 
 /* a function that will return the weapon-type being used based on attack_type
  * and wielded data */
-int determine_weapon_type(struct char_data *ch, struct char_data *victim __attribute__((unused)), struct obj_data *wielded,
-                          int attack_type)
+int determine_weapon_type(struct char_data *ch, struct char_data *victim __attribute__((unused)),
+                          struct obj_data *wielded, int attack_type)
 {
   int w_type = TYPE_HIT, count = 0;
   int w_type_array[NUM_ATTACK_TYPES];

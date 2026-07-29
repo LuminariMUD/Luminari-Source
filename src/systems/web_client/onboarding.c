@@ -33,6 +33,8 @@
 #include "char_descs.h"
 #include "clan.h"
 #include "feats.h"
+#include "character_creation.h"
+#include "character_creation_content.h"
 #include "onboarding.h"
 
 #include <json-c/json.h>
@@ -153,28 +155,35 @@ static const struct onboarding_screen_info onboarding_screens[] = {
      "Confirm this background", "This choice is permanent.", "confirm", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_GOALS_IDEAS, "goals-ideas", "roleplay-profile", "Goals",
-     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
-    {CON_CHARACTER_GOALS_ENTER, "goals-editor", "roleplay-profile", "Goals",
-     "What is your character trying to achieve?", "multiline", FALSE,
+     "Shape a goal outline, or write your own.", "none", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_GOALS_ENTER, "goals-editor", "roleplay-profile", "Goals",
+     "Write what your character wants, why it matters, and what complicates it.", "multiline",
+     FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_PERSONALITY_IDEAS, "personality-ideas", "roleplay-profile", "Personality",
-     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+     "Pick an inspiration theme, or write your own.", "none", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_PERSONALITY_ENTER, "personality-editor", "roleplay-profile", "Personality",
-     "How does your character behave?", "multiline", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+     "Write the habits, mannerisms, tastes, and contradictions others can encounter.", "multiline",
+     FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_IDEALS_IDEAS, "ideals-ideas", "roleplay-profile", "Ideals",
-     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+     "Pick an inspiration theme, or write your own.", "none", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_IDEALS_ENTER, "ideals-editor", "roleplay-profile", "Ideals",
-     "What does your character believe in?", "multiline", FALSE,
+     "Write the principles your character protects when choices become costly.", "multiline", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_BONDS_IDEAS, "bonds-ideas", "roleplay-profile", "Bonds",
-     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
-    {CON_CHARACTER_BONDS_ENTER, "bonds-editor", "roleplay-profile", "Bonds",
-     "Who or what is your character tied to?", "multiline", FALSE,
+     "Pick an inspiration theme, or write your own.", "none", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+    {CON_CHARACTER_BONDS_ENTER, "bonds-editor", "roleplay-profile", "Bonds",
+     "Write the people, places, promises, or possessions your character cannot treat as ordinary.",
+     "multiline", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_FLAWS_IDEAS, "flaws-ideas", "roleplay-profile", "Flaws",
-     "Here are some ideas, or write your own.", "none", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+     "Pick an inspiration theme, or write your own.", "none", FALSE,
+     WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_FLAWS_ENTER, "flaws-editor", "roleplay-profile", "Flaws",
-     "What holds your character back?", "multiline", FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
+     "Write a fear, vice, blind spot, or weakness that can create meaningful trouble.", "multiline",
+     FALSE, WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
     {CON_CHARACTER_AGE_SELECT, "age-select", "roleplay-profile", "Age",
      "Choose how many years your character carries.", "choice", FALSE,
      WEB_ONBOARDING_PROTOCOL_VERSION_MAX},
@@ -231,6 +240,17 @@ static const struct onboarding_error_info onboarding_errors[] = {
      "That choice can no longer be changed. Your character was not changed.", "roleplay"},
     {WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED, "roleplay-save-failed",
      "That choice could not be saved. Your character was not changed.", "roleplay"},
+    {WEB_ONBOARDING_ERROR_WORKFLOW_INVALID, "workflow-invalid",
+     "That workflow action was rejected. Your character was not changed.", "workflow"},
+    {WEB_ONBOARDING_ERROR_WORKFLOW_STALE, "workflow-stale",
+     "Character creation changed before that action arrived. Review the current screen and try "
+     "again.",
+     "workflow"},
+    {WEB_ONBOARDING_ERROR_WORKFLOW_UNAVAILABLE, "workflow-unavailable",
+     "That workflow action is not available on the current screen.", "workflow"},
+    {WEB_ONBOARDING_ERROR_RESTART_FAILED, "restart-failed",
+     "The character could not be removed safely. Its recoverable creation record was kept.",
+     "workflow"},
 };
 
 enum web_onboarding_persistence_result
@@ -1692,6 +1712,78 @@ static bool cancel_editor(struct descriptor_data *d, json_object *root)
   return TRUE;
 }
 
+static bool handle_workflow_action(struct descriptor_data *d, json_object *root)
+{
+  static const char *const keys[] = {"v", "action", "flowId", "revision"};
+  const char *action = json_required_string(root, "action", 32);
+  const char *flow_id = NULL;
+  char expected_flow_id[64];
+  int64_t version = 0;
+  int64_t revision = 0;
+
+  if (action == NULL || (strcmp(action, "back") && strcmp(action, "restart-character")))
+    return FALSE;
+
+  if (!json_object_has_exact_keys(root, keys, sizeof(keys) / sizeof(keys[0])))
+  {
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_INVALID);
+    return TRUE;
+  }
+
+  flow_id = json_required_string(root, "flowId", WEB_ONBOARDING_EDITOR_MAX_ID_BYTES);
+  if (!json_required_integer(root, "v", WEB_ONBOARDING_PROTOCOL_VERSION_MAX,
+                             WEB_ONBOARDING_PROTOCOL_VERSION_MAX, &version) ||
+      !json_required_integer(root, "revision", 0, 1000000, &revision) ||
+      !editor_id_is_valid(flow_id))
+  {
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_INVALID);
+    return TRUE;
+  }
+  (void)version;
+
+  onboarding_flow_id(d, expected_flow_id, sizeof(expected_flow_id));
+  if (strcmp(flow_id, expected_flow_id) || revision != d->web_onboarding_revision)
+  {
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_STALE);
+    return TRUE;
+  }
+
+  if (!strcmp(action, "back"))
+  {
+    if (!character_creation_can_back(d))
+    {
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_UNAVAILABLE);
+      return TRUE;
+    }
+
+    clear_editor_transfers(d);
+    if (!character_creation_back(d))
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_UNAVAILABLE);
+    else
+    {
+      d->web_onboarding_error = WEB_ONBOARDING_ERROR_NONE;
+      web_onboarding_mark_dirty(d);
+    }
+    return TRUE;
+  }
+
+  if (!character_creation_can_restart(d))
+  {
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_WORKFLOW_UNAVAILABLE);
+    return TRUE;
+  }
+
+  clear_editor_transfers(d);
+  if (character_creation_restart(d) != CHARACTER_CREATION_RESTART_OK)
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_RESTART_FAILED);
+  else
+  {
+    d->web_onboarding_error = WEB_ONBOARDING_ERROR_NONE;
+    web_onboarding_mark_dirty(d);
+  }
+  return TRUE;
+}
+
 #ifdef WEB_ONBOARDING_FOCUSED_PROTOCOL_HARNESS
 __attribute__((unused))
 #endif
@@ -1716,6 +1808,12 @@ handle_editor_action_at(struct descriptor_data *d, const char *payload, int64_t 
   if (root == NULL)
   {
     reject_editor_transfer(d, WEB_ONBOARDING_ERROR_EDITOR_INVALID_TRANSFER);
+    return;
+  }
+
+  if (handle_workflow_action(d, root))
+  {
+    json_object_put(root);
     return;
   }
 
@@ -1847,6 +1945,26 @@ static void build_sex_choices(struct json_writer *w)
   json_raw(w, "}");
 }
 
+static void build_content_metadata(struct json_writer *w, const char *content_id,
+                                   const char *canon_version, const char *provenance)
+{
+  if (content_id != NULL)
+  {
+    json_raw(w, ",");
+    json_field_string(w, "contentId", content_id, 80);
+  }
+  if (canon_version != NULL)
+  {
+    json_raw(w, ",");
+    json_field_string(w, "canonVersion", canon_version, 64);
+  }
+  if (provenance != NULL)
+  {
+    json_raw(w, ",");
+    json_field_string(w, "provenance", provenance, 240);
+  }
+}
+
 /* Races the server would actually accept right now, using the same lock and
  * playable checks that nanny() uses. */
 static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
@@ -1883,6 +2001,10 @@ static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
     json_field_string(w, "mediaKey", web_onboarding_race_media_key(race), 64);
     json_raw(w, ",");
     json_field_string_truncated(w, "summary", race_list[race].descrip, 220);
+    json_raw(w, ",");
+    json_field_string_truncated(w, "description", race_list[race].descrip, 900);
+    json_raw(w, ",");
+    json_field_bool(w, "inspectable", TRUE);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Size", 24);
     json_raw(w, ",");
@@ -1949,6 +2071,10 @@ static void build_class_choices(struct json_writer *w, struct descriptor_data *d
     json_field_string(w, "mediaKey", web_onboarding_class_media_key(chclass), 64);
     json_raw(w, ",");
     json_field_string_truncated(w, "summary", CLSLIST_DESCRIP(chclass), 220);
+    json_raw(w, ",");
+    json_field_string_truncated(w, "description", CLSLIST_DESCRIP(chclass), 900);
+    json_raw(w, ",");
+    json_field_bool(w, "inspectable", TRUE);
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Hit die", 24);
     json_raw(w, ",\"value\":\"d");
@@ -2300,6 +2426,7 @@ struct rp_hub_item
 {
   const char *id;
   const char *label;
+  const char *description;
   /*
    * Exact value CON_CHAR_RP_MENU's parser accepts. Taken from the switch in
    * nanny(), not invented: opening an item must drive the unchanged terminal
@@ -2310,20 +2437,38 @@ struct rp_hub_item
 };
 
 static const struct rp_hub_item rp_hub_items[] = {
-    {"profile/short-description", "Short description", "0", "roleplay/short-description"},
-    {"profile/long-description", "Long description", "1", "roleplay/long-description"},
-    {"profile/background-story", "Background story", "2", "roleplay/background-story"},
-    {"profile/background", "Background", "3", "background/fallback"},
-    {"profile/goals", "Goals", "4", "roleplay/goals"},
-    {"profile/personality", "Personality", "5", "roleplay/personality"},
-    {"profile/ideals", "Ideals", "6", "roleplay/ideals"},
-    {"profile/bonds", "Bonds", "7", "roleplay/bonds"},
-    {"profile/flaws", "Flaws", "8", "roleplay/flaws"},
-    {"profile/age", "Age", "9", "roleplay/profile-hub"},
-    {"profile/region", "Homeland", "a", "region/fallback"},
-    {"profile/faction", "Faction", "b", "faction/fallback"},
-    {"profile/hometown", "Hometown", "c", "hometown/fallback"},
-    {"profile/deity", "Deity", "d", "deity/fallback"},
+    {"profile/short-description", "Short description",
+     "A compact first-glance phrase shown when others encounter your character.", "0",
+     "roleplay/short-description"},
+    {"profile/long-description", "Long description",
+     "What another character can observe when they look at yours more closely.", "1",
+     "roleplay/long-description"},
+    {"profile/background-story", "Background story",
+     "The formative events and choices that brought your character to the present.", "2",
+     "roleplay/background-story"},
+    {"profile/background", "Background",
+     "A permanent life archetype that grants skills and a special ability.", "3",
+     "background/fallback"},
+    {"profile/goals", "Goals", NULL, "4", "roleplay/goals"},
+    {"profile/personality", "Personality", NULL, "5", "roleplay/personality"},
+    {"profile/ideals", "Ideals", NULL, "6", "roleplay/ideals"},
+    {"profile/bonds", "Bonds", NULL, "7", "roleplay/bonds"},
+    {"profile/flaws", "Flaws", NULL, "8", "roleplay/flaws"},
+    {"profile/age", "Age",
+     "The character's stage of life and its source-defined ability adjustments.", "9",
+     "roleplay/profile-hub"},
+    {"profile/region", "Homeland",
+     "The formative origin jurisdiction whose culture and Heart Tongue shaped them.", "a",
+     "region/fallback"},
+    {"profile/faction", "Faction",
+     "An organization the character joins, with allies, duties, and enemies.", "b",
+     "faction/fallback"},
+    {"profile/hometown", "Hometown",
+     "The city tied to recall, donation services, and hometown-dependent abilities.", "c",
+     "hometown/fallback"},
+    {"profile/deity", "Deity",
+     "The divine power the character follows-or an explicit choice to follow none.", "d",
+     "deity/fallback"},
 };
 
 /*
@@ -2472,6 +2617,9 @@ static void build_profile_items(struct json_writer *w, struct descriptor_data *d
   for (i = 0; i < sizeof(rp_hub_items) / sizeof(rp_hub_items[0]); i++)
   {
     const struct rp_hub_item *item = &rp_hub_items[i];
+    const struct character_creation_guidance *guidance =
+        character_creation_guidance_for_profile(item->id);
+    const char *description = guidance != NULL ? guidance->hub_summary : item->description;
     const char *reason = NULL;
     const char *summary = NULL;
     const char *status = rp_item_status(ch, item->id, &reason, &summary);
@@ -2494,6 +2642,11 @@ static void build_profile_items(struct json_writer *w, struct descriptor_data *d
     json_field_bool(w, "required", FALSE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", item->media_key, 64);
+    if (description != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string(w, "description", description, 240);
+    }
     if (summary != NULL)
     {
       json_raw(w, ",");
@@ -2518,6 +2671,15 @@ static void build_profile_items(struct json_writer *w, struct descriptor_data *d
  * terminal parser. Index 0 is skipped because it is BACKGROUND_NONE.
  */
 #define WEB_ONBOARDING_CATALOG_PAGE_SIZE 12
+
+static int catalog_page_size(int state)
+{
+  if (state == CON_QREGION)
+    return 3;
+  if (state == CON_BACKGROUND_ARCHTYPE)
+    return 6;
+  return WEB_ONBOARDING_CATALOG_PAGE_SIZE;
+}
 
 static void choice_separator(struct json_writer *w, bool *first)
 {
@@ -2584,8 +2746,8 @@ static void catalog_page_bounds(struct descriptor_data *d, int state, int total,
                                 int *end, int *page_index, int *page_count)
 {
   struct web_onboarding_session *session = ensure_onboarding_session(d);
-  int count =
-      MAX(1, (total + WEB_ONBOARDING_CATALOG_PAGE_SIZE - 1) / WEB_ONBOARDING_CATALOG_PAGE_SIZE);
+  int page_size = catalog_page_size(state);
+  int count = MAX(1, (total + page_size - 1) / page_size);
   int page = 0;
 
   if (session != NULL)
@@ -2602,8 +2764,8 @@ static void catalog_page_bounds(struct descriptor_data *d, int state, int total,
     page = session->catalog_page;
   }
 
-  *start = page * WEB_ONBOARDING_CATALOG_PAGE_SIZE;
-  *end = MIN(total, *start + WEB_ONBOARDING_CATALOG_PAGE_SIZE);
+  *start = page * page_size;
+  *end = MIN(total, *start + page_size);
   *page_index = page;
   *page_count = count;
 }
@@ -2649,10 +2811,15 @@ static void build_background_choices(struct json_writer *w, struct descriptor_da
   for (position = start + 1; position <= end; position++)
   {
     int background = backgrounds_listed_alphabetically[position];
+    int feat = BACKGROUND_NONE;
+    char skill_bonuses[200];
+    const struct character_creation_background *content =
+        character_creation_background_for_value(background);
 
     if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
         background_list[background].name == NULL)
       continue;
+    feat = background_list[background].feat;
 
     choice_separator(w, &first);
     json_raw(w, "{");
@@ -2665,12 +2832,43 @@ static void build_background_choices(struct json_writer *w, struct descriptor_da
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", background_media_key(background), 64);
+    if (content != NULL && content->story_promise != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string(w, "summary", content->story_promise, 240);
+    }
     if (background_list[background].desc != NULL)
     {
       json_raw(w, ",");
-      json_field_string_truncated(w, "summary", background_list[background].desc, 400);
+      json_field_string_truncated(w, "description", background_list[background].desc, 900);
     }
+    json_raw(w, ",");
+    json_field_bool(w, "inspectable", TRUE);
+    build_content_metadata(w, content != NULL ? content->content_id : NULL,
+                           content != NULL ? CHARACTER_CREATION_COMPASS_CANON_VERSION : NULL,
+                           content != NULL ? character_creation_content_provenance() : NULL);
+
+    snprintf(skill_bonuses, sizeof(skill_bonuses), "%s +2, %s +2",
+             ability_names[background_list[background].skills[0]],
+             ability_names[background_list[background].skills[1]]);
+    json_raw(w, ",\"facts\":[{");
+    json_field_string(w, "label", "Skill bonuses", 40);
+    json_raw(w, ",");
+    json_field_string(w, "value", skill_bonuses, 200);
     json_raw(w, "}");
+    if (feat > 0 && feat < NUM_FEATS && feat_list[feat].name != NULL)
+    {
+      json_raw(w, ",{");
+      json_field_string(w, "label", "Special ability", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", feat_list[feat].name, 120);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Ability effect", 40);
+      json_raw(w, ",");
+      json_field_string_truncated(w, "value", feat_list[feat].description, 400);
+      json_raw(w, "}");
+    }
+    json_raw(w, "]}");
   }
 }
 
@@ -2679,20 +2877,66 @@ static void build_background_choices(struct json_writer *w, struct descriptor_da
  * the background parser's stable name tokens. Preserve that legacy wire
  * contract while still exposing stable IDs and media keys to the browser.
  */
-static void build_idea_background_choices(struct json_writer *w)
+static const char *inspiration_profile_for_state(int state)
+{
+  switch (state)
+  {
+  case CON_CHARACTER_PERSONALITY_IDEAS:
+    return "profile/personality";
+  case CON_CHARACTER_IDEALS_IDEAS:
+    return "profile/ideals";
+  case CON_CHARACTER_BONDS_IDEAS:
+    return "profile/bonds";
+  case CON_CHARACTER_FLAWS_IDEAS:
+    return "profile/flaws";
+  default:
+    return NULL;
+  }
+}
+
+static enum character_creation_inspiration_kind inspiration_kind_for_state(int state)
+{
+  switch (state)
+  {
+  case CON_CHARACTER_IDEALS_IDEAS:
+    return CHARACTER_CREATION_INSPIRATION_IDEAL;
+  case CON_CHARACTER_BONDS_IDEAS:
+    return CHARACTER_CREATION_INSPIRATION_BOND;
+  case CON_CHARACTER_FLAWS_IDEAS:
+    return CHARACTER_CREATION_INSPIRATION_FLAW;
+  case CON_CHARACTER_PERSONALITY_IDEAS:
+  default:
+    return CHARACTER_CREATION_INSPIRATION_PERSONALITY;
+  }
+}
+
+static void build_idea_background_choices(struct json_writer *w, int state)
 {
   int position = 0;
   bool first = TRUE;
   char wire[16];
+  enum character_creation_inspiration_kind kind = inspiration_kind_for_state(state);
+  const struct character_creation_guidance *guidance =
+      character_creation_guidance_for_profile(inspiration_profile_for_state(state));
 
   for (position = 1; position < NUM_BACKGROUNDS; position++)
   {
     int background = backgrounds_listed_alphabetically[position];
+    char description[720];
+    const struct character_creation_background *content =
+        character_creation_background_for_value(background);
+    const char *first_seed = character_creation_inspiration_seed(background, kind, 0);
+    const char *second_seed = character_creation_inspiration_seed(background, kind, 1);
 
     if (background <= BACKGROUND_NONE || background >= NUM_BACKGROUNDS ||
         background_list[background].name == NULL)
       continue;
 
+    description[0] = '\0';
+    if (content != NULL && first_seed != NULL && second_seed != NULL)
+      snprintf(description, sizeof(description),
+               "This theme can inspire suggestions such as: \"%s\" or \"%s\"", first_seed,
+               second_seed);
     snprintf(wire, sizeof(wire), "%d", position);
     choice_separator(w, &first);
     json_raw(w, "{");
@@ -2705,10 +2949,34 @@ static void build_idea_background_choices(struct json_writer *w)
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", background_media_key(background), 64);
-    if (background_list[background].desc != NULL)
+    if (content != NULL && content->story_promise != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string(w, "summary", content->story_promise, 240);
+    }
+    else if (background_list[background].desc != NULL)
     {
       json_raw(w, ",");
       json_field_string_truncated(w, "summary", background_list[background].desc, 400);
+    }
+    if (description[0] != '\0')
+    {
+      json_raw(w, ",");
+      json_field_string_truncated(w, "description", description, 700);
+    }
+    json_raw(w, ",");
+    json_field_bool(w, "inspectable",
+                    description[0] != '\0' || background_list[background].desc != NULL);
+    if (content != NULL)
+      build_content_metadata(w, content->content_id, CHARACTER_CREATION_COMPASS_CANON_VERSION,
+                             character_creation_content_provenance());
+    if (guidance != NULL)
+    {
+      json_raw(w, ",\"facts\":[{");
+      json_field_string(w, "label", "Suggestion shape", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", guidance->generator_shape, 400);
+      json_raw(w, "}]");
     }
     json_raw(w, "}");
   }
@@ -2807,6 +3075,8 @@ static void build_age_choices(struct json_writer *w, struct descriptor_data *d)
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", roleplay_age_media_key(age), 64);
+    json_raw(w, ",");
+    json_field_bool(w, "inspectable", TRUE);
     json_raw(w, ",\"facts\":[");
     for (ability = 0; ability < 6; ability++)
     {
@@ -2843,6 +3113,8 @@ static void build_region_choices(struct json_writer *w, struct descriptor_data *
 
   for (region = 1; region < NUM_REGIONS; region++)
   {
+    const struct character_creation_homeland *content = NULL;
+
     if (!is_selectable_region(region))
       continue;
     if (position++ < start)
@@ -2850,6 +3122,7 @@ static void build_region_choices(struct json_writer *w, struct descriptor_data *
     if (position > end)
       break;
 
+    content = character_creation_homeland_for_region(region);
     roleplay_region_stable_id(region, id, sizeof(id));
     snprintf(wire, sizeof(wire), "%d", region);
     choice_separator(w, &first);
@@ -2863,10 +3136,36 @@ static void build_region_choices(struct json_writer *w, struct descriptor_data *
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", roleplay_region_media_key(region), 64);
+    if (content != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string(w, "summary", content->summary, 300);
+      json_raw(w, ",");
+      json_field_string_truncated(w, "description", content->description, 1600);
+      json_raw(w, ",");
+      json_field_bool(w, "inspectable", TRUE);
+      build_content_metadata(w, content->content_id, CHARACTER_CREATION_HOMELAND_CANON_VERSION,
+                             content->provenance);
+    }
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Language", 32);
     json_raw(w, ",");
-    json_field_string(w, "value", skill_name(get_region_language(region)), 80);
+    json_field_string(w, "value", get_region_language_name(region), 80);
+    if (content != NULL)
+    {
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Place kind", 32);
+      json_raw(w, ",");
+      json_field_string(w, "value", content->place_kind, 80);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Geographic parent", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", content->geographic_parent, 100);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Political sphere", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", content->political_sphere, 100);
+    }
     json_raw(w, "}]}");
   }
 }
@@ -2923,6 +3222,8 @@ static void build_faction_choices(struct json_writer *w, struct descriptor_data 
     {
       json_raw(w, ",");
       json_field_string_truncated(w, "description", description, 900);
+      json_raw(w, ",");
+      json_field_bool(w, "inspectable", TRUE);
     }
     json_raw(w, "}");
   }
@@ -2948,6 +3249,9 @@ static void build_hometown_choices(struct json_writer *w, struct descriptor_data
 
   for (hometown = 1; hometown < NUM_CITIES; hometown++)
   {
+    const char *summary = NULL;
+    const char *description = NULL;
+
     if (!roleplay_hometown_is_selectable(hometown))
       continue;
     if (position++ < start)
@@ -2955,6 +3259,8 @@ static void build_hometown_choices(struct json_writer *w, struct descriptor_data
     if (position > end)
       break;
 
+    summary = character_creation_hometown_summary(hometown);
+    description = character_creation_hometown_description(hometown);
     roleplay_hometown_stable_id(hometown, id, sizeof(id));
     snprintf(wire, sizeof(wire), "%d", hometown);
     choice_separator(w, &first);
@@ -2968,6 +3274,20 @@ static void build_hometown_choices(struct json_writer *w, struct descriptor_data
     json_field_bool(w, "enabled", TRUE);
     json_raw(w, ",");
     json_field_string(w, "mediaKey", roleplay_hometown_media_key(hometown), 64);
+    if (summary != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string(w, "summary", summary, 240);
+    }
+    if (description != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string_truncated(w, "description", description, 900);
+      json_raw(w, ",");
+      json_field_bool(w, "inspectable", TRUE);
+      build_content_metadata(w, "hometown/ashenport", CHARACTER_CREATION_HOMELAND_CANON_VERSION,
+                             character_creation_content_provenance());
+    }
     json_raw(w, "}");
   }
 }
@@ -3023,6 +3343,8 @@ static void build_deity_choices(struct json_writer *w, struct descriptor_data *d
     {
       json_raw(w, ",");
       json_field_string(w, "summary", summary, 200);
+      json_raw(w, ",");
+      json_field_bool(w, "inspectable", TRUE);
     }
     if (deity > 0 && deity_list[deity].description != NULL)
     {
@@ -3125,14 +3447,12 @@ static void build_actions(struct json_writer *w, struct descriptor_data *d,
            screen->state == CON_CHARACTER_BONDS_IDEAS || screen->state == CON_CHARACTER_FLAWS_IDEAS)
   {
     build_action_name(w, &first, "select");
-    build_action_name(w, &first, "detail");
     build_action_name(w, &first, "continue");
     build_action_name(w, &first, "cancel");
   }
   else if (catalog_total_items(screen->state) > 0)
   {
     build_action_name(w, &first, "select");
-    build_action_name(w, &first, "detail");
     total = catalog_total_items(screen->state);
     catalog_page_bounds(d, screen->state, total, &start, &end, &page_index, &page_count);
     (void)start;
@@ -3154,10 +3474,7 @@ static void build_actions(struct json_writer *w, struct descriptor_data *d,
     build_action_name(w, &first, "cancel");
   }
   else if (!strcmp(screen->input_kind, "choice"))
-  {
     build_action_name(w, &first, "select");
-    build_action_name(w, &first, "detail");
-  }
   else
     build_action_name(w, &first, "submit");
 
@@ -3167,6 +3484,11 @@ static void build_actions(struct json_writer *w, struct descriptor_data *d,
     build_action_name(w, &first, "link-character");
     build_action_name(w, &first, "quit");
   }
+
+  if (character_creation_can_back(d))
+    build_action_name(w, &first, "back");
+  if (character_creation_can_restart(d))
+    build_action_name(w, &first, "restart-character");
 
   build_action_name(w, &first, "classic-terminal");
   json_raw(w, "]");
@@ -3197,6 +3519,70 @@ static void build_short_description_help(struct json_writer *w, struct descripto
     json_raw(w, ",");
     json_field_string(w, "help", description, 500);
     free(description);
+  }
+}
+
+static const char *guidance_profile_for_state(int state)
+{
+  switch (state)
+  {
+  case CON_CHARACTER_GOALS_IDEAS:
+  case CON_CHARACTER_GOALS_ENTER:
+    return "profile/goals";
+  case CON_CHARACTER_PERSONALITY_IDEAS:
+  case CON_CHARACTER_PERSONALITY_ENTER:
+    return "profile/personality";
+  case CON_CHARACTER_IDEALS_IDEAS:
+  case CON_CHARACTER_IDEALS_ENTER:
+    return "profile/ideals";
+  case CON_CHARACTER_BONDS_IDEAS:
+  case CON_CHARACTER_BONDS_ENTER:
+    return "profile/bonds";
+  case CON_CHARACTER_FLAWS_IDEAS:
+  case CON_CHARACTER_FLAWS_ENTER:
+    return "profile/flaws";
+  default:
+    return NULL;
+  }
+}
+
+static bool is_guidance_editor_state(int state)
+{
+  return state == CON_CHARACTER_GOALS_ENTER || state == CON_CHARACTER_PERSONALITY_ENTER ||
+         state == CON_CHARACTER_IDEALS_ENTER || state == CON_CHARACTER_BONDS_ENTER ||
+         state == CON_CHARACTER_FLAWS_ENTER;
+}
+
+static void build_screen_help(struct json_writer *w, struct descriptor_data *d, int state)
+{
+  const char *profile_id = guidance_profile_for_state(state);
+  const struct character_creation_guidance *guidance =
+      character_creation_guidance_for_profile(profile_id);
+
+  if (guidance == NULL)
+  {
+    build_short_description_help(w, d, state);
+    return;
+  }
+
+  json_raw(w, ",");
+  json_field_string(w, "help",
+                    is_guidance_editor_state(state) ? guidance->editor_prompt
+                                                    : guidance->screen_introduction,
+                    700);
+  if (!is_guidance_editor_state(state))
+  {
+    json_raw(w, ",");
+    json_field_string(w, "generatorShape", guidance->generator_shape, 700);
+  }
+  if (state == CON_CHARACTER_PERSONALITY_IDEAS || state == CON_CHARACTER_IDEALS_IDEAS ||
+      state == CON_CHARACTER_BONDS_IDEAS || state == CON_CHARACTER_FLAWS_IDEAS)
+  {
+    json_raw(w, ",");
+    json_field_string(w, "nonPersistenceNotice",
+                      "This only shapes suggestions. It will not set or change your permanent "
+                      "Background.",
+                      200);
   }
 }
 
@@ -3465,6 +3851,8 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
   int region = REGION_NONE;
   int deity = 0;
   int feat = 0;
+  const struct character_creation_background *background_content = NULL;
+  const struct character_creation_homeland *homeland_content = NULL;
 
   if (ch == NULL)
     return;
@@ -3495,6 +3883,7 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
       return;
 
     feat = background_list[background].feat;
+    background_content = character_creation_background_for_value(background);
     json_raw(w, "\"detail\":{");
     json_field_string(w, "id", background_stable_id(background), 64);
     json_raw(w, ",");
@@ -3506,6 +3895,10 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
       json_raw(w, ",");
       json_field_string_truncated(w, "description", background_list[background].desc, 900);
     }
+    build_content_metadata(
+        w, background_content != NULL ? background_content->content_id : NULL,
+        background_content != NULL ? CHARACTER_CREATION_COMPASS_CANON_VERSION : NULL,
+        background_content != NULL ? character_creation_content_provenance() : NULL);
     snprintf(fact_value, sizeof(fact_value), "%s +2, %s +2",
              ability_names[background_list[background].skills[0]],
              ability_names[background_list[background].skills[1]]);
@@ -3520,6 +3913,10 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
       json_field_string(w, "label", "Special ability", 40);
       json_raw(w, ",");
       json_field_string(w, "value", feat_list[feat].name, 120);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Ability effect", 40);
+      json_raw(w, ",");
+      json_field_string_truncated(w, "value", feat_list[feat].description, 400);
       json_raw(w, "}");
     }
     json_raw(w, "],");
@@ -3536,6 +3933,7 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
       return;
 
     roleplay_region_stable_id(region, id, sizeof(id));
+    homeland_content = character_creation_homeland_for_region(region);
     json_raw(w, "\"detail\":{");
     json_field_string(w, "id", id, 64);
     json_raw(w, ",");
@@ -3543,13 +3941,39 @@ static void build_selected_detail(struct json_writer *w, struct descriptor_data 
     json_raw(w, ",");
     json_field_string(w, "mediaKey", roleplay_region_media_key(region), 64);
     json_raw(w, ",");
-    json_field_string(w, "summary",
-                      "Your homeland is a role-play choice and grants its associated language.",
-                      200);
+    json_field_string(
+        w, "summary",
+        homeland_content != NULL
+            ? homeland_content->summary
+            : "Your homeland is a role-play choice and grants its associated language.",
+        300);
+    if (homeland_content != NULL)
+    {
+      json_raw(w, ",");
+      json_field_string_truncated(w, "description", homeland_content->description, 1600);
+      build_content_metadata(w, homeland_content->content_id,
+                             CHARACTER_CREATION_HOMELAND_CANON_VERSION,
+                             homeland_content->provenance);
+    }
     json_raw(w, ",\"facts\":[{");
     json_field_string(w, "label", "Language", 40);
     json_raw(w, ",");
-    json_field_string(w, "value", skill_name(get_region_language(region)), 80);
+    json_field_string(w, "value", get_region_language_name(region), 80);
+    if (homeland_content != NULL)
+    {
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Place kind", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", homeland_content->place_kind, 80);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Geographic parent", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", homeland_content->geographic_parent, 100);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Political sphere", 40);
+      json_raw(w, ",");
+      json_field_string(w, "value", homeland_content->political_sphere, 100);
+    }
     json_raw(w, "}],");
     json_field_string(w, "irreversibleWarning",
                       "A homeland cannot be changed here after it is saved.", 200);
@@ -3633,7 +4057,7 @@ static void build_choices(struct json_writer *w, struct descriptor_data *d,
   case CON_CHARACTER_IDEALS_IDEAS:
   case CON_CHARACTER_BONDS_IDEAS:
   case CON_CHARACTER_FLAWS_IDEAS:
-    build_idea_background_choices(w);
+    build_idea_background_choices(w, screen->state);
     break;
   case CON_CHARACTER_AGE_SELECT:
     build_age_choices(w, d);
@@ -3741,7 +4165,7 @@ static bool build_state_payload(struct descriptor_data *d,
   json_field_string(&writer, "title", screen->title, 100);
   json_raw(&writer, ",");
   json_field_string(&writer, "prompt", screen->prompt, 200);
-  build_short_description_help(&writer, d, screen->state);
+  build_screen_help(&writer, d, screen->state);
   json_raw(&writer, ",");
   json_field_string(&writer, "inputKind", screen->input_kind, 16);
   json_raw(&writer, ",");

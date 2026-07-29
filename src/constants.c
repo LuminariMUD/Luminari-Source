@@ -39,7 +39,7 @@
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)
  * When updating version, update ALL locations above. */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.5026-beta (tbaMUD 3.64)";
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5027-beta (tbaMUD 3.64)";
 
 /* strings corresponding to ordinals/bitvectors in structs.h */
 
@@ -3124,8 +3124,12 @@ const char *languages[] = {
     "northerner", "undercommon",  "gnomish",  "aglarondan", "thorass",    "netherese",
     "alzhedo",    "mulan",        "chultan",  "chondathan", "dambrathan", "halruaan",
     "illuskan",   "damaran",      "shou",     "guran",      "shaaran",    "midani",
+#if !defined(CAMPAIGN_FR)
+    "Ashen Cant", "Sanctine",     "Onduic",   "Seleric",    "Carstani",   "Axtrosi",
+    "Hiri",       "Quechian",     "Vailic",   "Oorpic",     "Tal",        "Ubdinic",
+#endif
     "\n"};
-CHECK_TABLE_SIZE(languages, SKILL_LANG_HIGH - SKILL_LANG_LOW + 2);
+CHECK_TABLE_SIZE(languages, NUM_LANGUAGES + 1);
 
 #endif
 

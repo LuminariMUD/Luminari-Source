@@ -1276,7 +1276,7 @@ int gain_exp(struct char_data *ch, int gain, int mode)
     if (HAS_FEAT(ch, FEAT_ADAPTABILITY))
       gain += (int)((float)gain * .05);
 
-    if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch))
+    if (HAS_FEAT(ch, FEAT_BG_HERMIT) && get_party_size_same_room(ch) == 1)
       gain += (int)((float)gain * .05);
 
 #if defined(CAMPAIGN_DL)

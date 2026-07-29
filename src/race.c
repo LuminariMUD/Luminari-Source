@@ -22,6 +22,7 @@
 #include "feats.h"
 #include "class.h"
 #include "backgrounds.h"
+#include "character_creation_content.h"
 #include "treasure.h"
 #include "spec_procs.h"
 
@@ -534,7 +535,7 @@ void assign_races(void)
       "and Kagonesti. Being proud and arrogant, the Silvanesti"
       "have little use for the members of any other"
       "race, including other elves. Silvanesti are extremely"
-      "prejudiced against the cultures of “inferior”"
+      "prejudiced against the cultures of \"inferior\""
       "people, and are intolerant of other customs"
       "and beliefs. Silvanesti dislike change. Their society"
       "has endured for more than 3,000 years, and"
@@ -647,7 +648,7 @@ void assign_races(void)
       "to the next new day, the next new challenge. "
       "The Qualinesti elves take pride in their abilities, "
       "tending to look with disdain upon the "
-      "“crude” work by the obviously inferior races. "
+      "\"crude\" work by the obviously inferior races. "
       "Although Qualinesti are more tolerant and outgoing "
       "than the Silvanesti and relate well with "
       "other races, the Qualinesti still consider themselves "
@@ -756,7 +757,7 @@ void assign_races(void)
       "circumstances force them to place their own selfpreservation above this"
       "pursuit. Even the threat of imminent demise does not deter kender, for death is"
       "the start of the next truly big adventure. The unquenchable curiosity of kender"
-      "drives them to investigate everything - including other people’s personal"
+      "drives them to investigate everything - including other people's personal"
       "possessions. Kender appropriate absolutely anything that catches their eye."
       "Physical boundaries or notions of privacy are both alien concepts to them,"
       "while the monetary value of an object means nothing to them. They are as likely"
@@ -765,7 +766,7 @@ void assign_races(void)
       "backpacks of those around them. Kender do not consider such appropriation to be"
       "thievery as others understand it (kender are as contemptuous of thieves as the"
       "next person). Kender term this \"handling\" or \"borrowing\" because they firmly"
-      "intend to return what they pilfer to the proper owner. It’s just that with so"
+      "intend to return what they pilfer to the proper owner. It's just that with so"
       "many exciting and wonderful things going on in their lives, they forget to give"
       "things back. Kender are at best bemused and at worst outraged at being accused"
       "of theft or pick-pocketing. Kender always give perfectly reasonable"
@@ -912,7 +913,7 @@ void assign_races(void)
                    "no two gully dwarf clans ever agree on the "
                    "exact details of their origins or history. The commonly "
                    "accepted tale of how gully dwarves came "
-                   "to be is found within the annals of Astinus’s "
+                   "to be is found within the annals of Astinus's "
                    "Iconochronos. According to the Iconochronos, gully "
                    "dwarves are the result of breeding between "
                    "gnomes and dwarves in the years following the "
@@ -1893,7 +1894,7 @@ void assign_races(void)
       "of smell. Depending on their region and fur coloration, tabaxi are known by different "
       "names. Tabaxi with solid spots are sometimes called leopard men and tabaxi with rosette "
       "spots are called jaguar men. The way the tabaxi pronounced their own name also varied; "
-      "the 'leopard men' pronounced it ta-BÆK-see, and the jaguar men tah-BAHSH-ee. ",
+      "the 'leopard men' pronounced it ta-BAEK-see, and the jaguar men tah-BAHSH-ee. ",
       /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Tabaxi.",
       /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Tabaxi.");
   set_race_genders(RACE_TABAXI, N, Y, Y);                      /* n m f */
@@ -2268,7 +2269,7 @@ void assign_races(void)
       "wandering outsiders who happen into their villages. Timid to an extreme, "
       "forest gnomes almost never leave their hidden homes. Compared with other "
       "gnomes, forest gnomes are even more diminutive than is typical of the stunted "
-      "race, rarely growing taller than 2½ feet in height or weighing in over 30 lbs. "
+      "race, rarely growing taller than 21/2 feet in height or weighing in over 30 lbs. "
       "Typically, males are slightly larger than females, at the most by four inches "
       "or five pounds. Unlike other gnomes, forest gnomes generally grow their hair "
       "long and free, feeling neither the need nor desire to shave or trim their hair "
@@ -2322,8 +2323,8 @@ void assign_races(void)
       "gnomes, they were thinking of the rock gnome. Rock gnomes embodied the "
       "characteristics of their creator and patron deity, Garl Glittergold, choosing "
       "to spend their long lives by filling each day with as much fun and enjoyment as "
-      "possible. Rock gnomes were typically between 3 to 3½ ft (0.91‒1.1 m) tall and "
-      "weighed anywhere from 40 to 45 lb (18‒20 kg). They possessed a natural brownish "
+      "possible. Rock gnomes were typically between 3 to 31/2 ft (0.91-1.1 m) tall and "
+      "weighed anywhere from 40 to 45 lb (18-20 kg). They possessed a natural brownish "
       "tint to their skin; the presence or absence of light had little effect upon it. "
       "Young rock gnomes possessed any of a large number of hair colors that faded to "
       "gray or white upon reaching adulthood. Male gnomes typically kept beards "
@@ -2377,8 +2378,8 @@ void assign_races(void)
       "half-orcs have proven themselves from time to time as worthy heroes and  "
       "dangerous villains. Their existence implying an interesting back story that "
       "most would not like to dwell on.  "
-      "Half-orcs were, on average, somewhere from 5'9\" – 6'4\" (1.75 – 1.93 meters) in "
-      "height and usually weigh around 155 – 225 pounds (70 – 102 kg) making them a  "
+      "Half-orcs were, on average, somewhere from 5'9\" - 6'4\" (1.75 - 1.93 meters) in "
+      "height and usually weigh around 155 - 225 pounds (70 - 102 kg) making them a  "
       "little taller and stronger than humans on average. Most half-orcs had grayish  "
       "skin, jutting jaws, prominent teeth, a sloping forehead, and coarse body hair, "
       "which caused them to stand out from their human brethren, though their canines "
@@ -2525,7 +2526,7 @@ void assign_races(void)
   set_race_details(
       RACE_DROW_ELF,
       // description
-      "Drow (pronounced: /draʊ/ drow), also known as dark elves, deep elves, night  "
+      "Drow (pronounced: /drau/ drow), also known as dark elves, deep elves, night  "
       "elves, or sometimes \"The Ones Who Went Below\" on the surface, were a dark-"
       "skinned sub-race of elves that predominantly lived in the Underdark. They "
       "were hated and feared due to their cruelty, though some non-evil and an  "
@@ -2579,7 +2580,7 @@ void assign_races(void)
       "living beneath the sun, but that hatred pales beside their loathing of their surface-dwarf "
       "cousins. Dwarves and Duergar once were one race, but the dwarves left the deeps for their "
       "mountain strongholds. Duergar still consider themselves the only true Dwarves, and the "
-      "rightful heirs of all beneath the world’s surface. In appearance, Duergar resemble gray-"
+      "rightful heirs of all beneath the world's surface. In appearance, Duergar resemble gray-"
       "skinned Dwarves, bearded but bald, with cold, lightless eyes. They favor taking captives "
       "in battle over wanton slaughter, save for surface dwarves, who are slain without "
       "hesitation. "
@@ -2819,28 +2820,29 @@ void assign_races(void)
   add_race(RACE_HALF_ELF, "half elf", "Half Elf", "\twHalf \tYElf\tn", "HElf", "\twH\tYElf\tn",
            /* race-family, size-class, Is PC?, Lvl-Adj, Unlock, Epic? */
            RACE_TYPE_HUMANOID, SIZE_MEDIUM, TRUE, 0, 0, IS_NORMAL);
-  set_race_details(RACE_HALF_ELF,
-                   /*descrip*/
-                   "Elves have long drawn the covetous gazes of other races. Their "
-                   "generous lifespans, magical affinity, and inherent grace each contribute "
-                   "to the admiration or bitter envy of their neighbors. Of all their traits, "
-                   "however, none so entrance their human associates as their beauty. Since "
-                   "the two races first came into contact with each other, humans have held "
-                   "up elves as models of physical perfection, seeing in these fair folk idealized "
-                   "versions of themselves. For their part, many elves find humans attractive "
-                   "despite their comparatively barbaric ways, and are drawn to the passion "
-                   "and impetuosity with which members of the younger race play out their brief "
-                   "lives. Sometimes this mutual infatuation leads to romantic relationships. "
-                   "Though usually short-lived, even by human standards, such trysts may lead "
-                   "to the birth of half-elves, a race descended from two cultures yet inheritor "
-                   "of neither. Half-elves can breed with one another, but even these “pureblood” "
-                   "half-elves tend to be viewed as bastards by humans and elves alike. Caught "
-                   "between destiny and derision, half-elves often view themselves as the middle "
-                   "children of the world.",
-                   /*morph to-char*/
-                   "Your body twists and contorts painfully until your form becomes Half-Elven.",
-                   /*morph to-room*/
-                   "$n's body twists and contorts painfully until $s form becomes Half-Elven.");
+  set_race_details(
+      RACE_HALF_ELF,
+      /*descrip*/
+      "Elves have long drawn the covetous gazes of other races. Their "
+      "generous lifespans, magical affinity, and inherent grace each contribute "
+      "to the admiration or bitter envy of their neighbors. Of all their traits, "
+      "however, none so entrance their human associates as their beauty. Since "
+      "the two races first came into contact with each other, humans have held "
+      "up elves as models of physical perfection, seeing in these fair folk idealized "
+      "versions of themselves. For their part, many elves find humans attractive "
+      "despite their comparatively barbaric ways, and are drawn to the passion "
+      "and impetuosity with which members of the younger race play out their brief "
+      "lives. Sometimes this mutual infatuation leads to romantic relationships. "
+      "Though usually short-lived, even by human standards, such trysts may lead "
+      "to the birth of half-elves, a race descended from two cultures yet inheritor "
+      "of neither. Half-elves can breed with one another, but even these \"pureblood\" "
+      "half-elves tend to be viewed as bastards by humans and elves alike. Caught "
+      "between destiny and derision, half-elves often view themselves as the middle "
+      "children of the world.",
+      /*morph to-char*/
+      "Your body twists and contorts painfully until your form becomes Half-Elven.",
+      /*morph to-room*/
+      "$n's body twists and contorts painfully until $s form becomes Half-Elven.");
   set_race_genders(RACE_HALF_ELF, N, Y, Y);                      /* n m f */
   set_race_abilities(RACE_HALF_ELF, 0, 0, 0, 0, 0, 2);           /* str con int wis dex cha */
   set_race_alignments(RACE_HALF_ELF, Y, Y, Y, Y, Y, Y, Y, Y, Y); /* law-good -> cha-evil */
@@ -3041,7 +3043,7 @@ void assign_races(void)
       "of smell. Depending on their region and fur coloration, tabaxi are known by different "
       "names. Tabaxi with solid spots are sometimes called leopard men and tabaxi with rosette "
       "spots are called jaguar men. The way the tabaxi pronounced their own name also varied; "
-      "the 'leopard men' pronounced it ta-BÆK-see, and the jaguar men tah-BAHSH-ee. ",
+      "the 'leopard men' pronounced it ta-BAEK-see, and the jaguar men tah-BAHSH-ee. ",
       /*morph to-char*/ "Your body twists and contorts painfully until your form becomes a Tabaxi.",
       /*morph to-room*/ "$n's body twists and contorts painfully until $s form becomes a Tabaxi.");
   set_race_genders(RACE_TABAXI, N, Y, Y);                      /* n m f */
@@ -3345,7 +3347,7 @@ void assign_races(void)
       "wandering outsiders who happen into their villages. Timid to an extreme, "
       "forest gnomes almost never leave their hidden homes. Compared with other "
       "gnomes, forest gnomes are even more diminutive than is typical of the stunted "
-      "race, rarely growing taller than 2½ feet in height or weighing in over 30 lbs. "
+      "race, rarely growing taller than 21/2 feet in height or weighing in over 30 lbs. "
       "Typically, males are slightly larger than females, at the most by four inches "
       "or five pounds. Unlike other gnomes, forest gnomes generally grow their hair "
       "long and free, feeling neither the need nor desire to shave or trim their hair "
@@ -3394,14 +3396,14 @@ void assign_races(void)
       RACE_HALF_ORC,
       /*descrip*/
       "As seen by civilized races, half-orcs are monstrosities, the result "
-      "of perversion and violence—whether or not this is actually true. Half-orcs "
+      "of perversion and violence-whether or not this is actually true. Half-orcs "
       "are rarely the result of loving unions, and as such are usually forced to "
       "grow up hard and fast, constantly fighting for protection or to make names "
       "for themselves. Half-orcs as a whole resent this treatment, and rather than "
       "play the part of the victim, they tend to lash out, unknowingly confirming "
       "the biases of those around them. A few feared, distrusted, and spat-upon "
       "half-orcs manage to surprise their detractors with great deeds and unexpected "
-      "wisdom—though sometimes it's easier just to crack a few skulls. Some half-orcs "
+      "wisdom-though sometimes it's easier just to crack a few skulls. Some half-orcs "
       "spend their entire lives proving to full-blooded orcs that they are just as "
       "fierce. Others opt for trying to blend into human society, constantly demonstrating "
       "that they aren't monsters. Their need to always prove themselves worthy "
@@ -3588,7 +3590,7 @@ void assign_races(void)
       "living beneath the sun, but that hatred pales beside their loathing of their surface-dwarf "
       "cousins. Dwarves and Duergar once were one race, but the dwarves left the deeps for their "
       "mountain strongholds. Duergar still consider themselves the only true Dwarves, and the "
-      "rightful heirs of all beneath the world’s surface. In appearance, Duergar resemble gray-"
+      "rightful heirs of all beneath the world's surface. In appearance, Duergar resemble gray-"
       "skinned Dwarves, bearded but bald, with cold, lightless eyes. They favor taking captives "
       "in battle over wanton slaughter, save for surface dwarves, who are slain without "
       "hesitation. "
@@ -5625,7 +5627,7 @@ const char *get_region_info(int region)
            "neighbours in Solamnia.";
   case REGION_KHUR:
     return "Khur is a Human nomadic nation that is located southeast of Taman Busuk, northeast of "
-           "Blöde, west of the Ogrelands, north of Silvanesti, and east of Thoradin. It is a "
+           "Blode, west of the Ogrelands, north of Silvanesti, and east of Thoradin. It is a "
            "mountainous and desert region with scattered oases & shrubs that are usually "
            "controlled by one of the Khur tribes there. Geographical features include the Khalkist "
            "Mountains in the west and north, the Burning Lands in southern Khur, and the Khurman "
@@ -5786,7 +5788,7 @@ const char *get_region_info(int region)
            "border with Nightlund, Elkholm and Heartlund south of Plains of Solamnia, and "
            "Southlund southwest of Heartlund. In Southlund, in the area are Caergoth, the area is "
            "known for very violent thunderstorms. From Coastlund in the west, to Hinterlund in the "
-           "east, live a variety of people—mostly humans, but small bands of ogres and draconians "
+           "east, live a variety of people-mostly humans, but small bands of ogres and draconians "
            "are far too common. Originally located in the center of the Ansalonian continent, "
            "Solamnia is now very much a sea-going state because the Cataclysm dumped three oceans "
            "around its borders. In the years following the Cataclysm, the commoners of Solamnia "
@@ -6030,7 +6032,7 @@ const char *get_region_info(int region)
            "Faerunians, styled after the vast Tuigan horde that roared out of the east and rode "
            "against Faerun more than a century ago. After these tribesfolk were defeated, some of "
            "the fierce, mounted warriors who survived the conflict gathered to form the small "
-           "nation of Yaïmunnahar. Some others cling to the old ways, mastering the sword and the "
+           "nation of Yaimunnahar. Some others cling to the old ways, mastering the sword and the "
            "bow and riding across the steppes on their short-legged horses. Brave merchants still "
            "traverse the Golden Way to and from Kara-Tur, but those who return from such a voyage "
            "are fewer than they once were.";
@@ -6265,10 +6267,15 @@ const char *get_region_info(int region)
   return "Undefined";
 }
 #else
-/* Default LuminariMUD campaign - region info not yet implemented */
-const char *get_region_info(int region __attribute__((unused)))
+const char *get_region_info(int region)
 {
-  return "This region's detailed information is not yet available.";
+  const struct character_creation_homeland *homeland =
+      character_creation_homeland_for_region(region);
+
+  if (homeland == NULL)
+    return "That homeland is not available.";
+
+  return homeland->description;
 }
 #endif
 #if defined(CAMPAIGN_DL)
@@ -6340,91 +6347,103 @@ int get_region_language(int region)
   {
   case REGION_AGLAROND:
   case REGION_WESTGATE:
-    return SKILL_LANG_AGLARONDAN;
+    return SKILL_LANG_AGLARONDAN - SKILL_LANG_LOW;
 
   case REGION_AMN:
-    return SKILL_LANG_THORASS;
+    return SKILL_LANG_THORASS - SKILL_LANG_LOW;
 
   case REGION_ANAUROCH_DESERT:
-    return SKILL_LANG_NETHERESE;
+    return SKILL_LANG_NETHERESE - SKILL_LANG_LOW;
 
   case REGION_CALIMSHAN:
   case REGION_TETHYR:
-    return SKILL_LANG_ALZHEDO;
+    return SKILL_LANG_ALZHEDO - SKILL_LANG_LOW;
 
   case REGION_CHESSENTA:
   case REGION_THAY:
   case REGION_MULHORAND:
-    return SKILL_LANG_MULAN;
+    return SKILL_LANG_MULAN - SKILL_LANG_LOW;
 
   case REGION_CHULT:
-    return SKILL_LANG_CHULTAN;
+    return SKILL_LANG_CHULTAN - SKILL_LANG_LOW;
 
   case REGION_CORMYR:
   case REGION_LURUAR:
   case REGION_SEMBIA:
   case REGION_THE_DALELANDS:
-    return SKILL_LANG_CHONDATHAN;
+    return SKILL_LANG_CHONDATHAN - SKILL_LANG_LOW;
 
   case REGION_DAMBRATH:
-    return SKILL_LANG_DAMBRATHAN;
+    return SKILL_LANG_DAMBRATHAN - SKILL_LANG_LOW;
 
   case REGION_ELFHARROW:
   case REGION_EVERMEET:
-    return SKILL_LANG_ELVEN;
+    return SKILL_LANG_ELVEN - SKILL_LANG_LOW;
 
   case REGION_HALRUAA:
-    return SKILL_LANG_HALRUAAN;
+    return SKILL_LANG_HALRUAAN - SKILL_LANG_LOW;
 
   case REGION_ICEWIND_DALE:
   case REGION_THE_SWORD_COAST:
   case REGION_THE_SAVAGE_FRONTIER:
-    return SKILL_LANG_ILLUSKAN;
+    return SKILL_LANG_ILLUSKAN - SKILL_LANG_LOW;
 
   case REGION_IMPILTUR:
   case REGION_THESK:
   case REGION_THE_COLD_LANDS:
   case REGION_THE_MOONSEA:
-    return SKILL_LANG_DAMARAN;
+    return SKILL_LANG_DAMARAN - SKILL_LANG_LOW;
 
   case REGION_KARA_TUR:
-    return SKILL_LANG_SHOU;
+    return SKILL_LANG_SHOU - SKILL_LANG_LOW;
 
   case REGION_LUIREN:
-    return SKILL_LANG_HALFLING;
+    return SKILL_LANG_HALFLING - SKILL_LANG_LOW;
 
   case REGION_RASHEMEN:
-    return SKILL_LANG_RASHEMI;
+    return SKILL_LANG_RASHEMI - SKILL_LANG_LOW;
 
   case REGION_THE_UNDERDARK:
-    return SKILL_LANG_UNDERCOMMON;
+    return SKILL_LANG_UNDERCOMMON - SKILL_LANG_LOW;
 
   case REGION_THE_HORDELANDS:
-    return SKILL_LANG_GURAN;
+    return SKILL_LANG_GURAN - SKILL_LANG_LOW;
 
   case REGION_THE_LAKE_OF_STEAM:
   case REGION_TURMISH:
   case REGION_UNTHER:
-    return SKILL_LANG_SHAARAN;
+    return SKILL_LANG_SHAARAN - SKILL_LANG_LOW;
 
   case REGION_TYMANTHER:
-    return SKILL_LANG_DRACONIC;
+    return SKILL_LANG_DRACONIC - SKILL_LANG_LOW;
 
   case REGION_ZAKHARA:
-    return SKILL_LANG_MIDANI;
+    return SKILL_LANG_MIDANI - SKILL_LANG_LOW;
 
   default:
-    return SKILL_LANG_COMMON;
+    return LANG_COMMON;
   }
-  return SKILL_LANG_COMMON;
-}
-#else
-/* Default LuminariMUD campaign - region language not yet implemented */
-int get_region_language(int region __attribute__((unused)))
-{
   return LANG_COMMON;
 }
+#else
+int get_region_language(int region)
+{
+  const struct character_creation_homeland *homeland =
+      character_creation_homeland_for_region(region);
+
+  return homeland != NULL ? homeland->language : LANG_COMMON;
+}
 #endif
+
+const char *get_region_language_name(int region)
+{
+  int language = get_region_language(region);
+
+  if (language < LANG_COMMON || language >= NUM_LANGUAGES)
+    return "Unknown";
+
+  return languages[language];
+}
 
 bool is_furry(int race)
 {

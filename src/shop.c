@@ -111,8 +111,8 @@ static int ok_shop_room(int shop_nr, room_vnum room);
 static int add_to_shop_list(struct shop_buy_data *list, int type, int *len, int *val);
 static int end_read_list(struct shop_buy_data *list, int len, int error);
 static void read_line(FILE *shop_f, const char *string, void *data);
-static void format_shop_message(char *dest, size_t dest_size, const char *message,
-                                const char *name, int amount);
+static void format_shop_message(char *dest, size_t dest_size, const char *message, const char *name,
+                                int amount);
 
 /* Local file scope only variables */
 static int cmd_say;
@@ -124,8 +124,8 @@ static int cmd_shake;
 /* config arrays */
 static const char *operator_str[] = {"[({", "])}", "|+", "&*", "^'"};
 
-static void format_shop_message(char *dest, size_t dest_size, const char *message,
-                                const char *name, int amount)
+static void format_shop_message(char *dest, size_t dest_size, const char *message, const char *name,
+                                int amount)
 {
   const char *cursor = message;
   const char *replacement = NULL;
@@ -171,9 +171,27 @@ static void format_shop_message(char *dest, size_t dest_size, const char *messag
   dest[used] = '\0';
 }
 
+bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, bool has_noble)
+{
+  if (IS_SET(shop_flags, BLACK_MARKET_SHOP) && !has_criminal)
+    return FALSE;
+  if (IS_SET(shop_flags, NOBLE_SHOP) && !has_noble)
+    return FALSE;
+  return TRUE;
+}
+
+float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying)
+{
+  if (!eligible || !in_hometown)
+    return 1.0f;
+  return buying ? 0.90f : 1.10f;
+}
+
 static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_nr)
 {
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  bool has_criminal = HAS_FEAT(ch, FEAT_BG_CRIMINAL);
+  bool has_noble = HAS_FEAT(ch, FEAT_BG_NOBLE);
 
   if (!CAN_SEE(keeper, ch))
   {
@@ -184,14 +202,16 @@ static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_n
   if (IS_STAFF(ch))
     return (TRUE);
 
-  if (IS_SET(SHOP_BITVECTOR(shop_nr), BLACK_MARKET_SHOP) && !HAS_FEAT(ch, FEAT_BG_CRIMINAL))
+  if (!shop_background_access_allowed(SHOP_BITVECTOR(shop_nr), has_criminal, has_noble) &&
+      IS_SET(SHOP_BITVECTOR(shop_nr), BLACK_MARKET_SHOP) && !has_criminal)
   {
     snprintf(buf, sizeof(buf), "%s I don't know what you're talking about.", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
     return (FALSE);
   }
 
-  if (IS_SET(SHOP_BITVECTOR(shop_nr), BLACK_MARKET_SHOP) && !HAS_FEAT(ch, FEAT_BG_NOBLE))
+  if (!shop_background_access_allowed(SHOP_BITVECTOR(shop_nr), has_criminal, has_noble) &&
+      IS_SET(SHOP_BITVECTOR(shop_nr), NOBLE_SHOP) && !has_noble)
   {
     snprintf(buf, sizeof(buf), "%s I'm sorry, we only serve the aristocracy.", GET_NAME(ch));
     do_tell(keeper, buf, cmd_tell, 0);
@@ -579,12 +599,12 @@ static int buy_price(struct obj_data *obj, int shop_nr, struct char_data *seller
 
   modifiers = ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
   modifiers -= ((float)GET_CHA(buyer)) + ((float)compute_ability(buyer, ABILITY_APPRAISE));
-  if (is_in_hometown(buyer) &&
-      (HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) || HAS_FEAT(buyer, FEAT_BG_NOBLE)))
-    modifiers -= 10;
   price = 1.0 + modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_BUYPROFIT(shop_nr);
+  price *= shop_background_hometown_price_multiplier(HAS_FEAT(buyer, FEAT_BG_FOLK_HERO) ||
+                                                         HAS_FEAT(buyer, FEAT_BG_NOBLE),
+                                                     is_in_hometown(buyer), TRUE);
 
   price = MAX(1, price);
 
@@ -604,12 +624,12 @@ static int sell_price(struct obj_data *obj, int shop_nr, struct char_data *keepe
 
   modifiers = ((float)GET_CHA(keeper)) + ((float)compute_ability(keeper, ABILITY_APPRAISE));
   modifiers -= ((float)GET_CHA(seller)) + ((float)compute_ability(seller, ABILITY_APPRAISE));
-  if (is_in_hometown(seller) &&
-      (HAS_FEAT(seller, FEAT_BG_FOLK_HERO) || HAS_FEAT(seller, FEAT_BG_NOBLE)))
-    modifiers -= 10;
   price = 1.0 - modifiers / 70.0;
   price *= (float)GET_OBJ_COST(obj);
   price *= (float)SHOP_SELLPROFIT(shop_nr);
+  price *= shop_background_hometown_price_multiplier(HAS_FEAT(seller, FEAT_BG_FOLK_HERO) ||
+                                                         HAS_FEAT(seller, FEAT_BG_NOBLE),
+                                                     is_in_hometown(seller), FALSE);
 
   if (price > buying_price)
     price = buying_price;

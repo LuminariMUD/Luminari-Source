@@ -5882,30 +5882,30 @@ void assign_feats(void)
         "Gain access to the 'entertain' command, allowing them to perform for gold and potentially "
         "a random item, as well as a buff to a few skills.");
   feato(FEAT_BG_FOLK_HERO, "folk hero background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+        "Gain access to the hometown-only 'tribute' command, which can award coins and an item. "
+        "Buying costs 10% less and selling pays 10% more in the character's hometown.",
         "Gain access to the 'tribute' command, allowing for a small reward of coins and "
-        "potentially a random item, only usable in the"
-        "folk-hero's home town. Also gain +10% when buying or selling in their home town.",
-        "Gain access to the 'tribute' command, allowing for a small reward of coins and "
-        "potentially a random item, only usable in the"
-        "folk-hero's home town. Also gain +10% when buying or selling in their home town.");
+        "potentially a random item, only usable in the folk hero's hometown. Buying costs 10% "
+        "less and selling pays 10% more there.");
   feato(FEAT_BG_GLADIATOR, "gladiator background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
         "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)",
         "Gains +1 to attack and damage rolls when fighting in an allied area (must be clanned)");
   feato(FEAT_BG_TRADER, "trader background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
         "Gains +1 to all crafting skills.", "Gains +1 to all crafting skills.");
   feato(FEAT_BG_HERMIT, "hermit background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
-        "+1 to damage and +5% experience when fighting alone.",
-        "+1 to damage and +5% experience when fighting alone.");
+        "+1 damage and +5% experience while genuinely alone, with no companion present.",
+        "+1 damage and +5% experience while genuinely alone, with no companion present.");
   feato(FEAT_BG_NOBLE, "noble background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
-        "Gains/Saves +10% gold from selling or buying items in their home town and has access to "
-        "Noble-only shops.",
-        "Gains/Saves +10% gold from selling or buying items in their home town and has access to "
-        "Noble-only shops.");
+        "Buying costs 10% less and selling pays 10% more in the character's hometown. Noble-only "
+        "shops also recognize the character.",
+        "Buying costs 10% less and selling pays 10% more in the character's hometown. Noble-only "
+        "shops also recognize the character.");
   feato(FEAT_BG_OUTLANDER, "outlander background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
         "+5 to forage checks and +20 hit points.", "+5 to forage checks and +20 hit points.");
-  feato(FEAT_BG_PIRATE, "pirate background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
-        "Can use the 'extort' command to intimdate people out of money and sometimes items.",
-        "Can use the 'extort' command to intimdate people out of money and sometimes items.");
+  feato(
+      FEAT_BG_PIRATE, "pirate background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+      "Can use the 'extort' command to intimidate eligible people for money and sometimes items.",
+      "Can use the 'extort' command to intimidate eligible people for money and sometimes items.");
   feato(FEAT_BG_SAGE, "sage background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
         "When successfully using lore command on a mob, the sage's party receives a +1 to hit and "
         "damage against that mob. Also gains a +2 bonus to lore checks on items.",
@@ -5917,13 +5917,17 @@ void assign_feats(void)
         "Sailing is free and takes 1/2 as much time. Gain +1 to hit, damage and armor class when "
         "in water. +5 to fishing skill.");
   feato(FEAT_BG_SOLDIER, "soldier background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
-        "Gains +1 to hitroll and armor class when grouped with another soldier.",
-        "Gains +1 to hitroll and armor class when grouped with another soldier.");
+        "Gains +1 to hit rolls and armor class while an actual grouped companion is present.",
+        "Gains +1 to hit rolls and armor class while an actual grouped companion is present. The "
+        "companion does not need the Soldier background.");
   feato(FEAT_BG_SQUIRE, "squire background", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
         "Gains access to a hired retainer that can sell items or deliver a message, using the "
         "'retainer' command.",
         "Gains access to a hired retainer that can sell items or deliver a message, using the "
         "'retainer' command.");
+  feato(FEAT_BG_URCHIN, "streetwise survivor", TRUE, FALSE, FALSE, FEAT_TYPE_BACKGROUND,
+        "Gains +1 competence armor class while in the character's hometown.",
+        "Gains +1 competence armor class while in the character's hometown.");
 
   feato(FEAT_IMPROVED_SPELL_RESISTANCE, "improved spell resistance", TRUE, TRUE, TRUE,
         FEAT_TYPE_GENERAL, "+2 to spell resistance", "+2 to spell resistance");
@@ -6401,7 +6405,8 @@ int critical_feat_total(struct char_data *ch)
 
 /* The follwing function is used to check if the character satisfies the various prerequisite(s) (if any)
    of a feat in order to learn it. */
-int feat_is_available(struct char_data *ch, int featnum, int iarg, char *sarg __attribute__((unused)))
+int feat_is_available(struct char_data *ch, int featnum, int iarg,
+                      char *sarg __attribute__((unused)))
 {
   struct feat_prerequisite *prereq = NULL;
 

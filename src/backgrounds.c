@@ -19,6 +19,7 @@
 #include "clan.h"
 #include "dg_scripts.h"
 #include "feats.h"
+#include "character_creation_content.h"
 
 int background_sort_info[NUM_BACKGROUNDS];
 struct background_data background_list[NUM_BACKGROUNDS];
@@ -190,6 +191,10 @@ void initialize_background_list(void)
 
 void assign_backgrounds(void)
 {
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  int i = 0;
+#endif
+
   initialize_background_list();
 
   backgroundo(
@@ -347,6 +352,44 @@ void assign_backgrounds(void)
               "or a place to recuperate. You've survived despite all odds, and did so through "
               "cunning, strength, "
               "speed, or some combination of each.");
+
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+  for (i = 1; i < NUM_BACKGROUNDS; i++)
+  {
+    const struct character_creation_background *content =
+        character_creation_background_for_value(i);
+
+    if (content != NULL && content->biography != NULL)
+      background_list[i].desc = content->biography;
+  }
+#endif
+}
+
+/*
+ * Apply one-time effects that alter stored character totals. The persistent
+ * marker protects respec/start paths and reconnects from stacking the bonus.
+ */
+void apply_background_permanent_effects(struct char_data *ch)
+{
+  if (ch == NULL || IS_NPC(ch) || BACKGROUND_EFFECTS_APPLIED(ch))
+    return;
+
+  if (GET_BACKGROUND(ch) == BACKGROUND_OUTLANDER)
+  {
+    GET_REAL_MAX_HIT(ch) += 20;
+    if (GET_LEVEL(ch) > 0)
+    {
+      GET_MAX_HIT(ch) += 20;
+      GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 20);
+    }
+  }
+
+  BACKGROUND_EFFECTS_APPLIED(ch) = TRUE;
+}
+
+int background_forage_check_bonus(bool has_outlander)
+{
+  return has_outlander ? 5 : 0;
 }
 
 #define TEMPLE_COST_CURE 100
@@ -1081,8 +1124,7 @@ ACMD(do_relay)
     return;
   }
 
-  snprintf(buf, sizeof(buf), "%s\n\nSigned by: %s\n",
-           strfrmt((char *)argument, 80, 1, FALSE, FALSE, FALSE),
+  snprintf(buf, sizeof(buf), "%s\n\nSigned by: %s\n", strfrmt(arg2, 80, 1, FALSE, FALSE, FALSE),
            ch->player_specials->forge_as_signature ? ch->player_specials->forge_as_signature
                                                    : GET_NAME(ch));
 
@@ -1109,7 +1151,10 @@ ACMD(do_relay)
 
   ch->player_specials->forge_check = 0;
   if (ch->player_specials->forge_as_signature)
+  {
     free(ch->player_specials->forge_as_signature);
+    ch->player_specials->forge_as_signature = NULL;
+  }
 
   act("You hand $p to a street urchin, who runs off to find your contact.", FALSE, 0, obj, ch,
       TO_CHAR);
@@ -1128,6 +1173,7 @@ ACMD(do_forage)
   if (IS_NPC(ch))
   {
     send_to_char(ch, "NPCs cannot forage.\r\n");
+    return;
   }
 
   if (GET_FORAGE_COOLDOWN(ch) > 0)
@@ -1143,6 +1189,7 @@ ACMD(do_forage)
   }
 
   skill = compute_ability(ch, ABILITY_NATURE);
+  skill += background_forage_check_bonus(HAS_FEAT(ch, FEAT_BG_OUTLANDER));
   dc = 15;
   roll = d20(ch);
   result = roll + skill - dc;
@@ -1389,6 +1436,7 @@ ACMD(do_shortcut)
 
   if (atoi(arg1) > 0)
   {
+    rvnum = atoi(arg1);
     target_room = real_room(rvnum);
   }
   else

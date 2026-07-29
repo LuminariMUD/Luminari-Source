@@ -390,10 +390,11 @@ void assign_class_saves(int class_num, int save_fort, int save_refl, int save_wi
  or class-skill */
 void assign_class_abils(int class_num, int acrobatics, int stealth, int perception, int heal,
                         int intimidate, int concentration, int spellcraft, int appraise,
-                        int discipline, int total_defense, int lore __attribute__((unused)), int ride, int climb,
-                        int sleight_of_hand, int bluff, int diplomacy, int disable_device,
-                        int disguise, int escape_artist, int handle_animal, int sense_motive,
-                        int survival __attribute__((unused)), int swim __attribute__((unused)), int use_magic_device, int perform)
+                        int discipline, int total_defense, int lore __attribute__((unused)),
+                        int ride, int climb, int sleight_of_hand, int bluff, int diplomacy,
+                        int disable_device, int disguise, int escape_artist, int handle_animal,
+                        int sense_motive, int survival __attribute__((unused)),
+                        int swim __attribute__((unused)), int use_magic_device, int perform)
 {
   class_list[class_num].class_abil[ABILITY_ACROBATICS] = acrobatics;
   class_list[class_num].class_abil[ABILITY_STEALTH] = stealth;
@@ -797,7 +798,8 @@ void display_all_classes(struct char_data *ch)
 }
 
 /* determines if ch qualifies for a class */
-bool class_is_available(struct char_data *ch, int classnum, int iarg, char *sarg __attribute__((unused)))
+bool class_is_available(struct char_data *ch, int classnum, int iarg,
+                        char *sarg __attribute__((unused)))
 {
   struct class_prerequisite *prereq = NULL;
   int i = 0, max_class_level = CLSLIST_MAXLVL(classnum);
@@ -920,15 +922,9 @@ bool display_region_info(struct char_data *ch, int region)
 
   char buf[MAX_STRING_LENGTH];
 
-  int region_language = get_region_language(region);
-#if defined(CAMPAIGN_FR)
-  region_language -= SKILL_LANG_LOW;
-#endif
-  snprintf(buf, sizeof(buf), "%s", languages[region_language]);
-
   /* This we will need to buffer and wrap so that it will fit in the space provided. */
   send_to_char(ch, "\tc%s\r\n", regions[region]);
-  send_to_char(ch, "\tcLanguage: \tn%s\r\n", buf);
+  send_to_char(ch, "\tcLanguage: \tn%s\r\n", get_region_language_name(region));
   send_to_char(ch, "\tcDescription: \tn\r\n");
   snprintf(buf, sizeof(buf), "%s", get_region_info(region));
   send_to_char(ch, "%s", strfrmt(buf, 80, 1, FALSE, FALSE, FALSE));
@@ -1216,7 +1212,8 @@ void display_imm_classlist(struct char_data *ch)
     {
       len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", CLSLIST_TITLE(i, j));
     }
-    len = snprintf_append(buf, sizeof(buf), len, "============================================\r\n");
+    len =
+        snprintf_append(buf, sizeof(buf), len, "============================================\r\n");
   }
   page_string(ch->desc, buf, 1);
 }
@@ -3077,8 +3074,7 @@ void init_start_char(struct char_data *ch)
     break;
   }
 
-  if (HAS_FEAT(ch, FEAT_BG_OUTLANDER))
-    GET_REAL_MAX_HIT(ch) += 20;
+  apply_background_permanent_effects(ch);
 
   /* warrior bonus */
   if (GET_CLASS(ch) == CLASS_WARRIOR)
@@ -3860,7 +3856,8 @@ int backstab_mult(struct char_data *ch)
 
 // used by handler.c, completely depreacted function right now
 
-int invalid_class(struct char_data *ch __attribute__((unused)), struct obj_data *obj __attribute__((unused)))
+int invalid_class(struct char_data *ch __attribute__((unused)),
+                  struct obj_data *obj __attribute__((unused)))
 {
   return FALSE;
 }
@@ -4100,7 +4097,7 @@ void load_class_list(void)
          /*Descrip*/
          "Beyond the veil of the mundane hide the secrets of absolute "
          "power. The works of beings beyond mortals, the legends of realms where titans "
-         "and spirits tread, the lore of creations both wondrous and terrible—such "
+         "and spirits tread, the lore of creations both wondrous and terrible-such "
          "mysteries call to those with the ambition and the intellect to rise above "
          "the common folk to grasp true might. Such is the path of the wizard. These "
          "shrewd magic-users seek, collect, and covet esoteric knowledge, drawing on "
@@ -5011,7 +5008,7 @@ void load_class_list(void)
          /*primary attributes*/ "Wisdom, Con/Dex for survivability, Str for combat",
          /*descrip*/
          "For the truly exemplary, martial skill transcends the "
-         "battlefield—it is a lifestyle, a doctrine, a state of mind. These warrior-"
+         "battlefield-it is a lifestyle, a doctrine, a state of mind. These warrior-"
          "artists search out methods of battle beyond swords and shields, finding "
          "weapons within themselves just as capable of crippling or killing as any "
          "blade. These monks (so called since they adhere to ancient philosophies and "
@@ -5376,7 +5373,7 @@ void load_class_list(void)
       "For some, there is only rage. In the ways of their people, in "
       "the fury of their passion, in the howl of battle, conflict is all these brutal "
       "souls know. Savages, hired muscle, masters of vicious martial techniques, they "
-      "are not soldiers or professional warriors—they are the battle possessed, "
+      "are not soldiers or professional warriors-they are the battle possessed, "
       "creatures of slaughter and spirits of war. Known as berserkers, these warmongers "
       "know little of training, preparation, or the rules of warfare; for them, only "
       "the moment exists, with the foes that stand before them and the knowledge that "
@@ -6269,7 +6266,7 @@ void load_class_list(void)
          "and monster alike, gaining insight into the way of the predator, skill in "
          "varied environments, and ever more lethal martial prowess. While some track "
          "man-eating creatures to protect the frontier, others pursue more cunning "
-         "game—even fugitives among their own people.");
+         "game-even fugitives among their own people.");
   /* class-number then saves: fortitude, reflex, will, poison, death */
   assign_class_saves(CLASS_RANGER, G, B, B, B, B);
   assign_class_abils(CLASS_RANGER, /* class number */

@@ -126,6 +126,7 @@ bool is_poison_spell(int spell);
 bool valid_vampire_cloak_apply(int type);
 bool is_valid_ability_number(int num);
 int get_region_language(int region);
+const char *get_region_language_name(int region);
 bool is_valid_apply(int apply);
 int max_bonus_modifier(int location, int bonus_type);
 bool has_intro(struct char_data *ch, struct char_data *target);
@@ -908,8 +909,7 @@ void char_from_furniture(struct char_data *ch);
 #ifndef VALID_ROOM_RNUM
 #if CIRCLE_UNSIGNED_INDEX
 /* For unsigned types, no need to check >= 0 */
-#define VALID_ROOM_RNUM(rnum)                                                                \
-  ((room_rnum)(rnum) != NOWHERE && (room_rnum)(rnum) <= top_of_world)
+#define VALID_ROOM_RNUM(rnum) ((room_rnum)(rnum) != NOWHERE && (room_rnum)(rnum) <= top_of_world)
 #else
 /* For signed types, check >= 0 */
 #define VALID_ROOM_RNUM(rnum) ((rnum) != NOWHERE && (rnum) >= 0 && (rnum) <= top_of_world)
@@ -1413,7 +1413,7 @@ void char_from_furniture(struct char_data *ch);
 #define GET_HOST(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->host))
 #define GET_LAST_MOTD(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.lastmotd))
 #define GET_LAST_NEWS(ch) CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.lastnews))
-#define GET_QUIT_SURVEY_DONE(ch)                                                                \
+#define GET_QUIT_SURVEY_DONE(ch)                                                                   \
   CHECK_PLAYER_SPECIAL((ch), ((ch)->player_specials->saved.quit_survey_completed))
 
 /** Get channel history i for ch. */
@@ -2980,6 +2980,8 @@ bool has_reach(struct char_data *ch);
 #define HAS_ACTIVATED_SPELLS(obj) (obj->activate_spell[0] <= 0 ? FALSE : TRUE)
 
 #define GET_BACKGROUND(ch) (ch->player_specials->saved.background_type)
+#define BACKGROUND_EFFECTS_APPLIED(ch) (ch->player_specials->saved.background_effects_applied)
+#define CREATION_STAGE(ch) (ch->player_specials->saved.creation_stage)
 #define HAS_BACKGROUND(ch, i)                                                                      \
   (GET_LEVEL(ch) >= LVL_IMMORT ? TRUE : ch->player_specials->saved.background_type == i)
 

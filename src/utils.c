@@ -4003,8 +4003,8 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
       if (offset < list_length)
       {
         if (show_nums)
-          temp_len = snprintf(entry, sizeof(entry), "%2d) %-*s", offset + 1, col_width,
-                              list[offset]);
+          temp_len =
+              snprintf(entry, sizeof(entry), "%2d) %-*s", offset + 1, col_width, list[offset]);
         else
           temp_len = snprintf(entry, sizeof(entry), "%-*s", col_width, list[offset]);
         if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
@@ -4090,11 +4090,11 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
         highlight = highlight_apply_by_obj(obj, offset);
 
         if (show_nums)
-          temp_len = snprintf(entry, sizeof(entry), "%s%2d) %-*s\tn",
-                              highlight ? "\tC" : "", offset + 1, col_width, list[offset]);
+          temp_len = snprintf(entry, sizeof(entry), "%s%2d) %-*s\tn", highlight ? "\tC" : "",
+                              offset + 1, col_width, list[offset]);
         else
-          temp_len = snprintf(entry, sizeof(entry), "%s%-*s\tn", highlight ? "\tC" : "",
-                              col_width, list[offset]);
+          temp_len = snprintf(entry, sizeof(entry), "%s%-*s\tn", highlight ? "\tC" : "", col_width,
+                              list[offset]);
         if (temp_len < 0 || (size_t)temp_len >= sizeof(entry) ||
             strlcat(buf, entry, sizeof(buf)) >= sizeof(buf))
         {
@@ -10556,6 +10556,8 @@ bool is_grouped_with_soldier(struct char_data *ch)
     return false;
 
   if (!HAS_FEAT(ch, FEAT_BG_SOLDIER))
+    return false;
+  if (GROUP(ch) == NULL)
     return false;
 
   for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)

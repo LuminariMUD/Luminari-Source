@@ -5021,7 +5021,7 @@
  * but if you do, you incur all the normal attack penalties associated with
  * fighting with two weapons, just as if you were using a one-handed weapon and
  * a light weapon. You can choose to wield one end of a double weapon two-handed,
- * but it cannot be used as a double weapon when wielded in this way—only one
+ * but it cannot be used as a double weapon when wielded in this way-only one
  * end of the weapon can be used in any given round. */
 #define WEAPON_FLAG_DOUBLE (1 << 8)
 /* Disarm: When you use a disarm weapon, you get a +2 bonus on Combat Maneuver
@@ -5076,7 +5076,7 @@
  * grapple the target with a grappling weapon, you can only move or damage the
  * creature on your turn. You are still considered grappled, though you do not
  * have to be adjacent to the creature to continue the grapple. If you move far
- * enough away to be out of the weapon’s reach, you end the grapple with that
+ * enough away to be out of the weapon's reach, you end the grapple with that
  * action. Source: Ultimate Combat. */
 #define WEAPON_FLAG_GRAPPLING (1 << 22)
 /* Performance: When wielding this weapon, if an attack or combat maneuver made
@@ -5088,7 +5088,7 @@
  * users. All such weapons are made with a particular Strength rating (that is,
  * each requires a minimum Strength modifier to use with proficiency and this
  * number is included in parenthesis). If your Strength bonus is less than the
- * strength rating of the weapon, you can't effectively use it, so you take a –2
+ * strength rating of the weapon, you can't effectively use it, so you take a -2
  * penalty on attacks with it. For example, the default (lowest form of)
  * composite longbow requires a Strength modifier of +0 or higher to use with
  * proficiency. A weapon with the Strength feature allows you to add your
@@ -5435,7 +5435,7 @@
 #define LANG_DRUIDIC SKILL_LANG_DRUIDIC - SKILL_LANG_LOW
 #define LANG_DWARVEN SKILL_LANG_DWARVEN - SKILL_LANG_LOW
 #define LANG_ELVEN SKILL_LANG_ELVEN - SKILL_LANG_LOW
-#define LANG_ELVISH LANG_ELVEN - SKILL_LANG_LOW
+#define LANG_ELVISH LANG_ELVEN
 #define LANG_ERGOT SKILL_LANG_ERGOT - SKILL_LANG_LOW
 #define LANG_GIANT SKILL_LANG_GIANT - SKILL_LANG_LOW
 #define LANG_GNOME SKILL_LANG_GNOME - SKILL_LANG_LOW
@@ -5462,7 +5462,28 @@
 #define LANG_KHUR SKILL_LANG_KHUR - SKILL_LANG_LOW
 #define LANG_KHAROLIAN SKILL_LANG_KHAROLIAN - SKILL_LANG_LOW
 
+#if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
+#define LANG_ASHEN_CANT SKILL_LANG_ASHEN_CANT - SKILL_LANG_LOW
+#define LANG_SANCTINE SKILL_LANG_SANCTINE - SKILL_LANG_LOW
+#define LANG_ONDUIC SKILL_LANG_ONDUIC - SKILL_LANG_LOW
+#define LANG_SELERIC SKILL_LANG_SELERIC - SKILL_LANG_LOW
+#define LANG_CARSTANI SKILL_LANG_CARSTANI - SKILL_LANG_LOW
+#define LANG_AXTROSI SKILL_LANG_AXTROSI - SKILL_LANG_LOW
+#define LANG_HIRI SKILL_LANG_HIRI - SKILL_LANG_LOW
+#define LANG_QUECHIAN SKILL_LANG_QUECHIAN - SKILL_LANG_LOW
+#define LANG_VAILIC SKILL_LANG_VAILIC - SKILL_LANG_LOW
+#define LANG_OORPIC SKILL_LANG_OORPIC - SKILL_LANG_LOW
+#define LANG_TAL SKILL_LANG_TAL - SKILL_LANG_LOW
+#define LANG_UBDINIC SKILL_LANG_UBDINIC - SKILL_LANG_LOW
+#endif
+
+#if defined(CAMPAIGN_DL)
 #define NUM_LANGUAGES 30
+#elif defined(CAMPAIGN_FR)
+#define NUM_LANGUAGES 36
+#else
+#define NUM_LANGUAGES 48
+#endif
 
 #define NUM_KENDER_BAUBLES 314
 
@@ -6820,6 +6841,8 @@ struct player_special_data_saved
   int dragon_bond_type;
   int dragon_rider_dragon_type;
   int background_type;
+  bool background_effects_applied;
+  int creation_stage;
 
   int hometown;
 

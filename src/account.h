@@ -23,6 +23,16 @@ extern "C"
 void perform_do_account(struct char_data *ch, struct char_data *vict);
 int change_account_xp(struct char_data *ch, int change_val);
 void load_account_characters(struct account_data *account);
+bool link_character_to_account_checked(struct char_data *ch, struct account_data *account);
+
+/*
+ * Hold the account-side character unlink inside a database transaction while
+ * the corresponding player files and index are staged for checked removal.
+ */
+bool begin_account_character_removal(struct char_data *ch, struct account_data *account);
+bool commit_account_character_removal(struct account_data *account);
+void rollback_account_character_removal(void);
+
 /*******************************************************/
 
 #ifdef __cplusplus

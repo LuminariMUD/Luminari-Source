@@ -24,6 +24,8 @@
 #include "constants.h"
 #include "improved-edit.h"
 #include "roleplay.h"
+#include "character_creation.h"
+#include "character_creation_content.h"
 #include "deities.h"
 #include "char_descs.h"
 #include "modify.h"
@@ -603,6 +605,10 @@ enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d
   int feat = 0;
   int old_background = BACKGROUND_NONE;
   int old_feat = 0;
+  int old_real_max_hit = 0;
+  int old_max_hit = 0;
+  int old_hit = 0;
+  bool old_effects_applied = TRUE;
 
   if (d == NULL || d->character == NULL || !d->roleplay_pending.background_active)
     return ROLEPLAY_COMMIT_INVALID_SELECTION;
@@ -622,13 +628,24 @@ enum roleplay_commit_result roleplay_commit_background(struct descriptor_data *d
 
   old_background = GET_BACKGROUND(ch);
   old_feat = ch->char_specials.saved.feats[feat];
+  old_real_max_hit = GET_REAL_MAX_HIT(ch);
+  old_max_hit = GET_MAX_HIT(ch);
+  old_hit = GET_HIT(ch);
+  old_effects_applied = BACKGROUND_EFFECTS_APPLIED(ch);
   GET_BACKGROUND(ch) = background;
   SET_FEAT(ch, feat, 1);
+  BACKGROUND_EFFECTS_APPLIED(ch) = FALSE;
+  if (GET_LEVEL(ch) > 0)
+    apply_background_permanent_effects(ch);
 
   if (!roleplay_text_save(ch))
   {
     GET_BACKGROUND(ch) = old_background;
     SET_FEAT(ch, feat, old_feat);
+    GET_REAL_MAX_HIT(ch) = old_real_max_hit;
+    GET_MAX_HIT(ch) = old_max_hit;
+    GET_HIT(ch) = old_hit;
+    BACKGROUND_EFFECTS_APPLIED(ch) = old_effects_applied;
     return ROLEPLAY_COMMIT_SAVE_FAILED;
   }
 
@@ -861,7 +878,7 @@ enum roleplay_commit_result roleplay_commit_deity(struct descriptor_data *d)
    "background than with moral or ethical perspectives. ")
 
 #define FLAWS_DESCRIPTION                                                                          \
-  ("Your character's flaw represents some vice, compulsion, fear, or weakness—in "               \
+  ("Your character's flaw represents some vice, compulsion, fear, or weakness-in "                 \
    "particular, anything that someone else could exploit to bring you to ruin or "                 \
    "cause you to act against your best interests. More significant than negative "                 \
    "personality traits, a flaw might answer any of these questions: What enrages "                 \
@@ -1353,7 +1370,7 @@ const char *character_flaws[NUM_BACKGROUNDS][8] = {
      "", "When I see something valuable, I can't think about anything but how to steal it.",
      "When faced with a choice between money and my friends, I usually choose the money.",
      "If there's a plan, I'll forget it. If I don't forget it, I'll ignore it.",
-     "I have a “tell” that reveals when I'm lying.", "I turn tail and run when things look bad.",
+     "I have a \"tell\" that reveals when I'm lying.", "I turn tail and run when things look bad.",
      "An innocent person is in prison for a crime that I committed. I'm okay with that.", ""},
     {// entertainer
      "", "I'll do anything to win fame and renown.", "I'm a sucker for a pretty face.",
@@ -1510,10 +1527,14 @@ void choose_random_roleplay_goal(struct char_data *ch)
   send_to_char(ch, "\r\n");
 }
 
-void choose_random_roleplay_personality(struct char_data *ch, int background)
+static void choose_roleplay_inspiration(struct char_data *ch, int background,
+                                        enum character_creation_inspiration_kind kind, int state,
+                                        const char *title)
 {
-  int choiceOne = 0, choiceTwo = 0;
-  char buf[200];
+  const char *first = NULL;
+  const char *second = NULL;
+  int first_index = 0;
+  char buf[ROLEPLAY_EXAMPLE_MAX_BYTES];
 
   if (!ch)
     return;
@@ -1524,218 +1545,117 @@ void choose_random_roleplay_personality(struct char_data *ch, int background)
     return;
   }
 
-  draw_line(ch, 80, '-', '-');
-  text_line(ch, "EXAMPLE PERSONALITY QUALITIES", 80, '-', '-');
-  draw_line(ch, 80, '-', '-');
+  first_index = rand_number(0, 1);
+  first = character_creation_inspiration_seed(background, kind, first_index);
+  second = character_creation_inspiration_seed(background, kind, 1 - first_index);
+  if (first == NULL || second == NULL || !*first || !*second || !strcmp(first, second))
+  {
+    send_to_char(ch, "That inspiration theme has no usable suggestions.\r\n");
+    return;
+  }
 
-  choiceOne = dice(1, 8);
-  choiceTwo = dice(1, 8);
-  while (choiceTwo == choiceOne)
-    choiceTwo = dice(1, 8);
-  store_roleplay_examples(ch, CON_CHARACTER_PERSONALITY_IDEAS,
-                          personality_traits[background][choiceOne],
-                          personality_traits[background][choiceTwo], NULL);
-
-  snprintf(buf, sizeof(buf), "%s", personality_traits[background][choiceOne]);
+  store_roleplay_examples(ch, state, first, second, NULL);
+  draw_line(ch, 80, '-', '-');
+  text_line(ch, title, 80, '-', '-');
+  draw_line(ch, 80, '-', '-');
+  snprintf(buf, sizeof(buf), "%s", first);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
   draw_line(ch, 80, '-', '-');
-  snprintf(buf, sizeof(buf), "%s", personality_traits[background][choiceTwo]);
+  snprintf(buf, sizeof(buf), "%s", second);
   send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
   draw_line(ch, 80, '-', '-');
   send_to_char(ch, "\r\n");
+}
+
+void choose_random_roleplay_personality(struct char_data *ch, int background)
+{
+  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_PERSONALITY,
+                              CON_CHARACTER_PERSONALITY_IDEAS, "EXAMPLE PERSONALITY QUALITIES");
 }
 
 void choose_random_roleplay_ideals(struct char_data *ch, int background)
 {
-  int choiceOne = 0, choiceTwo = 0;
-  char buf[200];
-
-  if (!ch)
-    return;
-
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
-  draw_line(ch, 80, '-', '-');
-  text_line(ch, "EXAMPLE CHARACTER IDEALS", 80, '-', '-');
-  draw_line(ch, 80, '-', '-');
-
-  choiceOne = dice(1, 6);
-  choiceTwo = dice(1, 6);
-  while (choiceTwo == choiceOne)
-    choiceTwo = dice(1, 6);
-  store_roleplay_examples(ch, CON_CHARACTER_IDEALS_IDEAS, character_ideals[background][choiceOne],
-                          character_ideals[background][choiceTwo], NULL);
-
-  snprintf(buf, sizeof(buf), "%s", character_ideals[background][choiceOne]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  snprintf(buf, sizeof(buf), "%s", character_ideals[background][choiceTwo]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "\r\n");
+  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_IDEAL,
+                              CON_CHARACTER_IDEALS_IDEAS, "EXAMPLE CHARACTER IDEALS");
 }
 
 void choose_random_roleplay_bonds(struct char_data *ch, int background)
 {
-  int choiceOne = 0, choiceTwo = 0;
-  char buf[200];
-
-  if (!ch)
-    return;
-
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
-
-  draw_line(ch, 80, '-', '-');
-  text_line(ch, "EXAMPLE CHARACTER BONDS", 80, '-', '-');
-  draw_line(ch, 80, '-', '-');
-
-  choiceOne = dice(1, 6);
-  choiceTwo = dice(1, 6);
-  while (choiceTwo == choiceOne)
-    choiceTwo = dice(1, 6);
-  store_roleplay_examples(ch, CON_CHARACTER_BONDS_IDEAS, character_bonds[background][choiceOne],
-                          character_bonds[background][choiceTwo], NULL);
-
-  snprintf(buf, sizeof(buf), "%s", character_bonds[background][choiceOne]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  snprintf(buf, sizeof(buf), "%s", character_bonds[background][choiceTwo]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "\r\n");
+  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_BOND,
+                              CON_CHARACTER_BONDS_IDEAS, "EXAMPLE CHARACTER BONDS");
 }
 
 void choose_random_roleplay_flaws(struct char_data *ch, int background)
 {
-  int choiceOne = 0, choiceTwo = 0;
-  char buf[200];
+  choose_roleplay_inspiration(ch, background, CHARACTER_CREATION_INSPIRATION_FLAW,
+                              CON_CHARACTER_FLAWS_IDEAS, "EXAMPLE CHARACTER FLAWS");
+}
 
-  if (!ch)
+static void show_roleplay_guidance(struct char_data *ch, const char *profile_id)
+{
+  const struct character_creation_guidance *guidance =
+      character_creation_guidance_for_profile(profile_id);
+  char buf[MAX_STRING_LENGTH];
+
+  if (guidance == NULL || guidance->screen_introduction == NULL)
     return;
 
-  if (background < 1 || background >= NUM_BACKGROUNDS)
-  {
-    send_to_char(ch, "That is an invalid background.\r\n");
-    return;
-  }
+  snprintf(buf, sizeof(buf), "%s", guidance->screen_introduction);
+  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+}
 
-  draw_line(ch, 80, '-', '-');
-  text_line(ch, "EXAMPLE CHARACTER FLAWS", 80, '-', '-');
-  draw_line(ch, 80, '-', '-');
+static void show_inspiration_theme_menu(struct char_data *ch)
+{
+  int i = 0;
 
-  choiceOne = dice(1, 6);
-  choiceTwo = dice(1, 6);
-  while (choiceTwo == choiceOne)
-    choiceTwo = dice(1, 6);
-  store_roleplay_examples(ch, CON_CHARACTER_FLAWS_IDEAS, character_flaws[background][choiceOne],
-                          character_flaws[background][choiceTwo], NULL);
-
-  snprintf(buf, sizeof(buf), "%s", character_flaws[background][choiceOne]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  snprintf(buf, sizeof(buf), "%s", character_flaws[background][choiceTwo]);
-  send_to_char(ch, " %s", strfrmt(buf, 78, 1, 0, 0, 0));
-  draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "\r\n");
+  send_to_char(ch, "Pick an inspiration theme. This only shapes suggestions; it will not set or "
+                   "change your character's Background.\r\n");
+  for (i = 1; i < NUM_BACKGROUNDS; i++)
+    send_to_char(ch, "%2d) %s\r\n", i, background_list[backgrounds_listed_alphabetically[i]].name);
 }
 
 void show_character_goal_idea_menu(struct char_data *ch)
 {
-  char buf[MAX_STRING_LENGTH];
-
-  snprintf(buf, sizeof(buf), "%s", GOAL_DESCRIPTION);
-  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+  show_roleplay_guidance(ch, "profile/goals");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "First, we've created a system to offer random goal ideas.\r\n");
-  send_to_char(ch, "1) Generate a random goal idea.\r\n");
-  send_to_char(ch, "Q) Proceed to enter in your character goals.\r\n");
+  send_to_char(ch, "A generated outline contains one Objective, Reason, and Complication.\r\n");
+  send_to_char(ch, "1) Generate a goal outline.\r\n");
+  send_to_char(ch, "Q) Write or edit my goals.\r\n");
   send_to_char(ch, "Enter Your Choice (1|Q): ");
 }
 
 void show_character_personality_idea_menu(struct char_data *ch)
 {
-  char buf[MAX_STRING_LENGTH];
-  int i = 0;
-
-  snprintf(buf, sizeof(buf), "%s", PERSONALITY_DESCRIPTION);
-  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+  show_roleplay_guidance(ch, "profile/personality");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "First, we've created a system to offer random personality ideas. For some "
-                   "random ideas, select a background type.\r\n");
-  send_to_char(
-      ch, "You do not need to have chosen the background to select it for personality ideas.\r\n");
-  for (i = 1; i < NUM_BACKGROUNDS; i++)
-  {
-    send_to_char(ch, "%2d) %s\r\n", i, background_list[backgrounds_listed_alphabetically[i]].name);
-  }
+  show_inspiration_theme_menu(ch);
   send_to_char(ch, "Q) Proceed to enter in your character personality.\r\n");
   send_to_char(ch, "Enter Your Choice (1|Q): ");
 }
 
 void show_character_ideals_idea_menu(struct char_data *ch)
 {
-  char buf[MAX_STRING_LENGTH];
-  int i = 0;
-
-  snprintf(buf, sizeof(buf), "%s", IDEALS_DESCRIPTION);
-  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+  show_roleplay_guidance(ch, "profile/ideals");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "First, we've created a system to offer random ideals ideas. For some random "
-                   "ideas, select a background type.\r\n");
-  send_to_char(ch,
-               "You do not need to have chosen the background to select it for ideals ideas.\r\n");
-  for (i = 1; i < NUM_BACKGROUNDS; i++)
-  {
-    send_to_char(ch, "%2d) %s\r\n", i, background_list[backgrounds_listed_alphabetically[i]].name);
-  }
+  show_inspiration_theme_menu(ch);
   send_to_char(ch, "Q) Proceed to enter in your character ideals.\r\n");
   send_to_char(ch, "Enter Your Choice (1|Q): ");
 }
 
 void show_character_bonds_idea_menu(struct char_data *ch)
 {
-  char buf[MAX_STRING_LENGTH];
-  int i = 0;
-
-  snprintf(buf, sizeof(buf), "%s", BONDS_DESCRIPTION);
-  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+  show_roleplay_guidance(ch, "profile/bonds");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "First, we've created a system to offer random bonds ideas. For some random "
-                   "ideas, select a background type.\r\n");
-  send_to_char(ch,
-               "You do not need to have chosen the background to select it for bonds ideas.\r\n");
-  for (i = 1; i < NUM_BACKGROUNDS; i++)
-  {
-    send_to_char(ch, "%2d) %s\r\n", i, background_list[backgrounds_listed_alphabetically[i]].name);
-  }
+  show_inspiration_theme_menu(ch);
   send_to_char(ch, "Q) Proceed to enter in your character bonds.\r\n");
   send_to_char(ch, "Enter Your Choice (1|Q): ");
 }
 
 void show_character_flaws_idea_menu(struct char_data *ch)
 {
-  char buf[MAX_STRING_LENGTH];
-  int i = 0;
-
-  snprintf(buf, sizeof(buf), "%s", FLAWS_DESCRIPTION);
-  send_to_char(ch, "%s\r\n", strfrmt(buf, 80, 1, 0, 0, 0));
+  show_roleplay_guidance(ch, "profile/flaws");
   draw_line(ch, 80, '-', '-');
-  send_to_char(ch, "First, we've created a system to offer random flaws ideas. For some random "
-                   "ideas, select a background type.\r\n");
-  send_to_char(ch,
-               "You do not need to have chosen the background to select it for flaws ideas.\r\n");
-  for (i = 1; i < NUM_BACKGROUNDS; i++)
-  {
-    send_to_char(ch, "%2d) %s\r\n", i, background_list[backgrounds_listed_alphabetically[i]].name);
-  }
+  show_inspiration_theme_menu(ch);
   send_to_char(ch, "Q) Proceed to enter in your character flaws.\r\n");
   send_to_char(ch, "Enter Your Choice (1|Q): ");
 }
@@ -2473,42 +2393,57 @@ void display_rp_decide_menu(struct descriptor_data *d)
 
 void HandleStateCharacterRPDecideParseMenuChoice(struct descriptor_data *d, char *arg)
 {
-  int changeStateTo = STATE(d);
   struct char_data *ch = d->character;
+  enum character_creation_stage target_stage = CHARACTER_CREATION_STAGE_NONE;
+  int target_state = STATE(d);
+  int previous_preferences[PR_ARRAY_MAX];
+
+  if (ch == NULL)
+    return;
+  memcpy(previous_preferences, PRF_FLAGS(ch), sizeof(previous_preferences));
 
   switch (*arg)
   {
   case '1':
-    send_to_char(ch, "You've elected to be a non-role-player and can now enter the game.\r\n");
     SET_BIT_AR(PRF_FLAGS(ch), PRF_NON_ROLEPLAYER);
-    write_to_output(d, "\r\n");
-    write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
-    changeStateTo = CON_RMOTD;
+    target_stage = CHARACTER_CREATION_STAGE_MENU_PENDING;
+    target_state = CON_RMOTD;
     break;
   case '2':
-    send_to_char(ch, "You've elected to be a role-player and can now enter in your additional "
-                     "character info.\r\n");
     SET_BIT_AR(PRF_FLAGS(ch), PRF_RP);
-    changeStateTo = CON_CHAR_RP_MENU;
-    show_character_rp_menu(d);
+    target_stage = CHARACTER_CREATION_STAGE_ROLEPLAY_PROFILE;
+    target_state = CON_CHAR_RP_MENU;
     break;
   case '3':
-    send_to_char(ch, "You've decided to delay your decision about role playing, and can now enter "
-                     "the game.\r\n");
-    write_to_output(d, "\r\n");
-    write_to_output(d, "%s\r\n*** PRESS RETURN: ", motd);
-    changeStateTo = CON_RMOTD;
+    target_stage = CHARACTER_CREATION_STAGE_MENU_PENDING;
+    target_state = CON_RMOTD;
     break;
   default:
     send_to_char(ch, "That is not a valid selection. Please select again: ");
-    break;
+    return;
   }
 
-  /* Save character after roleplay decision */
-  if (ch && changeStateTo != STATE(d))
+  if ((character_creation_is_active(ch) &&
+       !character_creation_set_stage_checked(ch, target_stage)) ||
+      (!character_creation_is_active(ch) && !save_char_checked(ch, 0)))
   {
-    save_char(ch, 0);
+    memcpy(PRF_FLAGS(ch), previous_preferences, sizeof(previous_preferences));
+    web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+    send_to_char(ch, "That decision could not be saved. Nothing was changed; please try again: ");
+    return;
   }
 
-  STATE(d) = changeStateTo;
+  if (*arg == '1')
+    send_to_char(ch, "You've elected to be a non-role-player and can now enter the game.\r\n");
+  else if (*arg == '2')
+    send_to_char(ch, "You've elected to be a role-player and can now enter additional character "
+                     "information.\r\n");
+  else
+    send_to_char(ch, "You've delayed the role-play decision and can now enter the game.\r\n");
+
+  if (target_state == CON_CHAR_RP_MENU)
+    show_character_rp_menu(d);
+  else
+    write_to_output(d, "\r\n%s\r\n*** PRESS RETURN: ", motd);
+  STATE(d) = target_state;
 }

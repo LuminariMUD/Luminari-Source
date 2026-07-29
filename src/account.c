@@ -305,7 +305,7 @@ ACMD(do_accexp)
 
     if (ch->desc && ch->desc->account)
     {
-      /* Hard bounds check on resulting alignment to prevent exceeding ±1000 */
+      /* Hard bounds check on resulting alignment to prevent exceeding +-1000 */
       if ((GET_ALIGNMENT(ch) + align_change) > 1000 || (GET_ALIGNMENT(ch) + align_change) < -1000)
       {
         send_to_char(ch, "You have the maximum alignment already!\r\n");
@@ -994,16 +994,17 @@ void save_account(struct account_data *account)
     return;
   }
 
-  snprintf(buf, sizeof(buf),
-           "INSERT into account_data (id, name, password, experience, email, quit_survey_completed) "
-           "values (%d, '%s', '%s', %d, %s%s%s, %d)"
-           " on duplicate key update password = VALUES(password), "
-           "                         experience = VALUES(experience), "
-           "                         email = VALUES(email), "
-           "                         quit_survey_completed = VALUES(quit_survey_completed);",
-           account->id, account->name, account->password, account->experience,
-           (account->email ? "'" : ""), (account->email ? account->email : "NULL"),
-           (account->email ? "'" : ""), account->quit_survey_completed ? 1 : 0);
+  snprintf(
+      buf, sizeof(buf),
+      "INSERT into account_data (id, name, password, experience, email, quit_survey_completed) "
+      "values (%d, '%s', '%s', %d, %s%s%s, %d)"
+      " on duplicate key update password = VALUES(password), "
+      "                         experience = VALUES(experience), "
+      "                         email = VALUES(email), "
+      "                         quit_survey_completed = VALUES(quit_survey_completed);",
+      account->id, account->name, account->password, account->experience,
+      (account->email ? "'" : ""), (account->email ? account->email : "NULL"),
+      (account->email ? "'" : ""), account->quit_survey_completed ? 1 : 0);
 
   if (mysql_query(conn, buf))
   {
@@ -1401,4 +1402,100 @@ void remove_char_from_account(struct char_data *ch, struct account_data *account
 
   log("Info: Character %s removed from account %s : %s", GET_NAME(ch), account->name,
       mysql_info(conn));
+}
+
+bool link_character_to_account_checked(struct char_data *ch, struct account_data *account)
+{
+  char query[2048];
+  char *escaped_name = NULL;
+
+  if (ch == NULL || account == NULL || !mysql_available || conn == NULL || GET_NAME(ch) == NULL)
+    return FALSE;
+
+  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (escaped_name == NULL)
+    return FALSE;
+
+  snprintf(query, sizeof(query),
+           "INSERT INTO player_data (name, account_id, last_online) "
+           "VALUES ('%s', %d, NOW()) "
+           "ON DUPLICATE KEY UPDATE account_id = VALUES(account_id)",
+           escaped_name, account->id);
+  free(escaped_name);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to link new character %s to account %s: %s", GET_NAME(ch), account->name,
+        mysql_error(conn));
+    return FALSE;
+  }
+  return TRUE;
+}
+
+bool begin_account_character_removal(struct char_data *ch, struct account_data *account)
+{
+  char query[2048];
+  char *escaped_name = NULL;
+
+  if (ch == NULL || account == NULL || !mysql_available || conn == NULL || GET_NAME(ch) == NULL)
+    return FALSE;
+
+  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  if (escaped_name == NULL)
+    return FALSE;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin character-removal transaction: %s", mysql_error(conn));
+    free(escaped_name);
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM player_data WHERE lower(name) = lower('%s') AND account_id = %d",
+           escaped_name, account->id);
+  free(escaped_name);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Could not stage account unlink for character %s: %s", GET_NAME(ch),
+        mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+void rollback_account_character_removal(void)
+{
+  if (mysql_available && conn != NULL && mysql_query(conn, "ROLLBACK"))
+    log("SYSERR: Could not roll back character-removal transaction: %s", mysql_error(conn));
+}
+
+bool commit_account_character_removal(struct account_data *account)
+{
+  struct descriptor_data *descriptor = NULL;
+
+  if (account == NULL || !mysql_available || conn == NULL)
+    return FALSE;
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not commit character-removal transaction: %s", mysql_error(conn));
+    rollback_account_character_removal();
+    return FALSE;
+  }
+
+  /*
+   * Refresh every connected view of this account. Leaving a stale name in a
+   * second descriptor could cause a later account save to recreate the link.
+   */
+  for (descriptor = descriptor_list; descriptor != NULL; descriptor = descriptor->next)
+  {
+    if (descriptor->account != NULL && descriptor->account->id == account->id)
+      load_account_characters(descriptor->account);
+  }
+
+  return TRUE;
 }

@@ -1411,9 +1411,29 @@
 #define SKILL_LANG_GURAN 3434
 #define SKILL_LANG_SHAARAN 3435
 #define SKILL_LANG_MIDANI 3436
+
+#if !defined(CAMPAIGN_FR)
+/* Default Luminari campaign Heart Tongues. Persistent IDs are append-only. */
+#define SKILL_LANG_ASHEN_CANT 3437
+#define SKILL_LANG_SANCTINE 3438
+#define SKILL_LANG_ONDUIC 3439
+#define SKILL_LANG_SELERIC 3440
+#define SKILL_LANG_CARSTANI 3441
+#define SKILL_LANG_AXTROSI 3442
+#define SKILL_LANG_HIRI 3443
+#define SKILL_LANG_QUECHIAN 3444
+#define SKILL_LANG_VAILIC 3445
+#define SKILL_LANG_OORPIC 3446
+#define SKILL_LANG_TAL 3447
+#define SKILL_LANG_UBDINIC 3448
+#endif
 /**/
 #define SKILL_LANG_LOW 3401
+#if defined(CAMPAIGN_FR)
 #define SKILL_LANG_HIGH 3436
+#else
+#define SKILL_LANG_HIGH 3448
+#endif
 #define MIN_LANGUAGES SKILL_LANG_LOW
 #define MAX_LANGUAGES SKILL_LANG_HIGH
 
@@ -1712,10 +1732,10 @@ struct wall_information
 
 /* manual spell header info */
 #define ASPELL(spellname)                                                                          \
-  void spellname(int level __attribute__((unused)),                                                \
-                 struct char_data *ch __attribute__((unused)),                                     \
+  void spellname(int level __attribute__((unused)), struct char_data *ch __attribute__((unused)),  \
                  struct char_data *victim __attribute__((unused)),                                 \
-                 struct obj_data *obj __attribute__((unused)), int casttype __attribute__((unused)))
+                 struct obj_data *obj __attribute__((unused)),                                     \
+                 int casttype __attribute__((unused)))
 
 #define MANUAL_SPELL(spellname) spellname(level, caster, cvict, ovict, casttype);
 

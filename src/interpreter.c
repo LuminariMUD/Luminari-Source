@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
+#include "account.h"
 #include "spells.h"
 #include "handler.h"
 #include "mail.h"
@@ -77,6 +78,7 @@
 #include "mudlim.h"
 #include "backgrounds.h"
 #include "roleplay.h"
+#include "character_creation.h"
 #include "crafting_new.h"
 #include "brew.h"
 #include "talents.h" /* crafting/harvesting talent system */
@@ -6977,6 +6979,13 @@ void nanny(struct descriptor_data *d, char *arg)
           if (perform_dupe_check(d))
             return;
 
+          if (character_creation_resume(d))
+          {
+            mudlog(BRF, LVL_IMMORT, true, "%s [%s] resumed character creation.",
+                   GET_NAME(d->character), d->host);
+            return;
+          }
+
           if (IS_IMMORTAL(d->character))
             write_to_output(d, "%s\r\n *** PRESS RETURN ***", imotd);
           else
@@ -8239,6 +8248,9 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_QALIGN:
+  {
+    struct player_removal_transaction *initial_removal = NULL;
+    bool initial_cleanup_complete = FALSE;
 
     if (!isdigit(*arg))
     {
@@ -8292,49 +8304,75 @@ void nanny(struct descriptor_data *d, char *arg)
       snprintf(GET_PASSWD(d->character), MAX_PWD_LENGTH + 1, "%s", d->account->password);
     }
 
-    /* Add the new character to the account's character list */
-    if (d->account)
+    CREATION_STAGE(d->character) = CHARACTER_CREATION_STAGE_PREFERENCES;
+    if (!save_char_checked(d->character, 0) || !save_player_index_checked())
     {
-      int i;
-      for (i = 0; (i < MAX_CHARS_PER_ACCOUNT) && (d->account->character_names[i] != NULL); i++)
-        ;
-      if (i < MAX_CHARS_PER_ACCOUNT)
+      i = (int)get_ptable_by_name(GET_NAME(d->character));
+      initial_cleanup_complete = i < 0;
+      if (i >= 0)
+        initial_removal = prepare_player_removal_checked(i);
+      if (initial_removal != NULL)
       {
-        d->account->character_names[i] = strdup(GET_NAME(d->character));
+        (void)commit_player_removal_checked(initial_removal);
+        initial_cleanup_complete = TRUE;
       }
+      if (!initial_cleanup_complete)
+      {
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+        write_to_output(d, "\r\nThe save failed and its partial record could not be cleaned up. "
+                           "Use Start over to retry the checked cleanup.\r\n");
+        STATE(d) = CON_SETPREFS;
+        return;
+      }
+      CREATION_STAGE(d->character) = CHARACTER_CREATION_STAGE_NONE;
+      GET_PFILEPOS(d->character) = -1;
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+      write_to_output(d, "\r\nYour character could not be saved. Please choose the alignment "
+                         "again; no character record was kept.\r\n");
+      STATE(d) = CON_QALIGN;
+      return;
     }
 
-    save_char(d->character, 0);
-
-    /* Ensure the character exists in MySQL player_data table for account linking */
-    if (d->account && mysql_available && conn)
+    if (!link_character_to_account_checked(d->character, d->account))
     {
-      char buf[2048];
-      char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(d->character));
-      if (escaped_name)
+      i = (int)get_ptable_by_name(GET_NAME(d->character));
+      initial_cleanup_complete = i < 0;
+      if (i >= 0)
+        initial_removal = prepare_player_removal_checked(i);
+      if (initial_removal != NULL)
       {
-        /* First try to INSERT the character (in case it doesn't exist) */
-        snprintf(buf, sizeof(buf),
-                 "INSERT IGNORE INTO player_data (name, account_id, last_online) "
-                 "VALUES ('%s', %d, NOW())",
-                 escaped_name, d->account->id);
-
-        if (mysql_query(conn, buf))
-        {
-          log("SYSERR: Unable to INSERT new character %s into player_data: %s",
-              GET_NAME(d->character), mysql_error(conn));
-        }
-        free(escaped_name);
+        (void)commit_player_removal_checked(initial_removal);
+        initial_cleanup_complete = TRUE;
       }
+      if (!initial_cleanup_complete)
+      {
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+        write_to_output(d, "\r\nThe account link failed and its partial record could not be "
+                           "cleaned up. Use Start over to retry the checked cleanup.\r\n");
+        STATE(d) = CON_SETPREFS;
+        return;
+      }
+      CREATION_STAGE(d->character) = CHARACTER_CREATION_STAGE_NONE;
+      GET_PFILEPOS(d->character) = -1;
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+      write_to_output(d, "\r\nYour character could not be linked to the account. No character "
+                         "record was kept; please choose the alignment again.\r\n");
+      STATE(d) = CON_QALIGN;
+      return;
     }
 
-    save_account(d->account);
-    save_player_index();
+    /* Publish the new name in this in-memory account only after both durable
+     * stores accepted it. */
+    for (i = 0; i < MAX_CHARS_PER_ACCOUNT && d->account->character_names[i] != NULL; i++)
+      ;
+    if (i < MAX_CHARS_PER_ACCOUNT)
+      d->account->character_names[i] = strdup(GET_NAME(d->character));
 
     write_to_output(d, "\r\nDo you wish to have the recommend preferences flags enabled? Ie. "
                        "Autoloot, Show Dice Rolls, Etc.) ");
     STATE(d) = CON_SETPREFS;
     break;
+  }
 
   case CON_CHARACTER_GOALS_IDEAS:
     switch (*arg)
@@ -8490,6 +8528,15 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_SETPREFS:
+  {
+    int previous_preferences[PR_ARRAY_MAX];
+    int previous_wimp = GET_WIMP_LEV(d->character);
+    int previous_session_id = GET_PREF(d->character);
+    int previous_color = d->pProtocol->pVariables[eMSDP_256_COLORS] != NULL
+                             ? d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt
+                             : 0;
+
+    memcpy(previous_preferences, PRF_FLAGS(d->character), sizeof(previous_preferences));
 
     if (!strcasecmp(arg, "yes") || !strcasecmp(arg, "y"))
     {
@@ -8535,7 +8582,19 @@ void nanny(struct descriptor_data *d, char *arg)
 
     /* make sure the last log is updated correctly. */
     GET_PREF(d->character) = rand_number(1, 128000);
-    GET_HOST(d->character) = strdup(d->host);
+
+    if (!character_creation_set_stage_checked(d->character,
+                                              CHARACTER_CREATION_STAGE_ROLEPLAY_DECISION))
+    {
+      memcpy(PRF_FLAGS(d->character), previous_preferences, sizeof(previous_preferences));
+      GET_WIMP_LEV(d->character) = previous_wimp;
+      GET_PREF(d->character) = previous_session_id;
+      if (d->pProtocol->pVariables[eMSDP_256_COLORS] != NULL)
+        d->pProtocol->pVariables[eMSDP_256_COLORS]->ValueInt = previous_color;
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+      write_to_output(d, "Those preferences could not be saved. Nothing was changed; try again.");
+      return;
+    }
 
     mudlog(NRM, LVL_STAFF, TRUE, "%s [%s] new player.", GET_NAME(d->character), d->host);
 
@@ -8549,8 +8608,22 @@ void nanny(struct descriptor_data *d, char *arg)
     display_rp_decide_menu(d);
     STATE(d) = CON_CHAR_RP_DECIDE;
     break;
+  }
 
   case CON_RMOTD: /* read CR after printing motd   */
+  {
+    bool mandatory_profile_complete =
+        !CONFIG_USE_INTRO_SYSTEM ||
+        (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0);
+
+    if (character_creation_is_active(d->character) && mandatory_profile_complete &&
+        !character_creation_finish_checked(d->character))
+    {
+      web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+      write_to_output(d, "\r\nCharacter creation could not be finalized. Press return to retry.");
+      return;
+    }
+
     write_to_output(d, "%s", CONFIG_MENU);
     if (IS_HAPPYHOUR > 0)
     {
@@ -8575,6 +8648,7 @@ void nanny(struct descriptor_data *d, char *arg)
     STATE(d) = CON_MENU;
 
     break;
+  }
 
   case CON_GEN_DESCS_INTRO:
     HandleStateGenericsDescsIntro(d, arg);
@@ -8731,10 +8805,31 @@ void nanny(struct descriptor_data *d, char *arg)
       break;
     case 'Q':
     case 'q':
+    {
+      bool mandatory_profile_complete =
+          !CONFIG_USE_INTRO_SYSTEM ||
+          (GET_PC_DESCRIPTOR_1(d->character) > 0 && GET_PC_ADJECTIVE_1(d->character) > 0);
+      bool lifecycle_saved = TRUE;
+
+      if (character_creation_is_active(d->character))
+      {
+        lifecycle_saved = mandatory_profile_complete
+                              ? character_creation_finish_checked(d->character)
+                              : character_creation_set_stage_checked(
+                                    d->character, CHARACTER_CREATION_STAGE_MENU_PENDING);
+      }
+
+      if (!lifecycle_saved)
+      {
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+        write_to_output(d, "\r\nCharacter creation could not be finalized. Please try again.\r\n");
+        return;
+      }
       roleplay_pending_clear(d);
       write_to_output(d, "%s", CONFIG_MENU);
       STATE(d) = CON_MENU;
       break;
+    }
     default:
       write_to_output(d, "\r\nThat's not a menu choice!\r\n");
       show_character_rp_menu(d);
@@ -8835,6 +8930,14 @@ void nanny(struct descriptor_data *d, char *arg)
         write_to_output(d, "\r\n");
         d->forced_short_desc_setup = TRUE;
         show_short_description_main_menu(d);
+        break;
+      }
+
+      if (character_creation_is_active(d->character) &&
+          !character_creation_finish_checked(d->character))
+      {
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+        write_to_output(d, "\r\nCharacter creation could not be finalized. Please try again.\r\n");
         break;
       }
 

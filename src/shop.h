@@ -19,6 +19,8 @@ void assign_the_shopkeepers(void);
 void show_shops(struct char_data *ch, char *arg);
 int ok_damage_shopkeeper(struct char_data *ch, struct char_data *victim);
 void destroy_shops(void);
+bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, bool has_noble);
+float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
 
 struct shop_buy_data
 {

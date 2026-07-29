@@ -17,6 +17,7 @@
 #include "class.h"
 #include "mail.h"
 #include "roleplay.h"
+#include "character_creation.h"
 #include "systems/web_client/onboarding.h"
 
 /* External function declarations */
@@ -998,6 +999,18 @@ void HandleStateGenericDescsParseMenuChoice(struct descriptor_data *d, char *arg
     if (d->forced_short_desc_setup)
     {
       int load_result;
+
+      if (character_creation_is_active(d->character) &&
+          !character_creation_finish_checked(d->character))
+      {
+        web_onboarding_set_error(d, WEB_ONBOARDING_ERROR_ROLEPLAY_SAVE_FAILED);
+        SEND_TO_Q("\tcThe description was saved, but character creation could not be finalized. "
+                  "Please try again.\r\n\tn",
+                  d);
+        changeStateTo = CON_GEN_DESCS_MENU_PARSE;
+        break;
+      }
+
       d->forced_short_desc_setup = FALSE; /* Clear the flag */
 
       load_result = enter_player_game(d);

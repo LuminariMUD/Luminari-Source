@@ -29,6 +29,8 @@ const char *background_wire_value(int background);
 const char *background_media_key(int background);
 int background_from_input(const char *input);
 bool has_acolyte_in_group(struct char_data *ch);
+void apply_background_permanent_effects(struct char_data *ch);
+int background_forage_check_bonus(bool has_outlander);
 void show_background_help(struct char_data *ch, int background);
 ACMD_DECL(do_swindle);
 ACMD_DECL(do_entertain);
