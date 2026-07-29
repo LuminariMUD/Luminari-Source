@@ -149,16 +149,19 @@ numbered gameplay flow:
   requested `move` category at runtime and produced `[VESSEL_MOVE]` diagnostics
   during a Kohdee sailing test. The clean default build then refused
   `vdebug on move` and reported debug support `compiled out`.
-- `verify_help_vessel_entries.sql` passed 31 maintained entries, 74 exact
+- `verify_help_vessel_entries.sql` passed 31 maintained entries, 75 exact
   command keywords, access levels, nonempty content, and zero obsolete
-  duplicates. `--vessel-help-check` found a database `Help Tag` for all 74
-  commands in one login.
-- All 20 component migrations classified as current by
+  duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
+  commands in one 54-second Kohdee login.
+- All 21 component migrations classified as current by
   `ci_schema_manifest.txt` applied independently to a fresh MariaDB 10.11
   master schema.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.
+- The Phase 10 verifier found both lifecycle tables, all five runtime columns,
+  four normalized installed-weapon rows, no orphan or invalid weapons, no
+  invalid insurance claims, and no invalid dock-fee state.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull
@@ -170,7 +173,13 @@ numbered gameplay flow:
   toward waypoint 1 at `(-63, 81)` before copyover and recovered Traveling on
   the same route, advancing to `(-62, 82)`. The transport's ownership, combat
   link, cargo, crew, refit, insurance, and damage remained intact.
-- The full production-linked root suite passed 216 tests, followed by
+- Kohdee sailed the owned transport into Testing Dock and received one
+  35-gold fee. `shipstatus` and `dockfees` reported the debt, departure was
+  refused, and the debt survived copyover and a full service restart. Kohdee
+  then paid 35 gold, departed, returned, received exactly one new fee for the
+  new visit, paid it, and departed again. The final balance was clear. These
+  runs also exposed and fixed stale dynamic-room port identity after recovery.
+- The full production-linked root suite passed 218 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
 ## Known Findings
@@ -202,5 +211,9 @@ numbered gameplay flow:
   interiors and hull objects, then restores position, condition, combat,
   weapon-slot, autopilot, schedule, owner, cargo, crew, upgrade, and insurance
   state - FIXED and live-tested through both lifecycle paths.
+- Owned hulls are charged once per port visit, retain unpaid dock fees through
+  copyover and restart, cannot depart or resume autopilot while indebted, and
+  can settle safely after dynamic wilderness rooms are recycled - FIXED and
+  live-tested.
 
 # EoF

@@ -475,6 +475,7 @@ signals - no vessel-private geography:
 | plunder | Take cargo from a ship you've cleared | `plunder` |
 | bounty | Check a price on someone's head | `bounty [<player>]` |
 | marque | Buy a letter of marque (dock only) | `marque` |
+| dockfees | Inspect or pay the current berth charge | `dockfees [pay]` |
 
 Economy model (`src/vessels_trade.c`): commodities live in
 `trade_commodities` (seeded with 9 goods, builder-editable); per-port stock
@@ -485,6 +486,15 @@ the whole supply domain. Buying drains local stock (price up), selling
 floods it (price down); `vessel_trade_restock_tick()` drifts all ports back
 toward baseline. Ports buy at 85% of ask, so same-port round trips lose
 money. Bulk lots persist in `ship_cargo_manifest` with `cargo_room = 0`.
+
+Owned vessels receive one class-based dock fee on arrival at a port. Repeated
+room updates within the same visit do not assess another fee. An unpaid balance
+blocks manual departure and pauses autopilot; `dockfees pay` is limited to the
+owner or a permitted helmsman and saves both vessel and player state before
+confirming payment. Revenue assessed at a clan-owned port goes to that clan
+even if control changes before settlement. Public-port revenue leaves the
+economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
+themselves.
 
 Freight contracts (`src/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows), with
@@ -523,6 +533,12 @@ Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
 voids old permits.
 
+Soft-deleted characters retain their deeds so staff restoration is lossless.
+Before permanent player-file removal, one transaction makes their ships
+unowned, removes their helm permits, and voids pending insurance claims. If
+that transaction cannot commit, player removal is deferred instead of
+orphaning property.
+
 Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
@@ -533,8 +549,12 @@ Crew rows live in `ship_crew_roster` with npc_vnum <= -100.
 Upgrades, wear, insurance (`src/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install
 time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
-way (never below 1 structure per section); insurance pays the owner on
-sinking via `vessel_pay_insurance()` from `vessel_sink()`.
+way (never below 1 structure per section). Sinking consumes the policy and
+creates one durable `vessel_insurance_claims` row plus a system-mail receipt in
+the same settlement flow. Online owners receive the gold immediately; offline
+owners receive pending settlements on their next login. A player-file
+high-water mark prevents duplicate credit if recovery occurs between saving
+the character and closing the database claim.
 
 ### Naval Combat Commands (Phase 05)
 
@@ -553,6 +573,12 @@ heading-relative bearing (`greyhawk_getarc()`), reloads tick on the
 heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
 automatically. Deep-draft hulls ground on real wilderness bathymetry
 (elevation vs waterline against class `min_water_depth`).
+
+Every player-driven hostile entry point uses `vessel_pvp_permitted()`. A
+consented engagement records a persisted, opponent-specific five-minute
+window. If an owner logs out, only the original still-PvP-enabled aggressor may
+continue during that window; other players and expired snapshots fail closed.
+Ownership changes and permanent owner removal clear inherited consent.
 
 ### Builder Commands (Phase 04)
 
@@ -733,7 +759,8 @@ historical measurements, and the limits of the current evidence.
 |-------|---------|
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
 | `ship_interiors` | Vessel identity, rooms, owner, upgrades, insurance, and wage state |
-| `ship_runtime_state` | Live hull, position, condition, weapon-slot, room-type, and autopilot snapshot |
+| `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
@@ -747,6 +774,7 @@ historical measurements, and the limits of the current evidence.
 | `freight_contracts` | Freight offer and acceptance lifecycle |
 | `vessel_bounties` | Piracy bounty and marque state |
 | `vessel_encounters` | Region-keyed encounter definitions |
+| `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
 
 ### Room Templates (19 default types)
 
@@ -785,8 +813,11 @@ The July 29, 2026 local lifecycle run used Kohdee to prove both a graceful full
 restart and descriptor-preserving copyover. A dynamic warship recovered while
 actively traveling, with route progress, position, heading, damage, combat
 link, and schedule intact. A second dynamic transport retained ownership,
-generated rooms, cargo, hired crew, a refit, insurance, and combat damage.
-Production-snapshot rehearsal remains a release prerequisite.
+generated rooms, cargo, hired crew, a refit, insurance, combat damage, and four
+normalized weapon rows. A separate owned-transport run proved one 35-gold dock
+fee per port visit, departure and autopilot blocking, payment, and unpaid
+balance recovery across copyover and full restart, including recycled dynamic
+wilderness rooms. Production-snapshot rehearsal remains a release prerequisite.
 
 ---
 
@@ -997,7 +1028,7 @@ passes automated tests. Before rollout:
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
 4. Apply and verify every vessel schema component, then require all 31
-   maintained help entries and 74 command keywords to pass both SQL and in-game
+   maintained help entries and 75 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
@@ -1063,14 +1094,13 @@ or keyword count is insufficient once later phases extend the system.
 
 ---
 
-## Known Issues
+## Remaining Lifecycle Verification
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Offline insurance payout requires staff reconciliation | `vessels_upgrades.c` | Mail delivery remains |
-| Installed weapon state is memory-only | `slot[]` | A persistent `ship_weapons` table remains |
-| Player deletion has no explicit ship-orphan policy | Ownership lifecycle | Unown, transfer, or scuttle behavior remains to be chosen and tested |
-| Owner logout can end the live PvP consent target | `vessel_pvp_permitted()` | A bounded recent-combat grace policy remains |
+| Offline insurance settlement | `vessels_upgrades.c` | Queue, mail, login delivery, and duplicate guard are implemented; actual offline-owner loss still needs live proof |
+| Permanent player removal | `vessels_ownership.c`, `players.c` | Transactional unown/permit/claim policy is implemented; deletion and restoration still need live proof |
+| Owner logout during PvP | `vessels_combat.c` | Persisted five-minute opponent grace is implemented and unit-tested; two-player logout/expiry behavior still needs live proof |
 
 See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
 the complete, dependency-ordered backlog.

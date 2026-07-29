@@ -52,7 +52,7 @@
 > (`hedit.c:2545`, `:3218`) and cannot read arbitrary files. For repeatable,
 > reviewable imports, commit a SQL migration under `sql/components/` instead -
 > see `help_vessel_entries.sql` for a worked example covering 31 maintained
-> entries and 74 exact command keywords.
+> entries and 75 exact command keywords.
 >
 > **Verify the authoritative rows and the running game.** Run
 > `sql/components/verify_help_vessel_entries.sql`, then reload or restart help

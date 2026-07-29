@@ -36,14 +36,16 @@ tables.
 | 7 | `vessels_phase7_schema.sql` | `verify_vessels_phase7.sql` | `vessels_phase7_rollback.sql` | Commodities, port supply, freight, bulk cargo, and bounties |
 | 8 | `vessels_phase8_schema.sql` | `verify_vessels_phase8.sql` | `vessels_phase8_rollback.sql` | Region-keyed vessel encounters |
 | 9 | `vessels_phase9_schema.sql` | `verify_vessels_phase9.sql` | `vessels_phase9_rollback.sql` | Live hull, condition, room, weapon-slot, autopilot, and schedule snapshots |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 74 command keywords |
+| 10 | `vessels_phase10_schema.sql` | `verify_vessels_phase10.sql` | `vessels_phase10_rollback.sql` | Normalized weapons, insurance claims, PvP grace, and dock-fee state |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 75 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
 not against a live production database.
 
-The planned `ship_weapons` persistence component does not exist yet and is not
-part of this procedure.
+Phase 10 depends on the Phase 09 runtime table and the Phase 02 interior parent.
+Its rollback destroys installed-weapon rows, insurance settlement history,
+logout-grace snapshots, and unpaid dock-fee state.
 
 ## Pre-Deployment Gate
 
@@ -134,6 +136,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase9_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase10_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
 
@@ -158,6 +162,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase9.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase10.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
 
@@ -167,7 +173,7 @@ Also verify:
 - No out-of-band port supply or invalid encounter-region references.
 - Pre-existing ship, owner, cargo, crew, route, and schedule counts.
 - Representative records against the pre-deployment snapshot.
-- All 74 vessel and vehicle command-keyword searches in the running game,
+- All 75 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -213,6 +219,8 @@ restore, run them in reverse dependency order:
 
 ```bash
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase10_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase9_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase8_rollback.sql
@@ -226,11 +234,12 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase2_rollback.sql
 ```
 
-These scripts delete encounters, economy data, ownership state, prototypes,
-interiors, cargo, and crew. Never run them merely to retry an install. After
-rollback or restore, run the previous version's verification, compare the
-baseline census, start the previous application, and exercise representative
-ships before reopening access.
+These scripts delete normalized weapons, insurance settlements, runtime
+snapshots, encounters, economy data, ownership state, prototypes, interiors,
+cargo, and crew. Never run them merely to retry an install. After rollback or
+restore, run the previous version's verification, compare the baseline census,
+start the previous application, and exercise representative ships before
+reopening access.
 
 ## Deployment Record
 

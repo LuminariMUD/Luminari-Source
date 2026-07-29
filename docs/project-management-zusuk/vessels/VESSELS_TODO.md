@@ -3,8 +3,9 @@
 **Last audited:** July 29, 2026
 
 **Status:** The local 30-step regression, development release-boundary checks,
-and complete reboot/copyover state matrix pass. Shared validation, remaining
-persistence policy, scale, content, beta, and production release work remain.
+complete reboot/copyover state matrix, installed-weapon persistence, and dock
+fees pass. Shared validation, remaining lifecycle verification, scale, content,
+beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -32,17 +33,17 @@ and multiplayer encounter testing.
 
 ## 2. Close Persistence and Lifecycle Gaps
 
-- [ ] Deliver insurance payouts to offline owners through mail instead of
-  requiring staff reconciliation.
-- [ ] Decide and implement the player-deletion orphan policy: make ships
-  unowned, transfer them, or scuttle them. Cover deletion and restoration.
-- [ ] Persist installed weapons in a `ship_weapons` table with install,
-  rollback, verification, save/load, and lifecycle coverage.
-- [ ] Implement dock fees and define their relationship to port ownership and
-  the vessel economy.
-- [ ] Close the PvP logout escape: an owner logging out during combat currently
-  makes the ship untouchable. Define and test a bounded recent-combat grace
-  period without weakening the shared PvP consent gate.
+- [ ] Live-test an insured loss while its owner is offline. Confirm claim and
+  receipt mail creation, one-time delivery on the next login, no duplicate
+  payment after another login or recovery, and correct claim status.
+- [ ] Live-test the implemented player-deletion policy with a disposable owner:
+  soft deletion and restoration retain deeds; permanent removal makes ships
+  unowned, removes helm permits, voids pending claims, and fails closed if the
+  transaction cannot commit.
+- [ ] With two actual PvP-enabled characters, live-test the persisted,
+  opponent-specific five-minute combat logout grace. Prove the original
+  aggressor can continue only inside the window, a third party cannot, expiry
+  protects the vessel, and ownership change clears the snapshot.
 
 ## 3. Prove Scale, Stability, and Economy
 

@@ -51,7 +51,7 @@ from planning items into tested behavior.
 - Production-safe debug controls: support defaults to compiled out;
   an explicit `-DVESSEL_SYSTEM_DEBUG=1` development build starts with an empty
   runtime mask controlled by `vdebug`/`vesseldebug` across ten categories.
-- An idempotent authoritative help migration with 31 maintained entries and 74
+- An idempotent authoritative help migration with 31 maintained entries and 75
   exact command keywords, plus a read-only verifier for counts, access levels,
   nonempty content, and obsolete duplicates.
 - Fast, marker-delimited Kohdee command batches, deterministic editor dialogs,
@@ -60,6 +60,15 @@ from planning items into tested behavior.
 - A Phase 09 runtime schema, verifier, and rollback for complete live vessel
   snapshots and schedules. The Kohdee helper now has a descriptor-preserving
   `--copyover-check` mode with optional pre-copyover commands.
+- A Phase 10 schema, verifier, and rollback for normalized installed weapons,
+  durable insurance claims, opponent-specific PvP logout grace, and dock-fee
+  state.
+- One class-based dock fee per owned port visit, `dockfees [pay]`, clan-port
+  revenue, public-port gold sinks, and departure/autopilot blocking until
+  settlement. Unowned NPC and test hulls remain exempt.
+- Durable insurance claim mail and one-time login delivery for offline owners,
+  plus a transactional permanent-player-removal policy that unowns vessels,
+  removes permits, and voids pending claims.
 
 #### Fixed
 
@@ -86,6 +95,9 @@ from planning items into tested behavior.
 - Stale duplicate help mappings no longer shadow canonical vessel topics;
   general character movement speed remains available through
   `MOVEMENT-SPEED` and `RACIAL-SPEED`.
+- Port checks now follow authoritative wilderness coordinates across recycled
+  dynamic rooms. Dock debt cannot be bypassed after copyover or restart, and
+  payment remains available at the recovered berth.
 
 #### Validated
 
@@ -98,17 +110,21 @@ from planning items into tested behavior.
   option restored tick processing.
 - An explicit debug build emitted only the requested movement category; the
   restored default build reported debug support compiled out. The root
-  production-linked suite passed 216 tests and was installed with no
+  production-linked suite passed 218 tests and was installed with no
   root-level `circle` artifact.
 - A dynamic transport carrying cargo, crew, a refit, insurance, ownership, and
   combat damage, plus a damaged scheduled warship mid-route, retained all
   expected state through both a graceful full restart and a real copyover. The
   active warship recovered in `Traveling` state and continued moving on the
   same route while Kohdee's descriptor stayed connected.
-- All 74 help keywords resolved to database help in game, all SQL help checks
-  passed, and all 20 current component migrations applied independently to a
-  fresh MariaDB 10.11 master schema. Cleanup left no test vehicles,
-  prototypes, routes, waypoints, or runtime ship-instance rows.
+- An owned transport incurred one 35-gold charge on arrival, could not depart
+  while indebted, retained that debt through copyover and restart, paid it,
+  departed, returned, and incurred exactly one new charge for the new visit.
+- All 75 help keywords resolved to database help in one 54-second Kohdee
+  session, all SQL help checks passed, and all 21 current component migrations
+  applied independently to a fresh MariaDB 10.11 master schema. Cleanup left
+  no test vehicles, prototypes, routes, waypoints, or runtime ship-instance
+  rows.
 
 ### Documentation - structured web onboarding promotion
 
@@ -568,7 +584,7 @@ Outstanding work is isolated in
   `vessel_effective_cargo_capacity()`, which folds in the hold refit and the
   quartermaster's stowage bonus.
 - **Authoritative vessel help** - `help_vessel_entries.sql` maintains 31
-  database entries covering all 74 exact vessel, vehicle, transport,
+  database entries covering all 75 exact vessel, vehicle, transport,
   autopilot, and staff-recovery command keywords. Staff-only surfaces use
   min-level 31.
   - `verify_help_vessel_entries.sql` checks entry and command counts, access

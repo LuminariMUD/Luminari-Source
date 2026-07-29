@@ -15,10 +15,10 @@ outstanding work.
 1. The complete 500-ship workload has not been measured with combat,
    encounters, economy, wear, persistence, and client updates active. Historical
    navigation microbenchmarks are not release evidence.
-2. The complete copyover and reboot state matrix, offline insurance, player
-   deletion, persistent weapon mounts, and combat logout behavior still need
-   lifecycle work or live verification. Static legacy occupants do relink and
-   disembark after a full restart.
+2. Copyover/reboot recovery, normalized weapon mounts, and dock-fee recovery
+   have live evidence. Offline insurance delivery, permanent player removal,
+   and the opponent-specific combat logout grace are implemented but still
+   need actual-character lifecycle verification.
 3. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
    a 72-hour soak, player beta, and migration rollback rehearsal before broad
    release.

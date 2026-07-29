@@ -145,7 +145,7 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The July 29,
-2026 run checked 74 keywords in 67 seconds. This replaces 74 separate login
+2026 run checked 75 keywords in 54 seconds. This replaces 75 separate login
 cycles and automatically includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
