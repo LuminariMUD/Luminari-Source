@@ -10,7 +10,10 @@ autopilot command durability, write-failure rollback, and static/dynamic
 exterior-hull co-location through restart and zone reset are also proven. The shared
 two-dock harbor, representative prototypes, persistent scheduled ferry, and
 generated-room DG triggers are available. Continuous validation, scale,
-content, beta, and production release work remain.
+content, beta, and production release work remain. Pre-soak testing repaired
+signed-coordinate movement and both unsafe legs of the sample ferry route; an
+actual Kohdee session now completes the full four-waypoint loop. The
+continuous 24-hour result is still unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

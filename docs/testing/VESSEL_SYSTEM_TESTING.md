@@ -29,10 +29,11 @@ one command:
 ```
 
 The development-only command merges the tracked world package, seeds three
-representative prototypes and the two-stop route, creates the public ferry
-only if absent, and performs a hard-restart persistence check. A passing run
-proves both seaports, the generated bridge and cargo DG triggers, the restored
-ferrymaster, active route, and hourly schedule, then ends with:
+representative prototypes and the four-waypoint, two-stop channel route,
+creates the public ferry only if absent, and performs a hard-restart
+persistence check. A passing run proves both seaports, the generated bridge
+and cargo DG triggers, the restored ferrymaster, exact route topology, and
+hourly schedule, then ends with:
 
 ```text
 PASS: harbor sandbox and persistent ferry verified in ship slot N.
@@ -206,10 +207,12 @@ numbered gameplay flow:
   no invalid mappings or room types above the eight-trigger limit.
 - The shared harbor provisioner created the second static seaport, three
   representative prototypes, and public ferry in slot 5. A hard restart
-  restored its ferrymaster, active two-stop route, progress at `(-63, 91)`,
-  and hourly schedule. Speech diagnostics fired trigger 70001 on the generated
-  bridge and 70002 in the generated cargo hold. An idempotent rerun reused the
-  same public ferry and finished in about 30 seconds.
+  restored its ferrymaster, active two-stop route, progress, and hourly
+  schedule. The route contains west dock, channel turn, east dock, and the
+  return channel turn in that order. Speech diagnostics fired trigger 70001
+  on the generated bridge and 70002 in the generated cargo hold. An
+  idempotent rerun reused the same public ferry and finished in about 30
+  seconds.
 - The single-session builder gate used Kohdee and only `vedit` for
   prototype creation, tuning, inspection, and spawn. It discovered generated
   IDs from game output, sailed the Boat west one cell, and removed all
@@ -224,6 +227,16 @@ numbered gameplay flow:
   multiple hazard pulses and the repaired hull stayed 20/20 on all sides.
   `shipfix` persisted the repair, and a full service restart restored the same
   full condition and pilot.
+- The next live ferry pass exposed two independent navigation defects.
+  Floating movement converted negative coordinates by adding 0.5 and casting,
+  which truncates toward zero; signed nearest-cell rounding now lets the ferry
+  advance west of the origin. The original direct dock-to-dock fixture leg
+  also crossed Beach at `(-63, 84)`, so the route now takes the navigable
+  `(-64, 82)` channel turn on both legs. Kohdee observed a complete west ->
+  channel -> east -> channel -> west loop, followed by another arrival at the
+  east dock, with no ship-5 impassable-terrain stall. A simultaneous one-point
+  decrease across all armor arcs was the expected persisted
+  `SHIP_WEAR_INTERVAL`, not a gale hit.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

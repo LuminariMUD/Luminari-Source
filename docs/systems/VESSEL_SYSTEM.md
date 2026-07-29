@@ -838,7 +838,10 @@ ferry, mobile 70001 as its persistent pilot, and bridge/cargo DG diagnostics
 70001/70002. Re-running the command reuses the same ferry and account rather
 than duplicating either. An assigned pilot at the bridge is excluded from
 ordinary mobile wandering; the fixture ferrymaster is also authored Sentinel
-so it remains at its duty station.
+so it remains at its duty station. The two docks are joined by four ordered
+route entries: west dock, channel turn at `(-64, 82)`, east dock, and the same
+channel turn for the return leg. This keeps both straight-line legs off the
+Beach cells. The provisioner validates that exact topology.
 
 ### Interior VNUM Allocation
 

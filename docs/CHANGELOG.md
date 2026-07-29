@@ -10,9 +10,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 #### Added
 
 - A development-only, idempotent harbor provisioner with two static seaports,
-  raft/ship/airship prototypes, a looping two-stop route, a public scheduled
-  ferry, and a persistent NPC ferrymaster. It refuses non-development
-  environments and never runs from normal install or deployment.
+  raft/ship/airship prototypes, a looping two-stop route with safe outbound
+  and return channel turns, a public scheduled ferry, and a persistent NPC
+  ferrymaster. It refuses non-development environments and never runs from
+  normal install or deployment.
 - Phase 11 schema support for attaching DG trigger prototypes to generated
   room types through `ship_room_template_triggers`.
 - `vedit spawnpublic <id>` for unclaimed NPC/public hulls that do not accrue
@@ -35,6 +36,12 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   prevents the unmanaged-helm structural hit during a gale.
 - `shipfix` now persists the repaired runtime condition before reporting
   success and restores the prior condition if that write fails.
+- Autopilot grid conversion now rounds signed wilderness coordinates
+  symmetrically. Negative travel no longer truncates toward zero and stalls in
+  its current cell.
+- The harbor route now uses the navigable channel at `(-64, 82)` in both
+  directions instead of drawing a direct leg through Beach at `(-63, 84)`.
+  Provisioning verifies the exact four-waypoint loop.
 
 #### Validated
 
@@ -49,6 +56,11 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 - During a 60-second live storm check, the ferrymaster remained at the bridge
   through multiple hazard pulses and the repaired ferry stayed 20/20 on all
   sides. A full service restart retained the repair and restored the pilot.
+- In one actual Kohdee session, the ferry completed west dock -> channel ->
+  east dock -> channel -> west dock and began the next outbound leg. It moved
+  through distinct negative coordinates without an impassable-terrain stall.
+  A simultaneous one-point reduction on all armor arcs was the expected
+  persisted 900-tick underway-wear interval, not gale structure damage.
 
 ### Documentation - vessel source-of-truth consolidation
 

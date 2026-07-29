@@ -2093,6 +2093,17 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Round a continuous autopilot coordinate to its nearest wilderness cell.
+ *
+ * C casts truncate toward zero, so adding 0.5 only works for positive
+ * coordinates. lroundf handles both signs symmetrically.
+ */
+int vessel_autopilot_grid_coordinate(float coordinate)
+{
+  return (int)lroundf(coordinate);
+}
+
+/**
  * Move a vessel toward its current waypoint.
  *
  * Calculates movement direction and distance, validates terrain,
@@ -2151,8 +2162,8 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   new_y = ship->y + (dy * speed);
 
   /* Round to integer coordinates for wilderness system */
-  target_x = (int)(new_x + 0.5f);
-  target_y = (int)(new_y + 0.5f);
+  target_x = vessel_autopilot_grid_coordinate(new_x);
+  target_y = vessel_autopilot_grid_coordinate(new_y);
 
   /* Check if terrain is valid for this vessel before moving */
   if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))

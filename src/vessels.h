@@ -1304,6 +1304,7 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
 int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp);
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
+int vessel_autopilot_grid_coordinate(float coordinate);
 int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);

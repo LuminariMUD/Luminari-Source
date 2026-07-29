@@ -275,6 +275,15 @@ void Test_vessel_production_waypoint_mutation_and_heading(CuTest *tc)
   route_destroy(route);
 }
 
+void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 64, vessel_autopilot_grid_coordinate(63.95f));
+  CuAssertIntEquals(tc, 63, vessel_autopilot_grid_coordinate(63.40f));
+  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.95f));
+  CuAssertIntEquals(tc, -63, vessel_autopilot_grid_coordinate(-63.40f));
+  CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.50f));
+}
+
 void Test_transport_production_capacity_validation(CuTest *tc)
 {
   struct greyhawk_ship_data vessel;

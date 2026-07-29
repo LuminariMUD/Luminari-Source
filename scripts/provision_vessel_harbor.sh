@@ -308,9 +308,33 @@ active_route_count=$(database_scalar \
     WHERE state.ship_id = $ferry_slot
       AND route.name = 'harbor_ferry_loop'
       AND state.autopilot_state IN (1, 2)")
+route_topology_valid=$(database_scalar \
+  "SELECT IF(
+       COUNT(*) = 4
+       AND SUM(
+         CASE
+           WHEN route_point.sequence_num = 0 AND waypoint.name = 'harbor_west_dock' THEN 1
+           WHEN route_point.sequence_num = 1 AND waypoint.name = 'harbor_channel_turn' THEN 1
+           WHEN route_point.sequence_num = 2 AND waypoint.name = 'harbor_east_dock' THEN 1
+           WHEN route_point.sequence_num = 3 AND waypoint.name = 'harbor_channel_turn' THEN 1
+           ELSE 0
+         END
+       ) = 4,
+       1,
+       0
+     )
+     FROM ship_route_waypoints AS route_point
+     JOIN ship_routes AS route ON route.route_id = route_point.route_id
+     JOIN ship_waypoints AS waypoint ON waypoint.waypoint_id = route_point.waypoint_id
+    WHERE route.route_id = (
+      SELECT MIN(route_id)
+        FROM ship_routes
+       WHERE name = 'harbor_ferry_loop'
+    )")
 
 if [[ "$ferry_was_created" == true || "$pilot_count" != 1 ||
-      "$schedule_count" != 1 || "$active_route_count" != 1 ]]; then
+      "$schedule_count" != 1 || "$active_route_count" != 1 ||
+      "$route_topology_valid" != 1 ]]; then
   ferry_commands=(
     "shipgoto $ferry_slot"
     "setroute harbor_ferry_loop"
@@ -342,6 +366,29 @@ schedule_count=$(database_scalar \
     WHERE s.ship_id = $ferry_slot
       AND r.name = 'harbor_ferry_loop'
       AND s.enabled = 1")
+route_topology_valid=$(database_scalar \
+  "SELECT IF(
+       COUNT(*) = 4
+       AND SUM(
+         CASE
+           WHEN route_point.sequence_num = 0 AND waypoint.name = 'harbor_west_dock' THEN 1
+           WHEN route_point.sequence_num = 1 AND waypoint.name = 'harbor_channel_turn' THEN 1
+           WHEN route_point.sequence_num = 2 AND waypoint.name = 'harbor_east_dock' THEN 1
+           WHEN route_point.sequence_num = 3 AND waypoint.name = 'harbor_channel_turn' THEN 1
+           ELSE 0
+         END
+       ) = 4,
+       1,
+       0
+     )
+     FROM ship_route_waypoints AS route_point
+     JOIN ship_routes AS route ON route.route_id = route_point.route_id
+     JOIN ship_waypoints AS waypoint ON waypoint.waypoint_id = route_point.waypoint_id
+    WHERE route.route_id = (
+      SELECT MIN(route_id)
+        FROM ship_routes
+       WHERE name = 'harbor_ferry_loop'
+    )")
 bridge_room=$(database_scalar \
   "SELECT bridge_room FROM ship_interiors WHERE ship_id = $ferry_slot")
 cargo_room=$(database_scalar \
@@ -349,6 +396,8 @@ cargo_room=$(database_scalar \
 
 [[ "$pilot_count" == 1 ]] || fail "the ferry pilot did not survive restart"
 [[ "$schedule_count" == 1 ]] || fail "the ferry schedule did not survive restart"
+[[ "$route_topology_valid" == 1 ]] ||
+  fail "the ferry route does not contain the expected four-leg channel loop"
 [[ "$bridge_room" =~ ^[0-9]+$ && "$bridge_room" -gt 0 ]] ||
   fail "the ferry bridge is unavailable after restart"
 [[ "$cargo_room" =~ ^[0-9]+$ && "$cargo_room" -gt 0 ]] ||
