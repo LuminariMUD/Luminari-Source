@@ -7121,6 +7121,7 @@ EVENTFUNC(get_protocols)
 /* deal with newcomers and other non-playing sockets */
 void nanny(struct descriptor_data *d, char *arg)
 {
+  bool player_removed = FALSE;
   int load_result = 0; /* Overloaded variable */
   int player_i = 0;
   int i = 0; /* sortpos = 0; */ /* sortpos currently unused */ /* incrementor */
@@ -7579,8 +7580,17 @@ void nanny(struct descriptor_data *d, char *arg)
         {
           /* Make sure old files are removed so the new player doesn't get the
            * deleted player's equipment. */
-          if ((player_i = get_ptable_by_name(tmp_name)) >= 0)
-            remove_player(player_i);
+          player_i = get_ptable_by_name(tmp_name);
+          if (player_i < 0 || !remove_player(player_i))
+          {
+            write_to_output(
+                d,
+                "That deleted character cannot be replaced until durable property cleanup "
+                "succeeds.\r\nName: ");
+            free_char(d->character);
+            d->character = NULL;
+            return;
+          }
 
           /* We get a false positive from the original deleted character. */
           free_char(d->character);
@@ -9419,15 +9429,40 @@ void nanny(struct descriptor_data *d, char *arg)
       if (GET_LEVEL(d->character) < LVL_GRSTAFF)
         SET_BIT_AR(PLR_FLAGS(d->character), PLR_DELETED);
       save_char(d->character, 0);
-      Crash_delete_file(GET_NAME(d->character));
+
       /* If the selfdelete_fastwipe flag is set (in config.c), remove all the
-       * player's immediately. */
+       * player's files immediately. Do not remove account membership or
+       * report success unless the durable property transaction commits. */
       if (selfdelete_fastwipe)
+      {
+        player_removed = FALSE;
         if ((player_i = get_ptable_by_name(GET_NAME(d->character))) >= 0)
         {
           SET_BIT(player_table[player_i].flags, PINDEX_SELFDELETE);
-          remove_player(player_i);
+          player_removed = remove_player(player_i);
         }
+
+        if (!player_removed)
+        {
+          REMOVE_BIT_AR(PLR_FLAGS(d->character), PLR_DELETED);
+          save_char(d->character, 0);
+          write_to_output(
+              d,
+              "\r\nCharacter deletion was cancelled because durable property cleanup could "
+              "not be committed. Nothing was deleted; please try again later.\r\n%s",
+              CONFIG_MENU);
+          mudlog(NRM, LVL_STAFF, TRUE,
+                 "Deletion of %s was cancelled after durable property cleanup failed.",
+                 GET_NAME(d->character));
+          STATE(d) = CON_MENU;
+          return;
+        }
+      }
+      else
+      {
+        Crash_delete_file(GET_NAME(d->character));
+      }
+
       remove_char_from_account(d->character, d->account);
       delete_variables(GET_NAME(d->character));
       write_to_output(d, "Character '%s' deleted!\r\n", GET_NAME(d->character));

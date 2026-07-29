@@ -4105,13 +4105,13 @@ void tag_argument(char *argument, char *tag)
 
 /* remove_player() removes all files associated with a player who is self-deleted,
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
-void remove_player(int pfilepos)
+bool remove_player(int pfilepos)
 {
   char filename[MAX_STRING_LENGTH] = {'\0'}, timestr[64];
   int i;
 
-  if (!*player_table[pfilepos].name)
-    return;
+  if (pfilepos < 0 || pfilepos > top_of_p_table || !*player_table[pfilepos].name)
+    return FALSE;
 
   /* Soft deletion remains restorable. This hook runs only for permanent file
    * removal; if durable vessel cleanup cannot commit, preserve the player so
@@ -4120,7 +4120,7 @@ void remove_player(int pfilepos)
   {
     log("SYSERR: Permanent player removal deferred for %s: vessel cleanup failed",
         player_table[pfilepos].name);
-    return;
+    return FALSE;
   }
 
   /* Unlink all player-owned files */
@@ -4139,6 +4139,7 @@ void remove_player(int pfilepos)
   remove_player_from_index(pfilepos);
 
   save_player_index();
+  return TRUE;
 }
 
 void clean_pfiles(void)

@@ -357,7 +357,7 @@ bool apply_clone_owner_identity_for_test(struct char_data *mob, const char *owne
 void save_player_index(void);
 bool save_player_index_checked(void);
 long get_ptable_by_name(const char *name);
-void remove_player(int pfilepos);
+bool remove_player(int pfilepos);
 void clean_pfiles(void);
 void build_player_index(void);
 
