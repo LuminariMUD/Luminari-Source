@@ -362,7 +362,6 @@ sudo apt-get install build-essential mariadb-server libmariadb-dev libgd-dev
 
 # Permission issues
 chmod +x configure
-chmod +x licheck
 
 # Clean build
 make clean && make
@@ -405,7 +404,7 @@ Custom code developed for LuminariMUD is released into the **public domain**:
 >
 > Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.
 
-For complete license details, see the [LICENSE](LICENSE.md) file.
+For complete license details, see the [LICENSE](LICENSE) file.
 
 ## Acknowledgments
 

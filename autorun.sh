@@ -56,7 +56,7 @@ readonly LIB_DIR="${LIB_DIR:-lib}"
 readonly LOG_DIR="${LOG_DIR:-log}"
 readonly DUMPS_DIR="${DUMPS_DIR:-dumps}"
 
-# MUD flags (see admin.txt for description of all flags)
+# MUD command-line flags; quick boot skips the rent object-limit scan.
 readonly FLAGS="${MUD_FLAGS:--q}"
 
 # Auxiliary services configuration

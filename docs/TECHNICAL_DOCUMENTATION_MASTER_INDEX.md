@@ -31,8 +31,6 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CMAKE_BUILD_GUIDE.md](development/CMAKE_BUILD_GUIDE.md)** - Alternative build system using CMake
 - **[IMPORT_DB.md](guides/IMPORT_DB.md)** - Database import procedures
 - **[VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md)** - Vessel schema deployment, verification, and rollback procedure
-- **[LEGACY_README.md](legacy_installation/LEGACY_README.md)** - Historical installation notes
-- **[README_HISTORY.md](legacy_installation/README_HISTORY.md)** - Evolution of setup procedures
 
 ---
 
@@ -164,12 +162,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[VESSEL_PRD_FINAL.md](project-management-zusuk/vessels/VESSEL_PRD_FINAL.md)** - Vessel system requirements and remaining work
 - **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
-- **[WILDERNESS-RESOURCE-PLAN.md](project-management-ornir/wilderness/WILDERNESS-RESOURCE-PLAN.md)** - Resource system implementation plan (Phases 1-4)
-- **[PHASE_5_DESIGN.md](project-management-ornir/PHASE_5_DESIGN.md)** - Player harvesting mechanics design
-- **[PHASE_4_COMPLETION_SUMMARY.md](project-management-ornir/PHASE_4_COMPLETION_SUMMARY.md)** - Region effects system completion
-- **[CLEANUP_REPORT.md](project-management-ornir/CLEANUP_REPORT.md)** - System redesign and cleanup documentation
 - **[IDEA_LIST.md](project-management-zusuk/ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
-- **[WILDERNESS_PROJECT.md](project-management-ornir/wilderness/WILDERNESS_PROJECT.md)** - Wilderness system development
 
 ### Historical Records
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records

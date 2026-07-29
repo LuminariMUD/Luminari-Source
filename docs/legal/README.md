@@ -2,7 +2,7 @@
 
 This document provides comprehensive licensing details for Luminari MUD.
 
-**Quick Reference**: See [`LICENSE.md`](../../LICENSE.md) in the root directory for the summary.
+**Quick Reference**: See [`LICENSE`](../../LICENSE) in the root directory for the summary.
 
 ## Table of Contents
 

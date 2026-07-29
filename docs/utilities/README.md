@@ -622,45 +622,14 @@ PAUSE=10
 - **Time-based Restarts:** Scheduled restarts for maintenance
 - **Backup Integration:** Automatic backups before restarts
 
-### Platform-Specific Autorun Scripts
+### Supported Autorun Script
 
-**Unix/Linux (autorun.sh):**
+The supported Unix/Linux supervisor is [`autorun.sh`](../../autorun.sh):
+
 ```bash
 #!/bin/bash
 # Standard Unix autorun script with full features
 ```
-
-**Windows (autorun.cmd):**
-```cmd
-@echo off
-REM Windows batch file version
-```
-
-**Perl Version (autorun.pl):**
-```perl
-#!/usr/bin/perl
-# Cross-platform Perl implementation
-```
-
-**macOS (macrun.pl):**
-```perl
-#!/usr/bin/perl
-# macOS-specific optimizations
-```
-
-### Build Automation
-
-**VMS Build Script (build_circlemud.com):**
-For VMS systems, provides automated compilation:
-```
-$ @build_circlemud
-```
-
-**Features:**
-- Automatic dependency checking
-- Optimized compilation flags
-- Error reporting and logging
-- Integration with VMS development tools
 
 ---
 

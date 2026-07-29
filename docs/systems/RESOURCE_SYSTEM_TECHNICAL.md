@@ -44,8 +44,10 @@ src/
 └── kdtree.c               # KD-tree utilities for spatial indexing
 
 docs/
-├── project-management/
-│   └── WILDERNESS-RESOURCE-PLAN.md    # Implementation plan
+├── guides/
+│   └── RESOURCE_SYSTEM_REFERENCE.md   # Command and configuration reference
+├── systems/
+│   └── RESOURCE_REGENERATION_SYSTEM.md # Resource regeneration details
 └── testing/
     └── RESOURCE_SYSTEM_TESTING.md     # Testing guide
 ```

@@ -8,8 +8,7 @@ movement bars, clickable buttons, a minimap, combat panels, etc. Mudlet handles
 the download and install itself; the server only advertises a version and URL.
 
 This document traces the full server-side wiring. For the broader protocol
-layer (MSDP/GMCP/MSSP/MXP), see `PROTOCOL_SYSTEMS.md`. For notes on building the
-`.mpackage` archive itself, see `docs/legacy_installation/ProtocolSystem.txt`.
+layer (MSDP/GMCP/MSSP/MXP), see [PROTOCOL_SYSTEMS.md](PROTOCOL_SYSTEMS.md).
 
 ## The mechanism in one line
 
