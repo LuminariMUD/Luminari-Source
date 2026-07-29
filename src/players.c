@@ -170,11 +170,12 @@ void build_player_index(void)
   for (i = 0; i < rec_count; i++)
   {
     get_line(plr_index, line);
-    if ((nr = sscanf(line, "%ld %s %d %s %ld %d", &player_table[i].id, arg2, &player_table[i].level,
-                     bits, (long *)&player_table[i].last, &player_table[i].clan)) != 6)
+    if ((nr = sscanf(line, "%ld %79s %d %63s %ld %d", &player_table[i].id, arg2,
+                     &player_table[i].level, bits, (long *)&player_table[i].last,
+                     &player_table[i].clan)) != 6)
     {
-      if ((nr = sscanf(line, "%ld %s %d %s %ld", &player_table[i].id, arg2, &player_table[i].level,
-                       bits, (long *)&player_table[i].last)) != 5)
+      if ((nr = sscanf(line, "%ld %79s %d %63s %ld", &player_table[i].id, arg2,
+                       &player_table[i].level, bits, (long *)&player_table[i].last)) != 5)
       {
         log("SYSERR: Invalid line in player index (%s)", line);
         continue;
@@ -427,7 +428,7 @@ char *get_name_by_id(long id)
  * if not. */
 int load_char(const char *name, struct char_data *ch)
 {
-  int id, i, j;
+  int id, i, j, parsed;
   FILE *fl;
   char filename[40];
   char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -800,7 +801,7 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Act "))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             PLR_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -817,7 +818,7 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             AFF_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -900,7 +901,11 @@ int load_char(const char *name, struct char_data *ch)
       case 'C':
         if (!strcmp(tag, "CbFt"))
         {
-          sscanf(line, "%d %s %s %s %s", &i, f1, f2, f3, f4);
+          if (sscanf(line, "%d %127s %127s %127s %127s", &i, f1, f2, f3, f4) != 5)
+          {
+            log("load_char: %s has an invalid combat feat record: %s", GET_NAME(ch), line);
+            break;
+          }
           if (i < 0 || i >= NUM_CFEATS)
           {
             log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
@@ -1359,7 +1364,7 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "Page"))
           GET_PAGE_LENGTH(ch) = atoi(line);
         else if (!strcmp(tag, "Pass"))
-          strcpy(GET_PASSWD(ch), line);
+          strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
         else if (!strcmp(tag, "Potn"))
           load_potions(fl, ch);
         else if (!strcmp(tag, "Plyd"))
@@ -1382,7 +1387,8 @@ int load_char(const char *name, struct char_data *ch)
           POOFOUT(ch) = strdup(line);
         else if (!strcmp(tag, "Pref"))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          parsed = sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4);
+          if (parsed == 4)
           {
             PRF_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -1393,9 +1399,11 @@ int load_char(const char *name, struct char_data *ch)
             PRF_FLAGS(ch)
             [3] = asciiflag_conv(f4);
           }
-          else
+          else if (parsed == 1)
             PRF_FLAGS(ch)
           [0] = asciiflag_conv(f1);
+          else
+            log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
         }
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
@@ -1726,7 +1734,11 @@ int load_char(const char *name, struct char_data *ch)
           GET_BLOODLINE_SUBTYPE(ch) = atoi(line);
         else if (!strcmp(tag, "SclF"))
         {
-          sscanf(line, "%d %s", &i, f1);
+          if (sscanf(line, "%d %127s", &i, f1) != 2)
+          {
+            log("load_char: %s has an invalid school feat record: %s", GET_NAME(ch), line);
+            break;
+          }
           if (i < 0 || i >= NUM_SFEATS)
           {
             log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);

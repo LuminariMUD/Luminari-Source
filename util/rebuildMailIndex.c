@@ -199,7 +199,7 @@ int parse_mail_flags(FILE *plr_file)
   if ((txt = findLine(plr_file, "Flag:")) != NULL)
   {
     /* Read the flags */
-    if (sscanf(txt, "%s %s %s %s", f1, f2, f3, f4) == 4)
+    if (sscanf(txt, "%32s %32s %32s %32s", f1, f2, f3, f4) == 4)
     {
       fl[0] = asciiflag_conv(f1);
       fl[1] = asciiflag_conv(f2);

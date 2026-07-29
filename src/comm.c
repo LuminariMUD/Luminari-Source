@@ -2374,7 +2374,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
    * text just barely fits, then it's switched to a large buffer instead. */
   if (t->bufspace > size)
   {
-    strcpy(t->output + t->bufptr, txt); /* strcpy: OK (size checked above) */
+    strlcpy(t->output + t->bufptr, txt, t->bufspace);
     t->bufspace -= size;
     t->bufptr += size;
     return (t->bufspace);
@@ -2413,13 +2413,12 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
    * "Source and destination overlap in strcpy" was reported. */
   if (t->output != t->large_outbuf->text)
   {
-    /* Source and destination are different - safe to use strcpy */
-    strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (no overlap) */
+    strlcpy(t->large_outbuf->text, t->output, LARGE_BUFSIZE);
   }
   /* else: source and destination are the same - no copy needed, data already there */
 
   t->output = t->large_outbuf->text; /* make big buffer primary */
-  strcat(t->output, txt);            /* strcat: OK (size checked) */
+  strlcat(t->output, txt, LARGE_BUFSIZE);
 
   /* set the pointer for the next write */
   t->bufptr = strlen(t->output);

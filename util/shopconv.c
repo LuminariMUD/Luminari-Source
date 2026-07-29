@@ -76,7 +76,7 @@ char *fread_string(FILE *fl, const char *error)
   if (strlen(buf) > 0)
   {
     CREATE(rslt, char, strlen(buf) + 1);
-    strcpy(rslt, buf);
+    memcpy(rslt, buf, strlen(buf) + 1);
   }
   else
     rslt = NULL;

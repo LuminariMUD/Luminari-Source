@@ -69,7 +69,6 @@ ACMD(do_tedit)
   int l, i = 0;
   char field[MAX_INPUT_LENGTH] = {'\0'};
   char *backstr = NULL;
-  struct oasis_olc_data *new_olc = NULL;
 
   const struct
   {
@@ -138,13 +137,13 @@ ACMD(do_tedit)
   send_editor_help(ch->desc);
   send_to_char(ch, "Edit file below:\r\n\r\n");
 
-  CREATE(new_olc, struct oasis_olc_data, 1);
   if (ch->desc->olc)
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_tedit: Player already had olc structure.");
     free(ch->desc->olc);
+    ch->desc->olc = NULL;
   }
-  ch->desc->olc = new_olc;
+  CREATE(ch->desc->olc, struct oasis_olc_data, 1);
 
   if (*fields[l].buffer)
   {

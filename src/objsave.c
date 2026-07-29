@@ -2076,7 +2076,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'F':
       if (!strcmp(tag, "Flag"))
       {
-        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) != 4)
+        {
+          log("SYSERR: Invalid Flag record in object save file: %s", line);
+          break;
+        }
         GET_OBJ_EXTRA(temp)
         [0] = asciiflag_conv(f1);
         GET_OBJ_EXTRA(temp)
@@ -2104,7 +2108,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'P':
       if (!strcmp(tag, "Perm"))
       {
-        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) != 4)
+        {
+          log("SYSERR: Invalid Perm record in object save file: %s", line);
+          break;
+        }
         GET_OBJ_AFFECT(temp)
         [0] = asciiflag_conv(f1);
         GET_OBJ_AFFECT(temp)
@@ -2116,7 +2124,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "Prm2"))
       {
-        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) != 4)
+        {
+          log("SYSERR: Invalid Prm2 record in object save file: %s", line);
+          break;
+        }
         GET_OBJ2_PERM(temp)
         [0] = asciiflag_conv(f1);
         GET_OBJ2_PERM(temp)
@@ -2165,9 +2177,13 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "SpAb"))
       {
+        if (sscanf(line, "%d %d %d %d %d %d %d %127s", &t[0], &t[1], &t[2], &t[3], &t[4],
+                   &t[5], &t[6], f1) != 8)
+        {
+          log("SYSERR: Invalid SpAb record in object save file: %s", line);
+          break;
+        }
         CREATE(temp->special_abilities, struct obj_special_ability, 1);
-        sscanf(line, "%d %d %d %d %d %d %d %s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5], &t[6],
-               f1);
         temp->special_abilities->ability = t[0];
         temp->special_abilities->level = t[1];
         temp->special_abilities->activation_method = t[2];
@@ -2185,7 +2201,11 @@ obj_save_data *objsave_parse_objects(FILE *fl)
     case 'W':
       if (!strcmp(tag, "Wear"))
       {
-        sscanf(line, "%s %s %s %s", f1, f2, f3, f4);
+        if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) != 4)
+        {
+          log("SYSERR: Invalid Wear record in object save file: %s", line);
+          break;
+        }
         GET_OBJ_WEAR(temp)
         [0] = asciiflag_conv(f1);
         GET_OBJ_WEAR(temp)
@@ -2777,7 +2797,7 @@ static int Crash_load_objs(struct char_data *ch)
   int i, num_of_days, orig_rent_code, num_objs = 0;
   unsigned long cost;
   struct obj_data *cont_row[MAX_BAG_ROWS];
-  int rentcode, timed, netcost, gold, account, nitems;
+  int rentcode = RENT_UNDEF, timed = 0, netcost = 0, gold = 0, account = 0, nitems = 0;
   obj_save_data *loaded, *current;
 
   bool using_db = false; /* Needed outside the ifdefined */

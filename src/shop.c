@@ -1575,7 +1575,12 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
     buf = fread_string(shop_f, buf2);
     if (*buf == '#')
     { /* New shop */
-      sscanf(buf, "#%d\n", &temp);
+      if (sscanf(buf, "#%d", &temp) != 1)
+      {
+        log("SYSERR: Invalid shop header in %s: %s", filename, buf);
+        free(buf);
+        exit(1);
+      }
       snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
       free(buf); /* Plug memory leak! */
       top_shop++;

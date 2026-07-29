@@ -95,7 +95,7 @@ void read_file(void)
   char name[MAX_NAME_LENGTH];
   long id = 0;
 
-  sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
   if (!(fl = fopen(index_name, "r")))
   {
     perror("Error opening playerfile");
@@ -111,7 +111,11 @@ void read_file(void)
   for (i = 0; i < recs; i++)
   {
     get_line(fl, line);
-    sscanf(line, "%ld %s %d %s %d", &id, name, &level, bits, &last);
+    if (sscanf(line, "%ld %19s %d %63s %d", &id, name, &level, bits, &last) != 5)
+    {
+      fprintf(stderr, "Invalid player index record: %s\n", line);
+      continue;
+    }
     CAP(name);
     flags = asciiflag_conv(bits);
     if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&

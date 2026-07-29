@@ -323,8 +323,9 @@ void parse_quest(FILE *quest_f, int nr)
   /***** */
 
   /* parse value line (2nd if Dragonlance Campaign) */
-  if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %s %d %d %d %d", t, t + 1, f1,
-                                                   t + 2, t + 3, t + 4, t + 5)) != 7)
+  if (!get_line(quest_f, line) ||
+      (retval = sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1, t + 2, t + 3, t + 4,
+                       t + 5)) != 7)
   {
     log("Format error in numeric line 1 (expected 7, got %d), %s\n", retval, line);
     exit(1);

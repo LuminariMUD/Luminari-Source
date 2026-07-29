@@ -914,7 +914,7 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
       {
         get_line(quest_f, inner);
         CREATE(qcom, struct quest_command, 1);
-        if (3 == sscanf(inner + 1, "%s%d%d", str, &qcom->value, &qcom->location))
+        if (3 == sscanf(inner + 1, "%255s%d%d", str, &qcom->value, &qcom->location))
         {
         }
         else
