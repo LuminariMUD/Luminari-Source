@@ -57,11 +57,12 @@ The helper logs in once, runs each command as `Kohdee`, prints the output under
 one-command batch takes about 4-6 seconds against a running server; an
 18-command vessel batch takes about 20-25 seconds.
 
-Each command is followed by a private in-game completion marker, so the next
-command is not mistaken for delayed output from the previous one. The final
-`PASS` confirms command delivery and clean logout, not that the gameplay output
-was correct. Read each command's output and compare it with the relevant test
-guide.
+Each command is followed by a unique in-game completion marker, so the next
+command is not mistaken for delayed output from the previous one. The marker
+uses ordinary local speech so it also works for level-1 test characters; run
+this helper only on development. The final `PASS` confirms command delivery and
+clean logout, not that the gameplay output was correct. Read each command's
+output and compare it with the relevant test guide.
 
 For wilderness tests, prefer stable coordinates such as `goto -66 92`.
 Dynamic wilderness room VNUMs such as `1000389` may not be allocated after a
@@ -70,6 +71,36 @@ reboot and can legitimately fail with `No room exists with that number`.
 If a later command depends on an ID printed by an earlier command, run the
 smallest useful first batch, capture the ID, and put the remaining commands in
 one second batch. This should be the exception, not one login per command.
+
+## Alternate Local Test Characters
+
+The same fast path can enter another character by exact name. This is intended
+for disposable lifecycle and multiplayer fixtures, not production accounts:
+
+```bash
+./scripts/dev_create_test_character.sh localtestaccount Testcaptain
+
+DEV_MUD_ACCOUNT=localtestaccount \
+DEV_MUD_CHARACTER=Testcaptain \
+./scripts/dev_kohdee_login_smoke.sh --commands \
+  "score" \
+  "look"
+```
+
+The creation helper refuses non-development environments, boots or reuses the
+local MUD through the established Kohdee preflight, creates a separate account
+with the development master password, makes a default human warrior, enters the
+world once, and logs out cleanly. It refuses to replace an existing account.
+
+The password comes from `DEV_MUD_ACCOUNT_PASSWORD` when set; otherwise the
+helper uses `GAME_MASTER_ACCOUNT_PASSWORD` from `lib/.env`. This allows local
+test accounts deliberately created with the development master password to be
+used without putting that password in shell arguments or logs. The default
+with no overrides remains the exact level-34 `Kohdee` path.
+
+The helper validates the alternate name, finds exactly one matching Name
+column, uses non-staff completion markers, and performs the same clean
+character/account logout. Keep one entire command sequence in one invocation.
 
 For menu-driven editors, use one `--dialog` invocation. Each argument is one
 input line; the helper confirms that the final input returned to normal command

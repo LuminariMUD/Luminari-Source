@@ -8,7 +8,7 @@ started_at=$SECONDS
 
 fail()
 {
-  printf 'dev Kohdee login smoke: %s\n' "$*" >&2
+  printf 'dev character login smoke: %s\n' "$*" >&2
   exit 1
 }
 
@@ -96,10 +96,19 @@ set +x
 
 [[ "${APP_ENV:-}" == "development" ]] ||
   fail "refusing to run because APP_ENV is not development"
-[[ -n "${GAME_MASTER_ACCOUNT:-}" ]] || fail "GAME_MASTER_ACCOUNT is not set"
-[[ -n "${GAME_MASTER_ACCOUNT_PASSWORD:-}" ]] ||
-  fail "GAME_MASTER_ACCOUNT_PASSWORD is not set"
+
+smoke_character="${DEV_MUD_CHARACTER:-Kohdee}"
+smoke_account="${DEV_MUD_ACCOUNT:-${GAME_MASTER_ACCOUNT:-}}"
+smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
+
+[[ "$smoke_character" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+  fail "DEV_MUD_CHARACTER must be a valid character name"
+[[ -n "$smoke_account" ]] ||
+  fail "DEV_MUD_ACCOUNT or GAME_MASTER_ACCOUNT is not set"
+[[ -n "$smoke_password" ]] ||
+  fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
 export -n GAME_MASTER_ACCOUNT GAME_MASTER_ACCOUNT_PASSWORD
+export -n DEV_MUD_ACCOUNT DEV_MUD_ACCOUNT_PASSWORD DEV_MUD_CHARACTER
 
 mud_port=$(awk -F= '
   /^[[:space:]]*DFLT_PORT[[:space:]]*=/ {
@@ -167,16 +176,19 @@ else
     "$server_unit" "$server_pid" "$mud_port" "$server_log"
 fi
 
-GAME_MASTER_ACCOUNT="$GAME_MASTER_ACCOUNT" \
-GAME_MASTER_ACCOUNT_PASSWORD="$GAME_MASTER_ACCOUNT_PASSWORD" \
+MUD_SMOKE_ACCOUNT="$smoke_account" \
+MUD_SMOKE_ACCOUNT_PASSWORD="$smoke_password" \
+MUD_SMOKE_CHARACTER="$smoke_character" \
 MUD_SMOKE_PORT="$mud_port" \
   expect -f /dev/stdin -- "$mode" "$@" <<'EXPECT'
 proc fail {message} {
-  puts stderr "dev Kohdee login smoke: $message"
+  puts stderr "dev character login smoke: $message"
   exit 1
 }
 
 proc clean_command_output {raw command marker} {
+  global smoke_character
+
   regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $raw {} raw
   regsub -all {\t.} $raw {} raw
   regsub -all {[^\x09\x0a\x0d\x20-\x7e]} $raw {} raw
@@ -185,9 +197,9 @@ proc clean_command_output {raw command marker} {
   foreach line [split $raw "\n"] {
     set trimmed [string trim $line]
     if {$trimmed eq "" || $trimmed eq $command ||
-        [string first "send Kohdee $marker" $trimmed] >= 0 ||
+        [string first "say $marker" $trimmed] >= 0 ||
         [string first $marker $trimmed] >= 0 ||
-        [regexp {__KOHDEE_COMMAND_[0-9]+_DONE__} $trimmed]} {
+        [regexp {__MUD_SMOKE_COMMAND_[0-9]+_DONE__} $trimmed]} {
       continue
     }
     lappend cleaned_lines [string trimright $line]
@@ -197,15 +209,15 @@ proc clean_command_output {raw command marker} {
 
 set command_index 0
 proc run_game_command {command} {
-  global command_index
+  global command_index smoke_character
 
   incr command_index
-  set marker "__KOHDEE_COMMAND_${command_index}_DONE__"
+  set marker "__MUD_SMOKE_COMMAND_${command_index}_DONE__"
   set output ""
 
   send -- "$command\r"
   after 100
-  send -- "send Kohdee $marker\r"
+  send -- "say $marker\r"
 
   # nc displays the server's echo of the marker command first.
   expect {
@@ -214,7 +226,7 @@ proc run_game_command {command} {
     eof { fail "connection closed while submitting game command $command_index" }
   }
 
-  # The second marker is delivered by the in-game send command. It proves
+  # The second marker is delivered by the in-game say command. It proves
   # the preceding command completed on the game loop.
   expect {
     -re $marker { append output $expect_out(buffer) }
@@ -232,6 +244,8 @@ proc run_game_command {command} {
 }
 
 proc clean_dialog_output {raw commands marker} {
+  global smoke_character
+
   regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $raw {} raw
   regsub -all {\t.} $raw {} raw
   regsub -all {[^\x09\x0a\x0d\x20-\x7e]} $raw {} raw
@@ -240,7 +254,7 @@ proc clean_dialog_output {raw commands marker} {
   foreach line [split $raw "\n"] {
     set trimmed [string trim $line]
     if {$trimmed eq "" || [lsearch -exact $commands $trimmed] >= 0 ||
-        [string first "send Kohdee $marker" $trimmed] >= 0 ||
+        [string first "say $marker" $trimmed] >= 0 ||
         [string first $marker $trimmed] >= 0} {
       continue
     }
@@ -250,7 +264,9 @@ proc clean_dialog_output {raw commands marker} {
 }
 
 proc run_game_dialog {commands} {
-  set marker "__KOHDEE_DIALOG_DONE__"
+  global smoke_character
+
+  set marker "__MUD_SMOKE_DIALOG_DONE__"
   set output ""
 
   foreach input_line $commands {
@@ -259,7 +275,7 @@ proc run_game_dialog {commands} {
   }
 
   after 250
-  send -- "send Kohdee $marker\r"
+  send -- "say $marker\r"
   expect {
     -re $marker { append output $expect_out(buffer) }
     timeout { fail "dialog did not return to normal command mode" }
@@ -311,11 +327,11 @@ proc run_copyover {} {
 }
 
 proc run_help_check {keyword} {
-  global command_index
+  global command_index smoke_character
 
   incr command_index
   set command "help $keyword"
-  set marker "__KOHDEE_HELP_${command_index}_DONE__"
+  set marker "__MUD_SMOKE_HELP_${command_index}_DONE__"
   set output ""
 
   send -- "$command\r"
@@ -326,7 +342,7 @@ proc run_help_check {keyword} {
   after 150
   send -- "q\r"
   after 150
-  send -- "send Kohdee $marker\r"
+  send -- "say $marker\r"
 
   expect {
     -re $marker { append output $expect_out(buffer) }
@@ -356,10 +372,12 @@ log_user 0
 set mode [lindex $argv 0]
 set game_commands [lrange $argv 1 end]
 
-if {![info exists env(GAME_MASTER_ACCOUNT)] ||
-    ![info exists env(GAME_MASTER_ACCOUNT_PASSWORD)]} {
+if {![info exists env(MUD_SMOKE_ACCOUNT)] ||
+    ![info exists env(MUD_SMOKE_ACCOUNT_PASSWORD)] ||
+    ![info exists env(MUD_SMOKE_CHARACTER)]} {
   fail "credential environment is unavailable to expect"
 }
+set smoke_character $env(MUD_SMOKE_CHARACTER)
 
 spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
 
@@ -369,7 +387,7 @@ expect {
   eof { fail "connection closed before the account prompt" }
 }
 
-send -- "$env(GAME_MASTER_ACCOUNT)\r"
+send -- "$env(MUD_SMOKE_ACCOUNT)\r"
 expect {
   -re {Password:[[:space:]]*} {}
   -re {Did I get that right} { fail "configured account was not found" }
@@ -377,7 +395,7 @@ expect {
   eof { fail "connection closed before the password prompt" }
 }
 
-send -- "$env(GAME_MASTER_ACCOUNT_PASSWORD)\r"
+send -- "$env(MUD_SMOKE_ACCOUNT_PASSWORD)\r"
 expect {
   -re {Your choice[[:space:]]*:} { set account_menu $expect_out(buffer) }
   -re {(Wrong|Incorrect|Invalid)[^\r\n]*password} { fail "account password was rejected" }
@@ -388,53 +406,53 @@ expect {
 set clean_menu $account_menu
 regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $clean_menu {} clean_menu
 regsub -all {\t.} $clean_menu {} clean_menu
-set kohdee_slot ""
-set kohdee_rows 0
+set character_slot ""
+set character_rows 0
 
 foreach menu_line [split $clean_menu "\n"] {
   set columns [split $menu_line "|"]
   if {[llength $columns] >= 2 &&
-      [string equal -nocase [string trim [lindex $columns 1]] "Kohdee"]} {
+      [string equal -nocase [string trim [lindex $columns 1]] $smoke_character]} {
     if {[regexp {^[^0-9]*([0-9]+)[[:space:]]*$} [lindex $columns 0] ignored slot]} {
-      incr kohdee_rows
-      set kohdee_slot $slot
+      incr character_rows
+      set character_slot $slot
     }
   }
 }
 
-if {$kohdee_rows != 1 || $kohdee_slot eq ""} {
-  fail "expected exactly one account-menu Name match for Kohdee"
+if {$character_rows != 1 || $character_slot eq ""} {
+  fail "expected exactly one account-menu Name match for $smoke_character"
 }
 
-send -- "$kohdee_slot\r"
+send -- "$character_slot\r"
 set entered_world 0
 
 expect {
   -re {PRESS RETURN} {}
   -re {Reconnecting\.} { set entered_world 1 }
-  timeout { fail "timed out while loading Kohdee" }
-  eof { fail "connection closed while loading Kohdee" }
+  timeout { fail "timed out while loading $smoke_character" }
+  eof { fail "connection closed while loading $smoke_character" }
 }
 
 if {!$entered_world} {
   send -- "\r"
   expect {
     -re {Make your choice:[[:space:]]*} {}
-    timeout { fail "timed out waiting for Kohdee's character menu" }
-    eof { fail "connection closed before Kohdee's character menu" }
+    timeout { fail "timed out waiting for $smoke_character's character menu" }
+    eof { fail "connection closed before $smoke_character's character menu" }
   }
 
   send -- "1\r"
   expect {
     -re {Welcome to Luminari} { set entered_world 1 }
     -re {May your visit here be} { set entered_world 1 }
-    timeout { fail "timed out while entering the game world as Kohdee" }
-    eof { fail "connection closed while entering the game world as Kohdee" }
+    timeout { fail "timed out while entering the game world as $smoke_character" }
+    eof { fail "connection closed while entering the game world as $smoke_character" }
   }
 }
 
 if {!$entered_world} {
-  fail "Kohdee did not enter the game world"
+  fail "$smoke_character did not enter the game world"
 }
 
 after 250
@@ -493,7 +511,7 @@ expect {
       eof { fail "connection closed during character logout" }
     }
   }
-  timeout { fail "timed out waiting for Kohdee to leave the game world" }
+  timeout { fail "timed out waiting for $smoke_character to leave the game world" }
   eof { fail "connection closed during character logout" }
 }
 
@@ -525,19 +543,18 @@ EXPECT
 
 elapsed_seconds=$((SECONDS - started_at))
 if [[ "$mode" == "commands" ]]; then
-  printf 'PASS: Kohdee ran %d game command(s) and logged out cleanly (%ss).\n' \
-    "$#" "$elapsed_seconds"
+  printf 'PASS: %s ran %d game command(s) and logged out cleanly (%ss).\n' \
+    "$smoke_character" "$#" "$elapsed_seconds"
 elif [[ "$mode" == "dialog" ]]; then
-  printf 'PASS: Kohdee completed an interactive dialog and logged out cleanly (%ss).\n' \
-    "$elapsed_seconds"
+  printf 'PASS: %s completed an interactive dialog and logged out cleanly (%ss).\n' \
+    "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "copyover-check" ]]; then
-  printf 'PASS: Kohdee survived copyover, completed the post-copyover checks, and logged out cleanly (%ss).\n' \
-    "$elapsed_seconds"
+  printf 'PASS: %s survived copyover, completed the post-copyover checks, and logged out cleanly (%ss).\n' \
+    "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "help-check" ]]; then
-  printf 'PASS: Kohdee verified %d authoritative help keyword(s) and logged out cleanly (%ss).\n' \
-    "$#" "$elapsed_seconds"
+  printf 'PASS: %s verified %d authoritative help keyword(s) and logged out cleanly (%ss).\n' \
+    "$smoke_character" "$#" "$elapsed_seconds"
 else
-  printf '%s (%ss).\n' \
-    "PASS: Kohdee entered the world, left the character, and logged out of the account" \
-    "$elapsed_seconds"
+  printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \
+    "$smoke_character" "$elapsed_seconds"
 fi
