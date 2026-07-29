@@ -118,6 +118,25 @@ The gate passes only when the complete vessel tick remains at or below 25 ms
 under the agreed 500-ship workload. If rare outliers are accepted, their
 threshold and operational effect must be documented before release.
 
+### Instrumentation Readiness
+
+The July 30, 2026 source audit found three blockers that must be corrected
+before collecting the release benchmark:
+
+- `PERF_repr()` exposes average, minimum, and maximum pulse use but does not
+  retain or report the required median, p95, or p99 distribution.
+- The heartbeat calls the seven vessel subsystems as one unprofiled group, so
+  current `perfmon` output cannot attribute time to autopilot, combat, crew
+  wages, upkeep, trade, hazards/encounters, and MSDP.
+- When the minute buffer rolls into the hour buffer, `aggregate_data()` passes
+  the existing hour-buffer maximum instead of the completed minute-buffer
+  maximum. Hourly maximum evidence is therefore not trustworthy.
+
+The benchmark also needs a reproducible development-only 500-vessel workload
+and database-query counter. Until the instrumentation and workload are
+implemented and independently checked, do not treat `perfmon` summary output
+or the historical navigation microbenchmark as the release measurement.
+
 ## Automated-Test Evidence
 
 The July 26, 2026 snapshot recorded 74 of 74 production-linked vessel tests

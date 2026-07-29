@@ -54,6 +54,10 @@ merchant, copyover, and multiplayer encounter testing.
   enabled. The complete vessel work must remain within 25 ms per tick; record
   median, p95, p99, maximum, memory, query volume, and subsystem attribution in
   [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md).
+  Before running it, fix hourly maximum aggregation in `perfmon.c`, add
+  median/p95/p99 capture, profile each vessel heartbeat subsystem separately,
+  and create a reproducible development-only 500-vessel workload plus query
+  counter. The current avg/min/max summary cannot prove this gate.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
   schedule desynchronization, with the tick budget held.
