@@ -125,9 +125,9 @@ before collecting the release benchmark:
 
 - `PERF_repr()` exposes average, minimum, and maximum pulse use but does not
   retain or report the required median, p95, or p99 distribution.
-- The heartbeat calls the seven vessel subsystems as one unprofiled group, so
+- The heartbeat calls the eight vessel subsystems as one unprofiled group, so
   current `perfmon` output cannot attribute time to autopilot, combat, crew
-  wages, upkeep, trade, hazards/encounters, and MSDP.
+  wages, upkeep, trade, weather, encounters, and MSDP.
 - When the minute buffer rolls into the hour buffer, `aggregate_data()` passes
   the existing hour-buffer maximum instead of the completed minute-buffer
   maximum. Hourly maximum evidence is therefore not trustworthy.
