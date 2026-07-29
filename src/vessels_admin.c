@@ -258,20 +258,33 @@ void vessel_msdp_tick(void)
 }
 
 /**
- * shiplist - fleet overview for operators.
+ * shiplist [summary] - fleet overview for operators.
  */
 ACMD(do_shiplist)
 {
   struct greyhawk_ship_data *ship;
+  char arg[MAX_INPUT_LENGTH];
+  bool summary_only;
   int listed = 0;
   int in_use = 0;
   int pool_total = 0;
   int i;
 
-  send_to_char(ch, "Slot Name                      Class      Pos           Hdg Spd Hull    "
-                   "Owner\r\n");
-  send_to_char(ch, "---- ------------------------- ---------- ------------- --- --- ------- "
-                   "----------\r\n");
+  one_argument_u((char *)argument, arg);
+  summary_only = !str_cmp(arg, "summary");
+  if (*arg && !summary_only)
+  {
+    send_to_char(ch, "Usage: shiplist [summary]\r\n");
+    return;
+  }
+
+  if (!summary_only)
+  {
+    send_to_char(ch, "Slot Name                      Class      Pos           Hdg Spd Hull    "
+                     "Owner\r\n");
+    send_to_char(ch, "---- ------------------------- ---------- ------------- --- --- ------- "
+                     "----------\r\n");
+  }
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
@@ -281,14 +294,17 @@ ACMD(do_shiplist)
       continue;
     }
 
-    send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i, ship->name,
-                 get_vessel_type_name(ship->vessel_type), (int)ship->x, (int)ship->y, ship->heading,
-                 ship->speed, vessel_total_internal(ship), vessel_max_internal(ship),
-                 ship->owner[0] ? ship->owner : "-");
+    if (!summary_only)
+    {
+      send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i,
+                   ship->name, get_vessel_type_name(ship->vessel_type), (int)ship->x,
+                   (int)ship->y, ship->heading, ship->speed, vessel_total_internal(ship),
+                   vessel_max_internal(ship), ship->owner[0] ? ship->owner : "-");
+    }
     listed++;
   }
 
-  if (listed == 0)
+  if (listed == 0 && !summary_only)
   {
     send_to_char(ch, "  (no active vessels)\r\n");
   }

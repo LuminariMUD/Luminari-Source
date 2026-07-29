@@ -429,11 +429,15 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'SHIP-H
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPLIST', 'Staff commands for operating the vessel system.
 
-SHIPLIST
+SHIPLIST [summary]
   Fleet overview: every active vessel with its slot, name, class, position,
   heading, speed, hull structure, and owner. Ends with two health figures:
     - fleet slots in use out of the maximum
     - wilderness dynamic room pool utilization
+
+  SHIPLIST SUMMARY omits the per-vessel rows and prints only those health
+  figures. Use it for large fleets so the totals fit in one socket output
+  buffer.
 
   The room pool matters: it is shared with every traveller in the
   wilderness, not reserved for ships. If it approaches exhaustion the

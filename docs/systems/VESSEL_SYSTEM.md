@@ -429,13 +429,15 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| shiplist | Fleet overview + room pool health | `shiplist` |
+| shiplist | Fleet overview + room pool health | `shiplist [summary]` |
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
-this is the guard against vessels starving other systems (see
+this is the guard against vessels starving other systems. At fleet scale,
+`shiplist summary` omits per-vessel rows so the count and pool warning fit in
+one socket output buffer (see
 [Wilderness Integration Contract](#wilderness-integration-contract)).
 `shipfix` commits the repaired condition before reporting success. If that
 runtime write fails, it restores the prior condition instead of presenting a
@@ -1213,7 +1215,8 @@ or keyword count is insufficient once later phases extend the system.
 
 ### Monitoring & Maintenance
 
-- `shiplist` shows fleet state and wilderness dynamic-room utilization.
+- `shiplist` shows fleet state and wilderness dynamic-room utilization;
+  `shiplist summary` keeps the health totals available at fleet scale.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn

@@ -161,7 +161,7 @@ else
 
   server_ready=false
 
-  for ((attempt = 0; attempt < 600; attempt++)); do
+  for ((attempt = 0; attempt < 3000; attempt++)); do
     if ! systemctl --user is-active --quiet "$server_unit"; then
       tail -30 "$server_log" >&2 || true
       fail "the MUD exited during startup"
@@ -227,7 +227,23 @@ proc run_game_command {command} {
     }
     puts "\n>>> $command"
     puts "Paused the local test session for $wait_seconds second(s)."
-    after [expr {$wait_seconds * 1000}]
+    set wait_deadline [expr {[clock milliseconds] + ($wait_seconds * 1000)}]
+    set prior_timeout $::timeout
+    set ::timeout 1
+    while {[clock milliseconds] < $wait_deadline} {
+      expect {
+        -re {.+} {}
+        timeout {}
+        eof { fail "connection closed during @wait" }
+      }
+    }
+    set ::timeout 0
+    expect {
+      -re {.+} { exp_continue }
+      timeout {}
+      eof { fail "connection closed during @wait" }
+    }
+    set ::timeout $prior_timeout
     return
   }
 

@@ -101,6 +101,50 @@ after restart. Deliberate SIGTERM then produced an immediate terminal `FAIL`
 artifact, so an interrupted agent or service does not leave a false `RUNNING`
 result.
 
+## Reproducible 500-Vessel Scale Gate
+
+After the definitive ferry soak passes and the current clean source is built
+and installed, launch the development-only scale gate with:
+
+```bash
+./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh status
+```
+
+The default steady measurement window is 660 seconds. An explicit value from
+600 through 7200 seconds may follow `start`. The command returns immediately
+after launching a supervised user service; use `status` for preparation,
+measurement, result, and restoration progress.
+
+The runner reuses the configured master account and exact `Kohdee` character
+for every in-game phase. It does not create an account or character, and it
+does not log in one character per vessel. One Kohdee session creates all
+missing public hulls with `vedit spawnpublic`; later sessions on that same
+account verify the reconstructed workload, warm it, collect `perfmon csv`, and
+leave Kohdee in room 1000389.
+
+The runner refuses production, a dirty source worktree, an active ferry soak,
+an older installed binary, or stale benchmark data. Before mutation it takes
+an atomic snapshot of every vessel/economy table it can change. It then fills
+active slots 1-500 across all eight vessel classes, configures routes, pilots,
+crew, schedules, cargo, weapons, encounters, wear, and economy state, and
+holds Kohdee aboard an airship so the normal MSDP path runs. Ten scheduled
+ships are staged to depart inside the measured window. `shiplist summary`
+proves the live fleet count without overflowing the MUD's socket output
+buffer.
+
+Whether the result passes, fails, or receives SIGTERM, the worker stops the
+local MUD, restores the snapshot, verifies that benchmark marker rows are
+gone, restarts development, and returns Kohdee to the static room. If an
+interrupted run needs operator recovery, use:
+
+```bash
+./scripts/run_vessel_scale_benchmark.sh cleanup
+```
+
+Do not start this gate while the 24-hour ferry run is active. The scale runner
+intentionally refuses to disturb that pinned process and executable.
+
 ## Fast Vessel Builder Gate
 
 Use one logged-in Kohdee session to exercise the complete no-C builder path:
@@ -165,7 +209,9 @@ smallest useful first batch, capture the ID, and put the remaining commands in
 one second batch. This should be the exception, not one login per command.
 
 `@wait N` is a helper-side pause of 1-60 seconds and is not sent to the game.
-Use it only to synchronize two local character sessions or wait for a real
+While paused, the helper continuously drains server output so a long
+character observation cannot fill the client pipe or MUD socket buffer. Use
+it only to synchronize two local character sessions or wait for a real
 heartbeat/reload interval:
 
 ```bash

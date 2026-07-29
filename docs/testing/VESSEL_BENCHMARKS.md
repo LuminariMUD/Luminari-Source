@@ -14,12 +14,12 @@ from the full live-game benchmark that still must be run.
 
 | Measure | Result | Status |
 |---|---:|---|
-| Configured fleet-array slots | 500 | Slot 0 is reserved; current active maximum is 499 |
+| Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
 | Base `greyhawk_ship_data` size | 4,744 bytes | Within 5 KB budget |
-| Base storage for 500 array entries | 2,372,000 bytes (about 2.26 MiB) | Within about 3 MB budget |
+| Base storage for 501 array entries | 2,376,744 bytes (about 2.27 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 227 of 227 passing | Current instrumentation gate |
+| Root suite on July 30, 2026 | 229 of 229 passing | Current scale-workload gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -56,6 +56,7 @@ or about 7.7 percent of the structure. Older documentation that reported a
 | 100 | 474,400 | 463.3 KiB |
 | 250 | 1,186,000 | 1.13 MiB |
 | 500 | 2,372,000 | 2.26 MiB |
+| Fixed 501-entry array | 2,376,744 | 2.27 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
@@ -165,10 +166,54 @@ The capacity prerequisite is corrected: the fleet array now contains 501
 entries, reserving slot 0 while allowing active slots 1-500, and the final
 slot's interior allocation extends through VNUM 80019. The development
 provisioner extends zone 700 only from the former expected upper bound and
-rejects overlaps. A reproducible development-only workload must still populate
-all 500 ships with the complete gameplay mix above. Instrumentation or
-capacity tests passing are not evidence that the live 25 ms gate itself
-passes.
+rejects overlaps.
+
+### Reproducible Development Workload
+
+`scripts/run_vessel_scale_benchmark.sh` now defines the development-only
+workload and evidence contract. It remains unexecuted while the definitive
+24-hour ferry soak owns the local development process, so its presence is not
+evidence that the live 25 ms gate passes.
+
+The runner:
+
+- Refuses non-development configuration, an active ferry soak, a dirty source
+  worktree, stale benchmark markers, and an installed binary without both the
+  500-slot capacity and compact `shiplist summary` behavior.
+- Atomically snapshots the 17 vessel, trade, freight, bounty, encounter, and
+  insurance tables that the workload can change, then restores and verifies
+  the baseline on success, failure, or interruption.
+- Uses the existing master account and exact Kohdee character. One in-game
+  builder session creates every missing public hull; no account or character
+  is created per vessel.
+- Populates active slots 1-500 across all eight vessel classes while
+  preserving each generated class-specific interior. Slot 500 must reconstruct
+  with all of its actual room VNUMs inside 80000-80019.
+- Loads 500 NPC pilots, 2,000 veteran hired-crew rows, 500 enabled schedules,
+  500 bulk-cargo lots, normalized weapons, insured warships, safe surface,
+  submerged, water, and air routes, and a message-producing regional airship
+  encounter.
+- Warms the production heartbeat, then pauses ten routed vessels after a known
+  schedule departure. Each must trigger a new persisted departure during the
+  measured window. Kohdee remains aboard an airship so MSDP and normal
+  player-facing message generation execute.
+- Runs for at least 600 steady seconds, samples process RSS every 30 seconds,
+  captures all ten sampled vessel profiler rows plus the SQL counter, rejects
+  vessel errors or PID/binary drift, and requires every selected schedule to
+  fire. The complete `vessel_tick` maximum must be no more than 25,000
+  microseconds.
+
+The user-service interface is:
+
+```bash
+./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh status
+./scripts/run_vessel_scale_benchmark.sh cleanup
+```
+
+Instrumentation, capacity, or workload-construction tests passing are not
+evidence that the live 25 ms gate itself passes. Record only the terminal
+runner result and preserved artifacts as performance evidence.
 
 ## Automated-Test Evidence
 
@@ -182,12 +227,12 @@ All heap blocks were freed -- no leaks are possible
 
 The instrumentation work was built with GNU C23 and `-Wall -Wextra` in an
 isolated worktree on July 30, 2026. The production-linked root suite passed
-228 of 228 tests, including percentile interpolation, interval promotion,
-CSV/reset behavior, truncation safety, stale-exit handling, and the
-500-active-slot/final-interior boundary. `make install` completed in that
-isolated worktree and removed its root-level `circle`. Isolated provisioner
-fixtures also passed the idempotent zone-extension and overlap-rejection
-paths.
+229 of 229 tests, including percentile interpolation, interval promotion,
+CSV/reset behavior, truncation safety, stale-exit handling, the
+500-active-slot/final-interior boundary, and bounded full-fleet
+`shiplist summary` output. `make install` completed in that isolated worktree
+and removed its root-level `circle`. Isolated provisioner fixtures also passed
+the idempotent zone-extension and overlap-rejection paths.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

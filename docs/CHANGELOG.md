@@ -2,6 +2,46 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel system - reproducible 500-ship scale gate
+
+Defined a reversible local-development workload for the remaining live
+performance release gate.
+
+#### Added
+
+- `run_vessel_scale_benchmark.sh` snapshots the affected vessel and economy
+  tables, creates every missing public hull through one actual Kohdee builder
+  session, configures 500 active ships across all eight classes, warms the
+  production heartbeat, and captures percentile, subsystem, SQL, schedule,
+  process-memory, PID, and executable evidence.
+- The runner uses the configured master account and existing Kohdee character
+  for every session. It creates no account or character per ship.
+- Cleanup runs on success, failure, or interruption, verifies the original
+  fleet count and absence of benchmark marker rows, restarts local
+  development, and returns Kohdee to a static room.
+- `shiplist summary` reports fleet and wilderness-room-pool health without
+  emitting per-vessel rows that would overflow one socket buffer at fleet
+  scale.
+
+#### Fixed
+
+- Database snapshots become cleanup-authoritative only after a successful
+  atomic dump, so a partial dump cannot be mistaken for a restorable baseline.
+- Long helper-side `@wait` periods now drain incoming character output, and
+  local startup allows up to five minutes for a 500-vessel reconstruction
+  while retaining the existing fast path for ordinary boots.
+- Scheduled benchmark ships use a two-stage pause so pilot auto-engagement
+  cannot consume their measured schedule departure before `perfmon reset`.
+
+#### Validated
+
+- Shell syntax, ShellCheck, whitespace, development schema, and all 17 snapshot
+  table prerequisites pass. The start command fails closed while the
+  definitive ferry soak is active. The GNU C23 production-linked suite passes
+  229 of 229 tests, including bounded full-fleet summary output. The live
+  500-ship timing result remains open until that soak releases the pinned
+  local process.
+
 ### Vessel system - 500-active-ship capacity
 
 Corrected the fleet-slot and interior-room bounds required by the release

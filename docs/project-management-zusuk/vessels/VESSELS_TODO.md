@@ -7,14 +7,14 @@ complete reboot/copyover state matrix, installed-weapon persistence, dock fees,
 offline insurance delivery, player-removal recovery, and the multi-character
 PvP logout lifecycle pass with actual characters are proven. Immediate
 autopilot command durability, write-failure rollback, and static/dynamic
-exterior-hull co-location through restart and zone reset are also proven. The shared
-two-dock harbor, representative prototypes, persistent scheduled ferry, and
+exterior-hull co-location through restart and zone reset are also proven. The
+shared two-dock harbor, representative prototypes, persistent scheduled ferry, and
 generated-room DG triggers are available. Monotonic per-subsystem timing,
 rolling percentiles, CSV output, correct interval promotion, and a process-wide
 SQL execution counter are now available for the scale gate. The fleet now has
 500 usable nonzero slots and a matching interior VNUM reservation. Continuous
-validation, the reproducible 500-ship workload, content, beta, and production
-release work remain. Pre-soak testing repaired signed-coordinate movement and
+validation, execution of the reproducible 500-ship workload, content, beta,
+and production release work remain. Pre-soak testing repaired signed-coordinate movement and
 both unsafe legs of the sample ferry route; an actual Kohdee session now
 completes the full four-waypoint loop. The
 first monitor shakedown was rejected when its idle pre-login descriptor
@@ -70,11 +70,18 @@ merchant, copyover, and multiplayer encounter testing.
   promotion, and a process-wide direct/prepared SQL execution count. The
   fleet array now reserves slot 0 separately from active slots 1-500; the
   matching zone 700 reservation reaches the final slot's VNUM 80019. The GNU
-  C23 production-linked suite passes 228 tests with the capacity regression,
-  and isolated provisioner checks pass both extension and overlap rejection.
-  Before running the gate, create the reproducible development-only
-  500-vessel gameplay workload. Instrumentation and capacity readiness do not
-  themselves prove the 25 ms target.
+  C23 production-linked suite passes 229 tests with the capacity and bounded
+  fleet-summary regressions, and isolated provisioner checks pass both
+  extension and overlap rejection.
+  `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
+  development-only workload through actual Kohdee/`vedit spawnpublic`
+  sessions, covers all eight classes and periodic subsystems, captures the
+  required evidence, and restores the pre-run database. It reuses one account
+  and character rather than creating one per vessel. The runner's static
+  checks and active-soak refusal pass, but the gate itself must remain open
+  until the definitive ferry soak finishes, the current binary is installed,
+  and the runner records a terminal result. Instrumentation, capacity, and
+  workload readiness do not themselves prove the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
   schedule desynchronization, with the tick budget held.

@@ -4,6 +4,9 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/comm.h"
+#include "../../src/db.h"
+#include "../../src/protocol.h"
 #include "../../src/vessels.h"
 
 #include <stdlib.h>
@@ -23,6 +26,77 @@ void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
   CuAssertIntEquals(tc, 500, GREYHAWK_ACTIVE_SHIP_CAPACITY);
   CuAssertIntEquals(tc, 80019, SHIP_INTERIOR_VNUM_MAX);
   CuAssertIntEquals(tc, SHIP_INTERIOR_VNUM_MAX, final_room_vnum);
+}
+
+void Test_shiplist_summary_remains_bounded_at_full_capacity(CuTest *tc)
+{
+  struct greyhawk_ship_data *saved_ships;
+  struct room_data test_room;
+  struct room_data *saved_world;
+  struct descriptor_data descriptor;
+  struct char_data character;
+  room_rnum saved_top_of_world;
+  int saved_overflows;
+  int has_capacity;
+  int has_detail_header;
+  int overflowed;
+  int i;
+
+  saved_ships = malloc(sizeof(greyhawk_ships));
+  if (saved_ships == NULL)
+  {
+    CuFail(tc, "could not preserve the fleet fixture");
+    return;
+  }
+
+  memcpy(saved_ships, greyhawk_ships, sizeof(greyhawk_ships));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_overflows = buf_overflows;
+  memset(greyhawk_ships, 0, sizeof(greyhawk_ships));
+  memset(&test_room, 0, sizeof(test_room));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+
+  for (i = 1; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    greyhawk_ships[i].active = TRUE;
+    greyhawk_ships[i].shipnum = i;
+  }
+
+  world = &test_room;
+  top_of_world = 0;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &character;
+  descriptor.pProtocol = ProtocolCreate();
+  character.desc = &descriptor;
+  if (descriptor.pProtocol == NULL)
+  {
+    memcpy(greyhawk_ships, saved_ships, sizeof(greyhawk_ships));
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    free(saved_ships);
+    CuFail(tc, "could not initialize the protocol fixture");
+    return;
+  }
+
+  do_shiplist(&character, "summary", 0, 0);
+  has_capacity =
+      strstr(descriptor.output, "500 of 500 active fleet slots in use.") != NULL;
+  has_detail_header = strstr(descriptor.output, "Slot Name") != NULL;
+  overflowed = buf_overflows != saved_overflows;
+
+  ProtocolDestroy(descriptor.pProtocol);
+  memcpy(greyhawk_ships, saved_ships, sizeof(greyhawk_ships));
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  buf_overflows = saved_overflows;
+  free(saved_ships);
+
+  CuAssertTrue(tc, has_capacity);
+  CuAssertTrue(tc, !has_detail_header);
+  CuAssertTrue(tc, !overflowed);
 }
 
 void Test_vessel_hull_keywords_split_readable_name_tokens(CuTest *tc)
