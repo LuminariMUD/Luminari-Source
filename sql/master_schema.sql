@@ -926,6 +926,15 @@ CREATE TABLE IF NOT EXISTS ship_room_templates (
   UNIQUE KEY unique_room_type (room_type, vessel_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS ship_room_template_triggers (
+  room_type VARCHAR(50) NOT NULL,
+  vessel_type INT NOT NULL DEFAULT 0,
+  trigger_vnum INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (room_type, vessel_type, trigger_vnum),
+  INDEX idx_ship_room_trigger_vnum (trigger_vnum)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ship_waypoints (
   waypoint_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(64) DEFAULT '',

@@ -9,14 +9,39 @@ findings are tracked in
 **Current run status (July 29, 2026): all 30 steps pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
-Kohdee. Cleanup left no test vehicles, prototypes, routes, waypoints, or
-runtime ship-instance rows in the local database.
+Kohdee. Cleanup removed all disposable regression data. The separately named
+shared harbor prototypes, route, ferry, pilot, and schedule intentionally
+remain as reusable development fixtures.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
 `CONFIG_VESSEL_SYSTEM` setting is a load-bearing kill switch: keep it `On` for
 the numbered regression. Setting it `Off` blocks vessel command dispatch and
 both heartbeat tick groups while retaining staff recovery commands.
+
+## Shared Harbor Fast Check
+
+Build/install first, then provision and verify the complete shared fixture with
+one command:
+
+```bash
+./scripts/provision_vessel_harbor.sh
+```
+
+The development-only command merges the tracked world package, seeds three
+representative prototypes and the two-stop route, creates the public ferry
+only if absent, and performs a hard-restart persistence check. A passing run
+proves both seaports, the generated bridge and cargo DG triggers, the restored
+ferrymaster, active route, and hourly schedule, then ends with:
+
+```text
+PASS: harbor sandbox and persistent ferry verified in ship slot N.
+```
+
+It uses the existing master account and Kohdee character; do not create a new
+account or perform one login per command. The first run includes ferry creation
+and a second restart. Later idempotent runs reuse the ferry and complete in
+about 30 seconds on the current development host.
 
 ## A. Legacy world-file vessel (zone 700 test object)
 
@@ -39,7 +64,8 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
 
 ## B. Prototype editor (vedit)
 
-4. `vedit` - usage text lists list/new/show/set/delete/spawn.
+4. `vedit` - usage text lists
+   list/new/show/set/delete/spawn/spawnpublic.
 5. `vedit new 2 The Gull` - "Created Ship prototype N: 'The Gull'
    (speed 15, armor 20)."
 6. `vedit list` - table includes prototype N "The Gull", class Ship.
@@ -153,7 +179,7 @@ numbered gameplay flow:
   command keywords, access levels, nonempty content, and zero obsolete
   duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
   commands in one 54-second Kohdee login.
-- All 21 component migrations classified as current by
+- All 22 component migrations classified as current by
   `ci_schema_manifest.txt` applied independently to a fresh MariaDB 10.11
   master schema.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
@@ -162,6 +188,14 @@ numbered gameplay flow:
 - The Phase 10 verifier found both lifecycle tables, all five runtime columns,
   four normalized installed-weapon rows, no orphan or invalid weapons, no
   invalid insurance claims, and no invalid dock-fee state.
+- The Phase 11 verifier found the generated-room trigger attachment table with
+  no invalid mappings or room types above the eight-trigger limit.
+- The shared harbor provisioner created the second static seaport, three
+  representative prototypes, and public ferry in slot 5. A hard restart
+  restored its ferrymaster, active two-stop route, progress at `(-63, 91)`,
+  and hourly schedule. Speech diagnostics fired trigger 70001 on the generated
+  bridge and 70002 in the generated cargo hold. An idempotent rerun reused the
+  same public ferry and finished in about 30 seconds.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull
@@ -301,5 +335,9 @@ numbered gameplay flow:
   hulls participate in dynamic-room lifetime, readable name tokens are added,
   and zone cleanup preserves active fleet objects - FIXED and live-tested with
   static and dynamic co-location, hard restarts, reset, boarding, and purge.
+- Generated interiors now attach configured DG trigger prototypes by room
+  type on both initial creation and restart restoration. The shared harbor
+  bridge and cargo diagnostics fired after a hard restart - FIXED and
+  live-tested.
 
 # EoF

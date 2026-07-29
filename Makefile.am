@@ -319,13 +319,21 @@ EXTRA_DIST = \
 	scripts/test_character_rename_static.sh \
 	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
+	scripts/provision_vessel_harbor.sh \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \
+	lib/world/vessel_harbor/10000.wld \
+	lib/world/vessel_harbor/700.mob \
+	lib/world/vessel_harbor/700.trg \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/ci_schema_manifest.txt \
+	sql/components/verify_vessels_phase11.sql \
+	sql/components/vessels_harbor_sandbox.sql \
+	sql/components/vessels_phase11_rollback.sql \
+	sql/components/vessels_phase11_schema.sql \
 	README.md
 
 # Run unit tests

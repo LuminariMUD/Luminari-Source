@@ -38,6 +38,22 @@ with:
 PASS: Kohdee entered the world, left the character, and logged out of the account (Ns).
 ```
 
+## Fast Shared Vessel Harbor
+
+After `make install`, provision and verify the complete reusable harbor with:
+
+```bash
+./scripts/provision_vessel_harbor.sh
+```
+
+This development-only command reuses the configured master account and Kohdee;
+it does not create another account or character. It installs only missing
+harbor world records, seeds the database fixture, hard-restarts the supervised
+local MUD, and verifies the two docks, public ferry, NPC pilot, hourly route,
+and generated bridge/cargo triggers in one batched login. The first run may
+need about one minute because it creates the ferry and proves a second restart.
+An already provisioned harbor takes about 30 seconds.
+
 ## Fast Command Batches
 
 Do not repeat the login flow for every test command. Pass a whole sequence as
@@ -65,8 +81,9 @@ clean logout, not that the gameplay output was correct. Read each command's
 output and compare it with the relevant test guide.
 
 For wilderness tests, prefer stable coordinates such as `goto -66 92`.
-Dynamic wilderness room VNUMs such as `1000389` may not be allocated after a
-reboot and can legitimately fail with `No room exists with that number`.
+Rooms 1000389 and 1000390 are static harbor fixtures after provisioning.
+Other runtime wilderness VNUMs are pool allocations and can legitimately
+change or disappear after reboot.
 
 If a later command depends on an ID printed by an earlier command, run the
 smallest useful first batch, capture the ID, and put the remaining commands in
@@ -98,17 +115,18 @@ DEV_MUD_CHARACTER=Testcaptain \
 ```
 
 The creation helper refuses non-development environments, boots or reuses the
-local MUD through the established Kohdee preflight, creates a separate account
-with the development master password, makes a default human warrior, enters the
-world once, and logs out cleanly. It refuses to replace an existing account.
+local MUD through the established Kohdee preflight, creates one reusable test
+account with its first default human warrior, enters the world once, and logs
+out cleanly. It refuses to replace an existing account.
 
-Default to one reusable test account containing multiple characters. Separate
-accounts are useful for account-isolation or destructive deletion tests because
-one fixture can be removed without changing another fixture's menu, but they
-are not required for ordinary multiplayer testing. Reuse an existing test
-account when it already contains the needed characters; the login helper
-locates the requested character by exact Name rather than assuming a stable
-menu slot. The creation helper currently creates new accounts only.
+An account can contain multiple characters. Do not create one account per
+character for ordinary multiplayer testing. Add later fixtures to the same
+test account through its account-menu `C` option, then use
+`DEV_MUD_CHARACTER` to select each exact Name. Separate accounts are warranted
+only for account-isolation or destructive account/deletion tests. The creation
+helper currently bootstraps a new account only; the login helper works with
+any number of characters already present on that account and never assumes a
+stable menu slot.
 
 The password comes from `DEV_MUD_ACCOUNT_PASSWORD` when set; otherwise the
 helper uses `GAME_MASTER_ACCOUNT_PASSWORD` from `lib/.env`. This allows local

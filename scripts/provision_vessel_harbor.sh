@@ -1,0 +1,378 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
+package_dir="$repo_root/lib/world/vessel_harbor"
+temporary_dir=$(mktemp -d /tmp/luminari-vessel-harbor.XXXXXX)
+server_unit=luminari-dev-login-smoke.service
+
+cleanup()
+{
+  find "$temporary_dir" -depth -delete
+}
+trap cleanup EXIT
+
+fail()
+{
+  printf 'vessel harbor provisioner: %s\n' "$*" >&2
+  exit 1
+}
+
+config_value()
+{
+  local config_file=$1
+  local requested_key=$2
+
+  awk -v requested_key="$requested_key" '
+    /^[[:space:]]*#/ {
+      next
+    }
+    index($0, "=") {
+      line = $0
+      sub(/^[[:space:]]*/, "", line)
+      position = index(line, "=")
+      key = substr(line, 1, position - 1)
+      value = substr(line, position + 1)
+      sub(/[[:space:]]*$/, "", key)
+      sub(/^[[:space:]]*/, "", value)
+      sub(/[[:space:]]*$/, "", value)
+      if (key == requested_key) {
+        if ((substr(value, 1, 1) == "\"" &&
+             substr(value, length(value), 1) == "\"") ||
+            (substr(value, 1, 1) == "\047" &&
+             substr(value, length(value), 1) == "\047")) {
+          value = substr(value, 2, length(value) - 2)
+        }
+        print value
+        exit
+      }
+    }
+  ' "$config_file"
+}
+
+ensure_index_entry()
+{
+  local index_file=$1
+  local entry=$2
+  local updated_file="$temporary_dir/index.updated"
+
+  if [[ ! -f "$index_file" ]]; then
+    printf '%s\n$\n' "$entry" >"$index_file"
+    return
+  fi
+  if grep -Fqx "$entry" "$index_file"; then
+    return
+  fi
+
+  awk -v entry="$entry" '
+    $0 == "$" && !inserted {
+      print entry
+      inserted = 1
+    }
+    {
+      print
+    }
+    END {
+      if (!inserted) {
+        print entry
+        print "$"
+      }
+    }
+  ' "$index_file" >"$updated_file"
+  chmod --reference="$index_file" "$updated_file"
+  mv "$updated_file" "$index_file"
+}
+
+merge_missing_records()
+{
+  local package_file=$1
+  local live_file=$2
+  local additions_file="$temporary_dir/records.add"
+  local merged_file="$temporary_dir/records.merged"
+
+  awk -v live_file="$live_file" '
+    BEGIN {
+      while ((getline line < live_file) > 0) {
+        if (line ~ /^#[0-9]+$/) {
+          vnum = substr(line, 2) + 0
+          present[vnum] = 1
+        }
+      }
+      close(live_file)
+      emit = 0
+    }
+    /^#[0-9]+$/ {
+      vnum = substr($0, 2) + 0
+      emit = (vnum in present) ? 0 : 1
+    }
+    /^\$~?$/ {
+      emit = 0
+      next
+    }
+    emit {
+      print
+    }
+  ' "$package_file" >"$additions_file"
+
+  if [[ ! -s "$additions_file" ]]; then
+    return
+  fi
+
+  if ! awk -v additions_file="$additions_file" '
+    BEGIN {
+      while ((getline line < additions_file) > 0) {
+        if (line ~ /^#[0-9]+$/) {
+          addition_count++
+          addition_vnum[addition_count] = substr(line, 2) + 0
+        }
+        addition[addition_count] = addition[addition_count] line ORS
+      }
+      close(additions_file)
+      next_addition = 1
+    }
+    function add_records_before(vnum) {
+      while (next_addition <= addition_count &&
+             addition_vnum[next_addition] < vnum) {
+        printf "%s", addition[next_addition]
+        next_addition++
+      }
+    }
+    /^#[0-9]+$/ {
+      add_records_before(substr($0, 2) + 0)
+      print
+      next
+    }
+    /^\$~?$/ && !inserted {
+      add_records_before(2147483647)
+      inserted = 1
+    }
+    {
+      print
+    }
+    END {
+      if (!inserted) {
+        exit 42
+      }
+    }
+  ' "$live_file" >"$merged_file"; then
+    fail "$live_file has no world-file terminator"
+  fi
+
+  chmod --reference="$live_file" "$merged_file"
+  mv "$merged_file" "$live_file"
+}
+
+provision_world_file()
+{
+  local kind=$1
+  local filename=$2
+  local destination_dir="$repo_root/lib/world/$kind"
+  local package_file="$package_dir/$filename"
+  local live_file="$destination_dir/$filename"
+
+  [[ -f "$package_file" ]] || fail "missing package file: $package_file"
+  mkdir -p "$destination_dir"
+
+  if [[ -f "$live_file" ]]; then
+    merge_missing_records "$package_file" "$live_file"
+  else
+    cp "$package_file" "$live_file"
+  fi
+  ensure_index_entry "$destination_dir/index" "$filename"
+}
+
+database_scalar()
+{
+  local query=$1
+
+  MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
+    --skip-column-names --host="$database_host" --user="$database_user" \
+    "$database_name" --execute="$query"
+}
+
+apply_database_file()
+{
+  local sql_file=$1
+
+  MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
+    --host="$database_host" --user="$database_user" "$database_name" <"$sql_file"
+}
+
+development_port()
+{
+  awk -F= '
+    /^[[:space:]]*DFLT_PORT[[:space:]]*=/ {
+      value = $2
+      gsub(/[[:space:]]/, "", value)
+      print value
+      exit
+    }
+  ' "$repo_root/lib/etc/config"
+}
+
+restart_development_mud()
+{
+  local mud_port
+
+  mud_port=$(development_port)
+  [[ "$mud_port" =~ ^[0-9]+$ ]] || fail "could not read the development MUD port"
+
+  if systemctl --user is-active --quiet "$server_unit"; then
+    systemctl --user stop "$server_unit"
+  fi
+  if ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q .; then
+    fail "port $mud_port is still active; stop the manually started development MUD"
+  fi
+
+  "$script_dir/dev_kohdee_login_smoke.sh" >/dev/null
+}
+
+for command_name in awk chmod cp find grep mariadb mktemp mv ss systemctl; do
+  command -v "$command_name" >/dev/null 2>&1 ||
+    fail "required command not found: $command_name"
+done
+
+[[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
+[[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
+[[ -x "$repo_root/bin/circle" ]] || fail "bin/circle is missing; build and install first"
+
+app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
+[[ "$app_environment" == development ]] ||
+  fail "refusing to run because APP_ENV is not development"
+
+database_host=$(config_value "$repo_root/lib/mysql_config" mysql_host)
+database_name=$(config_value "$repo_root/lib/mysql_config" mysql_database)
+database_user=$(config_value "$repo_root/lib/mysql_config" mysql_username)
+database_password=$(config_value "$repo_root/lib/mysql_config" mysql_password)
+[[ -n "$database_host" && -n "$database_name" && -n "$database_user" ]] ||
+  fail "lib/mysql_config is incomplete"
+
+provision_world_file wld 10000.wld
+provision_world_file mob 700.mob
+provision_world_file trg 700.trg
+
+apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
+
+restart_development_mud
+
+ferry_prototype_id=$(database_scalar \
+  "SELECT MIN(prototype_id) FROM ship_prototypes WHERE name = 'Harbor Sandbox Ferry'")
+[[ "$ferry_prototype_id" =~ ^[0-9]+$ ]] ||
+  fail "the harbor ferry prototype was not seeded"
+
+ferry_slot=$(database_scalar \
+  "SELECT MIN(r.ship_id)
+     FROM ship_runtime_state AS r
+     JOIN ship_interiors AS i ON i.ship_id = r.ship_id
+    WHERE r.prototype_id = $ferry_prototype_id
+      AND i.owner = ''
+      AND i.vessel_name = 'Harbor Sandbox Ferry'")
+
+ferry_was_created=false
+if [[ ! "$ferry_slot" =~ ^[0-9]+$ ]]; then
+  "$script_dir/dev_kohdee_login_smoke.sh" --commands \
+    "goto -66 92" \
+    "vedit spawnpublic $ferry_prototype_id"
+  ferry_was_created=true
+  ferry_slot=$(database_scalar \
+    "SELECT MIN(r.ship_id)
+       FROM ship_runtime_state AS r
+       JOIN ship_interiors AS i ON i.ship_id = r.ship_id
+      WHERE r.prototype_id = $ferry_prototype_id
+        AND i.owner = ''
+        AND i.vessel_name = 'Harbor Sandbox Ferry'")
+fi
+[[ "$ferry_slot" =~ ^[0-9]+$ ]] || fail "the public harbor ferry was not created"
+
+pilot_count=$(database_scalar \
+  "SELECT COUNT(*)
+     FROM ship_crew_roster
+    WHERE ship_id = $ferry_slot
+      AND crew_role = 'pilot'
+      AND npc_vnum = 70001
+      AND status = 'active'")
+schedule_count=$(database_scalar \
+  "SELECT COUNT(*)
+     FROM ship_schedules AS s
+     JOIN ship_routes AS r ON r.route_id = s.route_id
+    WHERE s.ship_id = $ferry_slot
+      AND r.name = 'harbor_ferry_loop'
+      AND s.enabled = 1")
+active_route_count=$(database_scalar \
+  "SELECT COUNT(*)
+     FROM ship_runtime_state AS state
+     JOIN ship_routes AS route ON route.route_id = state.current_route_id
+    WHERE state.ship_id = $ferry_slot
+      AND route.name = 'harbor_ferry_loop'
+      AND state.autopilot_state IN (1, 2)")
+
+if [[ "$ferry_was_created" == true || "$pilot_count" != 1 ||
+      "$schedule_count" != 1 || "$active_route_count" != 1 ]]; then
+  ferry_commands=(
+    "shipgoto $ferry_slot"
+    "setroute harbor_ferry_loop"
+    "speed 2"
+    "setschedule harbor_ferry_loop 1"
+  )
+  if [[ "$pilot_count" == 0 ]]; then
+    ferry_commands+=("load mob 70001" "assignpilot ferrymaster")
+  elif [[ "$pilot_count" != 1 ]]; then
+    ferry_commands+=("unassignpilot" "assignpilot ferrymaster")
+  else
+    ferry_commands+=("autopilot on")
+  fi
+  "$script_dir/dev_kohdee_login_smoke.sh" --commands "${ferry_commands[@]}"
+  restart_development_mud
+fi
+
+pilot_count=$(database_scalar \
+  "SELECT COUNT(*)
+     FROM ship_crew_roster
+    WHERE ship_id = $ferry_slot
+      AND crew_role = 'pilot'
+      AND npc_vnum = 70001
+      AND status = 'active'")
+schedule_count=$(database_scalar \
+  "SELECT COUNT(*)
+     FROM ship_schedules AS s
+     JOIN ship_routes AS r ON r.route_id = s.route_id
+    WHERE s.ship_id = $ferry_slot
+      AND r.name = 'harbor_ferry_loop'
+      AND s.enabled = 1")
+bridge_room=$(database_scalar \
+  "SELECT bridge_room FROM ship_interiors WHERE ship_id = $ferry_slot")
+cargo_room=$(database_scalar \
+  "SELECT cargo_room1 FROM ship_interiors WHERE ship_id = $ferry_slot")
+
+[[ "$pilot_count" == 1 ]] || fail "the ferry pilot did not survive restart"
+[[ "$schedule_count" == 1 ]] || fail "the ferry schedule did not survive restart"
+[[ "$bridge_room" =~ ^[0-9]+$ && "$bridge_room" -gt 0 ]] ||
+  fail "the ferry bridge is unavailable after restart"
+[[ "$cargo_room" =~ ^[0-9]+$ && "$cargo_room" -gt 0 ]] ||
+  fail "the ferry cargo hold is unavailable after restart"
+
+verification_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
+  "shipgoto $ferry_slot" \
+  "look ferrymaster" \
+  "say harborcheck" \
+  "goto $cargo_room" \
+  "say cargocheck" \
+  "goto 1000390" \
+  "vstat r 1000390" \
+  "shipgoto $ferry_slot" \
+  "showschedule" \
+  "shipstatus")
+printf '%s\n' "$verification_output"
+
+grep -Fq "bridge trigger ready" <<<"$verification_output" ||
+  fail "the generated bridge trigger did not fire"
+grep -Fq "cargo trigger ready" <<<"$verification_output" ||
+  fail "the generated cargo trigger did not fire"
+grep -Fq "Room name: Harbor Sandbox East Dock" <<<"$verification_output" ||
+  fail "the east harbor dock did not load"
+
+printf 'PASS: harbor sandbox and persistent ferry verified in ship slot %s.\n' \
+  "$ferry_slot"

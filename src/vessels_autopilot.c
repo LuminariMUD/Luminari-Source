@@ -3402,7 +3402,9 @@ ACMD(do_assignpilot)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *npc;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
+  bool engaged;
   int num;
 
   /* Get vessel context */
@@ -3448,16 +3450,40 @@ ACMD(do_assignpilot)
   }
 
   /* Assign pilot */
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
   ship->autopilot->pilot_mob_vnum = GET_MOB_VNUM(npc);
-
-  send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
-  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+  if (!vessel_db_save_pilot(ship))
+  {
+    ship->autopilot->pilot_mob_vnum = -1;
+    send_to_char(ch, "The pilot assignment could not be saved, so it was cancelled.\r\n");
+    return;
+  }
 
   /* If a route is already set, auto-engage autopilot */
+  engaged = FALSE;
   if (ship->autopilot->current_route != NULL && ship->autopilot->current_route->num_waypoints > 0 &&
       ship->autopilot->state == AUTOPILOT_OFF)
   {
     autopilot_start(ship, ship->autopilot->current_route);
+    engaged = TRUE;
+  }
+
+  if (engaged && !vessel_db_save_runtime(ship))
+  {
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    ship->autopilot->pilot_mob_vnum = -1;
+    if (!vessel_db_save_pilot(ship))
+    {
+      log("SYSERR: Could not compensate failed pilot assignment for ship %d", ship->shipnum);
+    }
+    send_to_char(ch, "The pilot assignment could not be completed, so it was cancelled.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
+  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+  if (engaged)
+  {
     send_to_char(ch, "%s takes the helm and engages autopilot.\r\n", GET_NAME(npc));
     send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
   }
@@ -3472,7 +3498,10 @@ ACMD(do_unassignpilot)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *pilot;
+  struct autopilot_state_snapshot snapshot;
   char pilot_name[128];
+  bool stopped;
+  int old_pilot_vnum;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);
@@ -3512,18 +3541,41 @@ ACMD(do_unassignpilot)
     snprintf(pilot_name, sizeof(pilot_name), "The pilot");
   }
 
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
+  old_pilot_vnum = ship->autopilot->pilot_mob_vnum;
+
   /* Stop autopilot if running */
+  stopped = FALSE;
   if (ship->autopilot->state == AUTOPILOT_TRAVELING || ship->autopilot->state == AUTOPILOT_WAITING)
   {
     autopilot_stop(ship);
-    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+    stopped = TRUE;
   }
 
   /* Clear pilot assignment */
   ship->autopilot->pilot_mob_vnum = -1;
+  if (!vessel_db_save_pilot(ship) || (stopped && !vessel_db_save_runtime(ship)))
+  {
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    ship->autopilot->pilot_mob_vnum = old_pilot_vnum;
+    if (!vessel_db_save_pilot(ship))
+    {
+      log("SYSERR: Could not compensate failed pilot removal for ship %d", ship->shipnum);
+    }
+    send_to_char(ch, "The pilot removal could not be saved, so it was cancelled.\r\n");
+    return;
+  }
 
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
   send_to_ship(ship, "%s has been relieved of pilot duties.\r\n", pilot_name);
+  if (stopped)
+  {
+    if (snapshot.current_route != NULL)
+    {
+      route_destroy(snapshot.current_route);
+    }
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+  }
 }
 
 /* ========================================================================= */
@@ -3564,6 +3616,9 @@ void schedule_calculate_next_departure(struct vessel_schedule *sched)
  */
 int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
 {
+  struct vessel_schedule previous;
+  bool had_schedule;
+
   if (ship == NULL)
   {
     log("SYSERR: schedule_create called with NULL ship");
@@ -3578,6 +3633,11 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   }
 
   /* Allocate schedule if needed */
+  had_schedule = ship->schedule != NULL;
+  if (had_schedule)
+  {
+    previous = *ship->schedule;
+  }
   if (ship->schedule == NULL)
   {
     CREATE(ship->schedule, struct vessel_schedule, 1);
@@ -3599,7 +3659,20 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   schedule_calculate_next_departure(ship->schedule);
 
   /* Save to database */
-  schedule_save(ship);
+  if (!schedule_save(ship))
+  {
+    if (had_schedule)
+    {
+      *ship->schedule = previous;
+    }
+    else
+    {
+      free(ship->schedule);
+      ship->schedule = NULL;
+    }
+    log("SYSERR: Schedule creation for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
 
   log("Info: Created schedule for ship %d (route %d, interval %d hours)", ship->shipnum, route_id,
       interval);
@@ -3614,6 +3687,8 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
  */
 int schedule_clear(struct greyhawk_ship_data *ship)
 {
+  struct vessel_schedule *previous;
+
   if (ship == NULL)
   {
     log("SYSERR: schedule_clear called with NULL ship");
@@ -3625,12 +3700,17 @@ int schedule_clear(struct greyhawk_ship_data *ship)
     return 1; /* Already cleared */
   }
 
-  /* Free memory */
-  free(ship->schedule);
+  previous = ship->schedule;
   ship->schedule = NULL;
 
   /* Remove from database */
-  schedule_save(ship);
+  if (!schedule_save(ship))
+  {
+    ship->schedule = previous;
+    log("SYSERR: Schedule removal for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
+  free(previous);
 
   log("Info: Cleared schedule for ship %d", ship->shipnum);
   return 1;
@@ -3718,6 +3798,8 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
   struct route_node *route_node;
   struct ship_route *route;
   struct waypoint_node *wp_node;
+  struct autopilot_state_snapshot snapshot;
+  int old_next_departure;
   int i;
 
   if (ship == NULL || ship->schedule == NULL)
@@ -3752,6 +3834,7 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
       return 0;
     }
   }
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
 
   /* Build route from cache */
   route = route_create(route_node->name);
@@ -3782,15 +3865,33 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
     return 0;
   }
 
+  /* Calculate next departure */
+  old_next_departure = ship->schedule->next_departure;
+  schedule_calculate_next_departure(ship->schedule);
+  if (!vessel_db_save_runtime(ship) || !schedule_save(ship))
+  {
+    ship->schedule->next_departure = old_next_departure;
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    if (!vessel_db_save_runtime(ship))
+    {
+      log("SYSERR: Could not compensate failed scheduled departure for ship %d",
+          ship->shipnum);
+    }
+    route_destroy(route);
+    log("SYSERR: Scheduled departure for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
+
+  if (snapshot.current_route != NULL && snapshot.current_route != route)
+  {
+    route_destroy(snapshot.current_route);
+  }
+
   /* Announce departure via pilot if present */
   if (ship->autopilot->pilot_mob_vnum != -1)
   {
     pilot_announce_waypoint(ship, waypoint_get_current(ship));
   }
-
-  /* Calculate next departure */
-  schedule_calculate_next_departure(ship->schedule);
-  schedule_save(ship);
 
   log("Info: Scheduled departure triggered for ship %d on route %s", ship->shipnum,
       route_node->name);
@@ -3938,7 +4039,11 @@ ACMD(do_clearschedule)
   }
 
   /* Clear schedule */
-  schedule_clear(ship);
+  if (!schedule_clear(ship))
+  {
+    send_to_char(ch, "The schedule could not be cleared; its previous state was restored.\r\n");
+    return;
+  }
 
   send_to_char(ch, "Vessel schedule has been cleared.\r\n");
   send_to_ship(ship, "The departure schedule for this vessel has been cancelled.\r\n");

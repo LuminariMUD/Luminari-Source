@@ -2,6 +2,37 @@
 
 ## [Unreleased] - July 29, 2026
 
+### Vessel system - shared development harbor
+
+Built the persistent shared harbor fixture required for repeatable builder,
+ferry, interior-script, restart, and multiplayer vessel validation.
+
+#### Added
+
+- A development-only, idempotent harbor provisioner with two static seaports,
+  raft/ship/airship prototypes, a looping two-stop route, a public scheduled
+  ferry, and a persistent NPC ferrymaster. It refuses non-development
+  environments and never runs from normal install or deployment.
+- Phase 11 schema support for attaching DG trigger prototypes to generated
+  room types through `ship_room_template_triggers`.
+- `vedit spawnpublic <id>` for unclaimed NPC/public hulls that do not accrue
+  player-owner dock fees.
+
+#### Fixed
+
+- Pilot assignment/removal, schedule creation/removal, and scheduled departure
+  now report success only after persistence succeeds. Failed writes restore
+  prior memory and compensate any partial durable change.
+- The harbor world-data merger inserts missing records in VNUM order while
+  preserving existing builder-authored records.
+
+#### Validated
+
+- An idempotent local run restored the moving ferry, active hourly schedule,
+  route progress, and ferrymaster across a hard restart. Both generated-room
+  DG triggers fired, and the east dock loaded as seaport room 1000390 at
+  `(-62, 82)`.
+
 ### Documentation - vessel source-of-truth consolidation
 
 Distilled the completed design and implementation knowledge from the temporary

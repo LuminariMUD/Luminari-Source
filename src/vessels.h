@@ -1248,7 +1248,7 @@ int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *d
 bool vessel_delete_persistence(int shipnum);
 
 /* NPC Pilot Persistence */
-void vessel_db_save_pilot(struct greyhawk_ship_data *ship);
+bool vessel_db_save_pilot(struct greyhawk_ship_data *ship);
 void vessel_db_load_pilot(struct greyhawk_ship_data *ship);
 
 /* Persistence Lifecycle Functions */

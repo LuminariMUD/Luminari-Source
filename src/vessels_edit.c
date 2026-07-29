@@ -33,6 +33,7 @@ static const char *VEDIT_USAGE =
     "  vedit set <id> <field> <value>  - fields: name, class, speed, armor\r\n"
     "  vedit delete <id>               - delete a prototype\r\n"
     "  vedit spawn <id>                - spawn a live ship here from a prototype\r\n"
+    "  vedit spawnpublic <id>          - spawn an unclaimed NPC/public ship\r\n"
     "Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine 6=Transport 7=Magical\r\n";
 
 /**
@@ -405,12 +406,11 @@ int vessel_prototype_price(int vclass, int max_speed, int armor)
 /**
  * Spawn a live ship from a prototype into the character's current room.
  *
- * Shared by the staff editor (vedit spawn) and the player shipyard
- * (shipbuy). The spawner becomes the owner.
+ * Shared implementation for builder, public/NPC, and player shipyard spawns.
  *
  * @return The new fleet slot, or -1 on failure (message already sent)
  */
-int vessel_spawn_from_prototype(struct char_data *ch, int id)
+static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const char *owner)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -459,7 +459,7 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
   ship->prototype_id = id;
   ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
   strlcpy(ship->name, row[1], sizeof(ship->name));
-  strlcpy(ship->owner, GET_NAME(ch), sizeof(ship->owner));
+  strlcpy(ship->owner, owner ? owner : "", sizeof(ship->owner));
   ship->id[0] = 'A' + (slot / 26) % 26;
   ship->id[1] = 'A' + slot % 26;
   ship->id[2] = '\0';
@@ -555,7 +555,7 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
   /* Persist immediately so both the interior and the live instance survive
    * reboot/copyover. Abort the spawn if either half cannot be committed. */
   if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) ||
-      !vessel_db_save_weapons(ship))
+      !vessel_db_save_weapons(ship) || !vessel_db_save_owner(ship))
   {
     room_rnum evacuation_room = IN_ROOM(obj);
 
@@ -567,7 +567,6 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
     send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
     return -1;
   }
-  vessel_db_save_owner(ship);
 
   mysql_free_result(result);
 
@@ -577,6 +576,30 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
   act("$p materializes, ready to sail.", FALSE, ch, obj, 0, TO_ROOM);
   log("Info: %s spawned ship %d '%s' from prototype %d at (%d,%d)", GET_NAME(ch), slot, ship->name,
       id, (int)ship->x, (int)ship->y);
+  return slot;
+}
+
+/**
+ * Spawn an owned ship from a prototype.
+ */
+int vessel_spawn_from_prototype(struct char_data *ch, int id)
+{
+  return vessel_spawn_from_prototype_owner(ch, id, GET_NAME(ch));
+}
+
+/**
+ * Spawn an unclaimed ship for a public route or NPC pilot.
+ */
+static int vessel_spawn_public_from_prototype(struct char_data *ch, int id)
+{
+  int slot;
+
+  slot = vessel_spawn_from_prototype_owner(ch, id, "");
+  if (slot >= 0)
+  {
+    send_to_char(ch, "Ship %d is public and unclaimed; it will not accrue owner dock fees.\r\n",
+                 slot);
+  }
   return slot;
 }
 
@@ -829,6 +852,16 @@ ACMD(do_vedit)
       return;
     }
     vessel_spawn_from_prototype(ch, atoi(arg2));
+  }
+  else if (!str_cmp(arg1, "spawnpublic"))
+  {
+    one_argument_u((char *)remainder, arg2);
+    if (!*arg2)
+    {
+      send_to_char(ch, "%s", VEDIT_USAGE);
+      return;
+    }
+    vessel_spawn_public_from_prototype(ch, atoi(arg2));
   }
   else
   {

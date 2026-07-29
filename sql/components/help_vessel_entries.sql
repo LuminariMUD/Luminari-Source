@@ -102,6 +102,7 @@ VALUES ('VEDIT', 'Usage: vedit list
        vedit set <id> <field> <value>
        vedit delete <id>
        vedit spawn <id>
+       vedit spawnpublic <id>
 
 Staff command (builder level). The ship prototype editor: author vessel
 prototypes in the database and spawn live, boardable ships from them
@@ -117,14 +118,17 @@ Subcommands:
   delete  - remove a prototype (existing spawned ships are unaffected)
   spawn   - instantiate a live ship in your current room: allocates a
             ship slot, generates the interior from the room templates,
-            links the boardable object, and saves to the database
+            links the boardable object, assigns you as owner, and saves
+            to the database
+  spawnpublic - staff-only fixture path for an unclaimed public or NPC
+            vessel; it has no player owner and accrues no owner dock fees
 
 Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine
          6=Transport 7=Magical
 
 Interior room names and descriptions come from the ship_room_templates
-database table; edit those rows to change what generated interiors look
-like (takes effect next boot).
+database table. DG attachments for generated room types come from
+ship_room_template_triggers. Changes to either table take effect next boot.
 
 See also: AUTOPILOT, SETWAYPOINT, CREATEROUTE', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

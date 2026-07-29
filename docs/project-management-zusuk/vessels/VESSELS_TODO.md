@@ -5,10 +5,13 @@
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, dock fees,
 offline insurance delivery, player-removal recovery, and the multi-character
-PvP logout lifecycle pass with actual characters. Immediate autopilot command
-durability, write-failure rollback, and static/dynamic exterior-hull
-co-location through restart and zone reset are also proven. Shared validation,
-scale, content, beta, and production release work remain.
+PvP logout lifecycle pass with actual characters are proven. Immediate
+autopilot command durability, write-failure rollback, and static/dynamic
+exterior-hull
+co-location through restart and zone reset are also proven. The shared
+two-dock harbor, representative prototypes, persistent scheduled ferry, and
+generated-room DG triggers are available. Timed validation, scale, content,
+beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -21,18 +24,15 @@ Do not treat code completion as production approval. Work through the
 dependencies below in order and remove completed items from this file after
 recording enduring behavior or evidence in the permanent documentation.
 
-## 1. Build the Shared Validation Environment
+## 1. Validate the Shared Harbor
 
-- [ ] Expand zone 700 into a harbor sandbox with two docks, three representative
-  ship prototypes, a persistent scheduled NPC ferry, and DG triggers in vessel
-  interiors.
 - [ ] Time a builder with no C knowledge creating and spawning a sailable vessel
   using only `vedit`; target less than 15 minutes.
 - [ ] Run the scheduled ferry continuously for 24 hours without route,
   coordinate, room, or persistence desynchronization.
 
-The harbor is required before meaningful ferry, merchant, builder, copyover,
-and multiplayer encounter testing.
+Use the provisioned harbor for the builder timing and continuous ferry run
+before meaningful merchant, copyover, and multiplayer encounter testing.
 
 ## 2. Prove Scale, Stability, and Economy
 

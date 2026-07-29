@@ -589,15 +589,21 @@ Ownership changes and permanent owner removal clear inherited consent.
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn` |
+| vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn/spawnpublic` |
 
 `vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
 class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it;
 `vedit spawn <id>` instantiates a live, boardable ship at the builder's
-location (free ship slot, generated interior, object linkage, immediate DB
-persist). Interior room text comes from `ship_room_templates` rows (edit the
-DB rows to change generated interiors - no recompile needed; compiled-in
-fallbacks apply when MySQL is down).
+location and assigns the builder as owner. `vedit spawnpublic <id>` uses the
+same atomic spawn path but leaves the ship unclaimed for an NPC or public
+route, so it has no player-owner dock fees. Both paths allocate a free slot,
+generate the interior, link the exterior object, and persist the complete
+instance before reporting success.
+
+Interior room text comes from `ship_room_templates`. DG trigger attachments
+come from `ship_room_template_triggers`, keyed by generated room type. Changes
+to either table take effect on the next boot; compiled-in room templates
+remain the MySQL-unavailable fallback.
 
 ### NPC Pilot Commands
 
@@ -768,6 +774,7 @@ historical measurements, and the limits of the current evidence.
 | `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
+| `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
 | `ship_crew_roster` | Hired crew and helm permits |
 | `ship_waypoints` | Persistent named navigation points |
@@ -791,6 +798,30 @@ historical measurements, and the limits of the current evidence.
 - **Connectivity:** corridor, deck_main, deck_lower
 - **Special:** airlock, observation, brig
 
+### Shared Development Harbor
+
+The tracked source package in `lib/world/vessel_harbor/` and the explicit
+development provisioner create the reusable harbor validation environment:
+
+```bash
+make install
+./scripts/provision_vessel_harbor.sh
+```
+
+The command refuses to run unless `lib/.env` contains
+`APP_ENV=development`. It merges only missing records into the ignored live
+world files, applies Phase 11 and the development seed, restarts the supervised
+local MUD, creates the ferry only when absent, and verifies the result through
+one batched Kohdee session. It is intentionally not part of `make install`,
+`setup.sh`, or `deploy.sh`.
+
+The environment contains Testing Dock at room 1000389 and `(-66, 92)`, Harbor
+Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
+airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
+ferry, mobile 70001 as its persistent pilot, and bridge/cargo DG diagnostics
+70001/70002. Re-running the command reuses the same ferry and account rather
+than duplicating either.
+
 ### Interior VNUM Allocation
 
 ```
@@ -811,7 +842,9 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
    insurance changes update their authoritative tables. Player autopilot
    `on`, `off`, `pause`, and `setroute` changes commit the runtime row before
-   reporting success; a failed write restores the prior in-memory state.
+   reporting success; pilot and schedule commands use the same durable
+   boundary. A failed write restores the prior in-memory state and compensates
+   any earlier write in the operation.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
    and applies the applicable persistence policy.
 5. **Copyover**: Complete vessel state is committed before descriptor handoff.

@@ -1779,7 +1779,10 @@ bool save_all_vessels(void)
       vessel_db_save_crew(ship);
       vessel_db_save_extras(ship);
       vessel_db_save_cargo(ship);
-      vessel_db_save_pilot(ship);
+      if (!vessel_db_save_pilot(ship))
+      {
+        failure_count++;
+      }
       if (!schedule_save(ship))
       {
         failure_count++;
@@ -1806,15 +1809,22 @@ bool save_all_vessels(void)
  *
  * @param ship The ship to save pilot for
  */
-void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
+bool vessel_db_save_pilot(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   struct char_data *pilot;
   char escaped_name[MAX_NAME_LENGTH * 2 + 1];
 
-  if (!mysql_available || !ship)
+  if (!mysql_available || conn == NULL || !ship)
   {
-    return;
+    return FALSE;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Unable to begin pilot save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
   }
 
   /* Delete any existing pilot record for this ship */
@@ -1826,13 +1836,19 @@ void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: Unable to clear pilot record for ship %d: %s", ship->shipnum,
         mysql_error(conn));
-    return;
+    goto rollback;
   }
 
   /* If no pilot assigned, we're done */
   if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1)
   {
-    return;
+    if (mysql_query(conn, "COMMIT"))
+    {
+      log("SYSERR: Unable to commit pilot removal for ship %d: %s", ship->shipnum,
+          mysql_error(conn));
+      goto rollback;
+    }
+    return TRUE;
   }
 
   /* Get pilot name if possible */
@@ -1857,12 +1873,23 @@ void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
   if (mysql_query(conn, query))
   {
     log("SYSERR: Unable to save pilot for ship %d: %s", ship->shipnum, mysql_error(conn));
+    goto rollback;
   }
-  else
+
+  if (mysql_query(conn, "COMMIT"))
   {
-    log("Info: Saved pilot VNUM %d for ship %d", ship->autopilot->pilot_mob_vnum,
-        ship->shipnum);
+    log("SYSERR: Unable to commit pilot save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    goto rollback;
   }
+
+  log("Info: Saved pilot VNUM %d for ship %d", ship->autopilot->pilot_mob_vnum,
+      ship->shipnum);
+  return TRUE;
+
+rollback:
+  mysql_query(conn, "ROLLBACK");
+  return FALSE;
 }
 
 /**

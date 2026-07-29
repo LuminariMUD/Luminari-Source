@@ -31,6 +31,7 @@ extern MYSQL *conn;
 extern bool mysql_available;
 
 #define NUM_SHIP_ROOM_TYPES (ROOM_TYPE_DECK + 1)
+#define MAX_SHIP_ROOM_TEMPLATE_TRIGGERS 8
 
 /* Room template definitions */
 struct room_template
@@ -126,6 +127,104 @@ static const char *room_type_db_names[NUM_SHIP_ROOM_TYPES] = {
 
 static struct room_template db_room_templates[NUM_SHIP_ROOM_TYPES];
 static bool db_room_template_loaded[NUM_SHIP_ROOM_TYPES];
+static trig_vnum
+    db_room_template_triggers[NUM_SHIP_ROOM_TYPES][MAX_SHIP_ROOM_TEMPLATE_TRIGGERS];
+static int db_room_template_trigger_count[NUM_SHIP_ROOM_TYPES];
+
+/**
+ * Resolve a database room_type string to the runtime enum index.
+ */
+static int room_template_index_by_name(const char *name)
+{
+  int i;
+
+  if (name == NULL)
+  {
+    return -1;
+  }
+
+  for (i = 0; i < NUM_SHIP_ROOM_TYPES; i++)
+  {
+    if (!str_cmp(name, room_type_db_names[i]))
+    {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Load DG trigger attachments for generated room templates.
+ */
+static void load_ship_room_template_triggers(void)
+{
+  const char *create_sql =
+      "CREATE TABLE IF NOT EXISTS ship_room_template_triggers ("
+      "room_type VARCHAR(50) NOT NULL, "
+      "vessel_type INT NOT NULL DEFAULT 0, "
+      "trigger_vnum INT NOT NULL, "
+      "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+      "PRIMARY KEY (room_type, vessel_type, trigger_vnum), "
+      "INDEX idx_ship_room_trigger_vnum (trigger_vnum)"
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int type;
+  int trigger_count;
+  int trigger_vnum;
+
+  memset(db_room_template_triggers, 0, sizeof(db_room_template_triggers));
+  memset(db_room_template_trigger_count, 0, sizeof(db_room_template_trigger_count));
+
+  if (mysql_query(conn, create_sql))
+  {
+    log("SYSERR: Could not ensure ship room template triggers: %s", mysql_error(conn));
+    return;
+  }
+
+  if (mysql_query(conn,
+                  "SELECT room_type, trigger_vnum "
+                  "FROM ship_room_template_triggers "
+                  "WHERE vessel_type = 0 "
+                  "ORDER BY room_type, trigger_vnum"))
+  {
+    log("SYSERR: Could not load ship room template triggers: %s", mysql_error(conn));
+    return;
+  }
+
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    return;
+  }
+
+  trigger_count = 0;
+  while ((row = mysql_fetch_row(result)) != NULL)
+  {
+    type = room_template_index_by_name(row[0]);
+    trigger_vnum = row[1] ? atoi(row[1]) : 0;
+    if (type < 0 || trigger_vnum <= 0)
+    {
+      log("SYSERR: Ignoring invalid ship room trigger mapping (%s, %d)",
+          row[0] ? row[0] : "(null)", trigger_vnum);
+      continue;
+    }
+    if (db_room_template_trigger_count[type] >= MAX_SHIP_ROOM_TEMPLATE_TRIGGERS)
+    {
+      log("SYSERR: Ship room template %s exceeds its %d-trigger limit",
+          room_type_db_names[type], MAX_SHIP_ROOM_TEMPLATE_TRIGGERS);
+      continue;
+    }
+
+    db_room_template_triggers[type][db_room_template_trigger_count[type]++] = trigger_vnum;
+    trigger_count++;
+  }
+
+  mysql_free_result(result);
+  log("Info: Loaded %d generated ship room trigger attachment%s", trigger_count,
+      trigger_count == 1 ? "" : "s");
+}
 
 /**
  * Load room template overrides from the ship_room_templates table.
@@ -183,7 +282,50 @@ void load_ship_room_templates_from_db(void)
     mysql_free_result(result);
   }
 
+  load_ship_room_template_triggers();
   log("Info: Loaded %d ship room template override(s) from database", loaded);
+}
+
+/**
+ * Instantiate the DG triggers configured for one generated room type.
+ */
+static void attach_ship_room_template_triggers(room_rnum room, enum ship_room_type type)
+{
+  trig_data *trigger;
+  trig_rnum trigger_rnum;
+  trig_vnum trigger_vnum;
+  int i;
+
+  if (room == NOWHERE || type < 0 || type >= NUM_SHIP_ROOM_TYPES)
+  {
+    return;
+  }
+
+  for (i = 0; i < db_room_template_trigger_count[type]; i++)
+  {
+    trigger_vnum = db_room_template_triggers[type][i];
+    trigger_rnum = real_trigger(trigger_vnum);
+    if (trigger_rnum == NOTHING)
+    {
+      log("SYSERR: Generated ship room %d cannot attach missing trigger %d",
+          world[room].number, trigger_vnum);
+      continue;
+    }
+
+    trigger = read_trigger(trigger_rnum);
+    if (trigger == NULL)
+    {
+      log("SYSERR: Generated ship room %d could not instantiate trigger %d",
+          world[room].number, trigger_vnum);
+      continue;
+    }
+
+    if (SCRIPT(&world[room]) == NULL)
+    {
+      CREATE(SCRIPT(&world[room]), struct script_data, 1);
+    }
+    add_trigger(SCRIPT(&world[room]), trigger, -1);
+  }
 }
 
 /**
@@ -453,6 +595,7 @@ int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type)
     return NOWHERE;
   }
 
+  attach_ship_room_template_triggers(new_room, type);
   return room_vnum;
 }
 
