@@ -20,6 +20,7 @@
 #include "../../src/comm.h"
 #include "../../src/backgrounds.h"
 #include "../../src/char_descs.h"
+#include "../../src/constants.h"
 #include "../../src/db.h"
 #include "../../src/deities.h"
 #include "../../src/protocol.h"
@@ -1627,19 +1628,23 @@ void TestWebOnboardingRoleplayCatalogsPublishAuthoritativeChoices(CuTest *tc)
       CON_CHARACTER_FACTION_SELECT, CON_CHARACTER_HOMETOWN_SELECT,
       CON_CHARACTER_DEITY_SELECT,
   };
-  const char *expected[] = {
-      "\"id\":\"age/adult\",\"label\":\"adult\",\"wireValue\":\"1\"",
-      "\"id\":\"region/1\",\"label\":\"Ashenport\",\"wireValue\":\"1\"",
-      "\"id\":\"faction/0\",\"label\":\"Adventurer / No faction\",\"wireValue\":\"0\"",
-      "\"id\":\"hometown/1\",\"label\":\"Ashenport\",\"wireValue\":\"1\"",
-      "\"id\":\"deity/0\",\"label\":\"None\",\"wireValue\":\"0\"",
-  };
+  char expected[5][160];
   size_t index = 0;
 
   CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, states[0]));
   if (d.pProtocol == NULL)
     return;
   assign_deities();
+  snprintf(expected[0], sizeof(expected[0]),
+           "\"id\":\"age/adult\",\"label\":\"adult\",\"wireValue\":\"1\"");
+  snprintf(expected[1], sizeof(expected[1]),
+           "\"id\":\"region/1\",\"label\":\"%s\",\"wireValue\":\"1\"", regions[1]);
+  snprintf(expected[2], sizeof(expected[2]),
+           "\"id\":\"faction/0\",\"label\":\"Adventurer / No faction\",\"wireValue\":\"0\"");
+  snprintf(expected[3], sizeof(expected[3]),
+           "\"id\":\"hometown/1\",\"label\":\"%s\",\"wireValue\":\"1\"", cities[1]);
+  snprintf(expected[4], sizeof(expected[4]),
+           "\"id\":\"deity/0\",\"label\":\"None\",\"wireValue\":\"0\"");
 
   for (index = 0; index < sizeof(states) / sizeof(states[0]); index++)
   {
