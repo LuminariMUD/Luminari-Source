@@ -1009,11 +1009,13 @@ ACMD(do_claimship)
 
   log("Info: %s captured ship %d '%s' (previous owner: %s)", GET_NAME(ch), ship->shipnum,
       ship->name, ship->owner[0] ? ship->owner : "none");
-  vessel_clear_pvp_grace(ship);
-  strlcpy(ship->owner, GET_NAME(ch), sizeof(ship->owner));
+  if (!vessel_transfer_owner(ship, GET_NAME(ch)))
+  {
+    send_to_char(ch, "The ship's registry rejects your claim; ownership remains unchanged.\r\n");
+    return;
+  }
   /* A capture voids the old crew's helm clearances */
   ship->num_permits = 0;
-  vessel_db_save_owner(ship);
   vessel_db_save_permits(ship);
   send_to_ship(ship, "%s seizes control of %s!", GET_NAME(ch), ship->name);
   send_to_char(ch, "You take the helm - %s is yours now.\r\n", ship->name);

@@ -4,9 +4,9 @@
 
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, dock fees,
-offline insurance delivery, and player-removal recovery pass with actual
-characters. Shared validation, PvP lifecycle verification, scale, content,
-beta, and production release work remain.
+offline insurance delivery, player-removal recovery, and the multi-character
+PvP logout lifecycle pass with actual characters. Shared validation, scale,
+content, beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -32,14 +32,7 @@ recording enduring behavior or evidence in the permanent documentation.
 The harbor is required before meaningful ferry, merchant, builder, copyover,
 and multiplayer encounter testing.
 
-## 2. Close Persistence and Lifecycle Gaps
-
-- [ ] With two actual PvP-enabled characters, live-test the persisted,
-  opponent-specific five-minute combat logout grace. Prove the original
-  aggressor can continue only inside the window, a third party cannot, expiry
-  protects the vessel, and ownership change clears the snapshot.
-
-## 3. Prove Scale, Stability, and Economy
+## 2. Prove Scale, Stability, and Economy
 
 - [ ] Benchmark 500 active ships on the production tick path with autopilot,
   schedules, combat, encounters, weather, economy, wear, persistence, and MSDP
@@ -55,7 +48,7 @@ and multiplayer encounter testing.
 - [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
   tests.
 
-## 4. Add Living-World Content
+## 3. Add Living-World Content
 
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
@@ -74,7 +67,7 @@ and multiplayer encounter testing.
 - [ ] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
   leaderboards. Optional showcase events may be deferred behind release safety.
 
-## 5. Finish Player Experience and Presentation
+## 4. Finish Player Experience and Presentation
 
 - [ ] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
@@ -89,7 +82,7 @@ and multiplayer encounter testing.
 - [ ] Add optional figurehead and paint customization to ship and lookout
   descriptions.
 
-## 6. Balance, Beta, and Roll Out
+## 5. Balance, Beta, and Roll Out
 
 - [ ] Tune combat time-to-kill, crew wages, freight margins, refit costs,
   insurance, and dock fees using the simulation, duel tests, and player data.
@@ -108,7 +101,7 @@ and multiplayer encounter testing.
   postmortem. Update the permanent evidence and behavior references, and only
   then mark the vessel system 3.0.
 
-## 7. Open Decisions
+## 6. Open Decisions
 
 - [ ] Confirm that shared encounters are the final model by testing multiple
   ships entering the same regional encounter. Change the model only if the

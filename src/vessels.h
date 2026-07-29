@@ -636,8 +636,9 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
 void vessel_ownership_ensure_schema(void);
-void vessel_db_save_owner(struct greyhawk_ship_data *ship);
+bool vessel_db_save_owner(struct greyhawk_ship_data *ship);
 void vessel_db_load_owner(struct greyhawk_ship_data *ship);
+bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owner);
 void vessel_db_save_permits(struct greyhawk_ship_data *ship);
 void vessel_db_load_permits(struct greyhawk_ship_data *ship);
 bool vessel_handle_player_removal(const char *player_name);

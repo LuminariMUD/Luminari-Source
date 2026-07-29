@@ -15,12 +15,7 @@ outstanding work.
 1. The complete 500-ship workload has not been measured with combat,
    encounters, economy, wear, persistence, and client updates active. Historical
    navigation microbenchmarks are not release evidence.
-2. Copyover/reboot recovery, normalized weapon mounts, and dock-fee recovery
-   have live evidence, as does one-time offline insurance delivery. Permanent
-   player removal passes its reversible, successful, and transaction-failure
-   paths. The opponent-specific combat logout grace still needs
-   actual-character verification.
-3. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
+2. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
    a 72-hour soak, player beta, and migration rollback rehearsal before broad
    release.
 

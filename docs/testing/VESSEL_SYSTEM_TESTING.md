@@ -200,6 +200,21 @@ numbered gameplay flow:
   membership, one owned ship, and one helm permit; Elyra logged straight back
   in aboard the raft, while Kohdee's live `shipcrew` still listed her Tern
   permit.
+- Dorrin, Elyra, and Veska each enabled PvP through their own level-1
+  character session. Dorrin owned the armed Tern and attacked Elyra's online
+  raft without sinking it, producing reciprocal 300-second SQL snapshots.
+  Elyra logged out; Dorrin stayed connected through a real copyover and was
+  explicitly allowed to continue. Veska was transferred aboard the same Tern
+  and was refused as a third party. After waiting out the actual five-minute
+  clock, Dorrin was refused too.
+- The same run found that `shipdeed` cleared grace only in memory. Owner
+  transfer and runtime reset are now one transaction, capture uses the same
+  boundary, and permanent removal clears persisted grace in its existing
+  cleanup transaction. After a fresh boot restored the stale test row, Veska
+  deeded the raft to Elyra in live sessions; SQL changed atomically to owner
+  `Elyra`, grace `0`, and empty attacker. The Tern was returned to Kohdee, the
+  raft was repaired, test wages were paid, and all three PvP flags were
+  disabled.
 - The full production-linked root suite passed 218 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
@@ -245,5 +260,9 @@ numbered gameplay flow:
   fast-wipe deletion is cancelled before account unlinking or success output,
   and the active player plus all vessel relationships survive - FIXED and
   live-tested with Corven and Elyra.
+- PvP logout grace is persisted for only the original consenting opponent,
+  survives copyover, rejects third parties, expires after five real minutes,
+  and is cleared durably with ownership changes - FIXED and live-tested with
+  Dorrin, Elyra, Veska, and Kohdee.
 
 # EoF

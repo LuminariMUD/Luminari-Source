@@ -840,6 +840,18 @@ at the real character menu, and account membership, player data, raft
 ownership, and a separate Tern helm permit all remained intact. The trigger
 was removed, and Elyra immediately logged back in aboard the same raft.
 
+The opponent-specific logout grace also has actual-character and process
+recovery evidence. Dorrin and Elyra enabled PvP and completed a consented
+Tern-versus-raft attack. Both runtime rows stored the opposite owner for 300
+seconds. With Elyra offline, Dorrin's connection survived copyover and his
+next attack was permitted; PvP-enabled Veska was refused against the same
+raft. After the full five minutes elapsed, Dorrin was refused too. A deed
+transfer then exposed and fixed a stale-database defect: ownership and the
+grace reset now commit together, and permanent player removal clears the
+runtime row inside its cleanup transaction. A fresh boot plus live
+Veska-to-Elyra deed left owner `Elyra`, grace timestamp `0`, and an empty
+opponent in SQL.
+
 ---
 
 ## File Inventory
@@ -1112,17 +1124,6 @@ or keyword count is insufficient once later phases extend the system.
 | PvP entry point bypasses consent | Non-consensual property loss | Central `vessel_pvp_permitted()` gate and entry-point coverage |
 | Data-driven economy is exploitable | Infinite profit or cargo duplication | Hard price bounds, atomic claims, copyover tests, and sustained simulations |
 | Debug or partial toggle behavior reaches production | Log flood or inability to stop faulty ticks | Release preflight, runtime-safe diagnostics, and a load-bearing kill switch |
-
----
-
-## Remaining Lifecycle Verification
-
-| Issue | Location | Status |
-|-------|----------|--------|
-| Owner logout during PvP | `vessels_combat.c` | Persisted five-minute opponent grace is implemented and unit-tested; two-player logout/expiry behavior still needs live proof |
-
-See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
-the complete, dependency-ordered backlog.
 
 ---
 

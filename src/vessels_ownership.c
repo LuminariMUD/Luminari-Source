@@ -97,14 +97,14 @@ void vessel_ownership_ensure_schema(void)
 /**
  * Persist the ship's owner.
  */
-void vessel_db_save_owner(struct greyhawk_ship_data *ship)
+bool vessel_db_save_owner(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   mysql_real_escape_string(conn, escaped, ship->owner, strlen(ship->owner));
@@ -115,7 +115,62 @@ void vessel_db_save_owner(struct greyhawk_ship_data *ship)
   {
     log("SYSERR: vessel_db_save_owner failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
+}
+
+/**
+ * Persist an ownership change and its consent reset as one transaction.
+ *
+ * A deed or capture must not leave the previous owner's PvP grace in the
+ * runtime row. Otherwise a reboot can restore permission inherited from an
+ * opponent who never consented to fight the new owner.
+ */
+bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owner)
+{
+  char old_owner[sizeof(ship->owner)];
+  char old_attacker[sizeof(ship->pvp_grace_attacker)];
+  time_t old_until;
+
+  if (!mysql_available || conn == NULL || ship == NULL || new_owner == NULL)
+  {
+    return FALSE;
+  }
+
+  strlcpy(old_owner, ship->owner, sizeof(old_owner));
+  strlcpy(old_attacker, ship->pvp_grace_attacker, sizeof(old_attacker));
+  old_until = ship->pvp_grace_until;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin ownership transfer for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  strlcpy(ship->owner, new_owner, sizeof(ship->owner));
+  vessel_clear_pvp_grace(ship);
+  if (!vessel_db_save_owner(ship) || !vessel_db_save_runtime(ship))
+  {
+    goto rollback;
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not commit ownership transfer for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    goto rollback;
+  }
+
+  return TRUE;
+
+rollback:
+  mysql_query(conn, "ROLLBACK");
+  strlcpy(ship->owner, old_owner, sizeof(ship->owner));
+  strlcpy(ship->pvp_grace_attacker, old_attacker, sizeof(ship->pvp_grace_attacker));
+  ship->pvp_grace_until = old_until;
+  log("SYSERR: Ownership transfer for ship %d was rolled back", ship->shipnum);
+  return FALSE;
 }
 
 /**
@@ -193,6 +248,17 @@ bool vessel_handle_player_removal(const char *player_name)
     log("SYSERR: Could not begin vessel orphan cleanup for %s: %s", player_name,
         mysql_error(conn));
     return FALSE;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE ship_runtime_state AS runtime "
+           "JOIN ship_interiors AS interior ON interior.ship_id = runtime.ship_id "
+           "SET runtime.pvp_grace_until = 0, runtime.pvp_grace_attacker = '' "
+           "WHERE interior.owner = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
   }
 
   snprintf(query, sizeof(query),
@@ -567,9 +633,12 @@ ACMD(do_shipdeed)
 
   log("Info: %s deeded ship %d '%s' to %s", GET_NAME(ch), ship->shipnum, ship->name,
       GET_NAME(target));
-  vessel_clear_pvp_grace(ship);
-  strlcpy(ship->owner, GET_NAME(target), sizeof(ship->owner));
-  vessel_db_save_owner(ship);
+  if (!vessel_transfer_owner(ship, GET_NAME(target)))
+  {
+    send_to_char(ch, "The deed could not be recorded; ownership remains unchanged.\r\n");
+    send_to_char(target, "The ship's registry rejects the deed; ownership remains unchanged.\r\n");
+    return;
+  }
 
   send_to_char(ch, "You sign over %s to %s.\r\n", ship->name, GET_NAME(target));
   send_to_char(target, "%s signs over %s to you - she's yours now.\r\n", GET_NAME(ch), ship->name);

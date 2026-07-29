@@ -133,6 +133,13 @@ from planning items into tested behavior.
   cancelled before account unlinking, the trigger was removed, and Elyra
   immediately logged back in with her raft deed and separate Tern helm permit
   intact.
+- Dorrin and Elyra established a consented vessel engagement, then Elyra
+  logged out. Dorrin's descriptor and opponent-specific grace survived
+  copyover, Veska was refused as a third party, and Dorrin was refused after
+  the full five-minute window. The run found that deed transfer cleared grace
+  only in memory; deed and capture now commit owner plus runtime reset
+  together, while permanent removal clears it inside the cleanup transaction.
+  A fresh-boot live deed confirmed owner `Elyra` with zero/empty grace in SQL.
 - All 75 help keywords resolved to database help in one 54-second Kohdee
   session, all SQL help checks passed, and all 21 current component migrations
   applied independently to a fresh MariaDB 10.11 master schema. Cleanup left

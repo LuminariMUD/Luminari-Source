@@ -102,6 +102,14 @@ local MUD through the established Kohdee preflight, creates a separate account
 with the development master password, makes a default human warrior, enters the
 world once, and logs out cleanly. It refuses to replace an existing account.
 
+An account may contain multiple characters. Separate accounts are useful for
+destructive deletion tests because one fixture can be removed without changing
+another fixture's menu, but they are not required for ordinary multiplayer
+testing. Reuse an existing test account when it already contains the needed
+characters; the login helper locates the requested character by exact Name
+rather than assuming a stable menu slot. The creation helper currently creates
+new accounts only.
+
 The password comes from `DEV_MUD_ACCOUNT_PASSWORD` when set; otherwise the
 helper uses `GAME_MASTER_ACCOUNT_PASSWORD` from `lib/.env`. This allows local
 test accounts deliberately created with the development master password to be
