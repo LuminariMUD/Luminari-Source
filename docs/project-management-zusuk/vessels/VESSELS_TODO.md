@@ -32,6 +32,13 @@ recording enduring behavior or evidence in the permanent documentation.
 - [ ] Run the scheduled ferry continuously for 24 hours without route,
   coordinate, room, or persistence desynchronization.
 
+  Active local-development run: the supervised window started July 30, 2026
+  at 01:04:38 IDT and reaches 24 hours on July 31 at 01:04:38 IDT. Check it
+  with `./scripts/run_vessel_ferry_soak.sh status`. The run directory is
+  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T220427Z-4040441`.
+  Leave this item open until the monitor reports `PASS` after its final
+  exact-state restart check.
+
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
 
