@@ -1,131 +1,109 @@
-# Considerations
+# Vessel System Considerations
 
-> Institutional memory for AI assistants. Updated between phases via /carryforward.
-> **Line budget**: 600 max | **Last updated**: Project Complete (2025-12-30)
-> **Project Status**: COMPLETE - Vessel System Production Ready
+**Last updated:** July 29, 2026
 
----
+**Status:** Gameplay layer implemented; production release not yet approved
+
+This document preserves design and maintenance lessons that should survive the
+current backlog. Use [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) for current
+behavior, [PRD.md](PRD.md) for the product contract, and
+[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
+outstanding work.
 
 ## Active Concerns
 
-Items requiring attention for future maintenance or enhancements.
+1. The legacy zone-700 fixture has inconsistent fleet-slot, `shipnum`, and
+   interior-room identities. This blocks the first live manual regression and
+   exposes a broader design problem: `shipnum` serves as both an array index and
+   an occupancy sentinel.
+2. The cedit vessel setting is not a complete operational kill switch. Command
+   dispatch and vessel ticks must honor it before staged release.
+3. The complete 500-ship workload has not been measured with combat,
+   encounters, economy, wear, persistence, and client updates active. Historical
+   navigation microbenchmarks are not release evidence.
+4. Copyover, reboot, generated-room reclamation, offline insurance, player
+   deletion, persistent weapon mounts, and combat logout behavior still need
+   lifecycle work or live verification.
+5. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
+   a 72-hour soak, player beta, and migration rollback rehearsal before broad
+   release.
 
-### Technical Debt
-<!-- Max 5 items -->
+## Enduring Integration Rules
 
-1. [P00] **Room templates hard-coded**: vessels_rooms.c uses 10 hard-coded templates instead of querying ship_room_templates DB table. Works correctly but limits runtime configurability.
+- Vessels extend the wilderness; they do not own a second geography. Terrain,
+  bathymetry, weather, paths, regions, and dynamic rooms remain shared
+  wilderness signals.
+- The 6,000 dynamic wilderness rooms are a shared capacity. Fleet features must
+  monitor pressure, reclaim rooms safely, and degrade without starving other
+  wilderness users.
+- Geographic names, territorial waters, encounter areas, and trade lanes belong
+  in builder-authored regions or paths, not coordinate tables embedded in
+  vessel code.
+- Ship interiors may be generated, but the exterior wilderness coordinate
+  remains authoritative. Z is altitude for airships and depth for submarines.
+- Core C remains campaign-neutral. Campaign variation belongs in data and
+  content.
+- MySQL/MariaDB is required. Persistent vessel features need install, rollback,
+  verification, fresh-database creation, and lifecycle coverage.
+- A fleet slot has one canonical identity. Do not infer identity from a
+  sentinel, object value, room pointer, and struct field independently.
 
-### External Dependencies
-<!-- Max 5 items -->
+## Resource Budgets
 
-1. [P00] **MySQL/MariaDB required**: Server will not function without database connection. All vessel persistence depends on this.
-2. [P00] **Wilderness system required**: Vessel navigation depends on wilderness coordinate system being operational.
+| Resource | Current measurement or limit |
+|---|---:|
+| Base `greyhawk_ship_data` | 4,744 bytes |
+| Maximum fleet | 500 ships |
+| Base maximum-fleet storage | About 2.26 MiB |
+| Base per-ship budget | At most 5 KB |
+| Base `vehicle_data` | 152 bytes |
+| Maximum vehicles | 1,000 |
+| Complete vessel tick target | At most 25 ms at 500 active ships |
 
-### Performance / Security
-<!-- Max 5 items -->
+The fixed fleet memory is within budget. The complete tick target and runtime
+allocation behavior remain release gates; see
+[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md).
 
-1. [P03] **Max 500 concurrent vessels validated**: Stress test passed at 100/250/500 vessels. Beyond this requires additional testing.
-2. [P03] **Memory: 1016 bytes/vessel**: Within <1KB target. Monitor if adding features.
-3. [P02] **Max 1000 concurrent vehicles validated**: Stress test passed at 100/500/1000 vehicles.
-4. [P02] **Vehicle memory: 148 bytes/vehicle**: Well under 512-byte target.
-5. [P00] **VNUM range 30000-40019 reserved**: Do not use for builder zones - reserved for dynamic wilderness rooms.
+## Practices That Endure
 
-### Architecture
-<!-- Max 5 items -->
+1. Trace both legacy world-file and builder-spawn paths before declaring a
+   behavior fixed. Similar names and fields do not prove shared identity.
+2. Prefer data-driven hulls, room templates, routes, markets, encounters, and
+   balance values so builders can create content without recompiling.
+3. Keep the root CuTest suite production-linked. Standalone source mirrors age
+   into false evidence and must not be recreated.
+4. Treat automated tests, manual world tests, live performance, soak, and
+   recovery as different forms of evidence; none substitutes for all the
+   others.
+5. Auto-create current tables for fresh databases, but retain explicit migration,
+   verification, and rollback components for controlled deployments.
+6. Use the unified transport boundary where vessel and vehicle behavior truly
+   overlaps; keep class-specific navigation and interior behavior explicit.
+7. Allocate optional route, automation, and encounter state only when needed.
+8. Preserve the repository's GNU C23 style: block comments, declarations at the
+   top of blocks, no variable-length arrays, two-space Allman formatting, and
+   no mechanical restyling of legacy code.
+9. Use named configuration and VNUM definitions. Never embed environment-specific
+   VNUMs or edit local configuration headers as part of a general change.
+10. Validate every pointer and array boundary and use bounded string functions.
 
-1. [P03] **Test infrastructure uses Makefile**: CMake BUILD_TESTS disabled. Use `cd unittests/CuTest && make all && ./test_runner` for tests.
-2. [P01] **Autopilot pulse frequency**: Currently runs every MUD pulse. May need throttling if server load increases with many active vessels.
+## Implemented Capability Baseline
 
----
+The maintained implementation includes wilderness navigation, multi-room
+interiors, docking, routes and autopilot, land vehicles, vehicle loading,
+builder prototypes, combat, ownership, permits, crew, upgrades, insurance,
+cargo, markets, freight, piracy, weather hazards, encounters, staff tooling,
+and MSDP vessel state.
 
-## Lessons Learned
+That list describes implemented capability, not production readiness. Current
+limitations and the dependency-ordered path to release remain in
+[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md).
 
-Proven patterns and anti-patterns. Reference during implementation.
+## Evidence Hygiene
 
-### What Worked
-<!-- Max 15 items -->
-
-1. [P00] **Auto-create DB tables at startup**: Schema matches runtime code exactly. No migration headaches.
-2. [P00] **Greyhawk system as foundation**: Most complete existing implementation provided solid base.
-3. [P00] **Wilderness coordinate system**: Provides solid X/Y/Z navigation framework.
-4. [P00] **Standalone unit test files**: Self-contained tests without server dependencies enable rapid iteration.
-5. [P00] **Incremental session approach**: Each session builds cleanly on prior work. Small validated steps > big risky leaps.
-6. [P01] **Valgrind with suppression file**: cutest.supp filters CuTest framework leaks, validates real code accurately.
-7. [P01] **Memory-efficient structs**: 48-byte autopilot struct, 148-byte vehicle struct enable scaling. Design for minimal memory first.
-8. [P01] **In-memory cache for waypoints/routes**: Fast lookups without DB round-trips. Cache frequently accessed data.
-9. [P02] **Unified transport interface**: transport_data struct abstracts vessel/vehicle differences cleanly.
-10. [P02] **Vehicle-in-vessel mechanics**: Clean layered transport with nesting limits (MAX_TRANSPORT_DEPTH=3).
-11. [P02] **POSIX feature selection**: `_POSIX_C_SOURCE 200809L` exposes required POSIX APIs consistently.
-12. [P03] **Validation sessions are valuable**: Sessions 02-03 discovered prior work was already complete. Always verify before implementing.
-13. [P03] **Mock-based unit tests**: Created 14 mock tests for wilderness room allocation without full server dependencies.
-14. [P03] **Integration tests catch gaps**: 11 end-to-end vessel type tests caught issues unit tests missed.
-15. [P03] **Comprehensive documentation**: 353 tests, 3 docs (895 lines total), troubleshooting guide - invest in docs.
-
-### What to Avoid
-<!-- Max 10 items -->
-
-1. [P00] **Don't mechanically modernize style**: The codebase targets GNU C23 but retains `/* */` comments and declarations at the top of blocks during the initial migration.
-2. [P00] **Don't hardcode VNUMs**: Use #defines or configuration. VNUMs in code = future breakage.
-3. [P00] **Don't skip NULL checks**: Critical in C code. Every pointer dereference needs validation.
-4. [P00] **Don't commit environment-specific files**: campaign.h, mud_options.h, vnums.h are local only.
-5. [P03] **Don't assume code is unimplemented**: Phase 03 Sessions 02-03 found features already done. Verify state first.
-6. [P03] **Don't duplicate definitions in header conditionals**: Caused Tech Debt #1-2. One canonical definition per struct/constant.
-
-### Tool/Library Notes
-<!-- Max 5 items -->
-
-1. [P00] **CuTest for unit testing**: Located in unittests/CuTest/. Simple and reliable.
-2. [P00] **Valgrind for memory validation**: Run tests with `--leak-check=full`. Use cutest.supp suppression file.
-3. [P03] **CMake vs Makefile tests**: CMake cutest target broken (legacy linking issues). Use Makefile for all tests.
-
----
-
-## Resolved
-
-Recently closed items (project completion - preserving final resolution state).
-
-| Phase | Item | Resolution |
-|-------|------|------------|
-| P03 | Final testing/documentation | 353 tests pass (64% over target), Valgrind clean, docs complete |
-| P03 | Per-vessel type mapping | 104 tests validate all 8 types fully implemented |
-| P03 | Dynamic wilderness rooms | Centralized via get_or_allocate_wilderness_room() pattern |
-| P03 | Interior movement | Verified complete in vessels_rooms.c (Phase 00 Session 06) |
-| P03 | Code consolidation | GREYHAWK_ITEM_SHIP=56, 12 duplicates removed |
-| P03 | Phase 2 commands registered | Verified in interpreter.c:4938-4969 |
-| P02 | Unified transport interface | transport_data abstraction complete |
-| P02 | Vehicle-in-vehicle mechanics | Nesting with MAX_TRANSPORT_DEPTH=3 |
-| P02 | 151+ vehicle tests | All passing, Valgrind clean |
-| P01 | Autopilot/waypoint system | In-memory cache, 84 tests passing |
-| P01 | NPC pilot integration | Scheduled routes functional |
-| P00 | Core vessel system | Foundation complete, all systems wired |
-
----
-
-## Project Completion Summary
-
-**LuminariMUD Vessel System** - Completed 2025-12-30
-
-### Final Metrics
-- **Total Phases**: 4 (Phase 00-03)
-- **Total Sessions**: 29
-- **Total Tests**: 353 (target was 215+)
-- **Valgrind Status**: Clean (0 bytes, 0 errors)
-- **Memory per Vessel**: 1016 bytes
-- **Memory per Vehicle**: 148 bytes
-- **Max Concurrent Vessels**: 500 (validated)
-- **Max Concurrent Vehicles**: 1000 (validated)
-
-### Documentation Created
-- docs/systems/VESSEL_SYSTEM.md
-- docs/testing/VESSEL_BENCHMARKS.md
-
-### Future Enhancement Opportunities
-1. Ship-to-ship combat system
-2. Weather effects on vessel performance
-3. Crew management and morale
-4. Trade route economics
-5. Naval warfare mechanics
-
----
-
-*Auto-generated by /carryforward. Project complete - document preserved for future maintenance.*
+- The July 26, 2026 production-linked vessel test and Valgrind results are
+  historical snapshots. Rerun current gates after behavior changes.
+- Older claims of a 1,016-byte ship structure, 353 current standalone tests, or
+  a `test_runner` binary are obsolete.
+- Older navigation-only stress figures may be retained as foundation history,
+  but they do not prove the current all-subsystem 25 ms target.

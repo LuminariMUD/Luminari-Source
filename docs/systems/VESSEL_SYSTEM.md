@@ -1,10 +1,11 @@
 # LuminariMUD Vessel System Documentation
 
-**Version**: 2.5008-beta (Phases 04-09 gameplay layer, code-complete)
-**Last Updated**: 2026-07-26
-**Scope**: current behavior reference. For requirements and outstanding work see
-[VESSEL_PRD_FINAL.md](../project-management-zusuk/vessels/VESSEL_PRD_FINAL.md); for what shipped when see
-[docs/CHANGELOG.md](../CHANGELOG.md).
+**Release Status**: Gameplay layer implemented; production acceptance incomplete
+**Last Updated**: 2026-07-29
+**Scope**: Current behavior reference. For the durable product contract see
+[PRD.md](../PRD.md); for outstanding work see
+[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md); for what
+shipped when see [CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
@@ -33,22 +34,32 @@
 
 ## System Overview
 
-The LuminariMUD Vessel System provides a comprehensive transport framework for water-based vessels (ships, boats, submarines, airships) and land-based vehicles (carts, wagons, mounts, carriages). The system was developed across 4 phases totaling 28 sessions.
+The LuminariMUD Vessel System provides a transport and gameplay framework for
+water vessels, submarines, airships, and land vehicles. It combines wilderness
+navigation, multi-room interiors, automation, combat, ownership, crew, refits,
+cargo, trade, piracy, hazards, encounters, builder tooling, and operator
+controls in one system.
 
 ### Design Goals
 
-- **Scalability**: Support 500+ concurrent vessels with <1KB memory per vessel
-- **Flexibility**: Multiple vessel types with distinct terrain capabilities
-- **Automation**: Autopilot, waypoint-based navigation, and NPC pilot support
-- **Integration**: Seamless wilderness coordinate system integration
-- **Unified Interface**: Common commands work across vessel and vehicle types
+- **One world**: Vessels consume wilderness coordinates, terrain, bathymetry,
+  weather, paths, regions, and dynamic rooms rather than duplicating them.
+- **Meaningful ships**: Vessels are persistent possessions that can be named,
+  crewed, upgraded, fought, captured, insured, and lost.
+- **Multiplayer depth**: Solo operation works; specialized crew roles make group
+  play stronger.
+- **Builder control**: Hulls, interiors, ports, prices, routes, and encounters
+  are data-driven.
+- **Operational safety**: Support 500 vessels with observable, recoverable
+  behavior and a tested release path.
+- **Unified interface**: Common commands work across vessel and vehicle types.
 
 ### Two-Tier Transport Architecture
 
 | Tier | Type | Memory | Interior | Use Case |
 |------|------|--------|----------|----------|
-| **Vessel** | Ships, airships, submarines | ~1KB | Multi-room | Ocean travel, cargo transport, combat |
-| **Vehicle** | Carts, wagons, mounts | 148 bytes | None | Land travel, cargo hauling, quick transport |
+| **Vessel** | Ships, airships, submarines | 4,744-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
 
@@ -59,6 +70,13 @@ The LuminariMUD Vessel System provides a comprehensive transport framework for w
 | Interior Rooms | Multi-room ship interiors | vessels_rooms.c |
 | Docking | Ship-to-ship docking mechanics | vessels_docking.c |
 | Persistence | Database save/load operations | vessels_db.c |
+| Builder and Shipyard | Prototypes, spawning, hull purchase | vessels_edit.c |
+| Combat | Damage, weapons, grounding, sinking | vessels_combat.c |
+| Ownership and Crew | Owners, permits, hires, wages | vessels_ownership.c, vessels_crew.c |
+| Upgrades | Refits, wear, insurance | vessels_upgrades.c |
+| Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
+| Living World | Weather hazards and region encounters | vessels_hazards.c |
+| Operations | Fleet tools, room-pool monitoring, MSDP | vessels_admin.c |
 | Vehicles | Land-based transport | vehicles.c |
 | Vehicle Commands | Player vehicle interactions | vehicles_commands.c |
 | Vehicle Transport | Vehicle-on-vessel mechanics | vehicles_transport.c |
@@ -69,14 +87,42 @@ The LuminariMUD Vessel System provides a comprehensive transport framework for w
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): ~1016 bytes, max 500 = ~496KB
-- **Autopilot** (`autopilot_data`): ~64 bytes (optional, attached to vessel)
+- **Vessel** (`greyhawk_ship_data`): 4,744 bytes, max 500 = about 2.3 MB
+- **Autopilot** (`autopilot_data`): 48 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
-- **Vehicle** (`vehicle_data`): ~148 bytes, max 1000 = ~145KB
+- **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
 
 ### Wilderness Coordinates
 
 X/Y: -1024 to +1024; Z: altitude (airships) or depth (submarines)
+
+### Wilderness Integration Contract
+
+Vessels extend the wilderness system; they do not create a separate geography.
+
+| Wilderness signal | Vessel behavior |
+|-------------------|-----------------|
+| Dynamic room pool | A moving ship occupies the room assigned to its wilderness coordinate |
+| Generated sector | `can_vessel_traverse_terrain()` and speed rules gate movement |
+| Bathymetry | Draft, grounding, and submarine crush depth |
+| Weather field | Speed, visibility, helm risk, and storm damage |
+| `REGION_ENCOUNTER` | Builder-authored encounter selection |
+| Sector regions | Magical or transformed waters through the generated sector |
+| Paths | Roads for vehicles; rivers are the canonical source for future river travel |
+| Geographic regions | Canonical source for named seas and territorial waters |
+
+Permanent invariants:
+
+1. Add missing environmental signals to wilderness first, then consume them
+   from vessel code.
+2. Author geographic names, legal waters, trade lanes, and encounter areas as
+   regions rather than coordinate literals.
+3. Treat the 6,000-room wilderness dynamic pool as shared infrastructure.
+   `shiplist` reports utilization and flags pressure above 80%.
+4. Anchor depth to bathymetry and altitude content to wilderness regions at the
+   same `(x, y)` coordinate.
+5. Keep core integration campaign-neutral and setting content in world or
+   database data.
 
 ### State Machine
 
@@ -384,8 +430,8 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
-this is the guard against vessels starving other systems (PRD Section 4,
-ground rule 3).
+this is the guard against vessels starving other systems (see
+[Wilderness Integration Contract](#wilderness-integration-contract)).
 
 MSDP ship variables (`src/vessels_admin.c`, pushed on the vessel tick to
 anyone aboard): `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
@@ -637,26 +683,32 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 ### Memory Usage
 
-| Component | Per-Unit | Maximum | Total |
-|-----------|----------|---------|-------|
-| Vessel | 1016 bytes | 500 | 496 KB |
-| Vehicle | 148 bytes | 1000 | 145 KB |
-| Waypoint | ~80 bytes | 1000 | 78 KB |
-| Route | ~200 bytes | 200 | 39 KB |
+| Component | Per unit | Maximum | Base total |
+|-----------|----------|---------|------------|
+| Vessel | 4,744 bytes | 500 | About 2.3 MB |
+| Vehicle | 152 bytes | 1,000 | About 148 KB |
+| Autopilot | 48 bytes | Optional per vessel | Up to about 24 KB |
+| Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
 
 ### Structure Sizes
 
 | Structure | Size |
 |-----------|------|
-| `struct greyhawk_ship_data` | 1016 bytes |
-| `struct vehicle_data` | 148 bytes |
+| `struct greyhawk_ship_data` | 4,744 bytes |
+| `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
 | `struct autopilot_data` | 48 bytes |
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
-> See [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) for stress test results and quality metrics.
+The release budget is no more than 5 KB for the base ship structure, about
+3 MB for the maximum base fleet, and 25 ms per game tick for all vessel
+subsystems at 500 ships. The structure budget is met. The complete live-tick
+budget has not yet been measured and remains a release gate.
+
+See [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) for attribution,
+historical measurements, and the limits of the current evidence.
 
 ---
 
@@ -677,14 +729,23 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 ### Tables (Auto-created at startup)
 
-| Table | Primary Key | Purpose |
-|-------|-------------|---------|
-| `ship_prototypes` | `prototype_id INT AUTO_INCREMENT` | Builder-authored hull definitions (vedit) |
-| `ship_interiors` | `ship_id VARCHAR(8)` | Vessel configuration, room data |
-| `ship_docking` | `dock_id INT AUTO_INCREMENT` | Active/historical docking records |
-| `ship_room_templates` | `template_id INT AUTO_INCREMENT` | 19 pre-configured room types |
-| `ship_cargo_manifest` | `manifest_id INT AUTO_INCREMENT` | Cargo tracking (FK to ship_interiors) |
-| `ship_crew_roster` | `crew_id INT AUTO_INCREMENT` | NPC crew assignments (FK to ship_interiors) |
+| Table | Purpose |
+|-------|---------|
+| `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
+| `ship_interiors` | Vessel identity, rooms, owner, upgrades, insurance, and wage state |
+| `ship_docking` | Active and historical docking relationships |
+| `ship_room_templates` | Builder-editable generated interior text |
+| `ship_cargo_manifest` | Object cargo and bulk commodity lots |
+| `ship_crew_roster` | Hired crew and helm permits |
+| `ship_waypoints` | Persistent named navigation points |
+| `ship_routes` | Persistent route identities |
+| `ship_route_waypoints` | Ordered waypoint membership for routes |
+| `ship_schedules` | NPC-pilot and ferry schedule state |
+| `trade_commodities` | Commodity definitions and base values |
+| `port_commodities` | Per-port supply and local price state |
+| `freight_contracts` | Freight offer and acceptance lifecycle |
+| `vessel_bounties` | Piracy bounty and marque state |
+| `vessel_encounters` | Region-keyed encounter definitions |
 
 ### Room Templates (19 default types)
 
@@ -706,11 +767,18 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 
 ### Persistence Lifecycle
 
-1. **Boot**: Ships initialized, then saved states loaded from database
-2. **Create**: New ship interiors immediately saved to database
-3. **Dock**: Docking records saved when ships dock
-4. **Undock**: Docking records marked complete when ships undock
-5. **Shutdown**: All vessel states saved before server terminates
+1. **Boot**: Schemas are created or migrated, templates and gameplay data load,
+   and saved ship, route, schedule, crew, cargo, and ownership state is restored.
+2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
+   interior, and immediate database record.
+3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
+   insurance changes update their authoritative tables.
+4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
+   and applies the applicable persistence policy.
+5. **Shutdown**: Current vessel state is saved before termination.
+
+Explicit mid-voyage, mid-combat, and cargo-laden copyover tests remain required
+before production rollout.
 
 ---
 
@@ -749,9 +817,12 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 |------|---------|
 | `src/db_init.c` | Table creation (init_vessel_system_tables) |
 | `src/db_init_data.c` | Template population |
-| `sql/components/vessels_phase2_schema.sql` | Manual schema script |
-| `sql/components/vessels_phase2_rollback.sql` | Rollback script |
-| `sql/components/verify_vessels_schema.sql` | Verification script |
+| `sql/components/vessels_phase2_*` | Core schema, rollback, and verification |
+| `sql/components/vessels_phase4_*` | Prototype schema, rollback, and verification |
+| `sql/components/vessels_phase6_*` | Ownership schema, rollback, and verification |
+| `sql/components/vessels_phase7_*` | Economy schema, rollback, and verification |
+| `sql/components/vessels_phase8_*` | Encounter schema, rollback, and verification |
+| `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 
 ### Legacy (Disabled)
 
@@ -768,7 +839,7 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 
 - MySQL/MariaDB 5.7+ (required)
 - Wilderness system operational
-- Zone 213 test area configured
+- Development test content available for manual verification
 
 ### Internal Dependencies
 
@@ -803,7 +874,7 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 
 | VNUM | Purpose |
 |------|---------|
-| Object 70002 | Test vessel (ITEM_GREYHAWK_SHIP, ship_index=0) |
+| Object 70002 | Current broken fixture (ITEM_GREYHAWK_SHIP, ship_index=0; see Known Issues) |
 | Room 70003 | Test vessel interior room |
 | Room 1000389 | Wilderness dock location at (-66, 92) |
 
@@ -889,41 +960,78 @@ grep "\[VEHICLE_XPORT\]" syslog   # vehicle loading
 
 ## Operations
 
+### Release Prerequisites
+
+The gameplay layer is not approved for production merely because it builds and
+passes automated tests. Before rollout:
+
+1. Complete the numbered manual regression on development.
+2. Make `CONFIG_VESSEL_SYSTEM` gate vessel command dispatch and tick processing;
+   it currently affects interior detection only and is not a kill switch.
+3. Set `VESSEL_SYSTEM_DEBUG` to `0`.
+4. Apply and verify every vessel schema component plus
+   `help_vessel_entries.sql`.
+5. Verify reboot and copyover while under way, in combat, and carrying cargo.
+6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
+7. Rehearse schema migration and rollback against a production snapshot.
+
+The live checklist is
+[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
+
 ### Deployment
 
-**Recommended**: Let server auto-create tables on first startup with MySQL. Manual:
-1. Backup: `mysqldump -u root -p luminari_mudprod > backup.sql`
-2. Execute schema, run verification, test vessel commands
-3. **Rollback**: `sql/components/vessels_phase2_rollback.sql`
+The server auto-creates and auto-migrates vessel tables at boot. For a controlled
+deployment, apply the phase components in ascending order, run each matching
+verification script, apply the help migration, and retain the rollback scripts
+used in the rehearsal.
+
+See [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md) for
+the DBA procedure. Do not deploy vessel code directly from a development
+checkout or treat the cedit flag as a safety boundary until the prerequisite
+above is complete.
 
 ### Verification Queries
 
 ```sql
-SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_NAME LIKE 'ship_%';  -- Expect: 5
-SELECT COUNT(*) FROM ship_room_templates;  -- Expect: 19
-SHOW PROCEDURE STATUS WHERE Name IN ('cleanup_orphaned_dockings', 'get_active_dockings');  -- Expect: 2
+SELECT TABLE_NAME
+FROM information_schema.TABLES
+WHERE TABLE_SCHEMA = DATABASE()
+  AND (TABLE_NAME LIKE 'ship_%'
+       OR TABLE_NAME IN ('trade_commodities', 'port_commodities',
+                         'freight_contracts', 'vessel_bounties',
+                         'vessel_encounters'))
+ORDER BY TABLE_NAME;
+
+SELECT COUNT(*) FROM ship_room_templates;
+SELECT COUNT(*) FROM help_keywords WHERE keyword IN ('SHIPFIRE', 'SHIPBUY', 'SEASTATE');
 ```
+
+Run the `verify_vessels_*.sql` scripts as the authoritative schema checks; a
+single table count is insufficient once later phases extend the system.
 
 ### Monitoring & Maintenance
 
-```sql
--- Weekly: clean orphaned dockings
-CALL cleanup_orphaned_dockings();
--- Check table sizes
-SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_NAME LIKE 'ship_%';
-```
+- `shiplist` shows fleet state and wilderness dynamic-room utilization.
+- Vessel debug categories provide focused dev diagnostics. Keep the master
+  switch off in production unless investigating a bounded incident.
+- Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
+  volume, and game-loop latency.
+- Treat room-pool pressure over 80%, tick time over 25 ms, or repeated
+  persistence errors as rollout-stop conditions.
 
 ---
 
 ## Risk Assessment
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Integration complexity | High | High | Incremental development, extensive testing |
-| Performance degradation | Medium | High | Tiered complexity, feature toggles |
-| Data migration | Medium | Medium | Phased migration, rollback scripts |
-| Memory overhead | Medium | High | Ship pooling, bit fields |
-| Data corruption | Low | Critical | Bounds checking, null guards, transactions |
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Fleet-slot and object identity diverge | Commands address the wrong ship or lose the exterior object | Keep one canonical slot identity, validate every boundary, cover legacy and `vedit` paths |
+| Shared wilderness rooms are exhausted | Vessels interfere with all wilderness travelers | Monitor pool pressure, reclaim rooms, and test graceful degradation |
+| Full tick exceeds 25 ms | Game-loop latency at fleet scale | Benchmark all live subsystems together at 500 ships |
+| Persistence or schema migration loses property | Ships, cargo, ownership, or crew are corrupted | Auto-migration, verification and rollback SQL, snapshot rehearsal, lifecycle tests |
+| PvP entry point bypasses consent | Non-consensual property loss | Central `vessel_pvp_permitted()` gate and entry-point coverage |
+| Data-driven economy is exploitable | Infinite profit or cargo duplication | Hard price bounds, atomic claims, copyover tests, and sustained simulations |
+| Debug or partial toggle behavior reaches production | Log flood or inability to stop faulty ticks | Release preflight, runtime-safe diagnostics, and a load-bearing kill switch |
 
 ---
 
@@ -931,9 +1039,15 @@ SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_NAME LI
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Duplicate `disembark` registration | `interpreter.c:385,1165` | Working as intended (Greyhawk takes precedence) |
-| Hard-coded room templates | `vessels_rooms.c` | RESOLVED (Phase 04): DB overrides from `ship_room_templates` with compiled-in fallback |
+| Legacy zone-700 fixture stores slot 0 while `shipnum` is 1 and binds room 1403 instead of 70003 | `vessels.c`, object 70002 | Release blocker; breaks disembark and helm commands in the manual regression |
+| `shipnum` is both an array index and an occupancy sentinel | Core Greyhawk callers | Design debt; remove the dual meaning rather than relying on slot conventions |
+| Cedit vessel toggle gates interior detection only | `vessels_rooms.c` | Not a production kill switch; command and tick gating remain |
 | Generated interior rooms persist until reboot after ship purge | `vessels_rooms.c` | Known limitation; runtime reclamation is future work |
+| Offline insurance payout requires staff reconciliation | `vessels_upgrades.c` | Mail delivery remains |
+| Installed weapon state is memory-only | `slot[]` | A persistent `ship_weapons` table remains |
+
+See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
+the complete, dependency-ordered backlog.
 
 ---
 
@@ -966,47 +1080,46 @@ SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_NAME LI
 ### Testing
 
 ```bash
-# Build and run vessel tests
-cd unittests/CuTest
-make all
+# Production-linked integration suite
 make test
 
-# Run vehicle tests
-make phase02-tests
+# Install the tested server and remove the root-level circle artifact
+make install
 
-# Run stress tests
-make stress
-
-# Run with Valgrind
-make valgrind
-make valgrind-phase02
+# Full local gate, including focused protocol and schema checks
+make test-all
 ```
 
-### Test Files
+Vessel, autopilot, and vehicle behavior belongs in the production-linked root
+suite. Do not recreate the removed standalone mirror implementations.
 
-| Test File | Tests | Coverage |
-|-----------|-------|----------|
-| `test_vessels.c` | 91 | Core vessel system |
-| `test_vessel_types.c` | 18 | Vessel type system |
-| `test_vehicle_structs.c` | 19 | Enum values, struct sizes, constants |
-| `test_vehicle_creation.c` | 27 | Lifecycle, state management, capacity |
-| `test_vehicle_movement.c` | 45 | Direction, terrain, speed, movement |
-| `test_vehicle_commands.c` | 31 | Player commands, parsing |
-| `vehicle_transport_tests.c` | 14 | Vehicle-in-vessel mechanics |
-| `test_transport_unified.c` | 15 | Unified transport interface |
-| `vehicle_stress_test.c` | 8 | 100/500/1000 vehicle stress tests |
-| **Total** | **353+** | 100% pass rate |
+Primary automated coverage lives in
+`unittests/CuTest/test_transport_production.c` and exercises production
+functions linked with all game sources. Manual world, command, persistence, OLC,
+and copyover behavior is covered by
+[VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
+
+For each vessel behavior change:
+
+1. Add or update a production-linked `Test*` function.
+2. Add the test source to both build systems if a new source file is introduced.
+3. Run `make test`, then `make install`.
+4. Run relevant Valgrind checks.
+5. Run the numbered manual workflow on development.
+6. Update this behavior reference in the same change.
 
 ---
 
 ## Related Documentation
 
+- [PRD.md](../PRD.md) - Durable product requirements and release criteria
 - [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
-- [VESSEL_PRD_FINAL.md](../project-management-zusuk/vessels/VESSEL_PRD_FINAL.md) - Requirements and outstanding work
+- [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) - Outstanding work only
 - [CHANGELOG.md](../CHANGELOG.md) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
+- [0001-unified-vessel-system.md](../adr/0001-unified-vessel-system.md) - Architecture decision and invariants
 - [TECHNICAL_DOCUMENTATION_MASTER_INDEX.md](../TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) - Complete docs index
 
 ---
 
-*Generated as part of Phase 03, Session 06 - Final Testing and Documentation*
+*Behavior reference; update it whenever vessel behavior changes.*

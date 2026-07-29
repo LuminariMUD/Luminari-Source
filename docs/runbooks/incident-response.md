@@ -242,15 +242,53 @@ mv lib/world/wld/<problem>.wld lib/world/wld/<problem>.wld.disabled
 - Vessel commands not working
 - Vessels stuck at coordinates
 - Interior room issues
+- Vessel tick latency above 25 ms
+- Wilderness dynamic-room pressure above the operational threshold
+- Missing ownership, cargo, crew, route, or schedule state after restart
 
 **Diagnosis:**
 ```bash
 # Check vessel-related errors
 grep -i "vessel\|ship\|greyhawk" lib/log/syslog | tail -50
 
-# Verify database tables
-mysql -u luminari_mud -p luminari_mudprod -e "SELECT COUNT(*) FROM ship_interiors;"
+# Check the configured environment without printing credentials
+grep '^APP_ENV=' lib/.env
 ```
+
+In game, use `shiplist` to record fleet state, positions, owners, and
+dynamic-room utilization. Use the approved MySQL client configuration to run
+the verification scripts listed in
+[VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md). Compare
+affected records with the most recent property census or backup.
+
+**Containment:**
+
+- Preserve syslog, the application revision, `shiplist` output, and a database
+  incident backup before changing vessel state.
+- If the vessel setting has been verified to gate both commands and ticks,
+  disable it and confirm processing stops. The current implementation is not
+  yet a complete kill switch; until that work lands, use the rehearsed
+  maintenance-stop or application rollback procedure.
+- Do not purge ships, reuse fleet slots, edit ownership rows, or run a phase
+  rollback merely to clear symptoms. Those actions can destroy player
+  property or evidence.
+- Escalate immediately for data loss, fleet-slot identity disagreement,
+  sustained tick overruns, room-pool exhaustion, or failed recovery.
+
+**Recovery:**
+
+1. Correct or roll back the application fault while writes remain stopped.
+2. Restore or migrate the database using the rehearsed schema runbook.
+3. Compare ownership, interiors, cargo, crew, routes, and schedules with the
+   pre-incident census.
+4. Run the affected sections of
+   [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md), including
+   reboot or copyover when persistence was involved.
+5. Reopen first to staff, observe logs and tick/room metrics, and expand access
+   only after state remains stable.
+
+Current vessel limitations and release blockers are listed in
+[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
 ---
 

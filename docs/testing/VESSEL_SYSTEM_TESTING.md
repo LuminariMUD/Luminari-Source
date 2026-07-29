@@ -1,18 +1,28 @@
 # Vessel System - Manual Testing Guide
 
 Numbered manual regression script for the Vessel System. Run on dev after any
-vessel-related change (quality gate step 4 in
-[VESSEL_PRD_FINAL.md](../project-management-zusuk/vessels/VESSEL_PRD_FINAL.md),
-Section 10). Every step lists the expected result; any deviation is a
-regression.
+vessel-related change. Every step lists the expected result; any deviation is a
+regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
+findings are tracked in
+[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
+
+**Current run status (July 26, 2026): BLOCKED at step 3.** Steps 1 and 2 pass.
+The legacy object points to fleet slot 0, while that ship's `shipnum` field is
+1; the initialization also binds room 1403 while the object boards into room
+70003. Disembark and helm commands therefore read the wrong ship state. Fix the
+fixture and canonicalize ship identity before treating this script as passing.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
-with the vessel system enabled in cedit.
+with vessel commands and ticks enabled. The current cedit
+`CONFIG_VESSEL_SYSTEM` setting is not yet a complete kill switch; see the
+outstanding-work document before relying on it operationally.
 
 ## A. Legacy world-file vessel (zone 700 test object)
 
-Fixtures: object 70002 (test vessel, ITEM_GREYHAWK_SHIP, ship_index 0),
-room 70003 (interior), room 1000389 (Testing Dock, wilderness (-66, 92)).
+Intended fixtures: object 70002 (test vessel, ITEM_GREYHAWK_SHIP), room 70003
+(interior), room 1000389 (Testing Dock, wilderness (-66, 92)). Before running,
+verify that the object's ship index, the initialized fleet slot, the `shipnum`
+field, `shiproom`, and `world[room].ship` all identify the same ship.
 
 1. `goto 1000389` - you arrive at "Testing Dock", room shows `[ Dockable ]`
    and coordinates (-66, 92); the test vessel object is in the room.
@@ -96,10 +106,14 @@ room 70003 (interior), room 1000389 (Testing Dock, wilderness (-66, 92)).
     interior rooms persist until reboot (known limitation - runtime room
     reclamation is future work).
 
-## Known fixed issues (do not re-open)
+## Known Findings
 
 - Disembark "You're not aboard a vessel" - FIXED.
-- Disembark "Unable to find a valid exit point" - FIXED via
-  IN_ROOM(shipobj) exit-point lookup (src/vessels.c).
+- The `IN_ROOM(shipobj)` exit-point lookup is correct for a self-consistent
+  ship, including the `vedit` spawn path.
+- Disembark "Unable to find a valid exit point" remains reproducible with the
+  legacy zone-700 fixture because its slot, `shipnum`, and interior-room
+  identities disagree. This is the current step-3 blocker, not a regression in
+  the `IN_ROOM(shipobj)` lookup itself.
 
 # EoF

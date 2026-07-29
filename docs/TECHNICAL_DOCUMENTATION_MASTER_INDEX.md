@@ -71,7 +71,8 @@ This master index provides a comprehensive guide to all technical documentation 
   registry, ownership, binding, progression, powers, persistence, deployment,
   and staff operations
 - **[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md)** - Ships, airships, submarines, and land vehicles (carts, wagons, mounts) with wilderness navigation, multi-room interiors, and unified transport interface
-- **[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md)** - Vessel system performance benchmarks, memory attribution, and stress test results
+- **[PRD.md](PRD.md)** - Durable vessel product requirements, wilderness contract, scope, and release criteria
+- **[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md)** - Vessel memory evidence, historical performance measurements, and the outstanding release benchmark
 - **[CLAN_SYSTEM.md](systems/CLAN_SYSTEM.md)** - Guild and clan functionality
 - **[MOUNT_SYSTEM.md](systems/MOUNT_SYSTEM.md)** - Mounts, paladin/blackguard mounts, and dragon mounts (code reference)
 - **[CASTING_VISUALS_SYSTEM.md](systems/CASTING_VISUALS_SYSTEM.md)** - School, class, metamagic, progress, and environmental spellcasting visuals
@@ -149,7 +150,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Planning & Tracking
 - **[TASK_LIST.md](TASK_LIST.md)** - Current development priorities
-- **[docs-audit.md](docs-audit.md)** - Documentation audit tracking
+- **[docs-audit.md](docs-audit.md)** - Vessel documentation source-of-truth and evidence audit
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
@@ -159,7 +160,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[artifacts.md](project-management-zusuk/ongoing-projects/artifacts.md)** -
   Artifact deployment, placement, integration, balance, cooldown persistence,
   validation, group recall, and staff-tool follow-ups
-- **[VESSEL_PRD_FINAL.md](project-management-zusuk/vessels/VESSEL_PRD_FINAL.md)** - Vessel system requirements and remaining work
+- **[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md)** - Dependency-ordered vessel work that remains after the permanent documentation was consolidated
 - **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
 - **[IDEA_LIST.md](project-management-zusuk/ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog

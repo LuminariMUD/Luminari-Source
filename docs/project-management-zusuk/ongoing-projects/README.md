@@ -22,5 +22,6 @@ deleted.
 | [cbuild-issues.md](cbuild-issues.md) | Partial | CMake build report. Errors are resolved; 76 format warnings remain (plus ~8000 clang-tidy findings tracked separately). |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Player and staff feature suggestions gathered in-game. Not a plan - a source of candidates. |
 
-Vessel work lives in [../vessels/VESSEL_PRD_FINAL.md](../vessels/VESSEL_PRD_FINAL.md),
-which carries its own Remaining Work section.
+Outstanding vessel work lives in
+[../vessels/VESSELS_TODO.md](../vessels/VESSELS_TODO.md). Durable vessel
+requirements and behavior live in the permanent documentation tree.

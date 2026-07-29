@@ -1,211 +1,172 @@
-# Vessel System Performance Benchmarks
+# Vessel System Benchmarks
 
-**Version**: 2.5008-beta (Phases 04-09 implementation)
-**Test Date**: 2026-07-26 (memory/tests); 2025-12-30 (speed figures, not re-run)
-**Platform**: Linux 6.6.114.1 (WSL2 Ubuntu)
+**Version:** 3.0
 
----
+**Evidence snapshot:** July 26, 2026
 
-## Summary
+**Last updated:** July 29, 2026
 
-The LuminariMUD Vessel System meets all performance targets:
+This document records measured vessel-system evidence and the remaining release
+performance gate. It intentionally separates completed foundation measurements
+from the full live-game benchmark that still must be run.
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| Max Concurrent Vessels | 500 | 500 | PASS |
-| Memory per Vessel | <2048 bytes (PRD) | 4744 bytes | **BUDGET WRONG - see below** |
-| Total fleet memory | ~1 MB | 2.3 MB | Acceptable in absolute terms |
-| Production-linked tests | all pass | 74/74 | PASS |
-| Valgrind definite leaks | 0 | 0 | PASS |
-| Valgrind errors | 0 | 0 | PASS |
+## Evidence Summary
 
-### Correction: the per-vessel memory budget was set against a wrong baseline
+| Measure | Result | Status |
+|---|---:|---|
+| Configured maximum vessels | 500 | Foundation validated |
+| Base `greyhawk_ship_data` size | 4,744 bytes | Within 5 KB budget |
+| Base storage for 500 ships | 2,372,000 bytes (about 2.26 MiB) | Within about 3 MB budget |
+| Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
+| Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
+| Complete 500-ship live tick | Not yet measured | Release blocker |
 
-The PRD's "2KB per ship (currently 1016 bytes)" budget was inherited from the
-Phase 03 documentation. Measuring the actual struct shows that figure was
-already stale before Phases 04-09 began. Real attribution today:
+The release target is a complete vessel tick at or below 25 ms with 500 active
+ships and the production gameplay workload enabled. Navigation-only
+microbenchmarks do not satisfy this target.
 
-| Component | Bytes | Origin |
-|-----------|-------|--------|
-| `slot[10]` equipment array (`desc[256]` each) | 2680 | legacy (pre-Phase 04) |
-| `connections[]` room links | 640 | legacy (Phase 02) |
-| `sailcrew` + `guncrew` (`crewname[256]` each) | 518 | legacy |
-| `room_vnums[]` + `room_templates[]` | 160 | legacy (Phase 02) |
-| `helm_permits[10][21]` | 210 | Phase 06 |
-| `cargo[10]` bulk lots | 80 | Phase 07 |
-| `crew_tier[4]` | 16 | Phase 06 |
-| assorted counters (bounty/wear/wages/upgrades/insurance) | ~35 | Phases 06-07 |
-| other fields + padding | ~405 | mixed |
-| **Total** | **4744** | |
+## Memory Measurements
 
-Phases 04-09 added roughly **340 bytes** (about 7.7%) on top of a
-pre-existing ~4400-byte struct. The dominant cost is legacy: the fixed
-`desc[256]` string inside every one of ten equipment slots.
+### Ship Structure
 
-**Assessment**: the absolute number is not a problem - 500 ships cost 2.3 MB,
-which is negligible on any machine this server runs on. The documented
-budget was simply wrong. Two options for the record:
+The measured `sizeof(struct greyhawk_ship_data)` is 4,744 bytes.
 
-1. Revise the PRD budget to 5KB/ship, 3MB fleet (recommended - reflects
-   reality, still trivial).
-2. Slim the legacy `slot[]` and crew `crewname[]` strings (would cut ~2.5KB
-   per ship, but touches Greyhawk display code across several files for no
-   practical gain).
+| Component | Approximate bytes |
+|---|---:|
+| Ten ship slots and description arrays | 2,680 |
+| Connection data | 640 |
+| Sail-crew and gun-crew data | 518 |
+| Room arrays | 160 |
+| Helm permits | 210 |
+| Cargo data | 80 |
+| Crew tiers | 16 |
+| New counters and state fields | 35 |
+| Other fields and padding | 405 |
+| **Total** | **4,744** |
 
-The PRD has been updated to option 1.
+Gameplay work added during phases 4 through 9 accounts for roughly 340 bytes,
+or about 7.7 percent of the structure. Older documentation that reported a
+1,016-byte ship structure is obsolete.
 
----
+### Fleet Projection
 
-## Memory Benchmarks
+| Ships | Base bytes | Approximate size |
+|---:|---:|---:|
+| 100 | 474,400 | 463.3 KiB |
+| 250 | 1,186,000 | 1.13 MiB |
+| 500 | 2,372,000 | 2.26 MiB |
 
-### Per-Component Memory Usage
+The separate vehicle array has a measured element size of 152 bytes. At 1,000
+vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
 
-| Component | Size (bytes) | Notes |
-|-----------|-------------|-------|
-| greyhawk_ship_data | 4744 | Primary vessel structure (measured 2026-07-26) |
-| vehicle_data | 152 | Land vehicle structure |
-| autopilot_data | ~64 | Optional, per-vessel |
-| vessel_schedule | ~32 | Optional, per-vessel |
-| waypoint | ~80 | Cached in memory |
-| ship_route | ~200 | Cached in memory |
+Optional allocations, strings, routes, encounter data, and database result
+buffers add runtime memory beyond these base arrays. Those allocations must be
+included in soak-test observation, but the fixed fleet array remains within its
+budget.
 
-### Stress Test Memory Results
+### Supporting Structure Sizes
 
-| Vessel Count | Total Memory | Per-Vessel | Overhead |
-|--------------|-------------|------------|----------|
-| 100 | 99.2 KB | 1016 bytes | 0.78% |
-| 250 | 248.0 KB | 1016 bytes | 0.31% |
-| 500 | 496.1 KB | 1016 bytes | 0.16% |
+| Structure | Size |
+|---|---:|
+| `greyhawk_ship_data` | 4,744 bytes |
+| `vehicle_data` | 152 bytes |
+| Autopilot state | 48 bytes |
+| Route data | 1,840 bytes |
+| Waypoint data | 88 bytes |
+| Route node | 104 bytes |
+| Transport state | 16 bytes |
 
-### System-Wide Estimates
+## Performance Evidence
 
-| Configuration | Vessels | Vehicles | Total Memory |
-|---------------|---------|----------|--------------|
-| Minimal | 50 | 100 | ~65 KB |
-| Standard | 200 | 500 | ~275 KB |
-| Maximum | 500 | 1000 | ~640 KB |
+### Historical Foundation Microbenchmark
 
----
+The original navigation foundation produced the following approximate movement
+tick timings in 2025:
 
-## Speed Benchmarks
+| Active ships | Approximate movement tick |
+|---:|---:|
+| 10 | Less than 1 ms |
+| 100 | About 2 ms |
+| 500 | About 10 ms |
 
-### Vessel Operations
+These figures predate the complete combat, encounter, economy, wear, client,
+and automation workload. They are useful only as foundation history and must
+not be presented as evidence that the current 25 ms release gate passes.
 
-| Operation | Count | Time | Rate |
-|-----------|-------|------|------|
-| Create 100 vessels | 100 | 0.05 ms | 2M/sec |
-| Create 250 vessels | 250 | 0.13 ms | 1.9M/sec |
-| Create 500 vessels | 500 | 0.21 ms | 2.4M/sec |
-| Operations (100 vessels) | 10,000 | 0.05 ms | 185M/sec |
-| Operations (500 vessels) | 50,000 | 0.26 ms | 192M/sec |
-| Destroy 100 vessels | 100 | <0.01 ms | >10M/sec |
-| Destroy 500 vessels | 500 | 0.03 ms | 16.7M/sec |
+### Required Release Benchmark
 
-### Movement Tick Processing
+Run the production tick path with all of the following enabled:
 
-| Vessels Moving | Tick Time | Notes |
-|----------------|-----------|-------|
-| 10 | <1 ms | Negligible |
-| 100 | ~2 ms | Normal load |
-| 500 | ~10 ms | Maximum load |
+- 500 active ships distributed across representative regions and elevations.
+- Scheduled NPC fleets and ferries.
+- Autopilot and route following.
+- Encounters, weather, hazards, and Z-axis transitions.
+- Combat, weapons, boarding state, damage, sinking, and insurance work.
+- Cargo, trade, economy, crew wages, wear, and maintenance.
+- MSDP updates and normal player-facing message production.
+- Database persistence at realistic save intervals.
 
----
+Record at minimum:
 
-## Test Coverage
+- Median, 95th percentile, 99th percentile, and maximum complete tick time.
+- Total vessel time and per-subsystem time.
+- Process resident memory at start, steady state, and end.
+- Database query volume and slow queries.
+- Missed heartbeats, delayed schedules, and message-throttling events.
 
-### Unit Test Distribution
+The gate passes only when the complete vessel tick remains at or below 25 ms
+under the agreed 500-ship workload. If rare outliers are accepted, their
+threshold and operational effect must be documented before release.
 
-| Test Suite | Tests | Coverage |
-|------------|-------|----------|
-| vessel_tests | 93 | Core vessel operations |
-| autopilot_tests | 14 | Autopilot lifecycle |
-| autopilot_pathfinding_tests | 30 | Path calculations |
-| npc_pilot_tests | 12 | NPC pilot integration |
-| schedule_tests | 17 | Schedule system |
-| test_waypoint_cache | 11 | Waypoint caching |
-| vehicle_structs_tests | 19 | Vehicle data structures |
-| vehicle_movement_tests | 45 | Vehicle movement |
-| vehicle_transport_tests | 14 | Vehicle transport |
-| vehicle_creation_tests | 27 | Vehicle lifecycle |
-| vehicle_commands_tests | 31 | Player commands |
-| transport_unified_tests | 15 | Unified interface |
-| vessel_wilderness_rooms_tests | 14 | Wilderness rooms |
-| vessel_type_integration_tests | 11 | Type system |
-| **TOTAL** | **353** | **All Pass** |
+## Automated-Test Evidence
 
-### Coverage by Module
+The July 26, 2026 snapshot recorded 74 of 74 production-linked vessel tests
+passing. It also recorded a clean Valgrind run:
 
-| Source Module | Test Functions | Status |
-|---------------|---------------|--------|
-| vessels.c | 24 | Covered |
-| vessels_autopilot.c | 44 | Covered |
-| vessels_rooms.c | 17 | Covered |
-| vessels_db.c | 14 | Covered |
-| vehicles.c | 91 | Covered |
-| vehicles_commands.c | 31 | Covered |
-| vehicles_transport.c | 14 | Covered |
-
----
-
-## Valgrind Results
-
-### Vessel Tests
-
-```
-==880904== HEAP SUMMARY:
-==880904==     in use at exit: 0 bytes in 0 blocks
-==880904==   total heap usage: 196 allocs, 196 frees, 68,301 bytes allocated
-==880904== All heap blocks were freed -- no leaks are possible
-==880904== ERROR SUMMARY: 0 errors from 0 contexts
+```text
+ERROR SUMMARY: 0 errors from 0 contexts
+All heap blocks were freed -- no leaks are possible
 ```
 
-### Stress Tests
+This is historical evidence, not a substitute for rerunning the current root
+suite. The authoritative workflow is:
 
+```bash
+make test
+make install
+
+cd unittests/CuTest
+make test-all
 ```
-==881452== HEAP SUMMARY:
-==881452==     in use at exit: 0 bytes in 0 blocks
-==881452==   total heap usage: 4 allocs, 4 frees, 867,696 bytes allocated
-==881452== All heap blocks were freed -- no leaks are possible
-==881452== ERROR SUMMARY: 0 errors from 0 contexts
-```
 
----
+The root CuTest binary links the production game sources. Older standalone
+vessel mirror sources and claims about a separate `test_runner` are obsolete.
 
-## Scalability Analysis
+## Soak and Recovery Gate
 
-### Linear Scaling Verified
+After the benchmark passes, run a 72-hour development soak with scheduled NPC
+fleets and representative player activity. The soak must demonstrate:
 
-| Metric | 100 | 250 | 500 | Scaling |
-|--------|-----|-----|-----|---------|
-| Memory | 99.2 KB | 248 KB | 496 KB | Linear |
-| Create Time | 0.05 ms | 0.13 ms | 0.21 ms | Linear |
-| Op Time | 0.05 ms | 0.13 ms | 0.26 ms | Linear |
+- No crashes, leaks, unbounded growth, or corrupt vessel records.
+- Stable tick performance and schedule execution.
+- Correct copyover and reboot recovery during voyages, combat, and cargo work.
+- Safe cleanup after sinking, extraction, player deletion, and generated-room
+  lifecycle events.
+- Useful diagnostics without production debug spam.
 
-### Projected Capacity
+## Current Verdict
 
-Based on benchmarks, system can theoretically support:
-- **1000 vessels**: ~1 MB memory, ~0.5 ms operations
-- **2000 vessels**: ~2 MB memory, ~1 ms operations
+The fixed-memory foundation and historical automated-test snapshot are within
+their stated budgets. The vessel system is not performance-approved for broad
+release until the complete 500-ship benchmark and 72-hour soak both pass.
 
-Current limit of 500 provides comfortable headroom.
-
----
-
-## Recommendations
-
-1. **Production Load**: Target 200-300 active vessels for optimal performance
-2. **Memory Budget**: Reserve ~1 MB for vessel system at maximum capacity
-3. **Tick Interval**: Current 5-tick autopilot interval is appropriate
-4. **Vehicle Limit**: 1000 vehicle limit provides ample capacity
-
----
+Remaining benchmark and release work is tracked in
+[`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
 ## Related Documentation
 
-- [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md) - System behavior reference
-- [VESSEL_SYSTEM_TESTING.md](VESSEL_SYSTEM_TESTING.md) - Manual regression script
-- [TESTING_GUIDE.md](../guides/TESTING_GUIDE.md) - How to run the suites
-
----
-
-*Generated as part of Phase 03, Session 06 - Final Testing and Documentation*
+- [Vessel Product Requirements](../PRD.md)
+- [Vessel System](../systems/VESSEL_SYSTEM.md)
+- [Vessel System Testing](VESSEL_SYSTEM_TESTING.md)
+- [Vessel Schema Deployment](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md)
+- [Unified Vessel Architecture Decision](../adr/0001-unified-vessel-system.md)

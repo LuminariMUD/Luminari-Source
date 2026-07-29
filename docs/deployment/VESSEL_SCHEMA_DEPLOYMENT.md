@@ -1,261 +1,228 @@
-# Vessel Schema - Production Deployment
+# Vessel Schema Deployment
 
-Concrete DBA procedure for deploying vessel system database schema to
-production: backup, transfer, install, verify, and roll back.
+**Last updated:** July 29, 2026
 
-Originally written for the Phase 2 schema; the procedure applies unchanged to
-every vessel phase. Substitute the phase you are deploying.
+This runbook covers controlled vessel-schema installation, verification,
+rollback rehearsal, and staged application rollout. The server can create and
+migrate the current tables at boot, but an explicit database procedure is
+required when operators need the schema in place before startup or need
+auditable rollback evidence.
 
-> **Preferred path**: the server auto-creates and auto-migrates all vessel
-> tables at boot, so a normal deploy needs no manual SQL at all. Use this
-> procedure when you want the schema in place before the server starts, when
-> auto-creation is undesirable, or when you need a rehearsed rollback.
+The vessel system stores player property. Treat migration and rollback as
+high-impact operations even though the schema scripts are designed to be
+repeatable.
 
-## Available schema components
+## Source of Truth
 
-All scripts live in `sql/components/`. Each phase has schema, rollback, and
-(from Phase 4 on) verification scripts:
+- SQL components:
+  [`sql/components/`](../../sql/components/)
+- Current schema and behavior:
+  [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md#database-schema)
+- Release requirements:
+  [PRD.md](../PRD.md#release-acceptance)
+- Remaining preflight work:
+  [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md)
 
-| Phase | Scripts | Adds |
-|-------|---------|------|
-| 2 | `vessels_phase2_schema.sql`, `vessels_phase2_rollback.sql`, `verify_vessels_schema.sql` | Interiors, docking, room templates, cargo manifest, crew roster |
-| 4 | `vessels_phase4_schema.sql`, `vessels_phase4_rollback.sql`, `verify_vessels_phase4.sql` | `ship_prototypes` (vedit) |
-| 6 | `vessels_phase6_schema.sql`, `vessels_phase6_rollback.sql`, `verify_vessels_phase6.sql` | Ownership, upgrades, insurance, wage columns |
-| 7 | `vessels_phase7_schema.sql`, `vessels_phase7_rollback.sql`, `verify_vessels_phase7.sql` | Commodities, port supply, freight contracts, bounties |
-| 8 | `vessels_phase8_schema.sql`, `vessels_phase8_rollback.sql`, `verify_vessels_phase8.sql` | Region-keyed encounter tables |
-| help | `help_vessel_entries.sql` | 26 vessel/vehicle help entries into `help_entries`/`help_keywords` (idempotent; no rollback script needed - re-running updates in place) |
+## Available Components
 
-Deploy phases in ascending order - later phases extend tables that earlier
-phases create.
+Apply schema phases in ascending order. Later phases extend or depend on earlier
+tables.
 
-## ⚠️ PRE-DEPLOYMENT CHECKLIST
+| Phase | Install | Verify | Rollback | Purpose |
+|---|---|---|---|---|
+| 2 | `vessels_phase2_schema.sql` | `verify_vessels_schema.sql` | `vessels_phase2_rollback.sql` | Interiors, docking, room templates, cargo, and crew |
+| 4 | `vessels_phase4_schema.sql` | `verify_vessels_phase4.sql` | `vessels_phase4_rollback.sql` | Builder ship prototypes |
+| 6 | `vessels_phase6_schema.sql` | `verify_vessels_phase6.sql` | `vessels_phase6_rollback.sql` | Ownership, upgrades, insurance, wages, permits, and hired crew |
+| 7 | `vessels_phase7_schema.sql` | `verify_vessels_phase7.sql` | `vessels_phase7_rollback.sql` | Commodities, port supply, freight, bulk cargo, and bounties |
+| 8 | `vessels_phase8_schema.sql` | `verify_vessels_phase8.sql` | `vessels_phase8_rollback.sql` | Region-keyed vessel encounters |
+| Help | `help_vessel_entries.sql` | In-game and SQL keyword audit | Restore backup | Authoritative vessel and vehicle help entries |
 
-### Required Files to Transfer to Production
-Copy the scripts for the phase you are deploying, e.g. for Phase 7:
-1. `sql/components/vessels_phase7_schema.sql` - Installation script
-2. `sql/components/vessels_phase7_rollback.sql` - Emergency rollback
-3. `sql/components/verify_vessels_phase7.sql` - Verification script
+`test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
+only on an isolated rehearsal database where ship id 99999 is known to be free,
+not against a live production database.
 
-### Prerequisites
-- [ ] Schedule maintenance window (5-10 minutes expected)
-- [ ] Notify players of brief downtime if needed
-- [ ] Have production database credentials ready
-- [ ] Ensure you have root/admin access to MySQL
+The planned `ship_weapons` persistence component does not exist yet and is not
+part of this procedure.
 
----
+## Pre-Deployment Gate
 
-## 📋 STEP-BY-STEP DEPLOYMENT
+Before changing a shared or production-like database:
 
-### Step 1: Create Production Backup (CRITICAL)
-```bash
-# SSH into production server
-ssh your_production_server
+- [ ] Confirm the checkout and database are the intended environment. This
+      repository's `lib/.env` is local configuration and must not be modified.
+- [ ] Rehearse the exact install and rollback on a recent production snapshot.
+- [ ] Schedule the maintenance window and name the operator with rollback
+      authority.
+- [ ] Record the application commit, schema inventory, row counts, and current
+      vessel ownership/cargo census.
+- [ ] Create a consistent database backup that includes routines and triggers,
+      then prove it can be read and restored into an isolated database.
+- [ ] Confirm every install, verify, and rollback file comes from the same
+      reviewed source revision.
+- [ ] Stop vessel writes before migration. Do not rely on the cedit vessel
+      toggle until it gates command dispatch and tick processing.
+- [ ] Keep the previous application binary and configuration available.
+- [ ] Confirm `VESSEL_SYSTEM_DEBUG` is 0 for a production build.
 
-# Create timestamped backup
-mysqldump -u root -p luminari_mudprod > /backup/luminari_backup_$(date +%Y%m%d_%H%M%S).sql
+Do not expose credentials in shell history or command output. Use the approved
+MySQL client configuration for the target environment.
 
-# Verify backup was created
-ls -lh /backup/luminari_backup_*.sql
-```
+## Rehearsal Procedure
 
-### Step 2: Transfer Files to Production
-```bash
-# From your local machine, upload the SQL files
-scp sql/components/vessels_phase2_schema.sql user@production:/tmp/
-scp sql/components/vessels_phase2_rollback.sql user@production:/tmp/
-scp sql/components/verify_vessels_schema.sql user@production:/tmp/
-```
+Use an isolated clone of a recent production backup.
 
-### Step 3: Deploy the Schema
-```bash
-# On production server
-cd /tmp
+1. Restore the snapshot into the rehearsal database.
+2. Start the matching pre-migration application and capture a baseline:
+   - Owned ships and owner names.
+   - Interior, cargo, crew, route, schedule, and encounter row counts.
+   - Representative ship records selected for post-migration comparison.
+3. Stop application writes.
+4. Apply each schema component in ascending order.
+5. Run every matching verification script.
+6. Apply `help_vessel_entries.sql` and audit the expected help keywords.
+7. Start the candidate application and run the manual vessel regression.
+8. Exercise reboot and copyover with ships under way, in combat, and carrying
+   cargo.
+9. Stop writes, execute the rollback plan, restore the previous application,
+   and compare the recovered data with the baseline.
+10. Record commands, durations, results, and any manual intervention in the
+    deployment record.
 
-# Install the schema
-mysql -u root -p luminari_mudprod < vessels_phase2_schema.sql
+The rehearsal passes only when both forward migration and rollback preserve all
+property that the release contract promises to preserve.
 
-# Check for any errors (should be none)
-echo $?  # Should return 0
-```
+## Install Procedure
 
-### Step 4: Verify Installation
-```bash
-# Run verification script
-mysql -u root -p luminari_mudprod < verify_vessels_schema.sql
-
-# Quick manual checks
-mysql -u root -p luminari_mudprod -e "
-  SELECT COUNT(*) as table_count FROM information_schema.TABLES
-  WHERE TABLE_SCHEMA = 'luminari_mudprod' AND TABLE_NAME LIKE 'ship_%';
-
-  SELECT COUNT(*) as template_count FROM ship_room_templates;
-
-  SHOW PROCEDURE STATUS WHERE Db = 'luminari_mudprod'
-  AND Name IN ('cleanup_orphaned_dockings', 'get_active_dockings');"
-```
-
-**Expected Results:**
-- table_count: 5
-- template_count: 19
-- 2 procedures listed
-
-### Step 5: Test Basic Functionality
-```bash
-# Test stored procedure (harmless query)
-mysql -u root -p luminari_mudprod -e "CALL get_active_dockings(1);"
-
-# Should return empty result set (no error)
-```
-
-### Step 6: Restart MUD Server (if needed)
-```bash
-# Only if the MUD needs to reload database schema
-# Check your specific restart procedure
-sudo systemctl restart luminari  # or your specific command
-```
-
----
-
-## 🔄 ROLLBACK PROCEDURE (If Issues Occur)
-
-### Emergency Rollback Steps
-```bash
-# If ANY issues occur, rollback immediately:
-mysql -u root -p luminari_mudprod < vessels_phase2_rollback.sql
-
-# Verify rollback
-mysql -u root -p luminari_mudprod -e "SHOW TABLES LIKE 'ship_%';"
-# Should return: Empty set
-
-# Restore from backup if needed
-mysql -u root -p luminari_mudprod < /backup/luminari_backup_YYYYMMDD_HHMMSS.sql
-```
-
----
-
-## ✅ POST-DEPLOYMENT VERIFICATION
-
-### 1. Check MUD Server Logs
-```bash
-# Monitor for any database errors
-tail -f /path/to/mud/logs/error.log
-
-# Look for vessel-related issues
-grep -i "vessel\|ship" /path/to/mud/logs/error.log
-```
-
-### 2. In-Game Testing
-Log into the MUD and test:
-- Basic vessel commands still work
-- No error messages when interacting with ships
-- Existing vessels are not affected
-
-### 3. Database Health Check
-```bash
-mysql -u root -p luminari_mudprod -e "
-  SELECT TABLE_NAME, TABLE_ROWS, DATA_LENGTH/1024 as size_kb
-  FROM information_schema.TABLES
-  WHERE TABLE_SCHEMA = 'luminari_mudprod'
-  AND TABLE_NAME LIKE 'ship_%';"
-```
-
----
-
-## 📊 MONITORING COMMANDS
-
-### Check Active Dockings
-```sql
-mysql -u root -p luminari_mudprod -e "
-  SELECT * FROM ship_docking WHERE dock_status = 'active';"
-```
-
-### Check Ship Interiors (once data exists)
-```sql
-mysql -u root -p luminari_mudprod -e "
-  SELECT ship_id, vessel_name, num_rooms, created_at
-  FROM ship_interiors LIMIT 10;"
-```
-
-### Schedule Weekly Cleanup (optional)
-```bash
-# Add to crontab for weekly cleanup
-crontab -e
-
-# Add this line (runs Sundays at 3 AM):
-0 3 * * 0 mysql -u root -pYOURPASSWORD luminari_mudprod -e "CALL cleanup_orphaned_dockings();"
-```
-
----
-
-## 🚨 TROUBLESHOOTING
-
-### Issue: "Table already exists"
-**Solution:** Tables already installed. Check with verification script.
-
-### Issue: "Access denied for procedure"
-**Solution:** Grant execute permissions:
-```sql
-GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-### Issue: "Foreign key constraint fails"
-**Solution:** This shouldn't happen on fresh install. If it does, use rollback.
-
-### Issue: MUD server can't access new tables
-**Solution:**
-1. Check MUD user permissions
-2. Restart MUD server
-3. Verify connection string in MUD config
-
----
-
-## 📞 SUPPORT CHECKLIST
-
-If you need to report issues, gather:
-1. Error messages from MySQL
-2. MUD server error logs
-3. Output of verification script
-4. Time of deployment attempt
-
----
-
-## 🎯 QUICK DEPLOYMENT (Copy-Paste Commands)
+The examples below deliberately omit credentials. Set task-specific values for
+the approved target:
 
 ```bash
-# For experienced admins - all commands in sequence:
-
-# 1. Backup
-mysqldump -u root -p luminari_mudprod > /backup/luminari_$(date +%Y%m%d_%H%M%S).sql
-
-# 2. Deploy
-mysql -u root -p luminari_mudprod < vessels_phase2_schema.sql
-
-# 3. Verify
-mysql -u root -p luminari_mudprod -e "
-  SELECT 'Tables:' as Check_Type, COUNT(*) as Result
-  FROM information_schema.TABLES
-  WHERE TABLE_SCHEMA = 'luminari_mudprod' AND TABLE_NAME LIKE 'ship_%'
-  UNION ALL
-  SELECT 'Templates:' as Check_Type, COUNT(*) as Result
-  FROM ship_room_templates
-  UNION ALL
-  SELECT 'Procedures:' as Check_Type, COUNT(*) as Result
-  FROM information_schema.ROUTINES
-  WHERE ROUTINE_SCHEMA = 'luminari_mudprod'
-  AND ROUTINE_NAME IN ('cleanup_orphaned_dockings', 'get_active_dockings');"
-
-# Expected output:
-# Check_Type | Result
-# Tables     | 5
-# Templates  | 19  
-# Procedures | 2
+vessel_db="approved_database_name"
+vessel_client_config="/secure/path/to/mysql-client.cnf"
 ```
 
----
+Create and validate a pre-change backup:
 
-**Deployment Time Estimate:** 5-10 minutes
-**Risk Level:** Low (rollback available)
-**Impact:** No existing data affected
+```bash
+mysqldump --defaults-extra-file="$vessel_client_config" \
+  --single-transaction --routines --triggers "$vessel_db" \
+  > /approved/backup/location/vessels-before.sql
 
-*Last Updated: January 2025*
+test -s /approved/backup/location/vessels-before.sql
+```
+
+With application writes stopped, apply the reviewed components:
+
+```bash
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase2_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase4_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase6_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase7_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase8_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/help_vessel_entries.sql
+```
+
+Stop immediately on any nonzero exit status. Do not continue into a later phase
+to see whether it repairs an earlier failure.
+
+## Verification
+
+Run every phase-specific verifier:
+
+```bash
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase4.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase6.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase7.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase8.sql
+```
+
+Also verify:
+
+- Expected columns, indexes, procedures, and seeded commodities.
+- No out-of-band port supply or invalid encounter-region references.
+- Pre-existing ship, owner, cargo, crew, route, and schedule counts.
+- Representative records against the pre-deployment snapshot.
+- Vessel and vehicle help searches in the running game.
+- Database errors and slow queries during the manual regression.
+
+Do not use a single `ship_%` table count as the release verdict. Later phases
+also create `trade_commodities`, `port_commodities`, `freight_contracts`,
+`vessel_bounties`, and `vessel_encounters`.
+
+## Application Validation and Staged Rollout
+
+After schema verification:
+
+1. Start the candidate server on development or the designated staff stage.
+2. Complete
+   [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
+3. Verify reboot and copyover recovery.
+4. Confirm the complete 500-ship benchmark and 72-hour soak evidence.
+5. Observe logs, game-loop latency, room-pool pressure, database errors,
+   schedules, cargo, ownership, and encounter volume.
+6. Expand access from staff to the beta cohort, then to all players only after
+   each stage remains healthy.
+
+At every stage, retain a tested path to stop vessel commands and ticks and
+restore the previous application and database state.
+
+## Rollback
+
+Prefer restoring the complete pre-deployment backup with the previous
+application version. This is the only rollback that also reliably restores
+help rows changed by the idempotent help migration.
+
+Before rollback:
+
+1. Stop application writes.
+2. Capture an incident backup for diagnosis.
+3. Record all vessel changes made after deployment so the recovery decision is
+   explicit.
+4. Confirm the selected backup and previous binary belong to the same release.
+
+The phase rollback scripts are destructive. If they are used instead of a full
+restore, run them in reverse dependency order:
+
+```bash
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase8_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase7_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase6_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase4_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase2_rollback.sql
+```
+
+These scripts delete encounters, economy data, ownership state, prototypes,
+interiors, cargo, and crew. Never run them merely to retry an install. After
+rollback or restore, run the previous version's verification, compare the
+baseline census, start the previous application, and exercise representative
+ships before reopening access.
+
+## Deployment Record
+
+Keep the following with the release record:
+
+- Application revisions before and after.
+- Database server/version and schema inventory.
+- Backup location, checksum, restore-test result, and retention owner.
+- Install and verification output for every component.
+- Baseline and post-change vessel-property census.
+- Manual regression, copyover, benchmark, and soak evidence.
+- Stage start/end times, observed metrics, incidents, and decisions.
+- Rollback outcome or the explicit decision not to roll back.

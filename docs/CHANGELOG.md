@@ -2,6 +2,40 @@
 
 ## [Unreleased] - July 29, 2026
 
+### Documentation - vessel source-of-truth consolidation
+
+Distilled the completed design and implementation knowledge from the temporary
+vessel PRD into the maintained documentation tree. The temporary vessel
+workspace now contains unfinished work only.
+
+#### Changed
+
+- Replaced the stale root vessel PRD with the durable product vision, design
+  pillars, player and staff outcomes, wilderness contract, quality budgets,
+  scope boundaries, release scorecard, and principal risks.
+- Updated the vessel architecture decision and behavior reference with the
+  shared-wilderness invariants, corrected memory evidence, persistence
+  lifecycle, operational gates, and known limitations.
+- Recast the benchmark document as an evidence record: the 4,744-byte ship
+  measurement and historical test results remain, while the complete
+  500-ship, 25 ms benchmark and 72-hour soak are explicitly unverified.
+- Corrected the manual regression guide to record the live step-3 legacy
+  fleet-slot blocker instead of calling that path fixed.
+- Rewrote the schema runbook around all shipped phases, authoritative help,
+  snapshot rehearsal, property census, reverse-order destructive rollback, and
+  staged rollout.
+- Replaced stale considerations that claimed production readiness, a
+  1,016-byte ship structure, and a standalone test runner.
+- Replaced the obsolete completion-era documentation audit with a current
+  source-of-truth map and evidence rules, and expanded the vessel incident
+  runbook with safe containment and recovery boundaries.
+
+#### Removed
+
+- The temporary final vessel PRD after its durable content was incorporated.
+  `VESSELS_TODO.md` is now the sole file in the vessel workspace and holds the
+  dependency-ordered live backlog.
+
 ### Documentation - structured web onboarding promotion
 
 Promoted the completed web account and character-creation project from the
@@ -360,8 +394,9 @@ wilderness system - no vessel-private geography, weather, or terrain.
 Documentation: `docs/systems/VESSEL_SYSTEM.md` (behavior reference),
 `docs/testing/VESSEL_SYSTEM_TESTING.md` (30-step manual regression script),
 `docs/testing/VESSEL_BENCHMARKS.md` (memory attribution and test figures), and
-`docs/project-management-zusuk/vessels/VESSEL_PRD_FINAL.md` (requirements,
-wilderness contract, remaining work).
+`docs/PRD.md` (durable requirements, wilderness contract, and release criteria).
+Outstanding work is isolated in
+`docs/project-management-zusuk/vessels/VESSELS_TODO.md`.
 
 #### Added
 
@@ -512,12 +547,13 @@ wilderness contract, remaining work).
     regression script.
   - `VESSEL_BENCHMARKS.md` -> `docs/testing/`, with the corrected memory
     attribution.
-  - Only `VESSEL_PRD_FINAL.md` remains in the workspace folder, which is the
-    appropriate home for in-flight planning.
+  - The working vessel PRD was later distilled into permanent product,
+    architecture, system, testing, and benchmark documentation. The workspace
+    now retains only `VESSELS_TODO.md`, containing unfinished work.
   - Two working documents were retired entirely once their content landed in
     permanent homes: `VESSEL_CHECKLIST.md` and `todo.md` (the debug logging
-    tracker) - completed work to this changelog, outstanding work to the PRD's
-    Remaining Work section.
+    tracker) - completed work to this changelog, outstanding work to
+    `VESSELS_TODO.md`.
   - Inbound links updated in TECHNICAL_DOCUMENTATION_MASTER_INDEX.md,
     adr/0001-unified-vessel-system.md, and CONSIDERATIONS.md.
 

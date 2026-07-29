@@ -1,221 +1,83 @@
-# Documentation Audit Report
+# Vessel Documentation Audit
 
-**Date**: 2025-12-30
-**Project**: LuminariMUD Vessel System
-**Audit Mode**: Full Audit (Project Complete - All 4 Phases)
+**Last audited:** July 29, 2026
 
----
+## Audit Verdict
 
-## Summary
+The maintained vessel documentation now distinguishes three facts that older
+project records conflated:
 
-| Category | Required | Found | Status |
-|----------|----------|-------|--------|
-| Root files (README, CONTRIBUTING, LICENSE) | 3 | 3 | PASS |
-| /docs/ core files | 8 | 8 | PASS |
-| ADRs | 1+ | 2 | PASS |
-| Runbooks | 1+ | 1 | PASS |
-| System READMEs | N/A | Multiple | PASS |
+1. The transport foundation and phases 04 through 09 gameplay code are
+   implemented.
+2. Historical automated and memory evidence exists.
+3. Live regression, full-load performance, soak, recovery, content, balance,
+   and rollout acceptance are not complete.
 
----
+The vessel system must not be described as production-ready until the release
+criteria in [PRD.md](PRD.md) have current evidence.
 
-## Project Status
+## Source-of-Truth Map
 
-**Vessel System Implementation**: Complete (2025-12-30)
+| Question | Authoritative document |
+|---|---|
+| Why the product exists and what release means | [PRD.md](PRD.md) |
+| Which architecture was chosen and why | [0001-unified-vessel-system.md](adr/0001-unified-vessel-system.md) |
+| What the current implementation does | [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) |
+| How to run the live command regression | [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md) |
+| What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |
+| How schema install, verification, and rollback work | [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md) |
+| What remains unfinished | [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) |
+| What shipped and when | [CHANGELOG.md](CHANGELOG.md) |
+| Which maintenance lessons should persist | [CONSIDERATIONS.md](CONSIDERATIONS.md) |
 
-| Phase | Sessions | Tests | Status |
-|-------|----------|-------|--------|
-| Phase 00: Core Vessel System | 9 | 91 | Complete |
-| Phase 01: Automation Layer | 7 | 84 | Complete |
-| Phase 02: Simple Vehicle Support | 7 | 159 | Complete |
-| Phase 03: Optimization & Polish | 6 | 19 | Complete |
-| **Total** | **29** | **353** | **All Complete** |
+The temporary vessel workspace contains only `VESSELS_TODO.md`. It is a
+backlog, not a current-behavior reference.
 
-**Final Metrics**:
-- Total Tests: 353 (100% pass rate)
-- Valgrind Status: Clean (no memory leaks)
-- Memory per Vessel: 1016 bytes
-- Memory per Vehicle: 148 bytes
-- Max Concurrent Vessels: 500
-- Max Concurrent Vehicles: 1000
+## Corrections Made
 
----
+- Replaced the foundation-era root PRD with a durable product contract covering
+  the living-frontier vision, multiplayer and builder outcomes, shared
+  wilderness rules, release budgets, scope, scorecard, and risks.
+- Corrected the base ship structure from the obsolete 1,016-byte claim to the
+  measured 4,744 bytes, about 2.26 MiB for 500 fixed fleet entries.
+- Separated historical movement microbenchmarks from the unmeasured complete
+  500-ship tick. The release target remains 25 ms with all vessel subsystems
+  active.
+- Replaced references to removed standalone vessel mirror suites and the
+  nonexistent `test_runner` with the production-linked root CuTest workflow.
+- Recorded that the first manual dev-server pass is blocked at step 3 by
+  inconsistent legacy ship identity; it is not a fully passing regression.
+- Recorded that the cedit setting is not yet a command-and-tick kill switch and
+  that `VESSEL_SYSTEM_DEBUG` remains enabled for development.
+- Generalized the schema runbook across phases 2, 4, 6, 7, and 8 plus the
+  authoritative help migration, snapshot rehearsal, property comparison, and
+  reverse-order rollback.
+- Retired the temporary final PRD after moving its enduring content into the
+  maintained documents above.
 
-## Actions Taken
+## Evidence Rules
 
-### Created
+- Trace behavior to current source before updating the system reference.
+- Date every benchmark, test count, Valgrind result, manual pass, and soak
+  result. Historical evidence stays labeled historical.
+- Do not turn an implementation checklist into a production-readiness claim.
+- Keep requirements in the PRD, architecture decisions in the ADR, current
+  behavior in the system reference, evidence in testing documents, completed
+  work in the changelog, and only unfinished work in the temporary workspace.
+- Update inbound links when a document moves or is retired.
+- Keep documentation ASCII, UTF-8, and LF.
 
-| File | Purpose |
-|------|---------|
-| `docs/CODEOWNERS` | Code ownership assignments for GitHub |
-| `docs/environments.md` | Environment configuration differences (dev/staging/prod) |
-| `docs/adr/0000-template.md` | ADR template for future decisions |
-| `docs/adr/0001-unified-vessel-system.md` | ADR documenting vessel system architecture decision |
-| `docs/runbooks/incident-response.md` | Incident response procedures |
+## Remaining Documentation Gates
 
-### Updated
+The documentation set is structurally consolidated, but release evidence is
+still incomplete. As work lands:
 
-| File | Changes |
-|------|---------|
-| `docs/PRD.md` | Status updated to "Complete - All Phases Delivered" |
-| `docs/PRD.md` | Phase 03 overview updated to "Complete" |
-| `docs/PRD.md` | Phase 03 section updated with deliverables |
-
-### Verified (No Changes Needed)
-
-| File | Status |
-|------|--------|
-| README.md | Comprehensive, current (Jan 2025) |
-| CONTRIBUTING.md | Complete contribution guidelines |
-| LICENSE.md | Proper licensing |
-| CLAUDE.md | AI assistant guide current |
-| docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md | Updated 2025-12-30 |
-| docs/GETTING_STARTED.md | Quick start guide current |
-| docs/systems/ARCHITECTURE.md | System architecture documented |
-| docs/deployment/DEPLOYMENT_GUIDE.md | Deployment procedures complete |
-| docs/VESSEL_SYSTEM.md | Comprehensive vessel documentation |
-| docs/VESSEL_BENCHMARKS.md | Performance benchmarks documented |
-| docs/guides/VESSEL_TROUBLESHOOTING.md | Troubleshooting guide complete |
-| docs/guides/DEVELOPER_GUIDE_AND_API.md | Developer reference current |
-| docs/guides/TESTING_GUIDE.md | Testing procedures documented |
-
----
-
-## Documentation Coverage
-
-### Root Level
-
-| File | Status |
-|------|--------|
-| README.md | PASS - Current |
-| CONTRIBUTING.md | PASS - Current |
-| LICENSE.md | PASS - Present |
-| CLAUDE.md | PASS - Current |
-
-### docs/ Directory
-
-| File | Status |
-|------|--------|
-| TECHNICAL_DOCUMENTATION_MASTER_INDEX.md | PASS - Current |
-| GETTING_STARTED.md | PASS - Current |
-| CODEOWNERS | PASS - Created |
-| environments.md | PASS - Created |
-| VESSEL_SYSTEM.md | PASS - Current |
-| VESSEL_BENCHMARKS.md | PASS - Current |
-
-### docs/systems/
-
-| File | Status |
-|------|--------|
-| ARCHITECTURE.md | PASS - Current |
-| CORE_SERVER_ARCHITECTURE.md | PASS - Current |
-| COMBAT_SYSTEM.md | PASS - Current |
-| DATABASE_INTEGRATION.md | PASS - Current |
-| + 20 more system docs | PASS - Verified |
-
-### docs/guides/
-
-| File | Status |
-|------|--------|
-| DEVELOPER_GUIDE_AND_API.md | PASS - Current |
-| TESTING_GUIDE.md | PASS - Current |
-| TROUBLESHOOTING_AND_MAINTENANCE.md | PASS - Current |
-| VESSEL_TROUBLESHOOTING.md | PASS - Current |
-| ultimate-mud-writing-guide.md | PASS - Current |
-
-### docs/deployment/
-
-| File | Status |
-|------|--------|
-| DEPLOYMENT_GUIDE.md | PASS - Current |
-| DATABASE_DEPLOYMENT_GUIDE.md | PASS - Current |
-
-### docs/adr/
-
-| File | Status |
-|------|--------|
-| 0000-template.md | PASS - Created |
-| 0001-unified-vessel-system.md | PASS - Created |
-
-### docs/runbooks/
-
-| File | Status |
-|------|--------|
-| incident-response.md | PASS - Created |
-
----
-
-## Documentation Gaps
-
-### None Critical
-
-All standard documentation files are now present. The project has comprehensive coverage for:
-- Getting started and onboarding
-- Architecture and system design
-- Developer guidelines
-- Testing procedures
-- Deployment guides
-- Troubleshooting
-- Incident response
-- Architecture decision records
-
-### Future Recommendations
-
-1. **Add more ADRs** - Document future architectural decisions as they arise
-2. **Expand runbooks** - Add runbooks for specific subsystem issues as patterns emerge
-3. **API cookbook** - Consider adding code examples for common tasks
-4. **Video tutorials** - OLC system could benefit from visual guides (low priority)
-
----
-
-## Quality Metrics
-
-### Accuracy
-- All commands verified working
-- All paths verified existing
-- Version numbers current (2.5000-beta)
-
-### Conciseness
-- No redundant sections found
-- Information appropriately distributed across files
-- Clear cross-references between related docs
-
-### Completeness
-- All required files present
-- No TODO placeholders remaining in standard docs
-- Environment configuration documented
-
----
-
-## Final Project Summary
-
-The LuminariMUD Vessel System is complete with:
-
-**29 sessions** across 4 phases implementing:
-- Unified vessel system replacing 3 legacy systems
-- Full wilderness coordinate navigation
-- Multi-room ship interiors
-- Autopilot and route management
-- NPC pilot integration
-- Lightweight vehicle system
-- Vehicle-on-vessel transport
-- Unified transport interface
-
-**353 unit tests** with:
-- 100% pass rate
-- Valgrind clean (0 memory leaks)
-- Stress tested at scale
-
-**Documentation complete** with:
-- All standard files present
-- Architecture decision recorded
-- Incident response documented
-- Environment configuration defined
-
----
-
-**Audit Completed**: 2025-12-30
-**Files Created**: 5 (CODEOWNERS, environments.md, 2 ADRs, incident-response.md)
-**Files Updated**: 1 (PRD.md status)
-**Coverage**: 100% for all standard documentation
-
-*Project complete. No further phases planned.*
+- Record new measured results in `VESSEL_BENCHMARKS.md`.
+- Keep the live status and fixture expectations in
+  `VESSEL_SYSTEM_TESTING.md`.
+- Add proven operational remedies to the behavior reference and incident
+  runbook.
+- Move completed backlog outcomes into the changelog and permanent references,
+  then remove the completed checklist entries.
+- Retire `VESSELS_TODO.md` only when no vessel work remains or move explicitly
+  deferred optional work into the general project backlog.
