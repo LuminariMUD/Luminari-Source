@@ -218,7 +218,7 @@ static void aedit_save_to_disk(struct descriptor_data *d __attribute__((unused))
   FILE *fp;
   int i;
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  if (!(fp = fopen(SOCMESS_FILE_NEW, "w+")))
+  if (!(fp = fopen_restricted(SOCMESS_FILE_NEW, "w+")))
   {
     char error[MAX_STRING_LENGTH] = {'\0'};
     snprintf(error, sizeof(error), "Can't open socials file '%s'", SOCMESS_FILE);
@@ -237,25 +237,25 @@ static void aedit_save_to_disk(struct descriptor_data *d __attribute__((unused))
              ((soc_mess_list[i].others_no_arg) ? soc_mess_list[i].others_no_arg : "#"),
              ((soc_mess_list[i].char_found) ? soc_mess_list[i].char_found : "#"),
              ((soc_mess_list[i].others_found) ? soc_mess_list[i].others_found : "#"));
-    fprintf(fp, convert_from_tabs(buf), 0);
+    fprintf(fp, "%s", convert_from_tabs(buf));
 
     snprintf(buf, sizeof(buf), "%s\n%s\n%s\n%s\n",
              ((soc_mess_list[i].vict_found) ? soc_mess_list[i].vict_found : "#"),
              ((soc_mess_list[i].not_found) ? soc_mess_list[i].not_found : "#"),
              ((soc_mess_list[i].char_auto) ? soc_mess_list[i].char_auto : "#"),
              ((soc_mess_list[i].others_auto) ? soc_mess_list[i].others_auto : "#"));
-    fprintf(fp, convert_from_tabs(buf), 0);
+    fprintf(fp, "%s", convert_from_tabs(buf));
 
     snprintf(buf, sizeof(buf), "%s\n%s\n%s\n",
              ((soc_mess_list[i].char_body_found) ? soc_mess_list[i].char_body_found : "#"),
              ((soc_mess_list[i].others_body_found) ? soc_mess_list[i].others_body_found : "#"),
              ((soc_mess_list[i].vict_body_found) ? soc_mess_list[i].vict_body_found : "#"));
-    fprintf(fp, convert_from_tabs(buf), 0);
+    fprintf(fp, "%s", convert_from_tabs(buf));
 
     snprintf(buf, sizeof(buf), "%s\n%s\n\n",
              ((soc_mess_list[i].char_obj_found) ? soc_mess_list[i].char_obj_found : "#"),
              ((soc_mess_list[i].others_obj_found) ? soc_mess_list[i].others_obj_found : "#"));
-    fprintf(fp, convert_from_tabs(buf), 0);
+    fprintf(fp, "%s", convert_from_tabs(buf));
   }
 
   fprintf(fp, "$\n");

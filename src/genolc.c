@@ -502,7 +502,7 @@ static int export_worldmap_html(zone_rnum zrnum, const char *output_file, char *
     return FALSE;
 
   snprintf(saved_path, saved_path_size, "../lib/world/export/%s", output_file);
-  if (!(out = fopen(saved_path + 7, "w")))
+  if (!(out = fopen_restricted(saved_path + 7, "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_worldmap_html: Cannot open %s", saved_path);
     return FALSE;
@@ -576,7 +576,7 @@ static int export_full_worldmap_html(const char *output_file, char *saved_path, 
     return FALSE;
 
   snprintf(saved_path, saved_path_size, "../lib/world/export/%s", output_file);
-  if (!(out = fopen(saved_path + 7, "w")))
+  if (!(out = fopen_restricted(saved_path + 7, "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_full_worldmap_html: Cannot open %s", saved_path);
     return FALSE;
@@ -1088,7 +1088,7 @@ static int export_info_file(zone_rnum zrnum)
   room_vnum i;
   FILE *info_file;
 
-  if (!(info_file = fopen("world/export/qq.info", "w")))
+  if (!(info_file = fopen_restricted("world/export/qq.info", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_info_file : Cannot open file!");
     return FALSE;
@@ -1171,7 +1171,7 @@ static int export_save_shops(zone_rnum zrnum)
   FILE *shop_file;
   struct shop_data *shop;
 
-  if (!(shop_file = fopen("world/export/qq.shp", "w")))
+  if (!(shop_file = fopen_restricted("world/export/qq.shp", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_shops : Cannot open shop file!");
     return FALSE;
@@ -1261,7 +1261,7 @@ static int export_save_mobiles(zone_rnum rznum)
   mob_vnum i;
   mob_rnum rmob;
 
-  if (!(mob_file = fopen("world/export/qq.mob", "w")))
+  if (!(mob_file = fopen_restricted("world/export/qq.mob", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_mobiles : Cannot open file!");
     return FALSE;
@@ -1331,7 +1331,7 @@ static int export_save_zone(zone_rnum zrnum)
   int subcmd;
   FILE *zone_file;
 
-  if (!(zone_file = fopen("world/export/qq.zon", "w")))
+  if (!(zone_file = fopen_restricted("world/export/qq.zon", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_zone : Cannot open file!");
     return FALSE;
@@ -1451,7 +1451,7 @@ static int export_save_objects(zone_rnum zrnum)
   struct obj_data *obj;
   struct extra_descr_data *ex_desc;
 
-  if (!(obj_file = fopen("world/export/qq.obj", "w")))
+  if (!(obj_file = fopen_restricted("world/export/qq.obj", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_objects : Cannot open file!");
     return FALSE;
@@ -1560,7 +1560,7 @@ static int export_save_rooms(zone_rnum zrnum)
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf1[MAX_STRING_LENGTH] = {'\0'};
 
-  if (!(room_file = fopen("world/export/qq.wld", "w")))
+  if (!(room_file = fopen_restricted("world/export/qq.wld", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_rooms : Cannot open file!");
     return FALSE;
@@ -1714,7 +1714,7 @@ static int export_save_triggers(zone_rnum zrnum)
   FILE *trig_file;
   char bitBuf[MAX_INPUT_LENGTH] = {'\0'};
 
-  if (!(trig_file = fopen("world/export/qq.trg", "w")))
+  if (!(trig_file = fopen_restricted("world/export/qq.trg", "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: export_save_triggers : Cannot open file!");
     return FALSE;

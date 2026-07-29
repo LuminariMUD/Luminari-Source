@@ -109,7 +109,7 @@ static void write_ban_list(void)
 {
   FILE *fl;
 
-  if (!(fl = fopen(BAN_FILE, "w")))
+  if (!(fl = fopen_restricted(BAN_FILE, "w")))
   {
     perror("SYSERR: Unable to open '" BAN_FILE "' for writing");
     return;

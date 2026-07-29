@@ -104,10 +104,9 @@ void init_copyover_diagnostics(void)
 {
   char timestamp[100];
   time_t now;
-  struct tm *tm_info;
 
   /* Open diagnostic log file in append mode */
-  diag_file = fopen(COPYOVER_DIAG_FILE, "a");
+  diag_file = fopen_restricted(COPYOVER_DIAG_FILE, "a");
   if (!diag_file)
   {
     log("SYSERR: Could not open copyover diagnostic file: %s", strerror(errno));
@@ -117,8 +116,7 @@ void init_copyover_diagnostics(void)
   /* Log start of copyover */
   now = time(NULL);
   copyover_start_time = now;
-  tm_info = localtime(&now);
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_info);
+  format_time_string(now, "%Y-%m-%d %H:%M:%S", timestamp, sizeof(timestamp));
 
   fprintf(diag_file, "\n========================================\n");
   fprintf(diag_file, "COPYOVER DIAGNOSTIC START: %s\n", timestamp);
@@ -142,15 +140,13 @@ void log_copyover_phase(const char *phase, const char *details)
 {
   char timestamp[100];
   time_t now;
-  struct tm *tm_info;
   FILE *state_file;
 
   if (!diag_file)
     return;
 
   now = time(NULL);
-  tm_info = localtime(&now);
-  strftime(timestamp, sizeof(timestamp), "%H:%M:%S", tm_info);
+  format_time_string(now, "%H:%M:%S", timestamp, sizeof(timestamp));
 
   fprintf(diag_file, "\n[%s] PHASE: %s\n", timestamp, phase);
   if (details)
@@ -164,7 +160,7 @@ void log_copyover_phase(const char *phase, const char *details)
   fflush(diag_file);
 
   /* Also write current state to a separate file for post-mortem analysis */
-  state_file = fopen(COPYOVER_LAST_STATE_FILE, "w");
+  state_file = fopen_restricted(COPYOVER_LAST_STATE_FILE, "w");
   if (state_file)
   {
     fprintf(state_file, "Last Phase: %s\n", phase);
@@ -302,14 +298,12 @@ void close_copyover_diagnostics(int success)
 {
   char timestamp[100];
   time_t now;
-  struct tm *tm_info;
 
   if (!diag_file)
     return;
 
   now = time(NULL);
-  tm_info = localtime(&now);
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_info);
+  format_time_string(now, "%Y-%m-%d %H:%M:%S", timestamp, sizeof(timestamp));
 
   fprintf(diag_file, "\n========================================\n");
   fprintf(diag_file, "COPYOVER DIAGNOSTIC END: %s\n", timestamp);

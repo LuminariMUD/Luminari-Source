@@ -170,7 +170,7 @@ void store_mail(long to, long from, char *message_pointer)
   FILE *mail_file;
   struct mail_t *record = NULL;
 
-  if (!(mail_file = fopen(MAIL_FILE, "a")))
+  if (!(mail_file = fopen_restricted(MAIL_FILE, "a")))
   {
     perror("store_mail: Mail file not accessible.");
     return;
@@ -207,7 +207,7 @@ char *read_delete(long recipient)
     return strdup("Mail system malfunction - please report this");
   }
 
-  if (!(new_file = fopen(MAIL_FILE_TMP, "w")))
+  if (!(new_file = fopen_restricted(MAIL_FILE_TMP, "w")))
   {
     perror("read_delete: new Mail file not accessible.");
     fclose(mail_file);

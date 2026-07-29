@@ -1825,7 +1825,7 @@ void save_map_to_file(const char *fn, int xsize, int ysize)
     }
   }
 
-  out = fopen(fn, "wb");
+  out = fopen_restricted(fn, "wb");
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);
@@ -1878,7 +1878,7 @@ void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom)
     }
   }
 
-  out = fopen(fn, "wb");
+  out = fopen_restricted(fn, "wb");
   gdImagePng(im, out);
   fclose(out);
   gdImageDestroy(im);

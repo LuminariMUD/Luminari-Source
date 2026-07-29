@@ -2195,10 +2195,9 @@ void document_all_paths(FILE *fp)
 void write_header_section(FILE *fp)
 {
   time_t now = time(NULL);
-  struct tm *tm_info = localtime(&now);
   char timestamp[64];
 
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_info);
+  format_time_string(now, "%Y-%m-%d %H:%M:%S", timestamp, sizeof(timestamp));
 
   fprintf(fp, "# Luminari World Map Knowledge Base\n\n");
   fprintf(fp, "Generated: %s\n", timestamp);
@@ -3763,7 +3762,7 @@ void generate_wilderness_knowledge_base(const char *output_filename)
 
   /* Open output file - save to current directory */
   WILD_DEBUG("Opening output file for writing");
-  fp = fopen(output_filename, "w");
+  fp = fopen_restricted(output_filename, "w");
   if (!fp)
   {
     mudlog(CMP, LVL_IMMORT, FALSE, "ERROR: Failed to open output file %s", output_filename);

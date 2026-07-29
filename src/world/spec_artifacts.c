@@ -1297,6 +1297,7 @@ void artifact_save(void)
 {
   FILE *fl = NULL;
   char temp_file[MAX_INPUT_LENGTH] = {'\0'};
+  char generated_at[32] = {'\0'};
   time_t current_time = 0;
   int i = 0, j = 0;
 
@@ -1305,7 +1306,7 @@ void artifact_save(void)
 
   snprintf(temp_file, sizeof(temp_file), "%s.tmp", ARTIFACT_FILE);
 
-  if (!(fl = fopen(temp_file, "w")))
+  if (!(fl = fopen_restricted(temp_file, "w")))
   {
     log("SYSERR: artifact_save: cannot open %s for writing", temp_file);
     return;
@@ -1318,7 +1319,9 @@ void artifact_save(void)
   fprintf(fl,
           "#         claims transfers destroys recoveries overrides discovered discovered_at\n");
   fprintf(fl, "#         last_ability last_proc effect_used[0..%d]\n", ARTIFACT_MAX_EFFECTS - 1);
-  fprintf(fl, "# Generated: %s", ctime(&current_time));
+  if (!ctime_r(&current_time, generated_at))
+    strlcpy(generated_at, "Unknown\n", sizeof(generated_at));
+  fprintf(fl, "# Generated: %s", generated_at);
   fprintf(fl, "\n");
 
   for (i = 0; i < total_artifacts; i++)
@@ -4769,6 +4772,7 @@ static void artifact_show_roster(struct char_data *ch)
 static void artifact_show_chronicle(struct char_data *ch, const char *name)
 {
   struct artifact_data *art = NULL, *match = NULL;
+  char claimed_at[32] = {'\0'};
   obj_rnum rnum = NOTHING;
   int i = 0, state = 0, stage = 0;
 
@@ -4813,12 +4817,18 @@ static void artifact_show_chronicle(struct char_data *ch, const char *name)
   artifact_show_bearer(ch, match, state);
 
   if (match->first_claimed_at > 0)
-    send_to_char(ch, "    First claimed %s", ctime(&match->first_claimed_at));
+  {
+    if (ctime_r(&match->first_claimed_at, claimed_at))
+      send_to_char(ch, "    First claimed %s", claimed_at);
+  }
   else
     send_to_char(ch, "    It has never been claimed.\r\n");
 
   if (match->last_claimed_at > 0)
-    send_to_char(ch, "    Last claimed  %s", ctime(&match->last_claimed_at));
+  {
+    if (ctime_r(&match->last_claimed_at, claimed_at))
+      send_to_char(ch, "    Last claimed  %s", claimed_at);
+  }
 
   send_to_char(ch, "    Claimed %d time%s, released %d time%s.\r\n", match->claim_count,
                match->claim_count == 1 ? "" : "s", match->transfer_count,

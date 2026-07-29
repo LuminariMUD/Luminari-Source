@@ -134,12 +134,12 @@ char *get_text(char *fname)
   {
     if (strlen(tmp) + strlen(t) < MAX_FILESIZE - 1)
     {
-      strcat(t, tmp);
+      strlcat(t, tmp, sizeof(t));
       /* Add carriage return for telnet compatibility */
       if (tmp[strlen(tmp) - 1] == '\n')
       {
         t[strlen(t) - 1] = '\0'; /* Remove \n */
-        strcat(t, "\r\n");       /* Add \r\n */
+        strlcat(t, "\r\n", sizeof(t)); /* Add \r\n */
       }
     }
     else

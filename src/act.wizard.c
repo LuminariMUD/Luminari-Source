@@ -182,7 +182,7 @@ ACMD(do_quitlog)
     }
 
     /* Write all lines except the one to delete */
-    temp_fp = fopen(QUIT_FEEDBACK_FILE, "w");
+    temp_fp = fopen_restricted(QUIT_FEEDBACK_FILE, "w");
     if (!temp_fp)
     {
       send_to_char(ch, "Unable to open quit feedback log for writing.\r\n");
@@ -267,7 +267,7 @@ ACMD(do_quitlog)
           continue;
 
         size_t needed = strlen(entries[i]) + 32; /* line number + line + CRLF */
-        if (out_len + needed >= out_cap)
+        while (needed >= out_cap - out_len)
         {
           out_cap *= 2;
           char *tmp = realloc(out, out_cap);
@@ -281,7 +281,9 @@ ACMD(do_quitlog)
           out = tmp;
         }
 
-        out_len += snprintf(out + out_len, out_cap - out_len, "[%d] %s", line_num++, entries[i]);
+        if (!out)
+          break;
+        out_len = snprintf_append(out, out_cap, out_len, "[%d] %s", line_num++, entries[i]);
       }
 
       if (out)
@@ -2770,7 +2772,7 @@ void add_llog_entry(struct char_data *ch, int type)
     llast->close_time = 0;
     llast->close_type = type;
 
-    if (!(fp = fopen(LAST_FILE, "a")))
+    if (!(fp = fopen_restricted(LAST_FILE, "a")))
     {
       log("error opening last_file for appending");
       free(llast);
@@ -2806,7 +2808,7 @@ void clean_llog_entries(void)
     return;
   }
 
-  if (!(nfp = fopen("etc/nlast", "w")))
+  if (!(nfp = fopen_restricted("etc/nlast", "w")))
   {
     log("Error trying to open new last file.");
     fclose(ofp);
@@ -3765,21 +3767,19 @@ ACMD(do_show)
           continue;
         if (W_EXIT(i, j)->to_room == 0)
         {
-          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k,
-                          GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, world[i].name,
-                          QNRM, dirs[j]);
-          if (len + nlen >= sizeof(buf))
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i),
+                                count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
+          if (len >= sizeof(buf) - 1)
             break;
-          len += nlen;
         }
         if (W_EXIT(i, j)->to_room == NOWHERE && !W_EXIT(i, j)->general_description)
         {
-          nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k,
-                          GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40, world[i].name,
-                          QNRM, dirs[j]);
-          if (len + nlen >= sizeof(buf))
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i),
+                                count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
+          if (len >= sizeof(buf) - 1)
             break;
-          len += nlen;
         }
       }
     page_string(ch->desc, buf, TRUE);
@@ -3791,11 +3791,10 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
       {
-        nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
-                        world[i].name, QNRM);
-        if (len + nlen >= sizeof(buf))
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j,
+                              GET_ROOM_VNUM(i), world[i].name, QNRM);
+        if (len >= sizeof(buf) - 1)
           break;
-        len += nlen;
       }
     page_string(ch->desc, buf, TRUE);
     break;
@@ -3806,11 +3805,10 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_STAFFROOM))
       {
-        nlen = snprintf(buf + len, sizeof(buf) - len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
-                        world[i].name, QNRM);
-        if (len + nlen >= sizeof(buf))
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j,
+                              GET_ROOM_VNUM(i), world[i].name, QNRM);
+        if (len >= sizeof(buf) - 1)
           break;
-        len += nlen;
       }
     page_string(ch->desc, buf, TRUE);
     break;
@@ -3870,11 +3868,10 @@ ACMD(do_show)
         for (b = 0; b < 6; b++)
         {
           snprintf(colour, sizeof(colour), "F%d%d%d", r, g, b);
-          nlen = snprintf(buf + len, sizeof(buf) - len, "%s%s%s", ColourRGB(ch->desc, colour),
-                          colour, ++k % 6 == 0 ? "\tn\r\n" : "    ");
-          if (len + nlen >= sizeof(buf))
+          len = snprintf_append(buf, sizeof(buf), len, "%s%s%s", ColourRGB(ch->desc, colour),
+                                colour, ++k % 6 == 0 ? "\tn\r\n" : "    ");
+          if (len >= sizeof(buf) - 1)
             break;
-          len += nlen;
         }
     page_string(ch->desc, buf, TRUE);
     break;
@@ -5298,7 +5295,7 @@ void show_set_help(struct char_data *ch)
   const char *const set_targets[] = {"PC", "NPC", "BOTH"};
   const char *const set_types[] = {"MISC", "BINARY", "NUMBER", "ADDER"};
   char buf[MAX_STRING_LENGTH] = {'\0'};
-  int i, len = 0, add_len = 0;
+  int i, len = 0;
 
   len = snprintf(buf, sizeof(buf), "%sCommand             Lvl    Who?  Type%s\r\n",
                  CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
@@ -5306,11 +5303,10 @@ void show_set_help(struct char_data *ch)
   {
     if (set_fields[i].level <= GET_LEVEL(ch))
     {
-      add_len = snprintf(buf + len, sizeof(buf) - len, "%-20s%-5s  %-4s  %-6s\r\n",
-                         set_fields[i].cmd, set_levels[((int)(set_fields[i].level) - LVL_IMMORT)],
-                         set_targets[(int)(set_fields[i].pcnpc) - 1],
-                         set_types[(int)(set_fields[i].type)]);
-      len += add_len;
+      len = snprintf_append(buf, sizeof(buf), len, "%-20s%-5s  %-4s  %-6s\r\n", set_fields[i].cmd,
+                            set_levels[((int)(set_fields[i].level) - LVL_IMMORT)],
+                            set_targets[(int)(set_fields[i].pcnpc) - 1],
+                            set_types[(int)(set_fields[i].type)]);
     }
   }
   page_string(ch->desc, buf, TRUE);
@@ -5528,28 +5524,29 @@ ACMD(do_keycheck)
       {
         if (keynum < bottom || keynum > top)
         {
-          len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n", QGRN,
-                          i, QNRM, QCYN, count_color_chars(world[real_room(i)].name) + 44,
-                          world[real_room(i)].name, QNRM, QBRED, dirs[j], keynum, QNRM);
+          len = snprintf_append(
+              buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n", QGRN, i, QNRM, QCYN,
+              count_color_chars(world[real_room(i)].name) + 44, world[real_room(i)].name, QNRM,
+              QBRED, dirs[j], keynum, QNRM);
         }
       }
     }
 
-    if ((size_t)len >= sizeof(buf))
+    if ((size_t)len >= sizeof(buf) - 1)
       break;
   }
 
   /* going through the objects now! */
-  len += snprintf(buf + len, sizeof(buf) - len,
-                  "\r\n"
-                  "VNum     Object Name                                  Key-VNum\r\n"
-                  "-------- -------------------------------------------- --------\r\n");
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "\r\n"
+                        "VNum     Object Name                                  Key-VNum\r\n"
+                        "-------- -------------------------------------------- --------\r\n");
 
   /* here is a loop that will go through the list of objects by vnum */
   for (i = bottom; i <= top; i++)
   {
     /* in case we overflowed earlier */
-    if ((size_t)len >= sizeof(buf))
+    if ((size_t)len >= sizeof(buf) - 1)
       break;
 
     /* easy out, object doesn't exist */
@@ -5571,9 +5568,9 @@ ACMD(do_keycheck)
     {
       if ((room_vnum)GET_OBJ_VAL(obj, 2) < bottom || (room_vnum)GET_OBJ_VAL(obj, 2) > top)
       {
-        len += snprintf(buf + len, sizeof(buf) - len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n", QGRN, i,
-                        QNRM, QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44, GET_OBJ_SHORT(obj),
-                        QNRM, QBRED, GET_OBJ_VAL(obj, 2), QNRM);
+        len = snprintf_append(buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%d%s\r\n", QGRN, i,
+                              QNRM, QCYN, count_color_chars(GET_OBJ_SHORT(obj)) + 44,
+                              GET_OBJ_SHORT(obj), QNRM, QBRED, GET_OBJ_VAL(obj, 2), QNRM);
       }
     }
   }
@@ -5806,74 +5803,77 @@ ACMD(do_zcheck)
     { /*is mob in this zone?*/
       mob = &mob_proto[i];
       if (!strcmp(mob->player.name, "mob unfinished") && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Alias hasn't been set.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len, "- Alias hasn't been set.\r\n");
 
       if (!strcmp(mob->player.short_descr, "the unfinished mob") && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Short description hasn't been set.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len, "- Short description hasn't been set.\r\n");
 
       if (!strncmp(mob->player.long_descr, "An unfinished mob stands here.", 30) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Long description hasn't been set.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len, "- Long description hasn't been set.\r\n");
 
       if (mob->player.description && *mob->player.description)
       {
         if (!strncmp(mob->player.description, "It looks unfinished.", 20) && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- Description hasn't been set.\r\n");
+          len = snprintf_append(buf, sizeof(buf), len, "- Description hasn't been set.\r\n");
         /*else if (strncmp(mob->player.description, "   ", 3) && (found = 1))
           len += snprintf(buf + len, sizeof (buf) - len,
                 "- Description hasn't been formatted. (/fi)\r\n");*/
       }
 
       if (GET_LEVEL(mob) > MAX_LEVEL_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Is level %d (limit: 1-%d)\r\n",
-                        GET_LEVEL(mob), MAX_LEVEL_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- Is level %d (limit: 1-%d)\r\n",
+                              GET_LEVEL(mob), MAX_LEVEL_ALLOWED);
 
       if (GET_DAMROLL(mob) > MAX_DAMROLL_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Damroll of %d is too high (limit: %d)\r\n",
-                        GET_DAMROLL(mob), MAX_DAMROLL_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Damroll of %d is too high (limit: %d)\r\n", GET_DAMROLL(mob),
+                              MAX_DAMROLL_ALLOWED);
 
       if (GET_HITROLL(mob) > MAX_HITROLL_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Hitroll of %d is too high (limit: %d)\r\n",
-                        GET_HITROLL(mob), MAX_HITROLL_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Hitroll of %d is too high (limit: %d)\r\n", GET_HITROLL(mob),
+                              MAX_HITROLL_ALLOWED);
 
       /* avg. dam including damroll per round of combat */
       avg_dam = (((mob->mob_specials.damsizedice / 2.0) * mob->mob_specials.damnodice) +
                  GET_DAMROLL(mob));
       if (avg_dam > MAX_MOB_DAM_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- average damage of %4.1f is too high (limit: %d)\r\n", avg_dam,
-                        MAX_MOB_DAM_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- average damage of %4.1f is too high (limit: %d)\r\n", avg_dam,
+                              MAX_MOB_DAM_ALLOWED);
 
       if (mob->mob_specials.damsizedice == 1 && mob->mob_specials.damnodice == 1 &&
           GET_LEVEL(mob) == 0 && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Needs to be fixed - %sAutogenerate!%s\r\n",
-                        CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Needs to be fixed - %sAutogenerate!%s\r\n", CCYEL(ch, C_NRM),
+                              CCNRM(ch, C_NRM));
 
       if (MOB_FLAGGED(mob, MOB_AGGRESSIVE) &&
           (MOB_FLAGGED(mob, MOB_AGGR_GOOD) || MOB_FLAGGED(mob, MOB_AGGR_EVIL) ||
            MOB_FLAGGED(mob, MOB_AGGR_NEUTRAL)) &&
           (found = 1))
-        len +=
-            snprintf(buf + len, sizeof(buf) - len, "- Both aggresive and agressive to align.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Both aggresive and agressive to align.\r\n");
 
       if ((GET_GOLD(mob) > MAX_MOB_GOLD_ALLOWED) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Set to %d Gold (limit : %d).\r\n",
-                        GET_GOLD(mob), MAX_MOB_GOLD_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- Set to %d Gold (limit : %d).\r\n",
+                              GET_GOLD(mob), MAX_MOB_GOLD_ALLOWED);
 
       if (GET_EXP(mob) > MAX_EXP_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- Has %ld experience (limit: %d)\r\n",
-                        GET_EXP(mob), MAX_EXP_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- Has %ld experience (limit: %d)\r\n",
+                              GET_EXP(mob), MAX_EXP_ALLOWED);
       if ((AFF_FLAGGED(mob, AFF_CHARM) || AFF_FLAGGED(mob, AFF_POISON)) && (found = 1))
-        len +=
-            snprintf(buf + len, sizeof(buf) - len, "- Has illegal affection bits set (%s %s)\r\n",
-                     AFF_FLAGGED(mob, AFF_CHARM) ? "CHARM" : "",
-                     AFF_FLAGGED(mob, AFF_POISON) ? "POISON" : "");
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Has illegal affection bits set (%s %s)\r\n",
+                              AFF_FLAGGED(mob, AFF_CHARM) ? "CHARM" : "",
+                              AFF_FLAGGED(mob, AFF_POISON) ? "POISON" : "");
 
       if (!MOB_FLAGGED(mob, MOB_SENTINEL) && !MOB_FLAGGED(mob, MOB_STAY_ZONE) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Neither SENTINEL nor STAY_ZONE bits set.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Neither SENTINEL nor STAY_ZONE bits set.\r\n");
 
       if (MOB_FLAGGED(mob, MOB_SPEC) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- SPEC flag needs to be removed.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len, "- SPEC flag needs to be removed.\r\n");
 
       /* Additional mob checks.*/
       if (found)
@@ -5900,28 +5900,29 @@ ACMD(do_zcheck)
       {
       case ITEM_MONEY:
         if ((value = GET_OBJ_VAL(obj, 0)) > MAX_OBJ_GOLD_ALLOWED && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- Is worth %d (money limit %d coins).\r\n",
-                          value, MAX_OBJ_GOLD_ALLOWED);
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "- Is worth %d (money limit %d coins).\r\n", value,
+                                MAX_OBJ_GOLD_ALLOWED);
         break;
       case ITEM_WEAPON:
         if (GET_OBJ_VAL(obj, 3) >= NUM_ATTACK_TYPES && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- has out of range attack type %d.\r\n",
-                          GET_OBJ_VAL(obj, 3));
+          len = snprintf_append(buf, sizeof(buf), len, "- has out of range attack type %d.\r\n",
+                                GET_OBJ_VAL(obj, 3));
 
         if (GET_OBJ_AVG_DAM(obj) > MAX_DAM_ALLOWED && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- Damroll is %2.1f (limit %d)\r\n",
-                          GET_OBJ_AVG_DAM(obj), MAX_DAM_ALLOWED);
+          len = snprintf_append(buf, sizeof(buf), len, "- Damroll is %2.1f (limit %d)\r\n",
+                                GET_OBJ_AVG_DAM(obj), MAX_DAM_ALLOWED);
         break;
       case ITEM_CLANARMOR:
         if (GET_OBJ_CLAN(obj) == 0 || GET_OBJ_CLAN(obj) == NO_CLAN)
         {
           found = 1;
-          len += snprintf(buf + len, sizeof(buf) - len, "- Clan ID not set on CLANARMOR\r\n");
+          len = snprintf_append(buf, sizeof(buf), len, "- Clan ID not set on CLANARMOR\r\n");
         }
         else if (real_clan(GET_OBJ_CLAN(obj)) == NO_CLAN)
         {
           found = 1;
-          len += snprintf(buf + len, sizeof(buf) - len, "- Invalid Clan ID on CLANARMOR\r\n");
+          len = snprintf_append(buf, sizeof(buf), len, "- Invalid Clan ID on CLANARMOR\r\n");
         }
         __attribute__((fallthrough));
       case ITEM_ARMOR:
@@ -5929,8 +5930,8 @@ ACMD(do_zcheck)
         for (j = 0; j < TOTAL_WEAR_CHECKS; j++)
         {
           if (CAN_WEAR(obj, zarmor[j].bitvector) && (ac > zarmor[j].ac_allowed) && (found = 1))
-            len += snprintf(buf + len, sizeof(buf) - len, "- Has AC %d (%s limit is %d)\r\n", ac,
-                            zarmor[j].message, zarmor[j].ac_allowed);
+            len = snprintf_append(buf, sizeof(buf), len, "- Has AC %d (%s limit is %d)\r\n", ac,
+                                  zarmor[j].message, zarmor[j].ac_allowed);
         }
         break;
 
@@ -5941,36 +5942,38 @@ ACMD(do_zcheck)
         if ((GET_OBJ_COST(obj) || (GET_OBJ_WEIGHT(obj) && GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) ||
              GET_OBJ_RENT(obj)) &&
             (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len,
-                          "- is NO_TAKE, but has cost (%d) weight (%d) or rent (%d) set.\r\n",
-                          GET_OBJ_COST(obj), GET_OBJ_WEIGHT(obj), GET_OBJ_RENT(obj));
+          len = snprintf_append(
+              buf, sizeof(buf), len,
+              "- is NO_TAKE, but has cost (%d) weight (%d) or rent (%d) set.\r\n",
+              GET_OBJ_COST(obj), GET_OBJ_WEIGHT(obj), GET_OBJ_RENT(obj));
       }
       else
       {
         if (GET_OBJ_COST(obj) == 0 && (found = 1) && GET_OBJ_TYPE(obj) != ITEM_TRASH)
-          len += snprintf(buf + len, sizeof(buf) - len, "- has 0 cost (min. 1).\r\n");
+          len = snprintf_append(buf, sizeof(buf), len, "- has 0 cost (min. 1).\r\n");
 
         if (GET_OBJ_WEIGHT(obj) == 0 && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- has 0 weight (min. 1).\r\n");
+          len = snprintf_append(buf, sizeof(buf), len, "- has 0 weight (min. 1).\r\n");
 
         if (GET_OBJ_WEIGHT(obj) > MAX_OBJ_WEIGHT && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "  Weight is too high: %d (limit  %d).\r\n",
-                          GET_OBJ_WEIGHT(obj), MAX_OBJ_WEIGHT);
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "  Weight is too high: %d (limit  %d).\r\n", GET_OBJ_WEIGHT(obj),
+                                MAX_OBJ_WEIGHT);
 
         if (GET_OBJ_COST(obj) > MAX_OBJ_COST && (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- has %d cost (max %d).\r\n",
-                          GET_OBJ_COST(obj), MAX_OBJ_COST);
+          len = snprintf_append(buf, sizeof(buf), len, "- has %d cost (max %d).\r\n",
+                                GET_OBJ_COST(obj), MAX_OBJ_COST);
       }
 
       if (GET_OBJ_LEVEL(obj) > LVL_IMMORT - 1 && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- has min level set to %d (max %d).\r\n",
-                        GET_OBJ_LEVEL(obj), LVL_IMMORT - 1);
+        len = snprintf_append(buf, sizeof(buf), len, "- has min level set to %d (max %d).\r\n",
+                              GET_OBJ_LEVEL(obj), LVL_IMMORT - 1);
 
       if (obj->action_description && *obj->action_description && GET_OBJ_TYPE(obj) != ITEM_STAFF &&
           GET_OBJ_TYPE(obj) != ITEM_WAND && GET_OBJ_TYPE(obj) != ITEM_SCROLL &&
           GET_OBJ_TYPE(obj) != ITEM_NOTE && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- has action_description set, but is inappropriate type.\r\n");
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- has action_description set, but is inappropriate type.\r\n");
 
       /*first check for over-all affections*/
       for (affs = 0, j = 0; j < MAX_OBJ_AFFECT; j++)
@@ -5978,8 +5981,8 @@ ACMD(do_zcheck)
           affs++;
 
       if (affs > MAX_AFFECTS_ALLOWED && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len, "- has %d affects (limit %d).\r\n", affs,
-                        MAX_AFFECTS_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- has %d affects (limit %d).\r\n", affs,
+                              MAX_AFFECTS_ALLOWED);
 
       /*check for out of range affections. */
       for (j = 0; j < MAX_OBJ_AFFECT; j++)
@@ -5987,13 +5990,15 @@ ACMD(do_zcheck)
                 -99 && /* only care if a range is set */
             (obj->affected[j].modifier > zaffs[(int)obj->affected[j].location].max_aff ||
              obj->affected[j].modifier < zaffs[(int)obj->affected[j].location].min_aff ||
-             zaffs[(int)obj->affected[j].location].min_aff ==
+            zaffs[(int)obj->affected[j].location].min_aff ==
                  zaffs[(int)obj->affected[j].location].max_aff) &&
             (found = 1))
-          len += snprintf(buf + len, sizeof(buf) - len, "- apply to %s is %d (limit %d - %d).\r\n",
-                          zaffs[(int)obj->affected[j].location].message, obj->affected[j].modifier,
-                          zaffs[(int)obj->affected[j].location].min_aff,
-                          zaffs[(int)obj->affected[j].location].max_aff);
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "- apply to %s is %d (limit %d - %d).\r\n",
+                                zaffs[(int)obj->affected[j].location].message,
+                                obj->affected[j].modifier,
+                                zaffs[(int)obj->affected[j].location].min_aff,
+                                zaffs[(int)obj->affected[j].location].max_aff);
 
       /* special handling of +hit and +dam because of +hit_n_dam */
       for (todam = 0, tohit = 0, j = 0; j < MAX_OBJ_AFFECT; j++)
@@ -6004,13 +6009,13 @@ ACMD(do_zcheck)
           todam += obj->affected[j].modifier;
       }
       if (abs(todam) > MAX_APPLY_DAMROLL_TOTAL && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- total damroll %d out of range (limit +/-%d.\r\n", todam,
-                        MAX_APPLY_DAMROLL_TOTAL);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- total damroll %d out of range (limit +/-%d.\r\n", todam,
+                              MAX_APPLY_DAMROLL_TOTAL);
       if (abs(tohit) > MAX_APPLY_HITROLL_TOTAL && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- total hitroll %d out of range (limit +/-%d).\r\n", tohit,
-                        MAX_APPLY_HITROLL_TOTAL);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- total hitroll %d out of range (limit +/-%d).\r\n", tohit,
+                              MAX_APPLY_HITROLL_TOTAL);
 
       /*for (ext2 = NULL, ext = obj->ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
@@ -6053,17 +6058,17 @@ ACMD(do_zcheck)
         for (k = 0; offlimit_zones[k] != -1; k++)
         {
           if (world[exroom].zone == real_zone(offlimit_zones[k]) && (found = 1))
-            len += snprintf(buf + len, sizeof(buf) - len,
-                            "- Exit %s cannot connect to %d (zone off limits).\r\n", dirs[j],
-                            world[exroom].number);
+            len = snprintf_append(buf, sizeof(buf), len,
+                                  "- Exit %s cannot connect to %d (zone off limits).\r\n", dirs[j],
+                                  world[exroom].number);
         } /* for (k.. */
       } /* cycle directions */
 
       if (ROOM_FLAGGED(i, ROOM_ATRIUM) || ROOM_FLAGGED(i, ROOM_HOUSE) ||
           ROOM_FLAGGED(i, ROOM_HOUSE_CRASH) || ROOM_FLAGGED(i, ROOM_OLC) ||
           ROOM_FLAGGED(i, ROOM_BFS_MARK))
-        len += snprintf(
-            buf + len, sizeof(buf) - len, "- Has illegal affection bits set (%s %s %s %s %s)\r\n",
+        len = snprintf_append(
+            buf, sizeof(buf), len, "- Has illegal affection bits set (%s %s %s %s %s)\r\n",
             ROOM_FLAGGED(i, ROOM_ATRIUM) ? "ATRIUM" : "",
             ROOM_FLAGGED(i, ROOM_HOUSE) ? "HOUSE" : "",
             ROOM_FLAGGED(i, ROOM_HOUSE_CRASH) ? "HCRSH" : "",
@@ -6071,19 +6076,22 @@ ACMD(do_zcheck)
 
       if ((MIN_ROOM_DESC_LENGTH) && strlen(world[i].description) < MIN_ROOM_DESC_LENGTH &&
           (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Room description is too short. (%4.4d of min. %d characters).\r\n",
-                        (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
+        len = snprintf_append(
+            buf, sizeof(buf), len,
+            "- Room description is too short. (%4.4d of min. %d characters).\r\n",
+            (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
 
       if (strncmp(world[i].description, "   ", 3) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Room description not formatted with indent (/fi in the editor).\r\n");
+        len = snprintf_append(
+            buf, sizeof(buf), len,
+            "- Room description not formatted with indent (/fi in the editor).\r\n");
 
       /* strcspan = size of text in first arg before any character in second arg */
       if ((strcspn(world[i].description, "\r\n") > MAX_COLUMN_WIDTH) && (found = 1))
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
-                        MAX_COLUMN_WIDTH);
+        len = snprintf_append(
+            buf, sizeof(buf), len,
+            "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
+            MAX_COLUMN_WIDTH);
 
       /*for (ext2 = NULL, ext = world[i].ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
@@ -6440,7 +6448,7 @@ static bool validate_copyover_environment()
   }
 
   /* Check if we can create files in current directory */
-  FILE *test = fopen("copyover.test", "w");
+  FILE *test = fopen_restricted("copyover.test", "w");
   if (!test)
   {
     log("SYSERR: copyover: Cannot create files in current directory: %s", strerror(errno));
@@ -6530,7 +6538,7 @@ void perform_do_copyover()
   /* Update state to writing */
   copyover_status = COPYOVER_WRITING;
 
-  fp = fopen(temp_file, "w");
+  fp = fopen_restricted(temp_file, "w");
   if (!fp)
   {
     log("SYSERR: Copyover temp file not writeable: %s", strerror(errno));
@@ -7635,7 +7643,7 @@ ACMD(do_changelog)
     return;
   }
 
-  if (!(new = fopen(CHANGE_LOG_FILE, "w")))
+  if (!(new = fopen_restricted(CHANGE_LOG_FILE, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Error opening new changelog file (%s)", CHANGE_LOG_FILE);
     return;
@@ -7653,7 +7661,7 @@ ACMD(do_changelog)
   }
 
   rawtime = time(0);
-  strftime(tmstr, sizeof(tmstr), "%b %d %Y", localtime(&rawtime));
+  format_time_string(rawtime, "%b %d %Y", tmstr, sizeof(tmstr));
 
   snprintf(buf, sizeof(buf), "[%s] - %s", tmstr, GET_NAME(ch));
 
@@ -7739,10 +7747,10 @@ ACMD(do_plist)
   }
 
   len = 0;
-  len += snprintf(buf + len, sizeof(buf) - len,
-                  "\tW[ Id] (Lv) Name         Last\tn\r\n"
-                  "%s-------------------------------------%s\r\n",
-                  CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "\tW[ Id] (Lv) Name         Last\tn\r\n"
+                        "%s-------------------------------------%s\r\n",
+                        CCCYN(ch, C_NRM), CCNRM(ch, C_NRM));
 
   for (i = 0; i <= top_of_p_table; i++)
   {
@@ -7761,15 +7769,15 @@ ACMD(do_plist)
 
     format_time_string(player_table[i].last, "%c", time_str, sizeof(time_str));
 
-    len += snprintf(buf + len, sizeof(buf) - len, "[%3ld] (%2d) %c%-15s %s\r\n", player_table[i].id,
-                    player_table[i].level, UPPER(*player_table[i].name), player_table[i].name + 1,
-                    time_str);
+    len = snprintf_append(buf, sizeof(buf), len, "[%3ld] (%2d) %c%-15s %s\r\n",
+                          player_table[i].id, player_table[i].level,
+                          UPPER(*player_table[i].name), player_table[i].name + 1, time_str);
     count++;
   }
-  snprintf(buf + len, sizeof(buf) - len,
-           "%s-------------------------------------%s\r\n"
-           "%d players listed.\r\n",
-           CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), count);
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "%s-------------------------------------%s\r\n"
+                        "%d players listed.\r\n",
+                        CCCYN(ch, C_NRM), CCNRM(ch, C_NRM), count);
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -8141,8 +8149,7 @@ bool AddRecentPlayer(char *chname, char *chhost, bool newplr, bool cpyplr)
   this->new_player = newplr;
   this->copyover_player = cpyplr;
   strlcpy(this->host, chhost ? chhost : "", sizeof(this->host));
-  if (chname)
-    strlcpy(this->name, chname, sizeof(this->name));
+  strlcpy(this->name, chname, sizeof(this->name));
   max_vnum = get_max_recent();
   this->vnum = max_vnum; /* Possibly should be +1 ? */
 
@@ -9443,7 +9450,7 @@ ACMD(do_eqrating)
 
   int i = 0, j = 0;         /* counter */
   int a = 0, b = 0;         /* used for sorting */
-  int len = 0, tmp_len = 0; /* string length */
+  int len = 0; /* string length */
   int wearloc = 0;          /* the wear-location of item */
 
   zone_vnum zone = 0;                           /* zone vnum to restrict search */
@@ -9567,36 +9574,31 @@ ACMD(do_eqrating)
 
     /* start building our string, begin with listing vnum, score, and short
      description */
-    tmp_len =
-        snprintf(buf + len, sizeof(buf) - len, "%7ld | %5d | %-45s | ", (long int)obj_index[a].vnum,
-                 get_eq_score(a), obj_proto[a].short_description);
-    len += tmp_len;
+    len = snprintf_append(buf, sizeof(buf), len, "%7ld | %5d | %-45s | ",
+                          (long int)obj_index[a].vnum, get_eq_score(a),
+                          obj_proto[a].short_description);
 
     /* now, if we have a weapon, display dice */
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON)
     {
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%dD%d | ", GET_OBJ_VAL(&obj_proto[a], 1),
-                         GET_OBJ_VAL(&obj_proto[a], 2));
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "%dD%d | ", GET_OBJ_VAL(&obj_proto[a], 1),
+                            GET_OBJ_VAL(&obj_proto[a], 2));
     }
 
     if (CAN_WEAR(&obj_proto[a], ITEM_WEAR_SHIELD))
     { /* shield weight */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "wt %d | ", GET_OBJ_WEIGHT(&obj_proto[a]));
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "wt %d | ", GET_OBJ_WEIGHT(&obj_proto[a]));
     }
 
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_ARMOR)
     { /* ac-apply */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "AC %d | ", GET_OBJ_VAL(&obj_proto[a], 0));
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "AC %d | ", GET_OBJ_VAL(&obj_proto[a], 0));
     }
 
     if (GET_OBJ_AFFECT(&obj_proto[a]))
     { /* perm affects */
       sprintbitarray(GET_OBJ_AFFECT(&obj_proto[a]), affected_bits, AF_ARRAY_MAX, bitbuf);
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s | ", bitbuf);
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "%s | ", bitbuf);
     }
 
     *bitbuf = '\0';
@@ -9610,21 +9612,18 @@ ACMD(do_eqrating)
       if ((obj->affected[b].location != APPLY_NONE) && (obj->affected[b].modifier != 0))
       {
         sprinttype(obj->affected[b].location, apply_types, bitbuf, sizeof(bitbuf));
-        tmp_len =
-            snprintf(buf + len, sizeof(buf) - len, "%s %d ", bitbuf, obj->affected[b].modifier);
-        len += tmp_len;
+        len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf,
+                              obj->affected[b].modifier);
       }
     }
 
-    tmp_len = snprintf(buf + len, sizeof(buf) - len, "|\r\n");
-    len += tmp_len;
+    len = snprintf_append(buf, sizeof(buf), len, "|\r\n");
 
     /* yeah we have to cap things, wish i had a better solution at this stage!
      -zusuk */
     if (i >= 350)
     {
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n**OVERLOADED BUFF***\r\n");
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "\r\n**OVERLOADED BUFF***\r\n");
       break;
     }
   }

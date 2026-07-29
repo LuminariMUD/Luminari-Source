@@ -167,12 +167,12 @@ void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode _
   /* convert cmdlist to a char string */
   c = trig->cmdlist;
   CREATE(OLC_STORAGE(d), char, MAX_CMD_LENGTH);
-  strcpy(OLC_STORAGE(d), "");
+  OLC_STORAGE(d)[0] = '\0';
 
   while (c)
   {
-    strcat(OLC_STORAGE(d), c->cmd);
-    strcat(OLC_STORAGE(d), "\r\n");
+    strlcat(OLC_STORAGE(d), c->cmd, MAX_CMD_LENGTH);
+    strlcat(OLC_STORAGE(d), "\r\n", MAX_CMD_LENGTH);
     c = c->next;
   }
   /* Now trig->cmdlist is something to pass to the text editor it will be
@@ -622,7 +622,7 @@ void trigedit_save(struct descriptor_data *d)
   snprintf(fname, sizeof(fname), "%s/%i.new", TRG_PREFIX, zone);
 #endif
 
-  if (!(trig_file = fopen(fname, "w")))
+  if (!(trig_file = fopen_restricted(fname, "w")))
   {
     mudlog(BRF, MAX(LVL_STAFF, GET_INVIS_LEV(d->character)), TRUE,
            "SYSERR: OLC: Can't open trig file \"%s\"", fname);
@@ -701,7 +701,7 @@ static void trigedit_create_index(int znum, const char *type)
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", old_name);
     return;
   }
-  else if (!(newfile = fopen(new_name, "w")))
+  else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: DG_OLC: Failed to open %s", new_name);
     return;
@@ -719,7 +719,11 @@ static void trigedit_create_index(int znum, const char *type)
     }
     else if (!found)
     {
-      sscanf(buf, "%d", &num);
+      if (sscanf(buf, "%d", &num) != 1)
+      {
+        mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Invalid trigger index entry: %s", buf);
+        continue;
+      }
       if (num == znum)
         found = TRUE;
       else if (num > znum)
@@ -857,12 +861,18 @@ int dg_script_edit_parse(struct descriptor_data *d, char *arg)
     return 1;
 
   case SCRIPT_NEW_TRIGGER:
+    pos = 0;
     vnum = -1;
     count = sscanf(arg, "%d, %d", &pos, &vnum);
     if (count == 1)
     {
       vnum = pos;
       pos = 999;
+    }
+    else if (count != 2)
+    {
+      write_to_output(d, "Please enter position, vnum   (ex: 1, 200):");
+      return 1;
     }
 
     if (pos <= 0)

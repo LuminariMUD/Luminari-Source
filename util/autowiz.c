@@ -312,11 +312,11 @@ int main(int argc, char **argv)
   read_file();
   sort_names();
 
-  fl = fopen(argv[2], "w");
+  fl = fopen_restricted(argv[2], "w");
   write_wizlist(fl, wizlevel, LVL_IMPL);
   fclose(fl);
 
-  fl = fopen(argv[4], "w");
+  fl = fopen_restricted(argv[4], "w");
   write_wizlist(fl, immlevel, wizlevel - 1);
   fclose(fl);
 
@@ -365,7 +365,7 @@ int get_line(FILE *fl, char *buf)
   {
     temp[strlen(temp) - 1] = '\0';
   }
-  strcpy(buf, temp);
+  strlcpy(buf, temp, MEDIUM_STRING);
   return (lines);
 }
 

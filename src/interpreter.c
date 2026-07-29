@@ -6702,9 +6702,9 @@ EVENTFUNC(get_protocols)
   len += snprintf(buf + len, MAX_STRING_LENGTH - len, "\tO[\toGMCP\tO] \tw%s\tn\r\n\r\n",
                   d->pProtocol->bGMCP ? "Yes" : "No");
 
-  write_to_output(d, buf, 0);
+  write_to_output(d, "%s", buf);
 
-  write_to_output(d, GREETINGS, 0);
+  write_to_output(d, "%s", GREETINGS);
   STATE(d) = CON_ACCOUNT_NAME; // CON_GET_NAME;
   return 0;
 }

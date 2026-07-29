@@ -56,7 +56,7 @@ int pubsub_handler_combat_logger(struct char_data *ch, struct pubsub_message *ms
   }
 
   /* Open combat log file - game runs from lib/ directory */
-  logfile = fopen("../log/pubsub/combat_events.log", "a");
+  logfile = fopen_restricted("../log/pubsub/combat_events.log", "a");
   if (!logfile)
   {
     pubsub_error("Cannot open combat events log at ../log/pubsub/combat_events.log - errno: %d",
@@ -66,7 +66,7 @@ int pubsub_handler_combat_logger(struct char_data *ch, struct pubsub_message *ms
 
   /* Get timestamp */
   now = time(NULL);
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+  format_time_string(now, "%Y-%m-%d %H:%M:%S", timestamp, sizeof(timestamp));
 
   /* Log the combat event with context */
   fprintf(logfile, "[%s] Player: %s | Level: %d | Class: %s | Event: %s | Room: %d\n", timestamp,

@@ -262,7 +262,11 @@ EVENTFUNC(event_countdown)
         room_rnum eroom_rnum = NOWHERE;
         int x, y;
 
-        sscanf(*it, "%d", &eroom_vnum);
+        if (sscanf(*it, "%d", &eroom_vnum) != 1)
+        {
+          log("SYSERR: Invalid encounter room vnum: %s", *it);
+          continue;
+        }
         eroom_rnum = real_room(eroom_vnum);
         /* This log is causing lots of spam in our syslog.  Removing it. */
         /* log("LOG: Processing encounter room vnum: %d", eroom_vnum); */

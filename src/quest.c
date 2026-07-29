@@ -354,13 +354,12 @@ void parse_quest(FILE *quest_f, int nr)
   /* parse the next line of values
        re-wrote this to handle the old 3 values or new 7 values -zusuk */
   if (!get_line(quest_f, line) ||
-      (retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4, t + 5, t + 6)))
+      ((retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4, t + 5,
+                        t + 6)) != 3 &&
+       retval != 7))
   {
-    if (retval != 3 && retval != 7)
-    {
-      log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n", retval, line);
-      exit(1); /* harsh but defensive -> game won't start */
-    }
+    log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n", retval, line);
+    exit(1); /* harsh but defensive -> game won't start */
   }
 
   /* assign for 3 values */

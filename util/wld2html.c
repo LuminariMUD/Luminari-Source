@@ -418,7 +418,7 @@ static void write_output(void)
       fatal_file_error("output filename is too long", NULL);
 
     fprintf(stderr, "Writing %s\n", filename);
-    fl = fopen(filename, "w");
+    fl = fopen_restricted(filename, "w");
     if (!fl)
       fatal_file_error("cannot open output file", filename);
 

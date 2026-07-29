@@ -682,8 +682,7 @@ void mysql_board_show_list(struct char_data *ch, int board_id, int page)
     char unread_marker[10] = "";
     int post_id_val = atoi(row[0]);
     time_t post_time = (time_t)atol(row[3]);
-    struct tm *timeinfo = localtime(&post_time);
-    strftime(time_buf, sizeof(time_buf), "%m/%d/%y", timeinfo);
+    format_time_string(post_time, "%m/%d/%y", time_buf, sizeof(time_buf));
 
     /* Check if this post is unread by the player */
     if (!IS_NPC(ch) && GET_IDNUM(ch) > 0)
@@ -2027,7 +2026,7 @@ ACMD(do_boardfind)
   {
     has_filter = true;
     /* Convert filter to lowercase for case-insensitive comparison */
-    for (i = 0; arg[i] && i < (int)sizeof(filter_lower) - 1; i++)
+    for (i = 0; i < (int)sizeof(filter_lower) - 1 && arg[i]; i++)
     {
       filter_lower[i] = LOWER(arg[i]);
     }
@@ -2078,7 +2077,7 @@ ACMD(do_boardfind)
       int j;
 
       /* Convert board name to lowercase */
-      for (j = 0; board->board_name[j] && j < (int)sizeof(name_lower) - 1; j++)
+      for (j = 0; j < (int)sizeof(name_lower) - 1 && board->board_name[j]; j++)
       {
         name_lower[j] = LOWER(board->board_name[j]);
       }

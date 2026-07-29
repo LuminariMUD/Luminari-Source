@@ -3300,7 +3300,7 @@ void add_history(struct char_data *ch, const char *str, int type)
 
   tmp = GET_HISTORY(ch, type);
   ct = time(0);
-  strftime(time_str, sizeof(time_str), "%H:%M ", localtime(&ct));
+  format_time_string(ct, "%H:%M ", time_str, sizeof(time_str));
 
   snprintf(buf, sizeof(buf), "%s%s", time_str, str);
 
@@ -7774,16 +7774,16 @@ ACMD(do_who)
             if (CLASS_LEVEL(tch, inc))
             {
               if (classCount)
-                len += snprintf(classes_list + len, sizeof(classes_list) - len, "/");
-              len += snprintf(classes_list + len, sizeof(classes_list) - len, "%s",
-                              CLSLIST_CLRABBRV(inc));
+                len = snprintf_append(classes_list, sizeof(classes_list), len, "/");
+              len = snprintf_append(classes_list, sizeof(classes_list), len, "%s",
+                                    CLSLIST_CLRABBRV(inc));
               classCount++;
             }
           }
           class_len = strlen(classes_list) - count_color_chars(classes_list);
           while (class_len < 11)
           {
-            len += snprintf(classes_list + len, sizeof(classes_list) - len, " ");
+            len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
             class_len++;
           }
           send_to_char(ch, "%s]", classes_list);
@@ -8047,7 +8047,7 @@ ACMD(do_users)
              state, idletime, timestr);
 
     if (*d->host)
-      sprintf(line + strlen(line), "[%s]\r\n", d->host);
+      snprintf(line + strlen(line), sizeof(line) - strlen(line), "[%s]\r\n", d->host);
     else
       strlcat(line, "[Hostname unknown]\r\n", sizeof(line));
 
@@ -8142,7 +8142,7 @@ ACMD(do_where)
 ACMD(do_levels)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'}, arg[MAX_STRING_LENGTH] = {'\0'};
-  size_t len = 0, nlen;
+  size_t len = 0;
   int i, ret, min_lev = 1, max_lev = LVL_IMMORT, val;
 
   if (IS_NPC(ch))
@@ -8192,11 +8192,10 @@ ACMD(do_levels)
 
   for (i = min_lev; i < max_lev; i++)
   {
-    nlen = snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld-%-8ld : ", (int)i, level_exp(ch, i),
-                    level_exp(ch, i + 1) - 1);
-    if (len + nlen >= sizeof(buf))
+    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld-%-8ld : ", (int)i, level_exp(ch, i),
+                          level_exp(ch, i + 1) - 1);
+    if (len >= sizeof(buf) - 1)
       break;
-    len += nlen;
 
     // why are we checking sex for titles?  titles used to be sex
     // dependent...  -zusuk
@@ -8204,23 +8203,22 @@ ACMD(do_levels)
     {
     case SEX_MALE:
     case SEX_NEUTRAL:
-      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     case SEX_FEMALE:
-      nlen = snprintf(buf + len, sizeof(buf) - len, "%s\r\n", titles(GET_CLASS(ch), i));
+      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", titles(GET_CLASS(ch), i));
       break;
     default:
-      nlen = snprintf(buf + len, sizeof(buf) - len, "Oh dear.  You seem to be sexless.\r\n");
+      len = snprintf_append(buf, sizeof(buf), len, "Oh dear.  You seem to be sexless.\r\n");
       break;
     }
-    if (len + nlen >= sizeof(buf))
+    if (len >= sizeof(buf) - 1)
       break;
-    len += nlen;
   }
 
-  if (len < sizeof(buf) && max_lev == LVL_IMMORT)
-    snprintf(buf + len, sizeof(buf) - len, "[%2d] %8ld          : Immortality\r\n", LVL_IMMORT,
-             level_exp(ch, LVL_IMMORT));
+  if (max_lev == LVL_IMMORT)
+    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld          : Immortality\r\n", LVL_IMMORT,
+                          level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -9243,7 +9241,7 @@ bool get_zone_levels(zone_rnum znum, char *buf)
 
 ACMD(do_areas)
 {
-  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, name_width, tmp_len = 0;
+  int i, hilev = -1, lolev = -1, zcount = 0, lev_set, len = 0, name_width;
   char arg[MAX_INPUT_LENGTH] = {'\0'}, *second, lev_str[MAX_INPUT_LENGTH] = {'\0'},
        buf[MAX_STRING_LENGTH] = {'\0'};
   //  char zvn[MAX_INPUT_LENGTH] = {'\0'};
@@ -9378,46 +9376,38 @@ ACMD(do_areas)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
       name_width = count_color_chars(zone_table[i].name) + 40;
-      tmp_len =
-          snprintf(buf + len, sizeof(buf) - len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
-                   overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
-                   lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
+      len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n",
+                            ++zcount, overlap ? QRED : QCYN, name_width, name_width,
+                            zone_table[i].name, lev_set ? "\tc" : "\tn",
+                            lev_set ? lev_str : "All Levels");
       snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
       snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*.*s\tn %s%s%.64s\tn\r\n",
                name_width, name_width, zone_table[i].name, zone_num, lev_set ? "\tc" : "\tn",
                lev_set ? lev_str : "All Levels");
       num_areas++;
-      len += tmp_len;
     }
   }
 
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n\r\n");
-  len += tmp_len;
-
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%d%s area%s found.\r\n", QYEL, zcount, QNRM,
-                     zcount == 1 ? "" : "s");
-  len += tmp_len;
+  len = snprintf_append(buf, sizeof(buf), len, "\r\n\r\n");
+  len = snprintf_append(buf, sizeof(buf), len, "%s%d%s area%s found.\r\n", QYEL, zcount, QNRM,
+                        zcount == 1 ? "" : "s");
 
   if (overlap_shown)
   {
-    tmp_len = snprintf(
-        buf + len, sizeof(buf) - len,
+    len = snprintf_append(
+        buf, sizeof(buf), len,
         "Areas shown in \trred\tn may have some creatures outside the specified range.\r\n");
-    len += tmp_len;
   }
 
 #if defined(CAMPAIGN_DL)
-  tmp_len = snprintf(
-      buf + len, sizeof(buf) - len,
+  len = snprintf_append(
+      buf, sizeof(buf), len,
       "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
-  len += tmp_len;
-  tmp_len = snprintf(buf + len, sizeof(buf) - len,
-                     "To show more information on a specific zone, type HELP (zone name as shown "
-                     "in areas command).\r\n");
-  len += tmp_len;
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "To show more information on a specific zone, type HELP (zone name as shown "
+                        "in areas command).\r\n");
 #else
-  tmp_len = snprintf(buf + len, sizeof(buf) - len, "More areas are listed in HELP ZONES");
-  len += tmp_len;
+  len = snprintf_append(buf, sizeof(buf), len, "More areas are listed in HELP ZONES");
 #endif
 
   // if (zcount == 0)

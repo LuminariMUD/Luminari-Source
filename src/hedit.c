@@ -426,7 +426,7 @@ static void hedit_save_to_db(struct descriptor_data *d)
   strip_cr(buf1);
 
   /* Convert tag to lowercase for storage */
-  for (i = 0; OLC_HELP(d)->tag[i] && i < MAX_HELP_TAG_LENGTH; i++)
+  for (i = 0; i < MAX_HELP_TAG_LENGTH && OLC_HELP(d)->tag[i]; i++)
   {
     tag_lower[i] = LOWER(OLC_HELP(d)->tag[i]);
   }
@@ -1222,7 +1222,7 @@ ACMD(do_helpcheck)
 {
   char buf[MAX_STRING_LENGTH] = {'\0'};
   int i, count = 0;
-  size_t len = 0, nlen;
+  size_t len = 0;
 
   for (i = 1; *(complete_cmd_info[i].command) != '\n'; i++)
   {
@@ -1231,16 +1231,15 @@ ACMD(do_helpcheck)
     {
       if (search_help(complete_cmd_info[i].command, LVL_IMPL) == NULL)
       {
-        nlen = snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", complete_cmd_info[i].command,
-                        (++count % 3 ? "" : "\r\n"));
-        if (len + nlen >= sizeof(buf))
+        len = snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", complete_cmd_info[i].command,
+                              (++count % 3 ? "" : "\r\n"));
+        if (len >= sizeof(buf) - 1)
           break;
-        len += nlen;
       }
     }
   }
-  if (count % 3 && len < sizeof(buf))
-    nlen = snprintf(buf + len, sizeof(buf) - len, "\r\n");
+  if (count % 3)
+    len = snprintf_append(buf, sizeof(buf), len, "\r\n");
 
   if (ch->desc)
   {
@@ -1325,7 +1324,8 @@ ACMD(do_hindex)
     char *tag = mysql_stmt_get_string(pstmt, 0);
     if (tag)
     {
-      len += snprintf(buf + len, sizeof(buf) - len, "%-20.20s%s", tag, (++count % 3 ? "" : "\r\n"));
+      len =
+          snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", tag, (++count % 3 ? "" : "\r\n"));
     }
   }
 
@@ -1362,8 +1362,8 @@ ACMD(do_hindex)
             char *tag = mysql_stmt_get_string(pstmt, 0);
             if (tag)
             {
-              len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "%-20.20s%s", tag,
-                               (++count2 % 3 ? "" : "\r\n"));
+              len2 = snprintf_append(buf2, sizeof(buf2), len2, "%-20.20s%s", tag,
+                                     (++count2 % 3 ? "" : "\r\n"));
             }
           }
         }
@@ -1398,22 +1398,22 @@ ACMD(do_hindex)
 
   /* Format the output */
   if (count % 3)
-    len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "\r\n");
   if (count2 % 3)
-    len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "\r\n");
+    len2 = snprintf_append(buf2, sizeof(buf2), len2, "\r\n");
 
   if (!count)
-    len += snprintf(buf + len, sizeof(buf) - len, "  None.\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "  None.\r\n");
   if (!count2)
-    len2 += snprintf(buf2 + len2, sizeof(buf2) - len2, "  None.\r\n");
+    len2 = snprintf_append(buf2, sizeof(buf2), len2, "  None.\r\n");
 
   /* Join the two strings */
-  len += snprintf(buf + len, sizeof(buf) - len, "%s", buf2);
+  len = snprintf_append(buf, sizeof(buf), len, "%s", buf2);
 
-  len += snprintf(buf + len, sizeof(buf) - len,
-                  "\t1Applicable Index Entries: \t3%d\r\n"
-                  "\t1Total Index Entries: \t3%d\tn\r\n",
-                  count + count2, total_entries);
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "\t1Applicable Index Entries: \t3%d\r\n"
+                        "\t1Total Index Entries: \t3%d\tn\r\n",
+                        count + count2, total_entries);
 
   page_string(ch->desc, buf, TRUE);
 }
@@ -2487,7 +2487,7 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
   char opt_arg[MAX_INPUT_LENGTH];
   char *token;
   time_t now;
-  struct tm *tm_info;
+  struct tm tm_info;
 
   /* Parse options - first token is the required mode, rest are optional filters */
   if (options && *options)
@@ -2573,16 +2573,20 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
   {
     /* Create timestamped backup */
     time(&now);
-    tm_info = localtime(&now);
+    if (!localtime_r(&now, &tm_info))
+    {
+      send_to_char(ch, "Unable to determine the current time for the backup filename.\r\n");
+      return 0;
+    }
     snprintf(backup_path, sizeof(backup_path), "text/help/help.hlp.%04d%02d%02d_%02d%02d%02d",
-             tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday, tm_info->tm_hour,
-             tm_info->tm_min, tm_info->tm_sec);
+             tm_info.tm_year + 1900, tm_info.tm_mon + 1, tm_info.tm_mday, tm_info.tm_hour,
+             tm_info.tm_min, tm_info.tm_sec);
 
     /* Copy existing file to backup */
     FILE *src = fopen(filepath, "r");
     if (src)
     {
-      FILE *dst = fopen(backup_path, "w");
+      FILE *dst = fopen_restricted(backup_path, "w");
       if (dst)
       {
         char buffer[4096];
@@ -2628,7 +2632,7 @@ static int export_help_to_hlp(struct char_data *ch, const char *options)
   /* Open output file if not in preview mode */
   if (!preview_mode)
   {
-    fp = fopen(filepath, "w");
+    fp = fopen_restricted(filepath, "w");
     if (!fp)
     {
       send_to_char(ch, "Error: Cannot open %s for writing\r\n", filepath);
@@ -2852,7 +2856,7 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
     int line_len = strlen(line);
     if ((size_t)(content_len + line_len) < sizeof(content) - 1)
     {
-      strcat(content, line);
+      strlcat(content, line, sizeof(content));
       content_len += line_len;
     }
   }
@@ -2954,7 +2958,7 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
           escaped_size *= 2;
           RECREATE(escaped_keywords, char, escaped_size);
         }
-        escaped_len += snprintf(escaped_keywords + escaped_len, escaped_size - escaped_len, ", ");
+        escaped_len = snprintf_append(escaped_keywords, escaped_size, escaped_len, ", ");
       }
       first_keyword = 0;
 
@@ -2965,8 +2969,8 @@ static int import_entry_with_resolution(struct char_data *ch __attribute__((unus
         escaped_size *= 2;
         RECREATE(escaped_keywords, char, escaped_size);
       }
-      escaped_len += snprintf(escaped_keywords + escaped_len, escaped_size - escaped_len, "'%s'",
-                              escaped_keyword);
+      escaped_len =
+          snprintf_append(escaped_keywords, escaped_size, escaped_len, "'%s'", escaped_keyword);
 
       token = strtok_r(NULL, " ", &rest);
     }
@@ -3204,14 +3208,21 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
 #define APPEND_TO_BUF(fmt, ...)                                                                    \
   do                                                                                               \
   {                                                                                                \
-    size_t needed = snprintf(NULL, 0, fmt, ##__VA_ARGS__) + 1;                                     \
-    if (output_len + needed > output_size - 1)                                                     \
+    int formatted_length = snprintf(NULL, 0, fmt, ##__VA_ARGS__);                                  \
+    size_t needed;                                                                                 \
+    size_t new_size;                                                                               \
+    if (formatted_length < 0)                                                                      \
+      break;                                                                                       \
+    needed = (size_t)formatted_length + 1;                                                         \
+    while (needed > output_size - output_len)                                                      \
     {                                                                                              \
-      size_t new_size = output_size * 2;                                                           \
+      new_size = output_size * 2;                                                                  \
+      if (new_size <= output_size)                                                                 \
+        break;                                                                                     \
       RECREATE(output_buf, char, new_size);                                                        \
       output_size = new_size;                                                                      \
     }                                                                                              \
-    output_len += snprintf(output_buf + output_len, output_size - output_len, fmt, ##__VA_ARGS__); \
+    output_len = snprintf_append(output_buf, output_size, output_len, fmt, ##__VA_ARGS__);          \
   } while (0)
 
   /* Open the help.hlp file */

@@ -440,6 +440,8 @@ bool format_time_string(time_t when, const char *format, char *buf, size_t size)
 const char *format_time_ymd_hms(time_t when);
 
 /* Filesystem helpers */
+/* Validates a single filename component, excluding path separators and traversal. */
+bool is_safe_path_component(const char *name);
 /* Ensures that a directory path exists, creating intermediate directories as needed. */
 bool ensure_dir_exists(const char *path);
 
@@ -464,6 +466,8 @@ int strn_cmp(const char *arg1, const char *arg2, int n);
 #endif
 
 size_t strlcat(char *buf, const char *src, size_t bufsz);
+int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
+    __attribute__((format(printf, 4, 5)));
 
 /* random functions in random.c */
 void circle_srandom(unsigned long initial_seed);

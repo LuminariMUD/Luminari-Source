@@ -196,7 +196,7 @@ void convert(char *filename)
 
   sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
 
-  if (!(index_file = fopen(index_name, "w")))
+  if (!(index_file = fopen_restricted(index_name, "w")))
   {
     perror("error opening index file");
     exit(1);
@@ -221,7 +221,7 @@ void convert(char *filename)
     fprintf(index_file, "%ld %s %d 0 %ld\n", player.char_specials_saved.idnum, bits, player.level,
             (long)player.last_logon);
 
-    if (!(outfile = fopen(outname, "w")))
+    if (!(outfile = fopen_restricted(outname, "w")))
     {
       printf("error opening output file");
       exit(1);

@@ -12,6 +12,8 @@
 *  documentation and error handling                                       *
 ************************************************************************* */
 
+#include "conf.h"
+#include "sysdep.h"
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  if (!(index_file = fopen(argv[1], "w")))
+  if (!(index_file = fopen_restricted(argv[1], "w")))
   {
     perror("error opening index file");
     return 1;
@@ -263,7 +265,7 @@ void walkdir(FILE *index_file, char *dir)
   struct dirent *dp;
   struct stat stbuf;
   long id, sender, recipient, sent_time;
-  int flags;
+  int flags, entry_fd, open_flags;
   DIR *dfd;
   FILE *mail_file;
   char *name;
@@ -276,19 +278,31 @@ void walkdir(FILE *index_file, char *dir)
 
   while ((dp = readdir(dfd)) != NULL)
   {
-    sprintf(filename_qfd, "%s/%s", dir, dp->d_name);
-
-    if (stat(filename_qfd, &stbuf) == -1)
+    if (!strcmp(".", dp->d_name) || !strcmp("..", dp->d_name))
+      continue;
+    if (snprintf(filename_qfd, sizeof(filename_qfd), "%s/%s", dir, dp->d_name) >=
+        (int)sizeof(filename_qfd))
     {
-      fprintf(stdout, "Unable to stat file: %s\n", filename_qfd);
+      fprintf(stdout, "Path is too long: %s/%s\n", dir, dp->d_name);
       continue;
     }
 
-    if ((stbuf.st_mode & S_IFMT) == S_IFDIR)
+    open_flags = O_RDONLY;
+#ifdef O_NOFOLLOW
+    open_flags |= O_NOFOLLOW;
+#endif
+    entry_fd = openat(dirfd(dfd), dp->d_name, open_flags);
+    if (entry_fd < 0 || fstat(entry_fd, &stbuf) == -1)
     {
-      if (!strcmp(".", dp->d_name) || !strcmp("..", dp->d_name))
-        continue;
+      fprintf(stdout, "Unable to open file: %s\n", filename_qfd);
+      if (entry_fd >= 0)
+        close(entry_fd);
+      continue;
+    }
 
+    if (S_ISDIR(stbuf.st_mode))
+    {
+      close(entry_fd);
       walkdir(index_file, filename_qfd);
     }
     else
@@ -298,10 +312,11 @@ void walkdir(FILE *index_file, char *dir)
       if (name != NULL)
       {
         /* Extract data from the mail file and add to index */
-        mail_file = fopen(filename_qfd, "r");
+        mail_file = fdopen(entry_fd, "r");
         if (!mail_file)
         {
           fprintf(stderr, "Warning: Could not open mail file %s\n", filename_qfd);
+          close(entry_fd);
           continue;
         }
 
@@ -319,6 +334,8 @@ void walkdir(FILE *index_file, char *dir)
 
         fclose(mail_file);
       }
+      else
+        close(entry_fd);
     }
   }
   closedir(dfd);
@@ -342,7 +359,7 @@ int get_line(FILE *fl, char *buf)
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
-  strcpy(buf, temp); /* strcpy: OK, if buf >= READ_SIZE (256) */
+  strlcpy(buf, temp, READ_SIZE);
   return (lines);
 }
 

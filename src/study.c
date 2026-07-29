@@ -200,23 +200,26 @@ const char *familiar_names[] = {
 void init_study(struct descriptor_data *d, int class)
 {
   struct char_data *ch = d->character;
+  struct oasis_olc_data *new_olc = NULL;
+  struct level_data *new_levelup = NULL;
   int i = 0, j = 0;
+
+  CREATE(new_olc, struct oasis_olc_data, 1);
+  CREATE(new_levelup, struct level_data, 1);
 
   if (d->olc)
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_study: Player already had olc structure.");
     free(d->olc);
   }
-
-  CREATE(d->olc, struct oasis_olc_data, 1);
+  d->olc = new_olc;
 
   if (LEVELUP(ch))
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: do_study: Player already had levelup structure.");
     free(LEVELUP(ch));
   }
-
-  CREATE(LEVELUP(ch), struct level_data, 1);
+  LEVELUP(ch) = new_levelup;
 
   STATE(d) = CON_STUDY;
 

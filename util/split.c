@@ -42,6 +42,7 @@
 int main(void)
 {
   char line[BSZ + 1];
+  const unsigned char *filename_char;
   char *newline_pos;
   FILE *index = NULL, *outfile = NULL;
   int file_count = 0;
@@ -50,7 +51,7 @@ int main(void)
   printf("Use lines starting with '=' to specify output filenames.\n");
   printf("Example: =zone01.wld\n\n");
 
-  if (!(index = fopen(INDEX_NAME, "w")))
+  if (!(index = fopen_restricted(INDEX_NAME, "w")))
   {
     perror("error opening index file for write");
     exit(1);
@@ -67,6 +68,25 @@ int main(void)
         *newline_pos = '\0';
       }
 
+      filename_char = (const unsigned char *)(line + 1);
+      if (!*filename_char || !strcmp((const char *)filename_char, ".") ||
+          !strcmp((const char *)filename_char, "..") ||
+          strstr((const char *)filename_char, ".."))
+      {
+        fprintf(stderr, "Invalid output filename: %s\n", line + 1);
+        fclose(index);
+        exit(1);
+      }
+      while (*filename_char && (isalnum(*filename_char) || *filename_char == '.' ||
+                                *filename_char == '_' || *filename_char == '-'))
+        filename_char++;
+      if (*filename_char)
+      {
+        fprintf(stderr, "Invalid output filename: %s\n", line + 1);
+        fclose(index);
+        exit(1);
+      }
+
       /* Close previous output file if open */
       if (outfile)
       {
@@ -75,7 +95,7 @@ int main(void)
       }
 
       /* Open new output file */
-      if (!(outfile = fopen((line + 1), "w")))
+      if (!(outfile = fopen_restricted((line + 1), "w")))
       {
         fprintf(stderr, "Error opening output file: %s\n", line + 1);
         fclose(index);

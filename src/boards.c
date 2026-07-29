@@ -248,7 +248,7 @@ int board_write_message(int board_type, struct char_data *ch, char *arg, struct 
     return (1);
   }
   ct = time(0);
-  strftime(tmstr, sizeof(tmstr), "%a %b %d %Y", localtime(&ct));
+  format_time_string(ct, "%a %b %d %Y", tmstr, sizeof(tmstr));
 
   snprintf(buf2, sizeof(buf2), "(%s)", GET_NAME(ch));
   snprintf(buf, sizeof(buf), "%s %-12s :: %s", tmstr, buf2, arg);
@@ -484,7 +484,7 @@ void board_save_board(int board_type)
     remove(FILENAME(board_type));
     return;
   }
-  if (!(fl = fopen(FILENAME(board_type), "wb")))
+  if (!(fl = fopen_restricted(FILENAME(board_type), "wb")))
   {
     perror("SYSERR: Error writing board");
     return;

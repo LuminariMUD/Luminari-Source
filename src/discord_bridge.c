@@ -69,7 +69,7 @@ char *build_discord_json(const char *channel, const char *name, const char *mess
 
   /* Simple JSON escaping */
   j = 0;
-  for (i = 0; name[i] && i < 254 && j < 254; i++)
+  for (i = 0; i < 254 && j < 254 && name[i]; i++)
   {
     if (name[i] == '"' || name[i] == '\\')
     {
@@ -103,7 +103,7 @@ char *build_discord_json(const char *channel, const char *name, const char *mess
   escaped_message[j] = '\0';
 
   j = 0;
-  for (i = 0; channel[i] && i < 126 && j < 126; i++)
+  for (i = 0; i < 126 && j < 126 && channel[i]; i++)
   {
     if (channel[i] == '"' || channel[i] == '\\')
     {

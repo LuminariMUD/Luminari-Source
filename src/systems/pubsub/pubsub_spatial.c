@@ -555,16 +555,16 @@ static char *blend_audio_sources(struct char_data *ch __attribute__((unused)), s
       {
         if (count > 1)
         {
-          pos += snprintf(result + pos, MAX_STRING_LENGTH - pos, "%s, ", source->content);
+          pos = snprintf_append(result, MAX_STRING_LENGTH, pos, "%s, ", source->content);
         }
         else
         {
-          pos += snprintf(result + pos, MAX_STRING_LENGTH - pos, "and %s", source->content);
+          pos = snprintf_append(result, MAX_STRING_LENGTH, pos, "and %s", source->content);
         }
       }
     }
 
-    strcat(result, ".\r\n");
+    strlcat(result, ".\r\n", MAX_STRING_LENGTH);
   }
 
   return result;

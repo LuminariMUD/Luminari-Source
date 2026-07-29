@@ -127,7 +127,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the zone file. */
   snprintf(buf, sizeof(buf), "%s/%d.zon", ZON_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new zone file.");
     *error = "Could not write zone file.\r\n";
@@ -138,7 +138,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the room file. */
   snprintf(buf, sizeof(buf), "%s/%d.wld", WLD_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new world file.");
     *error = "Could not write world file.\r\n";
@@ -149,7 +149,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the mobile file. */
   snprintf(buf, sizeof(buf), "%s/%d.mob", MOB_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new mob file.");
     *error = "Could not write mobile file.\r\n";
@@ -160,7 +160,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the object file. */
   snprintf(buf, sizeof(buf), "%s/%d.obj", OBJ_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new obj file.");
     *error = "Could not write object file.\r\n";
@@ -171,7 +171,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the shop file. */
   snprintf(buf, sizeof(buf), "%s/%d.shp", SHP_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new shop file.");
     *error = "Could not write shop file.\r\n";
@@ -182,7 +182,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the quests file */
   snprintf(buf, sizeof(buf), "%s/%d.qst", QST_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new quest file");
     *error = "Could not write quest file.\r\n";
@@ -193,7 +193,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the hlquest file (homeland-port) */
   snprintf(buf, sizeof(buf), "%s/%d.hlq", HLQST_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new hlquest file");
     *error = "Could not write hlquest file.\r\n";
@@ -204,7 +204,7 @@ zone_rnum create_new_zone(zone_vnum vzone_num, room_vnum bottom, room_vnum top, 
 
   /* Create the trigger file. */
   snprintf(buf, sizeof(buf), "%s/%d.trg", TRG_PREFIX, vzone_num);
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Can't write new trigger file");
     *error = "Could not write trigger file.\r\n";
@@ -324,7 +324,7 @@ void create_world_index(int znum, const char *type)
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", old_name);
     return;
   }
-  else if (!(newfile = fopen(new_name, "w")))
+  else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: OLC: Failed to open %s.", new_name);
     fclose(oldfile);
@@ -345,7 +345,11 @@ void create_world_index(int znum, const char *type)
     }
     else if (!found)
     {
-      sscanf(buf, "%d", &num);
+      if (sscanf(buf, "%d", &num) != 1)
+      {
+        mudlog(BRF, LVL_IMPL, TRUE, "SYSERR: Invalid zone index entry: %s", buf);
+        continue;
+      }
       if (num > znum)
       {
         found = TRUE;
@@ -425,7 +429,7 @@ int save_zone(zone_rnum zone_num)
   }
 
   snprintf(fname, sizeof(fname), "%s/%d.new", ZON_PREFIX, zone_table[zone_num].number);
-  if (!(zfile = fopen(fname, "w")))
+  if (!(zfile = fopen_restricted(fname, "w")))
   {
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: OLC: save_zones:  Can't write zone %d.",
            zone_table[zone_num].number);

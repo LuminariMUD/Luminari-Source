@@ -14,6 +14,8 @@
 /* protect our calloc() and free() calls from recursive redefinition: */
 #define ZMALLOC_H
 
+#include "conf.h"
+#include "sysdep.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,7 +74,7 @@ void zmalloc_init(void)
 
   if (!zfd)
   {
-    zfd = fopen("zmalloc.log", "w+");
+    zfd = fopen_restricted("zmalloc.log", "w+");
   }
 }
 

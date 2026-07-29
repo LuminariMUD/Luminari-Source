@@ -687,22 +687,58 @@ static int rename_pfile_scanner_complete(const struct rename_pfile_scanner *scan
          scanner->device_block == RENAME_DEVICE_BLOCK_NONE && scanner->opaque_lines_remaining == 0;
 }
 
+static FILE *rename_open_regular(const char *path, const char *mode, struct stat *file_stat)
+{
+  FILE *file;
+  struct stat opened_stat;
+  int fd;
+  int flags = O_RDONLY;
+
+#ifdef O_NOFOLLOW
+  flags |= O_NOFOLLOW;
+#endif
+
+  fd = open(path, flags);
+  if (fd < 0)
+    return NULL;
+  if (fstat(fd, &opened_stat) != 0)
+  {
+    close(fd);
+    return NULL;
+  }
+  if (!S_ISREG(opened_stat.st_mode))
+  {
+    close(fd);
+    errno = EINVAL;
+    return NULL;
+  }
+
+  file = fdopen(fd, mode);
+  if (!file)
+  {
+    close(fd);
+    return NULL;
+  }
+
+  if (file_stat)
+    *file_stat = opened_stat;
+  return file;
+}
+
 static int rename_file_contains_intro(const char *path, const char *old_name)
 {
   FILE *file;
-  struct stat file_stat;
   struct rename_pfile_scanner scanner = {0};
   char line[MAX_STRING_LENGTH + 2];
   int found = FALSE;
 
-  if (lstat(path, &file_stat) != 0)
+  file = rename_open_regular(path, "r", NULL);
+  if (!file)
   {
     if (errno == ENOENT)
       return FALSE;
     return -1;
   }
-  if (!S_ISREG(file_stat.st_mode) || !(file = fopen(path, "r")))
-    return -1;
 
   while (fgets(line, sizeof(line), file))
   {
@@ -732,7 +768,8 @@ static int rename_source_player_identity_matches(const char *path, const char *o
   int id_lines = 0;
   int account_lines = 0;
 
-  if (!(file = fopen(path, "r")))
+  file = rename_open_regular(path, "r", NULL);
+  if (!file)
     return FALSE;
   while (fgets(line, sizeof(line), file))
   {
@@ -969,8 +1006,8 @@ static int rename_copy_to_backup(const char *source, char *backup, size_t backup
   if (snprintf(backup, backup_size, "%s.rename-bak.XXXXXX", source) >= (int)backup_size)
     return FALSE;
 
-  if (lstat(source, &source_stat) != 0 || !S_ISREG(source_stat.st_mode) ||
-      !(input = fopen(source, "rb")))
+  input = rename_open_regular(source, "rb", &source_stat);
+  if (!input)
     return FALSE;
 
   if ((fd = mkstemp(backup)) < 0)
@@ -1058,14 +1095,13 @@ static int rename_file_matches_snapshot(const char *path, const char *snapshot)
   size_t saved_count;
   int matches = FALSE;
 
-  if (lstat(path, &current_stat) != 0 || lstat(snapshot, &saved_stat) != 0 ||
-      !S_ISREG(current_stat.st_mode) || !S_ISREG(saved_stat.st_mode) ||
-      current_stat.st_size != saved_stat.st_size ||
+  current = rename_open_regular(path, "rb", &current_stat);
+  saved = rename_open_regular(snapshot, "rb", &saved_stat);
+  if (!current || !saved || current_stat.st_size != saved_stat.st_size ||
       (current_stat.st_mode & 07777) != (saved_stat.st_mode & 07777) ||
       current_stat.st_uid != saved_stat.st_uid || current_stat.st_gid != saved_stat.st_gid ||
       current_stat.st_mtim.tv_sec != saved_stat.st_mtim.tv_sec ||
-      current_stat.st_mtim.tv_nsec != saved_stat.st_mtim.tv_nsec ||
-      !(current = fopen(path, "rb")) || !(saved = fopen(snapshot, "rb")))
+      current_stat.st_mtim.tv_nsec != saved_stat.st_mtim.tv_nsec)
     goto cleanup;
 
   do
@@ -1175,8 +1211,8 @@ static int rename_rewrite_player_file(const char *path, const char *old_name, co
   if (snprintf(temporary, sizeof(temporary), "%s.rename-tmp.XXXXXX", path) >=
       (int)sizeof(temporary))
     return FALSE;
-  if (lstat(path, &source_stat) != 0 || !S_ISREG(source_stat.st_mode) ||
-      !(input = fopen(path, "r")))
+  input = rename_open_regular(path, "r", &source_stat);
+  if (!input)
     return FALSE;
   if ((fd = mkstemp(temporary)) < 0)
   {
@@ -2275,7 +2311,8 @@ static int rename_verify_player_file(struct rename_context *ctx)
   int id_count = 0;
   int id_lines = 0;
 
-  if (!(file = fopen(ctx->files[0].new_path, "r")))
+  file = rename_open_regular(ctx->files[0].new_path, "r", NULL);
+  if (!file)
     return FALSE;
 
   while (fgets(line, sizeof(line), file))
@@ -2340,7 +2377,8 @@ static int rename_verify_index_file(struct rename_context *ctx)
   long id;
   int target_count = 0;
 
-  if (!(file = fopen(ctx->index_path, "r")))
+  file = rename_open_regular(ctx->index_path, "r", NULL);
+  if (!file)
     return FALSE;
   while (fgets(line, sizeof(line), file))
   {
@@ -2416,7 +2454,8 @@ static int rename_verify_old_index_file(struct rename_context *ctx)
   int player_id_count = 0;
   int old_name_count = 0;
 
-  if (!(file = fopen(ctx->index_path, "r")))
+  file = rename_open_regular(ctx->index_path, "r", NULL);
+  if (!file)
     return FALSE;
   while (fgets(line, sizeof(line), file))
   {

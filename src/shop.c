@@ -111,6 +111,8 @@ static int ok_shop_room(int shop_nr, room_vnum room);
 static int add_to_shop_list(struct shop_buy_data *list, int type, int *len, int *val);
 static int end_read_list(struct shop_buy_data *list, int len, int error);
 static void read_line(FILE *shop_f, const char *string, void *data);
+static void format_shop_message(char *dest, size_t dest_size, const char *message,
+                                const char *name, int amount);
 
 /* Local file scope only variables */
 static int cmd_say;
@@ -121,6 +123,53 @@ static int cmd_shake;
 
 /* config arrays */
 static const char *operator_str[] = {"[({", "])}", "|+", "&*", "^'"};
+
+static void format_shop_message(char *dest, size_t dest_size, const char *message,
+                                const char *name, int amount)
+{
+  const char *cursor = message;
+  const char *replacement = NULL;
+  char amount_text[32] = {'\0'};
+  size_t copy_len = 0;
+  size_t used = 0;
+
+  if (!dest || dest_size == 0)
+    return;
+
+  dest[0] = '\0';
+  if (!message)
+    return;
+
+  snprintf(amount_text, sizeof(amount_text), "%d", amount);
+
+  while (*cursor && used + 1 < dest_size)
+  {
+    replacement = NULL;
+    if (*cursor == '%' && cursor[1])
+    {
+      if (cursor[1] == 's')
+        replacement = name ? name : "";
+      else if (cursor[1] == 'd')
+        replacement = amount_text;
+      else if (cursor[1] == '%')
+        replacement = "%";
+    }
+
+    if (replacement)
+    {
+      copy_len = MIN(strlen(replacement), dest_size - used - 1);
+      memcpy(dest + used, replacement, copy_len);
+      used += copy_len;
+      cursor += 2;
+    }
+    else
+    {
+      dest[used++] = *cursor++;
+    }
+  }
+
+  dest[used] = '\0';
+}
 
 static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_nr)
 {
@@ -507,7 +556,7 @@ static struct obj_data *get_purchase_obj(struct char_data *ch, char *arg, struct
       {
         char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-        snprintf(buf, sizeof(buf), shop_index[shop_nr].no_such_item1, GET_NAME(ch));
+        format_shop_message(buf, sizeof(buf), shop_index[shop_nr].no_such_item1, GET_NAME(ch), 0);
         do_tell(keeper, buf, cmd_tell, 0);
       }
       return (NULL);
@@ -631,7 +680,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     {
       char actbuf[MAX_INPUT_LENGTH] = {'\0'};
 
-      snprintf(actbuf, sizeof(actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch));
+      format_shop_message(actbuf, sizeof(actbuf), shop_index[shop_nr].missing_cash2, GET_NAME(ch),
+                          0);
       do_tell(keeper, actbuf, cmd_tell, 0);
 
       switch (SHOP_BROKE_TEMPER(shop_nr))
@@ -851,7 +901,8 @@ static void shopping_buy(char *arg, struct char_data *ch, struct char_data *keep
     snprintf(tempbuf, sizeof(tempbuf), "%s That has cost you %d account experience.", GET_NAME(ch),
              goldamt);
   else if (shop_index[shop_nr].message_buy != NULL)
-    snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch), goldamt);
+    format_shop_message(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_buy, GET_NAME(ch),
+                        goldamt);
   else
     snprintf(tempbuf, sizeof(tempbuf), "%s That will cost you %d coins.", GET_NAME(ch), goldamt);
 
@@ -874,7 +925,7 @@ static struct obj_data *get_selling_obj(struct char_data *ch, char *name, struct
     {
       char tbuf[MAX_INPUT_LENGTH] = {'\0'};
 
-      snprintf(tbuf, sizeof(tbuf), shop_index[shop_nr].no_such_item2, GET_NAME(ch));
+      format_shop_message(tbuf, sizeof(tbuf), shop_index[shop_nr].no_such_item2, GET_NAME(ch), 0);
       do_tell(keeper, tbuf, cmd_tell, 0);
     }
     return (NULL);
@@ -892,7 +943,7 @@ static struct obj_data *get_selling_obj(struct char_data *ch, char *name, struct
              GET_NAME(ch));
     break;
   case OBJECT_NOTOK:
-    snprintf(buf, sizeof(buf), shop_index[shop_nr].do_not_buy, GET_NAME(ch));
+    format_shop_message(buf, sizeof(buf), shop_index[shop_nr].do_not_buy, GET_NAME(ch), 0);
     break;
   case OBJECT_DEAD:
     snprintf(buf, sizeof(buf), "%s %s", GET_NAME(ch), MSG_NO_USED_WANDSTAFF);
@@ -1013,7 +1064,7 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   {
     char buf[MAX_INPUT_LENGTH] = {'\0'};
 
-    snprintf(buf, sizeof(buf), shop_index[shop_nr].missing_cash1, GET_NAME(ch));
+    format_shop_message(buf, sizeof(buf), shop_index[shop_nr].missing_cash1, GET_NAME(ch), 0);
     do_tell(keeper, buf, cmd_tell, 0);
     return;
   }
@@ -1060,7 +1111,8 @@ static void shopping_sell(char *arg, struct char_data *ch, struct char_data *kee
   act(tempbuf, FALSE, ch, obj, 0, TO_ROOM);
 
   if (shop_index[shop_nr].message_sell != NULL)
-    snprintf(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_sell, GET_NAME(ch), goldamt);
+    format_shop_message(tempbuf, sizeof(tempbuf), shop_index[shop_nr].message_sell, GET_NAME(ch),
+                        goldamt);
   else
     snprintf(tempbuf, sizeof(tempbuf), "%s I will give you %d coins for that.", GET_NAME(ch),
              goldamt);
@@ -1437,11 +1489,20 @@ static int read_type_list(FILE *shop_f, struct shop_buy_data *list, int new_form
     ptr = buf;
     if (num == -1)
     {
-      sscanf(buf, "%d", &num);
-      while (!isdigit(*ptr))
-        ptr++;
-      while (isdigit(*ptr))
-        ptr++;
+      if (sscanf(buf, "%d", &num) != 1)
+      {
+        log("SYSERR: Invalid shop buy-type line: %s", buf);
+        error++;
+        num = -1;
+        ptr = END_OF(buf);
+      }
+      else
+      {
+        while (*ptr && !isdigit(*ptr))
+          ptr++;
+        while (isdigit(*ptr))
+          ptr++;
+      }
     }
     while (isspace(*ptr))
       ptr++;

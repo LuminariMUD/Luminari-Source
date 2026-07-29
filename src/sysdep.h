@@ -153,6 +153,10 @@ extern void abort(), exit();
 #include <crypt.h>
 #endif
 
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -571,5 +575,54 @@ ssize_t write(int fildes, const void *buf, size_t nbyte);
 #endif /* __COMM_C__ */
 
 #endif /* NO_LIBRARY_PROTOTYPES */
+
+/*
+ * Opens a writable stream without relying on the process umask to remove
+ * world-write permissions from a newly created file.
+ */
+static inline FILE *fopen_restricted(const char *path, const char *mode)
+{
+  FILE *stream;
+  int fd;
+  int flags;
+
+  if (!path || !mode)
+  {
+    errno = EINVAL;
+    return NULL;
+  }
+
+  switch (*mode)
+  {
+  case 'w':
+    flags = O_CREAT | O_TRUNC;
+    break;
+  case 'a':
+    flags = O_CREAT | O_APPEND;
+    break;
+  default:
+    errno = EINVAL;
+    return NULL;
+  }
+
+  flags |= strchr(mode, '+') ? O_RDWR : O_WRONLY;
+#ifdef O_BINARY
+  if (strchr(mode, 'b'))
+    flags |= O_BINARY;
+#endif
+
+  fd = open(path, flags, 0640);
+  if (fd < 0)
+    return NULL;
+
+  stream = fdopen(fd, mode);
+  if (!stream)
+  {
+    close(fd);
+    return NULL;
+  }
+
+  return stream;
+}
 
 #endif /* _SYSDEP_H_ */

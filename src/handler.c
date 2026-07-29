@@ -2284,7 +2284,7 @@ int get_number(char **name)
   {
     *ppos++ = '\0';
     strlcpy(number, namebuf, sizeof(number));
-    strcpy(*name, ppos); /* strcpy: OK (always smaller) */
+    memmove(*name, ppos, strlen(ppos) + 1);
 
     for (i = 0; *(number + i); i++)
       if (!isdigit(*(number + i)))

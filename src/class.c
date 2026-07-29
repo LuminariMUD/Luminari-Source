@@ -1019,12 +1019,12 @@ bool display_class_info(struct char_data *ch, const char *classname)
     {
       if (first_skill)
       {
-        len += snprintf(buf + len, sizeof(buf) - len, "\tcClass Skills:\tn  %s", ability_names[i]);
+        len = snprintf_append(buf, sizeof(buf), len, "\tcClass Skills:\tn  %s", ability_names[i]);
         first_skill = FALSE;
       }
       else
       {
-        len += snprintf(buf + len, sizeof(buf) - len, ", %s", ability_names[i]);
+        len = snprintf_append(buf, sizeof(buf), len, ", %s", ability_names[i]);
       }
     }
   }
@@ -1135,8 +1135,8 @@ void display_imm_classlist(struct char_data *ch)
 
   for (i = 0; i < NUM_CLASSES; i++)
   {
-    len += snprintf(
-        buf + len, sizeof(buf) - len,
+    len = snprintf_append(
+        buf, sizeof(buf), len,
         "\r\n%d] %s %s %s | %s | %d %s %s %s %d %d %d %s %d %d %s\r\n     %s\r\n"
         "  %s %s %s\r\n"
         "     %s %s %s %s %s %s %s\r\n"
@@ -1214,10 +1214,9 @@ void display_imm_classlist(struct char_data *ch)
                                                 : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA"));
     for (j = 0; j < MAX_NUM_TITLES; j++)
     {
-      len += snprintf(buf + len, sizeof(buf) - len, "%s\r\n", CLSLIST_TITLE(i, j));
+      len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", CLSLIST_TITLE(i, j));
     }
-    len +=
-        snprintf(buf + len, sizeof(buf) - len, "============================================\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "============================================\r\n");
   }
   page_string(ch->desc, buf, 1);
 }

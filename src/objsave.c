@@ -839,7 +839,11 @@ int Crash_delete_crashfile(struct char_data *ch)
 
   if (numread == FALSE)
     return FALSE;
-  sscanf(line, "%d ", &rentcode);
+  if (sscanf(line, "%d ", &rentcode) != 1)
+  {
+    log("SYSERR: Invalid rent code in object file %s.", filename);
+    return FALSE;
+  }
 
   if (rentcode == RENT_CRASH)
     Crash_delete_file(GET_NAME(ch));
@@ -871,7 +875,12 @@ int Crash_clean_file(char *name)
   if (numread == FALSE)
     return FALSE;
 
-  sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems);
+  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+             &nitems) != 6)
+  {
+    log("SYSERR: Invalid rent header in object file %s.", filename);
+    return FALSE;
+  }
 
   if ((rentcode == RENT_CRASH) || (rentcode == RENT_FORCED) || (rentcode == RENT_TIMEDOUT))
   {
@@ -945,34 +954,40 @@ void Crash_listrent(struct char_data *ch, char *name)
     return;
   }
 
-  sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems);
+  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
+             &nitems) != 6)
+  {
+    send_to_char(ch, "Invalid rent information.\r\n");
+    fclose(fl);
+    return;
+  }
 
   switch (rentcode)
   {
   case RENT_RENTED:
-    len += snprintf(buf + len, sizeof(buf) - len, "Rent\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "Rent\r\n");
     break;
   case RENT_CRASH:
-    len += snprintf(buf + len, sizeof(buf) - len, "Crash\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "Crash\r\n");
     break;
   case RENT_CRYO:
-    len += snprintf(buf + len, sizeof(buf) - len, "Cryo\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "Cryo\r\n");
     break;
   case RENT_TIMEDOUT:
   case RENT_FORCED:
-    len += snprintf(buf + len, sizeof(buf) - len, "TimedOut\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "TimedOut\r\n");
     break;
   default:
-    len += snprintf(buf + len, sizeof(buf) - len, "Undef\r\n");
+    len = snprintf_append(buf, sizeof(buf), len, "Undef\r\n");
     break;
   }
 
   loaded = objsave_parse_objects(fl);
 
   for (current = loaded; current != NULL; current = current->next)
-    len += snprintf(buf + len, sizeof(buf) - len, "[%5d] (%5dau) %-20s\r\n",
-                    GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
-                    current->obj->short_description);
+    len = snprintf_append(buf, sizeof(buf), len, "[%5d] (%5dau) %-20s\r\n",
+                          GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
+                          current->obj->short_description);
 
   /* Now it's safe to free the obj_save_data list and the objects on it. */
   while (loaded != NULL)
@@ -1174,7 +1189,7 @@ void Crash_crashsave(struct char_data *ch)
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
     return;
 
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
     return;
 
 #ifdef OBJSAVE_DB
@@ -1277,7 +1292,7 @@ void Crash_idlesave(struct char_data *ch)
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
     return;
 
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
     return;
 
 #ifdef OBJSAVE_DB
@@ -1416,7 +1431,7 @@ void Crash_rentsave(struct char_data *ch, int cost)
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
     return;
 
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
     return;
 
 #ifdef OBJSAVE_DB
@@ -1553,7 +1568,7 @@ static void Crash_cryosave(struct char_data *ch, int cost)
   if (!get_filename(buf, sizeof(buf), CRASH_FILE, GET_NAME(ch)))
     return;
 
-  if (!(fp = fopen(buf, "w")))
+  if (!(fp = fopen_restricted(buf, "w")))
     return;
 
   Crash_extract_norent_eq(ch);
@@ -1668,7 +1683,7 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep, int d
   if (norent)
     return FALSE;
 
-  totalcost = CONFIG_MIN_RENT_COST * factor;
+  totalcost = (long)CONFIG_MIN_RENT_COST * factor;
 
   Crash_report_rent(ch, recep, ch->carrying, &totalcost, &numitems, display, factor);
 
@@ -2850,8 +2865,12 @@ static int Crash_load_objs(struct char_data *ch)
   if (!using_db)
   {
     if (!get_line(fl, line))
+    {
       mudlog(NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(ch)), TRUE,
              "Failed to read player's rent code: %s.", GET_NAME(ch));
+      fclose(fl);
+      return 1;
+    }
     else if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
                     &nitems) != 6)
     {

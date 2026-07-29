@@ -578,7 +578,7 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
 void perform_obj_worn_list(struct char_data *ch, char *arg)
 {
   obj_rnum num;
-  int wearloc, found = 0, len = 0, tmp_len = 0, i = 0;
+  int wearloc, found = 0, len = 0, i = 0;
   obj_vnum ov;
   char buf[MAX_STRING_LENGTH] = {'\0'}, bitbuf[MEDIUM_STRING] = {'\0'};
   struct obj_data *obj = NULL;
@@ -609,8 +609,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
       ov = obj_index[num].vnum;
 
       /* display index, vnum */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%s%3d %7d ", QNRM, ++found, ov);
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "%s%3d %7d ", QNRM, ++found, ov);
 
       /* has affects? */
       /*
@@ -620,10 +619,9 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
        */
 
       /* display short descrip */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "%-*s%s | ",
-                         32 + count_color_chars(obj_proto[num].short_description),
-                         obj_proto[num].short_description, QNRM);
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "%-*s%s | ",
+                            32 + count_color_chars(obj_proto[num].short_description),
+                            obj_proto[num].short_description, QNRM);
 
       /* has affect locations? */
       for (i = 0; i < MAX_OBJ_AFFECT; i++)
@@ -631,22 +629,19 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
         if ((obj->affected[i].location != APPLY_NONE) && (obj->affected[i].modifier != 0))
         {
           sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof(bitbuf));
-          tmp_len =
-              snprintf(buf + len, sizeof(buf) - len, "%s %d ", bitbuf, obj->affected[i].modifier);
-          len += tmp_len;
+          len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf,
+                                obj->affected[i].modifier);
         }
       }
 
       /* sending a carrier return */
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "\r\n");
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "\r\n");
     }
 
     /* another dummy check */
     if (found >= 700)
     {
-      tmp_len = snprintf(buf + len, sizeof(buf) - len, "**OVERLOADED BUFF***\r\n");
-      len += tmp_len;
+      len = snprintf_append(buf, sizeof(buf), len, "**OVERLOADED BUFF***\r\n");
 
       break;
     }
@@ -1441,8 +1436,8 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
     {
       counter++;
 
-      len += snprintf(
-          buf + len, sizeof(buf) - len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s", counter, QYEL,
+      len = snprintf_append(
+          buf, sizeof(buf), len, "%4d)%s%s%s [%s%-5d%s] %s%-*s%s %s", counter, QYEL,
           (has_zcmds != NULL ? (has_zcmds[world[i].number - bottom] == TRUE ? "Z" : " ") : ""),
           QNRM, QGRN, world[i].number, QNRM, QCYN, count_color_chars(world[i].name) + 44,
           world[i].name, QNRM, world[i].proto_script ? "[TRIG] " : "");
@@ -1455,20 +1450,20 @@ static void list_rooms(struct char_data *ch, zone_rnum rnum, room_vnum vmin, roo
           continue;
 
         if (world[W_EXIT(i, j)->to_room].zone != world[i].zone)
-          len += snprintf(buf + len, sizeof(buf) - len, "(%s%d%s)", QYEL,
-                          world[W_EXIT(i, j)->to_room].number, QNRM);
+          len = snprintf_append(buf, sizeof(buf), len, "(%s%d%s)", QYEL,
+                                world[W_EXIT(i, j)->to_room].number, QNRM);
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
+      len = snprintf_append(buf, sizeof(buf), len, "\r\n");
 
-      if ((size_t)len >= sizeof(buf))
+      if ((size_t)len >= sizeof(buf) - 1)
         break;
 
       /* still having issues with overflow, guessing it is a miscalculation with color codes -zusuk */
       if (counter >= 200)
       {
-        len += snprintf(buf + len, sizeof(buf) - len,
-                        "\r\n OVERFLOW, use a range to view the rest! \r\n");
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "\r\n OVERFLOW, use a range to view the rest! \r\n");
         break;
       }
     }
@@ -1614,12 +1609,12 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
         for (j = 1; j < NUM_ITEM_WEARS; j++)
         {
           if (IS_SET_AR(obj_proto[i].obj_flags.wear_flags, j))
-            len2 += snprintf(wears_text + len2, sizeof(wears_text) - len2, "%s ", wear_bits[j]);
+            len2 = snprintf_append(wears_text, sizeof(wears_text), len2, "%s ", wear_bits[j]);
         }
       }
 
-      len += snprintf(
-          buf + len, sizeof(buf) - len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ",
+      len = snprintf_append(
+          buf, sizeof(buf), len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ",
           QGRN, obj_index[i].vnum, QNRM, num_found,
           (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"), QCYN,
           count_color_chars(obj_proto[i].short_description) + 28, obj_proto[i].short_description,
@@ -1651,23 +1646,23 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
             case APPLY_FEAT:
               snprintf(buf2, sizeof(buf2), " (%s)",
                        feat_list[obj_proto[i].affected[k].modifier].name);
-              len += snprintf(buf + len, sizeof(buf) - len, " %s%s", bitbuf, buf2);
+              len = snprintf_append(buf, sizeof(buf), len, " %s%s", bitbuf, buf2);
               break;
             default:
               buf2[0] = 0;
-              len += snprintf(buf + len, sizeof(buf) - len, " %s%s %s%d (%s)", bitbuf, buf2,
-                              (obj_proto[i].affected[k].modifier > 0) ? "+" : "",
-                              obj_proto[i].affected[k].modifier,
-                              bonus_types[obj_proto[i].affected[k].bonus_type]);
+              len = snprintf_append(buf, sizeof(buf), len, " %s%s %s%d (%s)", bitbuf, buf2,
+                                    (obj_proto[i].affected[k].modifier > 0) ? "+" : "",
+                                    obj_proto[i].affected[k].modifier,
+                                    bonus_types[obj_proto[i].affected[k].bonus_type]);
               break;
             }
           }
         }
       }
 
-      len += snprintf(buf + len, sizeof(buf) - len, "\r\n");
+      len = snprintf_append(buf, sizeof(buf), len, "\r\n");
 
-      if ((size_t)len >= sizeof(buf))
+      if ((size_t)len >= sizeof(buf) - 1)
         break;
     }
   }
@@ -1757,7 +1752,7 @@ static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, sho
 static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax,
                        char *name)
 {
-  int counter = 0, len = 0, tmp_len = 0;
+  int counter = 0, len = 0;
   zone_rnum i;
   zone_vnum bottom, top;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -1786,7 +1781,8 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
                  "VNum  Zone Name                  Status    Builder(s)\r\n"
                  "----- -------------------------- ------ -------------------------------\r\n");
 
-  len += snprintf(buf + len, sizeof(buf) - len, "NOTE:  <*> Means Reserved, See HELP RESERVED\r\n");
+  len = snprintf_append(buf, sizeof(buf), len,
+                        "NOTE:  <*> Means Reserved, See HELP RESERVED\r\n");
 
   if (!top_of_zone_table)
     return;
@@ -1805,11 +1801,10 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         else
           buf2 = strdup("\tmN-Reva\tn");
 
-        tmp_len = snprintf(buf + len, sizeof(buf) - len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN,
-                           zone_table[i].number, QNRM, QCYN,
-                           count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2,
-                           QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
-        len += tmp_len;
+        len = snprintf_append(buf, sizeof(buf), len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN,
+                              zone_table[i].number, QNRM, QCYN,
+                              count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2,
+                              QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
         counter++;
       }
     }

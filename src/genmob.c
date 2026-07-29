@@ -404,7 +404,7 @@ int save_mobiles(zone_rnum rznum)
 
   vznum = zone_table[rznum].number;
   snprintf(mobfname, sizeof(mobfname), "%s%d.new", MOB_PREFIX, vznum);
-  if ((mobfd = fopen(mobfname, "w")) == NULL)
+  if ((mobfd = fopen_restricted(mobfname, "w")) == NULL)
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: GenOLC: Cannot open mob file for writing.");
     return FALSE;

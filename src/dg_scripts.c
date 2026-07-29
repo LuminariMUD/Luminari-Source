@@ -1669,7 +1669,8 @@ static int eval_lhs_op_rhs(char *expr, char *result, void *go, struct script_dat
   const char *const ops[] = {"||", "&&", "==", "!=", "<=", ">=", "<", ">",
                              "/=", "-",  "+",  "/",  "*",  "!",  "\n"};
 
-  p = strcpy(line, expr);
+  strlcpy(line, expr, sizeof(line));
+  p = line;
 
   /* Initialize tokens, an array of pointers to locations in line where the
    * ops could possibly occur. */
@@ -2677,7 +2678,7 @@ static void extract_value(struct script_data *sc, trig_data *trig, char *cmd)
 
   buf3 = any_one_arg(cmd, buf);
   half_chop(buf3, buf2, buf);
-  strcpy(to, buf2);
+  strlcpy(to, buf2, sizeof(to));
 
   num = atoi(buf);
   if (num < 1)
@@ -3512,7 +3513,7 @@ void save_char_vars(struct char_data *ch)
     return;
   vars = ch->script->global_vars;
 
-  file = fopen(fn, "wt");
+  file = fopen_restricted(fn, "wt");
   if (!file)
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Could not open player variable file %s for writing.:%s",

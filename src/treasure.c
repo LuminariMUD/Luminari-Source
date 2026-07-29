@@ -2173,17 +2173,17 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
   if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_BODY))
   {
-    strncat(desc, "a suit of", MEDIUM_STRING - strlen(desc));
+    strlcat(desc, "a suit of", sizeof(desc));
   }
   else if (IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_HEAD) ||
            IS_SET_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_SHIELD))
   {
     armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-    strncat(desc, AN(armor_special_descs[armor_desc_roll]), MEDIUM_STRING - strlen(desc));
+    strlcat(desc, AN(armor_special_descs[armor_desc_roll]), sizeof(desc));
   }
   else
   {
-    strncat(desc, "a pair of", MEDIUM_STRING - strlen(desc));
+    strlcat(desc, "a pair of", sizeof(desc));
   }
 
   /* set the object material, check for upgrade */
@@ -2200,48 +2200,48 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
-  strncat(keywords, armor_list[GET_ARMOR_TYPE(obj)].name, MEDIUM_STRING - strlen(keywords));
-  strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
-  strncat(keywords, material_name[GET_OBJ_MATERIAL(obj)], MEDIUM_STRING - strlen(keywords));
+  strlcat(keywords, " ", sizeof(keywords));
+  strlcat(keywords, armor_list[GET_ARMOR_TYPE(obj)].name, sizeof(keywords));
+  strlcat(keywords, " ", sizeof(keywords));
+  strlcat(keywords, material_name[GET_OBJ_MATERIAL(obj)], sizeof(keywords));
 
   roll = dice(1, 3);
   if (roll == 3)
   { // armor spec adjective in desc?
-    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
-    strncat(desc, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desc));
-    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
-    strncat(keywords, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywords));
+    strlcat(desc, " ", sizeof(desc));
+    strlcat(desc, armor_special_descs[armor_desc_roll], sizeof(desc));
+    strlcat(keywords, " ", sizeof(keywords));
+    strlcat(keywords, armor_special_descs[armor_desc_roll], sizeof(keywords));
   }
 
   roll = dice(1, 5);
   if (roll >= 4)
   { // color describe #1?
-    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
-    strncat(desc, colors[color1], MEDIUM_STRING - strlen(desc));
-    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
-    strncat(keywords, colors[color1], MEDIUM_STRING - strlen(keywords));
+    strlcat(desc, " ", sizeof(desc));
+    strlcat(desc, colors[color1], sizeof(desc));
+    strlcat(keywords, " ", sizeof(keywords));
+    strlcat(keywords, colors[color1], sizeof(keywords));
   }
   else if (roll == 3)
   { // two colors
-    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
-    strncat(desc, colors[color1], MEDIUM_STRING - strlen(desc));
-    strncat(desc, " and ", MEDIUM_STRING - strlen(desc));
-    strncat(desc, colors[color2], MEDIUM_STRING - strlen(desc));
-    strncat(keywords, " ", MEDIUM_STRING - strlen(keywords));
-    strncat(keywords, colors[color1], MEDIUM_STRING - strlen(keywords));
-    strncat(keywords, " and ", MEDIUM_STRING - strlen(keywords));
-    strncat(keywords, colors[color2], MEDIUM_STRING - strlen(keywords));
+    strlcat(desc, " ", sizeof(desc));
+    strlcat(desc, colors[color1], sizeof(desc));
+    strlcat(desc, " and ", sizeof(desc));
+    strlcat(desc, colors[color2], sizeof(desc));
+    strlcat(keywords, " ", sizeof(keywords));
+    strlcat(keywords, colors[color1], sizeof(keywords));
+    strlcat(keywords, " and ", sizeof(keywords));
+    strlcat(keywords, colors[color2], sizeof(keywords));
   }
 
   // Insert the material type, then armor type
   if (GET_OBJ_MATERIAL(obj) != MATERIAL_LEATHER) // leather is redudant in description here
   {
-    strncat(desc, " ", MEDIUM_STRING - strlen(desc));
-    strncat(desc, material_name[GET_OBJ_MATERIAL(obj)], MEDIUM_STRING - strlen(desc));
+    strlcat(desc, " ", sizeof(desc));
+    strlcat(desc, material_name[GET_OBJ_MATERIAL(obj)], sizeof(desc));
   }
-  strncat(desc, " ", MEDIUM_STRING - strlen(desc));
-  strncat(desc, armor_list[GET_ARMOR_TYPE(obj)].name, MEDIUM_STRING - strlen(desc));
+  strlcat(desc, " ", sizeof(desc));
+  strlcat(desc, armor_list[GET_ARMOR_TYPE(obj)].name, sizeof(desc));
 
   roll = dice(1, 8);
   if (roll >= 7)
@@ -2249,16 +2249,16 @@ void award_magic_armor(struct char_data *ch, int grade, int wear_slot)
     char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
-    strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
+    strlcat(desc, tmp, sizeof(desc));
+    strlcat(keywords, tmp, sizeof(keywords));
   }
   else if (roll >= 5)
   { // or symbol?
     char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    strncat(desc, tmp, MEDIUM_STRING - strlen(desc));
-    strncat(keywords, tmp, MEDIUM_STRING - strlen(keywords));
+    strlcat(desc, tmp, sizeof(desc));
+    strlcat(keywords, tmp, sizeof(keywords));
   }
 
   // keywords
@@ -2327,11 +2327,11 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
 
   /* a suit of (body), or a pair of (arm/leg), or AN() (helm) */
 
-  strncat(descb, "a suit of", MEDIUM_STRING - strlen(descb));
+  strlcat(descb, "a suit of", sizeof(descb));
   armor_desc_roll = rand_number(0, NUM_A_ARMOR_SPECIAL_DESCS - 1);
-  strncat(desch, AN(armor_special_descs[armor_desc_roll]), MEDIUM_STRING - strlen(desch));
-  strncat(desca, "a pair of", MEDIUM_STRING - strlen(desca));
-  strncat(descl, "a pair of", MEDIUM_STRING - strlen(descl));
+  strlcat(desch, AN(armor_special_descs[armor_desc_roll]), sizeof(desch));
+  strlcat(desca, "a pair of", sizeof(desca));
+  strlcat(descl, "a pair of", sizeof(descl));
 
   /* set the object material, check for upgrade */
   GET_OBJ_MATERIAL(body) = possible_material_upgrade(GET_OBJ_MATERIAL(body), grade);
@@ -2350,120 +2350,120 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
   crest_num = rand_number(0, NUM_A_ARMOR_CRESTS - 1);
 
   /* start with keyword string */
-  strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
-  strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
-  strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
-  strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
-  strncat(keywordsb, armor_list[GET_ARMOR_TYPE(body)].name, MEDIUM_STRING - strlen(keywordsb));
-  strncat(keywordsh, armor_list[GET_ARMOR_TYPE(head)].name, MEDIUM_STRING - strlen(keywordsh));
-  strncat(keywordsa, armor_list[GET_ARMOR_TYPE(arms)].name, MEDIUM_STRING - strlen(keywordsa));
-  strncat(keywordsl, armor_list[GET_ARMOR_TYPE(legs)].name, MEDIUM_STRING - strlen(keywordsl));
-  strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
-  strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
-  strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
-  strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
-  strncat(keywordsb, material_name[GET_OBJ_MATERIAL(body)], MEDIUM_STRING - strlen(keywordsb));
-  strncat(keywordsh, material_name[GET_OBJ_MATERIAL(head)], MEDIUM_STRING - strlen(keywordsh));
-  strncat(keywordsa, material_name[GET_OBJ_MATERIAL(arms)], MEDIUM_STRING - strlen(keywordsa));
-  strncat(keywordsl, material_name[GET_OBJ_MATERIAL(legs)], MEDIUM_STRING - strlen(keywordsl));
+  strlcat(keywordsb, " ", sizeof(keywordsb));
+  strlcat(keywordsh, " ", sizeof(keywordsh));
+  strlcat(keywordsa, " ", sizeof(keywordsa));
+  strlcat(keywordsl, " ", sizeof(keywordsl));
+  strlcat(keywordsb, armor_list[GET_ARMOR_TYPE(body)].name, sizeof(keywordsb));
+  strlcat(keywordsh, armor_list[GET_ARMOR_TYPE(head)].name, sizeof(keywordsh));
+  strlcat(keywordsa, armor_list[GET_ARMOR_TYPE(arms)].name, sizeof(keywordsa));
+  strlcat(keywordsl, armor_list[GET_ARMOR_TYPE(legs)].name, sizeof(keywordsl));
+  strlcat(keywordsb, " ", sizeof(keywordsb));
+  strlcat(keywordsh, " ", sizeof(keywordsh));
+  strlcat(keywordsa, " ", sizeof(keywordsa));
+  strlcat(keywordsl, " ", sizeof(keywordsl));
+  strlcat(keywordsb, material_name[GET_OBJ_MATERIAL(body)], sizeof(keywordsb));
+  strlcat(keywordsh, material_name[GET_OBJ_MATERIAL(head)], sizeof(keywordsh));
+  strlcat(keywordsa, material_name[GET_OBJ_MATERIAL(arms)], sizeof(keywordsa));
+  strlcat(keywordsl, material_name[GET_OBJ_MATERIAL(legs)], sizeof(keywordsl));
 
   roll = dice(1, 3);
   if (roll == 3)
   { // armor spec adjective in desc?
-    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
-    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
-    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
-    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
-    strncat(descb, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(descb));
-    strncat(desch, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desch));
-    strncat(desca, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(desca));
-    strncat(descl, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(descl));
-    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
-    strncat(keywordsb, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, armor_special_descs[armor_desc_roll], MEDIUM_STRING - strlen(keywordsl));
+    strlcat(descb, " ", sizeof(descb));
+    strlcat(desch, " ", sizeof(desch));
+    strlcat(desca, " ", sizeof(desca));
+    strlcat(descl, " ", sizeof(descl));
+    strlcat(descb, armor_special_descs[armor_desc_roll], sizeof(descb));
+    strlcat(desch, armor_special_descs[armor_desc_roll], sizeof(desch));
+    strlcat(desca, armor_special_descs[armor_desc_roll], sizeof(desca));
+    strlcat(descl, armor_special_descs[armor_desc_roll], sizeof(descl));
+    strlcat(keywordsb, " ", sizeof(keywordsb));
+    strlcat(keywordsh, " ", sizeof(keywordsh));
+    strlcat(keywordsa, " ", sizeof(keywordsa));
+    strlcat(keywordsl, " ", sizeof(keywordsl));
+    strlcat(keywordsb, armor_special_descs[armor_desc_roll], sizeof(keywordsb));
+    strlcat(keywordsh, armor_special_descs[armor_desc_roll], sizeof(keywordsh));
+    strlcat(keywordsa, armor_special_descs[armor_desc_roll], sizeof(keywordsa));
+    strlcat(keywordsl, armor_special_descs[armor_desc_roll], sizeof(keywordsl));
   }
 
   roll = dice(1, 5);
   if (roll >= 4)
   { // color describe #1?
-    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
-    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
-    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
-    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
-    strncat(descb, colors[color1], MEDIUM_STRING - strlen(descb));
-    strncat(desch, colors[color1], MEDIUM_STRING - strlen(desch));
-    strncat(desca, colors[color1], MEDIUM_STRING - strlen(desca));
-    strncat(descl, colors[color1], MEDIUM_STRING - strlen(descl));
-    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
-    strncat(keywordsb, colors[color1], MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, colors[color1], MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, colors[color1], MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, colors[color1], MEDIUM_STRING - strlen(keywordsl));
+    strlcat(descb, " ", sizeof(descb));
+    strlcat(desch, " ", sizeof(desch));
+    strlcat(desca, " ", sizeof(desca));
+    strlcat(descl, " ", sizeof(descl));
+    strlcat(descb, colors[color1], sizeof(descb));
+    strlcat(desch, colors[color1], sizeof(desch));
+    strlcat(desca, colors[color1], sizeof(desca));
+    strlcat(descl, colors[color1], sizeof(descl));
+    strlcat(keywordsb, " ", sizeof(keywordsb));
+    strlcat(keywordsh, " ", sizeof(keywordsh));
+    strlcat(keywordsa, " ", sizeof(keywordsa));
+    strlcat(keywordsl, " ", sizeof(keywordsl));
+    strlcat(keywordsb, colors[color1], sizeof(keywordsb));
+    strlcat(keywordsh, colors[color1], sizeof(keywordsh));
+    strlcat(keywordsa, colors[color1], sizeof(keywordsa));
+    strlcat(keywordsl, colors[color1], sizeof(keywordsl));
   }
   else if (roll == 3)
   { // two colors
-    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
-    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
-    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
-    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
-    strncat(descb, colors[color1], MEDIUM_STRING - strlen(descb));
-    strncat(desch, colors[color1], MEDIUM_STRING - strlen(desch));
-    strncat(desca, colors[color1], MEDIUM_STRING - strlen(desca));
-    strncat(descl, colors[color1], MEDIUM_STRING - strlen(descl));
-    strncat(descb, " and ", MEDIUM_STRING - strlen(descb));
-    strncat(desch, " and ", MEDIUM_STRING - strlen(desch));
-    strncat(desca, " and ", MEDIUM_STRING - strlen(desca));
-    strncat(descl, " and ", MEDIUM_STRING - strlen(descl));
-    strncat(descb, colors[color2], MEDIUM_STRING - strlen(descb));
-    strncat(desch, colors[color2], MEDIUM_STRING - strlen(desch));
-    strncat(desca, colors[color2], MEDIUM_STRING - strlen(desca));
-    strncat(descl, colors[color2], MEDIUM_STRING - strlen(descl));
-    strncat(keywordsb, " ", MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, " ", MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, " ", MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, " ", MEDIUM_STRING - strlen(keywordsl));
-    strncat(keywordsb, colors[color1], MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, colors[color1], MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, colors[color1], MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, colors[color1], MEDIUM_STRING - strlen(keywordsl));
-    strncat(keywordsb, " and ", MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, " and ", MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, " and ", MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, " and ", MEDIUM_STRING - strlen(keywordsl));
-    strncat(keywordsb, colors[color2], MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, colors[color2], MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, colors[color2], MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, colors[color2], MEDIUM_STRING - strlen(keywordsl));
+    strlcat(descb, " ", sizeof(descb));
+    strlcat(desch, " ", sizeof(desch));
+    strlcat(desca, " ", sizeof(desca));
+    strlcat(descl, " ", sizeof(descl));
+    strlcat(descb, colors[color1], sizeof(descb));
+    strlcat(desch, colors[color1], sizeof(desch));
+    strlcat(desca, colors[color1], sizeof(desca));
+    strlcat(descl, colors[color1], sizeof(descl));
+    strlcat(descb, " and ", sizeof(descb));
+    strlcat(desch, " and ", sizeof(desch));
+    strlcat(desca, " and ", sizeof(desca));
+    strlcat(descl, " and ", sizeof(descl));
+    strlcat(descb, colors[color2], sizeof(descb));
+    strlcat(desch, colors[color2], sizeof(desch));
+    strlcat(desca, colors[color2], sizeof(desca));
+    strlcat(descl, colors[color2], sizeof(descl));
+    strlcat(keywordsb, " ", sizeof(keywordsb));
+    strlcat(keywordsh, " ", sizeof(keywordsh));
+    strlcat(keywordsa, " ", sizeof(keywordsa));
+    strlcat(keywordsl, " ", sizeof(keywordsl));
+    strlcat(keywordsb, colors[color1], sizeof(keywordsb));
+    strlcat(keywordsh, colors[color1], sizeof(keywordsh));
+    strlcat(keywordsa, colors[color1], sizeof(keywordsa));
+    strlcat(keywordsl, colors[color1], sizeof(keywordsl));
+    strlcat(keywordsb, " and ", sizeof(keywordsb));
+    strlcat(keywordsh, " and ", sizeof(keywordsh));
+    strlcat(keywordsa, " and ", sizeof(keywordsa));
+    strlcat(keywordsl, " and ", sizeof(keywordsl));
+    strlcat(keywordsb, colors[color2], sizeof(keywordsb));
+    strlcat(keywordsh, colors[color2], sizeof(keywordsh));
+    strlcat(keywordsa, colors[color2], sizeof(keywordsa));
+    strlcat(keywordsl, colors[color2], sizeof(keywordsl));
   }
 
   // Insert the material type, then armor type
   if (GET_OBJ_MATERIAL(body) != MATERIAL_LEATHER) // leather is redudant in description here
   {
-    strncat(descb, " ", MEDIUM_STRING - strlen(descb));
-    strncat(desch, " ", MEDIUM_STRING - strlen(desch));
-    strncat(desca, " ", MEDIUM_STRING - strlen(desca));
-    strncat(descl, " ", MEDIUM_STRING - strlen(descl));
-    strncat(descb, material_name[GET_OBJ_MATERIAL(body)], MEDIUM_STRING - strlen(descb));
-    strncat(desch, material_name[GET_OBJ_MATERIAL(head)], MEDIUM_STRING - strlen(desch));
-    strncat(desca, material_name[GET_OBJ_MATERIAL(arms)], MEDIUM_STRING - strlen(desca));
-    strncat(descl, material_name[GET_OBJ_MATERIAL(legs)], MEDIUM_STRING - strlen(descl));
+    strlcat(descb, " ", sizeof(descb));
+    strlcat(desch, " ", sizeof(desch));
+    strlcat(desca, " ", sizeof(desca));
+    strlcat(descl, " ", sizeof(descl));
+    strlcat(descb, material_name[GET_OBJ_MATERIAL(body)], sizeof(descb));
+    strlcat(desch, material_name[GET_OBJ_MATERIAL(head)], sizeof(desch));
+    strlcat(desca, material_name[GET_OBJ_MATERIAL(arms)], sizeof(desca));
+    strlcat(descl, material_name[GET_OBJ_MATERIAL(legs)], sizeof(descl));
   }
-  strncat(descb, " ", MEDIUM_STRING - strlen(descb));
-  strncat(desch, " ", MEDIUM_STRING - strlen(desch));
-  strncat(desca, " ", MEDIUM_STRING - strlen(desca));
-  strncat(descl, " ", MEDIUM_STRING - strlen(descl));
-  strncat(descb, armor_list[GET_ARMOR_TYPE(body)].name, MEDIUM_STRING - strlen(descb));
-  strncat(desch, armor_list[GET_ARMOR_TYPE(head)].name, MEDIUM_STRING - strlen(desch));
-  strncat(desca, armor_list[GET_ARMOR_TYPE(arms)].name, MEDIUM_STRING - strlen(desca));
-  strncat(descl, armor_list[GET_ARMOR_TYPE(legs)].name, MEDIUM_STRING - strlen(descl));
+  strlcat(descb, " ", sizeof(descb));
+  strlcat(desch, " ", sizeof(desch));
+  strlcat(desca, " ", sizeof(desca));
+  strlcat(descl, " ", sizeof(descl));
+  strlcat(descb, armor_list[GET_ARMOR_TYPE(body)].name, sizeof(descb));
+  strlcat(desch, armor_list[GET_ARMOR_TYPE(head)].name, sizeof(desch));
+  strlcat(desca, armor_list[GET_ARMOR_TYPE(arms)].name, sizeof(desca));
+  strlcat(descl, armor_list[GET_ARMOR_TYPE(legs)].name, sizeof(descl));
 
   roll = dice(1, 8);
   if (roll >= 7)
@@ -2471,28 +2471,28 @@ void award_magic_armor_suit(struct char_data *ch, int grade)
     char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " with %s %s crest", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
-    strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
-    strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
-    strncat(descl, tmp, MEDIUM_STRING - strlen(descl));
-    strncat(keywordsb, tmp, MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, tmp, MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, tmp, MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, tmp, MEDIUM_STRING - strlen(keywordsl));
+    strlcat(descb, tmp, sizeof(descb));
+    strlcat(desch, tmp, sizeof(desch));
+    strlcat(desca, tmp, sizeof(desca));
+    strlcat(descl, tmp, sizeof(descl));
+    strlcat(keywordsb, tmp, sizeof(keywordsb));
+    strlcat(keywordsh, tmp, sizeof(keywordsh));
+    strlcat(keywordsa, tmp, sizeof(keywordsa));
+    strlcat(keywordsl, tmp, sizeof(keywordsl));
   }
   else if (roll >= 5)
   { // or symbol?
     char tmp[SMALL_STRING] = {'\0'};
     snprintf(tmp, SMALL_STRING, " covered in symbols of %s %s", AN(armor_crests[crest_num]),
              armor_crests[crest_num]);
-    strncat(descb, tmp, MEDIUM_STRING - strlen(descb));
-    strncat(desch, tmp, MEDIUM_STRING - strlen(desch));
-    strncat(desca, tmp, MEDIUM_STRING - strlen(desca));
-    strncat(descl, tmp, MEDIUM_STRING - strlen(descl));
-    strncat(keywordsb, tmp, MEDIUM_STRING - strlen(keywordsb));
-    strncat(keywordsh, tmp, MEDIUM_STRING - strlen(keywordsh));
-    strncat(keywordsa, tmp, MEDIUM_STRING - strlen(keywordsa));
-    strncat(keywordsl, tmp, MEDIUM_STRING - strlen(keywordsl));
+    strlcat(descb, tmp, sizeof(descb));
+    strlcat(desch, tmp, sizeof(desch));
+    strlcat(desca, tmp, sizeof(desca));
+    strlcat(descl, tmp, sizeof(descl));
+    strlcat(keywordsb, tmp, sizeof(keywordsb));
+    strlcat(keywordsh, tmp, sizeof(keywordsh));
+    strlcat(keywordsa, tmp, sizeof(keywordsa));
+    strlcat(keywordsl, tmp, sizeof(keywordsl));
   }
 
   // keywords

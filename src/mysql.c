@@ -772,7 +772,7 @@ void connect_to_mysql()
       continue;
 
     /* Parse key = value pairs */
-    else if (sscanf(line, "%s = %s", key, val) == 2)
+    else if (sscanf(line, "%127s = %127s", key, val) == 2)
     {
       /* Host configuration (e.g., localhost, 192.168.1.100, db.example.com) */
       if (!str_cmp(key, "mysql_host"))
@@ -2932,6 +2932,7 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
   MYSQL_ROW row;
   int xlow, xhigh, ylow, yhigh;
   int xp, yp;
+  bool found_coordinate = false;
 
   char buf[MAX_STRING_LENGTH] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
@@ -2976,7 +2977,11 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     /* Parse the polygon text data to get the vertices, etc.
        eg: LINESTRING(0 0,10 0,10 10,0 10,0 0) */
     log(" Envelope: %s", row[0]);
-    sscanf(row[0], "POLYGON((%[^)]))", buf2);
+    if (sscanf(row[0], "POLYGON((%49151[^)]))", buf2) != 1)
+    {
+      log("SYSERR: Invalid spatial envelope: %s", row[0]);
+      continue;
+    }
     tokens = tokenize(buf2, ",");
     if (!tokens)
     {
@@ -2989,7 +2994,12 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
     for (it = tokens; it && *it; ++it)
     {
       log(" Token: %s", *it);
-      sscanf(*it, "%d %d", &newx, &newy);
+      if (sscanf(*it, "%d %d", &newx, &newy) != 2)
+      {
+        log("SYSERR: Invalid spatial coordinate: %s", *it);
+        continue;
+      }
+      found_coordinate = true;
       if (newx < xlow)
         xlow = newx;
       if (newx > xhigh)
@@ -3003,6 +3013,12 @@ bool get_random_region_location(region_vnum region, int *x, int *y)
   }
 
   mysql_free_result(result);
+
+  if (!found_coordinate)
+  {
+    log("SYSERR: Region %d has no valid spatial coordinates.", region);
+    return false;
+  }
 
   log("xrange: %d - %d yrange: %d - %d", xlow, xhigh, ylow, yhigh);
 

@@ -2252,7 +2252,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     free(write_buffer);
     return FALSE;
   }
-  if (!(fl = fopen(filename, "w")))
+  if (!(fl = fopen_restricted(filename, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     free(write_buffer);
@@ -4159,8 +4159,17 @@ static void load_dr(FILE *f1, struct char_data *ch)
 
   do
   {
-    get_line(f1, line);
+    if (!get_line(f1, line))
+    {
+      log("SYSERR: Unexpected end of player file while loading damage reduction.");
+      return;
+    }
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (n_vars < 1)
+    {
+      log("SYSERR: Invalid damage reduction line: %s", line);
+      return;
+    }
     if (num > 0)
     {
       /* Set the DR data.*/
@@ -5361,22 +5370,23 @@ void update_player_last_on(void)
     if (GET_LEVEL(ch) < LVL_IMMORT)
     {
       int inc, classCount = 0;
-      len += snprintf(classes_list + len, sizeof(classes_list) - len, "[%2d %4s ", GET_LEVEL(ch),
-                      RACE_ABBR_REAL(ch));
+      len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
+                            RACE_ABBR_REAL(ch));
       for (inc = 0; inc < MAX_CLASSES; inc++)
       {
         if (CLASS_LEVEL(ch, inc))
         {
           if (classCount)
-            len += snprintf(classes_list + len, sizeof(classes_list) - len, "|");
-          len += snprintf(classes_list + len, sizeof(classes_list) - len, "%s", CLSLIST_ABBRV(inc));
+            len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
+          len =
+              snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
           classCount++;
         }
       }
       class_len = strlen(classes_list) - count_color_chars(classes_list);
       while (class_len < 11)
       {
-        len += snprintf(classes_list + len, sizeof(classes_list) - len, " ");
+        len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
         class_len++;
       }
       snprintf(char_info, sizeof(char_info), "%s]", classes_list);

@@ -5426,9 +5426,9 @@ void record_quit_feedback(struct char_data *ch, const char *reason)
   if (!counter)
     strlcpy(class_breakdown, "(no class)", sizeof(class_breakdown));
 
-  strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
+  format_time_string(now, "%Y-%m-%d %H:%M:%S", time_buf, sizeof(time_buf));
 
-  FILE *logfile = fopen(QUIT_FEEDBACK_FILE, "a");
+  FILE *logfile = fopen_restricted(QUIT_FEEDBACK_FILE, "a");
   if (!logfile)
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: Could not open %s for quit feedback: %s",
@@ -6960,7 +6960,7 @@ ACMDU(do_arcanemark)
   if (!*argument)
   {
     if ((tmark = GET_ARCANE_MARK(ch)) &&
-        !(!tmark || !*tmark || tmark == NULL || !strcmp(tmark, "(null)") || !strcmp(tmark, "null")))
+        *tmark && strcmp(tmark, "(null)") && strcmp(tmark, "null"))
     {
       send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
       return;
@@ -9779,7 +9779,12 @@ ACMD(do_todo)
   else
   {
     int num, i, success = 0;
-    sscanf(argument, "%d", &num);
+
+    if (sscanf(argument, "%d", &num) != 1)
+    {
+      send_to_char(ch, "Please specify the number of the completed item.\r\n");
+      return;
+    }
 
     if (num == 1 && GET_TODO(ch) && (success = 1))
       GET_TODO(ch) = GET_TODO(ch)->next;
@@ -11701,11 +11706,11 @@ ACMDU(do_device)
                      circle_level, ordinal, max_circles[i], used_circles[i]);
         /* Build spell list for user feedback */
         char spell_list_o[MAX_STRING_LENGTH * 4];
-        strcpy(spell_list_o, spell_info[spell_nums[0]].name);
+        strlcpy(spell_list_o, spell_info[spell_nums[0]].name, sizeof(spell_list_o));
         for (j = 1; j < num_spells; j++)
         {
-          strcat(spell_list_o, "/");
-          strcat(spell_list_o, spell_info[spell_nums[j]].name);
+          strlcat(spell_list_o, "/", sizeof(spell_list_o));
+          strlcat(spell_list_o, spell_info[spell_nums[j]].name, sizeof(spell_list_o));
         }
         send_to_char(ch, "Spells attempted to add: %s\r\n", spell_list_o);
         return;
@@ -11796,11 +11801,11 @@ ACMDU(do_device)
 
     /* Build spell list for user feedback */
     char spell_list[MAX_STRING_LENGTH * 4];
-    strcpy(spell_list, spell_info[spell_nums[0]].name);
+    strlcpy(spell_list, spell_info[spell_nums[0]].name, sizeof(spell_list));
     for (i = 1; i < num_spells; i++)
     {
-      strcat(spell_list, "/");
-      strcat(spell_list, spell_info[spell_nums[i]].name);
+      strlcat(spell_list, "/", sizeof(spell_list));
+      strlcat(spell_list, spell_info[spell_nums[i]].name, sizeof(spell_list));
     }
 
     send_to_char(ch, "You begin crafting a %s device. This will take %d seconds to complete.\r\n",
@@ -13211,7 +13216,7 @@ EVENTFUNC(event_device_progress)
   {
     /* Parse the invention data from the event variables */
     char invention_data[MAX_STRING_LENGTH];
-    strcpy(invention_data, pMudEvent->sVariables);
+    strlcpy(invention_data, pMudEvent->sVariables, sizeof(invention_data));
 
     char *spells_part = strtok(invention_data, "|");
     char *num_spells_str = strtok(NULL, "|");
@@ -13236,13 +13241,13 @@ EVENTFUNC(event_device_progress)
       {
         /* Build spell list for device name */
         int j;
-        strcpy(device_name, spell_info[spell_nums[0]].name);
+        strlcpy(device_name, spell_info[spell_nums[0]].name, sizeof(device_name));
         for (j = 1; j < num_spells; j++)
         {
-          strcat(device_name, "/");
-          strcat(device_name, spell_info[spell_nums[j]].name);
+          strlcat(device_name, "/", sizeof(device_name));
+          strlcat(device_name, spell_info[spell_nums[j]].name, sizeof(device_name));
         }
-        strcat(device_name, " device");
+        strlcat(device_name, " device", sizeof(device_name));
       }
     }
   }

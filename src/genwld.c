@@ -326,7 +326,7 @@ int save_rooms(zone_rnum rzone)
       genolc_zone_bottom(rzone), zone_table[rzone].top);
 
   snprintf(filename, sizeof(filename), "%s/%d.new", WLD_PREFIX, zone_table[rzone].number);
-  if (!(sf = fopen(filename, "w")))
+  if (!(sf = fopen_restricted(filename, "w")))
   {
     perror("SYSERR: save_rooms");
     return FALSE;

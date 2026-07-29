@@ -58,7 +58,7 @@ void zedit_create_index(int znum)
     log("%s", buf);
     return;
   }
-  else if (!(newfile = fopen(new_name, "w")))
+  else if (!(newfile = fopen_restricted(new_name, "w")))
   {
     snprintf(buf, sizeof(buf), "SYSERR: OLC: Failed to open %s", new_name);
     log("%s", buf);
@@ -79,7 +79,11 @@ void zedit_create_index(int znum)
     }
     else if (!found)
     {
-      sscanf(buf, "%d", &num);
+      if (sscanf(buf, "%d", &num) != 1)
+      {
+        log("SYSERR: Invalid high-level quest index entry: %s", buf);
+        continue;
+      }
       if (num == znum)
         found = TRUE;
       if (num > znum)
@@ -287,7 +291,7 @@ void hlqedit_save_to_disk(zone_rnum zone_num)
   }
 
   snprintf(buf, sizeof(buf), "%s/%u.new", HLQST_PREFIX, zone_table[zone_num].number);
-  if (!(fp = fopen(buf, "w+")))
+  if (!(fp = fopen_restricted(buf, "w+")))
   {
     log("SYSERR: OLC: Cannot open hl quest file!");
     return;

@@ -2671,6 +2671,41 @@ size_t strlcat(char *buf, const char *src, size_t bufsz)
   return rtn;
 }
 
+/*
+ * Appends formatted text at a tracked buffer offset and returns the new,
+ * saturated offset.  Unlike adding snprintf()'s return value directly, the
+ * returned offset never advances past the last writable byte after truncation.
+ */
+int snprintf_append(char *buffer, size_t buffer_size, int offset, const char *format, ...)
+{
+  va_list args;
+  size_t position;
+  size_t available;
+  int written;
+
+  if (!buffer || buffer_size == 0 || !format)
+    return 0;
+
+  position = offset > 0 ? (size_t)offset : 0;
+  if (position >= buffer_size)
+  {
+    buffer[buffer_size - 1] = '\0';
+    return (int)(buffer_size - 1);
+  }
+
+  available = buffer_size - position;
+  va_start(args, format);
+  written = vsnprintf(buffer + position, available, format, args);
+  va_end(args);
+
+  if (written < 0)
+    return (int)position;
+  if ((size_t)written >= available)
+    return (int)(buffer_size - 1);
+
+  return (int)(position + (size_t)written);
+}
+
 #if !defined(HAVE_STRLCPY)
 
 /** A 'strlcpy' function in the same fashion as 'strdup' below. This copies up
@@ -2813,7 +2848,7 @@ int touch(const char *path)
 {
   FILE *fl;
 
-  if (!(fl = fopen(path, "a")))
+  if (!(fl = fopen_restricted(path, "a")))
   {
     log("SYSERR: %s: %s", path, strerror(errno));
     return (-1);
@@ -3304,7 +3339,7 @@ int get_line(FILE *fl, char *buf)
   while (sl > 0 && (temp[sl - 1] == '\n' || temp[sl - 1] == '\r'))
     temp[--sl] = '\0';
 
-  strcpy(buf, temp); /* strcpy: OK, if buf >= READ_SIZE (512) */
+  strlcpy(buf, temp, READ_SIZE);
   return (lines);
 }
 
@@ -3326,6 +3361,7 @@ int get_line(FILE *fl, char *buf)
 int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_name)
 {
   const char *prefix, *middle, *suffix;
+  const char *input;
   char name[MAX_FILEPATH], *ptr;
 
   if (orig_name == NULL || *orig_name == '\0' || filename == NULL)
@@ -3333,6 +3369,15 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
     log("SYSERR: NULL pointer or empty string passed to get_filename(), %p or %p.", orig_name,
         filename);
     return (0);
+  }
+
+  for (input = orig_name; *input; input++)
+  {
+    if (!isalnum((unsigned char)*input) && *input != '_' && *input != '-')
+    {
+      log("SYSERR: Invalid character in player filename component.");
+      return (0);
+    }
   }
 
   switch (mode)
@@ -3406,6 +3451,20 @@ int get_filename(char *filename, size_t fbufsize, int mode, const char *orig_nam
 
   snprintf(filename, fbufsize, "%s%s" SLASH "%s.%s", prefix, middle, name, suffix);
   return (1);
+}
+
+bool is_safe_path_component(const char *name)
+{
+  const unsigned char *current;
+
+  if (!name || !*name || !strcmp(name, ".") || !strcmp(name, "..") || strstr(name, ".."))
+    return FALSE;
+
+  for (current = (const unsigned char *)name; *current; current++)
+    if (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-')
+      return FALSE;
+
+  return TRUE;
 }
 
 /** Calculate the number of player characters (PCs) in the room. Any NPC (mob)
@@ -4640,7 +4699,7 @@ char *convert_from_tabs(char *string)
 {
   static char buf[MAX_STRING_LENGTH * 8];
 
-  strcpy(buf, string);
+  strlcpy(buf, string, sizeof(buf));
   parse_tab(buf);
   return (buf);
 }
@@ -5363,14 +5422,13 @@ void text_line(struct char_data *ch, const char *text, int length, char first, c
 /* Time formatting helpers */
 bool format_time_string(time_t when, const char *format, char *buf, size_t size)
 {
-  struct tm *tm_info;
+  struct tm tm_info;
 
   if (!buf || size == 0)
     return FALSE;
 
   *buf = '\0';
-  tm_info = localtime(&when);
-  if (!format || !tm_info || strftime(buf, size, format, tm_info) == 0)
+  if (!format || !localtime_r(&when, &tm_info) || strftime(buf, size, format, &tm_info) == 0)
   {
     strlcpy(buf, "Unknown", size);
     return FALSE;

@@ -1577,7 +1577,7 @@ ASPELL(spell_arcane_mark)
   }
 
   mark = GET_ARCANE_MARK(ch);
-  if (!mark || !*mark || mark == NULL || !strcmp(mark, "(null)") || !strcmp(mark, "null"))
+  if (!mark || !*mark || !strcmp(mark, "(null)") || !strcmp(mark, "null"))
   {
     send_to_char(ch, "You have not set an arcane mark yet. Use 'arcanemark <mark>' to set it.\r\n");
     send_to_char(ch, "Your arcane mark can be anything up to 250 characters long, which includes "
