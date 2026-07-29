@@ -833,8 +833,12 @@ permit, and clearing it restored Corven aboard the same ship. Corven then used
 the real character-menu password/confirmation flow with fast wipe enabled.
 The player file and database membership were removed, the raft became
 unclaimed in memory and SQL, the permit was removed, and a controlled pending
-claim became `void`. Deliberate database-failure injection is still required to
-prove deferred removal under transaction failure.
+claim became `void`. A second disposable owner, Elyra, then exercised the
+failure path. A temporary MariaDB trigger rejected the ownership update inside
+the removal transaction. The transaction rolled back, deletion was cancelled
+at the real character menu, and account membership, player data, raft
+ownership, and a separate Tern helm permit all remained intact. The trigger
+was removed, and Elyra immediately logged back in aboard the same raft.
 
 ---
 
@@ -1115,7 +1119,6 @@ or keyword count is insufficient once later phases extend the system.
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Player-removal transaction failure | `vessels_ownership.c`, `players.c` | Soft restore and normal permanent cleanup pass live; database-failure defer/recovery still needs injection |
 | Owner logout during PvP | `vessels_combat.c` | Persisted five-minute opponent grace is implemented and unit-tested; two-player logout/expiry behavior still needs live proof |
 
 See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for

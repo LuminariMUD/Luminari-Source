@@ -128,6 +128,11 @@ from planning items into tested behavior.
   and Tern helm permit; restoration returned Corven aboard the same raft. The
   actual fast-wipe character-menu deletion then removed the player, made the
   raft unclaimed, removed the permit, and voided a controlled pending claim.
+- A temporary MariaDB trigger forced Elyra's vessel cleanup transaction to
+  fail during the actual password-confirmed deletion flow. Deletion was
+  cancelled before account unlinking, the trigger was removed, and Elyra
+  immediately logged back in with her raft deed and separate Tern helm permit
+  intact.
 - All 75 help keywords resolved to database help in one 54-second Kohdee
   session, all SQL help checks passed, and all 21 current component migrations
   applied independently to a fresh MariaDB 10.11 master schema. Cleanup left

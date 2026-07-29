@@ -191,8 +191,15 @@ numbered gameplay flow:
   used the actual character-menu password and `yes` flow with fast wipe
   enabled. The player file and `player_data` row disappeared, the raft became
   unclaimed, the permit disappeared, and a controlled pending claim changed to
-  `void`. SQL plus live `shiplist` and `shipcrew` agreed. Database-failure
-  injection remains to prove the removal defer path.
+  `void`. SQL plus live `shiplist` and `shipcrew` agreed.
+- Elyra then owned a separate raft and held Corven's former helm permit on the
+  Tern. A temporary MariaDB trigger rejected only the attempt to clear Elyra's
+  ownership during permanent removal. The actual account password and `yes`
+  flow reported that deletion was cancelled and returned to the character
+  menu. The trigger was removed immediately. SQL retained one account
+  membership, one owned ship, and one helm permit; Elyra logged straight back
+  in aboard the raft, while Kohdee's live `shipcrew` still listed her Tern
+  permit.
 - The full production-linked root suite passed 218 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
@@ -234,7 +241,9 @@ numbered gameplay flow:
   a later login - FIXED and live-tested with Veska and Kohdee.
 - Reversible character deletion preserves ship relationships and restoration;
   normal permanent removal transactionally unowns ships, removes the deleted
-  name from permits, and voids pending claims - FIXED and live-tested with
-  Corven. Transaction-failure recovery remains to be injected.
+  name from permits, and voids pending claims. If the transaction fails,
+  fast-wipe deletion is cancelled before account unlinking or success output,
+  and the active player plus all vessel relationships survive - FIXED and
+  live-tested with Corven and Elyra.
 
 # EoF

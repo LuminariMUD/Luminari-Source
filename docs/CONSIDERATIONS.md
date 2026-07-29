@@ -17,8 +17,8 @@ outstanding work.
    navigation microbenchmarks are not release evidence.
 2. Copyover/reboot recovery, normalized weapon mounts, and dock-fee recovery
    have live evidence, as does one-time offline insurance delivery. Permanent
-   player removal passes its normal and reversible paths; transaction-failure
-   recovery and the opponent-specific combat logout grace still need
+   player removal passes its reversible, successful, and transaction-failure
+   paths. The opponent-specific combat logout grace still needs
    actual-character verification.
 3. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
    a 72-hour soak, player beta, and migration rollback rehearsal before broad
