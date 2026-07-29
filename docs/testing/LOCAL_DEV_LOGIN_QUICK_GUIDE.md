@@ -67,9 +67,12 @@ The default is 24 continuous hours with database/process checks every 60
 seconds and an actual Kohdee inspection every hour. The monitor refuses
 non-development environments, discovers the ferry and route IDs instead of
 assuming slot 5, repairs the ferry once before starting, and holds a
-non-character connection open so the game loop does not sleep between
-inspections. It uses the configured master account and existing Kohdee
-character; it does not create an account or character.
+non-character connection in unconfirmed account-name state so the game loop
+does not sleep between inspections. The generated hold name is never
+confirmed, so no account is created. The monitor requires that socket to
+remain `ESTABLISHED` every 20 seconds and fails if the server reports that it
+went to sleep. Live checks use the configured master account and existing
+Kohdee character; they do not create an account or character.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
@@ -80,13 +83,13 @@ the gate.
 For a short monitor shakedown:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 90 5 30
+./scripts/run_vessel_ferry_soak.sh start 150 10 60
 ```
 
 The three values are duration, database/process interval, and live-character
-interval in seconds. The July 30, 2026 shakedown logged 34 movement steps, 22
-distinct cells, both dock arrivals, 5 Kohdee samples, 18 database/process
-samples, and exact state recovery across its final restart.
+interval in seconds. Keep the shakedown longer than the server's login timeout
+so it proves the hold connection rather than relying on periodic character
+logins to wake a sleeping loop.
 
 ## Fast Vessel Builder Gate
 

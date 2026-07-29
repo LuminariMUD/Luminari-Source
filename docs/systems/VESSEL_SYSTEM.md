@@ -850,14 +850,17 @@ The 24-hour ferry gate is run independently of an agent session:
 ./scripts/run_vessel_ferry_soak.sh status
 ```
 
-The transient user service keeps one pre-login connection open so the
-descriptor-driven game loop remains awake, samples database and process
-invariants every minute, and serializes hourly Kohdee checks through the
-shared login-helper lock. It fails on a PID change, route/room/pilot/schedule
-drift, structure loss, out-of-corridor coordinates, or a ferry-specific
-movement/persistence error. A successful run ends with a controlled local
-restart that proves exact paused-coordinate recovery, then resumes the ferry.
-Artifacts live in the run directory printed by `start`.
+The transient user service submits a generated, nonexistent account name but
+does not confirm it. This leaves one non-character descriptor in the
+non-expiring confirmation state without creating an account. The monitor
+requires its socket to remain `ESTABLISHED` every 20 seconds, fails if the
+descriptor-driven game loop reports that it slept, samples database and
+process invariants every minute, and serializes hourly Kohdee checks through
+the shared login-helper lock. It also fails on a PID change,
+route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
+or a ferry-specific movement/persistence error. A successful run ends with a
+controlled local restart that proves exact paused-coordinate recovery, then
+resumes the ferry. Artifacts live in the run directory printed by `start`.
 
 ### Interior VNUM Allocation
 

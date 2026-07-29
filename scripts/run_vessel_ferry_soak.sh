@@ -91,6 +91,7 @@ start_run()
   local existing_dir
   local existing_metadata
   local existing_unit
+  local existing_status
   local run_id
   local run_dir
   local unit_name
@@ -122,6 +123,18 @@ start_run()
          systemctl --user is-active --quiet "$existing_unit"; then
         fail "a ferry soak is already active: $existing_unit"
       fi
+      existing_status=""
+      [[ -r "$existing_dir/status" ]] &&
+        existing_status=$(<"$existing_dir/status")
+      if [[ "$existing_status" == STARTING* || "$existing_status" == RUNNING* ]]; then
+        printf 'ABANDONED superseded_at=%s\n' "$(date +%s)" \
+          >"$existing_dir/status"
+        {
+          printf 'Result: ABANDONED\n'
+          printf 'Reason: monitor unit ended without a terminal result\n'
+          printf 'Superseded at: %s\n' "$(date +%s)"
+        } >"$existing_dir/summary.txt"
+      fi
     fi
   fi
 
@@ -147,6 +160,7 @@ start_run()
 
   if ! systemd-run --user --quiet --collect \
     --unit="${unit_name%.service}" \
+    --property="KillMode=mixed" \
     --property="WorkingDirectory=$repo_root" \
     --property="TimeoutStopSec=30" \
     "$script_dir/run_vessel_ferry_soak.sh" __run \
@@ -215,6 +229,7 @@ run_monitor()
   local end_epoch
   local next_database_sample
   local next_live_sample
+  local next_keepalive_check
   local now
   local sleep_until
   local sleep_seconds
@@ -279,6 +294,65 @@ run_monitor()
       keepalive_fd=""
     fi
     return 0
+  }
+
+  read_keepalive_until()
+  {
+    local first_pattern=$1
+    local second_pattern=${2:-}
+    local character
+    local character_count
+
+    keepalive_reply=""
+    for ((character_count = 0; character_count < 200000; character_count++)); do
+      if ! IFS= read -r -t 5 -N 1 -u "$keepalive_fd" character; then
+        return 1
+      fi
+      keepalive_reply+="$character"
+      if [[ "$keepalive_reply" == *"$first_pattern"* ]]; then
+        return 0
+      fi
+      if [[ -n "$second_pattern" &&
+            "$keepalive_reply" == *"$second_pattern"* ]]; then
+        return 0
+      fi
+      if ((${#keepalive_reply} > 2048)); then
+        keepalive_reply=${keepalive_reply: -2048}
+      fi
+    done
+    return 1
+  }
+
+  open_keepalive()
+  {
+    local account_name
+
+    account_name="Vesselsoak$(printf '%s' "$$" | tr '0-9' 'abcdefghij')"
+    if ! exec {keepalive_fd}<>"/dev/tcp/127.0.0.1/$mud_port"; then
+      fail_run "could not open the game-loop keepalive connection"
+    fi
+    if ! read_keepalive_until "What is your account name"; then
+      fail_run "the game-loop keepalive did not receive the account prompt"
+    fi
+    if ! printf '%s\r' "$account_name" >&"$keepalive_fd"; then
+      fail_run "the game-loop keepalive could not submit its hold name"
+    fi
+    if ! read_keepalive_until "Did I get that right" "Password:"; then
+      fail_run "the game-loop keepalive did not reach confirmation state"
+    fi
+    if [[ "$keepalive_reply" == *"Password:"* ]]; then
+      fail_run "the generated game-loop hold name unexpectedly exists"
+    fi
+  }
+
+  verify_keepalive()
+  {
+    local socket_rows
+
+    socket_rows=$(ss -H -tnp state established \
+      "( dport = :$mud_port )" 2>/dev/null || true)
+    grep -Fq "pid=$$,fd=$keepalive_fd" <<<"$socket_rows" ||
+      fail_run "the game-loop keepalive socket is no longer established"
   }
 
   resume_after_failure()
@@ -566,6 +640,11 @@ run_monitor()
         >>"$run_dir/ferry-errors.log" || true
       fail_run "server log reported a ferry movement or persistence error"
     fi
+    if grep -Fq "No connections.  Going to sleep." "$chunk_file"; then
+      grep -F "No connections.  Going to sleep." "$chunk_file" \
+        >>"$run_dir/ferry-errors.log" || true
+      fail_run "the MUD game loop went to sleep during the continuous run"
+    fi
 
     grep -E \
       "Ship $ferry_slot (departing|arrived|wait complete|route)|Autopilot ship $ferry_slot" \
@@ -680,7 +759,7 @@ run_monitor()
   }
 
   for command_name in awk bash date dd find grep mariadb ps sed sleep sort ss \
-    stat systemctl tail timeout wc; do
+    stat systemctl tail timeout tr wc; do
     command -v "$command_name" >/dev/null 2>&1 ||
       fail_run "required command not found: $command_name"
   done
@@ -771,9 +850,8 @@ run_monitor()
   [[ "$topology_valid" == 1 ]] ||
     fail_run "the ferry route is not the expected four-leg channel loop"
 
-  if ! exec {keepalive_fd}<>"/dev/tcp/127.0.0.1/$mud_port"; then
-    fail_run "could not open the game-loop keepalive connection"
-  fi
+  open_keepalive
+  verify_keepalive
 
   repair_output="$run_dir/initial-repair.log"
   if ! "$script_dir/dev_kohdee_login_smoke.sh" --commands \
@@ -794,6 +872,7 @@ run_monitor()
   end_epoch=$((started_epoch + duration))
   next_database_sample=$((started_epoch + database_interval))
   next_live_sample=$((started_epoch + live_interval))
+  next_keepalive_check=$((started_epoch + 20))
   {
     printf 'started_at=%s\n' "$started_epoch"
     printf 'ferry_slot=%s\n' "$ferry_slot"
@@ -825,6 +904,13 @@ run_monitor()
       done
     fi
 
+    if ((now >= next_keepalive_check)); then
+      verify_keepalive
+      while ((next_keepalive_check <= now)); do
+        next_keepalive_check=$((next_keepalive_check + 20))
+      done
+    fi
+
     now=$(date +%s)
     write_status "RUNNING started=$started_epoch" \
       "elapsed=$((now - started_epoch))/$duration slot=$ferry_slot" \
@@ -833,6 +919,7 @@ run_monitor()
     sleep_until=$end_epoch
     ((next_database_sample < sleep_until)) && sleep_until=$next_database_sample
     ((next_live_sample < sleep_until)) && sleep_until=$next_live_sample
+    ((next_keepalive_check < sleep_until)) && sleep_until=$next_keepalive_check
     sleep_seconds=$((sleep_until - now))
     ((sleep_seconds > 0)) && sleep "$sleep_seconds"
   done

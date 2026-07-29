@@ -13,8 +13,10 @@ generated-room DG triggers are available. Continuous validation, scale,
 content, beta, and production release work remain. Pre-soak testing repaired
 signed-coordinate movement and both unsafe legs of the sample ferry route; an
 actual Kohdee session now completes the full four-waypoint loop. The
-supervised monitor also passed a 90-second shakedown including exact-state
-restart recovery. The continuous 24-hour result is still unverified.
+first monitor shakedown was rejected when its idle pre-login descriptor
+expired and let the game loop sleep; the corrected confirmation-state
+keepalive is undergoing a replacement shakedown. The continuous 24-hour
+result is still unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -32,12 +34,13 @@ recording enduring behavior or evidence in the permanent documentation.
 - [ ] Run the scheduled ferry continuously for 24 hours without route,
   coordinate, room, or persistence desynchronization.
 
-  Active local-development run: the supervised window started July 30, 2026
-  at 01:04:38 IDT and reaches 24 hours on July 31 at 01:04:38 IDT. Check it
-  with `./scripts/run_vessel_ferry_soak.sh status`. The run directory is
-  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T220427Z-4040441`.
-  Leave this item open until the monitor reports `PASS` after its final
-  exact-state restart check.
+  The July 30 run starting at 01:04:38 IDT is invalid: its idle account-name
+  connection expired at 01:05:16 and the game loop slept. Its artifact was
+  marked `ABANDONED`. A 150-second replacement shakedown of the corrected
+  confirmation-state hold is active in
+  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T221223Z-4070396`.
+  Start a new 24-hour window only after that shakedown reports `PASS`, and
+  leave this item open until the full run passes its final exact-state restart.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.

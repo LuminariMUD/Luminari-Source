@@ -51,13 +51,17 @@ Run the continuous ferry release gate through its supervised monitor:
 ./scripts/run_vessel_ferry_soak.sh status
 ```
 
-This keeps the otherwise idle game loop awake without occupying a character,
-checks the unchanged process and database invariants every minute, and uses
-the existing account and Kohdee for hourly live checks. It records movement
-and both dock arrivals from the server log. After the requested duration, it
-pauses through the game, hard-restarts local development, compares the exact
-coordinates, route, pilot, schedule, rooms, and structure, then resumes the
-ferry. The run is incomplete until `status` reports `PASS`.
+This keeps the otherwise idle game loop awake without occupying a character.
+It submits a generated, nonexistent account name but never confirms it, so the
+descriptor remains in a non-expiring confirmation state without creating an
+account. The monitor requires that socket to remain `ESTABLISHED` every 20
+seconds, fails if the server reports that it went to sleep, checks the
+unchanged process and database invariants every minute, and uses the existing
+account and Kohdee for hourly live checks. It records movement and both dock
+arrivals from the server log. After the requested duration, it pauses through
+the game, hard-restarts local development, compares the exact coordinates,
+route, pilot, schedule, rooms, and structure, then resumes the ferry. The run
+is incomplete until `status` reports `PASS`.
 
 For the builder-independence timing gate, run:
 
@@ -252,13 +256,13 @@ numbered gameplay flow:
   east dock, with no ship-5 impassable-terrain stall. A simultaneous one-point
   decrease across all armor arcs was the expected persisted
   `SHIP_WEAR_INTERVAL`, not a gale hit.
-- A 90-second accelerated shakedown of the supervised soak monitor recorded
-  34 movement steps, 22 distinct positions, both dock arrivals, 5 actual
-  Kohdee inspections, and 18 database/process samples. One MUD PID served the
-  continuous phase. The final controlled restart restored the exact paused
-  coordinate and four-waypoint route under a new PID, after which Kohdee
-  resumed the ferry. This validates the monitor, not the outstanding 24-hour
-  duration gate.
+- The first accelerated monitor shakedown was rejected despite its apparent
+  movement and final-restart success: the idle account-name descriptor expired
+  after about 49 seconds, and later Kohdee samples temporarily woke the game
+  loop. The corrected monitor enters unconfirmed account-name confirmation,
+  checks the socket every 20 seconds, and treats any game-loop sleep line as a
+  hard failure. Only a replacement run longer than the old timeout can
+  validate the monitor before the 24-hour clock restarts.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

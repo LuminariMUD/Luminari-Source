@@ -49,6 +49,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 - Local character helper sessions now share a timed lock, preventing hourly
   soak samples and interactive tests from colliding on the same multi-character
   account.
+- The soak monitor no longer relies on an idle account-name descriptor, which
+  the server expires after about 49 seconds. It holds an unconfirmed generated
+  account name without creating an account, checks the socket every 20
+  seconds, and fails on any game-loop sleep line.
 
 #### Validated
 
@@ -68,11 +72,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   through distinct negative coordinates without an impassable-terrain stall.
   A simultaneous one-point reduction on all armor arcs was the expected
   persisted 900-tick underway-wear interval, not gale structure damage.
-- A 90-second monitor shakedown recorded 34 movement steps, 22 distinct
-  positions, both dock arrivals, 5 actual Kohdee samples, and 18
-  database/process samples under one unchanged MUD PID. Its final restart
-  recovered the exact paused coordinate and route, then resumed the ferry.
-  This proves the monitor path; the 24-hour duration remains in progress.
+- The apparent first 90-second monitor pass was rejected after log inspection:
+  its idle pre-login descriptor expired, the game loop slept, and later
+  character samples woke it temporarily. This prevented a false 24-hour pass
+  and led to the confirmation-state and explicit sleep-detection checks above.
 
 ### Documentation - vessel source-of-truth consolidation
 
