@@ -57,7 +57,7 @@ That's it! Connect to `localhost:4000` with any MUD client.
 ### What `deploy.sh` Does
 
 The deployment script automatically:
-- Copies configuration files (.example.h → .h)
+- Copies configuration files (.example.h -> .h)
 - Installs any missing dependencies
 - Sets up MariaDB database (prompts for root password)
 - Creates database and user with generated password
@@ -237,7 +237,7 @@ nohup bin/circle &
 ## Documentation
 
 ### Quick Access
-- **[🔧 Technical Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
+- **[Technical Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
 - **[Getting Started](docs/GETTING_STARTED.md)**: Quick start guide for new users
 
 ### Technical Documentation
@@ -419,7 +419,7 @@ For complete license details, see the [LICENSE](LICENSE) file.
 - **Forgotten Realms**: Rich world-building traditions
 
 ### Version Information
-- **Current Version**: LuminariMUD 2.5026-beta (tbaMUD 3.64)
+- **Current Version**: LuminariMUD 2.5027-beta (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
 - **Language**: GNU C23

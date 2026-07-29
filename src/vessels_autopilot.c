@@ -2248,6 +2248,19 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
     return;
   }
 
+  if (ship->dock_fee_balance > 0)
+  {
+    ap->state = AUTOPILOT_PAUSED;
+    ship->speed = 0;
+    ship->setspeed = 0;
+    send_to_ship(ship,
+                 "Autopilot pauses: the harbor requires %d gold in dock fees "
+                 "before departure.",
+                 ship->dock_fee_balance);
+    vessel_db_save_runtime(ship);
+    return;
+  }
+
   /* Get current waypoint */
   wp = waypoint_get_current(ship);
   if (wp == NULL)
@@ -2291,8 +2304,7 @@ void autopilot_tick(void)
   {
     ship = &greyhawk_ships[i];
 
-    /* Skip uninitialized ships (check for valid shipnum) */
-    if (ship->shipnum <= 0)
+    if (!is_valid_ship(ship))
     {
       continue;
     }
@@ -2470,7 +2482,7 @@ ACMD(do_autopilot)
   }
 
   /* Parse argument */
-  one_argument(argument, arg, sizeof(arg));
+  any_one_arg_c(argument, arg, sizeof(arg));
 
   /* Handle status subcommand (no permission needed) */
   if (!*arg || !str_cmp(arg, "status"))
@@ -2933,6 +2945,62 @@ ACMD(do_addtoroute)
   else
   {
     send_to_char(ch, "Failed to add waypoint to route.\r\n");
+  }
+}
+
+/**
+ * ACMD handler for delroute command.
+ * Deletes a route by name.
+ * Usage: delroute <name>
+ */
+ACMD(do_delroute)
+{
+  struct greyhawk_ship_data *ship;
+  struct route_node *route;
+  char arg[MAX_INPUT_LENGTH];
+  int route_id;
+
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: delroute <name>\r\n");
+    return;
+  }
+
+  route_id = -1;
+  for (route = route_list; route != NULL; route = route->next)
+  {
+    if (!str_cmp(route->name, arg))
+    {
+      route_id = route->route_id;
+      break;
+    }
+  }
+
+  if (route_id < 0)
+  {
+    send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if (route_db_delete(route_id))
+  {
+    send_to_char(ch, "Route '%s' deleted.\r\n", arg);
+  }
+  else
+  {
+    send_to_char(ch, "Failed to delete route '%s'.\r\n", arg);
   }
 }
 

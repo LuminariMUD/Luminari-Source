@@ -59,6 +59,79 @@ static struct char_data *vessel_find_online_player(const char *name)
 }
 
 /**
+ * Resolve the player responsible for a hostile vessel action.
+ */
+static struct char_data *vessel_effective_aggressor(struct char_data *ch)
+{
+  if (ch != NULL && IS_NPC(ch) && ch->master != NULL && !IS_NPC(ch->master))
+  {
+    return ch->master;
+  }
+  return ch;
+}
+
+/**
+ * Does a stored logout-grace record cover this exact aggressor now?
+ */
+bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target,
+                             const char *attacker_name, time_t now)
+{
+  if (target == NULL || attacker_name == NULL || !*attacker_name ||
+      target->pvp_grace_attacker[0] == '\0')
+  {
+    return FALSE;
+  }
+  return target->pvp_grace_until >= now &&
+         !str_cmp(target->pvp_grace_attacker, attacker_name);
+}
+
+/**
+ * Invalidate consent inherited from a previous owner or opponent.
+ */
+void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL)
+  {
+    return;
+  }
+  ship->pvp_grace_until = 0;
+  ship->pvp_grace_attacker[0] = '\0';
+}
+
+/**
+ * Snapshot both sides of a consented vessel engagement.
+ */
+static void vessel_record_pvp_engagement(struct char_data *ch,
+                                         struct greyhawk_ship_data *target)
+{
+  struct char_data *aggressor;
+  struct greyhawk_ship_data *aggressor_ship;
+  time_t until;
+
+  aggressor = vessel_effective_aggressor(ch);
+  if (aggressor == NULL || IS_NPC(aggressor) || GET_NAME(aggressor) == NULL ||
+      target == NULL || target->owner[0] == '\0')
+  {
+    return;
+  }
+
+  until = time(0) + VESSEL_PVP_LOGOUT_GRACE;
+  target->pvp_grace_until = until;
+  strlcpy(target->pvp_grace_attacker, GET_NAME(aggressor),
+          sizeof(target->pvp_grace_attacker));
+
+  aggressor_ship = get_ship_from_room(IN_ROOM(aggressor));
+  if (aggressor_ship != NULL && aggressor_ship != target)
+  {
+    aggressor_ship->pvp_grace_until = until;
+    strlcpy(aggressor_ship->pvp_grace_attacker, target->owner,
+            sizeof(aggressor_ship->pvp_grace_attacker));
+    vessel_db_save_runtime(aggressor_ship);
+  }
+  vessel_db_save_runtime(target);
+}
+
+/**
  * May this character take a hostile action against this vessel?
  *
  * Ship-level aggression (gunfire, plunder, hostile boarding) can destroy
@@ -79,7 +152,9 @@ static struct char_data *vessel_find_online_player(const char *name)
  */
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display)
 {
+  struct char_data *aggressor;
   struct char_data *owner;
+  bool permitted;
 
   if (ch == NULL || target == NULL)
   {
@@ -114,6 +189,21 @@ bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *targe
   owner = vessel_find_online_player(target->owner);
   if (owner == NULL)
   {
+    aggressor = vessel_effective_aggressor(ch);
+    if (aggressor != NULL && !IS_NPC(aggressor) && CONFIG_PK_ALLOWED &&
+        pvp_ok_single(aggressor, FALSE) &&
+        vessel_pvp_grace_active(target, GET_NAME(aggressor), time(0)))
+    {
+      if (display)
+      {
+        send_to_char(aggressor,
+                     "%s's owner has left, but your consented engagement remains "
+                     "active for a short time.\r\n",
+                     target->name);
+      }
+      return TRUE;
+    }
+
     if (display)
     {
       send_to_char(ch,
@@ -124,7 +214,13 @@ bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *targe
     return FALSE;
   }
 
-  return pvp_ok(IS_NPC(ch) ? ch->master : ch, owner, display);
+  aggressor = vessel_effective_aggressor(ch);
+  permitted = pvp_ok(aggressor, owner, display);
+  if (permitted)
+  {
+    vessel_record_pvp_engagement(aggressor, target);
+  }
+  return permitted;
 }
 
 /**
@@ -256,7 +352,8 @@ void vessel_sink(int shipnum)
   char buf[MAX_STRING_LENGTH];
   int i;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return;
   }
@@ -297,8 +394,12 @@ void vessel_sink(int shipnum)
       }
     }
 
-    /* Detach the room from the sinking ship */
-    world[interior].ship = NULL;
+    /* Static legacy rooms remain in the world; generated rooms are detached
+     * by vessel_reclaim_interior_rooms() below. */
+    if (ship->shipnum < 2)
+    {
+      world[interior].ship = NULL;
+    }
   }
 
   /* Convert the ship object into salvageable wreckage; clearing the item
@@ -325,6 +426,8 @@ void vessel_sink(int shipnum)
 
   /* Settle insurance before the record is gone */
   vessel_pay_insurance(ship);
+  vessel_abort_docking(ship);
+  vehicle_release_all_from_vessel(ship, water_room);
 
   /* Clear this slot from every other ship's grudge list. The slot is about
    * to be freed for reuse, and a stale index would aim the AI's return fire
@@ -345,8 +448,13 @@ void vessel_sink(int shipnum)
     ship->schedule = NULL;
   }
 
-  /* Free the fleet slot. Interior rooms persist until reboot (known
-   * limitation, tracked in VESSEL_SYSTEM.md). */
+  vessel_reclaim_interior_rooms(ship, water_room);
+  if (!vessel_delete_persistence(shipnum))
+  {
+    log("SYSERR: Could not remove persistence for sunk ship %d", shipnum);
+  }
+
+  /* Free the fleet slot after every runtime and persistent reference is gone. */
   memset(ship, 0, sizeof(*ship));
 }
 
@@ -371,7 +479,8 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
   int spill;
   const char *side_name;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || amount <= 0)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]) || amount <= 0)
   {
     return;
   }
@@ -505,7 +614,8 @@ void vessel_check_grounding(int shipnum)
   int depth_units;
   int sector;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return;
   }
@@ -573,7 +683,7 @@ static void vessel_ai_return_fire(int shipnum)
     return;
   }
   target = &greyhawk_ships[target_num];
-  if (target->name[0] == '\0')
+  if (!is_valid_ship(target))
   {
     ship->last_attacker = 0; /* Attacker sank or despawned */
     return;
@@ -623,7 +733,7 @@ void vessel_combat_tick(void)
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (greyhawk_ships[i].shipnum <= 0 && greyhawk_ships[i].name[0] == '\0')
+    if (!is_valid_ship(&greyhawk_ships[i]))
     {
       continue;
     }
@@ -665,7 +775,7 @@ static int vessel_find_target(const char *arg, int exclude_shipnum)
     {
       continue;
     }
-    if (greyhawk_ships[i].name[0] == '\0')
+    if (!is_valid_ship(&greyhawk_ships[i]))
     {
       continue;
     }
@@ -899,6 +1009,7 @@ ACMD(do_claimship)
 
   log("Info: %s captured ship %d '%s' (previous owner: %s)", GET_NAME(ch), ship->shipnum,
       ship->name, ship->owner[0] ? ship->owner : "none");
+  vessel_clear_pvp_grace(ship);
   strlcpy(ship->owner, GET_NAME(ch), sizeof(ship->owner));
   /* A capture voids the old crew's helm clearances */
   ship->num_permits = 0;

@@ -118,3 +118,48 @@ void Test_command_dispatch_numeric_and_reserved_parsing(CuTest *tc)
   CuAssertTrue(tc, reserved_word(reserved_name));
   CuAssertTrue(tc, !reserved_word(ordinary_name));
 }
+
+void Test_vessel_commands_are_registered_for_runtime_gating(CuTest *tc)
+{
+  int speed_command;
+  int drive_command;
+  int board_command;
+  int boardcheck_command;
+  int boardfind_command;
+  int look_command;
+  int purge_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  speed_command = find_command("speed");
+  drive_command = find_command("drive");
+  board_command = find_command("board");
+  boardcheck_command = find_command("boardcheck");
+  boardfind_command = find_command("boardfind");
+  look_command = find_command("look");
+  purge_command = find_command("shippurge");
+
+  CuAssertTrue(tc, speed_command >= 0);
+  CuAssertTrue(tc, drive_command >= 0);
+  CuAssertTrue(tc, board_command >= 0);
+  CuAssertTrue(tc, boardcheck_command >= 0);
+  CuAssertTrue(tc, boardfind_command >= 0);
+  CuAssertTrue(tc, look_command >= 0);
+  CuAssertTrue(tc, purge_command >= 0);
+  CuAssertTrue(tc, complete_cmd_info[speed_command].feature_flags & CMD_FEATURE_VESSEL);
+  CuAssertTrue(tc, complete_cmd_info[drive_command].feature_flags & CMD_FEATURE_VESSEL);
+  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[board_command].feature_flags);
+  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[boardcheck_command].feature_flags);
+  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[boardfind_command].feature_flags);
+  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[look_command].feature_flags);
+  CuAssertIntEquals(tc, CMD_FEATURE_NONE, complete_cmd_info[purge_command].feature_flags);
+
+  if (created_command_list)
+    free_command_list();
+}

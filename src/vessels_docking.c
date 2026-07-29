@@ -161,6 +161,7 @@ room_rnum find_docking_room(struct greyhawk_ship_data *ship)
 void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
 {
   struct room_direction_data *exit;
+  int rev;
 
   VSSL_DEBUG_ENTER("create_ship_connection");
 
@@ -187,7 +188,7 @@ void create_ship_connection(room_rnum room1, room_rnum room2, int dir)
   }
 
   /* Create return exit from room2 to room1 */
-  int rev = rev_dir[dir];
+  rev = rev_dir[dir];
   if (world[room2].dir_option[rev] == NULL)
   {
     CREATE(exit, struct room_direction_data, 1);
@@ -322,6 +323,7 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
 {
   room_rnum dock1, dock2;
   int dir;
+  int i;
 
   VSSL_DEBUG_ENTER("complete_docking");
 
@@ -345,8 +347,20 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
     return;
   }
 
+  /*
+   * Docked ships occupy the same wilderness cell. Use the canonical movement
+   * helper so the target's exterior object, coordinates, and location remain
+   * synchronized.
+   */
+  if (!update_ship_wilderness_position(ship2->shipnum, (int)ship1->x, (int)ship1->y,
+                                       (int)ship1->z))
+  {
+    VSSL_DEBUG_DOCK("DOCKING FAILED: Could not synchronize exterior positions");
+    send_to_ship(ship1, "Docking failed - the target could not move alongside!");
+    return;
+  }
+
   /* Find an available direction for the gangway */
-  int i;
   dir = -1;
   for (i = 0; i < NUM_OF_DIRS; i++)
   {
@@ -375,13 +389,6 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   ship1->docking_room = world[dock1].number;
   ship2->docked_to_ship = ship1->shipnum;
   ship2->docking_room = world[dock2].number;
-
-  /* Match ship positions exactly */
-  VSSL_DEBUG_DOCK("Position sync: ship2 (%.1f,%.1f) -> (%.1f,%.1f)", ship2->x, ship2->y,
-                  ship1->x + 0.5, ship1->y);
-  ship2->x = ship1->x + 0.5;
-  ship2->y = ship1->y;
-  ship2->z = ship1->z;
 
   /* Stop both ships */
   ship1->speed = 0;
@@ -416,15 +423,13 @@ void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
     return;
   }
 
-  VSSL_DEBUG_DOCK("Separating %s from %s", ship1->name, ship2->name);
-  VSSL_DEBUG_DOCK("Ship2 position: (%.1f,%.1f) -> (%.1f,%.1f)", ship2->x, ship2->y, ship1->x + 3.0,
-                  ship1->y + 1.0);
+  VSSL_DEBUG_DOCK("Separating %s from %s in wilderness cell (%d,%d)", ship1->name, ship2->name,
+                  (int)ship1->x, (int)ship1->y);
 
-  /* Move ships slightly apart */
-  ship2->x = ship1->x + 3.0;
-  ship2->y = ship1->y + 1.0;
-
-  /* Update room coordinates */
+  /*
+   * Removing the gangway does not itself sail either vessel away. Both hulls
+   * remain alongside in the same wilderness cell until a helm moves one.
+   */
   update_ship_room_coordinates(ship1);
   update_ship_room_coordinates(ship2);
 
@@ -432,10 +437,48 @@ void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
   VSSL_DEBUG_EXIT("separate_vessels");
 }
 
+/**
+ * Tear down any active gangway involving a ship leaving service.
+ *
+ * Unlike the player `undock` command this performs no movement and succeeds
+ * even when one side of the persisted relationship is already invalid.
+ */
+void vessel_abort_docking(struct greyhawk_ship_data *ship)
+{
+  struct greyhawk_ship_data *other;
+  room_rnum dock1;
+  room_rnum dock2;
+
+  if (ship == NULL || ship->docked_to_ship < 0)
+  {
+    return;
+  }
+
+  other = get_ship_by_id(ship->docked_to_ship);
+  if (other != NULL)
+  {
+    dock1 = real_room(ship->docking_room);
+    dock2 = real_room(other->docking_room);
+    if (dock1 != NOWHERE && dock2 != NOWHERE)
+    {
+      remove_ship_connection(dock1, dock2);
+    }
+
+    end_docking_record(ship, other);
+    other->docked_to_ship = -1;
+    other->docking_room = 0;
+    send_to_ship(other, "%s is removed from service; the gangway is withdrawn.", ship->name);
+  }
+
+  ship->docked_to_ship = -1;
+  ship->docking_room = 0;
+}
+
 /* Calculate boarding difficulty */
 int calculate_boarding_difficulty(struct greyhawk_ship_data *target)
 {
   int difficulty = BOARDING_DIFFICULTY;
+  int damage_percent;
   int result;
 
   VSSL_DEBUG_ENTER("calculate_boarding_difficulty");
@@ -474,7 +517,7 @@ int calculate_boarding_difficulty(struct greyhawk_ship_data *target)
   }
 
   /* Adjust for damage */
-  int damage_percent =
+  damage_percent =
       100 - ((target->farmor + target->rarmor + target->parmor + target->sarmor) * 100 /
              (target->maxfarmor + target->maxrarmor + target->maxparmor + target->maxsarmor));
 
@@ -526,6 +569,13 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
   }
 
   VSSL_DEBUG_DOCK("Player on ship: %s (%d)", ch_ship->name, ch_ship->shipnum);
+
+  if (ch_ship == target)
+  {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Target is character's own ship");
+    send_to_char(ch, "You are already aboard that vessel!\r\n");
+    return FALSE;
+  }
 
   /* Ships must be in range */
   if (!ships_in_docking_range(ch_ship, target))
@@ -706,6 +756,8 @@ ACMD(do_dock)
 {
   struct greyhawk_ship_data *ship, *target;
   char arg[MAX_INPUT_LENGTH];
+  bool found;
+  int i;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -728,12 +780,11 @@ ACMD(do_dock)
   if (!*arg)
   {
     send_to_char(ch, "Vessels within docking range:\r\n");
-    bool found = FALSE;
-    int i;
+    found = FALSE;
 
     for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
     {
-      if (greyhawk_ships[i].shipnum > 0 && &greyhawk_ships[i] != ship)
+      if (is_valid_ship(&greyhawk_ships[i]) && &greyhawk_ships[i] != ship)
       {
         if (ships_in_docking_range(ship, &greyhawk_ships[i]))
         {
@@ -755,6 +806,12 @@ ACMD(do_dock)
   if (!target)
   {
     send_to_char(ch, "No vessel by that name is nearby.\r\n");
+    return;
+  }
+
+  if (target == ship)
+  {
+    send_to_char(ch, "You cannot dock a vessel with itself.\r\n");
     return;
   }
 
@@ -987,7 +1044,7 @@ ACMD(do_look_outside)
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (greyhawk_ships[i].shipnum > 0 && &greyhawk_ships[i] != ship)
+    if (is_valid_ship(&greyhawk_ships[i]) && &greyhawk_ships[i] != ship)
     {
       float range = greyhawk_range(ship->x, ship->y, ship->z, greyhawk_ships[i].x,
                                    greyhawk_ships[i].y, greyhawk_ships[i].z);

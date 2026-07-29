@@ -733,6 +733,7 @@ historical measurements, and the limits of the current evidence.
 |-------|---------|
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
 | `ship_interiors` | Vessel identity, rooms, owner, upgrades, insurance, and wage state |
+| `ship_runtime_state` | Live hull, position, condition, weapon-slot, room-type, and autopilot snapshot |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
@@ -775,10 +776,17 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
    insurance changes update their authoritative tables.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
    and applies the applicable persistence policy.
-5. **Shutdown**: Current vessel state is saved before termination.
+5. **Copyover**: Complete vessel state is committed before descriptor handoff.
+   Boot reconstructs dynamic interiors and exterior hull objects before player
+   descriptors return to their saved rooms.
+6. **Shutdown**: Current vessel state is saved before termination.
 
-Explicit mid-voyage, mid-combat, and cargo-laden copyover tests remain required
-before production rollout.
+The July 29, 2026 local lifecycle run used Kohdee to prove both a graceful full
+restart and descriptor-preserving copyover. A dynamic warship recovered while
+actively traveling, with route progress, position, heading, damage, combat
+link, and schedule intact. A second dynamic transport retained ownership,
+generated rooms, cargo, hired crew, a refit, insurance, and combat damage.
+Production-snapshot rehearsal remains a release prerequisite.
 
 ---
 
@@ -809,7 +817,6 @@ before production rollout.
 | `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
 | `src/transport_unified.c` | Unified transport interface across all transport types |
 | `src/transport_unified.h` | Transport abstraction types and prototypes |
-| `lib/text/help/vehicles.hlp` | Help file entries for vehicle commands |
 
 ### Database
 
@@ -823,6 +830,7 @@ before production rollout.
 | `sql/components/vessels_phase7_*` | Economy schema, rollback, and verification |
 | `sql/components/vessels_phase8_*` | Encounter schema, rollback, and verification |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
+| `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 
 ### Legacy (Disabled)
 
@@ -917,28 +925,47 @@ before production rollout.
 ### Debug Logging
 
 The whole vessel and vehicle stack is instrumented behind compile-time macros
-declared in `src/vessels.h`. There is a master switch plus eight category
-switches, so you can turn on just the subsystem you are chasing.
-
-> **Production**: `VESSEL_SYSTEM_DEBUG` is currently **1** (dev). Set it to
-> **0** before any production build - at 1 it logs every ship movement,
-> terrain check, and speed calculation.
+declared in `src/vessels.h`. `VESSEL_SYSTEM_DEBUG` defaults to `0`, so normal
+builds compile out every diagnostic call site. An explicit development build
+enables support, but its runtime category mask still starts empty.
 
 ```c
 /* src/vessels.h */
-#define VESSEL_SYSTEM_DEBUG 1  /* master: 0 disables all vessel debug output */
+#ifndef VESSEL_SYSTEM_DEBUG
+#define VESSEL_SYSTEM_DEBUG 0
+#endif
 ```
 
-| Category toggle | Covers |
-|-----------------|--------|
-| `VESSEL_DEBUG_CORE` | General vessel operations, interior generation |
-| `VESSEL_DEBUG_MOVE` | Position updates, terrain checks, speed modifiers, blocked moves, room allocation |
-| `VESSEL_DEBUG_AUTO` | Autopilot state transitions, tick summary, travel steps |
-| `VESSEL_DEBUG_DOCK` | Docking, boarding, defender positioning |
-| `VESSEL_DEBUG_DB` | Per-ship save/load persistence |
-| `VEHICLE_DEBUG_CORE` | Vehicle operations, state transitions, damage |
-| `VEHICLE_DEBUG_MOVE` | Vehicle movement and terrain verdicts |
-| `VEHICLE_DEBUG_XPORT` | Vehicle-on-vessel transport, capacity checks |
+For a bounded local-development investigation:
+
+```bash
+make clean
+make CPPFLAGS='-DVESSEL_SYSTEM_DEBUG=1' -j$(nproc)
+make install
+
+# In game as LVL_IMMORT+
+vdebug status
+vdebug on move
+vdebug off move
+vdebug off
+```
+
+`vdebug` and `vesseldebug` are aliases. `on all` enables every category;
+`off` with no category clears the mask. Restore a clean default build after the
+investigation and require `vdebug status` to report `compiled out`.
+
+| Runtime category | Covers |
+|------------------|--------|
+| `core` | General vessel operations and interior generation |
+| `move` | Position updates, terrain checks, speed modifiers, blocked moves, and room allocation |
+| `auto` | Autopilot state transitions, tick summaries, and travel steps |
+| `dock` | Docking, boarding, and defender positioning |
+| `db` | Per-ship save/load persistence |
+| `func` | Function entry and exit tracing |
+| `state` | State transitions |
+| `vehicle` | Vehicle operations and damage |
+| `vehicle_move` | Vehicle movement and terrain verdicts |
+| `transport` | Vehicle-on-vessel transport and capacity checks |
 
 Macros: `VSSL_DEBUG`, `VSSL_DEBUG_MOVE`, `VSSL_DEBUG_AUTO`, `VSSL_DEBUG_DOCK`,
 `VSSL_DEBUG_DB`, `VHCL_DEBUG`, `VHCL_DEBUG_MOVE`, `VHCL_DEBUG_XPORT`, plus
@@ -965,12 +992,13 @@ grep "\[VEHICLE_XPORT\]" syslog   # vehicle loading
 The gameplay layer is not approved for production merely because it builds and
 passes automated tests. Before rollout:
 
-1. Complete the numbered manual regression on development.
-2. Make `CONFIG_VESSEL_SYSTEM` gate vessel command dispatch and tick processing;
-   it currently affects interior detection only and is not a kill switch.
-3. Set `VESSEL_SYSTEM_DEBUG` to `0`.
-4. Apply and verify every vessel schema component plus
-   `help_vessel_entries.sql`.
+1. Repeat the numbered manual regression on the release candidate.
+2. Exercise cedit `Off` with an active route: gated commands must refuse,
+   coordinates must remain fixed, and recovery commands must remain available.
+3. Require `vdebug status` to report that debug support is compiled out.
+4. Apply and verify every vessel schema component, then require all 31
+   maintained help entries and 74 command keywords to pass both SQL and in-game
+   checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
 7. Rehearse schema migration and rollback against a production snapshot.
@@ -987,8 +1015,7 @@ used in the rehearsal.
 
 See [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md) for
 the DBA procedure. Do not deploy vessel code directly from a development
-checkout or treat the cedit flag as a safety boundary until the prerequisite
-above is complete.
+checkout.
 
 ### Verification Queries
 
@@ -1006,14 +1033,15 @@ SELECT COUNT(*) FROM ship_room_templates;
 SELECT COUNT(*) FROM help_keywords WHERE keyword IN ('SHIPFIRE', 'SHIPBUY', 'SEASTATE');
 ```
 
-Run the `verify_vessels_*.sql` scripts as the authoritative schema checks; a
-single table count is insufficient once later phases extend the system.
+Run the `verify_vessels_*.sql` scripts and
+`verify_help_vessel_entries.sql` as the authoritative checks; a single table
+or keyword count is insufficient once later phases extend the system.
 
 ### Monitoring & Maintenance
 
 - `shiplist` shows fleet state and wilderness dynamic-room utilization.
-- Vessel debug categories provide focused dev diagnostics. Keep the master
-  switch off in production unless investigating a bounded incident.
+- Vessel debug categories provide focused development diagnostics. Candidate
+  and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
   volume, and game-loop latency.
 - Treat room-pool pressure over 80%, tick time over 25 ms, or repeated
@@ -1039,12 +1067,10 @@ single table count is insufficient once later phases extend the system.
 
 | Issue | Location | Status |
 |-------|----------|--------|
-| Legacy zone-700 fixture stores slot 0 while `shipnum` is 1 and binds room 1403 instead of 70003 | `vessels.c`, object 70002 | Release blocker; breaks disembark and helm commands in the manual regression |
-| `shipnum` is both an array index and an occupancy sentinel | Core Greyhawk callers | Design debt; remove the dual meaning rather than relying on slot conventions |
-| Cedit vessel toggle gates interior detection only | `vessels_rooms.c` | Not a production kill switch; command and tick gating remain |
-| Generated interior rooms persist until reboot after ship purge | `vessels_rooms.c` | Known limitation; runtime reclamation is future work |
 | Offline insurance payout requires staff reconciliation | `vessels_upgrades.c` | Mail delivery remains |
 | Installed weapon state is memory-only | `slot[]` | A persistent `ship_weapons` table remains |
+| Player deletion has no explicit ship-orphan policy | Ownership lifecycle | Unown, transfer, or scuttle behavior remains to be chosen and tested |
+| Owner logout can end the live PvP consent target | `vessel_pvp_permitted()` | A bounded recent-combat grace policy remains |
 
 See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
 the complete, dependency-ordered backlog.
@@ -1058,14 +1084,17 @@ the complete, dependency-ordered backlog.
 1. Add enum value to `vessel_class` in `vessels.h`
 2. Add terrain capabilities to `vessel_terrain_data[]` in `vessels.c`
 3. Add room generation rules to `get_rooms_for_vessel_type()` in `vessels_rooms.c`
-4. Update help files
+4. Update the authoritative help migration and verifier
 
 ### Adding New Commands
 
 1. Implement handler in `vessels.c` or `vessels_docking.c`
 2. Register in `interpreter.c` under vessel command section
-3. Add help entry in `lib/text/help/help.hlp`
-4. Add tests in `unittests/CuTest/test_vessels.c`
+3. Add the authoritative entry and exact keyword to
+   `sql/components/help_vessel_entries.sql` and its verifier
+4. Add production-linked coverage in
+   `unittests/CuTest/test_transport_production.c`
+5. Run the SQL verifier and `--vessel-help-check`
 
 ### Adding New Vehicle Types
 
@@ -1074,8 +1103,8 @@ the complete, dependency-ordered backlog.
 3. Add capacity constants (passengers, weight)
 4. Add speed modifier constant
 5. Update `vehicle_type_name()` in `vehicles.c`
-6. Add help entry in `lib/text/help/vehicles.hlp`
-7. Add tests in `unittests/CuTest/test_vehicle_structs.c`
+6. Update the authoritative vehicle help migration and verifier
+7. Add production-linked tests in `test_transport_production.c`
 
 ### Testing
 
@@ -1087,6 +1116,7 @@ make test
 make install
 
 # Full local gate, including focused protocol and schema checks
+cd unittests/CuTest
 make test-all
 ```
 

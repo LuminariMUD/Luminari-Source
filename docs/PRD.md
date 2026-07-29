@@ -271,7 +271,8 @@ interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
 operator tooling, and MSDP ship state.
 
-Implementation does not equal release acceptance. Live regression, performance,
-soak, persistence, content-depth, balance, and staged-rollout work remains.
+Implementation does not equal release acceptance. The local 30-step regression
+and development release-boundary checks pass; performance, soak, complete
+persistence recovery, content depth, balance, and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.

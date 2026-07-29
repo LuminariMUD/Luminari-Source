@@ -1264,6 +1264,10 @@ void boot_db(void)
   vessel_piracy_ensure_schema();
   vessel_hazard_ensure_schema();
 
+  log("Loading vessel waypoints and routes from database...");
+  load_all_waypoints();
+  load_all_routes();
+
   log("Loading ship interiors from database...");
   load_all_ship_interiors();
 
@@ -1387,6 +1391,9 @@ void boot_db(void)
   {
     reset_zone(i);
   }
+
+  log("Relinking vessel hull objects after zone resets.");
+  vessel_relink_world_objects();
 
   log("Cleaning up orphaned objects - DONE.");
 

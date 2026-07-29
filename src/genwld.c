@@ -21,10 +21,9 @@
 #include "wilderness.h"
 #include "oasis.h"
 #include "spec_procs.h"
+#include "vessels.h"
 
-/* This function will copy the strings so be sure you free your own copies of
- * the description, title, and such. */
-room_rnum add_room(struct room_data *room)
+static room_rnum add_room_internal(struct room_data *room, bool persistent)
 {
   struct char_data *tch;
   struct obj_data *tobj;
@@ -43,7 +42,8 @@ room_rnum add_room(struct room_data *room)
     copy_room(&world[i], room);
     world[i].people = tch;
     world[i].contents = tobj;
-    add_to_save_list(zone_table[room->zone].number, SL_WLD);
+    if (persistent)
+      add_to_save_list(zone_table[room->zone].number, SL_WLD);
     log("GenOLC: add_room: Updated existing room #%d.", room->number);
     return i;
   }
@@ -84,6 +84,7 @@ room_rnum add_room(struct room_data *room)
 
   /* Reindex the wilderness index. */
   initialize_wilderness_lists();
+  vehicle_reindex_room_insert(found);
 
   log("GenOLC: add_room: Added room %d at index #%d.", room->number, found);
   /* found is equal to the array index where we added the room. */
@@ -135,13 +136,27 @@ room_rnum add_room(struct room_data *room)
         W_EXIT(i, j)->to_room += (W_EXIT(i, j)->to_room >= found);
   } while (i > 0);
 
-  add_to_save_list(zone_table[room->zone].number, SL_WLD);
+  if (persistent)
+    add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
   /* Return what array entry we placed the new room in. */
   return found;
 }
 
-int delete_room(room_rnum rnum)
+/* This function will copy the strings so be sure you free your own copies of
+ * the description, title, and such. */
+room_rnum add_room(struct room_data *room)
+{
+  return add_room_internal(room, TRUE);
+}
+
+/* Insert an ephemeral room without marking its zone for flat-file saving. */
+room_rnum add_runtime_room(struct room_data *room)
+{
+  return add_room_internal(room, FALSE);
+}
+
+static int delete_room_internal(room_rnum rnum, bool persistent)
 {
   room_rnum i;
   zone_rnum zone;
@@ -157,7 +172,8 @@ int delete_room(room_rnum rnum)
 
   room = &world[rnum];
 
-  add_to_save_list(zone_table[room->zone].number, SL_WLD);
+  if (persistent)
+    add_to_save_list(zone_table[room->zone].number, SL_WLD);
 
   /* This is something you might want to read about in the logs. */
   log("GenOLC: delete_room: Deleting room #%d (%s).", room->number, room->name);
@@ -296,8 +312,19 @@ int delete_room(room_rnum rnum)
 
   /* Rebuild the wilderness index. */
   initialize_wilderness_lists();
+  vehicle_reindex_room_delete(rnum);
 
   return TRUE;
+}
+
+int delete_room(room_rnum rnum)
+{
+  return delete_room_internal(rnum, TRUE);
+}
+
+int delete_runtime_room(room_rnum rnum)
+{
+  return delete_room_internal(rnum, FALSE);
 }
 
 int save_rooms(zone_rnum rzone)

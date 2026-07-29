@@ -68,6 +68,7 @@
 #include "deities.h"
 #include "backgrounds.h"
 #include "terrain_bridge.h"
+#include "vessels.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
 #include "treasure.h"
@@ -6521,6 +6522,28 @@ void perform_do_copyover()
     return;
   }
 
+  /* Copyover replaces the process without running comm.c's normal shutdown
+   * path. Persist complete vessel state before any descriptor is committed
+   * to the handoff file so players cannot recover into missing interiors. */
+  if (!save_all_vessels())
+  {
+    log("SYSERR: copyover: Vessel persistence failed; aborting before exec");
+    log_copyover_phase("FAILED", "Vessel persistence failed");
+    copyover_status = COPYOVER_FAILED;
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor,
+                            "\n\r*** COPYOVER FAILED: Vessel state could not be saved. "
+                            "Game continues normally. ***\n\r");
+      }
+    }
+    close_copyover_diagnostics(0);
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+
   /* First, count descriptors and validate state */
   for (d = descriptor_list; d; d = d->next)
   {
@@ -6905,16 +6928,14 @@ void perform_do_copyover()
     if (getcwd(cwd, sizeof(cwd)))
       COPYOVER_DEBUG("copyover: Current directory after chdir: %s", cwd);
 
-    /* Check if copyover file is visible from new directory */
-    if (stat(COPYOVER_FILE, &st) == 0)
-      COPYOVER_DEBUG("copyover: Copyover file FOUND at %s/%s after chdir", cwd, COPYOVER_FILE);
+    /* The replacement process starts from the repository root and changes
+     * back into lib before recovery, so the handoff file is expected below
+     * lib from this temporary working directory. */
+    if (stat("lib/" COPYOVER_FILE, &st) == 0)
+      COPYOVER_DEBUG("copyover: Copyover file FOUND at %s/lib/%s after chdir", cwd, COPYOVER_FILE);
     else
-    {
-      log("SYSERR: copyover: Copyover file NOT found at %s/%s after chdir!", cwd, COPYOVER_FILE);
-      /* Check if it exists in lib subdirectory */
-      if (stat("lib/copyover.dat", &st) == 0)
-        log("SYSERR: copyover: But file EXISTS at lib/copyover.dat - PATH MISMATCH!");
-    }
+      log("SYSERR: copyover: Copyover file NOT found at %s/lib/%s after chdir!", cwd,
+          COPYOVER_FILE);
   }
 
   /* Check if binary exists and is executable before attempting execl */

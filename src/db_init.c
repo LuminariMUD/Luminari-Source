@@ -1189,7 +1189,7 @@ void init_vessel_system_tables(void)
   /* ship_interiors - stores vessel interior layouts */
   const char *create_ship_interiors =
       "CREATE TABLE IF NOT EXISTS ship_interiors ("
-      "ship_id VARCHAR(8) NOT NULL PRIMARY KEY, "
+      "ship_id INT NOT NULL PRIMARY KEY, "
       "vessel_type INT NOT NULL DEFAULT 0, "
       "vessel_name VARCHAR(100), "
       "num_rooms INT NOT NULL DEFAULT 1, "
@@ -1216,12 +1216,151 @@ void init_vessel_system_tables(void)
     return;
   }
 
+  /* ship_runtime_state - complete process-independent live vessel snapshot */
+  {
+    const char *create_ship_runtime_state =
+        "CREATE TABLE IF NOT EXISTS ship_runtime_state ("
+        "ship_id INT NOT NULL PRIMARY KEY, "
+        "instance_version INT NOT NULL DEFAULT 1, "
+        "prototype_id INT NOT NULL DEFAULT 0, "
+        "hull_object_vnum INT NOT NULL DEFAULT 70002, "
+        "display_id CHAR(2) NOT NULL DEFAULT '', "
+        "location_vnum INT NOT NULL DEFAULT 0, "
+        "x FLOAT NOT NULL DEFAULT 0, y FLOAT NOT NULL DEFAULT 0, z FLOAT NOT NULL DEFAULT 0, "
+        "dx FLOAT NOT NULL DEFAULT 0, dy FLOAT NOT NULL DEFAULT 0, dz FLOAT NOT NULL DEFAULT 0, "
+        "heading SMALLINT NOT NULL DEFAULT 0, setheading SMALLINT NOT NULL DEFAULT 0, "
+        "minspeed SMALLINT NOT NULL DEFAULT 0, maxspeed SMALLINT NOT NULL DEFAULT 0, "
+        "speed SMALLINT NOT NULL DEFAULT 0, setspeed SMALLINT NOT NULL DEFAULT 0, "
+        "dock_room INT NOT NULL DEFAULT 0, docked_to_ship INT NOT NULL DEFAULT -1, "
+        "docking_room INT NOT NULL DEFAULT 0, max_docked_ships INT NOT NULL DEFAULT 0, "
+        "maxfarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxrarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxparmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxsarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "farmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "rarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "parmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "sarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxfinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxrinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxpinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxsinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "finternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "rinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "pinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "sinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxturnrate TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "turnrate TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxmainsail TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "mainsail TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "last_attacker INT NOT NULL DEFAULT 0, "
+        "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
+        "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
+        "dock_fee_balance INT NOT NULL DEFAULT 0, "
+        "dock_fee_port INT NOT NULL DEFAULT 0, "
+        "dock_fee_clan INT NOT NULL DEFAULT 0, "
+        "wear_ticks INT NOT NULL DEFAULT 0, wage_ticks INT NOT NULL DEFAULT 0, "
+        "room_types TEXT, slot_data LONGBLOB, "
+        "autopilot_state INT NOT NULL DEFAULT 0, current_route_id INT NOT NULL DEFAULT 0, "
+        "current_waypoint_index INT NOT NULL DEFAULT 0, "
+        "autopilot_tick_counter INT NOT NULL DEFAULT 0, "
+        "wait_remaining INT NOT NULL DEFAULT 0, last_update BIGINT NOT NULL DEFAULT 0, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "CONSTRAINT fk_ship_runtime_interior FOREIGN KEY (ship_id) "
+        "REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_runtime_state))
+    {
+      log("SYSERR: Failed to create ship_runtime_state table: %s", mysql_error(conn));
+      return;
+    }
+  }
+
+  /* ship_weapons - normalized installed armament */
+  {
+    const char *create_ship_weapons =
+        "CREATE TABLE IF NOT EXISTS ship_weapons ("
+        "ship_id INT NOT NULL, "
+        "slot_index TINYINT UNSIGNED NOT NULL, "
+        "slot_type TINYINT UNSIGNED NOT NULL DEFAULT 1, "
+        "position TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "equipment_weight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "description VARCHAR(255) NOT NULL DEFAULT '', "
+        "val0 SMALLINT NOT NULL DEFAULT 0, "
+        "val1 SMALLINT NOT NULL DEFAULT 0, "
+        "val2 SMALLINT NOT NULL DEFAULT 0, "
+        "val3 SMALLINT NOT NULL DEFAULT 0, "
+        "slot_x TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+        "reload_timer SMALLINT NOT NULL DEFAULT 0, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "PRIMARY KEY (ship_id, slot_index), "
+        "CONSTRAINT fk_ship_weapons_interior FOREIGN KEY (ship_id) "
+        "REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_weapons))
+    {
+      log("SYSERR: Failed to create ship_weapons table: %s", mysql_error(conn));
+      return;
+    }
+  }
+
+  /* vessel_insurance_claims - offline settlement queue and audit trail */
+  {
+    const char *create_vessel_insurance_claims =
+        "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
+        "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "ship_id INT NOT NULL, "
+        "owner VARCHAR(64) NOT NULL, "
+        "ship_name VARCHAR(128) NOT NULL, "
+        "amount INT NOT NULL, "
+        "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "paid_at TIMESTAMP NULL DEFAULT NULL, "
+        "INDEX idx_vessel_claim_owner_status (owner, status), "
+        "INDEX idx_vessel_claim_ship (ship_id)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_vessel_insurance_claims))
+    {
+      log("SYSERR: Failed to create vessel_insurance_claims table: %s",
+          mysql_error(conn));
+      return;
+    }
+  }
+
+  /* ship_schedules - one persistent timed route per vessel */
+  {
+    const char *create_ship_schedules =
+        "CREATE TABLE IF NOT EXISTS ship_schedules ("
+        "schedule_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+        "ship_id INT NOT NULL, "
+        "route_id INT NOT NULL, "
+        "interval_hours INT NOT NULL, "
+        "next_departure INT NOT NULL DEFAULT 0, "
+        "enabled TINYINT NOT NULL DEFAULT 1, "
+        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+        "UNIQUE KEY uk_ship_schedule (ship_id)"
+        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+    if (mysql_query_safe(conn, create_ship_schedules))
+    {
+      log("SYSERR: Failed to create ship_schedules table: %s", mysql_error(conn));
+      return;
+    }
+  }
+
   /* ship_docking - tracks vessel docking history */
   const char *create_ship_docking =
       "CREATE TABLE IF NOT EXISTS ship_docking ("
       "dock_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-      "ship1_id VARCHAR(8) NOT NULL, "
-      "ship2_id VARCHAR(8) NOT NULL, "
+      "ship1_id INT NOT NULL, "
+      "ship2_id INT NOT NULL, "
       "dock_room1 INT NOT NULL, "
       "dock_room2 INT NOT NULL, "
       "dock_type ENUM('standard','combat','emergency','forced') DEFAULT 'standard', "
@@ -1271,7 +1410,7 @@ void init_vessel_system_tables(void)
   const char *create_ship_cargo_manifest =
       "CREATE TABLE IF NOT EXISTS ship_cargo_manifest ("
       "manifest_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-      "ship_id VARCHAR(8) NOT NULL, "
+      "ship_id INT NOT NULL, "
       "cargo_room INT NOT NULL, "
       "item_vnum INT NOT NULL, "
       "item_name VARCHAR(100), "
@@ -1295,7 +1434,7 @@ void init_vessel_system_tables(void)
   const char *create_ship_crew_roster =
       "CREATE TABLE IF NOT EXISTS ship_crew_roster ("
       "roster_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-      "ship_id VARCHAR(8) NOT NULL, "
+      "ship_id INT NOT NULL, "
       "npc_vnum INT NOT NULL, "
       "npc_name VARCHAR(100), "
       "crew_role ENUM('captain','pilot','gunner','engineer','medic','marine','crew') DEFAULT "
@@ -1418,7 +1557,7 @@ static void create_vessel_procedures(void)
   }
 
   const char *create_get_active_proc =
-      "CREATE PROCEDURE get_active_dockings(IN p_ship_id VARCHAR(8))\n"
+      "CREATE PROCEDURE get_active_dockings(IN p_ship_id INT)\n"
       "BEGIN\n"
       "    SELECT * FROM ship_docking\n"
       "    WHERE (ship1_id = p_ship_id OR ship2_id = p_ship_id)\n"

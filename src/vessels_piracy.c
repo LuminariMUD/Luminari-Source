@@ -353,7 +353,7 @@ ACMD(do_plunder)
   {
     for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
     {
-      if (greyhawk_ships[i].name[0] != '\0' && &greyhawk_ships[i] != prize &&
+      if (is_valid_ship(&greyhawk_ships[i]) && &greyhawk_ships[i] != prize &&
           !str_cmp(greyhawk_ships[i].owner, GET_NAME(ch)) &&
           ships_in_docking_range(&greyhawk_ships[i], prize))
       {
@@ -458,7 +458,7 @@ ACMD(do_marque)
     return;
   }
 
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_DOCKABLE))
+  if (!vessel_room_is_port(IN_ROOM(ch)))
   {
     send_to_char(ch, "Letters of marque are issued at a port's admiralty office.\r\n");
     return;

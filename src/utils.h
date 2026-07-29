@@ -2388,6 +2388,8 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define GET_SETCLOAK_TIMER(ch) (ch->player_specials->saved.setcloak_timer)
 
 #define GET_PVP_TIMER(ch) (ch->player_specials->saved.pvp_timer)
+#define GET_VESSEL_INSURANCE_CLAIM(ch)                                                        \
+  (ch->player_specials->saved.vessel_insurance_claim_id)
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)
 #define PIXIE_DUST_TIMER(ch) (ch->player_specials->saved.pixie_dust_timer)

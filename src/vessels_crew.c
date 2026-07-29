@@ -181,11 +181,12 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "DELETE FROM ship_crew_roster WHERE ship_id = '%s' AND npc_vnum <= %d", ship->id,
+           "DELETE FROM ship_crew_roster WHERE ship_id = %d AND npc_vnum <= %d", ship->shipnum,
            CREW_ROW_VNUM_BASE);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_crew (clear) failed for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: vessel_db_save_crew (clear) failed for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
     return;
   }
 
@@ -199,11 +200,12 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
      * roster stays human-readable in the database. */
     snprintf(query, sizeof(query),
              "INSERT INTO ship_crew_roster (ship_id, npc_vnum, npc_name, crew_role, "
-             "loyalty_rating) VALUES ('%s', %d, '%s', 'crew', %d)",
-             ship->id, CREW_ROW_VNUM_BASE - i, vessel_crew_position_name(i), ship->crew_tier[i]);
+             "loyalty_rating) VALUES (%d, %d, '%s', 'crew', %d)",
+             ship->shipnum, CREW_ROW_VNUM_BASE - i, vessel_crew_position_name(i),
+             ship->crew_tier[i]);
     if (mysql_query(conn, query))
     {
-      log("SYSERR: vessel_db_save_crew (insert) failed for ship %s: %s", ship->id,
+      log("SYSERR: vessel_db_save_crew (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
     }
   }
@@ -226,8 +228,8 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship)
 
   snprintf(query, sizeof(query),
            "SELECT npc_vnum, loyalty_rating FROM ship_crew_roster "
-           "WHERE ship_id = '%s' AND npc_vnum <= %d",
-           ship->id, CREW_ROW_VNUM_BASE);
+           "WHERE ship_id = %d AND npc_vnum <= %d",
+           ship->shipnum, CREW_ROW_VNUM_BASE);
   if (mysql_query(conn, query))
   {
     return;
@@ -287,7 +289,7 @@ void vessel_crew_wage_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (ship->name[0] == '\0')
+    if (!is_valid_ship(ship))
     {
       continue;
     }
@@ -382,8 +384,7 @@ ACMD(do_shiphire)
   }
 
   /* Hiring happens ashore - the hiring hall is at the dock */
-  if (ship->shipobj == NULL || IN_ROOM(ship->shipobj) == NOWHERE ||
-      !ROOM_FLAGGED(IN_ROOM(ship->shipobj), ROOM_DOCKABLE))
+  if (!vessel_ship_is_in_port(ship))
   {
     send_to_char(ch, "You can only take on crew while moored at a dock.\r\n");
     return;

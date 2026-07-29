@@ -691,6 +691,8 @@ static void init_game(ush_int local_port)
   /* Save all vessel states to database */
   log("Saving vessel states to database.");
   save_all_vessels();
+  save_all_waypoints();
+  save_all_routes();
 
   /* Save all vehicle states to database */
   log("Saving vehicle states to database.");
@@ -1460,7 +1462,7 @@ void heartbeat(int heart_pulse)
   }
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
-  if (!(heart_pulse % AUTOPILOT_TICK_INTERVAL))
+  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL))
   {
     autopilot_tick();
     vessel_combat_tick();
@@ -1579,7 +1581,8 @@ void heartbeat(int heart_pulse)
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
-    schedule_tick();   /* Check vessel scheduled departures */
+    if (CONFIG_VESSEL_SYSTEM)
+      schedule_tick(); /* Check vessel scheduled departures */
 
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     /* Clean up old trails once per mud hour */

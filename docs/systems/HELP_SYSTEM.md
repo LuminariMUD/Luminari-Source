@@ -51,12 +51,20 @@
 > `help.hlp` into the database, but it is hardcoded to that one path
 > (`hedit.c:2545`, `:3218`) and cannot read arbitrary files. For repeatable,
 > reviewable imports, commit a SQL migration under `sql/components/` instead -
-> see `help_vessel_entries.sql` for a worked example covering 26 entries.
+> see `help_vessel_entries.sql` for a worked example covering 31 maintained
+> entries and 74 exact command keywords.
 >
-> **Verify by booting, not by looking at files.** A correct boot logs
-> `Loading help entries.` followed by a keyword count and
-> `Sorted N help entries from file.` If your count did not rise, the loader never
-> saw your content. Confirming a `.hlp` file exists on disk proves nothing.
+> **Verify the authoritative rows and the running game.** Run
+> `sql/components/verify_help_vessel_entries.sql`, then reload or restart help
+> and search every command in game. The vessel sweep is automated by
+> `scripts/dev_kohdee_login_smoke.sh --vessel-help-check`; it requires a
+> database `Help Tag` and rejects missing or file-fallback results.
+>
+> Runtime files under `lib/text/help/` are ignored deployment data. Standalone
+> files such as `autopilot.hlp` and `schedule.hlp` are not listed in `index` and
+> are not maintained sources. If a deployment enables file fallback, provision
+> one consolidated `help.hlp`; the database migration remains the reviewable
+> source of truth.
 
 The LuminariMUD help system is a sophisticated, multi-layered documentation framework that provides:
 - **Database-driven content** with MySQL/MariaDB backend
@@ -84,7 +92,7 @@ The LuminariMUD help system is a sophisticated, multi-layered documentation fram
 ## Connection Details
 - **Config File:** `lib/mysql_config`
 - **Connection:** Managed through `src/mysql.c` using prepared statements
-- **Status:** ✅ FUNCTIONAL - Database connection verified and operational
+- **Status:** FUNCTIONAL - Database connection verified and operational
 
 ## Database Schema
 

@@ -92,6 +92,7 @@ void Test_vehicle_production_direction_and_terrain_helpers(CuTest *tc)
   CuAssertIntEquals(tc, 0, dy);
 
   CuAssertIntEquals(tc, VTERRAIN_ROAD, sector_to_vterrain(SECT_ROAD_NS));
+  CuAssertIntEquals(tc, VTERRAIN_ROAD, sector_to_vterrain(SECT_SEAPORT));
   CuAssertIntEquals(tc, 0, sector_to_vterrain(SECT_OCEAN));
   CuAssertTrue(tc, vehicle_can_traverse_terrain(&mount, SECT_FOREST));
   CuAssertTrue(tc, !vehicle_can_traverse_terrain(&mount, SECT_OCEAN));
@@ -116,6 +117,63 @@ void Test_vessel_production_geometry_and_type_data(CuTest *tc)
   CuAssertTrue(tc, caps->can_traverse_underwater);
   CuAssertTrue(tc, get_terrain_speed_modifier(VESSEL_SUBMARINE, SECT_UNDERWATER, 4) > 0);
   CuAssertIntEquals(tc, 0, get_terrain_speed_modifier(VESSEL_SHIP, -1, 0));
+}
+
+void Test_vessel_name_lookup_accepts_player_facing_identifiers(CuTest *tc)
+{
+  const int slot = 488;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+
+  memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  strlcpy(ship->name, "The Tern", sizeof(ship->name));
+  strlcpy(ship->id, "SU", sizeof(ship->id));
+
+  CuAssertPtrEquals(tc, ship, find_ship_by_name("The Tern"));
+  CuAssertPtrEquals(tc, ship, find_ship_by_name("tern"));
+  CuAssertPtrEquals(tc, ship, find_ship_by_name("SU"));
+  CuAssertPtrEquals(tc, ship, find_ship_by_name("488"));
+
+  memset(ship, 0, sizeof(*ship));
+}
+
+void Test_vessel_slot_identity_and_occupancy_are_separate(CuTest *tc)
+{
+  const int slot = 497;
+  struct greyhawk_ship_data *ship = &greyhawk_ships[slot];
+
+  memset(ship, 0, sizeof(*ship));
+  ship->shipnum = slot;
+
+  CuAssertTrue(tc, !is_valid_ship(ship));
+
+  ship->active = TRUE;
+  CuAssertTrue(tc, is_valid_ship(ship));
+
+  ship->shipnum = slot - 1;
+  CuAssertTrue(tc, !is_valid_ship(ship));
+
+  memset(ship, 0, sizeof(*ship));
+}
+
+void Test_vessel_debug_categories_are_runtime_selectable(CuTest *tc)
+{
+  CuAssertIntEquals(tc, VESSEL_DEBUG_CAT_CORE, vessel_debug_category_from_name("core"));
+  CuAssertIntEquals(tc, VESSEL_DEBUG_CAT_VEHICLE_MOVE,
+                    vessel_debug_category_from_name("vehicle_move"));
+  CuAssertIntEquals(tc, VESSEL_DEBUG_CAT_TRANSPORT, vessel_debug_category_from_name("xport"));
+  CuAssertIntEquals(tc, VESSEL_DEBUG_CAT_ALL, vessel_debug_category_from_name("all"));
+  CuAssertIntEquals(tc, 0, vessel_debug_category_from_name("not-a-category"));
+
+  vessel_debug_mask = VESSEL_DEBUG_CAT_CORE;
+#if VESSEL_SYSTEM_DEBUG
+  CuAssertTrue(tc, vessel_debug_enabled(VESSEL_DEBUG_CAT_CORE));
+  CuAssertTrue(tc, !vessel_debug_enabled(VESSEL_DEBUG_CAT_MOVE));
+#else
+  CuAssertTrue(tc, !vessel_debug_enabled(VESSEL_DEBUG_CAT_CORE));
+#endif
+  vessel_debug_mask = 0;
 }
 
 void Test_vessel_production_autopilot_lifecycle(CuTest *tc)
@@ -236,6 +294,73 @@ void Test_vessel_combat_status_bands(CuTest *tc)
   CuAssertStrEquals(tc, "battered", vessel_status_name(VESSEL_STATUS_BATTERED));
 }
 
+void Test_vessel_condition_initialization_is_damage_complete(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  memset(&ship, 0, sizeof(ship));
+  vessel_initialize_condition(&ship, 100);
+
+  CuAssertIntEquals(tc, 100, ship.farmor);
+  CuAssertIntEquals(tc, 100, ship.rarmor);
+  CuAssertIntEquals(tc, 100, ship.parmor);
+  CuAssertIntEquals(tc, 100, ship.sarmor);
+  CuAssertIntEquals(tc, 240, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 240, vessel_max_internal(&ship));
+  CuAssertIntEquals(tc, 20, ship.mainsail);
+  CuAssertIntEquals(tc, 20, ship.maxmainsail);
+  CuAssertIntEquals(tc, 20, ship.turnrate);
+  CuAssertIntEquals(tc, 20, ship.maxturnrate);
+
+  memset(&ship, 0, sizeof(ship));
+  vessel_initialize_condition(&ship, 0);
+  CuAssertIntEquals(tc, 40, vessel_total_internal(&ship));
+  CuAssertIntEquals(tc, 40, vessel_max_internal(&ship));
+}
+
+void Test_vessel_runtime_slot_state_round_trip(CuTest *tc)
+{
+  struct greyhawk_ship_data source;
+  struct greyhawk_ship_data restored;
+  char serialized[8192];
+
+  memset(&source, 0, sizeof(source));
+  memset(&restored, 0, sizeof(restored));
+  source.shipnum = 42;
+  source.slot[0].type = 1;
+  source.slot[0].position = GREYHAWK_PORT;
+  source.slot[0].weight = 37;
+  source.slot[0].val0 = 50;
+  source.slot[0].val1 = 4;
+  source.slot[0].val2 = 2;
+  source.slot[0].val3 = 8;
+  source.slot[0].x = 11;
+  source.slot[0].y = 19;
+  source.slot[0].timer = 5;
+  strlcpy(source.slot[0].desc, "port battery | loaded:yes", sizeof(source.slot[0].desc));
+  source.slot[GREYHAWK_MAXSLOTS - 1].type = 3;
+  source.slot[GREYHAWK_MAXSLOTS - 1].timer = -2;
+  strlcpy(source.slot[GREYHAWK_MAXSLOTS - 1].desc, "reserve bolts",
+          sizeof(source.slot[GREYHAWK_MAXSLOTS - 1].desc));
+
+  CuAssertTrue(tc, vessel_serialize_slot_state(&source, serialized, sizeof(serialized)) > 0);
+  CuAssertIntEquals(tc, GREYHAWK_MAXSLOTS,
+                    vessel_deserialize_slot_state(&restored, serialized));
+  CuAssertIntEquals(tc, source.slot[0].type, restored.slot[0].type);
+  CuAssertIntEquals(tc, source.slot[0].position, restored.slot[0].position);
+  CuAssertIntEquals(tc, source.slot[0].weight, restored.slot[0].weight);
+  CuAssertIntEquals(tc, source.slot[0].val0, restored.slot[0].val0);
+  CuAssertIntEquals(tc, source.slot[0].val1, restored.slot[0].val1);
+  CuAssertIntEquals(tc, source.slot[0].val2, restored.slot[0].val2);
+  CuAssertIntEquals(tc, source.slot[0].val3, restored.slot[0].val3);
+  CuAssertIntEquals(tc, source.slot[0].x, restored.slot[0].x);
+  CuAssertIntEquals(tc, source.slot[0].y, restored.slot[0].y);
+  CuAssertIntEquals(tc, source.slot[0].timer, restored.slot[0].timer);
+  CuAssertStrEquals(tc, source.slot[0].desc, restored.slot[0].desc);
+  CuAssertIntEquals(tc, -2, restored.slot[GREYHAWK_MAXSLOTS - 1].timer);
+  CuAssertStrEquals(tc, "reserve bolts", restored.slot[GREYHAWK_MAXSLOTS - 1].desc);
+}
+
 void Test_vessel_combat_firing_arcs(CuTest *tc)
 {
   /* Use high fleet slots so nothing else in the suite collides. */
@@ -279,6 +404,7 @@ void Test_vessel_combat_damage_and_sinking(CuTest *tc)
   struct greyhawk_ship_data *ship = &greyhawk_ships[S];
 
   memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
   ship->shipnum = S;
   strlcpy(ship->name, "test target", sizeof(ship->name));
   ship->maxfarmor = ship->farmor = 10;
@@ -318,6 +444,7 @@ static void duel_arm_ship(struct greyhawk_ship_data *ship, int shipnum, const ch
   int arc;
 
   memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
   ship->shipnum = shipnum;
   strlcpy(ship->name, name, sizeof(ship->name));
   ship->maxfarmor = ship->farmor = 10;
@@ -648,6 +775,55 @@ void Test_vessel_pvp_consent_gate(CuTest *tc)
   free(staff.player.name);
 }
 
+void Test_vessel_pvp_logout_grace_is_bounded_and_opponent_specific(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  time_t now;
+
+  memset(&ship, 0, sizeof(ship));
+  now = time(0);
+  strlcpy(ship.pvp_grace_attacker, "Vex", sizeof(ship.pvp_grace_attacker));
+  ship.pvp_grace_until = now + VESSEL_PVP_LOGOUT_GRACE;
+
+  CuAssertTrue(tc, vessel_pvp_grace_active(&ship, "Vex", now));
+  CuAssertTrue(tc, vessel_pvp_grace_active(&ship, "vex", now));
+  CuAssertTrue(tc, !vessel_pvp_grace_active(&ship, "Corr", now));
+  CuAssertTrue(tc, !vessel_pvp_grace_active(&ship, "Vex",
+                                            ship.pvp_grace_until + 1));
+
+  vessel_clear_pvp_grace(&ship);
+  CuAssertIntEquals(tc, 0, (int)ship.pvp_grace_until);
+  CuAssertTrue(tc, ship.pvp_grace_attacker[0] == '\0');
+
+  /* The persisted consent snapshot must not break the 5 KiB base budget. */
+  CuAssertTrue(tc, sizeof(struct greyhawk_ship_data) <= 5 * 1024);
+}
+
+void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_TRANSPORT;
+  strlcpy(ship.owner, "Kohdee", sizeof(ship.owner));
+
+  CuAssertIntEquals(tc, 35, vessel_dock_fee_for_class(VESSEL_TRANSPORT));
+  CuAssertIntEquals(tc, 25, vessel_dock_fee_for_class((enum vessel_class)-1));
+  CuAssertIntEquals(tc, 35, vessel_assess_dock_fee(&ship, 70000, 12));
+  CuAssertIntEquals(tc, 35, ship.dock_fee_balance);
+  CuAssertIntEquals(tc, 70000, ship.dock_fee_port);
+  CuAssertIntEquals(tc, 12, ship.dock_fee_clan);
+
+  /* Repeated transition notices cannot double-assess the occupied berth. */
+  CuAssertIntEquals(tc, 0, vessel_assess_dock_fee(&ship, 70000, 12));
+  ship.dock_fee_balance = 0;
+  CuAssertIntEquals(tc, 0, vessel_assess_dock_fee(&ship, 70000, 12));
+
+  memset(&ship, 0, sizeof(ship));
+  ship.vessel_type = VESSEL_WARSHIP;
+  CuAssertIntEquals(tc, 0, vessel_assess_dock_fee(&ship, 70000, 12));
+}
+
 void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)
 {
   const int VICTIM = 495, AGGRESSOR = 496;
@@ -656,8 +832,10 @@ void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)
   memset(&greyhawk_ships[AGGRESSOR], 0, sizeof(greyhawk_ships[AGGRESSOR]));
 
   greyhawk_ships[VICTIM].shipnum = VICTIM;
+  greyhawk_ships[VICTIM].active = TRUE;
   strlcpy(greyhawk_ships[VICTIM].name, "victim", sizeof(greyhawk_ships[VICTIM].name));
   greyhawk_ships[AGGRESSOR].shipnum = AGGRESSOR;
+  greyhawk_ships[AGGRESSOR].active = TRUE;
   strlcpy(greyhawk_ships[AGGRESSOR].name, "aggressor", sizeof(greyhawk_ships[AGGRESSOR].name));
 
   /* The victim holds a grudge against the aggressor's fleet slot */

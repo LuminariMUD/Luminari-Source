@@ -213,7 +213,7 @@ void vessel_weather_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (ship->name[0] == '\0')
+    if (!is_valid_ship(ship))
     {
       continue;
     }
@@ -305,7 +305,7 @@ void vessel_encounter_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (ship->name[0] == '\0' || ship->speed == 0)
+    if (!is_valid_ship(ship) || ship->speed == 0)
     {
       continue; /* Encounters find ships that are moving */
     }

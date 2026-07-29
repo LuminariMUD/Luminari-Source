@@ -38,6 +38,7 @@
 #include "oasis.h"
 #include "crafting_new.h"
 #include "resource_system.h"
+#include "vessels.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -576,6 +577,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_USED(ch) = 0;
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
+    GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
     GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
@@ -1967,6 +1969,8 @@ int load_char(const char *name, struct char_data *ch)
           read_saved_vars_ascii(fl, ch, atoi(line));
         else if (!strcmp(tag, "VitS"))
           VITAL_STRIKING(ch) = atoi(line);
+        else if (!strcmp(tag, "VIns"))
+          GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
         break;
 
       case 'W':
@@ -2480,6 +2484,8 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   if (VITAL_STRIKING(ch))
     BUFFER_WRITE("VitS: %d\n", VITAL_STRIKING(ch));
+  if (GET_VESSEL_INSURANCE_CLAIM(ch) != 0)
+    BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
@@ -4106,6 +4112,16 @@ void remove_player(int pfilepos)
 
   if (!*player_table[pfilepos].name)
     return;
+
+  /* Soft deletion remains restorable. This hook runs only for permanent file
+   * removal; if durable vessel cleanup cannot commit, preserve the player so
+   * the cleanup can be retried without orphaning their ships. */
+  if (!vessel_handle_player_removal(player_table[pfilepos].name))
+  {
+    log("SYSERR: Permanent player removal deferred for %s: vessel cleanup failed",
+        player_table[pfilepos].name);
+    return;
+  }
 
   /* Unlink all player-owned files */
   for (i = 0; i < MAX_FILES; i++)

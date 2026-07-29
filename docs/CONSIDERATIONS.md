@@ -12,19 +12,14 @@ outstanding work.
 
 ## Active Concerns
 
-1. The legacy zone-700 fixture has inconsistent fleet-slot, `shipnum`, and
-   interior-room identities. This blocks the first live manual regression and
-   exposes a broader design problem: `shipnum` serves as both an array index and
-   an occupancy sentinel.
-2. The cedit vessel setting is not a complete operational kill switch. Command
-   dispatch and vessel ticks must honor it before staged release.
-3. The complete 500-ship workload has not been measured with combat,
+1. The complete 500-ship workload has not been measured with combat,
    encounters, economy, wear, persistence, and client updates active. Historical
    navigation microbenchmarks are not release evidence.
-4. Copyover, reboot, generated-room reclamation, offline insurance, player
+2. The complete copyover and reboot state matrix, offline insurance, player
    deletion, persistent weapon mounts, and combat logout behavior still need
-   lifecycle work or live verification.
-5. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
+   lifecycle work or live verification. Static legacy occupants do relink and
+   disembark after a full restart.
+3. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
    a 72-hour soak, player beta, and migration rollback rehearsal before broad
    release.
 
@@ -47,6 +42,12 @@ outstanding work.
   verification, fresh-database creation, and lifecycle coverage.
 - A fleet slot has one canonical identity. Do not infer identity from a
   sentinel, object value, room pointer, and struct field independently.
+- The cedit vessel setting gates the player/builder command surface and both
+  heartbeat tick groups. Keep diagnosis and recovery commands available while
+  the gameplay surface is stopped.
+- Debug call sites compile out by default. Explicit development builds start
+  with an empty runtime category mask and must be returned to the default build
+  before release.
 
 ## Resource Budgets
 

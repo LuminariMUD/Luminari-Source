@@ -12089,12 +12089,30 @@ SPECIAL(replace_quest_item)
 SPECIAL(greyhawk_ship_object)
 {
   struct obj_data *obj = (struct obj_data *)me;
+  struct obj_data *target;
+  char obj_name[MAX_INPUT_LENGTH];
   int ship_index;
   room_rnum interior_room;
 
   /* Only handle 'board' command */
   if (!cmd || !CMD_IS("board"))
     return 0;
+
+  one_argument_u(argument, obj_name);
+  if (*obj_name)
+  {
+    target = get_obj_in_list_vis(ch, obj_name, NULL, world[IN_ROOM(ch)].contents);
+    if (target != obj)
+    {
+      return 0;
+    }
+  }
+
+  if (!CONFIG_VESSEL_SYSTEM)
+  {
+    send_to_char(ch, "The vessel system is currently disabled.\r\n");
+    return 1;
+  }
 
   /* Validate object type */
   if (GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP)
@@ -12105,9 +12123,17 @@ SPECIAL(greyhawk_ship_object)
 
   /* Get ship index from object value 1 */
   ship_index = GET_OBJ_VAL(obj, 1);
-  if (ship_index < 0 || ship_index >= 500)
-  { /* GREYHAWK_MAXSHIPS = 500 */
+  if (ship_index < 0 || ship_index >= GREYHAWK_MAXSHIPS)
+  {
     send_to_char(ch, "This ship seems to be broken.\r\n");
+    return 0;
+  }
+
+  if (!is_valid_ship(&greyhawk_ships[ship_index]))
+  {
+    send_to_char(ch, "This ship seems to be broken.\r\n");
+    log("SYSERR: Ship object %d points to inactive or mismatched fleet slot %d",
+        GET_OBJ_VNUM(obj), ship_index);
     return 0;
   }
 
@@ -12116,6 +12142,15 @@ SPECIAL(greyhawk_ship_object)
   if (interior_room == NOWHERE)
   {
     send_to_char(ch, "You cannot find a way inside this ship.\r\n");
+    return 0;
+  }
+
+  if (greyhawk_ships[ship_index].shiproom != GET_OBJ_VAL(obj, 0))
+  {
+    send_to_char(ch, "This ship's entrance is not linked correctly.\r\n");
+    log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+        GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), ship_index,
+        greyhawk_ships[ship_index].shiproom);
     return 0;
   }
 

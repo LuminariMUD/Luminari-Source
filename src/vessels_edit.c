@@ -21,10 +21,6 @@ extern MYSQL *conn;
 extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 
-/* The generic boardable ship object; carries the greyhawk_ship_object
- * spec proc via its world file entry (lib/world/obj/700.obj). */
-#define VEDIT_BASE_SHIP_OBJ_VNUM 70002
-
 /* Bounds for editable prototype fields */
 #define VEDIT_MAX_SPEED_LIMIT 30
 #define VEDIT_MAX_ARMOR_LIMIT 100
@@ -360,8 +356,8 @@ static void vedit_delete(struct char_data *ch, int id)
 /**
  * Find a free greyhawk_ships slot.
  *
- * Slot 0 is reserved for the legacy world-file test vessel, so live spawns
- * start at index 1.
+ * Slot 1 is reserved for the legacy world-file test vessel. Slot 0 remains
+ * reserved because older vehicle and combat relationships use zero for none.
  *
  * @return Free slot index, or -1 if the fleet is full
  */
@@ -369,9 +365,9 @@ static int vedit_find_free_slot(void)
 {
   int i;
 
-  for (i = 1; i < GREYHAWK_MAXSHIPS; i++)
+  for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (greyhawk_ships[i].shipnum == 0 && greyhawk_ships[i].name[0] == '\0')
+    if (!greyhawk_ships[i].active)
     {
       return i;
     }
@@ -446,19 +442,22 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
 
   /* Instantiate the generic boardable ship object; it carries the boarding
    * spec proc through its prototype. */
-  obj = read_object(VEDIT_BASE_SHIP_OBJ_VNUM, VIRTUAL);
+  obj = read_object(VESSEL_BASE_HULL_OBJ_VNUM, VIRTUAL);
   if (obj == NULL)
   {
     mysql_free_result(result);
     send_to_char(ch, "Base ship object %d is missing from the world files - cannot spawn.\r\n",
-                 VEDIT_BASE_SHIP_OBJ_VNUM);
+                 VESSEL_BASE_HULL_OBJ_VNUM);
     return -1;
   }
 
   /* Populate the ship slot from the prototype. */
   ship = &greyhawk_ships[slot];
   memset(ship, 0, sizeof(*ship));
+  ship->active = TRUE;
   ship->shipnum = slot;
+  ship->prototype_id = id;
+  ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
   strlcpy(ship->name, row[1], sizeof(ship->name));
   strlcpy(ship->owner, GET_NAME(ch), sizeof(ship->owner));
   ship->id[0] = 'A' + (slot / 26) % 26;
@@ -469,18 +468,7 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
   ship->maxspeed = max_speed;
   ship->speed = 0;
   ship->setspeed = 0;
-  ship->maxfarmor = ship->farmor = (unsigned char)armor;
-  ship->maxrarmor = ship->rarmor = (unsigned char)armor;
-  ship->maxparmor = ship->parmor = (unsigned char)armor;
-  ship->maxsarmor = ship->sarmor = (unsigned char)armor;
-  /* Internal structure scales with armor; every hull gets a floor so the
-   * damage model (vessels_combat.c) has something to chew through. */
-  ship->maxfinternal = ship->finternal = (unsigned char)MAX(10, armor / 2 + 10);
-  ship->maxrinternal = ship->rinternal = (unsigned char)MAX(10, armor / 2 + 10);
-  ship->maxpinternal = ship->pinternal = (unsigned char)MAX(10, armor / 2 + 10);
-  ship->maxsinternal = ship->sinternal = (unsigned char)MAX(10, armor / 2 + 10);
-  ship->maxmainsail = ship->mainsail = 20;
-  ship->maxturnrate = ship->turnrate = 20;
+  vessel_initialize_condition(ship, armor);
   ship->docked_to_ship = -1;
 
   /* Default armament by class (slot layout: type 1 = weapon; val0 = long
@@ -562,8 +550,21 @@ int vessel_spawn_from_prototype(struct char_data *ch, int id)
 
   obj_to_room(obj, IN_ROOM(ch));
 
-  /* Persist immediately so the interior survives reboot. */
-  save_ship_interior(ship);
+  /* Persist immediately so both the interior and the live instance survive
+   * reboot/copyover. Abort the spawn if either half cannot be committed. */
+  if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) ||
+      !vessel_db_save_weapons(ship))
+  {
+    room_rnum evacuation_room = IN_ROOM(obj);
+
+    vessel_reclaim_interior_rooms(ship, evacuation_room);
+    extract_obj(obj);
+    vessel_delete_persistence(slot);
+    memset(ship, 0, sizeof(*ship));
+    mysql_free_result(result);
+    send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
+    return -1;
+  }
   vessel_db_save_owner(ship);
 
   mysql_free_result(result);
@@ -636,7 +637,7 @@ ACMD(do_shipbuy)
     return;
   }
 
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_DOCKABLE))
+  if (!vessel_room_is_port(IN_ROOM(ch)))
   {
     send_to_char(ch, "Ships are bought and delivered at a dock.\r\n");
     return;

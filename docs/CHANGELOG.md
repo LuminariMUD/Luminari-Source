@@ -36,6 +36,80 @@ workspace now contains unfinished work only.
   `VESSELS_TODO.md` is now the sole file in the vessel workspace and holds the
   dependency-ordered live backlog.
 
+### Vessel system - local end-to-end validation and release boundary
+
+Completed the local-development regression with the actual level-34 Kohdee
+character and converted the development controls, help, and recovery paths
+from planning items into tested behavior.
+
+#### Added
+
+- A command feature flag for the complete vessel, vehicle, transport,
+  autopilot, builder, and player command surface. Cedit `Vessel System: Off`
+  now stops those commands plus both heartbeat tick groups. Bulletin-board
+  `board` behavior and staff diagnosis/recovery commands remain available.
+- Production-safe debug controls: support defaults to compiled out;
+  an explicit `-DVESSEL_SYSTEM_DEBUG=1` development build starts with an empty
+  runtime mask controlled by `vdebug`/`vesseldebug` across ten categories.
+- An idempotent authoritative help migration with 31 maintained entries and 74
+  exact command keywords, plus a read-only verifier for counts, access levels,
+  nonempty content, and obsolete duplicates.
+- Fast, marker-delimited Kohdee command batches, deterministic editor dialogs,
+  pager-safe help checks, and a one-login exhaustive vessel help sweep in the
+  local login helper and guide.
+- A Phase 09 runtime schema, verifier, and rollback for complete live vessel
+  snapshots and schedules. The Kohdee helper now has a descriptor-preserving
+  `--copyover-check` mode with optional pre-copyover commands.
+
+#### Fixed
+
+- Canonical fleet-slot identity, active-slot detection, the zone-700 fixture,
+  generated-room ordering and reindexing, route deletion and persistence,
+  vehicle enumeration/transport/persistence, docking and hostile boarding,
+  and immediate generated-interior reclamation on purge or sink.
+- Legacy and builder-spawned hulls now share complete armor, internal
+  structure, rigging, and steering initialization. This prevents a legacy hull
+  with 100 armor but zero structure from sinking on its first absorbed weather
+  hit.
+- Boot now relinks zone-reset hull objects to active fleet slots. A character
+  saved in static vessel room 70003 can disembark normally after a full
+  restart without boarding again.
+- Prototype-spawned ships now survive graceful reboot and copyover with their
+  dynamic interiors, exterior hulls, coordinates, heading, speed, condition,
+  combat link, weapon-slot state, route progress, schedules, ownership, cargo,
+  crew, upgrades, and insurance. Interior saves use an upsert that preserves
+  child rows instead of `REPLACE` cascade deletion.
+- Copyover commits vessel state before writing the descriptor handoff and
+  aborts safely if persistence fails. Its post-`chdir` handoff-file diagnostic
+  now checks the actual `lib/copyover.dat` location instead of logging a false
+  path-mismatch `SYSERR`.
+- Stale duplicate help mappings no longer shadow canonical vessel topics;
+  general character movement speed remains available through
+  `MOVEMENT-SPEED` and `RACIAL-SPEED`.
+
+#### Validated
+
+- All 30 numbered vessel regression steps passed on local development with
+  Kohdee, including sailing, generated interiors, route restart, vehicles,
+  docking, hostile boarding, purge, same-slot reuse, and cleanup.
+- A live autopilot route held the exact same coordinates across separate
+  Kohdee sessions while the cedit kill switch was off. Gated commands refused,
+  ordinary play and recovery commands remained available, and enabling the
+  option restored tick processing.
+- An explicit debug build emitted only the requested movement category; the
+  restored default build reported debug support compiled out. The root
+  production-linked suite passed 216 tests and was installed with no
+  root-level `circle` artifact.
+- A dynamic transport carrying cargo, crew, a refit, insurance, ownership, and
+  combat damage, plus a damaged scheduled warship mid-route, retained all
+  expected state through both a graceful full restart and a real copyover. The
+  active warship recovered in `Traveling` state and continued moving on the
+  same route while Kohdee's descriptor stayed connected.
+- All 74 help keywords resolved to database help in game, all SQL help checks
+  passed, and all 20 current component migrations applied independently to a
+  fresh MariaDB 10.11 master schema. Cleanup left no test vehicles,
+  prototypes, routes, waypoints, or runtime ship-instance rows.
+
 ### Documentation - structured web onboarding promotion
 
 Promoted the completed web account and character-creation project from the
@@ -471,13 +545,13 @@ Outstanding work is isolated in
   80%), `shipgoto <slot>`, `shipfix <slot>`. New MSDP variables pushed to anyone
   aboard a ship: `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
   `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, `SHIP_STATUS`.
-- **Debug instrumentation across the vessel and vehicle stack** - a master
-  compile-time switch (`VESSEL_SYSTEM_DEBUG` in `src/vessels.h`) plus eight
-  category switches (`VESSEL_DEBUG_CORE`/`MOVE`/`AUTO`/`DOCK`/`DB`,
-  `VEHICLE_DEBUG_CORE`/`MOVE`/`XPORT`), so a single subsystem can be traced
-  without noise from the rest. Macros cover plain logging, function entry/exit
-  tracing, and state transitions; every line carries a greppable `[VESSEL_*]` or
-  `[VEHICLE_*]` prefix.
+- **Debug instrumentation across the vessel and vehicle stack** - a
+  production-off compile-time switch (`VESSEL_SYSTEM_DEBUG` in
+  `src/vessels.h`) plus a ten-category runtime mask, so an explicit development
+  build can trace one subsystem without noise from the rest. Categories cover
+  core, movement, autopilot, docking, database, function tracing, state
+  transitions, vehicles, vehicle movement, and vessel transport; every line
+  carries a greppable `[VESSEL_*]` or `[VEHICLE_*]` prefix.
   - Instrumentation completed across all nine files: `vessels_docking.c` (~30
     calls), `vehicles_transport.c` (all 8 functions), `vessels.c` (position
     updates, terrain checks, speed modifiers, blocked moves, room allocation),
@@ -487,23 +561,23 @@ Outstanding work is isolated in
     `transport_unified.c`.
   - Reference (categories, macro names, grep recipes) is documented in
     `docs/systems/VESSEL_SYSTEM.md` under Troubleshooting -> Debug Logging.
-  - NOTE: the master switch currently ships at `1` for dev. It must be set to
-    `0` before a production build - see the PRD's Remaining Work section.
+  - Normal builds compile diagnostics out. `vdebug`/`vesseldebug` controls the
+    empty-by-default mask only when support was explicitly compiled into a
+    development build.
 - **Per-class cargo capacity** - `get_vessel_cargo_capacity()` data table plus
   `vessel_effective_cargo_capacity()`, which folds in the hold refit and the
   quartermaster's stowage bonus.
-- **Help content for all 31 new commands**, appended to `lib/text/help/help.hlp`
-  as 9 entries covering 47 keywords, with staff commands (`vedit`, `shiplist`,
-  `shipgoto`, `shipfix`) gated at min_level 31.
-  - Also loaded 17 **pre-existing** vessel and vehicle topics that had never been
-    reachable: autopilot, waypoints, routes, schedules, vehicle commands, and NPC
-    pilots. Their standalone `.hlp` files were not listed in
-    `lib/text/help/index`, so the file loader never read them.
-  - `sql/components/help_vessel_entries.sql` loads the same 26 entries into
-    `help_entries`/`help_keywords` for the database half of the dual-mode system.
-    Idempotent, and validated in a rolled-back transaction.
-  - Verified by booting the server: help entry count rose from 3260 to 3324
-    keywords, matching the file exactly.
+- **Authoritative vessel help** - `help_vessel_entries.sql` maintains 31
+  database entries covering all 74 exact vessel, vehicle, transport,
+  autopilot, and staff-recovery command keywords. Staff-only surfaces use
+  min-level 31.
+  - `verify_help_vessel_entries.sql` checks entry and command counts, access
+    levels, nonempty text, and removal of obsolete duplicate mappings.
+  - Ignored standalone `.hlp` files are not indexed or maintained sources. A
+    deployment that needs file fallback should provision one consolidated
+    `help.hlp` from authoritative content.
+  - Verified through the running game: every command keyword returned a
+    database `Help Tag`, including ambiguous navigation and movement terms.
 - **SQL components** - schema, rollback, and verify scripts for each phase:
   `vessels_phase4_*`, `vessels_phase6_*`, `vessels_phase7_*`, `vessels_phase8_*`
   in `sql/components/`. The Phase 08 verify script flags any encounter row whose

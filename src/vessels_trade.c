@@ -17,6 +17,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
+#include "clan.h"
 
 extern MYSQL *conn;
 extern bool mysql_available;
@@ -40,6 +41,273 @@ struct commodity_def
 static struct commodity_def commodity_cache[MAX_COMMODITIES];
 static int num_commodities = 0;
 static int restock_ticks = 0;
+
+/**
+ * Return whether a room provides vessel port services.
+ *
+ * Wilderness room VNUMs are recycled across boots. A mapped seaport therefore
+ * remains a port even when its current pool room lacks the static dock flag.
+ */
+bool vessel_room_is_port(room_rnum room)
+{
+  return VALID_ROOM_RNUM(room) &&
+         (ROOM_FLAGGED(room, ROOM_DOCKABLE) || SECT(room) == SECT_SEAPORT);
+}
+
+/**
+ * Return whether a room is the berth recorded for the ship's current visit.
+ */
+bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum room)
+{
+  return ship != NULL && ship->dock_fee_port > 0 && VALID_ROOM_RNUM(room) &&
+         world[room].number == (room_vnum)ship->dock_fee_port;
+}
+
+/**
+ * Return whether a vessel is at a port using both object and coordinate state.
+ *
+ * The exterior object's dynamic room may be recycled during copyover, while
+ * the vessel coordinates and mapped terrain remain authoritative.
+ */
+bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
+{
+  room_rnum exterior_room;
+
+  if (ship == NULL)
+  {
+    return FALSE;
+  }
+
+  exterior_room = ship->shipobj == NULL ? NOWHERE : IN_ROOM(ship->shipobj);
+  if (vessel_room_is_port(exterior_room))
+  {
+    return TRUE;
+  }
+
+  return ship->shipnum >= 0 && ship->shipnum < GREYHAWK_MAXSHIPS &&
+         get_ship_terrain_type(ship->shipnum) == SECT_SEAPORT;
+}
+
+/**
+ * One-time berthing charge for a vessel entering a port.
+ *
+ * The values are intentionally small beside hull, cargo, wage, and refit
+ * prices. They are a baseline for the economy simulation, not final balance.
+ */
+int vessel_dock_fee_for_class(enum vessel_class vessel_type)
+{
+  static const int fee_by_class[NUM_VESSEL_TYPES] = {
+      5,  /* Raft */
+      10, /* Boat */
+      25, /* Ship */
+      40, /* Warship */
+      50, /* Airship */
+      50, /* Submarine */
+      35, /* Transport */
+      75  /* Magical vessel */
+  };
+
+  if (vessel_type < 0 || vessel_type >= NUM_VESSEL_TYPES)
+  {
+    vessel_type = VESSEL_SHIP;
+  }
+  return fee_by_class[vessel_type];
+}
+
+/**
+ * Record one fee for a newly occupied berth.
+ *
+ * Unowned NPC and test hulls are exempt so public ferries cannot strand
+ * themselves. Repeated calls for the same visit are idempotent.
+ *
+ * @return Gold assessed, or zero when no new fee was created
+ */
+int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
+                           int owner_clan_vnum)
+{
+  int fee;
+
+  if (ship == NULL || ship->owner[0] == '\0' || port_vnum <= 0 ||
+      ship->dock_fee_balance > 0 || ship->dock_fee_port == port_vnum)
+  {
+    return 0;
+  }
+
+  fee = vessel_dock_fee_for_class(ship->vessel_type);
+  ship->dock_fee_balance = fee;
+  ship->dock_fee_port = port_vnum;
+  ship->dock_fee_clan = (clan_vnum)owner_clan_vnum == NO_CLAN ? 0 : owner_clan_vnum;
+  return fee;
+}
+
+/**
+ * Track departure from and arrival at dockable rooms.
+ *
+ * A port is owned by the clan that owns its containing zone. Fees assessed
+ * while a clan owns the port remain payable to that clan even if territory
+ * changes hands before settlement. Unclaimed-port revenue leaves the economy.
+ */
+void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
+                              room_rnum new_room, bool old_is_port)
+{
+  clan_vnum owner_clan;
+  zone_rnum zone;
+  int fee;
+  bool changed;
+
+  if (ship == NULL || new_room == NOWHERE || old_room == new_room)
+  {
+    return;
+  }
+
+  changed = FALSE;
+  if ((old_is_port ||
+       (old_room != NOWHERE && vessel_room_is_fee_berth(ship, old_room))) &&
+      ship->dock_fee_balance <= 0)
+  {
+    ship->dock_fee_port = 0;
+    ship->dock_fee_clan = 0;
+    changed = TRUE;
+  }
+
+  if (vessel_room_is_port(new_room))
+  {
+    zone = GET_ROOM_ZONE(new_room);
+    owner_clan = (zone == NOWHERE || zone > top_of_zone_table)
+                     ? NO_CLAN
+                     : get_owning_clan(zone_table[zone].number);
+    fee = vessel_assess_dock_fee(ship, world[new_room].number, owner_clan);
+    if (fee > 0)
+    {
+      send_to_ship(ship,
+                   "The harbor master records a %d-gold berthing fee. "
+                   "Use 'dockfees pay' before departure.",
+                   fee);
+      log("Info: Port %d assessed ship %d '%s' %d gold for clan %d",
+          world[new_room].number, ship->shipnum, ship->name, fee, ship->dock_fee_clan);
+      changed = TRUE;
+    }
+  }
+
+  if (changed && !vessel_db_save_runtime(ship))
+  {
+    log("SYSERR: Could not persist dock-fee transition for ship %d", ship->shipnum);
+  }
+}
+
+/**
+ * dockfees [pay] - inspect or settle the ship's current port charge.
+ */
+ACMD(do_dockfees)
+{
+  struct greyhawk_ship_data *ship;
+  char arg[MAX_INPUT_LENGTH];
+  clan_rnum owner_clan;
+  int amount;
+  int credited;
+  int old_port;
+  int old_clan;
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You must be aboard a vessel to inspect its dock fees.\r\n");
+    return;
+  }
+
+  if (ship->dock_fee_balance <= 0)
+  {
+    send_to_char(ch, "%s has no outstanding dock fees.\r\n", ship->name);
+    return;
+  }
+
+  owner_clan = real_clan(ship->dock_fee_clan);
+  send_to_char(ch, "%s owes %d gold for its berth at port %d.\r\n", ship->name,
+               ship->dock_fee_balance, ship->dock_fee_port);
+  if (owner_clan == NO_CLAN)
+  {
+    send_to_char(ch, "This is a public-port charge; the payment leaves the economy.\r\n");
+  }
+  else
+  {
+    send_to_char(ch, "The port was held by %s when the fee was assessed.\r\n",
+                 CLAN_NAME(owner_clan));
+  }
+
+  one_argument_u((char *)argument, arg);
+  if (!*arg)
+  {
+    send_to_char(ch, "Use 'dockfees pay' to settle the balance before departure.\r\n");
+    return;
+  }
+  if (str_cmp(arg, "pay"))
+  {
+    send_to_char(ch, "Usage: dockfees [pay]\r\n");
+    return;
+  }
+  if (!vessel_helm_permitted(ch, ship))
+  {
+    send_to_char(ch, "Only the owner or a permitted helmsman may settle this account.\r\n");
+    return;
+  }
+  if (!vessel_ship_is_in_port(ship) &&
+      (ship->shipobj == NULL ||
+       !vessel_room_is_fee_berth(ship, IN_ROOM(ship->shipobj))))
+  {
+    send_to_char(ch, "The harbor office will settle this account only while you are in port.\r\n");
+    return;
+  }
+  if (GET_GOLD(ch) < ship->dock_fee_balance)
+  {
+    send_to_char(ch, "The fee is %d gold; you have %d.\r\n", ship->dock_fee_balance,
+                 GET_GOLD(ch));
+    return;
+  }
+
+  amount = ship->dock_fee_balance;
+  old_port = ship->dock_fee_port;
+  old_clan = ship->dock_fee_clan;
+  ship->dock_fee_balance = 0;
+  if (!vessel_db_save_runtime(ship))
+  {
+    ship->dock_fee_balance = amount;
+    send_to_char(ch, "The harbor ledger is unavailable; no gold was taken.\r\n");
+    return;
+  }
+
+  GET_GOLD(ch) -= amount;
+  if (!save_char_checked(ch, 0))
+  {
+    GET_GOLD(ch) += amount;
+    ship->dock_fee_balance = amount;
+    ship->dock_fee_port = old_port;
+    ship->dock_fee_clan = old_clan;
+    if (!vessel_db_save_runtime(ship))
+    {
+      log("SYSERR: Could not restore dock fee %d for ship %d after player-save failure",
+          amount, ship->shipnum);
+    }
+    send_to_char(ch, "The payment could not be saved; no gold was taken.\r\n");
+    return;
+  }
+
+  credited = 0;
+  owner_clan = real_clan(old_clan);
+  if (owner_clan != NO_CLAN && CLAN_BANK(owner_clan) < MAX_BANK)
+  {
+    credited = MIN(amount, (int)(MAX_BANK - CLAN_BANK(owner_clan)));
+    CLAN_BANK(owner_clan) += credited;
+    mark_clan_modified(owner_clan);
+    save_single_clan(owner_clan);
+    log_clan_activity(old_clan, "%s paid %d gold in vessel dock fees", GET_NAME(ch),
+                      credited);
+  }
+
+  send_to_char(ch, "You settle %d gold in dock fees. %s may now depart.\r\n", amount,
+               ship->name);
+  log("Info: %s paid %d dock-fee gold for ship %d at port %d; clan %d received %d",
+      GET_NAME(ch), amount, ship->shipnum, old_port, old_clan, credited);
+}
 
 /**
  * Create the trade tables and seed a default commodity set.
@@ -395,10 +663,12 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "DELETE FROM ship_cargo_manifest WHERE ship_id = '%s' AND cargo_room = 0", ship->id);
+           "DELETE FROM ship_cargo_manifest WHERE ship_id = %d AND cargo_room = 0",
+           ship->shipnum);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_cargo (clear) failed for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: vessel_db_save_cargo (clear) failed for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
     return;
   }
 
@@ -413,12 +683,12 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
                              strlen(def ? def->name : "cargo"));
     snprintf(query, sizeof(query),
              "INSERT INTO ship_cargo_manifest (ship_id, cargo_room, item_vnum, item_name, "
-             "item_count, item_weight) VALUES ('%s', 0, %d, '%s', %d, %d)",
-             ship->id, ship->cargo[i].commodity_id, escaped, ship->cargo[i].quantity,
+             "item_count, item_weight) VALUES (%d, 0, %d, '%s', %d, %d)",
+             ship->shipnum, ship->cargo[i].commodity_id, escaped, ship->cargo[i].quantity,
              def ? def->unit_weight * ship->cargo[i].quantity : 0);
     if (mysql_query(conn, query))
     {
-      log("SYSERR: vessel_db_save_cargo (insert) failed for ship %s: %s", ship->id,
+      log("SYSERR: vessel_db_save_cargo (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
     }
   }
@@ -441,8 +711,8 @@ void vessel_db_load_cargo(struct greyhawk_ship_data *ship)
 
   snprintf(query, sizeof(query),
            "SELECT item_vnum, item_count FROM ship_cargo_manifest "
-           "WHERE ship_id = '%s' AND cargo_room = 0",
-           ship->id);
+           "WHERE ship_id = %d AND cargo_room = 0",
+           ship->shipnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -513,8 +783,7 @@ static struct greyhawk_ship_data *trade_context(struct char_data *ch, int *port_
     return NULL;
   }
 
-  if (ship->shipobj == NULL || IN_ROOM(ship->shipobj) == NOWHERE ||
-      !ROOM_FLAGGED(IN_ROOM(ship->shipobj), ROOM_DOCKABLE))
+  if (!vessel_ship_is_in_port(ship))
   {
     send_to_char(ch, "You must be moored at a port to trade.\r\n");
     return NULL;

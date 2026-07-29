@@ -123,7 +123,7 @@ int check_vessel_vehicle_capacity(struct greyhawk_ship_data *vessel, struct vehi
   /* Count vehicles already loaded on this vessel and total their weight */
   for (i = 0; i < MAX_VEHICLES; i++)
   {
-    struct vehicle_data *v = vehicle_find_by_id(i);
+    struct vehicle_data *v = vehicle_at_index(i);
     if (v != NULL && v->parent_vessel_id == vessel->shipnum)
     {
       loaded_count++;
@@ -334,9 +334,8 @@ int unload_vehicle_from_vessel(struct char_data *ch, struct vehicle_data *vehicl
     return FALSE;
   }
 
-  /* Determine unload location based on vessel position */
-  /* For wilderness vessels, we need to create or find a suitable room */
-  unload_room = find_docking_room(vessel);
+  /* Unload beside the exterior hull, never into an interior ship room. */
+  unload_room = vessel->shipobj != NULL ? IN_ROOM(vessel->shipobj) : NOWHERE;
   if (unload_room == NOWHERE)
   {
     VHCL_DEBUG_XPORT("UNLOAD FAILED: No suitable unload room found for vessel %s", vessel->name);
@@ -422,7 +421,7 @@ struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel
   /* First pass: count vehicles */
   for (i = 0; i < MAX_VEHICLES; i++)
   {
-    v = vehicle_find_by_id(i);
+    v = vehicle_at_index(i);
     if (v != NULL && v->parent_vessel_id == vessel->shipnum)
     {
       found++;
@@ -446,7 +445,7 @@ struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel
   found = 0;
   for (i = 0; i < MAX_VEHICLES; i++)
   {
-    v = vehicle_find_by_id(i);
+    v = vehicle_at_index(i);
     if (v != NULL && v->parent_vessel_id == vessel->shipnum)
     {
       list[found++] = v;
@@ -498,9 +497,7 @@ void vehicle_sync_with_vessel(struct vehicle_data *vehicle, struct greyhawk_ship
                    vehicle->y_coord, (int)vessel->x, (int)vessel->y);
   vehicle->x_coord = (int)vessel->x;
   vehicle->y_coord = (int)vessel->y;
-
-  /* Vehicle location is set to NOWHERE when on vessel */
-  /* The actual room is derived from the vessel when needed */
+  vehicle->location = NOWHERE;
   VSSL_DEBUG_EXIT("vehicle_sync_with_vessel");
 }
 
@@ -542,9 +539,60 @@ void sync_all_loaded_vehicles(struct greyhawk_ship_data *vessel)
   for (i = 0; i < count; i++)
   {
     vehicle_sync_with_vessel(vehicles[i], vessel);
+    if (!vehicle_save(vehicles[i]))
+    {
+      log("SYSERR: Failed to persist vehicle #%d after vessel %d moved", vehicles[i]->id,
+          vessel->shipnum);
+    }
   }
 
   free(vehicles);
   VHCL_DEBUG_XPORT("Completed sync of %d vehicles on vessel %s", count, vessel->name);
   VSSL_DEBUG_EXIT("sync_all_loaded_vehicles");
+}
+
+/**
+ * Detach every vehicle carried by a ship being administratively purged.
+ *
+ * The vehicles are placed beside the hull even when the local terrain would
+ * normally prevent player-initiated unloading; this is recovery tooling and
+ * must not leave persistent orphan parent IDs.
+ *
+ * @param vessel Vessel leaving service
+ * @param exterior_room Room beside its hull, or NOWHERE
+ * @return Number of vehicles released
+ */
+int vehicle_release_all_from_vessel(struct greyhawk_ship_data *vessel, room_rnum exterior_room)
+{
+  struct vehicle_data *vehicle;
+  int released = 0;
+  int i;
+
+  if (vessel == NULL)
+  {
+    return 0;
+  }
+
+  for (i = 0; i < MAX_VEHICLES; i++)
+  {
+    vehicle = vehicle_at_index(i);
+    if (vehicle == NULL || vehicle->parent_vessel_id != vessel->shipnum)
+    {
+      continue;
+    }
+
+    vehicle->parent_vessel_id = 0;
+    vehicle->state = VSTATE_IDLE;
+    vehicle->location = exterior_room;
+    vehicle->x_coord = (int)vessel->x;
+    vehicle->y_coord = (int)vessel->y;
+    if (!vehicle_save(vehicle))
+    {
+      log("SYSERR: Failed to release vehicle #%d from purged vessel %d", vehicle->id,
+          vessel->shipnum);
+    }
+    released++;
+  }
+
+  return released;
 }

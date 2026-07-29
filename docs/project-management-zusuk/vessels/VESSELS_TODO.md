@@ -2,8 +2,9 @@
 
 **Last audited:** July 29, 2026
 
-**Status:** Gameplay code is implemented; live validation and release work
-remain.
+**Status:** The local 30-step regression, development release-boundary checks,
+and complete reboot/copyover state matrix pass. Shared validation, remaining
+persistence policy, scale, content, beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -16,43 +17,7 @@ Do not treat code completion as production approval. Work through the
 dependencies below in order and remove completed items from this file after
 recording enduring behavior or evidence in the permanent documentation.
 
-## 1. Unblock the First Live Regression
-
-- [ ] Fix the legacy zone-700 ship identity mismatch.
-  - Object 70002 currently carries interior room 70003 and ship index 0.
-  - Initialization places the data in `greyhawk_ships[0]` but assigns
-    `shipnum = 1`.
-  - The same initialization binds `shiproom`, `room_vnums[0]`, and
-    `world[room].ship` to room 1403, while boarding enters room 70003.
-  - Disembark, speed, heading, status, and sailing callers use `shipnum` as an
-    array index and therefore read the wrong slot.
-  - The short-term recommended repair is to put the fixture consistently in
-    slot 1, set object 70002's ship index to 1, and bind every interior field to
-    room 70003. Verify all affected callers by tracing them before editing.
-- [ ] Remove the underlying dual meaning of `shipnum`. Use one canonical fleet
-  identity and a separate occupancy test so slot/index correctness no longer
-  depends on a nonzero sentinel convention.
-- [ ] Restart the 30-step
-  [manual regression](../../testing/VESSEL_SYSTEM_TESTING.md) at step 1. The
-  July 26 run passed steps 1 and 2 and failed step 3; every section A through G
-  must pass on development after the repair.
-
-## 2. Make the Development Release Boundary Real
-
-- [ ] Make the cedit `CONFIG_VESSEL_SYSTEM` toggle gate vessel command dispatch
-  and every vessel tick. It currently affects interior detection only and
-  cannot stop a faulty live subsystem.
-- [ ] Set `VESSEL_SYSTEM_DEBUG` to 0 before any production build. Retain focused
-  diagnostics for development without allowing movement-level syslog flooding
-  in production.
-- [ ] Apply `sql/components/help_vessel_entries.sql` to the authoritative
-  database and verify all vessel and vehicle command keywords in game.
-- [ ] Decide whether to delete the tracked `autopilot.hlp` and `schedule.hlp`
-  copies after the database migration so duplicate help sources cannot drift.
-- [ ] Promote the master and category debug switches to runtime controls where
-  practical. This is polish, not a substitute for the production-off default.
-
-## 3. Build the Shared Validation Environment
+## 1. Build the Shared Validation Environment
 
 - [ ] Expand zone 700 into a harbor sandbox with two docks, three representative
   ship prototypes, a persistent scheduled NPC ferry, and DG triggers in vessel
@@ -65,13 +30,8 @@ recording enduring behavior or evidence in the permanent documentation.
 The harbor is required before meaningful ferry, merchant, builder, copyover,
 and multiplayer encounter testing.
 
-## 4. Close Persistence and Lifecycle Gaps
+## 2. Close Persistence and Lifecycle Gaps
 
-- [ ] Test copyover and full reboot while a vessel is mid-voyage, mid-combat,
-  and carrying cargo. Confirm route, position, ownership, combat, cargo, crew,
-  upgrade, and schedule state after recovery.
-- [ ] Add safe runtime reclamation for generated vessel interior rooms after a
-  vessel is purged or destroyed; currently they remain allocated until reboot.
 - [ ] Deliver insurance payouts to offline owners through mail instead of
   requiring staff reconciliation.
 - [ ] Decide and implement the player-deletion orphan policy: make ships
@@ -84,7 +44,7 @@ and multiplayer encounter testing.
   makes the ship untouchable. Define and test a bounded recent-combat grace
   period without weakening the shared PvP consent gate.
 
-## 5. Prove Scale, Stability, and Economy
+## 3. Prove Scale, Stability, and Economy
 
 - [ ] Benchmark 500 active ships on the production tick path with autopilot,
   schedules, combat, encounters, weather, economy, wear, persistence, and MSDP
@@ -100,7 +60,7 @@ and multiplayer encounter testing.
 - [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
   tests.
 
-## 6. Add Living-World Content
+## 4. Add Living-World Content
 
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
@@ -119,7 +79,7 @@ and multiplayer encounter testing.
 - [ ] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
   leaderboards. Optional showcase events may be deferred behind release safety.
 
-## 7. Finish Player Experience and Presentation
+## 5. Finish Player Experience and Presentation
 
 - [ ] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
@@ -134,7 +94,7 @@ and multiplayer encounter testing.
 - [ ] Add optional figurehead and paint customization to ship and lookout
   descriptions.
 
-## 8. Balance, Beta, and Roll Out
+## 6. Balance, Beta, and Roll Out
 
 - [ ] Tune combat time-to-kill, crew wages, freight margins, refit costs,
   insurance, and dock fees using the simulation, duel tests, and player data.
@@ -144,15 +104,16 @@ and multiplayer encounter testing.
   least 70 percent "fun" combat feedback.
 - [ ] Rehearse all schema migrations and rollbacks against a production
   snapshot with no data loss.
-- [ ] Confirm production preflight: complete regression, load-bearing toggle,
-  debug off, authoritative help loaded, lifecycle recovery passed, benchmark
-  passed, soak passed, and documented operator recovery paths.
+- [ ] Confirm production preflight on the release candidate: repeat the
+  regression, load-bearing-toggle, debug-off, and authoritative-help checks;
+  require lifecycle recovery, benchmark, soak, and documented operator
+  recovery evidence.
 - [ ] Roll out in stages: staff, beta cohort, then all players. Prepare the
   announcement, monitor each stage, retain rollback authority, and write the
   postmortem. Update the permanent evidence and behavior references, and only
   then mark the vessel system 3.0.
 
-## 9. Open Decisions
+## 7. Open Decisions
 
 - [ ] Confirm that shared encounters are the final model by testing multiple
   ships entering the same regional encounter. Change the model only if the

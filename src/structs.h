@@ -6880,6 +6880,9 @@ struct player_special_data_saved
   /* PvP timer - tracks when PvP flag was enabled */
   time_t pvp_timer; /**< Timestamp when PvP was enabled, prevents turning off for 15 minutes */
 
+  /* Highest vessel insurance claim applied to this player file. */
+  unsigned long long vessel_insurance_claim_id;
+
   struct player_invention inventions[MAX_PLAYER_INVENTIONS];
   int num_inventions;
 

@@ -387,6 +387,26 @@ void vehicle_destroy(struct vehicle_data *vehicle)
   free(vehicle);
 }
 
+int vehicle_purge(struct vehicle_data *vehicle)
+{
+  char query[MAX_INPUT_LENGTH];
+
+  if (vehicle == NULL || !mysql_available)
+  {
+    return 0;
+  }
+
+  snprintf(query, sizeof(query), "DELETE FROM vehicle_data WHERE vehicle_id = %d", vehicle->id);
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to purge vehicle #%d: %s", vehicle->id, mysql_error(conn));
+    return 0;
+  }
+
+  vehicle_destroy(vehicle);
+  return 1;
+}
+
 /* ========================================================================= */
 /* STATE MANAGEMENT FUNCTIONS (T011)                                          */
 /* ========================================================================= */
@@ -753,6 +773,26 @@ struct vehicle_data *vehicle_find_by_id(int id)
 }
 
 /**
+ * Return the vehicle stored in a tracking-array slot.
+ *
+ * Vehicle IDs are persistent database identities and are not array indexes.
+ * Callers that need to visit every active vehicle must iterate slots through
+ * this function instead of guessing an ID range.
+ *
+ * @param index Tracking-array slot
+ * @return Vehicle in the slot, or NULL
+ */
+struct vehicle_data *vehicle_at_index(int index)
+{
+  if (index < 0 || index >= MAX_VEHICLES)
+  {
+    return NULL;
+  }
+
+  return vehicle_list[index];
+}
+
+/**
  * Find the first vehicle in a specific room.
  *
  * @param room The room number to search
@@ -776,6 +816,102 @@ struct vehicle_data *vehicle_find_in_room(room_rnum room)
   }
 
   return NULL;
+}
+
+/**
+ * Find a named, typed, or numbered vehicle in a room.
+ *
+ * An empty target preserves the legacy "first vehicle" behavior. Numeric
+ * targets are persistent vehicle IDs; text targets match the vehicle name or
+ * type.
+ *
+ * @param room Room containing the vehicle
+ * @param name Player-supplied target
+ * @return Matching vehicle, or NULL
+ */
+struct vehicle_data *vehicle_find_in_room_named(room_rnum room, const char *name)
+{
+  struct vehicle_data *vehicle;
+  char *end;
+  long id;
+  int i;
+  bool numeric;
+
+  if (room == NOWHERE)
+  {
+    return NULL;
+  }
+
+  if (name == NULL || *name == '\0')
+  {
+    return vehicle_find_in_room(room);
+  }
+
+  id = strtol(name, &end, 10);
+  numeric = (*name != '\0' && *end == '\0' && id > 0 && id <= INT_MAX);
+
+  for (i = 0; i < MAX_VEHICLES; i++)
+  {
+    vehicle = vehicle_list[i];
+    if (vehicle == NULL || vehicle->location != room)
+    {
+      continue;
+    }
+
+    if ((numeric && vehicle->id == (int)id) || isname(name, vehicle->name) ||
+        is_abbrev(name, vehicle_type_name(vehicle->type)))
+    {
+      return vehicle;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * Adjust vehicle room indexes after the world array grows.
+ *
+ * @param inserted_room Array index occupied by the new room
+ */
+void vehicle_reindex_room_insert(room_rnum inserted_room)
+{
+  int i;
+
+  for (i = 0; i < MAX_VEHICLES; i++)
+  {
+    if (vehicle_list[i] != NULL && vehicle_list[i]->location != NOWHERE &&
+        vehicle_list[i]->location >= inserted_room)
+    {
+      vehicle_list[i]->location++;
+    }
+  }
+}
+
+/**
+ * Adjust vehicle room indexes after a room is removed from the world array.
+ *
+ * @param deleted_room Former array index of the removed room
+ */
+void vehicle_reindex_room_delete(room_rnum deleted_room)
+{
+  int i;
+
+  for (i = 0; i < MAX_VEHICLES; i++)
+  {
+    if (vehicle_list[i] == NULL || vehicle_list[i]->location == NOWHERE)
+    {
+      continue;
+    }
+
+    if (vehicle_list[i]->location == deleted_room)
+    {
+      vehicle_list[i]->location = NOWHERE;
+    }
+    else if (vehicle_list[i]->location > deleted_room)
+    {
+      vehicle_list[i]->location--;
+    }
+  }
 }
 
 /**
@@ -834,12 +970,17 @@ void ensure_vehicle_table_exists(void)
       "  max_condition INT NOT NULL DEFAULT 100,"
       "  vehicle_condition INT NOT NULL DEFAULT 100,"
       "  owner_id BIGINT NOT NULL DEFAULT 0,"
+      "  parent_vessel_id INT NOT NULL DEFAULT 0,"
       "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
       "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
       "  INDEX idx_location (location),"
       "  INDEX idx_owner (owner_id),"
+      "  INDEX idx_parent_vessel (parent_vessel_id),"
       "  INDEX idx_coords (x_coord, y_coord)"
       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  const char *add_parent_query =
+      "ALTER TABLE vehicle_data "
+      "ADD COLUMN IF NOT EXISTS parent_vessel_id INT NOT NULL DEFAULT 0 AFTER owner_id";
 
   if (!mysql_available)
   {
@@ -855,6 +996,11 @@ void ensure_vehicle_table_exists(void)
   {
     log("Info: vehicle_data table verified");
   }
+
+  if (mysql_query(conn, add_parent_query))
+  {
+    log("SYSERR: Unable to verify vehicle_data.parent_vessel_id: %s", mysql_error(conn));
+  }
 }
 
 /**
@@ -867,6 +1013,7 @@ int vehicle_save(struct vehicle_data *vehicle)
 {
   char query[MAX_STRING_LENGTH];
   char escaped_name[VEHICLE_NAME_LENGTH * 2 + 1];
+  int persisted_location;
 
   if (!mysql_available || vehicle == NULL)
   {
@@ -876,6 +1023,11 @@ int vehicle_save(struct vehicle_data *vehicle)
   /* Escape vehicle name */
   mysql_real_escape_string(conn, escaped_name, vehicle->name, strlen(vehicle->name));
 
+  persisted_location =
+      vehicle->location != NOWHERE && vehicle->location <= top_of_world
+          ? (int)GET_ROOM_VNUM(vehicle->location)
+          : (int)NOWHERE;
+
   /* Build query - use REPLACE for upsert */
   snprintf(query, sizeof(query),
            "REPLACE INTO vehicle_data "
@@ -884,7 +1036,7 @@ int vehicle_save(struct vehicle_data *vehicle)
            "max_weight, current_weight, base_speed, current_speed, "
            "terrain_flags, max_condition, vehicle_condition, owner_id, parent_vessel_id) "
            "VALUES (%d, %d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %ld, %d)",
-           vehicle->id, vehicle->type, vehicle->state, escaped_name, vehicle->location,
+           vehicle->id, vehicle->type, vehicle->state, escaped_name, persisted_location,
            vehicle->direction, vehicle->x_coord, vehicle->y_coord, vehicle->max_passengers,
            vehicle->current_passengers, vehicle->max_weight, vehicle->current_weight,
            vehicle->base_speed, vehicle->current_speed, vehicle->terrain_flags,
@@ -898,6 +1050,35 @@ int vehicle_save(struct vehicle_data *vehicle)
   }
 
   return 1;
+}
+
+/**
+ * Rebuild process-local location and session-only state after a DB load.
+ */
+static void vehicle_restore_runtime_location(struct vehicle_data *vehicle)
+{
+  room_rnum resolved_room;
+
+  vehicle->current_passengers = 0;
+  if (vehicle->parent_vessel_id > 0)
+  {
+    vehicle->location = NOWHERE;
+    vehicle->state = VSTATE_ON_VESSEL;
+    return;
+  }
+
+  resolved_room = find_room_by_coordinates(vehicle->x_coord, vehicle->y_coord);
+  if (resolved_room == NOWHERE)
+  {
+    resolved_room = find_available_wilderness_room();
+    if (resolved_room != NOWHERE)
+    {
+      assign_wilderness_room(resolved_room, vehicle->x_coord, vehicle->y_coord);
+    }
+  }
+
+  vehicle->location = resolved_room;
+  vehicle->state = vehicle->current_weight > 0 ? VSTATE_LOADED : VSTATE_IDLE;
 }
 
 /**
@@ -951,7 +1132,7 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
       vehicle->name[VEHICLE_NAME_LENGTH - 1] = '\0';
     }
 
-    vehicle->location = atoi(row[4]);
+    vehicle->location = NOWHERE;
     vehicle->direction = atoi(row[5]);
     vehicle->x_coord = atoi(row[6]);
     vehicle->y_coord = atoi(row[7]);
@@ -967,6 +1148,7 @@ int vehicle_load(int vehicle_id, struct vehicle_data *vehicle)
     vehicle->owner_id = atol(row[17]);
     vehicle->parent_vessel_id = row[18] ? atoi(row[18]) : 0;
     vehicle->obj = NULL;
+    vehicle_restore_runtime_location(vehicle);
 
     mysql_free_result(result);
     return 1;
@@ -1035,7 +1217,7 @@ void vehicle_load_all(void)
   query = "SELECT vehicle_id, vehicle_type, vehicle_state, vehicle_name, "
           "location, direction, x_coord, y_coord, max_passengers, current_passengers, "
           "max_weight, current_weight, base_speed, current_speed, "
-          "terrain_flags, max_condition, vehicle_condition, owner_id "
+          "terrain_flags, max_condition, vehicle_condition, owner_id, parent_vessel_id "
           "FROM vehicle_data ORDER BY vehicle_id";
 
   if (mysql_query(conn, query))
@@ -1074,7 +1256,7 @@ void vehicle_load_all(void)
       vehicle->name[VEHICLE_NAME_LENGTH - 1] = '\0';
     }
 
-    vehicle->location = atoi(row[4]);
+    vehicle->location = NOWHERE;
     vehicle->direction = atoi(row[5]);
     vehicle->x_coord = atoi(row[6]);
     vehicle->y_coord = atoi(row[7]);
@@ -1088,7 +1270,10 @@ void vehicle_load_all(void)
     vehicle->max_condition = atoi(row[15]);
     vehicle->condition = atoi(row[16]);
     vehicle->owner_id = atol(row[17]);
+    vehicle->parent_vessel_id = row[18] ? atoi(row[18]) : 0;
     vehicle->obj = NULL;
+
+    vehicle_restore_runtime_location(vehicle);
 
     /* Track max ID for next_vehicle_id */
     if (vehicle->id > max_id)
@@ -1205,6 +1390,10 @@ int sector_to_vterrain(int sector_type)
   case SECT_INSIDE:
   case SECT_INSIDE_ROOM:
     return VTERRAIN_PLAINS;
+
+  /* Port quays support ordinary wheeled traffic. */
+  case SECT_SEAPORT:
+    return VTERRAIN_ROAD;
 
   /* Forest terrain - slower travel */
   case SECT_FOREST:
@@ -1456,10 +1645,18 @@ int vehicle_can_move(struct vehicle_data *vehicle, int direction)
     {
       return 0; /* Room pool exhausted */
     }
-  }
 
-  /* Get sector type at destination */
-  sector = get_modified_sector_type(real_zone(WILD_ZONE_VNUM), new_x, new_y);
+    sector = get_modified_sector_type(real_zone(WILD_ZONE_VNUM), new_x, new_y);
+  }
+  else
+  {
+    /*
+     * Static wilderness rooms can intentionally override the generated
+     * terrain (ports, roads, buildings). Use the room players will actually
+     * enter instead of recalculating the underlying noise terrain.
+     */
+    sector = world[dest_room].sector_type;
+  }
 
   /* Check terrain traversability */
   if (!vehicle_can_traverse_terrain(vehicle, sector))
@@ -1530,8 +1727,8 @@ int move_vehicle(struct vehicle_data *vehicle, int direction)
     assign_wilderness_room(dest_room, new_x, new_y);
   }
 
-  /* Get sector type at destination */
-  sector = get_modified_sector_type(real_zone(WILD_ZONE_VNUM), new_x, new_y);
+  /* Use the assigned room's effective terrain, including static overrides. */
+  sector = world[dest_room].sector_type;
 
   /* Calculate speed modifier */
   speed_mod = get_vehicle_speed_modifier(vehicle, sector);

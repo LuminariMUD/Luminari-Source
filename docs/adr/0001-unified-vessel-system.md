@@ -57,8 +57,9 @@ provide, extend the wilderness system and consume the shared result.
 - Builder workflows use OLC, wilderness region tooling, and DG scripts.
 - The dynamic-room pool is shared infrastructure and must be monitored and
   protected from exhaustion.
-- The vessel-system configuration toggle must gate command dispatch and tick
-  processing before it can be relied on as a production kill switch.
+- The vessel-system configuration toggle gates gameplay and builder command
+  dispatch plus both vessel tick groups. Diagnosis and recovery commands remain
+  available while the subsystem is stopped.
 
 ## Consequences
 
@@ -82,9 +83,9 @@ provide, extend the wilderness system and consume the shared result.
 - A broad feature set increases live-tick, lifecycle, and schema complexity.
 - Ships compete with walkers and other systems for wilderness dynamic rooms.
 - MariaDB is required for the complete persistence and content model.
-- Vessel identity still has legacy coupling between fleet slots, object values,
-  and the `shipnum` field; callers must not assume those values are
-  interchangeable.
+- Vessel identity crosses fleet slots, object values, persistent rows, and room
+  pointers. The fleet slot is canonical; every boundary must validate rather
+  than infer identity from occupancy or naming conventions.
 
 ## Alternatives Considered
 
