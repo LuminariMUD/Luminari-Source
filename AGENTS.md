@@ -1,6 +1,4 @@
-# AGENTS.md
-
-This file provides guidance to AI Agents when working with code in this repository.
+# AGENTS.md - guidance to AI Agents when working with code in this repo
 
 **!IMPORTANT NOTE:** remote production (with sudo) can be accessed via details in `lib/.env`
 
@@ -8,7 +6,7 @@ This file provides guidance to AI Agents when working with code in this reposito
 
 - NEVER attribute AI (Claude or anybody else) in commits or anywhere else.
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
-- `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
+- `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
 - Check `lib/.env` whether this is dev or production environment.  We don't modify production code.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
