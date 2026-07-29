@@ -254,7 +254,7 @@ int save_quests(zone_rnum zone_num)
       genolc_zone_bottom(zone_num), zone_table[zone_num].top);
 
   snprintf(filename, sizeof(filename), "%s/%d.new", QST_PREFIX, zone_table[zone_num].number);
-  if (!(sf = fopen(filename, "w")))
+  if (!(sf = fopen_restricted(filename, "w")))
   {
     perror("SYSERR: save_quests");
     return FALSE;

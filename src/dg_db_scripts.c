@@ -49,8 +49,12 @@ void parse_trigger(FILE *trig_f, int nr)
   trig->nr = top_of_trigt;
   trig->name = fread_string(trig_f, errors);
 
-  get_line(trig_f, line);
-  k = sscanf(line, "%d %s %d", &attach_type, flags, t);
+  if (!get_line(trig_f, line) ||
+      (k = sscanf(line, "%d %255s %d", &attach_type, flags, t)) < 2)
+  {
+    log("SYSERR: Trigger #%d has an invalid numeric header.", nr);
+    exit(1);
+  }
   trig->attach_type = (byte)attach_type;
   trig->trigger_type = (long)asciiflag_conv(flags);
   trig->narg = (k == 3) ? t[0] : 0;

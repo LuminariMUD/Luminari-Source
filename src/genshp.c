@@ -382,7 +382,7 @@ int save_shops(zone_rnum zone_num)
   }
 
   snprintf(fname, sizeof(fname), "%s/%d.new", SHP_PREFIX, zone_table[zone_num].number);
-  if (!(shop_file = fopen(fname, "w")))
+  if (!(shop_file = fopen_restricted(fname, "w")))
   {
     mudlog(BRF, LVL_STAFF, TRUE, "SYSERR: OLC: Cannot open shop file!");
     return FALSE;

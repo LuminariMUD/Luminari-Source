@@ -9304,10 +9304,13 @@ int get_event_contract_availability(void)
 {
   // Simple time-based event system - events every 7 days
   time_t now = time(0);
-  struct tm *local = localtime(&now);
+  struct tm local;
+
+  if (!localtime_r(&now, &local))
+    return 0;
 
   // Event active on Sundays (day 0)
-  return (local->tm_wday == 0) ? 1 : 0;
+  return (local.tm_wday == 0) ? 1 : 0;
 }
 
 bool is_special_event_active(void)

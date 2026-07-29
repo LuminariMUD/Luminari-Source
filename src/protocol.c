@@ -835,7 +835,7 @@ ssize_t ProtocolInput(descriptor_t *apDescriptor, char *apData, int aSize, char 
   /* Copy the input buffer back to the player. */
   if (strlen(apOut) + strlen(CmdBuf) + 1 < MAX_PROTOCOL_BUFFER)
   {
-    strcat(apOut, CmdBuf);
+    strlcat(apOut, CmdBuf, MAX_PROTOCOL_BUFFER);
   }
   else
   {
@@ -934,13 +934,14 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
 
           if (!bDone)
           {
-            sprintf(BugString, "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n",
-                    Buffer);
+            snprintf(BugString, sizeof(BugString),
+                     "BUG: Unicode substitute '%s' wasn't terminated with ']'.\n", Buffer);
             ReportBug(BugString);
           }
           else if (!bValid)
           {
-            sprintf(BugString, "BUG: Unicode substitute '%s' truncated.  Missing ']'?\n", Buffer);
+            snprintf(BugString, sizeof(BugString),
+                     "BUG: Unicode substitute '%s' truncated.  Missing ']'?\n", Buffer);
             ReportBug(BugString);
           }
           else if (pProtocol->pVariables[eMSDP_UTF_8]->ValueInt)
@@ -976,14 +977,15 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
 
           if (!bDone || !bValid)
           {
-            sprintf(BugString, "BUG: RGB %sground colour '%s' wasn't terminated with ']'.\n",
-                    (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1]);
+            snprintf(BugString, sizeof(BugString),
+                     "BUG: RGB %sground colour '%s' wasn't terminated with ']'.\n",
+                     (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1]);
             ReportBug(BugString);
           }
           else if (!IsValidColour(Buffer))
           {
-            sprintf(
-                BugString,
+            snprintf(
+                BugString, sizeof(BugString),
                 "BUG: RGB %sground colour '%s' invalid (each digit must be in the range 0-5).\n",
                 (tolower(Buffer[0]) == 'f') ? "fore" : "back", &Buffer[1]);
             ReportBug(BugString);
@@ -1016,13 +1018,14 @@ const char *ProtocolOutput(descriptor_t *apDescriptor, const char *apData, int *
 
           if (!bDone)
           {
-            sprintf(BugString, "BUG: Required MXP version '%s' wasn't terminated with ']'.\n",
-                    Buffer);
+            snprintf(BugString, sizeof(BugString),
+                     "BUG: Required MXP version '%s' wasn't terminated with ']'.\n", Buffer);
             ReportBug(BugString);
           }
           else if (!bValid)
           {
-            sprintf(BugString, "BUG: Required MXP version '%s' too long.  Missing ']'?\n", Buffer);
+            snprintf(BugString, sizeof(BugString),
+                     "BUG: Required MXP version '%s' too long.  Missing ']'?\n", Buffer);
             ReportBug(BugString);
           }
           else if (!strcmp(pProtocol->pMXPVersion, "Unknown") ||

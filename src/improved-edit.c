@@ -104,7 +104,7 @@ int improved_editor_execute(struct descriptor_data *d, char *str)
 /* Handle some editor commands. */
 void parse_edit_action(int command, char *string, struct descriptor_data *d)
 {
-  int indent = 0, rep_all = 0, flags = 0, replaced, i, line_low, line_high, j = 0;
+  int indent = 0, rep_all = 0, flags = 0, replaced, i, line_low = 1, line_high = 999999, j = 0;
   unsigned int total_len;
   char *s, *t, temp;
   char buf[MAX_STRING_LENGTH] = {'\0'};
@@ -257,6 +257,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
   case PARSE_DELETE:
     switch (sscanf(string, " %d - %d ", &line_low, &line_high))
     {
+    case EOF:
     case 0:
       write_to_output(d, "You must specify a line number or range to delete.\r\n");
       return;
@@ -325,6 +326,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     if (*string)
       switch (sscanf(string, " %d - %d ", &line_low, &line_high))
       {
+      case EOF:
       case 0:
         line_low = 1;
         line_high = 999999;
@@ -394,6 +396,7 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
     if (*string)
       switch (sscanf(string, " %d - %d ", &line_low, &line_high))
       {
+      case EOF:
       case 0:
         line_low = 1;
         line_high = 999999;
@@ -501,11 +504,11 @@ void parse_edit_action(int command, char *string, struct descriptor_data *d)
         return;
       }
       if (*d->str && **d->str)
-        strcat(buf, *d->str);
+        strlcat(buf, *d->str, sizeof(buf));
       *s = temp;
-      strcat(buf, buf2);
-      if (s && *s)
-        strcat(buf, s);
+      strlcat(buf, buf2, sizeof(buf));
+      if (*s)
+        strlcat(buf, s, sizeof(buf));
       RECREATE(*d->str, char, strlen(buf) + 3);
 
       strcpy(*d->str, buf);
@@ -612,6 +615,8 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
     log("SYSERR: format_text: max_str is greater than buffer size.");
     return 0;
   }
+  if (maxlen == 0)
+    return 0;
 
   /* XXX: Want to make sure the string doesn't grow either... */
   if ((flow = *ptr_string) == NULL)
@@ -627,14 +632,15 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
       write_to_output(d, "There aren't that many lines!\r\n");
       return 0;
     }
-    strcat(formatted, strcat(start, "\n"));
+    strlcat(formatted, start, sizeof(formatted));
+    strlcat(formatted, "\n", sizeof(formatted));
     flow = strstr(flow, "\n");
     strlcpy(str, ++flow, sizeof(str));
   }
 
   if (IS_SET(mode, FORMAT_INDENT))
   {
-    strcat(formatted, "   ");
+    strlcat(formatted, "   ", sizeof(formatted));
     line_chars = 3;
   }
   else
@@ -715,7 +721,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
 
       if (line_chars + strlen(start) + 1 - color_chars > PAGE_WIDTH)
       {
-        strcat(formatted, "\r\n");
+        strlcat(formatted, "\r\n", sizeof(formatted));
         line_chars = 0;
         color_chars = count_color_chars(start);
       }
@@ -724,7 +730,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
       {
         if (line_chars > 0)
         {
-          strcat(formatted, " ");
+          strlcat(formatted, " ", sizeof(formatted));
           line_chars++;
         }
       }
@@ -735,7 +741,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
       }
 
       line_chars += strlen(start);
-      strcat(formatted, start);
+      strlcat(formatted, start, sizeof(formatted));
 
       *flow = temp;
     }
@@ -744,7 +750,7 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
     {
       if (line_chars + 3 - color_chars > PAGE_WIDTH)
       {
-        strcat(formatted, "\r\n");
+        strlcat(formatted, "\r\n", sizeof(formatted));
         line_chars = 0;
         color_chars = count_color_chars(start);
       }
@@ -752,27 +758,27 @@ int format_text(char **ptr_string, int mode, struct descriptor_data *d, unsigned
       {
         char buf[MAX_STRING_LENGTH] = {'\0'};
         snprintf(buf, sizeof(buf), "%c  ", *flow);
-        strcat(formatted, buf);
+        strlcat(formatted, buf, sizeof(formatted));
         flow++;
         line_chars++;
       }
       else
       {
-        strcat(formatted, "  ");
+        strlcat(formatted, "  ", sizeof(formatted));
         line_chars += 2;
       }
     }
   }
   if (*flow)
-    strcat(formatted, "\r\n");
-  strcat(formatted, flow);
+    strlcat(formatted, "\r\n", sizeof(formatted));
+  strlcat(formatted, flow, sizeof(formatted));
   if (!*flow)
-    strcat(formatted, "\r\n");
+    strlcat(formatted, "\r\n", sizeof(formatted));
 
   if (strlen(formatted) + 1 > maxlen)
     formatted[maxlen - 1] = '\0';
   RECREATE(*ptr_string, char, MIN(maxlen, strlen(formatted) + 1));
-  strcpy(*ptr_string, formatted);
+  memcpy(*ptr_string, formatted, strlen(formatted) + 1);
   return 1;
 }
 
@@ -785,7 +791,7 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
   if ((strlen(*string) - strlen(pattern)) + strlen(replacement) > max_size)
     return -1;
 
-  CREATE(replace_buffer, char, max_size);
+  CREATE(replace_buffer, char, max_size + 1);
   i = 0;
   jetsam = *string;
   flow = *string;
@@ -803,13 +809,13 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
         i = -1;
         break;
       }
-      strcat(replace_buffer, jetsam);
-      strcat(replace_buffer, replacement);
+      strlcat(replace_buffer, jetsam, max_size + 1);
+      strlcat(replace_buffer, replacement, max_size + 1);
       *flow = temp;
       flow += strlen(pattern);
       jetsam = flow;
     }
-    strcat(replace_buffer, jetsam);
+    strlcat(replace_buffer, jetsam, max_size + 1);
   }
   else
   {
@@ -818,9 +824,10 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
       i++;
       flow += strlen(pattern);
       len = ((char *)flow - (char *)*string) - strlen(pattern);
-      strncpy(replace_buffer, *string, len);
-      strcat(replace_buffer, replacement);
-      strcat(replace_buffer, flow);
+      memcpy(replace_buffer, *string, len);
+      replace_buffer[len] = '\0';
+      strlcat(replace_buffer, replacement, max_size + 1);
+      strlcat(replace_buffer, flow, max_size + 1);
     }
   }
 
@@ -829,7 +836,7 @@ int replace_str(char **string, char *pattern, char *replacement, int rep_all, un
   else
   {
     RECREATE(*string, char, strlen(replace_buffer) + 3);
-    strcpy(*string, replace_buffer);
+    memcpy(*string, replace_buffer, strlen(replace_buffer) + 1);
   }
   free(replace_buffer);
   return i;

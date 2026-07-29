@@ -95,7 +95,7 @@ void read_file(void)
   char name[MAX_NAME_LENGTH];
   long id = 0;
 
-  sprintf(index_name, "%s%s", LIB_PLRFILES, INDEX_FILE);
+  snprintf(index_name, sizeof(index_name), "%s%s", LIB_PLRFILES, INDEX_FILE);
   if (!(fl = fopen(index_name, "r")))
   {
     perror("Error opening playerfile");
@@ -111,7 +111,11 @@ void read_file(void)
   for (i = 0; i < recs; i++)
   {
     get_line(fl, line);
-    sscanf(line, "%ld %s %d %s %d", &id, name, &level, bits, &last);
+    if (sscanf(line, "%ld %19s %d %63s %d", &id, name, &level, bits, &last) != 5)
+    {
+      fprintf(stderr, "Invalid player index record: %s\n", line);
+      continue;
+    }
     CAP(name);
     flags = asciiflag_conv(bits);
     if (level >= MIN_LEVEL && !(IS_SET(flags, PINDEX_NOWIZLIST)) &&
@@ -150,7 +154,7 @@ void add_name(byte level, char *name)
     fprintf(stderr, "Error: Failed to allocate memory for name record\n");
     return;
   }
-  strcpy(tmp->name, name);
+  strlcpy(tmp->name, name, sizeof(tmp->name));
   tmp->next = 0;
 
   /* Find the appropriate level list */
@@ -312,11 +316,11 @@ int main(int argc, char **argv)
   read_file();
   sort_names();
 
-  fl = fopen(argv[2], "w");
+  fl = fopen_restricted(argv[2], "w");
   write_wizlist(fl, wizlevel, LVL_IMPL);
   fclose(fl);
 
-  fl = fopen(argv[4], "w");
+  fl = fopen_restricted(argv[4], "w");
   write_wizlist(fl, immlevel, wizlevel - 1);
   fclose(fl);
 
@@ -365,7 +369,7 @@ int get_line(FILE *fl, char *buf)
   {
     temp[strlen(temp) - 1] = '\0';
   }
-  strcpy(buf, temp);
+  strlcpy(buf, temp, MEDIUM_STRING);
   return (lines);
 }
 

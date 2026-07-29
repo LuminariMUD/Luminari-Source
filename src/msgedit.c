@@ -116,7 +116,11 @@ void load_messages(void)
     {
       if (!fgets(chk, 128, fl))
         break;
-      sscanf(chk, " %d\n", &type);
+      if (sscanf(chk, " %d\n", &type) != 1)
+      {
+        log("SYSERR: Invalid combat message type line: %s", chk);
+        exit(1);
+      }
       for (i = 0;
            (i < MAX_MESSAGES) && (fight_messages[i].a_type != type) && (fight_messages[i].a_type);
            i++)
@@ -193,7 +197,7 @@ void save_messages_to_disk(void)
   int i;
   struct message_type *msg;
 
-  if (!(fp = fopen(MESS_FILE, "w")))
+  if (!(fp = fopen_restricted(MESS_FILE, "w")))
   {
     log("SYSERR: Error writing combat message file %s: %s", MESS_FILE, strerror(errno));
     exit(1);

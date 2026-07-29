@@ -235,7 +235,8 @@ int spatial_process_stimulus(struct spatial_context *ctx, struct spatial_system 
         system->total_processed++;
         system->successful_transmissions++;
         system->avg_processing_time_ms =
-            (system->avg_processing_time_ms * (system->total_processed - 1) + processing_time) /
+            ((double)system->avg_processing_time_ms * (system->total_processed - 1) +
+             processing_time) /
             system->total_processed;
 
         spatial_debug("Stimulus successfully processed in %.3f ms", processing_time);

@@ -225,7 +225,7 @@ static void save_crafts_to_disk(void)
   struct requirement_data *r;
   struct iterator_data Iterator;
 
-  if ((fp = fopen(CRAFT_FILE, "w")) == NULL)
+  if ((fp = fopen_restricted(CRAFT_FILE, "w")) == NULL)
   {
     log("Cannot open craft file for writing!");
     return;

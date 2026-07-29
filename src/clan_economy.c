@@ -418,7 +418,7 @@ void save_clan_investments(void)
   FILE *fl;
   struct clan_investment *invest;
 
-  if (!(fl = fopen("etc/clan_investments", "w")))
+  if (!(fl = fopen_restricted("etc/clan_investments", "w")))
   {
     log("SYSERR: Cannot save clan investments!");
     return;

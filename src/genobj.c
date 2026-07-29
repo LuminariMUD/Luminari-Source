@@ -232,7 +232,7 @@ int save_objects(zone_rnum zone_num)
   }
 
   snprintf(filename, sizeof(filename), "%s/%d.new", OBJ_PREFIX, zone_table[zone_num].number);
-  if (!(fp = fopen(filename, "w+")))
+  if (!(fp = fopen_restricted(filename, "w+")))
   {
     mudlog(BRF, LVL_IMMORT, TRUE, "SYSERR: OLC: Cannot open objects file %s!", filename);
     return FALSE;

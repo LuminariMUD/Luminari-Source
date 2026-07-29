@@ -266,7 +266,7 @@ void House_crashsave(room_vnum vnum)
     mysql_query(conn, "rollback;");
     return;
   }
-  if (!(fp = fopen(buf, "wb")))
+  if (!(fp = fopen_restricted(buf, "wb")))
   {
     perror("SYSERR: Error saving house file");
     mysql_query(conn, "rollback;");
@@ -339,9 +339,9 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
   loaded = objsave_parse_objects_db(NULL, vnum);
 
   for (current = loaded; current != NULL; current = current->next)
-    len +=
-        snprintf(buf + len, sizeof(buf) - len, " [%5d] (%5dau) %s\r\n", GET_OBJ_VNUM(current->obj),
-                 GET_OBJ_RENT(current->obj), current->obj->short_description);
+    len = snprintf_append(buf, sizeof(buf), len, " [%5d] (%5dau) %s\r\n",
+                          GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
+                          current->obj->short_description);
 
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()
@@ -375,7 +375,7 @@ void House_save_control(void)
 {
   FILE *fl;
 
-  if (!(fl = fopen(HCONTROL_FILE, "wb")))
+  if (!(fl = fopen_restricted(HCONTROL_FILE, "wb")))
   {
     perror("SYSERR: Unable to open house control file.");
     return;
@@ -1327,7 +1327,7 @@ static int ascii_convert_house(struct char_data *ch, obj_vnum vnum)
     return (0);
   }
 
-  if (!(out = fopen(outfile, "w")))
+  if (!(out = fopen_restricted(outfile, "w")))
   {
     send_to_char(ch, "...cannot open output file\r\n");
     free(outfile);

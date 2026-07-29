@@ -63,9 +63,9 @@ void save_ship_interior(struct greyhawk_ship_data *ship)
   {
     if (i > 0)
     {
-      len += snprintf(room_vnums_str + len, sizeof(room_vnums_str) - len, ",");
+      len = snprintf_append(room_vnums_str, sizeof(room_vnums_str), len, ",");
     }
-    len += snprintf(room_vnums_str + len, sizeof(room_vnums_str) - len, "%d", ship->room_vnums[i]);
+    len = snprintf_append(room_vnums_str, sizeof(room_vnums_str), len, "%d", ship->room_vnums[i]);
   }
 
   /* Escape ship name - name is an array, not pointer, so always valid */
@@ -412,7 +412,7 @@ int serialize_room_data(struct greyhawk_ship_data *ship, char *buffer, int buffe
 {
   int i, len = 0;
 
-  if (!ship || !buffer)
+  if (!ship || !buffer || buffer_size <= 0)
   {
     return 0;
   }
@@ -422,10 +422,10 @@ int serialize_room_data(struct greyhawk_ship_data *ship, char *buffer, int buffe
 
   for (i = 0; i < ship->num_connections && i < MAX_SHIP_CONNECTIONS; i++)
   {
-    len +=
-        snprintf(buffer + len, buffer_size - len, "|%d:%d:%d:%d:%d", ship->connections[i].from_room,
-                 ship->connections[i].to_room, ship->connections[i].direction,
-                 ship->connections[i].is_hatch ? 1 : 0, ship->connections[i].is_locked ? 1 : 0);
+    len = snprintf_append(buffer, (size_t)buffer_size, len, "|%d:%d:%d:%d:%d",
+                          ship->connections[i].from_room, ship->connections[i].to_room,
+                          ship->connections[i].direction, ship->connections[i].is_hatch ? 1 : 0,
+                          ship->connections[i].is_locked ? 1 : 0);
   }
 
   return len;

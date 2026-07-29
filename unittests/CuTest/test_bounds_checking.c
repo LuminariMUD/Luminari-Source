@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 /* Include the actual headers from src */
 #include "../../src/conf.h"
@@ -85,11 +86,72 @@ void Test_dr_spell_bounds_validation(CuTest *tc)
   CuAssertTrue(tc, dr.spell >= 0 && dr.spell < TOP_SPELL_DEFINE);
 }
 
+void Test_snprintf_append_saturates_offset(CuTest *tc)
+{
+  char buffer[8] = {'\0'};
+  int offset;
+
+  strlcpy(buffer, "123456789", sizeof(buffer));
+  offset = 9;
+  offset = snprintf_append(buffer, sizeof(buffer), offset, "%s", "ignored");
+
+  CuAssertIntEquals(tc, (int)sizeof(buffer) - 1, offset);
+  CuAssertStrEquals(tc, "1234567", buffer);
+
+  offset = snprintf_append(buffer, sizeof(buffer), offset, "%s", "ignored");
+  CuAssertIntEquals(tc, (int)sizeof(buffer) - 1, offset);
+  CuAssertStrEquals(tc, "1234567", buffer);
+}
+
+void Test_path_component_validation(CuTest *tc)
+{
+  char filename[MAX_FILEPATH];
+
+  CuAssertTrue(tc, is_safe_path_component("1200.wld"));
+  CuAssertTrue(tc, is_safe_path_component("zone-name_2.obj"));
+  CuAssertTrue(tc, !is_safe_path_component("../etc/passwd"));
+  CuAssertTrue(tc, !is_safe_path_component("subdir/file.wld"));
+  CuAssertTrue(tc, !is_safe_path_component("zone..obj"));
+  CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, "taure_two"));
+  CuAssertTrue(tc, !get_filename(filename, sizeof(filename), PLR_FILE, "../../player"));
+}
+
+void Test_fopen_restricted_blocks_world_write(CuTest *tc)
+{
+  char path[] = "/tmp/luminari-fopen-test-XXXXXX";
+  struct stat file_stat;
+  FILE *file;
+  int fd;
+  int opened;
+  int stat_ok;
+  int secure_mode;
+
+  fd = mkstemp(path);
+  CuAssertTrue(tc, fd >= 0);
+  close(fd);
+  unlink(path);
+
+  file = fopen_restricted(path, "w");
+  opened = file != NULL;
+  if (file)
+    fclose(file);
+  stat_ok = stat(path, &file_stat) == 0;
+  secure_mode = stat_ok && !(file_stat.st_mode & S_IWOTH);
+  unlink(path);
+
+  CuAssertTrue(tc, opened);
+  CuAssertTrue(tc, stat_ok);
+  CuAssertTrue(tc, secure_mode);
+}
+
 /* Suite setup */
 CuSuite *BoundsCheckingSuite(void)
 {
   CuSuite *suite = CuSuiteNew();
   SUITE_ADD_TEST(suite, Test_get_wearoff_bounds_checking);
   SUITE_ADD_TEST(suite, Test_dr_spell_bounds_validation);
+  SUITE_ADD_TEST(suite, Test_snprintf_append_saturates_offset);
+  SUITE_ADD_TEST(suite, Test_path_component_validation);
+  SUITE_ADD_TEST(suite, Test_fopen_restricted_blocks_world_write);
   return suite;
 }

@@ -497,7 +497,7 @@ int save_config(IDXTYPE nowhere __attribute__((unused)))
   FILE *fl;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (!(fl = fopen(CONFIG_CONFFILE, "w")))
+  if (!(fl = fopen_restricted(CONFIG_CONFFILE, "w")))
   {
     perror("SYSERR: save_config");
     return (FALSE);
@@ -3430,7 +3430,12 @@ void cedit_parse(struct descriptor_data *d, char *arg)
     }
     break;
   case CEDIT_POPULARITY:
-    sscanf(arg, "%f", &f_num);
+    if (sscanf(arg, "%f", &f_num) != 1)
+    {
+      write_to_output(d, "Please enter a number from 0 to 100.\r\n");
+      cedit_disp_game_play_options(d);
+      break;
+    }
     OLC_CONFIG(d)->play.min_pop_to_claim = FLOATMIN(FLOATMAX(f_num, 0.0), 100.0);
     cedit_disp_game_play_options(d);
     break;

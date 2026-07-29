@@ -1550,7 +1550,7 @@ void save_mud_time(struct time_info_data *when)
 {
   FILE *bgtime;
 
-  if ((bgtime = fopen(TIME_FILE, "w")) == NULL)
+  if ((bgtime = fopen_restricted(TIME_FILE, "w")) == NULL)
     log("SYSERR: Can't write to '%s' time file.", TIME_FILE);
   else
   {
@@ -1684,6 +1684,11 @@ void index_boot(int mode)
   }
   while (*buf1 != '$')
   {
+    if (!is_safe_path_component(buf1))
+    {
+      log("SYSERR: Unsafe data filename '%s' in index '%s'.", buf1, index_filename);
+      exit(1);
+    }
     strlcpy(buf2, prefix, sizeof(buf2));
     if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
     {
@@ -1790,6 +1795,11 @@ void index_boot(int mode)
   }
   while (*buf1 != '$')
   {
+    if (!is_safe_path_component(buf1))
+    {
+      log("SYSERR: Unsafe data filename '%s' in index '%s'.", buf1, index_filename);
+      exit(1);
+    }
     strlcpy(buf2, prefix, sizeof(buf2));
     if (strlcat(buf2, buf1, sizeof(buf2)) >= sizeof(buf2))
     {
@@ -2056,8 +2066,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %s %s %s %s %d ", t, flags, flags2, flags3, flags4, t + 2)) ==
-       3) &&
+  if (((retval = sscanf(line, " %d %127s %127s %127s %127s %d ", t, flags, flags2, flags3,
+                        flags4, t + 2)) == 3) &&
       (bitwarning == TRUE))
   {
     log("WARNING: Conventional world files detected. See config.c.");
@@ -2311,7 +2321,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   }
   if (lineIn[0] != '~')
   {
-    strcpy(msg1, lineIn);
+    strlcpy(msg1, lineIn, sizeof(msg1));
   }
 
   if (!get_line(fl, lineIn))
@@ -2321,7 +2331,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   }
   if (lineIn[0] != '~')
   {
-    strcpy(msg2, lineIn);
+    strlcpy(msg2, lineIn, sizeof(msg2));
   }
 
   if (!get_line(fl, lineIn))
@@ -2331,7 +2341,7 @@ void setup_moving_room(FILE *fl, int rroom, int vroom, char *line)
   }
   if (lineIn[0] != '~')
   {
-    strcpy(msg3, lineIn);
+    strlcpy(msg3, lineIn, sizeof(msg3));
   }
 
   if (!get_line(fl, lineIn))
@@ -2895,6 +2905,7 @@ static void parse_simple_mob(FILE *mob_f, int i, int nr)
 #define CASE(test) if (value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
 #define BOOL_CASE(test) if (!value && !matched && !str_cmp(keyword, test) && (matched = TRUE))
 #define RANGE(low, high) (num_arg = MAX((low), MIN((high), (num_arg))))
+#define MAX_MOB_ECHOES 20
 
 static void interpret_espec(const char *keyword, const char *value, int i, int nr)
 {
@@ -3017,13 +3028,21 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("MFeat")
   {
-    sscanf(value, "%d %d", &num, &num2);
+    if (sscanf(value, "%d %d", &num, &num2) != 2)
+    {
+      log("SYSERR: Mob #%d has invalid MFeat data: %s", nr, value);
+      return;
+    }
     MOB_SET_FEAT(mob_proto + i, num, num2);
   }
 
   CASE("Aff2")
   {
-    sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4);
+    if (sscanf(value, "%d %d %d %d", &num, &num2, &num3, &num4) != 4)
+    {
+      log("SYSERR: Mob #%d has invalid Aff2 data: %s", nr, value);
+      return;
+    }
     AFF2_FLAGS(mob_proto + i)[0] = num;
     AFF2_FLAGS(mob_proto + i)[1] = num2;
     AFF2_FLAGS(mob_proto + i)[2] = num3;
@@ -3207,7 +3226,11 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Feat")
   {
-    sscanf(value, "%d %d", &num, &num2);
+    if (sscanf(value, "%d %d", &num, &num2) != 2)
+    {
+      log("SYSERR: Mob #%d has invalid Feat data: %s", nr, value);
+      return;
+    }
     SET_FEAT(mob_proto + i, num, num2);
   }
 
@@ -3241,10 +3264,9 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("EchoCount")
   {
-    // RANGE(0, 20);
-    // ECHO_COUNT(mob_proto + i) = num_arg;
-    // ECHO_ENTRIES(mob_proto + i) = new char*[num_arg];
-    CREATE(ECHO_ENTRIES(mob_proto + i), char *, num_arg);
+    RANGE(0, MAX_MOB_ECHOES);
+    if (num_arg > 0)
+      CREATE(ECHO_ENTRIES(mob_proto + i), char *, MAX_MOB_ECHOES);
   }
 
   CASE("EchoSequential")
@@ -3255,10 +3277,15 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
 
   CASE("Echo")
   {
-    ECHO_ENTRIES(mob_proto + i)
-    [ECHO_COUNT(mob_proto + i)] = strdup(value);
-    ECHO_COUNT(mob_proto + i)
-    ++;
+    if (ECHO_ENTRIES(mob_proto + i) && ECHO_COUNT(mob_proto + i) < MAX_MOB_ECHOES)
+    {
+      ECHO_ENTRIES(mob_proto + i)[ECHO_COUNT(mob_proto + i)] = strdup(value);
+      ECHO_COUNT(mob_proto + i)++;
+    }
+    else
+    {
+      log("SYSERR: Mob #%d has more than %d echo entries.", nr, MAX_MOB_ECHOES);
+    }
   }
 
   CASE("Path")
@@ -3343,9 +3370,11 @@ static void parse_enhanced_mob(FILE *mob_f, int i, int nr)
 void parse_mobile(FILE *mob_f, int nr)
 {
   static int i = 0;
-  int j, t[10], retval, counter;
-  char line[READ_SIZE], *tmpptr, letter;
-  char f1[128], f2[128], f3[128], f4[128], f5[128], f6[128], f7[128], f8[128], buf2[128];
+  int j, t[10] = {0}, retval, counter;
+  char line[READ_SIZE], *tmpptr, letter = '\0';
+  char f1[128] = {'\0'}, f2[128] = {'\0'}, f3[128] = {'\0'}, f4[128] = {'\0'};
+  char f5[128] = {'\0'}, f6[128] = {'\0'}, f7[128] = {'\0'}, f8[128] = {'\0'};
+  char buf2[128] = {'\0'};
   //  char walk[MAX_STRING_LENGTH] = {'\0'};
   //  char *message;
 
@@ -3381,8 +3410,8 @@ void parse_mobile(FILE *mob_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, "%s %s %s %s %s %s %s %s %d %c", f1, f2, f3, f4, f5, f6, f7, f8,
-                        t + 2, &letter)) != 10) &&
+  if (((retval = sscanf(line, "%127s %127s %127s %127s %127s %127s %127s %127s %d %c", f1, f2,
+                        f3, f4, f5, f6, f7, f8, t + 2, &letter)) != 10) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3573,8 +3602,11 @@ const char *parse_object(FILE *obj_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s", t, f1, f2, f3,
-                        f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16)) == 4) &&
+  if (((retval = sscanf(line,
+                        " %d %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s %511s "
+                        "%511s %511s %511s %511s %511s",
+                        t, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15,
+                        f16)) == 4) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3899,8 +3931,8 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %s", t, t + 1, t + 2, t + 3, t + 4, t + 5,
-                           t + 6, f1)) < 7)
+      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %511s", t, t + 1, t + 2, t + 3, t + 4,
+                           t + 5, t + 6, f1)) < 7)
       {
         log("SYSERR: Format error in 'C' field, %s\n"
             "...expecting 7 numeric arguments, got %d\n"
@@ -4155,17 +4187,19 @@ static void load_zones(FILE *fl, char *zonename)
           &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
           &Z.show_weather) != 11) {
    */
-  if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
-             &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level, &Z.show_weather,
-             &Z.region, &Z.faction, &Z.city) != 14)
+  if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d %d %d %d", &Z.bot, &Z.top,
+             &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
+             &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
   {
     // not 14 values, lets try 11
-    if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d %d", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode,
-               zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level, &Z.show_weather) != 11)
+    if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d", &Z.bot, &Z.top,
+               &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
+               &Z.show_weather) != 11)
     {
       // not 11 values, lets try 10
-      if (sscanf(buf, " %d %d %d %d %s %s %s %s %d %d", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode,
-                 zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
+      if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d", &Z.bot, &Z.top,
+                 &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
+                 &Z.max_level) != 10)
       {
         // not 10 values, last try for 4 values
         if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)
@@ -7696,12 +7730,13 @@ void load_config(void)
         CONFIG_HOLLER_MOVE_COST = num;
       else if (!str_cmp(tag, "huh"))
       {
+        char *replacement = NULL;
         size_t len = strlen(line);
 
-        if (CONFIG_HUH)
-          free(CONFIG_HUH);
-        CREATE(CONFIG_HUH, char, len + 3);
-        snprintf(CONFIG_HUH, len + 3, "%s\r\n", line);
+        CREATE(replacement, char, len + 3);
+        snprintf(replacement, len + 3, "%s\r\n", line);
+        free(CONFIG_HUH);
+        CONFIG_HUH = replacement;
       }
       else if (!str_cmp(tag, "happy_hour_chance"))
         CONFIG_HAPPY_HOUR_CHANCE = num;
@@ -7852,30 +7887,36 @@ void load_config(void)
         CONFIG_NO_MORT_TO_IMMORT = num;
       else if (!str_cmp(tag, "noperson"))
       {
+        char *replacement = NULL;
         size_t len = strlen(line);
-        if (CONFIG_NOPERSON)
-          free(CONFIG_NOPERSON);
-        CREATE(CONFIG_NOPERSON, char, len + 4);
-        sprintf(CONFIG_NOPERSON, "%s\r\n", line);
+
+        CREATE(replacement, char, len + 3);
+        snprintf(replacement, len + 3, "%s\r\n", line);
+        free(CONFIG_NOPERSON);
+        CONFIG_NOPERSON = replacement;
       }
       else if (!str_cmp(tag, "noeffect"))
       {
+        char *replacement = NULL;
         size_t len = strlen(line);
-        if (CONFIG_NOEFFECT)
-          free(CONFIG_NOEFFECT);
-        CREATE(CONFIG_NOEFFECT, char, len + 4);
-        sprintf(CONFIG_NOEFFECT, "%s\r\n", line);
+
+        CREATE(replacement, char, len + 3);
+        snprintf(replacement, len + 3, "%s\r\n", line);
+        free(CONFIG_NOEFFECT);
+        CONFIG_NOEFFECT = replacement;
       }
       break;
 
     case 'o':
       if (!str_cmp(tag, "ok"))
       {
+        char *replacement = NULL;
         size_t len = strlen(line);
-        if (CONFIG_OK)
-          free(CONFIG_OK);
-        CREATE(CONFIG_OK, char, len + 4);
-        sprintf(CONFIG_OK, "%s\r\n", line);
+
+        CREATE(replacement, char, len + 3);
+        snprintf(replacement, len + 3, "%s\r\n", line);
+        free(CONFIG_OK);
+        CONFIG_OK = replacement;
       }
       break;
 

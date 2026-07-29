@@ -1808,17 +1808,17 @@ ACMD(do_weaponlist_old)
     sprintbit(weapon_list[type].weaponFlags, weapon_flags, buf2, sizeof(buf2));
     sprintbit(weapon_list[type].damageTypes, weapon_damage_types, buf3, sizeof(buf3));
 
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
-                    "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
-                    "Handle: %s, Head: %s.\r\n",
-                    weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
-                    (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost,
-                    buf3, weapon_list[type].weight, weapon_list[type].range,
-                    weapon_family[weapon_list[type].weaponFamily], sizes[weapon_list[type].size],
-                    material_name[weapon_list[type].material],
-                    weapon_handle_types[weapon_list[type].handle_type],
-                    weapon_head_types[weapon_list[type].head_type]);
+    len = snprintf_append(
+        buf, sizeof(buf), len,
+        "\tW%s\tn, Dam: %dd%d, Threat: %d, Crit-Multi: %d, Flags: %s, Cost: %d, "
+        "Dam-Types: %s, Weight: %d, Range: %d, Family: %s, Size: %s, Material: %s, "
+        "Handle: %s, Head: %s.\r\n",
+        weapon_list[type].name, weapon_list[type].numDice, weapon_list[type].diceSize,
+        (20 - weapon_list[type].critRange), crit_multi, buf2, weapon_list[type].cost, buf3,
+        weapon_list[type].weight, weapon_list[type].range,
+        weapon_family[weapon_list[type].weaponFamily], sizes[weapon_list[type].size],
+        material_name[weapon_list[type].material], weapon_handle_types[weapon_list[type].handle_type],
+        weapon_head_types[weapon_list[type].head_type]);
   }
   page_string(ch->desc, buf, 1);
 }
@@ -1832,14 +1832,14 @@ ACMD(do_armorlist_old)
 
   for (i = 1; i < NUM_SPEC_ARMOR_TYPES; i++)
   {
-    len += snprintf(buf + len, sizeof(buf) - len,
-                    "\tW%s\tn, Type: %s, Cost: %d, "
-                    "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
-                    "Material: %s\r\n",
-                    armor_list[i].name, armor_type[armor_list[i].armorType], armor_list[i].cost,
-                    (float)armor_list[i].armorBonus / 10.0, armor_list[i].dexBonus,
-                    armor_list[i].armorCheck, armor_list[i].spellFail, armor_list[i].weight,
-                    material_name[armor_list[i].material]);
+    len = snprintf_append(buf, sizeof(buf), len,
+                          "\tW%s\tn, Type: %s, Cost: %d, "
+                          "AC: %.1f, Max Dex: %d, Armor Penalty: %d, Spell Fail: %d, Weight: %d, "
+                          "Material: %s\r\n",
+                          armor_list[i].name, armor_type[armor_list[i].armorType],
+                          armor_list[i].cost, (float)armor_list[i].armorBonus / 10.0,
+                          armor_list[i].dexBonus, armor_list[i].armorCheck, armor_list[i].spellFail,
+                          armor_list[i].weight, material_name[armor_list[i].material]);
   }
   page_string(ch->desc, buf, 1);
 }

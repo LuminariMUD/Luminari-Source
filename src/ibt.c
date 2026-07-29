@@ -386,7 +386,7 @@ void save_ibt_file(int mode)
     return;
   }
 
-  if ((fp = fopen(filename, "w")) == NULL)
+  if ((fp = fopen_restricted(filename, "w")) == NULL)
   {
     log("SYSERR: Unable to open IBT file for writing in save_ibt_file");
     log("        IBT File: %s", filename);

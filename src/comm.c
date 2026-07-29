@@ -511,17 +511,18 @@ void copyover_recover()
   {
     fOld = TRUE;
     i = fscanf(fp, "%d %ld %511s %1023s %1023s\n", &desc, &pref, name, host, guiopt);
-    if (desc == -1)
+    if (i >= 1 && desc == -1)
     {
       COPYOVER_DEBUG("copyover_recover: Found end marker (-1), finishing recovery");
       break;
     }
-
     if (i != 5)
     {
       log("SYSERR: copyover_recover: Invalid line format in copyover file (read %d values, "
           "expected 5)",
           i);
+      if (i == EOF)
+        break;
       continue;
     }
 
@@ -2346,7 +2347,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
   wantsize = size = vsnprintf(txt, sizeof(txt), format, args);
 
   /* this block is Kavir's protocol */
-  strcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize));
+  strlcpy(txt, ProtocolOutput(t, txt, (int *)&wantsize), sizeof(txt));
   size = wantsize;
   if (t->pProtocol->WriteOOB > 0)
     --t->pProtocol->WriteOOB;
@@ -2355,7 +2356,8 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
   if (size < 0 || wantsize >= sizeof(txt))
   {
     size = sizeof(txt) - 1;
-    strcpy(txt + size - strlen(text_overflow), text_overflow); /* strcpy: OK */
+    strlcpy(txt + size - strlen(text_overflow), text_overflow,
+            sizeof(txt) - (size - strlen(text_overflow)));
   }
 
   /* If the text is too big to fit into even a large buffer, truncate
@@ -2372,7 +2374,7 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
    * text just barely fits, then it's switched to a large buffer instead. */
   if (t->bufspace > size)
   {
-    strcpy(t->output + t->bufptr, txt); /* strcpy: OK (size checked above) */
+    strlcpy(t->output + t->bufptr, txt, t->bufspace);
     t->bufspace -= size;
     t->bufptr += size;
     return (t->bufspace);
@@ -2411,13 +2413,12 @@ size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list a
    * "Source and destination overlap in strcpy" was reported. */
   if (t->output != t->large_outbuf->text)
   {
-    /* Source and destination are different - safe to use strcpy */
-    strcpy(t->large_outbuf->text, t->output); /* strcpy: OK (no overlap) */
+    strlcpy(t->large_outbuf->text, t->output, LARGE_BUFSIZE);
   }
   /* else: source and destination are the same - no copy needed, data already there */
 
   t->output = t->large_outbuf->text; /* make big buffer primary */
-  strcat(t->output, txt);            /* strcat: OK (size checked) */
+  strlcat(t->output, txt, LARGE_BUFSIZE);
 
   /* set the pointer for the next write */
   t->bufptr = strlen(t->output);
@@ -2661,10 +2662,10 @@ static int process_output(struct descriptor_data *t)
   int result;
 
   /* we may need this \r\n for later -- see below */
-  strcpy(i, "\r\n"); /* strcpy: OK (for 'MAX_SOCK_BUF >= 3') */
+  strlcpy(i, "\r\n", sizeof(i));
 
   /* now, append the 'real' output */
-  strcpy(osb, t->output); /* strcpy: OK (t->output:LARGE_BUFSIZE < osb:MAX_SOCK_BUF-2) */
+  strlcpy(osb, t->output, sizeof(i) - 2);
 
   // color code fix attempt -zusuk
   // parse_at(osb);
@@ -2677,7 +2678,7 @@ static int process_output(struct descriptor_data *t)
   else*/
   if (t->bufspace == 0)
   {
-    strcat(osb, "**OVERFLOW**");
+    strlcat(osb, "**OVERFLOW**", sizeof(i) - 2);
   }
 
   /* add the extra CRLF if the person isn't in compact mode */
@@ -2685,11 +2686,11 @@ static int process_output(struct descriptor_data *t)
       !PRF_FLAGGED(t->character, PRF_COMPACT))
   {
     if (!t->pProtocol->WriteOOB)
-      strcat(osb, "\r\n"); /* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
+      strlcat(osb, "\r\n", sizeof(i) - 2);
   }
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
-    strcat(i, make_prompt(t)); /* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
+    strlcat(i, make_prompt(t), sizeof(i));
 
   /* now, send the output.  If this is an 'interruption', use the prepended
    * CRLF, otherwise send the straight output sans CRLF. */
@@ -4161,7 +4162,7 @@ static int open_logfile(const char *filename, FILE *stderr_fp)
   if (stderr_fp) /* freopen() the descriptor. */
     logfile = freopen(filename, "w", stderr_fp);
   else
-    logfile = fopen(filename, "w");
+    logfile = fopen_restricted(filename, "w");
 
   if (logfile)
   {

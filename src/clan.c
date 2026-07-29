@@ -876,14 +876,14 @@ void log_clan_activity(clan_vnum c, const char *format, ...)
   snprintf(filename, sizeof(filename), "%sclan_%d.log", CLAN_LOG_DIR, c);
 
   /* Open file in append mode */
-  if (!(fl = fopen(filename, "a")))
+  if (!(fl = fopen_restricted(filename, "a")))
   {
     /* Try to create the directory if it doesn't exist */
     if (!ensure_dir_exists(CLAN_LOG_DIR))
     {
       log("SYSERR: Failed to ensure clan_logs directory exists");
     }
-    if (!(fl = fopen(filename, "a")))
+    if (!(fl = fopen_restricted(filename, "a")))
     {
       log("SYSERR: Could not open clan log file %s", filename);
       return;
@@ -934,7 +934,7 @@ void log_clan_error(const char *function, const char *format, ...)
 
     snprintf(filename, sizeof(filename), "%sclan_errors.log", CLAN_LOG_DIR);
 
-    if ((fl = fopen(filename, "a")))
+    if ((fl = fopen_restricted(filename, "a")))
     {
       ct = time(0);
       format_time_string(ct, "%c", timestr, sizeof(timestr));
@@ -4124,11 +4124,11 @@ ACMD(do_clanstats)
   send_to_char(ch, "%sBasic Information:%s\r\n", QCYN, QNRM);
 
   /* Format date founded */
-  strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", localtime(&clan->date_founded));
+  format_time_string(clan->date_founded, "%Y-%m-%d %H:%M", time_buf, sizeof(time_buf));
   send_to_char(ch, "  Founded: %s%s%s\r\n", QGRN, time_buf, QNRM);
 
   /* Format last activity */
-  strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", localtime(&clan->last_activity));
+  format_time_string(clan->last_activity, "%Y-%m-%d %H:%M", time_buf, sizeof(time_buf));
   send_to_char(ch, "  Last Activity: %s%s%s\r\n", QGRN, time_buf, QNRM);
 
   /* Financial Statistics */

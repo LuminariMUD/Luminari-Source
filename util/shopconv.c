@@ -52,13 +52,13 @@ char *fread_string(FILE *fl, const char *error)
       printf("fread_string: format error at or near %s\n", error);
       exit(1);
     }
-    if (strlen(tmp) + strlen(buf) > MAX_STRING_LENGTH)
+    if (strlen(tmp) + strlen(buf) >= MAX_STRING_LENGTH)
     {
       printf("SYSERR: fread_string: string too large (shopconv.c)");
       exit(1);
     }
     else
-      strcat(buf, tmp);
+      strlcat(buf, tmp, sizeof(buf));
 
     for (point = buf + strlen(buf) - 2; point >= buf && isspace(*point); point--)
       ;
@@ -76,7 +76,7 @@ char *fread_string(FILE *fl, const char *error)
   if (strlen(buf) > 0)
   {
     CREATE(rslt, char, strlen(buf) + 1);
-    strcpy(rslt, buf);
+    memcpy(rslt, buf, strlen(buf) + 1);
   }
   else
     rslt = NULL;
@@ -110,7 +110,7 @@ void do_list(FILE *shop_f, FILE *newshop_f, int max)
 void do_float(FILE *shop_f, FILE *newshop_f)
 {
   float f;
-  char str[20];
+  char str[512];
 
   if (fscanf(shop_f, "%f \n", &f) != 1)
   {
@@ -118,7 +118,7 @@ void do_float(FILE *shop_f, FILE *newshop_f)
     exit(1);
   }
 
-  sprintf(str, "%f", f);
+  snprintf(str, sizeof(str), "%f", f);
   while ((str[strlen(str) - 1] == '0') && (str[strlen(str) - 2] != '.'))
     str[strlen(str) - 1] = 0;
   fprintf(newshop_f, "%s \n", str);
@@ -150,15 +150,20 @@ static int boot_the_shops_conv(FILE *shop_f, FILE *newshop_f, char *filename)
   char *buf, buf2[150];
   int temp, count;
 
-  sprintf(buf2, "beginning of shop file %s", filename);
+  snprintf(buf2, sizeof(buf2), "beginning of shop file %s", filename);
   fprintf(newshop_f, "LuminariMUD %s Shop File~\n", VERSION3_TAG);
   for (;;)
   {
     buf = fread_string(shop_f, buf2);
     if (*buf == '#')
     { /* New shop */
-      sscanf(buf, "#%d\n", &temp);
-      sprintf(buf2, "shop #%d in shop file %s", temp, filename);
+      if (sscanf(buf, "#%d\n", &temp) != 1)
+      {
+        fprintf(stderr, "Invalid shop header: %s\n", buf);
+        free(buf);
+        return 0;
+      }
+      snprintf(buf2, sizeof(buf2), "shop #%d in shop file %s", temp, filename);
       fprintf(newshop_f, "#%d~\n", temp);
       free(buf); /* Plug memory leak! */
       printf("   #%d\n", temp);
@@ -262,7 +267,7 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    if ((nsfp = fopen(fn, "w")) == NULL)
+    if ((nsfp = fopen_restricted(fn, "w")) == NULL)
     {
       printf("Error: Could not open %s for writing\n", fn);
       fclose(sfp);

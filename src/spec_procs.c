@@ -3668,7 +3668,7 @@ SPECIAL(guild)
 
 int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx)
 {
-  char errStr[100];
+  char errStr[128];
 
   if ((ONMdata->oldRoom != NOWHERE) && (ONMdata->oldRoom != ENDMOVING))
   {
@@ -3677,8 +3677,9 @@ int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMda
     /*  check if rooms sync up  */
     if (theRoom->from[cibIdx] != ONMdata->oldRoom)
     {
-      sprintf(errStr, "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
-              (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
+      snprintf(errStr, sizeof(errStr),
+               "SPEC(move_room): [%d] from[cibIdx] != oldRoom (or <= 0) (%d/%d %d)",
+               (int)ONMdata->moveRoom, theRoom->from[cibIdx], ONMdata->oldRoom, cibIdx);
       log("%s", errStr);
       return 0;
     }

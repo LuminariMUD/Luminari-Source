@@ -60,7 +60,7 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
     CREATE(vd, struct trig_var_data, 1);
 
     CREATE(vd->name, char, strlen(name) + 1);
-    strcpy(vd->name, name); /* strcpy: ok*/
+    memcpy(vd->name, name, strlen(name) + 1);
 
     CREATE(vd->value, char, strlen(value) + 1);
 
@@ -69,7 +69,7 @@ void add_var(struct trig_var_data **var_list, const char *name, const char *valu
     *var_list = vd;
   }
 
-  strcpy(vd->value, value); /* strcpy: ok*/
+  memcpy(vd->value, value, strlen(value) + 1);
 }
 
 int dg_has_feat(char_data *ch, const char *feat, int return_type __attribute__((unused)))
@@ -354,7 +354,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
       if (!str_cmp(vd->name, var) && (vd->context == 0 || vd->context == sc->context))
         break;
 
-  if (!*field)
+  if (!field || !*field)
   {
     if (vd)
       snprintf(str, slen, "%s", vd->value);
@@ -566,7 +566,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
          * Addition inspired by Jamie Nelson */
       else if (!str_cmp(var, "findmob"))
       {
-        if (!field || !*field || !subfield || !*subfield)
+        if (!*field || !subfield || !*subfield)
         {
           script_log("findmob.vnum(mvnum) - illegal syntax");
           strcpy(str, "0");
@@ -593,7 +593,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
       } /* Addition inspired by Jamie Nelson. */
       else if (!str_cmp(var, "findobj"))
       {
-        if (!field || !*field || !subfield || !*subfield)
+        if (!*field || !subfield || !*subfield)
         {
           script_log("findobj.vnum(ovnum) - illegal syntax");
           strcpy(str, "0");
@@ -2415,13 +2415,14 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
   /* skip out if no %'s */
   if (!strchr(line, '%'))
   {
-    strcpy(buf, line);
+    strlcpy(buf, line, MAX_INPUT_LENGTH);
     return;
   }
   /*lets just empty these to start with*/
   *repl_str = *tmp = *tmp2 = '\0';
 
-  p = strcpy(tmp, line);
+  strlcpy(tmp, line, sizeof(tmp));
+  p = tmp;
   subfield_p = subfield;
 
   left = MAX_INPUT_LENGTH - 1;
@@ -2501,15 +2502,16 @@ void var_subst(void *go, struct script_data *sc, trig_data *trig, int type, char
       if (*subfield)
       {
         var_subst(go, sc, trig, type, subfield, tmp2);
-        strcpy(subfield, tmp2);
+        strlcpy(subfield, tmp2, sizeof(subfield));
       }
 
       find_replacement(go, sc, trig, type, var, field, subfield, repl_str, sizeof(repl_str));
 
-      strncat(buf, repl_str, left);
-      len = strlen(repl_str);
+      len = MIN((int)strlen(repl_str), left);
+      memcpy(buf, repl_str, len);
       buf += len;
       left -= len;
+      *buf = '\0';
     } /* else if *p .. */
   } /* while *p .. */
   *buf = '\0';

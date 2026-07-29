@@ -130,6 +130,7 @@ void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_i
 void build_player_index(void)
 {
   int rec_count = 0, i, nr;
+  size_t name_length;
   FILE *plr_index;
   char index_name[40], line[MEDIUM_STRING] = {'\0'}, bits[64];
   char arg2[80];
@@ -170,19 +171,21 @@ void build_player_index(void)
   for (i = 0; i < rec_count; i++)
   {
     get_line(plr_index, line);
-    if ((nr = sscanf(line, "%ld %s %d %s %ld %d", &player_table[i].id, arg2, &player_table[i].level,
-                     bits, (long *)&player_table[i].last, &player_table[i].clan)) != 6)
+    if ((nr = sscanf(line, "%ld %79s %d %63s %ld %d", &player_table[i].id, arg2,
+                     &player_table[i].level, bits, (long *)&player_table[i].last,
+                     &player_table[i].clan)) != 6)
     {
-      if ((nr = sscanf(line, "%ld %s %d %s %ld", &player_table[i].id, arg2, &player_table[i].level,
-                       bits, (long *)&player_table[i].last)) != 5)
+      if ((nr = sscanf(line, "%ld %79s %d %63s %ld", &player_table[i].id, arg2,
+                       &player_table[i].level, bits, (long *)&player_table[i].last)) != 5)
       {
         log("SYSERR: Invalid line in player index (%s)", line);
         continue;
       }
       player_table[i].clan = NO_CLAN;
     }
-    CREATE(player_table[i].name, char, strlen(arg2) + 1);
-    strcpy(player_table[i].name, arg2);
+    name_length = strlen(arg2) + 1;
+    CREATE(player_table[i].name, char, name_length);
+    memcpy(player_table[i].name, arg2, name_length);
     player_table[i].flags = asciiflag_conv(bits);
     top_idnum = MAX(top_idnum, player_table[i].id);
   }
@@ -427,7 +430,7 @@ char *get_name_by_id(long id)
  * if not. */
 int load_char(const char *name, struct char_data *ch)
 {
-  int id, i, j;
+  int id, i, j, parsed;
   FILE *fl;
   char filename[40];
   char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -800,7 +803,7 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Act "))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             PLR_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -817,7 +820,7 @@ int load_char(const char *name, struct char_data *ch)
         }
         else if (!strcmp(tag, "Aff "))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          if (sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4) == 4)
           {
             AFF_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -900,7 +903,11 @@ int load_char(const char *name, struct char_data *ch)
       case 'C':
         if (!strcmp(tag, "CbFt"))
         {
-          sscanf(line, "%d %s %s %s %s", &i, f1, f2, f3, f4);
+          if (sscanf(line, "%d %127s %127s %127s %127s", &i, f1, f2, f3, f4) != 5)
+          {
+            log("load_char: %s has an invalid combat feat record: %s", GET_NAME(ch), line);
+            break;
+          }
           if (i < 0 || i >= NUM_CFEATS)
           {
             log("load_char: %s combat feat record out of range: %s", GET_NAME(ch), line);
@@ -1359,7 +1366,7 @@ int load_char(const char *name, struct char_data *ch)
         if (!strcmp(tag, "Page"))
           GET_PAGE_LENGTH(ch) = atoi(line);
         else if (!strcmp(tag, "Pass"))
-          strcpy(GET_PASSWD(ch), line);
+          strlcpy(GET_PASSWD(ch), line, sizeof(ch->player.passwd));
         else if (!strcmp(tag, "Potn"))
           load_potions(fl, ch);
         else if (!strcmp(tag, "Plyd"))
@@ -1382,7 +1389,8 @@ int load_char(const char *name, struct char_data *ch)
           POOFOUT(ch) = strdup(line);
         else if (!strcmp(tag, "Pref"))
         {
-          if (sscanf(line, "%s %s %s %s", f1, f2, f3, f4) == 4)
+          parsed = sscanf(line, "%127s %127s %127s %127s", f1, f2, f3, f4);
+          if (parsed == 4)
           {
             PRF_FLAGS(ch)
             [0] = asciiflag_conv(f1);
@@ -1393,9 +1401,11 @@ int load_char(const char *name, struct char_data *ch)
             PRF_FLAGS(ch)
             [3] = asciiflag_conv(f4);
           }
-          else
+          else if (parsed == 1)
             PRF_FLAGS(ch)
           [0] = asciiflag_conv(f1);
+          else
+            log("load_char: %s has an invalid preference flag record: %s", GET_NAME(ch), line);
         }
         else if (!strcmp(tag, "PrQu"))
           load_spell_prep_queue(fl, ch);
@@ -1726,7 +1736,11 @@ int load_char(const char *name, struct char_data *ch)
           GET_BLOODLINE_SUBTYPE(ch) = atoi(line);
         else if (!strcmp(tag, "SclF"))
         {
-          sscanf(line, "%d %s", &i, f1);
+          if (sscanf(line, "%d %127s", &i, f1) != 2)
+          {
+            log("load_char: %s has an invalid school feat record: %s", GET_NAME(ch), line);
+            break;
+          }
           if (i < 0 || i >= NUM_SFEATS)
           {
             log("load_char: %s school feat record out of range: %s", GET_NAME(ch), line);
@@ -2252,7 +2266,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     free(write_buffer);
     return FALSE;
   }
-  if (!(fl = fopen(filename, "w")))
+  if (!(fl = fopen_restricted(filename, "w")))
   {
     mudlog(NRM, LVL_STAFF, TRUE, "SYSERR: Couldn't open player file %s for write", filename);
     free(write_buffer);
@@ -4159,8 +4173,17 @@ static void load_dr(FILE *f1, struct char_data *ch)
 
   do
   {
-    get_line(f1, line);
+    if (!get_line(f1, line))
+    {
+      log("SYSERR: Unexpected end of player file while loading damage reduction.");
+      return;
+    }
     n_vars = sscanf(line, "%d %d %d %d %d", &num, &num2, &num3, &num4, &num5);
+    if (n_vars < 1)
+    {
+      log("SYSERR: Invalid damage reduction line: %s", line);
+      return;
+    }
     if (num > 0)
     {
       /* Set the DR data.*/
@@ -5361,22 +5384,23 @@ void update_player_last_on(void)
     if (GET_LEVEL(ch) < LVL_IMMORT)
     {
       int inc, classCount = 0;
-      len += snprintf(classes_list + len, sizeof(classes_list) - len, "[%2d %4s ", GET_LEVEL(ch),
-                      RACE_ABBR_REAL(ch));
+      len = snprintf_append(classes_list, sizeof(classes_list), len, "[%2d %4s ", GET_LEVEL(ch),
+                            RACE_ABBR_REAL(ch));
       for (inc = 0; inc < MAX_CLASSES; inc++)
       {
         if (CLASS_LEVEL(ch, inc))
         {
           if (classCount)
-            len += snprintf(classes_list + len, sizeof(classes_list) - len, "|");
-          len += snprintf(classes_list + len, sizeof(classes_list) - len, "%s", CLSLIST_ABBRV(inc));
+            len = snprintf_append(classes_list, sizeof(classes_list), len, "|");
+          len =
+              snprintf_append(classes_list, sizeof(classes_list), len, "%s", CLSLIST_ABBRV(inc));
           classCount++;
         }
       }
       class_len = strlen(classes_list) - count_color_chars(classes_list);
       while (class_len < 11)
       {
-        len += snprintf(classes_list + len, sizeof(classes_list) - len, " ");
+        len = snprintf_append(classes_list, sizeof(classes_list), len, " ");
         class_len++;
       }
       snprintf(char_info, sizeof(char_info), "%s]", classes_list);

@@ -57,7 +57,7 @@ void save_clans(void)
   int i, j, x;
   char buf[MAX_STRING_LENGTH] = {'\0'};
 
-  if (!(fl = fopen(CLAN_FILE, "w")))
+  if (!(fl = fopen_restricted(CLAN_FILE, "w")))
   {
     mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Unable to open clan file");
     return;
@@ -213,7 +213,7 @@ void save_single_clan(clan_rnum c)
   }
 
   /* Open temporary file for writing */
-  if (!(new_fl = fopen(tmpname, "w")))
+  if (!(new_fl = fopen_restricted(tmpname, "w")))
   {
     fclose(fl);
     log("SYSERR: Unable to open temporary clan file for writing");
@@ -577,7 +577,14 @@ void load_clans(void)
               }
               else
               {
-                sscanf(line, "%d %d", &priv, &lev);
+                if (sscanf(line, "%d %d", &priv, &lev) != 2)
+                {
+                  log("SYSERR: Invalid privilege line in clan file (clan ID: %d, rank line %d)",
+                      c.vnum, j + 1);
+                  get_line(fl, line);
+                  j++;
+                  continue;
+                }
                 if (priv >= 21 || priv < 0)
                 {
                   log("SYSERR: Invalid priv in clan file (clan ID: %d, "
@@ -702,7 +709,7 @@ bool save_claims(void)
   int i;
   struct claim_data *this_claim;
 
-  if (!(fl = fopen(CLAIMS_FILE, "w")))
+  if (!(fl = fopen_restricted(CLAIMS_FILE, "w")))
   {
     mudlog(CMP, LVL_IMPL, TRUE, "SYSERR: Unable to open claims file");
     return FALSE;
@@ -813,8 +820,15 @@ void load_claims(void)
               }
               else
               {
-                sscanf(line, "%d %f", &cn, &pop);
-                if (pop >= 100.0 || pop < 0.0)
+                if (sscanf(line, "%d %f", &cn, &pop) != 2)
+                {
+                  log("SYSERR: Invalid popularity line in claims file (zone ID: %d, line %d)",
+                      c.zn, j + 1);
+                  get_line(fl, line);
+                  j++;
+                  continue;
+                }
+                if (cn < 0 || cn >= MAX_CLANS || pop >= 100.0 || pop < 0.0)
                 {
                   log("SYSERR: Invalid popularity value in claims file "
                       "(zone ID: %d, popularity line %d, clan=%d, "

@@ -2081,9 +2081,9 @@ static void build_account_characters(struct json_writer *w, struct descriptor_da
       if (CLASS_LEVEL(tch, class_index))
       {
         if (class_count)
-          classes_len += snprintf(classes + classes_len, sizeof(classes) - classes_len, "/");
-        classes_len += snprintf(classes + classes_len, sizeof(classes) - classes_len, "%s",
-                                CLSLIST_NAME(class_index));
+          classes_len = snprintf_append(classes, sizeof(classes), classes_len, "/");
+        classes_len = snprintf_append(classes, sizeof(classes), classes_len, "%s",
+                                      CLSLIST_NAME(class_index));
         class_count++;
       }
     }
