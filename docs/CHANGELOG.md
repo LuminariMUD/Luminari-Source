@@ -25,6 +25,8 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   loop awake, samples database/process state, performs periodic live Kohdee
   checks, records ferry movement, and proves exact state recovery through a
   final controlled restart before resuming service.
+  Its metadata records the source commit and installed executable SHA-256;
+  fingerprint drift or a different post-restart binary fails the run.
 
 #### Fixed
 
@@ -53,6 +55,8 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   the server expires after about 49 seconds. It holds an unconfirmed generated
   account name without creating an account, checks the socket every 20
   seconds, and fails on any game-loop sleep line.
+- TERM/INT handling now writes a terminal artifact directly instead of
+  relying on an EXIT trap that Bash can skip while interrupted in `sleep`.
 
 #### Validated
 

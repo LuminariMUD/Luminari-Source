@@ -73,12 +73,15 @@ confirmed, so no account is created. The monitor requires that socket to
 remain `ESTABLISHED` every 20 seconds and fails if the server reports that it
 went to sleep. Live checks use the configured master account and existing
 Kohdee character; they do not create an account or character.
+The launch metadata records the source commit and SHA-256 of `bin/circle`.
+Each process sample rejects a changed executable fingerprint, and the final
+restart must launch the same SHA-256 that served the continuous window.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
-the recovered state, and resumes the ferry. Results and every sample remain
-under the run directory printed by `start`. Only `PASS` from `status` closes
-the gate.
+the recovered state and executable hash, and resumes the ferry. Results and
+every sample remain under the run directory printed by `start`. Only `PASS`
+from `status` closes the gate.
 
 For a short monitor shakedown:
 

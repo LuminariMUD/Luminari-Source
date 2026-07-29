@@ -858,9 +858,12 @@ descriptor-driven game loop reports that it slept, samples database and
 process invariants every minute, and serializes hourly Kohdee checks through
 the shared login-helper lock. It also fails on a PID change,
 route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
-or a ferry-specific movement/persistence error. A successful run ends with a
-controlled local restart that proves exact paused-coordinate recovery, then
-resumes the ferry. Artifacts live in the run directory printed by `start`.
+an installed-binary fingerprint change, or a ferry-specific
+movement/persistence error. Launch metadata records the source commit and
+`bin/circle` SHA-256. A successful run ends with a controlled local restart
+that proves exact paused-coordinate recovery and launches the identical
+executable hash, then resumes the ferry. Artifacts live in the run directory
+printed by `start`.
 
 ### Interior VNUM Allocation
 

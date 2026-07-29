@@ -58,10 +58,12 @@ account. The monitor requires that socket to remain `ESTABLISHED` every 20
 seconds, fails if the server reports that it went to sleep, checks the
 unchanged process and database invariants every minute, and uses the existing
 account and Kohdee for hourly live checks. It records movement and both dock
-arrivals from the server log. After the requested duration, it pauses through
-the game, hard-restarts local development, compares the exact coordinates,
-route, pilot, schedule, rooms, and structure, then resumes the ferry. The run
-is incomplete until `status` reports `PASS`.
+arrivals from the server log. Launch metadata records the source commit and
+installed executable SHA-256; a changed binary fingerprint fails the run.
+After the requested duration, it pauses through the game, hard-restarts local
+development, compares the exact coordinates, route, pilot, schedule, rooms,
+structure, and executable hash, then resumes the ferry. The run is incomplete
+until `status` reports `PASS`.
 
 For the builder-independence timing gate, run:
 

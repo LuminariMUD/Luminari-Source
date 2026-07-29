@@ -254,6 +254,9 @@ run_monitor()
   keepalive_fd=""
   initial_mud_pid=""
   final_mud_pid=""
+  initial_binary_sha256=""
+  initial_binary_fingerprint=""
+  initial_source_commit=""
   log_offset=0
   movement_steps=0
   west_arrivals=0
@@ -285,6 +288,11 @@ run_monitor()
     MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
       --skip-column-names --host="$database_host" --user="$database_user" \
       "$database_name" --execute="$query"
+  }
+
+  binary_sha256()
+  {
+    sha256sum "$1" | awk '{print $1}'
   }
 
   close_keepalive()
@@ -372,10 +380,11 @@ run_monitor()
 
   finish_run()
   {
-    local exit_code=$?
+    local exit_code=${1:-$?}
     local finished_epoch
     local unique_positions
 
+    trap - EXIT
     close_keepalive
     if [[ "$run_complete" != true ]]; then
       resume_after_failure
@@ -399,9 +408,9 @@ run_monitor()
     fi
     return 0
   }
-  trap finish_run EXIT
-  trap 'failure_reason="monitor received SIGTERM"; exit 143' TERM
-  trap 'failure_reason="monitor received SIGINT"; exit 130' INT
+  trap 'finish_run $?' EXIT
+  trap 'failure_reason="monitor received SIGTERM"; finish_run 143; exit 143' TERM
+  trap 'failure_reason="monitor received SIGINT"; finish_run 130; exit 130' INT
 
   run_live_sample()
   {
@@ -587,12 +596,16 @@ run_monitor()
     local vsz
     local threads
     local descriptor_count
+    local current_binary_fingerprint
 
     current_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
     [[ "$current_pid" == "$initial_mud_pid" ]] ||
       fail_run "MUD PID changed during the continuous run: $initial_mud_pid -> $current_pid"
     [[ -r "/proc/$current_pid/status" ]] ||
       fail_run "MUD process $current_pid disappeared"
+    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+    [[ "$current_binary_fingerprint" == "$initial_binary_fingerprint" ]] ||
+      fail_run "the installed MUD executable changed during the continuous run"
 
     process_row=$(ps -o rss=,vsz=,nlwp= -p "$current_pid")
     read -r rss vsz threads <<<"$process_row"
@@ -683,6 +696,8 @@ run_monitor()
     local post_x
     local post_y
     local database_coordinates
+    local installed_binary_sha256
+    local running_binary_sha256
     local ready=false
     local attempt
 
@@ -716,6 +731,13 @@ run_monitor()
     [[ "$database_coordinates" == "$pause_x $pause_y" ]] ||
       fail_run "paused runtime did not persist exact coordinates"
 
+    installed_binary_sha256=$(binary_sha256 "$repo_root/bin/circle")
+    running_binary_sha256=$(binary_sha256 "/proc/$initial_mud_pid/exe")
+    [[ "$installed_binary_sha256" == "$initial_binary_sha256" ]] ||
+      fail_run "bin/circle changed before the persistence restart"
+    [[ "$running_binary_sha256" == "$initial_binary_sha256" ]] ||
+      fail_run "the running MUD executable changed before persistence verification"
+
     close_keepalive
     systemctl --user restart "$server_unit" ||
       fail_run "could not restart the local MUD for persistence verification"
@@ -733,6 +755,9 @@ run_monitor()
     done
     [[ "$ready" == true ]] ||
       fail_run "the local MUD did not return after the persistence restart"
+    running_binary_sha256=$(binary_sha256 "/proc/$final_mud_pid/exe")
+    [[ "$running_binary_sha256" == "$initial_binary_sha256" ]] ||
+      fail_run "the persistence restart launched a different MUD executable"
 
     run_live_sample "post-restart" paused
     post_x=$last_live_x
@@ -758,8 +783,8 @@ run_monitor()
     persistence_verified=true
   }
 
-  for command_name in awk bash date dd find grep mariadb ps sed sleep sort ss \
-    stat systemctl tail timeout tr wc; do
+  for command_name in awk bash date dd find git grep mariadb ps sed sha256sum \
+    sleep sort ss stat systemctl tail timeout tr wc; do
     command -v "$command_name" >/dev/null 2>&1 ||
       fail_run "required command not found: $command_name"
   done
@@ -801,6 +826,15 @@ run_monitor()
   initial_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
   [[ "$initial_mud_pid" =~ ^[1-9][0-9]*$ ]] ||
     fail_run "could not read the local MUD PID"
+  initial_binary_sha256=$(binary_sha256 "$repo_root/bin/circle")
+  [[ "$initial_binary_sha256" =~ ^[0-9a-f]{64}$ ]] ||
+    fail_run "could not hash the installed MUD executable"
+  [[ "$(binary_sha256 "/proc/$initial_mud_pid/exe")" == "$initial_binary_sha256" ]] ||
+    fail_run "the active MUD process does not match bin/circle"
+  initial_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+  initial_source_commit=$(git -C "$repo_root" rev-parse HEAD)
+  [[ "$initial_source_commit" =~ ^[0-9a-f]{40}$ ]] ||
+    fail_run "could not record the source commit"
   ss -H -ltnp "sport = :$mud_port" 2>/dev/null | grep -q circle ||
     fail_run "the development port is not owned by circle"
 
@@ -878,6 +912,8 @@ run_monitor()
     printf 'ferry_slot=%s\n' "$ferry_slot"
     printf 'route_id=%s\n' "$route_id"
     printf 'initial_mud_pid=%s\n' "$initial_mud_pid"
+    printf 'binary_sha256=%s\n' "$initial_binary_sha256"
+    printf 'source_commit=%s\n' "$initial_source_commit"
   } >>"$run_dir/metadata"
   write_status \
     "RUNNING started=$started_epoch elapsed=0/$duration slot=$ferry_slot pid=$initial_mud_pid"
@@ -953,6 +989,8 @@ run_monitor()
     printf 'Ferry slot and route: %s/%s\n' "$ferry_slot" "$route_id"
     printf 'MUD PID during run: %s\n' "$initial_mud_pid"
     printf 'MUD PID after final persistence restart: %s\n' "$final_mud_pid"
+    printf 'Installed MUD SHA-256: %s\n' "$initial_binary_sha256"
+    printf 'Source commit at launch: %s\n' "$initial_source_commit"
     printf 'Movement steps: %s\n' "$movement_steps"
     printf 'Unique positions: %s\n' "$unique_positions"
     printf 'West/east arrivals: %s/%s\n' "$west_arrivals" "$east_arrivals"

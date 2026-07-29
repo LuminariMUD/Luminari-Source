@@ -37,12 +37,12 @@ recording enduring behavior or evidence in the permanent documentation.
 
   The July 30 run starting at 01:04:38 IDT is invalid: its idle account-name
   connection expired at 01:05:16 and the game loop slept. Its artifact is
-  `ABANDONED`. The corrected 150-second replacement shakedown passed. A new
-  local-development window started July 30 at 01:16:31 IDT and reaches 24
-  hours on July 31 at 01:16:31 IDT. Check it with
-  `./scripts/run_vessel_ferry_soak.sh status`; its run directory is
-  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T221620Z-4087313`.
-  Leave this item open until that run passes its final exact-state restart.
+  `ABANDONED`. The corrected 150-second replacement shakedown passed. A second
+  full window started at 01:16:31 IDT and ran correctly, but was intentionally
+  superseded after source audit showed the monitor did not pin the installed
+  executable across its final restart. The next launch records and enforces
+  the source commit, executable fingerprint, and SHA-256. Leave this item open
+  until that provenance-aware run passes its final exact-state restart.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
