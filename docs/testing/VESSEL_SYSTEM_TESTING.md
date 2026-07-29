@@ -263,6 +263,12 @@ numbered gameplay flow:
   checks the socket every 20 seconds, and treats any game-loop sleep line as a
   hard failure. Only a replacement run longer than the old timeout can
   validate the monitor before the 24-hour clock restarts.
+- The corrected replacement ran continuously for 150 seconds: 84 movement
+  steps, 22 distinct positions, 3 west and 4 east arrivals, 5 actual Kohdee
+  inspections, and 16 database/process samples under one travel PID. The
+  final restart restored the exact paused coordinate and route under a new
+  PID, and Kohdee resumed the ferry. This validates the monitor path, not the
+  outstanding 24-hour duration.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

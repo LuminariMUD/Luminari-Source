@@ -76,6 +76,10 @@ ferry, interior-script, restart, and multiplayer vessel validation.
   its idle pre-login descriptor expired, the game loop slept, and later
   character samples woke it temporarily. This prevented a false 24-hour pass
   and led to the confirmation-state and explicit sleep-detection checks above.
+- The corrected 150-second replacement passed with 84 continuous movement
+  steps, 22 distinct positions, both dock arrivals, 5 actual Kohdee samples,
+  16 database/process samples, one travel PID, exact post-restart coordinate
+  and route recovery, and automatic resume.
 
 ### Documentation - vessel source-of-truth consolidation
 

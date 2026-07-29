@@ -15,8 +15,9 @@ signed-coordinate movement and both unsafe legs of the sample ferry route; an
 actual Kohdee session now completes the full four-waypoint loop. The
 first monitor shakedown was rejected when its idle pre-login descriptor
 expired and let the game loop sleep; the corrected confirmation-state
-keepalive is undergoing a replacement shakedown. The continuous 24-hour
-result is still unverified.
+keepalive then passed a 150-second replacement with 84 continuous movement
+steps and exact-state restart recovery. The continuous 24-hour result is
+still unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -35,12 +36,13 @@ recording enduring behavior or evidence in the permanent documentation.
   coordinate, room, or persistence desynchronization.
 
   The July 30 run starting at 01:04:38 IDT is invalid: its idle account-name
-  connection expired at 01:05:16 and the game loop slept. Its artifact was
-  marked `ABANDONED`. A 150-second replacement shakedown of the corrected
-  confirmation-state hold is active in
-  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T221223Z-4070396`.
-  Start a new 24-hour window only after that shakedown reports `PASS`, and
-  leave this item open until the full run passes its final exact-state restart.
+  connection expired at 01:05:16 and the game loop slept. Its artifact is
+  `ABANDONED`. The corrected 150-second replacement shakedown passed. A new
+  local-development window started July 30 at 01:16:31 IDT and reaches 24
+  hours on July 31 at 01:16:31 IDT. Check it with
+  `./scripts/run_vessel_ferry_soak.sh status`; its run directory is
+  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T221620Z-4087313`.
+  Leave this item open until that run passes its final exact-state restart.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.

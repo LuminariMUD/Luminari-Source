@@ -89,7 +89,10 @@ For a short monitor shakedown:
 The three values are duration, database/process interval, and live-character
 interval in seconds. Keep the shakedown longer than the server's login timeout
 so it proves the hold connection rather than relying on periodic character
-logins to wake a sleeping loop.
+logins to wake a sleeping loop. The corrected July 30, 2026 shakedown ran 150
+continuous seconds with 84 movement steps, 22 distinct cells, both docks, 5
+Kohdee samples, 16 database/process samples, an unchanged travel PID, exact
+state recovery across the final restart, and automatic resume.
 
 ## Fast Vessel Builder Gate
 
