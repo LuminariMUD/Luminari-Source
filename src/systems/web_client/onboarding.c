@@ -820,17 +820,10 @@ void web_onboarding_set_capability(struct descriptor_data *d, const char *value)
   d->web_onboarding_dirty = TRUE;
 }
 
-/*
- * Highest version this build will agree to. v2 is offered only when the build
- * flag is on, so an operator can roll back to v1 by capability alone.
- */
+/* Highest protocol version implemented by this source build. */
 static int web_onboarding_max_offered_version(void)
 {
-#if WEB_ONBOARDING_ENABLE_V2
   return WEB_ONBOARDING_PROTOCOL_VERSION_MAX;
-#else
-  return WEB_ONBOARDING_PROTOCOL_VERSION;
-#endif
 }
 
 void web_onboarding_set_version_list(struct descriptor_data *d, const char *value)
@@ -911,12 +904,7 @@ int web_onboarding_version(struct descriptor_data *d)
 
 bool web_onboarding_v2_enabled(struct descriptor_data *d)
 {
-#if WEB_ONBOARDING_ENABLE_V2
   return web_onboarding_version(d) >= WEB_ONBOARDING_PROTOCOL_VERSION_MAX;
-#else
-  (void)d;
-  return FALSE;
-#endif
 }
 
 bool web_onboarding_enabled(struct descriptor_data *d)
@@ -2082,8 +2070,8 @@ static void build_account_characters(struct json_writer *w, struct descriptor_da
       {
         if (class_count)
           classes_len = snprintf_append(classes, sizeof(classes), classes_len, "/");
-        classes_len = snprintf_append(classes, sizeof(classes), classes_len, "%s",
-                                      CLSLIST_NAME(class_index));
+        classes_len =
+            snprintf_append(classes, sizeof(classes), classes_len, "%s", CLSLIST_NAME(class_index));
         class_count++;
       }
     }

@@ -408,8 +408,8 @@ evidence must use the generic fallback rather than block onboarding.
 
 | Client | Source | Result |
 | --- | --- | --- |
-| V2-enabled web gateway | V2-enabled build | Full structured core and role-play flow |
-| V2-capable web gateway | V1-only build or v2 flag off | Core UI; terminal RP fallback |
+| Current web gateway | Current source | Full structured core and role-play flow |
+| Current web gateway | Older v1-only source | Core UI; terminal RP fallback |
 | Current web gateway | Older or unrelated MUD | Classic terminal |
 | Ordinary Telnet client | Current source | Existing text menus |
 | Malformed or unsupported client state | Current source | Terminal handoff; no forced disconnect |
@@ -420,41 +420,37 @@ debugging surface. New screens must not discard terminal output.
 
 ## Build, Activation, and Rollback
 
-Protocol v2 is guarded by:
+Protocol v2 is compiled into every source build. The retired rollout switch is
+explicitly rejected:
 
 ```c
-#define WEB_ONBOARDING_ENABLE_V2 0
+#ifdef WEB_ONBOARDING_ENABLE_V2
+#error "WEB_ONBOARDING_ENABLE_V2 was removed; protocol v2 is always available"
+#endif
 ```
 
-The header default is zero. Enable it with the compiler definition
-`-DWEB_ONBOARDING_ENABLE_V2=1`. With Autotools:
+With Autotools:
 
 ```sh
 make clean
-./configure CPPFLAGS="-DWEB_ONBOARDING_ENABLE_V2=1"
+./configure
 make -j"$(nproc)"
 make test
 make install
 ```
 
-Preserve any other required `CPPFLAGS` when configuring. A clean build is
-mandatory when toggling the flag because `make` does not detect a changed
-compiler definition reliably.
-
-The gateway has an independent v2 feature flag. Both sides must enable v2 and
-negotiate it before v2 screens or editor transfers are allowed.
-
-The preferred rapid rollback is a capability downgrade: stop the gateway from
-advertising v2. A v2-capable source then negotiates v1 without a data migration.
-A source rebuild without the definition hard-disables v2. Classic terminal
-fallback must be tested before every activation.
+The current gateway always advertises versions `2,1`, and the current source
+always selects v2. Version negotiation remains only for compatibility with old
+gateways, old sources, and ordinary Telnet clients. It is not an operator
+switch. Roll back a bad release to the last known-good complete release; do not
+disable the role-play product capability.
 
 ## Testing
 
 The production-linked source suite is
 `unittests/CuTest/test_web_onboarding.c`. It covers:
 
-- negotiation, version skew, and default-off behavior;
+- negotiation, version skew, and mandatory v2 availability;
 - representative v1 screens and every mapped v2 role-play state;
 - authoritative catalog filtering, stable IDs, media keys, paging, and wire
   values;
@@ -468,16 +464,11 @@ The production-linked source suite is
 The focused protocol parser harness separately verifies that reserved
 capability and action variables reach the production handlers.
 
-Exercise both compile modes:
+Exercise the single production compile mode:
 
 ```sh
 make clean
 ./configure
-make test
-make install
-
-make clean
-./configure CPPFLAGS="-DWEB_ONBOARDING_ENABLE_V2=1"
 make test
 make install
 

@@ -25,12 +25,11 @@ enum roleplay_commit_result;
 #define WEB_ONBOARDING_PROTOCOL_VERSION_MAX 2
 
 /*
- * Master switch for protocol v2. Defaults to off so v2 is something an
- * operator opts into, and so rollback is a capability downgrade rather than a
- * redeploy. Build with -DWEB_ONBOARDING_ENABLE_V2=1 to offer it.
+ * Protocol v2 is a permanent part of the product. Reject the retired rollout
+ * switch so no build command can silently compile the role-play suite out.
  */
-#ifndef WEB_ONBOARDING_ENABLE_V2
-#define WEB_ONBOARDING_ENABLE_V2 0
+#ifdef WEB_ONBOARDING_ENABLE_V2
+#error "WEB_ONBOARDING_ENABLE_V2 was removed; protocol v2 is always available"
 #endif
 
 /* Reserved MSDP variable names. Players must not be able to remap these. */

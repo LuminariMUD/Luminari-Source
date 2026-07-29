@@ -47,20 +47,20 @@ This installs the tested binary as `bin/circle` and removes the root-level
 ## Structured Web Onboarding
 
 `unittests/CuTest/test_web_onboarding.c` is part of the production-linked
-suite. The default build verifies protocol v1 and proves that protocol v2
-remains disabled. A second clean build with the v2 definition exercises the
-role-play screens, private editor transfers, checked persistence, rollback,
-and compatibility behavior:
+suite. Every normal build includes protocol v2 and exercises the role-play
+screens, private editor transfers, checked persistence, and compatibility
+behavior:
 
 ```sh
 make clean
-./configure CPPFLAGS="-DWEB_ONBOARDING_ENABLE_V2=1"
+./configure
 make test
 make install
 ```
 
-Always clean before adding or removing `WEB_ONBOARDING_ENABLE_V2`; an
-incremental build does not reliably notice a changed compiler definition. See
+The retired `WEB_ONBOARDING_ENABLE_V2` compiler definition is rejected at
+compile time. This prevents a configure or deployment command from silently
+removing the role-play suite. See
 [WEB_ONBOARDING_SYSTEM.md](../systems/WEB_ONBOARDING_SYSTEM.md) for the
 maintained behavior and security matrix.
 
