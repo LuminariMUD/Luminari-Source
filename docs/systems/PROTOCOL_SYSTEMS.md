@@ -98,6 +98,33 @@ integrated Luminari Web proxy. A raw source WebSocket endpoint must not be
 treated as equivalent to the current Luminari Web `/ws` JSON application
 contract unless a future compatibility spec proves parity.
 
+### Structured Pre-Game Onboarding
+
+The first-party gateway can negotiate a Luminari-specific structured view of
+the pre-game `nanny()` states over MSDP. This is separate from ordinary
+`msdp_update()`, which primarily reports playing-state HUD data.
+
+Reserved variables are:
+
+| Variable | Purpose |
+| --- | --- |
+| `LUMINARI_ONBOARDING_VERSION` | V1 capability advertisement |
+| `LUMINARI_ONBOARDING_VERSIONS` | Highest-mutual-version negotiation |
+| `LUMINARI_ONBOARDING` | Bounded source-to-client state |
+| `LUMINARI_ONBOARDING_ACTION` | V2 client-to-source private editor transfer |
+| `LUMINARI_ONBOARDING_CONTENT` | V2 source-to-client private editor transfer |
+
+The source remains authoritative for authentication, choices, validation, and
+persistence. Ordinary actions resolve to exact source-provided line values and
+still pass through `nanny()`. Private multiline profile text uses a separate
+bounded, chunked, digested v2 path and never becomes terminal command input.
+
+Clients that do not negotiate a supported version, v1 clients entering a
+v2-only state, and clients encountering an unsupported state continue through
+the classic terminal. Protocol v2 is compile-time default-off. See
+[WEB_ONBOARDING_SYSTEM.md](WEB_ONBOARDING_SYSTEM.md) for the state contract,
+bounds, security model, activation, fallback, and test requirements.
+
 ## MSDP Variable Categories
 
 ### General Server Information

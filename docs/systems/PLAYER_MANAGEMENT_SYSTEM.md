@@ -1,442 +1,272 @@
 # LuminariMUD Player Management System
 
-## Overview
+Last verified: 2026-07-29
 
-LuminariMUD implements a comprehensive player management system that handles user authentication, character creation, data persistence, and account management. The system supports both traditional character-based login and a modern account-based system that allows multiple characters per account.
+## Scope
 
-## Architecture Components
+Player management is an account-first, descriptor-driven workflow. The
+`nanny()` state machine in `src/interpreter.c` owns account authentication,
+character selection, character creation, the selected-character menu, and the
+transition into play. `src/account.c` owns account persistence and account-wide
+unlocks. `src/players.c` owns character loading, character saving, and the
+player index.
 
-### 1. Account System
+The classic Telnet menus and the structured web experience are two
+presentations of this same workflow. The web adapter does not authenticate
+accounts or implement character rules. See
+[WEB_ONBOARDING_SYSTEM.md](WEB_ONBOARDING_SYSTEM.md) for that presentation
+layer.
 
-The account system provides a modern approach to player management:
+## Data Ownership
 
-```c
-struct account_data {
-    int id;                                      // Unique account ID
-    char *name;                                  // Account name
-    char password[MAX_PWD_LENGTH + 1];           // Encrypted password
-    sbyte bad_password_count;                    // Failed login attempts
-    char *character_names[MAX_CHARS_PER_ACCOUNT]; // Character list
-    int experience;                              // Account experience points
-    int classes[MAX_UNLOCKED_CLASSES];           // Unlocked classes
-    int races[MAX_UNLOCKED_RACES];               // Unlocked races
-    char *email;                                 // Email address
-};
-```
+| Data | Runtime owner | Durable owner |
+| --- | --- | --- |
+| Account name, password hash, email, experience | `struct account_data` | MariaDB `account_data` |
+| Account character membership | `account->character_names[]` | MariaDB `player_data.account_id` |
+| Unlocked races and classes | `account->races[]`, `account->classes[]` | MariaDB unlock tables |
+| Character state | `struct char_data` | ASCII player file written by `save_char_checked()` |
+| Character lookup metadata | `player_table` | Checked player-index file |
+| Equipment and inventory | Character/object runtime structures | Player object files |
 
-**Key Features:**
-- **Multiple Characters:** Up to `MAX_CHARS_PER_ACCOUNT` characters per account
-- **Unlockable Content:** Classes and races can be locked/unlocked
-- **Account Experience:** Shared experience pool across characters
-- **Security:** Password encryption and failed attempt tracking
+MariaDB is required for the account flow. Character files remain the primary
+character record; the `player_data` table also supplies account membership,
+last-online data, and database-backed character metadata. For the wider
+persistence map, see [SAVE_SYSTEMS_BREAKDOWN.md](SAVE_SYSTEMS_BREAKDOWN.md).
 
-### 2. Player Index System
+## Account Model
 
-The player index maintains a fast lookup table for all characters:
+`struct account_data` is declared in `src/structs.h`. Its active fields include:
 
-```c
-struct player_index_element {
-    char *name;                                  // Character name (lowercase)
-    long id;                                     // Unique character ID
-    int level;                                   // Character level
-    int flags;                                   // Index flags
-    time_t last;                                 // Last login time
-};
+- database ID and account name;
+- password hash and failed-password count;
+- up to `MAX_CHARS_PER_ACCOUNT` character names (currently 100);
+- account experience;
+- arrays of unlocked race and class IDs;
+- optional email;
+- account-level quit-survey completion.
 
-// Global player index
-extern struct player_index_element *player_table;
-extern int top_of_p_table;
-```
+`load_account()` loads the base row, character membership, and unlock tables.
+`save_account()` upserts the account, updates character membership, saves
+unlocks, and refreshes active descriptors that share the account ID.
 
-**Index Functions:**
-- `get_ptable_by_name()` - Find character by name
-- `create_entry()` - Add new character to index
-- `save_player_index()` - Persist index to disk
-- `load_player_index()` - Load index from disk
+An email field is not an email-authentication system. The login workflow does
+not implement email verification, forgotten-password recovery, MFA, web
+sessions, or long-lived authentication tokens.
 
-### 3. Connection States
+## Connection and Account Flow
 
-The login process uses a state machine managed by the `nanny()` function:
+`init_descriptor()` starts a connection in `CON_GET_PROTOCOL` when protocol
+negotiation is configured, otherwise in `CON_ACCOUNT_NAME`. Protocol
+negotiation eventually returns to `CON_ACCOUNT_NAME`.
 
-```c
-// Connection states (from structs.h)
-#define CON_PLAYING         0    // Normal gameplay
-#define CON_CLOSE           1    // Disconnect pending
-#define CON_GET_NAME        2    // Getting character name
-#define CON_NAME_CNFRM      3    // Confirming new name
-#define CON_PASSWORD        4    // Getting password
-#define CON_NEWPASSWD       5    // Creating new password
-#define CON_CNFPASSWD       6    // Confirming new password
-#define CON_QSEX            7    // Choosing gender
-#define CON_QCLASS          8    // Choosing class
-#define CON_RMOTD           9    // Reading MOTD
-#define CON_MENU           10    // Main menu
-#define CON_ACCOUNT_NAME   11    // Account name entry
-#define CON_ACCOUNT_MENU   12    // Account character menu
-// ... additional states for character creation
-```
+| Stage | State or states | Server behavior |
+| --- | --- | --- |
+| Protocol negotiation | `CON_GET_PROTOCOL` | Telnet capability negotiation and greeting |
+| Account identity | `CON_ACCOUNT_NAME` | Validates the entered name and tries `load_account()` |
+| New-account confirmation | `CON_ACCOUNT_NAME_CONFIRM` | Spelling, ban, and lock checks |
+| Existing-account password | `CON_PASSWORD` | Checks the password and failed-attempt limit |
+| New-account password | `CON_NEWPASSWD`, `CON_CNFPASSWD` | Creates and confirms password |
+| Account lobby | `CON_ACCOUNT_MENU` | Selects, creates, links, or quits |
+| Link character | `CON_ACCOUNT_ADD`, `CON_ACCOUNT_ADD_PWD` | Ownership/password checks |
+| Load character | `CON_RMOTD`, `CON_MENU` | Duplicate/restriction checks; character menu |
+| Enter the world | `CON_PLAYING` | Starts normal command processing |
 
-## Login Process Flow
+The account menu loads character records to display level, race, and class
+summary. A deleted character is not playable. Selecting a character also runs
+duplicate-session checks before reaching the MOTD and character menu.
 
-### 1. Initial Connection
+Linking an existing character is a distinct ownership flow:
 
-```c
-// In comm.c - new_descriptor()
-static int new_descriptor(socket_t s) {
-    // Accept socket connection
-    // Create descriptor_data structure
-    // Initialize connection state
-    // Send greeting message
-    STATE(newd) = CON_ACCOUNT_NAME;
-    return 0;
-}
-```
+- a character already associated with the same account can be restored without
+  another password challenge;
+- a character associated with a different account is refused;
+- an unassociated legacy character requires its character password;
+- full accounts, missing characters, and deleted characters are refused.
 
-### 2. Account Authentication
+Password change and character deletion are selected-character operations under
+`CON_MENU`; they are not account-lobby operations.
 
-```c
-// In nanny() function - CON_ACCOUNT_NAME state
-case CON_ACCOUNT_NAME:
-    // Parse and validate account name
-    if (load_account(tmp_name, d->account) > -1) {
-        // Account exists - request password
-        write_to_output(d, "Password: ");
-        STATE(d) = CON_PASSWORD;
-        ProtocolNoEcho(d, true);
-    } else {
-        // New account - create account
-        STATE(d) = CON_ACCOUNT_CREATE;
-    }
-    break;
-```
+## Password Input
 
-### 3. Password Verification
+Transitions into password entry use `ProtocolNoEcho()` to control Telnet echo,
+and their handlers restore echo when appropriate. The principal account,
+legacy-link, password-change, and deletion entry points clear already queued
+input so a command typed ahead of a sensitive prompt is not consumed as the
+password.
 
-```c
-// In nanny() function - CON_PASSWORD state
-case CON_PASSWORD:
-    if (strncmp(CRYPT(arg, d->account->name), d->account->password, MAX_PWD_LENGTH)) {
-        // Password incorrect
-        d->account->bad_password_count++;
-        if (++(d->bad_pws) >= CONFIG_MAX_BAD_PWS) {
-            STATE(d) = CON_CLOSE;
-        }
-    } else {
-        // Password correct - show account menu
-        STATE(d) = CON_ACCOUNT_MENU;
-        show_account_menu(d);
-    }
-    break;
-```
+These controls do not encrypt Telnet traffic. A browser gateway must also mask
+and isolate sensitive input, and the gateway-to-MUD leg must stay on a trusted
+path or use an authenticated encrypted tunnel. The password format is legacy
+and must not be changed as part of a presentation-only feature without a
+separate migration and rollback plan.
 
-### 4. Character Selection/Creation
+## Character Creation Flow
 
-```c
-// Account menu allows:
-// - Select existing character
-// - Create new character
-// - Delete character
-// - Account management
+The current new-character sequence is:
 
-void show_account_menu(struct descriptor_data *d) {
-    // Display character list
-    // Show creation options
-    // Account statistics
-}
-```
+| Order | State | Authoritative behavior |
+| ---: | --- | --- |
+| 1 | `CON_GET_NAME` | Parses and validates the name, checks reserved words, and checks uniqueness |
+| 2 | `CON_NAME_CNFRM` | Confirms spelling; repeats ban, lock, and duplicate checks |
+| 3 | `CON_QSEX` | Accepts male or female |
+| 4 | `CON_QRACE` | Selects an available, account-unlocked player race |
+| 5 | `CON_QRACE_HELP` | Shows race details and confirms or reselects |
+| 6 | `CON_QCLASS` | Selects an available base class compatible with the race and account unlocks |
+| 7 | `CON_QCLASS_HELP` | Shows class details and confirms or reselects |
+| 8 | `CON_CONFIRM_PREMADE` | Selects a guided premade build or a custom build |
+| 9 | `CON_QALIGN` | Selects an alignment valid for both race and class |
+| 10 | Persistence boundary | Initializes and saves; links account; updates player index |
+| 11 | `CON_SETPREFS` | Optionally applies the recommended preference bundle |
+| 12 | `CON_CHAR_RP_DECIDE` | Selects role-player, non-role-player, or decide later |
+| 13 | `CON_RMOTD`, `CON_MENU` | Shows the MOTD and selected-character menu |
 
-## Character Creation Process
+The point-buy block is compiled out by `CHARGEN_NO_STATISTICS` in
+`src/interpreter.c`. Ability scores, feats, skills, and level-one study are not
+part of the active initial creation workflow.
 
-### 1. Character Initialization
+Navigation follows the state machine's explicit confirmation and reselection
+paths. There is no general Back operation. Adding one requires server-side
+rollback rules for dependent race, class, alignment, unlock, and persistence
+state; a client must not simulate it by editing a local draft.
 
-```c
-// Create new character structure
-CREATE(d->character, struct char_data, 1);
-clear_char(d->character);
-CREATE(d->character->player_specials, struct player_special_data, 1);
-new_mobile_data(d->character);
+## Choice Authority
 
-// Link character to descriptor
-d->character->desc = d;
-GET_HOST(d->character) = strdup(d->host);
-```
+Presentation code must consume the same source data and filters as the terminal
+workflow:
 
-### 2. Character Customization States
+- races come from `race_list[]`, player-race flags, `is_locked_race()`, and
+  `has_unlocked_race()`;
+- classes come from `class_list[]`, `CLSLIST_INGAME()`,
+  `CLSLIST_PRESTIGE()`, `CLSLIST_LOCK()`, `has_unlocked_class()`, and
+  `valid_class_race_alignment()`;
+- alignments are filtered and validated with `valid_align_by_class()` and
+  `valid_align_by_race()`;
+- account cards are built by loading the account's actual character records.
 
-The creation process guides players through:
+Display labels are not stable protocol identifiers. External presentations use
+explicit stable IDs and media keys while continuing to send the exact wire
+values accepted by `nanny()`.
 
-1. **Name Selection** (`CON_GET_NAME`)
-   - Name validation and uniqueness checking
-   - Reserved word filtering
-   - Length and character restrictions
+## Core Persistence Boundary
 
-2. **Gender Selection** (`CON_QSEX`)
-   - Male, female, or neutral options
+After a valid alignment is selected, `nanny()`:
 
-3. **Race Selection** (`CON_QRACE`)
-   - Available races based on account unlocks
-   - Racial ability modifiers and features
+1. creates a player-index entry when required;
+2. calls `init_char()`;
+3. copies the account password hash to an account-created character's legacy
+   password slot;
+4. adds the character name to the in-memory account;
+5. calls `save_char()`;
+6. ensures a `player_data` row exists when MariaDB is available;
+7. calls `save_account()` and `save_player_index()`.
 
-4. **Class Selection** (`CON_QCLASS`)
-   - Available classes based on account unlocks
-   - Class restrictions and requirements
+The recommended-preference and role-play-decision steps happen after this
+boundary. The role-play decision saves the character again, and `CON_RMOTD`
+performs a further safety save.
 
-5. **Ability Score Assignment** (`CON_QSTATS`)
-   - Point-buy or rolling system
-   - Racial modifiers applied
+This timing matters on disconnect:
 
-6. **Final Confirmation** (`CON_QCONFIRM`)
-   - Review character details
-   - Finalize creation
+- before alignment completes, the character is an unpersisted draft;
+- after alignment, a character may exist even though preferences and the
+  role-play decision are incomplete;
+- reconnect recovery follows the persisted account/character state, not a
+  browser-side wizard draft.
 
-### 3. Character Finalization
+The core alignment path uses legacy result-discarding save wrappers. A
+presentation's core `persistence` value therefore identifies the state-machine
+boundary; it is not a checked write receipt. Code that must promise durable
+success should use checked save functions and explicit rollback, as the
+protocol-v2 role-play commit path does.
 
-```c
-// Set starting values
-init_char(d->character);
-GET_LEVEL(d->character) = 1;
-GET_EXP(d->character) = 1;
+## Role-Play Profile
 
-// Assign starting equipment and location
-Crash_load(d->character);
-char_to_room(d->character, load_room);
+After core creation, a player may skip, defer, or enter the role-play profile.
+The character menu also exposes the profile later. It includes:
 
-// Enter game
-STATE(d) = CON_PLAYING;
-```
+- generated short description;
+- long description and background story;
+- background archetype;
+- goals, personality, ideals, bonds, and flaws;
+- age;
+- homeland region;
+- faction;
+- hometown;
+- deity.
 
-## Data Persistence
+Most profile data is optional. When `CONFIG_USE_INTRO_SYSTEM` is enabled,
+entering the world is blocked until the required short-description components
+exist.
 
-### 1. Character Saving (`save_char()`)
+Background, age, homeland, faction, hometown, and deity selections have
+domain-specific mutability rules. Their handlers use descriptor-local pending
+values and checked commit helpers so a rejected or failed save can restore the
+previous character and player-index state. The seven free-text fields share
+field IDs, field-specific byte limits, UTF-8 validation, normalization, and
+`save_char_checked()` through `src/roleplay.c`.
 
-The ASCII-based save system stores character data in structured text files:
+## Checked and Legacy Save APIs
+
+`src/players.c` exposes both:
 
 ```c
-void save_char(struct char_data *ch, int mode) {
-    FILE *fl;
-    char filename[40];
-
-    // Generate filename: lib/plrfiles/A-E/player.plr
-    get_filename(filename, sizeof(filename), PLR_FILE, GET_NAME(ch));
-
-    if (!(fl = fopen(filename, "w"))) {
-        log("SYSERR: Couldn't open player file %s for write", filename);
-        return;
-    }
-
-    // Save character data sections:
-    // - Basic info (name, level, class, race)
-    // - Abilities and statistics
-    // - Equipment and inventory
-    // - Spells and skills
-    // - Preferences and settings
-    // - Quest and achievement data
-
-    fclose(fl);
-
-    // Update player index
-    save_player_index();
-
-    // Save account data
-    if (ch->desc && ch->desc->account) {
-        save_account(ch->desc->account);
-    }
-}
+bool save_char_checked(struct char_data *ch, int mode);
+void save_char(struct char_data *ch, int mode);
 ```
 
-**Save File Structure:**
-```
-Name: PlayerName
-SexC: 1
-Clas: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39
-Race: 0
-Levl: 1
-Brth: 1234567890
-Plyd: 3600
-Last: 1234567890
-Host: 192.168.1.1
-Hite: 180
-Wate: 75
-Alin: 0
-Id  : 12345
-Act : 0 0 0 0
-Aff : 0 0 0 0
-Savs: 0 0 0 0 0
-Abils: 16 14 15 12 13 10
-```
+`save_char_checked()` reports allocation, file, flush, close, and index
+failures. `save_char()` is the legacy wrapper used by call sites that do not
+consume a result. The player index follows the same pattern with
+`save_player_index_checked()` and `save_player_index()`.
 
-### 2. Character Loading (`load_char()`)
+Use the checked functions when the caller:
 
-```c
-int load_char(char *name, struct char_data *ch) {
-    FILE *fl;
-    char filename[40], line[MAX_INPUT_LENGTH];
-    char tag[6];
+- must not report success before durable storage succeeds;
+- has already mutated state that must be rolled back on failure;
+- is accepting structured input whose client expects an explicit result.
 
-    get_filename(filename, sizeof(filename), PLR_FILE, name);
+## Validation and Access Controls
 
-    if (!(fl = fopen(filename, "r"))) {
-        return -1; // Character not found
-    }
+The workflow includes:
 
-    // Parse save file line by line
-    while (get_line(fl, line)) {
-        tag_argument(line, tag);
+- account and character name parsing, length checks, fill-word checks, reserved
+  word checks, and character-name uniqueness checks;
+- failed-password attempt limits;
+- new-account and new-character site-ban checks;
+- creation and staff-only restriction checks;
+- duplicate active-character checks;
+- account ownership checks when linking a character;
+- confirmation before character deletion.
 
-        // Process each data section
-        if (!strcmp(tag, "Name")) strcpy(GET_NAME(ch), line);
-        else if (!strcmp(tag, "SexC")) GET_SEX(ch) = atoi(line);
-        else if (!strcmp(tag, "Clas")) /* parse class data */;
-        else if (!strcmp(tag, "Race")) GET_RACE(ch) = atoi(line);
-        // ... continue for all data fields
-    }
+The MUD descriptor is the authenticated session. A web gateway must not query
+account tables or compare hashes on the MUD's behalf; doing so would create a
+second authentication and ownership boundary.
 
-    fclose(fl);
-    return 0;
-}
-```
+## Maintenance Rules
 
-### 3. Account Data Persistence
+When changing account or character creation:
 
-Account data is stored in MySQL database:
+1. Trace every affected `nanny()` state and transition.
+2. Keep validation, unlocks, mutation, and persistence in source-owned domain
+   code.
+3. Update the structured presentation map or intentionally retain terminal
+   fallback.
+4. Preserve password no-echo and queued-input clearing on every sensitive path.
+5. Re-evaluate the alignment persistence boundary and disconnect behavior.
+6. Add production-linked CuTest coverage for positive, negative, boundary, and
+   rollback behavior.
+7. Test classic Telnet, structured v1, structured v2 where applicable, and
+   version-skew fallback.
 
-```c
-int load_account(char *name, struct account_data *account) {
-    MYSQL_RES *result;
-    MYSQL_ROW row;
-    char buf[2048];
+## Key Files
 
-    snprintf(buf, sizeof(buf),
-        "SELECT id, name, password, experience, email "
-        "FROM account_data WHERE lower(name) = lower('%s')", name);
-
-    if (mysql_query(conn, buf)) {
-        log("SYSERR: Unable to SELECT from account_data: %s", mysql_error(conn));
-        return -1;
-    }
-
-    result = mysql_store_result(conn);
-    if (!(row = mysql_fetch_row(result))) {
-        mysql_free_result(result);
-        return -1; // Account not found
-    }
-
-    // Load account data from database row
-    account->id = atoi(row[0]);
-    account->name = strdup(row[1]);
-    strncpy(account->password, row[2], MAX_PWD_LENGTH + 1);
-    account->experience = atoi(row[3]);
-    account->email = (row[4] ? strdup(row[4]) : NULL);
-
-    mysql_free_result(result);
-
-    // Load associated character list and unlocks
-    load_account_characters(account);
-    load_account_unlocks(account);
-
-    return 0;
-}
-
-void save_account(struct account_data *account) {
-    char buf[2048];
-
-    snprintf(buf, sizeof(buf),
-        "INSERT INTO account_data (id, name, password, experience, email) "
-        "VALUES (%d, '%s', '%s', %d, %s%s%s) "
-        "ON DUPLICATE KEY UPDATE "
-        "password = VALUES(password), "
-        "experience = VALUES(experience), "
-        "email = VALUES(email)",
-        account->id, account->name, account->password, account->experience,
-        (account->email ? "'" : ""),
-        (account->email ? account->email : "NULL"),
-        (account->email ? "'" : ""));
-
-    if (mysql_query(conn, buf)) {
-        log("SYSERR: Unable to save account data: %s", mysql_error(conn));
-    }
-}
-```
-
-## Security Features
-
-### 1. Password Security
-
-- **Encryption:** Passwords stored using `crypt()` function
-- **Salt:** Account name used as salt for encryption
-- **Attempt Limiting:** Failed login attempts tracked and limited
-- **Timeout:** Idle connections automatically disconnected
-
-### 2. Name Validation
-
-```c
-int valid_name(char *newname) {
-    // Check length constraints
-    if (strlen(newname) < 2 || strlen(newname) > MAX_NAME_LENGTH)
-        return 0;
-
-    // Check for valid characters (letters only)
-    for (i = 0; newname[i]; i++) {
-        if (!isalpha(newname[i]))
-            return 0;
-    }
-
-    // Check against reserved words
-    if (reserved_word(newname) || fill_word(newname))
-        return 0;
-
-    return 1;
-}
-```
-
-### 3. Site Banning
-
-- **IP-based banning:** Prevent connections from specific addresses
-- **Site-specific restrictions:** Character-level site permissions
-- **Administrative controls:** Staff can manage access restrictions
-
-## Multi-Character Management
-
-### 1. Character Switching
-
-Players can switch between characters on the same account:
-
-```c
-// Account menu allows character selection
-// Previous character saved automatically
-// New character loaded and entered into game
-```
-
-### 2. Shared Resources
-
-- **Account Experience:** Earned across all characters
-- **Unlocked Content:** Classes and races available to all characters
-- **Account Statistics:** Shared achievements and progress
-
-### 3. Character Limits
-
-- Maximum characters per account configurable
-- Character deletion with confirmation
-- Character recovery systems for accidental deletion
-
-## Performance Optimizations
-
-### 1. Player Index Caching
-
-- In-memory index for fast character lookups
-- Periodic saves to disk for persistence
-- Efficient search algorithms for name resolution
-
-### 2. Lazy Loading
-
-- Character data loaded only when needed
-- Account data cached during session
-- Inventory and equipment loaded on demand
-
-### 3. Database Connection Management
-
-- Persistent MySQL connections
-- Connection pooling for high load
-- Automatic reconnection on failure
-
-This player management system provides a robust foundation for user authentication, character persistence, and account management while maintaining security and performance standards appropriate for a MUD environment.
+| File | Responsibility |
+| --- | --- |
+| `src/interpreter.c` | `nanny()` account, creation, character-menu, and play transitions |
+| `src/account.c` | Account load/save, membership, unlocks, and account menu |
+| `src/players.c` | Character files, checked saves, loads, and player index |
+| `src/roleplay.c` | Role-play field authority, pending selections, checked commits |
+| `src/char_descs.c` | Generated short-description workflow |
+| `src/comm.c` | Descriptor lifecycle, input queue, and game-loop dispatch |
+| `src/protocol.c` | Telnet negotiation, no-echo, MSDP parsing |
+| `src/systems/web_client/onboarding.c` | Structured presentation adapter |
+| `src/structs.h` | Account, descriptor, character, and connection-state definitions |

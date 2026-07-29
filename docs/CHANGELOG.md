@@ -1,5 +1,47 @@
 # Changelog
 
+## [Unreleased] - July 29, 2026
+
+### Documentation - structured web onboarding promotion
+
+Promoted the completed web account and character-creation project from the
+Zusuk scratch workspace into maintained system documentation. The permanent
+reference is `docs/systems/WEB_ONBOARDING_SYSTEM.md`.
+
+#### Added
+
+- A source-traced reference for the structured onboarding presentation
+  adapter: authority boundaries, descriptor lifecycle, reserved MSDP
+  variables, v1/v2 coverage, bounded state documents, source-owned catalogs,
+  private editor transfer, checked role-play persistence, privacy, web
+  performance and accessibility, media ownership, compatibility, activation,
+  rollback, testing, and maintenance.
+
+#### Changed
+
+- Replaced the stale account and character-creation examples in
+  `PLAYER_MANAGEMENT_SYSTEM.md` with the current `nanny()` flow, active
+  male/female and no-point-buy creation contract, alignment save boundary,
+  optional role-play profile, checked versus legacy save semantics, and
+  source-authority rules.
+- Linked the structured pre-game protocol from `PROTOCOL_SYSTEMS.md` and added
+  the default/v2 clean-build matrix to `TESTING_GUIDE.md`; the focused parser
+  harness now records its reserved v2 action-dispatch coverage.
+- Preserved the durable media-key, fallback, privacy, accessibility,
+  performance, provenance, and cross-repository validation contracts in the
+  canonical system reference. The live asset checklist remains owned by
+  `luminariweb/docs/manifest.md`.
+- Updated the documentation indexes.
+
+#### Removed
+
+- `WEB_ACCOUNT_CHARACTER_CREATION_EXPERIENCE.md`, whose implemented design and
+  durable operating knowledge are now covered by the canonical references.
+  Dated estimates, phase checklists, commit hashes, PIDs, binary hashes, and
+  rollout narration were intentionally not promoted.
+- The source-side `manifest.md`, which was an older duplicate of the web
+  client's actively maintained asset and delivery checklist.
+
 ## [Unreleased] - July 27, 2026
 
 ### Artifact System - chronicle, provenance, and the second-wave roster

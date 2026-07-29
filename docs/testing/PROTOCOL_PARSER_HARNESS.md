@@ -2,7 +2,7 @@
 
 This document describes the focused source-side protocol parser harness for
 Telnet, MSDP, GMCP, TTYPE, NAWS, unsupported option, and bounded response-path
-validation.
+validation, including reserved structured-onboarding dispatch.
 
 The harness is a safety baseline for future protocol changes. It does not make
 MCCP, GMCP modules, MXP browser UI, live `MINIMAP`, `QUEST_INFO`, `TITLE`,
@@ -81,6 +81,7 @@ protocol grammar and document the grammar source. Do not paste live bytes.
 | NAWS | `TestProtocolParser_TtypeAndNawsNegotiation` | Validates valid four-byte NAWS payload updates width and height. |
 | Unsupported options | `TestProtocolParser_UnsupportedOptionNegotiation` | Validates unknown `WILL`/`DO` options produce deterministic `DONT`/`WONT` replies. |
 | Web onboarding capability | `TestProtocolParser_WebOnboardingCapability` | Validates the reserved MSDP capability reaches the production handler and records the negotiated version. |
+| Web onboarding action | `TestProtocolParser_WebOnboardingActionUsesReservedVariable` | Validates the reserved v2 action variable reaches the isolated production handler without becoming command output. |
 | MSDP oversized response | `TestProtocolParser_OversizedResponsePaths` | Validates oversized MSDP list output is rejected and logged instead of emitted. |
 | MXP oversized tag | `TestProtocolParser_OversizedResponsePaths` | Validates overlong MXP tags are returned unchanged. |
 | Copyover string | `TestProtocolParser_OversizedResponsePaths` | Validates copyover protocol flags fit the bounded static buffer. |

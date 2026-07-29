@@ -1,9 +1,9 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-07-28
+Last Updated: 2026-07-29
 Version: 1.1
 
-## 📚 Documentation Overview
+## Documentation Overview
 
 This master index provides a comprehensive guide to all technical documentation for LuminariMUD. Documents are organized by category and purpose to help developers, builders, and administrators quickly find the information they need.
 
@@ -18,7 +18,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🚀 Setup & Getting Started
+## Setup & Getting Started
 
 ### Essential First Steps
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
@@ -36,7 +36,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🏗️ Architecture & Core Systems
+## Architecture & Core Systems
 
 ### System Architecture
 - **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Overall system design and module organization
@@ -50,6 +50,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Communication & Protocols
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
+- **[WEB_ONBOARDING_SYSTEM.md](systems/WEB_ONBOARDING_SYSTEM.md)** - Versioned MSDP account, character-creation, and role-play presentation for Luminari Web
 - **[CLIENT_CAPABILITIES_AND_PREFERENCES.md](systems/CLIENT_CAPABILITIES_AND_PREFERENCES.md)** - How client capability auto-detection and player PRF flags interact, what persists, and when
 - **[INTERMUD3.md](systems/INTERMUD3.md)** - Inter-MUD communication system
 - **[INTERMUD3_GATEWAY_API.md](systems/INTERMUD3_GATEWAY_API.md)** - External I3 Gateway API reference (JSON-RPC 2.0)
@@ -59,7 +60,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🎮 Game Systems
+## Game Systems
 
 ### Core Mechanics
 - **[GAME_MECHANICS_SYSTEMS.md](systems/GAME_MECHANICS_SYSTEMS.md)** - Overview of all game systems
@@ -79,11 +80,11 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CHARACTER_RENAME_SYSTEM.md](systems/CHARACTER_RENAME_SYSTEM.md)** - Authoritative player rename across index, files, accounts, and database
 - **[STAFF_EVENT_SYSTEM.md](systems/STAFF_EVENT_SYSTEM.md)** - Staff-managed game events
 - **[wilderness_system.md](world_game-data/wilderness_system.md)** - Dynamic wilderness generation
-- **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - 🆕 ✅ Spatial visual and audio systems with triple strategy pattern
-- **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - 🆕 Wilderness resource system with flexible region effects
-- **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - 🆕 Resource regeneration with seasonal and weather effects
-- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - 🆕 Quick reference for resource regeneration system
-- **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - 🆕 Dynamic environment descriptions based on resource state
+- **[SPATIAL_SYSTEMS_ARCHITECTURE.md](systems/SPATIAL_SYSTEMS_ARCHITECTURE.md)** - Spatial visual and audio systems with triple strategy pattern
+- **[RESOURCE_SYSTEM_TECHNICAL.md](systems/RESOURCE_SYSTEM_TECHNICAL.md)** - Wilderness resource system with flexible region effects
+- **[RESOURCE_REGENERATION_SYSTEM.md](systems/RESOURCE_REGENERATION_SYSTEM.md)** - Resource regeneration with seasonal and weather effects
+- **[RESOURCE_REGENERATION_QUICK_REFERENCE.md](systems/RESOURCE_REGENERATION_QUICK_REFERENCE.md)** - Quick reference for resource regeneration system
+- **[DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md](systems/DYNAMIC_RESOURCE_DESCRIPTIONS_PLAN.md)** - Dynamic environment descriptions based on resource state
 - **[AI_SERVICE_README.md](systems/AI_SERVICE_README.md)** - AI service integration
 
 ### Building & Scripting
@@ -95,13 +96,13 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 👨‍💻 Development Guides
+## Development Guides
 
 ### Core Development
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
-- **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - 🆕 Resource system player/admin reference
-- **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - 🆕 Resource regeneration API for developers
-- **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - 🆕 Phase 4 region effects system setup and testing guide
+- **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - Resource system player/admin reference
+- **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - Resource regeneration API for developers
+- **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - Phase 4 region effects system setup and testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
@@ -119,7 +120,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🏰 Building & Content Creation
+## Building & Content Creation
 
 ### Building Guides
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
@@ -131,7 +132,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🔧 Administration & Operations
+## Administration & Operations
 
 ### Admin Tools
 - **[Admin README](admin/README.md)** - Administration overview
@@ -141,12 +142,12 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Utilities README](utilities/README.md)** - External utility programs
 
 ### Legal & Licensing
-- **[LICENSE](../LICENSE.md)** - Project licensing information
+- **[LICENSE](../LICENSE)** - Project licensing information
 - **[Legal README](legal/README.md)** - Legal considerations
 
 ---
 
-## 📋 Project Management
+## Project Management
 
 ### Planning & Tracking
 - **[TASK_LIST.md](TASK_LIST.md)** - Current development priorities
@@ -163,10 +164,10 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[VESSEL_PRD_FINAL.md](project-management-zusuk/vessels/VESSEL_PRD_FINAL.md)** - Vessel system requirements and remaining work
 - **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
-- **[WILDERNESS-RESOURCE-PLAN.md](project-management-ornir/wilderness/WILDERNESS-RESOURCE-PLAN.md)** - 🆕 Resource system implementation plan (Phases 1-4)
-- **[PHASE_5_DESIGN.md](project-management-ornir/PHASE_5_DESIGN.md)** - 🆕 Player harvesting mechanics design
-- **[PHASE_4_COMPLETION_SUMMARY.md](project-management-ornir/PHASE_4_COMPLETION_SUMMARY.md)** - 🆕 Region effects system completion
-- **[CLEANUP_REPORT.md](project-management-ornir/CLEANUP_REPORT.md)** - 🆕 System redesign and cleanup documentation
+- **[WILDERNESS-RESOURCE-PLAN.md](project-management-ornir/wilderness/WILDERNESS-RESOURCE-PLAN.md)** - Resource system implementation plan (Phases 1-4)
+- **[PHASE_5_DESIGN.md](project-management-ornir/PHASE_5_DESIGN.md)** - Player harvesting mechanics design
+- **[PHASE_4_COMPLETION_SUMMARY.md](project-management-ornir/PHASE_4_COMPLETION_SUMMARY.md)** - Region effects system completion
+- **[CLEANUP_REPORT.md](project-management-ornir/CLEANUP_REPORT.md)** - System redesign and cleanup documentation
 - **[IDEA_LIST.md](project-management-zusuk/ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
 - **[WILDERNESS_PROJECT.md](project-management-ornir/wilderness/WILDERNESS_PROJECT.md)** - Wilderness system development
 
@@ -175,7 +176,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 📖 Document Categories
+## Document Categories
 
 ### By Audience
 
@@ -207,25 +208,25 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### By Technical Depth
 
-#### Introductory (🟢 Beginner)
+#### Introductory (Beginner)
 - README.md
 - FAQ.md
 - CODE_OF_CONDUCT.md
 - ultimate-mud-writing-guide.md
 
-#### Intermediate (🟡 Intermediate)
+#### Intermediate
 - DEPLOYMENT_GUIDE.md
 - OLC_ONLINE_CREATION_SYSTEM.md
 - GAME_MECHANICS_SYSTEMS.md
 - Building guides
 
-#### Advanced (🔴 Expert)
+#### Advanced
 - ARCHITECTURE.md
 - CORE_SERVER_ARCHITECTURE.md
 - DEVELOPER_GUIDE_AND_API.md
 - PERFORMANCE_OPTIMIZATIONS.md
 
-#### Reference (📘 Reference)
+#### Reference
 - DATABASE_INTEGRATION.md
 - SCRIPTING_SYSTEM_DG.md
 - COMMAND_SYSTEM_AND_INTERPRETER.md
@@ -233,7 +234,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 🔍 Finding Information
+## Finding Information
 
 ### Quick Search Tips
 1. **By Feature**: Look in `systems/` directory
@@ -256,7 +257,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ---
 
-## 📝 Notes
+## Notes
 
 ### Recent Updates (2025)
 - Documentation reorganized into categorical directories
