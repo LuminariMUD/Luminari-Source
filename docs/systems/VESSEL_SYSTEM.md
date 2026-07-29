@@ -801,7 +801,9 @@ Maximum: 500 vessels * 20 rooms = 10,000 rooms
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
-   insurance changes update their authoritative tables.
+   insurance changes update their authoritative tables. Player autopilot
+   `on`, `off`, `pause`, and `setroute` changes commit the runtime row before
+   reporting success; a failed write restores the prior in-memory state.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
    and applies the applicable persistence policy.
 5. **Copyover**: Complete vessel state is committed before descriptor handoff.
@@ -851,6 +853,17 @@ grace reset now commit together, and permanent player removal clears the
 runtime row inside its cleanup transaction. A fresh boot plus live
 Veska-to-Elyra deed left owner `Elyra`, grace timestamp `0`, and an empty
 opponent in SQL.
+
+Player autopilot control has the same immediate-durability evidence. A stale
+Traveling snapshot first reproduced the defect after a hard local service
+replacement even though Kohdee had previously issued `autopilot off`. With the
+fix installed, Kohdee assigned `persistroute`, engaged, paused, resumed, and
+disengaged the Goshawk; SQL reflected route/state values `3/0`, `3/3`, `3/1`,
+and `0/0` immediately after the respective commands. Separate hard service
+replacements restored both Off-with-route and Paused exactly. A temporary
+MariaDB trigger then rejected only the Goshawk runtime write during resume;
+the command reported failure, memory and SQL both remained Paused on route 3,
+and the trigger was removed.
 
 ---
 

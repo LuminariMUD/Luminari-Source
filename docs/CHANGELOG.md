@@ -98,6 +98,9 @@ from planning items into tested behavior.
 - Port checks now follow authoritative wilderness coordinates across recycled
   dynamic rooms. Dock debt cannot be bypassed after copyover or restart, and
   payment remains available at the recovered berth.
+- Player `setroute` and autopilot on/off/pause/resume controls now persist the
+  runtime row before reporting success. A failed write restores the exact
+  previous route and state instead of leaving RAM and MariaDB divergent.
 
 #### Validated
 
@@ -120,6 +123,11 @@ from planning items into tested behavior.
 - An owned transport incurred one 35-gold charge on arrival, could not depart
   while indebted, retained that debt through copyover and restart, paid it,
   departed, returned, and incurred exactly one new charge for the new visit.
+- The Goshawk reproduced stale Traveling-state recovery after an abrupt local
+  process replacement. With the fix installed, immediate SQL and subsequent
+  hard replacements retained Off, assigned-route, Paused, Traveling, and
+  disengaged states exactly. A targeted MariaDB failure injection rejected a
+  resume write and both memory and SQL remained on the prior Paused state.
 - Veska bought a 50-gold policy, logged out at 9,990 gold, and received one
   pending claim and one underwriter receipt when Kohdee sank the raft through
   actual gunfire. Her next login showed 10,040 gold and a paid claim; a second

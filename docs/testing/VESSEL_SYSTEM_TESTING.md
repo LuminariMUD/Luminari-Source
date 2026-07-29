@@ -215,6 +215,17 @@ numbered gameplay flow:
   `Elyra`, grace `0`, and empty attacker. The Tern was returned to Kohdee, the
   raft was repaired, test wages were paid, and all three PvP flags were
   disabled.
+- A hard local service replacement reproduced stale autopilot resurrection:
+  the Goshawk reloaded Traveling on route 3 after an earlier in-memory
+  `autopilot off`. The installed fix made player `setroute`, `autopilot on`,
+  `pause`, resume, and `off` write `ship_runtime_state` before success output.
+  Immediate SQL showed Off/route 3, Paused/route 3, Traveling/route 3, and
+  Off/route 0 as expected; hard replacements restored Off-with-route and
+  Paused exactly.
+- A temporary MariaDB trigger rejected only ship 3's runtime insert while
+  Kohdee tried to resume from Paused. The command reported that the change
+  could not be saved, `autopilot status` remained Paused on `persistroute`,
+  SQL remained state 3/route 3, and the trigger count returned to zero.
 - The full production-linked root suite passed 218 tests, followed by
   `make install`; no root-level `circle` artifact remained.
 
@@ -264,5 +275,11 @@ numbered gameplay flow:
   survives copyover, rejects third parties, expires after five real minutes,
   and is cleared durably with ownership changes - FIXED and live-tested with
   Dorrin, Elyra, Veska, and Kohdee.
+- Player autopilot controls previously acknowledged RAM-only changes that
+  could be replaced by a stale runtime row after an abrupt process
+  replacement. Route assignment and on/off/pause/resume now persist before
+  success output and restore the exact prior state if the write fails - FIXED
+  and live-tested with Kohdee, hard restarts, direct SQL, and failure
+  injection.
 
 # EoF

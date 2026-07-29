@@ -5,8 +5,9 @@
 **Status:** The local 30-step regression, development release-boundary checks,
 complete reboot/copyover state matrix, installed-weapon persistence, dock fees,
 offline insurance delivery, player-removal recovery, and the multi-character
-PvP logout lifecycle pass with actual characters. Shared validation, scale,
-content, beta, and production release work remain.
+PvP logout lifecycle pass with actual characters. Immediate autopilot command
+durability and write-failure rollback are also proven. Shared validation,
+scale, content, beta, and production release work remain.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

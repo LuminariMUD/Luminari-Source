@@ -2459,6 +2459,64 @@ static const char *autopilot_state_name(enum autopilot_state state)
   }
 }
 
+struct autopilot_state_snapshot
+{
+  enum autopilot_state state;
+  struct ship_route *current_route;
+  int current_waypoint_index;
+  int tick_counter;
+  int wait_remaining;
+  time_t last_update;
+};
+
+/**
+ * Capture the runtime fields changed by player autopilot controls.
+ */
+static void autopilot_snapshot_state(const struct autopilot_data *ap,
+                                     struct autopilot_state_snapshot *snapshot)
+{
+  snapshot->state = ap->state;
+  snapshot->current_route = ap->current_route;
+  snapshot->current_waypoint_index = ap->current_waypoint_index;
+  snapshot->tick_counter = ap->tick_counter;
+  snapshot->wait_remaining = ap->wait_remaining;
+  snapshot->last_update = ap->last_update;
+}
+
+/**
+ * Restore a player autopilot change after its runtime write failed.
+ */
+static void autopilot_restore_state(struct autopilot_data *ap,
+                                    const struct autopilot_state_snapshot *snapshot)
+{
+  ap->state = snapshot->state;
+  ap->current_route = snapshot->current_route;
+  ap->current_waypoint_index = snapshot->current_waypoint_index;
+  ap->tick_counter = snapshot->tick_counter;
+  ap->wait_remaining = snapshot->wait_remaining;
+  ap->last_update = snapshot->last_update;
+}
+
+/**
+ * Make a player-visible autopilot state change durable before reporting it.
+ */
+static bool autopilot_commit_player_change(struct char_data *ch,
+                                           struct greyhawk_ship_data *ship,
+                                           const struct autopilot_state_snapshot *snapshot)
+{
+  if (vessel_db_save_runtime(ship))
+  {
+    return TRUE;
+  }
+
+  autopilot_restore_state(ship->autopilot, snapshot);
+  send_to_char(ch,
+               "The autopilot change could not be saved, so its previous state was restored.\r\n");
+  log("SYSERR: Autopilot change for ship %d was rolled back after persistence failed",
+      ship->shipnum);
+  return FALSE;
+}
+
 /* ========================================================================= */
 /* PLAYER COMMAND HANDLERS - AUTOPILOT CONTROL                                */
 /* ========================================================================= */
@@ -2472,6 +2530,7 @@ ACMD(do_autopilot)
   struct greyhawk_ship_data *ship;
   struct autopilot_data *ap;
   struct waypoint *wp;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
 
   /* Get vessel context */
@@ -2567,13 +2626,22 @@ ACMD(do_autopilot)
 
     if (ap->state == AUTOPILOT_PAUSED)
     {
-      autopilot_resume(ship);
+      autopilot_snapshot_state(ap, &snapshot);
+      if (!autopilot_resume(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+      {
+        return;
+      }
       send_to_char(ch, "Autopilot resumed.\r\n");
       send_to_ship(ship, "The vessel's autopilot has been resumed.\r\n");
     }
     else
     {
-      autopilot_start(ship, ap->current_route);
+      autopilot_snapshot_state(ap, &snapshot);
+      if (!autopilot_start(ship, ap->current_route) ||
+          !autopilot_commit_player_change(ch, ship, &snapshot))
+      {
+        return;
+      }
       send_to_char(ch, "Autopilot engaged on route '%s'.\r\n", ap->current_route->name);
       send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
     }
@@ -2589,7 +2657,11 @@ ACMD(do_autopilot)
       return;
     }
 
-    autopilot_stop(ship);
+    autopilot_snapshot_state(ap, &snapshot);
+    if (!autopilot_stop(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+    {
+      return;
+    }
     send_to_char(ch, "Autopilot disengaged.\r\n");
     send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
     return;
@@ -2604,7 +2676,11 @@ ACMD(do_autopilot)
       return;
     }
 
-    autopilot_pause(ship);
+    autopilot_snapshot_state(ap, &snapshot);
+    if (!autopilot_pause(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+    {
+      return;
+    }
     send_to_char(ch, "Autopilot paused.\r\n");
     send_to_ship(ship, "The vessel's autopilot has been paused.\r\n");
     return;
@@ -3059,7 +3135,9 @@ ACMD(do_setroute)
   struct route_node *route_node;
   struct ship_route *route;
   struct waypoint_node *wp_node;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
+  bool navigation_stopped;
   int i;
 
   /* Get vessel context */
@@ -3117,13 +3195,6 @@ ACMD(do_setroute)
     }
   }
 
-  /* Stop current autopilot if running */
-  if (ap->state != AUTOPILOT_OFF && ap->state != AUTOPILOT_COMPLETE)
-  {
-    autopilot_stop(ship);
-    send_to_char(ch, "Previous autopilot navigation stopped.\r\n");
-  }
-
   /* Create ship_route from route_node data */
   route = route_create(route_node->name);
   if (route == NULL)
@@ -3148,13 +3219,31 @@ ACMD(do_setroute)
     }
   }
 
-  /* Assign route to autopilot */
-  if (ap->current_route != NULL)
+  /* Assign and persist the new route before reporting success. Retain the
+   * previous route until the write succeeds so a failed command can restore
+   * the exact prior runtime state. */
+  autopilot_snapshot_state(ap, &snapshot);
+  navigation_stopped = ap->state != AUTOPILOT_OFF && ap->state != AUTOPILOT_COMPLETE;
+  if (navigation_stopped)
   {
-    route_destroy(ap->current_route);
+    autopilot_stop(ship);
   }
   ap->current_route = route;
   ap->current_waypoint_index = 0;
+  if (!autopilot_commit_player_change(ch, ship, &snapshot))
+  {
+    route_destroy(route);
+    return;
+  }
+
+  if (snapshot.current_route != NULL)
+  {
+    route_destroy(snapshot.current_route);
+  }
+  if (navigation_stopped)
+  {
+    send_to_char(ch, "Previous autopilot navigation stopped.\r\n");
+  }
 
   send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n", arg,
                route->num_waypoints);
