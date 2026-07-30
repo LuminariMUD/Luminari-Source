@@ -135,6 +135,96 @@ write_status()
   printf '%s\n' "$*" >"$run_dir/status"
 }
 
+parse_live_system_samples()
+{
+  local input_file=$1
+  local output_file=$2
+
+  awk '
+    BEGIN {
+      OFS = "\t"
+      print "epoch", "label", "fleet", "dynamic_rooms", "dynamic_capacity", \
+            "mobiles", "objects", "rooms", "lists", "buffer_switches", \
+            "buffer_overflows"
+    }
+    function clear_sample() {
+      fleet = dynamic_rooms = dynamic_capacity = ""
+      mobiles = objects = rooms = lists = ""
+      buffer_switches = buffer_overflows = ""
+    }
+    function emit_sample() {
+      if (!active) {
+        return
+      }
+      if (fleet == "" || dynamic_rooms == "" || dynamic_capacity == "" ||
+          mobiles == "" || objects == "" || rooms == "" || lists == "" ||
+          buffer_switches == "" || buffer_overflows == "") {
+        print "incomplete live-system sample: " label > "/dev/stderr"
+        invalid = 1
+      } else {
+        print epoch, label, fleet, dynamic_rooms, dynamic_capacity, mobiles, \
+              objects, rooms, lists, buffer_switches, buffer_overflows
+      }
+      active = 0
+    }
+    /^# checkpoint epoch=[0-9]+ label=system-[0-9]+$/ {
+      emit_sample()
+      checkpoint = $0
+      sub(/^# checkpoint epoch=/, "", checkpoint)
+      split(checkpoint, fields, " label=")
+      epoch = fields[1]
+      label = fields[2]
+      clear_sample()
+      active = 1
+      next
+    }
+    active && /^[0-9]+ of 500 active fleet slots in use\.$/ {
+      fleet = $1
+      next
+    }
+    active &&
+      /^Wilderness dynamic room pool: [0-9]+\/[0-9]+ occupied \([0-9]+%\)$/ {
+      value = $0
+      sub(/^Wilderness dynamic room pool: /, "", value)
+      split(value, fields, /[\/[:space:]]+/)
+      dynamic_rooms = fields[1]
+      dynamic_capacity = fields[2]
+      next
+    }
+    active && /^[[:space:]]*[0-9]+ mobiles/ {
+      mobiles = $1
+      next
+    }
+    active && /^[[:space:]]*[0-9]+ objects/ {
+      objects = $1
+      next
+    }
+    active && /^[[:space:]]*[0-9]+ rooms/ {
+      rooms = $1
+      next
+    }
+    active && /^[[:space:]]*[0-9]+ lists$/ {
+      lists = $1
+      next
+    }
+    active &&
+      /^[[:space:]]*[0-9]+ buf switches[[:space:]]+[0-9]+ overflows$/ {
+      value = $0
+      sub(/^[[:space:]]*/, "", value)
+      split(value, fields, /[[:space:]]+/)
+      buffer_switches = fields[1]
+      buffer_overflows = fields[4]
+      next
+    }
+    END {
+      emit_sample()
+      if (invalid) {
+        exit 2
+      }
+    }
+  ' "$input_file" >"$output_file"
+}
+
 restore_snapshot()
 {
   local run_dir=$1
@@ -347,6 +437,7 @@ run_benchmark()
   local soak_unit
   local source_commit
   local binary_sha256
+  local binary_fingerprint
   local snapshot_tmp
   local baseline_count
   local valid_baseline_count
@@ -405,12 +496,44 @@ run_benchmark()
   local initial_rss
   local maximum_rss
   local final_rss
+  local initial_vsz
+  local maximum_vsz
+  local final_vsz
+  local initial_threads
+  local maximum_threads
+  local final_threads
+  local initial_descriptors
+  local maximum_descriptors
+  local final_descriptors
+  local live_system_sample_count
+  local expected_live_system_samples
+  local live_system_summary
+  local initial_dynamic_rooms
+  local maximum_dynamic_rooms
+  local final_dynamic_rooms
+  local dynamic_room_capacity
+  local initial_world_lists
+  local maximum_world_lists
+  local final_world_lists
+  local initial_mobiles
+  local maximum_mobiles
+  local final_mobiles
+  local initial_objects
+  local maximum_objects
+  local final_objects
+  local initial_rooms
+  local maximum_rooms
+  local final_rooms
   local process_row
   local rss
   local vsz
   local threads
+  local descriptors
+  local current_binary_fingerprint
   local remaining
   local wait_seconds
+  local measurement_elapsed
+  local next_live_system_sample
   local benchmark_outcome
   local failure_reason
   local cleanup_ok
@@ -507,21 +630,38 @@ run_benchmark()
     current_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
     [[ "$current_pid" == "$server_pid" ]] ||
       benchmark_fail "development MUD PID changed during measurement"
+    current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+    [[ "$current_binary_fingerprint" == "$binary_fingerprint" ]] ||
+      benchmark_fail "the installed MUD executable changed during measurement"
     process_row=$(ps -o rss=,vsz=,nlwp= -p "$current_pid")
     read -r rss vsz threads <<<"$process_row"
     [[ "$rss" =~ ^[0-9]+$ && "$vsz" =~ ^[0-9]+$ &&
        "$threads" =~ ^[0-9]+$ ]] ||
       benchmark_fail "could not read development MUD process metrics"
-    [[ -n "$initial_rss" ]] || initial_rss=$rss
+    descriptors=$(find "/proc/$current_pid/fd" -mindepth 1 -maxdepth 1 | wc -l)
+    [[ "$descriptors" =~ ^[0-9]+$ ]] ||
+      benchmark_fail "could not count development MUD file descriptors"
+    if [[ -z "$initial_rss" ]]; then
+      initial_rss=$rss
+      initial_vsz=$vsz
+      initial_threads=$threads
+      initial_descriptors=$descriptors
+    fi
     ((rss > maximum_rss)) && maximum_rss=$rss
+    ((vsz > maximum_vsz)) && maximum_vsz=$vsz
+    ((threads > maximum_threads)) && maximum_threads=$threads
+    ((descriptors > maximum_descriptors)) && maximum_descriptors=$descriptors
     final_rss=$rss
-    printf '%s\t%s\t%s\t%s\t%s\n' \
-      "$(date +%s)" "$current_pid" "$rss" "$vsz" "$threads" \
+    final_vsz=$vsz
+    final_threads=$threads
+    final_descriptors=$descriptors
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$(date +%s)" "$current_pid" "$rss" "$vsz" "$threads" "$descriptors" \
       >>"$run_dir/process-samples.tsv"
   }
 
-  for command_name in awk date dd flock git grep mariadb mariadb-dump \
-    mv ps sed sha256sum sleep stat systemctl timeout; do
+  for command_name in awk date dd find flock git grep mariadb mariadb-dump \
+    mv ps sed sha256sum sleep stat systemctl timeout wc; do
     command -v "$command_name" >/dev/null 2>&1 ||
       benchmark_fail "required command not found: $command_name"
   done
@@ -1191,17 +1331,37 @@ SQL
   grep -Fq "native MSDP cleared all nine vessel variables" "$msdp_output" ||
     benchmark_fail "native MSDP did not clear vessel state after Kohdee went ashore"
 
-  measurement_commands=("shipgoto $msdp_slot" "perfmon reset")
+  measurement_commands=(
+    "shipgoto $msdp_slot"
+    "perfmon reset"
+    "@checkpoint system-0"
+    "shiplist summary"
+    "show stats"
+  )
   remaining=$measurement_seconds
+  measurement_elapsed=0
+  next_live_system_sample=3600
+  expected_live_system_samples=1
   while ((remaining > 0)); do
     wait_seconds=$remaining
     ((wait_seconds > 60)) && wait_seconds=60
     measurement_commands+=("@wait $wait_seconds" "shipstatus")
     remaining=$((remaining - wait_seconds))
+    measurement_elapsed=$((measurement_elapsed + wait_seconds))
+    if ((measurement_elapsed >= next_live_system_sample || remaining == 0)); then
+      measurement_commands+=(
+        "@checkpoint system-$measurement_elapsed"
+        "shiplist summary"
+        "show stats"
+      )
+      expected_live_system_samples=$((expected_live_system_samples + 1))
+      while ((next_live_system_sample <= measurement_elapsed)); do
+        next_live_system_sample=$((next_live_system_sample + 3600))
+      done
+    fi
   done
   measurement_commands+=(
     "perfmon csv"
-    "shiplist summary"
     "shipstatus"
     "goto 1000389"
   )
@@ -1211,11 +1371,22 @@ SQL
     benchmark_fail "could not read the development MUD PID"
   [[ "$(sha256sum "/proc/$server_pid/exe" | awk '{print $1}')" == "$binary_sha256" ]] ||
     benchmark_fail "running MUD does not match the recorded installed binary"
+  binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
   log_offset=$(stat -c %s "$server_log")
   initial_rss=""
   maximum_rss=0
   final_rss=0
-  : >"$run_dir/process-samples.tsv"
+  initial_vsz=""
+  maximum_vsz=0
+  final_vsz=0
+  initial_threads=""
+  maximum_threads=0
+  final_threads=0
+  initial_descriptors=""
+  maximum_descriptors=0
+  final_descriptors=0
+  printf 'epoch\tpid\trss_kib\tvsz_kib\tthreads\tfile_descriptors\n' \
+    >"$run_dir/process-samples.tsv"
   started_epoch=$(date +%s)
   {
     printf 'measurement_started_at=%s\n' "$started_epoch"
@@ -1247,6 +1418,65 @@ SQL
   [[ "$helper_status" == 0 ]] ||
     benchmark_fail "the live Kohdee measurement session failed with status $helper_status"
   sample_process
+
+  parse_live_system_samples \
+    "$run_dir/measurement.log" "$run_dir/live-system-samples.tsv" ||
+    benchmark_fail "could not parse complete live-system samples"
+
+  live_system_sample_count=$(awk 'NR > 1 { count++ } END { print count + 0 }' \
+    "$run_dir/live-system-samples.tsv")
+  [[ "$live_system_sample_count" == "$expected_live_system_samples" ]] ||
+    benchmark_fail \
+      "parsed $live_system_sample_count of $expected_live_system_samples live-system samples"
+  awk -F '\t' '
+    NR == 1 {
+      next
+    }
+    $3 != 500 || $4 > $5 || $11 != 0 {
+      exit 1
+    }
+    NR == 2 {
+      capacity = $5
+    }
+    $5 != capacity {
+      exit 1
+    }
+  ' "$run_dir/live-system-samples.tsv" ||
+    benchmark_fail "live-system samples reported fleet, room-capacity, or buffer drift"
+  live_system_summary=$(awk -F '\t' '
+    NR == 2 {
+      initial_dynamic = maximum_dynamic = $4
+      capacity = $5
+      initial_mobiles = maximum_mobiles = $6
+      initial_objects = maximum_objects = $7
+      initial_rooms = maximum_rooms = $8
+      initial_lists = maximum_lists = $9
+    }
+    NR > 1 {
+      if ($4 > maximum_dynamic) maximum_dynamic = $4
+      if ($6 > maximum_mobiles) maximum_mobiles = $6
+      if ($7 > maximum_objects) maximum_objects = $7
+      if ($8 > maximum_rooms) maximum_rooms = $8
+      if ($9 > maximum_lists) maximum_lists = $9
+      final_dynamic = $4
+      final_mobiles = $6
+      final_objects = $7
+      final_rooms = $8
+      final_lists = $9
+    }
+    END {
+      print initial_dynamic, maximum_dynamic, final_dynamic, capacity,
+            initial_lists, maximum_lists, final_lists,
+            initial_mobiles, maximum_mobiles, final_mobiles,
+            initial_objects, maximum_objects, final_objects,
+            initial_rooms, maximum_rooms, final_rooms
+    }
+  ' "$run_dir/live-system-samples.tsv")
+  read -r initial_dynamic_rooms maximum_dynamic_rooms final_dynamic_rooms \
+    dynamic_room_capacity initial_world_lists maximum_world_lists \
+    final_world_lists initial_mobiles maximum_mobiles final_mobiles \
+    initial_objects maximum_objects final_objects initial_rooms maximum_rooms \
+    final_rooms <<<"$live_system_summary"
 
   dd if="$server_log" of="$run_dir/server-measurement.log" \
     iflag=skip_bytes skip="$log_offset" status=none
@@ -1391,8 +1621,27 @@ SQL
     printf 'Live airship Z distinct/min/max: %s/%s/%s\n' \
       "$air_z_sample_count" "$air_z_minimum" "$air_z_maximum"
     printf 'Vessel workload errors: %s\n' "$vessel_error_count"
+    printf 'Live-system samples: %s\n' "$live_system_sample_count"
+    printf 'Dynamic wilderness rooms initial/maximum/final/capacity: %s/%s/%s/%s\n' \
+      "$initial_dynamic_rooms" "$maximum_dynamic_rooms" \
+      "$final_dynamic_rooms" "$dynamic_room_capacity"
+    printf 'World lists initial/maximum/final: %s/%s/%s\n' \
+      "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+    printf 'Mobiles initial/maximum/final: %s/%s/%s\n' \
+      "$initial_mobiles" "$maximum_mobiles" "$final_mobiles"
+    printf 'Objects initial/maximum/final: %s/%s/%s\n' \
+      "$initial_objects" "$maximum_objects" "$final_objects"
+    printf 'Rooms initial/maximum/final: %s/%s/%s\n' \
+      "$initial_rooms" "$maximum_rooms" "$final_rooms"
+    printf 'Buffer overflows during live samples: 0\n'
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"
+    printf 'VSZ initial/maximum/final KiB: %s/%s/%s\n' \
+      "$initial_vsz" "$maximum_vsz" "$final_vsz"
+    printf 'Threads initial/maximum/final: %s/%s/%s\n' \
+      "$initial_threads" "$maximum_threads" "$final_threads"
+    printf 'File descriptors initial/maximum/final: %s/%s/%s\n' \
+      "$initial_descriptors" "$maximum_descriptors" "$final_descriptors"
   } >"$run_dir/summary.txt"
 
   if ! restore_snapshot "$run_dir"; then
@@ -1451,6 +1700,10 @@ case "${1:-}" in
   __restore)
     (($# == 2)) || usage
     restore_internal "$2"
+    ;;
+  __parse-live-system)
+    (($# == 3)) || usage
+    parse_live_system_samples "$2" "$3"
     ;;
   *)
     usage

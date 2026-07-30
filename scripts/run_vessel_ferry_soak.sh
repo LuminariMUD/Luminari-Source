@@ -523,7 +523,7 @@ run_monitor()
     done <<<"$armor_rows"
 
     fleet_count=$(sed -nE \
-      's/^([0-9]+) of 500 fleet slots in use\.$/\1/p' \
+      's/^([0-9]+) of 500 (active )?fleet slots in use\.$/\1/p' \
       "$output_file" | tail -n 1)
     [[ "$fleet_count" =~ ^[1-9][0-9]*$ && "$fleet_count" -le 500 ]] ||
       fail_run "could not read the compact live fleet count during $label"

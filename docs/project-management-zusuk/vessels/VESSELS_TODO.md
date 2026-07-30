@@ -69,6 +69,13 @@ recording enduring behavior or evidence in the permanent documentation.
   drift, dynamic-room capacity drift, and buffer overflows, and preserve the
   game-side allocation series in `live-system-samples.tsv`; that later
   instrumentation is not evidence from the active pinned window.
+  At the July 30 07:34 IDT checkpoint, the definitive run remained healthy
+  after 22,042 seconds: 11,978 movement steps, 499/499 west/east arrivals,
+  seven actual-character samples, and 368 database/process samples. The MUD
+  PID, two threads, and 12 file descriptors remained constant. RSS rose from
+  768,776 KiB to 1,129,088 KiB during world warmup; its trailing rate was
+  decelerating but had not yet established a plateau, so this checkpoint is
+  neither a leak verdict nor a substitute for the terminal result.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
@@ -117,6 +124,16 @@ merchant, copyover, and multiplayer encounter testing.
   harbor/fare/crossing/channel gates itself. The gate must remain open until
   the definitive ferry soak finishes, the current binary is installed, and
   the runner records a terminal result.
+  The measured Kohdee session now records timestamped initial, hourly, and
+  final `shiplist summary`/`show stats` checkpoints. The runner writes their
+  fleet, dynamic-room, mobile, object, room, allocation-list, and buffer
+  values to `live-system-samples.tsv`, rejects fleet/capacity drift or any
+  buffer overflow, and records RSS, VSZ, threads, and file descriptors in a
+  headered process series. Each process sample also rejects replacement of
+  the installed executable. An actual pinned-build Kohdee transcript verified
+  the `show stats` grammar, and an exact current-output fixture verified both
+  accepted and rejected parser paths. The ferry parser now accepts both the
+  older full-list and current compact fleet-count wording.
   Instrumentation, capacity, and workload readiness do not themselves prove
   the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
@@ -130,7 +147,12 @@ merchant, copyover, and multiplayer encounter testing.
   pass now reports zero errors and zero definite, indirect, or possible loss
   after fixing uninitialized secondary affect flags and gameplay-fixture
   teardown. Its 301,630 reachable process-lifetime bytes are not a substitute
-  for the 72-hour runtime series.
+  for the 72-hour runtime series. The scale runner now has the required
+  correlated game/process sample format, but it still deliberately caps one
+  measurement at 7,200 seconds. Before lifting that cap for the 72-hour gate,
+  define the threshold from the completed 24-hour and default 500-ship
+  observations and bound/filter high-volume movement logging so evidence
+  collection itself cannot exhaust development storage.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

@@ -346,6 +346,12 @@ proc run_game_command {command} {
     return
   }
 
+  if {[regexp {^@checkpoint ([A-Za-z0-9._-]+)$} $command ignored checkpoint_label]} {
+    puts "\n>>> $command"
+    puts "# checkpoint epoch=[clock seconds] label=$checkpoint_label"
+    return
+  }
+
   incr command_index
   set marker "__MUD_SMOKE_COMMAND_${command_index}_DONE__"
   set output ""
