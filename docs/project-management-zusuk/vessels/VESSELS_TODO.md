@@ -89,13 +89,19 @@ merchant, copyover, and multiplayer encounter testing.
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the
   required evidence, and restores the pre-run database. It reuses one account
-  and character rather than creating one per vessel. The runner also
+  and character rather than creating one per vessel. A paused reciprocal
+  submarine pair keeps firing synchronized one-damage weapons after
+  `perfmon reset`; its fixture defense speed prevents damaging hits, negative
+  Z excludes surface weather, and the runner puts Kohdee aboard for an
+  eight-second live observation. Its preserved transcript must contain
+  return-fire text and a nonzero throttled-message count. The runner also
   negotiates native MSDP as Kohdee, verifies all nine `SHIP_*` frames aboard,
   and requires their empty state ashore. Its static checks and active-soak
   refusal pass, but the gate itself must remain open until the definitive
-  ferry soak finishes, the current binary is installed, and the runner records
-  a terminal result. Instrumentation, capacity, and workload readiness do not
-  themselves prove the 25 ms target.
+  ferry soak finishes, the current binary is installed, and the runner
+  records a terminal result.
+  Instrumentation, capacity, and workload readiness do not themselves prove
+  the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
   schedule desynchronization, with the tick budget held.
@@ -181,8 +187,10 @@ merchant, copyover, and multiplayer encounter testing.
   critical failure warnings remain immediate. The login helper now owns both
   simultaneous character sockets for the channel proof, selecting Kohdee and
   a second character from the same master account in one run. Record
-  installed-build crossing, two-character channel, and message-cooldown
-  transcripts after the active soak.
+  installed-build crossing and two-character channel transcripts after the
+  active soak; the scale runner records the installed-build message-cooldown
+  transcript through Kohdee's live observation and required nonzero
+  suppression counter.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout

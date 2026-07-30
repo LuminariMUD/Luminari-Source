@@ -51,8 +51,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-channel-check)
       mode="vessel-channel-check"
       ;;
+    --vessel-message-check)
+      mode="vessel-message-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character> | --vessel-message-check <ship-slot>]"
       ;;
   esac
   shift
@@ -92,6 +95,9 @@ if [[ $# -gt 0 ]]; then
       fail "--vessel-channel-check requires a ship slot from 1 through 500 and a crew character"
     [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
       fail "--vessel-channel-check crew character must be a valid character name"
+  elif [[ "$mode" == "vessel-message-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      fail "--vessel-message-check requires one ship slot from 1 through 500"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -631,6 +637,65 @@ proc clean_socket_output {raw} {
   return $raw
 }
 
+proc observe_game_output {seconds context} {
+  set deadline [expr {[clock milliseconds] + ($seconds * 1000)}]
+  set output ""
+  set prior_timeout $::timeout
+  set ::timeout 1
+
+  while {[clock milliseconds] < $deadline} {
+    expect {
+      -re {.+} { append output $expect_out(buffer) }
+      timeout {}
+      eof { fail "$context connection closed during message observation" }
+    }
+  }
+
+  set ::timeout 0
+  expect {
+    -re {.+} {
+      append output $expect_out(buffer)
+      exp_continue
+    }
+    timeout {}
+    eof { fail "$context connection closed after message observation" }
+  }
+  set ::timeout $prior_timeout
+
+  set cleaned [string trim [clean_socket_output $output]]
+  puts "\n>>> observe vessel messages ($seconds seconds)"
+  if {$cleaned ne ""} {
+    puts $cleaned
+  } else {
+    puts "(no game output)"
+  }
+  return $cleaned
+}
+
+proc run_vessel_message_check {ship_slot} {
+  global smoke_character
+
+  set output [run_game_command "shipgoto $ship_slot"]
+  if {![regexp "Aboard (.+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
+    fail "could not read vessel name after shipgoto $ship_slot"
+  }
+
+  run_game_command "perfmon reset"
+  set observed [observe_game_output 8 $smoke_character]
+  require_game_output $observed "The crew RETURNS FIRE at" \
+    "$smoke_character vessel-message observation"
+
+  set output [run_game_command "perfmon csv"]
+  if {![regexp -line {^# vessel_messages_throttled=([1-9][0-9]*)[[:space:]]*$} \
+        $output ignored throttled_count]} {
+    fail "perfmon csv did not report a nonzero vessel message-throttling count"
+  }
+
+  run_game_command "goto 1000389"
+  puts "\nPASS: $smoke_character observed live reciprocal fire aboard $ship_name."
+  puts "PASS: the installed production tick suppressed $throttled_count repeated vessel messages."
+}
+
 proc open_secondary_character {character} {
   global env
 
@@ -961,7 +1026,8 @@ if {!$entered_world} {
 after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
-    $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check"} {
+    $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
+    $mode eq "vessel-message-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1006,6 +1072,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_builder_check
     } elseif {$mode eq "vessel-channel-check"} {
       run_vessel_channel_check [lindex $game_commands 0] [lindex $game_commands 1]
+    } elseif {$mode eq "vessel-message-check"} {
+      run_vessel_message_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -1074,6 +1142,9 @@ elif [[ "$mode" == "vessel-msdp-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-channel-check" ]]; then
   printf 'PASS: %s completed the same-account two-character vessel-channel check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-message-check" ]]; then
+  printf 'PASS: %s completed the live vessel-message throttling check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

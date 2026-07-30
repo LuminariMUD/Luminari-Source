@@ -193,9 +193,19 @@ The runner:
   preserving each generated class-specific interior. Slot 500 must reconstruct
   with all of its actual room VNUMs inside 80000-80019.
 - Loads 500 NPC pilots, 2,000 veteran hired-crew rows, 500 enabled schedules,
-  500 bulk-cargo lots, normalized weapons, insured warships, safe surface,
-  submerged, water, and altitude-changing air routes, and a
-  message-producing regional airship encounter.
+  500 bulk-cargo lots, two synchronized weapons per combat hull, insured
+  warships, safe surface, submerged, water, and altitude-changing air routes,
+  and a message-producing regional airship encounter.
+- Holds one reciprocal submarine pair paused at negative Z with synchronized
+  one-damage weapons, a fixture defense speed above the NPC attack ceiling,
+  and a departure beyond the measurement window. The pair keeps firing and
+  reloading after `perfmon reset` but cannot land a damaging hit or receive
+  surface weather, so suppression evidence cannot depend on initial timers or
+  changing weather.
+- Discovers the reciprocal fixture slot, puts Kohdee aboard it for an
+  eight-second observation, requires live return-fire text and a nonzero
+  suppression counter, and preserves the actual-character transcript as
+  `vessel-message-throttling.log`.
 - Uses actual Kohdee commands to prove the surface Z-0 boundary, airship
   ceiling, and submarine waterline boundary before timing. During timing,
   minute-by-minute airship status samples must observe at least two Z values
@@ -216,8 +226,11 @@ The runner:
 - Runs for at least 600 steady seconds, samples process RSS every 30 seconds,
   captures all ten sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, rejects vessel errors or PID/binary
-  drift, and requires every selected schedule to fire. The complete
-  `vessel_tick` maximum must be no more than 25,000 microseconds.
+  drift, and requires every selected schedule to fire. The reciprocal
+  submarine pair's synchronized reloads must produce a nonzero
+  `vessel_messages_throttled` count, proving the installed production tick
+  suppressed repeated player-facing messages. The complete `vessel_tick`
+  maximum must be no more than 25,000 microseconds.
 
 The user-service interface is:
 
@@ -242,7 +255,7 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 241 of 241
+worktree on July 30, 2026. The production-linked root suite passed 244 of 244
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,

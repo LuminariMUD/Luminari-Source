@@ -147,7 +147,17 @@ The 100-percent benchmark encounter is attached to the air route's real
 the run requires a live encounter that notifies multiple hulls once and
 requires Kohdee to receive its arrival message. Ten scheduled ships are also
 staged to depart inside the measured window. `shiplist summary` proves the
-live fleet count without overflowing the MUD's socket output buffer.
+live fleet count without overflowing the MUD's socket output buffer. A paused
+reciprocal submarine pair continuously fires two synchronized, one-damage
+weapons; its fixture defense speed is above the NPC attack ceiling, so no shot
+can land, and its negative Z excludes surface weather. This makes message
+suppression deterministic after the profiler reset even during the longest
+supported measurement. Kohdee's `perfmon csv` transcript must report a
+nonzero `vessel_messages_throttled` count. The runner discovers that fixture
+slot, invokes `--vessel-message-check` automatically, and preserves Kohdee's
+observed return-fire traffic plus counter in
+`vessel-message-throttling.log`. Do not guess the slot or add a separate
+manual login.
 
 Whether the result passes, fails, or receives SIGTERM, the worker stops the
 local MUD, restores the snapshot, verifies that benchmark marker rows are
