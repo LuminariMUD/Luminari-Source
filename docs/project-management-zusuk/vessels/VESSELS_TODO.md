@@ -94,7 +94,7 @@ merchant, copyover, and multiplayer encounter testing.
   through the central position update. The removed immediate traversal probe
   had configured the same room and executed the region/path spatial queries a
   second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite still passes 244 of 244 and isolated
+  coordinate. The production-linked suite now passes 245 of 245 and isolated
   `make install` is clean. The active ferry process is pinned to the earlier
   executable, so only the post-soak installed scale run can provide live
   evidence for this change.
@@ -126,7 +126,11 @@ merchant, copyover, and multiplayer encounter testing.
   fleet count, dynamic wilderness occupancy, world objects/mobiles/rooms,
   allocation lists, and buffer overflows. Define and enforce a post-warmup
   bounded-growth criterion before launch; initial/maximum/final RSS alone does
-  not prove the absence of unbounded growth.
+  not prove the absence of unbounded growth. The pre-soak full-suite Memcheck
+  pass now reports zero errors and zero definite, indirect, or possible loss
+  after fixing uninitialized secondary affect flags and gameplay-fixture
+  teardown. Its 301,630 reachable process-lifetime bytes are not a substitute
+  for the 72-hour runtime series.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial
