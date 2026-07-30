@@ -69,15 +69,33 @@ recording enduring behavior or evidence in the permanent documentation.
   drift, dynamic-room capacity drift, and buffer overflows, and preserve the
   game-side allocation series in `live-system-samples.tsv`; that later
   instrumentation is not evidence from the active pinned window.
-  At the July 30 07:55 IDT checkpoint, the definitive run remained healthy
-  after 23,302 seconds: 12,671 movement steps, 528/527 west/east arrivals,
-  seven actual-character samples, and 389 database/process samples. The MUD
+  At the July 30 08:28 IDT checkpoint, the definitive run remained healthy
+  after 25,202 seconds: 13,716 movement steps, 572/571 west/east arrivals,
+  eight actual-character samples, and 421 database/process samples. The MUD
   PID, two threads, and 12 file descriptors remained constant. RSS rose from
-  768,776 KiB to 1,131,248 KiB during world warmup. Its last 30-minute,
-  1-hour, and 2-hour linear slopes were +6,891, +6,673, and +7,868 KiB/hour,
-  down from +120,293 KiB/hour in the first block. This strong deceleration has
-  not yet established a plateau, so the checkpoint is neither a leak verdict
-  nor a substitute for the terminal result.
+  768,776 KiB to 1,134,288 KiB during world warmup. Its last 30-minute,
+  1-hour, and 2-hour linear slopes were +5,836, +5,899, and +6,825 KiB/hour.
+  Consecutive post-four-hour block slopes fell from +11,212 through +8,061 to
+  +5,895 KiB/hour, versus about +120,000 KiB/hour in the first hour.
+  `/proc` attributed 879,932 KiB RSS to an 880,116 KiB heap mapping, with
+  1,113,812 KiB anonymous RSS, 20,576 KiB file RSS, and no swap.
+
+  A separate actual Kohdee checkpoint completed and logged out cleanly in four
+  seconds. It found five active ships, 13 of 2,000 dynamic rooms occupied,
+  37,329 mobiles, 26,429 objects, 50,366 rooms, 897 allocation lists, 102
+  buffer switches, and zero overflows. Two actual-character samples 55 minutes
+  apart showed 201 more mobiles and 143 more objects while RSS rose 5,812 KiB.
+  Their base `char_data` and `obj_data` structures alone account for about
+  2,885 KiB of that change before per-instance allocations, so part of the
+  remaining rise correlates with ordinary world population rather than ferry
+  occupancy. A read-only standalone MariaDB client then repeated 20,000
+  region/path assignment pairs, 40,000 result cycles total, against the ferry
+  route. It remained flat after its first sample at 6,008 KiB RSS and 9,172
+  KiB VSZ, excluding the direct spatial query/result cycle by itself as the
+  source of the game process's rise. Neither correlation proves a root cause.
+  The strong deceleration has not yet established a plateau, so this
+  checkpoint is neither a leak verdict nor a substitute for the terminal
+  result.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.

@@ -135,9 +135,13 @@
 - Deterministic analyzer fixtures produce a zero-slope plateau and an exact
   +6,000 KiB/hour ramp. PID drift, non-increasing epochs, and a nonnumeric RSS
   sample are rejected. The same analyzer accepts the active ferry artifact;
-  at 07:55 IDT its last 30-minute, 1-hour, and 2-hour RSS slopes were +6,891,
-  +6,673, and +7,868 KiB/hour with two threads and 12 descriptors constant.
-  This in-progress deceleration is not recorded as a plateau or leak verdict.
+  at 08:28 IDT its last 30-minute, 1-hour, and 2-hour RSS slopes were +5,836,
+  +5,899, and +6,825 KiB/hour with two threads and 12 descriptors constant.
+  Post-four-hour block slopes fell from +11,212 through +8,061 to +5,895
+  KiB/hour. A read-only heap snapshot, two actual Kohdee world-allocation
+  samples, and a flat 40,000-result MariaDB spatial-query probe narrow the
+  investigation without claiming a root cause. This in-progress deceleration
+  is not recorded as a plateau or leak verdict.
 - Deterministic scale-parser fixtures accept two complete current-format
   live-system samples, reject one missing its buffer row, accept a clean
   normal-build log, and count six representative high-volume progress rows.
