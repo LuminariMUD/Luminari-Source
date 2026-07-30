@@ -113,6 +113,34 @@ after restart. Deliberate SIGTERM then produced an immediate terminal `FAIL`
 artifact, so an interrupted agent or service does not leave a false `RUNNING`
 result.
 
+## Fast Post-Soak Finish
+
+Do not repeat the component gates manually. After the ferry status reports
+terminal `PASS`, install the exact current clean candidate and start the
+consolidated runner:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh status
+make test
+make install
+./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh status
+```
+
+Repeat only the final `status` command until it reports terminal `PASS` or
+`FAIL`. The scale worker runs the shared harbor provisioner itself, so that one
+run captures fare collection and restoration, named-water crossing,
+same-account two-character `shiptalk`, builder-created fleet capacity,
+surface/air/submarine Z boundaries, shared multi-ship encounter delivery, the
+1,000-trade economy simulation, native MSDP state and clearing, live message
+suppression, schedules, memory samples, SQL volume, and the complete 500-ship
+tick profile. It then restores the pre-run database. Running the standalone
+harbor, channel, economy, or MSDP commands first only duplicates work.
+
+`make test` may leave a root-level `circle` while it builds the
+production-linked suite. The required `make install` installs `bin/circle` and
+removes that root artifact before the runner records provenance.
+
 ## Reproducible 500-Vessel Scale Gate
 
 After the definitive ferry soak passes and the current clean source is built
@@ -129,11 +157,12 @@ after launching a supervised user service; use `status` for preparation,
 measurement, result, and restoration progress.
 
 The runner reuses the configured master account and exact `Kohdee` character
-for every in-game phase. It does not create an account or character, and it
-does not log in one character per vessel. One Kohdee session creates all
-missing public hulls with `vedit spawnpublic`; later sessions on that same
-account verify the reconstructed workload, warm it, collect `perfmon csv`, and
-leave Kohdee in room 1000389.
+for every fleet phase. Its harbor preflight may add the one reusable
+`Vesselmate` character to that same account for the channel proof, but it never
+creates another account or one character per vessel. One Kohdee session
+creates all missing public hulls with `vedit spawnpublic`; later sessions on
+that same account verify the reconstructed workload, warm it, collect
+`perfmon csv`, and leave Kohdee in room 1000389.
 
 The runner refuses production, a dirty source worktree, an active ferry soak,
 an older installed binary, or stale benchmark data. Before mutation it takes

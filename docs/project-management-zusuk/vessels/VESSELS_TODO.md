@@ -88,18 +88,22 @@ merchant, copyover, and multiplayer encounter testing.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the
-  required evidence, and restores the pre-run database. It reuses one account
-  and character rather than creating one per vessel. A paused reciprocal
-  submarine pair keeps firing synchronized one-damage weapons after
+  required evidence, and restores the pre-run database. It reuses one master
+  account, with Kohdee for all fleet phases and at most one reusable
+  `Vesselmate` for the channel proof, rather than creating a character per
+  vessel. A paused reciprocal submarine pair keeps firing synchronized
+  one-damage weapons after
   `perfmon reset`; its fixture defense speed prevents damaging hits, negative
   Z excludes surface weather, and the runner puts Kohdee aboard for an
   eight-second live observation. Its preserved transcript must contain
   return-fire text and a nonzero throttled-message count. The runner also
   negotiates native MSDP as Kohdee, verifies all nine `SHIP_*` frames aboard,
   and requires their empty state ashore. Its static checks and active-soak
-  refusal pass, but the gate itself must remain open until the definitive
-  ferry soak finishes, the current binary is installed, and the runner
-  records a terminal result.
+  refusal pass. The quick guide now gives one post-soak sequence:
+  `make test`, `make install`, and the scale runner; that runner invokes the
+  harbor/fare/crossing/channel gates itself. The gate must remain open until
+  the definitive ferry soak finishes, the current binary is installed, and
+  the runner records a terminal result.
   Instrumentation, capacity, and workload readiness do not themselves prove
   the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
