@@ -83,3 +83,8 @@ INSERT IGNORE INTO ship_room_template_triggers
 VALUES
   ('bridge', 0, 70001),
   ('cargo_main', 0, 70002);
+
+UPDATE ship_schedules AS schedule
+  JOIN ship_routes AS route ON route.route_id = schedule.route_id
+   SET schedule.passenger_fare = 10
+ WHERE route.name = 'harbor_ferry_loop';

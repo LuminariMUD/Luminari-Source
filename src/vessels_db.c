@@ -1973,6 +1973,7 @@ void ensure_schedule_table_exists(void)
       "  interval_hours INT NOT NULL,"
       "  next_departure INT NOT NULL DEFAULT 0,"
       "  enabled TINYINT NOT NULL DEFAULT 1,"
+      "  passenger_fare INT NOT NULL DEFAULT 0,"
       "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
       "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
       "  UNIQUE KEY uk_ship_schedule (ship_id)"
@@ -1991,6 +1992,13 @@ void ensure_schedule_table_exists(void)
   else
   {
     log("Info: ship_schedules table verified");
+  }
+
+  if (mysql_query(conn, "ALTER TABLE ship_schedules "
+                        "ADD COLUMN IF NOT EXISTS passenger_fare INT NOT NULL DEFAULT 0 "
+                        "AFTER enabled"))
+  {
+    log("SYSERR: Unable to add passenger fare to ship_schedules: %s", mysql_error(conn));
   }
 }
 
@@ -2022,13 +2030,23 @@ int schedule_save(struct greyhawk_ship_data *ship)
     return 1;
   }
 
+  if (ship->schedule->passenger_fare < 0 ||
+      ship->schedule->passenger_fare > VESSEL_PASSENGER_FARE_MAX)
+  {
+    log("SYSERR: Refusing invalid passenger fare %d for ship %d",
+        ship->schedule->passenger_fare, ship->shipnum);
+    return 0;
+  }
+
   /* Insert or update schedule */
   snprintf(query, sizeof(query),
            "REPLACE INTO ship_schedules "
-           "(ship_id, route_id, interval_hours, next_departure, enabled) "
-           "VALUES (%d, %d, %d, %d, %d)",
+           "(ship_id, route_id, interval_hours, next_departure, enabled, passenger_fare) "
+           "VALUES (%d, %d, %d, %d, %d, %d)",
            ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
-           ship->schedule->next_departure, (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0);
+           ship->schedule->next_departure,
+           (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0,
+           ship->schedule->passenger_fare);
 
   if (mysql_query(conn, query))
   {
@@ -2036,8 +2054,9 @@ int schedule_save(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  log("Info: Saved schedule for ship %d (route %d, interval %d hours)", ship->shipnum,
-      ship->schedule->route_id, ship->schedule->interval_hours);
+  log("Info: Saved schedule for ship %d (route %d, interval %d hours, fare %d)",
+      ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
+      ship->schedule->passenger_fare);
   return 1;
 }
 
@@ -2059,7 +2078,8 @@ int schedule_load(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT schedule_id, route_id, interval_hours, next_departure, enabled "
+           "SELECT schedule_id, route_id, interval_hours, next_departure, enabled, "
+           "passenger_fare "
            "FROM ship_schedules WHERE ship_id = %d",
            ship->shipnum);
 
@@ -2095,9 +2115,12 @@ int schedule_load(struct greyhawk_ship_data *ship)
     ship->schedule->interval_hours = atoi(row[2]);
     ship->schedule->next_departure = atoi(row[3]);
     ship->schedule->flags = atoi(row[4]) ? SCHEDULE_FLAG_ENABLED : 0;
+    ship->schedule->passenger_fare =
+        MAX(0, MIN(row[5] ? atoi(row[5]) : 0, VESSEL_PASSENGER_FARE_MAX));
 
-    log("Info: Loaded schedule for ship %d (route %d, interval %d hours)", ship->shipnum,
-        ship->schedule->route_id, ship->schedule->interval_hours);
+    log("Info: Loaded schedule for ship %d (route %d, interval %d hours, fare %d)",
+        ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
+        ship->schedule->passenger_fare);
     mysql_free_result(result);
     return 1;
   }

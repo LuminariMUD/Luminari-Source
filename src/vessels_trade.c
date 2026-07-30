@@ -90,6 +90,70 @@ bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Return the configured fare for a public scheduled vessel.
+ *
+ * Privately owned vessels do not collect an automatic boarding fee. This
+ * keeps the initial fare feature a public-ferry money sink rather than an
+ * incomplete player-to-player payment system.
+ */
+int vessel_passenger_fare(const struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL || ship->owner[0] != '\0' || ship->schedule == NULL ||
+      ship->schedule->passenger_fare <= 0)
+  {
+    return 0;
+  }
+
+  return MIN(ship->schedule->passenger_fare, VESSEL_PASSENGER_FARE_MAX);
+}
+
+/**
+ * Collect a public vessel's fare before moving a passenger aboard.
+ *
+ * NPCs are exempt so assigned crew are never blocked. Staff who use the
+ * ordinary boarding path pay like players; recovery commands can enter a
+ * vessel directly. A failed player save restores the in-memory balance and
+ * denies boarding, so neither a fare nor a free trip is acknowledged
+ * ambiguously.
+ */
+bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_data *ship)
+{
+  int fare;
+  int old_gold;
+
+  if (ch == NULL || ship == NULL)
+  {
+    return FALSE;
+  }
+
+  fare = vessel_passenger_fare(ship);
+  if (fare == 0 || IS_NPC(ch))
+  {
+    return TRUE;
+  }
+
+  if (GET_GOLD(ch) < fare)
+  {
+    send_to_char(ch, "Passage aboard %s costs %d gold; you have %d.\r\n", ship->name, fare,
+                 GET_GOLD(ch));
+    return FALSE;
+  }
+
+  old_gold = GET_GOLD(ch);
+  GET_GOLD(ch) -= fare;
+  if (!save_char_checked(ch, 0))
+  {
+    GET_GOLD(ch) = old_gold;
+    send_to_char(ch, "The purser cannot record your fare; no gold was taken.\r\n");
+    return FALSE;
+  }
+
+  send_to_char(ch, "The purser collects %d gold for passage aboard %s.\r\n", fare, ship->name);
+  log("Info: %s paid %d gold to board public vessel %d", GET_NAME(ch), fare, ship->shipnum);
+  return TRUE;
+}
+
+/**
  * One-time berthing charge for a vessel entering a port.
  *
  * The values are intentionally small beside hull, cargo, wage, and refit
