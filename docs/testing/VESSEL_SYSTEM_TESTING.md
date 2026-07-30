@@ -80,6 +80,12 @@ development, compares the exact coordinates, route, pilot, schedule, rooms,
 structure, and executable hash, then resumes the ferry. The run is incomplete
 until `status` reports `PASS`.
 
+After that terminal `PASS`, use `make test`, `make install`, and
+`run_vessel_scale_benchmark.sh start` in that order. The scale runner invokes
+the harbor provisioner and all installed-character component gates itself;
+running those commands separately before it wastes time and produces
+fragmented evidence. Poll its `status` command for the one terminal result.
+
 For the builder-independence timing gate, run:
 
 ```bash

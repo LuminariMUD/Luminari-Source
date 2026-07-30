@@ -24,6 +24,10 @@
   observes live reciprocal fire for eight seconds, requires the nonzero
   counter, and returns Kohdee ashore. The scale runner discovers the slot and
   preserves the transcript automatically.
+- The local guide now gives one post-soak path: run the production-linked
+  suite, install, and start the scale worker. The worker already invokes the
+  harbor, crossing, same-account channel, economy, Z-axis, encounter, MSDP,
+  suppression, schedule, and profiler gates, avoiding duplicate logins.
 
 #### Validated
 
@@ -300,7 +304,9 @@ performance release gate.
   production heartbeat, and captures percentile, subsystem, SQL, schedule,
   process-memory, PID, and executable evidence.
 - The runner uses the configured master account and existing Kohdee character
-  for every session. It creates no account or character per ship.
+  for every fleet session. Its harbor preflight may add one reusable
+  `Vesselmate` to that same account for the channel proof; it creates no
+  account or character per ship.
 - Cleanup runs on success, failure, or interruption, verifies the original
   fleet count and absence of benchmark marker rows, restarts local
   development, and returns Kohdee to a static room.

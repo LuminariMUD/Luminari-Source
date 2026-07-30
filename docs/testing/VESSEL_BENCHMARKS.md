@@ -186,9 +186,10 @@ The runner:
 - Atomically snapshots the 17 vessel, trade, freight, bounty, encounter, and
   insurance tables that the workload can change, then restores and verifies
   the baseline on success, failure, or interruption.
-- Uses the existing master account and exact Kohdee character. One in-game
-  builder session creates every missing public hull; no account or character
-  is created per vessel.
+- Uses the existing master account and exact Kohdee character. The harbor
+  preflight may add one reusable `Vesselmate` to that account for the channel
+  proof. One in-game Kohdee builder session creates every missing public hull;
+  no account or character is created per vessel.
 - Populates active slots 1-500 across all eight vessel classes while
   preserving each generated class-specific interior. Slot 500 must reconstruct
   with all of its actual room VNUMs inside 80000-80019.
