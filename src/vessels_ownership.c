@@ -242,6 +242,8 @@ bool vessel_handle_player_removal(const char *player_name)
   }
 
   vessel_persistence_ensure_schema();
+  vessel_piracy_ensure_schema();
+  vessel_merchant_ensure_schema();
   mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
   if (mysql_query(conn, "START TRANSACTION"))
   {
@@ -280,6 +282,33 @@ bool vessel_handle_player_removal(const char *player_name)
   snprintf(query, sizeof(query),
            "UPDATE vessel_insurance_claims SET status = 'void' "
            "WHERE owner = '%s' AND status = 'pending'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE vessel_merchant_consequences SET status = 'void', "
+           "applied_at = NOW() WHERE player_name = '%s' "
+           "AND status = 'pending'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE vessel_npc_merchants SET last_attacker_name = '', "
+           "last_attacked_at = 0 WHERE last_attacker_name = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM vessel_bounties WHERE player_name = '%s'",
            escaped_name);
   if (mysql_query(conn, query))
   {

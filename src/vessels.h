@@ -677,6 +677,34 @@ ACMD_DECL(do_plunder); /* Take cargo from a captured/boarded ship */
 ACMD_DECL(do_bounty);  /* Check a bounty */
 ACMD_DECL(do_marque);  /* Buy a letter of marque (legal privateering) */
 
+/* Data-driven NPC merchant lifecycle (Phase 14, vessels_merchants.c) */
+#define VESSEL_MERCHANT_RESPAWN_MIN 1
+#define VESSEL_MERCHANT_RESPAWN_MAX 604800
+#define VESSEL_MERCHANT_ATTACK_STANDING_PENALTY 25
+#define VESSEL_MERCHANT_LOSS_STANDING_PENALTY 100
+#define VESSEL_MERCHANT_LOSS_BOUNTY_UNITS 34
+#define VESSEL_MERCHANT_RESPONSIBILITY_SECONDS 300
+
+void vessel_merchant_ensure_schema(void);
+void vessel_merchant_boot(void);
+void vessel_merchant_tick(void);
+void vessel_merchant_note_attacker(struct char_data *ch,
+                                   struct greyhawk_ship_data *ship);
+void vessel_merchant_record_plunder(struct char_data *ch,
+                                    struct greyhawk_ship_data *ship,
+                                    int cargo_units, int bounty_delta);
+void vessel_merchant_handle_sink(struct greyhawk_ship_data *ship);
+void vessel_merchant_handle_capture(struct char_data *ch,
+                                    struct greyhawk_ship_data *ship);
+void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship,
+                                  const char *staff_name);
+int vessel_merchant_deliver_pending_consequences(struct char_data *ch);
+bool vessel_merchant_should_spawn(bool enabled, int active_ship_id,
+                                  time_t next_respawn_at, time_t now);
+bool vessel_merchant_responsibility_active(time_t attacked_at, time_t now);
+int vessel_merchant_faction_penalty(int cargo_units, bool total_loss);
+ACMD_DECL(do_vmerchant); /* Staff: inspect, synchronize, or test merchant loss */
+
 /* Freight contracts (Phase 07, vessels_contracts.c) */
 #define CONTRACT_STATUS_OPEN 0
 #define CONTRACT_STATUS_TAKEN 1
@@ -730,6 +758,8 @@ bool vessel_handle_player_removal(const char *player_name);
 /* Shipyard (Phase 06, vessels_edit.c) */
 int vessel_prototype_price(int vclass, int max_speed, int armor);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
+int vessel_spawn_public_from_prototype_at(int id, const char *instance_name,
+                                          int x, int y, int z);
 ACMD_DECL(do_shipbrowse);   /* Shipyard catalog with prices */
 ACMD_DECL(do_shipbuy);      /* Purchase a hull at a dock */
 ACMD_DECL(do_shipchristen); /* Owner: rename the ship */
@@ -1229,6 +1259,12 @@ struct greyhawk_ship_data
     int quantity;     /* Units carried */
   } cargo[MAX_CARGO_LOTS];
   int num_cargo_lots;
+
+  /* Phase 14: data-driven NPC merchant identity. The definition table is
+   * authoritative; these fields are rebuilt at boot and after respawn. */
+  int merchant_id;
+  unsigned int merchant_generation;
+  int merchant_faction_id;
 
   /* Runtime-only player-message cooldowns; not written to vessel persistence. */
   uint64_t message_last_pulse[NUM_VESSEL_MESSAGE_KEYS];

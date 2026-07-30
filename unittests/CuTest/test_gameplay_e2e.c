@@ -13,6 +13,7 @@
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob_utils.h"
+#include "../../src/missions.h"
 #include "../../src/movement.h"
 #include "../../src/spells.h"
 
@@ -517,6 +518,10 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   int loaded_level;
   int loaded_gold;
   int restore_result;
+  long loaded_faction_one;
+  long loaded_faction_two;
+  long loaded_faction_three;
+  unsigned long long loaded_merchant_consequence;
   bool loaded_name_matches;
   bool changed_directory;
   bool filename_ready;
@@ -546,6 +551,10 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_IDNUM(source) = 4242;
   GET_LEVEL(source) = 7;
   GET_GOLD(source) = 12345;
+  GET_FACTION_STANDING(source, 1) = 111;
+  GET_FACTION_STANDING(source, 2) = -222;
+  GET_FACTION_STANDING(source, 3) = 333;
+  GET_VESSEL_MERCHANT_CONSEQUENCE(source) = 987654321ULL;
   source->player.time.logon = 0;
 
   changed_directory = false;
@@ -553,6 +562,10 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
+  loaded_faction_one = 0;
+  loaded_faction_two = 0;
+  loaded_faction_three = 0;
+  loaded_merchant_consequence = 0;
   loaded_name_matches = false;
   restore_result = 0;
 
@@ -571,6 +584,11 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
       {
         loaded_level = GET_LEVEL(loaded);
         loaded_gold = GET_GOLD(loaded);
+        loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
+        loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
+        loaded_faction_three = GET_FACTION_STANDING(loaded, 3);
+        loaded_merchant_consequence =
+            GET_VESSEL_MERCHANT_CONSEQUENCE(loaded);
         loaded_name_matches =
             GET_NAME(loaded) != NULL && strcmp(GET_NAME(loaded), player_name) == 0;
       }
@@ -593,6 +611,10 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, loaded_name_matches);
   CuAssertIntEquals(tc, 7, loaded_level);
   CuAssertIntEquals(tc, 12345, loaded_gold);
+  CuAssertTrue(tc, loaded_faction_one == 111);
+  CuAssertTrue(tc, loaded_faction_two == -222);
+  CuAssertTrue(tc, loaded_faction_three == 333);
+  CuAssertTrue(tc, loaded_merchant_consequence == 987654321ULL);
 }
 
 void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)

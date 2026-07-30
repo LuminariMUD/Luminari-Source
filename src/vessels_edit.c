@@ -16,6 +16,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
+#include "wilderness.h"
 
 extern MYSQL *conn;
 extern bool mysql_available;
@@ -200,14 +201,20 @@ static MYSQL_RES *vedit_fetch(struct char_data *ch, int id, MYSQL_ROW *out_row)
   if (mysql_query(conn, query))
   {
     log("SYSERR: vedit_fetch query failed: %s", mysql_error(conn));
-    send_to_char(ch, "Database error.\r\n");
+    if (ch != NULL)
+    {
+      send_to_char(ch, "Database error.\r\n");
+    }
     return NULL;
   }
 
   result = mysql_store_result(conn);
   if (result == NULL)
   {
-    send_to_char(ch, "Database error.\r\n");
+    if (ch != NULL)
+    {
+      send_to_char(ch, "Database error.\r\n");
+    }
     return NULL;
   }
 
@@ -215,7 +222,10 @@ static MYSQL_RES *vedit_fetch(struct char_data *ch, int id, MYSQL_ROW *out_row)
   if (row == NULL)
   {
     mysql_free_result(result);
-    send_to_char(ch, "No prototype with id %d.\r\n", id);
+    if (ch != NULL)
+    {
+      send_to_char(ch, "No prototype with id %d.\r\n", id);
+    }
     return NULL;
   }
 
@@ -404,23 +414,36 @@ int vessel_prototype_price(int vclass, int max_speed, int armor)
 }
 
 /**
- * Spawn a live ship from a prototype into the character's current room.
+ * Spawn a live ship from a prototype into one resolved exterior room.
  *
  * Shared implementation for builder, public/NPC, and player shipyard spawns.
  *
- * @return The new fleet slot, or -1 on failure (message already sent)
+ * @return The new fleet slot, or -1 on failure
  */
-static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const char *owner)
+static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id,
+                                                const char *owner,
+                                                const char *instance_name,
+                                                room_rnum exterior_room, int z)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
   struct greyhawk_ship_data *ship;
   struct obj_data *obj;
   char buf[MAX_STRING_LENGTH];
+  const char *spawn_name;
   int slot;
   int vclass;
   int max_speed;
   int armor;
+
+  if (exterior_room == NOWHERE)
+  {
+    if (ch != NULL)
+    {
+      send_to_char(ch, "There is no exterior room in which to spawn that ship.\r\n");
+    }
+    return -1;
+  }
 
   result = vedit_fetch(ch, id, &row);
   if (result == NULL)
@@ -431,13 +454,50 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
   vclass = atoi(row[2]);
   max_speed = atoi(row[3]);
   armor = atoi(row[4]);
+  spawn_name = instance_name != NULL && *instance_name ? instance_name : row[1];
+
+  if (vclass < 0 || vclass >= NUM_VESSEL_TYPES ||
+      max_speed < 1 || max_speed > VEDIT_MAX_SPEED_LIMIT ||
+      armor < 0 || armor > VEDIT_MAX_ARMOR_LIMIT)
+  {
+    mysql_free_result(result);
+    if (ch != NULL)
+    {
+      send_to_char(ch, "That prototype contains invalid class, speed, or armor data.\r\n");
+    }
+    else
+    {
+      log("SYSERR: NPC vessel prototype %d contains invalid class, speed, or armor data",
+          id);
+    }
+    return -1;
+  }
+
+  if (ch == NULL &&
+      !can_vessel_traverse_terrain((enum vessel_class)vclass,
+                                   world[exterior_room].coords[0],
+                                   world[exterior_room].coords[1], z))
+  {
+    mysql_free_result(result);
+    log("SYSERR: NPC vessel prototype %d cannot spawn at (%d,%d,%d) in sector %d",
+        id, world[exterior_room].coords[0], world[exterior_room].coords[1], z,
+        world[exterior_room].sector_type);
+    return -1;
+  }
 
   slot = vedit_find_free_slot();
   if (slot < 0)
   {
     mysql_free_result(result);
-    send_to_char(ch, "The fleet is full (%d ships) - no free ship slots.\r\n",
-                 GREYHAWK_ACTIVE_SHIP_CAPACITY);
+    if (ch != NULL)
+    {
+      send_to_char(ch, "The fleet is full (%d ships) - no free ship slots.\r\n",
+                   GREYHAWK_ACTIVE_SHIP_CAPACITY);
+    }
+    else
+    {
+      log("SYSERR: NPC vessel prototype %d cannot spawn: fleet is full", id);
+    }
     return -1;
   }
 
@@ -447,8 +507,17 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
   if (obj == NULL)
   {
     mysql_free_result(result);
-    send_to_char(ch, "Base ship object %d is missing from the world files - cannot spawn.\r\n",
-                 VESSEL_BASE_HULL_OBJ_VNUM);
+    if (ch != NULL)
+    {
+      send_to_char(ch,
+                   "Base ship object %d is missing from the world files - cannot spawn.\r\n",
+                   VESSEL_BASE_HULL_OBJ_VNUM);
+    }
+    else
+    {
+      log("SYSERR: Base ship object %d is missing; NPC vessel %d cannot spawn",
+          VESSEL_BASE_HULL_OBJ_VNUM, id);
+    }
     return -1;
   }
 
@@ -459,7 +528,7 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
   ship->shipnum = slot;
   ship->prototype_id = id;
   ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
-  strlcpy(ship->name, row[1], sizeof(ship->name));
+  strlcpy(ship->name, spawn_name, sizeof(ship->name));
   strlcpy(ship->owner, owner ? owner : "", sizeof(ship->owner));
   ship->id[0] = 'A' + (slot / 26) % 26;
   ship->id[1] = 'A' + slot % 26;
@@ -483,19 +552,22 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
     ship->slot[0].val0 = 50;
     ship->slot[0].val2 = 2;
     ship->slot[0].val3 = 8;
-    strlcpy(ship->slot[0].desc, "the bow chaser ballista", sizeof(ship->slot[0].desc));
+    strlcpy(ship->slot[0].desc, "the bow chaser ballista",
+            sizeof(ship->slot[0].desc));
     ship->slot[1].type = 1;
     ship->slot[1].position = GREYHAWK_PORT;
     ship->slot[1].val0 = 50;
     ship->slot[1].val2 = 2;
     ship->slot[1].val3 = 8;
-    strlcpy(ship->slot[1].desc, "the port ballista battery", sizeof(ship->slot[1].desc));
+    strlcpy(ship->slot[1].desc, "the port ballista battery",
+            sizeof(ship->slot[1].desc));
     ship->slot[2].type = 1;
     ship->slot[2].position = GREYHAWK_STARBOARD;
     ship->slot[2].val0 = 50;
     ship->slot[2].val2 = 2;
     ship->slot[2].val3 = 8;
-    strlcpy(ship->slot[2].desc, "the starboard ballista battery", sizeof(ship->slot[2].desc));
+    strlcpy(ship->slot[2].desc, "the starboard ballista battery",
+            sizeof(ship->slot[2].desc));
     break;
   case VESSEL_SHIP:
   case VESSEL_TRANSPORT:
@@ -507,7 +579,8 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
     ship->slot[0].val0 = 40;
     ship->slot[0].val2 = 1;
     ship->slot[0].val3 = 8;
-    strlcpy(ship->slot[0].desc, "a light ballista", sizeof(ship->slot[0].desc));
+    strlcpy(ship->slot[0].desc, "a light ballista",
+            sizeof(ship->slot[0].desc));
     break;
   case VESSEL_RAFT:
   case VESSEL_BOAT:
@@ -515,12 +588,12 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
     break; /* Unarmed */
   }
 
-  /* Anchor the ship at the builder's location; wilderness rooms provide
-   * real coordinates, other rooms fall back to (0,0). */
-  ship->x = (float)world[IN_ROOM(ch)].coords[0];
-  ship->y = (float)world[IN_ROOM(ch)].coords[1];
-  ship->z = 0;
-  ship->location = world[IN_ROOM(ch)].number;
+  /* Anchor the ship at the supplied location; wilderness rooms provide real
+   * coordinates while authored rooms retain their stable room VNUM. */
+  ship->x = (float)world[exterior_room].coords[0];
+  ship->y = (float)world[exterior_room].coords[1];
+  ship->z = (float)z;
+  ship->location = world[exterior_room].number;
 
   /* Generate the interior before wiring the object so the entrance vnum is
    * known. add_ship_room() links each interior room back to this ship. */
@@ -530,26 +603,31 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
     mysql_free_result(result);
     extract_obj(obj);
     memset(ship, 0, sizeof(*ship));
-    send_to_char(ch, "Interior generation failed - spawn aborted (see syslog).\r\n");
+    if (ch != NULL)
+    {
+      send_to_char(ch, "Interior generation failed - spawn aborted (see syslog).\r\n");
+    }
     return -1;
   }
 
-  /* Give the instance the prototype's name. Instance strings may point at
-   * the object prototype's strings, so assign fresh copies without freeing
-   * the originals. */
-  vessel_build_hull_keywords(buf, sizeof(buf), row[1]);
+  /* Instance strings may point at prototype strings, so assign fresh copies
+   * without freeing the originals. */
+  vessel_build_hull_keywords(buf, sizeof(buf), spawn_name);
   obj->name = strdup(buf);
-  obj->short_description = strdup(row[1]);
-  snprintf(buf, sizeof(buf), "%s is moored here.", row[1]);
+  obj->short_description = strdup(spawn_name);
+  snprintf(buf, sizeof(buf), "%s is moored here.", spawn_name);
   obj->description = strdup(buf);
 
   if (!vessel_place_hull_object(ship, obj))
   {
-    vessel_reclaim_interior_rooms(ship, IN_ROOM(ch));
+    vessel_reclaim_interior_rooms(ship, exterior_room);
     extract_obj(obj);
     memset(ship, 0, sizeof(*ship));
     mysql_free_result(result);
-    send_to_char(ch, "The ship's exterior could not be placed - spawn aborted.\r\n");
+    if (ch != NULL)
+    {
+      send_to_char(ch, "The ship's exterior could not be placed - spawn aborted.\r\n");
+    }
     return -1;
   }
 
@@ -558,25 +636,41 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
   if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) ||
       !vessel_db_save_weapons(ship) || !vessel_db_save_owner(ship))
   {
-    room_rnum evacuation_room = IN_ROOM(obj);
+    room_rnum evacuation_room;
 
+    evacuation_room = IN_ROOM(obj);
     vessel_reclaim_interior_rooms(ship, evacuation_room);
     extract_obj(obj);
     vessel_delete_persistence(slot);
     memset(ship, 0, sizeof(*ship));
     mysql_free_result(result);
-    send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
+    if (ch != NULL)
+    {
+      send_to_char(ch, "The ship could not be persisted, so the spawn was rolled back.\r\n");
+    }
     return -1;
   }
 
   mysql_free_result(result);
 
-  send_to_char(ch, "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
-               ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
-               ship->entrance_room, ship->bridge_room);
-  act("$p materializes, ready to sail.", FALSE, ch, obj, 0, TO_ROOM);
-  log("Info: %s spawned ship %d '%s' from prototype %d at (%d,%d)", GET_NAME(ch), slot, ship->name,
-      id, (int)ship->x, (int)ship->y);
+  if (ch != NULL)
+  {
+    send_to_char(
+        ch,
+        "Spawned '%s' (%s) as ship %d: %d interior rooms, entrance %d, bridge %d.\r\n",
+        ship->name, get_vessel_type_name(ship->vessel_type), slot, ship->num_rooms,
+        ship->entrance_room, ship->bridge_room);
+    act("$p materializes, ready to sail.", FALSE, ch, obj, 0, TO_ROOM);
+    log("Info: %s spawned ship %d '%s' from prototype %d at (%d,%d,%d)",
+        GET_NAME(ch), slot, ship->name, id, (int)ship->x, (int)ship->y,
+        (int)ship->z);
+  }
+  else
+  {
+    log("Info: NPC vessel manager spawned ship %d '%s' from prototype %d at "
+        "(%d,%d,%d)",
+        slot, ship->name, id, (int)ship->x, (int)ship->y, (int)ship->z);
+  }
   return slot;
 }
 
@@ -585,7 +679,8 @@ static int vessel_spawn_from_prototype_owner(struct char_data *ch, int id, const
  */
 int vessel_spawn_from_prototype(struct char_data *ch, int id)
 {
-  return vessel_spawn_from_prototype_owner(ch, id, GET_NAME(ch));
+  return vessel_spawn_from_prototype_owner_at(ch, id, GET_NAME(ch), NULL,
+                                               IN_ROOM(ch), 0);
 }
 
 /**
@@ -595,13 +690,43 @@ static int vessel_spawn_public_from_prototype(struct char_data *ch, int id)
 {
   int slot;
 
-  slot = vessel_spawn_from_prototype_owner(ch, id, "");
+  slot = vessel_spawn_from_prototype_owner_at(ch, id, "", NULL, IN_ROOM(ch), 0);
   if (slot >= 0)
   {
     send_to_char(ch, "Ship %d is public and unclaimed; it will not accrue owner dock fees.\r\n",
                  slot);
   }
   return slot;
+}
+
+/**
+ * Spawn one unowned public/NPC hull at wilderness coordinates.
+ *
+ * This is the non-character entry point used by the durable merchant
+ * lifecycle. It shares the production constructor and persistence rollback
+ * used by `vedit spawnpublic`.
+ */
+int vessel_spawn_public_from_prototype_at(int id, const char *instance_name,
+                                          int x, int y, int z)
+{
+  room_rnum exterior_room;
+
+  if (id <= 0 || instance_name == NULL || !*instance_name ||
+      strlen(instance_name) >= sizeof(greyhawk_ships[0].name))
+  {
+    return -1;
+  }
+
+  exterior_room = get_or_allocate_wilderness_room(x, y);
+  if (exterior_room == NOWHERE)
+  {
+    log("SYSERR: NPC vessel '%s' could not allocate wilderness room (%d,%d)",
+        instance_name, x, y);
+    return -1;
+  }
+
+  return vessel_spawn_from_prototype_owner_at(NULL, id, "", instance_name,
+                                               exterior_room, z);
 }
 
 /**

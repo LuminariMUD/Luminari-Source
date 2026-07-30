@@ -1995,6 +1995,15 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "Ship Name: %s\r\n",
                greyhawk_ships[shipnum].name[0] ? greyhawk_ships[shipnum].name : "Unnamed Vessel");
   send_to_char(ch, "Ship ID: %s\r\n", greyhawk_ships[shipnum].id);
+  if (greyhawk_ships[shipnum].merchant_id > 0 &&
+      greyhawk_ships[shipnum].merchant_faction_id >= FACTION_NONE &&
+      greyhawk_ships[shipnum].merchant_faction_id < NUM_FACTIONS)
+  {
+    send_to_char(ch, "Merchant Registry: %d generation %u (%s)\r\n",
+                 greyhawk_ships[shipnum].merchant_id,
+                 greyhawk_ships[shipnum].merchant_generation,
+                 factions[greyhawk_ships[shipnum].merchant_faction_id]);
+  }
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Position ==\r\n");
   send_to_char(ch, "Coordinates: (%d, %d)\r\n", (int)greyhawk_ships[shipnum].x,

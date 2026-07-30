@@ -4007,6 +4007,11 @@ void schedule_tick(void)
   int i;
   int triggered_count = 0;
 
+  /* Reconcile durable NPC merchant definitions on the same MUD-hour cadence
+   * as their scheduled routes. Newly due replacements join this tick's
+   * normal schedule scan after their full hull/cargo/pilot assembly. */
+  vessel_merchant_tick();
+
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     if (is_valid_ship(&greyhawk_ships[i]) && schedule_check_trigger(&greyhawk_ships[i]))

@@ -24,9 +24,13 @@ reversible Kohdee harbor check; its installed-build transcript is also queued
 behind the pinned soak. Regional piracy law now keys territorial, free-sea,
 and pirate-cove policy to canonical wilderness geography; its installed-build
 transcript is queued with the fare check. Repetitive vessel weather and combat
-messages now have independent per-vessel cooldowns. Continuous validation,
-execution of the reproducible 500-ship workload, content, beta, and production
-release work remain. Pre-soak testing repaired
+messages now have independent per-vessel cooldowns. Phase 14 now provides
+durable, scheduled NPC merchant definitions, ordinary public hulls, real cargo
+and pilots, generation-based loss recovery, and exactly-once faction/bounty
+consequences; its actual-character loss/recovery transcript remains queued
+behind the pinned soak. Continuous validation, execution of the reproducible
+500-ship workload, content, beta, and production release work remain.
+Pre-soak testing repaired
 signed-coordinate movement and both unsafe legs of the sample ferry route; an
 actual Kohdee session now completes the full four-waypoint loop. The first
 monitor shakedown was rejected when its idle pre-login descriptor expired and
@@ -110,6 +114,11 @@ recording enduring behavior or evidence in the permanent documentation.
   881,204 KiB RSS/private-dirty, file RSS remained 20,576 KiB, and swap
   remained zero.
 
+  At 10:17 IDT, the same pinned process remained healthy after 31,822 seconds:
+  17,312 movement steps, 721/721 west/east arrivals, nine actual-character
+  samples, and 531 database/process samples. This is an in-progress checkpoint,
+  not the required terminal result.
+
   The awake-world log exposes another material baseline: movement trails are
   retained for 12,600 seconds and cleaned every 75 seconds. By the checkpoint,
   the latest complete 168-cleanup retention window represented 1,314,302
@@ -144,7 +153,7 @@ merchant, copyover, and multiplayer encounter testing.
   through the central position update. The removed immediate traversal probe
   had configured the same room and executed the region/path spatial queries a
   second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite now passes 246 of 246 and isolated
+  coordinate. The production-linked suite now passes 250 of 250 and isolated
   `make install` is clean. The active ferry process is pinned to the earlier
   executable, so only the post-soak installed scale run can provide live
   evidence for this change.
@@ -207,7 +216,7 @@ merchant, copyover, and multiplayer encounter testing.
   complete-route evidence through `autopilot status`; the next ferry monitor
   requires every active live interval to advance all three. The counters add
   only 24 bytes per optional autopilot (72 bytes total), while the base ship
-  remains 4,928 bytes. The production-linked suite passes 246 of 246. Confirm
+  remains 4,928 bytes. The production-linked suite passes 250 of 250. Confirm
   bounded actual server-log growth in the default installed 500-ship run
   before enabling a 72-hour window. The scale worker now reports measured log
   bytes and fails if any old unconditional or compiled-debug movement,
@@ -267,17 +276,35 @@ merchant, copyover, and multiplayer encounter testing.
 
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
-  The public-hull, pilot, schedule, persistent-cargo, combat, and geographic
-  bounty primitives now exist. Still add a durable NPC merchant lifecycle,
-  merchant identity/faction consequences, authored production routes and
-  cargo, and actual-character destruction/recovery evidence.
-  A July 30 source trace confirmed the remaining lifecycle gap precisely:
-  no persistent merchant definitions map prototypes, pilots, routes, cargo,
-  spawn points, or factions to a live hull; no boot/tick reconciler replaces
-  a lost merchant; and sinking currently deletes the only instance record.
-  Phase 14 is therefore being built as a data-driven definition and durable
-  loss/respawn lifecycle, with actual Kohdee destruction/recovery evidence
-  still reserved for the installed build after the pinned ferry soak.
+  Phase 14 now supplies the missing lifecycle. Durable definitions map a
+  faction, prototype, route, pilot, spawn coordinate, commodity, quantity,
+  schedule interval, and recovery delay to an ordinary public hull. Boot and
+  MUD-hour reconciliation assemble real interiors, cargo, pilot, schedule, and
+  route; sink, capture, purge, or a missing hull releases the definition for a
+  fresh generation. A 300-second attribution window prevents an old attacker
+  from receiving blame for a later environmental loss. Deduplicated durable
+  rows apply attack, plunder, capture, and sink standing losses exactly once,
+  commit regional bounties, survive logout, and follow character rename.
+  Permanent character removal voids pending consequences, clears current
+  attribution, and removes the bounty row.
+
+  The development harbor seed and provisioner now require a live merchant
+  generation with its real spice cargo, pilot, enabled schedule, route,
+  in-game registry row, and ship-status identity. If boot leaves a delayed or
+  stale definition, the provisioner performs two timed in-game reconciliation
+  passes before failing, avoiding manual recovery between reruns. The ordinary
+  PvP gate explicitly permits ownerless hulls, and regression coverage proves
+  that attaching a merchant registry identity does not make the NPC ship
+  immune to player attacks. The GNU C23
+  production-linked suite passes 250 of 250 with constructor rejection,
+  respawn gating, faction scaling, responsibility-window, faction persistence,
+  consequence high-water, and merchant combat-consent coverage. The complete
+  `make test` then isolated `make install` gate passes without a root build
+  artifact. Phase 14 install/reapply/verify/rollback and the full schema chain
+  pass in disposable MariaDB; character rename and permanent-removal mappings
+  are covered. Keep this item open for two things: the post-soak installed-build
+  Kohdee destruction/consequence/replacement transcript, and builder-authored
+  campaign merchant routes/cargo beyond the development fixture.
 - [ ] Add passenger ferries that collect fares and recover safely after reboot.
   The code and data layer is complete: an optional fare is part of the
   persistent schedule, public boarding saves the deduction before moving the
@@ -330,9 +357,9 @@ merchant, copyover, and multiplayer encounter testing.
   critical failure warnings remain immediate. The login helper now owns both
   simultaneous character sockets for the channel proof, selecting Kohdee and
   the first other usable character from the same master account in one run;
-  an explicit Name remains optional. The current account has only Kohdee, so
-  the harbor provisioner will add `Vesselmate` to that same account once after
-  the active soak, then run the channel gate on its discovered ferry slot. The
+  an explicit Name remains optional. If that account has no second usable
+  character, the harbor provisioner adds reusable `Vesselmate` to the same
+  account, then runs the channel gate on its discovered ferry slot. The
   named-water helper waits on the moving ferry's real crossing announcement
   and correlates its region, water type, authority, and bounty with an
   immediate `seastate`; the same provisioner runs that proof automatically.

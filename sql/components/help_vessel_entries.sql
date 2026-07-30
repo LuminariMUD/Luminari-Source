@@ -488,7 +488,7 @@ player and builder vessel/vehicle commands and pauses every vessel tick while
 leaving SHIPLIST, SHIPGOTO, SHIPFIX, SHIPPURGE, VEHICLEPURGE, and VESSELDEBUG
 available for staff recovery.
 
-See also: VEDIT, VESSELDEBUG, VEHICLE-ADMIN, SHIP-COMBAT, SEASTATE', 31, FALSE)
+See also: VEDIT, VMERCHANT, VESSELDEBUG, VEHICLE-ADMIN, SHIP-COMBAT, SEASTATE', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPLIST');
@@ -497,6 +497,38 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPFI
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPPURGE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPLOAD');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIP-ADMIN');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VMERCHANT', 'Usage: vmerchant [list|sync|sink <merchant-id> confirm]
+
+Staff control for the durable NPC merchant fleet.
+
+VMERCHANT or VMERCHANT LIST
+  List every configured merchant definition, including its generation, active
+  hull, lifecycle state, faction, prototype, route, pilot, cargo, loss count,
+  and most recent reconciliation error.
+
+VMERCHANT SYNC
+  Reconcile definitions immediately. Missing due merchants are assembled from
+  their configured public-hull prototype, real cargo, pilot, route, schedule,
+  and spawn coordinates. Stale active-hull references enter the configured
+  recovery delay before replacement.
+
+VMERCHANT SINK <merchant-id> CONFIRM
+  Development acceptance and staff recovery command. It destroys the active
+  merchant hull and cargo through the ordinary sink path, attributes the loss
+  to the invoking character, applies the normal faction and bounty
+  consequences, and schedules the configured replacement. The CONFIRM word is
+  required because this changes durable gameplay state.
+
+Definitions live in vessel_npc_merchants. Consequences are durable, deduplicated
+per merchant generation and event, and delivered exactly once when the
+responsible player is online or next logs in.
+
+See also: SHIPLIST, SHIPFIRE, PLUNDER, BOUNTY, SEASTATE', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VMERCHANT', 'VMERCHANT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
@@ -533,7 +565,7 @@ VTRADECHECK [trades]
   supply bounds, finite arbitrage, adversarial reversal, and restocking without
   changing live ports, cargo, or character gold.
 
-See also: SHIPLIST, SHIP-ADMIN, VEDIT', 31, FALSE)
+See also: SHIPLIST, SHIP-ADMIN, VMERCHANT, VEDIT', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VESSELDEBUG');

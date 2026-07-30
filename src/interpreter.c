@@ -5483,6 +5483,17 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL,
      CMD_FEATURE_VESSEL},
+    {"vmerchant",
+     "vmerchant",
+     POS_DEAD,
+     do_vmerchant,
+     LVL_IMMORT,
+     0,
+     TRUE,
+     ACTION_NONE,
+     {0, 0},
+     NULL,
+     CMD_FEATURE_VESSEL},
     {"shippurge",
      "shippurge",
      POS_DEAD,
@@ -7033,6 +7044,7 @@ int enter_player_game(struct descriptor_data *d)
   /* MXPSendTag(d, "<VERSION>"); */
 
   vessel_deliver_pending_insurance(d->character);
+  vessel_merchant_deliver_pending_consequences(d->character);
   new_mail_alert(d->character, FALSE);
 
   /* START PLAYER STAT HACKS */

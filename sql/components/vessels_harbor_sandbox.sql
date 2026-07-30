@@ -56,6 +56,16 @@ SET @harbor_east_id = (
 SET @harbor_channel_id = (
   SELECT MIN(waypoint_id) FROM ship_waypoints WHERE name = 'harbor_channel_turn'
 );
+SET @harbor_ferry_prototype_id = (
+  SELECT MIN(prototype_id)
+    FROM ship_prototypes
+   WHERE name = 'Harbor Sandbox Ferry'
+);
+SET @harbor_spice_id = (
+  SELECT MIN(commodity_id)
+    FROM trade_commodities
+   WHERE name = 'spice'
+);
 
 INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num)
 SELECT @harbor_route_id, @harbor_west_id, 0
@@ -77,6 +87,29 @@ ON DUPLICATE KEY UPDATE waypoint_id = VALUES(waypoint_id);
 INSERT INTO ship_route_waypoints (route_id, waypoint_id, sequence_num)
 VALUES (@harbor_route_id, @harbor_channel_id, 3)
 ON DUPLICATE KEY UPDATE waypoint_id = VALUES(waypoint_id);
+
+INSERT INTO vessel_npc_merchants
+  (name, faction_id, prototype_id, route_id, pilot_mob_vnum,
+   spawn_x, spawn_y, spawn_z, cargo_commodity_id, cargo_quantity,
+   schedule_interval_hours, respawn_delay_seconds, enabled)
+SELECT 'Harbor Sandbox Merchant', 1, @harbor_ferry_prototype_id,
+       @harbor_route_id, 70001, -66, 92, 0, @harbor_spice_id, 25, 1, 5, 1
+ WHERE @harbor_ferry_prototype_id IS NOT NULL
+   AND @harbor_route_id IS NOT NULL
+   AND @harbor_spice_id IS NOT NULL
+ON DUPLICATE KEY UPDATE
+  faction_id = VALUES(faction_id),
+  prototype_id = VALUES(prototype_id),
+  route_id = VALUES(route_id),
+  pilot_mob_vnum = VALUES(pilot_mob_vnum),
+  spawn_x = VALUES(spawn_x),
+  spawn_y = VALUES(spawn_y),
+  spawn_z = VALUES(spawn_z),
+  cargo_commodity_id = VALUES(cargo_commodity_id),
+  cargo_quantity = VALUES(cargo_quantity),
+  schedule_interval_hours = VALUES(schedule_interval_hours),
+  respawn_delay_seconds = VALUES(respawn_delay_seconds),
+  enabled = VALUES(enabled);
 
 INSERT IGNORE INTO ship_room_template_triggers
   (room_type, vessel_type, trigger_vnum)

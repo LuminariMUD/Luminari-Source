@@ -18,6 +18,7 @@
 #include "mysql.h"
 #include "db_init.h"
 #include "pubsub.h"
+#include "vessels.h"
 
 /* Internal helpers */
 static void create_vessel_procedures(void);
@@ -1518,6 +1519,7 @@ void init_vessel_system_tables(void)
     return;
   }
 
+  vessel_merchant_ensure_schema();
   create_vessel_procedures();
 
   log("Info: Vessel system tables initialized successfully");

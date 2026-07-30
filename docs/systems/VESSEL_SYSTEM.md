@@ -75,6 +75,7 @@ controls in one system.
 | Ownership and Crew | Owners, permits, hires, wages | vessels_ownership.c, vessels_crew.c |
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
+| NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
 | Living World | Weather hazards and region encounters | vessels_hazards.c |
 | Operations | Fleet tools, room-pool monitoring, MSDP | vessels_admin.c |
 | Vehicles | Land-based transport | vehicles.c |
@@ -452,13 +453,14 @@ increment the process-wide `vessel_messages_throttled` performance counter.
 | listroutes | List routes | `listroutes` |
 | setroute | Assign route | `setroute <route>` |
 
-### Operator Commands (Phase 09)
+### Operator Commands (Phases 09 and 14)
 
 | Command | Description | Usage |
 |---------|-------------|-------|
 | shiplist | Fleet overview + room pool health | `shiplist [summary]` |
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
+| vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
@@ -598,6 +600,29 @@ cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
 positive regional bounties for one real day and is refused to captains already
 WANTED.
 
+NPC merchant shipping (`src/vessels_merchants.c`) is definition-driven rather
+than a special immortal hull. Each enabled `vessel_npc_merchants` row names a
+builder prototype, route, pilot mobile, spawn coordinate, faction, commodity,
+quantity, schedule interval, and bounded respawn delay. Boot and each MUD-hour
+schedule tick reconcile those definitions with the ordinary public hulls.
+Assembly uses the normal hull/interior persistence path, loads real bulk cargo,
+assigns the configured pilot, creates the schedule, and departs on the real
+route. A missing, captured, sunk, or staff-purged hull releases the definition;
+after its delay, the next reconciliation creates a fresh generation.
+
+Firing on a merchant records one fixed faction loss per player and generation.
+Plunder adds a cargo-scaled loss and the ordinary regional bounty. Capture or
+sinking adds a total-loss penalty and a bounty calculated from at least 34
+cargo units. The most recent attacker is responsible for an otherwise
+unattributed loss only for 300 seconds, so later weather or terrain damage is
+not charged to an old attacker. `vessel_merchant_consequences` deduplicates
+attack and loss events. Bounties commit with the event; faction losses are
+saved to an online player immediately or delivered at the next login. A saved
+per-player high-water mark closes an interrupted delivery without applying it
+twice. Character rename updates active and pending merchant records, while
+permanent removal voids pending rows, clears current attribution, and deletes
+the removed name's bounty.
+
 ### Ownership & Shipyard Commands (Phase 06)
 
 | Command | Description | Usage |
@@ -621,9 +646,10 @@ voids old permits.
 
 Soft-deleted characters retain their deeds so staff restoration is lossless.
 Before permanent player-file removal, one transaction makes their ships
-unowned, removes their helm permits, and voids pending insurance claims. If
-that transaction cannot commit, player removal is deferred instead of
-orphaning property.
+unowned, removes their helm permits, voids pending insurance and merchant
+consequences, clears current merchant-attack attribution, and removes their
+vessel bounty. If that transaction cannot commit, player removal is deferred
+instead of orphaning property.
 
 Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
@@ -882,6 +908,8 @@ historical measurements, and the limits of the current evidence.
 | `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
 | `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
+| `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
+| `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
 
 ### Room Templates (19 default types)
 
@@ -906,7 +934,7 @@ make install
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
 world files, extends the reserved zone 700 upper bound from 79999 to 80019
-when needed, applies Phases 11-13 and the development seed, restarts the
+when needed, applies Phases 11-14 and the development seed, restarts the
 supervised local MUD, creates the ferry only when absent, and verifies the
 result through batched Kohdee sessions. It rejects conflicting zone or legal
 water region reservations instead of overwriting them. It is intentionally not
@@ -918,17 +946,23 @@ airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
 ferry with a 10-gold fare, mobile 70001 as its persistent pilot, and
 bridge/cargo DG diagnostics 70001/70002. Three development-only geographic
 regions demonstrate territorial waters (150% bounty), nested free seas (100%),
-and a pirate cove (0%) without replacing wilderness geometry. Re-running the
-command reuses the same ferry and account rather than duplicating either. An
-assigned pilot at the bridge is excluded from ordinary mobile wandering; the
-fixture ferrymaster is also authored Sentinel so it remains at its duty
-station. The two docks are joined by four ordered route entries: west dock,
-channel turn at `(-64, 82)`, east dock, and the same channel turn for the return
-leg. This keeps both straight-line legs off the Beach cells. After a hard
-restart, the provisioner checks the restored fare and named legal waters,
-boards as Kohdee through the ordinary hull-object path, proves exactly 10 gold
-was collected, restores Kohdee's starting gold, resumes the ferry, and
-validates the exact route topology.
+and a pirate cove (0%) without replacing wilderness geometry. The same route
+also drives `Harbor Sandbox Merchant`, a faction-1 public hull carrying 25
+units of spice under the fixture pilot. The provisioner requires its durable
+definition, positive generation, live hull, real cargo, pilot, enabled
+schedule, route, in-game registry row, and ship-status identity.
+
+Re-running the command reuses the same ferry, merchant definition, and account
+rather than duplicating any of them. An assigned pilot at the bridge is
+excluded from ordinary mobile wandering; the fixture ferrymaster is also
+authored Sentinel so it remains at its duty station. The two docks are joined
+by four ordered route entries: west dock, channel turn at `(-64, 82)`, east
+dock, and the same channel turn for the return leg. This keeps both
+straight-line legs off the Beach cells. After a hard restart, the provisioner
+checks the restored fare and named legal waters, boards as Kohdee through the
+ordinary hull-object path, proves exactly 10 gold was collected, restores
+Kohdee's starting gold, resumes the ferry, and validates the exact route
+topology.
 
 The 24-hour ferry gate is run independently of an agent session:
 
@@ -964,10 +998,11 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
 ### Persistence Lifecycle
 
 1. **Boot**: Schemas are created or migrated, templates and gameplay data load,
-   and saved ship, route, schedule, crew, cargo, and ownership state is
-   restored. Every active slot, including the legacy fixture, reconstructs its
-   exterior hull. World resets preserve managed hulls, then the boot pass
-   relinks them to their fleet slots.
+   and saved ship, route, schedule, crew, cargo, ownership, and NPC merchant
+   state is restored. Every active slot, including the legacy fixture,
+   reconstructs its exterior hull. World resets preserve managed hulls, then
+   the boot pass relinks them to their fleet slots. Merchant reconciliation
+   reattaches matching live generations and assembles definitions that are due.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
@@ -1067,6 +1102,7 @@ and the trigger was removed.
 | `src/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
 | `src/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
+| `src/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
 | `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
@@ -1086,6 +1122,12 @@ and the trigger was removed.
 | `sql/components/vessels_phase6_*` | Ownership schema, rollback, and verification |
 | `sql/components/vessels_phase7_*` | Economy schema, rollback, and verification |
 | `sql/components/vessels_phase8_*` | Encounter schema, rollback, and verification |
+| `sql/components/vessels_phase9_*` | Runtime-state schema, rollback, and verification |
+| `sql/components/vessels_phase10_*` | Weapons and recovery schema, rollback, and verification |
+| `sql/components/vessels_phase11_*` | Generated-room DG schema, rollback, and verification |
+| `sql/components/vessels_phase12_*` | Passenger-fare schema, rollback, and verification |
+| `sql/components/vessels_phase13_*` | Geographic piracy-law schema, rollback, and verification |
+| `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 
@@ -1260,8 +1302,8 @@ passes automated tests. Before rollout:
 2. Exercise cedit `Off` with an active route: gated commands must refuse,
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
-4. Apply and verify every vessel schema component, then require all 31
-   maintained help entries and 77 command keywords to pass both SQL and in-game
+4. Apply and verify every vessel schema component, then require all 32
+   maintained help entries and 78 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
@@ -1290,7 +1332,10 @@ WHERE TABLE_SCHEMA = DATABASE()
   AND (TABLE_NAME LIKE 'ship_%'
        OR TABLE_NAME IN ('trade_commodities', 'port_commodities',
                          'freight_contracts', 'vessel_bounties',
-                         'vessel_encounters'))
+                         'vessel_region_law', 'vessel_encounters',
+                         'vessel_insurance_claims',
+                         'vessel_npc_merchants',
+                         'vessel_merchant_consequences'))
 ORDER BY TABLE_NAME;
 
 SELECT COUNT(*) FROM ship_room_templates;
@@ -1305,6 +1350,8 @@ or keyword count is insufficient once later phases extend the system.
 
 - `shiplist` shows fleet state and wilderness dynamic-room utilization;
   `shiplist summary` keeps the health totals available at fleet scale.
+- `vmerchant list` shows every configured merchant generation, lifecycle
+  state, live hull, cargo mapping, loss count, and reconciliation error.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn

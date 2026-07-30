@@ -274,6 +274,7 @@ ACMD(do_shiplist)
 {
   struct greyhawk_ship_data *ship;
   char arg[MAX_INPUT_LENGTH];
+  char registry[64];
   bool summary_only;
   int listed = 0;
   int in_use = 0;
@@ -306,10 +307,25 @@ ACMD(do_shiplist)
 
     if (!summary_only)
     {
+      if (ship->owner[0] != '\0')
+      {
+        strlcpy(registry, ship->owner, sizeof(registry));
+      }
+      else if (ship->merchant_id > 0 &&
+               ship->merchant_faction_id >= FACTION_NONE &&
+               ship->merchant_faction_id < NUM_FACTIONS)
+      {
+        snprintf(registry, sizeof(registry), "merchant/%s",
+                 factions[ship->merchant_faction_id]);
+      }
+      else
+      {
+        strlcpy(registry, "-", sizeof(registry));
+      }
       send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i,
                    ship->name, get_vessel_type_name(ship->vessel_type), (int)ship->x,
                    (int)ship->y, ship->heading, ship->speed, vessel_total_internal(ship),
-                   vessel_max_internal(ship), ship->owner[0] ? ship->owner : "-");
+                   vessel_max_internal(ship), registry);
     }
     listed++;
   }
@@ -518,6 +534,7 @@ ACMD(do_shippurge)
     return;
   }
 
+  vessel_merchant_handle_purge(ship, GET_NAME(ch));
   strlcpy(ship_name, ship->name, sizeof(ship_name));
   hull = ship->shipobj;
   exterior = hull != NULL ? IN_ROOM(hull) : NOWHERE;

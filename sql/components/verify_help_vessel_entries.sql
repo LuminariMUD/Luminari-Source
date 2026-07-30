@@ -6,13 +6,13 @@
 SELECT
   'entry_count' AS check_name,
   COUNT(*) AS actual,
-  31 AS expected,
-  IF(COUNT(*) = 31, 'PASS', 'FAIL') AS result
+  32 AS expected,
+  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
   'MARKET', 'CONTRACTS', 'PLUNDER', 'SEASTATE', 'SHIPLIST',
-  'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
+  'VMERCHANT', 'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
   'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE', 'DELROUTE',
   'LISTROUTES', 'SETROUTE', 'SETSCHEDULE', 'CLEARSCHEDULE',
   'SHOWSCHEDULE', 'VMOUNT', 'VDISMOUNT', 'DRIVE', 'VSTATUS',
@@ -23,8 +23,8 @@ WHERE tag IN (
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  77 AS expected,
-  IF(COUNT(*) = 77, 'PASS', 'FAIL') AS result
+  78 AS expected,
+  IF(COUNT(*) = 78, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -75,6 +75,7 @@ WHERE (help_tag, keyword) IN (
   ('SHIPLIST', 'SHIPFIX'),
   ('SHIPLIST', 'SHIPPURGE'),
   ('SHIPLIST', 'SHIPLOAD'),
+  ('VMERCHANT', 'VMERCHANT'),
   ('VESSELDEBUG', 'VDEBUG'),
   ('VESSELDEBUG', 'VESSELDEBUG'),
   ('VESSELDEBUG', 'VTRADECHECK'),
@@ -109,12 +110,12 @@ WHERE (help_tag, keyword) IN (
 SELECT
   'access_levels' AS check_name,
   COUNT(*) AS actual,
-  31 AS expected,
-  IF(COUNT(*) = 31, 'PASS', 'FAIL') AS result
+  32 AS expected,
+  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE
   (
-    tag IN ('VEDIT', 'SHIPLIST', 'VESSELDEBUG', 'VEHICLE-ADMIN')
+    tag IN ('VEDIT', 'SHIPLIST', 'VMERCHANT', 'VESSELDEBUG', 'VEHICLE-ADMIN')
     AND min_level = 31
   )
   OR
@@ -133,13 +134,13 @@ WHERE
 SELECT
   'nonempty_entries' AS check_name,
   COUNT(*) AS actual,
-  31 AS expected,
-  IF(COUNT(*) = 31, 'PASS', 'FAIL') AS result
+  32 AS expected,
+  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
   'MARKET', 'CONTRACTS', 'PLUNDER', 'SEASTATE', 'SHIPLIST',
-  'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
+  'VMERCHANT', 'VESSELDEBUG', 'AUTOPILOT', 'SETWAYPOINT', 'LISTWAYPOINTS',
   'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE', 'DELROUTE',
   'LISTROUTES', 'SETROUTE', 'SETSCHEDULE', 'CLEARSCHEDULE',
   'SHOWSCHEDULE', 'VMOUNT', 'VDISMOUNT', 'DRIVE', 'VSTATUS',

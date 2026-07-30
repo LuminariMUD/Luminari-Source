@@ -362,6 +362,11 @@ void vessel_sink(int shipnum)
   log("Info: Ship %d '%s' is sinking at (%d,%d)", shipnum, ship->name, (int)ship->x, (int)ship->y);
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
 
+  /* Merchant definitions outlive their killable hulls. Record the responsible
+   * player and schedule replacement while identity, cargo, and geography are
+   * still available. */
+  vessel_merchant_handle_sink(ship);
+
   if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
   {
     water_room = IN_ROOM(ship->shipobj);
@@ -880,6 +885,7 @@ ACMD(do_shipfire)
   }
 
   /* Resolve the shot: d20 + gunnery vs a speed-based defense DC */
+  vessel_merchant_note_attacker(ch, target);
   attack_roll = d20(ch) + GET_LEVEL(ch) / 2 + ship->guncrew.gunadjust;
   defense_dc = 10 + target->speed / 5;
 
@@ -1021,6 +1027,7 @@ ACMD(do_claimship)
     send_to_char(ch, "The ship's registry rejects your claim; ownership remains unchanged.\r\n");
     return;
   }
+  vessel_merchant_handle_capture(ch, ship);
   /* A capture voids the old crew's helm clearances */
   ship->num_permits = 0;
   vessel_db_save_permits(ship);

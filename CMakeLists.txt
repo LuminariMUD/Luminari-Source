@@ -568,6 +568,7 @@ set(SRC_C_FILES
     src/vessels_combat.c
     src/vessels_crew.c
     src/vessels_hazards.c
+    src/vessels_merchants.c
     src/vessels_db.c
     src/vessels_docking.c
     src/vessels_edit.c

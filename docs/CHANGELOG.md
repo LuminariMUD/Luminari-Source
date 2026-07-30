@@ -2,6 +2,64 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Durable NPC merchant fleet
+
+#### Added
+
+- Phase 14 adds `vessel_npc_merchants`, a data-driven mapping from merchant
+  identity and faction to a builder prototype, route, pilot, spawn coordinate,
+  real bulk cargo, schedule interval, recovery delay, and current hull
+  generation.
+- Boot and MUD-hour reconciliation attach valid reconstructed hulls, detect
+  stale registry state, and assemble due merchants through the ordinary public
+  hull/interior persistence path. Assembly validates terrain, loads cargo,
+  assigns the pilot, creates the schedule, and starts the real route. Sinking,
+  capture, or staff purge releases the definition for delayed replacement.
+- `vessel_merchant_consequences` records deduplicated attack, plunder, capture,
+  and sink consequences. Bounties commit durably with the event; faction losses
+  are saved immediately for online players or delivered at next login with a
+  player-file high-water mark that prevents duplicate application after an
+  interrupted database close.
+- Merchant attack attribution expires after 300 seconds so an old attacker is
+  not blamed for a later environmental loss. Staff can inspect, reconcile, or
+  deliberately exercise the production loss path with
+  `vmerchant [list|sync|sink <id> confirm]`.
+- The development harbor now seeds `Harbor Sandbox Merchant` with a persistent
+  faction identity, public ferry-class hull, 25 units of spice, fixture pilot,
+  real harbor route, hourly schedule, and five-second recovery delay. The
+  provisioner verifies its definition, generation, runtime hull, cargo, pilot,
+  route, schedule, registry display, and ship-status identity. A stale or
+  delayed definition receives two timed in-game reconciliation passes before
+  the provisioner reports failure.
+- The authoritative help migration now maintains 32 entries and covers all 78
+  exact vessel and vehicle command keywords, including `vmerchant`.
+
+#### Fixed
+
+- Player-file persistence now saves and restores faction standings 1 through
+  3 in addition to faction 0. Without this, a nonzero merchant-faction loss
+  would disappear after logout.
+- Character rename now updates bounty ownership, pending merchant
+  consequences, and live last-attacker attribution. Permanent character
+  removal voids pending merchant rows, clears current attribution, and deletes
+  the removed name's bounty in the existing all-or-nothing vessel cleanup.
+- Both character-rename test entry points are executable, so the documented
+  direct `make` targets no longer fail on file mode before running their
+  assertions.
+
+#### Validated
+
+- The GNU C23 production-linked suite passes 250 of 250 tests. CMake with tests
+  enabled builds and passes the same suite, and GCC static analysis reports no
+  diagnostic for the merchant implementation.
+- A disposable MariaDB instance passes the complete vessel schema chain through
+  Phase 14, repeat application, seed, verification, and rollback. Static and
+  schema-backed character-rename gates pass, as do Bash syntax, ShellCheck,
+  manifest completeness, ASCII, and diff checks.
+- The installed-build Kohdee destruction, consequence, and replacement
+  transcript remains deliberately queued until the pinned 24-hour ferry soak
+  releases the local development server.
+
 ### Vessel message throttling and benchmark event counters
 
 #### Added
