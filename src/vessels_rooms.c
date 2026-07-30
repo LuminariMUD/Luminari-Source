@@ -19,6 +19,7 @@
 #include "modify.h"
 #include "dg_scripts.h"
 #include "mysql.h"
+#include "perfmon.h"
 #include "genwld.h"
 #include "genzon.h"
 
@@ -1445,6 +1446,36 @@ bool room_has_outside_view(room_rnum room)
   return FALSE;
 }
 
+bool vessel_message_allowed(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t now_pulse, uint64_t cooldown_pulses)
+{
+  unsigned int key_mask;
+  uint64_t last_pulse;
+
+  if (ship == NULL || key < 0 || key >= NUM_VESSEL_MESSAGE_KEYS)
+  {
+    return FALSE;
+  }
+
+  key_mask = 1U << (unsigned int)key;
+  if (!(ship->message_seen_mask & key_mask))
+  {
+    ship->message_seen_mask |= key_mask;
+    ship->message_last_pulse[key] = now_pulse;
+    return TRUE;
+  }
+
+  last_pulse = ship->message_last_pulse[key];
+  if (now_pulse < last_pulse || now_pulse - last_pulse >= cooldown_pulses)
+  {
+    ship->message_last_pulse[key] = now_pulse;
+    return TRUE;
+  }
+
+  PERF_note_vessel_message_throttled();
+  return FALSE;
+}
+
 /* Send message to all characters on a ship */
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
 {
@@ -1473,6 +1504,25 @@ void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
       }
     }
   }
+}
+
+/* Send one cooldown-governed ambient or combat message to a ship. */
+void send_to_ship_throttled(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t cooldown_pulses, const char *format, ...)
+{
+  va_list args;
+  char buf[MAX_STRING_LENGTH];
+
+  if (ship == NULL || format == NULL ||
+      !vessel_message_allowed(ship, key, (uint64_t)pulse, cooldown_pulses))
+  {
+    return;
+  }
+
+  va_start(args, format);
+  vsnprintf(buf, sizeof(buf), format, args);
+  va_end(args);
+  send_to_ship(ship, "%s", buf);
 }
 
 /**

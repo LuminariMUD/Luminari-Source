@@ -58,7 +58,7 @@ controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 |------|------|--------|----------|----------|
-| **Vessel** | Ships, airships, submarines | 4,856-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 4,928-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -87,7 +87,7 @@ controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 4,856 bytes, max 500 = about 2.32 MiB
+- **Vessel** (`greyhawk_ship_data`): 4,928 bytes, max 500 = about 2.35 MiB
 - **Autopilot** (`autopilot_data`): 48 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
@@ -420,6 +420,14 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | dock | Dock with vessel | `dock <ship>` |
 | undock | Undock from vessel | `undock` |
 | look_outside | View from interior | `lookout` |
+
+System-generated vessel messages use independent per-vessel cooldown classes.
+Repeated depth and weather messages are limited to one copy per class every
+120 seconds; a change from squall to storm or gale remains immediately
+visible. High-volume damage, NPC return-fire, miss, and reload messages are
+limited to one copy per class per half-second vessel tick. Sinking, grounding,
+rigging-collapse, and rudder-loss warnings remain immediate. Suppressed copies
+increment the process-wide `vessel_messages_throttled` performance counter.
 
 ### Autopilot Commands
 
@@ -797,7 +805,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 |-----------|----------|---------|------------|
-| Vessel | 4,856 bytes | 500 | About 2.32 MiB |
+| Vessel | 4,928 bytes | 500 | About 2.35 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 48 bytes | Optional per vessel | Up to about 24 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -806,7 +814,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 |-----------|------|
-| `struct greyhawk_ship_data` | 4,856 bytes |
+| `struct greyhawk_ship_data` | 4,928 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |

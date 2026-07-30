@@ -587,8 +587,10 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
     }
   }
 
-  send_to_ship(ship, "%s strikes the %s! (%s: armor %d, structure %d)", cause ? cause : "Something",
-               side_name, side_name, (int)*armor, (int)*internal_hp);
+  send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_DAMAGE, VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                         "%s strikes the %s! (%s: armor %d, structure %d)",
+                         cause ? cause : "Something", side_name, side_name, (int)*armor,
+                         (int)*internal_hp);
   VSSL_DEBUG("Ship %d took %d damage on arc %d (%s): armor %d internal %d", shipnum, amount, arc,
              side_name, (int)*armor, (int)*internal_hp);
 
@@ -710,10 +712,14 @@ static void vessel_ai_return_fire(int shipnum)
     attack_roll = rand_number(1, 20) + ship->guncrew.gunadjust + 5; /* trained crews */
     defense_dc = 10 + target->speed / 5;
 
-    send_to_ship(ship, "The crew RETURNS FIRE at %s!", target->name);
+    send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
+                           VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                           "The crew RETURNS FIRE at %s!", target->name);
     if (attack_roll < defense_dc)
     {
-      send_to_ship(target, "Return fire from %s splashes wide!", ship->name);
+      send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                             "Return fire from %s splashes wide!", ship->name);
       continue;
     }
 
@@ -744,9 +750,10 @@ void vessel_combat_tick(void)
         greyhawk_ships[i].slot[s].timer--;
         if (greyhawk_ships[i].slot[s].timer == 0 && greyhawk_ships[i].slot[s].type == 1)
         {
-          send_to_ship(&greyhawk_ships[i], "%s is reloaded and ready.",
-                       greyhawk_ships[i].slot[s].desc[0] ? greyhawk_ships[i].slot[s].desc
-                                                         : "A weapon");
+          send_to_ship_throttled(
+              &greyhawk_ships[i], VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
+              "%s is reloaded and ready.",
+              greyhawk_ships[i].slot[s].desc[0] ? greyhawk_ships[i].slot[s].desc : "A weapon");
         }
       }
     }

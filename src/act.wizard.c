@@ -10425,7 +10425,7 @@ ACMD(do_perfmon)
   {
     PERF_reset();
     mysql_query_counter_reset();
-    send_to_char(ch, "Performance and database-query counters reset.\r\n");
+    send_to_char(ch, "Performance, event, and database-query counters reset.\r\n");
     return;
   }
   else if (!str_cmp(arg1, "sect"))

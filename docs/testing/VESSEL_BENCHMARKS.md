@@ -15,11 +15,11 @@ from the full live-game benchmark that still must be run.
 | Measure | Result | Status |
 |---|---:|---|
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
-| Base `greyhawk_ship_data` size | 4,856 bytes | Within 5 KB budget |
-| Base storage for 501 array entries | 2,432,856 bytes (about 2.32 MiB) | Within about 3 MB budget |
+| Base `greyhawk_ship_data` size | 4,928 bytes | Within 5 KB budget |
+| Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 241 of 241 passing | Current production-linked gate |
+| Root suite on July 30, 2026 | 244 of 244 passing | Current production-linked gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -30,7 +30,7 @@ microbenchmarks do not satisfy this target.
 
 ### Ship Structure
 
-The measured `sizeof(struct greyhawk_ship_data)` is 4,856 bytes.
+The measured `sizeof(struct greyhawk_ship_data)` is 4,928 bytes.
 
 | Component | Approximate bytes |
 |---|---:|
@@ -41,22 +41,22 @@ The measured `sizeof(struct greyhawk_ship_data)` is 4,856 bytes.
 | Helm permits | 210 |
 | Cargo data | 80 |
 | Crew tiers | 16 |
-| New counters and state fields | 147 |
+| New counters and state fields | 219 |
 | Other fields and padding | 405 |
-| **Total** | **4,856** |
+| **Total** | **4,928** |
 
-Gameplay work added during phases 4 through 9 accounts for roughly 340 bytes,
-or about 7.7 percent of the structure. Older documentation that reported a
-1,016-byte ship structure is obsolete.
+Recent gameplay and runtime-observability fields account for roughly 412
+bytes, or about 8.4 percent of the structure. Older documentation that
+reported a 1,016-byte ship structure is obsolete.
 
 ### Fleet Projection
 
 | Ships | Base bytes | Approximate size |
 |---:|---:|---:|
-| 100 | 485,600 | 474.2 KiB |
-| 250 | 1,214,000 | 1.16 MiB |
-| 500 | 2,428,000 | 2.32 MiB |
-| Fixed 501-entry array | 2,432,856 | 2.32 MiB |
+| 100 | 492,800 | 481.2 KiB |
+| 250 | 1,232,000 | 1.17 MiB |
+| 500 | 2,464,000 | 2.35 MiB |
+| Fixed 501-entry array | 2,468,928 | 2.35 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
@@ -70,7 +70,7 @@ budget.
 
 | Structure | Size |
 |---|---:|
-| `greyhawk_ship_data` | 4,856 bytes |
+| `greyhawk_ship_data` | 4,928 bytes |
 | `vehicle_data` | 152 bytes |
 | Autopilot state | 48 bytes |
 | Route data | 1,840 bytes |
@@ -134,13 +134,16 @@ current production-linked root suite:
   `vessel_crew_wages`, `vessel_upkeep`, `vessel_trade`, `vessel_weather`,
   `vessel_encounters`, and `vessel_msdp`.
 - The 75-second schedule path is recorded separately as `vessel_schedules`.
-- `perfmon reset` starts a new pulse, section, and process-wide SQL execution
-  window. The SQL counter includes direct, safe, and pooled `mysql_query()`
-  attempts plus prepared-statement executions.
+- `perfmon reset` starts a new pulse, section, missed-heartbeat,
+  vessel-message-throttling, and process-wide SQL execution window. The SQL
+  counter includes direct, safe, and pooled `mysql_query()` attempts plus
+  prepared-statement executions.
 - `perfmon csv` emits machine-readable rows for the sampled vessel sections,
   including calls, total, average, median, p95, p99, maximum, samples stored,
-  and samples seen. It ends with `# database_queries=<count>`. `perfmon prof`
-  remains the human-readable view of every section.
+  and samples seen. It then emits `# missed_pulses=<count>` and
+  `# vessel_messages_throttled=<count>` before the final
+  `# database_queries=<count>`. `perfmon prof` remains the human-readable view
+  of every section.
 - Interval promotion now occurs once per completed lower-level buffer, and an
   hourly maximum is derived from the completed minute buffer instead of the
   prior hour buffer.
@@ -211,10 +214,10 @@ The runner:
   measured window. Kohdee remains aboard an airship so native MSDP and normal
   player-facing message generation execute.
 - Runs for at least 600 steady seconds, samples process RSS every 30 seconds,
-  captures all ten sampled vessel profiler rows plus the SQL counter, rejects
-  vessel errors or PID/binary drift, and requires every selected schedule to
-  fire. The complete `vessel_tick` maximum must be no more than 25,000
-  microseconds.
+  captures all ten sampled vessel profiler rows plus missed-pulse,
+  message-throttling, and SQL counters, rejects vessel errors or PID/binary
+  drift, and requires every selected schedule to fire. The complete
+  `vessel_tick` maximum must be no more than 25,000 microseconds.
 
 The user-service interface is:
 

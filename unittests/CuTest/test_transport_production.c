@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
+#include "../../src/perfmon.h"
 #include "../../src/protocol.h"
 #include "../../src/vessels.h"
 #include "../../src/wilderness.h"
@@ -1599,6 +1600,30 @@ void Test_vessel_pvp_logout_grace_is_bounded_and_opponent_specific(CuTest *tc)
 
   /* The persisted consent snapshot must not break the 5 KiB base budget. */
   CuAssertTrue(tc, sizeof(struct greyhawk_ship_data) <= 5 * 1024);
+}
+
+void Test_vessel_message_throttling_is_keyed_per_ship(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct greyhawk_ship_data other_ship;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&other_ship, 0, sizeof(other_ship));
+  PERF_reset();
+
+  CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 100, 10));
+  CuAssertTrue(tc, !vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 109, 10));
+  CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_STORM, 101, 10));
+  CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 110, 10));
+  CuAssertTrue(tc,
+               vessel_message_allowed(&other_ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 109, 10));
+
+  /* A process-pulse rollback must not leave a reconstructed ship muted. */
+  CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
+  CuAssertTrue(tc, !vessel_message_allowed(NULL, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
+  CuAssertTrue(tc,
+               !vessel_message_allowed(&ship, (enum vessel_message_key)-1, 50, 10));
+  CuAssertTrue(tc, PERF_vessel_message_throttled_count() == 1);
 }
 
 void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)

@@ -2,6 +2,33 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel message throttling and benchmark event counters
+
+#### Added
+
+- Per-vessel cooldown classes limit repeated depth and weather messages to one
+  copy per class every 120 seconds while preserving immediate severity changes.
+  Repeated damage, NPC return-fire, miss, and reload messages are limited to
+  one copy per class per half-second vessel tick; critical failure warnings
+  remain immediate.
+- Performance monitoring now records missed game-loop pulses and suppressed
+  vessel messages in the same reset window as sampled section timings.
+  `perfmon csv` emits both event counters, and the reversible 500-vessel runner
+  requires, parses, and preserves them in its summary.
+
+#### Validated
+
+- The compiled GNU C23 structure measurement is 4,928 bytes per vessel and
+  2,468,928 bytes for all 501 fleet-array entries, within the 5 KiB and about
+  3 MiB budgets.
+- Production-linked coverage verifies independent message classes, per-vessel
+  state, exact cooldown boundaries, pulse rollback, event-counter CSV output,
+  and reset behavior.
+- The isolated GNU C23 build completed without warnings, autorun supervision
+  passed, the complete root suite passes 244 of 244 tests, `make install`
+  removed the root executable, and the focused protocol suite remains 13 of
+  13.
+
 ### Ship-wide captain channel
 
 #### Added
