@@ -56,8 +56,24 @@ account, look up a slot or character manually, or perform one login per
 command. The first run includes ferry creation and a second restart. Before
 the fare, crossing, and channel checks were added, later idempotent runs reused
 the ferry and completed in about 30 seconds on the current development host.
-Remeasure the augmented path after the active soak releases the installed
-build.
+Remeasure the augmented path with the current installed candidate.
+
+The same provisioner now validates the Phase 15 HUNTED raft, Admiralty
+warship, captain mobile 70002, encounter region 7000004, and deterministic
+hunter policy without altering Kohdee's bounty. After installation, exercise
+the complete reversible lifecycle with:
+
+```bash
+./scripts/test_vessel_hunter_in_game.sh
+```
+
+Require one real Kohdee encounter to create exactly one ownerless hunter with
+the configured pilot and target. The same generation, slot, name, prototype,
+pilot, and combat attribution must reattach after the script's hard restart.
+Pardoning Kohdee must move the lifecycle to bounded cooldown, remove every
+hunter persistence row, preserve the target, purge the temporary target, and
+restore Kohdee's exact pre-test bounty/hunt rows. The script refuses an active
+ferry soak or scale run and prints the artifact directory and elapsed time.
 
 Run the continuous ferry release gate through its supervised monitor:
 
@@ -70,11 +86,14 @@ This keeps the otherwise idle game loop awake without occupying a character.
 It submits a generated, nonexistent account name but never confirms it, so the
 descriptor remains in a non-expiring confirmation state without creating an
 account. The monitor requires that socket to remain `ESTABLISHED` every 20
-seconds, fails if the server reports that it went to sleep, checks the
-unchanged process and database invariants every minute, and uses the existing
-account and Kohdee for hourly live checks. It records movement and both dock
-arrivals from the server log. Launch metadata records the source commit and
-installed executable SHA-256; a changed binary fingerprint fails the run.
+seconds and fails if the server reports that it went to sleep. A copyover
+drops that non-playing descriptor by design; the monitor accepts only a
+log-proven same-PID, same-binary copyover, waits for boot, reconnects the
+descriptor, and records the recovery. Any other socket loss remains a hard
+failure. It checks unchanged process and database invariants every minute and
+uses the existing account and Kohdee for hourly live checks. Launch metadata
+records the source commit and installed executable SHA-256; a changed binary
+fingerprint fails the run. A failure writes terminal status before cleanup.
 After the requested duration, it pauses through the game, hard-restarts local
 development, compares the exact coordinates, route, pilot, schedule, rooms,
 structure, and executable hash, then resumes the ferry. The run is incomplete
@@ -236,19 +255,20 @@ numbered gameplay flow:
   command keywords, access levels, nonempty content, and zero obsolete
   duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
   commands in one 54-second Kohdee login.
-- The current candidate extends the authoritative help set to 77 keywords for
-  `shiptalk` and the previously uncovered staff `vtradecheck`. Production-linked
-  coverage sends an identified message between two different rooms of one
-  vessel, proves an adjacent non-passenger receives nothing, and checks the
-  ashore and silenced refusals. Session-only MariaDB shadow tables pass all 31
-  entries, all 77 keywords, access, content, duplicate, and new channel-text
-  checks. The installed-build two-character transcript remains queued behind
-  the active soak and will reuse the existing master account. The channel
+- The current candidate maintains 32 authoritative entries and 78 exact
+  keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, and the Phase 15
+  `vesseldebug encounter` guidance. Production-linked coverage sends an
+  identified message between two different rooms of one vessel, proves an
+  adjacent non-passenger receives nothing, and checks the ashore and silenced
+  refusals. Session-only MariaDB shadow tables pass the entry, keyword, access,
+  content, duplicate, and channel-text checks. The installed-build
+  two-character transcript remains queued for the current candidate and will
+  reuse the existing master account. The channel
   helper automatically selects another non-deleted account-menu character
   without a manual slot or Name lookup. A July 30 read-only database check
-  found that account currently contains only Kohdee; after the soak, the harbor
-  provisioner will add `Vesselmate` to that account and run the transcript
-  automatically rather than creating a second account.
+  found that account currently contains only Kohdee; the harbor provisioner
+  adds reusable `Vesselmate` to that account when needed and runs the
+  transcript automatically rather than creating a second account.
 - All 22 component migrations preceding Phase 12 applied independently to a
   fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
   install, 10-gold persistence, rollback, and reapplication against a
@@ -258,6 +278,12 @@ numbered gameplay flow:
   shadow tables; the active database remained unchanged. Production-linked
   geometry coverage also requires polygon interiors to resolve while edges and
   vertices remain outside, matching MariaDB `ST_Within()`.
+- The complete disposable MariaDB chain through Phases 14 and 15 passes
+  installation, repeated application, harbor seed, verification, reverse
+  rollback, and two reapplications. Phase 15 verifies the encounter extension,
+  HUNTED threshold, warship/pilot policy, one-row target lifecycle, cooldown
+  fields, indexes, and clean rollback. The active development database was not
+  used for this rehearsal.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.
@@ -317,6 +343,15 @@ numbered gameplay flow:
   The final restart launched the identical hash and restored exact state.
   Deliberate SIGTERM on a separate run wrote a terminal `FAIL` artifact
   immediately instead of leaving stale `RUNNING` state.
+- The pinned 24-hour attempt remained vessel-healthy for 34,382 seconds with
+  18,720 movement steps, 780 arrivals at each dock, 10 Kohdee inspections, and
+  574 database/process samples. The normal 11:00:30 IDT automated copyover
+  preserved the MUD PID and ferry but intentionally dropped the monitor's
+  unauthenticated descriptor. The old monitor misclassified that handoff and
+  failed to finalize status, so the run is `ABANDONED`. The replacement
+  monitor recognizes only a log-proven same-PID/same-binary copyover,
+  reconnects after boot, preserves its evidence, and writes terminal failure
+  status before cleanup. A new full window is still required.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull
