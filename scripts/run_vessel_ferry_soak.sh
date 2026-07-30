@@ -259,8 +259,14 @@ run_monitor()
   initial_source_commit=""
   log_offset=0
   movement_steps=0
-  west_arrivals=0
-  east_arrivals=0
+  waypoint_arrivals=0
+  route_completions=0
+  initial_movement_counter=""
+  initial_arrival_counter=""
+  initial_completion_counter=""
+  last_movement_counter=""
+  last_arrival_counter=""
+  last_completion_counter=""
   live_samples=0
   database_samples=0
   process_samples=0
@@ -409,7 +415,8 @@ run_monitor()
         printf 'Ferry slot: %s\n' "${ferry_slot:-unknown}"
         printf 'Movement steps: %s\n' "$movement_steps"
         printf 'Unique positions: %s\n' "$unique_positions"
-        printf 'West/east arrivals: %s/%s\n' "$west_arrivals" "$east_arrivals"
+        printf 'Waypoint arrivals: %s\n' "$waypoint_arrivals"
+        printf 'Route completions: %s\n' "$route_completions"
         printf 'Live/database/process samples: %s/%s/%s\n' \
           "$live_samples" "$database_samples" "$process_samples"
         if [[ -n "$initial_live_fleet_count" ]]; then
@@ -452,6 +459,9 @@ run_monitor()
     local buffer_row
     local buffer_switches
     local buffer_overflows
+    local movement_counter
+    local arrival_counter
+    local completion_counter
 
     if ! "$script_dir/dev_kohdee_login_smoke.sh" --commands \
       "shiplist" \
@@ -499,6 +509,36 @@ run_monitor()
     else
       grep -Fq "State: Paused" "$output_file" ||
         fail_run "live ferry was not paused during $label"
+    fi
+
+    movement_counter=$(sed -nE 's/^Movement Steps: ([0-9]+)$/\1/p' \
+      "$output_file" | tail -n 1)
+    arrival_counter=$(sed -nE 's/^Waypoint Arrivals: ([0-9]+)$/\1/p' \
+      "$output_file" | tail -n 1)
+    completion_counter=$(sed -nE 's/^Route Completions: ([0-9]+)$/\1/p' \
+      "$output_file" | tail -n 1)
+    [[ "$movement_counter" =~ ^[0-9]+$ && "$arrival_counter" =~ ^[0-9]+$ &&
+       "$completion_counter" =~ ^[0-9]+$ ]] ||
+      fail_run "could not read autopilot progress counters during $label"
+    if [[ "$expected_state" == active ]]; then
+      if [[ -z "$initial_movement_counter" ]]; then
+        initial_movement_counter=$movement_counter
+        initial_arrival_counter=$arrival_counter
+        initial_completion_counter=$completion_counter
+      else
+        ((movement_counter > last_movement_counter)) ||
+          fail_run "autopilot movement did not advance between live samples"
+        ((arrival_counter > last_arrival_counter)) ||
+          fail_run "the ferry reached no waypoint between live samples"
+        ((completion_counter > last_completion_counter)) ||
+          fail_run "the ferry completed no route between live samples"
+      fi
+      last_movement_counter=$movement_counter
+      last_arrival_counter=$arrival_counter
+      last_completion_counter=$completion_counter
+      movement_steps=$((movement_counter - initial_movement_counter))
+      waypoint_arrivals=$((arrival_counter - initial_arrival_counter))
+      route_completions=$((completion_counter - initial_completion_counter))
     fi
 
     coordinates=$(sed -nE \
@@ -576,10 +616,11 @@ run_monitor()
 
     printf '%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$x" "$y" "$fleet_line" >>"$run_dir/live-samples.tsv"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$fleet_count" "$dynamic_rooms" \
       "$dynamic_capacity" "$mobiles" "$objects" "$rooms" "$world_lists" \
-      "$buffer_switches" "$buffer_overflows" "$expected_state" \
+      "$buffer_switches" "$buffer_overflows" "$movement_counter" \
+      "$arrival_counter" "$completion_counter" "$expected_state" \
       >>"$run_dir/live-system-samples.tsv"
     printf '%s %s\n' "$x" "$y" >>"$run_dir/positions.txt"
     last_live_x=$x
@@ -715,11 +756,6 @@ run_monitor()
     local current_size
     local byte_count
     local chunk_file="$run_dir/server-log-chunk"
-    local new_steps
-    local new_west
-    local new_east
-    local x
-    local y
     local ferry_error_pattern
 
     current_size=$(stat -c %s "$server_log")
@@ -744,31 +780,6 @@ run_monitor()
         >>"$run_dir/ferry-errors.log" || true
       fail_run "the MUD game loop went to sleep during the continuous run"
     fi
-
-    grep -E \
-      "Ship $ferry_slot (departing|arrived|wait complete|route)|Autopilot ship $ferry_slot" \
-      "$chunk_file" >>"$run_dir/ferry-events.log" || true
-
-    new_steps=$(grep -Fc "Ship $ferry_slot departing room" "$chunk_file" || true)
-    new_west=$(grep -Fc \
-      "Ship $ferry_slot arrived at waypoint 'harbor_west_dock'" "$chunk_file" || true)
-    new_east=$(grep -Fc \
-      "Ship $ferry_slot arrived at waypoint 'harbor_east_dock'" "$chunk_file" || true)
-    movement_steps=$((movement_steps + new_steps))
-    west_arrivals=$((west_arrivals + new_west))
-    east_arrivals=$((east_arrivals + new_east))
-
-    while read -r x y; do
-      [[ "$x" =~ ^-?[0-9]+$ && "$y" =~ ^-?[0-9]+$ ]] ||
-        fail_run "could not parse a logged ferry position"
-      ((x >= -66 && x <= -62 && y >= 82 && y <= 92)) ||
-        fail_run "logged ferry movement left the harbor corridor at ($x,$y)"
-      printf '%s %s\n' "$x" "$y" >>"$run_dir/positions.txt"
-    done < <(
-      sed -nE \
-        "s/.*Ship $ferry_slot departing.* at \\((-?[0-9]+), (-?[0-9]+)\\).*/\\1 \\2/p" \
-        "$chunk_file"
-    )
   }
 
   verify_persistence_restart()
@@ -986,7 +997,8 @@ run_monitor()
   {
     printf 'epoch\tlabel\tfleet\tdynamic_rooms\tdynamic_capacity\t'
     printf 'mobiles\tobjects\trooms\tlists\t'
-    printf 'buffer_switches\tbuffer_overflows\tstate\n'
+    printf 'buffer_switches\tbuffer_overflows\tmovement_steps\t'
+    printf 'waypoint_arrivals\troute_completions\tstate\n'
   } >"$run_dir/live-system-samples.tsv"
   run_live_sample initial active
   sample_database
@@ -1041,7 +1053,7 @@ run_monitor()
     now=$(date +%s)
     write_status "RUNNING started=$started_epoch" \
       "elapsed=$((now - started_epoch))/$duration slot=$ferry_slot" \
-      "steps=$movement_steps arrivals=$west_arrivals/$east_arrivals" \
+      "steps=$movement_steps arrivals=$waypoint_arrivals loops=$route_completions" \
       "live=$live_samples db=$database_samples"
     sleep_until=$end_epoch
     ((next_database_sample < sleep_until)) && sleep_until=$next_database_sample
@@ -1058,11 +1070,11 @@ run_monitor()
 
   unique_positions=$(sort -u "$run_dir/positions.txt" | wc -l)
   ((movement_steps >= 4)) ||
-    fail_run "the ferry logged only $movement_steps movement steps"
-  ((unique_positions >= 4)) ||
-    fail_run "the ferry visited only $unique_positions distinct positions"
-  ((west_arrivals >= 1 && east_arrivals >= 1)) ||
-    fail_run "the ferry did not arrive at both docks"
+    fail_run "the ferry recorded only $movement_steps movement steps"
+  ((waypoint_arrivals >= 4)) ||
+    fail_run "the ferry recorded only $waypoint_arrivals waypoint arrivals"
+  ((route_completions >= 1)) ||
+    fail_run "the ferry did not complete the four-waypoint route"
 
   verify_persistence_restart
 
@@ -1084,7 +1096,8 @@ run_monitor()
     printf 'Source commit at launch: %s\n' "$initial_source_commit"
     printf 'Movement steps: %s\n' "$movement_steps"
     printf 'Unique positions: %s\n' "$unique_positions"
-    printf 'West/east arrivals: %s/%s\n' "$west_arrivals" "$east_arrivals"
+    printf 'Waypoint arrivals: %s\n' "$waypoint_arrivals"
+    printf 'Route completions: %s\n' "$route_completions"
     printf 'Live/database/process samples: %s/%s/%s\n' \
       "$live_samples" "$database_samples" "$process_samples"
     printf 'Fleet count during live samples: %s\n' "$initial_live_fleet_count"

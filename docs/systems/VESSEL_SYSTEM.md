@@ -88,7 +88,7 @@ controls in one system.
 ### Memory Layout
 
 - **Vessel** (`greyhawk_ship_data`): 4,928 bytes, max 500 = about 2.35 MiB
-- **Autopilot** (`autopilot_data`): 48 bytes (optional, attached to vessel)
+- **Autopilot** (`autopilot_data`): 72 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
 
@@ -271,8 +271,16 @@ struct autopilot_data {
     int current_waypoint_index;
     int wait_remaining;          /* Seconds at waypoint */
     int pilot_mob_vnum;          /* NPC pilot VNUM (-1 if none) */
+    uint64_t movement_steps;      /* Successful autonomous position updates */
+    uint64_t waypoint_arrivals;
+    uint64_t route_completions;
 };
 ```
+
+The three counters are monotonic for the lifetime of the in-memory autopilot
+and reset at process reconstruction. `autopilot status` exposes them so
+operators and soak monitors can prove route progress without enabling
+per-movement logging.
 
 ---
 
@@ -809,7 +817,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 |-----------|----------|---------|------------|
 | Vessel | 4,928 bytes | 500 | About 2.35 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
-| Autopilot | 48 bytes | Optional per vessel | Up to about 24 KB |
+| Autopilot | 72 bytes | Optional per vessel | Up to about 36 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
 
 ### Structure Sizes
@@ -820,7 +828,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
-| `struct autopilot_data` | 48 bytes |
+| `struct autopilot_data` | 72 bytes |
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
@@ -1203,6 +1211,12 @@ vdebug off
 `vdebug` and `vesseldebug` are aliases. `on all` enables every category;
 `off` with no category clears the mask. Restore a clean default build after the
 investigation and require `vdebug status` to report `compiled out`.
+
+Normal builds do not write a line for every position update, waypoint arrival,
+wait completion, or route loop. Those high-volume messages use the `move` and
+`auto` debug categories. Runtime progress remains visible through the
+monotonic counters in `autopilot status`, so long soaks do not trade log growth
+for route evidence.
 
 | Runtime category | Covers |
 |------------------|--------|

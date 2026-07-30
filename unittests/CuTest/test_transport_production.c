@@ -420,6 +420,9 @@ void Test_vessel_production_autopilot_lifecycle(CuTest *tc)
 
   CuAssertPtrNotNull(tc, route);
   CuAssertPtrNotNull(tc, autopilot_init(&ship));
+  CuAssertTrue(tc, ship.autopilot->movement_steps == 0);
+  CuAssertTrue(tc, ship.autopilot->waypoint_arrivals == 0);
+  CuAssertTrue(tc, ship.autopilot->route_completions == 0);
   CuAssertIntEquals(tc, 0, waypoint_add(route, 3.0f, 4.0f, 12.0f, "first"));
   CuAssertIntEquals(tc, 1, waypoint_add(route, 8.0f, 4.0f, 12.0f, "second"));
   CuAssertTrue(tc, autopilot_start(&ship, route));
@@ -430,13 +433,19 @@ void Test_vessel_production_autopilot_lifecycle(CuTest *tc)
   CuAssertDblEquals(tc, 13.0, calculate_distance_to_waypoint(&ship, waypoint), 0.001);
   CuAssertTrue(tc, !check_waypoint_arrival(&ship, waypoint));
 
+  ship.x = waypoint->x;
+  ship.y = waypoint->y;
+  ship.z = waypoint->z;
+  process_traveling_vessel(&ship);
+  CuAssertTrue(tc, ship.autopilot->waypoint_arrivals == 1);
+  CuAssertStrEquals(tc, "second", waypoint_get_current(&ship)->name);
+
   CuAssertTrue(tc, autopilot_pause(&ship));
   CuAssertIntEquals(tc, AUTOPILOT_PAUSED, ship.autopilot->state);
   CuAssertTrue(tc, autopilot_resume(&ship));
-  CuAssertTrue(tc, advance_to_next_waypoint(&ship));
-  CuAssertStrEquals(tc, "second", waypoint_get_current(&ship)->name);
   CuAssertTrue(tc, !advance_to_next_waypoint(&ship));
   CuAssertIntEquals(tc, AUTOPILOT_COMPLETE, ship.autopilot->state);
+  CuAssertTrue(tc, ship.autopilot->route_completions == 1);
 
   CuAssertTrue(tc, autopilot_stop(&ship));
   autopilot_cleanup(&ship);

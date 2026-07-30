@@ -92,6 +92,10 @@
 - Scale process samples now have a header and include VSZ, threads, and file
   descriptors beside PID and RSS. Every sample also verifies that the
   installed executable has not been replaced.
+- Each autopilot now maintains monotonic successful-movement,
+  waypoint-arrival, and complete-route counters for its in-memory lifetime.
+  `autopilot status` exposes them, and future ferry runs require every active
+  live interval to increase all three.
 
 #### Fixed
 
@@ -99,6 +103,10 @@
   count and the current compact `shiplist summary` wording. The compact form
   includes the word `active`; requiring only the older wording would have
   rejected the first new-instrumentation ferry sample.
+- Normal builds no longer write one server-log line per vessel position
+  update, waypoint arrival, wait completion, or route loop. These detailed
+  messages remain available through the compiled `move` and `auto` development
+  diagnostics, while long soaks use the bounded counters.
 
 #### Validated
 
@@ -109,6 +117,10 @@
   live `show stats` fields and clean logout in four seconds. A current compact
   fleet-count fixture then verified the scale parser's success path, while a
   fixture missing one required field was rejected.
+- The compiled base vessel remains 4,928 bytes and the optional autopilot is
+  72 bytes, including 24 bytes of progress counters. The GNU C23
+  production-linked suite remains 245 of 245 with the counter lifecycle and
+  route-completion path covered.
 
 ### Ship-wide captain channel
 

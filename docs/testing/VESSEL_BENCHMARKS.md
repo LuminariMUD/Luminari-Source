@@ -62,6 +62,9 @@ reported a 1,016-byte ship structure is obsolete.
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
 
+Optional autopilot state is 72 bytes, including three 64-bit runtime progress
+counters. At 500 attached autopilots this is 36,000 bytes, about 35.2 KiB.
+
 Optional allocations, strings, routes, encounter data, and database result
 buffers add runtime memory beyond these base arrays. Those allocations must be
 included in soak-test observation, but the fixed fleet array remains within its
@@ -73,7 +76,7 @@ budget.
 |---|---:|
 | `greyhawk_ship_data` | 4,928 bytes |
 | `vehicle_data` | 152 bytes |
-| Autopilot state | 48 bytes |
+| Autopilot state | 72 bytes |
 | Route data | 1,840 bytes |
 | Waypoint data | 88 bytes |
 | Route node | 104 bytes |
@@ -242,6 +245,10 @@ The runner:
   end. The runner rejects fleet or capacity drift, occupancy above capacity,
   buffer overflows, vessel errors, PID/binary drift, or a missing system
   sample.
+- Uses monotonic per-vessel movement, waypoint-arrival, and route-completion
+  counters for continuity evidence. Normal builds no longer emit a server-log
+  line for every movement step, arrival, wait completion, or loop; those
+  messages remain available only in focused development-debug builds.
 - Captures all ten sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, and requires every selected schedule
   to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero
@@ -315,9 +322,12 @@ count, dynamic wilderness occupancy, mobiles, objects, rooms, allocation
 lists, buffer switches, and overflows in `live-system-samples.tsv`. The
 scale runner now preserves the same fields beside a headered process series,
 but its supported window remains capped at 7,200 seconds. The 72-hour fleet
-gate must retain equivalent samples, bound its high-volume movement-log
-collection, and enforce a documented post-warmup bounded-growth threshold; an
-initial/maximum/final RSS tuple alone is not a leak verdict.
+gate must retain equivalent samples and enforce a documented post-warmup
+bounded-growth threshold; an initial/maximum/final RSS tuple alone is not a
+leak verdict. The candidate has moved high-volume step/arrival/loop messages
+behind compiled development diagnostics and exposes monotonic status counters
+instead. The default installed 500-ship run must still confirm bounded actual
+log growth before the 72-hour ceiling is lifted.
 
 At the July 30 07:34 IDT checkpoint, the pinned ferry run had completed 22,042
 of 86,400 seconds with 11,978 movement steps and balanced 499/499 dock

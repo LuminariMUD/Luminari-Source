@@ -151,8 +151,15 @@ merchant, copyover, and multiplayer encounter testing.
   correlated game/process sample format, but it still deliberately caps one
   measurement at 7,200 seconds. Before lifting that cap for the 72-hour gate,
   define the threshold from the completed 24-hour and default 500-ship
-  observations and bound/filter high-volume movement logging so evidence
-  collection itself cannot exhaust development storage.
+  observations. The current candidate has moved per-step position, waypoint,
+  wait, and route-loop messages behind compiled development diagnostics.
+  Three monotonic per-autopilot counters now provide movement, arrival, and
+  complete-route evidence through `autopilot status`; the next ferry monitor
+  requires every active live interval to advance all three. The counters add
+  only 24 bytes per optional autopilot (72 bytes total), while the base ship
+  remains 4,928 bytes. The production-linked suite passes 245 of 245. Confirm
+  bounded actual server-log growth in the default installed 500-ship run
+  before enabling a 72-hour window.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

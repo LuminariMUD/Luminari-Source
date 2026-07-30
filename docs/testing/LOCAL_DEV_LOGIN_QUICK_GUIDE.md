@@ -98,10 +98,18 @@ Runs started from the current script also issue `shiplist summary` and
 `show stats` inside each actual-Kohdee sample. They require a constant fleet
 count and dynamic-room capacity, reject any reported buffer overflow, and
 write `live-system-samples.tsv` with fleet, dynamic-room, mobile, object,
-room, allocation-list, and buffer counts. The terminal summary adds initial,
-maximum, and final dynamic-room and world-list values beside process RSS. The
-active July 30 definitive run is pinned to the earlier script and does not
-claim this newer game-side evidence.
+room, allocation-list, buffer, movement-step, waypoint-arrival, and
+route-completion counts. Each active live interval must increase all three
+autopilot counters. The terminal summary adds initial, maximum, and final
+dynamic-room and world-list values beside process RSS. The active July 30
+definitive run is pinned to the earlier script and does not claim this newer
+game-side or counter evidence.
+
+The candidate build emits per-step movement, arrival, wait, and route-loop
+messages only through compiled development debug categories. Normal builds use
+the `autopilot status` counters instead. This keeps future fleet-soak logs
+bounded without weakening the route-progress gate; the final restart is
+allowed to reset the runtime counters after the pre-restart totals are saved.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
@@ -190,8 +198,9 @@ The terminal summary includes initial/maximum/final values for these series.
 The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
 short benchmark as the 72-hour soak. The long gate remains separate until the
 24-hour ferry and default 500-ship observations provide its documented
-post-warmup memory threshold and its high-volume server-log collection is
-bounded.
+post-warmup memory threshold. The candidate has removed normal-build
+per-movement log volume; confirm actual log growth during the default
+500-ship run before lifting the long-soak ceiling.
 
 The runner reuses the configured master account and exact `Kohdee` character
 for every fleet phase. Its harbor preflight may add the one reusable
