@@ -15,7 +15,9 @@ native MSDP, the 500-slot workload, and the prior restart/copyover state matrix
 are automated. An untraversable automated step now stops the hull, pauses and
 persists autopilot once, and tells occupants instead of retrying forever.
 Routine wilderness region/path progress logging is removed, and the scale
-runner treats its return as a bounded-log failure.
+runner treats its return as a bounded-log failure. A short forced-copyover
+ferry shakedown now passes through same-PID recovery and the final exact-state
+hard restart; it is not a substitute for the 24-hour duration.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
 vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
@@ -67,6 +69,18 @@ recording enduring behavior or evidence in the permanent documentation.
   PID through the terminal pre-restart checkpoint. The separate hard-restart
   recovery phase verifies the replacement process's executable hash and exact
   gameplay state instead of corrupting that single-PID series.
+
+  The forced-copyover shakedown at
+  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260730T092546Z-1844033`
+  is `PASS` on source `823d48b9` and installed SHA-256
+  `7237a57d92b0e701cf71e3f38993b869e8fb21c68c48745c9fc0fc77d9c6b4d1`.
+  Its 240-second requested window observed 329 wall seconds, one same-PID
+  copyover recovery, 132 movement steps, 22 waypoint arrivals, five route
+  completions, four live samples, 25 database/process samples, and zero
+  buffer overflows. The continuous process series stayed on PID 1817030; the
+  final hard restart changed to PID 1859781, recovered the exact paused
+  coordinates and route on the same binary, and resumed the ferry. This closes
+  the forced-copyover and restart shakedown, not the 24-hour item.
 
   Partial evidence from the abandoned run remained healthy at the July 30
   08:28 IDT checkpoint

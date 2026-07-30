@@ -280,6 +280,21 @@ is `ABANDONED`, not continuity evidence. The current monitor fixes both
 harness defects. A replacement must still complete the full duration and final
 exact-state restart before this gate passes.
 
+The current forced-copyover shakedown used:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start 240 10 120
+./scripts/dev_kohdee_login_smoke.sh --copyover-check "shiplist summary"
+./scripts/run_vessel_ferry_soak.sh status
+```
+
+It passed on July 30, 2026 with one same-PID copyover recovery, 132 movement
+steps, 22 waypoint arrivals, five route completions, four live checks, 25
+database/process samples, zero buffer overflows, a valid continuous
+detailed-memory series, and exact-state recovery and resume after the final
+hard restart. Use the short form only to verify harness changes; it does not
+close the 24-hour release gate.
+
 ## Fast Post-Soak Finish
 
 Do not repeat the component gates manually. After the ferry status reports

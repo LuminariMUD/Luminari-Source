@@ -37,6 +37,13 @@
 - The complete harbor provisioner passes from a moving mid-channel start:
   exact fare and gold restoration, named-water crossing, merchant identity and
   cargo, and same-account Kohdee/Vesselmate captain-channel isolation.
+- A 240-second forced-copyover ferry shakedown passes on source `823d48b9`.
+  It recovers one same-PID copyover, records 132 movement steps, 22 waypoint
+  arrivals, five route completions, 25 database/process samples, four live
+  samples, zero buffer overflows, and a valid single-PID detailed-memory
+  series. The final hard restart changes PID, preserves the exact paused
+  coordinates and route, launches the same installed SHA-256, and resumes the
+  ferry.
 
 ### Durable HUNTED bounty-hunter patrols
 

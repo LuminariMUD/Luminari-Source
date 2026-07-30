@@ -383,6 +383,18 @@ monitor accepts only a log-proven same-PID/same-binary copyover, reconnects
 after boot, preserves the recovery log, and records terminal failure before
 cleanup. A replacement full window and exact-state restart are still required.
 
+A July 30 forced-copyover shakedown is terminal `PASS` at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260730T092546Z-1844033`.
+Source `823d48b9` ran a 240-second requested window with one same-PID copyover,
+132 observed movement steps, 22 waypoint arrivals, five route completions,
+four live samples, 25 database/process samples, and zero buffer overflows.
+Raw autopilot counters reset across `exec` from 163/27/6 to 60/10/2; the
+copyover-aware segment accumulator correctly retained progress. All continuous
+process samples stayed on PID 1817030. The final hard restart changed to PID
+1859781, launched the same installed SHA-256, recovered the exact paused
+coordinates and route, and resumed the ferry. This proves the recovery
+harnesses, not duration or bounded memory growth.
+
 The 574 process samples span 34,382 seconds. RSS rose from 768,776 to 1,144,640
 KiB and VSZ from 862,208 to 1,237,916 KiB. After excluding the first 14,400
 seconds, the 334-sample RSS slope was +5,923 KiB/hour. Consecutive hour-sized
