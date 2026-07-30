@@ -1223,6 +1223,140 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   CuAssertTrue(tc, open_water_announced);
 }
 
+void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
+{
+  const int slot = 487;
+  struct greyhawk_ship_data saved_ship;
+  struct greyhawk_ship_data *ship;
+  struct room_data room_fixture[3];
+  struct room_data *saved_world;
+  struct char_data speaker;
+  struct char_data crew;
+  struct char_data outsider;
+  struct player_special_data speaker_specials;
+  struct descriptor_data speaker_descriptor;
+  struct descriptor_data crew_descriptor;
+  struct descriptor_data outsider_descriptor;
+  room_rnum saved_top_of_world;
+  bool speaker_received;
+  bool crew_received;
+  bool outsider_remained_quiet;
+  bool ashore_rejected;
+  bool silence_rejected;
+
+  saved_ship = greyhawk_ships[slot];
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  ship = &greyhawk_ships[slot];
+  memset(ship, 0, sizeof(*ship));
+  memset(room_fixture, 0, sizeof(room_fixture));
+  memset(&speaker, 0, sizeof(speaker));
+  memset(&crew, 0, sizeof(crew));
+  memset(&outsider, 0, sizeof(outsider));
+  memset(&speaker_specials, 0, sizeof(speaker_specials));
+  memset(&speaker_descriptor, 0, sizeof(speaker_descriptor));
+  memset(&crew_descriptor, 0, sizeof(crew_descriptor));
+  memset(&outsider_descriptor, 0, sizeof(outsider_descriptor));
+
+  speaker_descriptor.pProtocol = ProtocolCreate();
+  crew_descriptor.pProtocol = ProtocolCreate();
+  outsider_descriptor.pProtocol = ProtocolCreate();
+  if (speaker_descriptor.pProtocol == NULL || crew_descriptor.pProtocol == NULL ||
+      outsider_descriptor.pProtocol == NULL)
+  {
+    if (speaker_descriptor.pProtocol != NULL)
+    {
+      ProtocolDestroy(speaker_descriptor.pProtocol);
+    }
+    if (crew_descriptor.pProtocol != NULL)
+    {
+      ProtocolDestroy(crew_descriptor.pProtocol);
+    }
+    if (outsider_descriptor.pProtocol != NULL)
+    {
+      ProtocolDestroy(outsider_descriptor.pProtocol);
+    }
+    greyhawk_ships[slot] = saved_ship;
+    CuFail(tc, "could not initialize the shiptalk descriptor fixtures");
+    return;
+  }
+
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  ship->num_rooms = 2;
+  ship->room_vnums[0] = 92000;
+  ship->room_vnums[1] = 92001;
+  strlcpy(ship->name, "Channel Cutter", sizeof(ship->name));
+
+  room_fixture[0].number = 92000;
+  room_fixture[0].ship = ship;
+  room_fixture[0].people = &speaker;
+  room_fixture[1].number = 92001;
+  room_fixture[1].ship = ship;
+  room_fixture[1].people = &crew;
+  room_fixture[2].number = 93000;
+  room_fixture[2].people = &outsider;
+  world = room_fixture;
+  top_of_world = 2;
+
+  speaker.player.name = "Corr";
+  speaker.player_specials = &speaker_specials;
+  speaker.char_specials.position = POS_STANDING;
+  speaker.in_room = 0;
+  speaker.desc = &speaker_descriptor;
+  speaker_descriptor.character = &speaker;
+  speaker_descriptor.output = speaker_descriptor.small_outbuf;
+  speaker_descriptor.bufspace = SMALL_BUFSIZE - 1;
+
+  crew.player.name = "Mira";
+  crew.player_specials = &speaker_specials;
+  crew.char_specials.position = POS_STANDING;
+  crew.in_room = 1;
+  crew.desc = &crew_descriptor;
+  crew_descriptor.character = &crew;
+  crew_descriptor.output = crew_descriptor.small_outbuf;
+  crew_descriptor.bufspace = SMALL_BUFSIZE - 1;
+
+  outsider.player.name = "Vex";
+  outsider.player_specials = &speaker_specials;
+  outsider.char_specials.position = POS_STANDING;
+  outsider.in_room = 2;
+  outsider.desc = &outsider_descriptor;
+  outsider_descriptor.character = &outsider;
+  outsider_descriptor.output = outsider_descriptor.small_outbuf;
+  outsider_descriptor.bufspace = SMALL_BUFSIZE - 1;
+
+  do_shiptalk(&speaker, "All hands report ready.", 0, 0);
+  speaker_received =
+      strstr(speaker_descriptor.output, "Captain's channel - Channel Cutter") != NULL &&
+      strstr(speaker_descriptor.output, "Corr: All hands report ready.") != NULL;
+  crew_received =
+      strstr(crew_descriptor.output, "Captain's channel - Channel Cutter") != NULL &&
+      strstr(crew_descriptor.output, "Corr: All hands report ready.") != NULL;
+  outsider_remained_quiet = outsider_descriptor.output[0] == '\0';
+
+  speaker.in_room = 2;
+  do_shiptalk(&speaker, "This must not leave the shore.", 0, 0);
+  ashore_rejected = strstr(speaker_descriptor.output, "must be aboard a vessel") != NULL;
+  speaker.in_room = 0;
+  SET_BIT_AR(AFF_FLAGS(&speaker), AFF_SILENCED);
+  do_shiptalk(&speaker, "This must not be audible.", 0, 0);
+  silence_rejected = strstr(speaker_descriptor.output, "cannot make a sound") != NULL;
+
+  ProtocolDestroy(speaker_descriptor.pProtocol);
+  ProtocolDestroy(crew_descriptor.pProtocol);
+  ProtocolDestroy(outsider_descriptor.pProtocol);
+  greyhawk_ships[slot] = saved_ship;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, speaker_received);
+  CuAssertTrue(tc, crew_received);
+  CuAssertTrue(tc, outsider_remained_quiet);
+  CuAssertTrue(tc, ashore_rejected);
+  CuAssertTrue(tc, silence_rejected);
+}
+
 void Test_vessel_piracy_regional_bounty_policy(CuTest *tc)
 {
   struct vessel_piracy_law law;

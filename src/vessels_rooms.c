@@ -1475,6 +1475,77 @@ void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...)
   }
 }
 
+/**
+ * Speak over the captain's channel to every occupied room on one vessel.
+ */
+ACMD(do_shiptalk)
+{
+  struct greyhawk_ship_data *ship;
+  struct char_data *recipient;
+  const char *message;
+  char message_buffer[MAX_INPUT_LENGTH];
+  char output[MAX_STRING_LENGTH];
+  room_rnum room;
+  int i;
+
+  message = argument;
+  if (message != NULL)
+  {
+    skip_spaces_c(&message);
+  }
+  if (message == NULL || *message == '\0')
+  {
+    send_to_char(ch, "What do you want to say over the captain's channel?\r\n");
+    return;
+  }
+  if (IS_ANIMAL(ch) && !IS_WILDSHAPED(ch))
+  {
+    send_to_char(ch, "You cannot speak clearly enough to use the captain's channel.\r\n");
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_SILENCED))
+  {
+    send_to_char(ch, "You cannot make a sound over the captain's channel.\r\n");
+    return;
+  }
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You must be aboard a vessel to use the captain's channel.\r\n");
+    return;
+  }
+
+  strlcpy(message_buffer, message, sizeof(message_buffer));
+  if (CONFIG_SPECIAL_IN_COMM && legal_communication(message_buffer))
+  {
+    parse_at(message_buffer);
+  }
+  snprintf(output, sizeof(output), "\tC[Captain's channel - %s]\tn %s: %s\r\n",
+           ship->name[0] ? ship->name : "unnamed vessel",
+           GET_NAME(ch) ? GET_NAME(ch) : "Someone", message_buffer);
+
+  for (i = 0; i < ship->num_rooms; i++)
+  {
+    room = real_room(ship->room_vnums[i]);
+    if (room == NOWHERE)
+    {
+      continue;
+    }
+
+    for (recipient = world[room].people; recipient != NULL;
+         recipient = recipient->next_in_room)
+    {
+      if (recipient->desc == NULL ||
+          (recipient != ch && (!AWAKE(recipient) || AFF_FLAGGED(recipient, AFF_DEAF))))
+      {
+        continue;
+      }
+      send_to_char(recipient, "%s", output);
+    }
+  }
+}
+
 /* Find a ship by name */
 struct greyhawk_ship_data *find_ship_by_name(const char *name)
 {

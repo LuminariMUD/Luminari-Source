@@ -414,6 +414,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | board | Board a vessel | `board <ship>` |
 | greyhawk_tactical | Display tactical map | `tactical` |
 | greyhawk_status | Show ship status | `shipstatus` |
+| shiptalk | Speak across all rooms of the current vessel | `shiptalk <message>` |
 | greyhawk_speed | Set ship speed | `speed <0-30>` |
 | greyhawk_heading | Set ship heading | `heading <0-360>` |
 | dock | Dock with vessel | `dock <ship>` |
@@ -1236,7 +1237,7 @@ passes automated tests. Before rollout:
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
 4. Apply and verify every vessel schema component, then require all 31
-   maintained help entries and 75 command keywords to pass both SQL and in-game
+   maintained help entries and 77 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.

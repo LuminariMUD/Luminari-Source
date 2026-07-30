@@ -189,6 +189,38 @@ Vessel economy simulation: PASS
 The 500-vessel runner performs and records this same Kohdee command
 automatically. Do not run either path while the pinned ferry soak is active.
 
+## Fast Ship-Wide Channel Gate
+
+Run this only after the active soak releases the installed build. Use two
+simultaneous local clients, but authenticate both with the same configured
+master account. Select `Kohdee` in one client and a second exact character Name
+in the other. Do not create a second account.
+
+If the master account has no second usable character, add one to that account:
+
+```bash
+./scripts/dev_create_test_character.sh Vesselmate
+```
+
+The one-argument form uses the master account. Open both clients once, keep
+both descriptors connected, and complete the check in this order:
+
+1. As Kohdee, run `shipgoto <ship-slot>`, then `trans Vesselmate`.
+2. Move Vesselmate one room away inside the same vessel.
+3. Send a unique `shiptalk` marker from each character and require the other
+   client to receive the vessel name, speaker name, and exact marker.
+4. Move Kohdee ashore with `goto 1000389`. Send one more marker from
+   Vesselmate and require Kohdee's client to remain quiet.
+5. Run `shiptalk ashore-check` as Kohdee and require the aboard-only refusal.
+6. Bring Vesselmate ashore with `trans Vesselmate`, then cleanly leave both
+   characters and the shared account sessions.
+
+The login helper deliberately serializes its normal single-character sessions,
+so do not launch two copies of it for this simultaneous check. One shared
+account with two character selections is the intended multiplayer fixture.
+Keep both clients open through all six steps; this avoids repeating boot,
+account, and menu work.
+
 ## Fast Native MSDP Vessel-State Gate
 
 After the current source is installed on local development and a vessel slot
@@ -406,9 +438,10 @@ For the exhaustive vessel release check, use the single-command form:
 
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
-commands, and verifies the resulting set in one Kohdee login. The July 29,
-2026 run checked 75 keywords in 54 seconds. This replaces 75 separate login
-cycles and automatically includes newly gated commands.
+commands, and verifies the resulting set in one Kohdee login. The current
+source derives 77 keywords. The July 29, 2026 installed-build run checked the
+then-current 75 in 54 seconds. This replaces one login cycle per keyword and
+automatically includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
 to perform the process manually.

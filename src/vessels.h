@@ -1468,6 +1468,7 @@ ACMD_DECL(do_dock);           /* Dock with another vessel */
 ACMD_DECL(do_undock);         /* Undock from vessel */
 ACMD_DECL(do_board_hostile);  /* Combat boarding */
 ACMD_DECL(do_look_outside);   /* Look outside from ship interior */
+ACMD_DECL(do_shiptalk);       /* Speak across every room aboard one vessel */
 ACMD_DECL(do_transfer_cargo); /* Transfer cargo between docked ships */
 ACMD_DECL(do_ship_rooms);     /* List ship interior rooms */
 

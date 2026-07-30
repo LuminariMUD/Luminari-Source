@@ -40,7 +40,7 @@ tables.
 | 11 | `vessels_phase11_schema.sql` | `verify_vessels_phase11.sql` | `vessels_phase11_rollback.sql` | DG attachments for generated interior room templates |
 | 12 | `vessels_phase12_schema.sql` | `verify_vessels_phase12.sql` | `vessels_phase12_rollback.sql` | Persistent public-vessel passenger fares |
 | 13 | `vessels_phase13_schema.sql` | `verify_vessels_phase13.sql` | `vessels_phase13_rollback.sql` | Piracy law keyed to geographic wilderness regions |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 75 command keywords |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 77 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -192,7 +192,7 @@ Also verify:
 - No out-of-band port supply or invalid encounter-region references.
 - Pre-existing ship, owner, cargo, crew, route, and schedule counts.
 - Representative records against the pre-deployment snapshot.
-- All 75 vessel and vehicle command-keyword searches in the running game,
+- All 77 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 

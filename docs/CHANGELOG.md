@@ -2,6 +2,34 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Ship-wide captain channel
+
+#### Added
+
+- `shiptalk <message>` carries an identified captain-channel message to awake,
+  hearing occupants across every room of the speaker's current vessel. It is
+  unavailable ashore, while silenced, or when an animal form cannot speak.
+- The vessel feature gate covers the command, and the authoritative vessel
+  help migration now covers 31 maintained entries and all 77 exact command
+  keywords, including the previously uncovered staff `vtradecheck`.
+
+#### Validated
+
+- Production-linked coverage places the speaker and crew member in different
+  rooms of one vessel, keeps an adjacent outsider silent, and checks both
+  ashore and silenced refusal paths.
+- The isolated GNU C23 build completed without warnings, autorun supervision
+  passed, the complete root suite passes 242 of 242 tests, `make install`
+  removed the root executable, and the focused protocol suite remains 13 of
+  13.
+- Session-only MariaDB shadow tables pass all 31 help entries, all 77 command
+  keywords, access levels, nonempty content, obsolete-duplicate removal, and
+  the new channel text check without changing active help data.
+- The installed-build two-character transcript remains queued behind the
+  pinned 24-hour ferry soak. Both characters will use the existing master
+  account; if a disposable crew character is needed, it will be added to that
+  account rather than creating another account.
+
 ### Canonical vessel law
 
 #### Added
