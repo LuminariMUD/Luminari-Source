@@ -2,6 +2,43 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel clients - native MSDP release contract
+
+Completed the vessel GMCP audit and made native MSDP the explicit client
+contract for this release.
+
+#### Fixed
+
+- Leaving a vessel now dirties and sends an empty `SHIP_*` state instead of
+  leaving the last vessel name, coordinates, speed, hull, and status displayed
+  indefinitely.
+
+#### Added
+
+- `dev_kohdee_login_smoke.sh --vessel-msdp-check <ship-slot>` negotiates
+  Telnet option 69 as the existing Kohdee character, requests every vessel
+  variable, compares live frames with `shipstatus`, and proves the complete
+  empty state after going ashore.
+- The reversible 500-vessel runner requires that socket-level check and
+  preserves its result as `native-msdp-vessel-state.log`.
+- Production-linked coverage proves all nine values are populated aboard and
+  dirtied with their documented empty values after disembarkation.
+
+#### Validated
+
+- The isolated GNU C23 build completed without warnings and the complete root
+  suite passes 237 of 237 tests. `make install` completed and removed the
+  isolated root-level `circle`.
+
+#### Decision
+
+- A separate GMCP vessel package is not a requirement for the current release.
+  The experimental general GMCP fallback is not treated as equivalent support;
+  any future GMCP contract must use valid JSON and receive its own acceptance
+  coverage.
+- The actual installed-build Kohdee transcript remains queued behind the
+  pinned 24-hour ferry soak and is required by the 500-vessel gate.
+
 ### Vessel economy - marginal batch pricing and sustained simulation
 
 Closed the automated portion of the 1,000-trade economy gate and removed the

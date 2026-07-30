@@ -150,8 +150,9 @@ rollback.
   content that builders need to vary.
 - Player-facing commands have reachable help entries in the authoritative help
   database.
-- Ship state is available to capable clients through the established protocol
-  layer without making a graphical client mandatory.
+- Ship state is available through native MSDP without making a graphical
+  client mandatory. Native MSDP is the release contract; a separate GMCP
+  vessel package is not required for this release.
 - Staff tooling exposes vessel state and shared wilderness-room pressure.
 - Diagnostics are category-selectable and safe to use on a live server.
 
@@ -269,7 +270,7 @@ following are demonstrated on the development server:
 The core transport and gameplay layers are implemented: wilderness movement,
 interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
-operator tooling, and MSDP ship state.
+operator tooling, and native MSDP ship state.
 
 Implementation does not equal release acceptance. The local 30-step regression
 and development release-boundary checks pass; performance, soak, complete

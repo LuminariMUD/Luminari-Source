@@ -45,8 +45,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-builder-check)
       mode="vessel-builder-check"
       ;;
+    --vessel-msdp-check)
+      mode="vessel-msdp-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot>]"
       ;;
   esac
   shift
@@ -78,6 +81,9 @@ if [[ $# -gt 0 ]]; then
     set -- "${vessel_help_keywords[@]}"
   elif [[ "$mode" == "vessel-builder-check" ]]; then
     [[ $# -eq 0 ]] || fail "--vessel-builder-check does not accept additional arguments"
+  elif [[ "$mode" == "vessel-msdp-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      fail "--vessel-msdp-check requires one ship slot from 1 through 500"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -196,6 +202,70 @@ proc fail {message} {
   exit 1
 }
 
+proc send_msdp_report {variable} {
+  set frame "[binary format H* fffa4501]REPORT[binary format H* 02]$variable[binary format H* fff0]"
+  send -- $frame
+}
+
+proc extract_msdp_value {raw variable} {
+  set prefix "[binary format H* fffa4501]$variable[binary format H* 02]"
+  set suffix [binary format H* fff0]
+  set frame_start [string first $prefix $raw]
+
+  if {$frame_start < 0} {
+    return [list 0 ""]
+  }
+
+  set value_start [expr {$frame_start + [string length $prefix]}]
+  set frame_end [string first $suffix $raw $value_start]
+  if {$frame_end < 0} {
+    return [list 0 ""]
+  }
+
+  return [list 1 [string range $raw $value_start [expr {$frame_end - 1}]]]
+}
+
+proc require_msdp_value {raw variable expected context} {
+  lassign [extract_msdp_value $raw $variable] found actual
+  if {!$found} {
+    fail "$context did not receive $variable"
+  }
+  if {$actual ne $expected} {
+    fail "$context received $variable='$actual', expected '$expected'"
+  }
+}
+
+proc require_msdp_number {raw variable context} {
+  lassign [extract_msdp_value $raw $variable] found actual
+  if {!$found} {
+    fail "$context did not receive $variable"
+  }
+  if {![regexp {^-?[0-9]+$} $actual]} {
+    fail "$context received nonnumeric $variable='$actual'"
+  }
+  return $actual
+}
+
+proc collect_msdp_frames {phase} {
+  set marker "__MUD_SMOKE_MSDP_${phase}_DONE__"
+  set output ""
+
+  after 1500
+  send -- "say $marker\r"
+  expect {
+    -re $marker { append output $expect_out(buffer) }
+    timeout { fail "timed out while collecting $phase MSDP frames" }
+    eof { fail "connection closed while collecting $phase MSDP frames" }
+  }
+  expect {
+    -re $marker { append output $expect_out(buffer) }
+    timeout { fail "timed out while completing $phase MSDP collection" }
+    eof { fail "connection closed while completing $phase MSDP collection" }
+  }
+
+  return $output
+}
+
 proc clean_command_output {raw command marker} {
   global smoke_character
 
@@ -218,8 +288,9 @@ proc clean_command_output {raw command marker} {
 }
 
 set command_index 0
+set last_game_command_raw ""
 proc run_game_command {command} {
-  global command_index smoke_character
+  global command_index last_game_command_raw smoke_character
 
   if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {
     if {$wait_seconds < 1 || $wait_seconds > 60} {
@@ -270,6 +341,7 @@ proc run_game_command {command} {
     eof { fail "connection closed while completing game command $command_index" }
   }
 
+  set last_game_command_raw $output
   set cleaned [clean_command_output $output $command $marker]
   puts "\n>>> $command"
   if {$cleaned ne ""} {
@@ -279,6 +351,68 @@ proc run_game_command {command} {
   }
 
   return $cleaned
+}
+
+proc run_vessel_msdp_check {ship_slot} {
+  global last_game_command_raw
+
+  set ship_variables {
+    SHIP_NAME SHIP_X SHIP_Y SHIP_Z SHIP_HEADING SHIP_SPEED
+    SHIP_HULL SHIP_HULL_MAX SHIP_STATUS
+  }
+
+  set output [run_game_command "shipgoto $ship_slot"]
+  if {![regexp "Aboard (.+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
+    fail "could not read vessel name after shipgoto $ship_slot"
+  }
+
+  set output [run_game_command "shipstatus"]
+  if {![regexp {Coordinates: \((-?[0-9]+), (-?[0-9]+)\)} $output ignored ship_x ship_y] ||
+      ![regexp {Elevation/Depth: (-?[0-9]+)} $output ignored ship_z] ||
+      ![regexp {Heading: (-?[0-9]+) degrees} $output ignored ship_heading] ||
+      ![regexp {Speed: (-?[0-9]+) /} $output ignored ship_speed]} {
+    fail "could not read complete vessel state from shipstatus"
+  }
+
+  foreach variable $ship_variables {
+    send_msdp_report $variable
+  }
+  set aboard_raw [collect_msdp_frames "ABOARD"]
+
+  require_msdp_value $aboard_raw SHIP_NAME $ship_name "aboard state"
+  require_msdp_value $aboard_raw SHIP_X $ship_x "aboard state"
+  require_msdp_value $aboard_raw SHIP_Y $ship_y "aboard state"
+  require_msdp_value $aboard_raw SHIP_Z $ship_z "aboard state"
+  require_msdp_value $aboard_raw SHIP_HEADING $ship_heading "aboard state"
+  require_msdp_value $aboard_raw SHIP_SPEED $ship_speed "aboard state"
+
+  set ship_hull [require_msdp_number $aboard_raw SHIP_HULL "aboard state"]
+  set ship_hull_max [require_msdp_number $aboard_raw SHIP_HULL_MAX "aboard state"]
+  if {$ship_hull < 0 || $ship_hull_max <= 0 || $ship_hull > $ship_hull_max} {
+    fail "aboard state received invalid hull values $ship_hull/$ship_hull_max"
+  }
+
+  lassign [extract_msdp_value $aboard_raw SHIP_STATUS] status_found ship_status
+  if {!$status_found ||
+      [lsearch -exact {sound battered crippled sinking} $ship_status] < 0} {
+    fail "aboard state received invalid SHIP_STATUS='$ship_status'"
+  }
+
+  run_game_command "goto 1000389"
+  set ashore_raw [collect_msdp_frames "ASHORE"]
+  set clear_raw "$last_game_command_raw$ashore_raw"
+  require_msdp_value $clear_raw SHIP_NAME "" "ashore state"
+  require_msdp_value $clear_raw SHIP_X 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_Y 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_Z 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_HEADING 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_SPEED 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_HULL 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_HULL_MAX 0 "ashore state"
+  require_msdp_value $clear_raw SHIP_STATUS "" "ashore state"
+
+  puts "\nPASS: native MSDP reported all nine vessel variables aboard slot $ship_slot."
+  puts "PASS: native MSDP cleared all nine vessel variables after leaving the vessel."
 }
 
 proc require_game_output {output expected context} {
@@ -492,6 +626,10 @@ if {![info exists env(MUD_SMOKE_ACCOUNT)] ||
 set smoke_character $env(MUD_SMOKE_CHARACTER)
 
 spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
+if {$mode eq "vessel-msdp-check"} {
+  fconfigure $spawn_id -translation binary -encoding binary
+  send -- [binary format H* fffd45]
+}
 
 expect {
   -re {What is your account name} {}
@@ -572,7 +710,8 @@ if {!$entered_world} {
 
 after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
-    $mode eq "help-check" || $mode eq "vessel-builder-check"} {
+    $mode eq "help-check" || $mode eq "vessel-builder-check" ||
+    $mode eq "vessel-msdp-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -613,8 +752,10 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       foreach help_keyword $game_commands {
         run_help_check $help_keyword
       }
-    } else {
+    } elseif {$mode eq "vessel-builder-check"} {
       run_vessel_builder_check
+    } else {
+      run_vessel_msdp_check [lindex $game_commands 0]
     }
   }
 }
@@ -675,6 +816,9 @@ elif [[ "$mode" == "help-check" ]]; then
     "$smoke_character" "$#" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-builder-check" ]]; then
   printf 'PASS: %s completed the vessel builder check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-msdp-check" ]]; then
+  printf 'PASS: %s completed the native MSDP vessel-state check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

@@ -19,7 +19,7 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,376,744 bytes (about 2.27 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 236 of 236 passing | Current scale-workload gate |
+| Root suite on July 30, 2026 | 237 of 237 passing | Current scale-workload gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -201,9 +201,14 @@ The runner:
 - Requires Kohdee's `vtradecheck 1000` transcript to show all adversarial
   transfers inside supply 10-400, finite profitable-route convergence,
   negative oversized reversal profit, and restocking to baseline 100.
+- Opens a native MSDP connection as Kohdee, requests all nine `SHIP_*`
+  variables aboard the benchmark airship, compares position and navigation
+  values with `shipstatus`, validates hull and status values, then goes ashore
+  and requires the complete empty state. The raw check result is preserved as
+  `native-msdp-vessel-state.log`.
 - Warms the production heartbeat, then pauses ten routed vessels after a known
   schedule departure. Each must trigger a new persisted departure during the
-  measured window. Kohdee remains aboard an airship so MSDP and normal
+  measured window. Kohdee remains aboard an airship so native MSDP and normal
   player-facing message generation execute.
 - Runs for at least 600 steady seconds, samples process RSS every 30 seconds,
   captures all ten sampled vessel profiler rows plus the SQL counter, rejects
@@ -234,15 +239,15 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 236 of 236
+worktree on July 30, 2026. The production-linked root suite passed 237 of 237
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
-three-dimensional navigation, shared encounters, marginal batch pricing, and
-the deterministic 1,000-trade simulation. `make install` completed in that
-isolated worktree and removed its root-level `circle`. Isolated provisioner
-fixtures also passed the idempotent zone-extension and overlap-rejection
-paths.
+three-dimensional navigation, shared encounters, marginal batch pricing, the
+deterministic 1,000-trade simulation, and vessel MSDP clearing after going
+ashore. `make install` completed in that isolated worktree and removed its
+root-level `circle`. Isolated provisioner fixtures also passed the idempotent
+zone-extension and overlap-rejection paths.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

@@ -182,6 +182,29 @@ Vessel economy simulation: PASS
 The 500-vessel runner performs and records this same Kohdee command
 automatically. Do not run either path while the pinned ferry soak is active.
 
+## Fast Native MSDP Vessel-State Gate
+
+After the current source is installed on local development and a vessel slot
+exists, run:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --vessel-msdp-check <ship-slot>
+```
+
+The helper reuses the master account and exact Kohdee character. It enables
+native MSDP on the socket, teleports Kohdee aboard the requested vessel,
+requests all nine `SHIP_*` variables, and compares the position and navigation
+frames with `shipstatus`. It also validates the hull totals and status band.
+Kohdee then goes to static room 1000389, and the helper requires the two string
+variables to clear and all seven numeric variables to become zero before it
+logs out of the character and account.
+
+The 500-vessel runner performs this check automatically against its benchmark
+airship and preserves `native-msdp-vessel-state.log`. This is a real
+Telnet-option-69 exchange; merely leaving Kohdee aboard while the server calls
+the setters does not prove client delivery. Do not run this path while the
+pinned ferry soak is active.
+
 ## Fast Vessel Builder Gate
 
 Use one logged-in Kohdee session to exercise the complete no-C builder path:

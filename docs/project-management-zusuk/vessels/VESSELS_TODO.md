@@ -15,6 +15,9 @@ process-wide SQL execution counter are now available for the scale gate. The
 fleet now has 500 usable nonzero slots and a matching interior VNUM
 reservation. Automated encounter ordering, shared-room deduplication, and
 class Z boundaries now pass; their actual-character confirmation remains
+queued. Native MSDP is now the explicit vessel release contract, stale client
+state is cleared after disembarkation, and the scale runner includes a real
+Kohdee Telnet-option-69 exchange; its installed-build transcript remains
 queued. Continuous validation, execution of the reproducible 500-ship
 workload, content, beta, and production release work remain. Pre-soak testing
 repaired signed-coordinate movement and both unsafe legs of the sample ferry
@@ -72,18 +75,20 @@ merchant, copyover, and multiplayer encounter testing.
   promotion, and a process-wide direct/prepared SQL execution count. The
   fleet array now reserves slot 0 separately from active slots 1-500; the
   matching zone 700 reservation reaches the final slot's VNUM 80019. The GNU
-  C23 production-linked suite passes 236 tests with the capacity, bounded
+  C23 production-linked suite passes 237 tests with the capacity, bounded
   fleet-summary, encounter, Z-axis, and sustained-economy regressions, and
   isolated provisioner checks pass both extension and overlap rejection.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the
   required evidence, and restores the pre-run database. It reuses one account
-  and character rather than creating one per vessel. The runner's static
-  checks and active-soak refusal pass, but the gate itself must remain open
-  until the definitive ferry soak finishes, the current binary is installed,
-  and the runner records a terminal result. Instrumentation, capacity, and
-  workload readiness do not themselves prove the 25 ms target.
+  and character rather than creating one per vessel. The runner also
+  negotiates native MSDP as Kohdee, verifies all nine `SHIP_*` frames aboard,
+  and requires their empty state ashore. Its static checks and active-soak
+  refusal pass, but the gate itself must remain open until the definitive
+  ferry soak finishes, the current binary is installed, and the runner records
+  a terminal result. Instrumentation, capacity, and workload readiness do not
+  themselves prove the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
   schedule desynchronization, with the tick budget held.
@@ -167,8 +172,6 @@ merchant, copyover, and multiplayer encounter testing.
 - [ ] Confirm that shared encounters are the final model by testing multiple
   ships entering the same regional encounter. Change the model only if the
   shared-world behavior fails the multiplayer requirement.
-- [ ] Audit GMCP vessel-state support. Decide whether MSDP alone is the release
-  contract or whether equivalent GMCP variables are required.
 
 ## Completion Rule
 

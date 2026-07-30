@@ -207,10 +207,11 @@ static void wilderness_pool_usage(int *in_use, int *total)
 }
 
 /**
- * Publish the character's vessel state to their client via MSDP.
+ * Publish the character's vessel state to their client via native MSDP.
  *
- * Called from the vessel tick for everyone aboard a ship, so client gauges
- * track position, heading, speed, and hull without polling.
+ * Called from the vessel tick for every playing character. Client gauges
+ * track position, heading, speed, and hull without polling, and receive an
+ * explicit empty state after the character leaves a vessel.
  */
 void vessel_msdp_update(struct char_data *ch)
 {
@@ -225,6 +226,15 @@ void vessel_msdp_update(struct char_data *ch)
   ship = get_ship_from_room(IN_ROOM(ch));
   if (ship == NULL)
   {
+    MSDPSetString(d, eMSDP_SHIP_NAME, "");
+    MSDPSetNumber(d, eMSDP_SHIP_X, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_Y, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_Z, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_HEADING, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_SPEED, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_HULL, 0);
+    MSDPSetNumber(d, eMSDP_SHIP_HULL_MAX, 0);
+    MSDPSetString(d, eMSDP_SHIP_STATUS, "");
     return;
   }
 
@@ -240,7 +250,7 @@ void vessel_msdp_update(struct char_data *ch)
 }
 
 /**
- * Push MSDP ship state to every player currently aboard a vessel.
+ * Refresh native MSDP ship state for every playing character.
  * Runs on the vessel tick alongside the other subsystems.
  */
 void vessel_msdp_tick(void)
