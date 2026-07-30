@@ -90,6 +90,8 @@ struct PERF_prof_sect
 static int initialized = 0;
 static uint64_t prof_reset_usec;
 static uint64_t logged_pulse_count;
+static uint64_t missed_pulse_count;
+static uint64_t vessel_message_throttled_count;
 
 /* Pulse performance tracking */
 static double last_pulse = 0.0;
@@ -409,6 +411,8 @@ void PERF_reset(void)
   last_pulse = 0.0;
   max_pulse = 0.0;
   logged_pulse_count = 0;
+  missed_pulse_count = 0;
+  vessel_message_throttled_count = 0;
 
   threshold_count = sizeof(thresholds) / sizeof(thresholds[0]);
   for (i = 0; (size_t)i < threshold_count; i++)
@@ -460,6 +464,35 @@ void PERF_log_pulse(double val)
 
   /* Check for aggregation */
   aggregate_data();
+}
+
+void PERF_note_missed_pulses(uint64_t count)
+{
+  if (UINT64_MAX - missed_pulse_count < count)
+  {
+    missed_pulse_count = UINT64_MAX;
+    return;
+  }
+
+  missed_pulse_count += count;
+}
+
+void PERF_note_vessel_message_throttled(void)
+{
+  if (vessel_message_throttled_count < UINT64_MAX)
+  {
+    vessel_message_throttled_count++;
+  }
+}
+
+uint64_t PERF_missed_pulse_count(void)
+{
+  return missed_pulse_count;
+}
+
+uint64_t PERF_vessel_message_throttled_count(void)
+{
+  return vessel_message_throttled_count;
 }
 
 size_t PERF_repr(char *out_buf, size_t n)
@@ -864,6 +897,21 @@ size_t PERF_prof_repr_csv(char *out_buf, size_t n)
                  "%s,%" PRIu64 ",%" PRIu64 ",%.2f,%.2f,%.2f,%.2f,%" PRIu64 ",%zu,%" PRIu64 "\n\r",
                  sect->id, sect->total_exit_count, sect->total_usec, average, median, p95, p99,
                  sect->max_usec, sect->sample_count, sect->samples_seen);
+  }
+
+  if (written < n - 1)
+  {
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written, "# missed_pulses=%" PRIu64 "\n\r",
+                 missed_pulse_count),
+        n - written);
+  }
+  if (written < n - 1)
+  {
+    written += bounded_format_length(
+        snprintf(out_buf + written, n - written, "# vessel_messages_throttled=%" PRIu64 "\n\r",
+                 vessel_message_throttled_count),
+        n - written);
   }
 
   return written;

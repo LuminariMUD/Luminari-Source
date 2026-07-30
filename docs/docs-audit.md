@@ -40,7 +40,7 @@ backlog, not a current-behavior reference.
   the living-frontier vision, multiplayer and builder outcomes, shared
   wilderness rules, release budgets, scope, scorecard, and risks.
 - Corrected the base ship structure from the obsolete 1,016-byte claim to the
-  measured 4,856 bytes, about 2.32 MiB for 500 fixed fleet entries.
+  measured 4,928 bytes, about 2.35 MiB for 500 fixed fleet entries.
 - Separated historical movement microbenchmarks from the unmeasured complete
   500-ship tick. The release target remains 25 ms with all vessel subsystems
   active.

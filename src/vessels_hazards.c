@@ -344,7 +344,9 @@ void vessel_weather_tick(void)
       depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
       if (-((int)ship->z) > depth_units * 8)
       {
-        send_to_ship(ship, "The hull GROANS - you are far too deep!");
+        send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_DEPTH,
+                               VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                               "The hull GROANS - you are far too deep!");
         vessel_apply_damage(i, dice(2, 6), GREYHAWK_FORE, "Crushing pressure");
         continue;
       }
@@ -365,10 +367,14 @@ void vessel_weather_tick(void)
     switch (severity)
     {
     case 1:
-      send_to_ship(ship, "A squall slaps spray across the deck.");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_SQUALL,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "A squall slaps spray across the deck.");
       break;
     case 2:
-      send_to_ship(ship, "The storm tears at the rigging!");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_STORM,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "The storm tears at the rigging!");
       if (ship->mainsail > 1)
       {
         ship->mainsail--;
@@ -376,7 +382,9 @@ void vessel_weather_tick(void)
       break;
     case 3:
     default:
-      send_to_ship(ship, "A GALE hammers the ship - the masts scream under the strain!");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_GALE,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "A GALE hammers the ship - the masts scream under the strain!");
       if (ship->mainsail > 2)
       {
         ship->mainsail -= 2;

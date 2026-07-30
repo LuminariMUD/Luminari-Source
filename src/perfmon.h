@@ -28,6 +28,28 @@ extern const unsigned PERF_pulse_per_second;
 void PERF_log_pulse(double val);
 
 /**
+ * @brief Add game-loop heartbeats missed during a lagged pass
+ *
+ * @param count Number of missed heartbeats, excluding the normal pass
+ */
+void PERF_note_missed_pulses(uint64_t count);
+
+/**
+ * @brief Record one repetitive vessel message suppressed by its cooldown
+ */
+void PERF_note_vessel_message_throttled(void);
+
+/**
+ * @brief Return missed heartbeats recorded since the last reset
+ */
+uint64_t PERF_missed_pulse_count(void);
+
+/**
+ * @brief Return vessel messages suppressed since the last reset
+ */
+uint64_t PERF_vessel_message_throttled_count(void);
+
+/**
  * @brief Reset pulse and cumulative profiling statistics
  */
 void PERF_reset(void);

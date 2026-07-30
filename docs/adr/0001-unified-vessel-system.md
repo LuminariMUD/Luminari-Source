@@ -72,7 +72,7 @@ provide, extend the wilderness system and consume the shared result.
 - Builders can create hulls, interiors, routes, ports, and encounter content
   without recompiling.
 - The architecture supports a 500-vessel ceiling with acceptable memory use:
-  the measured base ship structure is 4,856 bytes, or about 2.32 MiB for 500
+  the measured base ship structure is 4,928 bytes, or about 2.35 MiB for 500
   vessels.
 - Existing D20, PvP, DG-script, OLC, protocol, and persistence systems remain
   authoritative instead of being reimplemented.

@@ -1139,6 +1139,10 @@ void game_loop(socket_t local_mother_desc)
       process_time.tv_sec = 0;
       process_time.tv_usec = process_time.tv_usec % OPT_USEC;
     }
+    if (missed_pulses > 0)
+    {
+      PERF_note_missed_pulses((uint64_t)missed_pulses);
+    }
 
     /* Calculate the time we should wake up */
     timediff(&temp_time, &opt_time, &process_time);

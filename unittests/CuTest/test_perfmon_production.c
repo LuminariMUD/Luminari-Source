@@ -121,3 +121,26 @@ void Test_perfmon_ignores_stale_and_duplicate_section_exits(CuTest *tc)
   PERF_prof_repr_csv(report, sizeof(report));
   CuAssertPtrEquals(tc, NULL, strstr(report, "perfmon_exit_guard,"));
 }
+
+void Test_perfmon_csv_reports_and_resets_event_counters(CuTest *tc)
+{
+  char report[4096];
+
+  PERF_reset();
+  PERF_note_missed_pulses(3);
+  PERF_note_vessel_message_throttled();
+  PERF_note_vessel_message_throttled();
+
+  CuAssertTrue(tc, PERF_missed_pulse_count() == 3);
+  CuAssertTrue(tc, PERF_vessel_message_throttled_count() == 2);
+  PERF_prof_repr_csv(report, sizeof(report));
+  CuAssertPtrNotNull(tc, strstr(report, "# missed_pulses=3"));
+  CuAssertPtrNotNull(tc, strstr(report, "# vessel_messages_throttled=2"));
+
+  PERF_reset();
+  CuAssertTrue(tc, PERF_missed_pulse_count() == 0);
+  CuAssertTrue(tc, PERF_vessel_message_throttled_count() == 0);
+  PERF_prof_repr_csv(report, sizeof(report));
+  CuAssertPtrNotNull(tc, strstr(report, "# missed_pulses=0"));
+  CuAssertPtrNotNull(tc, strstr(report, "# vessel_messages_throttled=0"));
+}

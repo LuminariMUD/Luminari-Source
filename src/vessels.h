@@ -100,6 +100,8 @@ struct vertex;
 #define MAX_ROUTES_PER_SHIP 5      /* Maximum routes a ship can store */
 #define AUTOPILOT_TICK_INTERVAL 5  /* Ticks between autopilot updates */
 #define AUTOPILOT_NAME_LENGTH 64   /* Max length for waypoint/route names */
+#define VESSEL_AMBIENT_MESSAGE_COOLDOWN (120 RL_SEC)
+#define VESSEL_COMBAT_MESSAGE_COOLDOWN AUTOPILOT_TICK_INTERVAL
 
 /* Crew Role Constants (matches ship_crew_roster.crew_role ENUM) */
 #define CREW_ROLE_PILOT "pilot" /* NPC vessel pilot */
@@ -375,6 +377,21 @@ enum autopilot_state
   AUTOPILOT_WAITING,   /* At waypoint, waiting */
   AUTOPILOT_PAUSED,    /* Temporarily suspended */
   AUTOPILOT_COMPLETE   /* Route finished */
+};
+
+/* Independent cooldowns keep a severity change or combat-state change visible
+ * while suppressing repeated copies of the same high-volume message class. */
+enum vessel_message_key
+{
+  VESSEL_MESSAGE_AMBIENT_DEPTH = 0,
+  VESSEL_MESSAGE_AMBIENT_SQUALL,
+  VESSEL_MESSAGE_AMBIENT_STORM,
+  VESSEL_MESSAGE_AMBIENT_GALE,
+  VESSEL_MESSAGE_COMBAT_DAMAGE,
+  VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
+  VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
+  VESSEL_MESSAGE_COMBAT_RELOAD,
+  NUM_VESSEL_MESSAGE_KEYS
 };
 
 /* Vessel terrain capabilities structure */
@@ -1209,6 +1226,10 @@ struct greyhawk_ship_data
     int quantity;     /* Units carried */
   } cargo[MAX_CARGO_LOTS];
   int num_cargo_lots;
+
+  /* Runtime-only player-message cooldowns; not written to vessel persistence. */
+  uint64_t message_last_pulse[NUM_VESSEL_MESSAGE_KEYS];
+  unsigned int message_seen_mask;
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -1340,6 +1361,10 @@ struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...);
+void send_to_ship_throttled(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t cooldown_pulses, const char *format, ...);
+bool vessel_message_allowed(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t now_pulse, uint64_t cooldown_pulses);
 void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
 void show_nearby_vessels(struct char_data *ch, struct greyhawk_ship_data *ship);
 

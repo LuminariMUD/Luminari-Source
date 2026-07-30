@@ -391,6 +391,8 @@ run_benchmark()
   local vessel_tick_p95
   local vessel_tick_p99
   local vessel_tick_max
+  local missed_pulses
+  local throttled_messages
   local database_queries
   local air_z_sample_summary
   local air_z_sample_count
@@ -1226,6 +1228,14 @@ SQL
     benchmark_fail "could not parse the vessel_tick result"
   ((vessel_tick_calls >= measurement_seconds * 2 - 10)) ||
     benchmark_fail "vessel_tick captured only $vessel_tick_calls calls"
+  missed_pulses=$(sed -nE \
+    's/^# missed_pulses=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
+  [[ "$missed_pulses" =~ ^[0-9]+$ ]] ||
+    benchmark_fail "could not parse the missed-pulse count"
+  throttled_messages=$(sed -nE \
+    's/^# vessel_messages_throttled=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
+  [[ "$throttled_messages" =~ ^[0-9]+$ ]] ||
+    benchmark_fail "could not parse the vessel message-throttling count"
   database_queries=$(sed -nE \
     's/^# database_queries=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
   [[ "$database_queries" =~ ^[0-9]+$ ]] ||
@@ -1287,6 +1297,8 @@ SQL
     printf 'Vessel tick calls: %s\n' "$vessel_tick_calls"
     printf 'Vessel tick median/p95/p99/max usec: %s/%s/%s/%s\n' \
       "$vessel_tick_median" "$vessel_tick_p95" "$vessel_tick_p99" "$vessel_tick_max"
+    printf 'Missed pulses after reset: %s\n' "$missed_pulses"
+    printf 'Vessel messages throttled after reset: %s\n' "$throttled_messages"
     printf 'Database execution attempts after reset: %s\n' "$database_queries"
     printf 'Scheduled departures during measurement: %s\n' "$schedule_trigger_count"
     printf 'Shared multi-ship encounters observed: %s\n' "$shared_encounter_count"

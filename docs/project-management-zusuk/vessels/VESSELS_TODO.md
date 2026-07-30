@@ -10,21 +10,23 @@ autopilot command durability, write-failure rollback, and static/dynamic
 exterior-hull co-location through restart and zone reset are also proven. The
 shared two-dock harbor, representative prototypes, persistent scheduled ferry,
 and generated-room DG triggers are available. Monotonic per-subsystem timing,
-rolling percentiles, CSV output, correct interval promotion, and a
-process-wide SQL execution counter are now available for the scale gate. The
-fleet now has 500 usable nonzero slots and a matching interior VNUM
-reservation. Automated encounter ordering, shared-room deduplication, and
-class Z boundaries now pass; their actual-character confirmation remains
-queued. Native MSDP is now the explicit vessel release contract, stale client
-state is cleared after disembarkation, and the scale runner includes a real
-Kohdee Telnet-option-69 exchange; its installed-build transcript remains
-queued. Public schedule fares now have fail-closed boarding collection,
-persistence, schema migration, and a reversible Kohdee harbor check; its
-installed-build transcript is also queued behind the pinned soak. Regional
-piracy law now keys territorial, free-sea, and pirate-cove policy to canonical
-wilderness geography; its installed-build transcript is queued with the fare
-check. Continuous validation, execution of the reproducible 500-ship workload,
-content, beta, and production release work remain. Pre-soak testing repaired
+rolling percentiles, CSV output, correct interval promotion, missed-heartbeat
+and message-throttling event counters, and a process-wide SQL execution counter
+are now available for the scale gate. The fleet now has 500 usable nonzero
+slots and a matching interior VNUM reservation. Automated encounter ordering,
+shared-room deduplication, and class Z boundaries now pass; their
+actual-character confirmation remains queued. Native MSDP is now the explicit
+vessel release contract, stale client state is cleared after disembarkation,
+and the scale runner includes a real Kohdee Telnet-option-69 exchange; its
+installed-build transcript remains queued. Public schedule fares now have
+fail-closed boarding collection, persistence, schema migration, and a
+reversible Kohdee harbor check; its installed-build transcript is also queued
+behind the pinned soak. Regional piracy law now keys territorial, free-sea,
+and pirate-cove policy to canonical wilderness geography; its installed-build
+transcript is queued with the fare check. Repetitive vessel weather and combat
+messages now have independent per-vessel cooldowns. Continuous validation,
+execution of the reproducible 500-ship workload, content, beta, and production
+release work remain. Pre-soak testing repaired
 signed-coordinate movement and both unsafe legs of the sample ferry route; an
 actual Kohdee session now completes the full four-waypoint loop. The first
 monitor shakedown was rejected when its idle pre-login descriptor expired and
@@ -76,11 +78,12 @@ merchant, copyover, and multiplayer encounter testing.
   The July 30 instrumentation prerequisite is complete: `perfmon reset` and
   `perfmon csv` provide monotonic aggregate and per-subsystem timing,
   median/p95/p99/max, rolling-sample counts, correct one-time hierarchy
-  promotion, and a process-wide direct/prepared SQL execution count. The
-  fleet array now reserves slot 0 separately from active slots 1-500; the
-  matching zone 700 reservation reaches the final slot's VNUM 80019. The GNU
-  C23 production-linked suite passes 237 tests with the capacity, bounded
-  fleet-summary, encounter, Z-axis, and sustained-economy regressions, and
+  promotion, missed-heartbeat and vessel-message-throttling counters, and a
+  process-wide direct/prepared SQL execution count. The fleet array now
+  reserves slot 0 separately from active slots 1-500; the matching zone 700
+  reservation reaches the final slot's VNUM 80019. The GNU C23
+  production-linked suite covers the capacity, bounded fleet-summary,
+  encounter, Z-axis, sustained-economy, and message-cooldown regressions, and
   isolated provisioner checks pass both extension and overlap rejection.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
@@ -172,9 +175,12 @@ merchant, copyover, and multiplayer encounter testing.
   announce once ship-wide, and remain quiet until the vessel changes regions;
   law metadata is cached so movement adds no SQL. `shiptalk` now carries an
   identified captain-channel message across every occupied room of one vessel
-  without leaking ashore. Still add general ambient/combat throttling, then
-  record installed-build crossing and two-character channel transcripts after
-  the active soak.
+  without leaking ashore. Repeated weather/depth messages now use independent
+  120-second severity cooldowns; repeated damage, return-fire, miss, and reload
+  messages are limited per class to one copy per half-second vessel tick while
+  critical failure warnings remain immediate. Record installed-build crossing,
+  two-character channel, and message-cooldown transcripts after the active
+  soak.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout
