@@ -9,6 +9,20 @@ SELECT 'Harbor Sandbox Raft', 0, 5, 5
  );
 
 INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Harbor Sandbox Hunted Raft', 0, 5, 100
+ WHERE NOT EXISTS (
+   SELECT 1
+     FROM ship_prototypes
+    WHERE name = 'Harbor Sandbox Hunted Raft'
+ );
+
+UPDATE ship_prototypes
+   SET vessel_class = 0,
+       max_speed = 5,
+       armor = 100
+ WHERE name = 'Harbor Sandbox Hunted Raft';
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
 SELECT 'Harbor Sandbox Ferry', 2, 10, 20
  WHERE NOT EXISTS (
    SELECT 1 FROM ship_prototypes WHERE name = 'Harbor Sandbox Ferry'
@@ -18,6 +32,14 @@ INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
 SELECT 'Harbor Sandbox Airship', 4, 25, 15
  WHERE NOT EXISTS (
    SELECT 1 FROM ship_prototypes WHERE name = 'Harbor Sandbox Airship'
+ );
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Harbor Admiralty Hunter', 3, 8, 30
+ WHERE NOT EXISTS (
+   SELECT 1
+     FROM ship_prototypes
+    WHERE name = 'Harbor Admiralty Hunter'
  );
 
 INSERT INTO ship_waypoints (name, x, y, z, tolerance, wait_time, flags)
@@ -60,6 +82,11 @@ SET @harbor_ferry_prototype_id = (
   SELECT MIN(prototype_id)
     FROM ship_prototypes
    WHERE name = 'Harbor Sandbox Ferry'
+);
+SET @harbor_hunter_prototype_id = (
+  SELECT MIN(prototype_id)
+    FROM ship_prototypes
+   WHERE name = 'Harbor Admiralty Hunter'
 );
 SET @harbor_spice_id = (
   SELECT MIN(commodity_id)
@@ -196,6 +223,87 @@ UPDATE region_data
        region_props = 0
  WHERE vnum = 7000003
    AND name = 'Harbor Sandbox Pirate Cove';
+
+-- The encounter polygon uses the canonical REGION_ENCOUNTER layer and may
+-- overlap geographic law polygons by design.
+INSERT INTO region_data
+  (vnum, zone_vnum, name, region_type, region_polygon, region_props,
+   region_reset_data, region_reset_time)
+SELECT 7000004, 10000, 'Harbor Sandbox Bounty Patrol', 2,
+       ST_GeomFromText(
+         'POLYGON((-70 78,-60 78,-60 96,-70 96,-70 78))'
+       ),
+       0, '', NULL
+ WHERE NOT EXISTS (
+   SELECT 1 FROM region_data WHERE vnum = 7000004
+ )
+   AND NOT EXISTS (
+     SELECT 1
+       FROM region_data
+      WHERE name = 'Harbor Sandbox Bounty Patrol'
+   );
+
+UPDATE region_data
+   SET zone_vnum = 10000,
+       region_type = 2,
+       region_polygon = ST_GeomFromText(
+         'POLYGON((-70 78,-60 78,-60 96,-70 96,-70 78))'
+       ),
+       region_props = 0
+ WHERE vnum = 7000004
+   AND name = 'Harbor Sandbox Bounty Patrol';
+
+INSERT INTO vessel_encounters
+  (region_vnum, name, mob_vnum, min_depth, max_depth, vessel_class,
+   chance, warn_message, arrive_message)
+SELECT 7000004, 'Harbor Admiralty hunter patrol', 0, 0, 0, 0, 100,
+       'A navy pennant rises on the horizon - the Admiralty has found you!',
+       'A Harbor Admiralty warship bears down with its ballistae run out!'
+ WHERE @harbor_hunter_prototype_id IS NOT NULL
+   AND NOT EXISTS (
+     SELECT 1
+       FROM vessel_encounters
+      WHERE region_vnum = 7000004
+        AND name = 'Harbor Admiralty hunter patrol'
+   );
+
+UPDATE vessel_encounters
+   SET mob_vnum = 0,
+       min_depth = 0,
+       max_depth = 0,
+       vessel_class = 0,
+       chance = 100,
+       warn_message =
+         'A navy pennant rises on the horizon - the Admiralty has found you!',
+       arrive_message =
+         'A Harbor Admiralty warship bears down with its ballistae run out!'
+ WHERE region_vnum = 7000004
+   AND name = 'Harbor Admiralty hunter patrol';
+
+SET @harbor_hunter_encounter_id = (
+  SELECT MIN(encounter_id)
+    FROM vessel_encounters
+   WHERE region_vnum = 7000004
+     AND name = 'Harbor Admiralty hunter patrol'
+);
+
+INSERT INTO vessel_hunter_encounters
+  (encounter_id, prototype_id, pilot_mob_vnum, min_bounty,
+   pursuit_speed, hunt_duration_seconds, target_grace_seconds,
+   cooldown_seconds, enabled)
+SELECT @harbor_hunter_encounter_id, @harbor_hunter_prototype_id, 70002,
+       2000, 5, 300, 15, 30, 1
+ WHERE @harbor_hunter_encounter_id IS NOT NULL
+   AND @harbor_hunter_prototype_id IS NOT NULL
+ON DUPLICATE KEY UPDATE
+  prototype_id = VALUES(prototype_id),
+  pilot_mob_vnum = VALUES(pilot_mob_vnum),
+  min_bounty = VALUES(min_bounty),
+  pursuit_speed = VALUES(pursuit_speed),
+  hunt_duration_seconds = VALUES(hunt_duration_seconds),
+  target_grace_seconds = VALUES(target_grace_seconds),
+  cooldown_seconds = VALUES(cooldown_seconds),
+  enabled = VALUES(enabled);
 
 INSERT INTO vessel_region_law
   (region_vnum, waters_type, priority, bounty_percent, authority)

@@ -1265,6 +1265,7 @@ void boot_db(void)
   vessel_contracts_ensure_schema();
   vessel_piracy_ensure_schema();
   vessel_hazard_ensure_schema();
+  vessel_hunter_ensure_schema();
   vessel_merchant_ensure_schema();
 
   log("Loading vessel waypoints and routes from database...");
@@ -1273,6 +1274,7 @@ void boot_db(void)
 
   log("Loading ship interiors from database...");
   load_all_ship_interiors();
+  vessel_hunter_boot();
   vessel_merchant_boot();
 
   log("Loading vehicles from database...");

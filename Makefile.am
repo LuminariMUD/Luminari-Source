@@ -217,6 +217,7 @@ circle_SOURCES = \
 	src/vessels_combat.c \
 	src/vessels_crew.c \
 	src/vessels_hazards.c \
+	src/vessels_hunters.c \
 	src/vessels_merchants.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
@@ -323,6 +324,7 @@ EXTRA_DIST = \
 	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
 	scripts/provision_vessel_harbor.sh \
+	scripts/test_vessel_hunter_in_game.sh \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
@@ -337,6 +339,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase12.sql \
 	sql/components/verify_vessels_phase13.sql \
 	sql/components/verify_vessels_phase14.sql \
+	sql/components/verify_vessels_phase15.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_phase11_rollback.sql \
 	sql/components/vessels_phase11_schema.sql \
@@ -346,6 +349,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase13_schema.sql \
 	sql/components/vessels_phase14_rollback.sql \
 	sql/components/vessels_phase14_schema.sql \
+	sql/components/vessels_phase15_rollback.sql \
+	sql/components/vessels_phase15_schema.sql \
 	README.md
 
 # Run unit tests

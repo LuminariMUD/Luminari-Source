@@ -244,6 +244,7 @@ bool vessel_handle_player_removal(const char *player_name)
   vessel_persistence_ensure_schema();
   vessel_piracy_ensure_schema();
   vessel_merchant_ensure_schema();
+  vessel_hunter_ensure_schema();
   mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
   if (mysql_query(conn, "START TRANSACTION"))
   {
@@ -308,6 +309,14 @@ bool vessel_handle_player_removal(const char *player_name)
   }
 
   snprintf(query, sizeof(query),
+           "DELETE FROM vessel_bounty_hunts WHERE target_player = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
            "DELETE FROM vessel_bounties WHERE player_name = '%s'",
            escaped_name);
   if (mysql_query(conn, query))
@@ -323,6 +332,7 @@ bool vessel_handle_player_removal(const char *player_name)
     return FALSE;
   }
 
+  vessel_hunter_handle_player_removal(player_name);
   unowned = 0;
   permits_removed = 0;
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)

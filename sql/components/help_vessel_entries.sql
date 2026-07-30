@@ -534,6 +534,7 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
        vesseldebug on <category|all>
        vesseldebug off [category]
+       vesseldebug encounter
        vtradecheck [trades]
 
 Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
@@ -553,7 +554,11 @@ Categories:
 
 Production/default builds compile diagnostics out with VESSEL_SYSTEM_DEBUG=0.
 In that build, status reports that logging is unavailable and attempts to
-enable a category are refused. For an explicit development diagnostic build,
+enable a category are refused. ENCOUNTER remains available to staff in every
+build; it advances only the cadence counter and then runs the normal region,
+class, depth, chance, eligibility, and spawn path.
+
+For an explicit development diagnostic build,
 compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and
 must be enabled at runtime.
 

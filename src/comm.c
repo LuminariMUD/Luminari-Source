@@ -1425,6 +1425,7 @@ void heartbeat(int heart_pulse)
   static int mins_since_crashsave = 0;
   static struct PERF_prof_sect *pr_vessel_tick = NULL;
   static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
+  static struct PERF_prof_sect *pr_vessel_hunters = NULL;
   static struct PERF_prof_sect *pr_vessel_combat = NULL;
   static struct PERF_prof_sect *pr_vessel_crew_wages = NULL;
   static struct PERF_prof_sect *pr_vessel_upkeep = NULL;
@@ -1487,6 +1488,12 @@ void heartbeat(int heart_pulse)
     PERF_prof_sect_enter(pr_vessel_autopilot);
     autopilot_tick();
     PERF_prof_sect_exit(pr_vessel_autopilot);
+
+    PERF_prof_sect_init(&pr_vessel_hunters, "vessel_hunters");
+    PERF_prof_sect_enable_sampling(pr_vessel_hunters);
+    PERF_prof_sect_enter(pr_vessel_hunters);
+    vessel_hunter_tick();
+    PERF_prof_sect_exit(pr_vessel_hunters);
 
     PERF_prof_sect_init(&pr_vessel_combat, "vessel_combat");
     PERF_prof_sect_enable_sampling(pr_vessel_combat);

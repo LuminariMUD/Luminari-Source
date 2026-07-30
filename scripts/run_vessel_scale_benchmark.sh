@@ -25,7 +25,9 @@ snapshot_tables=(
   ship_weapons
   trade_commodities
   vessel_bounties
+  vessel_bounty_hunts
   vessel_encounters
+  vessel_hunter_encounters
   vessel_insurance_claims
 )
 
@@ -1262,6 +1264,8 @@ ON DUPLICATE KEY UPDATE
   val3 = VALUES(val3),
   reload_timer = VALUES(reload_timer);
 
+DELETE FROM vessel_bounty_hunts;
+DELETE FROM vessel_hunter_encounters;
 DELETE FROM vessel_encounters;
 INSERT INTO vessel_encounters
   (region_vnum, name, mob_vnum, min_depth, max_depth, vessel_class,

@@ -317,6 +317,14 @@ merchant, copyover, and multiplayer encounter testing.
   after the active 24-hour soak.
 - [ ] Add bounty-hunter warships delivered through the encounter/spawn engine
   for players with the HUNTED state.
+  Phase 15 implementation is in progress in the isolated development worktree
+  while the pinned ferry soak remains untouched. The traced design keeps
+  `vessel_encounters` as the region/class/depth/chance selector, adds
+  data-driven warship prototype, pilot, pursuit, duration, grace, and cooldown
+  policy, and records one durable hunt lifecycle per target. The lifecycle
+  must reconcile after restart, reject duplicate hunters and stale fleet-slot
+  reuse, pursue only an online HUNTED owner aboard the target hull, and retire
+  cleanly after pardon, logout grace, expiry, capture, sinking, or staff purge.
 - [ ] Author territorial waters, free seas, and pirate coves as
   `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
   geography rather than private coordinate tables.
