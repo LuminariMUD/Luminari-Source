@@ -47,22 +47,24 @@ After `make install`, provision and verify the complete reusable harbor with:
 ```
 
 This development-only command reuses the configured master account and Kohdee;
-it does not create another account or character. It installs only missing
-harbor world records, seeds the database fixture, hard-restarts the supervised
-local MUD, and verifies the two docks, public ferry, NPC pilot, hourly route,
-10-gold passenger fare, territorial/free-sea/pirate-cove wilderness regions,
-and generated bridge/cargo triggers. After restart it confirms that `seastate`
+it never creates another account. It installs only missing harbor world
+records, seeds the database fixture, hard-restarts the supervised local MUD,
+and verifies the two docks, public ferry, NPC pilot, hourly route, 10-gold
+passenger fare, territorial/free-sea/pirate-cove wilderness regions, and
+generated bridge/cargo triggers. After restart it confirms that `seastate`
 resolves the ferry's canonical legal waters, boards through the ordinary
 hull-object path as Kohdee, proves exactly one fare was deducted, restores
 Kohdee's original gold, resumes the ferry, and waits up to 45 seconds for a
 real territorial/free-sea boundary announcement. It immediately correlates
-that announcement with `seastate`, then returns Kohdee to room 1000389. The
-provisioner discovers and passes the ferry slot automatically; do not spend
-time looking it up or create a second account or disposable character. The
+that announcement with `seastate`, then runs the two-character, cross-room
+`shiptalk` and ashore-isolation proof on the same ferry. If the master account
+has only Kohdee, it creates reusable `Vesselmate` on that account and retries
+the channel proof automatically. The provisioner discovers every account-menu
+Name and the ferry slot; do not look either up or create a second account. The
 first run may need about one minute because it creates the ferry and proves a
-second restart. Before the fare and crossing checks were added, an already
-provisioned harbor took about 30 seconds; remeasure the augmented path after
-the active ferry soak releases the installed build.
+second restart. Before the fare, crossing, and channel checks were added, an
+already provisioned harbor took about 30 seconds; remeasure the augmented path
+after the active ferry soak releases the installed build.
 
 ## Durable Vessel Ferry Soak
 
@@ -242,9 +244,10 @@ account first:
 
 The one-argument creation form uses the master account. Do not create a second
 account for this check. A read-only July 30 database check found that the
-current local master account contains only Kohdee, so run this once after the
-active soak and before the channel gate. The gate will then discover
-`Vesselmate` automatically; do not pass or look up its account-menu slot.
+current local master account contains only Kohdee. The shared harbor
+provisioner handles this automatically after the active soak; use the command
+above only when running the standalone channel gate first. The gate discovers
+`Vesselmate` automatically, so never pass or look up its account-menu slot.
 
 ## Fast Native MSDP Vessel-State Gate
 

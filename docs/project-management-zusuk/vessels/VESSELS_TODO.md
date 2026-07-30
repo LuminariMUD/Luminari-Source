@@ -188,14 +188,15 @@ merchant, copyover, and multiplayer encounter testing.
   simultaneous character sockets for the channel proof, selecting Kohdee and
   the first other usable character from the same master account in one run;
   an explicit Name remains optional. The current account has only Kohdee, so
-  add `Vesselmate` to that same account once after the active soak, then let
-  the gate discover it. The named-water helper waits on the moving ferry's
-  real crossing announcement and correlates its region, water type, authority,
-  and bounty with an immediate `seastate`; the harbor provisioner discovers
-  the ferry slot and runs that proof automatically. Record the installed-build
-  crossing and two-character channel transcripts after the active soak; the
-  scale runner records the installed-build message-cooldown transcript through
-  Kohdee's live observation and required nonzero suppression counter.
+  the harbor provisioner will add `Vesselmate` to that same account once after
+  the active soak, then run the channel gate on its discovered ferry slot. The
+  named-water helper waits on the moving ferry's real crossing announcement
+  and correlates its region, water type, authority, and bounty with an
+  immediate `seastate`; the same provisioner runs that proof automatically.
+  Record the installed-build crossing and two-character channel transcripts
+  after the active soak; the scale runner records the installed-build
+  message-cooldown transcript through Kohdee's live observation and required
+  nonzero suppression counter.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout

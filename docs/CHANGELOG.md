@@ -74,8 +74,10 @@
 - Static account-menu fixtures prove automatic selection, case-insensitive
   explicit selection, and rejection of Kohdee, deleted rows, and missing
   Names. A read-only database check found only Kohdee on the current master
-  account, so `Vesselmate` will be added to that same account after the pinned
-  soak. The installed-build transcript remains queued until then.
+  account. The harbor provisioner will add `Vesselmate` to that same account
+  only when needed, run the channel proof against its discovered ferry slot,
+  and retain the character as a reusable fixture. The installed-build
+  transcript remains queued behind the pinned soak.
 
 ### Canonical vessel law
 
