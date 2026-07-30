@@ -28,7 +28,6 @@
 /* ========================================================================= */
 
 /* From vehicles.c */
-extern struct vehicle_data *vehicle_find_in_room(room_rnum room);
 extern struct vehicle_data *vehicle_find_by_id(int id);
 extern int vehicle_add_passenger(struct vehicle_data *vehicle);
 extern int vehicle_remove_passenger(struct vehicle_data *vehicle);
@@ -64,6 +63,96 @@ static struct player_vehicle_map
  * Count of currently mounted players.
  */
 static int mounted_count = 0;
+
+ACMD(do_vehiclecreate)
+{
+  struct vehicle_data *vehicle;
+  const char *name;
+  char type_arg[MAX_INPUT_LENGTH];
+  enum vehicle_type type;
+
+  name = any_one_arg_c(argument, type_arg, sizeof(type_arg));
+  skip_spaces_c(&name);
+
+  if (!str_cmp(type_arg, "cart"))
+    type = VEHICLE_CART;
+  else if (!str_cmp(type_arg, "wagon"))
+    type = VEHICLE_WAGON;
+  else if (!str_cmp(type_arg, "mount"))
+    type = VEHICLE_MOUNT;
+  else if (!str_cmp(type_arg, "carriage"))
+    type = VEHICLE_CARRIAGE;
+  else
+  {
+    send_to_char(ch, "Usage: vehiclecreate <cart|wagon|mount|carriage> [name]\r\n");
+    return;
+  }
+
+  if (!ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+  {
+    send_to_char(ch, "Create test vehicles in a wilderness room.\r\n");
+    return;
+  }
+
+  vehicle = vehicle_create(type, *name ? name : NULL);
+  if (vehicle == NULL)
+  {
+    send_to_char(ch, "Unable to create that vehicle.\r\n");
+    return;
+  }
+
+  vehicle->location = IN_ROOM(ch);
+  vehicle->x_coord = world[IN_ROOM(ch)].coords[0];
+  vehicle->y_coord = world[IN_ROOM(ch)].coords[1];
+  vehicle->owner_id = GET_IDNUM(ch);
+
+  if (!vehicle_save(vehicle))
+  {
+    vehicle_destroy(vehicle);
+    send_to_char(ch, "The vehicle could not be persisted; creation was rolled back.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Created vehicle #%d: %s [%s] at (%d, %d).\r\n", vehicle->id, vehicle->name,
+               vehicle_type_name(vehicle->type), vehicle->x_coord, vehicle->y_coord);
+}
+
+ACMD(do_vehiclepurge)
+{
+  struct vehicle_data *vehicle;
+  char arg[MAX_INPUT_LENGTH];
+  char *end;
+  long id;
+
+  any_one_arg_c(argument, arg, sizeof(arg));
+  id = strtol(arg, &end, 10);
+  if (!*arg || *end != '\0' || id <= 0 || id > INT_MAX)
+  {
+    send_to_char(ch, "Usage: vehiclepurge <vehicle-id>\r\n");
+    return;
+  }
+
+  vehicle = vehicle_find_by_id((int)id);
+  if (vehicle == NULL)
+  {
+    send_to_char(ch, "No active vehicle has ID %ld.\r\n", id);
+    return;
+  }
+
+  if (vehicle->current_passengers > 0)
+  {
+    send_to_char(ch, "Dismount all passengers before purging that vehicle.\r\n");
+    return;
+  }
+
+  if (!vehicle_purge(vehicle))
+  {
+    send_to_char(ch, "Unable to purge vehicle #%ld.\r\n", id);
+    return;
+  }
+
+  send_to_char(ch, "Purged vehicle #%ld.\r\n", id);
+}
 
 /* ========================================================================= */
 /* HELPER FUNCTIONS (T005, T007, T008)                                       */
@@ -347,7 +436,7 @@ ACMD(do_vmount)
   }
 
   /* Find vehicle in room */
-  vehicle = vehicle_find_in_room(IN_ROOM(ch));
+  vehicle = vehicle_find_in_room_named(IN_ROOM(ch), arg);
 
   if (vehicle == NULL)
   {
@@ -457,6 +546,8 @@ ACMD(do_vdismount)
  */
 ACMD(do_drive)
 {
+  struct char_data *rider;
+  struct char_data *next_rider;
   struct vehicle_data *vehicle;
   char arg[MAX_INPUT_LENGTH];
   int direction;
@@ -512,6 +603,21 @@ ACMD(do_drive)
   {
     send_to_char(ch, "The %s fails to move.\r\n", vehicle_type_name(vehicle->type));
     return;
+  }
+
+  /* Move every connected rider with the vehicle and synchronize coordinates. */
+  for (rider = character_list; rider != NULL; rider = next_rider)
+  {
+    next_rider = rider->next;
+    if (get_player_vehicle(rider) != vehicle || IN_ROOM(rider) == vehicle->location)
+    {
+      continue;
+    }
+
+    char_from_room(rider);
+    X_LOC(rider) = vehicle->x_coord;
+    Y_LOC(rider) = vehicle->y_coord;
+    char_to_room(rider, vehicle->location);
   }
 
   /* Success messages */
@@ -659,9 +765,15 @@ ACMD(do_loadvehicle)
     return;
   }
 
-  /* Find vehicle - for now, get vehicle from current room/area */
-  /* This is simplified; in a full implementation would parse arg to find specific vehicle */
-  vehicle = vehicle_find_in_room(IN_ROOM(ch));
+  /* Vehicles waiting to load are beside the hull, not inside its rooms. */
+  if (vessel->shipobj != NULL && IN_ROOM(vessel->shipobj) != NOWHERE)
+  {
+    vehicle = vehicle_find_in_room_named(IN_ROOM(vessel->shipobj), arg);
+  }
+  else
+  {
+    vehicle = NULL;
+  }
 
   if (vehicle == NULL)
   {

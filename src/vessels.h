@@ -20,6 +20,9 @@
 #include "handler.h"
 #include "constants.h"
 
+struct region_list;
+struct vertex;
+
 /* ========================================================================= */
 /* ITEM TYPES FOR VESSEL SYSTEM                                              */
 /* ========================================================================= */
@@ -63,8 +66,10 @@
 /* ========================================================================= */
 
 #ifndef GREYHAWK_MAXSHIPS
-#define GREYHAWK_MAXSHIPS 500 /* Maximum number of ships in game */
+#define GREYHAWK_MAXSHIPS 501 /* Fleet slots, including reserved slot 0 */
 #endif
+
+#define GREYHAWK_ACTIVE_SHIP_CAPACITY (GREYHAWK_MAXSHIPS - 1)
 
 #ifndef GREYHAWK_MAXSLOTS
 #define GREYHAWK_MAXSLOTS 10 /* Maximum equipment slots per ship */
@@ -95,6 +100,8 @@
 #define MAX_ROUTES_PER_SHIP 5      /* Maximum routes a ship can store */
 #define AUTOPILOT_TICK_INTERVAL 5  /* Ticks between autopilot updates */
 #define AUTOPILOT_NAME_LENGTH 64   /* Max length for waypoint/route names */
+#define VESSEL_AMBIENT_MESSAGE_COOLDOWN (120 RL_SEC)
+#define VESSEL_COMBAT_MESSAGE_COOLDOWN AUTOPILOT_TICK_INTERVAL
 
 /* Crew Role Constants (matches ship_crew_roster.crew_role ENUM) */
 #define CREW_ROLE_PILOT "pilot" /* NPC vessel pilot */
@@ -106,6 +113,7 @@
 #define SCHEDULE_INTERVAL_MIN 1  /* Minimum schedule interval (MUD hours) */
 #define SCHEDULE_INTERVAL_MAX 24 /* Maximum schedule interval (MUD hours) */
 #define SCHEDULE_NAME_LENGTH 64  /* Max length for schedule names */
+#define VESSEL_PASSENGER_FARE_MAX 100000 /* Maximum gold charged for one boarding */
 
 /* Schedule State Flags */
 #define SCHEDULE_FLAG_ENABLED (1 << 0) /* Schedule is active */
@@ -143,8 +151,26 @@
 /*   [VEHICLE_XPORT] - Vehicle-vessel transport                              */
 /* ========================================================================= */
 
-/* Master debug toggle - set to 1 to enable debug logging system */
-#define VESSEL_SYSTEM_DEBUG 1
+/* Master debug toggle - override to 1 in an explicit development build. */
+#ifndef VESSEL_SYSTEM_DEBUG
+#define VESSEL_SYSTEM_DEBUG 0
+#endif
+
+#define VESSEL_DEBUG_CAT_CORE (1U << 0)
+#define VESSEL_DEBUG_CAT_MOVE (1U << 1)
+#define VESSEL_DEBUG_CAT_AUTO (1U << 2)
+#define VESSEL_DEBUG_CAT_DOCK (1U << 3)
+#define VESSEL_DEBUG_CAT_DB (1U << 4)
+#define VESSEL_DEBUG_CAT_FUNC (1U << 5)
+#define VESSEL_DEBUG_CAT_STATE (1U << 6)
+#define VESSEL_DEBUG_CAT_VEHICLE (1U << 7)
+#define VESSEL_DEBUG_CAT_VEHICLE_MOVE (1U << 8)
+#define VESSEL_DEBUG_CAT_TRANSPORT (1U << 9)
+#define VESSEL_DEBUG_CAT_ALL ((1U << 10) - 1U)
+
+extern unsigned int vessel_debug_mask;
+bool vessel_debug_enabled(unsigned int category);
+unsigned int vessel_debug_category_from_name(const char *name);
 
 /* Category-specific toggles (only effective when master is 1) */
 #define VESSEL_DEBUG_CORE (VESSEL_SYSTEM_DEBUG && 1)   /* General vessel ops */
@@ -162,7 +188,8 @@
 #define VSSL_DEBUG(fmt, ...)                                                                       \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL] " fmt, ##__VA_ARGS__);                                                           \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_CORE))                                               \
+      log("[VESSEL] " fmt, ##__VA_ARGS__);                                                         \
   } while (0)
 #else
 #define VSSL_DEBUG(fmt, ...)                                                                       \
@@ -175,7 +202,8 @@
 #define VSSL_DEBUG_MOVE(fmt, ...)                                                                  \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_MOVE] " fmt, ##__VA_ARGS__);                                                      \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_MOVE))                                               \
+      log("[VESSEL_MOVE] " fmt, ##__VA_ARGS__);                                                    \
   } while (0)
 #else
 #define VSSL_DEBUG_MOVE(fmt, ...)                                                                  \
@@ -188,7 +216,8 @@
 #define VSSL_DEBUG_AUTO(fmt, ...)                                                                  \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_AUTO] " fmt, ##__VA_ARGS__);                                                      \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_AUTO))                                               \
+      log("[VESSEL_AUTO] " fmt, ##__VA_ARGS__);                                                    \
   } while (0)
 #else
 #define VSSL_DEBUG_AUTO(fmt, ...)                                                                  \
@@ -201,7 +230,8 @@
 #define VSSL_DEBUG_DOCK(fmt, ...)                                                                  \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_DOCK] " fmt, ##__VA_ARGS__);                                                      \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_DOCK))                                               \
+      log("[VESSEL_DOCK] " fmt, ##__VA_ARGS__);                                                    \
   } while (0)
 #else
 #define VSSL_DEBUG_DOCK(fmt, ...)                                                                  \
@@ -214,7 +244,8 @@
 #define VSSL_DEBUG_DB(fmt, ...)                                                                    \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_DB] " fmt, ##__VA_ARGS__);                                                        \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_DB))                                                 \
+      log("[VESSEL_DB] " fmt, ##__VA_ARGS__);                                                      \
   } while (0)
 #else
 #define VSSL_DEBUG_DB(fmt, ...)                                                                    \
@@ -229,7 +260,8 @@
 #define VHCL_DEBUG(fmt, ...)                                                                       \
   do                                                                                               \
   {                                                                                                \
-    log("[VEHICLE] " fmt, ##__VA_ARGS__);                                                          \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_VEHICLE))                                            \
+      log("[VEHICLE] " fmt, ##__VA_ARGS__);                                                        \
   } while (0)
 #else
 #define VHCL_DEBUG(fmt, ...)                                                                       \
@@ -242,7 +274,8 @@
 #define VHCL_DEBUG_MOVE(fmt, ...)                                                                  \
   do                                                                                               \
   {                                                                                                \
-    log("[VEHICLE_MOVE] " fmt, ##__VA_ARGS__);                                                     \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_VEHICLE_MOVE))                                       \
+      log("[VEHICLE_MOVE] " fmt, ##__VA_ARGS__);                                                   \
   } while (0)
 #else
 #define VHCL_DEBUG_MOVE(fmt, ...)                                                                  \
@@ -255,7 +288,8 @@
 #define VHCL_DEBUG_XPORT(fmt, ...)                                                                 \
   do                                                                                               \
   {                                                                                                \
-    log("[VEHICLE_XPORT] " fmt, ##__VA_ARGS__);                                                    \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_TRANSPORT))                                          \
+      log("[VEHICLE_XPORT] " fmt, ##__VA_ARGS__);                                                  \
   } while (0)
 #else
 #define VHCL_DEBUG_XPORT(fmt, ...)                                                                 \
@@ -270,17 +304,20 @@
 #define VSSL_DEBUG_ENTER(func)                                                                     \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_FUNC] ENTER: %s()", func);                                                        \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_FUNC))                                               \
+      log("[VESSEL_FUNC] ENTER: %s()", func);                                                      \
   } while (0)
 #define VSSL_DEBUG_EXIT(func)                                                                      \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_FUNC] EXIT: %s()", func);                                                         \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_FUNC))                                               \
+      log("[VESSEL_FUNC] EXIT: %s()", func);                                                       \
   } while (0)
 #define VSSL_DEBUG_EXIT_VAL(func, val)                                                             \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_FUNC] EXIT: %s() = %d", func, (int)(val));                                        \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_FUNC))                                               \
+      log("[VESSEL_FUNC] EXIT: %s() = %d", func, (int)(val));                                      \
   } while (0)
 #else
 #define VSSL_DEBUG_ENTER(func)                                                                     \
@@ -303,7 +340,8 @@
 #define VSSL_DEBUG_STATE(entity, old_state, new_state)                                             \
   do                                                                                               \
   {                                                                                                \
-    log("[VESSEL_STATE] %s: %s -> %s", entity, old_state, new_state);                              \
+    if (vessel_debug_enabled(VESSEL_DEBUG_CAT_STATE))                                              \
+      log("[VESSEL_STATE] %s: %s -> %s", entity, old_state, new_state);                            \
   } while (0)
 #else
 #define VSSL_DEBUG_STATE(entity, old_state, new_state)                                             \
@@ -339,6 +377,21 @@ enum autopilot_state
   AUTOPILOT_WAITING,   /* At waypoint, waiting */
   AUTOPILOT_PAUSED,    /* Temporarily suspended */
   AUTOPILOT_COMPLETE   /* Route finished */
+};
+
+/* Independent cooldowns keep a severity change or combat-state change visible
+ * while suppressing repeated copies of the same high-volume message class. */
+enum vessel_message_key
+{
+  VESSEL_MESSAGE_AMBIENT_DEPTH = 0,
+  VESSEL_MESSAGE_AMBIENT_SQUALL,
+  VESSEL_MESSAGE_AMBIENT_STORM,
+  VESSEL_MESSAGE_AMBIENT_GALE,
+  VESSEL_MESSAGE_COMBAT_DAMAGE,
+  VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
+  VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
+  VESSEL_MESSAGE_COMBAT_RELOAD,
+  NUM_VESSEL_MESSAGE_KEYS
 };
 
 /* Vessel terrain capabilities structure */
@@ -399,8 +452,11 @@ struct vessel_result vessel_execute_command(struct char_data *actor, enum vessel
 /* ========================================================================= */
 /* Functions for integrating vessels with the wilderness coordinate system    */
 
+room_rnum get_or_allocate_wilderness_room(int x, int y);
 bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
 int get_ship_terrain_type(int shipnum);
+bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z);
+bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int z);
 bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
@@ -416,10 +472,17 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 #define VESSEL_STATUS_CRIPPLED 2
 #define VESSEL_STATUS_SINKING 3
 
+/* An owner cannot end an already-consented vessel fight by logging out. */
+#define VESSEL_PVP_LOGOUT_GRACE 300
+
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
+bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target,
+                             const char *attacker_name, time_t now);
+void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
 int vessel_total_internal(const struct greyhawk_ship_data *ship);
 int vessel_max_internal(const struct greyhawk_ship_data *ship);
 int vessel_status(const struct greyhawk_ship_data *ship);
+void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor);
 const char *vessel_status_name(int status);
 void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause);
 void vessel_sink(int shipnum);
@@ -467,6 +530,7 @@ void vessel_upkeep_tick(void);
 void vessel_db_save_extras(struct greyhawk_ship_data *ship);
 void vessel_db_load_extras(struct greyhawk_ship_data *ship);
 void vessel_pay_insurance(struct greyhawk_ship_data *ship);
+int vessel_deliver_pending_insurance(struct char_data *ch);
 
 ACMD_DECL(do_shipupgrade); /* Owner: install upgrades at a dock */
 ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
@@ -481,11 +545,33 @@ ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
 #define TRADE_BASELINE_SUPPLY 100
 #define TRADE_SUPPLY_MIN 10
 #define TRADE_SUPPLY_MAX 400
+#define TRADE_SELL_PERCENT 85
 #define TRADE_RESTOCK_INTERVAL 1200 /* Vessel ticks between supply drift */
+
+struct vessel_trade_simulation_result
+{
+  int requested_trades;
+  int completed_trades;
+  int minimum_supply;
+  int maximum_supply;
+  int profitable_routes;
+  int equilibrium_source_supply;
+  int equilibrium_destination_supply;
+  int restocked_source_supply;
+  int restocked_destination_supply;
+  long long adversarial_profit;
+  long long finite_route_profit;
+};
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
 int vessel_commodity_price(int base_price, int supply);
+int vessel_trade_adjusted_supply(int supply, int delta);
+int vessel_trade_restocked_supply(int supply);
+long long vessel_trade_buy_cost(int base_price, int supply, int quantity);
+long long vessel_trade_sell_revenue(int base_price, int supply, int quantity);
+bool vessel_trade_run_simulation(int trade_count,
+                                 struct vessel_trade_simulation_result *result);
 void vessel_trade_restock_tick(void);
 void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
@@ -505,6 +591,27 @@ void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
 #define VESSEL_HAZARD_INTERVAL 60
 #define VESSEL_ENCOUNTER_INTERVAL 180
 
+/* Phase 15 bounty-hunter encounter lifecycle limits. */
+#define VESSEL_HUNTER_DURATION_MIN 10
+#define VESSEL_HUNTER_DURATION_MAX 86400
+#define VESSEL_HUNTER_GRACE_MAX 600
+#define VESSEL_HUNTER_COOLDOWN_MIN 1
+#define VESSEL_HUNTER_COOLDOWN_MAX 604800
+#define VESSEL_HUNTER_PURSUIT_SPEED_MAX 100
+
+struct vessel_hunter_config
+{
+  int encounter_id;
+  int prototype_id;
+  int pilot_mob_vnum;
+  int min_bounty;
+  int pursuit_speed;
+  int hunt_duration_seconds;
+  int target_grace_seconds;
+  int cooldown_seconds;
+  bool enabled;
+};
+
 /* Contact/spotting range shrinks in fog */
 #define VESSEL_SIGHT_CLEAR 50
 #define VESSEL_SIGHT_FOG 15
@@ -514,8 +621,38 @@ int vessel_sight_range(const struct greyhawk_ship_data *ship);
 int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
+void vessel_encounter_force_check(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
+bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
+bool vessel_encounter_chance_succeeds(int chance, int roll);
+bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
+                                 int claimed_capacity);
 int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
+
+/* Data-driven HUNTED-state warships (Phase 15, vessels_hunters.c). */
+void vessel_hunter_ensure_schema(void);
+void vessel_hunter_boot(void);
+void vessel_hunter_tick(void);
+int vessel_hunter_load_config(int encounter_id,
+                              struct vessel_hunter_config *config);
+bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config);
+bool vessel_hunter_lifecycle_allows_spawn(const char *status,
+                                          time_t next_eligible_at,
+                                          time_t now);
+bool vessel_hunter_target_is_eligible(
+    const struct greyhawk_ship_data *target,
+    const struct vessel_hunter_config *config, time_t now);
+bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
+                         const struct vessel_hunter_config *config,
+                         const char *encounter_name);
+void vessel_hunter_handle_sink(struct greyhawk_ship_data *ship);
+void vessel_hunter_handle_capture(struct char_data *ch,
+                                  struct greyhawk_ship_data *ship);
+void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship,
+                                const char *staff_name);
+void vessel_hunter_handle_player_rename(const char *old_name,
+                                        const char *new_name);
+void vessel_hunter_handle_player_removal(const char *player_name);
 
 ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
 
@@ -529,6 +666,8 @@ void vessel_msdp_tick(void);
 ACMD_DECL(do_shiplist); /* Staff: fleet overview + room pool health */
 ACMD_DECL(do_shipgoto); /* Staff: teleport to a ship */
 ACMD_DECL(do_shipfix);  /* Staff: restore a ship to full condition */
+ACMD_DECL(do_shippurge); /* Staff: destroy one runtime ship safely */
+ACMD_DECL(do_vesseldebug); /* Staff: focused runtime debug categories */
 
 /* ========================================================================= */
 /* PIRACY AND BOUNTY (Phase 07, vessels_piracy.c)                            */
@@ -542,11 +681,41 @@ ACMD_DECL(do_shipfix);  /* Staff: restore a ship to full condition */
 /* Bounty earned per unit of cargo taken by force */
 #define BOUNTY_PER_CARGO_UNIT 15
 
+/* Builder-authored REGION_GEOGRAPHIC waters may refine the default piracy
+ * consequence without creating a vessel-private geography model. */
+#define VESSEL_WATERS_UNCLAIMED 0
+#define VESSEL_WATERS_TERRITORIAL 1
+#define VESSEL_WATERS_FREE 2
+#define VESSEL_WATERS_PIRATE_COVE 3
+#define VESSEL_PIRACY_BOUNTY_PERCENT_MAX 500
+
+struct vessel_piracy_law
+{
+  bool configured;
+  int region_vnum;
+  int waters_type;
+  int priority;
+  int bounty_percent;
+  char region_name[64];
+  char authority[64];
+};
+
 void vessel_piracy_ensure_schema(void);
+bool vessel_piracy_reload_laws(void);
+void vessel_piracy_clear_laws(void);
 int vessel_get_bounty(const char *player_name);
 void vessel_add_bounty(const char *player_name, int amount);
 void vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
+const char *vessel_waters_type_name(int waters_type);
+int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);
+bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law);
+bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count,
+                                    int x, int y);
+bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law);
+bool vessel_piracy_law_for_ship(const struct greyhawk_ship_data *ship,
+                                struct vessel_piracy_law *law);
+void vessel_piracy_track_waters(struct greyhawk_ship_data *ship, bool announce);
 bool vessel_port_refuses(struct char_data *ch);
 int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
                          struct greyhawk_ship_data *raider);
@@ -554,6 +723,34 @@ int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
 ACMD_DECL(do_plunder); /* Take cargo from a captured/boarded ship */
 ACMD_DECL(do_bounty);  /* Check a bounty */
 ACMD_DECL(do_marque);  /* Buy a letter of marque (legal privateering) */
+
+/* Data-driven NPC merchant lifecycle (Phase 14, vessels_merchants.c) */
+#define VESSEL_MERCHANT_RESPAWN_MIN 1
+#define VESSEL_MERCHANT_RESPAWN_MAX 604800
+#define VESSEL_MERCHANT_ATTACK_STANDING_PENALTY 25
+#define VESSEL_MERCHANT_LOSS_STANDING_PENALTY 100
+#define VESSEL_MERCHANT_LOSS_BOUNTY_UNITS 34
+#define VESSEL_MERCHANT_RESPONSIBILITY_SECONDS 300
+
+void vessel_merchant_ensure_schema(void);
+void vessel_merchant_boot(void);
+void vessel_merchant_tick(void);
+void vessel_merchant_note_attacker(struct char_data *ch,
+                                   struct greyhawk_ship_data *ship);
+void vessel_merchant_record_plunder(struct char_data *ch,
+                                    struct greyhawk_ship_data *ship,
+                                    int cargo_units, int bounty_delta);
+void vessel_merchant_handle_sink(struct greyhawk_ship_data *ship);
+void vessel_merchant_handle_capture(struct char_data *ch,
+                                    struct greyhawk_ship_data *ship);
+void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship,
+                                  const char *staff_name);
+int vessel_merchant_deliver_pending_consequences(struct char_data *ch);
+bool vessel_merchant_should_spawn(bool enabled, int active_ship_id,
+                                  time_t next_respawn_at, time_t now);
+bool vessel_merchant_responsibility_active(time_t attacked_at, time_t now);
+int vessel_merchant_faction_penalty(int cargo_units, bool total_loss);
+ACMD_DECL(do_vmerchant); /* Staff: inspect, synchronize, or test merchant loss */
 
 /* Freight contracts (Phase 07, vessels_contracts.c) */
 #define CONTRACT_STATUS_OPEN 0
@@ -573,6 +770,19 @@ ACMD_DECL(do_market);        /* At a dock: list commodity prices */
 ACMD_DECL(do_cargobuy);      /* At a dock: buy bulk cargo into the hold */
 ACMD_DECL(do_cargosell);     /* At a dock: sell bulk cargo from the hold */
 ACMD_DECL(do_cargomanifest); /* Show the ship's bulk cargo manifest */
+ACMD_DECL(do_vtradecheck);   /* Staff: deterministic economy simulation */
+ACMD_DECL(do_dockfees);      /* Inspect or settle the current berthing fee */
+
+bool vessel_room_is_port(room_rnum room);
+bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum room);
+bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship);
+int vessel_dock_fee_for_class(enum vessel_class vessel_type);
+int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
+                           int owner_clan_vnum);
+void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
+                              room_rnum new_room, bool old_is_port);
+int vessel_passenger_fare(const struct greyhawk_ship_data *ship);
+bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_data *ship);
 
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
@@ -585,14 +795,18 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship);
 
 bool vessel_helm_permitted(struct char_data *ch, struct greyhawk_ship_data *ship);
 void vessel_ownership_ensure_schema(void);
-void vessel_db_save_owner(struct greyhawk_ship_data *ship);
+bool vessel_db_save_owner(struct greyhawk_ship_data *ship);
 void vessel_db_load_owner(struct greyhawk_ship_data *ship);
+bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owner);
 void vessel_db_save_permits(struct greyhawk_ship_data *ship);
 void vessel_db_load_permits(struct greyhawk_ship_data *ship);
+bool vessel_handle_player_removal(const char *player_name);
 
 /* Shipyard (Phase 06, vessels_edit.c) */
 int vessel_prototype_price(int vclass, int max_speed, int armor);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
+int vessel_spawn_public_from_prototype_at(int id, const char *instance_name,
+                                          int x, int y, int z);
 ACMD_DECL(do_shipbrowse);   /* Shipyard catalog with prices */
 ACMD_DECL(do_shipbuy);      /* Purchase a hull at a dock */
 ACMD_DECL(do_shipchristen); /* Owner: rename the ship */
@@ -838,9 +1052,10 @@ struct greyhawk_ship_crew
 #define MAX_SHIP_CONNECTIONS 40 /* Maximum connections between rooms */
 
 /* VNUM range for dynamically generated ship interior rooms */
-/* Using 70000-79999 range (zones 700-799 are unused by builders) */
+/* Slot 0 is reserved; active slots 1-500 use 70020-80019. */
 #define SHIP_INTERIOR_VNUM_BASE 70000 /* Base VNUM for ship interiors */
-#define SHIP_INTERIOR_VNUM_MAX 79999  /* Maximum VNUM for ship interiors */
+#define SHIP_INTERIOR_VNUM_MAX 80019  /* Last interior VNUM for ship slot 500 */
+#define VESSEL_BASE_HULL_OBJ_VNUM 70002 /* Generic boardable vessel object */
 
 /* Ship room types for multi-room vessels */
 enum ship_room_type
@@ -920,6 +1135,9 @@ struct autopilot_data
   int wait_remaining;               /* Seconds left at current waypoint */
   time_t last_update;               /* Timestamp of last state update */
   int pilot_mob_vnum;               /* VNUM of NPC pilot (-1 if none) */
+  uint64_t movement_steps;           /* Successful autonomous position updates */
+  uint64_t waypoint_arrivals;        /* Waypoints reached since initialization */
+  uint64_t route_completions;        /* Complete route traversals */
 };
 
 /**
@@ -933,6 +1151,7 @@ struct vessel_schedule
   int route_id;       /* Route to start when triggered */
   int interval_hours; /* MUD hours between departures */
   int next_departure; /* MUD hour for next departure */
+  int passenger_fare; /* Gold charged by an unowned public vessel at boarding */
   int flags;          /* SCHEDULE_FLAG_* bits */
 };
 
@@ -1003,12 +1222,15 @@ struct greyhawk_ship_data
   struct obj_data *shipobj; /* Associated ship object */
   char name[128];           /* Ship name */
   char id[3];               /* Ship ID designation (AA-ZZ) */
+  int prototype_id;         /* Builder prototype used to create this instance */
+  int hull_object_vnum;     /* Object prototype used for the exterior hull */
 
   /* Location and Status */
   int dock;     /* Docked room number */
   int shiproom; /* Ship interior room vnum */
-  int shipnum;  /* Ship index number */
+  int shipnum;  /* Canonical fleet slot and persistent identity */
   int location; /* Current world location */
+  bool active;  /* Slot occupancy; independent of shipnum */
 
   /* Navigation */
   short int heading;            /* Current heading (0-360) */
@@ -1039,14 +1261,41 @@ struct greyhawk_ship_data
 
   /* Room discovery */
   float discovery_chance;             /* Probability of additional rooms */
-  int room_templates[MAX_SHIP_ROOMS]; /* Template vnums for generation */
+  int room_templates[MAX_SHIP_ROOMS]; /* enum ship_room_type for each room */
 
   /* Phase 3: Autopilot system */
   struct autopilot_data *autopilot; /* Autopilot data (NULL if disabled) */
   struct vessel_schedule *schedule; /* Schedule data (NULL if none) */
 
+  /* Canonical geographic region last observed by the vessel. This cache is
+   * runtime-only and prevents duplicate named-water crossing messages. */
+  int waters_region_vnum;
+  bool waters_region_initialized;
+
   /* Phase 5: Naval combat */
   int last_attacker; /* Fleet index of last ship to fire on us (0 = none) */
+  time_t pvp_grace_until;       /* End of the bounded combat-logout window */
+  char pvp_grace_attacker[64];  /* Only this already-consented player may continue */
+
+  /* Phase 15: runtime cache for a durable bounty-hunter lifecycle. The
+   * canonical row lives in vessel_bounty_hunts and is reattached at boot. */
+  bool bounty_hunter;
+  int hunter_encounter_id;
+  int hunter_target_ship_id;
+  char hunter_target_name[64];
+  time_t hunter_expires_at;
+  time_t hunter_target_missing_since;
+  time_t hunter_last_runtime_save;
+  int hunter_min_bounty;
+  int hunter_pursuit_speed;
+  int hunter_target_grace_seconds;
+  int hunter_cooldown_seconds;
+  int hunter_bounty_check_ticks;
+
+  /* Phase 7: one berthing charge per arrival at a public or clan port */
+  int dock_fee_balance; /* Gold due before the vessel may leave */
+  int dock_fee_port;    /* Port room that assessed the current visit */
+  int dock_fee_clan;    /* Clan that owned the port when the fee was assessed */
 
   /* Phase 6: Ownership and permissions */
 #define MAX_HELM_PERMITS 10
@@ -1072,6 +1321,16 @@ struct greyhawk_ship_data
     int quantity;     /* Units carried */
   } cargo[MAX_CARGO_LOTS];
   int num_cargo_lots;
+
+  /* Phase 14: data-driven NPC merchant identity. The definition table is
+   * authoritative; these fields are rebuilt at boot and after respawn. */
+  int merchant_id;
+  unsigned int merchant_generation;
+  int merchant_faction_id;
+
+  /* Runtime-only player-message cooldowns; not written to vessel persistence. */
+  uint64_t message_last_pulse[NUM_VESSEL_MESSAGE_KEYS];
+  unsigned int message_seen_mask;
 };
 
 /* Greyhawk Contact Data Structure (for radar/sensors) */
@@ -1096,6 +1355,9 @@ struct greyhawk_ship_map
 
 /* Core Ship Management Functions */
 void greyhawk_initialize_ships(void);
+int vessel_relink_world_objects(void);
+void vessel_build_hull_keywords(char *buffer, size_t buffer_size, const char *name);
+bool vessel_hull_is_managed(const struct obj_data *obj);
 int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
                       short int z_cord);
 void greyhawk_nameship(char *name, int shipnum);
@@ -1127,6 +1389,7 @@ void greyhawk_setsymbol(int x, int y, int symbol);
 
 /* Room Generation and Management */
 void generate_ship_interior(struct greyhawk_ship_data *ship);
+bool restore_ship_interior(struct greyhawk_ship_data *ship);
 void load_ship_room_templates_from_db(void); /* Boot: builder template overrides */
 int create_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
 void add_ship_room(struct greyhawk_ship_data *ship, enum ship_room_type type);
@@ -1162,20 +1425,32 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
 void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
 void setup_boarding_defenses(struct greyhawk_ship_data *ship);
 int calculate_boarding_difficulty(struct greyhawk_ship_data *target);
+void vessel_abort_docking(struct greyhawk_ship_data *ship);
 
 /* Ship Persistence */
-void save_ship_interior(struct greyhawk_ship_data *ship);
+bool save_ship_interior(struct greyhawk_ship_data *ship);
 void load_ship_interior(struct greyhawk_ship_data *ship);
 void serialize_ship_rooms(struct greyhawk_ship_data *ship, char *buffer);
+bool vessel_db_save_runtime(struct greyhawk_ship_data *ship);
+bool vessel_db_load_runtime(struct greyhawk_ship_data *ship);
+bool vessel_db_save_weapons(struct greyhawk_ship_data *ship);
+bool vessel_db_load_weapons(struct greyhawk_ship_data *ship);
+bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj);
+void vessel_persistence_ensure_schema(void);
+int vessel_serialize_slot_state(const struct greyhawk_ship_data *ship, char *buffer,
+                                size_t buffer_size);
+int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *data);
+bool vessel_delete_persistence(int shipnum);
 
 /* NPC Pilot Persistence */
-void vessel_db_save_pilot(struct greyhawk_ship_data *ship);
+bool vessel_db_save_pilot(struct greyhawk_ship_data *ship);
 void vessel_db_load_pilot(struct greyhawk_ship_data *ship);
 
 /* Persistence Lifecycle Functions */
-int is_valid_ship(struct greyhawk_ship_data *ship);
+int is_valid_ship(const struct greyhawk_ship_data *ship);
 void load_all_ship_interiors(void);
-void save_all_vessels(void);
+bool save_all_vessels(void);
+int vessel_reclaim_interior_rooms(struct greyhawk_ship_data *ship, room_rnum evacuation_room);
 
 /* Docking Record Persistence */
 void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2,
@@ -1187,6 +1462,10 @@ struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);
 void send_to_ship(struct greyhawk_ship_data *ship, const char *format, ...);
+void send_to_ship_throttled(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t cooldown_pulses, const char *format, ...);
+bool vessel_message_allowed(struct greyhawk_ship_data *ship, enum vessel_message_key key,
+                            uint64_t now_pulse, uint64_t cooldown_pulses);
 void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
 void show_nearby_vessels(struct char_data *ch, struct greyhawk_ship_data *ship);
 
@@ -1224,6 +1503,10 @@ void calculate_heading_to_waypoint(struct greyhawk_ship_data *ship, struct waypo
 int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp);
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
+int vessel_autopilot_grid_coordinate(float coordinate);
+bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
+                                    const struct waypoint *wp, float speed, int *target_x,
+                                    int *target_y, int *target_z);
 int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);
@@ -1270,7 +1553,8 @@ struct route_node *route_cache_find(int route_id);
 /* ========================================================================= */
 
 /* Schedule Management Functions */
-int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval);
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
+                    int passenger_fare);
 int schedule_clear(struct greyhawk_ship_data *ship);
 int schedule_is_enabled(struct greyhawk_ship_data *ship);
 struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship);
@@ -1303,13 +1587,14 @@ ACMD_DECL(do_greyhawk_heading);   /* Set ship heading/direction */
 ACMD_DECL(do_greyhawk_disembark); /* Leave ship */
 ACMD_DECL(do_greyhawk_shipload);  /* Admin: Load a new ship */
 ACMD_DECL(do_vedit);              /* Builder: ship prototype editor (vessels_edit.c) */
-ACMD_DECL(do_greyhawk_setsail);   /* Admin: Set ship sail configuration */
+ACMD_DECL(do_greyhawk_setsail);   /* Move a helmed vessel in a direction */
 
 /* Phase 2 Commands */
 ACMD_DECL(do_dock);           /* Dock with another vessel */
 ACMD_DECL(do_undock);         /* Undock from vessel */
 ACMD_DECL(do_board_hostile);  /* Combat boarding */
 ACMD_DECL(do_look_outside);   /* Look outside from ship interior */
+ACMD_DECL(do_shiptalk);       /* Speak across every room aboard one vessel */
 ACMD_DECL(do_transfer_cargo); /* Transfer cargo between docked ships */
 ACMD_DECL(do_ship_rooms);     /* List ship interior rooms */
 
@@ -1320,6 +1605,7 @@ ACMD_DECL(do_listwaypoints); /* List all waypoints */
 ACMD_DECL(do_delwaypoint);   /* Delete a waypoint */
 ACMD_DECL(do_createroute);   /* Create a new route */
 ACMD_DECL(do_addtoroute);    /* Add waypoint to route */
+ACMD_DECL(do_delroute);      /* Delete a route */
 ACMD_DECL(do_listroutes);    /* List all routes */
 ACMD_DECL(do_setroute);      /* Assign route to vessel */
 
@@ -1354,6 +1640,14 @@ int is_valid_pilot_npc(struct char_data *ch, struct char_data *npc,
  * @return Pointer to pilot NPC, or NULL if not found
  */
 struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship);
+
+/**
+ * Checks whether an NPC is the assigned pilot at its vessel's bridge.
+ *
+ * @param npc The NPC to inspect
+ * @return TRUE while the NPC is on active pilot duty
+ */
+bool vessel_npc_is_on_pilot_duty(const struct char_data *npc);
 
 /**
  * Announces waypoint arrival to all vessel occupants.
@@ -1556,7 +1850,7 @@ struct vehicle_data
   char name[VEHICLE_NAME_LENGTH]; /* Vehicle name/description */
 
   /* ===== Location Fields (T010) ===== */
-  room_rnum location; /* Current room vnum */
+  room_rnum location; /* Process-local room rnum; persistence stores its vnum */
   int direction;      /* Facing direction (0-5, matches exits) */
   int x_coord;        /* Wilderness X coordinate (-1024 to +1024) */
   int y_coord;        /* Wilderness Y coordinate (-1024 to +1024) */
@@ -1628,12 +1922,17 @@ int vehicle_is_operational(struct vehicle_data *vehicle);
 
 /* Lookup Functions (Phase 02, Session 02) */
 struct vehicle_data *vehicle_find_by_id(int id);
+struct vehicle_data *vehicle_at_index(int index);
 struct vehicle_data *vehicle_find_in_room(room_rnum room);
+struct vehicle_data *vehicle_find_in_room_named(room_rnum room, const char *name);
 struct vehicle_data *vehicle_find_by_obj(struct obj_data *obj);
+void vehicle_reindex_room_insert(room_rnum inserted_room);
+void vehicle_reindex_room_delete(room_rnum deleted_room);
 
 /* Persistence Functions (Phase 02, Session 02) */
 int vehicle_save(struct vehicle_data *vehicle);
 int vehicle_load(int vehicle_id, struct vehicle_data *vehicle);
+int vehicle_purge(struct vehicle_data *vehicle);
 void vehicle_save_all(void);
 void vehicle_load_all(void);
 
@@ -1658,6 +1957,8 @@ struct vehicle_data **get_loaded_vehicles_list(struct greyhawk_ship_data *vessel
 
 /* Coordinate Synchronization (S0205) */
 void vehicle_sync_with_vessel(struct vehicle_data *vehicle, struct greyhawk_ship_data *vessel);
+void sync_all_loaded_vehicles(struct greyhawk_ship_data *vessel);
+int vehicle_release_all_from_vessel(struct greyhawk_ship_data *vessel, room_rnum exterior_room);
 
 /* ========================================================================= */
 /* VEHICLE PLAYER TRACKING (Phase 02, Session 04/06)                          */
@@ -1678,6 +1979,8 @@ ACMD_DECL(do_hitch);         /* Hitch vehicles together */
 ACMD_DECL(do_unhitch);       /* Unhitch vehicles */
 ACMD_DECL(do_drive);         /* Drive a vehicle in a direction */
 ACMD_DECL(do_vstatus);       /* Show vehicle status */
+ACMD_DECL(do_vehiclecreate); /* Staff: create a test vehicle */
+ACMD_DECL(do_vehiclepurge);  /* Staff: purge a test vehicle */
 ACMD_DECL(do_loadvehicle);   /* Load vehicle onto a vessel (S0205) */
 ACMD_DECL(do_unloadvehicle); /* Unload vehicle from a vessel (S0205) */
 

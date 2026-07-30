@@ -92,6 +92,12 @@ ACMD_DECL(do_alias);
  * sorting */
 #define RESERVE_CMDS 7
 
+enum command_feature_flag
+{
+  CMD_FEATURE_NONE = 0,
+  CMD_FEATURE_VESSEL = (1 << 0)
+};
+
 struct command_info
 {
   const char *command;
@@ -104,6 +110,7 @@ struct command_info
   int actions_required;
   int action_cooldowns[NUM_ACTIONS];
   int (*command_check_pointer)(struct char_data *ch, bool show_error);
+  unsigned int feature_flags;
 };
 
 struct mob_script_command_t

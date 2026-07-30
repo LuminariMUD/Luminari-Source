@@ -39,6 +39,7 @@
 #include "crafting_new.h"
 #include "resource_system.h"
 #include "character_creation.h"
+#include "vessels.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -577,6 +578,8 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_USED(ch) = 0;
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
+    GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
+    GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = 0;
     GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
@@ -1150,6 +1153,12 @@ int load_char(const char *name, struct char_data *ch)
           load_favored_terrains(fl, ch);
         else if (!strcmp(tag, "FaAd"))
           GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
+        else if (!strcmp(tag, "Fa01"))
+          GET_FACTION_STANDING(ch, 1) = atol(line);
+        else if (!strcmp(tag, "Fa02"))
+          GET_FACTION_STANDING(ch, 2) = atol(line);
+        else if (!strcmp(tag, "Fa03"))
+          GET_FACTION_STANDING(ch, 3) = atol(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
         else if (!strcmp(tag, "FrgC"))
@@ -1982,6 +1991,10 @@ int load_char(const char *name, struct char_data *ch)
           read_saved_vars_ascii(fl, ch, atoi(line));
         else if (!strcmp(tag, "VitS"))
           VITAL_STRIKING(ch) = atoi(line);
+        else if (!strcmp(tag, "VIns"))
+          GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
+        else if (!strcmp(tag, "VMer"))
+          GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = strtoull(line, NULL, 10);
         break;
 
       case 'W':
@@ -2495,6 +2508,10 @@ bool save_char_checked(struct char_data *ch, int mode)
 
   if (VITAL_STRIKING(ch))
     BUFFER_WRITE("VitS: %d\n", VITAL_STRIKING(ch));
+  if (GET_VESSEL_INSURANCE_CLAIM(ch) != 0)
+    BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
+  if (GET_VESSEL_MERCHANT_CONSEQUENCE(ch) != 0)
+    BUFFER_WRITE("VMer: %llu\n", GET_VESSEL_MERCHANT_CONSEQUENCE(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
@@ -2583,6 +2600,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("FBAB: %d\n", FIXED_BAB(ch));
 
   BUFFER_WRITE("FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
+  BUFFER_WRITE("Fa01: %ld\n", GET_FACTION_STANDING(ch, 1));
+  BUFFER_WRITE("Fa02: %ld\n", GET_FACTION_STANDING(ch, 2));
+  BUFFER_WRITE("Fa03: %ld\n", GET_FACTION_STANDING(ch, 3));
 
   if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
     BUFFER_WRITE("Badp: %d\n", GET_BAD_PWS(ch));
@@ -4288,13 +4308,23 @@ bool commit_player_removal_checked(struct player_removal_transaction *transactio
 
 /* remove_player() removes all files associated with a player who is self-deleted,
  * deleted by an immortal, or deleted by the auto-wipe system (if enabled). */
-void remove_player(int pfilepos)
+bool remove_player(int pfilepos)
 {
   char filename[MAX_STRING_LENGTH] = {'\0'}, timestr[64];
   int i;
 
-  if (!*player_table[pfilepos].name)
-    return;
+  if (pfilepos < 0 || pfilepos > top_of_p_table || !*player_table[pfilepos].name)
+    return FALSE;
+
+  /* Soft deletion remains restorable. This hook runs only for permanent file
+   * removal; if durable vessel cleanup cannot commit, preserve the player so
+   * the cleanup can be retried without orphaning their ships. */
+  if (!vessel_handle_player_removal(player_table[pfilepos].name))
+  {
+    log("SYSERR: Permanent player removal deferred for %s: vessel cleanup failed",
+        player_table[pfilepos].name);
+    return FALSE;
+  }
 
   /* Unlink all player-owned files */
   for (i = 0; i < MAX_FILES; i++)
@@ -4312,6 +4342,7 @@ void remove_player(int pfilepos)
   remove_player_from_index(pfilepos);
 
   save_player_index();
+  return TRUE;
 }
 
 void clean_pfiles(void)

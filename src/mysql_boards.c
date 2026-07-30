@@ -27,7 +27,7 @@
 #include "deities.h"
 #include "helpers.h"
 
-#include "mariadb/mysql.h"
+#include "mysql.h"
 #include "mysql_boards.h"
 
 /* External Variables */

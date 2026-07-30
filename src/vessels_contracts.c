@@ -267,8 +267,7 @@ static struct greyhawk_ship_data *contract_context(struct char_data *ch, int *po
     return NULL;
   }
 
-  if (ship->shipobj == NULL || IN_ROOM(ship->shipobj) == NOWHERE ||
-      !ROOM_FLAGGED(IN_ROOM(ship->shipobj), ROOM_DOCKABLE))
+  if (!vessel_ship_is_in_port(ship))
   {
     send_to_char(ch, "You must be moored at a port.\r\n");
     return NULL;

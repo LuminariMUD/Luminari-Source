@@ -133,6 +133,28 @@ void Test_upstream_index_helpers(CuTest *tc)
   CuAssertIntEquals(tc, (int)NOWHERE, (int)atoidx("99999999999999999999999999999999"));
 }
 
+void Test_upstream_new_affect_initializes_all_fields(CuTest *tc)
+{
+  struct affected_type affect;
+  int i;
+
+  memset(&affect, 0xA5, sizeof(affect));
+  new_affect(&affect);
+
+  CuAssertIntEquals(tc, 0, affect.spell);
+  CuAssertIntEquals(tc, 0, affect.duration);
+  CuAssertIntEquals(tc, 0, affect.modifier);
+  CuAssertIntEquals(tc, APPLY_NONE, affect.location);
+  CuAssertIntEquals(tc, BONUS_TYPE_ENHANCEMENT, affect.bonus_type);
+  CuAssertIntEquals(tc, 0, affect.specific);
+  CuAssertTrue(tc, affect.next == NULL);
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    CuAssertIntEquals(tc, 0, affect.bitvector[i]);
+    CuAssertIntEquals(tc, 0, affect.bitvector2[i]);
+  }
+}
+
 void Test_upstream_time_helpers(CuTest *tc)
 {
   struct time_info_data *elapsed;

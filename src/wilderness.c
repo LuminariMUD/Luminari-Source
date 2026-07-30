@@ -446,10 +446,6 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
         case REGION_SECTOR_TRANSFORM:
           /* This type of region modifies elevation directly */
           modified_elevation += region_table[curr_region->rnum].region_props;
-          log("COMPREHENSIVE ELEVATION: Adjusting elevation at (%d, %d) by %d (region: %s)", x, y,
-              region_table[curr_region->rnum].region_props,
-              region_table[curr_region->rnum].name ? region_table[curr_region->rnum].name
-                                                   : "Unknown");
           break;
         case REGION_GEOGRAPHIC:
         case REGION_ENCOUNTER:
@@ -731,20 +727,15 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
       continue;
     }
 
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
     case REGION_GEOGRAPHIC:
       break;
     case REGION_SECTOR:
       sector_type = region_table[curr_region->rnum].region_props;
-      log("  -> Changing (%d, %d) to sector : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       break;
     case REGION_SECTOR_TRANSFORM:
       elev += region_table[curr_region->rnum].region_props;
-      log("  -> Adjusting elevation at (%d, %d) by : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       sector_type = get_sector_type(elev, temp, mois);
       break;
     case REGION_ENCOUNTER:
@@ -759,7 +750,6 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   {
     if (curr_path->rnum != NOWHERE)
     { /*added by zusuk*/
-      log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type)
       {
       case PATH_ROAD:
@@ -938,7 +928,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       continue;
     }
 
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
     case REGION_GEOGRAPHIC:
@@ -953,8 +942,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       break;
     case REGION_SECTOR:
       world[room].sector_type = region_table[curr_region->rnum].region_props;
-      log("  -> Changing (%d, %d) to sector : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       break;
     case REGION_SECTOR_TRANSFORM:
       break;
@@ -969,7 +956,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   {
     if (curr_path->rnum != NOWHERE)
     { /*added by zusuk*/
-      log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type)
       {
       case PATH_ROAD:
@@ -1001,6 +987,27 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   /* Free the region and path lists after use */
   free_region_list(regions);
   free_path_list(paths);
+}
+
+/**
+ * Reserve a dynamic wilderness room while a character or object uses it.
+ *
+ * The occupancy event releases the room after its last character, object, or
+ * room effect leaves. Callers that place persistent objects must mark the room
+ * just as character placement does, or the allocator can reuse a live room.
+ */
+void mark_wilderness_room_occupied(room_rnum room)
+{
+  if (room == NOWHERE || room > top_of_world || !IS_DYNAMIC(room))
+  {
+    return;
+  }
+
+  SET_BIT_AR(ROOM_FLAGS(room), ROOM_OCCUPIED);
+  if (!room_has_mud_event(&world[room], eCHECK_OCCUPIED))
+  {
+    NEW_EVENT(eCHECK_OCCUPIED, &world[room].number, NULL, 10 RL_SEC);
+  }
 }
 
 void line_vis(struct wild_map_tile **map, int x, int y, int x2, int y2)

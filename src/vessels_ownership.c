@@ -97,24 +97,80 @@ void vessel_ownership_ensure_schema(void)
 /**
  * Persist the ship's owner.
  */
-void vessel_db_save_owner(struct greyhawk_ship_data *ship)
+bool vessel_db_save_owner(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char escaped[130];
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
-    return;
+    return FALSE;
   }
 
   mysql_real_escape_string(conn, escaped, ship->owner, strlen(ship->owner));
-  snprintf(query, sizeof(query), "UPDATE ship_interiors SET owner = '%s' WHERE ship_id = '%s'",
-           escaped, ship->id);
+  snprintf(query, sizeof(query), "UPDATE ship_interiors SET owner = '%s' WHERE ship_id = %d",
+           escaped, ship->shipnum);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_owner failed for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: vessel_db_save_owner failed for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
   }
+  return TRUE;
+}
+
+/**
+ * Persist an ownership change and its consent reset as one transaction.
+ *
+ * A deed or capture must not leave the previous owner's PvP grace in the
+ * runtime row. Otherwise a reboot can restore permission inherited from an
+ * opponent who never consented to fight the new owner.
+ */
+bool vessel_transfer_owner(struct greyhawk_ship_data *ship, const char *new_owner)
+{
+  char old_owner[sizeof(ship->owner)];
+  char old_attacker[sizeof(ship->pvp_grace_attacker)];
+  time_t old_until;
+
+  if (!mysql_available || conn == NULL || ship == NULL || new_owner == NULL)
+  {
+    return FALSE;
+  }
+
+  strlcpy(old_owner, ship->owner, sizeof(old_owner));
+  strlcpy(old_attacker, ship->pvp_grace_attacker, sizeof(old_attacker));
+  old_until = ship->pvp_grace_until;
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin ownership transfer for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  strlcpy(ship->owner, new_owner, sizeof(ship->owner));
+  vessel_clear_pvp_grace(ship);
+  if (!vessel_db_save_owner(ship) || !vessel_db_save_runtime(ship))
+  {
+    goto rollback;
+  }
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not commit ownership transfer for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    goto rollback;
+  }
+
+  return TRUE;
+
+rollback:
+  mysql_query(conn, "ROLLBACK");
+  strlcpy(ship->owner, old_owner, sizeof(ship->owner));
+  strlcpy(ship->pvp_grace_attacker, old_attacker, sizeof(ship->pvp_grace_attacker));
+  ship->pvp_grace_until = old_until;
+  log("SYSERR: Ownership transfer for ship %d was rolled back", ship->shipnum);
+  return FALSE;
 }
 
 /**
@@ -131,7 +187,8 @@ void vessel_db_load_owner(struct greyhawk_ship_data *ship)
     return;
   }
 
-  snprintf(query, sizeof(query), "SELECT owner FROM ship_interiors WHERE ship_id = '%s'", ship->id);
+  snprintf(query, sizeof(query), "SELECT owner FROM ship_interiors WHERE ship_id = %d",
+           ship->shipnum);
   if (mysql_query(conn, query))
   {
     return;
@@ -152,6 +209,185 @@ void vessel_db_load_owner(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Apply the permanent player-deletion policy.
+ *
+ * Soft-deleted characters retain their deeds so staff restoration is lossless.
+ * Only remove_player() calls this hook, at the point the player files are about
+ * to be destroyed. Permanent deletion makes every owned ship unclaimed,
+ * removes the deleted name from helm permits, voids unpaid settlements, and
+ * clears consent snapshots inherited from that owner.
+ */
+bool vessel_handle_player_removal(const char *player_name)
+{
+  char escaped_name[129];
+  char query[MAX_STRING_LENGTH];
+  struct greyhawk_ship_data *ship;
+  int unowned;
+  int permits_removed;
+  int i;
+  int j;
+  int old_count;
+  int kept;
+  int write_index;
+
+  if (player_name == NULL || !*player_name)
+  {
+    return FALSE;
+  }
+  if (!mysql_available || conn == NULL)
+  {
+    log("SYSERR: Permanent removal of %s deferred: vessel database unavailable",
+        player_name);
+    return FALSE;
+  }
+
+  vessel_persistence_ensure_schema();
+  vessel_piracy_ensure_schema();
+  vessel_merchant_ensure_schema();
+  vessel_hunter_ensure_schema();
+  mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin vessel orphan cleanup for %s: %s", player_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE ship_runtime_state AS runtime "
+           "JOIN ship_interiors AS interior ON interior.ship_id = runtime.ship_id "
+           "SET runtime.pvp_grace_until = 0, runtime.pvp_grace_attacker = '' "
+           "WHERE interior.owner = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE ship_interiors SET owner = '' WHERE owner = '%s'", escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM ship_crew_roster "
+           "WHERE npc_vnum = %d AND crew_role = '%s' AND npc_name = '%s'",
+           PERMIT_NPC_VNUM, PERMIT_ROLE, escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE vessel_insurance_claims SET status = 'void' "
+           "WHERE owner = '%s' AND status = 'pending'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE vessel_merchant_consequences SET status = 'void', "
+           "applied_at = NOW() WHERE player_name = '%s' "
+           "AND status = 'pending'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "UPDATE vessel_npc_merchants SET last_attacker_name = '', "
+           "last_attacked_at = 0 WHERE last_attacker_name = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM vessel_bounty_hunts WHERE target_player = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  snprintf(query, sizeof(query),
+           "DELETE FROM vessel_bounties WHERE player_name = '%s'",
+           escaped_name);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not commit vessel orphan cleanup for %s: %s", player_name,
+        mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
+  }
+
+  vessel_hunter_handle_player_removal(player_name);
+  unowned = 0;
+  permits_removed = 0;
+  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  {
+    ship = &greyhawk_ships[i];
+    if (!is_valid_ship(ship))
+    {
+      continue;
+    }
+
+    if (!str_cmp(ship->owner, player_name))
+    {
+      ship->owner[0] = '\0';
+      vessel_clear_pvp_grace(ship);
+      unowned++;
+    }
+
+    old_count = MIN(ship->num_permits, MAX_HELM_PERMITS);
+    write_index = 0;
+    for (j = 0; j < old_count; j++)
+    {
+      if (!str_cmp(ship->helm_permits[j], player_name))
+      {
+        permits_removed++;
+        continue;
+      }
+      if (write_index != j)
+      {
+        strlcpy(ship->helm_permits[write_index], ship->helm_permits[j],
+                sizeof(ship->helm_permits[write_index]));
+      }
+      write_index++;
+    }
+    kept = write_index;
+    while (write_index < old_count)
+    {
+      ship->helm_permits[write_index][0] = '\0';
+      write_index++;
+    }
+    ship->num_permits = kept;
+  }
+
+  log("Info: Permanent removal of %s unowned %d ship%s and removed %d helm permit%s",
+      player_name, unowned, unowned == 1 ? "" : "s", permits_removed,
+      permits_removed == 1 ? "" : "s");
+  return TRUE;
+
+rollback:
+  log("SYSERR: Vessel orphan cleanup failed for %s: %s", player_name,
+      mysql_error(conn));
+  mysql_query(conn, "ROLLBACK");
+  return FALSE;
+}
+
+/**
  * Persist the helm permit list (delete-and-reinsert, idempotent).
  */
 void vessel_db_save_permits(struct greyhawk_ship_data *ship)
@@ -166,12 +402,12 @@ void vessel_db_save_permits(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "DELETE FROM ship_crew_roster WHERE ship_id = '%s' AND crew_role = '%s' "
+           "DELETE FROM ship_crew_roster WHERE ship_id = %d AND crew_role = '%s' "
            "AND npc_vnum = %d",
-           ship->id, PERMIT_ROLE, PERMIT_NPC_VNUM);
+           ship->shipnum, PERMIT_ROLE, PERMIT_NPC_VNUM);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_permits (clear) failed for ship %s: %s", ship->id,
+    log("SYSERR: vessel_db_save_permits (clear) failed for ship %d: %s", ship->shipnum,
         mysql_error(conn));
     return;
   }
@@ -181,11 +417,11 @@ void vessel_db_save_permits(struct greyhawk_ship_data *ship)
     mysql_real_escape_string(conn, escaped, ship->helm_permits[i], strlen(ship->helm_permits[i]));
     snprintf(query, sizeof(query),
              "INSERT INTO ship_crew_roster (ship_id, npc_vnum, npc_name, crew_role) "
-             "VALUES ('%s', %d, '%s', '%s')",
-             ship->id, PERMIT_NPC_VNUM, escaped, PERMIT_ROLE);
+             "VALUES (%d, %d, '%s', '%s')",
+             ship->shipnum, PERMIT_NPC_VNUM, escaped, PERMIT_ROLE);
     if (mysql_query(conn, query))
     {
-      log("SYSERR: vessel_db_save_permits (insert) failed for ship %s: %s", ship->id,
+      log("SYSERR: vessel_db_save_permits (insert) failed for ship %d: %s", ship->shipnum,
           mysql_error(conn));
     }
   }
@@ -206,9 +442,9 @@ void vessel_db_load_permits(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT npc_name FROM ship_crew_roster WHERE ship_id = '%s' AND crew_role = '%s' "
+           "SELECT npc_name FROM ship_crew_roster WHERE ship_id = %d AND crew_role = '%s' "
            "AND npc_vnum = %d",
-           ship->id, PERMIT_ROLE, PERMIT_NPC_VNUM);
+           ship->shipnum, PERMIT_ROLE, PERMIT_NPC_VNUM);
   if (mysql_query(conn, query))
   {
     return;
@@ -436,8 +672,12 @@ ACMD(do_shipdeed)
 
   log("Info: %s deeded ship %d '%s' to %s", GET_NAME(ch), ship->shipnum, ship->name,
       GET_NAME(target));
-  strlcpy(ship->owner, GET_NAME(target), sizeof(ship->owner));
-  vessel_db_save_owner(ship);
+  if (!vessel_transfer_owner(ship, GET_NAME(target)))
+  {
+    send_to_char(ch, "The deed could not be recorded; ownership remains unchanged.\r\n");
+    send_to_char(target, "The ship's registry rejects the deed; ownership remains unchanged.\r\n");
+    return;
+  }
 
   send_to_char(ch, "You sign over %s to %s.\r\n", ship->name, GET_NAME(target));
   send_to_char(target, "%s signs over %s to you - she's yours now.\r\n", GET_NAME(ch), ship->name);

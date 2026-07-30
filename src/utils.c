@@ -4646,7 +4646,10 @@ void new_affect(struct affected_type *af)
   af->next = NULL; /* CRITICAL: Must initialize next pointer to prevent heap corruption */
 
   for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
     af->bitvector[i] = 0;
+    af->bitvector2[i] = 0;
+  }
 }
 
 /* Free an affect struct */

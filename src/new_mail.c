@@ -36,6 +36,59 @@ extern struct clan_type *clan_info;
 
 void send_editor_help(struct descriptor_data *d);
 
+/**
+ * Store a system-generated message in the authoritative player mail table.
+ *
+ * This deliberately bypasses the interactive editor and recipient-online
+ * requirement so lifecycle systems can notify an offline character.
+ */
+bool new_mail_send_system(const char *receiver, const char *subject, const char *message)
+{
+  char *escaped_receiver;
+  char *escaped_subject;
+  char *escaped_message;
+  char *query;
+  size_t query_size;
+  bool sent;
+
+  if (!mysql_available || conn == NULL || receiver == NULL || !*receiver ||
+      subject == NULL || message == NULL)
+  {
+    return FALSE;
+  }
+
+  escaped_receiver = mysql_escape_string_alloc(conn, receiver);
+  escaped_subject = mysql_escape_string_alloc(conn, subject);
+  escaped_message = mysql_escape_string_alloc(conn, message);
+  if (escaped_receiver == NULL || escaped_subject == NULL || escaped_message == NULL)
+  {
+    free(escaped_receiver);
+    free(escaped_subject);
+    free(escaped_message);
+    return FALSE;
+  }
+
+  query_size = strlen(escaped_receiver) + strlen(escaped_subject) +
+               strlen(escaped_message) + 256;
+  CREATE(query, char, query_size);
+  snprintf(query, query_size,
+           "INSERT INTO player_mail "
+           "(date_sent, sender, receiver, subject, message) "
+           "VALUES (NOW(), 'Vessel Underwriters', '%s', '%s', '%s')",
+           escaped_receiver, escaped_subject, escaped_message);
+  sent = mysql_query(conn, query) == 0;
+  if (!sent)
+  {
+    log("SYSERR: Could not store system mail for %s: %s", receiver, mysql_error(conn));
+  }
+
+  free(query);
+  free(escaped_receiver);
+  free(escaped_subject);
+  free(escaped_message);
+  return sent;
+}
+
 ACMD(do_new_mail)
 {
   char arg3[200], arg4[200];

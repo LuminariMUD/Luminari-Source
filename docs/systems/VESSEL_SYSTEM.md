@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
 **Release Status**: Gameplay layer implemented; production acceptance incomplete
-**Last Updated**: 2026-07-29
+**Last Updated**: 2026-07-30
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md); for what
@@ -58,7 +58,7 @@ controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 |------|------|--------|----------|----------|
-| **Vessel** | Ships, airships, submarines | 4,744-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 4,928-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -75,6 +75,8 @@ controls in one system.
 | Ownership and Crew | Owners, permits, hires, wages | vessels_ownership.c, vessels_crew.c |
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
+| NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
+| Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
 | Living World | Weather hazards and region encounters | vessels_hazards.c |
 | Operations | Fleet tools, room-pool monitoring, MSDP | vessels_admin.c |
 | Vehicles | Land-based transport | vehicles.c |
@@ -87,8 +89,8 @@ controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 4,744 bytes, max 500 = about 2.3 MB
-- **Autopilot** (`autopilot_data`): 48 bytes (optional, attached to vessel)
+- **Vessel** (`greyhawk_ship_data`): 4,928 bytes, max 500 = about 2.35 MiB
+- **Autopilot** (`autopilot_data`): 72 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
 
@@ -96,14 +98,28 @@ controls in one system.
 
 X/Y: -1024 to +1024; Z: altitude (airships) or depth (submarines)
 
+The class Z contract is enforced before wilderness-room allocation. Surface
+hulls remain at Z 0; air-capable hulls may rise only to their configured
+ceiling; submersible hulls may use negative Z only in a water column. Submarine
+crush depth remains anchored to local bathymetry instead of a fixed class
+floor. Autopilot advances along X, Y, and Z together, clamps each step to the
+remaining three-dimensional distance, and rejects an invalid waypoint Z before
+moving toward it. Automated movement resolves and validates its target dynamic
+room once inside `update_ship_wilderness_position()`; it does not run the
+allocating `can_vessel_traverse_terrain()` probe immediately beforehand.
+If that central move rejects terrain or Z, autopilot stops the hull, enters
+`PAUSED`, persists the runtime state, and tells occupants which waypoint is
+unreachable. It does not retry the same invalid step every heartbeat. Correct
+the route, set the desired speed, and resume autopilot.
+
 ### Wilderness Integration Contract
 
 Vessels extend the wilderness system; they do not create a separate geography.
 
 | Wilderness signal | Vessel behavior |
 |-------------------|-----------------|
-| Dynamic room pool | A moving ship occupies the room assigned to its wilderness coordinate |
-| Generated sector | `can_vessel_traverse_terrain()` and speed rules gate movement |
+| Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
+| Generated sector | The central position update and direct-movement preflight gate traversal; speed rules consume the resulting sector |
 | Bathymetry | Draft, grounding, and submarine crush depth |
 | Weather field | Speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |
@@ -123,6 +139,11 @@ Permanent invariants:
    same `(x, y)` coordinate.
 5. Keep core integration campaign-neutral and setting content in world or
    database data.
+6. Treat X/Y as authoritative for a wilderness hull. A saved wilderness room
+   VNUM may be recycled; recovery resolves the current room from coordinates
+   and repairs the runtime snapshot.
+7. Zone resets may remove stale hull objects, but never a hull currently owned
+   by an active fleet slot.
 
 ### State Machine
 
@@ -152,7 +173,7 @@ UNIFIED TRANSPORT SYSTEM
     +-- VESSEL TIER (Heavy Transport)
     |       +-- Vessel Type System (8 vessel classes)
     |       |       RAFT, BOAT, SHIP, WARSHIP, AIRSHIP, SUBMARINE, TRANSPORT, MAGICAL
-    |       +-- Multi-Room Interiors (VNUM Range: 70000-79999)
+    |       +-- Multi-Room Interiors (VNUM Range: 70020-80019)
     |       +-- Automation Layer (autopilot, waypoints, NPC pilots)
     |       +-- Docking and Boarding Systems
     |
@@ -256,8 +277,16 @@ struct autopilot_data {
     int current_waypoint_index;
     int wait_remaining;          /* Seconds at waypoint */
     int pilot_mob_vnum;          /* NPC pilot VNUM (-1 if none) */
+    uint64_t movement_steps;      /* Successful autonomous position updates */
+    uint64_t waypoint_arrivals;
+    uint64_t route_completions;
 };
 ```
+
+The three counters are monotonic for the lifetime of the in-memory autopilot
+and reset at process reconstruction. `autopilot status` exposes them so
+operators and soak monitors can prove route progress without enabling
+per-movement logging.
 
 ---
 
@@ -401,11 +430,20 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | board | Board a vessel | `board <ship>` |
 | greyhawk_tactical | Display tactical map | `tactical` |
 | greyhawk_status | Show ship status | `shipstatus` |
+| shiptalk | Speak across all rooms of the current vessel | `shiptalk <message>` |
 | greyhawk_speed | Set ship speed | `speed <0-30>` |
 | greyhawk_heading | Set ship heading | `heading <0-360>` |
 | dock | Dock with vessel | `dock <ship>` |
 | undock | Undock from vessel | `undock` |
 | look_outside | View from interior | `lookout` |
+
+System-generated vessel messages use independent per-vessel cooldown classes.
+Repeated depth and weather messages are limited to one copy per class every
+120 seconds; a change from squall to storm or gale remains immediately
+visible. High-volume damage, NPC return-fire, miss, and reload messages are
+limited to one copy per class per half-second vessel tick. Sinking, grounding,
+rigging-collapse, and rudder-loss warnings remain immediate. Suppressed copies
+increment the process-wide `vessel_messages_throttled` performance counter.
 
 ### Autopilot Commands
 
@@ -420,23 +458,50 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | listroutes | List routes | `listroutes` |
 | setroute | Assign route | `setroute <route>` |
 
-### Operator Commands (Phase 09)
+### Operator Commands (Phases 09, 14, and 15)
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| shiplist | Fleet overview + room pool health | `shiplist` |
+| shiplist | Fleet overview + room pool health | `shiplist [summary]` |
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
+| vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
+| vesseldebug | Inspect debug state or advance the normal encounter cadence | `vesseldebug [status\|on ...\|off ...\|encounter]` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
-this is the guard against vessels starving other systems (see
+this is the guard against vessels starving other systems. At fleet scale,
+`shiplist summary` omits per-vessel rows so the count and pool warning fit in
+one socket output buffer (see
 [Wilderness Integration Contract](#wilderness-integration-contract)).
+`shipfix` commits the repaired condition before reporting success. If that
+runtime write fails, it restores the prior condition instead of presenting a
+RAM-only repair.
 
-MSDP ship variables (`src/vessels_admin.c`, pushed on the vessel tick to
-anyone aboard): `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
-`SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, `SHIP_STATUS`. Clients can
+Native MSDP is the vessel client contract for this release. A client enables
+Telnet option 69 and uses `REPORT` for `SHIP_NAME`, `SHIP_X`, `SHIP_Y`,
+`SHIP_Z`, `SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, and
+`SHIP_STATUS`. `src/vessels_admin.c` refreshes them on the vessel tick, and
+the normal MSDP update sends each reported value when it changes. Clients can
 render gauges without polling.
+
+When a character leaves a vessel, the server sends an explicit empty state:
+the two strings become empty and all seven numbers become zero. This prevents
+a client from continuing to display a stale vessel. `SHIP_HULL` and
+`SHIP_HULL_MAX` are the sums of the four internal-structure sections, while
+`SHIP_STATUS` is `sound`, `battered`, `crippled`, or `sinking`.
+
+The general protocol layer contains experimental GMCP support, but it is not
+an equivalent vessel interface and is not part of this release contract.
+Future GMCP vessel work must define and test a valid JSON package or
+standards-compliant MSDP-over-GMCP mapping; the old unquoted
+`MSDP.<variable> <value>` fallback is not accepted as vessel support.
+
+`vesseldebug encounter` is an acceptance hook, not a parallel spawner. It
+advances the cadence counter and immediately invokes the same production
+region, class, depth, chance, HUNTED eligibility, spawn, and lifecycle path
+used by the heartbeat. Staff can use it in a normal build even though runtime
+debug categories remain compiled out.
 
 ### Living World Commands (Phase 08)
 
@@ -448,8 +513,9 @@ Hazards and encounters (`src/vessels_hazards.c`) read only wilderness
 signals - no vessel-private geography:
 
 - **Weather**: severity bands from `get_weather(x,y)` (the same field a
-  coastal walker sees). Squall/storm/gale degrade rigging; a gale with no
-  sailmaster aboard damages the hull. Submerged submarines are sheltered.
+  coastal walker sees). Squall/storm/gale degrade rigging; a gale with neither
+  a sailmaster nor the assigned pilot at the bridge damages the hull.
+  Submerged submarines are sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
 - **Visibility**: `vessel_sight_range()` shrinks in fog, extended by a
@@ -458,7 +524,30 @@ signals - no vessel-private geography:
   wilderness region vnums (authored with existing region tooling). Rows are
   filtered by depth band and hull class, so submarine trenches and airship
   skies get their own content. Warned by lookouts, spawned into the ship's
-  wilderness room so they fight/flee/get shot like anything else.
+  wilderness room so they fight/flee/get shot like anything else. Overlapping
+  encounter regions resolve deterministically by containment position, then
+  lowest region VNUM; equal-chance table rows resolve by encounter ID. When
+  multiple hulls share one exterior wilderness room, a successful tick claims
+  that room once, broadcasts the encounter to every co-located hull, and spawns
+  at most one shared creature there.
+
+Phase 15 hunter policy (`src/vessels_hunters.c`) optionally extends one of
+those ordinary encounter rows. A target must be a moving, player-owned hull
+whose exact owner is online aboard and currently has at least the configured
+HUNTED bounty (never below 2,000). An atomic one-row-per-player lifecycle
+claims the generation before an ownerless public warship is assembled through
+the normal prototype/interior persistence path and assigned its real pilot.
+The hunter uses the production autopilot position resolver to pursue the
+target and the existing NPC combat path to open fire.
+
+The lifecycle persists target ship, hunter slot, unique generation name,
+expiry, cooldown, and terminal reason. Boot reattaches only an exact
+name/prototype/slot/pilot match, preventing a recycled fleet slot from becoming
+the hunter. Pardon is checked every 10 seconds; target logout or leaving the
+hull starts the configured grace period. Pardon, expiry, grace, sinking, or
+staff purge removes the hunter and all of its normal persistence. Capture
+removes the Admiralty pilot and lifecycle but leaves the captured hull as an
+ordinary player vessel.
 
 ### Cargo & Trade Commands (Phase 07)
 
@@ -475,16 +564,44 @@ signals - no vessel-private geography:
 | plunder | Take cargo from a ship you've cleared | `plunder` |
 | bounty | Check a price on someone's head | `bounty [<player>]` |
 | marque | Buy a letter of marque (dock only) | `marque` |
+| dockfees | Inspect or pay the current berth charge | `dockfees [pay]` |
 
 Economy model (`src/vessels_trade.c`): commodities live in
 `trade_commodities` (seeded with 9 goods, builder-editable); per-port stock
 lives in `port_commodities`, seeded deterministically from the port vnum so
 ports differ without randomness. Price = base scaled by scarcity, clamped to
 +/- `TRADE_MAX_DRIFT` (60%) - the anti-arbitrage bound, unit-tested across
-the whole supply domain. Buying drains local stock (price up), selling
-floods it (price down); `vessel_trade_restock_tick()` drifts all ports back
-toward baseline. Ports buy at 85% of ask, so same-port round trips lose
-money. Bulk lots persist in `ship_cargo_manifest` with `cargo_room = 0`.
+the whole supply domain. A batch is priced one unit at a time across every
+supply level it moves through; quoting the whole batch at its first unit's
+price would let an oversized shipment flip two markets and profit again in
+reverse. Buying drains local stock (price up), selling floods it (price down);
+inventory is clamped to 10-400, and `vessel_trade_restock_tick()` drifts all
+ports back toward baseline. Ports buy at 85% of ask, so same-port round trips
+lose money. Bulk lots persist in `ship_cargo_manifest` with
+`cargo_room = 0`.
+
+Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
+gate without changing live port or character state. It must report all 1,000
+adversarial transfers inside the supply bounds, finite convergence of a real
+profit gradient, non-positive oversized reversal profit, and restocking to
+the 100-unit baseline.
+
+Owned vessels receive one class-based dock fee on arrival at a port. Repeated
+room updates within the same visit do not assess another fee. An unpaid balance
+blocks manual departure and pauses autopilot; `dockfees pay` is limited to the
+owner or a permitted helmsman and saves both vessel and player state before
+confirming payment. Revenue assessed at a clan-owned port goes to that clan
+even if control changes before settlement. Public-port revenue leaves the
+economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
+themselves.
+
+Scheduled public vessels may set a 0-100,000-gold passenger fare with
+`setschedule <route> <interval> [fare]`. Boarding collects and saves the fare
+before moving the character; insufficient gold or a failed player save leaves
+both the character and balance ashore. NPC crew are exempt. Privately owned
+vessels do not collect this automatic fee because owner revenue and
+player-to-player settlement are outside the public-ferry contract. The fare
+lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
 
 Freight contracts (`src/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows), with
@@ -496,11 +613,45 @@ TTL; accepted contracts are never cleared by a refresh.
 
 Piracy (`src/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
 into an alongside raider, unit by unit so the weight limit stops it exactly
-at capacity. Unlawful plunder accrues bounty in `vessel_bounties`;
-`vessel_port_refuses()` is called from every port-service gate (market,
-freight, crew hall, shipyard, hull purchase), so a WANTED pirate cannot sell
-what they steal. A letter of marque (`marque`) exempts the holder for a real
-day and is refused to captains already WANTED.
+at capacity. Unlawful plunder accrues bounty in `vessel_bounties`. By default,
+the rate is 15 gold per cargo unit. `vessel_region_law` may attach a 0-500%
+multiplier, authority, water type, and overlap priority to a builder-authored
+`REGION_GEOGRAPHIC` VNUM. At boot, law rows are cached and resolved against
+the canonical wilderness polygons already loaded from
+`region_data`/`region_index`; movement never runs a region query or creates a
+vessel-private coordinate table. `reload regions` refreshes both sources.
+`seastate` exposes the resolved named waters, authority, and rate. A vessel
+announces a real named-water boundary crossing ship-wide and remembers its
+current region so continued movement inside that polygon stays quiet. A
+pirate-cove port permits WANTED captains;
+`vessel_port_refuses()` remains active at every other port-service gate
+(market, freight, crew hall, shipyard, hull purchase), so a WANTED pirate
+cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
+positive regional bounties for one real day and is refused to captains already
+WANTED.
+
+NPC merchant shipping (`src/vessels_merchants.c`) is definition-driven rather
+than a special immortal hull. Each enabled `vessel_npc_merchants` row names a
+builder prototype, route, pilot mobile, spawn coordinate, faction, commodity,
+quantity, schedule interval, and bounded respawn delay. Boot and each MUD-hour
+schedule tick reconcile those definitions with the ordinary public hulls.
+Assembly uses the normal hull/interior persistence path, loads real bulk cargo,
+assigns the configured pilot, creates the schedule, and departs on the real
+route. A missing, captured, sunk, or staff-purged hull releases the definition;
+after its delay, the next reconciliation creates a fresh generation.
+
+Firing on a merchant records one fixed faction loss per player and generation.
+Plunder adds a cargo-scaled loss and the ordinary regional bounty. Capture or
+sinking adds a total-loss penalty and a bounty calculated from at least 34
+cargo units. The most recent attacker is responsible for an otherwise
+unattributed loss only for 300 seconds, so later weather or terrain damage is
+not charged to an old attacker. `vessel_merchant_consequences` deduplicates
+attack and loss events. Bounties commit with the event; faction losses are
+saved to an online player immediately or delivered at the next login. A saved
+per-player high-water mark closes an interrupted delivery without applying it
+twice. Character rename updates active and pending merchant records, while
+permanent removal voids pending rows, clears current attribution, and deletes
+the removed name's bounty.
 
 ### Ownership & Shipyard Commands (Phase 06)
 
@@ -523,6 +674,14 @@ Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
 voids old permits.
 
+Soft-deleted characters retain their deeds so staff restoration is lossless.
+Before permanent player-file removal, one transaction makes their ships
+unowned, removes their helm permits, voids pending insurance and merchant
+consequences, clears current merchant-attack attribution, and removes their
+vessel bounty and durable hunter lifecycle. Any matching live hunter is then
+retired through the normal vessel cleanup path. If that transaction cannot
+commit, player removal is deferred instead of orphaning property.
+
 Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
@@ -533,8 +692,12 @@ Crew rows live in `ship_crew_roster` with npc_vnum <= -100.
 Upgrades, wear, insurance (`src/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install
 time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
-way (never below 1 structure per section); insurance pays the owner on
-sinking via `vessel_pay_insurance()` from `vessel_sink()`.
+way (never below 1 structure per section). Sinking consumes the policy and
+creates one durable `vessel_insurance_claims` row plus a system-mail receipt in
+the same settlement flow. Online owners receive the gold immediately; offline
+owners receive pending settlements on their next login. A player-file
+high-water mark prevents duplicate credit if recovery occurs between saving
+the character and closing the database claim.
 
 ### Naval Combat Commands (Phase 05)
 
@@ -554,19 +717,43 @@ heartbeat (`vessel_combat_tick()`), and NPC-piloted ships return fire
 automatically. Deep-draft hulls ground on real wilderness bathymetry
 (elevation vs waterline against class `min_water_depth`).
 
+Every player-driven hostile entry point uses `vessel_pvp_permitted()`. A
+consented engagement records a persisted, opponent-specific five-minute
+window. If an owner logs out, only the original still-PvP-enabled aggressor may
+continue during that window; other players and expired snapshots fail closed.
+Ownership changes and permanent owner removal clear inherited consent.
+
 ### Builder Commands (Phase 04)
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn` |
+| vedit | Ship prototype editor (LVL_BUILDER) | `vedit list/new/show/set/delete/spawn/spawnpublic` |
 
 `vedit new <class 0-7> <name>` creates a prototype in `ship_prototypes` with
 class defaults; `vedit set <id> name/class/speed/armor <value>` tunes it;
 `vedit spawn <id>` instantiates a live, boardable ship at the builder's
-location (free ship slot, generated interior, object linkage, immediate DB
-persist). Interior room text comes from `ship_room_templates` rows (edit the
-DB rows to change generated interiors - no recompile needed; compiled-in
-fallbacks apply when MySQL is down).
+location and assigns the builder as owner. `vedit spawnpublic <id>` uses the
+same atomic spawn path but leaves the ship unclaimed for an NPC or public
+route, so it has no player-owner dock fees. Both paths allocate a free slot,
+generate the interior, link the exterior object, and persist the complete
+instance before reporting success.
+
+On local development, the complete builder gate is:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+```
+
+It uses one actual Kohdee session, parses the generated IDs from in-game
+output, verifies a one-cell sail, and removes the disposable hull and
+prototype. The July 30, 2026 run took 2.7 seconds in game and 8 seconds
+including login and clean account logout, well inside the 15-minute builder
+independence budget.
+
+Interior room text comes from `ship_room_templates`. DG trigger attachments
+come from `ship_room_template_triggers`, keyed by generated room type. Changes
+to either table take effect on the next boot; compiled-in room templates
+remain the MySQL-unavailable fallback.
 
 ### NPC Pilot Commands
 
@@ -579,7 +766,7 @@ fallbacks apply when MySQL is down).
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| setschedule | Set departure schedule | `setschedule <route> <interval>` |
+| setschedule | Set schedule and optional public fare | `setschedule <route> <interval> [fare]` |
 | clearschedule | Clear schedule | `clearschedule` |
 | showschedule | Display schedule | `showschedule` |
 
@@ -645,7 +832,8 @@ fallbacks apply when MySQL is down).
 3. Assign route to vessel
 4. Enable autopilot
 5. Vessel follows route automatically
-6. Optional: Assign NPC pilot for announcements
+6. If terrain rejects a step, correct the route, set speed, and resume
+7. Optional: Assign NPC pilot for announcements
 
 ---
 
@@ -685,20 +873,20 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 |-----------|----------|---------|------------|
-| Vessel | 4,744 bytes | 500 | About 2.3 MB |
+| Vessel | 4,928 bytes | 500 | About 2.35 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
-| Autopilot | 48 bytes | Optional per vessel | Up to about 24 KB |
+| Autopilot | 72 bytes | Optional per vessel | Up to about 36 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
 
 ### Structure Sizes
 
 | Structure | Size |
 |-----------|------|
-| `struct greyhawk_ship_data` | 4,744 bytes |
+| `struct greyhawk_ship_data` | 4,928 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |
-| `struct autopilot_data` | 48 bytes |
+| `struct autopilot_data` | 72 bytes |
 | `struct waypoint_node` | 104 bytes |
 | `struct transport_data` | 16 bytes |
 
@@ -716,12 +904,13 @@ historical measurements, and the limits of the current evidence.
 
 | Constant | Value | Description |
 |----------|-------|-------------|
-| `GREYHAWK_MAXSHIPS` | 500 | Maximum concurrent vessels |
+| `GREYHAWK_MAXSHIPS` | 501 | Fleet-slot array entries, including reserved slot 0 |
+| `GREYHAWK_ACTIVE_SHIP_CAPACITY` | 500 | Maximum concurrent active vessels |
 | `MAX_SHIP_ROOMS` | 20 | Maximum interior rooms per vessel |
 | `MAX_DOCKING_RANGE` | 2.0 | Maximum distance for docking |
 | `BOARDING_DIFFICULTY` | 15 | DC for hostile boarding attempts |
 | `SHIP_INTERIOR_VNUM_BASE` | 70000 | Start of interior room VNUMs |
-| `SHIP_INTERIOR_VNUM_MAX` | 79999 | End of interior room VNUMs |
+| `SHIP_INTERIOR_VNUM_MAX` | 80019 | End of interior room VNUMs |
 
 ---
 
@@ -733,19 +922,28 @@ historical measurements, and the limits of the current evidence.
 |-------|---------|
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
 | `ship_interiors` | Vessel identity, rooms, owner, upgrades, insurance, and wage state |
+| `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
+| `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
 | `ship_room_templates` | Builder-editable generated interior text |
+| `ship_room_template_triggers` | DG trigger VNUMs attached to generated room types |
 | `ship_cargo_manifest` | Object cargo and bulk commodity lots |
 | `ship_crew_roster` | Hired crew and helm permits |
 | `ship_waypoints` | Persistent named navigation points |
 | `ship_routes` | Persistent route identities |
 | `ship_route_waypoints` | Ordered waypoint membership for routes |
-| `ship_schedules` | NPC-pilot and ferry schedule state |
+| `ship_schedules` | NPC-pilot and ferry schedule state, including passenger fare |
 | `trade_commodities` | Commodity definitions and base values |
 | `port_commodities` | Per-port supply and local price state |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
 | `vessel_bounties` | Piracy bounty and marque state |
+| `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
+| `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
+| `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
+| `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
+| `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
+| `vessel_bounty_hunts` | One durable hunter generation and terminal cooldown per target player |
 
 ### Room Templates (19 default types)
 
@@ -757,28 +955,179 @@ historical measurements, and the limits of the current evidence.
 - **Connectivity:** corridor, deck_main, deck_lower
 - **Special:** airlock, observation, brig
 
+### Shared Development Harbor
+
+The tracked source package in `lib/world/vessel_harbor/` and the explicit
+development provisioner create the reusable harbor validation environment:
+
+```bash
+make install
+./scripts/provision_vessel_harbor.sh
+```
+
+The command refuses to run unless `lib/.env` contains
+`APP_ENV=development`. It merges only missing records into the ignored live
+world files, extends the reserved zone 700 upper bound from 79999 to 80019
+when needed, applies Phases 11-15 and the development seed, restarts the
+supervised local MUD, creates the ferry only when absent, and verifies the
+result through batched Kohdee sessions. It rejects conflicting zone or legal
+water region reservations instead of overwriting them. It is intentionally not
+part of `make install`, `setup.sh`, or `deploy.sh`.
+
+The environment contains Testing Dock at room 1000389 and `(-66, 92)`, Harbor
+Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
+airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
+ferry with a 10-gold fare, mobile 70001 as its persistent pilot, and
+bridge/cargo DG diagnostics 70001/70002. Three development-only geographic
+regions demonstrate territorial waters (150% bounty), nested free seas (100%),
+and a pirate cove (0%) without replacing wilderness geometry. The same route
+also drives `Harbor Sandbox Merchant`, a faction-1 public hull carrying 25
+units of spice under the fixture pilot. The provisioner requires its durable
+definition, positive generation, live hull, real cargo, pilot, enabled
+schedule, route, in-game registry row, and ship-status identity.
+The Phase 15 fixture adds `Harbor Sandbox Hunted Raft`, an Admiralty warship,
+captain mobile 70002, encounter region 7000004, and a deterministic
+raft-target policy. The provisioner validates the region, both prototypes,
+warship class, pilot, HUNTED threshold, pursuit bounds, and lifecycle tables;
+it does not create a hunt or alter Kohdee's bounty.
+
+Re-running the command reuses the same ferry, merchant definition, and account
+rather than duplicating any of them. An assigned pilot at the bridge is
+excluded from ordinary mobile wandering; the fixture ferrymaster is also
+authored Sentinel so it remains at its duty station. The two docks are joined
+by four ordered route entries: west dock, channel turn at `(-64, 82)`, east
+dock, and the same channel turn for the return leg. This keeps both
+straight-line legs off the Beach cells. After a hard restart, the provisioner
+checks the restored fare and named legal waters, boards as Kohdee through the
+ordinary hull-object path, proves exactly 10 gold was collected, restores
+Kohdee's starting gold, resumes the ferry, and validates the exact route
+topology.
+
+The 24-hour ferry gate is run independently of an agent session:
+
+```bash
+./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh status
+```
+
+The transient user service submits a generated, nonexistent account name but
+does not confirm it. This leaves one non-character descriptor in the
+non-expiring confirmation state without creating an account. The monitor
+requires its socket to remain `ESTABLISHED` every 20 seconds and fails if the
+descriptor-driven game loop reports that it slept. A normal copyover drops
+non-playing descriptors by design; when the log proves copyover mode, the
+monitor requires the same PID and installed binary, waits for boot, reconnects
+the hold descriptor, and records the recovery. A missing socket without that
+copyover evidence remains a hard failure. The monitor samples database and
+process invariants every minute and serializes hourly Kohdee checks through
+the shared login-helper lock. It also fails on a PID change,
+route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
+an installed-binary fingerprint change, or a ferry-specific
+movement/persistence error. Launch metadata records the source commit and
+`bin/circle` SHA-256. A successful run ends with a controlled local restart
+that proves exact paused-coordinate recovery and launches the identical
+executable hash, then resumes the ferry. Artifacts live in the run directory
+printed by `start`. A failure writes terminal status before cleanup so an
+interrupted cleanup cannot leave a stale `RUNNING` result.
+
 ### Interior VNUM Allocation
 
 ```
 Formula: 70000 + (ship_number * 20) + room_index
-Range:   70000 - 79999 (reserved for vessel interiors, zones 700-799)
-Maximum: 500 vessels * 20 rooms = 10,000 rooms
+Active:  70020 - 80019 (ship slots 1-500)
+Reserve: 70000 - 80019 (slot 0 remains unused)
+Maximum: 500 active vessels * 20 rooms = 10,000 rooms
 ```
 
 ### Persistence Lifecycle
 
 1. **Boot**: Schemas are created or migrated, templates and gameplay data load,
-   and saved ship, route, schedule, crew, cargo, and ownership state is restored.
+   and saved ship, route, schedule, crew, cargo, ownership, NPC merchant, and
+   bounty-hunter state is restored. Every active slot, including the legacy
+   fixture, reconstructs its exterior hull. World resets preserve managed
+   hulls, then the boot pass relinks them to their fleet slots. Merchant
+   reconciliation reattaches matching live generations and assembles
+   definitions that are due. Hunter reconciliation accepts only the exact
+   target, unique generation name, prototype, fleet slot, and active pilot;
+   stale or expired rows retire safely.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
-   insurance changes update their authoritative tables.
+   insurance changes update their authoritative tables. Player autopilot
+   `on`, `off`, `pause`, and `setroute` changes commit the runtime row before
+   reporting success; pilot and schedule commands use the same durable
+   boundary. A failed write restores the prior in-memory state and compensates
+   any earlier write in the operation.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
-   and applies the applicable persistence policy.
-5. **Shutdown**: Current vessel state is saved before termination.
+   applies the applicable persistence policy, and closes any matching merchant
+   or bounty-hunter lifecycle. Capturing a hunter removes its configured pilot
+   and leaves the ordinary captured hull.
+5. **Copyover**: Complete vessel state is committed before descriptor handoff.
+   Boot reconstructs dynamic interiors and exterior hull objects before player
+   descriptors return to their saved rooms.
+6. **Shutdown**: Current vessel state is saved before termination.
 
-Explicit mid-voyage, mid-combat, and cargo-laden copyover tests remain required
-before production rollout.
+The July 29, 2026 local lifecycle run used Kohdee to prove both a graceful full
+restart and descriptor-preserving copyover. A dynamic warship recovered while
+actively traveling, with route progress, position, heading, damage, combat
+link, and schedule intact. A second dynamic transport retained ownership,
+generated rooms, cargo, hired crew, a refit, insurance, combat damage, and four
+normalized weapon rows. A separate owned-transport run proved one 35-gold dock
+fee per port visit, departure and autopilot blocking, payment, and unpaid
+balance recovery across copyover and full restart, including recycled dynamic
+wilderness rooms.
+
+Exterior-hull recovery has direct local evidence as well. Three hulls shared
+the static Testing Dock, while two persisted hulls shared one dynamic room at
+`(-62, 82)`. All five relinked after a hard restart, survived `zreset 10000`,
+and remained independently boardable. After the player left and the recycle
+interval elapsed, `shiplist` still reported one occupied dynamic room. The
+temporary fifth hull then purged cleanly. Runtime rows converged on the generic
+70002 hull prototype and current room VNUMs derived from their coordinates.
+
+The offline-owner insurance path also has live evidence. Veska bought a
+50-gold policy for 10 gold and logged out at 9,990 gold. Kohdee sank the raft
+with actual gunfire; one pending claim and one receipt mail existed before
+Veska returned. Her first login credited exactly 50 gold, marked the claim
+paid, and saved claim high-water mark 1. Her second login retained 10,040 gold
+without another credit. Production-snapshot rehearsal remains a release
+prerequisite.
+
+The normal player-removal paths have actual-character evidence. A reversible
+deleted flag blocked Corven's login without changing the owned raft or Tern
+permit, and clearing it restored Corven aboard the same ship. Corven then used
+the real character-menu password/confirmation flow with fast wipe enabled.
+The player file and database membership were removed, the raft became
+unclaimed in memory and SQL, the permit was removed, and a controlled pending
+claim became `void`. A second disposable owner, Elyra, then exercised the
+failure path. A temporary MariaDB trigger rejected the ownership update inside
+the removal transaction. The transaction rolled back, deletion was cancelled
+at the real character menu, and account membership, player data, raft
+ownership, and a separate Tern helm permit all remained intact. The trigger
+was removed, and Elyra immediately logged back in aboard the same raft.
+
+The opponent-specific logout grace also has actual-character and process
+recovery evidence. Dorrin and Elyra enabled PvP and completed a consented
+Tern-versus-raft attack. Both runtime rows stored the opposite owner for 300
+seconds. With Elyra offline, Dorrin's connection survived copyover and his
+next attack was permitted; PvP-enabled Veska was refused against the same
+raft. After the full five minutes elapsed, Dorrin was refused too. A deed
+transfer then exposed and fixed a stale-database defect: ownership and the
+grace reset now commit together, and permanent player removal clears the
+runtime row inside its cleanup transaction. A fresh boot plus live
+Veska-to-Elyra deed left owner `Elyra`, grace timestamp `0`, and an empty
+opponent in SQL.
+
+Player autopilot control has the same immediate-durability evidence. A stale
+Traveling snapshot first reproduced the defect after a hard local service
+replacement even though Kohdee had previously issued `autopilot off`. With the
+fix installed, Kohdee assigned `persistroute`, engaged, paused, resumed, and
+disengaged the Goshawk; SQL reflected route/state values `3/0`, `3/3`, `3/1`,
+and `0/0` immediately after the respective commands. Separate hard service
+replacements restored both Off-with-route and Paused exactly. A temporary
+MariaDB trigger then rejected only the Goshawk runtime write during resume;
+the command reported failure, memory and SQL both remained Paused on route 3,
+and the trigger was removed.
 
 ---
 
@@ -802,6 +1151,8 @@ before production rollout.
 | `src/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
 | `src/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
+| `src/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
+| `src/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
 | `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
@@ -809,7 +1160,6 @@ before production rollout.
 | `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
 | `src/transport_unified.c` | Unified transport interface across all transport types |
 | `src/transport_unified.h` | Transport abstraction types and prototypes |
-| `lib/text/help/vehicles.hlp` | Help file entries for vehicle commands |
 
 ### Database
 
@@ -822,7 +1172,15 @@ before production rollout.
 | `sql/components/vessels_phase6_*` | Ownership schema, rollback, and verification |
 | `sql/components/vessels_phase7_*` | Economy schema, rollback, and verification |
 | `sql/components/vessels_phase8_*` | Encounter schema, rollback, and verification |
+| `sql/components/vessels_phase9_*` | Runtime-state schema, rollback, and verification |
+| `sql/components/vessels_phase10_*` | Weapons and recovery schema, rollback, and verification |
+| `sql/components/vessels_phase11_*` | Generated-room DG schema, rollback, and verification |
+| `sql/components/vessels_phase12_*` | Passenger-fare schema, rollback, and verification |
+| `sql/components/vessels_phase13_*` | Geographic piracy-law schema, rollback, and verification |
+| `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
+| `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
+| `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 
 ### Legacy (Disabled)
 
@@ -855,7 +1213,8 @@ before production rollout.
 
 ### Reserved Resources
 
-- **VNUM Range 70000-79999:** Reserved for dynamic ship interior rooms (zones 700-799)
+- **VNUM Range 70000-80019:** Reserved for dynamic ship interior rooms; zone 700 must own
+  the complete range
 - **Item Type 56:** ITEM_GREYHAWK_SHIP
 - **Room Flags:** ROOM_VEHICLE (40), ROOM_DOCKABLE (41)
 
@@ -889,7 +1248,7 @@ before production rollout.
 | Vessel not moving | Speed, dock status | `undock`, `speed 10`, `autopilot resume` |
 | Cannot board | Room DOCKABLE flag | Move to dock room, check `entrance_room` |
 | Interior nav fails | Room connections | `ship_rooms` to verify, regenerate if needed |
-| Autopilot stuck | Route waypoints | `listwaypoints`, verify terrain reachable |
+| Autopilot paused at blocked route | Route waypoints and hull speed | `listwaypoints`, correct unreachable terrain/Z, set speed, then `autopilot resume` |
 | Vehicle terrain blocked | Vehicle type | Use MOUNT for hills/mountains |
 | Coordinate desync | shipobj linkage | `greyhawk_shipload` (admin), check spec_procs.c |
 | Disembark fails | Interior room link | Verify `world[room].ship` is set |
@@ -901,7 +1260,7 @@ before production rollout.
 |-------|-------|----------|
 | FK constraint errors | Parent record missing | Save to `ship_interiors` before cargo/crew |
 | Stored procedures fail | Missing EXECUTE privilege | `GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';` |
-| Silent movement fail | No wilderness room | Use `find_available_wilderness_room()` + `assign_wilderness_room()` |
+| Movement pause cannot persist | Database connection/runtime row | Check the one matching `SYSERR`, then repair persistence before resuming |
 | Performance degradation | Missing indexes | Check with `EXPLAIN SELECT ...` |
 
 ### Gameplay Issues Detail
@@ -917,28 +1276,56 @@ before production rollout.
 ### Debug Logging
 
 The whole vessel and vehicle stack is instrumented behind compile-time macros
-declared in `src/vessels.h`. There is a master switch plus eight category
-switches, so you can turn on just the subsystem you are chasing.
-
-> **Production**: `VESSEL_SYSTEM_DEBUG` is currently **1** (dev). Set it to
-> **0** before any production build - at 1 it logs every ship movement,
-> terrain check, and speed calculation.
+declared in `src/vessels.h`. `VESSEL_SYSTEM_DEBUG` defaults to `0`, so normal
+builds compile out every diagnostic call site. An explicit development build
+enables support, but its runtime category mask still starts empty.
 
 ```c
 /* src/vessels.h */
-#define VESSEL_SYSTEM_DEBUG 1  /* master: 0 disables all vessel debug output */
+#ifndef VESSEL_SYSTEM_DEBUG
+#define VESSEL_SYSTEM_DEBUG 0
+#endif
 ```
 
-| Category toggle | Covers |
-|-----------------|--------|
-| `VESSEL_DEBUG_CORE` | General vessel operations, interior generation |
-| `VESSEL_DEBUG_MOVE` | Position updates, terrain checks, speed modifiers, blocked moves, room allocation |
-| `VESSEL_DEBUG_AUTO` | Autopilot state transitions, tick summary, travel steps |
-| `VESSEL_DEBUG_DOCK` | Docking, boarding, defender positioning |
-| `VESSEL_DEBUG_DB` | Per-ship save/load persistence |
-| `VEHICLE_DEBUG_CORE` | Vehicle operations, state transitions, damage |
-| `VEHICLE_DEBUG_MOVE` | Vehicle movement and terrain verdicts |
-| `VEHICLE_DEBUG_XPORT` | Vehicle-on-vessel transport, capacity checks |
+For a bounded local-development investigation:
+
+```bash
+make clean
+make CPPFLAGS='-DVESSEL_SYSTEM_DEBUG=1' -j$(nproc)
+make install
+
+# In game as LVL_IMMORT+
+vdebug status
+vdebug on move
+vdebug off move
+vdebug off
+```
+
+`vdebug` and `vesseldebug` are aliases. `on all` enables every category;
+`off` with no category clears the mask. Restore a clean default build after the
+investigation and require `vdebug status` to report `compiled out`.
+
+Normal builds do not write a line for every position update, waypoint arrival,
+wait completion, route loop, wilderness region transform, elevation
+adjustment, or matched path. Vessel movement details use the `move` and `auto`
+debug categories. Runtime progress remains visible through the monotonic
+counters in `autopilot status`, so long soaks do not trade log growth for route
+evidence. A rejected automated step still emits one actionable message and
+bounded failure diagnostics before the persisted pause prevents repeated
+output.
+
+| Runtime category | Covers |
+|------------------|--------|
+| `core` | General vessel operations and interior generation |
+| `move` | Position updates, terrain checks, speed modifiers, blocked moves, and room allocation |
+| `auto` | Autopilot state transitions, tick summaries, and travel steps |
+| `dock` | Docking, boarding, and defender positioning |
+| `db` | Per-ship save/load persistence |
+| `func` | Function entry and exit tracing |
+| `state` | State transitions |
+| `vehicle` | Vehicle operations and damage |
+| `vehicle_move` | Vehicle movement and terrain verdicts |
+| `transport` | Vehicle-on-vessel transport and capacity checks |
 
 Macros: `VSSL_DEBUG`, `VSSL_DEBUG_MOVE`, `VSSL_DEBUG_AUTO`, `VSSL_DEBUG_DOCK`,
 `VSSL_DEBUG_DB`, `VHCL_DEBUG`, `VHCL_DEBUG_MOVE`, `VHCL_DEBUG_XPORT`, plus
@@ -965,12 +1352,13 @@ grep "\[VEHICLE_XPORT\]" syslog   # vehicle loading
 The gameplay layer is not approved for production merely because it builds and
 passes automated tests. Before rollout:
 
-1. Complete the numbered manual regression on development.
-2. Make `CONFIG_VESSEL_SYSTEM` gate vessel command dispatch and tick processing;
-   it currently affects interior detection only and is not a kill switch.
-3. Set `VESSEL_SYSTEM_DEBUG` to `0`.
-4. Apply and verify every vessel schema component plus
-   `help_vessel_entries.sql`.
+1. Repeat the numbered manual regression on the release candidate.
+2. Exercise cedit `Off` with an active route: gated commands must refuse,
+   coordinates must remain fixed, and recovery commands must remain available.
+3. Require `vdebug status` to report that debug support is compiled out.
+4. Apply and verify every vessel schema component, then require all 32
+   maintained help entries and 78 command keywords to pass both SQL and in-game
+   checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
 7. Rehearse schema migration and rollback against a production snapshot.
@@ -987,8 +1375,7 @@ used in the rehearsal.
 
 See [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md) for
 the DBA procedure. Do not deploy vessel code directly from a development
-checkout or treat the cedit flag as a safety boundary until the prerequisite
-above is complete.
+checkout.
 
 ### Verification Queries
 
@@ -999,21 +1386,33 @@ WHERE TABLE_SCHEMA = DATABASE()
   AND (TABLE_NAME LIKE 'ship_%'
        OR TABLE_NAME IN ('trade_commodities', 'port_commodities',
                          'freight_contracts', 'vessel_bounties',
-                         'vessel_encounters'))
+                         'vessel_region_law', 'vessel_encounters',
+                         'vessel_insurance_claims',
+                         'vessel_npc_merchants',
+                         'vessel_merchant_consequences',
+                         'vessel_hunter_encounters',
+                         'vessel_bounty_hunts'))
 ORDER BY TABLE_NAME;
 
 SELECT COUNT(*) FROM ship_room_templates;
 SELECT COUNT(*) FROM help_keywords WHERE keyword IN ('SHIPFIRE', 'SHIPBUY', 'SEASTATE');
 ```
 
-Run the `verify_vessels_*.sql` scripts as the authoritative schema checks; a
-single table count is insufficient once later phases extend the system.
+Run the `verify_vessels_*.sql` scripts and
+`verify_help_vessel_entries.sql` as the authoritative checks; a single table
+or keyword count is insufficient once later phases extend the system.
 
 ### Monitoring & Maintenance
 
-- `shiplist` shows fleet state and wilderness dynamic-room utilization.
-- Vessel debug categories provide focused dev diagnostics. Keep the master
-  switch off in production unless investigating a bounded incident.
+- `shiplist` shows fleet state and wilderness dynamic-room utilization;
+  `shiplist summary` keeps the health totals available at fleet scale.
+- `vmerchant list` shows every configured merchant generation, lifecycle
+  state, live hull, cargo mapping, loss count, and reconciliation error.
+- `vessel_bounty_hunts` exposes each hunter's target, generation, active slot,
+  expiry, cooldown, and terminal reason; investigate any long-lived
+  `spawning` row or active row whose fleet identity no longer matches.
+- Vessel debug categories provide focused development diagnostics. Candidate
+  and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
   volume, and game-loop latency.
 - Treat room-pool pressure over 80%, tick time over 25 ms, or repeated
@@ -1035,22 +1434,6 @@ single table count is insufficient once later phases extend the system.
 
 ---
 
-## Known Issues
-
-| Issue | Location | Status |
-|-------|----------|--------|
-| Legacy zone-700 fixture stores slot 0 while `shipnum` is 1 and binds room 1403 instead of 70003 | `vessels.c`, object 70002 | Release blocker; breaks disembark and helm commands in the manual regression |
-| `shipnum` is both an array index and an occupancy sentinel | Core Greyhawk callers | Design debt; remove the dual meaning rather than relying on slot conventions |
-| Cedit vessel toggle gates interior detection only | `vessels_rooms.c` | Not a production kill switch; command and tick gating remain |
-| Generated interior rooms persist until reboot after ship purge | `vessels_rooms.c` | Known limitation; runtime reclamation is future work |
-| Offline insurance payout requires staff reconciliation | `vessels_upgrades.c` | Mail delivery remains |
-| Installed weapon state is memory-only | `slot[]` | A persistent `ship_weapons` table remains |
-
-See [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) for
-the complete, dependency-ordered backlog.
-
----
-
 ## Development
 
 ### Adding New Vessel Types
@@ -1058,14 +1441,17 @@ the complete, dependency-ordered backlog.
 1. Add enum value to `vessel_class` in `vessels.h`
 2. Add terrain capabilities to `vessel_terrain_data[]` in `vessels.c`
 3. Add room generation rules to `get_rooms_for_vessel_type()` in `vessels_rooms.c`
-4. Update help files
+4. Update the authoritative help migration and verifier
 
 ### Adding New Commands
 
 1. Implement handler in `vessels.c` or `vessels_docking.c`
 2. Register in `interpreter.c` under vessel command section
-3. Add help entry in `lib/text/help/help.hlp`
-4. Add tests in `unittests/CuTest/test_vessels.c`
+3. Add the authoritative entry and exact keyword to
+   `sql/components/help_vessel_entries.sql` and its verifier
+4. Add production-linked coverage in
+   `unittests/CuTest/test_transport_production.c`
+5. Run the SQL verifier and `--vessel-help-check`
 
 ### Adding New Vehicle Types
 
@@ -1074,8 +1460,8 @@ the complete, dependency-ordered backlog.
 3. Add capacity constants (passengers, weight)
 4. Add speed modifier constant
 5. Update `vehicle_type_name()` in `vehicles.c`
-6. Add help entry in `lib/text/help/vehicles.hlp`
-7. Add tests in `unittests/CuTest/test_vehicle_structs.c`
+6. Update the authoritative vehicle help migration and verifier
+7. Add production-linked tests in `test_transport_production.c`
 
 ### Testing
 
@@ -1087,6 +1473,7 @@ make test
 make install
 
 # Full local gate, including focused protocol and schema checks
+cd unittests/CuTest
 make test-all
 ```
 

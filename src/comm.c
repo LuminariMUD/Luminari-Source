@@ -691,6 +691,8 @@ static void init_game(ush_int local_port)
   /* Save all vessel states to database */
   log("Saving vessel states to database.");
   save_all_vessels();
+  save_all_waypoints();
+  save_all_routes();
 
   /* Save all vehicle states to database */
   log("Saving vehicle states to database.");
@@ -1137,6 +1139,10 @@ void game_loop(socket_t local_mother_desc)
       process_time.tv_sec = 0;
       process_time.tv_usec = process_time.tv_usec % OPT_USEC;
     }
+    if (missed_pulses > 0)
+    {
+      PERF_note_missed_pulses((uint64_t)missed_pulses);
+    }
 
     /* Calculate the time we should wake up */
     timediff(&temp_time, &opt_time, &process_time);
@@ -1417,6 +1423,17 @@ void proc_update()
 void heartbeat(int heart_pulse)
 {
   static int mins_since_crashsave = 0;
+  static struct PERF_prof_sect *pr_vessel_tick = NULL;
+  static struct PERF_prof_sect *pr_vessel_autopilot = NULL;
+  static struct PERF_prof_sect *pr_vessel_hunters = NULL;
+  static struct PERF_prof_sect *pr_vessel_combat = NULL;
+  static struct PERF_prof_sect *pr_vessel_crew_wages = NULL;
+  static struct PERF_prof_sect *pr_vessel_upkeep = NULL;
+  static struct PERF_prof_sect *pr_vessel_trade = NULL;
+  static struct PERF_prof_sect *pr_vessel_weather = NULL;
+  static struct PERF_prof_sect *pr_vessel_encounters = NULL;
+  static struct PERF_prof_sect *pr_vessel_msdp = NULL;
+  static struct PERF_prof_sect *pr_vessel_schedules = NULL;
 
   PERF_PROF_ENTER(pr_event_process_, "event_process");
   event_process();
@@ -1460,16 +1477,67 @@ void heartbeat(int heart_pulse)
   }
 
   /* Autopilot vessel movement tick - every AUTOPILOT_TICK_INTERVAL pulses (0.5 sec) */
-  if (!(heart_pulse % AUTOPILOT_TICK_INTERVAL))
+  if (CONFIG_VESSEL_SYSTEM && !(heart_pulse % AUTOPILOT_TICK_INTERVAL))
   {
+    PERF_prof_sect_init(&pr_vessel_tick, "vessel_tick");
+    PERF_prof_sect_enable_sampling(pr_vessel_tick);
+    PERF_prof_sect_enter(pr_vessel_tick);
+
+    PERF_prof_sect_init(&pr_vessel_autopilot, "vessel_autopilot");
+    PERF_prof_sect_enable_sampling(pr_vessel_autopilot);
+    PERF_prof_sect_enter(pr_vessel_autopilot);
     autopilot_tick();
+    PERF_prof_sect_exit(pr_vessel_autopilot);
+
+    PERF_prof_sect_init(&pr_vessel_hunters, "vessel_hunters");
+    PERF_prof_sect_enable_sampling(pr_vessel_hunters);
+    PERF_prof_sect_enter(pr_vessel_hunters);
+    vessel_hunter_tick();
+    PERF_prof_sect_exit(pr_vessel_hunters);
+
+    PERF_prof_sect_init(&pr_vessel_combat, "vessel_combat");
+    PERF_prof_sect_enable_sampling(pr_vessel_combat);
+    PERF_prof_sect_enter(pr_vessel_combat);
     vessel_combat_tick();
+    PERF_prof_sect_exit(pr_vessel_combat);
+
+    PERF_prof_sect_init(&pr_vessel_crew_wages, "vessel_crew_wages");
+    PERF_prof_sect_enable_sampling(pr_vessel_crew_wages);
+    PERF_prof_sect_enter(pr_vessel_crew_wages);
     vessel_crew_wage_tick();
+    PERF_prof_sect_exit(pr_vessel_crew_wages);
+
+    PERF_prof_sect_init(&pr_vessel_upkeep, "vessel_upkeep");
+    PERF_prof_sect_enable_sampling(pr_vessel_upkeep);
+    PERF_prof_sect_enter(pr_vessel_upkeep);
     vessel_upkeep_tick();
+    PERF_prof_sect_exit(pr_vessel_upkeep);
+
+    PERF_prof_sect_init(&pr_vessel_trade, "vessel_trade");
+    PERF_prof_sect_enable_sampling(pr_vessel_trade);
+    PERF_prof_sect_enter(pr_vessel_trade);
     vessel_trade_restock_tick();
+    PERF_prof_sect_exit(pr_vessel_trade);
+
+    PERF_prof_sect_init(&pr_vessel_weather, "vessel_weather");
+    PERF_prof_sect_enable_sampling(pr_vessel_weather);
+    PERF_prof_sect_enter(pr_vessel_weather);
     vessel_weather_tick();
+    PERF_prof_sect_exit(pr_vessel_weather);
+
+    PERF_prof_sect_init(&pr_vessel_encounters, "vessel_encounters");
+    PERF_prof_sect_enable_sampling(pr_vessel_encounters);
+    PERF_prof_sect_enter(pr_vessel_encounters);
     vessel_encounter_tick();
+    PERF_prof_sect_exit(pr_vessel_encounters);
+
+    PERF_prof_sect_init(&pr_vessel_msdp, "vessel_msdp");
+    PERF_prof_sect_enable_sampling(pr_vessel_msdp);
+    PERF_prof_sect_enter(pr_vessel_msdp);
     vessel_msdp_tick();
+    PERF_prof_sect_exit(pr_vessel_msdp);
+
+    PERF_prof_sect_exit(pr_vessel_tick);
   }
 
   if (!(heart_pulse % (int)(PASSES_PER_SEC * 0.75)))
@@ -1579,7 +1647,14 @@ void heartbeat(int heart_pulse)
     check_timed_quests();
     check_diplomacy(); /* Reduce the diplomacy pause for online players */
     update_clans();    /* Update clan war timers and other periodic clan tasks */
-    schedule_tick();   /* Check vessel scheduled departures */
+    if (CONFIG_VESSEL_SYSTEM)
+    {
+      PERF_prof_sect_init(&pr_vessel_schedules, "vessel_schedules");
+      PERF_prof_sect_enable_sampling(pr_vessel_schedules);
+      PERF_prof_sect_enter(pr_vessel_schedules);
+      schedule_tick(); /* Check vessel scheduled departures */
+      PERF_prof_sect_exit(pr_vessel_schedules);
+    }
 
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
     /* Clean up old trails once per mud hour */

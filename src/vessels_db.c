@@ -19,13 +19,14 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
+#include "wilderness.h"
 
 /* External variables */
 extern MYSQL *conn;
 extern bool mysql_available;
 
 /* Function prototypes */
-void save_ship_interior(struct greyhawk_ship_data *ship);
+bool save_ship_interior(struct greyhawk_ship_data *ship);
 void load_ship_interior(struct greyhawk_ship_data *ship);
 void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2,
                          const char *dock_type);
@@ -38,19 +39,149 @@ int serialize_room_data(struct greyhawk_ship_data *ship, char *buffer, int buffe
 int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data);
 void cleanup_orphaned_dockings(void);
 
+/**
+ * Ensure tables that hold complete live-instance and schedule state exist.
+ *
+ * Component SQL remains the deployment authority; this boot-time guard keeps
+ * an existing development database usable before an operator runs migrations.
+ */
+void vessel_persistence_ensure_schema(void)
+{
+  const char *runtime_sql =
+      "CREATE TABLE IF NOT EXISTS ship_runtime_state ("
+      "ship_id INT NOT NULL PRIMARY KEY, "
+      "instance_version INT NOT NULL DEFAULT 1, "
+      "prototype_id INT NOT NULL DEFAULT 0, "
+      "hull_object_vnum INT NOT NULL DEFAULT 70002, "
+      "display_id CHAR(2) NOT NULL DEFAULT '', "
+      "location_vnum INT NOT NULL DEFAULT 0, "
+      "x FLOAT NOT NULL DEFAULT 0, y FLOAT NOT NULL DEFAULT 0, z FLOAT NOT NULL DEFAULT 0, "
+      "dx FLOAT NOT NULL DEFAULT 0, dy FLOAT NOT NULL DEFAULT 0, dz FLOAT NOT NULL DEFAULT 0, "
+      "heading SMALLINT NOT NULL DEFAULT 0, setheading SMALLINT NOT NULL DEFAULT 0, "
+      "minspeed SMALLINT NOT NULL DEFAULT 0, maxspeed SMALLINT NOT NULL DEFAULT 0, "
+      "speed SMALLINT NOT NULL DEFAULT 0, setspeed SMALLINT NOT NULL DEFAULT 0, "
+      "dock_room INT NOT NULL DEFAULT 0, docked_to_ship INT NOT NULL DEFAULT -1, "
+      "docking_room INT NOT NULL DEFAULT 0, max_docked_ships INT NOT NULL DEFAULT 0, "
+      "maxfarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxrarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxparmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxsarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "farmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "rarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "parmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "sarmor TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxfinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxrinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxpinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxsinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "finternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "rinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "pinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "sinternal TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxturnrate TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "turnrate TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxmainsail TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "mainsail TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+      "last_attacker INT NOT NULL DEFAULT 0, "
+      "pvp_grace_until BIGINT NOT NULL DEFAULT 0, "
+      "pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '', "
+      "dock_fee_balance INT NOT NULL DEFAULT 0, "
+      "dock_fee_port INT NOT NULL DEFAULT 0, "
+      "dock_fee_clan INT NOT NULL DEFAULT 0, "
+      "wear_ticks INT NOT NULL DEFAULT 0, wage_ticks INT NOT NULL DEFAULT 0, "
+      "room_types TEXT, slot_data LONGBLOB, "
+      "autopilot_state INT NOT NULL DEFAULT 0, current_route_id INT NOT NULL DEFAULT 0, "
+      "current_waypoint_index INT NOT NULL DEFAULT 0, "
+      "autopilot_tick_counter INT NOT NULL DEFAULT 0, "
+      "wait_remaining INT NOT NULL DEFAULT 0, last_update BIGINT NOT NULL DEFAULT 0, "
+      "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, "
+      "CONSTRAINT fk_ship_runtime_interior FOREIGN KEY (ship_id) "
+      "REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+
+  if (!mysql_available || conn == NULL)
+  {
+    return;
+  }
+
+  if (mysql_query(conn, runtime_sql))
+  {
+    log("SYSERR: Unable to create ship_runtime_state: %s", mysql_error(conn));
+  }
+
+  if (mysql_query(conn, "ALTER TABLE ship_runtime_state "
+                        "ADD COLUMN IF NOT EXISTS pvp_grace_until BIGINT NOT NULL DEFAULT 0 "
+                        "AFTER last_attacker, "
+                        "ADD COLUMN IF NOT EXISTS pvp_grace_attacker VARCHAR(64) NOT NULL "
+                        "DEFAULT '' AFTER pvp_grace_until, "
+                        "ADD COLUMN IF NOT EXISTS dock_fee_balance INT NOT NULL DEFAULT 0 "
+                        "AFTER pvp_grace_attacker, "
+                        "ADD COLUMN IF NOT EXISTS dock_fee_port INT NOT NULL DEFAULT 0 "
+                        "AFTER dock_fee_balance, "
+                        "ADD COLUMN IF NOT EXISTS dock_fee_clan INT NOT NULL DEFAULT 0 "
+                        "AFTER dock_fee_port"))
+  {
+    log("SYSERR: Unable to add vessel Phase 10 runtime fields: %s", mysql_error(conn));
+  }
+
+  if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS ship_weapons ("
+                        "ship_id INT NOT NULL, "
+                        "slot_index TINYINT UNSIGNED NOT NULL, "
+                        "slot_type TINYINT UNSIGNED NOT NULL DEFAULT 1, "
+                        "position TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "equipment_weight TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "description VARCHAR(255) NOT NULL DEFAULT '', "
+                        "val0 SMALLINT NOT NULL DEFAULT 0, "
+                        "val1 SMALLINT NOT NULL DEFAULT 0, "
+                        "val2 SMALLINT NOT NULL DEFAULT 0, "
+                        "val3 SMALLINT NOT NULL DEFAULT 0, "
+                        "slot_x TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0, "
+                        "reload_timer SMALLINT NOT NULL DEFAULT 0, "
+                        "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
+                        "ON UPDATE CURRENT_TIMESTAMP, "
+                        "PRIMARY KEY (ship_id, slot_index), "
+                        "CONSTRAINT fk_ship_weapons_interior FOREIGN KEY (ship_id) "
+                        "REFERENCES ship_interiors(ship_id) ON DELETE CASCADE"
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"))
+  {
+    log("SYSERR: Unable to create ship_weapons: %s", mysql_error(conn));
+  }
+
+  if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
+                        "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+                        "ship_id INT NOT NULL, "
+                        "owner VARCHAR(64) NOT NULL, "
+                        "ship_name VARCHAR(128) NOT NULL, "
+                        "amount INT NOT NULL, "
+                        "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+                        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                        "paid_at TIMESTAMP NULL DEFAULT NULL, "
+                        "INDEX idx_vessel_claim_owner_status (owner, status), "
+                        "INDEX idx_vessel_claim_ship (ship_id)"
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"))
+  {
+    log("SYSERR: Unable to create vessel_insurance_claims: %s", mysql_error(conn));
+  }
+
+  ensure_schedule_table_exists();
+}
+
 /* Save ship interior configuration to database */
-void save_ship_interior(struct greyhawk_ship_data *ship)
+bool save_ship_interior(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   char room_vnums_str[1024];
-  char escaped_name[MAX_NAME_LENGTH * 2 + 1];
+  char escaped_name[sizeof(ship->name) * 2 + 1];
   char room_data_buf[4096];
   char escaped_room_data[8192];
   int i, len;
 
   if (!mysql_available || !ship)
   {
-    return;
+    return FALSE;
   }
 
   VSSL_DEBUG_DB("Saving interior for ship %d (%s): %d rooms", ship->shipnum, ship->name,
@@ -84,26 +215,35 @@ void save_ship_interior(struct greyhawk_ship_data *ship)
 
   /* Build and execute query */
   snprintf(query, sizeof(query),
-           "REPLACE INTO ship_interiors "
+           "INSERT INTO ship_interiors "
            "(ship_id, vessel_type, vessel_name, num_rooms, max_rooms, "
            "room_vnums, bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
            "room_data) "
-           "VALUES ('%s', %d, '%s', %d, %d, '%s', %d, %d, "
-           "%d, %d, %d, %d, %d, '%s')",
-           ship->id, ship->vessel_type, escaped_name, ship->num_rooms, MAX_SHIP_ROOMS,
+           "VALUES (%d, %d, '%s', %d, %d, '%s', %d, %d, "
+           "%d, %d, %d, %d, %d, '%s') "
+           "ON DUPLICATE KEY UPDATE "
+           "vessel_type=VALUES(vessel_type), vessel_name=VALUES(vessel_name), "
+           "num_rooms=VALUES(num_rooms), max_rooms=VALUES(max_rooms), "
+           "room_vnums=VALUES(room_vnums), bridge_room=VALUES(bridge_room), "
+           "entrance_room=VALUES(entrance_room), cargo_room1=VALUES(cargo_room1), "
+           "cargo_room2=VALUES(cargo_room2), cargo_room3=VALUES(cargo_room3), "
+           "cargo_room4=VALUES(cargo_room4), cargo_room5=VALUES(cargo_room5), "
+           "room_data=VALUES(room_data)",
+           ship->shipnum, ship->vessel_type, escaped_name, ship->num_rooms, MAX_SHIP_ROOMS,
            room_vnums_str, ship->bridge_room, ship->entrance_room, ship->cargo_rooms[0],
            ship->cargo_rooms[1], ship->cargo_rooms[2], ship->cargo_rooms[3], ship->cargo_rooms[4],
            escaped_room_data);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Unable to save ship interior for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: Unable to save ship interior for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
   }
-  else
-  {
-    log("Info: Saved interior configuration for ship %s (%s)", ship->id, ship->name);
-  }
+
+  log("Info: Saved interior configuration for ship %d (%s)", ship->shipnum, ship->name);
+  return TRUE;
 }
 
 /* Load ship interior configuration from database */
@@ -127,12 +267,13 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
            "SELECT vessel_type, vessel_name, num_rooms, room_vnums, "
            "bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
-           "room_data FROM ship_interiors WHERE ship_id = '%s'",
-           ship->id);
+           "room_data FROM ship_interiors WHERE ship_id = %d",
+           ship->shipnum);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Unable to load ship interior for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: Unable to load ship interior for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
     return;
   }
 
@@ -150,8 +291,7 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
     /* name is an array, not pointer, so always valid */
     if (row[1] && row[1][0] != '\0')
     {
-      strncpy(ship->name, row[1], MAX_NAME_LENGTH - 1);
-      ship->name[MAX_NAME_LENGTH - 1] = '\0';
+      strlcpy(ship->name, row[1], sizeof(ship->name));
     }
     ship->num_rooms = atoi(row[2]);
 
@@ -186,14 +326,839 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
       deserialize_room_data(ship, row[11]);
     }
 
-    log("Info: Loaded interior configuration for ship %s", ship->id);
+    log("Info: Loaded interior configuration for ship %d", ship->shipnum);
   }
   else
   {
-    log("Info: No saved interior for ship %s, will generate new", ship->id);
+    log("Info: No saved interior for ship %d, will generate new", ship->shipnum);
   }
 
   mysql_free_result(result);
+}
+
+/**
+ * Hex-encode a bounded string so slot descriptions cannot collide with the
+ * compact delimiter-based numeric format.
+ */
+static void vessel_hex_encode(char *dest, size_t dest_size, const char *source, size_t source_size)
+{
+  static const char digits[] = "0123456789ABCDEF";
+  size_t length;
+  size_t i;
+
+  if (dest == NULL || dest_size == 0)
+  {
+    return;
+  }
+
+  length = strnlen(source, source_size);
+  if (length == 0)
+  {
+    strlcpy(dest, "-", dest_size);
+    return;
+  }
+  if (length > (dest_size - 1) / 2)
+  {
+    length = (dest_size - 1) / 2;
+  }
+
+  for (i = 0; i < length; i++)
+  {
+    dest[i * 2] = digits[((unsigned char)source[i] >> 4) & 0x0f];
+    dest[i * 2 + 1] = digits[(unsigned char)source[i] & 0x0f];
+  }
+  dest[length * 2] = '\0';
+}
+
+/**
+ * Convert one hexadecimal character to its numeric value.
+ */
+static int vessel_hex_value(char value)
+{
+  if (value >= '0' && value <= '9')
+  {
+    return value - '0';
+  }
+  if (value >= 'a' && value <= 'f')
+  {
+    return value - 'a' + 10;
+  }
+  if (value >= 'A' && value <= 'F')
+  {
+    return value - 'A' + 10;
+  }
+  return -1;
+}
+
+/**
+ * Decode a slot description produced by vessel_hex_encode().
+ */
+static bool vessel_hex_decode(char *dest, size_t dest_size, const char *source)
+{
+  size_t length;
+  size_t bytes;
+  size_t i;
+  int high;
+  int low;
+
+  if (dest == NULL || dest_size == 0 || source == NULL)
+  {
+    return FALSE;
+  }
+  if (!strcmp(source, "-"))
+  {
+    dest[0] = '\0';
+    return TRUE;
+  }
+
+  length = strlen(source);
+  if ((length % 2) != 0)
+  {
+    dest[0] = '\0';
+    return FALSE;
+  }
+  bytes = length / 2;
+  if (bytes >= dest_size)
+  {
+    bytes = dest_size - 1;
+  }
+
+  for (i = 0; i < bytes; i++)
+  {
+    high = vessel_hex_value(source[i * 2]);
+    low = vessel_hex_value(source[i * 2 + 1]);
+    if (high < 0 || low < 0)
+    {
+      dest[0] = '\0';
+      return FALSE;
+    }
+    dest[i] = (char)((high << 4) | low);
+  }
+  dest[bytes] = '\0';
+  return TRUE;
+}
+
+/**
+ * Serialize equipment slots, including reload timers, for combat recovery.
+ *
+ * @return Number of bytes written, excluding the terminator
+ */
+int vessel_serialize_slot_state(const struct greyhawk_ship_data *ship, char *buffer,
+                                size_t buffer_size)
+{
+  char encoded_description[sizeof(ship->slot[0].desc) * 2 + 1];
+  const struct greyhawk_ship_slot *slot;
+  int length;
+  int i;
+
+  if (ship == NULL || buffer == NULL || buffer_size == 0)
+  {
+    return 0;
+  }
+
+  length = snprintf(buffer, buffer_size, "%d", GREYHAWK_MAXSLOTS);
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    slot = &ship->slot[i];
+    vessel_hex_encode(encoded_description, sizeof(encoded_description), slot->desc,
+                      sizeof(slot->desc));
+    length = snprintf_append(
+        buffer, buffer_size, length, "|%d,%d,%u,%d,%d,%d,%d,%u,%u,%d,%s",
+        (int)(unsigned char)slot->type, (int)(unsigned char)slot->position,
+        (unsigned int)slot->weight, (int)(unsigned char)slot->val0,
+        (int)(unsigned char)slot->val1, (int)(unsigned char)slot->val2,
+        (int)(unsigned char)slot->val3, (unsigned int)slot->x, (unsigned int)slot->y,
+        (int)slot->timer, encoded_description);
+  }
+  return length;
+}
+
+/**
+ * Restore equipment slots serialized by vessel_serialize_slot_state().
+ *
+ * @return Number of slots restored
+ */
+int vessel_deserialize_slot_state(struct greyhawk_ship_data *ship, const char *data)
+{
+  char data_copy[8192];
+  char encoded_description[sizeof(ship->slot[0].desc) * 2 + 1];
+  char *save_pointer;
+  char *token;
+  struct greyhawk_ship_slot *slot;
+  int declared_count;
+  int type;
+  int position;
+  int weight;
+  int val0;
+  int val1;
+  int val2;
+  int val3;
+  int x;
+  int y;
+  int timer;
+  int parsed;
+
+  if (ship == NULL || data == NULL || !*data)
+  {
+    return 0;
+  }
+
+  strlcpy(data_copy, data, sizeof(data_copy));
+  save_pointer = NULL;
+  token = strtok_r(data_copy, "|", &save_pointer);
+  if (token == NULL)
+  {
+    return 0;
+  }
+
+  declared_count = atoi(token);
+  declared_count = MIN(GREYHAWK_MAXSLOTS, MAX(0, declared_count));
+  memset(ship->slot, 0, sizeof(ship->slot));
+  parsed = 0;
+
+  while (parsed < declared_count && (token = strtok_r(NULL, "|", &save_pointer)) != NULL)
+  {
+    encoded_description[0] = '\0';
+    if (sscanf(token, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%512s", &type, &position, &weight,
+               &val0, &val1, &val2, &val3, &x, &y, &timer, encoded_description) != 11)
+    {
+      break;
+    }
+
+    slot = &ship->slot[parsed];
+    slot->type = (char)type;
+    slot->position = (char)position;
+    slot->weight = (unsigned char)MAX(0, MIN(255, weight));
+    slot->val0 = (char)val0;
+    slot->val1 = (char)val1;
+    slot->val2 = (char)val2;
+    slot->val3 = (char)val3;
+    slot->x = (unsigned char)MAX(0, MIN(255, x));
+    slot->y = (unsigned char)MAX(0, MIN(255, y));
+    slot->timer = (short int)timer;
+    if (!vessel_hex_decode(slot->desc, sizeof(slot->desc), encoded_description))
+    {
+      log("SYSERR: Invalid persisted equipment description for ship %d slot %d", ship->shipnum,
+          parsed);
+    }
+    parsed++;
+  }
+
+  return parsed;
+}
+
+/**
+ * Persist installed weapons in normalized rows.
+ *
+ * The runtime slot blob remains a complete recovery snapshot for legacy slot
+ * types. Weapon rows are the durable, inspectable authority for installed
+ * armament and override their matching blob slots when present.
+ */
+bool vessel_db_save_weapons(struct greyhawk_ship_data *ship)
+{
+  char escaped_description[sizeof(ship->slot[0].desc) * 2 + 1];
+  char query[MAX_STRING_LENGTH];
+  struct greyhawk_ship_slot *slot;
+  int i;
+
+  if (!mysql_available || conn == NULL || !is_valid_ship(ship))
+  {
+    return FALSE;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Could not begin weapon save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_weapons WHERE ship_id = %d",
+           ship->shipnum);
+  if (mysql_query(conn, query))
+  {
+    goto rollback;
+  }
+
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    slot = &ship->slot[i];
+    if (slot->type != 1)
+    {
+      continue;
+    }
+
+    mysql_real_escape_string(conn, escaped_description, slot->desc,
+                             strnlen(slot->desc, sizeof(slot->desc)));
+    snprintf(query, sizeof(query),
+             "INSERT INTO ship_weapons "
+             "(ship_id, slot_index, slot_type, position, equipment_weight, "
+             "description, val0, val1, val2, val3, slot_x, slot_y, reload_timer) "
+             "VALUES (%d, %d, %d, %d, %u, '%s', %d, %d, %d, %d, %u, %u, %d)",
+             ship->shipnum, i, (int)(unsigned char)slot->type,
+             (int)(unsigned char)slot->position, (unsigned int)slot->weight,
+             escaped_description, (int)slot->val0, (int)slot->val1, (int)slot->val2,
+             (int)slot->val3, (unsigned int)slot->x, (unsigned int)slot->y,
+             (int)slot->timer);
+    if (mysql_query(conn, query))
+    {
+      goto rollback;
+    }
+  }
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Could not commit weapon save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
+  }
+  return TRUE;
+
+rollback:
+  log("SYSERR: Could not save weapons for ship %d: %s", ship->shipnum,
+      mysql_error(conn));
+  mysql_query(conn, "ROLLBACK");
+  return FALSE;
+}
+
+/**
+ * Restore normalized weapon rows over the compatibility runtime snapshot.
+ */
+bool vessel_db_load_weapons(struct greyhawk_ship_data *ship)
+{
+  char query[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct greyhawk_ship_slot *slot;
+  int slot_index;
+  int i;
+
+  if (!mysql_available || conn == NULL || ship == NULL)
+  {
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query),
+           "SELECT slot_index, slot_type, position, equipment_weight, description, "
+           "val0, val1, val2, val3, slot_x, slot_y, reload_timer "
+           "FROM ship_weapons WHERE ship_id = %d ORDER BY slot_index",
+           ship->shipnum);
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Could not load weapons for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    return FALSE;
+  }
+
+  /* An empty table is also the upgrade path from the phase-9 slot blob. */
+  if (mysql_num_rows(result) == 0)
+  {
+    mysql_free_result(result);
+    return TRUE;
+  }
+
+  for (i = 0; i < GREYHAWK_MAXSLOTS; i++)
+  {
+    if (ship->slot[i].type == 1)
+    {
+      memset(&ship->slot[i], 0, sizeof(ship->slot[i]));
+    }
+  }
+
+  while ((row = mysql_fetch_row(result)) != NULL)
+  {
+    slot_index = row[0] ? atoi(row[0]) : -1;
+    if (slot_index < 0 || slot_index >= GREYHAWK_MAXSLOTS)
+    {
+      log("SYSERR: Ignoring invalid weapon slot %d for ship %d", slot_index,
+          ship->shipnum);
+      continue;
+    }
+
+    slot = &ship->slot[slot_index];
+    memset(slot, 0, sizeof(*slot));
+    slot->type = (char)(row[1] ? atoi(row[1]) : 1);
+    slot->position = (char)(row[2] ? atoi(row[2]) : 0);
+    slot->weight = (unsigned char)(row[3] ? atoi(row[3]) : 0);
+    if (row[4] != NULL)
+    {
+      strlcpy(slot->desc, row[4], sizeof(slot->desc));
+    }
+    slot->val0 = (char)(row[5] ? atoi(row[5]) : 0);
+    slot->val1 = (char)(row[6] ? atoi(row[6]) : 0);
+    slot->val2 = (char)(row[7] ? atoi(row[7]) : 0);
+    slot->val3 = (char)(row[8] ? atoi(row[8]) : 0);
+    slot->x = (unsigned char)(row[9] ? atoi(row[9]) : 0);
+    slot->y = (unsigned char)(row[10] ? atoi(row[10]) : 0);
+    slot->timer = (short int)(row[11] ? atoi(row[11]) : 0);
+  }
+  mysql_free_result(result);
+  return TRUE;
+}
+
+/**
+ * Persist all process-local state needed to reconstruct a live vessel.
+ */
+bool vessel_db_save_runtime(struct greyhawk_ship_data *ship)
+{
+  char query[MAX_STRING_LENGTH];
+  char room_types[512];
+  char slot_data[8192];
+  char escaped_slot_data[sizeof(slot_data) * 2 + 1];
+  char escaped_id[sizeof(ship->id) * 2 + 1];
+  char escaped_pvp_attacker[sizeof(ship->pvp_grace_attacker) * 2 + 1];
+  int location_vnum;
+  int route_id;
+  int autopilot_state;
+  int current_waypoint_index;
+  int autopilot_tick_counter;
+  int wait_remaining;
+  long long last_update;
+  int length;
+  int i;
+
+  if (!mysql_available || conn == NULL || !is_valid_ship(ship))
+  {
+    return FALSE;
+  }
+
+  location_vnum = ship->location;
+  if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
+  {
+    location_vnum = world[IN_ROOM(ship->shipobj)].number;
+  }
+
+  route_id = 0;
+  autopilot_state = AUTOPILOT_OFF;
+  current_waypoint_index = 0;
+  autopilot_tick_counter = 0;
+  wait_remaining = 0;
+  last_update = 0;
+  if (ship->autopilot != NULL)
+  {
+    autopilot_state = ship->autopilot->state;
+    current_waypoint_index = ship->autopilot->current_waypoint_index;
+    autopilot_tick_counter = ship->autopilot->tick_counter;
+    wait_remaining = ship->autopilot->wait_remaining;
+    last_update = (long long)ship->autopilot->last_update;
+    if (ship->autopilot->current_route != NULL)
+    {
+      route_id = ship->autopilot->current_route->route_id;
+    }
+  }
+
+  length = snprintf(room_types, sizeof(room_types), "%d", ship->num_rooms);
+  for (i = 0; i < ship->num_rooms && i < MAX_SHIP_ROOMS; i++)
+  {
+    length = snprintf_append(room_types, sizeof(room_types), length, ",%d",
+                             ship->room_templates[i]);
+  }
+
+  vessel_serialize_slot_state(ship, slot_data, sizeof(slot_data));
+  mysql_real_escape_string(conn, escaped_slot_data, slot_data, strlen(slot_data));
+  mysql_real_escape_string(conn, escaped_id, ship->id, strlen(ship->id));
+  mysql_real_escape_string(conn, escaped_pvp_attacker, ship->pvp_grace_attacker,
+                           strlen(ship->pvp_grace_attacker));
+
+  /* This is a leaf snapshot row with no children, so replacing it cannot
+   * cascade into cargo, crew, ownership, schedules, or interior data. */
+  snprintf(
+      query, sizeof(query),
+      "REPLACE INTO ship_runtime_state ("
+      "ship_id, instance_version, prototype_id, hull_object_vnum, display_id, location_vnum, "
+      "x, y, z, dx, dy, dz, heading, setheading, minspeed, maxspeed, speed, setspeed, "
+      "dock_room, docked_to_ship, docking_room, max_docked_ships, "
+      "maxfarmor, maxrarmor, maxparmor, maxsarmor, farmor, rarmor, parmor, sarmor, "
+      "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
+      "finternal, rinternal, pinternal, sinternal, "
+      "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
+      "last_attacker, pvp_grace_until, pvp_grace_attacker, "
+      "dock_fee_balance, dock_fee_port, dock_fee_clan, "
+      "wear_ticks, wage_ticks, room_types, slot_data, "
+      "autopilot_state, current_route_id, current_waypoint_index, "
+      "autopilot_tick_counter, wait_remaining, last_update) VALUES ("
+      "%d, 1, %d, %d, '%s', %d, "
+      "%.6f, %.6f, %.6f, %.6f, %.6f, %.6f, %d, %d, %d, %d, %d, %d, "
+      "%d, %d, %d, %d, "
+      "%u, %u, %u, %u, %u, %u, %u, %u, "
+      "%u, %u, %u, %u, %u, %u, %u, %u, "
+      "%u, %u, %u, %u, %u, %u, "
+      "%d, %lld, '%s', %d, %d, %d, %d, %d, '%s', '%s', "
+      "%d, %d, %d, %d, %d, %lld)",
+      ship->shipnum, ship->prototype_id,
+      ship->hull_object_vnum > 0 ? ship->hull_object_vnum : VESSEL_BASE_HULL_OBJ_VNUM, escaped_id,
+      location_vnum, ship->x, ship->y, ship->z, ship->dx, ship->dy, ship->dz, ship->heading,
+      ship->setheading, ship->minspeed, ship->maxspeed, ship->speed, ship->setspeed, ship->dock,
+      ship->docked_to_ship, ship->docking_room, ship->max_docked_ships, ship->maxfarmor,
+      ship->maxrarmor, ship->maxparmor, ship->maxsarmor, ship->farmor, ship->rarmor, ship->parmor,
+      ship->sarmor, ship->maxfinternal, ship->maxrinternal, ship->maxpinternal,
+      ship->maxsinternal, ship->finternal, ship->rinternal, ship->pinternal, ship->sinternal,
+      ship->maxturnrate, ship->turnrate, ship->maxmainsail, ship->mainsail, ship->hullweight,
+      ship->maxslots, ship->last_attacker, (long long)ship->pvp_grace_until,
+      escaped_pvp_attacker, ship->dock_fee_balance, ship->dock_fee_port,
+      ship->dock_fee_clan, ship->wear_ticks, ship->wage_ticks, room_types,
+      escaped_slot_data,
+      autopilot_state, route_id, current_waypoint_index,
+      autopilot_tick_counter, wait_remaining, last_update);
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to save runtime state for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Load one live vessel snapshot after its stable interior metadata is known.
+ */
+bool vessel_db_load_runtime(struct greyhawk_ship_data *ship)
+{
+  static const char *select_sql =
+      "SELECT prototype_id, hull_object_vnum, display_id, location_vnum, "
+      "x, y, z, dx, dy, dz, heading, setheading, minspeed, maxspeed, speed, setspeed, "
+      "dock_room, docked_to_ship, docking_room, max_docked_ships, "
+      "maxfarmor, maxrarmor, maxparmor, maxsarmor, farmor, rarmor, parmor, sarmor, "
+      "maxfinternal, maxrinternal, maxpinternal, maxsinternal, "
+      "finternal, rinternal, pinternal, sinternal, "
+      "maxturnrate, turnrate, maxmainsail, mainsail, hullweight, maxslots, "
+      "last_attacker, pvp_grace_until, pvp_grace_attacker, "
+      "dock_fee_balance, dock_fee_port, dock_fee_clan, "
+      "wear_ticks, wage_ticks, room_types, slot_data, "
+      "autopilot_state, current_route_id, current_waypoint_index, "
+      "autopilot_tick_counter, wait_remaining, last_update "
+      "FROM ship_runtime_state WHERE ship_id = %d";
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct autopilot_data *autopilot;
+  struct ship_route *route;
+  char query[MAX_STRING_LENGTH];
+  char room_types_copy[512];
+  char *save_pointer;
+  char *token;
+  int autopilot_state;
+  int route_id;
+  int current_waypoint_index;
+  int autopilot_tick_counter;
+  int wait_remaining;
+  long long last_update;
+  int column;
+  int room_count;
+  int i;
+
+  if (!mysql_available || conn == NULL || ship == NULL)
+  {
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query), select_sql, ship->shipnum);
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Unable to load runtime state for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    return FALSE;
+  }
+  row = mysql_fetch_row(result);
+  if (row == NULL)
+  {
+    mysql_free_result(result);
+    return FALSE;
+  }
+
+  column = 0;
+  ship->prototype_id = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->hull_object_vnum = row[column] ? atoi(row[column]) : VESSEL_BASE_HULL_OBJ_VNUM;
+  column++;
+  if (row[column] != NULL)
+  {
+    strlcpy(ship->id, row[column], sizeof(ship->id));
+  }
+  column++;
+  ship->location = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->x = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->y = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->z = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->dx = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->dy = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->dz = row[column] ? strtof(row[column], NULL) : 0.0f;
+  column++;
+  ship->heading = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->setheading = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->minspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->maxspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->speed = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->setspeed = row[column] ? (short int)atoi(row[column]) : 0;
+  column++;
+  ship->dock = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->docked_to_ship = row[column] ? atoi(row[column]) : -1;
+  column++;
+  ship->docking_room = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->max_docked_ships = row[column] ? atoi(row[column]) : 0;
+  column++;
+
+#define LOAD_UCHAR(field)                                                                          \
+  do                                                                                               \
+  {                                                                                                \
+    ship->field = row[column] ? (unsigned char)atoi(row[column]) : 0;                              \
+    column++;                                                                                      \
+  } while (0)
+  LOAD_UCHAR(maxfarmor);
+  LOAD_UCHAR(maxrarmor);
+  LOAD_UCHAR(maxparmor);
+  LOAD_UCHAR(maxsarmor);
+  LOAD_UCHAR(farmor);
+  LOAD_UCHAR(rarmor);
+  LOAD_UCHAR(parmor);
+  LOAD_UCHAR(sarmor);
+  LOAD_UCHAR(maxfinternal);
+  LOAD_UCHAR(maxrinternal);
+  LOAD_UCHAR(maxpinternal);
+  LOAD_UCHAR(maxsinternal);
+  LOAD_UCHAR(finternal);
+  LOAD_UCHAR(rinternal);
+  LOAD_UCHAR(pinternal);
+  LOAD_UCHAR(sinternal);
+  LOAD_UCHAR(maxturnrate);
+  LOAD_UCHAR(turnrate);
+  LOAD_UCHAR(maxmainsail);
+  LOAD_UCHAR(mainsail);
+  LOAD_UCHAR(hullweight);
+  LOAD_UCHAR(maxslots);
+#undef LOAD_UCHAR
+
+  ship->last_attacker = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->pvp_grace_until = row[column] ? (time_t)atoll(row[column]) : 0;
+  column++;
+  if (row[column] != NULL)
+  {
+    strlcpy(ship->pvp_grace_attacker, row[column], sizeof(ship->pvp_grace_attacker));
+  }
+  column++;
+  ship->dock_fee_balance = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->dock_fee_port = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->dock_fee_clan = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->wear_ticks = row[column] ? atoi(row[column]) : 0;
+  column++;
+  ship->wage_ticks = row[column] ? atoi(row[column]) : 0;
+  column++;
+
+  memset(ship->room_templates, 0xff, sizeof(ship->room_templates));
+  if (row[column] != NULL)
+  {
+    strlcpy(room_types_copy, row[column], sizeof(room_types_copy));
+    save_pointer = NULL;
+    token = strtok_r(room_types_copy, ",", &save_pointer);
+    room_count = token ? atoi(token) : 0;
+    for (i = 0; i < room_count && i < MAX_SHIP_ROOMS; i++)
+    {
+      token = strtok_r(NULL, ",", &save_pointer);
+      if (token == NULL)
+      {
+        break;
+      }
+      ship->room_templates[i] = atoi(token);
+    }
+  }
+  column++;
+
+  if (row[column] != NULL)
+  {
+    vessel_deserialize_slot_state(ship, row[column]);
+  }
+  column++;
+
+  autopilot_state = row[column] ? atoi(row[column]) : AUTOPILOT_OFF;
+  column++;
+  route_id = row[column] ? atoi(row[column]) : 0;
+  column++;
+  current_waypoint_index = row[column] ? atoi(row[column]) : 0;
+  column++;
+  autopilot_tick_counter = row[column] ? atoi(row[column]) : 0;
+  column++;
+  wait_remaining = row[column] ? atoi(row[column]) : 0;
+  column++;
+  last_update = row[column] ? atoll(row[column]) : 0;
+
+  if (route_id > 0)
+  {
+    autopilot = autopilot_init(ship);
+    route = route_create(NULL);
+    if (autopilot == NULL || route == NULL || !route_load(route, route_id))
+    {
+      if (route != NULL)
+      {
+        route_destroy(route);
+      }
+      if (autopilot != NULL)
+      {
+        autopilot->state = AUTOPILOT_OFF;
+      }
+      log("SYSERR: Ship %d could not restore route %d; autopilot left off", ship->shipnum,
+          route_id);
+    }
+    else
+    {
+      autopilot->current_route = route;
+      autopilot->state =
+          autopilot_state >= AUTOPILOT_OFF && autopilot_state <= AUTOPILOT_COMPLETE
+              ? (enum autopilot_state)autopilot_state
+              : AUTOPILOT_OFF;
+      autopilot->current_waypoint_index =
+          route->num_waypoints > 0
+              ? MAX(0, MIN(route->num_waypoints - 1, current_waypoint_index))
+              : 0;
+      autopilot->tick_counter = MAX(0, autopilot_tick_counter);
+      autopilot->wait_remaining = MAX(0, wait_remaining);
+      autopilot->last_update = (time_t)last_update;
+    }
+  }
+
+  if (ship->hull_object_vnum <= 0)
+  {
+    ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
+  }
+  mysql_free_result(result);
+  return TRUE;
+}
+
+/**
+ * Resolve the exterior runtime room from a stable dock VNUM or coordinates.
+ */
+static room_rnum vessel_resolve_exterior_room(struct greyhawk_ship_data *ship)
+{
+  room_rnum location;
+
+  if (ship == NULL)
+  {
+    return NOWHERE;
+  }
+
+  location = ship->location > 0 ? real_room(ship->location) : NOWHERE;
+  if (location != NOWHERE && !IS_WILDERNESS_VNUM(world[location].number) &&
+      !ZONE_FLAGGED(GET_ROOM_ZONE(location), ZONE_WILDERNESS))
+  {
+    return location;
+  }
+
+  return get_or_allocate_wilderness_room((int)ship->x, (int)ship->y);
+}
+
+/**
+ * Wire and place a hull object for a restored vessel.
+ */
+bool vessel_place_hull_object(struct greyhawk_ship_data *ship, struct obj_data *obj)
+{
+  room_rnum destination;
+  int old_fee_port;
+
+  if (!is_valid_ship(ship) || obj == NULL || ship->entrance_room <= 0 ||
+      real_room(ship->entrance_room) == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  destination = vessel_resolve_exterior_room(ship);
+  if (destination == NOWHERE)
+  {
+    log("SYSERR: Cannot place restored hull for ship %d at (%.1f,%.1f)", ship->shipnum, ship->x,
+        ship->y);
+    return FALSE;
+  }
+
+  GET_OBJ_TYPE(obj) = ITEM_GREYHAWK_SHIP;
+  GET_OBJ_VAL(obj, 0) = ship->entrance_room;
+  GET_OBJ_VAL(obj, 1) = ship->shipnum;
+  if (IN_ROOM(obj) != destination)
+  {
+    if (IN_ROOM(obj) != NOWHERE)
+    {
+      obj_from_room(obj);
+    }
+    obj_to_room(obj, destination);
+  }
+  mark_wilderness_room_occupied(destination);
+
+  ship->shipobj = obj;
+  ship->shiproom = ship->entrance_room;
+  ship->location = world[destination].number;
+  old_fee_port = ship->dock_fee_port;
+  if (old_fee_port > 0 &&
+      (ship->dock_fee_balance > 0 || vessel_room_is_port(destination)) &&
+      old_fee_port != ship->location)
+  {
+    ship->dock_fee_port = ship->location;
+    log("Info: Remapped ship %d berth marker from recycled room %d to %d",
+        ship->shipnum, old_fee_port, ship->dock_fee_port);
+  }
+  update_ship_room_coordinates(ship);
+  return TRUE;
+}
+
+/**
+ * Instantiate the generic exterior object for a database-restored ship.
+ */
+static bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
+{
+  struct obj_data *obj;
+  char buffer[MAX_STRING_LENGTH];
+
+  if (!is_valid_ship(ship))
+  {
+    return FALSE;
+  }
+
+  obj = read_object(ship->hull_object_vnum, VIRTUAL);
+  if (obj == NULL)
+  {
+    log("SYSERR: Cannot restore ship %d: hull object prototype %d is missing", ship->shipnum,
+        ship->hull_object_vnum);
+    return FALSE;
+  }
+
+  vessel_build_hull_keywords(buffer, sizeof(buffer), ship->name);
+  obj->name = strdup(buffer);
+  obj->short_description = strdup(ship->name);
+  snprintf(buffer, sizeof(buffer), "%s is moored here.", ship->name);
+  obj->description = strdup(buffer);
+
+  if (!vessel_place_hull_object(ship, obj))
+  {
+    extract_obj(obj);
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /* Save docking record to database */
@@ -211,8 +1176,8 @@ void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_
            "INSERT INTO ship_docking "
            "(ship1_id, ship2_id, dock_room1, dock_room2, dock_type, dock_status, "
            "dock_x, dock_y, dock_z) "
-           "VALUES ('%s', '%s', %d, %d, '%s', 'active', %.2f, %.2f, %.2f)",
-           ship1->id, ship2->id, ship1->docking_room, ship2->docking_room,
+           "VALUES (%d, %d, %d, %d, '%s', 'active', %.2f, %.2f, %.2f)",
+           ship1->shipnum, ship2->shipnum, ship1->docking_room, ship2->docking_room,
            dock_type ? dock_type : "standard", ship1->x, ship1->y, ship1->z);
 
   if (mysql_query(conn, query))
@@ -221,7 +1186,7 @@ void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_
   }
   else
   {
-    log("Info: Recorded docking between ships %s and %s", ship1->id, ship2->id);
+    log("Info: Recorded docking between ships %d and %d", ship1->shipnum, ship2->shipnum);
   }
 }
 
@@ -237,9 +1202,10 @@ void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_d
 
   snprintf(query, sizeof(query),
            "UPDATE ship_docking SET dock_status = 'completed', undock_time = NOW() "
-           "WHERE ((ship1_id = '%s' AND ship2_id = '%s') OR (ship1_id = '%s' AND ship2_id = '%s')) "
+           "WHERE ((ship1_id = %d AND ship2_id = %d) OR "
+           "(ship1_id = %d AND ship2_id = %d)) "
            "AND dock_status = 'active'",
-           ship1->id, ship2->id, ship2->id, ship1->id);
+           ship1->shipnum, ship2->shipnum, ship2->shipnum, ship1->shipnum);
 
   if (mysql_query(conn, query))
   {
@@ -247,7 +1213,7 @@ void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_d
   }
   else
   {
-    log("Info: Ended docking between ships %s and %s", ship1->id, ship2->id);
+    log("Info: Ended docking between ships %d and %d", ship1->shipnum, ship2->shipnum);
   }
 }
 
@@ -268,8 +1234,9 @@ void save_cargo_manifest(struct greyhawk_ship_data *ship, int cargo_room, struct
   snprintf(query, sizeof(query),
            "INSERT INTO ship_cargo_manifest "
            "(ship_id, cargo_room, item_vnum, item_name, item_count, item_weight) "
-           "VALUES ('%s', %d, %d, '%s', %d, %d)",
-           ship->id, cargo_room, GET_OBJ_VNUM(cargo), escaped_name, 1, GET_OBJ_WEIGHT(cargo));
+           "VALUES (%d, %d, %d, '%s', %d, %d)",
+           ship->shipnum, cargo_room, GET_OBJ_VNUM(cargo), escaped_name, 1,
+           GET_OBJ_WEIGHT(cargo));
 
   if (mysql_query(conn, query))
   {
@@ -294,8 +1261,8 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
 
   snprintf(query, sizeof(query),
            "SELECT cargo_room, item_vnum, item_count FROM ship_cargo_manifest "
-           "WHERE ship_id = '%s'",
-           ship->id);
+           "WHERE ship_id = %d AND cargo_room <> 0",
+           ship->shipnum);
 
   if (mysql_query(conn, query))
   {
@@ -320,8 +1287,8 @@ void load_cargo_manifest(struct greyhawk_ship_data *ship)
       if (cargo)
       {
         obj_to_room(cargo, cargo_room);
-        log("Info: Loaded cargo item %d to room %d on ship %s", GET_OBJ_VNUM(cargo),
-            world[cargo_room].number, ship->id);
+        log("Info: Loaded cargo item %d to room %d on ship %d", GET_OBJ_VNUM(cargo),
+            world[cargo_room].number, ship->shipnum);
       }
     }
   }
@@ -346,8 +1313,8 @@ void save_crew_roster(struct greyhawk_ship_data *ship, struct char_data *npc, co
   snprintf(query, sizeof(query),
            "INSERT INTO ship_crew_roster "
            "(ship_id, npc_vnum, npc_name, crew_role, assigned_room) "
-           "VALUES ('%s', %d, '%s', '%s', %d)",
-           ship->id, GET_MOB_VNUM(npc), escaped_name, role ? role : "crew", IN_ROOM(npc));
+           "VALUES (%d, %d, '%s', '%s', %d)",
+           ship->shipnum, GET_MOB_VNUM(npc), escaped_name, role ? role : "crew", IN_ROOM(npc));
 
   if (mysql_query(conn, query))
   {
@@ -372,8 +1339,8 @@ void load_crew_roster(struct greyhawk_ship_data *ship)
 
   snprintf(query, sizeof(query),
            "SELECT npc_vnum, assigned_room, crew_role FROM ship_crew_roster "
-           "WHERE ship_id = '%s' AND status = 'active'",
-           ship->id);
+           "WHERE ship_id = %d AND status = 'active' AND npc_vnum > 0",
+           ship->shipnum);
 
   if (mysql_query(conn, query))
   {
@@ -399,7 +1366,7 @@ void load_crew_roster(struct greyhawk_ship_data *ship)
       {
         char_to_room(npc, target_room);
         /* Set ship loyalty here if needed */
-        log("Info: Loaded crew member %s to ship %s", GET_NAME(npc), ship->id);
+        log("Info: Loaded crew member %s to ship %d", GET_NAME(npc), ship->shipnum);
       }
     }
   }
@@ -449,10 +1416,8 @@ int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data)
 
   /* Parse format: connection_count|from:to:dir:hatch:locked|... */
   /* Keep parsing simple and portable. */
-  if (sscanf(data_copy, "%d", &conn_count) == 1)
-  {
-    ship->num_connections = conn_count;
-  }
+  conn_count = 0;
+  sscanf(data_copy, "%d", &conn_count);
 
   /* Find first | separator */
   token = strchr(data_copy, '|');
@@ -485,7 +1450,8 @@ int deserialize_room_data(struct greyhawk_ship_data *ship, const char *data)
     }
   }
 
-  return i;
+  ship->num_connections = MIN(i, MAX(0, conn_count));
+  return ship->num_connections;
 }
 
 /* Clean up orphaned docking records */
@@ -536,25 +1502,93 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 /**
  * Check if a ship slot contains valid ship data.
  *
- * A valid ship has shipnum > 0, which indicates the slot is in use.
- * This follows the pattern established throughout the codebase.
+ * Occupancy is explicit, and shipnum must identify this exact fleet slot.
+ * The display ID is not part of the runtime identity contract.
  *
  * @param ship Pointer to ship data structure
  * @return TRUE if ship is valid, FALSE otherwise
  */
-int is_valid_ship(struct greyhawk_ship_data *ship)
+int is_valid_ship(const struct greyhawk_ship_data *ship)
 {
   if (ship == NULL)
   {
     return FALSE;
   }
 
-  /* A valid ship has shipnum > 0 */
-  if (ship->shipnum > 0)
+  if (!ship->active || ship->shipnum < 0 || ship->shipnum >= GREYHAWK_MAXSHIPS)
   {
-    return TRUE;
+    return FALSE;
   }
 
+  return &greyhawk_ships[ship->shipnum] == ship;
+}
+
+/**
+ * Delete all persistence owned by one runtime ship slot.
+ *
+ * This transaction intentionally does not touch prototypes, routes, or
+ * waypoints, which are reusable builder data rather than ship-instance data.
+ *
+ * @param shipnum Canonical fleet slot
+ * @return TRUE when the transaction commits
+ */
+bool vessel_delete_persistence(int shipnum)
+{
+  char query[MAX_STRING_LENGTH];
+
+  if (!mysql_available || shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    return FALSE;
+  }
+
+  vessel_persistence_ensure_schema();
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Unable to begin vessel purge transaction: %s", mysql_error(conn));
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_docking WHERE ship1_id=%d OR ship2_id=%d",
+           shipnum, shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_cargo_manifest WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_crew_roster WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_schedules WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_weapons WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_runtime_state WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  snprintf(query, sizeof(query), "DELETE FROM ship_interiors WHERE ship_id=%d", shipnum);
+  if (mysql_query(conn, query))
+    goto rollback;
+
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log("SYSERR: Unable to commit vessel purge transaction: %s", mysql_error(conn));
+    mysql_query(conn, "ROLLBACK");
+    return FALSE;
+  }
+
+  return TRUE;
+
+rollback:
+  log("SYSERR: Vessel %d persistence purge failed: %s", shipnum, mysql_error(conn));
+  mysql_query(conn, "ROLLBACK");
   return FALSE;
 }
 
@@ -567,8 +1601,15 @@ int is_valid_ship(struct greyhawk_ship_data *ship)
  */
 void load_all_ship_interiors(void)
 {
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int ship_ids[GREYHAWK_MAXSHIPS];
+  struct greyhawk_ship_data *ship;
+  char query[MAX_STRING_LENGTH];
+  int ship_count;
   int i;
-  int loaded_count = 0;
+  int loaded_count;
+  int shipnum;
 
   if (!mysql_available)
   {
@@ -577,22 +1618,124 @@ void load_all_ship_interiors(void)
   }
 
   log("Info: Loading ship interiors from database...");
+  vessel_persistence_ensure_schema();
 
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+  snprintf(query, sizeof(query), "SELECT ship_id FROM ship_interiors ORDER BY ship_id");
+  if (mysql_query(conn, query))
   {
-    if (is_valid_ship(&greyhawk_ships[i]))
-    {
-      load_ship_interior(&greyhawk_ships[i]);
-      vessel_db_load_owner(&greyhawk_ships[i]);
-      vessel_db_load_permits(&greyhawk_ships[i]);
-      vessel_db_load_crew(&greyhawk_ships[i]);
-      vessel_db_load_extras(&greyhawk_ships[i]);
-      vessel_db_load_cargo(&greyhawk_ships[i]);
-      loaded_count++;
-    }
+    log("SYSERR: Unable to enumerate persisted ships: %s", mysql_error(conn));
+    return;
   }
 
-  log("Info: Loaded interior configurations for %d ships", loaded_count);
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    log("SYSERR: Unable to store persisted ship list: %s", mysql_error(conn));
+    return;
+  }
+
+  ship_count = 0;
+  while ((row = mysql_fetch_row(result)) != NULL && ship_count < GREYHAWK_MAXSHIPS)
+  {
+    shipnum = row[0] ? atoi(row[0]) : -1;
+    if (shipnum <= 0 || shipnum >= GREYHAWK_MAXSHIPS)
+    {
+      log("SYSERR: Ignoring persisted vessel with invalid fleet slot %d", shipnum);
+      continue;
+    }
+    ship_ids[ship_count++] = shipnum;
+  }
+  mysql_free_result(result);
+
+  loaded_count = 0;
+  for (i = 0; i < ship_count; i++)
+  {
+    shipnum = ship_ids[i];
+    ship = &greyhawk_ships[shipnum];
+
+    if (shipnum >= 2)
+    {
+      if (is_valid_ship(ship))
+      {
+        log("SYSERR: Duplicate active fleet slot %d while restoring vessel persistence", shipnum);
+        continue;
+      }
+      memset(ship, 0, sizeof(*ship));
+      ship->active = TRUE;
+      ship->shipnum = shipnum;
+      ship->docked_to_ship = -1;
+      ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
+    }
+
+    if (!is_valid_ship(ship))
+    {
+      log("SYSERR: Persisted legacy ship slot %d is not available at boot", shipnum);
+      continue;
+    }
+
+    load_ship_interior(ship);
+    if (!vessel_db_load_runtime(ship))
+    {
+      if (shipnum >= 2)
+      {
+        log("SYSERR: Dynamic ship %d has no runtime snapshot; leaving it inactive", shipnum);
+        memset(ship, 0, sizeof(*ship));
+        continue;
+      }
+      log("Info: Legacy ship %d has no runtime snapshot; using compiled defaults", shipnum);
+    }
+    if (shipnum == 1)
+    {
+      /* The compiled fixture uses the ordinary runtime hull prototype. */
+      ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
+    }
+    if (!vessel_db_load_weapons(ship))
+    {
+      log("SYSERR: Ship %d weapon rows could not be restored", shipnum);
+    }
+
+    if (ship->id[0] == '\0')
+    {
+      ship->id[0] = 'A' + (shipnum / 26) % 26;
+      ship->id[1] = 'A' + shipnum % 26;
+      ship->id[2] = '\0';
+    }
+
+    if (shipnum >= 2)
+    {
+      if (!restore_ship_interior(ship) || !vessel_create_runtime_hull(ship))
+      {
+        log("SYSERR: Dynamic ship %d could not be reconstructed; leaving persistence intact",
+            shipnum);
+        vessel_reclaim_interior_rooms(ship, 0);
+        autopilot_cleanup(ship);
+        if (ship->schedule != NULL)
+        {
+          free(ship->schedule);
+        }
+        memset(ship, 0, sizeof(*ship));
+        continue;
+      }
+    }
+    else if (!vessel_create_runtime_hull(ship))
+    {
+      log("SYSERR: Legacy ship %d exterior hull could not be reconstructed", shipnum);
+    }
+
+    vessel_db_load_owner(ship);
+    vessel_db_load_permits(ship);
+    vessel_db_load_crew(ship);
+    vessel_db_load_extras(ship);
+    vessel_db_load_cargo(ship);
+    load_cargo_manifest(ship);
+    load_crew_roster(ship);
+    vessel_db_load_pilot(ship);
+    schedule_load(ship);
+    loaded_count++;
+  }
+
+  log("Info: Reconstructed %d persisted vessel instance%s", loaded_count,
+      loaded_count == 1 ? "" : "s");
 }
 
 /**
@@ -602,29 +1745,55 @@ void load_all_ship_interiors(void)
  * configurations for all valid ships. Should be called at shutdown
  * and periodically during auto-save.
  */
-void save_all_vessels(void)
+bool save_all_vessels(void)
 {
+  struct greyhawk_ship_data *ship;
   int i;
-  int saved_count = 0;
+  int saved_count;
+  int failure_count;
 
   if (!mysql_available)
   {
     log("Info: MySQL not available, skipping vessel save");
-    return;
+    return FALSE;
   }
 
+  vessel_persistence_ensure_schema();
   log("Info: Saving all vessel states to database...");
+  saved_count = 0;
+  failure_count = 0;
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]))
+    ship = &greyhawk_ships[i];
+    if (is_valid_ship(ship))
     {
-      save_ship_interior(&greyhawk_ships[i]);
+      if (!save_ship_interior(ship) || !vessel_db_save_runtime(ship) ||
+          !vessel_db_save_weapons(ship))
+      {
+        failure_count++;
+        continue;
+      }
+      vessel_db_save_owner(ship);
+      vessel_db_save_permits(ship);
+      vessel_db_save_crew(ship);
+      vessel_db_save_extras(ship);
+      vessel_db_save_cargo(ship);
+      if (!vessel_db_save_pilot(ship))
+      {
+        failure_count++;
+      }
+      if (!schedule_save(ship))
+      {
+        failure_count++;
+      }
       saved_count++;
     }
   }
 
-  log("Info: Saved %d vessel states to database", saved_count);
+  log("Info: Saved %d vessel states to database (%d failure%s)", saved_count, failure_count,
+      failure_count == 1 ? "" : "s");
+  return failure_count == 0;
 }
 
 /* ========================================================================= */
@@ -640,32 +1809,46 @@ void save_all_vessels(void)
  *
  * @param ship The ship to save pilot for
  */
-void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
+bool vessel_db_save_pilot(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
   struct char_data *pilot;
   char escaped_name[MAX_NAME_LENGTH * 2 + 1];
 
-  if (!mysql_available || !ship)
+  if (!mysql_available || conn == NULL || !ship)
   {
-    return;
+    return FALSE;
+  }
+
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log("SYSERR: Unable to begin pilot save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    return FALSE;
   }
 
   /* Delete any existing pilot record for this ship */
   snprintf(query, sizeof(query),
-           "DELETE FROM ship_crew_roster WHERE ship_id = '%s' AND crew_role = '%s'", ship->id,
+           "DELETE FROM ship_crew_roster WHERE ship_id = %d AND crew_role = '%s'", ship->shipnum,
            CREW_ROLE_PILOT);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Unable to clear pilot record for ship %s: %s", ship->id, mysql_error(conn));
-    return;
+    log("SYSERR: Unable to clear pilot record for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    goto rollback;
   }
 
   /* If no pilot assigned, we're done */
   if (ship->autopilot == NULL || ship->autopilot->pilot_mob_vnum == -1)
   {
-    return;
+    if (mysql_query(conn, "COMMIT"))
+    {
+      log("SYSERR: Unable to commit pilot removal for ship %d: %s", ship->shipnum,
+          mysql_error(conn));
+      goto rollback;
+    }
+    return TRUE;
   }
 
   /* Get pilot name if possible */
@@ -683,18 +1866,30 @@ void vessel_db_save_pilot(struct greyhawk_ship_data *ship)
   snprintf(query, sizeof(query),
            "INSERT INTO ship_crew_roster "
            "(ship_id, npc_vnum, npc_name, crew_role, assigned_room, status) "
-           "VALUES ('%s', %d, '%s', '%s', %d, 'active')",
-           ship->id, ship->autopilot->pilot_mob_vnum, escaped_name, CREW_ROLE_PILOT,
+           "VALUES (%d, %d, '%s', '%s', %d, 'active')",
+           ship->shipnum, ship->autopilot->pilot_mob_vnum, escaped_name, CREW_ROLE_PILOT,
            ship->bridge_room);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Unable to save pilot for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: Unable to save pilot for ship %d: %s", ship->shipnum, mysql_error(conn));
+    goto rollback;
   }
-  else
+
+  if (mysql_query(conn, "COMMIT"))
   {
-    log("Info: Saved pilot VNUM %d for ship %s", ship->autopilot->pilot_mob_vnum, ship->id);
+    log("SYSERR: Unable to commit pilot save for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
+    goto rollback;
   }
+
+  log("Info: Saved pilot VNUM %d for ship %d", ship->autopilot->pilot_mob_vnum,
+      ship->shipnum);
+  return TRUE;
+
+rollback:
+  mysql_query(conn, "ROLLBACK");
+  return FALSE;
 }
 
 /**
@@ -730,13 +1925,13 @@ void vessel_db_load_pilot(struct greyhawk_ship_data *ship)
   /* Query for pilot record */
   snprintf(query, sizeof(query),
            "SELECT npc_vnum FROM ship_crew_roster "
-           "WHERE ship_id = '%s' AND crew_role = '%s' AND status = 'active' "
+           "WHERE ship_id = %d AND crew_role = '%s' AND status = 'active' "
            "LIMIT 1",
-           ship->id, CREW_ROLE_PILOT);
+           ship->shipnum, CREW_ROLE_PILOT);
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Unable to load pilot for ship %s: %s", ship->id, mysql_error(conn));
+    log("SYSERR: Unable to load pilot for ship %d: %s", ship->shipnum, mysql_error(conn));
     return;
   }
 
@@ -749,7 +1944,8 @@ void vessel_db_load_pilot(struct greyhawk_ship_data *ship)
   if ((row = mysql_fetch_row(result)))
   {
     ship->autopilot->pilot_mob_vnum = atoi(row[0]);
-    log("Info: Loaded pilot VNUM %d for ship %s", ship->autopilot->pilot_mob_vnum, ship->id);
+    log("Info: Loaded pilot VNUM %d for ship %d", ship->autopilot->pilot_mob_vnum,
+        ship->shipnum);
   }
   else
   {
@@ -777,6 +1973,7 @@ void ensure_schedule_table_exists(void)
       "  interval_hours INT NOT NULL,"
       "  next_departure INT NOT NULL DEFAULT 0,"
       "  enabled TINYINT NOT NULL DEFAULT 1,"
+      "  passenger_fare INT NOT NULL DEFAULT 0,"
       "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
       "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
       "  UNIQUE KEY uk_ship_schedule (ship_id)"
@@ -795,6 +1992,13 @@ void ensure_schedule_table_exists(void)
   else
   {
     log("Info: ship_schedules table verified");
+  }
+
+  if (mysql_query(conn, "ALTER TABLE ship_schedules "
+                        "ADD COLUMN IF NOT EXISTS passenger_fare INT NOT NULL DEFAULT 0 "
+                        "AFTER enabled"))
+  {
+    log("SYSERR: Unable to add passenger fare to ship_schedules: %s", mysql_error(conn));
   }
 }
 
@@ -826,13 +2030,23 @@ int schedule_save(struct greyhawk_ship_data *ship)
     return 1;
   }
 
+  if (ship->schedule->passenger_fare < 0 ||
+      ship->schedule->passenger_fare > VESSEL_PASSENGER_FARE_MAX)
+  {
+    log("SYSERR: Refusing invalid passenger fare %d for ship %d",
+        ship->schedule->passenger_fare, ship->shipnum);
+    return 0;
+  }
+
   /* Insert or update schedule */
   snprintf(query, sizeof(query),
            "REPLACE INTO ship_schedules "
-           "(ship_id, route_id, interval_hours, next_departure, enabled) "
-           "VALUES (%d, %d, %d, %d, %d)",
+           "(ship_id, route_id, interval_hours, next_departure, enabled, passenger_fare) "
+           "VALUES (%d, %d, %d, %d, %d, %d)",
            ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
-           ship->schedule->next_departure, (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0);
+           ship->schedule->next_departure,
+           (ship->schedule->flags & SCHEDULE_FLAG_ENABLED) ? 1 : 0,
+           ship->schedule->passenger_fare);
 
   if (mysql_query(conn, query))
   {
@@ -840,8 +2054,9 @@ int schedule_save(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  log("Info: Saved schedule for ship %d (route %d, interval %d hours)", ship->shipnum,
-      ship->schedule->route_id, ship->schedule->interval_hours);
+  log("Info: Saved schedule for ship %d (route %d, interval %d hours, fare %d)",
+      ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
+      ship->schedule->passenger_fare);
   return 1;
 }
 
@@ -863,7 +2078,8 @@ int schedule_load(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "SELECT schedule_id, route_id, interval_hours, next_departure, enabled "
+           "SELECT schedule_id, route_id, interval_hours, next_departure, enabled, "
+           "passenger_fare "
            "FROM ship_schedules WHERE ship_id = %d",
            ship->shipnum);
 
@@ -899,9 +2115,12 @@ int schedule_load(struct greyhawk_ship_data *ship)
     ship->schedule->interval_hours = atoi(row[2]);
     ship->schedule->next_departure = atoi(row[3]);
     ship->schedule->flags = atoi(row[4]) ? SCHEDULE_FLAG_ENABLED : 0;
+    ship->schedule->passenger_fare =
+        MAX(0, MIN(row[5] ? atoi(row[5]) : 0, VESSEL_PASSENGER_FARE_MAX));
 
-    log("Info: Loaded schedule for ship %d (route %d, interval %d hours)", ship->shipnum,
-        ship->schedule->route_id, ship->schedule->interval_hours);
+    log("Info: Loaded schedule for ship %d (route %d, interval %d hours, fare %d)",
+        ship->shipnum, ship->schedule->route_id, ship->schedule->interval_hours,
+        ship->schedule->passenger_fare);
     mysql_free_result(result);
     return 1;
   }

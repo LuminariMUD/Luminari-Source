@@ -149,6 +149,146 @@ int vessel_lookout_bonus(const struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Resolve overlapping encounter regions independently of database row order.
+ *
+ * Prefer the strongest containment position, then the lowest region VNUM as a
+ * stable builder-visible tie-break. get_enclosing_regions() does not promise
+ * result order, so selecting its first node made identical coordinates depend
+ * on the query plan.
+ */
+bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum)
+{
+  const struct region_list *curr;
+  int best_position = -1;
+  region_vnum best_vnum = 0;
+  int position;
+  bool found = FALSE;
+
+  if (output_region_vnum == NULL)
+  {
+    return FALSE;
+  }
+  *output_region_vnum = 0;
+
+  if (region_table == NULL || top_of_region_table == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  for (curr = regions; curr != NULL; curr = curr->next)
+  {
+    if (curr->rnum == NOWHERE || curr->rnum > top_of_region_table ||
+        region_table[curr->rnum].region_type != REGION_ENCOUNTER)
+    {
+      continue;
+    }
+
+    switch (curr->pos)
+    {
+    case REGION_POS_CENTER:
+      position = 3;
+      break;
+    case REGION_POS_INSIDE:
+      position = 2;
+      break;
+    case REGION_POS_EDGE:
+      position = 1;
+      break;
+    default:
+      position = 0;
+      break;
+    }
+
+    if (!found || position > best_position ||
+        (position == best_position && region_table[curr->rnum].vnum < best_vnum))
+    {
+      best_position = position;
+      best_vnum = region_table[curr->rnum].vnum;
+      found = TRUE;
+    }
+  }
+
+  if (found)
+  {
+    *output_region_vnum = (int)best_vnum;
+  }
+
+  return found;
+}
+
+/**
+ * Apply an encounter chance to a supplied d100 result.
+ *
+ * Keeping the boundary rule separate makes the random table reproducible in
+ * production-linked tests while runtime still obtains its roll from the
+ * shared random-number generator.
+ */
+bool vessel_encounter_chance_succeeds(int chance, int roll)
+{
+  if (roll < 1 || roll > 100 || chance <= 0)
+  {
+    return FALSE;
+  }
+  if (chance >= 100)
+  {
+    return TRUE;
+  }
+  return roll <= chance;
+}
+
+/**
+ * Claim one exterior wilderness room for this encounter tick.
+ *
+ * Multiple ships at one coordinate share the same dynamic room. Only the
+ * first successful encounter may claim it, preventing duplicate creatures
+ * from being spawned into what is meant to be one shared-world encounter.
+ */
+bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
+                                 int claimed_capacity)
+{
+  int i;
+
+  if (room == NOWHERE || claimed_rooms == NULL || claimed_count == NULL || *claimed_count < 0 ||
+      *claimed_count >= claimed_capacity)
+  {
+    return FALSE;
+  }
+
+  for (i = 0; i < *claimed_count; i++)
+  {
+    if (claimed_rooms[i] == room)
+    {
+      return FALSE;
+    }
+  }
+
+  claimed_rooms[*claimed_count] = room;
+  (*claimed_count)++;
+  return TRUE;
+}
+
+static bool vessel_encounter_room_is_claimed(room_rnum room, const room_rnum *claimed_rooms,
+                                             int claimed_count)
+{
+  int i;
+
+  if (room == NOWHERE || claimed_rooms == NULL || claimed_count <= 0)
+  {
+    return FALSE;
+  }
+
+  for (i = 0; i < claimed_count; i++)
+  {
+    if (claimed_rooms[i] == room)
+    {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
  * Is this ship inside a wilderness encounter region?
  *
  * @param region_vnum Out: the containing encounter region's vnum
@@ -157,9 +297,7 @@ int vessel_lookout_bonus(const struct greyhawk_ship_data *ship)
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum)
 {
   struct region_list *regions;
-  struct region_list *curr;
-  struct region_list *next;
-  bool found = FALSE;
+  bool found;
 
   if (ship == NULL || region_vnum == NULL)
   {
@@ -167,27 +305,8 @@ bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *regi
   }
 
   regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), (int)ship->x, (int)ship->y);
-
-  for (curr = regions; curr != NULL; curr = curr->next)
-  {
-    if (curr->rnum == NOWHERE)
-    {
-      continue;
-    }
-    if (region_table[curr->rnum].region_type == REGION_ENCOUNTER)
-    {
-      *region_vnum = region_table[curr->rnum].vnum;
-      found = TRUE;
-      break;
-    }
-  }
-
-  /* get_enclosing_regions allocates its list; free it */
-  for (curr = regions; curr != NULL; curr = next)
-  {
-    next = curr->next;
-    free(curr);
-  }
+  found = vessel_encounter_region_from_list(regions, region_vnum);
+  free_region_list(regions);
 
   return found;
 }
@@ -213,7 +332,7 @@ void vessel_weather_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (ship->name[0] == '\0')
+    if (!is_valid_ship(ship))
     {
       continue;
     }
@@ -225,7 +344,9 @@ void vessel_weather_tick(void)
       depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
       if (-((int)ship->z) > depth_units * 8)
       {
-        send_to_ship(ship, "The hull GROANS - you are far too deep!");
+        send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_DEPTH,
+                               VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                               "The hull GROANS - you are far too deep!");
         vessel_apply_damage(i, dice(2, 6), GREYHAWK_FORE, "Crushing pressure");
         continue;
       }
@@ -246,10 +367,14 @@ void vessel_weather_tick(void)
     switch (severity)
     {
     case 1:
-      send_to_ship(ship, "A squall slaps spray across the deck.");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_SQUALL,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "A squall slaps spray across the deck.");
       break;
     case 2:
-      send_to_ship(ship, "The storm tears at the rigging!");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_STORM,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "The storm tears at the rigging!");
       if (ship->mainsail > 1)
       {
         ship->mainsail--;
@@ -257,13 +382,17 @@ void vessel_weather_tick(void)
       break;
     case 3:
     default:
-      send_to_ship(ship, "A GALE hammers the ship - the masts scream under the strain!");
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_GALE,
+                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+                             "A GALE hammers the ship - the masts scream under the strain!");
       if (ship->mainsail > 2)
       {
         ship->mainsail -= 2;
       }
-      /* An unmanaged helm in a gale costs structure */
-      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE)
+      /* A gale costs structure only when neither a sailmaster nor the
+       * vessel's assigned pilot is physically at the helm. */
+      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE &&
+          get_pilot_from_ship(ship) == NULL)
       {
         vessel_apply_damage(i, dice(1, 6), GREYHAWK_PORT, "The gale");
       }
@@ -272,6 +401,64 @@ void vessel_weather_tick(void)
 
     VSSL_DEBUG("Ship %d weather hazard: severity %d sail %d", i, severity, ship->mainsail);
   }
+}
+
+static int vessel_broadcast_encounter(room_rnum ship_room,
+                                      struct greyhawk_ship_data *source,
+                                      const char *warn_message, const char *arrive_message,
+                                      const char *encounter_name)
+{
+  struct greyhawk_ship_data *recipient;
+  int recipient_count = 0;
+  int i;
+
+  if (ship_room != NOWHERE)
+  {
+    for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
+    {
+      recipient = &greyhawk_ships[i];
+      if (!is_valid_ship(recipient) || recipient->shipobj == NULL ||
+          IN_ROOM(recipient->shipobj) != ship_room)
+      {
+        continue;
+      }
+
+      if (warn_message != NULL && *warn_message && vessel_lookout_bonus(recipient) > 0)
+      {
+        send_to_ship(recipient, "%s", warn_message);
+      }
+      if (arrive_message != NULL && *arrive_message)
+      {
+        send_to_ship(recipient, "%s", arrive_message);
+      }
+      else
+      {
+        send_to_ship(recipient, "%s closes on the ship!",
+                     encounter_name != NULL ? encounter_name : "Something");
+      }
+      recipient_count++;
+    }
+  }
+
+  if (recipient_count == 0 && source != NULL)
+  {
+    if (warn_message != NULL && *warn_message && vessel_lookout_bonus(source) > 0)
+    {
+      send_to_ship(source, "%s", warn_message);
+    }
+    if (arrive_message != NULL && *arrive_message)
+    {
+      send_to_ship(source, "%s", arrive_message);
+    }
+    else
+    {
+      send_to_ship(source, "%s closes on the ship!",
+                   encounter_name != NULL ? encounter_name : "Something");
+    }
+    recipient_count = 1;
+  }
+
+  return recipient_count;
 }
 
 /**
@@ -285,7 +472,10 @@ void vessel_encounter_tick(void)
   MYSQL_ROW row;
   struct greyhawk_ship_data *ship;
   struct char_data *mob;
+  struct vessel_hunter_config hunter_config;
+  room_rnum claimed_rooms[GREYHAWK_MAXSHIPS];
   room_rnum ship_room;
+  int claimed_count = 0;
   int region_vnum = 0;
   int depth_units;
   int i;
@@ -305,7 +495,7 @@ void vessel_encounter_tick(void)
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
     ship = &greyhawk_ships[i];
-    if (ship->name[0] == '\0' || ship->speed == 0)
+    if (!is_valid_ship(ship) || ship->speed == 0)
     {
       continue; /* Encounters find ships that are moving */
     }
@@ -315,15 +505,22 @@ void vessel_encounter_tick(void)
       continue;
     }
 
+    ship_room = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+    if (vessel_encounter_room_is_claimed(ship_room, claimed_rooms, claimed_count))
+    {
+      continue;
+    }
+
     depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
 
     /* Draw candidates matching this region, depth band, and hull class */
     snprintf(query, sizeof(query),
-             "SELECT name, mob_vnum, chance, warn_message, arrive_message "
+             "SELECT encounter_id, name, mob_vnum, chance, warn_message, "
+             "arrive_message "
              "FROM vessel_encounters WHERE region_vnum = %d "
              "AND (vessel_class = -1 OR vessel_class = %d) "
              "AND (max_depth = 0 OR (%d BETWEEN min_depth AND max_depth)) "
-             "ORDER BY chance DESC",
+             "ORDER BY chance DESC, encounter_id ASC",
              region_vnum, (int)ship->vessel_type, depth_units);
     if (mysql_query(conn, query))
     {
@@ -339,43 +536,64 @@ void vessel_encounter_tick(void)
 
     while ((row = mysql_fetch_row(result)) != NULL)
     {
-      int chance = row[2] ? atoi(row[2]) : 0;
+      int chance = row[3] ? atoi(row[3]) : 0;
+      int hunter_configured;
+      int recipient_count;
 
-      /* A good lookout gives warning before the thing arrives */
-      if (rand_number(1, 100) > chance)
+      hunter_configured =
+          vessel_hunter_load_config(row[0] ? atoi(row[0]) : 0,
+                                    &hunter_config);
+      if (hunter_configured < 0)
+      {
+        continue;
+      }
+      if (hunter_configured > 0 &&
+          !vessel_hunter_target_is_eligible(ship, &hunter_config, time(0)))
       {
         continue;
       }
 
-      if (row[3] != NULL && *row[3] && vessel_lookout_bonus(ship) > 0)
+      /* A good lookout gives warning before the thing arrives */
+      if (!vessel_encounter_chance_succeeds(chance, rand_number(1, 100)))
       {
-        send_to_ship(ship, "%s", row[3]);
+        continue;
       }
 
-      if (row[4] != NULL && *row[4])
+      if (ship_room != NOWHERE &&
+          !vessel_encounter_claim_room(ship_room, claimed_rooms, &claimed_count,
+                                       GREYHAWK_MAXSHIPS))
       {
-        send_to_ship(ship, "%s", row[4]);
+        break;
       }
-      else
+
+      if (hunter_configured > 0 &&
+          !vessel_hunter_spawn(ship, &hunter_config, row[1]))
       {
-        send_to_ship(ship, "%s closes on the ship!", row[0] ? row[0] : "Something");
+        if (ship_room != NOWHERE && claimed_count > 0)
+        {
+          claimed_count--;
+        }
+        continue;
       }
+
+      recipient_count =
+          vessel_broadcast_encounter(ship_room, ship, row[4], row[5], row[1]);
+      log("Info: Shared encounter '%s' in room %d from ship %d notified %d "
+          "vessels in region %d",
+          row[1] ? row[1] : "?", ship_room, i, recipient_count, region_vnum);
 
       /* Spawn the encounter's creature into the ship's wilderness room so
        * it can be fought, fled, or fired upon like anything else. */
-      if (row[1] != NULL && atoi(row[1]) > 0 && ship->shipobj != NULL)
+      if (hunter_configured == 0 && row[2] != NULL && atoi(row[2]) > 0 &&
+          ship_room != NOWHERE)
       {
-        ship_room = IN_ROOM(ship->shipobj);
-        if (ship_room != NOWHERE)
+        mob = read_mobile(atoi(row[2]), VIRTUAL);
+        if (mob != NULL)
         {
-          mob = read_mobile(atoi(row[1]), VIRTUAL);
-          if (mob != NULL)
-          {
-            char_to_room(mob, ship_room);
-            act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
-            log("Info: Encounter '%s' spawned for ship %d in region %d", row[0] ? row[0] : "?", i,
-                region_vnum);
-          }
+          char_to_room(mob, ship_room);
+          act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
+          log("Info: Encounter '%s' spawned for shared room %d from ship %d in region %d",
+              row[1] ? row[1] : "?", ship_room, i, region_vnum);
         }
       }
 
@@ -387,11 +605,26 @@ void vessel_encounter_tick(void)
 }
 
 /**
+ * Staff acceptance hook: run the next normal encounter check immediately.
+ *
+ * This changes only the cadence counter. Selection, region/class/depth
+ * filtering, chance, HUNTED eligibility, spawning, and lifecycle work all
+ * remain on the production encounter path.
+ */
+void vessel_encounter_force_check(void)
+{
+  encounter_ticks = VESSEL_ENCOUNTER_INTERVAL - 1;
+  vessel_encounter_tick();
+}
+
+/**
  * seastate - report the weather, sea state, and visibility around the ship.
  */
 ACMD(do_seastate)
 {
   struct greyhawk_ship_data *ship;
+  struct vessel_piracy_law law;
+  bool named_waters;
   int weather;
   int severity;
   int depth_units;
@@ -425,6 +658,22 @@ ACMD(do_seastate)
   send_to_char(ch, "  Visibility: %d units%s\r\n", vessel_sight_range(ship),
                vessel_lookout_bonus(ship) > 0 ? " (lookout posted)" : "");
   send_to_char(ch, "  Hull      : %s\r\n", vessel_status_name(vessel_status(ship)));
+
+  named_waters = vessel_piracy_law_for_ship(ship, &law);
+  if (named_waters && law.configured)
+  {
+    send_to_char(ch, "  Waters    : %s (%s; %s; piracy bounty %d%%)\r\n",
+                 law.region_name, vessel_waters_type_name(law.waters_type),
+                 law.authority, law.bounty_percent);
+  }
+  else if (named_waters)
+  {
+    send_to_char(ch, "  Waters    : %s (standard maritime law)\r\n", law.region_name);
+  }
+  else
+  {
+    send_to_char(ch, "  Waters    : Unnamed open waters (standard maritime law)\r\n");
+  }
 
   if (vessel_in_encounter_region(ship, &region_vnum))
   {

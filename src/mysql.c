@@ -9,6 +9,7 @@
 #include "conf.h"
 #include "sysdep.h"
 #include <stdint.h>
+#include <stdatomic.h>
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
@@ -33,6 +34,25 @@ MYSQL *conn3 = NULL;
 pthread_mutex_t mysql_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mysql_mutex2 = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
+
+/* Count SQL statement executions across direct, safe, and pooled queries. */
+static atomic_uint_fast64_t query_execution_count;
+
+int luminari_mysql_query(MYSQL *mysql_conn, const char *query)
+{
+  atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
+  return (mysql_query)(mysql_conn, query);
+}
+
+uint64_t mysql_query_counter_value(void)
+{
+  return atomic_load_explicit(&query_execution_count, memory_order_relaxed);
+}
+
+void mysql_query_counter_reset(void)
+{
+  atomic_store_explicit(&query_execution_count, 0, memory_order_relaxed);
+}
 
 void after_world_load()
 {
@@ -1385,6 +1405,7 @@ bool mysql_stmt_execute_prepared(PREPARED_STMT *pstmt)
   }
 
   /* Execute the statement */
+  atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
   if (mysql_stmt_execute(pstmt->stmt))
   {
     log("SYSERR: mysql_stmt_execute failed: %s (Error: %u, SQLState: %s)",

@@ -1,19 +1,107 @@
 -- Vessel and transport help entries -> help_entries / help_keywords
 --
--- The help system runs in dual mode (src/db.c): file-based help is loaded from
--- lib/text/help/help.hlp at boot, and database help is served by search_help()
--- in src/help.c. The entries below are already in help.hlp; this script loads
--- the same content into the database so both halves agree.
+-- The help system runs in dual mode (src/db.c): database help is authoritative
+-- when a keyword exists. Runtime help files are ignored deployment data, and
+-- standalone autopilot.hlp or schedule.hlp files are not indexed or maintained
+-- sources. A deployment that provisions file fallback should generate one
+-- consolidated help.hlp from authoritative content.
 --
 -- Equivalent to running 'hedit import' in-game, but reviewable and repeatable
 -- without an interactive staff session. Idempotent: re-running updates existing
 -- rows rather than failing on the UNIQUE tag constraint.
 --
--- Covers 26 entries: the 9 vessel gameplay topics added in 2.5009-beta, plus 17
--- pre-existing vessel/vehicle topics (autopilot, waypoints, routes, schedules,
--- vehicles, NPC pilots) that had never been loaded because their .hlp files were
--- not listed in lib/text/help/index.
+-- Covers every command registered for the vessel, vehicle, transport, autopilot,
+-- and vessel staff surfaces. Keep the keyword audit at the end of this file in
+-- step with src/interpreter.c whenever that command surface changes.
 
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VESSELS', 'Vessel navigation and boarding:
+
+BOARD [vessel]
+  Board a vessel object in your room. If a bulletin board is present, BOARD
+  continues to operate that board instead.
+
+DISEMBARK
+  Leave a stopped vessel. Docked ships return you safely to the dock or linked
+  ship. Away from shore, you must be able to swim and will enter the water.
+
+TACTICAL
+  Show the local terrain grid and nearby vessels.
+
+SHIPSTATUS
+  Show position, terrain, heading, speed, and armor on all four sides.
+
+SHIPTALK <message>
+  Speak over the captain\'s channel to awake, hearing occupants in every room
+  aboard your current vessel. The channel identifies both the vessel and
+  speaker; it cannot be used ashore or while silenced.
+
+SPEED [0-max]
+  Set desired speed at an authorized helm. Zero is all stop.
+
+HEADING [0-360]
+  Set an absolute compass heading at an authorized helm. North is 0, east 90,
+  south 180, and west 270.
+
+SETSAIL <direction>
+  Set a cardinal, diagonal, up, or down heading and begin moving. The vessel
+  must already have a positive speed. Surface hulls remain at elevation zero.
+  Air-capable hulls cannot exceed their class ceiling, and submersible hulls
+  can use negative depth only over water.
+
+CONTACTS
+  List other vessels within detection range, nearest first.
+
+DOCK [vessel]
+  With no target, list vessels in docking range. With a name or fleet ID,
+  create a gangway between two stopped, nearby vessels.
+
+DOCKFEES [pay]
+  Show the one-time berthing fee assessed when an owned vessel enters a port.
+  The vessel cannot leave until an owner or permitted helmsman pays it. A
+  clan that owns the port\'s zone receives the fee; public-port fees leave the
+  economy. Unowned public and NPC hulls are exempt.
+
+UNDOCK
+  Remove the gangway to the vessel currently alongside.
+
+LOOK_OUTSIDE
+  Show position, terrain, weather, and visible vessels from an interior room
+  that has an outside view.
+
+SHIP_ROOMS
+  List the vessel interior and identify its bridge and entrance.
+
+BOARD_HOSTILE <vessel>
+  Attempt a hostile transfer from one nearby vessel to another. Player-owned
+  targets remain subject to the shared PvP consent rules.
+
+Navigation changes require the owner, a permitted helmsman, or the authorized
+NPC pilot at the helm. See the individual ownership and autopilot topics for
+longer-lived controls.
+
+See also: AUTOPILOT, SHIP-COMBAT, SHIP-OWNERSHIP, SEASTATE, VEHICLES', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'VESSELS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'VESSEL');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIPS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARD');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DISEMBARK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'TACTICAL');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIPSTATUS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIPTALK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SPEED');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'HEADING');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SETSAIL');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'CONTACTS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DOCK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DOCKFEES');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'UNDOCK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'LOOK_OUTSIDE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIP_ROOMS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARD_HOSTILE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'NAVIGATION');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VEDIT', 'Usage: vedit list
@@ -22,6 +110,7 @@ VALUES ('VEDIT', 'Usage: vedit list
        vedit set <id> <field> <value>
        vedit delete <id>
        vedit spawn <id>
+       vedit spawnpublic <id>
 
 Staff command (builder level). The ship prototype editor: author vessel
 prototypes in the database and spawn live, boardable ships from them
@@ -37,17 +126,21 @@ Subcommands:
   delete  - remove a prototype (existing spawned ships are unaffected)
   spawn   - instantiate a live ship in your current room: allocates a
             ship slot, generates the interior from the room templates,
-            links the boardable object, and saves to the database
+            links the boardable object, assigns you as owner, and saves
+            to the database
+  spawnpublic - staff-only fixture path for an unclaimed public or NPC
+            vessel; it has no player owner and accrues no owner dock fees
 
 Classes: 0=Raft 1=Boat 2=Ship 3=Warship 4=Airship 5=Submarine
          6=Transport 7=Magical
 
 Interior room names and descriptions come from the ship_room_templates
-database table; edit those rows to change what generated interiors look
-like (takes effect next boot).
+database table. DG attachments for generated room types come from
+ship_room_template_triggers. Changes to either table take effect next boot.
 
 See also: AUTOPILOT, SETWAYPOINT, CREATEROUTE', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEDIT', 'VEDIT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -78,7 +171,7 @@ SHIPREPAIR
 CLAIMSHIP
   Capture a ship: stand on its bridge with no other conscious character
   present and claim it. Ownership transfers to you. Pairs with hostile
-  boarding (\'board <ship>\' from a nearby vessel).
+  boarding (\'board_hostile <vessel>\' from a nearby vessel).
 
 Running aground: deep-draft vessels that sail into water shallower than
 their draft grind to a halt and take bow damage. Check your charts.
@@ -90,7 +183,8 @@ always fair game. A ship whose owner is not logged in cannot be attacked -
 nobody is there to consent.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPFIRE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'SHIPREPAIR');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPFIRE', 'CLAIMSHIP');
@@ -127,7 +221,8 @@ Ownership survives reboots. Losing your ship in combat is permanent -
 sail accordingly, or don\'t sail what you can\'t afford to lose.
 
 See also: SHIP COMBAT, CLAIMSHIP, VEDIT, BOARD, DOCK', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPBROWSE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPBUY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPCHRISTEN');
@@ -175,7 +270,8 @@ Wear: hulls under way slowly lose armor and subsystem condition. Put in
 for repairs before a fight, not after.
 
 See also: SHIP OWNERSHIP, SHIP COMBAT, SHIPREPAIR', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPHIRE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPDISMISS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPHIRE', 'SHIPWAGES');
@@ -195,11 +291,14 @@ MARKET
 
 CARGOBUY <commodity> <quantity>
   Load bulk goods into the hold. Limited by your cargo capacity, which
-  depends on hull class, the hold refit, and your quartermaster.
+  depends on hull class, the hold refit, and your quartermaster. Large
+  batches cross supply levels, so the reported per-unit value is an average.
 
 CARGOSELL <commodity> [<quantity>|all]
   Sell goods from the hold at the local price. Ports buy below their
   asking price, so buying and selling in the same port always loses money.
+  Each unit in a large batch receives the price at its resulting supply
+  level rather than the first unit\'s quote.
 
 CARGOMANIFEST
   List the bulk goods aboard and how much of the hold they occupy.
@@ -215,7 +314,8 @@ Cargo is part of the ship, not your inventory: it survives reboots, it
 counts against capacity, and it can be lost with the ship.
 
 See also: SHIP OWNERSHIP, SHIP CREW, SHIP COMBAT, LOADVEHICLE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MARKET', 'MARKET');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MARKET', 'CARGOBUY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('MARKET', 'CARGOSELL');
@@ -250,7 +350,8 @@ hauls of valuable cargo pay best - and those are exactly the runs pirates
 watch. Boards refresh periodically; a job someone else takes is gone.
 
 See also: SHIP TRADE, MARKET, CARGOMANIFEST, SHIP COMBAT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CONTRACTS', 'CONTRACTS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CONTRACTS', 'CONTRACTACCEPT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CONTRACTS', 'CONTRACTDELIVER');
@@ -277,9 +378,14 @@ BOUNTY [<player>]
 
 MARQUE
   At a port\'s admiralty office (any dock), buy a letter of marque. It makes
-  your prizes lawful: plundering under a marque earns no bounty. Costs
-  2000 gold and lasts one day. The admiralty will not commission a captain
-  who is already WANTED - settle your affairs first.
+  your prizes lawful where an authority would otherwise post a bounty.
+  Costs 2000 gold and lasts one day. The admiralty will not commission a
+  captain who is already WANTED - settle your affairs first.
+
+Regional law comes from builder-authored wilderness geography. Territorial
+waters, free seas, and pirate coves can scale the standard 15-gold bounty per
+unit of stolen cargo from zero to 500 percent. Unmapped waters retain the
+standard rate. SEASTATE names the current waters, authority, and rate.
 
 PvP: plundering another player\'s ship requires that you and its owner both
 have PVP enabled (type \'pvp\'). Unowned and NPC hulls are always fair game.
@@ -290,7 +396,8 @@ freight board, no crew hall, no shipyard, no new hulls. Pirates who cannot
 sell what they steal go hungry, which is why the marque exists.
 
 See also: SHIP COMBAT, BOARD, CLAIMSHIP, SHIP TRADE, FREIGHT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PLUNDER', 'PLUNDER');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PLUNDER', 'BOUNTY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('PLUNDER', 'MARQUE');
@@ -310,6 +417,7 @@ Reads the water, sky, and depth around your vessel:
   Visibility - how far you can see; fog closes the horizon, a posted
                lookout opens it again
   Hull       - your damage state (sound, battered, crippled, sinking)
+  Waters     - named geographic waters and their piracy law, when authored
 
 Weather is the same weather a walker on the coast experiences - the storm
 you are fighting is a real storm in that part of the world, not a private
@@ -327,8 +435,15 @@ Dangerous waters: some regions of the sea, sky, and depths hold things that
 hunt ships. Seastate will tell you when you are in them. A good lookout
 gives you warning before whatever it is arrives.
 
-See also: SHIP COMBAT, SHIPREPAIR, SHIP CREW, TACTICAL', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+Legal waters use the same REGION_GEOGRAPHIC polygons as the wilderness.
+Territorial waters, free seas, and pirate coves may apply different piracy
+bounty rates. A pirate-cove port does not refuse a WANTED captain. While
+underway, the ship announces each named-water boundary once and stays quiet
+until it enters a different region.
+
+See also: SHIP COMBAT, SHIPREPAIR, SHIP CREW, TACTICAL, PLUNDER', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'SEASTATE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'SEA-STATE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'WEATHER-AT-SEA');
@@ -337,11 +452,15 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'SHIP-H
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('SHIPLIST', 'Staff commands for operating the vessel system.
 
-SHIPLIST
+SHIPLIST [summary]
   Fleet overview: every active vessel with its slot, name, class, position,
   heading, speed, hull structure, and owner. Ends with two health figures:
     - fleet slots in use out of the maximum
     - wilderness dynamic room pool utilization
+
+  SHIPLIST SUMMARY omits the per-vessel rows and prints only those health
+  figures. Use it for large fleets so the totals fit in one socket output
+  buffer.
 
   The room pool matters: it is shared with every traveller in the
   wilderness, not reserved for ships. If it approaches exhaustion the
@@ -356,16 +475,108 @@ SHIPFIX <slot>
   Restore a vessel to full condition: armor, hull structure, rigging, and
   rudder. For repairing damage caused by bugs rather than by enemies.
 
-Related toggles: the whole vessel system can be enabled or disabled in
-CEDIT. Debug logging is compiled in via VESSEL_SYSTEM_DEBUG in
-src/vessels.h (set it to 0 for production builds).
+SHIPPURGE <slot>
+  Permanently remove a dynamic vessel, its persisted records, boardable
+  object, and generated interior rooms. Occupied vessels cannot be purged.
+  The protected legacy fixture slots cannot be purged with this command.
 
-See also: VEDIT, SHIP COMBAT, SHIP OWNERSHIP, SEASTATE', 31, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+SHIPLOAD
+  Reserved legacy placeholder. It currently performs no loading operation.
+
+The Vessel System option in CEDIT is a load-bearing kill switch: it blocks
+player and builder vessel/vehicle commands and pauses every vessel tick while
+leaving SHIPLIST, SHIPGOTO, SHIPFIX, SHIPPURGE, VEHICLEPURGE, and VESSELDEBUG
+available for staff recovery.
+
+See also: VEDIT, VMERCHANT, VESSELDEBUG, VEHICLE-ADMIN, SHIP-COMBAT, SEASTATE', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPLIST');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPGOTO');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPFIX');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPPURGE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIPLOAD');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPLIST', 'SHIP-ADMIN');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VMERCHANT', 'Usage: vmerchant [list|sync|sink <merchant-id> confirm]
+
+Staff control for the durable NPC merchant fleet.
+
+VMERCHANT or VMERCHANT LIST
+  List every configured merchant definition, including its generation, active
+  hull, lifecycle state, faction, prototype, route, pilot, cargo, loss count,
+  and most recent reconciliation error.
+
+VMERCHANT SYNC
+  Reconcile definitions immediately. Missing due merchants are assembled from
+  their configured public-hull prototype, real cargo, pilot, route, schedule,
+  and spawn coordinates. Stale active-hull references enter the configured
+  recovery delay before replacement.
+
+VMERCHANT SINK <merchant-id> CONFIRM
+  Development acceptance and staff recovery command. It destroys the active
+  merchant hull and cargo through the ordinary sink path, attributes the loss
+  to the invoking character, applies the normal faction and bounty
+  consequences, and schedules the configured replacement. The CONFIRM word is
+  required because this changes durable gameplay state.
+
+Definitions live in vessel_npc_merchants. Consequences are durable, deduplicated
+per merchant generation and event, and delivered exactly once when the
+responsible player is online or next logs in.
+
+See also: SHIPLIST, SHIPFIRE, PLUNDER, BOUNTY, SEASTATE', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VMERCHANT', 'VMERCHANT');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
+       vesseldebug on <category|all>
+       vesseldebug off [category]
+       vesseldebug encounter
+       vtradecheck [trades]
+
+Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
+
+Categories:
+  core          - general vessel control flow
+  move          - vessel movement
+  auto          - autopilot and schedules
+  dock          - docking and hostile boarding
+  db            - vessel persistence
+  func          - function entry and exit tracing
+  state         - vessel state changes
+  vehicle       - vehicle lifecycle and commands
+  vehicle_move  - high-frequency vehicle movement
+  transport     - unified transport commands
+  all           - every category
+
+Production/default builds compile diagnostics out with VESSEL_SYSTEM_DEBUG=0.
+In that build, status reports that logging is unavailable and attempts to
+enable a category are refused. ENCOUNTER remains available to staff in every
+build; it advances only the cadence counter and then runs the normal region,
+class, depth, chance, eligibility, and spawn path.
+
+For an explicit development diagnostic build,
+compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and
+must be enabled at runtime.
+
+VESSELDEBUG OFF with no category disables the entire runtime mask.
+
+VTRADECHECK [trades]
+  Run the deterministic, non-mutating vessel-economy release gate. The default
+  is 1000 simulated trades. The check exercises production batch pricing,
+  supply bounds, finite arbitrage, adversarial reversal, and restocking without
+  changing live ports, cargo, or character gold.
+
+See also: SHIPLIST, SHIP-ADMIN, VMERCHANT, VEDIT', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VESSELDEBUG');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VDEBUG');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VTRADECHECK');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VESSEL-DEBUG');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('AUTOPILOT', 'Usage: autopilot [on|off|pause|status]
@@ -396,8 +607,9 @@ Example:
   > autopilot off       - Stop autopilot completely
 
 See also: SETWAYPOINT, LISTWAYPOINTS, DELWAYPOINT, CREATEROUTE, ADDTOROUTE,
-          LISTROUTES, SETROUTE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+          DELROUTE, LISTROUTES, SETROUTE', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('AUTOPILOT', 'AUTOPILOT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -417,7 +629,8 @@ Example:
   Waypoint \'harbor_entrance\' created at position (150.0, 200.0, 0.0).
 
 See also: LISTWAYPOINTS, DELWAYPOINT, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SETWAYPOINT', 'SETWAYPOINT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -439,7 +652,8 @@ Example:
   Total: 2 waypoints
 
 See also: SETWAYPOINT, DELWAYPOINT, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('LISTWAYPOINTS', 'LISTWAYPOINTS');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -457,7 +671,8 @@ Example:
   Waypoint \'old_dock\' deleted.
 
 See also: SETWAYPOINT, LISTWAYPOINTS, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DELWAYPOINT', 'DELWAYPOINT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -479,7 +694,8 @@ Example:
   Route \'trade_run\' created (ID: 1).
 
 See also: ADDTOROUTE, LISTROUTES, SETROUTE, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CREATEROUTE', 'CREATEROUTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -500,8 +716,27 @@ Example:
   Waypoint \'open_sea\' added to route \'trade_run\' at position 1.
 
 See also: CREATEROUTE, LISTROUTES, SETROUTE, SETWAYPOINT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ADDTOROUTE', 'ADDTOROUTE');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('DELROUTE', 'Usage: delroute <name>
+
+Permanently deletes a navigation route and its ordered waypoint associations.
+The named waypoints themselves are not deleted.
+
+You must be aboard the vessel and authorized as its captain. Route deletion is
+written to the database and the live route cache immediately.
+
+Example:
+  > delroute obsolete_run
+  Route \'obsolete_run\' deleted.
+
+See also: CREATEROUTE, ADDTOROUTE, LISTROUTES, SETROUTE, AUTOPILOT', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DELROUTE', 'DELROUTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('LISTROUTES', 'Usage: listroutes
@@ -521,8 +756,9 @@ Example:
   ----------------------------
   Total: 2 routes
 
-See also: CREATEROUTE, ADDTOROUTE, SETROUTE, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+See also: CREATEROUTE, ADDTOROUTE, DELROUTE, SETROUTE, AUTOPILOT', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('LISTROUTES', 'LISTROUTES');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -544,23 +780,27 @@ Example:
   Use \'autopilot on\' to begin navigation.
 
 See also: AUTOPILOT, CREATEROUTE, ADDTOROUTE, LISTROUTES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SETROUTE', 'SETROUTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SETSCHEDULE', 'Usage: setschedule <route> <interval>
+VALUES ('SETSCHEDULE', 'Usage: setschedule <route> <interval> [passenger fare]
 
 Sets an automatic departure schedule for the vessel you are commanding.
 The vessel will automatically begin following the specified route at
-regular intervals measured in MUD hours.
+regular intervals measured in MUD hours. An optional fare is collected
+whenever a player boards an unowned public vessel on this schedule.
 
 Arguments:
   route    - Name of an existing route (use \'listroutes\' to see available)
   interval - Number of MUD hours between departures (1-24)
+  fare     - Optional boarding cost in gold (0-100000; omitted keeps the
+             existing fare)
 
 Examples:
-  setschedule FerryRoute 2    - Depart every 2 MUD hours
-  setschedule PatrolRoute 6   - Depart every 6 MUD hours
+  setschedule FerryRoute 2 10 - Depart every 2 hours and charge 10 gold
+  setschedule PatrolRoute 6   - Depart every 6 hours, preserving its fare
 
 Requirements:
   - You must be aboard a vessel with autopilot capability
@@ -570,12 +810,15 @@ Requirements:
 Notes:
   - One MUD hour equals approximately 75 real seconds
   - If a pilot is assigned, departures will be announced
-  - The schedule persists across server restarts
+  - The schedule and passenger fare persist across server restarts
+  - Fares on privately owned vessels are inactive
+  - NPC crew do not pay; staff using ordinary BOARD do pay
   - Use \'showschedule\' to see current schedule status
   - Use \'clearschedule\' to remove the schedule
 
 See also: CLEARSCHEDULE, SHOWSCHEDULE, AUTOPILOT, LISTROUTES', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SETSCHEDULE', 'SETSCHEDULE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -596,7 +839,8 @@ Notes:
   - Use \'autopilot off\' to stop an active route
 
 See also: SETSCHEDULE, SHOWSCHEDULE, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('CLEARSCHEDULE', 'CLEARSCHEDULE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -609,6 +853,7 @@ Output includes:
   - Departure interval in MUD hours
   - Next scheduled departure time
   - Current MUD time for reference
+  - Public-vessel passenger fare
   - Schedule status (Active, Paused, or Disabled)
   - Pilot status (whether departures will be announced)
 
@@ -618,6 +863,7 @@ Example output:
   Interval: Every 2 MUD hours
   Next Departure: MUD hour 14
   Current Time: MUD hour 12
+  Passenger Fare: 10 gold per boarding
   Status: Active
   Pilot: Assigned (departures will be announced)
 
@@ -630,16 +876,20 @@ Notes:
   - Use \'clearschedule\' to remove a schedule
 
 See also: SETSCHEDULE, CLEARSCHEDULE, AUTOPILOT', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHOWSCHEDULE', 'SHOWSCHEDULE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('VMOUNT', 'Usage: vmount
+VALUES ('VMOUNT', 'Usage: vmount [vehicle]
 
 This command allows you to mount (board) a land vehicle that is in the same
 room as you. Vehicles include carts, wagons, mounts (like horses), and
 carriages. Once mounted, you can use the DRIVE command to move the vehicle
 across the wilderness.
+
+The optional selector accepts a visible name, vehicle type, or numeric vehicle
+ID. With no selector, the first available vehicle in the room is used.
 
 Requirements:
   - A vehicle must be present in your current room
@@ -651,8 +901,11 @@ Example:
   You climb onto a sturdy wooden cart.
 
 See also: VDISMOUNT, DRIVE, VSTATUS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VMOUNT', 'VMOUNT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VMOUNT', 'VEHICLES');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VMOUNT', 'LAND-VEHICLES');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VDISMOUNT', 'Usage: vdismount
@@ -668,7 +921,8 @@ Example:
   You dismount from a sturdy wooden cart.
 
 See also: VMOUNT, DRIVE, VSTATUS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VDISMOUNT', 'VDISMOUNT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -697,7 +951,8 @@ Example:
   Current position: (100, 201)
 
 See also: VMOUNT, VDISMOUNT, VSTATUS', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('DRIVE', 'DRIVE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -737,8 +992,83 @@ Example:
   You are currently riding this cart.
 
 See also: VMOUNT, VDISMOUNT, DRIVE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VSTATUS', 'VSTATUS');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VEHICLE-TRANSPORT', 'Vehicle and unified transport commands:
+
+LOADVEHICLE [vehicle]
+  From aboard a stopped vessel, load a named vehicle waiting beside the hull.
+  The vehicle must be empty and the vessel must have enough vehicle capacity.
+
+UNLOADVEHICLE [number]
+  With no number, list vehicles carried by the vessel. Select a list number to
+  unload it beside the stopped vessel when the terrain is suitable.
+
+TENTER [target]
+  Enter the transport present in the room. For a land vehicle this is the
+  unified equivalent of VMOUNT; vessel boarding still directs you to BOARD.
+
+TEXIT
+  Exit the current transport. For a land vehicle this is the unified equivalent
+  of VDISMOUNT; vessel passengers are directed to DISEMBARK.
+
+TGO <direction>
+  Move the current land vehicle in one of the eight horizontal directions.
+  Vessel passengers are directed to HEADING and SPEED.
+
+TSTATUS
+  Show the current transport, or a transport present in the room. The output is
+  specialized for either a land vehicle or vessel.
+
+Loaded vehicle identity, state, and coordinates persist across server restarts.
+
+See also: VMOUNT, VDISMOUNT, DRIVE, VSTATUS, VESSELS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'VEHICLE-TRANSPORT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'LOADVEHICLE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'LOADVEH');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'UNLOADVEHICLE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'UNLOADVEH');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'TENTER');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'TEXIT');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'TGO');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'TSTATUS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+VALUES ('VEHICLE-TRANSPORT', 'TRANSPORT');
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VEHICLE-ADMIN', 'Staff land-vehicle commands:
+
+VEHICLECREATE <cart|wagon|mount|carriage> [name]
+  Create and persist a test vehicle in the current wilderness room. The
+  character becomes its owner. Creation is rolled back if persistence fails.
+
+VEHICLEPURGE <vehicle-id>
+  Permanently remove an active vehicle and its database record. All passengers
+  must dismount first. VEHICLEPURGE remains available while the vessel-system
+  kill switch is off so staff can recover bad state.
+
+Use VSTATUS to inspect a nearby vehicle and its numeric ID.
+
+See also: VSTATUS, VEHICLE-TRANSPORT, SHIP-ADMIN, VESSELDEBUG', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEHICLE-ADMIN', 'VEHICLE-ADMIN');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEHICLE-ADMIN', 'VEHICLECREATE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEHICLE-ADMIN', 'VEHICLEPURGE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('ASSIGNPILOT', 'Usage: assignpilot <npc name>
@@ -764,7 +1094,8 @@ When a pilot is assigned:
 To remove a pilot, use the UNASSIGNPILOT command.
 
 See also: UNASSIGNPILOT, AUTOPILOT, SETROUTE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('ASSIGNPILOT', 'ASSIGNPILOT');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
@@ -785,5 +1116,31 @@ After removing the pilot:
 To assign a new pilot, use the ASSIGNPILOT command.
 
 See also: ASSIGNPILOT, AUTOPILOT, SETROUTE', 0, FALSE)
-ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level);
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('UNASSIGNPILOT', 'UNASSIGNPILOT');
+
+-- Retire obsolete one-command vessel entries imported from old file help.
+-- search_help() displays only the first matching database row, so leaving these
+-- mappings in place makes the authoritative result nondeterministic. Preserve
+-- the unrelated character movement-speed topic under unambiguous keywords.
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+SELECT tag, 'MOVEMENT-SPEED'
+FROM help_entries
+WHERE BINARY tag = 'speed';
+INSERT IGNORE INTO help_keywords (help_tag, keyword)
+SELECT tag, 'RACIAL-SPEED'
+FROM help_entries
+WHERE BINARY tag = 'speed';
+DELETE FROM help_keywords
+WHERE BINARY help_tag = 'speed'
+  AND UPPER(keyword) = 'SPEED';
+
+DELETE FROM help_keywords
+WHERE BINARY help_tag IN (
+  'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
+);
+DELETE FROM help_entries
+WHERE BINARY tag IN (
+  'board_hostile', 'disembark', 'dock', 'look_outside', 'ship_rooms', 'undock'
+);

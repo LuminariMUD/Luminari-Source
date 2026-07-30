@@ -1,0 +1,35 @@
+#70001
+ferrymaster harbor pilot~
+the harbor ferrymaster~
+The harbor ferrymaster studies the route from the helm.
+~
+Weathered by salt and wind, the ferrymaster keeps one hand near the wheel and
+one eye on the next dock.
+~
+2 0 0 0 0 0 0 0 0 E
+10 18 5 2d8+40 1d4+1
+100 100 1
+8 8 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+#70002
+navy hunter captain admiralty officer~
+the Harbor Admiralty hunter captain~
+The Harbor Admiralty hunter captain watches the quarry from the helm.
+~
+The captain wears a salt-stained navy coat and keeps the patrol warship
+relentlessly pointed toward its quarry.
+~
+2 0 0 0 0 0 0 0 0 E
+18 24 8 4d8+80 1d6+2
+100 100 1
+8 8 1
+BareHandAttack: 0
+Race: 1
+Class: 1
+Size: 5
+E
+$

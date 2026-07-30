@@ -1,7 +1,7 @@
 INSERT INTO ship_room_templates (room_type, name_format, description_text, room_flags, sector_type, min_vessel_size) VALUES
 -- Bridge/Control rooms
-('bridge', 'The %s''s Bridge', 'The command center of the vessel, filled with navigation equipment and control panels. Large windows provide a panoramic view of the surroundings.', 262144, 0, 0),
-('helm', 'The %s''s Helm', 'The pilot''s station, featuring the ship''s wheel and primary navigation controls.', 262144, 0, 0),
+('bridge', '%s''s Bridge', 'The command center of the vessel, filled with navigation equipment and control panels. Large windows provide a panoramic view of the surroundings.', 262144, 0, 0),
+('helm', '%s''s Helm', 'The pilot''s station, featuring the ship''s wheel and primary navigation controls.', 262144, 0, 0),
 
 -- Crew areas
 ('quarters_captain', 'Captain''s Quarters', 'A spacious cabin befitting the ship''s commander, with a large bunk, desk, and personal storage.', 262144, 0, 3),

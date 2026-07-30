@@ -9,9 +9,10 @@ project records conflated:
 
 1. The transport foundation and phases 04 through 09 gameplay code are
    implemented.
-2. Historical automated and memory evidence exists.
-3. Live regression, full-load performance, soak, recovery, content, balance,
-   and rollout acceptance are not complete.
+2. The local 30-step regression and development release-boundary checks pass.
+3. Historical automated and memory evidence exists, but full-load performance,
+   soak, complete recovery, content, balance, and rollout acceptance are not
+   complete.
 
 The vessel system must not be described as production-ready until the release
 criteria in [PRD.md](PRD.md) have current evidence.
@@ -39,16 +40,18 @@ backlog, not a current-behavior reference.
   the living-frontier vision, multiplayer and builder outcomes, shared
   wilderness rules, release budgets, scope, scorecard, and risks.
 - Corrected the base ship structure from the obsolete 1,016-byte claim to the
-  measured 4,744 bytes, about 2.26 MiB for 500 fixed fleet entries.
+  measured 4,928 bytes, about 2.35 MiB for 500 fixed fleet entries.
 - Separated historical movement microbenchmarks from the unmeasured complete
   500-ship tick. The release target remains 25 ms with all vessel subsystems
   active.
 - Replaced references to removed standalone vessel mirror suites and the
   nonexistent `test_runner` with the production-linked root CuTest workflow.
-- Recorded that the first manual dev-server pass is blocked at step 3 by
-  inconsistent legacy ship identity; it is not a fully passing regression.
-- Recorded that the cedit setting is not yet a command-and-tick kill switch and
-  that `VESSEL_SYSTEM_DEBUG` remains enabled for development.
+- Repaired the legacy identity blocker and recorded the complete 30-step
+  Kohdee regression, runtime-room reclamation, full-restart hull relinking, and
+  test-data cleanup.
+- Recorded the proven cedit command-and-tick kill switch, production-off debug
+  default with runtime development categories, and authoritative 31-entry,
+  74-command help audit.
 - Generalized the schema runbook across phases 2, 4, 6, 7, and 8 plus the
   authoritative help migration, snapshot rehearsal, property comparison, and
   reverse-order rollback.

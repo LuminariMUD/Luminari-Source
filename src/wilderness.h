@@ -250,6 +250,7 @@ room_rnum find_static_room_by_coordinates(int x, int y);
 void assign_wilderness_room(
     room_rnum room, int x,
     int y); /* Assign the room to the provided coordinates, adjusting descriptions, etc. */
+void mark_wilderness_room_occupied(room_rnum room);
 
 /* Regions */
 /*

@@ -106,6 +106,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
+- **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
 - **[CASTING_VISUALS_TESTING.md](testing/CASTING_VISUALS_TESTING.md)** - Casting visuals in-game verification checklist
 - **[vessel_test_results.md](testing/vessel_test_results.md)** - Historical Phase 00 vessel test record (superseded; see VESSEL_BENCHMARKS.md)
 - **[CuTest_README.md](testing/CuTest_README.md)** - Unit testing with CuTest

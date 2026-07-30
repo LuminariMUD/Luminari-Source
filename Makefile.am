@@ -219,6 +219,8 @@ circle_SOURCES = \
 	src/vessels_combat.c \
 	src/vessels_crew.c \
 	src/vessels_hazards.c \
+	src/vessels_hunters.c \
+	src/vessels_merchants.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_edit.c \
@@ -257,6 +259,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -280,6 +283,7 @@ cutest_test_files = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
+	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -322,14 +326,35 @@ EXTRA_DIST = \
 	scripts/test_background_help_entries.sh \
 	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
+	scripts/provision_vessel_harbor.sh \
+	scripts/test_vessel_hunter_in_game.sh \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \
+	lib/world/vessel_harbor/10000.wld \
+	lib/world/vessel_harbor/700.mob \
+	lib/world/vessel_harbor/700.trg \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_character_backgrounds.sql \
 	sql/components/ci_schema_manifest.txt \
+	sql/components/verify_vessels_phase11.sql \
+	sql/components/verify_vessels_phase12.sql \
+	sql/components/verify_vessels_phase13.sql \
+	sql/components/verify_vessels_phase14.sql \
+	sql/components/verify_vessels_phase15.sql \
+	sql/components/vessels_harbor_sandbox.sql \
+	sql/components/vessels_phase11_rollback.sql \
+	sql/components/vessels_phase11_schema.sql \
+	sql/components/vessels_phase12_rollback.sql \
+	sql/components/vessels_phase12_schema.sql \
+	sql/components/vessels_phase13_rollback.sql \
+	sql/components/vessels_phase13_schema.sql \
+	sql/components/vessels_phase14_rollback.sql \
+	sql/components/vessels_phase14_schema.sql \
+	sql/components/vessels_phase15_rollback.sql \
+	sql/components/vessels_phase15_schema.sql \
 	README.md
 
 # Run unit tests

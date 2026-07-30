@@ -770,7 +770,7 @@ CREATE TABLE IF NOT EXISTS help_keywords (
 -- --------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS ship_interiors (
-  ship_id VARCHAR(8) NOT NULL PRIMARY KEY,
+  ship_id INT NOT NULL PRIMARY KEY,
   vessel_type INT NOT NULL DEFAULT 0,
   vessel_name VARCHAR(100),
   num_rooms INT NOT NULL DEFAULT 1,
@@ -791,10 +791,109 @@ CREATE TABLE IF NOT EXISTS ship_interiors (
   INDEX idx_vessel_name (vessel_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS ship_runtime_state (
+  ship_id INT NOT NULL PRIMARY KEY,
+  instance_version INT NOT NULL DEFAULT 1,
+  prototype_id INT NOT NULL DEFAULT 0,
+  hull_object_vnum INT NOT NULL DEFAULT 70002,
+  display_id CHAR(2) NOT NULL DEFAULT '',
+  location_vnum INT NOT NULL DEFAULT 0,
+  x FLOAT NOT NULL DEFAULT 0,
+  y FLOAT NOT NULL DEFAULT 0,
+  z FLOAT NOT NULL DEFAULT 0,
+  dx FLOAT NOT NULL DEFAULT 0,
+  dy FLOAT NOT NULL DEFAULT 0,
+  dz FLOAT NOT NULL DEFAULT 0,
+  heading SMALLINT NOT NULL DEFAULT 0,
+  setheading SMALLINT NOT NULL DEFAULT 0,
+  minspeed SMALLINT NOT NULL DEFAULT 0,
+  maxspeed SMALLINT NOT NULL DEFAULT 0,
+  speed SMALLINT NOT NULL DEFAULT 0,
+  setspeed SMALLINT NOT NULL DEFAULT 0,
+  dock_room INT NOT NULL DEFAULT 0,
+  docked_to_ship INT NOT NULL DEFAULT -1,
+  docking_room INT NOT NULL DEFAULT 0,
+  max_docked_ships INT NOT NULL DEFAULT 0,
+  maxfarmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxrarmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxparmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxsarmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  farmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  rarmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  parmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  sarmor TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxfinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxrinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxpinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxsinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  finternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  rinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  pinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  sinternal TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxturnrate TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  turnrate TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxmainsail TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  mainsail TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  hullweight TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  maxslots TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  last_attacker INT NOT NULL DEFAULT 0,
+  pvp_grace_until BIGINT NOT NULL DEFAULT 0,
+  pvp_grace_attacker VARCHAR(64) NOT NULL DEFAULT '',
+  dock_fee_balance INT NOT NULL DEFAULT 0,
+  dock_fee_port INT NOT NULL DEFAULT 0,
+  dock_fee_clan INT NOT NULL DEFAULT 0,
+  wear_ticks INT NOT NULL DEFAULT 0,
+  wage_ticks INT NOT NULL DEFAULT 0,
+  room_types TEXT,
+  slot_data LONGBLOB,
+  autopilot_state INT NOT NULL DEFAULT 0,
+  current_route_id INT NOT NULL DEFAULT 0,
+  current_waypoint_index INT NOT NULL DEFAULT 0,
+  autopilot_tick_counter INT NOT NULL DEFAULT 0,
+  wait_remaining INT NOT NULL DEFAULT 0,
+  last_update BIGINT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ship_runtime_interior
+    FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_weapons (
+  ship_id INT NOT NULL,
+  slot_index TINYINT UNSIGNED NOT NULL,
+  slot_type TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  position TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  equipment_weight TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  description VARCHAR(255) NOT NULL DEFAULT '',
+  val0 SMALLINT NOT NULL DEFAULT 0,
+  val1 SMALLINT NOT NULL DEFAULT 0,
+  val2 SMALLINT NOT NULL DEFAULT 0,
+  val3 SMALLINT NOT NULL DEFAULT 0,
+  slot_x TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  slot_y TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  reload_timer SMALLINT NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (ship_id, slot_index),
+  CONSTRAINT fk_ship_weapons_interior
+    FOREIGN KEY (ship_id) REFERENCES ship_interiors(ship_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS vessel_insurance_claims (
+  claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ship_id INT NOT NULL,
+  owner VARCHAR(64) NOT NULL,
+  ship_name VARCHAR(128) NOT NULL,
+  amount INT NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  paid_at TIMESTAMP NULL DEFAULT NULL,
+  INDEX idx_vessel_claim_owner_status (owner, status),
+  INDEX idx_vessel_claim_ship (ship_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ship_docking (
   dock_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  ship1_id VARCHAR(8) NOT NULL,
-  ship2_id VARCHAR(8) NOT NULL,
+  ship1_id INT NOT NULL,
+  ship2_id INT NOT NULL,
   dock_room1 INT NOT NULL,
   dock_room2 INT NOT NULL,
   dock_type ENUM('standard','combat','emergency','forced') DEFAULT 'standard',
@@ -827,9 +926,97 @@ CREATE TABLE IF NOT EXISTS ship_room_templates (
   UNIQUE KEY unique_room_type (room_type, vessel_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS ship_room_template_triggers (
+  room_type VARCHAR(50) NOT NULL,
+  vessel_type INT NOT NULL DEFAULT 0,
+  trigger_vnum INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (room_type, vessel_type, trigger_vnum),
+  INDEX idx_ship_room_trigger_vnum (trigger_vnum)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_waypoints (
+  waypoint_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(64) DEFAULT '',
+  x FLOAT NOT NULL,
+  y FLOAT NOT NULL,
+  z FLOAT NOT NULL DEFAULT 0,
+  tolerance FLOAT NOT NULL DEFAULT 5.0,
+  wait_time INT NOT NULL DEFAULT 0,
+  flags INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_waypoint_name (name),
+  INDEX idx_waypoint_coords (x, y, z)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_routes (
+  route_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(64) NOT NULL,
+  loop_route TINYINT(1) NOT NULL DEFAULT 0,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_route_name (name),
+  INDEX idx_route_active (active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_route_waypoints (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  route_id INT NOT NULL,
+  waypoint_id INT NOT NULL,
+  sequence_num INT NOT NULL,
+  UNIQUE KEY route_sequence (route_id, sequence_num),
+  INDEX idx_route_waypoint (route_id, waypoint_id),
+  CONSTRAINT fk_ship_route_waypoints_route
+    FOREIGN KEY (route_id) REFERENCES ship_routes(route_id) ON DELETE CASCADE,
+  CONSTRAINT fk_ship_route_waypoints_waypoint
+    FOREIGN KEY (waypoint_id) REFERENCES ship_waypoints(waypoint_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ship_schedules (
+  schedule_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ship_id INT NOT NULL,
+  route_id INT NOT NULL,
+  interval_hours INT NOT NULL,
+  next_departure INT NOT NULL DEFAULT 0,
+  enabled TINYINT NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_ship_schedule (ship_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS vehicle_data (
+  vehicle_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  vehicle_type INT NOT NULL DEFAULT 0,
+  vehicle_state INT NOT NULL DEFAULT 0,
+  vehicle_name VARCHAR(64) NOT NULL DEFAULT '',
+  location INT NOT NULL DEFAULT 0,
+  direction INT NOT NULL DEFAULT 0,
+  x_coord INT NOT NULL DEFAULT 0,
+  y_coord INT NOT NULL DEFAULT 0,
+  max_passengers INT NOT NULL DEFAULT 0,
+  current_passengers INT NOT NULL DEFAULT 0,
+  max_weight INT NOT NULL DEFAULT 0,
+  current_weight INT NOT NULL DEFAULT 0,
+  base_speed INT NOT NULL DEFAULT 0,
+  current_speed INT NOT NULL DEFAULT 0,
+  terrain_flags INT NOT NULL DEFAULT 0,
+  max_condition INT NOT NULL DEFAULT 100,
+  vehicle_condition INT NOT NULL DEFAULT 100,
+  owner_id BIGINT NOT NULL DEFAULT 0,
+  parent_vessel_id INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_location (location),
+  INDEX idx_owner (owner_id),
+  INDEX idx_parent_vessel (parent_vessel_id),
+  INDEX idx_coords (x_coord, y_coord)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS ship_cargo_manifest (
   manifest_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  ship_id VARCHAR(8) NOT NULL,
+  ship_id INT NOT NULL,
   cargo_room INT NOT NULL,
   item_vnum INT NOT NULL,
   item_name VARCHAR(100),
@@ -846,7 +1033,7 @@ CREATE TABLE IF NOT EXISTS ship_cargo_manifest (
 
 CREATE TABLE IF NOT EXISTS ship_crew_roster (
   roster_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  ship_id VARCHAR(8) NOT NULL,
+  ship_id INT NOT NULL,
   npc_vnum INT NOT NULL,
   npc_name VARCHAR(100),
   crew_role ENUM('captain','pilot','gunner','engineer','medic','marine','crew') DEFAULT 'crew',

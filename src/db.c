@@ -622,6 +622,7 @@ ACMD(do_reboot)
   {
     /* Reload wilderness regions */
     load_regions();
+    vessel_piracy_reload_laws();
   }
   else if (!str_cmp(arg, "paths"))
   {
@@ -832,6 +833,7 @@ void destroy_db(void)
   /* Persist sub-threshold XP and other pending registry changes. */
   artifact_save_if_dirty();
   artifact_shutdown();
+  vessel_piracy_clear_laws();
 
   /* Active Mobiles & Players */
   /* First pass: Clear all follower relationships without messages */
@@ -1263,9 +1265,17 @@ void boot_db(void)
   vessel_contracts_ensure_schema();
   vessel_piracy_ensure_schema();
   vessel_hazard_ensure_schema();
+  vessel_hunter_ensure_schema();
+  vessel_merchant_ensure_schema();
+
+  log("Loading vessel waypoints and routes from database...");
+  load_all_waypoints();
+  load_all_routes();
 
   log("Loading ship interiors from database...");
   load_all_ship_interiors();
+  vessel_hunter_boot();
+  vessel_merchant_boot();
 
   log("Loading vehicles from database...");
   vehicle_load_all();
@@ -1387,6 +1397,9 @@ void boot_db(void)
   {
     reset_zone(i);
   }
+
+  log("Relinking vessel hull objects after zone resets.");
+  vessel_relink_world_objects();
 
   log("Cleaning up orphaned objects - DONE.");
 
@@ -5593,7 +5606,10 @@ void reset_zone(zone_rnum zone)
 
     case 'R': /* rem obj from room */
       if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
-        extract_obj(obj);
+      {
+        if (!vessel_hull_is_managed(obj))
+          extract_obj(obj);
+      }
       push_result(1);
       tmob = NULL;
       tobj = NULL;

@@ -472,6 +472,104 @@ const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vess
 }
 
 /**
+ * Validate the vertical coordinate against a hull class's capabilities.
+ *
+ * Surface hulls stay on z=0, flying hulls may rise only to their configured
+ * ceiling, and submersible hulls may use negative depth. Crush depth remains
+ * bathymetry-driven in vessel_weather_tick(), rather than a class constant.
+ */
+bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z)
+{
+  const struct vessel_terrain_caps *caps;
+
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL)
+  {
+    return FALSE;
+  }
+
+  if (z > 0)
+  {
+    return caps->can_traverse_air && caps->max_altitude > 0 && z <= caps->max_altitude;
+  }
+
+  if (z < 0)
+  {
+    return caps->can_traverse_underwater;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Validate that a vertical coordinate belongs to the wilderness column below.
+ *
+ * Negative depth is meaningful only over water. High flight cannot occupy
+ * underground or interior sectors. The ordinary terrain-speed table still
+ * decides whether the class can traverse the resulting sector.
+ */
+bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int z)
+{
+  if (!vessel_z_within_class_limits(vessel_type, z))
+  {
+    return FALSE;
+  }
+
+  if (z < 0)
+  {
+    switch (sector_type)
+    {
+    case SECT_BEACH:
+    case SECT_OCEAN:
+    case SECT_RIVER:
+    case SECT_SEAPORT:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_WATER:
+    case SECT_WATER_NOSWIM:
+    case SECT_WATER_SWIM:
+    case SECT_UNDERWATER:
+      return TRUE;
+    default:
+      return FALSE;
+    }
+  }
+
+  if (sector_type == SECT_UNDERWATER)
+  {
+    return FALSE;
+  }
+
+  if (z > 100)
+  {
+    if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
+    {
+      return FALSE;
+    }
+    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE ||
+        sector_type == SECT_INSIDE_ROOM)
+    {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector_type, int z)
+{
+  const struct vessel_terrain_caps *caps;
+
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL || !vessel_z_allows_sector(vessel_type, sector_type, z) ||
+      sector_type < 0 || sector_type >= 40)
+  {
+    return FALSE;
+  }
+
+  return caps->terrain_speed_mod[sector_type] != 0;
+}
+
+/**
  * Get vessel type from ship data.
  *
  * Extracts the vessel_type field from a greyhawk_ship_data structure
@@ -486,7 +584,8 @@ enum vessel_class get_vessel_type_from_ship(int shipnum)
   enum vessel_class vtype;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     log("SYSERR: get_vessel_type_from_ship: Invalid ship number %d", shipnum);
     return VESSEL_SHIP; /* Default to standard ship */
@@ -583,6 +682,38 @@ int vessel_effective_cargo_capacity(const struct greyhawk_ship_data *ship)
   return base + (base * ship->crew_tier[CREW_QUARTERMASTER]) / 10;
 }
 
+/**
+ * Initialize every field consumed by the vessel damage model.
+ *
+ * A hull with armor but zero internal structure sinks on the first damaging
+ * event, even when its armor absorbs the hit. Keep legacy and builder-spawned
+ * vessels on the same complete condition baseline.
+ */
+void vessel_initialize_condition(struct greyhawk_ship_data *ship, int armor)
+{
+  int bounded_armor;
+  int structure;
+
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  bounded_armor = MAX(0, MIN(255, armor));
+  structure = MAX(10, bounded_armor / 2 + 10);
+
+  ship->maxfarmor = ship->farmor = (unsigned char)bounded_armor;
+  ship->maxrarmor = ship->rarmor = (unsigned char)bounded_armor;
+  ship->maxparmor = ship->parmor = (unsigned char)bounded_armor;
+  ship->maxsarmor = ship->sarmor = (unsigned char)bounded_armor;
+  ship->maxfinternal = ship->finternal = (unsigned char)structure;
+  ship->maxrinternal = ship->rinternal = (unsigned char)structure;
+  ship->maxpinternal = ship->pinternal = (unsigned char)structure;
+  ship->maxsinternal = ship->sinternal = (unsigned char)structure;
+  ship->maxmainsail = ship->mainsail = 20;
+  ship->maxturnrate = ship->turnrate = 20;
+}
+
 /* Forward declarations for Greyhawk functions */
 void greyhawk_getstatus(int slot, int rnum);
 void greyhawk_getposition(int slot, int rnum);
@@ -617,7 +748,7 @@ void greyhawk_initialize_ships(void);
  * @param y Wilderness Y coordinate (-1024 to +1024)
  * @return Room number (rnum) if successful, NOWHERE if allocation fails
  */
-static room_rnum get_or_allocate_wilderness_room(int x, int y)
+room_rnum get_or_allocate_wilderness_room(int x, int y)
 {
   room_rnum room;
 
@@ -647,6 +778,83 @@ static room_rnum get_or_allocate_wilderness_room(int x, int y)
   }
 
   return room;
+}
+
+/**
+ * Build exterior hull keywords from both the literal and readable ship name.
+ *
+ * Prototype and player names may contain underscores or punctuation. Retain
+ * the literal spelling for exact references and append alphanumeric words so
+ * ordinary commands such as "board dinghy" remain discoverable.
+ */
+void vessel_build_hull_keywords(char *buffer, size_t buffer_size, const char *name)
+{
+  size_t length;
+  size_t i;
+  bool separator;
+
+  if (buffer == NULL || buffer_size == 0)
+  {
+    return;
+  }
+
+  if (name == NULL)
+  {
+    name = "";
+  }
+
+  snprintf(buffer, buffer_size, "ship vessel %s", name);
+  length = strlen(buffer);
+  if (length >= buffer_size - 1 || *name == '\0')
+  {
+    return;
+  }
+
+  buffer[length++] = ' ';
+  separator = TRUE;
+  for (i = 0; name[i] != '\0' && length < buffer_size - 1; i++)
+  {
+    if (isalnum((unsigned char)name[i]))
+    {
+      buffer[length++] = name[i];
+      separator = FALSE;
+    }
+    else if (!separator)
+    {
+      buffer[length++] = ' ';
+      separator = TRUE;
+    }
+  }
+  while (length > 0 && buffer[length - 1] == ' ')
+  {
+    length--;
+  }
+  buffer[length] = '\0';
+}
+
+/**
+ * Return whether an exterior hull is owned by an active fleet slot.
+ *
+ * Zone reset remove commands must not extract these runtime-managed objects.
+ * Unlinked or stale hull objects remain eligible for ordinary zone cleanup.
+ */
+bool vessel_hull_is_managed(const struct obj_data *obj)
+{
+  int shipnum;
+
+  if (obj == NULL || GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP)
+  {
+    return FALSE;
+  }
+
+  shipnum = GET_OBJ_VAL(obj, 1);
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
+  {
+    return FALSE;
+  }
+
+  return greyhawk_ships[shipnum].shipobj == obj;
 }
 
 /* ========================================================================= */
@@ -840,61 +1048,131 @@ void greyhawk_initialize_ships(void)
     }
   }
 
-  /* Initialize test vessel - interior room 1403 */
+  /* Initialize the legacy zone-700 test vessel. */
   {
-    room_rnum interior_rnum = real_room(1403);
+    struct greyhawk_ship_data *ship = &greyhawk_ships[1];
+    room_rnum interior_rnum = real_room(70003);
+
     if (interior_rnum != NOWHERE)
     {
-      /* Use slot 0 for test vessel */
-      greyhawk_ships[0].shipnum = 1;
+      ship->active = TRUE;
+      ship->shipnum = 1;
+      ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
 
       /* Interior room vnum - where players go when they board */
-      greyhawk_ships[0].shiproom = 1403;
+      ship->shiproom = 70003;
+      ship->entrance_room = 70003;
+      ship->bridge_room = 70003;
 
       /* Wilderness location - where the ship object sits */
-      greyhawk_ships[0].x = -66.0;
-      greyhawk_ships[0].y = 92.0;
-      greyhawk_ships[0].z = 0.0;
-      greyhawk_ships[0].location = 0; /* Will be set when ship object loads */
+      ship->x = -66.0;
+      ship->y = 92.0;
+      ship->z = 0.0;
+      ship->location = 0; /* Will be set when ship object loads */
 
       /* Navigation */
-      greyhawk_ships[0].heading = 0;
-      greyhawk_ships[0].speed = 0;
-      greyhawk_ships[0].maxspeed = 10;
-      greyhawk_ships[0].minspeed = 0;
-      greyhawk_ships[0].vessel_type = VESSEL_SHIP;
+      ship->heading = 0;
+      ship->speed = 0;
+      ship->maxspeed = 10;
+      ship->minspeed = 0;
+      ship->vessel_type = VESSEL_SHIP;
+      ship->docked_to_ship = -1;
 
-      /* Hull armor */
-      greyhawk_ships[0].farmor = 100;
-      greyhawk_ships[0].maxfarmor = 100;
-      greyhawk_ships[0].rarmor = 100;
-      greyhawk_ships[0].maxrarmor = 100;
-      greyhawk_ships[0].parmor = 100;
-      greyhawk_ships[0].maxparmor = 100;
-      greyhawk_ships[0].sarmor = 100;
-      greyhawk_ships[0].maxsarmor = 100;
+      /* Hull armor, internal structure, rigging, and steering */
+      vessel_initialize_condition(ship, 100);
 
       /* Identity */
-      strncpy(greyhawk_ships[0].name, "Test Vessel", sizeof(greyhawk_ships[0].name) - 1);
-      snprintf(greyhawk_ships[0].id, sizeof(greyhawk_ships[0].id), "T1");
+      strlcpy(ship->name, "Test Vessel", sizeof(ship->name));
+      strlcpy(ship->id, "T1", sizeof(ship->id));
 
       /* Interior rooms array */
-      greyhawk_ships[0].room_vnums[0] = 1403;
-      greyhawk_ships[0].num_rooms = 1;
+      ship->room_vnums[0] = 70003;
+      ship->num_rooms = 1;
 
-      /* Link interior room to ship data - THIS IS THE KEY */
-      world[interior_rnum].ship = &greyhawk_ships[0];
+      world[interior_rnum].ship = ship;
 
-      log("Greyhawk: Test vessel initialized - interior room 1403 (rnum %d), location (-66, 92)",
+      log("Greyhawk: Test vessel initialized in slot 1 - interior room 70003 "
+          "(rnum %d), location (-66, 92)",
           interior_rnum);
     }
     else
     {
-      log("Greyhawk: Interior room 1403 not found, test vessel not initialized");
+      log("Greyhawk: Interior room 70003 not found, test vessel not initialized");
     }
   }
 
   log("Greyhawk ship system initialized.");
+}
+
+/**
+ * Relink active fleet slots to hull objects loaded by zone resets.
+ *
+ * Fleet data is initialized before zones reset at boot. Characters may log
+ * back into a static vessel interior without boarding again, so the boarding
+ * special procedure cannot be the only place that establishes shipobj.
+ *
+ * @return Number of hull objects linked
+ */
+int vessel_relink_world_objects(void)
+{
+  struct greyhawk_ship_data *ship;
+  struct obj_data *obj;
+  room_rnum interior_rnum;
+  int linked;
+  int shipnum;
+
+  linked = 0;
+  for (obj = object_list; obj != NULL; obj = obj->next)
+  {
+    if (GET_OBJ_TYPE(obj) != ITEM_GREYHAWK_SHIP)
+    {
+      continue;
+    }
+
+    shipnum = GET_OBJ_VAL(obj, 1);
+    if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+        !is_valid_ship(&greyhawk_ships[shipnum]))
+    {
+      continue;
+    }
+
+    ship = &greyhawk_ships[shipnum];
+    if (ship->shiproom != GET_OBJ_VAL(obj, 0))
+    {
+      log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
+          GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), shipnum, ship->shiproom);
+      continue;
+    }
+
+    interior_rnum = real_room(ship->shiproom);
+    if (interior_rnum == NOWHERE)
+    {
+      log("SYSERR: Ship object %d cannot relink missing interior room %d",
+          GET_OBJ_VNUM(obj), ship->shiproom);
+      continue;
+    }
+
+    if (ship->shipobj != NULL && ship->shipobj != obj &&
+        IN_ROOM(ship->shipobj) != NOWHERE)
+    {
+      log("SYSERR: Fleet slot %d has duplicate live ship objects %d and %d", shipnum,
+          GET_OBJ_VNUM(ship->shipobj), GET_OBJ_VNUM(obj));
+      continue;
+    }
+
+    if (!vessel_place_hull_object(ship, obj))
+    {
+      log("SYSERR: Ship object %d could not be placed for fleet slot %d", GET_OBJ_VNUM(obj),
+          shipnum);
+      continue;
+    }
+    world[interior_rnum].ship = ship;
+    linked++;
+  }
+
+  log("Greyhawk: Relinked %d active hull object%s after zone reset.", linked,
+      linked == 1 ? "" : "s");
+  return linked;
 }
 
 /* ========================================================================= */
@@ -914,9 +1192,13 @@ void greyhawk_initialize_ships(void)
 bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z)
 {
   room_rnum wilderness_room;
+  room_rnum old_room;
+  bool old_is_port;
+  bool position_changed;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     log("SYSERR: update_ship_wilderness_position: Invalid ship number %d", shipnum);
     return FALSE;
@@ -930,10 +1212,11 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     return FALSE;
   }
 
-  /* Update ship coordinates */
-  greyhawk_ships[shipnum].x = (float)new_x;
-  greyhawk_ships[shipnum].y = (float)new_y;
-  greyhawk_ships[shipnum].z = (float)new_z;
+  if (!vessel_z_within_class_limits(greyhawk_ships[shipnum].vessel_type, new_z))
+  {
+    log("Info: update_ship_wilderness_position: Ship %d rejects class Z %d", shipnum, new_z);
+    return FALSE;
+  }
 
   /* Get or allocate wilderness room at these coordinates using dynamic allocation */
   wilderness_room = get_or_allocate_wilderness_room(new_x, new_y);
@@ -944,6 +1227,45 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
         new_x, new_y);
     return FALSE;
   }
+
+  if (!vessel_can_traverse_sector(greyhawk_ships[shipnum].vessel_type,
+                                  world[wilderness_room].sector_type, new_z))
+  {
+    log("Info: update_ship_wilderness_position: Ship %d cannot occupy (%d, %d, %d)", shipnum,
+        new_x, new_y, new_z);
+    return FALSE;
+  }
+
+  old_room = NOWHERE;
+  old_is_port = get_ship_terrain_type(shipnum) == SECT_SEAPORT;
+  position_changed = new_x != (int)greyhawk_ships[shipnum].x ||
+                     new_y != (int)greyhawk_ships[shipnum].y ||
+                     new_z != (int)greyhawk_ships[shipnum].z;
+  if (greyhawk_ships[shipnum].shipobj != NULL)
+  {
+    old_room = IN_ROOM(greyhawk_ships[shipnum].shipobj);
+    old_is_port = old_is_port || vessel_room_is_port(old_room);
+  }
+
+  if (position_changed &&
+      (old_is_port || vessel_room_is_fee_berth(&greyhawk_ships[shipnum], old_room)) &&
+      greyhawk_ships[shipnum].dock_fee_balance > 0)
+  {
+    send_to_ship(&greyhawk_ships[shipnum],
+                 "The harbor master withholds clearance: %d gold in dock fees remains due.",
+                 greyhawk_ships[shipnum].dock_fee_balance);
+    return FALSE;
+  }
+
+  if (position_changed && !greyhawk_ships[shipnum].waters_region_initialized)
+  {
+    vessel_piracy_track_waters(&greyhawk_ships[shipnum], FALSE);
+  }
+
+  /* Commit coordinates only after room allocation and departure clearance. */
+  greyhawk_ships[shipnum].x = (float)new_x;
+  greyhawk_ships[shipnum].y = (float)new_y;
+  greyhawk_ships[shipnum].z = (float)new_z;
 
   /* Update ship's location to the wilderness room */
   greyhawk_ships[shipnum].location = world[wilderness_room].number;
@@ -956,17 +1278,25 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
    */
   if (greyhawk_ships[shipnum].shipobj)
   {
-    room_rnum old_room = IN_ROOM(greyhawk_ships[shipnum].shipobj);
-
-    /* Log departure for debugging room cleanup */
+    /* Per-step movement is available through focused development diagnostics. */
     if (old_room != NOWHERE && old_room != wilderness_room)
     {
-      log("Info: Ship %d departing room %d, moving to room %d at (%d, %d)", shipnum,
-          world[old_room].number, world[wilderness_room].number, new_x, new_y);
+      VSSL_DEBUG_MOVE("Ship %d departing room %d, moving to room %d at (%d, %d)", shipnum,
+                      world[old_room].number, world[wilderness_room].number, new_x, new_y);
     }
 
     obj_from_room(greyhawk_ships[shipnum].shipobj);
     obj_to_room(greyhawk_ships[shipnum].shipobj, wilderness_room);
+    mark_wilderness_room_occupied(wilderness_room);
+  }
+
+  vessel_update_port_berth(&greyhawk_ships[shipnum], old_room, wilderness_room,
+                           old_is_port);
+  update_ship_room_coordinates(&greyhawk_ships[shipnum]);
+  sync_all_loaded_vehicles(&greyhawk_ships[shipnum]);
+  if (position_changed)
+  {
+    vessel_piracy_track_waters(&greyhawk_ships[shipnum], TRUE);
   }
 
   VSSL_DEBUG_MOVE("Ship %d position updated to (%d,%d,%d) in room %d", shipnum, new_x, new_y, new_z,
@@ -987,7 +1317,8 @@ int get_ship_terrain_type(int shipnum)
   int y;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return SECT_INSIDE; /* Default safe sector */
   }
@@ -1027,10 +1358,14 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
 {
   room_rnum wilderness_room;
   int sector_type;
-  const struct vessel_terrain_caps *caps;
 
   /* Validate coordinates within wilderness bounds first */
   if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
+  {
+    return FALSE;
+  }
+
+  if (!vessel_z_within_class_limits(vessel_type, z))
   {
     return FALSE;
   }
@@ -1048,62 +1383,7 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
   VSSL_DEBUG_MOVE("Traverse check: vessel type %d at (%d,%d,%d) sector %d", vessel_type, x, y, z,
                   sector_type);
 
-  /* Get terrain capabilities for this vessel type */
-  caps = get_vessel_terrain_caps(vessel_type);
-  if (caps == NULL)
-  {
-    return FALSE;
-  }
-
-  /* Airships at altitude can fly over most terrain */
-  if (vessel_type == VESSEL_AIRSHIP && z > 100)
-  {
-    /* Flying altitude - check max altitude and underground restrictions */
-    if (z > caps->max_altitude)
-    {
-      return FALSE; /* Too high */
-    }
-    /* Cannot fly underground */
-    if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
-    {
-      return FALSE;
-    }
-    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE || sector_type == SECT_INSIDE_ROOM)
-    {
-      return FALSE;
-    }
-    return TRUE; /* Can fly over everything else at altitude */
-  }
-
-  /* Submarines must be submerged for underwater, surfaced otherwise */
-  if (vessel_type == VESSEL_SUBMARINE)
-  {
-    if (sector_type == SECT_UNDERWATER && z >= 0)
-    {
-      return FALSE; /* Must dive (negative z) for underwater */
-    }
-    if (sector_type != SECT_UNDERWATER && z < 0)
-    {
-      /* Submerged but not in underwater terrain - can travel in ocean/deep water */
-      if (sector_type != SECT_OCEAN && sector_type != SECT_WATER_NOSWIM)
-      {
-        return FALSE;
-      }
-    }
-  }
-
-  /* Check speed modifier - 0 means impassable */
-  if (sector_type >= 0 && sector_type < 40)
-  {
-    if (caps->terrain_speed_mod[sector_type] == 0)
-    {
-      return FALSE;
-    }
-    return TRUE;
-  }
-
-  /* Default fallback for unknown sector types */
-  return FALSE;
+  return vessel_can_traverse_sector(vessel_type, sector_type, z);
 }
 
 /**
@@ -1175,10 +1455,12 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   int speed_modifier;
   int terrain_type;
   int weather_conditions;
+  int move_distance;
   enum vessel_class vessel_type;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
+      !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return FALSE;
   }
@@ -1198,12 +1480,12 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
                   new_x, new_y, new_z, greyhawk_ships[shipnum].speed, weather_conditions);
 
   /* Calculate new position based on direction and speed */
-  int move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
+  move_distance = MAX(1, greyhawk_ships[shipnum].speed / 10);
 
   /* Weather affects movement distance */
   if (weather_conditions > 50)
   {                                           /* Stormy weather */
-    move_distance = move_distance * 75 / 100; /* 25% reduction */
+    move_distance = MAX(1, move_distance * 75 / 100); /* 25% reduction */
     if (ch)
     {
       send_to_char(ch, "The harsh weather conditions slow your progress!\r\n");
@@ -1464,6 +1746,12 @@ static const char *bearing_direction_str(int bearing)
 /* Board command - handled by special procedure on ship objects */
 ACMD(do_board_vessel)
 {
+  if (!CONFIG_VESSEL_SYSTEM)
+  {
+    send_to_char(ch, "The vessel system is currently disabled.\r\n");
+    return;
+  }
+
   send_to_char(ch, "You need to be near a ship to board it.\r\n");
   /* The actual boarding is handled by the greyhawk_ship_object special procedure */
   /* This command exists just so 'board' is recognized as a valid command */
@@ -1573,7 +1861,7 @@ ACMD(do_greyhawk_tactical)
   /* Mark other vessels in range */
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (greyhawk_ships[i].shipnum > 0 && i != shipnum)
+    if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
     {
       int other_x = (int)greyhawk_ships[i].x;
       int other_y = (int)greyhawk_ships[i].y;
@@ -1694,6 +1982,9 @@ ACMD(do_greyhawk_status)
   case SECT_BEACH:
     terrain_name = "Beach";
     break;
+  case SECT_SEAPORT:
+    terrain_name = "Seaport";
+    break;
   default:
     terrain_name = "Unknown";
     break;
@@ -1704,6 +1995,15 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "Ship Name: %s\r\n",
                greyhawk_ships[shipnum].name[0] ? greyhawk_ships[shipnum].name : "Unnamed Vessel");
   send_to_char(ch, "Ship ID: %s\r\n", greyhawk_ships[shipnum].id);
+  if (greyhawk_ships[shipnum].merchant_id > 0 &&
+      greyhawk_ships[shipnum].merchant_faction_id >= FACTION_NONE &&
+      greyhawk_ships[shipnum].merchant_faction_id < NUM_FACTIONS)
+  {
+    send_to_char(ch, "Merchant Registry: %d generation %u (%s)\r\n",
+                 greyhawk_ships[shipnum].merchant_id,
+                 greyhawk_ships[shipnum].merchant_generation,
+                 factions[greyhawk_ships[shipnum].merchant_faction_id]);
+  }
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Position ==\r\n");
   send_to_char(ch, "Coordinates: (%d, %d)\r\n", (int)greyhawk_ships[shipnum].x,
@@ -1715,6 +2015,12 @@ ACMD(do_greyhawk_status)
   send_to_char(ch, "Heading: %d degrees\r\n", greyhawk_ships[shipnum].heading);
   send_to_char(ch, "Speed: %d / %d\r\n", greyhawk_ships[shipnum].speed,
                greyhawk_ships[shipnum].maxspeed);
+  if (greyhawk_ships[shipnum].dock_fee_balance > 0)
+  {
+    send_to_char(ch, "Dock Fees: %d gold due at port %d\r\n",
+                 greyhawk_ships[shipnum].dock_fee_balance,
+                 greyhawk_ships[shipnum].dock_fee_port);
+  }
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Hull Integrity ==\r\n");
   send_to_char(ch, "Forward: %d/%d\r\n", greyhawk_ships[shipnum].farmor,
@@ -1732,17 +2038,24 @@ ACMD(do_greyhawk_speed)
 {
   char arg[MAX_INPUT_LENGTH];
   room_rnum ship_room = IN_ROOM(ch);
+  struct greyhawk_ship_data *ship;
   int shipnum;
   int new_speed;
 
-  /* Check if character is in a ship control room */
-  if (!world[ship_room].ship)
+  ship = get_ship_from_room(ship_room);
+  if (ship == NULL)
   {
     send_to_char(ch, "You must be in a ship's control room to adjust speed!\r\n");
     return;
   }
 
-  shipnum = world[ship_room].ship->shipnum;
+  if (!is_pilot(ch, ship))
+  {
+    send_to_char(ch, "You must be at an authorized helm to adjust speed.\r\n");
+    return;
+  }
+
+  shipnum = ship->shipnum;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -1810,64 +2123,103 @@ ACMD(do_greyhawk_speed)
   }
 }
 
+static int parse_vessel_direction(const char *arg)
+{
+  if (!str_cmp(arg, "north") || !str_cmp(arg, "n"))
+    return NORTH;
+  if (!str_cmp(arg, "south") || !str_cmp(arg, "s"))
+    return SOUTH;
+  if (!str_cmp(arg, "east") || !str_cmp(arg, "e"))
+    return EAST;
+  if (!str_cmp(arg, "west") || !str_cmp(arg, "w"))
+    return WEST;
+  if (!str_cmp(arg, "northeast") || !str_cmp(arg, "ne"))
+    return NORTHEAST;
+  if (!str_cmp(arg, "northwest") || !str_cmp(arg, "nw"))
+    return NORTHWEST;
+  if (!str_cmp(arg, "southeast") || !str_cmp(arg, "se"))
+    return SOUTHEAST;
+  if (!str_cmp(arg, "southwest") || !str_cmp(arg, "sw"))
+    return SOUTHWEST;
+  if (!str_cmp(arg, "up") || !str_cmp(arg, "u"))
+    return UP;
+  if (!str_cmp(arg, "down") || !str_cmp(arg, "d"))
+    return DOWN;
+
+  return -1;
+}
+
+static int vessel_direction_heading(int direction, int current_heading)
+{
+  switch (direction)
+  {
+  case NORTH:
+    return 0;
+  case NORTHEAST:
+    return 45;
+  case EAST:
+    return 90;
+  case SOUTHEAST:
+    return 135;
+  case SOUTH:
+    return 180;
+  case SOUTHWEST:
+    return 225;
+  case WEST:
+    return 270;
+  case NORTHWEST:
+    return 315;
+  default:
+    return current_heading;
+  }
+}
+
 ACMD(do_greyhawk_heading)
 {
   char arg[MAX_INPUT_LENGTH];
-  int direction = -1;
-  int shipnum = -1;
+  char *end;
+  struct greyhawk_ship_data *ship;
+  long heading;
   room_rnum ship_room = IN_ROOM(ch);
 
-  /* Check if character is in a ship control room */
-  if (!world[ship_room].ship)
+  ship = get_ship_from_room(ship_room);
+  if (ship == NULL)
   {
     send_to_char(ch, "You must be in a ship's control room to set heading!\r\n");
     return;
   }
 
-  shipnum = world[ship_room].ship->shipnum;
+  if (!is_pilot(ch, ship))
+  {
+    send_to_char(ch, "You must be at an authorized helm to set heading.\r\n");
+    return;
+  }
 
   one_argument(argument, arg, sizeof(arg));
 
   if (!*arg)
   {
-    send_to_char(ch, "Set heading to which direction?\r\n");
-    send_to_char(ch, "Valid directions: north, south, east, west, northeast, northwest, southeast, "
-                     "southwest\r\n");
+    send_to_char(ch, "Current heading: %d degrees (%s).\r\n", ship->heading,
+                 bearing_direction_str(ship->heading));
+    send_to_char(ch, "Usage: heading <0-360>\r\n");
     return;
   }
 
-  /* Parse direction */
-  if (!str_cmp(arg, "north") || !str_cmp(arg, "n"))
-    direction = NORTH;
-  else if (!str_cmp(arg, "south") || !str_cmp(arg, "s"))
-    direction = SOUTH;
-  else if (!str_cmp(arg, "east") || !str_cmp(arg, "e"))
-    direction = EAST;
-  else if (!str_cmp(arg, "west") || !str_cmp(arg, "w"))
-    direction = WEST;
-  else if (!str_cmp(arg, "northeast") || !str_cmp(arg, "ne"))
-    direction = NORTHEAST;
-  else if (!str_cmp(arg, "northwest") || !str_cmp(arg, "nw"))
-    direction = NORTHWEST;
-  else if (!str_cmp(arg, "southeast") || !str_cmp(arg, "se"))
-    direction = SOUTHEAST;
-  else if (!str_cmp(arg, "southwest") || !str_cmp(arg, "sw"))
-    direction = SOUTHWEST;
-  else if (!str_cmp(arg, "up") || !str_cmp(arg, "u"))
-    direction = UP;
-  else if (!str_cmp(arg, "down") || !str_cmp(arg, "d"))
-    direction = DOWN;
-  else
+  heading = strtol(arg, &end, 10);
+  if (*end != '\0' || heading < 0 || heading > 360)
   {
-    send_to_char(ch, "Invalid direction!\r\n");
+    send_to_char(ch, "Heading must be a number from 0 to 360 degrees.\r\n");
     return;
   }
 
-  /* Move the ship using wilderness coordinates */
-  if (move_ship_wilderness(shipnum, direction, ch))
-  {
-    act("$n adjusts the ship's heading and the vessel begins to move.", FALSE, ch, 0, 0, TO_ROOM);
-  }
+  if (heading == 360)
+    heading = 0;
+
+  ship->setheading = (short int)heading;
+  ship->heading = (short int)heading;
+  send_to_char(ch, "Heading set to %d degrees (%s).\r\n", ship->heading,
+               bearing_direction_str(ship->heading));
+  act("$n adjusts the vessel's heading.", FALSE, ch, 0, 0, TO_ROOM);
 }
 
 /* Structure for sorting contacts by distance */
@@ -1926,7 +2278,7 @@ ACMD(do_greyhawk_contacts)
   /* Scan for other vessels in range */
   for (i = 0; i < GREYHAWK_MAXSHIPS && contact_count < CONTACT_MAX_DISPLAY; i++)
   {
-    if (greyhawk_ships[i].shipnum > 0 && i != shipnum)
+    if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
     {
       float range = greyhawk_range(ship_x, ship_y, ship_z, greyhawk_ships[i].x, greyhawk_ships[i].y,
                                    greyhawk_ships[i].z);
@@ -2050,6 +2402,11 @@ ACMD(do_greyhawk_disembark)
     /* Move character to exit room */
     char_from_room(ch);
     char_to_room(ch, exit_room);
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(exit_room), ZONE_WILDERNESS))
+    {
+      X_LOC(ch) = world[exit_room].coords[0];
+      Y_LOC(ch) = world[exit_room].coords[1];
+    }
 
     act("$n arrives from a nearby vessel.", TRUE, ch, 0, 0, TO_ROOM);
     look_at_room(ch, 0);
@@ -2126,6 +2483,11 @@ ACMD(do_greyhawk_disembark)
   /* Move character to water room */
   char_from_room(ch);
   char_to_room(ch, exit_room);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(exit_room), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[exit_room].coords[0];
+    Y_LOC(ch) = world[exit_room].coords[1];
+  }
 
   act("$n surfaces nearby, having jumped from a vessel.", TRUE, ch, 0, 0, TO_ROOM);
   look_at_room(ch, 0);
@@ -2138,5 +2500,41 @@ ACMD(do_greyhawk_shipload)
 
 ACMD(do_greyhawk_setsail)
 {
-  send_to_char(ch, "Set sail function not yet implemented.\r\n");
+  char arg[MAX_INPUT_LENGTH];
+  struct greyhawk_ship_data *ship;
+  int direction;
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You must be aboard a vessel to set sail.\r\n");
+    return;
+  }
+
+  if (!is_pilot(ch, ship))
+  {
+    send_to_char(ch, "You must be at an authorized helm to set sail.\r\n");
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  direction = parse_vessel_direction(arg);
+  if (direction < 0)
+  {
+    send_to_char(ch, "Usage: setsail <direction>\r\n");
+    return;
+  }
+
+  if (ship->speed <= 0)
+  {
+    send_to_char(ch, "Set a positive speed before setting sail.\r\n");
+    return;
+  }
+
+  ship->heading = (short int)vessel_direction_heading(direction, ship->heading);
+  ship->setheading = ship->heading;
+  if (move_ship_wilderness(ship->shipnum, direction, ch))
+  {
+    act("$n holds the vessel on its new course.", FALSE, ch, 0, 0, TO_ROOM);
+  }
 }

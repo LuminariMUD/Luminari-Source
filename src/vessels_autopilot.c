@@ -12,6 +12,7 @@
  * defined in utils.h. The sequence below ensures correct include order. */
 #include "conf.h"
 #include "sysdep.h"
+#include <inttypes.h>
 #include <math.h>
 #include "vessels.h"
 #include "mysql.h"
@@ -70,6 +71,9 @@ struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship)
   ap->wait_remaining = 0;
   ap->last_update = 0;
   ap->pilot_mob_vnum = -1;
+  ap->movement_steps = 0;
+  ap->waypoint_arrivals = 0;
+  ap->route_completions = 0;
 
   ship->autopilot = ap;
   return ap;
@@ -2011,19 +2015,20 @@ int advance_to_next_waypoint(struct greyhawk_ship_data *ship)
   if (next_index >= route->num_waypoints)
   {
     /* Reached end of route */
+    ap->route_completions++;
     if (route->loop)
     {
       /* Loop route: restart from beginning */
       ap->current_waypoint_index = 0;
       ap->state = AUTOPILOT_TRAVELING;
-      log("Info: Ship %d route '%s' looping to waypoint 0", ship->shipnum, route->name);
+      VSSL_DEBUG_AUTO("Ship %d route '%s' looping to waypoint 0", ship->shipnum, route->name);
       return 1;
     }
     else
     {
       /* Non-loop route: mark complete */
       ap->state = AUTOPILOT_COMPLETE;
-      log("Info: Ship %d completed route '%s'", ship->shipnum, route->name);
+      VSSL_DEBUG_AUTO("Ship %d completed route '%s'", ship->shipnum, route->name);
       return 0;
     }
   }
@@ -2069,6 +2074,8 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     return;
   }
 
+  ap->waypoint_arrivals++;
+
   /* Pilot announcement if pilot is assigned */
   if (ap->pilot_mob_vnum != -1)
   {
@@ -2081,15 +2088,73 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     ap->state = AUTOPILOT_WAITING;
     ap->wait_remaining = wp->wait_time;
     ap->last_update = time(0);
-    log("Info: Ship %d arrived at waypoint '%s', waiting %d seconds", ship->shipnum, wp->name,
-        wp->wait_time);
+    VSSL_DEBUG_AUTO("Ship %d arrived at waypoint '%s', waiting %d seconds", ship->shipnum, wp->name,
+                    wp->wait_time);
   }
   else
   {
     /* No wait time, advance immediately */
-    log("Info: Ship %d arrived at waypoint '%s', advancing", ship->shipnum, wp->name);
+    VSSL_DEBUG_AUTO("Ship %d arrived at waypoint '%s', advancing", ship->shipnum, wp->name);
     advance_to_next_waypoint(ship);
   }
+}
+
+/**
+ * Round a continuous autopilot coordinate to its nearest wilderness cell.
+ *
+ * C casts truncate toward zero, so adding 0.5 only works for positive
+ * coordinates. lroundf handles both signs symmetrically.
+ */
+int vessel_autopilot_grid_coordinate(float coordinate)
+{
+  return (int)lroundf(coordinate);
+}
+
+/**
+ * Calculate one bounded three-dimensional autopilot step.
+ *
+ * The old movement path normalized only X/Y even though waypoint arrival used
+ * X/Y/Z distance. A waypoint directly above or below a ship therefore could
+ * never be reached. Clamp the step to the remaining distance so high-speed
+ * vessels also cannot overshoot and oscillate around a waypoint.
+ */
+bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
+                                    const struct waypoint *wp, float speed, int *target_x,
+                                    int *target_y, int *target_z)
+{
+  float dx;
+  float dy;
+  float dz;
+  float distance;
+  float travel;
+  float scale;
+
+  if (ship == NULL || wp == NULL || target_x == NULL || target_y == NULL || target_z == NULL)
+  {
+    return FALSE;
+  }
+
+  if (speed <= 0.0f)
+  {
+    speed = 1.0f;
+  }
+
+  dx = wp->x - ship->x;
+  dy = wp->y - ship->y;
+  dz = wp->z - ship->z;
+  distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+  if (distance < 0.001f)
+  {
+    return FALSE;
+  }
+
+  travel = speed < distance ? speed : distance;
+  scale = travel / distance;
+  *target_x = vessel_autopilot_grid_coordinate(ship->x + dx * scale);
+  *target_y = vessel_autopilot_grid_coordinate(ship->y + dy * scale);
+  *target_z = vessel_autopilot_grid_coordinate(ship->z + dz * scale);
+
+  return TRUE;
 }
 
 /**
@@ -2106,10 +2171,10 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
 {
   struct autopilot_data *ap;
   struct waypoint *wp;
-  float dx, dy;
   float speed;
-  float new_x, new_y;
-  int target_x, target_y;
+  int target_x;
+  int target_y;
+  int target_z;
 
   if (ship == NULL)
   {
@@ -2137,45 +2202,40 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     speed = 1.0f; /* Minimum movement speed */
   }
 
-  /* Calculate heading to waypoint */
-  calculate_heading_to_waypoint(ship, wp, &dx, &dy);
-
-  /* If already at destination (heading is zero) */
-  if (dx == 0.0f && dy == 0.0f)
+  target_z = vessel_autopilot_grid_coordinate(wp->z);
+  if (!vessel_z_within_class_limits(ship->vessel_type, target_z))
   {
+    log("Info: Autopilot ship %d - waypoint '%s' has invalid class Z %d", ship->shipnum,
+        wp->name, target_z);
     return 0;
   }
 
-  /* Calculate new position */
-  new_x = ship->x + (dx * speed);
-  new_y = ship->y + (dy * speed);
-
-  /* Round to integer coordinates for wilderness system */
-  target_x = (int)(new_x + 0.5f);
-  target_y = (int)(new_y + 0.5f);
-
-  /* Check if terrain is valid for this vessel before moving */
-  if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))
+  if (!vessel_autopilot_next_position(ship, wp, speed, &target_x, &target_y, &target_z))
   {
-    log("Info: Autopilot ship %d - impassable terrain at (%d, %d)", ship->shipnum, target_x,
-        target_y);
     return 0;
   }
 
   /* Update ship position using the centralized wilderness position function.
+   * It resolves the target room and enforces class terrain and Z limits in one
+   * pass. Do not probe with can_vessel_traverse_terrain() first: that function
+   * also configures a dynamic wilderness room, duplicating the room and
+   * spatial-query work when the target coordinate is not already occupied.
+   *
    * This handles:
    * - Coordinate updates (ship->x, ship->y, ship->z)
    * - Dynamic wilderness room allocation via get_or_allocate_wilderness_room()
+   * - Class terrain and altitude/depth validation
    * - Updating ship->location to the new room vnum
    * - Moving ship object via obj_from_room()/obj_to_room() to allow room recycling
    */
-  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, (int)ship->z))
+  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, target_z))
   {
-    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d)", ship->shipnum,
-        target_x, target_y);
+    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d, %d)", ship->shipnum,
+        target_x, target_y, target_z);
     return 0;
   }
 
+  ap->movement_steps++;
   return 1;
 }
 
@@ -2217,7 +2277,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
     ap->state = AUTOPILOT_TRAVELING;
-    log("Info: Ship %d wait complete, advancing to next waypoint", ship->shipnum);
+    VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);
   }
 }
@@ -2248,6 +2308,19 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
     return;
   }
 
+  if (ship->dock_fee_balance > 0)
+  {
+    ap->state = AUTOPILOT_PAUSED;
+    ship->speed = 0;
+    ship->setspeed = 0;
+    send_to_ship(ship,
+                 "Autopilot pauses: the harbor requires %d gold in dock fees "
+                 "before departure.",
+                 ship->dock_fee_balance);
+    vessel_db_save_runtime(ship);
+    return;
+  }
+
   /* Get current waypoint */
   wp = waypoint_get_current(ship);
   if (wp == NULL)
@@ -2268,7 +2341,19 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   VSSL_DEBUG_AUTO("Ship %d traveling toward waypoint %d '%s' at (%.1f,%.1f) from (%.1f,%.1f)",
                   ship->shipnum, ap->current_waypoint_index, wp->name, wp->x, wp->y, ship->x,
                   ship->y);
-  move_vessel_toward_waypoint(ship);
+  if (!move_vessel_toward_waypoint(ship))
+  {
+    autopilot_pause(ship);
+    ship->speed = 0;
+    ship->setspeed = 0;
+    send_to_ship(ship, "Autopilot pauses: the route to '%s' is not traversable from here.\r\n",
+                 wp->name);
+    if (is_valid_ship(ship) && !vessel_db_save_runtime(ship))
+    {
+      log("SYSERR: Autopilot ship %d - could not persist the movement-failure pause",
+          ship->shipnum);
+    }
+  }
 }
 
 /**
@@ -2291,8 +2376,7 @@ void autopilot_tick(void)
   {
     ship = &greyhawk_ships[i];
 
-    /* Skip uninitialized ships (check for valid shipnum) */
-    if (ship->shipnum <= 0)
+    if (!is_valid_ship(ship))
     {
       continue;
     }
@@ -2447,6 +2531,64 @@ static const char *autopilot_state_name(enum autopilot_state state)
   }
 }
 
+struct autopilot_state_snapshot
+{
+  enum autopilot_state state;
+  struct ship_route *current_route;
+  int current_waypoint_index;
+  int tick_counter;
+  int wait_remaining;
+  time_t last_update;
+};
+
+/**
+ * Capture the runtime fields changed by player autopilot controls.
+ */
+static void autopilot_snapshot_state(const struct autopilot_data *ap,
+                                     struct autopilot_state_snapshot *snapshot)
+{
+  snapshot->state = ap->state;
+  snapshot->current_route = ap->current_route;
+  snapshot->current_waypoint_index = ap->current_waypoint_index;
+  snapshot->tick_counter = ap->tick_counter;
+  snapshot->wait_remaining = ap->wait_remaining;
+  snapshot->last_update = ap->last_update;
+}
+
+/**
+ * Restore a player autopilot change after its runtime write failed.
+ */
+static void autopilot_restore_state(struct autopilot_data *ap,
+                                    const struct autopilot_state_snapshot *snapshot)
+{
+  ap->state = snapshot->state;
+  ap->current_route = snapshot->current_route;
+  ap->current_waypoint_index = snapshot->current_waypoint_index;
+  ap->tick_counter = snapshot->tick_counter;
+  ap->wait_remaining = snapshot->wait_remaining;
+  ap->last_update = snapshot->last_update;
+}
+
+/**
+ * Make a player-visible autopilot state change durable before reporting it.
+ */
+static bool autopilot_commit_player_change(struct char_data *ch,
+                                           struct greyhawk_ship_data *ship,
+                                           const struct autopilot_state_snapshot *snapshot)
+{
+  if (vessel_db_save_runtime(ship))
+  {
+    return TRUE;
+  }
+
+  autopilot_restore_state(ship->autopilot, snapshot);
+  send_to_char(ch,
+               "The autopilot change could not be saved, so its previous state was restored.\r\n");
+  log("SYSERR: Autopilot change for ship %d was rolled back after persistence failed",
+      ship->shipnum);
+  return FALSE;
+}
+
 /* ========================================================================= */
 /* PLAYER COMMAND HANDLERS - AUTOPILOT CONTROL                                */
 /* ========================================================================= */
@@ -2460,6 +2602,7 @@ ACMD(do_autopilot)
   struct greyhawk_ship_data *ship;
   struct autopilot_data *ap;
   struct waypoint *wp;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
 
   /* Get vessel context */
@@ -2470,7 +2613,7 @@ ACMD(do_autopilot)
   }
 
   /* Parse argument */
-  one_argument(argument, arg, sizeof(arg));
+  any_one_arg_c(argument, arg, sizeof(arg));
 
   /* Handle status subcommand (no permission needed) */
   if (!*arg || !str_cmp(arg, "status"))
@@ -2511,6 +2654,9 @@ ACMD(do_autopilot)
     }
 
     send_to_char(ch, "Position: (%.1f, %.1f, %.1f)\r\n", ship->x, ship->y, ship->z);
+    send_to_char(ch, "Movement Steps: %" PRIu64 "\r\n", ap->movement_steps);
+    send_to_char(ch, "Waypoint Arrivals: %" PRIu64 "\r\n", ap->waypoint_arrivals);
+    send_to_char(ch, "Route Completions: %" PRIu64 "\r\n", ap->route_completions);
     send_to_char(ch, "-------------------------\r\n");
     return;
   }
@@ -2555,13 +2701,22 @@ ACMD(do_autopilot)
 
     if (ap->state == AUTOPILOT_PAUSED)
     {
-      autopilot_resume(ship);
+      autopilot_snapshot_state(ap, &snapshot);
+      if (!autopilot_resume(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+      {
+        return;
+      }
       send_to_char(ch, "Autopilot resumed.\r\n");
       send_to_ship(ship, "The vessel's autopilot has been resumed.\r\n");
     }
     else
     {
-      autopilot_start(ship, ap->current_route);
+      autopilot_snapshot_state(ap, &snapshot);
+      if (!autopilot_start(ship, ap->current_route) ||
+          !autopilot_commit_player_change(ch, ship, &snapshot))
+      {
+        return;
+      }
       send_to_char(ch, "Autopilot engaged on route '%s'.\r\n", ap->current_route->name);
       send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
     }
@@ -2577,7 +2732,11 @@ ACMD(do_autopilot)
       return;
     }
 
-    autopilot_stop(ship);
+    autopilot_snapshot_state(ap, &snapshot);
+    if (!autopilot_stop(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+    {
+      return;
+    }
     send_to_char(ch, "Autopilot disengaged.\r\n");
     send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
     return;
@@ -2592,7 +2751,11 @@ ACMD(do_autopilot)
       return;
     }
 
-    autopilot_pause(ship);
+    autopilot_snapshot_state(ap, &snapshot);
+    if (!autopilot_pause(ship) || !autopilot_commit_player_change(ch, ship, &snapshot))
+    {
+      return;
+    }
     send_to_char(ch, "Autopilot paused.\r\n");
     send_to_ship(ship, "The vessel's autopilot has been paused.\r\n");
     return;
@@ -2937,6 +3100,62 @@ ACMD(do_addtoroute)
 }
 
 /**
+ * ACMD handler for delroute command.
+ * Deletes a route by name.
+ * Usage: delroute <name>
+ */
+ACMD(do_delroute)
+{
+  struct greyhawk_ship_data *ship;
+  struct route_node *route;
+  char arg[MAX_INPUT_LENGTH];
+  int route_id;
+
+  ship = get_vessel_for_command(ch);
+  if (ship == NULL)
+  {
+    return;
+  }
+
+  if (!check_vessel_captain(ch, ship))
+  {
+    return;
+  }
+
+  one_argument(argument, arg, sizeof(arg));
+  if (!*arg)
+  {
+    send_to_char(ch, "Usage: delroute <name>\r\n");
+    return;
+  }
+
+  route_id = -1;
+  for (route = route_list; route != NULL; route = route->next)
+  {
+    if (!str_cmp(route->name, arg))
+    {
+      route_id = route->route_id;
+      break;
+    }
+  }
+
+  if (route_id < 0)
+  {
+    send_to_char(ch, "Route '%s' not found.\r\n", arg);
+    return;
+  }
+
+  if (route_db_delete(route_id))
+  {
+    send_to_char(ch, "Route '%s' deleted.\r\n", arg);
+  }
+  else
+  {
+    send_to_char(ch, "Failed to delete route '%s'.\r\n", arg);
+  }
+}
+
+/**
  * ACMD handler for listroutes command.
  * Lists all routes in the database.
  * Usage: listroutes
@@ -2991,7 +3210,9 @@ ACMD(do_setroute)
   struct route_node *route_node;
   struct ship_route *route;
   struct waypoint_node *wp_node;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
+  bool navigation_stopped;
   int i;
 
   /* Get vessel context */
@@ -3049,13 +3270,6 @@ ACMD(do_setroute)
     }
   }
 
-  /* Stop current autopilot if running */
-  if (ap->state != AUTOPILOT_OFF && ap->state != AUTOPILOT_COMPLETE)
-  {
-    autopilot_stop(ship);
-    send_to_char(ch, "Previous autopilot navigation stopped.\r\n");
-  }
-
   /* Create ship_route from route_node data */
   route = route_create(route_node->name);
   if (route == NULL)
@@ -3080,13 +3294,31 @@ ACMD(do_setroute)
     }
   }
 
-  /* Assign route to autopilot */
-  if (ap->current_route != NULL)
+  /* Assign and persist the new route before reporting success. Retain the
+   * previous route until the write succeeds so a failed command can restore
+   * the exact prior runtime state. */
+  autopilot_snapshot_state(ap, &snapshot);
+  navigation_stopped = ap->state != AUTOPILOT_OFF && ap->state != AUTOPILOT_COMPLETE;
+  if (navigation_stopped)
   {
-    route_destroy(ap->current_route);
+    autopilot_stop(ship);
   }
   ap->current_route = route;
   ap->current_waypoint_index = 0;
+  if (!autopilot_commit_player_change(ch, ship, &snapshot))
+  {
+    route_destroy(route);
+    return;
+  }
+
+  if (snapshot.current_route != NULL)
+  {
+    route_destroy(snapshot.current_route);
+  }
+  if (navigation_stopped)
+  {
+    send_to_char(ch, "Previous autopilot navigation stopped.\r\n");
+  }
 
   send_to_char(ch, "Route '%s' assigned to autopilot (%d waypoints).\r\n", arg,
                route->num_waypoints);
@@ -3195,6 +3427,33 @@ struct char_data *get_pilot_from_ship(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Is this NPC the assigned pilot standing at its vessel's bridge?
+ *
+ * Mobile activity uses this to keep an active pilot at the helm instead of
+ * applying ordinary random room movement.
+ */
+bool vessel_npc_is_on_pilot_duty(const struct char_data *npc)
+{
+  struct greyhawk_ship_data *ship;
+
+  if (npc == NULL || !IS_NPC(npc) || IN_ROOM(npc) == NOWHERE ||
+      IN_ROOM(npc) > top_of_world)
+  {
+    return FALSE;
+  }
+
+  ship = world[IN_ROOM(npc)].ship;
+  if (!is_valid_ship(ship) || ship->autopilot == NULL ||
+      real_room(ship->bridge_room) != IN_ROOM(npc))
+  {
+    return FALSE;
+  }
+
+  return ship->autopilot->pilot_mob_vnum >= 0 &&
+         GET_MOB_VNUM(npc) == (mob_vnum)ship->autopilot->pilot_mob_vnum;
+}
+
+/**
  * Announces waypoint arrival to all vessel occupants.
  * Called when a piloted vessel arrives at a waypoint.
  *
@@ -3245,7 +3504,9 @@ ACMD(do_assignpilot)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *npc;
+  struct autopilot_state_snapshot snapshot;
   char arg[MAX_INPUT_LENGTH];
+  bool engaged;
   int num;
 
   /* Get vessel context */
@@ -3291,16 +3552,40 @@ ACMD(do_assignpilot)
   }
 
   /* Assign pilot */
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
   ship->autopilot->pilot_mob_vnum = GET_MOB_VNUM(npc);
-
-  send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
-  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+  if (!vessel_db_save_pilot(ship))
+  {
+    ship->autopilot->pilot_mob_vnum = -1;
+    send_to_char(ch, "The pilot assignment could not be saved, so it was cancelled.\r\n");
+    return;
+  }
 
   /* If a route is already set, auto-engage autopilot */
+  engaged = FALSE;
   if (ship->autopilot->current_route != NULL && ship->autopilot->current_route->num_waypoints > 0 &&
       ship->autopilot->state == AUTOPILOT_OFF)
   {
     autopilot_start(ship, ship->autopilot->current_route);
+    engaged = TRUE;
+  }
+
+  if (engaged && !vessel_db_save_runtime(ship))
+  {
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    ship->autopilot->pilot_mob_vnum = -1;
+    if (!vessel_db_save_pilot(ship))
+    {
+      log("SYSERR: Could not compensate failed pilot assignment for ship %d", ship->shipnum);
+    }
+    send_to_char(ch, "The pilot assignment could not be completed, so it was cancelled.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You assign %s as the vessel's pilot.\r\n", GET_NAME(npc));
+  send_to_ship(ship, "%s has been assigned as the vessel's pilot.\r\n", GET_NAME(npc));
+  if (engaged)
+  {
     send_to_char(ch, "%s takes the helm and engages autopilot.\r\n", GET_NAME(npc));
     send_to_ship(ship, "The vessel's autopilot has been engaged.\r\n");
   }
@@ -3315,7 +3600,10 @@ ACMD(do_unassignpilot)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *pilot;
+  struct autopilot_state_snapshot snapshot;
   char pilot_name[128];
+  bool stopped;
+  int old_pilot_vnum;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);
@@ -3355,18 +3643,41 @@ ACMD(do_unassignpilot)
     snprintf(pilot_name, sizeof(pilot_name), "The pilot");
   }
 
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
+  old_pilot_vnum = ship->autopilot->pilot_mob_vnum;
+
   /* Stop autopilot if running */
+  stopped = FALSE;
   if (ship->autopilot->state == AUTOPILOT_TRAVELING || ship->autopilot->state == AUTOPILOT_WAITING)
   {
     autopilot_stop(ship);
-    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+    stopped = TRUE;
   }
 
   /* Clear pilot assignment */
   ship->autopilot->pilot_mob_vnum = -1;
+  if (!vessel_db_save_pilot(ship) || (stopped && !vessel_db_save_runtime(ship)))
+  {
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    ship->autopilot->pilot_mob_vnum = old_pilot_vnum;
+    if (!vessel_db_save_pilot(ship))
+    {
+      log("SYSERR: Could not compensate failed pilot removal for ship %d", ship->shipnum);
+    }
+    send_to_char(ch, "The pilot removal could not be saved, so it was cancelled.\r\n");
+    return;
+  }
 
   send_to_char(ch, "You relieve %s of pilot duties.\r\n", pilot_name);
   send_to_ship(ship, "%s has been relieved of pilot duties.\r\n", pilot_name);
+  if (stopped)
+  {
+    if (snapshot.current_route != NULL)
+    {
+      route_destroy(snapshot.current_route);
+    }
+    send_to_ship(ship, "The vessel's autopilot has been disengaged.\r\n");
+  }
 }
 
 /* ========================================================================= */
@@ -3403,10 +3714,15 @@ void schedule_calculate_next_departure(struct vessel_schedule *sched)
  * @param ship The ship to create schedule for
  * @param route_id The route ID to assign
  * @param interval The interval in MUD hours
+ * @param passenger_fare Gold charged when a player boards an unowned vessel
  * @return 1 on success, 0 on failure
  */
-int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
+                    int passenger_fare)
 {
+  struct vessel_schedule previous;
+  bool had_schedule;
+
   if (ship == NULL)
   {
     log("SYSERR: schedule_create called with NULL ship");
@@ -3420,7 +3736,18 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
     return 0;
   }
 
+  if (passenger_fare < 0 || passenger_fare > VESSEL_PASSENGER_FARE_MAX)
+  {
+    log("SYSERR: schedule_create: invalid passenger fare %d", passenger_fare);
+    return 0;
+  }
+
   /* Allocate schedule if needed */
+  had_schedule = ship->schedule != NULL;
+  if (had_schedule)
+  {
+    previous = *ship->schedule;
+  }
   if (ship->schedule == NULL)
   {
     CREATE(ship->schedule, struct vessel_schedule, 1);
@@ -3436,16 +3763,30 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   ship->schedule->ship_id = ship->shipnum;
   ship->schedule->route_id = route_id;
   ship->schedule->interval_hours = interval;
+  ship->schedule->passenger_fare = passenger_fare;
   ship->schedule->flags = SCHEDULE_FLAG_ENABLED;
 
   /* Calculate first departure time */
   schedule_calculate_next_departure(ship->schedule);
 
   /* Save to database */
-  schedule_save(ship);
+  if (!schedule_save(ship))
+  {
+    if (had_schedule)
+    {
+      *ship->schedule = previous;
+    }
+    else
+    {
+      free(ship->schedule);
+      ship->schedule = NULL;
+    }
+    log("SYSERR: Schedule creation for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
 
-  log("Info: Created schedule for ship %d (route %d, interval %d hours)", ship->shipnum, route_id,
-      interval);
+  log("Info: Created schedule for ship %d (route %d, interval %d hours, fare %d)",
+      ship->shipnum, route_id, interval, passenger_fare);
   return 1;
 }
 
@@ -3457,6 +3798,8 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
  */
 int schedule_clear(struct greyhawk_ship_data *ship)
 {
+  struct vessel_schedule *previous;
+
   if (ship == NULL)
   {
     log("SYSERR: schedule_clear called with NULL ship");
@@ -3468,12 +3811,17 @@ int schedule_clear(struct greyhawk_ship_data *ship)
     return 1; /* Already cleared */
   }
 
-  /* Free memory */
-  free(ship->schedule);
+  previous = ship->schedule;
   ship->schedule = NULL;
 
   /* Remove from database */
-  schedule_save(ship);
+  if (!schedule_save(ship))
+  {
+    ship->schedule = previous;
+    log("SYSERR: Schedule removal for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
+  free(previous);
 
   log("Info: Cleared schedule for ship %d", ship->shipnum);
   return 1;
@@ -3561,6 +3909,8 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
   struct route_node *route_node;
   struct ship_route *route;
   struct waypoint_node *wp_node;
+  struct autopilot_state_snapshot snapshot;
+  int old_next_departure;
   int i;
 
   if (ship == NULL || ship->schedule == NULL)
@@ -3595,6 +3945,7 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
       return 0;
     }
   }
+  autopilot_snapshot_state(ship->autopilot, &snapshot);
 
   /* Build route from cache */
   route = route_create(route_node->name);
@@ -3625,15 +3976,33 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
     return 0;
   }
 
+  /* Calculate next departure */
+  old_next_departure = ship->schedule->next_departure;
+  schedule_calculate_next_departure(ship->schedule);
+  if (!vessel_db_save_runtime(ship) || !schedule_save(ship))
+  {
+    ship->schedule->next_departure = old_next_departure;
+    autopilot_restore_state(ship->autopilot, &snapshot);
+    if (!vessel_db_save_runtime(ship))
+    {
+      log("SYSERR: Could not compensate failed scheduled departure for ship %d",
+          ship->shipnum);
+    }
+    route_destroy(route);
+    log("SYSERR: Scheduled departure for ship %d was rolled back", ship->shipnum);
+    return 0;
+  }
+
+  if (snapshot.current_route != NULL && snapshot.current_route != route)
+  {
+    route_destroy(snapshot.current_route);
+  }
+
   /* Announce departure via pilot if present */
   if (ship->autopilot->pilot_mob_vnum != -1)
   {
     pilot_announce_waypoint(ship, waypoint_get_current(ship));
   }
-
-  /* Calculate next departure */
-  schedule_calculate_next_departure(ship->schedule);
-  schedule_save(ship);
 
   log("Info: Scheduled departure triggered for ship %d on route %s", ship->shipnum,
       route_node->name);
@@ -3649,6 +4018,11 @@ void schedule_tick(void)
 {
   int i;
   int triggered_count = 0;
+
+  /* Reconcile durable NPC merchant definitions on the same MUD-hour cadence
+   * as their scheduled routes. Newly due replacements join this tick's
+   * normal schedule scan after their full hull/cargo/pilot assembly. */
+  vessel_merchant_tick();
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
@@ -3673,7 +4047,7 @@ void schedule_tick(void)
 
 /**
  * ACMD handler for setschedule command.
- * Usage: setschedule <route> <interval>
+ * Usage: setschedule <route> <interval> [passenger fare]
  */
 ACMD(do_setschedule)
 {
@@ -3681,7 +4055,10 @@ ACMD(do_setschedule)
   struct route_node *route_node;
   char route_arg[MAX_INPUT_LENGTH];
   char interval_arg[MAX_INPUT_LENGTH];
+  char fare_arg[MAX_INPUT_LENGTH];
+  long parsed_fare;
   int interval;
+  int passenger_fare;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);
@@ -3697,13 +4074,16 @@ ACMD(do_setschedule)
   }
 
   /* Parse arguments */
-  two_arguments_u((char *)argument, route_arg, interval_arg);
+  three_arguments(argument, route_arg, sizeof(route_arg), interval_arg, sizeof(interval_arg),
+                  fare_arg, sizeof(fare_arg));
   if (!*route_arg || !*interval_arg)
   {
-    send_to_char(ch, "Usage: setschedule <route> <interval>\r\n");
+    send_to_char(ch, "Usage: setschedule <route> <interval> [passenger fare]\r\n");
     send_to_char(ch, "  route    - Name of the route to run\r\n");
     send_to_char(ch, "  interval - Hours between departures (%d-%d)\r\n", SCHEDULE_INTERVAL_MIN,
                  SCHEDULE_INTERVAL_MAX);
+    send_to_char(ch, "  fare     - Optional public-vessel boarding cost (0-%d gold)\r\n",
+                 VESSEL_PASSENGER_FARE_MAX);
     return;
   }
 
@@ -3714,6 +4094,20 @@ ACMD(do_setschedule)
     send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n", SCHEDULE_INTERVAL_MIN,
                  SCHEDULE_INTERVAL_MAX);
     return;
+  }
+
+  passenger_fare = ship->schedule != NULL ? ship->schedule->passenger_fare : 0;
+  if (*fare_arg)
+  {
+    parsed_fare = strtol(fare_arg, NULL, 10);
+    if (!is_number(fare_arg) || parsed_fare < 0 ||
+        parsed_fare > VESSEL_PASSENGER_FARE_MAX)
+    {
+      send_to_char(ch, "Passenger fare must be between 0 and %d gold.\r\n",
+                   VESSEL_PASSENGER_FARE_MAX);
+      return;
+    }
+    passenger_fare = (int)parsed_fare;
   }
 
   /* Find route by name */
@@ -3741,7 +4135,7 @@ ACMD(do_setschedule)
   }
 
   /* Create schedule */
-  if (!schedule_create(ship, route_node->route_id, interval))
+  if (!schedule_create(ship, route_node->route_id, interval, passenger_fare))
   {
     send_to_char(ch, "Failed to create schedule.\r\n");
     return;
@@ -3749,6 +4143,15 @@ ACMD(do_setschedule)
 
   send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n", route_arg, interval);
   send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure);
+  if (passenger_fare > 0)
+  {
+    send_to_char(ch, "Passenger fare: %d gold per boarding on a public vessel.\r\n",
+                 passenger_fare);
+  }
+  else
+  {
+    send_to_char(ch, "Passenger fare: free.\r\n");
+  }
   send_to_ship(ship, "A departure schedule has been set for this vessel.\r\n");
 }
 
@@ -3781,7 +4184,11 @@ ACMD(do_clearschedule)
   }
 
   /* Clear schedule */
-  schedule_clear(ship);
+  if (!schedule_clear(ship))
+  {
+    send_to_char(ch, "The schedule could not be cleared; its previous state was restored.\r\n");
+    return;
+  }
 
   send_to_char(ch, "Vessel schedule has been cleared.\r\n");
   send_to_ship(ship, "The departure schedule for this vessel has been cancelled.\r\n");
@@ -3842,6 +4249,15 @@ ACMD(do_showschedule)
                sched->interval_hours == 1 ? "" : "s");
   send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
   send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);
+  if (sched->passenger_fare > 0)
+  {
+    send_to_char(ch, "Passenger Fare: %d gold per boarding%s\r\n", sched->passenger_fare,
+                 ship->owner[0] == '\0' ? "" : " (inactive while privately owned)");
+  }
+  else
+  {
+    send_to_char(ch, "Passenger Fare: Free\r\n");
+  }
   send_to_char(ch, "Status: %s\r\n", status);
 
   /* Show pilot status */

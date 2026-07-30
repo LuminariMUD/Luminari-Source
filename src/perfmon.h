@@ -10,6 +10,7 @@
 #define PERFMON_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 /* Number of pulses per second (defined elsewhere in the codebase) */
 extern const unsigned PERF_pulse_per_second;
@@ -25,6 +26,33 @@ extern const unsigned PERF_pulse_per_second;
  *            Values over 100% indicate the pulse took longer than allocated
  */
 void PERF_log_pulse(double val);
+
+/**
+ * @brief Add game-loop heartbeats missed during a lagged pass
+ *
+ * @param count Number of missed heartbeats, excluding the normal pass
+ */
+void PERF_note_missed_pulses(uint64_t count);
+
+/**
+ * @brief Record one repetitive vessel message suppressed by its cooldown
+ */
+void PERF_note_vessel_message_throttled(void);
+
+/**
+ * @brief Return missed heartbeats recorded since the last reset
+ */
+uint64_t PERF_missed_pulse_count(void);
+
+/**
+ * @brief Return vessel messages suppressed since the last reset
+ */
+uint64_t PERF_vessel_message_throttled_count(void);
+
+/**
+ * @brief Reset pulse and cumulative profiling statistics
+ */
+void PERF_reset(void);
 
 /**
  * @brief Generate a performance report
@@ -58,6 +86,16 @@ void PERF_prof_sect_init(struct PERF_prof_sect **ptr, const char *id);
 void PERF_prof_sect_enter(struct PERF_prof_sect *ptr);
 
 /**
+ * @brief Enable rolling percentile samples for a selected profiling section
+ *
+ * Sampling is opt-in because command and special-function wrappers can create
+ * hundreds of sections over a long-running server process.
+ *
+ * @param ptr Pointer to the profiling section
+ */
+void PERF_prof_sect_enable_sampling(struct PERF_prof_sect *ptr);
+
+/**
  * @brief Mark the end of a profiled code section
  *
  * @param ptr Pointer to the profiling section
@@ -88,6 +126,15 @@ size_t PERF_prof_repr_pulse(char *out_buf, size_t n);
 size_t PERF_prof_repr_total(char *out_buf, size_t n);
 
 /**
+ * @brief Generate machine-readable cumulative profiling data
+ *
+ * @param out_buf Buffer to store CSV rows
+ * @param n Size of the buffer
+ * @return Number of characters written
+ */
+size_t PERF_prof_repr_csv(char *out_buf, size_t n);
+
+/**
  * @brief Generate report for a specific profiling section
  *
  * @param out_buf Buffer to store the report
@@ -96,6 +143,16 @@ size_t PERF_prof_repr_total(char *out_buf, size_t n);
  * @return Number of characters written
  */
 size_t PERF_prof_repr_sect(char *out_buf, size_t n, const char *id);
+
+/**
+ * @brief Calculate a linearly interpolated percentile from microsecond samples
+ *
+ * @param samples Sample array
+ * @param count Number of samples
+ * @param percentile Percentile in the inclusive range 0 through 100
+ * @return Calculated percentile, or 0 for invalid input or allocation failure
+ */
+double PERF_calculate_percentile(const uint64_t *samples, size_t count, double percentile);
 
 /* ========================================================================
  * CONVENIENCE MACROS

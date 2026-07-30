@@ -68,6 +68,8 @@
 #include "deities.h"
 #include "backgrounds.h"
 #include "terrain_bridge.h"
+#include "vessels.h"
+#include "movement_tracks.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
 #include "treasure.h"
@@ -3545,6 +3547,7 @@ ACMD(do_show)
   char colour[16] = {'\0'};
   int q_total = 0, q_approved = 0;
   struct quest_entry *quest = NULL;
+  size_t movement_trail_count = 0;
 
   struct show_struct
   {
@@ -3739,6 +3742,7 @@ ACMD(do_show)
         }
       }
     }
+    movement_trail_count = count_live_movement_trails();
     send_to_char(ch,
                  "Current stats:\r\n"
                  "  %5d players in game  %5d connected\r\n"
@@ -3750,11 +3754,12 @@ ACMD(do_show)
                  "  %5d large bufs       %5d autoquests\r\n"
                  "  %5d hlquests app     %5d total hl quests\r\n"
                  "  %5d buf switches     %5d overflows\r\n"
-                 "  %5d lists\r\n",
+                 "  %5d lists\r\n"
+                 "  %9zu movement trails\r\n",
                  i, con, top_of_p_table + 1, j, top_of_mobt + 1, k, top_of_objt + 1,
                  top_of_world + 1, top_of_zone_table + 1, top_of_trigt + 1, top_shop + 1,
                  buf_largecount, total_quests, q_approved, q_total, buf_switches, buf_overflows,
-                 global_lists->iSize);
+                 global_lists->iSize, movement_trail_count);
     break;
 
     /* show errors */
@@ -6521,6 +6526,28 @@ void perform_do_copyover()
     return;
   }
 
+  /* Copyover replaces the process without running comm.c's normal shutdown
+   * path. Persist complete vessel state before any descriptor is committed
+   * to the handoff file so players cannot recover into missing interiors. */
+  if (!save_all_vessels())
+  {
+    log("SYSERR: copyover: Vessel persistence failed; aborting before exec");
+    log_copyover_phase("FAILED", "Vessel persistence failed");
+    copyover_status = COPYOVER_FAILED;
+    for (d = descriptor_list; d; d = d->next)
+    {
+      if (d->character && STATE(d) == CON_PLAYING)
+      {
+        write_to_descriptor(d->descriptor,
+                            "\n\r*** COPYOVER FAILED: Vessel state could not be saved. "
+                            "Game continues normally. ***\n\r");
+      }
+    }
+    close_copyover_diagnostics(0);
+    copyover_status = COPYOVER_NONE;
+    return;
+  }
+
   /* First, count descriptors and validate state */
   for (d = descriptor_list; d; d = d->next)
   {
@@ -6905,16 +6932,14 @@ void perform_do_copyover()
     if (getcwd(cwd, sizeof(cwd)))
       COPYOVER_DEBUG("copyover: Current directory after chdir: %s", cwd);
 
-    /* Check if copyover file is visible from new directory */
-    if (stat(COPYOVER_FILE, &st) == 0)
-      COPYOVER_DEBUG("copyover: Copyover file FOUND at %s/%s after chdir", cwd, COPYOVER_FILE);
+    /* The replacement process starts from the repository root and changes
+     * back into lib before recovery, so the handoff file is expected below
+     * lib from this temporary working directory. */
+    if (stat("lib/" COPYOVER_FILE, &st) == 0)
+      COPYOVER_DEBUG("copyover: Copyover file FOUND at %s/lib/%s after chdir", cwd, COPYOVER_FILE);
     else
-    {
-      log("SYSERR: copyover: Copyover file NOT found at %s/%s after chdir!", cwd, COPYOVER_FILE);
-      /* Check if it exists in lib subdirectory */
-      if (stat("lib/copyover.dat", &st) == 0)
-        log("SYSERR: copyover: But file EXISTS at lib/copyover.dat - PATH MISMATCH!");
-    }
+      log("SYSERR: copyover: Copyover file NOT found at %s/lib/%s after chdir!", cwd,
+          COPYOVER_FILE);
   }
 
   /* Check if binary exists and is executable before attempting execl */
@@ -10348,6 +10373,8 @@ ACMD(do_perfmon)
     send_to_char(ch, "perfmon all             - Print all perfmon info.\r\n"
                      "perfmon summ            - Print summary,\r\n"
                      "perfmon prof            - Print profiling info.\r\n"
+                     "perfmon csv             - Print cumulative profiling CSV.\r\n"
+                     "perfmon reset           - Start a new measurement window.\r\n"
                      "perfmon sect <section>  - Print profiling info for section.\r\n");
     return;
   }
@@ -10355,9 +10382,12 @@ ACMD(do_perfmon)
   if (!str_cmp(arg1, "all"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
 
-    size_t written = PERF_repr(buf, sizeof(buf));
-    written = PERF_prof_repr_total(buf + written, sizeof(buf) - written);
+    written = (int)PERF_repr(buf, sizeof(buf));
+    written += (int)PERF_prof_repr_total(buf + written, sizeof(buf) - (size_t)written);
+    snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
 
     page_string(ch->desc, buf, TRUE);
 
@@ -10374,10 +10404,32 @@ ACMD(do_perfmon)
   else if (!str_cmp(arg1, "prof"))
   {
     char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
 
-    PERF_prof_repr_total(buf, sizeof(buf));
+    written = (int)PERF_prof_repr_total(buf, sizeof(buf));
+    snprintf_append(buf, sizeof(buf), written, "\n\rDatabase queries since reset: %llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
     page_string(ch->desc, buf, TRUE);
 
+    return;
+  }
+  else if (!str_cmp(arg1, "csv"))
+  {
+    char buf[MAX_STRING_LENGTH] = {'\0'};
+    int written;
+
+    written = (int)PERF_prof_repr_csv(buf, sizeof(buf));
+    snprintf_append(buf, sizeof(buf), written, "# database_queries=%llu\n\r",
+                    (unsigned long long)mysql_query_counter_value());
+    page_string(ch->desc, buf, TRUE);
+
+    return;
+  }
+  else if (!str_cmp(arg1, "reset"))
+  {
+    PERF_reset();
+    mysql_query_counter_reset();
+    send_to_char(ch, "Performance, event, and database-query counters reset.\r\n");
     return;
   }
   else if (!str_cmp(arg1, "sect"))

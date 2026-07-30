@@ -249,10 +249,10 @@ mv lib/world/wld/<problem>.wld lib/world/wld/<problem>.wld.disabled
 **Diagnosis:**
 ```bash
 # Check vessel-related errors
-grep -i "vessel\|ship\|greyhawk" lib/log/syslog | tail -50
+rg -i "vessel|ship|greyhawk" lib/log/syslog | tail -50
 
 # Check the configured environment without printing credentials
-grep '^APP_ENV=' lib/.env
+rg '^APP_ENV=' lib/.env
 ```
 
 In game, use `shiplist` to record fleet state, positions, owners, and
@@ -265,10 +265,10 @@ affected records with the most recent property census or backup.
 
 - Preserve syslog, the application revision, `shiplist` output, and a database
   incident backup before changing vessel state.
-- If the vessel setting has been verified to gate both commands and ticks,
-  disable it and confirm processing stops. The current implementation is not
-  yet a complete kill switch; until that work lands, use the rehearsed
-  maintenance-stop or application rollback procedure.
+- Set the cedit vessel option to `Off`. Confirm a gated command reports that the
+  system is disabled, an active ship's coordinates remain fixed, and
+  `shiplist` is still available. If any check fails, use the rehearsed
+  maintenance stop or application rollback instead.
 - Do not purge ships, reuse fleet slots, edit ownership rows, or run a phase
   rollback merely to clear symptoms. Those actions can destroy player
   property or evidence.

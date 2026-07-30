@@ -238,6 +238,34 @@ void cleanup_all_trails(void)
 }
 
 /**
+ * Count movement trails currently retained by all world rooms.
+ *
+ * This scan is intended for infrequent staff/runtime checkpoints. Keeping the
+ * count derived from the lists avoids a second mutable counter that can drift
+ * when rooms are replaced or destroyed.
+ */
+size_t count_live_movement_trails(void)
+{
+  room_rnum room;
+  struct trail_data *trail;
+  size_t trail_count = 0;
+
+  if (world == NULL)
+    return 0;
+
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (world[room].trail_tracks == NULL)
+      continue;
+
+    for (trail = world[room].trail_tracks->head; trail != NULL; trail = trail->next)
+      trail_count++;
+  }
+
+  return trail_count;
+}
+
+/**
  * Check if tracks should be created for this character
  *
  * @param ch Character to check
