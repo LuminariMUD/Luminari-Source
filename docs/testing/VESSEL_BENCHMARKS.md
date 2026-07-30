@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.4
+**Version:** 3.5
 
 **Evidence snapshot:** July 30, 2026
 
@@ -247,6 +247,11 @@ The runner:
   sample. It also requires a `system-0` checkpoint, strictly increasing epochs
   and labels, hourly intermediate labels, and an exact terminal-duration
   label.
+- Records anonymous, file-backed, and shared RSS, data, swap, and heap
+  size/RSS/private-dirty in `process-memory-details.tsv` at measurement start,
+  every complete intermediate hour, and measurement end. The sparse schedule
+  avoids adding an approximately 0.01-second `smaps` scan to the 30-second
+  process-sample loop.
 - Uses monotonic per-vessel movement, waypoint-arrival, and route-completion
   counters for continuity evidence. Normal builds no longer emit a server-log
   line for every movement step, arrival, wait completion, or loop; those
@@ -304,7 +309,10 @@ idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of all six representative high-volume
 progress rows. They also reject duplicated epochs and a terminal checkpoint
-whose label does not match the requested duration.
+whose label does not match the requested duration. Deterministic status and
+`smaps` fixtures plus a live-process sample verify the detailed-memory
+sampler; its validator rejects PID drift, duplicate epochs, impossible memory
+relationships, and a missing heap mapping.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
@@ -352,6 +360,16 @@ observations support a defensible 72-hour criterion. Future ferry and scale
 runners create `memory-analysis.kv` at the end of measurement and reject a
 series the analyzer cannot validate; the active pinned ferry predates this
 automatic artifact and remains available for read-only manual analysis.
+
+Future ferry and scale runs also create `process-memory-details.tsv`. It
+records anonymous, file-backed, and shared RSS, data and swap sizes, and the
+heap mapping's size, RSS, and private-dirty pages. Ferry samples align with
+actual Kohdee checkpoints; scale samples occur at start, every complete
+intermediate hour, and end. The terminal validator requires a constant PID,
+strictly increasing timestamps, all metrics, and valid RSS/heap
+relationships. A heap/status capture against the pinned 1.1 GiB process took
+about 0.01 seconds, so scale collection remains sparse. The active pinned
+ferry predates this artifact.
 
 At the July 30 08:28 IDT checkpoint, the pinned ferry run had completed 25,202
 of 86,400 seconds with 13,716 movement steps, 572 west-dock and 571 east-dock

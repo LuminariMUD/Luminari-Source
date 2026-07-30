@@ -68,7 +68,10 @@ recording enduring behavior or evidence in the permanent documentation.
   `shiplist summary` and `show stats` capture. New runs reject fleet-count
   drift, dynamic-room capacity drift, and buffer overflows, and preserve the
   game-side allocation series in `live-system-samples.tsv`; that later
-  instrumentation is not evidence from the active pinned window.
+  instrumentation is not evidence from the active pinned window. New runs
+  also align sparse `/proc` status and heap-mapping samples with those
+  checkpoints in `process-memory-details.tsv`; the active pinned window
+  predates that artifact too.
   At the July 30 08:28 IDT checkpoint, the definitive run remained healthy
   after 25,202 seconds: 13,716 movement steps, 572/571 west/east arrivals,
   eight actual-character samples, and 421 database/process samples. The MUD
@@ -150,9 +153,13 @@ merchant, copyover, and multiplayer encounter testing.
   values to `live-system-samples.tsv`, rejects fleet/capacity drift or any
   buffer overflow, and records RSS, VSZ, threads, and file descriptors in a
   headered process series. Each process sample also rejects replacement of
-  the installed executable. An actual pinned-build Kohdee transcript verified
-  the `show stats` grammar, and an exact current-output fixture verified both
-  accepted and rejected parser paths. The ferry parser now accepts both the
+  the installed executable. A separate sparse series captures anonymous,
+  file-backed, and shared RSS, data, swap, and heap size/RSS/private-dirty at
+  measurement start, each complete intermediate hour, and measurement end.
+  It does not scan `smaps` in the 30-second process loop. An actual
+  pinned-build Kohdee transcript verified the `show stats` grammar, and an
+  exact current-output fixture verified both accepted and rejected parser
+  paths. The ferry parser now accepts both the
   older full-list and current compact fleet-count wording.
   Instrumentation, capacity, and workload readiness do not themselves prove
   the 25 ms target.
@@ -199,7 +206,12 @@ merchant, copyover, and multiplayer encounter testing.
   72-hour run. Future ferry and scale workers write this default report as
   `memory-analysis.kv` and fail if their terminal process series is invalid;
   the active pinned ferry predates that automatic step and can be analyzed
-  manually without changing it.
+  manually without changing it. The new detailed-memory sampler and validator
+  likewise have deterministic status/`smaps` and live-process coverage. They
+  reject PID drift, non-increasing timestamps, missing heap metrics, and
+  impossible RSS relationships. Future workers validate
+  `process-memory-details.tsv` terminally; the active pinned ferry predates
+  that artifact.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

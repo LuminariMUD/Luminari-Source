@@ -649,6 +649,7 @@ run_benchmark()
   local wait_seconds
   local measurement_elapsed
   local next_live_system_sample
+  local next_memory_detail
   local benchmark_outcome
   local failure_reason
   local cleanup_ok
@@ -775,6 +776,17 @@ run_benchmark()
       >>"$run_dir/process-samples.tsv"
   }
 
+  sample_memory_detail()
+  {
+    local label=$1
+
+    if ! "$script_dir/sample_process_memory_details.sh" \
+      --sample "$server_pid" "$label" \
+      >>"$run_dir/process-memory-details.tsv"; then
+      benchmark_fail "could not capture detailed development MUD memory"
+    fi
+  }
+
   for command_name in awk date dd find flock git grep mariadb mariadb-dump \
     mv ps sed sha256sum sleep stat systemctl timeout wc; do
     command -v "$command_name" >/dev/null 2>&1 ||
@@ -786,6 +798,8 @@ run_benchmark()
     benchmark_fail "the local character login helper is unavailable"
   [[ -x "$script_dir/provision_vessel_harbor.sh" ]] ||
     benchmark_fail "the harbor provisioner is unavailable"
+  [[ -x "$script_dir/sample_process_memory_details.sh" ]] ||
+    benchmark_fail "the detailed process-memory sampler is unavailable"
   load_database_config ||
     benchmark_fail "development database configuration is unavailable"
 
@@ -1510,7 +1524,11 @@ SQL
   final_descriptors=0
   printf 'epoch\tpid\trss_kib\tvsz_kib\tthreads\tfile_descriptors\n' \
     >"$run_dir/process-samples.tsv"
+  "$script_dir/sample_process_memory_details.sh" --header \
+    >"$run_dir/process-memory-details.tsv"
   started_epoch=$(date +%s)
+  next_memory_detail=3600
+  sample_memory_detail measurement-0
   {
     printf 'measurement_started_at=%s\n' "$started_epoch"
     printf 'server_pid=%s\n' "$server_pid"
@@ -1529,6 +1547,11 @@ SQL
     sample_process
     sleep 30
     elapsed=$(( $(date +%s) - started_epoch ))
+    while ((next_memory_detail < measurement_seconds &&
+            elapsed >= next_memory_detail)); do
+      sample_memory_detail "measurement-$next_memory_detail"
+      next_memory_detail=$((next_memory_detail + 3600))
+    done
     write_status "$run_dir" \
       "RUNNING started=$started_epoch elapsed=$elapsed/$measurement_seconds vessels=500"
   done
@@ -1541,6 +1564,7 @@ SQL
   [[ "$helper_status" == 0 ]] ||
     benchmark_fail "the live Kohdee measurement session failed with status $helper_status"
   sample_process
+  sample_memory_detail "measurement-$measurement_seconds"
 
   parse_live_system_samples \
     "$run_dir/measurement.log" "$run_dir/live-system-samples.tsv" ||
@@ -1718,6 +1742,10 @@ SQL
     >"$run_dir/memory-analysis.kv"; then
     benchmark_fail "the terminal process-memory analysis rejected its sample series"
   fi
+  if ! "$script_dir/sample_process_memory_details.sh" \
+    --validate "$run_dir/process-memory-details.tsv"; then
+    benchmark_fail "the terminal detailed process-memory series is invalid"
+  fi
 
   finished_epoch=$(date +%s)
   if ((vessel_tick_max <= 25000)); then
@@ -1773,6 +1801,7 @@ SQL
     printf 'File descriptors initial/maximum/final: %s/%s/%s\n' \
       "$initial_descriptors" "$maximum_descriptors" "$final_descriptors"
     printf 'Memory trend artifact: memory-analysis.kv (REPORT_ONLY)\n'
+    printf 'Detailed memory artifact: process-memory-details.tsv\n'
   } >"$run_dir/summary.txt"
 
   if ! restore_snapshot "$run_dir"; then

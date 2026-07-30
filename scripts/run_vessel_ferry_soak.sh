@@ -622,6 +622,11 @@ run_monitor()
       "$buffer_switches" "$buffer_overflows" "$movement_counter" \
       "$arrival_counter" "$completion_counter" "$expected_state" \
       >>"$run_dir/live-system-samples.tsv"
+    if ! "$script_dir/sample_process_memory_details.sh" \
+      --sample "$initial_mud_pid" "$label" \
+      >>"$run_dir/process-memory-details.tsv"; then
+      fail_run "could not capture detailed process memory during $label"
+    fi
     printf '%s %s\n' "$x" "$y" >>"$run_dir/positions.txt"
     last_live_x=$x
     last_live_y=$y
@@ -894,6 +899,8 @@ run_monitor()
     fail_run "bin/circle is missing; build and install first"
   [[ -x "$script_dir/dev_kohdee_login_smoke.sh" ]] ||
     fail_run "the local character login helper is unavailable"
+  [[ -x "$script_dir/sample_process_memory_details.sh" ]] ||
+    fail_run "the detailed process-memory sampler is unavailable"
   [[ -f "$server_log" ]] ||
     fail_run "the local MUD log is unavailable"
 
@@ -1000,6 +1007,8 @@ run_monitor()
     printf 'buffer_switches\tbuffer_overflows\tmovement_steps\t'
     printf 'waypoint_arrivals\troute_completions\tstate\n'
   } >"$run_dir/live-system-samples.tsv"
+  "$script_dir/sample_process_memory_details.sh" --header \
+    >"$run_dir/process-memory-details.tsv"
   run_live_sample initial active
   sample_database
   sample_process
@@ -1073,6 +1082,10 @@ run_monitor()
     >"$run_dir/memory-analysis.kv"; then
     fail_run "the terminal process-memory analysis rejected its sample series"
   fi
+  if ! "$script_dir/sample_process_memory_details.sh" \
+    --validate "$run_dir/process-memory-details.tsv"; then
+    fail_run "the terminal detailed process-memory series is invalid"
+  fi
 
   unique_positions=$(sort -u "$run_dir/positions.txt" | wc -l)
   ((movement_steps >= 4)) ||
@@ -1116,6 +1129,7 @@ run_monitor()
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"
     printf 'Memory trend artifact: memory-analysis.kv (REPORT_ONLY)\n'
+    printf 'Detailed memory artifact: process-memory-details.tsv\n'
     printf 'Final restart preserved exact paused coordinates and route: yes\n'
     printf 'Ferry resumed after verification: yes\n'
   } >"$run_dir/summary.txt"
