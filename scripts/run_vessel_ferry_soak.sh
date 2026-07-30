@@ -278,6 +278,9 @@ run_monitor()
   initial_world_lists=""
   maximum_world_lists=0
   final_world_lists=0
+  initial_movement_trails=""
+  maximum_movement_trails=0
+  final_movement_trails=0
   initial_rss=0
   maximum_rss=0
   final_rss=0
@@ -426,6 +429,9 @@ run_monitor()
             "$final_dynamic_rooms" "$dynamic_room_capacity"
           printf 'World lists initial/maximum/final: %s/%s/%s\n' \
             "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+          printf 'Movement trails initial/maximum/final: %s/%s/%s\n' \
+            "$initial_movement_trails" "$maximum_movement_trails" \
+            "$final_movement_trails"
         fi
       } >"$run_dir/summary.txt"
     fi
@@ -456,6 +462,7 @@ run_monitor()
     local objects
     local rooms
     local world_lists
+    local movement_trails
     local buffer_row
     local buffer_switches
     local buffer_overflows
@@ -598,11 +605,15 @@ run_monitor()
       "$output_file" | tail -n 1)
     world_lists=$(sed -nE 's/^[[:space:]]*([0-9]+) lists$/\1/p' \
       "$output_file" | tail -n 1)
+    movement_trails=$(sed -nE \
+      's/^[[:space:]]*([0-9]+) movement trails$/\1/p' \
+      "$output_file" | tail -n 1)
     buffer_row=$(sed -nE \
       's/^[[:space:]]*([0-9]+) buf switches[[:space:]]+([0-9]+) overflows$/\1 \2/p' \
       "$output_file" | tail -n 1)
     [[ "$mobiles" =~ ^[0-9]+$ && "$objects" =~ ^[0-9]+$ &&
        "$rooms" =~ ^[0-9]+$ && "$world_lists" =~ ^[0-9]+$ &&
+       "$movement_trails" =~ ^[0-9]+$ &&
        "$buffer_row" =~ ^[0-9]+[[:space:]]+[0-9]+$ ]] ||
       fail_run "could not read live world allocation statistics during $label"
     read -r buffer_switches buffer_overflows <<<"$buffer_row"
@@ -613,14 +624,20 @@ run_monitor()
     fi
     ((world_lists > maximum_world_lists)) && maximum_world_lists=$world_lists
     final_world_lists=$world_lists
+    if [[ -z "$initial_movement_trails" ]]; then
+      initial_movement_trails=$movement_trails
+    fi
+    ((movement_trails > maximum_movement_trails)) &&
+      maximum_movement_trails=$movement_trails
+    final_movement_trails=$movement_trails
 
     printf '%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$x" "$y" "$fleet_line" >>"$run_dir/live-samples.tsv"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$fleet_count" "$dynamic_rooms" \
       "$dynamic_capacity" "$mobiles" "$objects" "$rooms" "$world_lists" \
-      "$buffer_switches" "$buffer_overflows" "$movement_counter" \
-      "$arrival_counter" "$completion_counter" "$expected_state" \
+      "$movement_trails" "$buffer_switches" "$buffer_overflows" \
+      "$movement_counter" "$arrival_counter" "$completion_counter" "$expected_state" \
       >>"$run_dir/live-system-samples.tsv"
     if ! "$script_dir/sample_process_memory_details.sh" \
       --sample "$initial_mud_pid" "$label" \
@@ -1003,7 +1020,7 @@ run_monitor()
   : >"$run_dir/positions.txt"
   {
     printf 'epoch\tlabel\tfleet\tdynamic_rooms\tdynamic_capacity\t'
-    printf 'mobiles\tobjects\trooms\tlists\t'
+    printf 'mobiles\tobjects\trooms\tlists\tmovement_trails\t'
     printf 'buffer_switches\tbuffer_overflows\tmovement_steps\t'
     printf 'waypoint_arrivals\troute_completions\tstate\n'
   } >"$run_dir/live-system-samples.tsv"
@@ -1125,6 +1142,9 @@ run_monitor()
       "$final_dynamic_rooms" "$dynamic_room_capacity"
     printf 'World lists initial/maximum/final: %s/%s/%s\n' \
       "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+    printf 'Movement trails initial/maximum/final: %s/%s/%s\n' \
+      "$initial_movement_trails" "$maximum_movement_trails" \
+      "$final_movement_trails"
     printf 'Buffer overflows during live samples: 0\n'
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"

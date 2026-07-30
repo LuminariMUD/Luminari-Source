@@ -100,6 +100,26 @@ recording enduring behavior or evidence in the permanent documentation.
   checkpoint is neither a leak verdict nor a substitute for the terminal
   result.
 
+  At 08:42 IDT, another actual Kohdee checkpoint completed and logged out
+  cleanly in six seconds. The fleet remained five, dynamic wilderness
+  occupancy was 3 of 2,000, rooms remained 50,366, and buffer overflows
+  remained zero. Since 08:28, mobiles rose by 25 to 37,354, objects rose by
+  10 to 26,439, allocation lists fell by 13 to 884, and RSS rose 1,260 KiB to
+  1,135,660 KiB. The added base mobile/object structures account for about
+  354 KiB before their dynamic state. The contemporaneous heap mapping held
+  881,204 KiB RSS/private-dirty, file RSS remained 20,576 KiB, and swap
+  remained zero.
+
+  The awake-world log exposes another material baseline: movement trails are
+  retained for 12,600 seconds and cleaned every 75 seconds. By the checkpoint,
+  the latest complete 168-cleanup retention window represented 1,314,302
+  removed trail records, averaging 7,823 per cleanup. Their 48-byte structures
+  alone represent at least 60.16 MiB before two duplicated strings and
+  allocator metadata. Hour-sized removal-block means rose from 7,305 through
+  7,774 and 7,916 to 8,044 as the mobile population warmed. This establishes
+  a high-volume full-world retention confounder, not that trails explain the
+  entire heap or that the ferry leaks.
+
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
 
@@ -124,7 +144,7 @@ merchant, copyover, and multiplayer encounter testing.
   through the central position update. The removed immediate traversal probe
   had configured the same room and executed the region/path spatial queries a
   second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite now passes 245 of 245 and isolated
+  coordinate. The production-linked suite now passes 246 of 246 and isolated
   `make install` is clean. The active ferry process is pinned to the earlier
   executable, so only the post-soak installed scale run can provide live
   evidence for this change.
@@ -149,11 +169,14 @@ merchant, copyover, and multiplayer encounter testing.
   the runner records a terminal result.
   The measured Kohdee session now records timestamped initial, hourly, and
   final `shiplist summary`/`show stats` checkpoints. The runner writes their
-  fleet, dynamic-room, mobile, object, room, allocation-list, and buffer
-  values to `live-system-samples.tsv`, rejects fleet/capacity drift or any
-  buffer overflow, and records RSS, VSZ, threads, and file descriptors in a
-  headered process series. Each process sample also rejects replacement of
-  the installed executable. A separate sparse series captures anonymous,
+  fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,
+  and buffer values to `live-system-samples.tsv`, rejects fleet/capacity drift
+  or any buffer overflow, and records RSS, VSZ, threads, and file descriptors
+  in a headered process series. `show stats` derives the exact live trail count
+  from the room lists at each infrequent checkpoint; terminal summaries
+  preserve its initial, maximum, and final values. Each process sample also
+  rejects replacement of the installed executable. A separate sparse series
+  captures anonymous,
   file-backed, and shared RSS, data, swap, and heap size/RSS/private-dirty at
   measurement start, each complete intermediate hour, and measurement end.
   It does not scan `smaps` in the 30-second process loop. An actual
@@ -184,7 +207,7 @@ merchant, copyover, and multiplayer encounter testing.
   complete-route evidence through `autopilot status`; the next ferry monitor
   requires every active live interval to advance all three. The counters add
   only 24 bytes per optional autopilot (72 bytes total), while the base ship
-  remains 4,928 bytes. The production-linked suite passes 245 of 245. Confirm
+  remains 4,928 bytes. The production-linked suite passes 246 of 246. Confirm
   bounded actual server-log growth in the default installed 500-ship run
   before enabling a 72-hour window. The scale worker now reports measured log
   bytes and fails if any old unconditional or compiled-debug movement,
@@ -211,7 +234,9 @@ merchant, copyover, and multiplayer encounter testing.
   reject PID drift, non-increasing timestamps, missing heap metrics, and
   impossible RSS relationships. Future workers validate
   `process-memory-details.tsv` terminally; the active pinned ferry predates
-  that artifact.
+  that artifact. The exact movement-trail counter has production-linked
+  create/move coverage, and updated parser fixtures require it in every
+  future live-system checkpoint. The active pinned binary predates that field.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

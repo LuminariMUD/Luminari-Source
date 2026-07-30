@@ -144,13 +144,13 @@ parse_live_system_samples()
     BEGIN {
       OFS = "\t"
       print "epoch", "label", "fleet", "dynamic_rooms", "dynamic_capacity", \
-            "mobiles", "objects", "rooms", "lists", "buffer_switches", \
-            "buffer_overflows"
+            "mobiles", "objects", "rooms", "lists", "movement_trails", \
+            "buffer_switches", "buffer_overflows"
     }
     function clear_sample() {
       fleet = dynamic_rooms = dynamic_capacity = ""
       mobiles = objects = rooms = lists = ""
-      buffer_switches = buffer_overflows = ""
+      movement_trails = buffer_switches = buffer_overflows = ""
     }
     function emit_sample() {
       if (!active) {
@@ -158,12 +158,14 @@ parse_live_system_samples()
       }
       if (fleet == "" || dynamic_rooms == "" || dynamic_capacity == "" ||
           mobiles == "" || objects == "" || rooms == "" || lists == "" ||
-          buffer_switches == "" || buffer_overflows == "") {
+          movement_trails == "" || buffer_switches == "" ||
+          buffer_overflows == "") {
         print "incomplete live-system sample: " label > "/dev/stderr"
         invalid = 1
       } else {
         print epoch, label, fleet, dynamic_rooms, dynamic_capacity, mobiles, \
-              objects, rooms, lists, buffer_switches, buffer_overflows
+              objects, rooms, lists, movement_trails, buffer_switches, \
+              buffer_overflows
       }
       active = 0
     }
@@ -205,6 +207,10 @@ parse_live_system_samples()
     }
     active && /^[[:space:]]*[0-9]+ lists$/ {
       lists = $1
+      next
+    }
+    active && /^[[:space:]]*[0-9]+ movement trails$/ {
+      movement_trails = $1
       next
     }
     active &&
@@ -266,12 +272,13 @@ validate_live_system_samples()
       expected[7] = "objects"
       expected[8] = "rooms"
       expected[9] = "lists"
-      expected[10] = "buffer_switches"
-      expected[11] = "buffer_overflows"
-      if (NF != 11) {
+      expected[10] = "movement_trails"
+      expected[11] = "buffer_switches"
+      expected[12] = "buffer_overflows"
+      if (NF != 12) {
         reject("header field count")
       }
-      for (field = 1; field <= 11; field++) {
+      for (field = 1; field <= 12; field++) {
         if ($field != expected[field]) {
           reject("header field " field)
         }
@@ -279,10 +286,10 @@ validate_live_system_samples()
       next
     }
     {
-      if (NF != 11 || !is_uint($1)) {
+      if (NF != 12 || !is_uint($1)) {
         reject("sample shape or epoch")
       }
-      for (field = 3; field <= 11; field++) {
+      for (field = 3; field <= 12; field++) {
         if (!is_uint($field)) {
           reject("nonnumeric metric")
         }
@@ -313,7 +320,7 @@ validate_live_system_samples()
       if (label != 0 && label != expected_final && label % 3600 != 0) {
         reject("intermediate checkpoint is not hourly")
       }
-      if ($3 != 500 || $4 > $5 || $5 != capacity || $11 != 0) {
+      if ($3 != 500 || $4 > $5 || $5 != capacity || $12 != 0) {
         reject("fleet, room-capacity, or buffer invariant")
       }
       previous_epoch = $1
@@ -630,6 +637,9 @@ run_benchmark()
   local initial_world_lists
   local maximum_world_lists
   local final_world_lists
+  local initial_movement_trails
+  local maximum_movement_trails
+  local final_movement_trails
   local initial_mobiles
   local maximum_mobiles
   local final_mobiles
@@ -1586,6 +1596,7 @@ SQL
       initial_objects = maximum_objects = $7
       initial_rooms = maximum_rooms = $8
       initial_lists = maximum_lists = $9
+      initial_trails = maximum_trails = $10
     }
     NR > 1 {
       if ($4 > maximum_dynamic) maximum_dynamic = $4
@@ -1593,15 +1604,18 @@ SQL
       if ($7 > maximum_objects) maximum_objects = $7
       if ($8 > maximum_rooms) maximum_rooms = $8
       if ($9 > maximum_lists) maximum_lists = $9
+      if ($10 > maximum_trails) maximum_trails = $10
       final_dynamic = $4
       final_mobiles = $6
       final_objects = $7
       final_rooms = $8
       final_lists = $9
+      final_trails = $10
     }
     END {
       print initial_dynamic, maximum_dynamic, final_dynamic, capacity,
             initial_lists, maximum_lists, final_lists,
+            initial_trails, maximum_trails, final_trails,
             initial_mobiles, maximum_mobiles, final_mobiles,
             initial_objects, maximum_objects, final_objects,
             initial_rooms, maximum_rooms, final_rooms
@@ -1609,9 +1623,10 @@ SQL
   ' "$run_dir/live-system-samples.tsv")
   read -r initial_dynamic_rooms maximum_dynamic_rooms final_dynamic_rooms \
     dynamic_room_capacity initial_world_lists maximum_world_lists \
-    final_world_lists initial_mobiles maximum_mobiles final_mobiles \
-    initial_objects maximum_objects final_objects initial_rooms maximum_rooms \
-    final_rooms <<<"$live_system_summary"
+    final_world_lists initial_movement_trails maximum_movement_trails \
+    final_movement_trails initial_mobiles maximum_mobiles final_mobiles \
+    initial_objects maximum_objects final_objects initial_rooms \
+    maximum_rooms final_rooms <<<"$live_system_summary"
 
   dd if="$server_log" of="$run_dir/server-measurement.log" \
     iflag=skip_bytes skip="$log_offset" status=none
@@ -1785,6 +1800,9 @@ SQL
       "$final_dynamic_rooms" "$dynamic_room_capacity"
     printf 'World lists initial/maximum/final: %s/%s/%s\n' \
       "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+    printf 'Movement trails initial/maximum/final: %s/%s/%s\n' \
+      "$initial_movement_trails" "$maximum_movement_trails" \
+      "$final_movement_trails"
     printf 'Mobiles initial/maximum/final: %s/%s/%s\n' \
       "$initial_mobiles" "$maximum_mobiles" "$final_mobiles"
     printf 'Objects initial/maximum/final: %s/%s/%s\n' \

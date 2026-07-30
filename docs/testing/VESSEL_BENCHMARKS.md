@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.5
+**Version:** 3.6
 
 **Evidence snapshot:** July 30, 2026
 
@@ -19,7 +19,7 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 245 of 245 passing | Current production-linked gate |
+| Root suite on July 30, 2026 | 246 of 246 passing | Current production-linked gate |
 | Current-suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Pre-soak gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
@@ -81,6 +81,7 @@ budget.
 | Waypoint data | 88 bytes |
 | Route node | 104 bytes |
 | Transport state | 16 bytes |
+| Movement trail record, before two strings | 48 bytes |
 
 ## Performance Evidence
 
@@ -241,12 +242,12 @@ The runner:
 - Runs for at least 600 steady seconds and records RSS, VSZ, threads, file
   descriptors, PID, and installed-executable identity every 30 seconds. The
   held Kohdee session records timestamped fleet, dynamic-room,
-  world-allocation, and buffer statistics at the start, every hour, and at the
-  end. The runner rejects fleet or capacity drift, occupancy above capacity,
-  buffer overflows, vessel errors, PID/binary drift, or a missing system
-  sample. It also requires a `system-0` checkpoint, strictly increasing epochs
-  and labels, hourly intermediate labels, and an exact terminal-duration
-  label.
+  world-allocation, movement-trail, and buffer statistics at the start, every
+  hour, and at the end. The runner rejects fleet or capacity drift, occupancy
+  above capacity, buffer overflows, vessel errors, PID/binary drift, or a
+  missing system sample. It also requires a `system-0` checkpoint, strictly
+  increasing epochs and labels, hourly intermediate labels, and an exact
+  terminal-duration label.
 - Records anonymous, file-backed, and shared RSS, data, swap, and heap
   size/RSS/private-dirty in `process-memory-details.tsv` at measurement start,
   every complete intermediate hour, and measurement end. The sparse schedule
@@ -291,15 +292,16 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 245 of 245
+worktree on July 30, 2026. The production-linked root suite passed 246 of 246
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
 three-dimensional navigation, shared encounters, marginal batch pricing, the
-deterministic 1,000-trade simulation, and vessel MSDP clearing after going
-ashore. The suite also checks canonical polygon interiors and MariaDB-compatible
-edge exclusion for named-water resolution. It also poisons a complete affect
-structure before initialization and proves that both flag arrays are cleared.
+deterministic 1,000-trade simulation, vessel MSDP clearing after going ashore,
+and exact movement-trail counting after production movement. The suite also
+checks canonical polygon interiors and MariaDB-compatible edge exclusion for
+named-water resolution. It also poisons a complete affect structure before
+initialization and proves that both flag arrays are cleared.
 The same binary passes Memcheck with zero errors and zero definite, indirect,
 or possible loss. Its 301,630 still-reachable bytes belong to process-lifetime
 spell, command, DG, and profiler registries and are not presented as a
@@ -338,15 +340,16 @@ After the benchmark passes, run a 72-hour development soak with scheduled NPC
 fleets and representative player activity. The ferry monitor now provides a
 reusable game-side observation contract: actual-Kohdee samples capture fleet
 count, dynamic wilderness occupancy, mobiles, objects, rooms, allocation
-lists, buffer switches, and overflows in `live-system-samples.tsv`. The
-scale runner now preserves the same fields beside a headered process series,
-but its supported window remains capped at 7,200 seconds. The 72-hour fleet
-gate must retain equivalent samples and enforce a documented post-warmup
-bounded-growth threshold; an initial/maximum/final RSS tuple alone is not a
-leak verdict. The candidate has moved high-volume step/arrival/loop messages
-behind compiled development diagnostics and exposes monotonic status counters
-instead. The default installed 500-ship run must still confirm bounded actual
-log growth before the 72-hour ceiling is lifted.
+lists, live movement trails, buffer switches, and overflows in
+`live-system-samples.tsv`. The scale runner now preserves the same fields
+beside a headered process series, but its supported window remains capped at
+7,200 seconds. The 72-hour fleet gate must retain equivalent samples and
+enforce a documented post-warmup bounded-growth threshold; an
+initial/maximum/final RSS tuple alone is not a leak verdict. The candidate has
+moved high-volume step/arrival/loop messages behind compiled development
+diagnostics and exposes monotonic status counters instead. The default
+installed 500-ship run must still confirm bounded actual log growth before
+the 72-hour ceiling is lifted.
 
 `scripts/analyze_vessel_memory_samples.sh` validates either the legacy
 headerless ferry process series or the newer headered scale series. It
@@ -396,6 +399,30 @@ allocations. Allocation lists varied downward rather than accumulating, from
 1,013 to 897. This makes ordinary world-population churn a material confounder
 for the process slope; it does not prove that all retained memory belongs to
 mobiles or objects.
+
+At 08:42 IDT, another actual Kohdee checkpoint completed in six seconds. The
+fleet remained five, dynamic-room occupancy was 3 of 2,000, rooms remained
+50,366, and buffer overflows remained zero. Mobiles had risen by 25 to 37,354,
+objects by 10 to 26,439, and RSS by 1,260 KiB to 1,135,660 KiB since 08:28,
+while allocation lists fell by 13 to 884. The additional base structures
+account for about 354 KiB before their dynamic allocations.
+
+The pinned log also revealed a large awake-world retention set independent of
+fleet size. Movement trails remain live for 12,600 seconds and are pruned
+every 75 seconds. At the checkpoint, the most recent complete 168-cleanup
+window contained 1,314,302 removals, averaging 7,823 per cleanup. The 48-byte
+trail structures alone represent at least 60.16 MiB before two duplicated
+strings and allocator metadata. Hour-sized cleanup means rose from 7,305
+through 7,774 and 7,916 to 8,044 as the world population warmed. This is a
+quantified full-world confounder, not proof that trails explain the entire
+heap.
+
+The candidate now derives the exact live movement-trail count from room lists
+when an immortal issues `show stats`. Future ferry and scale checkpoints
+require and preserve that field, and their summaries report its initial,
+maximum, and final values. The runners invoke the scan only at infrequent
+actual-character checkpoints. Production-linked create/move coverage and
+updated shell fixtures pass; the active pinned binary predates this field.
 
 A separate read-only C client repeated the exact ferry-coordinate region and
 path queries through `mysql_ping()`, `mysql_query()`, `mysql_store_result()`,

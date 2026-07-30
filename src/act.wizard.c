@@ -69,6 +69,7 @@
 #include "backgrounds.h"
 #include "terrain_bridge.h"
 #include "vessels.h"
+#include "movement_tracks.h"
 #include "mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
 #include "treasure.h"
@@ -3546,6 +3547,7 @@ ACMD(do_show)
   char colour[16] = {'\0'};
   int q_total = 0, q_approved = 0;
   struct quest_entry *quest = NULL;
+  size_t movement_trail_count = 0;
 
   struct show_struct
   {
@@ -3740,6 +3742,7 @@ ACMD(do_show)
         }
       }
     }
+    movement_trail_count = count_live_movement_trails();
     send_to_char(ch,
                  "Current stats:\r\n"
                  "  %5d players in game  %5d connected\r\n"
@@ -3751,11 +3754,12 @@ ACMD(do_show)
                  "  %5d large bufs       %5d autoquests\r\n"
                  "  %5d hlquests app     %5d total hl quests\r\n"
                  "  %5d buf switches     %5d overflows\r\n"
-                 "  %5d lists\r\n",
+                 "  %5d lists\r\n"
+                 "  %9zu movement trails\r\n",
                  i, con, top_of_p_table + 1, j, top_of_mobt + 1, k, top_of_objt + 1,
                  top_of_world + 1, top_of_zone_table + 1, top_of_trigt + 1, top_shop + 1,
                  buf_largecount, total_quests, q_approved, q_total, buf_switches, buf_overflows,
-                 global_lists->iSize);
+                 global_lists->iSize, movement_trail_count);
     break;
 
     /* show errors */
