@@ -451,10 +451,24 @@ one socket output buffer (see
 runtime write fails, it restores the prior condition instead of presenting a
 RAM-only repair.
 
-MSDP ship variables (`src/vessels_admin.c`, pushed on the vessel tick to
-anyone aboard): `SHIP_NAME`, `SHIP_X`, `SHIP_Y`, `SHIP_Z`, `SHIP_HEADING`,
-`SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, `SHIP_STATUS`. Clients can
+Native MSDP is the vessel client contract for this release. A client enables
+Telnet option 69 and uses `REPORT` for `SHIP_NAME`, `SHIP_X`, `SHIP_Y`,
+`SHIP_Z`, `SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, and
+`SHIP_STATUS`. `src/vessels_admin.c` refreshes them on the vessel tick, and
+the normal MSDP update sends each reported value when it changes. Clients can
 render gauges without polling.
+
+When a character leaves a vessel, the server sends an explicit empty state:
+the two strings become empty and all seven numbers become zero. This prevents
+a client from continuing to display a stale vessel. `SHIP_HULL` and
+`SHIP_HULL_MAX` are the sums of the four internal-structure sections, while
+`SHIP_STATUS` is `sound`, `battered`, `crippled`, or `sinking`.
+
+The general protocol layer contains experimental GMCP support, but it is not
+an equivalent vessel interface and is not part of this release contract.
+Future GMCP vessel work must define and test a valid JSON package or
+standards-compliant MSDP-over-GMCP mapping; the old unquoted
+`MSDP.<variable> <value>` fallback is not accepted as vessel support.
 
 ### Living World Commands (Phase 08)
 

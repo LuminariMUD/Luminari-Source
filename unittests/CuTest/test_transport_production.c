@@ -30,6 +30,109 @@ void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
   CuAssertIntEquals(tc, SHIP_INTERIOR_VNUM_MAX, final_room_vnum);
 }
 
+void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
+{
+  const int slot = 498;
+  struct greyhawk_ship_data saved_ship;
+  struct greyhawk_ship_data *ship;
+  struct room_data test_room;
+  struct room_data *saved_world;
+  struct descriptor_data descriptor;
+  struct char_data character;
+  room_rnum saved_top_of_world;
+  int aboard_matches;
+  int ashore_matches;
+  int ashore_dirty;
+  int variable;
+
+  saved_ship = greyhawk_ships[slot];
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  ship = &greyhawk_ships[slot];
+  memset(ship, 0, sizeof(*ship));
+  memset(&test_room, 0, sizeof(test_room));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+
+  ship->active = TRUE;
+  ship->shipnum = slot;
+  ship->x = -66;
+  ship->y = 92;
+  ship->z = 120;
+  ship->heading = 3;
+  ship->speed = 7;
+  strlcpy(ship->name, "Protocol Cutter", sizeof(ship->name));
+  vessel_initialize_condition(ship, 60);
+
+  world = &test_room;
+  top_of_world = 0;
+  world[0].ship = ship;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &character;
+  descriptor.pProtocol = ProtocolCreate();
+  character.desc = &descriptor;
+  character.in_room = 0;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    greyhawk_ships[slot] = saved_ship;
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    CuFail(tc, "could not initialize the vessel MSDP fixture");
+    return;
+  }
+
+  vessel_msdp_update(&character);
+  aboard_matches =
+      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString,
+              "Protocol Cutter") &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_X]->ValueInt == -66 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_Y]->ValueInt == 92 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 120 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 3 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 7 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 160 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 160 &&
+      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString,
+              "sound");
+
+  for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
+  {
+    descriptor.pProtocol->pVariables[variable]->bDirty = false;
+  }
+  character.in_room = NOWHERE;
+  vessel_msdp_update(&character);
+
+  ashore_matches =
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString[0] == '\0' &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_X]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_Y]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 0 &&
+      descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString[0] == '\0';
+  ashore_dirty = TRUE;
+  for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
+  {
+    if (!descriptor.pProtocol->pVariables[variable]->bDirty)
+    {
+      ashore_dirty = FALSE;
+    }
+  }
+
+  ProtocolDestroy(descriptor.pProtocol);
+  greyhawk_ships[slot] = saved_ship;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, aboard_matches);
+  CuAssertTrue(tc, ashore_matches);
+  CuAssertTrue(tc, ashore_dirty);
+}
+
 void Test_shiplist_summary_remains_bounded_at_full_capacity(CuTest *tc)
 {
   struct greyhawk_ship_data *saved_ships;

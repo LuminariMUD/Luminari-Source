@@ -358,6 +358,7 @@ run_benchmark()
   local spawned_count
   local persisted_count
   local verification_output
+  local msdp_output
   local reconstruction_error_pattern
   local workload_counts
   local active_count
@@ -1094,6 +1095,15 @@ SQL
     benchmark_fail "could not verify the staged scheduled vessels"
   [[ "$schedule_paused_count" == 10 ]] ||
     benchmark_fail "only $schedule_paused_count of 10 schedule vessels are paused"
+
+  msdp_output="$run_dir/native-msdp-vessel-state.log"
+  timeout 90 "$script_dir/dev_kohdee_login_smoke.sh" \
+    --vessel-msdp-check "$msdp_slot" >"$msdp_output" 2>&1 ||
+    benchmark_fail "native MSDP vessel-state validation failed"
+  grep -Fq "native MSDP reported all nine vessel variables" "$msdp_output" ||
+    benchmark_fail "native MSDP did not report the complete aboard vessel state"
+  grep -Fq "native MSDP cleared all nine vessel variables" "$msdp_output" ||
+    benchmark_fail "native MSDP did not clear vessel state after Kohdee went ashore"
 
   measurement_commands=("shipgoto $msdp_slot" "perfmon reset")
   remaining=$measurement_seconds
