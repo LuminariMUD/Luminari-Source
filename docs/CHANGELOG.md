@@ -114,6 +114,10 @@
   update, waypoint arrival, wait completion, or route loop. These detailed
   messages remain available through the compiled `move` and `auto` development
   diagnostics, while long soaks use the bounded counters.
+- The scale runner isolates the current workload-reconstruction log slice,
+  preventing old shared-log successes or errors from affecting its result. It
+  also preserves and sizes the measurement log and rejects any old
+  unconditional or compiled-debug movement/autopilot progress row.
 
 #### Validated
 
@@ -134,6 +138,9 @@
   at 07:55 IDT its last 30-minute, 1-hour, and 2-hour RSS slopes were +6,891,
   +6,673, and +7,868 KiB/hour with two threads and 12 descriptors constant.
   This in-progress deceleration is not recorded as a plateau or leak verdict.
+- Deterministic scale-parser fixtures accept two complete current-format
+  live-system samples, reject one missing its buffer row, accept a clean
+  normal-build log, and count six representative high-volume progress rows.
 
 ### Ship-wide captain channel
 

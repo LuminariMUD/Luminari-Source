@@ -219,7 +219,13 @@ PID change or replacement of the installed executable during measurement.
 The terminal summary includes initial/maximum/final values for these series.
 Use the same memory analyzer above on this file so its shape is directly
 comparable with the ferry and eventual 72-hour series. The terminal worker
-also writes the default report to `memory-analysis.kv`.
+also writes the default report to `memory-analysis.kv`. Workload reconstruction
+checks read only the log bytes written by that boot, so an old success or error
+cannot affect the verdict. The measured log is preserved separately, its byte
+count is reported, and any normal-build per-step, arrival, wait, or route-loop
+progress rows fail the gate. Run
+`./scripts/test_vessel_scale_benchmark_parsers.sh` after changing these
+parsers.
 
 The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
 short benchmark as the 72-hour soak. The long gate remains separate until the
