@@ -285,11 +285,14 @@ MARKET
 
 CARGOBUY <commodity> <quantity>
   Load bulk goods into the hold. Limited by your cargo capacity, which
-  depends on hull class, the hold refit, and your quartermaster.
+  depends on hull class, the hold refit, and your quartermaster. Large
+  batches cross supply levels, so the reported per-unit value is an average.
 
 CARGOSELL <commodity> [<quantity>|all]
   Sell goods from the hold at the local price. Ports buy below their
   asking price, so buying and selling in the same port always loses money.
+  Each unit in a large batch receives the price at its resulting supply
+  level rather than the first unit\'s quote.
 
 CARGOMANIFEST
   List the bulk goods aboard and how much of the hold they occupy.

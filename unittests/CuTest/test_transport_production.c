@@ -10,6 +10,7 @@
 #include "../../src/vessels.h"
 #include "../../src/wilderness.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -872,6 +873,71 @@ void Test_vessel_trade_price_bounds(CuTest *tc)
   /* Cheap goods never price to zero or below */
   CuAssertTrue(tc, vessel_commodity_price(1, TRADE_SUPPLY_MAX) >= 1);
   CuAssertTrue(tc, vessel_commodity_price(0, TRADE_SUPPLY_MAX) >= 1);
+}
+
+void Test_vessel_trade_marginal_batch_pricing_closes_reversal_cycle(CuTest *tc)
+{
+  const int base_price = 100;
+  const int quantity = TRADE_SUPPLY_MAX - TRADE_SUPPLY_MIN + 10;
+  long long batch_cost;
+  long long batch_revenue;
+  long long flat_cost;
+  long long flat_revenue;
+
+  flat_cost =
+      (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MAX) *
+      quantity;
+  flat_revenue =
+      (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MIN) *
+      TRADE_SELL_PERCENT / 100 * quantity;
+  CuAssertTrue(tc, flat_revenue > flat_cost);
+
+  batch_cost =
+      vessel_trade_buy_cost(base_price, TRADE_SUPPLY_MAX, quantity);
+  batch_revenue =
+      vessel_trade_sell_revenue(base_price, TRADE_SUPPLY_MIN, quantity);
+  CuAssertTrue(tc, batch_cost > 0);
+  CuAssertTrue(tc, batch_revenue > 0);
+  CuAssertTrue(tc, batch_revenue <= batch_cost);
+
+  CuAssertIntEquals(
+      tc, TRADE_SUPPLY_MIN,
+      vessel_trade_adjusted_supply(TRADE_SUPPLY_MAX, -quantity));
+  CuAssertIntEquals(
+      tc, TRADE_SUPPLY_MAX,
+      vessel_trade_adjusted_supply(TRADE_SUPPLY_MIN, quantity));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5,
+                    vessel_trade_restocked_supply(TRADE_SUPPLY_MIN));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5,
+                    vessel_trade_restocked_supply(TRADE_SUPPLY_MAX));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5,
+                    vessel_trade_restocked_supply(-1000));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5,
+                    vessel_trade_restocked_supply(1000));
+  CuAssertIntEquals(tc, INT_MAX,
+                    vessel_commodity_price(INT_MAX, TRADE_SUPPLY_MIN));
+}
+
+void Test_vessel_trade_thousand_trade_simulation(CuTest *tc)
+{
+  struct vessel_trade_simulation_result result;
+
+  CuAssertTrue(tc, vessel_trade_run_simulation(1000, &result));
+  CuAssertIntEquals(tc, 1000, result.requested_trades);
+  CuAssertIntEquals(tc, 1000, result.completed_trades);
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN, result.minimum_supply);
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX, result.maximum_supply);
+  CuAssertTrue(tc, result.adversarial_profit < 0);
+  CuAssertTrue(tc, result.profitable_routes > 0);
+  CuAssertTrue(tc, result.profitable_routes < result.completed_trades);
+  CuAssertTrue(tc, result.finite_route_profit > 0);
+  CuAssertTrue(tc, abs(result.equilibrium_source_supply -
+                       result.equilibrium_destination_supply) <
+                       TRADE_SUPPLY_MAX - TRADE_SUPPLY_MIN);
+  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY,
+                    result.restocked_source_supply);
+  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY,
+                    result.restocked_destination_supply);
 }
 
 void Test_vessel_trade_cargo_weight(CuTest *tc)

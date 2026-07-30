@@ -506,10 +506,20 @@ Economy model (`src/vessels_trade.c`): commodities live in
 lives in `port_commodities`, seeded deterministically from the port vnum so
 ports differ without randomness. Price = base scaled by scarcity, clamped to
 +/- `TRADE_MAX_DRIFT` (60%) - the anti-arbitrage bound, unit-tested across
-the whole supply domain. Buying drains local stock (price up), selling
-floods it (price down); `vessel_trade_restock_tick()` drifts all ports back
-toward baseline. Ports buy at 85% of ask, so same-port round trips lose
-money. Bulk lots persist in `ship_cargo_manifest` with `cargo_room = 0`.
+the whole supply domain. A batch is priced one unit at a time across every
+supply level it moves through; quoting the whole batch at its first unit's
+price would let an oversized shipment flip two markets and profit again in
+reverse. Buying drains local stock (price up), selling floods it (price down);
+inventory is clamped to 10-400, and `vessel_trade_restock_tick()` drifts all
+ports back toward baseline. Ports buy at 85% of ask, so same-port round trips
+lose money. Bulk lots persist in `ship_cargo_manifest` with
+`cargo_room = 0`.
+
+Staff can run `vtradecheck 1000` to execute the deterministic sustained-market
+gate without changing live port or character state. It must report all 1,000
+adversarial transfers inside the supply bounds, finite convergence of a real
+profit gradient, non-positive oversized reversal profit, and restocking to
+the 100-unit baseline.
 
 Owned vessels receive one class-based dock fee on arrival at a port. Repeated
 room updates within the same visit do not assess another fee. An unpaid balance

@@ -526,11 +526,33 @@ ACMD_DECL(do_shipinsure);  /* Owner: buy sinking insurance */
 #define TRADE_BASELINE_SUPPLY 100
 #define TRADE_SUPPLY_MIN 10
 #define TRADE_SUPPLY_MAX 400
+#define TRADE_SELL_PERCENT 85
 #define TRADE_RESTOCK_INTERVAL 1200 /* Vessel ticks between supply drift */
+
+struct vessel_trade_simulation_result
+{
+  int requested_trades;
+  int completed_trades;
+  int minimum_supply;
+  int maximum_supply;
+  int profitable_routes;
+  int equilibrium_source_supply;
+  int equilibrium_destination_supply;
+  int restocked_source_supply;
+  int restocked_destination_supply;
+  long long adversarial_profit;
+  long long finite_route_profit;
+};
 
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
 int vessel_commodity_price(int base_price, int supply);
+int vessel_trade_adjusted_supply(int supply, int delta);
+int vessel_trade_restocked_supply(int supply);
+long long vessel_trade_buy_cost(int base_price, int supply, int quantity);
+long long vessel_trade_sell_revenue(int base_price, int supply, int quantity);
+bool vessel_trade_run_simulation(int trade_count,
+                                 struct vessel_trade_simulation_result *result);
 void vessel_trade_restock_tick(void);
 void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
@@ -624,6 +646,7 @@ ACMD_DECL(do_market);        /* At a dock: list commodity prices */
 ACMD_DECL(do_cargobuy);      /* At a dock: buy bulk cargo into the hold */
 ACMD_DECL(do_cargosell);     /* At a dock: sell bulk cargo from the hold */
 ACMD_DECL(do_cargomanifest); /* Show the ship's bulk cargo manifest */
+ACMD_DECL(do_vtradecheck);   /* Staff: deterministic economy simulation */
 ACMD_DECL(do_dockfees);      /* Inspect or settle the current berthing fee */
 
 bool vessel_room_is_port(room_rnum room);

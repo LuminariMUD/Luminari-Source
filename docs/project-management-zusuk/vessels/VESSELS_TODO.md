@@ -72,9 +72,9 @@ merchant, copyover, and multiplayer encounter testing.
   promotion, and a process-wide direct/prepared SQL execution count. The
   fleet array now reserves slot 0 separately from active slots 1-500; the
   matching zone 700 reservation reaches the final slot's VNUM 80019. The GNU
-  C23 production-linked suite passes 234 tests with the capacity, bounded
-  fleet-summary, encounter, and Z-axis regressions, and isolated provisioner
-  checks pass both extension and overlap rejection.
+  C23 production-linked suite passes 236 tests with the capacity, bounded
+  fleet-summary, encounter, Z-axis, and sustained-economy regressions, and
+  isolated provisioner checks pass both extension and overlap rejection.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the
@@ -89,7 +89,14 @@ merchant, copyover, and multiplayer encounter testing.
   schedule desynchronization, with the tick budget held.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
-  unbounded profit.
+  unbounded profit. The automated gate now passes all 1,000 adversarial
+  transfers: marginal batch pricing charges each crossed supply level, the
+  old oversized-shipment reversal cycle loses gold, legitimate arbitrage
+  closes after a finite number of trips, supplies remain inside 10-400, and
+  idle restocking returns both ports to 100. `vtradecheck 1000` exposes the
+  same production calculation to one actual Kohdee session, and the
+  500-vessel runner requires its PASS transcript. Keep this item open until
+  that post-soak installed-build command is recorded in-game.
 - [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
   tests. The automated layer now passes: overlapping regions use containment
   position and then lowest VNUM regardless of query order; equal-chance rows

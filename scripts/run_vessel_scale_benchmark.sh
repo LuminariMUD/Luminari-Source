@@ -1011,6 +1011,7 @@ SQL
 
   preparation_commands=(
     "shiplist summary"
+    "vtradecheck 1000"
     "shipgoto 500"
     "shipstatus"
     "autopilot pause"
@@ -1056,6 +1057,18 @@ SQL
     benchmark_fail "slot 500 schedule did not reconstruct"
   grep -Fq "Cargo manifest for ${benchmark_prefix} 500:" "$verification_output" ||
     benchmark_fail "slot 500 cargo did not reconstruct"
+  grep -Fq "Vessel economy simulation: PASS" "$verification_output" ||
+    benchmark_fail "the in-game 1,000-trade economy simulation failed"
+  grep -Fq "Trades executed: 1000/1000" "$verification_output" ||
+    benchmark_fail "the in-game economy simulation did not execute 1,000 trades"
+  grep -Fq "Supply range: 10..400 (hard bounds 10..400)" "$verification_output" ||
+    benchmark_fail "the in-game economy simulation escaped its supply bounds"
+  grep -Eq "Adversarial reversal profit: -[1-9][0-9]* gold" \
+    "$verification_output" ||
+    benchmark_fail "the in-game economy simulation retained a reversal profit"
+  grep -Fq "Restock convergence: 100/100 (baseline 100)" \
+    "$verification_output" ||
+    benchmark_fail "the in-game economy simulation did not converge to baseline"
   grep -Fq "The ship cannot navigate this terrain!" "$verification_output" ||
     benchmark_fail "surface hull did not reject positive Z through Kohdee"
   grep -Fq "the altitude is too extreme." "$verification_output" ||

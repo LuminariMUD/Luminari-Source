@@ -2,6 +2,41 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel economy - marginal batch pricing and sustained simulation
+
+Closed the automated portion of the 1,000-trade economy gate and removed the
+bulk-quote reversal exploit it exposed.
+
+#### Fixed
+
+- Bulk purchases and sales now price each unit at the supply level it crosses.
+  Previously, every unit received the pre-trade quote; an oversized shipment
+  could flip a scarce/glutted port pair, reverse direction, and repeat for
+  unlimited profit.
+- Trade quantities, cargo weight, total gold, and commodity price calculations
+  now reject or saturate overflow instead of wrapping. Sales that would exceed
+  the character gold cap leave cargo and market state unchanged.
+- Loaded commodity base prices and unit weights have a minimum of one. Supply
+  reads, trade adjustments, and restocking all enforce the 10-400 hard band.
+
+#### Added
+
+- `vtradecheck 1000` gives staff a non-mutating in-game release gate using the
+  same production pricing functions. It verifies 1,000 alternating oversized
+  transfers, finite legitimate arbitrage, bounded supply, negative reversal
+  profit, and restocking to baseline.
+- Production-linked regressions reproduce the old flat-quote profit and prove
+  marginal pricing closes it, then run the complete deterministic simulation.
+
+#### Validated
+
+- The isolated GNU C23 build completed without warnings and the complete root
+  suite passes 236 of 236 tests. `make install` completed and removed the
+  isolated root-level `circle`.
+- The actual Kohdee `vtradecheck 1000` transcript remains queued behind the
+  pinned 24-hour ferry soak; the 500-vessel runner now requires it before
+  measurement.
+
 ### Vessel system - deterministic encounters and Z-axis movement
 
 Closed the automated portion of the living-world boundary gate while the
@@ -34,9 +69,9 @@ definitive ferry soak continues on its pinned development binary.
 
 #### Validated
 
-- The isolated GNU C23 build completed without warnings and the complete root
-  suite passes 234 of 234 tests. `make install` completed and removed the
-  isolated root-level `circle`.
+- At the encounter/Z checkpoint, the isolated GNU C23 build completed without
+  warnings and the complete root suite passed 234 of 234 tests. `make install`
+  completed and removed the isolated root-level `circle`.
 - Live two-ship encounter and vertical-route confirmation remain queued behind
   the active 24-hour ferry soak; automated coverage is not presented as that
   in-game result.

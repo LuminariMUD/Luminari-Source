@@ -154,6 +154,34 @@ interrupted run needs operator recovery, use:
 Do not start this gate while the 24-hour ferry run is active. The scale runner
 intentionally refuses to disturb that pinned process and executable.
 
+## Fast 1,000-Trade Economy Gate
+
+After the current source is installed on local development, reuse the master
+account and exact Kohdee character for the sustained-market proof:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands "vtradecheck 1000"
+```
+
+This staff diagnostic runs the production batch-pricing and supply functions
+without changing Kohdee's gold, cargo, or the live port tables. It executes
+1,000 deliberately oversized transfers that alternate direction, checks the
+10-400 inventory bounds, follows a legitimate profitable route until its
+price gap closes, and restocks both simulated ports to 100. The reversal
+profit must be negative; a positive value reproduces the old unlimited
+bulk-quote exploit. Success includes:
+
+```text
+Vessel economy simulation: PASS
+  Trades executed: 1000/1000
+  Supply range: 10..400 (hard bounds 10..400)
+  Adversarial reversal profit: -... gold (must be <= 0)
+  Restock convergence: 100/100 (baseline 100)
+```
+
+The 500-vessel runner performs and records this same Kohdee command
+automatically. Do not run either path while the pinned ferry soak is active.
+
 ## Fast Vessel Builder Gate
 
 Use one logged-in Kohdee session to exercise the complete no-C builder path:
