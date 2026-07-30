@@ -257,6 +257,10 @@ count_high_volume_progress_logs()
   progress_pattern+="|\\[VESSEL_(MOVE|AUTO)\\].*"
   progress_pattern+="(departing room|position updated|arrived at waypoint|"
   progress_pattern+="wait complete|completed route)"
+  progress_pattern+="|-> Processing REGION_TYPE"
+  progress_pattern+="|-> (Changing .* to sector|Adjusting elevation at)"
+  progress_pattern+="|PATH: .* found!"
+  progress_pattern+="|COMPREHENSIVE ELEVATION: Adjusting elevation"
   grep -Eic "$progress_pattern" "$input_file" || true
 }
 
@@ -1659,7 +1663,7 @@ SQL
     benchmark_fail "could not count high-volume vessel progress log rows"
   ((progress_log_count == 0)) ||
     benchmark_fail \
-      "measurement log contains $progress_log_count high-volume vessel progress rows"
+      "measurement log contains $progress_log_count high-volume vessel/wilderness progress rows"
   fleet_after=$(database_query "SELECT COUNT(*) FROM ship_runtime_state;") ||
     benchmark_fail "could not count the final steady fleet"
   [[ "$fleet_after" == 500 ]] ||
@@ -1825,7 +1829,7 @@ SQL
       "$air_z_sample_count" "$air_z_minimum" "$air_z_maximum"
     printf 'Vessel workload errors: %s\n' "$vessel_error_count"
     printf 'Measurement server-log bytes: %s\n' "$measurement_log_bytes"
-    printf 'High-volume vessel progress log rows: %s\n' "$progress_log_count"
+    printf 'High-volume vessel/wilderness progress log rows: %s\n' "$progress_log_count"
     printf 'Live-system samples: %s\n' "$live_system_sample_count"
     printf 'Dynamic wilderness rooms initial/maximum/final/capacity: %s/%s/%s/%s\n' \
       "$initial_dynamic_rooms" "$maximum_dynamic_rooms" \

@@ -172,10 +172,15 @@ printf '%s\n' \
   "Info: Ship 5 completed route 'Harbor Loop'" \
   "[VESSEL_MOVE] Ship 6 position updated to (-63,82,0) in room 102" \
   "[VESSEL_AUTO] Ship 6 arrived at waypoint 'East', waiting 5 seconds" \
+  "-> Processing REGION_TYPE : 2" \
+  "  -> Changing (-64, 82) to sector : 5" \
+  "  -> Adjusting elevation at (-64, 82) by : 1" \
+  "PATH: harbor_channel found!" \
+  "COMPREHENSIVE ELEVATION: Adjusting elevation at (-64, 82) by 1 (region: test)" \
   "Scheduled departure triggered for ship 10 on route 4." >"$noisy_log"
 noisy_count=$("$runner" __count-progress-logs "$noisy_log")
-[[ "$noisy_count" == 6 ]] ||
-  fail "noisy server log reported $noisy_count of 6 high-volume rows"
+[[ "$noisy_count" == 11 ]] ||
+  fail "noisy server log reported $noisy_count of 11 high-volume rows"
 
 printf '%s\n' \
   "PASS: vessel scale parsers validated chronology and detected high-volume progress logs."

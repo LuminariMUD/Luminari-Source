@@ -19,7 +19,7 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 251 of 251 passing | Current production-linked gate |
+| Root suite on July 30, 2026 | 252 of 252 passing | Current production-linked gate |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
@@ -297,12 +297,13 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 251 of 251
+worktree on July 30, 2026. The production-linked root suite passed 252 of 252
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
-three-dimensional navigation, shared encounters, marginal batch pricing, the
-deterministic 1,000-trade simulation, vessel MSDP clearing after going ashore,
+three-dimensional navigation, the safe pause after an untraversable automated
+step, shared encounters, marginal batch pricing, the deterministic 1,000-trade
+simulation, vessel MSDP clearing after going ashore,
 exact movement-trail counting after production movement, hunter policy bounds,
 HUNTED eligibility, and lifecycle cooldown semantics. The suite also checks
 canonical polygon interiors and MariaDB-compatible edge exclusion for
@@ -319,8 +320,9 @@ presented as a 72-hour leak verdict; Memcheck must be repeated for Phase 15.
 and removed its root-level `circle`. Isolated provisioner fixtures also passed
 the idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
-clean normal-build log, and detection of all six representative high-volume
-progress rows. They also reject duplicated epochs and a terminal checkpoint
+clean normal-build log, and detection of six representative vessel progress
+rows plus five former unconditional wilderness progress rows. They also
+reject duplicated epochs and a terminal checkpoint
 whose label does not match the requested duration. Deterministic status and
 `smaps` fixtures plus a live-process sample verify the detailed-memory sampler;
 its validator rejects PID drift, duplicate epochs, impossible memory
@@ -411,6 +413,13 @@ strictly increasing timestamps, all metrics, and valid RSS/heap
 relationships. A heap/status capture against the pinned 1.1 GiB process took
 about 0.01 seconds, so scale collection remains sparse. The abandoned pinned
 ferry predates this artifact.
+
+For the ferry, that detailed series ends at the final active checkpoint before
+the deliberate hard restart. This preserves the validator's one-process
+contract. The recovery phase is a separate observation boundary: it requires
+a replacement service process, the same installed executable hash, the exact
+paused coordinates and route state, and successful resume. It does not append
+the replacement PID to the continuous memory series.
 
 At the July 30 08:28 IDT checkpoint, the pinned ferry run had completed 25,202
 of 86,400 seconds with 13,716 movement steps, 572 west-dock and 571 east-dock

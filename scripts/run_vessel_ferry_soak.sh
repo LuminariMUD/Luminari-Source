@@ -538,6 +538,7 @@ run_monitor()
   {
     local label=$1
     local expected_state=$2
+    local capture_memory=${3:-true}
     local output_file="$run_dir/live-${live_samples}-${label}.log"
     local fleet_line
     local coordinates
@@ -732,10 +733,12 @@ run_monitor()
       "$movement_trails" "$buffer_switches" "$buffer_overflows" \
       "$movement_counter" "$arrival_counter" "$completion_counter" "$expected_state" \
       >>"$run_dir/live-system-samples.tsv"
-    if ! "$script_dir/sample_process_memory_details.sh" \
-      --sample "$initial_mud_pid" "$label" \
-      >>"$run_dir/process-memory-details.tsv"; then
-      fail_run "could not capture detailed process memory during $label"
+    if [[ "$capture_memory" == true ]]; then
+      if ! "$script_dir/sample_process_memory_details.sh" \
+        --sample "$initial_mud_pid" "$label" \
+        >>"$run_dir/process-memory-details.tsv"; then
+        fail_run "could not capture detailed process memory during $label"
+      fi
     fi
     printf '%s %s\n' "$x" "$y" >>"$run_dir/positions.txt"
     last_live_x=$x
@@ -971,7 +974,9 @@ run_monitor()
     [[ "$running_binary_sha256" == "$initial_binary_sha256" ]] ||
       fail_run "the persistence restart launched a different MUD executable"
 
-    run_live_sample "post-restart" paused
+    # The continuous memory series deliberately retains one PID. The hard
+    # restart is verified by executable hash and gameplay state instead.
+    run_live_sample "post-restart" paused false
     post_x=$last_live_x
     post_y=$last_live_y
     [[ "$post_x" == "$pause_x" && "$post_y" == "$pause_y" ]] ||

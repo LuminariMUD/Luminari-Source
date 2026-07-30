@@ -3,7 +3,8 @@
 **Last audited:** July 30, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 251 of 251, CMake passes the same suite, the
+production-linked suite passes 252 of 252, CMake passes the preceding
+251-test candidate, the
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
 verify/rollback, and the reversible bounty-hunter lifecycle passes with actual
 level-34 Kohdee across a hard restart and pardon. The integrated candidate is
@@ -11,7 +12,10 @@ installed on local development. The shared harbor now passes restart
 persistence, the exact passenger fare, named-water crossing, merchant
 identity/cargo, and same-account captain-channel checks. Message throttling,
 native MSDP, the 500-slot workload, and the prior restart/copyover state matrix
-are automated.
+are automated. An untraversable automated step now stops the hull, pauses and
+persists autopilot once, and tells occupants instead of retrying forever.
+Routine wilderness region/path progress logging is removed, and the scale
+runner treats its return as a bounded-log failure.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
 vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
@@ -55,6 +59,10 @@ recording enduring behavior or evidence in the permanent documentation.
   failure status before cleanup. It also captures `shiplist summary`,
   `show stats`, `live-system-samples.tsv`, and
   `process-memory-details.tsv`.
+  The detailed-memory series deliberately remains on the one continuous MUD
+  PID through the terminal pre-restart checkpoint. The separate hard-restart
+  recovery phase verifies the replacement process's executable hash and exact
+  gameplay state instead of corrupting that single-PID series.
 
   Partial evidence from the abandoned run remained healthy at the July 30
   08:28 IDT checkpoint
@@ -136,7 +144,7 @@ merchant, copyover, and multiplayer encounter testing.
   through the central position update. The removed immediate traversal probe
   had configured the same room and executed the region/path spatial queries a
   second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite now passes 251 of 251 and isolated
+  coordinate. The production-linked suite now passes 252 of 252 and isolated
   `make install` is clean. Only the current installed-candidate scale run can
   provide live evidence for this change.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
@@ -201,7 +209,7 @@ merchant, copyover, and multiplayer encounter testing.
   complete-route evidence through `autopilot status`; the next ferry monitor
   requires every active live interval to advance all three. The counters add
   only 24 bytes per optional autopilot (72 bytes total), while the base ship
-  remains 4,928 bytes. The production-linked suite passes 251 of 251. Confirm
+  remains 4,928 bytes. The production-linked suite passes 252 of 252. Confirm
   bounded actual server-log growth in the default installed 500-ship run
   before enabling a 72-hour window. The scale worker now reports measured log
   bytes and fails if any old unconditional or compiled-debug movement,
@@ -231,7 +239,11 @@ merchant, copyover, and multiplayer encounter testing.
   that artifact. The exact movement-trail counter has production-linked
   create/move coverage, and updated parser fixtures require it in every
   future live-system checkpoint. The abandoned pinned binary predates that
-  field.
+  field. Automated movement now turns a failed terrain or Z step into one
+  persisted pause with speed zero, and production-linked coverage verifies
+  that state transition. The benchmark's bounded-log detector additionally
+  rejects the former unconditional wilderness region, sector-transform,
+  elevation, and path progress signatures.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial
@@ -282,7 +294,7 @@ merchant, copyover, and multiplayer encounter testing.
   PvP gate explicitly permits ownerless hulls, and regression coverage proves
   that attaching a merchant registry identity does not make the NPC ship
   immune to player attacks. The GNU C23
-  production-linked suite passes 251 of 251 with constructor rejection,
+  production-linked suite passes 252 of 252 with constructor rejection,
   respawn gating, faction scaling, responsibility-window, faction persistence,
   consequence high-water, and merchant combat-consent coverage. The complete
   `make test` then isolated `make install` gate passes without a root build

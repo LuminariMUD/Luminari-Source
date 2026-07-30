@@ -2341,7 +2341,19 @@ void process_traveling_vessel(struct greyhawk_ship_data *ship)
   VSSL_DEBUG_AUTO("Ship %d traveling toward waypoint %d '%s' at (%.1f,%.1f) from (%.1f,%.1f)",
                   ship->shipnum, ap->current_waypoint_index, wp->name, wp->x, wp->y, ship->x,
                   ship->y);
-  move_vessel_toward_waypoint(ship);
+  if (!move_vessel_toward_waypoint(ship))
+  {
+    autopilot_pause(ship);
+    ship->speed = 0;
+    ship->setspeed = 0;
+    send_to_ship(ship, "Autopilot pauses: the route to '%s' is not traversable from here.\r\n",
+                 wp->name);
+    if (is_valid_ship(ship) && !vessel_db_save_runtime(ship))
+    {
+      log("SYSERR: Autopilot ship %d - could not persist the movement-failure pause",
+          ship->shipnum);
+    }
+  }
 }
 
 /**

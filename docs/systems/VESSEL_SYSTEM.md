@@ -107,6 +107,10 @@ remaining three-dimensional distance, and rejects an invalid waypoint Z before
 moving toward it. Automated movement resolves and validates its target dynamic
 room once inside `update_ship_wilderness_position()`; it does not run the
 allocating `can_vessel_traverse_terrain()` probe immediately beforehand.
+If that central move rejects terrain or Z, autopilot stops the hull, enters
+`PAUSED`, persists the runtime state, and tells occupants which waypoint is
+unreachable. It does not retry the same invalid step every heartbeat. Correct
+the route, set the desired speed, and resume autopilot.
 
 ### Wilderness Integration Contract
 
@@ -828,7 +832,8 @@ remain the MySQL-unavailable fallback.
 3. Assign route to vessel
 4. Enable autopilot
 5. Vessel follows route automatically
-6. Optional: Assign NPC pilot for announcements
+6. If terrain rejects a step, correct the route, set speed, and resume
+7. Optional: Assign NPC pilot for announcements
 
 ---
 
@@ -1243,7 +1248,7 @@ and the trigger was removed.
 | Vessel not moving | Speed, dock status | `undock`, `speed 10`, `autopilot resume` |
 | Cannot board | Room DOCKABLE flag | Move to dock room, check `entrance_room` |
 | Interior nav fails | Room connections | `ship_rooms` to verify, regenerate if needed |
-| Autopilot stuck | Route waypoints | `listwaypoints`, verify terrain reachable |
+| Autopilot paused at blocked route | Route waypoints and hull speed | `listwaypoints`, correct unreachable terrain/Z, set speed, then `autopilot resume` |
 | Vehicle terrain blocked | Vehicle type | Use MOUNT for hills/mountains |
 | Coordinate desync | shipobj linkage | `greyhawk_shipload` (admin), check spec_procs.c |
 | Disembark fails | Interior room link | Verify `world[room].ship` is set |
@@ -1255,7 +1260,7 @@ and the trigger was removed.
 |-------|-------|----------|
 | FK constraint errors | Parent record missing | Save to `ship_interiors` before cargo/crew |
 | Stored procedures fail | Missing EXECUTE privilege | `GRANT EXECUTE ON luminari_mudprod.* TO 'luminari_mud'@'localhost';` |
-| Silent movement fail | No wilderness room | Use `find_available_wilderness_room()` + `assign_wilderness_room()` |
+| Movement pause cannot persist | Database connection/runtime row | Check the one matching `SYSERR`, then repair persistence before resuming |
 | Performance degradation | Missing indexes | Check with `EXPLAIN SELECT ...` |
 
 ### Gameplay Issues Detail
@@ -1301,10 +1306,13 @@ vdebug off
 investigation and require `vdebug status` to report `compiled out`.
 
 Normal builds do not write a line for every position update, waypoint arrival,
-wait completion, or route loop. Those high-volume messages use the `move` and
-`auto` debug categories. Runtime progress remains visible through the
-monotonic counters in `autopilot status`, so long soaks do not trade log growth
-for route evidence.
+wait completion, route loop, wilderness region transform, elevation
+adjustment, or matched path. Vessel movement details use the `move` and `auto`
+debug categories. Runtime progress remains visible through the monotonic
+counters in `autopilot status`, so long soaks do not trade log growth for route
+evidence. A rejected automated step still emits one actionable message and
+bounded failure diagnostics before the persisted pause prevents repeated
+output.
 
 | Runtime category | Covers |
 |------------------|--------|

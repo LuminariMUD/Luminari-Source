@@ -237,7 +237,10 @@ The validator rejects timestamp or PID drift, missing metrics, and impossible
 RSS/heap relationships. Reading the pinned 1.1 GiB process's status and heap
 mapping took about 0.01 seconds, so the scale runner samples sparsely instead
 of scanning `smaps` inside its 30-second process loop. The abandoned July 30
-pinned run predates this artifact.
+pinned run predates this artifact. The ferry's series intentionally ends at
+the final active checkpoint before its hard-restart recovery gate. That gate
+verifies the replacement process by executable hash and exact gameplay state;
+it does not mix a second PID into the continuous memory artifact.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
@@ -301,7 +304,7 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 251 of 251. The preceding pre-Phase15 Memcheck
+The current suite result is 252 of 252. The preceding pre-Phase15 Memcheck
 gate reported zero errors and zero definite, indirect, or possible loss;
 repeat the command above for the current candidate. Reachable process-lifetime
 registries and profiler buffers remain reported but are not classified as
@@ -344,7 +347,8 @@ also writes the default report to `memory-analysis.kv`. Workload reconstruction
 checks read only the log bytes written by that boot, so an old success or error
 cannot affect the verdict. The measured log is preserved separately, its byte
 count is reported, and any normal-build per-step, arrival, wait, or route-loop
-progress rows fail the gate. Run
+progress row fails the gate. Former unconditional wilderness region, sector,
+elevation, and path progress rows fail it as well. Run
 `./scripts/test_vessel_scale_benchmark_parsers.sh` after changing these
 parsers. That test also covers checkpoint chronology: the series must start at
 `system-0`, use strictly increasing epochs and labels, retain hourly

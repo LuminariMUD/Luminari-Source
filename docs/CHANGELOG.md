@@ -2,6 +2,30 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel route-failure and soak stability
+
+#### Fixed
+
+- Automated vessel movement now stops the hull, pauses autopilot, persists the
+  runtime state, and tells occupants after terrain or Z rejects a route step.
+  A bad waypoint no longer retries and logs the same failure every heartbeat.
+- Routine wilderness region, sector-transform, elevation, and path progress
+  messages no longer flood normal server logs. The 500-vessel gate rejects all
+  eleven representative vessel and wilderness high-volume signatures.
+- Ferry detailed-memory sampling retains its required single-PID series
+  through the final continuous checkpoint. The deliberate hard-restart
+  recovery phase verifies the replacement process by executable hash and
+  exact gameplay state without trying to sample the retired PID.
+
+#### Validated
+
+- The GNU C23 production-linked suite passes 252 of 252 tests, including the
+  blocked-route autopilot pause. `make install` completes and removes the
+  root-level server artifact.
+- Bash syntax, ShellCheck, and the scale parser regression pass. The noisy-log
+  fixture detects six vessel progress messages and five former unconditional
+  wilderness messages.
+
 ### Durable HUNTED bounty-hunter patrols
 
 #### Added

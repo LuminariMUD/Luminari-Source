@@ -446,10 +446,6 @@ int get_comprehensive_elevation(int x, int y, zone_rnum zone)
         case REGION_SECTOR_TRANSFORM:
           /* This type of region modifies elevation directly */
           modified_elevation += region_table[curr_region->rnum].region_props;
-          log("COMPREHENSIVE ELEVATION: Adjusting elevation at (%d, %d) by %d (region: %s)", x, y,
-              region_table[curr_region->rnum].region_props,
-              region_table[curr_region->rnum].name ? region_table[curr_region->rnum].name
-                                                   : "Unknown");
           break;
         case REGION_GEOGRAPHIC:
         case REGION_ENCOUNTER:
@@ -731,20 +727,15 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
       continue;
     }
 
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
     case REGION_GEOGRAPHIC:
       break;
     case REGION_SECTOR:
       sector_type = region_table[curr_region->rnum].region_props;
-      log("  -> Changing (%d, %d) to sector : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       break;
     case REGION_SECTOR_TRANSFORM:
       elev += region_table[curr_region->rnum].region_props;
-      log("  -> Adjusting elevation at (%d, %d) by : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       sector_type = get_sector_type(elev, temp, mois);
       break;
     case REGION_ENCOUNTER:
@@ -759,7 +750,6 @@ int get_modified_sector_type(zone_rnum zone, int x, int y)
   {
     if (curr_path->rnum != NOWHERE)
     { /*added by zusuk*/
-      log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type)
       {
       case PATH_ROAD:
@@ -938,7 +928,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       continue;
     }
 
-    log("-> Processing REGION_TYPE : %d", region_table[curr_region->rnum].region_type);
     switch (region_table[curr_region->rnum].region_type)
     {
     case REGION_GEOGRAPHIC:
@@ -953,8 +942,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
       break;
     case REGION_SECTOR:
       world[room].sector_type = region_table[curr_region->rnum].region_props;
-      log("  -> Changing (%d, %d) to sector : %d", x, y,
-          region_table[curr_region->rnum].region_props);
       break;
     case REGION_SECTOR_TRANSFORM:
       break;
@@ -969,7 +956,6 @@ void assign_wilderness_room(room_rnum room, int x, int y)
   {
     if (curr_path->rnum != NOWHERE)
     { /*added by zusuk*/
-      log("PATH: %s found!", path_table[curr_path->rnum].name);
       switch (path_table[curr_path->rnum].path_type)
       {
       case PATH_ROAD:

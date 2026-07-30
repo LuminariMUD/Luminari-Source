@@ -528,6 +528,33 @@ void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
   CuAssertIntEquals(tc, 12, target_z);
 }
 
+void Test_vessel_autopilot_pauses_after_untraversable_waypoint(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct ship_route *route;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.shipnum = 7;
+  ship.vessel_type = VESSEL_SHIP;
+  ship.speed = 2;
+  ship.setspeed = 2;
+  route = route_create("blocked route");
+
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(&ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0f, 0.0f, 10.0f, "invalid altitude"));
+  CuAssertTrue(tc, autopilot_start(&ship, route));
+
+  process_traveling_vessel(&ship);
+
+  CuAssertIntEquals(tc, AUTOPILOT_PAUSED, ship.autopilot->state);
+  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertIntEquals(tc, 0, ship.setspeed);
+
+  autopilot_cleanup(&ship);
+  route_destroy(route);
+}
+
 void Test_vessel_z_axis_enforces_class_and_wilderness_boundaries(CuTest *tc)
 {
   CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_SHIP, 0));
