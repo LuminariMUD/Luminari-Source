@@ -208,12 +208,15 @@ Run this only after the active soak releases the installed build:
 
 ```bash
 ./scripts/dev_kohdee_login_smoke.sh \
-  --vessel-channel-check <ship-slot> Vesselmate
+  --vessel-channel-check <ship-slot>
 ```
 
 The helper opens two simultaneous local connections, authenticates both with
-the configured master account, and selects `Kohdee` plus the exact second
-character Name. It keeps both descriptors open while it:
+the configured master account, selects `Kohdee`, and automatically selects the
+first other usable character Name from that same account. It ignores deleted
+rows and never assumes a stable menu slot. To require a particular existing
+character instead, append its exact Name after the ship slot. It keeps both
+descriptors open while it:
 
 1. Moves Kohdee to the requested vessel and transfers the second character
    aboard.
@@ -227,8 +230,8 @@ character Name. It keeps both descriptors open while it:
 6. Cleanly leaves both characters and both account sessions.
 
 One helper process owns both sockets and the normal login lock, so no manual
-client synchronization or second helper process is needed. This is the
-preferred release transcript.
+character lookup, client synchronization, or second helper process is needed.
+This is the preferred release transcript.
 
 If the master account has no second usable character, add one to that same
 account first:
@@ -238,7 +241,10 @@ account first:
 ```
 
 The one-argument creation form uses the master account. Do not create a second
-account for this check.
+account for this check. A read-only July 30 database check found that the
+current local master account contains only Kohdee, so run this once after the
+active soak and before the channel gate. The gate will then discover
+`Vesselmate` automatically; do not pass or look up its account-menu slot.
 
 ## Fast Native MSDP Vessel-State Gate
 
