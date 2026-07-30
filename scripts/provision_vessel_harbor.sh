@@ -686,5 +686,38 @@ grep -Fq "seastate matched its water type, authority, and piracy bounty" \
   <<<"$crossing_output" ||
   fail "the crossing transcript did not match the canonical vessel-law metadata"
 
+set +e
+channel_output=$(
+  "$script_dir/dev_kohdee_login_smoke.sh" \
+    --vessel-channel-check "$ferry_slot" 2>&1
+)
+channel_status=$?
+set -e
+printf '%s\n' "$channel_output"
+
+if ((channel_status != 0)) &&
+   grep -Fq "the master account has no other usable character" \
+     <<<"$channel_output"; then
+  "$script_dir/dev_create_test_character.sh" Vesselmate ||
+    fail "could not add Vesselmate to the existing master account"
+
+  set +e
+  channel_output=$(
+    "$script_dir/dev_kohdee_login_smoke.sh" \
+      --vessel-channel-check "$ferry_slot" 2>&1
+  )
+  channel_status=$?
+  set -e
+  printf '%s\n' "$channel_output"
+fi
+
+((channel_status == 0)) ||
+  fail "the same-account vessel-channel session failed with status $channel_status"
+grep -Fq "exchanged identified captain-channel messages across separate rooms" \
+  <<<"$channel_output" ||
+  fail "the channel transcript did not prove cross-room delivery"
+grep -Fq "aboard channel stayed isolated" <<<"$channel_output" ||
+  fail "the channel transcript did not prove ashore isolation and refusals"
+
 printf 'PASS: harbor sandbox and persistent ferry verified in ship slot %s.\n' \
   "$ferry_slot"

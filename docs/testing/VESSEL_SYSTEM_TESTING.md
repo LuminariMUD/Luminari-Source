@@ -40,18 +40,24 @@ through the ordinary object path, verifies one exact deduction, restores
 Kohdee's starting gold, resumes the route, waits at most 45 seconds for an
 actual named-water crossing announcement, and requires the immediately
 reported `seastate` type, authority, and bounty to match it. The provisioner
-discovers the ferry slot and runs the crossing session itself, then ends with:
+discovers the ferry slot and runs the crossing session itself. It then opens
+Kohdee and another character from the same master account, verifies
+bidirectional cross-room `shiptalk`, ashore isolation, and both ashore
+refusals, and logs out both sessions. If no second usable Name exists, it adds
+reusable `Vesselmate` to that account and retries without creating another
+account. It then ends with:
 
 ```text
 PASS: harbor sandbox and persistent ferry verified in ship slot N.
 ```
 
 It uses the existing master account and Kohdee character; do not create a new
-account, look up a slot manually, or perform one login per command. The first
-run includes ferry creation and a second restart. Before the fare and crossing
-checks were added, later idempotent runs reused the ferry and completed in
-about 30 seconds on the current development host. Remeasure the augmented path
-after the active soak releases the installed build.
+account, look up a slot or character manually, or perform one login per
+command. The first run includes ferry creation and a second restart. Before
+the fare, crossing, and channel checks were added, later idempotent runs reused
+the ferry and completed in about 30 seconds on the current development host.
+Remeasure the augmented path after the active soak releases the installed
+build.
 
 Run the continuous ferry release gate through its supervised monitor:
 
@@ -234,9 +240,9 @@ numbered gameplay flow:
   the active soak and will reuse the existing master account. The channel
   helper automatically selects another non-deleted account-menu character
   without a manual slot or Name lookup. A July 30 read-only database check
-  found that account currently contains only Kohdee; after the soak, run
-  `dev_create_test_character.sh Vesselmate` once to add the crew fixture to
-  that same account rather than creating a second account.
+  found that account currently contains only Kohdee; after the soak, the harbor
+  provisioner will add `Vesselmate` to that account and run the transcript
+  automatically rather than creating a second account.
 - All 22 component migrations preceding Phase 12 applied independently to a
   fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
   install, 10-gold persistence, rollback, and reapplication against a
