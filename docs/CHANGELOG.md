@@ -103,6 +103,11 @@
   `REPORT_ONLY` until the live evidence supports a bounded-growth threshold.
   Future ferry and scale workers write the validated `key=value` result as
   `memory-analysis.kv` and reject malformed terminal process series.
+- `scripts/sample_process_memory_details.sh` records anonymous, file-backed,
+  and shared RSS, data, swap, and heap size/RSS/private-dirty in a validated
+  `process-memory-details.tsv` series. Ferry samples align with actual Kohdee
+  checkpoints; scale samples occur at start, complete intermediate hours, and
+  end without adding `smaps` scans to the 30-second process loop.
 
 #### Fixed
 
@@ -148,6 +153,11 @@
   Checkpoint validation requires `system-0`, strictly increasing epochs and
   labels, hourly intermediates, the expected sample count, and the exact
   terminal duration; duplicate-epoch and wrong-final fixtures are rejected.
+- Deterministic status and `smaps` fixtures plus a live-process capture verify
+  the detailed-memory sampler. Its series validator rejects PID drift,
+  duplicate epochs, impossible memory relationships, and missing heap
+  metrics. Capturing status and the heap mapping from the pinned 1.1 GiB
+  process took about 0.01 seconds.
 
 ### Ship-wide captain channel
 

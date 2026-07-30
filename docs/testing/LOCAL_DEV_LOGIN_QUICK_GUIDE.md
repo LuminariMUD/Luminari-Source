@@ -134,6 +134,24 @@ machine-readable report automatically as `memory-analysis.kv` and fail if the
 terminal process series is malformed. The manual command remains safe while a
 run is active and supports alternate warmup and window choices.
 
+Current ferry and scale runners also write `process-memory-details.tsv`. The
+ferry aligns each detailed sample with an actual Kohdee checkpoint; the scale
+runner samples at measurement start, every complete intermediate hour, and
+measurement end. Each row records anonymous, file-backed, and shared RSS,
+data and swap sizes, and the heap mapping's size, RSS, and private-dirty
+pages. Validate a completed series with:
+
+```bash
+./scripts/sample_process_memory_details.sh \
+  --validate "$run_dir/process-memory-details.tsv"
+```
+
+The validator rejects timestamp or PID drift, missing metrics, and impossible
+RSS/heap relationships. Reading the pinned 1.1 GiB process's status and heap
+mapping took about 0.01 seconds, so the scale runner samples sparsely instead
+of scanning `smaps` inside its 30-second process loop. The active July 30
+pinned ferry predates this artifact.
+
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
 the recovered state and executable hash, and resumes the ferry. Results and
@@ -216,6 +234,10 @@ drift, dynamic occupancy above capacity, or any reported buffer overflow.
 `process-samples.tsv` has a header and records epoch, PID, RSS, VSZ, thread
 count, and file-descriptor count every 30 seconds. The worker also rejects a
 PID change or replacement of the installed executable during measurement.
+The separate sparse `process-memory-details.tsv` series adds anonymous,
+file-backed, and shared RSS, data, swap, and heap-mapping measurements at
+start, every complete intermediate hour, and end without scanning `smaps` in
+the 30-second loop.
 The terminal summary includes initial/maximum/final values for these series.
 Use the same memory analyzer above on this file so its shape is directly
 comparable with the ferry and eventual 72-hour series. The terminal worker
