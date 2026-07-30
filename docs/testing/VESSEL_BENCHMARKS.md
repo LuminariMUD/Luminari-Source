@@ -248,7 +248,12 @@ The runner:
 - Uses monotonic per-vessel movement, waypoint-arrival, and route-completion
   counters for continuity evidence. Normal builds no longer emit a server-log
   line for every movement step, arrival, wait completion, or loop; those
-  messages remain available only in focused development-debug builds.
+  messages remain available only in focused development-debug builds. The
+  runner preserves the measured log, reports its byte count, and fails if any
+  old unconditional or compiled movement/autopilot progress row appears.
+- Captures a byte-bounded log slice around the workload reconstruction and
+  requires the 500-vessel boot success only in that slice. Prior success or
+  error lines in the shared development log cannot create a false verdict.
 - Captures all ten sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, and requires every selected schedule
   to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero
@@ -293,7 +298,10 @@ or possible loss. Its 301,630 still-reachable bytes belong to process-lifetime
 spell, command, DG, and profiler registries and are not presented as a
 72-hour leak verdict. `make install` completed in that isolated worktree and
 removed its root-level `circle`. Isolated provisioner fixtures also passed the
-idempotent zone-extension and overlap-rejection paths.
+idempotent zone-extension and overlap-rejection paths. Deterministic shell
+fixtures cover the compact live-system parser, incomplete sample rejection, a
+clean normal-build log, and detection of all six representative high-volume
+progress rows.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

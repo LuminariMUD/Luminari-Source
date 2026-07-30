@@ -225,6 +225,20 @@ parse_live_system_samples()
   ' "$input_file" >"$output_file"
 }
 
+count_high_volume_progress_logs()
+{
+  local input_file=$1
+  local progress_pattern
+
+  [[ -r "$input_file" ]] || return 2
+  progress_pattern="Info: Ship [0-9]+ (departing room|arrived at waypoint|"
+  progress_pattern+="wait complete|completed route)"
+  progress_pattern+="|\\[VESSEL_(MOVE|AUTO)\\].*"
+  progress_pattern+="(departing room|position updated|arrived at waypoint|"
+  progress_pattern+="wait complete|completed route)"
+  grep -Eic "$progress_pattern" "$input_file" || true
+}
+
 restore_snapshot()
 {
   local run_dir=$1
@@ -470,6 +484,8 @@ run_benchmark()
   local schedule_id_list
   local schedule_paused_count
   local server_pid
+  local workload_log_offset
+  local workload_log_size
   local log_offset
   local measurement_pid
   local helper_status
@@ -478,6 +494,8 @@ run_benchmark()
   local shared_encounter_count
   local vessel_error_count
   local measurement_error_pattern
+  local measurement_log_bytes
+  local progress_log_count
   local perf_rows
   local perf_row_count
   local vessel_tick_row
@@ -820,6 +838,7 @@ run_benchmark()
   [[ "$persisted_count" == 500 ]] ||
     benchmark_fail "database contains $persisted_count vessels after spawning"
 
+  workload_log_offset=$(stat -c %s "$server_log")
   systemctl --user stop "$server_unit" ||
     benchmark_fail "could not stop local development before workload configuration"
 
@@ -1297,11 +1316,18 @@ SQL
     benchmark_fail "submarine did not reject positive Z through Kohdee"
   [[ "$(grep -Fc "Elevation/Depth: -1" "$verification_output" || true)" -ge 2 ]] ||
     benchmark_fail "submarine surface-boundary rejection changed its live Z"
-  grep -Fq "Reconstructed 500 persisted vessel instances" "$server_log" ||
+  workload_log_size=$(stat -c %s "$server_log")
+  ((workload_log_size >= workload_log_offset)) ||
+    benchmark_fail "server log was truncated during workload reconstruction"
+  dd if="$server_log" of="$run_dir/server-workload-boot.log" \
+    iflag=skip_bytes skip="$workload_log_offset" status=none
+  grep -Fq "Reconstructed 500 persisted vessel instances" \
+    "$run_dir/server-workload-boot.log" ||
     benchmark_fail "server boot did not report 500 reconstructed vessels"
   reconstruction_error_pattern="Dynamic ship .*could not|No zone owns ship interior|"
   reconstruction_error_pattern+="interior VNUM .*exceeds|Room pool exhausted"
-  if grep -Eiq "$reconstruction_error_pattern" "$server_log"; then
+  if grep -Eiq "$reconstruction_error_pattern" \
+    "$run_dir/server-workload-boot.log"; then
     benchmark_fail "server log reported a fleet reconstruction or room-capacity error"
   fi
   schedule_paused_count=$(database_query "
@@ -1480,6 +1506,17 @@ SQL
 
   dd if="$server_log" of="$run_dir/server-measurement.log" \
     iflag=skip_bytes skip="$log_offset" status=none
+  measurement_log_bytes=$(stat -c %s "$run_dir/server-measurement.log")
+  if ! progress_log_count=$(
+    count_high_volume_progress_logs "$run_dir/server-measurement.log"
+  ); then
+    benchmark_fail "could not inspect the measurement log for progress spam"
+  fi
+  [[ "$progress_log_count" =~ ^[0-9]+$ ]] ||
+    benchmark_fail "could not count high-volume vessel progress log rows"
+  ((progress_log_count == 0)) ||
+    benchmark_fail \
+      "measurement log contains $progress_log_count high-volume vessel progress rows"
   fleet_after=$(database_query "SELECT COUNT(*) FROM ship_runtime_state;") ||
     benchmark_fail "could not count the final steady fleet"
   [[ "$fleet_after" == 500 ]] ||
@@ -1627,6 +1664,8 @@ SQL
     printf 'Live airship Z distinct/min/max: %s/%s/%s\n' \
       "$air_z_sample_count" "$air_z_minimum" "$air_z_maximum"
     printf 'Vessel workload errors: %s\n' "$vessel_error_count"
+    printf 'Measurement server-log bytes: %s\n' "$measurement_log_bytes"
+    printf 'High-volume vessel progress log rows: %s\n' "$progress_log_count"
     printf 'Live-system samples: %s\n' "$live_system_sample_count"
     printf 'Dynamic wilderness rooms initial/maximum/final/capacity: %s/%s/%s/%s\n' \
       "$initial_dynamic_rooms" "$maximum_dynamic_rooms" \
@@ -1711,6 +1750,10 @@ case "${1:-}" in
   __parse-live-system)
     (($# == 3)) || usage
     parse_live_system_samples "$2" "$3"
+    ;;
+  __count-progress-logs)
+    (($# == 2)) || usage
+    count_high_volume_progress_logs "$2"
     ;;
   *)
     usage

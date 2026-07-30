@@ -161,7 +161,12 @@ merchant, copyover, and multiplayer encounter testing.
   only 24 bytes per optional autopilot (72 bytes total), while the base ship
   remains 4,928 bytes. The production-linked suite passes 245 of 245. Confirm
   bounded actual server-log growth in the default installed 500-ship run
-  before enabling a 72-hour window.
+  before enabling a 72-hour window. The scale worker now reports measured log
+  bytes and fails if any old unconditional or compiled-debug movement,
+  arrival, wait, or route-loop progress row appears. Its reconstruction check
+  reads only the log slice from the current 500-vessel boot, preventing stale
+  success or error lines from changing the verdict. Deterministic clean/noisy
+  log fixtures and complete/incomplete live-system parser fixtures pass.
   `scripts/analyze_vessel_memory_samples.sh` now validates both the active
   headerless and future headered process-series formats, rejects timestamp,
   PID, or metric corruption, and emits consecutive block means plus full,
