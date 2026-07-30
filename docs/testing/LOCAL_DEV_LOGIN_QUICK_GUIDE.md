@@ -180,10 +180,14 @@ count and dynamic-room capacity, reject any reported buffer overflow, and
 write `live-system-samples.tsv` with fleet, dynamic-room, mobile, object,
 room, allocation-list, movement-trail, buffer, movement-step,
 waypoint-arrival, route-completion, and copyover-recovery counts. Each active
-live interval must
-increase all three autopilot counters. The terminal summary adds initial,
-maximum, and final dynamic-room, world-list, and movement-trail values beside
-process RSS.
+live interval must increase all three autopilot counters. Those counters have
+process-executable lifetime and may restart at zero during same-PID `exec`
+copyover. The monitor checks the keepalive before each live sample, starts a
+new counter segment only after log-proven copyover recovery, requires positive
+progress in that segment, and accumulates its deltas in the terminal summary.
+The raw sample includes the recovery number that explains any counter reset.
+The terminal summary also adds initial, maximum, and final dynamic-room,
+world-list, and movement-trail values beside process RSS.
 
 Current candidate builds add an exact `<count> movement trails` row to
 `show stats`. This is a full-world count, not a vessel count. The default

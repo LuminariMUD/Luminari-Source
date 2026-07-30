@@ -59,6 +59,10 @@ recording enduring behavior or evidence in the permanent documentation.
   failure status before cleanup. It also captures `shiplist summary`,
   `show stats`, `live-system-samples.tsv`, and
   `process-memory-details.tsv`.
+  Because autopilot progress counters have process-executable lifetime, the
+  monitor starts a new counter segment after each proven copyover, requires
+  progress in that segment, and records the recovery number beside every live
+  sample.
   The detailed-memory series deliberately remains on the one continuous MUD
   PID through the terminal pre-restart checkpoint. The separate hard-restart
   recovery phase verifies the replacement process's executable hash and exact

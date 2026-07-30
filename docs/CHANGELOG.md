@@ -16,6 +16,11 @@
   through the final continuous checkpoint. The deliberate hard-restart
   recovery phase verifies the replacement process by executable hash and
   exact gameplay state without trying to sample the retired PID.
+- The ferry monitor verifies its keepalive immediately before each live
+  checkpoint and treats a log-proven copyover as a new in-memory autopilot
+  counter segment. Raw counters may restart at zero after `exec`; the monitor
+  now requires progress in the new segment and accumulates deltas instead of
+  falsely comparing it with the retired executable's counters.
 - The harbor fare gate now keeps one Kohdee session aboard while it polls
   `shipstatus` for a real seaport, then pauses and stops the ferry before
   disembarking. A mid-channel invocation no longer mistakes correctly blocked

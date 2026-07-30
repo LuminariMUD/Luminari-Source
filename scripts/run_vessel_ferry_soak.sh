@@ -265,12 +265,10 @@ run_monitor()
   movement_steps=0
   waypoint_arrivals=0
   route_completions=0
-  initial_movement_counter=""
-  initial_arrival_counter=""
-  initial_completion_counter=""
   last_movement_counter=""
   last_arrival_counter=""
   last_completion_counter=""
+  last_live_copyover_recoveries=0
   live_samples=0
   database_samples=0
   process_samples=0
@@ -563,6 +561,9 @@ run_monitor()
     local movement_counter
     local arrival_counter
     local completion_counter
+    local movement_delta
+    local arrival_delta
+    local completion_delta
 
     if ! "$script_dir/dev_kohdee_login_smoke.sh" --commands \
       "shiplist" \
@@ -622,24 +623,43 @@ run_monitor()
        "$completion_counter" =~ ^[0-9]+$ ]] ||
       fail_run "could not read autopilot progress counters during $label"
     if [[ "$expected_state" == active ]]; then
-      if [[ -z "$initial_movement_counter" ]]; then
-        initial_movement_counter=$movement_counter
-        initial_arrival_counter=$arrival_counter
-        initial_completion_counter=$completion_counter
+      if [[ -z "$last_movement_counter" ]]; then
+        last_movement_counter=$movement_counter
+        last_arrival_counter=$arrival_counter
+        last_completion_counter=$completion_counter
       else
-        ((movement_counter > last_movement_counter)) ||
-          fail_run "autopilot movement did not advance between live samples"
-        ((arrival_counter > last_arrival_counter)) ||
-          fail_run "the ferry reached no waypoint between live samples"
-        ((completion_counter > last_completion_counter)) ||
-          fail_run "the ferry completed no route between live samples"
+        if ((copyover_recoveries > last_live_copyover_recoveries)) &&
+           ((movement_counter <= last_movement_counter ||
+             arrival_counter <= last_arrival_counter ||
+             completion_counter <= last_completion_counter)); then
+          ((movement_counter > 0)) ||
+            fail_run "autopilot movement did not advance after copyover"
+          ((arrival_counter > 0)) ||
+            fail_run "the ferry reached no waypoint after copyover"
+          ((completion_counter > 0)) ||
+            fail_run "the ferry completed no route after copyover"
+          movement_delta=$movement_counter
+          arrival_delta=$arrival_counter
+          completion_delta=$completion_counter
+        else
+          ((movement_counter > last_movement_counter)) ||
+            fail_run "autopilot movement did not advance between live samples"
+          ((arrival_counter > last_arrival_counter)) ||
+            fail_run "the ferry reached no waypoint between live samples"
+          ((completion_counter > last_completion_counter)) ||
+            fail_run "the ferry completed no route between live samples"
+          movement_delta=$((movement_counter - last_movement_counter))
+          arrival_delta=$((arrival_counter - last_arrival_counter))
+          completion_delta=$((completion_counter - last_completion_counter))
+        fi
+        movement_steps=$((movement_steps + movement_delta))
+        waypoint_arrivals=$((waypoint_arrivals + arrival_delta))
+        route_completions=$((route_completions + completion_delta))
+        last_movement_counter=$movement_counter
+        last_arrival_counter=$arrival_counter
+        last_completion_counter=$completion_counter
       fi
-      last_movement_counter=$movement_counter
-      last_arrival_counter=$arrival_counter
-      last_completion_counter=$completion_counter
-      movement_steps=$((movement_counter - initial_movement_counter))
-      waypoint_arrivals=$((arrival_counter - initial_arrival_counter))
-      route_completions=$((completion_counter - initial_completion_counter))
+      last_live_copyover_recoveries=$copyover_recoveries
     fi
 
     coordinates=$(sed -nE \
@@ -727,11 +747,12 @@ run_monitor()
 
     printf '%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$x" "$y" "$fleet_line" >>"$run_dir/live-samples.tsv"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$fleet_count" "$dynamic_rooms" \
       "$dynamic_capacity" "$mobiles" "$objects" "$rooms" "$world_lists" \
       "$movement_trails" "$buffer_switches" "$buffer_overflows" \
       "$movement_counter" "$arrival_counter" "$completion_counter" "$expected_state" \
+      "$copyover_recoveries" \
       >>"$run_dir/live-system-samples.tsv"
     if [[ "$capture_memory" == true ]]; then
       if ! "$script_dir/sample_process_memory_details.sh" \
@@ -1120,7 +1141,7 @@ run_monitor()
     printf 'epoch\tlabel\tfleet\tdynamic_rooms\tdynamic_capacity\t'
     printf 'mobiles\tobjects\trooms\tlists\tmovement_trails\t'
     printf 'buffer_switches\tbuffer_overflows\tmovement_steps\t'
-    printf 'waypoint_arrivals\troute_completions\tstate\n'
+    printf 'waypoint_arrivals\troute_completions\tstate\tcopyovers\n'
   } >"$run_dir/live-system-samples.tsv"
   "$script_dir/sample_process_memory_details.sh" --header \
     >"$run_dir/process-memory-details.tsv"
@@ -1162,6 +1183,10 @@ run_monitor()
     fi
 
     if ((now >= next_live_sample)); then
+      verify_keepalive
+      while ((next_keepalive_check <= now)); do
+        next_keepalive_check=$((next_keepalive_check + 20))
+      done
       run_live_sample "elapsed-$((now - started_epoch))" active
       while ((next_live_sample <= now)); do
         next_live_sample=$((next_live_sample + live_interval))
