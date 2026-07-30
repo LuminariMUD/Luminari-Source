@@ -246,7 +246,11 @@ merchant, copyover, and multiplayer encounter testing.
   idle restocking returns both ports to 100. `vtradecheck 1000` exposes the
   same production calculation to one actual Kohdee session, and the
   500-vessel runner requires its PASS transcript. Keep this item open until
-  that post-soak installed-build command is recorded in-game.
+  that post-soak installed-build command is recorded in-game. A safe July 30
+  Kohdee probe against the pinned ferry executable returned `Huh?!` and
+  logged out cleanly in five seconds. Git history confirms this is expected:
+  pinned source `0afad17b` predates the command's `ac418322` implementation.
+  Do not retry it until the candidate is installed after the soak.
 - [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
   tests. The automated layer now passes: overlapping regions use containment
   position and then lowest VNUM regardless of query order; equal-chance rows

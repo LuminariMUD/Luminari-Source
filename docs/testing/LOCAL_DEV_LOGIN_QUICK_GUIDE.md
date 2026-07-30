@@ -327,6 +327,12 @@ account and exact Kohdee character for the sustained-market proof:
 ./scripts/dev_kohdee_login_smoke.sh --commands "vtradecheck 1000"
 ```
 
+Do not run this command against the active July 30 pinned ferry build. That
+executable comes from source `0afad17b`, while `vtradecheck` was added later in
+`ac418322`; a safe Kohdee probe therefore returned `Huh?!` and logged out
+cleanly. Wait for the post-soak `make test` and `make install`, then use the
+single command above.
+
 This staff diagnostic runs the production batch-pricing and supply functions
 without changing Kohdee's gold, cargo, or the live port tables. It executes
 1,000 deliberately oversized transfers that alternate direction, checks the

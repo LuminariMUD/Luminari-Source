@@ -376,6 +376,9 @@ bulk-quote reversal exploit it exposed.
 - The actual Kohdee `vtradecheck 1000` transcript remains queued behind the
   pinned 24-hour ferry soak; the 500-vessel runner now requires it before
   measurement.
+- A safe Kohdee probe confirmed why the command must remain queued: the pinned
+  source `0afad17b` predates the `ac418322` implementation, so that executable
+  returned `Huh?!` and Kohdee logged out cleanly in five seconds.
 
 ### Vessel system - deterministic encounters and Z-axis movement
 
