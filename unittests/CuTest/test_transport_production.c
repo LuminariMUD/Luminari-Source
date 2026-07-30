@@ -1570,6 +1570,11 @@ void Test_vessel_pvp_consent_gate(CuTest *tc)
   /* Unowned hulls (test vessels, unclaimed NPC ferries) are fair game */
   CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
 
+  /* A durable NPC merchant remains PvE even after its registry is attached */
+  ship.merchant_id = 7;
+  CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
+  ship.merchant_id = 0;
+
   /* Your own hull is always actionable */
   strlcpy(ship.owner, "Vex", sizeof(ship.owner));
   CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
@@ -1697,6 +1702,53 @@ void Test_vessel_public_schedule_passenger_fare_policy(CuTest *tc)
   CuAssertIntEquals(tc, 20, GET_GOLD(&passenger));
   CuAssertTrue(tc, !vessel_collect_passenger_fare(NULL, &ship));
   CuAssertTrue(tc, !vessel_collect_passenger_fare(&passenger, NULL));
+}
+
+void Test_vessel_merchant_respawn_gate(CuTest *tc)
+{
+  const time_t now = (time_t)1000;
+
+  CuAssertTrue(tc, vessel_merchant_should_spawn(TRUE, 0, 0, now));
+  CuAssertTrue(tc, vessel_merchant_should_spawn(TRUE, 0, now, now));
+  CuAssertTrue(tc, vessel_merchant_should_spawn(TRUE, -1, now - 1, now));
+  CuAssertTrue(tc, !vessel_merchant_should_spawn(FALSE, 0, 0, now));
+  CuAssertTrue(tc, !vessel_merchant_should_spawn(TRUE, 42, 0, now));
+  CuAssertTrue(tc, !vessel_merchant_should_spawn(TRUE, 0, now + 1, now));
+}
+
+void Test_vessel_merchant_faction_consequence_scaling(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 0, vessel_merchant_faction_penalty(-1, FALSE));
+  CuAssertIntEquals(tc, 0, vessel_merchant_faction_penalty(0, FALSE));
+  CuAssertIntEquals(tc, 25, vessel_merchant_faction_penalty(25, FALSE));
+  CuAssertIntEquals(tc, VESSEL_MERCHANT_LOSS_STANDING_PENALTY,
+                    vessel_merchant_faction_penalty(0, TRUE));
+  CuAssertIntEquals(tc, 125, vessel_merchant_faction_penalty(25, TRUE));
+  CuAssertIntEquals(tc, INT_MAX,
+                    vessel_merchant_faction_penalty(INT_MAX, TRUE));
+}
+
+void Test_vessel_merchant_loss_responsibility_window(CuTest *tc)
+{
+  const time_t now = (time_t)1000;
+
+  CuAssertTrue(tc, vessel_merchant_responsibility_active(
+                       now - VESSEL_MERCHANT_RESPONSIBILITY_SECONDS, now));
+  CuAssertTrue(tc, !vessel_merchant_responsibility_active(
+                       now - VESSEL_MERCHANT_RESPONSIBILITY_SECONDS - 1, now));
+  CuAssertTrue(tc, !vessel_merchant_responsibility_active(0, now));
+  CuAssertTrue(tc, !vessel_merchant_responsibility_active(now + 1, now));
+}
+
+void Test_vessel_merchant_constructor_rejects_invalid_identity(CuTest *tc)
+{
+  CuAssertIntEquals(
+      tc, -1,
+      vessel_spawn_public_from_prototype_at(0, "Invalid Merchant", 0, 0, 0));
+  CuAssertIntEquals(
+      tc, -1, vessel_spawn_public_from_prototype_at(1, "", 0, 0, 0));
+  CuAssertIntEquals(
+      tc, -1, vessel_spawn_public_from_prototype_at(1, NULL, 0, 0, 0));
 }
 
 void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)

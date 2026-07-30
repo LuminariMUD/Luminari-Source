@@ -51,6 +51,9 @@ rename_keys=(
   "pubsub_subscriptions|player_name"
   "player_levelups|character_name"
   "player_levels|char_name"
+  "vessel_bounties|player_name"
+  "vessel_merchant_consequences|player_name"
+  "vessel_npc_merchants|last_attacker_name"
 )
 
 for key in "${rename_keys[@]}"; do

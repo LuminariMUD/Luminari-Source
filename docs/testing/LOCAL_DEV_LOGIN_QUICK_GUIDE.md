@@ -56,20 +56,52 @@ it never creates another account. It installs only missing harbor world
 records, seeds the database fixture, hard-restarts the supervised local MUD,
 and verifies the two docks, public ferry, NPC pilot, hourly route, 10-gold
 passenger fare, territorial/free-sea/pirate-cove wilderness regions, and
-generated bridge/cargo triggers. After restart it confirms that `seastate`
-resolves the ferry's canonical legal waters, boards through the ordinary
-hull-object path as Kohdee, proves exactly one fare was deducted, restores
-Kohdee's original gold, resumes the ferry, and waits up to 45 seconds for a
-real territorial/free-sea boundary announcement. It immediately correlates
-that announcement with `seastate`, then runs the two-character, cross-room
-`shiptalk` and ashore-isolation proof on the same ferry. If the master account
-has only Kohdee, it creates reusable `Vesselmate` on that account and retries
-the channel proof automatically. The provisioner discovers every account-menu
-Name and the ferry slot; do not look either up or create a second account. The
-first run may need about one minute because it creates the ferry and proves a
-second restart. Before the fare, crossing, and channel checks were added, an
-already provisioned harbor took about 30 seconds; remeasure the augmented path
-after the active ferry soak releases the installed build.
+generated bridge/cargo triggers. Phase 14 also seeds one scheduled NPC merchant
+with a durable faction identity, public hull, real spice cargo, pilot, route,
+and five-second recovery delay. The provisioner requires a positive merchant
+generation and checks its registry row, runtime identity, manifest, pilot, and
+schedule both in SQL and through one batched Kohdee session. If the definition
+is stale or still inside that recovery delay, it automatically runs two
+in-game reconciliation passes around one six-second wait, then checks the
+state again; do not stop to repair the row or relaunch the provisioner by hand.
+
+After restart it confirms that `seastate` resolves the ferry's canonical legal
+waters, boards through the ordinary hull-object path as Kohdee, proves exactly
+one fare was deducted, restores Kohdee's original gold, resumes the ferry, and
+waits up to 45 seconds for a real territorial/free-sea boundary announcement.
+It immediately correlates that announcement with `seastate`, then runs the
+two-character, cross-room `shiptalk` and ashore-isolation proof on the same
+ferry. If the master account has only Kohdee, it creates reusable `Vesselmate`
+on that account and retries the channel proof automatically. The provisioner
+discovers every account-menu Name plus the ferry and merchant slots; do not
+look them up or create a second account. The first run may need about one
+minute because it creates the ferry and proves a second restart. Before the
+fare, crossing, channel, and merchant checks were added, an already provisioned
+harbor took about 30 seconds; remeasure the augmented path after the active
+ferry soak releases the installed build.
+
+The provisioner intentionally does not sink the merchant because the invoking
+character receives real faction and bounty consequences. For the final
+development acceptance transcript, copy the merchant ID from its final PASS
+line and use one session:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands \
+  "vmerchant list" \
+  "vmerchant sink <merchant-id> confirm" \
+  "@wait 6" \
+  "vmerchant sync" \
+  "vmerchant list" \
+  "bounty"
+```
+
+This is a destructive local-development check: it removes the active hull and
+cargo, changes Kohdee's saved standing and bounty, then reconciles the due
+replacement. Require the second list to show the same merchant ID with its
+generation increased by one and a new active ship. Preserve and restore the
+development player/database baseline if Kohdee must remain unchanged. Do not
+run this command while a ferry soak or scale measurement owns the installed
+server.
 
 ## Durable Vessel Ferry Soak
 
@@ -211,7 +243,7 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 246 of 246. The concise Memcheck gate reports zero
+The current suite result is 250 of 250. The concise Memcheck gate reports zero
 errors and zero definite, indirect, or possible loss; reachable
 process-lifetime registries and profiler buffers remain reported but are not
 classified as lost. `make test` may leave a root-level `circle` while it builds
@@ -391,11 +423,10 @@ account first:
 ```
 
 The one-argument creation form uses the master account. Do not create a second
-account for this check. A read-only July 30 database check found that the
-current local master account contains only Kohdee. The shared harbor
-provisioner handles this automatically after the active soak; use the command
-above only when running the standalone channel gate first. The gate discovers
-`Vesselmate` automatically, so never pass or look up its account-menu slot.
+account for this check. The shared harbor provisioner handles a missing second
+character automatically; use the command above only when running the
+standalone channel gate first. The gate discovers `Vesselmate` automatically,
+so never pass or look up its account-menu slot.
 
 ## Fast Native MSDP Vessel-State Gate
 
@@ -615,7 +646,7 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
-source derives 77 keywords. The July 29, 2026 installed-build run checked the
+source derives 78 keywords. The July 29, 2026 installed-build run checked the
 then-current 75 in 54 seconds. This replaces one login cycle per keyword and
 automatically includes newly gated commands.
 

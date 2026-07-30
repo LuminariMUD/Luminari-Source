@@ -40,7 +40,8 @@ tables.
 | 11 | `vessels_phase11_schema.sql` | `verify_vessels_phase11.sql` | `vessels_phase11_rollback.sql` | DG attachments for generated interior room templates |
 | 12 | `vessels_phase12_schema.sql` | `verify_vessels_phase12.sql` | `vessels_phase12_rollback.sql` | Persistent public-vessel passenger fares |
 | 13 | `vessels_phase13_schema.sql` | `verify_vessels_phase13.sql` | `vessels_phase13_rollback.sql` | Piracy law keyed to geographic wilderness regions |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 77 command keywords |
+| 14 | `vessels_phase14_schema.sql` | `verify_vessels_phase14.sql` | `vessels_phase14_rollback.sql` | Durable NPC merchant definitions and exactly-once consequences |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 32 authoritative vessel and vehicle help entries covering 78 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -53,6 +54,9 @@ generated-room DG attachments. Phase 12 extends Phase 09 schedules; its
 rollback removes configured passenger fares while leaving the schedules active.
 Phase 13 references builder-authored geographic regions without owning their
 geometry; its rollback removes only vessel-law metadata.
+Phase 14 references the existing prototype, route, pilot, cargo, runtime, and
+bounty systems without foreign keys. Retire active merchant hulls before its
+rollback; the rollback removes definitions and consequence audit/delivery rows.
 
 ## Pre-Deployment Gate
 
@@ -151,6 +155,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase13_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase14_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
 
@@ -183,6 +189,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase13.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase14.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
 
@@ -192,7 +200,7 @@ Also verify:
 - No out-of-band port supply or invalid encounter-region references.
 - Pre-existing ship, owner, cargo, crew, route, and schedule counts.
 - Representative records against the pre-deployment snapshot.
-- All 77 vessel and vehicle command-keyword searches in the running game,
+- All 78 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -238,6 +246,8 @@ restore, run them in reverse dependency order:
 
 ```bash
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase14_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase13_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase12_rollback.sql
@@ -259,12 +269,12 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase2_rollback.sql
 ```
 
-These scripts delete normalized weapons, insurance settlements, runtime
-snapshots, encounters, economy data, ownership state, prototypes, interiors,
-cargo, and crew. Never run them merely to retry an install. After rollback or
-restore, run the previous version's verification, compare the baseline census,
-start the previous application, and exercise representative ships before
-reopening access.
+These scripts delete merchant definitions and consequences, normalized
+weapons, insurance settlements, runtime snapshots, encounters, economy data,
+ownership state, prototypes, interiors, cargo, and crew. Never run them merely
+to retry an install. After rollback or restore, run the previous version's
+verification, compare the baseline census, start the previous application, and
+exercise representative ships before reopening access.
 
 ## Deployment Record
 

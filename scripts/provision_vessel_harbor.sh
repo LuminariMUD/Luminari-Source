@@ -385,6 +385,7 @@ provision_world_file trg 700.trg
 apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
 
 legal_waters_valid=$(database_scalar \
@@ -443,6 +444,75 @@ legal_waters_valid=$(database_scalar \
   fail "the harbor legal-water regions or vessel-law metadata are invalid"
 
 restart_development_mud
+
+merchant_id=$(database_scalar \
+  "SELECT merchant_id
+     FROM vessel_npc_merchants
+    WHERE name = 'Harbor Sandbox Merchant'")
+[[ "$merchant_id" =~ ^[1-9][0-9]*$ ]] ||
+  fail "the harbor NPC merchant definition was not seeded"
+
+refresh_merchant_state()
+{
+  merchant_slot=$(database_scalar \
+    "SELECT active_ship_id
+       FROM vessel_npc_merchants
+      WHERE merchant_id = $merchant_id")
+  merchant_generation=$(database_scalar \
+    "SELECT generation
+       FROM vessel_npc_merchants
+      WHERE merchant_id = $merchant_id")
+  merchant_runtime_valid=$(database_scalar \
+    "SELECT COUNT(*)
+       FROM vessel_npc_merchants AS merchant
+       JOIN ship_runtime_state AS runtime
+         ON runtime.ship_id = merchant.active_ship_id
+       JOIN ship_interiors AS interior
+         ON interior.ship_id = merchant.active_ship_id
+       JOIN ship_schedules AS schedule
+         ON schedule.ship_id = merchant.active_ship_id
+       JOIN ship_routes AS route
+         ON route.route_id = schedule.route_id
+       JOIN ship_crew_roster AS crew
+         ON crew.ship_id = merchant.active_ship_id
+        AND crew.crew_role = 'pilot'
+        AND crew.npc_vnum = merchant.pilot_mob_vnum
+        AND crew.status = 'active'
+       JOIN ship_cargo_manifest AS cargo
+         ON cargo.ship_id = merchant.active_ship_id
+        AND cargo.cargo_room = 0
+        AND cargo.item_vnum = merchant.cargo_commodity_id
+        AND cargo.item_count = merchant.cargo_quantity
+      WHERE merchant.merchant_id = $merchant_id
+        AND merchant.enabled = 1
+        AND merchant.generation = $merchant_generation
+        AND interior.owner = ''
+        AND interior.vessel_name = merchant.name
+        AND runtime.prototype_id = merchant.prototype_id
+        AND route.route_id = merchant.route_id
+        AND schedule.enabled = 1")
+}
+
+refresh_merchant_state
+if [[ ! "$merchant_slot" =~ ^[1-9][0-9]*$ ||
+      ! "$merchant_generation" =~ ^[1-9][0-9]*$ ||
+      "$merchant_runtime_valid" != 1 ]]; then
+  merchant_recovery_output=$(
+    "$script_dir/dev_kohdee_login_smoke.sh" --commands \
+      "vmerchant sync" \
+      "@wait 6" \
+      "vmerchant sync"
+  )
+  printf '%s\n' "$merchant_recovery_output"
+  refresh_merchant_state
+fi
+
+[[ "$merchant_slot" =~ ^[1-9][0-9]*$ ]] ||
+  fail "the harbor NPC merchant did not assemble an active hull"
+[[ "$merchant_generation" =~ ^[1-9][0-9]*$ ]] ||
+  fail "the harbor NPC merchant has no lifecycle generation"
+[[ "$merchant_runtime_valid" == 1 ]] ||
+  fail "the harbor NPC merchant hull, route, pilot, or cargo is incomplete"
 
 ferry_prototype_id=$(database_scalar \
   "SELECT MIN(prototype_id) FROM ship_prototypes WHERE name = 'Harbor Sandbox Ferry'")
@@ -602,6 +672,11 @@ verification_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "shipgoto $ferry_slot" \
   "showschedule" \
   "seastate" \
+  "shipstatus" \
+  "vmerchant list" \
+  "shipgoto $merchant_slot" \
+  "cargomanifest" \
+  "showschedule" \
   "shipstatus")
 printf '%s\n' "$verification_output"
 
@@ -618,6 +693,13 @@ grep -Eq \
   "Waters    : Harbor Sandbox (Territorial Waters|Free Seas)" \
   <<<"$verification_output" ||
   fail "seastate did not resolve the ferry's canonical legal-water region"
+grep -Fq "Harbor Sandbox Merchant" <<<"$verification_output" ||
+  fail "the in-game merchant registry did not list the harbor merchant"
+grep -Fq "spice" <<<"$verification_output" ||
+  fail "the harbor NPC merchant did not expose its real cargo manifest"
+grep -Fq "Merchant Registry: $merchant_id generation $merchant_generation" \
+  <<<"$verification_output" ||
+  fail "shipstatus did not attach the persistent NPC merchant identity"
 
 gold_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands "gold")
 kohdee_gold=$(awk '
@@ -721,3 +803,5 @@ grep -Fq "aboard channel stayed isolated" <<<"$channel_output" ||
 
 printf 'PASS: harbor sandbox and persistent ferry verified in ship slot %s.\n' \
   "$ferry_slot"
+printf 'PASS: NPC merchant %s generation %s verified in ship slot %s.\n' \
+  "$merchant_id" "$merchant_generation" "$merchant_slot"

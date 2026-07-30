@@ -217,6 +217,7 @@ circle_SOURCES = \
 	src/vessels_combat.c \
 	src/vessels_crew.c \
 	src/vessels_hazards.c \
+	src/vessels_merchants.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_edit.c \
@@ -335,6 +336,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase11.sql \
 	sql/components/verify_vessels_phase12.sql \
 	sql/components/verify_vessels_phase13.sql \
+	sql/components/verify_vessels_phase14.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_phase11_rollback.sql \
 	sql/components/vessels_phase11_schema.sql \
@@ -342,6 +344,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase12_schema.sql \
 	sql/components/vessels_phase13_rollback.sql \
 	sql/components/vessels_phase13_schema.sql \
+	sql/components/vessels_phase14_rollback.sql \
+	sql/components/vessels_phase14_schema.sql \
 	README.md
 
 # Run unit tests

@@ -782,6 +782,7 @@ ACMD(do_plunder)
   bool law_found;
   int taken;
   int bounty;
+  int applied_bounty;
   int i;
 
   prize = get_ship_from_room(IN_ROOM(ch));
@@ -859,6 +860,7 @@ ACMD(do_plunder)
 
   law_found = vessel_piracy_law_for_ship(prize, &law);
   bounty = vessel_piracy_bounty_for_units(taken, law.bounty_percent);
+  applied_bounty = 0;
 
   /* Regional law comes from shared wilderness geography. Pirate coves may
    * waive the bounty; a valid marque waives any positive regional penalty. */
@@ -875,6 +877,7 @@ ACMD(do_plunder)
   else
   {
     vessel_add_bounty(GET_NAME(ch), bounty);
+    applied_bounty = bounty;
     if (law.configured)
     {
       send_to_char(ch,
@@ -899,6 +902,7 @@ ACMD(do_plunder)
     }
   }
 
+  vessel_merchant_record_plunder(ch, prize, taken, applied_bounty);
   log("Info: %s plundered %d units from ship %d '%s'", GET_NAME(ch), taken, prize->shipnum,
       prize->name);
 }

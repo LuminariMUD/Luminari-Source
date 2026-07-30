@@ -578,6 +578,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_BONUS_SLOTS_REGEN_TIMER(ch) = 0;
     GET_PVP_TIMER(ch) = 0;
     GET_VESSEL_INSURANCE_CLAIM(ch) = 0;
+    GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = 0;
     GET_QUIT_SURVEY_DONE(ch) = FALSE;
     ch->player_specials->saved.last_device_recharge = 0;
 
@@ -1136,6 +1137,12 @@ int load_char(const char *name, struct char_data *ch)
           load_favored_terrains(fl, ch);
         else if (!strcmp(tag, "FaAd"))
           GET_FACTION_STANDING(ch, FACTION_ADVENTURERS) = atol(line);
+        else if (!strcmp(tag, "Fa01"))
+          GET_FACTION_STANDING(ch, 1) = atol(line);
+        else if (!strcmp(tag, "Fa02"))
+          GET_FACTION_STANDING(ch, 2) = atol(line);
+        else if (!strcmp(tag, "Fa03"))
+          GET_FACTION_STANDING(ch, 3) = atol(line);
         else if (!strcmp(tag, "Feat"))
           load_feats(fl, ch);
         else if (!strcmp(tag, "FrgC"))
@@ -1971,6 +1978,8 @@ int load_char(const char *name, struct char_data *ch)
           VITAL_STRIKING(ch) = atoi(line);
         else if (!strcmp(tag, "VIns"))
           GET_VESSEL_INSURANCE_CLAIM(ch) = strtoull(line, NULL, 10);
+        else if (!strcmp(tag, "VMer"))
+          GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = strtoull(line, NULL, 10);
         break;
 
       case 'W':
@@ -2486,6 +2495,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("VitS: %d\n", VITAL_STRIKING(ch));
   if (GET_VESSEL_INSURANCE_CLAIM(ch) != 0)
     BUFFER_WRITE("VIns: %llu\n", GET_VESSEL_INSURANCE_CLAIM(ch));
+  if (GET_VESSEL_MERCHANT_CONSEQUENCE(ch) != 0)
+    BUFFER_WRITE("VMer: %llu\n", GET_VESSEL_MERCHANT_CONSEQUENCE(ch));
 
   sprintascii(bits, PLR_FLAGS(ch)[0]);
   sprintascii(bits2, PLR_FLAGS(ch)[1]);
@@ -2574,6 +2585,9 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("FBAB: %d\n", FIXED_BAB(ch));
 
   BUFFER_WRITE("FaAd: %ld\n", GET_FACTION_STANDING(ch, FACTION_ADVENTURERS));
+  BUFFER_WRITE("Fa01: %ld\n", GET_FACTION_STANDING(ch, 1));
+  BUFFER_WRITE("Fa02: %ld\n", GET_FACTION_STANDING(ch, 2));
+  BUFFER_WRITE("Fa03: %ld\n", GET_FACTION_STANDING(ch, 3));
 
   if (GET_BAD_PWS(ch) != PFDEF_BADPWS)
     BUFFER_WRITE("Badp: %d\n", GET_BAD_PWS(ch));
