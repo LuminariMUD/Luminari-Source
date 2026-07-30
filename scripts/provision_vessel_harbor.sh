@@ -8,6 +8,9 @@ package_dir="$repo_root/lib/world/vessel_harbor"
 temporary_dir=$(mktemp -d /tmp/luminari-vessel-harbor.XXXXXX)
 server_unit=luminari-dev-login-smoke.service
 ferry_passenger_fare=10
+territorial_region_vnum=7000001
+free_seas_region_vnum=7000002
+pirate_cove_region_vnum=7000003
 
 cleanup()
 {
@@ -332,6 +335,48 @@ database_password=$(config_value "$repo_root/lib/mysql_config" mysql_password)
 [[ -n "$database_host" && -n "$database_name" && -n "$database_user" ]] ||
   fail "lib/mysql_config is incomplete"
 
+region_collision_count=$(database_scalar \
+  "SELECT
+     (
+       SELECT COUNT(*)
+        FROM region_data
+        WHERE (vnum = $territorial_region_vnum
+               AND COALESCE(name, '') <> 'Harbor Sandbox Territorial Waters')
+           OR (name = 'Harbor Sandbox Territorial Waters'
+               AND vnum <> $territorial_region_vnum)
+           OR (vnum = $free_seas_region_vnum
+               AND COALESCE(name, '') <> 'Harbor Sandbox Free Seas')
+           OR (name = 'Harbor Sandbox Free Seas'
+               AND vnum <> $free_seas_region_vnum)
+           OR (vnum = $pirate_cove_region_vnum
+               AND COALESCE(name, '') <> 'Harbor Sandbox Pirate Cove')
+           OR (name = 'Harbor Sandbox Pirate Cove'
+               AND vnum <> $pirate_cove_region_vnum)
+     )
+     +
+     (
+       SELECT COUNT(*)
+         FROM region_index AS region_idx
+         LEFT JOIN region_data AS region ON region.vnum = region_idx.vnum
+        WHERE region_idx.vnum IN (
+          $territorial_region_vnum,
+          $free_seas_region_vnum,
+          $pirate_cove_region_vnum
+        )
+          AND (
+            region.vnum IS NULL
+            OR (region_idx.vnum = $territorial_region_vnum
+                AND COALESCE(region.name, '') <>
+                    'Harbor Sandbox Territorial Waters')
+            OR (region_idx.vnum = $free_seas_region_vnum
+                AND COALESCE(region.name, '') <> 'Harbor Sandbox Free Seas')
+            OR (region_idx.vnum = $pirate_cove_region_vnum
+                AND COALESCE(region.name, '') <> 'Harbor Sandbox Pirate Cove')
+          )
+     )")
+[[ "$region_collision_count" == 0 ]] ||
+  fail "reserved harbor legal-water region VNUM or name is already in use"
+
 ensure_vessel_zone_range
 provision_world_file wld 10000.wld
 provision_world_file mob 700.mob
@@ -339,7 +384,63 @@ provision_world_file trg 700.trg
 
 apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
+
+legal_waters_valid=$(database_scalar \
+  "SELECT IF(
+       COUNT(*) = 3
+       AND SUM(
+         CASE
+           WHEN law.region_vnum = $territorial_region_vnum
+            AND region.name = 'Harbor Sandbox Territorial Waters'
+            AND law.waters_type = 1
+            AND law.priority = 100
+            AND law.bounty_percent = 150
+            AND law.authority = 'Harbor Admiralty'
+            AND ST_Within(
+              ST_GeomFromText('POINT(-66 92)'),
+              region_idx.region_polygon
+            )
+             THEN 1
+           WHEN law.region_vnum = $free_seas_region_vnum
+            AND region.name = 'Harbor Sandbox Free Seas'
+            AND law.waters_type = 2
+            AND law.priority = 150
+            AND law.bounty_percent = 100
+            AND law.authority = 'Free Captains'' Compact'
+            AND ST_Within(
+              ST_GeomFromText('POINT(-64 82)'),
+              region_idx.region_polygon
+            )
+             THEN 1
+           WHEN law.region_vnum = $pirate_cove_region_vnum
+            AND region.name = 'Harbor Sandbox Pirate Cove'
+            AND law.waters_type = 3
+            AND law.priority = 200
+            AND law.bounty_percent = 0
+            AND law.authority = 'Cove Brotherhood'
+            AND ST_Within(
+              ST_GeomFromText('POINT(-58 91)'),
+              region_idx.region_polygon
+            )
+             THEN 1
+           ELSE 0
+         END
+       ) = 3,
+       1,
+       0
+     )
+     FROM vessel_region_law AS law
+     JOIN region_data AS region ON region.vnum = law.region_vnum
+     JOIN region_index AS region_idx ON region_idx.vnum = law.region_vnum
+    WHERE law.region_vnum IN (
+      $territorial_region_vnum,
+      $free_seas_region_vnum,
+      $pirate_cove_region_vnum
+    )")
+[[ "$legal_waters_valid" == 1 ]] ||
+  fail "the harbor legal-water regions or vessel-law metadata are invalid"
 
 restart_development_mud
 
@@ -500,6 +601,7 @@ verification_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "vstat r 1000390" \
   "shipgoto $ferry_slot" \
   "showschedule" \
+  "seastate" \
   "shipstatus")
 printf '%s\n' "$verification_output"
 
@@ -512,6 +614,10 @@ grep -Fq "Room name: Harbor Sandbox East Dock" <<<"$verification_output" ||
 grep -Fq "Passenger Fare: $ferry_passenger_fare gold per boarding" \
   <<<"$verification_output" ||
   fail "the ferry passenger fare did not survive restart"
+grep -Eq \
+  "Waters    : Harbor Sandbox (Territorial Waters|Free Seas)" \
+  <<<"$verification_output" ||
+  fail "seastate did not resolve the ferry's canonical legal-water region"
 
 gold_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands "gold")
 kohdee_gold=$(awk '

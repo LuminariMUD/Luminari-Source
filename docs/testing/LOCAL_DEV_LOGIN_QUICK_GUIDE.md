@@ -50,14 +50,16 @@ This development-only command reuses the configured master account and Kohdee;
 it does not create another account or character. It installs only missing
 harbor world records, seeds the database fixture, hard-restarts the supervised
 local MUD, and verifies the two docks, public ferry, NPC pilot, hourly route,
-10-gold passenger fare, and generated bridge/cargo triggers. After restart it
-boards through the ordinary hull-object path as Kohdee, proves exactly one fare
-was deducted, restores Kohdee's original gold, resumes the ferry, and returns
-Kohdee to room 1000389. No second account or disposable character is needed.
-The first run may need about one minute because it creates the ferry and proves
-a second restart. Before the fare check was added, an already provisioned
-harbor took about 30 seconds; remeasure the augmented path after the active
-ferry soak releases the installed build.
+10-gold passenger fare, territorial/free-sea/pirate-cove wilderness regions,
+and generated bridge/cargo triggers. After restart it confirms that `seastate`
+resolves the ferry's canonical legal waters, boards through the ordinary
+hull-object path as Kohdee, proves exactly one fare was deducted, restores
+Kohdee's original gold, resumes the ferry, and returns Kohdee to room 1000389.
+No second account or disposable character is needed. The first run may need
+about one minute because it creates the ferry and proves a second restart.
+Before the fare and region checks were added, an already provisioned harbor
+took about 30 seconds; remeasure the augmented path after the active ferry soak
+releases the installed build.
 
 ## Durable Vessel Ferry Soak
 

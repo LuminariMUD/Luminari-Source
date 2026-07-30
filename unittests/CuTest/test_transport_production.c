@@ -1061,6 +1061,41 @@ void Test_vessel_trade_cargo_weight(CuTest *tc)
   CuAssertIntEquals(tc, 0, vessel_cargo_weight(&ship));
 }
 
+void Test_vessel_piracy_regional_bounty_policy(CuTest *tc)
+{
+  struct vessel_piracy_law law;
+
+  memset(&law, 0, sizeof(law));
+  CuAssertStrEquals(tc, "unclaimed waters",
+                    vessel_waters_type_name(VESSEL_WATERS_UNCLAIMED));
+  CuAssertStrEquals(tc, "territorial waters",
+                    vessel_waters_type_name(VESSEL_WATERS_TERRITORIAL));
+  CuAssertStrEquals(tc, "free seas",
+                    vessel_waters_type_name(VESSEL_WATERS_FREE));
+  CuAssertStrEquals(tc, "pirate cove",
+                    vessel_waters_type_name(VESSEL_WATERS_PIRATE_COVE));
+  CuAssertStrEquals(tc, "unclaimed waters", vessel_waters_type_name(INT_MAX));
+
+  CuAssertIntEquals(tc, 0, vessel_piracy_bounty_for_units(0, 100));
+  CuAssertIntEquals(tc, 0, vessel_piracy_bounty_for_units(1, 0));
+  CuAssertIntEquals(tc, 15, vessel_piracy_bounty_for_units(1, -1));
+  CuAssertIntEquals(tc, 15, vessel_piracy_bounty_for_units(1, 100));
+  CuAssertIntEquals(tc, 7, vessel_piracy_bounty_for_units(1, 50));
+  CuAssertIntEquals(tc, 22, vessel_piracy_bounty_for_units(1, 150));
+  CuAssertIntEquals(tc, 75, vessel_piracy_bounty_for_units(1, 1000));
+  CuAssertIntEquals(tc, INT_MAX,
+                    vessel_piracy_bounty_for_units(INT_MAX,
+                                                   VESSEL_PIRACY_BOUNTY_PERCENT_MAX));
+
+  CuAssertTrue(tc, !vessel_piracy_wanted_port_is_open(NULL));
+  law.waters_type = VESSEL_WATERS_PIRATE_COVE;
+  CuAssertTrue(tc, !vessel_piracy_wanted_port_is_open(&law));
+  law.configured = TRUE;
+  CuAssertTrue(tc, vessel_piracy_wanted_port_is_open(&law));
+  law.waters_type = VESSEL_WATERS_FREE;
+  CuAssertTrue(tc, !vessel_piracy_wanted_port_is_open(&law));
+}
+
 void Test_vessel_encounter_region_selection_is_order_independent(CuTest *tc)
 {
   struct region_data fixture[3];

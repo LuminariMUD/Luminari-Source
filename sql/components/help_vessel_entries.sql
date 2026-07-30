@@ -372,9 +372,14 @@ BOUNTY [<player>]
 
 MARQUE
   At a port\'s admiralty office (any dock), buy a letter of marque. It makes
-  your prizes lawful: plundering under a marque earns no bounty. Costs
-  2000 gold and lasts one day. The admiralty will not commission a captain
-  who is already WANTED - settle your affairs first.
+  your prizes lawful where an authority would otherwise post a bounty.
+  Costs 2000 gold and lasts one day. The admiralty will not commission a
+  captain who is already WANTED - settle your affairs first.
+
+Regional law comes from builder-authored wilderness geography. Territorial
+waters, free seas, and pirate coves can scale the standard 15-gold bounty per
+unit of stolen cargo from zero to 500 percent. Unmapped waters retain the
+standard rate. SEASTATE names the current waters, authority, and rate.
 
 PvP: plundering another player\'s ship requires that you and its owner both
 have PVP enabled (type \'pvp\'). Unowned and NPC hulls are always fair game.
@@ -406,6 +411,7 @@ Reads the water, sky, and depth around your vessel:
   Visibility - how far you can see; fog closes the horizon, a posted
                lookout opens it again
   Hull       - your damage state (sound, battered, crippled, sinking)
+  Waters     - named geographic waters and their piracy law, when authored
 
 Weather is the same weather a walker on the coast experiences - the storm
 you are fighting is a real storm in that part of the world, not a private
@@ -423,7 +429,11 @@ Dangerous waters: some regions of the sea, sky, and depths hold things that
 hunt ships. Seastate will tell you when you are in them. A good lookout
 gives you warning before whatever it is arrives.
 
-See also: SHIP COMBAT, SHIPREPAIR, SHIP CREW, TACTICAL', 0, FALSE)
+Legal waters use the same REGION_GEOGRAPHIC polygons as the wilderness.
+Territorial waters, free seas, and pirate coves may apply different piracy
+bounty rates. A pirate-cove port does not refuse a WANTED captain.
+
+See also: SHIP COMBAT, SHIPREPAIR, SHIP CREW, TACTICAL, PLUNDER', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SEASTATE', 'SEASTATE');

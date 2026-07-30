@@ -20,15 +20,17 @@ state is cleared after disembarkation, and the scale runner includes a real
 Kohdee Telnet-option-69 exchange; its installed-build transcript remains
 queued. Public schedule fares now have fail-closed boarding collection,
 persistence, schema migration, and a reversible Kohdee harbor check; its
-installed-build transcript is also queued behind the pinned soak. Continuous validation,
-execution of the reproducible 500-ship workload, content, beta, and production
-release work remain. Pre-soak testing repaired signed-coordinate movement and
-both unsafe legs of the sample ferry route; an actual Kohdee session now
-completes the full four-waypoint loop. The first monitor shakedown was rejected
-when its idle pre-login descriptor expired and let the game loop sleep; the
-corrected confirmation-state keepalive then passed a 150-second replacement
-with 84 continuous movement steps and exact-state restart recovery. The
-continuous 24-hour result is still unverified.
+installed-build transcript is also queued behind the pinned soak. Regional
+piracy law now keys territorial, free-sea, and pirate-cove policy to canonical
+wilderness geography; its installed-build transcript is queued with the fare
+check. Continuous validation, execution of the reproducible 500-ship workload,
+content, beta, and production release work remain. Pre-soak testing repaired
+signed-coordinate movement and both unsafe legs of the sample ferry route; an
+actual Kohdee session now completes the full four-waypoint loop. The first
+monitor shakedown was rejected when its idle pre-login descriptor expired and
+let the game loop sleep; the corrected confirmation-state keepalive then passed
+a 150-second replacement with 84 continuous movement steps and exact-state
+restart recovery. The continuous 24-hour result is still unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -120,6 +122,10 @@ merchant, copyover, and multiplayer encounter testing.
 
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
+  The public-hull, pilot, schedule, persistent-cargo, combat, and geographic
+  bounty primitives now exist. Still add a durable NPC merchant lifecycle,
+  merchant identity/faction consequences, authored production routes and
+  cargo, and actual-character destruction/recovery evidence.
 - [ ] Add passenger ferries that collect fares and recover safely after reboot.
   The code and data layer is complete: an optional fare is part of the
   persistent schedule, public boarding saves the deduction before moving the
@@ -135,6 +141,14 @@ merchant, copyover, and multiplayer encounter testing.
 - [ ] Author territorial waters, free seas, and pirate coves as
   `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
   geography rather than private coordinate tables.
+  The campaign-neutral mechanics and development content are complete:
+  Phase 13 attaches water type, authority, overlap priority, and a bounded
+  bounty multiplier to geographic region VNUMs; plunder and port refusal
+  resolve the canonical `region_index` polygon; `seastate` exposes the result.
+  The harbor seed authors territorial waters (150%), nested free seas (100%),
+  and a pirate cove (0%), and its provisioner validates the spatial index and
+  post-restart in-game display. Keep this open until the post-soak Kohdee run
+  passes and production builders author campaign regions.
 - [ ] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
 - [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and

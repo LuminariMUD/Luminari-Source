@@ -2,6 +2,45 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Canonical vessel law
+
+#### Added
+
+- Phase 13 attaches territorial-water, free-sea, or pirate-cove policy to
+  builder-authored `REGION_GEOGRAPHIC` VNUMs. Each row supplies an authority,
+  deterministic overlap priority, and a bounded 0-500% piracy-bounty rate
+  while geometry remains in the shared wilderness tables.
+- `seastate` reports the resolved named waters, legal classification,
+  authority, and bounty percentage.
+- The development harbor now includes real territorial, nested free-sea, and
+  pirate-cove polygons. Its provisioner rejects reserved-region collisions,
+  validates the spatial index, and checks the moving ferry's named waters
+  after restart.
+
+#### Changed
+
+- Unmapped waters preserve the prior 15-gold bounty per plundered cargo unit.
+  Configured regions scale that result without a private coordinate table;
+  pirate-cove ports permit WANTED captains while other port gates remain
+  closed.
+- A letter of marque waives any positive regional bounty. Invalid database
+  policy fails closed to the standard rate instead of silently legalizing a
+  raid.
+
+#### Validated
+
+- The production-linked policy test covers water-type labels, zero/negative/
+  standard/scaled/over-limit rates, and integer saturation.
+- The isolated GNU C23 build completed without warnings, the complete root
+  suite passes 239 of 239 tests, `make install` removed the root executable,
+  and the focused protocol suite remains 13 of 13.
+- MariaDB accepted the Phase 13 schema, all three spatial fixtures, verifier
+  content queries, rollback, and reapplication in session-scoped shadow
+  tables. A read-only follow-up confirmed no Phase 13 table or fixture row was
+  added to the active development database.
+- The installed-build Kohdee `seastate`, port-refusal, and plunder transcript
+  remains queued behind the pinned 24-hour ferry soak.
+
 ### Vessel passenger fares
 
 #### Added

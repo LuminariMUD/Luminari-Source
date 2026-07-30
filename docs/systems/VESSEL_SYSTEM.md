@@ -562,11 +562,18 @@ TTL; accepted contracts are never cleared by a refresh.
 
 Piracy (`src/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
 into an alongside raider, unit by unit so the weight limit stops it exactly
-at capacity. Unlawful plunder accrues bounty in `vessel_bounties`;
-`vessel_port_refuses()` is called from every port-service gate (market,
-freight, crew hall, shipyard, hull purchase), so a WANTED pirate cannot sell
-what they steal. A letter of marque (`marque`) exempts the holder for a real
-day and is refused to captains already WANTED.
+at capacity. Unlawful plunder accrues bounty in `vessel_bounties`. By default,
+the rate is 15 gold per cargo unit. `vessel_region_law` may attach a 0-500%
+multiplier, authority, water type, and overlap priority to a builder-authored
+`REGION_GEOGRAPHIC` VNUM. Runtime resolution uses the canonical
+`region_data`/`region_index` polygon at the prize's coordinates; it never uses
+a vessel-private coordinate table. `seastate` exposes the resolved named
+waters, authority, and rate. A pirate-cove port permits WANTED captains;
+`vessel_port_refuses()` remains active at every other port-service gate
+(market, freight, crew hall, shipyard, hull purchase), so a WANTED pirate
+cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
+positive regional bounties for one real day and is refused to captains already
+WANTED.
 
 ### Ownership & Shipyard Commands (Phase 06)
 
@@ -849,6 +856,7 @@ historical measurements, and the limits of the current evidence.
 | `port_commodities` | Per-port supply and local price state |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
 | `vessel_bounties` | Piracy bounty and marque state |
+| `vessel_region_law` | Legal-water metadata keyed to canonical geographic regions |
 | `vessel_encounters` | Region-keyed encounter definitions |
 | `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
 
@@ -875,26 +883,29 @@ make install
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
 world files, extends the reserved zone 700 upper bound from 79999 to 80019
-when needed, applies Phase 11 and the development seed, restarts the supervised
-local MUD, creates the ferry only when absent, and verifies the result through
-one batched Kohdee session. It rejects any conflicting zone range instead of
-overwriting it. It is intentionally not part of `make install`, `setup.sh`, or
-`deploy.sh`.
+when needed, applies Phases 11-13 and the development seed, restarts the
+supervised local MUD, creates the ferry only when absent, and verifies the
+result through batched Kohdee sessions. It rejects conflicting zone or legal
+water region reservations instead of overwriting them. It is intentionally not
+part of `make install`, `setup.sh`, or `deploy.sh`.
 
 The environment contains Testing Dock at room 1000389 and `(-66, 92)`, Harbor
 Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
 airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
 ferry with a 10-gold fare, mobile 70001 as its persistent pilot, and
-bridge/cargo DG diagnostics 70001/70002. Re-running the command reuses the same
-ferry and account rather than duplicating either. An assigned pilot at the
-bridge is excluded from ordinary mobile wandering; the fixture ferrymaster is
-also authored Sentinel so it remains at its duty station. The two docks are
-joined by four ordered route entries: west dock, channel turn at `(-64, 82)`,
-east dock, and the same channel turn for the return leg. This keeps both
-straight-line legs off the Beach cells. After a hard restart, the provisioner
-checks the restored fare, boards as Kohdee through the ordinary hull-object
-path, proves exactly 10 gold was collected, restores Kohdee's starting gold,
-resumes the ferry, and validates the exact route topology.
+bridge/cargo DG diagnostics 70001/70002. Three development-only geographic
+regions demonstrate territorial waters (150% bounty), nested free seas (100%),
+and a pirate cove (0%) without replacing wilderness geometry. Re-running the
+command reuses the same ferry and account rather than duplicating either. An
+assigned pilot at the bridge is excluded from ordinary mobile wandering; the
+fixture ferrymaster is also authored Sentinel so it remains at its duty
+station. The two docks are joined by four ordered route entries: west dock,
+channel turn at `(-64, 82)`, east dock, and the same channel turn for the return
+leg. This keeps both straight-line legs off the Beach cells. After a hard
+restart, the provisioner checks the restored fare and named legal waters,
+boards as Kohdee through the ordinary hull-object path, proves exactly 10 gold
+was collected, restores Kohdee's starting gold, resumes the ferry, and
+validates the exact route topology.
 
 The 24-hour ferry gate is run independently of an agent session:
 

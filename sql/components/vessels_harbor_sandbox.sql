@@ -84,6 +84,122 @@ VALUES
   ('bridge', 0, 70001),
   ('cargo_main', 0, 70002);
 
+-- Canonical wilderness geography for legal-water testing. The reserved
+-- region VNUMs are inserted only when neither the VNUM nor fixture name is
+-- already present; the provisioner rejects any collision.
+INSERT INTO region_data
+  (vnum, zone_vnum, name, region_type, region_polygon, region_props,
+   region_reset_data, region_reset_time)
+SELECT 7000001, 10000, 'Harbor Sandbox Territorial Waters', 1,
+       ST_GeomFromText(
+         'POLYGON((-70 78,-60 78,-60 96,-70 96,-70 78))'
+       ),
+       0, '', NULL
+ WHERE NOT EXISTS (
+   SELECT 1 FROM region_data WHERE vnum = 7000001
+ )
+   AND NOT EXISTS (
+     SELECT 1
+       FROM region_data
+      WHERE name = 'Harbor Sandbox Territorial Waters'
+   );
+
+INSERT INTO region_data
+  (vnum, zone_vnum, name, region_type, region_polygon, region_props,
+   region_reset_data, region_reset_time)
+SELECT 7000002, 10000, 'Harbor Sandbox Free Seas', 1,
+       ST_GeomFromText(
+         'POLYGON((-66 79,-60 79,-60 87,-66 87,-66 79))'
+       ),
+       0, '', NULL
+ WHERE NOT EXISTS (
+   SELECT 1 FROM region_data WHERE vnum = 7000002
+ )
+   AND NOT EXISTS (
+     SELECT 1 FROM region_data WHERE name = 'Harbor Sandbox Free Seas'
+   );
+
+INSERT INTO region_data
+  (vnum, zone_vnum, name, region_type, region_polygon, region_props,
+   region_reset_data, region_reset_time)
+SELECT 7000003, 10000, 'Harbor Sandbox Pirate Cove', 1,
+       ST_GeomFromText(
+         'POLYGON((-60 88,-56 88,-56 94,-60 94,-60 88))'
+       ),
+       0, '', NULL
+ WHERE NOT EXISTS (
+   SELECT 1 FROM region_data WHERE vnum = 7000003
+ )
+   AND NOT EXISTS (
+     SELECT 1 FROM region_data WHERE name = 'Harbor Sandbox Pirate Cove'
+   );
+
+UPDATE region_data
+   SET zone_vnum = 10000,
+       region_type = 1,
+       region_polygon = ST_GeomFromText(
+         'POLYGON((-70 78,-60 78,-60 96,-70 96,-70 78))'
+       ),
+       region_props = 0
+ WHERE vnum = 7000001
+   AND name = 'Harbor Sandbox Territorial Waters';
+
+UPDATE region_data
+   SET zone_vnum = 10000,
+       region_type = 1,
+       region_polygon = ST_GeomFromText(
+         'POLYGON((-66 79,-60 79,-60 87,-66 87,-66 79))'
+       ),
+       region_props = 0
+ WHERE vnum = 7000002
+   AND name = 'Harbor Sandbox Free Seas';
+
+UPDATE region_data
+   SET zone_vnum = 10000,
+       region_type = 1,
+       region_polygon = ST_GeomFromText(
+         'POLYGON((-60 88,-56 88,-56 94,-60 94,-60 88))'
+       ),
+       region_props = 0
+ WHERE vnum = 7000003
+   AND name = 'Harbor Sandbox Pirate Cove';
+
+INSERT INTO vessel_region_law
+  (region_vnum, waters_type, priority, bounty_percent, authority)
+SELECT vnum, 1, 100, 150, 'Harbor Admiralty'
+  FROM region_data
+ WHERE vnum = 7000001
+   AND name = 'Harbor Sandbox Territorial Waters'
+ON DUPLICATE KEY UPDATE
+  waters_type = VALUES(waters_type),
+  priority = VALUES(priority),
+  bounty_percent = VALUES(bounty_percent),
+  authority = VALUES(authority);
+
+INSERT INTO vessel_region_law
+  (region_vnum, waters_type, priority, bounty_percent, authority)
+SELECT vnum, 2, 150, 100, 'Free Captains'' Compact'
+  FROM region_data
+ WHERE vnum = 7000002
+   AND name = 'Harbor Sandbox Free Seas'
+ON DUPLICATE KEY UPDATE
+  waters_type = VALUES(waters_type),
+  priority = VALUES(priority),
+  bounty_percent = VALUES(bounty_percent),
+  authority = VALUES(authority);
+
+INSERT INTO vessel_region_law
+  (region_vnum, waters_type, priority, bounty_percent, authority)
+SELECT vnum, 3, 200, 0, 'Cove Brotherhood'
+  FROM region_data
+ WHERE vnum = 7000003
+   AND name = 'Harbor Sandbox Pirate Cove'
+ON DUPLICATE KEY UPDATE
+  waters_type = VALUES(waters_type),
+  priority = VALUES(priority),
+  bounty_percent = VALUES(bounty_percent),
+  authority = VALUES(authority);
+
 UPDATE ship_schedules AS schedule
   JOIN ship_routes AS route ON route.route_id = schedule.route_id
    SET schedule.passenger_fare = 10
