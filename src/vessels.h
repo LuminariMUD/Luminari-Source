@@ -1058,6 +1058,9 @@ struct autopilot_data
   int wait_remaining;               /* Seconds left at current waypoint */
   time_t last_update;               /* Timestamp of last state update */
   int pilot_mob_vnum;               /* VNUM of NPC pilot (-1 if none) */
+  uint64_t movement_steps;           /* Successful autonomous position updates */
+  uint64_t waypoint_arrivals;        /* Waypoints reached since initialization */
+  uint64_t route_completions;        /* Complete route traversals */
 };
 
 /**

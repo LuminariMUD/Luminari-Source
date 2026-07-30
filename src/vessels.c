@@ -1278,11 +1278,11 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
    */
   if (greyhawk_ships[shipnum].shipobj)
   {
-    /* Log departure for debugging room cleanup */
+    /* Per-step movement is available through focused development diagnostics. */
     if (old_room != NOWHERE && old_room != wilderness_room)
     {
-      log("Info: Ship %d departing room %d, moving to room %d at (%d, %d)", shipnum,
-          world[old_room].number, world[wilderness_room].number, new_x, new_y);
+      VSSL_DEBUG_MOVE("Ship %d departing room %d, moving to room %d at (%d, %d)", shipnum,
+                      world[old_room].number, world[wilderness_room].number, new_x, new_y);
     }
 
     obj_from_room(greyhawk_ships[shipnum].shipobj);

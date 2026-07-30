@@ -12,6 +12,7 @@
  * defined in utils.h. The sequence below ensures correct include order. */
 #include "conf.h"
 #include "sysdep.h"
+#include <inttypes.h>
 #include <math.h>
 #include "vessels.h"
 #include "mysql.h"
@@ -70,6 +71,9 @@ struct autopilot_data *autopilot_init(struct greyhawk_ship_data *ship)
   ap->wait_remaining = 0;
   ap->last_update = 0;
   ap->pilot_mob_vnum = -1;
+  ap->movement_steps = 0;
+  ap->waypoint_arrivals = 0;
+  ap->route_completions = 0;
 
   ship->autopilot = ap;
   return ap;
@@ -2011,19 +2015,20 @@ int advance_to_next_waypoint(struct greyhawk_ship_data *ship)
   if (next_index >= route->num_waypoints)
   {
     /* Reached end of route */
+    ap->route_completions++;
     if (route->loop)
     {
       /* Loop route: restart from beginning */
       ap->current_waypoint_index = 0;
       ap->state = AUTOPILOT_TRAVELING;
-      log("Info: Ship %d route '%s' looping to waypoint 0", ship->shipnum, route->name);
+      VSSL_DEBUG_AUTO("Ship %d route '%s' looping to waypoint 0", ship->shipnum, route->name);
       return 1;
     }
     else
     {
       /* Non-loop route: mark complete */
       ap->state = AUTOPILOT_COMPLETE;
-      log("Info: Ship %d completed route '%s'", ship->shipnum, route->name);
+      VSSL_DEBUG_AUTO("Ship %d completed route '%s'", ship->shipnum, route->name);
       return 0;
     }
   }
@@ -2069,6 +2074,8 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     return;
   }
 
+  ap->waypoint_arrivals++;
+
   /* Pilot announcement if pilot is assigned */
   if (ap->pilot_mob_vnum != -1)
   {
@@ -2081,13 +2088,13 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
     ap->state = AUTOPILOT_WAITING;
     ap->wait_remaining = wp->wait_time;
     ap->last_update = time(0);
-    log("Info: Ship %d arrived at waypoint '%s', waiting %d seconds", ship->shipnum, wp->name,
-        wp->wait_time);
+    VSSL_DEBUG_AUTO("Ship %d arrived at waypoint '%s', waiting %d seconds", ship->shipnum, wp->name,
+                    wp->wait_time);
   }
   else
   {
     /* No wait time, advance immediately */
-    log("Info: Ship %d arrived at waypoint '%s', advancing", ship->shipnum, wp->name);
+    VSSL_DEBUG_AUTO("Ship %d arrived at waypoint '%s', advancing", ship->shipnum, wp->name);
     advance_to_next_waypoint(ship);
   }
 }
@@ -2228,6 +2235,7 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     return 0;
   }
 
+  ap->movement_steps++;
   return 1;
 }
 
@@ -2269,7 +2277,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
     ap->state = AUTOPILOT_TRAVELING;
-    log("Info: Ship %d wait complete, advancing to next waypoint", ship->shipnum);
+    VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);
   }
 }
@@ -2634,6 +2642,9 @@ ACMD(do_autopilot)
     }
 
     send_to_char(ch, "Position: (%.1f, %.1f, %.1f)\r\n", ship->x, ship->y, ship->z);
+    send_to_char(ch, "Movement Steps: %" PRIu64 "\r\n", ap->movement_steps);
+    send_to_char(ch, "Waypoint Arrivals: %" PRIu64 "\r\n", ap->waypoint_arrivals);
+    send_to_char(ch, "Route Completions: %" PRIu64 "\r\n", ap->route_completions);
     send_to_char(ch, "-------------------------\r\n");
     return;
   }
