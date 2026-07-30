@@ -7548,6 +7548,9 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_QRACE:
+    if (web_onboarding_handle_catalog_control(d, arg))
+      return;
+
     load_result = parse_race_long(arg);
     if (load_result == RACE_UNDEFINED)
     {
@@ -7951,6 +7954,8 @@ void nanny(struct descriptor_data *d, char *arg)
     break;
 
   case CON_QCLASS:
+    if (web_onboarding_handle_catalog_control(d, arg))
+      return;
 
     load_result = parse_class_long(arg);
 

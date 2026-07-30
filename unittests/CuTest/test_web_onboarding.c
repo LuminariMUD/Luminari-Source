@@ -29,6 +29,7 @@
 #include "../../src/feats.h"
 #include "../../src/premadebuilds.h"
 #include "../../src/protocol.h"
+#include "../../src/race.h"
 #include "../../src/roleplay.h"
 #include "../../src/shop.h"
 #include "../../src/spells.h"
@@ -1345,6 +1346,53 @@ static void cleanup_editor_descriptor(struct descriptor_data *d)
   roleplay_index_set_save_callback_for_test(NULL);
   character_creation_set_save_callback_for_test(NULL);
   character_creation_set_restart_hooks_for_test(NULL);
+}
+
+void TestPopulatedRaceCatalogStaysWithinTheOnboardingWireBudget(CuTest *tc)
+{
+  struct descriptor_data d;
+  struct char_data ch;
+  struct player_special_data specials;
+  struct account_data account;
+  char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+
+  memset(&account, 0, sizeof(account));
+  assign_races();
+  CuAssertTrue(tc, init_editor_descriptor(&d, &ch, &specials, CON_QRACE));
+  if (d.pProtocol == NULL)
+    return;
+  d.account = &account;
+
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+  CuAssertPtrNotNull(tc, strstr(payload, "\"screen\":\"race\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":0"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"next-page\""));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"description\":"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"inspectable\":true"));
+  CuAssertTrue(tc, strstr(payload, "\"cancel\"") == NULL);
+
+  CuAssertTrue(tc, web_onboarding_handle_catalog_control(&d, "__onboarding-next__"));
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+  CuAssertPtrNotNull(tc, strstr(payload, "\"page\":{\"index\":1"));
+  CuAssertPtrNotNull(tc, strstr(payload, "\"previous-page\""));
+
+  /*
+   * Protocol v1 has no pagination contract. Preserve its complete selectable
+   * list in the smaller summary-only shape instead of stranding older clients
+   * on the first page.
+   */
+  d.web_onboarding_version = WEB_ONBOARDING_PROTOCOL_VERSION;
+  CuAssertTrue(tc, web_onboarding_build_payload(&d, payload, sizeof(payload)));
+  CuAssertTrue(tc, strlen(payload) < WEB_ONBOARDING_MAX_PAYLOAD);
+  CuAssertTrue(tc, strstr(payload, "\"page\":") == NULL);
+  CuAssertTrue(tc, strstr(payload, "\"next-page\"") == NULL);
+  CuAssertTrue(tc, strstr(payload, "\"description\":") == NULL);
+  CuAssertTrue(tc, strstr(payload, "\"inspectable\":true") == NULL);
+  CuAssertTrue(tc, !web_onboarding_handle_catalog_control(&d, "__onboarding-previous__"));
+
+  cleanup_editor_descriptor(&d);
 }
 
 void TestCharacterCreationLifecycleAndWorkflowActionsAreSourceOwned(CuTest *tc)

@@ -1965,25 +1965,56 @@ static void build_content_metadata(struct json_writer *w, const char *content_id
   }
 }
 
+static int catalog_total_items(struct descriptor_data *d, int state);
+static void catalog_page_bounds(struct descriptor_data *d, int state, int total, int *start,
+                                int *end, int *page_index, int *page_count);
+
+static bool race_is_selectable(struct descriptor_data *d, int race)
+{
+  if (d == NULL || d->character == NULL || race < 0 || race >= NUM_RACES)
+    return FALSE;
+  if (!race_list[race].is_pc)
+    return FALSE;
+  return !is_locked_race(race) || has_unlocked_race(d->character, race);
+}
+
 /* Races the server would actually accept right now, using the same lock and
  * playable checks that nanny() uses. */
 static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
 {
+  bool detailed = web_onboarding_v2_enabled(d);
+  int total = catalog_total_items(d, CON_QRACE);
+  int start = 0;
+  int end = total;
+  int page_index = 0;
+  int page_count = 0;
+  int position = 0;
   int race = 0;
   bool first = TRUE;
 
-  /* A descriptor can lose its character mid-creation (link loss, extraction)
-   * while the state poll still runs, so never assume one is attached. */
-  if (d->character == NULL)
+  if (total <= 0)
     return;
+
+  if (detailed)
+  {
+    catalog_page_bounds(d, CON_QRACE, total, &start, &end, &page_index, &page_count);
+    (void)page_index;
+    (void)page_count;
+  }
 
   for (race = 0; race < NUM_RACES; race++)
   {
-    if (!race_list[race].is_pc)
+    if (!race_is_selectable(d, race))
       continue;
 
-    if (is_locked_race(race) && !has_unlocked_race(d->character, race))
+    if (position < start)
+    {
+      position++;
       continue;
+    }
+    if (position >= end)
+      break;
+    position++;
 
     if (!first)
       json_raw(w, ",");
@@ -2001,59 +2032,92 @@ static void build_race_choices(struct json_writer *w, struct descriptor_data *d)
     json_field_string(w, "mediaKey", web_onboarding_race_media_key(race), 64);
     json_raw(w, ",");
     json_field_string_truncated(w, "summary", race_list[race].descrip, 220);
-    json_raw(w, ",");
-    json_field_string_truncated(w, "description", race_list[race].descrip, 900);
-    json_raw(w, ",");
-    json_field_bool(w, "inspectable", TRUE);
-    json_raw(w, ",\"facts\":[{");
-    json_field_string(w, "label", "Size", 24);
-    json_raw(w, ",");
-    json_field_string(w, "value", sizes[(int)race_list[race].size], 24);
-    json_raw(w, ",");
-    json_field_string(w, "glyph", "size", 24);
-    json_raw(w, "}");
-
-    if (race_list[race].level_adjustment > 0)
+    if (detailed)
     {
-      char scratch[16];
-
-      snprintf(scratch, sizeof(scratch), "+%d", race_list[race].level_adjustment);
-      json_raw(w, ",{");
-      json_field_string(w, "label", "Level adjustment", 32);
       json_raw(w, ",");
-      json_field_string(w, "value", scratch, 16);
+      json_field_string_truncated(w, "description", race_list[race].descrip, 900);
       json_raw(w, ",");
-      json_field_string(w, "glyph", "level-adjustment", 32);
+      json_field_bool(w, "inspectable", TRUE);
+      json_raw(w, ",\"facts\":[{");
+      json_field_string(w, "label", "Size", 24);
+      json_raw(w, ",");
+      json_field_string(w, "value", sizes[(int)race_list[race].size], 24);
+      json_raw(w, ",");
+      json_field_string(w, "glyph", "size", 24);
       json_raw(w, "}");
+
+      if (race_list[race].level_adjustment > 0)
+      {
+        char scratch[16];
+
+        snprintf(scratch, sizeof(scratch), "+%d", race_list[race].level_adjustment);
+        json_raw(w, ",{");
+        json_field_string(w, "label", "Level adjustment", 32);
+        json_raw(w, ",");
+        json_field_string(w, "value", scratch, 16);
+        json_raw(w, ",");
+        json_field_string(w, "glyph", "level-adjustment", 32);
+        json_raw(w, "}");
+      }
+
+      json_raw(w, "]");
     }
 
-    json_raw(w, "]}");
+    json_raw(w, "}");
 
     if (w->overflow)
       return;
   }
 }
 
+static bool class_is_selectable(struct descriptor_data *d, int chclass)
+{
+  if (d == NULL || d->character == NULL || chclass < 0 || chclass >= NUM_CLASSES)
+    return FALSE;
+  if (!CLSLIST_INGAME(chclass) || CLSLIST_PRESTIGE(chclass))
+    return FALSE;
+  if (CLSLIST_LOCK(chclass) && !has_unlocked_class(d->character, chclass))
+    return FALSE;
+  return valid_class_race_alignment(chclass, GET_REAL_RACE(d->character));
+}
+
 /* Classes valid for the already-chosen race, using the same checks as
  * nanny()'s CON_QCLASS handler. */
 static void build_class_choices(struct json_writer *w, struct descriptor_data *d)
 {
+  bool detailed = web_onboarding_v2_enabled(d);
+  int total = catalog_total_items(d, CON_QCLASS);
+  int start = 0;
+  int end = total;
+  int page_index = 0;
+  int page_count = 0;
+  int position = 0;
   int chclass = 0;
   bool first = TRUE;
 
-  if (d->character == NULL)
+  if (total <= 0)
     return;
+
+  if (detailed)
+  {
+    catalog_page_bounds(d, CON_QCLASS, total, &start, &end, &page_index, &page_count);
+    (void)page_index;
+    (void)page_count;
+  }
 
   for (chclass = 0; chclass < NUM_CLASSES; chclass++)
   {
-    if (!CLSLIST_INGAME(chclass) || CLSLIST_PRESTIGE(chclass))
+    if (!class_is_selectable(d, chclass))
       continue;
 
-    if (CLSLIST_LOCK(chclass) && !has_unlocked_class(d->character, chclass))
+    if (position < start)
+    {
+      position++;
       continue;
-
-    if (!valid_class_race_alignment(chclass, GET_REAL_RACE(d->character)))
-      continue;
+    }
+    if (position >= end)
+      break;
+    position++;
 
     if (!first)
       json_raw(w, ",");
@@ -2071,23 +2135,28 @@ static void build_class_choices(struct json_writer *w, struct descriptor_data *d
     json_field_string(w, "mediaKey", web_onboarding_class_media_key(chclass), 64);
     json_raw(w, ",");
     json_field_string_truncated(w, "summary", CLSLIST_DESCRIP(chclass), 220);
-    json_raw(w, ",");
-    json_field_string_truncated(w, "description", CLSLIST_DESCRIP(chclass), 900);
-    json_raw(w, ",");
-    json_field_bool(w, "inspectable", TRUE);
-    json_raw(w, ",\"facts\":[{");
-    json_field_string(w, "label", "Hit die", 24);
-    json_raw(w, ",\"value\":\"d");
-    json_number(w, CLSLIST_HPS(chclass));
-    json_raw(w, "\",");
-    json_field_string(w, "glyph", "hit-die", 24);
-    json_raw(w, "},{");
-    json_field_string(w, "label", "Primary attributes", 32);
-    json_raw(w, ",");
-    json_field_string(w, "value", CLSLIST_ATTRIBUTE(chclass), 64);
-    json_raw(w, ",");
-    json_field_string(w, "glyph", "primary-attributes", 32);
-    json_raw(w, "}]}");
+    if (detailed)
+    {
+      json_raw(w, ",");
+      json_field_string_truncated(w, "description", CLSLIST_DESCRIP(chclass), 900);
+      json_raw(w, ",");
+      json_field_bool(w, "inspectable", TRUE);
+      json_raw(w, ",\"facts\":[{");
+      json_field_string(w, "label", "Hit die", 24);
+      json_raw(w, ",\"value\":\"d");
+      json_number(w, CLSLIST_HPS(chclass));
+      json_raw(w, "\",");
+      json_field_string(w, "glyph", "hit-die", 24);
+      json_raw(w, "},{");
+      json_field_string(w, "label", "Primary attributes", 32);
+      json_raw(w, ",");
+      json_field_string(w, "value", CLSLIST_ATTRIBUTE(chclass), 64);
+      json_raw(w, ",");
+      json_field_string(w, "glyph", "primary-attributes", 32);
+      json_raw(w, "}]}");
+    }
+    else
+      json_raw(w, "}");
 
     if (w->overflow)
       return;
@@ -2674,6 +2743,8 @@ static void build_profile_items(struct json_writer *w, struct descriptor_data *d
 
 static int catalog_page_size(int state)
 {
+  if (state == CON_QRACE || state == CON_QCLASS)
+    return 6;
   if (state == CON_QREGION)
     return 3;
   if (state == CON_BACKGROUND_ARCHTYPE)
@@ -2721,10 +2792,36 @@ static int selectable_deity_count(void)
   return count;
 }
 
-static int catalog_total_items(int state)
+static int selectable_race_count(struct descriptor_data *d)
+{
+  int race = 0;
+  int count = 0;
+
+  for (race = 0; race < NUM_RACES; race++)
+    if (race_is_selectable(d, race))
+      count++;
+  return count;
+}
+
+static int selectable_class_count(struct descriptor_data *d)
+{
+  int chclass = 0;
+  int count = 0;
+
+  for (chclass = 0; chclass < NUM_CLASSES; chclass++)
+    if (class_is_selectable(d, chclass))
+      count++;
+  return count;
+}
+
+static int catalog_total_items(struct descriptor_data *d, int state)
 {
   switch (state)
   {
+  case CON_QRACE:
+    return selectable_race_count(d);
+  case CON_QCLASS:
+    return selectable_class_count(d);
   case CON_BACKGROUND_ARCHTYPE:
     return NUM_BACKGROUNDS - 1;
   case CON_CHARACTER_AGE_SELECT:
@@ -2740,6 +2837,18 @@ static int catalog_total_items(int state)
   default:
     return 0;
   }
+}
+
+static bool catalog_allows_cancel(int state)
+{
+  return state != CON_QRACE && state != CON_QCLASS;
+}
+
+static bool catalog_uses_pagination(struct descriptor_data *d, int state)
+{
+  if (state == CON_QRACE || state == CON_QCLASS)
+    return web_onboarding_v2_enabled(d);
+  return TRUE;
 }
 
 static void catalog_page_bounds(struct descriptor_data *d, int state, int total, int *start,
@@ -2772,13 +2881,13 @@ static void catalog_page_bounds(struct descriptor_data *d, int state, int total,
 
 static void build_page(struct json_writer *w, struct descriptor_data *d, int state)
 {
-  int total = catalog_total_items(state);
+  int total = catalog_total_items(d, state);
   int start = 0;
   int end = 0;
   int page_index = 0;
   int page_count = 0;
 
-  if (total <= 0)
+  if (total <= 0 || !catalog_uses_pagination(d, state))
     return;
   catalog_page_bounds(d, state, total, &start, &end, &page_index, &page_count);
   (void)start;
@@ -3398,11 +3507,12 @@ static void build_actions(struct json_writer *w, struct descriptor_data *d,
                           const struct onboarding_screen_info *screen)
 {
   bool first = TRUE;
-  int total = 0;
+  int total = catalog_total_items(d, screen->state);
   int start = 0;
   int end = 0;
   int page_index = 0;
   int page_count = 0;
+  bool paged = catalog_uses_pagination(d, screen->state);
 
   json_raw(w, "\"actions\":[");
 
@@ -3450,18 +3560,21 @@ static void build_actions(struct json_writer *w, struct descriptor_data *d,
     build_action_name(w, &first, "continue");
     build_action_name(w, &first, "cancel");
   }
-  else if (catalog_total_items(screen->state) > 0)
+  else if (total > 0)
   {
     build_action_name(w, &first, "select");
-    total = catalog_total_items(screen->state);
-    catalog_page_bounds(d, screen->state, total, &start, &end, &page_index, &page_count);
-    (void)start;
-    (void)end;
-    if (page_index > 0)
-      build_action_name(w, &first, "previous-page");
-    if (page_index + 1 < page_count)
-      build_action_name(w, &first, "next-page");
-    build_action_name(w, &first, "cancel");
+    if (paged)
+    {
+      catalog_page_bounds(d, screen->state, total, &start, &end, &page_index, &page_count);
+      (void)start;
+      (void)end;
+      if (page_index > 0)
+        build_action_name(w, &first, "previous-page");
+      if (page_index + 1 < page_count)
+        build_action_name(w, &first, "next-page");
+    }
+    if (catalog_allows_cancel(screen->state))
+      build_action_name(w, &first, "cancel");
   }
   else if (!strcmp(screen->input_kind, "confirm"))
   {
@@ -3588,6 +3701,8 @@ static void build_screen_help(struct json_writer *w, struct descriptor_data *d, 
 
 static void build_control_wire(struct json_writer *w, struct descriptor_data *d, int state)
 {
+  int total = catalog_total_items(d, state);
+  bool paged = total > 0 && catalog_uses_pagination(d, state);
   const char *continue_wire = NULL;
   const char *generate_wire = NULL;
   const char *cancel_wire = NULL;
@@ -3631,7 +3746,7 @@ static void build_control_wire(struct json_writer *w, struct descriptor_data *d,
     continue_wire = "q";
     cancel_wire = "0";
   }
-  else if (catalog_total_items(state) > 0)
+  else if (total > 0 && catalog_allows_cancel(state))
     cancel_wire = "quit";
   else if (state == CON_CHAR_RP_MENU)
   {
@@ -3641,7 +3756,7 @@ static void build_control_wire(struct json_writer *w, struct descriptor_data *d,
     return;
   }
 
-  if (continue_wire == NULL && generate_wire == NULL && cancel_wire == NULL)
+  if (continue_wire == NULL && generate_wire == NULL && cancel_wire == NULL && !paged)
     return;
 
   json_raw(w, ",\"controlWire\":{");
@@ -3659,7 +3774,7 @@ static void build_control_wire(struct json_writer *w, struct descriptor_data *d,
       json_raw(w, ",");
     json_field_string(w, "cancel", cancel_wire, 16);
   }
-  if (catalog_total_items(state) > 0)
+  if (paged)
   {
     if (continue_wire != NULL || generate_wire != NULL || cancel_wire != NULL)
       json_raw(w, ",");
