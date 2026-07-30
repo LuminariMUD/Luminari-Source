@@ -49,9 +49,9 @@ outstanding work.
 
 | Resource | Current measurement or limit |
 |---|---:|
-| Base `greyhawk_ship_data` | 4,744 bytes |
+| Base `greyhawk_ship_data` | 4,856 bytes |
 | Maximum fleet | 500 ships |
-| Base maximum-fleet storage | About 2.26 MiB |
+| Base maximum-fleet storage | About 2.32 MiB |
 | Base per-ship budget | At most 5 KB |
 | Base `vehicle_data` | 152 bytes |
 | Maximum vehicles | 1,000 |

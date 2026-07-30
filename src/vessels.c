@@ -1257,6 +1257,11 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     return FALSE;
   }
 
+  if (position_changed && !greyhawk_ships[shipnum].waters_region_initialized)
+  {
+    vessel_piracy_track_waters(&greyhawk_ships[shipnum], FALSE);
+  }
+
   /* Commit coordinates only after room allocation and departure clearance. */
   greyhawk_ships[shipnum].x = (float)new_x;
   greyhawk_ships[shipnum].y = (float)new_y;
@@ -1289,6 +1294,10 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
                            old_is_port);
   update_ship_room_coordinates(&greyhawk_ships[shipnum]);
   sync_all_loaded_vehicles(&greyhawk_ships[shipnum]);
+  if (position_changed)
+  {
+    vessel_piracy_track_waters(&greyhawk_ships[shipnum], TRUE);
+  }
 
   VSSL_DEBUG_MOVE("Ship %d position updated to (%d,%d,%d) in room %d", shipnum, new_x, new_y, new_z,
                   world[wilderness_room].number);

@@ -1061,6 +1061,168 @@ void Test_vessel_trade_cargo_weight(CuTest *tc)
   CuAssertIntEquals(tc, 0, vessel_cargo_weight(&ship));
 }
 
+void Test_vessel_piracy_polygon_matches_spatial_boundaries(CuTest *tc)
+{
+  const struct vertex square[] = {
+      {-70, 78},
+      {-60, 78},
+      {-60, 96},
+      {-70, 96},
+      {-70, 78}
+  };
+
+  CuAssertTrue(tc, vessel_piracy_point_in_polygon(square, 5, -66, 92));
+  CuAssertTrue(tc, !vessel_piracy_point_in_polygon(square, 5, -71, 92));
+  CuAssertTrue(tc, !vessel_piracy_point_in_polygon(square, 5, -70, 92));
+  CuAssertTrue(tc, !vessel_piracy_point_in_polygon(square, 5, -70, 78));
+  CuAssertTrue(tc, !vessel_piracy_point_in_polygon(NULL, 5, -66, 92));
+  CuAssertTrue(tc, !vessel_piracy_point_in_polygon(square, 2, -66, 92));
+}
+
+void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
+{
+  struct vertex western_polygon[] = {
+      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
+  };
+  struct vertex eastern_polygon[] = {
+      {20, 0}, {30, 0}, {30, 10}, {20, 10}, {20, 0}
+  };
+  struct region_data region_fixture[5];
+  struct region_data *saved_region_table;
+  struct zone_data zone_fixture[2];
+  struct zone_data *saved_zone_table;
+  struct room_data room_fixture;
+  struct room_data *saved_world;
+  struct descriptor_data descriptor;
+  struct char_data character;
+  struct greyhawk_ship_data ship;
+  struct vessel_piracy_law law;
+  region_rnum saved_top_of_region_table;
+  zone_rnum saved_top_of_zone_table;
+  room_rnum saved_top_of_world;
+  bool western_found;
+  bool eastern_found;
+  bool outside_found;
+  bool repeated_message_suppressed;
+  bool crossing_announced;
+  bool open_water_announced;
+  int western_region;
+  int eastern_region;
+  int initialized_region;
+  int repeated_region;
+  int crossed_region;
+  int outside_region;
+
+  memset(region_fixture, 0, sizeof(region_fixture));
+  memset(zone_fixture, 0, sizeof(zone_fixture));
+  memset(&room_fixture, 0, sizeof(room_fixture));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&character, 0, sizeof(character));
+  memset(&ship, 0, sizeof(ship));
+  zone_fixture[0].number = WILD_ZONE_VNUM;
+  zone_fixture[1].number = 12345;
+
+  region_fixture[0].vnum = 7100020;
+  region_fixture[0].zone = 0;
+  region_fixture[0].name = "Western Outer Waters";
+  region_fixture[0].region_type = REGION_GEOGRAPHIC;
+  region_fixture[0].vertices = western_polygon;
+  region_fixture[0].num_vertices = 5;
+  region_fixture[1] = region_fixture[0];
+  region_fixture[1].vnum = 7100010;
+  region_fixture[1].name = "Western Inner Waters";
+  region_fixture[2] = region_fixture[0];
+  region_fixture[2].vnum = 7100000;
+  region_fixture[2].region_type = REGION_ENCOUNTER;
+  region_fixture[3] = region_fixture[0];
+  region_fixture[3].vnum = 7099990;
+  region_fixture[3].zone = 1;
+  region_fixture[4] = region_fixture[0];
+  region_fixture[4].vnum = 7100030;
+  region_fixture[4].name = "Eastern Waters";
+  region_fixture[4].vertices = eastern_polygon;
+
+  saved_region_table = region_table;
+  saved_top_of_region_table = top_of_region_table;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  region_table = region_fixture;
+  top_of_region_table = 4;
+  zone_table = zone_fixture;
+  top_of_zone_table = 1;
+  world = &room_fixture;
+  top_of_world = 0;
+  room_fixture.number = 91000;
+  room_fixture.people = &character;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &character;
+  descriptor.pProtocol = ProtocolCreate();
+  character.desc = &descriptor;
+  character.in_room = 0;
+  ship.num_rooms = 1;
+  ship.room_vnums[0] = room_fixture.number;
+  vessel_piracy_clear_laws();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    region_table = saved_region_table;
+    top_of_region_table = saved_top_of_region_table;
+    zone_table = saved_zone_table;
+    top_of_zone_table = saved_top_of_zone_table;
+    world = saved_world;
+    top_of_world = saved_top_of_world;
+    CuFail(tc, "could not initialize the named-water message fixture");
+    return;
+  }
+
+  western_found = vessel_piracy_law_at_coordinates(5, 5, &law);
+  western_region = law.region_vnum;
+  eastern_found = vessel_piracy_law_at_coordinates(25, 5, &law);
+  eastern_region = law.region_vnum;
+  outside_found = vessel_piracy_law_at_coordinates(40, 5, &law);
+
+  ship.x = 5;
+  ship.y = 5;
+  vessel_piracy_track_waters(&ship, FALSE);
+  initialized_region = ship.waters_region_vnum;
+  vessel_piracy_track_waters(&ship, TRUE);
+  repeated_region = ship.waters_region_vnum;
+  repeated_message_suppressed = descriptor.output[0] == '\0';
+  ship.x = 25;
+  vessel_piracy_track_waters(&ship, TRUE);
+  crossed_region = ship.waters_region_vnum;
+  crossing_announced = strstr(descriptor.output, "crossing into Eastern Waters") != NULL;
+  ship.x = 40;
+  vessel_piracy_track_waters(&ship, TRUE);
+  outside_region = ship.waters_region_vnum;
+  open_water_announced = strstr(descriptor.output, "enters unnamed open waters") != NULL;
+
+  ProtocolDestroy(descriptor.pProtocol);
+  region_table = saved_region_table;
+  top_of_region_table = saved_top_of_region_table;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, western_found);
+  CuAssertTrue(tc, eastern_found);
+  CuAssertTrue(tc, !outside_found);
+  CuAssertIntEquals(tc, 7100010, western_region);
+  CuAssertIntEquals(tc, 7100030, eastern_region);
+  CuAssertTrue(tc, ship.waters_region_initialized);
+  CuAssertIntEquals(tc, 7100010, initialized_region);
+  CuAssertIntEquals(tc, initialized_region, repeated_region);
+  CuAssertTrue(tc, repeated_message_suppressed);
+  CuAssertIntEquals(tc, 7100030, crossed_region);
+  CuAssertTrue(tc, crossing_announced);
+  CuAssertIntEquals(tc, 0, outside_region);
+  CuAssertTrue(tc, open_water_announced);
+}
+
 void Test_vessel_piracy_regional_bounty_policy(CuTest *tc)
 {
   struct vessel_piracy_law law;

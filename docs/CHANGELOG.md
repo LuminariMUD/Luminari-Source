@@ -12,6 +12,9 @@
   while geometry remains in the shared wilderness tables.
 - `seastate` reports the resolved named waters, legal classification,
   authority, and bounty percentage.
+- Moving vessels announce real `REGION_GEOGRAPHIC` boundary crossings to
+  everyone aboard, with a per-vessel region cache suppressing duplicate
+  messages while the hull remains in the same named waters.
 - The development harbor now includes real territorial, nested free-sea, and
   pirate-cove polygons. Its provisioner rejects reserved-region collisions,
   validates the spatial index, and checks the moving ferry's named waters
@@ -26,13 +29,17 @@
 - A letter of marque waives any positive regional bounty. Invalid database
   policy fails closed to the standard rate instead of silently legalizing a
   raid.
+- Vessel-law rows load into a runtime cache and resolve against the
+  canonical wilderness polygons already held in memory. Movement performs no
+  per-step SQL; `reload regions` refreshes both geometry and law metadata.
 
 #### Validated
 
-- The production-linked policy test covers water-type labels, zero/negative/
-  standard/scaled/over-limit rates, and integer saturation.
+- The production-linked policy tests cover water-type labels, zero/negative/
+  standard/scaled/over-limit rates, integer saturation, polygon interiors,
+  and MariaDB-compatible edge exclusion.
 - The isolated GNU C23 build completed without warnings, the complete root
-  suite passes 239 of 239 tests, `make install` removed the root executable,
+  suite passes 241 of 241 tests, `make install` removed the root executable,
   and the focused protocol suite remains 13 of 13.
 - MariaDB accepted the Phase 13 schema, all three spatial fixtures, verifier
   content queries, rollback, and reapplication in session-scoped shadow

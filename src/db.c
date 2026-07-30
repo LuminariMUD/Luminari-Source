@@ -622,6 +622,7 @@ ACMD(do_reboot)
   {
     /* Reload wilderness regions */
     load_regions();
+    vessel_piracy_reload_laws();
   }
   else if (!str_cmp(arg, "paths"))
   {
@@ -832,6 +833,7 @@ void destroy_db(void)
   /* Persist sub-threshold XP and other pending registry changes. */
   artifact_save_if_dirty();
   artifact_shutdown();
+  vessel_piracy_clear_laws();
 
   /* Active Mobiles & Players */
   /* First pass: Clear all follower relationships without messages */

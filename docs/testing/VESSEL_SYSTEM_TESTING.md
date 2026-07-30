@@ -227,7 +227,9 @@ numbered gameplay flow:
   session-scoped table that shadowed rather than changed the active ferry
   schedule table. Phase 13 passed schema creation, all three spatial fixtures,
   verifier content queries, rollback, and reapplication in session-scoped
-  shadow tables; the active database remained unchanged.
+  shadow tables; the active database remained unchanged. Production-linked
+  geometry coverage also requires polygon interiors to resolve while edges and
+  vertices remain outside, matching MariaDB `ST_Within()`.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.

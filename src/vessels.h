@@ -21,6 +21,7 @@
 #include "constants.h"
 
 struct region_list;
+struct vertex;
 
 /* ========================================================================= */
 /* ITEM TYPES FOR VESSEL SYSTEM                                              */
@@ -636,6 +637,8 @@ struct vessel_piracy_law
 };
 
 void vessel_piracy_ensure_schema(void);
+bool vessel_piracy_reload_laws(void);
+void vessel_piracy_clear_laws(void);
 int vessel_get_bounty(const char *player_name);
 void vessel_add_bounty(const char *player_name, int amount);
 void vessel_clear_bounty(const char *player_name);
@@ -643,9 +646,12 @@ bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);
 int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);
 bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law);
+bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count,
+                                    int x, int y);
 bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law);
 bool vessel_piracy_law_for_ship(const struct greyhawk_ship_data *ship,
                                 struct vessel_piracy_law *law);
+void vessel_piracy_track_waters(struct greyhawk_ship_data *ship, bool announce);
 bool vessel_port_refuses(struct char_data *ch);
 int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
                          struct greyhawk_ship_data *raider);
@@ -1163,6 +1169,11 @@ struct greyhawk_ship_data
   /* Phase 3: Autopilot system */
   struct autopilot_data *autopilot; /* Autopilot data (NULL if disabled) */
   struct vessel_schedule *schedule; /* Schedule data (NULL if none) */
+
+  /* Canonical geographic region last observed by the vessel. This cache is
+   * runtime-only and prevents duplicate named-water crossing messages. */
+  int waters_region_vnum;
+  bool waters_region_initialized;
 
   /* Phase 5: Naval combat */
   int last_attacker; /* Fleet index of last ship to fire on us (0 = none) */
