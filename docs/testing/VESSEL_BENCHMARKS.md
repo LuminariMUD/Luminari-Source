@@ -244,7 +244,9 @@ The runner:
   world-allocation, and buffer statistics at the start, every hour, and at the
   end. The runner rejects fleet or capacity drift, occupancy above capacity,
   buffer overflows, vessel errors, PID/binary drift, or a missing system
-  sample.
+  sample. It also requires a `system-0` checkpoint, strictly increasing epochs
+  and labels, hourly intermediate labels, and an exact terminal-duration
+  label.
 - Uses monotonic per-vessel movement, waypoint-arrival, and route-completion
   counters for continuity evidence. Normal builds no longer emit a server-log
   line for every movement step, arrival, wait completion, or loop; those
@@ -301,7 +303,8 @@ removed its root-level `circle`. Isolated provisioner fixtures also passed the
 idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of all six representative high-volume
-progress rows.
+progress rows. They also reject duplicated epochs and a terminal checkpoint
+whose label does not match the requested duration.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
