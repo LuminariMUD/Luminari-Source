@@ -3693,9 +3693,11 @@ void schedule_calculate_next_departure(struct vessel_schedule *sched)
  * @param ship The ship to create schedule for
  * @param route_id The route ID to assign
  * @param interval The interval in MUD hours
+ * @param passenger_fare Gold charged when a player boards an unowned vessel
  * @return 1 on success, 0 on failure
  */
-int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
+                    int passenger_fare)
 {
   struct vessel_schedule previous;
   bool had_schedule;
@@ -3710,6 +3712,12 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   if (interval < SCHEDULE_INTERVAL_MIN || interval > SCHEDULE_INTERVAL_MAX)
   {
     log("SYSERR: schedule_create: invalid interval %d", interval);
+    return 0;
+  }
+
+  if (passenger_fare < 0 || passenger_fare > VESSEL_PASSENGER_FARE_MAX)
+  {
+    log("SYSERR: schedule_create: invalid passenger fare %d", passenger_fare);
     return 0;
   }
 
@@ -3734,6 +3742,7 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
   ship->schedule->ship_id = ship->shipnum;
   ship->schedule->route_id = route_id;
   ship->schedule->interval_hours = interval;
+  ship->schedule->passenger_fare = passenger_fare;
   ship->schedule->flags = SCHEDULE_FLAG_ENABLED;
 
   /* Calculate first departure time */
@@ -3755,8 +3764,8 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval)
     return 0;
   }
 
-  log("Info: Created schedule for ship %d (route %d, interval %d hours)", ship->shipnum, route_id,
-      interval);
+  log("Info: Created schedule for ship %d (route %d, interval %d hours, fare %d)",
+      ship->shipnum, route_id, interval, passenger_fare);
   return 1;
 }
 
@@ -4012,7 +4021,7 @@ void schedule_tick(void)
 
 /**
  * ACMD handler for setschedule command.
- * Usage: setschedule <route> <interval>
+ * Usage: setschedule <route> <interval> [passenger fare]
  */
 ACMD(do_setschedule)
 {
@@ -4020,7 +4029,10 @@ ACMD(do_setschedule)
   struct route_node *route_node;
   char route_arg[MAX_INPUT_LENGTH];
   char interval_arg[MAX_INPUT_LENGTH];
+  char fare_arg[MAX_INPUT_LENGTH];
+  long parsed_fare;
   int interval;
+  int passenger_fare;
 
   /* Get vessel context */
   ship = get_vessel_for_command(ch);
@@ -4036,13 +4048,16 @@ ACMD(do_setschedule)
   }
 
   /* Parse arguments */
-  two_arguments_u((char *)argument, route_arg, interval_arg);
+  three_arguments(argument, route_arg, sizeof(route_arg), interval_arg, sizeof(interval_arg),
+                  fare_arg, sizeof(fare_arg));
   if (!*route_arg || !*interval_arg)
   {
-    send_to_char(ch, "Usage: setschedule <route> <interval>\r\n");
+    send_to_char(ch, "Usage: setschedule <route> <interval> [passenger fare]\r\n");
     send_to_char(ch, "  route    - Name of the route to run\r\n");
     send_to_char(ch, "  interval - Hours between departures (%d-%d)\r\n", SCHEDULE_INTERVAL_MIN,
                  SCHEDULE_INTERVAL_MAX);
+    send_to_char(ch, "  fare     - Optional public-vessel boarding cost (0-%d gold)\r\n",
+                 VESSEL_PASSENGER_FARE_MAX);
     return;
   }
 
@@ -4053,6 +4068,20 @@ ACMD(do_setschedule)
     send_to_char(ch, "Interval must be between %d and %d MUD hours.\r\n", SCHEDULE_INTERVAL_MIN,
                  SCHEDULE_INTERVAL_MAX);
     return;
+  }
+
+  passenger_fare = ship->schedule != NULL ? ship->schedule->passenger_fare : 0;
+  if (*fare_arg)
+  {
+    parsed_fare = strtol(fare_arg, NULL, 10);
+    if (!is_number(fare_arg) || parsed_fare < 0 ||
+        parsed_fare > VESSEL_PASSENGER_FARE_MAX)
+    {
+      send_to_char(ch, "Passenger fare must be between 0 and %d gold.\r\n",
+                   VESSEL_PASSENGER_FARE_MAX);
+      return;
+    }
+    passenger_fare = (int)parsed_fare;
   }
 
   /* Find route by name */
@@ -4080,7 +4109,7 @@ ACMD(do_setschedule)
   }
 
   /* Create schedule */
-  if (!schedule_create(ship, route_node->route_id, interval))
+  if (!schedule_create(ship, route_node->route_id, interval, passenger_fare))
   {
     send_to_char(ch, "Failed to create schedule.\r\n");
     return;
@@ -4088,6 +4117,15 @@ ACMD(do_setschedule)
 
   send_to_char(ch, "Schedule set: Route '%s' every %d MUD hours.\r\n", route_arg, interval);
   send_to_char(ch, "Next departure: MUD hour %d\r\n", ship->schedule->next_departure);
+  if (passenger_fare > 0)
+  {
+    send_to_char(ch, "Passenger fare: %d gold per boarding on a public vessel.\r\n",
+                 passenger_fare);
+  }
+  else
+  {
+    send_to_char(ch, "Passenger fare: free.\r\n");
+  }
   send_to_ship(ship, "A departure schedule has been set for this vessel.\r\n");
 }
 
@@ -4185,6 +4223,15 @@ ACMD(do_showschedule)
                sched->interval_hours == 1 ? "" : "s");
   send_to_char(ch, "Next Departure: MUD hour %d\r\n", sched->next_departure);
   send_to_char(ch, "Current Time: MUD hour %d\r\n", time_info.hours);
+  if (sched->passenger_fare > 0)
+  {
+    send_to_char(ch, "Passenger Fare: %d gold per boarding%s\r\n", sched->passenger_fare,
+                 ship->owner[0] == '\0' ? "" : " (inactive while privately owned)");
+  }
+  else
+  {
+    send_to_char(ch, "Passenger Fare: Free\r\n");
+  }
   send_to_char(ch, "Status: %s\r\n", status);
 
   /* Show pilot status */

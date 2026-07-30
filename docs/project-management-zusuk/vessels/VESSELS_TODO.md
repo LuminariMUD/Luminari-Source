@@ -18,15 +18,17 @@ class Z boundaries now pass; their actual-character confirmation remains
 queued. Native MSDP is now the explicit vessel release contract, stale client
 state is cleared after disembarkation, and the scale runner includes a real
 Kohdee Telnet-option-69 exchange; its installed-build transcript remains
-queued. Continuous validation, execution of the reproducible 500-ship
-workload, content, beta, and production release work remain. Pre-soak testing
-repaired signed-coordinate movement and both unsafe legs of the sample ferry
-route; an actual Kohdee session now completes the full four-waypoint loop. The
-first monitor shakedown was rejected when its idle pre-login descriptor
-expired and let the game loop sleep; the corrected confirmation-state
-keepalive then passed a 150-second replacement with 84 continuous movement
-steps and exact-state restart recovery. The continuous 24-hour result is still
-unverified.
+queued. Public schedule fares now have fail-closed boarding collection,
+persistence, schema migration, and a reversible Kohdee harbor check; its
+installed-build transcript is also queued behind the pinned soak. Continuous validation,
+execution of the reproducible 500-ship workload, content, beta, and production
+release work remain. Pre-soak testing repaired signed-coordinate movement and
+both unsafe legs of the sample ferry route; an actual Kohdee session now
+completes the full four-waypoint loop. The first monitor shakedown was rejected
+when its idle pre-login descriptor expired and let the game loop sleep; the
+corrected confirmation-state keepalive then passed a 150-second replacement
+with 84 continuous movement steps and exact-state restart recovery. The
+continuous 24-hour result is still unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -119,6 +121,15 @@ merchant, copyover, and multiplayer encounter testing.
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
 - [ ] Add passenger ferries that collect fares and recover safely after reboot.
+  The code and data layer is complete: an optional fare is part of the
+  persistent schedule, public boarding saves the deduction before moving the
+  passenger, and failure rolls back gold and denies entry. Phase 12,
+  production-linked policy/rollback coverage, authoritative help, and the
+  development ferry's 10-gold seed are present. The harbor provisioner now
+  checks the fare after a hard restart, boards through the ordinary object
+  special as Kohdee, proves exactly one deduction, restores Kohdee's gold, and
+  resumes the route. Keep this item open until that installed-build run passes
+  after the active 24-hour soak.
 - [ ] Add bounty-hunter warships delivered through the encounter/spawn engine
   for players with the HUNTED state.
 - [ ] Author territorial waters, free seas, and pirate coves as

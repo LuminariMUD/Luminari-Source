@@ -1295,6 +1295,45 @@ void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)
   CuAssertIntEquals(tc, 0, vessel_assess_dock_fee(&ship, 70000, 12));
 }
 
+void Test_vessel_public_schedule_passenger_fare_policy(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct vessel_schedule schedule;
+  struct char_data passenger;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&schedule, 0, sizeof(schedule));
+  memset(&passenger, 0, sizeof(passenger));
+  ship.schedule = &schedule;
+  schedule.passenger_fare = 10;
+
+  CuAssertIntEquals(tc, 10, vessel_passenger_fare(&ship));
+  strlcpy(ship.owner, "Kohdee", sizeof(ship.owner));
+  CuAssertIntEquals(tc, 0, vessel_passenger_fare(&ship));
+  ship.owner[0] = '\0';
+
+  schedule.passenger_fare = VESSEL_PASSENGER_FARE_MAX + 1;
+  CuAssertIntEquals(tc, VESSEL_PASSENGER_FARE_MAX, vessel_passenger_fare(&ship));
+  schedule.passenger_fare = -1;
+  CuAssertIntEquals(tc, 0, vessel_passenger_fare(&ship));
+  schedule.passenger_fare = 10;
+
+  GET_GOLD(&passenger) = 9;
+  CuAssertTrue(tc, !vessel_collect_passenger_fare(&passenger, &ship));
+  CuAssertIntEquals(tc, 9, GET_GOLD(&passenger));
+
+  GET_GOLD(&passenger) = 20;
+  GET_PFILEPOS(&passenger) = -1;
+  CuAssertTrue(tc, !vessel_collect_passenger_fare(&passenger, &ship));
+  CuAssertIntEquals(tc, 20, GET_GOLD(&passenger));
+
+  SET_BIT_AR(MOB_FLAGS(&passenger), MOB_ISNPC);
+  CuAssertTrue(tc, vessel_collect_passenger_fare(&passenger, &ship));
+  CuAssertIntEquals(tc, 20, GET_GOLD(&passenger));
+  CuAssertTrue(tc, !vessel_collect_passenger_fare(NULL, &ship));
+  CuAssertTrue(tc, !vessel_collect_passenger_fare(&passenger, NULL));
+}
+
 void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)
 {
   const int VICTIM = 495, AGGRESSOR = 496;

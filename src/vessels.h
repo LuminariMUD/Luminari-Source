@@ -110,6 +110,7 @@ struct region_list;
 #define SCHEDULE_INTERVAL_MIN 1  /* Minimum schedule interval (MUD hours) */
 #define SCHEDULE_INTERVAL_MAX 24 /* Maximum schedule interval (MUD hours) */
 #define SCHEDULE_NAME_LENGTH 64  /* Max length for schedule names */
+#define VESSEL_PASSENGER_FARE_MAX 100000 /* Maximum gold charged for one boarding */
 
 /* Schedule State Flags */
 #define SCHEDULE_FLAG_ENABLED (1 << 0) /* Schedule is active */
@@ -657,6 +658,8 @@ int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
                            int owner_clan_vnum);
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                               room_rnum new_room, bool old_is_port);
+int vessel_passenger_fare(const struct greyhawk_ship_data *ship);
+bool vessel_collect_passenger_fare(struct char_data *ch, struct greyhawk_ship_data *ship);
 
 const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
@@ -1020,6 +1023,7 @@ struct vessel_schedule
   int route_id;       /* Route to start when triggered */
   int interval_hours; /* MUD hours between departures */
   int next_departure; /* MUD hour for next departure */
+  int passenger_fare; /* Gold charged by an unowned public vessel at boarding */
   int flags;          /* SCHEDULE_FLAG_* bits */
 };
 
@@ -1387,7 +1391,8 @@ struct route_node *route_cache_find(int route_id);
 /* ========================================================================= */
 
 /* Schedule Management Functions */
-int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval);
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
+                    int passenger_fare);
 int schedule_clear(struct greyhawk_ship_data *ship);
 int schedule_is_enabled(struct greyhawk_ship_data *ship);
 struct vessel_schedule *schedule_get(struct greyhawk_ship_data *ship);

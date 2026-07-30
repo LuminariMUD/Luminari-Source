@@ -7,6 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
 package_dir="$repo_root/lib/world/vessel_harbor"
 temporary_dir=$(mktemp -d /tmp/luminari-vessel-harbor.XXXXXX)
 server_unit=luminari-dev-login-smoke.service
+ferry_passenger_fare=10
 
 cleanup()
 {
@@ -337,6 +338,7 @@ provision_world_file mob 700.mob
 provision_world_file trg 700.trg
 
 apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
 
 restart_development_mud
@@ -383,7 +385,8 @@ schedule_count=$(database_scalar \
      JOIN ship_routes AS r ON r.route_id = s.route_id
     WHERE s.ship_id = $ferry_slot
       AND r.name = 'harbor_ferry_loop'
-      AND s.enabled = 1")
+      AND s.enabled = 1
+      AND s.passenger_fare = $ferry_passenger_fare")
 active_route_count=$(database_scalar \
   "SELECT COUNT(*)
      FROM ship_runtime_state AS state
@@ -422,7 +425,7 @@ if [[ "$ferry_was_created" == true || "$pilot_count" != 1 ||
     "shipgoto $ferry_slot"
     "setroute harbor_ferry_loop"
     "speed 2"
-    "setschedule harbor_ferry_loop 1"
+    "setschedule harbor_ferry_loop 1 $ferry_passenger_fare"
   )
   if [[ "$pilot_count" == 0 ]]; then
     ferry_commands+=("load mob 70001" "assignpilot ferrymaster")
@@ -448,7 +451,8 @@ schedule_count=$(database_scalar \
      JOIN ship_routes AS r ON r.route_id = s.route_id
     WHERE s.ship_id = $ferry_slot
       AND r.name = 'harbor_ferry_loop'
-      AND s.enabled = 1")
+      AND s.enabled = 1
+      AND s.passenger_fare = $ferry_passenger_fare")
 route_topology_valid=$(database_scalar \
   "SELECT IF(
        COUNT(*) = 4
@@ -505,6 +509,61 @@ grep -Fq "cargo trigger ready" <<<"$verification_output" ||
   fail "the generated cargo trigger did not fire"
 grep -Fq "Room name: Harbor Sandbox East Dock" <<<"$verification_output" ||
   fail "the east harbor dock did not load"
+grep -Fq "Passenger Fare: $ferry_passenger_fare gold per boarding" \
+  <<<"$verification_output" ||
+  fail "the ferry passenger fare did not survive restart"
+
+gold_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands "gold")
+kohdee_gold=$(awk '
+  /You have [0-9]+ gold coins[.]/ {
+    print $3
+    exit
+  }
+' <<<"$gold_output")
+[[ "$kohdee_gold" =~ ^[0-9]+$ && "$kohdee_gold" -ge "$ferry_passenger_fare" ]] ||
+  fail "Kohdee needs at least $ferry_passenger_fare gold for the fare check"
+expected_after_fare=$((kohdee_gold - ferry_passenger_fare))
+
+set +e
+fare_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
+  "shipgoto $ferry_slot" \
+  "autopilot pause" \
+  "disembark" \
+  "gold" \
+  "board ferry" \
+  "gold" \
+  "autopilot on" \
+  "set Kohdee gold $kohdee_gold" \
+  "gold" \
+  "disembark" \
+  "goto 1000389")
+fare_status=$?
+set -e
+printf '%s\n' "$fare_output"
+
+fare_failure=
+if ((fare_status != 0)); then
+  fare_failure="the public ferry fare session failed with status $fare_status"
+elif ! grep -Fq \
+  "The purser collects $ferry_passenger_fare gold for passage aboard Harbor Sandbox Ferry." \
+  <<<"$fare_output"; then
+  fare_failure="the public ferry did not collect its configured fare"
+elif ! grep -Fq "You have $expected_after_fare gold coins." <<<"$fare_output"; then
+  fare_failure="the public ferry did not deduct exactly one fare"
+fi
+restored_gold_count=$(grep -Fc "You have $kohdee_gold gold coins." <<<"$fare_output" || true)
+if [[ -z "$fare_failure" && "$restored_gold_count" -lt 2 ]]; then
+  fare_failure="Kohdee's pre-check gold was not restored after the fare test"
+fi
+
+if [[ -n "$fare_failure" ]]; then
+  "$script_dir/dev_kohdee_login_smoke.sh" --commands \
+    "shipgoto $ferry_slot" \
+    "autopilot on" \
+    "set Kohdee gold $kohdee_gold" \
+    "goto 1000389" >/dev/null 2>&1 || true
+  fail "$fare_failure"
+fi
 
 printf 'PASS: harbor sandbox and persistent ferry verified in ship slot %s.\n' \
   "$ferry_slot"

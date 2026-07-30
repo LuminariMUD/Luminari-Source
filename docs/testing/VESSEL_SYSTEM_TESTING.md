@@ -33,7 +33,9 @@ representative prototypes and the four-waypoint, two-stop channel route,
 creates the public ferry only if absent, and performs a hard-restart
 persistence check. A passing run proves both seaports, the generated bridge
 and cargo DG triggers, the restored ferrymaster, exact route topology, and
-hourly schedule, then ends with:
+hourly schedule with its 10-gold fare. It also boards through the ordinary
+object path, verifies one exact deduction, restores Kohdee's starting gold,
+resumes the route, and then ends with:
 
 ```text
 PASS: harbor sandbox and persistent ferry verified in ship slot N.
@@ -41,8 +43,10 @@ PASS: harbor sandbox and persistent ferry verified in ship slot N.
 
 It uses the existing master account and Kohdee character; do not create a new
 account or perform one login per command. The first run includes ferry creation
-and a second restart. Later idempotent runs reuse the ferry and complete in
-about 30 seconds on the current development host.
+and a second restart. Before the fare check was added, later idempotent runs
+reused the ferry and completed in about 30 seconds on the current development
+host. Remeasure the augmented path after the active soak releases the installed
+build.
 
 Run the continuous ferry release gate through its supervised monitor:
 
@@ -215,9 +219,11 @@ numbered gameplay flow:
   command keywords, access levels, nonempty content, and zero obsolete
   duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
   commands in one 54-second Kohdee login.
-- All 22 component migrations classified as current by
-  `ci_schema_manifest.txt` applied independently to a fresh MariaDB 10.11
-  master schema.
+- All 22 component migrations preceding Phase 12 applied independently to a
+  fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
+  install, 10-gold persistence, rollback, and reapplication against a
+  session-scoped table that shadowed rather than changed the active ferry
+  schedule table.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.

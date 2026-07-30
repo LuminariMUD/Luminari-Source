@@ -2,6 +2,40 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel passenger fares
+
+#### Added
+
+- Scheduled public vessels can configure a persistent 0-100,000-gold boarding
+  fare with `setschedule <route> <interval> [fare]`; `showschedule` exposes the
+  current amount.
+- Phase 12 adds the fare to `ship_schedules` with matching verification and
+  rollback components.
+- The shared development ferry is seeded at 10 gold. Its provisioner checks
+  the fare after a hard restart, exercises ordinary boarding as Kohdee,
+  restores the test gold, and resumes the route.
+
+#### Fixed
+
+- Fare collection saves the player's deduction before boarding. Insufficient
+  gold or a failed save leaves the passenger ashore and restores the original
+  balance; NPC crew and privately owned vessels are exempt.
+
+#### Validated
+
+- The production-linked policy test covers public/private selection,
+  configured bounds, insufficient funds, save-failure rollback, NPC exemption,
+  and invalid inputs.
+- The isolated GNU C23 build completed without warnings, the complete root
+  suite passes 238 of 238 tests, `make install` removed the root executable,
+  and the focused protocol suite remains 13 of 13.
+- MariaDB accepted the Phase 12 install, a persisted 10-gold fare, rollback,
+  and reapplication against a session-scoped table that shadowed rather than
+  changed the active development schedule table. The authoritative help SQL
+  and all five verifier checks also passed on shadow tables.
+- The installed-build Kohdee transaction and reboot transcript remain queued
+  behind the pinned 24-hour ferry soak.
+
 ### Local character test setup
 
 #### Fixed

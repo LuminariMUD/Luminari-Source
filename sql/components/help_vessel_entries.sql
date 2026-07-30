@@ -722,19 +722,22 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SETROUTE', 'SETROUTE');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SETSCHEDULE', 'Usage: setschedule <route> <interval>
+VALUES ('SETSCHEDULE', 'Usage: setschedule <route> <interval> [passenger fare]
 
 Sets an automatic departure schedule for the vessel you are commanding.
 The vessel will automatically begin following the specified route at
-regular intervals measured in MUD hours.
+regular intervals measured in MUD hours. An optional fare is collected
+whenever a player boards an unowned public vessel on this schedule.
 
 Arguments:
   route    - Name of an existing route (use \'listroutes\' to see available)
   interval - Number of MUD hours between departures (1-24)
+  fare     - Optional boarding cost in gold (0-100000; omitted keeps the
+             existing fare)
 
 Examples:
-  setschedule FerryRoute 2    - Depart every 2 MUD hours
-  setschedule PatrolRoute 6   - Depart every 6 MUD hours
+  setschedule FerryRoute 2 10 - Depart every 2 hours and charge 10 gold
+  setschedule PatrolRoute 6   - Depart every 6 hours, preserving its fare
 
 Requirements:
   - You must be aboard a vessel with autopilot capability
@@ -744,7 +747,9 @@ Requirements:
 Notes:
   - One MUD hour equals approximately 75 real seconds
   - If a pilot is assigned, departures will be announced
-  - The schedule persists across server restarts
+  - The schedule and passenger fare persist across server restarts
+  - Fares on privately owned vessels are inactive
+  - NPC crew do not pay; staff using ordinary BOARD do pay
   - Use \'showschedule\' to see current schedule status
   - Use \'clearschedule\' to remove the schedule
 
@@ -785,6 +790,7 @@ Output includes:
   - Departure interval in MUD hours
   - Next scheduled departure time
   - Current MUD time for reference
+  - Public-vessel passenger fare
   - Schedule status (Active, Paused, or Disabled)
   - Pilot status (whether departures will be announced)
 
@@ -794,6 +800,7 @@ Example output:
   Interval: Every 2 MUD hours
   Next Departure: MUD hour 14
   Current Time: MUD hour 12
+  Passenger Fare: 10 gold per boarding
   Status: Active
   Pilot: Assigned (departures will be announced)
 

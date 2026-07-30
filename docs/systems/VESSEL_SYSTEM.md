@@ -544,6 +544,14 @@ even if control changes before settlement. Public-port revenue leaves the
 economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
 themselves.
 
+Scheduled public vessels may set a 0-100,000-gold passenger fare with
+`setschedule <route> <interval> [fare]`. Boarding collects and saves the fare
+before moving the character; insufficient gold or a failed player save leaves
+both the character and balance ashore. NPC crew are exempt. Privately owned
+vessels do not collect this automatic fee because owner revenue and
+player-to-player settlement are outside the public-ferry contract. The fare
+lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
+
 Freight contracts (`src/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows), with
 quantity and payout scaled from real wilderness distance between the dock
@@ -671,7 +679,7 @@ remain the MySQL-unavailable fallback.
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| setschedule | Set departure schedule | `setschedule <route> <interval>` |
+| setschedule | Set schedule and optional public fare | `setschedule <route> <interval> [fare]` |
 | clearschedule | Clear schedule | `clearschedule` |
 | showschedule | Display schedule | `showschedule` |
 
@@ -836,7 +844,7 @@ historical measurements, and the limits of the current evidence.
 | `ship_waypoints` | Persistent named navigation points |
 | `ship_routes` | Persistent route identities |
 | `ship_route_waypoints` | Ordered waypoint membership for routes |
-| `ship_schedules` | NPC-pilot and ferry schedule state |
+| `ship_schedules` | NPC-pilot and ferry schedule state, including passenger fare |
 | `trade_commodities` | Commodity definitions and base values |
 | `port_commodities` | Per-port supply and local price state |
 | `freight_contracts` | Freight offer and acceptance lifecycle |
@@ -876,14 +884,17 @@ overwriting it. It is intentionally not part of `make install`, `setup.sh`, or
 The environment contains Testing Dock at room 1000389 and `(-66, 92)`, Harbor
 Sandbox East Dock at room 1000390 and `(-62, 82)`, representative raft/ship/
 airship prototypes, the looping `harbor_ferry_loop`, a public ship-class
-ferry, mobile 70001 as its persistent pilot, and bridge/cargo DG diagnostics
-70001/70002. Re-running the command reuses the same ferry and account rather
-than duplicating either. An assigned pilot at the bridge is excluded from
-ordinary mobile wandering; the fixture ferrymaster is also authored Sentinel
-so it remains at its duty station. The two docks are joined by four ordered
-route entries: west dock, channel turn at `(-64, 82)`, east dock, and the same
-channel turn for the return leg. This keeps both straight-line legs off the
-Beach cells. The provisioner validates that exact topology.
+ferry with a 10-gold fare, mobile 70001 as its persistent pilot, and
+bridge/cargo DG diagnostics 70001/70002. Re-running the command reuses the same
+ferry and account rather than duplicating either. An assigned pilot at the
+bridge is excluded from ordinary mobile wandering; the fixture ferrymaster is
+also authored Sentinel so it remains at its duty station. The two docks are
+joined by four ordered route entries: west dock, channel turn at `(-64, 82)`,
+east dock, and the same channel turn for the return leg. This keeps both
+straight-line legs off the Beach cells. After a hard restart, the provisioner
+checks the restored fare, boards as Kohdee through the ordinary hull-object
+path, proves exactly 10 gold was collected, restores Kohdee's starting gold,
+resumes the ferry, and validates the exact route topology.
 
 The 24-hour ferry gate is run independently of an agent session:
 

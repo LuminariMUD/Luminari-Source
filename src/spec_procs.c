@@ -12154,6 +12154,11 @@ SPECIAL(greyhawk_ship_object)
     return 0;
   }
 
+  if (!vessel_collect_passenger_fare(ch, &greyhawk_ships[ship_index]))
+  {
+    return 1;
+  }
+
   /* Link interior room to ship data - required for disembark and ship commands */
   world[interior_room].ship = &greyhawk_ships[ship_index];
 
