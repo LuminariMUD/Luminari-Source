@@ -369,6 +369,7 @@ run_benchmark()
   local weapon_count
   local slot500_room_count
   local msdp_slot
+  local submarine_slot
   local schedule_rows
   local schedule_id_list
   local schedule_paused_count
@@ -378,6 +379,7 @@ run_benchmark()
   local helper_status
   local fleet_after
   local schedule_trigger_count
+  local shared_encounter_count
   local vessel_error_count
   local measurement_error_pattern
   local perf_rows
@@ -389,6 +391,10 @@ run_benchmark()
   local vessel_tick_p99
   local vessel_tick_max
   local database_queries
+  local air_z_sample_summary
+  local air_z_sample_count
+  local air_z_minimum
+  local air_z_maximum
   local initial_rss
   local maximum_rss
   local final_rss
@@ -686,9 +692,9 @@ VALUES
   ('${benchmark_prefix} Water East', -62, 82, 0, 0.5, 5, 0),
   ('${benchmark_prefix} Water Turn B', -64, 82, 0, 0.5, 0, 0),
   ('${benchmark_prefix} Air A', -49, 97, 150, 0.5, 0, 0),
-  ('${benchmark_prefix} Air B', -46, 98, 150, 0.5, 0, 0),
-  ('${benchmark_prefix} Air C', -44, 97, 150, 0.5, 0, 0),
-  ('${benchmark_prefix} Air D', -48, 95, 150, 0.5, 0, 0);
+  ('${benchmark_prefix} Air B', -46, 98, 180, 0.5, 0, 0),
+  ('${benchmark_prefix} Air C', -44, 97, 120, 0.5, 0, 0),
+  ('${benchmark_prefix} Air D', -48, 95, 220, 0.5, 0, 0);
 
 INSERT INTO ship_routes (name, loop_route, active) VALUES
   ('${benchmark_prefix} Surface Route', 1, 1),
@@ -857,6 +863,13 @@ JOIN ship_interiors AS interior USING (ship_id)
        runtime.wait_remaining = 0,
        runtime.last_update = UNIX_TIMESTAMP();
 
+SET @msdp_ship = (
+  SELECT MIN(ship_id) FROM ship_interiors WHERE vessel_type = 4
+);
+UPDATE ship_runtime_state
+   SET z = 500
+ WHERE ship_id = @msdp_ship;
+
 DELETE FROM ship_docking;
 DELETE FROM ship_schedules;
 INSERT INTO ship_schedules
@@ -977,6 +990,10 @@ SQL
     SELECT MIN(ship_id) FROM ship_interiors WHERE vessel_type = 4;")
   [[ "$msdp_slot" =~ ^[0-9]+$ ]] ||
     benchmark_fail "could not choose an MSDP airship"
+  submarine_slot=$(database_query "
+    SELECT MIN(ship_id) FROM ship_interiors WHERE vessel_type = 5;")
+  [[ "$submarine_slot" =~ ^[0-9]+$ ]] ||
+    benchmark_fail "could not choose a boundary-test submarine"
   schedule_rows=$(database_query "
     SELECT ship_id
       FROM ship_interiors
@@ -996,13 +1013,27 @@ SQL
     "shiplist summary"
     "shipgoto 500"
     "shipstatus"
+    "autopilot pause"
+    "setsail up"
+    "shipstatus"
+    "autopilot on"
     "showschedule"
     "shipcrew"
     "cargomanifest"
     "shipgoto $msdp_slot"
+    "autopilot pause"
     "shipstatus"
+    "setsail up"
+    "shipstatus"
+    "autopilot on"
     "seastate"
     "@wait 60"
+    "shipgoto $submarine_slot"
+    "autopilot pause"
+    "shipstatus"
+    "setsail up"
+    "shipstatus"
+    "autopilot on"
   )
   for ship_id in "${schedule_ship_ids[@]}"; do
     preparation_commands+=("shipgoto $ship_id" "autopilot pause")
@@ -1025,6 +1056,16 @@ SQL
     benchmark_fail "slot 500 schedule did not reconstruct"
   grep -Fq "Cargo manifest for ${benchmark_prefix} 500:" "$verification_output" ||
     benchmark_fail "slot 500 cargo did not reconstruct"
+  grep -Fq "The ship cannot navigate this terrain!" "$verification_output" ||
+    benchmark_fail "surface hull did not reject positive Z through Kohdee"
+  grep -Fq "the altitude is too extreme." "$verification_output" ||
+    benchmark_fail "airship did not reject Z above its ceiling through Kohdee"
+  [[ "$(grep -Fc "Elevation/Depth: 500" "$verification_output" || true)" -ge 2 ]] ||
+    benchmark_fail "airship ceiling rejection changed its live Z"
+  grep -Fq "must dive to navigate underwater terrain!" "$verification_output" ||
+    benchmark_fail "submarine did not reject positive Z through Kohdee"
+  [[ "$(grep -Fc "Elevation/Depth: -1" "$verification_output" || true)" -ge 2 ]] ||
+    benchmark_fail "submarine surface-boundary rejection changed its live Z"
   grep -Fq "Reconstructed 500 persisted vessel instances" "$server_log" ||
     benchmark_fail "server boot did not report 500 reconstructed vessels"
   reconstruction_error_pattern="Dynamic ship .*could not|No zone owns ship interior|"
@@ -1046,7 +1087,7 @@ SQL
   while ((remaining > 0)); do
     wait_seconds=$remaining
     ((wait_seconds > 60)) && wait_seconds=60
-    measurement_commands+=("@wait $wait_seconds")
+    measurement_commands+=("@wait $wait_seconds" "shipstatus")
     remaining=$((remaining - wait_seconds))
   done
   measurement_commands+=(
@@ -1116,6 +1157,14 @@ SQL
       "$run_dir/server-measurement.log" ||
       benchmark_fail "scheduled departure did not trigger for ship $ship_id"
   done
+  grep -Fq "A benchmark contact passes the airship." \
+    "$run_dir/measurement.log" ||
+    benchmark_fail "Kohdee did not observe the configured live encounter"
+  shared_encounter_count=$(grep -Ec \
+    "Shared encounter '${benchmark_prefix} Message Encounter'.*notified ([2-9]|[1-9][0-9]+) vessels" \
+    "$run_dir/server-measurement.log" || true)
+  ((shared_encounter_count >= 1)) ||
+    benchmark_fail "no live encounter notified multiple co-located ships"
   measurement_error_pattern="Autopilot ship .* (impassable terrain|failed)|"
   measurement_error_pattern+="No zone owns ship interior|Room pool exhausted|"
   measurement_error_pattern+="SYSERR:.*(vessel|ship)"
@@ -1158,6 +1207,40 @@ SQL
     's/^# database_queries=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
   [[ "$database_queries" =~ ^[0-9]+$ ]] ||
     benchmark_fail "could not parse the database query count"
+  air_z_sample_summary=$(awk '
+    /Elevation\/Depth:/ {
+      value = $2 + 0
+      seen[value] = 1
+      if (!found || value < minimum) {
+        minimum = value
+      }
+      if (!found || value > maximum) {
+        maximum = value
+      }
+      found = 1
+    }
+    END {
+      count = 0
+      for (value in seen) {
+        count++
+      }
+      if (found) {
+        print count, minimum, maximum
+      } else {
+        print 0, 0, 0
+      }
+    }
+  ' "$run_dir/measurement.log")
+  read -r air_z_sample_count air_z_minimum air_z_maximum \
+    <<<"$air_z_sample_summary"
+  [[ "$air_z_sample_count" =~ ^[0-9]+$ &&
+     "$air_z_minimum" =~ ^-?[0-9]+$ &&
+     "$air_z_maximum" =~ ^-?[0-9]+$ ]] ||
+    benchmark_fail "could not parse the live Kohdee airship Z samples"
+  ((air_z_sample_count >= 2)) ||
+    benchmark_fail "live Kohdee airship samples did not observe a Z transition"
+  ((air_z_minimum >= 0 && air_z_maximum <= 500)) ||
+    benchmark_fail "live airship Z escaped its class bounds: $air_z_minimum..$air_z_maximum"
 
   finished_epoch=$(date +%s)
   if ((vessel_tick_max <= 25000)); then
@@ -1183,6 +1266,9 @@ SQL
       "$vessel_tick_median" "$vessel_tick_p95" "$vessel_tick_p99" "$vessel_tick_max"
     printf 'Database execution attempts after reset: %s\n' "$database_queries"
     printf 'Scheduled departures during measurement: %s\n' "$schedule_trigger_count"
+    printf 'Shared multi-ship encounters observed: %s\n' "$shared_encounter_count"
+    printf 'Live airship Z distinct/min/max: %s/%s/%s\n' \
+      "$air_z_sample_count" "$air_z_minimum" "$air_z_maximum"
     printf 'Vessel workload errors: %s\n' "$vessel_error_count"
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"

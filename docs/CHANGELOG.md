@@ -2,6 +2,45 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel system - deterministic encounters and Z-axis movement
+
+Closed the automated portion of the living-world boundary gate while the
+definitive ferry soak continues on its pinned development binary.
+
+#### Fixed
+
+- Autopilot now advances toward waypoint X, Y, and Z instead of measuring
+  three-dimensional distance while moving only horizontally. Each step clamps
+  to the remaining distance, and an invalid class Z fails before partial route
+  movement.
+- Surface vessels can no longer move above or below Z 0. Air-capable hulls
+  enforce their altitude ceiling, submersible hulls require a water column for
+  negative Z, and submarine crush depth remains tied to local bathymetry.
+- Overlapping encounter regions now resolve independently of database row
+  order: containment position wins first, then the lowest region VNUM.
+  Equal-chance encounter rows use encounter ID as a stable final ordering.
+- Co-located ships now share one successful encounter spawn per exterior
+  wilderness room and all receive the shared arrival message, instead of each
+  ship independently creating a duplicate creature in the same room.
+
+#### Added
+
+- Production-linked regressions for three-dimensional autopilot steps, class
+  altitude/depth boundaries, order-independent encounter-region selection,
+  exact d100 chance boundaries, and one-claim-per-shared-room behavior.
+- The 500-vessel benchmark air route now changes altitude, samples the actual
+  Kohdee airship every minute, and requires at least one observed Z transition
+  within the airship's 0-500 class bounds.
+
+#### Validated
+
+- The isolated GNU C23 build completed without warnings and the complete root
+  suite passes 234 of 234 tests. `make install` completed and removed the
+  isolated root-level `circle`.
+- Live two-ship encounter and vertical-route confirmation remain queued behind
+  the active 24-hour ferry soak; automated coverage is not presented as that
+  in-game result.
+
 ### Vessel system - reproducible 500-ship scale gate
 
 Defined a reversible local-development workload for the remaining live

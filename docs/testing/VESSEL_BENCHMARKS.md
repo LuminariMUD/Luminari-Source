@@ -191,8 +191,13 @@ The runner:
   with all of its actual room VNUMs inside 80000-80019.
 - Loads 500 NPC pilots, 2,000 veteran hired-crew rows, 500 enabled schedules,
   500 bulk-cargo lots, normalized weapons, insured warships, safe surface,
-  submerged, water, and air routes, and a message-producing regional airship
-  encounter.
+  submerged, water, and altitude-changing air routes, and a
+  message-producing regional airship encounter.
+- Uses actual Kohdee commands to prove the surface Z-0 boundary, airship
+  ceiling, and submarine waterline boundary before timing. During timing,
+  minute-by-minute airship status samples must observe at least two Z values
+  inside 0-500. A live regional encounter must reach Kohdee and notify
+  multiple ships sharing one exterior wilderness room.
 - Warms the production heartbeat, then pauses ten routed vessels after a known
   schedule departure. Each must trigger a new persisted departure during the
   measured window. Kohdee remains aboard an airship so MSDP and normal

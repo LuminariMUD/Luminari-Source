@@ -472,6 +472,104 @@ const struct vessel_terrain_caps *get_vessel_terrain_caps(enum vessel_class vess
 }
 
 /**
+ * Validate the vertical coordinate against a hull class's capabilities.
+ *
+ * Surface hulls stay on z=0, flying hulls may rise only to their configured
+ * ceiling, and submersible hulls may use negative depth. Crush depth remains
+ * bathymetry-driven in vessel_weather_tick(), rather than a class constant.
+ */
+bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z)
+{
+  const struct vessel_terrain_caps *caps;
+
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL)
+  {
+    return FALSE;
+  }
+
+  if (z > 0)
+  {
+    return caps->can_traverse_air && caps->max_altitude > 0 && z <= caps->max_altitude;
+  }
+
+  if (z < 0)
+  {
+    return caps->can_traverse_underwater;
+  }
+
+  return TRUE;
+}
+
+/**
+ * Validate that a vertical coordinate belongs to the wilderness column below.
+ *
+ * Negative depth is meaningful only over water. High flight cannot occupy
+ * underground or interior sectors. The ordinary terrain-speed table still
+ * decides whether the class can traverse the resulting sector.
+ */
+bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int z)
+{
+  if (!vessel_z_within_class_limits(vessel_type, z))
+  {
+    return FALSE;
+  }
+
+  if (z < 0)
+  {
+    switch (sector_type)
+    {
+    case SECT_BEACH:
+    case SECT_OCEAN:
+    case SECT_RIVER:
+    case SECT_SEAPORT:
+    case SECT_UD_NOSWIM:
+    case SECT_UD_WATER:
+    case SECT_WATER_NOSWIM:
+    case SECT_WATER_SWIM:
+    case SECT_UNDERWATER:
+      return TRUE;
+    default:
+      return FALSE;
+    }
+  }
+
+  if (sector_type == SECT_UNDERWATER)
+  {
+    return FALSE;
+  }
+
+  if (z > 100)
+  {
+    if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
+    {
+      return FALSE;
+    }
+    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE ||
+        sector_type == SECT_INSIDE_ROOM)
+    {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector_type, int z)
+{
+  const struct vessel_terrain_caps *caps;
+
+  caps = get_vessel_terrain_caps(vessel_type);
+  if (caps == NULL || !vessel_z_allows_sector(vessel_type, sector_type, z) ||
+      sector_type < 0 || sector_type >= 40)
+  {
+    return FALSE;
+  }
+
+  return caps->terrain_speed_mod[sector_type] != 0;
+}
+
+/**
  * Get vessel type from ship data.
  *
  * Extracts the vessel_type field from a greyhawk_ship_data structure
@@ -1114,6 +1212,12 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     return FALSE;
   }
 
+  if (!vessel_z_within_class_limits(greyhawk_ships[shipnum].vessel_type, new_z))
+  {
+    log("Info: update_ship_wilderness_position: Ship %d rejects class Z %d", shipnum, new_z);
+    return FALSE;
+  }
+
   /* Get or allocate wilderness room at these coordinates using dynamic allocation */
   wilderness_room = get_or_allocate_wilderness_room(new_x, new_y);
   if (wilderness_room == NOWHERE)
@@ -1121,6 +1225,14 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     log("SYSERR: update_ship_wilderness_position: Room pool exhausted or invalid coordinates (%d, "
         "%d)",
         new_x, new_y);
+    return FALSE;
+  }
+
+  if (!vessel_can_traverse_sector(greyhawk_ships[shipnum].vessel_type,
+                                  world[wilderness_room].sector_type, new_z))
+  {
+    log("Info: update_ship_wilderness_position: Ship %d cannot occupy (%d, %d, %d)", shipnum,
+        new_x, new_y, new_z);
     return FALSE;
   }
 
@@ -1237,10 +1349,14 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
 {
   room_rnum wilderness_room;
   int sector_type;
-  const struct vessel_terrain_caps *caps;
 
   /* Validate coordinates within wilderness bounds first */
   if (x < -1024 || x > 1024 || y < -1024 || y > 1024)
+  {
+    return FALSE;
+  }
+
+  if (!vessel_z_within_class_limits(vessel_type, z))
   {
     return FALSE;
   }
@@ -1258,62 +1374,7 @@ bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, in
   VSSL_DEBUG_MOVE("Traverse check: vessel type %d at (%d,%d,%d) sector %d", vessel_type, x, y, z,
                   sector_type);
 
-  /* Get terrain capabilities for this vessel type */
-  caps = get_vessel_terrain_caps(vessel_type);
-  if (caps == NULL)
-  {
-    return FALSE;
-  }
-
-  /* Airships at altitude can fly over most terrain */
-  if (vessel_type == VESSEL_AIRSHIP && z > 100)
-  {
-    /* Flying altitude - check max altitude and underground restrictions */
-    if (z > caps->max_altitude)
-    {
-      return FALSE; /* Too high */
-    }
-    /* Cannot fly underground */
-    if (sector_type >= SECT_UD_WILD && sector_type <= SECT_UD_NOGROUND)
-    {
-      return FALSE;
-    }
-    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE || sector_type == SECT_INSIDE_ROOM)
-    {
-      return FALSE;
-    }
-    return TRUE; /* Can fly over everything else at altitude */
-  }
-
-  /* Submarines must be submerged for underwater, surfaced otherwise */
-  if (vessel_type == VESSEL_SUBMARINE)
-  {
-    if (sector_type == SECT_UNDERWATER && z >= 0)
-    {
-      return FALSE; /* Must dive (negative z) for underwater */
-    }
-    if (sector_type != SECT_UNDERWATER && z < 0)
-    {
-      /* Submerged but not in underwater terrain - can travel in ocean/deep water */
-      if (sector_type != SECT_OCEAN && sector_type != SECT_WATER_NOSWIM)
-      {
-        return FALSE;
-      }
-    }
-  }
-
-  /* Check speed modifier - 0 means impassable */
-  if (sector_type >= 0 && sector_type < 40)
-  {
-    if (caps->terrain_speed_mod[sector_type] == 0)
-    {
-      return FALSE;
-    }
-    return TRUE;
-  }
-
-  /* Default fallback for unknown sector types */
-  return FALSE;
+  return vessel_can_traverse_sector(vessel_type, sector_type, z);
 }
 
 /**

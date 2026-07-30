@@ -8,20 +8,22 @@ offline insurance delivery, player-removal recovery, and the multi-character
 PvP logout lifecycle pass with actual characters are proven. Immediate
 autopilot command durability, write-failure rollback, and static/dynamic
 exterior-hull co-location through restart and zone reset are also proven. The
-shared two-dock harbor, representative prototypes, persistent scheduled ferry, and
-generated-room DG triggers are available. Monotonic per-subsystem timing,
-rolling percentiles, CSV output, correct interval promotion, and a process-wide
-SQL execution counter are now available for the scale gate. The fleet now has
-500 usable nonzero slots and a matching interior VNUM reservation. Continuous
-validation, execution of the reproducible 500-ship workload, content, beta,
-and production release work remain. Pre-soak testing repaired signed-coordinate movement and
-both unsafe legs of the sample ferry route; an actual Kohdee session now
-completes the full four-waypoint loop. The
+shared two-dock harbor, representative prototypes, persistent scheduled ferry,
+and generated-room DG triggers are available. Monotonic per-subsystem timing,
+rolling percentiles, CSV output, correct interval promotion, and a
+process-wide SQL execution counter are now available for the scale gate. The
+fleet now has 500 usable nonzero slots and a matching interior VNUM
+reservation. Automated encounter ordering, shared-room deduplication, and
+class Z boundaries now pass; their actual-character confirmation remains
+queued. Continuous validation, execution of the reproducible 500-ship
+workload, content, beta, and production release work remain. Pre-soak testing
+repaired signed-coordinate movement and both unsafe legs of the sample ferry
+route; an actual Kohdee session now completes the full four-waypoint loop. The
 first monitor shakedown was rejected when its idle pre-login descriptor
 expired and let the game loop sleep; the corrected confirmation-state
 keepalive then passed a 150-second replacement with 84 continuous movement
-steps and exact-state restart recovery. The continuous 24-hour result is
-still unverified.
+steps and exact-state restart recovery. The continuous 24-hour result is still
+unverified.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -70,9 +72,9 @@ merchant, copyover, and multiplayer encounter testing.
   promotion, and a process-wide direct/prepared SQL execution count. The
   fleet array now reserves slot 0 separately from active slots 1-500; the
   matching zone 700 reservation reaches the final slot's VNUM 80019. The GNU
-  C23 production-linked suite passes 229 tests with the capacity and bounded
-  fleet-summary regressions, and isolated provisioner checks pass both
-  extension and overlap rejection.
+  C23 production-linked suite passes 234 tests with the capacity, bounded
+  fleet-summary, encounter, and Z-axis regressions, and isolated provisioner
+  checks pass both extension and overlap rejection.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the
@@ -89,7 +91,16 @@ merchant, copyover, and multiplayer encounter testing.
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit.
 - [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
-  tests.
+  tests. The automated layer now passes: overlapping regions use containment
+  position and then lowest VNUM regardless of query order; equal-chance rows
+  use encounter ID; one successful encounter claims a shared exterior room
+  once and broadcasts to every co-located hull; class Z limits reject surface
+  flight, airship ceiling violations, and non-water submergence; and autopilot
+  actually advances on Z without overshoot. The scale workload now varies
+  airship altitude and requires distinct live Kohdee Z samples. Keep this item
+  open until the post-soak installed build proves a two-ship shared encounter,
+  an airship vertical route, and manual upper/lower boundary rejection through
+  actual in-game commands.
 
 ## 3. Add Living-World Content
 

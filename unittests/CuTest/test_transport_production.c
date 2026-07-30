@@ -8,6 +8,7 @@
 #include "../../src/db.h"
 #include "../../src/protocol.h"
 #include "../../src/vessels.h"
+#include "../../src/wilderness.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -370,6 +371,74 @@ void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
   CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.95f));
   CuAssertIntEquals(tc, -63, vessel_autopilot_grid_coordinate(-63.40f));
   CuAssertIntEquals(tc, -64, vessel_autopilot_grid_coordinate(-63.50f));
+}
+
+void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct waypoint waypoint;
+  int target_x;
+  int target_y;
+  int target_z;
+
+  memset(&ship, 0, sizeof(ship));
+  memset(&waypoint, 0, sizeof(waypoint));
+
+  waypoint.z = 50.0f;
+  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y,
+                                                  &target_z));
+  CuAssertIntEquals(tc, 0, target_x);
+  CuAssertIntEquals(tc, 0, target_y);
+  CuAssertIntEquals(tc, 10, target_z);
+
+  waypoint.x = 3.0f;
+  waypoint.y = 4.0f;
+  waypoint.z = 0.0f;
+  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0f, &target_x, &target_y,
+                                                  &target_z));
+  CuAssertIntEquals(tc, 1, target_x);
+  CuAssertIntEquals(tc, 2, target_y);
+  CuAssertIntEquals(tc, 0, target_z);
+
+  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y,
+                                                  &target_z));
+  CuAssertIntEquals(tc, 3, target_x);
+  CuAssertIntEquals(tc, 4, target_y);
+  CuAssertIntEquals(tc, 0, target_z);
+
+  waypoint.z = 12.0f;
+  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0f, &target_x, &target_y,
+                                                  &target_z));
+  CuAssertIntEquals(tc, 3, target_x);
+  CuAssertIntEquals(tc, 4, target_y);
+  CuAssertIntEquals(tc, 12, target_z);
+}
+
+void Test_vessel_z_axis_enforces_class_and_wilderness_boundaries(CuTest *tc)
+{
+  CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_SHIP, 0));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_SHIP, 1));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_SHIP, -1));
+
+  CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_AIRSHIP, 500));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_AIRSHIP, 501));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_AIRSHIP, -1));
+
+  CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_SUBMARINE, -1));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_SUBMARINE, 1));
+
+  CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_MAGICAL, -1));
+  CuAssertTrue(tc, vessel_z_within_class_limits(VESSEL_MAGICAL, 1000));
+  CuAssertTrue(tc, !vessel_z_within_class_limits(VESSEL_MAGICAL, 1001));
+
+  CuAssertTrue(tc, vessel_z_allows_sector(VESSEL_SUBMARINE, SECT_OCEAN, -10));
+  CuAssertTrue(tc, vessel_z_allows_sector(VESSEL_SUBMARINE, SECT_UD_WATER, -10));
+  CuAssertTrue(tc, !vessel_z_allows_sector(VESSEL_SUBMARINE, SECT_FIELD, -10));
+  CuAssertTrue(tc, !vessel_z_allows_sector(VESSEL_SUBMARINE, SECT_UNDERWATER, 0));
+  CuAssertTrue(tc, vessel_z_allows_sector(VESSEL_AIRSHIP, SECT_MOUNTAIN, 500));
+  CuAssertTrue(tc, !vessel_z_allows_sector(VESSEL_AIRSHIP, SECT_CAVE, 500));
+  CuAssertTrue(tc, vessel_z_allows_sector(VESSEL_MAGICAL, SECT_OCEAN, -10));
+  CuAssertTrue(tc, !vessel_z_allows_sector(VESSEL_MAGICAL, SECT_FIELD, -10));
 }
 
 void Test_transport_production_capacity_validation(CuTest *tc)
@@ -821,6 +890,104 @@ void Test_vessel_trade_cargo_weight(CuTest *tc)
   ship.cargo[0].commodity_id = 4242;
   ship.cargo[0].quantity = 10;
   CuAssertIntEquals(tc, 0, vessel_cargo_weight(&ship));
+}
+
+void Test_vessel_encounter_region_selection_is_order_independent(CuTest *tc)
+{
+  struct region_data fixture[3];
+  struct region_data *saved_region_table;
+  struct region_list first;
+  struct region_list second;
+  struct region_list geographic;
+  struct region_list invalid;
+  region_rnum saved_top_of_region_table;
+  bool first_order_found;
+  bool reverse_order_found;
+  bool center_found;
+  bool invalid_found;
+  int first_order_vnum;
+  int reverse_order_vnum;
+  int center_vnum;
+  int invalid_vnum;
+
+  memset(fixture, 0, sizeof(fixture));
+  memset(&first, 0, sizeof(first));
+  memset(&second, 0, sizeof(second));
+  memset(&geographic, 0, sizeof(geographic));
+  memset(&invalid, 0, sizeof(invalid));
+
+  fixture[0].vnum = 70030;
+  fixture[0].region_type = REGION_ENCOUNTER;
+  fixture[1].vnum = 70020;
+  fixture[1].region_type = REGION_ENCOUNTER;
+  fixture[2].vnum = 70010;
+  fixture[2].region_type = REGION_GEOGRAPHIC;
+
+  first.rnum = 0;
+  first.pos = REGION_POS_INSIDE;
+  second.rnum = 1;
+  second.pos = REGION_POS_INSIDE;
+  geographic.rnum = 2;
+  geographic.pos = REGION_POS_CENTER;
+  invalid.rnum = 3;
+  invalid.pos = REGION_POS_CENTER;
+
+  saved_region_table = region_table;
+  saved_top_of_region_table = top_of_region_table;
+  region_table = fixture;
+  top_of_region_table = 2;
+
+  geographic.next = &first;
+  first.next = &second;
+  second.next = NULL;
+  first_order_found = vessel_encounter_region_from_list(&geographic, &first_order_vnum);
+
+  second.next = &first;
+  first.next = &geographic;
+  geographic.next = NULL;
+  reverse_order_found = vessel_encounter_region_from_list(&second, &reverse_order_vnum);
+
+  first.pos = REGION_POS_CENTER;
+  center_found = vessel_encounter_region_from_list(&second, &center_vnum);
+  invalid_found = vessel_encounter_region_from_list(&invalid, &invalid_vnum);
+
+  region_table = saved_region_table;
+  top_of_region_table = saved_top_of_region_table;
+
+  CuAssertTrue(tc, first_order_found);
+  CuAssertTrue(tc, reverse_order_found);
+  CuAssertIntEquals(tc, 70020, first_order_vnum);
+  CuAssertIntEquals(tc, first_order_vnum, reverse_order_vnum);
+  CuAssertTrue(tc, center_found);
+  CuAssertIntEquals(tc, 70030, center_vnum);
+  CuAssertTrue(tc, !invalid_found);
+  CuAssertIntEquals(tc, 0, invalid_vnum);
+}
+
+void Test_vessel_encounter_roll_boundaries_are_deterministic(CuTest *tc)
+{
+  CuAssertTrue(tc, !vessel_encounter_chance_succeeds(0, 1));
+  CuAssertTrue(tc, vessel_encounter_chance_succeeds(25, 25));
+  CuAssertTrue(tc, !vessel_encounter_chance_succeeds(25, 26));
+  CuAssertTrue(tc, vessel_encounter_chance_succeeds(100, 100));
+  CuAssertTrue(tc, vessel_encounter_chance_succeeds(150, 100));
+  CuAssertTrue(tc, !vessel_encounter_chance_succeeds(100, 0));
+  CuAssertTrue(tc, !vessel_encounter_chance_succeeds(100, 101));
+}
+
+void Test_vessel_encounter_shared_room_claims_once(CuTest *tc)
+{
+  room_rnum claimed_rooms[2];
+  int claimed_count = 0;
+
+  CuAssertTrue(tc, vessel_encounter_claim_room(100, claimed_rooms, &claimed_count, 2));
+  CuAssertIntEquals(tc, 1, claimed_count);
+  CuAssertTrue(tc, !vessel_encounter_claim_room(100, claimed_rooms, &claimed_count, 2));
+  CuAssertIntEquals(tc, 1, claimed_count);
+  CuAssertTrue(tc, vessel_encounter_claim_room(101, claimed_rooms, &claimed_count, 2));
+  CuAssertIntEquals(tc, 2, claimed_count);
+  CuAssertTrue(tc, !vessel_encounter_claim_room(102, claimed_rooms, &claimed_count, 2));
+  CuAssertTrue(tc, !vessel_encounter_claim_room(NOWHERE, claimed_rooms, &claimed_count, 2));
 }
 
 void Test_vessel_hazard_lookout_and_sight(CuTest *tc)

@@ -2104,6 +2104,53 @@ int vessel_autopilot_grid_coordinate(float coordinate)
 }
 
 /**
+ * Calculate one bounded three-dimensional autopilot step.
+ *
+ * The old movement path normalized only X/Y even though waypoint arrival used
+ * X/Y/Z distance. A waypoint directly above or below a ship therefore could
+ * never be reached. Clamp the step to the remaining distance so high-speed
+ * vessels also cannot overshoot and oscillate around a waypoint.
+ */
+bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
+                                    const struct waypoint *wp, float speed, int *target_x,
+                                    int *target_y, int *target_z)
+{
+  float dx;
+  float dy;
+  float dz;
+  float distance;
+  float travel;
+  float scale;
+
+  if (ship == NULL || wp == NULL || target_x == NULL || target_y == NULL || target_z == NULL)
+  {
+    return FALSE;
+  }
+
+  if (speed <= 0.0f)
+  {
+    speed = 1.0f;
+  }
+
+  dx = wp->x - ship->x;
+  dy = wp->y - ship->y;
+  dz = wp->z - ship->z;
+  distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+  if (distance < 0.001f)
+  {
+    return FALSE;
+  }
+
+  travel = speed < distance ? speed : distance;
+  scale = travel / distance;
+  *target_x = vessel_autopilot_grid_coordinate(ship->x + dx * scale);
+  *target_y = vessel_autopilot_grid_coordinate(ship->y + dy * scale);
+  *target_z = vessel_autopilot_grid_coordinate(ship->z + dz * scale);
+
+  return TRUE;
+}
+
+/**
  * Move a vessel toward its current waypoint.
  *
  * Calculates movement direction and distance, validates terrain,
@@ -2117,10 +2164,10 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
 {
   struct autopilot_data *ap;
   struct waypoint *wp;
-  float dx, dy;
   float speed;
-  float new_x, new_y;
-  int target_x, target_y;
+  int target_x;
+  int target_y;
+  int target_z;
 
   if (ship == NULL)
   {
@@ -2148,28 +2195,24 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     speed = 1.0f; /* Minimum movement speed */
   }
 
-  /* Calculate heading to waypoint */
-  calculate_heading_to_waypoint(ship, wp, &dx, &dy);
+  target_z = vessel_autopilot_grid_coordinate(wp->z);
+  if (!vessel_z_within_class_limits(ship->vessel_type, target_z))
+  {
+    log("Info: Autopilot ship %d - waypoint '%s' has invalid class Z %d", ship->shipnum,
+        wp->name, target_z);
+    return 0;
+  }
 
-  /* If already at destination (heading is zero) */
-  if (dx == 0.0f && dy == 0.0f)
+  if (!vessel_autopilot_next_position(ship, wp, speed, &target_x, &target_y, &target_z))
   {
     return 0;
   }
 
-  /* Calculate new position */
-  new_x = ship->x + (dx * speed);
-  new_y = ship->y + (dy * speed);
-
-  /* Round to integer coordinates for wilderness system */
-  target_x = vessel_autopilot_grid_coordinate(new_x);
-  target_y = vessel_autopilot_grid_coordinate(new_y);
-
   /* Check if terrain is valid for this vessel before moving */
-  if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, (int)ship->z))
+  if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, target_z))
   {
-    log("Info: Autopilot ship %d - impassable terrain at (%d, %d)", ship->shipnum, target_x,
-        target_y);
+    log("Info: Autopilot ship %d - impassable terrain at (%d, %d, %d)", ship->shipnum, target_x,
+        target_y, target_z);
     return 0;
   }
 
@@ -2180,10 +2223,10 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
    * - Updating ship->location to the new room vnum
    * - Moving ship object via obj_from_room()/obj_to_room() to allow room recycling
    */
-  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, (int)ship->z))
+  if (!update_ship_wilderness_position(ship->shipnum, target_x, target_y, target_z))
   {
-    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d)", ship->shipnum,
-        target_x, target_y);
+    log("SYSERR: Autopilot ship %d - failed to update position to (%d, %d, %d)", ship->shipnum,
+        target_x, target_y, target_z);
     return 0;
   }
 

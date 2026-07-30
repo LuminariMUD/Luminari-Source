@@ -20,6 +20,8 @@
 #include "handler.h"
 #include "constants.h"
 
+struct region_list;
+
 /* ========================================================================= */
 /* ITEM TYPES FOR VESSEL SYSTEM                                              */
 /* ========================================================================= */
@@ -434,6 +436,8 @@ struct vessel_result vessel_execute_command(struct char_data *actor, enum vessel
 room_rnum get_or_allocate_wilderness_room(int x, int y);
 bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
 int get_ship_terrain_type(int shipnum);
+bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z);
+bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int z);
 bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
@@ -556,6 +560,10 @@ int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
+bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
+bool vessel_encounter_chance_succeeds(int chance, int roll);
+bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
+                                 int claimed_capacity);
 int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
 
 ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
@@ -1307,6 +1315,9 @@ int check_waypoint_arrival(struct greyhawk_ship_data *ship, struct waypoint *wp)
 int advance_to_next_waypoint(struct greyhawk_ship_data *ship);
 void handle_waypoint_arrival(struct greyhawk_ship_data *ship);
 int vessel_autopilot_grid_coordinate(float coordinate);
+bool vessel_autopilot_next_position(const struct greyhawk_ship_data *ship,
+                                    const struct waypoint *wp, float speed, int *target_x,
+                                    int *target_y, int *target_z);
 int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship);
 void process_waiting_vessel(struct greyhawk_ship_data *ship);
 void process_traveling_vessel(struct greyhawk_ship_data *ship);

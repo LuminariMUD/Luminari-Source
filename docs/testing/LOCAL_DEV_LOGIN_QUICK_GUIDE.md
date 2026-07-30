@@ -128,10 +128,19 @@ an older installed binary, or stale benchmark data. Before mutation it takes
 an atomic snapshot of every vessel/economy table it can change. It then fills
 active slots 1-500 across all eight vessel classes, configures routes, pilots,
 crew, schedules, cargo, weapons, encounters, wear, and economy state, and
-holds Kohdee aboard an airship so the normal MSDP path runs. Ten scheduled
-ships are staged to depart inside the measured window. `shiplist summary`
-proves the live fleet count without overflowing the MUD's socket output
-buffer.
+holds Kohdee aboard an airship so the normal MSDP path runs. Before timing,
+Kohdee proves that a surface hull cannot leave Z 0, an airship cannot exceed
+Z 500, and a submarine cannot cross above the waterline. The air route then
+changes altitude between Z 120 and Z 220. Minute-by-minute `shipstatus`
+samples must contain at least two distinct Z values inside the airship's
+class bounds.
+
+The 100-percent benchmark encounter is attached to the air route's real
+`REGION_ENCOUNTER`. Co-located airships share their exterior wilderness room;
+the run requires a live encounter that notifies multiple hulls once and
+requires Kohdee to receive its arrival message. Ten scheduled ships are also
+staged to depart inside the measured window. `shiplist summary` proves the
+live fleet count without overflowing the MUD's socket output buffer.
 
 Whether the result passes, fails, or receives SIGTERM, the worker stops the
 local MUD, restores the snapshot, verifies that benchmark marker rows are

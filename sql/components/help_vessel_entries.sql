@@ -40,7 +40,9 @@ HEADING [0-360]
 
 SETSAIL <direction>
   Set a cardinal, diagonal, up, or down heading and begin moving. The vessel
-  must already have a positive speed.
+  must already have a positive speed. Surface hulls remain at elevation zero.
+  Air-capable hulls cannot exceed their class ceiling, and submersible hulls
+  can use negative depth only over water.
 
 CONTACTS
   List other vessels within detection range, nearest first.

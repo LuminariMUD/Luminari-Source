@@ -96,6 +96,14 @@ controls in one system.
 
 X/Y: -1024 to +1024; Z: altitude (airships) or depth (submarines)
 
+The class Z contract is enforced before wilderness-room allocation. Surface
+hulls remain at Z 0; air-capable hulls may rise only to their configured
+ceiling; submersible hulls may use negative Z only in a water column. Submarine
+crush depth remains anchored to local bathymetry instead of a fixed class
+floor. Autopilot advances along X, Y, and Z together, clamps each step to the
+remaining three-dimensional distance, and rejects an invalid waypoint Z before
+moving toward it.
+
 ### Wilderness Integration Contract
 
 Vessels extend the wilderness system; they do not create a separate geography.
@@ -469,7 +477,12 @@ signals - no vessel-private geography:
   wilderness region vnums (authored with existing region tooling). Rows are
   filtered by depth band and hull class, so submarine trenches and airship
   skies get their own content. Warned by lookouts, spawned into the ship's
-  wilderness room so they fight/flee/get shot like anything else.
+  wilderness room so they fight/flee/get shot like anything else. Overlapping
+  encounter regions resolve deterministically by containment position, then
+  lowest region VNUM; equal-chance table rows resolve by encounter ID. When
+  multiple hulls share one exterior wilderness room, a successful tick claims
+  that room once, broadcasts the encounter to every co-located hull, and spawns
+  at most one shared creature there.
 
 ### Cargo & Trade Commands (Phase 07)
 
