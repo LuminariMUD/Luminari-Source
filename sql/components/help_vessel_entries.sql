@@ -431,7 +431,9 @@ gives you warning before whatever it is arrives.
 
 Legal waters use the same REGION_GEOGRAPHIC polygons as the wilderness.
 Territorial waters, free seas, and pirate coves may apply different piracy
-bounty rates. A pirate-cove port does not refuse a WANTED captain.
+bounty rates. A pirate-cove port does not refuse a WANTED captain. While
+underway, the ship announces each named-water boundary once and stays quiet
+until it enters a different region.
 
 See also: SHIP COMBAT, SHIPREPAIR, SHIP CREW, TACTICAL, PLUNDER', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

@@ -58,7 +58,7 @@ controls in one system.
 
 | Tier | Type | Memory | Interior | Use Case |
 |------|------|--------|----------|----------|
-| **Vessel** | Ships, airships, submarines | 4,744-byte base struct | Multi-room | Exploration, cargo, combat |
+| **Vessel** | Ships, airships, submarines | 4,856-byte base struct | Multi-room | Exploration, cargo, combat |
 | **Vehicle** | Carts, wagons, mounts | 152-byte base struct | None | Land travel, cargo, transport |
 
 ### System Components
@@ -87,7 +87,7 @@ controls in one system.
 
 ### Memory Layout
 
-- **Vessel** (`greyhawk_ship_data`): 4,744 bytes, max 500 = about 2.3 MB
+- **Vessel** (`greyhawk_ship_data`): 4,856 bytes, max 500 = about 2.32 MiB
 - **Autopilot** (`autopilot_data`): 48 bytes (optional, attached to vessel)
 - **Schedule** (`vessel_schedule`): ~32 bytes (optional, attached to vessel)
 - **Vehicle** (`vehicle_data`): 152 bytes, max 1000 = about 148 KB
@@ -565,10 +565,14 @@ into an alongside raider, unit by unit so the weight limit stops it exactly
 at capacity. Unlawful plunder accrues bounty in `vessel_bounties`. By default,
 the rate is 15 gold per cargo unit. `vessel_region_law` may attach a 0-500%
 multiplier, authority, water type, and overlap priority to a builder-authored
-`REGION_GEOGRAPHIC` VNUM. Runtime resolution uses the canonical
-`region_data`/`region_index` polygon at the prize's coordinates; it never uses
-a vessel-private coordinate table. `seastate` exposes the resolved named
-waters, authority, and rate. A pirate-cove port permits WANTED captains;
+`REGION_GEOGRAPHIC` VNUM. At boot, law rows are cached and resolved against
+the canonical wilderness polygons already loaded from
+`region_data`/`region_index`; movement never runs a region query or creates a
+vessel-private coordinate table. `reload regions` refreshes both sources.
+`seastate` exposes the resolved named waters, authority, and rate. A vessel
+announces a real named-water boundary crossing ship-wide and remembers its
+current region so continued movement inside that polygon stays quiet. A
+pirate-cove port permits WANTED captains;
 `vessel_port_refuses()` remains active at every other port-service gate
 (market, freight, crew hall, shipyard, hull purchase), so a WANTED pirate
 cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
@@ -792,7 +796,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Component | Per unit | Maximum | Base total |
 |-----------|----------|---------|------------|
-| Vessel | 4,744 bytes | 500 | About 2.3 MB |
+| Vessel | 4,856 bytes | 500 | About 2.32 MiB |
 | Vehicle | 152 bytes | 1,000 | About 148 KB |
 | Autopilot | 48 bytes | Optional per vessel | Up to about 24 KB |
 | Schedule | About 32 bytes | Optional per vessel | Up to about 16 KB |
@@ -801,7 +805,7 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 | Structure | Size |
 |-----------|------|
-| `struct greyhawk_ship_data` | 4,744 bytes |
+| `struct greyhawk_ship_data` | 4,856 bytes |
 | `struct vehicle_data` | 152 bytes |
 | `struct waypoint` | 88 bytes |
 | `struct ship_route` | 1840 bytes |

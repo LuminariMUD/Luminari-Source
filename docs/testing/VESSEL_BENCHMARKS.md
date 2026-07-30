@@ -15,11 +15,11 @@ from the full live-game benchmark that still must be run.
 | Measure | Result | Status |
 |---|---:|---|
 | Configured fleet-array entries | 501 | Slot 0 is reserved; active maximum is 500 |
-| Base `greyhawk_ship_data` size | 4,744 bytes | Within 5 KB budget |
-| Base storage for 501 array entries | 2,376,744 bytes (about 2.27 MiB) | Within about 3 MB budget |
+| Base `greyhawk_ship_data` size | 4,856 bytes | Within 5 KB budget |
+| Base storage for 501 array entries | 2,432,856 bytes (about 2.32 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 237 of 237 passing | Current scale-workload gate |
+| Root suite on July 30, 2026 | 241 of 241 passing | Current production-linked gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -30,7 +30,7 @@ microbenchmarks do not satisfy this target.
 
 ### Ship Structure
 
-The measured `sizeof(struct greyhawk_ship_data)` is 4,744 bytes.
+The measured `sizeof(struct greyhawk_ship_data)` is 4,856 bytes.
 
 | Component | Approximate bytes |
 |---|---:|
@@ -41,9 +41,9 @@ The measured `sizeof(struct greyhawk_ship_data)` is 4,744 bytes.
 | Helm permits | 210 |
 | Cargo data | 80 |
 | Crew tiers | 16 |
-| New counters and state fields | 35 |
+| New counters and state fields | 147 |
 | Other fields and padding | 405 |
-| **Total** | **4,744** |
+| **Total** | **4,856** |
 
 Gameplay work added during phases 4 through 9 accounts for roughly 340 bytes,
 or about 7.7 percent of the structure. Older documentation that reported a
@@ -53,10 +53,10 @@ or about 7.7 percent of the structure. Older documentation that reported a
 
 | Ships | Base bytes | Approximate size |
 |---:|---:|---:|
-| 100 | 474,400 | 463.3 KiB |
-| 250 | 1,186,000 | 1.13 MiB |
-| 500 | 2,372,000 | 2.26 MiB |
-| Fixed 501-entry array | 2,376,744 | 2.27 MiB |
+| 100 | 485,600 | 474.2 KiB |
+| 250 | 1,214,000 | 1.16 MiB |
+| 500 | 2,428,000 | 2.32 MiB |
+| Fixed 501-entry array | 2,432,856 | 2.32 MiB |
 
 The separate vehicle array has a measured element size of 152 bytes. At 1,000
 vehicles, its base storage is 152,000 bytes, or about 148.4 KiB.
@@ -70,7 +70,7 @@ budget.
 
 | Structure | Size |
 |---|---:|
-| `greyhawk_ship_data` | 4,744 bytes |
+| `greyhawk_ship_data` | 4,856 bytes |
 | `vehicle_data` | 152 bytes |
 | Autopilot state | 48 bytes |
 | Route data | 1,840 bytes |
@@ -239,15 +239,16 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 237 of 237
+worktree on July 30, 2026. The production-linked root suite passed 241 of 241
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
 three-dimensional navigation, shared encounters, marginal batch pricing, the
 deterministic 1,000-trade simulation, and vessel MSDP clearing after going
-ashore. `make install` completed in that isolated worktree and removed its
-root-level `circle`. Isolated provisioner fixtures also passed the idempotent
-zone-extension and overlap-rejection paths.
+ashore. The suite also checks canonical polygon interiors and MariaDB-compatible
+edge exclusion for named-water resolution. `make install` completed in that
+isolated worktree and removed its root-level `circle`. Isolated provisioner
+fixtures also passed the idempotent zone-extension and overlap-rejection paths.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

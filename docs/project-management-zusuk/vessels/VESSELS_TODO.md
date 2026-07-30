@@ -168,6 +168,11 @@ merchant, copyover, and multiplayer encounter testing.
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
 - [ ] Announce named-sea boundary crossings from `REGION_GEOGRAPHIC`, add a
   ship-wide captain channel, and throttle repeated ambient or combat messages.
+  Named-water crossings now resolve the boot-loaded canonical polygons,
+  announce once ship-wide, and remain quiet until the vessel changes regions;
+  law metadata is cached so movement adds no SQL. Still add the captain
+  channel and general ambient/combat throttling, then record an installed-build
+  crossing transcript after the active soak.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout
