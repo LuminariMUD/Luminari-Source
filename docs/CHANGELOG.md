@@ -39,6 +39,10 @@
 - The vessel feature gate covers the command, and the authoritative vessel
   help migration now covers 31 maintained entries and all 77 exact command
   keywords, including the previously uncovered staff `vtradecheck`.
+- `--vessel-channel-check <ship-slot> <crew-character>` opens both character
+  sockets inside one login-helper process, selects both characters from the
+  same master account, verifies cross-room delivery and ashore isolation, and
+  logs out both sessions.
 
 #### Validated
 
@@ -52,10 +56,10 @@
 - Session-only MariaDB shadow tables pass all 31 help entries, all 77 command
   keywords, access levels, nonempty content, obsolete-duplicate removal, and
   the new channel text check without changing active help data.
-- The installed-build two-character transcript remains queued behind the
-  pinned 24-hour ferry soak. Both characters will use the existing master
-  account; if a disposable crew character is needed, it will be added to that
-  account rather than creating another account.
+- The automated installed-build two-character transcript remains queued behind
+  the pinned 24-hour ferry soak. If a disposable crew character is needed, it
+  will be added to the existing master account rather than creating another
+  account.
 
 ### Canonical vessel law
 

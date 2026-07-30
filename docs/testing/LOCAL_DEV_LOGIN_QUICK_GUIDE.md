@@ -191,35 +191,41 @@ automatically. Do not run either path while the pinned ferry soak is active.
 
 ## Fast Ship-Wide Channel Gate
 
-Run this only after the active soak releases the installed build. Use two
-simultaneous local clients, but authenticate both with the same configured
-master account. Select `Kohdee` in one client and a second exact character Name
-in the other. Do not create a second account.
+Run this only after the active soak releases the installed build:
 
-If the master account has no second usable character, add one to that account:
+```bash
+./scripts/dev_kohdee_login_smoke.sh \
+  --vessel-channel-check <ship-slot> Vesselmate
+```
+
+The helper opens two simultaneous local connections, authenticates both with
+the configured master account, and selects `Kohdee` plus the exact second
+character Name. It keeps both descriptors open while it:
+
+1. Moves Kohdee to the requested vessel and transfers the second character
+   aboard.
+2. Moves Kohdee into a different interior room.
+3. Sends a unique `shiptalk` marker from each character and requires the other
+   socket to receive the vessel name, speaker name, and exact marker.
+4. Moves Kohdee ashore, sends another aboard marker, and requires Kohdee's
+   socket to remain quiet.
+5. Requires the aboard-only refusal from both characters after bringing the
+   second character ashore.
+6. Cleanly leaves both characters and both account sessions.
+
+One helper process owns both sockets and the normal login lock, so no manual
+client synchronization or second helper process is needed. This is the
+preferred release transcript.
+
+If the master account has no second usable character, add one to that same
+account first:
 
 ```bash
 ./scripts/dev_create_test_character.sh Vesselmate
 ```
 
-The one-argument form uses the master account. Open both clients once, keep
-both descriptors connected, and complete the check in this order:
-
-1. As Kohdee, run `shipgoto <ship-slot>`, then `trans Vesselmate`.
-2. Move Vesselmate one room away inside the same vessel.
-3. Send a unique `shiptalk` marker from each character and require the other
-   client to receive the vessel name, speaker name, and exact marker.
-4. Move Kohdee ashore with `goto 1000389`. Send one more marker from
-   Vesselmate and require Kohdee's client to remain quiet.
-5. Run `shiptalk ashore-check` as Kohdee and require the aboard-only refusal.
-6. Bring Vesselmate ashore with `trans Vesselmate`, then cleanly leave both
-   characters and the shared account sessions.
-
-The login helper deliberately serializes its normal single-character sessions,
-so do not launch two copies of it for this simultaneous check. One shared
-account with two character selections is the intended multiplayer fixture.
-Keep both clients open through all six steps; this avoids repeating boot,
-account, and menu work.
+The one-argument creation form uses the master account. Do not create a second
+account for this check.
 
 ## Fast Native MSDP Vessel-State Gate
 

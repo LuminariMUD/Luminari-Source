@@ -48,8 +48,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-msdp-check)
       mode="vessel-msdp-check"
       ;;
+    --vessel-channel-check)
+      mode="vessel-channel-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character>]"
       ;;
   esac
   shift
@@ -84,6 +87,11 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-msdp-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-msdp-check requires one ship slot from 1 through 500"
+  elif [[ "$mode" == "vessel-channel-check" ]]; then
+    [[ $# -eq 2 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      fail "--vessel-channel-check requires a ship slot from 1 through 500 and a crew character"
+    [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+      fail "--vessel-channel-check crew character must be a valid character name"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -123,6 +131,10 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
   fail "DEV_MUD_ACCOUNT or GAME_MASTER_ACCOUNT is not set"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
+if [[ "$mode" == "vessel-channel-check" &&
+      "${2,,}" == "${smoke_character,,}" ]]; then
+  fail "--vessel-channel-check requires two different character names"
+fi
 export -n GAME_MASTER_ACCOUNT GAME_MASTER_ACCOUNT_PASSWORD
 export -n DEV_MUD_ACCOUNT DEV_MUD_ACCOUNT_PASSWORD DEV_MUD_CHARACTER
 
@@ -612,11 +624,249 @@ proc run_help_check {keyword} {
   puts "PASS help $keyword -> [string trim $tag]"
 }
 
+proc clean_socket_output {raw} {
+  regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $raw {} raw
+  regsub -all {\t.} $raw {} raw
+  regsub -all {[^\x09\x0a\x0d\x20-\x7e]} $raw {} raw
+  return $raw
+}
+
+proc open_secondary_character {character} {
+  global env
+
+  spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
+  set secondary_session $spawn_id
+
+  expect {
+    -re {What is your account name} {}
+    timeout { fail "timed out waiting for the secondary account prompt" }
+    eof { fail "secondary connection closed before the account prompt" }
+  }
+
+  send -- "$env(MUD_SMOKE_ACCOUNT)\r"
+  expect {
+    -re {Password:[[:space:]]*} {}
+    -re {Did I get that right} { fail "configured account was not found for the secondary session" }
+    timeout { fail "timed out waiting for the secondary password prompt" }
+    eof { fail "secondary connection closed before the password prompt" }
+  }
+
+  send -- "$env(MUD_SMOKE_ACCOUNT_PASSWORD)\r"
+  expect {
+    -re {Your choice[[:space:]]*:} { set account_menu $expect_out(buffer) }
+    -re {(Wrong|Incorrect|Invalid)[^\r\n]*password} {
+      fail "account password was rejected for the secondary session"
+    }
+    timeout { fail "timed out waiting for the secondary account menu" }
+    eof { fail "secondary connection closed before the account menu" }
+  }
+
+  set clean_menu $account_menu
+  regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $clean_menu {} clean_menu
+  regsub -all {\t.} $clean_menu {} clean_menu
+  set character_slot ""
+  set character_rows 0
+
+  foreach menu_line [split $clean_menu "\n"] {
+    set columns [split $menu_line "|"]
+    if {[llength $columns] >= 2 &&
+        [string equal -nocase [string trim [lindex $columns 1]] $character]} {
+      if {[regexp {^[^0-9]*([0-9]+)[[:space:]]*$} [lindex $columns 0] ignored slot]} {
+        incr character_rows
+        set character_slot $slot
+      }
+    }
+  }
+
+  if {$character_rows != 1 || $character_slot eq ""} {
+    fail "expected exactly one account-menu Name match for secondary character $character"
+  }
+
+  send -- "$character_slot\r"
+  set entered_world 0
+  expect {
+    -re {PRESS RETURN} {}
+    -re {Reconnecting\.} { set entered_world 1 }
+    -re {This character has been deleted} {
+      fail "$character is soft-deleted and cannot enter the secondary session"
+    }
+    timeout { fail "timed out while loading secondary character $character" }
+    eof { fail "secondary connection closed while loading $character" }
+  }
+
+  if {!$entered_world} {
+    send -- "\r"
+    expect {
+      -re {Make your choice:[[:space:]]*} {}
+      timeout { fail "timed out waiting for $character's character menu" }
+      eof { fail "secondary connection closed before $character's character menu" }
+    }
+
+    send -- "1\r"
+    expect {
+      -re {Welcome to Luminari} { set entered_world 1 }
+      -re {May your visit here be} { set entered_world 1 }
+      timeout { fail "timed out while entering the game world as $character" }
+      eof { fail "secondary connection closed while entering the world as $character" }
+    }
+  }
+
+  if {!$entered_world} {
+    fail "$character did not enter the game world in the secondary session"
+  }
+
+  after 250
+  set prior_timeout $::timeout
+  set ::timeout 0
+  expect {
+    -re {.+} { exp_continue }
+    timeout {}
+    eof { fail "secondary connection closed after entering as $character" }
+  }
+  set ::timeout $prior_timeout
+
+  return $secondary_session
+}
+
+proc read_session_marker {session marker context} {
+  set spawn_id $session
+  set output ""
+
+  expect {
+    -re $marker { append output $expect_out(buffer) }
+    timeout { fail "$context did not receive its channel marker" }
+    eof { fail "$context connection closed before receiving its channel marker" }
+  }
+
+  return [clean_socket_output $output]
+}
+
+proc require_session_marker_silent {session marker context} {
+  set spawn_id $session
+  set prior_timeout $::timeout
+  set ::timeout 2
+
+  expect {
+    -re $marker { fail "$context received an aboard-only channel marker while ashore" }
+    timeout {}
+    eof { fail "$context connection closed during the ashore-isolation check" }
+  }
+
+  set ::timeout $prior_timeout
+}
+
+proc logout_character_session {session character} {
+  set spawn_id $session
+
+  send -- "quit\r"
+  expect {
+    -re {Goodbye, friend} {}
+    -re {Reason:[[:space:]]*} {
+      send -- "\r"
+      expect {
+        -re {Goodbye, friend} {}
+        timeout { fail "quit feedback completed but $character did not leave the world" }
+        eof { fail "$character's connection closed during character logout" }
+      }
+    }
+    timeout { fail "timed out waiting for $character to leave the game world" }
+    eof { fail "$character's connection closed during character logout" }
+  }
+
+  expect {
+    -re {Make your choice:[[:space:]]*} {}
+    timeout { fail "timed out waiting for $character's post-quit menu" }
+    eof { fail "$character's connection closed before the post-quit menu" }
+  }
+
+  send -- "0\r"
+  expect {
+    -re {Your choice[[:space:]]*:} {}
+    timeout { fail "timed out returning $character to the account menu" }
+    eof { fail "$character's connection closed before the account menu" }
+  }
+
+  send -- "Q\r"
+  expect {
+    -re {Quitting\.} {}
+    timeout { fail "timed out logging out $character's account session" }
+    eof { fail "$character's connection closed before account logout confirmation" }
+  }
+
+  after 250
+  close
+  catch wait
+}
+
+proc run_vessel_channel_check {ship_slot crew_character} {
+  global smoke_character
+
+  set primary_session $::spawn_id
+  set output [run_game_command "shipgoto $ship_slot"]
+  if {![regexp "Aboard (.+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
+    fail "could not read vessel name after shipgoto $ship_slot"
+  }
+
+  set secondary_session [open_secondary_character $crew_character]
+  set ::spawn_id $primary_session
+  run_game_command "trans $crew_character"
+  set output [run_game_command "north"]
+  if {[string first "Alas, you cannot go that way" $output] >= 0} {
+    fail "ship slot $ship_slot needs at least two connected interior rooms"
+  }
+
+  set marker_seed [clock milliseconds]
+  set primary_marker "__VESSEL_CHANNEL_PRIMARY_${marker_seed}__"
+  run_game_command "shiptalk $primary_marker"
+  set secondary_output \
+      [read_session_marker $secondary_session $primary_marker $crew_character]
+  require_game_output $secondary_output "Captain's channel - $ship_name" \
+    "$crew_character cross-room channel"
+  require_game_output $secondary_output "$smoke_character: $primary_marker" \
+    "$crew_character cross-room channel"
+
+  set crew_marker "__VESSEL_CHANNEL_CREW_${marker_seed}__"
+  set ::spawn_id $secondary_session
+  run_game_command "shiptalk $crew_marker"
+  set primary_output [read_session_marker $primary_session $crew_marker $smoke_character]
+  require_game_output $primary_output "Captain's channel - $ship_name" \
+    "$smoke_character cross-room channel"
+  require_game_output $primary_output "$crew_character: $crew_marker" \
+    "$smoke_character cross-room channel"
+
+  set ::spawn_id $primary_session
+  run_game_command "goto 1000389"
+  set isolation_marker "__VESSEL_CHANNEL_ISOLATION_${marker_seed}__"
+  set ::spawn_id $secondary_session
+  run_game_command "shiptalk $isolation_marker"
+  require_session_marker_silent $primary_session $isolation_marker $smoke_character
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "shiptalk ashore-check-$marker_seed"]
+  require_game_output $output "You must be aboard a vessel to use the captain's channel." \
+    "$smoke_character ashore refusal"
+  run_game_command "trans $crew_character"
+
+  set ::spawn_id $secondary_session
+  set output [run_game_command "shiptalk crew-ashore-check-$marker_seed"]
+  require_game_output $output "You must be aboard a vessel to use the captain's channel." \
+    "$crew_character ashore refusal"
+  logout_character_session $secondary_session $crew_character
+
+  set ::spawn_id $primary_session
+  puts "\nPASS: $smoke_character and $crew_character exchanged identified captain-channel messages across separate rooms of $ship_name."
+  puts "PASS: the aboard channel stayed isolated from $smoke_character ashore, and both characters received the ashore refusal."
+}
+
 set timeout 45
 match_max 200000
 log_user 0
 set mode [lindex $argv 0]
 set game_commands [lrange $argv 1 end]
+
+if {$mode eq "__syntax-check"} {
+  exit 0
+}
 
 if {![info exists env(MUD_SMOKE_ACCOUNT)] ||
     ![info exists env(MUD_SMOKE_ACCOUNT_PASSWORD)] ||
@@ -711,7 +961,7 @@ if {!$entered_world} {
 after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
-    $mode eq "vessel-msdp-check"} {
+    $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -754,6 +1004,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       }
     } elseif {$mode eq "vessel-builder-check"} {
       run_vessel_builder_check
+    } elseif {$mode eq "vessel-channel-check"} {
+      run_vessel_channel_check [lindex $game_commands 0] [lindex $game_commands 1]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -819,6 +1071,9 @@ elif [[ "$mode" == "vessel-builder-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-msdp-check" ]]; then
   printf 'PASS: %s completed the native MSDP vessel-state check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-channel-check" ]]; then
+  printf 'PASS: %s completed the same-account two-character vessel-channel check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

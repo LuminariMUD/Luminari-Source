@@ -178,9 +178,11 @@ merchant, copyover, and multiplayer encounter testing.
   without leaking ashore. Repeated weather/depth messages now use independent
   120-second severity cooldowns; repeated damage, return-fire, miss, and reload
   messages are limited per class to one copy per half-second vessel tick while
-  critical failure warnings remain immediate. Record installed-build crossing,
-  two-character channel, and message-cooldown transcripts after the active
-  soak.
+  critical failure warnings remain immediate. The login helper now owns both
+  simultaneous character sockets for the channel proof, selecting Kohdee and
+  a second character from the same master account in one run. Record
+  installed-build crossing, two-character channel, and message-cooldown
+  transcripts after the active soak.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout
