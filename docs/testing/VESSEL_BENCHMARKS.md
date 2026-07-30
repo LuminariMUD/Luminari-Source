@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.3
+**Version:** 3.4
 
 **Evidence snapshot:** July 30, 2026
 
@@ -353,15 +353,44 @@ runners create `memory-analysis.kv` at the end of measurement and reject a
 series the analyzer cannot validate; the active pinned ferry predates this
 automatic artifact and remains available for read-only manual analysis.
 
-At the July 30 07:55 IDT checkpoint, the pinned ferry run had completed 23,302
-of 86,400 seconds with 12,671 movement steps, 528 west-dock and 527 east-dock
-arrivals, seven actual-character checks, and 389 process samples. The MUD PID,
+At the July 30 08:28 IDT checkpoint, the pinned ferry run had completed 25,202
+of 86,400 seconds with 13,716 movement steps, 572 west-dock and 571 east-dock
+arrivals, eight actual-character checks, and 421 process samples. The MUD PID,
 two threads, and 12 file descriptors were constant. RSS had risen from 768,776
-KiB to 1,131,248 KiB. The last 30-minute, 1-hour, and 2-hour linear RSS slopes
-were +6,891, +6,673, and +7,868 KiB/hour, respectively, versus +120,293
-KiB/hour in the first block. The rate is strongly decelerating but is still
-positive; this remains an in-progress warmup observation, not a terminal
-continuity, plateau, or leak verdict. The soak must demonstrate:
+KiB to 1,134,288 KiB. The last 30-minute, 1-hour, and 2-hour linear RSS slopes
+were +5,836, +5,899, and +6,825 KiB/hour, respectively. Consecutive
+post-four-hour block slopes were +11,212, +8,061, and +5,895 KiB/hour, versus
+about +120,000 KiB/hour in the first hour. The rate is strongly decelerating
+but is still positive.
+
+A read-only `/proc` snapshot localized 879,932 KiB RSS to the 880,116 KiB heap
+mapping. Total anonymous RSS was 1,113,812 KiB, file RSS was 20,576 KiB,
+`VmData` was 1,122,932 KiB, and swap remained zero. This establishes where the
+retained pages reside, not which subsystem owns them.
+
+Two actual Kohdee `show stats` samples 55 minutes apart provide a useful
+correlation. Mobiles increased from 37,128 to 37,329 and objects from 26,286 to
+26,429 while rooms remained 50,366 and RSS increased from 1,128,588 to
+1,134,400 KiB. At the pinned binary's measured structure sizes, the additional
+201 `char_data` and 143 `obj_data` base structures account for about 2,885 KiB
+before names, affects, scripts, events, equipment, and other per-instance
+allocations. Allocation lists varied downward rather than accumulating, from
+1,013 to 897. This makes ordinary world-population churn a material confounder
+for the process slope; it does not prove that all retained memory belongs to
+mobiles or objects.
+
+A separate read-only C client repeated the exact ferry-coordinate region and
+path queries through `mysql_ping()`, `mysql_query()`, `mysql_store_result()`,
+row iteration, and `mysql_free_result()`. Across 20,000 assignment pairs and
+40,000 result cycles, RSS moved from 6,000 to 6,008 KiB in the first 1,000
+pairs and then remained exactly 6,008 KiB; VSZ remained 9,172 KiB and glibc
+allocated bytes stabilized at 130,544. This excludes the direct MariaDB
+spatial result lifecycle by itself as the explanation for the game process's
+growth. The candidate's single-pass target resolution remains a valid query
+and CPU optimization, but is not claimed as a memory fix.
+
+These observations remain an in-progress warmup investigation, not a terminal
+continuity, plateau, root-cause, or leak verdict. The soak must demonstrate:
 
 - No crashes, leaks, unbounded growth, or corrupt vessel records.
 - Stable tick performance and schedule execution.
