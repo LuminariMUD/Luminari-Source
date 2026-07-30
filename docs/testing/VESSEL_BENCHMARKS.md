@@ -191,7 +191,10 @@ evidence that the live 25 ms gate passes.
 The active ferry run is pinned to an earlier executable, so its continuity
 result cannot validate the single-pass target-resolution change. The
 post-soak installed-build scale run is the first live performance evidence for
-that optimization.
+that optimization. It also cannot validate `vtradecheck`: pinned source
+`0afad17b` predates the command's `ac418322` implementation. A safe Kohdee
+probe returned `Huh?!` and logged out cleanly, so the economy transcript
+remains a post-install gate rather than a pinned-run failure.
 
 The runner:
 
