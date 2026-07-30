@@ -671,5 +671,20 @@ if [[ -n "$fare_failure" ]]; then
   fail "$fare_failure"
 fi
 
+set +e
+crossing_output=$(
+  "$script_dir/dev_kohdee_login_smoke.sh" --vessel-crossing-check "$ferry_slot"
+)
+crossing_status=$?
+set -e
+printf '%s\n' "$crossing_output"
+((crossing_status == 0)) ||
+  fail "the named-water crossing session failed with status $crossing_status"
+grep -Fq "announced a canonical boundary crossing" <<<"$crossing_output" ||
+  fail "the moving ferry did not announce a canonical named-water crossing"
+grep -Fq "seastate matched its water type, authority, and piracy bounty" \
+  <<<"$crossing_output" ||
+  fail "the crossing transcript did not match the canonical vessel-law metadata"
+
 printf 'PASS: harbor sandbox and persistent ferry verified in ship slot %s.\n' \
   "$ferry_slot"

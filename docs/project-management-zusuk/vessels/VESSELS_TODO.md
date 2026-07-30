@@ -186,11 +186,14 @@ merchant, copyover, and multiplayer encounter testing.
   messages are limited per class to one copy per half-second vessel tick while
   critical failure warnings remain immediate. The login helper now owns both
   simultaneous character sockets for the channel proof, selecting Kohdee and
-  a second character from the same master account in one run. Record
-  installed-build crossing and two-character channel transcripts after the
-  active soak; the scale runner records the installed-build message-cooldown
-  transcript through Kohdee's live observation and required nonzero
-  suppression counter.
+  a second character from the same master account in one run. The named-water
+  helper waits on the moving ferry's real crossing announcement and correlates
+  its region, water type, authority, and bounty with an immediate `seastate`;
+  the harbor provisioner discovers the ferry slot and runs that proof
+  automatically. Record the installed-build crossing and two-character
+  channel transcripts after the active soak; the scale runner records the
+  installed-build message-cooldown transcript through Kohdee's live
+  observation and required nonzero suppression counter.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout

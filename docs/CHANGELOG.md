@@ -92,6 +92,10 @@
   pirate-cove polygons. Its provisioner rejects reserved-region collisions,
   validates the spatial index, and checks the moving ferry's named waters
   after restart.
+- `--vessel-crossing-check <ship-slot>` waits aboard the moving ferry for a
+  real territorial/free-sea announcement and immediately requires `seastate`
+  to report the matching type, authority, and bounty. The harbor provisioner
+  discovers the slot and runs this transcript automatically.
 
 #### Changed
 
@@ -118,8 +122,10 @@
   content queries, rollback, and reapplication in session-scoped shadow
   tables. A read-only follow-up confirmed no Phase 13 table or fixture row was
   added to the active development database.
-- The installed-build Kohdee `seastate`, port-refusal, and plunder transcript
-  remains queued behind the pinned 24-hour ferry soak.
+- Bash, embedded Expect, and ShellCheck validation passes for the crossing
+  helper and provisioner. The installed-build Kohdee crossing, `seastate`,
+  port-refusal, and plunder transcript remains queued behind the pinned
+  24-hour ferry soak.
 
 ### Vessel passenger fares
 
