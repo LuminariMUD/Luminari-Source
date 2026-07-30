@@ -337,7 +337,10 @@ configurable trailing linear RSS/VSZ regressions; and has a stable
 `--format kv` mode. Its deterministic test proves an exact zero-slope plateau,
 an exact +6,000 KiB/hour rising series, and rejection of PID, timestamp, and
 metric corruption. It intentionally returns `REPORT_ONLY` until the two live
-observations support a defensible 72-hour criterion.
+observations support a defensible 72-hour criterion. Future ferry and scale
+runners create `memory-analysis.kv` at the end of measurement and reject a
+series the analyzer cannot validate; the active pinned ferry predates this
+automatic artifact and remains available for read-only manual analysis.
 
 At the July 30 07:55 IDT checkpoint, the pinned ferry run had completed 23,302
 of 86,400 seconds with 12,671 movement steps, 528 west-dock and 527 east-dock

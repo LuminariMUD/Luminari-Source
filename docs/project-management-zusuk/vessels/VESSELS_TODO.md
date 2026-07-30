@@ -169,7 +169,10 @@ merchant, copyover, and multiplayer encounter testing.
   `key=value` mode and deterministic plateau/rising-series tests pass. It
   deliberately reports `REPORT_ONLY`; use the completed 24-hour and default
   500-ship results to define and encode the threshold before starting the
-  72-hour run.
+  72-hour run. Future ferry and scale workers write this default report as
+  `memory-analysis.kv` and fail if their terminal process series is invalid;
+  the active pinned ferry predates that automatic step and can be analyzed
+  manually without changing it.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

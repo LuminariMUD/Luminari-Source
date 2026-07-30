@@ -129,6 +129,10 @@ for stable `key=value` output. Its result is deliberately `REPORT_ONLY`; do
 not treat a low-looking slope as a pass until the completed 24-hour ferry and
 default 500-vessel observations establish the documented 72-hour threshold.
 Run `./scripts/test_vessel_memory_analyzer.sh` after changing the analyzer.
+Runs launched from the current ferry or scale scripts generate the same
+machine-readable report automatically as `memory-analysis.kv` and fail if the
+terminal process series is malformed. The manual command remains safe while a
+run is active and supports alternate warmup and window choices.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
@@ -214,7 +218,8 @@ count, and file-descriptor count every 30 seconds. The worker also rejects a
 PID change or replacement of the installed executable during measurement.
 The terminal summary includes initial/maximum/final values for these series.
 Use the same memory analyzer above on this file so its shape is directly
-comparable with the ferry and eventual 72-hour series.
+comparable with the ferry and eventual 72-hour series. The terminal worker
+also writes the default report to `memory-analysis.kv`.
 
 The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
 short benchmark as the 72-hour soak. The long gate remains separate until the

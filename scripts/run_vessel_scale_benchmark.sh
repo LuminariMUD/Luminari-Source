@@ -1591,6 +1591,12 @@ SQL
   ((air_z_minimum >= 0 && air_z_maximum <= 500)) ||
     benchmark_fail "live airship Z escaped its class bounds: $air_z_minimum..$air_z_maximum"
 
+  if ! "$script_dir/analyze_vessel_memory_samples.sh" \
+    --format kv "$run_dir/process-samples.tsv" \
+    >"$run_dir/memory-analysis.kv"; then
+    benchmark_fail "the terminal process-memory analysis rejected its sample series"
+  fi
+
   finished_epoch=$(date +%s)
   if ((vessel_tick_max <= 25000)); then
     benchmark_outcome=PASS
@@ -1642,6 +1648,7 @@ SQL
       "$initial_threads" "$maximum_threads" "$final_threads"
     printf 'File descriptors initial/maximum/final: %s/%s/%s\n' \
       "$initial_descriptors" "$maximum_descriptors" "$final_descriptors"
+    printf 'Memory trend artifact: memory-analysis.kv (REPORT_ONLY)\n'
   } >"$run_dir/summary.txt"
 
   if ! restore_snapshot "$run_dir"; then
