@@ -294,7 +294,13 @@ vessel mirror sources and claims about a separate `test_runner` are obsolete.
 ## Soak and Recovery Gate
 
 After the benchmark passes, run a 72-hour development soak with scheduled NPC
-fleets and representative player activity. The soak must demonstrate:
+fleets and representative player activity. The ferry monitor now provides a
+reusable game-side observation contract: actual-Kohdee samples capture fleet
+count, dynamic wilderness occupancy, mobiles, objects, rooms, allocation
+lists, buffer switches, and overflows in `live-system-samples.tsv`. The
+72-hour fleet gate must retain equivalent samples and enforce a documented
+post-warmup bounded-growth threshold; an initial/maximum/final RSS tuple alone
+is not a leak verdict. The soak must demonstrate:
 
 - No crashes, leaks, unbounded growth, or corrupt vessel records.
 - Stable tick performance and schedule execution.

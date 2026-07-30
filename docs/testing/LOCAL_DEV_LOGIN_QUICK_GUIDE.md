@@ -94,6 +94,15 @@ The launch metadata records the source commit and SHA-256 of `bin/circle`.
 Each process sample rejects a changed executable fingerprint, and the final
 restart must launch the same SHA-256 that served the continuous window.
 
+Runs started from the current script also issue `shiplist summary` and
+`show stats` inside each actual-Kohdee sample. They require a constant fleet
+count and dynamic-room capacity, reject any reported buffer overflow, and
+write `live-system-samples.tsv` with fleet, dynamic-room, mobile, object,
+room, allocation-list, and buffer counts. The terminal summary adds initial,
+maximum, and final dynamic-room and world-list values beside process RSS. The
+active July 30 definitive run is pinned to the earlier script and does not
+claim this newer game-side evidence.
+
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
 the recovered state and executable hash, and resumes the ferry. Results and

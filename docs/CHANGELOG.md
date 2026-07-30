@@ -54,6 +54,24 @@
   removed the root executable, and the focused protocol suite remains 13 of
   13.
 
+### Vessel soak observability
+
+#### Added
+
+- New ferry-soak runs include `shiplist summary` and `show stats` in each
+  actual-Kohdee sample. The monitor rejects fleet-count drift, dynamic-room
+  capacity drift, and any reported buffer overflow, and preserves fleet,
+  dynamic-room, world-allocation, and buffer metrics in
+  `live-system-samples.tsv`.
+- Terminal summaries now include the constant fleet count plus initial,
+  maximum, and final dynamic-room and world-list counts alongside process RSS.
+
+#### Validated
+
+- Bash syntax, ShellCheck, and the exact installed Kohdee output parser pass.
+  The active definitive ferry run is pinned to an earlier script and therefore
+  remains valid continuity evidence without the new game-side statistics.
+
 ### Ship-wide captain channel
 
 #### Added

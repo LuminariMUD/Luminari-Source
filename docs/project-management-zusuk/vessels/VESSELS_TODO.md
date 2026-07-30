@@ -63,7 +63,12 @@ recording enduring behavior or evidence in the permanent documentation.
   check it with `./scripts/run_vessel_ferry_soak.sh status`. It pins source
   `0afad17bdb8fd67a78a58fa1af9e41d6ccc79efc` and executable SHA-256
   `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`.
-  Leave this item open until it passes the final exact-state restart.
+  Leave this item open until it passes the final exact-state restart. The
+  current run already records process RSS, but it predates the new hourly
+  `shiplist summary` and `show stats` capture. New runs reject fleet-count
+  drift, dynamic-room capacity drift, and buffer overflows, and preserve the
+  game-side allocation series in `live-system-samples.tsv`; that later
+  instrumentation is not evidence from the active pinned window.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
@@ -116,7 +121,12 @@ merchant, copyover, and multiplayer encounter testing.
   the 25 ms target.
 - [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
   passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
-  schedule desynchronization, with the tick budget held.
+  schedule desynchronization, with the tick budget held. Carry the supervised
+  live-system series into this gate so process RSS can be correlated with
+  fleet count, dynamic wilderness occupancy, world objects/mobiles/rooms,
+  allocation lists, and buffer overflows. Define and enforce a post-warmup
+  bounded-growth criterion before launch; initial/maximum/final RSS alone does
+  not prove the absence of unbounded growth.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial

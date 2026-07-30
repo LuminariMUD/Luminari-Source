@@ -264,6 +264,14 @@ run_monitor()
   live_samples=0
   database_samples=0
   process_samples=0
+  initial_live_fleet_count=""
+  initial_dynamic_rooms=""
+  maximum_dynamic_rooms=0
+  final_dynamic_rooms=0
+  dynamic_room_capacity=0
+  initial_world_lists=""
+  maximum_world_lists=0
+  final_world_lists=0
   initial_rss=0
   maximum_rss=0
   final_rss=0
@@ -404,6 +412,14 @@ run_monitor()
         printf 'West/east arrivals: %s/%s\n' "$west_arrivals" "$east_arrivals"
         printf 'Live/database/process samples: %s/%s/%s\n' \
           "$live_samples" "$database_samples" "$process_samples"
+        if [[ -n "$initial_live_fleet_count" ]]; then
+          printf 'Fleet count during live samples: %s\n' "$initial_live_fleet_count"
+          printf 'Dynamic wilderness rooms initial/maximum/final/capacity: %s/%s/%s/%s\n' \
+            "$initial_dynamic_rooms" "$maximum_dynamic_rooms" \
+            "$final_dynamic_rooms" "$dynamic_room_capacity"
+          printf 'World lists initial/maximum/final: %s/%s/%s\n' \
+            "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+        fi
       } >"$run_dir/summary.txt"
     fi
     return 0
@@ -425,16 +441,29 @@ run_monitor()
     local armor_name
     local armor_value
     local armor_maximum
+    local fleet_count
+    local dynamic_room_row
+    local dynamic_rooms
+    local dynamic_capacity
+    local mobiles
+    local objects
+    local rooms
+    local world_lists
+    local buffer_row
+    local buffer_switches
+    local buffer_overflows
 
     if ! "$script_dir/dev_kohdee_login_smoke.sh" --commands \
       "shiplist" \
+      "shiplist summary" \
       "shipgoto $ferry_slot" \
       "look ferrymaster" \
       "autopilot status" \
       "ship_rooms" \
       "showschedule" \
       "shipstatus" \
-      "seastate" >"$output_file" 2>&1; then
+      "seastate" \
+      "show stats" >"$output_file" 2>&1; then
       fail_run "actual Kohdee sample failed: $label"
     fi
 
@@ -493,8 +522,65 @@ run_monitor()
         fail_run "out-of-range $armor_name armor during $label"
     done <<<"$armor_rows"
 
+    fleet_count=$(sed -nE \
+      's/^([0-9]+) of 500 fleet slots in use\.$/\1/p' \
+      "$output_file" | tail -n 1)
+    [[ "$fleet_count" =~ ^[1-9][0-9]*$ && "$fleet_count" -le 500 ]] ||
+      fail_run "could not read the compact live fleet count during $label"
+    if [[ -z "$initial_live_fleet_count" ]]; then
+      initial_live_fleet_count=$fleet_count
+    fi
+    [[ "$fleet_count" == "$initial_live_fleet_count" ]] ||
+      fail_run "live fleet count changed during $label: $initial_live_fleet_count -> $fleet_count"
+
+    dynamic_room_row=$(sed -nE \
+      's/^Wilderness dynamic room pool: ([0-9]+)\/([0-9]+) occupied \([0-9]+%\)$/\1 \2/p' \
+      "$output_file" | tail -n 1)
+    [[ "$dynamic_room_row" =~ ^[0-9]+[[:space:]]+[1-9][0-9]*$ ]] ||
+      fail_run "could not read dynamic wilderness room usage during $label"
+    read -r dynamic_rooms dynamic_capacity <<<"$dynamic_room_row"
+    ((dynamic_rooms <= dynamic_capacity)) ||
+      fail_run "dynamic wilderness room usage exceeded capacity during $label"
+    if [[ -z "$initial_dynamic_rooms" ]]; then
+      initial_dynamic_rooms=$dynamic_rooms
+      dynamic_room_capacity=$dynamic_capacity
+    fi
+    [[ "$dynamic_capacity" == "$dynamic_room_capacity" ]] ||
+      fail_run "dynamic wilderness room capacity changed during $label"
+    ((dynamic_rooms > maximum_dynamic_rooms)) && maximum_dynamic_rooms=$dynamic_rooms
+    final_dynamic_rooms=$dynamic_rooms
+
+    mobiles=$(sed -nE 's/^[[:space:]]*([0-9]+) mobiles.*$/\1/p' \
+      "$output_file" | tail -n 1)
+    objects=$(sed -nE 's/^[[:space:]]*([0-9]+) objects.*$/\1/p' \
+      "$output_file" | tail -n 1)
+    rooms=$(sed -nE 's/^[[:space:]]*([0-9]+) rooms.*$/\1/p' \
+      "$output_file" | tail -n 1)
+    world_lists=$(sed -nE 's/^[[:space:]]*([0-9]+) lists$/\1/p' \
+      "$output_file" | tail -n 1)
+    buffer_row=$(sed -nE \
+      's/^[[:space:]]*([0-9]+) buf switches[[:space:]]+([0-9]+) overflows$/\1 \2/p' \
+      "$output_file" | tail -n 1)
+    [[ "$mobiles" =~ ^[0-9]+$ && "$objects" =~ ^[0-9]+$ &&
+       "$rooms" =~ ^[0-9]+$ && "$world_lists" =~ ^[0-9]+$ &&
+       "$buffer_row" =~ ^[0-9]+[[:space:]]+[0-9]+$ ]] ||
+      fail_run "could not read live world allocation statistics during $label"
+    read -r buffer_switches buffer_overflows <<<"$buffer_row"
+    ((buffer_overflows == 0)) ||
+      fail_run "show stats reported $buffer_overflows buffer overflows during $label"
+    if [[ -z "$initial_world_lists" ]]; then
+      initial_world_lists=$world_lists
+    fi
+    ((world_lists > maximum_world_lists)) && maximum_world_lists=$world_lists
+    final_world_lists=$world_lists
+
     printf '%s\t%s\t%s\t%s\t%s\n' \
       "$(date +%s)" "$label" "$x" "$y" "$fleet_line" >>"$run_dir/live-samples.tsv"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$(date +%s)" "$label" "$fleet_count" "$dynamic_rooms" \
+      "$dynamic_capacity" "$mobiles" "$objects" "$rooms" "$world_lists" \
+      "$buffer_switches" "$buffer_overflows" "$expected_state" \
+      >>"$run_dir/live-system-samples.tsv"
     printf '%s %s\n' "$x" "$y" >>"$run_dir/positions.txt"
     last_live_x=$x
     last_live_y=$y
@@ -897,6 +983,11 @@ run_monitor()
     fail_run "the ferry repair did not report success"
 
   : >"$run_dir/positions.txt"
+  {
+    printf 'epoch\tlabel\tfleet\tdynamic_rooms\tdynamic_capacity\t'
+    printf 'mobiles\tobjects\trooms\tlists\t'
+    printf 'buffer_switches\tbuffer_overflows\tstate\n'
+  } >"$run_dir/live-system-samples.tsv"
   run_live_sample initial active
   sample_database
   sample_process
@@ -996,6 +1087,13 @@ run_monitor()
     printf 'West/east arrivals: %s/%s\n' "$west_arrivals" "$east_arrivals"
     printf 'Live/database/process samples: %s/%s/%s\n' \
       "$live_samples" "$database_samples" "$process_samples"
+    printf 'Fleet count during live samples: %s\n' "$initial_live_fleet_count"
+    printf 'Dynamic wilderness rooms initial/maximum/final/capacity: %s/%s/%s/%s\n' \
+      "$initial_dynamic_rooms" "$maximum_dynamic_rooms" \
+      "$final_dynamic_rooms" "$dynamic_room_capacity"
+    printf 'World lists initial/maximum/final: %s/%s/%s\n' \
+      "$initial_world_lists" "$maximum_world_lists" "$final_world_lists"
+    printf 'Buffer overflows during live samples: 0\n'
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"
     printf 'Final restart preserved exact paused coordinates and route: yes\n'
