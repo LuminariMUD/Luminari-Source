@@ -239,6 +239,103 @@ count_high_volume_progress_logs()
   grep -Eic "$progress_pattern" "$input_file" || true
 }
 
+validate_live_system_samples()
+{
+  local input_file=$1
+  local expected_final_label=$2
+
+  [[ -r "$input_file" ]] || return 2
+  [[ "$expected_final_label" =~ ^[1-9][0-9]*$ ]] || return 2
+
+  awk -F '\t' -v expected_final="$expected_final_label" '
+    function reject(message) {
+      print "invalid live-system series: " message > "/dev/stderr"
+      invalid = 1
+      exit 2
+    }
+    function is_uint(value) {
+      return value ~ /^[0-9]+$/
+    }
+    NR == 1 {
+      expected[1] = "epoch"
+      expected[2] = "label"
+      expected[3] = "fleet"
+      expected[4] = "dynamic_rooms"
+      expected[5] = "dynamic_capacity"
+      expected[6] = "mobiles"
+      expected[7] = "objects"
+      expected[8] = "rooms"
+      expected[9] = "lists"
+      expected[10] = "buffer_switches"
+      expected[11] = "buffer_overflows"
+      if (NF != 11) {
+        reject("header field count")
+      }
+      for (field = 1; field <= 11; field++) {
+        if ($field != expected[field]) {
+          reject("header field " field)
+        }
+      }
+      next
+    }
+    {
+      if (NF != 11 || !is_uint($1)) {
+        reject("sample shape or epoch")
+      }
+      for (field = 3; field <= 11; field++) {
+        if (!is_uint($field)) {
+          reject("nonnumeric metric")
+        }
+      }
+      label = $2
+      if (label !~ /^system-[0-9]+$/) {
+        reject("checkpoint label")
+      }
+      sub(/^system-/, "", label)
+      label += 0
+      sample_count++
+      if (sample_count == 1) {
+        if (label != 0) {
+          reject("first checkpoint is not system-0")
+        }
+        capacity = $5
+      } else {
+        if ($1 <= previous_epoch) {
+          reject("epochs are not strictly increasing")
+        }
+        if (label <= previous_label) {
+          reject("labels are not strictly increasing")
+        }
+      }
+      if (label > expected_final) {
+        reject("checkpoint exceeds requested duration")
+      }
+      if (label != 0 && label != expected_final && label % 3600 != 0) {
+        reject("intermediate checkpoint is not hourly")
+      }
+      if ($3 != 500 || $4 > $5 || $5 != capacity || $11 != 0) {
+        reject("fleet, room-capacity, or buffer invariant")
+      }
+      previous_epoch = $1
+      previous_label = label
+    }
+    END {
+      if (invalid) {
+        exit 2
+      }
+      expected_count = 2 + int((expected_final - 1) / 3600)
+      if (sample_count != expected_count) {
+        print "invalid live-system series: checkpoint count" > "/dev/stderr"
+        exit 2
+      }
+      if (previous_label != expected_final) {
+        print "invalid live-system series: final checkpoint label" > "/dev/stderr"
+        exit 2
+      }
+    }
+  ' "$input_file"
+}
+
 restore_snapshot()
 {
   local run_dir=$1
@@ -1454,21 +1551,9 @@ SQL
   [[ "$live_system_sample_count" == "$expected_live_system_samples" ]] ||
     benchmark_fail \
       "parsed $live_system_sample_count of $expected_live_system_samples live-system samples"
-  awk -F '\t' '
-    NR == 1 {
-      next
-    }
-    $3 != 500 || $4 > $5 || $11 != 0 {
-      exit 1
-    }
-    NR == 2 {
-      capacity = $5
-    }
-    $5 != capacity {
-      exit 1
-    }
-  ' "$run_dir/live-system-samples.tsv" ||
-    benchmark_fail "live-system samples reported fleet, room-capacity, or buffer drift"
+  validate_live_system_samples \
+    "$run_dir/live-system-samples.tsv" "$measurement_seconds" ||
+    benchmark_fail "live-system sample chronology or invariants are invalid"
   live_system_summary=$(awk -F '\t' '
     NR == 2 {
       initial_dynamic = maximum_dynamic = $4
@@ -1754,6 +1839,10 @@ case "${1:-}" in
   __count-progress-logs)
     (($# == 2)) || usage
     count_high_volume_progress_logs "$2"
+    ;;
+  __validate-live-system)
+    (($# == 3)) || usage
+    validate_live_system_samples "$2" "$3"
     ;;
   *)
     usage

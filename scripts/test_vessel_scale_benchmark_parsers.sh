@@ -51,6 +51,8 @@ grep -Fqx \
   $'103600\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
   "$live_output" ||
   fail "second live-system sample was parsed incorrectly"
+"$runner" __validate-live-system "$live_output" 3600 ||
+  fail "valid live-system chronology was rejected"
 
 incomplete_input="$test_root/incomplete-live-input.log"
 printf '%s\n' \
@@ -67,6 +69,33 @@ if "$runner" __parse-live-system "$incomplete_input" \
 fi
 grep -Fq "incomplete live-system sample: system-0" "$test_root/stderr" ||
   fail "incomplete live-system fixture reported the wrong error"
+
+chronology_input="$test_root/bad-chronology.tsv"
+printf '%s\n' \
+  "$expected_header" \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t123\t0' \
+  $'100000\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
+  >"$chronology_input"
+if "$runner" __validate-live-system "$chronology_input" 3600 \
+  >"$test_root/stdout" 2>"$test_root/stderr"; then
+  fail "duplicate live-system epoch unexpectedly passed"
+fi
+grep -Fq "epochs are not strictly increasing" "$test_root/stderr" ||
+  fail "duplicate live-system epoch reported the wrong error"
+
+final_label_input="$test_root/bad-final-label.tsv"
+printf '%s\n' \
+  "$expected_header" \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t123\t0' \
+  $'101800\tsystem-1800\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
+  >"$final_label_input"
+if "$runner" __validate-live-system "$final_label_input" 3600 \
+  >"$test_root/stdout" 2>"$test_root/stderr"; then
+  fail "incorrect final live-system label unexpectedly passed"
+fi
+grep -Eq "intermediate checkpoint is not hourly|final checkpoint label" \
+  "$test_root/stderr" ||
+  fail "incorrect final live-system label reported the wrong error"
 
 clean_log="$test_root/clean-server.log"
 printf '%s\n' \
@@ -90,4 +119,4 @@ noisy_count=$("$runner" __count-progress-logs "$noisy_log")
   fail "noisy server log reported $noisy_count of 6 high-volume rows"
 
 printf '%s\n' \
-  "PASS: vessel scale parsers accepted current samples and detected high-volume progress logs."
+  "PASS: vessel scale parsers validated chronology and detected high-volume progress logs."

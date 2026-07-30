@@ -141,6 +141,9 @@
 - Deterministic scale-parser fixtures accept two complete current-format
   live-system samples, reject one missing its buffer row, accept a clean
   normal-build log, and count six representative high-volume progress rows.
+  Checkpoint validation requires `system-0`, strictly increasing epochs and
+  labels, hourly intermediates, the expected sample count, and the exact
+  terminal duration; duplicate-epoch and wrong-final fixtures are rejected.
 
 ### Ship-wide captain channel
 

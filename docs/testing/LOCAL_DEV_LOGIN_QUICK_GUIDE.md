@@ -225,7 +225,9 @@ cannot affect the verdict. The measured log is preserved separately, its byte
 count is reported, and any normal-build per-step, arrival, wait, or route-loop
 progress rows fail the gate. Run
 `./scripts/test_vessel_scale_benchmark_parsers.sh` after changing these
-parsers.
+parsers. That test also covers checkpoint chronology: the series must start at
+`system-0`, use strictly increasing epochs and labels, retain hourly
+intermediate labels, and finish at the exact requested measurement duration.
 
 The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
 short benchmark as the 72-hour soak. The long gate remains separate until the

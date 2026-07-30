@@ -166,7 +166,11 @@ merchant, copyover, and multiplayer encounter testing.
   arrival, wait, or route-loop progress row appears. Its reconstruction check
   reads only the log slice from the current 500-vessel boot, preventing stale
   success or error lines from changing the verdict. Deterministic clean/noisy
-  log fixtures and complete/incomplete live-system parser fixtures pass.
+  log fixtures and complete/incomplete live-system parser fixtures pass. The
+  live-system validator also requires `system-0`, strictly increasing
+  timestamps and labels, hourly intermediate labels, the exact terminal
+  duration, and the calculated sample count; duplicate-epoch and wrong-final
+  fixtures are rejected.
   `scripts/analyze_vessel_memory_samples.sh` now validates both the active
   headerless and future headered process-series formats, rejects timestamp,
   PID, or metric corruption, and emits consecutive block means plus full,
