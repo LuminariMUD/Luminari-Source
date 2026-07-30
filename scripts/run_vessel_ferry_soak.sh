@@ -1068,6 +1068,12 @@ run_monitor()
   sample_process
   run_live_sample final active
 
+  if ! "$script_dir/analyze_vessel_memory_samples.sh" \
+    --format kv "$run_dir/process-samples.tsv" \
+    >"$run_dir/memory-analysis.kv"; then
+    fail_run "the terminal process-memory analysis rejected its sample series"
+  fi
+
   unique_positions=$(sort -u "$run_dir/positions.txt" | wc -l)
   ((movement_steps >= 4)) ||
     fail_run "the ferry recorded only $movement_steps movement steps"
@@ -1109,6 +1115,7 @@ run_monitor()
     printf 'Buffer overflows during live samples: 0\n'
     printf 'RSS initial/maximum/final KiB: %s/%s/%s\n' \
       "$initial_rss" "$maximum_rss" "$final_rss"
+    printf 'Memory trend artifact: memory-analysis.kv (REPORT_ONLY)\n'
     printf 'Final restart preserved exact paused coordinates and route: yes\n'
     printf 'Ferry resumed after verification: yes\n'
   } >"$run_dir/summary.txt"

@@ -101,6 +101,8 @@
   and full, post-warmup, and configurable trailing RSS/VSZ regressions.
   Human-readable and stable `key=value` modes explicitly return
   `REPORT_ONLY` until the live evidence supports a bounded-growth threshold.
+  Future ferry and scale workers write the validated `key=value` result as
+  `memory-analysis.kv` and reject malformed terminal process series.
 
 #### Fixed
 
