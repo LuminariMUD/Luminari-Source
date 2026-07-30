@@ -85,12 +85,30 @@
   `live-system-samples.tsv`.
 - Terminal summaries now include the constant fleet count plus initial,
   maximum, and final dynamic-room and world-list counts alongside process RSS.
+- The 500-vessel runner's held Kohdee session emits timestamped initial,
+  hourly, and final allocation checkpoints. It preserves fleet, dynamic-room,
+  mobile, object, room, allocation-list, buffer-switch, and overflow fields in
+  `live-system-samples.tsv`.
+- Scale process samples now have a header and include VSZ, threads, and file
+  descriptors beside PID and RSS. Every sample also verifies that the
+  installed executable has not been replaced.
+
+#### Fixed
+
+- The ferry live-system parser accepts both the older full `shiplist` fleet
+  count and the current compact `shiplist summary` wording. The compact form
+  includes the word `active`; requiring only the older wording would have
+  rejected the first new-instrumentation ferry sample.
 
 #### Validated
 
 - Bash syntax, ShellCheck, and the exact installed Kohdee output parser pass.
   The active definitive ferry run is pinned to an earlier script and therefore
   remains valid continuity evidence without the new game-side statistics.
+- An actual Kohdee session against the pinned development process verified the
+  live `show stats` fields and clean logout in four seconds. A current compact
+  fleet-count fixture then verified the scale parser's success path, while a
+  fixture missing one required field was rejected.
 
 ### Ship-wide captain channel
 

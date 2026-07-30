@@ -19,7 +19,8 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 244 of 244 passing | Current production-linked gate |
+| Root suite on July 30, 2026 | 245 of 245 passing | Current production-linked gate |
+| Current-suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Pre-soak gate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -234,11 +235,16 @@ The runner:
   schedule departure. Each must trigger a new persisted departure during the
   measured window. Kohdee remains aboard an airship so native MSDP and normal
   player-facing message generation execute.
-- Runs for at least 600 steady seconds, samples process RSS every 30 seconds,
-  captures all ten sampled vessel profiler rows plus missed-pulse,
-  message-throttling, and SQL counters, rejects vessel errors or PID/binary
-  drift, and requires every selected schedule to fire. The reciprocal
-  submarine pair's synchronized reloads must produce a nonzero
+- Runs for at least 600 steady seconds and records RSS, VSZ, threads, file
+  descriptors, PID, and installed-executable identity every 30 seconds. The
+  held Kohdee session records timestamped fleet, dynamic-room,
+  world-allocation, and buffer statistics at the start, every hour, and at the
+  end. The runner rejects fleet or capacity drift, occupancy above capacity,
+  buffer overflows, vessel errors, PID/binary drift, or a missing system
+  sample.
+- Captures all ten sampled vessel profiler rows plus missed-pulse,
+  message-throttling, and SQL counters, and requires every selected schedule
+  to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero
   `vessel_messages_throttled` count, proving the installed production tick
   suppressed repeated player-facing messages. The complete `vessel_tick`
   maximum must be no more than 25,000 microseconds.
@@ -307,9 +313,18 @@ fleets and representative player activity. The ferry monitor now provides a
 reusable game-side observation contract: actual-Kohdee samples capture fleet
 count, dynamic wilderness occupancy, mobiles, objects, rooms, allocation
 lists, buffer switches, and overflows in `live-system-samples.tsv`. The
-72-hour fleet gate must retain equivalent samples and enforce a documented
-post-warmup bounded-growth threshold; an initial/maximum/final RSS tuple alone
-is not a leak verdict. The soak must demonstrate:
+scale runner now preserves the same fields beside a headered process series,
+but its supported window remains capped at 7,200 seconds. The 72-hour fleet
+gate must retain equivalent samples, bound its high-volume movement-log
+collection, and enforce a documented post-warmup bounded-growth threshold; an
+initial/maximum/final RSS tuple alone is not a leak verdict.
+
+At the July 30 07:34 IDT checkpoint, the pinned ferry run had completed 22,042
+of 86,400 seconds with 11,978 movement steps and balanced 499/499 dock
+arrivals. Its PID, two threads, and 12 file descriptors were constant. RSS had
+risen from 768,776 KiB to 1,129,088 KiB while the rate continued to
+decelerate. This is an in-progress warmup observation, not a terminal
+continuity or leak result. The soak must demonstrate:
 
 - No crashes, leaks, unbounded growth, or corrupt vessel records.
 - Stable tick performance and schedule execution.

@@ -178,6 +178,21 @@ The default steady measurement window is 660 seconds. An explicit value from
 after launching a supervised user service; use `status` for preparation,
 measurement, result, and restoration progress.
 
+The held Kohdee session records a timestamped game-side allocation checkpoint
+at measurement start, every hour, and at the end. The worker writes these to
+`live-system-samples.tsv` and rejects fleet-count drift, dynamic-room-capacity
+drift, dynamic occupancy above capacity, or any reported buffer overflow.
+`process-samples.tsv` has a header and records epoch, PID, RSS, VSZ, thread
+count, and file-descriptor count every 30 seconds. The worker also rejects a
+PID change or replacement of the installed executable during measurement.
+The terminal summary includes initial/maximum/final values for these series.
+
+The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
+short benchmark as the 72-hour soak. The long gate remains separate until the
+24-hour ferry and default 500-ship observations provide its documented
+post-warmup memory threshold and its high-volume server-log collection is
+bounded.
+
 The runner reuses the configured master account and exact `Kohdee` character
 for every fleet phase. Its harbor preflight may add the one reusable
 `Vesselmate` character to that same account for the channel proof, but it never
