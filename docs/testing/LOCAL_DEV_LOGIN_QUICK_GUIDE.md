@@ -286,9 +286,8 @@ The same fast path can enter another character by exact name. This is intended
 for disposable lifecycle and multiplayer fixtures, not production accounts:
 
 ```bash
-./scripts/dev_create_test_character.sh localtestaccount Testcaptain
+./scripts/dev_create_test_character.sh Testcaptain
 
-DEV_MUD_ACCOUNT=localtestaccount \
 DEV_MUD_CHARACTER=Testcaptain \
 ./scripts/dev_kohdee_login_smoke.sh --commands \
   "score" \
@@ -296,18 +295,24 @@ DEV_MUD_CHARACTER=Testcaptain \
 ```
 
 The creation helper refuses non-development environments, boots or reuses the
-local MUD through the established Kohdee preflight, creates one reusable test
-account with its first default human warrior, enters the world once, and logs
-out cleanly. It refuses to replace an existing account.
+local MUD through the established Kohdee preflight, logs into the configured
+master account, creates the default human warrior through that account's `C`
+option, enters the world once, and logs out cleanly.
 
 An account can contain multiple characters. Do not create one account per
-character for ordinary multiplayer testing. Add later fixtures to the same
-test account through its account-menu `C` option, then use
-`DEV_MUD_CHARACTER` to select each exact Name. Separate accounts are warranted
-only for account-isolation or destructive account/deletion tests. The creation
-helper currently bootstraps a new account only; the login helper works with
-any number of characters already present on that account and never assumes a
-stable menu slot.
+character for ordinary multiplayer testing. Keep fixtures on the master
+account and use `DEV_MUD_CHARACTER` to select each exact Name. The login helper
+never assumes a stable menu slot.
+
+Only account-isolation or destructive account/deletion tests warrant another
+account. For those cases, pass the account explicitly:
+
+```bash
+./scripts/dev_create_test_character.sh localtestaccount Testcaptain
+```
+
+The same helper logs into that account if it exists or bootstraps it if it
+does not.
 
 The password comes from `DEV_MUD_ACCOUNT_PASSWORD` when set; otherwise the
 helper uses `GAME_MASTER_ACCOUNT_PASSWORD` from `lib/.env`. This allows local
