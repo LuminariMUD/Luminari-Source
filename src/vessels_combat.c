@@ -365,6 +365,7 @@ void vessel_sink(int shipnum)
   /* Merchant definitions outlive their killable hulls. Record the responsible
    * player and schedule replacement while identity, cargo, and geography are
    * still available. */
+  vessel_hunter_handle_sink(ship);
   vessel_merchant_handle_sink(ship);
 
   if (ship->shipobj != NULL && IN_ROOM(ship->shipobj) != NOWHERE)
@@ -717,19 +718,31 @@ static void vessel_ai_return_fire(int shipnum)
     attack_roll = rand_number(1, 20) + ship->guncrew.gunadjust + 5; /* trained crews */
     defense_dc = 10 + target->speed / 5;
 
-    send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
-                           VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                           "The crew RETURNS FIRE at %s!", target->name);
+    if (ship->bounty_hunter)
+    {
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                             "The navy crew OPENS FIRE on %s!", target->name);
+    }
+    else
+    {
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
+                             "The crew RETURNS FIRE at %s!", target->name);
+    }
     if (attack_roll < defense_dc)
     {
       send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
                              VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                             "Return fire from %s splashes wide!", ship->name);
+                             "%s from %s splashes wide!",
+                             ship->bounty_hunter ? "Navy fire" : "Return fire",
+                             ship->name);
       continue;
     }
 
     dmg = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
-    vessel_apply_damage(target_num, dmg, greyhawk_getarc(target_num, shipnum), "Return fire");
+    vessel_apply_damage(target_num, dmg, greyhawk_getarc(target_num, shipnum),
+                        ship->bounty_hunter ? "Navy fire" : "Return fire");
     VSSL_DEBUG("AI ship %d return-fired slot %d at ship %d for %d", shipnum, s, target_num, dmg);
   }
 }
@@ -1028,6 +1041,7 @@ ACMD(do_claimship)
     return;
   }
   vessel_merchant_handle_capture(ch, ship);
+  vessel_hunter_handle_capture(ch, ship);
   /* A capture voids the old crew's helm clearances */
   ship->num_permits = 0;
   vessel_db_save_permits(ship);

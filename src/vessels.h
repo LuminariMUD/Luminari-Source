@@ -591,6 +591,27 @@ void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
 #define VESSEL_HAZARD_INTERVAL 60
 #define VESSEL_ENCOUNTER_INTERVAL 180
 
+/* Phase 15 bounty-hunter encounter lifecycle limits. */
+#define VESSEL_HUNTER_DURATION_MIN 10
+#define VESSEL_HUNTER_DURATION_MAX 86400
+#define VESSEL_HUNTER_GRACE_MAX 600
+#define VESSEL_HUNTER_COOLDOWN_MIN 1
+#define VESSEL_HUNTER_COOLDOWN_MAX 604800
+#define VESSEL_HUNTER_PURSUIT_SPEED_MAX 100
+
+struct vessel_hunter_config
+{
+  int encounter_id;
+  int prototype_id;
+  int pilot_mob_vnum;
+  int min_bounty;
+  int pursuit_speed;
+  int hunt_duration_seconds;
+  int target_grace_seconds;
+  int cooldown_seconds;
+  bool enabled;
+};
+
 /* Contact/spotting range shrinks in fog */
 #define VESSEL_SIGHT_CLEAR 50
 #define VESSEL_SIGHT_FOG 15
@@ -600,12 +621,38 @@ int vessel_sight_range(const struct greyhawk_ship_data *ship);
 int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
+void vessel_encounter_force_check(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
 bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
 bool vessel_encounter_chance_succeeds(int chance, int roll);
 bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
                                  int claimed_capacity);
 int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
+
+/* Data-driven HUNTED-state warships (Phase 15, vessels_hunters.c). */
+void vessel_hunter_ensure_schema(void);
+void vessel_hunter_boot(void);
+void vessel_hunter_tick(void);
+int vessel_hunter_load_config(int encounter_id,
+                              struct vessel_hunter_config *config);
+bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config);
+bool vessel_hunter_lifecycle_allows_spawn(const char *status,
+                                          time_t next_eligible_at,
+                                          time_t now);
+bool vessel_hunter_target_is_eligible(
+    const struct greyhawk_ship_data *target,
+    const struct vessel_hunter_config *config, time_t now);
+bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
+                         const struct vessel_hunter_config *config,
+                         const char *encounter_name);
+void vessel_hunter_handle_sink(struct greyhawk_ship_data *ship);
+void vessel_hunter_handle_capture(struct char_data *ch,
+                                  struct greyhawk_ship_data *ship);
+void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship,
+                                const char *staff_name);
+void vessel_hunter_handle_player_rename(const char *old_name,
+                                        const char *new_name);
+void vessel_hunter_handle_player_removal(const char *player_name);
 
 ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
 
@@ -1229,6 +1276,21 @@ struct greyhawk_ship_data
   int last_attacker; /* Fleet index of last ship to fire on us (0 = none) */
   time_t pvp_grace_until;       /* End of the bounded combat-logout window */
   char pvp_grace_attacker[64];  /* Only this already-consented player may continue */
+
+  /* Phase 15: runtime cache for a durable bounty-hunter lifecycle. The
+   * canonical row lives in vessel_bounty_hunts and is reattached at boot. */
+  bool bounty_hunter;
+  int hunter_encounter_id;
+  int hunter_target_ship_id;
+  char hunter_target_name[64];
+  time_t hunter_expires_at;
+  time_t hunter_target_missing_since;
+  time_t hunter_last_runtime_save;
+  int hunter_min_bounty;
+  int hunter_pursuit_speed;
+  int hunter_target_grace_seconds;
+  int hunter_cooldown_seconds;
+  int hunter_bounty_check_ticks;
 
   /* Phase 7: one berthing charge per arrival at a public or clan port */
   int dock_fee_balance; /* Gold due before the vessel may leave */

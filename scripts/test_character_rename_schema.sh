@@ -110,6 +110,7 @@ sql -e "
     VALUES ('LegacyReader', @legacy_mail_id);
 "
 sql < "$project_root/sql/components/character_rename_transactional_schema.sql" >/dev/null
+sql < "$project_root/sql/components/vessels_phase15_schema.sql" >/dev/null
 assert_sql "
   SELECT COUNT(*) FROM information_schema.TABLES
   WHERE TABLE_SCHEMA=DATABASE()
@@ -137,11 +138,13 @@ assert_sql "
       'pubsub_player_settings',
       'pubsub_subscriptions',
       'player_levelups',
-      'player_levels'
+      'player_levels',
+      'vessel_hunter_encounters',
+      'vessel_bounty_hunts'
     )
     AND TABLE_TYPE='BASE TABLE'
     AND ENGINE='InnoDB';
-" "18"
+" "20"
 assert_sql "
   SELECT CONCAT(sender, '|', receiver, '|', subject, '|', message)
   FROM player_mail WHERE subject='legacy subject';
@@ -180,6 +183,7 @@ assert_sql "
     UNION ALL SELECT 'supply_orders_available', 'player_name'
     UNION ALL SELECT 'pubsub_player_settings', 'player_name'
     UNION ALL SELECT 'pubsub_subscriptions', 'player_name'
+    UNION ALL SELECT 'vessel_bounty_hunts', 'target_player'
   ) AS expected
   WHERE EXISTS (
     SELECT 1
@@ -189,7 +193,7 @@ assert_sql "
       AND indexes.COLUMN_NAME=expected.column_name
       AND indexes.SEQ_IN_INDEX=1
   );
-" "17"
+" "18"
 
 sql -e "
   INSERT INTO account_data (name, password)
@@ -255,6 +259,13 @@ sql -e "
     VALUES ('Sourcechar', 'new level history payload');
   INSERT INTO player_levels (char_name, event_payload)
     VALUES ('Sourcechar', 'legacy level history payload');
+  INSERT INTO vessel_bounty_hunts
+    (target_player, encounter_id, target_ship_id, hunter_ship_id,
+     hunter_name, generation, status, started_at, expires_at,
+     next_eligible_at, ended_at, end_reason)
+    VALUES
+      ('Sourcechar', 77, 41, 42, 'Admiralty hunter #9', 9, 'active',
+       1000, 1300, 0, 0, '');
 "
 
 payload_before=$(sql -e "
@@ -326,6 +337,13 @@ state_payload_before=$(sql -e "
        FROM player_levels WHERE char_name='Sourcechar')
   ), 256);
 ")
+hunt_payload_before=$(sql -e "
+  SELECT SHA2(CONCAT_WS('|', encounter_id, target_ship_id, hunter_ship_id,
+    hunter_name, generation, status, started_at, expires_at,
+    next_eligible_at, ended_at, end_reason), 256)
+  FROM vessel_bounty_hunts
+  WHERE target_player='Sourcechar';
+")
 
 # The runtime preflight uses locking aggregate reads to protect old/new name
 # ranges against concurrent external writes until the transaction commits.
@@ -383,6 +401,8 @@ sql -e "
     WHERE LOWER(character_name)=LOWER('Sourcechar');
   UPDATE player_levels SET char_name='Targetchar'
     WHERE LOWER(char_name)=LOWER('Sourcechar');
+  UPDATE vessel_bounty_hunts SET target_player='Targetchar'
+    WHERE LOWER(target_player)=LOWER('Sourcechar');
   COMMIT;
 "
 
@@ -417,7 +437,9 @@ assert_sql "
     (SELECT COUNT(*) FROM player_levelups
        WHERE LOWER(character_name)=LOWER('Sourcechar')) +
     (SELECT COUNT(*) FROM player_levels
-       WHERE LOWER(char_name)=LOWER('Sourcechar'));
+       WHERE LOWER(char_name)=LOWER('Sourcechar')) +
+    (SELECT COUNT(*) FROM vessel_bounty_hunts
+       WHERE LOWER(target_player)=LOWER('Sourcechar'));
 " "0"
 
 assert_sql "
@@ -504,12 +526,21 @@ state_payload_after=$(sql -e "
        FROM player_levels WHERE char_name='Targetchar')
   ), 256);
 ")
+hunt_payload_after=$(sql -e "
+  SELECT SHA2(CONCAT_WS('|', encounter_id, target_ship_id, hunter_ship_id,
+    hunter_name, generation, status, started_at, expires_at,
+    next_eligible_at, ended_at, end_reason), 256)
+  FROM vessel_bounty_hunts
+  WHERE target_player='Targetchar';
+")
 [[ "$mail_payload_before" == "$mail_payload_after" ]] ||
   fail "mail identity, subject, message, or date changed during key migration"
 [[ "$mail_state_before" == "$mail_state_after" ]] ||
   fail "mail read/deleted relationships changed during key migration"
 [[ "$state_payload_before" == "$state_payload_after" ]] ||
   fail "loot, quest, crafting, pubsub, or level payload changed during key migration"
+[[ "$hunt_payload_before" == "$hunt_payload_after" ]] ||
+  fail "bounty-hunter lifecycle payload changed during key migration"
 assert_sql "
   SELECT CONCAT(
     (SELECT COUNT(*) FROM player_mail WHERE sender='Targetchar' AND subject='sent'), '|',

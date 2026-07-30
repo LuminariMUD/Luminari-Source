@@ -11,6 +11,7 @@ ferry_passenger_fare=10
 territorial_region_vnum=7000001
 free_seas_region_vnum=7000002
 pirate_cove_region_vnum=7000003
+bounty_patrol_region_vnum=7000004
 
 cleanup()
 {
@@ -352,6 +353,10 @@ region_collision_count=$(database_scalar \
                AND COALESCE(name, '') <> 'Harbor Sandbox Pirate Cove')
            OR (name = 'Harbor Sandbox Pirate Cove'
                AND vnum <> $pirate_cove_region_vnum)
+           OR (vnum = $bounty_patrol_region_vnum
+               AND COALESCE(name, '') <> 'Harbor Sandbox Bounty Patrol')
+           OR (name = 'Harbor Sandbox Bounty Patrol'
+               AND vnum <> $bounty_patrol_region_vnum)
      )
      +
      (
@@ -361,7 +366,8 @@ region_collision_count=$(database_scalar \
         WHERE region_idx.vnum IN (
           $territorial_region_vnum,
           $free_seas_region_vnum,
-          $pirate_cove_region_vnum
+          $pirate_cove_region_vnum,
+          $bounty_patrol_region_vnum
         )
           AND (
             region.vnum IS NULL
@@ -372,6 +378,9 @@ region_collision_count=$(database_scalar \
                 AND COALESCE(region.name, '') <> 'Harbor Sandbox Free Seas')
             OR (region_idx.vnum = $pirate_cove_region_vnum
                 AND COALESCE(region.name, '') <> 'Harbor Sandbox Pirate Cove')
+            OR (region_idx.vnum = $bounty_patrol_region_vnum
+                AND COALESCE(region.name, '') <>
+                    'Harbor Sandbox Bounty Patrol')
           )
      )")
 [[ "$region_collision_count" == 0 ]] ||
@@ -386,7 +395,54 @@ apply_database_file "$repo_root/sql/components/vessels_phase11_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase12_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
+apply_database_file "$repo_root/sql/components/vessels_phase15_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_harbor_sandbox.sql"
+
+hunter_fixture_valid=$(database_scalar \
+  "SELECT IF(
+       COUNT(*) = 1
+       AND MAX(encounter.region_vnum) = $bounty_patrol_region_vnum
+       AND MAX(region.name) = 'Harbor Sandbox Bounty Patrol'
+       AND MAX(region.region_type) = 2
+       AND MAX(prototype.name) = 'Harbor Admiralty Hunter'
+       AND MAX(prototype.vessel_class) = 3
+       AND MAX(hunter.pilot_mob_vnum) = 70002
+       AND MAX(hunter.min_bounty) = 2000
+       AND MAX(hunter.pursuit_speed) = 5
+       AND MAX(hunter.hunt_duration_seconds) = 300
+       AND MAX(hunter.target_grace_seconds) = 15
+       AND MAX(hunter.cooldown_seconds) = 30
+       AND MAX(encounter.chance) = 100
+       AND MAX(encounter.vessel_class) = 0
+       AND MAX(
+         ST_Within(
+           ST_GeomFromText('POINT(-66 92)'),
+           region_idx.region_polygon
+         )
+       ) = 1
+       AND (
+         SELECT COUNT(*)
+           FROM ship_prototypes
+          WHERE name = 'Harbor Sandbox Hunted Raft'
+            AND vessel_class = 0
+            AND max_speed = 5
+            AND armor = 100
+       ) = 1,
+       1,
+       0
+     )
+     FROM vessel_hunter_encounters AS hunter
+     JOIN vessel_encounters AS encounter
+       ON encounter.encounter_id = hunter.encounter_id
+     JOIN ship_prototypes AS prototype
+       ON prototype.prototype_id = hunter.prototype_id
+     JOIN region_data AS region
+       ON region.vnum = encounter.region_vnum
+     JOIN region_index AS region_idx
+       ON region_idx.vnum = region.vnum
+    WHERE encounter.name = 'Harbor Admiralty hunter patrol'")
+[[ "$hunter_fixture_valid" == 1 ]] ||
+  fail "the harbor bounty-hunter encounter definition is invalid"
 
 legal_waters_valid=$(database_scalar \
   "SELECT IF(

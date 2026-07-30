@@ -1519,6 +1519,7 @@ void init_vessel_system_tables(void)
     return;
   }
 
+  vessel_hunter_ensure_schema();
   vessel_merchant_ensure_schema();
   create_vessel_procedures();
 

@@ -1500,6 +1500,67 @@ void Test_vessel_encounter_shared_room_claims_once(CuTest *tc)
   CuAssertTrue(tc, !vessel_encounter_claim_room(NOWHERE, claimed_rooms, &claimed_count, 2));
 }
 
+void Test_vessel_hunter_policy_bounds(CuTest *tc)
+{
+  struct vessel_hunter_config config;
+
+  memset(&config, 0, sizeof(config));
+  config.encounter_id = 1;
+  config.prototype_id = 2;
+  config.pilot_mob_vnum = 70002;
+  config.min_bounty = BOUNTY_HUNTED;
+  config.pursuit_speed = 5;
+  config.hunt_duration_seconds = 300;
+  config.target_grace_seconds = 15;
+  config.cooldown_seconds = 30;
+  config.enabled = TRUE;
+
+  CuAssertTrue(tc, vessel_hunter_config_is_valid(&config));
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(NULL));
+
+  config.min_bounty = BOUNTY_HUNTED - 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.min_bounty = BOUNTY_HUNTED;
+
+  config.pursuit_speed = 0;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.pursuit_speed = VESSEL_HUNTER_PURSUIT_SPEED_MAX + 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.pursuit_speed = 5;
+
+  config.hunt_duration_seconds = VESSEL_HUNTER_DURATION_MIN - 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.hunt_duration_seconds = VESSEL_HUNTER_DURATION_MAX + 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.hunt_duration_seconds = 300;
+
+  config.target_grace_seconds = -1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.target_grace_seconds = VESSEL_HUNTER_GRACE_MAX + 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.target_grace_seconds = 15;
+
+  config.cooldown_seconds = 0;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+  config.cooldown_seconds = VESSEL_HUNTER_COOLDOWN_MAX + 1;
+  CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
+
+  CuAssertTrue(tc,
+               vessel_hunter_lifecycle_allows_spawn("cooldown", 1000, 1000));
+  CuAssertTrue(tc,
+               vessel_hunter_lifecycle_allows_spawn("cooldown", 999, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn(
+                       "cooldown", 1001, 1000));
+  CuAssertTrue(
+      tc, !vessel_hunter_lifecycle_allows_spawn("active", 0, 1000));
+  CuAssertTrue(
+      tc, !vessel_hunter_lifecycle_allows_spawn("spawning", 0, 1000));
+  CuAssertTrue(tc,
+               !vessel_hunter_lifecycle_allows_spawn("invalid", 0, 1000));
+  CuAssertTrue(tc,
+               !vessel_hunter_lifecycle_allows_spawn(NULL, 0, 1000));
+}
+
 void Test_vessel_hazard_lookout_and_sight(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
@@ -1574,6 +1635,12 @@ void Test_vessel_pvp_consent_gate(CuTest *tc)
   ship.merchant_id = 7;
   CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
   ship.merchant_id = 0;
+
+  /* The navy hull is also ordinary ownerless PvE, so a HUNTED target can
+   * defend itself without requiring mutual player consent. */
+  ship.bounty_hunter = TRUE;
+  CuAssertTrue(tc, vessel_pvp_permitted(&attacker, &ship, FALSE));
+  ship.bounty_hunter = FALSE;
 
   /* Your own hull is always actionable */
   strlcpy(ship.owner, "Vex", sizeof(ship.owner));

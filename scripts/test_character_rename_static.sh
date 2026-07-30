@@ -54,6 +54,7 @@ rename_keys=(
   "vessel_bounties|player_name"
   "vessel_merchant_consequences|player_name"
   "vessel_npc_merchants|last_attacker_name"
+  "vessel_bounty_hunts|target_player"
 )
 
 for key in "${rename_keys[@]}"; do

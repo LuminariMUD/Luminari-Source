@@ -472,6 +472,7 @@ void vessel_encounter_tick(void)
   MYSQL_ROW row;
   struct greyhawk_ship_data *ship;
   struct char_data *mob;
+  struct vessel_hunter_config hunter_config;
   room_rnum claimed_rooms[GREYHAWK_MAXSHIPS];
   room_rnum ship_room;
   int claimed_count = 0;
@@ -514,7 +515,8 @@ void vessel_encounter_tick(void)
 
     /* Draw candidates matching this region, depth band, and hull class */
     snprintf(query, sizeof(query),
-             "SELECT name, mob_vnum, chance, warn_message, arrive_message "
+             "SELECT encounter_id, name, mob_vnum, chance, warn_message, "
+             "arrive_message "
              "FROM vessel_encounters WHERE region_vnum = %d "
              "AND (vessel_class = -1 OR vessel_class = %d) "
              "AND (max_depth = 0 OR (%d BETWEEN min_depth AND max_depth)) "
@@ -534,8 +536,22 @@ void vessel_encounter_tick(void)
 
     while ((row = mysql_fetch_row(result)) != NULL)
     {
-      int chance = row[2] ? atoi(row[2]) : 0;
+      int chance = row[3] ? atoi(row[3]) : 0;
+      int hunter_configured;
       int recipient_count;
+
+      hunter_configured =
+          vessel_hunter_load_config(row[0] ? atoi(row[0]) : 0,
+                                    &hunter_config);
+      if (hunter_configured < 0)
+      {
+        continue;
+      }
+      if (hunter_configured > 0 &&
+          !vessel_hunter_target_is_eligible(ship, &hunter_config, time(0)))
+      {
+        continue;
+      }
 
       /* A good lookout gives warning before the thing arrives */
       if (!vessel_encounter_chance_succeeds(chance, rand_number(1, 100)))
@@ -550,21 +566,34 @@ void vessel_encounter_tick(void)
         break;
       }
 
-      recipient_count = vessel_broadcast_encounter(ship_room, ship, row[3], row[4], row[0]);
-      log("Info: Shared encounter '%s' in room %d from ship %d notified %d vessels in region %d",
-          row[0] ? row[0] : "?", ship_room, i, recipient_count, region_vnum);
+      if (hunter_configured > 0 &&
+          !vessel_hunter_spawn(ship, &hunter_config, row[1]))
+      {
+        if (ship_room != NOWHERE && claimed_count > 0)
+        {
+          claimed_count--;
+        }
+        continue;
+      }
+
+      recipient_count =
+          vessel_broadcast_encounter(ship_room, ship, row[4], row[5], row[1]);
+      log("Info: Shared encounter '%s' in room %d from ship %d notified %d "
+          "vessels in region %d",
+          row[1] ? row[1] : "?", ship_room, i, recipient_count, region_vnum);
 
       /* Spawn the encounter's creature into the ship's wilderness room so
        * it can be fought, fled, or fired upon like anything else. */
-      if (row[1] != NULL && atoi(row[1]) > 0 && ship_room != NOWHERE)
+      if (hunter_configured == 0 && row[2] != NULL && atoi(row[2]) > 0 &&
+          ship_room != NOWHERE)
       {
-        mob = read_mobile(atoi(row[1]), VIRTUAL);
+        mob = read_mobile(atoi(row[2]), VIRTUAL);
         if (mob != NULL)
         {
           char_to_room(mob, ship_room);
           act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
           log("Info: Encounter '%s' spawned for shared room %d from ship %d in region %d",
-              row[0] ? row[0] : "?", ship_room, i, region_vnum);
+              row[1] ? row[1] : "?", ship_room, i, region_vnum);
         }
       }
 
@@ -573,6 +602,19 @@ void vessel_encounter_tick(void)
 
     mysql_free_result(result);
   }
+}
+
+/**
+ * Staff acceptance hook: run the next normal encounter check immediately.
+ *
+ * This changes only the cadence counter. Selection, region/class/depth
+ * filtering, chance, HUNTED eligibility, spawning, and lifecycle work all
+ * remain on the production encounter path.
+ */
+void vessel_encounter_force_check(void)
+{
+  encounter_ticks = VESSEL_ENCOUNTER_INTERVAL - 1;
+  vessel_encounter_tick();
 }
 
 /**

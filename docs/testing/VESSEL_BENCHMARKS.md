@@ -201,7 +201,7 @@ The runner:
 - Refuses non-development configuration, an active ferry soak, a dirty source
   worktree, stale benchmark markers, and an installed binary without both the
   500-slot capacity and compact `shiplist summary` behavior.
-- Atomically snapshots the 17 vessel, trade, freight, bounty, encounter, and
+- Atomically snapshots the 19 vessel, trade, freight, bounty, encounter, and
   insurance tables that the workload can change, then restores and verifies
   the baseline on success, failure, or interruption.
 - Uses the existing master account and exact Kohdee character. The harbor

@@ -104,7 +104,7 @@ static void vessel_debug_status(struct char_data *ch)
 }
 
 /**
- * vesseldebug [status|on <category>|off [category]]
+ * vesseldebug [status|on <category>|off [category]|encounter]
  *
  * Runtime category control is available only in an explicit development
  * build compiled with -DVESSEL_SYSTEM_DEBUG=1. Production builds retain no
@@ -123,6 +123,12 @@ ACMD(do_vesseldebug)
   if (!*action || !strcasecmp(action, "status"))
   {
     vessel_debug_status(ch);
+    return;
+  }
+  if (!strcasecmp(action, "encounter"))
+  {
+    vessel_encounter_force_check();
+    send_to_char(ch, "Forced the next normal vessel encounter check.\r\n");
     return;
   }
 
@@ -164,7 +170,9 @@ ACMD(do_vesseldebug)
     }
     else
     {
-      send_to_char(ch, "Usage: vesseldebug [status|on <category>|off [category]]\r\n");
+      send_to_char(
+          ch,
+          "Usage: vesseldebug [status|on <category>|off [category]|encounter]\r\n");
       return;
     }
   }
@@ -535,6 +543,7 @@ ACMD(do_shippurge)
   }
 
   vessel_merchant_handle_purge(ship, GET_NAME(ch));
+  vessel_hunter_handle_purge(ship, GET_NAME(ch));
   strlcpy(ship_name, ship->name, sizeof(ship_name));
   hull = ship->shipobj;
   exterior = hull != NULL ? IN_ROOM(hull) : NOWHERE;
