@@ -15,6 +15,15 @@
   vessel messages in the same reset window as sampled section timings.
   `perfmon csv` emits both event counters, and the reversible 500-vessel runner
   requires, parses, and preserves them in its summary.
+- The scale workload stages a paused reciprocal submarine pair at negative Z
+  with synchronized one-damage weapons and a defense speed above the NPC
+  attack ceiling. It now rejects a zero throttled-message count, turning the
+  Kohdee `perfmon csv` capture into deterministic installed-build suppression
+  evidence after the profiler reset without damage or surface-weather risk.
+- `--vessel-message-check <ship-slot>` puts Kohdee aboard that fixture,
+  observes live reciprocal fire for eight seconds, requires the nonzero
+  counter, and returns Kohdee ashore. The scale runner discovers the slot and
+  preserves the transcript automatically.
 
 #### Validated
 
@@ -24,6 +33,11 @@
 - Production-linked coverage verifies independent message classes, per-vessel
   state, exact cooldown boundaries, pulse rollback, event-counter CSV output,
   and reset behavior.
+- Bash, embedded Expect, and ShellCheck validation passes for the live helper
+  and runner. A session-local MariaDB fixture proves the reciprocal pair,
+  synchronized weapons, and defense 32 versus maximum attack 31 without
+  changing persistent development data. The installed Kohdee transcript
+  remains queued behind the active ferry soak.
 - The isolated GNU C23 build completed without warnings, autorun supervision
   passed, the complete root suite passes 244 of 244 tests, `make install`
   removed the root executable, and the focused protocol suite remains 13 of

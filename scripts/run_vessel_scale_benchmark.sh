@@ -358,6 +358,7 @@ run_benchmark()
   local spawned_count
   local persisted_count
   local verification_output
+  local message_output
   local msdp_output
   local reconstruction_error_pattern
   local workload_counts
@@ -369,8 +370,11 @@ run_benchmark()
   local cargo_count
   local weapon_count
   local slot500_room_count
+  local combat_fixture_count
+  local combat_fixture_weapon_count
   local msdp_slot
   local submarine_slot
+  local combat_slot
   local schedule_rows
   local schedule_id_list
   local schedule_paused_count
@@ -838,12 +842,7 @@ JOIN ship_interiors AS interior USING (ship_id)
        runtime.turnrate = 20,
        runtime.maxmainsail = 20,
        runtime.mainsail = 20,
-       runtime.last_attacker = CASE
-         WHEN interior.vessel_type = 3 AND runtime.ship_id < 500
-           THEN runtime.ship_id + 1
-         WHEN interior.vessel_type = 4 THEN runtime.ship_id - 1
-         ELSE 0
-       END,
+       runtime.last_attacker = 0,
        runtime.pvp_grace_until = 0,
        runtime.pvp_grace_attacker = '',
        runtime.dock_fee_balance = 0,
@@ -873,12 +872,45 @@ UPDATE ship_runtime_state
    SET z = 500
  WHERE ship_id = @msdp_ship;
 
+SET @combat_ship_a = (
+  SELECT MAX(ship_id) FROM ship_interiors WHERE vessel_type = 5
+);
+SET @combat_ship_b = (
+  SELECT MAX(ship_id)
+    FROM ship_interiors
+   WHERE vessel_type = 5
+     AND ship_id < @combat_ship_a
+);
+UPDATE ship_runtime_state
+   SET x = -64,
+       y = 82,
+       z = -1,
+       dx = 0,
+       dy = 0,
+       dz = 0,
+       heading = 0,
+       setheading = 0,
+       maxspeed = 110,
+       speed = 110,
+       setspeed = 110,
+       autopilot_state = 3,
+       current_waypoint_index = 0,
+       autopilot_tick_counter = 0,
+       last_attacker = CASE
+         WHEN ship_id = @combat_ship_a THEN @combat_ship_b
+         ELSE @combat_ship_a
+       END
+ WHERE ship_id IN (@combat_ship_a, @combat_ship_b);
+
 DELETE FROM ship_docking;
 DELETE FROM ship_schedules;
 INSERT INTO ship_schedules
   (ship_id, route_id, interval_hours, next_departure, enabled)
 SELECT ship_id, current_route_id, 1, 0, 1
   FROM ship_runtime_state;
+UPDATE ship_schedules
+   SET next_departure = UNIX_TIMESTAMP() + 86400
+ WHERE ship_id IN (@combat_ship_a, @combat_ship_b);
 
 DELETE FROM ship_crew_roster;
 INSERT INTO ship_crew_roster
@@ -932,10 +964,15 @@ JOIN ship_interiors AS interior USING (ship_id)
 INSERT INTO ship_weapons
   (ship_id, slot_index, slot_type, position, equipment_weight, description,
    val0, val1, val2, val3, slot_x, slot_y, reload_timer)
-SELECT interior.ship_id, 0, 1, 0, 0, 'a benchmark ballista',
-       5, 0, 1, 8, 0, 0, MOD(interior.ship_id, 10) + 1
+SELECT interior.ship_id, slots.slot_index, 1, 3, 0,
+       CONCAT('benchmark ballista ', slots.slot_index + 1),
+       5, 0, 1, 1, 0, 0, MOD(interior.ship_id, 10) + 1
   FROM ship_interiors AS interior
- WHERE interior.vessel_type IN (3, 4)
+ CROSS JOIN (
+   SELECT 0 AS slot_index
+   UNION ALL SELECT 1
+ ) AS slots
+ WHERE interior.vessel_type IN (3, 4, 5)
 ON DUPLICATE KEY UPDATE
   slot_type = VALUES(slot_type),
   position = VALUES(position),
@@ -979,14 +1016,48 @@ SQL
           AND CAST(SUBSTRING_INDEX(room_vnums, ',', -1) AS UNSIGNED)
                 BETWEEN 80000 AND 80019
           AND num_rooms =
-                1 + LENGTH(room_vnums) - LENGTH(REPLACE(room_vnums, ',', '')));") ||
+                1 + LENGTH(room_vnums) - LENGTH(REPLACE(room_vnums, ',', ''))),
+      (SELECT COUNT(*)
+         FROM ship_runtime_state AS attacker
+         JOIN ship_runtime_state AS target
+           ON target.ship_id = attacker.last_attacker
+          AND target.last_attacker = attacker.ship_id
+         JOIN ship_interiors AS interior
+           ON interior.ship_id = attacker.ship_id
+         JOIN ship_schedules AS schedule
+           ON schedule.ship_id = attacker.ship_id
+        WHERE interior.vessel_type = 5
+          AND attacker.autopilot_state = 3
+          AND attacker.speed = 110
+          AND target.speed = 110
+          AND attacker.heading = 0
+          AND target.heading = 0
+          AND attacker.x = target.x
+          AND attacker.y = target.y
+          AND attacker.z = target.z
+          AND attacker.z = -1
+          AND schedule.enabled = 1
+          AND schedule.next_departure >= UNIX_TIMESTAMP() + 80000),
+      (SELECT COUNT(*)
+         FROM ship_weapons AS weapon
+         JOIN ship_runtime_state AS runtime USING (ship_id)
+        WHERE runtime.speed = 110
+          AND weapon.slot_index IN (0, 1)
+          AND weapon.slot_type = 1
+          AND weapon.position = 3
+          AND weapon.val0 = 5
+          AND weapon.val2 = 1
+          AND weapon.val3 = 1
+          AND weapon.reload_timer = MOD(weapon.ship_id, 10) + 1);") ||
     benchmark_fail "could not validate configured workload counts"
   IFS=$'\t' read -r active_count class_count pilot_count crew_count \
-    schedule_count cargo_count weapon_count slot500_room_count <<<"$workload_counts"
+    schedule_count cargo_count weapon_count slot500_room_count \
+    combat_fixture_count combat_fixture_weapon_count <<<"$workload_counts"
   [[ "$active_count" == 500 && "$class_count" == 8 &&
      "$pilot_count" == 500 && "$crew_count" == 2000 &&
      "$schedule_count" == 500 && "$cargo_count" == 500 &&
-     "$weapon_count" =~ ^[1-9][0-9]*$ && "$slot500_room_count" == 1 ]] ||
+     "$weapon_count" =~ ^[1-9][0-9]*$ && "$slot500_room_count" == 1 &&
+     "$combat_fixture_count" == 2 && "$combat_fixture_weapon_count" == 4 ]] ||
     benchmark_fail "configured workload counts are incomplete: $workload_counts"
 
   msdp_slot=$(database_query "
@@ -997,6 +1068,10 @@ SQL
     SELECT MIN(ship_id) FROM ship_interiors WHERE vessel_type = 5;")
   [[ "$submarine_slot" =~ ^[0-9]+$ ]] ||
     benchmark_fail "could not choose a boundary-test submarine"
+  combat_slot=$(database_query "
+    SELECT MAX(ship_id) FROM ship_interiors WHERE vessel_type = 5;")
+  [[ "$combat_slot" =~ ^[0-9]+$ && "$combat_slot" != "$submarine_slot" ]] ||
+    benchmark_fail "could not choose the reciprocal combat submarine"
   schedule_rows=$(database_query "
     SELECT ship_id
       FROM ship_interiors
@@ -1097,6 +1172,15 @@ SQL
     benchmark_fail "could not verify the staged scheduled vessels"
   [[ "$schedule_paused_count" == 10 ]] ||
     benchmark_fail "only $schedule_paused_count of 10 schedule vessels are paused"
+
+  message_output="$run_dir/vessel-message-throttling.log"
+  timeout 90 "$script_dir/dev_kohdee_login_smoke.sh" \
+    --vessel-message-check "$combat_slot" >"$message_output" 2>&1 ||
+    benchmark_fail "live vessel-message throttling validation failed"
+  grep -Fq "observed live reciprocal fire" "$message_output" ||
+    benchmark_fail "Kohdee did not observe the reciprocal combat fixture"
+  grep -Eq "^# vessel_messages_throttled=[1-9][0-9]*$" "$message_output" ||
+    benchmark_fail "Kohdee's message transcript contained no suppression counter"
 
   msdp_output="$run_dir/native-msdp-vessel-state.log"
   timeout 90 "$script_dir/dev_kohdee_login_smoke.sh" \
@@ -1236,6 +1320,8 @@ SQL
     's/^# vessel_messages_throttled=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
   [[ "$throttled_messages" =~ ^[0-9]+$ ]] ||
     benchmark_fail "could not parse the vessel message-throttling count"
+  ((throttled_messages > 0)) ||
+    benchmark_fail "synchronized combat reloads produced no throttled vessel messages"
   database_queries=$(sed -nE \
     's/^# database_queries=([0-9]+)$/\1/p' "$run_dir/perfmon.csv")
   [[ "$database_queries" =~ ^[0-9]+$ ]] ||
