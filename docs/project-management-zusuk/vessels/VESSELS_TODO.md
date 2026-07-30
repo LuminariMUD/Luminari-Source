@@ -271,6 +271,13 @@ merchant, copyover, and multiplayer encounter testing.
   bounty primitives now exist. Still add a durable NPC merchant lifecycle,
   merchant identity/faction consequences, authored production routes and
   cargo, and actual-character destruction/recovery evidence.
+  A July 30 source trace confirmed the remaining lifecycle gap precisely:
+  no persistent merchant definitions map prototypes, pilots, routes, cargo,
+  spawn points, or factions to a live hull; no boot/tick reconciler replaces
+  a lost merchant; and sinking currently deletes the only instance record.
+  Phase 14 is therefore being built as a data-driven definition and durable
+  loss/respawn lifecycle, with actual Kohdee destruction/recovery evidence
+  still reserved for the installed build after the pinned ferry soak.
 - [ ] Add passenger ferries that collect fares and recover safely after reboot.
   The code and data layer is complete: an optional fare is part of the
   persistent schedule, public boarding saves the deduction before moving the
