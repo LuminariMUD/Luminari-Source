@@ -85,6 +85,14 @@ merchant, copyover, and multiplayer encounter testing.
   production-linked suite covers the capacity, bounded fleet-summary,
   encounter, Z-axis, sustained-economy, and message-cooldown regressions, and
   isolated provisioner checks pass both extension and overlap rejection.
+  Autopilot movement now resolves and validates each target dynamic room once
+  through the central position update. The removed immediate traversal probe
+  had configured the same room and executed the region/path spatial queries a
+  second time whenever an automated step entered an otherwise unoccupied
+  coordinate. The production-linked suite still passes 244 of 244 and isolated
+  `make install` is clean. The active ferry process is pinned to the earlier
+  executable, so only the post-soak installed scale run can provide live
+  evidence for this change.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
   development-only workload through actual Kohdee/`vedit spawnpublic`
   sessions, covers all eight classes and periodic subsystems, captures the

@@ -2208,18 +2208,16 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
     return 0;
   }
 
-  /* Check if terrain is valid for this vessel before moving */
-  if (!can_vessel_traverse_terrain(ship->vessel_type, target_x, target_y, target_z))
-  {
-    log("Info: Autopilot ship %d - impassable terrain at (%d, %d, %d)", ship->shipnum, target_x,
-        target_y, target_z);
-    return 0;
-  }
-
   /* Update ship position using the centralized wilderness position function.
+   * It resolves the target room and enforces class terrain and Z limits in one
+   * pass. Do not probe with can_vessel_traverse_terrain() first: that function
+   * also configures a dynamic wilderness room, duplicating the room and
+   * spatial-query work when the target coordinate is not already occupied.
+   *
    * This handles:
    * - Coordinate updates (ship->x, ship->y, ship->z)
    * - Dynamic wilderness room allocation via get_or_allocate_wilderness_room()
+   * - Class terrain and altitude/depth validation
    * - Updating ship->location to the new room vnum
    * - Moving ship object via obj_from_room()/obj_to_room() to allow room recycling
    */
