@@ -37,18 +37,21 @@ hourly schedule with its 10-gold fare. It validates the three canonical
 legal-water polygons and proves that `seastate` resolves the moving ferry into
 territorial waters or the nested free seas after restart. It also boards
 through the ordinary object path, verifies one exact deduction, restores
-Kohdee's starting gold, resumes the route, and then ends with:
+Kohdee's starting gold, resumes the route, waits at most 45 seconds for an
+actual named-water crossing announcement, and requires the immediately
+reported `seastate` type, authority, and bounty to match it. The provisioner
+discovers the ferry slot and runs the crossing session itself, then ends with:
 
 ```text
 PASS: harbor sandbox and persistent ferry verified in ship slot N.
 ```
 
 It uses the existing master account and Kohdee character; do not create a new
-account or perform one login per command. The first run includes ferry creation
-and a second restart. Before the fare and region checks were added, later
-idempotent runs reused the ferry and completed in about 30 seconds on the
-current development host. Remeasure the augmented path after the active soak
-releases the installed build.
+account, look up a slot manually, or perform one login per command. The first
+run includes ferry creation and a second restart. Before the fare and crossing
+checks were added, later idempotent runs reused the ferry and completed in
+about 30 seconds on the current development host. Remeasure the augmented path
+after the active soak releases the installed build.
 
 Run the continuous ferry release gate through its supervised monitor:
 

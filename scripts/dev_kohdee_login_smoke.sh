@@ -54,8 +54,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-message-check)
       mode="vessel-message-check"
       ;;
+    --vessel-crossing-check)
+      mode="vessel-crossing-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character> | --vessel-message-check <ship-slot>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character> | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot>]"
       ;;
   esac
   shift
@@ -98,6 +101,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-message-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-message-check requires one ship slot from 1 through 500"
+  elif [[ "$mode" == "vessel-crossing-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      fail "--vessel-crossing-check requires one ship slot from 1 through 500"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -696,6 +702,110 @@ proc run_vessel_message_check {ship_slot} {
   puts "PASS: the installed production tick suppressed $throttled_count repeated vessel messages."
 }
 
+proc named_water_crossing_pattern {} {
+  return [join {
+    {The charts mark our crossing into}
+    {(Harbor Sandbox Territorial Waters|Harbor Sandbox Free Seas)}
+    {\((territorial waters|free seas)\), under}
+    {(Harbor Admiralty|Free Captains' Compact) authority\.}
+  } " "]
+}
+
+proc named_water_crossing_from_output {raw} {
+  set crossing_pattern [named_water_crossing_pattern]
+  set crossing [regexp -inline -- $crossing_pattern $raw]
+
+  if {[llength $crossing] != 4} {
+    return {}
+  }
+  return [lrange $crossing 1 end]
+}
+
+proc wait_for_named_water_crossing {context initial_output} {
+  set crossing_pattern [named_water_crossing_pattern]
+  set crossing [named_water_crossing_from_output $initial_output]
+  set matched 0
+  set raw ""
+  set prior_timeout $::timeout
+
+  if {[llength $crossing] == 3} {
+    puts "\n>>> observe named-water crossing"
+    puts [string trim [clean_socket_output $initial_output]]
+    return $crossing
+  }
+
+  set ::timeout 45
+
+  expect {
+    -re $crossing_pattern {
+      set matched 1
+      set raw $expect_out(buffer)
+    }
+    timeout {}
+    eof { fail "$context connection closed while waiting for a named-water crossing" }
+  }
+  set ::timeout $prior_timeout
+
+  if {!$matched} {
+    return {}
+  }
+
+  puts "\n>>> observe named-water crossing"
+  puts [string trim [clean_socket_output $raw]]
+  return [named_water_crossing_from_output $raw]
+}
+
+proc run_vessel_crossing_check {ship_slot} {
+  set failure ""
+  set output [run_game_command "shipgoto $ship_slot"]
+  if {![regexp "Aboard (.+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
+    fail "could not read vessel name after shipgoto $ship_slot"
+  }
+
+  set output [run_game_command "autopilot on"]
+  set crossing [wait_for_named_water_crossing $ship_name $output]
+  if {[llength $crossing] != 3} {
+    set failure "no harbor named-water crossing arrived within 45 seconds"
+  } else {
+    lassign $crossing region waters_type authority
+    if {$region eq "Harbor Sandbox Territorial Waters"} {
+      set expected_type "territorial waters"
+      set expected_authority "Harbor Admiralty"
+      set expected_bounty 150
+    } elseif {$region eq "Harbor Sandbox Free Seas"} {
+      set expected_type "free seas"
+      set expected_authority "Free Captains' Compact"
+      set expected_bounty 100
+    } else {
+      set expected_type ""
+      set expected_authority ""
+      set expected_bounty 0
+      set failure "the harbor route announced an unexpected region"
+    }
+
+    if {$failure eq "" &&
+        ($waters_type ne $expected_type || $authority ne $expected_authority)} {
+      set failure "the crossing announcement mixed incompatible region law metadata"
+    }
+    if {$failure eq ""} {
+      set output [run_game_command "seastate"]
+      set expected_waters \
+          "Waters    : $region ($expected_type; $expected_authority; piracy bounty $expected_bounty%)"
+      if {[string first $expected_waters $output] < 0} {
+        set failure "seastate did not match the announced named-water region"
+      }
+    }
+  }
+
+  run_game_command "goto 1000389"
+  if {$failure ne ""} {
+    fail $failure
+  }
+
+  puts "\nPASS: $ship_name announced a canonical boundary crossing into $region."
+  puts "PASS: seastate matched its water type, authority, and piracy bounty."
+}
+
 proc open_secondary_character {character} {
   global env
 
@@ -1027,7 +1137,7 @@ after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
-    $mode eq "vessel-message-check"} {
+    $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1074,6 +1184,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_channel_check [lindex $game_commands 0] [lindex $game_commands 1]
     } elseif {$mode eq "vessel-message-check"} {
       run_vessel_message_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-crossing-check"} {
+      run_vessel_crossing_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -1145,6 +1257,9 @@ elif [[ "$mode" == "vessel-channel-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-message-check" ]]; then
   printf 'PASS: %s completed the live vessel-message throttling check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-crossing-check" ]]; then
+  printf 'PASS: %s completed the named-water crossing check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

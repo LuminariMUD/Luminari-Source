@@ -54,12 +54,15 @@ local MUD, and verifies the two docks, public ferry, NPC pilot, hourly route,
 and generated bridge/cargo triggers. After restart it confirms that `seastate`
 resolves the ferry's canonical legal waters, boards through the ordinary
 hull-object path as Kohdee, proves exactly one fare was deducted, restores
-Kohdee's original gold, resumes the ferry, and returns Kohdee to room 1000389.
-No second account or disposable character is needed. The first run may need
-about one minute because it creates the ferry and proves a second restart.
-Before the fare and region checks were added, an already provisioned harbor
-took about 30 seconds; remeasure the augmented path after the active ferry soak
-releases the installed build.
+Kohdee's original gold, resumes the ferry, and waits up to 45 seconds for a
+real territorial/free-sea boundary announcement. It immediately correlates
+that announcement with `seastate`, then returns Kohdee to room 1000389. The
+provisioner discovers and passes the ferry slot automatically; do not spend
+time looking it up or create a second account or disposable character. The
+first run may need about one minute because it creates the ferry and proves a
+second restart. Before the fare and crossing checks were added, an already
+provisioned harbor took about 30 seconds; remeasure the augmented path after
+the active ferry soak releases the installed build.
 
 ## Durable Vessel Ferry Soak
 
