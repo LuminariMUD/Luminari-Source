@@ -15,6 +15,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
+#include "wilderness.h"
 #include "mysql.h"
 
 extern MYSQL *conn;
@@ -49,6 +50,196 @@ void vessel_piracy_ensure_schema(void)
   {
     log("SYSERR: vessel_bounties create failed: %s", mysql_error(conn));
   }
+
+  if (mysql_query(conn, "CREATE TABLE IF NOT EXISTS vessel_region_law ("
+                        "  region_vnum INT PRIMARY KEY,"
+                        "  waters_type TINYINT NOT NULL,"
+                        "  priority INT NOT NULL DEFAULT 0,"
+                        "  bounty_percent INT NOT NULL DEFAULT 100,"
+                        "  authority VARCHAR(63) NOT NULL DEFAULT '',"
+                        "  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP "
+                        "    ON UPDATE CURRENT_TIMESTAMP,"
+                        "  INDEX idx_vessel_region_law_priority (priority)"
+                        ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"))
+  {
+    log("SYSERR: vessel_region_law create failed: %s", mysql_error(conn));
+  }
+}
+
+/**
+ * Player-facing name for one regional water-law classification.
+ */
+const char *vessel_waters_type_name(int waters_type)
+{
+  switch (waters_type)
+  {
+  case VESSEL_WATERS_TERRITORIAL:
+    return "territorial waters";
+  case VESSEL_WATERS_FREE:
+    return "free seas";
+  case VESSEL_WATERS_PIRATE_COVE:
+    return "pirate cove";
+  case VESSEL_WATERS_UNCLAIMED:
+  default:
+    return "unclaimed waters";
+  }
+}
+
+/**
+ * Scale the normal cargo bounty by a builder-authored regional percentage.
+ */
+int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent)
+{
+  long long amount;
+
+  if (cargo_units <= 0)
+  {
+    return 0;
+  }
+  if (bounty_percent < 0)
+  {
+    bounty_percent = 100;
+  }
+  if (bounty_percent == 0)
+  {
+    return 0;
+  }
+
+  bounty_percent = MIN(bounty_percent, VESSEL_PIRACY_BOUNTY_PERCENT_MAX);
+  amount = (long long)cargo_units * BOUNTY_PER_CARGO_UNIT * bounty_percent / 100;
+  if (amount < 1)
+  {
+    return 1;
+  }
+  if (amount > INT_MAX)
+  {
+    return INT_MAX;
+  }
+  return (int)amount;
+}
+
+/**
+ * Pirate-cove services are the sole regional exception to WANTED refusal.
+ */
+bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law)
+{
+  return law != NULL && law->configured &&
+         law->waters_type == VESSEL_WATERS_PIRATE_COVE;
+}
+
+/**
+ * Resolve the highest-priority vessel law covering one wilderness coordinate.
+ *
+ * Geometry remains authoritative in region_data/region_index. This table only
+ * attaches vessel-law metadata to builder-authored REGION_GEOGRAPHIC rows.
+ * A configured region outranks an unconfigured overlapping name; equal
+ * priorities use the lowest region VNUM for deterministic results.
+ */
+bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law)
+{
+  char query[MAX_STRING_LENGTH];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int waters_type;
+  int bounty_percent;
+
+  if (law == NULL)
+  {
+    return FALSE;
+  }
+
+  memset(law, 0, sizeof(*law));
+  law->waters_type = VESSEL_WATERS_UNCLAIMED;
+  law->bounty_percent = 100;
+  strlcpy(law->region_name, "Unnamed open waters", sizeof(law->region_name));
+  strlcpy(law->authority, "maritime law", sizeof(law->authority));
+
+  if (!mysql_available || conn == NULL)
+  {
+    return FALSE;
+  }
+
+  snprintf(query, sizeof(query),
+           "SELECT data.vnum, data.name, law.waters_type, law.priority, "
+           "law.bounty_percent, law.authority "
+           "FROM region_index AS region "
+           "JOIN region_data AS data ON data.vnum = region.vnum "
+           "LEFT JOIN vessel_region_law AS law ON law.region_vnum = data.vnum "
+           "WHERE region.zone_vnum = %d AND data.region_type = %d "
+           "AND ST_Within(ST_GeomFromText('POINT(%d %d)'), region.region_polygon) "
+           "ORDER BY (law.region_vnum IS NOT NULL) DESC, "
+           "COALESCE(law.priority, 0) DESC, data.vnum ASC LIMIT 1",
+           WILD_ZONE_VNUM, REGION_GEOGRAPHIC, x, y);
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: vessel piracy-law lookup failed at (%d,%d): %s", x, y,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    return FALSE;
+  }
+
+  row = mysql_fetch_row(result);
+  if (row == NULL)
+  {
+    mysql_free_result(result);
+    return FALSE;
+  }
+
+  law->region_vnum = row[0] ? atoi(row[0]) : 0;
+  if (row[1] != NULL && *row[1])
+  {
+    strlcpy(law->region_name, row[1], sizeof(law->region_name));
+  }
+  if (row[2] != NULL)
+  {
+    waters_type = atoi(row[2]);
+    bounty_percent = row[4] ? atoi(row[4]) : 100;
+    if (waters_type < VESSEL_WATERS_TERRITORIAL ||
+        waters_type > VESSEL_WATERS_PIRATE_COVE ||
+        bounty_percent < 0 ||
+        bounty_percent > VESSEL_PIRACY_BOUNTY_PERCENT_MAX)
+    {
+      log("SYSERR: Ignoring invalid vessel law for region %d (type %d, bounty %d%%)",
+          law->region_vnum, waters_type, bounty_percent);
+    }
+    else
+    {
+      law->configured = TRUE;
+      law->waters_type = waters_type;
+      law->priority = row[3] ? atoi(row[3]) : 0;
+      law->bounty_percent = bounty_percent;
+      if (row[5] != NULL && *row[5])
+      {
+        strlcpy(law->authority, row[5], sizeof(law->authority));
+      }
+    }
+  }
+
+  mysql_free_result(result);
+  return TRUE;
+}
+
+/**
+ * Resolve regional law at a live vessel's authoritative wilderness position.
+ */
+bool vessel_piracy_law_for_ship(const struct greyhawk_ship_data *ship,
+                                struct vessel_piracy_law *law)
+{
+  if (ship == NULL)
+  {
+    if (law != NULL)
+    {
+      memset(law, 0, sizeof(*law));
+    }
+    return FALSE;
+  }
+
+  return vessel_piracy_law_at_coordinates((int)ship->x, (int)ship->y, law);
 }
 
 /**
@@ -109,8 +300,9 @@ void vessel_add_bounty(const char *player_name, int amount)
   mysql_real_escape_string(conn, escaped, player_name, strlen(player_name));
   snprintf(query, sizeof(query),
            "INSERT INTO vessel_bounties (player_name, bounty) VALUES ('%s', %d) "
-           "ON DUPLICATE KEY UPDATE bounty = bounty + %d",
-           escaped, amount, amount);
+           "ON DUPLICATE KEY UPDATE bounty = LEAST(%d, "
+           "CAST(bounty AS DECIMAL(20,0)) + %d)",
+           escaped, amount, INT_MAX, amount);
   if (mysql_query(conn, query))
   {
     log("SYSERR: vessel_add_bounty failed: %s", mysql_error(conn));
@@ -193,6 +385,10 @@ bool vessel_has_letter_of_marque(const char *player_name)
  */
 bool vessel_port_refuses(struct char_data *ch)
 {
+  struct greyhawk_ship_data *ship;
+  struct vessel_piracy_law law;
+  room_rnum room;
+  bool law_found;
   int bounty;
 
   if (ch == NULL || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
@@ -209,6 +405,26 @@ bool vessel_port_refuses(struct char_data *ch)
   if (vessel_has_letter_of_marque(GET_NAME(ch)))
   {
     return FALSE;
+  }
+
+  room = IN_ROOM(ch);
+  ship = room != NOWHERE ? get_ship_from_room(room) : NULL;
+  law_found = FALSE;
+  if (ship != NULL)
+  {
+    law_found = vessel_piracy_law_for_ship(ship, &law);
+  }
+  else if (room != NOWHERE)
+  {
+    law_found =
+        vessel_piracy_law_at_coordinates(world[room].coords[0], world[room].coords[1], &law);
+  }
+  if (law_found)
+  {
+    if (vessel_piracy_wanted_port_is_open(&law))
+    {
+      return FALSE;
+    }
   }
 
   send_to_char(ch,
@@ -303,7 +519,9 @@ ACMD(do_plunder)
 {
   struct greyhawk_ship_data *prize;
   struct greyhawk_ship_data *raider = NULL;
+  struct vessel_piracy_law law;
   struct char_data *tch;
+  bool law_found;
   int taken;
   int bounty;
   int i;
@@ -381,16 +599,36 @@ ACMD(do_plunder)
   send_to_ship(prize, "Raiders strip %d units of cargo from the hold!", taken);
   send_to_ship(raider, "Plundered cargo comes aboard: %d units.", taken);
 
-  /* Lawful privateers answer to nobody; pirates earn a price on their head */
-  if (vessel_has_letter_of_marque(GET_NAME(ch)))
+  law_found = vessel_piracy_law_for_ship(prize, &law);
+  bounty = vessel_piracy_bounty_for_units(taken, law.bounty_percent);
+
+  /* Regional law comes from shared wilderness geography. Pirate coves may
+   * waive the bounty; a valid marque waives any positive regional penalty. */
+  if (bounty == 0)
+  {
+    send_to_char(ch, "No authority claims this prize%s%s.\r\n",
+                 law_found ? " in " : "",
+                 law_found ? law.region_name : "");
+  }
+  else if (vessel_has_letter_of_marque(GET_NAME(ch)))
   {
     send_to_char(ch, "Your letter of marque makes this a lawful prize.\r\n");
   }
   else
   {
-    bounty = taken * BOUNTY_PER_CARGO_UNIT;
     vessel_add_bounty(GET_NAME(ch), bounty);
-    send_to_char(ch, "Word of the raid will spread - your bounty rises by %d gold.\r\n", bounty);
+    if (law.configured)
+    {
+      send_to_char(ch,
+                   "Under %s authority in %s, word of the raid spreads - "
+                   "your bounty rises by %d gold.\r\n",
+                   law.authority, law.region_name, bounty);
+    }
+    else
+    {
+      send_to_char(ch, "Word of the raid will spread - your bounty rises by %d gold.\r\n",
+                   bounty);
+    }
 
     bounty = vessel_get_bounty(GET_NAME(ch));
     if (bounty >= BOUNTY_HUNTED)

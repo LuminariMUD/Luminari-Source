@@ -334,11 +334,14 @@ EXTRA_DIST = \
 	sql/components/ci_schema_manifest.txt \
 	sql/components/verify_vessels_phase11.sql \
 	sql/components/verify_vessels_phase12.sql \
+	sql/components/verify_vessels_phase13.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_phase11_rollback.sql \
 	sql/components/vessels_phase11_schema.sql \
 	sql/components/vessels_phase12_rollback.sql \
 	sql/components/vessels_phase12_schema.sql \
+	sql/components/vessels_phase13_rollback.sql \
+	sql/components/vessels_phase13_schema.sql \
 	README.md
 
 # Run unit tests

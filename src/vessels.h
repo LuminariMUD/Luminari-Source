@@ -616,11 +616,36 @@ ACMD_DECL(do_vesseldebug); /* Staff: focused runtime debug categories */
 /* Bounty earned per unit of cargo taken by force */
 #define BOUNTY_PER_CARGO_UNIT 15
 
+/* Builder-authored REGION_GEOGRAPHIC waters may refine the default piracy
+ * consequence without creating a vessel-private geography model. */
+#define VESSEL_WATERS_UNCLAIMED 0
+#define VESSEL_WATERS_TERRITORIAL 1
+#define VESSEL_WATERS_FREE 2
+#define VESSEL_WATERS_PIRATE_COVE 3
+#define VESSEL_PIRACY_BOUNTY_PERCENT_MAX 500
+
+struct vessel_piracy_law
+{
+  bool configured;
+  int region_vnum;
+  int waters_type;
+  int priority;
+  int bounty_percent;
+  char region_name[64];
+  char authority[64];
+};
+
 void vessel_piracy_ensure_schema(void);
 int vessel_get_bounty(const char *player_name);
 void vessel_add_bounty(const char *player_name, int amount);
 void vessel_clear_bounty(const char *player_name);
 bool vessel_has_letter_of_marque(const char *player_name);
+const char *vessel_waters_type_name(int waters_type);
+int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);
+bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law);
+bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law);
+bool vessel_piracy_law_for_ship(const struct greyhawk_ship_data *ship,
+                                struct vessel_piracy_law *law);
 bool vessel_port_refuses(struct char_data *ch);
 int vessel_plunder_cargo(struct char_data *ch, struct greyhawk_ship_data *prize,
                          struct greyhawk_ship_data *raider);

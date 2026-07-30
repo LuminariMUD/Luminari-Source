@@ -39,6 +39,7 @@ tables.
 | 10 | `vessels_phase10_schema.sql` | `verify_vessels_phase10.sql` | `vessels_phase10_rollback.sql` | Normalized weapons, insurance claims, PvP grace, and dock-fee state |
 | 11 | `vessels_phase11_schema.sql` | `verify_vessels_phase11.sql` | `vessels_phase11_rollback.sql` | DG attachments for generated interior room templates |
 | 12 | `vessels_phase12_schema.sql` | `verify_vessels_phase12.sql` | `vessels_phase12_rollback.sql` | Persistent public-vessel passenger fares |
+| 13 | `vessels_phase13_schema.sql` | `verify_vessels_phase13.sql` | `vessels_phase13_rollback.sql` | Piracy law keyed to geographic wilderness regions |
 | Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 31 authoritative vessel and vehicle help entries covering 75 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
@@ -50,6 +51,8 @@ Its rollback destroys installed-weapon rows, insurance settlement history,
 logout-grace snapshots, and unpaid dock-fee state. Phase 11 rollback removes
 generated-room DG attachments. Phase 12 extends Phase 09 schedules; its
 rollback removes configured passenger fares while leaving the schedules active.
+Phase 13 references builder-authored geographic regions without owning their
+geometry; its rollback removes only vessel-law metadata.
 
 ## Pre-Deployment Gate
 
@@ -146,6 +149,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase12_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase13_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
 
@@ -175,6 +180,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase11.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase12.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase13.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
@@ -230,6 +237,8 @@ The phase rollback scripts are destructive. If they are used instead of a full
 restore, run them in reverse dependency order:
 
 ```bash
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase13_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase12_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \

@@ -573,6 +573,8 @@ void vessel_encounter_tick(void)
 ACMD(do_seastate)
 {
   struct greyhawk_ship_data *ship;
+  struct vessel_piracy_law law;
+  bool named_waters;
   int weather;
   int severity;
   int depth_units;
@@ -606,6 +608,22 @@ ACMD(do_seastate)
   send_to_char(ch, "  Visibility: %d units%s\r\n", vessel_sight_range(ship),
                vessel_lookout_bonus(ship) > 0 ? " (lookout posted)" : "");
   send_to_char(ch, "  Hull      : %s\r\n", vessel_status_name(vessel_status(ship)));
+
+  named_waters = vessel_piracy_law_for_ship(ship, &law);
+  if (named_waters && law.configured)
+  {
+    send_to_char(ch, "  Waters    : %s (%s; %s; piracy bounty %d%%)\r\n",
+                 law.region_name, vessel_waters_type_name(law.waters_type),
+                 law.authority, law.bounty_percent);
+  }
+  else if (named_waters)
+  {
+    send_to_char(ch, "  Waters    : %s (standard maritime law)\r\n", law.region_name);
+  }
+  else
+  {
+    send_to_char(ch, "  Waters    : Unnamed open waters (standard maritime law)\r\n");
+  }
 
   if (vessel_in_encounter_region(ship, &region_vnum))
   {

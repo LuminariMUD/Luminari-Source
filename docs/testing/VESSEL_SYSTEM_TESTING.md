@@ -33,9 +33,11 @@ representative prototypes and the four-waypoint, two-stop channel route,
 creates the public ferry only if absent, and performs a hard-restart
 persistence check. A passing run proves both seaports, the generated bridge
 and cargo DG triggers, the restored ferrymaster, exact route topology, and
-hourly schedule with its 10-gold fare. It also boards through the ordinary
-object path, verifies one exact deduction, restores Kohdee's starting gold,
-resumes the route, and then ends with:
+hourly schedule with its 10-gold fare. It validates the three canonical
+legal-water polygons and proves that `seastate` resolves the moving ferry into
+territorial waters or the nested free seas after restart. It also boards
+through the ordinary object path, verifies one exact deduction, restores
+Kohdee's starting gold, resumes the route, and then ends with:
 
 ```text
 PASS: harbor sandbox and persistent ferry verified in ship slot N.
@@ -43,10 +45,10 @@ PASS: harbor sandbox and persistent ferry verified in ship slot N.
 
 It uses the existing master account and Kohdee character; do not create a new
 account or perform one login per command. The first run includes ferry creation
-and a second restart. Before the fare check was added, later idempotent runs
-reused the ferry and completed in about 30 seconds on the current development
-host. Remeasure the augmented path after the active soak releases the installed
-build.
+and a second restart. Before the fare and region checks were added, later
+idempotent runs reused the ferry and completed in about 30 seconds on the
+current development host. Remeasure the augmented path after the active soak
+releases the installed build.
 
 Run the continuous ferry release gate through its supervised monitor:
 
@@ -223,7 +225,9 @@ numbered gameplay flow:
   fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
   install, 10-gold persistence, rollback, and reapplication against a
   session-scoped table that shadowed rather than changed the active ferry
-  schedule table.
+  schedule table. Phase 13 passed schema creation, all three spatial fixtures,
+  verifier content queries, rollback, and reapplication in session-scoped
+  shadow tables; the active database remained unchanged.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.
