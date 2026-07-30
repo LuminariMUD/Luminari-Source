@@ -58,7 +58,7 @@ if [[ $# -gt 0 ]]; then
       mode="vessel-crossing-check"
       ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> <crew-character> | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot>]"
       ;;
   esac
   shift
@@ -94,10 +94,13 @@ if [[ $# -gt 0 ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-msdp-check requires one ship slot from 1 through 500"
   elif [[ "$mode" == "vessel-channel-check" ]]; then
-    [[ $# -eq 2 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
-      fail "--vessel-channel-check requires a ship slot from 1 through 500 and a crew character"
-    [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
-      fail "--vessel-channel-check crew character must be a valid character name"
+    [[ ($# -eq 1 || $# -eq 2) &&
+       "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
+      fail "--vessel-channel-check requires a ship slot from 1 through 500 and an optional crew character"
+    if [[ $# -eq 2 ]]; then
+      [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+        fail "--vessel-channel-check crew character must be a valid character name"
+    fi
   elif [[ "$mode" == "vessel-message-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-message-check requires one ship slot from 1 through 500"
@@ -143,9 +146,10 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
   fail "DEV_MUD_ACCOUNT or GAME_MASTER_ACCOUNT is not set"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
-if [[ "$mode" == "vessel-channel-check" &&
-      "${2,,}" == "${smoke_character,,}" ]]; then
-  fail "--vessel-channel-check requires two different character names"
+if [[ "$mode" == "vessel-channel-check" && $# -eq 2 ]]; then
+  if [[ "${2,,}" == "${smoke_character,,}" ]]; then
+    fail "--vessel-channel-check requires two different character names"
+  fi
 fi
 export -n GAME_MASTER_ACCOUNT GAME_MASTER_ACCOUNT_PASSWORD
 export -n DEV_MUD_ACCOUNT DEV_MUD_ACCOUNT_PASSWORD DEV_MUD_CHARACTER
@@ -806,8 +810,46 @@ proc run_vessel_crossing_check {ship_slot} {
   puts "PASS: seastate matched its water type, authority, and piracy bounty."
 }
 
-proc open_secondary_character {character} {
-  global env
+proc select_secondary_account_character {account_menu requested_character primary_character} {
+  set clean_menu $account_menu
+  regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $clean_menu {} clean_menu
+  regsub -all {\t.} $clean_menu {} clean_menu
+  set matches {}
+
+  foreach menu_line [split $clean_menu "\n"] {
+    if {[string first "DELETED" $menu_line] >= 0} {
+      continue
+    }
+
+    set columns [split $menu_line "|"]
+    if {[llength $columns] < 2} {
+      continue
+    }
+
+    set candidate [string trim [lindex $columns 1]]
+    if {![regexp {^[[:alpha:]][[:alpha:]-]{1,29}$} $candidate] ||
+        [string equal -nocase $candidate $primary_character] ||
+        ![regexp {^[^0-9]*([0-9]+)[[:space:]]*$} \
+          [lindex $columns 0] ignored slot]} {
+      continue
+    }
+
+    if {$requested_character eq ""} {
+      return [list $slot $candidate]
+    }
+    if {[string equal -nocase $candidate $requested_character]} {
+      lappend matches [list $slot $candidate]
+    }
+  }
+
+  if {[llength $matches] != 1} {
+    return {}
+  }
+  return [lindex $matches 0]
+}
+
+proc open_secondary_character {requested_character} {
+  global env smoke_character
 
   spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
   set secondary_session $spawn_id
@@ -836,26 +878,15 @@ proc open_secondary_character {character} {
     eof { fail "secondary connection closed before the account menu" }
   }
 
-  set clean_menu $account_menu
-  regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $clean_menu {} clean_menu
-  regsub -all {\t.} $clean_menu {} clean_menu
-  set character_slot ""
-  set character_rows 0
-
-  foreach menu_line [split $clean_menu "\n"] {
-    set columns [split $menu_line "|"]
-    if {[llength $columns] >= 2 &&
-        [string equal -nocase [string trim [lindex $columns 1]] $character]} {
-      if {[regexp {^[^0-9]*([0-9]+)[[:space:]]*$} [lindex $columns 0] ignored slot]} {
-        incr character_rows
-        set character_slot $slot
-      }
+  set selection \
+      [select_secondary_account_character $account_menu $requested_character $smoke_character]
+  if {[llength $selection] != 2} {
+    if {$requested_character eq ""} {
+      fail "the master account has no other usable character; run ./scripts/dev_create_test_character.sh Vesselmate"
     }
+    fail "expected exactly one usable account-menu Name match for $requested_character"
   }
-
-  if {$character_rows != 1 || $character_slot eq ""} {
-    fail "expected exactly one account-menu Name match for secondary character $character"
-  }
+  lassign $selection character_slot character
 
   send -- "$character_slot\r"
   set entered_world 0
@@ -900,7 +931,7 @@ proc open_secondary_character {character} {
   }
   set ::timeout $prior_timeout
 
-  return $secondary_session
+  return [list $secondary_session $character]
 }
 
 proc read_session_marker {session marker context} {
@@ -973,7 +1004,7 @@ proc logout_character_session {session character} {
   catch wait
 }
 
-proc run_vessel_channel_check {ship_slot crew_character} {
+proc run_vessel_channel_check {ship_slot requested_character} {
   global smoke_character
 
   set primary_session $::spawn_id
@@ -982,7 +1013,7 @@ proc run_vessel_channel_check {ship_slot crew_character} {
     fail "could not read vessel name after shipgoto $ship_slot"
   }
 
-  set secondary_session [open_secondary_character $crew_character]
+  lassign [open_secondary_character $requested_character] secondary_session crew_character
   set ::spawn_id $primary_session
   run_game_command "trans $crew_character"
   set output [run_game_command "north"]

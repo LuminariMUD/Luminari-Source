@@ -231,9 +231,12 @@ numbered gameplay flow:
   ashore and silenced refusals. Session-only MariaDB shadow tables pass all 31
   entries, all 77 keywords, access, content, duplicate, and new channel-text
   checks. The installed-build two-character transcript remains queued behind
-  the active soak and will reuse the existing master account. If that account
-  still contains only Kohdee, the character helper will add one disposable crew
-  character to it instead of creating a second account.
+  the active soak and will reuse the existing master account. The channel
+  helper automatically selects another non-deleted account-menu character
+  without a manual slot or Name lookup. A July 30 read-only database check
+  found that account currently contains only Kohdee; after the soak, run
+  `dev_create_test_character.sh Vesselmate` once to add the crew fixture to
+  that same account rather than creating a second account.
 - All 22 component migrations preceding Phase 12 applied independently to a
   fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
   install, 10-gold persistence, rollback, and reapplication against a
