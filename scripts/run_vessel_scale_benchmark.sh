@@ -30,6 +30,19 @@ snapshot_tables=(
   vessel_hunter_encounters
   vessel_insurance_claims
 )
+vessel_perf_sections=(
+  vessel_tick
+  vessel_autopilot
+  vessel_hunters
+  vessel_combat
+  vessel_crew_wages
+  vessel_upkeep
+  vessel_trade
+  vessel_weather
+  vessel_encounters
+  vessel_msdp
+  vessel_schedules
+)
 
 fail()
 {
@@ -604,6 +617,8 @@ run_benchmark()
   local progress_log_count
   local perf_rows
   local perf_row_count
+  local perf_section
+  local perf_section_matches
   local vessel_tick_row
   local vessel_tick_calls
   local vessel_tick_median
@@ -1691,8 +1706,21 @@ SQL
   perf_rows=$(awk -F, '$1 ~ /^vessel_/ { count++ } END { print count + 0 }' \
     "$run_dir/perfmon.csv")
   perf_row_count=$perf_rows
-  [[ "$perf_row_count" == 10 ]] ||
-    benchmark_fail "perfmon CSV contains $perf_row_count of 10 vessel sections"
+  [[ "$perf_row_count" == "${#vessel_perf_sections[@]}" ]] ||
+    benchmark_fail \
+      "perfmon CSV contains $perf_row_count of ${#vessel_perf_sections[@]} vessel sections"
+  for perf_section in "${vessel_perf_sections[@]}"; do
+    perf_section_matches=$(awk -F, -v section="$perf_section" '
+      $1 == section {
+        count++
+      }
+      END {
+        print count + 0
+      }
+    ' "$run_dir/perfmon.csv")
+    [[ "$perf_section_matches" == 1 ]] ||
+      benchmark_fail "perfmon CSV contains $perf_section_matches rows for $perf_section"
+  done
   vessel_tick_row=$(awk -F, '$1 == "vessel_tick" { print; exit }' \
     "$run_dir/perfmon.csv")
   [[ -n "$vessel_tick_row" ]] ||

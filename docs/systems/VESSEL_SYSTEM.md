@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
 **Release Status**: Gameplay layer implemented; production acceptance incomplete
-**Last Updated**: 2026-07-29
+**Last Updated**: 2026-07-30
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md); for what
@@ -76,6 +76,7 @@ controls in one system.
 | Upgrades | Refits, wear, insurance | vessels_upgrades.c |
 | Economy | Cargo, markets, freight, piracy | vessels_trade.c, vessels_contracts.c, vessels_piracy.c |
 | NPC Merchant Fleet | Durable definitions, assembly, consequences, respawn | vessels_merchants.c |
+| Bounty Hunters | HUNTED encounter policy, pursuit, durable lifecycle | vessels_hunters.c |
 | Living World | Weather hazards and region encounters | vessels_hazards.c |
 | Operations | Fleet tools, room-pool monitoring, MSDP | vessels_admin.c |
 | Vehicles | Land-based transport | vehicles.c |
@@ -453,7 +454,7 @@ increment the process-wide `vessel_messages_throttled` performance counter.
 | listroutes | List routes | `listroutes` |
 | setroute | Assign route | `setroute <route>` |
 
-### Operator Commands (Phases 09 and 14)
+### Operator Commands (Phases 09, 14, and 15)
 
 | Command | Description | Usage |
 |---------|-------------|-------|
@@ -461,6 +462,7 @@ increment the process-wide `vessel_messages_throttled` performance counter.
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
 | vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
+| vesseldebug | Inspect debug state or advance the normal encounter cadence | `vesseldebug [status\|on ...\|off ...\|encounter]` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
@@ -491,6 +493,12 @@ Future GMCP vessel work must define and test a valid JSON package or
 standards-compliant MSDP-over-GMCP mapping; the old unquoted
 `MSDP.<variable> <value>` fallback is not accepted as vessel support.
 
+`vesseldebug encounter` is an acceptance hook, not a parallel spawner. It
+advances the cadence counter and immediately invokes the same production
+region, class, depth, chance, HUNTED eligibility, spawn, and lifecycle path
+used by the heartbeat. Staff can use it in a normal build even though runtime
+debug categories remain compiled out.
+
 ### Living World Commands (Phase 08)
 
 | Command | Description | Usage |
@@ -518,6 +526,24 @@ signals - no vessel-private geography:
   multiple hulls share one exterior wilderness room, a successful tick claims
   that room once, broadcasts the encounter to every co-located hull, and spawns
   at most one shared creature there.
+
+Phase 15 hunter policy (`src/vessels_hunters.c`) optionally extends one of
+those ordinary encounter rows. A target must be a moving, player-owned hull
+whose exact owner is online aboard and currently has at least the configured
+HUNTED bounty (never below 2,000). An atomic one-row-per-player lifecycle
+claims the generation before an ownerless public warship is assembled through
+the normal prototype/interior persistence path and assigned its real pilot.
+The hunter uses the production autopilot position resolver to pursue the
+target and the existing NPC combat path to open fire.
+
+The lifecycle persists target ship, hunter slot, unique generation name,
+expiry, cooldown, and terminal reason. Boot reattaches only an exact
+name/prototype/slot/pilot match, preventing a recycled fleet slot from becoming
+the hunter. Pardon is checked every 10 seconds; target logout or leaving the
+hull starts the configured grace period. Pardon, expiry, grace, sinking, or
+staff purge removes the hunter and all of its normal persistence. Capture
+removes the Admiralty pilot and lifecycle but leaves the captured hull as an
+ordinary player vessel.
 
 ### Cargo & Trade Commands (Phase 07)
 
@@ -648,8 +674,9 @@ Soft-deleted characters retain their deeds so staff restoration is lossless.
 Before permanent player-file removal, one transaction makes their ships
 unowned, removes their helm permits, voids pending insurance and merchant
 consequences, clears current merchant-attack attribution, and removes their
-vessel bounty. If that transaction cannot commit, player removal is deferred
-instead of orphaning property.
+vessel bounty and durable hunter lifecycle. Any matching live hunter is then
+retired through the normal vessel cleanup path. If that transaction cannot
+commit, player removal is deferred instead of orphaning property.
 
 Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
@@ -910,6 +937,8 @@ historical measurements, and the limits of the current evidence.
 | `vessel_insurance_claims` | Pending, paid, or void offline insurance settlements |
 | `vessel_npc_merchants` | NPC merchant prototype, route, cargo, faction, schedule, and live generation |
 | `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
+| `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
+| `vessel_bounty_hunts` | One durable hunter generation and terminal cooldown per target player |
 
 ### Room Templates (19 default types)
 
@@ -934,7 +963,7 @@ make install
 The command refuses to run unless `lib/.env` contains
 `APP_ENV=development`. It merges only missing records into the ignored live
 world files, extends the reserved zone 700 upper bound from 79999 to 80019
-when needed, applies Phases 11-14 and the development seed, restarts the
+when needed, applies Phases 11-15 and the development seed, restarts the
 supervised local MUD, creates the ferry only when absent, and verifies the
 result through batched Kohdee sessions. It rejects conflicting zone or legal
 water region reservations instead of overwriting them. It is intentionally not
@@ -951,6 +980,11 @@ also drives `Harbor Sandbox Merchant`, a faction-1 public hull carrying 25
 units of spice under the fixture pilot. The provisioner requires its durable
 definition, positive generation, live hull, real cargo, pilot, enabled
 schedule, route, in-game registry row, and ship-status identity.
+The Phase 15 fixture adds `Harbor Sandbox Hunted Raft`, an Admiralty warship,
+captain mobile 70002, encounter region 7000004, and a deterministic
+raft-target policy. The provisioner validates the region, both prototypes,
+warship class, pilot, HUNTED threshold, pursuit bounds, and lifecycle tables;
+it does not create a hunt or alter Kohdee's bounty.
 
 Re-running the command reuses the same ferry, merchant definition, and account
 rather than duplicating any of them. An assigned pilot at the bridge is
@@ -974,9 +1008,13 @@ The 24-hour ferry gate is run independently of an agent session:
 The transient user service submits a generated, nonexistent account name but
 does not confirm it. This leaves one non-character descriptor in the
 non-expiring confirmation state without creating an account. The monitor
-requires its socket to remain `ESTABLISHED` every 20 seconds, fails if the
-descriptor-driven game loop reports that it slept, samples database and
-process invariants every minute, and serializes hourly Kohdee checks through
+requires its socket to remain `ESTABLISHED` every 20 seconds and fails if the
+descriptor-driven game loop reports that it slept. A normal copyover drops
+non-playing descriptors by design; when the log proves copyover mode, the
+monitor requires the same PID and installed binary, waits for boot, reconnects
+the hold descriptor, and records the recovery. A missing socket without that
+copyover evidence remains a hard failure. The monitor samples database and
+process invariants every minute and serializes hourly Kohdee checks through
 the shared login-helper lock. It also fails on a PID change,
 route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
 an installed-binary fingerprint change, or a ferry-specific
@@ -984,7 +1022,8 @@ movement/persistence error. Launch metadata records the source commit and
 `bin/circle` SHA-256. A successful run ends with a controlled local restart
 that proves exact paused-coordinate recovery and launches the identical
 executable hash, then resumes the ferry. Artifacts live in the run directory
-printed by `start`.
+printed by `start`. A failure writes terminal status before cleanup so an
+interrupted cleanup cannot leave a stale `RUNNING` result.
 
 ### Interior VNUM Allocation
 
@@ -998,11 +1037,14 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
 ### Persistence Lifecycle
 
 1. **Boot**: Schemas are created or migrated, templates and gameplay data load,
-   and saved ship, route, schedule, crew, cargo, ownership, and NPC merchant
-   state is restored. Every active slot, including the legacy fixture,
-   reconstructs its exterior hull. World resets preserve managed hulls, then
-   the boot pass relinks them to their fleet slots. Merchant reconciliation
-   reattaches matching live generations and assembles definitions that are due.
+   and saved ship, route, schedule, crew, cargo, ownership, NPC merchant, and
+   bounty-hunter state is restored. Every active slot, including the legacy
+   fixture, reconstructs its exterior hull. World resets preserve managed
+   hulls, then the boot pass relinks them to their fleet slots. Merchant
+   reconciliation reattaches matching live generations and assembles
+   definitions that are due. Hunter reconciliation accepts only the exact
+   target, unique generation name, prototype, fleet slot, and active pilot;
+   stale or expired rows retire safely.
 2. **Create**: A spawned or purchased vessel receives a fleet slot, object,
    interior, and immediate database record.
 3. **Operate**: Docking, route, cargo, trade, ownership, crew, upgrade, and
@@ -1012,7 +1054,9 @@ Maximum: 500 active vessels * 20 rooms = 10,000 rooms
    boundary. A failed write restores the prior in-memory state and compensates
    any earlier write in the operation.
 4. **Destroy**: Sinking or deletion evacuates occupants, clears live references,
-   and applies the applicable persistence policy.
+   applies the applicable persistence policy, and closes any matching merchant
+   or bounty-hunter lifecycle. Capturing a hunter removes its configured pilot
+   and leaves the ordinary captured hull.
 5. **Copyover**: Complete vessel state is committed before descriptor handoff.
    Boot reconstructs dynamic interiors and exterior hull objects before player
    descriptors return to their saved rooms.
@@ -1103,6 +1147,7 @@ and the trigger was removed.
 | `src/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
 | `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
 | `src/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
+| `src/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
 | `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
@@ -1128,6 +1173,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase12_*` | Passenger-fare schema, rollback, and verification |
 | `sql/components/vessels_phase13_*` | Geographic piracy-law schema, rollback, and verification |
 | `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
+| `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 
@@ -1335,7 +1381,9 @@ WHERE TABLE_SCHEMA = DATABASE()
                          'vessel_region_law', 'vessel_encounters',
                          'vessel_insurance_claims',
                          'vessel_npc_merchants',
-                         'vessel_merchant_consequences'))
+                         'vessel_merchant_consequences',
+                         'vessel_hunter_encounters',
+                         'vessel_bounty_hunts'))
 ORDER BY TABLE_NAME;
 
 SELECT COUNT(*) FROM ship_room_templates;
@@ -1352,6 +1400,9 @@ or keyword count is insufficient once later phases extend the system.
   `shiplist summary` keeps the health totals available at fleet scale.
 - `vmerchant list` shows every configured merchant generation, lifecycle
   state, live hull, cargo mapping, loss count, and reconciliation error.
+- `vessel_bounty_hunts` exposes each hunter's target, generation, active slot,
+  expiry, cooldown, and terminal reason; investigate any long-lived
+  `spawning` row or active row whose fleet identity no longer matches.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn

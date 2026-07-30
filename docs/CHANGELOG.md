@@ -2,6 +2,67 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Durable HUNTED bounty-hunter patrols
+
+#### Added
+
+- Phase 15 extends an ordinary `vessel_encounters` row with a data-driven
+  hunter warship prototype, real pilot, minimum bounty, pursuit speed, hunt
+  duration, target-absence grace, and repeat cooldown. Regional selection,
+  hull-class and depth filtering, chance, shared-room claiming, and
+  player-facing messages remain on the normal encounter path.
+- A moving player-owned hull is eligible only when its exact owner is online
+  aboard it and has at least the HUNTED bounty threshold. One atomic
+  `vessel_bounty_hunts` lifecycle per target prevents duplicate hunters across
+  encounter ticks, restarts, and fleet-slot reuse.
+- Hunters are ordinary ownerless public warships with generated interiors and
+  a persisted pilot. They pursue through the production autopilot position
+  resolver, arm normal NPC return fire against the target, save their runtime,
+  and retire after pardon, expiry, target-absence grace, capture, sinking, or
+  staff purge. Boot reattaches the exact generation, slot, name, prototype,
+  pilot, and target or retires stale state.
+- Character rename updates the durable target key and live attribution.
+  Permanent character removal deletes the lifecycle and retires any active
+  hunter inside the existing vessel cleanup boundary.
+- The development harbor now includes a dedicated HUNTED raft, Admiralty
+  warship, captain mobile 70002, encounter region 7000004, and deterministic
+  100-percent acceptance policy. `vesseldebug encounter` advances only the
+  cadence counter and invokes the normal production encounter path even when
+  debug logging is compiled out.
+- `scripts/test_vessel_hunter_in_game.sh` performs one reversible Kohdee
+  acceptance run: exact bounty/hunt rows are snapshotted, a real target and
+  hunter are created, the same hunter generation is proved across a hard
+  restart, pardon cleanup is proved, and the original rows are restored.
+
+#### Fixed
+
+- The ferry-soak monitor recognizes a same-PID, same-binary copyover, preserves
+  the copyover log slice, and reconnects its non-character game-loop
+  keepalive after boot. A missing socket without copyover evidence remains a
+  hard failure.
+- A monitor failure writes a terminal result and minimal summary before
+  cleanup, so a failed cleanup trap cannot leave a stale `RUNNING` status.
+- The scale runner now requires the exact 11-section production profiler
+  contract, including `vessel_hunters`, instead of rejecting a correct Phase
+  15 CSV as an unexpected eleventh row. Its parser regression compares the
+  runner list directly with the profiler names initialized in `src/comm.c`.
+
+#### Validated
+
+- The GNU C23 production-linked suite passes 251 of 251 tests. CMake with
+  tests enabled builds and passes the same production suite plus autorun
+  supervision, and GCC `-fanalyzer` reports no diagnostic for
+  `vessels_hunters.c`.
+- A disposable MariaDB 10.11 instance passes the complete vessel schema chain
+  through Phase 15, repeat application, harbor seed, verification, rollback,
+  and reapplication. Character-rename static/schema gates, the focused
+  protocol suite, benchmark parser fixtures, Bash syntax, ShellCheck, schema
+  manifest completeness, and diff checks pass.
+- A short incompatible-binary monitor run deliberately failed its initial
+  status-counter check and produced the expected terminal `FAIL` artifact.
+  Forced-copyover recovery and the reversible Kohdee hunter transcript remain
+  installed-candidate gates.
+
 ### Durable NPC merchant fleet
 
 #### Added

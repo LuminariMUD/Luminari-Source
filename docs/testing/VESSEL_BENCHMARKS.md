@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.6
+**Version:** 3.7
 
 **Evidence snapshot:** July 30, 2026
 
@@ -19,8 +19,8 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 246 of 246 passing | Current production-linked gate |
-| Current-suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Pre-soak gate |
+| Root suite on July 30, 2026 | 251 of 251 passing | Current production-linked gate |
+| Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -130,14 +130,14 @@ threshold and operational effect must be documented before release.
 The July 30 instrumentation prerequisites are implemented and covered by the
 current production-linked root suite:
 
-- Section timings use a monotonic clock. The ten explicitly sampled vessel
+- Section timings use a monotonic clock. The eleven explicitly sampled vessel
   benchmark sections each retain up to 16,384 rolling microsecond samples.
   Sampling is opt-in so ordinary command and special-function sections cannot
-  accumulate unbounded profiler memory. The ten windows use about 1.25 MiB.
+  accumulate unbounded profiler memory. The eleven windows use about 1.38 MiB.
 - The complete half-second vessel group is recorded as `vessel_tick`.
-  Its separately attributed children are `vessel_autopilot`, `vessel_combat`,
-  `vessel_crew_wages`, `vessel_upkeep`, `vessel_trade`, `vessel_weather`,
-  `vessel_encounters`, and `vessel_msdp`.
+  Its separately attributed children are `vessel_autopilot`,
+  `vessel_hunters`, `vessel_combat`, `vessel_crew_wages`, `vessel_upkeep`,
+  `vessel_trade`, `vessel_weather`, `vessel_encounters`, and `vessel_msdp`.
 - The 75-second schedule path is recorded separately as `vessel_schedules`.
 - Automated movement now resolves and validates its target wilderness room
   once in the central position update. The previous immediate
@@ -184,17 +184,16 @@ rejects overlaps.
 ### Reproducible Development Workload
 
 `scripts/run_vessel_scale_benchmark.sh` now defines the development-only
-workload and evidence contract. It remains unexecuted while the definitive
-24-hour ferry soak owns the local development process, so its presence is not
-evidence that the live 25 ms gate passes.
+workload and evidence contract. It remains unexecuted against the Phase 15
+candidate, so its presence is not evidence that the live 25 ms gate passes.
 
-The active ferry run is pinned to an earlier executable, so its continuity
-result cannot validate the single-pass target-resolution change. The
-post-soak installed-build scale run is the first live performance evidence for
-that optimization. It also cannot validate `vtradecheck`: pinned source
-`0afad17b` predates the command's `ac418322` implementation. A safe Kohdee
-probe returned `Huh?!` and logged out cleanly, so the economy transcript
-remains a post-install gate rather than a pinned-run failure.
+The abandoned ferry run was pinned to an earlier executable, so its partial
+observation cannot validate the single-pass target-resolution or Phase 15
+hunter changes. The installed-candidate scale run is the first live
+performance evidence for them. That pinned source `0afad17b` also predated
+`vtradecheck` from `ac418322`; its safe Kohdee probe returned `Huh?!` and
+logged out cleanly. The economy transcript remains an installed-candidate gate
+rather than a pinned-run failure.
 
 The runner:
 
@@ -265,12 +264,15 @@ The runner:
 - Captures a byte-bounded log slice around the workload reconstruction and
   requires the 500-vessel boot success only in that slice. Prior success or
   error lines in the shared development log cannot create a false verdict.
-- Captures all ten sampled vessel profiler rows plus missed-pulse,
+- Captures all eleven sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, and requires every selected schedule
   to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero
   `vessel_messages_throttled` count, proving the installed production tick
   suppressed repeated player-facing messages. The complete `vessel_tick`
-  maximum must be no more than 25,000 microseconds.
+  maximum must be no more than 25,000 microseconds. The parser regression
+  derives the production profiler names from `src/comm.c` and compares them
+  with the runner contract, so adding or removing a sampled heartbeat section
+  cannot silently invalidate the row count.
 
 The user-service interface is:
 
@@ -295,21 +297,26 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 246 of 246
+worktree on July 30, 2026. The production-linked root suite passed 251 of 251
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
 three-dimensional navigation, shared encounters, marginal batch pricing, the
 deterministic 1,000-trade simulation, vessel MSDP clearing after going ashore,
-and exact movement-trail counting after production movement. The suite also
-checks canonical polygon interiors and MariaDB-compatible edge exclusion for
-named-water resolution. It also poisons a complete affect structure before
-initialization and proves that both flag arrays are cleared.
-The same binary passes Memcheck with zero errors and zero definite, indirect,
-or possible loss. Its 301,630 still-reachable bytes belong to process-lifetime
-spell, command, DG, and profiler registries and are not presented as a
-72-hour leak verdict. `make install` completed in that isolated worktree and
-removed its root-level `circle`. Isolated provisioner fixtures also passed the
+exact movement-trail counting after production movement, hunter policy bounds,
+HUNTED eligibility, and lifecycle cooldown semantics. The suite also checks
+canonical polygon interiors and MariaDB-compatible edge exclusion for
+named-water resolution. It poisons a complete affect structure before
+initialization and proves that both flag arrays are cleared. CMake with
+`BUILD_TESTS=ON` builds and passes the same production suite plus autorun
+supervision. GCC `-fanalyzer` reports no diagnostic for the Phase 15 hunter
+implementation.
+The preceding 246-test candidate passed Memcheck with zero errors and zero
+definite, indirect, or possible loss. Its 301,630 still-reachable bytes belong
+to process-lifetime spell, command, DG, and profiler registries and are not
+presented as a 72-hour leak verdict; Memcheck must be repeated for Phase 15.
+`make install` completed for the current candidate in the isolated worktree
+and removed its root-level `circle`. Isolated provisioner fixtures also passed the
 idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of all six representative high-volume
@@ -354,6 +361,26 @@ diagnostics and exposes monotonic status counters instead. The default
 installed 500-ship run must still confirm bounded actual log growth before
 the 72-hour ceiling is lifted.
 
+The first pinned 24-hour ferry attempt is `ABANDONED`, not a failed vessel
+continuity result. It remained healthy for 34,382 seconds with 18,720 movement
+steps, 780 arrivals at each dock, 10 actual Kohdee checks, 574
+database/process samples, one MUD PID, two threads, and 12 descriptors. At
+11:00:30 IDT the normal automated copyover preserved the process and ferry but
+discarded the unauthenticated monitor descriptor, as the server's copyover
+contract requires for non-playing connections. The old monitor treated that
+expected handoff as a dead keepalive and did not finalize status. The current
+monitor accepts only a log-proven same-PID/same-binary copyover, reconnects
+after boot, preserves the recovery log, and records terminal failure before
+cleanup. A replacement full window and exact-state restart are still required.
+
+The 574 process samples span 34,382 seconds. RSS rose from 768,776 to 1,144,640
+KiB and VSZ from 862,208 to 1,237,916 KiB. After excluding the first 14,400
+seconds, the 334-sample RSS slope was +5,923 KiB/hour. Consecutive hour-sized
+block slopes declined from +11,212 through +8,061, +5,895, +4,868, and +3,943
+to +4,065 KiB/hour; trailing 30-minute, one-hour, and two-hour slopes were
++4,007, +3,784, and +3,772 KiB/hour. This is useful partial warmup evidence,
+not a plateau, bounded-growth threshold, or duration pass.
+
 `scripts/analyze_vessel_memory_samples.sh` validates either the legacy
 headerless ferry process series or the newer headered scale series. It
 requires strictly increasing epochs, one constant PID, and six valid numeric
@@ -364,17 +391,17 @@ an exact +6,000 KiB/hour rising series, and rejection of PID, timestamp, and
 metric corruption. It intentionally returns `REPORT_ONLY` until the two live
 observations support a defensible 72-hour criterion. Future ferry and scale
 runners create `memory-analysis.kv` at the end of measurement and reject a
-series the analyzer cannot validate; the active pinned ferry predates this
+series the analyzer cannot validate; the abandoned pinned ferry predates this
 automatic artifact and remains available for read-only manual analysis.
 
-Future ferry and scale runs also create `process-memory-details.tsv`. It
+Current ferry and scale runs also create `process-memory-details.tsv`. It
 records anonymous, file-backed, and shared RSS, data and swap sizes, and the
 heap mapping's size, RSS, and private-dirty pages. Ferry samples align with
 actual Kohdee checkpoints; scale samples occur at start, every complete
 intermediate hour, and end. The terminal validator requires a constant PID,
 strictly increasing timestamps, all metrics, and valid RSS/heap
 relationships. A heap/status capture against the pinned 1.1 GiB process took
-about 0.01 seconds, so scale collection remains sparse. The active pinned
+about 0.01 seconds, so scale collection remains sparse. The abandoned pinned
 ferry predates this artifact.
 
 At the July 30 08:28 IDT checkpoint, the pinned ferry run had completed 25,202
@@ -425,7 +452,7 @@ when an immortal issues `show stats`. Future ferry and scale checkpoints
 require and preserve that field, and their summaries report its initial,
 maximum, and final values. The runners invoke the scan only at infrequent
 actual-character checkpoints. Production-linked create/move coverage and
-updated shell fixtures pass; the active pinned binary predates this field.
+updated shell fixtures pass; the abandoned pinned binary predates this field.
 
 A separate read-only C client repeated the exact ferry-coordinate region and
 path queries through `mysql_ping()`, `mysql_query()`, `mysql_store_result()`,
@@ -437,8 +464,9 @@ spatial result lifecycle by itself as the explanation for the game process's
 growth. The candidate's single-pass target resolution remains a valid query
 and CPU optimization, but is not claimed as a memory fix.
 
-These observations remain an in-progress warmup investigation, not a terminal
-continuity, plateau, root-cause, or leak verdict. The soak must demonstrate:
+These observations remain a partial warmup investigation from an abandoned
+run, not a terminal continuity, plateau, root-cause, or leak verdict. The soak
+must demonstrate:
 
 - No crashes, leaks, unbounded growth, or corrupt vessel records.
 - Stable tick performance and schedule execution.

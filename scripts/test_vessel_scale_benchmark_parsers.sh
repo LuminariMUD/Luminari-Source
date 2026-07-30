@@ -3,6 +3,7 @@
 set -euo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+repo_root=$(cd "$script_dir/.." && pwd)
 runner="$script_dir/run_vessel_scale_benchmark.sh"
 
 fail()
@@ -15,6 +16,29 @@ fail()
 
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/vessel-scale-parser-test.XXXXXX")
 trap 'rm -rf -- "$test_root"' EXIT
+
+source_perf_sections="$test_root/source-perf-sections.txt"
+runner_perf_sections="$test_root/runner-perf-sections.txt"
+sed -nE \
+  's/.*PERF_prof_sect_init\([^,]+, "(vessel_[^"]+)"\);.*/\1/p' \
+  "$repo_root/src/comm.c" | sort -u >"$source_perf_sections"
+awk '
+  /^vessel_perf_sections=\(/ {
+    capture = 1
+    next
+  }
+  capture && /^\)/ {
+    exit
+  }
+  capture {
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+    if (length($0) > 0) {
+      print
+    }
+  }
+' "$runner" | sort -u >"$runner_perf_sections"
+diff -u "$source_perf_sections" "$runner_perf_sections" ||
+  fail "scale-runner profiler contract drifted from the production heartbeat"
 
 live_input="$test_root/live-input.log"
 live_output="$test_root/live-output.tsv"

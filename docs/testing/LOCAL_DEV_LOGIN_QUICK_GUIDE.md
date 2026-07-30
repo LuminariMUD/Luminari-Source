@@ -64,6 +64,10 @@ schedule both in SQL and through one batched Kohdee session. If the definition
 is stale or still inside that recovery delay, it automatically runs two
 in-game reconciliation passes around one six-second wait, then checks the
 state again; do not stop to repair the row or relaunch the provisioner by hand.
+Phase 15 also installs captain mobile 70002, a HUNTED target raft, an
+Admiralty warship, encounter region 7000004, and its deterministic acceptance
+policy. Provisioning validates those records but deliberately does not change
+Kohdee's bounty or create a live hunter.
 
 After restart it confirms that `seastate` resolves the ferry's canonical legal
 waters, boards through the ordinary hull-object path as Kohdee, proves exactly
@@ -103,6 +107,40 @@ development player/database baseline if Kohdee must remain unchanged. Do not
 run this command while a ferry soak or scale measurement owns the installed
 server.
 
+## Fast HUNTED Bounty-Hunter Check
+
+After installing and provisioning the current candidate, run:
+
+```bash
+./scripts/test_vessel_hunter_in_game.sh
+```
+
+This development-only check uses the existing master account and exact
+level-34 character `Kohdee`; it does not create an account or character. It
+refuses to run while a ferry soak or scale worker owns the server and requires
+the running executable to match the current installed Phase 15 binary.
+
+The script snapshots Kohdee's exact `vessel_bounties` and
+`vessel_bounty_hunts` rows, temporarily sets the HUNTED threshold, and uses one
+real Kohdee session to spawn and move the fixture raft. `vesseldebug encounter`
+then advances only the cadence counter, so region, class, depth, chance,
+eligibility, spawn, pilot, pursuit, and combat setup all execute through the
+normal encounter path. SQL must prove exactly one ownerless warship with the
+configured captain and target.
+
+The script hard-restarts the local development service, returns Kohdee to the
+target, and requires the exact same hunter generation, fleet slot, unique
+name, prototype, pilot, and target attribution. It then pardons Kohdee, waits
+for the normal periodic check, and requires a bounded cooldown plus complete
+hunter runtime/interior/pilot cleanup without destroying the target. Its exit
+trap purges the temporary target and restores the exact original bounty and
+lifecycle rows. Artifacts remain under the printed
+`/tmp/luminari-vessel-hunter-check-*/runs/` directory.
+
+Do not perform those steps manually or log in once per assertion. The
+automated path is designed to finish in one compact run; record its measured
+elapsed time from the final PASS line.
+
 ## Durable Vessel Ferry Soak
 
 Start the release-gate ferry run as a user service:
@@ -120,8 +158,12 @@ non-character connection in unconfirmed account-name state so the game loop
 does not sleep between inspections. The generated hold name is never
 confirmed, so no account is created. The monitor requires that socket to
 remain `ESTABLISHED` every 20 seconds and fails if the server reports that it
-went to sleep. Live checks use the configured master account and existing
-Kohdee character; they do not create an account or character.
+went to sleep. Scheduled and staff copyovers drop non-playing descriptors by
+design. When the server log proves copyover mode, the monitor requires the
+same PID and installed executable, waits for boot, reconnects the hold socket,
+and records the recovery count. A missing socket without copyover evidence is
+still a hard failure. Live checks use the configured master account and
+existing Kohdee character; they do not create an account or character.
 The launch metadata records the source commit and SHA-256 of `bin/circle`.
 Each process sample rejects a changed executable fingerprint, and the final
 restart must launch the same SHA-256 that served the continuous window.
@@ -131,11 +173,11 @@ Runs started from the current script also issue `shiplist summary` and
 count and dynamic-room capacity, reject any reported buffer overflow, and
 write `live-system-samples.tsv` with fleet, dynamic-room, mobile, object,
 room, allocation-list, movement-trail, buffer, movement-step,
-waypoint-arrival, and route-completion counts. Each active live interval must
+waypoint-arrival, route-completion, and copyover-recovery counts. Each active
+live interval must
 increase all three autopilot counters. The terminal summary adds initial,
 maximum, and final dynamic-room, world-list, and movement-trail values beside
-process RSS. The active July 30 definitive run is pinned to the earlier script
-and does not claim this newer game-side or counter evidence.
+process RSS.
 
 Current candidate builds add an exact `<count> movement trails` row to
 `show stats`. This is a full-world count, not a vessel count. The default
@@ -188,8 +230,8 @@ pages. Validate a completed series with:
 The validator rejects timestamp or PID drift, missing metrics, and impossible
 RSS/heap relationships. Reading the pinned 1.1 GiB process's status and heap
 mapping took about 0.01 seconds, so the scale runner samples sparsely instead
-of scanning `smaps` inside its 30-second process loop. The active July 30
-pinned ferry predates this artifact.
+of scanning `smaps` inside its 30-second process loop. The abandoned July 30
+pinned run predates this artifact.
 
 At the end, the monitor uses Kohdee to pause the ferry, verifies that the exact
 coordinates and route were committed, hard-restarts the local service, checks
@@ -214,6 +256,16 @@ A separate provenance shakedown proved the same executable SHA-256 before and
 after restart. Deliberate SIGTERM then produced an immediate terminal `FAIL`
 artifact, so an interrupted agent or service does not leave a false `RUNNING`
 result.
+
+The first pinned 24-hour attempt reached 34,382 seconds, 18,720 movement
+steps, 780 arrivals at each dock, 10 actual Kohdee checks, and 574
+database/process checks with one stable MUD PID. At 11:00:30 IDT, the server's
+normal automated copyover discarded the unauthenticated hold descriptor while
+preserving the ferry and process. The old monitor misclassified that expected
+handoff as a dead keepalive and then failed to finalize its status, so the run
+is `ABANDONED`, not continuity evidence. The current monitor fixes both
+harness defects. A replacement must still complete the full duration and final
+exact-state restart before this gate passes.
 
 ## Fast Post-Soak Finish
 
@@ -243,13 +295,13 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 250 of 250. The concise Memcheck gate reports zero
-errors and zero definite, indirect, or possible loss; reachable
-process-lifetime registries and profiler buffers remain reported but are not
-classified as lost. `make test` may leave a root-level `circle` while it builds
-the production-linked suite. The required `make install` installs
-`bin/circle` and removes that root artifact before the runner records
-provenance.
+The current suite result is 251 of 251. The preceding pre-Phase15 Memcheck
+gate reported zero errors and zero definite, indirect, or possible loss;
+repeat the command above for the current candidate. Reachable process-lifetime
+registries and profiler buffers remain reported but are not classified as
+lost. `make test` may leave a root-level `circle` while it builds the
+production-linked suite. The required `make install` installs `bin/circle` and
+removes that root artifact before the runner records provenance.
 
 ## Reproducible 500-Vessel Scale Gate
 
@@ -347,8 +399,8 @@ interrupted run needs operator recovery, use:
 ./scripts/run_vessel_scale_benchmark.sh cleanup
 ```
 
-Do not start this gate while the 24-hour ferry run is active. The scale runner
-intentionally refuses to disturb that pinned process and executable.
+Do not start this gate while a 24-hour ferry run is active. The scale runner
+intentionally refuses to disturb the process and executable owned by that run.
 
 ## Fast 1,000-Trade Economy Gate
 
@@ -359,11 +411,10 @@ account and exact Kohdee character for the sustained-market proof:
 ./scripts/dev_kohdee_login_smoke.sh --commands "vtradecheck 1000"
 ```
 
-Do not run this command against the active July 30 pinned ferry build. That
-executable comes from source `0afad17b`, while `vtradecheck` was added later in
-`ac418322`; a safe Kohdee probe therefore returned `Huh?!` and logged out
-cleanly. Wait for the post-soak `make test` and `make install`, then use the
-single command above.
+The abandoned July 30 pinned executable came from source `0afad17b`, while
+`vtradecheck` was added later in `ac418322`; a safe historical probe therefore
+returned `Huh?!` and logged out cleanly. Install the current candidate before
+using the single command above.
 
 This staff diagnostic runs the production batch-pricing and supply functions
 without changing Kohdee's gold, cargo, or the live port tables. It executes
@@ -382,11 +433,12 @@ Vessel economy simulation: PASS
 ```
 
 The 500-vessel runner performs and records this same Kohdee command
-automatically. Do not run either path while the pinned ferry soak is active.
+automatically. Do not run either path while a ferry soak or scale worker owns
+the installed server.
 
 ## Fast Ship-Wide Channel Gate
 
-Run this only after the active soak releases the installed build:
+Run this only when no ferry soak or scale worker owns the installed build:
 
 ```bash
 ./scripts/dev_kohdee_login_smoke.sh \
@@ -448,8 +500,8 @@ logs out of the character and account.
 The 500-vessel runner performs this check automatically against its benchmark
 airship and preserves `native-msdp-vessel-state.log`. This is a real
 Telnet-option-69 exchange; merely leaving Kohdee aboard while the server calls
-the setters does not prove client delivery. Do not run this path while the
-pinned ferry soak is active.
+the setters does not prove client delivery. Do not run this path while a ferry
+soak or scale worker owns the installed server.
 
 ## Fast Vessel Builder Gate
 
