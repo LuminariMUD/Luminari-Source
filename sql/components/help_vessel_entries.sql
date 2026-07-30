@@ -31,6 +31,11 @@ TACTICAL
 SHIPSTATUS
   Show position, terrain, heading, speed, and armor on all four sides.
 
+SHIPTALK <message>
+  Speak over the captain\'s channel to awake, hearing occupants in every room
+  aboard your current vessel. The channel identifies both the vessel and
+  speaker; it cannot be used ashore or while silenced.
+
 SPEED [0-max]
   Set desired speed at an authorized helm. Zero is all stop.
 
@@ -85,6 +90,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARD')
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DISEMBARK');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'TACTICAL');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIPSTATUS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIPTALK');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SPEED');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'HEADING');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SETSAIL');
@@ -496,6 +502,7 @@ INSERT INTO help_entries (tag, entry, min_level, auto_generated)
 VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
        vesseldebug on <category|all>
        vesseldebug off [category]
+       vtradecheck [trades]
 
 Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
 
@@ -520,11 +527,18 @@ must be enabled at runtime.
 
 VESSELDEBUG OFF with no category disables the entire runtime mask.
 
+VTRADECHECK [trades]
+  Run the deterministic, non-mutating vessel-economy release gate. The default
+  is 1000 simulated trades. The check exercises production batch pricing,
+  supply bounds, finite arbitrage, adversarial reversal, and restocking without
+  changing live ports, cargo, or character gold.
+
 See also: SHIPLIST, SHIP-ADMIN, VEDIT', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VESSELDEBUG');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VDEBUG');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VTRADECHECK');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELDEBUG', 'VESSEL-DEBUG');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)

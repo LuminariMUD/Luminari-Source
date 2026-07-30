@@ -221,6 +221,16 @@ numbered gameplay flow:
   command keywords, access levels, nonempty content, and zero obsolete
   duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
   commands in one 54-second Kohdee login.
+- The current candidate extends the authoritative help set to 77 keywords for
+  `shiptalk` and the previously uncovered staff `vtradecheck`. Production-linked
+  coverage sends an identified message between two different rooms of one
+  vessel, proves an adjacent non-passenger receives nothing, and checks the
+  ashore and silenced refusals. Session-only MariaDB shadow tables pass all 31
+  entries, all 77 keywords, access, content, duplicate, and new channel-text
+  checks. The installed-build two-character transcript remains queued behind
+  the active soak and will reuse the existing master account. If that account
+  still contains only Kohdee, the character helper will add one disposable crew
+  character to it instead of creating a second account.
 - All 22 component migrations preceding Phase 12 applied independently to a
   fresh MariaDB 10.11 master schema. Phase 12 separately passed real MariaDB
   install, 10-gold persistence, rollback, and reapplication against a
