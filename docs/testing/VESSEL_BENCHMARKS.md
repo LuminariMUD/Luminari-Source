@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.2
+**Version:** 3.3
 
 **Evidence snapshot:** July 30, 2026
 
@@ -329,12 +329,25 @@ behind compiled development diagnostics and exposes monotonic status counters
 instead. The default installed 500-ship run must still confirm bounded actual
 log growth before the 72-hour ceiling is lifted.
 
-At the July 30 07:34 IDT checkpoint, the pinned ferry run had completed 22,042
-of 86,400 seconds with 11,978 movement steps and balanced 499/499 dock
-arrivals. Its PID, two threads, and 12 file descriptors were constant. RSS had
-risen from 768,776 KiB to 1,129,088 KiB while the rate continued to
-decelerate. This is an in-progress warmup observation, not a terminal
-continuity or leak result. The soak must demonstrate:
+`scripts/analyze_vessel_memory_samples.sh` validates either the legacy
+headerless ferry process series or the newer headered scale series. It
+requires strictly increasing epochs, one constant PID, and six valid numeric
+metrics; reports consecutive block means plus full, post-warmup, and
+configurable trailing linear RSS/VSZ regressions; and has a stable
+`--format kv` mode. Its deterministic test proves an exact zero-slope plateau,
+an exact +6,000 KiB/hour rising series, and rejection of PID, timestamp, and
+metric corruption. It intentionally returns `REPORT_ONLY` until the two live
+observations support a defensible 72-hour criterion.
+
+At the July 30 07:55 IDT checkpoint, the pinned ferry run had completed 23,302
+of 86,400 seconds with 12,671 movement steps, 528 west-dock and 527 east-dock
+arrivals, seven actual-character checks, and 389 process samples. The MUD PID,
+two threads, and 12 file descriptors were constant. RSS had risen from 768,776
+KiB to 1,131,248 KiB. The last 30-minute, 1-hour, and 2-hour linear RSS slopes
+were +6,891, +6,673, and +7,868 KiB/hour, respectively, versus +120,293
+KiB/hour in the first block. The rate is strongly decelerating but is still
+positive; this remains an in-progress warmup observation, not a terminal
+continuity, plateau, or leak verdict. The soak must demonstrate:
 
 - No crashes, leaks, unbounded growth, or corrupt vessel records.
 - Stable tick performance and schedule execution.
