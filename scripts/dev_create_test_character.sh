@@ -12,15 +12,18 @@ fail()
   exit 1
 }
 
-if [[ $# -ne 2 ]]; then
-  fail "usage: $0 <local-test-account> <character-name>"
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  fail "usage: $0 <character-name> OR $0 <local-test-account> <character-name>"
 fi
 
-test_account=$1
-test_character=$2
+if [[ $# -eq 1 ]]; then
+  test_account=
+  test_character=$1
+else
+  test_account=$1
+  test_character=$2
+fi
 
-[[ "$test_account" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
-  fail "local test account must contain only letters or hyphens"
 [[ "$test_character" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
   fail "character name must contain only letters or hyphens"
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
@@ -36,9 +39,20 @@ set +x
 
 [[ "${APP_ENV:-}" == "development" ]] ||
   fail "refusing to run because APP_ENV is not development"
+[[ -n "${GAME_MASTER_ACCOUNT:-}" ]] ||
+  fail "GAME_MASTER_ACCOUNT is not set"
 [[ -n "${GAME_MASTER_ACCOUNT_PASSWORD:-}" ]] ||
   fail "GAME_MASTER_ACCOUNT_PASSWORD is not set"
+
+if [[ -z "$test_account" ]]; then
+  test_account=$GAME_MASTER_ACCOUNT
+fi
+test_password=${DEV_MUD_ACCOUNT_PASSWORD:-$GAME_MASTER_ACCOUNT_PASSWORD}
+
+[[ "$test_account" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+  fail "local test account must contain only letters or hyphens"
 export -n GAME_MASTER_ACCOUNT GAME_MASTER_ACCOUNT_PASSWORD
+export -n DEV_MUD_ACCOUNT_PASSWORD
 
 # Reuse the established preflight and startup path. Suppress its normal Kohdee
 # smoke output because the creation result below is the relevant evidence.
@@ -57,7 +71,7 @@ mud_port=$(awk -F= '
 
 MUD_CREATE_ACCOUNT="$test_account" \
 MUD_CREATE_CHARACTER="$test_character" \
-MUD_CREATE_PASSWORD="$GAME_MASTER_ACCOUNT_PASSWORD" \
+MUD_CREATE_PASSWORD="$test_password" \
 MUD_CREATE_PORT="$mud_port" \
   expect -f /dev/stdin <<'EXPECT'
 proc fail {message} {
@@ -90,29 +104,49 @@ expect {
 
 send -- "$account_name\r"
 expect {
-  -re {Did I get that right} {}
   -re {Password:[[:space:]]*} {
-    fail "account $account_name already exists; use the alternate-character login path"
+    send -- "$env(MUD_CREATE_PASSWORD)\r"
+    expect {
+      -re {Your choice[[:space:]]*:} { set account_menu $expect_out(buffer) }
+      -re {(Wrong|Incorrect|Invalid)[^\r\n]*password} {
+        fail "account password was rejected"
+      }
+      timeout { fail "existing-account login timeout" }
+      eof { fail "connection closed during existing-account login" }
+    }
   }
-  timeout { fail "account confirmation timeout" }
+  -re {Did I get that right} {
+    send -- "y\r"
+    expect {
+      -re {Give me a Password:[[:space:]]*} {}
+      timeout { fail "new-account password prompt timeout" }
+    }
+
+    send -- "$env(MUD_CREATE_PASSWORD)\r"
+    expect {
+      -re {Please retype password:[[:space:]]*} {}
+      timeout { fail "password confirmation prompt timeout" }
+    }
+
+    send -- "$env(MUD_CREATE_PASSWORD)\r"
+    expect {
+      -re {Your choice[[:space:]]*:} { set account_menu $expect_out(buffer) }
+      timeout { fail "new account menu timeout" }
+    }
+  }
+  timeout { fail "account login or confirmation timeout" }
+  eof { fail "connection closed during account login" }
 }
 
-send -- "y\r"
-expect {
-  -re {Give me a Password:[[:space:]]*} {}
-  timeout { fail "new-account password prompt timeout" }
-}
-
-send -- "$env(MUD_CREATE_PASSWORD)\r"
-expect {
-  -re {Please retype password:[[:space:]]*} {}
-  timeout { fail "password confirmation prompt timeout" }
-}
-
-send -- "$env(MUD_CREATE_PASSWORD)\r"
-expect {
-  -re {Your choice[[:space:]]*:} {}
-  timeout { fail "new account menu timeout" }
+set clean_menu $account_menu
+regsub -all {\x1b\[[0-9;?]*[A-Za-z]} $clean_menu {} clean_menu
+regsub -all {\t.} $clean_menu {} clean_menu
+foreach menu_line [split $clean_menu "\n"] {
+  set columns [split $menu_line "|"]
+  if {[llength $columns] >= 2 &&
+      [string equal -nocase [string trim [lindex $columns 1]] $character_name]} {
+    fail "character $character_name already exists on account $account_name"
+  }
 }
 
 send -- "c\r"

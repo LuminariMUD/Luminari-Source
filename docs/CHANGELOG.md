@@ -2,6 +2,17 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Local character test setup
+
+#### Fixed
+
+- The disposable-character helper now adds characters to an existing account
+  through the account-menu `C` option instead of rejecting that account and
+  encouraging one account per fixture.
+- With only a character-name argument, the helper reuses the configured master
+  account. A separate account remains available explicitly for account-level
+  isolation tests.
+
 ### Vessel clients - native MSDP release contract
 
 Completed the vessel GMCP audit and made native MSDP the explicit client
