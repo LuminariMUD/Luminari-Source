@@ -50,7 +50,7 @@
   changing persistent development data. The installed Kohdee transcript
   remains queued behind the active ferry soak.
 - The isolated GNU C23 build completed without warnings, autorun supervision
-  passed, the complete root suite passes 245 of 245 tests, `make install`
+  passed, the complete root suite passes 246 of 246 tests, `make install`
   removed the root executable, and the focused protocol suite remains 13 of
   13.
 
@@ -69,7 +69,7 @@
 
 - A regression poisons the complete affect structure before initialization and
   verifies every field and both flag arrays.
-- The GNU C23 root suite passes 245 of 245 tests. Memcheck reports zero errors
+- The GNU C23 root suite passes 246 of 246 tests. Memcheck reports zero errors
   and zero definite, indirect, or possible loss. It reports 301,630 bytes as
   still reachable through process-lifetime registries and profiler buffers;
   this is recorded separately from the long-soak bounded-growth gate.
@@ -81,14 +81,19 @@
 - New ferry-soak runs include `shiplist summary` and `show stats` in each
   actual-Kohdee sample. The monitor rejects fleet-count drift, dynamic-room
   capacity drift, and any reported buffer overflow, and preserves fleet,
-  dynamic-room, world-allocation, and buffer metrics in
+  dynamic-room, world-allocation, movement-trail, and buffer metrics in
   `live-system-samples.tsv`.
 - Terminal summaries now include the constant fleet count plus initial,
-  maximum, and final dynamic-room and world-list counts alongside process RSS.
+  maximum, and final dynamic-room, world-list, and movement-trail counts
+  alongside process RSS.
 - The 500-vessel runner's held Kohdee session emits timestamped initial,
   hourly, and final allocation checkpoints. It preserves fleet, dynamic-room,
-  mobile, object, room, allocation-list, buffer-switch, and overflow fields in
-  `live-system-samples.tsv`.
+  mobile, object, room, allocation-list, movement-trail, buffer-switch, and
+  overflow fields in `live-system-samples.tsv`.
+- `show stats` derives the exact live movement-trail count from all room lists
+  during an infrequent staff checkpoint. This exposes the 12,600-second
+  awake-world retention set without adding a mutable counter to movement or a
+  scan to the normal heartbeat.
 - Scale process samples now have a header and include VSZ, threads, and file
   descriptors beside PID and RSS. Every sample also verifies that the
   installed executable has not been replaced.
@@ -135,7 +140,7 @@
   fixture missing one required field was rejected.
 - The compiled base vessel remains 4,928 bytes and the optional autopilot is
   72 bytes, including 24 bytes of progress counters. The GNU C23
-  production-linked suite remains 245 of 245 with the counter lifecycle and
+  production-linked suite remains 246 of 246 with the counter lifecycle and
   route-completion path covered.
 - Deterministic analyzer fixtures produce a zero-slope plateau and an exact
   +6,000 KiB/hour ramp. PID drift, non-increasing epochs, and a nonnumeric RSS
@@ -148,16 +153,24 @@
   investigation without claiming a root cause. This in-progress deceleration
   is not recorded as a plateau or leak verdict.
 - Deterministic scale-parser fixtures accept two complete current-format
-  live-system samples, reject one missing its buffer row, accept a clean
-  normal-build log, and count six representative high-volume progress rows.
-  Checkpoint validation requires `system-0`, strictly increasing epochs and
-  labels, hourly intermediates, the expected sample count, and the exact
-  terminal duration; duplicate-epoch and wrong-final fixtures are rejected.
+  live-system samples, reject missing movement-trail or buffer rows, reject a
+  nonzero overflow, accept a clean normal-build log, and count six
+  representative high-volume progress rows. Checkpoint validation requires
+  `system-0`, strictly increasing epochs and labels, hourly intermediates, the
+  expected sample count, and the exact terminal duration; duplicate-epoch and
+  wrong-final fixtures are rejected.
 - Deterministic status and `smaps` fixtures plus a live-process capture verify
   the detailed-memory sampler. Its series validator rejects PID drift,
   duplicate epochs, impossible memory relationships, and missing heap
   metrics. Capturing status and the heap mapping from the pinned 1.1 GiB
   process took about 0.01 seconds.
+- A second actual Kohdee allocation checkpoint completed and logged out
+  cleanly in six seconds. Fleet and room counts stayed fixed while mobiles
+  rose by 25, objects by 10, and RSS by 1,260 KiB. The latest complete
+  168-cleanup movement-trail window represented 1,314,302 records and at
+  least 60.16 MiB of raw 48-byte structures before strings and allocator
+  metadata. This identifies a quantified full-world retention confounder
+  without claiming it explains the entire heap.
 
 ### Ship-wide captain channel
 

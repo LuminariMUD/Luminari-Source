@@ -98,12 +98,19 @@ Runs started from the current script also issue `shiplist summary` and
 `show stats` inside each actual-Kohdee sample. They require a constant fleet
 count and dynamic-room capacity, reject any reported buffer overflow, and
 write `live-system-samples.tsv` with fleet, dynamic-room, mobile, object,
-room, allocation-list, buffer, movement-step, waypoint-arrival, and
-route-completion counts. Each active live interval must increase all three
-autopilot counters. The terminal summary adds initial, maximum, and final
-dynamic-room and world-list values beside process RSS. The active July 30
-definitive run is pinned to the earlier script and does not claim this newer
-game-side or counter evidence.
+room, allocation-list, movement-trail, buffer, movement-step,
+waypoint-arrival, and route-completion counts. Each active live interval must
+increase all three autopilot counters. The terminal summary adds initial,
+maximum, and final dynamic-room, world-list, and movement-trail values beside
+process RSS. The active July 30 definitive run is pinned to the earlier script
+and does not claim this newer game-side or counter evidence.
+
+Current candidate builds add an exact `<count> movement trails` row to
+`show stats`. This is a full-world count, not a vessel count. The default
+world retains movement trails for 12,600 seconds and prunes them every 75
+seconds, so correlate this field with anonymous/heap RSS before attributing
+awake-world warmup to vessels. The runners invoke the scan only inside their
+infrequent actual-character checkpoints.
 
 The candidate build emits per-step movement, arrival, wait, and route-loop
 messages only through compiled development debug categories. Normal builds use
@@ -204,7 +211,7 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 245 of 245. The concise Memcheck gate reports zero
+The current suite result is 246 of 246. The concise Memcheck gate reports zero
 errors and zero definite, indirect, or possible loss; reachable
 process-lifetime registries and profiler buffers remain reported but are not
 classified as lost. `make test` may leave a root-level `circle` while it builds
@@ -231,6 +238,8 @@ The held Kohdee session records a timestamped game-side allocation checkpoint
 at measurement start, every hour, and at the end. The worker writes these to
 `live-system-samples.tsv` and rejects fleet-count drift, dynamic-room-capacity
 drift, dynamic occupancy above capacity, or any reported buffer overflow.
+Each checkpoint also records the exact live full-world movement-trail count,
+and the terminal summary reports its initial, maximum, and final values.
 `process-samples.tsv` has a header and records epoch, PID, RSS, VSZ, thread
 count, and file-descriptor count every 30 seconds. The worker also rejects a
 PID change or replacement of the installed executable during measurement.

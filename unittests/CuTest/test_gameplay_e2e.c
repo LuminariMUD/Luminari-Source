@@ -461,6 +461,26 @@ void Test_gameplay_e2e_movement_changes_room(CuTest *tc)
   CuAssertIntEquals(tc, 1, destination);
 }
 
+void Test_gameplay_e2e_movement_trail_statistics_follow_live_world(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  size_t initial_trails;
+  size_t final_trails;
+  int move_result;
+
+  begin_gameplay_fixture(&fixture);
+
+  initial_trails = count_live_movement_trails();
+  move_result = perform_move(&fixture.actor, NORTH, FALSE);
+  final_trails = count_live_movement_trails();
+
+  end_gameplay_fixture(&fixture);
+
+  CuAssertIntEquals(tc, 0, (int)initial_trails);
+  CuAssertIntEquals(tc, 1, move_result);
+  CuAssertIntEquals(tc, 1, (int)final_trails);
+}
+
 void Test_gameplay_e2e_command_dispatch_reaches_movement(CuTest *tc)
 {
   struct gameplay_fixture fixture;

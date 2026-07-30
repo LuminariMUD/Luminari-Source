@@ -26,6 +26,7 @@ printf '%s\n' \
   "  26000 objects" \
   "  50000 rooms" \
   "  900 lists" \
+  "  1200000 movement trails" \
   "  123 buf switches   0 overflows" \
   "# checkpoint epoch=103600 label=system-3600" \
   "500 of 500 active fleet slots in use." \
@@ -34,21 +35,23 @@ printf '%s\n' \
   "  26100 objects" \
   "  50005 rooms" \
   "  950 lists" \
+  "  1210000 movement trails" \
   "  130 buf switches   0 overflows" >"$live_input"
 
 "$runner" __parse-live-system "$live_input" "$live_output"
 [[ "$(wc -l <"$live_output")" == 3 ]] ||
   fail "valid live-system fixture did not produce two samples"
 expected_header=$'epoch\tlabel\tfleet\tdynamic_rooms\tdynamic_capacity'
-expected_header+=$'\tmobiles\tobjects\trooms\tlists\tbuffer_switches'
-expected_header+=$'\tbuffer_overflows'
+expected_header+=$'\tmobiles\tobjects\trooms\tlists\tmovement_trails'
+expected_header+=$'\tbuffer_switches\tbuffer_overflows'
 grep -Fqx "$expected_header" "$live_output" ||
   fail "live-system output header changed"
-grep -Fqx $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t123\t0' \
+grep -Fqx \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t1200000\t123\t0' \
   "$live_output" ||
   fail "first live-system sample was parsed incorrectly"
 grep -Fqx \
-  $'103600\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
+  $'103600\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t1210000\t130\t0' \
   "$live_output" ||
   fail "second live-system sample was parsed incorrectly"
 "$runner" __validate-live-system "$live_output" 3600 ||
@@ -62,7 +65,8 @@ printf '%s\n' \
   "  37000 mobiles" \
   "  26000 objects" \
   "  50000 rooms" \
-  "  900 lists" >"$incomplete_input"
+  "  900 lists" \
+  "  1200000 movement trails" >"$incomplete_input"
 if "$runner" __parse-live-system "$incomplete_input" \
   "$test_root/incomplete-output.tsv" >"$test_root/stdout" 2>"$test_root/stderr"; then
   fail "incomplete live-system fixture unexpectedly passed"
@@ -70,11 +74,29 @@ fi
 grep -Fq "incomplete live-system sample: system-0" "$test_root/stderr" ||
   fail "incomplete live-system fixture reported the wrong error"
 
+missing_trail_input="$test_root/missing-trail-input.log"
+printf '%s\n' \
+  "# checkpoint epoch=100000 label=system-0" \
+  "500 of 500 active fleet slots in use." \
+  "Wilderness dynamic room pool: 20/4000 occupied (0%)" \
+  "  37000 mobiles" \
+  "  26000 objects" \
+  "  50000 rooms" \
+  "  900 lists" \
+  "  123 buf switches   0 overflows" >"$missing_trail_input"
+if "$runner" __parse-live-system "$missing_trail_input" \
+  "$test_root/missing-trail-output.tsv" \
+  >"$test_root/stdout" 2>"$test_root/stderr"; then
+  fail "live-system fixture without movement trails unexpectedly passed"
+fi
+grep -Fq "incomplete live-system sample: system-0" "$test_root/stderr" ||
+  fail "missing movement-trail fixture reported the wrong error"
+
 chronology_input="$test_root/bad-chronology.tsv"
 printf '%s\n' \
   "$expected_header" \
-  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t123\t0' \
-  $'100000\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t1200000\t123\t0' \
+  $'100000\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t1210000\t130\t0' \
   >"$chronology_input"
 if "$runner" __validate-live-system "$chronology_input" 3600 \
   >"$test_root/stdout" 2>"$test_root/stderr"; then
@@ -83,11 +105,24 @@ fi
 grep -Fq "epochs are not strictly increasing" "$test_root/stderr" ||
   fail "duplicate live-system epoch reported the wrong error"
 
+overflow_input="$test_root/buffer-overflow.tsv"
+printf '%s\n' \
+  "$expected_header" \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t1200000\t123\t0' \
+  $'103600\tsystem-3600\t500\t25\t4000\t37100\t26100\t50005\t950\t1210000\t130\t1' \
+  >"$overflow_input"
+if "$runner" __validate-live-system "$overflow_input" 3600 \
+  >"$test_root/stdout" 2>"$test_root/stderr"; then
+  fail "nonzero live-system buffer overflow unexpectedly passed"
+fi
+grep -Fq "fleet, room-capacity, or buffer invariant" "$test_root/stderr" ||
+  fail "nonzero buffer overflow reported the wrong error"
+
 final_label_input="$test_root/bad-final-label.tsv"
 printf '%s\n' \
   "$expected_header" \
-  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t123\t0' \
-  $'101800\tsystem-1800\t500\t25\t4000\t37100\t26100\t50005\t950\t130\t0' \
+  $'100000\tsystem-0\t500\t20\t4000\t37000\t26000\t50000\t900\t1200000\t123\t0' \
+  $'101800\tsystem-1800\t500\t25\t4000\t37100\t26100\t50005\t950\t1210000\t130\t0' \
   >"$final_label_input"
 if "$runner" __validate-live-system "$final_label_input" 3600 \
   >"$test_root/stdout" 2>"$test_root/stderr"; then

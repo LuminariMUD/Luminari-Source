@@ -12,6 +12,7 @@
 #ifndef _MOVEMENT_TRACKS_H_
 #define _MOVEMENT_TRACKS_H_
 
+#include <stddef.h>
 #include <time.h>
 
 /* Trail pruning threshold - 1 in-game week */
@@ -58,6 +59,12 @@ void create_tracks(struct char_data *ch, int dir, int flag);
  * Called periodically from heartbeat or events
  */
 void cleanup_all_trails(void);
+
+/**
+ * Count movement trails currently retained by all world rooms
+ * @return Number of live trail_data entries
+ */
+size_t count_live_movement_trails(void);
 
 /**
  * Check if tracks should be created for this character
