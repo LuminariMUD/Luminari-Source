@@ -771,6 +771,9 @@ expected_after_fare=$((kohdee_gold - ferry_passenger_fare))
 set +e
 fare_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "shipgoto $ferry_slot" \
+  "speed 2" \
+  "autopilot on" \
+  "@wait-vessel-dock" \
   "autopilot pause" \
   "speed 0" \
   "disembark" \

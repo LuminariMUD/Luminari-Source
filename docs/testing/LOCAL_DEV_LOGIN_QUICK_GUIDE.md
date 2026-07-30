@@ -70,19 +70,19 @@ policy. Provisioning validates those records but deliberately does not change
 Kohdee's bounty or create a live hunter.
 
 After restart it confirms that `seastate` resolves the ferry's canonical legal
-waters, boards through the ordinary hull-object path as Kohdee, proves exactly
-one fare was deducted, restores Kohdee's original gold, resumes the ferry, and
-waits up to 45 seconds for a real territorial/free-sea boundary announcement.
-It immediately correlates that announcement with `seastate`, then runs the
-two-character, cross-room `shiptalk` and ashore-isolation proof on the same
-ferry. If the master account has only Kohdee, it creates reusable `Vesselmate`
-on that account and retries the channel proof automatically. The provisioner
-discovers every account-menu Name plus the ferry and merchant slots; do not
-look them up or create a second account. The first run may need about one
-minute because it creates the ferry and proves a second restart. Before the
-fare, crossing, channel, and merchant checks were added, an already provisioned
-harbor took about 30 seconds; remeasure the augmented path after the active
-ferry soak releases the installed build.
+waters, keeps one Kohdee session aboard until `shipstatus` reports a boardable
+seaport, pauses and stops the ferry, then boards through the ordinary
+hull-object path. It proves exactly one fare was deducted, restores Kohdee's
+original gold, resumes the ferry, and waits up to 45 seconds for a real
+territorial/free-sea boundary announcement. It immediately correlates that
+announcement with `seastate`, then runs the two-character, cross-room
+`shiptalk` and ashore-isolation proof on the same ferry. If the master account
+has only Kohdee, it creates reusable `Vesselmate` on that account and retries
+the channel proof automatically. The provisioner discovers every account-menu
+Name plus the ferry and merchant slots; do not look them up or create a second
+account. Allow about two minutes for the complete idempotent acceptance path;
+the dock, crossing, and two-character waits dominate, while an initial fixture
+creation may add one server restart.
 
 The provisioner intentionally does not sink the merchant because the invoking
 character receives real faction and bounty consequences. For the final

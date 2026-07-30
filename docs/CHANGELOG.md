@@ -16,6 +16,10 @@
   through the final continuous checkpoint. The deliberate hard-restart
   recovery phase verifies the replacement process by executable hash and
   exact gameplay state without trying to sample the retired PID.
+- The harbor fare gate now keeps one Kohdee session aboard while it polls
+  `shipstatus` for a real seaport, then pauses and stops the ferry before
+  disembarking. A mid-channel invocation no longer mistakes correctly blocked
+  boarding for a fare failure.
 
 #### Validated
 
@@ -25,6 +29,9 @@
 - Bash syntax, ShellCheck, and the scale parser regression pass. The noisy-log
   fixture detects six vessel progress messages and five former unconditional
   wilderness messages.
+- The complete harbor provisioner passes from a moving mid-channel start:
+  exact fare and gold restoration, named-water crossing, merchant identity and
+  cargo, and same-account Kohdee/Vesselmate captain-channel isolation.
 
 ### Durable HUNTED bounty-hunter patrols
 

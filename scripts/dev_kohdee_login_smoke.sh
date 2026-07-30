@@ -320,6 +320,34 @@ set last_game_command_raw ""
 proc run_game_command {command} {
   global command_index last_game_command_raw smoke_character
 
+  if {$command eq "@wait-vessel-dock"} {
+    set deadline [expr {[clock seconds] + 60}]
+    set output ""
+
+    puts "\n>>> $command"
+    while {[clock seconds] < $deadline} {
+      set output [run_game_command "shipstatus"]
+      if {[string first "Terrain: Seaport" $output] >= 0} {
+        puts "The vessel reached a boardable seaport."
+        return $output
+      }
+
+      set wait_deadline [expr {[clock milliseconds] + 1000}]
+      set prior_timeout $::timeout
+      set ::timeout 1
+      while {[clock milliseconds] < $wait_deadline} {
+        expect {
+          -re {.+} {}
+          timeout {}
+          eof { fail "connection closed while waiting for a boardable seaport" }
+        }
+      }
+      set ::timeout $prior_timeout
+    }
+
+    fail "the vessel did not reach a boardable seaport within 60 seconds"
+  }
+
   if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {
     if {$wait_seconds < 1 || $wait_seconds > 60} {
       fail "@wait must be between 1 and 60 seconds"
