@@ -96,6 +96,11 @@
   waypoint-arrival, and complete-route counters for its in-memory lifetime.
   `autopilot status` exposes them, and future ferry runs require every active
   live interval to increase all three.
+- `scripts/analyze_vessel_memory_samples.sh` validates legacy headerless and
+  current headered process-sample series, then reports consecutive block means
+  and full, post-warmup, and configurable trailing RSS/VSZ regressions.
+  Human-readable and stable `key=value` modes explicitly return
+  `REPORT_ONLY` until the live evidence supports a bounded-growth threshold.
 
 #### Fixed
 
@@ -121,6 +126,12 @@
   72 bytes, including 24 bytes of progress counters. The GNU C23
   production-linked suite remains 245 of 245 with the counter lifecycle and
   route-completion path covered.
+- Deterministic analyzer fixtures produce a zero-slope plateau and an exact
+  +6,000 KiB/hour ramp. PID drift, non-increasing epochs, and a nonnumeric RSS
+  sample are rejected. The same analyzer accepts the active ferry artifact;
+  at 07:55 IDT its last 30-minute, 1-hour, and 2-hour RSS slopes were +6,891,
+  +6,673, and +7,868 KiB/hour with two threads and 12 descriptors constant.
+  This in-progress deceleration is not recorded as a plateau or leak verdict.
 
 ### Ship-wide captain channel
 

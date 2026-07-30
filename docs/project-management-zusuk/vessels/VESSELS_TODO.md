@@ -69,13 +69,15 @@ recording enduring behavior or evidence in the permanent documentation.
   drift, dynamic-room capacity drift, and buffer overflows, and preserve the
   game-side allocation series in `live-system-samples.tsv`; that later
   instrumentation is not evidence from the active pinned window.
-  At the July 30 07:34 IDT checkpoint, the definitive run remained healthy
-  after 22,042 seconds: 11,978 movement steps, 499/499 west/east arrivals,
-  seven actual-character samples, and 368 database/process samples. The MUD
+  At the July 30 07:55 IDT checkpoint, the definitive run remained healthy
+  after 23,302 seconds: 12,671 movement steps, 528/527 west/east arrivals,
+  seven actual-character samples, and 389 database/process samples. The MUD
   PID, two threads, and 12 file descriptors remained constant. RSS rose from
-  768,776 KiB to 1,129,088 KiB during world warmup; its trailing rate was
-  decelerating but had not yet established a plateau, so this checkpoint is
-  neither a leak verdict nor a substitute for the terminal result.
+  768,776 KiB to 1,131,248 KiB during world warmup. Its last 30-minute,
+  1-hour, and 2-hour linear slopes were +6,891, +6,673, and +7,868 KiB/hour,
+  down from +120,293 KiB/hour in the first block. This strong deceleration has
+  not yet established a plateau, so the checkpoint is neither a leak verdict
+  nor a substitute for the terminal result.
 
 Use the provisioned harbor for the continuous ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
@@ -160,6 +162,14 @@ merchant, copyover, and multiplayer encounter testing.
   remains 4,928 bytes. The production-linked suite passes 245 of 245. Confirm
   bounded actual server-log growth in the default installed 500-ship run
   before enabling a 72-hour window.
+  `scripts/analyze_vessel_memory_samples.sh` now validates both the active
+  headerless and future headered process-series formats, rejects timestamp,
+  PID, or metric corruption, and emits consecutive block means plus full,
+  post-warmup, and configurable trailing RSS/VSZ regressions. Its stable
+  `key=value` mode and deterministic plateau/rising-series tests pass. It
+  deliberately reports `REPORT_ONLY`; use the completed 24-hour and default
+  500-ship results to define and encode the threshold before starting the
+  72-hour run.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial
