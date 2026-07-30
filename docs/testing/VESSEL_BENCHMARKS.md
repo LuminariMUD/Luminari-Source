@@ -316,15 +316,23 @@ definite, indirect, or possible loss. Its 301,630 still-reachable bytes belong
 to process-lifetime spell, command, DG, and profiler registries and are not
 presented as a 72-hour leak verdict; Memcheck must be repeated for Phase 15.
 `make install` completed for the current candidate in the isolated worktree
-and removed its root-level `circle`. Isolated provisioner fixtures also passed the
-idempotent zone-extension and overlap-rejection paths. Deterministic shell
+and removed its root-level `circle`. Isolated provisioner fixtures also passed
+the idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of all six representative high-volume
 progress rows. They also reject duplicated epochs and a terminal checkpoint
 whose label does not match the requested duration. Deterministic status and
-`smaps` fixtures plus a live-process sample verify the detailed-memory
-sampler; its validator rejects PID drift, duplicate epochs, impossible memory
+`smaps` fixtures plus a live-process sample verify the detailed-memory sampler;
+its validator rejects PID drift, duplicate epochs, impossible memory
 relationships, and a missing heap mapping.
+
+After integration and installation on local development, the complete harbor
+provisioner passed restart persistence, exact 10-gold fare collection and
+restoration, canonical named-water crossing, merchant identity/cargo, and the
+same-account captain channel. The Phase 15 Kohdee acceptance then passed in 64
+seconds across hunter creation, a hard restart with exact identity
+reattachment, pardon cleanup, target preservation, and exact baseline restore.
+These are functional component results, not 500-ship performance evidence.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

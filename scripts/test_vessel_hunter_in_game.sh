@@ -564,11 +564,14 @@ target_valid=$(database_query "
 
 run_kohdee_commands "$run_dir/02-encounter.log" \
   "shipgoto $target_slot" \
-  "speed 1" \
+  "speed 2" \
   "vesseldebug encounter" \
   "shipstatus" ||
   fail "the real Kohdee encounter session failed"
-grep -Fq "Speed set to 1." "$run_dir/02-encounter.log" ||
+grep -Fq "Effective speed after terrain modifiers: 1" \
+  "$run_dir/02-encounter.log" ||
+  fail "the target hull's requested speed rounded down to zero"
+grep -Fq "Speed: 1 / 5" "$run_dir/02-encounter.log" ||
   fail "the target hull was not moving"
 grep -Fq "A Harbor Admiralty warship bears down" \
   "$run_dir/02-encounter.log" ||

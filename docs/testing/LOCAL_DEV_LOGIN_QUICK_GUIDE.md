@@ -141,6 +141,12 @@ Do not perform those steps manually or log in once per assertion. The
 automated path is designed to finish in one compact run; record its measured
 elapsed time from the final PASS line.
 
+The installed July 30 candidate passed this complete path in 64 seconds. Its
+fixture raft requested speed 2 and proved effective speed 1 after the seaport
+terrain modifier before the normal encounter check. The same hunter identity
+survived the hard restart, pardon cleanup passed, the target survived, and the
+script restored Kohdee's exact original rows.
+
 ## Durable Vessel Ferry Soak
 
 Start the release-gate ferry run as a user service:

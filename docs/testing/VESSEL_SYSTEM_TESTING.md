@@ -74,6 +74,9 @@ Pardoning Kohdee must move the lifecycle to bounded cooldown, remove every
 hunter persistence row, preserve the target, purge the temporary target, and
 restore Kohdee's exact pre-test bounty/hunt rows. The script refuses an active
 ferry soak or scale run and prints the artifact directory and elapsed time.
+The installed July 30 candidate passed this full sequence in 64 seconds. The
+raft proved effective speed 1 after terrain adjustment; the same hunter
+identity survived the restart; pardon and cleanup restored the exact baseline.
 
 Run the continuous ferry release gate through its supervised monitor:
 

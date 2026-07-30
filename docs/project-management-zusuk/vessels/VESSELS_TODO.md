@@ -5,10 +5,13 @@
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
 production-linked suite passes 251 of 251, CMake passes the same suite, the
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
-verify/rollback, and the rapid reversible Kohdee bounty-hunter acceptance
-script is ready. The shared harbor, fares, named-water law, merchant lifecycle,
-message throttling, native MSDP, 500-slot workload, and prior restart/copyover
-state matrix are automated.
+verify/rollback, and the reversible bounty-hunter lifecycle passes with actual
+level-34 Kohdee across a hard restart and pardon. The integrated candidate is
+installed on local development. The shared harbor now passes restart
+persistence, the exact passenger fare, named-water crossing, merchant
+identity/cargo, and same-account captain-channel checks. Message throttling,
+native MSDP, the 500-slot workload, and the prior restart/copyover state matrix
+are automated.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
 vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
@@ -16,15 +19,13 @@ correctly dropped the monitor's non-playing keepalive. The old harness treated
 that expected handoff as failure and did not finalize status. The current
 harness reconnects only after a log-proven same-PID/same-binary copyover and
 writes terminal failure state before cleanup. A full replacement window is
-still required. Current candidate installation, actual Kohdee component
-transcripts, the 500-ship run, longer stability gates, campaign content, beta,
-and production rollout remain.
+still required. The 500-ship run, actual shared-encounter and merchant-loss
+transcripts, longer stability gates, campaign content, beta, and production
+rollout remain.
 
-**Remaining checklist:** 25 top-level items: 5 harbor/performance validation,
-8 living-world content, 6 player-experience/presentation, 5 balance/beta/
-rollout, and 1 encounter-model decision. The Phase 15 bounty-hunter item is
-code-complete and will drop this to 24 as soon as its installed-candidate
-Kohdee acceptance run passes.
+**Remaining checklist:** 23 top-level items: 5 harbor/performance validation,
+6 living-world content, 6 player-experience/presentation, 5 balance/beta/
+rollout, and 1 encounter-model decision.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -290,37 +291,6 @@ merchant, copyover, and multiplayer encounter testing.
   are covered. Keep this item open for two things: the installed-candidate
   Kohdee destruction/consequence/replacement transcript, and builder-authored
   campaign merchant routes/cargo beyond the development fixture.
-- [ ] Add passenger ferries that collect fares and recover safely after reboot.
-  The code and data layer is complete: an optional fare is part of the
-  persistent schedule, public boarding saves the deduction before moving the
-  passenger, and failure rolls back gold and denies entry. Phase 12,
-  production-linked policy/rollback coverage, authoritative help, and the
-  development ferry's 10-gold seed are present. The harbor provisioner now
-  checks the fare after a hard restart, boards through the ordinary object
-  special as Kohdee, proves exactly one deduction, restores Kohdee's gold, and
-  resumes the route. Keep this item open until that installed-candidate run
-  passes.
-- [ ] Add bounty-hunter warships delivered through the encounter/spawn engine
-  for players with the HUNTED state.
-  Phase 15 mechanics, schema, fixture, and rapid acceptance harness are
-  complete. `vessel_encounters` remains the region/class/depth/chance selector;
-  `vessel_hunter_encounters` adds a bounded warship, pilot, pursuit, duration,
-  grace, and cooldown policy. An atomic one-row target lifecycle prevents
-  duplicate generations and validates exact name/prototype/slot/pilot identity
-  at boot. Only a moving player-owned hull whose online HUNTED owner is aboard
-  is eligible. The ordinary public warship pursues through the production
-  autopilot resolver, opens normal NPC fire, and retires after pardon, logout
-  grace, expiry, sinking, or purge. Capture removes its pilot and leaves the
-  ordinary hull.
-
-  The root suite passes 251 of 251; CMake, GCC `-fanalyzer`, Phase 15
-  install/reapply/verify/rollback, character rename/removal mappings, Bash,
-  ShellCheck, and manifest gates pass. The harbor fixture includes captain
-  70002, target raft, warship, and encounter region 7000004.
-  `scripts/test_vessel_hunter_in_game.sh` snapshots Kohdee's exact rows,
-  triggers the normal encounter path, requires the same generation after a
-  hard restart, proves pardon cleanup, and restores the baseline. Keep this
-  item open only until that installed-candidate Kohdee run passes.
 - [ ] Author territorial waters, free seas, and pirate coves as
   `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
   geography rather than private coordinate tables.
@@ -330,8 +300,9 @@ merchant, copyover, and multiplayer encounter testing.
   resolve the canonical `region_index` polygon; `seastate` exposes the result.
   The harbor seed authors territorial waters (150%), nested free seas (100%),
   and a pirate cove (0%), and its provisioner validates the spatial index and
-  post-restart in-game display. Keep this open until the current Kohdee run
-  passes and production builders author campaign regions.
+  post-restart in-game display. The installed candidate now passes the actual
+  Kohdee crossing and matching `seastate` transcript. Keep this open for
+  production builders to author campaign regions.
 - [ ] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
 - [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and
@@ -367,10 +338,10 @@ merchant, copyover, and multiplayer encounter testing.
   named-water helper waits on the moving ferry's real crossing announcement
   and correlates its region, water type, authority, and bounty with an
   immediate `seastate`; the same provisioner runs that proof automatically.
-  Record the installed-candidate crossing and two-character channel
-  transcripts; the scale runner records the installed-build
-  message-cooldown transcript through Kohdee's live observation and required
-  nonzero suppression counter.
+  The installed candidate now passes the crossing transcript and a
+  same-account Kohdee/Vesselmate two-character channel transcript. Keep this
+  item open until the scale runner records the message-cooldown transcript
+  through Kohdee's live observation and required nonzero suppression counter.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout

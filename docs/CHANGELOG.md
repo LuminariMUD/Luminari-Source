@@ -46,6 +46,13 @@
   contract, including `vessel_hunters`, instead of rejecting a correct Phase
   15 CSV as an unexpected eleventh row. Its parser regression compares the
   runner list directly with the profiler names initialized in `src/comm.c`.
+- The harbor fare gate now pauses and explicitly stops the moving ferry before
+  disembarkation, then restores its configured speed before resuming. This
+  removes a route-position race that could test neither boarding nor payment.
+- The hunter acceptance gate now requests enough raft speed to remain nonzero
+  after the seaport terrain modifier and explicitly checks effective speed
+  before forcing the encounter. The earlier request rounded down to a correctly
+  ineligible stationary target.
 
 #### Validated
 
@@ -60,8 +67,16 @@
   manifest completeness, and diff checks pass.
 - A short incompatible-binary monitor run deliberately failed its initial
   status-counter check and produced the expected terminal `FAIL` artifact.
-  Forced-copyover recovery and the reversible Kohdee hunter transcript remain
-  installed-candidate gates.
+  Forced-copyover recovery remains an installed-candidate gate.
+- The integrated candidate passes the complete development harbor provisioner:
+  restart persistence, the exact 10-gold fare and restoration, canonical
+  named-water crossing, merchant identity and cargo, and a same-account
+  Kohdee/Vesselmate captain-channel exchange.
+- The reversible Phase 15 run passes in 64 seconds with actual level-34
+  Kohdee. One normal encounter creates the hunter; the exact generation, slot,
+  name, prototype, pilot, and target survive a hard restart; pardon removes
+  the hunter into cooldown; and cleanup restores Kohdee's exact original
+  bounty and lifecycle rows.
 
 ### Durable NPC merchant fleet
 

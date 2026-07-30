@@ -772,14 +772,17 @@ set +e
 fare_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "shipgoto $ferry_slot" \
   "autopilot pause" \
+  "speed 0" \
   "disembark" \
   "gold" \
   "board ferry" \
   "gold" \
-  "autopilot on" \
   "set Kohdee gold $kohdee_gold" \
   "gold" \
   "disembark" \
+  "shipgoto $ferry_slot" \
+  "speed 2" \
+  "autopilot on" \
   "goto 1000389")
 fare_status=$?
 set -e
@@ -803,6 +806,7 @@ fi
 if [[ -n "$fare_failure" ]]; then
   "$script_dir/dev_kohdee_login_smoke.sh" --commands \
     "shipgoto $ferry_slot" \
+    "speed 2" \
     "autopilot on" \
     "set Kohdee gold $kohdee_gold" \
     "goto 1000389" >/dev/null 2>&1 || true
