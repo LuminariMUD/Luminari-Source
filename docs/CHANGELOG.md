@@ -50,9 +50,29 @@
   changing persistent development data. The installed Kohdee transcript
   remains queued behind the active ferry soak.
 - The isolated GNU C23 build completed without warnings, autorun supervision
-  passed, the complete root suite passes 244 of 244 tests, `make install`
+  passed, the complete root suite passes 245 of 245 tests, `make install`
   removed the root executable, and the focused protocol suite remains 13 of
   13.
+
+### Affect initialization and memory validation
+
+#### Fixed
+
+- `new_affect()` now clears both primary and secondary affect flag arrays.
+  Secondary flags had retained stack bytes that the spell-application path
+  subsequently read.
+- The production-linked gameplay fixture now releases affects applied to its
+  stack-resident characters, preventing test teardown from losing a combat
+  affect allocation.
+
+#### Validated
+
+- A regression poisons the complete affect structure before initialization and
+  verifies every field and both flag arrays.
+- The GNU C23 root suite passes 245 of 245 tests. Memcheck reports zero errors
+  and zero definite, indirect, or possible loss. It reports 301,630 bytes as
+  still reachable through process-lifetime registries and profiler buffers;
+  this is recorded separately from the long-soak bounded-growth gate.
 
 ### Vessel soak observability
 

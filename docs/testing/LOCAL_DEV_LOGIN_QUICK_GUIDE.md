@@ -136,6 +136,10 @@ consolidated runner:
 ```bash
 ./scripts/run_vessel_ferry_soak.sh status
 make test
+valgrind --tool=memcheck --leak-check=full \
+  --show-leak-kinds=definite,indirect \
+  --errors-for-leak-kinds=definite,indirect \
+  --error-exitcode=99 ./cutest
 make install
 ./scripts/run_vessel_scale_benchmark.sh start
 ./scripts/run_vessel_scale_benchmark.sh status
@@ -151,9 +155,13 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-`make test` may leave a root-level `circle` while it builds the
-production-linked suite. The required `make install` installs `bin/circle` and
-removes that root artifact before the runner records provenance.
+The current suite result is 245 of 245. The concise Memcheck gate reports zero
+errors and zero definite, indirect, or possible loss; reachable
+process-lifetime registries and profiler buffers remain reported but are not
+classified as lost. `make test` may leave a root-level `circle` while it builds
+the production-linked suite. The required `make install` installs
+`bin/circle` and removes that root artifact before the runner records
+provenance.
 
 ## Reproducible 500-Vessel Scale Gate
 

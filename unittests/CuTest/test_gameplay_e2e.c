@@ -169,6 +169,12 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   fixture->victim.next_in_room = NULL;
   fixture->rooms[0].people = NULL;
   fixture->rooms[1].people = NULL;
+  while (fixture->actor.affected != NULL)
+    affect_remove_no_total(&fixture->actor, fixture->actor.affected);
+  while (fixture->victim.affected != NULL)
+    affect_remove_no_total(&fixture->victim, fixture->victim.affected);
+  clear_repulsion_lists(&fixture->actor);
+  clear_repulsion_lists(&fixture->victim);
   if (fixture->rooms[0].trail_tracks != NULL)
     free_trail_data_list(fixture->rooms[0].trail_tracks);
   if (fixture->rooms[1].trail_tracks != NULL)

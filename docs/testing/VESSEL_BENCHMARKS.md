@@ -266,22 +266,31 @@ All heap blocks were freed -- no leaks are possible
 ```
 
 The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 244 of 244
+worktree on July 30, 2026. The production-linked root suite passed 245 of 245
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
 three-dimensional navigation, shared encounters, marginal batch pricing, the
 deterministic 1,000-trade simulation, and vessel MSDP clearing after going
 ashore. The suite also checks canonical polygon interiors and MariaDB-compatible
-edge exclusion for named-water resolution. `make install` completed in that
-isolated worktree and removed its root-level `circle`. Isolated provisioner
-fixtures also passed the idempotent zone-extension and overlap-rejection paths.
+edge exclusion for named-water resolution. It also poisons a complete affect
+structure before initialization and proves that both flag arrays are cleared.
+The same binary passes Memcheck with zero errors and zero definite, indirect,
+or possible loss. Its 301,630 still-reachable bytes belong to process-lifetime
+spell, command, DG, and profiler registries and are not presented as a
+72-hour leak verdict. `make install` completed in that isolated worktree and
+removed its root-level `circle`. Isolated provisioner fixtures also passed the
+idempotent zone-extension and overlap-rejection paths.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
 
 ```bash
 make test
+valgrind --tool=memcheck --leak-check=full \
+  --show-leak-kinds=definite,indirect \
+  --errors-for-leak-kinds=definite,indirect \
+  --error-exitcode=99 ./cutest
 make install
 
 cd unittests/CuTest
