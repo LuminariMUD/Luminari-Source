@@ -230,6 +230,8 @@ run_monitor()
   local next_database_sample
   local next_live_sample
   local next_keepalive_check
+  local keepalive_log_offset
+  local copyover_recoveries
   local now
   local sleep_until
   local sleep_seconds
@@ -252,6 +254,8 @@ run_monitor()
   ferry_slot=""
   route_id=""
   keepalive_fd=""
+  keepalive_log_offset=0
+  copyover_recoveries=0
   initial_mud_pid=""
   final_mud_pid=""
   initial_binary_sha256=""
@@ -288,8 +292,17 @@ run_monitor()
 
   fail_run()
   {
+    local failed_epoch
+
     failure_reason=$*
+    failed_epoch=$(date +%s)
     printf 'FAIL: %s\n' "$failure_reason"
+    write_status "FAIL finished=$failed_epoch reason=$failure_reason"
+    {
+      printf 'Result: FAIL\n'
+      printf 'Reason: %s\n' "$failure_reason"
+      printf 'Failure recorded at: %s\n' "$failed_epoch"
+    } >"$run_dir/summary.txt"
     exit 1
   }
 
@@ -348,36 +361,115 @@ run_monitor()
     return 1
   }
 
-  open_keepalive()
+  try_open_keepalive()
   {
     local account_name
 
+    keepalive_open_error=""
+    close_keepalive
     account_name="Vesselsoak$(printf '%s' "$$" | tr '0-9' 'abcdefghij')"
-    if ! exec {keepalive_fd}<>"/dev/tcp/127.0.0.1/$mud_port"; then
-      fail_run "could not open the game-loop keepalive connection"
+    if ! exec {keepalive_fd}<>"/dev/tcp/127.0.0.1/$mud_port" 2>/dev/null; then
+      keepalive_fd=""
+      keepalive_open_error="could not open the game-loop keepalive connection"
+      return 1
     fi
     if ! read_keepalive_until "What is your account name"; then
-      fail_run "the game-loop keepalive did not receive the account prompt"
+      keepalive_open_error="the game-loop keepalive did not receive the account prompt"
+      close_keepalive
+      return 1
     fi
     if ! printf '%s\r' "$account_name" >&"$keepalive_fd"; then
-      fail_run "the game-loop keepalive could not submit its hold name"
+      keepalive_open_error="the game-loop keepalive could not submit its hold name"
+      close_keepalive
+      return 1
     fi
     if ! read_keepalive_until "Did I get that right" "Password:"; then
-      fail_run "the game-loop keepalive did not reach confirmation state"
+      keepalive_open_error="the game-loop keepalive did not reach confirmation state"
+      close_keepalive
+      return 1
     fi
     if [[ "$keepalive_reply" == *"Password:"* ]]; then
-      fail_run "the generated game-loop hold name unexpectedly exists"
+      keepalive_open_error="the generated game-loop hold name unexpectedly exists"
+      close_keepalive
+      return 1
     fi
+    return 0
+  }
+
+  open_keepalive()
+  {
+    if ! try_open_keepalive; then
+      fail_run "$keepalive_open_error"
+    fi
+    keepalive_log_offset=$(stat -c %s "$server_log")
   }
 
   verify_keepalive()
   {
+    local current_binary_fingerprint
+    local current_log_size
+    local current_mud_pid
+    local copyover_detected
+    local detection_deadline
+    local recovered
+    local recovery_deadline
+    local recovery_log
     local socket_rows
 
     socket_rows=$(ss -H -tnp state established \
       "( dport = :$mud_port )" 2>/dev/null || true)
-    grep -Fq "pid=$$,fd=$keepalive_fd" <<<"$socket_rows" ||
+    if grep -Fq "pid=$$,fd=$keepalive_fd" <<<"$socket_rows"; then
+      keepalive_log_offset=$(stat -c %s "$server_log")
+      return 0
+    fi
+
+    recovery_log="$run_dir/keepalive-recovery-$((copyover_recoveries + 1)).log"
+    copyover_detected=false
+    detection_deadline=$(( $(date +%s) + 15 ))
+    while (( $(date +%s) < detection_deadline )); do
+      current_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
+      [[ "$current_mud_pid" == "$initial_mud_pid" ]] ||
+        fail_run "MUD PID changed after the game-loop keepalive disconnected"
+      current_log_size=$(stat -c %s "$server_log")
+      ((current_log_size >= keepalive_log_offset)) ||
+        fail_run "server log was truncated while checking the game-loop keepalive"
+      dd if="$server_log" of="$recovery_log" iflag=skip_bytes,count_bytes \
+        skip="$keepalive_log_offset" count="$((current_log_size - keepalive_log_offset))" \
+        status=none
+      if grep -Fq "Copyover mode detected" "$recovery_log"; then
+        copyover_detected=true
+        break
+      fi
+      sleep 1
+    done
+    [[ "$copyover_detected" == true ]] ||
       fail_run "the game-loop keepalive socket is no longer established"
+
+    close_keepalive
+    recovered=false
+    recovery_deadline=$(( $(date +%s) + 180 ))
+    while (( $(date +%s) < recovery_deadline )); do
+      current_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
+      [[ "$current_mud_pid" == "$initial_mud_pid" ]] ||
+        fail_run "MUD PID changed while recovering from copyover: $initial_mud_pid -> $current_mud_pid"
+      current_binary_fingerprint=$(stat -Lc '%d:%i:%s:%Y' "$repo_root/bin/circle")
+      [[ "$current_binary_fingerprint" == "$initial_binary_fingerprint" ]] ||
+        fail_run "the installed MUD executable changed during copyover"
+      if ss -H -ltn "sport = :$mud_port" 2>/dev/null | grep -q . &&
+         try_open_keepalive; then
+        recovered=true
+        break
+      fi
+      sleep 1
+    done
+    [[ "$recovered" == true ]] ||
+      fail_run "the game-loop keepalive did not recover after copyover: $keepalive_open_error"
+    [[ "$(binary_sha256 "/proc/$initial_mud_pid/exe")" == "$initial_binary_sha256" ]] ||
+      fail_run "copyover launched a different MUD executable"
+
+    copyover_recoveries=$((copyover_recoveries + 1))
+    keepalive_log_offset=$(stat -c %s "$server_log")
+    printf 'Recovered game-loop keepalive after copyover %s.\n' "$copyover_recoveries"
   }
 
   resume_after_failure()
@@ -420,6 +512,7 @@ run_monitor()
         printf 'Unique positions: %s\n' "$unique_positions"
         printf 'Waypoint arrivals: %s\n' "$waypoint_arrivals"
         printf 'Route completions: %s\n' "$route_completions"
+        printf 'Copyover keepalive recoveries: %s\n' "$copyover_recoveries"
         printf 'Live/database/process samples: %s/%s/%s\n' \
           "$live_samples" "$database_samples" "$process_samples"
         if [[ -n "$initial_live_fleet_count" ]]; then
@@ -1045,7 +1138,8 @@ run_monitor()
     printf 'source_commit=%s\n' "$initial_source_commit"
   } >>"$run_dir/metadata"
   write_status \
-    "RUNNING started=$started_epoch elapsed=0/$duration slot=$ferry_slot pid=$initial_mud_pid"
+    "RUNNING started=$started_epoch elapsed=0/$duration slot=$ferry_slot" \
+    "pid=$initial_mud_pid copyovers=$copyover_recoveries"
   printf 'Continuous ferry observation started at %s for %s seconds.\n' \
     "$started_epoch" "$duration"
 
@@ -1080,7 +1174,7 @@ run_monitor()
     write_status "RUNNING started=$started_epoch" \
       "elapsed=$((now - started_epoch))/$duration slot=$ferry_slot" \
       "steps=$movement_steps arrivals=$waypoint_arrivals loops=$route_completions" \
-      "live=$live_samples db=$database_samples"
+      "live=$live_samples db=$database_samples copyovers=$copyover_recoveries"
     sleep_until=$end_epoch
     ((next_database_sample < sleep_until)) && sleep_until=$next_database_sample
     ((next_live_sample < sleep_until)) && sleep_until=$next_live_sample
@@ -1134,6 +1228,7 @@ run_monitor()
     printf 'Unique positions: %s\n' "$unique_positions"
     printf 'Waypoint arrivals: %s\n' "$waypoint_arrivals"
     printf 'Route completions: %s\n' "$route_completions"
+    printf 'Copyover keepalive recoveries: %s\n' "$copyover_recoveries"
     printf 'Live/database/process samples: %s/%s/%s\n' \
       "$live_samples" "$database_samples" "$process_samples"
     printf 'Fleet count during live samples: %s\n' "$initial_live_fleet_count"
@@ -1153,7 +1248,8 @@ run_monitor()
     printf 'Final restart preserved exact paused coordinates and route: yes\n'
     printf 'Ferry resumed after verification: yes\n'
   } >"$run_dir/summary.txt"
-  write_status "PASS finished=$finished_epoch duration=$observed_duration slot=$ferry_slot"
+  write_status "PASS finished=$finished_epoch duration=$observed_duration" \
+    "slot=$ferry_slot copyovers=$copyover_recoveries"
   run_complete=true
   printf 'PASS: continuous ferry run and persistence restart verified.\n'
 }
