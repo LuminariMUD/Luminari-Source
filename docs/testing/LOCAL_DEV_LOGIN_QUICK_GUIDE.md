@@ -6,6 +6,11 @@ Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
 character and account cleanly.
 
+Use that same master account for ordinary additional test characters. One
+account can hold multiple characters; do not create a separate account for
+each character. A separate account is appropriate only when account isolation
+is itself part of the test.
+
 `Kohdee` is the character name. Do not search titles or look for the word
 `forger`. Agents should run the fast path before inspecting the database,
 process list, or menu layout.
@@ -174,7 +179,9 @@ Kohdee proves that a surface hull cannot leave Z 0, an airship cannot exceed
 Z 500, and a submarine cannot cross above the waterline. The air route then
 changes altitude between Z 120 and Z 220. Minute-by-minute `shipstatus`
 samples must contain at least two distinct Z values inside the airship's
-class bounds.
+class bounds. Automated steps resolve and validate each target wilderness room
+once in the central position update, avoiding the old duplicate spatial-query
+preflight for otherwise unoccupied target coordinates.
 
 The 100-percent benchmark encounter is attached to the air route's real
 `REGION_ENCOUNTER`. Co-located airships share their exterior wilderness room;

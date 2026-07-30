@@ -102,7 +102,9 @@ ceiling; submersible hulls may use negative Z only in a water column. Submarine
 crush depth remains anchored to local bathymetry instead of a fixed class
 floor. Autopilot advances along X, Y, and Z together, clamps each step to the
 remaining three-dimensional distance, and rejects an invalid waypoint Z before
-moving toward it.
+moving toward it. Automated movement resolves and validates its target dynamic
+room once inside `update_ship_wilderness_position()`; it does not run the
+allocating `can_vessel_traverse_terrain()` probe immediately beforehand.
 
 ### Wilderness Integration Contract
 
@@ -111,7 +113,7 @@ Vessels extend the wilderness system; they do not create a separate geography.
 | Wilderness signal | Vessel behavior |
 |-------------------|-----------------|
 | Dynamic room pool | Characters and exterior hulls keep their coordinate room occupied; co-located hulls share it |
-| Generated sector | `can_vessel_traverse_terrain()` and speed rules gate movement |
+| Generated sector | The central position update and direct-movement preflight gate traversal; speed rules consume the resulting sector |
 | Bathymetry | Draft, grounding, and submarine crush depth |
 | Weather field | Speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |

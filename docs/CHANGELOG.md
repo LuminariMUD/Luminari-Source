@@ -29,6 +29,13 @@
   harbor, crossing, same-account channel, economy, Z-axis, encounter, MSDP,
   suppression, schedule, and profiler gates, avoiding duplicate logins.
 
+#### Changed
+
+- Autopilot movement now lets the central position update resolve and validate
+  each target wilderness room once. Removing the immediately preceding
+  allocating traversal probe eliminates duplicate region/path spatial queries
+  when automated movement enters an otherwise unoccupied coordinate.
+
 #### Validated
 
 - The compiled GNU C23 structure measurement is 4,928 bytes per vessel and

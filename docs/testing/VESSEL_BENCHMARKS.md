@@ -134,6 +134,11 @@ current production-linked root suite:
   `vessel_crew_wages`, `vessel_upkeep`, `vessel_trade`, `vessel_weather`,
   `vessel_encounters`, and `vessel_msdp`.
 - The 75-second schedule path is recorded separately as `vessel_schedules`.
+- Automated movement now resolves and validates its target wilderness room
+  once in the central position update. The previous immediate
+  `can_vessel_traverse_terrain()` probe configured the same dynamic room first,
+  doubling the region/path spatial queries when an autopilot step entered an
+  otherwise unoccupied coordinate.
 - `perfmon reset` starts a new pulse, section, missed-heartbeat,
   vessel-message-throttling, and process-wide SQL execution window. The SQL
   counter includes direct, safe, and pooled `mysql_query()` attempts plus
@@ -177,6 +182,11 @@ rejects overlaps.
 workload and evidence contract. It remains unexecuted while the definitive
 24-hour ferry soak owns the local development process, so its presence is not
 evidence that the live 25 ms gate passes.
+
+The active ferry run is pinned to an earlier executable, so its continuity
+result cannot validate the single-pass target-resolution change. The
+post-soak installed-build scale run is the first live performance evidence for
+that optimization.
 
 The runner:
 
