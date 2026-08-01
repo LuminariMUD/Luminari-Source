@@ -15,6 +15,7 @@
 #include "../../src/mob_utils.h"
 #include "../../src/missions.h"
 #include "../../src/movement.h"
+#include "../../src/perks.h"
 #include "../../src/spells.h"
 
 #include <limits.h>
@@ -91,6 +92,93 @@ static const char *test_source_root(void)
 
   root = getenv("LUMINARI_TEST_ROOT");
   return root != NULL && *root != '\0' ? root : ".";
+}
+
+static bool rewrite_psychic_sundering_as_legacy(const char *filename)
+{
+  FILE *input;
+  FILE *output;
+  char line[MAX_STRING_LENGTH];
+  char temp_filename[MAX_FILEPATH + 16];
+  char *affect_fields;
+  int affect_id;
+  bool in_affects;
+  bool saw_affect_version;
+  bool saw_psychic_sundering;
+  bool write_ok;
+
+  if (snprintf(temp_filename, sizeof(temp_filename), "%s.legacy", filename) >=
+      (int)sizeof(temp_filename))
+    return false;
+
+  input = fopen(filename, "r");
+  if (input == NULL)
+    return false;
+
+  output = fopen(temp_filename, "w");
+  if (output == NULL)
+  {
+    fclose(input);
+    return false;
+  }
+
+  in_affects = false;
+  saw_affect_version = false;
+  saw_psychic_sundering = false;
+  write_ok = true;
+
+  while (fgets(line, sizeof(line), input) != NULL)
+  {
+    if (strncmp(line, "Affs:", 5) == 0)
+    {
+      if (fputs("Affs: 0\n", output) == EOF)
+      {
+        write_ok = false;
+        break;
+      }
+      in_affects = true;
+      saw_affect_version = true;
+      continue;
+    }
+
+    if (in_affects && sscanf(line, "%d", &affect_id) == 1)
+    {
+      if (affect_id == AFFECT_PSIONICIST_PSYCHIC_SUNDERING)
+      {
+        affect_fields = strchr(line, ' ');
+        if (affect_fields == NULL ||
+            fprintf(output, "%d%s", PERK_PSIONICIST_PSYCHIC_SUNDERING, affect_fields) < 0)
+        {
+          write_ok = false;
+          break;
+        }
+        saw_psychic_sundering = true;
+        continue;
+      }
+      if (affect_id == 0)
+        in_affects = false;
+    }
+
+    if (fputs(line, output) == EOF)
+    {
+      write_ok = false;
+      break;
+    }
+  }
+
+  if (ferror(input) || fflush(output) != 0)
+    write_ok = false;
+  if (fclose(input) != 0)
+    write_ok = false;
+  if (fclose(output) != 0)
+    write_ok = false;
+
+  if (write_ok && saw_affect_version && saw_psychic_sundering &&
+      rename(temp_filename, filename) == 0)
+    return true;
+
+  unlink(temp_filename);
+  return false;
 }
 
 static void initialize_test_npc(struct char_data *ch, const char *name, room_rnum room)
@@ -432,7 +520,8 @@ void Test_gameplay_e2e_casting_dispatches_magic_missile(CuTest *tc)
   FIGHTING(&fixture.actor) = &fixture.victim;
   FIGHTING(&fixture.victim) = &fixture.actor;
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_UNLIMITED_SPELL_SLOTS);
-  mag_assign_spells();
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
 
   cast_result =
       call_magic(&fixture.actor, &fixture.victim, NULL, SPELL_MAGIC_MISSILE, 0, 10, CAST_INNATE);
@@ -507,12 +596,103 @@ void Test_gameplay_e2e_command_dispatch_reaches_movement(CuTest *tc)
   CuAssertIntEquals(tc, 1, destination);
 }
 
+void Test_gameplay_e2e_winters_war_march_recovery_covers_failed_save_slow(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct affected_type forced_failure;
+  struct affected_type *effect;
+  struct char_data *bard;
+  struct char_data *saved_character_list;
+  int recovery_duration;
+  int slow_duration;
+  int update;
+  bool recovery_never_preceded_slow;
+  bool recovery_removed;
+  bool slow_removed;
+
+  begin_gameplay_fixture(&fixture);
+  bard = new_char();
+  bard->player.name = strdup("winter war march test bard");
+  GET_CLASS(bard) = CLASS_BARD;
+  CLASS_LEVEL(bard, CLASS_BARD) = 20;
+  GET_LEVEL(bard) = 20;
+  GET_POS(bard) = POS_STANDING;
+  GET_HIT(bard) = 100;
+  GET_MAX_HIT(bard) = 100;
+  GET_MOVE(bard) = 100;
+  GET_MAX_MOVE(bard) = 100;
+  IN_ROOM(bard) = 0;
+  IS_PERFORMING(bard) = 1;
+  GET_ATTACK_QUEUE(bard) = create_attack_queue();
+  add_char_perk(bard, PERK_BARD_WINTERS_WAR_MARCH, CLASS_BARD);
+
+  fixture.rooms[0].people = bard;
+  bard->next_in_room = &fixture.victim;
+  fixture.actor.next_in_room = NULL;
+  fixture.victim.next_in_room = NULL;
+  GET_HIT(&fixture.victim) = 100000;
+  GET_MAX_HIT(&fixture.victim) = 100000;
+  GET_POS(&fixture.victim) = POS_SLEEPING;
+  FIGHTING(bard) = &fixture.victim;
+  FIGHTING(&fixture.victim) = bard;
+
+  new_affect(&forced_failure);
+  forced_failure.spell = AFFECT_WIZARD_IRRESISTIBLE_MAGIC;
+  forced_failure.duration = 1;
+  affect_to_char(&fixture.victim, &forced_failure);
+
+  hit(bard, &fixture.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+
+  recovery_duration = -1;
+  slow_duration = -1;
+  for (effect = fixture.victim.affected; effect; effect = effect->next)
+  {
+    if (effect->spell == AFFECT_BARD_WINTERS_WAR_MARCH)
+      slow_duration = effect->duration;
+    else if (effect->spell == AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY)
+      recovery_duration = effect->duration;
+  }
+
+  saved_character_list = character_list;
+  fixture.victim.next = NULL;
+  character_list = &fixture.victim;
+  recovery_never_preceded_slow = true;
+  for (update = 0; update < 4; update++)
+  {
+    affect_update();
+    if (affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH) &&
+        !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY))
+      recovery_never_preceded_slow = false;
+  }
+  recovery_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY);
+  slow_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH);
+  character_list = saved_character_list;
+
+  FIGHTING(bard) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  bard->next_in_room = NULL;
+  IN_ROOM(bard) = NOWHERE;
+  fixture.rooms[0].people = &fixture.actor;
+  fixture.actor.next_in_room = &fixture.victim;
+  free_attack_queue(GET_ATTACK_QUEUE(bard));
+  GET_ATTACK_QUEUE(bard) = NULL;
+  free_char(bard);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertIntEquals(tc, 3, slow_duration);
+  CuAssertIntEquals(tc, slow_duration, recovery_duration);
+  CuAssertTrue(tc, recovery_never_preceded_slow);
+  CuAssertTrue(tc, recovery_removed);
+  CuAssertTrue(tc, slow_removed);
+}
+
 void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
 {
   struct player_index_element fixture_index[1];
   struct player_index_element *saved_player_table;
   struct char_data *source;
   struct char_data *loaded;
+  struct affected_type af;
   int saved_top_of_p_table;
   int load_result;
   int loaded_level;
@@ -523,6 +703,9 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   long loaded_faction_three;
   unsigned long long loaded_merchant_consequence;
   bool loaded_name_matches;
+  bool loaded_ambush_preserved;
+  bool loaded_supremacy_migrated;
+  bool loaded_stones_endurance_preserved;
   bool changed_directory;
   bool filename_ready;
   char original_directory[PATH_MAX];
@@ -557,6 +740,24 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_VESSEL_MERCHANT_CONSEQUENCE(source) = 987654321ULL;
   source->player.time.logon = 0;
 
+  new_affect(&af);
+  af.spell = PERK_INQUISITOR_SUPREMACY;
+  af.duration = -1;
+  af.location = APPLY_WIS;
+  af.modifier = 2;
+  af.bonus_type = BONUS_TYPE_UNIVERSAL;
+  affect_to_char(source, &af);
+
+  new_affect(&af);
+  af.spell = ABILITY_AFFECT_STONES_ENDURANCE;
+  af.duration = 5;
+  affect_to_char(source, &af);
+
+  new_affect(&af);
+  af.spell = AFFECT_INQUISITOR_AMBUSH_USED;
+  af.duration = 7;
+  affect_to_char(source, &af);
+
   changed_directory = false;
   filename_ready = false;
   load_result = -1;
@@ -567,6 +768,9 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   loaded_faction_three = 0;
   loaded_merchant_consequence = 0;
   loaded_name_matches = false;
+  loaded_ambush_preserved = false;
+  loaded_supremacy_migrated = false;
+  loaded_stones_endurance_preserved = false;
   restore_result = 0;
 
   if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
@@ -587,10 +791,16 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
         loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
         loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
         loaded_faction_three = GET_FACTION_STANDING(loaded, 3);
-        loaded_merchant_consequence =
-            GET_VESSEL_MERCHANT_CONSEQUENCE(loaded);
+        loaded_merchant_consequence = GET_VESSEL_MERCHANT_CONSEQUENCE(loaded);
         loaded_name_matches =
             GET_NAME(loaded) != NULL && strcmp(GET_NAME(loaded), player_name) == 0;
+        loaded_ambush_preserved = affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED) &&
+                                  !affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING);
+        loaded_supremacy_migrated = affected_by_spell(loaded, AFFECT_INQUISITOR_SUPREMACY) &&
+                                    !affected_by_spell(loaded, PERK_INQUISITOR_SUPREMACY);
+        loaded_stones_endurance_preserved =
+            affected_by_spell(loaded, ABILITY_AFFECT_STONES_ENDURANCE) &&
+            !affected_by_spell(loaded, AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION);
       }
       unlink(filename);
     }
@@ -615,6 +825,125 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, loaded_faction_two == -222);
   CuAssertTrue(tc, loaded_faction_three == 333);
   CuAssertTrue(tc, loaded_merchant_consequence == 987654321ULL);
+  CuAssertTrue(tc, loaded_ambush_preserved);
+  CuAssertTrue(tc, loaded_supremacy_migrated);
+  CuAssertTrue(tc, loaded_stones_endurance_preserved);
+}
+
+void Test_gameplay_e2e_late_psychic_sundering_migrates_from_legacy_affects(CuTest *tc)
+{
+  struct player_index_element fixture_index[1];
+  struct player_index_element *saved_player_table;
+  struct affected_type af;
+  struct affected_type *loaded_affect;
+  struct char_data *loaded;
+  struct char_data *source;
+  int load_result;
+  int loaded_duration;
+  int loaded_reduction;
+  int restore_result;
+  int saved_top_of_p_table;
+  bool changed_directory;
+  bool filename_ready;
+  bool legacy_file_ready;
+  bool migrated;
+  bool save_result;
+  char filename[MAX_FILEPATH];
+  char lib_directory[PATH_MAX];
+  char original_directory[PATH_MAX];
+  char player_name[32];
+
+  memset(fixture_index, 0, sizeof(fixture_index));
+  memset(filename, 0, sizeof(filename));
+  source = new_char();
+  loaded = new_char();
+  snprintf(player_name, sizeof(player_name), "Zzps%ld", (long)getpid());
+
+  fixture_index[0].name = player_name;
+  fixture_index[0].id = 4243;
+  fixture_index[0].level = 7;
+  fixture_index[0].last = 0;
+
+  saved_player_table = player_table;
+  saved_top_of_p_table = top_of_p_table;
+  player_table = fixture_index;
+  top_of_p_table = 0;
+
+  source->player.name = strdup(player_name);
+  GET_PFILEPOS(source) = 0;
+  GET_IDNUM(source) = 4243;
+  GET_LEVEL(source) = 7;
+  source->player.time.logon = 0;
+
+  new_affect(&af);
+  af.spell = AFFECT_PSIONICIST_PSYCHIC_SUNDERING;
+  af.location = APPLY_NONE;
+  af.modifier = 0;
+  af.duration = 5;
+  affect_to_char(source, &af);
+
+  changed_directory = false;
+  filename_ready = false;
+  legacy_file_ready = false;
+  save_result = false;
+  load_result = -1;
+  loaded_duration = -1;
+  loaded_reduction = 0;
+  migrated = false;
+  restore_result = 0;
+
+  if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
+      snprintf(lib_directory, sizeof(lib_directory), "%s/lib", test_source_root()) <
+          (int)sizeof(lib_directory) &&
+      chdir(lib_directory) == 0)
+  {
+    changed_directory = true;
+    filename_ready = get_filename(filename, sizeof(filename), PLR_FILE, player_name);
+    if (filename_ready)
+    {
+      save_result = save_char_checked(source, TRUE);
+      if (save_result)
+        legacy_file_ready = rewrite_psychic_sundering_as_legacy(filename);
+      if (legacy_file_ready)
+      {
+        load_result = load_char(player_name, loaded);
+        if (load_result >= 0)
+        {
+          migrated = affected_by_spell(loaded, AFFECT_PSIONICIST_PSYCHIC_SUNDERING) &&
+                     !affected_by_spell(loaded, AFFECT_INQUISITOR_AMBUSH_USED);
+          for (loaded_affect = loaded->affected; loaded_affect; loaded_affect = loaded_affect->next)
+          {
+            if (loaded_affect->spell == AFFECT_PSIONICIST_PSYCHIC_SUNDERING)
+            {
+              loaded_duration = loaded_affect->duration;
+              break;
+            }
+          }
+          loaded_reduction =
+              compute_damtype_reduction(loaded, DAM_RESERVED_DBC, NULL, TYPE_UNDEFINED);
+        }
+      }
+      unlink(filename);
+    }
+  }
+
+  if (changed_directory)
+    restore_result = chdir(original_directory);
+
+  free_char(loaded);
+  free_char(source);
+  player_table = saved_player_table;
+  top_of_p_table = saved_top_of_p_table;
+
+  CuAssertTrue(tc, changed_directory);
+  CuAssertIntEquals(tc, 0, restore_result);
+  CuAssertTrue(tc, filename_ready);
+  CuAssertTrue(tc, save_result);
+  CuAssertTrue(tc, legacy_file_ready);
+  CuAssertTrue(tc, load_result >= 0);
+  CuAssertTrue(tc, migrated);
+  CuAssertIntEquals(tc, 5, loaded_duration);
+  CuAssertIntEquals(tc, -10, loaded_reduction);
 }
 
 void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)

@@ -50,6 +50,8 @@
 #define LOAD_MOVE 2
 #define LOAD_STRENGTH 3
 
+#define PLAYER_AFFECT_FILE_VERSION 1
+
 #define PT_PNAME(i) (player_table[(i)].name)
 #define PT_IDNUM(i) (player_table[(i)].id)
 #define PT_LEVEL(i) (player_table[(i)].level)
@@ -71,7 +73,7 @@ long top_idnum = 0;
 /* local functions */
 static void load_dr(FILE *fl, struct char_data *ch);
 static void load_events(FILE *fl, struct char_data *ch);
-static void load_affects(FILE *fl, struct char_data *ch);
+static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version);
 static void load_skills(FILE *fl, struct char_data *ch);
 static void load_feats(FILE *fl, struct char_data *ch);
 static void load_evolutions(FILE *fl, struct char_data *ch);
@@ -848,7 +850,7 @@ int load_char(const char *name, struct char_data *ch)
         else if (!strcmp(tag, "AExp"))
           GET_ARTISAN_EXP(ch) = atoi(line);
         else if (!strcmp(tag, "Affs"))
-          load_affects(fl, ch);
+          load_affects(fl, ch, atoi(line));
         else if (!strcmp(tag, "Alin"))
           GET_ALIGNMENT(ch) = atoi(line);
         else if (!strcmp(tag, "Age "))
@@ -3842,7 +3844,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   /* Save affects */
   if (tmp_aff[0].spell > 0)
   {
-    BUFFER_WRITE("Affs:\n");
+    BUFFER_WRITE("Affs: %d\n", PLAYER_AFFECT_FILE_VERSION);
     for (i = 0; i < MAX_AFFECT; i++)
     {
       aff = &tmp_aff[i];
@@ -4576,9 +4578,112 @@ static void load_perk_toggles(FILE *fl, struct char_data *ch)
   }
 }
 
+/* Migrate perk IDs that were historically stored in the spell/affect namespace. Some of the old
+ * values overlap real spell IDs, so require the legacy affect's distinguishing fields before
+ * changing those entries. */
+static void migrate_legacy_perk_affect(struct affected_type *af, int affect_file_version)
+{
+  if (!af)
+    return;
+
+  switch (af->spell)
+  {
+  case ABILITY_INTIMIDATE:
+    if (IS_SET_AR(af->bitvector, AFF_SHAKEN))
+      af->spell = AFFECT_INTIMIDATING_PRESENCE;
+    break;
+  case PERK_WIZARD_IRRESISTIBLE_MAGIC:
+    if (af->location == APPLY_SPECIAL && af->modifier == 0)
+      af->spell = AFFECT_WIZARD_IRRESISTIBLE_MAGIC;
+    break;
+  case PERK_CLERIC_BEACON_OF_HOPE:
+    if (af->modifier == 4 &&
+        (af->location == APPLY_SAVING_FORT || af->location == APPLY_SAVING_REFL ||
+         af->location == APPLY_SAVING_WILL))
+      af->spell = AFFECT_CLERIC_BEACON_OF_HOPE;
+    break;
+  case PERK_CLERIC_AVATAR_OF_WAR:
+    if (af->location == APPLY_SPECIAL)
+      af->spell = AFFECT_CLERIC_AVATAR_OF_WAR;
+    break;
+  case PERK_MONK_AVATAR_OF_ELEMENTS:
+    af->spell = AFFECT_MONK_AVATAR_OF_ELEMENTS;
+    break;
+  case PERK_BERSERKER_INDOMITABLE_WILL:
+    af->spell = AFFECT_BERSERKER_INDOMITABLE_WILL;
+    break;
+  case PERK_BERSERKER_CRIPPLING_BLOW:
+    af->spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
+    break;
+  case PERK_BERSERKER_STUNNING_BLOW:
+    af->spell = AFFECT_BERSERKER_STUNNING_BLOW;
+    break;
+  case PERK_RANGER_NATURES_WRATH:
+    af->spell = AFFECT_RANGER_NATURES_WRATH;
+    break;
+  case PERK_BARD_HEIGHTENED_HARMONY:
+    af->spell = AFFECT_BARD_HEIGHTENED_HARMONY;
+    break;
+  case PERK_BARD_SYMPHONIC_RESONANCE:
+    af->spell = AFFECT_BARD_SYMPHONIC_RESONANCE;
+    break;
+  case PERK_BARD_FROSTBITE_REFRAIN_I:
+    af->spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
+    break;
+  case PERK_BARD_FROSTBITE_REFRAIN_II:
+    af->spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
+    break;
+  case PERK_BARD_COMMANDING_CADENCE:
+    af->spell = IS_SET_AR(af->bitvector, AFF_DAZED) ? AFFECT_BARD_COMMANDING_CADENCE
+                                                    : AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY;
+    break;
+  case PERK_BARD_WINTERS_WAR_MARCH:
+    af->spell = af->location == APPLY_NONE ? AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY
+                                           : AFFECT_BARD_WINTERS_WAR_MARCH;
+    break;
+  case PERK_ALCHEMIST_DISCOVERY_EXTRACTION:
+    if (af->location == APPLY_INT && af->modifier > 0)
+      af->spell = AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION;
+    break;
+  case PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION:
+    if (af->location == APPLY_HIT && af->modifier > 0)
+      af->spell = AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+    break;
+  case PERK_PSIONICIST_FOCUS_CHANNELING:
+    if (af->location == APPLY_NONE)
+      af->spell = AFFECT_PSIONICIST_FOCUS_CHANNELING;
+    break;
+  case PERK_PSIONICIST_OVERWHELM:
+    if (af->location == APPLY_NONE)
+      af->spell = AFFECT_PSIONICIST_OVERWHELM;
+    break;
+  case PERK_PSIONICIST_LINKED_MENACE:
+    if (af->location == APPLY_AC && af->modifier == 2)
+      af->spell = AFFECT_PSIONICIST_LINKED_MENACE;
+    break;
+  case PERK_PSIONICIST_PSYCHIC_SUNDERING:
+    /* Legacy Psychic Sundering and the ambush recovery marker both use ID 1309 and have
+     * otherwise identical fields once Sundering reaches its final ticks. The version on the
+     * Affs header is therefore the only discriminator that remains valid for the full effect. */
+    if (affect_file_version < PLAYER_AFFECT_FILE_VERSION)
+      af->spell = AFFECT_PSIONICIST_PSYCHIC_SUNDERING;
+    break;
+  case PERK_INQUISITOR_PERFECT_ADAPTATION:
+    if (af->modifier > 0)
+      af->spell = AFFECT_INQUISITOR_PERFECT_ADAPTATION;
+    break;
+  case PERK_INQUISITOR_SUPREMACY:
+    if (af->duration == -1 && af->modifier == 2)
+      af->spell = AFFECT_INQUISITOR_SUPREMACY;
+    break;
+  default:
+    break;
+  }
+}
+
 /* load_affects function now handles both 32-bit and
    128-bit affect bitvectors for backward compatibility */
-static void load_affects(FILE *fl, struct char_data *ch)
+static void load_affects(FILE *fl, struct char_data *ch, int affect_file_version)
 {
   int num = 0, num2 = 0, num3 = 0, num4 = 0, num5 = 0, num6 = 0, num7 = 0, num8 = 0, num9 = 0, i,
       n_vars, num10, num11, num12, num13, num14, num15;
@@ -4612,7 +4717,7 @@ static void load_affects(FILE *fl, struct char_data *ch)
         af.bitvector2[2] = num13;
         af.bitvector2[3] = num14;
       }
-      if (n_vars == 10)
+      else if (n_vars == 10)
       { /* Version with bonus type! */
         af.bitvector[0] = num5;
         af.bitvector[1] = num6;
@@ -4652,6 +4757,7 @@ static void load_affects(FILE *fl, struct char_data *ch)
         log("SYSERR: Invalid affects in pfile (%s), expecting 5, 8, 9 values, got %d", GET_NAME(ch),
             n_vars);
       }
+      migrate_legacy_perk_affect(&af, affect_file_version);
       affect_to_char(ch, &af);
       i++;
     }

@@ -215,7 +215,7 @@ static bool avatar_consumes_ki_free(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
 
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     if (rand_number(1, 100) <= 25)
     {
@@ -472,7 +472,7 @@ void perform_icerabbit(struct char_data *ch, struct char_data *vict)
   dam = dice(3, 6);
 
   /* Avatar of the Elements adds +2d6 elemental damage */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     int extra = dice(2, 6);
     dam += extra;
@@ -542,7 +542,8 @@ void perform_voidstrike(struct char_data *ch)
 }
 
 /* Way of Four Elements - Tier 3 Abilities */
-int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch,
+                             void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -551,7 +552,7 @@ int flamesofphoenix_callback(struct char_data *ch, struct char_data *tch, void *
   dam = dice(8, 6);
 
   /* Avatar of the Elements adds +2d6 elemental damage */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     int extra = dice(2, 6);
     dam += extra;
@@ -610,7 +611,8 @@ void perform_flamesofphoenix(struct char_data *ch)
   }
 }
 
-int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch,
+                                void *data __attribute__((unused)))
 {
   int dam, save_level;
 
@@ -627,7 +629,7 @@ int waveofrollingearth_callback(struct char_data *ch, struct char_data *tch, voi
   dam = dice(8, 6);
 
   /* Avatar of the Elements adds +2d6 elemental damage */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     int extra = dice(2, 6);
     dam += extra;
@@ -857,7 +859,7 @@ EVENTFUNC(event_fist_of_four_thunders)
           dam = dice(3, 10);
 
           /* Avatar of the Elements adds +2d6 elemental damage */
-          if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+          if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
           {
             int extra = dice(2, 6);
             dam += extra;
@@ -889,7 +891,8 @@ EVENTFUNC(event_fist_of_four_thunders)
   return 0;
 }
 
-int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch,
+                                void *data __attribute__((unused)))
 {
   int dam;
 
@@ -897,7 +900,7 @@ int fistoffourthunders_callback(struct char_data *ch, struct char_data *tch, voi
   dam = dice(4, 6);
 
   /* Avatar of the Elements adds +2d6 elemental damage */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     int extra = dice(2, 6);
     dam += extra;
@@ -976,7 +979,8 @@ void perform_riverofhungryflame(struct char_data *ch, int dir)
 /* Way of Four Elements - Tier 4 Capstone Abilities */
 
 /* Callback for Breath of Winter AoE effect */
-int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int breathofwinter_callback(struct char_data *ch, struct char_data *tch,
+                            void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;
@@ -989,7 +993,7 @@ int breathofwinter_callback(struct char_data *ch, struct char_data *tch, void *d
   dam = dice(10, 6);
 
   /* Avatar of the Elements adds +2d6 elemental damage */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     int extra = dice(2, 6);
     dam += extra;
@@ -3705,7 +3709,7 @@ ACMDU(do_beaconofhope)
 
     /* Grant +4 save bonus for 10 rounds */
     new_affect(&af);
-    af.spell = PERK_CLERIC_BEACON_OF_HOPE;
+    af.spell = AFFECT_CLERIC_BEACON_OF_HOPE;
     af.duration = 10;
     af.bonus_type = BONUS_TYPE_MORALE;
     af.location = APPLY_SAVING_FORT;
@@ -3730,7 +3734,7 @@ ACMDU(do_beaconofhope)
 
   /* Grant save bonus to self */
   new_affect(&af);
-  af.spell = PERK_CLERIC_BEACON_OF_HOPE;
+  af.spell = AFFECT_CLERIC_BEACON_OF_HOPE;
   af.duration = 10;
   af.bonus_type = BONUS_TYPE_MORALE;
   af.location = APPLY_SAVING_FORT;
@@ -3789,9 +3793,9 @@ void clear_rage(struct char_data *ch)
   }
 
   /* Clear Indomitable Will auto-success flag when rage ends */
-  if (affected_by_spell(ch, PERK_BERSERKER_INDOMITABLE_WILL))
+  if (affected_by_spell(ch, AFFECT_BERSERKER_INDOMITABLE_WILL))
   {
-    affect_from_char(ch, PERK_BERSERKER_INDOMITABLE_WILL);
+    affect_from_char(ch, AFFECT_BERSERKER_INDOMITABLE_WILL);
   }
 
   /* Remove whatever HP we granted.  This may kill the character. */
@@ -5598,7 +5602,8 @@ ACMD(do_manyshot)
 }
 
 /* Callback for arrow swarm AoE */
-static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+static int arrowswarm_callback(struct char_data *ch, struct char_data *tch,
+                               void *data __attribute__((unused)))
 {
   /* ammo check! */
   if (can_fire_ammo(ch, TRUE))
@@ -5611,7 +5616,8 @@ static int arrowswarm_callback(struct char_data *ch, struct char_data *tch, void
 }
 
 /* Callback for Arrow Storm AoE - applies flat 6d6 damage per target if ammo is available */
-static int arrowstorm_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+static int arrowstorm_callback(struct char_data *ch, struct char_data *tch,
+                               void *data __attribute__((unused)))
 {
   if (can_fire_ammo(ch, TRUE))
   {
@@ -6138,7 +6144,8 @@ ACMDCHECK(can_tailspikes)
 }
 
 /* Callback for tailspikes AoE damage */
-static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+static int tailspikes_damage_callback(struct char_data *ch, struct char_data *tch,
+                                      void *data __attribute__((unused)))
 {
   damage(ch, tch, dice(3, 6) + 10, SPELL_GENERIC_AOE, DAM_PUNCTURE, FALSE);
   return 1;
@@ -8149,7 +8156,7 @@ ACMD(do_irresistablemagic)
 
   /* Apply Irresistible Magic buff - next spell auto-succeeds */
   new_affect(&af);
-  af.spell = PERK_WIZARD_IRRESISTIBLE_MAGIC;
+  af.spell = AFFECT_WIZARD_IRRESISTIBLE_MAGIC;
   af.duration = 3; /* 3 rounds to cast the spell */
   af.location = APPLY_SPECIAL;
   af.modifier = 0;
@@ -8252,7 +8259,7 @@ ACMD(do_avatarofwar)
 
   /* Apply Avatar of War buff */
   new_affect(&af);
-  af.spell = PERK_CLERIC_AVATAR_OF_WAR;
+  af.spell = AFFECT_CLERIC_AVATAR_OF_WAR;
   af.duration = 10; /* 10 rounds */
   af.location = APPLY_SPECIAL;
   af.modifier = 0;
@@ -9358,7 +9365,7 @@ ACMD(do_avatarofelements)
 
   /* Apply Avatar of the Elements buff */
   new_affect(&af);
-  af.spell = PERK_MONK_AVATAR_OF_ELEMENTS;
+  af.spell = AFFECT_MONK_AVATAR_OF_ELEMENTS;
   af.duration = 5; /* 5 rounds */
   af.location = APPLY_SPECIAL;
   af.modifier = 0;
@@ -15654,7 +15661,8 @@ ACMD(do_fistair)
 /* Flowing River - AoE water attack that damages and extinguishes fire effects */
 
 /* Callback for flowing river AoE effect */
-int flowingriver_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int flowingriver_callback(struct char_data *ch, struct char_data *tch,
+                          void *data __attribute__((unused)))
 {
   int dam;
 
@@ -15735,7 +15743,8 @@ ACMD(do_flowingriver)
 /* Sweeping Cinder Strike - Cone AoE fire attack that damages and sets targets on fire */
 
 /* Callback for sweeping cinder strike AoE effect */
-int sweepingcinder_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int sweepingcinder_callback(struct char_data *ch, struct char_data *tch,
+                            void *data __attribute__((unused)))
 {
   int dam, save_level;
   struct affected_type af;
@@ -15818,7 +15827,8 @@ ACMD(do_sweepingcinder)
 /* Rush of the Gale Spirits - Creates a gust of wind that knocks down flying enemies and pushes back others */
 
 /* Callback for gale rush AoE effect */
-int galerush_callback(struct char_data *ch, struct char_data *tch, void *data __attribute__((unused)))
+int galerush_callback(struct char_data *ch, struct char_data *tch,
+                      void *data __attribute__((unused)))
 {
   int save_level, dam;
   struct affected_type af;
@@ -16120,7 +16130,7 @@ void apply_natures_wrath_buff(struct char_data *ch)
   /* Nature's Wrath: +4 to all stats, +2d8 damage, fast healing 5 for 10 rounds */
   struct affected_type af;
   memset(&af, 0, sizeof(af));
-  af.spell = PERK_RANGER_NATURES_WRATH;
+  af.spell = AFFECT_RANGER_NATURES_WRATH;
   af.duration = 10; /* 10 rounds */
   af.modifier = 4;
   af.location = APPLY_STR;

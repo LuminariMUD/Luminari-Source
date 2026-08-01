@@ -4,6 +4,9 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/db.h"
+#include "../../src/handler.h"
+#include "../../src/protocol.h"
 #include "../../src/spells.h"
 
 #include <string.h>
@@ -55,4 +58,165 @@ void Test_spells_production_cantrip_bounds(CuTest *tc)
   CuAssertTrue(tc, !spell_is_cantrip(NUM_SPELLS));
 
   spell_info[SPELL_DETECT_MAGIC].is_cantrip = saved_cantrip;
+}
+
+void Test_internal_affects_have_registered_wearoff_messages(CuTest *tc)
+{
+  static const int internal_affects[] = {
+      RACIAL_LICH_TOUCH,
+      AFFECT_BARD_FLOURISH,
+      AFFECT_BARD_AGILE_DISENGAGE,
+      AFFECT_BARD_PERFECT_TEMPO,
+      AFFECT_BARD_SHOWSTOPPER,
+      AFFECT_BARD_FEINT_AND_FINISH,
+      AFFECT_BARD_SUPREME_STYLE,
+      AFFECT_BARD_CURTAIN_CALL,
+      AFFECT_BARD_CURTAIN_CALL_DISORIENTED,
+      AFFECT_BLACKGUARD_SHAKEN,
+      AFFECT_BLACKGUARD_FEAR,
+      AFFECT_BLACKGUARD_COWER,
+      AFFECT_BLACKGUARD_CRUEL_MOMENTUM,
+      AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND,
+      AFFECT_BLACKGUARD_BLEEDING,
+      AFFECT_BLACKGUARD_UNHOLY_BLITZ,
+      AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY,
+      AFFECT_BLACKGUARD_CATACLYSMIC_SMITE,
+      AFFECT_BLACKGUARD_SHADE_STEP,
+      AFFECT_BLACKGUARD_REPRISAL,
+      AFFECT_DIVINE_RESILIENCE,
+      AFFECT_INQUISITOR_AMBUSH_USED,
+      AFFECT_INQUISITOR_DEADLY_AIM,
+      AFFECT_BERSERKER_INDOMITABLE_WILL,
+      AFFECT_BARD_HEIGHTENED_HARMONY,
+      AFFECT_BARD_SYMPHONIC_RESONANCE,
+      AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION,
+      AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION,
+      AFFECT_BERSERKER_CRIPPLING_BLOW,
+      AFFECT_BERSERKER_STUNNING_BLOW,
+      AFFECT_BARD_FROSTBITE_REFRAIN_I,
+      AFFECT_BARD_FROSTBITE_REFRAIN_II,
+      AFFECT_BARD_COMMANDING_CADENCE,
+      AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY,
+      AFFECT_BARD_WINTERS_WAR_MARCH,
+      AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY,
+      AFFECT_INQUISITOR_PERFECT_ADAPTATION,
+      AFFECT_INQUISITOR_SUPREMACY,
+      AFFECT_CLERIC_BEACON_OF_HOPE,
+      AFFECT_WIZARD_IRRESISTIBLE_MAGIC,
+      AFFECT_CLERIC_AVATAR_OF_WAR,
+      AFFECT_MONK_AVATAR_OF_ELEMENTS,
+      AFFECT_RANGER_NATURES_WRATH,
+      AFFECT_PSIONICIST_FOCUS_CHANNELING,
+      AFFECT_PSIONICIST_OVERWHELM,
+      AFFECT_PSIONICIST_LINKED_MENACE,
+      AFFECT_PSIONICIST_PSYCHIC_SUNDERING,
+      AFFECT_INTIMIDATING_PRESENCE,
+      SKILL_BLEEDING_ATTACK,
+      SKILL_CRIPPLING_STRIKE,
+      SKILL_PRESSURE_POINT_STRIKE,
+      SKILL_FLAMES_OF_PHOENIX,
+      SKILL_ETERNAL_MOUNTAIN_DEFENSE,
+      SKILL_BREATH_OF_WINTER,
+      SKILL_HARDY,
+      SKILL_WATER_WHIP,
+      SKILL_GONG_OF_SUMMIT,
+      SKILL_FIST_OF_UNBROKEN_AIR,
+      SKILL_SWEEPING_CINDER_STRIKE,
+      SKILL_RUSH_OF_GALE_SPIRITS,
+      SKILL_CLENCH_OF_NORTH_WIND,
+      SKILL_APPLY_NATURES_WRATH_DAMAGE,
+      SPELL_ABSOLUTE_GEAS,
+      SPELL_HIVE_COMMANDER_MARK,
+      SPELL_ARTIFACT_BONUS,
+      SPELL_ARTIFACT_PASSIVE,
+      SPELL_ARTIFACT_SURGE,
+  };
+  const char *wearoff;
+  char failure[128];
+  size_t affect_count;
+  size_t i;
+  size_t j;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  affect_count = sizeof(internal_affects) / sizeof(internal_affects[0]);
+  for (i = 0; i < affect_count; i++)
+  {
+    snprintf(failure, sizeof(failure), "internal affect %d is outside the wear-off table",
+             internal_affects[i]);
+    CuAssert(tc, failure,
+             internal_affects[i] > SPELL_RESERVED_DBC && internal_affects[i] < TOP_SPELL_DEFINE);
+
+    snprintf(failure, sizeof(failure), "internal affect %d is not registered", internal_affects[i]);
+    CuAssert(tc, failure, spell_info[internal_affects[i]].name != unused_spellname);
+
+    wearoff = get_wearoff(internal_affects[i]);
+    snprintf(failure, sizeof(failure), "internal affect %d has no wear-off message",
+             internal_affects[i]);
+    CuAssert(tc, failure,
+             wearoff != NULL && wearoff[0] != '\0' && strcmp(wearoff, "!UNUSED WEAROFF!") != 0);
+
+    for (j = i + 1; j < affect_count; j++)
+    {
+      snprintf(failure, sizeof(failure), "internal affects share ID %d", internal_affects[i]);
+      CuAssert(tc, failure, internal_affects[i] != internal_affects[j]);
+    }
+  }
+}
+
+void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
+{
+  struct affected_type af;
+  struct char_data ch;
+  struct char_data *saved_character_list;
+  struct descriptor_data descriptor;
+  bool announced;
+  bool remained_for_final_tick;
+  bool removed;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "wear-off test character";
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the wear-off test");
+    return;
+  }
+
+  new_affect(&af);
+  af.spell = SKILL_BLEEDING_ATTACK;
+  af.duration = 1;
+  affect_to_char(&ch, &af);
+
+  saved_character_list = character_list;
+  ch.next = NULL;
+  character_list = &ch;
+  affect_update();
+  remained_for_final_tick = affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
+  affect_update();
+  removed = !affected_by_spell(&ch, SKILL_BLEEDING_ATTACK);
+  announced = strstr(descriptor.output, "The bleeding from the attack stops.") != NULL;
+  character_list = saved_character_list;
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertTrue(tc, remained_for_final_tick);
+  CuAssertTrue(tc, removed);
+  CuAssertTrue(tc, announced);
 }

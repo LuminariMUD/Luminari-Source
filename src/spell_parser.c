@@ -1697,7 +1697,7 @@ void finishCasting(struct char_data *ch)
   {
     struct affected_type hh_af;
     new_affect(&hh_af);
-    hh_af.spell = PERK_BARD_HEIGHTENED_HARMONY;
+    hh_af.spell = AFFECT_BARD_HEIGHTENED_HARMONY;
     hh_af.duration = 3; /* lasts a few rounds */
     hh_af.location = APPLY_SKILL;
     hh_af.specific = ABILITY_PERFORM;
@@ -1733,7 +1733,7 @@ void finishCasting(struct char_data *ch)
           /* Apply daze affect */
           struct affected_type daze_af;
           new_affect(&daze_af);
-          daze_af.spell = PERK_BARD_SYMPHONIC_RESONANCE;
+          daze_af.spell = AFFECT_BARD_SYMPHONIC_RESONANCE;
           daze_af.duration = duration;
           SET_BIT_AR(daze_af.bitvector, AFF_DAZED);
           affect_to_char(tch, &daze_af);
@@ -1851,7 +1851,7 @@ void finishCasting(struct char_data *ch)
       /* Search for existing Discovery Extraction affect */
       for (hjp = ch->affected; hjp; hjp = hjp->next)
       {
-        if (hjp->spell == PERK_ALCHEMIST_DISCOVERY_EXTRACTION)
+        if (hjp->spell == AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION)
         {
           current_discovery = hjp;
           current_bonus = hjp->modifier;
@@ -1863,11 +1863,11 @@ void finishCasting(struct char_data *ch)
       {
         /* Remove old affect if exists */
         if (current_discovery)
-          affect_from_char(ch, PERK_ALCHEMIST_DISCOVERY_EXTRACTION);
+          affect_from_char(ch, AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION);
 
         /* Apply new stacking buff */
         new_affect(&af);
-        af.spell = PERK_ALCHEMIST_DISCOVERY_EXTRACTION;
+        af.spell = AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION;
         af.duration = 120; /* 2 minutes */
         af.location = APPLY_INT;
         af.modifier = current_bonus + 1;
@@ -1974,7 +1974,7 @@ void finishCasting(struct char_data *ch)
         /* Search for existing Quintessential Extraction affect */
         for (hjp = CASTING_TCH(ch)->affected; hjp; hjp = hjp->next)
         {
-          if (hjp->spell == PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION)
+          if (hjp->spell == AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION)
           {
             current_quint = hjp;
             current_bonus = hjp->modifier;
@@ -1991,11 +1991,11 @@ void finishCasting(struct char_data *ch)
 
           /* Remove old affect if exists */
           if (current_quint)
-            affect_from_char(CASTING_TCH(ch), PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
+            affect_from_char(CASTING_TCH(ch), AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION);
 
           /* Apply new stacking buff */
           new_affect(&af);
-          af.spell = PERK_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
+          af.spell = AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION;
           af.duration = 5; /* 5 minutes */
           af.location = APPLY_HIT;
           af.modifier = new_bonus;
@@ -4030,6 +4030,14 @@ void unused_skill(int spl)
   skill_info[spl].quest = FALSE;
 }
 
+static void affecto(int effect, const char *name, const char *wearoff)
+{
+  spello(effect, name, 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_AFFECTS, wearoff, 0, 0,
+         NOSCHOOL, FALSE);
+  spell_info[effect].actual_ability = false;
+  spell_info[effect].no_player = true;
+}
+
 #define skillo(skill, name, category)                                                              \
   spello(skill, name, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, category, FALSE);
 
@@ -5730,6 +5738,135 @@ void mag_assign_spells(void)
          MAG_AREAS, "You are no longer affected by your enemy's prescience.", 1, 1, DIVINATION, 0);
   spello(AFFECT_GLORYS_CALL, "glory's call", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          "You no longer feel the call of glory.", 1, 1, ENCHANTMENT, 0);
+
+  /* Internal timed affects must have their own IDs and player-facing wear-off messages. */
+  affecto(RACIAL_LICH_TOUCH, "lich touch paralysis", "The numbing cold of the lich's touch fades.");
+
+  affecto(AFFECT_BARD_FLOURISH, "bard flourish",
+          "Your flourish ends and your movements return to normal.");
+  affecto(AFFECT_BARD_AGILE_DISENGAGE, "bard agile disengage",
+          "Your defensive boost from agile disengage fades.");
+  affecto(AFFECT_BARD_PERFECT_TEMPO, "bard perfect tempo", "Your perfect tempo slips away.");
+  affecto(AFFECT_BARD_SHOWSTOPPER, "bard showstopper",
+          "You recover from the showstopping performance.");
+  affecto(AFFECT_BARD_FEINT_AND_FINISH, "bard feint and finish",
+          "Your opening from feint and finish closes.");
+  affecto(AFFECT_BARD_SUPREME_STYLE, "bard supreme style", "You leave your supreme duelist style.");
+  affecto(AFFECT_BARD_CURTAIN_CALL, "bard curtain call", "Your curtain call reaches its finale.");
+  affecto(AFFECT_BARD_CURTAIN_CALL_DISORIENTED, "bard curtain call disorientation",
+          "You regain your bearings after the curtain call.");
+
+  affecto(AFFECT_BLACKGUARD_SHAKEN, "blackguard shaken",
+          "You steady yourself against the blackguard's menace.");
+  affecto(AFFECT_BLACKGUARD_FEAR, "blackguard fear",
+          "The blackguard's supernatural fear releases you.");
+  affecto(AFFECT_BLACKGUARD_COWER, "blackguard cowering",
+          "You find the courage to stand against the blackguard.");
+  affecto(AFFECT_BLACKGUARD_CRUEL_MOMENTUM, "blackguard cruel momentum",
+          "Your cruel momentum fades.");
+  affecto(AFFECT_BLACKGUARD_PROFANE_WEAPON_BOND, "blackguard profane weapon bond",
+          "The profane energy around your weapon fades.");
+  affecto(AFFECT_BLACKGUARD_BLEEDING, "blackguard profane bleeding",
+          "The bleeding from the profane smite stops.");
+  affecto(AFFECT_BLACKGUARD_UNHOLY_BLITZ, "blackguard unholy blitz",
+          "The surge of profane speed leaves you.");
+  affecto(AFFECT_BLACKGUARD_AVATAR_OF_PROFANITY, "blackguard avatar of profanity",
+          "The profane power of your avatar form recedes.");
+  affecto(AFFECT_BLACKGUARD_CATACLYSMIC_SMITE, "blackguard cataclysmic smite",
+          "You recover from the cataclysmic smite.");
+  affecto(AFFECT_BLACKGUARD_SHADE_STEP, "blackguard shade step",
+          "You emerge fully from the shadows.");
+  affecto(AFFECT_BLACKGUARD_REPRISAL, "blackguard reprisal",
+          "Your stored profane reprisal dissipates.");
+
+  affecto(AFFECT_DIVINE_RESILIENCE, "inquisitor divine resilience",
+          "The divine resilience bolstering you fades.");
+  affecto(AFFECT_INQUISITOR_AMBUSH_USED, "inquisitor ambush recovery",
+          "You are ready to spring another ambush.");
+  affecto(AFFECT_INQUISITOR_DEADLY_AIM, "inquisitor deadly aim", "Your deadly aim focus passes.");
+
+  affecto(AFFECT_BERSERKER_INDOMITABLE_WILL, "berserker indomitable will",
+          "Your indomitable will is ready to protect you again.");
+  affecto(AFFECT_BARD_HEIGHTENED_HARMONY, "bard heightened harmony",
+          "The heightened harmony from your metamagic fades.");
+  affecto(AFFECT_BARD_SYMPHONIC_RESONANCE, "bard symphonic resonance",
+          "The symphonic resonance releases you.");
+  affecto(AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION, "alchemist discovery extraction",
+          "Your flash of alchemical insight fades.");
+  affecto(AFFECT_ALCHEMIST_QUINTESSENTIAL_EXTRACTION, "alchemist quintessential extraction",
+          "The vitality granted by the quintessential extraction fades.");
+  affecto(AFFECT_BERSERKER_CRIPPLING_BLOW, "berserker crippling blow",
+          "You recover from the crippling blow.");
+  affecto(AFFECT_BERSERKER_STUNNING_BLOW, "berserker stunning blow",
+          "You recover from the stunning blow.");
+  affecto(AFFECT_BARD_FROSTBITE_REFRAIN_I, "bard frostbite refrain",
+          "The frostbite refrain no longer slows your attacks.");
+  affecto(AFFECT_BARD_FROSTBITE_REFRAIN_II, "bard greater frostbite refrain",
+          "The greater frostbite refrain releases its grip on you.");
+  affecto(AFFECT_BARD_COMMANDING_CADENCE, "bard commanding cadence",
+          "You are no longer dazed by the commanding cadence.");
+  affecto(AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY, "bard commanding cadence recovery",
+          "You are vulnerable to commanding cadence again.");
+  affecto(AFFECT_BARD_WINTERS_WAR_MARCH, "bard winter's war march",
+          "The numbing force of winter's war march fades.");
+  affecto(AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY, "bard winter's war march recovery",
+          "You are vulnerable to winter's war march again.");
+  affecto(AFFECT_INQUISITOR_PERFECT_ADAPTATION, "inquisitor perfect adaptation",
+          "Your perfect adaptation fades.");
+  affecto(AFFECT_INQUISITOR_SUPREMACY, "inquisitor supremacy", "Your focused supremacy fades.");
+  affecto(AFFECT_CLERIC_BEACON_OF_HOPE, "cleric beacon of hope",
+          "The beacon of hope no longer bolsters your resolve.");
+  affecto(AFFECT_WIZARD_IRRESISTIBLE_MAGIC, "wizard irresistible magic",
+          "Your prepared irresistible magic dissipates.");
+  affecto(AFFECT_CLERIC_AVATAR_OF_WAR, "cleric avatar of war",
+          "The power of the avatar of war leaves you.");
+  affecto(AFFECT_MONK_AVATAR_OF_ELEMENTS, "monk avatar of the elements",
+          "Your unity with the elements fades.");
+  affecto(AFFECT_RANGER_NATURES_WRATH, "ranger nature's wrath",
+          "Nature's wrath within you subsides.");
+  affecto(AFFECT_PSIONICIST_FOCUS_CHANNELING, "psionic focus channeling recovery",
+          "You can channel your psionic focus again.");
+  affecto(AFFECT_PSIONICIST_OVERWHELM, "psionic overwhelm recovery",
+          "You are ready to overwhelm another mind.");
+  affecto(AFFECT_PSIONICIST_LINKED_MENACE, "psionic linked menace",
+          "The linked menace no longer hinders your defenses.");
+  affecto(AFFECT_PSIONICIST_PSYCHIC_SUNDERING, "psionic psychic sundering",
+          "Your mind closes against the psychic sundering.");
+  affecto(AFFECT_INTIMIDATING_PRESENCE, "berserker intimidating presence",
+          "You shake off the intimidating presence.");
+
+  affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
+  affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");
+  affecto(SKILL_PRESSURE_POINT_STRIKE, "pressure point strike recovery",
+          "Your pressure points recover.");
+  affecto(SKILL_FLAMES_OF_PHOENIX, "flames of the phoenix burning",
+          "The flames engulfing you go out.");
+  affecto(SKILL_ETERNAL_MOUNTAIN_DEFENSE, "eternal mountain defense",
+          "Your eternal mountain defense crumbles.");
+  affecto(SKILL_BREATH_OF_WINTER, "breath of winter slowing",
+          "The freezing cold no longer slows you.");
+  affecto(SKILL_HARDY, "hardy", "You no longer feel as hardy and resilient.");
+  affecto(SKILL_WATER_WHIP, "water whip preparation",
+          "The water gathered for your water whip disperses.");
+  affecto(SKILL_GONG_OF_SUMMIT, "gong of the summit preparation",
+          "The force gathered for your gong of the summit fades.");
+  affecto(SKILL_FIST_OF_UNBROKEN_AIR, "fist of unbroken air preparation",
+          "The air gathered around your fist disperses.");
+  affecto(SKILL_SWEEPING_CINDER_STRIKE, "sweeping cinder strike burning",
+          "The cinders burning you go out.");
+  affecto(SKILL_RUSH_OF_GALE_SPIRITS, "rush of gale spirits grounding",
+          "The gale releases you, allowing you to fly again.");
+  affecto(SKILL_CLENCH_OF_NORTH_WIND, "clench of the north wind encasement",
+          "The ice encasing you cracks and falls away.");
+  affecto(SKILL_APPLY_NATURES_WRATH_DAMAGE, "nature's wrath damage",
+          "Nature's extra force leaves your attacks.");
+
+  affecto(SPELL_ABSOLUTE_GEAS, "absolute geas", "The absolute geas releases its hold on you.");
+  affecto(SPELL_HIVE_COMMANDER_MARK, "hive commander mark",
+          "The Hive Commander's psychic link fades.");
+  affecto(SPELL_ARTIFACT_BONUS, "artifact enhancement", "The artifact's enhancement fades.");
+  affecto(SPELL_ARTIFACT_PASSIVE, "artifact passive power", "The artifact's passive power fades.");
+  affecto(SPELL_ARTIFACT_SURGE, "artifact surge", "The artifact's temporary power fades.");
 
   spello(SPELL_HOLY_AURA, "holy aura", 0, 0, 0, POS_FIGHTING, TAR_CHAR_ROOM | TAR_SELF_ONLY, FALSE,
          MAG_GROUPS, "You are no longer bolstered by a holy aura.", 9, 21, ABJURATION, 0);

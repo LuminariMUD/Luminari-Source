@@ -2586,7 +2586,7 @@ ACMD(do_perfectadaptation_perk)
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_INQUISITOR_PERFECT_ADAPTATION;
+  af.spell = AFFECT_INQUISITOR_PERFECT_ADAPTATION;
   af.duration = 5; /* ~30 seconds */
   af.bonus_type = BONUS_TYPE_UNIVERSAL;
 
@@ -2698,12 +2698,12 @@ ACMD(do_supremacy_perk)
     return;
   }
 
-  while (affected_by_spell(ch, PERK_INQUISITOR_SUPREMACY))
-    affect_from_char(ch, PERK_INQUISITOR_SUPREMACY);
+  while (affected_by_spell(ch, AFFECT_INQUISITOR_SUPREMACY))
+    affect_from_char(ch, AFFECT_INQUISITOR_SUPREMACY);
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_INQUISITOR_SUPREMACY;
+  af.spell = AFFECT_INQUISITOR_SUPREMACY;
   af.duration = -1; /* Permanent until changed */
   af.location = loc;
   af.modifier = 2;
@@ -6959,8 +6959,7 @@ ACMDU(do_arcanemark)
   /* Show or set default mark when no argument is provided */
   if (!*argument)
   {
-    if ((tmark = GET_ARCANE_MARK(ch)) &&
-        *tmark && strcmp(tmark, "(null)") && strcmp(tmark, "null"))
+    if ((tmark = GET_ARCANE_MARK(ch)) && *tmark && strcmp(tmark, "(null)") && strcmp(tmark, "null"))
     {
       send_to_char(ch, "Your arcane mark is set to: %s\r\n", GET_ARCANE_MARK(ch));
       return;
@@ -7809,8 +7808,7 @@ ACMD(do_use)
     break;
   }
 
-  if ((GET_OBJ_BOUND_ID(mag_item) != (int)NOBODY) &&
-      (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(mag_item) != (int)NOBODY) && (GET_OBJ_BOUND_ID(mag_item) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(mag_item)) != NULL)
     {

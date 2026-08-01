@@ -11498,7 +11498,7 @@ void apply_psionic_focus_channeling(struct char_data *ch)
     return;
   if (!has_psionic_focus_channeling(ch))
     return;
-  if (affected_by_spell(ch, PERK_PSIONICIST_FOCUS_CHANNELING))
+  if (affected_by_spell(ch, AFFECT_PSIONICIST_FOCUS_CHANNELING))
     return;
 
   int before = GET_PSP(ch);
@@ -11509,7 +11509,7 @@ void apply_psionic_focus_channeling(struct char_data *ch)
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_PSIONICIST_FOCUS_CHANNELING;
+  af.spell = AFFECT_PSIONICIST_FOCUS_CHANNELING;
   af.duration = 6; /* ~1 round */
   affect_to_char(ch, &af);
 }
@@ -11539,7 +11539,7 @@ bool overwhelm_used_this_combat(struct char_data *ch)
 {
   if (!has_overwhelm(ch))
     return FALSE;
-  return affected_by_spell(ch, PERK_PSIONICIST_OVERWHELM);
+  return affected_by_spell(ch, AFFECT_PSIONICIST_OVERWHELM);
 }
 
 /* Set Overwhelm cooldown for this combat */
@@ -11550,7 +11550,7 @@ void set_overwhelm_cooldown(struct char_data *ch)
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_PSIONICIST_OVERWHELM;
+  af.spell = AFFECT_PSIONICIST_OVERWHELM;
   af.duration = 60; /* ~10 minutes for a combat encounter */
   affect_to_char(ch, &af);
 }
@@ -11571,7 +11571,7 @@ void apply_linked_menace_ac_penalty(struct char_data *vict)
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_PSIONICIST_LINKED_MENACE;
+  af.spell = AFFECT_PSIONICIST_LINKED_MENACE;
   af.location = APPLY_AC;
   af.modifier = 2;  /* -2 AC (note: lower AC is worse, so +2 to the AC value) */
   af.duration = 12; /* 2 rounds */
@@ -11648,7 +11648,7 @@ void apply_psychic_sundering_debuff(struct char_data *ch, struct char_data *vict
 
   struct affected_type af;
   new_affect(&af);
-  af.spell = PERK_PSIONICIST_PSYCHIC_SUNDERING;
+  af.spell = AFFECT_PSIONICIST_PSYCHIC_SUNDERING;
   af.location = APPLY_NONE;
   af.modifier = 0;
   af.duration = 18; /* 3 rounds */
@@ -17653,7 +17653,7 @@ int get_cleric_armor_of_faith_bonus(struct char_data *ch)
     bonus += 2;
 
   /* Avatar of War: +3 AC when active */
-  if (affected_by_spell(ch, PERK_CLERIC_AVATAR_OF_WAR))
+  if (affected_by_spell(ch, AFFECT_CLERIC_AVATAR_OF_WAR))
     bonus += 3;
 
   return bonus;
@@ -17726,7 +17726,7 @@ int get_cleric_total_holy_weapon_bonus(struct char_data *ch)
     bonus += 10;
 
   /* Avatar of War: +10 damage when active */
-  if (affected_by_spell(ch, PERK_CLERIC_AVATAR_OF_WAR))
+  if (affected_by_spell(ch, AFFECT_CLERIC_AVATAR_OF_WAR))
     bonus += 10;
 
   return bonus;
@@ -17750,7 +17750,7 @@ int get_cleric_total_divine_favor_bonus(struct char_data *ch)
     bonus += 2;
 
   /* Avatar of War: +3 to hit when active */
-  if (affected_by_spell(ch, PERK_CLERIC_AVATAR_OF_WAR))
+  if (affected_by_spell(ch, AFFECT_CLERIC_AVATAR_OF_WAR))
     bonus += 3;
 
   return bonus;
@@ -21630,7 +21630,7 @@ int get_bard_heightened_harmony_perform_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (has_bard_heightened_harmony(ch) && affected_by_spell(ch, PERK_BARD_HEIGHTENED_HARMONY))
+  if (has_bard_heightened_harmony(ch) && affected_by_spell(ch, AFFECT_BARD_HEIGHTENED_HARMONY))
     return 5; /* +5 to perform skill */
 
   return 0;

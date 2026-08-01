@@ -1806,7 +1806,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
         /* Failed discipline check - become shaken for 3 rounds */
         struct affected_type af = {0};
         new_affect(&af);
-        af.spell = ABILITY_INTIMIDATE; /* Use intimidate as the spell source */
+        af.spell = AFFECT_INTIMIDATING_PRESENCE;
         af.duration = 3;
         SET_BIT_AR(af.bitvector, AFF_SHAKEN);
         affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
@@ -3786,7 +3786,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
   int damtype_reduction = 0;
 
   /* Psychic Sundering: take 10% more damage from all sources */
-  if (affected_by_spell(ch, PERK_PSIONICIST_PSYCHIC_SUNDERING))
+  if (affected_by_spell(ch, AFFECT_PSIONICIST_PSYCHIC_SUNDERING))
     damtype_reduction -= 10;
 
   /* Force of Nature: druid spells bypass damage resistance for elemental damage */
@@ -3849,7 +3849,7 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
   }
 
   /* Avatar of Elements - elemental immunity */
-  if (affected_by_spell(ch, PERK_MONK_AVATAR_OF_ELEMENTS))
+  if (affected_by_spell(ch, AFFECT_MONK_AVATAR_OF_ELEMENTS))
   {
     if (dam_type == DAM_FIRE || dam_type == DAM_COLD || dam_type == DAM_AIR ||
         dam_type == DAM_ELECTRIC || dam_type == DAM_EARTH || dam_type == DAM_WATER)
@@ -14445,7 +14445,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         /* Apply slow effect for 3 rounds - no save */
         struct affected_type af = {0};
         new_affect(&af);
-        af.spell = PERK_BERSERKER_CRIPPLING_BLOW;
+        af.spell = AFFECT_BERSERKER_CRIPPLING_BLOW;
         af.duration = 3;
         SET_BIT_AR(af.bitvector, AFF_SLOW);
         affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
@@ -14477,7 +14477,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BERSERKER_STUNNING_BLOW;
+      af.spell = AFFECT_BERSERKER_STUNNING_BLOW;
       af.duration = 2;
       SET_BIT_AR(af.bitvector, AFF_STUN);
       affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
@@ -14503,7 +14503,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_FROSTBITE_REFRAIN_I;
+      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_I;
       af.location = APPLY_HITROLL;
       af.duration = 1;               /* 1 round */
       af.modifier = debuff_modifier; /* -1 to attack */
@@ -14531,7 +14531,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
       af.location = APPLY_HITROLL;
       af.duration = 1;             /* 1 round */
       af.modifier = attack_debuff; /* -2 to attack */
@@ -14543,7 +14543,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_FROSTBITE_REFRAIN_II;
+      af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
       af.location = APPLY_AC;
       af.duration = 1;         /* 1 round */
       af.modifier = ac_debuff; /* -1 to AC */
@@ -14563,7 +14563,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   /* Bard Warchanter: Commanding Cadence - Daze on melee hit (once per target per 5 rounds) */
   if (!IS_NPC(ch) && has_bard_commanding_cadence(ch) && can_hit > 0 &&
-      !affected_by_spell(victim, PERK_BARD_COMMANDING_CADENCE))
+      !affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE) &&
+      !affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY))
   {
     int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
 
@@ -14571,7 +14572,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     {
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_COMMANDING_CADENCE;
+      af.spell = AFFECT_BARD_COMMANDING_CADENCE;
       af.location = APPLY_NONE;
       af.duration = 1; /* 1 round daze */
       SET_BIT_AR(af.bitvector, AFF_DAZED);
@@ -14590,7 +14591,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     /* Apply 5-round cooldown on this target */
     struct affected_type af = {0};
     new_affect(&af);
-    af.spell = PERK_BARD_COMMANDING_CADENCE;
+    af.spell = AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY;
     af.location = APPLY_NONE;
     af.duration = 5; /* 5 round cooldown */
     af.bonus_type = BONUS_TYPE_UNDEFINED;
@@ -14599,11 +14600,13 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
   /* Bard Warchanter: Winter's War March - Room-wide damage and slow (capstone) */
   if (!IS_NPC(ch) && has_bard_winters_war_march(ch) && can_hit > 0 &&
-      !affected_by_spell(victim, PERK_BARD_WINTERS_WAR_MARCH))
+      !affected_by_spell(victim, AFFECT_BARD_WINTERS_WAR_MARCH) &&
+      !affected_by_spell(victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY))
   {
     int cold_damage = 0, i = 0;
     int num_dice = get_bard_winters_war_march_damage(ch);
     int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+    int slow_duration = 0;
 
     /* Roll 4d6 cold damage */
     for (i = 0; i < num_dice; i++)
@@ -14617,10 +14620,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       /* Apply 1 round slow on successful save */
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.spell = AFFECT_BARD_WINTERS_WAR_MARCH;
       af.location = APPLY_STR;
       af.modifier = -4;
-      af.duration = 1; /* 1 round */
+      slow_duration = 1;
+      af.duration = slow_duration;
       af.bonus_type = BONUS_TYPE_UNDEFINED;
       affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
 
@@ -14634,10 +14638,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       /* Full damage + 3 round slow on failed save */
       struct affected_type af = {0};
       new_affect(&af);
-      af.spell = PERK_BARD_WINTERS_WAR_MARCH;
+      af.spell = AFFECT_BARD_WINTERS_WAR_MARCH;
       af.location = APPLY_STR;
       af.modifier = -4;
-      af.duration = 3; /* 3 rounds */
+      slow_duration = 3;
+      af.duration = slow_duration;
       af.bonus_type = BONUS_TYPE_UNDEFINED;
       affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
 
@@ -14655,9 +14660,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     /* Apply cooldown so this doesn't proc constantly */
     struct affected_type af_cd = {0};
     new_affect(&af_cd);
-    af_cd.spell = PERK_BARD_WINTERS_WAR_MARCH;
+    af_cd.spell = AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY;
     af_cd.location = APPLY_NONE;
-    af_cd.duration = 2; /* 2 round cooldown between procs */
+    /* Keep the two-round cooldown, but never announce recovery while the slow still blocks the
+     * proc. */
+    af_cd.duration = MAX(2, slow_duration);
     af_cd.bonus_type = BONUS_TYPE_UNDEFINED;
     affect_join(victim, &af_cd, FALSE, FALSE, FALSE, FALSE);
   }
