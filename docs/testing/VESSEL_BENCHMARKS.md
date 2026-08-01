@@ -398,6 +398,17 @@ monitor accepts only a log-proven same-PID/same-binary copyover, reconnects
 after boot, preserves the recovery log, and records terminal failure before
 cleanup. A replacement full window and exact-state restart are still required.
 
+The August 1 replacement run has a shutdown checkpoint at 1,543 of 86,400
+seconds. It retained PID 1803873, two threads, 12 descriptors, the pinned
+binary hash, one actual-character sample, 26 database/process samples, and
+continued ferry movement. Host shutdown invalidates the continuity window;
+these partial observations are not duration evidence and the next session
+must preserve the terminal artifact and start a full replacement. During this
+partial window, unrelated legacy ship 3 followed stale route `persistroute`
+into an unoccupiable target, safely persisted speed zero/autopilot pause, and
+emitted one `SYSERR`. That severity and development fixture require follow-up;
+the monitored ferry was slot 5.
+
 A July 30 forced-copyover shakedown is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260730T092546Z-1844033`.
 Source `823d48b9` ran a 240-second requested window with one same-PID copyover,

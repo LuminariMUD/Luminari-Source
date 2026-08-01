@@ -178,6 +178,20 @@ destructive merchant checks during this window. The earliest nominal duration
 completion is August 2 at 22:48:15 IDT; only the subsequent final persistence
 restart and terminal `PASS` close the gate.
 
+Shutdown checkpoint, August 1 at 23:13:58 IDT: this run was healthy but only
+1,543 seconds into its required 86,400 seconds, with one actual-character
+sample, 26 database/process samples, zero copyovers, unchanged PID 1803873,
+and the pinned binary hash. If the host is shut down, the continuity gate is
+interrupted even if the on-disk status still says `RUNNING`. On the next boot,
+inspect the unit and run-directory status, preserve it as interrupted evidence,
+then start a replacement full window after the normal clean test/install and
+harbor gates. Do not resume or count elapsed time across host downtime.
+
+The same log also captured legacy ship 3 (`Persistence_Goshawk`) safely
+pausing at speed zero when route `persistroute` targeted an unoccupiable cell.
+That separate ship emitted a `SYSERR` at 22:57:03; trace the stale route and log
+severity next session. The monitored ferry is slot 5 and continued moving.
+
 The default is 24 continuous hours with database/process checks every 60
 seconds and an actual Kohdee inspection every hour. The monitor refuses
 non-development environments, discovers the ferry and route IDs instead of

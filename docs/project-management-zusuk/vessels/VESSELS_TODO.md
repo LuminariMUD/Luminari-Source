@@ -33,6 +33,20 @@ checks against the installed server until this monitor reaches a terminal
 result. This item remains open until the full 86,400-second window and final
 hard-restart recovery both report `PASS`.
 
+Shutdown checkpoint, August 1 at 23:13:58 IDT: the monitor was still
+`RUNNING` at 1,543 of 86,400 seconds with one actual Kohdee sample, 26
+database/process samples, zero copyovers, the same PID 1803873, and the same
+installed SHA-256. Ferry slot 5 continued moving between its route cells; its
+initial counters were 36 steps, seven arrivals, and one completion. A host
+shutdown interrupts this continuous window, so on the next boot preserve the
+artifacts, record the terminal service/status result, and launch a new complete
+24-hour window rather than crediting this partial run. A separate scheduled
+legacy ship 3 (`Persistence_Goshawk`, route `persistroute`) attempted an
+unoccupiable cell at 22:57:03 and exercised the intended one-time safe pause:
+speed zero and persisted autopilot state 3. Its `SYSERR` log severity and stale
+development route remain a carry-forward investigation; this was not ferry
+slot 5.
+
 The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
 vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
 correctly dropped the monitor's non-playing keepalive. The old harness treated
