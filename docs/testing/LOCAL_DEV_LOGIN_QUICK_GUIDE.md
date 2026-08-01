@@ -3,16 +3,16 @@
 **Last verified:** August 1, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:00 IDT):** The direct bounded
+**Active execution checkpoint (August 2, 2026, 02:04 IDT):** The direct bounded
 launch from a stopped development service safely failed before any vessel
 mutation. Preserve
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892`; its terminal
 reason is `the local MUD log is unavailable`, with zero live/database/process
-samples. The runner currently requires the smoke service and its log before it
-uses the login helper, contradicting this guide's stopped-state resume path.
-The next action is a runner regression and fix that starts and verifies the
-development service through the existing Kohdee helper. Then rerun
-`run_vessel_ferry_soak.sh start 2700 60 900`; do not begin scale first.
+samples. That runner revision required the smoke service and its log before it
+used the login helper, contradicting this guide's stopped-state resume path.
+The local fix now starts an inactive service through the existing Kohdee helper
+and has a passing deterministic preflight regression. Commit the fix, then
+rerun `run_vessel_ferry_soak.sh start 2700 60 900`; do not begin scale first.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -175,6 +175,13 @@ the explicit bounded arguments above and do not launch a replacement
 long-duration service. Before starting, use `status` to ensure no legacy ferry
 monitor owns the development server. Preserve any old run directory only as
 historical evidence.
+
+If the supervised local MUD is stopped, the monitor first runs the fast Kohdee
+login smoke to create the service and its append-only log, then begins its
+ownership checks. The bootstrap transcript is retained as
+`server-bootstrap.log` in the run directory. An active service whose original
+log is missing remains a hard failure because a replacement empty file cannot
+recover output from the process's already-open descriptor.
 
 The monitor refuses non-development environments, discovers the ferry and
 route IDs instead of

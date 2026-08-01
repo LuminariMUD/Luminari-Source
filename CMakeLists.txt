@@ -863,11 +863,14 @@ if (BUILD_TESTS)
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_memory_analyzer.sh)
     add_test(NAME vessel-process-memory-details
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_process_memory_details.sh)
+    add_test(NAME vessel-ferry-soak-preflight
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_ferry_soak_preflight.sh)
     add_test(NAME vessel-scale-benchmark-parsers
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_scale_benchmark_parsers.sh)
     set_tests_properties(
         vessel-memory-analyzer
         vessel-process-memory-details
+        vessel-ferry-soak-preflight
         vessel-scale-benchmark-parsers
         PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()

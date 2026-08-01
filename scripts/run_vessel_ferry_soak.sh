@@ -83,6 +83,39 @@ config_value()
   ' "$config_file"
 }
 
+ensure_local_mud_available()
+{
+  local unit_name=$1
+  local log_path=$2
+  local login_helper=$3
+  local bootstrap_output=$4
+
+  local_mud_error=""
+
+  if systemctl --user is-active --quiet "$unit_name"; then
+    if [[ ! -f "$log_path" ]]; then
+      local_mud_error="$unit_name is active but its MUD log is unavailable"
+      return 1
+    fi
+    return 0
+  fi
+
+  if ! timeout 120 "$login_helper" >"$bootstrap_output" 2>&1; then
+    local_mud_error="the Kohdee login helper could not start the local MUD"
+    return 1
+  fi
+  if ! systemctl --user is-active --quiet "$unit_name"; then
+    local_mud_error="$unit_name was not active after the Kohdee login helper"
+    return 1
+  fi
+  if [[ ! -f "$log_path" ]]; then
+    local_mud_error="the local MUD log was unavailable after the Kohdee login helper"
+    return 1
+  fi
+
+  return 0
+}
+
 start_run()
 {
   local duration=${1:-86400}
@@ -217,6 +250,7 @@ run_monitor()
   local database_interval=$3
   local live_interval=$4
   local app_environment
+  local local_mud_error
   local database_host
   local database_name
   local database_user
@@ -1037,8 +1071,6 @@ run_monitor()
     fail_run "the local character login helper is unavailable"
   [[ -x "$script_dir/sample_process_memory_details.sh" ]] ||
     fail_run "the detailed process-memory sampler is unavailable"
-  [[ -f "$server_log" ]] ||
-    fail_run "the local MUD log is unavailable"
 
   app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
   [[ "$app_environment" == development ]] ||
@@ -1061,6 +1093,10 @@ run_monitor()
   ' "$repo_root/lib/etc/config")
   [[ "$mud_port" =~ ^[0-9]+$ ]] ||
     fail_run "could not read the development MUD port"
+  if ! ensure_local_mud_available "$server_unit" "$server_log" \
+    "$script_dir/dev_kohdee_login_smoke.sh" "$run_dir/server-bootstrap.log"; then
+    fail_run "$local_mud_error"
+  fi
   systemctl --user is-active --quiet "$server_unit" ||
     fail_run "$server_unit is not active"
   initial_mud_pid=$(systemctl --user show --property=MainPID --value "$server_unit")
@@ -1284,20 +1320,22 @@ run_monitor()
   printf 'PASS: continuous ferry run and persistence restart verified.\n'
 }
 
-case "${1:-}" in
-  start)
-    shift
-    start_run "$@"
-    ;;
-  status)
-    (($# == 1)) || usage
-    show_status
-    ;;
-  __run)
-    (($# == 5)) || usage
-    run_monitor "$2" "$3" "$4" "$5"
-    ;;
-  *)
-    usage
-    ;;
-esac
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  case "${1:-}" in
+    start)
+      shift
+      start_run "$@"
+      ;;
+    status)
+      (($# == 1)) || usage
+      show_status
+      ;;
+    __run)
+      (($# == 5)) || usage
+      run_monitor "$2" "$3" "$4" "$5"
+      ;;
+    *)
+      usage
+      ;;
+  esac
+fi

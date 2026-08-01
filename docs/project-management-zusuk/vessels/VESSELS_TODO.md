@@ -38,18 +38,20 @@ rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 02:00 IDT):** Work resumed on
-clean development `master`; the stopped installed candidate has SHA-256
+**Active validation checkpoint (August 2, 2026, 02:04 IDT):** The stopped
+installed development candidate has SHA-256
 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`.
 The first bounded launch produced a safe immediate `FAIL` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892` with
 `reason=the local MUD log is unavailable`; no live or database sample ran and
 no vessel state changed. The runner checks for the development service log
-before it starts a stopped local MUD, so the documented direct launch is not
-restart-safe. Preserve this artifact. The next action is to make the runner
-boot and validate the stopped development service through the Kohdee login
-helper, add a deterministic regression, then rerun the same explicit bounded
-command. No scale run has started.
+before it starts a stopped local MUD, so the documented direct launch was not
+restart-safe. Preserve this artifact. The runner now bootstraps an inactive
+development service through the actual Kohdee login helper, preserves its
+output, and then requires both the supervised service and its log. A
+deterministic stopped/ready/missing-log/helper-failure regression passes. The
+next action is to commit this harness fix and rerun the same explicit bounded
+command; no scale run has started.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
