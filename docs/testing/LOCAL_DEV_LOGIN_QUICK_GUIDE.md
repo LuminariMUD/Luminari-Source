@@ -351,7 +351,10 @@ repeat the command above for the current candidate. Reachable process-lifetime
 registries and profiler buffers remain reported but are not classified as
 lost. `make test` may leave a root-level `circle` while it builds the
 production-linked suite. The required `make install` installs `bin/circle` and
-removes that root artifact before the runner records provenance.
+removes that root artifact before the runner records provenance. Root
+`make test` and CMake/CTest now also run the vessel memory analyzer, detailed
+process-memory, and scale-parser regressions; the release manifest includes
+the login, ferry, scale, memory, and supporting vessel test scripts.
 
 ## Reproducible 500-Vessel Scale Gate
 

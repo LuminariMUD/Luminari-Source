@@ -321,13 +321,22 @@ EXTRA_DIST = \
 	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
+	scripts/analyze_vessel_memory_samples.sh \
+	scripts/dev_create_test_character.sh \
+	scripts/dev_kohdee_login_smoke.sh \
 	scripts/test_character_rename_schema.sh \
 	scripts/test_character_rename_static.sh \
 	scripts/test_background_help_entries.sh \
 	scripts/test_autorun_supervision.sh \
 	scripts/provision_artifacts.sh \
 	scripts/provision_vessel_harbor.sh \
+	scripts/run_vessel_ferry_soak.sh \
+	scripts/run_vessel_scale_benchmark.sh \
+	scripts/sample_process_memory_details.sh \
+	scripts/test_process_memory_details.sh \
 	scripts/test_vessel_hunter_in_game.sh \
+	scripts/test_vessel_memory_analyzer.sh \
+	scripts/test_vessel_scale_benchmark_parsers.sh \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
@@ -358,11 +367,12 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision test-background-help-entries
+test: check test-autorun-supervision test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: test-all test-protocol test-protocol-fuzz test-character-rename-static \
-	test-character-rename-schema test-background-help-entries test-autorun-supervision
+	test-character-rename-schema test-background-help-entries test-autorun-supervision \
+	test-vessel-tooling
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser
@@ -381,6 +391,11 @@ test-background-help-entries:
 
 test-autorun-supervision:
 	./scripts/test_autorun_supervision.sh
+
+test-vessel-tooling:
+	./scripts/test_vessel_memory_analyzer.sh
+	./scripts/test_process_memory_details.sh
+	./scripts/test_vessel_scale_benchmark_parsers.sh
 
 # Authoritative full local test entry point. The final install both verifies the
 # install path and removes the root-level circle artifact created by make test.

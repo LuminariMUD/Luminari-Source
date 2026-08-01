@@ -208,7 +208,12 @@ merchant, copyover, and multiplayer encounter testing.
   The same audit found that only the tick call count and maximum were required
   to be numeric. The runner now validates the complete ten-field `vessel_tick`
   CSV row, requires ordered median/p95/p99/maximum values, and rejects missing
-  percentiles or impossible stored/seen/call sample counts.
+  percentiles or impossible stored/seen/call sample counts. The August 1
+  distribution audit also found that the scale/ferry/login/memory scripts were
+  incomplete in Automake's release manifest and that ordinary root and CMake
+  tests skipped the safe memory and scale-parser regressions. All required
+  scripts are now distributed, and both build systems run those three tooling
+  tests as part of their normal test gates.
   The measured Kohdee session now records timestamped initial, hourly, and
   final `shiplist summary`/`show stats` checkpoints. The runner writes their
   fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,
