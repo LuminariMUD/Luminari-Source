@@ -199,7 +199,12 @@ merchant, copyover, and multiplayer encounter testing.
   contains all 11 production heartbeat rows, including `vessel_hunters`, and a
   parser regression compares that list with `src/comm.c`. The gate remains
   open until the current binary is installed and the runner records a terminal
-  result.
+  result. The August 1 preflight audit found that the documented stale-binary
+  refusal only compared the running and installed hashes; it did not compare
+  the installed file with current build inputs. The runner now rejects
+  `bin/circle` when any C source, header, or primary build file is newer and
+  directs the operator through `make test` and `make install`. A deterministic
+  fixture proves both the stale and current cases before the long scale gate.
   The measured Kohdee session now records timestamped initial, hourly, and
   final `shiplist summary`/`show stats` checkpoints. The runner writes their
   fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,

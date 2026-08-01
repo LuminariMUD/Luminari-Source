@@ -127,6 +127,24 @@ load_database_config()
   [[ -n "$database_host" && -n "$database_name" && -n "$database_user" ]]
 }
 
+newer_binary_input()
+{
+  local input_root=$1
+  local binary_path=$2
+  local candidate
+
+  [[ -e "$binary_path" ]] || return 2
+  for candidate in Makefile Makefile.am CMakeLists.txt configure.ac config.h; do
+    if [[ -f "$input_root/$candidate" &&
+          "$input_root/$candidate" -nt "$binary_path" ]]; then
+      printf '%s\n' "$input_root/$candidate"
+      return 0
+    fi
+  done
+  find "$input_root/src" -type f \( -name '*.c' -o -name '*.h' \) \
+    -newer "$binary_path" -print -quit
+}
+
 database_query()
 {
   local query=$1
@@ -575,6 +593,7 @@ run_benchmark()
   local source_commit
   local binary_sha256
   local binary_fingerprint
+  local stale_binary_input
   local snapshot_tmp
   local baseline_count
   local valid_baseline_count
@@ -839,6 +858,10 @@ run_benchmark()
     benchmark_fail "refusing to disturb active ferry soak $soak_unit"
   [[ -z "$(git -C "$repo_root" status --porcelain)" ]] ||
     benchmark_fail "source worktree must be clean before benchmark provenance is recorded"
+  stale_binary_input=$(newer_binary_input "$repo_root" "$repo_root/bin/circle") ||
+    benchmark_fail "could not compare the installed MUD with current build inputs"
+  [[ -z "$stale_binary_input" ]] ||
+    benchmark_fail "bin/circle is older than $stale_binary_input; run make test and make install"
   source_commit=$(git -C "$repo_root" rev-parse HEAD)
   binary_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{print $1}')
 
@@ -1926,6 +1949,10 @@ case "${1:-}" in
   __validate-live-system)
     (($# == 3)) || usage
     validate_live_system_samples "$2" "$3"
+    ;;
+  __newer-binary-input)
+    (($# == 3)) || usage
+    newer_binary_input "$2" "$3"
     ;;
   *)
     usage

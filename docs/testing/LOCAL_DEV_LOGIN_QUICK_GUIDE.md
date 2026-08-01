@@ -411,7 +411,9 @@ that same account verify the reconstructed workload, warm it, collect
 `perfmon csv`, and leave Kohdee in room 1000389.
 
 The runner refuses production, a dirty source worktree, an active ferry soak,
-an older installed binary, or stale benchmark data. Before mutation it takes
+an installed binary older than any current C source, header, or primary build
+file, or stale benchmark data. A stale-build refusal names the first newer
+input and requires `make test` followed by `make install`. Before mutation it takes
 an atomic snapshot of every vessel/economy table it can change. It then fills
 active slots 1-500 across all eight vessel classes, configures routes, pilots,
 crew, schedules, cargo, weapons, encounters, wear, and economy state, and

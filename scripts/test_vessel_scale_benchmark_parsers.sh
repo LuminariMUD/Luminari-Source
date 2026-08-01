@@ -17,6 +17,24 @@ fail()
 test_root=$(mktemp -d "${TMPDIR:-/tmp}/vessel-scale-parser-test.XXXXXX")
 trap 'rm -rf -- "$test_root"' EXIT
 
+provenance_root="$test_root/provenance"
+provenance_binary="$provenance_root/bin/circle"
+provenance_source="$provenance_root/src/vessels.c"
+mkdir -p "$provenance_root/bin" "$provenance_root/src"
+touch -t 202608010100 "$provenance_binary"
+touch -t 202608010200 "$provenance_source"
+stale_input=$(
+  "$runner" __newer-binary-input "$provenance_root" "$provenance_binary"
+)
+[[ "$stale_input" == "$provenance_source" ]] ||
+  fail "stale installed-binary fixture did not identify the newer source"
+touch -t 202608010300 "$provenance_binary"
+stale_input=$(
+  "$runner" __newer-binary-input "$provenance_root" "$provenance_binary"
+)
+[[ -z "$stale_input" ]] ||
+  fail "current installed-binary fixture was incorrectly rejected"
+
 source_perf_sections="$test_root/source-perf-sections.txt"
 runner_perf_sections="$test_root/runner-perf-sections.txt"
 sed -nE \
@@ -183,4 +201,4 @@ noisy_count=$("$runner" __count-progress-logs "$noisy_log")
   fail "noisy server log reported $noisy_count of 11 high-volume rows"
 
 printf '%s\n' \
-  "PASS: vessel scale parsers validated chronology and detected high-volume progress logs."
+  "PASS: vessel scale parsers validated build provenance, chronology, and high-volume logs."
