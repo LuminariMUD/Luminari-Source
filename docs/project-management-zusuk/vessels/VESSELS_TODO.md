@@ -213,7 +213,11 @@ merchant, copyover, and multiplayer encounter testing.
   incomplete in Automake's release manifest and that ordinary root and CMake
   tests skipped the safe memory and scale-parser regressions. All required
   scripts are now distributed, and both build systems run those three tooling
-  tests as part of their normal test gates.
+  tests as part of their normal test gates. A follow-up completeness scan added
+  the missing harbor zone, vessel planning/behavior/testing/deployment docs,
+  authoritative help SQL, master schema, and Phase 2-10 install/verify/rollback
+  files. A packaged source tree now contains the complete documented local
+  acceptance and schema-rehearsal inputs.
   The measured Kohdee session now records timestamped initial, hourly, and
   final `shiplist summary`/`show stats` checkpoints. The runner writes their
   fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,

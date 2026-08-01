@@ -337,6 +337,13 @@ EXTRA_DIST = \
 	scripts/test_vessel_hunter_in_game.sh \
 	scripts/test_vessel_memory_analyzer.sh \
 	scripts/test_vessel_scale_benchmark_parsers.sh \
+	docs/PRD.md \
+	docs/deployment/VESSEL_SCHEMA_DEPLOYMENT.md \
+	docs/project-management-zusuk/vessels/VESSELS_TODO.md \
+	docs/systems/VESSEL_SYSTEM.md \
+	docs/testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md \
+	docs/testing/VESSEL_BENCHMARKS.md \
+	docs/testing/VESSEL_SYSTEM_TESTING.md \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
@@ -345,15 +352,40 @@ EXTRA_DIST = \
 	lib/world/vessel_harbor/10000.wld \
 	lib/world/vessel_harbor/700.mob \
 	lib/world/vessel_harbor/700.trg \
+	lib/world/vessel_harbor/700.zon \
 	sql/components/character_rename_transactional_schema.sql \
+	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
 	sql/components/ci_schema_manifest.txt \
+	sql/components/test_vessels_integrity.sql \
+	sql/components/verify_help_vessel_entries.sql \
+	sql/components/verify_vessels_schema.sql \
+	sql/components/verify_vessels_phase4.sql \
+	sql/components/verify_vessels_phase6.sql \
+	sql/components/verify_vessels_phase7.sql \
+	sql/components/verify_vessels_phase8.sql \
+	sql/components/verify_vessels_phase9.sql \
+	sql/components/verify_vessels_phase10.sql \
 	sql/components/verify_vessels_phase11.sql \
 	sql/components/verify_vessels_phase12.sql \
 	sql/components/verify_vessels_phase13.sql \
 	sql/components/verify_vessels_phase14.sql \
 	sql/components/verify_vessels_phase15.sql \
 	sql/components/vessels_harbor_sandbox.sql \
+	sql/components/vessels_phase2_rollback.sql \
+	sql/components/vessels_phase2_schema.sql \
+	sql/components/vessels_phase4_rollback.sql \
+	sql/components/vessels_phase4_schema.sql \
+	sql/components/vessels_phase6_rollback.sql \
+	sql/components/vessels_phase6_schema.sql \
+	sql/components/vessels_phase7_rollback.sql \
+	sql/components/vessels_phase7_schema.sql \
+	sql/components/vessels_phase8_rollback.sql \
+	sql/components/vessels_phase8_schema.sql \
+	sql/components/vessels_phase9_rollback.sql \
+	sql/components/vessels_phase9_schema.sql \
+	sql/components/vessels_phase10_rollback.sql \
+	sql/components/vessels_phase10_schema.sql \
 	sql/components/vessels_phase11_rollback.sql \
 	sql/components/vessels_phase11_schema.sql \
 	sql/components/vessels_phase12_rollback.sql \
@@ -364,6 +396,7 @@ EXTRA_DIST = \
 	sql/components/vessels_phase14_schema.sql \
 	sql/components/vessels_phase15_rollback.sql \
 	sql/components/vessels_phase15_schema.sql \
+	sql/master_schema.sql \
 	README.md
 
 # Run unit tests

@@ -354,7 +354,10 @@ production-linked suite. The required `make install` installs `bin/circle` and
 removes that root artifact before the runner records provenance. Root
 `make test` and CMake/CTest now also run the vessel memory analyzer, detailed
 process-memory, and scale-parser regressions; the release manifest includes
-the login, ferry, scale, memory, and supporting vessel test scripts.
+the login, ferry, scale, memory, and supporting vessel test scripts. It also
+includes the complete harbor world fixture, vessel docs, authoritative help
+data, master schema, and every Phase 2-15 install/verify/rollback input needed
+to reproduce this guide from a packaged source tree.
 
 ## Reproducible 500-Vessel Scale Gate
 
