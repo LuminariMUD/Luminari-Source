@@ -3,6 +3,16 @@
 **Last verified:** August 1, 2026
 **Last updated:** August 2, 2026
 
+**Active execution checkpoint (August 2, 2026, 01:59 IDT):** Local development
+is clean and stopped on source
+`187f87d32326b03325925e86f556ba4aa168c1e2`. No ferry or scale controller has
+an active run. The installed candidate SHA-256 is
+`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`.
+Resume with the explicit bounded ferry command in "Bounded Vessel Ferry
+Validation" below; do not start an unbounded replacement. Record its run
+directory and terminal status in this checkpoint before proceeding to the
+post-validation sequence.
+
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
 character and account cleanly.
