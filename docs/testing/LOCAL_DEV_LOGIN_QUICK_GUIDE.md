@@ -3,7 +3,7 @@
 **Last verified:** August 1, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:06 IDT):** The stopped-MUD
+**Active execution checkpoint (August 2, 2026, 02:21 IDT):** The stopped-MUD
 bootstrap fix passes both build-system tooling gates. Preserve the pre-fix
 zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
 `RUNNING` under unit
@@ -12,10 +12,14 @@ zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
 bootstrap passed in 25 seconds. Continuous observation began at 02:06:25 IDT
 on PID 160111, source `c539a6d59483f44da121260378287cb33094751e`, binary
 SHA-256 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
-and ferry/route 5/4. The initial actual-character, database, process, and
-detailed-memory samples pass with zero buffer overflows. Do not run scale,
-hunter, merchant destruction, build, install, or a manual restart. Resume only
-with `run_vessel_ferry_soak.sh status` until it reaches a terminal result.
+and ferry/route 5/4. The initial and elapsed-903 actual-character samples pass.
+The first interval recorded 492 movement steps, 82 arrivals, 21 complete
+loops, a stable six-ship fleet, bounded 5/2,000 dynamic-room occupancy, and
+zero buffer overflows. PID 160111, two threads, and 12 descriptors remain
+fixed; correlated awake-world RSS moved from 767,396 to 807,184 KiB while
+movement trails rose from 1,896 to 129,674. Do not run scale, hunter, merchant
+destruction, build, install, or a manual restart. Resume only with
+`run_vessel_ferry_soak.sh status` until it reaches a terminal result.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -754,10 +758,6 @@ instead:
 ./scripts/dev_kohdee_login_smoke.sh --help-check \
   delroute vesseldebug loadvehicle
 ```
-
-This mode exits paged entries safely, requires a database `Help Tag` for every
-keyword, prints one compact result per keyword, and fails on missing or
-file-fallback help.
 
 For the exhaustive vessel release check, use the single-command form:
 
