@@ -1,6 +1,6 @@
 # Local Development Login Quick Guide
 
-**Last verified:** July 30, 2026
+**Last verified:** August 1, 2026
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -155,6 +155,28 @@ Start the release-gate ferry run as a user service:
 ./scripts/run_vessel_ferry_soak.sh start
 ./scripts/run_vessel_ferry_soak.sh status
 ```
+
+The current replacement gate started on August 1, 2026 at 22:48:15 IDT after
+a clean 268-of-268 production-linked suite, `make install`, and a complete
+actual Kohdee/Vesselmate harbor provisioning pass. Its pinned state is:
+
+```text
+unit=luminari-vessel-ferry-soak-20260801T194759Z-1807083.service
+run_dir=/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T194759Z-1807083
+source_commit=4f3ba35511538594b6a86771e93301fb2c983388
+binary_sha256=6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd
+started_at=2026-08-01 22:48:15 IDT
+duration=86400
+ferry_slot=5
+route_id=4
+```
+
+Its initial actual-character and database samples passed and `status` reported
+`RUNNING`. Leave the installed server and service untouched until the monitor
+records its terminal result. In particular, do not run the scale, hunter, or
+destructive merchant checks during this window. The earliest nominal duration
+completion is August 2 at 22:48:15 IDT; only the subsequent final persistence
+restart and terminal `PASS` close the gate.
 
 The default is 24 continuous hours with database/process checks every 60
 seconds and an actual Kohdee inspection every hour. The monitor refuses
@@ -323,7 +345,7 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 262 of 262. The preceding pre-Phase15 Memcheck
+The current suite result is 268 of 268. The preceding pre-Phase15 Memcheck
 gate reported zero errors and zero definite, indirect, or possible loss;
 repeat the command above for the current candidate. Reachable process-lifetime
 registries and profiler buffers remain reported but are not classified as

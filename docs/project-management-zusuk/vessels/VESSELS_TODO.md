@@ -1,9 +1,9 @@
 # Vessel System Remaining Work
 
-**Last audited:** July 30, 2026
+**Last audited:** August 1, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 262 of 262 after integration with current
+production-linked suite passes 268 of 268 on current
 master, CMake passes the preceding
 251-test candidate, the
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
@@ -19,6 +19,19 @@ Routine wilderness region/path progress logging is removed, and the scale
 runner treats its return as a bounded-log failure. A short forced-copyover
 ferry shakedown now passes through same-PID recovery and the final exact-state
 hard restart; it is not a substitute for the 24-hour duration.
+
+The replacement 24-hour ferry gate is `RUNNING`. It started on August 1 at
+22:48:15 IDT in
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T194759Z-1807083`, under
+`luminari-vessel-ferry-soak-20260801T194759Z-1807083.service`. The monitor
+pinned source `4f3ba35511538594b6a86771e93301fb2c983388` and installed SHA-256
+`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd` after a
+clean 268-test pass, `make install`, and an actual Kohdee/Vesselmate harbor
+provisioning pass. Its initial live and database samples passed with ferry
+slot 5 and route 4. Do not run the scale, hunter, or destructive merchant
+checks against the installed server until this monitor reaches a terminal
+result. This item remains open until the full 86,400-second window and final
+hard-restart recovery both report `PASS`.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
 vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
@@ -163,7 +176,7 @@ merchant, copyover, and multiplayer encounter testing.
   through the central position update. The removed immediate traversal probe
   had configured the same room and executed the region/path spatial queries a
   second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite now passes 262 of 262 and isolated
+  coordinate. The production-linked suite now passes 268 of 268 and isolated
   `make install` is clean. Only the current installed-candidate scale run can
   provide live evidence for this change.
   `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
@@ -228,7 +241,7 @@ merchant, copyover, and multiplayer encounter testing.
   complete-route evidence through `autopilot status`; the next ferry monitor
   requires every active live interval to advance all three. The counters add
   only 24 bytes per optional autopilot (72 bytes total), while the base ship
-  remains 4,928 bytes. The production-linked suite passes 262 of 262. Confirm
+  remains 4,928 bytes. The production-linked suite passes 268 of 268. Confirm
   bounded actual server-log growth in the default installed 500-ship run
   before enabling a 72-hour window. The scale worker now reports measured log
   bytes and fails if any old unconditional or compiled-debug movement,
@@ -313,7 +326,7 @@ merchant, copyover, and multiplayer encounter testing.
   PvP gate explicitly permits ownerless hulls, and regression coverage proves
   that attaching a merchant registry identity does not make the NPC ship
   immune to player attacks. The GNU C23
-  production-linked suite passes 262 of 262 with constructor rejection,
+  production-linked suite passes 268 of 268 with constructor rejection,
   respawn gating, faction scaling, responsibility-window, faction persistence,
   consequence high-water, and merchant combat-consent coverage. The complete
   `make test` then isolated `make install` gate passes without a root build
