@@ -38,20 +38,22 @@ rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 02:04 IDT):** The stopped
-installed development candidate has SHA-256
-`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`.
-The first bounded launch produced a safe immediate `FAIL` at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892` with
-`reason=the local MUD log is unavailable`; no live or database sample ran and
-no vessel state changed. The runner checks for the development service log
-before it starts a stopped local MUD, so the documented direct launch was not
-restart-safe. Preserve this artifact. The runner now bootstraps an inactive
-development service through the actual Kohdee login helper, preserves its
-output, and then requires both the supervised service and its log. A
-deterministic stopped/ready/missing-log/helper-failure regression passes. The
-next action is to commit this harness fix and rerun the same explicit bounded
-command; no scale run has started.
+**Active validation checkpoint (August 2, 2026, 02:06 IDT):** The stopped-MUD
+bootstrap defect is fixed and covered by the Automake and CTest tooling gates.
+Preserve its pre-fix zero-sample failure at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892`. The bounded
+replacement is `RUNNING` under
+`luminari-vessel-ferry-soak-20260801T230546Z-160058.service`, with artifacts at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Kohdee
+started PID 160111 and logged out cleanly in 25 seconds. The observation began
+at 02:06:25 IDT on source `c539a6d59483f44da121260378287cb33094751e`,
+installed SHA-256
+`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
+ferry/route 5/4. Its passing initial actual-character sample found 6 ships,
+6/2,000 dynamic rooms, 31,632 mobiles, 24,201 objects, 50,370 rooms, 1,224
+lists, 1,896 movement trails, and zero buffer overflows. Do not disturb the
+service or installed binary. The next actual-Kohdee checkpoint is due after
+900 seconds; the terminal persistence restart follows the 2,700-second window.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

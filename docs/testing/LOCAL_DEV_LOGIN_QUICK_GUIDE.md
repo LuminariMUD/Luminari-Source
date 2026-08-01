@@ -3,16 +3,19 @@
 **Last verified:** August 1, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:04 IDT):** The direct bounded
-launch from a stopped development service safely failed before any vessel
-mutation. Preserve
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892`; its terminal
-reason is `the local MUD log is unavailable`, with zero live/database/process
-samples. That runner revision required the smoke service and its log before it
-used the login helper, contradicting this guide's stopped-state resume path.
-The local fix now starts an inactive service through the existing Kohdee helper
-and has a passing deterministic preflight regression. Commit the fix, then
-rerun `run_vessel_ferry_soak.sh start 2700 60 900`; do not begin scale first.
+**Active execution checkpoint (August 2, 2026, 02:06 IDT):** The stopped-MUD
+bootstrap fix passes both build-system tooling gates. Preserve the pre-fix
+zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
+`RUNNING` under unit
+`luminari-vessel-ferry-soak-20260801T230546Z-160058.service`; artifacts are at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. The Kohdee
+bootstrap passed in 25 seconds. Continuous observation began at 02:06:25 IDT
+on PID 160111, source `c539a6d59483f44da121260378287cb33094751e`, binary
+SHA-256 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
+and ferry/route 5/4. The initial actual-character, database, process, and
+detailed-memory samples pass with zero buffer overflows. Do not run scale,
+hunter, merchant destruction, build, install, or a manual restart. Resume only
+with `run_vessel_ferry_soak.sh status` until it reaches a terminal result.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
