@@ -2,9 +2,9 @@
 
 **Version:** 3.7
 
-**Evidence snapshot:** July 30, 2026
+**Evidence snapshot:** August 1, 2026
 
-**Last updated:** July 30, 2026
+**Last updated:** August 1, 2026
 
 This document records measured vessel-system evidence and the remaining release
 performance gate. It intentionally separates completed foundation measurements
@@ -19,7 +19,7 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on July 30, 2026 | 262 of 262 passing | Current production-linked gate |
+| Root suite on August 1, 2026 | 268 of 268 passing | Current production-linked gate |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
@@ -184,8 +184,9 @@ rejects overlaps.
 ### Reproducible Development Workload
 
 `scripts/run_vessel_scale_benchmark.sh` now defines the development-only
-workload and evidence contract. It remains unexecuted against the Phase 15
-candidate, so its presence is not evidence that the live 25 ms gate passes.
+workload and evidence contract. It remains unexecuted against the current
+installed candidate while the replacement 24-hour ferry gate owns that
+server, so its presence is not evidence that the live 25 ms gate passes.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
@@ -198,8 +199,9 @@ rather than a pinned-run failure.
 The runner:
 
 - Refuses non-development configuration, an active ferry soak, a dirty source
-  worktree, stale benchmark markers, and an installed binary without both the
-  500-slot capacity and compact `shiplist summary` behavior.
+  worktree, stale benchmark markers, an installed binary older than any C
+  source, header, or primary build input, and an installed binary without both
+  the 500-slot capacity and compact `shiplist summary` behavior.
 - Atomically snapshots the 19 vessel, trade, freight, bounty, encounter, and
   insurance tables that the workload can change, then restores and verifies
   the baseline on success, failure, or interruption.
@@ -273,6 +275,11 @@ The runner:
   derives the production profiler names from `src/comm.c` and compares them
   with the runner contract, so adding or removing a sampled heartbeat section
   cannot silently invalidate the row count.
+- Validates the complete ten-field `vessel_tick` CSV row before applying the
+  budget. Every metric must be numeric, median/p95/p99/maximum must be ordered,
+  and the stored/seen/call counts must be possible. Deterministic fixtures
+  reject missing percentiles, inverted distributions, impossible sample
+  counts, and stale installed binaries.
 
 The user-service interface is:
 
@@ -296,8 +303,8 @@ ERROR SUMMARY: 0 errors from 0 contexts
 All heap blocks were freed -- no leaks are possible
 ```
 
-The current work was built with GNU C23 and `-Wall -Wextra` in an isolated
-worktree on July 30, 2026. The production-linked root suite passed 262 of 262
+The current work was built with GNU C23 and `-Wall -Wextra` on local
+development on August 1, 2026. The production-linked root suite passed 268 of 268
 tests, including percentile interpolation, interval promotion, CSV/reset
 behavior, truncation safety, stale-exit handling, the 500-active-slot and
 slot-500 interior boundaries, bounded full-fleet `shiplist summary` output,
@@ -308,16 +315,15 @@ exact movement-trail counting after production movement, hunter policy bounds,
 HUNTED eligibility, and lifecycle cooldown semantics. The suite also checks
 canonical polygon interiors and MariaDB-compatible edge exclusion for
 named-water resolution. It poisons a complete affect structure before
-initialization and proves that both flag arrays are cleared. CMake with
-`BUILD_TESTS=ON` builds and passes the same production suite plus autorun
-supervision. GCC `-fanalyzer` reports no diagnostic for the Phase 15 hunter
-implementation.
+initialization and proves that both flag arrays are cleared. The preceding
+CMake candidate passed its 251-test production suite plus autorun supervision.
+GCC `-fanalyzer` reports no diagnostic for the Phase 15 hunter implementation.
 The preceding 246-test candidate passed Memcheck with zero errors and zero
 definite, indirect, or possible loss. Its 301,630 still-reachable bytes belong
 to process-lifetime spell, command, DG, and profiler registries and are not
 presented as a 72-hour leak verdict; Memcheck must be repeated for Phase 15.
-`make install` completed for the current candidate in the isolated worktree
-and removed its root-level `circle`. Isolated provisioner fixtures also passed
+`make install` completed for the current local candidate and removed its
+root-level `circle`. Isolated provisioner fixtures also passed
 the idempotent zone-extension and overlap-rejection paths. Deterministic shell
 fixtures cover the compact live-system parser, incomplete sample rejection, a
 clean normal-build log, and detection of six representative vessel progress
@@ -327,6 +333,15 @@ whose label does not match the requested duration. Deterministic status and
 `smaps` fixtures plus a live-process sample verify the detailed-memory sampler;
 its validator rejects PID drift, duplicate epochs, impossible memory
 relationships, and a missing heap mapping.
+
+The normal Autotools `make test` gate now also runs the vessel memory analyzer,
+detailed-memory sampler, and scale-parser regressions. CMake registers the same
+three scripts as CTest cases; a clean CMake configuration ran all three
+successfully. Automake's release manifest now includes the ferry, scale,
+login, memory, and hunter tools plus the complete harbor, vessel documentation,
+help SQL, master schema, and Phase 2-15 install/verify/rollback chain. An
+August 1 `make dist` archive audit found zero missing documented vessel
+acceptance or schema-rehearsal inputs.
 
 After integration and installation on local development, the complete harbor
 provisioner passed restart persistence, exact 10-gold fare collection and
