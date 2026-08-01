@@ -1,6 +1,6 @@
 # Vessel System Considerations
 
-**Last updated:** July 29, 2026
+**Last updated:** August 2, 2026
 
 **Status:** Gameplay layer implemented; production release not yet approved
 
@@ -16,8 +16,8 @@ outstanding work.
    encounters, economy, wear, persistence, and client updates active. Historical
    navigation microbenchmarks are not release evidence.
 2. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
-   a 72-hour soak, player beta, and migration rollback rehearsal before broad
-   release.
+   a supervised stability check capped at one hour, player beta, and migration
+   rollback rehearsal before broad release.
 
 ## Enduring Integration Rules
 

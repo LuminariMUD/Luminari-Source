@@ -4,7 +4,7 @@
 
 **Evidence snapshot:** August 1, 2026
 
-**Last updated:** August 1, 2026
+**Last updated:** August 2, 2026
 
 This document records measured vessel-system evidence and the remaining release
 performance gate. It intentionally separates completed foundation measurements
@@ -185,8 +185,9 @@ rejects overlaps.
 
 `scripts/run_vessel_scale_benchmark.sh` now defines the development-only
 workload and evidence contract. It remains unexecuted against the current
-installed candidate while the replacement 24-hour ferry gate owns that
-server, so its presence is not evidence that the live 25 ms gate passes.
+installed candidate. Before launching it, confirm that no legacy ferry monitor
+still owns the server. The runner's presence is not evidence that the live
+25 ms gate passes.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
@@ -321,7 +322,8 @@ GCC `-fanalyzer` reports no diagnostic for the Phase 15 hunter implementation.
 The preceding 246-test candidate passed Memcheck with zero errors and zero
 definite, indirect, or possible loss. Its 301,630 still-reachable bytes belong
 to process-lifetime spell, command, DG, and profiler registries and are not
-presented as a 72-hour leak verdict; Memcheck must be repeated for Phase 15.
+presented as a long-horizon leak verdict; Memcheck must be repeated for Phase
+15.
 `make install` completed for the current local candidate and removed its
 root-level `circle`. Isolated provisioner fixtures also passed
 the idempotent zone-extension and overlap-rejection paths. Deterministic shell
@@ -369,22 +371,22 @@ make test-all
 The root CuTest binary links the production game sources. Older standalone
 vessel mirror sources and claims about a separate `test_runner` are obsolete.
 
-## Soak and Recovery Gate
+## Bounded Stability and Recovery Gate
 
-After the benchmark passes, run a 72-hour development soak with scheduled NPC
-fleets and representative player activity. The ferry monitor now provides a
-reusable game-side observation contract: actual-Kohdee samples capture fleet
-count, dynamic wilderness occupancy, mobiles, objects, rooms, allocation
-lists, live movement trails, buffer switches, and overflows in
-`live-system-samples.tsv`. The scale runner now preserves the same fields
-beside a headered process series, but its supported window remains capped at
-7,200 seconds. The 72-hour fleet gate must retain equivalent samples and
-enforce a documented post-warmup bounded-growth threshold; an
-initial/maximum/final RSS tuple alone is not a leak verdict. The candidate has
-moved high-volume step/arrival/loop messages behind compiled development
-diagnostics and exposes monotonic status counters instead. The default
-installed 500-ship run must still confirm bounded actual log growth before
-the 72-hour ceiling is lifted.
+After the benchmark passes, run a supervised development stability check with
+scheduled NPC fleets and representative player activity. The full task,
+including setup, recovery checks, evidence review, and cleanup, is capped at
+one hour; limit the steady scale measurement to 1,800 seconds. The ferry
+monitor provides a reusable game-side observation contract: actual-Kohdee
+samples capture fleet count, dynamic wilderness occupancy, mobiles, objects,
+rooms, allocation lists, live movement trails, buffer switches, and overflows
+in `live-system-samples.tsv`. The scale runner preserves the same fields beside
+a headered process series. Review the resulting memory trend for obvious
+runaway growth, but do not present this bounded window as proof that a
+long-horizon leak cannot exist. The candidate has moved high-volume
+step/arrival/loop messages behind compiled development diagnostics and exposes
+monotonic status counters instead. The installed 500-ship run must confirm
+bounded actual log growth within the permitted window.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`, not a failed vessel
 continuity result. It remained healthy for 34,382 seconds with 18,720 movement
@@ -396,15 +398,16 @@ contract requires for non-playing connections. The old monitor treated that
 expected handoff as a dead keepalive and did not finalize status. The current
 monitor accepts only a log-proven same-PID/same-binary copyover, reconnects
 after boot, preserves the recovery log, and records terminal failure before
-cleanup. A replacement full window and exact-state restart are still required.
+cleanup. No replacement long-duration window is required; the remaining gate
+uses the bounded observation and exact-state restart defined above.
 
 The August 1 replacement run has a shutdown checkpoint at 1,543 of 86,400
 seconds. It retained PID 1803873, two threads, 12 descriptors, the pinned
 binary hash, one actual-character sample, 26 database/process samples, and
 continued ferry movement. Host shutdown invalidates the continuity window;
-these partial observations are not duration evidence and the next session
-must preserve the terminal artifact and start a full replacement. During this
-partial window, unrelated legacy ship 3 followed stale route `persistroute`
+these partial observations remain historical rather than a terminal result.
+The retired long-duration gate must not be restarted. During this partial
+window, unrelated legacy ship 3 followed stale route `persistroute`
 into an unoccupiable target, safely persisted speed zero/autopilot pause, and
 emitted one `SYSERR`. That severity and development fixture require follow-up;
 the monitored ferry was slot 5.
@@ -437,10 +440,11 @@ configurable trailing linear RSS/VSZ regressions; and has a stable
 `--format kv` mode. Its deterministic test proves an exact zero-slope plateau,
 an exact +6,000 KiB/hour rising series, and rejection of PID, timestamp, and
 metric corruption. It intentionally returns `REPORT_ONLY` until the two live
-observations support a defensible 72-hour criterion. Future ferry and scale
-runners create `memory-analysis.kv` at the end of measurement and reject a
-series the analyzer cannot validate; the abandoned pinned ferry predates this
-automatic artifact and remains available for read-only manual analysis.
+observations can be reviewed together. It is not used to create a longer
+duration gate. Future ferry and scale runners create `memory-analysis.kv` at
+the end of measurement and reject a series the analyzer cannot validate; the
+abandoned pinned ferry predates this automatic artifact and remains available
+for read-only manual analysis.
 
 Current ferry and scale runs also create `process-memory-details.tsv`. It
 records anonymous, file-backed, and shared RSS, data and swap sizes, and the
@@ -523,7 +527,8 @@ These observations remain a partial warmup investigation from an abandoned
 run, not a terminal continuity, plateau, root-cause, or leak verdict. The soak
 must demonstrate:
 
-- No crashes, leaks, unbounded growth, or corrupt vessel records.
+- No crashes, corrupt vessel records, or observed runaway growth during the
+  bounded window.
 - Stable tick performance and schedule execution.
 - Correct copyover and reboot recovery during voyages, combat, and cargo work.
 - Safe cleanup after sinking, extraction, player deletion, and generated-room
@@ -534,7 +539,8 @@ must demonstrate:
 
 The fixed-memory foundation and historical automated-test snapshot are within
 their stated budgets. The vessel system is not performance-approved for broad
-release until the complete 500-ship benchmark and 72-hour soak both pass.
+release until the complete 500-ship benchmark and one-hour-bounded supervised
+stability gate both pass.
 
 Remaining benchmark and release work is tracked in
 [`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).

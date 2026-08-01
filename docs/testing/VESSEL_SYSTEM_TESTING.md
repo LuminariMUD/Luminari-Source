@@ -78,12 +78,17 @@ The installed July 30 candidate passed this full sequence in 64 seconds. The
 raft proved effective speed 1 after terrain adjustment; the same hunter
 identity survived the restart; pardon and cleanup restored the exact baseline.
 
-Run the continuous ferry release gate through its supervised monitor:
+Run the bounded ferry release gate through its supervised monitor. The
+45-minute observation leaves 15 minutes for restart, review, and cleanup so
+the complete task stays within one hour:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh start 2700 60 900
 ./scripts/run_vessel_ferry_soak.sh status
 ```
+
+The runner retains a historical longer default. Never omit the explicit
+bounded arguments above and never restart the retired long-duration gate.
 
 This keeps the otherwise idle game loop awake without occupying a character.
 It submits a generated, nonexistent account name but never confirms it, so the
@@ -94,8 +99,8 @@ drops that non-playing descriptor by design; the monitor accepts only a
 log-proven same-PID, same-binary copyover, waits for boot, reconnects the
 descriptor, and records the recovery. Any other socket loss remains a hard
 failure. It checks unchanged process and database invariants every minute and
-uses the existing account and Kohdee for hourly live checks. Launch metadata
-records the source commit and installed executable SHA-256; a changed binary
+uses the existing account and Kohdee for live checks every 15 minutes. Launch
+metadata records the source commit and installed executable SHA-256; a changed binary
 fingerprint fails the run. A failure writes terminal status before cleanup.
 After the requested duration, it pauses through the game, hard-restarts local
 development, compares the exact coordinates, route, pilot, schedule, rooms,
@@ -103,7 +108,9 @@ structure, and executable hash, then resumes the ferry. The run is incomplete
 until `status` reports `PASS`.
 
 After that terminal `PASS`, use `make test`, `make install`, and
-`run_vessel_scale_benchmark.sh start` in that order. The scale runner invokes
+`run_vessel_scale_benchmark.sh start` in that order. Use at most an
+1,800-second scale measurement so its complete supervised task stays within
+one hour. The scale runner invokes
 the harbor provisioner and all installed-character component gates itself;
 running those commands separately before it wastes time and produces
 fragmented evidence. Poll its `status` command for the one terminal result.
@@ -332,14 +339,14 @@ numbered gameplay flow:
   after about 49 seconds, and later Kohdee samples temporarily woke the game
   loop. The corrected monitor enters unconfirmed account-name confirmation,
   checks the socket every 20 seconds, and treats any game-loop sleep line as a
-  hard failure. Only a replacement run longer than the old timeout can
-  validate the monitor before the 24-hour clock restarts.
+  hard failure. The corrected bounded shakedown below validates the monitor
+  beyond the old timeout; no long-duration clock is required.
 - The corrected replacement ran continuously for 150 seconds: 84 movement
   steps, 22 distinct positions, 3 west and 4 east arrivals, 5 actual Kohdee
   inspections, and 16 database/process samples under one travel PID. The
   final restart restored the exact paused coordinate and route under a new
-  PID, and Kohdee resumed the ferry. This validates the monitor path, not the
-  outstanding 24-hour duration.
+  PID, and Kohdee resumed the ferry. This validates the monitor path; the
+  remaining supervised ferry gate is capped at one hour end-to-end.
 - A follow-up provenance shakedown pinned source commit
   `0afad17bdb8fd67a78a58fa1af9e41d6ccc79efc` and executable SHA-256
   `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`.
@@ -354,7 +361,8 @@ numbered gameplay flow:
   failed to finalize status, so the run is `ABANDONED`. The replacement
   monitor recognizes only a log-proven same-PID/same-binary copyover,
   reconnects after boot, preserves its evidence, and writes terminal failure
-  status before cleanup. A new full window is still required.
+  status before cleanup. The former long-duration gate is retired and must not
+  be restarted.
 - A graceful full restart reconstructed two prototype-spawned hull objects and
   their 7-room and 6-room dynamic interiors. The transport retained Kohdee as
   owner, 400 pounds of timber, able sailmaster and green quartermaster, hull

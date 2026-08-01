@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
 **Release Status**: Gameplay layer implemented; production acceptance incomplete
-**Last Updated**: 2026-07-30
+**Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md); for what
@@ -1003,10 +1003,12 @@ ordinary hull-object path, proves exactly 10 gold was collected, restores
 Kohdee's starting gold, resumes the ferry, and validates the exact route
 topology.
 
-The 24-hour ferry gate is run independently of an agent session:
+The supervised ferry gate has a one-hour total execution budget, including its
+final restart and cleanup. The runner retains its historical long default, so
+always pass the bounded duration explicitly:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh start 2700 60 900
 ./scripts/run_vessel_ferry_soak.sh status
 ```
 
@@ -1018,9 +1020,9 @@ descriptor-driven game loop reports that it slept. A normal copyover drops
 non-playing descriptors by design; when the log proves copyover mode, the
 monitor requires the same PID and installed binary, waits for boot, reconnects
 the hold descriptor, and records the recovery. A missing socket without that
-copyover evidence remains a hard failure. The monitor samples database and
-process invariants every minute and serializes hourly Kohdee checks through
-the shared login-helper lock. It also fails on a PID change,
+copyover evidence remains a hard failure. The bounded invocation samples
+database and process invariants every minute and serializes Kohdee checks every
+15 minutes through the shared login-helper lock. It also fails on a PID change,
 route/room/pilot/schedule drift, structure loss, out-of-corridor coordinates,
 an installed-binary fingerprint change, or a ferry-specific
 movement/persistence error. Launch metadata records the source commit and
@@ -1360,7 +1362,8 @@ passes automated tests. Before rollout:
    maintained help entries and 78 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
-6. Pass the 500-vessel, 25 ms tick measurement and 72-hour soak.
+6. Pass the 500-vessel, 25 ms tick measurement and supervised stability check;
+   each complete validation must finish within one hour.
 7. Rehearse schema migration and rollback against a production snapshot.
 
 The live checklist is

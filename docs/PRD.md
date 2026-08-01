@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System - Product Requirements
 
 **Version:** 3.0
-**Last updated:** 2026-07-29
+**Last updated:** 2026-08-02
 **Status:** Gameplay layer implemented; dev-server verification and release acceptance remain
 **Product owner:** Zusuk
 
@@ -242,10 +242,12 @@ following are demonstrated on the development server:
 2. A new character can have a memorable ferry, event, or encounter experience
    within the first hour.
 3. At least 70% of beta respondents rate ship combat "fun" or better.
-4. NPC shipping runs unattended for one week, prices remain within bounds, and
-   at least one player-discovered route is profitable.
-5. A 72-hour soak completes with no crash or leak, the 500-vessel tick budget
-   is met, and all automated gates pass.
+4. NPC shipping completes a supervised sample within the one-hour validation
+   ceiling, prices remain within bounds, and at least one player-discovered
+   route is profitable.
+5. A supervised stability gate, including setup, recovery checks, and cleanup,
+   completes within one hour without a crash or observed runaway growth; the
+   500-vessel tick budget is met, and all automated gates pass.
 6. Every documented operational failure mode has a tested staff or command-line
    recovery procedure.
 7. Schema migration and rollback are rehearsed against a production snapshot

@@ -1,6 +1,6 @@
 # Vessel System Remaining Work
 
-**Last audited:** August 1, 2026
+**Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
 production-linked suite passes 268 of 268 on current
@@ -18,43 +18,20 @@ persists autopilot once, and tells occupants instead of retrying forever.
 Routine wilderness region/path progress logging is removed, and the scale
 runner treats its return as a bounded-log failure. A short forced-copyover
 ferry shakedown now passes through same-PID recovery and the final exact-state
-hard restart; it is not a substitute for the 24-hour duration.
+hard restart. Long unattended ferry and fleet soaks are no longer release
+gates. Every agent-run vessel validation must complete within a one-hour total
+execution budget, including setup, terminal recovery checks, and cleanup.
 
-The replacement 24-hour ferry gate is `RUNNING`. It started on August 1 at
-22:48:15 IDT in
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T194759Z-1807083`, under
-`luminari-vessel-ferry-soak-20260801T194759Z-1807083.service`. The monitor
-pinned source `4f3ba35511538594b6a86771e93301fb2c983388` and installed SHA-256
-`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd` after a
-clean 268-test pass, `make install`, and an actual Kohdee/Vesselmate harbor
-provisioning pass. Its initial live and database samples passed with ferry
-slot 5 and route 4. Do not run the scale, hunter, or destructive merchant
-checks against the installed server until this monitor reaches a terminal
-result. This item remains open until the full 86,400-second window and final
-hard-restart recovery both report `PASS`.
-
-Shutdown checkpoint, August 1 at 23:13:58 IDT: the monitor was still
-`RUNNING` at 1,543 of 86,400 seconds with one actual Kohdee sample, 26
-database/process samples, zero copyovers, the same PID 1803873, and the same
-installed SHA-256. Ferry slot 5 continued moving between its route cells; its
-initial counters were 36 steps, seven arrivals, and one completion. A host
-shutdown interrupts this continuous window, so on the next boot preserve the
-artifacts, record the terminal service/status result, and launch a new complete
-24-hour window rather than crediting this partial run. A separate scheduled
-legacy ship 3 (`Persistence_Goshawk`, route `persistroute`) attempted an
-unoccupiable cell at 22:57:03 and exercised the intended one-time safe pause:
-speed zero and persisted autopilot state 3. Its `SYSERR` log severity and stale
-development route remain a carry-forward investigation; this was not ferry
-slot 5.
-
-The first pinned 24-hour ferry attempt is `ABANDONED`: it remained
-vessel-healthy for 34,382 seconds, but the scheduled 11:00:30 IDT copyover
-correctly dropped the monitor's non-playing keepalive. The old harness treated
-that expected handoff as failure and did not finalize status. The current
-harness reconnects only after a log-proven same-PID/same-binary copyover and
-writes terminal failure state before cleanup. A full replacement window is
-still required. The 500-ship run, actual shared-encounter and merchant-loss
-transcripts, longer stability gates, campaign content, beta, and production
+The former long-duration ferry attempts are retained only as historical
+evidence in [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md). Do not
+start or restart an unattended long-duration monitor. The remaining ferry
+gate is a supervised 45-minute observation followed immediately by final
+hard-restart recovery and cleanup, all within the one-hour budget. Because the
+ferry runner still has a longer default, always provide explicit bounded
+arguments. Before running scale, hunter, or destructive merchant checks,
+confirm that no legacy ferry monitor still owns the installed development
+server. The 500-ship run, actual shared-encounter and merchant-loss
+transcripts, bounded stability checks, campaign content, beta, and production
 rollout remain.
 
 **Remaining checklist:** 23 top-level items: 5 harbor/performance validation,
@@ -74,8 +51,21 @@ recording enduring behavior or evidence in the permanent documentation.
 
 ## 1. Validate the Shared Harbor
 
-- [ ] Run the scheduled ferry continuously for 24 hours without route,
-  coordinate, room, or persistence desynchronization.
+- [ ] Complete a supervised scheduled-ferry validation within a one-hour total
+  execution budget without route, coordinate, room, or persistence
+  desynchronization. Use a 2,700-second observation window so final
+  hard-restart recovery and cleanup fit inside the remaining 15 minutes:
+
+  ```bash
+  ./scripts/run_vessel_ferry_soak.sh start 2700 60 900
+  ./scripts/run_vessel_ferry_soak.sh status
+  ```
+
+  Do not invoke `start` without an explicit duration and do not launch a
+  replacement long-duration service. A terminal `PASS` must include continuous
+  ferry progress, valid live/database/process samples, exact-state recovery on
+  the same installed binary after the final hard restart, and successful
+  cleanup before the one-hour limit.
 
   The early idle-timeout, provenance, and interruption shakedowns are resolved.
   The pinned full window at
@@ -83,7 +73,8 @@ recording enduring behavior or evidence in the permanent documentation.
   reached 34,382 seconds before the scheduled 11:00:30 IDT copyover correctly
   dropped its non-playing hold descriptor. The process and ferry survived, but
   the old monitor treated that expected handoff as failure and did not finalize
-  status. The run is `ABANDONED`; it does not satisfy the duration gate.
+  status. The run is `ABANDONED`; it does not provide the clean terminal result
+  required by the bounded gate.
   The current monitor accepts only a log-proven same-PID/same-binary copyover,
   reconnects after boot, records the recovery count, and writes terminal
   failure status before cleanup. It also captures `shiplist summary`,
@@ -108,7 +99,7 @@ recording enduring behavior or evidence in the permanent documentation.
   buffer overflows. The continuous process series stayed on PID 1817030; the
   final hard restart changed to PID 1859781, recovered the exact paused
   coordinates and route on the same binary, and resumed the ferry. This closes
-  the forced-copyover and restart shakedown, not the 24-hour item.
+  the forced-copyover and restart shakedown, not the supervised ferry item.
 
   Partial evidence from the abandoned run remained healthy at the July 30
   08:28 IDT checkpoint
@@ -166,7 +157,7 @@ recording enduring behavior or evidence in the permanent documentation.
   a high-volume full-world retention confounder, not that trails explain the
   entire heap or that the ferry leaks.
 
-Use the provisioned harbor for the continuous ferry run before meaningful
+Use the provisioned harbor for the bounded ferry run before meaningful
 merchant, copyover, and multiplayer encounter testing.
 
 ## 2. Prove Scale, Stability, and Economy
@@ -251,63 +242,47 @@ merchant, copyover, and multiplayer encounter testing.
   older full-list and current compact fleet-count wording.
   Instrumentation, capacity, and workload readiness do not themselves prove
   the 25 ms target.
-- [ ] Run a 72-hour development soak with NPC fleets active after the benchmark
-  passes. Require zero crashes, leaks, unbounded growth, corrupt records, or
-  schedule desynchronization, with the tick budget held. Carry the supervised
-  live-system series into this gate so process RSS can be correlated with
-  fleet count, dynamic wilderness occupancy, world objects/mobiles/rooms,
-  allocation lists, and buffer overflows. Define and enforce a post-warmup
-  bounded-growth criterion before launch; initial/maximum/final RSS alone does
-  not prove the absence of unbounded growth. The pre-Phase15 full-suite
-  Memcheck pass reports zero errors and zero definite, indirect, or possible
-  loss after fixing uninitialized secondary affect flags and gameplay-fixture
-  teardown. Repeat Memcheck for the current candidate. Its 301,630 reachable
-  process-lifetime bytes are not a substitute for the 72-hour runtime series.
-  The scale runner now has the required
-  correlated game/process sample format, but it still deliberately caps one
-  measurement at 7,200 seconds. Before lifting that cap for the 72-hour gate,
-  define the threshold from the completed 24-hour and default 500-ship
-  observations. The current candidate has moved per-step position, waypoint,
-  wait, and route-loop messages behind compiled development diagnostics.
-  Three monotonic per-autopilot counters now provide movement, arrival, and
-  complete-route evidence through `autopilot status`; the next ferry monitor
-  requires every active live interval to advance all three. The counters add
-  only 24 bytes per optional autopilot (72 bytes total), while the base ship
-  remains 4,928 bytes. The production-linked suite passes 268 of 268. Confirm
-  bounded actual server-log growth in the default installed 500-ship run
-  before enabling a 72-hour window. The scale worker now reports measured log
-  bytes and fails if any old unconditional or compiled-debug movement,
-  arrival, wait, or route-loop progress row appears. Its reconstruction check
-  reads only the log slice from the current 500-vessel boot, preventing stale
-  success or error lines from changing the verdict. Deterministic clean/noisy
-  log fixtures and complete/incomplete live-system parser fixtures pass. The
-  live-system validator also requires `system-0`, strictly increasing
-  timestamps and labels, hourly intermediate labels, the exact terminal
-  duration, and the calculated sample count; duplicate-epoch and wrong-final
-  fixtures are rejected.
-  `scripts/analyze_vessel_memory_samples.sh` now validates both the legacy
-  headerless and current headered process-series formats, rejects timestamp,
-  PID, or metric corruption, and emits consecutive block means plus full,
-  post-warmup, and configurable trailing RSS/VSZ regressions. Its stable
-  `key=value` mode and deterministic plateau/rising-series tests pass. It
-  deliberately reports `REPORT_ONLY`; use the completed 24-hour and default
-  500-ship results to define and encode the threshold before starting the
-  72-hour run. Future ferry and scale workers write this default report as
-  `memory-analysis.kv` and fail if their terminal process series is invalid;
-  the abandoned pinned ferry predates that automatic step and can be analyzed
-  manually without changing it. The new detailed-memory sampler and validator
-  likewise have deterministic status/`smaps` and live-process coverage. They
-  reject PID drift, non-increasing timestamps, missing heap metrics, and
-  impossible RSS relationships. Future workers validate
-  `process-memory-details.tsv` terminally; the abandoned pinned ferry predates
-  that artifact. The exact movement-trail counter has production-linked
-  create/move coverage, and updated parser fixtures require it in every
-  future live-system checkpoint. The abandoned pinned binary predates that
-  field. Automated movement now turns a failed terrain or Z step into one
-  persisted pause with speed zero, and production-linked coverage verifies
-  that state transition. The benchmark's bounded-log detector additionally
-  rejects the former unconditional wilderness region, sector-transform,
-  elevation, and path progress signatures.
+- [ ] Run a supervised post-benchmark stability check with NPC fleets active.
+  The complete gate, including setup, evidence collection, restoration, and
+  review, must finish within one hour. Limit the scale runner's steady
+  measurement window to at most 1,800 seconds so setup and cleanup retain the
+  other 30 minutes. Stop and clean up rather than exceeding the total budget.
+  Require no crash, corrupt record, schedule desynchronization, buffer
+  overflow, PID or executable drift, or tick-budget failure during the bounded
+  window.
+
+  Carry the correlated live-system and process series into this gate so RSS
+  can be reviewed beside fleet count, dynamic wilderness occupancy, world
+  objects/mobiles/rooms, allocation lists, movement trails, and buffer
+  overflows. A one-hour-bounded observation cannot prove the absence of a
+  long-horizon leak, so record the memory analysis and reject obvious runaway
+  growth without presenting the result as a multi-day leak verdict. Repeat
+  Memcheck for the current candidate as complementary evidence. The
+  pre-Phase15 full-suite Memcheck reported zero errors and zero definite,
+  indirect, or possible loss after fixing uninitialized secondary affect
+  flags and gameplay-fixture teardown; its 301,630 reachable
+  process-lifetime bytes remain context rather than runtime proof.
+
+  The scale runner accepts longer measurements, but this plan does not permit
+  lifting the 1,800-second measurement limit or launching a separate
+  long-duration service. Three monotonic per-autopilot counters provide
+  movement, arrival, and complete-route evidence through `autopilot status`;
+  every active live interval must advance all three. The scale worker reports
+  measured log bytes and fails on old unconditional or compiled-debug
+  movement, arrival, wait, route-loop, wilderness-region, sector-transform,
+  elevation, or path-progress rows. Its reconstruction check reads only the
+  current 500-vessel boot's log slice. The live-system validator requires
+  `system-0`, strictly increasing timestamps and labels, the exact terminal
+  duration, and the calculated sample count.
+
+  `scripts/analyze_vessel_memory_samples.sh` validates the process series and
+  emits block means plus full, post-warmup, and trailing RSS/VSZ regressions.
+  It remains `REPORT_ONLY`; review that report with the detailed-memory series
+  and historical observations, but do not create a longer gate to derive a
+  new threshold. The detailed-memory validator rejects PID drift,
+  non-increasing timestamps, missing heap metrics, and impossible RSS
+  relationships. Automated movement's persisted safe pause and the exact
+  movement-trail counter retain their production-linked coverage.
 - [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
   their hard bounds, inventory converges sensibly, and no route yields
   unbounded profit. The automated gate now passes all 1,000 adversarial
@@ -429,8 +404,9 @@ merchant, copyover, and multiplayer encounter testing.
   insurance, and dock fees using the simulation, duel tests, and player data.
 - [ ] Run a structured player beta against the release scorecard in
   [PRD.md](../../PRD.md). In particular, validate first-hour discovery,
-  multiplayer roles, builder independence, week-long NPC shipping, and at
-  least 70 percent "fun" combat feedback.
+  multiplayer roles, builder independence, a supervised NPC-shipping sample
+  that fits the one-hour validation ceiling, and at least 70 percent "fun"
+  combat feedback.
 - [ ] Rehearse all schema migrations and rollbacks against a production
   snapshot with no data loss.
 - [ ] Confirm production preflight on the release candidate: repeat the

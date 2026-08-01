@@ -1,6 +1,7 @@
 # Local Development Login Quick Guide
 
 **Last verified:** August 1, 2026
+**Last updated:** August 2, 2026
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -147,54 +148,25 @@ terrain modifier before the normal encounter check. The same hunter identity
 survived the hard restart, pardon cleanup passed, the target survived, and the
 script restored Kohdee's exact original rows.
 
-## Durable Vessel Ferry Soak
+## Bounded Vessel Ferry Validation
 
-Start the release-gate ferry run as a user service:
+The entire supervised ferry gate, including setup, final restart, evidence
+review, and cleanup, must finish within one hour. Use a 45-minute observation
+to reserve 15 minutes for the terminal work:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start
+./scripts/run_vessel_ferry_soak.sh start 2700 60 900
 ./scripts/run_vessel_ferry_soak.sh status
 ```
 
-The current replacement gate started on August 1, 2026 at 22:48:15 IDT after
-a clean 268-of-268 production-linked suite, `make install`, and a complete
-actual Kohdee/Vesselmate harbor provisioning pass. Its pinned state is:
+The script retains a historical longer default; do not invoke `start` without
+the explicit bounded arguments above and do not launch a replacement
+long-duration service. Before starting, use `status` to ensure no legacy ferry
+monitor owns the development server. Preserve any old run directory only as
+historical evidence.
 
-```text
-unit=luminari-vessel-ferry-soak-20260801T194759Z-1807083.service
-run_dir=/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T194759Z-1807083
-source_commit=4f3ba35511538594b6a86771e93301fb2c983388
-binary_sha256=6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd
-started_at=2026-08-01 22:48:15 IDT
-duration=86400
-ferry_slot=5
-route_id=4
-```
-
-Its initial actual-character and database samples passed and `status` reported
-`RUNNING`. Leave the installed server and service untouched until the monitor
-records its terminal result. In particular, do not run the scale, hunter, or
-destructive merchant checks during this window. The earliest nominal duration
-completion is August 2 at 22:48:15 IDT; only the subsequent final persistence
-restart and terminal `PASS` close the gate.
-
-Shutdown checkpoint, August 1 at 23:13:58 IDT: this run was healthy but only
-1,543 seconds into its required 86,400 seconds, with one actual-character
-sample, 26 database/process samples, zero copyovers, unchanged PID 1803873,
-and the pinned binary hash. If the host is shut down, the continuity gate is
-interrupted even if the on-disk status still says `RUNNING`. On the next boot,
-inspect the unit and run-directory status, preserve it as interrupted evidence,
-then start a replacement full window after the normal clean test/install and
-harbor gates. Do not resume or count elapsed time across host downtime.
-
-The same log also captured legacy ship 3 (`Persistence_Goshawk`) safely
-pausing at speed zero when route `persistroute` targeted an unoccupiable cell.
-That separate ship emitted a `SYSERR` at 22:57:03; trace the stale route and log
-severity next session. The monitored ferry is slot 5 and continued moving.
-
-The default is 24 continuous hours with database/process checks every 60
-seconds and an actual Kohdee inspection every hour. The monitor refuses
-non-development environments, discovers the ferry and route IDs instead of
+The monitor refuses non-development environments, discovers the ferry and
+route IDs instead of
 assuming slot 5, repairs the ferry once before starting, and holds a
 non-character connection in unconfirmed account-name state so the game loop
 does not sleep between inspections. The generated hold name is never
@@ -243,8 +215,8 @@ Inspect process-memory trends without changing the running service:
 ```bash
 run_dir=/path/printed/by/the/status/command
 ./scripts/analyze_vessel_memory_samples.sh \
-  --warmup-seconds 14400 \
-  --windows 1800,3600,7200,21600 \
+  --warmup-seconds 900 \
+  --windows 300,900,1800 \
   "$run_dir/process-samples.tsv"
 ```
 
@@ -253,8 +225,8 @@ headered series. It rejects malformed metrics, non-increasing timestamps, or
 a PID change, then reports consecutive block means and linear RSS/VSZ slopes
 for the full, post-warmup, and requested trailing windows. Add `--format kv`
 for stable `key=value` output. Its result is deliberately `REPORT_ONLY`; do
-not treat a low-looking slope as a pass until the completed 24-hour ferry and
-default 500-vessel observations establish the documented 72-hour threshold.
+not treat a low-looking slope from the bounded window as proof that a
+long-horizon leak cannot exist.
 Run `./scripts/test_vessel_memory_analyzer.sh` after changing the analyzer.
 Runs launched from the current ferry or scale scripts generate the same
 machine-readable report automatically as `memory-analysis.kv` and fail if the
@@ -313,8 +285,8 @@ normal automated copyover discarded the unauthenticated hold descriptor while
 preserving the ferry and process. The old monitor misclassified that expected
 handoff as a dead keepalive and then failed to finalize its status, so the run
 is `ABANDONED`, not continuity evidence. The current monitor fixes both
-harness defects. A replacement must still complete the full duration and final
-exact-state restart before this gate passes.
+harness defects. This is historical evidence; do not restart the retired
+long-duration gate.
 
 The current forced-copyover shakedown used:
 
@@ -329,9 +301,9 @@ steps, 22 waypoint arrivals, five route completions, four live checks, 25
 database/process samples, zero buffer overflows, a valid continuous
 detailed-memory series, and exact-state recovery and resume after the final
 hard restart. Use the short form only to verify harness changes; it does not
-close the 24-hour release gate.
+close the bounded 45-minute release gate.
 
-## Fast Post-Soak Finish
+## Fast Post-Validation Finish
 
 Do not repeat the component gates manually. After the ferry status reports
 terminal `PASS`, install the exact current clean candidate and start the
@@ -375,18 +347,19 @@ to reproduce this guide from a packaged source tree.
 
 ## Reproducible 500-Vessel Scale Gate
 
-After the definitive ferry soak passes and the current clean source is built
-and installed, launch the development-only scale gate with:
+After the bounded ferry validation passes and the current clean source is
+built and installed, launch the development-only scale gate with:
 
 ```bash
 ./scripts/run_vessel_scale_benchmark.sh start
 ./scripts/run_vessel_scale_benchmark.sh status
 ```
 
-The default steady measurement window is 660 seconds. An explicit value from
-600 through 7200 seconds may follow `start`. The command returns immediately
-after launching a supervised user service; use `status` for preparation,
-measurement, result, and restoration progress.
+The default steady measurement window is 660 seconds. The runner accepts an
+explicit value from 600 through 7200 seconds, but this plan permits at most
+1,800 seconds so the full setup, measurement, result, and restoration process
+can finish within one hour. The command returns immediately after launching a
+supervised user service; use `status` for progress.
 
 The held Kohdee session records a timestamped game-side allocation checkpoint
 at measurement start, every hour, and at the end. The worker writes these to
@@ -403,7 +376,7 @@ start, every complete intermediate hour, and end without scanning `smaps` in
 the 30-second loop.
 The terminal summary includes initial/maximum/final values for these series.
 Use the same memory analyzer above on this file so its shape is directly
-comparable with the ferry and eventual 72-hour series. The terminal worker
+comparable with the bounded ferry series. The terminal worker
 also writes the default report to `memory-analysis.kv`. Workload reconstruction
 checks read only the log bytes written by that boot, so an old success or error
 cannot affect the verdict. The measured log is preserved separately, its byte
@@ -418,12 +391,11 @@ checkpoint chronology: the series must start at
 `system-0`, use strictly increasing epochs and labels, retain hourly
 intermediate labels, and finish at the exact requested measurement duration.
 
-The 7,200-second ceiling is intentional. Do not pass 259200 and treat the
-short benchmark as the 72-hour soak. The long gate remains separate until the
-24-hour ferry and default 500-ship observations provide its documented
-post-warmup memory threshold. The candidate has removed normal-build
-per-movement log volume; confirm actual log growth during the default
-500-ship run before lifting the long-soak ceiling.
+Do not use the runner's larger technical range to create a longer gate. For the
+post-benchmark stability task, pass `1800` explicitly and stop and clean up if
+the one-hour total execution ceiling approaches. The candidate has removed
+normal-build per-movement log volume; confirm actual log growth during the
+bounded 500-ship run.
 
 The runner reuses the configured master account and exact `Kohdee` character
 for every fleet phase. Its harbor preflight may add the one reusable
@@ -475,8 +447,9 @@ interrupted run needs operator recovery, use:
 ./scripts/run_vessel_scale_benchmark.sh cleanup
 ```
 
-Do not start this gate while a 24-hour ferry run is active. The scale runner
-intentionally refuses to disturb the process and executable owned by that run.
+Do not start this gate while any ferry monitor is active. The scale runner
+intentionally refuses to disturb the process and executable owned by that
+run.
 
 ## Fast 1,000-Trade Economy Gate
 

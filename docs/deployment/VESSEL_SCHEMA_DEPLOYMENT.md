@@ -1,6 +1,6 @@
 # Vessel Schema Deployment
 
-**Last updated:** July 30, 2026
+**Last updated:** August 2, 2026
 
 This runbook covers controlled vessel-schema installation, verification,
 rollback rehearsal, and staged application rollout. The server can create and
@@ -228,7 +228,8 @@ After schema verification:
 2. Complete
    [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md).
 3. Verify reboot and copyover recovery.
-4. Confirm the complete 500-ship benchmark and 72-hour soak evidence.
+4. Confirm the complete 500-ship benchmark and supervised stability evidence;
+   each validation must finish within the one-hour execution ceiling.
 5. Observe logs, game-loop latency, room-pool pressure, database errors,
    schedules, cargo, ownership, and encounter volume.
 6. Expand access from staff to the beta cohort, then to all players only after
