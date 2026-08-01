@@ -2176,16 +2176,7 @@ cpp_extern const struct command_info cmd_info[] = {
      {0, 0},
      NULL},
 #else
-    {"harvest",
-     "harvest",
-     POS_STANDING,
-     do_wilderness_harvest,
-     0,
-     0,
-     FALSE,
-     ACTION_STANDARD,
-     {6, 0},
-     NULL},
+    {"harvest", "harvest", POS_STANDING, do_harvest, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
 #endif
     {"hlqedit", "hlqedit", POS_DEAD, do_hlqedit, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"hlqlist", "hlqlist", POS_DEAD, do_hlqlist, LVL_BUILDER, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
@@ -5454,16 +5445,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"shiplist", "shiplist", POS_DEAD, do_shiplist, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shipgoto", "shipgoto", POS_DEAD, do_shipgoto, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"shipfix", "shipfix", POS_DEAD, do_shipfix, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
-    {"vdebug",
-     "vdebug",
-     POS_DEAD,
-     do_vesseldebug,
-     LVL_IMMORT,
-     0,
-     TRUE,
-     ACTION_NONE,
-     {0, 0},
-     NULL},
+    {"vdebug", "vdebug", POS_DEAD, do_vesseldebug, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"vesseldebug",
      "vesseldebug",
      POS_DEAD,
@@ -5999,8 +5981,7 @@ void command_interpreter(struct char_data *ch, char *argument)
     }
     send_to_char(ch, "\tDYou can also check the help index, type 'hindex <keyword>'\tn\r\n");
   }
-  else if ((complete_cmd_info[cmd].feature_flags & CMD_FEATURE_VESSEL) &&
-           !CONFIG_VESSEL_SYSTEM)
+  else if ((complete_cmd_info[cmd].feature_flags & CMD_FEATURE_VESSEL) && !CONFIG_VESSEL_SYSTEM)
   {
     send_to_char(ch, "The vessel system is currently disabled.\r\n");
   }
@@ -7627,9 +7608,8 @@ void nanny(struct descriptor_data *d, char *arg)
           if (player_i < 0 || !remove_player(player_i))
           {
             write_to_output(
-                d,
-                "That deleted character cannot be replaced until durable property cleanup "
-                "succeeds.\r\nName: ");
+                d, "That deleted character cannot be replaced until durable property cleanup "
+                   "succeeds.\r\nName: ");
             free_char(d->character);
             d->character = NULL;
             return;

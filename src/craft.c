@@ -38,6 +38,7 @@
 #include "quest.h"
 #include "assign_wpn_armor.h"
 #include "genolc.h"
+#include "resource_system.h"
 
 extern MYSQL *conn;
 
@@ -3188,6 +3189,17 @@ EVENTFUNC(event_crafting)
   return 0;
 }
 
+/* Use wilderness harvesting only when the legacy node system cannot handle the request. */
+static bool try_wilderness_harvest_fallback(struct char_data *ch, const char *argument, int cmd,
+                                            int subcmd)
+{
+  if (IN_ROOM(ch) == NOWHERE || !ZONE_FLAGGED(world[IN_ROOM(ch)].zone, ZONE_WILDERNESS))
+    return false;
+
+  do_wilderness_harvest(ch, argument, cmd, subcmd);
+  return true;
+}
+
 /* the 'harvest' command */
 ACMD(do_harvest)
 {
@@ -3219,18 +3231,27 @@ ACMD(do_harvest)
 
   if (!*arg)
   {
+    if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
+      return;
+
     send_to_char(ch, "You need to specify what you want to harvest.\r\n");
     return;
   }
 
   if (!(node = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)))
   {
+    if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
+      return;
+
     send_to_char(ch, "That doesn't seem to be present in this room.\r\n");
     return;
   }
 
   if (GET_OBJ_VNUM(node) != HARVESTING_NODE)
   {
+    if (try_wilderness_harvest_fallback(ch, argument, cmd, subcmd))
+      return;
+
     send_to_char(ch, "That is not a harvesting node.\r\n");
     return;
   }

@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/actionqueues.h"
+#include "../../src/craft.h"
 #include "../../src/db.h"
 #include "../../src/dg_scripts.h"
 #include "../../src/fight.h"
@@ -16,6 +17,7 @@
 #include "../../src/missions.h"
 #include "../../src/movement.h"
 #include "../../src/perks.h"
+#include "../../src/protocol.h"
 #include "../../src/spells.h"
 
 #include <limits.h>
@@ -275,6 +277,54 @@ static void end_gameplay_fixture(struct gameplay_fixture *fixture)
   top_of_zone_table = fixture->saved_top_of_zone_table;
   mob_index = fixture->saved_mob_index;
   top_of_mobt = fixture->saved_top_of_mobt;
+}
+
+void Test_gameplay_e2e_harvest_uses_wilderness_only_as_fallback(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct descriptor_data descriptor;
+  bool fallback_used;
+  bool legacy_error_preserved;
+  bool legacy_error_suppressed;
+
+  begin_gameplay_fixture(&fixture);
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &fixture.actor;
+  descriptor.pProtocol = ProtocolCreate();
+  fixture.actor.desc = &descriptor;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    fixture.actor.desc = NULL;
+    end_gameplay_fixture(&fixture);
+    CuFail(tc, "could not initialize the harvest fallback fixture");
+    return;
+  }
+
+  do_harvest(&fixture.actor, "not-a-resource", 0, 0);
+  legacy_error_preserved =
+      strstr(descriptor.output, "That doesn't seem to be present in this room.") != NULL;
+
+  descriptor.small_outbuf[0] = '\0';
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufptr = 0;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  SET_BIT_AR(fixture.zones[0].zone_flags, ZONE_WILDERNESS);
+
+  do_harvest(&fixture.actor, "not-a-resource", 0, 0);
+  fallback_used = strstr(descriptor.output, "Invalid resource type.") != NULL;
+  legacy_error_suppressed =
+      strstr(descriptor.output, "That doesn't seem to be present in this room.") == NULL;
+
+  fixture.actor.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, legacy_error_preserved);
+  CuAssertTrue(tc, fallback_used);
+  CuAssertTrue(tc, legacy_error_suppressed);
 }
 
 void Test_gameplay_e2e_set_supports_every_playable_class(CuTest *tc)

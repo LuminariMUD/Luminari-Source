@@ -6,6 +6,7 @@
 #include "../../src/structs.h"
 #include "../../src/interpreter.h"
 #include "../../src/act.h"
+#include "../../src/craft.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -76,6 +77,27 @@ void Test_command_dispatch_lookup(CuTest *tc)
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
   CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_harvest_command_uses_legacy_entry_point(CuTest *tc)
+{
+  int harvest_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  harvest_command = find_command("harvest");
+
+  CuAssertTrue(tc, harvest_command >= 0);
+  CuAssertTrue(tc, complete_cmd_info[harvest_command].command_pointer == do_harvest);
 
   if (created_command_list)
     free_command_list();
