@@ -76,6 +76,27 @@ awk '
 diff -u "$source_perf_sections" "$runner_perf_sections" ||
   fail "scale-runner profiler contract drifted from the production heartbeat"
 
+runner_snapshot_tables="$test_root/runner-snapshot-tables.txt"
+awk '
+  /^snapshot_tables=\(/ {
+    capture = 1
+    next
+  }
+  capture && /^\)/ {
+    exit
+  }
+  capture {
+    gsub(/^[[:space:]]+|[[:space:]]+$/, "")
+    if (length($0) > 0) {
+      print
+    }
+  }
+' "$runner" | sort -u >"$runner_snapshot_tables"
+for required_table in vessel_merchant_consequences vessel_npc_merchants; do
+  grep -Fxq "$required_table" "$runner_snapshot_tables" ||
+    fail "scale-runner snapshot omits mutable table $required_table"
+done
+
 live_input="$test_root/live-input.log"
 live_output="$test_root/live-output.tsv"
 printf '%s\n' \

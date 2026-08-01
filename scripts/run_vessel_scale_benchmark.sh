@@ -29,6 +29,8 @@ snapshot_tables=(
   vessel_encounters
   vessel_hunter_encounters
   vessel_insurance_claims
+  vessel_merchant_consequences
+  vessel_npc_merchants
 )
 vessel_perf_sections=(
   vessel_tick
@@ -413,6 +415,7 @@ restore_snapshot()
   local baseline_count
   local restored_count
   local restored_marker_count
+  local restored_merchant_error_count
 
   [[ -s "$run_dir/vessel-database-before.sql" ]] || return 0
   [[ ! -e "$run_dir/cleanup.complete" ]] || return 0
@@ -448,6 +451,15 @@ restore_snapshot()
         WHERE LEFT(name, LENGTH('${benchmark_prefix}')) = '${benchmark_prefix}');") ||
     return 1
   [[ "$restored_marker_count" == 0 ]] || return 1
+
+  restored_merchant_error_count=$(database_query "
+    SELECT COUNT(*)
+      FROM vessel_npc_merchants AS merchant
+      LEFT JOIN ship_runtime_state AS runtime
+        ON runtime.ship_id = merchant.active_ship_id
+     WHERE merchant.active_ship_id IS NOT NULL
+       AND runtime.ship_id IS NULL;") || return 1
+  [[ "$restored_merchant_error_count" == 0 ]] || return 1
 
   "$script_dir/dev_kohdee_login_smoke.sh" --commands "goto 1000389" \
     >>"$run_dir/cleanup.log" 2>&1 || return 1
