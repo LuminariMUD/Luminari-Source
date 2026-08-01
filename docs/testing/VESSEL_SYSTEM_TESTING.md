@@ -6,7 +6,8 @@ regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
 findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
-**Current run status (July 30, 2026): all 30 steps pass on local development.**
+**Current run status (August 2, 2026): all 30 steps and the bounded ferry gate
+pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
@@ -106,6 +107,18 @@ After the requested duration, it pauses through the game, hard-restarts local
 development, compares the exact coordinates, route, pilot, schedule, rooms,
 structure, and executable hash, then resumes the ferry. The run is incomplete
 until `status` reports `PASS`.
+
+The August 2 run `20260801T230546Z-160058` is terminal `PASS`. Its complete
+request-to-result time was 2,779 seconds, including a 2,740-second continuous
+observation. Five actual Kohdee sessions, 46 database samples, and 46 process
+samples recorded 1,476 movement steps, 246 waypoint arrivals, 62 route
+completions, constant fleet count 6, at most 13 of 2,000 dynamic rooms, and
+zero buffer overflows. The continuous process retained PID 160111, two
+threads, 12 descriptors, and the installed executable hash. The final hard
+restart changed to PID 252880, restored the exact paused vessel and route
+state under the same executable, and resumed the ferry. Its memory analysis is
+`REPORT_ONLY` because the bounded RSS increase coincided with awake-world
+mobile, object, and movement-trail growth.
 
 After that terminal `PASS`, use `make test`, `make install`, and
 `run_vessel_scale_benchmark.sh start 1800` in that order. Use the explicit
@@ -345,8 +358,8 @@ numbered gameplay flow:
   steps, 22 distinct positions, 3 west and 4 east arrivals, 5 actual Kohdee
   inspections, and 16 database/process samples under one travel PID. The
   final restart restored the exact paused coordinate and route under a new
-  PID, and Kohdee resumed the ferry. This validates the monitor path; the
-  remaining supervised ferry gate is capped at one hour end-to-end.
+  PID, and Kohdee resumed the ferry. This validates the monitor path used by
+  the completed August 2 supervised ferry gate.
 - A follow-up provenance shakedown pinned source commit
   `0afad17bdb8fd67a78a58fa1af9e41d6ccc79efc` and executable SHA-256
   `ae7c6414bc934f4ddf09f6c35a3d97b15a9a5fa1845c13a109142eaf9b5ca2a2`.

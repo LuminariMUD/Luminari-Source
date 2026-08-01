@@ -17,49 +17,51 @@ are automated. An untraversable automated step now stops the hull, pauses and
 persists autopilot once, and tells occupants instead of retrying forever.
 Routine wilderness region/path progress logging is removed, and the scale
 runner treats its return as a bounded-log failure. A short forced-copyover
-ferry shakedown now passes through same-PID recovery and the final exact-state
-hard restart. Long unattended ferry and fleet soaks are no longer release
-gates. Every agent-run vessel validation must complete within a one-hour total
-execution budget, including setup, terminal recovery checks, and cleanup.
+ferry shakedown passes through same-PID recovery and the final exact-state hard
+restart. The bounded 45-minute ferry gate also passes its actual-character
+observation, exact persistence restart, and automatic resume within the
+one-hour total budget. Long unattended ferry and fleet soaks are no longer
+release gates. Every agent-run vessel validation must complete within a
+one-hour total execution budget, including setup, terminal recovery checks,
+and cleanup.
 
 The former long-duration ferry attempts are retained only as historical
 evidence in [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md). Do not
-start or restart an unattended long-duration monitor. The remaining ferry
-gate is a supervised 45-minute observation followed immediately by final
-hard-restart recovery and cleanup, all within the one-hour budget. Because the
-ferry runner still has a longer default, always provide explicit bounded
-arguments. Before running scale, hunter, or destructive merchant checks,
-confirm that no legacy ferry monitor still owns the installed development
-server. The 500-ship run, actual shared-encounter and merchant-loss
-transcripts, bounded stability checks, campaign content, beta, and production
-rollout remain.
+start or restart an unattended long-duration monitor. The ferry release gate
+is closed; retain its explicit bounded invocation only for future regression
+runs. Before running scale, hunter, or destructive merchant checks, confirm
+that no legacy ferry monitor still owns the installed development server. The
+500-ship run, actual shared-encounter and merchant-loss transcripts, bounded
+fleet stability checks, campaign content, beta, and production rollout remain.
 
-**Remaining checklist:** 23 top-level items: 5 harbor/performance validation,
+**Remaining checklist:** 22 top-level items: 4 performance validation,
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 02:37 IDT):** The stopped-MUD
-bootstrap defect is fixed and covered by the Automake and CTest tooling gates.
-Preserve its pre-fix zero-sample failure at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892`. The bounded
-replacement is `RUNNING` under
-`luminari-vessel-ferry-soak-20260801T230546Z-160058.service`, with artifacts at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Kohdee
-started PID 160111 and logged out cleanly in 25 seconds. The observation began
-at 02:06:25 IDT on source `c539a6d59483f44da121260378287cb33094751e`,
-installed SHA-256
-`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
-ferry/route 5/4. Its initial, elapsed-903, and elapsed-1803 actual-character
-samples all pass. Across the first two complete intervals the ferry recorded
-984 movement steps, 164 waypoint arrivals, and 41 complete route loops. Fleet
-count remained 6, dynamic rooms returned to 6 of 2,000, rooms remained 50,370,
-and buffer overflows remained zero. Ordinary awake-world growth took mobiles
-from 31,632 to 33,322, objects from 24,201 to 24,522, lists from 1,224 to
-1,290, movement trails from 1,896 to 258,319, and RSS from 767,396 to 837,212
-KiB. The heap accounts for 582,708 KiB of the latest RSS. PID 160111, two
-threads, and 12 descriptors remain fixed. Do not disturb the service or
-installed binary. The terminal actual-Kohdee sample, memory analysis, exact
-persistence restart, resume, and cleanup follow the 2,700-second window.
+**Active validation checkpoint (August 2, 2026, 02:55 IDT):** The bounded
+ferry run is terminal `PASS` at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
+2,700-second request produced 2,740 seconds of continuous observation and a
+terminal result 2,779 seconds after launch. On source
+`c539a6d59483f44da121260378287cb33094751e` and installed SHA-256
+`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`, ferry
+5 completed 1,476 movement steps, 246 waypoint arrivals, and 62 route loops.
+All 5 live, 46 database, and 46 process samples passed with fleet count 6,
+dynamic rooms 6/13/2 of 2,000, zero buffer overflows, one PID, two threads,
+and 12 descriptors. The final hard restart changed PID 160111 to 252880,
+launched the identical executable, restored the exact paused coordinates and
+route, and resumed the ferry. Preserve the stopped-MUD pre-fix failure at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892` as harness
+regression evidence.
+
+The continuous RSS series rose from 767,396 to 866,944 KiB while ordinary
+awake-world mobiles, objects, and movement trails also increased; its full
+and trailing 1,797-second slopes are 128,565 and 118,710 KiB/hour. The
+generated `memory-analysis.kv` result therefore remains `REPORT_ONLY`, not a
+leak or plateau verdict. The local development MUD is active on recovered PID
+252880 with the ferry resumed. Next run the current production-linked suite,
+Memcheck, install, reversible merchant/hunter checks, and the bounded
+500-vessel scale gate.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -72,118 +74,7 @@ Do not treat code completion as production approval. Work through the
 dependencies below in order and remove completed items from this file after
 recording enduring behavior or evidence in the permanent documentation.
 
-## 1. Validate the Shared Harbor
-
-- [ ] Complete a supervised scheduled-ferry validation within a one-hour total
-  execution budget without route, coordinate, room, or persistence
-  desynchronization. Use a 2,700-second observation window so final
-  hard-restart recovery and cleanup fit inside the remaining 15 minutes:
-
-  ```bash
-  ./scripts/run_vessel_ferry_soak.sh start 2700 60 900
-  ./scripts/run_vessel_ferry_soak.sh status
-  ```
-
-  Do not invoke `start` without an explicit duration and do not launch a
-  replacement long-duration service. A terminal `PASS` must include continuous
-  ferry progress, valid live/database/process samples, exact-state recovery on
-  the same installed binary after the final hard restart, and successful
-  cleanup before the one-hour limit.
-
-  The early idle-timeout, provenance, and interruption shakedowns are resolved.
-  The pinned full window at
-  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260729T222703Z-4128760`
-  reached 34,382 seconds before the scheduled 11:00:30 IDT copyover correctly
-  dropped its non-playing hold descriptor. The process and ferry survived, but
-  the old monitor treated that expected handoff as failure and did not finalize
-  status. The run is `ABANDONED`; it does not provide the clean terminal result
-  required by the bounded gate.
-  The current monitor accepts only a log-proven same-PID/same-binary copyover,
-  reconnects after boot, records the recovery count, and writes terminal
-  failure status before cleanup. It also captures `shiplist summary`,
-  `show stats`, `live-system-samples.tsv`, and
-  `process-memory-details.tsv`.
-  Because autopilot progress counters have process-executable lifetime, the
-  monitor starts a new counter segment after each proven copyover, requires
-  progress in that segment, and records the recovery number beside every live
-  sample.
-  The detailed-memory series deliberately remains on the one continuous MUD
-  PID through the terminal pre-restart checkpoint. The separate hard-restart
-  recovery phase verifies the replacement process's executable hash and exact
-  gameplay state instead of corrupting that single-PID series.
-
-  The forced-copyover shakedown at
-  `/tmp/luminari-vessel-ferry-soak-1000/runs/20260730T092546Z-1844033`
-  is `PASS` on source `823d48b9` and installed SHA-256
-  `7237a57d92b0e701cf71e3f38993b869e8fb21c68c48745c9fc0fc77d9c6b4d1`.
-  Its 240-second requested window observed 329 wall seconds, one same-PID
-  copyover recovery, 132 movement steps, 22 waypoint arrivals, five route
-  completions, four live samples, 25 database/process samples, and zero
-  buffer overflows. The continuous process series stayed on PID 1817030; the
-  final hard restart changed to PID 1859781, recovered the exact paused
-  coordinates and route on the same binary, and resumed the ferry. This closes
-  the forced-copyover and restart shakedown, not the supervised ferry item.
-
-  Partial evidence from the abandoned run remained healthy at the July 30
-  08:28 IDT checkpoint
-  after 25,202 seconds: 13,716 movement steps, 572/571 west/east arrivals,
-  eight actual-character samples, and 421 database/process samples. The MUD
-  PID, two threads, and 12 file descriptors remained constant. RSS rose from
-  768,776 KiB to 1,134,288 KiB during world warmup. Its last 30-minute,
-  1-hour, and 2-hour linear slopes were +5,836, +5,899, and +6,825 KiB/hour.
-  Consecutive post-four-hour block slopes fell from +11,212 through +8,061 to
-  +5,895 KiB/hour, versus about +120,000 KiB/hour in the first hour.
-  `/proc` attributed 879,932 KiB RSS to an 880,116 KiB heap mapping, with
-  1,113,812 KiB anonymous RSS, 20,576 KiB file RSS, and no swap.
-
-  A separate actual Kohdee checkpoint completed and logged out cleanly in four
-  seconds. It found five active ships, 13 of 2,000 dynamic rooms occupied,
-  37,329 mobiles, 26,429 objects, 50,366 rooms, 897 allocation lists, 102
-  buffer switches, and zero overflows. Two actual-character samples 55 minutes
-  apart showed 201 more mobiles and 143 more objects while RSS rose 5,812 KiB.
-  Their base `char_data` and `obj_data` structures alone account for about
-  2,885 KiB of that change before per-instance allocations, so part of the
-  remaining rise correlates with ordinary world population rather than ferry
-  occupancy. A read-only standalone MariaDB client then repeated 20,000
-  region/path assignment pairs, 40,000 result cycles total, against the ferry
-  route. It remained flat after its first sample at 6,008 KiB RSS and 9,172
-  KiB VSZ, excluding the direct spatial query/result cycle by itself as the
-  source of the game process's rise. Neither correlation proves a root cause.
-  The strong deceleration has not yet established a plateau, so this
-  checkpoint is neither a leak verdict nor a substitute for the terminal
-  result.
-
-  At 08:42 IDT, another actual Kohdee checkpoint completed and logged out
-  cleanly in six seconds. The fleet remained five, dynamic wilderness
-  occupancy was 3 of 2,000, rooms remained 50,366, and buffer overflows
-  remained zero. Since 08:28, mobiles rose by 25 to 37,354, objects rose by
-  10 to 26,439, allocation lists fell by 13 to 884, and RSS rose 1,260 KiB to
-  1,135,660 KiB. The added base mobile/object structures account for about
-  354 KiB before their dynamic state. The contemporaneous heap mapping held
-  881,204 KiB RSS/private-dirty, file RSS remained 20,576 KiB, and swap
-  remained zero.
-
-  At its last complete sample, the same pinned process had 574 samples over
-  34,382 seconds and ended at 1,144,640 KiB RSS. Its post-four-hour regression
-  was +5,923 KiB/hour, with trailing one- and two-hour slopes of +3,784 and
-  +3,772 KiB/hour. The full measured details now live in
-  [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md). They are partial
-  warmup evidence, not a bounded-growth or duration verdict.
-
-  The awake-world log exposes another material baseline: movement trails are
-  retained for 12,600 seconds and cleaned every 75 seconds. By the checkpoint,
-  the latest complete 168-cleanup retention window represented 1,314,302
-  removed trail records, averaging 7,823 per cleanup. Their 48-byte structures
-  alone represent at least 60.16 MiB before two duplicated strings and
-  allocator metadata. Hour-sized removal-block means rose from 7,305 through
-  7,774 and 7,916 to 8,044 as the mobile population warmed. This establishes
-  a high-volume full-world retention confounder, not that trails explain the
-  entire heap or that the ferry leaks.
-
-Use the provisioned harbor for the bounded ferry run before meaningful
-merchant, copyover, and multiplayer encounter testing.
-
-## 2. Prove Scale, Stability, and Economy
+## 1. Prove Scale, Stability, and Economy
 
 - [ ] Benchmark 500 active ships on the production tick path with autopilot,
   schedules, combat, encounters, weather, economy, wear, persistence, and MSDP
@@ -332,7 +223,7 @@ merchant, copyover, and multiplayer encounter testing.
   an airship vertical route, and manual upper/lower boundary rejection through
   actual in-game commands.
 
-## 3. Add Living-World Content
+## 2. Add Living-World Content
 
 - [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
   routes, with faction and bounty consequences.
@@ -386,7 +277,7 @@ merchant, copyover, and multiplayer encounter testing.
 - [ ] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
   leaderboards. Optional showcase events may be deferred behind release safety.
 
-## 4. Finish Player Experience and Presentation
+## 3. Finish Player Experience and Presentation
 
 - [ ] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
@@ -421,7 +312,7 @@ merchant, copyover, and multiplayer encounter testing.
 - [ ] Add optional figurehead and paint customization to ship and lookout
   descriptions.
 
-## 5. Balance, Beta, and Roll Out
+## 4. Balance, Beta, and Roll Out
 
 - [ ] Tune combat time-to-kill, crew wages, freight margins, refit costs,
   insurance, and dock fees using the simulation, duel tests, and player data.
@@ -441,7 +332,7 @@ merchant, copyover, and multiplayer encounter testing.
   postmortem. Update the permanent evidence and behavior references, and only
   then mark the vessel system 3.0.
 
-## 6. Open Decisions
+## 5. Open Decisions
 
 - [ ] Confirm that shared encounters are the final model by testing multiple
   ships entering the same regional encounter. Change the model only if the

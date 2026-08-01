@@ -1,8 +1,8 @@
 # Vessel System Benchmarks
 
-**Version:** 3.7
+**Version:** 3.8
 
-**Evidence snapshot:** August 1, 2026
+**Evidence snapshot:** August 2, 2026
 
 **Last updated:** August 2, 2026
 
@@ -21,6 +21,7 @@ from the full live-game benchmark that still must be run.
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
 | Root suite on August 1, 2026 | 268 of 268 passing | Current production-linked gate |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
+| Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -373,20 +374,53 @@ vessel mirror sources and claims about a separate `test_runner` are obsolete.
 
 ## Bounded Stability and Recovery Gate
 
-After the benchmark passes, run a supervised development stability check with
-scheduled NPC fleets and representative player activity. The full task,
-including setup, recovery checks, evidence review, and cleanup, is capped at
-one hour; limit the steady scale measurement to 1,800 seconds. The ferry
-monitor provides a reusable game-side observation contract: actual-Kohdee
-samples capture fleet count, dynamic wilderness occupancy, mobiles, objects,
-rooms, allocation lists, live movement trails, buffer switches, and overflows
-in `live-system-samples.tsv`. The scale runner preserves the same fields beside
-a headered process series. Review the resulting memory trend for obvious
-runaway growth, but do not present this bounded window as proof that a
-long-horizon leak cannot exist. The candidate has moved high-volume
+The stability program uses one bounded ferry observation and one bounded
+500-ship observation. Each full task, including setup, recovery checks,
+evidence review, and cleanup, is capped at one hour. The ferry gate is
+complete; limit the remaining steady scale measurement to 1,800 seconds. The
+ferry monitor provides the reusable game-side observation contract:
+actual-Kohdee samples capture fleet count, dynamic wilderness occupancy,
+mobiles, objects, rooms, allocation lists, live movement trails, buffer
+switches, and overflows in `live-system-samples.tsv`. The scale runner
+preserves the same fields beside a headered process series. Review each memory
+trend for obvious runaway growth, but do not present a bounded window as proof
+that a long-horizon leak cannot exist. The candidate has moved high-volume
 step/arrival/loop messages behind compiled development diagnostics and exposes
 monotonic status counters instead. The installed 500-ship run must confirm
 bounded actual log growth within the permitted window.
+
+### August 2 Bounded Ferry Acceptance
+
+Run `20260801T230546Z-160058` is terminal `PASS` at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. It pinned
+source `c539a6d59483f44da121260378287cb33094751e`, installed executable SHA-256
+`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`, ferry
+5, and route 4. The request-to-result task took 2,779 seconds. Its requested
+2,700-second window produced 2,740 seconds of observation, 1,476 movement
+steps, 246 waypoint arrivals, 62 route completions, 5 actual-Kohdee samples,
+46 database samples, and 46 process samples. Fleet count stayed at 6, dynamic
+rooms were 6/13/2 of 2,000, rooms stayed at 50,370, and no live sample reported
+a buffer overflow. World lists were 1,224/1,520/641 and movement trails were
+1,896/388,841/63 across the initial, maximum, and post-restart final checks.
+
+The continuous process series stayed on PID 160111 with two threads and 12
+descriptors. RSS was 767,396/866,944/866,944 KiB. Its full-window slope was
+128,565 KiB/hour; the trailing 1,797-second slope was 118,710 KiB/hour. Sparse
+detailed samples localized the increase to anonymous and heap-backed pages:
+anonymous RSS changed from 747,296 to 846,984 KiB and heap RSS from 513,244 to
+612,524 KiB. During the same awake-world window mobiles rose from 31,632 to
+34,188, objects from 24,201 to 24,856, and active movement trails from 1,896
+to 388,841. The generated `memory-analysis.kv` therefore remains
+`REPORT_ONLY`; this short correlated warmup is neither a leak attribution nor
+a plateau verdict.
+
+At the terminal checkpoint Kohdee paused ferry 5 at its exact coordinates and
+route position. A deliberate hard restart changed the MUD to PID 252880,
+launched the identical installed executable, restored the coordinates, route,
+pilot, schedule, rooms, and structure, and left the ferry paused for
+verification. Kohdee then resumed it. There were no copyovers during the
+continuous window and no `ferry-errors.log`. This closes the bounded ferry
+release gate; the bounded 500-ship profile remains separate.
 
 The first pinned 24-hour ferry attempt is `ABANDONED`, not a failed vessel
 continuity result. It remained healthy for 34,382 seconds with 18,720 movement
@@ -398,8 +432,9 @@ contract requires for non-playing connections. The old monitor treated that
 expected handoff as a dead keepalive and did not finalize status. The current
 monitor accepts only a log-proven same-PID/same-binary copyover, reconnects
 after boot, preserves the recovery log, and records terminal failure before
-cleanup. No replacement long-duration window is required; the remaining gate
-uses the bounded observation and exact-state restart defined above.
+cleanup. No replacement long-duration window is required; the completed
+replacement gate uses the bounded observation and exact-state restart recorded
+above.
 
 The August 1 replacement run has a shutdown checkpoint at 1,543 of 86,400
 seconds. It retained PID 1803873, two threads, 12 descriptors, the pinned
@@ -524,8 +559,8 @@ growth. The candidate's single-pass target resolution remains a valid query
 and CPU optimization, but is not claimed as a memory fix.
 
 These observations remain a partial warmup investigation from an abandoned
-run, not a terminal continuity, plateau, root-cause, or leak verdict. The soak
-must demonstrate:
+run, not a terminal continuity, plateau, root-cause, or leak verdict. The
+remaining bounded fleet gate must demonstrate:
 
 - No crashes, corrupt vessel records, or observed runaway growth during the
   bounded window.
@@ -538,9 +573,9 @@ must demonstrate:
 ## Current Verdict
 
 The fixed-memory foundation and historical automated-test snapshot are within
-their stated budgets. The vessel system is not performance-approved for broad
-release until the complete 500-ship benchmark and one-hour-bounded supervised
-stability gate both pass.
+their stated budgets. The one-hour-bounded actual-character ferry stability
+gate passes. The vessel system is not performance-approved for broad release
+until the complete 500-ship benchmark and its bounded stability checks pass.
 
 Remaining benchmark and release work is tracked in
 [`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).

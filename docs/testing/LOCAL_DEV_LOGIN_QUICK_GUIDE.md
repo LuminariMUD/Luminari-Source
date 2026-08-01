@@ -1,28 +1,25 @@
 # Local Development Login Quick Guide
 
-**Last verified:** August 1, 2026
+**Last verified:** August 2, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:37 IDT):** The stopped-MUD
-bootstrap fix passes both build-system tooling gates. Preserve the pre-fix
-zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
-`RUNNING` under unit
-`luminari-vessel-ferry-soak-20260801T230546Z-160058.service`; artifacts are at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. The Kohdee
-bootstrap passed in 25 seconds. Continuous observation began at 02:06:25 IDT
-on PID 160111, source `c539a6d59483f44da121260378287cb33094751e`, binary
-SHA-256 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
-and ferry/route 5/4. The initial, elapsed-903, and elapsed-1803
-actual-character samples pass. Across the first two complete intervals the
-ferry recorded 984 movement steps, 164 arrivals, and 41 complete loops. The
-fleet remained at six, dynamic rooms returned to 6/2,000, rooms remained
-50,370, and buffer overflows remained zero. PID 160111, two threads, and 12
-descriptors remain fixed. Correlated awake-world counts moved from 31,632 to
-33,322 mobiles, 24,201 to 24,522 objects, 1,224 to 1,290 lists, and 1,896 to
-258,319 movement trails; RSS moved from 767,396 to 837,212 KiB, with 582,708
-KiB attributed to the heap. Do not run scale, hunter, merchant destruction,
-build, install, or a manual restart. Resume only with
-`run_vessel_ferry_soak.sh status` until it reaches a terminal result.
+**Active execution checkpoint (August 2, 2026, 02:55 IDT):** The bounded ferry
+gate is terminal `PASS` at
+`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. The
+request-to-result time was 2,779 seconds, including 2,740 seconds of continuous
+observation. Ferry 5 completed 1,476 movement steps, 246 waypoint arrivals,
+and 62 route loops across 5 actual-Kohdee, 46 database, and 46 process samples.
+Fleet count remained six, dynamic rooms stayed within 13 of 2,000, and buffer
+overflows remained zero. The continuous process stayed on PID 160111 with two
+threads and 12 descriptors. The terminal hard restart launched the identical
+binary SHA-256 on PID 252880, restored the exact paused position and route,
+and resumed the ferry. The memory report remains `REPORT_ONLY`: RSS increased
+from 767,396 to 866,944 KiB while the awake-world mobile, object, and movement-
+trail populations also grew. The current development MUD is active and the
+ferry is resumed. Continue with the production-linked suite, current
+Memcheck, install, reversible merchant/hunter acceptance, and the bounded
+500-vessel scale run. Preserve pre-fix stopped-MUD run
+`20260801T230025Z-148892` as harness regression evidence.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -185,6 +182,15 @@ the explicit bounded arguments above and do not launch a replacement
 long-duration service. Before starting, use `status` to ensure no legacy ferry
 monitor owns the development server. Preserve any old run directory only as
 historical evidence.
+
+The August 2 release run is terminal `PASS` under
+`20260801T230546Z-160058`. The requested 2,700-second window recorded 1,476
+movement steps, 246 arrivals, 62 route completions, five live checks, 46
+database/process samples, and no buffer overflow. Its final hard restart
+preserved the exact paused coordinates, route, rooms, pilot, schedule,
+structure, and executable hash before Kohdee resumed the ferry. The complete
+request-to-result task took 46 minutes 19 seconds. Re-run this gate only for a
+relevant regression, using the bounded arguments above.
 
 If the supervised local MUD is stopped, the monitor first runs the fast Kohdee
 login smoke to create the service and its append-only log, then begins its

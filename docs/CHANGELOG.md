@@ -25,6 +25,14 @@
   `shipstatus` for a real seaport, then pauses and stops the ferry before
   disembarking. A mid-channel invocation no longer mistakes correctly blocked
   boarding for a fare failure.
+- The bounded ferry runner now bootstraps a stopped development MUD through
+  the supported Kohdee login helper before acquiring the supervised service.
+  Its executable preflight regression preserves the former zero-sample failure
+  and proves both stopped-server and already-running paths.
+- Scale cleanup now snapshots and restores `vessel_merchant_consequences` and
+  `vessel_npc_merchants` with the other mutable vessel/economy tables. Restore
+  validation rejects an active merchant registry that points to a missing
+  runtime hull, preventing a periodic merchant loss from surviving rollback.
 
 #### Validated
 
@@ -45,6 +53,15 @@
   series. The final hard restart changes PID, preserves the exact paused
   coordinates and route, launches the same installed SHA-256, and resumes the
   ferry.
+- The bounded actual-character ferry gate is terminal `PASS` under run
+  `20260801T230546Z-160058`. Its complete request-to-result task took 2,779
+  seconds, with 2,740 seconds of continuous observation, 1,476 movement steps,
+  246 waypoint arrivals, 62 route completions, five Kohdee checks, 46
+  database/process samples, constant fleet count 6, and zero buffer overflows.
+  The continuous process retained one PID, two threads, and 12 descriptors;
+  the final hard restart launched the identical executable on a new PID,
+  restored the exact paused route state, and resumed the ferry. Its correlated
+  short-window memory trend remains `REPORT_ONLY`, not a leak verdict.
 
 ### Durable HUNTED bounty-hunter patrols
 
