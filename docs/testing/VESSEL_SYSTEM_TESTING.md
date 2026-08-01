@@ -108,7 +108,7 @@ structure, and executable hash, then resumes the ferry. The run is incomplete
 until `status` reports `PASS`.
 
 After that terminal `PASS`, use `make test`, `make install`, and
-`run_vessel_scale_benchmark.sh start` in that order. Use at most an
+`run_vessel_scale_benchmark.sh start 1800` in that order. Use the explicit
 1,800-second scale measurement so its complete supervised task stays within
 one hour. The scale runner invokes
 the harbor provisioner and all installed-character component gates itself;

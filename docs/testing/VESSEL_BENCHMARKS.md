@@ -285,7 +285,7 @@ The runner:
 The user-service interface is:
 
 ```bash
-./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh start 1800
 ./scripts/run_vessel_scale_benchmark.sh status
 ./scripts/run_vessel_scale_benchmark.sh cleanup
 ```

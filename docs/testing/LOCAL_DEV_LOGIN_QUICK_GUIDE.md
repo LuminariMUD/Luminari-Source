@@ -3,7 +3,7 @@
 **Last verified:** August 1, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:21 IDT):** The stopped-MUD
+**Active execution checkpoint (August 2, 2026, 02:37 IDT):** The stopped-MUD
 bootstrap fix passes both build-system tooling gates. Preserve the pre-fix
 zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
 `RUNNING` under unit
@@ -12,13 +12,16 @@ zero-sample failure under run `20260801T230025Z-148892`. Its replacement is
 bootstrap passed in 25 seconds. Continuous observation began at 02:06:25 IDT
 on PID 160111, source `c539a6d59483f44da121260378287cb33094751e`, binary
 SHA-256 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
-and ferry/route 5/4. The initial and elapsed-903 actual-character samples pass.
-The first interval recorded 492 movement steps, 82 arrivals, 21 complete
-loops, a stable six-ship fleet, bounded 5/2,000 dynamic-room occupancy, and
-zero buffer overflows. PID 160111, two threads, and 12 descriptors remain
-fixed; correlated awake-world RSS moved from 767,396 to 807,184 KiB while
-movement trails rose from 1,896 to 129,674. Do not run scale, hunter, merchant
-destruction, build, install, or a manual restart. Resume only with
+and ferry/route 5/4. The initial, elapsed-903, and elapsed-1803
+actual-character samples pass. Across the first two complete intervals the
+ferry recorded 984 movement steps, 164 arrivals, and 41 complete loops. The
+fleet remained at six, dynamic rooms returned to 6/2,000, rooms remained
+50,370, and buffer overflows remained zero. PID 160111, two threads, and 12
+descriptors remain fixed. Correlated awake-world counts moved from 31,632 to
+33,322 mobiles, 24,201 to 24,522 objects, 1,224 to 1,290 lists, and 1,896 to
+258,319 movement trails; RSS moved from 767,396 to 837,212 KiB, with 582,708
+KiB attributed to the heap. Do not run scale, hunter, merchant destruction,
+build, install, or a manual restart. Resume only with
 `run_vessel_ferry_soak.sh status` until it reaches a terminal result.
 
 Use this smoke test to boot the development MUD, authenticate with the game
@@ -342,7 +345,7 @@ valgrind --tool=memcheck --leak-check=full \
   --errors-for-leak-kinds=definite,indirect \
   --error-exitcode=99 ./cutest
 make install
-./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh start 1800
 ./scripts/run_vessel_scale_benchmark.sh status
 ```
 
@@ -376,7 +379,7 @@ After the bounded ferry validation passes and the current clean source is
 built and installed, launch the development-only scale gate with:
 
 ```bash
-./scripts/run_vessel_scale_benchmark.sh start
+./scripts/run_vessel_scale_benchmark.sh start 1800
 ./scripts/run_vessel_scale_benchmark.sh status
 ```
 

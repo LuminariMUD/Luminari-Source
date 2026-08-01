@@ -38,7 +38,7 @@ rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 02:21 IDT):** The stopped-MUD
+**Active validation checkpoint (August 2, 2026, 02:37 IDT):** The stopped-MUD
 bootstrap defect is fixed and covered by the Automake and CTest tooling gates.
 Preserve its pre-fix zero-sample failure at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892`. The bounded
@@ -49,16 +49,17 @@ started PID 160111 and logged out cleanly in 25 seconds. The observation began
 at 02:06:25 IDT on source `c539a6d59483f44da121260378287cb33094751e`,
 installed SHA-256
 `6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`,
-ferry/route 5/4. Its passing initial actual-character sample found 6 ships and
-zero buffer overflows. The elapsed-903 Kohdee sample then proved 492 movement
-steps, 82 waypoint arrivals, and 21 complete route loops. Fleet count remained
-6, dynamic rooms moved from 6 to 5 of 2,000, rooms remained 50,370, and buffer
-overflows remained zero. Ordinary awake-world growth took mobiles from 31,632
-to 32,665, objects from 24,201 to 24,351, lists from 1,224 to 1,520, movement
-trails from 1,896 to 129,674, and RSS from 767,396 to 807,184 KiB. PID 160111,
-two threads, and 12 descriptors remain fixed. Do not disturb the service or
-installed binary. The next actual-Kohdee checkpoint is due near elapsed 1,800;
-the terminal persistence restart follows the 2,700-second window.
+ferry/route 5/4. Its initial, elapsed-903, and elapsed-1803 actual-character
+samples all pass. Across the first two complete intervals the ferry recorded
+984 movement steps, 164 waypoint arrivals, and 41 complete route loops. Fleet
+count remained 6, dynamic rooms returned to 6 of 2,000, rooms remained 50,370,
+and buffer overflows remained zero. Ordinary awake-world growth took mobiles
+from 31,632 to 33,322, objects from 24,201 to 24,522, lists from 1,224 to
+1,290, movement trails from 1,896 to 258,319, and RSS from 767,396 to 837,212
+KiB. The heap accounts for 582,708 KiB of the latest RSS. PID 160111, two
+threads, and 12 descriptors remain fixed. Do not disturb the service or
+installed binary. The terminal actual-Kohdee sample, memory analysis, exact
+persistence restart, resume, and cleanup follow the 2,700-second window.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
