@@ -391,7 +391,10 @@ count is reported, and any normal-build per-step, arrival, wait, or route-loop
 progress row fails the gate. Former unconditional wilderness region, sector,
 elevation, and path progress rows fail it as well. Run
 `./scripts/test_vessel_scale_benchmark_parsers.sh` after changing these
-parsers. That test also covers checkpoint chronology: the series must start at
+parsers. The test rejects missing or inverted tick percentiles and impossible
+sample counts; a live result must contain an ordered median, p95, p99, and
+maximum in the complete ten-field `vessel_tick` row. The test also covers
+checkpoint chronology: the series must start at
 `system-0`, use strictly increasing epochs and labels, retain hourly
 intermediate labels, and finish at the exact requested measurement duration.
 

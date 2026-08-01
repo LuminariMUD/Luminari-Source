@@ -35,6 +35,24 @@ stale_input=$(
 [[ -z "$stale_input" ]] ||
   fail "current installed-binary fixture was incorrectly rejected"
 
+valid_tick_row="vessel_tick,1200,120000,100.00,80.00,120.00,180.00,400,1200,1200"
+"$runner" __validate-vessel-tick-row "$valid_tick_row" ||
+  fail "valid vessel-tick percentile row was rejected"
+"$runner" __validate-vessel-tick-row "$valid_tick_row"$'\r' ||
+  fail "valid CR-terminated vessel-tick percentile row was rejected"
+invalid_tick_row="vessel_tick,1200,120000,100.00,80.00,,180.00,400,1200,1200"
+if "$runner" __validate-vessel-tick-row "$invalid_tick_row"; then
+  fail "vessel-tick row with a missing p95 unexpectedly passed"
+fi
+invalid_tick_row="vessel_tick,1200,120000,100.00,80.00,220.00,180.00,400,1200,1200"
+if "$runner" __validate-vessel-tick-row "$invalid_tick_row"; then
+  fail "vessel-tick row with inverted percentiles unexpectedly passed"
+fi
+invalid_tick_row="vessel_tick,1200,120000,100.00,80.00,120.00,180.00,400,1200,1199"
+if "$runner" __validate-vessel-tick-row "$invalid_tick_row"; then
+  fail "vessel-tick row with impossible sample counts unexpectedly passed"
+fi
+
 source_perf_sections="$test_root/source-perf-sections.txt"
 runner_perf_sections="$test_root/runner-perf-sections.txt"
 sed -nE \
@@ -201,4 +219,4 @@ noisy_count=$("$runner" __count-progress-logs "$noisy_log")
   fail "noisy server log reported $noisy_count of 11 high-volume rows"
 
 printf '%s\n' \
-  "PASS: vessel scale parsers validated build provenance, chronology, and high-volume logs."
+  "PASS: vessel scale parsers validated provenance, percentiles, chronology, and logs."

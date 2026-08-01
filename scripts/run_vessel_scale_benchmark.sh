@@ -380,6 +380,33 @@ validate_live_system_samples()
   ' "$input_file"
 }
 
+validate_vessel_tick_row()
+{
+  local input_row=$1
+
+  input_row=${input_row%$'\r'}
+
+  awk -F, '
+    function is_uint(value) {
+      return value ~ /^[0-9]+$/
+    }
+    function is_decimal(value) {
+      return value ~ /^[0-9]+([.][0-9]+)?$/
+    }
+    NF == 10 && $1 == "vessel_tick" &&
+      is_uint($2) && $2 > 0 && is_uint($3) &&
+      is_decimal($4) && is_decimal($5) && is_decimal($6) &&
+      is_decimal($7) && is_uint($8) && is_uint($9) && is_uint($10) &&
+      $5 <= $6 && $6 <= $7 && $7 <= $8 &&
+      $9 > 0 && $9 <= $10 && $10 <= $2 {
+      valid = 1
+    }
+    END {
+      exit valid ? 0 : 2
+    }
+  ' <<<"$input_row"
+}
+
 restore_snapshot()
 {
   local run_dir=$1
@@ -1752,14 +1779,13 @@ SQL
     "$run_dir/perfmon.csv")
   [[ -n "$vessel_tick_row" ]] ||
     benchmark_fail "perfmon CSV has no vessel_tick row"
+  validate_vessel_tick_row "$vessel_tick_row" ||
+    benchmark_fail "vessel_tick CSV metrics or percentile ordering are invalid"
   vessel_tick_calls=$(awk -F, '{print $2}' <<<"$vessel_tick_row")
   vessel_tick_median=$(awk -F, '{print $5}' <<<"$vessel_tick_row")
   vessel_tick_p95=$(awk -F, '{print $6}' <<<"$vessel_tick_row")
   vessel_tick_p99=$(awk -F, '{print $7}' <<<"$vessel_tick_row")
   vessel_tick_max=$(awk -F, '{print $8}' <<<"$vessel_tick_row")
-  [[ "$vessel_tick_calls" =~ ^[0-9]+$ &&
-     "$vessel_tick_max" =~ ^[0-9]+$ ]] ||
-    benchmark_fail "could not parse the vessel_tick result"
   ((vessel_tick_calls >= measurement_seconds * 2 - 10)) ||
     benchmark_fail "vessel_tick captured only $vessel_tick_calls calls"
   missed_pulses=$(sed -nE \
@@ -1953,6 +1979,10 @@ case "${1:-}" in
   __newer-binary-input)
     (($# == 3)) || usage
     newer_binary_input "$2" "$3"
+    ;;
+  __validate-vessel-tick-row)
+    (($# == 2)) || usage
+    validate_vessel_tick_row "$2"
     ;;
   *)
     usage

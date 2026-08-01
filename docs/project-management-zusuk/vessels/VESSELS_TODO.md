@@ -205,6 +205,10 @@ merchant, copyover, and multiplayer encounter testing.
   `bin/circle` when any C source, header, or primary build file is newer and
   directs the operator through `make test` and `make install`. A deterministic
   fixture proves both the stale and current cases before the long scale gate.
+  The same audit found that only the tick call count and maximum were required
+  to be numeric. The runner now validates the complete ten-field `vessel_tick`
+  CSV row, requires ordered median/p95/p99/maximum values, and rejects missing
+  percentiles or impossible stored/seen/call sample counts.
   The measured Kohdee session now records timestamped initial, hourly, and
   final `shiplist summary`/`show stats` checkpoints. The runner writes their
   fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,
