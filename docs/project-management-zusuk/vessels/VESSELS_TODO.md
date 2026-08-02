@@ -207,7 +207,7 @@ and restarted the exact candidate. The warning-free production-linked suite
 passes 304 tests.
 
 **Final-release audit checkpoint (August 2, 2026, 16:24 IDT):** The clean
-development candidate at source `05144502` remains installed as SHA-256
+development candidate at source `05144502` was installed as SHA-256
 `75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
 Actual Kohdee confirmed that vessel debug support is compiled out, ran the
 1,000-trade simulation to `PASS`, resolved `SHIPCUSTOMIZE` through an
@@ -226,6 +226,23 @@ The current implementation adds a read-only `vesseldebug balance` report and
 one production-linked deterministic duel test; the warning-free suite passes
 305 tests. Do not mark balance complete until its installed actual-character
 transcript and real beta/player sample are recorded.
+
+**Mechanical-balance checkpoint (August 2, 2026, 16:42 IDT):** Actual Kohdee
+ran `vesseldebug balance 1000` on source `e07cd049` and installed SHA-256
+`075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
+The diagnostic rejected duel counts 0 and 5,001, then passed 1,000 of 1,000
+representative equal-warship duels: first/second wins were 569/431 and
+min/median/p95/max time-to-kill was 48.5/60.5/72.5/81.5 seconds. The same
+session passed 1,000 trades, an 18-trip 8,060-gold finite route, -5,150,000
+gold adversarial reversal, restock 100/100, all class cost anchors, and
+green/able/veteran full-roster paydays of 165/330/495 gold. Authoritative
+`VESSELDEBUG` help also passed.
+
+The anonymized development sample contains only 3 owned hulls, 330 gold owed
+in wages, 20,000 insured value, zero completed freight contracts, and zero
+showcase entries. That is useful proof that the report reads persistence, but
+it is explicitly insufficient player data for balance or fun sign-off. The
+balance checkbox therefore remains open for real beta evidence.
 
 Permanent evidence and behavior live in:
 

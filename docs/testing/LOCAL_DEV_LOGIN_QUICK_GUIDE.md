@@ -1048,6 +1048,14 @@ eight class hull/refit/insurance/dock anchors and full-roster wage tiers, and
 shows anonymized persisted usage totals. Its final line deliberately says
 human beta sign-off is still required.
 
+On August 2, 2026, the installed `e07cd049` candidate completed this actual-
+Kohdee command batch in 10 seconds. It resolved all 1,000 duels with
+48.5/60.5/72.5/81.5 second min/median/p95/max, split initiative wins 569/431,
+and passed the 1,000-trade economy model. The development sample contained 3
+owned hulls but zero completed freight and zero showcase entries. Treat that
+as mechanical acceptance and insufficient player data, exactly as the final
+command line states.
+
 ## Fast 1,000-Trade Economy Gate
 
 After the current source is installed on local development, reuse the master

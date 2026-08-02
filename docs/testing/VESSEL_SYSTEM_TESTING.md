@@ -19,13 +19,13 @@ Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 304 production-linked tests. The
+The current normal candidate passes all 305 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+`075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -859,6 +859,15 @@ limits.
 A mechanical `PASS` is not balance sign-off. Preserve the printed persisted
 sample and collect real beta combat ratings separately; at least 70 percent
 "fun" feedback remains a human release criterion.
+
+The August 2, 2026 actual-Kohdee run passed in 10 seconds on source
+`e07cd049` and installed SHA-256
+`075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
+All 1,000 duels resolved with a 60.5-second median and 72.5-second p95; the
+first/second split was 569/431. The trade route yielded 8,060 gold before
+equilibrium and adversarial reversal lost 5,150,000 gold. Bounds 0 and 5,001
+were refused. The persisted sample was only 3 owned hulls, no completed
+freight, and no showcase entries, so human/player evidence remains open.
 
 ## Release-Boundary Evidence
 

@@ -14,6 +14,10 @@
 - A production-linked balance test raises the warning-free suite to 305 tests
   and locks duel resolution, the provisional time-to-kill band, and invalid
   input boundaries.
+- Actual Kohdee passed 1,000 of 1,000 representative duels at 60.5-second
+  median and 72.5-second p95, plus the production economy and cost report.
+  The command exposed only 3 owned development hulls and no freight/event
+  history, correctly retaining the human/player-data release gate.
 - `shipcustomize` lets an owner review, set, or clear optional 3-80 character
   paint and figurehead descriptions. Both fields persist in Phase 17, appear
   in exterior hull room text, and appear in own-hull and visible-contact
