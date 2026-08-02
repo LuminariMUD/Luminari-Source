@@ -1,14 +1,14 @@
 # Vessel System Benchmarks
 
-**Version:** 3.26
+**Version:** 3.27
 
 **Evidence snapshot:** August 2, 2026
 
 **Last updated:** August 2, 2026
 
 This document records measured vessel-system evidence. It intentionally
-separates completed development performance acceptance from the remaining
-campaign-content, beta, production-snapshot, and rollout gates.
+separates completed development performance and preflight acceptance from the
+remaining real-player balance, human beta, and staged rollout gates.
 
 ## Evidence Summary
 
@@ -27,8 +27,10 @@ campaign-content, beta, production-snapshot, and rollout gates.
 | Wilderness lookout root suite on August 2, 2026 | 292 of 292 passing | Current production-linked gate; full scale must be repeated at preflight |
 | Wilderness lookout actual-character gate | Eight bearings, canonical coast, and live contact pass; exact restoration | Current functional gate passes |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
-| Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
-| Current 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Current complementary stability gate passes |
+| Historical 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
+| Full-scale 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Historical complementary stability gate passes |
+| Final-preflight root suite on August 2, 2026 | 306 of 306 passing | Current production-linked release gate passes |
+| Final-preflight 306-test Memcheck | 0 errors; 0 definite, indirect, or possible loss | Current actionable stability gate passes |
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
 | Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
@@ -45,7 +47,8 @@ campaign-content, beta, production-snapshot, and rollout gates.
 | Post-profile SQL repair candidate | 277/277 tests; live cache boot confirmed | Empty berth saves suppressed; normal 500-ship proof required |
 | Ninth current 500-ship diagnostic on August 2, 2026 | 1,221 ticks; p95 1,524 usec; maximum 2,915 | 600-second diagnostic passes; full 1,800-second gate required |
 | Tenth current 500-ship run on August 2, 2026 | 1,862 seconds; 3,655 ticks; p95 4,079 usec | Full performance and bounded-stability gate passes |
-| Complete current 500-ship live tick | p95 4,079 usec; maximum 10,520 usec | Full-window target passes |
+| Final-preflight 500-ship run on August 2, 2026 | 1,843 seconds; 3,656 ticks; p95 4,018.75 usec | Current full performance and bounded-stability gate passes |
+| Complete current 500-ship live tick | p95 4,018.75 usec; maximum 7,263 usec | Full-window target passes |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -556,6 +559,41 @@ possibly lost bytes. It left 368,451 bytes reachable in 2,353 blocks after
 25,725 allocations and 23,372 frees. Required `make install` again removed the
 root artifact and retained the installed hash above.
 
+Final-preflight run `20260802T152129Z-2080810` is terminal `PASS` for the
+required 1,800-second request. Source `bbb4ae4a` and installed SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`
+ran one game process for 1,843 measured seconds with 500 vessels across all
+eight classes. Its 3,656 complete ticks measured a 617.00 usec median,
+4,018.75 usec p95, 5,000.50 usec p99, and 7,263 usec maximum. The complete
+tick maximum remained below the 25 ms release limit.
+
+The production workload retained 500 pilots, 2,000 hired crew, 500 schedules,
+500 cargo lots, and 622 weapon rows. It recorded 6,028 missed pulses, 3,657
+suppressed messages, 4,280 database executions, ten scheduled departures, 20
+shared encounters, and 16 distinct live airship Z values from 124 through 210.
+Surface, airship, submarine, economy, reconstruction, native MSDP, message
+throttling, named-water, fare, and channel-isolation checks all passed through
+actual Kohdee sessions. Workload errors, high-volume progress rows, buffer
+overflows, and movement trails were zero.
+
+The 61 one-PID samples retained two threads and 11-12 descriptors. RSS rose
+784,276 to 817,384 KiB and VSZ rose 879,664 to 912,464 KiB while mobiles rose
+32,402 to 34,018 and objects 24,676 to 25,121; rooms remained 52,424.
+Allocation lists fell from 1,370 to 1,148 and dynamic rooms ended at 6 of
+2,000. The bounded analyzer remains `REPORT_ONLY`, because this interval also
+contains normal world repopulation and is not a long-horizon plateau or leak
+claim. Cleanup restored all eight baseline vessel rows and restarted local
+development.
+
+Two preceding artifacts contain no performance sample. Run
+`20260802T145814Z-2035247` failed safely when the harbor helper recognized west
+dock coordinates before the scheduled ferry reached speed 0; the wait now
+requires both dock and stopped state. Run `20260802T151047Z-2061276` failed
+safely because zero-speed vertical probes stopped at the positive-speed
+prerequisite; the runner now sets speed 2 before every terrain probe and fails
+explicitly if that gate is skipped. Both restored the baseline, and the final
+run passed the corrected sequences.
+
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
 hunter changes. The installed-candidate scale run is the first live
@@ -710,7 +748,7 @@ detailed-memory sampler, and scale-parser regressions. CMake registers the same
 three scripts as CTest cases; a clean CMake configuration ran all three
 successfully. Automake's release manifest now includes the ferry, scale,
 login, memory, and hunter tools plus the complete harbor, vessel documentation,
-help SQL, master schema, and Phase 2-16 install/verify/rollback chain. An
+help SQL, master schema, and Phase 2-17 install/verify/rollback chain. An
 August 1 `make dist` archive audit found zero missing documented vessel
 acceptance or schema-rehearsal inputs.
 
@@ -754,6 +792,15 @@ residue, byte-identical Kohdee restoration, and an exact-binary restart. This
 closes the lookout presentation gate; it does not replace the final 500-vessel
 rerun after post-scale source changes.
 
+The final-preflight candidate passes all 306 production-linked tests and
+strict Memcheck with zero errors and zero definite, indirect, or possible
+loss. The focused protocol harness passes 13 of 13 and all four vessel-tooling
+gates pass. Required `make install` removes the root `circle` and installs the
+SHA-256 recorded with the final run. Actual Kohdee also proved debug-off,
+load-bearing disable/freeze/enable/resume behavior, all 81 authoritative help
+keywords, and moving-Trader copyover with generation, speed, and 40
+iron/2,000-pound cargo retained.
+
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
 
@@ -776,9 +823,10 @@ vessel mirror sources and claims about a separate `test_runner` are obsolete.
 
 The stability program uses one bounded ferry observation and one bounded
 500-ship observation. Each full task, including setup, recovery checks,
-evidence review, and cleanup, is capped at one hour. The ferry gate is
-complete; limit the remaining steady scale measurement to 1,800 seconds. The
-ferry monitor provides the reusable game-side observation contract:
+evidence review, and cleanup, is capped at one hour. Both gates are complete;
+future release-candidate repetitions must limit steady scale measurement to
+1,800 seconds. The ferry monitor provides the reusable game-side observation
+contract:
 actual-Kohdee samples capture fleet count, dynamic wilderness occupancy,
 mobiles, objects, rooms, allocation lists, live movement trails, buffer
 switches, and overflows in `live-system-samples.tsv`. The scale runner
@@ -958,9 +1006,9 @@ spatial result lifecycle by itself as the explanation for the game process's
 growth. The candidate's single-pass target resolution remains a valid query
 and CPU optimization, but is not claimed as a memory fix.
 
-These observations remain a partial warmup investigation from an abandoned
-run, not a terminal continuity, plateau, root-cause, or leak verdict. The
-remaining bounded fleet gate must demonstrate:
+Those historical observations remain a partial warmup investigation from an
+abandoned run, not a terminal continuity, plateau, root-cause, or leak verdict.
+The completed release evidence now demonstrates:
 
 - No crashes, corrupt vessel records, or observed runaway growth during the
   bounded window.
@@ -975,10 +1023,11 @@ remaining bounded fleet gate must demonstrate:
 The fixed-memory foundation and historical automated-test snapshot are within
 their stated budgets. The one-hour-bounded actual-character ferry stability
 gate and the complete 500-ship performance and bounded-stability gate pass on
-development. Broad release still requires player-experience work, human beta,
-production-snapshot rehearsal, balance sign-off, and staged rollout. Repeat
-the scale gate during final preflight because Phase 16 added one sampled tick
-section after the recorded full run.
+development. The production-snapshot rehearsal and final release-candidate
+preflight also pass. Broad release still requires real-player balance data, a
+structured human beta with the required fun score, and authorized staged
+rollout. Automated actual-character sessions do not substitute for those
+human gates.
 
 Remaining benchmark and release work is tracked in
 [`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).

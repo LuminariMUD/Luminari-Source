@@ -23,34 +23,34 @@ ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
 boundaries, native MSDP, named-water crossing, captain-channel isolation, and
 message throttling pass. The installed development candidate is not approved
-for production until the remaining player feedback, balance, beta, preflight,
-and staged rollout work below is complete.
+for production until the remaining real-player balance, structured human beta,
+and authorized staged rollout work below is complete.
 
-**Current release checkpoint (August 2, 2026, 09:04 IDT):** Full run
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`
-is terminal `PASS`. Its complete request-to-cleanup task took 2,338 seconds,
-within the one-hour ceiling, including 1,862 seconds of measurement with 500
-ships and all eight classes on one PID. Across 3,655 production ticks,
-median/p95/p99/maximum were 599/4,079/5,169.06/10,520 usec. Every subsystem
-maximum remained below 25 ms. The run recorded 20 shared multi-ship
-encounters, 10 scheduled departures, 12 airship Z values from 128 through 210,
-23,181 suppressed messages, 4,247 database executions, zero workload errors,
+**Current release checkpoint (August 2, 2026, 19:01 IDT):** Final-preflight
+run
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T152129Z-2080810`
+is terminal `PASS` on source `bbb4ae4a` and installed SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`.
+The complete request-to-cleanup task took 2,352 seconds, within the one-hour
+ceiling, including 1,843 seconds of measurement with 500 ships and all eight
+classes on one PID. Across 3,656 complete production ticks,
+median/p95/p99/maximum were 617/4,018.75/5,000.50/7,263 usec. The maximum was
+well below the 25 ms release limit. The run recorded 20 shared multi-ship
+encounters, 10 scheduled departures, 16 airship Z values from 124 through 210,
+3,657 suppressed messages, 4,280 database executions, zero workload errors,
 zero high-volume progress rows, zero buffer overflows, and movement trails
-0/0/0. Cleanup restored all six baseline vessel rows and restarted local
+0/0/0. Cleanup restored all eight baseline vessel rows and restarted local
 development.
 
-The 63-sample process series retained two threads and 11-13 descriptors. RSS
-rose 783,032 to 816,180 KiB while the awake world added 1,613 mobiles and 451
-objects; rooms remained 52,418 and allocation lists fell from 1,490 to 1,112.
+The 61-sample process series retained two threads and 11-12 descriptors. RSS
+rose 784,276 to 817,384 KiB while the awake world added 1,616 mobiles and 445
+objects; rooms remained 52,424 and allocation lists fell from 1,370 to 1,148.
 The bounded analyzer result remains `REPORT_ONLY`, not a long-horizon leak or
-plateau claim. Complementary Memcheck across all 277 production-linked tests
-reports zero errors and zero definite, indirect, or possible loss. The
-368,451 reachable bytes remain owned by process-lifetime registries. The
-focused protocol parser passes 13 of 13, the prior integrated CMake gate
-passes 6 of 6, required `make install` removes the root artifact, and the
-current normal candidate passes 297 production-linked tests and installs
-SHA-256
-`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+plateau claim. Strict Memcheck across all 306 production-linked tests reports
+zero errors and zero definite, indirect, or possible loss. The focused
+protocol parser passes 13 of 13, all four vessel-tooling gates pass, required
+`make install` removes the root artifact, and the normal development service
+runs the installed candidate above.
 
 **Campaign-content checkpoint (August 2, 2026, 09:59 IDT):** The tracked,
 idempotent Vailand package now maps two territorial-water regions, the
@@ -256,11 +256,11 @@ Ashenport but gives no vessel, ferry, fare, dock, or shipyard direction. The
 north gate is locked, and re-entering the portal returns to the optional
 tutorial. The development database contains a scheduled 10-gold Harbor
 Sandbox Ferry, but its testing docks are not naturally reachable from this
-new-player path. This directly contradicts the PRD first-hour discovery and
-affordability outcome. The structured beta item remains open while production
-content, directions, and a no-staff actual-character passage are added and
-retested. Vesselbeta is retained temporarily for that follow-up and must be
-removed through the normal account workflow after the reversible beta run.
+new-player path. This directly contradicted the PRD first-hour discovery and
+affordability outcome. The structured beta item remained open while production
+content, directions, and a no-staff actual-character passage were added and
+retested. Vesselbeta was retained temporarily for that follow-up and was later
+removed through the normal account workflow recorded below.
 
 **Fresh-character discovery repair (August 2, 2026, 17:17 IDT):** Source
 `eed5d47d` adds an idempotent campaign world package with a conspicuous free
@@ -291,8 +291,13 @@ stop/recovery/resume regression.
 This closes the mechanical first-hour discovery and affordability defect. It
 does not supply independent player feedback, multiplayer-role evaluation, or
 the required 70 percent human combat-fun rating, so the structured beta item
-remains open. Vesselbeta remains only until its persistent-residue check and
-normal account-menu deletion are recorded.
+remains open. Before deletion, Vesselbeta had zero owned ships, helm permits,
+freight contracts, bounties, hunts, insurance claims, merchant consequences,
+loaded-cargo attribution, event entries, or leaderboard rows. At 19:04 IDT,
+the character was permanently removed through account selection, character
+menu option 5, password verification, and the normal `yes` confirmation.
+Post-delete queries found zero player rows and zero vessel residue by name or
+former player id 10719399.
 
 **Production-snapshot schema rehearsal (August 2, 2026, 17:44 IDT):** A
 read-only consistent dump of the live production database was restored into a
@@ -326,6 +331,28 @@ eight expected deltas were only owned help/region/path data plus the
 schema-extended interior table, whose original columns remained hash-identical.
 A final reapply, all verifiers, and `mariadb-check` passed.
 
+**Final-preflight checkpoint (August 2, 2026, 19:01 IDT):** The clean release
+candidate passed all 306 production-linked tests, strict Memcheck with zero
+errors or actionable losses, the 13-case protocol parser, all four vessel
+tooling gates, and required installation with no root-level `circle` artifact.
+Actual Kohdee proved vessel debug commands are compiled out; toggling the
+load-bearing `vessel_system` option off froze the moving Trader and gated helm
+commands without hiding inspection commands, and toggling it back on resumed
+movement. One 44-second session resolved all 81 authoritative vessel help
+keywords. A live copyover retained Kohdee aboard the moving Trader with its
+coordinates, speed 6, generation 1 identity, and 40 iron/2,000-pound cargo
+unchanged. The candidate also passed the final 500-vessel run recorded above.
+
+Two safe premeasurement failures improved the gate without being treated as
+performance evidence. Run `20260802T145814Z-2035247` returned from a dock wait
+before the scheduled vessel had reached speed 0; source `792f9313` now requires
+both dock coordinates and stopped state. Run `20260802T151047Z-2061276`
+attempted vertical terrain probes at zero speed; source `bbb4ae4a` now sets
+speed 2 before each surface, airship, and submarine probe and rejects any
+transcript that fails to reach the terrain gate. Both failed runs restored the
+baseline. The final run passed those corrected actual-Kohdee sequences and
+restored the baseline again.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -338,7 +365,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 4 top-level balance/beta/rollout items.
+**Remaining checklist:** 3 top-level balance/beta/rollout items.
 
 ## 1. Add Living-World Content
 
@@ -367,8 +394,9 @@ confirm no benchmark worker owns the development service.
 Named-water announcements, the ship-wide captain channel, and repeated-message
 throttling are complete. The harbor provisioner passes a matching crossing/
 `seastate` transcript and same-account Kohdee/Vesselmate cross-room isolation.
-The full scale gate records 23,181 suppressed combat/ambient messages and 20
-shared encounters, confirming the final shared-world encounter model.
+The final-preflight scale gate records 3,657 suppressed combat/ambient
+messages and 20 shared encounters, confirming the final shared-world encounter
+model.
 The completed tactical chart reads `get_map()` terrain and the same wilderness
 region polygons used by travel, hides encounter-only metadata, and resolves
 contacts through the production sight-range and damage systems rather than a
@@ -397,7 +425,7 @@ with eligible defenders.
   at least 70 percent "fun" combat feedback.
 - [x] Rehearse every schema migration and rollback against a production
   snapshot with no data loss. Do not modify the live production database.
-- [ ] Confirm production preflight on the release candidate: repeat regression,
+- [x] Confirm production preflight on the release candidate: repeat regression,
   load-bearing-toggle, debug-off, authoritative-help, lifecycle recovery,
   benchmark, bounded stability, and documented operator-recovery checks.
 - [ ] Roll out in stages: staff, beta cohort, then all players. Prepare the

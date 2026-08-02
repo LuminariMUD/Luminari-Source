@@ -3,21 +3,20 @@
 **Last verified:** August 2, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 09:59 IDT):** The full
-1,800-second, 500-vessel release scale gate is terminal `PASS` under
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`.
-Its complete setup, measurement, validation, cleanup, and restart took 2,338
-seconds. All subsystem maxima stayed below 25 ms, and the run recorded zero
+**Active execution checkpoint (August 2, 2026, 19:01 IDT):** Final-preflight
+run
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T152129Z-2080810`
+is terminal `PASS` on source `bbb4ae4a` and installed SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`.
+Its complete setup, 1,843-second measurement, validation, cleanup, and restart
+took 2,352 seconds. All 500 vessels across eight classes survived; 3,656
+complete ticks measured 617/4,018.75/5,000.50/7,263 usec
+median/p95/p99/maximum, safely below the 25 ms limit. The run recorded zero
 workload errors, high-volume progress rows, buffer overflows, or movement
-trails. At that scale revision, all 277 production-linked tests, strict
-actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
-passed; its normal binary SHA-256 was
-`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later hostile-boarding candidate passes 302 production-linked tests and
-installs SHA-256
-`b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
-Repeat the scale gate during final preflight because the source changed after
-the recorded 500-vessel run.
+trails and restored all eight baseline vessels. The release candidate also
+passes all 306 production-linked tests, strict actionable Memcheck, 13 focused
+protocol tests, and all four vessel-tooling gates. Required installation
+removed the root-level binary and the normal development service is active.
 
 The first Luminari campaign package now also passes actual-character
 acceptance. Run `20260802T065410Z-1061371` provisions the Vailand legal waters,
@@ -704,19 +703,27 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 282 of 282. The preceding 277-test Memcheck
-gate reported zero errors and zero definite, indirect, or possible loss;
-repeat the command above for the current candidate. Reachable process-lifetime
-registries and profiler buffers remain reported but are not classified as
-lost. `make test` may leave a root-level `circle` while it builds the
-production-linked suite. The required `make install` installs `bin/circle` and
-removes that root artifact before the runner records provenance. Root
+The current suite result is 306 of 306. The current 306-test Memcheck gate
+reported zero errors and zero definite, indirect, or possible loss. Reachable
+process-lifetime registries and profiler buffers remain reported but are not
+classified as lost. `make test` may leave a root-level `circle` while it builds
+the production-linked suite. The required `make install` installs `bin/circle`
+and removes that root artifact before the runner records provenance. Root
 `make test` and CMake/CTest now also run the vessel memory analyzer, detailed
 process-memory, and scale-parser regressions; the release manifest includes
 the login, ferry, scale, memory, and supporting vessel test scripts. It also
 includes the complete harbor world fixture, vessel docs, authoritative help
-data, master schema, and every Phase 2-16 install/verify/rollback input needed
+data, master schema, and every Phase 2-17 install/verify/rollback input needed
 to reproduce this guide from a packaged source tree.
+
+The August 2 final preflight also used actual Kohdee to confirm debug commands
+are compiled out. Turning the load-bearing `vessel_system` option off froze a
+moving Trader and gated helm controls while leaving inspection available;
+turning it back on resumed movement. One exhaustive session resolved all 81
+authoritative vessel help keywords. A live copyover retained Kohdee aboard the
+moving Trader at speed 6 with generation 1 identity and its 40 iron/2,000-pound
+cargo unchanged. The focused protocol parser passed 13 of 13, all four tooling
+gates passed, and the installed service returned to normal afterward.
 
 ## Reproducible 500-Vessel Scale Gate
 
@@ -936,6 +943,31 @@ restarts development. Strict Memcheck then passes all 277 production-linked
 tests with zero errors and zero definite, indirect, or possible loss; required
 `make install` preserves the installed hash and removes the root artifact.
 
+Final preflight repeated the complete gate after Phase 17. The first launch,
+`20260802T145814Z-2035247`, failed safely during harbor setup because the dock
+wait returned at the correct west coordinates while the ferry still had speed
+2. `@wait-vessel-dock` now requires the matching coordinates and `Speed: 0 /`;
+the tooling test locks that stopped-state requirement. The next launch,
+`20260802T151047Z-2061276`, reached all 500 ships but stopped before timing
+because its surface and submarine Z probes issued `setsail up` at speed 0 and
+therefore exercised the positive-speed prerequisite instead of terrain. The
+runner now issues `speed 2` before all three vertical probes and explicitly
+rejects a transcript that never reaches the terrain gate. Both failed launches
+restored the eight-vessel baseline.
+
+Final run
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T152129Z-2080810`
+is terminal `PASS` on source `bbb4ae4a`. Its 1,843 measured seconds retained
+500 vessels across all eight classes and produced 3,656 complete ticks with
+617/4,018.75/5,000.50/7,263 usec median/p95/p99/maximum. It recorded 10
+scheduled departures, 20 shared encounters, 16 airship Z values from 124 to
+210, 3,657 suppressed messages, 4,280 database executions, zero workload
+errors, zero high-volume rows, zero overflows, and trails 0/0/0. RSS moved
+784,276 to 817,384 KiB while mobiles and objects repopulated; the bounded
+memory verdict remains `REPORT_ONLY`. Cleanup restored all eight baseline
+vessels and restarted local development. This is the current final-preflight
+scale result; do not substitute either premeasurement failure for it.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process
@@ -1116,6 +1148,15 @@ under artifacts `20260802T140131Z-1934590` and
 `20260802T140648Z-1945498`; the production-linked suite passes 306 tests.
 This is mechanical first-hour acceptance, not independent human beta or fun
 scoring.
+
+The disposable character was then checked before deletion. Player id 10719399
+had zero owned hulls, helm permits, freight contracts, bounties, hunts,
+insurance claims, merchant consequences, loaded-cargo attribution, event
+participation, or leaderboard rows. The normal workflow selected Vesselbeta
+from the account menu, chose character-menu option 5, supplied the account
+password, and confirmed `yes`; the server reported successful deletion and
+returned to the account menu. Post-delete queries found zero `player_data`
+rows and zero vessel residue by name or former id.
 
 Keep the character only while repairing and repeating this path. Acceptance
 requires a fresh ordinary-player transcript that discovers reachable campaign
@@ -1447,7 +1488,8 @@ mapping. Applying `sql/components/help_vessel_entries.sql`, running
 all five SQL checks pass. The installed candidate resolved its then-current 80
 keywords, including `VEVENT`, `LOOKOUT`, and `LOOK_OUTSIDE`, in one 43-second
 Kohdee session. Phase 17 adds the SQL-verified and live-executed
-`SHIPCUSTOMIZE` mapping as keyword 81. This replaces one login cycle per
+`SHIPCUSTOMIZE` mapping as keyword 81. Final preflight resolved all 81 of 81
+keywords in one 44-second Kohdee session. This replaces one login cycle per
 keyword and automatically includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
