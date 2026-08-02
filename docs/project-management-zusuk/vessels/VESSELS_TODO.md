@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 04:02 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 04:13 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -132,6 +132,19 @@ gold restoration, named-water crossing, and the same-account channel check.
 Its tooling regression locks the wait/disembark/dock/board order. Start a new
 bounded scale run; the third artifact also contains no measurement. The
 passing provisioner left the installed candidate active on PID 385872.
+
+The fourth run is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T010309Z-392860`.
+It passed harbor, slot 500, economy, Z boundaries, fresh reconstruction-log
+validation, and the reciprocal-combat observation. Kohdee saw repeated return
+fire and `vessel_messages_throttled=393`, but the helper rejected the counter
+because Telnet output contained LF-CR line breaks and left a carriage return
+before each CSV line. The shared output cleaner now removes a leading CR while
+preserving indentation, and tooling locks that normalization. Cleanup restored
+the baseline and restarted PID 407332. The 18-tick diagnostic profile is not
+release evidence, but its 226,912-usec vessel maximum, 226,835-usec autopilot
+maximum, 107,698-usec encounter maximum, and 26 missed pulses warn that real
+performance work may remain once the full measurement starts.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

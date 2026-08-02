@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.10
+**Version:** 3.11
 
 **Evidence snapshot:** August 2, 2026
 
@@ -26,6 +26,7 @@ from the full live-game benchmark that still must be run.
 | First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
 | Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
 | Third current scale launch on August 2, 2026 | Harbor preflight stopped before spawn | Canonical west-dock fare path fixed; rerun required |
+| Fourth current 500-ship attempt on August 2, 2026 | Reached reciprocal-combat proof; stopped before steady measurement | LF-CR parser fixed; performance warning retained |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -232,6 +233,22 @@ room 1000389, and then exercises normal boarding. The full standalone harbor
 provisioner passed the 10-gold charge/restoration, named-water crossing, and
 same-account channel checks immediately afterward. No fleet was created and
 the cleanup-restored launch contains no benchmark sample.
+
+Run `20260802T010309Z-392860` passed the repaired harbor, complete fleet,
+economy, Z-boundary, and reconstruction gates. Its reciprocal-combat helper
+also observed repeated return fire and a valid suppression count of 393. The
+helper nevertheless stopped because LF-CR Telnet output placed a carriage
+return before each CSV line, defeating a start-anchored regex. The common
+output cleaner now strips that leading CR while retaining intended indentation.
+
+That helper reset the profiler and captured only 18 vessel ticks over eight
+seconds, so it is diagnostic rather than the required steady measurement. It
+reported median 571 usec, p95 126,589.05 usec, p99 206,847.41 usec, maximum
+226,912 usec, and 26 missed pulses. The largest sampled subsystem maxima were
+autopilot at 226,835 usec and encounters at 107,698 usec. These values already
+exceed the 25,000-usec release target and require investigation if reproduced
+in the full run; they must not be diluted or presented as a passing result.
+Cleanup restored the baseline.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

@@ -65,6 +65,10 @@
   disembarks, and resolves canonical room 1000389 before ordinary boarding.
   A west-coordinate disembarkation could otherwise land outside the room that
   held the hull object, making a valid `board ferry` proximity check fail.
+- The login helper normalizes LF-CR Telnet command output by removing a leading
+  carriage return from each displayed line while retaining deliberate
+  indentation. A valid `vessel_messages_throttled=393` counter was visible but
+  failed the anchored parser before this normalization.
 
 #### Validated
 
@@ -133,6 +137,11 @@
   the exact 10-gold deduction/restoration, named-water crossing, and
   same-account channel transcript; tooling preserves the canonical command
   order.
+- Run `20260802T010309Z-392860` passes all repaired setup gates, reconstructs
+  500 vessels, and gives Kohdee repeated reciprocal return-fire messages. It
+  stops before steady measurement only on the LF-CR parser despite a visible
+  suppression count of 393. The cleanup-restored 18-tick diagnostic also
+  records a 226,912-usec vessel maximum and 26 missed pulses for follow-up.
 
 ### Durable HUNTED bounty-hunter patrols
 

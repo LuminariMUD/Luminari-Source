@@ -454,6 +454,15 @@ boards normally. A standalone provisioner run passed the exact 10-gold charge
 and restoration plus crossing/channel checks after this change. The tooling
 test locks that command order. This artifact contains no scale measurement.
 
+Run `20260802T010309Z-392860` passed every repaired setup stage and reached the
+reciprocal-combat helper. Kohdee observed repeated return fire and the server
+reported 393 suppressed messages, but LF-CR Telnet line endings left a leading
+carriage return before the CSV counter and the helper rejected it. The common
+output cleaner now strips only that leading CR and preserves indentation. Its
+short 18-tick profile also showed 226,912 usec maximum vessel time and 26
+missed pulses; treat that as a performance warning, not the required steady
+sample. Cleanup restored the baseline.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

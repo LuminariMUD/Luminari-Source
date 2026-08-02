@@ -304,13 +304,14 @@ proc clean_command_output {raw command marker} {
   set cleaned_lines {}
   foreach line [split $raw "\n"] {
     set trimmed [string trim $line]
+    set display_line [string trimleft $line "\r"]
     if {$trimmed eq "" || $trimmed eq $command ||
         [string first "say $marker" $trimmed] >= 0 ||
         [string first $marker $trimmed] >= 0 ||
         [regexp {__MUD_SMOKE_COMMAND_[0-9]+_DONE__} $trimmed]} {
       continue
     }
-    lappend cleaned_lines [string trimright $line]
+    lappend cleaned_lines [string trimright $display_line]
   }
   return [string trim [join $cleaned_lines "\n"]]
 }

@@ -123,6 +123,9 @@ fi
 [[ "$(grep -Fc 'run_game_command "goto 1204"' \
   "$script_dir/dev_kohdee_login_smoke.sh")" == 2 ]] ||
   fail "generic MSDP and message helpers do not leave crowded benchmark waters"
+grep -Fq "set display_line [string trimleft \$line \"\\r\"]" \
+  "$script_dir/dev_kohdee_login_smoke.sh" ||
+  fail "login helper does not normalize LF-CR command output"
 
 fare_commands=$(sed -n '/^fare_output=.*--commands/,/^fare_status=/p' \
   "$script_dir/provision_vessel_harbor.sh")

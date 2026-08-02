@@ -190,6 +190,15 @@ resolves room 1000389, and performs ordinary boarding there. The full
 standalone provisioner passed the exact charge/restoration and the subsequent
 crossing/channel checks. A tooling assertion preserves this command order.
 
+Run `20260802T010309Z-392860` passed those repairs, reconstruction, and the
+live reciprocal-combat observation. Kohdee saw repeated return fire and
+`vessel_messages_throttled=393`, but LF-CR Telnet output put a carriage return
+before each printed CSV line and the helper's anchored regex rejected the
+valid counter. The common output cleaner now removes that leading CR while
+retaining indentation. Cleanup restored the baseline. Its 18-tick diagnostic
+profile had a 226,912-usec maximum and 26 missed pulses, so the full run must
+still determine and address the actual performance verdict.
+
 For the builder-independence timing gate, run:
 
 ```bash
