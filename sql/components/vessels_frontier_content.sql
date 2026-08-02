@@ -133,13 +133,22 @@ UPDATE ship_prototypes
  WHERE name = 'Sablebranch Riverboat';
 
 INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
-SELECT 'Starfall Bathyscaphe', 5, 10, 25
+SELECT 'Starfall Survey Ship', 2, 12, 20
  WHERE NOT EXISTS (
-   SELECT 1 FROM ship_prototypes WHERE name = 'Starfall Bathyscaphe'
+   SELECT 1 FROM ship_prototypes WHERE name = 'Starfall Survey Ship'
  );
 UPDATE ship_prototypes
-   SET vessel_class = 5, max_speed = 10, armor = 25
- WHERE name = 'Starfall Bathyscaphe';
+   SET vessel_class = 2, max_speed = 12, armor = 20
+ WHERE name = 'Starfall Survey Ship';
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Starfall Bastion', 3, 15, 35
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_prototypes WHERE name = 'Starfall Bastion'
+ );
+UPDATE ship_prototypes
+   SET vessel_class = 3, max_speed = 15, armor = 35
+ WHERE name = 'Starfall Bastion';
 
 INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
 SELECT 'Aetherwind Courier', 4, 25, 15
@@ -149,5 +158,32 @@ SELECT 'Aetherwind Courier', 4, 25, 15
 UPDATE ship_prototypes
    SET vessel_class = 4, max_speed = 25, armor = 15
  WHERE name = 'Aetherwind Courier';
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Starfall Bathyscaphe', 5, 10, 25
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_prototypes WHERE name = 'Starfall Bathyscaphe'
+ );
+UPDATE ship_prototypes
+   SET vessel_class = 5, max_speed = 10, armor = 25
+ WHERE name = 'Starfall Bathyscaphe';
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Sablebranch Grand Freighter', 6, 8, 20
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_prototypes WHERE name = 'Sablebranch Grand Freighter'
+ );
+UPDATE ship_prototypes
+   SET vessel_class = 6, max_speed = 8, armor = 20
+ WHERE name = 'Sablebranch Grand Freighter';
+
+INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
+SELECT 'Liminal Wayfarer', 7, 15, 20
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_prototypes WHERE name = 'Liminal Wayfarer'
+ );
+UPDATE ship_prototypes
+   SET vessel_class = 7, max_speed = 15, armor = 20
+ WHERE name = 'Liminal Wayfarer';
 
 COMMIT;

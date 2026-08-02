@@ -19,7 +19,11 @@ SELECT prototype_id, name, vessel_class, max_speed, armor
  WHERE name IN (
    'Sablebranch Raft',
    'Sablebranch Riverboat',
+   'Starfall Survey Ship',
+   'Starfall Bastion',
+   'Aetherwind Courier',
    'Starfall Bathyscaphe',
-   'Aetherwind Courier'
+   'Sablebranch Grand Freighter',
+   'Liminal Wayfarer'
  )
  ORDER BY vessel_class;

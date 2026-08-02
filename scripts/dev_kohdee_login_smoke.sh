@@ -61,7 +61,7 @@ if [[ $# -gt 0 ]]; then
       mode="vessel-frontier-check"
       ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <raft-id> <boat-id> <submarine-id> <airship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id>]"
       ;;
   esac
   shift
@@ -111,8 +111,8 @@ if [[ $# -gt 0 ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-crossing-check requires one ship slot from 1 through 500"
   elif [[ "$mode" == "vessel-frontier-check" ]]; then
-    [[ $# -eq 4 ]] ||
-      fail "--vessel-frontier-check requires four prototype ids"
+    [[ $# -eq 8 ]] ||
+      fail "--vessel-frontier-check requires eight prototype ids in class order"
     for prototype_id in "$@"; do
       [[ "$prototype_id" =~ ^[1-9][0-9]*$ ]] ||
         fail "frontier prototype ids must be positive integers"
@@ -635,12 +635,28 @@ proc require_frontier_ship_position {output expected_x expected_y expected_z con
   require_game_output $output "Elevation/Depth: $expected_z" $context
 }
 
-proc spawn_frontier_vessel {prototype_id vessel_name} {
+proc require_frontier_prototype {prototype_id vessel_name class_id class_name cargo_capacity} {
+  set output [run_game_command "vedit show $prototype_id"]
+  require_game_output $output "Prototype $prototype_id: $vessel_name" \
+    "$vessel_name prototype"
+  require_game_output $output "Class : $class_id ($class_name)" \
+    "$vessel_name prototype class"
+  require_game_output $output "Cargo : $cargo_capacity lbs" \
+    "$vessel_name prototype cargo"
+}
+
+proc spawn_frontier_vessel_at_exterior {prototype_id vessel_name} {
   set output [run_game_command "vedit spawn $prototype_id"]
   if {![regexp {as ship ([0-9]+):} $output ignored ship_slot] ||
       $ship_slot < 2 || $ship_slot >= 500} {
     fail "could not read a purgeable slot for $vessel_name"
   }
+
+  return $ship_slot
+}
+
+proc spawn_frontier_vessel {prototype_id vessel_name} {
+  set ship_slot [spawn_frontier_vessel_at_exterior $prototype_id $vessel_name]
 
   set output [run_game_command "shipgoto $ship_slot"]
   require_game_output $output "Aboard $vessel_name (slot $ship_slot)." \
@@ -655,15 +671,31 @@ proc purge_frontier_vessel {ship_slot vessel_name} {
     "$vessel_name cleanup"
 }
 
-proc run_frontier_river_vessel {prototype_id vessel_name} {
+proc require_frontier_cargo {vessel_name cargo_capacity} {
+  set output [run_game_command "cargomanifest"]
+  require_game_output $output "Hold: 0 of $cargo_capacity lbs used." \
+    "$vessel_name cargo capacity"
+}
+
+proc run_frontier_river_vessel {prototype_id vessel_name class_id class_name cargo_capacity room_name} {
   set output [run_game_command "goto -810 480"]
   require_game_output $output "Current Location  : (-810, 480)" \
     "$vessel_name river staging"
 
+  require_frontier_prototype $prototype_id $vessel_name $class_id $class_name \
+    $cargo_capacity
   set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output -810 480 0 "$vessel_name initial position"
   require_game_output $output "Terrain: River" "$vessel_name river terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: $class_name" "$vessel_name interior class"
+  if {$room_name ne ""} {
+    require_game_output $output "$room_name$vessel_name" \
+      "$vessel_name required interior"
+  }
+  require_frontier_cargo $vessel_name $cargo_capacity
 
   set output [run_game_command "seastate"]
   require_game_output $output "Water     : River" "$vessel_name sea state"
@@ -680,16 +712,89 @@ proc run_frontier_river_vessel {prototype_id vessel_name} {
   purge_frontier_vessel $ship_slot $vessel_name
 }
 
+proc run_frontier_ship {prototype_id} {
+  set vessel_name "Starfall Survey Ship"
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "$vessel_name ocean staging"
+
+  require_frontier_prototype $prototype_id $vessel_name 2 Ship 12000
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 900 225 0 "$vessel_name initial position"
+  require_game_output $output "Terrain: Ocean" "$vessel_name ocean terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Ship" "$vessel_name interior class"
+  require_game_output $output "Cargo Hold of $vessel_name" \
+    "$vessel_name cargo room"
+  require_game_output $output "Main Deck of $vessel_name" \
+    "$vessel_name deck"
+  require_frontier_cargo $vessel_name 12000
+
+  set output [run_game_command "speed 2"]
+  require_game_output $output "Speed set to 2." "$vessel_name speed"
+  set output [run_game_command "setsail east"]
+  require_game_output $output "Current position: (901, 225, 0)" \
+    "$vessel_name ocean movement"
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_frontier_warship {prototype_id target_prototype_id} {
+  set vessel_name "Starfall Bastion"
+  set target_name "Starfall Survey Ship"
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "$vessel_name combat staging"
+
+  require_frontier_prototype $prototype_id $vessel_name 3 Warship 6000
+  set target_slot [spawn_frontier_vessel_at_exterior $target_prototype_id $target_name]
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Warship" "$vessel_name interior class"
+  if {[regexp -all {Weapons Bay of Starfall Bastion} $output] < 2} {
+    fail "$vessel_name did not generate both required weapons bays"
+  }
+  require_game_output $output "Main Deck of $vessel_name" \
+    "$vessel_name deck"
+  require_frontier_cargo $vessel_name 6000
+
+  set output [run_game_command "shipfire 0 NoFrontierTarget"]
+  require_game_output $output "No such ship in the fleet registry." \
+    "$vessel_name bow weapon"
+  set output [run_game_command "shipfire 1 Starfall"]
+  require_game_output $output \
+    "That weapon cannot bear - the target lies off a different arc." \
+    "$vessel_name port weapon"
+  set output [run_game_command "shipfire 2 NoFrontierTarget"]
+  require_game_output $output "No such ship in the fleet registry." \
+    "$vessel_name starboard weapon"
+
+  purge_frontier_vessel $ship_slot $vessel_name
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot '$target_name'" \
+    "$target_name combat-target cleanup"
+}
+
 proc run_frontier_submarine {prototype_id} {
   set vessel_name "Starfall Bathyscaphe"
   set output [run_game_command "goto 900 225"]
   require_game_output $output "Current Location  : (900, 225)" \
     "$vessel_name trench staging"
 
+  require_frontier_prototype $prototype_id $vessel_name 5 Submarine 3000
   set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output 900 225 0 "$vessel_name surface position"
   require_game_output $output "Terrain: Ocean" "$vessel_name ocean terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Submarine" "$vessel_name interior class"
+  require_game_output $output "Airlock of $vessel_name" "$vessel_name airlock"
+  require_game_output $output "Engine Room of $vessel_name" \
+    "$vessel_name engineering room"
+  require_frontier_cargo $vessel_name 3000
 
   set output [run_game_command "seastate"]
   require_game_output $output \
@@ -718,10 +823,18 @@ proc run_frontier_airship {prototype_id} {
   require_game_output $output "Current Location  : (467, 0)" \
     "$vessel_name skyway staging"
 
+  require_frontier_prototype $prototype_id $vessel_name 4 Airship 4000
   set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output 467 0 0 "$vessel_name ground position"
   require_game_output $output "Terrain: Ocean" "$vessel_name ground terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Airship" "$vessel_name interior class"
+  require_game_output $output "Main Deck of $vessel_name" "$vessel_name deck"
+  require_game_output $output "Engine Room of $vessel_name" \
+    "$vessel_name engineering room"
+  require_frontier_cargo $vessel_name 4000
 
   set output [run_game_command "seastate"]
   if {[string first "Sky lane  :" $output] >= 0 ||
@@ -775,21 +888,107 @@ proc run_frontier_airship {prototype_id} {
   purge_frontier_vessel $ship_slot $vessel_name
 }
 
-proc run_vessel_frontier_check {raft_id boat_id submarine_id airship_id} {
+proc run_frontier_transport {prototype_id} {
+  set vessel_name "Sablebranch Grand Freighter"
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "$vessel_name ocean staging"
+
+  require_frontier_prototype $prototype_id $vessel_name 6 Transport 40000
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 900 225 0 "$vessel_name initial position"
+  require_game_output $output "Terrain: Ocean" "$vessel_name ocean terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Transport" "$vessel_name interior class"
+  if {[regexp -all {Cargo Hold of Sablebranch Grand Freighter} $output] < 3} {
+    fail "$vessel_name did not generate its three required cargo holds"
+  }
+  require_game_output $output "Mess Hall of $vessel_name" \
+    "$vessel_name mess hall"
+  require_frontier_cargo $vessel_name 40000
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_frontier_magical {prototype_id} {
+  set vessel_name "Liminal Wayfarer"
+  set output [run_game_command "goto -810 479"]
+  require_game_output $output "Current Location  : (-810, 479)" \
+    "$vessel_name plains staging"
+
+  require_frontier_prototype $prototype_id $vessel_name 7 "Magical Vessel" 12000
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output -810 479 0 "$vessel_name plains position"
+  require_game_output $output "Terrain: Plains" "$vessel_name plains terrain"
+
+  set output [run_game_command "ship_rooms"]
+  require_game_output $output "Vessel Type: Magical Vessel" \
+    "$vessel_name interior class"
+  require_game_output $output "Cargo Hold of $vessel_name" \
+    "$vessel_name cargo room"
+  require_frontier_cargo $vessel_name 12000
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Speed set to 10." "$vessel_name speed"
+  set output [run_game_command "setsail north"]
+  require_game_output $output "Current position: (-810, 480, 0)" \
+    "$vessel_name river entry"
+  set output [run_game_command "shipstatus"]
+  require_game_output $output "Terrain: River" "$vessel_name river terrain"
+
+  set output [run_game_command "setsail down"]
+  require_game_output $output "Current position: (-810, 480, -10)" \
+    "$vessel_name submerged movement"
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output -810 480 -10 \
+    "$vessel_name submerged position"
+  require_game_output $output "Terrain: River" "$vessel_name submerged terrain"
+
+  set output [run_game_command "setsail up"]
+  require_game_output $output "Current position: (-810, 480, 0)" \
+    "$vessel_name resurfacing"
+  set output [run_game_command "setsail south"]
+  require_game_output $output "Current position: (-810, 479, 0)" \
+    "$vessel_name plains return"
+  set output [run_game_command "setsail up"]
+  require_game_output $output "Current position: (-810, 479, 10)" \
+    "$vessel_name ascent"
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output -810 479 10 \
+    "$vessel_name airborne position"
+  require_game_output $output "Terrain: Plains" "$vessel_name airborne terrain"
+  set output [run_game_command "setsail down"]
+  require_game_output $output "Current position: (-810, 479, 0)" \
+    "$vessel_name landing"
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_vessel_frontier_check {raft_id boat_id ship_id warship_id airship_id submarine_id transport_id magical_id} {
   set workflow_started_at [clock milliseconds]
 
-  run_frontier_river_vessel $raft_id "Sablebranch Raft"
-  run_frontier_river_vessel $boat_id "Sablebranch Riverboat"
-  run_frontier_submarine $submarine_id
+  run_frontier_river_vessel $raft_id "Sablebranch Raft" 0 Raft 300 ""
+  run_frontier_river_vessel $boat_id "Sablebranch Riverboat" 1 Boat 2000 \
+    "Crew Quarters aboard "
+  run_frontier_ship $ship_id
+  run_frontier_warship $warship_id $ship_id
   run_frontier_airship $airship_id
+  run_frontier_submarine $submarine_id
+  run_frontier_transport $transport_id
+  run_frontier_magical $magical_id
 
   set output [run_game_command "goto 1204"]
   require_game_output $output "Staff Board Room" "frontier safe-room return"
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: raft and riverboat traversed the digitalized Sablebranch River."
+  puts "PASS: survey ship crossed Starfall waters with its deck and 12000-lb hold."
+  puts "PASS: warship exposed three weapon slots and two weapons bays without firing a shot."
   puts "PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench."
   puts "PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200."
-  puts "PASS: all four temporary frontier vessels were purged in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+  puts "PASS: transport exposed its 40000-lb hold and three generated cargo rooms."
+  puts "PASS: magical vessel crossed plains, river, underwater, and air coordinates."
+  puts "PASS: all eight vessel classes passed and every temporary frontier vessel was purged in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
 proc clean_dialog_output {raw commands marker} {
@@ -1501,7 +1700,9 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     } elseif {$mode eq "vessel-frontier-check"} {
       run_vessel_frontier_check [lindex $game_commands 0] \
         [lindex $game_commands 1] [lindex $game_commands 2] \
-        [lindex $game_commands 3]
+        [lindex $game_commands 3] [lindex $game_commands 4] \
+        [lindex $game_commands 5] [lindex $game_commands 6] \
+        [lindex $game_commands 7]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }

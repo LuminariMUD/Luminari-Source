@@ -16,8 +16,12 @@ DELETE FROM ship_prototypes
  WHERE name IN (
    'Sablebranch Raft',
    'Sablebranch Riverboat',
+   'Starfall Survey Ship',
+   'Starfall Bastion',
+   'Aetherwind Courier',
    'Starfall Bathyscaphe',
-   'Aetherwind Courier'
+   'Sablebranch Grand Freighter',
+   'Liminal Wayfarer'
  )
    AND NOT EXISTS (
      SELECT 1

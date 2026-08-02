@@ -96,7 +96,9 @@ frontier_runtime_slots()
         ON prototype.prototype_id = runtime.prototype_id
      WHERE prototype.name IN (
        'Sablebranch Raft', 'Sablebranch Riverboat',
-       'Starfall Bathyscaphe', 'Aetherwind Courier');"
+       'Starfall Survey Ship', 'Starfall Bastion',
+       'Aetherwind Courier', 'Starfall Bathyscaphe',
+       'Sablebranch Grand Freighter', 'Liminal Wayfarer');"
 }
 
 apply_database_file()
@@ -259,7 +261,9 @@ collision_count=$(database_scalar "
              FROM ship_prototypes
             WHERE name IN (
               'Sablebranch Raft', 'Sablebranch Riverboat',
-              'Starfall Bathyscaphe', 'Aetherwind Courier')
+              'Starfall Survey Ship', 'Starfall Bastion',
+              'Aetherwind Courier', 'Starfall Bathyscaphe',
+              'Sablebranch Grand Freighter', 'Liminal Wayfarer')
             GROUP BY name
            HAVING COUNT(*) > 1
          ) AS duplicate_prototypes);")
@@ -312,10 +316,18 @@ content_valid=$(database_scalar "
                  AND max_speed = 10 AND armor = 5)
              OR (name = 'Sablebranch Riverboat' AND vessel_class = 1
                  AND max_speed = 10 AND armor = 8)
+             OR (name = 'Starfall Survey Ship' AND vessel_class = 2
+                 AND max_speed = 12 AND armor = 20)
+             OR (name = 'Starfall Bastion' AND vessel_class = 3
+                 AND max_speed = 15 AND armor = 35)
+             OR (name = 'Aetherwind Courier' AND vessel_class = 4
+                 AND max_speed = 25 AND armor = 15)
              OR (name = 'Starfall Bathyscaphe' AND vessel_class = 5
                  AND max_speed = 10 AND armor = 25)
-             OR (name = 'Aetherwind Courier' AND vessel_class = 4
-                 AND max_speed = 25 AND armor = 15)) = 4,
+             OR (name = 'Sablebranch Grand Freighter' AND vessel_class = 6
+                 AND max_speed = 8 AND armor = 20)
+             OR (name = 'Liminal Wayfarer' AND vessel_class = 7
+                 AND max_speed = 15 AND armor = 20)) = 8,
     1, 0);")
 [[ "$content_valid" == 1 ]] ||
   fail "frontier regions, spatial indexes, path, or prototypes are invalid"
@@ -326,17 +338,24 @@ frontier_prototype_ids=$(database_scalar "
            ORDER BY CASE name
              WHEN 'Sablebranch Raft' THEN 1
              WHEN 'Sablebranch Riverboat' THEN 2
-             WHEN 'Starfall Bathyscaphe' THEN 3
-             WHEN 'Aetherwind Courier' THEN 4
+             WHEN 'Starfall Survey Ship' THEN 3
+             WHEN 'Starfall Bastion' THEN 4
+             WHEN 'Aetherwind Courier' THEN 5
+             WHEN 'Starfall Bathyscaphe' THEN 6
+             WHEN 'Sablebranch Grand Freighter' THEN 7
+             WHEN 'Liminal Wayfarer' THEN 8
            END SEPARATOR ',')
     FROM ship_prototypes
    WHERE name IN (
      'Sablebranch Raft', 'Sablebranch Riverboat',
-     'Starfall Bathyscaphe', 'Aetherwind Courier');")
-[[ "$frontier_prototype_ids" =~ ^[1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*$ ]] ||
-  fail "could not resolve the four frontier prototype ids"
-IFS=',' read -r raft_prototype_id boat_prototype_id submarine_prototype_id \
-  airship_prototype_id <<<"$frontier_prototype_ids"
+     'Starfall Survey Ship', 'Starfall Bastion',
+     'Aetherwind Courier', 'Starfall Bathyscaphe',
+     'Sablebranch Grand Freighter', 'Liminal Wayfarer');")
+[[ "$frontier_prototype_ids" =~ ^([1-9][0-9]*,){7}[1-9][0-9]*$ ]] ||
+  fail "could not resolve the eight frontier prototype ids"
+IFS=',' read -r raft_prototype_id boat_prototype_id ship_prototype_id \
+  warship_prototype_id airship_prototype_id submarine_prototype_id \
+  transport_prototype_id magical_prototype_id <<<"$frontier_prototype_ids"
 
 timeout 120 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   'goto -810 480' \
@@ -369,18 +388,24 @@ done
 grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
   fail "Kohdee did not return to room 1204"
 
-timeout 240 "$script_dir/dev_kohdee_login_smoke.sh" \
+timeout 300 "$script_dir/dev_kohdee_login_smoke.sh" \
   --vessel-frontier-check \
   "$raft_prototype_id" "$boat_prototype_id" \
-  "$submarine_prototype_id" "$airship_prototype_id" \
+  "$ship_prototype_id" "$warship_prototype_id" \
+  "$airship_prototype_id" "$submarine_prototype_id" \
+  "$transport_prototype_id" "$magical_prototype_id" \
   >"$run_dir/03-kohdee-vessel-frontier.log" 2>&1 ||
   fail "the actual Kohdee vessel-frontier check failed"
 
 for expected_text in \
   'PASS: raft and riverboat traversed the digitalized Sablebranch River.' \
+  'PASS: survey ship crossed Starfall waters with its deck and 12000-lb hold.' \
+  'PASS: warship exposed three weapon slots and two weapons bays without firing a shot.' \
   'PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench.' \
   'PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200.' \
-  'PASS: all four temporary frontier vessels were purged'; do
+  'PASS: transport exposed its 40000-lb hold and three generated cargo rooms.' \
+  'PASS: magical vessel crossed plains, river, underwater, and air coordinates.' \
+  'PASS: all eight vessel classes passed and every temporary frontier vessel was purged'; do
   grep -Fq "$expected_text" "$run_dir/03-kohdee-vessel-frontier.log" ||
     fail "the vessel-frontier check did not report '$expected_text'"
 done
@@ -392,7 +417,7 @@ grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
   fail "Kohdee did not return to room 1204 after piloting the frontier vessels"
 
 if [[ -f "$server_log" ]] &&
-   grep -E 'SYSERR:.*(710010[1-4]|Starfall|Aetherwind|Shardspire|Sablebranch)' \
+   grep -E 'SYSERR:.*(710010[1-4]|Starfall|Aetherwind|Shardspire|Sablebranch|Liminal)' \
      "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a frontier-content SYSERR"
 fi
@@ -405,7 +430,9 @@ prototype_rows=$(database_scalar "
     FROM ship_prototypes
    WHERE name IN (
      'Sablebranch Raft', 'Sablebranch Riverboat',
-     'Starfall Bathyscaphe', 'Aetherwind Courier');")
+     'Starfall Survey Ship', 'Starfall Bastion',
+     'Aetherwind Courier', 'Starfall Bathyscaphe',
+     'Sablebranch Grand Freighter', 'Liminal Wayfarer');")
 elapsed_seconds=$(($(date +%s) - started_epoch))
 {
   printf 'source_commit=%s\n' "$source_commit"
@@ -423,6 +450,6 @@ elapsed_seconds=$(($(date +%s) - started_epoch))
 
 frontier_cleanup_authorized=false
 trap - EXIT
-printf 'PASS: frontier regions, river path, and four piloted prototypes passed '
+printf 'PASS: frontier regions, river path, and all eight piloted classes passed '
 printf 'through actual Kohdee (%ss).\n' "$elapsed_seconds"
 printf 'Artifacts: %s\n' "$run_dir"
