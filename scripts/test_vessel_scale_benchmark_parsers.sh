@@ -125,7 +125,7 @@ if grep -Fq "workload_log_offset=\$(stat" "$runner"; then
 fi
 login_helper="$script_dir/dev_kohdee_login_smoke.sh"
 [[ "$(grep -Fc 'run_game_command "goto 1204"' \
-  "$login_helper")" == 2 ]] ||
+  "$login_helper")" -ge 2 ]] ||
   fail "generic MSDP and message helpers do not leave crowded benchmark waters"
 grep -Fq "set display_line [string trimleft \$line \"\\r\"]" \
   "$login_helper" ||

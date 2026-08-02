@@ -57,8 +57,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-crossing-check)
       mode="vessel-crossing-check"
       ;;
+    --vessel-frontier-check)
+      mode="vessel-frontier-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <raft-id> <boat-id> <submarine-id> <airship-id>]"
       ;;
   esac
   shift
@@ -107,6 +110,13 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-crossing-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ && "$1" -le 500 ]] ||
       fail "--vessel-crossing-check requires one ship slot from 1 through 500"
+  elif [[ "$mode" == "vessel-frontier-check" ]]; then
+    [[ $# -eq 4 ]] ||
+      fail "--vessel-frontier-check requires four prototype ids"
+    for prototype_id in "$@"; do
+      [[ "$prototype_id" =~ ^[1-9][0-9]*$ ]] ||
+        fail "frontier prototype ids must be positive integers"
+    done
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -618,6 +628,168 @@ proc run_vessel_builder_check {} {
 
   puts "\nPASS: builder created, tuned, spawned, and sailed a vessel in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
   puts "PASS: temporary ship $ship_slot and prototype $prototype_id were removed."
+}
+
+proc require_frontier_ship_position {output expected_x expected_y expected_z context} {
+  require_game_output $output "Coordinates: ($expected_x, $expected_y)" $context
+  require_game_output $output "Elevation/Depth: $expected_z" $context
+}
+
+proc spawn_frontier_vessel {prototype_id vessel_name} {
+  set output [run_game_command "vedit spawn $prototype_id"]
+  if {![regexp {as ship ([0-9]+):} $output ignored ship_slot] ||
+      $ship_slot < 2 || $ship_slot >= 500} {
+    fail "could not read a purgeable slot for $vessel_name"
+  }
+
+  set output [run_game_command "shipgoto $ship_slot"]
+  require_game_output $output "Aboard $vessel_name (slot $ship_slot)." \
+    "$vessel_name teleport"
+  return $ship_slot
+}
+
+proc purge_frontier_vessel {ship_slot vessel_name} {
+  run_game_command "speed 0"
+  set output [run_game_command "shippurge $ship_slot"]
+  require_game_output $output "Purged ship $ship_slot '$vessel_name'" \
+    "$vessel_name cleanup"
+}
+
+proc run_frontier_river_vessel {prototype_id vessel_name} {
+  set output [run_game_command "goto -810 480"]
+  require_game_output $output "Current Location  : (-810, 480)" \
+    "$vessel_name river staging"
+
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output -810 480 0 "$vessel_name initial position"
+  require_game_output $output "Terrain: River" "$vessel_name river terrain"
+
+  set output [run_game_command "seastate"]
+  require_game_output $output "Water     : River" "$vessel_name sea state"
+
+  set output [run_game_command "speed 2"]
+  require_game_output $output "Speed set to 2." "$vessel_name speed"
+  set output [run_game_command "setsail east"]
+  require_game_output $output "Current position: (-809, 480, 0)" \
+    "$vessel_name river movement"
+
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output -809 480 0 "$vessel_name sailed position"
+  require_game_output $output "Terrain: River" "$vessel_name sailed terrain"
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_frontier_submarine {prototype_id} {
+  set vessel_name "Starfall Bathyscaphe"
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "$vessel_name trench staging"
+
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 900 225 0 "$vessel_name surface position"
+  require_game_output $output "Terrain: Ocean" "$vessel_name ocean terrain"
+
+  set output [run_game_command "seastate"]
+  require_game_output $output \
+    "Trench    : Starfall Trench (natural depth 104; threshold 96)" \
+    "$vessel_name surface trench"
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Speed set to 10." "$vessel_name speed"
+  for {set depth_step 0} {$depth_step < 9} {incr depth_step} {
+    run_game_command "setsail down"
+  }
+
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 900 225 -90 "$vessel_name dive"
+  require_game_output $output "Terrain: Ocean" "$vessel_name submerged terrain"
+  set output [run_game_command "seastate"]
+  require_game_output $output \
+    "Trench    : Starfall Trench (natural depth 104; threshold 96)" \
+    "$vessel_name submerged trench"
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_frontier_airship {prototype_id} {
+  set vessel_name "Aetherwind Courier"
+  set output [run_game_command "goto 467 0"]
+  require_game_output $output "Current Location  : (467, 0)" \
+    "$vessel_name skyway staging"
+
+  set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 467 0 0 "$vessel_name ground position"
+  require_game_output $output "Terrain: Plains" "$vessel_name ground terrain"
+
+  set output [run_game_command "seastate"]
+  if {[string first "Sky lane  :" $output] >= 0 ||
+      [string first "Sky island:" $output] >= 0} {
+    fail "$vessel_name exposed an altitude feature at ground level"
+  }
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Speed set to 10." "$vessel_name ascent speed"
+  set ascent_output ""
+  for {set altitude_step 0} {$altitude_step < 10} {incr altitude_step} {
+    set ascent_output [run_game_command "setsail up"]
+  }
+  require_game_output $ascent_output \
+    "The high currents of Aetherwind Skyway lend speed to the vessel." \
+    "$vessel_name skyway entry"
+
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 467 0 100 "$vessel_name lane position"
+  set output [run_game_command "seastate"]
+  require_game_output $output \
+    "Sky lane  : Aetherwind Skyway (active above 100)" \
+    "$vessel_name lane state"
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Effective speed after terrain modifiers: 12" \
+    "$vessel_name lane speed"
+  for {set altitude_step 0} {$altitude_step < 10} {incr altitude_step} {
+    run_game_command "setsail up"
+  }
+
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 467 0 200 "$vessel_name island altitude"
+  set output [run_game_command "seastate"]
+  if {[string first "Sky island:" $output] >= 0} {
+    fail "$vessel_name reached the sky island outside its polygon"
+  }
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Effective speed after terrain modifiers: 12" \
+    "$vessel_name island approach speed"
+  run_game_command "setsail east"
+  run_game_command "setsail east"
+
+  set output [run_game_command "shipstatus"]
+  require_frontier_ship_position $output 469 0 200 "$vessel_name island position"
+  set output [run_game_command "seastate"]
+  require_game_output $output \
+    "Sky island: Shardspire Sky Island (reachable above 200)" \
+    "$vessel_name island state"
+  purge_frontier_vessel $ship_slot $vessel_name
+}
+
+proc run_vessel_frontier_check {raft_id boat_id submarine_id airship_id} {
+  set workflow_started_at [clock milliseconds]
+
+  run_frontier_river_vessel $raft_id "Sablebranch Raft"
+  run_frontier_river_vessel $boat_id "Sablebranch Riverboat"
+  run_frontier_submarine $submarine_id
+  run_frontier_airship $airship_id
+
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "frontier safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: raft and riverboat traversed the digitalized Sablebranch River."
+  puts "PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench."
+  puts "PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200."
+  puts "PASS: all four temporary frontier vessels were purged in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
 proc clean_dialog_output {raw commands marker} {
@@ -1276,7 +1448,8 @@ after 250
 if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
-    $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check"} {
+    $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
+    $mode eq "vessel-frontier-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1325,6 +1498,10 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_message_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-crossing-check"} {
       run_vessel_crossing_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-frontier-check"} {
+      run_vessel_frontier_check [lindex $game_commands 0] \
+        [lindex $game_commands 1] [lindex $game_commands 2] \
+        [lindex $game_commands 3]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -1399,6 +1576,9 @@ elif [[ "$mode" == "vessel-message-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-crossing-check" ]]; then
   printf 'PASS: %s completed the named-water crossing check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-frontier-check" ]]; then
+  printf 'PASS: %s completed the vessel-frontier check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

@@ -2211,6 +2211,9 @@ ACMD(do_greyhawk_status)
   case SECT_WATER_SWIM:
     terrain_name = "Shallow Water";
     break;
+  case SECT_RIVER:
+    terrain_name = "River";
+    break;
   case SECT_UNDERWATER:
     terrain_name = "Underwater";
     break;
