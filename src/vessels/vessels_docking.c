@@ -14,7 +14,7 @@
 #include "db.h"
 #include "vessels.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spells.h"
 #include "spec_procs.h"
 

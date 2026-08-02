@@ -20,7 +20,7 @@
 #include "screen.h"
 #include "spells.h"
 #include "constants.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "mudlim.h"
 
 /* copied from spell_parser.c: */

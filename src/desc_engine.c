@@ -10,7 +10,7 @@
 #include "structs.h"
 #include "campaign.h"
 #include "utils.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "comm.h"
 #include "structs.h"
 #include "dgscript/dg_event.h"

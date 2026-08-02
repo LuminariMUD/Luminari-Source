@@ -4,7 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/fight.h"
+#include "../../src/combat/fight.h"
 #include "../../src/spells.h"
 
 #include <stdlib.h>

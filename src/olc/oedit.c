@@ -22,13 +22,13 @@
 #include "oasis.h"
 #include "improved-edit.h"
 #include "dgscript/dg_olc.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "modify.h"
 #include "clan.h"
 #include "craft/craft.h"
-#include "spec_abilities.h"
+#include "combat/spec_abilities.h"
 #include "feats.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "treasure.h" /* set_weapon_object */
 #include "act.h"      /* get_eq_score() */

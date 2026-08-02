@@ -19,7 +19,7 @@
 #include "spells.h"
 #include "constants.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "mud_event.h"
 #include "shop.h"                /* for shop_keeper */
 #include "spec_procs.h"          /* for questmaster */
@@ -30,9 +30,9 @@
 #include "mob_class.h"   /* for npc_class_behave */
 #include "mob_psionic.h" /* for psionic functions */
 #include "mob_spells.h"
-#include "mob_spellslots.h"   /* for has_sufficient_slots_for_buff */
-#include "mob_known_spells.h" /* for known spell slot system */
-#include "assign_wpn_armor.h" /* for weapon_list */
+#include "mob_spellslots.h"          /* for has_sufficient_slots_for_buff */
+#include "mob_known_spells.h"        /* for known spell slot system */
+#include "combat/assign_wpn_armor.h" /* for weapon_list */
 
 /* local defines */
 #define SINFO spell_info[spellnum]

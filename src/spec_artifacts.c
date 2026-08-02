@@ -39,7 +39,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "spells.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "screen.h"
 #include "lists.h"
 #include "act.h"

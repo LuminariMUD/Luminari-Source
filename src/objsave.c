@@ -23,7 +23,7 @@
 #include "modify.h"
 #include "olc/genolc.h" /* for strip_cr and sprintascii */
 #include "craft/craft.h"
-#include "spec_abilities.h"
+#include "combat/spec_abilities.h"
 #include "spec_artifacts.h"
 
 #define OBJSAVE_DB 1

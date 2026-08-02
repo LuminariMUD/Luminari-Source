@@ -19,7 +19,7 @@
 #include "spells.h"
 #include "act.h"
 #include "graph.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "mud_event.h"
 #include "modify.h"
 #include "mob_memory.h"

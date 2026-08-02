@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "hlquest.h"
@@ -32,7 +32,7 @@
 #include "spell_prep.h"
 #include "class.h"
 #include "vessels/transport.h"
-#include "encounters.h"
+#include "combat/encounters.h"
 #include "hunts.h"
 #include "feats.h"
 

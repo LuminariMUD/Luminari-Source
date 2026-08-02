@@ -21,7 +21,7 @@
 #include "act.h"
 #include "spec_procs.h"
 #include "class.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "modify.h"
 #include "house.h"
 #include "clan.h"
@@ -30,7 +30,7 @@
 #include "dgscript/dg_scripts.h" /* for send_to_zone() */
 #include "mud_event.h"
 #include "actions.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "feats.h"
 #include "spell_prep.h"

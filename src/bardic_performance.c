@@ -16,7 +16,7 @@
 #include "db.h"
 #include "spells.h"
 #include "bardic_performance.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spec_procs.h"
 #include "actions.h"
 #include "feats.h"

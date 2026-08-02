@@ -24,7 +24,7 @@
 #include "improved-edit.h"
 #include "dgscript/dg_olc.h"
 #include "screen.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "race.h"
 #include "class.h"
 #include "feats.h"

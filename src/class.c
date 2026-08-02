@@ -26,7 +26,7 @@
 #include "mudlim.h"
 #include "feats.h"
 #include "class.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "pfdefaults.h"
 #include "domains_schools.h"
 #include "modify.h"

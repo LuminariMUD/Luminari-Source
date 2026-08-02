@@ -14,7 +14,7 @@
 #include "backgrounds.h"
 #include "treasure.h"
 #include "handler.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spec_procs.h"
 #include "clan.h"
 #include "dgscript/dg_scripts.h"

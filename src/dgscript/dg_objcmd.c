@@ -18,8 +18,8 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
-#include "olc/genzon.h" /* for access to real_zone_by_thing */
-#include "fight.h"      /* for die() */
+#include "olc/genzon.h"   /* for access to real_zone_by_thing */
+#include "combat/fight.h" /* for die() */
 
 /* Local functions */
 #define OCMD(name)                                                                                 \

@@ -21,8 +21,8 @@
 #include "wilderness/wilderness.h"
 #include "hunts.h"
 #include "act.h"
-#include "spec_abilities.h"
-#include "assign_wpn_armor.h"
+#include "combat/spec_abilities.h"
+#include "combat/assign_wpn_armor.h"
 #include "missions.h"
 
 /* To Do

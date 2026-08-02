@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "hlquest.h"

@@ -16,7 +16,7 @@
 #include "spells.h"
 #include "race.h"
 #include "class.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "act.h"
 #include "constants.h"
 #include "mud_event.h"

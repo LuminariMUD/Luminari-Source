@@ -29,7 +29,7 @@
 #include "class.h"
 #include "race.h"
 #include "mob/mob_spellslots.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "modify.h"
 #include "asciimap.h"
 #include "clan.h"
@@ -37,7 +37,7 @@
 #include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "desc_engine.h"
 #include "craft/crafts.h"
@@ -47,7 +47,7 @@
 #include "missions.h"
 #include "spec_procs.h"
 #include "vessels/transport.h"
-#include "encounters.h"
+#include "combat/encounters.h"
 #include "deities.h"
 #include "treasure.h"
 #include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */

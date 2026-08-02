@@ -9,7 +9,7 @@
 #include "../../src/craft/craft.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
-#include "../../src/fight.h"
+#include "../../src/combat/fight.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"

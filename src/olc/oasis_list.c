@@ -29,7 +29,7 @@
 #include "class.h"
 #include "genshp.h"
 #include "wilderness/wilderness.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "feats.h"
 
 #define MAX_OBJ_LIST 100

@@ -18,8 +18,8 @@
 #include "spec_procs.h" // for compute_ability
 #include "mud_event.h"  // for purgemob event
 #include "feats.h"
-#include "spec_abilities.h"
-#include "assign_wpn_armor.h"
+#include "combat/spec_abilities.h"
+#include "combat/assign_wpn_armor.h"
 #include "wilderness/wilderness.h"
 #include "domains_schools.h"
 #include "constants.h"

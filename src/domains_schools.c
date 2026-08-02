@@ -15,7 +15,7 @@
 #include "spells.h"
 #include "feats.h"
 #include "domains_schools.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "screen.h"
 #include "modify.h"
 #include "class.h"

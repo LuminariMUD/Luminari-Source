@@ -28,7 +28,7 @@ circle_SOURCES = \
 	src/movement/movement_messages.c \
 	src/movement/movement_tracks.c \
 	src/movement/movement_events.c \
-	src/act.offensive.c \
+	src/combat/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \
 	src/act.wizard.c \
@@ -41,7 +41,7 @@ circle_SOURCES = \
 	src/ai_service.c \
 	src/craft/alchemy.c \
 	src/asciimap.c \
-	src/assign_wpn_armor.c \
+	src/combat/assign_wpn_armor.c \
 	src/backgrounds.c \
 	src/character_creation.c \
 	src/character_creation_content.c \
@@ -59,7 +59,7 @@ circle_SOURCES = \
 	src/olc/clan_edit.c \
 	src/clan_transactions.c \
 	src/class.c \
-	src/combat_modes.c \
+	src/combat/combat_modes.c \
 	src/comm.c \
 	src/config.c \
 	src/constants.c \
@@ -91,12 +91,12 @@ circle_SOURCES = \
 	src/domain_powers.c \
 	src/domains_schools.c \
 	src/dotenv.c \
-	src/encounters.c \
+	src/combat/encounters.c \
 	src/evolutions.c \
 	src/feats.c \
 	src/talents.c \
 	src/perks.c \
-	src/fight.c \
+	src/combat/fight.c \
 	src/gain.c \
 	src/olc/genmob.c \
 	src/olc/genobj.c \
@@ -106,7 +106,7 @@ circle_SOURCES = \
 	src/olc/genwld.c \
 	src/olc/genzon.c \
 	src/graph.c \
-	src/grapple.c \
+	src/combat/grapple.c \
 	src/handler.c \
 	src/olc/hedit.c \
 	src/help.c \
@@ -191,7 +191,7 @@ circle_SOURCES = \
 	src/routing.c \
 	src/olc/sedit.c \
 	src/shop.c \
-	src/spec_abilities.c \
+	src/combat/spec_abilities.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
 	src/spec_artifacts.c \

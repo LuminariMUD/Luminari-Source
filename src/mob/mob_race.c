@@ -18,7 +18,7 @@
 #include "db.h"
 #include "spells.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "mob_utils.h"
 #include "mob_race.h"
 

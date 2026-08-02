@@ -20,7 +20,7 @@
 #include "actions.h"
 #include "mudlim.h"
 
-#include "fight.h"
+#include "combat/fight.h"
 #include "spells.h"
 
 #include "traps.h"

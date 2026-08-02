@@ -20,7 +20,7 @@
 #include "class.h"
 #include "handler.h"
 #include "constants.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "spell_prep.h"
 #include "craft/alchemy.h"

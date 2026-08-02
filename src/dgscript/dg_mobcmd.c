@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "shop.h" /* shop keepers and mhunt */
 #include "clan.h" /* clan system */
 

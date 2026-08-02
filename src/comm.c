@@ -79,7 +79,7 @@
 #include "act.h"
 #include "ban.h"
 #include "olc/msgedit.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spells.h" /* for affect_update */
 #include "modify.h"
 #include "quest.h"
@@ -94,7 +94,7 @@
 #include "mudlim.h"
 #include "actions.h"
 #include "actionqueues.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "wilderness/wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"

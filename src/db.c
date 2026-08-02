@@ -34,7 +34,7 @@
 #include "olc/genobj.h" /* for free_object_strings */
 #include "olc/genwld.h" /* for free_trail_data_list */
 #include "config.h"     /* for the default config values. */
-#include "fight.h"
+#include "combat/fight.h"
 #include "modify.h"
 #include "shop.h"
 #include "quest.h"
@@ -50,7 +50,7 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "perks.h"
-#include "spec_abilities.h"
+#include "combat/spec_abilities.h"
 #include "help.h"
 #include "pubsub/pubsub.h"
 #include "wilderness/spatial_core.h"
@@ -68,7 +68,7 @@
 #include "actionqueues.h"
 #include "domains_schools.h"
 #include "talents.h"
-#include "grapple.h"
+#include "combat/grapple.h"
 #include "race.h"
 #include "vessels/vessels.h"
 #include "spell_prep.h"
@@ -76,11 +76,11 @@
 #include <sys/stat.h>
 #include "movement/movement_tracks.h" /* includes trail data structures */
 #include "premadebuilds.h"
-#include "encounters.h"
+#include "combat/encounters.h"
 #include "hunts.h"
 #include "evolutions.h"
 #include "treasure.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "backgrounds.h"
 #include "craft/crafting_new.h"
 #include "craft/crafting_recipes.h"

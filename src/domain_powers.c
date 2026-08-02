@@ -16,10 +16,10 @@
 #include "handler.h"
 #include "spells.h"
 #include "domains_schools.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "act.h"
 
 /* inflict disease with your touch, requires successful touch attack */

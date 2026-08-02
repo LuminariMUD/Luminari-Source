@@ -20,7 +20,7 @@
 #include "oasis.h"
 #include "prefedit.h"
 #include "screen.h"
-#include "encounters.h"
+#include "combat/encounters.h"
 #include "perks.h"
 
 /* Internal (static) functions */

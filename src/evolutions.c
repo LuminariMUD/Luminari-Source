@@ -19,11 +19,11 @@
 #include "feats.h"
 #include "class.h"
 #include "mud_event.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "spell_prep.h"
 #include "evolutions.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
 

@@ -11,7 +11,7 @@
 #include "constants.h"
 #include "act.h"
 #include "class.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spell_prep.h"
 #include "metamagic_science.h"
 

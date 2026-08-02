@@ -21,7 +21,7 @@
 #include "dgscript/dg_scripts.h"
 #include "treasure.h"
 #include "craft/craft.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "olc/oasis.h"
 #include "item.h"
 #include "staff_events.h"

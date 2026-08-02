@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "dg_event.h"
 #include "db.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "screen.h"
 #include "constants.h"
 #include "spells.h"

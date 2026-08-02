@@ -22,7 +22,7 @@
 #include "interpreter.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "mud_event.h"
 #include "house.h"  /* for house_can_enter() */
 #include "screen.h" /* for QNRM, etc */
@@ -33,7 +33,7 @@
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
 #include "vessels/transport.h"
 #include "evolutions.h"

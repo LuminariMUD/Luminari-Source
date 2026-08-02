@@ -23,7 +23,7 @@
 #include "feats.h"
 #include "perks.h"
 #include "race.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "movement_cost.h"
 
 /* Functions moved from movement.c */

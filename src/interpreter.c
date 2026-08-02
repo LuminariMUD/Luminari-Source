@@ -52,11 +52,11 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "routing.h"
-#include "combat_modes.h"
+#include "combat/combat_modes.h"
 #include "traps.h"
 #include "domains_schools.h"
-#include "grapple.h"
-#include "assign_wpn_armor.h"
+#include "combat/grapple.h"
+#include "combat/assign_wpn_armor.h"
 #include "bardic_performance.h"
 #include "spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
@@ -69,7 +69,7 @@
 #include "missions.h"
 #include "vessels/transport.h"
 #include "hunts.h"
-#include "fight.h" /* for init condensed combat */
+#include "combat/fight.h" /* for init condensed combat */
 #include "char_descs.h"
 #include "net/discord_bridge.h"
 #include "evolutions.h"

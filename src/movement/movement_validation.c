@@ -19,7 +19,7 @@
 #include "spells.h"
 #include "constants.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "feats.h"
 #include "mud_event.h"
 #include "actions.h"

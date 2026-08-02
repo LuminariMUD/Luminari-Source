@@ -395,7 +395,7 @@ set(SRC_C_FILES
     src/act.comm.do_spec_comm.c
     src/act.informative.c
     src/act.item.c
-    src/act.offensive.c
+    src/combat/act.offensive.c
     src/act.other.c
     src/act.social.c
     src/act.wizard.c
@@ -408,7 +408,7 @@ set(SRC_C_FILES
     src/ai_service.c
     src/craft/alchemy.c
     src/asciimap.c
-    src/assign_wpn_armor.c
+    src/combat/assign_wpn_armor.c
     src/backgrounds.c
     src/character_creation.c
     src/character_creation_content.c
@@ -425,7 +425,7 @@ set(SRC_C_FILES
     src/olc/clan_edit.c
     src/clan_transactions.c
     src/class.c
-    src/combat_modes.c
+    src/combat/combat_modes.c
     src/comm.c
     src/config.c
     src/constants.c
@@ -457,10 +457,10 @@ set(SRC_C_FILES
     src/domain_powers.c
     src/domains_schools.c
     src/dotenv.c
-    src/encounters.c
+    src/combat/encounters.c
     src/evolutions.c
     src/feats.c
-    src/fight.c
+    src/combat/fight.c
     src/gain.c
     src/olc/genmob.c
     src/olc/genobj.c
@@ -470,7 +470,7 @@ set(SRC_C_FILES
     src/olc/genwld.c
     src/olc/genzon.c
     src/graph.c
-    src/grapple.c
+    src/combat/grapple.c
     src/handler.c
     src/olc/hedit.c
     src/help.c
@@ -540,7 +540,7 @@ set(SRC_C_FILES
     src/routing.c
     src/olc/sedit.c
     src/shop.c
-    src/spec_abilities.c
+    src/combat/spec_abilities.c
     src/spec_assign.c
     src/spec_procs.c
     src/spec_artifacts.c

@@ -21,7 +21,7 @@
 #include "handler.h"
 #include "class.h"
 #include "perks.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 
 /* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
 #undef NUM_ABILITIES
@@ -30,10 +30,10 @@
 #include "psionics.h"
 #include "domains_schools.h"
 #include "mud_event.h"
-#include "fight.h"
-#include "fight.h"
+#include "combat/fight.h"
+#include "combat/fight.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 
 #include "interpreter.h"
 #include "constants.h"

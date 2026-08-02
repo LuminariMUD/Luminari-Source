@@ -17,7 +17,7 @@
 #include "act.h"
 #include "class.h"
 #include "race.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "modify.h"
 #include "asciimap.h"
 #include "spells.h"
@@ -26,7 +26,7 @@
 #include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
-#include "assign_wpn_armor.h"
+#include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "desc_engine.h"
 #include "craft/crafts.h"

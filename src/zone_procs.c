@@ -17,12 +17,12 @@
 #include "spells.h"
 #include "act.h"        /* for act related stuff, like act.offensive fuctions */
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
-#include "fight.h"
+#include "combat/fight.h"
 #include "graph.h"
 #include "mud_event.h"
 #include "actions.h"
 #include "domains_schools.h"
-#include "spec_abilities.h"
+#include "combat/spec_abilities.h"
 #include "treasure.h"
 #include "mob/mob_utils.h"       /* for npc_find_target() */
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */

@@ -29,7 +29,7 @@
 #include "mud_event.h"
 #include "act.h"
 #include "race.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "spells.h"
 #include "feats.h"
 #include "pubsub.h"

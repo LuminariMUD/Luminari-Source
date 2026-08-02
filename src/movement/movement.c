@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
-#include "fight.h"
+#include "combat/fight.h"
 #include "olc/oasis.h" /* for buildwalk */
 #include "spec_procs.h"
 #include "mud_event.h"
@@ -32,8 +32,8 @@
 #include "traps.h" /* for check_traps() */
 #include "spell_prep.h"
 /* trails.h merged into movement_tracks.h */
-#include "assign_wpn_armor.h"
-#include "encounters.h"
+#include "combat/assign_wpn_armor.h"
+#include "combat/encounters.h"
 #include "hunts.h"
 #include "class.h"
 #include "vessels/transport.h"
