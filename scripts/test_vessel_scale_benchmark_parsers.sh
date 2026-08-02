@@ -114,6 +114,13 @@ msdp_boundary_update=$(awk '
 ' "$runner")
 grep -Eq 'autopilot_state[[:space:]]*=[[:space:]]*3' <<<"$msdp_boundary_update" ||
   fail "scale-runner airship boundary fixture is not paused at its ceiling"
+preparation_block=$(sed -n '/^  preparation_commands=(/,/^  )/p' "$runner")
+[[ "$(grep -Fc '    "speed 2"' <<<"$preparation_block")" == 3 ]] ||
+  fail "scale-runner vertical probes do not all set positive speed"
+[[ "$(grep -Fc '    "setsail up"' <<<"$preparation_block")" == 3 ]] ||
+  fail "scale-runner vertical-probe count changed unexpectedly"
+grep -Fq 'a vertical traversal probe did not reach the terrain gate' "$runner" ||
+  fail "scale-runner does not reject a skipped vertical terrain probe"
 grep -Fxq 'benchmark_safe_room=1204' "$runner" ||
   fail "scale-runner does not use the quiet staff room for generic ashore state"
 grep -Fq "$spawn_safe_command" "$runner" ||

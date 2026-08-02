@@ -1462,6 +1462,7 @@ SQL
     "shipgoto 500"
     "shipstatus"
     "autopilot pause"
+    "speed 2"
     "setsail up"
     "shipstatus"
     "autopilot on"
@@ -1471,6 +1472,7 @@ SQL
     "shipgoto $msdp_slot"
     "autopilot pause"
     "shipstatus"
+    "speed 2"
     "setsail up"
     "shipstatus"
     "autopilot on"
@@ -1479,6 +1481,7 @@ SQL
     "shipgoto $submarine_slot"
     "autopilot pause"
     "shipstatus"
+    "speed 2"
     "setsail up"
     "shipstatus"
     "autopilot on"
@@ -1516,6 +1519,10 @@ SQL
   grep -Fq "Restock convergence: 100/100 (baseline 100)" \
     "$verification_output" ||
     benchmark_fail "the in-game economy simulation did not converge to baseline"
+  if grep -Fq "Set a positive speed before setting sail." \
+    "$verification_output"; then
+    benchmark_fail "a vertical traversal probe did not reach the terrain gate"
+  fi
   grep -Fq "The ship cannot navigate this terrain!" "$verification_output" ||
     benchmark_fail "surface hull did not reject positive Z through Kohdee"
   grep -Fq "the altitude is too extreme." "$verification_output" ||
