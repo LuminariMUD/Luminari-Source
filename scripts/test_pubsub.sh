@@ -39,8 +39,8 @@ fi
 # Test 4: Check unified header structure
 echo ""
 echo "Test 4: Header Structure Test"
-if grep -q "pubsub_message_type" src/pubsub/pubsub.h && \
-   grep -q "pubsub_message_category" src/pubsub/pubsub.h && \
+if grep -q "PUBSUB_MESSAGE_TYPE_" src/pubsub/pubsub.h && \
+   grep -q "PUBSUB_MESSAGE_CATEGORY_" src/pubsub/pubsub.h && \
    grep -q "content_encoding" src/pubsub/pubsub.h; then
     echo "✅ PASS: Unified header contains V3 enhanced structures"
 else
@@ -50,7 +50,7 @@ fi
 # Test 5: Check for removed V3 files
 echo ""
 echo "Test 5: V3 Files Cleanup Test"
-if [ ! -f "src/pubsub_v3.c" ] && [ ! -f "src/pubsub/pubsub_v3.h" ]; then
+if [ ! -f "src/pubsub/pubsub_v3.c" ] && [ ! -f "src/pubsub/pubsub_v3.h" ]; then
     echo "✅ PASS: V3 files successfully removed"
 else
     echo "❌ FAIL: V3 files still present"
@@ -70,8 +70,8 @@ fi
 # Test 7: Check database functions
 echo ""
 echo "Test 7: Database Functions Test"
-if grep -q "pubsub_db_create_tables" src/pubsub/pubsub_db.c && \
-   ! grep -q "pubsub_db_create_tables" src/pubsub/pubsub.c; then
+if grep -qE "^[a-z_]+ +pubsub_db_create_tables *\(" src/pubsub/pubsub_db.c && \
+   ! grep -qE "^[a-z_]+ +pubsub_db_create_tables *\(" src/pubsub/pubsub.c; then
     echo "✅ PASS: Database functions properly separated"
 else
     echo "❌ FAIL: Database function organization issues"
