@@ -4,6 +4,7 @@ set -Eeuo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
+package_dir="$repo_root/lib/world/vessel_campaign"
 server_unit=luminari-dev-login-smoke.service
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 state_root="${TMPDIR:-/tmp}/luminari-vessel-campaign-${UID}"
@@ -55,6 +56,196 @@ config_value()
       }
     }
   ' "$config_file"
+}
+
+ensure_index_entry()
+{
+  local index_file=$1
+  local entry=$2
+  local updated_file="$run_dir/index.updated"
+
+  if [[ ! -f "$index_file" ]]; then
+    printf '%s\n$\n' "$entry" >"$index_file"
+    return
+  fi
+  if grep -Fqx "$entry" "$index_file"; then
+    return
+  fi
+
+  awk -v entry="$entry" '
+    $0 == "$" && !inserted {
+      print entry
+      inserted = 1
+    }
+    { print }
+    END {
+      if (!inserted) {
+        print entry
+        print "$"
+      }
+    }
+  ' "$index_file" >"$updated_file"
+  chmod --reference="$index_file" "$updated_file"
+  mv "$updated_file" "$index_file"
+}
+
+record_identity()
+{
+  local world_file=$1
+  local vnum=$2
+
+  awk -v header="#$vnum" '
+    $0 == header {
+      if (getline keywords > 0 && getline short_description > 0) {
+        print short_description
+      }
+      exit
+    }
+  ' "$world_file"
+}
+
+remove_campaign_object_records()
+{
+  local package_file=$1
+  local live_file=$2
+  local stripped_file="$run_dir/objects.stripped"
+
+  awk -v package_file="$package_file" '
+    BEGIN {
+      while ((getline line < package_file) > 0) {
+        if (line ~ /^#[0-9]+$/) {
+          managed[substr(line, 2) + 0] = 1
+        }
+      }
+      close(package_file)
+      emit = 1
+    }
+    /^#[0-9]+$/ {
+      emit = !((substr($0, 2) + 0) in managed)
+    }
+    /^\$~?$/ {
+      emit = 1
+    }
+    emit { print }
+  ' "$live_file" >"$stripped_file"
+  chmod --reference="$live_file" "$stripped_file"
+  mv "$stripped_file" "$live_file"
+}
+
+merge_campaign_object_records()
+{
+  local package_file=$1
+  local live_file=$2
+  local additions_file="$run_dir/objects.add"
+  local merged_file="$run_dir/objects.merged"
+
+  awk '
+    /^\$~?$/ { next }
+    { print }
+  ' "$package_file" >"$additions_file"
+
+  awk -v additions_file="$additions_file" '
+    BEGIN {
+      while ((getline line < additions_file) > 0) {
+        if (line ~ /^#[0-9]+$/) {
+          addition_count++
+          addition_vnum[addition_count] = substr(line, 2) + 0
+        }
+        addition[addition_count] = addition[addition_count] line ORS
+      }
+      close(additions_file)
+      next_addition = 1
+    }
+    function add_records_before(vnum) {
+      while (next_addition <= addition_count &&
+             addition_vnum[next_addition] < vnum) {
+        printf "%s", addition[next_addition]
+        next_addition++
+      }
+    }
+    /^#[0-9]+$/ {
+      add_records_before(substr($0, 2) + 0)
+      print
+      next
+    }
+    /^\$~?$/ && !inserted {
+      add_records_before(2147483647)
+      inserted = 1
+    }
+    { print }
+    END {
+      if (!inserted) {
+        exit 42
+      }
+    }
+  ' "$live_file" >"$merged_file" ||
+    fail "$live_file has no world-file terminator"
+
+  chmod --reference="$live_file" "$merged_file"
+  mv "$merged_file" "$live_file"
+}
+
+provision_campaign_world()
+{
+  local object_package="$package_dir/700.obj"
+  local reset_package="$package_dir/700.resets"
+  local object_file="$repo_root/lib/world/obj/700.obj"
+  local zone_file="$repo_root/lib/world/zon/700.zon"
+  local zone_updated="$run_dir/700.zon.updated"
+  local candidate
+  local expected_identity
+  local live_identity
+  local vnum
+
+  [[ -f "$object_package" && -f "$reset_package" ]] ||
+    fail "the campaign world package is incomplete"
+  [[ -f "$object_file" && -f "$zone_file" ]] ||
+    fail "reserved vessel object or zone file is missing"
+  [[ $(awk 'NR == 1 { print; exit }' "$zone_file") == '#700' ]] ||
+    fail "$zone_file is not reserved zone 700"
+  grep -Eq '^70000[[:space:]]+80019([[:space:]]|$)' "$zone_file" ||
+    fail "$zone_file does not own the reserved vessel range"
+
+  for vnum in 70015 70016 70017; do
+    expected_identity=$(record_identity "$object_package" "$vnum")
+    [[ -n "$expected_identity" ]] ||
+      fail "campaign object $vnum is missing from its package"
+    for candidate in "$repo_root/lib/world/obj"/*.obj; do
+      [[ -e "$candidate" ]] || continue
+      live_identity=$(record_identity "$candidate" "$vnum")
+      [[ -z "$live_identity" ]] && continue
+      [[ "$candidate" == "$object_file" &&
+         "$live_identity" == "$expected_identity" ]] ||
+        fail "campaign object VNUM $vnum collides in $candidate"
+    done
+  done
+
+  remove_campaign_object_records "$object_package" "$object_file"
+  merge_campaign_object_records "$object_package" "$object_file"
+  ensure_index_entry "$repo_root/lib/world/obj/index" '700.obj'
+
+  awk -v reset_package="$reset_package" '
+    BEGIN {
+      managed[70015] = 1
+      managed[70016] = 1
+      managed[70017] = 1
+    }
+    $1 == "R" && (($4 + 0) in managed) { next }
+    $1 == "O" && (($3 + 0) in managed) { next }
+    $0 == "S" && !inserted {
+      while ((getline line < reset_package) > 0) {
+        print line
+      }
+      close(reset_package)
+      inserted = 1
+    }
+    { print }
+    END { if (!inserted) exit 42 }
+  ' "$zone_file" >"$zone_updated" ||
+    fail "$zone_file has no reset terminator"
+  chmod --reference="$zone_file" "$zone_updated"
+  mv "$zone_updated" "$zone_file"
+  ensure_index_entry "$repo_root/lib/world/zon/index" '700.zon'
 }
 
 database_scalar()
@@ -171,7 +362,7 @@ recover_server()
 }
 trap recover_server EXIT
 
-for command_name in awk date git grep mariadb mkdir sha256sum sleep ss \
+for command_name in awk chmod date git grep mariadb mkdir mv sha256sum sleep ss \
   systemctl timeout; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command not found: $command_name"
@@ -261,6 +452,7 @@ collision_count=$(database_scalar "
 
 stop_development_mud
 restart_needed=true
+provision_campaign_world
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"

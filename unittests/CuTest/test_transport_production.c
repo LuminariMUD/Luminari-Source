@@ -517,6 +517,49 @@ void Test_vessel_production_waypoint_mutation_and_heading(CuTest *tc)
   route_destroy(route);
 }
 
+void Test_vessel_autopilot_wait_stops_and_resumes_cruise_speed(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  struct ship_route *route;
+
+  memset(&ship, 0, sizeof(ship));
+  ship.shipnum = 7;
+  ship.maxspeed = 12;
+  ship.speed = 6;
+  ship.setspeed = 6;
+  route = route_create("scheduled stop");
+
+  CuAssertPtrNotNull(tc, route);
+  CuAssertPtrNotNull(tc, autopilot_init(&ship));
+  CuAssertIntEquals(tc, 0, waypoint_add(route, 0.0f, 0.0f, 0.0f, "port"));
+  CuAssertIntEquals(tc, 1, waypoint_add(route, 10.0f, 0.0f, 0.0f, "channel"));
+  route->waypoints[0].wait_time = 5;
+  CuAssertTrue(tc, autopilot_start(&ship, route));
+
+  handle_waypoint_arrival(&ship);
+  CuAssertIntEquals(tc, AUTOPILOT_WAITING, ship.autopilot->state);
+  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertIntEquals(tc, 6, ship.setspeed);
+  CuAssertIntEquals(tc, 5, ship.autopilot->wait_remaining);
+
+  ship.speed = 4;
+  ship.autopilot->last_update = time(0);
+  process_waiting_vessel(&ship);
+  CuAssertIntEquals(tc, AUTOPILOT_WAITING, ship.autopilot->state);
+  CuAssertIntEquals(tc, 0, ship.speed);
+  CuAssertIntEquals(tc, 6, ship.setspeed);
+
+  ship.autopilot->last_update = time(0) - 6;
+  process_waiting_vessel(&ship);
+  CuAssertIntEquals(tc, AUTOPILOT_TRAVELING, ship.autopilot->state);
+  CuAssertIntEquals(tc, 6, ship.speed);
+  CuAssertIntEquals(tc, 6, ship.setspeed);
+  CuAssertIntEquals(tc, 1, ship.autopilot->current_waypoint_index);
+
+  autopilot_cleanup(&ship);
+  route_destroy(route);
+}
+
 void Test_vessel_autopilot_rounds_signed_wilderness_coordinates(CuTest *tc)
 {
   CuAssertIntEquals(tc, 64, vessel_autopilot_grid_coordinate(63.95f));

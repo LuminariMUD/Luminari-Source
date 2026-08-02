@@ -2085,6 +2085,13 @@ void handle_waypoint_arrival(struct greyhawk_ship_data *ship)
   /* Check if we need to wait at this waypoint */
   if (wp->wait_time > 0)
   {
+    /* A waiting vessel is physically stopped at the waypoint. Preserve its
+     * requested cruise speed so it can resume after the scheduled pause. */
+    if (ship->setspeed <= 0 && ship->speed > 0)
+    {
+      ship->setspeed = ship->speed;
+    }
+    ship->speed = 0;
     ap->state = AUTOPILOT_WAITING;
     ap->wait_remaining = wp->wait_time;
     ap->last_update = time(0);
@@ -2264,6 +2271,14 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
     return;
   }
 
+  /* Enforce the physical stop after boot or copyover as well as on the
+   * original arrival tick. Older persisted waits may still carry speed. */
+  if (ship->setspeed <= 0 && ship->speed > 0)
+  {
+    ship->setspeed = ship->speed;
+  }
+  ship->speed = 0;
+
   /* Calculate elapsed time since last update */
   now = time(0);
   elapsed = (int)(now - ap->last_update);
@@ -2276,6 +2291,7 @@ void process_waiting_vessel(struct greyhawk_ship_data *ship)
   {
     /* Wait complete, advance to next waypoint */
     ap->wait_remaining = 0;
+    ship->speed = MIN(MAX(0, ship->setspeed), ship->maxspeed);
     ap->state = AUTOPILOT_TRAVELING;
     VSSL_DEBUG_AUTO("Ship %d wait complete, advancing to next waypoint", ship->shipnum);
     advance_to_next_waypoint(ship);

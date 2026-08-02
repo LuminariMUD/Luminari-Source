@@ -1,0 +1,59 @@
+#70015
+waystone harbor passage ferry vailand~
+a brass-bound harbor waystone~
+@CA brass-bound harbor waystone hums here: @YENTER WAYSTONE@C for free Vailand work passage.@n~
+~
+29 e 0 0 0 0 0 0 0 0 0 0 0
+0 1000360 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0
+E
+waystone harbor passage ferry vailand~
+The public waystone leads to North Vailand Sea Port. Passage aboard the
+scheduled Vailand Ironwind Trader is free; no gate key or fare is required.
+~
+G
+0
+H
+23
+I
+7
+#70016
+waystone mosswood return harbor vailand~
+a moss-green return waystone~
+@GA moss-green waystone offers passage back to Mosswood: @YENTER WAYSTONE@G.@n~
+~
+29 e 0 0 0 0 0 0 0 0 0 0 0
+0 145200 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0
+E
+waystone mosswood return harbor vailand~
+This public waystone returns passengers to the Mosswood tutorial portal.
+~
+G
+0
+H
+23
+I
+7
+#70017
+board sign work-passage information~
+the Vailand work-passage board~
+@YA passage board reads: FREE VOYAGE - @WBOARD TRADER@Y when docked; @WREAD BOARD@Y for details.@n~
+~
+6 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0
+E
+board sign passage ferry schedule trader~
+The Vailand Ironwind Trader carries real iron cargo on a scheduled route and
+offers free work passage. Wait at this quay until it docks, then type BOARD
+TRADER. While aboard, try LOOKOUT, SHIPSTATUS, and CARGOMANIFEST. At the next
+port, type DISEMBARK. HELP VESSELS lists the complete player command guide.
+~
+G
+0
+H
+8
+I
+5
+$~
