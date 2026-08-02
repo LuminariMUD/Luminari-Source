@@ -1681,6 +1681,29 @@ void Test_vessel_encounter_roll_boundaries_are_deterministic(CuTest *tc)
   CuAssertTrue(tc, !vessel_encounter_chance_succeeds(100, 101));
 }
 
+void Test_vessel_encounter_cached_candidates_match_database_filters(CuTest *tc)
+{
+  CuAssertTrue(tc, vessel_encounter_candidate_matches(
+                       7000001, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, vessel_encounter_candidate_matches(
+                       7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                       VESSEL_SUBMARINE, 10));
+  CuAssertTrue(tc, vessel_encounter_candidate_matches(
+                       7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                       VESSEL_SUBMARINE, 40));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
+                        7000002, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
+                        7000001, VESSEL_SUBMARINE, 0, 0, 7000001,
+                        VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
+                        7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                        VESSEL_SUBMARINE, 9));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
+                        7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                        VESSEL_SUBMARINE, 41));
+}
+
 void Test_vessel_encounter_shared_room_claims_once(CuTest *tc)
 {
   room_rnum claimed_rooms[2];
@@ -1939,6 +1962,28 @@ void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)
   memset(&ship, 0, sizeof(ship));
   ship.vessel_type = VESSEL_WARSHIP;
   CuAssertIntEquals(tc, 0, vessel_assess_dock_fee(&ship, 70000, 12));
+}
+
+void Test_vessel_departure_persists_only_real_fee_state(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+
+  memset(&ship, 0, sizeof(ship));
+  CuAssertTrue(tc, !vessel_clear_departed_berth(&ship, NOWHERE, TRUE));
+
+  ship.dock_fee_port = 70000;
+  ship.dock_fee_clan = 12;
+  CuAssertTrue(tc, vessel_clear_departed_berth(&ship, NOWHERE, TRUE));
+  CuAssertIntEquals(tc, 0, ship.dock_fee_port);
+  CuAssertIntEquals(tc, 0, ship.dock_fee_clan);
+
+  ship.dock_fee_balance = 35;
+  ship.dock_fee_port = 70000;
+  ship.dock_fee_clan = 12;
+  CuAssertTrue(tc, !vessel_clear_departed_berth(&ship, NOWHERE, TRUE));
+  CuAssertIntEquals(tc, 35, ship.dock_fee_balance);
+  CuAssertIntEquals(tc, 70000, ship.dock_fee_port);
+  CuAssertIntEquals(tc, 12, ship.dock_fee_clan);
 }
 
 void Test_vessel_public_schedule_passenger_fare_policy(CuTest *tc)

@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.19
+**Version:** 3.20
 
 **Evidence snapshot:** August 2, 2026
 
@@ -35,6 +35,7 @@ from the full live-game benchmark that still must be run.
 | Eighth current 500-ship diagnostic on August 2, 2026 | Completed 600-second window; 1,217 ticks; all functional gates passed | Tick latency and memory gates failed |
 | Post-eighth memory candidate | 275/275 production-linked tests | NPC trail growth removed; installed scale proof required |
 | Post-eighth profiling diagnostic | 631 seconds; 500 ships; trails 0/0/0 | Trail repair accepted; blocking SQL paths identified |
+| Post-profile SQL repair candidate | 277/277 tests; normal installed binary | Empty berth saves suppressed; encounter definitions cached; scale proof required |
 | Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -454,6 +455,18 @@ shape remained and the profile isolated its blocking work:
 The raw 3.0-MiB `gmon.out` and 959-KiB `gprof-report.txt` are retained with the
 run. Remove the false berth writes and cache encounter definitions, rebuild
 without profiling, and repeat the installed-candidate diagnostic.
+
+The resulting normal candidate persists departure only when a real settled
+fee port or clan marker is cleared. It loads a bounded 1,024-row encounter
+definition cache, including optional validated hunter policies, once after
+schema boot; the recurring encounter tick performs no candidate or hunter
+configuration query. Staff-forced checks reload first for development-data
+iteration. The warning-free build passes 277 of 277 production-linked tests
+and 13 of 13 protocol-parser tests. `make install` removed the root artifact
+and installed non-profiled SHA-256
+`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+This is implementation evidence only; the release tick remains failed until
+the clean installed candidate completes the normal 500-vessel gate.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

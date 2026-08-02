@@ -1266,6 +1266,7 @@ void boot_db(void)
   vessel_piracy_ensure_schema();
   vessel_hazard_ensure_schema();
   vessel_hunter_ensure_schema();
+  vessel_encounter_reload_config();
   vessel_merchant_ensure_schema();
 
   log("Loading vessel waypoints and routes from database...");

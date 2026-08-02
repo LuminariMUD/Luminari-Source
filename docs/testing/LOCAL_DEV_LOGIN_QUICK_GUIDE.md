@@ -587,6 +587,16 @@ autopilot stalls. Encounter ticks also made 3,528 synchronous queries. Rebuild
 normally only after fixing those two paths; do not reuse the profiling hash
 for release acceptance.
 
+The normal candidate now suppresses empty berth transitions and loads at most
+1,024 encounter definitions plus optional hunter policies into memory after
+schema boot. Ordinary encounter heartbeats no longer query MariaDB; a staff-
+forced check deliberately reloads the cache first. The release build is
+warning-free, all 277 production-linked tests and 13 protocol-parser tests
+pass, and `make install` produced non-profiled SHA-256
+`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075` while
+removing the root artifact. Confirm the boot-cache log through an actual
+Kohdee smoke, then use a clean committed tree for the next scale run.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

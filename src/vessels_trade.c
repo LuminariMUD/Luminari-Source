@@ -206,6 +206,32 @@ int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
 }
 
 /**
+ * Clear the settled visit marker when a vessel leaves its recorded berth.
+ *
+ * A ship with no port or clan marker has no state transition to persist.
+ * This fast path matters for public fleets crossing seaport terrain: their
+ * empty fee state previously caused one synchronous runtime save per move.
+ */
+bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship,
+                                 room_rnum old_room, bool old_is_port)
+{
+  if (ship == NULL || ship->dock_fee_balance > 0 ||
+      (ship->dock_fee_port <= 0 && ship->dock_fee_clan == 0))
+  {
+    return FALSE;
+  }
+
+  if (!old_is_port && !vessel_room_is_fee_berth(ship, old_room))
+  {
+    return FALSE;
+  }
+
+  ship->dock_fee_port = 0;
+  ship->dock_fee_clan = 0;
+  return TRUE;
+}
+
+/**
  * Track departure from and arrival at dockable rooms.
  *
  * A port is owned by the clan that owns its containing zone. Fees assessed
@@ -226,14 +252,7 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
   }
 
   changed = FALSE;
-  if ((old_is_port ||
-       (old_room != NOWHERE && vessel_room_is_fee_berth(ship, old_room))) &&
-      ship->dock_fee_balance <= 0)
-  {
-    ship->dock_fee_port = 0;
-    ship->dock_fee_clan = 0;
-    changed = TRUE;
-  }
+  changed = vessel_clear_departed_berth(ship, old_room, old_is_port);
 
   if (vessel_room_is_port(new_room))
   {

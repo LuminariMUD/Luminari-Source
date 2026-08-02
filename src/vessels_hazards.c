@@ -32,6 +32,29 @@ extern int wild_waterline;
 static int hazard_ticks = 0;
 static int encounter_ticks = 0;
 
+#define VESSEL_MAX_ENCOUNTER_DEFINITIONS 1024
+
+struct vessel_encounter_definition
+{
+  int encounter_id;
+  int region_vnum;
+  int mob_vnum;
+  int min_depth;
+  int max_depth;
+  int vessel_class;
+  int chance;
+  char name[128];
+  char warn_message[256];
+  char arrive_message[256];
+  int hunter_configured;
+  struct vessel_hunter_config hunter_config;
+};
+
+static struct vessel_encounter_definition
+    vessel_encounter_definitions[VESSEL_MAX_ENCOUNTER_DEFINITIONS];
+static int vessel_encounter_definition_count = 0;
+static bool vessel_encounter_config_loaded = FALSE;
+
 /**
  * Create the encounter table, keyed to wilderness region vnums.
  *
@@ -63,6 +86,108 @@ void vessel_hazard_ensure_schema(void)
   {
     log("SYSERR: vessel_encounters create failed: %s", mysql_error(conn));
   }
+}
+
+/**
+ * Load encounter definitions and optional hunter policies into memory.
+ *
+ * Encounter cadence runs on the main game thread. Keeping the immutable
+ * selection data in a bounded boot cache prevents one blocking SELECT for
+ * every moving ship. Staff-forced encounter checks reload this cache first,
+ * so direct builder changes remain testable without a server restart.
+ */
+bool vessel_encounter_reload_config(void)
+{
+  const char *query =
+      "SELECT encounter.encounter_id, encounter.region_vnum, encounter.name, "
+      "encounter.mob_vnum, encounter.min_depth, encounter.max_depth, "
+      "encounter.vessel_class, encounter.chance, encounter.warn_message, "
+      "encounter.arrive_message, hunter.encounter_id, hunter.prototype_id, "
+      "hunter.pilot_mob_vnum, hunter.min_bounty, hunter.pursuit_speed, "
+      "hunter.hunt_duration_seconds, hunter.target_grace_seconds, "
+      "hunter.cooldown_seconds, hunter.enabled "
+      "FROM vessel_encounters AS encounter "
+      "LEFT JOIN vessel_hunter_encounters AS hunter "
+      "ON hunter.encounter_id = encounter.encounter_id "
+      "ORDER BY encounter.region_vnum, encounter.chance DESC, "
+      "encounter.encounter_id";
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  struct vessel_encounter_definition *definition;
+  int loaded_count;
+
+  if (!mysql_available || conn == NULL)
+  {
+    return FALSE;
+  }
+
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Could not load vessel encounter definitions: %s",
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result(conn);
+  if (result == NULL)
+  {
+    log("SYSERR: Could not store vessel encounter definitions: %s",
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  loaded_count = 0;
+  while ((row = mysql_fetch_row(result)) != NULL)
+  {
+    if (loaded_count >= VESSEL_MAX_ENCOUNTER_DEFINITIONS)
+    {
+      log("SYSERR: Vessel encounter cache is full at %d definitions",
+          VESSEL_MAX_ENCOUNTER_DEFINITIONS);
+      break;
+    }
+
+    definition = &vessel_encounter_definitions[loaded_count++];
+    memset(definition, 0, sizeof(*definition));
+    definition->encounter_id = row[0] ? atoi(row[0]) : 0;
+    definition->region_vnum = row[1] ? atoi(row[1]) : 0;
+    strlcpy(definition->name, row[2] ? row[2] : "", sizeof(definition->name));
+    definition->mob_vnum = row[3] ? atoi(row[3]) : 0;
+    definition->min_depth = row[4] ? atoi(row[4]) : 0;
+    definition->max_depth = row[5] ? atoi(row[5]) : 0;
+    definition->vessel_class = row[6] ? atoi(row[6]) : -1;
+    definition->chance = row[7] ? atoi(row[7]) : 0;
+    strlcpy(definition->warn_message, row[8] ? row[8] : "",
+            sizeof(definition->warn_message));
+    strlcpy(definition->arrive_message, row[9] ? row[9] : "",
+            sizeof(definition->arrive_message));
+
+    if (row[10] != NULL)
+    {
+      definition->hunter_configured = 1;
+      definition->hunter_config.encounter_id = atoi(row[10]);
+      definition->hunter_config.prototype_id = row[11] ? atoi(row[11]) : 0;
+      definition->hunter_config.pilot_mob_vnum = row[12] ? atoi(row[12]) : 0;
+      definition->hunter_config.min_bounty = row[13] ? atoi(row[13]) : 0;
+      definition->hunter_config.pursuit_speed = row[14] ? atoi(row[14]) : 0;
+      definition->hunter_config.hunt_duration_seconds = row[15] ? atoi(row[15]) : 0;
+      definition->hunter_config.target_grace_seconds = row[16] ? atoi(row[16]) : 0;
+      definition->hunter_config.cooldown_seconds = row[17] ? atoi(row[17]) : 0;
+      definition->hunter_config.enabled = row[18] ? atoi(row[18]) != 0 : FALSE;
+      if (!vessel_hunter_config_is_valid(&definition->hunter_config))
+      {
+        log("SYSERR: Bounty-hunter encounter %d has invalid policy values",
+            definition->encounter_id);
+        definition->hunter_configured = -1;
+      }
+    }
+  }
+  mysql_free_result(result);
+
+  vessel_encounter_definition_count = loaded_count;
+  vessel_encounter_config_loaded = TRUE;
+  log("Loaded %d vessel encounter definition%s into memory.", loaded_count,
+      loaded_count == 1 ? "" : "s");
+  return TRUE;
 }
 
 /**
@@ -409,6 +534,27 @@ bool vessel_encounter_chance_succeeds(int chance, int roll)
 }
 
 /**
+ * Apply the database encounter candidate filters in memory.
+ */
+bool vessel_encounter_candidate_matches(int candidate_region_vnum,
+                                        int candidate_vessel_class,
+                                        int min_depth, int max_depth,
+                                        int ship_region_vnum,
+                                        enum vessel_class ship_class,
+                                        int depth_units)
+{
+  if (candidate_region_vnum != ship_region_vnum ||
+      (candidate_vessel_class != -1 &&
+       candidate_vessel_class != (int)ship_class))
+  {
+    return FALSE;
+  }
+
+  return max_depth == 0 ||
+         (depth_units >= min_depth && depth_units <= max_depth);
+}
+
+/**
  * Claim one exterior wilderness room for this encounter tick.
  *
  * Multiple ships at one coordinate share the same dynamic room. Only the
@@ -660,12 +806,9 @@ static int vessel_broadcast_encounter(room_rnum ship_room,
  */
 void vessel_encounter_tick(void)
 {
-  char query[MAX_STRING_LENGTH];
-  MYSQL_RES *result;
-  MYSQL_ROW row;
+  const struct vessel_encounter_definition *definition;
   struct greyhawk_ship_data *ship;
   struct char_data *mob;
-  struct vessel_hunter_config hunter_config;
   room_rnum claimed_rooms[GREYHAWK_MAXSHIPS];
   room_rnum region_rooms[GREYHAWK_MAXSHIPS];
   bool region_found[GREYHAWK_MAXSHIPS];
@@ -676,6 +819,9 @@ void vessel_encounter_tick(void)
   int region_index;
   int region_vnum = 0;
   int depth_units;
+  int definition_index;
+  int hunter_configured;
+  int recipient_count;
   int i;
   bool in_region;
 
@@ -686,7 +832,7 @@ void vessel_encounter_tick(void)
   }
   encounter_ticks = 0;
 
-  if (!mysql_available || conn == NULL)
+  if (!vessel_encounter_config_loaded)
   {
     return;
   }
@@ -731,48 +877,35 @@ void vessel_encounter_tick(void)
 
     depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
 
-    /* Draw candidates matching this region, depth band, and hull class */
-    snprintf(query, sizeof(query),
-             "SELECT encounter_id, name, mob_vnum, chance, warn_message, "
-             "arrive_message "
-             "FROM vessel_encounters WHERE region_vnum = %d "
-             "AND (vessel_class = -1 OR vessel_class = %d) "
-             "AND (max_depth = 0 OR (%d BETWEEN min_depth AND max_depth)) "
-             "ORDER BY chance DESC, encounter_id ASC",
-             region_vnum, (int)ship->vessel_type, depth_units);
-    if (mysql_query(conn, query))
+    /* Definitions retain the database chance/ID order loaded at boot. */
+    for (definition_index = 0;
+         definition_index < vessel_encounter_definition_count;
+         definition_index++)
     {
-      log("SYSERR: encounter query failed: %s", mysql_error(conn));
-      continue;
-    }
+      definition = &vessel_encounter_definitions[definition_index];
+      if (!vessel_encounter_candidate_matches(
+              definition->region_vnum, definition->vessel_class,
+              definition->min_depth, definition->max_depth, region_vnum,
+              ship->vessel_type, depth_units))
+      {
+        continue;
+      }
 
-    result = mysql_store_result(conn);
-    if (result == NULL)
-    {
-      continue;
-    }
-
-    while ((row = mysql_fetch_row(result)) != NULL)
-    {
-      int chance = row[3] ? atoi(row[3]) : 0;
-      int hunter_configured;
-      int recipient_count;
-
-      hunter_configured =
-          vessel_hunter_load_config(row[0] ? atoi(row[0]) : 0,
-                                    &hunter_config);
+      hunter_configured = definition->hunter_configured;
       if (hunter_configured < 0)
       {
         continue;
       }
       if (hunter_configured > 0 &&
-          !vessel_hunter_target_is_eligible(ship, &hunter_config, time(0)))
+          !vessel_hunter_target_is_eligible(
+              ship, &definition->hunter_config, time(0)))
       {
         continue;
       }
 
       /* A good lookout gives warning before the thing arrives */
-      if (!vessel_encounter_chance_succeeds(chance, rand_number(1, 100)))
+      if (!vessel_encounter_chance_succeeds(
+              definition->chance, rand_number(1, 100)))
       {
         continue;
       }
@@ -785,7 +918,8 @@ void vessel_encounter_tick(void)
       }
 
       if (hunter_configured > 0 &&
-          !vessel_hunter_spawn(ship, &hunter_config, row[1]))
+          !vessel_hunter_spawn(ship, &definition->hunter_config,
+                               definition->name))
       {
         if (ship_room != NOWHERE && claimed_count > 0)
         {
@@ -794,31 +928,32 @@ void vessel_encounter_tick(void)
         continue;
       }
 
-      recipient_count =
-          vessel_broadcast_encounter(ship_room, ship, row[4], row[5], row[1]);
+      recipient_count = vessel_broadcast_encounter(
+          ship_room, ship, definition->warn_message,
+          definition->arrive_message, definition->name);
       log("Info: Shared encounter '%s' in room %d from ship %d notified %d "
           "vessels in region %d",
-          row[1] ? row[1] : "?", ship_room, i, recipient_count, region_vnum);
+          definition->name[0] ? definition->name : "?", ship_room, i,
+          recipient_count, region_vnum);
 
       /* Spawn the encounter's creature into the ship's wilderness room so
        * it can be fought, fled, or fired upon like anything else. */
-      if (hunter_configured == 0 && row[2] != NULL && atoi(row[2]) > 0 &&
+      if (hunter_configured == 0 && definition->mob_vnum > 0 &&
           ship_room != NOWHERE)
       {
-        mob = read_mobile(atoi(row[2]), VIRTUAL);
+        mob = read_mobile(definition->mob_vnum, VIRTUAL);
         if (mob != NULL)
         {
           char_to_room(mob, ship_room);
           act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
           log("Info: Encounter '%s' spawned for shared room %d from ship %d in region %d",
-              row[1] ? row[1] : "?", ship_room, i, region_vnum);
+              definition->name[0] ? definition->name : "?", ship_room, i,
+              region_vnum);
         }
       }
 
       break; /* One encounter per check */
     }
-
-    mysql_free_result(result);
   }
 }
 
@@ -831,6 +966,10 @@ void vessel_encounter_tick(void)
  */
 void vessel_encounter_force_check(void)
 {
+  if (!vessel_encounter_reload_config())
+  {
+    return;
+  }
   encounter_ticks = VESSEL_ENCOUNTER_INTERVAL - 1;
   vessel_encounter_tick();
 }

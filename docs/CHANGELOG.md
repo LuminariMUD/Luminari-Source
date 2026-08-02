@@ -97,6 +97,15 @@
   NPC-driven nodes and 21,200 KiB RSS during the repaired 631-second fleet
   diagnostic even with a 16-per-room cap; source tracing found no gameplay
   reader that consumes those NPC records.
+- Port-berth departure processing now persists only a real settled fee marker.
+  Public and ownerless vessels with empty fee state no longer issue a
+  synchronous runtime save whenever their wilderness position changes.
+- Vessel encounter definitions and their optional bounty-hunter policies are
+  loaded into a bounded in-memory cache after schema boot. The heartbeat now
+  applies region, class, depth, chance, and hunter eligibility from that cache
+  instead of issuing one blocking candidate query per moving vessel. A staff-
+  forced check reloads the cache first so direct development data changes
+  remain testable without a full restart.
 
 #### Validated
 
@@ -233,6 +242,12 @@
   graph attributes 14,379 of 14,926 runtime saves to false port-berth state
   changes and records 3,528 synchronous encounter queries. Raw `gmon.out` and
   the generated report are retained with the run.
+- The normal post-profile repair builds without warnings and passes all 277
+  production-linked tests plus all 13 focused protocol-parser tests. Required
+  `make install` removes the root artifact and installs non-profiled SHA-256
+  `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+  The two added regressions preserve genuine unpaid/settled berth state and
+  lock the cached encounter filters to the former SQL boundary semantics.
 
 ### Durable HUNTED bounty-hunter patrols
 

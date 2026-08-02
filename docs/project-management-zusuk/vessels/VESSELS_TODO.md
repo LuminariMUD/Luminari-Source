@@ -3,7 +3,7 @@
 **Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 274 of 274 for the current repair candidate.
+production-linked suite passes 277 of 277 for the current repair candidate.
 The earlier integrated candidate also passed a fresh CMake build with all six
 CTest targets, including the production suite and vessel tooling. The
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
@@ -298,6 +298,19 @@ issued 3,528 synchronous queries. In contrast, 152,913 empty vehicle-sync
 scans made 152,913,000 array lookups but consumed only 0.15 seconds of sampled
 CPU. Fix the false dock-state persistence and cache encounter definitions
 before the next normal release build.
+
+The normal repair candidate now makes both changes. Departure processing
+returns immediately for a vessel with no fee port, fee clan, or unpaid
+balance, preserving runtime writes only for a genuine settled berth marker.
+Encounter definitions and optional hunter policies load once into a bounded
+1,024-row cache after schema boot; heartbeat selection applies the prior SQL
+region, class, and inclusive depth semantics in memory. A staff-forced check
+reloads the cache before running. The warning-free normal build passes all 277
+production-linked tests and the 13-test protocol harness. Required
+`make install` removed the root artifact and installed non-profiled SHA-256
+`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+Keep all scale items open until actual Kohdee confirms the cache boot and a
+fresh normal 500-vessel window proves the query and timing reductions.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

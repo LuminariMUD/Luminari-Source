@@ -14,12 +14,13 @@ Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current production-linked suite and Memcheck pass all 268 tests with zero
-errors and no definite, indirect, or possible loss. The focused protocol
-parser passes 13 of 13, both character-rename gates pass, and a fresh CMake
-build passes all 6 CTest targets. After the CMake build wrote its debug server
-target into `bin/`, `make install` restored the proven Autotools SHA-256 and
-removed the root artifact; PID 324960 maps that exact installed path.
+The current normal candidate passes all 277 production-linked tests and all 13
+focused protocol-parser tests. The latest strict actionable Memcheck passed
+the preceding 274-test candidate with zero errors and no definite, indirect,
+or possible loss; a fresh CMake build of that integrated candidate passed all
+6 CTest targets. Required `make install` for the current candidate removed the
+root artifact and installed non-profiled SHA-256
+`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -318,6 +319,14 @@ processing on public vessels with zero fee state, versus 14,938 total measured
 database executions. Encounter processing issued 3,528 additional synchronous
 queries. These are the next two production paths to fix before installing a
 normal build and repeating the fleet gate.
+
+The installed normal candidate now returns from departure processing when no
+fee marker exists and evaluates encounter candidates from a bounded boot
+cache, including optional hunter policy. Staff-forced checks reload that cache
+before running. Production-linked regressions cover genuine settled and
+unpaid berth state plus the exact region, hull-class, and inclusive depth
+filter boundaries. The 277-test root suite and 13-test protocol harness pass;
+actual Kohdee cache-boot and normal 500-vessel timing evidence remain required.
 
 For the builder-independence timing gate, run:
 

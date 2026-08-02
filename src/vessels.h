@@ -628,10 +628,17 @@ int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
 void vessel_encounter_force_check(void);
+bool vessel_encounter_reload_config(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
 bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
 bool vessel_encounter_region_at_coordinates(int x, int y, int *output_region_vnum);
 bool vessel_encounter_chance_succeeds(int chance, int roll);
+bool vessel_encounter_candidate_matches(int candidate_region_vnum,
+                                        int candidate_vessel_class,
+                                        int min_depth, int max_depth,
+                                        int ship_region_vnum,
+                                        enum vessel_class ship_class,
+                                        int depth_units);
 bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
                                  int claimed_capacity);
 int vessel_encounter_cached_room_index(room_rnum room, const room_rnum *cached_rooms,
@@ -791,6 +798,8 @@ bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship);
 int vessel_dock_fee_for_class(enum vessel_class vessel_type);
 int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
                            int owner_clan_vnum);
+bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship,
+                                 room_rnum old_room, bool old_is_port);
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                               room_rnum new_room, bool old_is_port);
 int vessel_passenger_fare(const struct greyhawk_ship_data *ship);
