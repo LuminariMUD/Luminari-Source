@@ -253,9 +253,39 @@ proc extract_msdp_value {raw variable} {
   return [list 1 [string range $raw $value_start [expr {$frame_end - 1}]]]
 }
 
+proc extract_last_msdp_value {raw variable} {
+  set prefix "[binary format H* fffa4501]$variable[binary format H* 02]"
+  set suffix [binary format H* fff0]
+  set search_start 0
+  set found 0
+  set actual ""
+
+  while {1} {
+    set frame_start [string first $prefix $raw $search_start]
+    if {$frame_start < 0} {
+      break
+    }
+    set value_start [expr {$frame_start + [string length $prefix]}]
+    set frame_end [string first $suffix $raw $value_start]
+    if {$frame_end < 0} {
+      break
+    }
+    set found 1
+    set actual [string range $raw $value_start [expr {$frame_end - 1}]]
+    set search_start [expr {$frame_end + [string length $suffix]}]
+  }
+
+  return [list $found $actual]
+}
+
 proc require_msdp_value {raw variable expected context} {
   lassign [extract_msdp_value $raw $variable] found actual
   if {!$found} {
+    set raw_hex [binary encode hex $raw]
+    if {[string length $raw_hex] > 1024} {
+      set raw_hex "[string range $raw_hex 0 1023]..."
+    }
+    puts stderr "dev character login smoke: bounded MSDP wire hex: $raw_hex"
     fail "$context did not receive $variable"
   }
   if {$actual ne $expected} {
@@ -274,6 +304,19 @@ proc require_msdp_number {raw variable context} {
   return $actual
 }
 
+proc require_msdp_cleared {prior_raw clear_raw variable expected context} {
+  lassign [extract_last_msdp_value $clear_raw $variable] found actual
+  if {!$found} {
+    lassign [extract_last_msdp_value $prior_raw $variable] found actual
+  }
+  if {!$found} {
+    fail "$context could not establish $variable"
+  }
+  if {$actual ne $expected} {
+    fail "$context retained $variable='$actual', expected '$expected'"
+  }
+}
+
 proc collect_msdp_frames {phase} {
   set marker "__MUD_SMOKE_MSDP_${phase}_DONE__"
   set output ""
@@ -284,11 +327,6 @@ proc collect_msdp_frames {phase} {
     -re $marker { append output $expect_out(buffer) }
     timeout { fail "timed out while collecting $phase MSDP frames" }
     eof { fail "connection closed while collecting $phase MSDP frames" }
-  }
-  expect {
-    -re $marker { append output $expect_out(buffer) }
-    timeout { fail "timed out while completing $phase MSDP collection" }
-    eof { fail "connection closed while completing $phase MSDP collection" }
   }
 
   return $output
@@ -319,7 +357,7 @@ proc clean_command_output {raw command marker} {
 set command_index 0
 set last_game_command_raw ""
 proc run_game_command {command} {
-  global command_index last_game_command_raw smoke_character
+  global command_index last_game_command_raw mode smoke_character
 
   if {$command eq "@wait-vessel-dock" || $command eq "@wait-vessel-west-dock"} {
     set deadline [expr {[clock seconds] + 60}]
@@ -401,12 +439,15 @@ proc run_game_command {command} {
     eof { fail "connection closed while submitting game command $command_index" }
   }
 
-  # The second marker is delivered by the in-game say command. It proves
-  # the preceding command completed on the game loop.
-  expect {
-    -re $marker { append output $expect_out(buffer) }
-    timeout { fail "timed out while completing game command $command_index" }
-    eof { fail "connection closed while completing game command $command_index" }
+  if {$mode ne "vessel-msdp-check"} {
+    # The second marker is delivered by the in-game say command. It proves
+    # the preceding command completed on the game loop. The raw MSDP client
+    # disables local PTY echo, so its first marker is already the game echo.
+    expect {
+      -re $marker { append output $expect_out(buffer) }
+      timeout { fail "timed out while completing game command $command_index" }
+      eof { fail "connection closed while completing game command $command_index" }
+    }
   }
 
   set last_game_command_raw $output
@@ -422,16 +463,22 @@ proc run_game_command {command} {
 }
 
 proc run_vessel_msdp_check {ship_slot} {
-  global last_game_command_raw
+  global last_game_command_raw smoke_character
 
   set ship_variables {
     SHIP_NAME SHIP_X SHIP_Y SHIP_Z SHIP_HEADING SHIP_SPEED
     SHIP_HULL SHIP_HULL_MAX SHIP_STATUS
   }
+  set resume_autopilot 0
 
   set output [run_game_command "shipgoto $ship_slot"]
   if {![regexp "Aboard (.+) \\(slot $ship_slot\\)\\." $output ignored ship_name]} {
     fail "could not read vessel name after shipgoto $ship_slot"
+  }
+
+  set output [run_game_command "autopilot pause"]
+  if {[string first "Autopilot paused." $output] >= 0} {
+    set resume_autopilot 1
   }
 
   set output [run_game_command "shipstatus"]
@@ -440,6 +487,11 @@ proc run_vessel_msdp_check {ship_slot} {
       ![regexp {Heading: (-?[0-9]+) degrees} $output ignored ship_heading] ||
       ![regexp {Speed: (-?[0-9]+) /} $output ignored ship_speed]} {
     fail "could not read complete vessel state from shipstatus"
+  }
+
+  set output [run_game_command "whois $smoke_character"]
+  if {[string first "MSDP:    Yes" $output] < 0} {
+    fail "native MSDP negotiation was not enabled"
   }
 
   foreach variable $ship_variables {
@@ -466,18 +518,21 @@ proc run_vessel_msdp_check {ship_slot} {
     fail "aboard state received invalid SHIP_STATUS='$ship_status'"
   }
 
+  if {$resume_autopilot} {
+    run_game_command "autopilot on"
+  }
   run_game_command "goto 1204"
   set ashore_raw [collect_msdp_frames "ASHORE"]
   set clear_raw "$last_game_command_raw$ashore_raw"
-  require_msdp_value $clear_raw SHIP_NAME "" "ashore state"
-  require_msdp_value $clear_raw SHIP_X 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_Y 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_Z 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_HEADING 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_SPEED 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_HULL 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_HULL_MAX 0 "ashore state"
-  require_msdp_value $clear_raw SHIP_STATUS "" "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_NAME "" "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_X 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_Y 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_Z 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_HEADING 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_SPEED 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_HULL 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_HULL_MAX 0 "ashore state"
+  require_msdp_cleared $aboard_raw $clear_raw SHIP_STATUS "" "ashore state"
 
   puts "\nPASS: native MSDP reported all nine vessel variables aboard slot $ship_slot."
   puts "PASS: native MSDP cleared all nine vessel variables after leaving the vessel."
@@ -1121,10 +1176,15 @@ if {![info exists env(MUD_SMOKE_ACCOUNT)] ||
 }
 set smoke_character $env(MUD_SMOKE_CHARACTER)
 
-spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
 if {$mode eq "vessel-msdp-check"} {
+  spawn -noecho sh -c "stty raw -echo; exec nc 127.0.0.1 $env(MUD_SMOKE_PORT)"
   fconfigure $spawn_id -translation binary -encoding binary
-  send -- [binary format H* fffd45]
+  # Complete the server's TTYPE-first negotiation before accepting MSDP.
+  # WONT TTYPE causes the server to offer its remaining Telnet options;
+  # DO MSDP then enables native MSDP frames on this binary connection.
+  send -- [binary format H* fffc18fffd45]
+} else {
+  spawn -noecho nc 127.0.0.1 $env(MUD_SMOKE_PORT)
 }
 
 expect {

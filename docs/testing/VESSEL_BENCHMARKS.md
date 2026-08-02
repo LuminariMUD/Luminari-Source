@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.11
+**Version:** 3.12
 
 **Evidence snapshot:** August 2, 2026
 
@@ -27,6 +27,7 @@ from the full live-game benchmark that still must be run.
 | Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
 | Third current scale launch on August 2, 2026 | Harbor preflight stopped before spawn | Canonical west-dock fare path fixed; rerun required |
 | Fourth current 500-ship attempt on August 2, 2026 | Reached reciprocal-combat proof; stopped before steady measurement | LF-CR parser fixed; performance warning retained |
+| Fifth current 500-ship attempt on August 2, 2026 | Reached native MSDP proof; stopped before steady measurement | Raw Telnet client fixed and baseline contract passes |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -250,6 +251,25 @@ exceed the 25,000-usec release target and require investigation if reproduced
 in the full run; they must not be diluted or presented as a passing result.
 Cleanup restored the baseline.
 
+Run `20260802T011448Z-414722` passed the repaired harbor and reciprocal-combat
+paths, spawned all 500 ships through one 496-command Kohdee session, observed
+the corrected Z-500 boundary, completed the economy and fresh-reconstruction
+checks, and recorded 18 suppressed messages. It stopped before steady
+measurement at the native MSDP gate. The in-game `whois` diagnostic proved
+`MSDP: Yes`, but the `nc` client was attached to a cooked pseudo-terminal that
+buffered and caret-echoed MSDP's binary VAR/VAL control bytes. The helper now
+uses a raw no-echo connection, declines TTYPE before accepting option 69, and
+validates the effective client cache after ashore updates. A missing clear
+frame passes only when the prior aboard value was already the required neutral
+value. An actual Kohdee rerun against baseline ship 1 received all nine aboard
+variables and reached the complete empty ashore state in seven seconds. The
+follow-up against actively navigating public ferry slot 5 paused it at
+`(-63, 82)`, received the same complete state, resumed autopilot, and cleared
+ashore in eight seconds. Last-frame selection prevents a late movement update
+from hiding the subsequent clear. The fifth run cleaned back to six vessels
+and restarted the exact candidate on PID 431693. Its 18-tick preflight sample
+is diagnostic only and is not a release measurement.
+
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
 hunter changes. The installed-candidate scale run is the first live
@@ -296,11 +316,13 @@ The runner:
 - Requires Kohdee's `vtradecheck 1000` transcript to show all adversarial
   transfers inside supply 10-400, finite profitable-route convergence,
   negative oversized reversal profit, and restocking to baseline 100.
-- Opens a native MSDP connection as Kohdee, requests all nine `SHIP_*`
+- Opens a raw, no-echo native MSDP connection as Kohdee, completes the
+  TTYPE-first Telnet negotiation, requests all nine `SHIP_*`
   variables aboard the benchmark airship, compares position and navigation
   values with `shipstatus`, validates hull and status values, then goes ashore
-  and requires the complete empty state. The raw check result is preserved as
-  `native-msdp-vessel-state.log`.
+  and requires the effective client state to be empty. An omitted dirty update
+  is accepted only when the previously reported value was already neutral.
+  The raw check result is preserved as `native-msdp-vessel-state.log`.
 - Warms the production heartbeat, then pauses ten routed vessels after a known
   schedule departure. Each must trigger a new persisted departure during the
   measured window. Kohdee remains aboard an airship so native MSDP and normal

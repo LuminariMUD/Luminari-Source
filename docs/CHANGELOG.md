@@ -69,6 +69,12 @@
   carriage return from each displayed line while retaining deliberate
   indentation. A valid `vessel_messages_throttled=393` counter was visible but
   failed the anchored parser before this normalization.
+- The native vessel MSDP helper now runs its `nc` connection on a raw, no-echo
+  pseudo-terminal, completes the server's TTYPE-first negotiation, and checks
+  the effective client cache when unchanged neutral values do not generate a
+  second dirty frame. Cooked input previously left a correctly enabled MSDP
+  session without delivered REPORT requests and produced a false missing-
+  `SHIP_NAME` failure at 500 ships.
 
 #### Validated
 
@@ -142,6 +148,15 @@
   stops before steady measurement only on the LF-CR parser despite a visible
   suppression count of 393. The cleanup-restored 18-tick diagnostic also
   records a 226,912-usec vessel maximum and 26 missed pulses for follow-up.
+- Run `20260802T011448Z-414722` passes harbor, 500 actual-Kohdee spawns,
+  economy, Z boundaries, fresh reconstruction, and reciprocal fire with 18
+  suppressed messages before exposing the cooked native-MSDP client. Cleanup
+  restores six vessels and the exact candidate. After the fix, a seven-second
+  actual Kohdee check on baseline ship 1 receives all nine aboard variables
+  and proves the complete effective empty state ashore. An eight-second check
+  on actively navigating ferry slot 5 pauses it at `(-63, 82)`, receives the
+  full contract, resumes autopilot, and clears ashore; Bash, ShellCheck, and
+  scale-parser regressions pass.
 
 ### Durable HUNTED bounty-hunter patrols
 

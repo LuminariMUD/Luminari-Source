@@ -120,12 +120,25 @@ grep -Fq 'workload_log_offset=0' "$runner" ||
 if grep -Fq "workload_log_offset=\$(stat" "$runner"; then
   fail "scale-runner still carries an offset across the truncated restart log"
 fi
+login_helper="$script_dir/dev_kohdee_login_smoke.sh"
 [[ "$(grep -Fc 'run_game_command "goto 1204"' \
-  "$script_dir/dev_kohdee_login_smoke.sh")" == 2 ]] ||
+  "$login_helper")" == 2 ]] ||
   fail "generic MSDP and message helpers do not leave crowded benchmark waters"
 grep -Fq "set display_line [string trimleft \$line \"\\r\"]" \
-  "$script_dir/dev_kohdee_login_smoke.sh" ||
+  "$login_helper" ||
   fail "login helper does not normalize LF-CR command output"
+grep -Fq 'stty raw -echo; exec nc 127.0.0.1' "$login_helper" ||
+  fail "native MSDP helper does not use a raw, no-echo Telnet connection"
+grep -Fq 'send -- [binary format H* fffc18fffd45]' "$login_helper" ||
+  fail "native MSDP helper does not complete TTYPE-first negotiation"
+grep -Fq 'proc extract_last_msdp_value' "$login_helper" ||
+  fail "native MSDP helper does not apply the last frame for effective state"
+grep -Fq 'set output [run_game_command "autopilot pause"]' "$login_helper" ||
+  fail "native MSDP helper does not stabilize a moving comparison vessel"
+grep -Fq 'run_game_command "autopilot on"' "$login_helper" ||
+  fail "native MSDP helper does not resume a vessel it paused"
+[[ "$(grep -Ec '^  require_msdp_cleared .* SHIP_' "$login_helper")" == 9 ]] ||
+  fail "native MSDP helper does not validate all nine effective ashore values"
 
 fare_commands=$(sed -n '/^fare_output=.*--commands/,/^fare_status=/p' \
   "$script_dir/provision_vessel_harbor.sh")

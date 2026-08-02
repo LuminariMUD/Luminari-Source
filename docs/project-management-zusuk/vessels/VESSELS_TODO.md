@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 04:13 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 04:32 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -86,8 +86,8 @@ checks and an actual Kohdee sweep of all 78 command keywords. The focused
 protocol parser passes 13 of 13, both character-rename gates pass, and a fresh
 out-of-tree CMake build passes 6 of 6 CTest targets. `make install` restored
 the proven Autotools SHA-256 and removed the root artifact after CMake; a clean
-restart now maps that exact installed path on PID 324960. Next run the bounded
-500-vessel scale gate.
+restart mapped that exact installed path. Continue the bounded 500-vessel
+scale gate with the current harness repairs below.
 
 The first current scale attempt is preserved at
 `/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
@@ -145,6 +145,28 @@ the baseline and restarted PID 407332. The 18-tick diagnostic profile is not
 release evidence, but its 226,912-usec vessel maximum, 226,835-usec autopilot
 maximum, 107,698-usec encounter maximum, and 26 missed pulses warn that real
 performance work may remain once the full measurement starts.
+
+The fifth run is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T011448Z-414722`.
+It passed the repaired harbor, spawned all 500 ships through 496 actual Kohdee
+commands, held the airship at Z 500 for the ceiling rejection, completed the
+economy and fresh-reconstruction checks, and passed live reciprocal fire with
+18 suppressed messages. It then stopped before steady measurement because the
+native MSDP test connection reported `MSDP: Yes` but received no requested
+`SHIP_NAME` frame. The helper was running `nc` on a cooked pseudo-terminal, so
+the binary MSDP control bytes were buffered and caret-echoed. Its dedicated
+MSDP connection now runs raw with echo disabled, explicitly completes the
+TTYPE-first negotiation, and treats an omitted ashore frame as valid only when
+the previously reported client value was already neutral. A seven-second
+actual Kohdee rerun against baseline ship 1 received all nine aboard values
+and proved the effective empty state ashore. An eight-second follow-up on the
+actively navigating public ferry paused slot 5 at `(-63, 82)`, received the
+same complete contract, resumed autopilot, and cleared the state ashore.
+Tooling locks raw negotiation, last-frame selection, active-vessel pause/resume,
+and all nine clear checks. Scale cleanup restored the six-vessel baseline and
+restarted the exact installed candidate on PID 431693.
+This fifth artifact contains only another 18-tick diagnostic and does not
+close a performance item; start a fresh bounded run.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

@@ -199,6 +199,22 @@ retaining indentation. Cleanup restored the baseline. Its 18-tick diagnostic
 profile had a 226,912-usec maximum and 26 missed pulses, so the full run must
 still determine and address the actual performance verdict.
 
+Run `20260802T011448Z-414722` passed all of those repaired stages, spawned all
+500 vessels through 496 Kohdee commands, completed economy, Z, and fresh boot
+checks, and observed reciprocal fire with 18 suppressed messages. It stopped
+before steady measurement at the native MSDP client: `whois` proved the server
+had MSDP enabled, but cooked pseudo-terminal input buffered and caret-echoed
+the binary REPORT controls. The helper's MSDP-only connection now runs raw and
+without echo, completes TTYPE-first negotiation, and evaluates the effective
+client cache when unchanged neutral values do not produce dirty updates. An
+actual seven-second Kohdee check against baseline ship 1 received all nine
+aboard values and proved all nine neutral ashore. An eight-second check on the
+actively navigating public ferry paused slot 5 at `(-63, 82)`, received the
+same complete state, resumed autopilot, and cleared ashore. The helper applies
+the last frame so a late movement update cannot mask the final clear. Cleanup
+restored the six-vessel baseline and exact installed candidate on PID 431693.
+This fifth artifact also contains no steady performance result.
+
 For the builder-independence timing gate, run:
 
 ```bash

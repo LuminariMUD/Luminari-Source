@@ -3,7 +3,7 @@
 **Last verified:** August 2, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 02:55 IDT):** The bounded ferry
+**Active execution checkpoint (August 2, 2026, 04:32 IDT):** The bounded ferry
 gate is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. The
 request-to-result time was 2,779 seconds, including 2,740 seconds of continuous
@@ -43,8 +43,8 @@ all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The focused
 protocol parser then passed 13 of 13, both character-rename gates passed, and a
 fresh CMake build passed all 6 CTest targets. Because CMake writes its server
 target into `bin/`, `make install` restored the exact Autotools candidate and
-removed the root artifact. The cleanly restarted development MUD maps that
-installed SHA-256 on PID 324960. Continue with the bounded scale gate.
+removed the root artifact. After the fifth cleanup, the development MUD maps
+that installed SHA-256 on PID 431693. Continue with the bounded scale gate.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -463,6 +463,21 @@ short 18-tick profile also showed 226,912 usec maximum vessel time and 26
 missed pulses; treat that as a performance warning, not the required steady
 sample. Cleanup restored the baseline.
 
+Run `20260802T011448Z-414722` then passed those repairs, all 500 actual-Kohdee
+spawns, economy and Z checks, fresh reconstruction, reciprocal fire, and 18
+suppressed messages. It stopped before steady measurement because its native
+MSDP connection used a cooked pseudo-terminal: the server showed `MSDP: Yes`,
+but the binary REPORT control bytes were buffered and caret-echoed. The helper
+now runs only that connection raw with echo disabled, explicitly declines
+TTYPE and accepts MSDP, and validates the effective cached ashore state when a
+value was already zero. A seven-second Kohdee check against baseline ship 1
+received all nine values aboard and proved all nine neutral ashore. A second
+eight-second check paused actively navigating ferry slot 5 at `(-63, 82)`,
+received the contract, resumed it, and cleared ashore state. Tooling locks
+negotiation, last-frame selection, pause/resume, and the clear-state contract.
+Cleanup restored six vessels and restarted the exact candidate on PID 431693.
+This artifact also contains no steady performance sample.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process
@@ -646,13 +661,17 @@ exists, run:
 ./scripts/dev_kohdee_login_smoke.sh --vessel-msdp-check <ship-slot>
 ```
 
-The helper reuses the master account and exact Kohdee character. It enables
-native MSDP on the socket, teleports Kohdee aboard the requested vessel,
-requests all nine `SHIP_*` variables, and compares the position and navigation
-frames with `shipstatus`. It also validates the hull totals and status band.
-Kohdee then goes to static staff room 1204, and the helper requires the two string
-variables to clear and all seven numeric variables to become zero before it
-logs out of the character and account.
+The helper reuses the master account and exact Kohdee character. It runs the
+socket on a raw no-echo pseudo-terminal, declines the server's initial TTYPE
+request, accepts native MSDP option 69, and teleports Kohdee aboard the
+requested vessel. It requests all nine `SHIP_*` variables and compares the
+position and navigation frames with `shipstatus`. It also validates the hull
+totals and status band.
+Kohdee then goes to static staff room 1204, and the helper requires the two
+string variables to clear and all seven numeric variables to become zero
+before it logs out of the character and account. MSDP sends only dirty values;
+if an ashore frame is omitted, the helper accepts it only when the prior
+aboard value was already the required neutral value.
 
 The 500-vessel runner performs this check automatically against its benchmark
 airship and preserves `native-msdp-vessel-state.log`. This is a real
