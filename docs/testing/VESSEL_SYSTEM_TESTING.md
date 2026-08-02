@@ -309,21 +309,24 @@ then runs one actual Kohdee session through the lower-level
 The open-water view must report all eight compass bearings to the production
 visibility horizon, current Ocean terrain, natural elevation and water depth,
 and a real Starfall Bastion contact two units east with production `sound`
-condition. A second coastal view must report canonical Water, Beach, and Field
-sectors before all temporary hulls are purged and Kohdee returns to room 1204.
+condition. Kohdee also christens the observer `Azure Watch`, sets paint and a
+figurehead, and must see both in `lookout` and the exterior hull room text.
+Clearing both must restore the default hull text. A second coastal view must
+report canonical Water, Beach, and Field sectors before all temporary hulls
+are purged and Kohdee returns to room 1204.
 The wrapper rejects related `SYSERR` rows, requires zero Bastion runtime and
 interior residue, byte-restores Kohdee, and restarts the exact candidate.
 
 Run
-`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`
-passed in 38 seconds on source `d788c537` and installed SHA-256
-`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
-The gameplay workflow itself took 5.9 seconds. The before/restored player
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`
+passed in 41 seconds on source `302c8b87` and installed SHA-256
+`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+The before/restored player
 files both hash to
-`53061d7ae86ea0dd8dafdfc0e02bfc13bee1022bec7e5318a9ce5d67e33ae0bb`;
-the final database held zero acceptance runtime rows. Five production-linked
-tests cover bounded distance samples, terrain-band compression, invalid and
-capacity inputs, and compass boundaries.
+`16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`;
+the final database held zero acceptance runtime rows. Seven production-linked
+tests cover cosmetic hull/appearance formatting, bounded distance samples,
+terrain-band compression, invalid/capacity inputs, and compass boundaries.
 
 ## Dynamic At-Sea Narrative Check
 
@@ -853,17 +856,19 @@ numbered gameplay flow:
   tracked idempotent migration and restarting produced 32 entries, 78 exact
   mappings, correct access levels, nonempty content, zero obsolete duplicates,
   and a database `Help Tag` for all 78 commands in one 41-second Kohdee login.
-- The current candidate maintains 33 authoritative entries and 80 exact
+- The current candidate maintains 33 authoritative entries and 81 exact
   keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, Phase 15
-  `vesseldebug encounter`, Phase 16 `vevent`, and both lookout spellings.
+  `vesseldebug encounter`, Phase 16 `vevent`, both lookout spellings, and
+  `shipcustomize`.
   Production-linked coverage sends an
   identified message between two different rooms of one vessel, proves an
   adjacent non-passenger receives nothing, and checks the ashore and silenced
   refusals. Both the MariaDB verifier and installed-build exhaustive help
   transcript now pass the entry, keyword, access, content, duplicate, and
-  channel-text checks. A current installed-build sweep resolved all 80
-  keywords through authoritative database tags in one 43-second Kohdee
-  session. The installed-build two-character transcript also
+  channel-text checks. The prior installed-build sweep resolved its full
+  80-keyword set through authoritative database tags in one 43-second Kohdee
+  session; Phase 17 adds the SQL-verified and live-executed `shipcustomize`
+  mapping. The installed-build two-character transcript also
   passes on the current candidate and reuses the existing master account. The channel
   helper automatically selects another non-deleted account-menu character
   without a manual slot or Name lookup. A July 30 read-only database check

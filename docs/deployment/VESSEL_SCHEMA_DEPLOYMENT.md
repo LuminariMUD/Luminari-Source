@@ -43,11 +43,12 @@ tables.
 | 14 | `vessels_phase14_schema.sql` | `verify_vessels_phase14.sql` | `vessels_phase14_rollback.sql` | Durable NPC merchant definitions and exactly-once consequences |
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
+| 17 | `vessels_phase17_schema.sql` | `verify_vessels_phase17.sql` | `vessels_phase17_rollback.sql` | Optional exterior paint and figurehead descriptions |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
 | Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 80 command keywords |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 81 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -72,6 +73,9 @@ Phase 16 references Phase 04 prototypes and Phase 09 runtime fleet slots.
 Before rollback, end or cancel the active event and confirm that every tracked
 ghost hull has retired. Its rollback deletes event history, participant
 results, aggregate leaderboards, and runtime ownership rows.
+Phase 17 extends Phase 02 vessel identities with optional appearance text. Its
+rollback permanently removes saved paint and figurehead descriptions but does
+not alter hull names, ownership, or runtime state.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -205,6 +209,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase16_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase17_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content.sql
@@ -251,6 +257,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase16.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase17.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_narrative_content.sql
@@ -280,7 +288,9 @@ Also verify:
 - Four Phase 16 tables, all 29 required core columns, valid event lifecycle
   values, valid participants, valid leaderboard aggregates, and no orphaned
   ghost runtime ownership.
-- All 80 vessel and vehicle command-keyword searches in the running game,
+- Both Phase 17 appearance columns with non-null 80-character bounds and no
+  oversized saved values.
+- All 81 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -336,6 +346,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_narrative_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase17_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase16_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \

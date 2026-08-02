@@ -6,6 +6,18 @@
 
 #### Added
 
+- `shipcustomize` lets an owner review, set, or clear optional 3-80 character
+  paint and figurehead descriptions. Both fields persist in Phase 17, appear
+  in exterior hull room text, and appear in own-hull and visible-contact
+  `lookout` output without increasing the 5 KiB base ship structure.
+- The reversible lookout gate now proves cosmetic set, hull/lookout display,
+  clear, default-text restoration, persistence success, exact Kohdee
+  restoration, and zero temporary runtime residue. Run
+  `20260802T131015Z-1845762` passed in 41 seconds on source `302c8b87` and
+  installed SHA-256
+  `75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+- The warning-free production-linked suite now passes 304 tests. Two cosmetic
+  formatter tests cover absent, individual, combined, and bounded output.
 - Boarding is now dedicated ability 27 and a class ability for every class.
   Its effective total uses trained ranks, the better of Strength or Dexterity,
   equipped armor penalty, and the Minotaur Seafaring bonus.
@@ -72,9 +84,11 @@
   aggregate leaderboards, and temporary ghost-hull ownership. Result
   finalization is transactional; boot retires interrupted ghost hulls and
   closes their event, while a failed cleanup remains explicitly recoverable.
-- Authoritative `VEVENT` help and the later `LOOKOUT` alias maintain 33 vessel
-  and vehicle entries covering 80 command keywords. Installed-character help
-  sweeps resolve every keyword through database help tags.
+- Authoritative `VEVENT` help and the later `LOOKOUT` and `SHIPCUSTOMIZE`
+  aliases maintain 33 vessel and vehicle entries covering 81 command keywords.
+  An installed-character sweep resolved the prior 80-keyword set through
+  database help tags; Phase 17 adds the SQL-verified and live-executed
+  `SHIPCUSTOMIZE` mapping.
 - `scripts/test_vessel_events_in_game.sh` performs one reversible actual-Kohdee
   regatta, skirmish, and ghost-fleet session. It validates live movement and
   weapon scoring, durable leaderboard deltas, exact player/event-table

@@ -1,9 +1,10 @@
 # LuminariMUD Vessel System Documentation
 
 **Release Status**: Gameplay layer, initial campaign shipping, initial
-data/DG-driven derelict, wilderness frontier package, and Phase 16 showcase
-events implemented; wilderness tactical chart, lookout view, and dynamic
-at-sea narrative accepted; production acceptance incomplete
+data/DG-driven derelict, wilderness frontier package, Phase 16 showcase
+events, and Phase 17 exterior customization implemented; wilderness tactical
+chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
+production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -506,14 +507,21 @@ list uses the shared `vessel_sight_range()`, three-dimensional range, compass
 bearing, `vessel_status()`, and relative Z; it does not maintain a separate
 lookout contact model.
 
+Owners use `shipcustomize` to set or clear optional paint and figurehead text,
+each limited to 80 printable characters. The current hull's appearance follows
+the lookout header, and visible contacts show their appearance below the
+nearest-first roster row. The same values build the exterior object's room
+description and persist in `ship_interiors` through Phase 17.
+
 Development acceptance run
-`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`
-passed in 38 seconds on source `d788c537` and installed SHA-256
-`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
-Actual Kohdee read both help aliases, observed an open-water sound contact two
-units east, and read real coastal Water, Beach, Field, Marshland, City, and
-road sectors. The gate purged its hulls, byte-restored Kohdee, and left no
-acceptance runtime rows. Five production-linked tests cover sample selection,
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`
+passed in 41 seconds on source `302c8b87` and installed SHA-256
+`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+Actual Kohdee read both help aliases, set and cleared both cosmetic fields,
+observed them in `lookout` and exterior room text, saw an open-water sound
+contact, and read real coastal sectors. The gate purged its hulls,
+byte-restored Kohdee, and left no acceptance runtime rows. Seven
+production-linked tests cover cosmetic formatting, sample selection,
 terrain-band compression, capacity/input boundaries, and compass boundaries.
 
 #### Dynamic At-Sea Narrative
@@ -851,6 +859,7 @@ the removed name's bounty.
 | shipbrowse | Shipyard catalog with prices | `shipbrowse` |
 | shipbuy | Buy a hull at a dock, become owner | `shipbuy <id>` |
 | shipchristen | Owner: rename the ship | `shipchristen <name>` |
+| shipcustomize | Owner: review, set, or clear exterior details | `shipcustomize [show]` or `shipcustomize <paint\|figurehead> <description\|clear>` |
 | shipdeed | Owner: transfer ownership | `shipdeed <player>` |
 | shippermit / shiprevoke | Owner: manage helm clearances | `shippermit <player>` |
 | shipcrew | List owner, pilot, permits, crew | `shipcrew` |
@@ -1128,7 +1137,7 @@ historical measurements, and the limits of the current evidence.
 | Table | Purpose |
 |-------|---------|
 | `ship_prototypes` | Builder-authored hull definitions used by `vedit` and shipyards |
-| `ship_interiors` | Vessel identity, rooms, owner, upgrades, insurance, and wage state |
+| `ship_interiors` | Vessel identity, rooms, cosmetics, owner, upgrades, insurance, and wage state |
 | `ship_runtime_state` | Live hull, position, condition, room type, autopilot, PvP grace, and dock-fee snapshot |
 | `ship_weapons` | Normalized installed weapon slots, values, position, and reload state |
 | `ship_docking` | Active and historical docking relationships |
@@ -1533,7 +1542,7 @@ and the trigger was removed.
 | `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
 | `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
 | `scripts/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
-| `scripts/test_vessel_lookout_in_game.sh` | Reversible Kohdee wilderness-lookout, contact, and coastal-sector gate |
+| `scripts/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
 | `scripts/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 
 ### Database
@@ -1555,6 +1564,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
 | `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
 | `sql/components/vessels_phase16_*` | Showcase-event history, results, leaderboards, runtime ownership, and rollback |
+| `sql/components/vessels_phase17_*` | Exterior paint and figurehead persistence, verification, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
@@ -1745,7 +1755,7 @@ passes automated tests. Before rollout:
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
 4. Apply and verify every vessel schema component, then require all 33
-   maintained help entries and 80 command keywords to pass both SQL and in-game
+   maintained help entries and 81 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and supervised stability check;

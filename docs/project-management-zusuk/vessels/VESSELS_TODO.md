@@ -2,7 +2,7 @@
 
 **Last audited:** August 2, 2026
 
-**Status:** Mechanics through Phase 16, the first Luminari campaign shipping
+**Status:** Mechanics through Phase 17, the first Luminari campaign shipping
 package, the first data/DG-driven derelict, and the first wilderness frontier
 package are implemented. Regattas, fleet skirmishes, ghost-fleet events, and
 durable leaderboards also pass actual-character acceptance. The legacy
@@ -190,6 +190,22 @@ hulls, restored both player files to their exact hashes, left zero temporary
 runtimes, and restarted the exact candidate. The warning-free
 production-linked suite passes 302 tests.
 
+**Exterior-customization checkpoint (August 2, 2026, 16:10 IDT):** Owners can
+now use `shipcustomize` to review, set, or clear optional 3-80 character paint
+and figurehead descriptions. Phase 17 persists both fields without expanding
+the 5 KiB base ship structure. Hull room text and both own-ship and contact
+lookout reports render the details. Reversible run
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`
+is terminal `PASS` in 41 seconds on source `302c8b87` and installed SHA-256
+`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+Actual Kohdee set midnight-blue paint and a gilded sea-dragon figurehead,
+observed both in `lookout` and the exterior hull description, cleared both,
+and observed the default hull text return. Cleanup purged all temporary
+runtimes, restored Kohdee to SHA-256
+`16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`,
+and restarted the exact candidate. The warning-free production-linked suite
+passes 304 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -202,8 +218,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 6 top-level items: 1 player-experience/presentation
-and 5 balance/beta/rollout.
+**Remaining checklist:** 5 top-level balance/beta/rollout items.
 
 ## 1. Add Living-World Content
 
@@ -226,7 +241,7 @@ and 5 balance/beta/rollout.
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
 - [x] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
-- [ ] Add optional figurehead and paint customization to ship and lookout
+- [x] Add optional figurehead and paint customization to ship and lookout
   descriptions.
 
 Named-water announcements, the ship-wide captain channel, and repeated-message

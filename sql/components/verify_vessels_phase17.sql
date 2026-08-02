@@ -8,7 +8,7 @@ SELECT COUNT(*) AS vessel_customization_columns_present
    AND DATA_TYPE = 'varchar'
    AND CHARACTER_MAXIMUM_LENGTH = 80
    AND IS_NULLABLE = 'NO'
-   AND COLUMN_DEFAULT = '';
+   AND COLUMN_DEFAULT IN ('', CONCAT(CHAR(39), CHAR(39)));
 
 SELECT ship_id, figurehead, paint_scheme
   FROM ship_interiors

@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Core development and player-experience mechanics pass; optional presentation, beta, and rollout remain
+**Status:** Core development and player-experience mechanics pass; beta and rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -301,11 +301,14 @@ grapple and crossing checks, the strongest eligible defender aboard, and
 bounded target-hull modifiers. A reversible Kohdee/Vesselmate session proves
 both a defended rejection and a successful breach with exact two-character
 restoration.
+Owners can now give a hull optional paint and figurehead details through
+`shipcustomize`. Both fields persist, appear on the exterior hull, and appear
+in `lookout`; a reversible Kohdee run proves set, display, clear, cleanup, and
+exact player restoration.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
-Memcheck, and development release-boundary checks pass. Remaining
-optional presentation work, human beta, production-snapshot rehearsal,
-balance, and staged rollout remain.
+Memcheck, and development release-boundary checks pass. Remaining human beta,
+production-snapshot rehearsal, balance, and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.

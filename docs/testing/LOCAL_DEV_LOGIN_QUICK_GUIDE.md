@@ -70,14 +70,14 @@ Ashenport shoal, beach, coastline, and region-edge cells. The 141-second run
 purged every temporary hull, restored Kohdee's exact player file, and
 restarted the tested binary from source `d2a1669e`.
 
-The wilderness lookout passes actual-character acceptance under
-`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`.
-Kohdee used the player-facing `lookout` command to scan all eight canonical
-Starfall bearings, observe a real sound contact two units east, and read Water,
-Beach, Field, Marshland, City, and road terrain from a second coastal hull. The
-38-second run checked both help aliases, purged every temporary hull, restored
-Kohdee's exact player file and room 1204, and restarted the tested binary from
-source `d788c537`.
+The wilderness lookout and exterior customization pass actual-character
+acceptance under
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`.
+Kohdee used `shipcustomize` to set paint and a figurehead, observed both in
+`lookout` and exterior hull text, cleared them, scanned all eight canonical
+Starfall bearings, and observed a real sound contact and coastal terrain. The
+41-second run purged every temporary hull, restored Kohdee's exact player file
+and room 1204, and restarted the tested binary from source `302c8b87`.
 
 The dynamic at-sea narrative passes actual-character acceptance under
 `/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`.
@@ -391,11 +391,14 @@ Bastion runtimes. It snapshots Kohdee with the MUD stopped, verifies both
 
 Success requires eight canonical wilderness bearings, current terrain,
 natural elevation, water depth, production weather visibility, and a real
-nearby sound contact. A second coastal view must contain actual Water, Beach,
-and Field sectors. Cleanup purges only acceptance-prototype hulls, returns
-Kohdee to room 1204, byte-restores the player file, and restarts the same
-executable. The passing transcript is `02-kohdee-vessel-lookout.log` inside
-`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`.
+nearby sound contact. It also requires `shipcustomize` paint and figurehead
+text in both `lookout` and the exterior hull description, then proves `clear`
+restores the default text. A second coastal view must contain actual Water,
+Beach, and Field sectors. Cleanup purges only acceptance-prototype hulls,
+returns Kohdee to room 1204, byte-restores the player file, and restarts the
+same executable. The passing transcript is `02-kohdee-vessel-lookout.log`
+inside
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T131015Z-1845762`.
 
 ## Fast Dynamic At-Sea Narrative
 
@@ -1310,14 +1313,15 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
-source derives 80 keywords. On August 2, 2026 the first sweep correctly found
+source derives 81 keywords. On August 2, 2026 the first sweep correctly found
 that the development database had not yet received the tracked `SHIPTALK`
 mapping. Applying `sql/components/help_vessel_entries.sql`, running
 `sql/components/verify_help_vessel_entries.sql`, and restarting the MUD made
-all five SQL checks pass. The current installed candidate resolves all 80
+all five SQL checks pass. The installed candidate resolved its then-current 80
 keywords, including `VEVENT`, `LOOKOUT`, and `LOOK_OUTSIDE`, in one 43-second
-Kohdee session. This replaces one login cycle per keyword and automatically
-includes newly gated commands.
+Kohdee session. Phase 17 adds the SQL-verified and live-executed
+`SHIPCUSTOMIZE` mapping as keyword 81. This replaces one login cycle per
+keyword and automatically includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
 to perform the process manually.
