@@ -17,7 +17,7 @@ SELECT @vailand_north_region_vnum, 10000,
        ST_GeomFromText(
          'POLYGON((-612 440,-584 440,-584 470,-612 470,-612 440))'
        ),
-       0, '', NULL
+       0, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @vailand_north_region_vnum
@@ -32,7 +32,7 @@ UPDATE region_data
        ),
        region_props = 0,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @vailand_north_region_vnum
    AND name = 'North Vailand Territorial Waters';
 
@@ -44,7 +44,7 @@ SELECT @vailand_central_region_vnum, 10000,
        ST_GeomFromText(
          'POLYGON((-485 185,-452 185,-452 220,-485 220,-485 185))'
        ),
-       0, '', NULL
+       0, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @vailand_central_region_vnum
@@ -59,7 +59,7 @@ UPDATE region_data
        ),
        region_props = 0,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @vailand_central_region_vnum
    AND name = 'Central Vailand Territorial Waters';
 
@@ -70,7 +70,7 @@ SELECT @vailand_passage_region_vnum, 10000, 'Vailand Passage', 1,
        ST_GeomFromText(
          'POLYGON((-581 464,-449 213,-445 180,-525 180,-617 446,-581 464))'
        ),
-       0, '', NULL
+       0, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @vailand_passage_region_vnum
@@ -85,7 +85,7 @@ UPDATE region_data
        ),
        region_props = 0,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @vailand_passage_region_vnum
    AND name = 'Vailand Passage';
 
@@ -96,7 +96,7 @@ SELECT @blackwake_region_vnum, 10000, 'Blackwake Anchorage', 1,
        ST_GeomFromText(
          'POLYGON((-542 318,-524 318,-524 342,-542 342,-542 318))'
        ),
-       0, '', NULL
+       0, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @blackwake_region_vnum
@@ -111,7 +111,7 @@ UPDATE region_data
        ),
        region_props = 0,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @blackwake_region_vnum
    AND name = 'Blackwake Anchorage';
 

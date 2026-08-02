@@ -36,6 +36,18 @@ FROM information_schema.STATISTICS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ship_interiors'
 ORDER BY INDEX_NAME, SEQ_IN_INDEX;
 
+SELECT COUNT(*) AS room_template_unique_index_present
+FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = DATABASE()
+AND TABLE_NAME = 'ship_room_templates'
+AND INDEX_NAME = 'unique_room_type'
+AND NON_UNIQUE = 0;
+
+SELECT room_type, vessel_type, COUNT(*) AS duplicate_count
+FROM ship_room_templates
+GROUP BY room_type, vessel_type
+HAVING COUNT(*) > 1;
+
 -- Check ship_docking structure
 SELECT '=== CHECKING ship_docking STRUCTURE ===' as Status;
 SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT

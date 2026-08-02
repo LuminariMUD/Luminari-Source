@@ -21,7 +21,7 @@ SELECT @starfall_trench_vnum, 10000, 'Starfall Trench', 5,
        ST_GeomFromText(
          'POLYGON((896 221,904 221,904 229,896 229,896 221))'
        ),
-       96, '', NULL
+       96, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @starfall_trench_vnum
@@ -36,7 +36,7 @@ UPDATE region_data
        ),
        region_props = 96,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @starfall_trench_vnum
    AND name = 'Starfall Trench';
 
@@ -47,7 +47,7 @@ SELECT @aetherwind_skyway_vnum, 10000, 'Aetherwind Skyway', 6,
        ST_GeomFromText(
          'POLYGON((430 -2,475 -2,475 2,430 2,430 -2))'
        ),
-       100, '', NULL
+       100, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @aetherwind_skyway_vnum
@@ -62,7 +62,7 @@ UPDATE region_data
        ),
        region_props = 100,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @aetherwind_skyway_vnum
    AND name = 'Aetherwind Skyway';
 
@@ -73,7 +73,7 @@ SELECT @shardspire_island_vnum, 10000, 'Shardspire Sky Island', 7,
        ST_GeomFromText(
          'POLYGON((468 -2,474 -2,474 2,468 2,468 -2))'
        ),
-       200, '', NULL
+       200, '', '1970-01-01 00:00:00'
  WHERE NOT EXISTS (
    SELECT 1 FROM region_data
     WHERE vnum = @shardspire_island_vnum
@@ -88,7 +88,7 @@ UPDATE region_data
        ),
        region_props = 200,
        region_reset_data = '',
-       region_reset_time = NULL
+       region_reset_time = '1970-01-01 00:00:00'
  WHERE vnum = @shardspire_island_vnum
    AND name = 'Shardspire Sky Island';
 

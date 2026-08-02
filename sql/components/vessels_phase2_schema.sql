@@ -101,8 +101,12 @@ CREATE TABLE IF NOT EXISTS ship_room_templates (
 
     -- Indexes
     INDEX idx_room_type (room_type),
-    INDEX idx_vessel_type (vessel_type)
+    INDEX idx_vessel_type (vessel_type),
+    UNIQUE KEY unique_room_type (room_type, vessel_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE ship_room_templates
+  ADD UNIQUE INDEX IF NOT EXISTS unique_room_type (room_type, vessel_type);
 
 -- =====================================================
 -- SHIP CARGO MANIFEST TABLE
@@ -170,7 +174,7 @@ CREATE TABLE IF NOT EXISTS ship_crew_roster (
 -- DEFAULT ROOM TEMPLATES DATA
 -- Insert standard room templates for vessel generation
 -- =====================================================
-INSERT INTO ship_room_templates (room_type, name_format, description_text, room_flags, sector_type, min_vessel_size) VALUES
+INSERT IGNORE INTO ship_room_templates (room_type, name_format, description_text, room_flags, sector_type, min_vessel_size) VALUES
 -- Bridge/Control rooms
 ('bridge', '%s''s Bridge', 'The command center of the vessel, filled with navigation equipment and control panels. Large windows provide a panoramic view of the surroundings.', 262144, 0, 0),
 ('helm', '%s''s Helm', 'The pilot''s station, featuring the ship''s wheel and primary navigation controls.', 262144, 0, 0),
@@ -202,8 +206,7 @@ INSERT INTO ship_room_templates (room_type, name_format, description_text, room_
 -- Special rooms
 ('airlock', 'Airlock', 'A sealed chamber used for boarding and emergency exits.', 262144, 0, 10),
 ('observation', 'Observation Deck', 'An elevated platform providing excellent views in all directions.', 262144, 0, 5),
-('brig', 'Ship''s Brig', 'Iron-barred cells for holding prisoners or unruly crew members.', 262144, 0, 6)
-ON DUPLICATE KEY UPDATE description_text = VALUES(description_text);
+('brig', 'Ship''s Brig', 'Iron-barred cells for holding prisoners or unruly crew members.', 262144, 0, 6);
 
 -- =====================================================
 -- STORED PROCEDURES

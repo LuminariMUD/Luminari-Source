@@ -10,6 +10,7 @@ apply character_rename_transactional_schema.sql
 skip dynamic_descriptions_deployment.sql
 apply fix_help_entries_production.sql
 skip fix_narrative_weaver_schema_inconsistencies.sql
+apply help_character_backgrounds.sql
 apply help_intermud3_entries.sql
 apply help_system_indexes.sql
 apply help_vessel_entries.sql
@@ -30,6 +31,9 @@ apply resource_depletion_schema.sql
 skip test_vessels_integrity.sql
 skip verify_help_intermud3_entries.sql
 skip verify_help_vessel_entries.sql
+skip verify_vessels_campaign_content.sql
+skip verify_vessels_derelict_content.sql
+skip verify_vessels_frontier_content.sql
 skip verify_vessels_phase4.sql
 skip verify_vessels_phase6.sql
 skip verify_vessels_phase7.sql
@@ -45,6 +49,12 @@ skip verify_vessels_phase16.sql
 skip verify_vessels_phase17.sql
 skip verify_vessels_narrative_content.sql
 skip verify_vessels_schema.sql
+skip vessels_campaign_content.sql
+skip vessels_campaign_content_rollback.sql
+skip vessels_derelict_content.sql
+skip vessels_derelict_content_rollback.sql
+skip vessels_frontier_content.sql
+skip vessels_frontier_content_rollback.sql
 skip vessels_harbor_sandbox.sql
 skip vessels_narrative_content.sql
 skip vessels_narrative_content_rollback.sql

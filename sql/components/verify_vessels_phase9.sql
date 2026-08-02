@@ -3,7 +3,31 @@
 SELECT COUNT(*) AS required_tables_present
   FROM information_schema.TABLES
  WHERE TABLE_SCHEMA = DATABASE()
-   AND TABLE_NAME IN ('ship_runtime_state', 'ship_schedules');
+   AND TABLE_NAME IN (
+     'ship_waypoints', 'ship_routes', 'ship_route_waypoints',
+     'ship_runtime_state', 'ship_schedules'
+   );
+
+SELECT COUNT(*) AS route_columns_present
+  FROM information_schema.COLUMNS
+ WHERE TABLE_SCHEMA = DATABASE()
+   AND (
+     (TABLE_NAME = 'ship_waypoints'
+      AND COLUMN_NAME IN ('waypoint_id', 'name', 'x', 'y', 'z',
+                          'tolerance', 'wait_time', 'flags'))
+     OR
+     (TABLE_NAME = 'ship_routes'
+      AND COLUMN_NAME IN ('route_id', 'name', 'loop_route', 'active'))
+     OR
+     (TABLE_NAME = 'ship_route_waypoints'
+      AND COLUMN_NAME IN ('route_id', 'waypoint_id', 'sequence_num'))
+   );
+
+SELECT COUNT(*) AS route_foreign_keys_present
+  FROM information_schema.KEY_COLUMN_USAGE
+ WHERE TABLE_SCHEMA = DATABASE()
+   AND TABLE_NAME = 'ship_route_waypoints'
+   AND REFERENCED_TABLE_NAME IN ('ship_routes', 'ship_waypoints');
 
 SELECT COUNT(*) AS runtime_columns_present
   FROM information_schema.COLUMNS
