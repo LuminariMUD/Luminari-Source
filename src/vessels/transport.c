@@ -816,8 +816,7 @@ void travel_tickdown(void)
     if (world[IN_ROOM(ch)].number < 66700 || world[IN_ROOM(ch)].number > 66799)
       continue;
 
-    if (ch->player_specials->destination == 0 ||
-        ch->player_specials->destination == (int)NOWHERE)
+    if (ch->player_specials->destination == 0 || ch->player_specials->destination == (int)NOWHERE)
     {
 #if defined(CAMPAIGN_DL)
       to_room = real_room(16500);
@@ -860,7 +859,8 @@ void travel_tickdown(void)
 #endif
           if (to_room == NOWHERE)
           {
-            send_to_char(ch, "Your journey cannot be completed. Please contact a staff member.\r\n");
+            send_to_char(ch,
+                         "Your journey cannot be completed. Please contact a staff member.\r\n");
             continue;
           }
         }

@@ -2212,8 +2212,8 @@ int move_vessel_toward_waypoint(struct greyhawk_ship_data *ship)
   target_z = vessel_autopilot_grid_coordinate(wp->z);
   if (!vessel_z_within_class_limits(ship->vessel_type, target_z))
   {
-    log("Info: Autopilot ship %d - waypoint '%s' has invalid class Z %d", ship->shipnum,
-        wp->name, target_z);
+    log("Info: Autopilot ship %d - waypoint '%s' has invalid class Z %d", ship->shipnum, wp->name,
+        target_z);
     return 0;
   }
 
@@ -2588,8 +2588,7 @@ static void autopilot_restore_state(struct autopilot_data *ap,
 /**
  * Make a player-visible autopilot state change durable before reporting it.
  */
-static bool autopilot_commit_player_change(struct char_data *ch,
-                                           struct greyhawk_ship_data *ship,
+static bool autopilot_commit_player_change(struct char_data *ch, struct greyhawk_ship_data *ship,
                                            const struct autopilot_state_snapshot *snapshot)
 {
   if (vessel_db_save_runtime(ship))
@@ -3452,8 +3451,7 @@ bool vessel_npc_is_on_pilot_duty(const struct char_data *npc)
 {
   struct greyhawk_ship_data *ship;
 
-  if (npc == NULL || !IS_NPC(npc) || IN_ROOM(npc) == NOWHERE ||
-      IN_ROOM(npc) > top_of_world)
+  if (npc == NULL || !IS_NPC(npc) || IN_ROOM(npc) == NOWHERE || IN_ROOM(npc) > top_of_world)
   {
     return FALSE;
   }
@@ -3733,8 +3731,7 @@ void schedule_calculate_next_departure(struct vessel_schedule *sched)
  * @param passenger_fare Gold charged when a player boards an unowned vessel
  * @return 1 on success, 0 on failure
  */
-int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
-                    int passenger_fare)
+int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval, int passenger_fare)
 {
   struct vessel_schedule previous;
   bool had_schedule;
@@ -3801,8 +3798,8 @@ int schedule_create(struct greyhawk_ship_data *ship, int route_id, int interval,
     return 0;
   }
 
-  log("Info: Created schedule for ship %d (route %d, interval %d hours, fare %d)",
-      ship->shipnum, route_id, interval, passenger_fare);
+  log("Info: Created schedule for ship %d (route %d, interval %d hours, fare %d)", ship->shipnum,
+      route_id, interval, passenger_fare);
   return 1;
 }
 
@@ -4001,8 +3998,7 @@ int schedule_trigger_departure(struct greyhawk_ship_data *ship)
     autopilot_restore_state(ship->autopilot, &snapshot);
     if (!vessel_db_save_runtime(ship))
     {
-      log("SYSERR: Could not compensate failed scheduled departure for ship %d",
-          ship->shipnum);
+      log("SYSERR: Could not compensate failed scheduled departure for ship %d", ship->shipnum);
     }
     route_destroy(route);
     log("SYSERR: Scheduled departure for ship %d was rolled back", ship->shipnum);
@@ -4116,8 +4112,7 @@ ACMD(do_setschedule)
   if (*fare_arg)
   {
     parsed_fare = strtol(fare_arg, NULL, 10);
-    if (!is_number(fare_arg) || parsed_fare < 0 ||
-        parsed_fare > VESSEL_PASSENGER_FARE_MAX)
+    if (!is_number(fare_arg) || parsed_fare < 0 || parsed_fare > VESSEL_PASSENGER_FARE_MAX)
     {
       send_to_char(ch, "Passenger fare must be between 0 and %d gold.\r\n",
                    VESSEL_PASSENGER_FARE_MAX);

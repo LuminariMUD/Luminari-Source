@@ -153,8 +153,8 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
  * @param y World Y coordinate
  * @return Newly allocated description, including the base when no hint applies
  */
-char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone,
-                                           int x, int y);
+char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone, int x,
+                                          int y);
 
 /**
  * Layer regional hints onto base description

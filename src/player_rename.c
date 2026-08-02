@@ -156,10 +156,8 @@ static const struct rename_db_key rename_key_template[PLAYER_RENAME_DB_KEY_COUNT
     {"player_levelups", "character_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"player_levels", "char_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"vessel_bounties", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
-    {"vessel_merchant_consequences", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0,
-     {0}},
-    {"vessel_npc_merchants", "last_attacker_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0,
-     {0}},
+    {"vessel_merchant_consequences", "player_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
+    {"vessel_npc_merchants", "last_attacker_name", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}},
     {"vessel_bounty_hunts", "target_player", FALSE, FALSE, TRUE, FALSE, 0, 0, {0}, 0, {0}}};
 
 static void rename_set_failure(struct rename_context *ctx, enum player_rename_status status,
@@ -2982,8 +2980,7 @@ static void rename_refresh_live_state(struct rename_context *ctx)
 
   rename_apply_account_refreshes(ctx);
   rename_apply_live_strings(ctx);
-  vessel_hunter_handle_player_rename(ctx->old_display_name,
-                                     ctx->new_display_name);
+  vessel_hunter_handle_player_rename(ctx->old_display_name, ctx->new_display_name);
 
   pubsub_invalidate_player_cache(ctx->old_display_name);
   pubsub_invalidate_player_cache(ctx->new_display_name);

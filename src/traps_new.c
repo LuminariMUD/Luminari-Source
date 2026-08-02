@@ -926,7 +926,8 @@ void apply_trap_damage(struct char_data *ch, struct trap_data *trap)
 /**
  * Apply trap effects to area (multiple targets).
  */
-void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data *triggerer __attribute__((unused)))
+void apply_trap_to_area(struct trap_data *trap, room_rnum room,
+                        struct char_data *triggerer __attribute__((unused)))
 {
   struct char_data *vict, *next_vict;
   int targets_hit = 0;

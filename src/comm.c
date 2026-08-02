@@ -110,7 +110,7 @@
 #include "discord_bridge.h"              /* Discord bridge integration */
 #include "terrain_bridge.h"              /* Terrain bridge API server */
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
-#include "vessels/vessels.h"                     /* Vessel persistence */
+#include "vessels/vessels.h"             /* Vessel persistence */
 #include "asciimap.h"
 #include "world/spec_artifacts.h"
 

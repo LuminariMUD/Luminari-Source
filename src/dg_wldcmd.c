@@ -24,7 +24,7 @@
 /* Local functions, macros, defines and structs */
 
 #define WCMD(name)                                                                                 \
-  void(name)(room_data * room __attribute__((unused)), char *argument __attribute__((unused)),    \
+  void(name)(room_data * room __attribute__((unused)), char *argument __attribute__((unused)),     \
              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 /* for do_wsend */
@@ -293,7 +293,7 @@ WCMD(do_wdoor)
       strcpy(newexit->keyword, value);
       break;
     case 5: /* room        */
-  if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
+      if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
         newexit->to_room = to_room;
       else
       {

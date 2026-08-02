@@ -38,8 +38,7 @@ static void movement_trail_free(struct trail_data *trail)
   free(trail);
 }
 
-static void movement_trail_unlink(struct trail_data_list *list,
-                                  struct trail_data *trail)
+static void movement_trail_unlink(struct trail_data_list *list, struct trail_data *trail)
 {
   if (list == NULL || trail == NULL)
   {
@@ -65,8 +64,7 @@ static void movement_trail_unlink(struct trail_data_list *list,
   }
 }
 
-static void movement_trail_prepend(struct trail_data_list *list,
-                                   struct trail_data *trail)
+static void movement_trail_prepend(struct trail_data_list *list, struct trail_data *trail)
 {
   trail->prev = NULL;
   trail->next = list->head;
@@ -88,8 +86,8 @@ static void movement_trail_prepend(struct trail_data_list *list,
  * Refreshing a match preserves its age while the per-room cap prevents
  * ordinary mobile wandering from retaining process-lifetime heap growth.
  */
-void movement_trail_record(struct trail_data_list *list, const char *name,
-                           const char *race, int from, int to, time_t age)
+void movement_trail_record(struct trail_data_list *list, const char *name, const char *race,
+                           int from, int to, time_t age)
 {
   struct trail_data *trail;
   struct trail_data *match;
@@ -222,8 +220,7 @@ void create_tracks(struct char_data *ch, int dir, int flag)
       race = race_list[race_idx].name;
   }
 
-  movement_trail_record(room->trail_tracks, name, race,
-                        flag == TRACKS_IN ? dir : DIR_NONE,
+  movement_trail_record(room->trail_tracks, name, race, flag == TRACKS_IN ? dir : DIR_NONE,
                         flag == TRACKS_OUT ? dir : DIR_NONE, now);
 }
 

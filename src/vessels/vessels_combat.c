@@ -69,16 +69,15 @@ static struct char_data *vessel_effective_aggressor(struct char_data *ch)
 /**
  * Does a stored logout-grace record cover this exact aggressor now?
  */
-bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target,
-                             const char *attacker_name, time_t now)
+bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target, const char *attacker_name,
+                             time_t now)
 {
   if (target == NULL || attacker_name == NULL || !*attacker_name ||
       target->pvp_grace_attacker[0] == '\0')
   {
     return FALSE;
   }
-  return target->pvp_grace_until >= now &&
-         !str_cmp(target->pvp_grace_attacker, attacker_name);
+  return target->pvp_grace_until >= now && !str_cmp(target->pvp_grace_attacker, attacker_name);
 }
 
 /**
@@ -97,24 +96,22 @@ void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship)
 /**
  * Snapshot both sides of a consented vessel engagement.
  */
-static void vessel_record_pvp_engagement(struct char_data *ch,
-                                         struct greyhawk_ship_data *target)
+static void vessel_record_pvp_engagement(struct char_data *ch, struct greyhawk_ship_data *target)
 {
   struct char_data *aggressor;
   struct greyhawk_ship_data *aggressor_ship;
   time_t until;
 
   aggressor = vessel_effective_aggressor(ch);
-  if (aggressor == NULL || IS_NPC(aggressor) || GET_NAME(aggressor) == NULL ||
-      target == NULL || target->owner[0] == '\0')
+  if (aggressor == NULL || IS_NPC(aggressor) || GET_NAME(aggressor) == NULL || target == NULL ||
+      target->owner[0] == '\0')
   {
     return;
   }
 
   until = time(0) + VESSEL_PVP_LOGOUT_GRACE;
   target->pvp_grace_until = until;
-  strlcpy(target->pvp_grace_attacker, GET_NAME(aggressor),
-          sizeof(target->pvp_grace_attacker));
+  strlcpy(target->pvp_grace_attacker, GET_NAME(aggressor), sizeof(target->pvp_grace_attacker));
 
   aggressor_ship = get_ship_from_room(IN_ROOM(aggressor));
   if (aggressor_ship != NULL && aggressor_ship != target)
@@ -348,8 +345,7 @@ void vessel_sink(int shipnum)
   char buf[MAX_STRING_LENGTH];
   int i;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return;
   }
@@ -482,8 +478,8 @@ void vessel_apply_damage(int shipnum, int amount, int arc, const char *cause)
   int spill;
   const char *side_name;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]) || amount <= 0)
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]) ||
+      amount <= 0)
   {
     return;
   }
@@ -619,8 +615,7 @@ void vessel_check_grounding(int shipnum)
   int depth_units;
   int sector;
 
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return;
   }
@@ -718,22 +713,20 @@ static void vessel_ai_return_fire(int shipnum)
     if (ship->bounty_hunter)
     {
       send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                             "The navy crew OPENS FIRE on %s!", target->name);
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "The navy crew OPENS FIRE on %s!",
+                             target->name);
     }
     else
     {
       send_to_ship_throttled(ship, VESSEL_MESSAGE_COMBAT_RETURN_FIRE,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                             "The crew RETURNS FIRE at %s!", target->name);
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "The crew RETURNS FIRE at %s!",
+                             target->name);
     }
     if (attack_roll < defense_dc)
     {
       send_to_ship_throttled(target, VESSEL_MESSAGE_COMBAT_RETURN_FIRE_MISS,
-                             VESSEL_COMBAT_MESSAGE_COOLDOWN,
-                             "%s from %s splashes wide!",
-                             ship->bounty_hunter ? "Navy fire" : "Return fire",
-                             ship->name);
+                             VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s from %s splashes wide!",
+                             ship->bounty_hunter ? "Navy fire" : "Return fire", ship->name);
       continue;
     }
 
@@ -766,10 +759,10 @@ void vessel_combat_tick(void)
         greyhawk_ships[i].slot[s].timer--;
         if (greyhawk_ships[i].slot[s].timer == 0 && greyhawk_ships[i].slot[s].type == 1)
         {
-          send_to_ship_throttled(
-              &greyhawk_ships[i], VESSEL_MESSAGE_COMBAT_RELOAD, VESSEL_COMBAT_MESSAGE_COOLDOWN,
-              "%s is reloaded and ready.",
-              greyhawk_ships[i].slot[s].desc[0] ? greyhawk_ships[i].slot[s].desc : "A weapon");
+          send_to_ship_throttled(&greyhawk_ships[i], VESSEL_MESSAGE_COMBAT_RELOAD,
+                                 VESSEL_COMBAT_MESSAGE_COOLDOWN, "%s is reloaded and ready.",
+                                 greyhawk_ships[i].slot[s].desc[0] ? greyhawk_ships[i].slot[s].desc
+                                                                   : "A weapon");
         }
       }
     }

@@ -243,14 +243,14 @@ typedef enum
   eJUDGMENT_RECOVERY_USED,  /* Inquisitor Judgment Recovery kill-triggered use used */
   eSPELL_METAMASTERY_USED,  /* Inquisitor Spell Metamastery 5-minute cooldown */
   eDIVINE_SPELLSTRIKE_USED, /* Inquisitor Divine Spellstrike daily use */
-  eINEXORABLE_JUDGMENT_USED,  /* Inexorable Judgment daily use */
-  eSUPREME_SPELLCASTING_USED, /* Supreme Spellcasting daily free cast */
-  eINSTANT_DEATH_USED,        /* Inquisitor Instant Death daily use */
-  eTRUE_SEEING_DETECT_INVIS,  /* Inquisitor perk: Detect Invisibility daily use */
-  eTRUE_SEEING_TRUE_SEEING,   /* Inquisitor perk: True Seeing daily use */
-  eAURA_READING_SENSE_LIFE,   /* Inquisitor perk: Sense Life daily use */
-  eAURA_READING_DETECT_ALIGN, /* Inquisitor perk: Detect Alignment daily use */
-  eLEGENDARY_RESILIENCE_USED, /* Inquisitor Legendary Resilience auto-save cooldown */
+  eINEXORABLE_JUDGMENT_USED,    /* Inexorable Judgment daily use */
+  eSUPREME_SPELLCASTING_USED,   /* Supreme Spellcasting daily free cast */
+  eINSTANT_DEATH_USED,          /* Inquisitor Instant Death daily use */
+  eTRUE_SEEING_DETECT_INVIS,    /* Inquisitor perk: Detect Invisibility daily use */
+  eTRUE_SEEING_TRUE_SEEING,     /* Inquisitor perk: True Seeing daily use */
+  eAURA_READING_SENSE_LIFE,     /* Inquisitor perk: Sense Life daily use */
+  eAURA_READING_DETECT_ALIGN,   /* Inquisitor perk: Detect Alignment daily use */
+  eLEGENDARY_RESILIENCE_USED,   /* Inquisitor Legendary Resilience auto-save cooldown */
   ePERFECT_ADAPTATION_COOLDOWN, /* Inquisitor Perfect Adaptation 5-minute cooldown */
 } event_id;
 

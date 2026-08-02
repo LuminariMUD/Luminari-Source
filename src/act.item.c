@@ -1988,8 +1988,7 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   if (!has_obj_by_uid_in_lookup_table(object_id))
     return;
 
-  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) &&
-      (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {
@@ -2291,8 +2290,7 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
     return;
   }
 
-  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) &&
-      (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
+  if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
     {

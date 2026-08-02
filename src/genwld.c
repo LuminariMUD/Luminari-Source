@@ -98,13 +98,11 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
       case 'O':
       case 'T':
       case 'V':
-        ZCMD(i, j).arg3 +=
-            (ZCMD(i, j).arg3 != (int)NOWHERE && ZCMD(i, j).arg3 >= (int)found);
+        ZCMD(i, j).arg3 += (ZCMD(i, j).arg3 != (int)NOWHERE && ZCMD(i, j).arg3 >= (int)found);
         break;
       case 'D':
       case 'R':
-        ZCMD(i, j).arg1 +=
-            (ZCMD(i, j).arg1 != (int)NOWHERE && ZCMD(i, j).arg1 >= (int)found);
+        ZCMD(i, j).arg1 += (ZCMD(i, j).arg1 != (int)NOWHERE && ZCMD(i, j).arg1 >= (int)found);
       case 'G':
       case 'P':
       case 'E':
@@ -465,9 +463,8 @@ int save_rooms(zone_rnum rzone)
                   "%d %d %d\n",
                   j, buf, buf1, dflag,
                   R_EXIT(room, j)->key != NOTHING ? (int)R_EXIT(room, j)->key : -1,
-                  R_EXIT(room, j)->to_room != NOWHERE
-                      ? (int)world[R_EXIT(room, j)->to_room].number
-                      : -1);
+                  R_EXIT(room, j)->to_room != NOWHERE ? (int)world[R_EXIT(room, j)->to_room].number
+                                                      : -1);
         }
       }
 
@@ -708,11 +705,9 @@ void dump_moving(struct moving_room_data *mr, struct char_data *ch)
     snprintf(pdh, sizeof(pdh), "Random: %s\r\n", (mr->randomMove) ? "yes" : "no");
     send_to_char(ch, "%s", pdh);
 
-    snprintf(buf, sizeof(buf), "Transit Msg: %s\r\n",
-             mr->msg_transit ? mr->msg_transit : "<none>");
+    snprintf(buf, sizeof(buf), "Transit Msg: %s\r\n", mr->msg_transit ? mr->msg_transit : "<none>");
     send_to_char(ch, "%s", buf);
-    snprintf(buf, sizeof(buf), "Docking Msg: %s\r\n",
-             mr->msg_docking ? mr->msg_docking : "<none>");
+    snprintf(buf, sizeof(buf), "Docking Msg: %s\r\n", mr->msg_docking ? mr->msg_docking : "<none>");
     send_to_char(ch, "%s", buf);
     snprintf(buf, sizeof(buf), "Dest Docking Msg: %s\r\n",
              mr->msg_dest_docking ? mr->msg_dest_docking : "<none>");

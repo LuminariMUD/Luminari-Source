@@ -295,8 +295,8 @@ SPECIAL(postmaster)
     return (0);
 }
 
-static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
-                                 char *arg)
+static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman,
+                                 int cmd __attribute__((unused)), char *arg)
 {
   long recipient = 0;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, **mailwrite = NULL;
@@ -349,7 +349,8 @@ static void postmaster_send_mail(struct char_data *ch, struct char_data *mailman
   string_write(ch->desc, mailwrite, MAX_MAIL_SIZE, recipient, NULL);
 }
 
-static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
+static void postmaster_check_mail(struct char_data *ch, struct char_data *mailman,
+                                  int cmd __attribute__((unused)),
                                   char *arg __attribute__((unused)))
 {
   if (has_mail(GET_IDNUM(ch)))
@@ -358,7 +359,8 @@ static void postmaster_check_mail(struct char_data *ch, struct char_data *mailma
     act("$n tells you, 'Sorry, you don't have any mail waiting.'", FALSE, mailman, 0, ch, TO_VICT);
 }
 
-static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman, int cmd __attribute__((unused)),
+static void postmaster_receive_mail(struct char_data *ch, struct char_data *mailman,
+                                    int cmd __attribute__((unused)),
                                     char *arg __attribute__((unused)))
 {
   char buf[MEDIUM_STRING] = {'\0'};

@@ -51,8 +51,7 @@ static int restock_ticks = 0;
  */
 bool vessel_room_is_port(room_rnum room)
 {
-  return VALID_ROOM_RNUM(room) &&
-         (ROOM_FLAGGED(room, ROOM_DOCKABLE) || SECT(room) == SECT_SEAPORT);
+  return VALID_ROOM_RNUM(room) && (ROOM_FLAGGED(room, ROOM_DOCKABLE) || SECT(room) == SECT_SEAPORT);
 }
 
 /**
@@ -187,13 +186,12 @@ int vessel_dock_fee_for_class(enum vessel_class vessel_type)
  *
  * @return Gold assessed, or zero when no new fee was created
  */
-int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
-                           int owner_clan_vnum)
+int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum, int owner_clan_vnum)
 {
   int fee;
 
-  if (ship == NULL || ship->owner[0] == '\0' || port_vnum <= 0 ||
-      ship->dock_fee_balance > 0 || ship->dock_fee_port == port_vnum)
+  if (ship == NULL || ship->owner[0] == '\0' || port_vnum <= 0 || ship->dock_fee_balance > 0 ||
+      ship->dock_fee_port == port_vnum)
   {
     return 0;
   }
@@ -212,8 +210,8 @@ int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
  * This fast path matters for public fleets crossing seaport terrain: their
  * empty fee state previously caused one synchronous runtime save per move.
  */
-bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship,
-                                 room_rnum old_room, bool old_is_port)
+bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
+                                 bool old_is_port)
 {
   if (ship == NULL || ship->dock_fee_balance > 0 ||
       (ship->dock_fee_port <= 0 && ship->dock_fee_clan == 0))
@@ -267,8 +265,8 @@ void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_roo
                    "The harbor master records a %d-gold berthing fee. "
                    "Use 'dockfees pay' before departure.",
                    fee);
-      log("Info: Port %d assessed ship %d '%s' %d gold for clan %d",
-          world[new_room].number, ship->shipnum, ship->name, fee, ship->dock_fee_clan);
+      log("Info: Port %d assessed ship %d '%s' %d gold for clan %d", world[new_room].number,
+          ship->shipnum, ship->name, fee, ship->dock_fee_clan);
       changed = TRUE;
     }
   }
@@ -335,16 +333,14 @@ ACMD(do_dockfees)
     return;
   }
   if (!vessel_ship_is_in_port(ship) &&
-      (ship->shipobj == NULL ||
-       !vessel_room_is_fee_berth(ship, IN_ROOM(ship->shipobj))))
+      (ship->shipobj == NULL || !vessel_room_is_fee_berth(ship, IN_ROOM(ship->shipobj))))
   {
     send_to_char(ch, "The harbor office will settle this account only while you are in port.\r\n");
     return;
   }
   if (GET_GOLD(ch) < ship->dock_fee_balance)
   {
-    send_to_char(ch, "The fee is %d gold; you have %d.\r\n", ship->dock_fee_balance,
-                 GET_GOLD(ch));
+    send_to_char(ch, "The fee is %d gold; you have %d.\r\n", ship->dock_fee_balance, GET_GOLD(ch));
     return;
   }
 
@@ -368,8 +364,8 @@ ACMD(do_dockfees)
     ship->dock_fee_clan = old_clan;
     if (!vessel_db_save_runtime(ship))
     {
-      log("SYSERR: Could not restore dock fee %d for ship %d after player-save failure",
-          amount, ship->shipnum);
+      log("SYSERR: Could not restore dock fee %d for ship %d after player-save failure", amount,
+          ship->shipnum);
     }
     send_to_char(ch, "The payment could not be saved; no gold was taken.\r\n");
     return;
@@ -383,14 +379,12 @@ ACMD(do_dockfees)
     CLAN_BANK(owner_clan) += credited;
     mark_clan_modified(owner_clan);
     save_single_clan(owner_clan);
-    log_clan_activity(old_clan, "%s paid %d gold in vessel dock fees", GET_NAME(ch),
-                      credited);
+    log_clan_activity(old_clan, "%s paid %d gold in vessel dock fees", GET_NAME(ch), credited);
   }
 
-  send_to_char(ch, "You settle %d gold in dock fees. %s may now depart.\r\n", amount,
-               ship->name);
-  log("Info: %s paid %d dock-fee gold for ship %d at port %d; clan %d received %d",
-      GET_NAME(ch), amount, ship->shipnum, old_port, old_clan, credited);
+  send_to_char(ch, "You settle %d gold in dock fees. %s may now depart.\r\n", amount, ship->name);
+  log("Info: %s paid %d dock-fee gold for ship %d at port %d; clan %d received %d", GET_NAME(ch),
+      amount, ship->shipnum, old_port, old_clan, credited);
 }
 
 /**
@@ -662,8 +656,7 @@ static long long vessel_trade_batch_value(int base_price, int supply, int quanti
       return LLONG_MAX;
     }
     total += unit_value;
-    current_supply =
-        vessel_trade_adjusted_supply(current_supply, buying_from_port ? -1 : 1);
+    current_supply = vessel_trade_adjusted_supply(current_supply, buying_from_port ? -1 : 1);
   }
 
   return total;
@@ -685,8 +678,8 @@ long long vessel_trade_sell_revenue(int base_price, int supply, int quantity)
   return vessel_trade_batch_value(base_price, supply, quantity, FALSE);
 }
 
-static void vessel_trade_record_simulation_supply(
-    struct vessel_trade_simulation_result *result, int supply)
+static void vessel_trade_record_simulation_supply(struct vessel_trade_simulation_result *result,
+                                                  int supply)
 {
   if (supply < result->minimum_supply)
   {
@@ -707,12 +700,10 @@ static void vessel_trade_record_simulation_supply(
  * the spread closes and verifies that idle restocking returns both ports to
  * baseline.
  */
-bool vessel_trade_run_simulation(int trade_count,
-                                 struct vessel_trade_simulation_result *result)
+bool vessel_trade_run_simulation(int trade_count, struct vessel_trade_simulation_result *result)
 {
   const int base_price = 100;
-  const int adversarial_quantity =
-      TRADE_SUPPLY_MAX - TRADE_SUPPLY_MIN + 10;
+  const int adversarial_quantity = TRADE_SUPPLY_MAX - TRADE_SUPPLY_MIN + 10;
   const int convergence_quantity = 10;
   long long cost;
   long long revenue;
@@ -722,8 +713,7 @@ bool vessel_trade_run_simulation(int trade_count,
   int final_gap;
   int i;
 
-  if (result == NULL || trade_count < 1 ||
-      trade_count > TRADE_SIMULATION_MAX_TRADES)
+  if (result == NULL || trade_count < 1 || trade_count > TRADE_SIMULATION_MAX_TRADES)
   {
     return FALSE;
   }
@@ -739,25 +729,17 @@ bool vessel_trade_run_simulation(int trade_count,
   {
     if ((i % 2) == 0)
     {
-      cost = vessel_trade_buy_cost(base_price, source_supply,
-                                   adversarial_quantity);
-      revenue = vessel_trade_sell_revenue(base_price, destination_supply,
-                                          adversarial_quantity);
-      source_supply =
-          vessel_trade_adjusted_supply(source_supply, -adversarial_quantity);
-      destination_supply =
-          vessel_trade_adjusted_supply(destination_supply, adversarial_quantity);
+      cost = vessel_trade_buy_cost(base_price, source_supply, adversarial_quantity);
+      revenue = vessel_trade_sell_revenue(base_price, destination_supply, adversarial_quantity);
+      source_supply = vessel_trade_adjusted_supply(source_supply, -adversarial_quantity);
+      destination_supply = vessel_trade_adjusted_supply(destination_supply, adversarial_quantity);
     }
     else
     {
-      cost = vessel_trade_buy_cost(base_price, destination_supply,
-                                   adversarial_quantity);
-      revenue = vessel_trade_sell_revenue(base_price, source_supply,
-                                          adversarial_quantity);
-      destination_supply =
-          vessel_trade_adjusted_supply(destination_supply, -adversarial_quantity);
-      source_supply =
-          vessel_trade_adjusted_supply(source_supply, adversarial_quantity);
+      cost = vessel_trade_buy_cost(base_price, destination_supply, adversarial_quantity);
+      revenue = vessel_trade_sell_revenue(base_price, source_supply, adversarial_quantity);
+      destination_supply = vessel_trade_adjusted_supply(destination_supply, -adversarial_quantity);
+      source_supply = vessel_trade_adjusted_supply(source_supply, adversarial_quantity);
     }
 
     result->adversarial_profit += revenue - cost;
@@ -771,20 +753,16 @@ bool vessel_trade_run_simulation(int trade_count,
   initial_gap = source_supply - destination_supply;
   while (result->profitable_routes < TRADE_SUPPLY_MAX)
   {
-    cost = vessel_trade_buy_cost(base_price, source_supply,
-                                 convergence_quantity);
-    revenue = vessel_trade_sell_revenue(base_price, destination_supply,
-                                        convergence_quantity);
+    cost = vessel_trade_buy_cost(base_price, source_supply, convergence_quantity);
+    revenue = vessel_trade_sell_revenue(base_price, destination_supply, convergence_quantity);
     if (revenue <= cost)
     {
       break;
     }
 
     result->finite_route_profit += revenue - cost;
-    source_supply =
-        vessel_trade_adjusted_supply(source_supply, -convergence_quantity);
-    destination_supply =
-        vessel_trade_adjusted_supply(destination_supply, convergence_quantity);
+    source_supply = vessel_trade_adjusted_supply(source_supply, -convergence_quantity);
+    destination_supply = vessel_trade_adjusted_supply(destination_supply, convergence_quantity);
     result->profitable_routes++;
   }
 
@@ -800,13 +778,10 @@ bool vessel_trade_run_simulation(int trade_count,
   result->restocked_destination_supply = destination_supply;
 
   return result->completed_trades == result->requested_trades &&
-         result->minimum_supply >= TRADE_SUPPLY_MIN &&
-         result->maximum_supply <= TRADE_SUPPLY_MAX &&
-         result->adversarial_profit <= 0 &&
-         result->profitable_routes > 0 &&
-         result->profitable_routes < TRADE_SUPPLY_MAX &&
-         result->finite_route_profit > 0 && final_gap < initial_gap &&
-         result->restocked_source_supply == TRADE_BASELINE_SUPPLY &&
+         result->minimum_supply >= TRADE_SUPPLY_MIN && result->maximum_supply <= TRADE_SUPPLY_MAX &&
+         result->adversarial_profit <= 0 && result->profitable_routes > 0 &&
+         result->profitable_routes < TRADE_SUPPLY_MAX && result->finite_route_profit > 0 &&
+         final_gap < initial_gap && result->restocked_source_supply == TRADE_BASELINE_SUPPLY &&
          result->restocked_destination_supply == TRADE_BASELINE_SUPPLY;
 }
 
@@ -827,40 +802,31 @@ ACMD(do_vtradecheck)
     errno = 0;
     end = NULL;
     requested_trades = strtol(arg, &end, 10);
-    if (errno == ERANGE || end == arg || *end != '\0' ||
-        requested_trades < 1 ||
+    if (errno == ERANGE || end == arg || *end != '\0' || requested_trades < 1 ||
         requested_trades > TRADE_SIMULATION_MAX_TRADES)
     {
-      send_to_char(ch, "Usage: vtradecheck [1-%d]\r\n",
-                   TRADE_SIMULATION_MAX_TRADES);
+      send_to_char(ch, "Usage: vtradecheck [1-%d]\r\n", TRADE_SIMULATION_MAX_TRADES);
       return;
     }
   }
 
   passed = vessel_trade_run_simulation((int)requested_trades, &result);
-  send_to_char(ch, "Vessel economy simulation: %s\r\n",
-               passed ? "PASS" : "FAIL");
-  send_to_char(ch, "  Trades executed: %d/%d\r\n",
-               result.completed_trades, result.requested_trades);
-  send_to_char(ch, "  Supply range: %d..%d (hard bounds %d..%d)\r\n",
-               result.minimum_supply, result.maximum_supply,
-               TRADE_SUPPLY_MIN, TRADE_SUPPLY_MAX);
+  send_to_char(ch, "Vessel economy simulation: %s\r\n", passed ? "PASS" : "FAIL");
+  send_to_char(ch, "  Trades executed: %d/%d\r\n", result.completed_trades,
+               result.requested_trades);
+  send_to_char(ch, "  Supply range: %d..%d (hard bounds %d..%d)\r\n", result.minimum_supply,
+               result.maximum_supply, TRADE_SUPPLY_MIN, TRADE_SUPPLY_MAX);
   send_to_char(ch,
                "  Finite profitable route: %d trips, %lld gold, "
                "equilibrium %d/%d\r\n",
                result.profitable_routes, result.finite_route_profit,
-               result.equilibrium_source_supply,
-               result.equilibrium_destination_supply);
-  send_to_char(ch,
-               "  Adversarial reversal profit: %lld gold (must be <= 0)\r\n",
+               result.equilibrium_source_supply, result.equilibrium_destination_supply);
+  send_to_char(ch, "  Adversarial reversal profit: %lld gold (must be <= 0)\r\n",
                result.adversarial_profit);
-  send_to_char(ch, "  Restock convergence: %d/%d (baseline %d)\r\n",
-               result.restocked_source_supply,
-               result.restocked_destination_supply,
-               TRADE_BASELINE_SUPPLY);
-  log("Info: %s ran %d-trade vessel economy simulation: %s, reversal profit %lld",
-      GET_NAME(ch), result.completed_trades, passed ? "PASS" : "FAIL",
-      result.adversarial_profit);
+  send_to_char(ch, "  Restock convergence: %d/%d (baseline %d)\r\n", result.restocked_source_supply,
+               result.restocked_destination_supply, TRADE_BASELINE_SUPPLY);
+  log("Info: %s ran %d-trade vessel economy simulation: %s, reversal profit %lld", GET_NAME(ch),
+      result.completed_trades, passed ? "PASS" : "FAIL", result.adversarial_profit);
 }
 
 /**
@@ -930,8 +896,7 @@ static void port_adjust_supply(int port_vnum, int commodity_id, int delta)
     return;
   }
 
-  supply = vessel_trade_adjusted_supply(port_supply(port_vnum, commodity_id),
-                                        delta);
+  supply = vessel_trade_adjusted_supply(port_supply(port_vnum, commodity_id), delta);
 
   snprintf(query, sizeof(query),
            "UPDATE port_commodities SET supply = %d WHERE port_vnum = %d AND commodity_id = %d",
@@ -966,8 +931,7 @@ int vessel_cargo_weight(const struct greyhawk_ship_data *ship)
     def = commodity_by_id(ship->cargo[i].commodity_id);
     if (def != NULL && ship->cargo[i].quantity > 0)
     {
-      item_weight = (long long)def->unit_weight *
-                    ship->cargo[i].quantity;
+      item_weight = (long long)def->unit_weight * ship->cargo[i].quantity;
       if (total > INT_MAX - item_weight)
       {
         return INT_MAX;
@@ -1024,8 +988,7 @@ void vessel_db_save_cargo(struct greyhawk_ship_data *ship)
   }
 
   snprintf(query, sizeof(query),
-           "DELETE FROM ship_cargo_manifest WHERE ship_id = %d AND cargo_room = 0",
-           ship->shipnum);
+           "DELETE FROM ship_cargo_manifest WHERE ship_id = %d AND cargo_room = 0", ship->shipnum);
   if (mysql_query(conn, query))
   {
     log("SYSERR: vessel_db_save_cargo (clear) failed for ship %d: %s", ship->shipnum,
@@ -1125,10 +1088,8 @@ void vessel_trade_restock_tick(void)
            "WHEN supply < %d THEN LEAST(%d, GREATEST(%d, supply) + 5) "
            "WHEN supply > %d THEN GREATEST(%d, LEAST(%d, supply) - 5) "
            "ELSE %d END",
-           TRADE_BASELINE_SUPPLY, TRADE_BASELINE_SUPPLY,
-           TRADE_SUPPLY_MIN, TRADE_BASELINE_SUPPLY,
-           TRADE_BASELINE_SUPPLY, TRADE_SUPPLY_MAX,
-           TRADE_BASELINE_SUPPLY);
+           TRADE_BASELINE_SUPPLY, TRADE_BASELINE_SUPPLY, TRADE_SUPPLY_MIN, TRADE_BASELINE_SUPPLY,
+           TRADE_BASELINE_SUPPLY, TRADE_SUPPLY_MAX, TRADE_BASELINE_SUPPLY);
   if (mysql_query(conn, query))
   {
     log("SYSERR: vessel_trade_restock_tick failed: %s", mysql_error(conn));
@@ -1257,8 +1218,8 @@ ACMD(do_cargobuy)
   errno = 0;
   end = NULL;
   parsed_quantity = strtol(arg2, &end, 10);
-  if (errno == ERANGE || end == arg2 || *end != '\0' ||
-      parsed_quantity < 1 || parsed_quantity > INT_MAX)
+  if (errno == ERANGE || end == arg2 || *end != '\0' || parsed_quantity < 1 ||
+      parsed_quantity > INT_MAX)
   {
     send_to_char(ch, "Buy how many units?\r\n");
     return;
@@ -1269,8 +1230,7 @@ ACMD(do_cargobuy)
   added_weight = (long long)def->unit_weight * quantity;
   if ((long long)vessel_cargo_weight(ship) + added_weight > capacity)
   {
-    send_to_char(ch,
-                 "That won't fit: %d units weigh %lld lbs and the hold has %d lbs free.\r\n",
+    send_to_char(ch, "That won't fit: %d units weigh %lld lbs and the hold has %d lbs free.\r\n",
                  quantity, added_weight, capacity - vessel_cargo_weight(ship));
     return;
   }
@@ -1279,8 +1239,8 @@ ACMD(do_cargobuy)
   cost = vessel_trade_buy_cost(def->base_price, supply, quantity);
   if (cost == LLONG_MAX || cost > GET_GOLD(ch))
   {
-    send_to_char(ch, "%d units of %s cost %lld gold; you have %d.\r\n", quantity,
-                 def->name, cost, GET_GOLD(ch));
+    send_to_char(ch, "%d units of %s cost %lld gold; you have %d.\r\n", quantity, def->name, cost,
+                 GET_GOLD(ch));
     return;
   }
 
@@ -1300,10 +1260,10 @@ ACMD(do_cargobuy)
   vessel_db_save_cargo(ship);
 
   average_price = (int)(cost / quantity);
-  send_to_char(ch, "You load %d units of %s for %lld gold (%d average each).\r\n",
-               quantity, def->name, cost, average_price);
-  log("Info: %s bought %d %s at port %d for %lld gold", GET_NAME(ch), quantity,
-      def->name, port_vnum, cost);
+  send_to_char(ch, "You load %d units of %s for %lld gold (%d average each).\r\n", quantity,
+               def->name, cost, average_price);
+  log("Info: %s bought %d %s at port %d for %lld gold", GET_NAME(ch), quantity, def->name,
+      port_vnum, cost);
 }
 
 /**
@@ -1366,8 +1326,8 @@ ACMD(do_cargosell)
     errno = 0;
     end = NULL;
     parsed_quantity = strtol(arg2, &end, 10);
-    if (errno == ERANGE || end == arg2 || *end != '\0' ||
-        parsed_quantity < 1 || parsed_quantity > INT_MAX)
+    if (errno == ERANGE || end == arg2 || *end != '\0' || parsed_quantity < 1 ||
+        parsed_quantity > INT_MAX)
     {
       send_to_char(ch, "Sell how many units?\r\n");
       return;
@@ -1388,11 +1348,9 @@ ACMD(do_cargosell)
 
   supply = port_supply(port_vnum, def->id);
   revenue = vessel_trade_sell_revenue(def->base_price, supply, quantity);
-  if (revenue == LLONG_MAX ||
-      revenue > (long long)MAX_GOLD - GET_GOLD(ch))
+  if (revenue == LLONG_MAX || revenue > (long long)MAX_GOLD - GET_GOLD(ch))
   {
-    send_to_char(ch,
-                 "That sale would exceed the %d-gold carrying limit. Bank some gold first.\r\n",
+    send_to_char(ch, "That sale would exceed the %d-gold carrying limit. Bank some gold first.\r\n",
                  MAX_GOLD);
     return;
   }
@@ -1409,10 +1367,10 @@ ACMD(do_cargosell)
   vessel_db_save_cargo(ship);
 
   average_price = (int)(revenue / quantity);
-  send_to_char(ch, "You sell %d units of %s for %lld gold (%d average each).\r\n",
-               quantity, def->name, revenue, average_price);
-  log("Info: %s sold %d %s at port %d for %lld gold", GET_NAME(ch), quantity,
-      def->name, port_vnum, revenue);
+  send_to_char(ch, "You sell %d units of %s for %lld gold (%d average each).\r\n", quantity,
+               def->name, revenue, average_price);
+  log("Info: %s sold %d %s at port %d for %lld gold", GET_NAME(ch), quantity, def->name, port_vnum,
+      revenue);
 }
 
 /**

@@ -161,7 +161,8 @@ int isname(const char *str, const char *namelist)
 }
 
 /* modify a character's given apply-type (loc) by value */
-void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod, const char *msg __attribute__((unused)))
+void aff_apply_modify(struct char_data *ch, byte loc, sh_int mod,
+                      const char *msg __attribute__((unused)))
 {
   switch (loc)
   {
@@ -1640,8 +1641,8 @@ void char_to_room(struct char_data *ch, room_rnum room)
   {
     /* If this is a wilderness room, set coords. */
     zone_rnum zone = GET_ROOM_ZONE(room);
-    bool is_wilderness_room = (zone != NOWHERE && zone <= top_of_zone_table &&
-                               ZONE_FLAGGED(zone, ZONE_WILDERNESS));
+    bool is_wilderness_room =
+        (zone != NOWHERE && zone <= top_of_zone_table && ZONE_FLAGGED(zone, ZONE_WILDERNESS));
 
     if (is_wilderness_room)
     {

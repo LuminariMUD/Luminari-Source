@@ -21,9 +21,8 @@ void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
 {
   int final_room_vnum;
 
-  final_room_vnum = SHIP_INTERIOR_VNUM_BASE +
-                    ((GREYHAWK_MAXSHIPS - 1) * MAX_SHIP_ROOMS) +
-                    (MAX_SHIP_ROOMS - 1);
+  final_room_vnum =
+      SHIP_INTERIOR_VNUM_BASE + ((GREYHAWK_MAXSHIPS - 1) * MAX_SHIP_ROOMS) + (MAX_SHIP_ROOMS - 1);
 
   CuAssertIntEquals(tc, 501, GREYHAWK_MAXSHIPS);
   CuAssertIntEquals(tc, 500, GREYHAWK_ACTIVE_SHIP_CAPACITY);
@@ -125,8 +124,7 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
 
   vessel_msdp_update(&character);
   aboard_matches =
-      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString,
-              "Protocol Cutter") &&
+      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString, "Protocol Cutter") &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_X]->ValueInt == -66 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_Y]->ValueInt == 92 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 120 &&
@@ -134,8 +132,7 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
       descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 7 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 160 &&
       descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 160 &&
-      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString,
-              "sound");
+      !strcmp(descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString, "sound");
 
   for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
   {
@@ -144,16 +141,15 @@ void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
   character.in_room = NOWHERE;
   vessel_msdp_update(&character);
 
-  ashore_matches =
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString[0] == '\0' &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_X]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_Y]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 0 &&
-      descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString[0] == '\0';
+  ashore_matches = descriptor.pProtocol->pVariables[eMSDP_SHIP_NAME]->pValueString[0] == '\0' &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_X]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_Y]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_Z]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_HEADING]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_SPEED]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_HULL_MAX]->ValueInt == 0 &&
+                   descriptor.pProtocol->pVariables[eMSDP_SHIP_STATUS]->pValueString[0] == '\0';
   ashore_dirty = TRUE;
   for (variable = eMSDP_SHIP_NAME; variable <= eMSDP_SHIP_STATUS; variable++)
   {
@@ -227,8 +223,7 @@ void Test_shiplist_summary_remains_bounded_at_full_capacity(CuTest *tc)
   }
 
   do_shiplist(&character, "summary", 0, 0);
-  has_capacity =
-      strstr(descriptor.output, "500 of 500 active fleet slots in use.") != NULL;
+  has_capacity = strstr(descriptor.output, "500 of 500 active fleet slots in use.") != NULL;
   has_detail_header = strstr(descriptor.output, "Slot Name") != NULL;
   overflowed = buf_overflows != saved_overflows;
 
@@ -581,8 +576,8 @@ void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
   memset(&waypoint, 0, sizeof(waypoint));
 
   waypoint.z = 50.0f;
-  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y,
-                                                  &target_z));
+  CuAssertTrue(
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 0, target_x);
   CuAssertIntEquals(tc, 0, target_y);
   CuAssertIntEquals(tc, 10, target_z);
@@ -590,21 +585,21 @@ void Test_vessel_autopilot_moves_on_all_three_axes_without_overshoot(CuTest *tc)
   waypoint.x = 3.0f;
   waypoint.y = 4.0f;
   waypoint.z = 0.0f;
-  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0f, &target_x, &target_y,
-                                                  &target_z));
+  CuAssertTrue(
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 2.0f, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 1, target_x);
   CuAssertIntEquals(tc, 2, target_y);
   CuAssertIntEquals(tc, 0, target_z);
 
-  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y,
-                                                  &target_z));
+  CuAssertTrue(
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 10.0f, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 3, target_x);
   CuAssertIntEquals(tc, 4, target_y);
   CuAssertIntEquals(tc, 0, target_z);
 
   waypoint.z = 12.0f;
-  CuAssertTrue(tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0f, &target_x, &target_y,
-                                                  &target_z));
+  CuAssertTrue(
+      tc, vessel_autopilot_next_position(&ship, &waypoint, 13.0f, &target_x, &target_y, &target_z));
   CuAssertIntEquals(tc, 3, target_x);
   CuAssertIntEquals(tc, 4, target_y);
   CuAssertIntEquals(tc, 12, target_z);
@@ -666,9 +661,7 @@ void Test_vessel_z_axis_enforces_class_and_wilderness_boundaries(CuTest *tc)
 
 void Test_vessel_region_features_use_wilderness_thresholds(CuTest *tc)
 {
-  struct vertex feature_polygon[] = {
-      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
-  };
+  struct vertex feature_polygon[] = {{0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}};
   struct region_data fixture[3];
   struct region_data *saved_region_table;
   struct zone_data zone_fixture;
@@ -714,31 +707,25 @@ void Test_vessel_region_features_use_wilderness_thresholds(CuTest *tc)
   zone_table = &zone_fixture;
   top_of_zone_table = 0;
 
-  lane_below_found = vessel_region_feature_at_coordinates(
-      REGION_ALTITUDE_LANE, 5, 5, 99, &feature);
-  lane_found = vessel_region_feature_at_coordinates(
-      REGION_ALTITUDE_LANE, 5, 5, 100, &feature);
+  lane_below_found = vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, 5, 5, 99, &feature);
+  lane_found = vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, 5, 5, 100, &feature);
   lane_vnum = feature.region_vnum;
-  lane_modifier = get_vessel_position_speed_modifier(
-      VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 100, &feature);
-  below_lane_modifier = get_vessel_position_speed_modifier(
-      VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 99, &feature);
-  boat_modifier = get_vessel_position_speed_modifier(
-      VESSEL_BOAT, SECT_RIVER, 0, 5, 5, 100, &feature);
-  island_below_found = vessel_region_feature_at_coordinates(
-      REGION_SKY_ISLAND, 5, 5, 199, &feature);
-  island_found = vessel_region_feature_at_coordinates(
-      REGION_SKY_ISLAND, 5, 5, 200, &feature);
+  lane_modifier =
+      get_vessel_position_speed_modifier(VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 100, &feature);
+  below_lane_modifier =
+      get_vessel_position_speed_modifier(VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 99, &feature);
+  boat_modifier =
+      get_vessel_position_speed_modifier(VESSEL_BOAT, SECT_RIVER, 0, 5, 5, 100, &feature);
+  island_below_found = vessel_region_feature_at_coordinates(REGION_SKY_ISLAND, 5, 5, 199, &feature);
+  island_found = vessel_region_feature_at_coordinates(REGION_SKY_ISLAND, 5, 5, 200, &feature);
 
   region_table = saved_region_table;
   top_of_region_table = saved_top_of_region_table;
   zone_table = saved_zone_table;
   top_of_zone_table = saved_top_of_zone_table;
 
-  CuAssertTrue(tc, vessel_region_feature_threshold_met(
-                       REGION_BATHYMETRIC, 96, 0, 96));
-  CuAssertTrue(tc, !vessel_region_feature_threshold_met(
-                        REGION_BATHYMETRIC, 96, 0, 95));
+  CuAssertTrue(tc, vessel_region_feature_threshold_met(REGION_BATHYMETRIC, 96, 0, 96));
+  CuAssertTrue(tc, !vessel_region_feature_threshold_met(REGION_BATHYMETRIC, 96, 0, 95));
   CuAssertTrue(tc, !lane_below_found);
   CuAssertTrue(tc, lane_found);
   CuAssertIntEquals(tc, 7200010, lane_vnum);
@@ -856,8 +843,7 @@ void Test_vessel_runtime_slot_state_round_trip(CuTest *tc)
           sizeof(source.slot[GREYHAWK_MAXSLOTS - 1].desc));
 
   CuAssertTrue(tc, vessel_serialize_slot_state(&source, serialized, sizeof(serialized)) > 0);
-  CuAssertIntEquals(tc, GREYHAWK_MAXSLOTS,
-                    vessel_deserialize_slot_state(&restored, serialized));
+  CuAssertIntEquals(tc, GREYHAWK_MAXSLOTS, vessel_deserialize_slot_state(&restored, serialized));
   CuAssertIntEquals(tc, source.slot[0].type, restored.slot[0].type);
   CuAssertIntEquals(tc, source.slot[0].position, restored.slot[0].position);
   CuAssertIntEquals(tc, source.slot[0].weight, restored.slot[0].weight);
@@ -1175,37 +1161,28 @@ void Test_vessel_crew_payroll_batches_bound_full_fleet_work(CuTest *tc)
 void Test_vessel_crew_payroll_departures_share_one_delete(CuTest *tc)
 {
   const int ship_slots[] = {1, 101, 201, 301, 401};
-  const int positions[] = {
-      CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN,
-      CREW_QUARTERMASTER, CREW_GUNNER
-  };
-  const int invalid_positions[] = {
-      CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN,
-      CREW_QUARTERMASTER, NUM_CREW_POSITIONS
-  };
+  const int positions[] = {CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN, CREW_QUARTERMASTER,
+                           CREW_GUNNER};
+  const int invalid_positions[] = {CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN, CREW_QUARTERMASTER,
+                                   NUM_CREW_POSITIONS};
   char query[MAX_STRING_LENGTH];
   int length;
 
-  length = vessel_crew_departure_delete_query(
-      query, sizeof(query), ship_slots, positions, 5);
+  length = vessel_crew_departure_delete_query(query, sizeof(query), ship_slots, positions, 5);
 
   CuAssertTrue(tc, length > 0);
-  CuAssertStrEquals(
-      tc,
-      "DELETE FROM ship_crew_roster WHERE "
-      "(ship_id = 1 AND npc_vnum = -100) OR "
-      "(ship_id = 101 AND npc_vnum = -101) OR "
-      "(ship_id = 201 AND npc_vnum = -102) OR "
-      "(ship_id = 301 AND npc_vnum = -103) OR "
-      "(ship_id = 401 AND npc_vnum = -101)",
-      query);
+  CuAssertStrEquals(tc,
+                    "DELETE FROM ship_crew_roster WHERE "
+                    "(ship_id = 1 AND npc_vnum = -100) OR "
+                    "(ship_id = 101 AND npc_vnum = -101) OR "
+                    "(ship_id = 201 AND npc_vnum = -102) OR "
+                    "(ship_id = 301 AND npc_vnum = -103) OR "
+                    "(ship_id = 401 AND npc_vnum = -101)",
+                    query);
   CuAssertIntEquals(
       tc, -1,
-      vessel_crew_departure_delete_query(query, sizeof(query), ship_slots,
-                                         invalid_positions, 5));
-  CuAssertIntEquals(
-      tc, -1,
-      vessel_crew_departure_delete_query(query, 8, ship_slots, positions, 5));
+      vessel_crew_departure_delete_query(query, sizeof(query), ship_slots, invalid_positions, 5));
+  CuAssertIntEquals(tc, -1, vessel_crew_departure_delete_query(query, 8, ship_slots, positions, 5));
 }
 
 void Test_vessel_upgrade_effects(CuTest *tc)
@@ -1274,38 +1251,25 @@ void Test_vessel_trade_marginal_batch_pricing_closes_reversal_cycle(CuTest *tc)
   long long flat_cost;
   long long flat_revenue;
 
-  flat_cost =
-      (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MAX) *
-      quantity;
-  flat_revenue =
-      (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MIN) *
-      TRADE_SELL_PERCENT / 100 * quantity;
+  flat_cost = (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MAX) * quantity;
+  flat_revenue = (long long)vessel_commodity_price(base_price, TRADE_SUPPLY_MIN) *
+                 TRADE_SELL_PERCENT / 100 * quantity;
   CuAssertTrue(tc, flat_revenue > flat_cost);
 
-  batch_cost =
-      vessel_trade_buy_cost(base_price, TRADE_SUPPLY_MAX, quantity);
-  batch_revenue =
-      vessel_trade_sell_revenue(base_price, TRADE_SUPPLY_MIN, quantity);
+  batch_cost = vessel_trade_buy_cost(base_price, TRADE_SUPPLY_MAX, quantity);
+  batch_revenue = vessel_trade_sell_revenue(base_price, TRADE_SUPPLY_MIN, quantity);
   CuAssertTrue(tc, batch_cost > 0);
   CuAssertTrue(tc, batch_revenue > 0);
   CuAssertTrue(tc, batch_revenue <= batch_cost);
 
-  CuAssertIntEquals(
-      tc, TRADE_SUPPLY_MIN,
-      vessel_trade_adjusted_supply(TRADE_SUPPLY_MAX, -quantity));
-  CuAssertIntEquals(
-      tc, TRADE_SUPPLY_MAX,
-      vessel_trade_adjusted_supply(TRADE_SUPPLY_MIN, quantity));
-  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5,
-                    vessel_trade_restocked_supply(TRADE_SUPPLY_MIN));
-  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5,
-                    vessel_trade_restocked_supply(TRADE_SUPPLY_MAX));
-  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5,
-                    vessel_trade_restocked_supply(-1000));
-  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5,
-                    vessel_trade_restocked_supply(1000));
-  CuAssertIntEquals(tc, INT_MAX,
-                    vessel_commodity_price(INT_MAX, TRADE_SUPPLY_MIN));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN,
+                    vessel_trade_adjusted_supply(TRADE_SUPPLY_MAX, -quantity));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX, vessel_trade_adjusted_supply(TRADE_SUPPLY_MIN, quantity));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5, vessel_trade_restocked_supply(TRADE_SUPPLY_MIN));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5, vessel_trade_restocked_supply(TRADE_SUPPLY_MAX));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MIN + 5, vessel_trade_restocked_supply(-1000));
+  CuAssertIntEquals(tc, TRADE_SUPPLY_MAX - 5, vessel_trade_restocked_supply(1000));
+  CuAssertIntEquals(tc, INT_MAX, vessel_commodity_price(INT_MAX, TRADE_SUPPLY_MIN));
 }
 
 void Test_vessel_trade_thousand_trade_simulation(CuTest *tc)
@@ -1321,13 +1285,10 @@ void Test_vessel_trade_thousand_trade_simulation(CuTest *tc)
   CuAssertTrue(tc, result.profitable_routes > 0);
   CuAssertTrue(tc, result.profitable_routes < result.completed_trades);
   CuAssertTrue(tc, result.finite_route_profit > 0);
-  CuAssertTrue(tc, abs(result.equilibrium_source_supply -
-                       result.equilibrium_destination_supply) <
+  CuAssertTrue(tc, abs(result.equilibrium_source_supply - result.equilibrium_destination_supply) <
                        TRADE_SUPPLY_MAX - TRADE_SUPPLY_MIN);
-  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY,
-                    result.restocked_source_supply);
-  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY,
-                    result.restocked_destination_supply);
+  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY, result.restocked_source_supply);
+  CuAssertIntEquals(tc, TRADE_BASELINE_SUPPLY, result.restocked_destination_supply);
 }
 
 void Test_vessel_trade_cargo_weight(CuTest *tc)
@@ -1350,13 +1311,7 @@ void Test_vessel_trade_cargo_weight(CuTest *tc)
 
 void Test_vessel_piracy_polygon_matches_spatial_boundaries(CuTest *tc)
 {
-  const struct vertex square[] = {
-      {-70, 78},
-      {-60, 78},
-      {-60, 96},
-      {-70, 96},
-      {-70, 78}
-  };
+  const struct vertex square[] = {{-70, 78}, {-60, 78}, {-60, 96}, {-70, 96}, {-70, 78}};
 
   CuAssertTrue(tc, vessel_piracy_point_in_polygon(square, 5, -66, 92));
   CuAssertTrue(tc, !vessel_piracy_point_in_polygon(square, 5, -71, 92));
@@ -1368,12 +1323,8 @@ void Test_vessel_piracy_polygon_matches_spatial_boundaries(CuTest *tc)
 
 void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
 {
-  struct vertex western_polygon[] = {
-      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
-  };
-  struct vertex eastern_polygon[] = {
-      {20, 0}, {30, 0}, {30, 10}, {20, 10}, {20, 0}
-  };
+  struct vertex western_polygon[] = {{0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}};
+  struct vertex eastern_polygon[] = {{20, 0}, {30, 0}, {30, 10}, {20, 10}, {20, 0}};
   struct region_data region_fixture[5];
   struct region_data *saved_region_table;
   struct zone_data zone_fixture[2];
@@ -1621,9 +1572,8 @@ void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
   speaker_received =
       strstr(speaker_descriptor.output, "Captain's channel - Channel Cutter") != NULL &&
       strstr(speaker_descriptor.output, "Corr: All hands report ready.") != NULL;
-  crew_received =
-      strstr(crew_descriptor.output, "Captain's channel - Channel Cutter") != NULL &&
-      strstr(crew_descriptor.output, "Corr: All hands report ready.") != NULL;
+  crew_received = strstr(crew_descriptor.output, "Captain's channel - Channel Cutter") != NULL &&
+                  strstr(crew_descriptor.output, "Corr: All hands report ready.") != NULL;
   outsider_remained_quiet = outsider_descriptor.output[0] == '\0';
 
   speaker.in_room = 2;
@@ -1653,14 +1603,10 @@ void Test_vessel_piracy_regional_bounty_policy(CuTest *tc)
   struct vessel_piracy_law law;
 
   memset(&law, 0, sizeof(law));
-  CuAssertStrEquals(tc, "unclaimed waters",
-                    vessel_waters_type_name(VESSEL_WATERS_UNCLAIMED));
-  CuAssertStrEquals(tc, "territorial waters",
-                    vessel_waters_type_name(VESSEL_WATERS_TERRITORIAL));
-  CuAssertStrEquals(tc, "free seas",
-                    vessel_waters_type_name(VESSEL_WATERS_FREE));
-  CuAssertStrEquals(tc, "pirate cove",
-                    vessel_waters_type_name(VESSEL_WATERS_PIRATE_COVE));
+  CuAssertStrEquals(tc, "unclaimed waters", vessel_waters_type_name(VESSEL_WATERS_UNCLAIMED));
+  CuAssertStrEquals(tc, "territorial waters", vessel_waters_type_name(VESSEL_WATERS_TERRITORIAL));
+  CuAssertStrEquals(tc, "free seas", vessel_waters_type_name(VESSEL_WATERS_FREE));
+  CuAssertStrEquals(tc, "pirate cove", vessel_waters_type_name(VESSEL_WATERS_PIRATE_COVE));
   CuAssertStrEquals(tc, "unclaimed waters", vessel_waters_type_name(INT_MAX));
 
   CuAssertIntEquals(tc, 0, vessel_piracy_bounty_for_units(0, 100));
@@ -1671,8 +1617,7 @@ void Test_vessel_piracy_regional_bounty_policy(CuTest *tc)
   CuAssertIntEquals(tc, 22, vessel_piracy_bounty_for_units(1, 150));
   CuAssertIntEquals(tc, 75, vessel_piracy_bounty_for_units(1, 1000));
   CuAssertIntEquals(tc, INT_MAX,
-                    vessel_piracy_bounty_for_units(INT_MAX,
-                                                   VESSEL_PIRACY_BOUNTY_PERCENT_MAX));
+                    vessel_piracy_bounty_for_units(INT_MAX, VESSEL_PIRACY_BOUNTY_PERCENT_MAX));
 
   CuAssertTrue(tc, !vessel_piracy_wanted_port_is_open(NULL));
   law.waters_type = VESSEL_WATERS_PIRATE_COVE;
@@ -1757,12 +1702,8 @@ void Test_vessel_encounter_region_selection_is_order_independent(CuTest *tc)
 
 void Test_vessel_encounter_regions_resolve_from_in_memory_polygons(CuTest *tc)
 {
-  struct vertex outer_polygon[] = {
-      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
-  };
-  struct vertex inner_polygon[] = {
-      {4, 3}, {8, 3}, {8, 7}, {4, 7}, {4, 3}
-  };
+  struct vertex outer_polygon[] = {{0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}};
+  struct vertex inner_polygon[] = {{4, 3}, {8, 3}, {8, 7}, {4, 7}, {4, 3}};
   struct region_data fixture[3];
   struct region_data *saved_region_table;
   struct zone_data zone_fixture[2];
@@ -1802,12 +1743,9 @@ void Test_vessel_encounter_regions_resolve_from_in_memory_polygons(CuTest *tc)
   zone_table = zone_fixture;
   top_of_zone_table = 1;
 
-  inner_center_found =
-      vessel_encounter_region_at_coordinates(6, 5, &inner_center_vnum);
-  outer_center_found =
-      vessel_encounter_region_at_coordinates(5, 5, &outer_center_vnum);
-  outside_found =
-      vessel_encounter_region_at_coordinates(20, 20, &outside_vnum);
+  inner_center_found = vessel_encounter_region_at_coordinates(6, 5, &inner_center_vnum);
+  outer_center_found = vessel_encounter_region_at_coordinates(5, 5, &outer_center_vnum);
+  outside_found = vessel_encounter_region_at_coordinates(20, 20, &outside_vnum);
 
   region_table = saved_region_table;
   top_of_region_table = saved_top_of_region_table;
@@ -1835,25 +1773,20 @@ void Test_vessel_encounter_roll_boundaries_are_deterministic(CuTest *tc)
 
 void Test_vessel_encounter_cached_candidates_match_database_filters(CuTest *tc)
 {
-  CuAssertTrue(tc, vessel_encounter_candidate_matches(
-                       7000001, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
-  CuAssertTrue(tc, vessel_encounter_candidate_matches(
-                       7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
-                       VESSEL_SUBMARINE, 10));
-  CuAssertTrue(tc, vessel_encounter_candidate_matches(
-                       7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
-                       VESSEL_SUBMARINE, 40));
-  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
-                        7000002, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
-  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
-                        7000001, VESSEL_SUBMARINE, 0, 0, 7000001,
-                        VESSEL_AIRSHIP, 50));
-  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
-                        7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
-                        VESSEL_SUBMARINE, 9));
-  CuAssertTrue(tc, !vessel_encounter_candidate_matches(
-                        7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
-                        VESSEL_SUBMARINE, 41));
+  CuAssertTrue(tc,
+               vessel_encounter_candidate_matches(7000001, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, vessel_encounter_candidate_matches(7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                                                      VESSEL_SUBMARINE, 10));
+  CuAssertTrue(tc, vessel_encounter_candidate_matches(7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                                                      VESSEL_SUBMARINE, 40));
+  CuAssertTrue(tc,
+               !vessel_encounter_candidate_matches(7000002, -1, 0, 0, 7000001, VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(7000001, VESSEL_SUBMARINE, 0, 0, 7000001,
+                                                       VESSEL_AIRSHIP, 50));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                                                       VESSEL_SUBMARINE, 9));
+  CuAssertTrue(tc, !vessel_encounter_candidate_matches(7000001, VESSEL_SUBMARINE, 10, 40, 7000001,
+                                                       VESSEL_SUBMARINE, 41));
 }
 
 void Test_vessel_encounter_shared_room_claims_once(CuTest *tc)
@@ -1929,20 +1862,13 @@ void Test_vessel_hunter_policy_bounds(CuTest *tc)
   config.cooldown_seconds = VESSEL_HUNTER_COOLDOWN_MAX + 1;
   CuAssertTrue(tc, !vessel_hunter_config_is_valid(&config));
 
-  CuAssertTrue(tc,
-               vessel_hunter_lifecycle_allows_spawn("cooldown", 1000, 1000));
-  CuAssertTrue(tc,
-               vessel_hunter_lifecycle_allows_spawn("cooldown", 999, 1000));
-  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn(
-                       "cooldown", 1001, 1000));
-  CuAssertTrue(
-      tc, !vessel_hunter_lifecycle_allows_spawn("active", 0, 1000));
-  CuAssertTrue(
-      tc, !vessel_hunter_lifecycle_allows_spawn("spawning", 0, 1000));
-  CuAssertTrue(tc,
-               !vessel_hunter_lifecycle_allows_spawn("invalid", 0, 1000));
-  CuAssertTrue(tc,
-               !vessel_hunter_lifecycle_allows_spawn(NULL, 0, 1000));
+  CuAssertTrue(tc, vessel_hunter_lifecycle_allows_spawn("cooldown", 1000, 1000));
+  CuAssertTrue(tc, vessel_hunter_lifecycle_allows_spawn("cooldown", 999, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn("cooldown", 1001, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn("active", 0, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn("spawning", 0, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn("invalid", 0, 1000));
+  CuAssertTrue(tc, !vessel_hunter_lifecycle_allows_spawn(NULL, 0, 1000));
 }
 
 void Test_vessel_hazard_lookout_and_sight(CuTest *tc)
@@ -2056,8 +1982,7 @@ void Test_vessel_pvp_logout_grace_is_bounded_and_opponent_specific(CuTest *tc)
   CuAssertTrue(tc, vessel_pvp_grace_active(&ship, "Vex", now));
   CuAssertTrue(tc, vessel_pvp_grace_active(&ship, "vex", now));
   CuAssertTrue(tc, !vessel_pvp_grace_active(&ship, "Corr", now));
-  CuAssertTrue(tc, !vessel_pvp_grace_active(&ship, "Vex",
-                                            ship.pvp_grace_until + 1));
+  CuAssertTrue(tc, !vessel_pvp_grace_active(&ship, "Vex", ship.pvp_grace_until + 1));
 
   vessel_clear_pvp_grace(&ship);
   CuAssertIntEquals(tc, 0, (int)ship.pvp_grace_until);
@@ -2080,14 +2005,12 @@ void Test_vessel_message_throttling_is_keyed_per_ship(CuTest *tc)
   CuAssertTrue(tc, !vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 109, 10));
   CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_STORM, 101, 10));
   CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 110, 10));
-  CuAssertTrue(tc,
-               vessel_message_allowed(&other_ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 109, 10));
+  CuAssertTrue(tc, vessel_message_allowed(&other_ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 109, 10));
 
   /* A process-pulse rollback must not leave a reconstructed ship muted. */
   CuAssertTrue(tc, vessel_message_allowed(&ship, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
   CuAssertTrue(tc, !vessel_message_allowed(NULL, VESSEL_MESSAGE_AMBIENT_SQUALL, 50, 10));
-  CuAssertTrue(tc,
-               !vessel_message_allowed(&ship, (enum vessel_message_key)-1, 50, 10));
+  CuAssertTrue(tc, !vessel_message_allowed(&ship, (enum vessel_message_key) - 1, 50, 10));
   CuAssertTrue(tc, PERF_vessel_message_throttled_count() == 1);
 }
 
@@ -2100,7 +2023,7 @@ void Test_vessel_dock_fee_is_one_charge_per_owned_port_visit(CuTest *tc)
   strlcpy(ship.owner, "Kohdee", sizeof(ship.owner));
 
   CuAssertIntEquals(tc, 35, vessel_dock_fee_for_class(VESSEL_TRANSPORT));
-  CuAssertIntEquals(tc, 25, vessel_dock_fee_for_class((enum vessel_class)-1));
+  CuAssertIntEquals(tc, 25, vessel_dock_fee_for_class((enum vessel_class) - 1));
   CuAssertIntEquals(tc, 35, vessel_assess_dock_fee(&ship, 70000, 12));
   CuAssertIntEquals(tc, 35, ship.dock_fee_balance);
   CuAssertIntEquals(tc, 70000, ship.dock_fee_port);
@@ -2197,16 +2120,15 @@ void Test_vessel_merchant_faction_consequence_scaling(CuTest *tc)
   CuAssertIntEquals(tc, VESSEL_MERCHANT_LOSS_STANDING_PENALTY,
                     vessel_merchant_faction_penalty(0, TRUE));
   CuAssertIntEquals(tc, 125, vessel_merchant_faction_penalty(25, TRUE));
-  CuAssertIntEquals(tc, INT_MAX,
-                    vessel_merchant_faction_penalty(INT_MAX, TRUE));
+  CuAssertIntEquals(tc, INT_MAX, vessel_merchant_faction_penalty(INT_MAX, TRUE));
 }
 
 void Test_vessel_merchant_loss_responsibility_window(CuTest *tc)
 {
   const time_t now = (time_t)1000;
 
-  CuAssertTrue(tc, vessel_merchant_responsibility_active(
-                       now - VESSEL_MERCHANT_RESPONSIBILITY_SECONDS, now));
+  CuAssertTrue(
+      tc, vessel_merchant_responsibility_active(now - VESSEL_MERCHANT_RESPONSIBILITY_SECONDS, now));
   CuAssertTrue(tc, !vessel_merchant_responsibility_active(
                        now - VESSEL_MERCHANT_RESPONSIBILITY_SECONDS - 1, now));
   CuAssertTrue(tc, !vessel_merchant_responsibility_active(0, now));
@@ -2215,13 +2137,9 @@ void Test_vessel_merchant_loss_responsibility_window(CuTest *tc)
 
 void Test_vessel_merchant_constructor_rejects_invalid_identity(CuTest *tc)
 {
-  CuAssertIntEquals(
-      tc, -1,
-      vessel_spawn_public_from_prototype_at(0, "Invalid Merchant", 0, 0, 0));
-  CuAssertIntEquals(
-      tc, -1, vessel_spawn_public_from_prototype_at(1, "", 0, 0, 0));
-  CuAssertIntEquals(
-      tc, -1, vessel_spawn_public_from_prototype_at(1, NULL, 0, 0, 0));
+  CuAssertIntEquals(tc, -1, vessel_spawn_public_from_prototype_at(0, "Invalid Merchant", 0, 0, 0));
+  CuAssertIntEquals(tc, -1, vessel_spawn_public_from_prototype_at(1, "", 0, 0, 0));
+  CuAssertIntEquals(tc, -1, vessel_spawn_public_from_prototype_at(1, NULL, 0, 0, 0));
 }
 
 void Test_vessel_sink_clears_stale_attacker_references(CuTest *tc)

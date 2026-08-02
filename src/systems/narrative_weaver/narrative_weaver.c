@@ -174,29 +174,22 @@ struct region_hint *duplicate_hints(struct region_hint *hints)
       return NULL;
     }
     cached_hints[i].priority = hints[i].priority;
-    cached_hints[i].weather_conditions = hints[i].weather_conditions
-                                                ? strdup(hints[i].weather_conditions)
-                                                : NULL;
-    cached_hints[i].seasonal_weight = hints[i].seasonal_weight
-                                          ? strdup(hints[i].seasonal_weight)
-                                          : NULL;
-    cached_hints[i].time_of_day_weight = hints[i].time_of_day_weight
-                                             ? strdup(hints[i].time_of_day_weight)
-                                             : NULL;
-    cached_hints[i].resource_triggers = hints[i].resource_triggers
-                                            ? strdup(hints[i].resource_triggers)
-                                            : NULL;
+    cached_hints[i].weather_conditions =
+        hints[i].weather_conditions ? strdup(hints[i].weather_conditions) : NULL;
+    cached_hints[i].seasonal_weight =
+        hints[i].seasonal_weight ? strdup(hints[i].seasonal_weight) : NULL;
+    cached_hints[i].time_of_day_weight =
+        hints[i].time_of_day_weight ? strdup(hints[i].time_of_day_weight) : NULL;
+    cached_hints[i].resource_triggers =
+        hints[i].resource_triggers ? strdup(hints[i].resource_triggers) : NULL;
     cached_hints[i].created_at = hints[i].created_at;
     cached_hints[i].is_active = hints[i].is_active;
     cached_hints[i].contextual_weight = hints[i].contextual_weight;
 
-    if ((hints[i].weather_conditions != NULL &&
-         cached_hints[i].weather_conditions == NULL) ||
+    if ((hints[i].weather_conditions != NULL && cached_hints[i].weather_conditions == NULL) ||
         (hints[i].seasonal_weight != NULL && cached_hints[i].seasonal_weight == NULL) ||
-        (hints[i].time_of_day_weight != NULL &&
-         cached_hints[i].time_of_day_weight == NULL) ||
-        (hints[i].resource_triggers != NULL &&
-         cached_hints[i].resource_triggers == NULL))
+        (hints[i].time_of_day_weight != NULL && cached_hints[i].time_of_day_weight == NULL) ||
+        (hints[i].resource_triggers != NULL && cached_hints[i].resource_triggers == NULL))
     {
       free_contextual_hints(cached_hints);
       return NULL;
@@ -2141,8 +2134,8 @@ const char *get_time_of_day_category(void)
  * Extract narrative elements from regional hints for semantic integration
  */
 struct narrative_elements *extract_narrative_elements(struct region_hint *hints,
-                                                      const char *weather __attribute__((unused)), const char *time,
-                                                      int region_vnum)
+                                                      const char *weather __attribute__((unused)),
+                                                      const char *time, int region_vnum)
 {
   struct narrative_elements *elements;
   struct region_profile *profile = NULL;
@@ -3084,16 +3077,16 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
 
   /* Optimized query with existing table columns only */
   snprintf(query, sizeof(query),
-          "SELECT id, region_vnum, hint_category, hint_text, priority, weather_conditions, "
-          "seasonal_weight, time_of_day_weight, resource_triggers "
-          "FROM region_hints "
-          "WHERE region_vnum = %d "
-          "AND is_active = 1 "
-          "AND (weather_conditions IS NULL OR weather_conditions = '' OR FIND_IN_SET('%s', "
-          "weather_conditions) > 0) "
-          "ORDER BY priority DESC, id ASC "
-          "LIMIT 20",
-          region_vnum, weather_condition ? weather_condition : "");
+           "SELECT id, region_vnum, hint_category, hint_text, priority, weather_conditions, "
+           "seasonal_weight, time_of_day_weight, resource_triggers "
+           "FROM region_hints "
+           "WHERE region_vnum = %d "
+           "AND is_active = 1 "
+           "AND (weather_conditions IS NULL OR weather_conditions = '' OR FIND_IN_SET('%s', "
+           "weather_conditions) > 0) "
+           "ORDER BY priority DESC, id ASC "
+           "LIMIT 20",
+           region_vnum, weather_condition ? weather_condition : "");
 
   if (!mysql_pool)
   {
@@ -3594,9 +3587,9 @@ char *load_region_characteristics(int region_vnum)
 /**
  * Intelligently weave hints into unified description with AI mood-based weighting
  */
-char *weave_unified_description(const char *base_description __attribute__((unused)), struct region_hint *hints,
-                                const char *weather_condition, const char *time_category, int x,
-                                int y)
+char *weave_unified_description(const char *base_description __attribute__((unused)),
+                                struct region_hint *hints, const char *weather_condition,
+                                const char *time_category, int x, int y)
 {
   char *unified;
   int i;
@@ -4019,7 +4012,8 @@ char *weave_unified_description(const char *base_description __attribute__((unus
  * Enhance base resource-aware description with regional hints
  * This implements the core vision: base descriptions + regional specificity
  */
-char *enhance_base_description_with_hints(char *base_description, struct char_data *ch __attribute__((unused)),
+char *enhance_base_description_with_hints(char *base_description,
+                                          struct char_data *ch __attribute__((unused)),
                                           zone_rnum zone, int x, int y)
 {
   struct region_list *regions = NULL;
@@ -4486,8 +4480,8 @@ static int vessel_region_position_rank(int position)
  * so this deliberately avoids resource sampling, transition blending, random
  * selection, analytics writes, and global random-number state changes.
  */
-char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone,
-                                           int x, int y)
+char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone, int x,
+                                          int y)
 {
   struct region_list *regions;
   struct region_list *region;

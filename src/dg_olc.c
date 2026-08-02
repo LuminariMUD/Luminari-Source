@@ -155,7 +155,8 @@ static void trigedit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0; /* Has changed flag. (It hasn't so far, we just made it.) */
 }
 
-void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num, int mode __attribute__((unused)))
+void trigedit_setup_existing(struct descriptor_data *d, int rtrg_num,
+                             int mode __attribute__((unused)))
 {
   struct trig_data *trig;
   struct cmdlist_element *c;

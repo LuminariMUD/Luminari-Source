@@ -128,8 +128,7 @@ static const char *room_type_db_names[NUM_SHIP_ROOM_TYPES] = {
 
 static struct room_template db_room_templates[NUM_SHIP_ROOM_TYPES];
 static bool db_room_template_loaded[NUM_SHIP_ROOM_TYPES];
-static trig_vnum
-    db_room_template_triggers[NUM_SHIP_ROOM_TYPES][MAX_SHIP_ROOM_TEMPLATE_TRIGGERS];
+static trig_vnum db_room_template_triggers[NUM_SHIP_ROOM_TYPES][MAX_SHIP_ROOM_TEMPLATE_TRIGGERS];
 static int db_room_template_trigger_count[NUM_SHIP_ROOM_TYPES];
 
 /**
@@ -160,15 +159,14 @@ static int room_template_index_by_name(const char *name)
  */
 static void load_ship_room_template_triggers(void)
 {
-  const char *create_sql =
-      "CREATE TABLE IF NOT EXISTS ship_room_template_triggers ("
-      "room_type VARCHAR(50) NOT NULL, "
-      "vessel_type INT NOT NULL DEFAULT 0, "
-      "trigger_vnum INT NOT NULL, "
-      "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-      "PRIMARY KEY (room_type, vessel_type, trigger_vnum), "
-      "INDEX idx_ship_room_trigger_vnum (trigger_vnum)"
-      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  const char *create_sql = "CREATE TABLE IF NOT EXISTS ship_room_template_triggers ("
+                           "room_type VARCHAR(50) NOT NULL, "
+                           "vessel_type INT NOT NULL DEFAULT 0, "
+                           "trigger_vnum INT NOT NULL, "
+                           "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                           "PRIMARY KEY (room_type, vessel_type, trigger_vnum), "
+                           "INDEX idx_ship_room_trigger_vnum (trigger_vnum)"
+                           ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
   MYSQL_RES *result;
   MYSQL_ROW row;
   int type;
@@ -184,11 +182,10 @@ static void load_ship_room_template_triggers(void)
     return;
   }
 
-  if (mysql_query(conn,
-                  "SELECT room_type, trigger_vnum "
-                  "FROM ship_room_template_triggers "
-                  "WHERE vessel_type = 0 "
-                  "ORDER BY room_type, trigger_vnum"))
+  if (mysql_query(conn, "SELECT room_type, trigger_vnum "
+                        "FROM ship_room_template_triggers "
+                        "WHERE vessel_type = 0 "
+                        "ORDER BY room_type, trigger_vnum"))
   {
     log("SYSERR: Could not load ship room template triggers: %s", mysql_error(conn));
     return;
@@ -207,14 +204,14 @@ static void load_ship_room_template_triggers(void)
     trigger_vnum = row[1] ? atoi(row[1]) : 0;
     if (type < 0 || trigger_vnum <= 0)
     {
-      log("SYSERR: Ignoring invalid ship room trigger mapping (%s, %d)",
-          row[0] ? row[0] : "(null)", trigger_vnum);
+      log("SYSERR: Ignoring invalid ship room trigger mapping (%s, %d)", row[0] ? row[0] : "(null)",
+          trigger_vnum);
       continue;
     }
     if (db_room_template_trigger_count[type] >= MAX_SHIP_ROOM_TEMPLATE_TRIGGERS)
     {
-      log("SYSERR: Ship room template %s exceeds its %d-trigger limit",
-          room_type_db_names[type], MAX_SHIP_ROOM_TEMPLATE_TRIGGERS);
+      log("SYSERR: Ship room template %s exceeds its %d-trigger limit", room_type_db_names[type],
+          MAX_SHIP_ROOM_TEMPLATE_TRIGGERS);
       continue;
     }
 
@@ -308,16 +305,16 @@ static void attach_ship_room_template_triggers(room_rnum room, enum ship_room_ty
     trigger_rnum = real_trigger(trigger_vnum);
     if (trigger_rnum == NOTHING)
     {
-      log("SYSERR: Generated ship room %d cannot attach missing trigger %d",
-          world[room].number, trigger_vnum);
+      log("SYSERR: Generated ship room %d cannot attach missing trigger %d", world[room].number,
+          trigger_vnum);
       continue;
     }
 
     trigger = read_trigger(trigger_rnum);
     if (trigger == NULL)
     {
-      log("SYSERR: Generated ship room %d could not instantiate trigger %d",
-          world[room].number, trigger_vnum);
+      log("SYSERR: Generated ship room %d could not instantiate trigger %d", world[room].number,
+          trigger_vnum);
       continue;
     }
 
@@ -1109,16 +1106,16 @@ static bool restore_ship_connection(struct greyhawk_ship_data *ship,
   exit->to_room = to_room;
   exit->exit_info = 0;
   exit->keyword = NULL;
-  exit->general_description = strdup(connection->is_hatch ? "A fitted hatch leads onward."
-                                                          : "A passage leads onward.");
+  exit->general_description =
+      strdup(connection->is_hatch ? "A fitted hatch leads onward." : "A passage leads onward.");
   world[from_room].dir_option[connection->direction] = exit;
 
   CREATE(exit, struct room_direction_data, 1);
   exit->to_room = from_room;
   exit->exit_info = 0;
   exit->keyword = NULL;
-  exit->general_description = strdup(connection->is_hatch ? "A fitted hatch leads back."
-                                                          : "A passage leads back.");
+  exit->general_description =
+      strdup(connection->is_hatch ? "A fitted hatch leads back." : "A passage leads back.");
   world[to_room].dir_option[reverse] = exit;
   return TRUE;
 }
@@ -1173,16 +1170,14 @@ bool restore_ship_interior(struct greyhawk_ship_data *ship)
     enum ship_room_type type;
 
     type = (enum ship_room_type)saved_room_types[i];
-    if (type < ROOM_TYPE_BRIDGE || type > ROOM_TYPE_DECK ||
-        (i > 0 && type == ROOM_TYPE_BRIDGE))
+    if (type < ROOM_TYPE_BRIDGE || type > ROOM_TYPE_DECK || (i > 0 && type == ROOM_TYPE_BRIDGE))
     {
       type = infer_ship_room_type(ship->vessel_type, i);
     }
     add_ship_room(ship, type);
     if (ship->num_rooms != i + 1)
     {
-      log("SYSERR: Could not restore room %d of %d for ship %d", i + 1, saved_count,
-          ship->shipnum);
+      log("SYSERR: Could not restore room %d of %d for ship %d", i + 1, saved_count, ship->shipnum);
       vessel_reclaim_interior_rooms(ship, 0);
       return FALSE;
     }
@@ -1207,9 +1202,9 @@ bool restore_ship_interior(struct greyhawk_ship_data *ship)
   for (i = 0; i < 5; i++)
   {
     saved_room = real_room(saved_cargo_rooms[i]);
-    ship->cargo_rooms[i] =
-        saved_room != NOWHERE && world[saved_room].ship == ship ? saved_cargo_rooms[i]
-                                                                : generated_cargo_rooms[i];
+    ship->cargo_rooms[i] = saved_room != NOWHERE && world[saved_room].ship == ship
+                               ? saved_cargo_rooms[i]
+                               : generated_cargo_rooms[i];
   }
 
   restored_connections = 0;
@@ -1225,8 +1220,7 @@ bool restore_ship_interior(struct greyhawk_ship_data *ship)
 
   if (ship->num_rooms > 1 && restored_connections == 0)
   {
-    log("SYSERR: Ship %d had no usable saved connections; generating a safe layout",
-        ship->shipnum);
+    log("SYSERR: Ship %d had no usable saved connections; generating a safe layout", ship->shipnum);
     generate_room_connections(ship);
   }
   else if (restored_connections != saved_connection_count)
@@ -1237,8 +1231,8 @@ bool restore_ship_interior(struct greyhawk_ship_data *ship)
 
   ship->shiproom = ship->entrance_room;
   update_ship_room_coordinates(ship);
-  log("Info: Recreated %d runtime interior rooms for ship %d '%s'", ship->num_rooms,
-      ship->shipnum, ship->name);
+  log("Info: Recreated %d runtime interior rooms for ship %d '%s'", ship->num_rooms, ship->shipnum,
+      ship->name);
   return TRUE;
 }
 
@@ -1572,8 +1566,8 @@ ACMD(do_shiptalk)
     parse_at(message_buffer);
   }
   snprintf(output, sizeof(output), "\tC[Captain's channel - %s]\tn %s: %s\r\n",
-           ship->name[0] ? ship->name : "unnamed vessel",
-           GET_NAME(ch) ? GET_NAME(ch) : "Someone", message_buffer);
+           ship->name[0] ? ship->name : "unnamed vessel", GET_NAME(ch) ? GET_NAME(ch) : "Someone",
+           message_buffer);
 
   for (i = 0; i < ship->num_rooms; i++)
   {
@@ -1583,8 +1577,7 @@ ACMD(do_shiptalk)
       continue;
     }
 
-    for (recipient = world[room].people; recipient != NULL;
-         recipient = recipient->next_in_room)
+    for (recipient = world[room].people; recipient != NULL; recipient = recipient->next_in_room)
     {
       if (recipient->desc == NULL ||
           (recipient != ch && (!AWAKE(recipient) || AFF_FLAGGED(recipient, AFF_DEAF))))

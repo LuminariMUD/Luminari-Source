@@ -9318,7 +9318,8 @@ bool is_special_event_active(void)
   return get_event_contract_availability() > 0;
 }
 
-void generate_prestige_contract(struct supply_contract *contract, struct char_data *ch __attribute__((unused)))
+void generate_prestige_contract(struct supply_contract *contract,
+                                struct char_data *ch __attribute__((unused)))
 {
   // Prestige contracts are high-level, high-reward contracts
   contract->contract_type = SUPPLY_CONTRACT_PRESTIGE;
@@ -9345,7 +9346,8 @@ void generate_prestige_contract(struct supply_contract *contract, struct char_da
   contract->requirements = strdup(req_buf);
 }
 
-void generate_event_contract(struct supply_contract *contract, struct char_data *ch __attribute__((unused)))
+void generate_event_contract(struct supply_contract *contract,
+                             struct char_data *ch __attribute__((unused)))
 {
   // Event contracts are time-limited special opportunities
   contract->contract_type = SUPPLY_CONTRACT_EVENT;
@@ -10279,7 +10281,7 @@ void craft_golem_complete(struct char_data *ch)
     // Get the appropriate VNUM for this golem
     golem_vnum = get_golem_vnum(GET_CRAFT(ch).golem_type, GET_CRAFT(ch).golem_size);
 
-  if (golem_vnum == (int)NOBODY)
+    if (golem_vnum == (int)NOBODY)
     {
       send_to_char(ch, "\tRError:\tn Invalid golem type/size combination!\r\n");
       reset_current_golem_craft(ch);

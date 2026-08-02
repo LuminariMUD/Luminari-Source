@@ -401,8 +401,7 @@ void mobile_activity(void)
     }
 
     /* random movement */
-    if (!vessel_npc_is_on_pilot_duty(ch) &&
-        !rand_number(0, 2)) /* Customize frequency. */
+    if (!vessel_npc_is_on_pilot_duty(ch) && !rand_number(0, 2)) /* Customize frequency. */
       if (!MOB_FLAGGED(ch, MOB_SENTINEL) && (GET_POS(ch) == POS_STANDING) &&
           ((door = rand_number(0, 18)) < DIR_COUNT) && CAN_GO(ch, door) &&
           !ROOM_FLAGGED(EXIT(ch, door)->to_room, ROOM_NOMOB) &&

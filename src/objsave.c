@@ -875,8 +875,7 @@ int Crash_clean_file(char *name)
   if (numread == FALSE)
     return FALSE;
 
-  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
-             &nitems) != 6)
+  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems) != 6)
   {
     log("SYSERR: Invalid rent header in object file %s.", filename);
     return FALSE;
@@ -954,8 +953,7 @@ void Crash_listrent(struct char_data *ch, char *name)
     return;
   }
 
-  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account,
-             &nitems) != 6)
+  if (sscanf(line, "%d %d %d %d %d %d", &rentcode, &timed, &netcost, &gold, &account, &nitems) != 6)
   {
     send_to_char(ch, "Invalid rent information.\r\n");
     fclose(fl);
@@ -1722,8 +1720,8 @@ static int Crash_offer_rent(struct char_data *ch, struct char_data *recep, int d
   return (totalcost);
 }
 
-static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd, char *arg __attribute__((unused)),
-                            int mode)
+static int gen_receptionist(struct char_data *ch, struct char_data *recep, int cmd,
+                            char *arg __attribute__((unused)), int mode)
 {
   int cost;
   char buf[128];
@@ -2177,8 +2175,8 @@ obj_save_data *objsave_parse_objects(FILE *fl)
       }
       else if (!strcmp(tag, "SpAb"))
       {
-        if (sscanf(line, "%d %d %d %d %d %d %d %127s", &t[0], &t[1], &t[2], &t[3], &t[4],
-                   &t[5], &t[6], f1) != 8)
+        if (sscanf(line, "%d %d %d %d %d %d %d %127s", &t[0], &t[1], &t[2], &t[3], &t[4], &t[5],
+                   &t[6], f1) != 8)
         {
           log("SYSERR: Invalid SpAb record in object save file: %s", line);
           break;
@@ -3116,7 +3114,8 @@ static int handle_obj(struct obj_data *temp, struct char_data *ch, int locate,
 }
 
 
-int objsave_save_obj_record_db_pet(struct obj_data *obj, struct char_data *ch __attribute__((unused)),
+int objsave_save_obj_record_db_pet(struct obj_data *obj,
+                                   struct char_data *ch __attribute__((unused)),
                                    struct char_data *owner, long int pet_idnum, int locate)
 {
   static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */

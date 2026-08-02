@@ -92,8 +92,7 @@ void vessel_piracy_clear_laws(void)
   free(vessel_law_cache);
   vessel_law_cache = NULL;
   vessel_law_cache_count = 0;
-  memset(vessel_piracy_coordinate_cache, 0,
-         sizeof(vessel_piracy_coordinate_cache));
+  memset(vessel_piracy_coordinate_cache, 0, sizeof(vessel_piracy_coordinate_cache));
 }
 
 /**
@@ -115,9 +114,8 @@ bool vessel_piracy_reload_laws(void)
     return FALSE;
   }
 
-  if (mysql_query(conn,
-                  "SELECT region_vnum, waters_type, priority, bounty_percent, authority "
-                  "FROM vessel_region_law ORDER BY region_vnum"))
+  if (mysql_query(conn, "SELECT region_vnum, waters_type, priority, bounty_percent, authority "
+                        "FROM vessel_region_law ORDER BY region_vnum"))
   {
     log("SYSERR: vessel law cache query failed: %s", mysql_error(conn));
     return FALSE;
@@ -154,21 +152,18 @@ bool vessel_piracy_reload_laws(void)
     new_cache[index].bounty_percent = row[3] ? atoi(row[3]) : 100;
     if (row[4] != NULL && *row[4])
     {
-      strlcpy(new_cache[index].authority, row[4],
-              sizeof(new_cache[index].authority));
+      strlcpy(new_cache[index].authority, row[4], sizeof(new_cache[index].authority));
     }
     else
     {
-      strlcpy(new_cache[index].authority, "maritime law",
-              sizeof(new_cache[index].authority));
+      strlcpy(new_cache[index].authority, "maritime law", sizeof(new_cache[index].authority));
     }
 
-    new_cache[index].valid =
-        new_cache[index].region_vnum > 0 &&
-        new_cache[index].waters_type >= VESSEL_WATERS_TERRITORIAL &&
-        new_cache[index].waters_type <= VESSEL_WATERS_PIRATE_COVE &&
-        new_cache[index].bounty_percent >= 0 &&
-        new_cache[index].bounty_percent <= VESSEL_PIRACY_BOUNTY_PERCENT_MAX;
+    new_cache[index].valid = new_cache[index].region_vnum > 0 &&
+                             new_cache[index].waters_type >= VESSEL_WATERS_TERRITORIAL &&
+                             new_cache[index].waters_type <= VESSEL_WATERS_PIRATE_COVE &&
+                             new_cache[index].bounty_percent >= 0 &&
+                             new_cache[index].bounty_percent <= VESSEL_PIRACY_BOUNTY_PERCENT_MAX;
     if (!new_cache[index].valid)
     {
       invalid_count++;
@@ -191,8 +186,8 @@ bool vessel_piracy_reload_laws(void)
       vessel_piracy_track_waters(&greyhawk_ships[ship_index], FALSE);
     }
   }
-  log("Info: Loaded %zu vessel law row%s (%d invalid)", index,
-      index == 1 ? "" : "s", invalid_count);
+  log("Info: Loaded %zu vessel law row%s (%d invalid)", index, index == 1 ? "" : "s",
+      invalid_count);
   return TRUE;
 }
 
@@ -292,15 +287,13 @@ int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent)
  */
 bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law)
 {
-  return law != NULL && law->configured &&
-         law->waters_type == VESSEL_WATERS_PIRATE_COVE;
+  return law != NULL && law->configured && law->waters_type == VESSEL_WATERS_PIRATE_COVE;
 }
 
 /**
  * Locate cached law metadata by region VNUM.
  */
-static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(
-    int region_vnum)
+static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(int region_vnum)
 {
   size_t low;
   size_t high;
@@ -333,8 +326,7 @@ static const struct vessel_piracy_law_cache_entry *vessel_piracy_cached_law(
  *
  * Points on an edge or vertex are outside, matching MariaDB ST_Within().
  */
-bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count,
-                                    int x, int y)
+bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count, int x, int y)
 {
   bool inside;
   long long cross_product;
@@ -360,11 +352,9 @@ bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_co
     previous_x = vertices[previous].x;
     previous_y = vertices[previous].y;
 
-    cross_product =
-        ((long long)x - current_x) * ((long long)previous_y - current_y) -
-        ((long long)y - current_y) * ((long long)previous_x - current_x);
-    if (cross_product == 0 &&
-        x >= MIN(current_x, previous_x) && x <= MAX(current_x, previous_x) &&
+    cross_product = ((long long)x - current_x) * ((long long)previous_y - current_y) -
+                    ((long long)y - current_y) * ((long long)previous_x - current_x);
+    if (cross_product == 0 && x >= MIN(current_x, previous_x) && x <= MAX(current_x, previous_x) &&
         y >= MIN(current_y, previous_y) && y <= MAX(current_y, previous_y))
     {
       return FALSE;
@@ -372,10 +362,9 @@ bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_co
 
     if ((current_y > y) != (previous_y > y))
     {
-      intersection_x =
-          ((double)previous_x - current_x) * ((double)y - current_y) /
-              ((double)previous_y - current_y) +
-          current_x;
+      intersection_x = ((double)previous_x - current_x) * ((double)y - current_y) /
+                           ((double)previous_y - current_y) +
+                       current_x;
       if ((double)x < intersection_x)
       {
         inside = !inside;
@@ -416,8 +405,7 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
 
   coordinate_index = vessel_piracy_coordinate_cache_index(x, y);
   coordinate_entry = &vessel_piracy_coordinate_cache[coordinate_index];
-  if (coordinate_entry->valid && coordinate_entry->x == x &&
-      coordinate_entry->y == y)
+  if (coordinate_entry->valid && coordinate_entry->x == x && coordinate_entry->y == y)
   {
     *law = coordinate_entry->law;
     return coordinate_entry->found;
@@ -442,8 +430,7 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
   {
     region = &region_table[i];
     if (region->region_type != REGION_GEOGRAPHIC || region->zone == NOWHERE ||
-        region->zone > top_of_zone_table ||
-        zone_table[region->zone].number != WILD_ZONE_VNUM ||
+        region->zone > top_of_zone_table || zone_table[region->zone].number != WILD_ZONE_VNUM ||
         !vessel_piracy_point_in_polygon(region->vertices, region->num_vertices, x, y))
     {
       continue;
@@ -452,8 +439,7 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
     entry = vessel_piracy_cached_law(region->vnum);
     configured = entry != NULL;
     priority = configured ? entry->priority : 0;
-    if (best_region == NULL ||
-        (configured && !best_configured) ||
+    if (best_region == NULL || (configured && !best_configured) ||
         (configured == best_configured &&
          (priority > best_priority ||
           (priority == best_priority && region->vnum < best_region->vnum))))
@@ -551,8 +537,7 @@ void vessel_piracy_track_waters(struct greyhawk_ship_data *ship, bool announce)
   if (found && law.configured)
   {
     send_to_ship(ship, "The charts mark our crossing into %s (%s), under %s authority.",
-                 law.region_name, vessel_waters_type_name(law.waters_type),
-                 law.authority);
+                 law.region_name, vessel_waters_type_name(law.waters_type), law.authority);
   }
   else if (found)
   {
@@ -560,8 +545,7 @@ void vessel_piracy_track_waters(struct greyhawk_ship_data *ship, bool announce)
   }
   else
   {
-    send_to_ship(ship,
-                 "The charted boundary falls astern; the vessel enters unnamed open waters.");
+    send_to_ship(ship, "The charted boundary falls astern; the vessel enters unnamed open waters.");
   }
 }
 
@@ -931,8 +915,7 @@ ACMD(do_plunder)
    * waive the bounty; a valid marque waives any positive regional penalty. */
   if (bounty == 0)
   {
-    send_to_char(ch, "No authority claims this prize%s%s.\r\n",
-                 law_found ? " in " : "",
+    send_to_char(ch, "No authority claims this prize%s%s.\r\n", law_found ? " in " : "",
                  law_found ? law.region_name : "");
   }
   else if (vessel_has_letter_of_marque(GET_NAME(ch)))
@@ -952,8 +935,7 @@ ACMD(do_plunder)
     }
     else
     {
-      send_to_char(ch, "Word of the raid will spread - your bounty rises by %d gold.\r\n",
-                   bounty);
+      send_to_char(ch, "Word of the raid will spread - your bounty rises by %d gold.\r\n", bounty);
     }
 
     bounty = vessel_get_bounty(GET_NAME(ch));

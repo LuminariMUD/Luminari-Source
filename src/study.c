@@ -1076,7 +1076,8 @@ void inquisitor_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (do_not_list_spell(counter)) continue;
+    if (do_not_list_spell(counter))
+      continue;
     if (compute_spells_circle(d->character, CLASS_INQUISITOR, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
@@ -1161,7 +1162,8 @@ void bard_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (do_not_list_spell(counter)) continue;
+    if (do_not_list_spell(counter))
+      continue;
     if (compute_spells_circle(d->character, CLASS_BARD, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
@@ -1203,7 +1205,8 @@ void summoner_study_menu(struct descriptor_data *d, int circle)
   /* SPELL PREPARATION HOOK */
   for (counter = 1; counter < NUM_SPELLS; counter++)
   {
-    if (do_not_list_spell(counter)) continue;
+    if (do_not_list_spell(counter))
+      continue;
     if (compute_spells_circle(d->character, CLASS_SUMMONER, counter, METAMAGIC_NONE,
                               DOMAIN_UNDEFINED) == circle)
     {
@@ -3920,7 +3923,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
       {
-        if (do_not_list_spell(counter)) continue;
+        if (do_not_list_spell(counter))
+          continue;
         if (counter == number)
         {
           if (compute_spells_circle(ch, CLASS_SORCERER, counter, METAMAGIC_NONE,
@@ -4095,7 +4099,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
       {
-        if (do_not_list_spell(counter)) continue;
+        if (do_not_list_spell(counter))
+          continue;
         if (counter == number)
         {
           if (compute_spells_circle(ch, CLASS_BARD, counter, METAMAGIC_NONE, DOMAIN_UNDEFINED) ==
@@ -4185,7 +4190,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
       {
-        if (do_not_list_spell(counter)) continue;
+        if (do_not_list_spell(counter))
+          continue;
         if (counter == number)
         {
           if (compute_spells_circle(ch, CLASS_SUMMONER, counter, METAMAGIC_NONE,
@@ -4516,7 +4522,8 @@ void study_parse(struct descriptor_data *d, char *arg)
       /* SPELL PREPARATION HOOK */
       for (counter = 1; counter < NUM_SPELLS; counter++)
       {
-        if (do_not_list_spell(counter)) continue;
+        if (do_not_list_spell(counter))
+          continue;
         if (counter == number)
         {
           if (compute_spells_circle(ch, CLASS_INQUISITOR, counter, METAMAGIC_NONE,

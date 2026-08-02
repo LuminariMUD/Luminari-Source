@@ -98,19 +98,18 @@ void vessel_hazard_ensure_schema(void)
  */
 bool vessel_encounter_reload_config(void)
 {
-  const char *query =
-      "SELECT encounter.encounter_id, encounter.region_vnum, encounter.name, "
-      "encounter.mob_vnum, encounter.min_depth, encounter.max_depth, "
-      "encounter.vessel_class, encounter.chance, encounter.warn_message, "
-      "encounter.arrive_message, hunter.encounter_id, hunter.prototype_id, "
-      "hunter.pilot_mob_vnum, hunter.min_bounty, hunter.pursuit_speed, "
-      "hunter.hunt_duration_seconds, hunter.target_grace_seconds, "
-      "hunter.cooldown_seconds, hunter.enabled "
-      "FROM vessel_encounters AS encounter "
-      "LEFT JOIN vessel_hunter_encounters AS hunter "
-      "ON hunter.encounter_id = encounter.encounter_id "
-      "ORDER BY encounter.region_vnum, encounter.chance DESC, "
-      "encounter.encounter_id";
+  const char *query = "SELECT encounter.encounter_id, encounter.region_vnum, encounter.name, "
+                      "encounter.mob_vnum, encounter.min_depth, encounter.max_depth, "
+                      "encounter.vessel_class, encounter.chance, encounter.warn_message, "
+                      "encounter.arrive_message, hunter.encounter_id, hunter.prototype_id, "
+                      "hunter.pilot_mob_vnum, hunter.min_bounty, hunter.pursuit_speed, "
+                      "hunter.hunt_duration_seconds, hunter.target_grace_seconds, "
+                      "hunter.cooldown_seconds, hunter.enabled "
+                      "FROM vessel_encounters AS encounter "
+                      "LEFT JOIN vessel_hunter_encounters AS hunter "
+                      "ON hunter.encounter_id = encounter.encounter_id "
+                      "ORDER BY encounter.region_vnum, encounter.chance DESC, "
+                      "encounter.encounter_id";
   MYSQL_RES *result;
   MYSQL_ROW row;
   struct vessel_encounter_definition *definition;
@@ -123,16 +122,14 @@ bool vessel_encounter_reload_config(void)
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not load vessel encounter definitions: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not load vessel encounter definitions: %s", mysql_error(conn));
     return FALSE;
   }
 
   result = mysql_store_result(conn);
   if (result == NULL)
   {
-    log("SYSERR: Could not store vessel encounter definitions: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not store vessel encounter definitions: %s", mysql_error(conn));
     return FALSE;
   }
 
@@ -156,10 +153,8 @@ bool vessel_encounter_reload_config(void)
     definition->max_depth = row[5] ? atoi(row[5]) : 0;
     definition->vessel_class = row[6] ? atoi(row[6]) : -1;
     definition->chance = row[7] ? atoi(row[7]) : 0;
-    strlcpy(definition->warn_message, row[8] ? row[8] : "",
-            sizeof(definition->warn_message));
-    strlcpy(definition->arrive_message, row[9] ? row[9] : "",
-            sizeof(definition->arrive_message));
+    strlcpy(definition->warn_message, row[8] ? row[8] : "", sizeof(definition->warn_message));
+    strlcpy(definition->arrive_message, row[9] ? row[9] : "", sizeof(definition->arrive_message));
 
     if (row[10] != NULL)
     {
@@ -330,9 +325,9 @@ bool vessel_encounter_region_from_list(const struct region_list *regions, int *o
   return found;
 }
 
-static double vessel_encounter_distance_squared_to_segment(
-    double x, double y, double start_x, double start_y,
-    double end_x, double end_y)
+static double vessel_encounter_distance_squared_to_segment(double x, double y, double start_x,
+                                                           double start_y, double end_x,
+                                                           double end_y)
 {
   double segment_x;
   double segment_y;
@@ -346,10 +341,8 @@ static double vessel_encounter_distance_squared_to_segment(
   point_x = x - start_x;
   point_y = y - start_y;
   segment_squared = segment_x * segment_x + segment_y * segment_y;
-  projection = segment_squared > 0.0
-                   ? (point_x * segment_x + point_y * segment_y) /
-                         segment_squared
-                   : 0.0;
+  projection =
+      segment_squared > 0.0 ? (point_x * segment_x + point_y * segment_y) / segment_squared : 0.0;
   projection = MAX(0.0, MIN(1.0, projection));
   point_x = x - (start_x + projection * segment_x);
   point_y = y - (start_y + projection * segment_y);
@@ -360,8 +353,7 @@ static double vessel_encounter_distance_squared_to_segment(
  * Classify one strictly enclosed point using the same center/inside/edge
  * distance rule as get_enclosing_regions().
  */
-static int vessel_encounter_polygon_position(const struct region_data *region,
-                                             int x, int y)
+static int vessel_encounter_polygon_position(const struct region_data *region, int x, int y)
 {
   double area_twice;
   double centroid_x_numerator;
@@ -378,8 +370,7 @@ static int vessel_encounter_polygon_position(const struct region_data *region,
   int next;
 
   if (region == NULL || region->vertices == NULL || region->num_vertices < 3 ||
-      !vessel_piracy_point_in_polygon(region->vertices,
-                                      region->num_vertices, x, y))
+      !vessel_piracy_point_in_polygon(region->vertices, region->num_vertices, x, y))
   {
     return REGION_POS_UNDEFINED;
   }
@@ -391,21 +382,17 @@ static int vessel_encounter_polygon_position(const struct region_data *region,
   for (current = 0; current < region->num_vertices; current++)
   {
     next = (current + 1) % region->num_vertices;
-    cross_product =
-        (double)region->vertices[current].x * region->vertices[next].y -
-        (double)region->vertices[next].x * region->vertices[current].y;
+    cross_product = (double)region->vertices[current].x * region->vertices[next].y -
+                    (double)region->vertices[next].x * region->vertices[current].y;
     area_twice += cross_product;
     centroid_x_numerator +=
-        (region->vertices[current].x + region->vertices[next].x) *
-        cross_product;
+        (region->vertices[current].x + region->vertices[next].x) * cross_product;
     centroid_y_numerator +=
-        (region->vertices[current].y + region->vertices[next].y) *
-        cross_product;
+        (region->vertices[current].y + region->vertices[next].y) * cross_product;
     segment_distance_squared = vessel_encounter_distance_squared_to_segment(
-        x, y, region->vertices[current].x, region->vertices[current].y,
-        region->vertices[next].x, region->vertices[next].y);
-    edge_distance_squared = MIN(edge_distance_squared,
-                                segment_distance_squared);
+        x, y, region->vertices[current].x, region->vertices[current].y, region->vertices[next].x,
+        region->vertices[next].y);
+    edge_distance_squared = MIN(edge_distance_squared, segment_distance_squared);
   }
 
   if (area_twice > -0.000001 && area_twice < 0.000001)
@@ -432,8 +419,7 @@ static int vessel_encounter_polygon_position(const struct region_data *region,
  * Resolve an encounter polygon entirely from the canonical in-memory region
  * table. This removes synchronous spatial SQL from the vessel heartbeat.
  */
-bool vessel_encounter_region_at_coordinates(int x, int y,
-                                            int *output_region_vnum)
+bool vessel_encounter_region_at_coordinates(int x, int y, int *output_region_vnum)
 {
   const struct region_data *region;
   int best_position;
@@ -448,8 +434,7 @@ bool vessel_encounter_region_at_coordinates(int x, int y,
     return FALSE;
   }
   *output_region_vnum = 0;
-  if (region_table == NULL || zone_table == NULL ||
-      top_of_region_table == NOWHERE)
+  if (region_table == NULL || zone_table == NULL || top_of_region_table == NOWHERE)
   {
     return FALSE;
   }
@@ -461,8 +446,7 @@ bool vessel_encounter_region_at_coordinates(int x, int y,
   {
     region = &region_table[i];
     if (region->region_type != REGION_ENCOUNTER || region->zone == NOWHERE ||
-        region->zone > top_of_zone_table ||
-        zone_table[region->zone].number != WILD_ZONE_VNUM)
+        region->zone > top_of_zone_table || zone_table[region->zone].number != WILD_ZONE_VNUM)
     {
       continue;
     }
@@ -523,22 +507,17 @@ bool vessel_encounter_chance_succeeds(int chance, int roll)
 /**
  * Apply the database encounter candidate filters in memory.
  */
-bool vessel_encounter_candidate_matches(int candidate_region_vnum,
-                                        int candidate_vessel_class,
-                                        int min_depth, int max_depth,
-                                        int ship_region_vnum,
-                                        enum vessel_class ship_class,
-                                        int depth_units)
+bool vessel_encounter_candidate_matches(int candidate_region_vnum, int candidate_vessel_class,
+                                        int min_depth, int max_depth, int ship_region_vnum,
+                                        enum vessel_class ship_class, int depth_units)
 {
   if (candidate_region_vnum != ship_region_vnum ||
-      (candidate_vessel_class != -1 &&
-       candidate_vessel_class != (int)ship_class))
+      (candidate_vessel_class != -1 && candidate_vessel_class != (int)ship_class))
   {
     return FALSE;
   }
 
-  return max_depth == 0 ||
-         (depth_units >= min_depth && depth_units <= max_depth);
+  return max_depth == 0 || (depth_units >= min_depth && depth_units <= max_depth);
 }
 
 /**
@@ -633,8 +612,7 @@ bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *regi
     return FALSE;
   }
 
-  return vessel_encounter_region_at_coordinates((int)ship->x, (int)ship->y,
-                                                 region_vnum);
+  return vessel_encounter_region_at_coordinates((int)ship->x, (int)ship->y, region_vnum);
 }
 
 /**
@@ -671,8 +649,7 @@ void vessel_weather_tick(void)
       depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
       if (-((int)ship->z) > depth_units * 8)
       {
-        send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_DEPTH,
-                               VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+        send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_DEPTH, VESSEL_AMBIENT_MESSAGE_COOLDOWN,
                                "The hull GROANS - you are far too deep!");
         vessel_apply_damage(i, dice(2, 6), GREYHAWK_FORE, "Crushing pressure");
         continue;
@@ -694,13 +671,11 @@ void vessel_weather_tick(void)
     switch (severity)
     {
     case 1:
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_SQUALL,
-                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_SQUALL, VESSEL_AMBIENT_MESSAGE_COOLDOWN,
                              "A squall slaps spray across the deck.");
       break;
     case 2:
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_STORM,
-                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_STORM, VESSEL_AMBIENT_MESSAGE_COOLDOWN,
                              "The storm tears at the rigging!");
       if (ship->mainsail > 1)
       {
@@ -709,8 +684,7 @@ void vessel_weather_tick(void)
       break;
     case 3:
     default:
-      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_GALE,
-                             VESSEL_AMBIENT_MESSAGE_COOLDOWN,
+      send_to_ship_throttled(ship, VESSEL_MESSAGE_AMBIENT_GALE, VESSEL_AMBIENT_MESSAGE_COOLDOWN,
                              "A GALE hammers the ship - the masts scream under the strain!");
       if (ship->mainsail > 2)
       {
@@ -718,8 +692,7 @@ void vessel_weather_tick(void)
       }
       /* A gale costs structure only when neither a sailmaster nor the
        * vessel's assigned pilot is physically at the helm. */
-      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE &&
-          get_pilot_from_ship(ship) == NULL)
+      if (ship->crew_tier[CREW_SAILMASTER] == CREW_TIER_NONE && get_pilot_from_ship(ship) == NULL)
       {
         vessel_apply_damage(i, dice(1, 6), GREYHAWK_PORT, "The gale");
       }
@@ -730,8 +703,7 @@ void vessel_weather_tick(void)
   }
 }
 
-static int vessel_broadcast_encounter(room_rnum ship_room,
-                                      struct greyhawk_ship_data *source,
+static int vessel_broadcast_encounter(room_rnum ship_room, struct greyhawk_ship_data *source,
                                       const char *warn_message, const char *arrive_message,
                                       const char *encounter_name)
 {
@@ -866,15 +838,13 @@ void vessel_encounter_tick(void)
     depth_units = wild_waterline - get_modified_elevation((int)ship->x, (int)ship->y);
 
     /* Definitions retain the database chance/ID order loaded at boot. */
-    for (definition_index = 0;
-         definition_index < vessel_encounter_definition_count;
+    for (definition_index = 0; definition_index < vessel_encounter_definition_count;
          definition_index++)
     {
       definition = &vessel_encounter_definitions[definition_index];
-      if (!vessel_encounter_candidate_matches(
-              definition->region_vnum, definition->vessel_class,
-              definition->min_depth, definition->max_depth, region_vnum,
-              ship->vessel_type, depth_units))
+      if (!vessel_encounter_candidate_matches(definition->region_vnum, definition->vessel_class,
+                                              definition->min_depth, definition->max_depth,
+                                              region_vnum, ship->vessel_type, depth_units))
       {
         continue;
       }
@@ -885,29 +855,25 @@ void vessel_encounter_tick(void)
         continue;
       }
       if (hunter_configured > 0 &&
-          !vessel_hunter_target_is_eligible(
-              ship, &definition->hunter_config, time(0)))
+          !vessel_hunter_target_is_eligible(ship, &definition->hunter_config, time(0)))
       {
         continue;
       }
 
       /* A good lookout gives warning before the thing arrives */
-      if (!vessel_encounter_chance_succeeds(
-              definition->chance, rand_number(1, 100)))
+      if (!vessel_encounter_chance_succeeds(definition->chance, rand_number(1, 100)))
       {
         continue;
       }
 
       if (ship_room != NOWHERE &&
-          !vessel_encounter_claim_room(ship_room, claimed_rooms, &claimed_count,
-                                       GREYHAWK_MAXSHIPS))
+          !vessel_encounter_claim_room(ship_room, claimed_rooms, &claimed_count, GREYHAWK_MAXSHIPS))
       {
         break;
       }
 
       if (hunter_configured > 0 &&
-          !vessel_hunter_spawn(ship, &definition->hunter_config,
-                               definition->name))
+          !vessel_hunter_spawn(ship, &definition->hunter_config, definition->name))
       {
         if (ship_room != NOWHERE && claimed_count > 0)
         {
@@ -916,18 +882,15 @@ void vessel_encounter_tick(void)
         continue;
       }
 
-      recipient_count = vessel_broadcast_encounter(
-          ship_room, ship, definition->warn_message,
-          definition->arrive_message, definition->name);
+      recipient_count = vessel_broadcast_encounter(ship_room, ship, definition->warn_message,
+                                                   definition->arrive_message, definition->name);
       log("Info: Shared encounter '%s' in room %d from ship %d notified %d "
           "vessels in region %d",
-          definition->name[0] ? definition->name : "?", ship_room, i,
-          recipient_count, region_vnum);
+          definition->name[0] ? definition->name : "?", ship_room, i, recipient_count, region_vnum);
 
       /* Spawn the encounter's creature into the ship's wilderness room so
        * it can be fought, fled, or fired upon like anything else. */
-      if (hunter_configured == 0 && definition->mob_vnum > 0 &&
-          ship_room != NOWHERE)
+      if (hunter_configured == 0 && definition->mob_vnum > 0 && ship_room != NOWHERE)
       {
         mob = read_mobile(definition->mob_vnum, VIRTUAL);
         if (mob != NULL)
@@ -935,8 +898,7 @@ void vessel_encounter_tick(void)
           char_to_room(mob, ship_room);
           act("$n rises from the depths!", FALSE, mob, 0, 0, TO_ROOM);
           log("Info: Encounter '%s' spawned for shared room %d from ship %d in region %d",
-              definition->name[0] ? definition->name : "?", ship_room, i,
-              region_vnum);
+              definition->name[0] ? definition->name : "?", ship_room, i, region_vnum);
         }
       }
 
@@ -1005,34 +967,28 @@ ACMD(do_seastate)
                vessel_lookout_bonus(ship) > 0 ? " (lookout posted)" : "");
   send_to_char(ch, "  Hull      : %s\r\n", vessel_status_name(vessel_status(ship)));
 
-  if (vessel_region_feature_at_coordinates(REGION_BATHYMETRIC,
-                                           (int)ship->x, (int)ship->y,
+  if (vessel_region_feature_at_coordinates(REGION_BATHYMETRIC, (int)ship->x, (int)ship->y,
                                            (int)ship->z, &feature))
   {
-    send_to_char(ch, "  Trench    : %s (natural depth %d; threshold %d)\r\n",
-                 feature.name, depth_units, feature.threshold);
+    send_to_char(ch, "  Trench    : %s (natural depth %d; threshold %d)\r\n", feature.name,
+                 depth_units, feature.threshold);
   }
-  if (vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE,
-                                           (int)ship->x, (int)ship->y,
+  if (vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, (int)ship->x, (int)ship->y,
                                            (int)ship->z, &feature))
   {
-    send_to_char(ch, "  Sky lane  : %s (active above %d)\r\n", feature.name,
-                 feature.threshold);
+    send_to_char(ch, "  Sky lane  : %s (active above %d)\r\n", feature.name, feature.threshold);
   }
-  if (vessel_region_feature_at_coordinates(REGION_SKY_ISLAND,
-                                           (int)ship->x, (int)ship->y,
+  if (vessel_region_feature_at_coordinates(REGION_SKY_ISLAND, (int)ship->x, (int)ship->y,
                                            (int)ship->z, &feature))
   {
-    send_to_char(ch, "  Sky island: %s (reachable above %d)\r\n", feature.name,
-                 feature.threshold);
+    send_to_char(ch, "  Sky island: %s (reachable above %d)\r\n", feature.name, feature.threshold);
   }
 
   named_waters = vessel_piracy_law_for_ship(ship, &law);
   if (named_waters && law.configured)
   {
-    send_to_char(ch, "  Waters    : %s (%s; %s; piracy bounty %d%%)\r\n",
-                 law.region_name, vessel_waters_type_name(law.waters_type),
-                 law.authority, law.bounty_percent);
+    send_to_char(ch, "  Waters    : %s (%s; %s; piracy bounty %d%%)\r\n", law.region_name,
+                 vessel_waters_type_name(law.waters_type), law.authority, law.bounty_percent);
   }
   else if (named_waters)
   {

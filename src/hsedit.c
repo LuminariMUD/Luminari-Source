@@ -190,8 +190,7 @@ void hsedit_delete_house(struct descriptor_data *d, int house_vnum)
     return;
   }
   if ((real_atrium = real_room(house_control[house_index].atrium)) == NOWHERE)
-    log("SYSERR: House %d had invalid atrium %d!", house_vnum,
-        house_control[house_index].atrium);
+    log("SYSERR: House %d had invalid atrium %d!", house_vnum, house_control[house_index].atrium);
   else
     REMOVE_BIT_AR(ROOM_FLAGS(real_atrium), ROOM_ATRIUM);
 

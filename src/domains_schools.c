@@ -704,11 +704,11 @@ ACMD(do_domain)
   /* 0-value is undefined, it is used in the code, but not displayed */
   for (i = 1; i < NUM_DOMAINS; i++)
   {
-    len = snprintf_append(
-        buf, sizeof(buf), len,
-        "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n", QCYN, QNRM,
-        domain_list[i].name, QCYN, QNRM, weapon_list[domain_list[i].favored_weapon].name, QCYN, QNRM,
-        domain_list[i].description);
+    len = snprintf_append(buf, sizeof(buf), len,
+                          "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
+                          QCYN, QNRM, domain_list[i].name, QCYN, QNRM,
+                          weapon_list[domain_list[i].favored_weapon].name, QCYN, QNRM,
+                          domain_list[i].description);
     /*
     send_to_char(ch, "%sDomain:%s %-20s %sFavored Weapon:%s %-22s\r\n%sDescription:%s %s\r\n",
                  QCYN, QNRM, domain_list[i].name,

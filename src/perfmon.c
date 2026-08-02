@@ -735,13 +735,13 @@ static size_t format_prof_section(char *buf, size_t n, const struct PERF_prof_se
   }
   else
   {
-    return bounded_format_length(
-        snprintf(buf, n,
-                 "%-24.24s|%9" PRIu64 "|%9" PRIu64 "|%12" PRIu64 "|%8.2f%%|"
-                 "%10" PRIu64 "|%8.2f%%\n\r",
-                 sect->id, enter_count, exit_count, usec_total, percent, usec_max,
-                 (100.0 * (double)usec_max) / USEC_PER_PULSE),
-        n);
+    return bounded_format_length(snprintf(buf, n,
+                                          "%-24.24s|%9" PRIu64 "|%9" PRIu64 "|%12" PRIu64
+                                          "|%8.2f%%|"
+                                          "%10" PRIu64 "|%8.2f%%\n\r",
+                                          sect->id, enter_count, exit_count, usec_total, percent,
+                                          usec_max, (100.0 * (double)usec_max) / USEC_PER_PULSE),
+                                 n);
   }
 }
 
@@ -901,17 +901,17 @@ size_t PERF_prof_repr_csv(char *out_buf, size_t n)
 
   if (written < n - 1)
   {
-    written += bounded_format_length(
-        snprintf(out_buf + written, n - written, "# missed_pulses=%" PRIu64 "\n\r",
-                 missed_pulse_count),
-        n - written);
+    written +=
+        bounded_format_length(snprintf(out_buf + written, n - written,
+                                       "# missed_pulses=%" PRIu64 "\n\r", missed_pulse_count),
+                              n - written);
   }
   if (written < n - 1)
   {
-    written += bounded_format_length(
-        snprintf(out_buf + written, n - written, "# vessel_messages_throttled=%" PRIu64 "\n\r",
-                 vessel_message_throttled_count),
-        n - written);
+    written += bounded_format_length(snprintf(out_buf + written, n - written,
+                                              "# vessel_messages_throttled=%" PRIu64 "\n\r",
+                                              vessel_message_throttled_count),
+                                     n - written);
   }
 
   return written;

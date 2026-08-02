@@ -122,9 +122,9 @@ struct vessel_region_feature
 /* SCHEDULE SYSTEM CONSTANTS                                                 */
 /* ========================================================================= */
 
-#define SCHEDULE_INTERVAL_MIN 1  /* Minimum schedule interval (MUD hours) */
-#define SCHEDULE_INTERVAL_MAX 24 /* Maximum schedule interval (MUD hours) */
-#define SCHEDULE_NAME_LENGTH 64  /* Max length for schedule names */
+#define SCHEDULE_INTERVAL_MIN 1          /* Minimum schedule interval (MUD hours) */
+#define SCHEDULE_INTERVAL_MAX 24         /* Maximum schedule interval (MUD hours) */
+#define SCHEDULE_NAME_LENGTH 64          /* Max length for schedule names */
 #define VESSEL_PASSENGER_FARE_MAX 100000 /* Maximum gold charged for one boarding */
 
 /* Schedule State Flags */
@@ -476,8 +476,7 @@ bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int 
 bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
-bool vessel_region_feature_threshold_met(int region_type, int threshold, int z,
-                                         int depth_units);
+bool vessel_region_feature_threshold_met(int region_type, int threshold, int z, int depth_units);
 bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
                                           struct vessel_region_feature *feature);
 int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
@@ -501,8 +500,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
 bool vessel_pvp_permitted(struct char_data *ch, struct greyhawk_ship_data *target, bool display);
-bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target,
-                             const char *attacker_name, time_t now);
+bool vessel_pvp_grace_active(const struct greyhawk_ship_data *target, const char *attacker_name,
+                             time_t now);
 void vessel_clear_pvp_grace(struct greyhawk_ship_data *ship);
 int vessel_total_internal(const struct greyhawk_ship_data *ship);
 int vessel_max_internal(const struct greyhawk_ship_data *ship);
@@ -536,17 +535,15 @@ enum vessel_event_type
 
 const char *vessel_event_type_name(enum vessel_event_type event_type);
 enum vessel_event_type vessel_event_type_from_name(const char *name);
-bool vessel_event_finish_reached(int old_x, int old_y, int new_x, int new_y,
-                                 int finish_x, int finish_y);
+bool vessel_event_finish_reached(int old_x, int old_y, int new_x, int new_y, int finish_x,
+                                 int finish_y);
 int vessel_event_placement_points(int placement);
 int vessel_event_winning_team(int red_score, int blue_score);
 void vessel_event_ensure_schema(void);
 void vessel_event_boot(void);
 void vessel_event_tick(void);
-void vessel_event_handle_move(int shipnum, int old_x, int old_y,
-                              int new_x, int new_y);
-void vessel_event_record_damage(int attacker_ship_id, int target_ship_id,
-                                int amount);
+void vessel_event_handle_move(int shipnum, int old_x, int old_y, int new_x, int new_y);
+void vessel_event_record_damage(int attacker_ship_id, int target_ship_id, int amount);
 void vessel_event_handle_sink(int shipnum);
 ACMD_DECL(do_vevent);
 
@@ -645,8 +642,7 @@ int vessel_trade_adjusted_supply(int supply, int delta);
 int vessel_trade_restocked_supply(int supply);
 long long vessel_trade_buy_cost(int base_price, int supply, int quantity);
 long long vessel_trade_sell_revenue(int base_price, int supply, int quantity);
-bool vessel_trade_run_simulation(int trade_count,
-                                 struct vessel_trade_simulation_result *result);
+bool vessel_trade_run_simulation(int trade_count, struct vessel_trade_simulation_result *result);
 bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result *result);
 bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
@@ -713,8 +709,7 @@ int vessel_weather_severity_from_value(int weather);
 int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 bool vessel_build_ambient_message(enum vessel_class vessel_type, int weather, int speed,
                                   int maxspeed, int z, char *output, size_t output_size);
-char *vessel_create_at_sea_description(struct char_data *ch,
-                                       const struct greyhawk_ship_data *ship);
+char *vessel_create_at_sea_description(struct char_data *ch, const struct greyhawk_ship_data *ship);
 void vessel_narrative_tick(void);
 bool vessel_narrative_force_ship(struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
@@ -725,12 +720,9 @@ bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *regi
 bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
 bool vessel_encounter_region_at_coordinates(int x, int y, int *output_region_vnum);
 bool vessel_encounter_chance_succeeds(int chance, int roll);
-bool vessel_encounter_candidate_matches(int candidate_region_vnum,
-                                        int candidate_vessel_class,
-                                        int min_depth, int max_depth,
-                                        int ship_region_vnum,
-                                        enum vessel_class ship_class,
-                                        int depth_units);
+bool vessel_encounter_candidate_matches(int candidate_region_vnum, int candidate_vessel_class,
+                                        int min_depth, int max_depth, int ship_region_vnum,
+                                        enum vessel_class ship_class, int depth_units);
 bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
                                  int claimed_capacity);
 int vessel_encounter_cached_room_index(room_rnum room, const room_rnum *cached_rooms,
@@ -741,25 +733,17 @@ int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
 void vessel_hunter_ensure_schema(void);
 void vessel_hunter_boot(void);
 void vessel_hunter_tick(void);
-int vessel_hunter_load_config(int encounter_id,
-                              struct vessel_hunter_config *config);
+int vessel_hunter_load_config(int encounter_id, struct vessel_hunter_config *config);
 bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config);
-bool vessel_hunter_lifecycle_allows_spawn(const char *status,
-                                          time_t next_eligible_at,
-                                          time_t now);
-bool vessel_hunter_target_is_eligible(
-    const struct greyhawk_ship_data *target,
-    const struct vessel_hunter_config *config, time_t now);
+bool vessel_hunter_lifecycle_allows_spawn(const char *status, time_t next_eligible_at, time_t now);
+bool vessel_hunter_target_is_eligible(const struct greyhawk_ship_data *target,
+                                      const struct vessel_hunter_config *config, time_t now);
 bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
-                         const struct vessel_hunter_config *config,
-                         const char *encounter_name);
+                         const struct vessel_hunter_config *config, const char *encounter_name);
 void vessel_hunter_handle_sink(struct greyhawk_ship_data *ship);
-void vessel_hunter_handle_capture(struct char_data *ch,
-                                  struct greyhawk_ship_data *ship);
-void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship,
-                                const char *staff_name);
-void vessel_hunter_handle_player_rename(const char *old_name,
-                                        const char *new_name);
+void vessel_hunter_handle_capture(struct char_data *ch, struct greyhawk_ship_data *ship);
+void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship, const char *staff_name);
+void vessel_hunter_handle_player_rename(const char *old_name, const char *new_name);
 void vessel_hunter_handle_player_removal(const char *player_name);
 
 ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
@@ -771,10 +755,10 @@ ACMD_DECL(do_seastate); /* Report weather, sea state, and sight range */
 void vessel_msdp_update(struct char_data *ch);
 void vessel_msdp_tick(void);
 
-ACMD_DECL(do_shiplist); /* Staff: fleet overview + room pool health */
-ACMD_DECL(do_shipgoto); /* Staff: teleport to a ship */
-ACMD_DECL(do_shipfix);  /* Staff: restore a ship to full condition */
-ACMD_DECL(do_shippurge); /* Staff: destroy one runtime ship safely */
+ACMD_DECL(do_shiplist);    /* Staff: fleet overview + room pool health */
+ACMD_DECL(do_shipgoto);    /* Staff: teleport to a ship */
+ACMD_DECL(do_shipfix);     /* Staff: restore a ship to full condition */
+ACMD_DECL(do_shippurge);   /* Staff: destroy one runtime ship safely */
 ACMD_DECL(do_vesseldebug); /* Staff: focused runtime debug categories */
 
 /* ========================================================================= */
@@ -821,8 +805,7 @@ bool vessel_has_letter_of_marque(const char *player_name);
 const char *vessel_waters_type_name(int waters_type);
 int vessel_piracy_bounty_for_units(int cargo_units, int bounty_percent);
 bool vessel_piracy_wanted_port_is_open(const struct vessel_piracy_law *law);
-bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count,
-                                    int x, int y);
+bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_count, int x, int y);
 bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law);
 bool vessel_piracy_law_for_ship(const struct greyhawk_ship_data *ship,
                                 struct vessel_piracy_law *law);
@@ -846,19 +829,15 @@ ACMD_DECL(do_marque);  /* Buy a letter of marque (legal privateering) */
 void vessel_merchant_ensure_schema(void);
 void vessel_merchant_boot(void);
 void vessel_merchant_tick(void);
-void vessel_merchant_note_attacker(struct char_data *ch,
-                                   struct greyhawk_ship_data *ship);
-void vessel_merchant_record_plunder(struct char_data *ch,
-                                    struct greyhawk_ship_data *ship,
+void vessel_merchant_note_attacker(struct char_data *ch, struct greyhawk_ship_data *ship);
+void vessel_merchant_record_plunder(struct char_data *ch, struct greyhawk_ship_data *ship,
                                     int cargo_units, int bounty_delta);
 void vessel_merchant_handle_sink(struct greyhawk_ship_data *ship);
-void vessel_merchant_handle_capture(struct char_data *ch,
-                                    struct greyhawk_ship_data *ship);
-void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship,
-                                  const char *staff_name);
+void vessel_merchant_handle_capture(struct char_data *ch, struct greyhawk_ship_data *ship);
+void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship, const char *staff_name);
 int vessel_merchant_deliver_pending_consequences(struct char_data *ch);
-bool vessel_merchant_should_spawn(bool enabled, int active_ship_id,
-                                  time_t next_respawn_at, time_t now);
+bool vessel_merchant_should_spawn(bool enabled, int active_ship_id, time_t next_respawn_at,
+                                  time_t now);
 bool vessel_merchant_responsibility_active(time_t attacked_at, time_t now);
 int vessel_merchant_faction_penalty(int cargo_units, bool total_loss);
 ACMD_DECL(do_vmerchant); /* Staff: inspect, synchronize, or test merchant loss */
@@ -888,10 +867,9 @@ bool vessel_room_is_port(room_rnum room);
 bool vessel_room_is_fee_berth(const struct greyhawk_ship_data *ship, room_rnum room);
 bool vessel_ship_is_in_port(const struct greyhawk_ship_data *ship);
 int vessel_dock_fee_for_class(enum vessel_class vessel_type);
-int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum,
-                           int owner_clan_vnum);
-bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship,
-                                 room_rnum old_room, bool old_is_port);
+int vessel_assess_dock_fee(struct greyhawk_ship_data *ship, int port_vnum, int owner_clan_vnum);
+bool vessel_clear_departed_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
+                                 bool old_is_port);
 void vessel_update_port_berth(struct greyhawk_ship_data *ship, room_rnum old_room,
                               room_rnum new_room, bool old_is_port);
 int vessel_passenger_fare(const struct greyhawk_ship_data *ship);
@@ -902,8 +880,7 @@ const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
 int vessel_crew_wage(int position, int tier);
 int vessel_crew_wage_batch_for_slot(int ship_slot);
-int vessel_crew_departure_delete_query(char *query, size_t query_size,
-                                       const int *ship_slots,
+int vessel_crew_departure_delete_query(char *query, size_t query_size, const int *ship_slots,
                                        const int *positions, int count);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_crew_wage_tick(void);
@@ -922,11 +899,10 @@ bool vessel_handle_player_removal(const char *player_name);
 /* Shipyard (Phase 06, vessels_edit.c) */
 int vessel_prototype_price(int vclass, int max_speed, int armor);
 int vessel_spawn_from_prototype(struct char_data *ch, int id);
-int vessel_spawn_public_from_prototype_at(int id, const char *instance_name,
-                                          int x, int y, int z);
-ACMD_DECL(do_shipbrowse);   /* Shipyard catalog with prices */
-ACMD_DECL(do_shipbuy);      /* Purchase a hull at a dock */
-ACMD_DECL(do_shipchristen); /* Owner: rename the ship */
+int vessel_spawn_public_from_prototype_at(int id, const char *instance_name, int x, int y, int z);
+ACMD_DECL(do_shipbrowse);    /* Shipyard catalog with prices */
+ACMD_DECL(do_shipbuy);       /* Purchase a hull at a dock */
+ACMD_DECL(do_shipchristen);  /* Owner: rename the ship */
 ACMD_DECL(do_shipcustomize); /* Owner: set paint and figurehead */
 
 ACMD_DECL(do_shippermit);  /* Owner: clear a player to take the helm */
@@ -1171,8 +1147,8 @@ struct greyhawk_ship_crew
 
 /* VNUM range for dynamically generated ship interior rooms */
 /* Slot 0 is reserved; active slots 1-500 use 70020-80019. */
-#define SHIP_INTERIOR_VNUM_BASE 70000 /* Base VNUM for ship interiors */
-#define SHIP_INTERIOR_VNUM_MAX 80019  /* Last interior VNUM for ship slot 500 */
+#define SHIP_INTERIOR_VNUM_BASE 70000   /* Base VNUM for ship interiors */
+#define SHIP_INTERIOR_VNUM_MAX 80019    /* Last interior VNUM for ship slot 500 */
 #define VESSEL_BASE_HULL_OBJ_VNUM 70002 /* Generic boardable vessel object */
 
 /* Ship room types for multi-room vessels */
@@ -1253,9 +1229,9 @@ struct autopilot_data
   int wait_remaining;               /* Seconds left at current waypoint */
   time_t last_update;               /* Timestamp of last state update */
   int pilot_mob_vnum;               /* VNUM of NPC pilot (-1 if none) */
-  uint64_t movement_steps;           /* Successful autonomous position updates */
-  uint64_t waypoint_arrivals;        /* Waypoints reached since initialization */
-  uint64_t route_completions;        /* Complete route traversals */
+  uint64_t movement_steps;          /* Successful autonomous position updates */
+  uint64_t waypoint_arrivals;       /* Waypoints reached since initialization */
+  uint64_t route_completions;       /* Complete route traversals */
 };
 
 /**
@@ -1391,9 +1367,9 @@ struct greyhawk_ship_data
   bool waters_region_initialized;
 
   /* Phase 5: Naval combat */
-  int last_attacker; /* Fleet index of last ship to fire on us (0 = none) */
-  time_t pvp_grace_until;       /* End of the bounded combat-logout window */
-  char pvp_grace_attacker[64];  /* Only this already-consented player may continue */
+  int last_attacker;           /* Fleet index of last ship to fire on us (0 = none) */
+  time_t pvp_grace_until;      /* End of the bounded combat-logout window */
+  char pvp_grace_attacker[64]; /* Only this already-consented player may continue */
 
   /* Phase 15: runtime cache for a durable bounty-hunter lifecycle. The
    * canonical row lives in vessel_bounty_hunts and is reattached at boot. */

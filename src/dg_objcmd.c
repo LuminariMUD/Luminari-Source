@@ -23,7 +23,7 @@
 
 /* Local functions */
 #define OCMD(name)                                                                                 \
-  void(name)(obj_data * obj __attribute__((unused)), char *argument __attribute__((unused)),      \
+  void(name)(obj_data * obj __attribute__((unused)), char *argument __attribute__((unused)),       \
              int cmd __attribute__((unused)), int subcmd __attribute__((unused)))
 
 static void obj_log(obj_data *obj, const char *format, ...);

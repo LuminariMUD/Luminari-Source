@@ -531,7 +531,8 @@ int copy_object_preserve(struct obj_data *to, struct obj_data *from)
   return copy_object_main(to, from, FALSE);
 }
 
-int copy_object_main(struct obj_data *to, struct obj_data *from, int free_object __attribute__((unused)))
+int copy_object_main(struct obj_data *to, struct obj_data *from,
+                     int free_object __attribute__((unused)))
 {
   *to = *from;
   copy_object_strings(to, from);

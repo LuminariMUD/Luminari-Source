@@ -418,8 +418,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
   }
 
   if (quest->type != AQ_MOB_MULTI_KILL)
-    snprintf(buf3, sizeof(buf3), "%6d",
-             (quest->target == (int)NOBODY ? -1 : quest->target));
+    snprintf(buf3, sizeof(buf3), "%6d", (quest->target == (int)NOBODY ? -1 : quest->target));
 
   write_to_output(
       d,
@@ -465,8 +464,7 @@ static void qedit_disp_menu(struct descriptor_data *d)
 
       quest->coord_x, quest->coord_y, quest->value[6], quest->value[0], quest->value[1],
       quest->gold_reward, quest->exp_reward,
-      quest->obj_reward == NOTHING ? -1 : (int)quest->obj_reward,
-      quest->race_reward,
+      quest->obj_reward == NOTHING ? -1 : (int)quest->obj_reward, quest->race_reward,
       (quest->race_reward > RACE_UNDEFINED && quest->race_reward < NUM_EXTENDED_RACES)
           ? race_list[quest->race_reward].type_color
           : "n/a",
@@ -842,8 +840,7 @@ void qedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC_QUEST(d)->dialogue_alternative_quest =
-        (number == -1 ? NOTHING : (qst_vnum)number);
+    OLC_QUEST(d)->dialogue_alternative_quest = (number == -1 ? NOTHING : (qst_vnum)number);
     show_quest_dialogue_menu(d);
     OLC_MODE(d) = QEDIT_DIALOGUE_MENU;
     return;

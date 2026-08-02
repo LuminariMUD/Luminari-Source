@@ -8217,8 +8217,8 @@ ACMD(do_levels)
   }
 
   if (max_lev == LVL_IMMORT)
-    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld          : Immortality\r\n", LVL_IMMORT,
-                          level_exp(ch, LVL_IMMORT));
+    len = snprintf_append(buf, sizeof(buf), len, "[%2d] %8ld          : Immortality\r\n",
+                          LVL_IMMORT, level_exp(ch, LVL_IMMORT));
   page_string(ch->desc, buf, TRUE);
 }
 
@@ -9376,10 +9376,9 @@ ACMD(do_areas)
         overlap_shown = TRUE;
       lev_set = get_zone_levels(i, lev_str);
       name_width = count_color_chars(zone_table[i].name) + 40;
-      len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n",
-                            ++zcount, overlap ? QRED : QCYN, name_width, name_width,
-                            zone_table[i].name, lev_set ? "\tc" : "\tn",
-                            lev_set ? lev_str : "All Levels");
+      len = snprintf_append(buf, sizeof(buf), len, "\tn(%3d) %s%-*.*s\tn %s%.64s\tn\r\n", ++zcount,
+                            overlap ? QRED : QCYN, name_width, name_width, zone_table[i].name,
+                            lev_set ? "\tc" : "\tn", lev_set ? lev_str : "All Levels");
       snprintf(zone_num, sizeof(zone_num), " \tc[%3d]\tn  ", zone_table[i].number);
       snprintf(areas[num_areas], sizeof(areas[num_areas]), "\tn %-*.*s\tn %s%s%.64s\tn\r\n",
                name_width, name_width, zone_table[i].name, zone_num, lev_set ? "\tc" : "\tn",
@@ -9403,9 +9402,10 @@ ACMD(do_areas)
   len = snprintf_append(
       buf, sizeof(buf), len,
       "To show all areas type 'areas all', or to filter zones by level see HELP AREAS.\r\n");
-  len = snprintf_append(buf, sizeof(buf), len,
-                        "To show more information on a specific zone, type HELP (zone name as shown "
-                        "in areas command).\r\n");
+  len =
+      snprintf_append(buf, sizeof(buf), len,
+                      "To show more information on a specific zone, type HELP (zone name as shown "
+                      "in areas command).\r\n");
 #else
   len = snprintf_append(buf, sizeof(buf), len, "More areas are listed in HELP ZONES");
 #endif

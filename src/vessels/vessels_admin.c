@@ -358,20 +358,18 @@ ACMD(do_shiplist)
       {
         strlcpy(registry, ship->owner, sizeof(registry));
       }
-      else if (ship->merchant_id > 0 &&
-               ship->merchant_faction_id >= FACTION_NONE &&
+      else if (ship->merchant_id > 0 && ship->merchant_faction_id >= FACTION_NONE &&
                ship->merchant_faction_id < NUM_FACTIONS)
       {
-        snprintf(registry, sizeof(registry), "merchant/%s",
-                 factions[ship->merchant_faction_id]);
+        snprintf(registry, sizeof(registry), "merchant/%s", factions[ship->merchant_faction_id]);
       }
       else
       {
         strlcpy(registry, "-", sizeof(registry));
       }
-      send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i,
-                   ship->name, get_vessel_type_name(ship->vessel_type), (int)ship->x,
-                   (int)ship->y, ship->heading, ship->speed, vessel_total_internal(ship),
+      send_to_char(ch, "%4d %-25.25s %-10.10s (%5d,%5d) %3d %3d %3d/%-3d %s\r\n", i, ship->name,
+                   get_vessel_type_name(ship->vessel_type), (int)ship->x, (int)ship->y,
+                   ship->heading, ship->speed, vessel_total_internal(ship),
                    vessel_max_internal(ship), registry);
     }
     listed++;
@@ -562,8 +560,7 @@ ACMD(do_shippurge)
   parsed_slot = strtol(arg, &end, 10);
   if (!*arg || *end != '\0' || parsed_slot < 2 || parsed_slot >= GREYHAWK_MAXSHIPS)
   {
-    send_to_char(ch, "Usage: shippurge <slot 2-%d> (see 'shiplist').\r\n",
-                 GREYHAWK_MAXSHIPS - 1);
+    send_to_char(ch, "Usage: shippurge <slot 2-%d> (see 'shiplist').\r\n", GREYHAWK_MAXSHIPS - 1);
     return;
   }
 
@@ -620,9 +617,8 @@ ACMD(do_shippurge)
 
   memset(ship, 0, sizeof(*ship));
 
-  send_to_char(ch, "Purged ship %d '%s': reclaimed %d room%s and released %d vehicle%s.\r\n",
-               slot, ship_name, reclaimed, reclaimed == 1 ? "" : "s", released,
-               released == 1 ? "" : "s");
+  send_to_char(ch, "Purged ship %d '%s': reclaimed %d room%s and released %d vehicle%s.\r\n", slot,
+               ship_name, reclaimed, reclaimed == 1 ? "" : "s", released, released == 1 ? "" : "s");
   log("Info: %s purged ship %d '%s' (%d rooms, %d vehicles)", GET_NAME(ch), slot, ship_name,
       reclaimed, released);
 }

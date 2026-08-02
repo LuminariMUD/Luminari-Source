@@ -710,10 +710,10 @@ void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
 
   begin_gameplay_fixture(&fixture);
 
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human",
-                        DIR_NONE, NORTH, 100);
-  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human",
-                        DIR_NONE, NORTH, 200);
+  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
+                        100);
+  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human", DIR_NONE, NORTH,
+                        200);
   trail_count = count_live_movement_trails();
   CuAssertIntEquals(tc, 1, (int)trail_count);
   CuAssertIntEquals(tc, 200, (int)fixture.rooms[0].trail_tracks->head->age);
@@ -721,8 +721,7 @@ void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
   for (i = 0; i < TRAIL_MAX_PER_ROOM + 5; i++)
   {
     snprintf(name, sizeof(name), "walker %d", i);
-    movement_trail_record(fixture.rooms[0].trail_tracks, name, "human",
-                          DIR_NONE, NORTH, 300 + i);
+    movement_trail_record(fixture.rooms[0].trail_tracks, name, "human", DIR_NONE, NORTH, 300 + i);
   }
   trail_count = count_live_movement_trails();
   trail = fixture.rooms[0].trail_tracks->head;

@@ -166,24 +166,23 @@ extern struct special_ability_info_type special_ability_info[NUM_SPECABS];
 /* Macros for defining the actual abilities */
 #define WEAPON_SPECIAL_ABILITY(abilityname)                                                        \
   void abilityname(struct obj_special_ability *specab __attribute__((unused)),                     \
-                   struct obj_data *weapon __attribute__((unused)),                               \
-                   struct char_data *ch __attribute__((unused)),                                  \
-                   struct char_data *victim __attribute__((unused)),                              \
+                   struct obj_data *weapon __attribute__((unused)),                                \
+                   struct char_data *ch __attribute__((unused)),                                   \
+                   struct char_data *victim __attribute__((unused)),                               \
                    int actmtd __attribute__((unused)))
 
 #define ARMOR_SPECIAL_ABILITY(abilityname)                                                         \
   void abilityname(struct obj_special_ability *specab __attribute__((unused)),                     \
-                   struct obj_data *armor __attribute__((unused)),                                \
-                   struct char_data *ch __attribute__((unused)),                                  \
-                   struct char_data *victim __attribute__((unused)),                              \
+                   struct obj_data *armor __attribute__((unused)),                                 \
+                   struct char_data *ch __attribute__((unused)),                                   \
+                   struct char_data *victim __attribute__((unused)),                               \
                    int actmtd __attribute__((unused)))
 
 #define ITEM_SPECIAL_ABILITY(abilityname)                                                          \
-  void abilityname(struct obj_special_ability *specab __attribute__((unused)),                     \
-                   struct obj_data *obj __attribute__((unused)),                                  \
-                   struct char_data *ch __attribute__((unused)),                                  \
-                   struct char_data *victim __attribute__((unused)),                              \
-                   int actmtd __attribute__((unused)))
+  void abilityname(                                                                                \
+      struct obj_special_ability *specab __attribute__((unused)),                                  \
+      struct obj_data *obj __attribute__((unused)), struct char_data *ch __attribute__((unused)),  \
+      struct char_data *victim __attribute__((unused)), int actmtd __attribute__((unused)))
 
 void initialize_special_abilities(void);
 

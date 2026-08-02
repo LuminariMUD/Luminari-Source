@@ -51,8 +51,8 @@ bool new_mail_send_system(const char *receiver, const char *subject, const char 
   size_t query_size;
   bool sent;
 
-  if (!mysql_available || conn == NULL || receiver == NULL || !*receiver ||
-      subject == NULL || message == NULL)
+  if (!mysql_available || conn == NULL || receiver == NULL || !*receiver || subject == NULL ||
+      message == NULL)
   {
     return FALSE;
   }
@@ -68,8 +68,7 @@ bool new_mail_send_system(const char *receiver, const char *subject, const char 
     return FALSE;
   }
 
-  query_size = strlen(escaped_receiver) + strlen(escaped_subject) +
-               strlen(escaped_message) + 256;
+  query_size = strlen(escaped_receiver) + strlen(escaped_subject) + strlen(escaped_message) + 256;
   CREATE(query, char, query_size);
   snprintf(query, query_size,
            "INSERT INTO player_mail "

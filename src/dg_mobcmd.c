@@ -1331,7 +1331,7 @@ ACMD(do_mdoor)
       strcpy(newexit->keyword, value);
       break;
     case 5: /* room        */
-  if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
+      if ((to_room = (int)real_room(atoi(value))) != (int)NOWHERE)
         newexit->to_room = to_room;
       else
       {

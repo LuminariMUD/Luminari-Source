@@ -212,7 +212,8 @@ static void sedit_setup_new(struct descriptor_data *d)
   OLC_SHOP(d) = shop;
 }
 
-void sedit_setup_existing(struct descriptor_data *d, int rshop_num, int mode __attribute__((unused)))
+void sedit_setup_existing(struct descriptor_data *d, int rshop_num,
+                          int mode __attribute__((unused)))
 {
   /* Create a scratch shop structure. */
   CREATE(OLC_SHOP(d), struct shop_data, 1);

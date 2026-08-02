@@ -781,13 +781,15 @@ void spatial_cleanup_cache(void)
   /* TODO: Implement cache cleanup */
 }
 
-int spatial_cache_result(struct spatial_context *ctx __attribute__((unused)), float result __attribute__((unused)))
+int spatial_cache_result(struct spatial_context *ctx __attribute__((unused)),
+                         float result __attribute__((unused)))
 {
   /* TODO: Implement result caching */
   return SPATIAL_SUCCESS;
 }
 
-int spatial_get_cached_result(struct spatial_context *ctx __attribute__((unused)), float *cached_result __attribute__((unused)))
+int spatial_get_cached_result(struct spatial_context *ctx __attribute__((unused)),
+                              float *cached_result __attribute__((unused)))
 {
   /* TODO: Implement cache lookup */
   return SPATIAL_ERROR_NOT_IMPLEMENTED;

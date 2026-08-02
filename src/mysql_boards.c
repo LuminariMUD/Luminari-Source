@@ -964,7 +964,8 @@ bool mysql_board_can_delete(struct char_data *ch, struct mysql_board_config *boa
 /*
  * Delete a post
  */
-bool mysql_board_delete_post(struct char_data *ch __attribute__((unused)), int board_id, int post_id)
+bool mysql_board_delete_post(struct char_data *ch __attribute__((unused)), int board_id,
+                             int post_id)
 {
   char query[256];
 

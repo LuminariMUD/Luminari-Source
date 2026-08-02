@@ -95,13 +95,11 @@ void vessel_hunter_ensure_schema(void)
 
   if (mysql_query(conn, config_sql))
   {
-    log("SYSERR: Could not create vessel_hunter_encounters: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not create vessel_hunter_encounters: %s", mysql_error(conn));
   }
   if (mysql_query(conn, hunt_sql))
   {
-    log("SYSERR: Could not create vessel_bounty_hunts: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not create vessel_bounty_hunts: %s", mysql_error(conn));
   }
 }
 
@@ -110,15 +108,12 @@ void vessel_hunter_ensure_schema(void)
  */
 bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config)
 {
-  if (config == NULL || config->encounter_id <= 0 ||
-      config->prototype_id <= 0 || config->pilot_mob_vnum <= 0 ||
-      config->min_bounty < BOUNTY_HUNTED ||
-      config->pursuit_speed <= 0 ||
-      config->pursuit_speed > VESSEL_HUNTER_PURSUIT_SPEED_MAX ||
+  if (config == NULL || config->encounter_id <= 0 || config->prototype_id <= 0 ||
+      config->pilot_mob_vnum <= 0 || config->min_bounty < BOUNTY_HUNTED ||
+      config->pursuit_speed <= 0 || config->pursuit_speed > VESSEL_HUNTER_PURSUIT_SPEED_MAX ||
       config->hunt_duration_seconds < VESSEL_HUNTER_DURATION_MIN ||
       config->hunt_duration_seconds > VESSEL_HUNTER_DURATION_MAX ||
-      config->target_grace_seconds < 0 ||
-      config->target_grace_seconds > VESSEL_HUNTER_GRACE_MAX ||
+      config->target_grace_seconds < 0 || config->target_grace_seconds > VESSEL_HUNTER_GRACE_MAX ||
       config->cooldown_seconds < VESSEL_HUNTER_COOLDOWN_MIN ||
       config->cooldown_seconds > VESSEL_HUNTER_COOLDOWN_MAX)
   {
@@ -131,12 +126,9 @@ bool vessel_hunter_config_is_valid(const struct vessel_hunter_config *config)
  * A stored target row is reusable only after a recognized cooldown expires.
  * Missing rows are handled separately as first-generation hunts.
  */
-bool vessel_hunter_lifecycle_allows_spawn(const char *status,
-                                          time_t next_eligible_at,
-                                          time_t now)
+bool vessel_hunter_lifecycle_allows_spawn(const char *status, time_t next_eligible_at, time_t now)
 {
-  return status != NULL && !str_cmp(status, "cooldown") &&
-         next_eligible_at <= now;
+  return status != NULL && !str_cmp(status, "cooldown") && next_eligible_at <= now;
 }
 
 /**
@@ -144,15 +136,13 @@ bool vessel_hunter_lifecycle_allows_spawn(const char *status,
  *
  * @return 1 for a configured hunter, 0 for a generic encounter, -1 on error
  */
-int vessel_hunter_load_config(int encounter_id,
-                              struct vessel_hunter_config *config)
+int vessel_hunter_load_config(int encounter_id, struct vessel_hunter_config *config)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
   char query[MAX_STRING_LENGTH];
 
-  if (!mysql_available || conn == NULL || encounter_id <= 0 ||
-      config == NULL)
+  if (!mysql_available || conn == NULL || encounter_id <= 0 || config == NULL)
   {
     return -1;
   }
@@ -166,8 +156,7 @@ int vessel_hunter_load_config(int encounter_id,
            encounter_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Bounty-hunter encounter %d query failed: %s", encounter_id,
-        mysql_error(conn));
+    log("SYSERR: Bounty-hunter encounter %d query failed: %s", encounter_id, mysql_error(conn));
     return -1;
   }
 
@@ -196,15 +185,13 @@ int vessel_hunter_load_config(int encounter_id,
 
   if (!vessel_hunter_config_is_valid(config))
   {
-    log("SYSERR: Bounty-hunter encounter %d has invalid policy values",
-        encounter_id);
+    log("SYSERR: Bounty-hunter encounter %d has invalid policy values", encounter_id);
     return -1;
   }
   return 1;
 }
 
-static struct char_data *vessel_hunter_online_owner_aboard(
-    const struct greyhawk_ship_data *target)
+static struct char_data *vessel_hunter_online_owner_aboard(const struct greyhawk_ship_data *target)
 {
   struct char_data *character;
 
@@ -213,13 +200,10 @@ static struct char_data *vessel_hunter_online_owner_aboard(
     return NULL;
   }
 
-  for (character = character_list; character != NULL;
-       character = character->next)
+  for (character = character_list; character != NULL; character = character->next)
   {
-    if (IS_NPC(character) || character->desc == NULL ||
-        GET_NAME(character) == NULL ||
-        str_cmp(GET_NAME(character), target->owner) ||
-        IN_ROOM(character) == NOWHERE)
+    if (IS_NPC(character) || character->desc == NULL || GET_NAME(character) == NULL ||
+        str_cmp(GET_NAME(character), target->owner) || IN_ROOM(character) == NOWHERE)
     {
       continue;
     }
@@ -231,8 +215,7 @@ static struct char_data *vessel_hunter_online_owner_aboard(
   return NULL;
 }
 
-static bool vessel_hunter_lifecycle_is_available(const char *target_name,
-                                                  time_t now)
+static bool vessel_hunter_lifecycle_is_available(const char *target_name, time_t now)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -247,16 +230,14 @@ static bool vessel_hunter_lifecycle_is_available(const char *target_name,
     return FALSE;
   }
 
-  mysql_real_escape_string(conn, escaped_name, target_name,
-                           strlen(target_name));
+  mysql_real_escape_string(conn, escaped_name, target_name, strlen(target_name));
   snprintf(query, sizeof(query),
            "SELECT status, next_eligible_at FROM vessel_bounty_hunts "
            "WHERE target_player = '%s'",
            escaped_name);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not read bounty-hunt lifecycle for %s: %s",
-        target_name, mysql_error(conn));
+    log("SYSERR: Could not read bounty-hunt lifecycle for %s: %s", target_name, mysql_error(conn));
     return FALSE;
   }
 
@@ -274,8 +255,7 @@ static bool vessel_hunter_lifecycle_is_available(const char *target_name,
 
   status = row[0] ? row[0] : "";
   next_eligible_at = row[1] ? (time_t)atoll(row[1]) : 0;
-  available =
-      vessel_hunter_lifecycle_allows_spawn(status, next_eligible_at, now);
+  available = vessel_hunter_lifecycle_allows_spawn(status, next_eligible_at, now);
   mysql_free_result(result);
   return available;
 }
@@ -284,14 +264,12 @@ static bool vessel_hunter_lifecycle_is_available(const char *target_name,
  * A hunter may target only a moving, player-owned hull whose exact owner is
  * online aboard it and currently meets the configured HUNTED threshold.
  */
-bool vessel_hunter_target_is_eligible(
-    const struct greyhawk_ship_data *target,
-    const struct vessel_hunter_config *config, time_t now)
+bool vessel_hunter_target_is_eligible(const struct greyhawk_ship_data *target,
+                                      const struct vessel_hunter_config *config, time_t now)
 {
   if (!mysql_available || conn == NULL || !is_valid_ship(target) ||
-      !vessel_hunter_config_is_valid(config) || !config->enabled ||
-      target->speed == 0 || target->owner[0] == '\0' ||
-      vessel_hunter_online_owner_aboard(target) == NULL ||
+      !vessel_hunter_config_is_valid(config) || !config->enabled || target->speed == 0 ||
+      target->owner[0] == '\0' || vessel_hunter_online_owner_aboard(target) == NULL ||
       vessel_get_bounty(target->owner) < config->min_bounty)
   {
     return FALSE;
@@ -300,11 +278,11 @@ bool vessel_hunter_target_is_eligible(
   return vessel_hunter_lifecycle_is_available(target->owner, now);
 }
 
-static bool vessel_hunter_claim_lifecycle(
-    const struct greyhawk_ship_data *target,
-    const struct vessel_hunter_config *config, const char *encounter_name,
-    time_t now, unsigned long long *generation, char *hunter_name,
-    size_t hunter_name_size)
+static bool vessel_hunter_claim_lifecycle(const struct greyhawk_ship_data *target,
+                                          const struct vessel_hunter_config *config,
+                                          const char *encounter_name, time_t now,
+                                          unsigned long long *generation, char *hunter_name,
+                                          size_t hunter_name_size)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
@@ -316,14 +294,13 @@ static bool vessel_hunter_claim_lifecycle(
   time_t next_eligible_at;
   bool exists;
 
-  if (target == NULL || config == NULL || encounter_name == NULL ||
-      generation == NULL || hunter_name == NULL || hunter_name_size == 0)
+  if (target == NULL || config == NULL || encounter_name == NULL || generation == NULL ||
+      hunter_name == NULL || hunter_name_size == 0)
   {
     return FALSE;
   }
 
-  mysql_real_escape_string(conn, escaped_target, target->owner,
-                           strlen(target->owner));
+  mysql_real_escape_string(conn, escaped_target, target->owner, strlen(target->owner));
   if (mysql_query(conn, "START TRANSACTION"))
   {
     return FALSE;
@@ -348,8 +325,7 @@ static bool vessel_hunter_claim_lifecycle(
   old_generation = exists && row[0] ? strtoull(row[0], NULL, 10) : 0;
   status = exists && row[1] ? row[1] : "";
   next_eligible_at = exists && row[2] ? (time_t)atoll(row[2]) : 0;
-  if ((exists && !vessel_hunter_lifecycle_allows_spawn(
-                     status, next_eligible_at, now)) ||
+  if ((exists && !vessel_hunter_lifecycle_allows_spawn(status, next_eligible_at, now)) ||
       old_generation == ULLONG_MAX)
   {
     mysql_free_result(result);
@@ -359,10 +335,9 @@ static bool vessel_hunter_claim_lifecycle(
   mysql_free_result(result);
 
   *generation = old_generation + 1;
-  snprintf(hunter_name, hunter_name_size, "%.54s #%llu hunting %.40s",
-           encounter_name, *generation, target->owner);
-  mysql_real_escape_string(conn, escaped_hunter_name, hunter_name,
-                           strlen(hunter_name));
+  snprintf(hunter_name, hunter_name_size, "%.54s #%llu hunting %.40s", encounter_name, *generation,
+           target->owner);
+  mysql_real_escape_string(conn, escaped_hunter_name, hunter_name, strlen(hunter_name));
 
   if (exists)
   {
@@ -372,10 +347,8 @@ static bool vessel_hunter_claim_lifecycle(
              "hunter_name = '%s', generation = %llu, status = 'spawning', "
              "started_at = %lld, expires_at = %lld, next_eligible_at = 0, "
              "ended_at = 0, end_reason = '' WHERE target_player = '%s'",
-             config->encounter_id, target->shipnum, escaped_hunter_name,
-             *generation, (long long)now,
-             (long long)(now + config->hunt_duration_seconds),
-             escaped_target);
+             config->encounter_id, target->shipnum, escaped_hunter_name, *generation,
+             (long long)now, (long long)(now + config->hunt_duration_seconds), escaped_target);
   }
   else
   {
@@ -386,9 +359,8 @@ static bool vessel_hunter_claim_lifecycle(
              "next_eligible_at, ended_at, end_reason) VALUES "
              "('%s', %d, %d, NULL, '%s', %llu, 'spawning', %lld, %lld, "
              "0, 0, '')",
-             escaped_target, config->encounter_id, target->shipnum,
-             escaped_hunter_name, *generation, (long long)now,
-             (long long)(now + config->hunt_duration_seconds));
+             escaped_target, config->encounter_id, target->shipnum, escaped_hunter_name,
+             *generation, (long long)now, (long long)(now + config->hunt_duration_seconds));
   }
   if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
   {
@@ -401,34 +373,29 @@ static bool vessel_hunter_claim_lifecycle(
   return TRUE;
 
 rollback:
-  log("SYSERR: Could not claim bounty-hunt lifecycle for %s: %s",
-      target->owner, mysql_error(conn));
+  log("SYSERR: Could not claim bounty-hunt lifecycle for %s: %s", target->owner, mysql_error(conn));
   mysql_query(conn, "ROLLBACK");
   return FALSE;
 }
 
-static bool vessel_hunter_set_cooldown(const char *target_name,
-                                       unsigned long long generation,
-                                       int hunter_ship_id,
-                                       const char *reason,
-                                       int cooldown_seconds)
+static bool vessel_hunter_set_cooldown(const char *target_name, unsigned long long generation,
+                                       int hunter_ship_id, const char *reason, int cooldown_seconds)
 {
   char escaped_target[129];
   char escaped_reason[VESSEL_HUNTER_REASON_LENGTH * 2 + 1];
   char query[MAX_STRING_LENGTH];
   time_t now;
 
-  if (!mysql_available || conn == NULL || target_name == NULL ||
-      !*target_name || reason == NULL || generation == 0)
+  if (!mysql_available || conn == NULL || target_name == NULL || !*target_name || reason == NULL ||
+      generation == 0)
   {
     return FALSE;
   }
 
   now = time(0);
-  cooldown_seconds = MAX(VESSEL_HUNTER_COOLDOWN_MIN,
-                         MIN(VESSEL_HUNTER_COOLDOWN_MAX, cooldown_seconds));
-  mysql_real_escape_string(conn, escaped_target, target_name,
-                           strlen(target_name));
+  cooldown_seconds =
+      MAX(VESSEL_HUNTER_COOLDOWN_MIN, MIN(VESSEL_HUNTER_COOLDOWN_MAX, cooldown_seconds));
+  mysql_real_escape_string(conn, escaped_target, target_name, strlen(target_name));
   mysql_real_escape_string(conn, escaped_reason, reason, strlen(reason));
   snprintf(query, sizeof(query),
            "UPDATE vessel_bounty_hunts SET hunter_ship_id = NULL, "
@@ -436,20 +403,17 @@ static bool vessel_hunter_set_cooldown(const char *target_name,
            "end_reason = '%s' WHERE target_player = '%s' "
            "AND generation = %llu AND status IN ('active', 'spawning') "
            "AND (%d <= 0 OR hunter_ship_id = %d OR hunter_ship_id IS NULL)",
-           (long long)(now + cooldown_seconds), (long long)now,
-           escaped_reason, escaped_target, generation, hunter_ship_id,
-           hunter_ship_id);
+           (long long)(now + cooldown_seconds), (long long)now, escaped_reason, escaped_target,
+           generation, hunter_ship_id, hunter_ship_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not end bounty hunt for %s: %s", target_name,
-        mysql_error(conn));
+    log("SYSERR: Could not end bounty hunt for %s: %s", target_name, mysql_error(conn));
     return FALSE;
   }
   return mysql_affected_rows(conn) == 1;
 }
 
-static bool vessel_hunter_assign_pilot(struct greyhawk_ship_data *ship,
-                                       int pilot_mob_vnum)
+static bool vessel_hunter_assign_pilot(struct greyhawk_ship_data *ship, int pilot_mob_vnum)
 {
   struct char_data *pilot;
   mob_rnum pilot_rnum;
@@ -461,8 +425,7 @@ static bool vessel_hunter_assign_pilot(struct greyhawk_ship_data *ship,
   }
 
   pilot = get_pilot_from_ship(ship);
-  if (pilot != NULL &&
-      GET_MOB_VNUM(pilot) == (mob_vnum)pilot_mob_vnum)
+  if (pilot != NULL && GET_MOB_VNUM(pilot) == (mob_vnum)pilot_mob_vnum)
   {
     return TRUE;
   }
@@ -522,10 +485,9 @@ static void vessel_hunter_clear_runtime(struct greyhawk_ship_data *ship)
   ship->last_attacker = 0;
 }
 
-static void vessel_hunter_attach_runtime(
-    struct greyhawk_ship_data *hunter, const char *target_name,
-    int target_ship_id, time_t expires_at,
-    const struct vessel_hunter_config *config)
+static void vessel_hunter_attach_runtime(struct greyhawk_ship_data *hunter, const char *target_name,
+                                         int target_ship_id, time_t expires_at,
+                                         const struct vessel_hunter_config *config)
 {
   if (!is_valid_ship(hunter) || target_name == NULL || config == NULL)
   {
@@ -535,8 +497,7 @@ static void vessel_hunter_attach_runtime(
   hunter->bounty_hunter = TRUE;
   hunter->hunter_encounter_id = config->encounter_id;
   hunter->hunter_target_ship_id = target_ship_id;
-  strlcpy(hunter->hunter_target_name, target_name,
-          sizeof(hunter->hunter_target_name));
+  strlcpy(hunter->hunter_target_name, target_name, sizeof(hunter->hunter_target_name));
   hunter->hunter_expires_at = expires_at;
   hunter->hunter_target_missing_since = 0;
   hunter->hunter_last_runtime_save = time(0);
@@ -548,8 +509,7 @@ static void vessel_hunter_attach_runtime(
   hunter->last_attacker = target_ship_id;
 }
 
-static bool vessel_hunter_retire_runtime_ship(int shipnum,
-                                              const char *message)
+static bool vessel_hunter_retire_runtime_ship(int shipnum, const char *message)
 {
   struct greyhawk_ship_data *ship;
   struct char_data *pilot;
@@ -557,8 +517,7 @@ static bool vessel_hunter_retire_runtime_ship(int shipnum,
   room_rnum exterior;
   int i;
 
-  if (shipnum < 2 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 2 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return TRUE;
   }
@@ -621,14 +580,13 @@ static bool vessel_hunter_retire_runtime_ship(int shipnum,
   return TRUE;
 }
 
-static bool vessel_hunter_activate_lifecycle(
-    const char *target_name, unsigned long long generation, int hunter_ship_id)
+static bool vessel_hunter_activate_lifecycle(const char *target_name, unsigned long long generation,
+                                             int hunter_ship_id)
 {
   char escaped_target[129];
   char query[MAX_STRING_LENGTH];
 
-  mysql_real_escape_string(conn, escaped_target, target_name,
-                           strlen(target_name));
+  mysql_real_escape_string(conn, escaped_target, target_name, strlen(target_name));
   snprintf(query, sizeof(query),
            "UPDATE vessel_bounty_hunts SET hunter_ship_id = %d, "
            "status = 'active' WHERE target_player = '%s' "
@@ -637,8 +595,7 @@ static bool vessel_hunter_activate_lifecycle(
            hunter_ship_id, escaped_target, generation);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not activate bounty hunt for %s: %s", target_name,
-        mysql_error(conn));
+    log("SYSERR: Could not activate bounty hunt for %s: %s", target_name, mysql_error(conn));
     return FALSE;
   }
   return mysql_affected_rows(conn) == 1;
@@ -649,8 +606,7 @@ static bool vessel_hunter_activate_lifecycle(
  * constructor and bind it to the claimed durable lifecycle.
  */
 bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
-                         const struct vessel_hunter_config *config,
-                         const char *encounter_name)
+                         const struct vessel_hunter_config *config, const char *encounter_name)
 {
   struct greyhawk_ship_data *hunter;
   char target_name[64];
@@ -659,8 +615,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
   time_t now;
   int slot;
 
-  if (!is_valid_ship(target) ||
-      !vessel_hunter_config_is_valid(config) || !config->enabled ||
+  if (!is_valid_ship(target) || !vessel_hunter_config_is_valid(config) || !config->enabled ||
       encounter_name == NULL || !*encounter_name)
   {
     return FALSE;
@@ -668,20 +623,17 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
 
   now = time(0);
   strlcpy(target_name, target->owner, sizeof(target_name));
-  if (!vessel_hunter_claim_lifecycle(target, config, encounter_name, now,
-                                     &generation, hunter_name,
+  if (!vessel_hunter_claim_lifecycle(target, config, encounter_name, now, &generation, hunter_name,
                                      sizeof(hunter_name)))
   {
     return FALSE;
   }
 
-  slot = vessel_spawn_public_from_prototype_at(
-      config->prototype_id, hunter_name, (int)target->x, (int)target->y,
-      (int)target->z);
+  slot = vessel_spawn_public_from_prototype_at(config->prototype_id, hunter_name, (int)target->x,
+                                               (int)target->y, (int)target->z);
   if (slot < 0)
   {
-    vessel_hunter_set_cooldown(target_name, generation, 0,
-                               "spawn failed",
+    vessel_hunter_set_cooldown(target_name, generation, 0, "spawn failed",
                                VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
     return FALSE;
   }
@@ -690,8 +642,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
   if (hunter->vessel_type != VESSEL_WARSHIP ||
       !vessel_hunter_assign_pilot(hunter, config->pilot_mob_vnum))
   {
-    vessel_hunter_set_cooldown(target_name, generation, slot,
-                               "invalid warship or pilot",
+    vessel_hunter_set_cooldown(target_name, generation, slot, "invalid warship or pilot",
                                VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
     vessel_hunter_retire_runtime_ship(slot, NULL);
     return FALSE;
@@ -704,8 +655,7 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
   if (!vessel_db_save_runtime(hunter) ||
       !vessel_hunter_activate_lifecycle(target_name, generation, slot))
   {
-    vessel_hunter_set_cooldown(target_name, generation, slot,
-                               "activation failed",
+    vessel_hunter_set_cooldown(target_name, generation, slot, "activation failed",
                                VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
     vessel_hunter_retire_runtime_ship(slot, NULL);
     return FALSE;
@@ -717,17 +667,14 @@ bool vessel_hunter_spawn(struct greyhawk_ship_data *target,
   return TRUE;
 }
 
-static int vessel_hunter_find_ship_by_name(const char *hunter_name,
-                                           int prototype_id)
+static int vessel_hunter_find_ship_by_name(const char *hunter_name, int prototype_id)
 {
   int i;
 
   for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]) &&
-        greyhawk_ships[i].prototype_id == prototype_id &&
-        greyhawk_ships[i].owner[0] == '\0' &&
-        !str_cmp(greyhawk_ships[i].name, hunter_name))
+    if (is_valid_ship(&greyhawk_ships[i]) && greyhawk_ships[i].prototype_id == prototype_id &&
+        greyhawk_ships[i].owner[0] == '\0' && !str_cmp(greyhawk_ships[i].name, hunter_name))
     {
       return i;
     }
@@ -735,42 +682,37 @@ static int vessel_hunter_find_ship_by_name(const char *hunter_name,
   return -1;
 }
 
-static bool vessel_hunter_ship_identity_matches(int shipnum,
-                                                const char *hunter_name,
+static bool vessel_hunter_ship_identity_matches(int shipnum, const char *hunter_name,
                                                 int prototype_id)
 {
   struct greyhawk_ship_data *ship;
 
-  if (shipnum < 2 || shipnum >= GREYHAWK_MAXSHIPS ||
-      hunter_name == NULL || !*hunter_name ||
+  if (shipnum < 2 || shipnum >= GREYHAWK_MAXSHIPS || hunter_name == NULL || !*hunter_name ||
       !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return FALSE;
   }
 
   ship = &greyhawk_ships[shipnum];
-  return ship->owner[0] == '\0' &&
-         !str_cmp(ship->name, hunter_name) &&
+  return ship->owner[0] == '\0' && !str_cmp(ship->name, hunter_name) &&
          (prototype_id <= 0 || ship->prototype_id == prototype_id);
 }
 
-static int vessel_hunter_collect_boot_rows(
-    struct vessel_hunter_boot_row *rows, int capacity)
+static int vessel_hunter_collect_boot_rows(struct vessel_hunter_boot_row *rows, int capacity)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
-  const char *query =
-      "SELECT hunt.target_player, hunt.hunter_name, hunt.generation, "
-      "hunt.status, hunt.target_ship_id, hunt.hunter_ship_id, "
-      "hunt.expires_at, config.encounter_id, config.prototype_id, "
-      "config.pilot_mob_vnum, config.min_bounty, config.pursuit_speed, "
-      "config.hunt_duration_seconds, config.target_grace_seconds, "
-      "config.cooldown_seconds, config.enabled "
-      "FROM vessel_bounty_hunts AS hunt "
-      "LEFT JOIN vessel_hunter_encounters AS config "
-      "ON config.encounter_id = hunt.encounter_id "
-      "WHERE hunt.status IN ('active', 'spawning') "
-      "ORDER BY hunt.target_player";
+  const char *query = "SELECT hunt.target_player, hunt.hunter_name, hunt.generation, "
+                      "hunt.status, hunt.target_ship_id, hunt.hunter_ship_id, "
+                      "hunt.expires_at, config.encounter_id, config.prototype_id, "
+                      "config.pilot_mob_vnum, config.min_bounty, config.pursuit_speed, "
+                      "config.hunt_duration_seconds, config.target_grace_seconds, "
+                      "config.cooldown_seconds, config.enabled "
+                      "FROM vessel_bounty_hunts AS hunt "
+                      "LEFT JOIN vessel_hunter_encounters AS config "
+                      "ON config.encounter_id = hunt.encounter_id "
+                      "WHERE hunt.status IN ('active', 'spawning') "
+                      "ORDER BY hunt.target_player";
   struct vessel_hunter_boot_row *boot_row;
   int count;
 
@@ -778,8 +720,7 @@ static int vessel_hunter_collect_boot_rows(
   {
     if (rows != NULL && capacity > 0)
     {
-      log("SYSERR: Could not enumerate active bounty hunts: %s",
-          mysql_error(conn));
+      log("SYSERR: Could not enumerate active bounty hunts: %s", mysql_error(conn));
     }
     return 0;
   }
@@ -794,13 +735,10 @@ static int vessel_hunter_collect_boot_rows(
   {
     boot_row = &rows[count++];
     memset(boot_row, 0, sizeof(*boot_row));
-    strlcpy(boot_row->target_player, row[0] ? row[0] : "",
-            sizeof(boot_row->target_player));
-    strlcpy(boot_row->hunter_name, row[1] ? row[1] : "",
-            sizeof(boot_row->hunter_name));
+    strlcpy(boot_row->target_player, row[0] ? row[0] : "", sizeof(boot_row->target_player));
+    strlcpy(boot_row->hunter_name, row[1] ? row[1] : "", sizeof(boot_row->hunter_name));
     boot_row->generation = row[2] ? strtoull(row[2], NULL, 10) : 0;
-    strlcpy(boot_row->status, row[3] ? row[3] : "",
-            sizeof(boot_row->status));
+    strlcpy(boot_row->status, row[3] ? row[3] : "", sizeof(boot_row->status));
     boot_row->target_ship_id = row[4] ? atoi(row[4]) : 0;
     boot_row->hunter_ship_id = row[5] ? atoi(row[5]) : -1;
     boot_row->expires_at = row[6] ? (time_t)atoll(row[6]) : 0;
@@ -809,10 +747,8 @@ static int vessel_hunter_collect_boot_rows(
     boot_row->config.pilot_mob_vnum = row[9] ? atoi(row[9]) : 0;
     boot_row->config.min_bounty = row[10] ? atoi(row[10]) : 0;
     boot_row->config.pursuit_speed = row[11] ? atoi(row[11]) : 0;
-    boot_row->config.hunt_duration_seconds =
-        row[12] ? atoi(row[12]) : 0;
-    boot_row->config.target_grace_seconds =
-        row[13] ? atoi(row[13]) : 0;
+    boot_row->config.hunt_duration_seconds = row[12] ? atoi(row[12]) : 0;
+    boot_row->config.target_grace_seconds = row[13] ? atoi(row[13]) : 0;
     boot_row->config.cooldown_seconds = row[14] ? atoi(row[14]) : 0;
     boot_row->config.enabled = row[15] ? atoi(row[15]) != 0 : FALSE;
   }
@@ -847,15 +783,12 @@ void vessel_hunter_boot(void)
   {
     row = &rows[i];
     hunter_ship_id = row->hunter_ship_id;
-    if (!vessel_hunter_config_is_valid(&row->config) ||
-        !row->config.enabled || row->target_player[0] == '\0' ||
-        row->generation == 0)
+    if (!vessel_hunter_config_is_valid(&row->config) || !row->config.enabled ||
+        row->target_player[0] == '\0' || row->generation == 0)
     {
-      vessel_hunter_set_cooldown(
-          row->target_player, row->generation, hunter_ship_id,
-          "configuration unavailable", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
-      if (vessel_hunter_ship_identity_matches(
-              hunter_ship_id, row->hunter_name, 0))
+      vessel_hunter_set_cooldown(row->target_player, row->generation, hunter_ship_id,
+                                 "configuration unavailable", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
+      if (vessel_hunter_ship_identity_matches(hunter_ship_id, row->hunter_name, 0))
       {
         vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
       }
@@ -864,30 +797,24 @@ void vessel_hunter_boot(void)
 
     if (!str_cmp(row->status, "spawning") && hunter_ship_id < 2)
     {
-      hunter_ship_id = vessel_hunter_find_ship_by_name(
-          row->hunter_name, row->config.prototype_id);
+      hunter_ship_id = vessel_hunter_find_ship_by_name(row->hunter_name, row->config.prototype_id);
       if (hunter_ship_id >= 2 &&
-          !vessel_hunter_activate_lifecycle(
-              row->target_player, row->generation, hunter_ship_id))
+          !vessel_hunter_activate_lifecycle(row->target_player, row->generation, hunter_ship_id))
       {
-        vessel_hunter_set_cooldown(
-            row->target_player, row->generation, 0,
-            "restart activation failed",
-            VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
+        vessel_hunter_set_cooldown(row->target_player, row->generation, 0,
+                                   "restart activation failed", VESSEL_HUNTER_SPAWN_RETRY_SECONDS);
         vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
         hunter_ship_id = -1;
         continue;
       }
     }
 
-    if (!vessel_hunter_ship_identity_matches(
-            hunter_ship_id, row->hunter_name, row->config.prototype_id))
+    if (!vessel_hunter_ship_identity_matches(hunter_ship_id, row->hunter_name,
+                                             row->config.prototype_id))
     {
-      vessel_hunter_set_cooldown(
-          row->target_player, row->generation, row->hunter_ship_id,
-          "hunter missing after restart", row->config.cooldown_seconds);
-      if (vessel_hunter_ship_identity_matches(
-              hunter_ship_id, row->hunter_name, 0))
+      vessel_hunter_set_cooldown(row->target_player, row->generation, row->hunter_ship_id,
+                                 "hunter missing after restart", row->config.cooldown_seconds);
+      if (vessel_hunter_ship_identity_matches(hunter_ship_id, row->hunter_name, 0))
       {
         vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
       }
@@ -895,51 +822,41 @@ void vessel_hunter_boot(void)
     }
 
     hunter = &greyhawk_ships[hunter_ship_id];
-    if (row->expires_at <= now ||
-        !vessel_hunter_assign_pilot(hunter,
-                                    row->config.pilot_mob_vnum))
+    if (row->expires_at <= now || !vessel_hunter_assign_pilot(hunter, row->config.pilot_mob_vnum))
     {
-      vessel_hunter_set_cooldown(
-          row->target_player, row->generation, hunter_ship_id,
-          row->expires_at <= now ? "hunt expired during restart"
-                                 : "pilot unavailable after restart",
-          row->config.cooldown_seconds);
+      vessel_hunter_set_cooldown(row->target_player, row->generation, hunter_ship_id,
+                                 row->expires_at <= now ? "hunt expired during restart"
+                                                        : "pilot unavailable after restart",
+                                 row->config.cooldown_seconds);
       vessel_hunter_retire_runtime_ship(hunter_ship_id, NULL);
       continue;
     }
 
-    vessel_hunter_attach_runtime(
-        hunter, row->target_player, row->target_ship_id, row->expires_at,
-        &row->config);
-    hunter->speed =
-        MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
+    vessel_hunter_attach_runtime(hunter, row->target_player, row->target_ship_id, row->expires_at,
+                                 &row->config);
+    hunter->speed = MIN(row->config.pursuit_speed, MAX(1, hunter->maxspeed));
     hunter->setspeed = hunter->speed;
     vessel_db_save_runtime(hunter);
     attached++;
   }
 
-  log("Info: Reattached %d active bounty-hunter warship%s", attached,
-      attached == 1 ? "" : "s");
+  log("Info: Reattached %d active bounty-hunter warship%s", attached, attached == 1 ? "" : "s");
 }
 
-static struct greyhawk_ship_data *vessel_hunter_find_target(
-    struct greyhawk_ship_data *hunter)
+static struct greyhawk_ship_data *vessel_hunter_find_target(struct greyhawk_ship_data *hunter)
 {
   struct greyhawk_ship_data *target;
   int i;
 
-  if (!is_valid_ship(hunter) || !hunter->bounty_hunter ||
-      hunter->hunter_target_name[0] == '\0')
+  if (!is_valid_ship(hunter) || !hunter->bounty_hunter || hunter->hunter_target_name[0] == '\0')
   {
     return NULL;
   }
 
-  if (hunter->hunter_target_ship_id > 0 &&
-      hunter->hunter_target_ship_id < GREYHAWK_MAXSHIPS)
+  if (hunter->hunter_target_ship_id > 0 && hunter->hunter_target_ship_id < GREYHAWK_MAXSHIPS)
   {
     target = &greyhawk_ships[hunter->hunter_target_ship_id];
-    if (is_valid_ship(target) &&
-        !str_cmp(target->owner, hunter->hunter_target_name) &&
+    if (is_valid_ship(target) && !str_cmp(target->owner, hunter->hunter_target_name) &&
         vessel_hunter_online_owner_aboard(target) != NULL)
     {
       return target;
@@ -980,16 +897,13 @@ static unsigned long long vessel_hunter_generation_for_ship(int shipnum)
     return 0;
   }
   row = mysql_fetch_row(result);
-  generation = row != NULL && row[0] != NULL
-                   ? strtoull(row[0], NULL, 10)
-                   : 0;
+  generation = row != NULL && row[0] != NULL ? strtoull(row[0], NULL, 10) : 0;
   mysql_free_result(result);
   return generation;
 }
 
-static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter,
-                                         const char *reason, bool retire,
-                                         bool save_runtime)
+static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter, const char *reason,
+                                         bool retire, bool save_runtime)
 {
   char target_name[64];
   unsigned long long generation;
@@ -1006,19 +920,17 @@ static bool vessel_hunter_finish_runtime(struct greyhawk_ship_data *hunter,
   strlcpy(target_name, hunter->hunter_target_name, sizeof(target_name));
   generation = vessel_hunter_generation_for_ship(shipnum);
   if (generation == 0 ||
-      !vessel_hunter_set_cooldown(target_name, generation, shipnum, reason,
-                                  cooldown))
+      !vessel_hunter_set_cooldown(target_name, generation, shipnum, reason, cooldown))
   {
-    log("SYSERR: Bounty-hunter ship %d could not close its lifecycle",
-        shipnum);
+    log("SYSERR: Bounty-hunter ship %d could not close its lifecycle", shipnum);
     return FALSE;
   }
 
   vessel_hunter_clear_runtime(hunter);
   if (retire)
   {
-    return vessel_hunter_retire_runtime_ship(
-        shipnum, "The navy breaks off the hunt and turns for home.");
+    return vessel_hunter_retire_runtime_ship(shipnum,
+                                             "The navy breaks off the hunt and turns for home.");
   }
   return !save_runtime || vessel_db_save_runtime(hunter);
 }
@@ -1056,12 +968,10 @@ void vessel_hunter_tick(void)
     }
 
     hunter->hunter_bounty_check_ticks++;
-    if (hunter->hunter_bounty_check_ticks >=
-        VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL)
+    if (hunter->hunter_bounty_check_ticks >= VESSEL_HUNTER_BOUNTY_CHECK_INTERVAL)
     {
       hunter->hunter_bounty_check_ticks = 0;
-      if (vessel_get_bounty(hunter->hunter_target_name) <
-          hunter->hunter_min_bounty)
+      if (vessel_get_bounty(hunter->hunter_target_name) < hunter->hunter_min_bounty)
       {
         vessel_hunter_finish_runtime(hunter, "target pardoned", TRUE, FALSE);
         continue;
@@ -1078,11 +988,9 @@ void vessel_hunter_tick(void)
       {
         hunter->hunter_target_missing_since = now;
       }
-      if (now - hunter->hunter_target_missing_since >=
-          hunter->hunter_target_grace_seconds)
+      if (now - hunter->hunter_target_missing_since >= hunter->hunter_target_grace_seconds)
       {
-        vessel_hunter_finish_runtime(hunter, "target left the vessel", TRUE,
-                                     FALSE);
+        vessel_hunter_finish_runtime(hunter, "target left the vessel", TRUE, FALSE);
       }
       continue;
     }
@@ -1094,27 +1002,22 @@ void vessel_hunter_tick(void)
     speed = MIN(hunter->hunter_pursuit_speed, MAX(1, hunter->maxspeed));
     hunter->speed = speed;
     hunter->setspeed = speed;
-    hunter->setheading =
-        (short int)greyhawk_bearing(hunter->x, hunter->y, target->x,
-                                   target->y);
+    hunter->setheading = (short int)greyhawk_bearing(hunter->x, hunter->y, target->x, target->y);
     hunter->heading = hunter->setheading;
 
     memset(&waypoint, 0, sizeof(waypoint));
     waypoint.x = target->x;
     waypoint.y = target->y;
     waypoint.z = target->z;
-    if (vessel_autopilot_next_position(
-            hunter, &waypoint, (float)speed, &target_x, &target_y,
-            &target_z) &&
-        (target_x != (int)hunter->x || target_y != (int)hunter->y ||
-         target_z != (int)hunter->z))
+    if (vessel_autopilot_next_position(hunter, &waypoint, (float)speed, &target_x, &target_y,
+                                       &target_z) &&
+        (target_x != (int)hunter->x || target_y != (int)hunter->y || target_z != (int)hunter->z))
     {
       update_ship_wilderness_position(i, target_x, target_y, target_z);
     }
 
     if (target_changed ||
-        now - hunter->hunter_last_runtime_save >=
-            VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL)
+        now - hunter->hunter_last_runtime_save >= VESSEL_HUNTER_RUNTIME_SAVE_INTERVAL)
     {
       char escaped_target[129];
       char query[MAX_STRING_LENGTH];
@@ -1123,8 +1026,7 @@ void vessel_hunter_tick(void)
       vessel_db_save_runtime(hunter);
       if (target_changed)
       {
-        mysql_real_escape_string(conn, escaped_target,
-                                 hunter->hunter_target_name,
+        mysql_real_escape_string(conn, escaped_target, hunter->hunter_target_name,
                                  strlen(hunter->hunter_target_name));
         snprintf(query, sizeof(query),
                  "UPDATE vessel_bounty_hunts SET target_ship_id = %d "
@@ -1133,8 +1035,7 @@ void vessel_hunter_tick(void)
                  target->shipnum, escaped_target, hunter->shipnum);
         if (mysql_query(conn, query))
         {
-          log("SYSERR: Could not update bounty-hunt target ship: %s",
-              mysql_error(conn));
+          log("SYSERR: Could not update bounty-hunt target ship: %s", mysql_error(conn));
         }
       }
     }
@@ -1156,8 +1057,7 @@ void vessel_hunter_handle_sink(struct greyhawk_ship_data *ship)
  * Capturing a navy ship ends the hunt and removes the navy pilot while
  * leaving the ordinary captured hull in the player's possession.
  */
-void vessel_hunter_handle_capture(struct char_data *ch,
-                                  struct greyhawk_ship_data *ship)
+void vessel_hunter_handle_capture(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
   struct char_data *pilot;
 
@@ -1186,17 +1086,15 @@ void vessel_hunter_handle_capture(struct char_data *ch,
   vessel_db_save_runtime(ship);
   if (ch != NULL)
   {
-    send_to_char(ch,
-                 "With its navy pilot removed, the captured warship is "
-                 "yours to command.\r\n");
+    send_to_char(ch, "With its navy pilot removed, the captured warship is "
+                     "yours to command.\r\n");
   }
 }
 
 /**
  * Staff purge closes the lifecycle; do_shippurge owns runtime destruction.
  */
-void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship,
-                                const char *staff_name)
+void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship, const char *staff_name)
 {
   char reason[VESSEL_HUNTER_REASON_LENGTH];
 
@@ -1214,8 +1112,7 @@ void vessel_hunter_handle_purge(struct greyhawk_ship_data *ship,
  * character rename. The lifecycle row itself is part of the rename
  * transaction.
  */
-void vessel_hunter_handle_player_rename(const char *old_name,
-                                        const char *new_name)
+void vessel_hunter_handle_player_rename(const char *old_name, const char *new_name)
 {
   int i;
 
@@ -1226,8 +1123,7 @@ void vessel_hunter_handle_player_rename(const char *old_name,
 
   for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]) &&
-        greyhawk_ships[i].bounty_hunter &&
+    if (is_valid_ship(&greyhawk_ships[i]) && greyhawk_ships[i].bounty_hunter &&
         !str_cmp(greyhawk_ships[i].hunter_target_name, old_name))
     {
       strlcpy(greyhawk_ships[i].hunter_target_name, new_name,
@@ -1251,8 +1147,7 @@ void vessel_hunter_handle_player_removal(const char *player_name)
 
   for (i = 2; i < GREYHAWK_MAXSHIPS; i++)
   {
-    if (is_valid_ship(&greyhawk_ships[i]) &&
-        greyhawk_ships[i].bounty_hunter &&
+    if (is_valid_ship(&greyhawk_ships[i]) && greyhawk_ships[i].bounty_hunter &&
         !str_cmp(greyhawk_ships[i].hunter_target_name, player_name))
     {
       vessel_hunter_clear_runtime(&greyhawk_ships[i]);

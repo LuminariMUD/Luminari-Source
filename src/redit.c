@@ -197,8 +197,7 @@ static void redit_setup_new(struct descriptor_data *d)
   OLC_VAL(d) = 0;
 }
 
-void redit_setup_existing(struct descriptor_data *d, int real_num,
-                          int mode __attribute__((unused)))
+void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __attribute__((unused)))
 {
   struct room_data *room;
   int counter;
@@ -476,20 +475,20 @@ static void redit_disp_exit_menu(struct descriptor_data *d)
 
   get_char_colors(d->character);
   clear_screen(d);
-  write_to_output(
-      d,
-      "%s1%s) Exit to     : %s%d\r\n"
-      "%s2%s) Description :-\r\n%s%s\r\n"
-      "%s3%s) Door name   : %s%s\r\n"
-      "%s4%s) Key         : %s%d\r\n"
-      "%s5%s) Door flags  : %s%s\r\n"
-      "%s6%s) Purge exit.\r\n"
-      "Enter choice, 0 to quit : ",
+  write_to_output(d,
+                  "%s1%s) Exit to     : %s%d\r\n"
+                  "%s2%s) Description :-\r\n%s%s\r\n"
+                  "%s3%s) Door name   : %s%s\r\n"
+                  "%s4%s) Key         : %s%d\r\n"
+                  "%s5%s) Door flags  : %s%s\r\n"
+                  "%s6%s) Purge exit.\r\n"
+                  "Enter choice, 0 to quit : ",
 
-      grn, nrm, cyn, redit_exit_vnum(OLC_EXIT(d)), grn,
-      nrm, yel, OLC_EXIT(d)->general_description ? OLC_EXIT(d)->general_description : "<NONE>", grn,
-      nrm, yel, OLC_EXIT(d)->keyword ? OLC_EXIT(d)->keyword : "<NONE>", grn, nrm, cyn,
-      OLC_EXIT(d)->key != NOTHING ? (int)OLC_EXIT(d)->key : -1, grn, nrm, cyn, door_buf, grn, nrm);
+                  grn, nrm, cyn, redit_exit_vnum(OLC_EXIT(d)), grn, nrm, yel,
+                  OLC_EXIT(d)->general_description ? OLC_EXIT(d)->general_description : "<NONE>",
+                  grn, nrm, yel, OLC_EXIT(d)->keyword ? OLC_EXIT(d)->keyword : "<NONE>", grn, nrm,
+                  cyn, OLC_EXIT(d)->key != NOTHING ? (int)OLC_EXIT(d)->key : -1, grn, nrm, cyn,
+                  door_buf, grn, nrm);
 
   OLC_MODE(d) = REDIT_EXIT_MENU;
 }
@@ -567,13 +566,9 @@ static void redit_disp_menu(struct descriptor_data *d)
                     "%s6%s) Exit east   : %s%d\r\n"
                     "%s7%s) Exit south  : %s%d\r\n"
                     "%s8%s) Exit west   : %s%d\r\n",
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[NORTH]),
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[EAST]),
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[SOUTH]),
-                    grn, nrm, cyn,
+                    grn, nrm, cyn, redit_exit_vnum(room->dir_option[NORTH]), grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[EAST]), grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[SOUTH]), grn, nrm, cyn,
                     redit_exit_vnum(room->dir_option[WEST]));
   }
   else
@@ -583,21 +578,13 @@ static void redit_disp_menu(struct descriptor_data *d)
                     "%s6%s) Exit east   : %s%-6d%s,  %sC%s) Exit northeast : %s%d\r\n"
                     "%s7%s) Exit south  : %s%-6d%s,  %sD%s) Exit southeast : %s%d\r\n"
                     "%s8%s) Exit west   : %s%-6d%s,  %sE%s) Exit southwest : %s%d\r\n",
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[NORTH]),
-                    nrm, grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[NORTHWEST]),
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[EAST]),
-                    nrm, grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[NORTHEAST]),
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[SOUTH]),
-                    nrm, grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[SOUTHEAST]),
-                    grn, nrm, cyn,
-                    redit_exit_vnum(room->dir_option[WEST]),
-                    nrm, grn, nrm, cyn,
+                    grn, nrm, cyn, redit_exit_vnum(room->dir_option[NORTH]), nrm, grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[NORTHWEST]), grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[EAST]), nrm, grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[NORTHEAST]), grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[SOUTH]), nrm, grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[SOUTHEAST]), grn, nrm, cyn,
+                    redit_exit_vnum(room->dir_option[WEST]), nrm, grn, nrm, cyn,
                     redit_exit_vnum(room->dir_option[SOUTHWEST]));
   }
   write_to_output(d,
@@ -611,13 +598,11 @@ static void redit_disp_menu(struct descriptor_data *d)
                   "%sX%s) Delete Room\r\n"
                   "%sQ%s) Quit\r\n"
                   "Enter choice : ",
-                  grn, nrm, cyn,
-                  redit_exit_vnum(room->dir_option[UP]),
-                  grn, nrm, cyn,
-                  redit_exit_vnum(room->dir_option[DOWN]),
-                  grn, nrm, grn, nrm, cyn, OLC_SCRIPT(d) ? "Set." : "Not Set.", grn, nrm, cyn,
-                  room->coords[0], nrm, cyn, room->coords[1], nrm, grn, nrm, cyn,
-                  specname ? specname : "None", grn, nrm, grn, nrm, grn, nrm);
+                  grn, nrm, cyn, redit_exit_vnum(room->dir_option[UP]), grn, nrm, cyn,
+                  redit_exit_vnum(room->dir_option[DOWN]), grn, nrm, grn, nrm, cyn,
+                  OLC_SCRIPT(d) ? "Set." : "Not Set.", grn, nrm, cyn, room->coords[0], nrm, cyn,
+                  room->coords[1], nrm, grn, nrm, cyn, specname ? specname : "None", grn, nrm, grn,
+                  nrm, grn, nrm);
 
   OLC_MODE(d) = REDIT_MAIN_MENU;
 }

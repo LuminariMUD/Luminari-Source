@@ -629,8 +629,7 @@ void perform_obj_worn_list(struct char_data *ch, char *arg)
         if ((obj->affected[i].location != APPLY_NONE) && (obj->affected[i].modifier != 0))
         {
           sprinttype(obj->affected[i].location, apply_types, bitbuf, sizeof(bitbuf));
-          len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf,
-                                obj->affected[i].modifier);
+          len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf, obj->affected[i].modifier);
         }
       }
 
@@ -957,8 +956,8 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       }
-      if (!is_number(arg2) || (atoi(arg2) != PATH_ROAD && atoi(arg2) != PATH_DIRT_ROAD &&
-                               atoi(arg2) != PATH_RIVER))
+      if (!is_number(arg2) ||
+          (atoi(arg2) != PATH_ROAD && atoi(arg2) != PATH_DIRT_ROAD && atoi(arg2) != PATH_RIVER))
       {
         send_to_char(ch, "Path type must be 1, 2, or 5.\r\n");
         return;
@@ -1004,8 +1003,7 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\r\n");
         return;
       }
-      if (!is_number(arg2) || atoi(arg2) < REGION_GEOGRAPHIC ||
-          atoi(arg2) > REGION_SKY_ISLAND)
+      if (!is_number(arg2) || atoi(arg2) < REGION_GEOGRAPHIC || atoi(arg2) > REGION_SKY_ISLAND)
       {
         send_to_char(ch, "Region type must be between 1 and 7.\r\n");
         return;
@@ -1356,10 +1354,10 @@ static void list_regions(struct char_data *ch, int requested_type)
       break;
     }
 
-    len += snprintf(
-        buf + len, sizeof(buf) - len, "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n", QGRN,
-        counter, QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name, QNRM, QYEL,
-        type_name, QNRM, QYEL, properties, QNRM);
+    len +=
+        snprintf(buf + len, sizeof(buf) - len, "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n",
+                 QGRN, counter, QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name,
+                 QNRM, QYEL, type_name, QNRM, QYEL, properties, QNRM);
 
     if ((size_t)len >= sizeof(buf))
       break;
@@ -1656,8 +1654,8 @@ static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmi
       }
 
       len = snprintf_append(
-          buf, sizeof(buf), len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ",
-          QGRN, obj_index[i].vnum, QNRM, num_found,
+          buf, sizeof(buf), len, "%s%-7d%s %2d %s %s%-*s %s%-12s%s %2d [%d] %s%-16s%s %s ", QGRN,
+          obj_index[i].vnum, QNRM, num_found,
           (!obj_proto[i].ex_description ? "\tRN\tn" : "\tWY\tn"), QCYN,
           count_color_chars(obj_proto[i].short_description) + 28, obj_proto[i].short_description,
           QYEL, item_types[obj_proto[i].obj_flags.type_flag], QNRM, GET_OBJ_LEVEL(&obj_proto[i]),
@@ -1823,8 +1821,7 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
                  "VNum  Zone Name                  Status    Builder(s)\r\n"
                  "----- -------------------------- ------ -------------------------------\r\n");
 
-  len = snprintf_append(buf, sizeof(buf), len,
-                        "NOTE:  <*> Means Reserved, See HELP RESERVED\r\n");
+  len = snprintf_append(buf, sizeof(buf), len, "NOTE:  <*> Means Reserved, See HELP RESERVED\r\n");
 
   if (!top_of_zone_table)
     return;
@@ -1843,10 +1840,10 @@ static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zon
         else
           buf2 = strdup("\tmN-Reva\tn");
 
-        len = snprintf_append(buf, sizeof(buf), len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN,
-                              zone_table[i].number, QNRM, QCYN,
-                              count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2,
-                              QYEL, zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
+        len = snprintf_append(
+            buf, sizeof(buf), len, "[%s%3d%s] %s%-*s %s %s%-1s%s\r\n", QGRN, zone_table[i].number,
+            QNRM, QCYN, count_color_chars(zone_table[i].name) + 26, zone_table[i].name, buf2, QYEL,
+            zone_table[i].builders ? zone_table[i].builders : "None.", QNRM);
         counter++;
       }
     }

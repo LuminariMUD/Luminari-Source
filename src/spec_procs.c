@@ -2473,9 +2473,8 @@ bool yan_yell(struct char_data *ch)
   {
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) == CON_PLAYING && d->character != NULL &&
-          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
-          zone == world[d->character->in_room].zone)
+      if (STATE(d) == CON_PLAYING && d->character != NULL && IN_ROOM(d->character) != NOWHERE &&
+          IN_ROOM(d->character) <= top_of_world && zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tcYan-C-Bin the Master of Evil Air\tw shouts, '\tcI "
                                    "have been attacked! Come to me minions!\tw'\tn\r\n");
@@ -2638,9 +2637,8 @@ bool chan_yell(struct char_data *ch)
   {
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) == CON_PLAYING && d->character != NULL &&
-          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
-          zone == world[d->character->in_room].zone)
+      if (STATE(d) == CON_PLAYING && d->character != NULL && IN_ROOM(d->character) != NOWHERE &&
+          IN_ROOM(d->character) <= top_of_world && zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tCChan, the Elemental Princess of Good Air\tw shouts, '\tcI "
                                    "have been attacked! Come to me my friends!\tw'\tn\r\n");
@@ -3269,9 +3267,8 @@ SPECIAL(ogremoch)
   {
     for (d = descriptor_list; d; d = d->next)
     {
-      if (STATE(d) == CON_PLAYING && d->character != NULL &&
-          IN_ROOM(d->character) != NOWHERE && IN_ROOM(d->character) <= top_of_world &&
-          zone == world[d->character->in_room].zone)
+      if (STATE(d) == CON_PLAYING && d->character != NULL && IN_ROOM(d->character) != NOWHERE &&
+          IN_ROOM(d->character) <= top_of_world && zone == world[d->character->in_room].zone)
       {
         send_to_char(d->character, "\tLOgremoch \tw shouts, '\tLI have been "
                                    "attacked! Come to me minions!\tw'\tn\r\n");
@@ -6775,7 +6772,8 @@ void move_ship(struct obj_data *ship, int dir)
 // use timer for count.
 // weight is wether towards start or end.
 
-void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int movedelay, int waitdelay)
+void update_ship(struct obj_data *ship, room_vnum start, room_vnum end, int movedelay,
+                 int waitdelay)
 {
   room_rnum dest = real_room(end);
 
@@ -12139,8 +12137,8 @@ SPECIAL(greyhawk_ship_object)
   if (!is_valid_ship(&greyhawk_ships[ship_index]))
   {
     send_to_char(ch, "This ship seems to be broken.\r\n");
-    log("SYSERR: Ship object %d points to inactive or mismatched fleet slot %d",
-        GET_OBJ_VNUM(obj), ship_index);
+    log("SYSERR: Ship object %d points to inactive or mismatched fleet slot %d", GET_OBJ_VNUM(obj),
+        ship_index);
     return 0;
   }
 
@@ -12156,8 +12154,7 @@ SPECIAL(greyhawk_ship_object)
   {
     send_to_char(ch, "This ship's entrance is not linked correctly.\r\n");
     log("SYSERR: Ship object %d entrance %d disagrees with fleet slot %d room %d",
-        GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), ship_index,
-        greyhawk_ships[ship_index].shiproom);
+        GET_OBJ_VNUM(obj), GET_OBJ_VAL(obj, 0), ship_index, greyhawk_ships[ship_index].shiproom);
     return 0;
   }
 

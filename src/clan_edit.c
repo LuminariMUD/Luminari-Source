@@ -822,8 +822,8 @@ void load_claims(void)
               {
                 if (sscanf(line, "%d %f", &cn, &pop) != 2)
                 {
-                  log("SYSERR: Invalid popularity line in claims file (zone ID: %d, line %d)",
-                      c.zn, j + 1);
+                  log("SYSERR: Invalid popularity line in claims file (zone ID: %d, line %d)", c.zn,
+                      j + 1);
                   get_line(fl, line);
                   j++;
                   continue;

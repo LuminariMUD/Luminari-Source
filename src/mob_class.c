@@ -53,7 +53,8 @@ void npc_ability_behave(struct char_data *ch)
 
 // monk behaviour, behave based on level
 
-void npc_monk_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_monk_behave(struct char_data *ch, struct char_data *vict,
+                     int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) switch opponents
@@ -90,7 +91,8 @@ void npc_monk_behave(struct char_data *ch, struct char_data *vict, int engaged _
 }
 // rogue behaviour, behave based on level
 
-void npc_rogue_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_rogue_behave(struct char_data *ch, struct char_data *vict,
+                      int engaged __attribute__((unused)))
 {
   /* almost finished victims, they will stop using these skills -zusuk */
   if (GET_HIT(vict) <= 5)
@@ -133,7 +135,8 @@ void npc_rogue_behave(struct char_data *ch, struct char_data *vict, int engaged 
 }
 // bard behaviour, behave based on level
 
-void npc_bard_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_bard_behave(struct char_data *ch, struct char_data *vict,
+                     int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) trip
@@ -164,7 +167,8 @@ void npc_bard_behave(struct char_data *ch, struct char_data *vict, int engaged _
 }
 // warrior behaviour, behave based on circle
 
-void npc_warrior_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_warrior_behave(struct char_data *ch, struct char_data *vict,
+                        int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) rescue
@@ -199,7 +203,8 @@ void npc_warrior_behave(struct char_data *ch, struct char_data *vict, int engage
 }
 // ranger behaviour, behave based on level
 
-void npc_ranger_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_ranger_behave(struct char_data *ch, struct char_data *vict,
+                       int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) rescue
@@ -228,7 +233,8 @@ void npc_ranger_behave(struct char_data *ch, struct char_data *vict, int engaged
 
 // paladin behaviour, behave based on level
 
-void npc_paladin_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_paladin_behave(struct char_data *ch, struct char_data *vict,
+                        int engaged __attribute__((unused)))
 {
   float percent = ((float)GET_HIT(ch) / (float)GET_MAX_HIT(ch)) * 100.0;
 
@@ -292,7 +298,8 @@ void npc_paladin_behave(struct char_data *ch, struct char_data *vict, int engage
 }
 
 // dragonrider behaviour
-void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict,
+                            int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) call dragon mount
@@ -348,7 +355,8 @@ void npc_dragonrider_behave(struct char_data *ch, struct char_data *vict, int en
 
 // berserk behaviour, behave based on level
 
-void npc_berserker_behave(struct char_data *ch, struct char_data *vict, int engaged __attribute__((unused)))
+void npc_berserker_behave(struct char_data *ch, struct char_data *vict,
+                          int engaged __attribute__((unused)))
 {
   /* list of skills to use:
    1) rescue

@@ -323,9 +323,8 @@ void parse_quest(FILE *quest_f, int nr)
   /***** */
 
   /* parse value line (2nd if Dragonlance Campaign) */
-  if (!get_line(quest_f, line) ||
-      (retval = sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1, t + 2, t + 3, t + 4,
-                       t + 5)) != 7)
+  if (!get_line(quest_f, line) || (retval = sscanf(line, " %d %d %127s %d %d %d %d", t, t + 1, f1,
+                                                   t + 2, t + 3, t + 4, t + 5)) != 7)
   {
     log("Format error in numeric line 1 (expected 7, got %d), %s\n", retval, line);
     exit(1);
@@ -354,10 +353,9 @@ void parse_quest(FILE *quest_f, int nr)
 
   /* parse the next line of values
        re-wrote this to handle the old 3 values or new 7 values -zusuk */
-  if (!get_line(quest_f, line) ||
-      ((retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2, t + 3, t + 4, t + 5,
-                        t + 6)) != 3 &&
-       retval != 7))
+  if (!get_line(quest_f, line) || ((retval = sscanf(line, " %d %d %d %d %d %d %d", t, t + 1, t + 2,
+                                                    t + 3, t + 4, t + 5, t + 6)) != 3 &&
+                                   retval != 7))
   {
     log("Format error in numeric line 3 (expected 3 or 7, got %d), %s\n", retval, line);
     exit(1); /* harsh but defensive -> game won't start */
@@ -945,8 +943,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_ROOM_FIND:
-      if (QST_TARGET(rnum) >= 0 &&
-          (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+      if (QST_TARGET(rnum) >= 0 && (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
         generic_complete_quest(ch, index);
       break;
 
@@ -996,8 +993,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
     case AQ_OBJ_RETURN:
       if (IS_NPC(vict) && QST_RETURNMOB(rnum) >= 0 &&
           GET_MOB_VNUM(vict) == (mob_vnum)QST_RETURNMOB(rnum))
-        if (object && QST_TARGET(rnum) >= 0 &&
-            GET_OBJ_VNUM(object) == (obj_vnum)QST_TARGET(rnum))
+        if (object && QST_TARGET(rnum) >= 0 && GET_OBJ_VNUM(object) == (obj_vnum)QST_TARGET(rnum))
         {
           generic_complete_quest(ch, index);
           extract_obj(object);
@@ -1017,8 +1013,7 @@ void autoquest_trigger_check(struct char_data *ch, struct char_data *vict, struc
       break;
 
     case AQ_ROOM_CLEAR:
-      if (QST_TARGET(rnum) >= 0 &&
-          (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
+      if (QST_TARGET(rnum) >= 0 && (room_vnum)QST_TARGET(rnum) == world[IN_ROOM(ch)].number)
       {
         for (i = world[IN_ROOM(ch)].people; i && found; i = i->next_in_room)
           if (i && IS_NPC(i) && !MOB_FLAGGED(i, MOB_NOTDEADYET))
@@ -1057,7 +1052,8 @@ void check_timed_quests(void)
 
     for (index = 0; index < MAX_CURRENT_QUESTS; index++)
     { /* loop through all the character's quest slots */
-      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != (int)NOTHING) && (GET_QUEST_TIME(ch, index) != -1))
+      if (!IS_NPC(ch) && (GET_QUEST(ch, index) != (int)NOTHING) &&
+          (GET_QUEST_TIME(ch, index) != -1))
       {
         if (--GET_QUEST_TIME(ch, index) == 0)
         {
@@ -2627,8 +2623,7 @@ ACMD(do_aqref)
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
-    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) > 0 &&
-        (obj_vnum)QST_TARGET(i) == vnum)
+    if ((QST_TYPE(i) == AQ_OBJ_FIND) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCFIND\tn %s (\tW%d\tn) for %s (\tW%d\tn)\r\n", QST_NUM(i),
@@ -2636,8 +2631,7 @@ ACMD(do_aqref)
                    mob_proto[real_mobile(QST_MASTER(i))].player.short_descr, QST_MASTER(i));
     }
 
-    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) > 0 &&
-        (obj_vnum)QST_TARGET(i) == vnum)
+    if ((QST_TYPE(i) == AQ_OBJ_RETURN) && QST_TARGET(i) > 0 && (obj_vnum)QST_TARGET(i) == vnum)
     {
       found = TRUE;
       send_to_char(ch, "(%d) \tCRETURN\tn %s (\tW%d\tn) to %s (\tW%d\tn)\r\n", QST_NUM(i),

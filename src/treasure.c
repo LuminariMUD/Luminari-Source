@@ -6662,6 +6662,8 @@ int get_apply_no_repeat_category(int apply)
 // this function will assign random bonuses to an object based on its level and the number of bonuses specified.
 // the bonuses assigned will be weighted based on how common the bonuses are in existing gear.
 // can be used for random treasure, creating items with oedit, bazaars, treasure chests and more.
-void assign_weighted_random_bonuses(struct obj_data *obj __attribute__((unused)), int olevel __attribute__((unused)), int num_bonuses __attribute__((unused)))
+void assign_weighted_random_bonuses(struct obj_data *obj __attribute__((unused)),
+                                    int olevel __attribute__((unused)),
+                                    int num_bonuses __attribute__((unused)))
 {
 }

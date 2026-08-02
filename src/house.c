@@ -339,9 +339,9 @@ static void House_listrent(struct char_data *ch, room_vnum vnum)
   loaded = objsave_parse_objects_db(NULL, vnum);
 
   for (current = loaded; current != NULL; current = current->next)
-    len = snprintf_append(buf, sizeof(buf), len, " [%5d] (%5dau) %s\r\n",
-                          GET_OBJ_VNUM(current->obj), GET_OBJ_RENT(current->obj),
-                          current->obj->short_description);
+    len =
+        snprintf_append(buf, sizeof(buf), len, " [%5d] (%5dau) %s\r\n", GET_OBJ_VNUM(current->obj),
+                        GET_OBJ_RENT(current->obj), current->obj->short_description);
 
   /* now it's safe to free the obj_save_data list - all members of it
    * have been put in the correct lists by obj_to_room()

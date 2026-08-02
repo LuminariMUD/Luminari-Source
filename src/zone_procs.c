@@ -300,8 +300,8 @@ int do_npc_rescue(struct char_data *ch_hero, struct char_data *ch_victim)
 
 /* Procedure to block a person trying to enter a room. Used by Tim/Tom at Kings
  * bedroom and Dick/David at treasury. */
-static int block_way(struct char_data *ch, int cmd, char *arg __attribute__((unused)), room_vnum iIn_room,
-                     int iProhibited_direction)
+static int block_way(struct char_data *ch, int cmd, char *arg __attribute__((unused)),
+                     room_vnum iIn_room, int iProhibited_direction)
 {
   if (cmd != ++iProhibited_direction)
     return (FALSE);

@@ -2082,8 +2082,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
     exit(1);
   }
 
-  if (((retval = sscanf(line, " %d %127s %127s %127s %127s %d ", t, flags, flags2, flags3,
-                        flags4, t + 2)) == 3) &&
+  if (((retval = sscanf(line, " %d %127s %127s %127s %127s %d ", t, flags, flags2, flags3, flags4,
+                        t + 2)) == 3) &&
       (bitwarning == TRUE))
   {
     log("WARNING: Conventional world files detected. See config.c.");
@@ -2545,8 +2545,7 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
   else
     world[room].dir_option[dir]->exit_info = 0;
 
-  world[room].dir_option[dir]->key =
-      ((t[1] == -1 || t[1] == 65535) ? NOTHING : (obj_vnum)t[1]);
+  world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : (obj_vnum)t[1]);
   world[room].dir_option[dir]->to_room =
       ((t[2] == -1 || t[2] == 0 || t[2] == 65535) ? NOWHERE : (room_rnum)t[2]);
 }
@@ -3426,8 +3425,8 @@ void parse_mobile(FILE *mob_f, int nr)
     exit(1);
   }
 
-  if (((retval = sscanf(line, "%127s %127s %127s %127s %127s %127s %127s %127s %d %c", f1, f2,
-                        f3, f4, f5, f6, f7, f8, t + 2, &letter)) != 10) &&
+  if (((retval = sscanf(line, "%127s %127s %127s %127s %127s %127s %127s %127s %d %c", f1, f2, f3,
+                        f4, f5, f6, f7, f8, t + 2, &letter)) != 10) &&
       (bitwarning == TRUE))
   {
     /* Let's make the implementor read some, before converting his world files. */
@@ -3947,8 +3946,8 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %511s", t, t + 1, t + 2, t + 3, t + 4,
-                           t + 5, t + 6, f1)) < 7)
+      if ((retval = sscanf(line, "%d %d %d %d %d %d %d %511s", t, t + 1, t + 2, t + 3, t + 4, t + 5,
+                           t + 6, f1)) < 7)
       {
         log("SYSERR: Format error in 'C' field, %s\n"
             "...expecting 7 numeric arguments, got %d\n"
@@ -4208,14 +4207,13 @@ static void load_zones(FILE *fl, char *zonename)
              &Z.show_weather, &Z.region, &Z.faction, &Z.city) != 14)
   {
     // not 14 values, lets try 11
-    if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d", &Z.bot, &Z.top,
-               &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
+    if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d %d", &Z.bot, &Z.top, &Z.lifespan,
+               &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level,
                &Z.show_weather) != 11)
     {
       // not 11 values, lets try 10
-      if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d", &Z.bot, &Z.top,
-                 &Z.lifespan, &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level,
-                 &Z.max_level) != 10)
+      if (sscanf(buf, " %d %d %d %d %511s %511s %511s %511s %d %d", &Z.bot, &Z.top, &Z.lifespan,
+                 &Z.reset_mode, zbuf1, zbuf2, zbuf3, zbuf4, &Z.min_level, &Z.max_level) != 10)
       {
         // not 10 values, last try for 4 values
         if (sscanf(buf, " %d %d %d %d ", &Z.bot, &Z.top, &Z.lifespan, &Z.reset_mode) != 4)

@@ -367,14 +367,13 @@ void ensure_questline_tables(void)
   /* Quest line definition table */
   if (!table_exists("quest_lines"))
   {
-    const char *create_quest_lines =
-        "CREATE TABLE quest_lines ("
-        "id INT AUTO_INCREMENT PRIMARY KEY,"
-        "name VARCHAR(120) NOT NULL,"
-        "description TEXT NULL,"
-        "created_by VARCHAR(64) NULL,"
-        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-        ") ENGINE=InnoDB";
+    const char *create_quest_lines = "CREATE TABLE quest_lines ("
+                                     "id INT AUTO_INCREMENT PRIMARY KEY,"
+                                     "name VARCHAR(120) NOT NULL,"
+                                     "description TEXT NULL,"
+                                     "created_by VARCHAR(64) NULL,"
+                                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                                     ") ENGINE=InnoDB";
 
     if (mysql_query_safe(conn, create_quest_lines))
     {
@@ -389,17 +388,17 @@ void ensure_questline_tables(void)
   /* Quest line steps (ordered quests within a line) */
   if (!table_exists("quest_line_steps"))
   {
-    const char *create_steps =
-        "CREATE TABLE quest_line_steps ("
-        "id INT AUTO_INCREMENT PRIMARY KEY,"
-        "quest_line_id INT NOT NULL,"
-        "position INT NOT NULL,"
-        "quest_vnum INT NOT NULL,"
-        "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-        "UNIQUE KEY uq_line_pos (quest_line_id, position),"
-        "INDEX idx_line (quest_line_id),"
-        "CONSTRAINT fk_line FOREIGN KEY (quest_line_id) REFERENCES quest_lines(id) ON DELETE CASCADE"
-        ") ENGINE=InnoDB";
+    const char *create_steps = "CREATE TABLE quest_line_steps ("
+                               "id INT AUTO_INCREMENT PRIMARY KEY,"
+                               "quest_line_id INT NOT NULL,"
+                               "position INT NOT NULL,"
+                               "quest_vnum INT NOT NULL,"
+                               "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                               "UNIQUE KEY uq_line_pos (quest_line_id, position),"
+                               "INDEX idx_line (quest_line_id),"
+                               "CONSTRAINT fk_line FOREIGN KEY (quest_line_id) REFERENCES "
+                               "quest_lines(id) ON DELETE CASCADE"
+                               ") ENGINE=InnoDB";
 
     if (mysql_query_safe(conn, create_steps))
     {
@@ -458,7 +457,7 @@ void ensure_account_quit_survey_column(void)
   if (!has_column)
   {
     if (mysql_query_safe(conn, "ALTER TABLE account_data "
-                           "ADD COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
+                               "ADD COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
     {
       log("SYSERR: Failed to add quit_survey_completed column to account_data: %s",
           mysql_error(conn));
@@ -492,7 +491,7 @@ void ensure_account_quit_survey_column(void)
   if (!allows_null)
   {
     if (mysql_query_safe(conn, "ALTER TABLE account_data "
-                           "MODIFY COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
+                               "MODIFY COLUMN quit_survey_completed TINYINT(1) DEFAULT NULL"))
     {
       log("SYSERR: Failed to relax quit_survey_completed column nullability: %s",
           mysql_error(conn));

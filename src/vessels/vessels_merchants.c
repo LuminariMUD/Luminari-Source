@@ -123,22 +123,20 @@ void vessel_merchant_ensure_schema(void)
 
   if (mysql_query(conn, merchant_sql))
   {
-    log("SYSERR: Could not create vessel_npc_merchants: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not create vessel_npc_merchants: %s", mysql_error(conn));
     return;
   }
   if (mysql_query(conn, consequence_sql))
   {
-    log("SYSERR: Could not create vessel_merchant_consequences: %s",
-        mysql_error(conn));
+    log("SYSERR: Could not create vessel_merchant_consequences: %s", mysql_error(conn));
   }
 }
 
 /**
  * Is this definition eligible to own a newly spawned hull now?
  */
-bool vessel_merchant_should_spawn(bool enabled, int active_ship_id,
-                                  time_t next_respawn_at, time_t now)
+bool vessel_merchant_should_spawn(bool enabled, int active_ship_id, time_t next_respawn_at,
+                                  time_t now)
 {
   return enabled && active_ship_id <= 0 && next_respawn_at <= now;
 }
@@ -175,26 +173,23 @@ int vessel_merchant_faction_penalty(int cargo_units, bool total_loss)
   return (int)penalty;
 }
 
-static bool vessel_merchant_profile_values_are_valid(
-    const struct vessel_merchant_profile *profile)
+static bool vessel_merchant_profile_values_are_valid(const struct vessel_merchant_profile *profile)
 {
   if (profile == NULL || profile->merchant_id <= 0 || profile->name[0] == '\0')
   {
     return FALSE;
   }
-  if (profile->faction_id < FACTION_NONE ||
-      profile->faction_id >= NUM_FACTIONS)
+  if (profile->faction_id < FACTION_NONE || profile->faction_id >= NUM_FACTIONS)
   {
     return FALSE;
   }
-  if (profile->prototype_id <= 0 || profile->route_id <= 0 ||
-      profile->pilot_mob_vnum <= 0 || profile->cargo_commodity_id <= 0 ||
-      profile->cargo_quantity <= 0)
+  if (profile->prototype_id <= 0 || profile->route_id <= 0 || profile->pilot_mob_vnum <= 0 ||
+      profile->cargo_commodity_id <= 0 || profile->cargo_quantity <= 0)
   {
     return FALSE;
   }
-  if (profile->spawn_x < -1024 || profile->spawn_x > 1024 ||
-      profile->spawn_y < -1024 || profile->spawn_y > 1024)
+  if (profile->spawn_x < -1024 || profile->spawn_x > 1024 || profile->spawn_y < -1024 ||
+      profile->spawn_y > 1024)
   {
     return FALSE;
   }
@@ -211,8 +206,7 @@ static bool vessel_merchant_profile_values_are_valid(
   return TRUE;
 }
 
-static bool vessel_merchant_profile_from_row(
-    MYSQL_ROW row, struct vessel_merchant_profile *profile)
+static bool vessel_merchant_profile_from_row(MYSQL_ROW row, struct vessel_merchant_profile *profile)
 {
   if (row == NULL || profile == NULL)
   {
@@ -234,15 +228,11 @@ static bool vessel_merchant_profile_from_row(
   profile->schedule_interval_hours = row[11] ? atoi(row[11]) : 0;
   profile->respawn_delay_seconds = row[12] ? atoi(row[12]) : 0;
   profile->active_ship_id = row[13] ? atoi(row[13]) : 0;
-  profile->next_respawn_at =
-      row[14] ? (time_t)strtoll(row[14], NULL, 10) : 0;
-  profile->generation =
-      row[15] ? (unsigned int)strtoul(row[15], NULL, 10) : 0;
+  profile->next_respawn_at = row[14] ? (time_t)strtoll(row[14], NULL, 10) : 0;
+  profile->generation = row[15] ? (unsigned int)strtoul(row[15], NULL, 10) : 0;
   profile->enabled = row[16] ? atoi(row[16]) != 0 : FALSE;
-  strlcpy(profile->last_attacker_name, row[17] ? row[17] : "",
-          sizeof(profile->last_attacker_name));
-  profile->last_attacked_at =
-      row[18] ? (time_t)strtoll(row[18], NULL, 10) : 0;
+  strlcpy(profile->last_attacker_name, row[17] ? row[17] : "", sizeof(profile->last_attacker_name));
+  profile->last_attacked_at = row[18] ? (time_t)strtoll(row[18], NULL, 10) : 0;
   return vessel_merchant_profile_values_are_valid(profile);
 }
 
@@ -255,8 +245,7 @@ static const char *vessel_merchant_profile_query(void)
          "last_attacker_name, last_attacked_at FROM vessel_npc_merchants";
 }
 
-static bool vessel_merchant_fetch_profile(
-    int merchant_id, struct vessel_merchant_profile *profile)
+static bool vessel_merchant_fetch_profile(int merchant_id, struct vessel_merchant_profile *profile)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
@@ -268,12 +257,11 @@ static bool vessel_merchant_fetch_profile(
     return FALSE;
   }
 
-  snprintf(query, sizeof(query), "%s WHERE merchant_id = %d",
-           vessel_merchant_profile_query(), merchant_id);
+  snprintf(query, sizeof(query), "%s WHERE merchant_id = %d", vessel_merchant_profile_query(),
+           merchant_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not load NPC merchant %d: %s", merchant_id,
-        mysql_error(conn));
+    log("SYSERR: Could not load NPC merchant %d: %s", merchant_id, mysql_error(conn));
     return FALSE;
   }
   result = mysql_store_result(conn);
@@ -287,8 +275,7 @@ static bool vessel_merchant_fetch_profile(
   return valid;
 }
 
-static void vessel_merchant_set_error(int merchant_id, const char *message,
-                                      time_t retry_at)
+static void vessel_merchant_set_error(int merchant_id, const char *message, time_t retry_at)
 {
   char escaped[VESSEL_MERCHANT_ERROR_LENGTH * 2 + 1];
   char query[MAX_STRING_LENGTH];
@@ -309,8 +296,7 @@ static void vessel_merchant_set_error(int merchant_id, const char *message,
            escaped, (long long)retry_at, merchant_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not record NPC merchant %d error: %s", merchant_id,
-        mysql_error(conn));
+    log("SYSERR: Could not record NPC merchant %d error: %s", merchant_id, mysql_error(conn));
   }
 }
 
@@ -341,8 +327,7 @@ static struct ship_route *vessel_merchant_route(int route_id)
   route->route_id = node->route_id;
   route->loop = node->loop;
   route->active = node->active;
-  for (i = 0; i < node->num_waypoints &&
-              i < MAX_WAYPOINTS_PER_ROUTE; i++)
+  for (i = 0; i < node->num_waypoints && i < MAX_WAYPOINTS_PER_ROUTE; i++)
   {
     waypoint_node = waypoint_cache_find(node->waypoint_ids[i]);
     if (waypoint_node != NULL)
@@ -385,9 +370,8 @@ static int vessel_merchant_commodity_weight(int commodity_id)
   return MAX(0, weight);
 }
 
-static bool vessel_merchant_load_cargo(
-    struct greyhawk_ship_data *ship,
-    const struct vessel_merchant_profile *profile)
+static bool vessel_merchant_load_cargo(struct greyhawk_ship_data *ship,
+                                       const struct vessel_merchant_profile *profile)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
@@ -402,8 +386,7 @@ static bool vessel_merchant_load_cargo(
     return FALSE;
   }
 
-  unit_weight =
-      vessel_merchant_commodity_weight(profile->cargo_commodity_id);
+  unit_weight = vessel_merchant_commodity_weight(profile->cargo_commodity_id);
   capacity = vessel_effective_cargo_capacity(ship);
   weight = (long long)unit_weight * profile->cargo_quantity;
   if (unit_weight <= 0 || weight <= 0 || weight > capacity)
@@ -421,8 +404,7 @@ static bool vessel_merchant_load_cargo(
            "SELECT COUNT(*) FROM ship_cargo_manifest "
            "WHERE ship_id = %d AND cargo_room = 0 "
            "AND item_vnum = %d AND item_count = %d",
-           ship->shipnum, profile->cargo_commodity_id,
-           profile->cargo_quantity);
+           ship->shipnum, profile->cargo_commodity_id, profile->cargo_quantity);
   if (mysql_query(conn, query))
   {
     return FALSE;
@@ -438,9 +420,8 @@ static bool vessel_merchant_load_cargo(
   return saved;
 }
 
-static bool vessel_merchant_assign_pilot(
-    struct greyhawk_ship_data *ship,
-    const struct vessel_merchant_profile *profile)
+static bool vessel_merchant_assign_pilot(struct greyhawk_ship_data *ship,
+                                         const struct vessel_merchant_profile *profile)
 {
   struct char_data *pilot;
   mob_rnum pilot_rnum;
@@ -519,14 +500,12 @@ static void vessel_merchant_abort_spawn(struct greyhawk_ship_data *ship)
   }
   if (!vessel_delete_persistence(ship->shipnum))
   {
-    log("SYSERR: Could not roll back failed NPC merchant ship %d",
-        ship->shipnum);
+    log("SYSERR: Could not roll back failed NPC merchant ship %d", ship->shipnum);
   }
   memset(ship, 0, sizeof(*ship));
 }
 
-static bool vessel_merchant_activate_profile(
-    const struct vessel_merchant_profile *profile)
+static bool vessel_merchant_activate_profile(const struct vessel_merchant_profile *profile)
 {
   char query[MAX_STRING_LENGTH];
   struct greyhawk_ship_data *ship;
@@ -541,8 +520,7 @@ static bool vessel_merchant_activate_profile(
   }
   if (profile->generation == UINT_MAX)
   {
-    vessel_merchant_set_error(profile->merchant_id,
-                              "generation counter is exhausted",
+    vessel_merchant_set_error(profile->merchant_id, "generation counter is exhausted",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
@@ -550,8 +528,7 @@ static bool vessel_merchant_activate_profile(
   route = vessel_merchant_route(profile->route_id);
   if (route == NULL)
   {
-    vessel_merchant_set_error(profile->merchant_id,
-                              "route is missing, inactive, or empty",
+    vessel_merchant_set_error(profile->merchant_id, "route is missing, inactive, or empty",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
@@ -559,43 +536,36 @@ static bool vessel_merchant_activate_profile(
 
   if (real_mobile(profile->pilot_mob_vnum) == NOBODY)
   {
-    vessel_merchant_set_error(profile->merchant_id,
-                              "pilot mobile prototype is unavailable",
+    vessel_merchant_set_error(profile->merchant_id, "pilot mobile prototype is unavailable",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
 
   slot = vessel_spawn_public_from_prototype_at(
-      profile->prototype_id, profile->name, profile->spawn_x,
-      profile->spawn_y, profile->spawn_z);
+      profile->prototype_id, profile->name, profile->spawn_x, profile->spawn_y, profile->spawn_z);
   if (slot < 0)
   {
-    vessel_merchant_set_error(profile->merchant_id,
-                              "hull constructor rejected the profile",
+    vessel_merchant_set_error(profile->merchant_id, "hull constructor rejected the profile",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
 
   ship = &greyhawk_ships[slot];
-  if (!vessel_merchant_load_cargo(ship, profile) ||
-      !vessel_merchant_assign_pilot(ship, profile))
+  if (!vessel_merchant_load_cargo(ship, profile) || !vessel_merchant_assign_pilot(ship, profile))
   {
     vessel_merchant_abort_spawn(ship);
-    vessel_merchant_set_error(profile->merchant_id,
-                              "cargo or pilot assembly failed",
+    vessel_merchant_set_error(profile->merchant_id, "cargo or pilot assembly failed",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
 
   ship->speed = MAX(1, ship->maxspeed / 2);
   ship->setspeed = ship->speed;
-  if (!schedule_create(ship, profile->route_id,
-                       profile->schedule_interval_hours, 0) ||
+  if (!schedule_create(ship, profile->route_id, profile->schedule_interval_hours, 0) ||
       !schedule_trigger_departure(ship))
   {
     vessel_merchant_abort_spawn(ship);
-    vessel_merchant_set_error(profile->merchant_id,
-                              "schedule or initial departure failed",
+    vessel_merchant_set_error(profile->merchant_id, "schedule or initial departure failed",
                               time(0) + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
@@ -612,8 +582,7 @@ static bool vessel_merchant_activate_profile(
   if (mysql_query(conn, query) || mysql_affected_rows(conn) != 1)
   {
     vessel_merchant_abort_spawn(ship);
-    vessel_merchant_set_error(profile->merchant_id,
-                              "definition could not claim the spawned hull",
+    vessel_merchant_set_error(profile->merchant_id, "definition could not claim the spawned hull",
                               now + VESSEL_MERCHANT_RETRY_SECONDS);
     return FALSE;
   }
@@ -623,8 +592,8 @@ static bool vessel_merchant_activate_profile(
   ship->merchant_faction_id = profile->faction_id;
   log("Info: NPC merchant %d '%s' generation %u entered service as "
       "ship %d on route %d with %d cargo units",
-      profile->merchant_id, profile->name, generation, slot,
-      profile->route_id, profile->cargo_quantity);
+      profile->merchant_id, profile->name, generation, slot, profile->route_id,
+      profile->cargo_quantity);
   return TRUE;
 }
 
@@ -661,8 +630,7 @@ static void vessel_merchant_reconcile(void)
     {
       if (row[0] != NULL)
       {
-        vessel_merchant_set_error(atoi(row[0]),
-                                  "definition values are outside Phase 14 bounds",
+        vessel_merchant_set_error(atoi(row[0]), "definition values are outside Phase 14 bounds",
                                   now + VESSEL_MERCHANT_RETRY_SECONDS);
       }
       continue;
@@ -670,14 +638,10 @@ static void vessel_merchant_reconcile(void)
 
     if (profile.active_ship_id > 0)
     {
-      ship = profile.active_ship_id < GREYHAWK_MAXSHIPS
-                 ? &greyhawk_ships[profile.active_ship_id]
-                 : NULL;
-      if (ship != NULL && is_valid_ship(ship) &&
-          ship->prototype_id == profile.prototype_id &&
-          ship->owner[0] == '\0' &&
-          !str_cmp(ship->name, profile.name) &&
-          profile.generation > 0)
+      ship = profile.active_ship_id < GREYHAWK_MAXSHIPS ? &greyhawk_ships[profile.active_ship_id]
+                                                        : NULL;
+      if (ship != NULL && is_valid_ship(ship) && ship->prototype_id == profile.prototype_id &&
+          ship->owner[0] == '\0' && !str_cmp(ship->name, profile.name) && profile.generation > 0)
       {
         ship->merchant_id = profile.merchant_id;
         ship->merchant_generation = profile.generation;
@@ -685,26 +649,23 @@ static void vessel_merchant_reconcile(void)
         continue;
       }
 
-      retry_at = profile.next_respawn_at > now
-                     ? profile.next_respawn_at
-                     : now + profile.respawn_delay_seconds;
+      retry_at = profile.next_respawn_at > now ? profile.next_respawn_at
+                                               : now + profile.respawn_delay_seconds;
       snprintf(query, sizeof(query),
                "UPDATE vessel_npc_merchants SET active_ship_id = NULL, "
                "next_respawn_at = %lld, "
                "last_error = 'active hull was missing or no longer public' "
                "WHERE merchant_id = %d AND active_ship_id = %d",
-               (long long)retry_at, profile.merchant_id,
-               profile.active_ship_id);
+               (long long)retry_at, profile.merchant_id, profile.active_ship_id);
       if (mysql_query(conn, query))
       {
-        log("SYSERR: Could not reconcile stale NPC merchant %d: %s",
-            profile.merchant_id, mysql_error(conn));
+        log("SYSERR: Could not reconcile stale NPC merchant %d: %s", profile.merchant_id,
+            mysql_error(conn));
       }
       continue;
     }
 
-    if (vessel_merchant_should_spawn(profile.enabled,
-                                     profile.active_ship_id,
+    if (vessel_merchant_should_spawn(profile.enabled, profile.active_ship_id,
                                      profile.next_respawn_at, now))
     {
       vessel_merchant_activate_profile(&profile);
@@ -732,8 +693,7 @@ void vessel_merchant_tick(void)
 
 static struct char_data *vessel_merchant_effective_player(struct char_data *ch)
 {
-  if (ch != NULL && IS_NPC(ch) && ch->master != NULL &&
-      !IS_NPC(ch->master))
+  if (ch != NULL && IS_NPC(ch) && ch->master != NULL && !IS_NPC(ch->master))
   {
     return ch->master;
   }
@@ -754,8 +714,7 @@ static struct char_data *vessel_merchant_online_player(const char *name)
   }
   for (tch = character_list; tch != NULL; tch = tch->next)
   {
-    if (!IS_NPC(tch) && GET_NAME(tch) != NULL &&
-        !str_cmp(GET_NAME(tch), name))
+    if (!IS_NPC(tch) && GET_NAME(tch) != NULL && !str_cmp(GET_NAME(tch), name))
     {
       return tch;
     }
@@ -763,8 +722,7 @@ static struct char_data *vessel_merchant_online_player(const char *name)
   return NULL;
 }
 
-static bool vessel_merchant_add_bounty_in_transaction(const char *player_name,
-                                                       int amount)
+static bool vessel_merchant_add_bounty_in_transaction(const char *player_name, int amount)
 {
   char escaped_name[MAX_NAME_LENGTH * 2 + 1];
   char query[MAX_STRING_LENGTH];
@@ -774,8 +732,7 @@ static bool vessel_merchant_add_bounty_in_transaction(const char *player_name,
     return TRUE;
   }
 
-  mysql_real_escape_string(conn, escaped_name, player_name,
-                           strlen(player_name));
+  mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
   snprintf(query, sizeof(query),
            "INSERT INTO vessel_bounties (player_name, bounty) "
            "VALUES ('%s', %d) ON DUPLICATE KEY UPDATE "
@@ -783,18 +740,17 @@ static bool vessel_merchant_add_bounty_in_transaction(const char *player_name,
            escaped_name, amount, INT_MAX, amount);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not add durable merchant bounty for %s: %s",
-        player_name, mysql_error(conn));
+    log("SYSERR: Could not add durable merchant bounty for %s: %s", player_name, mysql_error(conn));
     return FALSE;
   }
   return TRUE;
 }
 
-static bool vessel_merchant_queue_consequence(
-    const struct vessel_merchant_profile *profile, const char *player_name,
-    const char *event_type, int cargo_units, int bounty_delta,
-    int standing_penalty, bool bounty_already_applied,
-    const char *dedupe_key)
+static bool vessel_merchant_queue_consequence(const struct vessel_merchant_profile *profile,
+                                              const char *player_name, const char *event_type,
+                                              int cargo_units, int bounty_delta,
+                                              int standing_penalty, bool bounty_already_applied,
+                                              const char *dedupe_key)
 {
   char escaped_player[MAX_NAME_LENGTH * 2 + 1];
   char escaped_event[VESSEL_MERCHANT_EVENT_LENGTH * 2 + 1];
@@ -804,15 +760,13 @@ static bool vessel_merchant_queue_consequence(
   unsigned long long consequence_id;
   const char *status;
 
-  if (!mysql_available || conn == NULL || profile == NULL ||
-      player_name == NULL || !*player_name || event_type == NULL ||
-      !*event_type)
+  if (!mysql_available || conn == NULL || profile == NULL || player_name == NULL || !*player_name ||
+      event_type == NULL || !*event_type)
   {
     return FALSE;
   }
   if (strlen(event_type) >= VESSEL_MERCHANT_EVENT_LENGTH ||
-      (dedupe_key != NULL &&
-       strlen(dedupe_key) >= VESSEL_MERCHANT_DEDUPE_LENGTH))
+      (dedupe_key != NULL && strlen(dedupe_key) >= VESSEL_MERCHANT_DEDUPE_LENGTH))
   {
     log("SYSERR: NPC merchant consequence key exceeds schema bounds");
     return FALSE;
@@ -820,14 +774,11 @@ static bool vessel_merchant_queue_consequence(
 
   vessel_piracy_ensure_schema();
   vessel_merchant_ensure_schema();
-  mysql_real_escape_string(conn, escaped_player, player_name,
-                           strlen(player_name));
-  mysql_real_escape_string(conn, escaped_event, event_type,
-                           strlen(event_type));
+  mysql_real_escape_string(conn, escaped_player, player_name, strlen(player_name));
+  mysql_real_escape_string(conn, escaped_event, event_type, strlen(event_type));
   if (dedupe_key != NULL && *dedupe_key)
   {
-    mysql_real_escape_string(conn, escaped_key, dedupe_key,
-                             strlen(dedupe_key));
+    mysql_real_escape_string(conn, escaped_key, dedupe_key, strlen(dedupe_key));
   }
   else
   {
@@ -848,11 +799,9 @@ static bool vessel_merchant_queue_consequence(
              "dedupe_key, status, applied_at) "
              "VALUES (%d, %u, '%s', %d, %d, %d, %d, '%s', '%s', "
              "'%s', %s)",
-             profile->merchant_id, profile->generation, escaped_player,
-             profile->faction_id, MAX(0, standing_penalty),
-             MAX(0, bounty_delta), MAX(0, cargo_units), escaped_event,
-             escaped_key, status,
-             standing_penalty > 0 ? "NULL" : "NOW()");
+             profile->merchant_id, profile->generation, escaped_player, profile->faction_id,
+             MAX(0, standing_penalty), MAX(0, bounty_delta), MAX(0, cargo_units), escaped_event,
+             escaped_key, status, standing_penalty > 0 ? "NULL" : "NOW()");
   }
   else
   {
@@ -863,16 +812,14 @@ static bool vessel_merchant_queue_consequence(
              "dedupe_key, status, applied_at) "
              "VALUES (%d, %u, '%s', %d, %d, %d, %d, '%s', NULL, "
              "'%s', %s)",
-             profile->merchant_id, profile->generation, escaped_player,
-             profile->faction_id, MAX(0, standing_penalty),
-             MAX(0, bounty_delta), MAX(0, cargo_units), escaped_event,
+             profile->merchant_id, profile->generation, escaped_player, profile->faction_id,
+             MAX(0, standing_penalty), MAX(0, bounty_delta), MAX(0, cargo_units), escaped_event,
              status, standing_penalty > 0 ? "NULL" : "NOW()");
   }
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not queue merchant consequence for %s: %s",
-        player_name, mysql_error(conn));
+    log("SYSERR: Could not queue merchant consequence for %s: %s", player_name, mysql_error(conn));
     mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
@@ -891,8 +838,8 @@ static bool vessel_merchant_queue_consequence(
   }
   if (mysql_query(conn, "COMMIT"))
   {
-    log("SYSERR: Could not commit merchant consequence %llu for %s: %s",
-        consequence_id, player_name, mysql_error(conn));
+    log("SYSERR: Could not commit merchant consequence %llu for %s: %s", consequence_id,
+        player_name, mysql_error(conn));
     mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
@@ -936,15 +883,13 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
   int applied;
   int i;
 
-  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL ||
-      !mysql_available || conn == NULL)
+  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL || !mysql_available || conn == NULL)
   {
     return 0;
   }
 
   vessel_merchant_ensure_schema();
-  mysql_real_escape_string(conn, escaped_player, GET_NAME(ch),
-                           strlen(GET_NAME(ch)));
+  mysql_real_escape_string(conn, escaped_player, GET_NAME(ch), strlen(GET_NAME(ch)));
   snprintf(query, sizeof(query),
            "SELECT consequence_id, faction_id, standing_penalty "
            "FROM vessel_merchant_consequences "
@@ -953,8 +898,7 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
            escaped_player);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not load merchant consequences for %s: %s",
-        GET_NAME(ch), mysql_error(conn));
+    log("SYSERR: Could not load merchant consequences for %s: %s", GET_NAME(ch), mysql_error(conn));
     return 0;
   }
   result = mysql_store_result(conn);
@@ -977,14 +921,12 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
     {
       highest_id = consequence_id;
     }
-    if (consequence_id <= previous_id ||
-        faction_id <= FACTION_NONE || faction_id >= NUM_FACTIONS ||
+    if (consequence_id <= previous_id || faction_id <= FACTION_NONE || faction_id >= NUM_FACTIONS ||
         row[2] == NULL)
     {
       continue;
     }
-    if (penalty_by_faction[faction_id] >
-        LLONG_MAX - MAX(0, atoi(row[2])))
+    if (penalty_by_faction[faction_id] > LLONG_MAX - MAX(0, atoi(row[2])))
     {
       penalty_by_faction[faction_id] = LLONG_MAX;
     }
@@ -1004,8 +946,7 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
   for (i = 0; i < NUM_FACTIONS; i++)
   {
     old_standing[i] = GET_FACTION_STANDING(ch, i);
-    if (penalty_by_faction[i] > 0 &&
-        old_standing[i] < LONG_MIN + penalty_by_faction[i])
+    if (penalty_by_faction[i] > 0 && old_standing[i] < LONG_MIN + penalty_by_faction[i])
     {
       GET_FACTION_STANDING(ch, i) = LONG_MIN;
     }
@@ -1023,8 +964,7 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
       GET_FACTION_STANDING(ch, i) = old_standing[i];
     }
     GET_VESSEL_MERCHANT_CONSEQUENCE(ch) = previous_id;
-    log("SYSERR: Could not save merchant consequences for %s",
-        GET_NAME(ch));
+    log("SYSERR: Could not save merchant consequences for %s", GET_NAME(ch));
     return 0;
   }
 
@@ -1036,8 +976,8 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
            escaped_player, highest_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not close merchant consequences for %s: %s",
-        GET_NAME(ch), mysql_error(conn));
+    log("SYSERR: Could not close merchant consequences for %s: %s", GET_NAME(ch),
+        mysql_error(conn));
   }
 
   if (applied > 0)
@@ -1056,8 +996,7 @@ int vessel_merchant_deliver_pending_consequences(struct char_data *ch)
  * One attack consequence per player and merchant generation prevents a
  * reload timer from turning every projectile into another standing loss.
  */
-void vessel_merchant_note_attacker(struct char_data *ch,
-                                   struct greyhawk_ship_data *ship)
+void vessel_merchant_note_attacker(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
   char escaped_player[MAX_NAME_LENGTH * 2 + 1];
   char query[MAX_STRING_LENGTH];
@@ -1066,39 +1005,32 @@ void vessel_merchant_note_attacker(struct char_data *ch,
   struct char_data *player;
 
   player = vessel_merchant_effective_player(ch);
-  if (player == NULL || ship == NULL || ship->merchant_id <= 0 ||
-      GET_NAME(player) == NULL ||
+  if (player == NULL || ship == NULL || ship->merchant_id <= 0 || GET_NAME(player) == NULL ||
       !vessel_merchant_fetch_profile(ship->merchant_id, &profile) ||
-      profile.active_ship_id != ship->shipnum ||
-      profile.generation != ship->merchant_generation)
+      profile.active_ship_id != ship->shipnum || profile.generation != ship->merchant_generation)
   {
     return;
   }
 
-  mysql_real_escape_string(conn, escaped_player, GET_NAME(player),
-                           strlen(GET_NAME(player)));
+  mysql_real_escape_string(conn, escaped_player, GET_NAME(player), strlen(GET_NAME(player)));
   snprintf(query, sizeof(query),
            "UPDATE vessel_npc_merchants SET last_attacker_name = '%s', "
            "last_attacked_at = %lld "
            "WHERE merchant_id = %d AND generation = %u "
            "AND active_ship_id = %d",
-           escaped_player, (long long)time(0), profile.merchant_id,
-           profile.generation,
+           escaped_player, (long long)time(0), profile.merchant_id, profile.generation,
            ship->shipnum);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not record attacker for NPC merchant %d: %s",
-        profile.merchant_id, mysql_error(conn));
+    log("SYSERR: Could not record attacker for NPC merchant %d: %s", profile.merchant_id,
+        mysql_error(conn));
   }
 
-  snprintf(dedupe_key, sizeof(dedupe_key), "attack:%d:%u:%s",
-           profile.merchant_id, profile.generation, GET_NAME(player));
+  snprintf(dedupe_key, sizeof(dedupe_key), "attack:%d:%u:%s", profile.merchant_id,
+           profile.generation, GET_NAME(player));
   vessel_merchant_queue_consequence(
       &profile, GET_NAME(player), "attack", 0, 0,
-      profile.faction_id == FACTION_NONE
-          ? 0
-          : VESSEL_MERCHANT_ATTACK_STANDING_PENALTY,
-      FALSE,
+      profile.faction_id == FACTION_NONE ? 0 : VESSEL_MERCHANT_ATTACK_STANDING_PENALTY, FALSE,
       dedupe_key);
 }
 
@@ -1108,8 +1040,7 @@ void vessel_merchant_note_attacker(struct char_data *ch,
  * The piracy module already adds the regional bounty; this durable row
  * records that exact delta beside the separate merchant-faction consequence.
  */
-void vessel_merchant_record_plunder(struct char_data *ch,
-                                    struct greyhawk_ship_data *ship,
+void vessel_merchant_record_plunder(struct char_data *ch, struct greyhawk_ship_data *ship,
                                     int cargo_units, int bounty_delta)
 {
   struct vessel_merchant_profile profile;
@@ -1117,31 +1048,26 @@ void vessel_merchant_record_plunder(struct char_data *ch,
   int penalty;
 
   player = vessel_merchant_effective_player(ch);
-  if (player == NULL || ship == NULL || ship->merchant_id <= 0 ||
-      cargo_units <= 0 || GET_NAME(player) == NULL ||
-      !vessel_merchant_fetch_profile(ship->merchant_id, &profile) ||
-      profile.active_ship_id != ship->shipnum ||
-      profile.generation != ship->merchant_generation)
+  if (player == NULL || ship == NULL || ship->merchant_id <= 0 || cargo_units <= 0 ||
+      GET_NAME(player) == NULL || !vessel_merchant_fetch_profile(ship->merchant_id, &profile) ||
+      profile.active_ship_id != ship->shipnum || profile.generation != ship->merchant_generation)
   {
     return;
   }
 
   vessel_merchant_note_attacker(player, ship);
-  penalty = profile.faction_id == FACTION_NONE
-                ? 0
-                : vessel_merchant_faction_penalty(cargo_units, FALSE);
-  vessel_merchant_queue_consequence(
-      &profile, GET_NAME(player), "plunder", cargo_units,
-      MAX(0, bounty_delta), penalty, TRUE, NULL);
+  penalty =
+      profile.faction_id == FACTION_NONE ? 0 : vessel_merchant_faction_penalty(cargo_units, FALSE);
+  vessel_merchant_queue_consequence(&profile, GET_NAME(player), "plunder", cargo_units,
+                                    MAX(0, bounty_delta), penalty, TRUE, NULL);
 
   log("Info: %s incurred %d merchant-faction standing and %d regional "
       "bounty for plundering %d units from merchant %d generation %u",
-      GET_NAME(player), penalty, MAX(0, bounty_delta), cargo_units,
-      profile.merchant_id, profile.generation);
+      GET_NAME(player), penalty, MAX(0, bounty_delta), cargo_units, profile.merchant_id,
+      profile.generation);
 }
 
-static int vessel_merchant_cargo_units(
-    const struct greyhawk_ship_data *ship)
+static int vessel_merchant_cargo_units(const struct greyhawk_ship_data *ship)
 {
   long long units;
   int i;
@@ -1165,10 +1091,8 @@ static int vessel_merchant_cargo_units(
   return (int)units;
 }
 
-static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
-                                 const char *event_type,
-                                 const char *explicit_player,
-                                 bool penalize)
+static void vessel_merchant_loss(struct greyhawk_ship_data *ship, const char *event_type,
+                                 const char *explicit_player, bool penalize)
 {
   char escaped_player[MAX_NAME_LENGTH * 2 + 1];
   char escaped_event[VESSEL_MERCHANT_EVENT_LENGTH * 2 + 1];
@@ -1185,8 +1109,7 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
 
   if (ship == NULL || ship->merchant_id <= 0 ||
       !vessel_merchant_fetch_profile(ship->merchant_id, &profile) ||
-      profile.active_ship_id != ship->shipnum ||
-      profile.generation != ship->merchant_generation)
+      profile.active_ship_id != ship->shipnum || profile.generation != ship->merchant_generation)
   {
     return;
   }
@@ -1194,14 +1117,12 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
   now = time(0);
   player_name = explicit_player != NULL && *explicit_player
                     ? explicit_player
-                    : (vessel_merchant_responsibility_active(
-                           profile.last_attacked_at, now)
+                    : (vessel_merchant_responsibility_active(profile.last_attacked_at, now)
                            ? profile.last_attacker_name
                            : NULL);
   if ((player_name == NULL || !*player_name) &&
       vessel_merchant_responsibility_active(profile.last_attacked_at, now) &&
-      ship->last_attacker > 0 &&
-      ship->last_attacker < GREYHAWK_MAXSHIPS &&
+      ship->last_attacker > 0 && ship->last_attacker < GREYHAWK_MAXSHIPS &&
       is_valid_ship(&greyhawk_ships[ship->last_attacker]) &&
       greyhawk_ships[ship->last_attacker].owner[0] != '\0')
   {
@@ -1217,33 +1138,27 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
     bounty_units = MAX(cargo_units, VESSEL_MERCHANT_LOSS_BOUNTY_UNITS);
     if (!vessel_has_letter_of_marque(player_name))
     {
-      bounty_delta =
-          vessel_piracy_bounty_for_units(bounty_units, law.bounty_percent);
+      bounty_delta = vessel_piracy_bounty_for_units(bounty_units, law.bounty_percent);
     }
     if (profile.faction_id != FACTION_NONE)
     {
-      standing_penalty =
-          vessel_merchant_faction_penalty(cargo_units, TRUE);
+      standing_penalty = vessel_merchant_faction_penalty(cargo_units, TRUE);
     }
-    snprintf(dedupe_key, sizeof(dedupe_key), "%s:%d:%u:%s",
-             event_type, profile.merchant_id, profile.generation,
-             player_name);
-    vessel_merchant_queue_consequence(
-        &profile, player_name, event_type, cargo_units, bounty_delta,
-        standing_penalty, FALSE, dedupe_key);
+    snprintf(dedupe_key, sizeof(dedupe_key), "%s:%d:%u:%s", event_type, profile.merchant_id,
+             profile.generation, player_name);
+    vessel_merchant_queue_consequence(&profile, player_name, event_type, cargo_units, bounty_delta,
+                                      standing_penalty, FALSE, dedupe_key);
   }
 
   if (player_name != NULL && *player_name)
   {
-    mysql_real_escape_string(conn, escaped_player, player_name,
-                             strlen(player_name));
+    mysql_real_escape_string(conn, escaped_player, player_name, strlen(player_name));
   }
   else
   {
     escaped_player[0] = '\0';
   }
-  mysql_real_escape_string(conn, escaped_event, event_type,
-                           strlen(event_type));
+  mysql_real_escape_string(conn, escaped_event, event_type, strlen(event_type));
   snprintf(query, sizeof(query),
            "UPDATE vessel_npc_merchants SET active_ship_id = NULL, "
            "next_respawn_at = %lld, last_destroyed_at = %lld, "
@@ -1252,14 +1167,12 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
            "loss_count = loss_count + %d, last_error = '%s' "
            "WHERE merchant_id = %d AND generation = %u "
            "AND active_ship_id = %d",
-           (long long)(now + profile.respawn_delay_seconds),
-           (long long)now, escaped_player, penalize ? 1 : 0,
-           escaped_event, profile.merchant_id, profile.generation,
-           ship->shipnum);
+           (long long)(now + profile.respawn_delay_seconds), (long long)now, escaped_player,
+           penalize ? 1 : 0, escaped_event, profile.merchant_id, profile.generation, ship->shipnum);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not release lost NPC merchant %d ship %d: %s",
-        profile.merchant_id, ship->shipnum, mysql_error(conn));
+    log("SYSERR: Could not release lost NPC merchant %d ship %d: %s", profile.merchant_id,
+        ship->shipnum, mysql_error(conn));
   }
   else
   {
@@ -1267,8 +1180,7 @@ static void vessel_merchant_loss(struct greyhawk_ship_data *ship,
         "replacement due at %lld (actor %s, standing %d, bounty %d)",
         profile.merchant_id, profile.generation, ship->shipnum, event_type,
         (long long)(now + profile.respawn_delay_seconds),
-        player_name != NULL && *player_name ? player_name : "none",
-        standing_penalty, bounty_delta);
+        player_name != NULL && *player_name ? player_name : "none", standing_penalty, bounty_delta);
   }
 
   ship->merchant_id = 0;
@@ -1288,23 +1200,19 @@ void vessel_merchant_handle_sink(struct greyhawk_ship_data *ship)
  * Capturing a merchant keeps the prize but releases its definition to spawn
  * a replacement after the same configured recovery delay.
  */
-void vessel_merchant_handle_capture(struct char_data *ch,
-                                    struct greyhawk_ship_data *ship)
+void vessel_merchant_handle_capture(struct char_data *ch, struct greyhawk_ship_data *ship)
 {
   struct char_data *player;
 
   player = vessel_merchant_effective_player(ch);
-  vessel_merchant_loss(
-      ship, "capture",
-      player != NULL && GET_NAME(player) != NULL ? GET_NAME(player) : NULL,
-      TRUE);
+  vessel_merchant_loss(ship, "capture",
+                       player != NULL && GET_NAME(player) != NULL ? GET_NAME(player) : NULL, TRUE);
 }
 
 /**
  * Operator purge is a lifecycle restart, not piracy.
  */
-void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship,
-                                  const char *staff_name)
+void vessel_merchant_handle_purge(struct greyhawk_ship_data *ship, const char *staff_name)
 {
   vessel_merchant_loss(ship, "purge", staff_name, FALSE);
 }
@@ -1324,13 +1232,11 @@ static void vessel_merchant_list(struct char_data *ch)
     return;
   }
   vessel_merchant_ensure_schema();
-  if (mysql_query(
-          conn,
-          "SELECT merchant_id, name, faction_id, prototype_id, route_id, "
-          "pilot_mob_vnum, cargo_commodity_id, cargo_quantity, "
-          "active_ship_id, next_respawn_at, generation, enabled, "
-          "loss_count, last_error FROM vessel_npc_merchants "
-          "ORDER BY merchant_id"))
+  if (mysql_query(conn, "SELECT merchant_id, name, faction_id, prototype_id, route_id, "
+                        "pilot_mob_vnum, cargo_commodity_id, cargo_quantity, "
+                        "active_ship_id, next_respawn_at, generation, enabled, "
+                        "loss_count, last_error FROM vessel_npc_merchants "
+                        "ORDER BY merchant_id"))
   {
     send_to_char(ch, "The merchant registry could not be read.\r\n");
     return;
@@ -1343,34 +1249,25 @@ static void vessel_merchant_list(struct char_data *ch)
   }
 
   now = (long long)time(0);
-  send_to_char(ch,
-               "ID  Gen Ship State       Faction    Proto Route Pilot "
-               "Cargo       Loss Name\r\n");
-  send_to_char(ch,
-               "--- --- ---- ----------- ---------- ----- ----- ----- "
-               "----------- ---- ------------------------\r\n");
+  send_to_char(ch, "ID  Gen Ship State       Faction    Proto Route Pilot "
+                   "Cargo       Loss Name\r\n");
+  send_to_char(ch, "--- --- ---- ----------- ---------- ----- ----- ----- "
+                   "----------- ---- ------------------------\r\n");
   while ((row = mysql_fetch_row(result)) != NULL)
   {
     due = row[9] ? atoll(row[9]) : 0;
     active_ship_id = row[8] ? atoi(row[8]) : 0;
     enabled = row[11] && atoi(row[11]);
-    send_to_char(
-        ch, "%3d %3u %4s %-11s %-10.10s %5d %5d %5d %4d x %-4d %4d %s\r\n",
-        row[0] ? atoi(row[0]) : 0,
-        row[10] ? (unsigned int)strtoul(row[10], NULL, 10) : 0,
-        active_ship_id > 0 ? row[8] : "-",
-        !enabled
-            ? "disabled"
-            : (active_ship_id > 0
-                   ? "active"
-                   : (due > now ? "recovering" : "due")),
-        row[2] && atoi(row[2]) >= 0 && atoi(row[2]) < NUM_FACTIONS
-            ? factions[atoi(row[2])]
-            : "invalid",
-        row[3] ? atoi(row[3]) : 0, row[4] ? atoi(row[4]) : 0,
-        row[5] ? atoi(row[5]) : 0, row[7] ? atoi(row[7]) : 0,
-        row[6] ? atoi(row[6]) : 0, row[12] ? atoi(row[12]) : 0,
-        row[1] ? row[1] : "(unnamed)");
+    send_to_char(ch, "%3d %3u %4s %-11s %-10.10s %5d %5d %5d %4d x %-4d %4d %s\r\n",
+                 row[0] ? atoi(row[0]) : 0, row[10] ? (unsigned int)strtoul(row[10], NULL, 10) : 0,
+                 active_ship_id > 0 ? row[8] : "-",
+                 !enabled ? "disabled"
+                          : (active_ship_id > 0 ? "active" : (due > now ? "recovering" : "due")),
+                 row[2] && atoi(row[2]) >= 0 && atoi(row[2]) < NUM_FACTIONS ? factions[atoi(row[2])]
+                                                                            : "invalid",
+                 row[3] ? atoi(row[3]) : 0, row[4] ? atoi(row[4]) : 0, row[5] ? atoi(row[5]) : 0,
+                 row[7] ? atoi(row[7]) : 0, row[6] ? atoi(row[6]) : 0, row[12] ? atoi(row[12]) : 0,
+                 row[1] ? row[1] : "(unnamed)");
     if (row[13] != NULL && *row[13])
     {
       send_to_char(ch, "    error: %s\r\n", row[13]);
@@ -1420,14 +1317,12 @@ ACMD(do_vmerchant)
   if (!*id_arg || *end != '\0' || parsed_id <= 0 || parsed_id > INT_MAX ||
       str_cmp(confirmation, "confirm"))
   {
-    send_to_char(ch,
-                 "This destroys the active merchant hull and cargo. "
-                 "Use: vmerchant sink <id> confirm\r\n");
+    send_to_char(ch, "This destroys the active merchant hull and cargo. "
+                     "Use: vmerchant sink <id> confirm\r\n");
     return;
   }
   merchant_id = (int)parsed_id;
-  if (!vessel_merchant_fetch_profile(merchant_id, &profile) ||
-      profile.active_ship_id <= 0 ||
+  if (!vessel_merchant_fetch_profile(merchant_id, &profile) || profile.active_ship_id <= 0 ||
       profile.active_ship_id >= GREYHAWK_MAXSHIPS)
   {
     send_to_char(ch, "Merchant %d has no active hull.\r\n", merchant_id);
@@ -1436,14 +1331,12 @@ ACMD(do_vmerchant)
   ship = &greyhawk_ships[profile.active_ship_id];
   if (!is_valid_ship(ship) || ship->merchant_id != merchant_id)
   {
-    send_to_char(ch,
-                 "Merchant %d's registry is stale; run 'vmerchant sync'.\r\n",
-                 merchant_id);
+    send_to_char(ch, "Merchant %d's registry is stale; run 'vmerchant sync'.\r\n", merchant_id);
     return;
   }
 
   vessel_merchant_note_attacker(ch, ship);
-  send_to_char(ch, "Forcing the documented loss path for merchant %d, ship %d.\r\n",
-               merchant_id, ship->shipnum);
+  send_to_char(ch, "Forcing the documented loss path for merchant %d, ship %d.\r\n", merchant_id,
+               ship->shipnum);
   vessel_sink(ship->shipnum);
 }

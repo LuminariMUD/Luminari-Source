@@ -1739,8 +1739,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
         {
           if (subfield && *subfield)
           {
-            snprintf(str, slen, "%d",
-                     IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoidx(subfield)) : 0);
+            snprintf(str, slen, "%d", IS_NPC(c) ? (int)(GET_MOB_VNUM(c) == atoidx(subfield)) : 0);
           }
           else
           {
@@ -1826,11 +1825,11 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             else
               snprintf(str, slen, "0");
           }
-        else
-          snprintf(str, slen, "0");
-      }
-      break;
-    case 'b':
+          else
+            snprintf(str, slen, "0");
+        }
+        break;
+      case 'b':
         if (!str_cmp(field, "bound"))
         {
           if (GET_OBJ_BOUND_ID(o) != (int)NOBODY)
@@ -2378,8 +2377,7 @@ void find_replacement(void *go, struct script_data *sc, trig_data *trig, int typ
             script_log("Trigger: %s, VNum %d, type: %d. ERROR: Unknown room field '%s' (room vnum: "
                        "%d, attempted access: %%<room_var>.%s%%)",
                        GET_TRIG_NAME(trig), GET_TRIG_VNUM(trig), type, field,
-                       r ? (int)r->number : -1,
-                       field);
+                       r ? (int)r->number : -1, field);
           }
         }
         else

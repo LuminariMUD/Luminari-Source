@@ -1324,8 +1324,7 @@ ACMD(do_hindex)
     char *tag = mysql_stmt_get_string(pstmt, 0);
     if (tag)
     {
-      len =
-          snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", tag, (++count % 3 ? "" : "\r\n"));
+      len = snprintf_append(buf, sizeof(buf), len, "%-20.20s%s", tag, (++count % 3 ? "" : "\r\n"));
     }
   }
 
@@ -2889,9 +2888,9 @@ static struct help_entry_list *parse_help_entry(FILE *fp, int *min_level)
  * Import a single entry with conflict resolution
  * Modes: "preview" = don't save, "force" = overwrite, "merge" = intelligent merge
  */
-static int import_entry_with_resolution(struct char_data *ch __attribute__((unused)), struct help_entry_list *entry,
-                                        int min_level, const char *mode, char *msg_buf,
-                                        size_t msg_size)
+static int import_entry_with_resolution(struct char_data *ch __attribute__((unused)),
+                                        struct help_entry_list *entry, int min_level,
+                                        const char *mode, char *msg_buf, size_t msg_size)
 {
   char *query = NULL;
   char escaped_tag[MAX_STRING_LENGTH];
@@ -3222,7 +3221,7 @@ static int import_help_hlp_file(struct char_data *ch, const char *mode)
       RECREATE(output_buf, char, new_size);                                                        \
       output_size = new_size;                                                                      \
     }                                                                                              \
-    output_len = snprintf_append(output_buf, output_size, output_len, fmt, ##__VA_ARGS__);          \
+    output_len = snprintf_append(output_buf, output_size, output_len, fmt, ##__VA_ARGS__);         \
   } while (0)
 
   /* Open the help.hlp file */

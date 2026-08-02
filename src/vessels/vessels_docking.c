@@ -23,13 +23,13 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern struct room_data *world;
 
 /* Docking constants */
-#define MAX_DOCKING_RANGE 2.0  /* Maximum distance for docking */
-#define MAX_DOCKING_SPEED 2    /* Maximum speed for safe docking */
+#define MAX_DOCKING_RANGE 2.0 /* Maximum distance for docking */
+#define MAX_DOCKING_SPEED 2   /* Maximum speed for safe docking */
 #define BOARDING_CRITICAL_MARGIN 10
 #define BOARDING_SWIM_DC 15
 #define BOARDING_DEFENSE_MIN -8
 #define BOARDING_DEFENSE_MAX 15
-#define DIR_GANGWAY 10         /* Special direction for ship connections */
+#define DIR_GANGWAY 10 /* Special direction for ship connections */
 
 /* Check if two ships are in docking range */
 bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
@@ -325,8 +325,7 @@ void complete_docking(struct greyhawk_ship_data *ship1, struct greyhawk_ship_dat
    * helper so the target's exterior object, coordinates, and location remain
    * synchronized.
    */
-  if (!update_ship_wilderness_position(ship2->shipnum, (int)ship1->x, (int)ship1->y,
-                                       (int)ship1->z))
+  if (!update_ship_wilderness_position(ship2->shipnum, (int)ship1->x, (int)ship1->y, (int)ship1->z))
   {
     VSSL_DEBUG_DOCK("DOCKING FAILED: Could not synchronize exterior positions");
     send_to_ship(ship1, "Docking failed - the target could not move alongside!");

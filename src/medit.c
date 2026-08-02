@@ -462,8 +462,7 @@ void medit_save_internally(struct descriptor_data *d)
     if (STATE(dsc) == CON_ZEDIT)
       for (i = 0; OLC_ZONE(dsc)->cmd[i].command != 'S'; i++)
         if (OLC_ZONE(dsc)->cmd[i].command == 'M')
-          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 &&
-              (mob_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= new_rnum)
+          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 && (mob_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= new_rnum)
             OLC_ZONE(dsc)->cmd[i].arg1++;
 }
 

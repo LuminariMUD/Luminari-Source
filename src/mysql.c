@@ -2756,8 +2756,7 @@ void insert_path(struct path_data *path)
   size_t linestring_size, query_size;
   int vtx = 0;
 
-  if (!path || !path->name || !path->vertices || path->num_vertices <= 0 ||
-      path->zone == NOWHERE ||
+  if (!path || !path->name || !path->vertices || path->num_vertices <= 0 || path->zone == NOWHERE ||
       path->zone > top_of_zone_table)
   {
     log("SYSERR: %s: Invalid path data", __func__);

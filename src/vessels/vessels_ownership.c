@@ -113,8 +113,7 @@ bool vessel_db_save_owner(struct greyhawk_ship_data *ship)
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_owner failed for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
+    log("SYSERR: vessel_db_save_owner failed for ship %d: %s", ship->shipnum, mysql_error(conn));
     return FALSE;
   }
   return TRUE;
@@ -236,8 +235,7 @@ bool vessel_handle_player_removal(const char *player_name)
   }
   if (!mysql_available || conn == NULL)
   {
-    log("SYSERR: Permanent removal of %s deferred: vessel database unavailable",
-        player_name);
+    log("SYSERR: Permanent removal of %s deferred: vessel database unavailable", player_name);
     return FALSE;
   }
 
@@ -248,8 +246,7 @@ bool vessel_handle_player_removal(const char *player_name)
   mysql_real_escape_string(conn, escaped_name, player_name, strlen(player_name));
   if (mysql_query(conn, "START TRANSACTION"))
   {
-    log("SYSERR: Could not begin vessel orphan cleanup for %s: %s", player_name,
-        mysql_error(conn));
+    log("SYSERR: Could not begin vessel orphan cleanup for %s: %s", player_name, mysql_error(conn));
     return FALSE;
   }
 
@@ -264,8 +261,8 @@ bool vessel_handle_player_removal(const char *player_name)
     goto rollback;
   }
 
-  snprintf(query, sizeof(query),
-           "UPDATE ship_interiors SET owner = '' WHERE owner = '%s'", escaped_name);
+  snprintf(query, sizeof(query), "UPDATE ship_interiors SET owner = '' WHERE owner = '%s'",
+           escaped_name);
   if (mysql_query(conn, query))
   {
     goto rollback;
@@ -308,16 +305,14 @@ bool vessel_handle_player_removal(const char *player_name)
     goto rollback;
   }
 
-  snprintf(query, sizeof(query),
-           "DELETE FROM vessel_bounty_hunts WHERE target_player = '%s'",
+  snprintf(query, sizeof(query), "DELETE FROM vessel_bounty_hunts WHERE target_player = '%s'",
            escaped_name);
   if (mysql_query(conn, query))
   {
     goto rollback;
   }
 
-  snprintf(query, sizeof(query),
-           "DELETE FROM vessel_bounties WHERE player_name = '%s'",
+  snprintf(query, sizeof(query), "DELETE FROM vessel_bounties WHERE player_name = '%s'",
            escaped_name);
   if (mysql_query(conn, query))
   {
@@ -375,14 +370,12 @@ bool vessel_handle_player_removal(const char *player_name)
     ship->num_permits = kept;
   }
 
-  log("Info: Permanent removal of %s unowned %d ship%s and removed %d helm permit%s",
-      player_name, unowned, unowned == 1 ? "" : "s", permits_removed,
-      permits_removed == 1 ? "" : "s");
+  log("Info: Permanent removal of %s unowned %d ship%s and removed %d helm permit%s", player_name,
+      unowned, unowned == 1 ? "" : "s", permits_removed, permits_removed == 1 ? "" : "s");
   return TRUE;
 
 rollback:
-  log("SYSERR: Vessel orphan cleanup failed for %s: %s", player_name,
-      mysql_error(conn));
+  log("SYSERR: Vessel orphan cleanup failed for %s: %s", player_name, mysql_error(conn));
   mysql_query(conn, "ROLLBACK");
   return FALSE;
 }

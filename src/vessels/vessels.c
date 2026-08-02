@@ -556,8 +556,7 @@ bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int 
     {
       return FALSE;
     }
-    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE ||
-        sector_type == SECT_INSIDE_ROOM)
+    if (sector_type == SECT_CAVE || sector_type == SECT_INSIDE || sector_type == SECT_INSIDE_ROOM)
     {
       return FALSE;
     }
@@ -571,8 +570,8 @@ static bool vessel_can_traverse_sector(enum vessel_class vessel_type, int sector
   const struct vessel_terrain_caps *caps;
 
   caps = get_vessel_terrain_caps(vessel_type);
-  if (caps == NULL || !vessel_z_allows_sector(vessel_type, sector_type, z) ||
-      sector_type < 0 || sector_type >= 40)
+  if (caps == NULL || !vessel_z_allows_sector(vessel_type, sector_type, z) || sector_type < 0 ||
+      sector_type >= 40)
   {
     return FALSE;
   }
@@ -595,8 +594,7 @@ enum vessel_class get_vessel_type_from_ship(int shipnum)
   enum vessel_class vtype;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     log("SYSERR: get_vessel_type_from_ship: Invalid ship number %d", shipnum);
     return VESSEL_SHIP; /* Default to standard ship */
@@ -1170,8 +1168,7 @@ bool vessel_hull_is_managed(const struct obj_data *obj)
   }
 
   shipnum = GET_OBJ_VAL(obj, 1);
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return FALSE;
   }
@@ -1443,8 +1440,7 @@ int vessel_relink_world_objects(void)
     }
 
     shipnum = GET_OBJ_VAL(obj, 1);
-    if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-        !is_valid_ship(&greyhawk_ships[shipnum]))
+    if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
     {
       continue;
     }
@@ -1460,13 +1456,12 @@ int vessel_relink_world_objects(void)
     interior_rnum = real_room(ship->shiproom);
     if (interior_rnum == NOWHERE)
     {
-      log("SYSERR: Ship object %d cannot relink missing interior room %d",
-          GET_OBJ_VNUM(obj), ship->shiproom);
+      log("SYSERR: Ship object %d cannot relink missing interior room %d", GET_OBJ_VNUM(obj),
+          ship->shiproom);
       continue;
     }
 
-    if (ship->shipobj != NULL && ship->shipobj != obj &&
-        IN_ROOM(ship->shipobj) != NOWHERE)
+    if (ship->shipobj != NULL && ship->shipobj != obj && IN_ROOM(ship->shipobj) != NOWHERE)
     {
       log("SYSERR: Fleet slot %d has duplicate live ship objects %d and %d", shipnum,
           GET_OBJ_VNUM(ship->shipobj), GET_OBJ_VNUM(obj));
@@ -1512,8 +1507,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   int old_y;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     log("SYSERR: update_ship_wilderness_position: Invalid ship number %d", shipnum);
     return FALSE;
@@ -1546,8 +1540,8 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   if (!vessel_can_traverse_sector(greyhawk_ships[shipnum].vessel_type,
                                   world[wilderness_room].sector_type, new_z))
   {
-    log("Info: update_ship_wilderness_position: Ship %d cannot occupy (%d, %d, %d)", shipnum,
-        new_x, new_y, new_z);
+    log("Info: update_ship_wilderness_position: Ship %d cannot occupy (%d, %d, %d)", shipnum, new_x,
+        new_y, new_z);
     return FALSE;
   }
 
@@ -1607,8 +1601,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
     mark_wilderness_room_occupied(wilderness_room);
   }
 
-  vessel_update_port_berth(&greyhawk_ships[shipnum], old_room, wilderness_room,
-                           old_is_port);
+  vessel_update_port_berth(&greyhawk_ships[shipnum], old_room, wilderness_room, old_is_port);
   update_ship_room_coordinates(&greyhawk_ships[shipnum]);
   sync_all_loaded_vehicles(&greyhawk_ships[shipnum]);
   if (position_changed)
@@ -1635,8 +1628,7 @@ int get_ship_terrain_type(int shipnum)
   int y;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return SECT_INSIDE; /* Default safe sector */
   }
@@ -1767,8 +1759,7 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
  * features use the vessel's Z coordinate. Negative thresholds are treated as
  * zero so malformed content cannot invert the comparison.
  */
-bool vessel_region_feature_threshold_met(int region_type, int threshold, int z,
-                                         int depth_units)
+bool vessel_region_feature_threshold_met(int region_type, int threshold, int z, int depth_units)
 {
   threshold = MAX(0, threshold);
 
@@ -1804,14 +1795,12 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
   }
   memset(feature, 0, sizeof(*feature));
 
-  if (region_type != REGION_BATHYMETRIC &&
-      region_type != REGION_ALTITUDE_LANE &&
+  if (region_type != REGION_BATHYMETRIC && region_type != REGION_ALTITUDE_LANE &&
       region_type != REGION_SKY_ISLAND)
   {
     return FALSE;
   }
-  if (region_table == NULL || zone_table == NULL ||
-      top_of_region_table == NOWHERE)
+  if (region_table == NULL || zone_table == NULL || top_of_region_table == NOWHERE)
   {
     return FALSE;
   }
@@ -1826,13 +1815,9 @@ bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
   {
     region = &region_table[i];
     if (region->region_type != region_type || region->zone == NOWHERE ||
-        region->zone > top_of_zone_table ||
-        zone_table[region->zone].number != WILD_ZONE_VNUM ||
-        !vessel_piracy_point_in_polygon(region->vertices,
-                                        region->num_vertices, x, y) ||
-        !vessel_region_feature_threshold_met(region_type,
-                                             region->region_props, z,
-                                             depth_units))
+        region->zone > top_of_zone_table || zone_table[region->zone].number != WILD_ZONE_VNUM ||
+        !vessel_piracy_point_in_polygon(region->vertices, region->num_vertices, x, y) ||
+        !vessel_region_feature_threshold_met(region_type, region->region_props, z, depth_units))
     {
       continue;
     }
@@ -1872,11 +1857,9 @@ int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector
   }
   memset(lane, 0, sizeof(*lane));
 
-  modifier = get_terrain_speed_modifier(vessel_type, sector_type,
-                                        weather_conditions);
+  modifier = get_terrain_speed_modifier(vessel_type, sector_type, weather_conditions);
   if ((vessel_type == VESSEL_AIRSHIP || vessel_type == VESSEL_MAGICAL) &&
-      vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, x, y, z,
-                                           lane))
+      vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, x, y, z, lane))
   {
     modifier = MIN(150, modifier * VESSEL_ALTITUDE_LANE_SPEED_PERCENT / 100);
   }
@@ -1901,8 +1884,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   enum vessel_class vessel_type;
 
   /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
-      !is_valid_ship(&greyhawk_ships[shipnum]))
+  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS || !is_valid_ship(&greyhawk_ships[shipnum]))
   {
     return FALSE;
   }
@@ -1926,7 +1908,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Weather affects movement distance */
   if (weather_conditions > 50)
-  {                                           /* Stormy weather */
+  {                                                   /* Stormy weather */
     move_distance = MAX(1, move_distance * 75 / 100); /* 25% reduction */
     if (ch)
     {
@@ -2048,8 +2030,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
   /* Get terrain at new position and calculate speed modifier including weather */
   terrain_type = get_ship_terrain_type(shipnum);
   speed_modifier = get_vessel_position_speed_modifier(
-      vessel_type, terrain_type, weather_conditions / 25, new_x, new_y, new_z,
-      &altitude_lane);
+      vessel_type, terrain_type, weather_conditions / 25, new_x, new_y, new_z, &altitude_lane);
 
   /* Adjust ship speed based on terrain and weather, then credit the
    * sailmaster's handling bonus (see vessels_crew.c) */
@@ -2076,8 +2057,7 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
     }
     if (altitude_lane.region_vnum > 0)
     {
-      send_to_char(ch, "The high currents of %s lend speed to the vessel.\r\n",
-                   altitude_lane.name);
+      send_to_char(ch, "The high currents of %s lend speed to the vessel.\r\n", altitude_lane.name);
     }
 
     /* Weather-specific messages */
@@ -2224,8 +2204,7 @@ ACMD(do_greyhawk_status)
       greyhawk_ships[shipnum].merchant_faction_id < NUM_FACTIONS)
   {
     send_to_char(ch, "Merchant Registry: %d generation %u (%s)\r\n",
-                 greyhawk_ships[shipnum].merchant_id,
-                 greyhawk_ships[shipnum].merchant_generation,
+                 greyhawk_ships[shipnum].merchant_id, greyhawk_ships[shipnum].merchant_generation,
                  factions[greyhawk_ships[shipnum].merchant_faction_id]);
   }
   send_to_char(ch, "\r\n");
@@ -2242,8 +2221,7 @@ ACMD(do_greyhawk_status)
   if (greyhawk_ships[shipnum].dock_fee_balance > 0)
   {
     send_to_char(ch, "Dock Fees: %d gold due at port %d\r\n",
-                 greyhawk_ships[shipnum].dock_fee_balance,
-                 greyhawk_ships[shipnum].dock_fee_port);
+                 greyhawk_ships[shipnum].dock_fee_balance, greyhawk_ships[shipnum].dock_fee_port);
   }
   send_to_char(ch, "\r\n");
   send_to_char(ch, "== Hull Integrity ==\r\n");
@@ -2316,9 +2294,8 @@ ACMD(do_greyhawk_speed)
     enum vessel_class vtype = get_vessel_type_from_ship(shipnum);
     int terrain_type = get_ship_terrain_type(shipnum);
     int speed_modifier = get_vessel_position_speed_modifier(
-        vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x,
-        (int)greyhawk_ships[shipnum].y, (int)greyhawk_ships[shipnum].z,
-        &altitude_lane);
+        vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x, (int)greyhawk_ships[shipnum].y,
+        (int)greyhawk_ships[shipnum].z, &altitude_lane);
     greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
 
     /* Send feedback */

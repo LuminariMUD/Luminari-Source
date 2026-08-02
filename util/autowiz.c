@@ -245,7 +245,7 @@ void write_wizlist(FILE *out, int minlev, int maxlev)
       {
         if (curr_level->params->level <= COL_LEVEL)
         {
-    for (j = 1; strlen(curr_name->name) + (size_t)j <= IMM_NSIZE; j++)
+          for (j = 1; strlen(curr_name->name) + (size_t)j <= IMM_NSIZE; j++)
             strcat(buf, " ");
         }
         if (curr_level->params->level > COL_LEVEL)

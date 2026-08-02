@@ -29,19 +29,18 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
  */
 static bool vessel_insurance_ensure_schema(void)
 {
-  const char *query =
-      "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
-      "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
-      "ship_id INT NOT NULL, "
-      "owner VARCHAR(64) NOT NULL, "
-      "ship_name VARCHAR(128) NOT NULL, "
-      "amount INT NOT NULL, "
-      "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
-      "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-      "paid_at TIMESTAMP NULL DEFAULT NULL, "
-      "INDEX idx_vessel_claim_owner_status (owner, status), "
-      "INDEX idx_vessel_claim_ship (ship_id)"
-      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+  const char *query = "CREATE TABLE IF NOT EXISTS vessel_insurance_claims ("
+                      "claim_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, "
+                      "ship_id INT NOT NULL, "
+                      "owner VARCHAR(64) NOT NULL, "
+                      "ship_name VARCHAR(128) NOT NULL, "
+                      "amount INT NOT NULL, "
+                      "status VARCHAR(16) NOT NULL DEFAULT 'pending', "
+                      "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                      "paid_at TIMESTAMP NULL DEFAULT NULL, "
+                      "INDEX idx_vessel_claim_owner_status (owner, status), "
+                      "INDEX idx_vessel_claim_ship (ship_id)"
+                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
 
   if (!mysql_available || conn == NULL)
   {
@@ -107,8 +106,7 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
            ship->shipnum, escaped_owner, escaped_name, amount);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not queue insurance for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
+    log("SYSERR: Could not queue insurance for ship %d: %s", ship->shipnum, mysql_error(conn));
     mysql_query(conn, "ROLLBACK");
     return FALSE;
   }
@@ -135,8 +133,8 @@ static bool vessel_queue_insurance_claim(struct greyhawk_ship_data *ship)
   }
 
   ship->insured_for = 0;
-  log("Info: Queued insurance claim %llu for %s: ship %d '%s', %d gold", claim_id,
-      ship->owner, ship->shipnum, ship->name, amount);
+  log("Info: Queued insurance claim %llu for %s: ship %d '%s', %d gold", claim_id, ship->owner,
+      ship->shipnum, ship->name, amount);
   return TRUE;
 }
 
@@ -266,8 +264,7 @@ void vessel_db_save_extras(struct greyhawk_ship_data *ship)
 
   if (mysql_query(conn, query))
   {
-    log("SYSERR: vessel_db_save_extras failed for ship %d: %s", ship->shipnum,
-        mysql_error(conn));
+    log("SYSERR: vessel_db_save_extras failed for ship %d: %s", ship->shipnum, mysql_error(conn));
   }
 }
 
@@ -333,8 +330,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
   int credited;
   int pending;
 
-  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL ||
-      !vessel_insurance_ensure_schema())
+  if (ch == NULL || IS_NPC(ch) || GET_NAME(ch) == NULL || !vessel_insurance_ensure_schema())
   {
     return 0;
   }
@@ -346,8 +342,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
            escaped_owner);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not load insurance claims for %s: %s", GET_NAME(ch),
-        mysql_error(conn));
+    log("SYSERR: Could not load insurance claims for %s: %s", GET_NAME(ch), mysql_error(conn));
     return 0;
   }
 
@@ -405,8 +400,7 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
            escaped_owner, highest_claim_id);
   if (mysql_query(conn, query))
   {
-    log("SYSERR: Could not close insurance claims for %s: %s", GET_NAME(ch),
-        mysql_error(conn));
+    log("SYSERR: Could not close insurance claims for %s: %s", GET_NAME(ch), mysql_error(conn));
   }
 
   if (credited > 0)
@@ -415,8 +409,8 @@ int vessel_deliver_pending_insurance(struct char_data *ch)
                  "The vessel underwriters deliver %lld gold from %d settled "
                  "insurance claim%s. Check your mail for the receipt%s.\r\n",
                  total, credited, credited == 1 ? "" : "s", credited == 1 ? "" : "s");
-    log("Info: Delivered %lld insurance gold to %s from %d claim%s", total,
-        GET_NAME(ch), credited, credited == 1 ? "" : "s");
+    log("Info: Delivered %lld insurance gold to %s from %d claim%s", total, GET_NAME(ch), credited,
+        credited == 1 ? "" : "s");
   }
   return credited;
 }
@@ -435,8 +429,7 @@ void vessel_pay_insurance(struct greyhawk_ship_data *ship)
   {
     if (ship != NULL && ship->insured_for > 0)
     {
-      log("SYSERR: Insurance for lost ship %d '%s' could not be queued", ship->shipnum,
-          ship->name);
+      log("SYSERR: Insurance for lost ship %d '%s' could not be queued", ship->shipnum, ship->name);
     }
     return;
   }

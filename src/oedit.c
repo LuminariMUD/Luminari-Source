@@ -320,20 +320,17 @@ void oedit_save_internally(struct descriptor_data *d)
         switch (OLC_ZONE(dsc)->cmd[i].command)
         {
         case 'P':
-          if (OLC_ZONE(dsc)->cmd[i].arg3 >= 0 &&
-              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num)
+          if (OLC_ZONE(dsc)->cmd[i].arg3 >= 0 && (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg3 >= robj_num)
             OLC_ZONE(dsc)->cmd[i].arg3++;
           /* Fall through. */
         case 'E':
         case 'G':
         case 'O':
-          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 &&
-              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= robj_num)
+          if (OLC_ZONE(dsc)->cmd[i].arg1 >= 0 && (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg1 >= robj_num)
             OLC_ZONE(dsc)->cmd[i].arg1++;
           break;
         case 'R':
-          if (OLC_ZONE(dsc)->cmd[i].arg2 >= 0 &&
-              (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg2 >= robj_num)
+          if (OLC_ZONE(dsc)->cmd[i].arg2 >= 0 && (obj_rnum)OLC_ZONE(dsc)->cmd[i].arg2 >= robj_num)
             OLC_ZONE(dsc)->cmd[i].arg2++;
           break;
         default:

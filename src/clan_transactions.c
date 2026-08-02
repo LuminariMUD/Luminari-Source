@@ -269,8 +269,7 @@ bool rollback_clan_transaction(struct clan_transaction *trans)
   /* Save affected clans */
   for (i = 0; i < trans->num_operations; i++)
   {
-    if (trans->operations[i].clan != NO_CLAN &&
-        trans->operations[i].clan < (clan_rnum)num_of_clans)
+    if (trans->operations[i].clan != NO_CLAN && trans->operations[i].clan < (clan_rnum)num_of_clans)
     {
       mark_clan_modified(trans->operations[i].clan);
       save_single_clan(trans->operations[i].clan);

@@ -70,8 +70,7 @@ int main(void)
 
       filename_char = (const unsigned char *)(line + 1);
       if (!*filename_char || !strcmp((const char *)filename_char, ".") ||
-          !strcmp((const char *)filename_char, "..") ||
-          strstr((const char *)filename_char, ".."))
+          !strcmp((const char *)filename_char, "..") || strstr((const char *)filename_char, ".."))
       {
         fprintf(stderr, "Invalid output filename: %s\n", line + 1);
         fclose(index);

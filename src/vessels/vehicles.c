@@ -1023,10 +1023,9 @@ int vehicle_save(struct vehicle_data *vehicle)
   /* Escape vehicle name */
   mysql_real_escape_string(conn, escaped_name, vehicle->name, strlen(vehicle->name));
 
-  persisted_location =
-      vehicle->location != NOWHERE && vehicle->location <= top_of_world
-          ? (int)GET_ROOM_VNUM(vehicle->location)
-          : (int)NOWHERE;
+  persisted_location = vehicle->location != NOWHERE && vehicle->location <= top_of_world
+                           ? (int)GET_ROOM_VNUM(vehicle->location)
+                           : (int)NOWHERE;
 
   /* Build query - use REPLACE for upsert */
   snprintf(query, sizeof(query),

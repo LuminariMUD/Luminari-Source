@@ -437,8 +437,7 @@ int save_shops(zone_rnum zone_num)
           S_NOCASH1(shop) ? S_NOCASH1(shop) : "%s Ke?!",
           S_NOCASH2(shop) ? S_NOCASH2(shop) : "%s Ke?!", S_BUY(shop) ? S_BUY(shop) : "%s Ke?! %d?",
           S_SELL(shop) ? S_SELL(shop) : "%s Ke?! %d?", S_BROKE_TEMPER(shop), S_BITVECTOR(shop),
-          S_KEEPER(shop) == NOBODY ? -1 : (int)mob_index[S_KEEPER(shop)].vnum,
-          S_NOTRADE(shop));
+          S_KEEPER(shop) == NOBODY ? -1 : (int)mob_index[S_KEEPER(shop)].vnum, S_NOTRADE(shop));
 
       fputs(convert_from_tabs(buf), shop_file);
 

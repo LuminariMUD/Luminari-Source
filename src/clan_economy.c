@@ -134,7 +134,8 @@ int apply_clan_shop_discount(int price, struct char_data *ch, int shop_nr)
 }
 
 /* Collect taxes on transactions */
-void collect_clan_transaction_tax(struct char_data *ch, int amount, int transaction_type __attribute__((unused)))
+void collect_clan_transaction_tax(struct char_data *ch, int amount,
+                                  int transaction_type __attribute__((unused)))
 {
   clan_rnum clan_r;
   int tax_amount;

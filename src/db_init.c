@@ -1330,8 +1330,7 @@ void init_vessel_system_tables(void)
 
     if (mysql_query_safe(conn, create_vessel_insurance_claims))
     {
-      log("SYSERR: Failed to create vessel_insurance_claims table: %s",
-          mysql_error(conn));
+      log("SYSERR: Failed to create vessel_insurance_claims table: %s", mysql_error(conn));
       return;
     }
   }
@@ -1562,14 +1561,13 @@ static void create_vessel_procedures(void)
     log("SYSERR: Failed to drop get_active_dockings procedure: %s", mysql_error(conn));
   }
 
-  const char *create_get_active_proc =
-      "CREATE PROCEDURE get_active_dockings(IN p_ship_id INT)\n"
-      "BEGIN\n"
-      "    SELECT * FROM ship_docking\n"
-      "    WHERE (ship1_id = p_ship_id OR ship2_id = p_ship_id)\n"
-      "      AND dock_status = 'active'\n"
-      "    ORDER BY dock_time DESC;\n"
-      "END";
+  const char *create_get_active_proc = "CREATE PROCEDURE get_active_dockings(IN p_ship_id INT)\n"
+                                       "BEGIN\n"
+                                       "    SELECT * FROM ship_docking\n"
+                                       "    WHERE (ship1_id = p_ship_id OR ship2_id = p_ship_id)\n"
+                                       "      AND dock_status = 'active'\n"
+                                       "    ORDER BY dock_time DESC;\n"
+                                       "END";
 
   if (mysql_query_safe(conn, create_get_active_proc))
   {

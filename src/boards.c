@@ -214,7 +214,8 @@ SPECIAL(gen_board)
     return (0);
 }
 
-int board_write_message(int board_type, struct char_data *ch, char *arg, struct obj_data *board __attribute__((unused)))
+int board_write_message(int board_type, struct char_data *ch, char *arg,
+                        struct obj_data *board __attribute__((unused)))
 {
   time_t ct;
   char buf[MAX_INPUT_LENGTH] = {'\0'}, buf2[MAX_NAME_LENGTH + 3], tmstr[32] = {'\0'};
@@ -393,7 +394,8 @@ int board_display_msg(int board_type, struct char_data *ch, char *arg, struct ob
   return (1);
 }
 
-int board_remove_msg(int board_type, struct char_data *ch, char *arg, struct obj_data *board __attribute__((unused)))
+int board_remove_msg(int board_type, struct char_data *ch, char *arg,
+                     struct obj_data *board __attribute__((unused)))
 {
   int ind, msg, slot_num;
   char number[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_INPUT_LENGTH] = {'\0'};

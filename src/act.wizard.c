@@ -3772,17 +3772,17 @@ ACMD(do_show)
           continue;
         if (W_EXIT(i, j)->to_room == 0)
         {
-          len = snprintf_append(buf, sizeof(buf), len,
-                                "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i),
-                                count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
+          len = snprintf_append(buf, sizeof(buf), len, "%2d: (void   ) [%5d] %-*s%s (%s)\r\n", ++k,
+                                GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40,
+                                world[i].name, QNRM, dirs[j]);
           if (len >= sizeof(buf) - 1)
             break;
         }
         if (W_EXIT(i, j)->to_room == NOWHERE && !W_EXIT(i, j)->general_description)
         {
-          len = snprintf_append(buf, sizeof(buf), len,
-                                "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k, GET_ROOM_VNUM(i),
-                                count_color_chars(world[i].name) + 40, world[i].name, QNRM, dirs[j]);
+          len = snprintf_append(buf, sizeof(buf), len, "%2d: (Nowhere) [%5d] %-*s%s (%s)\r\n", ++k,
+                                GET_ROOM_VNUM(i), count_color_chars(world[i].name) + 40,
+                                world[i].name, QNRM, dirs[j]);
           if (len >= sizeof(buf) - 1)
             break;
         }
@@ -3796,8 +3796,8 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j,
-                              GET_ROOM_VNUM(i), world[i].name, QNRM);
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
+                              world[i].name, QNRM);
         if (len >= sizeof(buf) - 1)
           break;
       }
@@ -3810,8 +3810,8 @@ ACMD(do_show)
     for (i = 0, j = 0; i <= (int)top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_STAFFROOM))
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j,
-                              GET_ROOM_VNUM(i), world[i].name, QNRM);
+        len = snprintf_append(buf, sizeof(buf), len, "%2d: [%5d] %s%s\r\n", ++j, GET_ROOM_VNUM(i),
+                              world[i].name, QNRM);
         if (len >= sizeof(buf) - 1)
           break;
       }
@@ -4042,14 +4042,13 @@ ACMD(do_shoplist)
       }
     }
 
-    send_to_char(
-        ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", SHOP_NUM(shop_nr),
-        (zone_idx != NOWHERE && zone_idx <= top_of_zone_table)
-            ? (int)zone_table[zone_idx].number
-            : -1,
-        zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
-        SHOP_KEEPER(shop_nr) == NOBODY ? -1 : (int)mob_index[SHOP_KEEPER(shop_nr)].vnum,
-        keeper_name);
+    send_to_char(ch, "%-6d %-6d %-24s %-6d %-24s %-6d %-20s\r\n", SHOP_NUM(shop_nr),
+                 (zone_idx != NOWHERE && zone_idx <= top_of_zone_table)
+                     ? (int)zone_table[zone_idx].number
+                     : -1,
+                 zone_name, SHOP_ROOM(shop_nr, room_idx), room_name,
+                 SHOP_KEEPER(shop_nr) == NOBODY ? -1 : (int)mob_index[SHOP_KEEPER(shop_nr)].vnum,
+                 keeper_name);
     shop_count++;
   }
 
@@ -4376,53 +4375,53 @@ const struct set_struct
     {"questhistory", LVL_STAFF, PC, NUMBER, 0},
     {"trains", LVL_IMPL, PC, NUMBER, 0}, /* 60 */
     {"race", LVL_IMPL, BOTH, MISC, 0},
-    {"spellres", LVL_IMPL, PC, NUMBER, 0},                                                   /* 62 */
-    {"size", LVL_IMPL, PC, NUMBER, 0},                                                       /* 63 */
+    {"spellres", LVL_IMPL, PC, NUMBER, 0},                                                /* 62 */
+    {"size", LVL_IMPL, PC, NUMBER, 0},                                                    /* 63 */
     {"wizard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WIZARD)},                      /* 64 */
     {"cleric", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_CLERIC)},                      /* 65 */
     {"rogue", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ROGUE)},                        /* 66 */
     {"warrior", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARRIOR)},                    /* 67 */
     {"monk", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MONK)},                          /* 68 */
     {"druid", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DRUID)},                        /* 69 */
-    {"boost", LVL_IMPL, PC, NUMBER, 0},                                                      /* 70 */
+    {"boost", LVL_IMPL, PC, NUMBER, 0},                                                   /* 70 */
     {"berserker", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BERSERKER)},                /* 71 */
     {"sorcerer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SORCERER)},                  /* 72 */
     {"paladin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PALADIN)},                    /* 73 */
     {"ranger", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_RANGER)},                      /* 74 */
     {"bard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BARD)},                          /* 75 */
-    {"featpoints", LVL_IMPL, PC, NUMBER, 0},                                                 /* 76 */
-    {"epicfeatpoints", LVL_IMPL, PC, NUMBER, 0},                                             /* 77 */
-    {"classfeats", LVL_IMPL, PC, MISC, 0},                                                   /* 78 */
-    {"epicclassfeats", LVL_IMPL, PC, MISC, 0},                                               /* 79 */
-    {"accexp", LVL_IMPL, PC, NUMBER, 0},                                                     /* 80 */
+    {"featpoints", LVL_IMPL, PC, NUMBER, 0},                                              /* 76 */
+    {"epicfeatpoints", LVL_IMPL, PC, NUMBER, 0},                                          /* 77 */
+    {"classfeats", LVL_IMPL, PC, MISC, 0},                                                /* 78 */
+    {"epicclassfeats", LVL_IMPL, PC, MISC, 0},                                            /* 79 */
+    {"accexp", LVL_IMPL, PC, NUMBER, 0},                                                  /* 80 */
     {"weaponmaster", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WEAPON_MASTER)},         /* 81 */
     {"arcanearcher", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_ARCHER)},         /* 82 */
     {"stalwartdefender", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_STALWART_DEFENDER)}, /* 83 */
     {"shifter", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHIFTER)},                    /* 84 */
     {"duelist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_DUELIST)},                    /* 85 */
-    {"guimode", LVL_BUILDER, PC, BINARY, 0},                                                 /* 86 */
-    {"rpmode", LVL_BUILDER, PC, BINARY, 0},                                                  /* 87 */
+    {"guimode", LVL_BUILDER, PC, BINARY, 0},                                              /* 86 */
+    {"rpmode", LVL_BUILDER, PC, BINARY, 0},                                               /* 87 */
     {"mystictheurge", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_MYSTIC_THEURGE)},       /* 88 */
-    {"addaccexp", LVL_IMPL, PC, ADDER, 0},                                                   /* 89 */
+    {"addaccexp", LVL_IMPL, PC, ADDER, 0},                                                /* 89 */
     {"alchemist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ALCHEMIST)},                /* 90 */
     {"arcaneshadow", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ARCANE_SHADOW)},         /* 91 */
     {"sacredfist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SACRED_FIST)},             /* 92 */
-    {"premadebuild", LVL_STAFF, PC, MISC, 0},                                                /* 93 */
+    {"premadebuild", LVL_STAFF, PC, MISC, 0},                                             /* 93 */
     {"psionicist", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_PSIONICIST)},              /* 94 */
-    {"deity", LVL_BUILDER, PC, MISC, 0},                                                     /* 95 */
+    {"deity", LVL_BUILDER, PC, MISC, 0},                                                  /* 95 */
     {"eldritchknight", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ELDRITCH_KNIGHT)},     /* 96 */
     {"spellsword", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SPELLSWORD)},              /* 97 */
     {"shadowdancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SHADOW_DANCER)},         /* 98 */
     {"blackguard", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_BLACKGUARD)},              /* 99 */
     {"assassin", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_ASSASSIN)},                  /* 100 */
     {"inquisitor", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_INQUISITOR)},              /* 101 */
-    {"homeland", LVL_STAFF, PC, NUMBER, 0},                                                  /* 102 */
-    {"region", LVL_STAFF, PC, NUMBER, 0},                                                    /* 103 */
-    {"shortdesc", LVL_STAFF, PC, MISC, 0},                                                   /* 104 */
+    {"homeland", LVL_STAFF, PC, NUMBER, 0},                                               /* 102 */
+    {"region", LVL_STAFF, PC, NUMBER, 0},                                                 /* 103 */
+    {"shortdesc", LVL_STAFF, PC, MISC, 0},                                                /* 104 */
     {"necromancer", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_NECROMANCER)},            /* 105 */
-    {"background", LVL_STAFF, PC, MISC, 0},                                                  /* 106 */
-    {"arcanemark", LVL_STAFF, PC, MISC, 0},                                                  /* 107 */
-    {"arcaneschool", LVL_STAFF, PC, MISC, 0},                                                /* 108 */
+    {"background", LVL_STAFF, PC, MISC, 0},                                               /* 106 */
+    {"arcanemark", LVL_STAFF, PC, MISC, 0},                                               /* 107 */
+    {"arcaneschool", LVL_STAFF, PC, MISC, 0},                                             /* 108 */
     {"summoner", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_SUMMONER)},                  /* 109 */
     {"warlock", LVL_IMPL, PC, NUMBER, SET_CLASS_LEVEL(CLASS_WARLOCK)},                    /* 110 */
     {"knightoftheluminousthread", LVL_IMPL, PC, NUMBER,
@@ -4879,8 +4878,7 @@ static int perform_set(struct char_data *ch, struct char_data *vict, int mode, c
       }
     }
 
-    if (((qnum = real_quest(GET_QUEST(vict, 0))) != NOTHING) &&
-        QST_NUM(qnum) == (qst_vnum)value)
+    if (((qnum = real_quest(GET_QUEST(vict, 0))) != NOTHING) && QST_NUM(qnum) == (qst_vnum)value)
     {
       send_to_char(ch, "Quest #%d (%s) has been removed from %s's active quests.\r\n", value,
                    QST_NAME(qnum), GET_NAME(vict));
@@ -5529,10 +5527,9 @@ ACMD(do_keycheck)
       {
         if (keynum < bottom || keynum > top)
         {
-          len = snprintf_append(
-              buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n", QGRN, i, QNRM, QCYN,
-              count_color_chars(world[real_room(i)].name) + 44, world[real_room(i)].name, QNRM,
-              QBRED, dirs[j], keynum, QNRM);
+          len = snprintf_append(buf, sizeof(buf), len, "[%s%-6d%s] %s%-*s%s %s%-5s:%d%s\r\n", QGRN,
+                                i, QNRM, QCYN, count_color_chars(world[real_room(i)].name) + 44,
+                                world[real_room(i)].name, QNRM, QBRED, dirs[j], keynum, QNRM);
         }
       }
     }
@@ -5830,14 +5827,12 @@ ACMD(do_zcheck)
                               GET_LEVEL(mob), MAX_LEVEL_ALLOWED);
 
       if (GET_DAMROLL(mob) > MAX_DAMROLL_ALLOWED && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "- Damroll of %d is too high (limit: %d)\r\n", GET_DAMROLL(mob),
-                              MAX_DAMROLL_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- Damroll of %d is too high (limit: %d)\r\n",
+                              GET_DAMROLL(mob), MAX_DAMROLL_ALLOWED);
 
       if (GET_HITROLL(mob) > MAX_HITROLL_ALLOWED && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "- Hitroll of %d is too high (limit: %d)\r\n", GET_HITROLL(mob),
-                              MAX_HITROLL_ALLOWED);
+        len = snprintf_append(buf, sizeof(buf), len, "- Hitroll of %d is too high (limit: %d)\r\n",
+                              GET_HITROLL(mob), MAX_HITROLL_ALLOWED);
 
       /* avg. dam including damroll per round of combat */
       avg_dam = (((mob->mob_specials.damsizedice / 2.0) * mob->mob_specials.damnodice) +
@@ -5849,16 +5844,15 @@ ACMD(do_zcheck)
 
       if (mob->mob_specials.damsizedice == 1 && mob->mob_specials.damnodice == 1 &&
           GET_LEVEL(mob) == 0 && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "- Needs to be fixed - %sAutogenerate!%s\r\n", CCYEL(ch, C_NRM),
-                              CCNRM(ch, C_NRM));
+        len = snprintf_append(buf, sizeof(buf), len, "- Needs to be fixed - %sAutogenerate!%s\r\n",
+                              CCYEL(ch, C_NRM), CCNRM(ch, C_NRM));
 
       if (MOB_FLAGGED(mob, MOB_AGGRESSIVE) &&
           (MOB_FLAGGED(mob, MOB_AGGR_GOOD) || MOB_FLAGGED(mob, MOB_AGGR_EVIL) ||
            MOB_FLAGGED(mob, MOB_AGGR_NEUTRAL)) &&
           (found = 1))
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "- Both aggresive and agressive to align.\r\n");
+        len =
+            snprintf_append(buf, sizeof(buf), len, "- Both aggresive and agressive to align.\r\n");
 
       if ((GET_GOLD(mob) > MAX_MOB_GOLD_ALLOWED) && (found = 1))
         len = snprintf_append(buf, sizeof(buf), len, "- Set to %d Gold (limit : %d).\r\n",
@@ -5868,8 +5862,7 @@ ACMD(do_zcheck)
         len = snprintf_append(buf, sizeof(buf), len, "- Has %ld experience (limit: %d)\r\n",
                               GET_EXP(mob), MAX_EXP_ALLOWED);
       if ((AFF_FLAGGED(mob, AFF_CHARM) || AFF_FLAGGED(mob, AFF_POISON)) && (found = 1))
-        len = snprintf_append(buf, sizeof(buf), len,
-                              "- Has illegal affection bits set (%s %s)\r\n",
+        len = snprintf_append(buf, sizeof(buf), len, "- Has illegal affection bits set (%s %s)\r\n",
                               AFF_FLAGGED(mob, AFF_CHARM) ? "CHARM" : "",
                               AFF_FLAGGED(mob, AFF_POISON) ? "POISON" : "");
 
@@ -5905,9 +5898,8 @@ ACMD(do_zcheck)
       {
       case ITEM_MONEY:
         if ((value = GET_OBJ_VAL(obj, 0)) > MAX_OBJ_GOLD_ALLOWED && (found = 1))
-          len = snprintf_append(buf, sizeof(buf), len,
-                                "- Is worth %d (money limit %d coins).\r\n", value,
-                                MAX_OBJ_GOLD_ALLOWED);
+          len = snprintf_append(buf, sizeof(buf), len, "- Is worth %d (money limit %d coins).\r\n",
+                                value, MAX_OBJ_GOLD_ALLOWED);
         break;
       case ITEM_WEAPON:
         if (GET_OBJ_VAL(obj, 3) >= NUM_ATTACK_TYPES && (found = 1))
@@ -5947,10 +5939,9 @@ ACMD(do_zcheck)
         if ((GET_OBJ_COST(obj) || (GET_OBJ_WEIGHT(obj) && GET_OBJ_TYPE(obj) != ITEM_FOUNTAIN) ||
              GET_OBJ_RENT(obj)) &&
             (found = 1))
-          len = snprintf_append(
-              buf, sizeof(buf), len,
-              "- is NO_TAKE, but has cost (%d) weight (%d) or rent (%d) set.\r\n",
-              GET_OBJ_COST(obj), GET_OBJ_WEIGHT(obj), GET_OBJ_RENT(obj));
+          len = snprintf_append(buf, sizeof(buf), len,
+                                "- is NO_TAKE, but has cost (%d) weight (%d) or rent (%d) set.\r\n",
+                                GET_OBJ_COST(obj), GET_OBJ_WEIGHT(obj), GET_OBJ_RENT(obj));
       }
       else
       {
@@ -5961,9 +5952,8 @@ ACMD(do_zcheck)
           len = snprintf_append(buf, sizeof(buf), len, "- has 0 weight (min. 1).\r\n");
 
         if (GET_OBJ_WEIGHT(obj) > MAX_OBJ_WEIGHT && (found = 1))
-          len = snprintf_append(buf, sizeof(buf), len,
-                                "  Weight is too high: %d (limit  %d).\r\n", GET_OBJ_WEIGHT(obj),
-                                MAX_OBJ_WEIGHT);
+          len = snprintf_append(buf, sizeof(buf), len, "  Weight is too high: %d (limit  %d).\r\n",
+                                GET_OBJ_WEIGHT(obj), MAX_OBJ_WEIGHT);
 
         if (GET_OBJ_COST(obj) > MAX_OBJ_COST && (found = 1))
           len = snprintf_append(buf, sizeof(buf), len, "- has %d cost (max %d).\r\n",
@@ -5995,11 +5985,10 @@ ACMD(do_zcheck)
                 -99 && /* only care if a range is set */
             (obj->affected[j].modifier > zaffs[(int)obj->affected[j].location].max_aff ||
              obj->affected[j].modifier < zaffs[(int)obj->affected[j].location].min_aff ||
-            zaffs[(int)obj->affected[j].location].min_aff ==
+             zaffs[(int)obj->affected[j].location].min_aff ==
                  zaffs[(int)obj->affected[j].location].max_aff) &&
             (found = 1))
-          len = snprintf_append(buf, sizeof(buf), len,
-                                "- apply to %s is %d (limit %d - %d).\r\n",
+          len = snprintf_append(buf, sizeof(buf), len, "- apply to %s is %d (limit %d - %d).\r\n",
                                 zaffs[(int)obj->affected[j].location].message,
                                 obj->affected[j].modifier,
                                 zaffs[(int)obj->affected[j].location].min_aff,
@@ -6081,10 +6070,9 @@ ACMD(do_zcheck)
 
       if ((MIN_ROOM_DESC_LENGTH) && strlen(world[i].description) < MIN_ROOM_DESC_LENGTH &&
           (found = 1))
-        len = snprintf_append(
-            buf, sizeof(buf), len,
-            "- Room description is too short. (%4.4d of min. %d characters).\r\n",
-            (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Room description is too short. (%4.4d of min. %d characters).\r\n",
+                              (int)strlen(world[i].description), MIN_ROOM_DESC_LENGTH);
 
       if (strncmp(world[i].description, "   ", 3) && (found = 1))
         len = snprintf_append(
@@ -6093,10 +6081,9 @@ ACMD(do_zcheck)
 
       /* strcspan = size of text in first arg before any character in second arg */
       if ((strcspn(world[i].description, "\r\n") > MAX_COLUMN_WIDTH) && (found = 1))
-        len = snprintf_append(
-            buf, sizeof(buf), len,
-            "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
-            MAX_COLUMN_WIDTH);
+        len = snprintf_append(buf, sizeof(buf), len,
+                              "- Room description not wrapped at %d chars (/fi in the editor).\r\n",
+                              MAX_COLUMN_WIDTH);
 
       /*for (ext2 = NULL, ext = world[i].ex_description; ext; ext = ext->next)
         if (strncmp(ext->description, "   ", 3))
@@ -7794,9 +7781,9 @@ ACMD(do_plist)
 
     format_time_string(player_table[i].last, "%c", time_str, sizeof(time_str));
 
-    len = snprintf_append(buf, sizeof(buf), len, "[%3ld] (%2d) %c%-15s %s\r\n",
-                          player_table[i].id, player_table[i].level,
-                          UPPER(*player_table[i].name), player_table[i].name + 1, time_str);
+    len = snprintf_append(buf, sizeof(buf), len, "[%3ld] (%2d) %c%-15s %s\r\n", player_table[i].id,
+                          player_table[i].level, UPPER(*player_table[i].name),
+                          player_table[i].name + 1, time_str);
     count++;
   }
   len = snprintf_append(buf, sizeof(buf), len,
@@ -8368,8 +8355,7 @@ ACMD(do_objlist)
   zone = real_zone(requested_zone);
   if (zone == NOWHERE)
   {
-    snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n",
-             (int)requested_zone);
+    snprintf(buf, sizeof(buf), "\tR%d \tris not in a defined zone.\tn\r\n", (int)requested_zone);
     send_to_char(ch, "%s", buf);
     return;
   }
@@ -9473,10 +9459,10 @@ ACMD(do_eqrating)
   int *index = NULL; /* one of two tables */
   int *score = NULL; /* one of two tables */
 
-  int i = 0, j = 0;         /* counter */
-  int a = 0, b = 0;         /* used for sorting */
-  int len = 0; /* string length */
-  int wearloc = 0;          /* the wear-location of item */
+  int i = 0, j = 0; /* counter */
+  int a = 0, b = 0; /* used for sorting */
+  int len = 0;      /* string length */
+  int wearloc = 0;  /* the wear-location of item */
 
   zone_vnum zone = 0;                           /* zone vnum to restrict search */
   room_vnum start_of_zone = 0, end_of_zone = 0; /* bottom/top of zone vnums */
@@ -9599,9 +9585,9 @@ ACMD(do_eqrating)
 
     /* start building our string, begin with listing vnum, score, and short
      description */
-    len = snprintf_append(buf, sizeof(buf), len, "%7ld | %5d | %-45s | ",
-                          (long int)obj_index[a].vnum, get_eq_score(a),
-                          obj_proto[a].short_description);
+    len =
+        snprintf_append(buf, sizeof(buf), len, "%7ld | %5d | %-45s | ", (long int)obj_index[a].vnum,
+                        get_eq_score(a), obj_proto[a].short_description);
 
     /* now, if we have a weapon, display dice */
     if (GET_OBJ_TYPE(&obj_proto[a]) == ITEM_WEAPON)
@@ -9637,8 +9623,7 @@ ACMD(do_eqrating)
       if ((obj->affected[b].location != APPLY_NONE) && (obj->affected[b].modifier != 0))
       {
         sprinttype(obj->affected[b].location, apply_types, bitbuf, sizeof(bitbuf));
-        len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf,
-                              obj->affected[b].modifier);
+        len = snprintf_append(buf, sizeof(buf), len, "%s %d ", bitbuf, obj->affected[b].modifier);
       }
     }
 
