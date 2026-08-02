@@ -1056,6 +1056,38 @@ owned hulls but zero completed freight and zero showcase entries. Treat that
 as mechanical acceptance and insufficient player data, exactly as the final
 command line states.
 
+## Fresh-Character Vessel Discovery Check
+
+Create a disposable character with the normal development workflow, then use
+that character for ordinary command batches. Do not move it with staff
+commands, add gold, unlock gates, or reveal routes from database knowledge:
+
+```bash
+./scripts/dev_create_test_character.sh Vesselbeta
+DEV_MUD_CHARACTER=Vesselbeta \
+  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  "score" "look" "where"
+DEV_MUD_CHARACTER=Vesselbeta \
+  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  "enter portal" "look" "exits" "where" "score"
+```
+
+The August 2 baseline on source `8e69315d` proved a real release blocker. The
+level-1 character began with 0 gold on the tutorial island. The visible portal
+led to Mosswood room 145200, whose north gate was locked and whose text did not
+mention a vessel, ferry, fare, dock, or shipyard. Re-entering the portal led
+back to the optional tutorial. The only scheduled 10-gold development ferry
+was a disconnected Harbor Sandbox fixture. Do not interpret the harbor
+provisioner's staff-assisted test as first-hour discovery acceptance.
+
+Keep the character only while repairing and repeating this path. Acceptance
+requires a fresh ordinary-player transcript that discovers reachable campaign
+content, can afford or work passage without injected gold, boards a real
+scheduled NPC hull, experiences its movement, and disembarks. Remove the
+disposable character through the normal account menu after its final state has
+been checked for vessel ownership, cargo, contracts, and other persistent
+residue.
+
 ## Fast 1,000-Trade Economy Gate
 
 After the current source is installed on local development, reuse the master

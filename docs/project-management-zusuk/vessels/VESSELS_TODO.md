@@ -244,6 +244,23 @@ showcase entries. That is useful proof that the report reads persistence, but
 it is explicitly insufficient player data for balance or fun sign-off. The
 balance checkbox therefore remains open for real beta evidence.
 
+**Fresh-character discovery checkpoint (August 2, 2026, 16:54 IDT):** A new
+level-1 human warrior named Vesselbeta was created through the development
+account workflow and tested only with ordinary player commands on source
+`8e69315d` and installed SHA-256
+`075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
+The character began with 0 gold on the tutorial island. Following the visible
+`enter portal` direction reached room 145200 in Mosswood; that room mentions
+Ashenport but gives no vessel, ferry, fare, dock, or shipyard direction. The
+north gate is locked, and re-entering the portal returns to the optional
+tutorial. The development database contains a scheduled 10-gold Harbor
+Sandbox Ferry, but its testing docks are not naturally reachable from this
+new-player path. This directly contradicts the PRD first-hour discovery and
+affordability outcome. The structured beta item remains open while production
+content, directions, and a no-staff actual-character passage are added and
+retested. Vesselbeta is retained temporarily for that follow-up and must be
+removed through the normal account workflow after the reversible beta run.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
