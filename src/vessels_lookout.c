@@ -337,16 +337,10 @@ ACMD(do_look_outside)
   int contact_count;
   int i;
 
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_VEHICLE))
-  {
-    send_to_char(ch, "You need to be on a vessel to look outside.\r\n");
-    return;
-  }
-
   ship = get_ship_from_room(IN_ROOM(ch));
   if (!is_valid_ship(ship))
   {
-    send_to_char(ch, "You can't determine your vessel's position.\r\n");
+    send_to_char(ch, "You need to be on a vessel to look outside.\r\n");
     return;
   }
   if (!room_has_outside_view(IN_ROOM(ch)))
