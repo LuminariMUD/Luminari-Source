@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.12
+**Version:** 3.13
 
 **Evidence snapshot:** August 2, 2026
 
@@ -28,7 +28,8 @@ from the full live-game benchmark that still must be run.
 | Third current scale launch on August 2, 2026 | Harbor preflight stopped before spawn | Canonical west-dock fare path fixed; rerun required |
 | Fourth current 500-ship attempt on August 2, 2026 | Reached reciprocal-combat proof; stopped before steady measurement | LF-CR parser fixed; performance warning retained |
 | Fifth current 500-ship attempt on August 2, 2026 | Reached native MSDP proof; stopped before steady measurement | Raw Telnet client fixed and baseline contract passes |
-| Complete 500-ship live tick | Not yet measured | Release blocker |
+| Sixth current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,676 ticks | Overflow and 25 ms performance gates failed |
+| Complete current 500-ship live tick | 3,676 ticks; p95 130,928.50 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -269,6 +270,43 @@ ashore in eight seconds. Last-frame selection prevents a late movement update
 from hiding the subsequent clear. The fifth run cleaned back to six vessels
 and restarted the exact candidate on PID 431693. Its 18-tick preflight sample
 is diagnostic only and is not a release measurement.
+
+Run `20260802T013644Z-457615` is the first complete current-candidate steady
+window. It passed harbor, 500-slot construction, economy, Z, reconstruction,
+reciprocal combat, and raw MSDP, then measured for the requested 1,800 seconds
+with one process and all 500 vessels. Terminal validation stopped on a real
+premeasurement buffer invariant: the reconstruction login inherited Kohdee's
+post-spawn harbor location, rendered hundreds of hulls before `shiplist
+summary`, and recorded `**OVERFLOW**`. Both game-side checkpoints therefore
+reported one overflow. The spawn session must save Kohdee in quiet room 1204
+before the workload restart.
+
+The preserved `perfmon csv` nevertheless contains the complete diagnostic
+distribution:
+
+| Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
+|---|---:|---:|---:|---:|---:|
+| `vessel_tick` | 3,676 | 764.50 | 130,928.50 | 166,398.50 | 1,027,228 |
+| `vessel_autopilot` | 3,676 | 670.50 | 129,214.75 | 165,059.25 | 213,780 |
+| `vessel_crew_wages` | 3,676 | 15.00 | 23.00 | 44.00 | 1,014,543 |
+| `vessel_encounters` | 3,676 | 0.00 | 1.00 | 1.00 | 149,653 |
+| `vessel_schedules` | 25 | 16,744.00 | 21,514.40 | 24,181.72 | 24,889 |
+
+The window also recorded 6,157 missed pulses, 23,888 throttled messages, and
+80,950 database queries. Median behavior is fast, but p95, p99, and maximum
+all fail the 25,000-usec release budget. Synchronized wage due processing is
+the one-second maximum; repeated dynamic-room region/path work drives the
+autopilot distribution; per-ship encounter-region SQL drives the encounter
+spike.
+
+The 57 process samples span 1,861 seconds on PID 466495. RSS increased from
+786,784 to 854,412 KiB and VSZ from 881,544 to 948,828 KiB. Threads remained
+2 and descriptors 11-12. The sparse detailed samples attribute the increase
+to anonymous/heap memory, while actual game checkpoints show movement trails
+increasing from 30,426 to 289,000 and mobiles from 32,384 to 33,993. The
+generated trend remains `REPORT_ONLY`; its full RSS slope is 130,282 KiB/hour
+and its trailing-window slope is 129,104 KiB/hour. Cleanup restored the six-
+vessel baseline and exact installed candidate on PID 522541.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

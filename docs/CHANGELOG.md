@@ -157,6 +157,14 @@
   on actively navigating ferry slot 5 pauses it at `(-63, 82)`, receives the
   full contract, resumes autopilot, and clears ashore; Bash, ShellCheck, and
   scale-parser regressions pass.
+- Run `20260802T013644Z-457615` passes every component gate and completes the
+  1,800-second, 500-vessel window on one PID. It exposes one crowded-login
+  buffer overflow and a real performance failure: 3,676 ticks have median
+  764.50 usec, p95 130,928.50, p99 166,398.50, maximum 1,027,228, and 6,157
+  missed pulses. Crew wages peak at 1,014,543 usec, autopilot at 213,780, and
+  encounters at 149,653. Its 1,861-second memory trend remains `REPORT_ONLY`
+  while movement trails grow from 30,426 to 289,000. Cleanup restores six
+  vessels and the exact candidate on PID 522541.
 
 ### Durable HUNTED bounty-hunter patrols
 

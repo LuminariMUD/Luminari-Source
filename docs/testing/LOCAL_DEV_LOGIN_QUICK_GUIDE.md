@@ -43,8 +43,9 @@ all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The focused
 protocol parser then passed 13 of 13, both character-rename gates passed, and a
 fresh CMake build passed all 6 CTest targets. Because CMake writes its server
 target into `bin/`, `make install` restored the exact Autotools candidate and
-removed the root artifact. After the fifth cleanup, the development MUD maps
-that installed SHA-256 on PID 431693. Continue with the bounded scale gate.
+removed the root artifact. After the sixth cleanup, the development MUD maps
+that installed SHA-256 on PID 522541. Continue with the bounded scale fixes
+and rerun described below.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -477,6 +478,20 @@ received the contract, resumed it, and cleared ashore state. Tooling locks
 negotiation, last-frame selection, pause/resume, and the clear-state contract.
 Cleanup restored six vessels and restarted the exact candidate on PID 431693.
 This artifact also contains no steady performance sample.
+
+Run `20260802T013644Z-457615` passed every component gate and completed the
+full 1,800-second measurement with 500 vessels on one PID. It then failed the
+game-side invariant because the reconstruction login inherited Kohdee's
+post-spawn harbor room and rendered hundreds of hulls before its first command,
+creating one `**OVERFLOW**`. Save Kohdee in room 1204 before the workload
+restart. The complete diagnostic profile also fails the performance target:
+3,676 ticks had median 764.50 usec, p95 130,928.50, p99 166,398.50, maximum
+1,027,228, and 6,157 missed pulses. Crew wages peaked at 1,014,543 usec,
+autopilot at 213,780, encounters at 149,653, and schedules at 24,889. The
+memory series is `REPORT_ONLY`: RSS rose 786,784 to 854,412 KiB across 1,861
+seconds while movement trails rose 30,426 to 289,000; threads stayed 2 and
+descriptors 11-12. Cleanup restored six vessels and the exact binary on PID
+522541. Fix the three production hotspots before starting the next full run.
 
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most

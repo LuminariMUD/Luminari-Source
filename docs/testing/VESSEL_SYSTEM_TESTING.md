@@ -215,6 +215,22 @@ the last frame so a late movement update cannot mask the final clear. Cleanup
 restored the six-vessel baseline and exact installed candidate on PID 431693.
 This fifth artifact also contains no steady performance result.
 
+Run `20260802T013644Z-457615` passed every component gate and completed the
+full 1,800-second window with 500 vessels on PID 466495. It failed terminal
+live-system validation because the reconstruction login inherited Kohdee's
+crowded post-spawn harbor location and overflowed while rendering hundreds of
+hulls before its first command. Both system checkpoints recorded one overflow.
+The complete 3,676-tick profile is valid diagnostic evidence: median 764.50
+usec, p95 130,928.50, p99 166,398.50, maximum 1,027,228, 6,157 missed pulses,
+23,888 suppressed messages, and 80,950 database queries. Crew wages peaked at
+1,014,543 usec, autopilot at 213,780, encounters at 149,653, and schedules at
+24,889. The 57-sample, 1,861-second memory series is `REPORT_ONLY`: RSS rose
+786,784 to 854,412 KiB while movement trails rose 30,426 to 289,000; threads
+stayed 2 and descriptors 11-12. Cleanup restored the six-vessel baseline and
+exact installed candidate on PID 522541. The next candidate must move Kohdee
+to room 1204 before restart, spread synchronized payroll work, reuse dynamic-
+room metadata, and resolve encounter regions once per shared room.
+
 For the builder-independence timing gate, run:
 
 ```bash

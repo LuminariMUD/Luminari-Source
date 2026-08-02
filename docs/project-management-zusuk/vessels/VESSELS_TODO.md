@@ -168,6 +168,29 @@ restarted the exact installed candidate on PID 431693.
 This fifth artifact contains only another 18-tick diagnostic and does not
 close a performance item; start a fresh bounded run.
 
+The sixth run is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T013644Z-457615`.
+It passed every component gate, including raw MSDP aboard/ashore, and completed
+the full 1,800-second steady window with one PID and 500 live vessels. Terminal
+validation then failed because the initial and final game-side samples both
+contained one buffer overflow. The reconstruction login began in Kohdee's
+post-spawn harbor room and rendered hundreds of hulls before its first command;
+`workload-preparation.log` preserves the resulting `**OVERFLOW**`. Move Kohdee
+to quiet room 1204 before that restart.
+
+The complete 3,676-tick diagnostic proves production performance work remains:
+median 764.50 usec, p95 130,928.50, p99 166,398.50, maximum 1,027,228, and
+6,157 missed pulses. Subsystem maxima were 213,780 usec for autopilot,
+1,014,543 for synchronized crew wages, 149,653 for encounters, and 24,889 for
+schedules. The run made 80,950 database queries and suppressed 23,888 vessel
+messages. Its 57 process samples covered 1,861 seconds on PID 466495: RSS rose
+786,784 to 854,412 KiB and VSZ 881,544 to 948,828 KiB, while threads remained
+2, descriptors remained 11-12, and movement trails rose 30,426 to 289,000.
+The 130,282-KiB/hour memory trend is `REPORT_ONLY`, not a leak verdict. Cleanup
+restored six vessels and restarted the exact candidate on PID 522541. Keep all
+four performance items open while fixing the synchronized wage burst, repeated
+dynamic-room spatial lookups, and per-ship encounter-region queries.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in
