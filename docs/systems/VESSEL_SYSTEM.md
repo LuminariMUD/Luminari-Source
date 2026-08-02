@@ -1,6 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
-**Release Status**: Gameplay layer implemented; production acceptance incomplete
+**Release Status**: Gameplay layer and initial campaign shipping implemented;
+production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -1011,6 +1012,62 @@ ordinary hull-object path, proves exactly 10 gold was collected, restores
 Kohdee's starting gold, resumes the ferry, and validates the exact route
 topology.
 
+### Initial Luminari Campaign Shipping
+
+The tracked campaign package uses existing Luminari wilderness content rather
+than the development harbor fixture:
+
+```bash
+./scripts/provision_vessel_campaign.sh
+```
+
+It anchors North Vailand Sea Port 1000360 at `(-599, 455)` and Central Vailand
+Sea Port 1000362 at `(-467, 204)`. Geographic regions 1000013-1000016 define
+North and Central Vailand territorial waters, the Vailand Passage free seas,
+and the Blackwake Anchorage pirate cove. Their law rows apply bounty rates of
+150, 150, 100, and 0 percent with overlap priorities that keep the port and
+pirate identities authoritative inside the wider passage.
+
+`Vailand Iron Passage` is a looping 18-link route. Its five-point southern
+coastal detour keeps the merchant on actual Water, Water (Swim), Ocean, and
+Seaport sectors around the land west of Central Vailand. The package also
+defines `Vailand Merchant Cog` as a ship-class hull with speed 12 and armor
+30, plus faction-1 `Vailand Ironwind Trader`: pilot mobile 31810, 40 units of
+iron, hourly scheduling, and a 3,600-second replacement delay. Iron supply is
+320 at North Vailand and 80 at Central Vailand, creating a deterministic
+trade gradient.
+
+The provisioner is development-only, idempotent, and collision-sensitive. It
+applies the Phase 13/14 prerequisites and campaign content, verifies the exact
+topology and active assembly, and runs two actual Kohdee observation windows
+around a hard restart. Live positions must change in both sessions; shutdown
+positions, merchant slot/generation, route, and active autopilot must survive;
+the outbound trip must reach `vailand_central_port`; and no campaign-related
+`SYSERR` is allowed. It finishes with the same merchant generation reset to
+North Vailand waters so destructive lifecycle acceptance begins under the
+150-percent territorial bounty rate.
+
+Use the selected-merchant form of the reversible lifecycle harness:
+
+```bash
+./scripts/test_vessel_merchant_in_game.sh \
+  --merchant "Vailand Ironwind Trader" --temporary-respawn 5
+```
+
+The August 2, 2026 provision run
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T065410Z-1061371` passed in
+167 seconds on source `923c8024`. The destructive run
+`/tmp/luminari-vessel-merchant-check-1000/runs/20260802T065717Z-1068792`
+passed in 22 seconds: merchant 18 moved from generation 1 to 2, Kohdee
+observed 165 standing loss and a 900-gold bounty, and the replacement retained
+40 iron, pilot 31810, the route, and schedule. Cleanup byte-restored Kohdee and
+all snapshotted vessel/economy tables.
+
+`sql/components/vessels_campaign_content_rollback.sql` is the content rollback,
+not a substitute for a full database restore. Stop vessel writes and retire
+the active merchant hull first; the script deliberately leaves an active
+definition disabled when dependencies cannot be removed safely.
+
 The supervised ferry gate has a one-hour total execution budget, including its
 final restart and cleanup. The runner retains its historical long default, so
 always pass the bounded duration explicitly:
@@ -1189,6 +1246,9 @@ and the trigger was removed.
 | `sql/components/vessels_phase13_*` | Geographic piracy-law schema, rollback, and verification |
 | `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
 | `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
+| `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
+| `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
+| `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 

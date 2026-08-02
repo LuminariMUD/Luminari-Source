@@ -2,14 +2,15 @@
 
 **Last audited:** August 2, 2026
 
-**Status:** Mechanics through Phase 15 are implemented. The core development
-release gates for build, regression, Memcheck, bounded ferry recovery,
-500-vessel performance/stability, economy simulation, shared encounters,
-Z-axis boundaries, native MSDP, named-water crossing, captain-channel
-isolation, and message throttling pass. The installed development candidate is
-not approved for production until the remaining campaign content, player
-experience, balance, beta, production-snapshot rehearsal, preflight, and
-staged rollout work below is complete.
+**Status:** Mechanics through Phase 15 and the first Luminari campaign shipping
+package are implemented. The core development release gates for build,
+regression, Memcheck, bounded ferry recovery, 500-vessel
+performance/stability, economy simulation, shared encounters, Z-axis
+boundaries, native MSDP, named-water crossing, captain-channel isolation, and
+message throttling pass. The installed development candidate is not approved
+for production until the remaining living-world content, player experience,
+balance, beta, production-snapshot rehearsal, preflight, and staged rollout
+work below is complete.
 
 **Current release checkpoint (August 2, 2026, 09:04 IDT):** Full run
 `/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`
@@ -36,6 +37,23 @@ passes 6 of 6, required `make install` removes the root artifact, and the
 installed normal binary remains SHA-256
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
 
+**Campaign-content checkpoint (August 2, 2026, 09:59 IDT):** The tracked,
+idempotent Vailand package now maps two territorial-water regions, the
+Vailand Passage free seas, Blackwake Anchorage pirate cove, an 18-link
+water-only route between the existing North and Central Vailand seaports, a
+merchant-cog prototype, iron market gradient, and the scheduled, faction-1
+`Vailand Ironwind Trader`. Development provision run
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T065410Z-1061371` passes in
+167 seconds on source `923c8024`. Actual Kohdee observed territorial, free,
+pirate, and Central territorial waters, real iron cargo, the route, movement,
+the Central-port arrival, return movement after a hard restart, and two clean
+shutdown checkpoints. Merchant lifecycle run
+`/tmp/luminari-vessel-merchant-check-1000/runs/20260802T065717Z-1068792`
+passes in 22 seconds: merchant 18 generation 1 was sunk, 165 standing and a
+900-gold bounty were observed, generation 2 retained 40 iron, pilot 31810,
+route, and schedule, and cleanup byte-restored Kohdee and every snapshotted
+vessel/economy table.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -48,24 +66,11 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 16 top-level items: 6 living-world content,
+**Remaining checklist:** 14 top-level items: 4 living-world content,
 5 player-experience/presentation, and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
 
-- [ ] Author campaign merchant shipping: scheduled, killable NPC merchant
-  vessels with real cargo, routes, factions, and bounty consequences.
-  Campaign-neutral Phase 14 mechanics and the development fixture are
-  complete. The reversible actual-Kohdee gate destroys generation 1, applies
-  150 standing loss and a 510-gold bounty, verifies a fully assembled
-  generation-2 replacement, then byte-restores the vessel tables and player
-  file. Production builders still need to author campaign routes, cargo, and
-  faction identities and run the same lifecycle against that content.
-- [ ] Author campaign territorial waters, free seas, and pirate coves as
-  `REGION_GEOGRAPHIC` regions. Phase 13 mechanics and the development harbor
-  polygons are complete, including cached law lookup, named-water crossing,
-  `seastate`, 150/100/0-percent bounty multipliers, and actual Kohdee
-  verification. Production builders still need to map the campaign waters.
 - [ ] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
 - [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and

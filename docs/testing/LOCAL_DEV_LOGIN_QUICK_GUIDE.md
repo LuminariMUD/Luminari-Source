@@ -3,49 +3,27 @@
 **Last verified:** August 2, 2026
 **Last updated:** August 2, 2026
 
-**Active execution checkpoint (August 2, 2026, 04:32 IDT):** The bounded ferry
-gate is terminal `PASS` at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. The
-request-to-result time was 2,779 seconds, including 2,740 seconds of continuous
-observation. Ferry 5 completed 1,476 movement steps, 246 waypoint arrivals,
-and 62 route loops across 5 actual-Kohdee, 46 database, and 46 process samples.
-Fleet count remained six, dynamic rooms stayed within 13 of 2,000, and buffer
-overflows remained zero. The continuous process stayed on PID 160111 with two
-threads and 12 descriptors. The terminal hard restart launched the identical
-binary SHA-256 on PID 252880, restored the exact paused position and route,
-and resumed the ferry. The memory report remains `REPORT_ONLY`: RSS increased
-from 767,396 to 866,944 KiB while the awake-world mobile, object, and movement-
-trail populations also grew. The current development MUD is active and the
-ferry is resumed. The subsequent current-candidate gates described below are
-complete; continue with the bounded 500-vessel scale run. Preserve pre-fix
-stopped-MUD run
-`20260801T230025Z-148892` as harness regression evidence.
+**Active execution checkpoint (August 2, 2026, 09:59 IDT):** The full
+1,800-second, 500-vessel release scale gate is terminal `PASS` under
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`.
+Its complete setup, measurement, validation, cleanup, and restart took 2,338
+seconds. All subsystem maxima stayed below 25 ms, and the run recorded zero
+workload errors, high-volume progress rows, buffer overflows, or movement
+trails. All 277 production-linked tests, strict actionable Memcheck, 13 focused
+protocol tests, and 6 integrated CTest targets pass. The installed normal
+binary SHA-256 remains
+`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
 
-The August 2 current-candidate root suite passes 268 of 268. Full Memcheck
-first exposed one 24-byte perk node owned by a temporary Bard after
-`free_char()`; character teardown now releases purchased perks. The exact
-268-test rerun reports zero errors and zero definite, indirect, or possible
-loss. That clean candidate is installed as SHA-256
-`63b73ed4ad3411fc5d00fcd8973c361d302335e973fa724858ab481de62c8019`.
-The reversible actual-Kohdee merchant check then passed in 41 seconds with
-generation 1 to 2, 150 total standing loss, a 510-gold bounty, a complete
-replacement, and byte-identical database/player-file restoration. The merchant
-cleanup first restarted PID 299248 without a login. The reversible HUNTED
-check then passed in 57 seconds under artifact
-`/tmp/luminari-vessel-hunter-check-1000/runs/20260802T001910Z-302111`: the exact
-hunter survived PID 299248 to 302590, pardon moved it into cooldown, and
-cleanup restored the original rows and removed only the temporary target. A
-current builder check created prototype 13 and ship 7, sailed from `(-66, 92)`
-to `(-67, 92)` at effective storm speed 1, and removed both in 2.8 seconds of
-workflow and 8 seconds total. After the tracked help migration was applied to
-the previously stale development database, all five SQL verifier queries and
-all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The focused
-protocol parser then passed 13 of 13, both character-rename gates passed, and a
-fresh CMake build passed all 6 CTest targets. Because CMake writes its server
-target into `bin/`, `make install` restored the exact Autotools candidate and
-removed the root artifact. The optimization build is installed as SHA-256
-`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e` and
-runs on PID 565375. Continue with the bounded scale rerun described below.
+The first Luminari campaign package now also passes actual-character
+acceptance. Run `20260802T065410Z-1061371` provisions the Vailand legal waters,
+18-link water-only route, iron markets, and `Vailand Ironwind Trader`, then
+proves movement and Central-port arrival across a hard restart in 167 seconds.
+Run `20260802T065717Z-1068792` uses Kohdee to sink merchant 18 generation 1,
+observes 165 standing loss and a 900-gold bounty, verifies generation 2 with
+40 iron, pilot 31810, route, and schedule, and byte-restores every changed
+vessel/economy table plus Kohdee's player file in 22 seconds. Both runs use
+source `923c8024` and the installed binary hash above. The development MUD is
+active with the campaign merchant returned to North Vailand waters.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -159,6 +137,36 @@ hash to
 Kohdee's backup and recovered player file both hash to
 `319cf91fd7893d3c06f56ace03c0a6d9a6f2a8fc5d365d85262174199da1069f`.
 The no-login restart runs the same installed executable.
+
+## Fast Vailand Campaign Shipping
+
+After installing the current candidate, provision the tracked campaign
+shipping package and run its real loss/recovery path:
+
+```bash
+./scripts/provision_vessel_campaign.sh
+./scripts/test_vessel_merchant_in_game.sh \
+  --merchant "Vailand Ironwind Trader" --temporary-respawn 5
+```
+
+Both commands refuse any environment other than development and reuse the
+configured master account plus Kohdee. The provisioner first validates the
+existing North and Central Vailand seaport VNUMs and coordinates, rejects
+region/route/prototype/merchant/waypoint collisions, and applies the
+idempotent campaign SQL. It then uses two 45-second Kohdee sessions around a
+hard restart to prove real cargo, the exact route, territorial/free/pirate
+waters, live movement, the Central-port arrival, persisted position, stable
+merchant identity, and resumed autopilot. A final controlled restart places
+the merchant back in North Vailand territorial waters.
+
+The second command snapshots Kohdee and all mutable vessel/economy tables,
+temporarily shortens only the selected merchant's respawn delay, invokes the
+production sink path, and verifies the replacement generation in SQL and in
+game. Its cleanup stops the server, restores and byte-compares both snapshots,
+and restarts the same installed executable. Never replace it with a raw
+`vmerchant sink` command. The August 2 passing artifacts are
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T065410Z-1061371` and
+`/tmp/luminari-vessel-merchant-check-1000/runs/20260802T065717Z-1068792`.
 
 ## Fast HUNTED Bounty-Hunter Check
 

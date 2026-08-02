@@ -7,8 +7,8 @@ findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
-the complete 500-vessel scale gate, and the current candidate's focused build
-gates pass on local development.**
+the complete 500-vessel scale gate, the Vailand campaign shipping gate, and
+the current candidate's focused build gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
@@ -66,6 +66,61 @@ command. The first run includes ferry creation and a second restart. Before
 the fare, crossing, and channel checks were added, later idempotent runs reused
 the ferry and completed in about 30 seconds on the current development host.
 Remeasure the augmented path with the current installed candidate.
+
+## Vailand Campaign Shipping Check
+
+Provision and exercise the tracked Luminari campaign package only on local
+development:
+
+```bash
+./scripts/provision_vessel_campaign.sh
+```
+
+The provisioner validates the existing North Vailand Sea Port 1000360 at
+`(-599, 455)` and Central Vailand Sea Port 1000362 at `(-467, 204)` before it
+changes the database. It applies the Phase 13/14 prerequisites and idempotent
+campaign content, rejects region or identity collisions, and verifies four
+named legal-water regions, the exact 18-link route, merchant prototype,
+faction, real iron cargo, pilot 31810, schedule, and two-port market gradient.
+It resets only the campaign merchant's runtime to its canonical start when an
+earlier route revision left that hull paused.
+
+Two actual Kohdee sessions then observe the merchant for 45 seconds each,
+with a hard server restart between them. The gate requires distinct live
+`shipstatus` positions, shutdown-persisted movement, the same slot and
+generation, active autopilot after restart, named legal waters, the exact
+route, and arrival at the Central port. It rejects any campaign-related
+`SYSERR`, then performs a final controlled restart with the merchant in North
+Vailand territorial waters. Success ends with:
+
+```text
+PASS: Vailand campaign waters and merchant ship N passed through actual Kohdee (Ns).
+```
+
+The August 2 run passed in 167 seconds on source `923c8024` under
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T065410Z-1061371`. Kohdee
+observed movement from `(-599, 455)` to `(-487, 244)`, the shutdown saved
+`(-480, 229)`, the same generation resumed after restart, reached
+`vailand_central_port`, and continued on the return leg. The final state was
+the same slot/generation, traveling at `(-599, 455)`. All four SQL region
+rows, 18 route links, the exact sequence, merchant definition, and both market
+rows matched their verifier expectations.
+
+Exercise the destructive campaign lifecycle immediately after provisioning:
+
+```bash
+./scripts/test_vessel_merchant_in_game.sh \
+  --merchant "Vailand Ironwind Trader" --temporary-respawn 5
+```
+
+Run `20260802T065717Z-1068792` passed in 22 seconds. Kohdee sank merchant 18
+generation 1 in slot 7, observed 165 total standing loss and a 900-gold
+bounty, and inspected generation 2 with 40 iron, pilot 31810, the Vailand
+route, and its active schedule. Cleanup restored Kohdee's player file and all
+snapshotted vessel/economy tables exactly; the before/restored database dump
+SHA-256 is `d21a9c2da318d6f6648ef1de57c8eaf8636d5047b46c0eb8e86e4e3563d24e21`.
+
+## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
 Exercise the real loss and recovery path separately with:

@@ -6,16 +6,38 @@
 
 #### Added
 
+- The initial Luminari campaign shipping package is now tracked as idempotent
+  install, read-only verification, and guarded rollback SQL. It maps North and
+  Central Vailand territorial waters, Vailand Passage free seas, Blackwake
+  Anchorage, an 18-link water-only route between the existing seaports, an
+  iron market gradient, and the scheduled faction-1 `Vailand Ironwind Trader`
+  with real cargo and pilot 31810.
+- `scripts/provision_vessel_campaign.sh` refuses production, validates the
+  underlying wilderness port contract and data collisions, applies the
+  campaign package, and runs two actual-Kohdee movement windows around a hard
+  restart. It requires persistent identity and movement, the Central-port
+  arrival, clean campaign logs, and a final North Vailand baseline.
 - `scripts/test_vessel_merchant_in_game.sh` performs one reversible
   actual-Kohdee merchant-loss acceptance run. It verifies the attack and sink
   standing losses, regional bounty, destroyed attribution, and complete next-
   generation cargo/pilot/route/schedule identity. The harness snapshots all
   mutable vessel/economy tables and Kohdee's exact player file, restores and
   byte-compares both with the MUD stopped, and restarts without another player
-  login.
+  login. `--merchant` selects campaign content without duplicating the harness;
+  `--temporary-respawn` bounds a production-length replacement delay only
+  inside the reversible snapshot.
 
 #### Fixed
 
+- The Vailand route now follows a charted southern water-only approach around
+  land west of Central Vailand. The former direct final leg reached Field at
+  `(-477, 224)`, correctly paused autopilot, and logged a traversal failure.
+  Five coastal turns keep both directions on traversable wilderness sectors.
+- Campaign acceptance reads live movement from Kohdee's `shipstatus` output
+  and reads durable position only after controlled shutdown. Runtime snapshots
+  are checkpoints, not a live telemetry feed, so querying them while the MUD
+  was running could falsely report a stationary ship that Kohdee had watched
+  cross several named-water regions.
 - Automated vessel movement now stops the hull, pauses autopilot, persists the
   runtime state, and tells occupants after terrain or Z rejects a route step.
   A bad waypoint no longer retries and logs the same failure every heartbeat.
@@ -109,6 +131,20 @@
 
 #### Validated
 
+- Campaign provision run `20260802T065410Z-1061371` passes in 167 seconds on
+  source `923c8024` and installed SHA-256
+  `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+  Merchant slot 7 moves from `(-599, 455)` through territorial, free, and
+  pirate waters, persists twice, retains generation 1 across a hard restart,
+  reaches Central Vailand, begins the return leg, and finishes reset cleanly
+  at North Vailand. Campaign `SYSERR` artifacts are empty and all SQL verifier
+  actual/expected values match.
+- Campaign merchant lifecycle run `20260802T065717Z-1068792` passes in 22
+  seconds. Actual Kohdee sinks merchant 18 generation 1, receives 165 standing
+  loss and a 900-gold bounty, and verifies generation 2 with 40 iron, pilot
+  31810, route, and active schedule. Cleanup restores Kohdee and every
+  snapshotted vessel/economy table exactly; both database dumps hash to
+  `d21a9c2da318d6f6648ef1de57c8eaf8636d5047b46c0eb8e86e4e3563d24e21`.
 - The GNU C23 production-linked suite passes 268 of 268 tests after integration
   with current master, including the
   blocked-route autopilot pause. `make install` completes and removes the

@@ -42,6 +42,7 @@ tables.
 | 13 | `vessels_phase13_schema.sql` | `verify_vessels_phase13.sql` | `vessels_phase13_rollback.sql` | Piracy law keyed to geographic wilderness regions |
 | 14 | `vessels_phase14_schema.sql` | `verify_vessels_phase14.sql` | `vessels_phase14_rollback.sql` | Durable NPC merchant definitions and exactly-once consequences |
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
+| Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 32 authoritative vessel and vehicle help entries covering 78 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
@@ -63,6 +64,13 @@ prototypes, Phase 07 bounties, and Phase 09 runtime fleet slots without foreign
 keys. Retire active hunter hulls before rollback. Its rollback removes hunter
 policy, generation, cooldown, and terminal-reason history; it does not remove
 ordinary hull rows that were captured from the lifecycle.
+The campaign package depends on Phases 7, 13, and 14 plus the existing North
+and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
+region identities, their vessel-law rows, one route and waypoint set, one
+prototype, one merchant definition, and two iron-market rows. Stop writes and
+retire its active merchant hull before content rollback. The guarded rollback
+leaves the merchant disabled if an active hull or another dependency still
+prevents safe removal.
 
 ## Pre-Deployment Gate
 
@@ -101,8 +109,9 @@ Use an isolated clone of a recent production backup.
    - Interior, cargo, crew, route, schedule, and encounter row counts.
    - Representative ship records selected for post-migration comparison.
 3. Stop application writes.
-4. Apply each schema component in ascending order.
-5. Run every matching verification script.
+4. Apply each schema component in ascending order, then apply the reviewed
+   campaign content package.
+5. Run every matching schema and campaign verification script.
 6. Apply `help_vessel_entries.sql`, run
    `verify_help_vessel_entries.sql`, and complete the in-game command-keyword
    sweep.
@@ -165,6 +174,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase15_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_campaign_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
 
@@ -201,6 +212,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase15.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_campaign_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
 
@@ -210,6 +223,8 @@ Also verify:
 - No out-of-band port supply or invalid encounter-region references.
 - Pre-existing ship, owner, cargo, crew, route, and schedule counts.
 - Representative records against the pre-deployment snapshot.
+- Exact Vailand campaign region count, 18-link sequence, merchant identity,
+  and two-row iron supply gradient.
 - All 78 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
@@ -258,6 +273,8 @@ The phase rollback scripts are destructive. If they are used instead of a full
 restore, run them in reverse dependency order:
 
 ```bash
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_campaign_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase15_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
