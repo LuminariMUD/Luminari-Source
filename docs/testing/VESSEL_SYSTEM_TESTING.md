@@ -8,20 +8,21 @@ findings are tracked in
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
-Blackwake derelict discovery gate, and the current candidate's focused build
-gates pass on local development.**
+Blackwake derelict discovery gate, the wilderness frontier gate, and the
+current candidate's focused build gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 277 production-linked tests and all 13
-focused protocol-parser tests. Strict actionable Memcheck across those 277
-tests reports zero errors and no definite, indirect, or possible loss; a fresh
-CMake build of the integrated candidate passed all 6 CTest targets. Required
-`make install` removed the root artifact and installed non-profiled SHA-256
-`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+The current normal candidate passes all 278 production-linked tests. The
+latest strict actionable Memcheck covered the preceding 277-test candidate
+and reported zero errors and no definite, indirect, or possible loss; that
+revision also passed all 13 focused protocol-parser tests and all 6 integrated
+CTest targets. Required `make install` removed the root artifact and installed
+the current non-profiled SHA-256
+`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -168,6 +169,40 @@ state hash was
 `f0a2ede01ed085b07cd970744582de2e33b8bb7cd529930f0b66a717bf2072d7`,
 and cleanup restored the level-34 baseline. Optional first-finder naming is not
 enabled in this initial content package.
+
+## Wilderness Frontier Check
+
+Provision and pilot the tracked trench, river, and sky content only on local
+development:
+
+```bash
+./scripts/provision_vessel_frontier.sh
+```
+
+The provisioner requires a clean source tree and fresh installed binary,
+rejects identity collisions and pre-existing runtimes for the four owned
+prototypes, applies the SQL atomically, and hard-restarts the supervised MUD.
+It verifies exact region/index polygons for Starfall Trench, Aetherwind
+Skyway, and Shardspire Sky Island. It also requires Sablebranch path 7100104
+to be the exact 79-cell output of the database `bresenham_line` trigger and to
+match `path_index`.
+
+The actual-character phase resolves prototype IDs rather than assuming them.
+Kohdee must observe only the requested region/path types, sail both
+Sablebranch hulls east one River cell, dive the Starfall Bathyscaphe from Z 0
+to Z -90 while `seastate` reports natural depth 104, and find no sky feature
+at ground level. The Aetherwind Courier must then enter the lane at Z 100,
+show effective speed 12 after requesting 10, climb to Z 200, and move inside
+Shardspire at `(469, 0)`. The gate fails unless all four temporary ships are
+purged and Kohdee's saved room is 1204. Its exit trap performs bounded
+in-game cleanup for an interrupted run.
+
+Run `20260802T085140Z-1316297` passed in 56 seconds on source `4cae8f98` and
+installed SHA-256
+`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+The complete command transcript is `03-kohdee-vessel-frontier.log` in that
+artifact directory. This run also validates the fixed `reglist type` and
+`pathlist type` dispatch and River `shipstatus` label.
 
 ## Shared Harbor Merchant Loss Check
 

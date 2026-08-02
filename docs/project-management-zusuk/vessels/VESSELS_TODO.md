@@ -3,7 +3,8 @@
 **Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15, the first Luminari campaign shipping
-package, and the first data/DG-driven derelict are implemented. The core
+package, the first data/DG-driven derelict, and the first wilderness frontier
+package are implemented. The core
 development release gates for build,
 regression, Memcheck, bounded ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
@@ -72,6 +73,22 @@ index, object, optional legacy-variable, database-header, and database-object
 state exactly. First-finder naming is intentionally not enabled for this
 initial derelict; it remains an optional, non-release-blocking extension.
 
+**Frontier-content checkpoint (August 2, 2026, 11:53 IDT):** The tracked,
+idempotent frontier package owns the Starfall Trench bathymetric region,
+Aetherwind Skyway altitude lane, Shardspire Sky Island, a 79-cell digitalized
+Sablebranch River path, and raft, boat, submarine, and airship prototypes.
+Development run
+`/tmp/luminari-vessel-frontier-1000/runs/20260802T085140Z-1316297` is terminal
+`PASS` in 56 seconds on source `4cae8f98` and installed SHA-256
+`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+Actual Kohdee sailed both river hulls from `(-810, 480)` to `(-809, 480)`,
+dived the Starfall Bathyscaphe to Z -90 inside natural depth 104, activated
+the 125-percent Aetherwind speed lane at Z 100, and entered Shardspire at
+`(469, 0, 200)`. The gate purged all four temporary hulls and returned Kohdee
+to room 1204. End-to-end testing also repaired ignored `reglist type` and
+`pathlist type` filters, missing River status output, and an unspawnable
+airship speed. The production-linked suite passes 278 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -84,14 +101,14 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 13 top-level items: 3 living-world content,
+**Remaining checklist:** 12 top-level items: 2 living-world content,
 5 player-experience/presentation, and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
 
 - [x] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
-- [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and
+- [x] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and
   `path_data` river travel for rafts and boats.
 - [ ] Give each of the eight vessel classes at least one unique destination or
   capability.

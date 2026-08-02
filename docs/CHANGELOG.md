@@ -6,6 +6,19 @@
 
 #### Added
 
+- Campaign-neutral bathymetric, altitude-lane, and sky-island wilderness
+  region types use natural depth or vessel Z thresholds. `seastate` reports
+  the active feature, and eligible airships or magical hulls receive a
+  125-percent high-current speed multiplier capped by the normal ceiling.
+- The idempotent frontier content package supplies Starfall Trench,
+  Aetherwind Skyway, Shardspire Sky Island, the 79-cell digitalized
+  Sablebranch River, and spawnable raft, boat, submarine, and airship
+  prototypes with verification and guarded rollback SQL.
+- `scripts/provision_vessel_frontier.sh` refuses production, dirty or stale
+  source, collisions, and owned runtime conflicts. It applies content
+  atomically, checks spatial-index mirrors, and uses actual Kohdee to discover,
+  spawn, pilot, and purge all four hulls. Interrupted runs perform bounded
+  owned-runtime cleanup and return Kohdee to room 1204.
 - The first tracked data/DG-driven vessel derelict supplies three Blackwake
   object records, five guarded discovery triggers, an idempotent prototype and
   generated-room mapping package, a read-only verifier, and dependency-aware
@@ -43,6 +56,12 @@
 
 #### Fixed
 
+- `reglist type <num>` and `pathlist type <num>` now dispatch to focused
+  listings instead of silently paging every record. The type catalog exposes
+  the three new region types and names path type 5 River.
+- `shipstatus` reports `SECT_RIVER` as River instead of Unknown.
+- The Aetherwind prototype uses speed 25, inside the production builder's
+  1-30 validation range; the initial speed-40 content row could not spawn.
 - Derelict acceptance snapshots Kohdee before its preflight login and restores
   both object-save mirrors, including the MariaDB header and every serialized
   object row. The earlier file-only boundary allowed stale test rows to load
@@ -153,6 +172,13 @@
 
 #### Validated
 
+- Frontier run `20260802T085140Z-1316297` passes in 56 seconds on source
+  `4cae8f98` and installed SHA-256
+  `9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+  Actual Kohdee sails raft and boat one River cell, dives to Z -90 in natural
+  depth 104, activates the Aetherwind lane at Z 100 with effective speed 12,
+  reaches Shardspire at `(469, 0, 200)`, purges all four runtimes, and returns
+  to room 1204. The production-linked suite passes 278 tests.
 - Blackwake provision run `20260802T072737Z-1135588` passes in 61 seconds on
   source `71cba1a2`. Slot 8, prototype 17, coordinates `(-533, 330)`, rooms
   70160-70163, bridge/entrance/cargo identities, and all three mappings remain

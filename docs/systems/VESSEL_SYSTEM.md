@@ -1,7 +1,8 @@
 # LuminariMUD Vessel System Documentation
 
-**Release Status**: Gameplay layer, initial campaign shipping, and initial
-data/DG-driven derelict implemented; production acceptance incomplete
+**Release Status**: Gameplay layer, initial campaign shipping, initial
+data/DG-driven derelict, and wilderness frontier package implemented;
+production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -125,8 +126,11 @@ Vessels extend the wilderness system; they do not create a separate geography.
 | Weather field | Speed, visibility, helm risk, and storm damage |
 | `REGION_ENCOUNTER` | Builder-authored encounter selection |
 | Sector regions | Magical or transformed waters through the generated sector |
-| Paths | Roads for vehicles; rivers are the canonical source for future river travel |
+| Paths | Roads for vehicles; `PATH_RIVER` digitalizes canonical River travel cells for rafts and boats |
 | Geographic regions | Canonical source for named seas and territorial waters |
+| Bathymetric regions | Thresholded natural-depth trenches reported through `seastate` |
+| Altitude-lane regions | Thresholded high currents that multiply eligible airship speed by 125 percent |
+| Sky-island regions | Thresholded aerial destinations reported only inside their polygon and at altitude |
 
 Permanent invariants:
 
@@ -145,6 +149,17 @@ Permanent invariants:
    and repairs the runtime snapshot.
 7. Zone resets may remove stale hull objects, but never a hull currently owned
    by an active fleet slot.
+
+Frontier feature regions use campaign-neutral types in `wilderness.h`.
+`REGION_BATHYMETRIC` (5) treats `region_props` as the minimum natural water
+column (`wild_waterline - elevation`). `REGION_ALTITUDE_LANE` (6) and
+`REGION_SKY_ISLAND` (7) treat it as the minimum vessel Z. The resolver reads
+the canonical in-memory polygons, rejects failed thresholds, and chooses the
+lowest VNUM when equal types overlap. An altitude lane applies only to
+airships and magical vessels; its multiplier remains capped by the normal
+150-percent speed ceiling. `seastate` exposes each active feature and its
+threshold. Builders can use `reglist type 5`, `reglist type 6`, `reglist type
+7`, and `pathlist type 5` without paging unrelated records.
 
 ### State Machine
 
@@ -1118,6 +1133,40 @@ world object/trigger records or destroy a persistent hull. A full content
 rollback must retire the hull safely and remove the reviewed world records and
 index entries separately while application writes are stopped.
 
+### Wilderness Frontier Content
+
+The first tracked frontier package connects the region/path contracts to four
+actual vessel classes:
+
+```bash
+./scripts/provision_vessel_frontier.sh
+```
+
+`vessels_frontier_content.sql` owns Starfall Trench (region 7100101, minimum
+natural depth 96), Aetherwind Skyway (region 7100102, minimum Z 100),
+Shardspire Sky Island (region 7100103, minimum Z 200), and Sablebranch River
+(path 7100104, `PATH_RIVER`, `SECT_RIVER`). The database path trigger expands
+the three authored line vertices into 79 contiguous cells and mirrors them in
+`path_index`. Its four prototypes are an unarmed raft, an unarmed riverboat, a
+submarine, and an airship whose speed 25 remains inside the production builder
+limit.
+
+The development-only provisioner is atomic, idempotent, collision-sensitive,
+and requires the installed binary to be newer than every source input. It
+hard-restarts the supervised MUD, verifies database and spatial identity, and
+uses actual Kohdee sessions for builder discovery and piloting. The piloted
+gate moves both river hulls one cell, dives the bathyscaphe to Z -90 in natural
+depth 104, proves the sky lane is gated until Z 100 and yields effective speed
+12 from requested speed 10, then reaches Shardspire at `(469, 0, 200)`. It
+purges every temporary runtime and returns Kohdee to room 1204; its failure
+trap performs the same owned-runtime cleanup. Run
+`20260802T085140Z-1316297` passed in 56 seconds on source `4cae8f98`.
+
+`vessels_frontier_content_rollback.sql` removes only the four owned prototype,
+path, and region identities after checking exact names. Retire any dependent
+runtime hull before rollback and stop application writes. It does not undo
+unrelated wilderness paths or regions.
+
 The supervised ferry gate has a one-hour total execution budget, including its
 final restart and cleanup. The runner retains its historical long default, so
 always pass the bounded duration explicitly:
@@ -1286,6 +1335,7 @@ and the trigger was removed.
 | `lib/world/vessel_derelict/700.trg` | Guarded room and object discovery-chain DG programs |
 | `scripts/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
 | `scripts/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
+| `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
 
 ### Database
 
@@ -1311,6 +1361,9 @@ and the trigger was removed.
 | `sql/components/vessels_derelict_content.sql` | Blackwake prototype and generated-room trigger mappings |
 | `sql/components/verify_vessels_derelict_content.sql` | Read-only Blackwake identity and mapping checks |
 | `sql/components/vessels_derelict_content_rollback.sql` | Dependency-aware Blackwake definition rollback |
+| `sql/components/vessels_frontier_content.sql` | Starfall, Aetherwind, Shardspire, Sablebranch, and four prototype definitions |
+| `sql/components/verify_vessels_frontier_content.sql` | Read-only frontier geometry, index, and prototype inventory |
+| `sql/components/vessels_frontier_content_rollback.sql` | Guarded frontier content rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 

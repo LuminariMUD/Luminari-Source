@@ -273,8 +273,11 @@ The core transport and gameplay layers are implemented: wilderness movement,
 interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
 operator tooling, and native MSDP ship state. The initial Vailand shipping
-package and data/DG-driven Blackwake derelict also pass actual-character
-development acceptance around hard restarts.
+package, data/DG-driven Blackwake derelict, and first wilderness frontier
+package also pass actual-character development acceptance. The frontier gate
+pilots raft and boat travel over a canonical River path, a submarine through a
+bathymetry-thresholded trench, and an airship through an altitude lane to a
+thresholded sky island.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
