@@ -8,6 +8,9 @@ package are implemented. Regattas, fleet skirmishes, ghost-fleet events, and
 durable leaderboards also pass actual-character acceptance. The legacy
 tactical grid has been replaced by a canonical wilderness chart, including
 live contact damage state, and passes its reversible actual-character gate.
+The lookout view now samples the canonical wilderness in eight bearings,
+reports the visible horizon and nearby hulls, and passes its reversible
+actual-character gate.
 The core development release gates for build, regression, Memcheck, bounded
 ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
@@ -39,8 +42,9 @@ reports zero errors and zero definite, indirect, or possible loss. The
 368,451 reachable bytes remain owned by process-lifetime registries. The
 focused protocol parser passes 13 of 13, the prior integrated CMake gate
 passes 6 of 6, required `make install` removes the root artifact, and the
-installed normal binary remains SHA-256
-`281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+current normal candidate passes 292 production-linked tests and installs
+SHA-256
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
 
 **Campaign-content checkpoint (August 2, 2026, 09:59 IDT):** The tracked,
 idempotent Vailand package now maps two territorial-water regions, the
@@ -127,6 +131,22 @@ hull, byte-restored Kohdee's player file (SHA-256
 left zero Bastion runtime/interior rows, and restarted the exact candidate.
 The warning-free production-linked suite passes 287 tests.
 
+**Wilderness-lookout checkpoint (August 2, 2026, 14:15 IDT):** The player-
+facing `lookout` command, with backward-compatible `look_outside`, now samples
+canonical modified wilderness sectors in all eight compass directions out to
+the production weather- and crew-limited horizon. It reports current terrain,
+natural elevation, water column, and nearest-first visible vessels with
+condition, range, bearing, and relative Z. Reversible run
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`
+is terminal `PASS` in 38 seconds on source `d788c537` and installed SHA-256
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+Actual Kohdee read both authoritative help aliases, scanned open Starfall
+waters with a real sound contact two units east, then scanned canonical
+Water, Beach, Field, Marshland, City, and road sectors from the coast. Cleanup
+purged every temporary hull, restored room 1204 and the byte-identical player
+file, left zero Bastion runtimes, and restarted the exact candidate. The
+warning-free production-linked suite passes 292 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -139,7 +159,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 9 top-level items: 4 player-experience/presentation
+**Remaining checklist:** 8 top-level items: 3 player-experience/presentation
 and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
@@ -158,7 +178,7 @@ and 5 balance/beta/rollout.
 - [x] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
   damage state.
-- [ ] Build lookout view v2 from actual surrounding wilderness sectors.
+- [x] Build lookout view v2 from actual surrounding wilderness sectors.
 - [ ] Add dynamic at-sea descriptions through `narrative_weaver` and
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
@@ -175,6 +195,9 @@ The completed tactical chart reads `get_map()` terrain and the same wilderness
 region polygons used by travel, hides encounter-only metadata, and resolves
 contacts through the production sight-range and damage systems rather than a
 private tactical grid.
+The completed lookout samples the same canonical modified sectors along eight
+bearings, shares production visibility and contact state with tactical, and
+reports elevation and water depth without creating a second world model.
 
 ## 3. Balance, Beta, and Roll Out
 

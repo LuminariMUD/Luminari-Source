@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.25
+**Version:** 3.26
 
 **Evidence snapshot:** August 2, 2026
 
@@ -24,6 +24,8 @@ campaign-content, beta, production-snapshot, and rollout gates.
 | Phase 16 actual-character event gate | Regatta, skirmish, and ghost fleet pass; exact restoration | Historical functional gate passes |
 | Wilderness tactical root suite on August 2, 2026 | 287 of 287 passing | Current production-linked gate; full scale must be repeated at preflight |
 | Wilderness tactical actual-character gate | Canonical terrain, rings, regions, and damage contact pass; exact restoration | Current functional gate passes |
+| Wilderness lookout root suite on August 2, 2026 | 292 of 292 passing | Current production-linked gate; full scale must be repeated at preflight |
+| Wilderness lookout actual-character gate | Eight bearings, canonical coast, and live contact pass; exact restoration | Current functional gate passes |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Current 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Current complementary stability gate passes |
@@ -740,6 +742,17 @@ transition through `shipfire`, Ashenport shoal/beach/coastline cells, zero
 temporary runtime/interior residue, byte-identical Kohdee restoration, and an
 exact-binary restart. This closes the tactical presentation gate; it does not
 replace the final 500-vessel rerun after post-scale source changes.
+
+The wilderness lookout candidate passes 292 production-linked tests and
+installs SHA-256
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+Reversible actual-character run `20260802T111510Z-1611249` completes in 38
+seconds. It proves all eight canonical bearings through production visibility,
+natural elevation and water-column reporting, a real nearby sound contact,
+coastal Water/Beach/Field terrain, both help aliases, zero temporary runtime
+residue, byte-identical Kohdee restoration, and an exact-binary restart. This
+closes the lookout presentation gate; it does not replace the final 500-vessel
+rerun after post-scale source changes.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:

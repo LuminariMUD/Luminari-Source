@@ -2,8 +2,8 @@
 
 **Release Status**: Gameplay layer, initial campaign shipping, initial
 data/DG-driven derelict, wilderness frontier package, and Phase 16 showcase
-events implemented; wilderness tactical chart accepted; production acceptance
-incomplete
+events implemented; wilderness tactical chart and lookout view accepted;
+production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -70,6 +70,7 @@ and operator controls in one system.
 |-----------|-------------|--------------|
 | Core Vessels | Ship management, coordinates, movement | vessels.c, vessels.h |
 | Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
+| Lookout View | Eight-bearing wilderness samples and visible contacts | vessels_lookout.c |
 | Autopilot | Waypoint navigation, route following | vessels_autopilot.c |
 | Interior Rooms | Multi-room ship interiors | vessels_rooms.c |
 | Docking | Ship-to-ship docking mechanics | vessels_docking.c |
@@ -453,7 +454,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | greyhawk_heading | Set ship heading | `heading <0-360>` |
 | dock | Dock with vessel | `dock <ship>` |
 | undock | Undock from vessel | `undock` |
-| look_outside | View from interior | `lookout` |
+| lookout | View canonical surroundings from a bridge or deck | `lookout` (`look_outside` legacy alias) |
 
 System-generated vessel messages use independent per-vessel cooldown classes.
 Repeated depth and weather messages are limited to one copy per class every
@@ -486,6 +487,32 @@ nearest-first roster below the chart includes fleet slot, vessel name,
 condition, three-dimensional range, bearing, compass direction, and relative
 Z. The header reports position, heading, weather, visibility, and the current
 vessel's aggregate internal hull condition.
+
+#### Wilderness Lookout View
+
+`lookout` is the player-facing spelling; `look_outside` remains compatible.
+The command resolves the current hull through its registered generated room,
+then permits bridges and outside-view decks. It samples canonical modified
+wilderness terrain in eight compass directions at bounded near, middle, and
+horizon distances. Static coordinate rooms take precedence where present, and
+all other samples use the same sector transforms and path overlays as travel.
+
+The header reports X/Y/Z, heading, weather, production visibility, current
+terrain, natural elevation, and water column. Each bearing compresses
+consecutive equal samples into readable terrain bands. A nearest-first contact
+list uses the shared `vessel_sight_range()`, three-dimensional range, compass
+bearing, `vessel_status()`, and relative Z; it does not maintain a separate
+lookout contact model.
+
+Development acceptance run
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`
+passed in 38 seconds on source `d788c537` and installed SHA-256
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+Actual Kohdee read both help aliases, observed an open-water sound contact two
+units east, and read real coastal Water, Beach, Field, Marshland, City, and
+road sectors. The gate purged its hulls, byte-restored Kohdee, and left no
+acceptance runtime rows. Five production-linked tests cover sample selection,
+terrain-band compression, capacity/input boundaries, and compass boundaries.
 
 ### Autopilot Commands
 
@@ -1381,6 +1408,7 @@ and the trigger was removed.
 | `src/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels.c` | Core commands, wilderness movement, terrain system |
 | `src/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
+| `src/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
 | `src/vessels_rooms.c` | Interior room generation and movement |
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
@@ -1415,6 +1443,7 @@ and the trigger was removed.
 | `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
 | `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
 | `scripts/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
+| `scripts/test_vessel_lookout_in_game.sh` | Reversible Kohdee wilderness-lookout, contact, and coastal-sector gate |
 
 ### Database
 
@@ -1622,7 +1651,7 @@ passes automated tests. Before rollout:
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
 4. Apply and verify every vessel schema component, then require all 33
-   maintained help entries and 79 command keywords to pass both SQL and in-game
+   maintained help entries and 80 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and supervised stability check;

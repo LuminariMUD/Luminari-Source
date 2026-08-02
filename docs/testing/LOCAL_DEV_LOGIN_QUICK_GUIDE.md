@@ -13,9 +13,9 @@ trails. At that scale revision, all 277 production-linked tests, strict
 actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
 passed; its normal binary SHA-256 was
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later wilderness-tactical candidate passes 287 production-linked tests and
+The later wilderness-lookout candidate passes 292 production-linked tests and
 installs SHA-256
-`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
 Repeat the scale gate during final preflight because the source changed after
 the recorded 500-vessel run.
 
@@ -69,6 +69,15 @@ that contact to battered on the map and roster. A second chart proved actual
 Ashenport shoal, beach, coastline, and region-edge cells. The 141-second run
 purged every temporary hull, restored Kohdee's exact player file, and
 restarted the tested binary from source `d2a1669e`.
+
+The wilderness lookout passes actual-character acceptance under
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`.
+Kohdee used the player-facing `lookout` command to scan all eight canonical
+Starfall bearings, observe a real sound contact two units east, and read Water,
+Beach, Field, Marshland, City, and road terrain from a second coastal hull. The
+38-second run checked both help aliases, purged every temporary hull, restored
+Kohdee's exact player file and room 1204, and restarted the tested binary from
+source `d788c537`.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -346,6 +355,29 @@ temporary hulls from the known acceptance prototype, returns Kohdee to room
 1204, byte-restores the player file, and restarts the same executable. The
 passing transcript is `02-kohdee-vessel-tactical.log` inside
 `/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`.
+
+## Fast Wilderness Lookout View
+
+After the frontier prototypes exist and the current clean candidate is built
+and installed, run:
+
+```bash
+./scripts/test_vessel_lookout_in_game.sh
+```
+
+The development-only wrapper refuses production, dirty or stale source,
+active scale/ferry ownership, missing Starfall content, and pre-existing
+Bastion runtimes. It snapshots Kohdee with the MUD stopped, verifies both
+`LOOKOUT` and `LOOK_OUTSIDE` help aliases, and runs the lower-level
+`--vessel-lookout-check` workflow.
+
+Success requires eight canonical wilderness bearings, current terrain,
+natural elevation, water depth, production weather visibility, and a real
+nearby sound contact. A second coastal view must contain actual Water, Beach,
+and Field sectors. Cleanup purges only acceptance-prototype hulls, returns
+Kohdee to room 1204, byte-restores the player file, and restarts the same
+executable. The passing transcript is `02-kohdee-vessel-lookout.log` inside
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`.
 
 ## Fast HUNTED Bounty-Hunter Check
 
@@ -1212,13 +1244,14 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
-source derives 79 keywords. On August 2, 2026 the first sweep correctly found
+source derives 80 keywords. On August 2, 2026 the first sweep correctly found
 that the development database had not yet received the tracked `SHIPTALK`
 mapping. Applying `sql/components/help_vessel_entries.sql`, running
 `sql/components/verify_help_vessel_entries.sql`, and restarting the MUD made
-all five SQL checks pass and all 79 keywords, including `VEVENT`, resolve in
-one 39-second Kohdee session. This replaces one login cycle per keyword and
-automatically includes newly gated commands.
+all five SQL checks pass. The current installed candidate resolves all 80
+keywords, including `VEVENT`, `LOOKOUT`, and `LOOK_OUTSIDE`, in one 43-second
+Kohdee session. This replaces one login cycle per keyword and automatically
+includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
 to perform the process manually.

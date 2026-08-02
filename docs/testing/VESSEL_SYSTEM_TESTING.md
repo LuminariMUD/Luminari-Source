@@ -9,21 +9,22 @@ findings are tracked in
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
 Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
-showcase-event gate, the wilderness tactical-chart gate, and the current
-candidate's focused build gates pass on local development.**
+showcase-event gate, the wilderness tactical-chart gate, the lookout-view
+gate, and the current candidate's focused build gates pass on local
+development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 287 production-linked tests. The
+The current normal candidate passes all 292 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -288,6 +289,41 @@ The before/restored player files both hash to
 the final database held zero Bastion runtime or generated-interior rows. Five
 production-linked unit tests separately lock water classification, terrain
 glyphs, range rings, public-region filtering, and contact damage symbols.
+
+## Wilderness Lookout View Check
+
+After the Starfall frontier content exists and a clean candidate is installed,
+run:
+
+```bash
+./scripts/test_vessel_lookout_in_game.sh
+```
+
+The development-only wrapper shares the tactical gate's production refusal,
+clean-tree, installed-binary, active-worker, frontier-content, snapshot, and
+owned-runtime recovery boundaries. It applies the idempotent help migration,
+requires both `LOOKOUT` and legacy `LOOK_OUTSIDE` to resolve to `VESSELS`, and
+then runs one actual Kohdee session through the lower-level
+`--vessel-lookout-check` workflow.
+
+The open-water view must report all eight compass bearings to the production
+visibility horizon, current Ocean terrain, natural elevation and water depth,
+and a real Starfall Bastion contact two units east with production `sound`
+condition. A second coastal view must report canonical Water, Beach, and Field
+sectors before all temporary hulls are purged and Kohdee returns to room 1204.
+The wrapper rejects related `SYSERR` rows, requires zero Bastion runtime and
+interior residue, byte-restores Kohdee, and restarts the exact candidate.
+
+Run
+`/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`
+passed in 38 seconds on source `d788c537` and installed SHA-256
+`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+The gameplay workflow itself took 5.9 seconds. The before/restored player
+files both hash to
+`53061d7ae86ea0dd8dafdfc0e02bfc13bee1022bec7e5318a9ce5d67e33ae0bb`;
+the final database held zero acceptance runtime rows. Five production-linked
+tests cover bounded distance samples, terrain-band compression, invalid and
+capacity inputs, and compass boundaries.
 
 ## Shared Harbor Merchant Loss Check
 
@@ -735,16 +771,16 @@ numbered gameplay flow:
   tracked idempotent migration and restarting produced 32 entries, 78 exact
   mappings, correct access levels, nonempty content, zero obsolete duplicates,
   and a database `Help Tag` for all 78 commands in one 41-second Kohdee login.
-- The current candidate maintains 33 authoritative entries and 79 exact
+- The current candidate maintains 33 authoritative entries and 80 exact
   keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, Phase 15
-  `vesseldebug encounter`, and Phase 16 `vevent` guidance. Production-linked
-  coverage sends an
+  `vesseldebug encounter`, Phase 16 `vevent`, and both lookout spellings.
+  Production-linked coverage sends an
   identified message between two different rooms of one vessel, proves an
   adjacent non-passenger receives nothing, and checks the ashore and silenced
   refusals. Both the MariaDB verifier and installed-build exhaustive help
   transcript now pass the entry, keyword, access, content, duplicate, and
-  channel-text checks. A current installed-build sweep resolved all 79
-  keywords through authoritative database tags in one 39-second Kohdee
+  channel-text checks. A current installed-build sweep resolved all 80
+  keywords through authoritative database tags in one 43-second Kohdee
   session. The installed-build two-character transcript also
   passes on the current candidate and reuses the existing master account. The channel
   helper automatically selects another non-deleted account-menu character

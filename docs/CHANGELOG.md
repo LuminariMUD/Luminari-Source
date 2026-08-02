@@ -6,6 +6,22 @@
 
 #### Added
 
+- The player-facing `lookout` command now samples canonical modified
+  wilderness sectors north, northeast, east, southeast, south, southwest,
+  west, and northwest to the production visibility horizon. It reports the
+  current sector, natural elevation, water column, weather, and nearest-first
+  visible vessels with condition, range, bearing, and relative altitude.
+  `look_outside` remains a backward-compatible alias.
+- `scripts/test_vessel_lookout_in_game.sh` performs a reversible actual-Kohdee
+  lookout session. It checks both authoritative help aliases, eight open-water
+  bearings, a real nearby contact, canonical coastal Water, Beach, and Field
+  sectors, exact player restoration, zero temporary hull residue, and restart
+  of the exact candidate.
+- Lookout run `20260802T111510Z-1611249` is terminal `PASS` in 38 seconds on
+  source `d788c537` and installed SHA-256
+  `0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+  The warning-free production-linked suite passes 292 tests, and an exhaustive
+  actual-Kohdee sweep resolves all 80 vessel help keywords in 43 seconds.
 - The vessel `tactical` command now renders a 21-by-21 chart from the
   canonical wilderness map. It distinguishes deep water, shoals, rivers,
   beaches, ports, coastline, and land; overlays five- and ten-unit range
@@ -29,9 +45,9 @@
   aggregate leaderboards, and temporary ghost-hull ownership. Result
   finalization is transactional; boot retires interrupted ghost hulls and
   closes their event, while a failed cleanup remains explicitly recoverable.
-- Authoritative `VEVENT` help raises the maintained vessel/vehicle inventory
-  to 33 entries and 79 command keywords. A single 39-second Kohdee sweep
-  resolves every keyword through database help tags.
+- Authoritative `VEVENT` help and the later `LOOKOUT` alias maintain 33 vessel
+  and vehicle entries covering 80 command keywords. Installed-character help
+  sweeps resolve every keyword through database help tags.
 - `scripts/test_vessel_events_in_game.sh` performs one reversible actual-Kohdee
   regatta, skirmish, and ghost-fleet session. It validates live movement and
   weapon scoring, durable leaderboard deltas, exact player/event-table
@@ -91,6 +107,13 @@
 
 #### Fixed
 
+- `lookout` now recognizes authoritative generated-interior membership before
+  applying bridge/deck view rules. The first live run reached a registered
+  Starfall Bastion bridge but an obsolete generic room-flag precheck rejected
+  it as not being aboard.
+- The documented `lookout` spelling is registered in the command interpreter
+  and authoritative help while legacy `look_outside` remains valid. The first
+  live attempt exposed the documentation/interpreter mismatch as `Huh!?!`.
 - Event leaderboards resolve gameplay player-file IDs through the authoritative
   player index. The first live regatta exposed an invalid join against the
   unrelated auto-increment `player_data.player_idnum`, which displayed

@@ -287,6 +287,10 @@ Kohdee session passes all three event types. The wilderness tactical view now
 renders canonical terrain, public region edges, range rings, visibility, and
 live contact damage state; a reversible Kohdee session passes trench, coastal,
 and combat-transition acceptance.
+The wilderness lookout now samples canonical terrain in eight bearings to the
+production visibility horizon and reports current elevation, water depth, and
+nearest-first live contacts. A reversible Kohdee session passes open-water,
+coastal, help-alias, cleanup, and exact-restoration acceptance.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
