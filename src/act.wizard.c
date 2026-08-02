@@ -70,7 +70,7 @@
 #include "terrain_bridge.h"
 #include "vessels/vessels.h"
 #include "movement/movement_tracks.h"
-#include "mob_spellslots.h" /* for show_mob_spell_slots */
+#include "mob/mob_spellslots.h" /* for show_mob_spell_slots */
 #include "genshp.h"
 #include "treasure.h"
 #include "player_rename.h"

@@ -84,8 +84,8 @@
 #include "backgrounds.h"
 #include "crafting_new.h"
 #include "crafting_recipes.h"
-#include "mob_spellslots.h"
-#include "mob_known_spells.h"
+#include "mob/mob_spellslots.h"
+#include "mob/mob_known_spells.h"
 #include "moon_bonus_spells.h" /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */

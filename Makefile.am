@@ -128,15 +128,15 @@ circle_SOURCES = \
 	src/medit.c \
 	src/metamagic_science.c \
 	src/missions.c \
-	src/mob_act.c \
-	src/mob_memory.c \
-	src/mob_utils.c \
-	src/mob_race.c \
-	src/mob_psionic.c \
-	src/mob_class.c \
-	src/mob_spells.c \
-	src/mob_spellslots.c \
-	src/mob_known_spells.c \
+	src/mob/mob_act.c \
+	src/mob/mob_memory.c \
+	src/mob/mob_utils.c \
+	src/mob/mob_race.c \
+	src/mob/mob_psionic.c \
+	src/mob/mob_class.c \
+	src/mob/mob_spells.c \
+	src/mob/mob_spellslots.c \
+	src/mob/mob_known_spells.c \
 	src/modify.c \
 	src/moon_bonus_spells.c \
 	src/msgedit.c \

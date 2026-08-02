@@ -28,7 +28,7 @@
 #include "act.h"
 #include "class.h"
 #include "race.h"
-#include "mob_spellslots.h"
+#include "mob/mob_spellslots.h"
 #include "fight.h"
 #include "modify.h"
 #include "asciimap.h"

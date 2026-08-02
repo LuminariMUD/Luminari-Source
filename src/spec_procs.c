@@ -36,10 +36,10 @@
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "alchemy.h"
-#include "treasure.h"   /* for set_armor_object */
-#include "mob_utils.h"  /* npc_find_target() */
-#include "spell_prep.h" /* for star circlet proc */
-#include "handler.h"    /* for is_name() */
+#include "treasure.h"      /* for set_armor_object */
+#include "mob/mob_utils.h" /* npc_find_target() */
+#include "spell_prep.h"    /* for star circlet proc */
+#include "handler.h"       /* for is_name() */
 #include "evolutions.h"
 #include "oasis.h"
 #include "quest.h"

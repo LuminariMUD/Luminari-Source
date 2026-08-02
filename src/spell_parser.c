@@ -35,7 +35,7 @@
 #include "evolutions.h"
 #include "mudlim.h"
 #include "metamagic_science.h"
-#include "mob_spellslots.h"
+#include "mob/mob_spellslots.h"
 #include "perks.h"
 
 #define SINFO spell_info[spellnum]
