@@ -211,7 +211,7 @@ int vessel_sight_range(const struct greyhawk_ship_data *ship)
   {
     range = VESSEL_SIGHT_FOG;
   }
-  else if (weather >= VESSEL_WEATHER_FOG / 2)
+  else if (weather >= VESSEL_WEATHER_CLOUDY)
   {
     range = (VESSEL_SIGHT_CLEAR + VESSEL_SIGHT_FOG) / 2;
   }
@@ -245,20 +245,7 @@ int vessel_storm_severity(const struct greyhawk_ship_data *ship)
 
   weather = get_weather((int)ship->x, (int)ship->y);
 
-  if (weather >= VESSEL_WEATHER_GALE)
-  {
-    return 3;
-  }
-  if (weather >= VESSEL_WEATHER_STORM)
-  {
-    return 2;
-  }
-  if (weather >= VESSEL_WEATHER_SQUALL)
-  {
-    return 1;
-  }
-
-  return 0;
+  return vessel_weather_severity_from_value(weather);
 }
 
 /**
@@ -661,6 +648,7 @@ void vessel_weather_tick(void)
   int depth_units;
   int i;
 
+  vessel_narrative_tick();
   hazard_ticks++;
   if (hazard_ticks < VESSEL_HAZARD_INTERVAL)
   {

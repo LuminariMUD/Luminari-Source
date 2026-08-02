@@ -134,27 +134,6 @@ const char *vessel_lookout_compass_direction(int bearing)
   return "NW";
 }
 
-static const char *vessel_lookout_weather_name(int weather)
-{
-  if (weather <= 127)
-  {
-    return "clear skies";
-  }
-  if (weather <= 177)
-  {
-    return "overcast skies";
-  }
-  if (weather <= 199)
-  {
-    return "rain";
-  }
-  if (weather <= 224)
-  {
-    return "a heavy storm";
-  }
-  return "a thunderstorm";
-}
-
 static const char *vessel_lookout_sector_name(int sector_type)
 {
   if (sector_type < 0 || sector_type >= NUM_ROOM_SECTORS)
@@ -336,6 +315,7 @@ ACMD(do_look_outside)
   int visibility;
   int contact_count;
   int i;
+  char *at_sea_description;
 
   ship = get_ship_from_room(IN_ROOM(ch));
   if (!is_valid_ship(ship))
@@ -363,10 +343,16 @@ ACMD(do_look_outside)
   send_to_char(ch, "Position: (%d, %d, %d)   Heading: %d deg %s\r\n", ship_x, ship_y, ship_z,
                ship->heading, vessel_lookout_compass_direction(ship->heading));
   send_to_char(ch, "Conditions: %s (%d/255); visibility %d units%s.\r\n",
-               vessel_lookout_weather_name(weather), weather, visibility,
+               vessel_weather_condition_name(weather), weather, visibility,
                vessel_lookout_bonus(ship) > 0 ? " with a posted lookout" : "");
   send_to_char(ch, "Current sector: %s; natural elevation %d; water column %d units.\r\n",
                vessel_lookout_sector_name(terrain_type), elevation, depth_units);
+  at_sea_description = vessel_create_at_sea_description(ch, ship);
+  if (at_sea_description != NULL)
+  {
+    send_to_char(ch, "At sea: %s\r\n", at_sea_description);
+    free(at_sea_description);
+  }
   send_to_char(ch, "\r\nSurrounding wilderness (sampled to the visible horizon):\r\n");
   for (i = 0; i < VESSEL_LOOKOUT_DIRECTION_COUNT; i++)
   {

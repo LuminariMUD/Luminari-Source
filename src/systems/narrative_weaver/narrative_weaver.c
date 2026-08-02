@@ -141,35 +141,67 @@ int cache_keys_equal(struct hint_cache_key *key1, struct hint_cache_key *key2)
 /* Duplicate hint array for caching */
 struct region_hint *duplicate_hints(struct region_hint *hints)
 {
-  if (!hints)
-    return NULL;
-
-  /* Count hints */
-  int count = 0;
-  while (hints[count].hint_text)
-    count++;
-
-  /* Allocate new array */
-  struct region_hint *cached_hints = malloc(sizeof(struct region_hint) * (count + 1));
-  if (!cached_hints)
-    return NULL;
-
-  /* Copy hints */
+  struct region_hint *cached_hints;
+  int count;
   int i;
-  for (i = 0; i < count; i++)
+
+  if (hints == NULL)
   {
-    cached_hints[i].hint_category = hints[i].hint_category;
-    cached_hints[i].hint_text = strdup(hints[i].hint_text ? hints[i].hint_text : "");
-    cached_hints[i].priority = hints[i].priority;
-    cached_hints[i].seasonal_weight =
-        strdup(hints[i].seasonal_weight ? hints[i].seasonal_weight : "");
-    cached_hints[i].time_of_day_weight =
-        strdup(hints[i].time_of_day_weight ? hints[i].time_of_day_weight : "");
-    cached_hints[i].contextual_weight = hints[i].contextual_weight;
+    return NULL;
   }
 
-  /* Null terminator */
-  cached_hints[count].hint_text = NULL;
+  count = 0;
+  while (hints[count].hint_text)
+  {
+    count++;
+  }
+
+  cached_hints = calloc((size_t)count + 1, sizeof(*cached_hints));
+  if (cached_hints == NULL)
+  {
+    return NULL;
+  }
+
+  for (i = 0; i < count; i++)
+  {
+    cached_hints[i].id = hints[i].id;
+    cached_hints[i].region_vnum = hints[i].region_vnum;
+    cached_hints[i].hint_category = hints[i].hint_category;
+    cached_hints[i].hint_text = strdup(hints[i].hint_text ? hints[i].hint_text : "");
+    if (cached_hints[i].hint_text == NULL)
+    {
+      free_contextual_hints(cached_hints);
+      return NULL;
+    }
+    cached_hints[i].priority = hints[i].priority;
+    cached_hints[i].weather_conditions = hints[i].weather_conditions
+                                                ? strdup(hints[i].weather_conditions)
+                                                : NULL;
+    cached_hints[i].seasonal_weight = hints[i].seasonal_weight
+                                          ? strdup(hints[i].seasonal_weight)
+                                          : NULL;
+    cached_hints[i].time_of_day_weight = hints[i].time_of_day_weight
+                                             ? strdup(hints[i].time_of_day_weight)
+                                             : NULL;
+    cached_hints[i].resource_triggers = hints[i].resource_triggers
+                                            ? strdup(hints[i].resource_triggers)
+                                            : NULL;
+    cached_hints[i].created_at = hints[i].created_at;
+    cached_hints[i].is_active = hints[i].is_active;
+    cached_hints[i].contextual_weight = hints[i].contextual_weight;
+
+    if ((hints[i].weather_conditions != NULL &&
+         cached_hints[i].weather_conditions == NULL) ||
+        (hints[i].seasonal_weight != NULL && cached_hints[i].seasonal_weight == NULL) ||
+        (hints[i].time_of_day_weight != NULL &&
+         cached_hints[i].time_of_day_weight == NULL) ||
+        (hints[i].resource_triggers != NULL &&
+         cached_hints[i].resource_triggers == NULL))
+    {
+      free_contextual_hints(cached_hints);
+      return NULL;
+    }
+  }
 
   return cached_hints;
 }
@@ -2054,21 +2086,25 @@ const char *get_wilderness_weather_condition(int x, int y)
 {
   int weather_val = get_weather(x, y);
 
-  if (weather_val < 64)
+  if (weather_val < 128)
   {
     return "clear";
   }
-  else if (weather_val < 128)
+  else if (weather_val < 178)
   {
     return "cloudy";
   }
-  else if (weather_val < 192)
+  else if (weather_val < 200)
   {
     return "rainy";
   }
-  else
+  else if (weather_val < 225)
   {
     return "stormy";
+  }
+  else
+  {
+    return "lightning";
   }
 }
 
@@ -2997,10 +3033,12 @@ int get_weather_code_from_string(const char *weather_condition)
     return 3;
   if (strcmp(weather_condition, "stormy") == 0)
     return 4;
-  if (strcmp(weather_condition, "snowy") == 0)
+  if (strcmp(weather_condition, "lightning") == 0)
     return 5;
-  if (strcmp(weather_condition, "foggy") == 0)
+  if (strcmp(weather_condition, "snowy") == 0)
     return 6;
+  if (strcmp(weather_condition, "foggy") == 0)
+    return 7;
   return 0; /* Unknown */
 }
 
@@ -3045,14 +3083,15 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
   int current_season = get_season_from_time();
 
   /* Optimized query with existing table columns only */
-  sprintf(query,
-          "SELECT hint_category, hint_text, priority, seasonal_weight, time_of_day_weight "
+  snprintf(query, sizeof(query),
+          "SELECT id, region_vnum, hint_category, hint_text, priority, weather_conditions, "
+          "seasonal_weight, time_of_day_weight, resource_triggers "
           "FROM region_hints "
           "WHERE region_vnum = %d "
           "AND is_active = 1 "
           "AND (weather_conditions IS NULL OR weather_conditions = '' OR FIND_IN_SET('%s', "
           "weather_conditions) > 0) "
-          "ORDER BY priority DESC "
+          "ORDER BY priority DESC, id ASC "
           "LIMIT 20",
           region_vnum, weather_condition ? weather_condition : "");
 
@@ -3092,13 +3131,13 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
     double combined_weight = 1.0;
 
     /* Get weights from JSON columns */
-    if (row[3])
+    if (row[6])
     { /* seasonal_weight JSON */
-      seasonal_weight = get_seasonal_weight_for_hint(row[3], current_season);
+      seasonal_weight = get_seasonal_weight_for_hint(row[6], current_season);
     }
-    if (row[4])
+    if (row[7])
     { /* time_of_day_weight JSON */
-      time_weight = get_time_weight_for_hint(row[4], time_category);
+      time_weight = get_time_weight_for_hint(row[7], time_category);
     }
 
     /* Combined weight calculation */
@@ -3111,11 +3150,13 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
     }
 
     current_hint = &hints[hint_count];
+    current_hint->id = row[0] ? atoi(row[0]) : 0;
+    current_hint->region_vnum = row[1] ? atoi(row[1]) : region_vnum;
 
     /* Enhanced category mapping with error checking */
-    if (row[0])
+    if (row[2])
     {
-      current_hint->hint_category = get_hint_category_from_string(row[0]);
+      current_hint->hint_category = get_hint_category_from_string(row[2]);
     }
     else
     {
@@ -3123,19 +3164,26 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
     }
 
     /* Copy and transform hint text */
-    if (row[1])
+    if (row[3])
     {
-      current_hint->hint_text = transform_voice_to_observational(row[1]);
+      current_hint->hint_text = transform_voice_to_observational(row[3]);
     }
     else
     {
       current_hint->hint_text = strdup(""); /* Empty fallback */
     }
+    if (current_hint->hint_text == NULL)
+    {
+      mysql_pool_free_result(result);
+      free_contextual_hints(hints);
+      log("SYSERR: Memory allocation failed for contextual hint text");
+      return NULL;
+    }
 
     /* Copy priority with contextual adjustment */
-    if (row[2])
+    if (row[4])
     {
-      current_hint->priority = atoi(row[2]) * combined_weight;
+      current_hint->priority = atoi(row[4]) * combined_weight;
     }
     else
     {
@@ -3144,8 +3192,21 @@ struct region_hint *load_contextual_hints_optimized(int region_vnum, const char 
 
     /* Store contextual weight and prepare storage fields */
     current_hint->contextual_weight = combined_weight;
-    current_hint->seasonal_weight = row[3] ? strdup(row[3]) : strdup("");
-    current_hint->time_of_day_weight = row[4] ? strdup(row[4]) : strdup("");
+    current_hint->weather_conditions = row[5] ? strdup(row[5]) : NULL;
+    current_hint->seasonal_weight = row[6] ? strdup(row[6]) : NULL;
+    current_hint->time_of_day_weight = row[7] ? strdup(row[7]) : NULL;
+    current_hint->resource_triggers = row[8] ? strdup(row[8]) : NULL;
+    current_hint->is_active = TRUE;
+    if ((row[5] != NULL && current_hint->weather_conditions == NULL) ||
+        (row[6] != NULL && current_hint->seasonal_weight == NULL) ||
+        (row[7] != NULL && current_hint->time_of_day_weight == NULL) ||
+        (row[8] != NULL && current_hint->resource_triggers == NULL))
+    {
+      mysql_pool_free_result(result);
+      free_contextual_hints(hints);
+      log("SYSERR: Memory allocation failed for contextual hint metadata");
+      return NULL;
+    }
 
     hint_count++;
   }
@@ -4403,6 +4464,111 @@ char *simple_hint_layering(char *base_description, struct region_hint *hints, in
   return enhanced;
 }
 
+static int vessel_region_position_rank(int position)
+{
+  switch (position)
+  {
+  case REGION_POS_CENTER:
+    return 3;
+  case REGION_POS_INSIDE:
+    return 2;
+  case REGION_POS_EDGE:
+    return 1;
+  default:
+    return 0;
+  }
+}
+
+/**
+ * Add one deterministic geographic hint to a compact vessel description.
+ *
+ * Vessel LOOKOUT runs on demand and periodic ambience runs on the heartbeat,
+ * so this deliberately avoids resource sampling, transition blending, random
+ * selection, analytics writes, and global random-number state changes.
+ */
+char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone,
+                                           int x, int y)
+{
+  struct region_list *regions;
+  struct region_list *region;
+  struct region_hint *hints;
+  const char *weather_condition;
+  const char *time_category;
+  const char *hint_text;
+  char *description;
+  size_t description_size;
+  region_vnum best_vnum;
+  int best_rank;
+  int rank;
+  int i;
+
+  if (base_description == NULL)
+  {
+    return NULL;
+  }
+  if (zone == NOWHERE || region_table == NULL || top_of_region_table == NOWHERE)
+  {
+    return strdup(base_description);
+  }
+
+  regions = get_enclosing_regions(zone, x, y);
+  best_vnum = 0;
+  best_rank = -1;
+  for (region = regions; region != NULL; region = region->next)
+  {
+    if (region->rnum == NOWHERE || region->rnum > top_of_region_table ||
+        region_table[region->rnum].region_type != REGION_GEOGRAPHIC)
+    {
+      continue;
+    }
+
+    rank = vessel_region_position_rank(region->pos);
+    if (best_vnum == 0 || rank > best_rank ||
+        (rank == best_rank && region_table[region->rnum].vnum < best_vnum))
+    {
+      best_vnum = region_table[region->rnum].vnum;
+      best_rank = rank;
+    }
+  }
+  free_region_list(regions);
+
+  if (best_vnum == 0)
+  {
+    return strdup(base_description);
+  }
+
+  weather_condition = get_wilderness_weather_condition(x, y);
+  time_category = get_time_of_day_category();
+  hints = load_contextual_hints_cached(best_vnum, weather_condition, time_category, 0.5);
+  hint_text = NULL;
+  if (hints != NULL)
+  {
+    for (i = 0; hints[i].hint_text != NULL; i++)
+    {
+      if (*hints[i].hint_text != '\0')
+      {
+        hint_text = hints[i].hint_text;
+        break;
+      }
+    }
+  }
+
+  if (hint_text == NULL)
+  {
+    free_contextual_hints(hints);
+    return strdup(base_description);
+  }
+
+  description_size = strlen(base_description) + strlen(hint_text) + 2;
+  description = malloc(description_size);
+  if (description != NULL)
+  {
+    snprintf(description, description_size, "%s %s", base_description, hint_text);
+  }
+  free_contextual_hints(hints);
+  return description;
+}
+
 /**
  * Clean up hints memory
  */
@@ -4410,15 +4576,18 @@ void free_contextual_hints(struct region_hint *hints)
 {
   int i;
 
-  if (!hints)
+  if (hints == NULL)
+  {
     return;
+  }
 
   for (i = 0; hints[i].hint_text; i++)
   {
-    if (hints[i].hint_text)
-    {
-      free(hints[i].hint_text);
-    }
+    free(hints[i].hint_text);
+    free(hints[i].weather_conditions);
+    free(hints[i].seasonal_weight);
+    free(hints[i].time_of_day_weight);
+    free(hints[i].resource_triggers);
   }
 
   free(hints);

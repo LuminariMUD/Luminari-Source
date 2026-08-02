@@ -567,6 +567,7 @@ set(SRC_C_FILES
     src/vessels.c
     src/vessels_tactical.c
     src/vessels_lookout.c
+    src/vessels_narrative.c
     src/vessels_autopilot.c
     src/vessels_admin.c
     src/vessels_combat.c
@@ -798,6 +799,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_events.c
     unittests/CuTest/test_vessel_tactical.c
     unittests/CuTest/test_vessel_lookout.c
+    unittests/CuTest/test_vessel_narrative.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_upstream_regressions.c

@@ -636,16 +636,18 @@ void vessel_db_load_cargo(struct greyhawk_ship_data *ship);
 /* LIVING WORLD: WEATHER HAZARDS AND ENCOUNTERS (Phase 08)                   */
 /* ========================================================================= */
 
-/* Weather thresholds read from the wilderness weather field
- * (get_weather(x,y)); the same storm a coastal walker sees. */
-#define VESSEL_WEATHER_FOG 40
-#define VESSEL_WEATHER_SQUALL 60
-#define VESSEL_WEATHER_STORM 75
-#define VESSEL_WEATHER_GALE 90
+/* Weather thresholds read from the wilderness 0..255 weather field
+ * (get_weather(x,y)); these match the bands shown to coastal walkers. */
+#define VESSEL_WEATHER_CLOUDY 128
+#define VESSEL_WEATHER_FOG 178
+#define VESSEL_WEATHER_SQUALL 178
+#define VESSEL_WEATHER_STORM 200
+#define VESSEL_WEATHER_GALE 225
 
 /* Hazard/encounter checks run this often (vessel ticks) */
 #define VESSEL_HAZARD_INTERVAL 60
 #define VESSEL_ENCOUNTER_INTERVAL 180
+#define VESSEL_NARRATIVE_INTERVAL 240
 
 /* Phase 15 bounty-hunter encounter lifecycle limits. */
 #define VESSEL_HUNTER_DURATION_MIN 10
@@ -685,7 +687,15 @@ int vessel_lookout_sample_distances(int visibility, int *distances, int capacity
 int vessel_lookout_build_bands(const int *sectors, const int *distances, int sample_count,
                                struct vessel_lookout_band *bands, int capacity);
 const char *vessel_lookout_compass_direction(int bearing);
+const char *vessel_weather_condition_name(int weather);
+int vessel_weather_severity_from_value(int weather);
 int vessel_storm_severity(const struct greyhawk_ship_data *ship);
+bool vessel_build_ambient_message(enum vessel_class vessel_type, int weather, int speed,
+                                  int maxspeed, int z, char *output, size_t output_size);
+char *vessel_create_at_sea_description(struct char_data *ch,
+                                       const struct greyhawk_ship_data *ship);
+void vessel_narrative_tick(void);
+bool vessel_narrative_force_ship(struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
 void vessel_encounter_force_check(void);

@@ -145,6 +145,18 @@ char *enhance_base_description_with_hints(char *base_description, struct char_da
                                           zone_rnum zone, int x, int y);
 
 /**
+ * Add one deterministic geographic region hint to a compact vessel view.
+ * This path avoids the resource and transition work used by room descriptions.
+ * @param base_description Compact class, weather, and speed description
+ * @param zone Wilderness zone containing the coordinates
+ * @param x World X coordinate
+ * @param y World Y coordinate
+ * @return Newly allocated description, including the base when no hint applies
+ */
+char *weave_vessel_wilderness_description(const char *base_description, zone_rnum zone,
+                                           int x, int y);
+
+/**
  * Layer regional hints onto base description
  * @param base_description Foundation description from resource system
  * @param hints Array of contextual hints

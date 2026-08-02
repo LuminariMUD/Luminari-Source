@@ -104,7 +104,7 @@ static void vessel_debug_status(struct char_data *ch)
 }
 
 /**
- * vesseldebug [status|on <category>|off [category]|encounter]
+ * vesseldebug [status|on <category>|off [category]|encounter|ambient]
  *
  * Runtime category control is available only in an explicit development
  * build compiled with -DVESSEL_SYSTEM_DEBUG=1. Production builds retain no
@@ -115,6 +115,7 @@ ACMD(do_vesseldebug)
   char action[MAX_INPUT_LENGTH];
   char category[MAX_INPUT_LENGTH];
   const char *remainder;
+  struct greyhawk_ship_data *ship;
 
   /* "on" is a global parser fill word, so the normal one_argument helpers
    * would silently skip it. Runtime control syntax must preserve fill words. */
@@ -129,6 +130,22 @@ ACMD(do_vesseldebug)
   {
     vessel_encounter_force_check();
     send_to_char(ch, "Forced the next normal vessel encounter check.\r\n");
+    return;
+  }
+  if (!strcasecmp(action, "ambient"))
+  {
+    ship = get_ship_from_room(IN_ROOM(ch));
+    if (!is_valid_ship(ship))
+    {
+      send_to_char(ch, "You need to be on a vessel to force its ambient message.\r\n");
+      return;
+    }
+    if (!vessel_narrative_force_ship(ship))
+    {
+      send_to_char(ch, "The vessel ambient message could not be generated.\r\n");
+      return;
+    }
+    send_to_char(ch, "Forced this vessel's contextual ambient message.\r\n");
     return;
   }
 
@@ -172,7 +189,7 @@ ACMD(do_vesseldebug)
     {
       send_to_char(
           ch,
-          "Usage: vesseldebug [status|on <category>|off [category]|encounter]\r\n");
+          "Usage: vesseldebug [status|on <category>|off [category]|encounter|ambient]\r\n");
       return;
     }
   }
