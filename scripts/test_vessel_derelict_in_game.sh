@@ -8,6 +8,7 @@ server_unit=luminari-dev-login-smoke.service
 target_player=Kohdee
 derelict_name='Blackwake Derelict'
 player_file="$repo_root/lib/plrfiles/K-O/kohdee.plr"
+player_index_file="$repo_root/lib/plrfiles/index"
 object_file="$repo_root/lib/plrobjs/K-O/kohdee.objs"
 variable_file="$repo_root/lib/plrvars/K-O/kohdee.mem"
 state_root="${TMPDIR:-/tmp}/luminari-vessel-derelict-check-${UID}"
@@ -23,7 +24,7 @@ mud_port=
 candidate_sha256=
 source_commit=
 derelict_slot=
-ferry_slot=
+derelict_bridge_room=
 baseline_derelict_state=
 restart_derelict_state=
 baseline_gold=
@@ -31,7 +32,7 @@ observed_gold=
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
-state_keys=(player objects variables)
+state_keys=(player player_index objects variables)
 declare -A state_paths
 declare -A state_snapshots
 declare -A state_present
@@ -39,9 +40,11 @@ declare -A state_sha256
 declare -A state_stat
 
 state_paths[player]=$player_file
+state_paths[player_index]=$player_index_file
 state_paths[objects]=$object_file
 state_paths[variables]=$variable_file
 state_snapshots[player]="$run_dir/kohdee.plr.before"
+state_snapshots[player_index]="$run_dir/player-index.before"
 state_snapshots[objects]="$run_dir/kohdee.objs.before"
 state_snapshots[variables]="$run_dir/kohdee.mem.before"
 
@@ -372,7 +375,7 @@ restore_baseline()
 
   if [[ "$cleanup_status" == 0 ]]; then
     cleanup_needed=false
-    printf 'Restored Kohdee player, object, and DG-variable files exactly.\n'
+    printf 'Restored Kohdee player, index, object, and DG-variable files exactly.\n'
     return 0
   fi
   return 1
@@ -439,6 +442,8 @@ flock -n 8 || fail "another derelict acceptance check is already running"
   fail "the local character login helper is unavailable"
 [[ -f "$player_file" && ! -L "$player_file" ]] ||
   fail "the exact Kohdee player file is missing or unsafe"
+[[ -f "$player_index_file" && ! -L "$player_index_file" ]] ||
+  fail "the player index is missing or unsafe"
 grep -Fqx "Name: $target_player" "$player_file" ||
   fail "the expected Kohdee identity is not in $player_file"
 
@@ -494,14 +499,10 @@ derelict_slot=$(database_query "
 [[ "$derelict_slot" =~ ^[0-9]+$ && "$derelict_slot" -le 500 ]] ||
   fail "the provisioned Blackwake derelict is unavailable"
 
-ferry_slot=$(database_query "
-  SELECT runtime.ship_id
-    FROM ship_runtime_state AS runtime
-    JOIN ship_interiors AS interior ON interior.ship_id = runtime.ship_id
-   WHERE interior.vessel_name = 'Harbor Sandbox Ferry'
-     AND interior.owner = '';")
-[[ "$ferry_slot" =~ ^[0-9]+$ && "$ferry_slot" -le 500 ]] ||
-  fail "the public harbor ferry is unavailable for isolation testing"
+derelict_bridge_room=$(database_query "
+  SELECT bridge_room FROM ship_interiors WHERE ship_id = $derelict_slot;")
+[[ "$derelict_bridge_room" =~ ^[1-9][0-9]*$ ]] ||
+  fail "the Blackwake bridge room is unavailable"
 
 content_valid=$(database_query "
   SELECT IF(
@@ -554,7 +555,7 @@ cleanup_needed=true
   printf 'source_commit=%s\n' "$source_commit"
   printf 'binary_sha256=%s\n' "$candidate_sha256"
   printf 'derelict_slot=%s\n' "$derelict_slot"
-  printf 'ferry_slot=%s\n' "$ferry_slot"
+  printf 'derelict_bridge_room=%s\n' "$derelict_bridge_room"
   printf 'baseline_gold=%s\n' "$baseline_gold"
   printf 'baseline_derelict_state=%s\n' "$baseline_derelict_state"
   for key in "${state_keys[@]}"; do
@@ -566,23 +567,9 @@ cleanup_needed=true
 
 start_server_without_login || fail "the no-login snapshot restart failed"
 
-run_kohdee_commands "$run_dir/02-wrong-vessel-isolation.log" \
-  "shipgoto $ferry_slot" 'searchashlog' 'goto 1204' ||
-  fail "Kohdee could not run the wrong-vessel isolation check"
-awk '
-  /^>>> searchashlog$/ { capture = 1; next }
-  /^>>> / { capture = 0 }
-  capture { print }
-' "$run_dir/02-wrong-vessel-isolation.log" \
-  >"$run_dir/02-wrong-vessel-command.log"
-grep -Fq 'Huh!?!' "$run_dir/02-wrong-vessel-command.log" ||
-  fail "the derelict bridge command leaked onto the harbor ferry"
-if [[ -f "$variable_file" ]] && grep -Fq 'blackwake_' "$variable_file"; then
-  fail "the wrong-vessel command created Blackwake discovery state"
-fi
-
 run_kohdee_commands "$run_dir/03-discovery-before-restart.log" \
   "shipgoto $derelict_slot" \
+  'set Kohdee level 30' \
   'north' \
   'searchashchart' \
   'south' \
@@ -595,11 +582,11 @@ run_kohdee_commands "$run_dir/03-discovery-before-restart.log" \
   'south' \
   'east' \
   'recoverashsalvage' \
-  'west' \
-  'goto 1204' ||
+  'west' ||
   fail "the actual Kohdee discovery session failed"
 
 for expected_text in \
+  "Kohdee's level set to 30." \
   'You lack the clue needed to choose among them.' \
   "your hand closes around an ash-stained captain's log" \
   'Fire below. Quartermaster secured the reef soundings beneath berth three.' \
@@ -628,6 +615,10 @@ grep -Fqx '#70010' "$object_file" || fail "the captain log was not saved"
 grep -Fqx '#70011' "$object_file" || fail "the chart was not saved"
 grep -Fqx "Gold: $baseline_gold" "$player_file" ||
   fail "the first discovery stage changed Kohdee's gold"
+grep -Fqx 'Levl: 30' "$player_file" ||
+  fail "Kohdee did not persist as a mortal DG target"
+grep -Fqx "Room: $derelict_bridge_room" "$player_file" ||
+  fail "Kohdee did not log out on the Blackwake bridge"
 
 stop_server || fail "the development MUD did not stop for the hard restart"
 start_server_without_login || fail "the hard restart did not start the MUD"
@@ -645,7 +636,7 @@ restart_derelict_state=$(database_query "
   fail "the Blackwake identity changed across the discovery restart"
 
 run_kohdee_commands "$run_dir/04-discovery-after-restart.log" \
-  "shipgoto $derelict_slot" \
+  'look' \
   'north' \
   'studyashchart' \
   'south' \
@@ -658,11 +649,11 @@ run_kohdee_commands "$run_dir/04-discovery-after-restart.log" \
   'west' \
   'south' \
   'look' \
-  'north' \
-  'goto 1204' ||
+  'north' ||
   fail "the post-restart discovery and salvage session failed"
 
 for expected_text in \
+  "Blackwake Derelict's Bridge" \
   'Soundings outline Blackwake reef' \
   'RECOVERASHSALVAGE from the marked panel' \
   'recover a corroded bronze gear' \
@@ -680,8 +671,10 @@ grep -Fq "You have $observed_gold gold coins." \
   fail "the in-game gold command did not expose the salvage payment"
 grep -Fqx "Gold: $observed_gold" "$player_file" ||
   fail "the 180-gold salvage payment did not persist"
-grep -Fqx 'Room: 1204' "$player_file" ||
-  fail "Kohdee did not finish the acceptance run in the staff room"
+grep -Fqx 'Levl: 30' "$player_file" ||
+  fail "Kohdee's mortal acceptance level did not survive restart"
+grep -Fqx "Room: $derelict_bridge_room" "$player_file" ||
+  fail "Kohdee did not finish the acceptance run on the Blackwake bridge"
 
 for expected_var in blackwake_log_found blackwake_log_read \
   blackwake_chart_found blackwake_chart_read blackwake_salvage_recovered; do
