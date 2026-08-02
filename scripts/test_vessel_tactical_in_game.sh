@@ -563,7 +563,8 @@ elif [[ "$acceptance_mode" == boarding ]]; then
      WHERE BINARY tag = 'VESSELS'
        AND entry LIKE '%opposed Boarding check secures grappling lines%'
        AND entry LIKE '%second opposed Boarding check resolves the crossing%'
-       AND entry LIKE '%natural 1 throws the attacker into the water%';")
+       AND entry LIKE '%natural 1 throws the%'
+       AND entry LIKE '%Athletics swim check%';")
   [[ "$boarding_help_state" == 1 ]] ||
     fail "the authoritative hostile-boarding help is stale"
 
