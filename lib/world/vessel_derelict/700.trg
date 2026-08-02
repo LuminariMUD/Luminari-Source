@@ -1,6 +1,6 @@
 #70010
 Blackwake bridge log discovery~
-2 d 100
+2 c 100
 searchashlog~
 if %self.name% /= Blackwake Derelict
   if !%actor.varexists(blackwake_log_found)%
@@ -18,7 +18,7 @@ end
 ~
 #70011
 Blackwake quarters chart discovery~
-2 d 100
+2 c 100
 searchashchart~
 eval blackwake_bridge %self.south(room)%
 if %blackwake_bridge.name% /= Blackwake Derelict
@@ -39,7 +39,7 @@ end
 ~
 #70012
 Blackwake cargo salvage discovery~
-2 d 100
+2 c 100
 recoverashsalvage~
 eval blackwake_bridge %self.west(room)%
 if %blackwake_bridge.name% /= Blackwake Derelict
