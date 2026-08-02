@@ -3,9 +3,9 @@
 **Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 268 of 268 on current
-master, CMake passes the preceding
-251-test candidate, the
+production-linked suite passes 268 of 268 on current master, and a fresh
+CMake build passes all six CTest targets, including the same production suite
+and vessel tooling. The
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
 verify/rollback, and the reversible bounty-hunter lifecycle passes with actual
 level-34 Kohdee across a hard restart and pardon. The integrated candidate is
@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 03:24 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 03:29 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -82,9 +82,12 @@ builder run created prototype 13 and ship 7, sailed from `(-66, 92)` to
 seconds of workflow and 8 seconds total. The development help database was
 behind the tracked migration and initially lacked `SHIPTALK`; applying the
 idempotent authoritative SQL and restarting produced five passing verifier
-checks and an actual Kohdee sweep of all 78 command keywords. The active MUD
-is PID 309068 with the same installed hash. Next run the focused build gates
-and the bounded 500-vessel scale gate.
+checks and an actual Kohdee sweep of all 78 command keywords. The focused
+protocol parser passes 13 of 13, both character-rename gates pass, and a fresh
+out-of-tree CMake build passes 6 of 6 CTest targets. `make install` restored
+the proven Autotools SHA-256 and removed the root artifact after CMake; a clean
+restart now maps that exact installed path on PID 324960. Next run the bounded
+500-vessel scale gate.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

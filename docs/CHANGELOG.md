@@ -95,6 +95,11 @@
   idempotent SQL and restarting, all five verifier queries pass for 32 entries
   and 78 mappings, and actual Kohdee resolves all 78 command keywords in one
   session.
+- The focused protocol parser passes 13 of 13, both character-rename gates
+  pass, and a fresh out-of-tree CMake build passes all 6 CTest targets. The
+  required follow-up `make install` restores the exact proven Autotools binary
+  after CMake writes its debug server target into `bin/`, removes the root
+  artifact, and a clean restart maps that installed path.
 
 ### Durable HUNTED bounty-hunter patrols
 

@@ -16,9 +16,9 @@ binary SHA-256 on PID 252880, restored the exact paused position and route,
 and resumed the ferry. The memory report remains `REPORT_ONLY`: RSS increased
 from 767,396 to 866,944 KiB while the awake-world mobile, object, and movement-
 trail populations also grew. The current development MUD is active and the
-ferry is resumed. Continue with the production-linked suite, current
-Memcheck, install, reversible merchant/hunter acceptance, and the bounded
-500-vessel scale run. Preserve pre-fix stopped-MUD run
+ferry is resumed. The subsequent current-candidate gates described below are
+complete; continue with the bounded 500-vessel scale run. Preserve pre-fix
+stopped-MUD run
 `20260801T230025Z-148892` as harness regression evidence.
 
 The August 2 current-candidate root suite passes 268 of 268. Full Memcheck
@@ -39,9 +39,12 @@ current builder check created prototype 13 and ship 7, sailed from `(-66, 92)`
 to `(-67, 92)` at effective storm speed 1, and removed both in 2.8 seconds of
 workflow and 8 seconds total. After the tracked help migration was applied to
 the previously stale development database, all five SQL verifier queries and
-all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The reloaded
-development MUD is active on PID 309068 with the same installed hash. Continue
-with the focused build gates and bounded scale gate.
+all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The focused
+protocol parser then passed 13 of 13, both character-rename gates passed, and a
+fresh CMake build passed all 6 CTest targets. Because CMake writes its server
+target into `bin/`, `make install` restored the exact Autotools candidate and
+removed the root artifact. The cleanly restarted development MUD maps that
+installed SHA-256 on PID 324960. Continue with the bounded scale gate.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the

@@ -6,13 +6,20 @@ regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
 findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
-**Current run status (August 2, 2026): all 30 steps and the bounded ferry gate
-pass on local development.**
+**Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
+and the current candidate's focused build gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
+
+The current production-linked suite and Memcheck pass all 268 tests with zero
+errors and no definite, indirect, or possible loss. The focused protocol
+parser passes 13 of 13, both character-rename gates pass, and a fresh CMake
+build passes all 6 CTest targets. After the CMake build wrote its debug server
+target into `bin/`, `make install` restored the proven Autotools SHA-256 and
+removed the root artifact; PID 324960 maps that exact installed path.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
