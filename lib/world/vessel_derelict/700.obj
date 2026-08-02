@@ -1,0 +1,66 @@
+#70010
+blackwake ash-stained captain log ledger~
+the Blackwake captain's ash-stained log~
+An ash-stained captain's log lies open here.~
+~
+8 0 0 0 e a 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 0 0 1 0
+E
+log ledger pages~
+Most pages have fused together, but the last entry remains legible beneath
+a crust of salt and soot.
+~
+G
+0
+H
+6
+I
+5
+J
+0
+T 70013
+#70011
+blackwake salt-stiff chart map soundings~
+the Blackwake's salt-stiff chart~
+A salt-stiff navigation chart has been spread out here.~
+~
+8 0 0 0 e a 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 0 0 1 0
+E
+chart map soundings~
+Grease-pencil soundings circle the Blackwake reef. A tiny tidefinder symbol
+marks a concealed service panel in the cargo hold.
+~
+G
+0
+H
+6
+I
+5
+J
+0
+T 70014
+#70012
+blackwake bronze tidefinder gear assembly salvage~
+a corroded bronze tidefinder gear~
+A corroded bronze tidefinder gear rests among the wreckage.~
+~
+8 0 0 0 0 a 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+2 1200 0 12 0
+E
+gear tidefinder assembly~
+The hand-sized bronze gear once translated hull motion into a stable compass
+bearing. Its teeth are worn, but the metal can still be reclaimed.
+~
+G
+0
+H
+29
+I
+5
+J
+0
+$~
