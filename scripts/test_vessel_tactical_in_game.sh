@@ -562,7 +562,7 @@ elif [[ "$acceptance_mode" == boarding ]]; then
       FROM help_entries
      WHERE BINARY tag = 'VESSELS'
        AND entry LIKE '%opposed Boarding check secures grappling lines%'
-       AND entry LIKE '%second opposed Boarding check resolves the crossing%'
+       AND entry LIKE '%opposed Boarding check resolves the crossing%'
        AND entry LIKE '%natural 1 throws the%'
        AND entry LIKE '%Athletics swim check%';")
   [[ "$boarding_help_state" == 1 ]] ||
