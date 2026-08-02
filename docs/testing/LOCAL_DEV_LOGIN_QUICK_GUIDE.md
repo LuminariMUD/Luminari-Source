@@ -29,9 +29,19 @@ loss. That clean candidate is installed as SHA-256
 `63b73ed4ad3411fc5d00fcd8973c361d302335e973fa724858ab481de62c8019`.
 The reversible actual-Kohdee merchant check then passed in 41 seconds with
 generation 1 to 2, 150 total standing loss, a 510-gold bounty, a complete
-replacement, and byte-identical database/player-file restoration. The
-no-login recovery MUD is active on PID 299248. Continue with hunter/builder
-checks and the bounded scale gate.
+replacement, and byte-identical database/player-file restoration. The merchant
+cleanup first restarted PID 299248 without a login. The reversible HUNTED
+check then passed in 57 seconds under artifact
+`/tmp/luminari-vessel-hunter-check-1000/runs/20260802T001910Z-302111`: the exact
+hunter survived PID 299248 to 302590, pardon moved it into cooldown, and
+cleanup restored the original rows and removed only the temporary target. A
+current builder check created prototype 13 and ship 7, sailed from `(-66, 92)`
+to `(-67, 92)` at effective storm speed 1, and removed both in 2.8 seconds of
+workflow and 8 seconds total. After the tracked help migration was applied to
+the previously stale development database, all five SQL verifier queries and
+all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The reloaded
+development MUD is active on PID 309068 with the same installed hash. Continue
+with the focused build gates and bounded scale gate.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -624,8 +634,10 @@ staff commands are used afterward for sailing verification and cleanup.
 
 Do not split this workflow across logins or query MySQL for generated IDs. The
 helper derives both IDs from actual game output in the same connection. The
-July 30, 2026 local run completed the in-game workflow in 2.7 seconds and the
-entire login, test, cleanup, character logout, and account logout in 8 seconds.
+August 2, 2026 current-candidate run completed the in-game workflow in 2.8
+seconds and the entire login, test, cleanup, character logout, and account
+logout in 8 seconds. It used temporary prototype 13 and ship 7, reached
+effective speed 1 in storm, and removed both records.
 Success ends with:
 
 ```text
@@ -797,9 +809,13 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
-source derives 78 keywords. The July 29, 2026 installed-build run checked the
-then-current 75 in 54 seconds. This replaces one login cycle per keyword and
-automatically includes newly gated commands.
+source derives 78 keywords. On August 2, 2026 the first sweep correctly found
+that the development database had not yet received the tracked `SHIPTALK`
+mapping. Applying `sql/components/help_vessel_entries.sql`, running
+`sql/components/verify_help_vessel_entries.sql`, and restarting the MUD made
+all five SQL checks pass and all 78 keywords resolve in one 41-second Kohdee
+session. This replaces one login cycle per keyword and automatically includes
+newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
 to perform the process manually.

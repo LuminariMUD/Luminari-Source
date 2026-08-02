@@ -50,7 +50,7 @@
 
 #### Validated
 
-- The GNU C23 production-linked suite passes 262 of 262 tests after integration
+- The GNU C23 production-linked suite passes 268 of 268 tests after integration
   with current master, including the
   blocked-route autopilot pause. `make install` completes and removes the
   root-level server artifact.
@@ -83,6 +83,18 @@
   identity. Cleanup produces byte-identical pre/post vessel database dumps and
   player files, then restarts the identical installed executable without a
   player login.
+- The reversible actual-Kohdee HUNTED gate passes in 57 seconds. One normal
+  encounter creates the hunter, the exact identity and target survive PID
+  299248 to 302590, pardon retires it into cooldown, and cleanup restores the
+  original bounty and hunt rows while removing only the temporary target.
+- The current one-session builder gate creates prototype 13 and ship 7 through
+  `vedit`, sails from `(-66, 92)` to `(-67, 92)` at effective storm speed 1,
+  and removes both records in 2.8 seconds of workflow and 8 seconds total.
+- The exhaustive current help gate exposed a development database that lacked
+  the already tracked `SHIPTALK` migration. After applying the authoritative
+  idempotent SQL and restarting, all five verifier queries pass for 32 entries
+  and 78 mappings, and actual Kohdee resolves all 78 command keywords in one
+  session.
 
 ### Durable HUNTED bounty-hunter patrols
 

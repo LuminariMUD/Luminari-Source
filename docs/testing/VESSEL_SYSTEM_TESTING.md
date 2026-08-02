@@ -99,9 +99,10 @@ Pardoning Kohdee must move the lifecycle to bounded cooldown, remove every
 hunter persistence row, preserve the target, purge the temporary target, and
 restore Kohdee's exact pre-test bounty/hunt rows. The script refuses an active
 ferry soak or scale run and prints the artifact directory and elapsed time.
-The installed July 30 candidate passed this full sequence in 64 seconds. The
-raft proved effective speed 1 after terrain adjustment; the same hunter
-identity survived the restart; pardon and cleanup restored the exact baseline.
+The August 2 current candidate passed this full sequence in 57 seconds under
+`/tmp/luminari-vessel-hunter-check-1000/runs/20260802T001910Z-302111`. The raft
+proved effective speed 1 after terrain adjustment; the same hunter identity
+survived PID 299248 to 302590; pardon and cleanup restored the exact baseline.
 
 Run the bounded ferry release gate through its supervised monitor. The
 45-minute observation leaves 15 minutes for restart, review, and cleanup so
@@ -160,11 +161,12 @@ For the builder-independence timing gate, run:
 
 This keeps one real Kohdee session open, derives the new prototype ID and ship
 slot from in-game output, creates/tunes/shows/spawns the vessel through
-`vedit`, sails it one cell, and removes both temporary records. The July 30,
-2026 local run took 2.7 seconds for the in-game workflow and 8 seconds
-including login, cleanup, character logout, and account logout. The generated
-Boat moved from `(-66, 92)` to `(-67, 92)`. The creation and spawn path made no
-C, SQL, world-file, or configuration edits.
+`vedit`, sails it one cell, and removes both temporary records. The August 2,
+2026 current-candidate run used prototype 13 and ship 7, took 2.8 seconds for
+the in-game workflow and 8 seconds including login, cleanup, character logout,
+and account logout. The generated Boat moved from `(-66, 92)` to `(-67, 92)`
+at effective speed 1 in storm. The creation and spawn path made no C, SQL,
+world-file, or configuration edits.
 
 ## A. Legacy world-file vessel (zone 700 test object)
 
@@ -298,19 +300,21 @@ numbered gameplay flow:
   requested `move` category at runtime and produced `[VESSEL_MOVE]` diagnostics
   during a Kohdee sailing test. The clean default build then refused
   `vdebug on move` and reported debug support `compiled out`.
-- `verify_help_vessel_entries.sql` passed 31 maintained entries, 75 exact
-  command keywords, access levels, nonempty content, and zero obsolete
-  duplicates. `--vessel-help-check` found a database `Help Tag` for all 75
-  commands in one 54-second Kohdee login.
+- The earlier help release gate passed 31 maintained entries and 75 exact
+  command keywords. The August 2 current-candidate gate first exposed a stale
+  development database with no `SHIPTALK` mapping or text. Applying the
+  tracked idempotent migration and restarting produced 32 entries, 78 exact
+  mappings, correct access levels, nonempty content, zero obsolete duplicates,
+  and a database `Help Tag` for all 78 commands in one 41-second Kohdee login.
 - The current candidate maintains 32 authoritative entries and 78 exact
   keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, and the Phase 15
   `vesseldebug encounter` guidance. Production-linked coverage sends an
   identified message between two different rooms of one vessel, proves an
   adjacent non-passenger receives nothing, and checks the ashore and silenced
-  refusals. Session-only MariaDB shadow tables pass the entry, keyword, access,
-  content, duplicate, and channel-text checks. The installed-build
-  two-character transcript remains queued for the current candidate and will
-  reuse the existing master account. The channel
+  refusals. Both the MariaDB verifier and installed-build exhaustive help
+  transcript now pass the entry, keyword, access, content, duplicate, and
+  channel-text checks. The installed-build two-character transcript also
+  passes on the current candidate and reuses the existing master account. The channel
   helper automatically selects another non-deleted account-menu character
   without a manual slot or Name lookup. A July 30 read-only database check
   found that account currently contains only Kohdee; the harbor provisioner

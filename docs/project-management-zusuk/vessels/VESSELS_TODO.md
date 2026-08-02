@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 02:55 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 03:24 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -70,9 +70,21 @@ installed SHA-256
 Actual Kohdee sank merchant 1 generation 1, received 25 attack plus 125 total-
 loss standing penalty and a 510-gold bounty, and inspected generation 2 with
 25 spice, its pilot, route, schedule, and registry identity. Cleanup restored
-byte-identical database and player-file snapshots; the no-login restart is
-active on PID 299248 with the same installed hash. Next run the reversible
-hunter/builder checks and the bounded 500-vessel scale gate.
+byte-identical database and player-file snapshots; its no-login restart used
+PID 299248 with the same installed hash. The reversible HUNTED gate then
+passes in 57 seconds at
+`/tmp/luminari-vessel-hunter-check-1000/runs/20260802T001910Z-302111`: one real
+encounter created the exact hunter, PID 299248 changed to 302590 across the
+hard restart, the hunter generation and target reattached, pardon retired it
+into cooldown, and cleanup restored the original rows. A current one-session
+builder run created prototype 13 and ship 7, sailed from `(-66, 92)` to
+`(-67, 92)` at effective speed 1 in storm, and removed both records in 2.8
+seconds of workflow and 8 seconds total. The development help database was
+behind the tracked migration and initially lacked `SHIPTALK`; applying the
+idempotent authoritative SQL and restarting produced five passing verifier
+checks and an actual Kohdee sweep of all 78 command keywords. The active MUD
+is PID 309068 with the same installed hash. Next run the focused build gates
+and the bounded 500-vessel scale gate.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
