@@ -1080,6 +1080,43 @@ back to the optional tutorial. The only scheduled 10-gold development ferry
 was a disconnected Harbor Sandbox fixture. Do not interpret the harbor
 provisioner's staff-assisted test as first-hour discovery acceptance.
 
+Source `eed5d47d` repairs that path through tracked, idempotently provisioned
+campaign content. After running `./scripts/provision_vessel_campaign.sh`, the
+ordinary-player acceptance path is:
+
+```text
+tutorial island -> ENTER PORTAL -> Mosswood room 145200
+Mosswood -> ENTER WAYSTONE -> North Vailand Sea Port
+port -> READ BOARD -> BOARD TRADER
+moving trader -> LOOKOUT / SHIPSTATUS / CARGOMANIFEST
+next stopped port -> DISEMBARK -> ENTER WAYSTONE -> Mosswood
+```
+
+Do not add gold or use `shipgoto`, `goto`, `vesseldebug`, or another staff
+movement command during this check. `disembark` must fail while the trader is
+moving. At a timed port stop, `shipstatus` must report `Speed: 0 / 12` before
+`disembark` succeeds. If the ship is between stops, keep the same character
+aboard and use the login helper's bounded `@wait-vessel-dock` pseudo-command:
+
+```bash
+DEV_MUD_CHARACTER=Vesselbeta \
+  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  "@wait-vessel-dock" "shipstatus" "disembark" \
+  "look" "read board" "enter waystone" "look" "score"
+```
+
+The August 2 repaired run used installed SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`.
+Vesselbeta boarded with 0 gold, inspected 40 units and 2,000 pounds of iron,
+crossed territorial waters, free seas, and the Blackwake pirate cove, saw the
+expected moving-vessel disembark rejection, then reached North Vailand at
+speed 0 and disembarked. The free return waystone restored room 145200 and
+the final score still showed 0 gold. The campaign provisioner passed twice
+under artifacts `20260802T140131Z-1934590` and
+`20260802T140648Z-1945498`; the production-linked suite passes 306 tests.
+This is mechanical first-hour acceptance, not independent human beta or fun
+scoring.
+
 Keep the character only while repairing and repeating this path. Acceptance
 requires a fresh ordinary-player transcript that discovers reachable campaign
 content, can afford or work passage without injected gold, boards a real

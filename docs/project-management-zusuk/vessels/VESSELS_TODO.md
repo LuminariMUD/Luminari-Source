@@ -261,6 +261,38 @@ content, directions, and a no-staff actual-character passage are added and
 retested. Vesselbeta is retained temporarily for that follow-up and must be
 removed through the normal account workflow after the reversible beta run.
 
+**Fresh-character discovery repair (August 2, 2026, 17:17 IDT):** Source
+`eed5d47d` adds an idempotent campaign world package with a conspicuous free
+waystone from Mosswood room 145200 to North Vailand Sea Port, return
+waystones, and passage boards at both scheduled stops. The board directs an
+ordinary player to the real Vailand Ironwind Trader and its iron cargo without
+charging fare. Two complete campaign provisions passed, including a second
+idempotence run, under artifacts
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T140131Z-1934590` and
+`/tmp/luminari-vessel-campaign-1000/runs/20260802T140648Z-1945498`.
+
+The retained level-1 Vesselbeta then completed the path with ordinary player
+commands and 0 gold. The character entered the visible Mosswood waystone,
+read the work-passage board, boarded the scheduled merchant, inspected its
+40 units and 2,000 pounds of real iron cargo, and observed movement through
+territorial waters, free seas, and the Blackwake pirate cove. `disembark` was
+correctly rejected while moving. That run exposed a scheduled-stop defect:
+the autopilot entered its wait state without physically setting speed to 0.
+The fix now stops at every timed waypoint, preserves cruise speed across the
+wait and boot/copyover recovery, and resumes it on departure. After restarting
+installed SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`,
+`shipstatus` reported speed 0 at North Vailand, `disembark` succeeded, the
+return waystone restored room 145200, and `score` still reported 0 gold. The
+warning-free production-linked suite passes 306 tests, including the new
+stop/recovery/resume regression.
+
+This closes the mechanical first-hour discovery and affordability defect. It
+does not supply independent player feedback, multiplayer-role evaluation, or
+the required 70 percent human combat-fun rating, so the structured beta item
+remains open. Vesselbeta remains only until its persistent-residue check and
+normal account-menu deletion are recorded.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
