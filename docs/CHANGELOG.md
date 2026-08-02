@@ -6,6 +6,19 @@
 
 #### Added
 
+- Boarding is now dedicated ability 27 and a class ability for every class.
+  Its effective total uses trained ranks, the better of Strength or Dexterity,
+  equipped armor penalty, and the Minotaur Seafaring bonus.
+- Hostile boarding now resolves an opposed grapple followed by an opposed
+  crossing. The strongest conscious, PvP-consenting occupant anywhere aboard
+  defends; hull class, structure, speed, sailmaster, and bosun modify the
+  vessel side; ties defend. Critical crossing failures retain the wilderness
+  water and Athletics consequence.
+- `scripts/test_vessel_boarding_in_game.sh` performs a reversible two-character
+  acceptance session with Kohdee and Vesselmate. It proves a defended grapple
+  rejection, reverses trained ranks to prove a breach, checks both players'
+  messages, restores both player files exactly, and removes both temporary
+  hulls.
 - `lookout` now includes an `At sea:` description composed from vessel class,
   movement, speed, depth, raw wilderness weather, and a deterministic
   geographic `region_hint`. Moving occupied hulls receive class-, speed-,
@@ -121,6 +134,13 @@
 
 #### Fixed
 
+- Hostile boarding no longer uses one level-plus-Athletics check against a
+  fixed DC. NPC defenses are prepared before both opposed checks, and a
+  successful breach starts combat only with eligible defenders at the target
+  entry point.
+- Player saves carry a `BrdV` version marker. Loading a legacy unmarked save
+  clears the retired Jump rank from reused slot 27 exactly once, while current
+  saves preserve legitimate Boarding training.
 - Vessel hazards, visibility, lookout, tactical, and narrative now interpret
   the shared wilderness weather field on its actual 0..255 scale. The former
   40/60/75/90 thresholds classified ordinary cloudy values as severe weather;
@@ -261,6 +281,17 @@
 
 #### Validated
 
+- Boarding run `20260802T124631Z-1797834` is terminal `PASS` in 74 seconds on
+  source `e8377caa` and installed SHA-256
+  `b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
+  Actual Kohdee lost a 26-to-56 grapple to Vesselmate, then won grapple
+  56-to-14 and crossing 56-to-28 after their ranks were reversed. Vesselmate
+  received both live warnings. Cleanup restored Kohdee SHA-256
+  `16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`
+  and Vesselmate SHA-256
+  `8c10c5a2f0598d4f9f1762ab24594837361666dc11fc6a1d687a1d68d96ac471`,
+  removed all temporary runtimes, and restarted the exact candidate. The
+  warning-free production-linked suite passes 302 tests.
 - Narrative run `20260802T115413Z-1685068` is terminal `PASS` in 34 seconds
   on source `547e54b3` and installed SHA-256
   `908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.

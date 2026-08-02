@@ -456,6 +456,7 @@ void vehicle_save_all(void);      void vehicle_load_all(void);
 | dock | Dock with vessel | `dock <ship>` |
 | undock | Undock from vessel | `undock` |
 | lookout | View canonical surroundings from a bridge or deck | `lookout` (`look_outside` legacy alias) |
+| board_hostile | Grapple and cross to an enemy vessel | `board_hostile <vessel>` |
 
 System-generated vessel messages use independent per-vessel cooldown classes.
 Repeated depth and weather messages are limited to one copy per class every
@@ -546,6 +547,51 @@ line with Vailand Passage prose, and matching forced ambience. The gate
 byte-restored Kohdee, removed every temporary hull, and left no acceptance
 runtime row. Five production-linked tests cover exact weather boundaries,
 all eight classes, speed bands, submarine depth, and invalid inputs.
+
+#### Hostile Boarding
+
+`board_hostile <vessel>` requires the attacker to be aboard a different hull,
+within normal docking range, with neither hull already docked. Player-owned
+targets pass through the shared PvP-consent gate before defenses or rolls are
+resolved. The attempt alerts the target and moves idle NPC crew from other
+interior rooms to its entrance and bridge chokepoints.
+
+Boarding is ability 27 and is a class ability for every class. `train` displays
+both its invested rank and effective total. `compute_ability()` adds the better
+of the character's Strength or Dexterity modifier, applies the equipped armor
+penalty, and adds 2 for Minotaur Seafaring. The player-file `BrdV` marker
+distinguishes current saves from legacy saves where slot 27 held the retired
+Jump ability. Loading an unmarked save clears that slot once; marked saves
+preserve legitimate Boarding ranks.
+
+The target's strongest conscious, PvP-consenting occupant anywhere in its
+generated interior supplies the defending Boarding total. Each stage rolls
+d20 + attacker Boarding against d20 + defender Boarding + vessel modifier;
+ties favor the defender. The first stage secures grappling lines. Only a
+successful grapple reaches the crossing stage.
+
+The vessel modifier includes hull class (-4 raft, -2 boat or transport, +2
+airship, +3 submarine or magical vessel, and +4 warship) and penalties for
+internal structure below 75, 50, or 25 percent. Grappling adds up to 6 from
+target speed plus twice its sailmaster tier. Crossing adds up to 3 from speed
+plus twice its bosun tier. The final modifier is clamped from -8 through +15.
+
+A failed grapple leaves the attacker aboard the original hull. A failed
+crossing does the same unless the attacker rolled a natural 1 or lost by at
+least 10; that critical failure drops the attacker into the exterior water
+room and resolves a d20 + Athletics swim check. A successful crossing moves
+the attacker to the target entrance, falling back to its bridge if necessary,
+and starts combat with eligible defenders in that room. Non-consenting player
+passengers are not forced into combat.
+
+Development run
+`/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`
+passed in 74 seconds on source `e8377caa` and installed SHA-256
+`b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
+Actual Kohdee lost a 26-to-56 grapple to Vesselmate, then won grapple 56-to-14
+and crossing 56-to-28 after their trained ranks were reversed. Both target
+warnings arrived, both temporary hulls were purged, and both player files were
+restored exactly. The production-linked suite passes 302 tests.
 
 ### Autopilot Commands
 
@@ -1066,7 +1112,10 @@ historical measurements, and the limits of the current evidence.
 | `GREYHAWK_ACTIVE_SHIP_CAPACITY` | 500 | Maximum concurrent active vessels |
 | `MAX_SHIP_ROOMS` | 20 | Maximum interior rooms per vessel |
 | `MAX_DOCKING_RANGE` | 2.0 | Maximum distance for docking |
-| `BOARDING_DIFFICULTY` | 15 | DC for hostile boarding attempts |
+| `ABILITY_BOARDING` | 27 | Dedicated trained ability used on both sides of hostile boarding |
+| `BOARDING_CRITICAL_MARGIN` | 10 | Defeat margin that makes a failed crossing critical |
+| `BOARDING_DEFENSE_MIN` | -8 | Minimum target-vessel defense modifier |
+| `BOARDING_DEFENSE_MAX` | 15 | Maximum target-vessel defense modifier |
 | `SHIP_INTERIOR_VNUM_BASE` | 70000 | Start of interior room VNUMs |
 | `SHIP_INTERIOR_VNUM_MAX` | 80019 | End of interior room VNUMs |
 

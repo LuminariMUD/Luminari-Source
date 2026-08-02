@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Core development and living-world acceptance pass; player experience, beta, and rollout remain
+**Status:** Core development and player-experience mechanics pass; optional presentation, beta, and rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -296,11 +296,16 @@ wilderness weather scale, and deterministic regional hints. Moving occupied
 hulls receive bounded ambient messages through the same production formatter;
 a reversible Kohdee session passes live-weather, Vailand-region, forced-
 ambient, cleanup, and exact-restoration acceptance.
+Hostile boarding now uses a dedicated trainable Boarding ability, opposed
+grapple and crossing checks, the strongest eligible defender aboard, and
+bounded target-hull modifiers. A reversible Kohdee/Vesselmate session proves
+both a defended rejection and a successful breach with exact two-character
+restoration.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
 Memcheck, and development release-boundary checks pass. Remaining
-player-experience work, human beta, production-snapshot rehearsal, balance,
-and staged rollout remain.
+optional presentation work, human beta, production-snapshot rehearsal,
+balance, and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.

@@ -13,9 +13,9 @@ trails. At that scale revision, all 277 production-linked tests, strict
 actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
 passed; its normal binary SHA-256 was
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later dynamic-narrative candidate passes 297 production-linked tests and
+The later hostile-boarding candidate passes 302 production-linked tests and
 installs SHA-256
-`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+`b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
 Repeat the scale gate during final preflight because the source changed after
 the recorded 500-vessel run.
 
@@ -87,6 +87,15 @@ forced the matching production ambient formatter through `vesseldebug
 ambient`. The 34-second run verified the eight-row content package, purged the
 temporary hull, restored Kohdee's exact player file and room 1204, and
 restarted the tested binary from source `547e54b3`.
+
+Hostile boarding passes two-character actual-character acceptance under
+`/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`.
+Kohdee lost a defended grapple to Vesselmate, then reversed their trained
+Boarding ranks, won both grapple and crossing, and breached the target while
+Vesselmate received both warnings. The 74-second run checked authoritative
+help, purged both temporary hulls, restored both exact player files and room
+1204, left no acceptance runtime, and restarted the tested binary from source
+`e8377caa`.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -411,6 +420,30 @@ acceptance hull, returns Kohdee to room 1204, byte-restores the player file,
 and restarts the same executable. The passing transcript is
 `02-kohdee-vessel-narrative.log` inside
 `/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`.
+
+## Fast Hostile Boarding
+
+After the Starfall frontier prototype exists and the current clean candidate
+is built and installed, run:
+
+```bash
+./scripts/test_vessel_boarding_in_game.sh
+```
+
+The development-only wrapper refuses production, dirty or stale source,
+active scale/ferry ownership, missing Starfall content, and pre-existing
+Bastion runtimes. It snapshots both Kohdee and Vesselmate with the MUD
+stopped, checks authoritative `BOARD_HOSTILE` and `BOARDING` help, and opens
+two live character sessions through their existing shared account.
+
+Success requires a rank-0 Kohdee grapple to lose against rank-40 Vesselmate
+without reaching crossing. After the harness reverses the ranks, both grapple
+and crossing must succeed, Kohdee must breach the target, and Vesselmate must
+receive the attempted-boarding, secured-lines, and breach warnings. Cleanup
+purges both temporary hulls, returns both characters to room 1204,
+byte-restores both player files, and restarts the same executable. The passing
+transcript is `02-kohdee-vessel-boarding.log` inside
+`/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`.
 
 ## Fast HUNTED Bounty-Hunter Check
 

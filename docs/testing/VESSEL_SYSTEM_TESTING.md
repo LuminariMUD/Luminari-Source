@@ -364,6 +364,46 @@ the final database held zero temporary runtime rows. Five production-linked
 tests lock raw weather boundaries, all vessel classes, speed bands, submerged
 weather behavior, and invalid-output handling.
 
+## Hostile Boarding Check
+
+After the Starfall frontier prototype exists and a clean candidate is built
+and installed, run:
+
+```bash
+./scripts/test_vessel_boarding_in_game.sh
+```
+
+The development-only wrapper refuses production, dirty or stale source, an
+installed/running binary mismatch, active scale or ferry ownership, missing
+Starfall content, and pre-existing acceptance runtimes. It applies and checks
+the authoritative `BOARD_HOSTILE` and `BOARDING` help, snapshots both Kohdee
+and Vesselmate with the MUD stopped, and invokes the login helper's
+`--vessel-boarding-check` workflow through two live connections to their
+existing shared account.
+
+The first attempt sets Kohdee's trained Boarding rank to 0 and Vesselmate's to
+40. It must show Vesselmate as the actual defender, reject the grapple, emit
+the target warning and repelled-lines message, and never run a crossing check.
+The second attempt reverses the ranks. It must show successful grapple and
+crossing totals, move Kohdee onto the target, and deliver the grapple and
+breach warnings to Vesselmate. The wide rank gap makes both outcomes
+deterministic despite the live d20 rolls.
+
+Cleanup returns both characters to room 1204, purges only the two temporary
+acceptance hulls, rejects related `SYSERR` rows, byte-restores both player
+files, leaves zero prototype runtimes, and restarts the exact installed
+candidate. Run
+`/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`
+passed in 74 seconds on source `e8377caa` and installed SHA-256
+`b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
+The live totals were 26 against 56 for the rejected grapple, 56 against 14 for
+the successful grapple, and 56 against 28 for the successful crossing. The
+before/restored Kohdee hash is
+`16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`;
+the before/restored Vesselmate hash is
+`8c10c5a2f0598d4f9f1762ab24594837361666dc11fc6a1d687a1d68d96ac471`.
+The warning-free production-linked suite passes 302 tests.
+
 ## Shared Harbor Merchant Loss Check
 
 The provisioner validates but deliberately does not sink its NPC merchant.
@@ -771,11 +811,14 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
     directions; `undock` removes that exit while leaving both hull objects and
     coordinates together until one sails away.
 28. (Hostile path, staff-only smoke) From The Gull after undocking:
-    `board_hostile tern` - on success, the character enters The Tern and sees
-    the warning and "BATTLE STATIONS!" broadcast. On a failed roll, the
-    character stays aboard their ship; on a critical failure, they fall into
-    its exterior wilderness room and receive a Swim (Athletics) check. On
-    defended ships, idle crew NPCs reposition to the entrance/bridge.
+    `board_hostile tern` - the grapple and crossing each show attacker d20 +
+    Boarding against defender d20 + Boarding + vessel modifier. A failed
+    grapple never reaches crossing. A failed crossing leaves the character
+    aboard their ship; a natural 1 or ten-point loss drops them into the
+    exterior wilderness room for an Athletics swim check. A successful
+    crossing enters The Tern and emits the breach warning. The strongest
+    conscious, PvP-consenting occupant anywhere aboard defends, ties favor the
+    target, and idle NPC crew reposition to the entrance/bridge first.
 
 ## G. Cleanup
 

@@ -15,6 +15,9 @@ Dynamic at-sea descriptions now combine vessel class, speed, depth, the raw
 wilderness weather field, and deterministic geographic `region_hints`.
 Occupied moving hulls also receive throttled ambient prose, and both paths
 pass a reversible actual-character gate.
+Hostile boarding now uses a dedicated trainable Boarding ability and separate
+opposed grapple and crossing checks. Its reversible two-character gate proves
+both rejection and breach with actual player defenders.
 The core development release gates for build, regression, Memcheck, bounded
 ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
@@ -170,6 +173,23 @@ file (SHA-256
 left zero acceptance runtime rows, and restarted the exact candidate. Five
 new production-linked tests bring the warning-free suite to 297 tests.
 
+**Hostile-boarding checkpoint (August 2, 2026, 15:48 IDT):** Boarding is now a
+class ability for every class, uses the better of Strength or Dexterity with
+armor penalties, and resolves hostile transfer through opposed grapple and
+crossing checks. Ties defend; target hull class, speed, structure, sailmaster,
+and bosun modify the defense. Legacy Jump-slot ranks are cleared once through
+the `BrdV` player-file marker instead of becoming free Boarding training.
+Reversible run
+`/tmp/luminari-vessel-boarding-check-1000/runs/20260802T124631Z-1797834`
+is terminal `PASS` in 74 seconds on source `e8377caa` and installed SHA-256
+`b01e8610325dc40445c8550a8b93752bfc979512145efbe357e48c22db04ed8a`.
+Actual Kohdee lost a 26-to-56 grapple to Vesselmate, then reversed the trained
+ranks and won grapple 56-to-14 and crossing 56-to-28 before breaching the
+target. Vesselmate received both live warnings. Cleanup purged both temporary
+hulls, restored both player files to their exact hashes, left zero temporary
+runtimes, and restarted the exact candidate. The warning-free
+production-linked suite passes 302 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -182,7 +202,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 7 top-level items: 2 player-experience/presentation
+**Remaining checklist:** 6 top-level items: 1 player-experience/presentation
 and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
@@ -204,7 +224,7 @@ and 5 balance/beta/rollout.
 - [x] Build lookout view v2 from actual surrounding wilderness sectors.
 - [x] Add dynamic at-sea descriptions through `narrative_weaver` and
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
-- [ ] Refine hostile boarding with a grapple step, contested rolls, and a
+- [x] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout
   descriptions.
@@ -225,6 +245,12 @@ The completed narrative layer uses that same raw 0..255 wilderness weather
 field, deterministic region hints, and existing ship state. Its 120-second
 ambient cadence skips stopped and unoccupied hulls, so presentation does not
 create a second simulation or fleet-scale background-message source.
+Hostile boarding now prepares NPC defenses, selects the strongest conscious
+PvP-consenting defender anywhere aboard, and exposes both opposed totals. A
+failed grapple never reaches the crossing; a failed crossing stays aboard the
+attacker, with a natural 1 or ten-point loss causing the water-and-Athletics
+consequence. A successful crossing enters the target and starts combat only
+with eligible defenders.
 
 ## 3. Balance, Beta, and Roll Out
 
