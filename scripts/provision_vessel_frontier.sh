@@ -265,7 +265,7 @@ content_valid=$(database_scalar "
              OR (name = 'Starfall Bathyscaphe' AND vessel_class = 5
                  AND max_speed = 10 AND armor = 25)
              OR (name = 'Aetherwind Courier' AND vessel_class = 4
-                 AND max_speed = 40 AND armor = 15)) = 4,
+                 AND max_speed = 25 AND armor = 15)) = 4,
     1, 0);")
 [[ "$content_valid" == 1 ]] ||
   fail "frontier regions, spatial indexes, path, or prototypes are invalid"

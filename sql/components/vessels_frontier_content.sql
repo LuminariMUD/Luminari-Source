@@ -142,12 +142,12 @@ UPDATE ship_prototypes
  WHERE name = 'Starfall Bathyscaphe';
 
 INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
-SELECT 'Aetherwind Courier', 4, 40, 15
+SELECT 'Aetherwind Courier', 4, 25, 15
  WHERE NOT EXISTS (
    SELECT 1 FROM ship_prototypes WHERE name = 'Aetherwind Courier'
  );
 UPDATE ship_prototypes
-   SET vessel_class = 4, max_speed = 40, armor = 15
+   SET vessel_class = 4, max_speed = 25, armor = 15
  WHERE name = 'Aetherwind Courier';
 
 COMMIT;
