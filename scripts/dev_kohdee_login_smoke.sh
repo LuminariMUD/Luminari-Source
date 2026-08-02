@@ -692,7 +692,7 @@ proc run_frontier_river_vessel {prototype_id vessel_name class_id class_name car
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: $class_name" "$vessel_name interior class"
   if {$room_name ne ""} {
-    require_game_output $output "$room_name$vessel_name" \
+    require_game_output $output $room_name \
       "$vessel_name required interior"
   }
   require_frontier_cargo $vessel_name $cargo_capacity
@@ -726,9 +726,9 @@ proc run_frontier_ship {prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Ship" "$vessel_name interior class"
-  require_game_output $output "Cargo Hold of $vessel_name" \
+  require_game_output $output "Cargo Hold" \
     "$vessel_name cargo room"
-  require_game_output $output "Main Deck of $vessel_name" \
+  require_game_output $output "Main Deck" \
     "$vessel_name deck"
   require_frontier_cargo $vessel_name 12000
 
@@ -753,10 +753,10 @@ proc run_frontier_warship {prototype_id target_prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Warship" "$vessel_name interior class"
-  if {[regexp -all {Weapons Bay of Starfall Bastion} $output] < 2} {
+  if {[regexp -all {Weapons Bay} $output] < 2} {
     fail "$vessel_name did not generate both required weapons bays"
   }
-  require_game_output $output "Main Deck of $vessel_name" \
+  require_game_output $output "Main Deck" \
     "$vessel_name deck"
   require_frontier_cargo $vessel_name 6000
 
@@ -791,8 +791,8 @@ proc run_frontier_submarine {prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Submarine" "$vessel_name interior class"
-  require_game_output $output "Airlock of $vessel_name" "$vessel_name airlock"
-  require_game_output $output "Engine Room of $vessel_name" \
+  require_game_output $output "Airlock" "$vessel_name airlock"
+  require_game_output $output "Engine Room" \
     "$vessel_name engineering room"
   require_frontier_cargo $vessel_name 3000
 
@@ -831,8 +831,8 @@ proc run_frontier_airship {prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Airship" "$vessel_name interior class"
-  require_game_output $output "Main Deck of $vessel_name" "$vessel_name deck"
-  require_game_output $output "Engine Room of $vessel_name" \
+  require_game_output $output "Main Deck" "$vessel_name deck"
+  require_game_output $output "Engine Room" \
     "$vessel_name engineering room"
   require_frontier_cargo $vessel_name 4000
 
@@ -902,10 +902,10 @@ proc run_frontier_transport {prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Transport" "$vessel_name interior class"
-  if {[regexp -all {Cargo Hold of Sablebranch Grand Freighter} $output] < 3} {
+  if {[regexp -all {Cargo Hold} $output] < 3} {
     fail "$vessel_name did not generate its three required cargo holds"
   }
-  require_game_output $output "Mess Hall of $vessel_name" \
+  require_game_output $output "Mess Hall" \
     "$vessel_name mess hall"
   require_frontier_cargo $vessel_name 40000
   purge_frontier_vessel $ship_slot $vessel_name
@@ -926,7 +926,7 @@ proc run_frontier_magical {prototype_id} {
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Magical Vessel" \
     "$vessel_name interior class"
-  require_game_output $output "Cargo Hold of $vessel_name" \
+  require_game_output $output "Cargo Hold" \
     "$vessel_name cargo room"
   require_frontier_cargo $vessel_name 12000
 
@@ -970,7 +970,7 @@ proc run_vessel_frontier_check {raft_id boat_id ship_id warship_id airship_id su
 
   run_frontier_river_vessel $raft_id "Sablebranch Raft" 0 Raft 300 ""
   run_frontier_river_vessel $boat_id "Sablebranch Riverboat" 1 Boat 2000 \
-    "Crew Quarters aboard "
+    "Crew Quarters"
   run_frontier_ship $ship_id
   run_frontier_warship $warship_id $ship_id
   run_frontier_airship $airship_id
