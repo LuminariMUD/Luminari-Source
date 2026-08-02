@@ -454,7 +454,13 @@ else
     "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOK_OUTSIDE \
     >"$run_dir/01-lookout-help.log" 2>&1 ||
     fail "Kohdee could not read the authoritative LOOK_OUTSIDE help"
-  grep -Fq 'scan canonical wilderness' "$run_dir/01-lookout-help.log" ||
+  lookout_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE BINARY tag = 'VESSELS'
+       AND entry LIKE '%scan canonical wilderness%'
+       AND entry LIKE '%relative altitude%';")
+  [[ "$lookout_help_state" == 1 ]] ||
     fail "the authoritative LOOK_OUTSIDE help is stale"
 
   timeout 300 env DEV_MUD_CHARACTER="$target_player" \
