@@ -8,6 +8,7 @@ server_unit=luminari-dev-login-smoke.service
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 target_player=Kohdee
 merchant_name="Harbor Sandbox Merchant"
+temporary_respawn_seconds=
 player_file="$repo_root/lib/plrfiles/K-O/kohdee.plr"
 state_root="${TMPDIR:-/tmp}/luminari-vessel-merchant-check-${UID}"
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
@@ -62,6 +63,8 @@ merchant_pilot_vnum=
 merchant_commodity_id=
 merchant_cargo_quantity=
 merchant_respawn_delay=
+merchant_commodity_name=
+test_respawn_delay=
 baseline_ship_id=
 baseline_generation=
 baseline_loss_count=
@@ -69,6 +72,38 @@ replacement_ship_id=
 replacement_generation=
 standing_penalty_total=0
 bounty_delta=0
+
+while (($# > 0)); do
+  case "$1" in
+    --merchant)
+      [[ $# -ge 2 ]] || {
+        printf 'usage: %s [--merchant <name>] [--temporary-respawn <1-59>]\n' \
+          "$0" >&2
+        exit 2
+      }
+      merchant_name=$2
+      shift 2
+      ;;
+    --temporary-respawn)
+      [[ $# -ge 2 ]] || {
+        printf 'usage: %s [--merchant <name>] [--temporary-respawn <1-59>]\n' \
+          "$0" >&2
+        exit 2
+      }
+      temporary_respawn_seconds=$2
+      shift 2
+      ;;
+    -h|--help)
+      printf 'usage: %s [--merchant <name>] [--temporary-respawn <1-59>]\n' \
+        "$0"
+      exit 0
+      ;;
+    *)
+      printf 'unknown argument: %s\n' "$1" >&2
+      exit 2
+      ;;
+  esac
+done
 
 umask 077
 mkdir -p "$run_dir"
@@ -465,6 +500,15 @@ for command_name in awk cmp cp date env find flock git grep mariadb \
     fail "required command not found: $command_name"
 done
 
+[[ "$merchant_name" =~ ^[[:alnum:]][[:alnum:]_.-]*(\ [[:alnum:]_.-]+)*$ &&
+   ${#merchant_name} -le 127 ]] ||
+  fail "merchant name contains unsupported characters"
+if [[ -n "$temporary_respawn_seconds" ]]; then
+  [[ "$temporary_respawn_seconds" =~ ^[1-9][0-9]*$ &&
+     "$temporary_respawn_seconds" -le 59 ]] ||
+    fail "temporary respawn must be from 1 through 59 seconds"
+fi
+
 exec 8>"${TMPDIR:-/tmp}/luminari-vessel-merchant-check-${UID}.lock"
 flock -n 8 || fail "another merchant acceptance check is already running"
 
@@ -525,22 +569,25 @@ run_kohdee_commands "$run_dir/01-preflight.log" \
   "vmerchant list" "bounty" ||
   fail "Kohdee could not inspect the live merchant registry"
 grep -Fq "$merchant_name" "$run_dir/01-preflight.log" ||
-  fail "the in-game registry did not list the harbor merchant"
+  fail "the in-game registry did not list the selected merchant"
 
 merchant_state=$(database_query "
   SELECT CONCAT(
            merchant_id, '|', faction_id, '|', prototype_id, '|', route_id,
            '|', pilot_mob_vnum, '|', cargo_commodity_id, '|', cargo_quantity,
            '|', respawn_delay_seconds, '|', COALESCE(active_ship_id, 0),
-           '|', generation, '|', loss_count
+           '|', generation, '|', loss_count, '|', commodity.name
          )
-    FROM vessel_npc_merchants
-   WHERE name = '$merchant_name'
-     AND enabled = 1;")
+    FROM vessel_npc_merchants AS merchant
+    JOIN trade_commodities AS commodity
+      ON commodity.commodity_id = merchant.cargo_commodity_id
+   WHERE merchant.name = '$merchant_name'
+     AND merchant.enabled = 1;")
 IFS='|' read -r merchant_id merchant_faction_id merchant_prototype_id \
   merchant_route_id merchant_pilot_vnum merchant_commodity_id \
   merchant_cargo_quantity merchant_respawn_delay baseline_ship_id \
-  baseline_generation baseline_loss_count <<<"$merchant_state"
+  baseline_generation baseline_loss_count merchant_commodity_name \
+  <<<"$merchant_state"
 [[ "$merchant_id" =~ ^[1-9][0-9]*$ &&
    "$merchant_faction_id" =~ ^[1-3]$ &&
    "$merchant_prototype_id" =~ ^[1-9][0-9]*$ &&
@@ -549,11 +596,18 @@ IFS='|' read -r merchant_id merchant_faction_id merchant_prototype_id \
    "$merchant_commodity_id" =~ ^[1-9][0-9]*$ &&
    "$merchant_cargo_quantity" =~ ^[1-9][0-9]*$ &&
    "$merchant_respawn_delay" =~ ^[1-9][0-9]*$ &&
-   "$merchant_respawn_delay" -le 59 &&
+   -n "$merchant_commodity_name" &&
    "$baseline_ship_id" =~ ^[1-9][0-9]*$ && "$baseline_ship_id" -le 500 &&
    "$baseline_generation" =~ ^[1-9][0-9]*$ &&
    "$baseline_loss_count" =~ ^[0-9]+$ ]] ||
-  fail "the harbor merchant definition or active identity is incomplete"
+  fail "the selected merchant definition or active identity is incomplete"
+
+test_respawn_delay=$merchant_respawn_delay
+if [[ -n "$temporary_respawn_seconds" ]]; then
+  test_respawn_delay=$temporary_respawn_seconds
+fi
+[[ "$test_respawn_delay" -le 59 ]] ||
+  fail "the merchant respawn exceeds 59 seconds; use --temporary-respawn"
 
 fixture_valid=$(database_query "
   SELECT IF(
@@ -630,6 +684,10 @@ cleanup_needed=true
   printf 'merchant_id=%s\n' "$merchant_id"
   printf 'merchant_generation=%s\n' "$baseline_generation"
   printf 'merchant_ship_id=%s\n' "$baseline_ship_id"
+  printf 'merchant_name=%s\n' "$merchant_name"
+  printf 'merchant_commodity=%s\n' "$merchant_commodity_name"
+  printf 'merchant_respawn_baseline=%s\n' "$merchant_respawn_delay"
+  printf 'merchant_respawn_test=%s\n' "$test_respawn_delay"
   printf 'database_sha256=%s\n' "$baseline_database_sha256"
   printf 'player_file_sha256=%s\n' "$baseline_player_sha256"
   printf 'baseline_bounty=%s\n' "$baseline_bounty"
@@ -639,6 +697,9 @@ cleanup_needed=true
 
 database_execute "
   START TRANSACTION;
+  UPDATE vessel_npc_merchants
+     SET respawn_delay_seconds = $test_respawn_delay
+   WHERE merchant_id = $merchant_id;
   DELETE FROM vessel_merchant_consequences
    WHERE merchant_id = $merchant_id
      AND generation = $baseline_generation
@@ -652,7 +713,7 @@ run_kohdee_commands "$run_dir/02-loss-and-recovery.log" \
   "vmerchant list" \
   "vmerchant sink $merchant_id confirm" \
   "bounty" \
-  "@wait $((merchant_respawn_delay + 1))" \
+  "@wait $((test_respawn_delay + 1))" \
   "vmerchant sync" \
   "vmerchant list" \
   "bounty" ||
@@ -767,7 +828,7 @@ run_kohdee_commands "$run_dir/03-replacement.log" \
   fail "Kohdee could not inspect the replacement merchant hull"
 grep -Fq "$merchant_name" "$run_dir/03-replacement.log" ||
   fail "the replacement was absent from the in-game merchant registry"
-grep -Fq "spice" "$run_dir/03-replacement.log" ||
+grep -Fq "$merchant_commodity_name" "$run_dir/03-replacement.log" ||
   fail "the replacement did not expose its real cargo"
 grep -Fq \
   "Merchant Registry: $merchant_id generation $replacement_generation" \
