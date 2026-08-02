@@ -60,8 +60,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-frontier-check)
       mode="vessel-frontier-check"
       ;;
+    --vessel-event-check)
+      mode="vessel-event-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id>]"
       ;;
   esac
   shift
@@ -116,6 +119,13 @@ if [[ $# -gt 0 ]]; then
     for prototype_id in "$@"; do
       [[ "$prototype_id" =~ ^[1-9][0-9]*$ ]] ||
         fail "frontier prototype ids must be positive integers"
+    done
+  elif [[ "$mode" == "vessel-event-check" ]]; then
+    [[ $# -eq 2 ]] ||
+      fail "--vessel-event-check requires raft and warship prototype ids"
+    for prototype_id in "$@"; do
+      [[ "$prototype_id" =~ ^[1-9][0-9]*$ ]] ||
+        fail "event prototype ids must be positive integers"
     done
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
@@ -991,6 +1001,101 @@ proc run_vessel_frontier_check {raft_id boat_id ship_id warship_id airship_id su
   puts "PASS: all eight vessel classes passed and every temporary frontier vessel was purged in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+proc vessel_slot_id {ship_slot} {
+  set first [expr {65 + (($ship_slot / 26) % 26)}]
+  set second [expr {65 + ($ship_slot % 26)}]
+  return [format "%c%c" $first $second]
+}
+
+proc run_vessel_event_check {raft_id warship_id} {
+  global smoke_character
+
+  set workflow_started_at [clock milliseconds]
+
+  set output [run_game_command "goto -810 480"]
+  require_game_output $output "Current Location  : (-810, 480)" \
+    "regatta staging"
+  set raft_slot [spawn_frontier_vessel $raft_id "Sablebranch Raft"]
+  set output [run_game_command "vevent start regatta -809 480"]
+  require_game_output $output "Started vessel regatta event #" "regatta start"
+  set output [run_game_command "vevent join"]
+  require_game_output $output "Entered Sablebranch Raft" "regatta entry"
+  run_game_command "speed 2"
+  set output [run_game_command "setsail east"]
+  require_game_output $output "REGATTA FINISH: place 1" "regatta finish"
+  set output [run_game_command "vevent status"]
+  require_game_output $output "FINISHED #1" "regatta status"
+  set output [run_game_command "vevent end"]
+  require_game_output $output "Vessel event completed and scored." "regatta close"
+  set output [run_game_command "vevent leaderboard regatta"]
+  require_game_output $output "Vessel Event Leaderboard: regatta" \
+    "regatta leaderboard"
+  require_game_output $output $smoke_character "regatta leaderboard captain"
+  purge_frontier_vessel $raft_slot "Sablebranch Raft"
+
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "skirmish staging"
+  set target_slot \
+    [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+  set attacker_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "vevent start skirmish"]
+  require_game_output $output "Started vessel skirmish event #" "skirmish start"
+  set output [run_game_command "vevent join red"]
+  require_game_output $output "on team red" "skirmish captain entry"
+  set output [run_game_command "vevent enlist $target_slot blue"]
+  require_game_output $output "on team blue" "skirmish fleet entry"
+  set output [run_game_command "shipfire 2 $target_id"]
+  require_game_output $output "Direct hit on Starfall Bastion!" "skirmish hit"
+  require_game_output $output "Event score: +" "skirmish damage score"
+  set output [run_game_command "vevent status"]
+  require_game_output $output "Team score: red" "skirmish team score"
+  set output [run_game_command "vevent end"]
+  require_game_output $output "Vessel event completed and scored." "skirmish close"
+  set output [run_game_command "vevent leaderboard skirmish"]
+  require_game_output $output "Vessel Event Leaderboard: skirmish" \
+    "skirmish leaderboard"
+  require_game_output $output $smoke_character "skirmish leaderboard captain"
+  purge_frontier_vessel $attacker_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" \
+    "skirmish target cleanup"
+
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "ghost fleet staging"
+  set attacker_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "vevent start ghost $warship_id 3"]
+  require_game_output $output "Started ghost fleet event #" "ghost fleet start"
+  set output [run_game_command "vevent join"]
+  require_game_output $output "in ghost event #" "ghost fleet entry"
+  set output [run_game_command "vevent status"]
+  require_game_output $output "Ghost fleet remaining: 3 of 3" "ghost fleet status"
+  set output [run_game_command "shipfire 2 Ghost"]
+  require_game_output $output "Direct hit on Ghost Fleet Wraith" "ghost fleet hit"
+  require_game_output $output "Event score: +" "ghost fleet damage score"
+  set output [run_game_command "vevent end"]
+  require_game_output $output "Vessel event completed and scored." "ghost fleet close"
+  set output [run_game_command "vevent leaderboard ghost"]
+  require_game_output $output "Vessel Event Leaderboard: ghost" \
+    "ghost fleet leaderboard"
+  require_game_output $output $smoke_character "ghost fleet leaderboard captain"
+  set output [run_game_command "shiplist"]
+  if {[string first "Ghost Fleet Wraith" $output] >= 0} {
+    fail "ghost fleet hull remained in the fleet registry after event cleanup"
+  }
+  purge_frontier_vessel $attacker_slot "Starfall Bastion"
+
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "event safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: regatta movement recorded first place and a durable leaderboard result."
+  puts "PASS: two-team fleet skirmish recorded live naval damage for the red fleet."
+  puts "PASS: three ghost warships spawned, scored, and retired without a fleet leak."
+  puts "PASS: all vessel showcase events passed in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc clean_dialog_output {raw commands marker} {
   global smoke_character
 
@@ -1648,7 +1753,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
-    $mode eq "vessel-frontier-check"} {
+    $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1703,6 +1808,9 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
         [lindex $game_commands 3] [lindex $game_commands 4] \
         [lindex $game_commands 5] [lindex $game_commands 6] \
         [lindex $game_commands 7]
+    } elseif {$mode eq "vessel-event-check"} {
+      run_vessel_event_check [lindex $game_commands 0] \
+        [lindex $game_commands 1]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -1780,6 +1888,9 @@ elif [[ "$mode" == "vessel-crossing-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-frontier-check" ]]; then
   printf 'PASS: %s completed the vessel-frontier check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-event-check" ]]; then
+  printf 'PASS: %s completed the vessel-event check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

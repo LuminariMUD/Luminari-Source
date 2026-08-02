@@ -340,6 +340,7 @@ EXTRA_DIST = \
 	scripts/test_vessel_ferry_soak_preflight.sh \
 	scripts/test_vessel_hunter_in_game.sh \
 	scripts/test_vessel_merchant_in_game.sh \
+	scripts/test_vessel_events_in_game.sh \
 	scripts/test_vessel_memory_analyzer.sh \
 	scripts/test_vessel_scale_benchmark_parsers.sh \
 	docs/PRD.md \
