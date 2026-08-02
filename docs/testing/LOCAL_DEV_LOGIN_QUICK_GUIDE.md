@@ -25,6 +25,17 @@ vessel/economy table plus Kohdee's player file in 22 seconds. Both runs use
 source `923c8024` and the installed binary hash above. The development MUD is
 active with the campaign merchant returned to North Vailand waters.
 
+The first Blackwake derelict also passes actual-character acceptance.
+Provision run `20260802T072737Z-1135588` creates or reuses one ownerless hull
+at `(-533, 330)`, verifies its four-room generated interior and three DG room
+mappings, and preserves slot 8/prototype 17 across a hard restart in 61
+seconds. Discovery run `20260802T075751Z-1199403` uses real Kohdee commands to
+gate a captain log, chart, cargo clue, and one 180-gold salvage item across a
+second hard restart. It proves one-copy file/database persistence and five DG
+variables, then restores every snapshotted Kohdee file and database object-save
+field exactly in 55 seconds. The discovery run uses source `a390a387` and the
+same installed binary hash above.
+
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
 character and account cleanly.
@@ -167,6 +178,54 @@ and restarts the same installed executable. Never replace it with a raw
 `vmerchant sink` command. The August 2 passing artifacts are
 `/tmp/luminari-vessel-campaign-1000/runs/20260802T065410Z-1061371` and
 `/tmp/luminari-vessel-merchant-check-1000/runs/20260802T065717Z-1068792`.
+
+## Fast Blackwake Derelict Discovery
+
+After installing the current candidate, provision the tracked Blackwake
+content and run its reversible discovery path:
+
+```bash
+./scripts/provision_vessel_derelict.sh
+./scripts/test_vessel_derelict_in_game.sh
+```
+
+Both commands refuse production, dirty source, stale binaries, identity/VNUM
+collisions, and active ferry or scale workers. The provisioner merges object
+VNUMs 70010-70012 and DG trigger VNUMs 70010-70014 into reserved zone 700,
+applies the Phase 11 prerequisite and idempotent derelict content SQL, and
+creates at most one ownerless `Blackwake Derelict` at `(-533, 330)`. Actual
+Kohdee sessions traverse its generated bridge, crew quarters, cargo hold, and
+main deck before and after a hard restart. The provisioned fixture remains for
+repeatable development exploration.
+
+The acceptance harness requires a Kohdee baseline with no existing Blackwake
+objects or discovery variables. With the MUD stopped, it snapshots Kohdee's
+player file, player index, object file, optional legacy variable file,
+`player_data.obj_save_header`, and every matching `player_save_objs` row
+before any preflight login. It then uses ordinary in-game commands to prove
+the missing-clue refusal, recover and read the captain log, recover the chart,
+and leave cargo salvage gated. Because DG command triggers intentionally skip
+level-33-and-higher staff targets, the reversible session sets Kohdee to level
+30 in game; cleanup restores the exact level-34 baseline.
+
+After a hard server restart, the harness studies the persisted chart, recovers
+one bronze tidefinder, invokes the production `salvage` command, and requires
+an exact 180-gold increase. Both the file-backed and database-backed object
+stores must contain exactly one log, one chart, and no tidefinder after
+salvage; all five DG variables must be in the ASCII player file. Cleanup stops
+the MUD, restores and compares both persistence mirrors, verifies the derelict
+identity is unchanged, and starts the same installed binary without logging
+Kohdee back in.
+
+The passing artifacts are
+`/tmp/luminari-vessel-derelict-1000/runs/20260802T072737Z-1135588` and
+`/tmp/luminari-vessel-derelict-check-1000/runs/20260802T075751Z-1199403`.
+An earlier transcript displayed two logs and charts because its preflight had
+loaded stale database rows before the old file-only snapshot; it was not a
+core double-load. The current harness moves the snapshot boundary ahead of
+preflight and restores both object-save mirrors, so any future `(2)` stack is
+a real failure. Optional first-finder naming is not enabled for this initial
+derelict.
 
 ## Fast HUNTED Bounty-Hunter Check
 

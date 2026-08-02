@@ -2,8 +2,9 @@
 
 **Last audited:** August 2, 2026
 
-**Status:** Mechanics through Phase 15 and the first Luminari campaign shipping
-package are implemented. The core development release gates for build,
+**Status:** Mechanics through Phase 15, the first Luminari campaign shipping
+package, and the first data/DG-driven derelict are implemented. The core
+development release gates for build,
 regression, Memcheck, bounded ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
 boundaries, native MSDP, named-water crossing, captain-channel isolation, and
@@ -54,6 +55,23 @@ passes in 22 seconds: merchant 18 generation 1 was sunk, 165 standing and a
 route, and schedule, and cleanup byte-restored Kohdee and every snapshotted
 vessel/economy table.
 
+**Derelict-content checkpoint (August 2, 2026, 10:59 IDT):** The tracked
+Blackwake package supplies three object records, five DG triggers, an
+idempotent prototype/mapping migration with verification and guarded rollback,
+and a collision-sensitive development provisioner. Provision run
+`/tmp/luminari-vessel-derelict-1000/runs/20260802T072737Z-1135588` passed in 61
+seconds: actual Kohdee traversed all four generated rooms, and slot 8,
+prototype 17, coordinates `(-533, 330)`, rooms 70160-70163, and all three room
+trigger mappings remained stable across a hard restart. Reversible discovery
+run `/tmp/luminari-vessel-derelict-check-1000/runs/20260802T075751Z-1199403`
+passed in 55 seconds on source `a390a387`. Actual Kohdee followed the gated
+log-to-chart-to-cargo chain across another hard restart, retained exactly one
+log and chart in both object-save mirrors, salvaged one tidefinder for 180
+gold, persisted all five DG variables, and then restored the original player,
+index, object, optional legacy-variable, database-header, and database-object
+state exactly. First-finder naming is intentionally not enabled for this
+initial derelict; it remains an optional, non-release-blocking extension.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -66,12 +84,12 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 14 top-level items: 4 living-world content,
+**Remaining checklist:** 13 top-level items: 3 living-world content,
 5 player-experience/presentation, and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
 
-- [ ] Add data- and DG-driven derelicts with explorable interiors, salvage,
+- [x] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
 - [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and
   `path_data` river travel for rafts and boats.
