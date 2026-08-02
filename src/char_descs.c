@@ -15,7 +15,7 @@
 #include "race.h"
 #include "dgscript/dg_scripts.h"
 #include "class.h"
-#include "mail.h"
+#include "comms/mail.h"
 #include "roleplay.h"
 #include "character_creation.h"
 #include "net/onboarding.h"

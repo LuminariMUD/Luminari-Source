@@ -12,7 +12,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "boards.h"
+#include "comms/boards.h"
 #include "genolc.h"
 #include "genwld.h"
 #include "genzon.h"

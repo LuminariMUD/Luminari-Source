@@ -15,7 +15,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
-#include "boards.h"
+#include "comms/boards.h"
 #include "oasis.h"
 #include "genolc.h"
 #include "genzon.h"

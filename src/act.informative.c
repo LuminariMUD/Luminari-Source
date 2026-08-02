@@ -24,7 +24,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
-#include "mail.h" /**< For the has_mail function */
+#include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
 #include "class.h"
 #include "race.h"
@@ -55,8 +55,8 @@
 #include "craft/crafting_new.h"
 #include "roleplay.h"
 #include "magic/spell_prep.h"
-#include "boards.h"
-#include "mysql_boards.h" /* MySQL board system */
+#include "comms/boards.h"
+#include "comms/mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
 #include "routing.h"
 #include "perks.h"

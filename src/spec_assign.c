@@ -16,8 +16,8 @@
 #include "interpreter.h"
 #include "spec_procs.h"
 #include "ban.h" /* for SPECIAL(gen_board) */
-#include "boards.h"
-#include "mail.h"
+#include "comms/boards.h"
+#include "comms/mail.h"
 #include "treasure.h"
 #include "missions.h"
 #include "hunts.h"

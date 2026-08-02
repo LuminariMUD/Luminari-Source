@@ -26,7 +26,7 @@
 #include "comm.h"        /* descriptor_list etc */
 #include "interpreter.h" /* one_argument() etc */
 #include "modify.h"      /* string_write etc */
-#include "ibt.h"
+#include "comms/ibt.h"
 #include "clan.h"
 
 /* Static internal (only used in clan_edit.c) functions */

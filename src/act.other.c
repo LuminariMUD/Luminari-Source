@@ -33,7 +33,7 @@
 #include "spec_procs.h"
 #include "class.h"
 #include "combat/fight.h"
-#include "mail.h" /* for has_mail() */
+#include "comms/mail.h" /* for has_mail() */
 #include "shop.h"
 #include "quest.h"
 #include "modify.h"

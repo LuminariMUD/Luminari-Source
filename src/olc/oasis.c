@@ -25,7 +25,7 @@
 #include "act.h"
 #include "handler.h" /* for is_name */
 #include "quest.h"
-#include "ibt.h"
+#include "comms/ibt.h"
 #include "msgedit.h"
 #include "craft/crafts.h" /* NewCraft */
 

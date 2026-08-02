@@ -415,7 +415,7 @@ set(SRC_C_FILES
     src/ban.c
     src/bardic_performance.c
     src/olc/bedit.c
-    src/boards.c
+    src/comms/boards.c
     src/craft/brew.c
     src/bsd-snprintf.c
     src/olc/cedit.c
@@ -480,7 +480,7 @@ set(SRC_C_FILES
     src/house.c
     src/olc/hsedit.c
     src/hunts.c
-    src/ibt.c
+    src/comms/ibt.c
     src/olc/improved-edit.c
     src/interpreter.c
     src/introduce.c
@@ -488,7 +488,7 @@ set(SRC_C_FILES
     src/limits.c
     src/lists.c
     src/magic/magic.c
-    src/mail.c
+    src/comms/mail.c
     src/olc/medit.c
     src/magic/metamagic_science.c
     src/missions.c
@@ -507,8 +507,8 @@ set(SRC_C_FILES
     src/mud_event.c
     src/mud_event_list.c
     src/mysql.c
-    src/mysql_boards.c
-    src/new_mail.c
+    src/comms/mysql_boards.c
+    src/comms/new_mail.c
     src/olc/oasis.c
     src/olc/oasis_copy.c
     src/olc/oasis_delete.c

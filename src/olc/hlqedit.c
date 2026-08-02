@@ -10,7 +10,7 @@
 #include "comm.h"
 #include "utils.h"
 #include "db.h"
-#include "boards.h"
+#include "comms/boards.h"
 #include "handler.h"
 #include "oasis.h"
 #include "interpreter.h"

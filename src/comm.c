@@ -75,7 +75,7 @@
 #include "dgscript/dg_event.h"
 #include "screen.h"    /* to support the gemote act type command */
 #include "constants.h" /* For mud versions */
-#include "boards.h"
+#include "comms/boards.h"
 #include "act.h"
 #include "ban.h"
 #include "olc/msgedit.h"
@@ -83,13 +83,13 @@
 #include "magic/spells.h" /* for affect_update */
 #include "modify.h"
 #include "quest.h"
-#include "ibt.h" /* for free_ibt_lists */
+#include "comms/ibt.h" /* for free_ibt_lists */
 #include "mud_event.h"
 #include "clan.h"
 #include "clan_economy.h"
-#include "class.h"    /* needed for level_exp for prompt */
-#include "mail.h"     /* has_mail() */
-#include "new_mail.h" /* new mail system on prompt */
+#include "class.h"          /* needed for level_exp for prompt */
+#include "comms/mail.h"     /* has_mail() */
+#include "comms/new_mail.h" /* new mail system on prompt */
 #include "screen.h"
 #include "mudlim.h"
 #include "actions.h"

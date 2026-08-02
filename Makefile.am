@@ -47,9 +47,9 @@ circle_SOURCES = \
 	src/character_creation_content.c \
 	src/ban.c \
 	src/bardic_performance.c \
-	src/boards.c \
+	src/comms/boards.c \
 	src/olc/bedit.c \
-	src/mysql_boards.c \
+	src/comms/mysql_boards.c \
 	src/bsd-snprintf.c \
 	src/craft/brew.c \
 	src/olc/cedit.c \
@@ -116,7 +116,7 @@ circle_SOURCES = \
 	src/house.c \
 	src/olc/hsedit.c \
 	src/hunts.c \
-	src/ibt.c \
+	src/comms/ibt.c \
 	src/olc/improved-edit.c \
 	src/interpreter.c \
 	src/introduce.c \
@@ -124,7 +124,7 @@ circle_SOURCES = \
 	src/limits.c \
 	src/lists.c \
 	src/magic/magic.c \
-	src/mail.c \
+	src/comms/mail.c \
 	src/olc/medit.c \
 	src/magic/metamagic_science.c \
 	src/missions.c \
@@ -143,7 +143,7 @@ circle_SOURCES = \
 	src/mud_event.c \
 	src/mud_event_list.c \
 	src/mysql.c \
-	src/new_mail.c \
+	src/comms/new_mail.c \
 	src/olc/oasis.c \
 	src/olc/oasis_copy.c \
 	src/olc/oasis_delete.c \

@@ -13,7 +13,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
-#include "mail.h" /**< For the has_mail function */
+#include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
 #include "class.h"
 #include "race.h"

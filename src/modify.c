@@ -17,16 +17,16 @@
 #include "db.h"
 #include "comm.h"
 #include "magic/spells.h"
-#include "mail.h"
-#include "boards.h"
-#include "mysql_boards.h" /* MySQL board system */
+#include "comms/mail.h"
+#include "comms/boards.h"
+#include "comms/mysql_boards.h" /* MySQL board system */
 #include "olc/improved-edit.h"
 #include "olc/oasis.h"
 #include "class.h"
 #include "dgscript/dg_scripts.h" /* for trigedit_string_cleanup */
 #include "modify.h"
 #include "quest.h"
-#include "ibt.h"
+#include "comms/ibt.h"
 #include "constants.h"
 #include <mariadb/mysql.h> // We add this for additional mysql functions such as mysql_insert_id, etc.
 #include "mysql.h"         // For mysql_escape_string_alloc

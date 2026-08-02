@@ -17,7 +17,7 @@
 #include "interpreter.h"
 #include "helpers.h"
 #include "mysql.h"
-#include "mysql_boards.h"
+#include "comms/mysql_boards.h"
 
 /*-------------------------------------------------------------------*/
 /* External variables */

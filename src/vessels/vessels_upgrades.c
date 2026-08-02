@@ -15,7 +15,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
-#include "new_mail.h"
+#include "comms/new_mail.h"
 
 extern MYSQL *conn;
 extern bool mysql_available;

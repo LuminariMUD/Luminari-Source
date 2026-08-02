@@ -18,7 +18,7 @@
 #include "comm.h"
 #include "handler.h"
 #include "magic/spells.h"
-#include "mail.h"
+#include "comms/mail.h"
 #include "interpreter.h"
 #include "house.h"
 #include "constants.h"
@@ -38,7 +38,7 @@
 #include "modify.h"
 #include "shop.h"
 #include "quest.h"
-#include "ibt.h"
+#include "comms/ibt.h"
 #include "spec_artifacts.h"
 #include "mud_event.h"
 #include "ai_service.h"
@@ -62,7 +62,7 @@
 #include "wilderness/wilderness.h"
 #include "wilderness/resource_system.h"
 #include "mysql.h"
-#include "mysql_boards.h" /* MySQL board system */
+#include "comms/mysql_boards.h" /* MySQL board system */
 #include "db_init.h"
 #include "feats.h"
 #include "actionqueues.h"

@@ -20,7 +20,7 @@
 #include "account.h"
 #include "magic/spells.h"
 #include "handler.h"
-#include "mail.h"
+#include "comms/mail.h"
 #include "screen.h"
 #include "olc/genolc.h"
 #include "olc/oasis.h"
@@ -41,7 +41,7 @@
 #include "asciimap.h"
 #include "olc/prefedit.h"
 #include "wilderness/resource_system.h" /* Phase 5: Wilderness harvesting commands */
-#include "ibt.h"
+#include "comms/ibt.h"
 #include "mud_event.h"
 #include "race.h"
 #include "clan.h"
@@ -60,7 +60,7 @@
 #include "bardic_performance.h"
 #include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
-#include "new_mail.h"
+#include "comms/new_mail.h"
 #include "craft/alchemy.h"
 #include "helpers.h"
 #include "staff_events.h"
@@ -83,7 +83,7 @@
 #include "craft/brew.h"
 #include "talents.h" /* crafting/harvesting talent system */
 #include "mysql.h"
-#include "mysql_boards.h"
+#include "comms/mysql_boards.h"
 #include "olc/bedit.h" /* MySQL board system */
 #include "spec_artifacts.h"
 #include "net/onboarding.h"

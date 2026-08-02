@@ -18,7 +18,7 @@
 #include "dgscript/dg_olc.h"
 #include "handler.h"
 #include "interpreter.h"
-#include "boards.h" /* for board_info */
+#include "comms/boards.h" /* for board_info */
 #include "craft/craft.h"
 #include "magic/spells.h"
 #include "spec_procs.h"
