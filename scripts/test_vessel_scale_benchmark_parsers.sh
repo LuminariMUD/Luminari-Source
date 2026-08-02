@@ -97,6 +97,23 @@ for required_table in vessel_merchant_consequences vessel_npc_merchants; do
     fail "scale-runner snapshot omits mutable table $required_table"
 done
 
+msdp_boundary_update=$(awk '
+  /^SET @msdp_ship =/ {
+    selected = 1
+  }
+  selected && /^UPDATE ship_runtime_state$/ {
+    capture = 1
+  }
+  capture {
+    print
+  }
+  capture && /WHERE ship_id = @msdp_ship;/ {
+    exit
+  }
+' "$runner")
+grep -Eq 'autopilot_state[[:space:]]*=[[:space:]]*3' <<<"$msdp_boundary_update" ||
+  fail "scale-runner airship boundary fixture is not paused at its ceiling"
+
 live_input="$test_root/live-input.log"
 live_output="$test_root/live-output.tsv"
 printf '%s\n' \

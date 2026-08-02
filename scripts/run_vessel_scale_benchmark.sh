@@ -1232,7 +1232,8 @@ SET @msdp_ship = (
   SELECT MIN(ship_id) FROM ship_interiors WHERE vessel_type = 4
 );
 UPDATE ship_runtime_state
-   SET z = 500
+   SET z = 500,
+       autopilot_state = 3
  WHERE ship_id = @msdp_ship;
 
 SET @combat_ship_a = (

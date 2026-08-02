@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.8
+**Version:** 3.9
 
 **Evidence snapshot:** August 2, 2026
 
@@ -23,6 +23,7 @@ from the full live-game benchmark that still must be run.
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
+| First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -186,10 +187,25 @@ rejects overlaps.
 ### Reproducible Development Workload
 
 `scripts/run_vessel_scale_benchmark.sh` now defines the development-only
-workload and evidence contract. It remains unexecuted against the current
-installed candidate. Before launching it, confirm that no legacy ferry monitor
-still owns the server. The runner's presence is not evidence that the live
-25 ms gate passes.
+workload and evidence contract. Its first current-candidate attempt reached the
+complete 500-slot workload but stopped before measurement; a terminal rerun is
+still required. Before launching it, confirm that no legacy ferry monitor
+still owns the server. The runner's presence or premeasurement progress is not
+evidence that the live 25 ms gate passes.
+
+The retained attempt is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
+Actual Kohdee passed harbor fare/restoration, named-water and same-account
+channel checks, spawned slots through 500 across all classes, ran the
+1,000-trade simulation, and inspected reconstructed schedule, crew, cargo, and
+Z state. It then failed the airship ceiling assertion before profiler reset.
+The transcript showed the configured airship at Z 480 rather than the seeded
+Z 500 because its active autopilot moved during the login delay; `setsail up`
+validly reached 490. The corrected fixture persists that one airship in paused
+state at Z 500 until Kohdee tests the rejection, then resumes the route for
+live altitude variation. Cleanup restored the six-row baseline and restarted
+the unchanged installed candidate. No timing or memory result from this run is
+valid release evidence.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

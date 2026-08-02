@@ -422,6 +422,18 @@ built and installed, launch the development-only scale gate with:
 ./scripts/run_vessel_scale_benchmark.sh status
 ```
 
+The August 2 first current-candidate attempt is a retained premeasurement
+`FAIL` at
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
+It reached all 500 active slots and passed harbor, channel, economy, and live
+workload setup, but the airship had descended from its seeded Z 500 to 480
+before Kohdee issued the ceiling command. The valid 480 to 490 climb therefore
+did not produce the expected rejection. The runner now persists that boundary
+airship paused at Z 500 until the command, then resumes its route for measured
+Z variation. Cleanup restored the six-vessel baseline and restarted the exact
+installed candidate. This is harness-regression evidence only; start a fresh
+1,800-second run for the release result.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

@@ -160,6 +160,17 @@ the harbor provisioner and all installed-character component gates itself;
 running those commands separately before it wastes time and produces
 fragmented evidence. Poll its `status` command for the one terminal result.
 
+The August 2 first current-candidate run stopped before measurement under
+artifact
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
+It reached slot 500 and passed the harbor, channel, economy, and other live
+workload setup. Its airship started with active autopilot and descended from
+the seeded ceiling to Z 480 before Kohdee reached it, so the valid 480 to 490
+manual climb could not satisfy the rejection assertion. The fixture now holds
+that one airship paused at Z 500 through the boundary command and resumes it
+afterward. Cleanup restored the exact six-vessel baseline. Do not treat this
+premeasurement harness failure as performance evidence; rerun the gate.
+
 For the builder-independence timing gate, run:
 
 ```bash

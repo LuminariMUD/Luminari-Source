@@ -89,6 +89,20 @@ the proven Autotools SHA-256 and removed the root artifact after CMake; a clean
 restart now maps that exact installed path on PID 324960. Next run the bounded
 500-vessel scale gate.
 
+The first current scale attempt is preserved at
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
+Harbor, fare, crossing, channel, 500-slot construction, the 1,000-trade
+simulation, cargo/crew/schedule reconstruction, and the live Z commands all
+ran, but the worker stopped before measurement because it did not observe the
+airship ceiling rejection. The transcript proves a fixture race: the airship
+was persisted at Z 500 with active autopilot and descended to 480 before
+Kohdee reached it, so `setsail up` correctly moved to 490. The fixture now
+persists that one airship paused at Z 500 until Kohdee tests the rejection,
+and its tooling regression enforces that invariant. Cleanup restored all six
+baseline vessels and restarted the unchanged installed binary on PID 342927.
+Rerun the bounded gate; this artifact contains no performance sample and does
+not close any scale item.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

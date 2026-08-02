@@ -47,6 +47,12 @@
   player-specials. The current full-suite Memcheck exposed one 24-byte perk
   node retained by a temporary Bard fixture through the ordinary
   `free_char()` path.
+- The scale fixture now persists its boundary-test airship paused at Z 500
+  until Kohdee attempts to climb above the class ceiling. Active autopilot had
+  moved the hull to Z 480 during the login delay, turning the intended
+  rejection into a valid climb to 490 and aborting the first current run
+  before measurement. The parser/tooling regression now locks this fixture
+  invariant.
 
 #### Validated
 
@@ -100,6 +106,11 @@
   required follow-up `make install` restores the exact proven Autotools binary
   after CMake writes its debug server target into `bin/`, removes the root
   artifact, and a clean restart maps that installed path.
+- The first current 500-ship attempt is retained under
+  `20260802T003029Z-328201`. It passed harbor setup, reached ship 500, recorded
+  the in-game 1,000-trade and live workload transcripts, then stopped before
+  profiler reset on the airship fixture race. Cleanup restored all six
+  baseline vessel rows and restarted the unchanged installed candidate.
 
 ### Durable HUNTED bounty-hunter patrols
 
