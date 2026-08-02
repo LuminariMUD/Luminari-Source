@@ -13,9 +13,9 @@ trails. At that scale revision, all 277 production-linked tests, strict
 actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
 passed; its normal binary SHA-256 was
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later frontier candidate passes 278 production-linked tests and installs
-SHA-256
-`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+The later Phase 16 event candidate passes 282 production-linked tests and
+installs SHA-256
+`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
 Repeat the scale gate during final preflight because the source changed after
 the recorded 500-vessel run.
 
@@ -49,7 +49,17 @@ to prove River and Ocean travel, three warship weapons without firing, a Z -90
 dive, a Z 100 speed lane, a Z 200 sky island, 40,000-pound freight capacity,
 and magical traversal across land, water, depth, and altitude. The run purges
 every temporary hull, returns Kohdee to room 1204, and completes in 75 seconds
-on source `873171ae` and the current installed hash.
+on source `873171ae` and installed SHA-256
+`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+
+Phase 16 showcase events pass actual-character acceptance under
+`/tmp/luminari-vessel-event-check-1000/runs/20260802T100241Z-1463421`.
+Kohdee won a one-cell River regatta, scored live damage for the winning red
+skirmish team, hit one of three generated ghost warships, and appeared by name
+on all three durable leaderboards. The 61-second reversible run restored the
+player file and four event tables to identical hashes, left no temporary hull
+or runtime row, and restarted the exact installed candidate from source
+`9ffe75d0`.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -277,6 +287,32 @@ The passing artifact is
 `/tmp/luminari-vessel-frontier-1000/runs/20260802T091531Z-1364409`; the complete
 character transcript is `03-kohdee-vessel-frontier.log` inside it.
 
+## Fast Vessel Showcase Events
+
+After the frontier prototypes exist and the current clean candidate is built
+and installed, run:
+
+```bash
+./scripts/test_vessel_events_in_game.sh
+```
+
+Do not run the destructive staff sequence manually. The development-only
+harness applies and verifies the Phase 16 schema and `VEVENT` help, snapshots
+Kohdee plus all event tables, and uses one real session to run a regatta, a
+two-team fleet skirmish, and a three-warship ghost event. It derives the raft
+and warship prototype IDs from the database and derives each fleet target ID
+from the spawned slot, so no acceptance ID is hardcoded.
+
+Success requires first-place movement scoring, live `shipfire` damage for both
+combat event types, one leaderboard increment and win per type, Kohdee's
+player-file name on each board, zero ghost/runtime residue, and room 1204. The
+exit trap cancels interrupted state, removes only matching temporary hulls,
+restores and byte-compares the exact snapshots with the MUD stopped, and
+restarts the tested binary without logging in again. The August 2 run passed
+in 61 seconds with event-table hash
+`b866266367d4fa5ffca865001a792cd258113e928f69c55e4558cf7536705ec2`
+before and after cleanup.
+
 ## Fast HUNTED Bounty-Hunter Check
 
 After installing and provisioning the current candidate, run:
@@ -288,7 +324,7 @@ After installing and provisioning the current candidate, run:
 This development-only check uses the existing master account and exact
 level-34 character `Kohdee`; it does not create an account or character. It
 refuses to run while a ferry soak or scale worker owns the server and requires
-the running executable to match the current installed Phase 15 binary.
+the running executable to match the current installed binary.
 
 The script snapshots Kohdee's exact `vessel_bounties` and
 `vessel_bounty_hunts` rows, temporarily sets the HUNTED threshold, and uses one
@@ -516,7 +552,7 @@ suppression, schedules, memory samples, SQL volume, and the complete 500-ship
 tick profile. It then restores the pre-run database. Running the standalone
 harbor, channel, economy, or MSDP commands first only duplicates work.
 
-The current suite result is 268 of 268. The preceding pre-Phase15 Memcheck
+The current suite result is 282 of 282. The preceding 277-test Memcheck
 gate reported zero errors and zero definite, indirect, or possible loss;
 repeat the command above for the current candidate. Reachable process-lifetime
 registries and profiler buffers remain reported but are not classified as
@@ -527,7 +563,7 @@ removes that root artifact before the runner records provenance. Root
 process-memory, and scale-parser regressions; the release manifest includes
 the login, ferry, scale, memory, and supporting vessel test scripts. It also
 includes the complete harbor world fixture, vessel docs, authoritative help
-data, master schema, and every Phase 2-15 install/verify/rollback input needed
+data, master schema, and every Phase 2-16 install/verify/rollback input needed
 to reproduce this guide from a packaged source tree.
 
 ## Reproducible 500-Vessel Scale Gate
@@ -1142,13 +1178,13 @@ For the exhaustive vessel release check, use the single-command form:
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from
 `src/interpreter.c`, adds the intentionally ungated boarding and staff recovery
 commands, and verifies the resulting set in one Kohdee login. The current
-source derives 78 keywords. On August 2, 2026 the first sweep correctly found
+source derives 79 keywords. On August 2, 2026 the first sweep correctly found
 that the development database had not yet received the tracked `SHIPTALK`
 mapping. Applying `sql/components/help_vessel_entries.sql`, running
 `sql/components/verify_help_vessel_entries.sql`, and restarting the MUD made
-all five SQL checks pass and all 78 keywords resolve in one 41-second Kohdee
-session. This replaces one login cycle per keyword and automatically includes
-newly gated commands.
+all five SQL checks pass and all 79 keywords, including `VEVENT`, resolve in
+one 39-second Kohdee session. This replaces one login cycle per keyword and
+automatically includes newly gated commands.
 
 Use the remainder of this document only to diagnose a failed fast-path run or
 to perform the process manually.

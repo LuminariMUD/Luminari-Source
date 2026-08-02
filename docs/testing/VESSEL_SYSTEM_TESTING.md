@@ -8,21 +8,22 @@ findings are tracked in
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
-Blackwake derelict discovery gate, the wilderness frontier gate, and the
-current candidate's focused build gates pass on local development.**
+Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
+showcase-event gate, and the current candidate's focused build gates pass on
+local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 278 production-linked tests. The
+The current normal candidate passes all 282 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
+`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -207,6 +208,48 @@ installed SHA-256
 The complete command transcript is `03-kohdee-vessel-frontier.log` in that
 artifact directory. This run also validates the fixed `reglist type` and
 `pathlist type` dispatch and River `shipstatus` label.
+
+## Showcase Event Check
+
+After provisioning the frontier prototypes and installing a clean candidate,
+run the reversible Phase 16 acceptance:
+
+```bash
+./scripts/test_vessel_events_in_game.sh
+```
+
+The development-only harness refuses production, stale or dirty source, active
+ferry/scale ownership, conflicting prototype runtimes, an incomplete 29-column
+schema, or an unresolved Kohdee player-file identity. It applies the
+idempotent Phase 16 schema and authoritative help, snapshots all four event
+tables plus their next event ID and Kohdee's exact player file, and starts the
+exact installed binary.
+
+One actual Kohdee session then completes three independent scenarios. A
+Sablebranch Raft joins a one-cell River regatta and must finish first. Two
+Starfall Bastions join opposite skirmish teams and a real `shipfire` hit must
+raise the red score. A third Bastion joins a three-contact ghost event, fires
+at a spawned ghost warship, and verifies that event completion removes all
+three temporary contacts. Each public leaderboard must show Kohdee by
+player-file identity. SQL then requires three completed histories, the
+expected placement/damage results, exactly one entry and win increment for
+every event type, no runtime ownership, and no ghost or prototype-runtime
+residue.
+
+The exit trap cancels an interrupted event, removes only hulls using the two
+known acceptance prototypes, stops the server, restores and byte-compares the
+event-table snapshot and player file, and restarts the same executable without
+another login. Run
+`/tmp/luminari-vessel-event-check-1000/runs/20260802T100241Z-1463421`
+passed in 61 seconds on source `9ffe75d0`. Kohdee placed first in one second,
+scored 12 live damage in both combat scenarios, and returned to room 1204.
+The before/restored event dumps both hash to
+`b866266367d4fa5ffca865001a792cd258113e928f69c55e4558cf7536705ec2`;
+the before/restored player files both hash to
+`f65a0c075ffc6cc866d0b2ad2cd6d31441492b7ebfe3ae189e82b32a93e673d3`.
+The final database held zero event, participant, leaderboard, runtime, ghost,
+or acceptance-prototype runtime rows, and the restarted process matched the
+installed SHA-256 above.
 
 ## Shared Harbor Merchant Loss Check
 
@@ -654,14 +697,17 @@ numbered gameplay flow:
   tracked idempotent migration and restarting produced 32 entries, 78 exact
   mappings, correct access levels, nonempty content, zero obsolete duplicates,
   and a database `Help Tag` for all 78 commands in one 41-second Kohdee login.
-- The current candidate maintains 32 authoritative entries and 78 exact
-  keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, and the Phase 15
-  `vesseldebug encounter` guidance. Production-linked coverage sends an
+- The current candidate maintains 33 authoritative entries and 79 exact
+  keywords, including `shiptalk`, `vtradecheck`, `vmerchant`, Phase 15
+  `vesseldebug encounter`, and Phase 16 `vevent` guidance. Production-linked
+  coverage sends an
   identified message between two different rooms of one vessel, proves an
   adjacent non-passenger receives nothing, and checks the ashore and silenced
   refusals. Both the MariaDB verifier and installed-build exhaustive help
   transcript now pass the entry, keyword, access, content, duplicate, and
-  channel-text checks. The installed-build two-character transcript also
+  channel-text checks. A current installed-build sweep resolved all 79
+  keywords through authoritative database tags in one 39-second Kohdee
+  session. The installed-build two-character transcript also
   passes on the current candidate and reuses the existing master account. The channel
   helper automatically selects another non-deleted account-menu character
   without a manual slot or Name lookup. A July 30 read-only database check
@@ -683,6 +729,11 @@ numbered gameplay flow:
   HUNTED threshold, warship/pilot policy, one-row target lifecycle, cooldown
   fields, indexes, and clean rollback. The active development database was not
   used for this rehearsal.
+- Phase 16 passes idempotent application and its live-development verifier:
+  four tables, 29 required columns, and no invalid history, participant,
+  leaderboard, or runtime rows. The actual-character event harness
+  additionally proves transactional leaderboard changes and exact snapshot
+  restoration.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.
@@ -834,6 +885,10 @@ numbered gameplay flow:
 
 ## Known Findings
 
+- Showcase leaderboards resolve gameplay player-file IDs through the player
+  index. Joining those IDs to the unrelated auto-increment
+  `player_data.player_idnum` key displayed a numeric fallback even for Kohdee -
+  FIXED and live-tested across all three Phase 16 leaderboards.
 - Legacy ship slot, `shipnum`, object value, and interior room mismatch -
   FIXED and live-tested.
 - Runtime-generated interior rooms are inserted in sorted VNUM order and

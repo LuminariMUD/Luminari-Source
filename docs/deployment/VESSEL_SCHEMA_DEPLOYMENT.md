@@ -42,10 +42,11 @@ tables.
 | 13 | `vessels_phase13_schema.sql` | `verify_vessels_phase13.sql` | `vessels_phase13_rollback.sql` | Piracy law keyed to geographic wilderness regions |
 | 14 | `vessels_phase14_schema.sql` | `verify_vessels_phase14.sql` | `vessels_phase14_rollback.sql` | Durable NPC merchant definitions and exactly-once consequences |
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
+| 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
 | Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes |
-| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 32 authoritative vessel and vehicle help entries covering 78 command keywords |
+| Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 79 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
 only on an isolated rehearsal database where ship id 99999 is known to be free,
@@ -66,6 +67,10 @@ prototypes, Phase 07 bounties, and Phase 09 runtime fleet slots without foreign
 keys. Retire active hunter hulls before rollback. Its rollback removes hunter
 policy, generation, cooldown, and terminal-reason history; it does not remove
 ordinary hull rows that were captured from the lifecycle.
+Phase 16 references Phase 04 prototypes and Phase 09 runtime fleet slots.
+Before rollback, end or cancel the active event and confirm that every tracked
+ghost hull has retired. Its rollback deletes event history, participant
+results, aggregate leaderboards, and runtime ownership rows.
 The campaign package depends on Phases 7, 13, and 14 plus the existing North
 and Central Vailand wilderness seaports and pilot mobile 31810. It owns four
 region identities, their vessel-law rows, one route and waypoint set, one
@@ -189,6 +194,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase15_schema.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase16_schema.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_derelict_content.sql
@@ -231,6 +238,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_phase15.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_phase16.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_derelict_content.sql
@@ -252,7 +261,10 @@ Also verify:
   one ownerless runtime, and the corresponding reviewed world records.
 - Exact frontier region thresholds and polygons, the 79-cell Sablebranch
   geometry plus spatial-index mirror, and eight spawnable prototype records.
-- All 78 vessel and vehicle command-keyword searches in the running game,
+- Four Phase 16 tables, all 29 required core columns, valid event lifecycle
+  values, valid participants, valid leaderboard aggregates, and no orphaned
+  ghost runtime ownership.
+- All 79 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
 
@@ -260,7 +272,7 @@ Do not use a single `ship_%` table count as the release verdict. Later phases
 also create `trade_commodities`, `port_commodities`, `freight_contracts`,
 `vessel_bounties`, `vessel_encounters`, `vessel_npc_merchants`,
 `vessel_merchant_consequences`, `vessel_hunter_encounters`, and
-`vessel_bounty_hunts`.
+`vessel_bounty_hunts`, plus the four `vessel_*event*` tables from Phase 16.
 
 ## Application Validation and Staged Rollout
 
@@ -307,6 +319,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_phase16_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase15_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase14_rollback.sql
@@ -333,8 +347,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 ```
 
 These scripts delete frontier content, derelict mappings and unreferenced
-definitions, hunter policy and lifecycle history, merchant definitions and
-consequences,
+definitions, showcase-event results and leaderboards, hunter policy and
+lifecycle history, merchant definitions and consequences,
 normalized weapons, insurance settlements, runtime snapshots, encounters,
 economy data, ownership state, prototypes, interiors, cargo, and crew. They do
 not remove the Blackwake world object/trigger records. Never run them merely

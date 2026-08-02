@@ -6,6 +6,25 @@
 
 #### Added
 
+- Phase 16 adds the public `vevent status`, `join`, and `leaderboard` actions
+  plus staff controls for movement-scored regattas, two-team fleet skirmishes,
+  one-to-five-warship ghost fleets, enlistment, completion, cancellation, and
+  recovery. Only one event may run at a time and every event has a one-hour
+  ceiling.
+- Four persistent Phase 16 tables retain event history, participant results,
+  aggregate leaderboards, and temporary ghost-hull ownership. Result
+  finalization is transactional; boot retires interrupted ghost hulls and
+  closes their event, while a failed cleanup remains explicitly recoverable.
+- Authoritative `VEVENT` help raises the maintained vessel/vehicle inventory
+  to 33 entries and 79 command keywords. A single 39-second Kohdee sweep
+  resolves every keyword through database help tags.
+- `scripts/test_vessel_events_in_game.sh` performs one reversible actual-Kohdee
+  regatta, skirmish, and ghost-fleet session. It validates live movement and
+  weapon scoring, durable leaderboard deltas, exact player/event-table
+  restoration, zero temporary residue, and restart of the exact candidate.
+- The complete vessel tick profile now samples Phase 16 deadline and event
+  finalization work as `vessel_events`; the bounded profiler contract contains
+  twelve rolling windows totaling 1.50 MiB.
 - Campaign-neutral bathymetric, altitude-lane, and sky-island wilderness
   region types use natural depth or vessel Z thresholds. `seastate` reports
   the active feature, and eligible airships or magical hulls receive a
@@ -58,6 +77,14 @@
 
 #### Fixed
 
+- Event leaderboards resolve gameplay player-file IDs through the authoritative
+  player index. The first live regatta exposed an invalid join against the
+  unrelated auto-increment `player_data.player_idnum`, which displayed
+  `Captain #8979` instead of `Kohdee`.
+- The event acceptance harness validates all 29 required Phase 16 columns and
+  restarts the development service after a failure between shutdown and the
+  reversible snapshot boundary. It also cross-checks Kohdee's player-file ID
+  with the player index before scoring assertions.
 - `reglist type <num>` and `pathlist type <num>` now dispatch to focused
   listings instead of silently paging every record. The type catalog exposes
   the three new region types and names path type 5 River.

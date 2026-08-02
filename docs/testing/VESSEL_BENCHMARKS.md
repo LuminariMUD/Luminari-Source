@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.23
+**Version:** 3.24
 
 **Evidence snapshot:** August 2, 2026
 
@@ -19,7 +19,9 @@ campaign-content, beta, production-snapshot, and rollout gates.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on August 2, 2026 | 277 of 277 passing | Current production-linked gate |
+| Pre-Phase16 root suite on August 2, 2026 | 277 of 277 passing | Full-scale candidate and current strict Memcheck baseline |
+| Phase 16 root suite on August 2, 2026 | 282 of 282 passing | Current production-linked gate; full scale must be repeated at preflight |
+| Phase 16 actual-character event gate | Regatta, skirmish, and ghost fleet pass; exact restoration | Current functional gate passes |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Current 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Current complementary stability gate passes |
@@ -148,14 +150,15 @@ threshold and operational effect must be documented before release.
 The July 30 instrumentation prerequisites are implemented and covered by the
 current production-linked root suite:
 
-- Section timings use a monotonic clock. The eleven explicitly sampled vessel
+- Section timings use a monotonic clock. The twelve explicitly sampled vessel
   benchmark sections each retain up to 16,384 rolling microsecond samples.
   Sampling is opt-in so ordinary command and special-function sections cannot
-  accumulate unbounded profiler memory. The eleven windows use about 1.38 MiB.
+  accumulate unbounded profiler memory. The twelve windows use 1.50 MiB.
 - The complete half-second vessel group is recorded as `vessel_tick`.
   Its separately attributed children are `vessel_autopilot`,
   `vessel_hunters`, `vessel_combat`, `vessel_crew_wages`, `vessel_upkeep`,
   `vessel_trade`, `vessel_weather`, `vessel_encounters`, and `vessel_msdp`.
+- Phase 16 event deadline/finalization work is recorded as `vessel_events`.
 - The 75-second schedule path is recorded separately as `vessel_schedules`.
 - Automated movement now resolves and validates its target wilderness room
   once in the central position update. The previous immediate
@@ -629,7 +632,7 @@ The runner:
 - Captures the fresh log created by the workload restart from byte zero and
   requires the 500-vessel boot success only in that file. Prior success or
   error lines in the truncated development log cannot create a false verdict.
-- Captures all eleven sampled vessel profiler rows plus missed-pulse,
+- Captures all twelve sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, and requires every selected schedule
   to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero
   `vessel_messages_throttled` count, proving the installed production tick
@@ -703,7 +706,7 @@ detailed-memory sampler, and scale-parser regressions. CMake registers the same
 three scripts as CTest cases; a clean CMake configuration ran all three
 successfully. Automake's release manifest now includes the ferry, scale,
 login, memory, and hunter tools plus the complete harbor, vessel documentation,
-help SQL, master schema, and Phase 2-15 install/verify/rollback chain. An
+help SQL, master schema, and Phase 2-16 install/verify/rollback chain. An
 August 1 `make dist` archive audit found zero missing documented vessel
 acceptance or schema-rehearsal inputs.
 
@@ -714,6 +717,16 @@ same-account captain channel. The Phase 15 Kohdee acceptance then passed in 64
 seconds across hunter creation, a hard restart with exact identity
 reattachment, pardon cleanup, target preservation, and exact baseline restore.
 These are functional component results, not 500-ship performance evidence.
+
+The Phase 16 candidate passes 282 production-linked tests and installs SHA-256
+`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
+Reversible actual-character run `20260802T100241Z-1463421` completes a regatta,
+two-team skirmish, and three-warship ghost event in 61 seconds. It proves live
+movement and damage scoring, one transactional leaderboard increment per type,
+captain-name resolution, zero runtime residue, byte-identical player/event
+snapshots, and an exact-binary restart. This closes the functional event gate;
+it does not replace a final 500-vessel rerun with the newly sampled
+`vessel_events` section.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
@@ -936,8 +949,10 @@ remaining bounded fleet gate must demonstrate:
 The fixed-memory foundation and historical automated-test snapshot are within
 their stated budgets. The one-hour-bounded actual-character ferry stability
 gate and the complete 500-ship performance and bounded-stability gate pass on
-development. Broad release still requires campaign content, human beta,
-production-snapshot rehearsal, balance sign-off, and staged rollout.
+development. Broad release still requires player-experience work, human beta,
+production-snapshot rehearsal, balance sign-off, and staged rollout. Repeat
+the scale gate during final preflight because Phase 16 added one sampled tick
+section after the recorded full run.
 
 Remaining benchmark and release work is tracked in
 [`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).

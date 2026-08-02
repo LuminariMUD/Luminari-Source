@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Core development acceptance passes; campaign content, beta, and rollout remain
+**Status:** Core development and living-world acceptance pass; player experience, beta, and rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -272,17 +272,20 @@ following are demonstrated on the development server:
 The core transport and gameplay layers are implemented: wilderness movement,
 interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
-operator tooling, and native MSDP ship state. The initial Vailand shipping
-package, data/DG-driven Blackwake derelict, and first wilderness frontier
-package also pass actual-character development acceptance. The frontier gate
-now gives all eight classes a demonstrated destination or capability: River
-travel, Ocean freight, broadside armament, high-altitude lanes, bathymetric
-diving, high-capacity transport, and magical multi-medium movement.
+operator tooling, native MSDP ship state, and staff-managed showcase events.
+The initial Vailand shipping package, data/DG-driven Blackwake derelict, and
+first wilderness frontier package also pass actual-character development
+acceptance. The frontier gate gives all eight classes a demonstrated
+destination or capability: River travel, Ocean freight, broadside armament,
+high-altitude lanes, bathymetric diving, high-capacity transport, and magical
+multi-medium movement. Phase 16 adds durable regatta, fleet-skirmish, and
+ghost-fleet history and leaderboards with bounded recovery; one reversible
+Kohdee session passes all three event types.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
-Memcheck, and development release-boundary checks pass. Remaining living-world
-events, player-experience work, human beta, production-snapshot rehearsal,
-balance, and staged rollout remain.
+Memcheck, and development release-boundary checks pass. Remaining
+player-experience work, human beta, production-snapshot rehearsal, balance,
+and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.

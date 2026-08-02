@@ -2,17 +2,18 @@
 
 **Last audited:** August 2, 2026
 
-**Status:** Mechanics through Phase 15, the first Luminari campaign shipping
+**Status:** Mechanics through Phase 16, the first Luminari campaign shipping
 package, the first data/DG-driven derelict, and the first wilderness frontier
-package are implemented. The core
+package are implemented. Regattas, fleet skirmishes, ghost-fleet events, and
+durable leaderboards also pass actual-character acceptance. The core
 development release gates for build,
 regression, Memcheck, bounded ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
 boundaries, native MSDP, named-water crossing, captain-channel isolation, and
 message throttling pass. The installed development candidate is not approved
-for production until the remaining living-world content, player experience,
-balance, beta, production-snapshot rehearsal, preflight, and staged rollout
-work below is complete.
+for production until the remaining player experience, balance, beta,
+production-snapshot rehearsal, preflight, and staged rollout work below is
+complete.
 
 **Current release checkpoint (August 2, 2026, 09:04 IDT):** Full run
 `/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`
@@ -92,6 +93,21 @@ hull and returned Kohdee to room 1204. End-to-end testing also repaired ignored
 `reglist type` and `pathlist type` filters, missing River status output, and an
 unspawnable airship speed. The production-linked suite passes 278 tests.
 
+**Showcase-event checkpoint (August 2, 2026, 13:03 IDT):** Phase 16 adds one
+staff-managed event at a time, a one-hour ceiling, movement-scored regattas,
+damage- and sinking-scored team skirmishes, temporary persistent ghost fleets,
+transactional result finalization, boot recovery, and public leaderboards.
+Reversible run
+`/tmp/luminari-vessel-event-check-1000/runs/20260802T100241Z-1463421`
+is terminal `PASS` in 61 seconds on source `9ffe75d0` and installed SHA-256
+`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
+Actual Kohdee placed first in a River regatta, dealt 12 live damage for the
+winning red skirmish fleet, and hit one of three spawned ghost warships. All
+three leaderboard rows advanced exactly once during the snapshot. Cleanup
+restored the player file and all four event tables to identical hashes, left
+zero event runtime or temporary hull rows, and restarted the exact candidate.
+The warning-free production-linked suite passes 282 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -104,8 +120,8 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 11 top-level items: 1 living-world content,
-5 player-experience/presentation, and 5 balance/beta/rollout.
+**Remaining checklist:** 10 top-level items: 5 player-experience/presentation
+and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
 
@@ -115,9 +131,8 @@ confirm no benchmark worker owns the development service.
   `path_data` river travel for rafts and boats.
 - [x] Give each of the eight vessel classes at least one unique destination or
   capability.
-- [ ] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
-  leaderboards. Optional showcase events may be deferred behind release
-  safety, but any deferral must be recorded in the general project backlog.
+- [x] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
+  leaderboards.
 
 ## 2. Finish Player Experience and Presentation
 
@@ -160,6 +175,6 @@ shared encounters, confirming the final shared-world encounter model.
 
 The backlog is complete only when every Must-have release criterion in
 [PRD.md](../../PRD.md) has evidence, all production gates pass, and no
-release-blocking item remains here. Optional cosmetics and showcase events may
-be explicitly deferred to the general project backlog; they must not be
-silently reported as complete.
+release-blocking item remains here. Optional cosmetics may be explicitly
+deferred to the general project backlog; they must not be silently reported as
+complete.

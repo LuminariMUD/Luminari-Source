@@ -1,8 +1,8 @@
 # LuminariMUD Vessel System Documentation
 
 **Release Status**: Gameplay layer, initial campaign shipping, initial
-data/DG-driven derelict, and wilderness frontier package implemented;
-production acceptance incomplete
+data/DG-driven derelict, wilderness frontier package, and Phase 16 showcase
+events implemented; production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -39,8 +39,8 @@ shipped when see [CHANGELOG.md](../CHANGELOG.md).
 The LuminariMUD Vessel System provides a transport and gameplay framework for
 water vessels, submarines, airships, and land vehicles. It combines wilderness
 navigation, multi-room interiors, automation, combat, ownership, crew, refits,
-cargo, trade, piracy, hazards, encounters, builder tooling, and operator
-controls in one system.
+cargo, trade, piracy, hazards, encounters, showcase events, builder tooling,
+and operator controls in one system.
 
 ### Design Goals
 
@@ -474,7 +474,7 @@ increment the process-wide `vessel_messages_throttled` performance counter.
 | listroutes | List routes | `listroutes` |
 | setroute | Assign route | `setroute <route>` |
 
-### Operator Commands (Phases 09, 14, and 15)
+### Operator Commands (Phases 09, 14, 15, and 16)
 
 | Command | Description | Usage |
 |---------|-------------|-------|
@@ -483,6 +483,7 @@ increment the process-wide `vessel_messages_throttled` performance counter.
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
 | vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
 | vesseldebug | Inspect debug state or advance the normal encounter cadence | `vesseldebug [status\|on ...\|off ...\|encounter]` |
+| vevent | Start, enlist, end, cancel, or recover a showcase event | `vevent <action>` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
 PRESSURE past 80% - the pool is shared with every wilderness traveller, so
@@ -567,6 +568,37 @@ hull starts the configured grace period. Pardon, expiry, grace, sinking, or
 staff purge removes the hunter and all of its normal persistence. Capture
 removes the Admiralty pilot and lifecycle but leaves the captured hull as an
 ordinary player vessel.
+
+### Showcase Event Commands (Phase 16)
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| vevent status | Show the active event, participants, scores, and objectives | `vevent status` |
+| vevent join | Enter the current vessel; a skirmish requires a team | `vevent join [red\|blue]` |
+| vevent leaderboard | Show durable event rankings | `vevent leaderboard [regatta\|skirmish\|ghost]` |
+| vevent start | Staff: open a regatta, skirmish, or ghost fleet | `vevent start <type> ...` |
+| vevent enlist | Staff: add another fleet hull to a skirmish | `vevent enlist <ship-slot> <red\|blue>` |
+| vevent end/cancel/recover | Staff: score, discard, or recover event state | `vevent <end\|cancel\|recover>` |
+
+Only one showcase event may be open. A regatta begins at the staff member's
+current wilderness coordinate and records a finish only when an entered hull
+moves onto the exact finish coordinate. Placement awards 100 points for first,
+90 for second, down to a minimum of 10. A skirmish awards the attacking fleet
+one point per live damage point and 100 more for a sink; every participant on
+the higher-scoring team receives a win. A ghost event creates one to five
+public warships at the staff coordinate through the normal prototype,
+interior, hull, weapon, and runtime persistence path. Damage and sinks score
+against those contacts, and the unique highest-scoring captain wins.
+
+Completion updates every leaderboard row and the terminal event status in one
+database transaction. A failed cleanup or score commit keeps the event in
+`recovery_failed` and blocks another start instead of repeating work each
+tick. Every event has a one-hour ceiling. Events do not resume after process
+restart: boot retires tracked ghost hulls and closes interrupted rows as
+`recovered`; a cleanup failure remains explicit for `vevent recover`. Captain
+IDs are gameplay player-file IDs, and leaderboard display resolves the current
+name through the authoritative player index rather than the unrelated
+`player_data.player_idnum` key.
 
 ### Cargo & Trade Commands (Phase 07)
 
@@ -924,7 +956,9 @@ subsystems at 500 ships. Both budgets pass on local development. The required
 complete ticks: median 599 usec, p95 4,079 usec, p99 5,169.06 usec, and maximum
 10,520 usec. Every measured subsystem maximum stayed below 25 ms. This accepts
 the development performance gate, not production rollout or long-horizon
-memory behavior.
+memory behavior. Phase 16 subsequently added the bounded `vessel_events`
+profiler section, so final preflight must repeat the full scale gate on the
+release candidate.
 
 See [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) for attribution,
 historical measurements, and the limits of the current evidence.
@@ -975,6 +1009,10 @@ historical measurements, and the limits of the current evidence.
 | `vessel_merchant_consequences` | Deduplicated faction and bounty events with delivery state |
 | `vessel_hunter_encounters` | Hunter warship, pilot, bounty, pursuit, duration, grace, and cooldown policy |
 | `vessel_bounty_hunts` | One durable hunter generation and terminal cooldown per target player |
+| `vessel_showcase_events` | Event type, course, staff owner, lifecycle, timing, and terminal reason |
+| `vessel_event_participants` | Per-event hull, captain, team, score, finish, placement, and status |
+| `vessel_event_leaderboards` | Durable entries, wins, points, and best regatta time per captain and type |
+| `vessel_event_runtimes` | Temporary ghost-hull ownership used by cleanup and boot recovery |
 
 ### Room Templates (19 default types)
 
@@ -1330,6 +1368,7 @@ and the trigger was removed.
 | `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
 | `src/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
 | `src/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
+| `src/vessels_events.c` | Regattas, skirmishes, ghost fleets, leaderboards, and recovery (Phase 16) |
 | `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
@@ -1347,6 +1386,7 @@ and the trigger was removed.
 | `scripts/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
 | `scripts/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
 | `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
+| `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
 
 ### Database
 
@@ -1366,6 +1406,7 @@ and the trigger was removed.
 | `sql/components/vessels_phase13_*` | Geographic piracy-law schema, rollback, and verification |
 | `sql/components/vessels_phase14_*` | NPC merchant schema, rollback, and verification |
 | `sql/components/vessels_phase15_*` | Bounty-hunter policy/lifecycle schema, rollback, and verification |
+| `sql/components/vessels_phase16_*` | Showcase-event history, results, leaderboards, runtime ownership, and rollback |
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
@@ -1552,8 +1593,8 @@ passes automated tests. Before rollout:
 2. Exercise cedit `Off` with an active route: gated commands must refuse,
    coordinates must remain fixed, and recovery commands must remain available.
 3. Require `vdebug status` to report that debug support is compiled out.
-4. Apply and verify every vessel schema component, then require all 32
-   maintained help entries and 78 command keywords to pass both SQL and in-game
+4. Apply and verify every vessel schema component, then require all 33
+   maintained help entries and 79 command keywords to pass both SQL and in-game
    checks.
 5. Verify reboot and copyover while under way, in combat, and carrying cargo.
 6. Pass the 500-vessel, 25 ms tick measurement and supervised stability check;
@@ -1588,7 +1629,11 @@ WHERE TABLE_SCHEMA = DATABASE()
                          'vessel_npc_merchants',
                          'vessel_merchant_consequences',
                          'vessel_hunter_encounters',
-                         'vessel_bounty_hunts'))
+                         'vessel_bounty_hunts',
+                         'vessel_showcase_events',
+                         'vessel_event_participants',
+                         'vessel_event_leaderboards',
+                         'vessel_event_runtimes'))
 ORDER BY TABLE_NAME;
 
 SELECT COUNT(*) FROM ship_room_templates;
@@ -1608,6 +1653,8 @@ or keyword count is insufficient once later phases extend the system.
 - `vessel_bounty_hunts` exposes each hunter's target, generation, active slot,
   expiry, cooldown, and terminal reason; investigate any long-lived
   `spawning` row or active row whose fleet identity no longer matches.
+- `vevent status` exposes the live event. Investigate `recovery_failed` event
+  rows or any `vessel_event_runtimes` row whose hull identity is missing.
 - Vessel debug categories provide focused development diagnostics. Candidate
   and production builds must report that support is compiled out.
 - Monitor database errors, orphan cleanup, wage and trade ticks, encounter spawn
