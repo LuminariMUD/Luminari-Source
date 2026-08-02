@@ -573,6 +573,20 @@ adds a record, and the root suite binary passes 275 of 275. Recheck the live
 trail row in the next installed 500-vessel run; do not close memory from the
 unit result alone.
 
+Diagnostic profile run `20260802T043120Z-786413` passed all live gates for 500
+vessels and held movement trails at exactly 0 from start through finish. The
+631-second world still added 669 mobiles and 125 objects while RSS rose 15,384
+KiB, so whole-world memory remains `REPORT_ONLY`; only the trail source is
+accepted. The installed binary used `-pg`, so its p95 54,790.75-usec and
+119,478-usec maximum are not release timing results.
+
+The preserved call graph attributes 14,379 of 14,926 runtime saves to port-
+berth transitions on public ships with no fee state. That accounts for nearly
+all 14,938 measured database executions and explains the synchronized
+autopilot stalls. Encounter ticks also made 3,528 synchronous queries. Rebuild
+normally only after fixing those two paths; do not reuse the profiling hash
+for release acceptance.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

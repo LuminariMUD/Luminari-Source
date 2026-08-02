@@ -307,6 +307,18 @@ increasing the live count and separately proves that player movement still
 adds a trail; the root suite binary passes 275 of 275. The next installed fleet
 run must show stable trail count and RSS before accepting the memory repair.
 
+Profile run `20260802T043120Z-786413` then passed every live 500-vessel gate
+and held movement trails at exactly zero for all 631 seconds. Mobiles increased
+by 669 and objects by 125 while RSS increased 15,384 KiB, so trail retention is
+accepted but whole-world memory remains `REPORT_ONLY`. Because the installed
+binary used `-pg`, its wall timings are diagnostic only.
+
+The retained call graph shows 14,379 false runtime saves from port-berth
+processing on public vessels with zero fee state, versus 14,938 total measured
+database executions. Encounter processing issued 3,528 additional synchronous
+queries. These are the next two production paths to fix before installing a
+normal build and repeating the fleet gate.
+
 For the builder-independence timing gate, run:
 
 ```bash

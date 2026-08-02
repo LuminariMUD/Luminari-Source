@@ -280,6 +280,25 @@ adds one. The root `cutest` binary passes 275 of 275 after this change. Memory
 stability remains open until an installed 500-vessel run confirms that trail
 count and RSS no longer grow with the awake mobile population.
 
+Profiling run
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T043120Z-786413`
+exercised that repair for 631 seconds with all 500 vessels and every functional
+gate passing. Movement trails remained exactly 0/0/0 while mobiles rose
+32,367 to 33,036 and objects 24,702 to 24,827. RSS still rose 785,324 to
+800,708 KiB, so broader full-world memory remains `REPORT_ONLY`, but NPC trail
+retention is accepted. The `-pg` binary is diagnostic rather than release
+timing evidence; its complete tick still failed at p95 54,790.75 and maximum
+119,478 usec.
+
+The preserved `gmon.out` and `gprof-report.txt` identify the blocking paths.
+Of 14,926 runtime saves, 14,379 came from `vessel_update_port_berth()` even
+though the public benchmark ships had zero fee state; those calls account for
+nearly all 14,938 measured database executions. Encounter ticks separately
+issued 3,528 synchronous queries. In contrast, 152,913 empty vehicle-sync
+scans made 152,913,000 array lookups but consumed only 0.15 seconds of sampled
+CPU. Fix the false dock-state persistence and cache encounter definitions
+before the next normal release build.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

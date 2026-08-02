@@ -226,6 +226,13 @@
 - The post-diagnostic root suite binary passes 275 of 275. Its new production-
   linked movement case proves NPC movement leaves the live trail count
   unchanged while the existing player movement case still creates a record.
+- Profiling run `20260802T043120Z-786413` passes every functional 500-vessel
+  gate and holds movement trails at 0/0/0 for 631 seconds, accepting the trail
+  repair. RSS still rises 15,384 KiB while the awake world adds 669 mobiles and
+  125 objects, so broader memory remains `REPORT_ONLY`. The diagnostic call
+  graph attributes 14,379 of 14,926 runtime saves to false port-berth state
+  changes and records 3,528 synchronous encounter queries. Raw `gmon.out` and
+  the generated report are retained with the run.
 
 ### Durable HUNTED bounty-hunter patrols
 

@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.18
+**Version:** 3.19
 
 **Evidence snapshot:** August 2, 2026
 
@@ -34,6 +34,7 @@ from the full live-game benchmark that still must be run.
 | Post-seventh repair candidate | 274/274 tests; actionable Memcheck clean | Installed; restart and scale rerun required |
 | Eighth current 500-ship diagnostic on August 2, 2026 | Completed 600-second window; 1,217 ticks; all functional gates passed | Tick latency and memory gates failed |
 | Post-eighth memory candidate | 275/275 production-linked tests | NPC trail growth removed; installed scale proof required |
+| Post-eighth profiling diagnostic | 631 seconds; 500 ships; trails 0/0/0 | Trail repair accepted; blocking SQL paths identified |
 | Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -426,6 +427,33 @@ and then proves the player path still creates a trail. The root `cutest`
 binary passes 275 of 275. This targets the exact 47,423-node correlated growth
 from the eighth run, but only a fresh installed fleet measurement can establish
 the memory verdict.
+
+Profiling run `20260802T043120Z-786413` exercised the NPC-trail repair for 631
+seconds with 500 ships and passed every functional gate. Initial, maximum, and
+final movement-trail counts were all zero. Mobiles rose from 32,367 to 33,036
+and objects from 24,702 to 24,827 while rooms remained fixed at 52,445. RSS
+rose 785,324 to 800,708 KiB and VSZ 887,764 to 902,852 KiB; threads stayed at
+two and descriptors at 11-12. The remaining 88,676-KiB/hour short-window RSS
+slope therefore correlates with normal full-world repopulation rather than
+vessel trail retention and remains `REPORT_ONLY`.
+
+This run used a `-pg` binary solely to collect a call graph, so its median
+1,145.50-usec, p95 54,790.75-usec, p99 91,739.46-usec, and maximum 119,478-
+usec tick timings are not release acceptance evidence. The synchronized stall
+shape remained and the profile isolated its blocking work:
+
+- 152,913 position updates called `vessel_update_port_berth()`.
+- 14,379 of 14,926 runtime-state saves came from that berth function even
+  though public benchmark vessels had no fee state to clear.
+- The run measured 14,938 database executions, so false berth persistence
+  accounts for nearly the entire SQL window.
+- Encounter ticks issued another 3,528 synchronous queries.
+- Empty loaded-vehicle synchronization performed 152,913,000 array lookups,
+  but sampled CPU time was only 0.15 seconds and is not the latency driver.
+
+The raw 3.0-MiB `gmon.out` and 959-KiB `gprof-report.txt` are retained with the
+run. Remove the false berth writes and cache encounter definitions, rebuild
+without profiling, and repeat the installed-candidate diagnostic.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
