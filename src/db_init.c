@@ -1521,6 +1521,7 @@ void init_vessel_system_tables(void)
 
   vessel_hunter_ensure_schema();
   vessel_merchant_ensure_schema();
+  vessel_event_ensure_schema();
   create_vessel_procedures();
 
   log("Info: Vessel system tables initialized successfully");

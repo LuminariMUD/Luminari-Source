@@ -221,6 +221,7 @@ circle_SOURCES = \
 	src/vessels_hazards.c \
 	src/vessels_hunters.c \
 	src/vessels_merchants.c \
+	src/vessels_events.c \
 	src/vessels_db.c \
 	src/vessels_docking.c \
 	src/vessels_edit.c \
@@ -260,6 +261,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
+	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -284,6 +286,7 @@ cutest_test_files = \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
+	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -373,6 +376,7 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase13.sql \
 	sql/components/verify_vessels_phase14.sql \
 	sql/components/verify_vessels_phase15.sql \
+	sql/components/verify_vessels_phase16.sql \
 	sql/components/vessels_harbor_sandbox.sql \
 	sql/components/vessels_phase2_rollback.sql \
 	sql/components/vessels_phase2_schema.sql \
@@ -398,6 +402,8 @@ EXTRA_DIST = \
 	sql/components/vessels_phase14_schema.sql \
 	sql/components/vessels_phase15_rollback.sql \
 	sql/components/vessels_phase15_schema.sql \
+	sql/components/vessels_phase16_rollback.sql \
+	sql/components/vessels_phase16_schema.sql \
 	sql/master_schema.sql \
 	README.md
 

@@ -1311,6 +1311,8 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   room_rnum old_room;
   bool old_is_port;
   bool position_changed;
+  int old_x;
+  int old_y;
 
   /* Validate ship number */
   if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS ||
@@ -1353,6 +1355,8 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   }
 
   old_room = NOWHERE;
+  old_x = (int)greyhawk_ships[shipnum].x;
+  old_y = (int)greyhawk_ships[shipnum].y;
   old_is_port = get_ship_terrain_type(shipnum) == SECT_SEAPORT;
   position_changed = new_x != (int)greyhawk_ships[shipnum].x ||
                      new_y != (int)greyhawk_ships[shipnum].y ||
@@ -1413,6 +1417,7 @@ bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_
   if (position_changed)
   {
     vessel_piracy_track_waters(&greyhawk_ships[shipnum], TRUE);
+    vessel_event_handle_move(shipnum, old_x, old_y, new_x, new_y);
   }
 
   VSSL_DEBUG_MOVE("Ship %d position updated to (%d,%d,%d) in room %d", shipnum, new_x, new_y, new_z,

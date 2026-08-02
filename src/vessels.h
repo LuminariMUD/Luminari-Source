@@ -516,6 +516,38 @@ ACMD_DECL(do_shiprepair); /* Slow at-sea repairs while stationary */
 ACMD_DECL(do_claimship);  /* Capture a ship from an uncontested bridge */
 
 /* ========================================================================= */
+/* SHOWCASE EVENTS AND LEADERBOARDS (Phase 16, vessels_events.c)              */
+/* ========================================================================= */
+
+enum vessel_event_type
+{
+  VESSEL_EVENT_NONE = 0,
+  VESSEL_EVENT_REGATTA = 1,
+  VESSEL_EVENT_SKIRMISH = 2,
+  VESSEL_EVENT_GHOST_FLEET = 3
+};
+
+#define VESSEL_EVENT_TEAM_NONE 0
+#define VESSEL_EVENT_TEAM_RED 1
+#define VESSEL_EVENT_TEAM_BLUE 2
+
+const char *vessel_event_type_name(enum vessel_event_type event_type);
+enum vessel_event_type vessel_event_type_from_name(const char *name);
+bool vessel_event_finish_reached(int old_x, int old_y, int new_x, int new_y,
+                                 int finish_x, int finish_y);
+int vessel_event_placement_points(int placement);
+int vessel_event_winning_team(int red_score, int blue_score);
+void vessel_event_ensure_schema(void);
+void vessel_event_boot(void);
+void vessel_event_tick(void);
+void vessel_event_handle_move(int shipnum, int old_x, int old_y,
+                              int new_x, int new_y);
+void vessel_event_record_damage(int attacker_ship_id, int target_ship_id,
+                                int amount);
+void vessel_event_handle_sink(int shipnum);
+ACMD_DECL(do_vevent);
+
+/* ========================================================================= */
 /* OWNERSHIP AND PERMISSIONS (Phase 06, vessels_ownership.c)                 */
 /* ========================================================================= */
 

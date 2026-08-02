@@ -1120,6 +1120,42 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('UNASSIGNPILOT', 'UNASSIGNPILOT');
 
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('VEVENT', 'Usage: vevent <action>
+
+Public actions:
+  vevent status
+    Show the active event, elapsed time, course or fleet contacts, roster,
+    placements, and scores.
+
+  vevent join [red|blue]
+    Enter the vessel you are piloting. Regatta entries must begin at the start
+    coordinate. Skirmish entries must choose the red or blue fleet.
+
+  vevent leaderboard [regatta|skirmish|ghost]
+    Show the top ten captains by wins, points, and best regatta time. With no
+    event type, show all three leaderboards.
+
+Staff actions:
+  vevent start regatta <finish-x> <finish-y>
+  vevent start skirmish
+  vevent start ghost <warship-prototype-id> [count 1-5]
+  vevent enlist <ship-slot> <red|blue>
+  vevent end | cancel | recover
+
+Regattas award placement points when a vessel first enters the exact finish
+coordinate. Fleet skirmishes score damage between opposing enlisted teams.
+Ghost fleets create temporary public warships and score damage plus sink
+bonuses. END records the leaderboard; CANCEL closes without recording it.
+
+Only one event may be open at a time. Events close after one hour. Ghost hulls
+are tracked durably and retired on END, CANCEL, or restart recovery.
+
+See also: VESSELS, SHIPFIRE, SHIPLIST, CONTACTS', 0, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VEVENT', 'VEVENT');
+
 -- Retire obsolete one-command vessel entries imported from old file help.
 -- search_help() displays only the first matching database row, so leaving these
 -- mappings in place makes the authoritative result nondeterministic. Preserve

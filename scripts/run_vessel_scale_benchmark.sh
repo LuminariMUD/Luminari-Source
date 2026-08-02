@@ -28,16 +28,21 @@ snapshot_tables=(
   vessel_bounties
   vessel_bounty_hunts
   vessel_encounters
+  vessel_event_leaderboards
+  vessel_event_participants
+  vessel_event_runtimes
   vessel_hunter_encounters
   vessel_insurance_claims
   vessel_merchant_consequences
   vessel_npc_merchants
+  vessel_showcase_events
 )
 vessel_perf_sections=(
   vessel_tick
   vessel_autopilot
   vessel_hunters
   vessel_combat
+  vessel_events
   vessel_crew_wages
   vessel_upkeep
   vessel_trade

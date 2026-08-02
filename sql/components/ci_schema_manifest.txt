@@ -41,6 +41,7 @@ skip verify_vessels_phase12.sql
 skip verify_vessels_phase13.sql
 skip verify_vessels_phase14.sql
 skip verify_vessels_phase15.sql
+skip verify_vessels_phase16.sql
 skip verify_vessels_schema.sql
 skip vessels_harbor_sandbox.sql
 skip vessels_phase2_rollback.sql
@@ -67,3 +68,5 @@ skip vessels_phase14_rollback.sql
 apply vessels_phase14_schema.sql
 skip vessels_phase15_rollback.sql
 apply vessels_phase15_schema.sql
+skip vessels_phase16_rollback.sql
+apply vessels_phase16_schema.sql

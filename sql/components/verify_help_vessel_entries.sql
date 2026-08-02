@@ -6,8 +6,8 @@
 SELECT
   'entry_count' AS check_name,
   COUNT(*) AS actual,
-  32 AS expected,
-  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
+  33 AS expected,
+  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
@@ -17,14 +17,14 @@ WHERE tag IN (
   'LISTROUTES', 'SETROUTE', 'SETSCHEDULE', 'CLEARSCHEDULE',
   'SHOWSCHEDULE', 'VMOUNT', 'VDISMOUNT', 'DRIVE', 'VSTATUS',
   'VEHICLE-TRANSPORT', 'VEHICLE-ADMIN', 'ASSIGNPILOT',
-  'UNASSIGNPILOT'
+  'UNASSIGNPILOT', 'VEVENT'
 );
 
 SELECT
   'command_keywords' AS check_name,
   COUNT(*) AS actual,
-  78 AS expected,
-  IF(COUNT(*) = 78, 'PASS', 'FAIL') AS result
+  79 AS expected,
+  IF(COUNT(*) = 79, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('VESSELS', 'BOARD'),
@@ -104,14 +104,15 @@ WHERE (help_tag, keyword) IN (
   ('VEHICLE-ADMIN', 'VEHICLECREATE'),
   ('VEHICLE-ADMIN', 'VEHICLEPURGE'),
   ('ASSIGNPILOT', 'ASSIGNPILOT'),
-  ('UNASSIGNPILOT', 'UNASSIGNPILOT')
+  ('UNASSIGNPILOT', 'UNASSIGNPILOT'),
+  ('VEVENT', 'VEVENT')
 );
 
 SELECT
   'access_levels' AS check_name,
   COUNT(*) AS actual,
-  32 AS expected,
-  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
+  33 AS expected,
+  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE
   (
@@ -126,7 +127,8 @@ WHERE
       'LISTWAYPOINTS', 'DELWAYPOINT', 'CREATEROUTE', 'ADDTOROUTE',
       'DELROUTE', 'LISTROUTES', 'SETROUTE', 'SETSCHEDULE',
       'CLEARSCHEDULE', 'SHOWSCHEDULE', 'VMOUNT', 'VDISMOUNT', 'DRIVE',
-      'VSTATUS', 'VEHICLE-TRANSPORT', 'ASSIGNPILOT', 'UNASSIGNPILOT'
+      'VSTATUS', 'VEHICLE-TRANSPORT', 'ASSIGNPILOT', 'UNASSIGNPILOT',
+      'VEVENT'
     )
     AND min_level = 0
   );
@@ -134,8 +136,8 @@ WHERE
 SELECT
   'nonempty_entries' AS check_name,
   COUNT(*) AS actual,
-  32 AS expected,
-  IF(COUNT(*) = 32, 'PASS', 'FAIL') AS result
+  33 AS expected,
+  IF(COUNT(*) = 33, 'PASS', 'FAIL') AS result
 FROM help_entries
 WHERE tag IN (
   'VESSELS', 'VEDIT', 'SHIPFIRE', 'SHIPBROWSE', 'SHIPHIRE',
@@ -145,7 +147,7 @@ WHERE tag IN (
   'LISTROUTES', 'SETROUTE', 'SETSCHEDULE', 'CLEARSCHEDULE',
   'SHOWSCHEDULE', 'VMOUNT', 'VDISMOUNT', 'DRIVE', 'VSTATUS',
   'VEHICLE-TRANSPORT', 'VEHICLE-ADMIN', 'ASSIGNPILOT',
-  'UNASSIGNPILOT'
+  'UNASSIGNPILOT', 'VEVENT'
 )
 AND entry IS NOT NULL
 AND CHAR_LENGTH(TRIM(entry)) > 0;

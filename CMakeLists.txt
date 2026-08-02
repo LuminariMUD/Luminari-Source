@@ -572,6 +572,7 @@ set(SRC_C_FILES
     src/vessels_hazards.c
     src/vessels_hunters.c
     src/vessels_merchants.c
+    src/vessels_events.c
     src/vessels_db.c
     src/vessels_docking.c
     src/vessels_edit.c
@@ -792,6 +793,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_combat_production.c
     unittests/CuTest/test_spells_skills_production.c
     unittests/CuTest/test_perfmon_production.c
+    unittests/CuTest/test_vessel_events.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_upstream_regressions.c

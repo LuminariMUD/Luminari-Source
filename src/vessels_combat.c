@@ -361,6 +361,7 @@ void vessel_sink(int shipnum)
 
   log("Info: Ship %d '%s' is sinking at (%d,%d)", shipnum, ship->name, (int)ship->x, (int)ship->y);
   send_to_ship(ship, "The hull gives way - %s is SINKING!", ship->name);
+  vessel_event_handle_sink(shipnum);
 
   /* Merchant definitions outlive their killable hulls. Record the responsible
    * player and schedule replacement while identity, cargo, and geography are
@@ -741,6 +742,7 @@ static void vessel_ai_return_fire(int shipnum)
     }
 
     dmg = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
+    vessel_event_record_damage(shipnum, target_num, dmg);
     vessel_apply_damage(target_num, dmg, greyhawk_getarc(target_num, shipnum),
                         ship->bounty_hunter ? "Navy fire" : "Return fire");
     VSSL_DEBUG("AI ship %d return-fired slot %d at ship %d for %d", shipnum, s, target_num, dmg);
@@ -919,6 +921,7 @@ ACMD(do_shipfire)
   dmg = (weapon->val2 > 0 && weapon->val3 > 0) ? dice(weapon->val2, weapon->val3) : dice(2, 6);
   struck_arc = greyhawk_getarc(target_num, ship->shipnum);
   send_to_ship(ship, "Direct hit on %s!", target->name);
+  vessel_event_record_damage(ship->shipnum, target_num, dmg);
   vessel_apply_damage(target_num, dmg, struck_arc, "Incoming fire");
 
   WAIT_STATE(ch, PULSE_VIOLENCE);

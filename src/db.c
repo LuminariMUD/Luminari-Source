@@ -1268,6 +1268,7 @@ void boot_db(void)
   vessel_hunter_ensure_schema();
   vessel_encounter_reload_config();
   vessel_merchant_ensure_schema();
+  vessel_event_ensure_schema();
 
   log("Loading vessel waypoints and routes from database...");
   load_all_waypoints();
@@ -1277,6 +1278,7 @@ void boot_db(void)
   load_all_ship_interiors();
   vessel_hunter_boot();
   vessel_merchant_boot();
+  vessel_event_boot();
 
   log("Loading vehicles from database...");
   vehicle_load_all();
