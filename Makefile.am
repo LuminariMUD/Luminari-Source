@@ -205,37 +205,37 @@ circle_SOURCES = \
 	src/tedit.c \
 	src/templates.c \
 	src/trade.c \
-	src/transport.c \
+	src/vessels/transport.c \
 	src/traps_new.c \
 	src/treasure.c \
 	src/treasure_const.c \
 	src/utils.c \
-	src/vehicles.c \
-	src/vehicles_commands.c \
-	src/vehicles_transport.c \
-	src/transport_unified.c \
-	src/vessels.c \
-	src/vessels_tactical.c \
-	src/vessels_lookout.c \
-	src/vessels_narrative.c \
-	src/vessels_admin.c \
-	src/vessels_balance.c \
-	src/vessels_combat.c \
-	src/vessels_crew.c \
-	src/vessels_hazards.c \
-	src/vessels_hunters.c \
-	src/vessels_merchants.c \
-	src/vessels_events.c \
-	src/vessels_db.c \
-	src/vessels_docking.c \
-	src/vessels_edit.c \
-	src/vessels_ownership.c \
-	src/vessels_rooms.c \
-	src/vessels_contracts.c \
-	src/vessels_piracy.c \
-	src/vessels_trade.c \
-	src/vessels_upgrades.c \
-	src/vessels_autopilot.c \
+	src/vessels/vehicles.c \
+	src/vessels/vehicles_commands.c \
+	src/vessels/vehicles_transport.c \
+	src/vessels/transport_unified.c \
+	src/vessels/vessels.c \
+	src/vessels/vessels_tactical.c \
+	src/vessels/vessels_lookout.c \
+	src/vessels/vessels_narrative.c \
+	src/vessels/vessels_admin.c \
+	src/vessels/vessels_balance.c \
+	src/vessels/vessels_combat.c \
+	src/vessels/vessels_crew.c \
+	src/vessels/vessels_hazards.c \
+	src/vessels/vessels_hunters.c \
+	src/vessels/vessels_merchants.c \
+	src/vessels/vessels_events.c \
+	src/vessels/vessels_db.c \
+	src/vessels/vessels_docking.c \
+	src/vessels/vessels_edit.c \
+	src/vessels/vessels_ownership.c \
+	src/vessels/vessels_rooms.c \
+	src/vessels/vessels_contracts.c \
+	src/vessels/vessels_piracy.c \
+	src/vessels/vessels_trade.c \
+	src/vessels/vessels_upgrades.c \
+	src/vessels/vessels_autopilot.c \
 	src/weather.c \
 	src/wilderness.c \
 	src/wilderness_kb.c \

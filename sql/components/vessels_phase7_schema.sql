@@ -1,5 +1,5 @@
 -- Vessel System Phase 07: bulk cargo and port trading.
--- Mirrors the auto-creation in src/vessels_trade.c
+-- Mirrors the auto-creation in src/vessels/vessels_trade.c
 -- (vessel_trade_ensure_schema), which also seeds the default commodity set
 -- when trade_commodities is empty. Bulk cargo lots reuse
 -- ship_cargo_manifest rows with cargo_room = 0 and item_vnum = commodity_id.

@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/interpreter.h"
-#include "../../src/vessels.h"
+#include "../../src/vessels/vessels.h"
 
 void Test_vessel_narrative_weather_boundaries_match_wilderness(CuTest *tc)
 {

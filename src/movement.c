@@ -36,7 +36,7 @@
 #include "encounters.h"
 #include "hunts.h"
 #include "class.h"
-#include "transport.h"
+#include "vessels/transport.h"
 #include "routing.h"
 #include "perks.h"
 
@@ -44,7 +44,7 @@
 #include "movement.h"
 
 /* Include vessel system for ship interior movement */
-#include "vessels.h"
+#include "vessels/vessels.h"
 
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 

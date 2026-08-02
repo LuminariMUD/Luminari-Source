@@ -35,7 +35,7 @@
 #include "psionics.h"
 #include "assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
-#include "transport.h"
+#include "vessels/transport.h"
 #include "evolutions.h"
 #include "feats.h"
 #include "routing.h"

@@ -31,7 +31,7 @@
 #include "traps.h"
 #include "spell_prep.h"
 #include "class.h"
-#include "transport.h"
+#include "vessels/transport.h"
 #include "encounters.h"
 #include "hunts.h"
 #include "feats.h"

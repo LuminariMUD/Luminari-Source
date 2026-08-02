@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/interpreter.h"
-#include "../../src/vessels.h"
+#include "../../src/vessels/vessels.h"
 
 void Test_vessel_event_type_parser_accepts_public_names(CuTest *tc)
 {

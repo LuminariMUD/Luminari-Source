@@ -20,8 +20,8 @@ trap 'rm -rf -- "$test_root"' EXIT
 
 provenance_root="$test_root/provenance"
 provenance_binary="$provenance_root/bin/circle"
-provenance_source="$provenance_root/src/vessels.c"
-mkdir -p "$provenance_root/bin" "$provenance_root/src"
+provenance_source="$provenance_root/src/vessels/vessels.c"
+mkdir -p "$provenance_root/bin" "$provenance_root/src/vessels"
 touch -t 202608010100 "$provenance_binary"
 touch -t 202608010200 "$provenance_source"
 stale_input=$(
@@ -186,7 +186,7 @@ if grep -Fq 'WHEN 0 THEN 92 ELSE 82' <<<"$runtime_y_case"; then
   fail "scale-runner water-class fixtures still alternate across invalid terrain"
 fi
 grep -Fq 'Info: NPC vessel prototype %d deferred: fleet is full' \
-  "$repo_root/src/vessels_edit.c" ||
+  "$repo_root/src/vessels/vessels_edit.c" ||
   fail "expected full-fleet NPC spawning is still logged as a server error"
 
 fare_commands=$(sed -n '/^fare_output=.*--commands/,/^fare_status=/p' \

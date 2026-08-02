@@ -1,5 +1,5 @@
 -- Vessel System Phase 06: ownership, crew, upgrades, insurance.
--- Mirrors the auto-migration in src/vessels_ownership.c
+-- Mirrors the auto-migration in src/vessels/vessels_ownership.c
 -- (vessel_ownership_ensure_schema). Helm permits and hired crew reuse
 -- ship_crew_roster rows: crew_role='captain' with npc_vnum=-1 for player
 -- helm permits, npc_vnum <= -100 for hired crew positions (loyalty_rating

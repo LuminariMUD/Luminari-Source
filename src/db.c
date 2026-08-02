@@ -70,7 +70,7 @@
 #include "talents.h"
 #include "grapple.h"
 #include "race.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>

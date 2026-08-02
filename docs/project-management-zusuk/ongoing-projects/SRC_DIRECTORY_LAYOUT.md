@@ -198,6 +198,48 @@ and script edits - zero content changes**, so the diff reviews as mechanical.
 - The pilot is reversible: the inverse is another 30 `git mv` plus the same 19
   include lines.
 
+## 4.8 Pilot outcome (executed)
+
+The pilot is done. `src/vessels/` holds all 30 files; both build systems and
+the full test suite are green.
+
+Verified results:
+
+- 30 files moved, all recorded by git as pure renames with zero content change.
+  The commit is 62 files changed, 90 insertions and 90 deletions - symmetric,
+  because every edit is a path rewrite.
+- Autotools: `autoreconf -fvi && ./configure && make clean && make` exits 0
+  with **zero warnings and zero errors**. Objects land in `src/vessels/*.o`.
+- `make test`: **OK (306 tests)**, exit 0.
+- CMake: out-of-tree `cmake -S . -B <dir> && cmake --build` exits 0 with zero
+  errors.
+- `bin/circle` installed from the autotools build; no root-level `circle`
+  artifact left behind.
+
+Two reference categories section 4.2 missed, both now fixed:
+
+1. **Unit-test includes.** Six files under `unittests/CuTest/` include
+   `"../../src/vessels.h"` - the relative-path form, which the planning grep
+   for `#include "vessels.h"` did not match. All six are in `cutest_SOURCES`,
+   so `make test` would have failed to compile. Fixed to
+   `"../../src/vessels/vessels.h"`.
+2. **A test fixture that mirrors the source tree.**
+   `scripts/test_vessel_scale_benchmark_parsers.sh` builds a temporary
+   provenance tree and `touch`es `$root/src/vessels/vessels.c`, but its
+   `mkdir -p` only created `$root/src`. This failed at runtime, not compile
+   time, so only executing the suite caught it.
+
+Lesson for the remaining clusters: grep for the **relative-path** include form
+(`../../src/<name>.h`) and for scripts that construct mirror trees of `src/`,
+not just for bare `#include "<name>.h"`. Compile-time greps alone are not
+sufficient; run the full suite before declaring a cluster done.
+
+Also updated beyond the plan's original scope: five `sql/components/*.sql`
+header comments that name the source file each schema mirrors. These are
+comments only, but a stale path pointer is actively misleading. Historical
+records in `docs/CHANGELOG.md` and `docs/previous_changelogs/` were
+deliberately left untouched - they describe paths as they were at the time.
+
 ## 5) Decision point
 
 Evaluate after the pilot lands and has survived a week of normal work. If

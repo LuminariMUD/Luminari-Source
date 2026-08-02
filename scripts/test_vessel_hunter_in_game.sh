@@ -415,9 +415,9 @@ flock -n 8 ||
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
 [[ -x "$repo_root/bin/circle" ]] ||
   fail "bin/circle is missing; run make install first"
-[[ -f "$repo_root/src/vessels_hunters.c" ]] ||
+[[ -f "$repo_root/src/vessels/vessels_hunters.c" ]] ||
   fail "the Phase 15 hunter source is missing"
-[[ "$repo_root/bin/circle" -nt "$repo_root/src/vessels_hunters.c" ]] ||
+[[ "$repo_root/bin/circle" -nt "$repo_root/src/vessels/vessels_hunters.c" ]] ||
   fail "bin/circle predates the Phase 15 source; run make install"
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)

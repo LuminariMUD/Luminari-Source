@@ -29,7 +29,7 @@
 #include "actions.h"
 #include "spell_prep.h"
 #include "class.h"
-#include "transport.h"
+#include "vessels/transport.h"
 
 /* Include movement system header */
 #include "movement.h"

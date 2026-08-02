@@ -19,7 +19,7 @@
 #include "feats.h"
 #include "constants.h"
 #include "routing.h"
-#include "transport.h"
+#include "vessels/transport.h"
 
 const char *get_transport_zone_entrance_name(int locale, int type)
 {

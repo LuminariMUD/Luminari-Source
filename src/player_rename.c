@@ -18,7 +18,7 @@
 #include "pubsub.h"
 #include "protocol.h"
 #include "movement_tracks.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 #include "player_rename.h"
 
 #include <errno.h>

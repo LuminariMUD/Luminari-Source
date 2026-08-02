@@ -1,5 +1,5 @@
 -- Vessel System Phase 09: complete live-instance and schedule persistence.
--- Mirrors vessel_persistence_ensure_schema() in src/vessels_db.c.
+-- Mirrors vessel_persistence_ensure_schema() in src/vessels/vessels_db.c.
 
 CREATE TABLE IF NOT EXISTS ship_waypoints (
   waypoint_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,

@@ -39,7 +39,7 @@
 #include "crafting_new.h"
 #include "resource_system.h"
 #include "character_creation.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>

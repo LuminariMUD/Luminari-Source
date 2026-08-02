@@ -64,10 +64,10 @@
 #include "alchemy.h"
 #include "helpers.h"
 #include "staff_events.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 #include "premadebuilds.h"
 #include "missions.h"
-#include "transport.h"
+#include "vessels/transport.h"
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"

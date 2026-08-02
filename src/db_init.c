@@ -18,7 +18,7 @@
 #include "mysql.h"
 #include "db_init.h"
 #include "pubsub.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 
 /* Internal helpers */
 static void create_vessel_procedures(void);

@@ -45,7 +45,7 @@
 #include "quest.h"
 #include "backgrounds.h"
 #include "perks.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 
 /* External vessel data for ship boarding */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

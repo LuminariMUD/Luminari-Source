@@ -34,7 +34,7 @@
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"
 #include "mob_spells.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 
 /* External function prototypes */
 void npc_offensive_spells(struct char_data *ch);

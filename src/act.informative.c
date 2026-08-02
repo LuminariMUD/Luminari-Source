@@ -46,7 +46,7 @@
 #include "staff_events.h"
 #include "missions.h"
 #include "spec_procs.h"
-#include "transport.h"
+#include "vessels/transport.h"
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"

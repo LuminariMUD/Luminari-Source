@@ -1,5 +1,5 @@
 -- Vessel System Phase 04: ship prototype table (vedit)
--- Mirrors the auto-creation in src/vessels_edit.c (vedit_ensure_table).
+-- Mirrors the auto-creation in src/vessels/vessels_edit.c (vedit_ensure_table).
 -- Apply manually only when auto-creation is not desired.
 
 CREATE TABLE IF NOT EXISTS ship_prototypes (

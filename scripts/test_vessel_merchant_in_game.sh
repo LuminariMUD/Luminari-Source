@@ -518,7 +518,7 @@ flock -n 8 || fail "another merchant acceptance check is already running"
   fail "bin/circle is missing; run make install first"
 [[ -x "$script_dir/dev_kohdee_login_smoke.sh" ]] ||
   fail "the local character login helper is unavailable"
-[[ -f "$repo_root/src/vessels_merchants.c" ]] ||
+[[ -f "$repo_root/src/vessels/vessels_merchants.c" ]] ||
   fail "the Phase 14 merchant source is missing"
 [[ -f "$player_file" && ! -L "$player_file" ]] ||
   fail "the exact Kohdee player file is missing or unsafe to replace"

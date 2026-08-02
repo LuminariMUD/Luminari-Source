@@ -21,7 +21,7 @@
 #include "wilderness.h"
 #include "oasis.h"
 #include "spec_procs.h"
-#include "vessels.h"
+#include "vessels/vessels.h"
 
 static room_rnum add_room_internal(struct room_data *room, bool persistent)
 {

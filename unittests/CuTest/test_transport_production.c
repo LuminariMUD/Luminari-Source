@@ -8,7 +8,7 @@
 #include "../../src/db.h"
 #include "../../src/perfmon.h"
 #include "../../src/protocol.h"
-#include "../../src/vessels.h"
+#include "../../src/vessels/vessels.h"
 #include "../../src/wilderness.h"
 
 #include <limits.h>

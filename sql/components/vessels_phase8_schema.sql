@@ -1,5 +1,5 @@
 -- Vessel System Phase 08: encounter tables keyed to wilderness regions.
--- Mirrors the auto-creation in src/vessels_hazards.c
+-- Mirrors the auto-creation in src/vessels/vessels_hazards.c
 -- (vessel_hazard_ensure_schema).
 --
 -- IMPORTANT: region_vnum must reference a wilderness region of type
