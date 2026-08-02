@@ -95,7 +95,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
 #include "systems/web_client/onboarding.h"
@@ -108,7 +108,7 @@
 #include "ai_service.h"                  /* for shutdown_ai_service() */
 #include "pubsub.h"                      /* for automatic queue processing */
 #include "discord_bridge.h"              /* Discord bridge integration */
-#include "terrain_bridge.h"              /* Terrain bridge API server */
+#include "wilderness/terrain_bridge.h"   /* Terrain bridge API server */
 #include "systems/intermud3/i3_client.h" /* Intermud3 client */
 #include "vessels/vessels.h"             /* Vessel persistence */
 #include "asciimap.h"

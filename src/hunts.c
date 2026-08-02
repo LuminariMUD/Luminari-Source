@@ -18,7 +18,7 @@
 #include "constants.h"
 #include "interpreter.h"
 #include "race.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "hunts.h"
 #include "act.h"
 #include "spec_abilities.h"

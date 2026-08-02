@@ -24,7 +24,7 @@
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "pubsub.h"
 
 /* Constants for spatial audio calculations */

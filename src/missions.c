@@ -23,7 +23,7 @@
 #include "spells.h"
 #include "clan.h"
 #include "craft/craft.h" // auto crafting quest
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "assign_wpn_armor.h"

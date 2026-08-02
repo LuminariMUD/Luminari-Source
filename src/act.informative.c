@@ -34,7 +34,7 @@
 #include "asciimap.h"
 #include "clan.h"
 #include "craft/craft.h" // auto crafting quest
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "assign_wpn_armor.h"
@@ -50,8 +50,8 @@
 #include "encounters.h"
 #include "deities.h"
 #include "treasure.h"
-#include "resource_depletion.h" /* Phase 6: Conservation system */
-#include "resource_system.h"
+#include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */
+#include "wilderness/resource_system.h"
 #include "craft/crafting_new.h"
 #include "roleplay.h"
 #include "spell_prep.h"
@@ -64,7 +64,7 @@
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM
-/* #include "resource_cascade.h" */ /* Phase 7: Ecological cascade system - disabled for simple implementation */
+/* #include "wilderness/resource_cascade.h" */ /* Phase 7: Ecological cascade system - disabled for simple implementation */
 #endif
 
 /* prototypes of local functions */

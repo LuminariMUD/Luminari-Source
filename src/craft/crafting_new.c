@@ -31,7 +31,7 @@
 #include "olc/improved-edit.h"
 #include "talents.h" /* crafting talent system */
 #include "dgscript/dg_scripts.h"
-#include "resource_system.h"
+#include "wilderness/resource_system.h"
 
 #ifndef TRUE
 #define TRUE 1

@@ -20,10 +20,10 @@
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "pubsub.h"
-#include "spatial_visual.h"
-#include "spatial_audio.h"
+#include "wilderness/spatial_visual.h"
+#include "wilderness/spatial_audio.h"
 
 /*
  * Main pubsub command - handles subcommands

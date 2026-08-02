@@ -20,8 +20,8 @@
 #include "mysql.h"
 #include "ai_region_hints.h"
 #include "desc_engine.h"
-#include "wilderness.h"
-#include "resource_descriptions.h"
+#include "wilderness/wilderness.h"
+#include "wilderness/resource_descriptions.h"
 #include <json-c/json.h>
 
 /* Global cache for region hints */

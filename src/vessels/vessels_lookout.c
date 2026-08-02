@@ -12,7 +12,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "vessels.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern int wild_waterline;

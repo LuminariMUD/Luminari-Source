@@ -484,7 +484,7 @@ set(SRC_C_FILES
     src/olc/improved-edit.c
     src/interpreter.c
     src/introduce.c
-    src/kdtree.c
+    src/wilderness/kdtree.c
     src/limits.c
     src/lists.c
     src/magic.c
@@ -517,7 +517,7 @@ set(SRC_C_FILES
     src/olc/oedit.c
     src/perfmon.c
     src/perks.c
-    src/perlin.c
+    src/wilderness/perlin.c
     src/player_rename.c
     src/players.c
     src/olc/prefedit.c
@@ -532,10 +532,10 @@ set(SRC_C_FILES
     src/random_names.c
     src/rank.c
     src/olc/redit.c
-    src/resource_system.c
-    src/resource_depletion.c
-    src/resource_descriptions.c
-    src/resource_regeneration.c
+    src/wilderness/resource_system.c
+    src/wilderness/resource_depletion.c
+    src/wilderness/resource_descriptions.c
+    src/wilderness/resource_regeneration.c
     src/roleplay.c
     src/routing.c
     src/olc/sedit.c
@@ -587,8 +587,8 @@ set(SRC_C_FILES
     src/vessels/vessels_trade.c
     src/vessels/vessels_upgrades.c
     src/weather.c
-    src/wilderness.c
-    src/wilderness_kb.c
+    src/wilderness/wilderness.c
+    src/wilderness/wilderness_kb.c
     src/olc/zedit.c
     src/zmalloc.c
     src/zone_procs.c
@@ -607,11 +607,11 @@ set(SRC_C_FILES
     src/systems/pubsub/pubsub_queue.c
     src/systems/pubsub/pubsub_spatial.c
     src/systems/pubsub/pubsub_event_handlers.c
-    src/systems/spatial/spatial_core.c
-    src/systems/spatial/spatial_visual.c
-    src/systems/spatial/spatial_audio.c
-    src/systems/terrainbridge/terrain_bridge.c
-    src/systems/region_hints/region_hints.c
+    src/wilderness/spatial_core.c
+    src/wilderness/spatial_visual.c
+    src/wilderness/spatial_audio.c
+    src/wilderness/terrain_bridge.c
+    src/wilderness/region_hints.c
     src/systems/narrative_weaver/narrative_weaver.c
     src/systems/web_client/onboarding.c
     src/systems/intermud3/i3_client.c

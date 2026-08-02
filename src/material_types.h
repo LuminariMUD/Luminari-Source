@@ -9,7 +9,7 @@
 #ifndef _MATERIAL_TYPES_H_
 #define _MATERIAL_TYPES_H_
 
-#include "resource_system.h"
+#include "wilderness/resource_system.h"
 
 /* Maximum subtypes per resource category */
 #define MAX_SUBTYPES_PER_CATEGORY 32

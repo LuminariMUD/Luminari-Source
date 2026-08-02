@@ -37,7 +37,7 @@
 #include "perks.h"
 #include "olc/oasis.h"
 #include "craft/crafting_new.h"
-#include "resource_system.h"
+#include "wilderness/resource_system.h"
 #include "character_creation.h"
 #include "vessels/vessels.h"
 #include <stdint.h>

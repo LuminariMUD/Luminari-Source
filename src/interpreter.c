@@ -40,7 +40,7 @@
 #include "hlquest.h"
 #include "asciimap.h"
 #include "olc/prefedit.h"
-#include "resource_system.h" /* Phase 5: Wilderness harvesting commands */
+#include "wilderness/resource_system.h" /* Phase 5: Wilderness harvesting commands */
 #include "ibt.h"
 #include "mud_event.h"
 #include "race.h"

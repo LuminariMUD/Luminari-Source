@@ -23,7 +23,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "mysql.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "pubsub.h"
 
 /* Global Variables */

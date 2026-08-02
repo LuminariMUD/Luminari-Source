@@ -36,10 +36,10 @@
 #include "combat_modes.h"
 #include "spec_procs.h"
 #include "evolutions.h"
-#include "spatial_core.h"
-#include "spatial_visual.h"
-#include "spatial_audio.h"
-#include "wilderness.h"
+#include "wilderness/spatial_core.h"
+#include "wilderness/spatial_visual.h"
+#include "wilderness/spatial_audio.h"
+#include "wilderness/wilderness.h"
 #include "perks.h"
 
 // external

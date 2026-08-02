@@ -29,7 +29,7 @@
 #include "feats.h"
 #include "spec_abilities.h"
 #include "assign_wpn_armor.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "domains_schools.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"

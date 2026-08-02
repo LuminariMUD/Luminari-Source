@@ -38,7 +38,7 @@
 #include "quest.h"
 #include "assign_wpn_armor.h"
 #include "olc/genolc.h"
-#include "resource_system.h"
+#include "wilderness/resource_system.h"
 
 extern MYSQL *conn;
 

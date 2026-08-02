@@ -28,7 +28,7 @@
 #include "genzon.h"
 #include "class.h"
 #include "genshp.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "assign_wpn_armor.h"
 #include "feats.h"
 

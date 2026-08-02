@@ -24,7 +24,7 @@
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "shop.h" /* shopkeepers hunting?! */
 #include "evolutions.h"
 #include "perks.h"

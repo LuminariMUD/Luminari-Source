@@ -29,7 +29,7 @@
 #include "race.h"
 #include "transport.h"
 #include "dgscript/dg_scripts.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "graph.h"
 #include "routing.h"
 

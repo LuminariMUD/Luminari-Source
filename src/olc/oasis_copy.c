@@ -23,7 +23,7 @@
 #include "improved-edit.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "quest.h"
 #include "act.h"
 

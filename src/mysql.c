@@ -17,7 +17,7 @@
 #include "modify.h"
 #include "mysql.h"
 
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "mud_event.h"
 
 #define MYSQL_DEBUG 0

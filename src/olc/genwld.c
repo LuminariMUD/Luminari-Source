@@ -18,7 +18,7 @@
 #include "shop.h"
 #include "dgscript/dg_olc.h"
 #include "mud_event.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "oasis.h"
 #include "spec_procs.h"
 #include "vessels/vessels.h"

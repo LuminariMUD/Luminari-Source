@@ -19,7 +19,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "mysql.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 
 /* External variables */
 extern MYSQL *conn;

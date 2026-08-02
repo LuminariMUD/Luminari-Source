@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "asciimap.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "protocol.h"
 #include "modify.h" /* strip_colors */
 

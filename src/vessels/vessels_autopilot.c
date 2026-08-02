@@ -16,7 +16,7 @@
 #include <math.h>
 #include "vessels.h"
 #include "mysql.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 
 /* External MySQL connection variables */
 extern MYSQL *conn;

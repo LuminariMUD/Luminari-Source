@@ -26,7 +26,7 @@
 #include "mud_event.h"
 #include "hlquest.h"
 #include "mudlim.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "actions.h"
 #include "traps.h"
 #include "spell_prep.h"

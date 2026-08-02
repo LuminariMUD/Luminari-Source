@@ -20,7 +20,7 @@
 #include "vessels.h"
 #include "mud_event.h"
 #include "dgscript/dg_scripts.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 
 /* ========================================================================= */
 /* GREYHAWK SHIP SYSTEM IMPLEMENTATION                                      */

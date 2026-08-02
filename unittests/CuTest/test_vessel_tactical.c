@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/interpreter.h"
 #include "../../src/vessels/vessels.h"
-#include "../../src/wilderness.h"
+#include "../../src/wilderness/wilderness.h"
 
 void Test_vessel_tactical_water_classification(CuTest *tc)
 {

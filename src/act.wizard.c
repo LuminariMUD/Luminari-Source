@@ -47,14 +47,14 @@
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
-#include "wilderness.h"
-#include "wilderness_kb.h"
+#include "wilderness/wilderness.h"
+#include "wilderness/wilderness_kb.h"
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "item.h"
-#include "resource_system.h"
-#include "resource_regeneration.h"
-#include "resource_system.h"
+#include "wilderness/resource_system.h"
+#include "wilderness/resource_regeneration.h"
+#include "wilderness/resource_system.h"
 #include "feats.h"
 #include "domains_schools.h"
 #include "ai_service.h"
@@ -67,7 +67,7 @@
 #include "missions.h"
 #include "deities.h"
 #include "backgrounds.h"
-#include "terrain_bridge.h"
+#include "wilderness/terrain_bridge.h"
 #include "vessels/vessels.h"
 #include "movement/movement_tracks.h"
 #include "mob/mob_spellslots.h" /* for show_mob_spell_slots */
@@ -8576,8 +8576,8 @@ ACMD(do_singlefile)
   }
 }
 
-#include "wilderness.h"
-#include "kdtree.h"
+#include "wilderness/wilderness.h"
+#include "wilderness/kdtree.h"
 #include "mysql.h"
 
 /* Command to generate a wilderness river. */

@@ -12,7 +12,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "vessels.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "act.h"
 #include "mysql.h"
 

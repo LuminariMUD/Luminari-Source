@@ -9,7 +9,7 @@
 #include "../../src/perfmon.h"
 #include "../../src/protocol.h"
 #include "../../src/vessels/vessels.h"
-#include "../../src/wilderness.h"
+#include "../../src/wilderness/wilderness.h"
 
 #include <limits.h>
 #include <stdlib.h>

@@ -49,7 +49,7 @@
 #include "lists.h"
 #include "mud_event.h"
 #include "handler.h"
-#include "wilderness.h"
+#include "wilderness/wilderness.h"
 #include "quest.h"
 #include "mysql.h"
 #include "act.h"
