@@ -254,9 +254,9 @@ Handles summoning of various companion types:
 5. src/mud_event.h - Event definitions
 
 ### Combat Integration
-1. src/fight.c - Mounted combat mechanics
-2. src/act.offensive.c - Dragon breath weapons
-3. src/magic.c - Spell sharing with mounts
+1. src/combat/fight.c - Mounted combat mechanics
+2. src/combat/act.offensive.c - Dragon breath weapons
+3. src/magic/magic.c - Spell sharing with mounts
 
 ### Class Files
 1. src/class.c - Paladin/Blackguard mount assignment

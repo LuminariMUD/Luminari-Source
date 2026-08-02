@@ -10,7 +10,7 @@ progress, completion, and interruption.
 
 The system has two layers:
 
-1. **The enhanced visuals module** (`src/casting_visuals.c` / `.h`) - school,
+1. **The enhanced visuals module** (`src/magic/casting_visuals.c` / `.h`) - school,
    class, metamagic, progress, and environmental flavor. Documented immediately
    below.
 2. **The underlying spell_parser.c messaging** - the base mechanics the module
@@ -21,7 +21,7 @@ The system has two layers:
 ## The Enhanced Visuals Module (casting_visuals.c)
 
 Delivered in seven phases, completed 2025-11-26. All five feature families are
-live; `src/casting_visuals.c` is the authority if this document and the code
+live; `src/magic/casting_visuals.c` is the authority if this document and the code
 ever disagree.
 
 ### Feature families
@@ -473,14 +473,14 @@ Your spell is completely inert!
 
 | File | Key Content |
 |------|-------------|
-| `src/spell_parser.c` | Core casting system, say_spell(), event_casting() |
+| `src/magic/spell_parser.c` | Core casting system, say_spell(), event_casting() |
 | `src/structs.h` | Casting data structures (char_special_data) |
 | `src/utils.h` | CASTING_* macros |
-| `src/spells.h` | Metamagic defines, cast type defines |
+| `src/magic/spells.h` | Metamagic defines, cast type defines |
 | `src/movement/movement_position.c` | Position change interrupt |
 | `src/interpreter.c` | Command blocking during cast |
 | `src/act.item.c` | Consumable item casting visuals |
-| `src/magic.c` | Magic failure messages |
+| `src/magic/magic.c` | Magic failure messages |
 
 ### Line Number Quick Reference
 

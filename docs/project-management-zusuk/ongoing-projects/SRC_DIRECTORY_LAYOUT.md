@@ -252,13 +252,15 @@ Final layout:
 | `src/olc/` | 40 |
 | `src/wilderness/` | 32 |
 | `src/vessels/` | 30 |
+| `src/magic/` | 18 |
 | `src/mob/` | 18 |
 | `src/movement/` | 18 |
 | `src/dgscript/` | 15 |
+| `src/combat/` | 13 |
 | `src/craft/` | 13 |
 | `src/net/` | 11 |
-| `src/pubsub/` | 11 |
-| `src/` (flat) | 212 |
+| `src/pubsub/` | 8 |
+| `src/` (flat) | 181 |
 
 Every directory clears the file-count floor. The flat remainder is the core -
 `comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`,
@@ -295,6 +297,20 @@ build to confirm the second source list stayed correct.
   `src/systems/pubsub/` plus 3 files in `src/` make 11, which clears the floor.
 - **`src/world/` was dissolved.** Not in the original scope, but it held
   exactly 2 files - the same pathology the plan set out to remove.
+- **`combat/` and `magic/` were added later**, after the original eight landed.
+  `combat/` takes only the 13 files whose primary job is resolving a fight.
+  `fight.h` has 57 includers spanning movement, OLC, DG scripts, and vessels,
+  so proximity to combat cannot define membership without producing a junk
+  drawer. `evolutions.c` (the feats system), `traps*.c` (driven from movement
+  and item use), `magic.c` (the spell engine), and `actions*.c` (general
+  scheduling) were excluded on that test. `magic/` takes 18 files and is the
+  more cohesive of the two; its `spells.h` has 113 includers, the widest
+  rewrite in the reorganization.
+- **`pubsub/` is now below the floor.** Deleting three dead files - two empty
+  V3 stubs and a superseded stub module - left it at 8. It keeps its directory:
+  the name is unambiguous, the group is coherent, and scattering 8 files back
+  into `src/` to satisfy a "roughly 10" guideline would trade real clarity for
+  bookkeeping.
 
 ### 5.2 Reference categories that bite
 

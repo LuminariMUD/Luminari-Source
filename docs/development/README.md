@@ -193,7 +193,7 @@ The source code is organized into logical modules, each handling specific aspect
 **Command Implementation Files:**
 - `act.comm.c` - Communication commands (say, tell, etc.)
 - `act.informative.c` - Information commands (look, who, etc.)
-- `act.movement.c` - Movement commands
+- `movement/movement.c` - Movement commands
 - `act.item.c` - Item manipulation commands
 - `act.offensive.c` - Combat commands
 - `act.other.c` - Miscellaneous commands
@@ -534,7 +534,7 @@ Place your command in the appropriate `act.*.c` file:
 - `act.comm.c` - Communication commands
 - `act.informative.c` - Information display commands
 - `act.item.c` - Item manipulation commands
-- `act.movement.c` - Movement commands
+- `movement/movement.c` - Movement commands
 - `act.offensive.c` - Combat commands
 - `act.other.c` - Miscellaneous commands
 - `act.wizard.c` - Administrative commands

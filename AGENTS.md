@@ -85,7 +85,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 ### Core flow
 - `comm.c` - main select()-based game loop, networking, heartbeat scheduling.
-- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.movement.c, act.offensive.c, act.wizard.c, etc.).
+- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.item.c, act.wizard.c, plus `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
 - `structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `sysdep.h`, `structs.h`, `utils.h` in that order.
 - `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
 - `handler.c` - object/character manipulation primitives (equip, extract, move).
@@ -94,9 +94,9 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 ** NO LONGER SUPPORTED, GAME SHOULD BE `LUMINARI ONLY` **
 
 ### Game mechanics
-- Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `spells.h`. There is no skills.c - spell/skill logic lives in `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
-- Feats: constants in `feats.h`, registered via `feato()` calls inside `assign_feats()` in `feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (fight.c, etc.).
-- Combat: `fight.c`. Classes: `class.c`. Races: `race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
+- Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `magic/spells.h`. There is no skills.c - spell/skill logic lives in `src/magic/`: `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
+- Feats: constants in `feats.h`, registered via `feato()` calls inside `assign_feats()` in `feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (`combat/fight.c`, etc.). `evolutions.c` is part of this system, not combat.
+- Combat: `src/combat/fight.c`. Classes: `class.c`. Races: `race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
 
 ### Scripting and building
 - DG Scripts: `src/dgscript/dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
@@ -110,14 +110,18 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | `src/olc/` | online creation: `*edit.c`, `gen*.c`, `oasis*`, `improved-edit.c` |
 | `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge` |
 | `src/vessels/` | `vessels_*`, `vehicles*`, `transport*` |
+| `src/magic/` | `magic.c`, `spells*`, `spell_parser`, `spell_prep`, `spellbook_scroll`, `casting_visuals`, `metamagic_science`, `domain_powers`, `domains_schools`, `moon_bonus_spells`, `psionics` |
 | `src/mob/` | `mob_*` |
 | `src/movement/` | `movement*` |
 | `src/dgscript/` | `dg_*` |
+| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
 | `src/pubsub/` | `pubsub*` |
 
-A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `fight.c`, `structs.h`, `utils.h`) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` stays with `feats.c` (it is the feats system), `traps*.c` stay flat (they fire from movement and item use), and `actions.c`/`actionqueues.c` stay flat (general scheduling).
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 

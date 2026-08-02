@@ -6,8 +6,8 @@ The `aoe_effect()` function provides a centralized way to handle Area of Effect 
 
 ## Location
 
-- **Implementation**: `src/magic.c`
-- **Declaration**: `src/spells.h`
+- **Implementation**: `src/magic/magic.c`
+- **Declaration**: `src/magic/spells.h`
 
 ## Function Signature
 

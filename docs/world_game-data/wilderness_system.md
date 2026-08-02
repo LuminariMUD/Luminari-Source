@@ -54,7 +54,7 @@ wilderness.c/h              - Main wilderness engine
 perlin.c/h                  - Noise generation algorithms
 mysql.c/h                   - Database integration for regions/paths
 weather.c                   - Weather system integration
-act.movement.c              - Movement handling
+movement/movement.c              - Movement handling
 redit.c                     - OLC wilderness room editing
 resource_system.c/h         - Natural resource management
 resource_descriptions.c/h   - Resource discovery and mapping
@@ -1716,7 +1716,7 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 - `wilderness.c/h` - Main wilderness system and coordinate management
 - `perlin.c/h` - Noise generation algorithms for terrain
 - `mysql.c/h` - Database integration and spatial queries
-- `act.movement.c` - Movement handling and room transitions
+- `movement/movement.c` - Movement handling and room transitions
 - `act.wizard.c` - Administrative commands and debugging tools
 
 **Resource System:**

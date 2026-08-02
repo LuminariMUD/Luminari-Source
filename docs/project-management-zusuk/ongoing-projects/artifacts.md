@@ -44,7 +44,7 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 
 ### 0.3 Files changed
 
-- `src/spells.h` - added `SPELL_ARTIFACT_PASSIVE` and `SPELL_ARTIFACT_SURGE`
+- `src/magic/spells.h` - added `SPELL_ARTIFACT_PASSIVE` and `SPELL_ARTIFACT_SURGE`
   affect markers in the reserved 1606-1646 band.
 - `src/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
   stacking constants, provenance and contract fields, new API.
@@ -336,7 +336,7 @@ commit above.
 | Public declarations | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/utils.h:25-28` |
 | Artifact and counterpart special-procedure assignments | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spec_assign.c:766-835` |
 | Missing-prototype assignment warning | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spec_assign.c:198-204` |
-| Weapon special dispatch, including critical marker | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/fight.c:2420-2426`, `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/fight.c:2645-2677` |
+| Weapon special dispatch, including critical marker | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/combat/fight.c:2420-2426`, `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/combat/fight.c:2645-2677` |
 | Per-object special timers | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/limits.c:548-556` |
 | Timer cadence | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/comm.c:799-800`, `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/utils.h:186-187` |
 | Owner data snapshot | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/lib/misc/artifacts:1-10` |
@@ -574,8 +574,8 @@ procedure and passes `"critical"` when the attack was a critical hit.
 Sources:
 
 - `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spec_assign.c:766-835`;
-- `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/fight.c:2420-2426`;
-- `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/fight.c:2645-2677`.
+- `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/combat/fight.c:2420-2426`;
+- `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/combat/fight.c:2645-2677`.
 
 These procedures are not connected to `sArtifact` or the owner file. A
 generalized counterpart receives the same procedure independently.
@@ -930,7 +930,7 @@ Counterpart sources:
 - shared assignments:
   `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spec_assign.c:828-835`;
 - expiration messaging:
-  `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spells.c:102-108`.
+  `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/magic/spells.c:102-108`.
 
 Value to LuminariMUD:
 
@@ -1315,7 +1315,7 @@ both sources.
     Keep effect data authoritative and decide Luminari's v2.3 persistence
     policy independently.
 12. **Xvim uses a global extra-hit counter.** Dispatch and mutation appear at
-    `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/fight.c:2645-2652`
+    `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/combat/fight.c:2645-2652`
     and
     `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/spec_procs.c:5231-5251`.
     Store proc state per action or artifact.

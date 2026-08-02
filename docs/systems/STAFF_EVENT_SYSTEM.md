@@ -312,7 +312,7 @@ staff_event_tick();
 
 ### Combat System Integration  
 
-Called from [`fight.c`](../../src/fight.c) when mobs die:
+Called from [`fight.c`](../../src/combat/fight.c) when mobs die:
 
 ```c
 // Handle event-specific drops

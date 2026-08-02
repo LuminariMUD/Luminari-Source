@@ -114,7 +114,7 @@ utils.c         - Utility functions
 ```
 act.comm.c      - Communication commands
 act.informative.c - Information commands
-act.movement.c  - Movement commands
+movement/movement.c  - Movement commands
 act.offensive.c - Combat commands
 act.other.c     - Miscellaneous commands
 act.wizard.c    - Admin commands
