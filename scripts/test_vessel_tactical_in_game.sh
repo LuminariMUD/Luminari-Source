@@ -280,8 +280,8 @@ restore_baseline()
        mv -f "$secondary_restore_tmp" "$secondary_player_file"; then
       secondary_restored_sha256=$(sha256sum "$secondary_player_file" |
         awk '{ print $1 }')
-      [[ "$secondary_restored_sha256" ==
-         "$baseline_secondary_player_sha256" ]] || cleanup_status=1
+      [[ "$secondary_restored_sha256" == "$baseline_secondary_player_sha256" ]] ||
+        cleanup_status=1
     else
       cleanup_status=1
     fi
