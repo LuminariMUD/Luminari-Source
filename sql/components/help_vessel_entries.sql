@@ -66,7 +66,7 @@ DOCKFEES [pay]
 UNDOCK
   Remove the gangway to the vessel currently alongside.
 
-LOOK_OUTSIDE
+LOOKOUT (legacy alias: LOOK_OUTSIDE)
   From an interior room with an outside view, scan canonical wilderness
   sectors in eight compass directions out to the weather- and lookout-limited
   horizon. Also show current elevation and water depth plus nearest-first
@@ -102,6 +102,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DOCK');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'DOCKFEES');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'UNDOCK');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'LOOK_OUTSIDE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'LOOKOUT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIP_ROOMS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARD_HOSTILE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'NAVIGATION');
