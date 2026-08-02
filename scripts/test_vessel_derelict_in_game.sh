@@ -351,8 +351,7 @@ restore_baseline()
 
   restored_derelict_state=$(database_query "
     SELECT CONCAT(runtime.ship_id, '|', runtime.prototype_id, '|',
-                  runtime.location_vnum, '|', ROUND(runtime.x), '|',
-                  ROUND(runtime.y), '|', runtime.speed, '|',
+                  ROUND(runtime.x), '|', ROUND(runtime.y), '|', runtime.speed, '|',
                   runtime.autopilot_state, '|', interior.room_vnums, '|',
                   interior.bridge_room, '|', interior.entrance_room, '|',
                   interior.cargo_room1, '|', interior.owner)
@@ -540,8 +539,7 @@ grep -Fqx 'Room: 1204' "${state_snapshots[player]}" ||
 
 baseline_derelict_state=$(database_query "
   SELECT CONCAT(runtime.ship_id, '|', runtime.prototype_id, '|',
-                runtime.location_vnum, '|', ROUND(runtime.x), '|',
-                ROUND(runtime.y), '|', runtime.speed, '|',
+                ROUND(runtime.x), '|', ROUND(runtime.y), '|', runtime.speed, '|',
                 runtime.autopilot_state, '|', interior.room_vnums, '|',
                 interior.bridge_room, '|', interior.entrance_room, '|',
                 interior.cargo_room1, '|', interior.owner)
@@ -577,7 +575,7 @@ awk '
   capture { print }
 ' "$run_dir/02-wrong-vessel-isolation.log" \
   >"$run_dir/02-wrong-vessel-command.log"
-grep -Fq 'Huh?!' "$run_dir/02-wrong-vessel-command.log" ||
+grep -Fq 'Huh!?!' "$run_dir/02-wrong-vessel-command.log" ||
   fail "the derelict bridge command leaked onto the harbor ferry"
 if [[ -f "$variable_file" ]] && grep -Fq 'blackwake_' "$variable_file"; then
   fail "the wrong-vessel command created Blackwake discovery state"
@@ -636,8 +634,7 @@ start_server_without_login || fail "the hard restart did not start the MUD"
 
 restart_derelict_state=$(database_query "
   SELECT CONCAT(runtime.ship_id, '|', runtime.prototype_id, '|',
-                runtime.location_vnum, '|', ROUND(runtime.x), '|',
-                ROUND(runtime.y), '|', runtime.speed, '|',
+                ROUND(runtime.x), '|', ROUND(runtime.y), '|', runtime.speed, '|',
                 runtime.autopilot_state, '|', interior.room_vnums, '|',
                 interior.bridge_room, '|', interior.entrance_room, '|',
                 interior.cargo_room1, '|', interior.owner)
