@@ -40,7 +40,7 @@
 #include "race.h"
 #include "clan.h"
 #include "mud_event.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "treasure.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
@@ -60,7 +60,7 @@
 #include "evolutions.h"
 #include "traps.h" /* For trap system functions */
 #include "constants.h"
-#include "crafting_new.h" /* For golem repair functions */
+#include "craft/crafting_new.h" /* For golem repair functions */
 #include "genolc.h"
 #include <time.h>
 

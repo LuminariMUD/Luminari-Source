@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/actionqueues.h"
-#include "../../src/craft.h"
+#include "../../src/craft/craft.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/fight.h"

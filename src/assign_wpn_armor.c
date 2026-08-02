@@ -14,7 +14,7 @@
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "feats.h"
 #include "constants.h"
 #include "modify.h"

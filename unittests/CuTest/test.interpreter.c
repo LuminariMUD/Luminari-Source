@@ -6,7 +6,7 @@
 #include "../../src/structs.h"
 #include "../../src/interpreter.h"
 #include "../../src/act.h"
-#include "../../src/craft.h"
+#include "../../src/craft/craft.h"
 
 #include <stdio.h>
 #include <stddef.h>

@@ -104,7 +104,7 @@
 #include "vessels/transport.h"
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "ai_service.h"                  /* for shutdown_ai_service() */
 #include "pubsub.h"                      /* for automatic queue processing */
 #include "discord_bridge.h"              /* Discord bridge integration */

@@ -32,7 +32,7 @@
 #include "modify.h"
 #include "spell_prep.h"
 #include "race.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "premadebuilds.h"
 #include "evolutions.h"
 #include "backgrounds.h"

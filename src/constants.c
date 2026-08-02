@@ -19,14 +19,14 @@
 #include "utils.h"
 #include "interpreter.h" /* alias_data */
 #include "spells.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "feats.h"
 #include "domains_schools.h"
 #include "handler.h"
 #include "deities.h"
 #include "constants.h"
 #include "roleplay.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "campaign.h"
 
 #define CHECK_TABLE_SIZE(tbl, exp_sz)                                                              \

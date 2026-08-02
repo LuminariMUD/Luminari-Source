@@ -30,7 +30,7 @@
 #include "domains_schools.h"
 #include "feats.h"
 #include "race.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "missions.h"
 #include "psionics.h"
 #include "combat_modes.h"

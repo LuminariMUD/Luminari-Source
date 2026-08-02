@@ -39,7 +39,7 @@ circle_SOURCES = \
 	src/ai_events.c \
 	src/ai_security.c \
 	src/ai_service.c \
-	src/alchemy.c \
+	src/craft/alchemy.c \
 	src/asciimap.c \
 	src/assign_wpn_armor.c \
 	src/backgrounds.c \
@@ -51,7 +51,7 @@ circle_SOURCES = \
 	src/bedit.c \
 	src/mysql_boards.c \
 	src/bsd-snprintf.c \
-	src/brew.c \
+	src/craft/brew.c \
 	src/cedit.c \
 	src/char_descs.c \
 	src/clan.c \
@@ -64,10 +64,10 @@ circle_SOURCES = \
 	src/config.c \
 	src/constants.c \
 	src/copyover_diagnostic.c \
-	src/craft.c \
-	src/crafting_new.c \
-	src/crafting_recipes.c \
-	src/crafts.c \
+	src/craft/craft.c \
+	src/craft/crafting_new.c \
+	src/craft/crafting_recipes.c \
+	src/craft/crafts.c \
 	src/db.c \
 	src/db_init.c \
 	src/db_init_data.c \

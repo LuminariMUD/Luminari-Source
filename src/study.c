@@ -23,7 +23,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "spell_prep.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "perks.h"
 #include "race.h"
 #include "premadebuilds.h"

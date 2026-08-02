@@ -28,7 +28,7 @@
 #include "act.h"    /* for the space_to_minus function */
 #include "modify.h" /* for smash_tilde */
 #include "quest.h"
-#include "craft.h" // get_obj_material
+#include "craft/craft.h" // get_obj_material
 
 #define WORLDMAP_ZONE_WIDTH 160
 #define WORLDMAP_ZONE_MAX_HEIGHT 160

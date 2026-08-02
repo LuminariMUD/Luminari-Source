@@ -27,7 +27,7 @@
 #include "quest.h"
 #include "ibt.h"
 #include "msgedit.h"
-#include "crafts.h" /* NewCraft */
+#include "craft/crafts.h" /* NewCraft */
 
 /* Internal Data Structures */
 /** @deprecated olc_scmd_info appears to be deprecated. Commented out for now.

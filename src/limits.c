@@ -29,7 +29,7 @@
 #include "domains_schools.h"
 #include "grapple.h"
 #include "constants.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "staff_events.h"
 #include "missions.h"
 #include "account.h"

@@ -19,7 +19,7 @@
 #include "spells.h" /* need this for class.h NUM_ABILITIES */
 #include "class.h"
 #include "race.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "constants.h"
 #include "deities.h"
 #include "act.h"

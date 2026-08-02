@@ -11,7 +11,7 @@
 #include "structs.h"
 #include "mud_event.h"
 #include "dgscript/dg_event.h"
-#include "brew.h"
+#include "craft/brew.h"
 
 /* External event handler function declarations */
 extern EVENTFUNC(event_countdown);

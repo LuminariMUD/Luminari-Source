@@ -35,7 +35,7 @@
 #include "feats.h"
 #include "spell_prep.h"
 #include "item.h" /* do_stat_object */
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "treasure.h"      /* for set_armor_object */
 #include "mob/mob_utils.h" /* npc_find_target() */
 #include "spell_prep.h"    /* for star circlet proc */

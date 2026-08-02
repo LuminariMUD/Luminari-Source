@@ -46,7 +46,7 @@
 #include "clan.h"
 #include "clan_economy.h"
 #include "msgedit.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "hlquest.h"
 #include "mudlim.h"
 #include "perks.h"
@@ -72,7 +72,7 @@
 #include "race.h"
 #include "vessels/vessels.h"
 #include "spell_prep.h"
-#include "crafts.h" /* NewCraft */
+#include "craft/crafts.h" /* NewCraft */
 #include <sys/stat.h>
 #include "movement/movement_tracks.h" /* includes trail data structures */
 #include "premadebuilds.h"
@@ -82,8 +82,8 @@
 #include "treasure.h"
 #include "assign_wpn_armor.h"
 #include "backgrounds.h"
-#include "crafting_new.h"
-#include "crafting_recipes.h"
+#include "craft/crafting_new.h"
+#include "craft/crafting_recipes.h"
 #include "mob/mob_spellslots.h"
 #include "mob/mob_known_spells.h"
 #include "moon_bonus_spells.h" /* For moon-based bonus spell slots */

@@ -21,7 +21,7 @@
 #include "treasure.h"
 #include "missions.h"
 #include "hunts.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);

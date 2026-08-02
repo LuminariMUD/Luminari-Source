@@ -12,7 +12,7 @@
 #include "structs.h"
 #include "wilderness_crafting_bridge.h"
 #include "resource_system.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "campaign.h"
 #include "utils.h"
 #include "comm.h"

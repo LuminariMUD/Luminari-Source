@@ -28,7 +28,7 @@
 #include "casting_visuals.h"
 #include "grapple.h"
 #include "spell_prep.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "missions.h"
 #include "psionics.h"
 #include "act.h"

@@ -24,7 +24,7 @@
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "spell_prep.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "race.h"
 #include "encounters.h"
 #include "dgscript/dg_scripts.h"

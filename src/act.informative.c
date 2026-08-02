@@ -33,15 +33,15 @@
 #include "modify.h"
 #include "asciimap.h"
 #include "clan.h"
-#include "craft.h" // auto crafting quest
+#include "craft/craft.h" // auto crafting quest
 #include "wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "desc_engine.h"
-#include "crafts.h"
-#include "alchemy.h"
+#include "craft/crafts.h"
+#include "craft/alchemy.h"
 #include "premadebuilds.h"
 #include "staff_events.h"
 #include "missions.h"
@@ -52,7 +52,7 @@
 #include "treasure.h"
 #include "resource_depletion.h" /* Phase 6: Conservation system */
 #include "resource_system.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "roleplay.h"
 #include "spell_prep.h"
 #include "boards.h"

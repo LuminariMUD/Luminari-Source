@@ -43,7 +43,7 @@
 #include "screen.h"
 #include "mud_event.h"
 #include "clan.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "hlquest.h"
 #include "mudlim.h"
 #include "spec_abilities.h"
@@ -58,9 +58,9 @@
 #include "feats.h"
 #include "domains_schools.h"
 #include "ai_service.h"
-#include "crafts.h" /* NewCraft */
+#include "craft/crafts.h" /* NewCraft */
 #include "account.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "mud_event.h"
 #include "premadebuilds.h"
 #include "perfmon.h"

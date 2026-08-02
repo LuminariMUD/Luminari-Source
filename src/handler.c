@@ -31,7 +31,7 @@
 #include "lists.h"
 #include "spec_abilities.h"
 #include "spec_procs.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "resource_system.h"
 #include "world/spec_artifacts.h"
 #include "resource_depletion.h"

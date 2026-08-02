@@ -26,9 +26,9 @@
 #include "spells.h"
 #include "clan.h"
 #include "mud_event.h"
-#include "craft.h" // crafting (auto craft quest inits)
+#include "craft/craft.h" // crafting (auto craft quest inits)
 #include "spell_prep.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "templates.h"
 #include "premadebuilds.h"
 #include "missions.h"
@@ -36,7 +36,7 @@
 #include "class.h"
 #include "perks.h"
 #include "oasis.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "resource_system.h"
 #include "character_creation.h"
 #include "vessels/vessels.h"

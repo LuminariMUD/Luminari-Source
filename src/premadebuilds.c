@@ -28,7 +28,7 @@
 #include "oasis.h"
 #include "spell_prep.h"
 #include "premadebuilds.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "evolutions.h"
 
 void give_premade_skill(struct char_data *ch, bool verbose, int skill, int amount)

@@ -20,13 +20,13 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "treasure.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "assign_wpn_armor.h"
 #include "oasis.h"
 #include "item.h"
 #include "staff_events.h"
 #include "feats.h"
-#include "crafting_new.h"
+#include "craft/crafting_new.h"
 #include "mud_options.h"
 
 extern int weighted_object_bonuses[NUM_ITEM_WEARS][NUM_APPLIES];

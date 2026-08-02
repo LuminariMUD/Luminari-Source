@@ -45,7 +45,7 @@
 #include "mud_event.h"
 #include "race.h"
 #include "clan.h"
-#include "craft.h"
+#include "craft/craft.h"
 #include "treasure.h"
 #include "feats.h"
 #include "perks.h"
@@ -59,9 +59,9 @@
 #include "assign_wpn_armor.h"
 #include "bardic_performance.h"
 #include "spell_prep.h"
-#include "crafts.h" /* NewCraft */
+#include "craft/crafts.h" /* NewCraft */
 #include "new_mail.h"
-#include "alchemy.h"
+#include "craft/alchemy.h"
 #include "helpers.h"
 #include "staff_events.h"
 #include "vessels/vessels.h"
@@ -79,8 +79,8 @@
 #include "backgrounds.h"
 #include "roleplay.h"
 #include "character_creation.h"
-#include "crafting_new.h"
-#include "brew.h"
+#include "craft/crafting_new.h"
+#include "craft/brew.h"
 #include "talents.h" /* crafting/harvesting talent system */
 #include "mysql.h"
 #include "mysql_boards.h"
