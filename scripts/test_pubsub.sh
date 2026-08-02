@@ -70,7 +70,7 @@ fi
 # Test 7: Check database functions
 echo ""
 echo "Test 7: Database Functions Test"
-if grep -q "pubsub_db_create_tables" src/pubsub_db.c && \
+if grep -q "pubsub_db_create_tables" src/pubsub/pubsub_db.c && \
    ! grep -q "pubsub_db_create_tables" src/pubsub/pubsub.c; then
     echo "✅ PASS: Database functions properly separated"
 else
