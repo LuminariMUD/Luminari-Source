@@ -19,7 +19,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "class.h"
+#include "character/class.h"
 #include "combat/fight.h"
 #include "utils.h"
 #include "mud_event.h"
@@ -28,19 +28,19 @@
 #include "olc/oasis.h" // mob autoroller
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
-#include "feats.h"
-#include "race.h"
+#include "character/feats.h"
+#include "character/race.h"
 #include "craft/alchemy.h"
 #include "quest/missions.h"
 #include "psionics.h"
 #include "combat/combat_modes.h"
 #include "spec_procs.h"
-#include "evolutions.h"
+#include "character/evolutions.h"
 #include "wilderness/spatial_core.h"
 #include "wilderness/spatial_visual.h"
 #include "wilderness/spatial_audio.h"
 #include "wilderness/wilderness.h"
-#include "perks.h"
+#include "character/perks.h"
 
 // external
 extern struct raff_node *raff_list;

@@ -22,7 +22,7 @@
 #include "combat/fight.h"
 #include "magic/spells.h"
 #include "act.h"
-#include "perks.h"
+#include "character/perks.h"
 #include "traps.h"
 #include "magic/domains_schools.h"
 

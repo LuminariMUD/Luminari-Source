@@ -12,7 +12,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "comm.h"
-#include "race.h"
+#include "character/race.h"
 #include "magic/spells.h"
 #include "trade.h"
 

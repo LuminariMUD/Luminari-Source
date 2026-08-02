@@ -21,7 +21,7 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "act.h"
-#include "class.h"
+#include "character/class.h"
 #include "combat/fight.h"
 #include "quest/quest.h"
 #include "mud_event.h"
@@ -36,7 +36,7 @@
 #include "spec_artifacts.h"
 #include "wilderness/resource_depletion.h"
 #include "wilderness/resource_depletion.h"
-#include "perks.h"
+#include "character/perks.h"
 #include "graph.h"
 
 /* local file scope variables */

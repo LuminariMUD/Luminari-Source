@@ -15,7 +15,7 @@
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
 #include "craft/craft.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "constants.h"
 #include "modify.h"
 #include "magic/domains_schools.h"

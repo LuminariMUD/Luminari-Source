@@ -18,7 +18,7 @@
 #include "interpreter.h"
 #include "magic/spells.h"
 #include "act.h"
-#include "class.h"
+#include "character/class.h"
 #include "config.h"
 #include "modify.h"
 #include "olc/genolc.h" /* for strip_cr and sprintascii */

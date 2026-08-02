@@ -27,7 +27,7 @@
 #include "mob/mob_utils.h"       /* for npc_find_target() */
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */
 #include "quest/staff_events.h"  /* for staff events!  prisoner treasury! */
-#include "evolutions.h"
+#include "character/evolutions.h"
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);

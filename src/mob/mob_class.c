@@ -19,7 +19,7 @@
 #include "constants.h"
 #include "act.h"
 #include "combat/fight.h"
-#include "evolutions.h" /* for EVOLUTION_UNDEAD_APPEARANCE */
+#include "character/evolutions.h" /* for EVOLUTION_UNDEAD_APPEARANCE */
 #include "mob_utils.h"
 #include "mob_race.h"
 #include "mob_psionic.h"

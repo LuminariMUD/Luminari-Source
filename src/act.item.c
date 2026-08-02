@@ -35,19 +35,19 @@
 #include "combat/assign_wpn_armor.h"
 #include "combat/spec_abilities.h"
 #include "item.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "craft/alchemy.h"
 #include "mysql.h"
 #include "magic/metamagic_science.h"
 #include "treasure.h"
 #include "craft/crafts.h"
 #include "quest/hunts.h"
-#include "class.h"
+#include "character/class.h"
 #include "magic/spell_prep.h"
 #include "olc/genobj.h"
-#include "backgrounds.h"
+#include "character/backgrounds.h"
 #include "craft/crafting_new.h"
-#include "talents.h"
+#include "character/talents.h"
 
 /* local function prototypes */
 /* do_get utility functions */

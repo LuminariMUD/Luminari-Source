@@ -15,17 +15,17 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h" /* For dummy_mob */
 #include "magic/spells.h"
-#include "class.h" /* For BAB() */
+#include "character/class.h" /* For BAB() */
 #include "mud_event.h"
 #include "combat_modes.h"
 #include "actions.h"
-#include "perks.h"
+#include "character/perks.h"
 
 /* Modes that cannot be overlapped:
  *

@@ -19,8 +19,8 @@
 #include "combat/fight.h"
 #include "spec_procs.h"
 #include "actions.h"
-#include "feats.h"
-#include "perks.h"
+#include "character/feats.h"
+#include "character/perks.h"
 
 /* defines */
 #define DEBUG_MODE FALSE

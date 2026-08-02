@@ -22,7 +22,7 @@
 #include "comms/mysql_boards.h" /* MySQL board system */
 #include "olc/improved-edit.h"
 #include "olc/oasis.h"
-#include "class.h"
+#include "character/class.h"
 #include "dgscript/dg_scripts.h" /* for trigedit_string_cleanup */
 #include "modify.h"
 #include "quest/quest.h"
@@ -30,7 +30,7 @@
 #include "constants.h"
 #include <mariadb/mysql.h> // We add this for additional mysql functions such as mysql_insert_id, etc.
 #include "mysql.h"         // For mysql_escape_string_alloc
-#include "feats.h"
+#include "character/feats.h"
 
 /* local (file scope) function prototpyes  */
 static char *next_page(char *str, struct char_data *ch);

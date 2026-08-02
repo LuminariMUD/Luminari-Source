@@ -10,7 +10,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "act.h"
-#include "class.h"
+#include "character/class.h"
 #include "combat/fight.h"
 #include "magic/spell_prep.h"
 #include "magic/metamagic_science.h"

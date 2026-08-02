@@ -35,10 +35,10 @@
 #include "combat/assign_wpn_armor.h"
 #include "combat/encounters.h"
 #include "quest/hunts.h"
-#include "class.h"
+#include "character/class.h"
 #include "vessels/transport.h"
 #include "routing.h"
-#include "perks.h"
+#include "character/perks.h"
 
 /* Include movement system header */
 #include "movement.h"

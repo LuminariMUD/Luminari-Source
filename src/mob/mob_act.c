@@ -28,7 +28,7 @@
 #include "shop.h"
 #include "quest/quest.h"         /* so you can identify questmaster mobiles */
 #include "dgscript/dg_scripts.h" /* so you can identify script mobiles */
-#include "evolutions.h"
+#include "character/evolutions.h"
 #include "magic/psionics.h"
 #include "mob_act.h"
 #include "mob_spellslots.h"

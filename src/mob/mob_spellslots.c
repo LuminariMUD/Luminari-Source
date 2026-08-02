@@ -18,7 +18,7 @@
 #include "db.h"
 #include "constants.h"
 #include "magic/spell_prep.h"
-#include "class.h"
+#include "character/class.h"
 
 /* External functions */
 extern int compute_slots_by_circle(struct char_data *ch, int class_num, int circle);

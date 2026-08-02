@@ -18,7 +18,7 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "spec_procs.h"
-#include "class.h"
+#include "character/class.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"

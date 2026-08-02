@@ -13,12 +13,12 @@
 #include "interpreter.h"
 #include "db.h"
 #include "spells.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "domains_schools.h"
 #include "combat/assign_wpn_armor.h"
 #include "screen.h"
 #include "modify.h"
-#include "class.h"
+#include "character/class.h"
 
 struct domain_info domain_list[NUM_DOMAINS];
 struct school_info school_list[NUM_SCHOOLS];

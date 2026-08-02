@@ -12,12 +12,12 @@
 #include "handler.h"
 #include "comm.h"
 #include "char_descs.h"
-#include "race.h"
+#include "character/race.h"
 #include "dgscript/dg_scripts.h"
-#include "class.h"
+#include "character/class.h"
 #include "comms/mail.h"
 #include "roleplay.h"
-#include "character_creation.h"
+#include "character/character_creation.h"
 #include "net/onboarding.h"
 
 /* External function declarations */

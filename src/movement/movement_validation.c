@@ -20,10 +20,10 @@
 #include "constants.h"
 #include "act.h"
 #include "combat/fight.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "class.h"
+#include "character/class.h"
 #include "spec_procs.h"
 #include "movement_validation.h"
 

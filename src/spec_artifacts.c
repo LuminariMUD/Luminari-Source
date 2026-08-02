@@ -43,7 +43,7 @@
 #include "screen.h"
 #include "lists.h"
 #include "act.h"
-#include "class.h"
+#include "character/class.h"
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "campaign.h"

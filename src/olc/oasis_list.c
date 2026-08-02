@@ -24,13 +24,13 @@
 #include "quest/quest.h"
 #include "modify.h"
 #include "magic/spells.h"
-#include "race.h"
+#include "character/race.h"
 #include "genzon.h"
-#include "class.h"
+#include "character/class.h"
 #include "genshp.h"
 #include "wilderness/wilderness.h"
 #include "combat/assign_wpn_armor.h"
-#include "feats.h"
+#include "character/feats.h"
 
 #define MAX_OBJ_LIST 100
 

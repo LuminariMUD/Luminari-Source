@@ -25,9 +25,9 @@
 #include "dgscript/dg_olc.h"
 #include "screen.h"
 #include "combat/fight.h"
-#include "race.h"
-#include "class.h"
-#include "feats.h"
+#include "character/race.h"
+#include "character/class.h"
+#include "character/feats.h"
 #include "modify.h" /* for smash_tilde */
 #include "spec_procs.h"
 

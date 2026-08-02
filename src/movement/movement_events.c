@@ -30,11 +30,11 @@
 #include "actions.h"
 #include "traps.h"
 #include "magic/spell_prep.h"
-#include "class.h"
+#include "character/class.h"
 #include "vessels/transport.h"
 #include "combat/encounters.h"
 #include "quest/hunts.h"
-#include "feats.h"
+#include "character/feats.h"
 
 /* Include movement system header */
 #include "movement.h"

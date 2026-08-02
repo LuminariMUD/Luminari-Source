@@ -60,11 +60,11 @@
 #include "constants.h"
 #include "spec_procs.h"
 #include "mud_event.h"
-#include "class.h"
+#include "character/class.h"
 #include "spells.h"
 #include "spell_prep.h"
 #include "domains_schools.h"
-#include "perks.h"             /* For divine metamagic reduction */
+#include "character/perks.h"   /* For divine metamagic reduction */
 #include "moon_bonus_spells.h" /* For moon-based bonus spell slots */
 #include "mud_event.h"
 #include <limits.h> /* For INT_MAX overflow checks */

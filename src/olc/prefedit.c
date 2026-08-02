@@ -21,7 +21,7 @@
 #include "prefedit.h"
 #include "screen.h"
 #include "combat/encounters.h"
-#include "perks.h"
+#include "character/perks.h"
 
 /* Internal (static) functions */
 static void prefedit_setup(struct descriptor_data *d, struct char_data *vict);

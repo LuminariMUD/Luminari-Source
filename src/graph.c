@@ -26,8 +26,8 @@
 #include "actions.h"
 #include "wilderness/wilderness.h"
 #include "shop.h" /* shopkeepers hunting?! */
-#include "evolutions.h"
-#include "perks.h"
+#include "character/evolutions.h"
+#include "character/perks.h"
 
 /* local functions */
 static int VALID_EDGE(room_rnum x, int y);

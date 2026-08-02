@@ -28,10 +28,10 @@
 #include "dgscript/dg_scripts.h"
 #include "mud_event.h"
 #include "act.h"
-#include "race.h"
+#include "character/race.h"
 #include "combat/fight.h"
 #include "magic/spells.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "pubsub.h"
 
 /*

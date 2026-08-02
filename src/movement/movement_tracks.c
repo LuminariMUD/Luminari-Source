@@ -20,8 +20,8 @@
 #include "constants.h"
 #include <stdint.h>
 #include "act.h"
-#include "class.h"
-#include "race.h"
+#include "character/class.h"
+#include "character/race.h"
 /* Include movement system header */
 #include "movement.h"
 #include "movement_tracks.h" /* includes trail data structures */

@@ -27,12 +27,12 @@
 #include "clan.h"
 #include "craft/craft.h"
 #include "combat/spec_abilities.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "treasure.h" /* set_weapon_object */
 #include "act.h"      /* get_eq_score() */
-#include "feats.h"
+#include "character/feats.h"
 #include "handler.h"
 #include "spec_procs.h"
 

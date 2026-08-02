@@ -24,7 +24,7 @@
 #include "olc/genolc.h"
 #include "dgscript/dg_scripts.h"
 #include "char_descs.h"
-#include "deities.h"
+#include "character/deities.h"
 #include "helpers.h"
 
 #include "mysql.h"

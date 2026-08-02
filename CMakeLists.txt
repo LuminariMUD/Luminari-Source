@@ -409,9 +409,9 @@ set(SRC_C_FILES
     src/craft/alchemy.c
     src/asciimap.c
     src/combat/assign_wpn_armor.c
-    src/backgrounds.c
-    src/character_creation.c
-    src/character_creation_content.c
+    src/character/backgrounds.c
+    src/character/character_creation.c
+    src/character/character_creation_content.c
     src/ban.c
     src/bardic_performance.c
     src/olc/bedit.c
@@ -424,7 +424,7 @@ set(SRC_C_FILES
     src/clan_economy.c
     src/olc/clan_edit.c
     src/clan_transactions.c
-    src/class.c
+    src/character/class.c
     src/combat/combat_modes.c
     src/comm.c
     src/config.c
@@ -439,7 +439,7 @@ set(SRC_C_FILES
     src/db_init_data.c
     src/db_startup_init.c
     src/db_admin_commands.c
-    src/deities.c
+    src/character/deities.c
     src/desc_engine.c
     src/dgscript/dg_comm.c
     src/net/discord_bridge.c
@@ -458,8 +458,8 @@ set(SRC_C_FILES
     src/magic/domains_schools.c
     src/dotenv.c
     src/combat/encounters.c
-    src/evolutions.c
-    src/feats.c
+    src/character/evolutions.c
+    src/character/feats.c
     src/combat/fight.c
     src/gain.c
     src/olc/genmob.c
@@ -516,18 +516,18 @@ set(SRC_C_FILES
     src/objsave.c
     src/olc/oedit.c
     src/perfmon.c
-    src/perks.c
+    src/character/perks.c
     src/wilderness/perlin.c
     src/player_rename.c
     src/players.c
     src/olc/prefedit.c
-    src/premadebuilds.c
+    src/character/premadebuilds.c
     src/net/protocol.c
     src/magic/psionics.c
     src/pubsub/pubsub.c
     src/olc/qedit.c
     src/quest/quest.c
-    src/race.c
+    src/character/race.c
     src/random.c
     src/random_names.c
     src/rank.c
@@ -550,10 +550,10 @@ set(SRC_C_FILES
     src/magic/spellbook_scroll.c
     src/magic/spells.c
     src/quest/staff_events.c
-    src/study.c
-    src/talents.c
+    src/character/study.c
+    src/character/talents.c
     src/olc/tedit.c
-    src/templates.c
+    src/character/templates.c
     src/trade.c
     src/vessels/transport.c
     src/vessels/transport_unified.c

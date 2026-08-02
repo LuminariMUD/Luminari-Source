@@ -15,16 +15,16 @@
 #include "mysql.h"
 #include "lists.h"
 #include "help.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "magic/spells.h" /* need this for class.h NUM_ABILITIES */
-#include "class.h"
-#include "race.h"
+#include "character/class.h"
+#include "character/race.h"
 #include "craft/alchemy.h"
 #include "constants.h"
-#include "deities.h"
+#include "character/deities.h"
 #include "act.h"
-#include "evolutions.h"
-#include "backgrounds.h"
+#include "character/evolutions.h"
+#include "character/backgrounds.h"
 
 /* Help cache system - stores recent help queries to reduce database load */
 #define HELP_CACHE_SIZE 50 /* Number of cached help entries */

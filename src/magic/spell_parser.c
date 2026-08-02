@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "spec_procs.h"
-#include "class.h"
+#include "character/class.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
@@ -32,11 +32,11 @@
 #include "quest/missions.h"
 #include "psionics.h"
 #include "act.h"
-#include "evolutions.h"
+#include "character/evolutions.h"
 #include "mudlim.h"
 #include "metamagic_science.h"
 #include "mob/mob_spellslots.h"
-#include "perks.h"
+#include "character/perks.h"
 
 #define SINFO spell_info[spellnum]
 

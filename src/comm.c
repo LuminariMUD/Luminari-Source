@@ -87,9 +87,9 @@
 #include "mud_event.h"
 #include "clan.h"
 #include "clan_economy.h"
-#include "class.h"          /* needed for level_exp for prompt */
-#include "comms/mail.h"     /* has_mail() */
-#include "comms/new_mail.h" /* new mail system on prompt */
+#include "character/class.h" /* needed for level_exp for prompt */
+#include "comms/mail.h"      /* has_mail() */
+#include "comms/new_mail.h"  /* new mail system on prompt */
 #include "screen.h"
 #include "mudlim.h"
 #include "actions.h"

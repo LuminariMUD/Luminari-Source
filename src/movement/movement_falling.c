@@ -22,8 +22,8 @@
 #include "combat/fight.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "feats.h"
-#include "perks.h"
+#include "character/feats.h"
+#include "character/perks.h"
 #include "movement_falling.h"
 
 /* External functions */

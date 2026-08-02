@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "act.h"
 #include "spec_procs.h"
-#include "class.h"
+#include "character/class.h"
 #include "combat/fight.h"
 #include "modify.h"
 #include "house.h"
@@ -32,7 +32,7 @@
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "magic/spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "craft/alchemy.h"
@@ -40,11 +40,11 @@
 #include "mob/mob_utils.h"    /* npc_find_target() */
 #include "magic/spell_prep.h" /* for star circlet proc */
 #include "handler.h"          /* for is_name() */
-#include "evolutions.h"
+#include "character/evolutions.h"
 #include "olc/oasis.h"
 #include "quest/quest.h"
-#include "backgrounds.h"
-#include "perks.h"
+#include "character/backgrounds.h"
+#include "character/perks.h"
 #include "vessels/vessels.h"
 
 /* External vessel data for ship boarding */

@@ -13,8 +13,8 @@
 #include "interpreter.h"
 #include "dgscript/dg_scripts.h"
 #include "modify.h"
-#include "feats.h"
-#include "class.h"
+#include "character/feats.h"
+#include "character/class.h"
 #include "mud_event.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -23,8 +23,8 @@
 #include "actions.h"
 #include "act.h"
 #include "combat/fight.h"
-#include "evolutions.h"
-#include "perks.h"
+#include "character/evolutions.h"
+#include "character/perks.h"
 
 // external functions
 int attack_roll(struct char_data *ch, struct char_data *victim, int attack_type, int is_touch,

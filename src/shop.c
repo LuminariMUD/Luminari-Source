@@ -26,11 +26,11 @@
 #include "modify.h"
 #include "magic/spells.h" /* for skill_name() */
 #include "screen.h"
-#include "race.h"
+#include "character/race.h"
 #include "spec_procs.h"
 #include "mudlim.h"
 #include "item.h"
-#include "backgrounds.h"
+#include "character/backgrounds.h"
 #include "clan_economy.h"
 
 /* Global variables definitions used externally */

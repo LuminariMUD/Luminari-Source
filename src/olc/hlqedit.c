@@ -17,7 +17,7 @@
 #include "constants.h"
 #include "quest/hlquest.h"
 #include "magic/spells.h"
-#include "class.h"
+#include "character/class.h"
 #include "genzon.h"
 #include "genolc.h"
 #include "genmob.h"

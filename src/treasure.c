@@ -25,7 +25,7 @@
 #include "olc/oasis.h"
 #include "item.h"
 #include "quest/staff_events.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "craft/crafting_new.h"
 #include "mud_options.h"
 

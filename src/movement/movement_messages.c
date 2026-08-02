@@ -28,7 +28,7 @@
 #include "mudlim.h"
 #include "actions.h"
 #include "magic/spell_prep.h"
-#include "class.h"
+#include "character/class.h"
 #include "vessels/transport.h"
 
 /* Include movement system header */

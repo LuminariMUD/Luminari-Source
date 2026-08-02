@@ -20,10 +20,10 @@
 #include "interpreter.h" /* alias_data */
 #include "magic/spells.h"
 #include "craft/craft.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "magic/domains_schools.h"
 #include "handler.h"
-#include "deities.h"
+#include "character/deities.h"
 #include "constants.h"
 #include "roleplay.h"
 #include "craft/crafting_new.h"

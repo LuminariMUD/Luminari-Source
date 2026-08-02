@@ -32,7 +32,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "class.h"
+#include "character/class.h"
 #include "fight.h"
 #include "utils.h"
 #include "mud_event.h"
@@ -40,12 +40,12 @@
 #include "mudlim.h"
 #include "olc/oasis.h" // mob autoroller
 #include "assign_wpn_armor.h"
-#include "feats.h"
-#include "race.h"
+#include "character/feats.h"
+#include "character/race.h"
 #include "spec_abilities.h"
 #include "magic/domains_schools.h"
-#include "evolutions.h"
-#include "perks.h"
+#include "character/evolutions.h"
+#include "character/perks.h"
 
 struct special_ability_info_type special_ability_info[NUM_SPECABS];
 

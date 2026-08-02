@@ -18,7 +18,7 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
-#include "perks.h"
+#include "character/perks.h"
 #include "interpreter.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
@@ -36,8 +36,8 @@
 #include "combat/assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */
 #include "vessels/transport.h"
-#include "evolutions.h"
-#include "feats.h"
+#include "character/evolutions.h"
+#include "character/feats.h"
 #include "routing.h"
 
 /************************************************************/

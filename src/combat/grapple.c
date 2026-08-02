@@ -20,14 +20,14 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "spec_procs.h"
-#include "class.h"
+#include "character/class.h"
 #include "mudlim.h"
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "grapple.h"
-#include "evolutions.h"
+#include "character/evolutions.h"
 
 /* As a standard action, you can attempt to grapple a foe, hindering his combat
  * options. If you do not have Improved Grapple, grab, or a similar ability,

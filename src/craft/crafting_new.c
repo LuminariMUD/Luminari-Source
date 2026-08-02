@@ -26,10 +26,10 @@
 #include "olc/genolc.h"
 #include "crafting_new.h"
 #include "olc/oasis.h"
-#include "feats.h"
-#include "class.h"
+#include "character/feats.h"
+#include "character/class.h"
 #include "olc/improved-edit.h"
-#include "talents.h" /* crafting talent system */
+#include "character/talents.h" /* crafting talent system */
 #include "dgscript/dg_scripts.h"
 #include "wilderness/resource_system.h"
 

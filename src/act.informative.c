@@ -26,8 +26,8 @@
 #include "mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
-#include "class.h"
-#include "race.h"
+#include "character/class.h"
+#include "character/race.h"
 #include "mob/mob_spellslots.h"
 #include "combat/fight.h"
 #include "modify.h"
@@ -36,19 +36,19 @@
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
 #include "quest/quest.h" /* so you can identify questmaster mobiles */
-#include "feats.h"
+#include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
-#include "premadebuilds.h"
+#include "character/premadebuilds.h"
 #include "quest/staff_events.h"
 #include "quest/missions.h"
 #include "spec_procs.h"
 #include "vessels/transport.h"
 #include "combat/encounters.h"
-#include "deities.h"
+#include "character/deities.h"
 #include "treasure.h"
 #include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */
 #include "wilderness/resource_system.h"
@@ -59,7 +59,7 @@
 #include "comms/mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
 #include "routing.h"
-#include "perks.h"
+#include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
 
 /* Phase 7: Cascade system integration */

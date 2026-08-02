@@ -16,7 +16,7 @@
 #include "../../src/mob/mob_utils.h"
 #include "../../src/quest/missions.h"
 #include "../../src/movement/movement.h"
-#include "../../src/perks.h"
+#include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
 

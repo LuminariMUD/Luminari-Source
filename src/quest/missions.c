@@ -15,8 +15,8 @@
 #include "mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
-#include "class.h"
-#include "race.h"
+#include "character/class.h"
+#include "character/race.h"
 #include "combat/fight.h"
 #include "modify.h"
 #include "asciimap.h"
@@ -25,13 +25,13 @@
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
 #include "quest.h" /* so you can identify questmaster mobiles */
-#include "feats.h"
+#include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
 #include "desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
-#include "premadebuilds.h"
+#include "character/premadebuilds.h"
 #include "missions.h"
 #include "random_names.h"
 #include "spec_procs.h"

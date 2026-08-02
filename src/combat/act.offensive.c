@@ -25,19 +25,19 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "spec_procs.h"
-#include "class.h"
+#include "character/class.h"
 #include "mudlim.h"
 #include "actions.h"
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
-#include "feats.h"
+#include "character/feats.h"
 #include "quest/missions.h"
 #include "magic/domains_schools.h"
 #include "encounters.h"
 #include "constants.h"
 #include "spec_procs.h" /* for is_wearing() */
-#include "evolutions.h"
-#include "perks.h"
+#include "character/evolutions.h"
+#include "character/perks.h"
 
 /* externs */
 extern char cast_arg2[MAX_INPUT_LENGTH];

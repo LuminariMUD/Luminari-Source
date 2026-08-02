@@ -29,16 +29,16 @@
 #include "craft/craft.h" // crafting (auto craft quest inits)
 #include "magic/spell_prep.h"
 #include "craft/alchemy.h"
-#include "templates.h"
-#include "premadebuilds.h"
+#include "character/templates.h"
+#include "character/premadebuilds.h"
 #include "quest/missions.h"
-#include "evolutions.h"
-#include "class.h"
-#include "perks.h"
+#include "character/evolutions.h"
+#include "character/class.h"
+#include "character/perks.h"
 #include "olc/oasis.h"
 #include "craft/crafting_new.h"
 #include "wilderness/resource_system.h"
-#include "character_creation.h"
+#include "character/character_creation.h"
 #include "vessels/vessels.h"
 #include <stdint.h>
 #include <sys/time.h>

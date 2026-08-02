@@ -21,12 +21,12 @@
 #include "magic/spells.h"
 #include "handler.h"
 #include "interpreter.h"
-#include "class.h"
-#include "race.h"
+#include "character/class.h"
+#include "character/race.h"
 #include "act.h"
 #include "spec_procs.h" // for compute_ability
 #include "mud_event.h"  // for purgemob event
-#include "feats.h"
+#include "character/feats.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"
 #include "wilderness/wilderness.h"
@@ -34,16 +34,16 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "craft/alchemy.h"
-#include "premadebuilds.h"
+#include "character/premadebuilds.h"
 #include "craft/craft.h"
 #include "combat/fight.h"
 #include "quest/missions.h"
 #include "magic/psionics.h"
-#include "evolutions.h"
-#include "backgrounds.h"
+#include "character/evolutions.h"
+#include "character/backgrounds.h"
 #include "char_descs.h"
 #include "treasure.h"
-#include "perks.h"
+#include "character/perks.h"
 #include <time.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
