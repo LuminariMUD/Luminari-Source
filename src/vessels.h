@@ -81,6 +81,7 @@ struct vessel_region_feature
 #endif
 
 #define GREYHAWK_ACTIVE_SHIP_CAPACITY (GREYHAWK_MAXSHIPS - 1)
+#define VESSEL_CUSTOMIZATION_LENGTH 81 /* 80 printable characters plus NUL */
 
 #ifndef GREYHAWK_MAXSLOTS
 #define GREYHAWK_MAXSLOTS 10 /* Maximum equipment slots per ship */
@@ -906,6 +907,7 @@ int vessel_spawn_public_from_prototype_at(int id, const char *instance_name,
 ACMD_DECL(do_shipbrowse);   /* Shipyard catalog with prices */
 ACMD_DECL(do_shipbuy);      /* Purchase a hull at a dock */
 ACMD_DECL(do_shipchristen); /* Owner: rename the ship */
+ACMD_DECL(do_shipcustomize); /* Owner: set paint and figurehead */
 
 ACMD_DECL(do_shippermit);  /* Owner: clear a player to take the helm */
 ACMD_DECL(do_shiprevoke);  /* Owner: revoke a helm permit */
@@ -1567,6 +1569,16 @@ void save_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_
 void end_docking_record(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
 
 /* Utility Functions */
+void vessel_build_hull_description(char *buffer, size_t buffer_size,
+                                   const struct greyhawk_ship_data *ship);
+bool vessel_format_appearance(char *buffer, size_t buffer_size,
+                              const struct greyhawk_ship_data *ship);
+bool vessel_refresh_hull_strings(struct greyhawk_ship_data *ship, bool refresh_identity);
+const char *vessel_figurehead(const struct greyhawk_ship_data *ship);
+const char *vessel_paint_scheme(const struct greyhawk_ship_data *ship);
+void vessel_set_figurehead(struct greyhawk_ship_data *ship, const char *value);
+void vessel_set_paint_scheme(struct greyhawk_ship_data *ship, const char *value);
+void vessel_reset_customization(struct greyhawk_ship_data *ship);
 struct greyhawk_ship_data *find_ship_by_name(const char *name);
 struct greyhawk_ship_data *get_ship_by_id(int id);
 bool is_pilot(struct char_data *ch, struct greyhawk_ship_data *ship);

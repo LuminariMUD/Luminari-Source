@@ -538,6 +538,7 @@ elif [[ "$acceptance_mode" == lookout ]]; then
   for expected_text in \
     'PASS: the lookout used all eight canonical wilderness bearings' \
     'PASS: the lookout reported a real nearby vessel' \
+    'PASS: optional paint and figurehead details appeared in LOOKOUT' \
     'PASS: the coastal lookout reported actual shoal, beach, and field sectors.' \
     'PASS: the vessel lookout check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
@@ -545,7 +546,9 @@ elif [[ "$acceptance_mode" == lookout ]]; then
   done
 
   for expected_text in \
-    'LOOKOUT VIEW FROM Starfall Bastion' \
+    'LOOKOUT VIEW FROM Azure Watch' \
+    'Paint: midnight blue with silver trim; figurehead: a gilded sea dragon.' \
+    'Azure Watch is moored here, painted midnight blue with silver trim' \
     'Surrounding wilderness (sampled to the visible horizon):' \
     'Visible vessels (nearest first):' \
     'Current sector: Ocean'; do

@@ -220,6 +220,11 @@ SHIPCHRISTEN <name>
   Rename a ship you own (3-60 printable characters). Do it once, do it
   well - she\'ll carry the name into every port report.
 
+SHIPCUSTOMIZE [show]
+SHIPCUSTOMIZE <paint|figurehead> <description|clear>
+  Review or change your ship\'s optional exterior details. Descriptions run
+  3-80 printable characters and appear on the hull and in lookout reports.
+
 SHIPDEED <player>
   Sign your ship over to another player. They must be aboard with you.
 
@@ -241,6 +246,7 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPBROWSE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPBUY');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPCHRISTEN');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPCUSTOMIZE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPDEED');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPPERMIT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIPREVOKE');

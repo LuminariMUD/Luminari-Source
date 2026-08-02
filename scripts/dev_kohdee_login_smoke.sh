@@ -1246,9 +1246,31 @@ proc run_vessel_lookout_check {warship_id} {
     "lookout observer staging"
   set observer_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
 
+  set output [run_game_command "shipchristen Azure Watch"]
+  require_game_output $output "christened Azure Watch" \
+    "lookout cosmetic christening"
+  set output [run_game_command "shipcustomize"]
+  require_game_output $output "Paint:      (none)" \
+    "lookout empty paint customization"
+  require_game_output $output "Figurehead: (none)" \
+    "lookout empty figurehead customization"
+  set output [run_game_command \
+    "shipcustomize paint midnight blue with silver trim"]
+  require_game_output $output \
+    "updates the vessel's paint to midnight blue with silver trim" \
+    "lookout paint customization"
+  set output [run_game_command \
+    "shipcustomize figurehead a gilded sea dragon"]
+  require_game_output $output \
+    "updates the vessel's figurehead to a gilded sea dragon" \
+    "lookout figurehead customization"
+
   set output [run_game_command "lookout"]
-  require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
+  require_game_output $output "LOOKOUT VIEW FROM Azure Watch" \
     "open-water lookout header"
+  require_game_output $output \
+    "Paint: midnight blue with silver trim; figurehead: a gilded sea dragon." \
+    "open-water lookout appearance"
   require_game_output $output "Position: (900, 225, 0)" \
     "open-water lookout position"
   require_game_output $output "Conditions:" "open-water lookout weather"
@@ -1269,7 +1291,22 @@ proc run_vessel_lookout_check {warship_id} {
     "open-water lookout live contact"
   require_game_output $output "sound" "open-water lookout contact condition"
 
-  purge_frontier_vessel $observer_slot "Starfall Bastion"
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output \
+    "Azure Watch is moored here, painted midnight blue with silver trim and bearing a gilded sea dragon as a figurehead." \
+    "customized exterior hull description"
+  set output [run_game_command "shipgoto $observer_slot"]
+  require_game_output $output "Aboard Azure Watch (slot $observer_slot)." \
+    "customized vessel return"
+  run_game_command "shipcustomize paint clear"
+  run_game_command "shipcustomize figurehead clear"
+  set output [run_game_command "shipcustomize"]
+  require_game_output $output "Paint:      (none)" \
+    "cleared paint customization"
+  require_game_output $output "Figurehead: (none)" \
+    "cleared figurehead customization"
+
+  purge_frontier_vessel $observer_slot "Azure Watch"
   set output [run_game_command "shippurge $target_slot"]
   require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" \
     "lookout target cleanup"
@@ -1291,6 +1328,7 @@ proc run_vessel_lookout_check {warship_id} {
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: the lookout used all eight canonical wilderness bearings through the visible horizon."
   puts "PASS: the lookout reported a real nearby vessel through production visibility and condition state."
+  puts "PASS: optional paint and figurehead details appeared in LOOKOUT and the exterior hull description."
   puts "PASS: the coastal lookout reported actual shoal, beach, and field sectors."
   puts "PASS: the vessel lookout check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }

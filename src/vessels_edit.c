@@ -526,6 +526,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id,
   memset(ship, 0, sizeof(*ship));
   ship->active = TRUE;
   ship->shipnum = slot;
+  vessel_reset_customization(ship);
   ship->prototype_id = id;
   ship->hull_object_vnum = VESSEL_BASE_HULL_OBJ_VNUM;
   strlcpy(ship->name, spawn_name, sizeof(ship->name));
@@ -615,7 +616,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id,
   vessel_build_hull_keywords(buf, sizeof(buf), spawn_name);
   obj->name = strdup(buf);
   obj->short_description = strdup(spawn_name);
-  snprintf(buf, sizeof(buf), "%s is moored here.", spawn_name);
+  vessel_build_hull_description(buf, sizeof(buf), ship);
   obj->description = strdup(buf);
 
   if (!vessel_place_hull_object(ship, obj))
@@ -847,7 +848,6 @@ ACMD(do_shipbuy)
 ACMD(do_shipchristen)
 {
   struct greyhawk_ship_data *ship;
-  char buf[MAX_STRING_LENGTH];
   const char *name;
   size_t i;
 
@@ -883,18 +883,147 @@ ACMD(do_shipchristen)
   log("Info: %s christened ship %d '%s' as '%s'", GET_NAME(ch), ship->shipnum, ship->name, name);
   strlcpy(ship->name, name, sizeof(ship->name));
 
-  if (ship->shipobj != NULL)
-  {
-    vessel_build_hull_keywords(buf, sizeof(buf), ship->name);
-    ship->shipobj->name = strdup(buf);
-    ship->shipobj->short_description = strdup(ship->name);
-    snprintf(buf, sizeof(buf), "%s is moored here.", ship->name);
-    ship->shipobj->description = strdup(buf);
-  }
+  vessel_refresh_hull_strings(ship, TRUE);
 
   save_ship_interior(ship);
   vessel_db_save_owner(ship);
   send_to_ship(ship, "By her owner's word, this vessel is christened %s!", ship->name);
+}
+
+/**
+ * shipcustomize [paint|figurehead] <description|clear> - set exterior details.
+ */
+ACMD(do_shipcustomize)
+{
+  struct greyhawk_ship_data *ship;
+  char field[MAX_INPUT_LENGTH];
+  char value[MAX_INPUT_LENGTH];
+  char old_value[VESSEL_CUSTOMIZATION_LENGTH];
+  char *end;
+  char *remainder;
+  const char *current_value;
+  const char *field_name;
+  bool paint_field;
+  size_t i;
+
+  ship = get_ship_from_room(IN_ROOM(ch));
+  if (ship == NULL)
+  {
+    send_to_char(ch, "You must be aboard your ship to customize her.\r\n");
+    return;
+  }
+
+  if (str_cmp(ship->owner, GET_NAME(ch)) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    send_to_char(ch, "Only the owner may customize this vessel.\r\n");
+    return;
+  }
+
+  remainder = one_argument_u((char *)argument, field);
+  if (!*field || !str_cmp(field, "show"))
+  {
+    send_to_char(ch, "Vessel customization for %s:\r\n", ship->name);
+    send_to_char(ch, "  Paint:      %s\r\n",
+                 *vessel_paint_scheme(ship) ? vessel_paint_scheme(ship) : "(none)");
+    send_to_char(ch, "  Figurehead: %s\r\n",
+                 *vessel_figurehead(ship) ? vessel_figurehead(ship) : "(none)");
+    send_to_char(ch, "Usage: shipcustomize <paint|figurehead> <description|clear>\r\n");
+    return;
+  }
+
+  if (is_abbrev(field, "paint"))
+  {
+    paint_field = TRUE;
+    field_name = "paint";
+  }
+  else if (is_abbrev(field, "figurehead"))
+  {
+    paint_field = FALSE;
+    field_name = "figurehead";
+  }
+  else
+  {
+    send_to_char(ch, "Customize either the paint or figurehead.\r\n");
+    return;
+  }
+
+  skip_spaces(&remainder);
+  strlcpy(value, remainder, sizeof(value));
+  end = value + strlen(value);
+  while (end > value && isspace((unsigned char)end[-1]))
+  {
+    *--end = '\0';
+  }
+
+  if (!str_cmp(value, "clear"))
+  {
+    value[0] = '\0';
+  }
+  else if (strlen(value) < 3 || strlen(value) >= VESSEL_CUSTOMIZATION_LENGTH)
+  {
+    send_to_char(ch, "Customization descriptions run 3 to 80 characters.\r\n");
+    return;
+  }
+
+  for (i = 0; value[i]; i++)
+  {
+    if (!isprint((unsigned char)value[i]))
+    {
+      send_to_char(ch, "Customization descriptions must be plain printable text.\r\n");
+      return;
+    }
+  }
+
+  current_value = paint_field ? vessel_paint_scheme(ship) : vessel_figurehead(ship);
+  strlcpy(old_value, current_value, sizeof(old_value));
+  if (paint_field)
+  {
+    vessel_set_paint_scheme(ship, value);
+  }
+  else
+  {
+    vessel_set_figurehead(ship, value);
+  }
+  if (ship->shipobj != NULL && !vessel_refresh_hull_strings(ship, FALSE))
+  {
+    if (paint_field)
+    {
+      vessel_set_paint_scheme(ship, old_value);
+    }
+    else
+    {
+      vessel_set_figurehead(ship, old_value);
+    }
+    send_to_char(ch, "The ship's exterior could not be updated. Try again.\r\n");
+    return;
+  }
+
+  if (!save_ship_interior(ship))
+  {
+    if (paint_field)
+    {
+      vessel_set_paint_scheme(ship, old_value);
+    }
+    else
+    {
+      vessel_set_figurehead(ship, old_value);
+    }
+    if (ship->shipobj != NULL)
+    {
+      vessel_refresh_hull_strings(ship, FALSE);
+    }
+    send_to_char(ch, "The customization could not be saved, so nothing changed.\r\n");
+    return;
+  }
+
+  if (value[0])
+  {
+    send_to_ship(ship, "%s updates the vessel's %s to %s.", GET_NAME(ch), field_name, value);
+  }
+  else
+  {
+    send_to_ship(ship, "%s clears the vessel's %s customization.", GET_NAME(ch), field_name);
+  }
 }
 
 /**

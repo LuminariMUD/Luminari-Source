@@ -32,6 +32,14 @@ struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 struct greyhawk_contact_data greyhawk_contacts[30];
 extern int wild_waterline;
 
+struct vessel_customization_data
+{
+  char figurehead[VESSEL_CUSTOMIZATION_LENGTH];
+  char paint_scheme[VESSEL_CUSTOMIZATION_LENGTH];
+};
+
+static struct vessel_customization_data vessel_customizations[GREYHAWK_MAXSHIPS];
+
 /* Global string buffers for Greyhawk system */
 static char greyhawk_status[20];
 static char greyhawk_position[20];
@@ -941,6 +949,209 @@ void vessel_build_hull_keywords(char *buffer, size_t buffer_size, const char *na
     length--;
   }
   buffer[length] = '\0';
+}
+
+static struct vessel_customization_data *vessel_customization(const struct greyhawk_ship_data *ship)
+{
+  if (ship == NULL || ship->shipnum < 0 || ship->shipnum >= GREYHAWK_MAXSHIPS)
+  {
+    return NULL;
+  }
+  return &vessel_customizations[ship->shipnum];
+}
+
+const char *vessel_figurehead(const struct greyhawk_ship_data *ship)
+{
+  const struct vessel_customization_data *customization;
+
+  customization = vessel_customization(ship);
+  return customization != NULL ? customization->figurehead : "";
+}
+
+const char *vessel_paint_scheme(const struct greyhawk_ship_data *ship)
+{
+  const struct vessel_customization_data *customization;
+
+  customization = vessel_customization(ship);
+  return customization != NULL ? customization->paint_scheme : "";
+}
+
+void vessel_set_figurehead(struct greyhawk_ship_data *ship, const char *value)
+{
+  struct vessel_customization_data *customization;
+
+  customization = vessel_customization(ship);
+  if (customization != NULL)
+  {
+    strlcpy(customization->figurehead, value ? value : "", sizeof(customization->figurehead));
+  }
+}
+
+void vessel_set_paint_scheme(struct greyhawk_ship_data *ship, const char *value)
+{
+  struct vessel_customization_data *customization;
+
+  customization = vessel_customization(ship);
+  if (customization != NULL)
+  {
+    strlcpy(customization->paint_scheme, value ? value : "", sizeof(customization->paint_scheme));
+  }
+}
+
+void vessel_reset_customization(struct greyhawk_ship_data *ship)
+{
+  struct vessel_customization_data *customization;
+
+  customization = vessel_customization(ship);
+  if (customization != NULL)
+  {
+    memset(customization, 0, sizeof(*customization));
+  }
+}
+
+/**
+ * Build the room description for a vessel's exterior hull.
+ */
+void vessel_build_hull_description(char *buffer, size_t buffer_size,
+                                   const struct greyhawk_ship_data *ship)
+{
+  const char *name;
+  const char *figurehead;
+  const char *paint_scheme;
+
+  if (buffer == NULL || buffer_size == 0)
+  {
+    return;
+  }
+
+  if (ship == NULL)
+  {
+    buffer[0] = '\0';
+    return;
+  }
+
+  name = ship->name[0] ? ship->name : "An unnamed vessel";
+  figurehead = vessel_figurehead(ship);
+  paint_scheme = vessel_paint_scheme(ship);
+  if (*paint_scheme && *figurehead)
+  {
+    snprintf(buffer, buffer_size, "%s is moored here, painted %s and bearing %s as a figurehead.",
+             name, paint_scheme, figurehead);
+  }
+  else if (*paint_scheme)
+  {
+    snprintf(buffer, buffer_size, "%s is moored here, painted %s.", name, paint_scheme);
+  }
+  else if (*figurehead)
+  {
+    snprintf(buffer, buffer_size, "%s is moored here, bearing %s as a figurehead.", name,
+             figurehead);
+  }
+  else
+  {
+    snprintf(buffer, buffer_size, "%s is moored here.", name);
+  }
+}
+
+/**
+ * Format the optional appearance line used by lookout displays.
+ */
+bool vessel_format_appearance(char *buffer, size_t buffer_size,
+                              const struct greyhawk_ship_data *ship)
+{
+  const char *figurehead;
+  const char *paint_scheme;
+
+  if (buffer == NULL || buffer_size == 0)
+  {
+    return FALSE;
+  }
+  buffer[0] = '\0';
+
+  figurehead = vessel_figurehead(ship);
+  paint_scheme = vessel_paint_scheme(ship);
+  if (!*paint_scheme && !*figurehead)
+  {
+    return FALSE;
+  }
+
+  if (*paint_scheme && *figurehead)
+  {
+    snprintf(buffer, buffer_size, "Paint: %s; figurehead: %s.", paint_scheme, figurehead);
+  }
+  else if (*paint_scheme)
+  {
+    snprintf(buffer, buffer_size, "Paint: %s.", paint_scheme);
+  }
+  else
+  {
+    snprintf(buffer, buffer_size, "Figurehead: %s.", figurehead);
+  }
+  return TRUE;
+}
+
+/**
+ * Refresh a live hull's instance-owned strings without freeing prototype data.
+ */
+bool vessel_refresh_hull_strings(struct greyhawk_ship_data *ship, bool refresh_identity)
+{
+  struct obj_data *obj;
+  obj_rnum rnum;
+  char buffer[MAX_STRING_LENGTH];
+  char *new_name;
+  char *new_short_description;
+  char *new_description;
+
+  if (ship == NULL || ship->shipobj == NULL)
+  {
+    return FALSE;
+  }
+
+  obj = ship->shipobj;
+  rnum = GET_OBJ_RNUM(obj);
+  new_name = NULL;
+  new_short_description = NULL;
+  vessel_build_hull_description(buffer, sizeof(buffer), ship);
+  new_description = strdup(buffer);
+  if (refresh_identity)
+  {
+    vessel_build_hull_keywords(buffer, sizeof(buffer), ship->name);
+    new_name = strdup(buffer);
+    new_short_description = strdup(ship->name);
+  }
+
+  if (new_description == NULL ||
+      (refresh_identity && (new_name == NULL || new_short_description == NULL)))
+  {
+    free(new_name);
+    free(new_short_description);
+    free(new_description);
+    log("SYSERR: Unable to allocate refreshed hull strings for ship %d", ship->shipnum);
+    return FALSE;
+  }
+
+  if (obj->description != NULL &&
+      (!VALID_OBJ_RNUM(obj) || obj->description != obj_proto[rnum].description))
+  {
+    free(obj->description);
+  }
+  obj->description = new_description;
+
+  if (refresh_identity)
+  {
+    if (obj->name != NULL && (!VALID_OBJ_RNUM(obj) || obj->name != obj_proto[rnum].name))
+    {
+      free(obj->name);
+    }
+    if (obj->short_description != NULL &&
+        (!VALID_OBJ_RNUM(obj) || obj->short_description != obj_proto[rnum].short_description))
+    {
+      free(obj->short_description);
+    }
+    obj->name = new_name;
+    obj->short_description = new_short_description;
+  }
+  return TRUE;
 }
 
 /**

@@ -106,6 +106,15 @@ void vessel_persistence_ensure_schema(void)
     return;
   }
 
+  if (mysql_query(conn, "ALTER TABLE ship_interiors "
+                        "ADD COLUMN IF NOT EXISTS figurehead VARCHAR(80) NOT NULL DEFAULT '' "
+                        "AFTER vessel_name, "
+                        "ADD COLUMN IF NOT EXISTS paint_scheme VARCHAR(80) NOT NULL DEFAULT '' "
+                        "AFTER figurehead"))
+  {
+    log("SYSERR: Unable to add vessel Phase 17 customization fields: %s", mysql_error(conn));
+  }
+
   if (mysql_query(conn, runtime_sql))
   {
     log("SYSERR: Unable to create ship_runtime_state: %s", mysql_error(conn));
@@ -175,8 +184,12 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
   char query[MAX_STRING_LENGTH];
   char room_vnums_str[1024];
   char escaped_name[sizeof(ship->name) * 2 + 1];
+  char escaped_figurehead[VESSEL_CUSTOMIZATION_LENGTH * 2 + 1];
+  char escaped_paint_scheme[VESSEL_CUSTOMIZATION_LENGTH * 2 + 1];
   char room_data_buf[4096];
   char escaped_room_data[8192];
+  const char *figurehead;
+  const char *paint_scheme;
   int i, len;
 
   if (!mysql_available || !ship)
@@ -208,6 +221,10 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
   {
     strcpy(escaped_name, "Unnamed Vessel");
   }
+  figurehead = vessel_figurehead(ship);
+  paint_scheme = vessel_paint_scheme(ship);
+  mysql_real_escape_string(conn, escaped_figurehead, figurehead, strlen(figurehead));
+  mysql_real_escape_string(conn, escaped_paint_scheme, paint_scheme, strlen(paint_scheme));
 
   /* Serialize room data */
   serialize_room_data(ship, room_data_buf, sizeof(room_data_buf));
@@ -216,24 +233,25 @@ bool save_ship_interior(struct greyhawk_ship_data *ship)
   /* Build and execute query */
   snprintf(query, sizeof(query),
            "INSERT INTO ship_interiors "
-           "(ship_id, vessel_type, vessel_name, num_rooms, max_rooms, "
+           "(ship_id, vessel_type, vessel_name, figurehead, paint_scheme, num_rooms, max_rooms, "
            "room_vnums, bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
            "room_data) "
-           "VALUES (%d, %d, '%s', %d, %d, '%s', %d, %d, "
+           "VALUES (%d, %d, '%s', '%s', '%s', %d, %d, '%s', %d, %d, "
            "%d, %d, %d, %d, %d, '%s') "
            "ON DUPLICATE KEY UPDATE "
            "vessel_type=VALUES(vessel_type), vessel_name=VALUES(vessel_name), "
+           "figurehead=VALUES(figurehead), paint_scheme=VALUES(paint_scheme), "
            "num_rooms=VALUES(num_rooms), max_rooms=VALUES(max_rooms), "
            "room_vnums=VALUES(room_vnums), bridge_room=VALUES(bridge_room), "
            "entrance_room=VALUES(entrance_room), cargo_room1=VALUES(cargo_room1), "
            "cargo_room2=VALUES(cargo_room2), cargo_room3=VALUES(cargo_room3), "
            "cargo_room4=VALUES(cargo_room4), cargo_room5=VALUES(cargo_room5), "
            "room_data=VALUES(room_data)",
-           ship->shipnum, ship->vessel_type, escaped_name, ship->num_rooms, MAX_SHIP_ROOMS,
-           room_vnums_str, ship->bridge_room, ship->entrance_room, ship->cargo_rooms[0],
-           ship->cargo_rooms[1], ship->cargo_rooms[2], ship->cargo_rooms[3], ship->cargo_rooms[4],
-           escaped_room_data);
+           ship->shipnum, ship->vessel_type, escaped_name, escaped_figurehead, escaped_paint_scheme,
+           ship->num_rooms, MAX_SHIP_ROOMS, room_vnums_str, ship->bridge_room, ship->entrance_room,
+           ship->cargo_rooms[0], ship->cargo_rooms[1], ship->cargo_rooms[2], ship->cargo_rooms[3],
+           ship->cargo_rooms[4], escaped_room_data);
 
   if (mysql_query(conn, query))
   {
@@ -262,9 +280,10 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
   }
 
   VSSL_DEBUG_DB("Loading interior for ship %d (%s)", ship->shipnum, ship->name);
+  vessel_reset_customization(ship);
 
   snprintf(query, sizeof(query),
-           "SELECT vessel_type, vessel_name, num_rooms, room_vnums, "
+           "SELECT vessel_type, vessel_name, figurehead, paint_scheme, num_rooms, room_vnums, "
            "bridge_room, entrance_room, "
            "cargo_room1, cargo_room2, cargo_room3, cargo_room4, cargo_room5, "
            "room_data FROM ship_interiors WHERE ship_id = %d",
@@ -293,12 +312,14 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
     {
       strlcpy(ship->name, row[1], sizeof(ship->name));
     }
-    ship->num_rooms = atoi(row[2]);
+    vessel_set_figurehead(ship, row[2] ? row[2] : "");
+    vessel_set_paint_scheme(ship, row[3] ? row[3] : "");
+    ship->num_rooms = atoi(row[4]);
 
     /* Parse room vnums */
-    if (row[3])
+    if (row[5])
     {
-      strncpy(room_vnums_copy, row[3], sizeof(room_vnums_copy) - 1);
+      strncpy(room_vnums_copy, row[5], sizeof(room_vnums_copy) - 1);
       room_vnums_copy[sizeof(room_vnums_copy) - 1] = '\0';
 
       i = 0;
@@ -311,19 +332,19 @@ void load_ship_interior(struct greyhawk_ship_data *ship)
     }
 
     /* Load special rooms */
-    ship->bridge_room = atoi(row[4]);
-    ship->entrance_room = atoi(row[5]);
+    ship->bridge_room = atoi(row[6]);
+    ship->entrance_room = atoi(row[7]);
 
     /* Load cargo rooms */
     for (i = 0; i < 5; i++)
     {
-      ship->cargo_rooms[i] = atoi(row[6 + i]);
+      ship->cargo_rooms[i] = atoi(row[8 + i]);
     }
 
     /* Deserialize room data */
-    if (row[11])
+    if (row[13])
     {
-      deserialize_room_data(ship, row[11]);
+      deserialize_room_data(ship, row[13]);
     }
 
     log("Info: Loaded interior configuration for ship %d", ship->shipnum);
@@ -1150,7 +1171,7 @@ static bool vessel_create_runtime_hull(struct greyhawk_ship_data *ship)
   vessel_build_hull_keywords(buffer, sizeof(buffer), ship->name);
   obj->name = strdup(buffer);
   obj->short_description = strdup(ship->name);
-  snprintf(buffer, sizeof(buffer), "%s is moored here.", ship->name);
+  vessel_build_hull_description(buffer, sizeof(buffer), ship);
   obj->description = strdup(buffer);
 
   if (!vessel_place_hull_object(ship, obj))
@@ -1584,6 +1605,7 @@ bool vessel_delete_persistence(int shipnum)
     return FALSE;
   }
 
+  vessel_reset_customization(&greyhawk_ships[shipnum]);
   return TRUE;
 
 rollback:

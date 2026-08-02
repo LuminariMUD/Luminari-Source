@@ -1193,6 +1193,8 @@ void init_vessel_system_tables(void)
       "ship_id INT NOT NULL PRIMARY KEY, "
       "vessel_type INT NOT NULL DEFAULT 0, "
       "vessel_name VARCHAR(100), "
+      "figurehead VARCHAR(80) NOT NULL DEFAULT '', "
+      "paint_scheme VARCHAR(80) NOT NULL DEFAULT '', "
       "num_rooms INT NOT NULL DEFAULT 1, "
       "max_rooms INT NOT NULL DEFAULT 20, "
       "room_vnums TEXT, "

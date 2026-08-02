@@ -99,3 +99,63 @@ void Test_vessel_lookout_compass_boundaries_and_normalization(CuTest *tc)
   CuAssertStrEquals(tc, "N", vessel_lookout_compass_direction(360));
   CuAssertStrEquals(tc, "W", vessel_lookout_compass_direction(-90));
 }
+
+void Test_vessel_cosmetic_hull_descriptions_cover_optional_fields(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  char description[512];
+
+  memset(&ship, 0, sizeof(ship));
+  ship.shipnum = 499;
+  vessel_reset_customization(&ship);
+  strlcpy(ship.name, "The Test Gull", sizeof(ship.name));
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull is moored here.", description);
+
+  vessel_set_paint_scheme(&ship, "midnight blue with silver trim");
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc, "The Test Gull is moored here, painted midnight blue with silver trim.",
+                    description);
+
+  vessel_set_paint_scheme(&ship, "");
+  vessel_set_figurehead(&ship, "a gilded sea dragon");
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(tc,
+                    "The Test Gull is moored here, bearing a gilded sea dragon as a figurehead.",
+                    description);
+
+  vessel_set_paint_scheme(&ship, "midnight blue with silver trim");
+  vessel_build_hull_description(description, sizeof(description), &ship);
+  CuAssertStrEquals(
+      tc,
+      "The Test Gull is moored here, painted midnight blue with silver trim and bearing a "
+      "gilded sea dragon as a figurehead.",
+      description);
+  vessel_reset_customization(&ship);
+}
+
+void Test_vessel_cosmetic_appearance_is_optional_and_bounded(CuTest *tc)
+{
+  struct greyhawk_ship_data ship;
+  char appearance[256];
+  char short_buffer[12];
+
+  memset(&ship, 0, sizeof(ship));
+  ship.shipnum = 499;
+  vessel_reset_customization(&ship);
+  CuAssertIntEquals(tc, FALSE, vessel_format_appearance(appearance, sizeof(appearance), &ship));
+  CuAssertStrEquals(tc, "", appearance);
+
+  vessel_set_paint_scheme(&ship, "white and gold");
+  CuAssertIntEquals(tc, TRUE, vessel_format_appearance(appearance, sizeof(appearance), &ship));
+  CuAssertStrEquals(tc, "Paint: white and gold.", appearance);
+
+  vessel_set_figurehead(&ship, "a silver gryphon");
+  CuAssertIntEquals(tc, TRUE, vessel_format_appearance(appearance, sizeof(appearance), &ship));
+  CuAssertStrEquals(tc, "Paint: white and gold; figurehead: a silver gryphon.", appearance);
+
+  memset(short_buffer, 'X', sizeof(short_buffer));
+  CuAssertIntEquals(tc, TRUE, vessel_format_appearance(short_buffer, sizeof(short_buffer), &ship));
+  CuAssertIntEquals(tc, '\0', short_buffer[sizeof(short_buffer) - 1]);
+  vessel_reset_customization(&ship);
+}

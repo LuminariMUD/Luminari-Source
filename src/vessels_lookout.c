@@ -274,6 +274,7 @@ static void vessel_lookout_render_contacts(struct char_data *ch,
 {
   const struct greyhawk_ship_data *contact_ship;
   const char *name;
+  char appearance[256];
   int shown;
   int i;
 
@@ -293,6 +294,10 @@ static void vessel_lookout_render_contacts(struct char_data *ch,
                  name, vessel_status_name(vessel_status(contact_ship)), contacts[i].range,
                  vessel_lookout_compass_direction(contacts[i].bearing), contacts[i].bearing,
                  contacts[i].delta_z);
+    if (vessel_format_appearance(appearance, sizeof(appearance), contact_ship))
+    {
+      send_to_char(ch, "       %s\r\n", appearance);
+    }
   }
   if (contact_count > shown)
   {
@@ -315,6 +320,7 @@ ACMD(do_look_outside)
   int visibility;
   int contact_count;
   int i;
+  char appearance[256];
   char *at_sea_description;
 
   ship = get_ship_from_room(IN_ROOM(ch));
@@ -340,6 +346,10 @@ ACMD(do_look_outside)
   contact_count = vessel_lookout_collect_contacts(ship, visibility, contacts);
 
   send_to_char(ch, "\r\nLOOKOUT VIEW FROM %s\r\n", ship->name);
+  if (vessel_format_appearance(appearance, sizeof(appearance), ship))
+  {
+    send_to_char(ch, "%s\r\n", appearance);
+  }
   send_to_char(ch, "Position: (%d, %d, %d)   Heading: %d deg %s\r\n", ship_x, ship_y, ship_z,
                ship->heading, vessel_lookout_compass_direction(ship->heading));
   send_to_char(ch, "Conditions: %s (%d/255); visibility %d units%s.\r\n",
