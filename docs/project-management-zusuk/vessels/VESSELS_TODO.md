@@ -58,13 +58,21 @@ The continuous RSS series rose from 767,396 to 866,944 KiB while ordinary
 awake-world mobiles, objects, and movement trails also increased; its full
 and trailing 1,797-second slopes are 128,565 and 118,710 KiB/hour. The
 generated `memory-analysis.kv` result therefore remains `REPORT_ONLY`, not a
-leak or plateau verdict. The local development MUD is active on recovered PID
-252880 with the ferry resumed. The current production-linked suite passes 268
-of 268. Its first full Memcheck exposed a 24-byte purchased-perk node retained
-by ordinary character teardown; `free_char()` now releases that owned list.
-The exact rerun passes with zero errors and zero definite, indirect, or
-possible loss. Next install this clean candidate, run the reversible merchant
-and hunter checks, and execute the bounded 500-vessel scale gate.
+leak or plateau verdict. The current production-linked suite passes 268 of
+268. Its first full Memcheck exposed a 24-byte purchased-perk node retained by
+ordinary character teardown; `free_char()` now releases that owned list. The
+exact rerun passes with zero errors and zero definite, indirect, or possible
+loss, and the clean candidate is installed.
+
+The reversible merchant gate passes in 41 seconds on source `1faa59b9` and
+installed SHA-256
+`63b73ed4ad3411fc5d00fcd8973c361d302335e973fa724858ab481de62c8019`.
+Actual Kohdee sank merchant 1 generation 1, received 25 attack plus 125 total-
+loss standing penalty and a 510-gold bounty, and inspected generation 2 with
+25 spice, its pilot, route, schedule, and registry identity. Cleanup restored
+byte-identical database and player-file snapshots; the no-login restart is
+active on PID 299248 with the same installed hash. Next run the reversible
+hunter/builder checks and the bounded 500-vessel scale gate.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
@@ -259,10 +267,11 @@ recording enduring behavior or evidence in the permanent documentation.
   are covered. `scripts/test_vessel_merchant_in_game.sh` now provides the
   reversible actual-Kohdee destruction/consequence/replacement path. It
   snapshots every mutable vessel/economy table and Kohdee's exact player file,
-  then restores and byte-compares both before a no-login MUD restart. Keep this
-  item open until that installed-candidate transcript passes and production
-  builders author campaign merchant routes/cargo beyond the development
-  fixture.
+  then restores and byte-compares both before a no-login MUD restart. The
+  current installed candidate passes that path in 41 seconds: generation 1 to
+  2, 150 total standing loss, 510 bounty, and a fully assembled replacement,
+  followed by exact rollback. Keep this item open only for production builders
+  to author campaign merchant routes/cargo beyond the development fixture.
 - [ ] Author territorial waters, free seas, and pirate coves as
   `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
   geography rather than private coordinate tables.

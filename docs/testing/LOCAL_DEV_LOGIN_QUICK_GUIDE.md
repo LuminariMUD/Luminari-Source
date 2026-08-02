@@ -25,8 +25,13 @@ The August 2 current-candidate root suite passes 268 of 268. Full Memcheck
 first exposed one 24-byte perk node owned by a temporary Bard after
 `free_char()`; character teardown now releases purchased perks. The exact
 268-test rerun reports zero errors and zero definite, indirect, or possible
-loss. Install that clean candidate before the in-game merchant and scale
-gates.
+loss. That clean candidate is installed as SHA-256
+`63b73ed4ad3411fc5d00fcd8973c361d302335e973fa724858ab481de62c8019`.
+The reversible actual-Kohdee merchant check then passed in 41 seconds with
+generation 1 to 2, 150 total standing loss, a 510-gold bounty, a complete
+replacement, and byte-identical database/player-file restoration. The
+no-login recovery MUD is active on PID 299248. Continue with hunter/builder
+checks and the bounded scale gate.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -129,6 +134,17 @@ The player-file hash therefore remains exact after recovery. The script
 refuses production, dirty or stale source, a different running executable, or
 an active ferry/scale worker. Do not replace it with the raw destructive
 `vmerchant sink` command.
+
+The August 2 installed-candidate run passed in 41 seconds under artifact
+`20260802T001649Z-297975`. Kohdee sank merchant 1 generation 1 in ship slot 6,
+observed 25 attack plus 125 total-loss standing penalty and a 510-gold bounty,
+then inspected generation 2 in the reused slot with 25 spice, pilot 70001,
+route 4, and its active schedule. The stopped pre/post database dumps both
+hash to
+`0c24c88896c1d7f53c4b187b6b90bd39291f4722c7f001b5b7d8b9f63fee1b57`;
+Kohdee's backup and recovered player file both hash to
+`319cf91fd7893d3c06f56ace03c0a6d9a6f2a8fc5d365d85262174199da1069f`.
+The no-login restart runs the same installed executable.
 
 ## Fast HUNTED Bounty-Hunter Check
 

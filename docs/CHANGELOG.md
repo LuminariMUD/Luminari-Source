@@ -76,6 +76,13 @@
   the final hard restart launched the identical executable on a new PID,
   restored the exact paused route state, and resumed the ferry. Its correlated
   short-window memory trend remains `REPORT_ONLY`, not a leak verdict.
+- The reversible actual-Kohdee merchant gate passes in 41 seconds on source
+  `1faa59b9`. Merchant 1 advances from generation 1 to 2 after a 25-point
+  attack loss, 125-point cargo/total loss, and 510-gold bounty. Kohdee then
+  inspects the replacement's 25 spice, pilot, route, schedule, and registry
+  identity. Cleanup produces byte-identical pre/post vessel database dumps and
+  player files, then restarts the identical installed executable without a
+  player login.
 
 ### Durable HUNTED bounty-hunter patrols
 

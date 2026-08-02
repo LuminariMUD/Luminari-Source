@@ -76,6 +76,13 @@ mutable vessel/economy tables and Kohdee's player file before the test. It
 stops the MUD for exact restoration and byte comparison, then restarts the
 installed candidate without logging Kohdee back in.
 
+The August 2 installed-candidate run passed in 41 seconds. Merchant 1 moved
+from generation 1 to 2 in slot 6; actual Kohdee observed 150 total standing
+loss, a 510-gold bounty, 25 units of spice, pilot 70001, route 4, and the
+replacement's active schedule and registry identity. The stopped database
+dumps and Kohdee player files compared byte-for-byte before the no-login
+restart launched the same installed executable.
+
 The same provisioner now validates the Phase 15 HUNTED raft, Admiralty
 warship, captain mobile 70002, encounter region 7000004, and deterministic
 hunter policy without altering Kohdee's bounty. After installation, exercise
