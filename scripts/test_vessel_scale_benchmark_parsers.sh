@@ -124,6 +124,22 @@ fi
   "$script_dir/dev_kohdee_login_smoke.sh")" == 2 ]] ||
   fail "generic MSDP and message helpers do not leave crowded benchmark waters"
 
+fare_commands=$(sed -n '/^fare_output=.*--commands/,/^fare_status=/p' \
+  "$script_dir/provision_vessel_harbor.sh")
+fare_wait_line=$(grep -nF '"@wait-vessel-west-dock"' <<<"$fare_commands" |
+  cut -d: -f1)
+fare_disembark_line=$(grep -nF '"disembark"' <<<"$fare_commands" | head -1 |
+  cut -d: -f1)
+fare_dock_line=$(grep -nF '"goto 1000389"' <<<"$fare_commands" | head -1 |
+  cut -d: -f1)
+fare_board_line=$(grep -nF '"board ferry"' <<<"$fare_commands" | cut -d: -f1)
+[[ "$fare_wait_line" =~ ^[0-9]+$ && "$fare_disembark_line" =~ ^[0-9]+$ &&
+   "$fare_dock_line" =~ ^[0-9]+$ && "$fare_board_line" =~ ^[0-9]+$ &&
+   "$fare_wait_line" -lt "$fare_disembark_line" &&
+   "$fare_disembark_line" -lt "$fare_dock_line" &&
+   "$fare_dock_line" -lt "$fare_board_line" ]] ||
+  fail "harbor fare gate does not stop and resolve the canonical west dock before boarding"
+
 live_input="$test_root/live-input.log"
 live_output="$test_root/live-output.tsv"
 printf '%s\n' \

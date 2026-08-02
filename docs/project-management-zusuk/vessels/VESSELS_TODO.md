@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 03:55 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 04:02 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -118,6 +118,20 @@ specific crossing and channel checks remain at the real docks. Tooling tests
 lock both invariants. Cleanup again restored all six baseline vessels and
 restarted the unchanged candidate, now on PID 364177. A fresh run remains
 required; neither stopped attempt contains a performance sample.
+
+A third launch is preserved at
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T005623Z-378533`.
+It stopped during harbor preflight before spawning because the fare session
+disembarked at west-dock coordinates but its room did not contain the ferry
+hull, so ordinary `board ferry` correctly refused proximity. Cleanup restored
+the baseline. The acceptance path now waits specifically for west dock
+`(-66, 92)`, pauses and stops, disembarks, resolves canonical static room
+1000389, and only then uses ordinary boarding for the exact 10-gold charge.
+The complete standalone harbor provisioner immediately passed that sequence,
+gold restoration, named-water crossing, and the same-account channel check.
+Its tooling regression locks the wait/disembark/dock/board order. Start a new
+bounded scale run; the third artifact also contains no measurement. The
+passing provisioner left the installed candidate active on PID 385872.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

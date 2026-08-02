@@ -61,6 +61,10 @@
   hundreds of hull objects were co-located rendered `**OVERFLOW**` and would
   have contaminated the live buffer counter before profiler reset. Actual
   harbor crossing and channel tests still use the dock rooms.
+- The harbor fare acceptance waits for the exact west dock, stops the ferry,
+  disembarks, and resolves canonical room 1000389 before ordinary boarding.
+  A west-coordinate disembarkation could otherwise land outside the room that
+  held the hull object, making a valid `board ferry` proximity check fail.
 
 #### Validated
 
@@ -124,6 +128,11 @@
   reconstruction-log offset. Its transcript also exposes the crowded-harbor
   output overflow. Cleanup restores the same six-vessel baseline; both harness
   defects now have tooling invariants.
+- Launch `20260802T005623Z-378533` stops before spawning on the fare-room race
+  and restores the baseline. The corrected standalone provisioner then passes
+  the exact 10-gold deduction/restoration, named-water crossing, and
+  same-account channel transcript; tooling preserves the canonical command
+  order.
 
 ### Durable HUNTED bounty-hunter patrols
 

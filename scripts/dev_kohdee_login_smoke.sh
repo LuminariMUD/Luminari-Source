@@ -320,14 +320,19 @@ set last_game_command_raw ""
 proc run_game_command {command} {
   global command_index last_game_command_raw smoke_character
 
-  if {$command eq "@wait-vessel-dock"} {
+  if {$command eq "@wait-vessel-dock" || $command eq "@wait-vessel-west-dock"} {
     set deadline [expr {[clock seconds] + 60}]
     set output ""
+    set require_west [expr {$command eq "@wait-vessel-west-dock"}]
 
     puts "\n>>> $command"
     while {[clock seconds] < $deadline} {
       set output [run_game_command "shipstatus"]
-      if {[string first "Terrain: Seaport" $output] >= 0} {
+      set at_seaport [expr {[string first "Terrain: Seaport" $output] >= 0}]
+      set at_required_dock \
+          [expr {!$require_west ||
+                 [string first "Coordinates: (-66, 92)" $output] >= 0}]
+      if {$at_seaport && $at_required_dock} {
         puts "The vessel reached a boardable seaport."
         return $output
       }
@@ -345,7 +350,7 @@ proc run_game_command {command} {
       set ::timeout $prior_timeout
     }
 
-    fail "the vessel did not reach a boardable seaport within 60 seconds"
+    fail "the vessel did not reach the required boardable seaport within 60 seconds"
   }
 
   if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {

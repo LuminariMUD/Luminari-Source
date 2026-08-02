@@ -445,6 +445,15 @@ crossing and channel checks still use rooms 1000389/1000390. Cleanup again
 restored the exact six-vessel baseline and candidate. This second artifact is
 also harness-regression evidence only.
 
+Launch `20260802T005623Z-378533` stopped during harbor preflight before fleet
+creation when a west-coordinate disembarkation did not share the canonical
+room containing the ferry hull. Ordinary `board ferry` correctly refused
+proximity, so no fare was charged. The gate now waits for the west dock,
+pauses and stops the ferry, disembarks, resolves static room 1000389, and then
+boards normally. A standalone provisioner run passed the exact 10-gold charge
+and restoration plus crossing/channel checks after this change. The tooling
+test locks that command order. This artifact contains no scale measurement.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

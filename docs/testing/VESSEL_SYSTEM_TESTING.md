@@ -182,6 +182,14 @@ counter before measurement. Generic ashore/MSDP/message transitions now use
 staff room 1204; harbor-specific checks remain at the actual docks. Cleanup
 again restored the six-vessel baseline. Rerun for the first performance sample.
 
+Launch `20260802T005623Z-378533` then stopped before fleet creation because the
+fare session's west-coordinate disembarkation did not share the canonical room
+holding the ferry hull. `board ferry` correctly refused proximity. The gate
+now waits specifically for west dock `(-66, 92)`, pauses and stops, disembarks,
+resolves room 1000389, and performs ordinary boarding there. The full
+standalone provisioner passed the exact charge/restoration and the subsequent
+crossing/channel checks. A tooling assertion preserves this command order.
+
 For the builder-independence timing gate, run:
 
 ```bash

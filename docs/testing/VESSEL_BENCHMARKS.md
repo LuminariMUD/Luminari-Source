@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.9
+**Version:** 3.10
 
 **Evidence snapshot:** August 2, 2026
 
@@ -25,6 +25,7 @@ from the full live-game benchmark that still must be run.
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
 | Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
+| Third current scale launch on August 2, 2026 | Harbor preflight stopped before spawn | Canonical west-dock fare path fixed; rerun required |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -221,6 +222,16 @@ containing hundreds of hull objects. Generic ashore, native-MSDP, message, and
 terminal transitions now use quiet staff room 1204, while the actual harbor
 gates retain their dock rooms. Cleanup restored the baseline. This retry also
 contains no valid performance or memory measurement.
+
+Launch `20260802T005623Z-378533` stopped even earlier, during harbor preflight.
+The ferry reached west-dock coordinates and stopped, but disembarkation placed
+Kohdee in a room that did not contain the hull object; ordinary boarding
+therefore refused proximity and no fare was charged. The corrected gate waits
+specifically for `(-66, 92)`, pauses and stops, disembarks, resolves static
+room 1000389, and then exercises normal boarding. The full standalone harbor
+provisioner passed the 10-gold charge/restoration, named-water crossing, and
+same-account channel checks immediately afterward. No fleet was created and
+the cleanup-restored launch contains no benchmark sample.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

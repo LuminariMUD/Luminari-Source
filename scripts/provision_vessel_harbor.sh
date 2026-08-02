@@ -773,10 +773,11 @@ fare_output=$("$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "shipgoto $ferry_slot" \
   "speed 2" \
   "autopilot on" \
-  "@wait-vessel-dock" \
+  "@wait-vessel-west-dock" \
   "autopilot pause" \
   "speed 0" \
   "disembark" \
+  "goto 1000389" \
   "gold" \
   "board ferry" \
   "gold" \
