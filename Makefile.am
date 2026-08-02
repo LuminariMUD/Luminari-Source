@@ -216,6 +216,7 @@ circle_SOURCES = \
 	src/transport_unified.c \
 	src/vessels.c \
 	src/vessels_tactical.c \
+	src/vessels_lookout.c \
 	src/vessels_admin.c \
 	src/vessels_combat.c \
 	src/vessels_crew.c \
@@ -264,6 +265,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_vessel_tactical.c \
+	unittests/CuTest/test_vessel_lookout.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \
@@ -290,6 +292,7 @@ cutest_test_files = \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_vessel_events.c \
 	unittests/CuTest/test_vessel_tactical.c \
+	unittests/CuTest/test_vessel_lookout.c \
 	unittests/CuTest/test_database_persistence.c \
 	unittests/CuTest/test_dg_scripts_production.c \
 	unittests/CuTest/test_upstream_regressions.c \

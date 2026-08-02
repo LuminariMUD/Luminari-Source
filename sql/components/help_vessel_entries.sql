@@ -26,7 +26,8 @@ DISEMBARK
   ship. Away from shore, you must be able to swim and will enter the water.
 
 TACTICAL
-  Show the local terrain grid and nearby vessels.
+  Show a 21-by-21 canonical wilderness chart with terrain, public region
+  edges, range rings, weather visibility, and damage-aware contacts.
 
 SHIPSTATUS
   Show position, terrain, heading, speed, and armor on all four sides.
@@ -66,8 +67,10 @@ UNDOCK
   Remove the gangway to the vessel currently alongside.
 
 LOOK_OUTSIDE
-  Show position, terrain, weather, and visible vessels from an interior room
-  that has an outside view.
+  From an interior room with an outside view, scan canonical wilderness
+  sectors in eight compass directions out to the weather- and lookout-limited
+  horizon. Also show current elevation and water depth plus nearest-first
+  visible vessels with condition, bearing, range, and relative altitude.
 
 SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.

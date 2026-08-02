@@ -13,7 +13,6 @@
 #include "handler.h"
 #include "db.h"
 #include "vessels.h"
-#include "constants.h"
 #include "act.h"
 #include "fight.h"
 #include "spells.h"
@@ -28,35 +27,6 @@ extern struct room_data *world;
 #define MAX_DOCKING_SPEED 2    /* Maximum speed for safe docking */
 #define BOARDING_DIFFICULTY 15 /* Base difficulty for hostile boarding */
 #define DIR_GANGWAY 10         /* Special direction for ship connections */
-
-/* Weather display thresholds (matching vessels.c/wilderness system) */
-#define VESSEL_WEATHER_CLEAR_MAX 127
-#define VESSEL_WEATHER_CLOUDY_MAX 177
-#define VESSEL_WEATHER_RAIN_MAX 199
-#define VESSEL_WEATHER_STORM_MAX 224
-
-/* External function declarations */
-extern int get_weather(int x, int y);
-
-/**
- * Convert raw weather value (0-255) to descriptive string.
- *
- * @param weather_val Raw weather value from get_weather()
- * @return Pointer to static weather description string
- */
-static const char *get_weather_desc_string(int weather_val)
-{
-  if (weather_val <= VESSEL_WEATHER_CLEAR_MAX)
-    return "Clear skies";
-  else if (weather_val <= VESSEL_WEATHER_CLOUDY_MAX)
-    return "Overcast and cloudy";
-  else if (weather_val <= VESSEL_WEATHER_RAIN_MAX)
-    return "Light rain falling";
-  else if (weather_val <= VESSEL_WEATHER_STORM_MAX)
-    return "Heavy storm conditions";
-  else
-    return "Thunderstorm with lightning";
-}
 
 /* Check if two ships are in docking range */
 bool ships_in_docking_range(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2)
@@ -991,76 +961,6 @@ ACMD(do_board_hostile)
         send_to_char(ch, "You manage to stay afloat.\r\n");
       }
     }
-  }
-}
-
-/* COMMAND: Look outside from ship interior */
-ACMD(do_look_outside)
-{
-  struct greyhawk_ship_data *ship;
-  int terrain_type;
-  int weather_val;
-
-  /* Must be on a ship */
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_VEHICLE))
-  {
-    send_to_char(ch, "You need to be on a vessel to look outside.\r\n");
-    return;
-  }
-
-  ship = get_ship_from_room(IN_ROOM(ch));
-  if (!ship)
-  {
-    send_to_char(ch, "You can't determine your vessel's position.\r\n");
-    return;
-  }
-
-  /* Check if room has outside view */
-  if (!room_has_outside_view(IN_ROOM(ch)))
-  {
-    send_to_char(ch, "You can't see outside from here.\r\n");
-    return;
-  }
-
-  /* Show position and surroundings */
-  send_to_char(ch, "\r\nLooking outside:\r\n");
-  send_to_char(ch, "================\r\n");
-
-  /* Position */
-  send_to_char(ch, "Position: [%d, %d] Altitude: %d\r\n", (int)ship->x, (int)ship->y, (int)ship->z);
-
-  /* Terrain */
-  terrain_type = get_ship_terrain_type(ship->shipnum);
-  send_to_char(ch, "Terrain: %s\r\n", sector_types[terrain_type]);
-
-  /* Weather - integrated with wilderness weather system */
-  weather_val = get_weather((int)ship->x, (int)ship->y);
-  send_to_char(ch, "Weather: %s\r\n", get_weather_desc_string(weather_val));
-
-  /* Nearby vessels */
-  send_to_char(ch, "\r\nNearby vessels:\r\n");
-  bool found = FALSE;
-  int i;
-
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    if (is_valid_ship(&greyhawk_ships[i]) && &greyhawk_ships[i] != ship)
-    {
-      float range = greyhawk_range(ship->x, ship->y, ship->z, greyhawk_ships[i].x,
-                                   greyhawk_ships[i].y, greyhawk_ships[i].z);
-      if (range <= 50.0)
-      {
-        int bearing = greyhawk_bearing(ship->x, ship->y, greyhawk_ships[i].x, greyhawk_ships[i].y);
-        send_to_char(ch, "  %s - bearing %d degrees, range %.1f\r\n", greyhawk_ships[i].name,
-                     bearing, range);
-        found = TRUE;
-      }
-    }
-  }
-
-  if (!found)
-  {
-    send_to_char(ch, "  No vessels in sight.\r\n");
   }
 }
 

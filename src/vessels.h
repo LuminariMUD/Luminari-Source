@@ -672,8 +672,19 @@ struct vessel_hunter_config
 #define VESSEL_SIGHT_CLEAR 50
 #define VESSEL_SIGHT_FOG 15
 
+struct vessel_lookout_band
+{
+  int sector_type;
+  int first_distance;
+  int last_distance;
+};
+
 void vessel_hazard_ensure_schema(void);
 int vessel_sight_range(const struct greyhawk_ship_data *ship);
+int vessel_lookout_sample_distances(int visibility, int *distances, int capacity);
+int vessel_lookout_build_bands(const int *sectors, const int *distances, int sample_count,
+                               struct vessel_lookout_band *bands, int capacity);
+const char *vessel_lookout_compass_direction(int bearing);
 int vessel_storm_severity(const struct greyhawk_ship_data *ship);
 void vessel_weather_tick(void);
 void vessel_encounter_tick(void);
