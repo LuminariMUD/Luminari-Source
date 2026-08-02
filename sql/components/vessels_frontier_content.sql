@@ -4,7 +4,8 @@
 -- region_data as the canonical geometry. The trench threshold is natural
 -- water-column depth; altitude thresholds are vessel Z coordinates. The river
 -- is a normal path_data feature whose path_props converts covered cells to
--- SECT_RIVER (36).
+-- SECT_RIVER (36). The existing path_data trigger digitalizes its sparse
+-- vertices into contiguous wilderness cells with bresenham_line().
 
 START TRANSACTION;
 

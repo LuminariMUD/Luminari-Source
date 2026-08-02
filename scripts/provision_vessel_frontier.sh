@@ -250,8 +250,10 @@ content_valid=$(database_scalar "
             AND path.zone_vnum = 10000
             AND path.path_type = 5
             AND path.path_props = 36
-            AND ST_AsText(path.path_linestring) =
-                'LINESTRING(-819 480,-780 480,-780 519)'
+            AND ST_NumPoints(path.path_linestring) = 79
+            AND ST_AsText(path.path_linestring) = ST_AsText(
+                  bresenham_line(ST_GeomFromText(
+                    'LINESTRING(-819 480,-780 480,-780 519)')))
             AND ST_AsText(path.path_linestring) =
                 ST_AsText(idx.path_linestring)) = 1
     AND (SELECT COUNT(*)
