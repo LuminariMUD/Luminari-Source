@@ -15,6 +15,7 @@ deleted.
 | Document | Status | What remains |
 |----------|--------|--------------|
 | [artifacts.md](artifacts.md) | Partial | Deployment, placement, integration coverage, balance, cooldown persistence, validation, group recall, and staff-tool hardening. System reference: [ARTIFACT_SYSTEM.md](../../systems/ARTIFACT_SYSTEM.md) |
+| [ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md](ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md) | Reference | Source-verified static object stats, flags, affects, procedures, and Realms artifact overlays for the HomelandMUD and RealmsOfLuminari snapshots. |
 | [AI_TODO_IDEAS.md](AI_TODO_IDEAS.md) | Not started | Implementation plan for AI NPC conversation history. No `conversation_history` code exists yet. |
 | [DO_SKORE_PROJECT.md](DO_SKORE_PROJECT.md) | Partial | Phase 1 and Phases 2.1-2.5 complete; Phase 3 (detailed views) and Phase 4 open. System reference: [SKORE_SYSTEM.md](../../systems/SKORE_SYSTEM.md) |
 | [PROTOCOL_TODO.md](PROTOCOL_TODO.md) | Partial | Security audit follow-ups; 4 of 6 recommendations still outstanding, including comprehensive null-pointer validation. |
