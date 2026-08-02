@@ -600,15 +600,15 @@ grep -Fq 'Buckled panels line the hold' \
   "$run_dir/03-discovery-before-restart.log" ||
   fail "cargo salvage was not gated behind studying the chart"
 
-[[ -f "$variable_file" && -f "$object_file" ]] ||
+[[ -f "$player_file" && -f "$object_file" ]] ||
   fail "the first discovery stage did not persist player state"
 for expected_var in blackwake_log_found blackwake_log_read \
   blackwake_chart_found; do
-  grep -Eq "^${expected_var}[[:space:]]+0[[:space:]]+1$" "$variable_file" ||
+  grep -Eq "^${expected_var}[[:space:]]+0[[:space:]]+1$" "$player_file" ||
     fail "$expected_var did not persist before restart"
 done
 if grep -Eq '^blackwake_(chart_read|salvage_recovered)[[:space:]]' \
-  "$variable_file"; then
+  "$player_file"; then
   fail "a later Blackwake discovery stage completed too early"
 fi
 grep -Fqx '#70010' "$object_file" || fail "the captain log was not saved"
@@ -678,7 +678,7 @@ grep -Fqx "Room: $derelict_bridge_room" "$player_file" ||
 
 for expected_var in blackwake_log_found blackwake_log_read \
   blackwake_chart_found blackwake_chart_read blackwake_salvage_recovered; do
-  grep -Eq "^${expected_var}[[:space:]]+0[[:space:]]+1$" "$variable_file" ||
+  grep -Eq "^${expected_var}[[:space:]]+0[[:space:]]+1$" "$player_file" ||
     fail "$expected_var did not persist after restart"
 done
 grep -Fqx '#70010' "$object_file" ||
