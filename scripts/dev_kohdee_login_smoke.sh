@@ -1937,11 +1937,11 @@ proc run_vessel_boarding_check {warship_id requested_character} {
   set output [run_game_command "abilityset $defender_character 'Boarding' 40"]
   require_game_output $output "change $defender_character's Boarding to 40" \
     "boarding rejection defender setup"
-  set output [run_game_command "abilities"]
+  set output [run_game_command "train"]
   require_boarding_rank $output 0 "$smoke_character rejection setup"
 
   set ::spawn_id $secondary_session
-  set output [run_game_command "abilities"]
+  set output [run_game_command "train"]
   require_boarding_rank $output 40 "$defender_character rejection setup"
 
   set ::spawn_id $primary_session
@@ -1969,11 +1969,11 @@ proc run_vessel_boarding_check {warship_id requested_character} {
     "boarding breach defender setup"
 
   set ::spawn_id $secondary_session
-  set output [run_game_command "abilities"]
+  set output [run_game_command "train"]
   require_boarding_rank $output 0 "$defender_character breach setup"
 
   set ::spawn_id $primary_session
-  set output [run_game_command "abilities"]
+  set output [run_game_command "train"]
   require_boarding_rank $output 40 "$smoke_character breach setup"
   set output [run_game_command "board_hostile $target_name"]
   require_game_output $output "Grapple contest: Boarding" "boarding grapple success"
