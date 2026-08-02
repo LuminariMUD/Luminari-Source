@@ -333,13 +333,6 @@ merchant_generation=$(database_scalar "
 [[ "$merchant_generation" =~ ^[1-9][0-9]*$ ]] ||
   fail "the campaign merchant generation is invalid"
 
-before_position=$(database_scalar "
-  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
-    FROM vessel_npc_merchants AS merchant
-    JOIN ship_runtime_state AS runtime
-      ON runtime.ship_id = merchant.active_ship_id
-   WHERE merchant.name = 'Vailand Ironwind Trader';")
-
 timeout 150 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "vmerchant list" \
   "shipgoto $merchant_slot" \
@@ -364,12 +357,22 @@ grep -Eq 'North Vailand Territorial Waters|Central Vailand Territorial Waters|Va
   "$run_dir/02-kohdee-campaign.log" ||
   fail "Kohdee did not resolve the campaign legal waters"
 
-after_position=$(database_scalar "
-  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
-    FROM vessel_npc_merchants AS merchant
-    JOIN ship_runtime_state AS runtime
-      ON runtime.ship_id = merchant.active_ship_id
-   WHERE merchant.name = 'Vailand Ironwind Trader';")
+mapfile -t first_session_positions < <(
+  awk '
+    /^Coordinates: \(/ {
+      position = $0
+      sub(/^Coordinates: \(/, "", position)
+      sub(/\).*/, "", position)
+      gsub(/, /, "|", position)
+      print position
+    }
+  ' "$run_dir/02-kohdee-campaign.log"
+)
+first_position_count=${#first_session_positions[@]}
+[[ "$first_position_count" -ge 2 ]] ||
+  fail "Kohdee did not observe two campaign merchant positions"
+before_position=${first_session_positions[0]}
+after_position=${first_session_positions[first_position_count - 1]}
 [[ "$after_position" != "$before_position" ]] ||
   fail "the campaign merchant did not move during the actual-character window"
 
@@ -381,6 +384,16 @@ fi
 
 stop_development_mud
 restart_needed=true
+
+persisted_after_first=$(database_scalar "
+  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
+    FROM vessel_npc_merchants AS merchant
+    JOIN ship_runtime_state AS runtime
+      ON runtime.ship_id = merchant.active_ship_id
+   WHERE merchant.name = 'Vailand Ironwind Trader';")
+[[ "$persisted_after_first" != "$before_position" ]] ||
+  fail "the campaign merchant movement did not persist during shutdown"
+
 start_development_mud "$run_dir/04-restart-boot.log"
 
 restart_state=$(database_scalar "
@@ -397,9 +410,9 @@ IFS='|' read -r restart_slot restart_generation restart_autopilot \
    "$restart_generation" == "$merchant_generation" &&
    "$restart_autopilot" =~ ^[12]$ &&
    "$restart_speed" =~ ^[1-9][0-9]*$ &&
-   "$restart_x" =~ ^-?[0-9]+$ && "$restart_y" =~ ^-?[0-9]+$ ]] ||
+   "$restart_x" =~ ^-?[0-9]+$ && "$restart_y" =~ ^-?[0-9]+$ &&
+   "$restart_x|$restart_y" == "$persisted_after_first" ]] ||
   fail "the campaign merchant identity or autopilot did not survive restart"
-restart_before_position="$restart_x|$restart_y"
 
 timeout 150 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "vmerchant list" \
@@ -419,12 +432,22 @@ grep -Fq 'Vailand Ironwind Trader' \
 grep -Fq 'Vailand Iron Passage' "$run_dir/05-kohdee-after-restart.log" ||
   fail "Kohdee did not see the persisted campaign route after restart"
 
-restart_after_position=$(database_scalar "
-  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
-    FROM vessel_npc_merchants AS merchant
-    JOIN ship_runtime_state AS runtime
-      ON runtime.ship_id = merchant.active_ship_id
-   WHERE merchant.name = 'Vailand Ironwind Trader';")
+mapfile -t restart_session_positions < <(
+  awk '
+    /^Coordinates: \(/ {
+      position = $0
+      sub(/^Coordinates: \(/, "", position)
+      sub(/\).*/, "", position)
+      gsub(/, /, "|", position)
+      print position
+    }
+  ' "$run_dir/05-kohdee-after-restart.log"
+)
+restart_position_count=${#restart_session_positions[@]}
+[[ "$restart_position_count" -ge 2 ]] ||
+  fail "Kohdee did not observe two merchant positions after restart"
+restart_before_position=${restart_session_positions[0]}
+restart_after_position=${restart_session_positions[restart_position_count - 1]}
 [[ "$restart_after_position" != "$restart_before_position" ]] ||
   fail "the campaign merchant did not resume movement after restart"
 
@@ -436,6 +459,16 @@ fi
 
 stop_development_mud
 restart_needed=true
+
+persisted_after_restart=$(database_scalar "
+  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
+    FROM vessel_npc_merchants AS merchant
+    JOIN ship_runtime_state AS runtime
+      ON runtime.ship_id = merchant.active_ship_id
+   WHERE merchant.name = 'Vailand Ironwind Trader';")
+[[ "$persisted_after_restart" != "$restart_before_position" ]] ||
+  fail "the resumed campaign movement did not persist during shutdown"
+
 reset_campaign_runtime
 start_development_mud "$run_dir/07-final-boot.log"
 
@@ -473,8 +506,10 @@ elapsed_seconds=$(($(date +%s) - started_epoch))
   printf 'merchant_generation=%s\n' "$merchant_generation"
   printf 'position_before=%s\n' "$before_position"
   printf 'position_after=%s\n' "$after_position"
+  printf 'persisted_after_first=%s\n' "$persisted_after_first"
   printf 'restart_position_before=%s\n' "$restart_before_position"
   printf 'restart_position_after=%s\n' "$restart_after_position"
+  printf 'persisted_after_restart=%s\n' "$persisted_after_restart"
   printf 'final_state=%s\n' "$final_state"
   printf 'elapsed_seconds=%s\n' "$elapsed_seconds"
 } >"$run_dir/result"
