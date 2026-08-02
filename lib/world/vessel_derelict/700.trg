@@ -20,7 +20,8 @@ end
 Blackwake quarters chart discovery~
 2 d 100
 searchashchart~
-if %self.name% /= Blackwake Derelict
+eval blackwake_bridge %self.south(room)%
+if %blackwake_bridge.name% /= Blackwake Derelict
   if !%actor.varexists(blackwake_log_read)%
     %send% %actor% The sea chests are a jumble of ruined effects. You lack the clue needed to choose among them.
   elseif !%actor.varexists(blackwake_chart_found)%
@@ -40,7 +41,8 @@ end
 Blackwake cargo salvage discovery~
 2 d 100
 recoverashsalvage~
-if %self.name% /= Blackwake Derelict
+eval blackwake_bridge %self.west(room)%
+if %blackwake_bridge.name% /= Blackwake Derelict
   if !%actor.varexists(blackwake_chart_read)%
     %send% %actor% Buckled panels line the hold, and none offers an obvious place to begin.
   elseif !%actor.varexists(blackwake_salvage_recovered)%

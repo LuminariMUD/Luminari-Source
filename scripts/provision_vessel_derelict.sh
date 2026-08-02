@@ -297,6 +297,36 @@ merge_missing_records()
   mv "$merged_file" "$live_file"
 }
 
+remove_package_records()
+{
+  local package_file=$1
+  local live_file=$2
+  local stripped_file="$work_dir/records.stripped"
+
+  awk -v package_file="$package_file" '
+    BEGIN {
+      while ((getline line < package_file) > 0) {
+        if (line ~ /^#[0-9]+$/) {
+          managed[substr(line, 2) + 0] = 1
+        }
+      }
+      close(package_file)
+      emit = 1
+    }
+    /^#[0-9]+$/ {
+      emit = !((substr($0, 2) + 0) in managed)
+    }
+    /^\$~?$/ {
+      emit = 1
+    }
+    emit {
+      print
+    }
+  ' "$live_file" >"$stripped_file"
+  chmod --reference="$live_file" "$stripped_file"
+  mv "$stripped_file" "$live_file"
+}
+
 provision_world_file()
 {
   local kind=$1
@@ -306,6 +336,7 @@ provision_world_file()
 
   mkdir -p "$destination_dir"
   if [[ -f "$live_file" ]]; then
+    remove_package_records "$package_file" "$live_file"
     merge_missing_records "$package_file" "$live_file"
   else
     cp "$package_file" "$live_file"
@@ -574,10 +605,10 @@ timeout 45 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   fail "Kohdee could not explore the generated Blackwake interior"
 
 for expected_text in \
-  "The Bridge of $derelict_name" \
-  "Crew Quarters aboard $derelict_name" \
-  "Cargo Hold of $derelict_name" \
-  "Main Deck of $derelict_name"; do
+  "$derelict_name's Bridge" \
+  'Crew Quarters' \
+  'Main Cargo Hold' \
+  'Main Deck'; do
   grep -Fq "$expected_text" "$run_dir/03-kohdee-interior.log" ||
     fail "Kohdee did not reach '$expected_text'"
 done
@@ -654,10 +685,10 @@ timeout 45 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   fail "Kohdee could not explore the restarted Blackwake interior"
 
 for expected_text in \
-  "The Bridge of $derelict_name" \
-  "Crew Quarters aboard $derelict_name" \
-  "Cargo Hold of $derelict_name" \
-  "Main Deck of $derelict_name"; do
+  "$derelict_name's Bridge" \
+  'Crew Quarters' \
+  'Main Cargo Hold' \
+  'Main Deck'; do
   grep -Fq "$expected_text" "$run_dir/05-kohdee-after-restart.log" ||
     fail "the restarted interior is missing '$expected_text'"
 done
