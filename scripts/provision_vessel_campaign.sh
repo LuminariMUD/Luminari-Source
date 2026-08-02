@@ -418,6 +418,7 @@ timeout 150 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   "vmerchant list" \
   "shipgoto $merchant_slot" \
   "shipstatus" \
+  "showschedule" \
   "seastate" \
   "@wait 45" \
   "shipstatus" \
@@ -431,6 +432,9 @@ grep -Fq 'Vailand Ironwind Trader' \
   fail "Kohdee did not see the persisted campaign merchant after restart"
 grep -Fq 'Vailand Iron Passage' "$run_dir/05-kohdee-after-restart.log" ||
   fail "Kohdee did not see the persisted campaign route after restart"
+grep -Fq "Arriving at vailand_central_port!" \
+  "$run_dir/05-kohdee-after-restart.log" ||
+  fail "the restarted campaign merchant did not complete the outbound route"
 
 mapfile -t restart_session_positions < <(
   awk '
