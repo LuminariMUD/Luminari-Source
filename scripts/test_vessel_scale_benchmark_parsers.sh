@@ -160,6 +160,14 @@ grep -Fq "return \$cleaned" <<<"$wait_handler" ||
 if grep -Fq -- '-re {.+} {}' <<<"$wait_handler"; then
   fail "generic login wait still discards asynchronous game output"
 fi
+# shellcheck disable=SC2016
+dock_wait_handler=$(sed -n \
+  '/if {\$command eq "@wait-vessel-dock"/,/if {\[regexp {\^@wait /p' \
+  "$login_helper")
+grep -Fq 'set stopped' <<<"$dock_wait_handler" ||
+  fail "vessel dock wait does not inspect stopped state"
+grep -Fq "&& \$stopped" <<<"$dock_wait_handler" ||
+  fail "vessel dock wait can still return while the vessel is moving"
 grep -Fq \
   "('\${benchmark_prefix} Water West', -66, 82, 0, 0.5, 5, 0)," \
   "$runner" ||

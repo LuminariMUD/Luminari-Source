@@ -417,10 +417,11 @@ proc run_game_command {command} {
     while {[clock seconds] < $deadline} {
       set output [run_game_command "shipstatus"]
       set at_seaport [expr {[string first "Terrain: Seaport" $output] >= 0}]
+      set stopped [expr {[string first "Speed: 0 /" $output] >= 0}]
       set at_required_dock \
           [expr {!$require_west ||
                  [string first "Coordinates: (-66, 92)" $output] >= 0}]
-      if {$at_seaport && $at_required_dock} {
+      if {$at_seaport && $at_required_dock && $stopped} {
         puts "The vessel reached a boardable seaport."
         return $output
       }
