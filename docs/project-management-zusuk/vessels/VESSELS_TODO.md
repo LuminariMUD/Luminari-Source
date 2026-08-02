@@ -191,6 +191,19 @@ restored six vessels and restarted the exact candidate on PID 522541. Keep all
 four performance items open while fixing the synchronized wage burst, repeated
 dynamic-room spatial lookups, and per-ship encounter-region queries.
 
+The optimization candidate now installed as SHA-256
+`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
+moves the spawn character to room 1204 before restart, spreads a full-fleet
+payday across 100 batches of at most five ships, persists each changed roster
+with one multi-row insert, resolves encounter containment once per shared
+exterior room, and reuses released dynamic-room spatial metadata at known
+coordinates. The production-linked suite passes 271 of 271 without compiler
+warnings, vessel tooling passes, and actionable Memcheck reports zero errors
+and no definite, indirect, or possible loss. PID 565375 runs the exact binary;
+an actual Kohdee login confirmed six of 500 slots and returned to room 1204.
+Keep the performance and memory items open until the same 1,800-second,
+500-vessel gate proves the changes under load.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

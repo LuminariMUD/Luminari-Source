@@ -36,6 +36,9 @@ struct greyhawk_ship_map greyhawk_tactical[151][151];
 static char greyhawk_status[20];
 static char greyhawk_position[20];
 static char greyhawk_weapon[320];
+#define VESSEL_DYNAMIC_ROOM_CACHE_SIZE                                                             \
+  (WILD_DYNAMIC_ROOM_VNUM_END - WILD_DYNAMIC_ROOM_VNUM_START + 1)
+static bool vessel_dynamic_room_configured[VESSEL_DYNAMIC_ROOM_CACHE_SIZE];
 /* These will be used when full implementation is added */
 /* static char greyhawk_contact[256]; */
 /* static char greyhawk_arc[3]; */
@@ -737,6 +740,101 @@ void greyhawk_initialize_ships(void);
 /* WILDERNESS ROOM ALLOCATION HELPER                                        */
 /* ========================================================================= */
 
+static int vessel_dynamic_room_cache_index(room_rnum room)
+{
+  room_vnum vnum;
+
+  if (world == NULL || room == NOWHERE || room > top_of_world)
+  {
+    return -1;
+  }
+
+  vnum = GET_ROOM_VNUM(room);
+  if (vnum < WILD_DYNAMIC_ROOM_VNUM_START || vnum > WILD_DYNAMIC_ROOM_VNUM_END)
+  {
+    return -1;
+  }
+
+  return vnum - WILD_DYNAMIC_ROOM_VNUM_START;
+}
+
+/**
+ * Forget cached dynamic-room metadata when the vessel runtime initializes.
+ */
+void vessel_dynamic_room_cache_reset(void)
+{
+  memset(vessel_dynamic_room_configured, 0, sizeof(vessel_dynamic_room_configured));
+}
+
+/**
+ * Remember that a dynamic room has valid coordinate and spatial metadata.
+ */
+void vessel_dynamic_room_cache_remember(room_rnum room)
+{
+  int index;
+
+  index = vessel_dynamic_room_cache_index(room);
+  if (index >= 0)
+  {
+    vessel_dynamic_room_configured[index] = TRUE;
+  }
+}
+
+/**
+ * Reuse a released dynamic room whose metadata already matches coordinates.
+ */
+room_rnum vessel_dynamic_room_cache_lookup(int x, int y)
+{
+  room_rnum room;
+  int i;
+
+  for (i = 0; i < VESSEL_DYNAMIC_ROOM_CACHE_SIZE; i++)
+  {
+    if (!vessel_dynamic_room_configured[i])
+    {
+      continue;
+    }
+
+    room = real_room(WILD_DYNAMIC_ROOM_VNUM_START + i);
+    if (room == NOWHERE || ROOM_FLAGGED(room, ROOM_OCCUPIED))
+    {
+      continue;
+    }
+
+    if (world[room].coords[X_COORD] == x && world[room].coords[Y_COORD] == y)
+    {
+      return room;
+    }
+  }
+
+  return NOWHERE;
+}
+
+/**
+ * Prefer a never-configured free room before recycling cached metadata.
+ */
+room_rnum vessel_dynamic_room_cache_unused(void)
+{
+  room_rnum room;
+  int i;
+
+  for (i = 0; i < VESSEL_DYNAMIC_ROOM_CACHE_SIZE; i++)
+  {
+    if (vessel_dynamic_room_configured[i])
+    {
+      continue;
+    }
+
+    room = real_room(WILD_DYNAMIC_ROOM_VNUM_START + i);
+    if (room != NOWHERE && !ROOM_FLAGGED(room, ROOM_OCCUPIED))
+    {
+      return room;
+    }
+  }
+
+  return NOWHERE;
+}
+
 /**
  * Get or allocate a wilderness room at the given coordinates.
  *
@@ -762,10 +860,24 @@ room_rnum get_or_allocate_wilderness_room(int x, int y)
   /* Try to find existing room at coordinates */
   room = find_room_by_coordinates(x, y);
 
+  if (room != NOWHERE)
+  {
+    vessel_dynamic_room_cache_remember(room);
+    return room;
+  }
+
+  /* A released room can retain valid metadata for a previously visited
+   * coordinate. Reusing it avoids repeating region/path spatial queries. */
+  room = vessel_dynamic_room_cache_lookup(x, y);
+
   if (room == NOWHERE)
   {
-    /* No room exists, allocate from dynamic pool */
-    room = find_available_wilderness_room();
+    /* Fill an unused pool entry before overwriting cached route metadata. */
+    room = vessel_dynamic_room_cache_unused();
+    if (room == NOWHERE)
+    {
+      room = find_available_wilderness_room();
+    }
     if (room == NOWHERE)
     {
       log("SYSERR: get_or_allocate_wilderness_room: Room pool exhausted at (%d, %d)", x, y);
@@ -774,6 +886,7 @@ room_rnum get_or_allocate_wilderness_room(int x, int y)
 
     /* Configure the room for these coordinates */
     assign_wilderness_room(room, x, y);
+    vessel_dynamic_room_cache_remember(room);
     VSSL_DEBUG_MOVE("Allocated dynamic wilderness room %d at (%d,%d)", world[room].number, x, y);
   }
 
@@ -1032,6 +1145,8 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
 void greyhawk_initialize_ships(void)
 {
   int i, j;
+
+  vessel_dynamic_room_cache_reset();
 
   /* Clear ship array */
   memset(greyhawk_ships, 0, sizeof(greyhawk_ships));

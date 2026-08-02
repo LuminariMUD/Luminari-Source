@@ -31,6 +31,45 @@ void Test_vessel_fleet_supports_500_active_slots(CuTest *tc)
   CuAssertIntEquals(tc, SHIP_INTERIOR_VNUM_MAX, final_room_vnum);
 }
 
+void Test_vessel_dynamic_room_cache_reuses_released_metadata(CuTest *tc)
+{
+  struct room_data room_fixture[3];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+
+  memset(room_fixture, 0, sizeof(room_fixture));
+  room_fixture[0].number = WILD_DYNAMIC_ROOM_VNUM_START;
+  room_fixture[0].coords[X_COORD] = 11;
+  room_fixture[0].coords[Y_COORD] = 22;
+  room_fixture[1].number = WILD_DYNAMIC_ROOM_VNUM_START + 1;
+  room_fixture[1].coords[X_COORD] = 33;
+  room_fixture[1].coords[Y_COORD] = 44;
+  room_fixture[2].number = WILD_DYNAMIC_ROOM_VNUM_END;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = room_fixture;
+  top_of_world = 2;
+  vessel_dynamic_room_cache_reset();
+
+  CuAssertIntEquals(tc, NOWHERE, vessel_dynamic_room_cache_lookup(11, 22));
+  CuAssertIntEquals(tc, 0, vessel_dynamic_room_cache_unused());
+
+  vessel_dynamic_room_cache_remember(0);
+  CuAssertIntEquals(tc, 0, vessel_dynamic_room_cache_lookup(11, 22));
+  CuAssertIntEquals(tc, NOWHERE, vessel_dynamic_room_cache_lookup(33, 44));
+  CuAssertIntEquals(tc, 1, vessel_dynamic_room_cache_unused());
+
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_OCCUPIED);
+  CuAssertIntEquals(tc, NOWHERE, vessel_dynamic_room_cache_lookup(11, 22));
+  REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_OCCUPIED);
+  CuAssertIntEquals(tc, 0, vessel_dynamic_room_cache_lookup(11, 22));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  vessel_dynamic_room_cache_reset();
+}
+
 void Test_vessel_msdp_state_clears_after_disembark(CuTest *tc)
 {
   const int slot = 498;
@@ -958,6 +997,29 @@ void Test_vessel_crew_costs_and_bonuses(CuTest *tc)
   CuAssertTrue(tc, vessel_effective_cargo_capacity(&ship) > get_vessel_cargo_capacity(VESSEL_SHIP));
 }
 
+void Test_vessel_crew_payroll_batches_bound_full_fleet_work(CuTest *tc)
+{
+  int batch_counts[CREW_WAGE_BATCH_COUNT];
+  int batch;
+  int ship_slot;
+
+  memset(batch_counts, 0, sizeof(batch_counts));
+  for (ship_slot = 1; ship_slot < GREYHAWK_MAXSHIPS; ship_slot++)
+  {
+    batch = vessel_crew_wage_batch_for_slot(ship_slot);
+    CuAssertTrue(tc, batch >= 0 && batch < CREW_WAGE_BATCH_COUNT);
+    batch_counts[batch]++;
+  }
+
+  for (batch = 0; batch < CREW_WAGE_BATCH_COUNT; batch++)
+  {
+    CuAssertIntEquals(tc, 5, batch_counts[batch]);
+  }
+
+  CuAssertIntEquals(tc, -1, vessel_crew_wage_batch_for_slot(0));
+  CuAssertIntEquals(tc, -1, vessel_crew_wage_batch_for_slot(GREYHAWK_MAXSHIPS));
+}
+
 void Test_vessel_upgrade_effects(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
@@ -1525,6 +1587,19 @@ void Test_vessel_encounter_shared_room_claims_once(CuTest *tc)
   CuAssertIntEquals(tc, 2, claimed_count);
   CuAssertTrue(tc, !vessel_encounter_claim_room(102, claimed_rooms, &claimed_count, 2));
   CuAssertTrue(tc, !vessel_encounter_claim_room(NOWHERE, claimed_rooms, &claimed_count, 2));
+}
+
+void Test_vessel_encounter_room_cache_finds_shared_coordinates(CuTest *tc)
+{
+  room_rnum cached_rooms[3] = {100, 200, 300};
+
+  CuAssertIntEquals(tc, 0, vessel_encounter_cached_room_index(100, cached_rooms, 3));
+  CuAssertIntEquals(tc, 1, vessel_encounter_cached_room_index(200, cached_rooms, 3));
+  CuAssertIntEquals(tc, 2, vessel_encounter_cached_room_index(300, cached_rooms, 3));
+  CuAssertIntEquals(tc, -1, vessel_encounter_cached_room_index(400, cached_rooms, 3));
+  CuAssertIntEquals(tc, -1, vessel_encounter_cached_room_index(NOWHERE, cached_rooms, 3));
+  CuAssertIntEquals(tc, -1, vessel_encounter_cached_room_index(100, NULL, 3));
+  CuAssertIntEquals(tc, -1, vessel_encounter_cached_room_index(100, cached_rooms, 0));
 }
 
 void Test_vessel_hunter_policy_bounds(CuTest *tc)

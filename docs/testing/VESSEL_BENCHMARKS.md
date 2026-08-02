@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.13
+**Version:** 3.14
 
 **Evidence snapshot:** August 2, 2026
 
@@ -29,6 +29,7 @@ from the full live-game benchmark that still must be run.
 | Fourth current 500-ship attempt on August 2, 2026 | Reached reciprocal-combat proof; stopped before steady measurement | LF-CR parser fixed; performance warning retained |
 | Fifth current 500-ship attempt on August 2, 2026 | Reached native MSDP proof; stopped before steady measurement | Raw Telnet client fixed and baseline contract passes |
 | Sixth current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,676 ticks | Overflow and 25 ms performance gates failed |
+| Post-sixth optimization candidate | 271/271 tests; actionable Memcheck clean | Installed; seventh scale launch required |
 | Complete current 500-ship live tick | 3,676 ticks; p95 130,928.50 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -307,6 +308,21 @@ increasing from 30,426 to 289,000 and mobiles from 32,384 to 33,993. The
 generated trend remains `REPORT_ONLY`; its full RSS slope is 130,282 KiB/hour
 and its trailing-window slope is 129,104 KiB/hour. Cleanup restored the six-
 vessel baseline and exact installed candidate on PID 522541.
+
+The post-sixth candidate directly bounds all three measured spikes. Full-fleet
+payroll is divided into 100 stable batches of at most five ships per tick, and
+crew persistence now uses one multi-row insert after the roster delete.
+Encounter containment is resolved once per shared exterior room during each
+pass. Dynamic wilderness rooms retain reusable coordinate, region, path, and
+terrain metadata after release, avoiding repeated spatial queries along warm
+routes. The spawn character is saved in quiet room 1204 before reconstruction.
+The production-linked suite passes 271 of 271 without warnings, vessel tooling
+passes, and strict actionable Memcheck has zero errors and zero definite,
+indirect, or possible loss. Installed SHA-256
+`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
+runs on PID 565375; an actual Kohdee smoke confirms the six-vessel baseline.
+These are candidate results only until the seventh scale launch repeats the
+full 1,800-second gate.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

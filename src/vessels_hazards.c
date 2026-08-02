@@ -267,6 +267,33 @@ bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *
   return TRUE;
 }
 
+/**
+ * Find a shared exterior room in the current encounter pass cache.
+ *
+ * Region containment is coordinate-backed SQL. Ships in the same exterior
+ * room necessarily share coordinates, so one lookup per room is sufficient.
+ */
+int vessel_encounter_cached_room_index(room_rnum room, const room_rnum *cached_rooms,
+                                       int cached_count)
+{
+  int i;
+
+  if (room == NOWHERE || cached_rooms == NULL || cached_count <= 0)
+  {
+    return -1;
+  }
+
+  for (i = 0; i < cached_count; i++)
+  {
+    if (cached_rooms[i] == room)
+    {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
 static bool vessel_encounter_room_is_claimed(room_rnum room, const room_rnum *claimed_rooms,
                                              int claimed_count)
 {
@@ -474,11 +501,17 @@ void vessel_encounter_tick(void)
   struct char_data *mob;
   struct vessel_hunter_config hunter_config;
   room_rnum claimed_rooms[GREYHAWK_MAXSHIPS];
+  room_rnum region_rooms[GREYHAWK_MAXSHIPS];
+  bool region_found[GREYHAWK_MAXSHIPS];
+  int region_vnums[GREYHAWK_MAXSHIPS];
   room_rnum ship_room;
   int claimed_count = 0;
+  int region_count = 0;
+  int region_index;
   int region_vnum = 0;
   int depth_units;
   int i;
+  bool in_region;
 
   encounter_ticks++;
   if (encounter_ticks < VESSEL_ENCOUNTER_INTERVAL)
@@ -500,13 +533,32 @@ void vessel_encounter_tick(void)
       continue; /* Encounters find ships that are moving */
     }
 
-    if (!vessel_in_encounter_region(ship, &region_vnum))
+    ship_room = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
+    if (vessel_encounter_room_is_claimed(ship_room, claimed_rooms, claimed_count))
     {
       continue;
     }
 
-    ship_room = ship->shipobj != NULL ? IN_ROOM(ship->shipobj) : NOWHERE;
-    if (vessel_encounter_room_is_claimed(ship_room, claimed_rooms, claimed_count))
+    region_index = vessel_encounter_cached_room_index(ship_room, region_rooms, region_count);
+    if (region_index >= 0)
+    {
+      in_region = region_found[region_index];
+      region_vnum = region_vnums[region_index];
+    }
+    else
+    {
+      region_vnum = 0;
+      in_region = vessel_in_encounter_region(ship, &region_vnum);
+      if (ship_room != NOWHERE && region_count < GREYHAWK_MAXSHIPS)
+      {
+        region_rooms[region_count] = ship_room;
+        region_found[region_count] = in_region;
+        region_vnums[region_count] = region_vnum;
+        region_count++;
+      }
+    }
+
+    if (!in_region)
     {
       continue;
     }

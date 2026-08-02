@@ -231,6 +231,19 @@ exact installed candidate on PID 522541. The next candidate must move Kohdee
 to room 1204 before restart, spread synchronized payroll work, reuse dynamic-
 room metadata, and resolve encounter regions once per shared room.
 
+The resulting optimization candidate spreads payroll across 100 stable
+batches, limiting a 500-slot fleet to five due ships per tick, and combines
+each changed roster into one insert after its delete. It caches encounter
+containment by shared exterior room for one pass and reuses released dynamic
+rooms whose spatial metadata already matches a known coordinate. The runner
+also saves Kohdee in room 1204 immediately after spawning. The warning-free
+production suite passes 271 of 271, all vessel tooling passes, and strict
+actionable Memcheck reports zero errors and no definite, indirect, or possible
+loss. Installed SHA-256
+`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
+runs on PID 565375. An actual Kohdee smoke saw six of 500 slots and returned to
+room 1204. Only another complete 1,800-second scale run can accept these fixes.
+
 For the builder-independence timing gate, run:
 
 ```bash

@@ -43,9 +43,9 @@ all 78 actual-Kohdee help lookups passed, including `SHIPTALK`. The focused
 protocol parser then passed 13 of 13, both character-rename gates passed, and a
 fresh CMake build passed all 6 CTest targets. Because CMake writes its server
 target into `bin/`, `make install` restored the exact Autotools candidate and
-removed the root artifact. After the sixth cleanup, the development MUD maps
-that installed SHA-256 on PID 522541. Continue with the bounded scale fixes
-and rerun described below.
+removed the root artifact. The optimization build is installed as SHA-256
+`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e` and
+runs on PID 565375. Continue with the bounded scale rerun described below.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -492,6 +492,19 @@ memory series is `REPORT_ONLY`: RSS rose 786,784 to 854,412 KiB across 1,861
 seconds while movement trails rose 30,426 to 289,000; threads stayed 2 and
 descriptors 11-12. Cleanup restored six vessels and the exact binary on PID
 522541. Fix the three production hotspots before starting the next full run.
+
+The next candidate bounds those hotspots before the seventh launch. Payroll
+uses 100 stable batches, so no more than five of the 500 slots become payable
+on one tick, and a changed roster uses one multi-row insert after its delete.
+Encounter containment is cached by shared exterior room for each pass.
+Autopilot reuses released dynamic rooms whose coordinate, region, path, and
+terrain metadata are already valid. The spawn command also saves Kohdee in
+room 1204 before reconstruction. `make test` passes 271 of 271 without
+warnings, all vessel tooling passes, and strict actionable Memcheck reports
+zero errors and no definite, indirect, or possible loss. `make install`
+removed the root artifact; PID 565375 maps the installed SHA-256 above. An
+actual Kohdee smoke reported six of 500 slots and returned to room 1204. The
+full 1,800-second scale result is still required.
 
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most

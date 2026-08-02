@@ -165,6 +165,14 @@
   encounters at 149,653. Its 1,861-second memory trend remains `REPORT_ONLY`
   while movement trails grow from 30,426 to 289,000. Cleanup restores six
   vessels and the exact candidate on PID 522541.
+- Add the post-sixth scale optimization candidate: save the spawning character
+  in quiet room 1204, process no more than five synchronized payrolls per tick,
+  combine crew inserts, resolve encounter regions once per shared room, and
+  reuse released dynamic-room spatial metadata. The warning-free production
+  suite passes 271/271, vessel tooling passes, and actionable Memcheck reports
+  zero errors and zero definite, indirect, or possible loss. Installed SHA-256
+  `ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
+  runs on PID 565375 and passes an actual Kohdee baseline smoke.
 
 ### Durable HUNTED bounty-hunter patrols
 

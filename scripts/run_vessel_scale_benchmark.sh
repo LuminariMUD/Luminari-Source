@@ -1029,7 +1029,7 @@ run_benchmark()
   done
   ((${#spawn_commands[@]} == spawn_needed + 1)) ||
     benchmark_fail "could not map every free fleet slot to a benchmark prototype"
-  spawn_commands+=("shiplist summary")
+  spawn_commands+=("shiplist summary" "goto $benchmark_safe_room")
   timeout 3600 "$script_dir/dev_kohdee_login_smoke.sh" \
     --commands "${spawn_commands[@]}" >"$run_dir/spawn.log" 2>&1 ||
     benchmark_fail "in-game fleet spawning failed"

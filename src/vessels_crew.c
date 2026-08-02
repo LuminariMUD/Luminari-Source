@@ -26,6 +26,8 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
  * (npc_vnum -1). */
 #define CREW_ROW_VNUM_BASE (-100)
 
+static int crew_wage_batch_cursor = 0;
+
 /**
  * Display name for a hireable position.
  */
@@ -173,7 +175,9 @@ void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship)
 void vessel_db_save_crew(struct greyhawk_ship_data *ship)
 {
   char query[MAX_STRING_LENGTH];
+  bool has_crew;
   int i;
+  int length;
 
   if (!mysql_available || conn == NULL || ship == NULL)
   {
@@ -190,6 +194,16 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
     return;
   }
 
+  length = snprintf(query, sizeof(query),
+                    "INSERT INTO ship_crew_roster "
+                    "(ship_id, npc_vnum, npc_name, crew_role, loyalty_rating) VALUES ");
+  if (length < 0 || length >= (int)sizeof(query))
+  {
+    log("SYSERR: vessel_db_save_crew could not build insert for ship %d", ship->shipnum);
+    return;
+  }
+
+  has_crew = FALSE;
   for (i = 0; i < NUM_CREW_POSITIONS; i++)
   {
     if (ship->crew_tier[i] == CREW_TIER_NONE)
@@ -198,16 +212,22 @@ void vessel_db_save_crew(struct greyhawk_ship_data *ship)
     }
     /* loyalty_rating carries the tier; npc_name carries the position so the
      * roster stays human-readable in the database. */
-    snprintf(query, sizeof(query),
-             "INSERT INTO ship_crew_roster (ship_id, npc_vnum, npc_name, crew_role, "
-             "loyalty_rating) VALUES (%d, %d, '%s', 'crew', %d)",
-             ship->shipnum, CREW_ROW_VNUM_BASE - i, vessel_crew_position_name(i),
-             ship->crew_tier[i]);
-    if (mysql_query(conn, query))
-    {
-      log("SYSERR: vessel_db_save_crew (insert) failed for ship %d: %s", ship->shipnum,
-          mysql_error(conn));
-    }
+    length = snprintf_append(query, sizeof(query), length, "%s(%d, %d, '%s', 'crew', %d)",
+                             has_crew ? ", " : "", ship->shipnum, CREW_ROW_VNUM_BASE - i,
+                             vessel_crew_position_name(i), ship->crew_tier[i]);
+    has_crew = TRUE;
+  }
+
+  if (length >= (int)sizeof(query) - 1)
+  {
+    log("SYSERR: vessel_db_save_crew insert overflow for ship %d", ship->shipnum);
+    return;
+  }
+
+  if (has_crew && mysql_query(conn, query))
+  {
+    log("SYSERR: vessel_db_save_crew (insert) failed for ship %d: %s", ship->shipnum,
+        mysql_error(conn));
   }
 }
 
@@ -275,6 +295,22 @@ static int vessel_crew_payroll(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Assign one active fleet slot to a stable payroll batch.
+ *
+ * Slot zero is reserved. The 500 player-facing slots divide evenly across
+ * the 100 batches, limiting a synchronized payday to five ships per tick.
+ */
+int vessel_crew_wage_batch_for_slot(int ship_slot)
+{
+  if (ship_slot <= 0 || ship_slot >= GREYHAWK_MAXSHIPS)
+  {
+    return -1;
+  }
+
+  return (ship_slot - 1) % CREW_WAGE_BATCH_COUNT;
+}
+
+/**
  * Wage accrual tick. Runs on the vessel combat/autopilot cadence; every
  * CREW_WAGE_INTERVAL ticks the payroll comes due. Crew whose wages go
  * badly unpaid walk off, taking their bonuses with them.
@@ -282,9 +318,13 @@ static int vessel_crew_payroll(struct greyhawk_ship_data *ship)
 void vessel_crew_wage_tick(void)
 {
   struct greyhawk_ship_data *ship;
+  int current_batch;
   int payroll;
   int i;
   int pos;
+
+  current_batch = crew_wage_batch_cursor;
+  crew_wage_batch_cursor = (crew_wage_batch_cursor + 1) % CREW_WAGE_BATCH_COUNT;
 
   for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
   {
@@ -302,6 +342,13 @@ void vessel_crew_wage_tick(void)
 
     ship->wage_ticks++;
     if (ship->wage_ticks < CREW_WAGE_INTERVAL)
+    {
+      continue;
+    }
+
+    /* Hold a due payroll at the threshold until its bounded batch runs. */
+    ship->wage_ticks = CREW_WAGE_INTERVAL;
+    if (vessel_crew_wage_batch_for_slot(i) != current_batch)
     {
       continue;
     }

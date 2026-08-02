@@ -5,6 +5,7 @@ set -euo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd "$script_dir/.." && pwd)
 runner="$script_dir/run_vessel_scale_benchmark.sh"
+spawn_safe_command="spawn_commands+=(\"shiplist summary\" \"goto \$benchmark_safe_room\")"
 
 fail()
 {
@@ -115,6 +116,8 @@ grep -Eq 'autopilot_state[[:space:]]*=[[:space:]]*3' <<<"$msdp_boundary_update" 
   fail "scale-runner airship boundary fixture is not paused at its ceiling"
 grep -Fxq 'benchmark_safe_room=1204' "$runner" ||
   fail "scale-runner does not use the quiet staff room for generic ashore state"
+grep -Fq "$spawn_safe_command" "$runner" ||
+  fail "scale-runner does not save the spawn character in the quiet staff room"
 grep -Fq 'workload_log_offset=0' "$runner" ||
   fail "scale-runner does not read the fresh reconstruction log from byte zero"
 if grep -Fq "workload_log_offset=\$(stat" "$runner"; then

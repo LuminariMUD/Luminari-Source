@@ -453,6 +453,10 @@ struct vessel_result vessel_execute_command(struct char_data *actor, enum vessel
 /* Functions for integrating vessels with the wilderness coordinate system    */
 
 room_rnum get_or_allocate_wilderness_room(int x, int y);
+void vessel_dynamic_room_cache_reset(void);
+void vessel_dynamic_room_cache_remember(room_rnum room);
+room_rnum vessel_dynamic_room_cache_lookup(int x, int y);
+room_rnum vessel_dynamic_room_cache_unused(void);
 bool update_ship_wilderness_position(int shipnum, int new_x, int new_y, int new_z);
 int get_ship_terrain_type(int shipnum);
 bool vessel_z_within_class_limits(enum vessel_class vessel_type, int z);
@@ -510,8 +514,10 @@ ACMD_DECL(do_claimship);  /* Capture a ship from an uncontested bridge */
 #define CREW_TIER_ABLE 2
 #define CREW_TIER_VETERAN 3
 
-/* Wage accrual: one payday per this many combat ticks */
+/* Wage accrual: one payday per this many combat ticks. Due payroll is spread
+ * across 100 batches, bounding a full fleet to five ships per tick. */
 #define CREW_WAGE_INTERVAL 600
+#define CREW_WAGE_BATCH_COUNT 100
 
 /* Installable upgrades (greyhawk_ship_data.upgrades bitfield) */
 #define SHIP_UPGRADE_PLATING (1 << 0)    /* +50% max armor all sides */
@@ -627,6 +633,8 @@ bool vessel_encounter_region_from_list(const struct region_list *regions, int *o
 bool vessel_encounter_chance_succeeds(int chance, int roll);
 bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
                                  int claimed_capacity);
+int vessel_encounter_cached_room_index(room_rnum room, const room_rnum *cached_rooms,
+                                       int cached_count);
 int vessel_lookout_bonus(const struct greyhawk_ship_data *ship);
 
 /* Data-driven HUNTED-state warships (Phase 15, vessels_hunters.c). */
@@ -788,6 +796,7 @@ const char *vessel_crew_position_name(int position);
 const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
 int vessel_crew_wage(int position, int tier);
+int vessel_crew_wage_batch_for_slot(int ship_slot);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_crew_wage_tick(void);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);
