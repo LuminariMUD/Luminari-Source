@@ -980,6 +980,7 @@ void vessel_encounter_force_check(void)
 ACMD(do_seastate)
 {
   struct greyhawk_ship_data *ship;
+  struct vessel_region_feature feature;
   struct vessel_piracy_law law;
   bool named_waters;
   int weather;
@@ -1015,6 +1016,28 @@ ACMD(do_seastate)
   send_to_char(ch, "  Visibility: %d units%s\r\n", vessel_sight_range(ship),
                vessel_lookout_bonus(ship) > 0 ? " (lookout posted)" : "");
   send_to_char(ch, "  Hull      : %s\r\n", vessel_status_name(vessel_status(ship)));
+
+  if (vessel_region_feature_at_coordinates(REGION_BATHYMETRIC,
+                                           (int)ship->x, (int)ship->y,
+                                           (int)ship->z, &feature))
+  {
+    send_to_char(ch, "  Trench    : %s (natural depth %d; threshold %d)\r\n",
+                 feature.name, depth_units, feature.threshold);
+  }
+  if (vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE,
+                                           (int)ship->x, (int)ship->y,
+                                           (int)ship->z, &feature))
+  {
+    send_to_char(ch, "  Sky lane  : %s (active above %d)\r\n", feature.name,
+                 feature.threshold);
+  }
+  if (vessel_region_feature_at_coordinates(REGION_SKY_ISLAND,
+                                           (int)ship->x, (int)ship->y,
+                                           (int)ship->z, &feature))
+  {
+    send_to_char(ch, "  Sky island: %s (reachable above %d)\r\n", feature.name,
+                 feature.threshold);
+  }
 
   named_waters = vessel_piracy_law_for_ship(ship, &law);
   if (named_waters && law.configured)

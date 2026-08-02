@@ -31,6 +31,7 @@
 struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 struct greyhawk_contact_data greyhawk_contacts[30];
 struct greyhawk_ship_map greyhawk_tactical[151][151];
+extern int wild_waterline;
 
 /* Global string buffers for Greyhawk system */
 static char greyhawk_status[20];
@@ -1558,6 +1559,129 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
 }
 
 /**
+ * Match a vessel feature's environmental threshold.
+ *
+ * Bathymetric features use the natural water-column depth at X/Y. Altitude
+ * features use the vessel's Z coordinate. Negative thresholds are treated as
+ * zero so malformed content cannot invert the comparison.
+ */
+bool vessel_region_feature_threshold_met(int region_type, int threshold, int z,
+                                         int depth_units)
+{
+  threshold = MAX(0, threshold);
+
+  switch (region_type)
+  {
+  case REGION_BATHYMETRIC:
+    return depth_units >= threshold;
+  case REGION_ALTITUDE_LANE:
+  case REGION_SKY_ISLAND:
+    return z >= threshold;
+  default:
+    return FALSE;
+  }
+}
+
+/**
+ * Resolve one vessel-aware wilderness feature without a movement-time query.
+ *
+ * Geometry comes from the canonical region table loaded at boot. Equal
+ * overlapping feature types choose the lowest VNUM for deterministic output.
+ */
+bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
+                                          struct vessel_region_feature *feature)
+{
+  const struct region_data *region;
+  const struct region_data *best_region;
+  int depth_units;
+  region_rnum i;
+
+  if (feature == NULL)
+  {
+    return FALSE;
+  }
+  memset(feature, 0, sizeof(*feature));
+
+  if (region_type != REGION_BATHYMETRIC &&
+      region_type != REGION_ALTITUDE_LANE &&
+      region_type != REGION_SKY_ISLAND)
+  {
+    return FALSE;
+  }
+  if (region_table == NULL || zone_table == NULL ||
+      top_of_region_table == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  depth_units = 0;
+  if (region_type == REGION_BATHYMETRIC)
+  {
+    depth_units = wild_waterline - get_modified_elevation(x, y);
+  }
+  best_region = NULL;
+  for (i = 0; i <= top_of_region_table; i++)
+  {
+    region = &region_table[i];
+    if (region->region_type != region_type || region->zone == NOWHERE ||
+        region->zone > top_of_zone_table ||
+        zone_table[region->zone].number != WILD_ZONE_VNUM ||
+        !vessel_piracy_point_in_polygon(region->vertices,
+                                        region->num_vertices, x, y) ||
+        !vessel_region_feature_threshold_met(region_type,
+                                             region->region_props, z,
+                                             depth_units))
+    {
+      continue;
+    }
+
+    if (best_region == NULL || region->vnum < best_region->vnum)
+    {
+      best_region = region;
+    }
+  }
+
+  if (best_region == NULL)
+  {
+    return FALSE;
+  }
+
+  feature->region_vnum = best_region->vnum;
+  feature->region_type = best_region->region_type;
+  feature->threshold = MAX(0, best_region->region_props);
+  strlcpy(feature->name, best_region->name ? best_region->name : "Unnamed feature",
+          sizeof(feature->name));
+  return TRUE;
+}
+
+/**
+ * Apply terrain, weather, and an eligible high-altitude lane to one speed.
+ */
+int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
+                                       int weather_conditions, int x, int y, int z,
+                                       struct vessel_region_feature *lane)
+{
+  struct vessel_region_feature resolved_lane;
+  int modifier;
+
+  if (lane == NULL)
+  {
+    lane = &resolved_lane;
+  }
+  memset(lane, 0, sizeof(*lane));
+
+  modifier = get_terrain_speed_modifier(vessel_type, sector_type,
+                                        weather_conditions);
+  if ((vessel_type == VESSEL_AIRSHIP || vessel_type == VESSEL_MAGICAL) &&
+      vessel_region_feature_at_coordinates(REGION_ALTITUDE_LANE, x, y, z,
+                                           lane))
+  {
+    modifier = MIN(150, modifier * VESSEL_ALTITUDE_LANE_SPEED_PERCENT / 100);
+  }
+  return modifier;
+}
+
+/**
  * Move ship in given direction using wilderness coordinates
  * @param shipnum Ship index number
  * @param direction Direction to move (NORTH, SOUTH, EAST, WEST, etc.)
@@ -1566,6 +1690,7 @@ int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
  */
 bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 {
+  struct vessel_region_feature altitude_lane;
   int new_x, new_y, new_z;
   int speed_modifier;
   int terrain_type;
@@ -1720,7 +1845,9 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 
   /* Get terrain at new position and calculate speed modifier including weather */
   terrain_type = get_ship_terrain_type(shipnum);
-  speed_modifier = get_terrain_speed_modifier(vessel_type, terrain_type, weather_conditions / 25);
+  speed_modifier = get_vessel_position_speed_modifier(
+      vessel_type, terrain_type, weather_conditions / 25, new_x, new_y, new_z,
+      &altitude_lane);
 
   /* Adjust ship speed based on terrain and weather, then credit the
    * sailmaster's handling bonus (see vessels_crew.c) */
@@ -1744,6 +1871,11 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
     if (speed_modifier != 100)
     {
       send_to_char(ch, "Speed affected by terrain and weather: %d%%\r\n", speed_modifier);
+    }
+    if (altitude_lane.region_vnum > 0)
+    {
+      send_to_char(ch, "The high currents of %s lend speed to the vessel.\r\n",
+                   altitude_lane.name);
     }
 
     /* Weather-specific messages */
@@ -2203,9 +2335,13 @@ ACMD(do_greyhawk_speed)
 
   /* Apply terrain modifiers using actual vessel type */
   {
+    struct vessel_region_feature altitude_lane;
     enum vessel_class vtype = get_vessel_type_from_ship(shipnum);
     int terrain_type = get_ship_terrain_type(shipnum);
-    int speed_modifier = get_terrain_speed_modifier(vtype, terrain_type, 0);
+    int speed_modifier = get_vessel_position_speed_modifier(
+        vtype, terrain_type, 0, (int)greyhawk_ships[shipnum].x,
+        (int)greyhawk_ships[shipnum].y, (int)greyhawk_ships[shipnum].z,
+        &altitude_lane);
     greyhawk_ships[shipnum].speed = (new_speed * speed_modifier) / 100;
 
     /* Send feedback */

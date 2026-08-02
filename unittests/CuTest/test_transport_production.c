@@ -621,6 +621,91 @@ void Test_vessel_z_axis_enforces_class_and_wilderness_boundaries(CuTest *tc)
   CuAssertTrue(tc, !vessel_z_allows_sector(VESSEL_MAGICAL, SECT_FIELD, -10));
 }
 
+void Test_vessel_region_features_use_wilderness_thresholds(CuTest *tc)
+{
+  struct vertex feature_polygon[] = {
+      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
+  };
+  struct region_data fixture[3];
+  struct region_data *saved_region_table;
+  struct zone_data zone_fixture;
+  struct zone_data *saved_zone_table;
+  struct vessel_region_feature feature;
+  region_rnum saved_top_of_region_table;
+  zone_rnum saved_top_of_zone_table;
+  bool lane_below_found;
+  bool lane_found;
+  bool island_below_found;
+  bool island_found;
+  int lane_vnum;
+  int lane_modifier;
+  int below_lane_modifier;
+  int boat_modifier;
+
+  memset(fixture, 0, sizeof(fixture));
+  memset(&zone_fixture, 0, sizeof(zone_fixture));
+  zone_fixture.number = WILD_ZONE_VNUM;
+
+  fixture[0].vnum = 7200020;
+  fixture[0].zone = 0;
+  fixture[0].name = "Outer Test Lane";
+  fixture[0].region_type = REGION_ALTITUDE_LANE;
+  fixture[0].region_props = 100;
+  fixture[0].vertices = feature_polygon;
+  fixture[0].num_vertices = 5;
+  fixture[1] = fixture[0];
+  fixture[1].vnum = 7200010;
+  fixture[1].name = "Priority Test Lane";
+  fixture[2] = fixture[0];
+  fixture[2].vnum = 7200030;
+  fixture[2].name = "Test Sky Island";
+  fixture[2].region_type = REGION_SKY_ISLAND;
+  fixture[2].region_props = 200;
+
+  saved_region_table = region_table;
+  saved_top_of_region_table = top_of_region_table;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  region_table = fixture;
+  top_of_region_table = 2;
+  zone_table = &zone_fixture;
+  top_of_zone_table = 0;
+
+  lane_below_found = vessel_region_feature_at_coordinates(
+      REGION_ALTITUDE_LANE, 5, 5, 99, &feature);
+  lane_found = vessel_region_feature_at_coordinates(
+      REGION_ALTITUDE_LANE, 5, 5, 100, &feature);
+  lane_vnum = feature.region_vnum;
+  lane_modifier = get_vessel_position_speed_modifier(
+      VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 100, &feature);
+  below_lane_modifier = get_vessel_position_speed_modifier(
+      VESSEL_AIRSHIP, SECT_OCEAN, 0, 5, 5, 99, &feature);
+  boat_modifier = get_vessel_position_speed_modifier(
+      VESSEL_BOAT, SECT_RIVER, 0, 5, 5, 100, &feature);
+  island_below_found = vessel_region_feature_at_coordinates(
+      REGION_SKY_ISLAND, 5, 5, 199, &feature);
+  island_found = vessel_region_feature_at_coordinates(
+      REGION_SKY_ISLAND, 5, 5, 200, &feature);
+
+  region_table = saved_region_table;
+  top_of_region_table = saved_top_of_region_table;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+
+  CuAssertTrue(tc, vessel_region_feature_threshold_met(
+                       REGION_BATHYMETRIC, 96, 0, 96));
+  CuAssertTrue(tc, !vessel_region_feature_threshold_met(
+                        REGION_BATHYMETRIC, 96, 0, 95));
+  CuAssertTrue(tc, !lane_below_found);
+  CuAssertTrue(tc, lane_found);
+  CuAssertIntEquals(tc, 7200010, lane_vnum);
+  CuAssertIntEquals(tc, VESSEL_ALTITUDE_LANE_SPEED_PERCENT, lane_modifier);
+  CuAssertIntEquals(tc, 100, below_lane_modifier);
+  CuAssertIntEquals(tc, 100, boat_modifier);
+  CuAssertTrue(tc, !island_below_found);
+  CuAssertTrue(tc, island_found);
+}
+
 void Test_transport_production_capacity_validation(CuTest *tc)
 {
   struct greyhawk_ship_data vessel;

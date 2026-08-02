@@ -23,6 +23,17 @@
 struct region_list;
 struct vertex;
 
+#define VESSEL_REGION_FEATURE_NAME_LENGTH 128
+#define VESSEL_ALTITUDE_LANE_SPEED_PERCENT 125
+
+struct vessel_region_feature
+{
+  region_vnum region_vnum;
+  int region_type;
+  int threshold;
+  char name[VESSEL_REGION_FEATURE_NAME_LENGTH];
+};
+
 /* ========================================================================= */
 /* ITEM TYPES FOR VESSEL SYSTEM                                              */
 /* ========================================================================= */
@@ -464,6 +475,13 @@ bool vessel_z_allows_sector(enum vessel_class vessel_type, int sector_type, int 
 bool can_vessel_traverse_terrain(enum vessel_class vessel_type, int x, int y, int z);
 int get_terrain_speed_modifier(enum vessel_class vessel_type, int sector_type,
                                int weather_conditions);
+bool vessel_region_feature_threshold_met(int region_type, int threshold, int z,
+                                         int depth_units);
+bool vessel_region_feature_at_coordinates(int region_type, int x, int y, int z,
+                                          struct vessel_region_feature *feature);
+int get_vessel_position_speed_modifier(enum vessel_class vessel_type, int sector_type,
+                                       int weather_conditions, int x, int y, int z,
+                                       struct vessel_region_feature *lane);
 bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 
 /* ========================================================================= */

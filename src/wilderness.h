@@ -87,6 +87,12 @@
 #define REGION_ENCOUNTER 2
 #define REGION_SECTOR_TRANSFORM 3
 #define REGION_SECTOR 4
+/* Vessel features remain ordinary wilderness polygons. region_props stores
+ * the minimum natural depth for bathymetric features and the minimum Z for
+ * altitude features. */
+#define REGION_BATHYMETRIC 5
+#define REGION_ALTITUDE_LANE 6
+#define REGION_SKY_ISLAND 7
 
 /* Region position relative to player */
 #define REGION_POS_UNDEFINED 0

@@ -1295,6 +1295,8 @@ static void list_regions(struct char_data *ch)
   region_rnum i;
   int counter = 0, len;
   char buf[MAX_STRING_LENGTH] = {'\0'};
+  char properties[32];
+  const char *type_name;
 
   len =
       strlcpy(buf,
@@ -1308,19 +1310,46 @@ static void list_regions(struct char_data *ch)
   {
     counter++;
 
+    switch (region_table[i].region_type)
+    {
+    case REGION_GEOGRAPHIC:
+      type_name = "Geographic";
+      strlcpy(properties, "[N/A]", sizeof(properties));
+      break;
+    case REGION_ENCOUNTER:
+      type_name = "Encounter";
+      strlcpy(properties, "[N/A]", sizeof(properties));
+      break;
+    case REGION_SECTOR_TRANSFORM:
+      type_name = "Sect.Transfm";
+      snprintf(properties, sizeof(properties), "%d", region_table[i].region_props);
+      break;
+    case REGION_SECTOR:
+      type_name = "Sector";
+      strlcpy(properties, sector_types[region_table[i].region_props], sizeof(properties));
+      break;
+    case REGION_BATHYMETRIC:
+      type_name = "Bathymetric";
+      snprintf(properties, sizeof(properties), "depth >= %d", region_table[i].region_props);
+      break;
+    case REGION_ALTITUDE_LANE:
+      type_name = "AltitudeLane";
+      snprintf(properties, sizeof(properties), "z >= %d", region_table[i].region_props);
+      break;
+    case REGION_SKY_ISLAND:
+      type_name = "SkyIsland";
+      snprintf(properties, sizeof(properties), "z >= %d", region_table[i].region_props);
+      break;
+    default:
+      type_name = "UNKNOWN";
+      snprintf(properties, sizeof(properties), "%d", region_table[i].region_props);
+      break;
+    }
+
     len += snprintf(
         buf + len, sizeof(buf) - len, "%s%3d%s|%s%-7d%s|%s%-37s%s|%s%12s%s|%s%-15s%s\r\n", QGRN,
         counter, QNRM, QGRN, region_table[i].vnum, QNRM, QYEL, region_table[i].name, QNRM, QYEL,
-        (region_table[i].region_type == 1
-             ? "Geographic"
-             : (region_table[i].region_type == 2
-                    ? "Encounter"
-                    : (region_table[i].region_type == 3
-                           ? "Sect.Transfm"
-                           : (region_table[i].region_type == 4 ? "Sector" : "UNKNOWN")))),
-        QNRM, QYEL,
-        (region_table[i].region_type == 4 ? sector_types[region_table[i].region_props] : "[N/A]"),
-        QNRM);
+        type_name, QNRM, QYEL, properties, QNRM);
 
     if ((size_t)len >= sizeof(buf))
       break;
