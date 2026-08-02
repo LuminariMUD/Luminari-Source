@@ -24,7 +24,7 @@
 #include "combat/fight.h"
 #include "spec_procs.h"
 #include "mud_event.h"
-#include "hlquest.h"
+#include "quest/hlquest.h"
 #include "mudlim.h"
 #include "actions.h"
 #include "magic/spell_prep.h"

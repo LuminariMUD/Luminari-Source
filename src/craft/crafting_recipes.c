@@ -19,7 +19,7 @@
 #include "mudlim.h"
 #include "spec_procs.h"
 #include "item.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
 #include "crafting_new.h"

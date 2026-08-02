@@ -22,7 +22,7 @@
 #include "olc/genolc.h"          /* for strip_cr */
 #include "config.h"              /* for pclean_criteria[] */
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
-#include "quest.h"
+#include "quest/quest.h"
 #include "magic/spells.h"
 #include "clan.h"
 #include "mud_event.h"
@@ -31,7 +31,7 @@
 #include "craft/alchemy.h"
 #include "templates.h"
 #include "premadebuilds.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "evolutions.h"
 #include "class.h"
 #include "perks.h"

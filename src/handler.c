@@ -23,7 +23,7 @@
 #include "act.h"
 #include "class.h"
 #include "combat/fight.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "mud_event.h"
 #include "wilderness/wilderness.h"
 #include "actionqueues.h"

@@ -35,7 +35,7 @@
 #include "clan.h"
 #include "craft/craft.h" // auto crafting quest
 #include "wilderness/wilderness.h"
-#include "quest.h" /* so you can identify questmaster mobiles */
+#include "quest/quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
@@ -43,8 +43,8 @@
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
 #include "premadebuilds.h"
-#include "staff_events.h"
-#include "missions.h"
+#include "quest/staff_events.h"
+#include "quest/missions.h"
 #include "spec_procs.h"
 #include "vessels/transport.h"
 #include "combat/encounters.h"

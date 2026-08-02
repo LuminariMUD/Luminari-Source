@@ -476,10 +476,10 @@ set(SRC_C_FILES
     src/help.c
     src/helpers.c
     src/olc/hlqedit.c
-    src/hlquest.c
+    src/quest/hlquest.c
     src/house.c
     src/olc/hsedit.c
-    src/hunts.c
+    src/quest/hunts.c
     src/comms/ibt.c
     src/olc/improved-edit.c
     src/interpreter.c
@@ -491,7 +491,7 @@ set(SRC_C_FILES
     src/comms/mail.c
     src/olc/medit.c
     src/magic/metamagic_science.c
-    src/missions.c
+    src/quest/missions.c
     src/mob/mob_act.c
     src/mob/mob_memory.c
     src/mob/mob_utils.c
@@ -526,7 +526,7 @@ set(SRC_C_FILES
     src/magic/psionics.c
     src/pubsub/pubsub.c
     src/olc/qedit.c
-    src/quest.c
+    src/quest/quest.c
     src/race.c
     src/random.c
     src/random_names.c
@@ -549,7 +549,7 @@ set(SRC_C_FILES
     src/magic/spell_prep.c
     src/magic/spellbook_scroll.c
     src/magic/spells.c
-    src/staff_events.c
+    src/quest/staff_events.c
     src/study.c
     src/talents.c
     src/olc/tedit.c

@@ -24,7 +24,7 @@
 #include "combat/assign_wpn_armor.h"
 #include "olc/oasis.h"
 #include "item.h"
-#include "staff_events.h"
+#include "quest/staff_events.h"
 #include "feats.h"
 #include "craft/crafting_new.h"
 #include "mud_options.h"

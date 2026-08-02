@@ -35,7 +35,7 @@
 #include "mudlim.h"
 #include "spec_procs.h" /* For compute_ability() */
 #include "item.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"
 #include "wilderness/resource_system.h"

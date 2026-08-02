@@ -13,7 +13,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "genolc.h"
 #include "oasis.h"
 #include "genzon.h" /* for create_world_index */

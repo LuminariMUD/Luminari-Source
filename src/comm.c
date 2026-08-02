@@ -82,7 +82,7 @@
 #include "combat/fight.h"
 #include "magic/spells.h" /* for affect_update */
 #include "modify.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "comms/ibt.h" /* for free_ibt_lists */
 #include "mud_event.h"
 #include "clan.h"
@@ -102,7 +102,7 @@
 #include "roleplay.h"
 #include "help.h"
 #include "vessels/transport.h"
-#include "hunts.h"
+#include "quest/hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
 #include "ai_service.h"                /* for shutdown_ai_service() */

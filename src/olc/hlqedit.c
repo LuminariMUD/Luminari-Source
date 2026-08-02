@@ -15,7 +15,7 @@
 #include "oasis.h"
 #include "interpreter.h"
 #include "constants.h"
-#include "hlquest.h"
+#include "quest/hlquest.h"
 #include "magic/spells.h"
 #include "class.h"
 #include "genzon.h"

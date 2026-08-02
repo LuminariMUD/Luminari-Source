@@ -42,7 +42,7 @@
 #include "handler.h"          /* for is_name() */
 #include "evolutions.h"
 #include "olc/oasis.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "backgrounds.h"
 #include "perks.h"
 #include "vessels/vessels.h"

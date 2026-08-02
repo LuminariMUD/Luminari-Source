@@ -31,7 +31,7 @@
 #include "feats.h"
 #include "race.h"
 #include "craft/alchemy.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "psionics.h"
 #include "combat/combat_modes.h"
 #include "spec_procs.h"

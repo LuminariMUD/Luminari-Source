@@ -19,8 +19,8 @@
 #include "comms/boards.h"
 #include "comms/mail.h"
 #include "treasure.h"
-#include "missions.h"
-#include "hunts.h"
+#include "quest/missions.h"
+#include "quest/hunts.h"
 #include "craft/crafting_new.h"
 
 SPECIAL_DECL(questmaster);

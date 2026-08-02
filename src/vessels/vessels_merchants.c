@@ -16,7 +16,7 @@
 #include "vessels.h"
 #include "mysql.h"
 #include "wilderness/wilderness.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "constants.h"
 
 extern MYSQL *conn;

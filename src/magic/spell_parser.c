@@ -29,7 +29,7 @@
 #include "combat/grapple.h"
 #include "spell_prep.h"
 #include "craft/alchemy.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "psionics.h"
 #include "act.h"
 #include "evolutions.h"

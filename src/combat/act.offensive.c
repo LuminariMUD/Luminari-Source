@@ -31,7 +31,7 @@
 #include "actionqueues.h"
 #include "assign_wpn_armor.h"
 #include "feats.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "magic/domains_schools.h"
 #include "encounters.h"
 #include "constants.h"

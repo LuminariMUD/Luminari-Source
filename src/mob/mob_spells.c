@@ -24,7 +24,7 @@
 #include "shop.h"                /* for shop_keeper */
 #include "spec_procs.h"          /* for questmaster */
 #include "dgscript/dg_scripts.h" /* for SCRIPT and TRIGGERS */
-#include "quest.h"               /* for questmaster checks */
+#include "quest/quest.h"         /* for questmaster checks */
 #include "evolutions.h"          /* for EVOLUTION_UNDEAD_APPEARANCE */
 #include "mob_utils.h"
 #include "mob_class.h"   /* for npc_class_behave */

@@ -35,7 +35,7 @@
 #include "combat/fight.h"
 #include "comms/mail.h" /* for has_mail() */
 #include "shop.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "modify.h"
 #include "race.h"
 #include "clan.h"
@@ -54,7 +54,7 @@
 #include "magic/spells.h"
 #include "magic/spell_prep.h"
 #include "premadebuilds.h"
-#include "staff_events.h"
+#include "quest/staff_events.h"
 #include "account.h"
 #include "deities.h"
 #include "evolutions.h"

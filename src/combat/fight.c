@@ -26,7 +26,7 @@
 #include "class.h"
 #include "fight.h"
 #include "shop.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "mud_event.h"
 #include "spec_procs.h"
 #include "clan.h"
@@ -43,10 +43,10 @@
 #include "perks.h"
 #include "grapple.h"
 #include "craft/alchemy.h"
-#include "missions.h"
-#include "hunts.h"
+#include "quest/missions.h"
+#include "quest/hunts.h"
 #include "magic/domains_schools.h"
-#include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
+#include "quest/staff_events.h" /* for staff events!  prisoner no xp penalty! */
 #include "assign_wpn_armor.h"
 #include "evolutions.h"
 #include "backgrounds.h"

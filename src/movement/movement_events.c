@@ -24,7 +24,7 @@
 #include "combat/fight.h"
 #include "spec_procs.h"
 #include "mud_event.h"
-#include "hlquest.h"
+#include "quest/hlquest.h"
 #include "mudlim.h"
 #include "wilderness/wilderness.h"
 #include "actions.h"
@@ -33,7 +33,7 @@
 #include "class.h"
 #include "vessels/transport.h"
 #include "combat/encounters.h"
-#include "hunts.h"
+#include "quest/hunts.h"
 #include "feats.h"
 
 /* Include movement system header */

@@ -24,7 +24,7 @@
 #include "dgscript/dg_olc.h"
 #include "act.h"
 #include "handler.h" /* for is_name */
-#include "quest.h"
+#include "quest/quest.h"
 #include "comms/ibt.h"
 #include "msgedit.h"
 #include "craft/crafts.h" /* NewCraft */

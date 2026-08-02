@@ -36,8 +36,8 @@
 #include "house.h"
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
-#include "quest.h"
-#include "hlquest.h"
+#include "quest/quest.h"
+#include "quest/hlquest.h"
 #include "asciimap.h"
 #include "olc/prefedit.h"
 #include "wilderness/resource_system.h" /* Phase 5: Wilderness harvesting commands */
@@ -63,12 +63,12 @@
 #include "comms/new_mail.h"
 #include "craft/alchemy.h"
 #include "helpers.h"
-#include "staff_events.h"
+#include "quest/staff_events.h"
 #include "vessels/vessels.h"
 #include "premadebuilds.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "vessels/transport.h"
-#include "hunts.h"
+#include "quest/hunts.h"
 #include "combat/fight.h" /* for init condensed combat */
 #include "char_descs.h"
 #include "net/discord_bridge.h"

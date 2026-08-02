@@ -25,7 +25,7 @@
 #include "class.h"
 #include "dgscript/dg_scripts.h" /* for trigedit_string_cleanup */
 #include "modify.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "comms/ibt.h"
 #include "constants.h"
 #include <mariadb/mysql.h> // We add this for additional mysql functions such as mysql_insert_id, etc.

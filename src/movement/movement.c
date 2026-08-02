@@ -25,7 +25,7 @@
 #include "olc/oasis.h" /* for buildwalk */
 #include "spec_procs.h"
 #include "mud_event.h"
-#include "hlquest.h"
+#include "quest/hlquest.h"
 #include "mudlim.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "actions.h"
@@ -34,7 +34,7 @@
 /* trails.h merged into movement_tracks.h */
 #include "combat/assign_wpn_armor.h"
 #include "combat/encounters.h"
-#include "hunts.h"
+#include "quest/hunts.h"
 #include "class.h"
 #include "vessels/transport.h"
 #include "routing.h"

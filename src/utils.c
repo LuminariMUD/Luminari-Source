@@ -37,7 +37,7 @@
 #include "premadebuilds.h"
 #include "craft/craft.h"
 #include "combat/fight.h"
-#include "missions.h"
+#include "quest/missions.h"
 #include "magic/psionics.h"
 #include "evolutions.h"
 #include "backgrounds.h"

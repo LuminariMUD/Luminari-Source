@@ -112,10 +112,10 @@ circle_SOURCES = \
 	src/help.c \
 	src/helpers.c \
 	src/olc/hlqedit.c \
-	src/hlquest.c \
+	src/quest/hlquest.c \
 	src/house.c \
 	src/olc/hsedit.c \
-	src/hunts.c \
+	src/quest/hunts.c \
 	src/comms/ibt.c \
 	src/olc/improved-edit.c \
 	src/interpreter.c \
@@ -127,7 +127,7 @@ circle_SOURCES = \
 	src/comms/mail.c \
 	src/olc/medit.c \
 	src/magic/metamagic_science.c \
-	src/missions.c \
+	src/quest/missions.c \
 	src/mob/mob_act.c \
 	src/mob/mob_memory.c \
 	src/mob/mob_utils.c \
@@ -177,7 +177,7 @@ circle_SOURCES = \
 	src/net/i3_commands.c \
 	src/net/i3_utils.c \
 	src/olc/qedit.c \
-	src/quest.c \
+	src/quest/quest.c \
 	src/race.c \
 	src/random.c \
 	src/random_names.c \
@@ -200,7 +200,7 @@ circle_SOURCES = \
 	src/magic/spell_prep.c \
 	src/magic/spellbook_scroll.c \
 	src/magic/spells.c \
-	src/staff_events.c \
+	src/quest/staff_events.c \
 	src/study.c \
 	src/olc/tedit.c \
 	src/templates.c \

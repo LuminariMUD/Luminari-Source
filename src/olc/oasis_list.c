@@ -21,7 +21,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "modify.h"
 #include "magic/spells.h"
 #include "race.h"

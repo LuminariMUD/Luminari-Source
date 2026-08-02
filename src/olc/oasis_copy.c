@@ -24,7 +24,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "wilderness/wilderness.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "act.h"
 
 /* Local, filescope function prototypes */

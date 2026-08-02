@@ -27,7 +27,7 @@
 #include "interpreter.h"
 #include "act.h"    /* for the space_to_minus function */
 #include "modify.h" /* for smash_tilde */
-#include "quest.h"
+#include "quest/quest.h"
 #include "craft/craft.h" // get_obj_material
 
 #define WORLDMAP_ZONE_WIDTH 160

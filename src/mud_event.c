@@ -50,7 +50,7 @@
 #include "mud_event.h"
 #include "handler.h"
 #include "wilderness/wilderness.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "mysql.h"
 #include "act.h"
 #include "craft/brew.h" /* Include for brewing events */

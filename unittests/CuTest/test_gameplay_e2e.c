@@ -14,7 +14,7 @@
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"
-#include "../../src/missions.h"
+#include "../../src/quest/missions.h"
 #include "../../src/movement/movement.h"
 #include "../../src/perks.h"
 #include "../../src/net/protocol.h"

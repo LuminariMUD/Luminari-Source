@@ -23,7 +23,7 @@
 #include "magic/spells.h"
 #include "olc/oasis.h"
 #include "class.h"
-#include "quest.h"
+#include "quest/quest.h"
 #include "act.h"
 #include "olc/genobj.h"
 #include "race.h"

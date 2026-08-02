@@ -21,8 +21,8 @@
 #include "genzon.h"
 #include "interpreter.h"
 #include "modify.h"
-#include "quest.h"
-#include "missions.h"
+#include "quest/quest.h"
+#include "quest/missions.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
