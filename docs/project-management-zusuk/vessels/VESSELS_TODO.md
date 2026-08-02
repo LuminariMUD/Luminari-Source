@@ -253,9 +253,13 @@ recording enduring behavior or evidence in the permanent documentation.
   `make test` then isolated `make install` gate passes without a root build
   artifact. Phase 14 install/reapply/verify/rollback and the full schema chain
   pass in disposable MariaDB; character rename and permanent-removal mappings
-  are covered. Keep this item open for two things: the installed-candidate
-  Kohdee destruction/consequence/replacement transcript, and builder-authored
-  campaign merchant routes/cargo beyond the development fixture.
+  are covered. `scripts/test_vessel_merchant_in_game.sh` now provides the
+  reversible actual-Kohdee destruction/consequence/replacement path. It
+  snapshots every mutable vessel/economy table and Kohdee's exact player file,
+  then restores and byte-compares both before a no-login MUD restart. Keep this
+  item open until that installed-candidate transcript passes and production
+  builders author campaign merchant routes/cargo beyond the development
+  fixture.
 - [ ] Author territorial waters, free seas, and pirate coves as
   `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
   geography rather than private coordinate tables.

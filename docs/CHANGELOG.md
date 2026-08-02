@@ -4,6 +4,16 @@
 
 ### Vessel route-failure and soak stability
 
+#### Added
+
+- `scripts/test_vessel_merchant_in_game.sh` performs one reversible
+  actual-Kohdee merchant-loss acceptance run. It verifies the attack and sink
+  standing losses, regional bounty, destroyed attribution, and complete next-
+  generation cargo/pilot/route/schedule identity. The harness snapshots all
+  mutable vessel/economy tables and Kohdee's exact player file, restores and
+  byte-compares both with the MUD stopped, and restarts without another player
+  login.
+
 #### Fixed
 
 - Automated vessel movement now stops the hull, pauses autopilot, persists the

@@ -104,27 +104,24 @@ the dock, crossing, and two-character waits dominate, while an initial fixture
 creation may add one server restart.
 
 The provisioner intentionally does not sink the merchant because the invoking
-character receives real faction and bounty consequences. For the final
-development acceptance transcript, copy the merchant ID from its final PASS
-line and use one session:
+character receives real faction and bounty consequences. After installing and
+provisioning the current candidate, run the reversible acceptance harness:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands \
-  "vmerchant list" \
-  "vmerchant sink <merchant-id> confirm" \
-  "@wait 6" \
-  "vmerchant sync" \
-  "vmerchant list" \
-  "bounty"
+./scripts/test_vessel_merchant_in_game.sh
 ```
 
-This is a destructive local-development check: it removes the active hull and
-cargo, changes Kohdee's saved standing and bounty, then reconciles the due
-replacement. Require the second list to show the same merchant ID with its
-generation increased by one and a new active ship. Preserve and restore the
-development player/database baseline if Kohdee must remain unchanged. Do not
-run this command while a ferry soak or scale measurement owns the installed
-server.
+This development-only script uses actual Kohdee sessions to destroy the active
+hull and cargo, observe both durable standing losses and the regional bounty,
+wait through the configured recovery delay, and inspect the generation-plus-
+one replacement's cargo, pilot, route, schedule, and registry identity. Before
+mutation it snapshots Kohdee's exact player file and every mutable
+vessel/economy table. Cleanup stops the MUD, restores and byte-compares both
+snapshots, then starts the installed binary without logging Kohdee back in.
+The player-file hash therefore remains exact after recovery. The script
+refuses production, dirty or stale source, a different running executable, or
+an active ferry/scale worker. Do not replace it with the raw destructive
+`vmerchant sink` command.
 
 ## Fast HUNTED Bounty-Hunter Check
 

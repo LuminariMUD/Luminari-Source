@@ -59,6 +59,23 @@ the fare, crossing, and channel checks were added, later idempotent runs reused
 the ferry and completed in about 30 seconds on the current development host.
 Remeasure the augmented path with the current installed candidate.
 
+The provisioner validates but deliberately does not sink its NPC merchant.
+Exercise the real loss and recovery path separately with:
+
+```bash
+./scripts/test_vessel_merchant_in_game.sh
+```
+
+The development-only harness uses actual Kohdee sessions to invoke the
+production sink path, requires one 25-point attack consequence and one cargo-
+plus-100 total-loss consequence, observes the regional bounty, waits through
+the configured delay, and checks the next merchant generation in SQL and in
+game. Its replacement must have the same durable definition with a public
+hull, real cargo, active pilot, route, and schedule. The harness snapshots all
+mutable vessel/economy tables and Kohdee's player file before the test. It
+stops the MUD for exact restoration and byte comparison, then restarts the
+installed candidate without logging Kohdee back in.
+
 The same provisioner now validates the Phase 15 HUNTED raft, Admiralty
 warship, captain mobile 70002, encounter region 7000004, and deterministic
 hunter policy without altering Kohdee's bounty. After installation, exercise
