@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.16
+**Version:** 3.17
 
 **Evidence snapshot:** August 2, 2026
 
@@ -32,7 +32,8 @@ from the full live-game benchmark that still must be run.
 | Post-sixth optimization candidate | 271/271 tests; actionable Memcheck clean | Installed and exercised by seventh launch |
 | Seventh current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,665 ticks; zero overflows | Harness, route, memory, and 25 ms gates failed; merchant capacity deferral expected |
 | Post-seventh repair candidate | 274/274 tests; actionable Memcheck clean | Installed; restart and scale rerun required |
-| Complete current 500-ship live tick | 3,665 ticks; p95 131,989.20 usec | Release blocker; optimization and rerun required |
+| Eighth current 500-ship diagnostic on August 2, 2026 | Completed 600-second window; 1,217 ticks; all functional gates passed | Tick latency and memory gates failed |
+| Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -380,6 +381,40 @@ pass. PID 714795 maps the exact installed hash; actual Kohdee passed a
 17-second login smoke, then reported the six-ship baseline and saved in quiet
 room 1204. These are baseline qualifications only; a fresh 500-vessel
 measurement remains required.
+
+Run `20260802T035823Z-718533` then completed the repaired 600-second diagnostic
+on source `801c6b671ac99195b5d2ffc9296037ab2e1fbf13` and the same installed
+SHA-256. It passed every harbor, construction, economy, reconstruction,
+combat, MSDP, and terminal actual-Kohdee gate. Generic `@wait` retained and
+displayed unsolicited scheduled crossing and encounter output. The measured
+workload recorded six shared multi-ship encounters, ten scheduled departures,
+nine distinct live airship Z values from 120 through 200, zero route failures,
+zero workload errors, zero high-volume progress logs, and zero buffer
+overflows. Initial and final live samples retained 500 ships. Cleanup restored
+the six-vessel baseline and restarted local development. This accepts the
+harness, route fixture, merchant deferral, containment, and payroll repairs.
+
+The complete eighth profile remains diagnostic evidence, not a pass:
+
+| Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
+|---|---:|---:|---:|---:|---:|
+| `vessel_tick` | 1,217 | 659.00 | 66,429.00 | 86,597.80 | 103,801 |
+| `vessel_autopilot` | 1,217 | 554.00 | 66,286.60 | 86,469.16 | 103,711 |
+| `vessel_crew_wages` | 1,217 | 18.00 | 31.00 | 46.00 | 112 |
+| `vessel_encounters` | 1,217 | 0.00 | 1.00 | 1.00 | 56,901 |
+| `vessel_schedules` | 8 | 789.50 | 11,760.55 | 14,764.11 | 15,515 |
+
+Payroll and schedules are now below 25 ms, and the median complete tick
+improved, but autopilot still drives p95 above the release limit. The run
+recorded 2,150 missed pulses, 7,803 throttled messages, and 14,942 database
+executions. One synchronous encounter outlier also remains above budget.
+
+The 22 process samples span 631 seconds on one PID. RSS increased from 786,304
+to 807,504 KiB and VSZ from 881,224 to 902,344 KiB; threads stayed at two and
+descriptors at 11-12. Movement trails increased from 21,472 to 68,895 while
+world room count stayed constant, closely matching the 121,774-KiB/hour RSS
+slope. The analyzer remains `REPORT_ONLY`, but repeated awake NPC movement is
+the retained-growth source to remove before the full 1,800-second rerun.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

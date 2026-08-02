@@ -249,6 +249,28 @@ fleet slots and 8 of 2,000 dynamic rooms before saving in room 1204. A fresh
 installed-candidate scale result is still required before closing any
 performance or memory item.
 
+The repaired 600-second diagnostic is retained at
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T035823Z-718533`.
+It passed every actual-Kohdee component gate, spawned all 500 vessels, retained
+unsolicited scheduled-route and encounter output, observed six shared multi-
+ship encounters, exercised ten scheduled departures, varied airships across
+nine Z levels, and recorded zero workload errors, route failures, high-volume
+progress logs, or buffer overflows. Cleanup restored all six baseline vessel
+rows and restarted local development. The functional harness and workload
+repairs are accepted.
+
+Performance and memory still fail. Across 1,217 complete ticks, median was 659
+usec, p95 66,429, p99 86,597.80, maximum 103,801, and 2,150 pulses were missed.
+Autopilot remains the p95 driver at 66,286.60 usec and 103,711 maximum;
+encounters had a single 56,901-usec outlier. Payroll is now bounded at 112
+usec maximum and schedules at 15,515. The run issued 14,942 database
+executions. Over 631 seconds, RSS rose 786,304 to 807,504 KiB while movement
+trails rose 21,472 to 68,895; the analyzer reports `REPORT_ONLY` with a
+121,774-KiB/hour slope. Threads stayed at two, descriptors at 11-12, dynamic
+rooms at no more than 10 of 2,000, and world room count was constant. Keep all
+four performance items open while removing NPC trail growth and the remaining
+autopilot and encounter synchronous outliers.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

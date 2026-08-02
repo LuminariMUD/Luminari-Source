@@ -282,6 +282,24 @@ that exact mapped hash. Actual Kohdee passed a 17-second login smoke, reported
 the six-ship baseline in a second session, and saved in room 1204. The scale
 acceptance remains mandatory.
 
+Run `20260802T035823Z-718533` completed a repaired 600-second diagnostic with
+500 vessels. Every actual-Kohdee component and terminal gameplay check passed.
+The transcript retains unsolicited scheduled-route and encounter messages,
+including six shared multi-ship encounters; ten scheduled departures and nine
+distinct live airship Z values were observed. The server recorded zero route
+failures, workload errors, high-volume progress logs, or live buffer
+overflows. Cleanup restored all six baseline vessel rows and restarted local
+development. Treat the helper, route, merchant deferral, containment, and
+payroll behavior as accepted.
+
+The run remains a performance failure. Its 1,217 complete ticks reported
+median 659 usec, p95 66,429, p99 86,597.80, maximum 103,801, and 2,150 missed
+pulses. Autopilot p95 was 66,286.60 usec; one encounter reached 56,901 usec.
+Payroll maximum was 112 usec and schedules maximum 15,515. Across 631 seconds,
+RSS grew 786,304 to 807,504 KiB while movement trails grew 21,472 to 68,895;
+memory remains `REPORT_ONLY`. Remove NPC trail retention and the remaining
+synchronous outliers before the required full 1,800-second rerun.
+
 For the builder-independence timing gate, run:
 
 ```bash

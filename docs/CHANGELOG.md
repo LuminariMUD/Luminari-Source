@@ -209,6 +209,15 @@
   Pushed commit `d610d58a` runs that exact hash on PID 714795; actual Kohdee
   passes the login smoke, confirms the six-ship baseline, and saves in quiet
   room 1204.
+- Run `20260802T035823Z-718533` completes the repaired 600-second diagnostic
+  with 500 vessels and passes every actual-Kohdee functional gate. Generic
+  `@wait` visibly retains scheduled-route and encounter output; the run has
+  six shared encounters, ten departures, nine airship Z values, and zero route
+  failures, workload errors, high-volume progress logs, or buffer overflows.
+  Cleanup restores the six-vessel baseline. Performance remains open: 1,217
+  ticks have median 659 usec, p95 66,429, maximum 103,801, and 2,150 missed
+  pulses. RSS grows 21,200 KiB with 47,423 new movement trails over 631
+  seconds, so memory remains `REPORT_ONLY` pending the next repair.
 
 ### Durable HUNTED bounty-hunter patrols
 

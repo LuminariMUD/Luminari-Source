@@ -546,6 +546,24 @@ session reported 6 of 500 fleet slots, 8 of 2,000 dynamic rooms, and saved
 Kohdee in room 1204. This is baseline live acceptance, not the required scale
 result.
 
+The repaired 600-second diagnostic is retained under
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T035823Z-718533`.
+All actual-Kohdee setup and gameplay checks passed. The run created all 500
+ships, retained unsolicited scheduled-route and encounter messages through
+generic `@wait`, observed six shared encounters, exercised ten departures and
+nine live airship Z values, and produced zero route failures, workload errors,
+high-volume progress logs, or buffer overflows. Cleanup restored the exact
+six-vessel database baseline and restarted local development. The repaired
+harness and fixture behavior are accepted.
+
+Do not treat that result as a scale pass. Its 1,217 vessel ticks had median
+659 usec, p95 66,429, p99 86,597.80, maximum 103,801, and 2,150 missed pulses.
+Autopilot p95 was 66,286.60 usec and one encounter reached 56,901 usec. The
+631-second process series grew from 786,304 to 807,504 KiB RSS while movement
+trails grew from 21,472 to 68,895; memory remains `REPORT_ONLY`. Fix trail
+growth and the remaining synchronous paths, then rebuild, install, and run the
+full 1,800-second gate.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process
