@@ -495,6 +495,8 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch);
 #define VESSEL_STATUS_CRIPPLED 2
 #define VESSEL_STATUS_SINKING 3
 
+#define VESSEL_WEAPON_RELOAD_TICKS 6
+
 /* An owner cannot end an already-consented vessel fight by logging out. */
 #define VESSEL_PVP_LOGOUT_GRACE 300
 
@@ -620,6 +622,22 @@ struct vessel_trade_simulation_result
   long long finite_route_profit;
 };
 
+#define VESSEL_BALANCE_DEFAULT_DUELS 1000
+#define VESSEL_BALANCE_MAX_DUELS 5000
+
+struct vessel_balance_duel_result
+{
+  int requested_duels;
+  int completed_duels;
+  int unresolved_duels;
+  int first_wins;
+  int second_wins;
+  int minimum_ticks;
+  int median_ticks;
+  int p95_ticks;
+  int maximum_ticks;
+};
+
 void vessel_trade_ensure_schema(void);
 int vessel_cargo_weight(const struct greyhawk_ship_data *ship);
 int vessel_commodity_price(int base_price, int supply);
@@ -629,6 +647,8 @@ long long vessel_trade_buy_cost(int base_price, int supply, int quantity);
 long long vessel_trade_sell_revenue(int base_price, int supply, int quantity);
 bool vessel_trade_run_simulation(int trade_count,
                                  struct vessel_trade_simulation_result *result);
+bool vessel_balance_run_duels(int duel_count, struct vessel_balance_duel_result *result);
+bool vessel_balance_report(struct char_data *ch, int duel_count);
 void vessel_trade_restock_tick(void);
 void vessel_db_save_cargo(struct greyhawk_ship_data *ship);
 void vessel_db_load_cargo(struct greyhawk_ship_data *ship);

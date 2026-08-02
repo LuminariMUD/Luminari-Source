@@ -622,7 +622,7 @@ restored exactly. The production-linked suite passes 302 tests.
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
 | vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
-| vesseldebug | Inspect debug state, force ambience, or advance encounter cadence | `vesseldebug [status\|on ...\|off ...\|ambient\|encounter]` |
+| vesseldebug | Inspect debug state, run balance diagnostics, force ambience, or advance encounters | `vesseldebug [status\|balance [duels]\|on ...\|off ...\|ambient\|encounter]` |
 | vevent | Start, enlist, end, cancel, or recover a showcase event | `vevent <action>` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
@@ -663,6 +663,15 @@ debug categories remain compiled out.
 `vesseldebug ambient` resolves the operator's current generated vessel room
 and invokes the production narrative broadcaster once. It does not advance or
 reset the normal 120-second cadence.
+
+`vesseldebug balance [duels]` is read-only and remains available when debug
+logging is compiled out. It runs a private deterministic equal-warship duel
+sample without consuming the live random stream or creating hulls, invokes
+the production 1,000-trade simulation, reports class cost and crew-wage
+anchors, and reads only anonymized aggregate persistence totals. Its
+mechanical verdict uses a provisional 45-120 second median and 180-second p95
+equal-warship target. The final line always requires human beta feedback; the
+command cannot manufacture a fun rating or authorize rollout.
 
 ### Living World Commands (Phase 08)
 
@@ -1525,6 +1534,7 @@ and the trigger was removed.
 | `src/vessels_events.c` | Regattas, skirmishes, ghost fleets, leaderboards, and recovery (Phase 16) |
 | `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
 | `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
+| `src/vessels_balance.c` | Read-only duel, economy, cost, and persisted-sample diagnostics |
 | `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
 | `src/vehicles_commands.c` | Player commands (vmount, vdismount, drive, vstatus) |
 | `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |

@@ -23,10 +23,6 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 extern struct room_data *world;
 extern int wild_waterline;
 
-/* Reload time (combat ticks) applied to a weapon slot after firing. The
- * combat tick shares AUTOPILOT_TICK_INTERVAL cadence in comm.c. */
-#define SHIP_WEAPON_RELOAD_TICKS 6
-
 /* Repair amounts per shiprepair invocation (dockside pace lands in the
  * Phase 06 economy; this is the slow at-sea patch job). */
 #define SHIP_REPAIR_ARMOR 5
@@ -713,7 +709,7 @@ static void vessel_ai_return_fire(int shipnum)
       continue;
     }
 
-    weapon->timer = SHIP_WEAPON_RELOAD_TICKS;
+    weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
     target->last_attacker = shipnum;
 
     attack_roll = rand_number(1, 20) + ship->guncrew.gunadjust + 5; /* trained crews */
@@ -907,7 +903,7 @@ ACMD(do_shipfire)
   /* Mark the aggression so NPC-piloted victims return fire */
   target->last_attacker = ship->shipnum;
 
-  weapon->timer = SHIP_WEAPON_RELOAD_TICKS;
+  weapon->timer = VESSEL_WEAPON_RELOAD_TICKS;
 
   send_to_ship(ship, "%s FIRES at %s!", weapon->desc[0] ? weapon->desc : "A weapon", target->name);
 

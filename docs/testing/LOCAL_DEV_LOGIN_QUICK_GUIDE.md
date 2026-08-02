@@ -1032,6 +1032,22 @@ Do not start this gate while any ferry monitor is active. The scale runner
 intentionally refuses to disturb the process and executable owned by that
 run.
 
+## Fast Mechanical Balance Diagnostic
+
+Use one actual Kohdee session for the read-only duel, economy, and cost report:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
+```
+
+The command simulates 1,000 representative equal-warship duels without
+creating hulls or consuming the live random stream. It requires every duel to
+resolve, a provisional median time-to-kill of 45-120 seconds, and p95 no more
+than 180 seconds. It also runs the production 1,000-trade model, prints all
+eight class hull/refit/insurance/dock anchors and full-roster wage tiers, and
+shows anonymized persisted usage totals. Its final line deliberately says
+human beta sign-off is still required.
+
 ## Fast 1,000-Trade Economy Gate
 
 After the current source is installed on local development, reuse the master

@@ -557,6 +557,7 @@ VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
        vesseldebug off [category]
        vesseldebug encounter
        vesseldebug ambient
+       vesseldebug balance [duels]
        vtradecheck [trades]
 
 Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
@@ -584,6 +585,12 @@ AMBIENT remains available in every build while staff are aboard a vessel. It
 immediately sends that vessel the same class-, speed-, weather-, and depth-aware
 ambient line used by the periodic narrative heartbeat. It changes no vessel
 state and is intended for acceptance testing.
+
+BALANCE remains available in every build. It runs a read-only mechanical
+report combining a deterministic equal-warship duel sample, the production
+1,000-trade simulation, crew/refit/insurance/dock cost anchors, and anonymized
+persisted usage totals. It does not replace human beta feedback or authorize
+production rollout.
 
 For an explicit development diagnostic build,
 compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and

@@ -986,6 +986,30 @@ void Test_vessel_combat_npc_duel_harness(CuTest *tc)
   }
 }
 
+void Test_vessel_balance_duel_simulation(CuTest *tc)
+{
+  struct vessel_balance_duel_result result;
+  int median_tenths;
+  int p95_tenths;
+
+  CuAssertTrue(tc, vessel_balance_run_duels(1000, &result));
+  CuAssertIntEquals(tc, 1000, result.requested_duels);
+  CuAssertIntEquals(tc, 1000, result.completed_duels);
+  CuAssertIntEquals(tc, 0, result.unresolved_duels);
+  CuAssertIntEquals(tc, 1000, result.first_wins + result.second_wins);
+
+  median_tenths = result.median_ticks * AUTOPILOT_TICK_INTERVAL * 10 / PASSES_PER_SEC;
+  p95_tenths = result.p95_ticks * AUTOPILOT_TICK_INTERVAL * 10 / PASSES_PER_SEC;
+  CuAssertTrue(tc, median_tenths >= 450 && median_tenths <= 1200);
+  CuAssertTrue(tc, p95_tenths <= 1800);
+  CuAssertTrue(tc, result.minimum_ticks > 5);
+  CuAssertTrue(tc, result.maximum_ticks >= result.p95_ticks);
+
+  CuAssertTrue(tc, !vessel_balance_run_duels(0, &result));
+  CuAssertTrue(tc, !vessel_balance_run_duels(VESSEL_BALANCE_MAX_DUELS + 1, &result));
+  CuAssertTrue(tc, !vessel_balance_run_duels(1, NULL));
+}
+
 void Test_vessel_ownership_helm_permission_matrix(CuTest *tc)
 {
   struct greyhawk_ship_data ship;

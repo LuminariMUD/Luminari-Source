@@ -6,6 +6,14 @@
 
 #### Added
 
+- `vesseldebug balance [duels]` provides a read-only mechanical balance
+  report through an actual staff session. It combines a private deterministic
+  equal-warship duel sample, the production trade simulation, all class cost
+  anchors, crew payroll, and anonymized persisted usage totals while keeping
+  human beta sign-off explicit.
+- A production-linked balance test raises the warning-free suite to 305 tests
+  and locks duel resolution, the provisional time-to-kill band, and invalid
+  input boundaries.
 - `shipcustomize` lets an owner review, set, or clear optional 3-80 character
   paint and figurehead descriptions. Both fields persist in Phase 17, appear
   in exterior hull room text, and appear in own-hull and visible-contact

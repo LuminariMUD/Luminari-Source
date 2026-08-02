@@ -222,6 +222,10 @@ Kohdee output for human fun ratings or player data. The remaining five items
 still require a combat/cost balance record, a structured human beta, an
 isolated production-snapshot migration rehearsal, a fresh complete preflight
 after Phase 17, and authorized staged production rollout.
+The current implementation adds a read-only `vesseldebug balance` report and
+one production-linked deterministic duel test; the warning-free suite passes
+305 tests. Do not mark balance complete until its installed actual-character
+transcript and real beta/player sample are recorded.
 
 Permanent evidence and behavior live in:
 

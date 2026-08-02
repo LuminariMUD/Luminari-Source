@@ -837,6 +837,29 @@ field, `shiproom`, and `world[room].ship` all identify the same ship, and that
     `delwaypoint dockpoint` and `delwaypoint westpoint`; both list commands
     report no remaining test data.
 
+## Mechanical Balance Diagnostic
+
+After installing the current clean candidate, run the read-only balance report
+through actual Kohdee:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
+```
+
+The equal-warship sample uses armor 40, speed 20, an able gunner, one bearing
+2d8 battery, and the production six-tick reload cadence. All duels must
+resolve; the provisional mechanical band is a 45-120 second median and no
+more than 180 seconds at p95. The same report runs the production 1,000-trade
+simulation, lists crew payroll plus class hull/refit/insurance/dock anchors,
+and reads anonymized aggregate hull, freight, and event totals. It does not
+change live hulls, the game random stream, port supply, cargo, or character
+gold. A production-linked test locks the deterministic duel bounds and input
+limits.
+
+A mechanical `PASS` is not balance sign-off. Preserve the printed persisted
+sample and collect real beta combat ratings separately; at least 70 percent
+"fun" feedback remains a human release criterion.
+
 ## Release-Boundary Evidence
 
 The July 29-30, 2026 local-development runs also proved the boundaries around the

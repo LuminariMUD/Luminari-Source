@@ -570,6 +570,7 @@ set(SRC_C_FILES
     src/vessels_narrative.c
     src/vessels_autopilot.c
     src/vessels_admin.c
+    src/vessels_balance.c
     src/vessels_combat.c
     src/vessels_crew.c
     src/vessels_hazards.c

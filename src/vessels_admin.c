@@ -104,7 +104,7 @@ static void vessel_debug_status(struct char_data *ch)
 }
 
 /**
- * vesseldebug [status|on <category>|off [category]|encounter|ambient]
+ * vesseldebug [status|on <category>|off [category]|encounter|ambient|balance]
  *
  * Runtime category control is available only in an explicit development
  * build compiled with -DVESSEL_SYSTEM_DEBUG=1. Production builds retain no
@@ -148,6 +148,28 @@ ACMD(do_vesseldebug)
     send_to_char(ch, "Forced this vessel's contextual ambient message.\r\n");
     return;
   }
+  if (!strcasecmp(action, "balance"))
+  {
+    int duel_count;
+    long requested_duels;
+    char *end;
+
+    duel_count = VESSEL_BALANCE_DEFAULT_DUELS;
+    if (*category)
+    {
+      end = NULL;
+      requested_duels = strtol(category, &end, 10);
+      if (end == category || *end != '\0' || requested_duels < 1 ||
+          requested_duels > VESSEL_BALANCE_MAX_DUELS)
+      {
+        send_to_char(ch, "Usage: vesseldebug balance [1-%d]\r\n", VESSEL_BALANCE_MAX_DUELS);
+        return;
+      }
+      duel_count = (int)requested_duels;
+    }
+    vessel_balance_report(ch, duel_count);
+    return;
+  }
 
 #if !VESSEL_SYSTEM_DEBUG
   send_to_char(ch, "Vessel debug support is compiled out. Rebuild development with "
@@ -189,7 +211,7 @@ ACMD(do_vesseldebug)
     {
       send_to_char(
           ch,
-          "Usage: vesseldebug [status|on <category>|off [category]|encounter|ambient]\r\n");
+          "Usage: vesseldebug [status|on <category>|off [category]|encounter|ambient|balance]\r\n");
       return;
     }
   }
