@@ -2780,7 +2780,6 @@ static void skfeat_disp_menu(struct descriptor_data *d)
     case ABILITY_UNUSED_4:
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
-    case ABILITY_UNUSED_7:
       continue;
     }
     write_to_output(d, "%d) %s\r\n", i, ability_names[i]);
@@ -3787,7 +3786,6 @@ void study_parse(struct descriptor_data *d, char *arg)
     case ABILITY_UNUSED_4:
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
-    case ABILITY_UNUSED_7:
       write_to_output(d, "That is an invalid choice!\r\n");
       skfeat_disp_menu(d);
       break;

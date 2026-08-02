@@ -76,8 +76,18 @@ SHIP_ROOMS
   List the vessel interior and identify its bridge and entrance.
 
 BOARD_HOSTILE <vessel>
-  Attempt a hostile transfer from one nearby vessel to another. Player-owned
-  targets remain subject to the shared PvP consent rules.
+  Launch a hostile transfer from one nearby vessel to another. The first
+  opposed Boarding check secures grappling lines; if they hold, a second
+  opposed Boarding check resolves the crossing. Ties favor the defending
+  vessel. Its strongest conscious, PvP-consenting occupant supplies the
+  defense skill, while speed, hull class, structure, sailmaster, and bosun
+  modify the vessel side. A decisive crossing failure or natural 1 throws the
+  attacker into the water for an Athletics swim check.
+
+  Boarding is a trainable class ability for every class. It uses the better
+  of Strength or Dexterity, applies the armor penalty, and replaces the old
+  level-plus-Athletics boarding formula. Player-owned targets remain subject
+  to the shared PvP consent rules before either contest occurs.
 
 Navigation changes require the owner, a permitted helmsman, or the authorized
 NPC pilot at the helm. See the individual ownership and autopilot topics for
@@ -105,6 +115,7 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'LOOK_OU
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'LOOKOUT');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'SHIP_ROOMS');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARD_HOSTILE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'BOARDING');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('VESSELS', 'NAVIGATION');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)

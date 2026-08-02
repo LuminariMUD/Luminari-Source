@@ -51,6 +51,7 @@
 #define LOAD_STRENGTH 3
 
 #define PLAYER_AFFECT_FILE_VERSION 1
+#define BOARDING_ABILITY_PFILE_VERSION 1
 
 #define PT_PNAME(i) (player_table[(i)].name)
 #define PT_IDNUM(i) (player_table[(i)].id)
@@ -435,6 +436,7 @@ char *get_name_by_id(long id)
 int load_char(const char *name, struct char_data *ch)
 {
   int id, i, j, parsed;
+  bool boarding_ability_current = FALSE;
   FILE *fl;
   char filename[40];
   char buf[128], buf2[128], line[MAX_INPUT_LENGTH + 1], tag[6];
@@ -910,6 +912,8 @@ int load_char(const char *name, struct char_data *ch)
           GET_BANK_GOLD(ch) = atoi(line);
         else if (!strcmp(tag, "Brth"))
           ch->player.time.birth = atol(line);
+        else if (!strcmp(tag, "BrdV"))
+          boarding_ability_current = atoi(line) >= BOARDING_ABILITY_PFILE_VERSION;
         else if (!strcmp(tag, "Buff"))
           load_buffs(fl, ch);
         break;
@@ -2035,6 +2039,14 @@ int load_char(const char *name, struct char_data *ch)
     }
   }
 
+  /* Slot 27 previously held Jump and remained serialized after that ability
+   * was retired. Clear it exactly once so legacy ranks cannot become free
+   * Boarding training; current saves carry BrdV and preserve real ranks. */
+  if (!boarding_ability_current)
+  {
+    SET_ABILITY(ch, ABILITY_BOARDING, 0);
+  }
+
   resetCastingData(ch);
   CLOUDKILL(ch) = 0; // make sure init cloudkill burst
   DOOM(ch) = 0;      // make sure init creeping doom
@@ -2451,6 +2463,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     BUFFER_WRITE("NecC: %d\n", NECROMANCER_CAST_TYPE(ch));
   BUFFER_WRITE("Id  : %ld\n", GET_IDNUM(ch));
   BUFFER_WRITE("Brth: %ld\n", (long)ch->player.time.birth);
+  BUFFER_WRITE("BrdV: %d\n", BOARDING_ABILITY_PFILE_VERSION);
   BUFFER_WRITE("Plyd: %d\n", ch->player.time.played);
   BUFFER_WRITE("Last: %ld\n", (long)ch->player.time.logon);
   BUFFER_WRITE("LstR: %d\n", GET_LAST_ROOM(ch));

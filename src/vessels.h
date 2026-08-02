@@ -1507,10 +1507,33 @@ void remove_ship_connection(room_rnum room1, room_rnum room2);
 void separate_vessels(struct greyhawk_ship_data *ship1, struct greyhawk_ship_data *ship2);
 
 /* Boarding Functions */
+enum vessel_boarding_stage
+{
+  VESSEL_BOARDING_GRAPPLE = 0,
+  VESSEL_BOARDING_CROSSING
+};
+
+struct vessel_boarding_contest
+{
+  int attacker_skill;
+  int attacker_roll;
+  int defender_skill;
+  int defender_roll;
+  int vessel_modifier;
+  int attacker_total;
+  int defender_total;
+  bool attacker_wins;
+  bool critical_failure;
+};
+
 bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
-void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
+bool perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target);
 void setup_boarding_defenses(struct greyhawk_ship_data *ship);
-int calculate_boarding_difficulty(struct greyhawk_ship_data *target);
+int vessel_boarding_defense_modifier(const struct greyhawk_ship_data *target,
+                                     enum vessel_boarding_stage stage);
+bool vessel_resolve_boarding_contest(int attacker_skill, int attacker_roll, int defender_skill,
+                                     int defender_roll, int vessel_modifier,
+                                     struct vessel_boarding_contest *result);
 void vessel_abort_docking(struct greyhawk_ship_data *ship);
 
 /* Ship Persistence */

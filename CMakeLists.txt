@@ -800,6 +800,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_vessel_tactical.c
     unittests/CuTest/test_vessel_lookout.c
     unittests/CuTest/test_vessel_narrative.c
+    unittests/CuTest/test_vessel_boarding.c
     unittests/CuTest/test_database_persistence.c
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_upstream_regressions.c

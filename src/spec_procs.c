@@ -1734,6 +1734,14 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
         value += MAX(1, GET_CALL_EIDOLON_LEVEL(ch) / 2);
     }
     return value;
+  case ABILITY_BOARDING:
+    /* Boarding rewards trained line work and close-quarters balance. A
+     * character may rely on force or agility, but armor remains a burden. */
+    value += MAX(GET_STR_BONUS(ch), GET_DEX_BONUS(ch));
+    value += compute_gear_armor_penalty(ch);
+    if (HAS_FEAT(ch, FEAT_MINOTAUR_SEAFARING))
+      value += 2;
+    return value;
   case ABILITY_SLEIGHT_OF_HAND:
     value += GET_DEX_BONUS(ch);
     if (HAS_FEAT(ch, FEAT_KENDER_SKILL_MOD))
@@ -1966,13 +1974,13 @@ const char *cross_names[] = {"\tRNot Available to Your Class\tn", "\tcCross-Clas
                              "\tWClass Ability\tn"};
 
 const int skills_alphabetic[NUM_SKILLS_IN_GAME] = {
-    ABILITY_ACROBATICS,    ABILITY_APPRAISE,        ABILITY_ARCANA,         ABILITY_ATHLETICS,
-    ABILITY_CONCENTRATION, ABILITY_DECEPTION,       ABILITY_DISABLE_DEVICE, ABILITY_DISCIPLINE,
-    ABILITY_DISGUISE,      ABILITY_HANDLE_ANIMAL,   ABILITY_HISTORY,        ABILITY_INSIGHT,
-    ABILITY_INTIMIDATE,    ABILITY_LINGUISTICS,     ABILITY_MEDICINE,       ABILITY_NATURE,
-    ABILITY_PERCEPTION,    ABILITY_PERFORM,         ABILITY_PERSUASION,     ABILITY_RELIGION,
-    ABILITY_RIDE,          ABILITY_SLEIGHT_OF_HAND, ABILITY_SPELLCRAFT,     ABILITY_STEALTH,
-    ABILITY_TOTAL_DEFENSE, ABILITY_USE_MAGIC_DEVICE};
+    ABILITY_ACROBATICS, ABILITY_APPRAISE,      ABILITY_ARCANA,          ABILITY_ATHLETICS,
+    ABILITY_BOARDING,   ABILITY_CONCENTRATION, ABILITY_DECEPTION,       ABILITY_DISABLE_DEVICE,
+    ABILITY_DISCIPLINE, ABILITY_DISGUISE,      ABILITY_HANDLE_ANIMAL,   ABILITY_HISTORY,
+    ABILITY_INSIGHT,    ABILITY_INTIMIDATE,    ABILITY_LINGUISTICS,     ABILITY_MEDICINE,
+    ABILITY_NATURE,     ABILITY_PERCEPTION,    ABILITY_PERFORM,         ABILITY_PERSUASION,
+    ABILITY_RELIGION,   ABILITY_RIDE,          ABILITY_SLEIGHT_OF_HAND, ABILITY_SPELLCRAFT,
+    ABILITY_STEALTH,    ABILITY_TOTAL_DEFENSE, ABILITY_USE_MAGIC_DEVICE};
 
 void list_abilities(struct char_data *ch, int ability_type)
 {
@@ -2031,7 +2039,6 @@ void list_abilities(struct char_data *ch, int ability_type)
     case ABILITY_UNUSED_4:
     case ABILITY_UNUSED_5:
     case ABILITY_UNUSED_6:
-    case ABILITY_UNUSED_7:
       continue;
     default:
       break;

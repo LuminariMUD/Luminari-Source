@@ -3094,7 +3094,7 @@ const char *ability_names[] = {
     "No-Skill", "Acrobatics", "Stealth", "Religion", "Perception", "Athletics", "Medicine",
     "Intimidate", "Concentration", "Spellcraft", "Appraise", "Discipline", "Total Defense",
     "Arcana", "Ride", "Unused3", "Unused1", "History", "Sleight of Hand", "Unused5", "Deception",
-    "Unused6", "Persuasion", "Disable Device", "Disguise", "Unused2", "Handle Animal", "Unused7",
+    "Unused6", "Persuasion", "Disable Device", "Disguise", "Unused2", "Handle Animal", "Boarding",
     "Insight", "Nature", "Unused4", "Use Magic Device", "Linguistics", "Perform",
     /*crafting*/
     "woodworking", "tailoring", "alchemy", "armorsmithing", "weaponsmithing", "bowmaking",

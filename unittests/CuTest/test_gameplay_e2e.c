@@ -183,6 +183,60 @@ static bool rewrite_psychic_sundering_as_legacy(const char *filename)
   return false;
 }
 
+static bool remove_boarding_ability_version(const char *filename)
+{
+  FILE *input;
+  FILE *output;
+  char line[MAX_STRING_LENGTH];
+  char temp_filename[MAX_FILEPATH + 16];
+  bool saw_version;
+  bool write_ok;
+
+  if (snprintf(temp_filename, sizeof(temp_filename), "%s.legacy", filename) >=
+      (int)sizeof(temp_filename))
+    return false;
+
+  input = fopen(filename, "r");
+  if (input == NULL)
+    return false;
+
+  output = fopen(temp_filename, "w");
+  if (output == NULL)
+  {
+    fclose(input);
+    return false;
+  }
+
+  saw_version = false;
+  write_ok = true;
+  while (fgets(line, sizeof(line), input) != NULL)
+  {
+    if (strncmp(line, "BrdV:", 5) == 0)
+    {
+      saw_version = true;
+      continue;
+    }
+    if (fputs(line, output) == EOF)
+    {
+      write_ok = false;
+      break;
+    }
+  }
+
+  if (ferror(input) || fflush(output) != 0)
+    write_ok = false;
+  if (fclose(input) != 0)
+    write_ok = false;
+  if (fclose(output) != 0)
+    write_ok = false;
+
+  if (write_ok && saw_version && rename(temp_filename, filename) == 0)
+    return true;
+
+  unlink(temp_filename);
+  return false;
+}
+
 static void initialize_test_npc(struct char_data *ch, const char *name, room_rnum room)
 {
   clear_char(ch);
@@ -802,11 +856,14 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   struct player_index_element *saved_player_table;
   struct char_data *source;
   struct char_data *loaded;
+  struct char_data *legacy_loaded;
   struct affected_type af;
   int saved_top_of_p_table;
   int load_result;
   int loaded_level;
   int loaded_gold;
+  int loaded_boarding;
+  int legacy_loaded_boarding;
   int restore_result;
   long loaded_faction_one;
   long loaded_faction_two;
@@ -818,6 +875,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   bool loaded_stones_endurance_preserved;
   bool changed_directory;
   bool filename_ready;
+  bool legacy_file_ready;
   char original_directory[PATH_MAX];
   char lib_directory[PATH_MAX];
   char filename[MAX_FILEPATH];
@@ -827,6 +885,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   memset(filename, 0, sizeof(filename));
   source = new_char();
   loaded = new_char();
+  legacy_loaded = new_char();
   snprintf(player_name, sizeof(player_name), "Zzct%ld", (long)getpid());
 
   fixture_index[0].name = player_name;
@@ -844,6 +903,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   GET_IDNUM(source) = 4242;
   GET_LEVEL(source) = 7;
   GET_GOLD(source) = 12345;
+  SET_ABILITY(source, ABILITY_BOARDING, 9);
   GET_FACTION_STANDING(source, 1) = 111;
   GET_FACTION_STANDING(source, 2) = -222;
   GET_FACTION_STANDING(source, 3) = 333;
@@ -873,6 +933,8 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   load_result = -1;
   loaded_level = -1;
   loaded_gold = -1;
+  loaded_boarding = -1;
+  legacy_loaded_boarding = -1;
   loaded_faction_one = 0;
   loaded_faction_two = 0;
   loaded_faction_three = 0;
@@ -881,6 +943,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   loaded_ambush_preserved = false;
   loaded_supremacy_migrated = false;
   loaded_stones_endurance_preserved = false;
+  legacy_file_ready = false;
   restore_result = 0;
 
   if (getcwd(original_directory, sizeof(original_directory)) != NULL &&
@@ -898,6 +961,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
       {
         loaded_level = GET_LEVEL(loaded);
         loaded_gold = GET_GOLD(loaded);
+        loaded_boarding = GET_ABILITY(loaded, ABILITY_BOARDING);
         loaded_faction_one = GET_FACTION_STANDING(loaded, 1);
         loaded_faction_two = GET_FACTION_STANDING(loaded, 2);
         loaded_faction_three = GET_FACTION_STANDING(loaded, 3);
@@ -912,6 +976,9 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
             affected_by_spell(loaded, ABILITY_AFFECT_STONES_ENDURANCE) &&
             !affected_by_spell(loaded, AFFECT_ALCHEMIST_DISCOVERY_EXTRACTION);
       }
+      legacy_file_ready = remove_boarding_ability_version(filename);
+      if (legacy_file_ready && load_char(player_name, legacy_loaded) >= 0)
+        legacy_loaded_boarding = GET_ABILITY(legacy_loaded, ABILITY_BOARDING);
       unlink(filename);
     }
   }
@@ -920,6 +987,7 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
     restore_result = chdir(original_directory);
 
   free_char(loaded);
+  free_char(legacy_loaded);
   free_char(source);
   player_table = saved_player_table;
   top_of_p_table = saved_top_of_p_table;
@@ -931,6 +999,9 @@ void Test_gameplay_e2e_player_file_round_trip(CuTest *tc)
   CuAssertTrue(tc, loaded_name_matches);
   CuAssertIntEquals(tc, 7, loaded_level);
   CuAssertIntEquals(tc, 12345, loaded_gold);
+  CuAssertIntEquals(tc, 9, loaded_boarding);
+  CuAssertTrue(tc, legacy_file_ready);
+  CuAssertIntEquals(tc, 0, legacy_loaded_boarding);
   CuAssertTrue(tc, loaded_faction_one == 111);
   CuAssertTrue(tc, loaded_faction_two == -222);
   CuAssertTrue(tc, loaded_faction_three == 333);

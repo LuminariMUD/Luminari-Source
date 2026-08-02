@@ -25,7 +25,10 @@ extern struct room_data *world;
 /* Docking constants */
 #define MAX_DOCKING_RANGE 2.0  /* Maximum distance for docking */
 #define MAX_DOCKING_SPEED 2    /* Maximum speed for safe docking */
-#define BOARDING_DIFFICULTY 15 /* Base difficulty for hostile boarding */
+#define BOARDING_CRITICAL_MARGIN 10
+#define BOARDING_SWIM_DC 15
+#define BOARDING_DEFENSE_MIN -8
+#define BOARDING_DEFENSE_MAX 15
 #define DIR_GANGWAY 10         /* Special direction for ship connections */
 
 /* Check if two ships are in docking range */
@@ -444,72 +447,109 @@ void vessel_abort_docking(struct greyhawk_ship_data *ship)
   ship->docking_room = 0;
 }
 
-/* Calculate boarding difficulty */
-int calculate_boarding_difficulty(struct greyhawk_ship_data *target)
+/**
+ * Return the target-vessel modifier for one hostile boarding stage.
+ *
+ * Character training is resolved separately in the opposed Boarding check.
+ * This modifier covers only the hull, its motion, condition, and hired crew.
+ */
+int vessel_boarding_defense_modifier(const struct greyhawk_ship_data *target,
+                                     enum vessel_boarding_stage stage)
 {
-  int difficulty = BOARDING_DIFFICULTY;
-  int damage_percent;
-  int result;
+  int modifier = 0;
+  int maximum_structure;
+  int structure_percent;
+  int speed;
+  int crew_tier;
 
-  VSSL_DEBUG_ENTER("calculate_boarding_difficulty");
-
-  if (!target)
+  if (target == NULL)
   {
-    VSSL_DEBUG_DOCK("calculate_boarding_difficulty: NULL target");
-    return 99; /* Impossible */
+    return 0;
   }
 
-  VSSL_DEBUG_DOCK("Calculating boarding difficulty for %s (base=%d)", target->name,
-                  BOARDING_DIFFICULTY);
-
-  /* Adjust for ship speed */
-  difficulty += target->speed * 2;
-  VSSL_DEBUG_DOCK("  Speed modifier: +%d (speed=%d)", target->speed * 2, target->speed);
-
-  /* Adjust for ship type */
   switch (target->vessel_type)
   {
+  case VESSEL_RAFT:
+    modifier -= 4;
+    break;
+  case VESSEL_BOAT:
+    modifier -= 2;
+    break;
   case VESSEL_WARSHIP:
-    difficulty += 10;
-    VSSL_DEBUG_DOCK("  Vessel type modifier: +10 (warship)");
+    modifier += 4;
     break;
   case VESSEL_TRANSPORT:
-    difficulty -= 5;
-    VSSL_DEBUG_DOCK("  Vessel type modifier: -5 (transport)");
+    modifier -= 2;
     break;
-  case VESSEL_RAFT:
-    difficulty -= 10;
-    VSSL_DEBUG_DOCK("  Vessel type modifier: -10 (raft)");
+  case VESSEL_AIRSHIP:
+    modifier += 2;
+    break;
+  case VESSEL_SUBMARINE:
+  case VESSEL_MAGICAL:
+    modifier += 3;
     break;
   default:
-    VSSL_DEBUG_DOCK("  Vessel type modifier: 0 (type=%d)", target->vessel_type);
     break;
   }
 
-  /* Adjust for damage */
-  damage_percent =
-      100 - ((target->farmor + target->rarmor + target->parmor + target->sarmor) * 100 /
-             (target->maxfarmor + target->maxrarmor + target->maxparmor + target->maxsarmor));
-
-  if (damage_percent > 50)
+  maximum_structure = vessel_max_internal(target);
+  if (maximum_structure > 0)
   {
-    difficulty -= 10;
-    VSSL_DEBUG_DOCK("  Damage modifier: -10 (damage=%d%%)", damage_percent);
+    structure_percent = vessel_total_internal(target) * 100 / maximum_structure;
+    if (structure_percent < 25)
+      modifier -= 6;
+    else if (structure_percent < 50)
+      modifier -= 4;
+    else if (structure_percent < 75)
+      modifier -= 2;
   }
-  else if (damage_percent > 25)
+
+  speed = MAX(0, (int)target->speed);
+  if (stage == VESSEL_BOARDING_GRAPPLE)
   {
-    difficulty -= 5;
-    VSSL_DEBUG_DOCK("  Damage modifier: -5 (damage=%d%%)", damage_percent);
+    modifier += MIN(6, speed);
+    crew_tier = MAX(CREW_TIER_NONE, MIN(CREW_TIER_VETERAN, target->crew_tier[CREW_SAILMASTER]));
+    modifier += crew_tier * 2;
+  }
+  else if (stage == VESSEL_BOARDING_CROSSING)
+  {
+    modifier += MIN(3, (speed + 1) / 2);
+    crew_tier = MAX(CREW_TIER_NONE, MIN(CREW_TIER_VETERAN, target->crew_tier[CREW_BOSUN]));
+    modifier += crew_tier * 2;
   }
   else
   {
-    VSSL_DEBUG_DOCK("  Damage modifier: 0 (damage=%d%%)", damage_percent);
+    return 0;
   }
 
-  result = MAX(5, MIN(95, difficulty));
-  VSSL_DEBUG_DOCK("Final boarding difficulty: %d (raw=%d)", result, difficulty);
+  return MAX(BOARDING_DEFENSE_MIN, MIN(BOARDING_DEFENSE_MAX, modifier));
+}
 
-  return result;
+/** Resolve one d20-plus-Boarding opposed check. Ties favor the defender. */
+bool vessel_resolve_boarding_contest(int attacker_skill, int attacker_roll, int defender_skill,
+                                     int defender_roll, int vessel_modifier,
+                                     struct vessel_boarding_contest *result)
+{
+  if (result == NULL || attacker_roll < 1 || defender_roll < 1)
+  {
+    return FALSE;
+  }
+
+  memset(result, 0, sizeof(*result));
+  result->attacker_skill = attacker_skill;
+  result->attacker_roll = attacker_roll;
+  result->defender_skill = defender_skill;
+  result->defender_roll = defender_roll;
+  result->vessel_modifier = vessel_modifier;
+  result->attacker_total = attacker_skill + attacker_roll;
+  result->defender_total = defender_skill + defender_roll + vessel_modifier;
+  result->attacker_wins = result->attacker_total > result->defender_total;
+  result->critical_failure =
+      !result->attacker_wins &&
+      (attacker_roll == 1 ||
+       result->defender_total - result->attacker_total >= BOARDING_CRITICAL_MARGIN);
+
+  return TRUE;
 }
 
 /* Check if character can attempt boarding */
@@ -555,11 +595,17 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
     return FALSE;
   }
 
-  /* Can't board allied ships this way */
-  if (ch_ship->docked_to_ship == target->shipnum)
+  if (ch_ship->docked_to_ship >= 0)
   {
-    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Already docked with target");
-    send_to_char(ch, "You're already docked with that vessel!\r\n");
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Attacker already docked");
+    send_to_char(ch, "You must undock before launching a hostile boarding action!\r\n");
+    return FALSE;
+  }
+
+  if (target->docked_to_ship >= 0)
+  {
+    VSSL_DEBUG_DOCK("BOARDING CHECK FAILED: Target already docked");
+    send_to_char(ch, "That vessel is already secured alongside another hull.\r\n");
     return FALSE;
   }
 
@@ -568,7 +614,7 @@ bool can_attempt_boarding(struct char_data *ch, struct greyhawk_ship_data *targe
 }
 
 /* Perform combat boarding */
-void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target)
+bool perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *target)
 {
   room_rnum target_room;
   struct char_data *vict;
@@ -579,7 +625,7 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
   if (!ch || !target)
   {
     VSSL_DEBUG_DOCK("perform_combat_boarding: NULL pointer");
-    return;
+    return FALSE;
   }
 
   VSSL_DEBUG_DOCK("=== COMBAT BOARDING: %s -> %s ===", GET_NAME(ch), target->name);
@@ -596,7 +642,7 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
   {
     VSSL_DEBUG_DOCK("BOARDING FAILED: No entry point found");
     send_to_char(ch, "You can't find a way onto that vessel!\r\n");
-    return;
+    return FALSE;
   }
 
   VSSL_DEBUG_DOCK("Entry point: room %d (%s)", GET_ROOM_VNUM(target_room), world[target_room].name);
@@ -618,31 +664,37 @@ void perform_combat_boarding(struct char_data *ch, struct greyhawk_ship_data *ta
    * when the ship's owner is a willing combatant. */
   for (vict = world[target_room].people; vict; vict = vict->next_in_room)
   {
-    if (vict != ch && !IS_NPC(vict))
+    if (vict == ch || GET_POS(vict) <= POS_STUNNED)
     {
-      if (!pvp_ok(ch, vict, FALSE))
-      {
-        VSSL_DEBUG_DOCK("Skipping non-consenting defender: %s", GET_NAME(vict));
-        send_to_char(vict, "Boarders swarm aboard, but pay you no heed.\r\n");
-        continue;
-      }
+      continue;
+    }
 
-      defenders_found++;
-      VSSL_DEBUG_DOCK("Defender found: %s", GET_NAME(vict));
-      if (!FIGHTING(vict))
+    if (!IS_NPC(vict) && !pvp_ok(ch, vict, FALSE))
+    {
+      VSSL_DEBUG_DOCK("Skipping non-consenting defender: %s", GET_NAME(vict));
+      send_to_char(vict, "Boarders swarm aboard, but pay you no heed.\r\n");
+      continue;
+    }
+
+    defenders_found++;
+    VSSL_DEBUG_DOCK("Defender found: %s", GET_NAME(vict));
+    if (!FIGHTING(vict))
+    {
+      set_fighting(vict, ch);
+      if (!IS_NPC(vict))
       {
-        set_fighting(vict, ch);
         send_to_char(vict, "You are under attack by boarders!\r\n");
       }
-      if (!FIGHTING(ch))
-      {
-        set_fighting(ch, vict);
-      }
+    }
+    if (!FIGHTING(ch))
+    {
+      set_fighting(ch, vict);
     }
   }
 
   VSSL_DEBUG_DOCK("Combat initiated with %d defender(s)", defenders_found);
   VSSL_DEBUG_EXIT("perform_combat_boarding");
+  return TRUE;
 }
 
 /* Setup boarding defenses */
@@ -719,6 +771,124 @@ void setup_boarding_defenses(struct greyhawk_ship_data *ship)
   VSSL_DEBUG_DOCK("Positioned %d defender(s) at chokepoints", defenders_moved);
   VSSL_DEBUG_DOCK("Boarding defenses activated");
   VSSL_DEBUG_EXIT("setup_boarding_defenses");
+}
+
+/** Find the strongest conscious, consenting defender anywhere aboard. */
+static struct char_data *vessel_best_boarding_defender(struct char_data *attacker,
+                                                       struct greyhawk_ship_data *target,
+                                                       int *best_skill)
+{
+  struct char_data *best = NULL;
+  struct char_data *vict;
+  room_rnum room;
+  int candidate_skill;
+  int i;
+
+  if (best_skill != NULL)
+  {
+    *best_skill = 0;
+  }
+  if (attacker == NULL || target == NULL || best_skill == NULL)
+  {
+    return NULL;
+  }
+
+  for (i = 0; i < target->num_rooms && i < MAX_SHIP_ROOMS; i++)
+  {
+    room = real_room(target->room_vnums[i]);
+    if (room == NOWHERE)
+    {
+      continue;
+    }
+
+    for (vict = world[room].people; vict; vict = vict->next_in_room)
+    {
+      if (vict == attacker || GET_POS(vict) <= POS_STUNNED)
+      {
+        continue;
+      }
+      if (!IS_NPC(vict) && !pvp_ok(attacker, vict, FALSE))
+      {
+        continue;
+      }
+
+      candidate_skill = compute_ability(vict, ABILITY_BOARDING);
+      if (candidate_skill >= 0 && (best == NULL || candidate_skill > *best_skill))
+      {
+        best = vict;
+        *best_skill = candidate_skill;
+      }
+    }
+  }
+
+  return best;
+}
+
+/** Show both sides of one opposed boarding roll to the attacker. */
+static void vessel_report_boarding_contest(struct char_data *ch, struct greyhawk_ship_data *target,
+                                           struct char_data *defender, const char *stage_name,
+                                           const struct vessel_boarding_contest *contest)
+{
+  const char *defender_name;
+
+  if (ch == NULL || target == NULL || stage_name == NULL || contest == NULL)
+  {
+    return;
+  }
+
+  defender_name = defender != NULL ? GET_NAME(defender) : target->name;
+  send_to_char(ch,
+               "%s contest: Boarding %d + d20 %d = %d; %s Boarding %d + d20 %d "
+               "+ vessel modifier (%+d) = %d. %s\r\n",
+               stage_name, contest->attacker_skill, contest->attacker_roll, contest->attacker_total,
+               defender_name, contest->defender_skill, contest->defender_roll,
+               contest->vessel_modifier, contest->defender_total,
+               contest->attacker_wins ? "SUCCESS" : "FAILURE");
+}
+
+/** Apply the critical crossing-failure water and Athletics consequence. */
+static void vessel_boarding_fall_into_water(struct char_data *ch)
+{
+  struct greyhawk_ship_data *ch_ship;
+  room_rnum water_room = NOWHERE;
+  int swim_roll;
+  int swim_value;
+
+  if (ch == NULL)
+  {
+    return;
+  }
+
+  send_to_char(ch, "The grappling line snaps taut and throws you into the water!\r\n");
+  act("$n is torn from the line and falls into the water!", TRUE, ch, 0, 0, TO_ROOM);
+
+  ch_ship = get_ship_from_room(IN_ROOM(ch));
+  if (ch_ship != NULL && ch_ship->shipobj != NULL && IN_ROOM(ch_ship->shipobj) != NOWHERE)
+  {
+    water_room = IN_ROOM(ch_ship->shipobj);
+  }
+
+  if (water_room != NOWHERE)
+  {
+    char_from_room(ch);
+    char_to_room(ch, water_room);
+    act("$n plunges into the water beside the ship!", TRUE, ch, 0, 0, TO_ROOM);
+    look_at_room(ch, 0);
+  }
+
+  swim_roll = d20(ch);
+  swim_value = compute_ability(ch, ABILITY_SWIM);
+  send_to_char(ch, "Swimming: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. DC (%d)\r\n",
+               swim_value, swim_roll, swim_value + swim_roll, BOARDING_SWIM_DC);
+  if (swim_roll + swim_value < BOARDING_SWIM_DC)
+  {
+    send_to_char(ch, "You flounder in the water, battered against the hull!\r\n");
+    damage(ch, ch, dice(2, 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
+  }
+  else
+  {
+    send_to_char(ch, "You manage to stay afloat.\r\n");
+  }
 }
 
 /* COMMAND: Dock with another vessel */
@@ -861,8 +1031,15 @@ ACMD(do_undock)
 ACMD(do_board_hostile)
 {
   struct greyhawk_ship_data *target;
+  struct char_data *defender;
+  struct vessel_boarding_contest grapple_contest;
+  struct vessel_boarding_contest crossing_contest;
   char arg[MAX_INPUT_LENGTH];
-  int skill, difficulty;
+  int attacker_skill;
+  int defender_skill;
+  int attacker_roll;
+  int defender_roll;
+  int vessel_modifier;
 
   one_argument(argument, arg, sizeof(arg));
 
@@ -893,74 +1070,65 @@ ACMD(do_board_hostile)
     return;
   }
 
-  /* Calculate difficulty */
-  difficulty = calculate_boarding_difficulty(target);
+  WAIT_STATE(ch, PULSE_VIOLENCE * 2);
+  send_to_ship(target, "WARNING: %s is attempting a hostile boarding!", GET_NAME(ch));
+  setup_boarding_defenses(target);
 
-  /* Boarding ability combines experience with athletic training; a full
-   * boarding skill arrives with the Phase 05 combat model. */
-  skill = GET_LEVEL(ch) + compute_ability(ch, ABILITY_SWIM);
+  attacker_skill = MAX(0, compute_ability(ch, ABILITY_BOARDING));
+  defender = vessel_best_boarding_defender(ch, target, &defender_skill);
 
-  /* Attempt boarding */
-  if (rand_number(1, 100) <= (skill * 100 / difficulty))
+  attacker_roll = d20(ch);
+  defender_roll = d20(defender);
+  vessel_modifier = vessel_boarding_defense_modifier(target, VESSEL_BOARDING_GRAPPLE);
+  if (!vessel_resolve_boarding_contest(attacker_skill, attacker_roll, defender_skill, defender_roll,
+                                       vessel_modifier, &grapple_contest))
   {
-    /* Success */
-    send_to_char(ch, "You leap across to the enemy vessel!\r\n");
-    perform_combat_boarding(ch, target);
-
-    /* Alert target ship */
-    send_to_ship(target, "WARNING: Hostile boarders detected!");
-    setup_boarding_defenses(target);
+    log("SYSERR: Unable to resolve hostile boarding grapple contest");
+    send_to_char(ch, "The boarding attempt cannot be resolved.\r\n");
+    return;
   }
-  else
+  vessel_report_boarding_contest(ch, target, defender, "Grapple", &grapple_contest);
+
+  if (!grapple_contest.attacker_wins)
   {
-    /* Failure */
-    send_to_char(ch, "You fail to board the enemy vessel!\r\n");
-    act("$n attempts to board the enemy ship but fails!", TRUE, ch, 0, 0, TO_ROOM);
+    send_to_char(ch, "The defenders cast off your grappling lines before they take hold.\r\n");
+    act("$n's grappling lines fall short of the enemy vessel.", TRUE, ch, 0, 0, TO_ROOM);
+    send_to_ship(target, "%s's grappling lines are repelled.", GET_NAME(ch));
+    return;
+  }
 
-    /* Critical failure - fall in water */
-    if (rand_number(1, 100) <= 10)
+  send_to_char(ch, "Your grappling lines bite home; you commit to the crossing!\r\n");
+  act("$n's grappling lines bite into the enemy vessel!", TRUE, ch, 0, 0, TO_ROOM);
+  send_to_ship(target, "%s's grappling lines bite home!", GET_NAME(ch));
+
+  attacker_roll = d20(ch);
+  defender_roll = d20(defender);
+  vessel_modifier = vessel_boarding_defense_modifier(target, VESSEL_BOARDING_CROSSING);
+  if (!vessel_resolve_boarding_contest(attacker_skill, attacker_roll, defender_skill, defender_roll,
+                                       vessel_modifier, &crossing_contest))
+  {
+    log("SYSERR: Unable to resolve hostile boarding crossing contest");
+    send_to_char(ch, "The boarding attempt cannot be resolved.\r\n");
+    return;
+  }
+  vessel_report_boarding_contest(ch, target, defender, "Crossing", &crossing_contest);
+
+  if (!crossing_contest.attacker_wins)
+  {
+    send_to_char(ch, "The defenders drive you back and the grappling lines are cut!\r\n");
+    act("$n is driven back from the enemy vessel!", TRUE, ch, 0, 0, TO_ROOM);
+    send_to_ship(target, "%s is driven back from the rail.", GET_NAME(ch));
+    if (crossing_contest.critical_failure)
     {
-      struct greyhawk_ship_data *ch_ship;
-      room_rnum water_room = NOWHERE;
-      int swim_roll, swim_val, swim_dc;
-
-      send_to_char(ch, "You lose your footing and fall into the water!\r\n");
-      act("$n falls into the water with a splash!", TRUE, ch, 0, 0, TO_ROOM);
-
-      /* Drop the character into the water the ships are floating in: the
-       * wilderness room holding their own ship's object. */
-      ch_ship = get_ship_from_room(IN_ROOM(ch));
-      if (ch_ship != NULL && ch_ship->shipobj != NULL && IN_ROOM(ch_ship->shipobj) != NOWHERE)
-      {
-        water_room = IN_ROOM(ch_ship->shipobj);
-      }
-
-      if (water_room != NOWHERE)
-      {
-        char_from_room(ch);
-        char_to_room(ch, water_room);
-        act("$n plunges into the water beside the ship!", TRUE, ch, 0, 0, TO_ROOM);
-        look_at_room(ch, 0);
-      }
-
-      /* Swim check to stay afloat, following the movement_validation.c
-       * convention: d20 + Athletics vs DC. */
-      swim_dc = BOARDING_DIFFICULTY;
-      swim_roll = d20(ch);
-      swim_val = compute_ability(ch, ABILITY_SWIM);
-      send_to_char(ch,
-                   "Swimming: Athletics Skill (%d) + d20 roll (%d) = Total (%d) vs. DC (%d)\r\n",
-                   swim_val, swim_roll, swim_val + swim_roll, swim_dc);
-      if (swim_roll + swim_val < swim_dc)
-      {
-        send_to_char(ch, "You flounder in the water, battered against the hull!\r\n");
-        damage(ch, ch, dice(2, 6), TYPE_UNDEFINED, DAM_FORCE, FALSE);
-      }
-      else
-      {
-        send_to_char(ch, "You manage to stay afloat.\r\n");
-      }
+      vessel_boarding_fall_into_water(ch);
     }
+    return;
+  }
+
+  if (perform_combat_boarding(ch, target))
+  {
+    send_to_char(ch, "You haul yourself across and breach the enemy vessel!\r\n");
+    send_to_ship(target, "WARNING: Hostile boarders have breached the vessel!");
   }
 }
 

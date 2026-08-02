@@ -418,6 +418,7 @@ void assign_class_abils(int class_num, int acrobatics, int stealth, int percepti
   class_list[class_num].class_abil[ABILITY_DISGUISE] = disguise;
   class_list[class_num].class_abil[ABILITY_ESCAPE_ARTIST] = escape_artist;
   class_list[class_num].class_abil[ABILITY_HANDLE_ANIMAL] = handle_animal;
+  class_list[class_num].class_abil[ABILITY_BOARDING] = CA;
   class_list[class_num].class_abil[ABILITY_SENSE_MOTIVE] = sense_motive;
   class_list[class_num].class_abil[ABILITY_SURVIVAL] = CA;
   class_list[class_num].class_abil[ABILITY_USE_MAGIC_DEVICE] = use_magic_device;
@@ -1125,7 +1126,7 @@ void display_imm_classlist(struct char_data *ch)
                "    appraise,discipline,total_defense,lore,ride,climb,sleight_of_hand,bluff\r\n");
   send_to_char(
       ch, "    diplomacy,disable_device,disguise,escape_artist,handle_animal,sense_motive\r\n");
-  send_to_char(ch, "    survival,swim,use_magic_device,perform\r\n");
+  send_to_char(ch, "    survival,swim,use_magic_device,perform,boarding\r\n");
   send_to_char(ch, "Class Titles\r\n");
   send_to_char(ch, "============================================");
 
@@ -1138,7 +1139,7 @@ void display_imm_classlist(struct char_data *ch)
         "     %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s %s %s\r\n"
         "     %s %s %s %s %s %s\r\n"
-        "     %s %s %s %s\r\n",
+        "     %s %s %s %s %s\r\n",
         i, CLSLIST_NAME(i), CLSLIST_ABBRV(i), CLSLIST_CLRABBRV(i), CLSLIST_MENU(i),
         CLSLIST_MAXLVL(i), CLSLIST_LOCK(i) ? "Y" : "N", CLSLIST_PRESTIGE(i) ? "Y" : "N",
         (CLSLIST_BAB(i) == 2) ? "H" : (CLSLIST_BAB(i) ? "M" : "L"), CLSLIST_HPS(i), CLSLIST_MVS(i),
@@ -1207,7 +1208,10 @@ void display_imm_classlist(struct char_data *ch)
             ? "CA"
             : (CLSLIST_ABIL(i, ABILITY_USE_MAGIC_DEVICE) ? "CC" : "NA"),
         (CLSLIST_ABIL(i, ABILITY_PERFORM) == 2) ? "CA"
-                                                : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA"));
+                                                : (CLSLIST_ABIL(i, ABILITY_PERFORM) ? "CC" : "NA"),
+        (CLSLIST_ABIL(i, ABILITY_BOARDING) == 2)
+            ? "CA"
+            : (CLSLIST_ABIL(i, ABILITY_BOARDING) ? "CC" : "NA"));
     for (j = 0; j < MAX_NUM_TITLES; j++)
     {
       len = snprintf_append(buf, sizeof(buf), len, "%s\r\n", CLSLIST_TITLE(i, j));

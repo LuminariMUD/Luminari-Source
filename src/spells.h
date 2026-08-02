@@ -1516,7 +1516,7 @@
 #define ABILITY_UNUSED_2 25       /* unused, used to be escape artist */
 #define ABILITY_HANDLE_ANIMAL 26  /* handle animal, matches pfsrd */
 #define ABILITY_ANIMAL_HANDLING ABILITY_HANDLE_ANIMAL
-#define ABILITY_UNUSED_7 27     /* UNUSED - use to be jump */
+#define ABILITY_BOARDING 27     /* Boarding actions and defense aboard vessels */
 #define ABILITY_SENSE_MOTIVE 28 /* sense motive, matches pfsrd */
 #define ABILITY_INSIGHT ABILITY_SENSE_MOTIVE
 #define ABILITY_SURVIVAL 29 /* survival, matches pfsrd */
@@ -1528,7 +1528,7 @@
 /**/
 #define END_GENERAL_ABILITIES 33
 
-#define NUM_SKILLS_IN_GAME 26
+#define NUM_SKILLS_IN_GAME 27
 
 /* Start Crafting Abilities */
 #define START_CRAFT_ABILITIES 34
