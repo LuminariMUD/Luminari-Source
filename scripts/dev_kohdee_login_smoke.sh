@@ -72,8 +72,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-narrative-check)
       mode="vessel-narrative-check"
       ;;
+    --vessel-boarding-check)
+      mode="vessel-boarding-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id> | --vessel-boarding-check <warship-id> [<defender-character>]]"
       ;;
   esac
   shift
@@ -145,6 +148,13 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-narrative-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-narrative-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-boarding-check" ]]; then
+    [[ ($# -eq 1 || $# -eq 2) && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-boarding-check requires a positive warship prototype id and an optional defender character"
+    if [[ $# -eq 2 ]]; then
+      [[ "$2" =~ ^[[:alpha:]][[:alpha:]-]{1,29}$ ]] ||
+        fail "--vessel-boarding-check defender must be a valid character name"
+    fi
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -184,9 +194,10 @@ smoke_password="${DEV_MUD_ACCOUNT_PASSWORD:-${GAME_MASTER_ACCOUNT_PASSWORD:-}}"
   fail "DEV_MUD_ACCOUNT or GAME_MASTER_ACCOUNT is not set"
 [[ -n "$smoke_password" ]] ||
   fail "DEV_MUD_ACCOUNT_PASSWORD or GAME_MASTER_ACCOUNT_PASSWORD is not set"
-if [[ "$mode" == "vessel-channel-check" && $# -eq 2 ]]; then
+if [[ ("$mode" == "vessel-channel-check" ||
+       "$mode" == "vessel-boarding-check") && $# -eq 2 ]]; then
   if [[ "${2,,}" == "${smoke_character,,}" ]]; then
-    fail "--vessel-channel-check requires two different character names"
+    fail "$mode requires two different character names"
   fi
 fi
 export -n GAME_MASTER_ACCOUNT GAME_MASTER_ACCOUNT_PASSWORD
@@ -1846,6 +1857,155 @@ proc logout_character_session {session character} {
   catch wait
 }
 
+proc collect_character_session_output {session character} {
+  set spawn_id $session
+  set output ""
+  set prior_timeout $::timeout
+  set ::timeout 0
+
+  expect {
+    -re {.+} {
+      append output $expect_out(buffer)
+      exp_continue
+    }
+    timeout {}
+    eof { fail "$character's connection closed while collecting boarding output" }
+  }
+  set ::timeout $prior_timeout
+  return [string trim [clean_socket_output $output]]
+}
+
+proc ensure_character_pvp {session character} {
+  set ::spawn_id $session
+  set output [run_game_command "pvp"]
+
+  if {[string first "PvP flag disabled" $output] >= 0} {
+    set output [run_game_command "pvp"]
+  }
+  if {[string first "PvP flag enabled" $output] < 0 &&
+      [string first "before you can disable your PvP flag" $output] < 0} {
+    fail "$character could not enter the consented PvP state"
+  }
+}
+
+proc require_boarding_rank {output expected_rank context} {
+  set pattern [format {^Boarding[[:space:]]+\[[[:space:]]*%d\]} $expected_rank]
+  if {![regexp -line $pattern $output]} {
+    fail "$context did not report trained Boarding rank $expected_rank"
+  }
+}
+
+proc run_vessel_boarding_check {warship_id requested_character} {
+  global smoke_character
+
+  set workflow_started_at [clock milliseconds]
+  set primary_session $::spawn_id
+  set name_seed [clock seconds]
+  set target_name "Boarddef$name_seed"
+  set attacker_name "Boardatk$name_seed"
+
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "boarding target staging"
+  set target_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "shipchristen $target_name"]
+  require_game_output $output "christened $target_name" "boarding target christening"
+
+  lassign [open_secondary_character $requested_character] secondary_session defender_character
+  set ::spawn_id $primary_session
+  run_game_command "trans $defender_character"
+
+  set ::spawn_id $secondary_session
+  set output [run_game_command "shipstatus"]
+  require_game_output $output $target_name "$defender_character target placement"
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "boarding attacker staging"
+  set attacker_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "shipchristen $attacker_name"]
+  require_game_output $output "christened $attacker_name" "boarding attacker christening"
+
+  ensure_character_pvp $primary_session $smoke_character
+  ensure_character_pvp $secondary_session $defender_character
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "abilityset $smoke_character 'Boarding' 0"]
+  require_game_output $output "change $smoke_character's Boarding to 0" \
+    "boarding rejection attacker setup"
+  set output [run_game_command "abilityset $defender_character 'Boarding' 40"]
+  require_game_output $output "change $defender_character's Boarding to 40" \
+    "boarding rejection defender setup"
+  set output [run_game_command "abilities"]
+  require_boarding_rank $output 0 "$smoke_character rejection setup"
+
+  set ::spawn_id $secondary_session
+  set output [run_game_command "abilities"]
+  require_boarding_rank $output 40 "$defender_character rejection setup"
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "board_hostile $target_name"]
+  require_game_output $output "Grapple contest: Boarding" "boarding grapple rejection"
+  require_game_output $output "$defender_character Boarding" "actual defender contest"
+  require_game_output $output "FAILURE" "boarding grapple rejection"
+  require_game_output $output "cast off your grappling lines" "boarding grapple rejection"
+  if {[string first "Crossing contest:" $output] >= 0} {
+    fail "a rejected grapple incorrectly advanced to the crossing contest"
+  }
+  set defender_output \
+    [collect_character_session_output $secondary_session $defender_character]
+  require_game_output $defender_output "attempting a hostile boarding" \
+    "$defender_character grapple warning"
+  require_game_output $defender_output "grappling lines are repelled" \
+    "$defender_character grapple defense"
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "abilityset $smoke_character 'Boarding' 40"]
+  require_game_output $output "change $smoke_character's Boarding to 40" \
+    "boarding breach attacker setup"
+  set output [run_game_command "abilityset $defender_character 'Boarding' 0"]
+  require_game_output $output "change $defender_character's Boarding to 0" \
+    "boarding breach defender setup"
+
+  set ::spawn_id $secondary_session
+  set output [run_game_command "abilities"]
+  require_boarding_rank $output 0 "$defender_character breach setup"
+
+  set ::spawn_id $primary_session
+  set output [run_game_command "abilities"]
+  require_boarding_rank $output 40 "$smoke_character breach setup"
+  set output [run_game_command "board_hostile $target_name"]
+  require_game_output $output "Grapple contest: Boarding" "boarding grapple success"
+  require_game_output $output "Crossing contest: Boarding" "boarding crossing success"
+  require_game_output $output "$defender_character Boarding" "actual defender crossing"
+  require_game_output $output "breach the enemy vessel" "boarding breach"
+  set defender_output \
+    [collect_character_session_output $secondary_session $defender_character]
+  require_game_output $defender_output "grappling lines bite home" \
+    "$defender_character crossing warning"
+  require_game_output $defender_output "Hostile boarders have breached" \
+    "$defender_character breach warning"
+
+  set ::spawn_id $primary_session
+  run_game_command "goto 1204"
+  run_game_command "trans $defender_character"
+  set output [run_game_command "shippurge $attacker_slot"]
+  require_game_output $output "Purged ship $attacker_slot '$attacker_name'" \
+    "boarding attacker cleanup"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot '$target_name'" \
+    "boarding target cleanup"
+
+  logout_character_session $secondary_session $defender_character
+  set ::spawn_id $primary_session
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: $smoke_character's weak grapple was opposed and rejected by $defender_character."
+  puts "PASS: reversed Boarding ranks produced successful grapple and crossing contests."
+  puts "PASS: $smoke_character breached the target while $defender_character received both live warnings."
+  puts "PASS: both temporary hulls were purged after the two-character check in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc run_vessel_channel_check {ship_slot requested_character} {
   global smoke_character
 
@@ -2018,7 +2178,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
     $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check" ||
-    $mode eq "vessel-narrative-check"} {
+    $mode eq "vessel-narrative-check" || $mode eq "vessel-boarding-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -2082,6 +2242,9 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_lookout_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-narrative-check"} {
       run_vessel_narrative_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-boarding-check"} {
+      run_vessel_boarding_check [lindex $game_commands 0] \
+        [lindex $game_commands 1]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -2171,6 +2334,9 @@ elif [[ "$mode" == "vessel-lookout-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-narrative-check" ]]; then
   printf 'PASS: %s completed the vessel-narrative check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-boarding-check" ]]; then
+  printf 'PASS: %s completed the two-character vessel-boarding check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

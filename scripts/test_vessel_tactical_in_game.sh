@@ -7,7 +7,7 @@ repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
   [[ $# -eq 1 ]] || {
-    printf 'usage: %s [--lookout|--narrative]\n' "$0" >&2
+    printf 'usage: %s [--lookout|--narrative|--boarding]\n' "$0" >&2
     exit 2
   }
   case "$1" in
@@ -17,8 +17,11 @@ if [[ $# -gt 0 ]]; then
     --narrative)
       acceptance_mode=narrative
       ;;
+    --boarding)
+      acceptance_mode=boarding
+      ;;
     *)
-      printf 'usage: %s [--lookout|--narrative]\n' "$0" >&2
+      printf 'usage: %s [--lookout|--narrative|--boarding]\n' "$0" >&2
       exit 2
       ;;
   esac
@@ -27,6 +30,8 @@ server_unit=luminari-dev-login-smoke.service
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 target_player=Kohdee
 player_file="$repo_root/lib/plrfiles/K-O/kohdee.plr"
+secondary_player=Vesselmate
+secondary_player_file="$repo_root/lib/plrfiles/U-Z/vesselmate.plr"
 state_root="${TMPDIR:-/tmp}/luminari-vessel-${acceptance_mode}-check-${UID}"
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 run_dir="$state_root/runs/$run_id"
@@ -39,6 +44,7 @@ mud_port=
 candidate_sha256=
 source_commit=
 baseline_player_sha256=
+baseline_secondary_player_sha256=
 warship_prototype_id=
 snapshot_ready=false
 cleanup_needed=false
@@ -253,6 +259,8 @@ restore_baseline()
   local cleanup_status=0
   local restored_sha256
   local restore_tmp="$repo_root/lib/plrfiles/K-O/.kohdee.plr.vessel-view-restore-$$"
+  local secondary_restored_sha256
+  local secondary_restore_tmp="$repo_root/lib/plrfiles/U-Z/.vesselmate.plr.vessel-view-restore-$$"
 
   [[ "$snapshot_ready" == true ]] || return 0
 
@@ -265,6 +273,18 @@ restore_baseline()
     [[ "$restored_sha256" == "$baseline_player_sha256" ]] || cleanup_status=1
   else
     cleanup_status=1
+  fi
+  if [[ "$acceptance_mode" == boarding ]]; then
+    if cp --preserve=mode,ownership,timestamps \
+         "$run_dir/vesselmate.plr.before" "$secondary_restore_tmp" &&
+       mv -f "$secondary_restore_tmp" "$secondary_player_file"; then
+      secondary_restored_sha256=$(sha256sum "$secondary_player_file" |
+        awk '{ print $1 }')
+      [[ "$secondary_restored_sha256" ==
+         "$baseline_secondary_player_sha256" ]] || cleanup_status=1
+    else
+      cleanup_status=1
+    fi
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
@@ -316,6 +336,10 @@ finish()
       printf 'PASS: Kohdee validated the wilderness lookout bearings, live contact, '
       printf 'and coastal sectors with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
+    elif [[ "$acceptance_mode" == boarding ]]; then
+      printf 'PASS: Kohdee and Vesselmate validated opposed grappling, crossing, '
+      printf 'breach warnings, and exact two-character restoration (%ss).\n' \
+        "$elapsed_seconds"
     else
       printf 'PASS: Kohdee validated regional at-sea prose and contextual ambience '
       printf 'with exact character restoration (%ss).\n' "$elapsed_seconds"
@@ -357,6 +381,12 @@ flock -n 8 || fail "another vessel view acceptance check is running"
   fail "the Kohdee player file is missing or unsafe to replace"
 grep -Fqx "Name: $target_player" "$player_file" ||
   fail "the expected Kohdee identity is not in $player_file"
+if [[ "$acceptance_mode" == boarding ]]; then
+  [[ -f "$secondary_player_file" && ! -L "$secondary_player_file" ]] ||
+    fail "the Vesselmate player file is missing or unsafe to replace"
+  grep -Fqx "Name: $secondary_player" "$secondary_player_file" ||
+    fail "the expected Vesselmate identity is not in $secondary_player_file"
+fi
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 [[ "$app_environment" == development ]] ||
@@ -434,6 +464,12 @@ cp --preserve=mode,ownership,timestamps "$player_file" \
   "$run_dir/kohdee.plr.before"
 baseline_player_sha256=$(sha256sum "$run_dir/kohdee.plr.before" |
   awk '{ print $1 }')
+if [[ "$acceptance_mode" == boarding ]]; then
+  cp --preserve=mode,ownership,timestamps "$secondary_player_file" \
+    "$run_dir/vesselmate.plr.before"
+  baseline_secondary_player_sha256=$(
+    sha256sum "$run_dir/vesselmate.plr.before" | awk '{ print $1 }')
+fi
 snapshot_ready=true
 cleanup_needed=true
 
@@ -442,6 +478,10 @@ cleanup_needed=true
   printf 'binary_sha256=%s\n' "$candidate_sha256"
   printf 'warship_prototype_id=%s\n' "$warship_prototype_id"
   printf 'baseline_player_sha256=%s\n' "$baseline_player_sha256"
+  if [[ "$acceptance_mode" == boarding ]]; then
+    printf 'baseline_secondary_player_sha256=%s\n' \
+      "$baseline_secondary_player_sha256"
+  fi
 } >"$run_dir/metadata"
 
 start_server_without_login || fail "the current development MUD did not start"
@@ -512,6 +552,44 @@ elif [[ "$acceptance_mode" == lookout ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
       fail "the lookout transcript did not contain '$expected_text'"
   done
+elif [[ "$acceptance_mode" == boarding ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --help-check \
+    BOARD_HOSTILE BOARDING >"$run_dir/01-boarding-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative hostile-boarding help"
+  boarding_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE BINARY tag = 'VESSELS'
+       AND entry LIKE '%opposed Boarding check secures grappling lines%'
+       AND entry LIKE '%second opposed Boarding check resolves the crossing%'
+       AND entry LIKE '%natural 1 throws the attacker into the water%';")
+  [[ "$boarding_help_state" == 1 ]] ||
+    fail "the authoritative hostile-boarding help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --vessel-boarding-check \
+    "$warship_prototype_id" "$secondary_player" \
+    >"$run_dir/02-kohdee-vessel-boarding.log" 2>&1 ||
+    fail "the actual Kohdee and Vesselmate boarding session failed"
+
+  for expected_text in \
+    "PASS: Kohdee's weak grapple was opposed and rejected by Vesselmate." \
+    'PASS: reversed Boarding ranks produced successful grapple and crossing contests.' \
+    'PASS: Kohdee breached the target while Vesselmate received both live warnings.' \
+    'PASS: both temporary hulls were purged after the two-character check'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-boarding.log" ||
+      fail "the boarding session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'Grapple contest: Boarding' \
+    'Crossing contest: Boarding' \
+    'Vesselmate Boarding' \
+    'breach the enemy vessel'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-boarding.log" ||
+      fail "the boarding transcript did not contain '$expected_text'"
+  done
 else
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOKOUT VESSELDEBUG \
@@ -568,7 +646,11 @@ fi
   fail "a temporary Starfall Bastion runtime remained"
 grep -Fqx 'Room: 1204' "$player_file" ||
   fail "Kohdee did not return to room 1204"
-if grep -E 'SYSERR:.*(tactical|lookout|narrative|Starfall Bastion|Starfall Trench|Vailand)' \
+if [[ "$acceptance_mode" == boarding ]]; then
+  grep -Fqx 'Room: 1204' "$secondary_player_file" ||
+    fail "Vesselmate did not return to room 1204"
+fi
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|boarding|Boardatk|Boarddef|Starfall Bastion|Starfall Trench|Vailand)' \
      "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi
