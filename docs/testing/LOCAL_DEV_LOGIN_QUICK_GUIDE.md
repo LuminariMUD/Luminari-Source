@@ -21,6 +21,13 @@ Memcheck, install, reversible merchant/hunter acceptance, and the bounded
 500-vessel scale run. Preserve pre-fix stopped-MUD run
 `20260801T230025Z-148892` as harness regression evidence.
 
+The August 2 current-candidate root suite passes 268 of 268. Full Memcheck
+first exposed one 24-byte perk node owned by a temporary Bard after
+`free_char()`; character teardown now releases purchased perks. The exact
+268-test rerun reports zero errors and zero definite, indirect, or possible
+loss. Install that clean candidate before the in-game merchant and scale
+gates.
+
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
 character and account cleanly.

@@ -6460,6 +6460,10 @@ void free_char(struct char_data *ch)
       destroy_spell_collection(ch);
       destroy_known_spells(ch);
 
+      /* Purchased perks are owned by the saved player-specials record. */
+      if (!IS_NPC(ch))
+        remove_all_perks(ch);
+
       /* free craft data strings */
       if (GET_CRAFT(ch).keywords)
         free(GET_CRAFT(ch).keywords);

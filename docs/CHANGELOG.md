@@ -43,6 +43,10 @@
   `vessel_npc_merchants` with the other mutable vessel/economy tables. Restore
   validation rejects an active merchant registry that points to a missing
   runtime hull, preventing a periodic merchant loss from surviving rollback.
+- Character teardown now frees the purchased-perk list before releasing
+  player-specials. The current full-suite Memcheck exposed one 24-byte perk
+  node retained by a temporary Bard fixture through the ordinary
+  `free_char()` path.
 
 #### Validated
 

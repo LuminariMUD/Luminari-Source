@@ -21,6 +21,7 @@ from the full live-game benchmark that still must be run.
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
 | Root suite on August 1, 2026 | 268 of 268 passing | Current production-linked gate |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
+| Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 

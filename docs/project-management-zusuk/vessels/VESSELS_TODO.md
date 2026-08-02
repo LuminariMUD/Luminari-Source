@@ -59,9 +59,12 @@ awake-world mobiles, objects, and movement trails also increased; its full
 and trailing 1,797-second slopes are 128,565 and 118,710 KiB/hour. The
 generated `memory-analysis.kv` result therefore remains `REPORT_ONLY`, not a
 leak or plateau verdict. The local development MUD is active on recovered PID
-252880 with the ferry resumed. Next run the current production-linked suite,
-Memcheck, install, reversible merchant/hunter checks, and the bounded
-500-vessel scale gate.
+252880 with the ferry resumed. The current production-linked suite passes 268
+of 268. Its first full Memcheck exposed a 24-byte purchased-perk node retained
+by ordinary character teardown; `free_char()` now releases that owned list.
+The exact rerun passes with zero errors and zero definite, indirect, or
+possible loss. Next install this clean candidate, run the reversible merchant
+and hunter checks, and execute the bounded 500-vessel scale gate.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
