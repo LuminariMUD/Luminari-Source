@@ -1298,12 +1298,32 @@ proc run_vessel_narrative_check {warship_id} {
   set output [run_game_command "lookout"]
   require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
     "narrative lookout header"
-  require_game_output $output "Conditions: clear skies (121/255)" \
-    "narrative wilderness weather"
-  require_game_output $output "At sea: A warship is" \
-    "narrative class description"
-  require_game_output $output "holding steady way" \
-    "narrative speed description"
+  if {![regexp \
+      {Conditions: (clear skies|overcast skies|rain|a heavy storm|a thunderstorm) \(([0-9]+)/255\)} \
+      $output ignored weather_name weather_value]} {
+    fail "narrative lookout did not expose a recognized wilderness weather band"
+  }
+  switch -- $weather_name {
+    "clear skies" {
+      set weather_ambient "Clear light runs cleanly to the horizon."
+    }
+    "overcast skies" {
+      set weather_ambient "Cloud cover flattens the light across the horizon."
+    }
+    "rain" {
+      set weather_ambient "Rain stipples the surrounding water."
+    }
+    "a heavy storm" {
+      set weather_ambient "Storm winds drive dark water across the deck."
+    }
+    "a thunderstorm" {
+      set weather_ambient \
+        "Lightning throws the vessel and waves into sharp relief."
+    }
+  }
+  require_game_output $output \
+    "At sea: A warship is holding steady way under $weather_name." \
+    "narrative class, speed, and weather description"
   require_game_output $output \
     "The broad Vailand Passage draws a dark blue road between the island coasts." \
     "narrative regional hint"
@@ -1314,7 +1334,7 @@ proc run_vessel_narrative_check {warship_id} {
     "narrative class ambient message"
   require_game_output $output "It holds a steady pace." \
     "narrative speed ambient message"
-  require_game_output $output "Clear light runs cleanly to the horizon." \
+  require_game_output $output $weather_ambient \
     "narrative weather ambient message"
   require_game_output $output \
     "Forced this vessel's contextual ambient message." \
@@ -1325,6 +1345,7 @@ proc run_vessel_narrative_check {warship_id} {
   require_game_output $output "Staff Board Room" "narrative safe-room return"
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: LOOKOUT combined the live warship class, speed, and wilderness weather."
+  puts "PASS: wilderness weather $weather_value mapped to $weather_name and its ambient clause."
   puts "PASS: narrative_weaver selected the Vailand Passage region_hints content."
   puts "PASS: the forced heartbeat emitted class-, speed-, and weather-aware ambience."
   puts "PASS: the vessel narrative check completed and purged its temporary hull in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."

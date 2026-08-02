@@ -533,6 +533,7 @@ else
 
   for expected_text in \
     'PASS: LOOKOUT combined the live warship class, speed, and wilderness weather.' \
+    'PASS: wilderness weather ' \
     'PASS: narrative_weaver selected the Vailand Passage region_hints content.' \
     'PASS: the forced heartbeat emitted class-, speed-, and weather-aware ambience.' \
     'PASS: the vessel narrative check completed and purged its temporary hull'; do
@@ -541,14 +542,22 @@ else
   done
 
   for expected_text in \
-    'Conditions: clear skies (121/255)' \
-    'At sea: A warship is holding steady way under clear skies.' \
+    'At sea: A warship is holding steady way under' \
     'The broad Vailand Passage draws a dark blue road between the island coasts.' \
-    "The warship's armored hull shoulders through the water." \
-    'Clear light runs cleanly to the horizon.'; do
+    "The warship's armored hull shoulders through the water."; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-narrative.log" ||
       fail "the narrative transcript did not contain '$expected_text'"
   done
+  grep -Eq \
+    'Conditions: (clear skies|overcast skies|rain|a heavy storm|a thunderstorm) \([0-9]+/255\)' \
+    "$run_dir/02-kohdee-vessel-narrative.log" ||
+    fail "the narrative transcript did not contain a recognized weather band"
+  weather_clause_pattern='Clear light runs cleanly|Cloud cover flattens the light'
+  weather_clause_pattern+='|Rain stipples the surrounding water'
+  weather_clause_pattern+='|Storm winds drive dark water|Lightning throws the vessel'
+  grep -Eq "$weather_clause_pattern" \
+    "$run_dir/02-kohdee-vessel-narrative.log" ||
+    fail "the narrative transcript did not contain a contextual weather clause"
 
   database_apply_file \
     "$repo_root/sql/components/verify_vessels_narrative_content.sql" \
