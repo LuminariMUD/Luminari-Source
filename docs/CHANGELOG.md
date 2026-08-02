@@ -206,7 +206,9 @@
   Memcheck across the same 274 tests with zero errors. Required `make install`
   removes the root artifact and installs SHA-256
   `0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`.
-  PID 640439 remains on the preceding binary pending the committed live rerun.
+  Pushed commit `d610d58a` runs that exact hash on PID 714795; actual Kohdee
+  passes the login smoke, confirms the six-ship baseline, and saves in quiet
+  room 1204.
 
 ### Durable HUNTED bounty-hunter patrols
 

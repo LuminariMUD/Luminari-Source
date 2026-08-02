@@ -364,8 +364,8 @@ remains `REPORT_ONLY`, so memory stability is still open. Cleanup restored six
 vessels and restarted the exact installed SHA-256 on PID 640439.
 
 The following repair candidate is installed as SHA-256
-`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`, but is
-not yet live or scale-accepted. Generic `@wait` now captures, displays, and
+`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` from
+pushed commit `d610d58a`. Generic `@wait` now captures, displays, and
 returns cleaned asynchronous data. The reciprocal water schedule and all
 water-class runtime fixtures stay on the actual-Kohdee-verified `y = 82`
 channel from `x = -66` through `x = -62`. A full fleet now reports merchant
@@ -376,8 +376,10 @@ SQL; and a payroll batch persists up to five crew departures with one atomic
 delete. Movement-trail signatures refresh in place and each room retains at
 most 16. The warning-free server build, vessel tooling, 274 of 274 production-
 linked tests, and strict actionable Memcheck across the same 274 tests all
-pass. These are candidate qualifications only; fresh installed-process and
-500-vessel measurements remain required.
+pass. PID 714795 maps the exact installed hash; actual Kohdee passed a
+17-second login smoke, then reported the six-ship baseline and saved in quiet
+room 1204. These are baseline qualifications only; a fresh 500-vessel
+measurement remains required.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

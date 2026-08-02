@@ -540,8 +540,11 @@ The warning-free build, scale tooling, and all 274 production-linked tests
 pass; strict actionable Memcheck is also clean across all 274 tests. Required
 `make install` removed the root artifact and installed SHA-256
 `0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`.
-PID 640439 still runs the preceding binary until this checkpoint is committed;
-do not claim live acceptance until the new candidate is restarted and rerun.
+Commit `d610d58a` is pushed, and PID 714795 maps that exact installed hash. An
+actual Kohdee smoke entered and logged out cleanly in 17 seconds; a second
+session reported 6 of 500 fleet slots, 8 of 2,000 dynamic rooms, and saved
+Kohdee in room 1204. This is baseline live acceptance, not the required scale
+result.
 
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most

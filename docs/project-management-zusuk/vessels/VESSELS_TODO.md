@@ -230,7 +230,7 @@ PID 640439. Keep all four performance items open while fixing asynchronous
 capture, route validity, synchronous persistence, the remaining encounter
 lookup, and retained movement-trail growth.
 
-The next repair candidate is installed, but has not yet replaced PID 640439.
+Repair commit `d610d58a` is pushed and now runs on PID 714795.
 Generic `@wait` now retains, prints, and returns cleaned asynchronous output.
 The benchmark water schedule and every water-class runtime fixture now stay on
 the actual-Kohdee-verified `y = 82` channel from `x = -66` through `x = -62`.
@@ -243,8 +243,11 @@ The warning-free build, scale tooling, and full 274-test production suite pass.
 Strict actionable Memcheck also passes all 274 tests with zero errors. The
 required `make install` produced SHA-256
 `0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` and
-removed the root `circle`; a fresh installed-candidate scale result is still
-required before closing any performance or memory item.
+removed the root `circle`. The mapped process has that exact hash; actual
+Kohdee entered and logged out cleanly in 17 seconds, then confirmed 6 of 500
+fleet slots and 8 of 2,000 dynamic rooms before saving in room 1204. A fresh
+installed-candidate scale result is still required before closing any
+performance or memory item.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

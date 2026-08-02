@@ -277,8 +277,10 @@ The warning-free build, vessel tooling, all 274 production-linked tests, and
 strict actionable Memcheck across those 274 tests pass. `make install`
 installed SHA-256
 `0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` and
-removed the root artifact. PID 640439 still runs the preceding binary, so
-restart and actual-character acceptance remain mandatory.
+removed the root artifact. Pushed commit `d610d58a` now runs on PID 714795 with
+that exact mapped hash. Actual Kohdee passed a 17-second login smoke, reported
+the six-ship baseline in a second session, and saved in room 1204. The scale
+acceptance remains mandatory.
 
 For the builder-independence timing gate, run:
 
