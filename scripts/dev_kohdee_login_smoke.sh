@@ -1266,7 +1266,7 @@ proc run_vessel_lookout_check {warship_id} {
     "coastal lookout header"
   require_game_output $output "Water (Swim)" "coastal lookout shoal"
   require_game_output $output "Beach" "coastal lookout beach"
-  require_game_output $output "Forest" "coastal lookout land"
+  require_game_output $output "Field" "coastal lookout land"
   purge_frontier_vessel $coastal_slot "Starfall Bastion"
 
   set output [run_game_command "goto 1204"]
@@ -1274,7 +1274,7 @@ proc run_vessel_lookout_check {warship_id} {
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: the lookout used all eight canonical wilderness bearings through the visible horizon."
   puts "PASS: the lookout reported a real nearby vessel through production visibility and condition state."
-  puts "PASS: the coastal lookout reported actual shoal, beach, and forest sectors."
+  puts "PASS: the coastal lookout reported actual shoal, beach, and field sectors."
   puts "PASS: the vessel lookout check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 

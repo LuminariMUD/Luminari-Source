@@ -451,9 +451,9 @@ if [[ "$acceptance_mode" == tactical ]]; then
   done
 else
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
-    "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOK_OUTSIDE \
+    "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOKOUT LOOK_OUTSIDE \
     >"$run_dir/01-lookout-help.log" 2>&1 ||
-    fail "Kohdee could not read the authoritative LOOK_OUTSIDE help"
+    fail "Kohdee could not read the authoritative LOOKOUT help"
   lookout_help_state=$(database_query "
     SELECT COUNT(*)
       FROM help_entries
@@ -471,7 +471,7 @@ else
   for expected_text in \
     'PASS: the lookout used all eight canonical wilderness bearings' \
     'PASS: the lookout reported a real nearby vessel' \
-    'PASS: the coastal lookout reported actual shoal, beach, and forest sectors.' \
+    'PASS: the coastal lookout reported actual shoal, beach, and field sectors.' \
     'PASS: the vessel lookout check completed and purged all temporary hulls'; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
       fail "the lookout session did not report '$expected_text'"
