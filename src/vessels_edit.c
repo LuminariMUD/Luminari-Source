@@ -496,7 +496,7 @@ static int vessel_spawn_from_prototype_owner_at(struct char_data *ch, int id,
     }
     else
     {
-      log("SYSERR: NPC vessel prototype %d cannot spawn: fleet is full", id);
+      log("Info: NPC vessel prototype %d deferred: fleet is full", id);
     }
     return -1;
   }

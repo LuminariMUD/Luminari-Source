@@ -142,6 +142,37 @@ grep -Fq 'run_game_command "autopilot on"' "$login_helper" ||
   fail "native MSDP helper does not resume a vessel it paused"
 [[ "$(grep -Ec '^  require_msdp_cleared .* SHIP_' "$login_helper")" == 9 ]] ||
   fail "native MSDP helper does not validate all nine effective ashore values"
+wait_handler=$(awk '
+  /if \{\[regexp \{\^@wait / {
+    capture = 1
+  }
+  capture {
+    print
+  }
+  capture && /return \$cleaned/ {
+    exit
+  }
+' "$login_helper")
+grep -Fq "append output \$expect_out(buffer)" <<<"$wait_handler" ||
+  fail "generic login wait does not retain asynchronous game output"
+grep -Fq "return \$cleaned" <<<"$wait_handler" ||
+  fail "generic login wait does not return its asynchronous game output"
+if grep -Fq -- '-re {.+} {}' <<<"$wait_handler"; then
+  fail "generic login wait still discards asynchronous game output"
+fi
+grep -Fq \
+  "('\${benchmark_prefix} Water West', -66, 82, 0, 0.5, 5, 0)," \
+  "$runner" ||
+  fail "scale-runner scheduled route does not remain in the verified water channel"
+runtime_y_case=$(sed -n '/runtime\.y = CASE/,/       END,/p' "$runner")
+grep -Fq '         ELSE 82' <<<"$runtime_y_case" ||
+  fail "scale-runner water-class fixtures do not remain in the verified channel"
+if grep -Fq 'WHEN 0 THEN 92 ELSE 82' <<<"$runtime_y_case"; then
+  fail "scale-runner water-class fixtures still alternate across invalid terrain"
+fi
+grep -Fq 'Info: NPC vessel prototype %d deferred: fleet is full' \
+  "$repo_root/src/vessels_edit.c" ||
+  fail "expected full-fleet NPC spawning is still logged as a server error"
 
 fare_commands=$(sed -n '/^fare_output=.*--commands/,/^fare_status=/p' \
   "$script_dir/provision_vessel_harbor.sh")

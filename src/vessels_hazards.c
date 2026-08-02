@@ -20,6 +20,8 @@
 #include "constants.h"
 #include "act.h"
 
+#include <float.h>
+
 extern MYSQL *conn;
 extern bool mysql_available;
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
@@ -216,6 +218,176 @@ bool vessel_encounter_region_from_list(const struct region_list *regions, int *o
   return found;
 }
 
+static double vessel_encounter_distance_squared_to_segment(
+    double x, double y, double start_x, double start_y,
+    double end_x, double end_y)
+{
+  double segment_x;
+  double segment_y;
+  double point_x;
+  double point_y;
+  double segment_squared;
+  double projection;
+
+  segment_x = end_x - start_x;
+  segment_y = end_y - start_y;
+  point_x = x - start_x;
+  point_y = y - start_y;
+  segment_squared = segment_x * segment_x + segment_y * segment_y;
+  projection = segment_squared > 0.0
+                   ? (point_x * segment_x + point_y * segment_y) /
+                         segment_squared
+                   : 0.0;
+  projection = MAX(0.0, MIN(1.0, projection));
+  point_x = x - (start_x + projection * segment_x);
+  point_y = y - (start_y + projection * segment_y);
+  return point_x * point_x + point_y * point_y;
+}
+
+/**
+ * Classify one strictly enclosed point using the same center/inside/edge
+ * distance rule as get_enclosing_regions().
+ */
+static int vessel_encounter_polygon_position(const struct region_data *region,
+                                             int x, int y)
+{
+  double area_twice;
+  double centroid_x_numerator;
+  double centroid_y_numerator;
+  double centroid_x;
+  double centroid_y;
+  double center_x;
+  double center_y;
+  double center_distance_squared;
+  double edge_distance_squared;
+  double segment_distance_squared;
+  double cross_product;
+  int current;
+  int next;
+
+  if (region == NULL || region->vertices == NULL || region->num_vertices < 3 ||
+      !vessel_piracy_point_in_polygon(region->vertices,
+                                      region->num_vertices, x, y))
+  {
+    return REGION_POS_UNDEFINED;
+  }
+
+  area_twice = 0.0;
+  centroid_x_numerator = 0.0;
+  centroid_y_numerator = 0.0;
+  edge_distance_squared = DBL_MAX;
+  for (current = 0; current < region->num_vertices; current++)
+  {
+    next = (current + 1) % region->num_vertices;
+    cross_product =
+        (double)region->vertices[current].x * region->vertices[next].y -
+        (double)region->vertices[next].x * region->vertices[current].y;
+    area_twice += cross_product;
+    centroid_x_numerator +=
+        (region->vertices[current].x + region->vertices[next].x) *
+        cross_product;
+    centroid_y_numerator +=
+        (region->vertices[current].y + region->vertices[next].y) *
+        cross_product;
+    segment_distance_squared = vessel_encounter_distance_squared_to_segment(
+        x, y, region->vertices[current].x, region->vertices[current].y,
+        region->vertices[next].x, region->vertices[next].y);
+    edge_distance_squared = MIN(edge_distance_squared,
+                                segment_distance_squared);
+  }
+
+  if (area_twice > -0.000001 && area_twice < 0.000001)
+  {
+    return REGION_POS_EDGE;
+  }
+  centroid_x = centroid_x_numerator / (3.0 * area_twice);
+  centroid_y = centroid_y_numerator / (3.0 * area_twice);
+  center_x = x - centroid_x;
+  center_y = y - centroid_y;
+  center_distance_squared = center_x * center_x + center_y * center_y;
+  if (center_distance_squared < 0.000001)
+  {
+    return REGION_POS_CENTER;
+  }
+  if (4.0 * edge_distance_squared > center_distance_squared)
+  {
+    return REGION_POS_INSIDE;
+  }
+  return REGION_POS_EDGE;
+}
+
+/**
+ * Resolve an encounter polygon entirely from the canonical in-memory region
+ * table. This removes synchronous spatial SQL from the vessel heartbeat.
+ */
+bool vessel_encounter_region_at_coordinates(int x, int y,
+                                            int *output_region_vnum)
+{
+  const struct region_data *region;
+  int best_position;
+  region_vnum best_vnum;
+  int position;
+  int position_rank;
+  int best_rank;
+  region_rnum i;
+
+  if (output_region_vnum == NULL)
+  {
+    return FALSE;
+  }
+  *output_region_vnum = 0;
+  if (region_table == NULL || zone_table == NULL ||
+      top_of_region_table == NOWHERE)
+  {
+    return FALSE;
+  }
+
+  best_position = REGION_POS_UNDEFINED;
+  best_vnum = 0;
+  best_rank = -1;
+  for (i = 0; i <= top_of_region_table; i++)
+  {
+    region = &region_table[i];
+    if (region->region_type != REGION_ENCOUNTER || region->zone == NOWHERE ||
+        region->zone > top_of_zone_table ||
+        zone_table[region->zone].number != WILD_ZONE_VNUM)
+    {
+      continue;
+    }
+
+    position = vessel_encounter_polygon_position(region, x, y);
+    switch (position)
+    {
+    case REGION_POS_CENTER:
+      position_rank = 3;
+      break;
+    case REGION_POS_INSIDE:
+      position_rank = 2;
+      break;
+    case REGION_POS_EDGE:
+      position_rank = 1;
+      break;
+    default:
+      continue;
+    }
+
+    if (best_rank < 0 || position_rank > best_rank ||
+        (position_rank == best_rank && region->vnum < best_vnum))
+    {
+      best_position = position;
+      best_rank = position_rank;
+      best_vnum = region->vnum;
+    }
+  }
+
+  if (best_position == REGION_POS_UNDEFINED)
+  {
+    return FALSE;
+  }
+  *output_region_vnum = (int)best_vnum;
+  return TRUE;
+}
+
 /**
  * Apply an encounter chance to a supplied d100 result.
  *
@@ -270,8 +442,8 @@ bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *
 /**
  * Find a shared exterior room in the current encounter pass cache.
  *
- * Region containment is coordinate-backed SQL. Ships in the same exterior
- * room necessarily share coordinates, so one lookup per room is sufficient.
+ * Ships in the same exterior room necessarily share coordinates, so one
+ * in-memory polygon lookup per room is sufficient.
  */
 int vessel_encounter_cached_room_index(room_rnum room, const room_rnum *cached_rooms,
                                        int cached_count)
@@ -323,19 +495,13 @@ static bool vessel_encounter_room_is_claimed(room_rnum room, const room_rnum *cl
  */
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum)
 {
-  struct region_list *regions;
-  bool found;
-
   if (ship == NULL || region_vnum == NULL)
   {
     return FALSE;
   }
 
-  regions = get_enclosing_regions(real_zone(WILD_ZONE_VNUM), (int)ship->x, (int)ship->y);
-  found = vessel_encounter_region_from_list(regions, region_vnum);
-  free_region_list(regions);
-
-  return found;
+  return vessel_encounter_region_at_coordinates((int)ship->x, (int)ship->y,
+                                                 region_vnum);
 }
 
 /**

@@ -393,6 +393,7 @@ proc run_game_command {command} {
   }
 
   if {[regexp {^@wait ([0-9]+)$} $command ignored wait_seconds]} {
+    set output ""
     if {$wait_seconds < 1 || $wait_seconds > 60} {
       fail "@wait must be between 1 and 60 seconds"
     }
@@ -403,19 +404,26 @@ proc run_game_command {command} {
     set ::timeout 1
     while {[clock milliseconds] < $wait_deadline} {
       expect {
-        -re {.+} {}
+        -re {.+} { append output $expect_out(buffer) }
         timeout {}
         eof { fail "connection closed during @wait" }
       }
     }
     set ::timeout 0
     expect {
-      -re {.+} { exp_continue }
+      -re {.+} {
+        append output $expect_out(buffer)
+        exp_continue
+      }
       timeout {}
       eof { fail "connection closed during @wait" }
     }
     set ::timeout $prior_timeout
-    return
+    set cleaned [string trim [clean_socket_output $output]]
+    if {$cleaned ne ""} {
+      puts $cleaned
+    }
+    return $cleaned
   }
 
   if {[regexp {^@checkpoint ([A-Za-z0-9._-]+)$} $command ignored checkpoint_label]} {

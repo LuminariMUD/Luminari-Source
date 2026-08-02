@@ -1058,7 +1058,7 @@ VALUES
   ('${benchmark_prefix} Surface B', -66, 92, 0, 0.5, 10, 0),
   ('${benchmark_prefix} Submerged A', -64, 82, -1, 0.5, 10, 0),
   ('${benchmark_prefix} Submerged B', -64, 82, -1, 0.5, 10, 0),
-  ('${benchmark_prefix} Water West', -66, 92, 0, 0.5, 5, 0),
+  ('${benchmark_prefix} Water West', -66, 82, 0, 0.5, 5, 0),
   ('${benchmark_prefix} Water Turn A', -64, 82, 0, 0.5, 0, 0),
   ('${benchmark_prefix} Water East', -62, 82, 0, 0.5, 5, 0),
   ('${benchmark_prefix} Water Turn B', -64, 82, 0, 0.5, 0, 0),
@@ -1166,10 +1166,7 @@ JOIN ship_interiors AS interior USING (ship_id)
            END
          WHEN interior.vessel_type = 5 THEN 82
          WHEN interior.vessel_type IN (0, 1) THEN 92
-         ELSE
-           CASE MOD(runtime.ship_id, 4)
-             WHEN 0 THEN 92 ELSE 82
-           END
+         ELSE 82
        END,
        runtime.z = CASE
          WHEN interior.vessel_type = 4 THEN 150

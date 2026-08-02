@@ -25,6 +25,9 @@ extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
  * they never collide with the pilot record or the helm permits
  * (npc_vnum -1). */
 #define CREW_ROW_VNUM_BASE (-100)
+#define CREW_WAGE_MAX_BATCH_SHIPS                                                        \
+  ((GREYHAWK_ACTIVE_SHIP_CAPACITY + CREW_WAGE_BATCH_COUNT - 1) /                         \
+   CREW_WAGE_BATCH_COUNT)
 
 static int crew_wage_batch_cursor = 0;
 
@@ -279,6 +282,70 @@ void vessel_db_load_crew(struct greyhawk_ship_data *ship)
 }
 
 /**
+ * Build one atomic delete for crew members who leave during a payroll batch.
+ */
+int vessel_crew_departure_delete_query(char *query, size_t query_size,
+                                       const int *ship_slots,
+                                       const int *positions, int count)
+{
+  int length;
+  int i;
+
+  if (query == NULL || query_size == 0 || ship_slots == NULL ||
+      positions == NULL || count <= 0 || count > CREW_WAGE_MAX_BATCH_SHIPS)
+  {
+    return -1;
+  }
+
+  length = snprintf(query, query_size, "DELETE FROM ship_crew_roster WHERE ");
+  if (length < 0 || (size_t)length >= query_size)
+  {
+    return -1;
+  }
+
+  for (i = 0; i < count; i++)
+  {
+    if (ship_slots[i] <= 0 || ship_slots[i] >= GREYHAWK_MAXSHIPS ||
+        positions[i] < 0 || positions[i] >= NUM_CREW_POSITIONS)
+    {
+      return -1;
+    }
+    length = snprintf_append(
+        query, query_size, length,
+        "%s(ship_id = %d AND npc_vnum = %d)", i == 0 ? "" : " OR ",
+        ship_slots[i], CREW_ROW_VNUM_BASE - positions[i]);
+    if (length < 0 || (size_t)length >= query_size - 1)
+    {
+      return -1;
+    }
+  }
+
+  return length;
+}
+
+static void vessel_db_delete_departed_crew(const int *ship_slots,
+                                            const int *positions, int count)
+{
+  char query[MAX_STRING_LENGTH];
+
+  if (!mysql_available || conn == NULL || count <= 0)
+  {
+    return;
+  }
+  if (vessel_crew_departure_delete_query(query, sizeof(query), ship_slots,
+                                         positions, count) < 0)
+  {
+    log("SYSERR: Could not build the crew-departure payroll delete");
+    return;
+  }
+  if (mysql_query(conn, query))
+  {
+    log("SYSERR: Could not persist %d crew payroll departure%s: %s", count,
+        count == 1 ? "" : "s", mysql_error(conn));
+  }
+}
+
+/**
  * Total wage bill per payday for a ship.
  */
 static int vessel_crew_payroll(struct greyhawk_ship_data *ship)
@@ -318,11 +385,15 @@ int vessel_crew_wage_batch_for_slot(int ship_slot)
 void vessel_crew_wage_tick(void)
 {
   struct greyhawk_ship_data *ship;
+  int departed_ships[CREW_WAGE_MAX_BATCH_SHIPS];
+  int departed_positions[CREW_WAGE_MAX_BATCH_SHIPS];
+  int departed_count;
   int current_batch;
   int payroll;
   int i;
   int pos;
 
+  departed_count = 0;
   current_batch = crew_wage_batch_cursor;
   crew_wage_batch_cursor = (crew_wage_batch_cursor + 1) % CREW_WAGE_BATCH_COUNT;
 
@@ -372,12 +443,20 @@ void vessel_crew_wage_tick(void)
           ship->crew_tier[pos] = CREW_TIER_NONE;
           ship->wages_owed -= payroll; /* one less mouth on the books */
           vessel_apply_crew_bonuses(ship);
-          vessel_db_save_crew(ship);
+          if (departed_count < CREW_WAGE_MAX_BATCH_SHIPS)
+          {
+            departed_ships[departed_count] = ship->shipnum;
+            departed_positions[departed_count] = pos;
+            departed_count++;
+          }
           break;
         }
       }
     }
   }
+
+  vessel_db_delete_departed_crew(departed_ships, departed_positions,
+                                  departed_count);
 }
 
 /**

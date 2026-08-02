@@ -3,9 +3,9 @@
 **Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 271 of 271 on current master, and a fresh
-CMake build passes all six CTest targets, including the same production suite
-and vessel tooling. The
+production-linked suite passes 274 of 274 for the current repair candidate.
+The earlier integrated candidate also passed a fresh CMake build with all six
+CTest targets, including the production suite and vessel tooling. The
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
 verify/rollback, and the reversible bounty-hunter lifecycle passes with actual
 level-34 Kohdee across a hard restart and pardon. The integrated candidate is
@@ -212,9 +212,11 @@ buffer overflows, so the quiet-room repair is accepted. The terminal encounter
 check was a harness false negative: generic `@wait` drained and discarded
 asynchronous output, while the server logged 20 deliveries from Kohdee's
 airship and 20 encounters notifying 60 shared-room vessels. The server log
-also exposes real failures that the earlier check masked: 225 scheduled moves
-crossed a non-navigable intermediate coordinate, and six NPC hunter spawns
-were attempted with every fleet slot occupied.
+also exposes a real failure that the earlier check masked: 225 scheduled moves
+crossed a non-navigable intermediate coordinate. The six full-capacity spawn
+messages were traced through the production caller to baseline NPC merchant
+prototype 7 reconciliation, not the bounty-hunter path. A full fleet is an
+expected deferred merchant state, so it is now an informational message.
 
 The complete profile still fails the release budget. Its 3,665 ticks have
 median 802.00 usec, p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217
@@ -225,8 +227,24 @@ spans 1,854 seconds and remains `REPORT_ONLY`: RSS rose 786,296 to 853,480 KiB,
 VSZ rose 881,084 to 947,988 KiB, and movement trails rose 29,608 to 287,220.
 Cleanup restored six vessels and restarted the unchanged installed binary on
 PID 640439. Keep all four performance items open while fixing asynchronous
-capture, route validity, full-fleet hunter capacity, synchronous persistence,
-the remaining encounter lookup, and retained movement-trail growth.
+capture, route validity, synchronous persistence, the remaining encounter
+lookup, and retained movement-trail growth.
+
+The next repair candidate is installed, but has not yet replaced PID 640439.
+Generic `@wait` now retains, prints, and returns cleaned asynchronous output.
+The benchmark water schedule and every water-class runtime fixture now stay on
+the actual-Kohdee-verified `y = 82` channel from `x = -66` through `x = -62`.
+Piracy-law movement lookups use a bounded 4,096-entry coordinate cache that is
+cleared with each law/region reload; encounter containment now resolves the
+canonical in-memory polygons without `get_enclosing_regions()` SQL; and at
+most five crew walkoffs share one atomic roster delete. Movement trails now
+refresh identical signatures and retain at most 16 distinct entries per room.
+The warning-free build, scale tooling, and full 274-test production suite pass.
+Strict actionable Memcheck also passes all 274 tests with zero errors. The
+required `make install` produced SHA-256
+`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` and
+removed the root `circle`; a fresh installed-candidate scale result is still
+required before closing any performance or memory item.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

@@ -511,9 +511,11 @@ checkpoints, accepting the room-1204 repair. Its first terminal failure was a
 test-helper defect: generic `@wait` deliberately drained all asynchronous
 socket data, so the transcript omitted an encounter that the server recorded
 20 times for Kohdee's airship. The server log also contains 225 real scheduled
-route failures at non-navigable intermediate cells and six full-fleet NPC
-hunter spawn failures. Repair those fixtures before treating the encounter
-failure as the only verdict.
+route failures at non-navigable intermediate cells. The six full-fleet spawn
+messages came from baseline NPC merchant prototype 7 reconciliation, not the
+hunter path; capacity correctly defers that merchant until a slot is free.
+Repair the route fixture before treating the encounter failure as the only
+verdict.
 
 The profile still fails 25 ms: 3,665 vessel ticks reported median 802.00 usec,
 p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217 missed pulses.
@@ -523,6 +525,23 @@ Queries fell to 67,052 and payroll p95 to 9,146.80 usec, but autopilot p95 was
 Cleanup restored six vessels; PID 640439 maps the same installed SHA-256. A
 fresh full gate remains required after the helper, workload, performance, and
 memory fixes.
+
+The next installed repair candidate keeps generic `@wait` output, including
+unsolicited encounter messages, and its parser regression rejects any return
+to the old discard handler. The schedule plus all water-class scale fixtures
+now stay on `y = 82`; an actual Kohdee terrain probe verified every coordinate
+from `(-66, 82)` through `(-62, 82)` before the change. Full-fleet merchant
+reconciliation is logged as expected deferred work rather than a server error.
+The remaining synchronous paths are bounded: regional piracy law uses a
+4,096-entry coordinate cache, encounter polygons resolve from the canonical
+in-memory region table, and up to five payroll walkoffs share one delete.
+Movement trails refresh duplicate signatures and retain at most 16 per room.
+The warning-free build, scale tooling, and all 274 production-linked tests
+pass; strict actionable Memcheck is also clean across all 274 tests. Required
+`make install` removed the root artifact and installed SHA-256
+`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`.
+PID 640439 still runs the preceding binary until this checkpoint is committed;
+do not claim live acceptance until the new candidate is restarted and rerun.
 
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most

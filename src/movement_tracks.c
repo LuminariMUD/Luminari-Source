@@ -26,6 +26,130 @@
 #include "movement.h"
 #include "movement_tracks.h" /* includes trail data structures */
 
+static void movement_trail_free(struct trail_data *trail)
+{
+  if (trail == NULL)
+  {
+    return;
+  }
+
+  free(trail->name);
+  free(trail->race);
+  free(trail);
+}
+
+static void movement_trail_unlink(struct trail_data_list *list,
+                                  struct trail_data *trail)
+{
+  if (list == NULL || trail == NULL)
+  {
+    return;
+  }
+
+  if (trail->prev != NULL)
+  {
+    trail->prev->next = trail->next;
+  }
+  else
+  {
+    list->head = trail->next;
+  }
+
+  if (trail->next != NULL)
+  {
+    trail->next->prev = trail->prev;
+  }
+  else
+  {
+    list->tail = trail->prev;
+  }
+}
+
+static void movement_trail_prepend(struct trail_data_list *list,
+                                   struct trail_data *trail)
+{
+  trail->prev = NULL;
+  trail->next = list->head;
+  if (list->head != NULL)
+  {
+    list->head->prev = trail;
+  }
+  else
+  {
+    list->tail = trail;
+  }
+  list->head = trail;
+}
+
+/**
+ * Retain one freshest record for each visible trail signature.
+ *
+ * The legacy trail list has no reader that benefits from duplicate nodes.
+ * Refreshing a match preserves its age while the per-room cap prevents
+ * ordinary mobile wandering from retaining process-lifetime heap growth.
+ */
+void movement_trail_record(struct trail_data_list *list, const char *name,
+                           const char *race, int from, int to, time_t age)
+{
+  struct trail_data *trail;
+  struct trail_data *match;
+  int count;
+
+  if (list == NULL)
+  {
+    return;
+  }
+
+  if (name == NULL)
+  {
+    name = "unknown";
+  }
+  if (race == NULL)
+  {
+    race = "unknown";
+  }
+
+  match = NULL;
+  count = 0;
+  for (trail = list->head; trail != NULL; trail = trail->next)
+  {
+    count++;
+    if (match == NULL && trail->from == from && trail->to == to &&
+        !strcmp(trail->name ? trail->name : "", name) &&
+        !strcmp(trail->race ? trail->race : "", race))
+    {
+      match = trail;
+    }
+  }
+
+  if (match != NULL)
+  {
+    match->age = age;
+    if (match != list->head)
+    {
+      movement_trail_unlink(list, match);
+      movement_trail_prepend(list, match);
+    }
+    return;
+  }
+
+  while (count >= TRAIL_MAX_PER_ROOM && list->tail != NULL)
+  {
+    trail = list->tail;
+    movement_trail_unlink(list, trail);
+    movement_trail_free(trail);
+    count--;
+  }
+
+  CREATE(trail, struct trail_data, 1);
+  trail->name = strdup(name);
+  trail->race = strdup(race);
+  trail->from = from;
+  trail->to = to;
+  trail->age = age;
+  movement_trail_prepend(list, trail);
+}
+
 /**
  * Create tracks in the current room
  *
@@ -37,7 +161,11 @@ void create_tracks(struct char_data *ch, int dir, int flag)
 {
   struct room_data *room = NULL;
   struct trail_data *cur = NULL;
-  struct trail_data *new_trail = NULL;
+  struct trail_data *next = NULL;
+  const char *name;
+  const char *race;
+  time_t now;
+  int race_idx;
 
   if (IN_ROOM(ch) != NOWHERE)
   {
@@ -66,90 +194,37 @@ void create_tracks(struct char_data *ch, int dir, int flag)
   */
 
   /* First, prune old trails from the list BEFORE adding new ones to avoid corruption */
+  now = time(NULL);
   for (cur = room->trail_tracks->head; cur != NULL;)
   {
-    struct trail_data *next = cur->next;
-    if (time(NULL) - cur->age >= TRAIL_PRUNING_THRESHOLD)
+    next = cur->next;
+    if (now - cur->age >= TRAIL_PRUNING_THRESHOLD)
     {
-      /* Free the trail data */
-      if (cur->name)
-        free(cur->name);
-      if (cur->race)
-        free(cur->race);
-
-      /* Unlink from list */
-      if (cur->prev != NULL)
-      {
-        cur->prev->next = cur->next;
-      }
-      else
-      {
-        room->trail_tracks->head = cur->next;
-      }
-
-      if (cur->next != NULL)
-      {
-        cur->next->prev = cur->prev;
-      }
-      else
-      {
-        room->trail_tracks->tail = cur->prev;
-      }
-
-      /* Free the structure */
-      free(cur);
+      movement_trail_unlink(room->trail_tracks, cur);
+      movement_trail_free(cur);
     }
     /* Always advance to next, whether we removed the current node or not */
     cur = next;
   }
 
-  /* Now create and add the new trail to the cleaned list */
-  CREATE(new_trail, struct trail_data, 1);
-
-  /* Safely set name with NULL check */
-  if (GET_NAME(ch))
-    new_trail->name = strdup(GET_NAME(ch));
-  else
-    new_trail->name = strdup("unknown");
-
-  /* Safely set race with bounds and NULL checks */
+  name = GET_NAME(ch) ? GET_NAME(ch) : "unknown";
+  race = "unknown";
   if (IS_NPC(ch))
   {
-    int race_idx = GET_NPC_RACE(ch);
+    race_idx = GET_NPC_RACE(ch);
     if (race_idx >= 0 && race_idx <= NUM_RACE_TYPES && race_family_types[race_idx])
-      new_trail->race = strdup(race_family_types[race_idx]);
-    else
-      new_trail->race = strdup("unknown");
+      race = race_family_types[race_idx];
   }
   else
   {
-    int race_idx = GET_RACE(ch);
+    race_idx = GET_RACE(ch);
     if (race_idx >= 0 && race_idx < NUM_RACES && race_list[race_idx].name)
-      new_trail->race = strdup(race_list[race_idx].name);
-    else
-      new_trail->race = strdup("unknown");
+      race = race_list[race_idx].name;
   }
 
-  new_trail->from = (flag == TRACKS_IN ? dir : DIR_NONE);
-  new_trail->to = (flag == TRACKS_OUT ? dir : DIR_NONE);
-  new_trail->age = time(NULL);
-
-  /* Insert at head of list with proper NULL checks */
-  new_trail->next = room->trail_tracks->head;
-  new_trail->prev = NULL;
-
-  if (room->trail_tracks->head != NULL)
-  {
-    /* Only access head->prev if head is not NULL */
-    room->trail_tracks->head->prev = new_trail;
-  }
-  else
-  {
-    /* If this is the first node, set tail as well */
-    room->trail_tracks->tail = new_trail;
-  }
-
-  room->trail_tracks->head = new_trail;
+  movement_trail_record(room->trail_tracks, name, race,
+                        flag == TRACKS_IN ? dir : DIR_NONE,
+                        flag == TRACKS_OUT ? dir : DIR_NONE, now);
 }
 
 /**

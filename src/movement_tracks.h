@@ -18,6 +18,9 @@
 /* Trail pruning threshold - 1 in-game week */
 #define TRAIL_PRUNING_THRESHOLD 12600
 
+/* Retain only the freshest distinct trail signatures in one room. */
+#define TRAIL_MAX_PER_ROOM 16
+
 /* Track type definitions */
 #define TRACKS_UNDEFINED 0
 #define TRACKS_IN 1
@@ -53,6 +56,15 @@ struct trail_data_list
  * @param flag TRACKS_IN, TRACKS_OUT, or TRACKS_UNDEFINED
  */
 void create_tracks(struct char_data *ch, int dir, int flag);
+
+/**
+ * Refresh or add one bounded movement-trail signature.
+ *
+ * Repeated movement by the same visible identity in the same direction
+ * refreshes one record instead of allocating an unbounded duplicate.
+ */
+void movement_trail_record(struct trail_data_list *list, const char *name,
+                           const char *race, int from, int to, time_t age);
 
 /**
  * Clean up old trails in all rooms

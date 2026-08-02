@@ -251,8 +251,9 @@ accepted. The first terminal failure was a harness defect: generic `@wait`
 discarded asynchronous socket output, although the server recorded 20
 encounter deliveries for Kohdee's moving airship and 20 shared encounters for
 60 vessels. The server log also exposes 225 real route failures through an
-invalid intermediate water-route cell and six attempted hunter spawns at full
-fleet capacity.
+invalid intermediate water-route cell. Six additional full-capacity messages
+were traced to baseline NPC merchant prototype 7 reconciliation, not hunter
+spawning; this is expected deferred work while all slots are occupied.
 
 The resulting 3,665-tick profile remains a release failure: median 802.00
 usec, p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217 missed pulses.
@@ -263,6 +264,21 @@ at 60,540. The 59 process samples span 1,854 seconds; RSS rose 786,296 to
 vessels and the unchanged installed binary on PID 640439. Correct the helper,
 workload fixtures, remaining synchronous hotspots, and memory growth before
 the next complete run.
+
+The installed follow-up candidate captures and returns generic `@wait` output,
+keeps the reciprocal schedule and every water-class fixture on the verified
+`y = 82` channel, and logs full-fleet merchant reconciliation as informational
+deferral. An actual Kohdee terrain probe traversed `x = -66` through `x = -62`
+at `y = 82` before the route change. Piracy-law coordinates use a bounded
+4,096-entry cache, encounter containment uses the canonical in-memory polygons
+instead of spatial SQL, and at most five payroll walkoffs share one delete.
+Movement trails coalesce duplicate signatures and retain at most 16 per room.
+The warning-free build, vessel tooling, all 274 production-linked tests, and
+strict actionable Memcheck across those 274 tests pass. `make install`
+installed SHA-256
+`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` and
+removed the root artifact. PID 640439 still runs the preceding binary, so
+restart and actual-character acceptance remain mandatory.
 
 For the builder-independence timing gate, run:
 

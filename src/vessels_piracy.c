@@ -42,6 +42,48 @@ struct vessel_piracy_law_cache_entry
 static struct vessel_piracy_law_cache_entry *vessel_law_cache = NULL;
 static size_t vessel_law_cache_count = 0;
 
+#define VESSEL_PIRACY_COORDINATE_CACHE_SIZE 4096
+
+struct vessel_piracy_coordinate_cache_entry
+{
+  bool valid;
+  bool found;
+  int x;
+  int y;
+  struct vessel_piracy_law law;
+};
+
+static struct vessel_piracy_coordinate_cache_entry
+    vessel_piracy_coordinate_cache[VESSEL_PIRACY_COORDINATE_CACHE_SIZE];
+
+static unsigned int vessel_piracy_coordinate_cache_index(int x, int y)
+{
+  unsigned int hash;
+
+  hash = (unsigned int)x * 2654435761U;
+  hash ^= (unsigned int)y * 2246822519U;
+  hash ^= hash >> 16;
+  return hash & (VESSEL_PIRACY_COORDINATE_CACHE_SIZE - 1);
+}
+
+#ifdef LUMINARI_CUTEST
+size_t vessel_piracy_coordinate_cache_count(void)
+{
+  size_t count;
+  int i;
+
+  count = 0;
+  for (i = 0; i < VESSEL_PIRACY_COORDINATE_CACHE_SIZE; i++)
+  {
+    if (vessel_piracy_coordinate_cache[i].valid)
+    {
+      count++;
+    }
+  }
+  return count;
+}
+#endif
+
 /**
  * Release the builder-authored vessel-law cache.
  */
@@ -50,6 +92,8 @@ void vessel_piracy_clear_laws(void)
   free(vessel_law_cache);
   vessel_law_cache = NULL;
   vessel_law_cache_count = 0;
+  memset(vessel_piracy_coordinate_cache, 0,
+         sizeof(vessel_piracy_coordinate_cache));
 }
 
 /**
@@ -353,6 +397,7 @@ bool vessel_piracy_point_in_polygon(const struct vertex *vertices, int vertex_co
  */
 bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *law)
 {
+  struct vessel_piracy_coordinate_cache_entry *coordinate_entry;
   const struct vessel_piracy_law_cache_entry *entry;
   const struct vessel_piracy_law_cache_entry *best_entry;
   const struct region_data *region;
@@ -361,11 +406,21 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
   bool best_configured;
   int priority;
   int best_priority;
+  unsigned int coordinate_index;
   region_rnum i;
 
   if (law == NULL)
   {
     return FALSE;
+  }
+
+  coordinate_index = vessel_piracy_coordinate_cache_index(x, y);
+  coordinate_entry = &vessel_piracy_coordinate_cache[coordinate_index];
+  if (coordinate_entry->valid && coordinate_entry->x == x &&
+      coordinate_entry->y == y)
+  {
+    *law = coordinate_entry->law;
+    return coordinate_entry->found;
   }
 
   memset(law, 0, sizeof(*law));
@@ -412,6 +467,11 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
 
   if (best_region == NULL)
   {
+    coordinate_entry->valid = TRUE;
+    coordinate_entry->found = FALSE;
+    coordinate_entry->x = x;
+    coordinate_entry->y = y;
+    coordinate_entry->law = *law;
     return FALSE;
   }
 
@@ -429,6 +489,11 @@ bool vessel_piracy_law_at_coordinates(int x, int y, struct vessel_piracy_law *la
     strlcpy(law->authority, best_entry->authority, sizeof(law->authority));
   }
 
+  coordinate_entry->valid = TRUE;
+  coordinate_entry->found = TRUE;
+  coordinate_entry->x = x;
+  coordinate_entry->y = y;
+  coordinate_entry->law = *law;
   return TRUE;
 }
 

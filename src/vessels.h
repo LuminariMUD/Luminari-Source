@@ -630,6 +630,7 @@ void vessel_encounter_tick(void);
 void vessel_encounter_force_check(void);
 bool vessel_in_encounter_region(const struct greyhawk_ship_data *ship, int *region_vnum);
 bool vessel_encounter_region_from_list(const struct region_list *regions, int *output_region_vnum);
+bool vessel_encounter_region_at_coordinates(int x, int y, int *output_region_vnum);
 bool vessel_encounter_chance_succeeds(int chance, int roll);
 bool vessel_encounter_claim_room(room_rnum room, room_rnum *claimed_rooms, int *claimed_count,
                                  int claimed_capacity);
@@ -711,6 +712,9 @@ struct vessel_piracy_law
 void vessel_piracy_ensure_schema(void);
 bool vessel_piracy_reload_laws(void);
 void vessel_piracy_clear_laws(void);
+#ifdef LUMINARI_CUTEST
+size_t vessel_piracy_coordinate_cache_count(void);
+#endif
 int vessel_get_bounty(const char *player_name);
 void vessel_add_bounty(const char *player_name, int amount);
 void vessel_clear_bounty(const char *player_name);
@@ -797,6 +801,9 @@ const char *vessel_crew_tier_name(int tier);
 int vessel_crew_hire_cost(int position, int tier);
 int vessel_crew_wage(int position, int tier);
 int vessel_crew_wage_batch_for_slot(int ship_slot);
+int vessel_crew_departure_delete_query(char *query, size_t query_size,
+                                       const int *ship_slots,
+                                       const int *positions, int count);
 void vessel_apply_crew_bonuses(struct greyhawk_ship_data *ship);
 void vessel_crew_wage_tick(void);
 void vessel_db_save_crew(struct greyhawk_ship_data *ship);

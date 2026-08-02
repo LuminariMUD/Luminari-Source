@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.15
+**Version:** 3.16
 
 **Evidence snapshot:** August 2, 2026
 
@@ -30,7 +30,8 @@ from the full live-game benchmark that still must be run.
 | Fifth current 500-ship attempt on August 2, 2026 | Reached native MSDP proof; stopped before steady measurement | Raw Telnet client fixed and baseline contract passes |
 | Sixth current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,676 ticks | Overflow and 25 ms performance gates failed |
 | Post-sixth optimization candidate | 271/271 tests; actionable Memcheck clean | Installed and exercised by seventh launch |
-| Seventh current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,665 ticks; zero overflows | Harness, route, full-fleet spawn, memory, and 25 ms gates failed |
+| Seventh current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,665 ticks; zero overflows | Harness, route, memory, and 25 ms gates failed; merchant capacity deferral expected |
+| Post-seventh repair candidate | 274/274 tests; actionable Memcheck clean | Installed; restart and scale rerun required |
 | Complete current 500-ship live tick | 3,665 ticks; p95 131,989.20 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -330,9 +331,12 @@ repair. The terminal script stopped first because its generic `@wait` path
 discarded all asynchronous socket output before checking for the encounter
 text. The server log independently proves 20 encounter deliveries from
 Kohdee's moving airship and 20 shared deliveries to 60 co-located ships. This
-is a harness defect, but the same log contains later real workload failures:
-225 scheduled autopilot moves attempted a non-navigable intermediate cell and
-six hunter-vessel spawns were attempted after all 500 slots were occupied.
+is a harness defect, but the same log contains a later real workload failure:
+225 scheduled autopilot moves attempted a non-navigable intermediate cell.
+Six spawn attempts were also deferred after all 500 slots were occupied.
+Production call tracing identifies those six as baseline NPC merchant
+prototype 7 reconciliation, not hunter-vessel creation; capacity deferral is
+expected.
 
 The complete seventh profile is diagnostic evidence, not a pass:
 
@@ -358,6 +362,22 @@ and the heap mapping each grew by about 65 MiB, while movement trails grew
 from 29,608 to 287,220. The analyzer reports a 129,567-KiB/hour RSS slope and
 remains `REPORT_ONLY`, so memory stability is still open. Cleanup restored six
 vessels and restarted the exact installed SHA-256 on PID 640439.
+
+The following repair candidate is installed as SHA-256
+`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`, but is
+not yet live or scale-accepted. Generic `@wait` now captures, displays, and
+returns cleaned asynchronous data. The reciprocal water schedule and all
+water-class runtime fixtures stay on the actual-Kohdee-verified `y = 82`
+channel from `x = -66` through `x = -62`. A full fleet now reports merchant
+prototype reconciliation as informational deferral. Movement-law polygon
+resolution has a bounded 4,096-entry coordinate cache; encounter containment
+uses the canonical in-memory region polygons instead of synchronous spatial
+SQL; and a payroll batch persists up to five crew departures with one atomic
+delete. Movement-trail signatures refresh in place and each room retains at
+most 16. The warning-free server build, vessel tooling, 274 of 274 production-
+linked tests, and strict actionable Memcheck across the same 274 tests all
+pass. These are candidate qualifications only; fresh installed-process and
+500-vessel measurements remain required.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

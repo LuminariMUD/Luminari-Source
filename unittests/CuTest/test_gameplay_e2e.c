@@ -621,6 +621,41 @@ void Test_gameplay_e2e_movement_trail_statistics_follow_live_world(CuTest *tc)
   CuAssertIntEquals(tc, 1, (int)final_trails);
 }
 
+void Test_gameplay_e2e_movement_trails_refresh_and_remain_bounded(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  struct trail_data *trail;
+  char name[32];
+  size_t trail_count;
+  int i;
+
+  begin_gameplay_fixture(&fixture);
+
+  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human",
+                        DIR_NONE, NORTH, 100);
+  movement_trail_record(fixture.rooms[0].trail_tracks, "repeat walker", "human",
+                        DIR_NONE, NORTH, 200);
+  trail_count = count_live_movement_trails();
+  CuAssertIntEquals(tc, 1, (int)trail_count);
+  CuAssertIntEquals(tc, 200, (int)fixture.rooms[0].trail_tracks->head->age);
+
+  for (i = 0; i < TRAIL_MAX_PER_ROOM + 5; i++)
+  {
+    snprintf(name, sizeof(name), "walker %d", i);
+    movement_trail_record(fixture.rooms[0].trail_tracks, name, "human",
+                          DIR_NONE, NORTH, 300 + i);
+  }
+  trail_count = count_live_movement_trails();
+  trail = fixture.rooms[0].trail_tracks->head;
+
+  CuAssertIntEquals(tc, TRAIL_MAX_PER_ROOM, (int)trail_count);
+  CuAssertTrue(tc, trail != NULL);
+  CuAssertIntEquals(tc, 300 + TRAIL_MAX_PER_ROOM + 4, (int)trail->age);
+  CuAssertTrue(tc, fixture.rooms[0].trail_tracks->tail != NULL);
+
+  end_gameplay_fixture(&fixture);
+}
+
 void Test_gameplay_e2e_command_dispatch_reaches_movement(CuTest *tc)
 {
   struct gameplay_fixture fixture;

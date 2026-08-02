@@ -1020,6 +1020,42 @@ void Test_vessel_crew_payroll_batches_bound_full_fleet_work(CuTest *tc)
   CuAssertIntEquals(tc, -1, vessel_crew_wage_batch_for_slot(GREYHAWK_MAXSHIPS));
 }
 
+void Test_vessel_crew_payroll_departures_share_one_delete(CuTest *tc)
+{
+  const int ship_slots[] = {1, 101, 201, 301, 401};
+  const int positions[] = {
+      CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN,
+      CREW_QUARTERMASTER, CREW_GUNNER
+  };
+  const int invalid_positions[] = {
+      CREW_SAILMASTER, CREW_GUNNER, CREW_BOSUN,
+      CREW_QUARTERMASTER, NUM_CREW_POSITIONS
+  };
+  char query[MAX_STRING_LENGTH];
+  int length;
+
+  length = vessel_crew_departure_delete_query(
+      query, sizeof(query), ship_slots, positions, 5);
+
+  CuAssertTrue(tc, length > 0);
+  CuAssertStrEquals(
+      tc,
+      "DELETE FROM ship_crew_roster WHERE "
+      "(ship_id = 1 AND npc_vnum = -100) OR "
+      "(ship_id = 101 AND npc_vnum = -101) OR "
+      "(ship_id = 201 AND npc_vnum = -102) OR "
+      "(ship_id = 301 AND npc_vnum = -103) OR "
+      "(ship_id = 401 AND npc_vnum = -101)",
+      query);
+  CuAssertIntEquals(
+      tc, -1,
+      vessel_crew_departure_delete_query(query, sizeof(query), ship_slots,
+                                         invalid_positions, 5));
+  CuAssertIntEquals(
+      tc, -1,
+      vessel_crew_departure_delete_query(query, 8, ship_slots, positions, 5));
+}
+
 void Test_vessel_upgrade_effects(CuTest *tc)
 {
   struct greyhawk_ship_data ship;
@@ -1211,6 +1247,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   int repeated_region;
   int crossed_region;
   int outside_region;
+  size_t cached_coordinates;
 
   memset(region_fixture, 0, sizeof(region_fixture));
   memset(zone_fixture, 0, sizeof(zone_fixture));
@@ -1298,6 +1335,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   vessel_piracy_track_waters(&ship, TRUE);
   outside_region = ship.waters_region_vnum;
   open_water_announced = strstr(descriptor.output, "enters unnamed open waters") != NULL;
+  cached_coordinates = vessel_piracy_coordinate_cache_count();
 
   ProtocolDestroy(descriptor.pProtocol);
   region_table = saved_region_table;
@@ -1306,6 +1344,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   top_of_zone_table = saved_top_of_zone_table;
   world = saved_world;
   top_of_world = saved_top_of_world;
+  vessel_piracy_clear_laws();
 
   CuAssertTrue(tc, western_found);
   CuAssertTrue(tc, eastern_found);
@@ -1320,6 +1359,7 @@ void Test_vessel_piracy_resolves_canonical_regions_in_memory(CuTest *tc)
   CuAssertTrue(tc, crossing_announced);
   CuAssertIntEquals(tc, 0, outside_region);
   CuAssertTrue(tc, open_water_announced);
+  CuAssertIntEquals(tc, 3, (int)cached_coordinates);
 }
 
 void Test_vessel_shiptalk_is_scoped_to_one_ship(CuTest *tc)
@@ -1561,6 +1601,73 @@ void Test_vessel_encounter_region_selection_is_order_independent(CuTest *tc)
   CuAssertIntEquals(tc, 70030, center_vnum);
   CuAssertTrue(tc, !invalid_found);
   CuAssertIntEquals(tc, 0, invalid_vnum);
+}
+
+void Test_vessel_encounter_regions_resolve_from_in_memory_polygons(CuTest *tc)
+{
+  struct vertex outer_polygon[] = {
+      {0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}
+  };
+  struct vertex inner_polygon[] = {
+      {4, 3}, {8, 3}, {8, 7}, {4, 7}, {4, 3}
+  };
+  struct region_data fixture[3];
+  struct region_data *saved_region_table;
+  struct zone_data zone_fixture[2];
+  struct zone_data *saved_zone_table;
+  region_rnum saved_top_of_region_table;
+  zone_rnum saved_top_of_zone_table;
+  bool inner_center_found;
+  bool outer_center_found;
+  bool outside_found;
+  int inner_center_vnum;
+  int outer_center_vnum;
+  int outside_vnum;
+
+  memset(fixture, 0, sizeof(fixture));
+  memset(zone_fixture, 0, sizeof(zone_fixture));
+  zone_fixture[0].number = WILD_ZONE_VNUM;
+  zone_fixture[1].number = 12345;
+
+  fixture[0].vnum = 70020;
+  fixture[0].zone = 0;
+  fixture[0].region_type = REGION_ENCOUNTER;
+  fixture[0].vertices = outer_polygon;
+  fixture[0].num_vertices = 5;
+  fixture[1] = fixture[0];
+  fixture[1].vnum = 70030;
+  fixture[1].vertices = inner_polygon;
+  fixture[2] = fixture[0];
+  fixture[2].vnum = 70010;
+  fixture[2].zone = 1;
+
+  saved_region_table = region_table;
+  saved_top_of_region_table = top_of_region_table;
+  saved_zone_table = zone_table;
+  saved_top_of_zone_table = top_of_zone_table;
+  region_table = fixture;
+  top_of_region_table = 2;
+  zone_table = zone_fixture;
+  top_of_zone_table = 1;
+
+  inner_center_found =
+      vessel_encounter_region_at_coordinates(6, 5, &inner_center_vnum);
+  outer_center_found =
+      vessel_encounter_region_at_coordinates(5, 5, &outer_center_vnum);
+  outside_found =
+      vessel_encounter_region_at_coordinates(20, 20, &outside_vnum);
+
+  region_table = saved_region_table;
+  top_of_region_table = saved_top_of_region_table;
+  zone_table = saved_zone_table;
+  top_of_zone_table = saved_top_of_zone_table;
+
+  CuAssertTrue(tc, inner_center_found);
+  CuAssertIntEquals(tc, 70030, inner_center_vnum);
+  CuAssertTrue(tc, outer_center_found);
+  CuAssertIntEquals(tc, 70020, outer_center_vnum);
+  CuAssertTrue(tc, !outside_found);
+  CuAssertIntEquals(tc, 0, outside_vnum);
 }
 
 void Test_vessel_encounter_roll_boundaries_are_deterministic(CuTest *tc)

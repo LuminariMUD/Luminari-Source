@@ -75,6 +75,23 @@
   second dirty frame. Cooked input previously left a correctly enabled MSDP
   session without delivered REPORT requests and produced a false missing-
   `SHIP_NAME` failure at 500 ships.
+- Generic login-helper waits now retain, display, and return cleaned
+  asynchronous output. The scale encounter gate no longer loses valid messages
+  merely because they arrive while no command response is pending.
+- The scale schedule and all water-class runtime fixtures use the compact
+  `y = 82` channel verified in game from `x = -66` through `x = -62`. Scheduled
+  loops no longer restart toward a waypoint across invalid intermediate water.
+- Full-capacity NPC merchant reconciliation is reported as informational
+  deferral. The six messages from the seventh scale run came from baseline
+  merchant prototype 7, not bounty-hunter creation or a server fault.
+- Piracy-law movement lookups use a bounded 4,096-entry coordinate cache that
+  is invalidated on law/region reload. Encounter containment now resolves the
+  canonical in-memory polygons without synchronous spatial SQL.
+- Payroll persists up to five crew walkoffs in one atomic delete instead of
+  issuing a delete and multi-row insert for each changed roster.
+- Repeated movement-trail signatures refresh in place, and each room retains
+  at most 16 distinct signatures. Ordinary mobile wandering no longer creates
+  an unbounded trail-node population during a scale window.
 
 #### Validated
 
@@ -176,13 +193,20 @@
 - Run `20260802T024352Z-573327` completes another 1,800-second window with 500
   vessels on one PID and zero live buffer overflows. It exposes a generic
   `@wait` helper that discards asynchronous encounter text, 225 invalid
-  scheduled route steps, and six full-capacity hunter-spawn attempts. The
+  scheduled route steps, and six full-capacity merchant-reconciliation
+  deferrals initially misidentified as hunter spawns. The
   complete 3,665-tick profile remains over budget: p95 131,989.20 usec,
   maximum 355,394, and 6,217 missed pulses. Queries fall to 67,052 and payroll
   p95 to 9,146.80 usec, but autopilot p95 remains 130,774. The 1,854-second
   memory series grows from 786,296 to 853,480 KiB RSS and remains
   `REPORT_ONLY`. Cleanup restores six vessels and the exact installed binary
   on PID 640439.
+- The follow-up repair candidate builds without warnings, passes vessel
+  tooling and all 274 production-linked tests, and passes strict actionable
+  Memcheck across the same 274 tests with zero errors. Required `make install`
+  removes the root artifact and installs SHA-256
+  `0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021`.
+  PID 640439 remains on the preceding binary pending the committed live rerun.
 
 ### Durable HUNTED bounty-hunter patrols
 
