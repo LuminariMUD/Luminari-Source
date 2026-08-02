@@ -291,6 +291,11 @@ The wilderness lookout now samples canonical terrain in eight bearings to the
 production visibility horizon and reports current elevation, water depth, and
 nearest-first live contacts. A reversible Kohdee session passes open-water,
 coastal, help-alias, cleanup, and exact-restoration acceptance.
+Dynamic at-sea prose now combines vessel class, speed, depth, the shared
+wilderness weather scale, and deterministic regional hints. Moving occupied
+hulls receive bounded ambient messages through the same production formatter;
+a reversible Kohdee session passes live-weather, Vailand-region, forced-
+ambient, cleanup, and exact-restoration acceptance.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current

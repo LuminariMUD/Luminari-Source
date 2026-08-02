@@ -13,9 +13,9 @@ trails. At that scale revision, all 277 production-linked tests, strict
 actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
 passed; its normal binary SHA-256 was
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later wilderness-lookout candidate passes 292 production-linked tests and
+The later dynamic-narrative candidate passes 297 production-linked tests and
 installs SHA-256
-`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
 Repeat the scale gate during final preflight because the source changed after
 the recorded 500-vessel run.
 
@@ -78,6 +78,15 @@ Beach, Field, Marshland, City, and road terrain from a second coastal hull. The
 38-second run checked both help aliases, purged every temporary hull, restored
 Kohdee's exact player file and room 1204, and restarted the tested binary from
 source `d788c537`.
+
+The dynamic at-sea narrative passes actual-character acceptance under
+`/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`.
+Kohdee boarded a moving Vailand warship under live overcast 167/255 weather,
+read movement- and weather-aware at-sea prose with a Vailand Passage hint, and
+forced the matching production ambient formatter through `vesseldebug
+ambient`. The 34-second run verified the eight-row content package, purged the
+temporary hull, restored Kohdee's exact player file and room 1204, and
+restarted the tested binary from source `547e54b3`.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -378,6 +387,30 @@ and Field sectors. Cleanup purges only acceptance-prototype hulls, returns
 Kohdee to room 1204, byte-restores the player file, and restarts the same
 executable. The passing transcript is `02-kohdee-vessel-lookout.log` inside
 `/tmp/luminari-vessel-lookout-check-1000/runs/20260802T111510Z-1611249`.
+
+## Fast Dynamic At-Sea Narrative
+
+After the Vailand campaign regions exist and the current clean candidate is
+built and installed, run:
+
+```bash
+./scripts/test_vessel_narrative_in_game.sh
+```
+
+The development-only wrapper refuses production, dirty or stale source,
+active scale/ferry ownership, missing Vailand regions, and pre-existing
+acceptance runtimes. It snapshots Kohdee with the MUD stopped, applies and
+verifies all eight owned region hints, checks authoritative help, and runs the
+lower-level login helper's `--vessel-narrative-check` workflow.
+
+Success requires the at-sea line to follow the live wilderness weather band,
+identify a moving warship, and select eligible Vailand geographic or
+weather-specific prose. `vesseldebug ambient` must emit the production
+class-, speed-, and weather-aware message. Cleanup purges only the temporary
+acceptance hull, returns Kohdee to room 1204, byte-restores the player file,
+and restarts the same executable. The passing transcript is
+`02-kohdee-vessel-narrative.log` inside
+`/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`.
 
 ## Fast HUNTED Bounty-Hunter Check
 

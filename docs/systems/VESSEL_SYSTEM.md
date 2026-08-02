@@ -2,8 +2,8 @@
 
 **Release Status**: Gameplay layer, initial campaign shipping, initial
 data/DG-driven derelict, wilderness frontier package, and Phase 16 showcase
-events implemented; wilderness tactical chart and lookout view accepted;
-production acceptance incomplete
+events implemented; wilderness tactical chart, lookout view, and dynamic
+at-sea narrative accepted; production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -71,6 +71,7 @@ and operator controls in one system.
 | Core Vessels | Ship management, coordinates, movement | vessels.c, vessels.h |
 | Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
 | Lookout View | Eight-bearing wilderness samples and visible contacts | vessels_lookout.c |
+| At-Sea Narrative | Contextual descriptions and occupied-hull ambience | vessels_narrative.c |
 | Autopilot | Waypoint navigation, route following | vessels_autopilot.c |
 | Interior Rooms | Multi-room ship interiors | vessels_rooms.c |
 | Docking | Ship-to-ship docking mechanics | vessels_docking.c |
@@ -514,6 +515,38 @@ road sectors. The gate purged its hulls, byte-restored Kohdee, and left no
 acceptance runtime rows. Five production-linked tests cover sample selection,
 terrain-band compression, capacity/input boundaries, and compass boundaries.
 
+#### Dynamic At-Sea Narrative
+
+The `At sea:` line shown by `lookout` passes the current hull through the
+compact narrative-weaver API. It combines vessel class, stopped or moving
+state, speed band, depth, and the raw wilderness weather value with one
+deterministically selected `region_hint`. Geographic prose therefore follows
+the same `region_data` polygons as travel and piracy law; it does not add a
+vessel-only map or random description state.
+
+`src/vessels_narrative.c` also formats class-, speed-, weather-, and
+depth-aware ambient messages. The normal heartbeat broadcasts one every 240
+vessel ticks, or 120 seconds, but only for a moving hull with a player aboard.
+Stopped, empty, and invalid hulls add no ambient traffic. Staff may run
+`vesseldebug ambient` aboard a hull to invoke the same formatter immediately;
+it is an acceptance hook rather than an independent message implementation.
+
+`vessels_narrative_content.sql` owns eight idempotent Vailand hints: one
+geographic and one severe-weather variant for each of the four canonical
+water regions. Its verifier requires the exact 8/4/4 inventory and rejects
+ownership or metadata drift; its guarded rollback deletes only rows owned by
+`vessel_narrative_v1`.
+
+Development run
+`/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`
+passed in 34 seconds on source `547e54b3` and installed SHA-256
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+Actual Kohdee observed overcast 167/255 conditions, a steady-warship at-sea
+line with Vailand Passage prose, and matching forced ambience. The gate
+byte-restored Kohdee, removed every temporary hull, and left no acceptance
+runtime row. Five production-linked tests cover exact weather boundaries,
+all eight classes, speed bands, submarine depth, and invalid inputs.
+
 ### Autopilot Commands
 
 | Command | Description | Usage |
@@ -535,7 +568,7 @@ terrain-band compression, capacity/input boundaries, and compass boundaries.
 | shipgoto | Teleport aboard a vessel | `shipgoto <slot>` |
 | shipfix | Restore a vessel to full condition | `shipfix <slot>` |
 | vmerchant | Inspect or reconcile NPC merchants; force a confirmed loss | `vmerchant [list\|sync\|sink <id> confirm]` |
-| vesseldebug | Inspect debug state or advance the normal encounter cadence | `vesseldebug [status\|on ...\|off ...\|encounter]` |
+| vesseldebug | Inspect debug state, force ambience, or advance encounter cadence | `vesseldebug [status\|on ...\|off ...\|ambient\|encounter]` |
 | vevent | Start, enlist, end, cancel, or recover a showcase event | `vevent <action>` |
 
 `shiplist` reports wilderness dynamic room pool utilization and flags
@@ -573,6 +606,10 @@ region, class, depth, chance, HUNTED eligibility, spawn, and lifecycle path
 used by the heartbeat. Staff can use it in a normal build even though runtime
 debug categories remain compiled out.
 
+`vesseldebug ambient` resolves the operator's current generated vessel room
+and invokes the production narrative broadcaster once. It does not advance or
+reset the normal 120-second cadence.
+
 ### Living World Commands (Phase 08)
 
 | Command | Description | Usage |
@@ -582,10 +619,13 @@ debug categories remain compiled out.
 Hazards and encounters (`src/vessels_hazards.c`) read only wilderness
 signals - no vessel-private geography:
 
-- **Weather**: severity bands from `get_weather(x,y)` (the same field a
-  coastal walker sees). Squall/storm/gale degrade rigging; a gale with neither
-  a sailmaster nor the assigned pilot at the bridge damages the hull.
-  Submerged submarines are sheltered.
+- **Weather**: raw 0..255 bands from `get_weather(x,y)` exactly match the
+  field a coastal walker sees: 0..127 clear, 128..177 cloudy, 178..199
+  rain/squall, 200..224 storm, and 225..255 gale/thunder. Squall, storm, and
+  gale degrade rigging; a gale with neither a sailmaster nor the assigned
+  pilot at the bridge damages the hull. Narrative, visibility, lookout,
+  tactical, and hazard logic share these thresholds. Submerged submarines are
+  sheltered.
 - **Crush depth**: submarines diving past the seabed depth at their
   coordinate (`get_modified_elevation()` vs `wild_waterline`) take damage.
 - **Visibility**: `vessel_sight_range()` shrinks in fog, extended by a
@@ -1409,6 +1449,7 @@ and the trigger was removed.
 | `src/vessels.c` | Core commands, wilderness movement, terrain system |
 | `src/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
 | `src/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
+| `src/vessels_narrative.c` | Class-, speed-, weather-, depth-, and region-aware at-sea prose |
 | `src/vessels_rooms.c` | Interior room generation and movement |
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
@@ -1444,6 +1485,7 @@ and the trigger was removed.
 | `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
 | `scripts/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
 | `scripts/test_vessel_lookout_in_game.sh` | Reversible Kohdee wilderness-lookout, contact, and coastal-sector gate |
+| `scripts/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 
 ### Database
 
@@ -1473,6 +1515,9 @@ and the trigger was removed.
 | `sql/components/vessels_frontier_content.sql` | Starfall, Aetherwind, Shardspire, Sablebranch, and eight prototype definitions |
 | `sql/components/verify_vessels_frontier_content.sql` | Read-only frontier geometry, index, and prototype inventory |
 | `sql/components/vessels_frontier_content_rollback.sql` | Guarded frontier content rollback |
+| `sql/components/vessels_narrative_content.sql` | Eight owned Vailand geographic and severe-weather hints |
+| `sql/components/verify_vessels_narrative_content.sql` | Read-only narrative-hint inventory and metadata checks |
+| `sql/components/vessels_narrative_content_rollback.sql` | Owner-scoped Vailand narrative rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 

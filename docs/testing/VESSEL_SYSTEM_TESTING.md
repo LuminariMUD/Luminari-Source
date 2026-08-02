@@ -10,21 +10,21 @@ findings are tracked in
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
 Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
 showcase-event gate, the wilderness tactical-chart gate, the lookout-view
-gate, and the current candidate's focused build gates pass on local
-development.**
+gate, the dynamic at-sea narrative gate, and the current candidate's focused
+build gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 292 production-linked tests. The
+The current normal candidate passes all 297 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -324,6 +324,45 @@ files both hash to
 the final database held zero acceptance runtime rows. Five production-linked
 tests cover bounded distance samples, terrain-band compression, invalid and
 capacity inputs, and compass boundaries.
+
+## Dynamic At-Sea Narrative Check
+
+After the Vailand campaign regions exist and a clean candidate is installed,
+run:
+
+```bash
+./scripts/test_vessel_narrative_in_game.sh
+```
+
+The development-only wrapper refuses production, dirty or stale source, an
+installed/running binary mismatch, active scale or ferry ownership, missing
+Vailand regions, and pre-existing acceptance runtimes. It snapshots Kohdee
+with the MUD stopped, applies and verifies the idempotent eight-row narrative
+content package, applies authoritative vessel help, and invokes the shared
+tactical harness's lower-level `--vessel-narrative-check` login workflow.
+
+One actual Kohdee session creates and boards a moving Vailand warship. The
+gate reads the live 0..255 weather value and requires the matching clear,
+overcast, rainy, storm, or thunder at-sea wording, a movement-aware warship
+sentence, and either the eligible geographic hint or its higher-priority
+weather-specific regional variant. `vesseldebug ambient` must then broadcast
+the production class-, speed-, and weather-aware message aboard the hull.
+Cleanup purges the temporary runtime, returns Kohdee to room 1204,
+byte-restores the player file, rejects related `SYSERR` rows, and restarts the
+exact installed candidate.
+
+Run
+`/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`
+passed in 34 seconds on source `547e54b3` and installed SHA-256
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+Kohdee observed overcast 167/255 conditions, visibility 32, steady warship
+movement, Vailand Passage prose, and the forced armored-hull ambient line. The
+gameplay workflow took 2.6 seconds and login-to-cleanup took 7 seconds. The
+before/restored player files both hash to
+`16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`;
+the final database held zero temporary runtime rows. Five production-linked
+tests lock raw weather boundaries, all vessel classes, speed bands, submerged
+weather behavior, and invalid-output handling.
 
 ## Shared Harbor Merchant Loss Check
 

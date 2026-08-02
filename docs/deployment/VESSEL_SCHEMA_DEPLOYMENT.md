@@ -44,6 +44,7 @@ tables.
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | 16 | `vessels_phase16_schema.sql` | `verify_vessels_phase16.sql` | `vessels_phase16_rollback.sql` | Showcase-event history, participant results, leaderboards, and temporary ghost ownership |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
+| Narrative | `vessels_narrative_content.sql` | `verify_vessels_narrative_content.sql` | `vessels_narrative_content_rollback.sql` | Eight geographic and severe-weather hints for canonical Vailand waters |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
 | Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes |
 | Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 33 authoritative vessel and vehicle help entries covering 80 command keywords |
@@ -78,6 +79,14 @@ prototype, one merchant definition, and two iron-market rows. Stop writes and
 retire its active merchant hull before content rollback. The guarded rollback
 leaves the merchant disabled if an active hull or another dependency still
 prevents safe removal.
+The narrative package depends on the campaign package's four canonical
+Vailand `region_data` identities and the existing narrative-weaver
+`region_hints` table. It owns exactly eight rows under
+`vessel_narrative_v1`: one geographic and one severe-weather hint per region.
+The fresh-schema manifest treats it as optional campaign content because its
+region prerequisites may not exist. Apply it explicitly after campaign
+content. Its rollback removes only rows with that owner and leaves region
+geometry and unrelated hints intact.
 The derelict package depends on Phase 11 and the reviewed object/trigger world
 records in `lib/world/vessel_derelict/`. Its SQL owns one prototype and three
 generated-room trigger mappings; it does not install or remove world files.
@@ -129,8 +138,8 @@ Use an isolated clone of a recent production backup.
    - Representative ship records selected for post-migration comparison.
 3. Stop application writes.
 4. Apply each schema component in ascending order, then apply the reviewed
-   campaign, derelict, and frontier content packages with their matching world
-   records.
+   campaign, narrative, derelict, and frontier content packages with their
+   matching world records.
 5. Run every matching schema and content verification script.
 6. Apply `help_vessel_entries.sql`, run
    `verify_help_vessel_entries.sql`, and complete the in-game command-keyword
@@ -198,6 +207,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_narrative_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_derelict_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_frontier_content.sql
@@ -242,6 +253,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_narrative_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_derelict_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_frontier_content.sql
@@ -257,6 +270,9 @@ Also verify:
 - Representative records against the pre-deployment snapshot.
 - Exact Vailand campaign region count, 18-link sequence, merchant identity,
   and two-row iron supply gradient.
+- Exact narrative-hint inventory: eight owned rows across four Vailand
+  regions, split into four geographic and four severe-weather variants, with
+  zero owner or metadata drift.
 - Exact Blackwake prototype attributes, three room-trigger mappings, zero or
   one ownerless runtime, and the corresponding reviewed world records.
 - Exact frontier region thresholds and polygons, the 79-cell Sablebranch
@@ -317,6 +333,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_derelict_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_narrative_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase16_rollback.sql
@@ -347,7 +365,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 ```
 
 These scripts delete frontier content, derelict mappings and unreferenced
-definitions, showcase-event results and leaderboards, hunter policy and
+definitions, owned Vailand narrative hints, showcase-event results and
+leaderboards, hunter policy and
 lifecycle history, merchant definitions and consequences,
 normalized weapons, insurance settlements, runtime snapshots, encounters,
 economy data, ownership state, prototypes, interiors, cargo, and crew. They do

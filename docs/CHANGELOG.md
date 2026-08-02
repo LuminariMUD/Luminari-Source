@@ -6,6 +6,20 @@
 
 #### Added
 
+- `lookout` now includes an `At sea:` description composed from vessel class,
+  movement, speed, depth, raw wilderness weather, and a deterministic
+  geographic `region_hint`. Moving occupied hulls receive class-, speed-,
+  weather-, and depth-aware ambience every 120 seconds; `vesseldebug ambient`
+  invokes the same production formatter for staff acceptance.
+- The idempotent vessel narrative package owns eight Vailand hints, one
+  geographic and one severe-weather variant for each canonical campaign water
+  region. A read-only verifier enforces the exact 8/4/4 inventory, while the
+  guarded rollback removes only `vessel_narrative_v1` rows.
+- `scripts/test_vessel_narrative_in_game.sh` performs a reversible
+  actual-Kohdee at-sea narrative session. It follows the live wilderness
+  weather band, checks eligible regional prose and forced ambience, restores
+  Kohdee byte-for-byte, removes temporary hull state, and restarts the exact
+  candidate.
 - The player-facing `lookout` command now samples canonical modified
   wilderness sectors north, northeast, east, southeast, south, southwest,
   west, and northwest to the production visibility horizon. It reports the
@@ -107,6 +121,15 @@
 
 #### Fixed
 
+- Vessel hazards, visibility, lookout, tactical, and narrative now interpret
+  the shared wilderness weather field on its actual 0..255 scale. The former
+  40/60/75/90 thresholds classified ordinary cloudy values as severe weather;
+  the aligned boundaries are 128 cloudy, 178 rain/squall, 200 storm, and 225
+  gale/thunder.
+- Narrative-weaver cache reload and shutdown now copy and free all owned hint
+  metadata, including ownership and condition strings. Hint selection uses
+  deterministic SQL ordering before the compact vessel description path
+  chooses its regional line.
 - `lookout` now recognizes authoritative generated-interior membership before
   applying bridge/deck view rules. The first live run reached a registered
   Starfall Bastion bridge but an obsolete generic room-flag precheck rejected
@@ -238,6 +261,15 @@
 
 #### Validated
 
+- Narrative run `20260802T115413Z-1685068` is terminal `PASS` in 34 seconds
+  on source `547e54b3` and installed SHA-256
+  `908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+  Actual Kohdee observed overcast 167/255 weather, visibility 32, a moving
+  warship with Vailand Passage prose, and matching forced ambience. Cleanup
+  restored player SHA-256
+  `16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`,
+  left no temporary runtime, and restarted the exact binary. The warning-free
+  production-linked suite passes 297 tests.
 - Frontier run `20260802T091531Z-1364409` passes in 75 seconds on source
   `873171ae` and installed SHA-256
   `9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.

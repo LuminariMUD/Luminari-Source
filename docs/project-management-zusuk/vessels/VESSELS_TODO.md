@@ -11,6 +11,10 @@ live contact damage state, and passes its reversible actual-character gate.
 The lookout view now samples the canonical wilderness in eight bearings,
 reports the visible horizon and nearby hulls, and passes its reversible
 actual-character gate.
+Dynamic at-sea descriptions now combine vessel class, speed, depth, the raw
+wilderness weather field, and deterministic geographic `region_hints`.
+Occupied moving hulls also receive throttled ambient prose, and both paths
+pass a reversible actual-character gate.
 The core development release gates for build, regression, Memcheck, bounded
 ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
@@ -42,9 +46,9 @@ reports zero errors and zero definite, indirect, or possible loss. The
 368,451 reachable bytes remain owned by process-lifetime registries. The
 focused protocol parser passes 13 of 13, the prior integrated CMake gate
 passes 6 of 6, required `make install` removes the root artifact, and the
-current normal candidate passes 292 production-linked tests and installs
+current normal candidate passes 297 production-linked tests and installs
 SHA-256
-`0e7aa43463d67388aa985e6dfca4c854a17d97cf2ea1a1803714e3d3c163530a`.
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
 
 **Campaign-content checkpoint (August 2, 2026, 09:59 IDT):** The tracked,
 idempotent Vailand package now maps two territorial-water regions, the
@@ -147,6 +151,25 @@ purged every temporary hull, restored room 1204 and the byte-identical player
 file, left zero Bastion runtimes, and restarted the exact candidate. The
 warning-free production-linked suite passes 292 tests.
 
+**Dynamic-narrative checkpoint (August 2, 2026, 14:54 IDT):** The at-sea line
+now uses the compact narrative-weaver path to combine class, movement,
+wilderness weather, and one deterministic geographic or weather-specific
+region hint. A 120-second heartbeat sends class-, speed-, weather-, and
+depth-aware ambience only to occupied moving hulls; `vesseldebug ambient`
+forces the same production formatter for staff acceptance. The Vailand
+content package owns eight idempotent hints, two for each canonical water
+region, with read-only verification and guarded rollback. Reversible run
+`/tmp/luminari-vessel-narrative-check-1000/runs/20260802T115413Z-1685068`
+is terminal `PASS` in 34 seconds on source `547e54b3` and installed SHA-256
+`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+Actual Kohdee observed overcast conditions at 167/255, a steady warship line
+with Vailand Passage prose, and a matching forced ambient message. Cleanup
+purged every temporary hull, restored room 1204 and the byte-identical player
+file (SHA-256
+`16574e8f8c243a152f1fb0a9a2402e31a98534a5ef9ff622fa78f67239b3bc5d`),
+left zero acceptance runtime rows, and restarted the exact candidate. Five
+new production-linked tests bring the warning-free suite to 297 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -159,7 +182,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 8 top-level items: 3 player-experience/presentation
+**Remaining checklist:** 7 top-level items: 2 player-experience/presentation
 and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
@@ -179,7 +202,7 @@ and 5 balance/beta/rollout.
   showing coastline, shoals, region boundaries, contacts, range rings, and
   damage state.
 - [x] Build lookout view v2 from actual surrounding wilderness sectors.
-- [ ] Add dynamic at-sea descriptions through `narrative_weaver` and
+- [x] Add dynamic at-sea descriptions through `narrative_weaver` and
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
@@ -198,6 +221,10 @@ private tactical grid.
 The completed lookout samples the same canonical modified sectors along eight
 bearings, shares production visibility and contact state with tactical, and
 reports elevation and water depth without creating a second world model.
+The completed narrative layer uses that same raw 0..255 wilderness weather
+field, deterministic region hints, and existing ship state. Its 120-second
+ambient cadence skips stopped and unoccupied hulls, so presentation does not
+create a second simulation or fleet-scale background-message source.
 
 ## 3. Balance, Beta, and Roll Out
 
