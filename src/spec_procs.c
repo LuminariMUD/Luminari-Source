@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
 #include "spec_procs.h"
@@ -31,15 +31,15 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "feats.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "item.h" /* do_stat_object */
 #include "craft/alchemy.h"
-#include "treasure.h"      /* for set_armor_object */
-#include "mob/mob_utils.h" /* npc_find_target() */
-#include "spell_prep.h"    /* for star circlet proc */
-#include "handler.h"       /* for is_name() */
+#include "treasure.h"         /* for set_armor_object */
+#include "mob/mob_utils.h"    /* npc_find_target() */
+#include "magic/spell_prep.h" /* for star circlet proc */
+#include "handler.h"          /* for is_name() */
 #include "evolutions.h"
 #include "olc/oasis.h"
 #include "quest.h"

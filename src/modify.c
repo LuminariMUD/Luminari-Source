@@ -16,7 +16,7 @@
 #include "handler.h"
 #include "db.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "mail.h"
 #include "boards.h"
 #include "mysql_boards.h" /* MySQL board system */

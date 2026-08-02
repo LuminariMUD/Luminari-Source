@@ -24,7 +24,7 @@
 #include "constants.h"
 #include "act.h"
 #include "modify.h"
-#include "spells.h" /* for skill_name() */
+#include "magic/spells.h" /* for skill_name() */
 #include "screen.h"
 #include "race.h"
 #include "spec_procs.h"

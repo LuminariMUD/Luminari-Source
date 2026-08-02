@@ -23,9 +23,9 @@
 #include "db.h"
 #include "olc/oasis.h"
 #include "constants.h"
-#include "spells.h" /* for skill_name() */
-#include "act.h"    /* for cmd_door[] */
-#include "modify.h" /* For strip_colors() */
+#include "magic/spells.h" /* for skill_name() */
+#include "act.h"          /* for cmd_door[] */
+#include "modify.h"       /* For strip_colors() */
 
 /* Enable this to debug DG script parameter corruption issues */
 /* #define SCRIPT_DEBUG */

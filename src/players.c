@@ -23,11 +23,11 @@
 #include "config.h"              /* for pclean_criteria[] */
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "clan.h"
 #include "mud_event.h"
 #include "craft/craft.h" // crafting (auto craft quest inits)
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "craft/alchemy.h"
 #include "templates.h"
 #include "premadebuilds.h"

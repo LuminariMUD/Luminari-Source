@@ -18,7 +18,7 @@
 #include "resource_depletion.h"    /* Phase 6: Add depletion system */
 #include "resource_descriptions.h" /* For elevation functions */
 #include "mysql.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "olc/genolc.h"
 #include "constants.h"
 #include "kdtree.h"

@@ -14,7 +14,7 @@
 #ifndef _SPEC_PROCS_H_
 #define _SPEC_PROCS_H_
 
-#include "spells.h"
+#include "magic/spells.h"
 
 extern int prisoner_heads;
 extern int spell_sort_info[TOP_SKILL_DEFINE];

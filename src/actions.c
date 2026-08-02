@@ -15,11 +15,11 @@
 #include "structs.h"
 #include "lists.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "mud_event.h"
 #include "actions.h"
 #include "act.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 
 /*  Attack action definitions - Define the relationships between
  *  AA_XXXXX and do_XXXXX. */

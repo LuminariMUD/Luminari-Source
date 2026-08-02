@@ -13,7 +13,7 @@
 #include "handler.h"
 #include "db.h"
 #include "hlquest.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "race.h"
 #include "class.h"
 #include "combat/fight.h"
@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 
 /* cheesy lich hack */
 #define LICH_QUEST 9999

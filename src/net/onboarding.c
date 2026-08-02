@@ -21,7 +21,7 @@
 #include "db.h"
 #include "handler.h"
 #include "act.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "class.h"
 #include "race.h"
 #include "constants.h"

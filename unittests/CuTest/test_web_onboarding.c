@@ -32,7 +32,7 @@
 #include "../../src/race.h"
 #include "../../src/roleplay.h"
 #include "../../src/shop.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 #include "../../src/net/onboarding.h"
 
 /* A descriptor with just enough state for the adapter to read. */

@@ -15,7 +15,7 @@
 #include "vessels.h"
 #include "act.h"
 #include "combat/fight.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "spec_procs.h"
 
 /* External variables */

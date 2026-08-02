@@ -17,7 +17,7 @@
 #include "db.h"
 #include "comm.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "mail.h"
 #include "interpreter.h"
 #include "house.h"
@@ -66,12 +66,12 @@
 #include "db_init.h"
 #include "feats.h"
 #include "actionqueues.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "talents.h"
 #include "combat/grapple.h"
 #include "race.h"
 #include "vessels/vessels.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "craft/crafts.h" /* NewCraft */
 #include <sys/stat.h>
 #include "movement/movement_tracks.h" /* includes trail data structures */
@@ -86,7 +86,7 @@
 #include "craft/crafting_recipes.h"
 #include "mob/mob_spellslots.h"
 #include "mob/mob_known_spells.h"
-#include "moon_bonus_spells.h" /* For moon-based bonus spell slots */
+#include "magic/moon_bonus_spells.h" /* For moon-based bonus spell slots */
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */

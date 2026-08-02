@@ -20,7 +20,7 @@
 #include "interpreter.h"
 #include "boards.h" /* for board_info */
 #include "craft/craft.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "spec_procs.h"
 
 /* local functions */

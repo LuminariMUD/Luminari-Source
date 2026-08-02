@@ -26,7 +26,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "dgscript/dg_event.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "db.h"
 #include "interpreter.h"
@@ -43,7 +43,7 @@
 #include "feats.h"
 #include "race.h"
 #include "spec_abilities.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "evolutions.h"
 #include "perks.h"
 

@@ -21,7 +21,7 @@
 #include "mudlim.h"
 
 #include "combat/fight.h"
-#include "spells.h"
+#include "magic/spells.h"
 
 #include "traps.h"
 

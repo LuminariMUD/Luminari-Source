@@ -16,7 +16,7 @@
 #include "lists.h"
 #include "help.h"
 #include "feats.h"
-#include "spells.h" /* need this for class.h NUM_ABILITIES */
+#include "magic/spells.h" /* need this for class.h NUM_ABILITIES */
 #include "class.h"
 #include "race.h"
 #include "craft/alchemy.h"

@@ -20,7 +20,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "dg_event.h"
 #include "constants.h"
 

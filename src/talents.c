@@ -8,7 +8,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
@@ -19,8 +19,8 @@
 #include "class.h"
 #include "mud_event.h"
 #include "combat/assign_wpn_armor.h"
-#include "domains_schools.h"
-#include "spell_prep.h"
+#include "magic/domains_schools.h"
+#include "magic/spell_prep.h"
 #include "talents.h"
 #include "helpers.h" /* for two_arguments prototype */
 

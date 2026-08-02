@@ -454,8 +454,8 @@ set(SRC_C_FILES
     src/dgscript/dg_triggers.c
     src/dgscript/dg_variables.c
     src/dgscript/dg_wldcmd.c
-    src/domain_powers.c
-    src/domains_schools.c
+    src/magic/domain_powers.c
+    src/magic/domains_schools.c
     src/dotenv.c
     src/combat/encounters.c
     src/evolutions.c
@@ -487,10 +487,10 @@ set(SRC_C_FILES
     src/wilderness/kdtree.c
     src/limits.c
     src/lists.c
-    src/magic.c
+    src/magic/magic.c
     src/mail.c
     src/olc/medit.c
-    src/metamagic_science.c
+    src/magic/metamagic_science.c
     src/missions.c
     src/mob/mob_act.c
     src/mob/mob_memory.c
@@ -502,7 +502,7 @@ set(SRC_C_FILES
     src/mob/mob_spells.c
     src/mob/mob_spellslots.c
     src/modify.c
-    src/moon_bonus_spells.c
+    src/magic/moon_bonus_spells.c
     src/olc/msgedit.c
     src/mud_event.c
     src/mud_event_list.c
@@ -523,7 +523,7 @@ set(SRC_C_FILES
     src/olc/prefedit.c
     src/premadebuilds.c
     src/net/protocol.c
-    src/psionics.c
+    src/magic/psionics.c
     src/pubsub/pubsub.c
     src/olc/qedit.c
     src/quest.c
@@ -544,11 +544,11 @@ set(SRC_C_FILES
     src/spec_assign.c
     src/spec_procs.c
     src/spec_artifacts.c
-    src/casting_visuals.c
-    src/spell_parser.c
-    src/spell_prep.c
-    src/spellbook_scroll.c
-    src/spells.c
+    src/magic/casting_visuals.c
+    src/magic/spell_parser.c
+    src/magic/spell_prep.c
+    src/magic/spellbook_scroll.c
+    src/magic/spells.c
     src/staff_events.c
     src/study.c
     src/talents.c

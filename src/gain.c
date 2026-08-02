@@ -16,7 +16,7 @@
 #include "screen.h"
 #include "interpreter.h"
 #include "modify.h"
-#include "spells.h"
+#include "magic/spells.h"
 
 #undef NEWGAINREADY
 #ifdef NEWGAINREADY

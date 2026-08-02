@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "screen.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "db.h"
 #include "msgedit.h"
 #include "oasis.h"

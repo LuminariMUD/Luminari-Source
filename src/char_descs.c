@@ -5,7 +5,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "interpreter.h"
 #include "constants.h"
 #include "act.h"

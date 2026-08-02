@@ -4,7 +4,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "db.h"
 #include "interpreter.h"
@@ -12,8 +12,8 @@
 #include "act.h"
 #include "class.h"
 #include "combat/fight.h"
-#include "spell_prep.h"
-#include "metamagic_science.h"
+#include "magic/spell_prep.h"
+#include "magic/metamagic_science.h"
 
 int main()
 {

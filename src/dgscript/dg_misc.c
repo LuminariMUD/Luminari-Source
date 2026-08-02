@@ -18,7 +18,7 @@
 #include "dg_event.h"
 #include "db.h"
 #include "screen.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "combat/fight.h"
 #include "mudlim.h"

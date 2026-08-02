@@ -7,7 +7,7 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/net/protocol.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 
 #include <string.h>
 

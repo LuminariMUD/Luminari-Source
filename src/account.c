@@ -62,7 +62,7 @@
 #include "interpreter.h"
 #include "olc/genmob.h"
 #include "constants.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "screen.h"
 #include "class.h"
 #include "act.h"

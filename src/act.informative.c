@@ -18,7 +18,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "screen.h"
 #include "pfdefaults.h"
 #include "constants.h"
@@ -38,7 +38,7 @@
 #include "quest.h" /* so you can identify questmaster mobiles */
 #include "feats.h"
 #include "combat/assign_wpn_armor.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
@@ -54,13 +54,13 @@
 #include "wilderness/resource_system.h"
 #include "craft/crafting_new.h"
 #include "roleplay.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "boards.h"
 #include "mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
 #include "routing.h"
 #include "perks.h"
-#include "moon_bonus_spells.h"
+#include "magic/moon_bonus_spells.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM

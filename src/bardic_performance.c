@@ -14,7 +14,7 @@
 #include "handler.h"
 #include "mud_event.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "bardic_performance.h"
 #include "combat/fight.h"
 #include "spec_procs.h"

@@ -20,11 +20,11 @@
 #include "mudlim.h"
 #include "constants.h"
 #include "combat/fight.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "act.h"
 #include "perks.h"
 #include "traps.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 
 /* ============================================================================ */
 /* Global Trap Data Tables                                                      */

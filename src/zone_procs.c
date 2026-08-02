@@ -14,14 +14,14 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "act.h"        /* for act related stuff, like act.offensive fuctions */
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
 #include "combat/fight.h"
 #include "graph.h"
 #include "mud_event.h"
 #include "actions.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "combat/spec_abilities.h"
 #include "treasure.h"
 #include "mob/mob_utils.h"       /* for npc_find_target() */

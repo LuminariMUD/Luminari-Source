@@ -26,9 +26,9 @@
 /* Undefine NUM_ABILITIES before including spells.h to avoid redefinition warning */
 #undef NUM_ABILITIES
 
-#include "spells.h"
-#include "psionics.h"
-#include "domains_schools.h"
+#include "magic/spells.h"
+#include "magic/psionics.h"
+#include "magic/domains_schools.h"
 #include "mud_event.h"
 #include "combat/fight.h"
 #include "combat/fight.h"

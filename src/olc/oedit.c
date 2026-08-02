@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "db.h"
 #include "boards.h"
 #include "constants.h"
@@ -29,7 +29,7 @@
 #include "combat/spec_abilities.h"
 #include "feats.h"
 #include "combat/assign_wpn_armor.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "treasure.h" /* set_weapon_object */
 #include "act.h"      /* get_eq_score() */
 #include "feats.h"

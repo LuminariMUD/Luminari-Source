@@ -9,7 +9,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 
 /* External function declaration */
 extern const char *get_wearoff(int abilnum);

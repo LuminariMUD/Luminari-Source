@@ -16,7 +16,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "moon_bonus_spells.h" /* For moon bonus spell system */
+#include "magic/moon_bonus_spells.h" /* For moon bonus spell system */
 
 #define NUM_WEATHER_CHANGES 6
 

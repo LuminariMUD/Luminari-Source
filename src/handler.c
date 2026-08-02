@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "screen.h"
 #include "interpreter.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "act.h"

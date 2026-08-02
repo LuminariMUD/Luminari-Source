@@ -18,10 +18,10 @@
 #include "structs.h"
 #include "utils.h"
 #include "interpreter.h" /* alias_data */
-#include "spells.h"
+#include "magic/spells.h"
 #include "craft/craft.h"
 #include "feats.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "handler.h"
 #include "deities.h"
 #include "constants.h"

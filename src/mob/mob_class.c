@@ -15,7 +15,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
 #include "combat/fight.h"

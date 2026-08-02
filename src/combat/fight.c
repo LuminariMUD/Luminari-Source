@@ -18,7 +18,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "screen.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
@@ -45,7 +45,7 @@
 #include "craft/alchemy.h"
 #include "missions.h"
 #include "hunts.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "staff_events.h" /* for staff events!  prisoner no xp penalty! */
 #include "assign_wpn_armor.h"
 #include "evolutions.h"

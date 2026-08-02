@@ -18,7 +18,7 @@
 #include "../../src/movement/movement.h"
 #include "../../src/perks.h"
 #include "../../src/net/protocol.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 
 #include <limits.h>
 #include <stdio.h>

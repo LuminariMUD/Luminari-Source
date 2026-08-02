@@ -21,7 +21,7 @@
 #include "constants.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "mud_event.h"
 #include "crafts.h"
 #include "item.h"

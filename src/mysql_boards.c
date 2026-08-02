@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "db.h"
 #include "utils.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "mail.h"
 #include "screen.h"

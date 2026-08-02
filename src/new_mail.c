@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "spec_procs.h"
 #include "feats.h"

@@ -14,7 +14,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"

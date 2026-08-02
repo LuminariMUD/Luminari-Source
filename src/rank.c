@@ -21,7 +21,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "limits.h"
 #include "screen.h"
 #include "act.h"

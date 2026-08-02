@@ -15,9 +15,9 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
-#include "psionics.h"
+#include "magic/psionics.h"
 #include "mob_utils.h"
 #include "mob_spells.h" /* for OFFENSIVE_AOE_SPELLS define */
 #include "mob_psionic.h"

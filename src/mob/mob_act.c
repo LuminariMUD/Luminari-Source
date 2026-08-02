@@ -17,7 +17,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
 #include "graph.h"
@@ -29,7 +29,7 @@
 #include "quest.h"               /* so you can identify questmaster mobiles */
 #include "dgscript/dg_scripts.h" /* so you can identify script mobiles */
 #include "evolutions.h"
-#include "psionics.h"
+#include "magic/psionics.h"
 #include "mob_act.h"
 #include "mob_spellslots.h"
 #include "mob_known_spells.h"

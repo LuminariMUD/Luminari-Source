@@ -26,7 +26,7 @@
 #include "modify.h"
 #include "hlquest.h"
 #include "constants.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "spec_procs.h"
 #include "ai_service.h"
 #include "quest.h"

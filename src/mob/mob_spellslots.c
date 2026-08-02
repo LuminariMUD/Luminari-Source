@@ -12,12 +12,12 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "comm.h"
 #include "db.h"
 #include "constants.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "class.h"
 
 /* External functions */

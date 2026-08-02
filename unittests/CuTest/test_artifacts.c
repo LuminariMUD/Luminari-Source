@@ -19,7 +19,7 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 #include "../../src/spec_artifacts.h"
 
 /* --------------------------------------------------------------------------

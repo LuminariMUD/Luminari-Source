@@ -30,7 +30,7 @@
 #include "act.h"
 #include "race.h"
 #include "combat/fight.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "feats.h"
 #include "pubsub.h"
 

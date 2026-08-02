@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "hlquest.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "class.h"
 #include "genzon.h"
 #include "genolc.h"

@@ -18,10 +18,10 @@
 #include "feats.h"
 #include "constants.h"
 #include "modify.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "spec_abilities.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 
 /* global */
 struct armor_table armor_list[NUM_SPEC_ARMOR_TYPES];

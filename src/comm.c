@@ -80,7 +80,7 @@
 #include "ban.h"
 #include "olc/msgedit.h"
 #include "combat/fight.h"
-#include "spells.h" /* for affect_update */
+#include "magic/spells.h" /* for affect_update */
 #include "modify.h"
 #include "quest.h"
 #include "ibt.h" /* for free_ibt_lists */
@@ -96,7 +96,7 @@
 #include "actionqueues.h"
 #include "combat/assign_wpn_armor.h"
 #include "wilderness/wilderness.h"
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 #include "perfmon.h"
 #include "net/onboarding.h"
 #include "roleplay.h"

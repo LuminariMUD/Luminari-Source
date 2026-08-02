@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/interpreter.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 #include "../../src/vessels/vessels.h"
 
 void Test_vessel_boarding_uses_stable_dedicated_ability(CuTest *tc)

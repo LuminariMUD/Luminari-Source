@@ -13,7 +13,7 @@
 #include "handler.h"
 #include "comm.h"
 #include "race.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "trade.h"
 
 /*

@@ -23,7 +23,7 @@
 #include "dgscript/dg_scripts.h"
 #include "quest.h"
 #include "modify.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "race.h"
 #include "genzon.h"
 #include "class.h"

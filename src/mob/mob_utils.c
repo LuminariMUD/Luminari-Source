@@ -16,7 +16,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "act.h"
 #include "graph.h"
 #include "combat/fight.h"

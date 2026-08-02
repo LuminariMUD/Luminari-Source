@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "db.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "interpreter.h"
 #include "class.h"

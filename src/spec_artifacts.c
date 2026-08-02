@@ -38,7 +38,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "constants.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "combat/fight.h"
 #include "screen.h"
 #include "lists.h"
@@ -47,7 +47,7 @@
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "campaign.h"
-#include "domains_schools.h"
+#include "magic/domains_schools.h"
 #include "spec_artifacts.h"
 
 /* --------------------------------------------------------------------------

@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "screen.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "act.h"
 
 /* local defined functions for local use */

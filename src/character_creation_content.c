@@ -2,7 +2,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "interpreter.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "backgrounds.h"
 #include "character_creation_content.h"
 

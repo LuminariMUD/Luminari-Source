@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "resource_system.h"
 #include "resource_depletion.h"
 #include "resource_cascade.h"

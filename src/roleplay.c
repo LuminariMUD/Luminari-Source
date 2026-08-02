@@ -8,7 +8,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "handler.h"
 #include "db.h"
 #include "interpreter.h"

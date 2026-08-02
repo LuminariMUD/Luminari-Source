@@ -21,7 +21,7 @@
 #include "handler.h"
 #include "screen.h"
 #include "olc/improved-edit.h"
-#include "spells.h" /* find skill, etc */
+#include "magic/spells.h" /* find skill, etc */
 #include "clan.h"
 #include "clan_benefits.h"
 #include "mudlim.h"

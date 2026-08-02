@@ -16,7 +16,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "house.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
@@ -30,7 +30,7 @@
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "actions.h"
 #include "traps.h" /* for check_traps() */
-#include "spell_prep.h"
+#include "magic/spell_prep.h"
 /* trails.h merged into movement_tracks.h */
 #include "combat/assign_wpn_armor.h"
 #include "combat/encounters.h"

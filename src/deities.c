@@ -27,7 +27,7 @@
 
 #include "structs.h"
 #include "utils.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "interpreter.h"
 #include "db.h"
 #include "deities.h"

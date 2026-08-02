@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/combat/fight.h"
-#include "../../src/spells.h"
+#include "../../src/magic/spells.h"
 
 #include <stdlib.h>
 #include <string.h>

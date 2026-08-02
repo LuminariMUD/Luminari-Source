@@ -24,7 +24,7 @@
 #include "db.h"
 #include "screen.h"
 #include "constants.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"

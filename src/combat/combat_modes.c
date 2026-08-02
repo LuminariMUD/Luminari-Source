@@ -20,7 +20,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h" /* For dummy_mob */
-#include "spells.h"
+#include "magic/spells.h"
 #include "class.h" /* For BAB() */
 #include "mud_event.h"
 #include "combat_modes.h"

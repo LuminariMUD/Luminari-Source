@@ -4,7 +4,7 @@
 #include "../src/sysdep.h"
 #include "../src/structs.h"
 #include "../src/utils.h"
-#include "../src/spells.h"
+#include "../src/magic/spells.h"
 #include "../src/db.h"
 #include <stdio.h>
 #include <string.h>

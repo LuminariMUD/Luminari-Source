@@ -9,7 +9,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "mob_known_spells.h"
 

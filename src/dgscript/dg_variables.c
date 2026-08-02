@@ -20,7 +20,7 @@
 #include "combat/fight.h"
 #include "screen.h"
 #include "constants.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "olc/oasis.h"
 #include "class.h"
 #include "quest.h"

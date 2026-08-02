@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "interpreter.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "db.h"
 #include "shop.h"
 #include "genolc.h"

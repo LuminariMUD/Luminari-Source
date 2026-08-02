@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "comm.h"
-#include "spells.h"
+#include "magic/spells.h"
 #include "constants.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
