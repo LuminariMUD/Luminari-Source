@@ -6,6 +6,20 @@
 
 #### Added
 
+- The first tracked data/DG-driven vessel derelict supplies three Blackwake
+  object records, five guarded discovery triggers, an idempotent prototype and
+  generated-room mapping package, a read-only verifier, and dependency-aware
+  rollback. Its log-to-chart-to-cargo chain persists five player variables and
+  yields one ordinary 180-gold salvage object across a hard restart.
+- `scripts/provision_vessel_derelict.sh` refuses production and collisions,
+  merges only reserved zone-700 world records, creates or reuses one ownerless
+  Blackwake hull at `(-533, 330)`, explores all four generated rooms through
+  actual Kohdee, and verifies exact runtime/interior identity after restart.
+- `scripts/test_vessel_derelict_in_game.sh` runs the complete clue chain with
+  actual character commands around a hard restart. It requires one-copy object
+  persistence in both the file and MariaDB mirrors, five durable DG variables,
+  one production salvage payment, stable hull identity, and exact restoration
+  of all snapshotted Kohdee files and database-backed object state.
 - The initial Luminari campaign shipping package is now tracked as idempotent
   install, read-only verification, and guarded rollback SQL. It maps North and
   Central Vailand territorial waters, Vailand Passage free seas, Blackwake
@@ -29,6 +43,14 @@
 
 #### Fixed
 
+- Derelict acceptance snapshots Kohdee before its preflight login and restores
+  both object-save mirrors, including the MariaDB header and every serialized
+  object row. The earlier file-only boundary allowed stale test rows to load
+  during preflight and appear as a false two-copy persistence failure.
+- The actual DG discovery session temporarily sets Kohdee to level 30 through
+  the in-game staff command, then restores the exact level-34 snapshot. Room
+  command triggers intentionally exclude level-33+ staff from DG targets, so a
+  staff-only session could otherwise exercise the hull without firing content.
 - The Vailand route now follows a charted southern water-only approach around
   land west of Central Vailand. The former direct final leg reached Field at
   `(-477, 224)`, correctly paused autopilot, and logged a traversal failure.
@@ -131,6 +153,18 @@
 
 #### Validated
 
+- Blackwake provision run `20260802T072737Z-1135588` passes in 61 seconds on
+  source `71cba1a2`. Slot 8, prototype 17, coordinates `(-533, 330)`, rooms
+  70160-70163, bridge/entrance/cargo identities, and all three mappings remain
+  stable across a hard restart with no related `SYSERR`.
+- Blackwake discovery run `20260802T075751Z-1199403` passes in 55 seconds on
+  source `a390a387` and installed SHA-256
+  `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
+  Actual Kohdee proves clue gating, retains exactly one log and chart in both
+  stores, persists all five variables, salvages one tidefinder for 180 gold,
+  and restores the original level-34/89,280-gold state. The canonical database
+  before/restored state hash is
+  `f0a2ede01ed085b07cd970744582de2e33b8bb7cd529930f0b66a717bf2072d7`.
 - Campaign provision run `20260802T065410Z-1061371` passes in 167 seconds on
   source `923c8024` and installed SHA-256
   `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.

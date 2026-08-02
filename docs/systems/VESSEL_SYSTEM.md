@@ -1,7 +1,7 @@
 # LuminariMUD Vessel System Documentation
 
-**Release Status**: Gameplay layer and initial campaign shipping implemented;
-production acceptance incomplete
+**Release Status**: Gameplay layer, initial campaign shipping, and initial
+data/DG-driven derelict implemented; production acceptance incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -760,6 +760,13 @@ come from `ship_room_template_triggers`, keyed by generated room type. Changes
 to either table take effect on the next boot; compiled-in room templates
 remain the MySQL-unavailable fallback.
 
+Generated-room trigger mappings are shared by room type, so content-specific
+DG programs must prove that the generated room belongs to their intended hull
+before changing player state. Blackwake's bridge trigger checks the bridge
+name directly; its quarters and cargo triggers resolve the linked bridge and
+check that identity. This keeps the globally mapped VNUMs inert on unrelated
+ship-class interiors.
+
 ### NPC Pilot Commands
 
 | Command | Description | Usage |
@@ -1068,6 +1075,49 @@ not a substitute for a full database restore. Stop vessel writes and retire
 the active merchant hull first; the script deliberately leaves an active
 definition disabled when dependencies cannot be removed safely.
 
+### Blackwake Derelict Content
+
+The first tracked derelict combines generated vessel interiors with world-file
+objects and DG programs rather than adding a compiled quest path:
+
+```bash
+./scripts/provision_vessel_derelict.sh
+./scripts/test_vessel_derelict_in_game.sh
+```
+
+`lib/world/vessel_derelict/700.obj` defines an ash-stained captain log, a
+salt-stiff chart, and a bronze tidefinder salvage object. Trigger VNUMs
+70010-70012 attach to the generated bridge, crew quarters, and main cargo
+hold; object triggers 70013-70014 make the recovered log and chart readable.
+The chain requires the player to recover and read the log before finding the
+chart, study the chart before opening the cargo panel, and can award each
+object only once. Five player DG variables persist discovery state in the
+ASCII player file. The ordinary `salvage` command values the tidefinder at 180
+gold; the DG program does not implement a parallel reward path.
+
+The SQL package owns the `Blackwake Derelict` ship-class prototype and the
+three generated-room mappings. The development provisioner is idempotent and
+collision-sensitive: it merges only the reserved world records, creates or
+normalizes at most one ownerless hull at `(-533, 330)`, and verifies its
+four-room interior and stable identity around a hard restart. Other vessels
+receive the same shared room mappings at boot, but the exact-hull DG guards
+return without effects. Optional first-finder naming is not enabled for this
+initial hull.
+
+The reversible acceptance harness snapshots both player object-save mirrors
+before any login, temporarily makes the level-34 staff character a valid
+level-30 DG command target, and executes the full clue chain around a hard
+restart. It requires exactly one log and chart in both stores, all five DG
+variables, one 180-gold tidefinder salvage, stable hull identity, and exact
+cleanup. Run `20260802T075751Z-1199403` passed in 55 seconds on source
+`a390a387`; provision run `20260802T072737Z-1135588` passed in 61 seconds.
+
+`vessels_derelict_content_rollback.sql` removes the shared mappings and removes
+the prototype only when no runtime still depends on it. It does not remove the
+world object/trigger records or destroy a persistent hull. A full content
+rollback must retire the hull safely and remove the reviewed world records and
+index entries separately while application writes are stopped.
+
 The supervised ferry gate has a one-hour total execution budget, including its
 final restart and cleanup. The runner retains its historical long default, so
 always pass the bounded duration explicitly:
@@ -1228,6 +1278,15 @@ and the trigger was removed.
 | `src/transport_unified.c` | Unified transport interface across all transport types |
 | `src/transport_unified.h` | Transport abstraction types and prototypes |
 
+### Content and Development Acceptance
+
+| File | Purpose |
+|------|---------|
+| `lib/world/vessel_derelict/700.obj` | Blackwake log, chart, and tidefinder objects |
+| `lib/world/vessel_derelict/700.trg` | Guarded room and object discovery-chain DG programs |
+| `scripts/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
+| `scripts/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
+
 ### Database
 
 | File | Purpose |
@@ -1249,6 +1308,9 @@ and the trigger was removed.
 | `sql/components/vessels_campaign_content.sql` | Initial Vailand regions, law, route, merchant, and iron markets |
 | `sql/components/verify_vessels_campaign_content.sql` | Read-only campaign topology and identity checks |
 | `sql/components/vessels_campaign_content_rollback.sql` | Guarded Vailand content rollback |
+| `sql/components/vessels_derelict_content.sql` | Blackwake prototype and generated-room trigger mappings |
+| `sql/components/verify_vessels_derelict_content.sql` | Read-only Blackwake identity and mapping checks |
+| `sql/components/vessels_derelict_content_rollback.sql` | Dependency-aware Blackwake definition rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |
 | `sql/components/verify_help_vessel_entries.sql` | Read-only help count, access, content, and duplicate checks |
 

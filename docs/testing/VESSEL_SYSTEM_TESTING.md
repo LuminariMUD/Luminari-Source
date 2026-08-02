@@ -7,8 +7,9 @@ findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
-the complete 500-vessel scale gate, the Vailand campaign shipping gate, and
-the current candidate's focused build gates pass on local development.**
+the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
+Blackwake derelict discovery gate, and the current candidate's focused build
+gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
@@ -119,6 +120,54 @@ bounty, and inspected generation 2 with 40 iron, pilot 31810, the Vailand
 route, and its active schedule. Cleanup restored Kohdee's player file and all
 snapshotted vessel/economy tables exactly; the before/restored database dump
 SHA-256 is `d21a9c2da318d6f6648ef1de57c8eaf8636d5047b46c0eb8e86e4e3563d24e21`.
+
+## Blackwake Derelict Discovery Check
+
+Provision and exercise the first tracked data/DG-driven derelict only on local
+development:
+
+```bash
+./scripts/provision_vessel_derelict.sh
+./scripts/test_vessel_derelict_in_game.sh
+```
+
+The collision-sensitive provisioner installs reserved object VNUMs
+70010-70012 and trigger VNUMs 70010-70014, applies the Phase 11 prerequisite
+and idempotent content SQL, and creates at most one ownerless ship-class
+`Blackwake Derelict` at `(-533, 330)`. Actual Kohdee sessions must reach its
+generated bridge, crew quarters, main cargo hold, and main deck on both sides
+of a hard restart. The same slot, prototype, coordinates, room list, bridge,
+entrance, cargo room, and all three room-trigger mappings must remain stable.
+
+The reversible acceptance harness snapshots Kohdee's file-backed and
+database-backed object state before its first preflight login. It rejects
+existing Blackwake progress, then temporarily sets Kohdee to level 30 through
+the normal staff command because DG command triggers do not target level-33+
+staff. Actual commands must prove the chart is initially clue-gated, recover
+and read exactly one captain log, recover exactly one chart, and leave the
+cargo panel gated before logout. The ASCII player file must hold only the
+first three discovery variables, while both object-save mirrors must contain
+exactly one log and one chart.
+
+After a hard restart, Kohdee must study the persisted chart, recover exactly
+one tidefinder, receive exactly 180 gold from the production `salvage`
+command, and receive the already-recovered response on a second attempt. The
+final player file must contain all five discovery variables; both object
+stores must contain `1|1|0` for log, chart, and tidefinder. Cleanup stops the
+MUD, restores and compares every snapshotted file plus
+`player_data.obj_save_header` and all matching `player_save_objs` rows, checks
+the derelict identity again, and restarts the same installed binary without a
+login.
+
+Provision run `20260802T072737Z-1135588` passed in 61 seconds on source
+`71cba1a2`, preserving slot 8, prototype 17, and rooms 70160-70163. Discovery
+run `20260802T075751Z-1199403` passed in 55 seconds on source `a390a387`.
+Kohdee's gold changed from 89,280 to 89,460 inside the snapshot, the exact
+one-copy persistence checks passed, the database before/restored canonical
+state hash was
+`f0a2ede01ed085b07cd970744582de2e33b8bb7cd529930f0b66a717bf2072d7`,
+and cleanup restored the level-34 baseline. Optional first-finder naming is not
+enabled in this initial content package.
 
 ## Shared Harbor Merchant Loss Check
 

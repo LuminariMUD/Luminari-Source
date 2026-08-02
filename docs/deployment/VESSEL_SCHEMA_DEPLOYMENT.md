@@ -43,6 +43,7 @@ tables.
 | 14 | `vessels_phase14_schema.sql` | `verify_vessels_phase14.sql` | `vessels_phase14_rollback.sql` | Durable NPC merchant definitions and exactly-once consequences |
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
+| Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
 | Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 32 authoritative vessel and vehicle help entries covering 78 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
@@ -71,6 +72,12 @@ prototype, one merchant definition, and two iron-market rows. Stop writes and
 retire its active merchant hull before content rollback. The guarded rollback
 leaves the merchant disabled if an active hull or another dependency still
 prevents safe removal.
+The derelict package depends on Phase 11 and the reviewed object/trigger world
+records in `lib/world/vessel_derelict/`. Its SQL owns one prototype and three
+generated-room trigger mappings; it does not install or remove world files.
+Retire the persistent Blackwake hull before rollback. The guarded rollback
+retains its prototype while a runtime row still depends on it, but removes the
+shared trigger mappings, so do not run it against an active content stage.
 
 ## Pre-Deployment Gate
 
@@ -110,8 +117,8 @@ Use an isolated clone of a recent production backup.
    - Representative ship records selected for post-migration comparison.
 3. Stop application writes.
 4. Apply each schema component in ascending order, then apply the reviewed
-   campaign content package.
-5. Run every matching schema and campaign verification script.
+   campaign and derelict content packages with their matching world records.
+5. Run every matching schema and content verification script.
 6. Apply `help_vessel_entries.sql`, run
    `verify_help_vessel_entries.sql`, and complete the in-game command-keyword
    sweep.
@@ -176,6 +183,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_derelict_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/help_vessel_entries.sql
 ```
 
@@ -214,6 +223,8 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_vessels_campaign_content.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/verify_vessels_derelict_content.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/verify_help_vessel_entries.sql
 ```
 
@@ -225,6 +236,8 @@ Also verify:
 - Representative records against the pre-deployment snapshot.
 - Exact Vailand campaign region count, 18-link sequence, merchant identity,
   and two-row iron supply gradient.
+- Exact Blackwake prototype attributes, three room-trigger mappings, zero or
+  one ownerless runtime, and the corresponding reviewed world records.
 - All 78 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.
@@ -274,6 +287,8 @@ restore, run them in reverse dependency order:
 
 ```bash
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
+  < sql/components/vessels_derelict_content_rollback.sql
+mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_campaign_content_rollback.sql
 mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase15_rollback.sql
@@ -301,13 +316,15 @@ mysql --defaults-extra-file="$vessel_client_config" "$vessel_db" \
   < sql/components/vessels_phase2_rollback.sql
 ```
 
-These scripts delete hunter policy and lifecycle history, merchant definitions
-and consequences, normalized weapons, insurance settlements, runtime
-snapshots, encounters, economy data, ownership state, prototypes, interiors,
-cargo, and crew. Never run them merely to retry an install. After rollback or
-restore, run the previous version's verification, compare the baseline census,
-start the previous application, and exercise representative ships before
-reopening access.
+These scripts delete derelict mappings and unreferenced definitions, hunter
+policy and lifecycle history, merchant definitions and consequences,
+normalized weapons, insurance settlements, runtime snapshots, encounters,
+economy data, ownership state, prototypes, interiors, cargo, and crew. They do
+not remove the Blackwake world object/trigger records. Never run them merely
+to retry an install. After rollback or restore, reconcile reviewed world files,
+run the previous version's verification, compare the baseline census, start
+the previous application, and exercise representative ships before reopening
+access.
 
 ## Deployment Record
 

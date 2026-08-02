@@ -272,11 +272,14 @@ following are demonstrated on the development server:
 The core transport and gameplay layers are implemented: wilderness movement,
 interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
-operator tooling, and native MSDP ship state.
+operator tooling, and native MSDP ship state. The initial Vailand shipping
+package and data/DG-driven Blackwake derelict also pass actual-character
+development acceptance around hard restarts.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
-Memcheck, and development release-boundary checks pass. Campaign content,
-human beta, production-snapshot rehearsal, balance, and staged rollout remain.
+Memcheck, and development release-boundary checks pass. Remaining living-world
+and class-specific content, human beta, production-snapshot rehearsal, balance,
+and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.
