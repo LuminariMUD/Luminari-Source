@@ -539,6 +539,7 @@ VALUES ('VESSELDEBUG', 'Usage: vesseldebug status
        vesseldebug on <category|all>
        vesseldebug off [category]
        vesseldebug encounter
+       vesseldebug ambient
        vtradecheck [trades]
 
 Staff runtime control for focused vessel diagnostics. VDEBUG is an alias.
@@ -561,6 +562,11 @@ In that build, status reports that logging is unavailable and attempts to
 enable a category are refused. ENCOUNTER remains available to staff in every
 build; it advances only the cadence counter and then runs the normal region,
 class, depth, chance, eligibility, and spawn path.
+
+AMBIENT remains available in every build while staff are aboard a vessel. It
+immediately sends that vessel the same class-, speed-, weather-, and depth-aware
+ambient line used by the periodic narrative heartbeat. It changes no vessel
+state and is intended for acceptance testing.
 
 For an explicit development diagnostic build,
 compile with -DVESSEL_SYSTEM_DEBUG=1; every category still starts disabled and

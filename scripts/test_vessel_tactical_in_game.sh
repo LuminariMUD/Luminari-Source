@@ -6,11 +6,22 @@ script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
 acceptance_mode=tactical
 if [[ $# -gt 0 ]]; then
-  [[ $# -eq 1 && "$1" == --lookout ]] || {
-    printf 'usage: %s [--lookout]\n' "$0" >&2
+  [[ $# -eq 1 ]] || {
+    printf 'usage: %s [--lookout|--narrative]\n' "$0" >&2
     exit 2
   }
-  acceptance_mode=lookout
+  case "$1" in
+    --lookout)
+      acceptance_mode=lookout
+      ;;
+    --narrative)
+      acceptance_mode=narrative
+      ;;
+    *)
+      printf 'usage: %s [--lookout|--narrative]\n' "$0" >&2
+      exit 2
+      ;;
+  esac
 fi
 server_unit=luminari-dev-login-smoke.service
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
@@ -301,10 +312,13 @@ finish()
       printf 'PASS: Kohdee validated the wilderness tactical chart, live damage '
       printf 'contact, and coastal symbology with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
-    else
+    elif [[ "$acceptance_mode" == lookout ]]; then
       printf 'PASS: Kohdee validated the wilderness lookout bearings, live contact, '
       printf 'and coastal sectors with exact character restoration (%ss).\n' \
         "$elapsed_seconds"
+    else
+      printf 'PASS: Kohdee validated regional at-sea prose and contextual ambience '
+      printf 'with exact character restoration (%ss).\n' "$elapsed_seconds"
     fi
     printf 'Artifacts: %s\n' "$run_dir"
     exit 0
@@ -403,6 +417,19 @@ frontier_region_state=$(database_query "
 
 stop_development_mud || fail "the development MUD did not stop"
 database_apply_file "$repo_root/sql/components/help_vessel_entries.sql"
+if [[ "$acceptance_mode" == narrative ]]; then
+  database_apply_file "$repo_root/sql/components/vessels_narrative_content.sql"
+  narrative_content_state=$(database_query "
+    SELECT CONCAT(
+      COUNT(*), '|', COUNT(DISTINCT region_vnum), '|',
+      SUM(priority = 10), '|', SUM(priority = 11), '|',
+      SUM(is_active <> 1))
+      FROM region_hints
+     WHERE region_vnum IN (1000013, 1000014, 1000015, 1000016)
+       AND agent_id = 'vessel_narrative_v1';")
+  [[ "$narrative_content_state" == '8|4|4|4|0' ]] ||
+    fail "the Vailand narrative content is incomplete: $narrative_content_state"
+fi
 cp --preserve=mode,ownership,timestamps "$player_file" \
   "$run_dir/kohdee.plr.before"
 baseline_player_sha256=$(sha256sum "$run_dir/kohdee.plr.before" |
@@ -449,7 +476,7 @@ if [[ "$acceptance_mode" == tactical ]]; then
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
       fail "the tactical transcript did not contain '$expected_text'"
   done
-else
+elif [[ "$acceptance_mode" == lookout ]]; then
   timeout 120 env DEV_MUD_CHARACTER="$target_player" \
     "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOKOUT LOOK_OUTSIDE \
     >"$run_dir/01-lookout-help.log" 2>&1 ||
@@ -485,14 +512,55 @@ else
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
       fail "the lookout transcript did not contain '$expected_text'"
   done
+else
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOKOUT VESSELDEBUG \
+    >"$run_dir/01-narrative-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative narrative command help"
+  narrative_help_state=$(database_query "
+    SELECT COUNT(*)
+      FROM help_entries
+     WHERE BINARY tag = 'VESSELDEBUG'
+       AND entry LIKE '%vesseldebug ambient%'
+       AND entry LIKE '%class-, speed-, weather-, and depth-aware%';")
+  [[ "$narrative_help_state" == 1 ]] ||
+    fail "the authoritative VESSELDEBUG ambient help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --vessel-narrative-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-narrative.log" 2>&1 ||
+    fail "the actual Kohdee vessel-narrative session failed"
+
+  for expected_text in \
+    'PASS: LOOKOUT combined the live warship class, speed, and wilderness weather.' \
+    'PASS: narrative_weaver selected the Vailand Passage region_hints content.' \
+    'PASS: the forced heartbeat emitted class-, speed-, and weather-aware ambience.' \
+    'PASS: the vessel narrative check completed and purged its temporary hull'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-narrative.log" ||
+      fail "the narrative session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'Conditions: clear skies (121/255)' \
+    'At sea: A warship is holding steady way under clear skies.' \
+    'The broad Vailand Passage draws a dark blue road between the island coasts.' \
+    "The warship's armored hull shoulders through the water." \
+    'Clear light runs cleanly to the horizon.'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-narrative.log" ||
+      fail "the narrative transcript did not contain '$expected_text'"
+  done
+
+  database_apply_file \
+    "$repo_root/sql/components/verify_vessels_narrative_content.sql" \
+    >"$run_dir/03-narrative-content-verification.log"
 fi
 
 [[ -z $(tactical_runtime_slots) ]] ||
   fail "a temporary Starfall Bastion runtime remained"
 grep -Fqx 'Room: 1204' "$player_file" ||
   fail "Kohdee did not return to room 1204"
-if grep -E 'SYSERR:.*(tactical|lookout|Starfall Bastion|Starfall Trench)' \
-     "$server_log" >"$run_dir/03-related-syserr.log"; then
+if grep -E 'SYSERR:.*(tactical|lookout|narrative|Starfall Bastion|Starfall Trench|Vailand)' \
+     "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a vessel-view SYSERR"
 fi
 

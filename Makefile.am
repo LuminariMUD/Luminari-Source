@@ -352,6 +352,7 @@ EXTRA_DIST = \
 	scripts/test_vessel_events_in_game.sh \
 	scripts/test_vessel_tactical_in_game.sh \
 	scripts/test_vessel_lookout_in_game.sh \
+	scripts/test_vessel_narrative_in_game.sh \
 	scripts/test_vessel_memory_analyzer.sh \
 	scripts/test_vessel_scale_benchmark_parsers.sh \
 	docs/PRD.md \
@@ -389,7 +390,10 @@ EXTRA_DIST = \
 	sql/components/verify_vessels_phase14.sql \
 	sql/components/verify_vessels_phase15.sql \
 	sql/components/verify_vessels_phase16.sql \
+	sql/components/verify_vessels_narrative_content.sql \
 	sql/components/vessels_harbor_sandbox.sql \
+	sql/components/vessels_narrative_content.sql \
+	sql/components/vessels_narrative_content_rollback.sql \
 	sql/components/vessels_phase2_rollback.sql \
 	sql/components/vessels_phase2_schema.sql \
 	sql/components/vessels_phase4_rollback.sql \

@@ -69,8 +69,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-lookout-check)
       mode="vessel-lookout-check"
       ;;
+    --vessel-narrative-check)
+      mode="vessel-narrative-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id> | --vessel-narrative-check <warship-id>]"
       ;;
   esac
   shift
@@ -139,6 +142,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-lookout-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-lookout-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-narrative-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-narrative-check requires one positive warship prototype id"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -1278,6 +1284,52 @@ proc run_vessel_lookout_check {warship_id} {
   puts "PASS: the vessel lookout check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+proc run_vessel_narrative_check {warship_id} {
+  set workflow_started_at [clock milliseconds]
+
+  set output [run_game_command "goto -573 405"]
+  require_game_output $output "Current Location  : (-573, 405)" \
+    "narrative Vailand Passage staging"
+  set vessel_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+
+  set output [run_game_command "speed 10"]
+  require_game_output $output "Speed set to 10." "narrative speed setup"
+
+  set output [run_game_command "lookout"]
+  require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
+    "narrative lookout header"
+  require_game_output $output "Conditions: clear skies (121/255)" \
+    "narrative wilderness weather"
+  require_game_output $output "At sea: A warship is" \
+    "narrative class description"
+  require_game_output $output "holding steady way" \
+    "narrative speed description"
+  require_game_output $output \
+    "The broad Vailand Passage draws a dark blue road between the island coasts." \
+    "narrative regional hint"
+
+  set output [run_game_command "vesseldebug ambient"]
+  require_game_output $output \
+    "The warship's armored hull shoulders through the water." \
+    "narrative class ambient message"
+  require_game_output $output "It holds a steady pace." \
+    "narrative speed ambient message"
+  require_game_output $output "Clear light runs cleanly to the horizon." \
+    "narrative weather ambient message"
+  require_game_output $output \
+    "Forced this vessel's contextual ambient message." \
+    "narrative staff acceptance hook"
+
+  purge_frontier_vessel $vessel_slot "Starfall Bastion"
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "narrative safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: LOOKOUT combined the live warship class, speed, and wilderness weather."
+  puts "PASS: narrative_weaver selected the Vailand Passage region_hints content."
+  puts "PASS: the forced heartbeat emitted class-, speed-, and weather-aware ambience."
+  puts "PASS: the vessel narrative check completed and purged its temporary hull in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc clean_dialog_output {raw commands marker} {
   global smoke_character
 
@@ -1936,7 +1988,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
-    $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check"} {
+    $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check" ||
+    $mode eq "vessel-narrative-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1998,6 +2051,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
       run_vessel_tactical_check [lindex $game_commands 0]
     } elseif {$mode eq "vessel-lookout-check"} {
       run_vessel_lookout_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-narrative-check"} {
+      run_vessel_narrative_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -2084,6 +2139,9 @@ elif [[ "$mode" == "vessel-tactical-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-lookout-check" ]]; then
   printf 'PASS: %s completed the vessel-lookout check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-narrative-check" ]]; then
+  printf 'PASS: %s completed the vessel-narrative check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \
