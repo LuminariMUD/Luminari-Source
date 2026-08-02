@@ -1,18 +1,18 @@
 # Vessel Documentation Audit
 
-**Last audited:** July 29, 2026
+**Last audited:** August 2, 2026
 
 ## Audit Verdict
 
 The maintained vessel documentation now distinguishes three facts that older
 project records conflated:
 
-1. The transport foundation and phases 04 through 09 gameplay code are
-   implemented.
-2. The local 30-step regression and development release-boundary checks pass.
-3. Historical automated and memory evidence exists, but full-load performance,
-   soak, complete recovery, content, balance, and rollout acceptance are not
-   complete.
+1. The gameplay, campaign content, presentation, and operator layers through
+   Phase 17 are implemented and documented as current behavior.
+2. The local regression, final development preflight, 500-vessel performance
+   gate, recovery checks, and production-snapshot rehearsal pass.
+3. General production release is still withheld pending real-player balance,
+   structured human beta, and authorized staged rollout.
 
 The vessel system must not be described as production-ready until the release
 criteria in [PRD.md](PRD.md) have current evidence.
@@ -27,12 +27,13 @@ criteria in [PRD.md](PRD.md) have current evidence.
 | How to run the live command regression | [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md) |
 | What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |
 | How schema install, verification, and rollback work | [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md) |
-| What remains unfinished | [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) |
+| What remains unfinished and who owns it | [PRD.md, Release Gate State](PRD.md#release-gate-state) |
 | What shipped and when | [CHANGELOG.md](CHANGELOG.md) |
 | Which maintenance lessons should persist | [CONSIDERATIONS.md](CONSIDERATIONS.md) |
 
-The temporary vessel workspace contains only `VESSELS_TODO.md`. It is a
-backlog, not a current-behavior reference.
+The temporary vessel workspace was retired after its completed history was
+verified against the permanent documents and its three open gates were moved
+to the PRD with explicit state, ownership, and exit conditions.
 
 ## Corrections Made
 
@@ -57,6 +58,10 @@ backlog, not a current-behavior reference.
   reverse-order rollback.
 - Retired the temporary final PRD after moving its enduring content into the
   maintained documents above.
+- Retired `VESSELS_TODO.md` after confirming that behavior, test evidence,
+  benchmark results, schema evidence, and completed history already existed in
+  their permanent references; the remaining release gates now live in PRD
+  Section 8.
 
 ## Evidence Rules
 
@@ -64,23 +69,23 @@ backlog, not a current-behavior reference.
 - Date every benchmark, test count, Valgrind result, manual pass, and soak
   result. Historical evidence stays labeled historical.
 - Do not turn an implementation checklist into a production-readiness claim.
-- Keep requirements in the PRD, architecture decisions in the ADR, current
-  behavior in the system reference, evidence in testing documents, completed
-  work in the changelog, and only unfinished work in the temporary workspace.
+- Keep requirements and release-gate state in the PRD, architecture decisions
+  in the ADR, current behavior in the system reference, evidence in testing
+  documents, and completed work in the changelog. Do not create a second
+  vessel release checklist in a temporary workspace.
 - Update inbound links when a document moves or is retired.
 - Keep documentation ASCII, UTF-8, and LF.
 
 ## Remaining Documentation Gates
 
-The documentation set is structurally consolidated, but release evidence is
-still incomplete. As work lands:
+The documentation set is structurally consolidated, but three release gates
+remain open. As evidence lands:
 
 - Record new measured results in `VESSEL_BENCHMARKS.md`.
 - Keep the live status and fixture expectations in
   `VESSEL_SYSTEM_TESTING.md`.
 - Add proven operational remedies to the behavior reference and incident
   runbook.
-- Move completed backlog outcomes into the changelog and permanent references,
-  then remove the completed checklist entries.
-- Retire `VESSELS_TODO.md` only when no vessel work remains or move explicitly
-  deferred optional work into the general project backlog.
+- Update the PRD gate table when player-data balance, structured human beta, or
+  a staged rollout changes state; keep the supporting evidence in its
+  permanent behavior, testing, deployment, or changelog document.

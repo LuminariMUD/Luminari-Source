@@ -4,12 +4,13 @@
 data/DG-driven derelict, wilderness frontier package, Phase 16 showcase
 events, and Phase 17 exterior customization implemented; wilderness tactical
 chart, lookout view, dynamic at-sea narrative, and cosmetics accepted;
-production acceptance incomplete
+development preflight and schema rehearsal pass; player-data balance, human
+beta, and staged production rollout remain
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
-[PRD.md](../PRD.md); for outstanding work see
-[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md); for what
-shipped when see [CHANGELOG.md](../CHANGELOG.md).
+[PRD.md](../PRD.md), including its
+[release-gate state](../PRD.md#release-gate-state); for what shipped when see
+[CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
@@ -417,6 +418,11 @@ struct ship_route *route_create(const char *name);
 int route_save(struct ship_route *route);
 void autopilot_tick(void);                            // Called each game tick
 ```
+
+A timed waypoint is a physical stop, not only an autopilot state. Entering its
+wait sets live speed to 0 while preserving the requested cruise speed. A boot
+or copyover during the wait reconstructs the vessel stopped with the remaining
+wait intact; expiry resumes the preserved speed and advances the route.
 
 ### Vehicle Functions
 
@@ -1248,6 +1254,12 @@ and the Blackwake Anchorage pirate cove. Their law rows apply bounty rates of
 150, 150, 100, and 0 percent with overlap priorities that keep the port and
 pirate identities authoritative inside the wider passage.
 
+The accompanying world package places a conspicuous free waystone in Mosswood
+room 145200 to North Vailand, return waystones at the scheduled ports, and
+passage boards that identify the Trader and work passage. This makes the real
+campaign route discoverable and affordable to a new zero-gold character
+without a staff movement command or the development harbor fixture.
+
 `Vailand Iron Passage` is a looping 18-link route. Its five-point southern
 coastal detour keeps the merchant on actual Water, Water (Swim), Ocean, and
 Seaport sectors around the land west of Central Vailand. The package also
@@ -1772,8 +1784,10 @@ passes automated tests. Before rollout:
    each complete validation must finish within one hour.
 7. Rehearse schema migration and rollback against a production snapshot.
 
-The live checklist is
-[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
+The current candidate passes these engineering and operator prerequisites.
+They remain candidate-specific and must be repeated after relevant behavior or
+schema changes. Human beta, player-data balance, and rollout state are tracked
+in [PRD.md](../PRD.md#release-gate-state).
 
 ### Deployment
 
@@ -1914,9 +1928,8 @@ For each vessel behavior change:
 
 ## Related Documentation
 
-- [PRD.md](../PRD.md) - Durable product requirements and release criteria
+- [PRD.md](../PRD.md) - Durable requirements, release criteria, and gate state
 - [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
-- [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md) - Outstanding work only
 - [CHANGELOG.md](../CHANGELOG.md) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script
 - [0001-unified-vessel-system.md](../adr/0001-unified-vessel-system.md) - Architecture decision and invariants

@@ -1029,8 +1029,9 @@ structured human beta with the required fun score, and authorized staged
 rollout. Automated actual-character sessions do not substitute for those
 human gates.
 
-Remaining benchmark and release work is tracked in
-[`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).
+The authoritative state and exit conditions for the remaining human and
+rollout gates are maintained in
+[PRD.md](../PRD.md#release-gate-state).
 
 ## Related Documentation
 

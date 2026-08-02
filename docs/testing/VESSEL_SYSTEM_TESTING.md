@@ -3,8 +3,8 @@
 Numbered manual regression script for the Vessel System. Run on dev after any
 vessel-related change. Every step lists the expected result; any deviation is a
 regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
-findings are tracked in
-[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
+release gates are maintained in
+[PRD.md](../PRD.md#release-gate-state).
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
@@ -19,13 +19,14 @@ Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 305 production-linked tests. The
-latest strict actionable Memcheck covered the preceding 277-test candidate
-and reported zero errors and no definite, indirect, or possible loss; that
-revision also passed all 13 focused protocol-parser tests and all 6 integrated
-CTest targets. Required `make install` removed the root artifact and installed
-the current non-profiled SHA-256
-`075d552509218a5071067898c34130de31748628f1c40dc6f790cb0cc831b6dc`.
+The final-preflight candidate passes all 306 production-linked tests. Strict
+actionable Memcheck reports zero errors and no definite, indirect, or possible
+loss; the focused protocol parser passes 13 of 13 and all four vessel-tooling
+gates pass. Required `make install` removed the root artifact and installed
+SHA-256
+`25431449fd2f54d0c01edaf37dff421d0e221958f6d69fe7eda7d95eb9547d58`.
+The terminal 500-vessel run and its exact provenance are recorded in
+[VESSEL_BENCHMARKS.md](VESSEL_BENCHMARKS.md).
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -697,9 +698,9 @@ values, 4,247 database executions, zero workload or logging errors, zero route
 failures, zero overflows, and trails 0/0/0. RSS rises 33,148 KiB while mobiles
 rise by 1,613 and objects by 451; rooms remain fixed, allocation lists fall,
 and memory remains `REPORT_ONLY`. Cleanup restores the exact six-vessel
-baseline and restarts development. The current 277-test Memcheck then passes
-with zero actionable errors or leaks, completing the complementary bounded
-stability check.
+baseline and restarts development. The associated 277-test Memcheck then passes
+with zero actionable errors or leaks, completing that run's complementary
+bounded stability check.
 
 For the builder-independence timing gate, run:
 

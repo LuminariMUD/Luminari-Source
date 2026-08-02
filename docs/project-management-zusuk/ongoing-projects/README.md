@@ -22,6 +22,7 @@ deleted.
 | [cbuild-issues.md](cbuild-issues.md) | Partial | CMake build report. Errors are resolved; 76 format warnings remain (plus ~8000 clang-tidy findings tracked separately). |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Player and staff feature suggestions gathered in-game. Not a plan - a source of candidates. |
 
-Outstanding vessel work lives in
-[../vessels/VESSELS_TODO.md](../vessels/VESSELS_TODO.md). Durable vessel
-requirements and behavior live in the permanent documentation tree.
+The temporary vessel workspace is retired. Durable vessel requirements and
+the authoritative release-gate state live in
+[PRD.md](../../PRD.md#release-gate-state); behavior and evidence live in the
+permanent system, testing, deployment, and changelog documents.

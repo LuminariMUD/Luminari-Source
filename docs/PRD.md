@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Core development and player-experience mechanics pass; beta and rollout remain
+**Status:** Development preflight and schema rehearsal pass; balance, beta, and rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -11,9 +11,10 @@ criteria for release. It intentionally does not contain session plans or a live
 backlog.
 
 Current behavior is documented in
-[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md). Outstanding work is tracked only in
-[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md). Completed
-work is recorded in [CHANGELOG.md](CHANGELOG.md).
+[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md). Current release-gate state is
+maintained in [Section 8](#release-gate-state), measured evidence is in
+[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md), and completed work is
+recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -258,6 +259,21 @@ following are demonstrated on the development server:
 8. The vessel-system toggle is a real command-and-tick kill switch, production
    debug logging is disabled, and authoritative help entries are deployed.
 
+### Release Gate State
+
+General production release is not approved while any row marked `Open` or
+`Blocked` remains. This table is the authoritative vessel release-state
+record; implementation and automated actual-character checks do not substitute
+for human beta evidence.
+
+| Gate | State | Owner | Evidence or exit condition |
+|---|---|---|---|
+| Development mechanics and final preflight | Complete | Engineering | The 306-test suite, strict Memcheck, protocol/tooling gates, kill switch, debug-off, help, lifecycle recovery, and 500-vessel run pass; see [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) and [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md). |
+| Production-snapshot schema rehearsal | Complete | Database operator | Forward, verification, idempotence, rollback, full restore, reapply, and database checks pass without production writes; see [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md#august-2-2026-production-snapshot-record). |
+| Player-data balance | Open | Product owner | Collect real beta data, then tune combat time-to-kill, crew wages, freight margins, refit costs, insurance, and dock fees. The deterministic duel/economy report is mechanical evidence only. |
+| Structured human beta | Open | Product owner | Validate first-hour discovery, multiplayer roles, builder independence, a supervised NPC-shipping sample within one hour, and at least 70% `fun` combat feedback. |
+| Staged production rollout | Blocked | Product owner and operator | After balance and beta sign-off, roll out to staff, then a beta cohort, then all players. Retain rollback authority, monitor every stage, publish the announcement, and record the postmortem. Update the permanent behavior and evidence records before declaring vessel system 3.0. |
+
 ## 9. Principal Risks
 
 | Risk | Mitigation |
@@ -308,7 +324,8 @@ exact player restoration.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
-Memcheck, and development release-boundary checks pass. Remaining human beta,
-production-snapshot rehearsal, balance, and staged rollout remain.
-Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
-the only current vessel backlog.
+Memcheck, development release-boundary checks, and production-snapshot
+rehearsal pass. The mechanical balance diagnostic and fresh-character passage
+also pass, but they contain no independent player sample or human fun rating.
+The three unresolved release gates are maintained in
+[Release Gate State](#release-gate-state).

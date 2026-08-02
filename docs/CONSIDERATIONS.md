@@ -6,18 +6,17 @@
 
 This document preserves design and maintenance lessons that should survive the
 current backlog. Use [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) for current
-behavior, [PRD.md](PRD.md) for the product contract, and
-[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
-outstanding work.
+behavior and [PRD.md](PRD.md#release-gate-state) for the product contract and
+authoritative release-gate state.
 
 ## Active Concerns
 
-1. The complete 500-ship workload has not been measured with combat,
-   encounters, economy, wear, persistence, and client updates active. Historical
-   navigation microbenchmarks are not release evidence.
-2. The gameplay code needs a harbor sandbox, NPC shipping, balance simulation,
-   a supervised stability check capped at one hour, player beta, and migration
-   rollback rehearsal before broad release.
+1. The complete current 500-ship workload and mechanical balance diagnostics
+   pass, but the bounded process-memory result is not a long-horizon leak claim
+   and automated characters are not real player balance evidence.
+2. Broad release still requires structured human beta, player-data balance
+   sign-off, and an authorized staff-to-cohort-to-public rollout with rollback
+   authority and monitoring.
 
 ## Enduring Integration Rules
 
@@ -57,8 +56,9 @@ outstanding work.
 | Maximum vehicles | 1,000 |
 | Complete vessel tick target | At most 25 ms at 500 active ships |
 
-The fixed fleet memory is within budget. The complete tick target and runtime
-allocation behavior remain release gates; see
+The fixed fleet memory and current complete-tick measurement are within budget.
+Repeat the live gate after relevant behavior changes, and continue treating
+bounded runtime-allocation evidence as `REPORT_ONLY`; see
 [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md).
 
 ## Practices That Endure
@@ -93,8 +93,8 @@ cargo, markets, freight, piracy, weather hazards, encounters, staff tooling,
 and MSDP vessel state.
 
 That list describes implemented capability, not production readiness. Current
-limitations and the dependency-ordered path to release remain in
-[VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md).
+release state and the owned exit conditions are maintained in
+[PRD.md](PRD.md#release-gate-state).
 
 ## Evidence Hygiene
 

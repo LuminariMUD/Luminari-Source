@@ -128,4 +128,4 @@ The decision remains valid when:
 - [System behavior reference](../systems/VESSEL_SYSTEM.md)
 - [Performance benchmarks](../testing/VESSEL_BENCHMARKS.md)
 - [Manual regression guide](../testing/VESSEL_SYSTEM_TESTING.md)
-- [Outstanding work](../project-management-zusuk/vessels/VESSELS_TODO.md)
+- [Release-gate state](../PRD.md#release-gate-state)

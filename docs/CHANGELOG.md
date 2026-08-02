@@ -2,6 +2,58 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Vessel release hardening and documentation consolidation
+
+#### Added
+
+- The tracked Luminari campaign package now gives a new character a visible,
+  free Mosswood waystone to North Vailand, return waystones, and passage boards
+  that identify the scheduled `Vailand Ironwind Trader` and work passage.
+- The PRD now owns the authoritative vessel release-gate table with explicit
+  state, owner, evidence, and exit conditions. Engineering preflight and the
+  production-snapshot rehearsal are complete; real-player balance and human
+  beta remain open, and staged rollout is blocked on their sign-off.
+
+#### Fixed
+
+- A scheduled vessel now reaches speed 0 while waiting at a waypoint, preserves
+  its requested cruise speed through wait and boot/copyover recovery, and
+  resumes that speed on departure. Production-linked stop/recovery/resume
+  coverage raises the root suite to 306 tests.
+- Vessel component SQL now supports the production snapshot's non-null
+  `region_reset_time`, creates the three Phase 9 route tables before boot, and
+  preserves the 19 legacy room templates with the authoritative composite
+  unique key and idempotent inserts.
+- The scale preflight waits for both dock coordinates and stopped vessel state,
+  and sets positive speed before surface, airship, and submarine terrain probes
+  so each check reaches the intended traversal gate.
+
+#### Validation
+
+- A disposable level-1 character completed the ordinary zero-gold path from
+  tutorial to Mosswood, North Vailand, the moving scheduled Trader, its 40 iron
+  and 2,000-pound cargo, a stopped-port disembark, and the return waystone.
+  Normal account-menu deletion then left zero player or vessel residue.
+- A read-only production dump passed all 19 forward components and verifiers,
+  an idempotent second pass, all 18 reverse-order rollback scripts, exact full
+  snapshot restoration, final reapplication, and `mariadb-check` without a
+  production write. The rehearsal exposed and drove the three SQL fixes above.
+- Final-preflight run `20260802T152129Z-2080810` retained 500 vessels across
+  all eight classes for 1,843 measured seconds. Its 3,656 complete ticks had
+  4,018.75 usec p95 and 7,263 usec maximum against the 25 ms limit, with zero
+  workload errors, high-volume progress rows, buffer overflows, or movement
+  trails. Cleanup restored all eight baseline vessel rows.
+- The final candidate passes 306 production-linked tests, strict actionable
+  Memcheck, 13 focused protocol cases, all four vessel-tooling gates, the
+  load-bearing toggle and debug-off checks, all 81 authoritative help keywords,
+  and moving-Trader copyover with identity, speed, and cargo retained.
+
+#### Documentation
+
+- Enduring behavior, testing, benchmark, schema, and completion records now
+  live only in their permanent documents. The temporary `VESSELS_TODO.md` was
+  retired after its three open gates moved into PRD Section 8.
+
 ### Vessel route-failure and soak stability
 
 #### Added
@@ -1304,8 +1356,9 @@ workspace now contains unfinished work only.
 #### Removed
 
 - The temporary final vessel PRD after its durable content was incorporated.
-  `VESSELS_TODO.md` is now the sole file in the vessel workspace and holds the
-  dependency-ordered live backlog.
+  At that checkpoint, `VESSELS_TODO.md` became the sole file in the vessel
+  workspace and held the dependency-ordered live backlog; it was later retired
+  as recorded above.
 
 ### Vessel system - local end-to-end validation and release boundary
 
@@ -1793,8 +1846,9 @@ Documentation: `docs/systems/VESSEL_SYSTEM.md` (behavior reference),
 `docs/testing/VESSEL_SYSTEM_TESTING.md` (30-step manual regression script),
 `docs/testing/VESSEL_BENCHMARKS.md` (memory attribution and test figures), and
 `docs/PRD.md` (durable requirements, wilderness contract, and release criteria).
-Outstanding work is isolated in
-`docs/project-management-zusuk/vessels/VESSELS_TODO.md`.
+At that checkpoint, outstanding work was isolated in
+`docs/project-management-zusuk/vessels/VESSELS_TODO.md`. That workspace was
+later retired; current state is in [PRD Section 8](PRD.md#release-gate-state).
 
 #### Added
 
@@ -1947,11 +2001,12 @@ Outstanding work is isolated in
     attribution.
   - The working vessel PRD was later distilled into permanent product,
     architecture, system, testing, and benchmark documentation. The workspace
-    now retains only `VESSELS_TODO.md`, containing unfinished work.
+    then retained only `VESSELS_TODO.md`, containing unfinished work.
   - Two working documents were retired entirely once their content landed in
     permanent homes: `VESSEL_CHECKLIST.md` and `todo.md` (the debug logging
     tracker) - completed work to this changelog, outstanding work to
-    `VESSELS_TODO.md`.
+    `VESSELS_TODO.md` at that checkpoint. The later retirement is recorded in
+    the current Unreleased section.
   - Inbound links updated in TECHNICAL_DOCUMENTATION_MASTER_INDEX.md,
     adr/0001-unified-vessel-system.md, and CONSIDERATIONS.md.
 

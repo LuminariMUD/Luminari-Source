@@ -287,8 +287,8 @@ affected records with the most recent property census or backup.
 5. Reopen first to staff, observe logs and tick/room metrics, and expand access
    only after state remains stable.
 
-Current vessel limitations and release blockers are listed in
-[VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
+Current vessel release state and owned exit conditions are maintained in
+[PRD.md](../PRD.md#release-gate-state).
 
 ---
 

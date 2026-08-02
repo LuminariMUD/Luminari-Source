@@ -360,7 +360,6 @@ EXTRA_DIST = \
 	scripts/test_vessel_scale_benchmark_parsers.sh \
 	docs/PRD.md \
 	docs/deployment/VESSEL_SCHEMA_DEPLOYMENT.md \
-	docs/project-management-zusuk/vessels/VESSELS_TODO.md \
 	docs/systems/VESSEL_SYSTEM.md \
 	docs/testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md \
 	docs/testing/VESSEL_BENCHMARKS.md \
