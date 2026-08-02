@@ -206,6 +206,23 @@ runtimes, restored Kohdee to SHA-256
 and restarted the exact candidate. The warning-free production-linked suite
 passes 304 tests.
 
+**Final-release audit checkpoint (August 2, 2026, 16:24 IDT):** The clean
+development candidate at source `05144502` remains installed as SHA-256
+`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
+Actual Kohdee confirmed that vessel debug support is compiled out, ran the
+1,000-trade simulation to `PASS`, resolved `SHIPCUSTOMIZE` through an
+authoritative database help tag, and reported 8 of 500 fleet slots plus 32 of
+2,000 dynamic wilderness rooms in use. The economy sample completed all 1,000
+trades inside the 10..400 supply bounds, found an 18-trip profitable route
+worth 8,060 gold before equilibrium, rejected adversarial reversal at
+-5,150,000 gold, and returned both simulated ports to supply 100.
+
+This checkpoint is deliberately partial. It does not substitute automated
+Kohdee output for human fun ratings or player data. The remaining five items
+still require a combat/cost balance record, a structured human beta, an
+isolated production-snapshot migration rehearsal, a fresh complete preflight
+after Phase 17, and authorized staged production rollout.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)

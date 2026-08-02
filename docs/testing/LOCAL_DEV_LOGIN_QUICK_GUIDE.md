@@ -138,6 +138,23 @@ with:
 PASS: Kohdee entered the world, left the character, and logged out of the account (Ns).
 ```
 
+For a short release-boundary checkpoint, use the command batch for non-paged
+output and the dedicated pager-safe help mode separately:
+
+```bash
+./scripts/dev_kohdee_login_smoke.sh --commands \
+  "vdebug status" \
+  "vtradecheck 1000" \
+  "shiplist summary"
+./scripts/dev_kohdee_login_smoke.sh --help-check shipcustomize
+```
+
+On August 2, 2026 at 16:24 IDT, actual Kohdee reported production-safe debug
+support, a passing 1,000-trade simulation, 8 of 500 occupied fleet slots, 32
+of 2,000 occupied dynamic wilderness rooms, and an authoritative database
+help tag for `SHIPCUSTOMIZE`. This is a quick checkpoint, not the complete
+release preflight or human beta.
+
 ## Fast Shared Vessel Harbor
 
 After `make install`, provision and verify the complete reusable harbor with:

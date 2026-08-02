@@ -10,21 +10,22 @@ findings are tracked in
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
 Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
 showcase-event gate, the wilderness tactical-chart gate, the lookout-view
-gate, the dynamic at-sea narrative gate, and the current candidate's focused
-build gates pass on local development.**
+gate, the dynamic at-sea narrative gate, the hostile-boarding gate, the Phase
+17 exterior-customization gate, and the current candidate's focused build
+gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 297 production-linked tests. The
+The current normal candidate passes all 304 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`908e809acf0941624d4ce301dc4deaadb14f627d1e9fd140718147ada068079e`.
+`75a62d7c17ed93c3cfc7c4e74db458b59745dd4e993ea075bec3cfb7616f0bf3`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
