@@ -16,6 +16,7 @@ database_user=
 database_password=
 mud_port=
 restart_needed=false
+frontier_cleanup_authorized=false
 
 umask 077
 mkdir -p "$run_dir"
@@ -85,6 +86,19 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
+frontier_runtime_slots()
+{
+  database_scalar "
+    SELECT COALESCE(GROUP_CONCAT(runtime.ship_id ORDER BY runtime.ship_id
+                                SEPARATOR ','), '')
+      FROM ship_runtime_state AS runtime
+      JOIN ship_prototypes AS prototype
+        ON prototype.prototype_id = runtime.prototype_id
+     WHERE prototype.name IN (
+       'Sablebranch Raft', 'Sablebranch Riverboat',
+       'Starfall Bathyscaphe', 'Aetherwind Courier');"
+}
+
 apply_database_file()
 {
   local sql_file=$1
@@ -137,11 +151,42 @@ active_vessel_workload()
 recover_server()
 {
   local exit_status=$?
+  local cleanup_status=0
+  local remaining_slots
+  local runtime_slots
+  local ship_slot
+  local -a cleanup_commands
+  local -a slot_list
 
   trap - EXIT
   if [[ "$restart_needed" == true ]] && ! port_is_listening; then
     "$script_dir/dev_kohdee_login_smoke.sh" \
       >"$run_dir/recovery-boot.log" 2>&1 || true
+  fi
+  if [[ "$frontier_cleanup_authorized" == true ]]; then
+    runtime_slots=$(frontier_runtime_slots) || cleanup_status=1
+    cleanup_commands=('goto 1204')
+    if [[ -n "$runtime_slots" ]]; then
+      IFS=',' read -r -a slot_list <<<"$runtime_slots"
+      for ship_slot in "${slot_list[@]}"; do
+        cleanup_commands+=("shippurge $ship_slot")
+      done
+    fi
+    cleanup_commands+=('goto 1204')
+    if [[ "$cleanup_status" == 0 ]]; then
+      timeout 120 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
+        "${cleanup_commands[@]}" >"$run_dir/recovery-cleanup.log" 2>&1 ||
+        cleanup_status=1
+    fi
+    if [[ "$cleanup_status" == 0 ]]; then
+      remaining_slots=$(frontier_runtime_slots) || cleanup_status=1
+      [[ -z "$remaining_slots" ]] || cleanup_status=1
+      grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
+        cleanup_status=1
+    fi
+    if [[ "$cleanup_status" != 0 ]]; then
+      printf 'vessel frontier provisioner: recovery cleanup failed\n' >&2
+    fi
   fi
   printf 'Artifacts: %s\n' "$run_dir" >&2
   exit "$exit_status"
@@ -221,6 +266,11 @@ collision_count=$(database_scalar "
 [[ "$collision_count" == 0 ]] ||
   fail "frontier region, path, or prototype identities collide"
 
+existing_frontier_slots=$(frontier_runtime_slots)
+[[ -z "$existing_frontier_slots" ]] ||
+  fail "frontier prototypes already have runtime ships: $existing_frontier_slots"
+frontier_cleanup_authorized=true
+
 stop_development_mud
 restart_needed=true
 apply_database_file "$repo_root/sql/components/vessels_frontier_content.sql"
@@ -270,6 +320,24 @@ content_valid=$(database_scalar "
 [[ "$content_valid" == 1 ]] ||
   fail "frontier regions, spatial indexes, path, or prototypes are invalid"
 
+frontier_prototype_ids=$(database_scalar "
+  SELECT GROUP_CONCAT(
+           prototype_id
+           ORDER BY CASE name
+             WHEN 'Sablebranch Raft' THEN 1
+             WHEN 'Sablebranch Riverboat' THEN 2
+             WHEN 'Starfall Bathyscaphe' THEN 3
+             WHEN 'Aetherwind Courier' THEN 4
+           END SEPARATOR ',')
+    FROM ship_prototypes
+   WHERE name IN (
+     'Sablebranch Raft', 'Sablebranch Riverboat',
+     'Starfall Bathyscaphe', 'Aetherwind Courier');")
+[[ "$frontier_prototype_ids" =~ ^[1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*,[1-9][0-9]*$ ]] ||
+  fail "could not resolve the four frontier prototype ids"
+IFS=',' read -r raft_prototype_id boat_prototype_id submarine_prototype_id \
+  airship_prototype_id <<<"$frontier_prototype_ids"
+
 timeout 120 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
   'goto -810 480' \
   'reglist type 5' \
@@ -301,9 +369,31 @@ done
 grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
   fail "Kohdee did not return to room 1204"
 
+timeout 240 "$script_dir/dev_kohdee_login_smoke.sh" \
+  --vessel-frontier-check \
+  "$raft_prototype_id" "$boat_prototype_id" \
+  "$submarine_prototype_id" "$airship_prototype_id" \
+  >"$run_dir/03-kohdee-vessel-frontier.log" 2>&1 ||
+  fail "the actual Kohdee vessel-frontier check failed"
+
+for expected_text in \
+  'PASS: raft and riverboat traversed the digitalized Sablebranch River.' \
+  'PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench.' \
+  'PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200.' \
+  'PASS: all four temporary frontier vessels were purged'; do
+  grep -Fq "$expected_text" "$run_dir/03-kohdee-vessel-frontier.log" ||
+    fail "the vessel-frontier check did not report '$expected_text'"
+done
+
+remaining_frontier_slots=$(frontier_runtime_slots)
+[[ -z "$remaining_frontier_slots" ]] ||
+  fail "temporary frontier ships remained: $remaining_frontier_slots"
+grep -Fqx 'Room: 1204' "$repo_root/lib/plrfiles/K-O/kohdee.plr" ||
+  fail "Kohdee did not return to room 1204 after piloting the frontier vessels"
+
 if [[ -f "$server_log" ]] &&
    grep -E 'SYSERR:.*(710010[1-4]|Starfall|Aetherwind|Shardspire|Sablebranch)' \
-     "$server_log" >"$run_dir/03-related-syserr.log"; then
+     "$server_log" >"$run_dir/04-related-syserr.log"; then
   fail "the server logged a frontier-content SYSERR"
 fi
 
@@ -323,12 +413,16 @@ elapsed_seconds=$(($(date +%s) - started_epoch))
   printf 'region_vnums=7100101,7100102,7100103\n'
   printf 'path_vnum=7100104\n'
   printf 'prototype_rows=%s\n' "$prototype_rows"
+  printf 'prototype_ids=%s\n' "$frontier_prototype_ids"
   printf 'trench_center=900,225\n'
   printf 'trench_depth_units=104\n'
+  printf 'actual_character=Kohdee\n'
+  printf 'actual_behavior_log=03-kohdee-vessel-frontier.log\n'
   printf 'elapsed_seconds=%s\n' "$elapsed_seconds"
 } >"$run_dir/result"
 
+frontier_cleanup_authorized=false
 trap - EXIT
-printf 'PASS: frontier regions, river path, and four prototypes passed through '
-printf 'actual Kohdee (%ss).\n' "$elapsed_seconds"
+printf 'PASS: frontier regions, river path, and four piloted prototypes passed '
+printf 'through actual Kohdee (%ss).\n' "$elapsed_seconds"
 printf 'Artifacts: %s\n' "$run_dir"
