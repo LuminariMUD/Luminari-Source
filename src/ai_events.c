@@ -33,7 +33,7 @@
 #include "handler.h"
 #include "db.h"
 #include "ai_service.h"
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 #include "mud_event.h"
 
 /* AI Response Event Data

@@ -15,7 +15,7 @@
 #include "genolc.h"
 #include "genmob.h"
 #include "genzon.h"
-#include "dg_olc.h"
+#include "dgscript/dg_olc.h"
 #include "spells.h"
 #include "actionqueues.h"
 #include "spec_procs.h"

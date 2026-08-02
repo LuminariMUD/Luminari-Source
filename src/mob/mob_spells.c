@@ -21,11 +21,11 @@
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"
-#include "shop.h"       /* for shop_keeper */
-#include "spec_procs.h" /* for questmaster */
-#include "dg_scripts.h" /* for SCRIPT and TRIGGERS */
-#include "quest.h"      /* for questmaster checks */
-#include "evolutions.h" /* for EVOLUTION_UNDEAD_APPEARANCE */
+#include "shop.h"                /* for shop_keeper */
+#include "spec_procs.h"          /* for questmaster */
+#include "dgscript/dg_scripts.h" /* for SCRIPT and TRIGGERS */
+#include "quest.h"               /* for questmaster checks */
+#include "evolutions.h"          /* for EVOLUTION_UNDEAD_APPEARANCE */
 #include "mob_utils.h"
 #include "mob_class.h"   /* for npc_class_behave */
 #include "mob_psionic.h" /* for psionic functions */

@@ -57,7 +57,7 @@
 #include "db.h"
 #include "handler.h"
 #include "feats.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "genmob.h"

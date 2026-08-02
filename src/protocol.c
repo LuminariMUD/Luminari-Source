@@ -20,7 +20,7 @@
 #include "db.h"
 #include "screen.h"
 #include "improved-edit.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "modify.h"
 #include "systems/web_client/onboarding.h"

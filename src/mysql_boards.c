@@ -22,7 +22,7 @@
 #include "screen.h"
 #include "oasis.h"
 #include "genolc.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "char_descs.h"
 #include "deities.h"
 #include "helpers.h"

@@ -19,7 +19,7 @@
 #include "constants.h"
 #include "vessels.h"
 #include "mud_event.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "wilderness.h"
 
 /* ========================================================================= */

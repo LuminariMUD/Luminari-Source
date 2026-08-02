@@ -17,7 +17,7 @@
 #include "fight.h"
 #include "spec_procs.h"
 #include "clan.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "feats.h"
 #include "character_creation_content.h"
 

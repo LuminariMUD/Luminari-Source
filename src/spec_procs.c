@@ -27,7 +27,7 @@
 #include "clan.h"
 #include "mudlim.h"
 #include "graph.h"
-#include "dg_scripts.h" /* for send_to_zone() */
+#include "dgscript/dg_scripts.h" /* for send_to_zone() */
 #include "mud_event.h"
 #include "actions.h"
 #include "assign_wpn_armor.h"

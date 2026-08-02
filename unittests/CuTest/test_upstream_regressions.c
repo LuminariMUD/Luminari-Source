@@ -4,7 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
-#include "../../src/dg_olc.h"
+#include "../../src/dgscript/dg_olc.h"
 
 #include <stdlib.h>
 #include <string.h>

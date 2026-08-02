@@ -12,7 +12,7 @@
 #define MOVEMENT_FALLING_H
 
 /* Include for EVENTFUNC macro */
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 
 /* Function declarations for falling mechanics */
 bool obj_should_fall(struct obj_data *obj);

@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "perks.h"
 #include "interpreter.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "fight.h"
 #include "mud_event.h"

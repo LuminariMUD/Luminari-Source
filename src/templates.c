@@ -23,7 +23,7 @@
 #include "wilderness.h"
 #include "domains_schools.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "templates.h"
 #include "mysql.h"
 #include "oasis.h"

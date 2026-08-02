@@ -12,7 +12,7 @@
 #include "db.h"
 #include "genolc.h"
 #include "genzon.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 
 /* local functions */
 static void remove_cmd_from_list(struct reset_com **list, int pos);

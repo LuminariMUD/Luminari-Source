@@ -32,7 +32,7 @@
 #include "wilderness.h"
 #include "domains_schools.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "alchemy.h"
 #include "premadebuilds.h"
 #include "craft.h"

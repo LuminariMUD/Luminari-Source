@@ -22,7 +22,7 @@
 #include "handler.h"
 #include "constants.h"
 #include "improved-edit.h"
-#include "dg_olc.h"
+#include "dgscript/dg_olc.h"
 #include "screen.h"
 #include "fight.h"
 #include "race.h"

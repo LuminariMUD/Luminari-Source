@@ -27,8 +27,8 @@
 #ifdef fiendish_boons
 #undef fiendish_boons
 #endif
-#include "dg_scripts.h"
-#include "dg_event.h"
+#include "dgscript/dg_scripts.h"
+#include "dgscript/dg_event.h"
 #include "act.h"
 #include "spec_procs.h"
 #include "class.h"

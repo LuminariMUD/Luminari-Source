@@ -22,7 +22,7 @@
 #include "feats.h"
 #include "oasis.h"
 #include "house.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "clan.h"
 #include "mysql.h"
 #include "modify.h"

@@ -11,7 +11,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 
 /* Global lists */
 struct list_data *global_lists = NULL;

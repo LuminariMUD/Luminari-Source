@@ -15,13 +15,13 @@
 #include "db.h"
 #include "handler.h"
 #include "pfdefaults.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "mysql.h"
-#include "genolc.h"     /* for strip_cr */
-#include "config.h"     /* for pclean_criteria[] */
-#include "dg_scripts.h" /* To enable saving of player variables to disk */
+#include "genolc.h"              /* for strip_cr */
+#include "config.h"              /* for pclean_criteria[] */
+#include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest.h"
 #include "spells.h"
 #include "clan.h"

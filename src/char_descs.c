@@ -13,7 +13,7 @@
 #include "comm.h"
 #include "char_descs.h"
 #include "race.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "class.h"
 #include "mail.h"
 #include "roleplay.h"

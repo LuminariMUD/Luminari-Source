@@ -22,7 +22,7 @@
 #include "oasis.h"
 #include "improved-edit.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "wilderness.h"
 #include "quest.h"
 #include "act.h"

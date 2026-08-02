@@ -20,7 +20,7 @@
 #include "shop.h"
 #include "screen.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "quest.h"
 #include "modify.h"
 #include "spells.h"

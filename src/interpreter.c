@@ -25,7 +25,7 @@
 #include "genolc.h"
 #include "oasis.h"
 #include "improved-edit.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "constants.h"
 #include "act.h" /* ACMDs located within the act*.c files, char-creation help */
 #include "ban.h"

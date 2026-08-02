@@ -19,7 +19,7 @@
 #include "handler.h"
 #include "screen.h"
 #include "wilderness.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "staff_events.h"
 #include "spec_procs.h" /* external variable for prisoner heads */
 /* end includes */

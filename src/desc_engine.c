@@ -13,7 +13,7 @@
 #include "fight.h"
 #include "comm.h"
 #include "structs.h"
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 #include "db.h"
 #include "constants.h"
 #include "mysql.h"

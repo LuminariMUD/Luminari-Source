@@ -11,7 +11,7 @@
 #include "db.h"
 #include "constants.h"
 #include "interpreter.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "modify.h"
 #include "feats.h"
 #include "class.h"

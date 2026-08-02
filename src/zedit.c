@@ -17,7 +17,7 @@
 #include "genzon.h"
 #include "genmob.h"
 #include "oasis.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "handler.h"
 #include "clan.h"
 

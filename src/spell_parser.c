@@ -16,7 +16,7 @@
 #include "handler.h"
 #include "comm.h"
 #include "db.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "fight.h" /* for hit() */
 #include "constants.h"
 #include "mud_event.h"

@@ -27,7 +27,7 @@
 #include "alchemy.h"
 #include "race.h"
 #include "encounters.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "prefedit.h"
 #include "mud_event.h"
 #include "act.h"

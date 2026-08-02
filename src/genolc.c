@@ -22,7 +22,7 @@
 #include "genshp.h"
 #include "genzon.h"
 #include "genobj.h"
-#include "dg_olc.h"
+#include "dgscript/dg_olc.h"
 #include "constants.h"
 #include "interpreter.h"
 #include "act.h"    /* for the space_to_minus function */

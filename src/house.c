@@ -21,8 +21,8 @@
 #include "modify.h"
 #include "mysql.h"
 #include "clan.h"
-#include "act.h"        /* for perform_save() */
-#include "dg_scripts.h" /* for load_otriggers() */
+#include "act.h"                 /* for perform_save() */
+#include "dgscript/dg_scripts.h" /* for load_otriggers() */
 
 #define MAX_BAG_ROWS 5
 

@@ -19,7 +19,7 @@
 #include "spells.h"
 #include "house.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "asciimap.h"
 #include "wilderness.h"
 #include "protocol.h"

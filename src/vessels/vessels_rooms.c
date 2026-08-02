@@ -17,7 +17,7 @@
 #include "act.h"
 #include "spec_procs.h"
 #include "modify.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "mysql.h"
 #include "perfmon.h"
 #include "genwld.h"

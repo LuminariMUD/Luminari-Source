@@ -71,8 +71,8 @@
 #include "house.h"
 #include "oasis.h"
 #include "genolc.h"
-#include "dg_scripts.h"
-#include "dg_event.h"
+#include "dgscript/dg_scripts.h"
+#include "dgscript/dg_event.h"
 #include "screen.h"    /* to support the gemote act type command */
 #include "constants.h" /* For mud versions */
 #include "boards.h"

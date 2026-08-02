@@ -10,7 +10,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "mud_event.h"
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 #include "brew.h"
 
 /* External event handler function declarations */

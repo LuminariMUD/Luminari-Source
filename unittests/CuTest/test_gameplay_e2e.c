@@ -8,7 +8,7 @@
 #include "../../src/actionqueues.h"
 #include "../../src/craft.h"
 #include "../../src/db.h"
-#include "../../src/dg_scripts.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/fight.h"
 #include "../../src/genwld.h"
 #include "../../src/handler.h"

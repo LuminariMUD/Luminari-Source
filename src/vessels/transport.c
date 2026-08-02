@@ -28,7 +28,7 @@
 #include "alchemy.h"
 #include "race.h"
 #include "transport.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "wilderness.h"
 #include "graph.h"
 #include "routing.h"

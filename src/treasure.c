@@ -18,7 +18,7 @@
 #include "db.h"
 #include "spells.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "treasure.h"
 #include "craft.h"
 #include "assign_wpn_armor.h"

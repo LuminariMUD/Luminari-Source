@@ -21,7 +21,7 @@
 #include "spells.h"
 #include "screen.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "class.h"
 #include "fight.h"

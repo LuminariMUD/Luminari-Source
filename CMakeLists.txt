@@ -441,19 +441,19 @@ set(SRC_C_FILES
     src/db_admin_commands.c
     src/deities.c
     src/desc_engine.c
-    src/dg_comm.c
+    src/dgscript/dg_comm.c
     src/discord_bridge.c
-    src/dg_db_scripts.c
-    src/dg_event.c
-    src/dg_handler.c
-    src/dg_misc.c
-    src/dg_mobcmd.c
-    src/dg_objcmd.c
-    src/dg_olc.c
-    src/dg_scripts.c
-    src/dg_triggers.c
-    src/dg_variables.c
-    src/dg_wldcmd.c
+    src/dgscript/dg_db_scripts.c
+    src/dgscript/dg_event.c
+    src/dgscript/dg_handler.c
+    src/dgscript/dg_misc.c
+    src/dgscript/dg_mobcmd.c
+    src/dgscript/dg_objcmd.c
+    src/dgscript/dg_olc.c
+    src/dgscript/dg_scripts.c
+    src/dgscript/dg_triggers.c
+    src/dgscript/dg_variables.c
+    src/dgscript/dg_wldcmd.c
     src/domain_powers.c
     src/domains_schools.c
     src/dotenv.c

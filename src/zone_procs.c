@@ -24,9 +24,9 @@
 #include "domains_schools.h"
 #include "spec_abilities.h"
 #include "treasure.h"
-#include "mob/mob_utils.h" /* for npc_find_target() */
-#include "dg_scripts.h"    /* for load_mtrigger() */
-#include "staff_events.h"  /* for staff events!  prisoner treasury! */
+#include "mob/mob_utils.h"       /* for npc_find_target() */
+#include "dgscript/dg_scripts.h" /* for load_mtrigger() */
+#include "staff_events.h"        /* for staff events!  prisoner treasury! */
 #include "evolutions.h"
 
 /* local, file scope restricted functions */

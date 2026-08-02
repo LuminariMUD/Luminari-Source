@@ -19,7 +19,7 @@
 #include "spells.h"
 #include "house.h"
 #include "constants.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "fight.h"
 #include "spec_procs.h"

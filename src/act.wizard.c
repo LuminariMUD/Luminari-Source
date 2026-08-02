@@ -21,7 +21,7 @@
 #include "screen.h"
 #include "constants.h"
 #include "oasis.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "shop.h"
 #include "shop.h"
 #include "act.h"

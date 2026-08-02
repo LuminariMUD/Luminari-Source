@@ -13,7 +13,7 @@
 #ifndef _MUD_EVENT_H_
 #define _MUD_EVENT_H_
 
-#include "dg_event.h"
+#include "dgscript/dg_event.h"
 
 struct region_data;
 

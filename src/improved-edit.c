@@ -11,7 +11,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "improved-edit.h"
-#include "dg_scripts.h"
+#include "dgscript/dg_scripts.h"
 #include "modify.h"
 
 void send_editor_help(struct descriptor_data *d)
