@@ -66,8 +66,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-tactical-check)
       mode="vessel-tactical-check"
       ;;
+    --vessel-lookout-check)
+      mode="vessel-lookout-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id> | --vessel-lookout-check <warship-id>]"
       ;;
   esac
   shift
@@ -133,6 +136,9 @@ if [[ $# -gt 0 ]]; then
   elif [[ "$mode" == "vessel-tactical-check" ]]; then
     [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
       fail "--vessel-tactical-check requires one positive warship prototype id"
+  elif [[ "$mode" == "vessel-lookout-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-lookout-check requires one positive warship prototype id"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -1209,6 +1215,69 @@ proc run_vessel_tactical_check {warship_id} {
   puts "PASS: the vessel tactical check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+proc run_vessel_lookout_check {warship_id} {
+  set workflow_started_at [clock milliseconds]
+
+  set output [run_game_command "goto 902 225"]
+  require_game_output $output "Current Location  : (902, 225)" \
+    "lookout contact staging"
+  set target_slot \
+    [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "lookout observer staging"
+  set observer_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+
+  set output [run_game_command "lookout"]
+  require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
+    "open-water lookout header"
+  require_game_output $output "Position: (900, 225, 0)" \
+    "open-water lookout position"
+  require_game_output $output "Conditions:" "open-water lookout weather"
+  require_game_output $output "visibility" "open-water lookout visibility"
+  require_game_output $output "Current sector: Ocean" \
+    "open-water lookout current sector"
+  require_game_output $output \
+    "Surrounding wilderness (sampled to the visible horizon):" \
+    "open-water lookout wilderness scan"
+  foreach direction \
+      {North Northeast East Southeast South Southwest West Northwest} {
+    require_game_output $output "  $direction" \
+      "open-water lookout $direction bearing"
+  }
+  require_game_output $output "Visible vessels (nearest first):" \
+    "open-water lookout contact heading"
+  require_game_output $output "Starfall Bastion" \
+    "open-water lookout live contact"
+  require_game_output $output "sound" "open-water lookout contact condition"
+
+  purge_frontier_vessel $observer_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" \
+    "lookout target cleanup"
+
+  set output [run_game_command "goto -66 92"]
+  require_game_output $output "Current Location  : (-66, 92)" \
+    "coastal lookout staging"
+  set coastal_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "lookout"]
+  require_game_output $output "LOOKOUT VIEW FROM Starfall Bastion" \
+    "coastal lookout header"
+  require_game_output $output "Water (Swim)" "coastal lookout shoal"
+  require_game_output $output "Beach" "coastal lookout beach"
+  require_game_output $output "Forest" "coastal lookout land"
+  purge_frontier_vessel $coastal_slot "Starfall Bastion"
+
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "lookout safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: the lookout used all eight canonical wilderness bearings through the visible horizon."
+  puts "PASS: the lookout reported a real nearby vessel through production visibility and condition state."
+  puts "PASS: the coastal lookout reported actual shoal, beach, and forest sectors."
+  puts "PASS: the vessel lookout check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc clean_dialog_output {raw commands marker} {
   global smoke_character
 
@@ -1867,7 +1936,7 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
     $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
-    $mode eq "vessel-tactical-check"} {
+    $mode eq "vessel-tactical-check" || $mode eq "vessel-lookout-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1927,6 +1996,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
         [lindex $game_commands 1]
     } elseif {$mode eq "vessel-tactical-check"} {
       run_vessel_tactical_check [lindex $game_commands 0]
+    } elseif {$mode eq "vessel-lookout-check"} {
+      run_vessel_lookout_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -2010,6 +2081,9 @@ elif [[ "$mode" == "vessel-event-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-tactical-check" ]]; then
   printf 'PASS: %s completed the vessel-tactical check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-lookout-check" ]]; then
+  printf 'PASS: %s completed the vessel-lookout check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \

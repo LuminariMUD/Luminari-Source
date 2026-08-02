@@ -4,11 +4,19 @@ set -Eeuo pipefail
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo_root=${LUMINARI_PROJECT_ROOT:-$(cd "$script_dir/.." && pwd)}
+acceptance_mode=tactical
+if [[ $# -gt 0 ]]; then
+  [[ $# -eq 1 && "$1" == --lookout ]] || {
+    printf 'usage: %s [--lookout]\n' "$0" >&2
+    exit 2
+  }
+  acceptance_mode=lookout
+fi
 server_unit=luminari-dev-login-smoke.service
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 target_player=Kohdee
 player_file="$repo_root/lib/plrfiles/K-O/kohdee.plr"
-state_root="${TMPDIR:-/tmp}/luminari-vessel-tactical-check-${UID}"
+state_root="${TMPDIR:-/tmp}/luminari-vessel-${acceptance_mode}-check-${UID}"
 run_id="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 run_dir="$state_root/runs/$run_id"
 started_epoch=$(date +%s)
@@ -31,7 +39,7 @@ mkdir -p "$run_dir"
 
 fail()
 {
-  printf 'vessel tactical in-game check: %s\n' "$*" >&2
+  printf 'vessel %s in-game check: %s\n' "$acceptance_mode" "$*" >&2
   exit 1
 }
 
@@ -92,6 +100,15 @@ database_query()
   MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
     --skip-column-names --host="$database_host" --user="$database_user" \
     "$database_name" --execute="$query"
+}
+
+database_apply_file()
+{
+  local sql_file=$1
+
+  MYSQL_PWD="$database_password" mariadb --no-defaults \
+    --host="$database_host" --user="$database_user" "$database_name" \
+    <"$sql_file"
 }
 
 port_is_listening()
@@ -224,7 +241,7 @@ restore_baseline()
 {
   local cleanup_status=0
   local restored_sha256
-  local restore_tmp="$repo_root/lib/plrfiles/K-O/.kohdee.plr.tactical-restore-$$"
+  local restore_tmp="$repo_root/lib/plrfiles/K-O/.kohdee.plr.vessel-view-restore-$$"
 
   [[ "$snapshot_ready" == true ]] || return 0
 
@@ -280,9 +297,15 @@ finish()
         "$source_commit" "$candidate_sha256" "$elapsed_seconds"
       printf 'temporary_runtimes=0 cleanup=restored\n'
     } >"$run_dir/result"
-    printf 'PASS: Kohdee validated the wilderness tactical chart, live damage '
-    printf 'contact, and coastal symbology with exact character restoration (%ss).\n' \
-      "$elapsed_seconds"
+    if [[ "$acceptance_mode" == tactical ]]; then
+      printf 'PASS: Kohdee validated the wilderness tactical chart, live damage '
+      printf 'contact, and coastal symbology with exact character restoration (%ss).\n' \
+        "$elapsed_seconds"
+    else
+      printf 'PASS: Kohdee validated the wilderness lookout bearings, live contact, '
+      printf 'and coastal sectors with exact character restoration (%ss).\n' \
+        "$elapsed_seconds"
+    fi
     printf 'Artifacts: %s\n' "$run_dir"
     exit 0
   fi
@@ -290,8 +313,8 @@ finish()
   printf 'FAIL command_status=%s cleanup_status=%s\n' \
     "$exit_status" "$cleanup_status" >"$run_dir/result"
   if [[ "$cleanup_status" != 0 ]]; then
-    printf 'vessel tactical in-game check: cleanup failed; inspect %s/cleanup.log\n' \
-      "$run_dir" >&2
+    printf 'vessel %s in-game check: cleanup failed; inspect %s/cleanup.log\n' \
+      "$acceptance_mode" "$run_dir" >&2
   fi
   printf 'Artifacts: %s\n' "$run_dir" >&2
   [[ "$exit_status" != 0 ]] && exit "$exit_status"
@@ -308,8 +331,8 @@ for command_name in awk cp date env find flock git grep mariadb mkdir mv \
     fail "required command not found: $command_name"
 done
 
-exec 8>"${TMPDIR:-/tmp}/luminari-vessel-tactical-check-${UID}.lock"
-flock -n 8 || fail "another vessel tactical acceptance check is running"
+exec 8>"${TMPDIR:-/tmp}/luminari-vessel-view-check-${UID}.lock"
+flock -n 8 || fail "another vessel view acceptance check is running"
 
 [[ -r "$repo_root/lib/.env" ]] || fail "cannot read lib/.env"
 [[ -r "$repo_root/lib/mysql_config" ]] || fail "cannot read lib/mysql_config"
@@ -379,6 +402,7 @@ frontier_region_state=$(database_query "
   fail "the Starfall Bastion prototype already has a runtime vessel"
 
 stop_development_mud || fail "the development MUD did not stop"
+database_apply_file "$repo_root/sql/components/help_vessel_entries.sql"
 cp --preserve=mode,ownership,timestamps "$player_file" \
   "$run_dir/kohdee.plr.before"
 baseline_player_sha256=$(sha256sum "$run_dir/kohdee.plr.before" |
@@ -397,41 +421,73 @@ start_server_without_login || fail "the current development MUD did not start"
 [[ $(running_binary_sha256) == "$candidate_sha256" ]] ||
   fail "the running MUD does not match the installed candidate"
 
-timeout 120 env DEV_MUD_CHARACTER="$target_player" \
-  "$script_dir/dev_kohdee_login_smoke.sh" --help-check TACTICAL \
-  >"$run_dir/01-tactical-help.log" 2>&1 ||
-  fail "Kohdee could not read the authoritative TACTICAL help"
+if [[ "$acceptance_mode" == tactical ]]; then
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --help-check TACTICAL \
+    >"$run_dir/01-tactical-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative TACTICAL help"
 
-timeout 300 env DEV_MUD_CHARACTER="$target_player" \
-  "$script_dir/dev_kohdee_login_smoke.sh" --vessel-tactical-check \
-  "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-tactical.log" 2>&1 ||
-  fail "the actual Kohdee vessel-tactical session failed"
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --vessel-tactical-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-tactical.log" 2>&1 ||
+    fail "the actual Kohdee vessel-tactical session failed"
 
-for expected_text in \
-  'PASS: wilderness tactical terrain, two range rings' \
-  'PASS: a real contact changed from sound to damaged' \
-  'PASS: the coastal chart rendered actual shoal, beach, and coastline cells.' \
-  'PASS: the vessel tactical check completed and purged all temporary hulls'; do
-  grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
-    fail "the tactical session did not report '$expected_text'"
-done
+  for expected_text in \
+    'PASS: wilderness tactical terrain, two range rings' \
+    'PASS: a real contact changed from sound to damaged' \
+    'PASS: the coastal chart rendered actual shoal, beach, and coastline cells.' \
+    'PASS: the vessel tactical check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
+      fail "the tactical session did not report '$expected_text'"
+  done
 
-for expected_text in \
-  'WILDERNESS TACTICAL CHART' \
-  'Starfall Trench (bathymetric)' \
-  'Starfall Bastion         sound' \
-  'Starfall Bastion         battered'; do
-  grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
-    fail "the tactical transcript did not contain '$expected_text'"
-done
+  for expected_text in \
+    'WILDERNESS TACTICAL CHART' \
+    'Starfall Trench (bathymetric)' \
+    'Starfall Bastion         sound' \
+    'Starfall Bastion         battered'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-tactical.log" ||
+      fail "the tactical transcript did not contain '$expected_text'"
+  done
+else
+  timeout 120 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --help-check LOOK_OUTSIDE \
+    >"$run_dir/01-lookout-help.log" 2>&1 ||
+    fail "Kohdee could not read the authoritative LOOK_OUTSIDE help"
+  grep -Fq 'scan canonical wilderness' "$run_dir/01-lookout-help.log" ||
+    fail "the authoritative LOOK_OUTSIDE help is stale"
+
+  timeout 300 env DEV_MUD_CHARACTER="$target_player" \
+    "$script_dir/dev_kohdee_login_smoke.sh" --vessel-lookout-check \
+    "$warship_prototype_id" >"$run_dir/02-kohdee-vessel-lookout.log" 2>&1 ||
+    fail "the actual Kohdee vessel-lookout session failed"
+
+  for expected_text in \
+    'PASS: the lookout used all eight canonical wilderness bearings' \
+    'PASS: the lookout reported a real nearby vessel' \
+    'PASS: the coastal lookout reported actual shoal, beach, and forest sectors.' \
+    'PASS: the vessel lookout check completed and purged all temporary hulls'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
+      fail "the lookout session did not report '$expected_text'"
+  done
+
+  for expected_text in \
+    'LOOKOUT VIEW FROM Starfall Bastion' \
+    'Surrounding wilderness (sampled to the visible horizon):' \
+    'Visible vessels (nearest first):' \
+    'Current sector: Ocean'; do
+    grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-lookout.log" ||
+      fail "the lookout transcript did not contain '$expected_text'"
+  done
+fi
 
 [[ -z $(tactical_runtime_slots) ]] ||
   fail "a temporary Starfall Bastion runtime remained"
 grep -Fqx 'Room: 1204' "$player_file" ||
   fail "Kohdee did not return to room 1204"
-if grep -E 'SYSERR:.*(tactical|Starfall Bastion|Starfall Trench)' \
+if grep -E 'SYSERR:.*(tactical|lookout|Starfall Bastion|Starfall Trench)' \
      "$server_log" >"$run_dir/03-related-syserr.log"; then
-  fail "the server logged a tactical-chart SYSERR"
+  fail "the server logged a vessel-view SYSERR"
 fi
 
 acceptance_complete=true
