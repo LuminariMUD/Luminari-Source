@@ -250,7 +250,7 @@ struct help_cache_entry {
 
 ### hedit - OLC Help Editor
 **Usage:** `hedit <tag | new>`
-- **Location:** src/hedit.c
+- **Location:** src/olc/hedit.c
 - **Access:** Builders+ (LVL_BUILDER)
 - **Features:**
   - Create new help entries
@@ -280,7 +280,7 @@ struct help_cache_entry {
 
 ### helpgen - Generate, Import, and Export Help Content
 **Usage:** `helpgen <type> [arguments]`
-- **Location:** src/hedit.c:1707
+- **Location:** src/olc/hedit.c:1707
 - **Access:** Implementor (LVL_IMPL)
 - **Features:**
   - Auto-generates help for game elements
@@ -394,7 +394,7 @@ HEDIT_CONFIRM_DELETE - Delete confirmation
    - Broadcast changes to connected users
 
 ### Database Operations
-**Location:** src/hedit.c:331 (hedit_save_to_db)
+**Location:** src/olc/hedit.c:331 (hedit_save_to_db)
 1. Begin transaction
 2. Delete existing keywords
 3. Insert/update help_entries
@@ -778,8 +778,8 @@ Debug output includes:
 ## Core Implementation Files
 - **`src/help.c`** (1296 lines) - Main help system implementation, search functions, display logic
 - **`src/help.h`** (89 lines) - Help system data structures and function declarations
-- **`src/hedit.c`** (1847 lines) - OLC help editor implementation, database operations
-- **`src/hedit.h`** (31 lines) - Help editor declarations and command definitions
+- **`src/olc/hedit.c`** (1847 lines) - OLC help editor implementation, database operations
+- **`src/olc/hedit.h`** (31 lines) - Help editor declarations and command definitions
 
 ## Database Integration
 - **`src/db.c`** - Contains `load_help()` function for file-based loading, help_table management
@@ -793,9 +793,9 @@ Debug output includes:
 - **`src/comm.c`** - Uses help_table for initial help display
 
 ## OLC Framework
-- **`src/oasis.h`** - OLC data structures used by hedit
-- **`src/oasis.c`** - OLC framework functions
-- **`src/genolc.c`** - Generic OLC functions
+- **`src/olc/oasis.h`** - OLC data structures used by hedit
+- **`src/olc/oasis.c`** - OLC framework functions
+- **`src/olc/genolc.c`** - Generic OLC functions
 - **`src/modify.c`** - String editing functions for help text
 
 ## Data Files

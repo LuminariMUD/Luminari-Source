@@ -7,7 +7,7 @@
 > will not resolve here. For the LuminariMUD-side client see
 > [INTERMUD3.md](INTERMUD3.md) (system overview),
 > [INTERMUD3_SECURITY_AUDIT.md](INTERMUD3_SECURITY_AUDIT.md) (remediated audit),
-> and `src/systems/intermud3/`.
+> and `src/net/`.
 
 *Last Updated: 2025-08-26T05:12:00Z - Comprehensive Accuracy Audit Complete*
 

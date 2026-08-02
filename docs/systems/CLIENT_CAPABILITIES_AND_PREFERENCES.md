@@ -32,7 +32,7 @@ When a socket connects, the server starts the protocol capability negotiation fl
 
 The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF‑8), MSDP, GMCP, MXP, MSP, and optionally MCCP. Example: UTF‑8 request/acceptance handling:
 
-```2043:2051:src/protocol.c
+```2043:2051:src/net/protocol.c
   case (char)TELOPT_CHARSET:
     if (aCmd == (char)WILL)
     {
@@ -46,7 +46,7 @@ The negotiation includes TTYPE, NAWS (window size), CHARSET (UTF‑8), MSDP, GMC
     }
 ```
 
-```2662:2664:src/protocol.c
+```2662:2664:src/net/protocol.c
       if (apData[0] == ACCEPTED)
         pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = 1;
 ```
@@ -157,7 +157,7 @@ Additionally, brand-new players may be prompted to enable “recommended prefere
 ### Prefedit: what it saves and when it applies
 The preference editor copies PRFs into an edit buffer, applies changes back to the character when you save, and persists them:
 
-```64:84:src/prefedit.c
+```64:84:src/olc/prefedit.c
 static void prefedit_save_to_char(struct descriptor_data *d)
 {
   ...
@@ -209,7 +209,7 @@ Load-time of these persisted fields:
 
 This is enforced in the color helpers, which check PRF flags before using protocol variables:
 
-```1768:1776:src/protocol.c
+```1768:1776:src/net/protocol.c
   /* here we are forcing all color off for people who turn it off completely */
   if (ch && !IS_NPC(ch) && !IS_SET_AR(PRF_FLAGS(ch), PRF_COLOR_1) &&
       !IS_SET_AR(PRF_FLAGS(ch), PRF_COLOR_2))
@@ -230,8 +230,8 @@ This is enforced in the color helpers, which check PRF flags before using protoc
 - `src/interpreter.c`: account/character selection, enter-game flow, recommended PRF prompt, protocol info event.
 - `src/db.c`: `init_char()` one-time PRF defaults for new characters; `reset_char()`.
 - `src/players.c`: load/save of PRFs and persisted protocol fields (`Pref`, `UTF8`, `XTrm`, `GMCP`).
-- `src/protocol.c` / `src/protocol.h`: negotiation logic; capability variables; color helpers.
-- `src/prefedit.c`: player preference editor; applies PRFs and saves; exposes protocol toggles.
+- `src/net/protocol.c` / `src/net/protocol.h`: negotiation logic; capability variables; color helpers.
+- `src/olc/prefedit.c`: player preference editor; applies PRFs and saves; exposes protocol toggles.
 - `src/utils.h`: PRF macros.
 - `src/mud_event.h`: `ePROTOCOLS` event definition.
 - `src/pfdefaults.h`: default bitmasks (e.g., `PFDEF_PREFFLAGS`).

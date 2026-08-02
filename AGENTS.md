@@ -99,11 +99,27 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - Combat: `fight.c`. Classes: `class.c`. Races: `race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
 
 ### Scripting and building
-- DG Scripts: `dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
-- OLC (online creation): `genolc.c`, `gen*.c`, `*edit.c` - in-game world editing that writes the flat world files.
+- DG Scripts: `src/dgscript/dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
+- OLC (online creation): `src/olc/` - `genolc.c`, `gen*.c`, `*edit.c`, and the `oasis*` framework. In-game world editing that writes the flat world files.
 
-### Subsystems (src/systems/)
-`intermud3/` (inter-MUD chat network client), `pubsub/`, `spatial/`, `region_hints/`, `narrative_weaver/`, `terrainbridge/`. Newer feature work tends to land here rather than as top-level src files.
+### Source layout
+`src/` uses ONE flat level of feature directories. There is no nesting; `src/systems/` and `src/world/` no longer exist.
+
+| Directory | Holds |
+|-----------|-------|
+| `src/olc/` | online creation: `*edit.c`, `gen*.c`, `oasis*`, `improved-edit.c` |
+| `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge` |
+| `src/vessels/` | `vessels_*`, `vehicles*`, `transport*` |
+| `src/mob/` | `mob_*` |
+| `src/movement/` | `movement*` |
+| `src/dgscript/` | `dg_*` |
+| `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
+| `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
+| `src/pubsub/` | `pubsub*` |
+
+A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `fight.c`, `structs.h`, `utils.h`) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+
+Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 
 ### Misc
 - `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).

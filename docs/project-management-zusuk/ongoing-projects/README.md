@@ -19,10 +19,10 @@ deleted.
 | [AI_TODO_IDEAS.md](AI_TODO_IDEAS.md) | Not started | Implementation plan for AI NPC conversation history. No `conversation_history` code exists yet. |
 | [DO_SKORE_PROJECT.md](DO_SKORE_PROJECT.md) | Partial | Phase 1 and Phases 2.1-2.5 complete; Phase 3 (detailed views) and Phase 4 open. System reference: [SKORE_SYSTEM.md](../../systems/SKORE_SYSTEM.md) |
 | [PROTOCOL_TODO.md](PROTOCOL_TODO.md) | Partial | Security audit follow-ups; 4 of 6 recommendations still outstanding, including comprehensive null-pointer validation. |
-| [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dg_event.c` and `src/mud_event.c` still exist separately. |
+| [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dgscript/dg_event.c` and `src/mud_event.c` still exist separately. |
 | [cbuild-issues.md](cbuild-issues.md) | Partial | CMake build report. Errors are resolved; 76 format warnings remain (plus ~8000 clang-tidy findings tracked separately). |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Player and staff feature suggestions gathered in-game. Not a plan - a source of candidates. |
-| [SRC_DIRECTORY_LAYOUT.md](SRC_DIRECTORY_LAYOUT.md) | Partial | Replaces the inconsistent `src/systems/` nest with one flat level of feature-sized directories. The `src/vessels/` pilot is landed and green (306 tests, both build systems); the remaining seven clusters are gated on how it holds up in use. |
+| [SRC_DIRECTORY_LAYOUT.md](SRC_DIRECTORY_LAYOUT.md) | Complete | Replaced the inconsistent `src/systems/` nest with one flat level of nine feature-sized directories. The old `systems/` and `world/` nests are gone; 212 files remain flat. Enduring content belongs in the formal docs tree, after which this file can be deleted. |
 
 The temporary vessel workspace is retired. Durable vessel requirements and
 the authoritative release-gate state live in

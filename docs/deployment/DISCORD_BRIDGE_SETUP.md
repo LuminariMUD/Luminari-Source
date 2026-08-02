@@ -108,7 +108,7 @@ For detailed setup instructions, see the repository README at https://github.com
 - **Input Sanitization**: Special characters filtered
 
 ### Optional Authentication:
-To enable authentication, edit `src/discord_bridge.c`:
+To enable authentication, edit `src/net/discord_bridge.c`:
 ```c
 /* Line 201 - Set a secret token */
 strcpy(discord_bridge->auth_token, "your-secret-token-here");
@@ -187,19 +187,19 @@ sudo iptables -A INPUT -p tcp --dport 8181 -j ACCEPT
 ## Advanced Configuration
 
 ### Adding More Channels:
-Edit `src/discord_bridge.c` function `load_discord_config()`:
+Edit `src/net/discord_bridge.c` function `load_discord_config()`:
 ```c
 add_discord_channel("newchannel", "discord-channel", SCMD_NEWCHANNEL, 1);
 ```
 
 ### Changing Port:
-Edit `src/discord_bridge.h`:
+Edit `src/net/discord_bridge.h`:
 ```c
 #define DISCORD_BRIDGE_PORT 8181  /* Change to desired port */
 ```
 
 ### Adjusting Rate Limits:
-Edit `src/discord_bridge.h`:
+Edit `src/net/discord_bridge.h`:
 ```c
 #define DISCORD_RATE_LIMIT_MESSAGES 10  /* Messages per window */
 #define DISCORD_RATE_LIMIT_WINDOW 1     /* Window in seconds */

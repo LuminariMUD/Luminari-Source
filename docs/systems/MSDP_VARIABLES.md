@@ -246,7 +246,7 @@ MSDP is supported by many MUD clients including:
 ## See Also
 
 - [PROTOCOL_SYSTEMS.md](PROTOCOL_SYSTEMS.md) - Detailed protocol implementation
-- [protocol.h](../../src/protocol.h) - MSDP implementation in source code
+- [protocol.h](../../src/net/protocol.h) - MSDP implementation in source code
 - [comm.c](../../src/comm.c) - Main MSDP update loop (msdp_update function)
 
 ## References

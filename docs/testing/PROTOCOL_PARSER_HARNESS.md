@@ -17,7 +17,7 @@ cd /home/aiwithapex/projects/Luminari-Source/unittests/CuTest
 make protocol-parser
 ```
 
-The target builds `test_protocol_parser.c`, `../../src/protocol.c`, and the
+The target builds `test_protocol_parser.c`, `../../src/net/protocol.c`, and the
 production web-onboarding capability handler, then runs
 `./protocol_parser_tests`.
 

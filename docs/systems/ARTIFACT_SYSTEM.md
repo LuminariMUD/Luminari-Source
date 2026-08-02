@@ -18,8 +18,8 @@ is authoritative.
 
 | File | Responsibility |
 | --- | --- |
-| `src/world/spec_artifacts.h` | VNUMs, data model, tunables, and public API |
-| `src/world/spec_artifacts.c` | Registry, persistence, gameplay, and commands |
+| `src/spec_artifacts.h` | VNUMs, data model, tunables, and public API |
+| `src/spec_artifacts.c` | Registry, persistence, gameplay, and commands |
 | `unittests/CuTest/test_artifacts.c` | Production-linked regression tests |
 | `scripts/provision_artifacts.sh` | World-file and help-index provisioning |
 | `lib/world/world.artifact` | Generated ownership/progression state |
@@ -42,7 +42,7 @@ The main integration points are:
 ## Required World Data
 
 Artifact code uses zone 1699 and the range 169900-169999. The VNUM constants
-live in `src/world/spec_artifacts.h`; do not add them to the local
+live in `src/spec_artifacts.h`; do not add them to the local
 `src/vnums.h`.
 
 The provisioning source is expected at `lib/world/artifacts/`:
@@ -729,7 +729,7 @@ data migration.
 ### Adding an artifact
 
 1. Allocate a VNUM in the reserved range and add a named constant to
-   `src/world/spec_artifacts.h`.
+   `src/spec_artifacts.h`.
 2. Create and deploy its object prototype.
 3. Add one `artifact_templates[]` entry.
 4. Add any speech powers to `artifact_effects[]`.

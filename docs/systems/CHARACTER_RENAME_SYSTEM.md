@@ -205,7 +205,7 @@ descriptor's `character_names[]` does not update every descriptor already
 logged into the same account.
 
 Pubsub also hashes and caches subscriptions by player name. See
-[`pubsub_invalidate_player_cache()`](../../src/systems/pubsub/pubsub_db.c#L440).
+[`pubsub_invalidate_player_cache()`](../../src/pubsub/pubsub_db.c#L440).
 Both the old-name and new-name cache entries must be invalidated after a
 successful rename.
 

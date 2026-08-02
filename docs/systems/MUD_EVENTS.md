@@ -3,20 +3,20 @@
 This document explains the complete timing and event infrastructure used by LuminariMUD, covering the base discrete-event queue (“DG event system”) and the higher-level, entity-scoped “MUD event” layer built on top of it.
 
 Core source files:
-- [src/dg_event.h](../../src/dg_event.h)
-- [src/dg_event.c](../../src/dg_event.c)
+- [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
+- [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
 - [src/mud_event.h](../../src/mud_event.h)
 - [src/mud_event.c](../../src/mud_event.c)
 - [src/mud_event_list.c](../../src/mud_event_list.c)
 
 Key entry points (clickable declarations):
-- [C.EVENTFUNC()](../../src/dg_event.h#L28): standard signature for all event functions
-- [C.event_create()](../../src/dg_event.c#L61): schedule an event
-- [C.event_process()](../../src/dg_event.c#L249): run due events every pulse
-- [C.event_cancel()](../../src/dg_event.c#L133): cancel a queued or in-flight event safely
-- [C.cleanup_event_obj()](../../src/dg_event.c#L217): free event payloads (MUD or generic)
-- [C.event_time()](../../src/dg_event.c#L357): remaining pulses until an event fires
-- [C.event_free_all()](../../src/dg_event.c#L374): bulk free of all events (shutdown/reset)
+- [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28): standard signature for all event functions
+- [C.event_create()](../../src/dgscript/dg_event.c#L61): schedule an event
+- [C.event_process()](../../src/dgscript/dg_event.c#L249): run due events every pulse
+- [C.event_cancel()](../../src/dgscript/dg_event.c#L133): cancel a queued or in-flight event safely
+- [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217): free event payloads (MUD or generic)
+- [C.event_time()](../../src/dgscript/dg_event.c#L357): remaining pulses until an event fires
+- [C.event_free_all()](../../src/dgscript/dg_event.c#L374): bulk free of all events (shutdown/reset)
 - [C.attach_mud_event()](../../src/mud_event.c#L437): attach a MUD event to an entity and queue it
 - [C.free_mud_event()](../../src/mud_event.c#L607): remove from entity lists and free payload
 - [C.new_mud_event()](../../src/mud_event.c#L579): allocate a MUD event payload
@@ -31,7 +31,7 @@ Key entry points (clickable declarations):
 ## 1. Architecture Overview
 
 - The event system is layered:
-  - Base queue + processing: [src/dg_event.c](../../src/dg_event.c) and [src/dg_event.h](../../src/dg_event.h)
+  - Base queue + processing: [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c) and [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h)
   - Higher-level MUD events with entity-scoped lists and safety/memory semantics: [src/mud_event.c](../../src/mud_event.c) and [src/mud_event.h](../../src/mud_event.h)
   - Table-driven registry: [src/mud_event_list.c](../../src/mud_event_list.c) binds event IDs to functions, types, messages, and feat metadata
 - Time model:
@@ -42,33 +42,33 @@ Key entry points (clickable declarations):
 
 ### 2.1 Data Structures and Signatures
 
-- Event function signature: [C.EVENTFUNC()](../../src/dg_event.h#L28)
-- Event structure fields: see [src/dg_event.h](../../src/dg_event.h) (struct event contains func, event_obj, q_el, isMudEvent)
-- Priority queue (multi-bucket) internals: [src/dg_event.h](../../src/dg_event.h) and [src/dg_event.c](../../src/dg_event.c)
+- Event function signature: [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
+- Event structure fields: see [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) (struct event contains func, event_obj, q_el, isMudEvent)
+- Priority queue (multi-bucket) internals: [src/dgscript/dg_event.h](../../src/dgscript/dg_event.h) and [src/dgscript/dg_event.c](../../src/dgscript/dg_event.c)
   - Buckets reduce enqueue costs by distributing events based on (key % NUM_EVENT_QUEUES)
 
 ### 2.2 Lifecycle (Base)
 
-- Create/schedule: [C.event_create()](../../src/dg_event.c#L61)
+- Create/schedule: [C.event_create()](../../src/dgscript/dg_event.c#L61)
   - Ensures a minimum delay of 1 pulse
   - Returns a heap-allocated struct event whose payload is event_obj (type-specific)
-- Process every pulse: [C.event_process()](../../src/dg_event.c#L249)
+- Process every pulse: [C.event_process()](../../src/dgscript/dg_event.c#L249)
   - Dequeues due events by current pulse
   - Sets event->q_el = NULL to mark "currently processing"
   - Calls the event's function; if it returns > 0, re-enqueues with that delay; otherwise frees
   - For MUD events, it invokes [C.free_mud_event()](../../src/mud_event.c#L607) if event_obj still present
-- Cancel: [C.event_cancel()](../../src/dg_event.c#L133)
+- Cancel: [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
   - If q_el is NULL, the event is being processed; it does not free the event structure (prevents double-free)
-  - For MUD events, calls [C.cleanup_event_obj()](../../src/dg_event.c#L217) which delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
-- Query remaining pulses: [C.event_time()](../../src/dg_event.c#L357)
+  - For MUD events, calls [C.cleanup_event_obj()](../../src/dgscript/dg_event.c#L217) which delegates to [C.free_mud_event()](../../src/mud_event.c#L607)
+- Query remaining pulses: [C.event_time()](../../src/dgscript/dg_event.c#L357)
 
 ### 2.3 Safety Guards (Base)
 
 - Double-free prevention:
-  - In cancel: detection via q_el == NULL; see comments at [C.event_cancel()](../../src/dg_event.c#L133)
-  - In process: only free mud_event payload if not already nulled by cancel; see [C.event_process()](../../src/dg_event.c#L249)
+  - In cancel: detection via q_el == NULL; see comments at [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
+  - In process: only free mud_event payload if not already nulled by cancel; see [C.event_process()](../../src/dgscript/dg_event.c#L249)
 - Global reentrancy guard:
-  - Flag processing_events used to disallow bulk frees during active processing; see [C.event_process()](../../src/dg_event.c#L249), [C.event_free_all()](../../src/dg_event.c#L374), and queue_free function
+  - Flag processing_events used to disallow bulk frees during active processing; see [C.event_process()](../../src/dgscript/dg_event.c#L249), [C.event_free_all()](../../src/dgscript/dg_event.c#L374), and queue_free function
 
 ## 3. MUD Event Layer
 
@@ -91,7 +91,7 @@ The MUD layer adds:
 - Allocate payload: [C.new_mud_event()](../../src/mud_event.c#L579)
   - Duplicates sVariables string if provided (ownership sits with the MUD event)
 - Attach and schedule: [C.attach_mud_event()](../../src/mud_event.c#L437)
-  - Internally calls [C.event_create()](../../src/dg_event.c#L61) with handler from registry
+  - Internally calls [C.event_create()](../../src/dgscript/dg_event.c#L61) with handler from registry
   - Adds the struct event pointer to the owner’s event list (ch->events, obj->events, room->events, region->events, or world_events)
   - Special memory handling:
     - For EVENT_ROOM: copies the room VNUM into newly allocated memory and stores that pointer in pStruct; validates room existence; see attach switch case at [C.attach_mud_event()](../../src/mud_event.c#L437)
@@ -166,14 +166,14 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 ## 5. Important Safety and Memory Practices
 
 - Never free or modify the struct event directly during execution:
-  - [C.event_process()](../../src/dg_event.c#L249) marks in-flight events via q_el = NULL
-  - [C.event_cancel()](../../src/dg_event.c#L133) detects in-flight events and avoids double-free
-- Never call [C.event_free_all()](../../src/dg_event.c#L374) while processing is active; it is guarded, but treat it as shutdown-only
+  - [C.event_process()](../../src/dgscript/dg_event.c#L249) marks in-flight events via q_el = NULL
+  - [C.event_cancel()](../../src/dgscript/dg_event.c#L133) detects in-flight events and avoids double-free
+- Never call [C.event_free_all()](../../src/dgscript/dg_event.c#L374) while processing is active; it is guarded, but treat it as shutdown-only
 - For EVENT_ROOM and EVENT_REGION:
   - Always store a heap-allocated copy of VNUMs on attach (do not keep pointers to stack or external memory)
   - On free, copy the VNUM out before freeing the pStruct; then validate real_room/real_region prior to dereferencing world/region_table
 - Only cancel queued events:
-  - Guard with [C.event_is_queued()](../../src/dg_event.h#L110) before calling [C.event_cancel()](../../src/dg_event.c#L133)
+  - Guard with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) before calling [C.event_cancel()](../../src/dgscript/dg_event.c#L133)
 - sVariables ownership:
   - Always strdup on creation ([C.new_mud_event()](../../src/mud_event.c#L578))
   - Always free on payload free ([C.free_mud_event()](../../src/mud_event.c#L607))
@@ -210,7 +210,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Ensure there is an EVENTFUNC prototype like [C.EVENTFUNC()](../../src/mud_event.h#L252) for your function
 
 3) Implement the handler:
-- Implement long my_event_handler(void *event_obj) using [C.EVENTFUNC()](../../src/dg_event.h#L28) semantics
+- Implement long my_event_handler(void *event_obj) using [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28) semantics
 - Return value:
   - > 0: number of pulses until reschedule
   - 0: do not reschedule, event completes
@@ -232,7 +232,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 - Avoid touching owner lists directly; rely on attach/free helpers
 
 8) Test cancel and rescheduling:
-- Ensure [C.event_is_queued()](../../src/dg_event.h#L110) guards before cancel calls
+- Ensure [C.event_is_queued()](../../src/dgscript/dg_event.h#L110) guards before cancel calls
 - If your handler sometimes needs to loop, return the next delay explicitly
 
 ## 9. Utility and Query APIs (MUD Layer)
@@ -251,7 +251,7 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 ## 10. Common Pitfalls and Defenses
 
 - Double-free during execution:
-  - Handled by q_el==NULL guard in [C.event_cancel()](../../src/dg_event.c#L133) and checks in [C.event_process()](../../src/dg_event.c#L249)
+  - Handled by q_el==NULL guard in [C.event_cancel()](../../src/dgscript/dg_event.c#L133) and checks in [C.event_process()](../../src/dgscript/dg_event.c#L249)
 - Free-then-use in Region/Room cleanup:
   - Fixed by copying VNUM before freeing and validating indices; see [C.free_mud_event()](../../src/mud_event.c#L607) and [C.free_mud_event()](../../src/mud_event.c#L607)
 - Modifying lists during iteration:
@@ -298,11 +298,11 @@ Robust patterns are used to avoid iterator invalidation and double-free:
 ## 15. Checklist Before Merging New Event Code
 
 - Event ID added to enum in [src/mud_event.h](../../src/mud_event.h)
-- Handler implemented with [C.EVENTFUNC()](../../src/dg_event.h#L28)
+- Handler implemented with [C.EVENTFUNC()](../../src/dgscript/dg_event.h#L28)
 - Row added to [C.mud_event_index[]](../../src/mud_event_list.c#L46) with correct type and messages
 - Attach paths validated for entity type (and VNUM copying for room/region)
 - sVariables allocation and free verified
-- Cancel paths guarded with [C.event_is_queued()](../../src/dg_event.h#L110)
+- Cancel paths guarded with [C.event_is_queued()](../../src/dgscript/dg_event.h#L110)
 - Reschedule returns are in pulses or using RL_SEC as appropriate
 - Negative/zero divisions guarded, long math used for multiplications
 - Unit/system tests cover attach, process, reschedule, cancel, and free flows

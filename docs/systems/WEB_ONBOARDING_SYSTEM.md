@@ -7,8 +7,8 @@ Last verified: 2026-07-29
 Luminari-Source can publish a structured view of account login, the account
 lobby, character creation, the selected-character menu, and the role-play
 profile to a capable web client. The implementation is in
-`src/systems/web_client/onboarding.c` and
-`src/systems/web_client/onboarding.h`.
+`src/net/onboarding.c` and
+`src/net/onboarding.h`.
 
 Protocol v1 covers the account and core character-creation flow. Protocol v2
 adds the complete role-play identity suite and private multiline field
@@ -77,7 +77,7 @@ The following approaches remain outside this design:
 
 The implementation touches four lifecycle boundaries:
 
-1. `src/protocol.c` recognizes reserved capability and action MSDP variables.
+1. `src/net/protocol.c` recognizes reserved capability and action MSDP variables.
 2. `src/comm.c` initializes and resets onboarding state with the descriptor.
 3. The main game loop calls `web_onboarding_tick()` once per pulse for every
    descriptor.
@@ -279,7 +279,7 @@ is not embedded in the hub or state document.
 
 Transfer memory is overwritten and released on success, rejection, timeout,
 state change, capability downgrade, fallback, disconnect, account switch, and
-character switch. `src/protocol.c` also overwrites its inbound MSDP value buffer
+character switch. `src/net/protocol.c` also overwrites its inbound MSDP value buffer
 before freeing it.
 
 ## Persistence Semantics
@@ -526,10 +526,10 @@ If a new `.c` file is added, update both `Makefile.am` and `CMakeLists.txt`.
 
 | File | Responsibility |
 | --- | --- |
-| `src/systems/web_client/onboarding.h` | Versions, bounds, variables, errors, and public API |
-| `src/systems/web_client/onboarding.c` | Screens, catalogs, emission, transfers, and cleanup |
+| `src/net/onboarding.h` | Versions, bounds, variables, errors, and public API |
+| `src/net/onboarding.c` | Screens, catalogs, emission, transfers, and cleanup |
 | `src/comm.c` | Per-pulse emission and descriptor lifecycle |
-| `src/protocol.c` | Reserved MSDP capability and action dispatch |
+| `src/net/protocol.c` | Reserved MSDP capability and action dispatch |
 | `src/interpreter.c` | Authoritative account and core creation state machine |
 | `src/roleplay.c` | Role-play field IDs, limits, validation, and checked commits |
 | `src/char_descs.c` | Generated short-description states and checked commit |

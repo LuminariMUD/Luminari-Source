@@ -477,7 +477,7 @@ Your spell is completely inert!
 | `src/structs.h` | Casting data structures (char_special_data) |
 | `src/utils.h` | CASTING_* macros |
 | `src/spells.h` | Metamagic defines, cast type defines |
-| `src/movement_position.c` | Position change interrupt |
+| `src/movement/movement_position.c` | Position change interrupt |
 | `src/interpreter.c` | Command blocking during cast |
 | `src/act.item.c` | Consumable item casting visuals |
 | `src/magic.c` | Magic failure messages |

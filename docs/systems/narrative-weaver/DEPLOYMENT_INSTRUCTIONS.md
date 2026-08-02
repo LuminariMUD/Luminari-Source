@@ -21,7 +21,7 @@ Copy these files to your production server:
 - [ ] Have production database credentials ready
 - [ ] Ensure you have root/admin access to MySQL
 - [ ] Confirm database name (typically `luminari_mudprod`)
-- [ ] Verify narrative weaver source code is deployed to `/src/systems/narrative_weaver/`
+- [ ] Verify narrative weaver source code is deployed to `/src/`
 
 ---
 

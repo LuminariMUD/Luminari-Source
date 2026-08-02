@@ -46,9 +46,9 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 
 - `src/spells.h` - added `SPELL_ARTIFACT_PASSIVE` and `SPELL_ARTIFACT_SURGE`
   affect markers in the reserved 1606-1646 band.
-- `src/world/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
+- `src/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
   stacking constants, provenance and contract fields, new API.
-- `src/world/spec_artifacts.c` - all runtime work.
+- `src/spec_artifacts.c` - all runtime work.
 - `src/interpreter.c` - registered `invoke`.
 - `src/act.comm.do_spec_comm.c` - whisper channel hook.
 - `lib/world/artifacts/1699.obj` - six new object prototypes.

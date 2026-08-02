@@ -423,10 +423,10 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 - **Strategy 3:** Environmental modifiers (Weather/lighting effects, Wind/terrain audio effects)
 
 **Files Implemented:**
-- `src/spatial_core.c/.h` - Core framework and strategy interfaces
-- `src/spatial_visual.c` - Complete visual system implementation
-- `src/spatial_audio.c` - Complete audio system implementation
-- Integration points: `src/db.c`, `src/pubsub_commands.c`, `Makefile.am`
+- `src/wilderness/spatial_core.c/.h` - Core framework and strategy interfaces
+- `src/wilderness/spatial_visual.c` - Complete visual system implementation
+- `src/wilderness/spatial_audio.c` - Complete audio system implementation
+- Integration points: `src/db.c`, `src/pubsub/pubsub_commands.c`, `Makefile.am`
 
 ### Technical Implementation Details
 

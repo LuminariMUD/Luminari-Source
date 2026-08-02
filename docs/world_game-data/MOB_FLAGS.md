@@ -852,9 +852,9 @@ REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 
 **Primary Files:**
 - `src/structs.h` (lines 1131-1232) - Flag definitions
-- `src/mob_act.c` - Mobile AI and behavior
+- `src/mob/mob_act.c` - Mobile AI and behavior
 - `src/fight.c` - Combat interactions
-- `src/movement.c` - Movement and blocking
+- `src/movement/movement.c` - Movement and blocking
 - `src/spec_abilities.c` - Special abilities
 - `src/spells.c` - Spell interactions
 

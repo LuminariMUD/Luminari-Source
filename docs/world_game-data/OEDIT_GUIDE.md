@@ -86,7 +86,7 @@ Selecting `C` zeroes all 16 value slots before prompting. The sequence of prompt
 - `ITEM_TREASURE_CHEST`: values cover loot tier, guaranteed loot type, random chest flag, search DC, pick DC, and optional trap type.
 - `ITEM_GEAR_OUTFIT`: values configure preset gear bundles--type, enhancement, material, applies, and bonus types.
 
-For unusual object types, read the prompts carefully; each menu is sourced from `src/oedit.c` and mirrors the in-game expectations.
+For unusual object types, read the prompts carefully; each menu is sourced from `src/olc/oedit.c` and mirrors the in-game expectations.
 
 ## Combat Enhancements
 - `F) Weapon Spells` manages up to `MAX_WEAPON_SPELLS` (4) procs.
@@ -115,7 +115,7 @@ For unusual object types, read the prompts carefully; each menu is sourced from 
 - After major edits, `oload <vnum>` in a controlled area and `stat obj` to verify wear flags, applies, and scripts.
 - Use `plist`/`olist` to ensure numbering stays within zone limits and to spot accidental duplicates.
 - For DG scripts, coordinate with an implementor when attaching complex triggers.
-- Cross-reference `src/oedit.c`, `src/treasure.c`, and `constants.c` for the definitive lists of types, flags, and ability IDs.
+- Cross-reference `src/olc/oedit.c`, `src/treasure.c`, and `constants.c` for the definitive lists of types, flags, and ability IDs.
 
 ## Extra Flags Reference
 When you select `6) Extra flags` from the main menu, you can toggle any of the 114 available item flags by entering their number. Enter `0` to return to the main menu. Below is the complete list:

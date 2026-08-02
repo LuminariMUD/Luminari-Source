@@ -66,7 +66,7 @@ Changes made to CMakeLists.txt:
 
 ## Session 7 Fixes Applied
 
-### ~~src/genolc.c (3 warnings)~~ FIXED
+### ~~src/olc/genolc.c (3 warnings)~~ FIXED
 - ~~Lines 428, 436, 444~~
 - **Fix:** Added `MAX_EXPORT_FILENAME` constant (128 bytes), reduced `fix_filename` buffer and `zone_name` buffer to match
 
@@ -92,17 +92,17 @@ Changes made to CMakeLists.txt:
 
 ### ~~src/act.informative.c (2 warnings)~~ NO LONGER REPORTED
 ### ~~src/act.other.c (2 warnings)~~ NO LONGER REPORTED
-### ~~src/bedit.c (2 warnings)~~ NO LONGER REPORTED
+### ~~src/olc/bedit.c (2 warnings)~~ NO LONGER REPORTED
 ### ~~src/boards.c (1 warning)~~ FIXED (Session 3)
 ### ~~src/clan.c (1 warning)~~ NO LONGER REPORTED
 ### ~~src/comm.c (1 warning)~~ NO LONGER REPORTED
 
-### ~~src/craft.c (10 warnings)~~ FIXED (Session 5)
+### ~~src/craft/craft.c (10 warnings)~~ FIXED (Session 5)
 - ~~Lines 3023, 3025, 3057, 3059, 3084, 3086, 3097, 3099, 3110, 3112~~
 - ~~Issue: String formatting may truncate output~~
 - **Fix:** Reduced `buf2` buffer from 512 to 24 bytes (only holds " (x%d)" or "\tn")
 
-### ~~src/crafting_new.c (5 warnings)~~ FIXED (Session 5)
+### ~~src/craft/crafting_new.c (5 warnings)~~ FIXED (Session 5)
 - ~~Lines 8830, 8835, 8840, 8846, 8851~~
 - ~~Issue: String formatting may truncate output~~
 - **Fix:** Increased `desc_buf` to 384 bytes, reduced `plural_item` to 128 bytes
@@ -116,47 +116,47 @@ Changes made to CMakeLists.txt:
 - Issue: Format overflow
 
 ### Additional files with warnings:
-- src/dg_comm.c
-- src/dg_mobcmd.c
-- src/dg_scripts.c
-- src/dg_variables.c
-- src/discord_bridge.c
+- src/dgscript/dg_comm.c
+- src/dgscript/dg_mobcmd.c
+- src/dgscript/dg_scripts.c
+- src/dgscript/dg_variables.c
+- src/net/discord_bridge.c
 - src/evolutions.c
 - src/feats.c
 - src/fight.c
 - src/handler.c
-- src/hedit.c
+- src/olc/hedit.c
 - src/hlquest.c
 - src/house.c
 - src/hunts.c
 - src/interpreter.c
 - src/magic.c
-- src/medit.c
+- src/olc/medit.c
 - src/missions.c
 - src/modify.c
-- src/msgedit.c
+- src/olc/msgedit.c
 - src/mud_event.c
 - src/mysql.c
-- src/oasis.c
-- src/oedit.c
+- src/olc/oasis.c
+- src/olc/oedit.c
 - src/players.c
 - src/premadebuilds.c
 - src/quest.c
-- src/redit.c
-- src/sedit.c
+- src/olc/redit.c
+- src/olc/sedit.c
 - src/shop.c
 - src/spec_procs.c
 - src/spell_parser.c
 - src/spell_prep.c
 - src/spells.c
 - src/study.c
-- src/tedit.c
+- src/olc/tedit.c
 - src/trade.c
-- src/transport.c
+- src/vessels/transport.c
 - src/treasure.c
 - src/utils.c
-- src/wilderness.c
-- src/zedit.c
+- src/wilderness/wilderness.c
+- src/olc/zedit.c
 
 ## Comparison: Autotools vs CMake
 
@@ -434,7 +434,7 @@ char tmstr[32] = {'\0'};  /* 32 bytes plenty for date format */
 **Files Modified:**
 - `src/structs.h`: Added `MAX_FILEPATH` constant (line 5658)
 - `src/db.c`: Changed `buf2` to use `MAX_FILEPATH`, converted config loading to dynamic allocation
-- `src/dg_handler.c`: Changed `filename` buffer to use `MAX_FILEPATH`
+- `src/dgscript/dg_handler.c`: Changed `filename` buffer to use `MAX_FILEPATH`
 - `src/utils.c`: Changed `get_filename()` buffer to use `MAX_FILEPATH`
 - `src/sysdep.h`: Changed Windows `PATH_MAX` to use `MAX_FILEPATH`
 - `src/act.other.c`: Reduced spell_list buffers to 256 bytes, fixed unsafe strcpy/strcat
@@ -552,8 +552,8 @@ char tmstr[32] = {'\0'};  /* 32 bytes plenty for date format */
 | crafting_new.c:8808 | `desc_buf[256]` too small for `plural_item[256]` + format text | Increased to 384, reduced plural_item to 128 |
 
 **Files Modified:**
-- `src/craft.c`: Line 2783-2784 - Reduced `buf2` buffer size with explanatory comment
-- `src/crafting_new.c`: Lines 8808, 8816 - Adjusted buffer sizes to eliminate warnings
+- `src/craft/craft.c`: Line 2783-2784 - Reduced `buf2` buffer size with explanatory comment
+- `src/craft/crafting_new.c`: Lines 8808, 8816 - Adjusted buffer sizes to eliminate warnings
 
 **Build Verification:**
 - Autotools build: SUCCESS (0 errors)
@@ -685,7 +685,7 @@ Previous session warning counts were INACCURATE. They were based on incremental 
 | rebuildMailIndex.c:187 | Used sprintf instead of snprintf | Changed to snprintf |
 
 **Files Modified:**
-- `src/genolc.c`:
+- `src/olc/genolc.c`:
   - Added `#define MAX_EXPORT_FILENAME 128` constant (line 55)
   - Changed `fix_filename()` buffer from `MAX_STRING_LENGTH` to `MAX_EXPORT_FILENAME`
   - Changed `zone_name` buffer in `do_export_zone()` to `MAX_EXPORT_FILENAME`

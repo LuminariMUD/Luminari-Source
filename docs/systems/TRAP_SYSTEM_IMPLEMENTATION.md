@@ -241,8 +241,8 @@ TRAP: Auto-generated 5 traps in zone 123
 
 ### To Be Modified
 1. `src/traps.c` - Needs update to use new system
-2. `src/oedit.c` - Needs trap editing support
-3. `src/redit.c` - Needs trap editing support
+2. `src/olc/oedit.c` - Needs trap editing support
+3. `src/olc/redit.c` - Needs trap editing support
 4. `src/db.c` - Needs zone reset integration
 5. `src/act.movement.c` - Needs trap trigger checks
 6. `src/act.item.c` - Needs trap trigger checks for containers/doors

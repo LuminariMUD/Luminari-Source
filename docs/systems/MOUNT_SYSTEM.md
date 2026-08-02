@@ -20,12 +20,12 @@ This document provides a comprehensive audit of all mount-related code in the Lu
   - `dismount_char()` - src/handler.c:3340
 
 ### 3. Movement Integration
-- **src/movement.c**
-  - Mount movement checks - src/movement.c:273-296
-  - Mount speed calculations - src/movement.c:730-736
-  - Riding skill checks - src/movement.c:767-777
-  - Mount movement point usage - src/movement.c:790-794
-  - Mount room transitions - src/movement.c:815-877
+- **src/movement/movement.c**
+  - Mount movement checks - src/movement/movement.c:273-296
+  - Mount speed calculations - src/movement/movement.c:730-736
+  - Riding skill checks - src/movement/movement.c:767-777
+  - Mount movement point usage - src/movement/movement.c:790-794
+  - Mount room transitions - src/movement/movement.c:815-877
 
 ### 4. Limit Checks
 - **src/limits.c**
@@ -239,7 +239,7 @@ Handles summoning of various companion types:
 ### Core Implementation Files
 1. src/act.other.c - Primary mount commands
 2. src/handler.c - Mount/dismount functions
-3. src/movement.c - Movement integration
+3. src/movement/movement.c - Movement integration
 4. src/limits.c - Mount validation
 5. src/utils.c - Mount utility functions
 6. src/feats.c - Mount-related feats

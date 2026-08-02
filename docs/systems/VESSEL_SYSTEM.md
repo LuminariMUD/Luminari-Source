@@ -541,7 +541,7 @@ deterministically selected `region_hint`. Geographic prose therefore follows
 the same `region_data` polygons as travel and piracy law; it does not add a
 vessel-only map or random description state.
 
-`src/vessels_narrative.c` also formats class-, speed-, weather-, and
+`src/vessels/vessels_narrative.c` also formats class-, speed-, weather-, and
 depth-aware ambient messages. The normal heartbeat broadcasts one every 240
 vessel ticks, or 120 seconds, but only for a moving hull with a player aboard.
 Stopped, empty, and invalid hulls add no ambient traffic. Staff may run
@@ -646,7 +646,7 @@ RAM-only repair.
 Native MSDP is the vessel client contract for this release. A client enables
 Telnet option 69 and uses `REPORT` for `SHIP_NAME`, `SHIP_X`, `SHIP_Y`,
 `SHIP_Z`, `SHIP_HEADING`, `SHIP_SPEED`, `SHIP_HULL`, `SHIP_HULL_MAX`, and
-`SHIP_STATUS`. `src/vessels_admin.c` refreshes them on the vessel tick, and
+`SHIP_STATUS`. `src/vessels/vessels_admin.c` refreshes them on the vessel tick, and
 the normal MSDP update sends each reported value when it changes. Clients can
 render gauges without polling.
 
@@ -687,7 +687,7 @@ command cannot manufacture a fun rating or authorize rollout.
 |---------|-------------|-------|
 | seastate | Weather, depth, visibility, hull state | `seastate` |
 
-Hazards and encounters (`src/vessels_hazards.c`) read only wilderness
+Hazards and encounters (`src/vessels/vessels_hazards.c`) read only wilderness
 signals - no vessel-private geography:
 
 - **Weather**: raw 0..255 bands from `get_weather(x,y)` exactly match the
@@ -715,7 +715,7 @@ signals - no vessel-private geography:
   recurring heartbeat. A staff-forced encounter reloads the cache first so
   development data can be iterated without a reboot.
 
-Phase 15 hunter policy (`src/vessels_hunters.c`) optionally extends one of
+Phase 15 hunter policy (`src/vessels/vessels_hunters.c`) optionally extends one of
 those ordinary encounter rows. A target must be a moving, player-owned hull
 whose exact owner is online aboard and currently has at least the configured
 HUNTED bounty (never below 2,000). An atomic one-row-per-player lifecycle
@@ -781,7 +781,7 @@ name through the authoritative player index rather than the unrelated
 | marque | Buy a letter of marque (dock only) | `marque` |
 | dockfees | Inspect or pay the current berth charge | `dockfees [pay]` |
 
-Economy model (`src/vessels_trade.c`): commodities live in
+Economy model (`src/vessels/vessels_trade.c`): commodities live in
 `trade_commodities` (seeded with 9 goods, builder-editable); per-port stock
 lives in `port_commodities`, seeded deterministically from the port vnum so
 ports differ without randomness. Price = base scaled by scarcity, clamped to
@@ -819,7 +819,7 @@ vessels do not collect this automatic fee because owner revenue and
 player-to-player settlement are outside the public-ferry contract. The fare
 lives in `ship_schedules`, appears in `showschedule`, and survives reboot.
 
-Freight contracts (`src/vessels_contracts.c`): each port's board offers runs
+Freight contracts (`src/vessels/vessels_contracts.c`): each port's board offers runs
 to other *known trading* ports (any with `port_commodities` rows), with
 quantity and payout scaled from real wilderness distance between the dock
 rooms. Accepting loads the cargo (capacity-checked) and claims the row with
@@ -827,7 +827,7 @@ a conditional UPDATE, so two captains racing for the same job cannot both
 win it. Delivering requires the freight still aboard. Boards refresh on a
 TTL; accepted contracts are never cleared by a refresh.
 
-Piracy (`src/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
+Piracy (`src/vessels/vessels_piracy.c`): `plunder` moves cargo from a cleared prize
 into an alongside raider, unit by unit so the weight limit stops it exactly
 at capacity. Unlawful plunder accrues bounty in `vessel_bounties`. By default,
 the rate is 15 gold per cargo unit. `vessel_region_law` may attach a 0-500%
@@ -846,7 +846,7 @@ cannot sell elsewhere. A letter of marque (`marque`) exempts the holder from
 positive regional bounties for one real day and is refused to captains already
 WANTED.
 
-NPC merchant shipping (`src/vessels_merchants.c`) is definition-driven rather
+NPC merchant shipping (`src/vessels/vessels_merchants.c`) is definition-driven rather
 than a special immortal hull. Each enabled `vessel_npc_merchants` row names a
 builder prototype, route, pilot mobile, spawn coordinate, faction, commodity,
 quantity, schedule interval, and bounded respawn delay. Boot and each MUD-hour
@@ -886,7 +886,7 @@ the removed name's bounty.
 | shipinsure | Buy sinking insurance (dock only) | `shipinsure <value>` |
 
 Owned ships restrict the helm (`is_pilot()`) to owner + permits + immortals
-(`src/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
+(`src/vessels/vessels_ownership.c`). Owner persists in `ship_interiors.owner`
 (auto-migrated); permits persist in `ship_crew_roster` (crew_role
 'captain', npc_vnum -1). Capture via `claimship` transfers ownership and
 voids old permits.
@@ -899,14 +899,14 @@ vessel bounty and durable hunter lifecycle. Any matching live hunter is then
 retired through the normal vessel cleanup path. If that transaction cannot
 commit, player removal is deferred instead of orphaning property.
 
-Crew (`src/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
+Crew (`src/vessels/vessels_crew.c`): four positions (sailmaster, gunner, bosun,
 quartermaster) at three tiers (green/able/veteran). Bonuses are mirrored
 into the legacy `sailcrew`/`guncrew` fields so movement, gunnery, and
 repair consume them without special cases. Wages accrue on the vessel tick
 (`vessel_crew_wage_tick()`); three unpaid paydays and a crew member walks.
 Crew rows live in `ship_crew_roster` with npc_vnum <= -100.
 
-Upgrades, wear, insurance (`src/vessels_upgrades.c`): four one-time refits
+Upgrades, wear, insurance (`src/vessels/vessels_upgrades.c`): four one-time refits
 (plating, rigging, hold, reinforcement) raise hull ceilings at install
 time; `vessel_upkeep_tick()` grinds armor and subsystems down while under
 way (never below 1 structure per section). Sinking consumes the policy and
@@ -924,7 +924,7 @@ the character and closing the database claim.
 | shiprepair | Slow at-sea repairs (stationary only) | `shiprepair` |
 | claimship | Capture from an uncontested bridge | `claimship` |
 
-Combat model (`src/vessels_combat.c`): per-side armor absorbs, spill hits
+Combat model (`src/vessels/vessels_combat.c`): per-side armor absorbs, spill hits
 section internal structure and bleeds through destroyed sections; fore hits
 degrade rigging (mainsail -> speed), stern hits degrade the rudder
 (turnrate); zero total structure sinks the ship (crew ejected to the water,
@@ -1526,34 +1526,34 @@ and the trigger was removed.
 
 | File | Purpose |
 |------|---------|
-| `src/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
-| `src/vessels.c` | Core commands, wilderness movement, terrain system |
-| `src/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
-| `src/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
-| `src/vessels_narrative.c` | Class-, speed-, weather-, depth-, and region-aware at-sea prose |
-| `src/vessels_rooms.c` | Interior room generation and movement |
-| `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
-| `src/vessels_db.c` | MySQL persistence layer |
-| `src/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
-| `src/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
-| `src/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
-| `src/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
-| `src/vessels_crew.c` | Hired crew positions, tiers, wages (Phase 06) |
-| `src/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
-| `src/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
-| `src/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
-| `src/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
-| `src/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
-| `src/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
-| `src/vessels_events.c` | Regattas, skirmishes, ghost fleets, leaderboards, and recovery (Phase 16) |
-| `src/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
-| `src/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
-| `src/vessels_balance.c` | Read-only duel, economy, cost, and persisted-sample diagnostics |
-| `src/vehicles.c` | Vehicle lifecycle, state management, persistence |
-| `src/vehicles_commands.c` | Player commands (vmount, vdismount, drive, vstatus) |
-| `src/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
-| `src/transport_unified.c` | Unified transport interface across all transport types |
-| `src/transport_unified.h` | Transport abstraction types and prototypes |
+| `src/vessels/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
+| `src/vessels/vessels.c` | Core commands, wilderness movement, terrain system |
+| `src/vessels/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
+| `src/vessels/vessels_lookout.c` | Eight-bearing canonical wilderness lookout and visible-contact roster |
+| `src/vessels/vessels_narrative.c` | Class-, speed-, weather-, depth-, and region-aware at-sea prose |
+| `src/vessels/vessels_rooms.c` | Interior room generation and movement |
+| `src/vessels/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
+| `src/vessels/vessels_db.c` | MySQL persistence layer |
+| `src/vessels/vessels_autopilot.c` | Autopilot, waypoints, routes, NPC pilots, schedules |
+| `src/vessels/vessels_edit.c` | vedit ship prototype editor, spawner, shipyard (Phase 04/06) |
+| `src/vessels/vessels_combat.c` | Naval combat: damage, weapons, sinking, groundings (Phase 05) |
+| `src/vessels/vessels_ownership.c` | Ownership, helm permits, deed transfer (Phase 06) |
+| `src/vessels/vessels_crew.c` | Hired crew positions, tiers, wages (Phase 06) |
+| `src/vessels/vessels_upgrades.c` | Refits, hull wear, insurance (Phase 06) |
+| `src/vessels/vessels_trade.c` | Commodities, port pricing, bulk cargo (Phase 07) |
+| `src/vessels/vessels_contracts.c` | Freight boards and contract lifecycle (Phase 07) |
+| `src/vessels/vessels_piracy.c` | Plunder, bounty, letters of marque (Phase 07) |
+| `src/vessels/vessels_merchants.c` | NPC merchant definitions, assembly, consequences, and respawn (Phase 14) |
+| `src/vessels/vessels_hunters.c` | HUNTED encounter policy, pursuit, lifecycle, and reconciliation (Phase 15) |
+| `src/vessels/vessels_events.c` | Regattas, skirmishes, ghost fleets, leaderboards, and recovery (Phase 16) |
+| `src/vessels/vessels_hazards.c` | Weather hazards, encounters, seastate (Phase 08) |
+| `src/vessels/vessels_admin.c` | Operator tooling, room pool monitor, MSDP (Phase 09) |
+| `src/vessels/vessels_balance.c` | Read-only duel, economy, cost, and persisted-sample diagnostics |
+| `src/vessels/vehicles.c` | Vehicle lifecycle, state management, persistence |
+| `src/vessels/vehicles_commands.c` | Player commands (vmount, vdismount, drive, vstatus) |
+| `src/vessels/vehicles_transport.c` | Vehicle-in-vessel mechanics (loading/unloading) |
+| `src/vessels/transport_unified.c` | Unified transport interface across all transport types |
+| `src/vessels/transport_unified.h` | Transport abstraction types and prototypes |
 
 ### Content and Development Acceptance
 
@@ -1625,12 +1625,12 @@ and the trigger was removed.
 
 | File | Purpose |
 |------|---------|
-| `src/wilderness.c` | Coordinate system and room allocation |
+| `src/wilderness/wilderness.c` | Coordinate system and room allocation |
 | `src/weather.c` | Weather integration via `get_weather()` |
 | `src/spec_procs.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
 | `src/interpreter.c` | Command registration |
 | `src/db.c` | Boot sequence integration |
-| `src/dg_scripts.c/h` | Trigger integration for interior movement |
+| `src/dgscript/dg_scripts.c/h` | Trigger integration for interior movement |
 | `src/mysql.c` | Persistence layer (required) |
 
 ### Reserved Resources
@@ -1698,12 +1698,12 @@ and the trigger was removed.
 ### Debug Logging
 
 The whole vessel and vehicle stack is instrumented behind compile-time macros
-declared in `src/vessels.h`. `VESSEL_SYSTEM_DEBUG` defaults to `0`, so normal
+declared in `src/vessels/vessels.h`. `VESSEL_SYSTEM_DEBUG` defaults to `0`, so normal
 builds compile out every diagnostic call site. An explicit development build
 enables support, but its runtime category mask still starts empty.
 
 ```c
-/* src/vessels.h */
+/* src/vessels/vessels.h */
 #ifndef VESSEL_SYSTEM_DEBUG
 #define VESSEL_SYSTEM_DEBUG 0
 #endif

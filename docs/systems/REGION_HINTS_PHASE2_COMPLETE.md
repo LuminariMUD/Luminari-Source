@@ -51,8 +51,8 @@
 - Maintains backward compatibility
 
 ✅ **File Organization**
-- Implementation: `src/systems/region_hints/region_hints.c`
-- Header: `src/region_hints.h` (in src for easy inclusion)
+- Implementation: `src/wilderness/region_hints.c`
+- Header: `src/wilderness/region_hints.h` (in src for easy inclusion)
 - Database: Integrated into `db_init.c` system
 
 ## System Architecture

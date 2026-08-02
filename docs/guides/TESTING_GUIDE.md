@@ -6,7 +6,7 @@ The enforced test path has two parts:
 
 1. A production-linked CuTest suite that compiles and links the game sources.
 2. A focused protocol parser harness that links the production
-   `src/protocol.c` implementation with minimal socket and logging doubles.
+   `src/net/protocol.c` implementation with minimal socket and logging doubles.
 
 Legacy standalone vessel, autopilot, and vehicle mirror sources have been
 removed. Their historical result documents remain under `docs/testing/`.

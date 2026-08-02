@@ -367,9 +367,9 @@ The Luminari MUD spatial systems represent a **complete, production-ready implem
 ## Quick Reference
 
 ### Key Files
-- `src/spatial_core.c/.h` - Core framework
-- `src/spatial_visual.c` - Visual system implementation  
-- `src/spatial_audio.c` - Audio system implementation
+- `src/wilderness/spatial_core.c/.h` - Core framework
+- `src/wilderness/spatial_visual.c` - Visual system implementation  
+- `src/wilderness/spatial_audio.c` - Audio system implementation
 
 ### Key Functions
 ```c

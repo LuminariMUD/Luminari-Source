@@ -267,6 +267,6 @@ When changing account or character creation:
 | `src/roleplay.c` | Role-play field authority, pending selections, checked commits |
 | `src/char_descs.c` | Generated short-description workflow |
 | `src/comm.c` | Descriptor lifecycle, input queue, and game-loop dispatch |
-| `src/protocol.c` | Telnet negotiation, no-echo, MSDP parsing |
-| `src/systems/web_client/onboarding.c` | Structured presentation adapter |
+| `src/net/protocol.c` | Telnet negotiation, no-echo, MSDP parsing |
+| `src/net/onboarding.c` | Structured presentation adapter |
 | `src/structs.h` | Account, descriptor, character, and connection-state definitions |

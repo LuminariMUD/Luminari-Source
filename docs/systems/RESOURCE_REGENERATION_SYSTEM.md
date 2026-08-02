@@ -40,11 +40,11 @@ The system uses **lazy evaluation** instead of periodic updates:
 
 | File | Purpose |
 |------|---------|
-| `src/resource_depletion.c` | Core regeneration logic and database operations |
-| `src/resource_depletion.h` | Function prototypes and constants |
-| `src/resource_system.c` | Seasonal and weather modifier functions |
+| `src/wilderness/resource_depletion.c` | Core regeneration logic and database operations |
+| `src/wilderness/resource_depletion.h` | Function prototypes and constants |
+| `src/wilderness/resource_system.c` | Seasonal and weather modifier functions |
 | `src/handler.c` | Integration with character movement |
-| `src/wilderness.c` | Weather data generation |
+| `src/wilderness/wilderness.c` | Weather data generation |
 
 ### Key Functions
 

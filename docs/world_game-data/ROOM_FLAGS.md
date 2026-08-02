@@ -577,13 +577,13 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 **Primary Files:**
 - `src/structs.h` (lines 225-271) - Flag definitions
-- `src/movement.c` - Movement restriction checks
+- `src/movement/movement.c` - Movement restriction checks
 - `src/spell_parser.c` - Magic restriction checks
 - `src/fight.c` - Combat restriction checks
 - `src/utils.c` - Light and vision calculations
 - `src/act.informative.c` - Room description handling
 - `src/house.c` - House system integration
-- `src/vessels_rooms.c` - Vehicle system integration
+- `src/vessels/vessels_rooms.c` - Vehicle system integration
 
 **Checking Flags:**
 ```c

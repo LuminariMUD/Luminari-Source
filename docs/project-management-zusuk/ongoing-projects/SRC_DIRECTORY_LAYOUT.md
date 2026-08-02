@@ -1,8 +1,8 @@
-# src/ Directory Layout - Pilot Plan
+# src/ Directory Layout
 
-Working notes. Nothing here describes current behavior; it proposes a change to
-how source files are arranged on disk. No functional change is involved at any
-step.
+Record of a completed change to how source files are arranged on disk. The
+layout described in section 5 is the current one. No functional change was
+involved at any step.
 
 ## 1) Problem
 
@@ -240,22 +240,96 @@ comments only, but a stale path pointer is actively misleading. Historical
 records in `docs/CHANGELOG.md` and `docs/previous_changelogs/` were
 deliberately left untouched - they describe paths as they were at the time.
 
-## 5) Decision point
+## 5) Outcome - complete
 
-Evaluate after the pilot lands and has survived a week of normal work. If
-path-qualified includes prove more annoying than informative in practice, stop
-at one directory rather than propagating the pattern to the other seven. The
-remaining clusters are independent of each other and can be done one per commit
-in any order.
+All clusters are landed. `src/systems/` and `src/world/` no longer exist, and
+nothing in `src/` is nested more than one level deep.
 
-## 6) Unrelated cleanups noticed
+Final layout:
 
-Not part of this plan; recorded so they are not lost.
+| Directory | Files |
+|-----------|------:|
+| `src/olc/` | 40 |
+| `src/wilderness/` | 32 |
+| `src/vessels/` | 30 |
+| `src/mob/` | 18 |
+| `src/movement/` | 18 |
+| `src/dgscript/` | 15 |
+| `src/craft/` | 13 |
+| `src/net/` | 11 |
+| `src/pubsub/` | 11 |
+| `src/` (flat) | 212 |
+
+Every directory clears the file-count floor. The flat remainder is the core -
+`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`,
+`fight.c`, `class.c`, `race.c`, `spells.c` - plus the below-floor subsystems
+the rule deliberately leaves alone.
+
+Each cluster is one commit, verified before it landed: clean autotools rebuild
+at zero warnings, `make test` at OK (306 tests), and a final out-of-tree CMake
+build to confirm the second source list stayed correct.
+
+### 5.1 Where the plan was revised
+
+- **A formatting pass came first.** The pre-commit clang-format hook reformats
+  every staged file, and 89 of 443 tracked C files did not conform. Any commit
+  touching one triggered a mass restyle - during the pilot it rewrote 29 files
+  for a net -563 lines. A one-time repo-wide pass, run through pre-commit so it
+  matches the pinned clang-format v18.1.8 exactly, was committed on its own.
+  After that the hook is a no-op and every move commit stays a pure rename.
+  This is the fix for the recurring collision the pilot could only work around
+  with `--no-verify`.
+- **`craft/` is narrower than sketched.** `trade` and `shop` are commerce, not
+  crafting; filing them under `craft/` would misdescribe them, and at 4 files
+  they fall below the floor, so they stay flat. `material_types.h` has no
+  includers at all and was left in place rather than guessing a home for dead
+  code.
+- **`comm.c` stays flat.** The plan listed it under `net/`, but it is the main
+  select() loop and heartbeat scheduler, not a socket layer. Burying the
+  codebase's central file would cost more than the grouping gains.
+- **`clan_edit.c` moved to `olc/`.** It includes `genolc.h`, `oasis.h`, and
+  `improved-edit.h`, so it is an editor built on the OLC framework. This does
+  split clan code across two directories - the accepted cost of filing editors
+  by framework rather than by subject.
+- **`pubsub/` was added.** Not in the original table. Its 8 sources under
+  `src/systems/pubsub/` plus 3 files in `src/` make 11, which clears the floor.
+- **`src/world/` was dissolved.** Not in the original scope, but it held
+  exactly 2 files - the same pathology the plan set out to remove.
+
+### 5.2 Reference categories that bite
+
+The pilot found two the plan missed; the later clusters found two more. The
+full list to sweep for, per cluster:
+
+1. Bare `#include "name.h"`.
+2. Relative form `#include "../../src/name.h"` - used by `unittests/CuTest/`.
+3. Path-qualified form `#include "systems/<dir>/name.h"` or
+   `#include "world/name.h"`. These bite **inside** the moving set too, where
+   same-directory includes otherwise need no edit.
+4. Source paths in `Makefile.am` and `CMakeLists.txt`, including
+   **commented-out** entries.
+5. Source-path assertions in `scripts/`, and any script that builds a mirror of
+   the source tree with `mkdir -p` - that one fails at runtime, not compile
+   time, so only running the suite catches it.
+6. Header comments in `sql/components/*.sql` naming the file each schema
+   mirrors.
+
+Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/` are
+deliberately untouched; they record the tree as it was.
+
+## 6) Cleanups completed and outstanding
+
+Resolved during this work:
+
+- `spatial_core.c` / `spatial_visual.c` were stale forks in `src/`, absent from
+  both build systems and every script, diverged 189 lines from the live copies
+  under `src/systems/spatial/`. Deleted; the live sources moved to
+  `src/wilderness/` with the headers, which had only ever existed in `src/`.
+- The clang-format hook's exclusion path in `.pre-commit-config.yaml` was
+  updated to follow `genolc.c` to `src/olc/`, preserving its original intent.
+
+Still outstanding, unrelated to layout:
 
 - `src/castle.c.tbamud` - upstream leftover, not in any build list.
 - `src/test_metamagic.c` - a test file living in the production source tree.
-- `spatial_core.c` / `spatial_core.h` duplicated between `src/` and
-  `src/systems/spatial/`; determine which is live before the `wilderness/`
-  cluster is attempted.
-- A large volume of stale `.o` files is checked into the working tree's ignore
-  scope and clutters directory listings.
+- A large volume of stale `.o` files clutters directory listings.
