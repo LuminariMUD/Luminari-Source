@@ -30,7 +30,6 @@
 /* Global variables for Greyhawk ship system */
 struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 struct greyhawk_contact_data greyhawk_contacts[30];
-struct greyhawk_ship_map greyhawk_tactical[151][151];
 extern int wild_waterline;
 
 /* Global string buffers for Greyhawk system */
@@ -729,8 +728,6 @@ void greyhawk_dispcontact(int i);
 int greyhawk_getcontacts(int shipnum);
 void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
 int greyhawk_getarc(int ship1, int ship2);
-void greyhawk_setsymbol(int x, int y, int symbol);
-void greyhawk_getmap(int shipnum);
 int greyhawk_loadship(int template, int to_room, short int x_cord, short int y_cord,
                       short int z_cord);
 void greyhawk_nameship(char *name, int shipnum);
@@ -1145,8 +1142,6 @@ float greyhawk_range(float x1, float y1, float z1, float x2, float y2, float z2)
  */
 void greyhawk_initialize_ships(void)
 {
-  int i, j;
-
   vessel_dynamic_room_cache_reset();
 
   /* Clear ship array */
@@ -1154,15 +1149,6 @@ void greyhawk_initialize_ships(void)
 
   /* Clear contact array */
   memset(greyhawk_contacts, 0, sizeof(greyhawk_contacts));
-
-  /* Initialize tactical map with default ocean pattern */
-  for (i = 0; i < 151; i++)
-  {
-    for (j = 0; j < 151; j++)
-    {
-      strcpy(greyhawk_tactical[i][j].map, "  ");
-    }
-  }
 
   /* Initialize the legacy zone-700 test vessel. */
   {
@@ -1914,58 +1900,6 @@ bool move_ship_wilderness(int shipnum, int direction, struct char_data *ch)
 /* EXTERNAL VIEW DISPLAY CONSTANTS AND HELPERS                              */
 /* ========================================================================= */
 
-/* Weather thresholds (matching wilderness weather system) */
-#define VESSEL_WEATHER_CLEAR_MAX 127
-#define VESSEL_WEATHER_CLOUDY_MAX 177
-#define VESSEL_WEATHER_RAIN_MAX 199
-#define VESSEL_WEATHER_STORM_MAX 224
-/* Values 225-255 are lightning/thunderstorm */
-
-/* Weather string lookup table */
-static const char *vessel_weather_strings[] = {
-    "Clear skies",                /* WEATHER_CLEAR (0-127) */
-    "Overcast and cloudy",        /* WEATHER_CLOUDY (128-177) */
-    "Light rain falling",         /* WEATHER_RAINY (178-199) */
-    "Heavy storm conditions",     /* WEATHER_STORMY (200-224) */
-    "Thunderstorm with lightning" /* WEATHER_LIGHTNING (225-255) */
-};
-
-/**
- * Convert raw weather value (0-255) to descriptive string.
- * Used by look_outside and tactical display commands.
- *
- * @param weather_val Raw weather value from get_weather()
- * @return Pointer to static weather description string
- */
-static const char *get_vessel_weather_string(int weather_val)
-{
-  if (weather_val <= VESSEL_WEATHER_CLEAR_MAX)
-    return vessel_weather_strings[0];
-  else if (weather_val <= VESSEL_WEATHER_CLOUDY_MAX)
-    return vessel_weather_strings[1];
-  else if (weather_val <= VESSEL_WEATHER_RAIN_MAX)
-    return vessel_weather_strings[2];
-  else if (weather_val <= VESSEL_WEATHER_STORM_MAX)
-    return vessel_weather_strings[3];
-  else
-    return vessel_weather_strings[4];
-}
-
-/* Tactical display constants */
-#define TACTICAL_GRID_SIZE 11 /* 11x11 grid centered on ship */
-#define TACTICAL_HALF_SIZE 5  /* Half the grid size for centering */
-#define TACTICAL_MAX_WIDTH 40 /* Maximum display width in characters */
-
-/* Tactical display symbols */
-#define TACT_SYM_SHIP '@'    /* Current vessel position */
-#define TACT_SYM_OTHER 'V'   /* Other vessels */
-#define TACT_SYM_OCEAN '~'   /* Ocean/deep water */
-#define TACT_SYM_SHALLOW '.' /* Shallow water */
-#define TACT_SYM_LAND '#'    /* Land/impassable */
-#define TACT_SYM_UNKNOWN '?' /* Unknown terrain */
-#define TACT_SYM_DOCK 'D'    /* Dock/port */
-#define TACT_SYM_BEACH ':'   /* Beach */
-
 /* Contact detection constants */
 #define CONTACT_DETECTION_RANGE 50 /* Default detection range in units */
 #define CONTACT_MAX_DISPLAY 20     /* Maximum contacts to display */
@@ -2007,182 +1941,6 @@ ACMD(do_board_vessel)
   send_to_char(ch, "You need to be near a ship to board it.\r\n");
   /* The actual boarding is handled by the greyhawk_ship_object special procedure */
   /* This command exists just so 'board' is recognized as a valid command */
-}
-
-/**
- * Get a simple ASCII character for terrain type display.
- * Used by tactical display for 80-column terminal compatibility.
- *
- * @param sector_type The sector type constant
- * @return Single character representing terrain
- */
-static char get_tactical_terrain_char(int sector_type)
-{
-  switch (sector_type)
-  {
-  case SECT_OCEAN:
-  case SECT_WATER_NOSWIM:
-  case SECT_UD_NOSWIM:
-    return TACT_SYM_OCEAN;
-
-  case SECT_WATER_SWIM:
-  case SECT_RIVER:
-  case SECT_UD_WATER:
-    return TACT_SYM_SHALLOW;
-
-  case SECT_BEACH:
-  case SECT_SEAPORT:
-    return TACT_SYM_BEACH;
-
-  case SECT_FIELD:
-  case SECT_FOREST:
-  case SECT_HILLS:
-  case SECT_JUNGLE:
-  case SECT_TAIGA:
-  case SECT_TUNDRA:
-  case SECT_DESERT:
-  case SECT_MARSHLAND:
-    return TACT_SYM_LAND;
-
-  case SECT_MOUNTAIN:
-  case SECT_HIGH_MOUNTAIN:
-    return TACT_SYM_LAND;
-
-  case SECT_CITY:
-  case SECT_INSIDE:
-    return TACT_SYM_DOCK;
-
-  default:
-    return TACT_SYM_UNKNOWN;
-  }
-}
-
-/* Tactical display command */
-ACMD(do_greyhawk_tactical)
-{
-  room_rnum ship_room;
-  int shipnum;
-  int ship_x, ship_y;
-  int grid_x, grid_y;
-  int world_x, world_y;
-  int sector_type;
-  int i;
-  char grid[TACTICAL_GRID_SIZE][TACTICAL_GRID_SIZE];
-  int weather_val;
-
-  ship_room = IN_ROOM(ch);
-
-  /* Check if character is on a ship */
-  if (!world[ship_room].ship)
-  {
-    send_to_char(ch, "You must be aboard a vessel to view the tactical display.\r\n");
-    return;
-  }
-
-  shipnum = world[ship_room].ship->shipnum;
-
-  /* Validate ship number */
-  if (shipnum < 0 || shipnum >= GREYHAWK_MAXSHIPS)
-  {
-    send_to_char(ch, "Error: Invalid vessel data.\r\n");
-    return;
-  }
-
-  /* Get ship position */
-  ship_x = (int)greyhawk_ships[shipnum].x;
-  ship_y = (int)greyhawk_ships[shipnum].y;
-
-  /* Initialize grid with terrain data */
-  for (grid_y = 0; grid_y < TACTICAL_GRID_SIZE; grid_y++)
-  {
-    for (grid_x = 0; grid_x < TACTICAL_GRID_SIZE; grid_x++)
-    {
-      /* Calculate world coordinates (grid is centered on ship) */
-      world_x = ship_x + (grid_x - TACTICAL_HALF_SIZE);
-      world_y = ship_y + (TACTICAL_HALF_SIZE - grid_y); /* Y is inverted for display */
-
-      /* Get terrain at this position */
-      sector_type = get_modified_sector_type(0, world_x, world_y);
-      grid[grid_y][grid_x] = get_tactical_terrain_char(sector_type);
-    }
-  }
-
-  /* Mark ship position at center */
-  grid[TACTICAL_HALF_SIZE][TACTICAL_HALF_SIZE] = TACT_SYM_SHIP;
-
-  /* Mark other vessels in range */
-  for (i = 0; i < GREYHAWK_MAXSHIPS; i++)
-  {
-    if (is_valid_ship(&greyhawk_ships[i]) && i != shipnum)
-    {
-      int other_x = (int)greyhawk_ships[i].x;
-      int other_y = (int)greyhawk_ships[i].y;
-      int rel_x = other_x - ship_x + TACTICAL_HALF_SIZE;
-      int rel_y = TACTICAL_HALF_SIZE - (other_y - ship_y);
-
-      /* Check if in display range */
-      if (rel_x >= 0 && rel_x < TACTICAL_GRID_SIZE && rel_y >= 0 && rel_y < TACTICAL_GRID_SIZE)
-      {
-        grid[rel_y][rel_x] = TACT_SYM_OTHER;
-      }
-    }
-  }
-
-  /* Display tactical header */
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "       TACTICAL DISPLAY\r\n");
-  send_to_char(ch, "   Position: [%d, %d]\r\n", ship_x, ship_y);
-  send_to_char(ch, "   Heading: %d degrees\r\n", greyhawk_ships[shipnum].heading);
-
-  /* Weather info */
-  weather_val = get_weather(ship_x, ship_y);
-  send_to_char(ch, "   Weather: %s\r\n", get_vessel_weather_string(weather_val));
-  send_to_char(ch, "\r\n");
-
-  /* Compass header */
-  send_to_char(ch, "            N\r\n");
-  send_to_char(ch, "       +-----------+\r\n");
-
-  /* Render grid with borders */
-  for (grid_y = 0; grid_y < TACTICAL_GRID_SIZE; grid_y++)
-  {
-    /* West indicator on center row */
-    if (grid_y == TACTICAL_HALF_SIZE)
-    {
-      send_to_char(ch, "     W |");
-    }
-    else
-    {
-      send_to_char(ch, "       |");
-    }
-
-    /* Grid row */
-    for (grid_x = 0; grid_x < TACTICAL_GRID_SIZE; grid_x++)
-    {
-      send_to_char(ch, "%c", grid[grid_y][grid_x]);
-    }
-
-    /* East indicator on center row */
-    if (grid_y == TACTICAL_HALF_SIZE)
-    {
-      send_to_char(ch, "| E\r\n");
-    }
-    else
-    {
-      send_to_char(ch, "|\r\n");
-    }
-  }
-
-  /* Compass footer */
-  send_to_char(ch, "       +-----------+\r\n");
-  send_to_char(ch, "            S\r\n");
-
-  /* Legend */
-  send_to_char(ch, "\r\n");
-  send_to_char(ch, "   Legend: %c=You  %c=Vessel  %c=Ocean  %c=Shallow\r\n", TACT_SYM_SHIP,
-               TACT_SYM_OTHER, TACT_SYM_OCEAN, TACT_SYM_SHALLOW);
-  send_to_char(ch, "           %c=Land  %c=Beach  %c=Dock\r\n", TACT_SYM_LAND, TACT_SYM_BEACH,
-               TACT_SYM_DOCK);
 }
 
 ACMD(do_greyhawk_status)

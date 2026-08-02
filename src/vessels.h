@@ -1418,12 +1418,6 @@ struct greyhawk_contact_data
   char arc[3]; /* Firing arc (F/P/R/S) */
 };
 
-/* Greyhawk Tactical Map Structure */
-struct greyhawk_ship_map
-{
-  char map[10]; /* Map symbol representation */
-};
-
 /* ========================================================================= */
 /* FUNCTION PROTOTYPES - GREYHAWK SHIP SYSTEM                              */
 /* ========================================================================= */
@@ -1453,10 +1447,6 @@ void greyhawk_dispcontact(int i);
 int greyhawk_getcontacts(int shipnum);
 void greyhawk_setcontact(int i, struct obj_data *obj, int shipnum, int xoffset, int yoffset);
 int greyhawk_getarc(int ship1, int ship2);
-
-/* Tactical Map Functions */
-void greyhawk_getmap(int shipnum);
-void greyhawk_setsymbol(int x, int y, int symbol);
 
 /* ========================================================================= */
 /* PHASE 2: MULTI-ROOM FUNCTIONS                                            */
@@ -1543,6 +1533,13 @@ bool vessel_message_allowed(struct greyhawk_ship_data *ship, enum vessel_message
                             uint64_t now_pulse, uint64_t cooldown_pulses);
 void show_wilderness_from_ship(struct char_data *ch, struct greyhawk_ship_data *ship);
 void show_nearby_vessels(struct char_data *ch, struct greyhawk_ship_data *ship);
+
+/* Wilderness-backed tactical chart helpers. */
+bool vessel_tactical_sector_is_water(int sector_type);
+char vessel_tactical_terrain_symbol(int sector_type, bool coastal);
+int vessel_tactical_range_ring(int delta_x, int delta_y);
+bool vessel_tactical_region_type_visible(int region_type);
+char vessel_tactical_contact_symbol(int status, int contact_count);
 
 /* ========================================================================= */
 /* PHASE 3: AUTOPILOT FUNCTIONS                                              */
