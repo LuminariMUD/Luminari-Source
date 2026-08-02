@@ -529,7 +529,10 @@ signals - no vessel-private geography:
   lowest region VNUM; equal-chance table rows resolve by encounter ID. When
   multiple hulls share one exterior wilderness room, a successful tick claims
   that room once, broadcasts the encounter to every co-located hull, and spawns
-  at most one shared creature there.
+  at most one shared creature there. A bounded 1,024-row definition cache,
+  loaded after schema boot, removes candidate and hunter-policy SQL from the
+  recurring heartbeat. A staff-forced encounter reloads the cache first so
+  development data can be iterated without a reboot.
 
 Phase 15 hunter policy (`src/vessels_hunters.c`) optionally extends one of
 those ordinary encounter rows. A target must be a moving, player-owned hull
@@ -593,7 +596,8 @@ owner or a permitted helmsman and saves both vessel and player state before
 confirming payment. Revenue assessed at a clan-owned port goes to that clan
 even if control changes before settlement. Public-port revenue leaves the
 economy. Unowned NPC and test hulls are exempt so public ferries cannot strand
-themselves.
+themselves. Departure clears and persists berth state only when an actual fee
+port or clan marker exists, avoiding false writes for public vessels.
 
 Scheduled public vessels may set a 0-100,000-gold passenger fare with
 `setschedule <route> <interval> [fare]`. Boarding collects and saves the fare
@@ -892,8 +896,12 @@ When a vessel moves, all loaded vehicles automatically update their coordinates 
 
 The release budget is no more than 5 KB for the base ship structure, about
 3 MB for the maximum base fleet, and 25 ms per game tick for all vessel
-subsystems at 500 ships. The structure budget is met. The complete live-tick
-budget has not yet been measured and remains a release gate.
+subsystems at 500 ships. Both budgets pass on local development. The required
+1,862-second run sustained 500 vessels across all eight classes for 3,655
+complete ticks: median 599 usec, p95 4,079 usec, p99 5,169.06 usec, and maximum
+10,520 usec. Every measured subsystem maximum stayed below 25 ms. This accepts
+the development performance gate, not production rollout or long-horizon
+memory behavior.
 
 See [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) for attribution,
 historical measurements, and the limits of the current evidence.

@@ -7,7 +7,8 @@ findings are tracked in
 [VESSELS_TODO.md](../project-management-zusuk/vessels/VESSELS_TODO.md).
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
-and the current candidate's focused build gates pass on local development.**
+the complete 500-vessel scale gate, and the current candidate's focused build
+gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
@@ -15,11 +16,10 @@ shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
 The current normal candidate passes all 277 production-linked tests and all 13
-focused protocol-parser tests. The latest strict actionable Memcheck passed
-the preceding 274-test candidate with zero errors and no definite, indirect,
-or possible loss; a fresh CMake build of that integrated candidate passed all
-6 CTest targets. Required `make install` for the current candidate removed the
-root artifact and installed non-profiled SHA-256
+focused protocol-parser tests. Strict actionable Memcheck across those 277
+tests reports zero errors and no definite, indirect, or possible loss; a fresh
+CMake build of the integrated candidate passed all 6 CTest targets. Required
+`make install` removed the root artifact and installed non-profiled SHA-256
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
@@ -344,6 +344,19 @@ or logging errors, zero overflows, and trails 0/0/0. RSS rises 14,888 KiB
 alongside 660 mobiles and 131 objects, so memory remains `REPORT_ONLY`.
 Cleanup restores six vessels and restarts development. Repeat for the required
 1,800-second window before marking the scale release gate complete.
+
+Full run `20260802T052407Z-896082` completes that gate. One process sustains
+500 vessels across all eight classes for 1,862 measured seconds and 3,655
+complete ticks. Median, p95, p99, and maximum complete-tick times are 599,
+4,079, 5,169.06, and 10,520 usec; every subsystem maximum is below 25 ms. The
+actual Kohdee workload records ten departures, 20 shared encounters, 12 Z
+values, 4,247 database executions, zero workload or logging errors, zero route
+failures, zero overflows, and trails 0/0/0. RSS rises 33,148 KiB while mobiles
+rise by 1,613 and objects by 451; rooms remain fixed, allocation lists fall,
+and memory remains `REPORT_ONLY`. Cleanup restores the exact six-vessel
+baseline and restarts development. The current 277-test Memcheck then passes
+with zero actionable errors or leaks, completing the complementary bounded
+stability check.
 
 For the builder-independence timing gate, run:
 

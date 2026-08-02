@@ -262,6 +262,21 @@
   and zero movement trails pass. The 630-second RSS increase of 14,888 KiB
   remains `REPORT_ONLY` alongside 660 new mobiles and 131 new objects. Cleanup
   restores six baseline vessels and restarts local development.
+- Full release-scale run `20260802T052407Z-896082` is terminal `PASS`. Its
+  complete setup, 1,862-second measurement, validation, restoration, and
+  restart finish in 2,338 seconds. All 500 ships and eight classes remain on
+  one PID for 3,655 ticks with median/p95/p99/maximum
+  599/4,079/5,169.06/10,520 usec; every subsystem maximum stays below 25 ms.
+  Actual Kohdee records 20 shared encounters, ten departures, 12 Z values,
+  23,181 suppressed messages, zero workload errors, zero high-volume log rows,
+  zero overflows, and movement trails 0/0/0. Cleanup restores all six baseline
+  vessels. The 33,148-KiB RSS rise remains `REPORT_ONLY` beside 1,613 new
+  mobiles, 451 new objects, constant rooms, and falling allocation-list count.
+- Strict current-candidate Memcheck passes all 277 production-linked tests
+  with zero errors and zero definite, indirect, or possible loss. It reports
+  368,451 reachable bytes in process-lifetime registries. The required
+  reinstall preserves the non-profiled binary hash and removes the root
+  artifact.
 
 ### Durable HUNTED bounty-hunter patrols
 

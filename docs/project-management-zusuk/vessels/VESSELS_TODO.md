@@ -2,548 +2,70 @@
 
 **Last audited:** August 2, 2026
 
-**Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 277 of 277 for the current repair candidate.
-The earlier integrated candidate also passed a fresh CMake build with all six
-CTest targets, including the production suite and vessel tooling. The
-complete disposable MariaDB chain through Phase 15 passes install/reapply/
-verify/rollback, and the reversible bounty-hunter lifecycle passes with actual
-level-34 Kohdee across a hard restart and pardon. The integrated candidate is
-installed on local development. The shared harbor now passes restart
-persistence, the exact passenger fare, named-water crossing, merchant
-identity/cargo, and same-account captain-channel checks. Message throttling,
-native MSDP, the 500-slot workload, and the prior restart/copyover state matrix
-are automated. An untraversable automated step now stops the hull, pauses and
-persists autopilot once, and tells occupants instead of retrying forever.
-Routine wilderness region/path progress logging is removed, and the scale
-runner treats its return as a bounded-log failure. A short forced-copyover
-ferry shakedown passes through same-PID recovery and the final exact-state hard
-restart. The bounded 45-minute ferry gate also passes its actual-character
-observation, exact persistence restart, and automatic resume within the
-one-hour total budget. Long unattended ferry and fleet soaks are no longer
-release gates. Every agent-run vessel validation must complete within a
-one-hour total execution budget, including setup, terminal recovery checks,
-and cleanup.
+**Status:** Mechanics through Phase 15 are implemented. The core development
+release gates for build, regression, Memcheck, bounded ferry recovery,
+500-vessel performance/stability, economy simulation, shared encounters,
+Z-axis boundaries, native MSDP, named-water crossing, captain-channel
+isolation, and message throttling pass. The installed development candidate is
+not approved for production until the remaining campaign content, player
+experience, balance, beta, production-snapshot rehearsal, preflight, and
+staged rollout work below is complete.
 
-The former long-duration ferry attempts are retained only as historical
-evidence in [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md). Do not
-start or restart an unattended long-duration monitor. The ferry release gate
-is closed; retain its explicit bounded invocation only for future regression
-runs. Before running scale, hunter, or destructive merchant checks, confirm
-that no legacy ferry monitor still owns the installed development server. The
-500-ship run, actual shared-encounter and merchant-loss transcripts, bounded
-fleet stability checks, campaign content, beta, and production rollout remain.
+**Current release checkpoint (August 2, 2026, 09:04 IDT):** Full run
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`
+is terminal `PASS`. Its complete request-to-cleanup task took 2,338 seconds,
+within the one-hour ceiling, including 1,862 seconds of measurement with 500
+ships and all eight classes on one PID. Across 3,655 production ticks,
+median/p95/p99/maximum were 599/4,079/5,169.06/10,520 usec. Every subsystem
+maximum remained below 25 ms. The run recorded 20 shared multi-ship
+encounters, 10 scheduled departures, 12 airship Z values from 128 through 210,
+23,181 suppressed messages, 4,247 database executions, zero workload errors,
+zero high-volume progress rows, zero buffer overflows, and movement trails
+0/0/0. Cleanup restored all six baseline vessel rows and restarted local
+development.
 
-**Remaining checklist:** 22 top-level items: 4 performance validation,
-6 living-world content, 6 player-experience/presentation, 5 balance/beta/
-rollout, and 1 encounter-model decision.
-
-**Active validation checkpoint (August 2, 2026, 04:32 IDT):** The bounded
-ferry run is terminal `PASS` at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
-2,700-second request produced 2,740 seconds of continuous observation and a
-terminal result 2,779 seconds after launch. On source
-`c539a6d59483f44da121260378287cb33094751e` and installed SHA-256
-`6122ff1fbcac07a7a0188ee248bc6269dc4b5f3e0d18dc1764912cbafd24bccd`, ferry
-5 completed 1,476 movement steps, 246 waypoint arrivals, and 62 route loops.
-All 5 live, 46 database, and 46 process samples passed with fleet count 6,
-dynamic rooms 6/13/2 of 2,000, zero buffer overflows, one PID, two threads,
-and 12 descriptors. The final hard restart changed PID 160111 to 252880,
-launched the identical executable, restored the exact paused coordinates and
-route, and resumed the ferry. Preserve the stopped-MUD pre-fix failure at
-`/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230025Z-148892` as harness
-regression evidence.
-
-The continuous RSS series rose from 767,396 to 866,944 KiB while ordinary
-awake-world mobiles, objects, and movement trails also increased; its full
-and trailing 1,797-second slopes are 128,565 and 118,710 KiB/hour. The
-generated `memory-analysis.kv` result therefore remains `REPORT_ONLY`, not a
-leak or plateau verdict. The current production-linked suite passes 268 of
-268. Its first full Memcheck exposed a 24-byte purchased-perk node retained by
-ordinary character teardown; `free_char()` now releases that owned list. The
-exact rerun passes with zero errors and zero definite, indirect, or possible
-loss, and the clean candidate is installed.
-
-The reversible merchant gate passes in 41 seconds on source `1faa59b9` and
-installed SHA-256
-`63b73ed4ad3411fc5d00fcd8973c361d302335e973fa724858ab481de62c8019`.
-Actual Kohdee sank merchant 1 generation 1, received 25 attack plus 125 total-
-loss standing penalty and a 510-gold bounty, and inspected generation 2 with
-25 spice, its pilot, route, schedule, and registry identity. Cleanup restored
-byte-identical database and player-file snapshots; its no-login restart used
-PID 299248 with the same installed hash. The reversible HUNTED gate then
-passes in 57 seconds at
-`/tmp/luminari-vessel-hunter-check-1000/runs/20260802T001910Z-302111`: one real
-encounter created the exact hunter, PID 299248 changed to 302590 across the
-hard restart, the hunter generation and target reattached, pardon retired it
-into cooldown, and cleanup restored the original rows. A current one-session
-builder run created prototype 13 and ship 7, sailed from `(-66, 92)` to
-`(-67, 92)` at effective speed 1 in storm, and removed both records in 2.8
-seconds of workflow and 8 seconds total. The development help database was
-behind the tracked migration and initially lacked `SHIPTALK`; applying the
-idempotent authoritative SQL and restarting produced five passing verifier
-checks and an actual Kohdee sweep of all 78 command keywords. The focused
-protocol parser passes 13 of 13, both character-rename gates pass, and a fresh
-out-of-tree CMake build passes 6 of 6 CTest targets. `make install` restored
-the proven Autotools SHA-256 and removed the root artifact after CMake; a clean
-restart mapped that exact installed path. Continue the bounded 500-vessel
-scale gate with the current harness repairs below.
-
-The first current scale attempt is preserved at
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T003029Z-328201`.
-Harbor, fare, crossing, channel, 500-slot construction, the 1,000-trade
-simulation, cargo/crew/schedule reconstruction, and the live Z commands all
-ran, but the worker stopped before measurement because it did not observe the
-airship ceiling rejection. The transcript proves a fixture race: the airship
-was persisted at Z 500 with active autopilot and descended to 480 before
-Kohdee reached it, so `setsail up` correctly moved to 490. The fixture now
-persists that one airship paused at Z 500 until Kohdee tests the rejection,
-and its tooling regression enforces that invariant. Cleanup restored all six
-baseline vessels and restarted the unchanged installed binary on PID 342927.
-Rerun the bounded gate; this artifact contains no performance sample and does
-not close any scale item.
-
-The corrected boundary was observed at Z 500 in retry
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T004119Z-349856`.
-That run again reached 500 live ships, but stopped before measurement because
-the reconstruction slice did not contain the boot summary. Kohdee's live
-500-of-500 result proved the fleet was present. The login helper truncates its
-server log on this hard restart, while the runner incorrectly retained the old
-file's byte offset and began its saved slice in the middle of the new log. The
-runner now reads this known-fresh log from byte zero. The same transcript also
-exposed `**OVERFLOW**` when generic premeasurement helpers returned Kohdee to a
-harbor occupied by hundreds of benchmark hulls; those generic ashore, MSDP,
-message, and terminal transitions now use quiet staff room 1204. Harbor-
-specific crossing and channel checks remain at the real docks. Tooling tests
-lock both invariants. Cleanup again restored all six baseline vessels and
-restarted the unchanged candidate, now on PID 364177. A fresh run remains
-required; neither stopped attempt contains a performance sample.
-
-A third launch is preserved at
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T005623Z-378533`.
-It stopped during harbor preflight before spawning because the fare session
-disembarked at west-dock coordinates but its room did not contain the ferry
-hull, so ordinary `board ferry` correctly refused proximity. Cleanup restored
-the baseline. The acceptance path now waits specifically for west dock
-`(-66, 92)`, pauses and stops, disembarks, resolves canonical static room
-1000389, and only then uses ordinary boarding for the exact 10-gold charge.
-The complete standalone harbor provisioner immediately passed that sequence,
-gold restoration, named-water crossing, and the same-account channel check.
-Its tooling regression locks the wait/disembark/dock/board order. Start a new
-bounded scale run; the third artifact also contains no measurement. The
-passing provisioner left the installed candidate active on PID 385872.
-
-The fourth run is
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T010309Z-392860`.
-It passed harbor, slot 500, economy, Z boundaries, fresh reconstruction-log
-validation, and the reciprocal-combat observation. Kohdee saw repeated return
-fire and `vessel_messages_throttled=393`, but the helper rejected the counter
-because Telnet output contained LF-CR line breaks and left a carriage return
-before each CSV line. The shared output cleaner now removes a leading CR while
-preserving indentation, and tooling locks that normalization. Cleanup restored
-the baseline and restarted PID 407332. The 18-tick diagnostic profile is not
-release evidence, but its 226,912-usec vessel maximum, 226,835-usec autopilot
-maximum, 107,698-usec encounter maximum, and 26 missed pulses warn that real
-performance work may remain once the full measurement starts.
-
-The fifth run is
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T011448Z-414722`.
-It passed the repaired harbor, spawned all 500 ships through 496 actual Kohdee
-commands, held the airship at Z 500 for the ceiling rejection, completed the
-economy and fresh-reconstruction checks, and passed live reciprocal fire with
-18 suppressed messages. It then stopped before steady measurement because the
-native MSDP test connection reported `MSDP: Yes` but received no requested
-`SHIP_NAME` frame. The helper was running `nc` on a cooked pseudo-terminal, so
-the binary MSDP control bytes were buffered and caret-echoed. Its dedicated
-MSDP connection now runs raw with echo disabled, explicitly completes the
-TTYPE-first negotiation, and treats an omitted ashore frame as valid only when
-the previously reported client value was already neutral. A seven-second
-actual Kohdee rerun against baseline ship 1 received all nine aboard values
-and proved the effective empty state ashore. An eight-second follow-up on the
-actively navigating public ferry paused slot 5 at `(-63, 82)`, received the
-same complete contract, resumed autopilot, and cleared the state ashore.
-Tooling locks raw negotiation, last-frame selection, active-vessel pause/resume,
-and all nine clear checks. Scale cleanup restored the six-vessel baseline and
-restarted the exact installed candidate on PID 431693.
-This fifth artifact contains only another 18-tick diagnostic and does not
-close a performance item; start a fresh bounded run.
-
-The sixth run is
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T013644Z-457615`.
-It passed every component gate, including raw MSDP aboard/ashore, and completed
-the full 1,800-second steady window with one PID and 500 live vessels. Terminal
-validation then failed because the initial and final game-side samples both
-contained one buffer overflow. The reconstruction login began in Kohdee's
-post-spawn harbor room and rendered hundreds of hulls before its first command;
-`workload-preparation.log` preserves the resulting `**OVERFLOW**`. Move Kohdee
-to quiet room 1204 before that restart.
-
-The complete 3,676-tick diagnostic proves production performance work remains:
-median 764.50 usec, p95 130,928.50, p99 166,398.50, maximum 1,027,228, and
-6,157 missed pulses. Subsystem maxima were 213,780 usec for autopilot,
-1,014,543 for synchronized crew wages, 149,653 for encounters, and 24,889 for
-schedules. The run made 80,950 database queries and suppressed 23,888 vessel
-messages. Its 57 process samples covered 1,861 seconds on PID 466495: RSS rose
-786,784 to 854,412 KiB and VSZ 881,544 to 948,828 KiB, while threads remained
-2, descriptors remained 11-12, and movement trails rose 30,426 to 289,000.
-The 130,282-KiB/hour memory trend is `REPORT_ONLY`, not a leak verdict. Cleanup
-restored six vessels and restarted the exact candidate on PID 522541. Keep all
-four performance items open while fixing the synchronized wage burst, repeated
-dynamic-room spatial lookups, and per-ship encounter-region queries.
-
-The optimization candidate now installed as SHA-256
-`ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
-moves the spawn character to room 1204 before restart, spreads a full-fleet
-payday across 100 batches of at most five ships, persists each changed roster
-with one multi-row insert, resolves encounter containment once per shared
-exterior room, and reuses released dynamic-room spatial metadata at known
-coordinates. The production-linked suite passes 271 of 271 without compiler
-warnings, vessel tooling passes, and actionable Memcheck reports zero errors
-and no definite, indirect, or possible loss. PID 565375 runs the exact binary;
-an actual Kohdee login confirmed six of 500 slots and returned to room 1204.
-Keep the performance and memory items open until the same 1,800-second,
-500-vessel gate proves the changes under load.
-
-The seventh run is
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T024352Z-573327`.
-It completed another 1,800-second, 500-vessel window on PID 582492. Both live
-allocation samples retained 500 ships, 11 of 2,000 dynamic rooms, and zero
-buffer overflows, so the quiet-room repair is accepted. The terminal encounter
-check was a harness false negative: generic `@wait` drained and discarded
-asynchronous output, while the server logged 20 deliveries from Kohdee's
-airship and 20 encounters notifying 60 shared-room vessels. The server log
-also exposes a real failure that the earlier check masked: 225 scheduled moves
-crossed a non-navigable intermediate coordinate. The six full-capacity spawn
-messages were traced through the production caller to baseline NPC merchant
-prototype 7 reconciliation, not the bounty-hunter path. A full fleet is an
-expected deferred merchant state, so it is now an informational message.
-
-The complete profile still fails the release budget. Its 3,665 ticks have
-median 802.00 usec, p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217
-missed pulses. Autopilot remains the p95 driver at 130,774 usec. Payroll p95
-improved to 9,146.80 usec, but its maximum remains 353,062; encounters retain
-a 60,540-usec maximum. Query volume fell to 67,052. The 59-sample memory series
-spans 1,854 seconds and remains `REPORT_ONLY`: RSS rose 786,296 to 853,480 KiB,
-VSZ rose 881,084 to 947,988 KiB, and movement trails rose 29,608 to 287,220.
-Cleanup restored six vessels and restarted the unchanged installed binary on
-PID 640439. Keep all four performance items open while fixing asynchronous
-capture, route validity, synchronous persistence, the remaining encounter
-lookup, and retained movement-trail growth.
-
-Repair commit `d610d58a` is pushed and now runs on PID 714795.
-Generic `@wait` now retains, prints, and returns cleaned asynchronous output.
-The benchmark water schedule and every water-class runtime fixture now stay on
-the actual-Kohdee-verified `y = 82` channel from `x = -66` through `x = -62`.
-Piracy-law movement lookups use a bounded 4,096-entry coordinate cache that is
-cleared with each law/region reload; encounter containment now resolves the
-canonical in-memory polygons without `get_enclosing_regions()` SQL; and at
-most five crew walkoffs share one atomic roster delete. Movement trails now
-refresh identical signatures and retain at most 16 distinct entries per room.
-The warning-free build, scale tooling, and full 274-test production suite pass.
-Strict actionable Memcheck also passes all 274 tests with zero errors. The
-required `make install` produced SHA-256
-`0e79d6edb09be793d293ac31dee4aa42860368c4381659861309ce1d4bec3021` and
-removed the root `circle`. The mapped process has that exact hash; actual
-Kohdee entered and logged out cleanly in 17 seconds, then confirmed 6 of 500
-fleet slots and 8 of 2,000 dynamic rooms before saving in room 1204. A fresh
-installed-candidate scale result is still required before closing any
-performance or memory item.
-
-The repaired 600-second diagnostic is retained at
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T035823Z-718533`.
-It passed every actual-Kohdee component gate, spawned all 500 vessels, retained
-unsolicited scheduled-route and encounter output, observed six shared multi-
-ship encounters, exercised ten scheduled departures, varied airships across
-nine Z levels, and recorded zero workload errors, route failures, high-volume
-progress logs, or buffer overflows. Cleanup restored all six baseline vessel
-rows and restarted local development. The functional harness and workload
-repairs are accepted.
-
-Performance and memory still fail. Across 1,217 complete ticks, median was 659
-usec, p95 66,429, p99 86,597.80, maximum 103,801, and 2,150 pulses were missed.
-Autopilot remains the p95 driver at 66,286.60 usec and 103,711 maximum;
-encounters had a single 56,901-usec outlier. Payroll is now bounded at 112
-usec maximum and schedules at 15,515. The run issued 14,942 database
-executions. Over 631 seconds, RSS rose 786,304 to 807,504 KiB while movement
-trails rose 21,472 to 68,895; the analyzer reports `REPORT_ONLY` with a
-121,774-KiB/hour slope. Threads stayed at two, descriptors at 11-12, dynamic
-rooms at no more than 10 of 2,000, and world room count was constant. Keep all
-four performance items open while removing NPC trail growth and the remaining
-autopilot and encounter synchronous outliers.
-
-The next memory repair keeps player footprints but stops ordinary NPC movement
-from creating retained trail records. Production tracing found no gameplay
-reader of `trail_tracks`; only staff counting, player rename, cleanup, and room
-teardown consume the lists. A production-linked movement regression proves an
-NPC crosses a room without adding a trail while the existing player path still
-adds one. The root `cutest` binary passes 275 of 275 after this change. Memory
-stability remains open until an installed 500-vessel run confirms that trail
-count and RSS no longer grow with the awake mobile population.
-
-Profiling run
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T043120Z-786413`
-exercised that repair for 631 seconds with all 500 vessels and every functional
-gate passing. Movement trails remained exactly 0/0/0 while mobiles rose
-32,367 to 33,036 and objects 24,702 to 24,827. RSS still rose 785,324 to
-800,708 KiB, so broader full-world memory remains `REPORT_ONLY`, but NPC trail
-retention is accepted. The `-pg` binary is diagnostic rather than release
-timing evidence; its complete tick still failed at p95 54,790.75 and maximum
-119,478 usec.
-
-The preserved `gmon.out` and `gprof-report.txt` identify the blocking paths.
-Of 14,926 runtime saves, 14,379 came from `vessel_update_port_berth()` even
-though the public benchmark ships had zero fee state; those calls account for
-nearly all 14,938 measured database executions. Encounter ticks separately
-issued 3,528 synchronous queries. In contrast, 152,913 empty vehicle-sync
-scans made 152,913,000 array lookups but consumed only 0.15 seconds of sampled
-CPU. Fix the false dock-state persistence and cache encounter definitions
-before the next normal release build.
-
-The normal repair candidate now makes both changes. Departure processing
-returns immediately for a vessel with no fee port, fee clan, or unpaid
-balance, preserving runtime writes only for a genuine settled berth marker.
-Encounter definitions and optional hunter policies load once into a bounded
-1,024-row cache after schema boot; heartbeat selection applies the prior SQL
-region, class, and inclusive depth semantics in memory. A staff-forced check
-reloads the cache before running. The warning-free normal build passes all 277
-production-linked tests and the 13-test protocol harness. Required
-`make install` removed the root artifact and installed non-profiled SHA-256
+The 63-sample process series retained two threads and 11-13 descriptors. RSS
+rose 783,032 to 816,180 KiB while the awake world added 1,613 mobiles and 451
+objects; rooms remained 52,418 and allocation lists fell from 1,490 to 1,112.
+The bounded analyzer result remains `REPORT_ONLY`, not a long-horizon leak or
+plateau claim. Complementary Memcheck across all 277 production-linked tests
+reports zero errors and zero definite, indirect, or possible loss. The
+368,451 reachable bytes remain owned by process-lifetime registries. The
+focused protocol parser passes 13 of 13, the prior integrated CMake gate
+passes 6 of 6, required `make install` removes the root artifact, and the
+installed normal binary remains SHA-256
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-Keep all scale items open until actual Kohdee confirms the cache boot and a
-fresh normal 500-vessel window proves the query and timing reductions.
 
-The first live checkpoint confirms the cache boot. PID 850894 maps the exact
-installed hash and logs one loaded encounter definition with no vessel or
-encounter `SYSERR`. In a 22-second session Kohdee entered quiet room 1204,
-reported 6 of 500 fleet slots, 5 of 2,000 dynamic rooms, zero movement trails,
-and zero buffer overflows, then logged out cleanly. Only the normal fleet
-measurement remains open for this repair.
+Permanent evidence and behavior live in:
 
-Normal diagnostic
-`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T050422Z-854067`
-is terminal `PASS` after 630 seconds of measurement with 500 ships and all
-eight classes. Its 1,221 complete ticks report median 577 usec, p95 1,524,
-p99 2,011.60, and maximum 2,915; autopilot p95 is 1,416 and maximum 2,785,
-encounters peak at 232, and schedules peak at 17,537. Database executions
-fall from 14,942 to 1,295. The actual-character gates retain ten departures,
-six shared encounters, nine Z values from 128 through 208, zero workload
-errors, zero high-volume log rows, and zero overflows. Movement trails remain
-0/0/0. RSS rises 14,888 KiB while the awake world adds 660 mobiles and 131
-objects with constant room count, so memory remains `REPORT_ONLY`. Cleanup
-restores all six baseline vessels and restarts the same installed candidate.
-This accepts the two hotspot repairs under normal load; keep the scale item
-open only for the required 1,800-second release window.
+- [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
+- [VESSEL_SYSTEM_TESTING.md](../../testing/VESSEL_SYSTEM_TESTING.md)
+- [VESSEL_SYSTEM.md](../../systems/VESSEL_SYSTEM.md)
+- [CHANGELOG.md](../../CHANGELOG.md)
 
-This is the only vessel planning document in the temporary Zusuk workspace. It
-contains outstanding work only. Durable requirements live in
-[PRD.md](../../PRD.md), current behavior and operations in
-[VESSEL_SYSTEM.md](../../systems/VESSEL_SYSTEM.md), measured evidence in
-[VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md), and completed work
-in [CHANGELOG.md](../../CHANGELOG.md).
+Do not restart an unattended long-duration ferry or fleet monitor. Future
+agent-run vessel gates must retain the one-hour total ceiling, including setup,
+recovery, review, and cleanup. Before destructive merchant or hunter checks,
+confirm no benchmark worker owns the development service.
 
-Do not treat code completion as production approval. Work through the
-dependencies below in order and remove completed items from this file after
-recording enduring behavior or evidence in the permanent documentation.
+**Remaining checklist:** 16 top-level items: 6 living-world content,
+5 player-experience/presentation, and 5 balance/beta/rollout.
 
-## 1. Prove Scale, Stability, and Economy
+## 1. Add Living-World Content
 
-- [ ] Benchmark 500 active ships on the production tick path with autopilot,
-  schedules, combat, encounters, weather, economy, wear, persistence, and MSDP
-  enabled. The complete vessel work must remain within 25 ms per tick; record
-  median, p95, p99, maximum, memory, query volume, and subsystem attribution in
-  [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md).
-  The July 30 instrumentation prerequisite is complete: `perfmon reset` and
-  `perfmon csv` provide monotonic aggregate and per-subsystem timing,
-  median/p95/p99/max, rolling-sample counts, correct one-time hierarchy
-  promotion, missed-heartbeat and vessel-message-throttling counters, and a
-  process-wide direct/prepared SQL execution count. The fleet array now
-  reserves slot 0 separately from active slots 1-500; the matching zone 700
-  reservation reaches the final slot's VNUM 80019. The GNU C23
-  production-linked suite covers the capacity, bounded fleet-summary,
-  encounter, Z-axis, sustained-economy, and message-cooldown regressions, and
-  isolated provisioner checks pass both extension and overlap rejection.
-  Autopilot movement now resolves and validates each target dynamic room once
-  through the central position update. The removed immediate traversal probe
-  had configured the same room and executed the region/path spatial queries a
-  second time whenever an automated step entered an otherwise unoccupied
-  coordinate. The production-linked suite now passes 268 of 268 and isolated
-  `make install` is clean. Only the current installed-candidate scale run can
-  provide live evidence for this change.
-  `scripts/run_vessel_scale_benchmark.sh` now constructs the reversible
-  development-only workload through actual Kohdee/`vedit spawnpublic`
-  sessions, covers all eight classes and periodic subsystems, captures the
-  required evidence, and restores the pre-run database. It reuses one master
-  account, with Kohdee for all fleet phases and at most one reusable
-  `Vesselmate` for the channel proof, rather than creating a character per
-  vessel. A paused reciprocal submarine pair keeps firing synchronized
-  one-damage weapons after
-  `perfmon reset`; its fixture defense speed prevents damaging hits, negative
-  Z excludes surface weather, and the runner puts Kohdee aboard for an
-  eight-second live observation. Its preserved transcript must contain
-  return-fire text and a nonzero throttled-message count. The runner also
-  negotiates native MSDP as Kohdee, verifies all nine `SHIP_*` frames aboard,
-  and requires their empty state ashore. Its static checks and active-soak
-  refusal pass. The quick guide now gives one installed-candidate sequence:
-  `make test`, `make install`, and the scale runner; that runner invokes the
-  harbor/fare/crossing/channel gates itself. Its exact profiler contract now
-  contains all 11 production heartbeat rows, including `vessel_hunters`, and a
-  parser regression compares that list with `src/comm.c`. The gate remains
-  open until the current binary is installed and the runner records a terminal
-  result. The August 1 preflight audit found that the documented stale-binary
-  refusal only compared the running and installed hashes; it did not compare
-  the installed file with current build inputs. The runner now rejects
-  `bin/circle` when any C source, header, or primary build file is newer and
-  directs the operator through `make test` and `make install`. A deterministic
-  fixture proves both the stale and current cases before the long scale gate.
-  The same audit found that only the tick call count and maximum were required
-  to be numeric. The runner now validates the complete ten-field `vessel_tick`
-  CSV row, requires ordered median/p95/p99/maximum values, and rejects missing
-  percentiles or impossible stored/seen/call sample counts. The August 1
-  distribution audit also found that the scale/ferry/login/memory scripts were
-  incomplete in Automake's release manifest and that ordinary root and CMake
-  tests skipped the safe memory and scale-parser regressions. All required
-  scripts are now distributed, and both build systems run those three tooling
-  tests as part of their normal test gates. A follow-up completeness scan added
-  the missing harbor zone, vessel planning/behavior/testing/deployment docs,
-  authoritative help SQL, master schema, and Phase 2-10 install/verify/rollback
-  files. A packaged source tree now contains the complete documented local
-  acceptance and schema-rehearsal inputs.
-  The measured Kohdee session now records timestamped initial, hourly, and
-  final `shiplist summary`/`show stats` checkpoints. The runner writes their
-  fleet, dynamic-room, mobile, object, room, allocation-list, movement-trail,
-  and buffer values to `live-system-samples.tsv`, rejects fleet/capacity drift
-  or any buffer overflow, and records RSS, VSZ, threads, and file descriptors
-  in a headered process series. `show stats` derives the exact live trail count
-  from the room lists at each infrequent checkpoint; terminal summaries
-  preserve its initial, maximum, and final values. Each process sample also
-  rejects replacement of the installed executable. A separate sparse series
-  captures anonymous,
-  file-backed, and shared RSS, data, swap, and heap size/RSS/private-dirty at
-  measurement start, each complete intermediate hour, and measurement end.
-  It does not scan `smaps` in the 30-second process loop. An actual
-  pinned-build Kohdee transcript verified the `show stats` grammar, and an
-  exact current-output fixture verified both accepted and rejected parser
-  paths. The ferry parser now accepts both the
-  older full-list and current compact fleet-count wording.
-  Instrumentation, capacity, and workload readiness do not themselves prove
-  the 25 ms target.
-- [ ] Run a supervised post-benchmark stability check with NPC fleets active.
-  The complete gate, including setup, evidence collection, restoration, and
-  review, must finish within one hour. Limit the scale runner's steady
-  measurement window to at most 1,800 seconds so setup and cleanup retain the
-  other 30 minutes. Stop and clean up rather than exceeding the total budget.
-  Require no crash, corrupt record, schedule desynchronization, buffer
-  overflow, PID or executable drift, or tick-budget failure during the bounded
-  window.
-
-  Carry the correlated live-system and process series into this gate so RSS
-  can be reviewed beside fleet count, dynamic wilderness occupancy, world
-  objects/mobiles/rooms, allocation lists, movement trails, and buffer
-  overflows. A one-hour-bounded observation cannot prove the absence of a
-  long-horizon leak, so record the memory analysis and reject obvious runaway
-  growth without presenting the result as a multi-day leak verdict. Repeat
-  Memcheck for the current candidate as complementary evidence. The
-  pre-Phase15 full-suite Memcheck reported zero errors and zero definite,
-  indirect, or possible loss after fixing uninitialized secondary affect
-  flags and gameplay-fixture teardown; its 301,630 reachable
-  process-lifetime bytes remain context rather than runtime proof.
-
-  The scale runner accepts longer measurements, but this plan does not permit
-  lifting the 1,800-second measurement limit or launching a separate
-  long-duration service. Three monotonic per-autopilot counters provide
-  movement, arrival, and complete-route evidence through `autopilot status`;
-  every active live interval must advance all three. The scale worker reports
-  measured log bytes and fails on old unconditional or compiled-debug
-  movement, arrival, wait, route-loop, wilderness-region, sector-transform,
-  elevation, or path-progress rows. Its reconstruction check reads only the
-  current 500-vessel boot's log slice. The live-system validator requires
-  `system-0`, strictly increasing timestamps and labels, the exact terminal
-  duration, and the calculated sample count.
-
-  `scripts/analyze_vessel_memory_samples.sh` validates the process series and
-  emits block means plus full, post-warmup, and trailing RSS/VSZ regressions.
-  It remains `REPORT_ONLY`; review that report with the detailed-memory series
-  and historical observations, but do not create a longer gate to derive a
-  new threshold. The detailed-memory validator rejects PID drift,
-  non-increasing timestamps, missing heap metrics, and impossible RSS
-  relationships. Automated movement's persisted safe pause and the exact
-  movement-trail counter retain their production-linked coverage.
-- [ ] Run a scripted 1,000-trade economy simulation. Confirm prices stay inside
-  their hard bounds, inventory converges sensibly, and no route yields
-  unbounded profit. The automated gate now passes all 1,000 adversarial
-  transfers: marginal batch pricing charges each crossed supply level, the
-  old oversized-shipment reversal cycle loses gold, legitimate arbitrage
-  closes after a finite number of trips, supplies remain inside 10-400, and
-  idle restocking returns both ports to 100. `vtradecheck 1000` exposes the
-  same production calculation to one actual Kohdee session, and the
-  500-vessel runner requires its PASS transcript. Keep this item open until
-  that installed-candidate command is recorded in-game. A safe July 30
-  Kohdee probe against the pinned ferry executable returned `Huh?!` and
-  logged out cleanly in five seconds. Git history confirms this is expected:
-  pinned source `0afad17b` predates the command's `ac418322` implementation.
-  Retry only after the current candidate is installed.
-- [ ] Add encounter determinism, shared-region multi-ship, and Z-axis boundary
-  tests. The automated layer now passes: overlapping regions use containment
-  position and then lowest VNUM regardless of query order; equal-chance rows
-  use encounter ID; one successful encounter claims a shared exterior room
-  once and broadcasts to every co-located hull; class Z limits reject surface
-  flight, airship ceiling violations, and non-water submergence; and autopilot
-  actually advances on Z without overshoot. The scale workload now varies
-  airship altitude and requires distinct live Kohdee Z samples. Keep this item
-  open until the installed candidate proves a two-ship shared encounter,
-  an airship vertical route, and manual upper/lower boundary rejection through
-  actual in-game commands.
-
-## 2. Add Living-World Content
-
-- [ ] Add scheduled, killable NPC merchant ships carrying real cargo on real
-  routes, with faction and bounty consequences.
-  Phase 14 now supplies the missing lifecycle. Durable definitions map a
-  faction, prototype, route, pilot, spawn coordinate, commodity, quantity,
-  schedule interval, and recovery delay to an ordinary public hull. Boot and
-  MUD-hour reconciliation assemble real interiors, cargo, pilot, schedule, and
-  route; sink, capture, purge, or a missing hull releases the definition for a
-  fresh generation. A 300-second attribution window prevents an old attacker
-  from receiving blame for a later environmental loss. Deduplicated durable
-  rows apply attack, plunder, capture, and sink standing losses exactly once,
-  commit regional bounties, survive logout, and follow character rename.
-  Permanent character removal voids pending consequences, clears current
-  attribution, and removes the bounty row.
-
-  The development harbor seed and provisioner now require a live merchant
-  generation with its real spice cargo, pilot, enabled schedule, route,
-  in-game registry row, and ship-status identity. If boot leaves a delayed or
-  stale definition, the provisioner performs two timed in-game reconciliation
-  passes before failing, avoiding manual recovery between reruns. The ordinary
-  PvP gate explicitly permits ownerless hulls, and regression coverage proves
-  that attaching a merchant registry identity does not make the NPC ship
-  immune to player attacks. The GNU C23
-  production-linked suite passes 268 of 268 with constructor rejection,
-  respawn gating, faction scaling, responsibility-window, faction persistence,
-  consequence high-water, and merchant combat-consent coverage. The complete
-  `make test` then isolated `make install` gate passes without a root build
-  artifact. Phase 14 install/reapply/verify/rollback and the full schema chain
-  pass in disposable MariaDB; character rename and permanent-removal mappings
-  are covered. `scripts/test_vessel_merchant_in_game.sh` now provides the
-  reversible actual-Kohdee destruction/consequence/replacement path. It
-  snapshots every mutable vessel/economy table and Kohdee's exact player file,
-  then restores and byte-compares both before a no-login MUD restart. The
-  current installed candidate passes that path in 41 seconds: generation 1 to
-  2, 150 total standing loss, 510 bounty, and a fully assembled replacement,
-  followed by exact rollback. Keep this item open only for production builders
-  to author campaign merchant routes/cargo beyond the development fixture.
-- [ ] Author territorial waters, free seas, and pirate coves as
-  `REGION_GEOGRAPHIC` regions. Piracy legality must use shared wilderness
-  geography rather than private coordinate tables.
-  The campaign-neutral mechanics and development content are complete:
-  Phase 13 attaches water type, authority, overlap priority, and a bounded
-  bounty multiplier to geographic region VNUMs; plunder and port refusal
-  resolve the canonical `region_index` polygon; `seastate` exposes the result.
-  The harbor seed authors territorial waters (150%), nested free seas (100%),
-  and a pirate cove (0%), and its provisioner validates the spatial index and
-  post-restart in-game display. The installed candidate now passes the actual
-  Kohdee crossing and matching `seastate` transcript. Keep this open for
-  production builders to author campaign regions.
+- [ ] Author campaign merchant shipping: scheduled, killable NPC merchant
+  vessels with real cargo, routes, factions, and bounty consequences.
+  Campaign-neutral Phase 14 mechanics and the development fixture are
+  complete. The reversible actual-Kohdee gate destroys generation 1, applies
+  150 standing loss and a 510-gold bounty, verifies a fully assembled
+  generation-2 replacement, then byte-restores the vessel tables and player
+  file. Production builders still need to author campaign routes, cargo, and
+  faction identities and run the same lifecycle against that content.
+- [ ] Author campaign territorial waters, free seas, and pirate coves as
+  `REGION_GEOGRAPHIC` regions. Phase 13 mechanics and the development harbor
+  polygons are complete, including cached law lookup, named-water crossing,
+  `seastate`, 150/100/0-percent bounty multipliers, and actual Kohdee
+  verification. Production builders still need to map the campaign waters.
 - [ ] Add data- and DG-driven derelicts with explorable interiors, salvage,
   logs, maps, discovery chains, and optional first-finder naming.
 - [ ] Add bathymetry-anchored trenches, sky islands, high-altitude lanes, and
@@ -551,9 +73,10 @@ recording enduring behavior or evidence in the permanent documentation.
 - [ ] Give each of the eight vessel classes at least one unique destination or
   capability.
 - [ ] Add regattas, staff-triggered fleet skirmishes, a ghost-fleet event, and
-  leaderboards. Optional showcase events may be deferred behind release safety.
+  leaderboards. Optional showcase events may be deferred behind release
+  safety, but any deferral must be recorded in the general project backlog.
 
-## 3. Finish Player Experience and Presentation
+## 2. Finish Player Experience and Presentation
 
 - [ ] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
@@ -561,63 +84,39 @@ recording enduring behavior or evidence in the permanent documentation.
 - [ ] Build lookout view v2 from actual surrounding wilderness sectors.
 - [ ] Add dynamic at-sea descriptions through `narrative_weaver` and
   `region_hints`, plus class-, weather-, and speed-aware ambient messages.
-- [ ] Announce named-sea boundary crossings from `REGION_GEOGRAPHIC`, add a
-  ship-wide captain channel, and throttle repeated ambient or combat messages.
-  Named-water crossings now resolve the boot-loaded canonical polygons,
-  announce once ship-wide, and remain quiet until the vessel changes regions;
-  law metadata is cached so movement adds no SQL. `shiptalk` now carries an
-  identified captain-channel message across every occupied room of one vessel
-  without leaking ashore. Repeated weather/depth messages now use independent
-  120-second severity cooldowns; repeated damage, return-fire, miss, and reload
-  messages are limited per class to one copy per half-second vessel tick while
-  critical failure warnings remain immediate. The login helper now owns both
-  simultaneous character sockets for the channel proof, selecting Kohdee and
-  the first other usable character from the same master account in one run;
-  an explicit Name remains optional. If that account has no second usable
-  character, the harbor provisioner adds reusable `Vesselmate` to the same
-  account, then runs the channel gate on its discovered ferry slot. The
-  named-water helper waits on the moving ferry's real crossing announcement
-  and correlates its region, water type, authority, and bounty with an
-  immediate `seastate`; the same provisioner runs that proof automatically.
-  The installed candidate now passes the crossing transcript and a
-  same-account Kohdee/Vesselmate two-character channel transcript. Keep this
-  item open until the scale runner records the message-cooldown transcript
-  through Kohdee's live observation and required nonzero suppression counter.
 - [ ] Refine hostile boarding with a grapple step, contested rolls, and a
   dedicated boarding skill instead of the current level-plus-Athletics blend.
 - [ ] Add optional figurehead and paint customization to ship and lookout
   descriptions.
 
-## 4. Balance, Beta, and Roll Out
+Named-water announcements, the ship-wide captain channel, and repeated-message
+throttling are complete. The harbor provisioner passes a matching crossing/
+`seastate` transcript and same-account Kohdee/Vesselmate cross-room isolation.
+The full scale gate records 23,181 suppressed combat/ambient messages and 20
+shared encounters, confirming the final shared-world encounter model.
+
+## 3. Balance, Beta, and Roll Out
 
 - [ ] Tune combat time-to-kill, crew wages, freight margins, refit costs,
   insurance, and dock fees using the simulation, duel tests, and player data.
 - [ ] Run a structured player beta against the release scorecard in
-  [PRD.md](../../PRD.md). In particular, validate first-hour discovery,
-  multiplayer roles, builder independence, a supervised NPC-shipping sample
-  that fits the one-hour validation ceiling, and at least 70 percent "fun"
-  combat feedback.
-- [ ] Rehearse all schema migrations and rollbacks against a production
-  snapshot with no data loss.
-- [ ] Confirm production preflight on the release candidate: repeat the
-  regression, load-bearing-toggle, debug-off, and authoritative-help checks;
-  require lifecycle recovery, benchmark, soak, and documented operator
-  recovery evidence.
+  [PRD.md](../../PRD.md). Validate first-hour discovery, multiplayer roles,
+  builder independence, a supervised NPC-shipping sample within one hour, and
+  at least 70 percent "fun" combat feedback.
+- [ ] Rehearse every schema migration and rollback against a production
+  snapshot with no data loss. Do not modify the live production database.
+- [ ] Confirm production preflight on the release candidate: repeat regression,
+  load-bearing-toggle, debug-off, authoritative-help, lifecycle recovery,
+  benchmark, bounded stability, and documented operator-recovery checks.
 - [ ] Roll out in stages: staff, beta cohort, then all players. Prepare the
   announcement, monitor each stage, retain rollback authority, and write the
-  postmortem. Update the permanent evidence and behavior references, and only
-  then mark the vessel system 3.0.
-
-## 5. Open Decisions
-
-- [ ] Confirm that shared encounters are the final model by testing multiple
-  ships entering the same regional encounter. Change the model only if the
-  shared-world behavior fails the multiplayer requirement.
+  postmortem. Update permanent evidence and behavior references before marking
+  the vessel system 3.0.
 
 ## Completion Rule
 
-The backlog is complete only when all Must-have release criteria in
-[PRD.md](../../PRD.md) have evidence, all production gates above pass, and no
+The backlog is complete only when every Must-have release criterion in
+[PRD.md](../../PRD.md) has evidence, all production gates pass, and no
 release-blocking item remains here. Optional cosmetics and showcase events may
 be explicitly deferred to the general project backlog; they must not be
 silently reported as complete.

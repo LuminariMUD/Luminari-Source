@@ -617,6 +617,20 @@ overflows, and trails 0/0/0. The 14,888-KiB RSS increase remains
 six-vessel baseline and restarts local development. Use the same command with
 the required 1,800-second duration for final scale acceptance.
 
+That final scale acceptance now passes at
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`.
+The complete task finishes in 2,338 seconds, including 1,862 measured seconds
+with 500 vessels on one PID. Its 3,655 ticks have median 599 usec, p95 4,079,
+p99 5,169.06, and maximum 10,520; every subsystem maximum remains below
+25 ms. The run records 20 shared encounters, ten departures, 12 Z values,
+23,181 suppressed messages, 4,247 database executions, zero workload errors,
+zero high-volume rows, zero overflows, and trails 0/0/0. RSS rises 33,148 KiB
+alongside 1,613 mobiles and 451 objects with constant rooms, so the bounded
+memory result remains `REPORT_ONLY`. Cleanup restores six baseline vessels and
+restarts development. Strict Memcheck then passes all 277 production-linked
+tests with zero errors and zero definite, indirect, or possible loss; required
+`make install` preserves the installed hash and removes the root artifact.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

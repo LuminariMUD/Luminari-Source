@@ -1,14 +1,14 @@
 # Vessel System Benchmarks
 
-**Version:** 3.22
+**Version:** 3.23
 
 **Evidence snapshot:** August 2, 2026
 
 **Last updated:** August 2, 2026
 
-This document records measured vessel-system evidence and the remaining release
-performance gate. It intentionally separates completed foundation measurements
-from the full live-game benchmark that still must be run.
+This document records measured vessel-system evidence. It intentionally
+separates completed development performance acceptance from the remaining
+campaign-content, beta, production-snapshot, and rollout gates.
 
 ## Evidence Summary
 
@@ -19,9 +19,10 @@ from the full live-game benchmark that still must be run.
 | Base storage for 501 array entries | 2,468,928 bytes (about 2.35 MiB) | Within about 3 MB budget |
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
-| Root suite on August 1, 2026 | 268 of 268 passing | Current production-linked gate |
+| Root suite on August 2, 2026 | 277 of 277 passing | Current production-linked gate |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
+| Current 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Current complementary stability gate passes |
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
 | Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
@@ -37,7 +38,8 @@ from the full live-game benchmark that still must be run.
 | Post-eighth profiling diagnostic | 631 seconds; 500 ships; trails 0/0/0 | Trail repair accepted; blocking SQL paths identified |
 | Post-profile SQL repair candidate | 277/277 tests; live cache boot confirmed | Empty berth saves suppressed; normal 500-ship proof required |
 | Ninth current 500-ship diagnostic on August 2, 2026 | 1,221 ticks; p95 1,524 usec; maximum 2,915 | 600-second diagnostic passes; full 1,800-second gate required |
-| Complete current 500-ship live tick | p95 1,524 usec; maximum 2,915 usec | Short-window target passes |
+| Tenth current 500-ship run on August 2, 2026 | 1,862 seconds; 3,655 ticks; p95 4,079 usec | Full performance and bounded-stability gate passes |
+| Complete current 500-ship live tick | p95 4,079 usec; maximum 10,520 usec | Full-window target passes |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -504,6 +506,49 @@ Cleanup restores six baseline vessels and restarts local development. This
 accepts the hotspot repairs and short-window performance target; release scale
 still requires the explicit 1,800-second run.
 
+Full run `20260802T052407Z-896082` is terminal `PASS` for the required
+1,800-second request. Source `446546af` ran one game process for 1,862 measured
+seconds with 500 vessels across all eight classes. It recorded 3,655 complete
+ticks:
+
+| Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
+|---|---:|---:|---:|---:|---:|
+| `vessel_tick` | 3,655 | 599.00 | 4,079.00 | 5,169.06 | 10,520 |
+| `vessel_autopilot` | 3,655 | 461.00 | 1,730.30 | 2,193.38 | 3,022 |
+| `vessel_hunters` | 3,655 | 7.00 | 13.00 | 21.00 | 152 |
+| `vessel_combat` | 3,655 | 46.00 | 72.00 | 103.00 | 447 |
+| `vessel_crew_wages` | 3,655 | 18.00 | 3,527.90 | 4,127.52 | 9,246 |
+| `vessel_upkeep` | 3,655 | 2.00 | 20.00 | 32.00 | 156 |
+| `vessel_trade` | 3,655 | 0.00 | 1.00 | 2.00 | 660 |
+| `vessel_weather` | 3,655 | 1.00 | 1.00 | 117.46 | 433 |
+| `vessel_encounters` | 3,655 | 0.00 | 1.00 | 1.00 | 418 |
+| `vessel_msdp` | 3,655 | 3.00 | 5.00 | 7.00 | 79 |
+| `vessel_schedules` | 24 | 666.00 | 4,365.70 | 13,397.38 | 16,087 |
+
+Every measured maximum is below 25 ms. The production workload records 3,425
+missed pulses, 23,181 suppressed messages, 4,247 database executions, ten
+scheduled departures, 20 shared encounters, and 12 distinct Z values from 128
+through 210. The actual-character transcript also passes surface, airship,
+submarine, reconstruction, shared-room encounter, native MSDP, schedule,
+economy, and message-throttle gates. Workload errors, high-volume log rows,
+buffer overflows, route failures, and movement trails are all zero.
+
+The 63 one-PID samples retain two threads and 11-13 descriptors. RSS rises
+783,032 to 816,180 KiB and VSZ 878,504 to 911,372 KiB. The heap RSS rises
+32,868 KiB; mobiles rise 32,352 to 33,965 and objects 24,678 to 25,129 while
+rooms remain 52,418. Allocation lists fall from 1,490 to 1,112 and movement
+trails remain 0/0/0. The full-series memory slope is 63,150.65 KiB/hour and
+the 1,800-second window slope is 61,708.81 KiB/hour. These remain
+`REPORT_ONLY`: the bounded increase coincides with ordinary world repopulation
+and is not a long-horizon plateau or leak verdict. Cleanup restores the exact
+six-vessel baseline and restarts development.
+
+The same installed candidate then passed strict actionable Memcheck across all
+277 production-linked tests: zero errors and zero definitely, indirectly, or
+possibly lost bytes. It left 368,451 bytes reachable in 2,353 blocks after
+25,725 allocations and 23,372 frees. Required `make install` again removed the
+root artifact and retained the installed hash above.
+
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
 hunter changes. The installed-candidate scale run is the first live
@@ -890,8 +935,9 @@ remaining bounded fleet gate must demonstrate:
 
 The fixed-memory foundation and historical automated-test snapshot are within
 their stated budgets. The one-hour-bounded actual-character ferry stability
-gate passes. The vessel system is not performance-approved for broad release
-until the complete 500-ship benchmark and its bounded stability checks pass.
+gate and the complete 500-ship performance and bounded-stability gate pass on
+development. Broad release still requires campaign content, human beta,
+production-snapshot rehearsal, balance sign-off, and staged rollout.
 
 Remaining benchmark and release work is tracked in
 [`VESSELS_TODO.md`](../project-management-zusuk/vessels/VESSELS_TODO.md).

@@ -2,7 +2,7 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Gameplay layer implemented; dev-server verification and release acceptance remain
+**Status:** Core development acceptance passes; campaign content, beta, and rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -274,8 +274,9 @@ interiors, docking, autopilot, vehicles, builder prototypes, combat, ownership,
 crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
 operator tooling, and native MSDP ship state.
 
-Implementation does not equal release acceptance. The local 30-step regression
-and development release-boundary checks pass; performance, soak, complete
-persistence recovery, content depth, balance, and staged rollout remain.
+Implementation does not equal release acceptance. The local 30-step regression,
+bounded ferry observation, complete 500-vessel performance gate, current
+Memcheck, and development release-boundary checks pass. Campaign content,
+human beta, production-snapshot rehearsal, balance, and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.
