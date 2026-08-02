@@ -15,7 +15,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/mob_utils.h"
 #include "../../src/missions.h"
-#include "../../src/movement.h"
+#include "../../src/movement/movement.h"
 #include "../../src/perks.h"
 #include "../../src/protocol.h"
 #include "../../src/spells.h"

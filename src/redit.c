@@ -22,7 +22,7 @@
 #include "constants.h"
 #include "modify.h"
 #include "wilderness.h"
-#include "movement_tracks.h" /* includes trail data structures */
+#include "movement/movement_tracks.h" /* includes trail data structures */
 #include "spec_procs.h"
 
 /* local functions */

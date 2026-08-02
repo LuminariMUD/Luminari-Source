@@ -52,7 +52,7 @@
 #include "backgrounds.h"
 #include "perks.h"
 #include "routing.h"
-#include "movement_cost.h"
+#include "movement/movement_cost.h"
 
 /* toggle for debug mode
    true = annoying messages used for debugging

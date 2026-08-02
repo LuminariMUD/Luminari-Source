@@ -74,7 +74,7 @@
 #include "spell_prep.h"
 #include "crafts.h" /* NewCraft */
 #include <sys/stat.h>
-#include "movement_tracks.h" /* includes trail data structures */
+#include "movement/movement_tracks.h" /* includes trail data structures */
 #include "premadebuilds.h"
 #include "encounters.h"
 #include "hunts.h"

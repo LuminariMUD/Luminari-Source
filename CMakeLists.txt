@@ -592,15 +592,15 @@ set(SRC_C_FILES
     src/zedit.c
     src/zmalloc.c
     src/zone_procs.c
-    src/movement.c
-    src/movement_validation.c
-    src/movement_cost.c
-    src/movement_position.c
-    src/movement_doors.c
-    src/movement_falling.c
-    src/movement_messages.c
-    src/movement_tracks.c
-    src/movement_events.c
+    src/movement/movement.c
+    src/movement/movement_validation.c
+    src/movement/movement_cost.c
+    src/movement/movement_position.c
+    src/movement/movement_doors.c
+    src/movement/movement_falling.c
+    src/movement/movement_messages.c
+    src/movement/movement_tracks.c
+    src/movement/movement_events.c
     src/systems/pubsub/pubsub_handlers.c
     src/systems/pubsub/pubsub_db.c
     src/systems/pubsub/pubsub_commands.c

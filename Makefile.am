@@ -19,15 +19,15 @@ circle_SOURCES = \
 	src/act.comm.do_spec_comm.c \
 	src/act.informative.c \
 	src/act.item.c \
-	src/movement.c \
-	src/movement_validation.c \
-	src/movement_cost.c \
-	src/movement_position.c \
-	src/movement_doors.c \
-	src/movement_falling.c \
-	src/movement_messages.c \
-	src/movement_tracks.c \
-	src/movement_events.c \
+	src/movement/movement.c \
+	src/movement/movement_validation.c \
+	src/movement/movement_cost.c \
+	src/movement/movement_position.c \
+	src/movement/movement_doors.c \
+	src/movement/movement_falling.c \
+	src/movement/movement_messages.c \
+	src/movement/movement_tracks.c \
+	src/movement/movement_events.c \
 	src/act.offensive.c \
 	src/act.other.c \
 	src/act.social.c \

@@ -17,7 +17,7 @@
 #include "account.h"
 #include "pubsub.h"
 #include "protocol.h"
-#include "movement_tracks.h"
+#include "movement/movement_tracks.h"
 #include "vessels/vessels.h"
 #include "player_rename.h"
 
