@@ -23,9 +23,8 @@ ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
 boundaries, native MSDP, named-water crossing, captain-channel isolation, and
 message throttling pass. The installed development candidate is not approved
-for production until the remaining player experience, balance, beta,
-production-snapshot rehearsal, preflight, and staged rollout work below is
-complete.
+for production until the remaining player feedback, balance, beta, preflight,
+and staged rollout work below is complete.
 
 **Current release checkpoint (August 2, 2026, 09:04 IDT):** Full run
 `/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T052407Z-896082`
@@ -218,10 +217,12 @@ worth 8,060 gold before equilibrium, rejected adversarial reversal at
 -5,150,000 gold, and returned both simulated ports to supply 100.
 
 This checkpoint is deliberately partial. It does not substitute automated
-Kohdee output for human fun ratings or player data. The remaining five items
-still require a combat/cost balance record, a structured human beta, an
-isolated production-snapshot migration rehearsal, a fresh complete preflight
-after Phase 17, and authorized staged production rollout.
+Kohdee output for human fun ratings or player data. At that checkpoint, five
+items still required a combat/cost balance record, a structured human beta,
+an isolated production-snapshot migration rehearsal, a fresh complete
+preflight after Phase 17, and authorized staged production rollout. The later
+records below close the mechanical balance and schema-rehearsal portions
+without claiming human beta evidence.
 The current implementation adds a read-only `vesseldebug balance` report and
 one production-linked deterministic duel test; the warning-free suite passes
 305 tests. Do not mark balance complete until its installed actual-character
@@ -293,6 +294,38 @@ the required 70 percent human combat-fun rating, so the structured beta item
 remains open. Vesselbeta remains only until its persistent-residue check and
 normal account-menu deletion are recorded.
 
+**Production-snapshot schema rehearsal (August 2, 2026, 17:44 IDT):** A
+read-only consistent dump of the live production database was restored into a
+private, socket-only MariaDB 10.11.14 instance. Production was not stopped and
+received no SQL or application writes. The 13,374,857-byte dump represented
+94 tables/views and had SHA-256
+`16125bb16674b67ab283d212ac35712fe8930dec87045919ade966f1bdc2c7d8`.
+The raw dump and isolated datadir were shredded after the rehearsal and are
+not retained in the workspace or repository.
+
+The snapshot exposed and source `6bdbb6e4` fixes three release blockers: the
+legacy production `region_reset_time` column rejects `NULL`; Phase 9 omitted
+the three route tables that boot creates; and Phase 2 doubled the 19 existing
+room templates because its intended unique key was absent. All 19 forward
+schema/content/help components and all 19 verifiers then passed. A second
+forward pass preserved the complete census, including 19 templates, four
+campaign regions, 18 route links, eight narrative hints, and ten prototypes.
+The component-schema CI gate also passed all 29 applied components with a
+complete manifest.
+
+All 18 reverse-order rollback scripts passed on the isolated copy. The
+preferred full-backup rollback then restored exact pre-change SHA-256 values
+for the logical schema/routine/trigger dump
+(`c4a6b0a0fdc8a13e035a2c9a3b7bbf76465ab46bfaac0481d0d6c5fb162ec891`),
+all table data
+(`32484f43ffa2596b5e61e42f245419368fd0a0d759650664ef0dd679e0863f27`),
+and vessel property
+(`efec54d4a826ae6658904774a5f2c3f194a15c81faf8d1e305e9c772ae72f9ed`).
+Eighty-two original base tables were unchanged through forward migration; the
+eight expected deltas were only owned help/region/path data plus the
+schema-extended interior table, whose original columns remained hash-identical.
+A final reapply, all verifiers, and `mariadb-check` passed.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -305,7 +338,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 5 top-level balance/beta/rollout items.
+**Remaining checklist:** 4 top-level balance/beta/rollout items.
 
 ## 1. Add Living-World Content
 
@@ -362,7 +395,7 @@ with eligible defenders.
   [PRD.md](../../PRD.md). Validate first-hour discovery, multiplayer roles,
   builder independence, a supervised NPC-shipping sample within one hour, and
   at least 70 percent "fun" combat feedback.
-- [ ] Rehearse every schema migration and rollback against a production
+- [x] Rehearse every schema migration and rollback against a production
   snapshot with no data loss. Do not modify the live production database.
 - [ ] Confirm production preflight on the release candidate: repeat regression,
   load-bearing-toggle, debug-off, authoritative-help, lifecycle recovery,

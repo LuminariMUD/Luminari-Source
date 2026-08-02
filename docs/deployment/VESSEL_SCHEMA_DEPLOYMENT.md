@@ -159,6 +159,50 @@ Use an isolated clone of a recent production backup.
 The rehearsal passes only when both forward migration and rollback preserve all
 property that the release contract promises to preserve.
 
+### August 2, 2026 Production-Snapshot Record
+
+Source `6bdbb6e4` passed the complete rehearsal against a read-only dump of the
+live production database. The source was MariaDB 10.11.14 with 94 tables/views,
+85 InnoDB tables, five legacy MyISAM tables, four views, eight triggers, four
+routines, and no events. Production was not stopped and received no SQL or
+application writes. The mode-600 dump was 13,374,857 bytes with SHA-256
+`16125bb16674b67ab283d212ac35712fe8930dec87045919ade966f1bdc2c7d8`.
+It and the isolated datadir were shredded after the rehearsal; raw production
+data is not a retained release artifact.
+
+The first forward attempt found three production-only compatibility defects:
+
+- Legacy `region_data.region_reset_time` is non-nullable, so owned
+  non-encounter regions now use a fixed epoch sentinel instead of `NULL`.
+- Phase 9 now creates and verifies `ship_waypoints`, `ship_routes`, and
+  `ship_route_waypoints`, matching the authoritative application boot DDL.
+- Phase 2 now adds the authoritative `(room_type, vessel_type)` unique index
+  to legacy tables and uses `INSERT IGNORE`, preserving the 19 existing room
+  templates instead of doubling or overwriting them.
+
+After those fixes, all 19 forward components and 19 matching verifiers passed.
+A second forward pass was idempotent: 117 tables/views, 19 templates, four
+campaign regions, three frontier regions, one campaign route with 18 links,
+eight owned narrative hints, ten prototypes, 1,944 help entries, and 3,509
+help keywords were unchanged. The component-schema CI procedure separately
+passed all 29 `apply` entries with a complete manifest.
+
+All 18 reverse-order rollback files passed on the isolated database. Because
+the phase rollbacks intentionally remove pre-existing Phase 2 property and do
+not reverse authoritative help, the accepted lossless rollback was full
+snapshot restoration. It reproduced exact SHA-256 values for the logical
+schema/routines/triggers
+(`c4a6b0a0fdc8a13e035a2c9a3b7bbf76465ab46bfaac0481d0d6c5fb162ec891`),
+all table data
+(`32484f43ffa2596b5e61e42f245419368fd0a0d759650664ef0dd679e0863f27`),
+and the five pre-existing vessel-property tables
+(`efec54d4a826ae6658904774a5f2c3f194a15c81faf8d1e305e9c772ae72f9ed`).
+Eighty-two original base tables were data-identical through forward migration.
+The eight expected changes were the owned help/region/path surfaces and the
+schema-extended `ship_interiors`; all original interior columns were
+hash-identical. Final reapplication, every verifier, and `mariadb-check`
+passed.
+
 ## Install Procedure
 
 The examples below deliberately omit credentials. Set task-specific values for

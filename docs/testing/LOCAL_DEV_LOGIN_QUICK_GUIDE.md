@@ -1125,6 +1125,23 @@ disposable character through the normal account menu after its final state has
 been checked for vessel ownership, cargo, contracts, and other persistent
 residue.
 
+## Production-Snapshot Schema Evidence
+
+Do not point component SQL or rollback files at production for a quick test.
+Use the isolated procedure in
+[VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md) and
+retain only non-sensitive evidence.
+
+The August 2 source `6bdbb6e4` rehearsal used a read-only production dump in a
+socket-only MariaDB 10.11.14 instance. All 19 forward components, 19
+verifiers, a second idempotence pass, all 18 reverse-order rollback files, a
+lossless full-snapshot restore, final reapplication, and `mariadb-check`
+passed. The rehearsal preserved 82 original tables byte-for-byte at the data
+level and preserved every original column of the one existing vessel
+interior. It also caught and fixed the production non-null region timestamp,
+missing Phase 9 route DDL, and duplicate Phase 2 template defects. The raw
+snapshot and isolated database were shredded after the run.
+
 ## Fast 1,000-Trade Economy Gate
 
 After the current source is installed on local development, reuse the master
