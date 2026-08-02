@@ -113,6 +113,16 @@ msdp_boundary_update=$(awk '
 ' "$runner")
 grep -Eq 'autopilot_state[[:space:]]*=[[:space:]]*3' <<<"$msdp_boundary_update" ||
   fail "scale-runner airship boundary fixture is not paused at its ceiling"
+grep -Fxq 'benchmark_safe_room=1204' "$runner" ||
+  fail "scale-runner does not use the quiet staff room for generic ashore state"
+grep -Fq 'workload_log_offset=0' "$runner" ||
+  fail "scale-runner does not read the fresh reconstruction log from byte zero"
+if grep -Fq "workload_log_offset=\$(stat" "$runner"; then
+  fail "scale-runner still carries an offset across the truncated restart log"
+fi
+[[ "$(grep -Fc 'run_game_command "goto 1204"' \
+  "$script_dir/dev_kohdee_login_smoke.sh")" == 2 ]] ||
+  fail "generic MSDP and message helpers do not leave crowded benchmark waters"
 
 live_input="$test_root/live-input.log"
 live_output="$test_root/live-output.tsv"

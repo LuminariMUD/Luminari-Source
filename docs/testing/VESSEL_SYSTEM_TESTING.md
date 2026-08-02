@@ -171,6 +171,17 @@ that one airship paused at Z 500 through the boundary command and resumes it
 afterward. Cleanup restored the exact six-vessel baseline. Do not treat this
 premeasurement harness failure as performance evidence; rerun the gate.
 
+Retry `20260802T004119Z-349856` passed the corrected Z-500 rejection and again
+proved 500 of 500 live through Kohdee, then stopped before profiler reset on a
+log-slice defect. The development login helper truncates its server log on the
+workload restart, so carrying the old file's byte offset skipped the new boot
+summary. The runner now captures that fresh reconstruction log from byte zero.
+The retry also revealed that returning Kohdee to a harbor holding hundreds of
+benchmark hulls can render `**OVERFLOW**` and contaminate the global buffer
+counter before measurement. Generic ashore/MSDP/message transitions now use
+staff room 1204; harbor-specific checks remain at the actual docks. Cleanup
+again restored the six-vessel baseline. Rerun for the first performance sample.
+
 For the builder-independence timing gate, run:
 
 ```bash

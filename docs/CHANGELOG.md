@@ -53,6 +53,14 @@
   rejection into a valid climb to 490 and aborting the first current run
   before measurement. The parser/tooling regression now locks this fixture
   invariant.
+- The scale runner reads the 500-ship reconstruction log from byte zero after
+  the login helper's deliberate restart truncation. Reusing the prior file's
+  offset skipped the valid boot summary and stopped a live 500-of-500 retry.
+- Generic MSDP, message, and scale terminal transitions leave benchmark waters
+  through quiet staff room 1204. Returning Kohdee to the real harbor while
+  hundreds of hull objects were co-located rendered `**OVERFLOW**` and would
+  have contaminated the live buffer counter before profiler reset. Actual
+  harbor crossing and channel tests still use the dock rooms.
 
 #### Validated
 
@@ -111,6 +119,11 @@
   the in-game 1,000-trade and live workload transcripts, then stopped before
   profiler reset on the airship fixture race. Cleanup restored all six
   baseline vessel rows and restarted the unchanged installed candidate.
+- Retry `20260802T004119Z-349856` passes the corrected Z-500 rejection and
+  proves 500 of 500 through Kohdee, then stops before measurement on the stale
+  reconstruction-log offset. Its transcript also exposes the crowded-harbor
+  output overflow. Cleanup restores the same six-vessel baseline; both harness
+  defects now have tooling invariants.
 
 ### Durable HUNTED bounty-hunter patrols
 

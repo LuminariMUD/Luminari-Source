@@ -434,6 +434,17 @@ Z variation. Cleanup restored the six-vessel baseline and restarted the exact
 installed candidate. This is harness-regression evidence only; start a fresh
 1,800-second run for the release result.
 
+Retry `20260802T004119Z-349856` proved the corrected Z-500 rejection, again
+reached 500 of 500 in game, and then stopped before profiler reset because its
+boot-log slice began at an offset carried from the pre-restart file. The login
+helper truncates that file on restart, so the runner now reads the known-fresh
+log from byte zero. The retry also exposed output overflow when generic checks
+returned Kohdee to the harbor among hundreds of hulls. Generic ashore, MSDP,
+message, and terminal transitions now use quiet staff room 1204; actual harbor
+crossing and channel checks still use rooms 1000389/1000390. Cleanup again
+restored the exact six-vessel baseline and candidate. This second artifact is
+also harness-regression evidence only.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process
@@ -482,7 +493,7 @@ for every fleet phase. Its harbor preflight may add the one reusable
 creates another account or one character per vessel. One Kohdee session
 creates all missing public hulls with `vedit spawnpublic`; later sessions on
 that same account verify the reconstructed workload, warm it, collect
-`perfmon csv`, and leave Kohdee in room 1000389.
+`perfmon csv`, and leave Kohdee in quiet staff room 1204.
 
 The runner refuses production, a dirty source worktree, an active ferry soak,
 an installed binary older than any current C source, header, or primary build
@@ -621,7 +632,7 @@ The helper reuses the master account and exact Kohdee character. It enables
 native MSDP on the socket, teleports Kohdee aboard the requested vessel,
 requests all nine `SHIP_*` variables, and compares the position and navigation
 frames with `shipstatus`. It also validates the hull totals and status band.
-Kohdee then goes to static room 1000389, and the helper requires the two string
+Kohdee then goes to static staff room 1204, and the helper requires the two string
 variables to clear and all seven numeric variables to become zero before it
 logs out of the character and account.
 

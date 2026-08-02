@@ -460,7 +460,7 @@ proc run_vessel_msdp_check {ship_slot} {
     fail "aboard state received invalid SHIP_STATUS='$ship_status'"
   }
 
-  run_game_command "goto 1000389"
+  run_game_command "goto 1204"
   set ashore_raw [collect_msdp_frames "ASHORE"]
   set clear_raw "$last_game_command_raw$ashore_raw"
   require_msdp_value $clear_raw SHIP_NAME "" "ashore state"
@@ -735,7 +735,7 @@ proc run_vessel_message_check {ship_slot} {
     fail "perfmon csv did not report a nonzero vessel message-throttling count"
   }
 
-  run_game_command "goto 1000389"
+  run_game_command "goto 1204"
   puts "\nPASS: $smoke_character observed live reciprocal fire aboard $ship_name."
   puts "PASS: the installed production tick suppressed $throttled_count repeated vessel messages."
 }

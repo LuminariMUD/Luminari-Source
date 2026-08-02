@@ -24,6 +24,7 @@ from the full live-game benchmark that still must be run.
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Bounded actual-character ferry gate on August 2, 2026 | 2,740-second observation; 62 route completions; exact restart | Passing |
 | First current 500-ship attempt on August 2, 2026 | Reached slot 500; stopped before measurement | Harness race fixed; rerun required |
+| Second current 500-ship attempt on August 2, 2026 | Corrected Z check and 500 live; stopped before measurement | Fresh-log slicing fixed; rerun required |
 | Complete 500-ship live tick | Not yet measured | Release blocker |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -207,6 +208,20 @@ live altitude variation. Cleanup restored the six-row baseline and restarted
 the unchanged installed candidate. No timing or memory result from this run is
 valid release evidence.
 
+The retry is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T004119Z-349856`.
+It observed the corrected Z-500 ceiling rejection twice, reconstructed all 500
+ships, and passed the economy and live workload transcript. It then stopped
+before profiler reset because the reconstruction log slice began at the old
+pre-restart byte offset. The development login helper truncates that log when
+it starts the 500-ship process, so the slice began mid-record and omitted the
+valid boot summary. The runner now uses byte zero for this known-fresh log.
+The transcript also rendered `**OVERFLOW**` when Kohdee returned to a harbor
+containing hundreds of hull objects. Generic ashore, native-MSDP, message, and
+terminal transitions now use quiet staff room 1204, while the actual harbor
+gates retain their dock rooms. Cleanup restored the baseline. This retry also
+contains no valid performance or memory measurement.
+
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
 hunter changes. The installed-candidate scale run is the first live
@@ -282,9 +297,9 @@ The runner:
   messages remain available only in focused development-debug builds. The
   runner preserves the measured log, reports its byte count, and fails if any
   old unconditional or compiled movement/autopilot progress row appears.
-- Captures a byte-bounded log slice around the workload reconstruction and
-  requires the 500-vessel boot success only in that slice. Prior success or
-  error lines in the shared development log cannot create a false verdict.
+- Captures the fresh log created by the workload restart from byte zero and
+  requires the 500-vessel boot success only in that file. Prior success or
+  error lines in the truncated development log cannot create a false verdict.
 - Captures all eleven sampled vessel profiler rows plus missed-pulse,
   message-throttling, and SQL counters, and requires every selected schedule
   to fire. The reciprocal submarine pair's synchronized reloads produce a nonzero

@@ -9,6 +9,7 @@ current_pointer="$state_root/current"
 server_unit="luminari-dev-login-smoke.service"
 server_log="${TMPDIR:-/tmp}/luminari-dev-login-smoke.log"
 benchmark_prefix="__Vessel Scale Benchmark"
+benchmark_safe_room=1204
 snapshot_tables=(
   freight_contracts
   port_commodities
@@ -1042,9 +1043,9 @@ run_benchmark()
   [[ "$persisted_count" == 500 ]] ||
     benchmark_fail "database contains $persisted_count vessels after spawning"
 
-  workload_log_offset=$(stat -c %s "$server_log")
   systemctl --user stop "$server_unit" ||
     benchmark_fail "could not stop local development before workload configuration"
+  workload_log_offset=0
 
   write_status "$run_dir" "PREPARING workload"
   if ! database_apply <<SQL
@@ -1487,7 +1488,7 @@ SQL
   for ship_id in "${schedule_ship_ids[@]}"; do
     preparation_commands+=("shipgoto $ship_id" "autopilot pause")
   done
-  preparation_commands+=("goto 1000389")
+  preparation_commands+=("goto $benchmark_safe_room")
 
   verification_output="$run_dir/workload-preparation.log"
   timeout 900 "$script_dir/dev_kohdee_login_smoke.sh" \
@@ -1596,7 +1597,7 @@ SQL
   measurement_commands+=(
     "perfmon csv"
     "shipstatus"
-    "goto 1000389"
+    "goto $benchmark_safe_room"
   )
 
   server_pid=$(systemctl --user show --property=MainPID --value "$server_unit")

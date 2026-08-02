@@ -38,7 +38,7 @@ fleet stability checks, campaign content, beta, and production rollout remain.
 6 living-world content, 6 player-experience/presentation, 5 balance/beta/
 rollout, and 1 encounter-model decision.
 
-**Active validation checkpoint (August 2, 2026, 03:29 IDT):** The bounded
+**Active validation checkpoint (August 2, 2026, 03:55 IDT):** The bounded
 ferry run is terminal `PASS` at
 `/tmp/luminari-vessel-ferry-soak-1000/runs/20260801T230546Z-160058`. Its
 2,700-second request produced 2,740 seconds of continuous observation and a
@@ -102,6 +102,22 @@ and its tooling regression enforces that invariant. Cleanup restored all six
 baseline vessels and restarted the unchanged installed binary on PID 342927.
 Rerun the bounded gate; this artifact contains no performance sample and does
 not close any scale item.
+
+The corrected boundary was observed at Z 500 in retry
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T004119Z-349856`.
+That run again reached 500 live ships, but stopped before measurement because
+the reconstruction slice did not contain the boot summary. Kohdee's live
+500-of-500 result proved the fleet was present. The login helper truncates its
+server log on this hard restart, while the runner incorrectly retained the old
+file's byte offset and began its saved slice in the middle of the new log. The
+runner now reads this known-fresh log from byte zero. The same transcript also
+exposed `**OVERFLOW**` when generic premeasurement helpers returned Kohdee to a
+harbor occupied by hundreds of benchmark hulls; those generic ashore, MSDP,
+message, and terminal transitions now use quiet staff room 1204. Harbor-
+specific crossing and channel checks remain at the real docks. Tooling tests
+lock both invariants. Cleanup again restored all six baseline vessels and
+restarted the unchanged candidate, now on PID 364177. A fresh run remains
+required; neither stopped attempt contains a performance sample.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
