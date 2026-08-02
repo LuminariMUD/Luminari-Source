@@ -28,6 +28,7 @@ source_commit=
 baseline_player_sha256=
 baseline_event_auto_increment=1
 baseline_event_highwater=0
+player_idnum=
 declare -A baseline_entries
 declare -A baseline_wins
 declare -A baseline_points
@@ -77,6 +78,28 @@ config_value()
       }
     }
   ' "$config_file"
+}
+
+player_file_value()
+{
+  local tag=$1
+  local input_file=$2
+
+  awk -F: -v requested_tag="$tag" '
+    $1 == requested_tag {
+      value = substr($0, index($0, ":") + 1)
+      sub(/^[[:space:]]*/, "", value)
+      sub(/[[:space:]]*$/, "", value)
+      print value
+      found = 1
+      exit
+    }
+    END {
+      if (!found) {
+        print 0
+      }
+    }
+  ' "$input_file"
 }
 
 newer_binary_input()
@@ -382,6 +405,10 @@ flock -n 8 || fail "another vessel event acceptance check is running"
   fail "the local character login helper is unavailable"
 [[ -f "$player_file" && ! -L "$player_file" ]] ||
   fail "the Kohdee player file is missing or unsafe to replace"
+grep -Fqx "Name: $target_player" "$player_file" ||
+  fail "the expected Kohdee identity is not in $player_file"
+[[ -r "$repo_root/lib/plrfiles/index" ]] ||
+  fail "the player index is unavailable"
 
 app_environment=$(config_value "$repo_root/lib/.env" APP_ENV)
 [[ "$app_environment" == development ]] ||
@@ -429,6 +456,18 @@ IFS=',' read -r raft_prototype_id warship_prototype_id <<<"$prototype_ids"
 [[ -z $(event_prototype_slots) ]] ||
   fail "an acceptance prototype already has a runtime vessel"
 
+player_idnum=$(player_file_value 'Id  ' "$player_file")
+[[ "$player_idnum" =~ ^[1-9][0-9]*$ ]] ||
+  fail "could not resolve Kohdee's persistent character id"
+indexed_player_idnum=$(awk -v wanted="${target_player,,}" '
+  tolower($2) == wanted {
+    print $1
+    exit
+  }
+' "$repo_root/lib/plrfiles/index")
+[[ "$indexed_player_idnum" == "$player_idnum" ]] ||
+  fail "Kohdee's player file and player index ids do not agree"
+
 stop_development_mud || fail "the development MUD did not stop"
 database_apply_file "$repo_root/sql/components/vessels_phase16_schema.sql"
 database_apply_file "$repo_root/sql/components/help_vessel_entries.sql"
@@ -466,12 +505,6 @@ open_events=$(database_query "
   SELECT COUNT(*) FROM vessel_showcase_events
    WHERE status IN ('active', 'spawning', 'recovery_failed');")
 [[ "$open_events" == 0 ]] || fail "an existing vessel event needs recovery"
-
-player_idnum=$(database_query "
-  SELECT player_idnum FROM player_data
-   WHERE LOWER(name) = LOWER('$target_player') LIMIT 1;")
-[[ "$player_idnum" =~ ^[1-9][0-9]*$ ]] ||
-  fail "could not resolve Kohdee's player id"
 
 baseline_event_auto_increment=$(database_query "
   SELECT COALESCE(AUTO_INCREMENT, 1)

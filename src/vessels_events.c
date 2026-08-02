@@ -1211,17 +1211,17 @@ static void vessel_event_show_status(struct char_data *ch)
 static void vessel_event_show_leaderboard(struct char_data *ch, enum vessel_event_type type)
 {
   char query[MAX_STRING_LENGTH];
+  char display_name[MAX_NAME_LENGTH + 32];
+  const char *indexed_name;
   MYSQL_RES *result;
   MYSQL_ROW row;
+  long player_idnum;
   int rank;
 
   snprintf(query, sizeof(query),
-           "SELECT COALESCE(player.name,CONCAT('Captain #',board.player_idnum)),"
-           "board.entries,board.wins,board.points,"
+           "SELECT board.player_idnum,board.entries,board.wins,board.points,"
            "COALESCE(board.best_time_seconds,0) "
            "FROM vessel_event_leaderboards AS board "
-           "LEFT JOIN player_data AS player "
-           "ON player.player_idnum=board.player_idnum "
            "WHERE board.event_type='%s' "
            "ORDER BY board.wins DESC,board.points DESC,"
            "board.best_time_seconds IS NULL,board.best_time_seconds,"
@@ -1245,10 +1245,21 @@ static void vessel_event_show_leaderboard(struct char_data *ch, enum vessel_even
   rank = 0;
   while ((row = mysql_fetch_row(result)) != NULL)
   {
+    player_idnum = row[0] != NULL ? atol(row[0]) : 0;
+    indexed_name = get_name_by_id(player_idnum);
+    if (indexed_name != NULL && *indexed_name != '\0')
+    {
+      strlcpy(display_name, indexed_name, sizeof(display_name));
+      display_name[0] = UPPER(display_name[0]);
+    }
+    else
+    {
+      snprintf(display_name, sizeof(display_name), "Captain #%ld", player_idnum);
+    }
     rank++;
-    send_to_char(ch, " %2d. %-20s entries %-3s wins %-3s points %-6s", rank,
-                 row[0] != NULL ? row[0] : "Unknown", row[1] != NULL ? row[1] : "0",
-                 row[2] != NULL ? row[2] : "0", row[3] != NULL ? row[3] : "0");
+    send_to_char(ch, " %2d. %-20s entries %-3s wins %-3s points %-6s", rank, display_name,
+                 row[1] != NULL ? row[1] : "0", row[2] != NULL ? row[2] : "0",
+                 row[3] != NULL ? row[3] : "0");
     if (row[4] != NULL && atoi(row[4]) > 0)
     {
       send_to_char(ch, " best %ss", row[4]);
