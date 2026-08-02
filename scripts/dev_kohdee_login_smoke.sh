@@ -721,7 +721,7 @@ proc run_frontier_airship {prototype_id} {
   set ship_slot [spawn_frontier_vessel $prototype_id $vessel_name]
   set output [run_game_command "shipstatus"]
   require_frontier_ship_position $output 467 0 0 "$vessel_name ground position"
-  require_game_output $output "Terrain: Plains" "$vessel_name ground terrain"
+  require_game_output $output "Terrain: Ocean" "$vessel_name ground terrain"
 
   set output [run_game_command "seastate"]
   if {[string first "Sky lane  :" $output] >= 0 ||
