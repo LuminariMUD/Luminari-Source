@@ -42,6 +42,11 @@ DELETE FROM ship_waypoints
    'blackwake_anchorage',
    'vailand_southing',
    'vailand_central_approach',
+   'vailand_coast_turn',
+   'vailand_southwest_turn',
+   'vailand_southern_turn',
+   'vailand_central_offing',
+   'vailand_harbor_offing',
    'vailand_central_port'
  )
    AND NOT EXISTS (

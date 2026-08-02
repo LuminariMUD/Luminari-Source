@@ -42,7 +42,7 @@ INSERT INTO region_data
 SELECT @vailand_central_region_vnum, 10000,
        'Central Vailand Territorial Waters', 1,
        ST_GeomFromText(
-         'POLYGON((-480 190,-452 190,-452 220,-480 220,-480 190))'
+         'POLYGON((-485 185,-452 185,-452 220,-485 220,-485 185))'
        ),
        0, '', NULL
  WHERE NOT EXISTS (
@@ -55,7 +55,7 @@ UPDATE region_data
    SET zone_vnum = 10000,
        region_type = 1,
        region_polygon = ST_GeomFromText(
-         'POLYGON((-480 190,-452 190,-452 220,-480 220,-480 190))'
+         'POLYGON((-485 185,-452 185,-452 220,-485 220,-485 185))'
        ),
        region_props = 0,
        region_reset_data = '',
@@ -68,7 +68,7 @@ INSERT INTO region_data
    region_reset_data, region_reset_time)
 SELECT @vailand_passage_region_vnum, 10000, 'Vailand Passage', 1,
        ST_GeomFromText(
-         'POLYGON((-581 464,-449 213,-485 195,-617 446,-581 464))'
+         'POLYGON((-581 464,-449 213,-445 180,-525 180,-617 446,-581 464))'
        ),
        0, '', NULL
  WHERE NOT EXISTS (
@@ -81,7 +81,7 @@ UPDATE region_data
    SET zone_vnum = 10000,
        region_type = 1,
        region_polygon = ST_GeomFromText(
-         'POLYGON((-581 464,-449 213,-485 195,-617 446,-581 464))'
+         'POLYGON((-581 464,-449 213,-445 180,-525 180,-617 446,-581 464))'
        ),
        region_props = 0,
        region_reset_data = '',
@@ -150,27 +150,45 @@ SELECT 'vailand_northing', -573, 405, 0, 0.5, 0, 0
  );
 INSERT INTO ship_waypoints
   (name, x, y, z, tolerance, wait_time, flags)
-SELECT 'vailand_outer_passage', -546, 355, 0, 0.5, 0, 0
- WHERE NOT EXISTS (
-   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_outer_passage'
- );
-INSERT INTO ship_waypoints
-  (name, x, y, z, tolerance, wait_time, flags)
 SELECT 'blackwake_anchorage', -533, 330, 0, 0.5, 0, 0
  WHERE NOT EXISTS (
    SELECT 1 FROM ship_waypoints WHERE name = 'blackwake_anchorage'
  );
 INSERT INTO ship_waypoints
   (name, x, y, z, tolerance, wait_time, flags)
-SELECT 'vailand_southing', -507, 279, 0, 0.5, 0, 0
- WHERE NOT EXISTS (
-   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_southing'
- );
-INSERT INTO ship_waypoints
-  (name, x, y, z, tolerance, wait_time, flags)
 SELECT 'vailand_central_approach', -480, 229, 0, 0.5, 0, 0
  WHERE NOT EXISTS (
    SELECT 1 FROM ship_waypoints WHERE name = 'vailand_central_approach'
+ );
+INSERT INTO ship_waypoints
+  (name, x, y, z, tolerance, wait_time, flags)
+SELECT 'vailand_coast_turn', -495, 229, 0, 0.5, 0, 0
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_coast_turn'
+ );
+INSERT INTO ship_waypoints
+  (name, x, y, z, tolerance, wait_time, flags)
+SELECT 'vailand_southwest_turn', -511, 213, 0, 0.5, 0, 0
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_southwest_turn'
+ );
+INSERT INTO ship_waypoints
+  (name, x, y, z, tolerance, wait_time, flags)
+SELECT 'vailand_southern_turn', -511, 201, 0, 0.5, 0, 0
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_southern_turn'
+ );
+INSERT INTO ship_waypoints
+  (name, x, y, z, tolerance, wait_time, flags)
+SELECT 'vailand_central_offing', -501, 191, 0, 0.5, 0, 0
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_central_offing'
+ );
+INSERT INTO ship_waypoints
+  (name, x, y, z, tolerance, wait_time, flags)
+SELECT 'vailand_harbor_offing', -480, 191, 0, 0.5, 0, 0
+ WHERE NOT EXISTS (
+   SELECT 1 FROM ship_waypoints WHERE name = 'vailand_harbor_offing'
  );
 INSERT INTO ship_waypoints
   (name, x, y, z, tolerance, wait_time, flags)
@@ -188,21 +206,33 @@ UPDATE ship_waypoints
        wait_time = 0, flags = 0
  WHERE name = 'vailand_northing';
 UPDATE ship_waypoints
-   SET x = -546, y = 355, z = 0, tolerance = 0.5,
-       wait_time = 0, flags = 0
- WHERE name = 'vailand_outer_passage';
-UPDATE ship_waypoints
    SET x = -533, y = 330, z = 0, tolerance = 0.5,
        wait_time = 0, flags = 0
  WHERE name = 'blackwake_anchorage';
 UPDATE ship_waypoints
-   SET x = -507, y = 279, z = 0, tolerance = 0.5,
-       wait_time = 0, flags = 0
- WHERE name = 'vailand_southing';
-UPDATE ship_waypoints
    SET x = -480, y = 229, z = 0, tolerance = 0.5,
        wait_time = 0, flags = 0
  WHERE name = 'vailand_central_approach';
+UPDATE ship_waypoints
+   SET x = -495, y = 229, z = 0, tolerance = 0.5,
+       wait_time = 0, flags = 0
+ WHERE name = 'vailand_coast_turn';
+UPDATE ship_waypoints
+   SET x = -511, y = 213, z = 0, tolerance = 0.5,
+       wait_time = 0, flags = 0
+ WHERE name = 'vailand_southwest_turn';
+UPDATE ship_waypoints
+   SET x = -511, y = 201, z = 0, tolerance = 0.5,
+       wait_time = 0, flags = 0
+ WHERE name = 'vailand_southern_turn';
+UPDATE ship_waypoints
+   SET x = -501, y = 191, z = 0, tolerance = 0.5,
+       wait_time = 0, flags = 0
+ WHERE name = 'vailand_central_offing';
+UPDATE ship_waypoints
+   SET x = -480, y = 191, z = 0, tolerance = 0.5,
+       wait_time = 0, flags = 0
+ WHERE name = 'vailand_harbor_offing';
 UPDATE ship_waypoints
    SET x = -467, y = 204, z = 0, tolerance = 0.5,
        wait_time = 30, flags = 0
@@ -216,21 +246,33 @@ SET @vailand_northing_id = (
   SELECT MIN(waypoint_id) FROM ship_waypoints
    WHERE name = 'vailand_northing'
 );
-SET @vailand_outer_passage_id = (
-  SELECT MIN(waypoint_id) FROM ship_waypoints
-   WHERE name = 'vailand_outer_passage'
-);
 SET @blackwake_anchorage_id = (
   SELECT MIN(waypoint_id) FROM ship_waypoints
    WHERE name = 'blackwake_anchorage'
 );
-SET @vailand_southing_id = (
-  SELECT MIN(waypoint_id) FROM ship_waypoints
-   WHERE name = 'vailand_southing'
-);
 SET @vailand_central_approach_id = (
   SELECT MIN(waypoint_id) FROM ship_waypoints
    WHERE name = 'vailand_central_approach'
+);
+SET @vailand_coast_turn_id = (
+  SELECT MIN(waypoint_id) FROM ship_waypoints
+   WHERE name = 'vailand_coast_turn'
+);
+SET @vailand_southwest_turn_id = (
+  SELECT MIN(waypoint_id) FROM ship_waypoints
+   WHERE name = 'vailand_southwest_turn'
+);
+SET @vailand_southern_turn_id = (
+  SELECT MIN(waypoint_id) FROM ship_waypoints
+   WHERE name = 'vailand_southern_turn'
+);
+SET @vailand_central_offing_id = (
+  SELECT MIN(waypoint_id) FROM ship_waypoints
+   WHERE name = 'vailand_central_offing'
+);
+SET @vailand_harbor_offing_id = (
+  SELECT MIN(waypoint_id) FROM ship_waypoints
+   WHERE name = 'vailand_harbor_offing'
 );
 SET @vailand_central_port_id = (
   SELECT MIN(waypoint_id) FROM ship_waypoints
@@ -255,16 +297,29 @@ INSERT INTO ship_route_waypoints
 VALUES
   (@vailand_route_id, @vailand_north_port_id, 0),
   (@vailand_route_id, @vailand_northing_id, 1),
-  (@vailand_route_id, @vailand_outer_passage_id, 2),
-  (@vailand_route_id, @blackwake_anchorage_id, 3),
-  (@vailand_route_id, @vailand_southing_id, 4),
-  (@vailand_route_id, @vailand_central_approach_id, 5),
-  (@vailand_route_id, @vailand_central_port_id, 6),
-  (@vailand_route_id, @vailand_central_approach_id, 7),
-  (@vailand_route_id, @vailand_southing_id, 8),
-  (@vailand_route_id, @blackwake_anchorage_id, 9),
-  (@vailand_route_id, @vailand_outer_passage_id, 10),
-  (@vailand_route_id, @vailand_northing_id, 11);
+  (@vailand_route_id, @blackwake_anchorage_id, 2),
+  (@vailand_route_id, @vailand_central_approach_id, 3),
+  (@vailand_route_id, @vailand_coast_turn_id, 4),
+  (@vailand_route_id, @vailand_southwest_turn_id, 5),
+  (@vailand_route_id, @vailand_southern_turn_id, 6),
+  (@vailand_route_id, @vailand_central_offing_id, 7),
+  (@vailand_route_id, @vailand_harbor_offing_id, 8),
+  (@vailand_route_id, @vailand_central_port_id, 9),
+  (@vailand_route_id, @vailand_harbor_offing_id, 10),
+  (@vailand_route_id, @vailand_central_offing_id, 11),
+  (@vailand_route_id, @vailand_southern_turn_id, 12),
+  (@vailand_route_id, @vailand_southwest_turn_id, 13),
+  (@vailand_route_id, @vailand_coast_turn_id, 14),
+  (@vailand_route_id, @vailand_central_approach_id, 15),
+  (@vailand_route_id, @blackwake_anchorage_id, 16),
+  (@vailand_route_id, @vailand_northing_id, 17);
+
+DELETE FROM ship_waypoints
+ WHERE name IN ('vailand_outer_passage', 'vailand_southing')
+   AND NOT EXISTS (
+     SELECT 1 FROM ship_route_waypoints AS link
+      WHERE link.waypoint_id = ship_waypoints.waypoint_id
+   );
 
 INSERT INTO ship_prototypes (name, vessel_class, max_speed, armor)
 SELECT @vailand_prototype_name, 2, 12, 30

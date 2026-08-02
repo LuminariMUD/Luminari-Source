@@ -66,6 +66,15 @@ database_scalar()
     "$database_name" --execute="$query"
 }
 
+database_execute()
+{
+  local query=$1
+
+  MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
+    --host="$database_host" --user="$database_user" \
+    "$database_name" --execute="$query"
+}
+
 apply_database_file()
 {
   local sql_file=$1
@@ -96,8 +105,57 @@ stop_development_mud()
 
 start_development_mud()
 {
-  "$script_dir/dev_kohdee_login_smoke.sh" >"$run_dir/01-boot.log" 2>&1
+  local output_file=${1:-"$run_dir/01-boot.log"}
+
+  "$script_dir/dev_kohdee_login_smoke.sh" >"$output_file" 2>&1
   restart_needed=false
+}
+
+reset_campaign_runtime()
+{
+  local reset_valid
+
+  database_execute "
+    UPDATE ship_runtime_state AS runtime
+    JOIN vessel_npc_merchants AS merchant
+      ON merchant.active_ship_id = runtime.ship_id
+    JOIN ship_routes AS route ON route.route_id = merchant.route_id
+       SET runtime.location_vnum = 1000360,
+           runtime.x = -599,
+           runtime.y = 455,
+           runtime.z = 0,
+           runtime.dx = 0,
+           runtime.dy = 0,
+           runtime.dz = 0,
+           runtime.heading = 0,
+           runtime.setheading = 0,
+           runtime.speed = 6,
+           runtime.setspeed = 6,
+           runtime.autopilot_state = 1,
+           runtime.current_route_id = route.route_id,
+           runtime.current_waypoint_index = 0,
+           runtime.autopilot_tick_counter = 0,
+           runtime.wait_remaining = 0,
+           runtime.last_update = UNIX_TIMESTAMP()
+     WHERE merchant.name = 'Vailand Ironwind Trader';"
+
+  reset_valid=$(database_scalar "
+    SELECT IF(
+      COUNT(*) = 0 OR
+      (COUNT(*) = 1
+       AND MIN(runtime.location_vnum) = 1000360
+       AND ROUND(MIN(runtime.x)) = -599
+       AND ROUND(MIN(runtime.y)) = 455
+       AND MIN(runtime.autopilot_state) = 1
+       AND MIN(runtime.current_route_id) = MIN(merchant.route_id)
+       AND MIN(runtime.current_waypoint_index) = 0),
+      1, 0)
+      FROM vessel_npc_merchants AS merchant
+      JOIN ship_runtime_state AS runtime
+        ON runtime.ship_id = merchant.active_ship_id
+     WHERE merchant.name = 'Vailand Ironwind Trader';")
+  [[ "$reset_valid" == 1 ]] ||
+    fail "the campaign merchant runtime could not be reset safely"
 }
 
 recover_server()
@@ -190,8 +248,10 @@ collision_count=$(database_scalar "
              FROM ship_waypoints
             WHERE name IN (
               'vailand_north_port', 'vailand_northing',
-              'vailand_outer_passage', 'blackwake_anchorage',
-              'vailand_southing', 'vailand_central_approach',
+              'blackwake_anchorage', 'vailand_central_approach',
+              'vailand_coast_turn', 'vailand_southwest_turn',
+              'vailand_southern_turn', 'vailand_central_offing',
+              'vailand_harbor_offing',
               'vailand_central_port')
             GROUP BY name
            HAVING COUNT(*) > 1
@@ -204,7 +264,8 @@ restart_needed=true
 apply_database_file "$repo_root/sql/components/vessels_phase13_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_phase14_schema.sql"
 apply_database_file "$repo_root/sql/components/vessels_campaign_content.sql"
-start_development_mud
+reset_campaign_runtime
+start_development_mud "$run_dir/01-boot.log"
 
 merchant_slot=
 for ((attempt = 0; attempt < 40; attempt++)); do
@@ -235,7 +296,7 @@ content_valid=$(database_scalar "
              ON link.route_id = route.route_id
           WHERE route.name = 'Vailand Iron Passage'
             AND route.loop_route = 1
-            AND route.active = 1) = 12
+            AND route.active = 1) = 18
     AND (SELECT COUNT(*)
            FROM vessel_npc_merchants AS merchant
            JOIN ship_runtime_state AS runtime
@@ -265,9 +326,15 @@ content_valid=$(database_scalar "
 [[ "$content_valid" == 1 ]] ||
   fail "the campaign regions, route, merchant, cargo, pilot, or schedule are invalid"
 
+merchant_generation=$(database_scalar "
+  SELECT generation
+    FROM vessel_npc_merchants
+   WHERE name = 'Vailand Ironwind Trader';")
+[[ "$merchant_generation" =~ ^[1-9][0-9]*$ ]] ||
+  fail "the campaign merchant generation is invalid"
+
 before_position=$(database_scalar "
-  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y), '|',
-                merchant.generation)
+  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
     FROM vessel_npc_merchants AS merchant
     JOIN ship_runtime_state AS runtime
       ON runtime.ship_id = merchant.active_ship_id
@@ -298,8 +365,7 @@ grep -Eq 'North Vailand Territorial Waters|Central Vailand Territorial Waters|Va
   fail "Kohdee did not resolve the campaign legal waters"
 
 after_position=$(database_scalar "
-  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y), '|',
-                merchant.generation)
+  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
     FROM vessel_npc_merchants AS merchant
     JOIN ship_runtime_state AS runtime
       ON runtime.ship_id = merchant.active_ship_id
@@ -309,8 +375,92 @@ after_position=$(database_scalar "
 
 if [[ -f "$server_log" ]] &&
    grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
-     "$server_log" >"$run_dir/03-related-syserr.log"; then
+     "$server_log" >"$run_dir/03-first-related-syserr.log"; then
   fail "the server logged a campaign vessel SYSERR"
+fi
+
+stop_development_mud
+restart_needed=true
+start_development_mud "$run_dir/04-restart-boot.log"
+
+restart_state=$(database_scalar "
+  SELECT CONCAT(merchant.active_ship_id, '|', merchant.generation, '|',
+                runtime.autopilot_state, '|', runtime.speed, '|',
+                ROUND(runtime.x), '|', ROUND(runtime.y))
+    FROM vessel_npc_merchants AS merchant
+    JOIN ship_runtime_state AS runtime
+      ON runtime.ship_id = merchant.active_ship_id
+   WHERE merchant.name = 'Vailand Ironwind Trader';")
+IFS='|' read -r restart_slot restart_generation restart_autopilot \
+  restart_speed restart_x restart_y <<<"$restart_state"
+[[ "$restart_slot" == "$merchant_slot" &&
+   "$restart_generation" == "$merchant_generation" &&
+   "$restart_autopilot" =~ ^[12]$ &&
+   "$restart_speed" =~ ^[1-9][0-9]*$ &&
+   "$restart_x" =~ ^-?[0-9]+$ && "$restart_y" =~ ^-?[0-9]+$ ]] ||
+  fail "the campaign merchant identity or autopilot did not survive restart"
+restart_before_position="$restart_x|$restart_y"
+
+timeout 150 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
+  "vmerchant list" \
+  "shipgoto $merchant_slot" \
+  "shipstatus" \
+  "seastate" \
+  "@wait 45" \
+  "shipstatus" \
+  "seastate" \
+  "goto 1204" \
+  >"$run_dir/05-kohdee-after-restart.log" 2>&1 ||
+  fail "the actual Kohdee restart-continuity session failed"
+
+grep -Fq 'Vailand Ironwind Trader' \
+  "$run_dir/05-kohdee-after-restart.log" ||
+  fail "Kohdee did not see the persisted campaign merchant after restart"
+grep -Fq 'Vailand Iron Passage' "$run_dir/05-kohdee-after-restart.log" ||
+  fail "Kohdee did not see the persisted campaign route after restart"
+
+restart_after_position=$(database_scalar "
+  SELECT CONCAT(ROUND(runtime.x), '|', ROUND(runtime.y))
+    FROM vessel_npc_merchants AS merchant
+    JOIN ship_runtime_state AS runtime
+      ON runtime.ship_id = merchant.active_ship_id
+   WHERE merchant.name = 'Vailand Ironwind Trader';")
+[[ "$restart_after_position" != "$restart_before_position" ]] ||
+  fail "the campaign merchant did not resume movement after restart"
+
+if [[ -f "$server_log" ]] &&
+   grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
+     "$server_log" >"$run_dir/06-restart-related-syserr.log"; then
+  fail "the restarted server logged a campaign vessel SYSERR"
+fi
+
+stop_development_mud
+restart_needed=true
+reset_campaign_runtime
+start_development_mud "$run_dir/07-final-boot.log"
+
+final_state=$(database_scalar "
+  SELECT CONCAT(merchant.active_ship_id, '|', merchant.generation, '|',
+                runtime.autopilot_state, '|', ROUND(runtime.x), '|',
+                ROUND(runtime.y))
+    FROM vessel_npc_merchants AS merchant
+    JOIN ship_runtime_state AS runtime
+      ON runtime.ship_id = merchant.active_ship_id
+   WHERE merchant.name = 'Vailand Ironwind Trader';")
+IFS='|' read -r final_slot final_generation final_autopilot final_x final_y \
+  <<<"$final_state"
+[[ "$final_slot" == "$merchant_slot" &&
+   "$final_generation" == "$merchant_generation" &&
+   "$final_autopilot" =~ ^[12]$ &&
+   "$final_x" =~ ^-?[0-9]+$ && "$final_y" =~ ^-?[0-9]+$ &&
+   "$final_x" -ge -612 && "$final_x" -le -584 &&
+   "$final_y" -ge 440 && "$final_y" -le 470 ]] ||
+  fail "the final campaign merchant baseline is not in North Vailand waters"
+
+if [[ -f "$server_log" ]] &&
+   grep -E 'SYSERR:.*(Vailand Ironwind|Vailand Iron Passage|100001[3-6])' \
+     "$server_log" >"$run_dir/08-final-related-syserr.log"; then
+  fail "the final server start logged a campaign vessel SYSERR"
 fi
 
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
@@ -320,8 +470,12 @@ elapsed_seconds=$(($(date +%s) - started_epoch))
   printf 'source_commit=%s\n' "$source_commit"
   printf 'binary_sha256=%s\n' "$binary_sha256"
   printf 'merchant_slot=%s\n' "$merchant_slot"
+  printf 'merchant_generation=%s\n' "$merchant_generation"
   printf 'position_before=%s\n' "$before_position"
   printf 'position_after=%s\n' "$after_position"
+  printf 'restart_position_before=%s\n' "$restart_before_position"
+  printf 'restart_position_after=%s\n' "$restart_after_position"
+  printf 'final_state=%s\n' "$final_state"
   printf 'elapsed_seconds=%s\n' "$elapsed_seconds"
 } >"$run_dir/result"
 

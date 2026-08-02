@@ -8,7 +8,7 @@ SELECT 'campaign_regions' AS check_name, COUNT(*) AS actual, 4 AS expected
    AND region.region_type = 1
    AND region.region_polygon IS NOT NULL;
 
-SELECT 'campaign_route_links' AS check_name, COUNT(*) AS actual, 12 AS expected
+SELECT 'campaign_route_links' AS check_name, COUNT(*) AS actual, 18 AS expected
   FROM ship_routes AS route
   JOIN ship_route_waypoints AS link ON link.route_id = route.route_id
  WHERE route.name = 'Vailand Iron Passage'
@@ -19,10 +19,14 @@ SELECT 'campaign_route_sequence' AS check_name,
        COALESCE(GROUP_CONCAT(waypoint.name ORDER BY link.sequence_num
                             SEPARATOR ','), '') AS actual,
        CONCAT(
-         'vailand_north_port,vailand_northing,vailand_outer_passage,',
-         'blackwake_anchorage,vailand_southing,vailand_central_approach,',
-         'vailand_central_port,vailand_central_approach,vailand_southing,',
-         'blackwake_anchorage,vailand_outer_passage,vailand_northing'
+         'vailand_north_port,vailand_northing,blackwake_anchorage,',
+         'vailand_central_approach,vailand_coast_turn,',
+         'vailand_southwest_turn,vailand_southern_turn,',
+         'vailand_central_offing,vailand_harbor_offing,',
+         'vailand_central_port,vailand_harbor_offing,',
+         'vailand_central_offing,vailand_southern_turn,',
+         'vailand_southwest_turn,vailand_coast_turn,',
+         'vailand_central_approach,blackwake_anchorage,vailand_northing'
        ) AS expected
   FROM ship_routes AS route
   JOIN ship_route_waypoints AS link ON link.route_id = route.route_id
