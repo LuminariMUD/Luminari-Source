@@ -3,7 +3,7 @@
 **Last audited:** August 2, 2026
 
 **Status:** Mechanics through Phase 15 are implemented. The GNU C23
-production-linked suite passes 268 of 268 on current master, and a fresh
+production-linked suite passes 271 of 271 on current master, and a fresh
 CMake build passes all six CTest targets, including the same production suite
 and vessel tooling. The
 complete disposable MariaDB chain through Phase 15 passes install/reapply/
@@ -203,6 +203,30 @@ and no definite, indirect, or possible loss. PID 565375 runs the exact binary;
 an actual Kohdee login confirmed six of 500 slots and returned to room 1204.
 Keep the performance and memory items open until the same 1,800-second,
 500-vessel gate proves the changes under load.
+
+The seventh run is
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T024352Z-573327`.
+It completed another 1,800-second, 500-vessel window on PID 582492. Both live
+allocation samples retained 500 ships, 11 of 2,000 dynamic rooms, and zero
+buffer overflows, so the quiet-room repair is accepted. The terminal encounter
+check was a harness false negative: generic `@wait` drained and discarded
+asynchronous output, while the server logged 20 deliveries from Kohdee's
+airship and 20 encounters notifying 60 shared-room vessels. The server log
+also exposes real failures that the earlier check masked: 225 scheduled moves
+crossed a non-navigable intermediate coordinate, and six NPC hunter spawns
+were attempted with every fleet slot occupied.
+
+The complete profile still fails the release budget. Its 3,665 ticks have
+median 802.00 usec, p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217
+missed pulses. Autopilot remains the p95 driver at 130,774 usec. Payroll p95
+improved to 9,146.80 usec, but its maximum remains 353,062; encounters retain
+a 60,540-usec maximum. Query volume fell to 67,052. The 59-sample memory series
+spans 1,854 seconds and remains `REPORT_ONLY`: RSS rose 786,296 to 853,480 KiB,
+VSZ rose 881,084 to 947,988 KiB, and movement trails rose 29,608 to 287,220.
+Cleanup restored six vessels and restarted the unchanged installed binary on
+PID 640439. Keep all four performance items open while fixing asynchronous
+capture, route validity, full-fleet hunter capacity, synchronous persistence,
+the remaining encounter lookup, and retained movement-trail growth.
 
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in

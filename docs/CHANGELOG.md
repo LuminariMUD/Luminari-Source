@@ -173,6 +173,16 @@
   zero errors and zero definite, indirect, or possible loss. Installed SHA-256
   `ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
   runs on PID 565375 and passes an actual Kohdee baseline smoke.
+- Run `20260802T024352Z-573327` completes another 1,800-second window with 500
+  vessels on one PID and zero live buffer overflows. It exposes a generic
+  `@wait` helper that discards asynchronous encounter text, 225 invalid
+  scheduled route steps, and six full-capacity hunter-spawn attempts. The
+  complete 3,665-tick profile remains over budget: p95 131,989.20 usec,
+  maximum 355,394, and 6,217 missed pulses. Queries fall to 67,052 and payroll
+  p95 to 9,146.80 usec, but autopilot p95 remains 130,774. The 1,854-second
+  memory series grows from 786,296 to 853,480 KiB RSS and remains
+  `REPORT_ONLY`. Cleanup restores six vessels and the exact installed binary
+  on PID 640439.
 
 ### Durable HUNTED bounty-hunter patrols
 

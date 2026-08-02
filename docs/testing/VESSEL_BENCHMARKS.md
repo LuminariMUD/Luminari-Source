@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.14
+**Version:** 3.15
 
 **Evidence snapshot:** August 2, 2026
 
@@ -29,8 +29,9 @@ from the full live-game benchmark that still must be run.
 | Fourth current 500-ship attempt on August 2, 2026 | Reached reciprocal-combat proof; stopped before steady measurement | LF-CR parser fixed; performance warning retained |
 | Fifth current 500-ship attempt on August 2, 2026 | Reached native MSDP proof; stopped before steady measurement | Raw Telnet client fixed and baseline contract passes |
 | Sixth current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,676 ticks | Overflow and 25 ms performance gates failed |
-| Post-sixth optimization candidate | 271/271 tests; actionable Memcheck clean | Installed; seventh scale launch required |
-| Complete current 500-ship live tick | 3,676 ticks; p95 130,928.50 usec | Release blocker; optimization and rerun required |
+| Post-sixth optimization candidate | 271/271 tests; actionable Memcheck clean | Installed and exercised by seventh launch |
+| Seventh current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,665 ticks; zero overflows | Harness, route, full-fleet spawn, memory, and 25 ms gates failed |
+| Complete current 500-ship live tick | 3,665 ticks; p95 131,989.20 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -321,8 +322,42 @@ passes, and strict actionable Memcheck has zero errors and zero definite,
 indirect, or possible loss. Installed SHA-256
 `ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
 runs on PID 565375; an actual Kohdee smoke confirms the six-vessel baseline.
-These are candidate results only until the seventh scale launch repeats the
-full 1,800-second gate.
+Run `20260802T024352Z-573327` exercised that candidate for the full requested
+1,800 seconds with 500 vessels on one PID. It passed harbor, construction,
+economy, Z, reconstruction, reciprocal combat, and native MSDP. The initial
+and final live samples each reported zero overflows, accepting the quiet-room
+repair. The terminal script stopped first because its generic `@wait` path
+discarded all asynchronous socket output before checking for the encounter
+text. The server log independently proves 20 encounter deliveries from
+Kohdee's moving airship and 20 shared deliveries to 60 co-located ships. This
+is a harness defect, but the same log contains later real workload failures:
+225 scheduled autopilot moves attempted a non-navigable intermediate cell and
+six hunter-vessel spawns were attempted after all 500 slots were occupied.
+
+The complete seventh profile is diagnostic evidence, not a pass:
+
+| Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
+|---|---:|---:|---:|---:|---:|
+| `vessel_tick` | 3,665 | 802.00 | 131,989.20 | 176,272.80 | 355,394 |
+| `vessel_autopilot` | 3,665 | 626.00 | 130,774.00 | 170,540.04 | 218,707 |
+| `vessel_crew_wages` | 3,665 | 16.00 | 9,146.80 | 12,005.16 | 353,062 |
+| `vessel_encounters` | 3,665 | 0.00 | 1.00 | 1.00 | 60,540 |
+| `vessel_schedules` | 25 | 16,081.00 | 20,237.60 | 20,515.40 | 20,579 |
+
+Database executions fell from 80,950 to 67,052 and payroll p95 fell from 23
+usec plus a one-second synchronized outlier to 9,146.80 usec with a 353,062-
+usec maximum. Encounter p99 remained 1 usec, but one 60,540-usec synchronous
+lookup remains. Autopilot p95 remains about 131 ms, so the complete tick still
+misses the 25,000-usec target. The run recorded 6,217 missed pulses and 23,204
+throttled messages.
+
+The 59 process samples span 1,854 seconds on PID 582492. RSS increased from
+786,296 to 853,480 KiB and VSZ from 881,084 to 947,988 KiB; both maxima equal
+their final value. Threads stayed at 2 and descriptors at 11-12. Anonymous RSS
+and the heap mapping each grew by about 65 MiB, while movement trails grew
+from 29,608 to 287,220. The analyzer reports a 129,567-KiB/hour RSS slope and
+remains `REPORT_ONLY`, so memory stability is still open. Cleanup restored six
+vessels and restarted the exact installed SHA-256 on PID 640439.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

@@ -242,7 +242,27 @@ actionable Memcheck reports zero errors and no definite, indirect, or possible
 loss. Installed SHA-256
 `ade8d4db466ec5d2f49a5cd7f30ceda4a3e29af570921e8e6005797c7e8db12e`
 runs on PID 565375. An actual Kohdee smoke saw six of 500 slots and returned to
-room 1204. Only another complete 1,800-second scale run can accept these fixes.
+room 1204.
+
+Run `20260802T024352Z-573327` exercised that binary for another complete
+1,800-second window with 500 vessels on PID 582492. Initial and final live
+samples both reported zero buffer overflows, so the crowded-login fix is
+accepted. The first terminal failure was a harness defect: generic `@wait`
+discarded asynchronous socket output, although the server recorded 20
+encounter deliveries for Kohdee's moving airship and 20 shared encounters for
+60 vessels. The server log also exposes 225 real route failures through an
+invalid intermediate water-route cell and six attempted hunter spawns at full
+fleet capacity.
+
+The resulting 3,665-tick profile remains a release failure: median 802.00
+usec, p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217 missed pulses.
+Query volume fell to 67,052 and payroll p95 to 9,146.80 usec, while autopilot
+p95 remained 130,774, payroll maximum remained 353,062, and encounters peaked
+at 60,540. The 59 process samples span 1,854 seconds; RSS rose 786,296 to
+853,480 KiB and the analyzer remains `REPORT_ONLY`. Cleanup restored six
+vessels and the unchanged installed binary on PID 640439. Correct the helper,
+workload fixtures, remaining synchronous hotspots, and memory growth before
+the next complete run.
 
 For the builder-independence timing gate, run:
 

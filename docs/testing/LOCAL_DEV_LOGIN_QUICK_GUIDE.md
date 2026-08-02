@@ -493,7 +493,7 @@ seconds while movement trails rose 30,426 to 289,000; threads stayed 2 and
 descriptors 11-12. Cleanup restored six vessels and the exact binary on PID
 522541. Fix the three production hotspots before starting the next full run.
 
-The next candidate bounds those hotspots before the seventh launch. Payroll
+The next candidate bounded those hotspots for the seventh launch. Payroll
 uses 100 stable batches, so no more than five of the 500 slots become payable
 on one tick, and a changed roster uses one multi-row insert after its delete.
 Encounter containment is cached by shared exterior room for each pass.
@@ -503,8 +503,26 @@ room 1204 before reconstruction. `make test` passes 271 of 271 without
 warnings, all vessel tooling passes, and strict actionable Memcheck reports
 zero errors and no definite, indirect, or possible loss. `make install`
 removed the root artifact; PID 565375 maps the installed SHA-256 above. An
-actual Kohdee smoke reported six of 500 slots and returned to room 1204. The
-full 1,800-second scale result is still required.
+actual Kohdee smoke reported six of 500 slots and returned to room 1204.
+
+Run `20260802T024352Z-573327` then completed the full 1,800-second window with
+500 vessels on PID 582492. It retained zero game-side overflows at both live
+checkpoints, accepting the room-1204 repair. Its first terminal failure was a
+test-helper defect: generic `@wait` deliberately drained all asynchronous
+socket data, so the transcript omitted an encounter that the server recorded
+20 times for Kohdee's airship. The server log also contains 225 real scheduled
+route failures at non-navigable intermediate cells and six full-fleet NPC
+hunter spawn failures. Repair those fixtures before treating the encounter
+failure as the only verdict.
+
+The profile still fails 25 ms: 3,665 vessel ticks reported median 802.00 usec,
+p95 131,989.20, p99 176,272.80, maximum 355,394, and 6,217 missed pulses.
+Queries fell to 67,052 and payroll p95 to 9,146.80 usec, but autopilot p95 was
+130,774, payroll max 353,062, and encounters max 60,540. RSS rose 786,296 to
+853,480 KiB over 1,854 seconds and the analyzer remains `REPORT_ONLY`.
+Cleanup restored six vessels; PID 640439 maps the same installed SHA-256. A
+fresh full gate remains required after the helper, workload, performance, and
+memory fixes.
 
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
