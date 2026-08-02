@@ -36,6 +36,7 @@ warship_prototype_id=
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
+server_restart_needed=false
 
 umask 077
 mkdir -p "$run_dir"
@@ -177,7 +178,10 @@ stop_development_mud()
     systemctl --user stop "$server_unit"
   fi
   for ((attempt = 0; attempt < 300; attempt++)); do
-    port_is_listening || return 0
+    if ! port_is_listening; then
+      server_restart_needed=true
+      return 0
+    fi
     sleep 0.1
   done
   return 1
@@ -203,7 +207,8 @@ start_server_without_login()
     sleep 0.1
   done
   [[ "$launched" == true ]] || return 1
-  wait_for_server
+  wait_for_server || return 1
+  server_restart_needed=false
 }
 
 running_binary_sha256()
@@ -322,6 +327,11 @@ finish()
   if [[ "$cleanup_needed" == true ]]; then
     set +e
     restore_baseline >"$run_dir/cleanup.log" 2>&1
+    cleanup_status=$?
+    set -e
+  elif [[ "$server_restart_needed" == true ]]; then
+    set +e
+    start_server_without_login >"$run_dir/cleanup.log" 2>&1
     cleanup_status=$?
     set -e
   fi
@@ -447,7 +457,7 @@ phase16_schema_state=$(database_query "
             'event_type', 'player_idnum', 'entries', 'wins', 'points',
             'best_time_seconds'))
           OR (TABLE_NAME = 'vessel_event_runtimes' AND COLUMN_NAME IN (
-            'ship_id', 'event_id', 'role', 'ordinal_num')))))
+            'ship_id', 'event_id', 'role', 'ordinal_num'))))
   );")
 [[ "$phase16_schema_state" == '4|29' ]] ||
   fail "the Phase 16 schema is incomplete: $phase16_schema_state"
