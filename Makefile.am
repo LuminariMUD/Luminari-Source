@@ -76,7 +76,7 @@ circle_SOURCES = \
 	src/deities.c \
 	src/desc_engine.c \
 	src/dgscript/dg_comm.c \
-	src/discord_bridge.c \
+	src/net/discord_bridge.c \
 	src/dgscript/dg_db_scripts.c \
 	src/dgscript/dg_event.c \
 	src/dgscript/dg_handler.c \
@@ -157,7 +157,7 @@ circle_SOURCES = \
 	src/players.c \
 	src/olc/prefedit.c \
 	src/premadebuilds.c \
-	src/protocol.c \
+	src/net/protocol.c \
 	src/psionics.c \
 	src/pubsub.c \
 	src/systems/pubsub/pubsub_handlers.c \
@@ -172,10 +172,10 @@ circle_SOURCES = \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
 	src/systems/narrative_weaver/narrative_weaver.c \
-	src/systems/web_client/onboarding.c \
-	src/systems/intermud3/i3_client.c \
-	src/systems/intermud3/i3_commands.c \
-	src/systems/intermud3/i3_utils.c \
+	src/net/onboarding.c \
+	src/net/i3_client.c \
+	src/net/i3_commands.c \
+	src/net/i3_utils.c \
 	src/olc/qedit.c \
 	src/quest.c \
 	src/race.c \

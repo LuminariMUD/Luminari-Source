@@ -16,10 +16,10 @@
 #include "act.h"
 #include "modify.h"
 
-#include "systems/intermud3/i3_client.h"
+#include "i3_client.h"
 /* Temporarily disabled for compilation
-#include "systems/intermud3/i3_security.h"
-#include "systems/intermud3/i3_error.h"
+#include "i3_security.h"
+#include "i3_error.h"
 */
 
 #include <sys/socket.h>

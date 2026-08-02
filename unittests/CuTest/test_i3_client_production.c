@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/comm.h"
-#include "../../src/systems/intermud3/i3_client.h"
+#include "../../src/net/i3_client.h"
 
 #include <json-c/json.h>
 #include <fcntl.h>

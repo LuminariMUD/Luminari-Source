@@ -29,7 +29,7 @@
 #include "constants.h"
 #include "act.h" /* ACMDs located within the act*.c files, char-creation help */
 #include "ban.h"
-#include "systems/intermud3/i3_client.h" /* I3 command declarations */
+#include "net/i3_client.h" /* I3 command declarations */
 #include "class.h"
 #include "graph.h"
 #include "olc/hedit.h"
@@ -71,7 +71,7 @@
 #include "hunts.h"
 #include "fight.h" /* for init condensed combat */
 #include "char_descs.h"
-#include "discord_bridge.h"
+#include "net/discord_bridge.h"
 #include "evolutions.h"
 #include "deities.h"
 #include "pubsub.h"
@@ -86,7 +86,7 @@
 #include "mysql_boards.h"
 #include "olc/bedit.h" /* MySQL board system */
 #include "world/spec_artifacts.h"
-#include "systems/web_client/onboarding.h"
+#include "net/onboarding.h"
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);

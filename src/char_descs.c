@@ -18,7 +18,7 @@
 #include "mail.h"
 #include "roleplay.h"
 #include "character_creation.h"
-#include "systems/web_client/onboarding.h"
+#include "net/onboarding.h"
 
 /* External function declarations */
 void update_player_last_on(void);

@@ -98,19 +98,19 @@
 #include "wilderness/wilderness.h"
 #include "spell_prep.h"
 #include "perfmon.h"
-#include "systems/web_client/onboarding.h"
+#include "net/onboarding.h"
 #include "roleplay.h"
 #include "help.h"
 #include "vessels/transport.h"
 #include "hunts.h"
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
-#include "ai_service.h"                  /* for shutdown_ai_service() */
-#include "pubsub.h"                      /* for automatic queue processing */
-#include "discord_bridge.h"              /* Discord bridge integration */
-#include "wilderness/terrain_bridge.h"   /* Terrain bridge API server */
-#include "systems/intermud3/i3_client.h" /* Intermud3 client */
-#include "vessels/vessels.h"             /* Vessel persistence */
+#include "ai_service.h"                /* for shutdown_ai_service() */
+#include "pubsub.h"                    /* for automatic queue processing */
+#include "net/discord_bridge.h"        /* Discord bridge integration */
+#include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
+#include "net/i3_client.h"             /* Intermud3 client */
+#include "vessels/vessels.h"           /* Vessel persistence */
 #include "asciimap.h"
 #include "world/spec_artifacts.h"
 

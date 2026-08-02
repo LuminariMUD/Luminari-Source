@@ -12,10 +12,10 @@
 #ifndef _STRUCTS_H_
 #define _STRUCTS_H_
 
-#include <time.h>     /* for time_t */
-#include <stddef.h>   /* for size_t */
-#include "bool.h"     /* for bool */
-#include "protocol.h" /* Kavir Plugin*/
+#include <time.h>         /* for time_t */
+#include <stddef.h>       /* for size_t */
+#include "bool.h"         /* for bool */
+#include "net/protocol.h" /* Kavir Plugin*/
 #include "lists.h"
 
 // You will need to add a campaign.h file, which is not included in the git repo.

@@ -17,8 +17,8 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/comm.h"
-#include "../../src/protocol.h"
-#include "../../src/systems/web_client/onboarding.h"
+#include "../../src/net/protocol.h"
+#include "../../src/net/onboarding.h"
 
 #define TEST_CAPTURE_SIZE 65536
 #define TEST_FIXTURE_SIZE 8192

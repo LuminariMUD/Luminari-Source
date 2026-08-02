@@ -29,7 +29,7 @@
 #include "deities.h"
 #include "char_descs.h"
 #include "modify.h"
-#include "systems/web_client/onboarding.h"
+#include "net/onboarding.h"
 
 extern const char *personality_traits[NUM_BACKGROUNDS][10];
 extern const char *character_ideals[NUM_BACKGROUNDS][8];

@@ -14,8 +14,8 @@
 #include "db.h"
 #include "screen.h"
 #include "act.h"
-#include "systems/intermud3/i3_client.h"
-#include "systems/intermud3/i3_utils.h"
+#include "i3_client.h"
+#include "i3_utils.h"
 #include <time.h>
 #include <json-c/json.h>
 

@@ -23,7 +23,7 @@
 #include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "modify.h"
-#include "systems/web_client/onboarding.h"
+#include "onboarding.h"
 
 /* Globals */
 const char *RGBone = "F022";

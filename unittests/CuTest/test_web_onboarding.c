@@ -28,12 +28,12 @@
 #include "../../src/deities.h"
 #include "../../src/feats.h"
 #include "../../src/premadebuilds.h"
-#include "../../src/protocol.h"
+#include "../../src/net/protocol.h"
 #include "../../src/race.h"
 #include "../../src/roleplay.h"
 #include "../../src/shop.h"
 #include "../../src/spells.h"
-#include "../../src/systems/web_client/onboarding.h"
+#include "../../src/net/onboarding.h"
 
 /* A descriptor with just enough state for the adapter to read. */
 static void init_test_descriptor(struct descriptor_data *d, int state)

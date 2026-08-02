@@ -16,7 +16,7 @@
 #include "mysql.h"
 #include "account.h"
 #include "pubsub.h"
-#include "protocol.h"
+#include "net/protocol.h"
 #include "movement/movement_tracks.h"
 #include "vessels/vessels.h"
 #include "player_rename.h"

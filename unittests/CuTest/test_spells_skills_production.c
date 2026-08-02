@@ -6,7 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
-#include "../../src/protocol.h"
+#include "../../src/net/protocol.h"
 #include "../../src/spells.h"
 
 #include <string.h>

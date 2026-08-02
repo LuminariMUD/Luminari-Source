@@ -7,7 +7,7 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/perfmon.h"
-#include "../../src/protocol.h"
+#include "../../src/net/protocol.h"
 #include "../../src/vessels/vessels.h"
 #include "../../src/wilderness/wilderness.h"
 

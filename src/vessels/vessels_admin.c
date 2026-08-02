@@ -15,7 +15,7 @@
 #include "interpreter.h"
 #include "vessels.h"
 #include "wilderness/wilderness.h"
-#include "protocol.h"
+#include "net/protocol.h"
 #include "act.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

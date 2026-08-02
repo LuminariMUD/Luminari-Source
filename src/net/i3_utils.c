@@ -7,7 +7,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
-#include "systems/intermud3/i3_utils.h"
+#include "i3_utils.h"
 #include <ctype.h>
 #include <string.h>
 
