@@ -44,7 +44,7 @@ tables.
 | 15 | `vessels_phase15_schema.sql` | `verify_vessels_phase15.sql` | `vessels_phase15_rollback.sql` | HUNTED encounter policy and one durable bounty-hunter lifecycle per target |
 | Campaign | `vessels_campaign_content.sql` | `verify_vessels_campaign_content.sql` | `vessels_campaign_content_rollback.sql` | Initial Vailand legal waters, route, merchant shipping, and iron markets |
 | Derelict | `vessels_derelict_content.sql` | `verify_vessels_derelict_content.sql` | `vessels_derelict_content_rollback.sql` | Blackwake prototype and generated-room discovery trigger mappings |
-| Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and four prototypes |
+| Frontier | `vessels_frontier_content.sql` | `verify_vessels_frontier_content.sql` | `vessels_frontier_content_rollback.sql` | Starfall trench, Sablebranch river, Aetherwind lane, Shardspire island, and eight class prototypes |
 | Help | `help_vessel_entries.sql` | `verify_help_vessel_entries.sql` plus in-game sweep | Restore backup | 32 authoritative vessel and vehicle help entries covering 78 command keywords |
 
 `test_vessels_integrity.sql` inserts and removes fixed test identifiers. Run it
@@ -82,8 +82,9 @@ shared trigger mappings, so do not run it against an active content stage.
 The frontier package depends on the Phase 04 prototype table plus canonical
 `region_data`, `region_index`, `path_data`, and `path_index`. Its MariaDB path
 trigger digitalizes the sparse river line, so verification must compare the
-79-cell canonical geometry rather than the three authored vertices. Retire
-runtime hulls using its four prototypes before guarded rollback.
+79-cell canonical geometry rather than the three authored vertices. The
+package owns one prototype for every class. Retire runtime hulls using its
+eight prototypes before guarded rollback.
 
 ## Pre-Deployment Gate
 
@@ -250,7 +251,7 @@ Also verify:
 - Exact Blackwake prototype attributes, three room-trigger mappings, zero or
   one ownerless runtime, and the corresponding reviewed world records.
 - Exact frontier region thresholds and polygons, the 79-cell Sablebranch
-  geometry plus spatial-index mirror, and four spawnable prototype records.
+  geometry plus spatial-index mirror, and eight spawnable prototype records.
 - All 78 vessel and vehicle command-keyword searches in the running game,
   requiring database `Help Tag` results rather than file fallback.
 - Database errors and slow queries during the manual regression.

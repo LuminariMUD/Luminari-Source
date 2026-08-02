@@ -12,13 +12,15 @@
   125-percent high-current speed multiplier capped by the normal ceiling.
 - The idempotent frontier content package supplies Starfall Trench,
   Aetherwind Skyway, Shardspire Sky Island, the 79-cell digitalized
-  Sablebranch River, and spawnable raft, boat, submarine, and airship
-  prototypes with verification and guarded rollback SQL.
+  Sablebranch River, and one spawnable prototype for every vessel class with
+  verification and guarded rollback SQL.
 - `scripts/provision_vessel_frontier.sh` refuses production, dirty or stale
   source, collisions, and owned runtime conflicts. It applies content
   atomically, checks spatial-index mirrors, and uses actual Kohdee to discover,
-  spawn, pilot, and purge all four hulls. Interrupted runs perform bounded
-  owned-runtime cleanup and return Kohdee to room 1204.
+  spawn, pilot, and purge all eight classes. It verifies class cargo and
+  generated-room contracts, three warship weapon slots without live fire, and
+  magical traversal across land, water, depth, and altitude. Interrupted runs
+  perform bounded owned-runtime cleanup and return Kohdee to room 1204.
 - The first tracked data/DG-driven vessel derelict supplies three Blackwake
   object records, five guarded discovery triggers, an idempotent prototype and
   generated-room mapping package, a read-only verifier, and dependency-aware
@@ -172,13 +174,16 @@
 
 #### Validated
 
-- Frontier run `20260802T085140Z-1316297` passes in 56 seconds on source
-  `4cae8f98` and installed SHA-256
+- Frontier run `20260802T091531Z-1364409` passes in 75 seconds on source
+  `873171ae` and installed SHA-256
   `9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
-  Actual Kohdee sails raft and boat one River cell, dives to Z -90 in natural
-  depth 104, activates the Aetherwind lane at Z 100 with effective speed 12,
-  reaches Shardspire at `(469, 0, 200)`, purges all four runtimes, and returns
-  to room 1204. The production-linked suite passes 278 tests.
+  Actual Kohdee validates all eight class/cargo/interior contracts, sails River
+  and Ocean, proves three warship weapon slots without firing, dives to Z -90
+  in natural depth 104, activates Aetherwind at Z 100 with effective speed 12,
+  reaches Shardspire at `(469, 0, 200)`, verifies three transport cargo rooms,
+  crosses Plains, River, Z -10, and Z 10 in a magical hull, purges every
+  runtime, and returns to room 1204. The production-linked suite passes 278
+  tests.
 - Blackwake provision run `20260802T072737Z-1135588` passes in 61 seconds on
   source `71cba1a2`. Slot 8, prototype 17, coordinates `(-533, 330)`, rooms
   70160-70163, bridge/entrance/cargo identities, and all three mappings remain

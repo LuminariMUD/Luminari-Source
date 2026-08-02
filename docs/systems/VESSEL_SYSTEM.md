@@ -1135,7 +1135,7 @@ index entries separately while application writes are stopped.
 
 ### Wilderness Frontier Content
 
-The first tracked frontier package connects the region/path contracts to four
+The tracked frontier package connects the region/path contracts to all eight
 actual vessel classes:
 
 ```bash
@@ -1147,22 +1147,33 @@ natural depth 96), Aetherwind Skyway (region 7100102, minimum Z 100),
 Shardspire Sky Island (region 7100103, minimum Z 200), and Sablebranch River
 (path 7100104, `PATH_RIVER`, `SECT_RIVER`). The database path trigger expands
 the three authored line vertices into 79 contiguous cells and mirrors them in
-`path_index`. Its four prototypes are an unarmed raft, an unarmed riverboat, a
-submarine, and an airship whose speed 25 remains inside the production builder
-limit.
+`path_index`. All eight prototypes remain inside the production builder speed
+and armor limits.
+
+The current package owns this acceptance matrix:
+
+| Class | Prototype | Actual-character capability proof |
+|-------|-----------|-----------------------------------|
+| Raft | Sablebranch Raft | River movement, 300-pound hold, one-room interior |
+| Boat | Sablebranch Riverboat | River movement, 2,000-pound hold, crew quarters |
+| Ship | Starfall Survey Ship | Ocean movement, main deck, 12,000-pound hold |
+| Warship | Starfall Bastion | Three weapon slots and two weapons decks; no shot fired |
+| Airship | Aetherwind Courier | Z 100 speed lane and Z 200 sky island |
+| Submarine | Starfall Bathyscaphe | Z -90 dive inside natural depth 104 |
+| Transport | Sablebranch Grand Freighter | 40,000-pound hold and three cargo rooms |
+| Magical Vessel | Liminal Wayfarer | Plains, River, submerged, and airborne traversal |
 
 The development-only provisioner is atomic, idempotent, collision-sensitive,
 and requires the installed binary to be newer than every source input. It
 hard-restarts the supervised MUD, verifies database and spatial identity, and
 uses actual Kohdee sessions for builder discovery and piloting. The piloted
-gate moves both river hulls one cell, dives the bathyscaphe to Z -90 in natural
-depth 104, proves the sky lane is gated until Z 100 and yields effective speed
-12 from requested speed 10, then reaches Shardspire at `(469, 0, 200)`. It
-purges every temporary runtime and returns Kohdee to room 1204; its failure
-trap performs the same owned-runtime cleanup. Run
-`20260802T085140Z-1316297` passed in 56 seconds on source `4cae8f98`.
+gate executes every row above. It also proves the sky lane is gated until Z
+100 and yields effective speed 12 from requested speed 10, then reaches
+Shardspire at `(469, 0, 200)`. It purges every temporary runtime and returns
+Kohdee to room 1204; its failure trap performs the same owned-runtime cleanup.
+Run `20260802T091531Z-1364409` passed in 75 seconds on source `873171ae`.
 
-`vessels_frontier_content_rollback.sql` removes only the four owned prototype,
+`vessels_frontier_content_rollback.sql` removes only the eight owned prototypes,
 path, and region identities after checking exact names. Retire any dependent
 runtime hull before rollback and stop application writes. It does not undo
 unrelated wilderness paths or regions.
@@ -1361,7 +1372,7 @@ and the trigger was removed.
 | `sql/components/vessels_derelict_content.sql` | Blackwake prototype and generated-room trigger mappings |
 | `sql/components/verify_vessels_derelict_content.sql` | Read-only Blackwake identity and mapping checks |
 | `sql/components/vessels_derelict_content_rollback.sql` | Dependency-aware Blackwake definition rollback |
-| `sql/components/vessels_frontier_content.sql` | Starfall, Aetherwind, Shardspire, Sablebranch, and four prototype definitions |
+| `sql/components/vessels_frontier_content.sql` | Starfall, Aetherwind, Shardspire, Sablebranch, and eight prototype definitions |
 | `sql/components/verify_vessels_frontier_content.sql` | Read-only frontier geometry, index, and prototype inventory |
 | `sql/components/vessels_frontier_content_rollback.sql` | Guarded frontier content rollback |
 | `sql/components/help_vessel_entries.sql` | Idempotent authoritative help migration |

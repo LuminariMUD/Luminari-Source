@@ -275,14 +275,14 @@ crew, upgrades, cargo, trade, freight, piracy, weather hazards, encounters,
 operator tooling, and native MSDP ship state. The initial Vailand shipping
 package, data/DG-driven Blackwake derelict, and first wilderness frontier
 package also pass actual-character development acceptance. The frontier gate
-pilots raft and boat travel over a canonical River path, a submarine through a
-bathymetry-thresholded trench, and an airship through an altitude lane to a
-thresholded sky island.
+now gives all eight classes a demonstrated destination or capability: River
+travel, Ocean freight, broadside armament, high-altitude lanes, bathymetric
+diving, high-capacity transport, and magical multi-medium movement.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current
 Memcheck, and development release-boundary checks pass. Remaining living-world
-and class-specific content, human beta, production-snapshot rehearsal, balance,
-and staged rollout remain.
+events, player-experience work, human beta, production-snapshot rehearsal,
+balance, and staged rollout remain.
 Consult [VESSELS_TODO.md](project-management-zusuk/vessels/VESSELS_TODO.md) for
 the only current vessel backlog.

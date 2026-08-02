@@ -41,14 +41,15 @@ variables, then restores every snapshotted Kohdee file and database object-save
 field exactly in 55 seconds. The discovery run uses source `a390a387` and the
 earlier scale-candidate binary hash.
 
-The first wilderness frontier package also passes one-command
-actual-character acceptance. Run `20260802T085140Z-1316297` installs three
-thresholded regions, one 79-cell river path, and four class-matched
-prototypes. Kohdee uses ordinary builder, helm, movement, status, and
-sea-state commands to sail a raft and riverboat, dive a submarine to Z -90,
-activate a high-altitude speed lane at Z 100, and reach a sky island at Z 200.
-The run purges every temporary hull, returns Kohdee to room 1204, and
-completes in 56 seconds on source `4cae8f98` and the current installed hash.
+The wilderness frontier package also passes one-command actual-character
+acceptance. Run `20260802T091531Z-1364409` installs three thresholded regions,
+one 79-cell river path, and one prototype for every class. Kohdee uses ordinary
+builder, helm, movement, status, combat, layout, cargo, and sea-state commands
+to prove River and Ocean travel, three warship weapons without firing, a Z -90
+dive, a Z 100 speed lane, a Z 200 sky island, 40,000-pound freight capacity,
+and magical traversal across land, water, depth, and altitude. The run purges
+every temporary hull, returns Kohdee to room 1204, and completes in 75 seconds
+on source `873171ae` and the current installed hash.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -252,23 +253,28 @@ After `make test` and `make install`, run:
 The command refuses production, dirty source, stale binaries, collisions,
 pre-existing runtimes for its prototypes, and active ferry or scale workers.
 It atomically installs and verifies region VNUMs 7100101-7100103, path VNUM
-7100104, and the `Sablebranch Raft`, `Sablebranch Riverboat`, `Starfall
-Bathyscaphe`, and `Aetherwind Courier` prototypes. MariaDB's path trigger
-digitalizes the sparse authored Sablebranch line to 79 contiguous River cells;
-the verifier compares that exact canonical geometry and its spatial index.
+7100104, and eight prototypes in class order: `Sablebranch Raft`,
+`Sablebranch Riverboat`, `Starfall Survey Ship`, `Starfall Bastion`,
+`Aetherwind Courier`, `Starfall Bathyscaphe`, `Sablebranch Grand Freighter`,
+and `Liminal Wayfarer`. MariaDB's path trigger digitalizes the sparse authored
+Sablebranch line to 79 contiguous River cells; the verifier compares that exact
+canonical geometry and its spatial index.
 
 The first Kohdee session proves focused `reglist type` and `pathlist type`
 discovery, River terrain at `(-810, 480)`, and natural elevation 24 at the
-Starfall center. The second session spawns and pilots all four prototypes. It
-requires river movement to `(-809, 480)`, a sound submarine at Z -90 inside
-the natural-depth-104 trench, no altitude feature at ground level, the
-Aetherwind lane and effective speed 12 at Z 100, and Shardspire at
-`(469, 0, 200)`. All temporary hulls must be purged and Kohdee must finish in
-room 1204. Failure recovery removes only runtimes created from these four
-owned prototypes and returns Kohdee to the safe room.
+Starfall center. The second session spawns and pilots all eight classes. It
+requires River travel by the raft and boat, Ocean travel plus a main deck and
+12,000-pound hold on the ship, three usable weapon slots and two weapons decks
+on the warship, and a sound submarine at Z -90 inside the natural-depth-104
+trench. It also proves the Aetherwind lane's effective speed 12 at Z 100,
+Shardspire at `(469, 0, 200)`, three cargo rooms and a 40,000-pound transport
+hold, and one magical voyage across Plains, River, Z -10, and Z 10. No weapon
+is fired. All temporary hulls must be purged and Kohdee must finish in room
+1204. Failure recovery removes only runtimes created from these eight owned
+prototypes and returns Kohdee to the safe room.
 
 The passing artifact is
-`/tmp/luminari-vessel-frontier-1000/runs/20260802T085140Z-1316297`; the complete
+`/tmp/luminari-vessel-frontier-1000/runs/20260802T091531Z-1364409`; the complete
 character transcript is `03-kohdee-vessel-frontier.log` inside it.
 
 ## Fast HUNTED Bounty-Hunter Check

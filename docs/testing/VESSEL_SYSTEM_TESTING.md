@@ -180,7 +180,7 @@ development:
 ```
 
 The provisioner requires a clean source tree and fresh installed binary,
-rejects identity collisions and pre-existing runtimes for the four owned
+rejects identity collisions and pre-existing runtimes for the eight owned
 prototypes, applies the SQL atomically, and hard-restarts the supervised MUD.
 It verifies exact region/index polygons for Starfall Trench, Aetherwind
 Skyway, and Shardspire Sky Island. It also requires Sablebranch path 7100104
@@ -188,16 +188,20 @@ to be the exact 79-cell output of the database `bresenham_line` trigger and to
 match `path_index`.
 
 The actual-character phase resolves prototype IDs rather than assuming them.
-Kohdee must observe only the requested region/path types, sail both
-Sablebranch hulls east one River cell, dive the Starfall Bathyscaphe from Z 0
-to Z -90 while `seastate` reports natural depth 104, and find no sky feature
-at ground level. The Aetherwind Courier must then enter the lane at Z 100,
-show effective speed 12 after requesting 10, climb to Z 200, and move inside
-Shardspire at `(469, 0)`. The gate fails unless all four temporary ships are
-purged and Kohdee's saved room is 1204. Its exit trap performs bounded
-in-game cleanup for an interrupted run.
+Kohdee must observe only the requested region/path types, then prove one
+distinct capability for every class. The raft and boat sail east one River
+cell. The survey ship crosses Ocean with a main deck and 12,000-pound hold.
+The warship exposes three usable weapon slots and two weapons decks without
+firing. The Aetherwind Courier enters the lane at Z 100, shows effective speed
+12 after requesting 10, climbs to Z 200, and moves inside Shardspire at
+`(469, 0)`. The Starfall Bathyscaphe dives from Z 0 to Z -90 while `seastate`
+reports natural depth 104. The transport exposes a 40,000-pound hold and three
+cargo rooms. The magical vessel completes one journey across Plains, River,
+Z -10, and Z 10. The gate fails unless every temporary ship is purged and
+Kohdee's saved room is 1204. Its exit trap performs bounded in-game cleanup
+for an interrupted run.
 
-Run `20260802T085140Z-1316297` passed in 56 seconds on source `4cae8f98` and
+Run `20260802T091531Z-1364409` passed in 75 seconds on source `873171ae` and
 installed SHA-256
 `9b329263602de6e1a655e68183389bbae73414bc9d21951e004603809856b6ec`.
 The complete command transcript is `03-kohdee-vessel-frontier.log` in that
