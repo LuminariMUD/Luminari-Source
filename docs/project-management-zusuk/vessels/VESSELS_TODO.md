@@ -312,6 +312,13 @@ production-linked tests and the 13-test protocol harness. Required
 Keep all scale items open until actual Kohdee confirms the cache boot and a
 fresh normal 500-vessel window proves the query and timing reductions.
 
+The first live checkpoint confirms the cache boot. PID 850894 maps the exact
+installed hash and logs one loaded encounter definition with no vessel or
+encounter `SYSERR`. In a 22-second session Kohdee entered quiet room 1204,
+reported 6 of 500 fleet slots, 5 of 2,000 dynamic rooms, zero movement trails,
+and zero buffer overflows, then logged out cleanly. Only the normal fleet
+measurement remains open for this repair.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

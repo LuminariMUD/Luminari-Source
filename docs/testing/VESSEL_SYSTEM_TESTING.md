@@ -328,6 +328,12 @@ unpaid berth state plus the exact region, hull-class, and inclusive depth
 filter boundaries. The 277-test root suite and 13-test protocol harness pass;
 actual Kohdee cache-boot and normal 500-vessel timing evidence remain required.
 
+The cache-boot half now passes through actual Kohdee. PID 850894 maps the
+installed hash above, boot loads one encounter definition without a related
+`SYSERR`, and Kohdee reports the six-vessel baseline, 5 of 2,000 dynamic
+rooms, zero trails, and zero overflows from room 1204. The session logs out
+cleanly in 22 seconds. Keep the timing half open through the scale runner.
+
 For the builder-independence timing gate, run:
 
 ```bash

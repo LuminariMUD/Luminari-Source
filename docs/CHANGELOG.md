@@ -248,6 +248,11 @@
   `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
   The two added regressions preserve genuine unpaid/settled berth state and
   lock the cached encounter filters to the former SQL boundary semantics.
+- A 22-second actual-Kohdee boot smoke maps PID 850894 to that exact installed
+  hash and logs one encounter definition loaded into memory with no vessel or
+  encounter `SYSERR`. Kohdee reports the six-vessel baseline, 5 of 2,000
+  dynamic rooms, zero movement trails, and zero buffer overflows from quiet
+  room 1204 before logging out cleanly.
 
 ### Durable HUNTED bounty-hunter patrols
 

@@ -597,6 +597,14 @@ pass, and `make install` produced non-profiled SHA-256
 removing the root artifact. Confirm the boot-cache log through an actual
 Kohdee smoke, then use a clean committed tree for the next scale run.
 
+That smoke now passes in 22 seconds. The newly started development process is
+PID 850894, `/proc` and `bin/circle` both hash to the installed value above,
+and boot logs `Loaded 1 vessel encounter definition into memory.` with no
+vessel or encounter `SYSERR`. Kohdee entered room 1204, saw 6 of 500 ships,
+5 of 2,000 dynamic rooms, zero movement trails, and zero overflows, then
+logged out cleanly. Commit this evidence before invoking the scale runner,
+which requires a clean tree.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

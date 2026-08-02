@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.20
+**Version:** 3.21
 
 **Evidence snapshot:** August 2, 2026
 
@@ -35,7 +35,7 @@ from the full live-game benchmark that still must be run.
 | Eighth current 500-ship diagnostic on August 2, 2026 | Completed 600-second window; 1,217 ticks; all functional gates passed | Tick latency and memory gates failed |
 | Post-eighth memory candidate | 275/275 production-linked tests | NPC trail growth removed; installed scale proof required |
 | Post-eighth profiling diagnostic | 631 seconds; 500 ships; trails 0/0/0 | Trail repair accepted; blocking SQL paths identified |
-| Post-profile SQL repair candidate | 277/277 tests; normal installed binary | Empty berth saves suppressed; encounter definitions cached; scale proof required |
+| Post-profile SQL repair candidate | 277/277 tests; live cache boot confirmed | Empty berth saves suppressed; normal 500-ship proof required |
 | Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -467,6 +467,13 @@ and installed non-profiled SHA-256
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
 This is implementation evidence only; the release tick remains failed until
 the clean installed candidate completes the normal 500-vessel gate.
+
+An actual-Kohdee smoke starts the committed candidate on PID 850894 and maps
+the process to that exact installed hash. Boot loads one encounter definition
+into memory without a vessel or encounter `SYSERR`. Kohdee reports six active
+ships, 5 of 2,000 dynamic rooms, zero movement trails, and zero buffer
+overflows from room 1204, then logs out cleanly in 22 seconds. This accepts
+cache initialization and baseline integrity, not fleet timing.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15
