@@ -63,8 +63,11 @@ if [[ $# -gt 0 ]]; then
     --vessel-event-check)
       mode="vessel-event-check"
       ;;
+    --vessel-tactical-check)
+      mode="vessel-tactical-check"
+      ;;
     *)
-      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id>]"
+      fail "usage: $0 [--commands <game-command> ... | --dialog <input-line> ... | --copyover-check [<pre-copyover-command> ... --] <post-copyover-command> ... | --help-check <keyword> ... | --vessel-help-check | --vessel-builder-check | --vessel-msdp-check <ship-slot> | --vessel-channel-check <ship-slot> [<crew-character>] | --vessel-message-check <ship-slot> | --vessel-crossing-check <ship-slot> | --vessel-frontier-check <class-0-id> ... <class-7-id> | --vessel-event-check <raft-id> <warship-id> | --vessel-tactical-check <warship-id>]"
       ;;
   esac
   shift
@@ -127,6 +130,9 @@ if [[ $# -gt 0 ]]; then
       [[ "$prototype_id" =~ ^[1-9][0-9]*$ ]] ||
         fail "event prototype ids must be positive integers"
     done
+  elif [[ "$mode" == "vessel-tactical-check" ]]; then
+    [[ $# -eq 1 && "$1" =~ ^[1-9][0-9]*$ ]] ||
+      fail "--vessel-tactical-check requires one positive warship prototype id"
   else
     [[ $# -gt 0 ]] || fail "$mode mode requires at least one input line"
   fi
@@ -1096,6 +1102,113 @@ proc run_vessel_event_check {raft_id warship_id} {
   puts "PASS: all vessel showcase events passed in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
 }
 
+proc require_tactical_map_symbol {output symbol context} {
+  foreach line [split $output "\n"] {
+    if {[regexp {\|([^|]{21})\|} $line ignored cells] &&
+        [string first $symbol $cells] >= 0} {
+      return
+    }
+  }
+  fail "$context did not render '$symbol' inside the 21-cell tactical map"
+}
+
+proc read_tactical_target_hull {output ship_slot} {
+  set pattern [format \
+    {^[[:space:]]*%d[[:space:]]+Starfall Bastion[^\r\n]*[[:space:]]([0-9]+)/([0-9]+)[[:space:]]} \
+    $ship_slot]
+
+  if {![regexp -line $pattern $output ignored hull hull_max]} {
+    fail "could not read target ship $ship_slot hull state from shiplist"
+  }
+  return [list $hull $hull_max]
+}
+
+proc run_vessel_tactical_check {warship_id} {
+  set workflow_started_at [clock milliseconds]
+
+  set output [run_game_command "goto 902 225"]
+  require_game_output $output "Current Location  : (902, 225)" \
+    "tactical target staging"
+  set target_slot \
+    [spawn_frontier_vessel_at_exterior $warship_id "Starfall Bastion"]
+  set target_id [vessel_slot_id $target_slot]
+
+  set output [run_game_command "goto 900 225"]
+  require_game_output $output "Current Location  : (900, 225)" \
+    "tactical bridge staging"
+  set attacker_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+
+  set output [run_game_command "tactical"]
+  require_game_output $output "WILDERNESS TACTICAL CHART" "initial tactical chart"
+  require_game_output $output "Visibility:" "initial tactical visibility"
+  require_game_output $output "Hull: sound" "initial tactical hull state"
+  require_game_output $output "Starfall Trench (bathymetric)" \
+    "initial tactical region roster"
+  require_game_output $output "Starfall Bastion         sound" \
+    "initial tactical contact roster"
+  require_tactical_map_symbol $output "@" "initial tactical chart"
+  require_tactical_map_symbol $output "~" "initial tactical deep water"
+  require_tactical_map_symbol $output "+" "initial tactical region boundary"
+  require_tactical_map_symbol $output "o" "initial tactical five-unit ring"
+  require_tactical_map_symbol $output "O" "initial tactical ten-unit ring"
+  require_tactical_map_symbol $output "V" "initial tactical contact"
+
+  set damage_state_reached 0
+  for {set shot 1} {$shot <= 40} {incr shot} {
+    set output [run_game_command "shipfire 2 $target_id"]
+    require_game_output $output "FIRES at Starfall Bastion!" \
+      "tactical damage shot $shot"
+    run_game_command "@wait 4"
+    set output [run_game_command "shiplist"]
+    lassign [read_tactical_target_hull $output $target_slot] hull hull_max
+    if {$hull <= 0 || $hull_max <= 0} {
+      fail "target ship sank before its tactical damage transition was observed"
+    }
+    if {$hull * 100 <= $hull_max * 70} {
+      set damage_state_reached 1
+      break
+    }
+  }
+  if {!$damage_state_reached} {
+    fail "target ship remained sound after 40 live ballista shots"
+  }
+
+  set output [run_game_command "tactical"]
+  if {[string first "Starfall Bastion         battered" $output] >= 0} {
+    set damage_symbol "B"
+  } elseif {[string first "Starfall Bastion         crippled" $output] >= 0} {
+    set damage_symbol "C"
+  } else {
+    fail "damaged target did not report battered or crippled on the tactical roster"
+  }
+  require_tactical_map_symbol $output $damage_symbol \
+    "damaged tactical contact"
+
+  purge_frontier_vessel $attacker_slot "Starfall Bastion"
+  set output [run_game_command "shippurge $target_slot"]
+  require_game_output $output "Purged ship $target_slot 'Starfall Bastion'" \
+    "tactical target cleanup"
+
+  set output [run_game_command "goto -66 92"]
+  require_game_output $output "Current Location  : (-66, 92)" \
+    "coastal tactical staging"
+  set coastal_slot [spawn_frontier_vessel $warship_id "Starfall Bastion"]
+  set output [run_game_command "tactical"]
+  require_tactical_map_symbol $output "." "coastal tactical shoals"
+  require_tactical_map_symbol $output ":" "coastal tactical beach"
+  require_tactical_map_symbol $output "#" "coastal tactical coastline"
+  require_tactical_map_symbol $output "+" "coastal tactical region boundary"
+  purge_frontier_vessel $coastal_slot "Starfall Bastion"
+
+  set output [run_game_command "goto 1204"]
+  require_game_output $output "Staff Board Room" "tactical safe-room return"
+  set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
+  puts "\nPASS: wilderness tactical terrain, two range rings, and navigational region edges rendered."
+  puts "PASS: a real contact changed from sound to damaged on both the map and sorted roster."
+  puts "PASS: the coastal chart rendered actual shoal, beach, and coastline cells."
+  puts "PASS: the vessel tactical check completed and purged all temporary hulls in [format %.1f [expr {$workflow_elapsed_ms / 1000.0}]] seconds."
+}
+
 proc clean_dialog_output {raw commands marker} {
   global smoke_character
 
@@ -1753,7 +1866,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     $mode eq "help-check" || $mode eq "vessel-builder-check" ||
     $mode eq "vessel-msdp-check" || $mode eq "vessel-channel-check" ||
     $mode eq "vessel-message-check" || $mode eq "vessel-crossing-check" ||
-    $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check"} {
+    $mode eq "vessel-frontier-check" || $mode eq "vessel-event-check" ||
+    $mode eq "vessel-tactical-check"} {
   # Discard the welcome/room display that can arrive just after world entry.
   set prior_timeout $timeout
   set timeout 0
@@ -1811,6 +1925,8 @@ if {$mode eq "commands" || $mode eq "dialog" || $mode eq "copyover-check" ||
     } elseif {$mode eq "vessel-event-check"} {
       run_vessel_event_check [lindex $game_commands 0] \
         [lindex $game_commands 1]
+    } elseif {$mode eq "vessel-tactical-check"} {
+      run_vessel_tactical_check [lindex $game_commands 0]
     } else {
       run_vessel_msdp_check [lindex $game_commands 0]
     }
@@ -1891,6 +2007,9 @@ elif [[ "$mode" == "vessel-frontier-check" ]]; then
     "$smoke_character" "$elapsed_seconds"
 elif [[ "$mode" == "vessel-event-check" ]]; then
   printf 'PASS: %s completed the vessel-event check and logged out cleanly (%ss total).\n' \
+    "$smoke_character" "$elapsed_seconds"
+elif [[ "$mode" == "vessel-tactical-check" ]]; then
+  printf 'PASS: %s completed the vessel-tactical check and logged out cleanly (%ss total).\n' \
     "$smoke_character" "$elapsed_seconds"
 else
   printf 'PASS: %s entered the world, left the character, and logged out of the account (%ss).\n' \
