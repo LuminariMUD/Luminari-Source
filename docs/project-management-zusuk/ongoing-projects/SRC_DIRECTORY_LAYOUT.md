@@ -252,6 +252,7 @@ Final layout:
 | `src/olc/` | 40 |
 | `src/wilderness/` | 32 |
 | `src/vessels/` | 30 |
+| `src/character/` | 25 |
 | `src/magic/` | 18 |
 | `src/mob/` | 18 |
 | `src/movement/` | 18 |
@@ -259,8 +260,13 @@ Final layout:
 | `src/combat/` | 13 |
 | `src/craft/` | 13 |
 | `src/net/` | 11 |
+| `src/comms/` | 10 |
+| `src/quest/` | 10 |
 | `src/pubsub/` | 8 |
-| `src/` (flat) | 181 |
+| `src/` (flat) | 134 |
+
+`character/`, `quest/`, and `comms/` landed in phase 2, planned separately in
+[SRC_LAYOUT_PHASE2.md](SRC_LAYOUT_PHASE2.md).
 
 Every directory clears the file-count floor. The flat remainder is the core -
 `comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`,

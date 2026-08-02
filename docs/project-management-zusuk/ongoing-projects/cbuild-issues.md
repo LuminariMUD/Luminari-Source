@@ -93,7 +93,7 @@ Changes made to CMakeLists.txt:
 ### ~~src/act.informative.c (2 warnings)~~ NO LONGER REPORTED
 ### ~~src/act.other.c (2 warnings)~~ NO LONGER REPORTED
 ### ~~src/olc/bedit.c (2 warnings)~~ NO LONGER REPORTED
-### ~~src/boards.c (1 warning)~~ FIXED (Session 3)
+### ~~src/comms/boards.c (1 warning)~~ FIXED (Session 3)
 ### ~~src/clan.c (1 warning)~~ NO LONGER REPORTED
 ### ~~src/comm.c (1 warning)~~ NO LONGER REPORTED
 
@@ -121,18 +121,18 @@ Changes made to CMakeLists.txt:
 - src/dgscript/dg_scripts.c
 - src/dgscript/dg_variables.c
 - src/net/discord_bridge.c
-- src/evolutions.c
-- src/feats.c
+- src/character/evolutions.c
+- src/character/feats.c
 - src/combat/fight.c
 - src/handler.c
 - src/olc/hedit.c
-- src/hlquest.c
+- src/quest/hlquest.c
 - src/house.c
-- src/hunts.c
+- src/quest/hunts.c
 - src/interpreter.c
 - src/magic/magic.c
 - src/olc/medit.c
-- src/missions.c
+- src/quest/missions.c
 - src/modify.c
 - src/olc/msgedit.c
 - src/mud_event.c
@@ -140,8 +140,8 @@ Changes made to CMakeLists.txt:
 - src/olc/oasis.c
 - src/olc/oedit.c
 - src/players.c
-- src/premadebuilds.c
-- src/quest.c
+- src/character/premadebuilds.c
+- src/quest/quest.c
 - src/olc/redit.c
 - src/olc/sedit.c
 - src/shop.c
@@ -149,7 +149,7 @@ Changes made to CMakeLists.txt:
 - src/magic/spell_parser.c
 - src/magic/spell_prep.c
 - src/magic/spells.c
-- src/study.c
+- src/character/study.c
 - src/olc/tedit.c
 - src/trade.c
 - src/vessels/transport.c
@@ -175,7 +175,7 @@ Changes made to CMakeLists.txt:
    - ~~src/act.other.c (lines 12965, 13322)~~ FIXED (Session 3) - reduced buffer from 49-196KB to 256 bytes
    - ~~src/db.c (lines 1668, 1769)~~ IMPROVED (Session 3) - created MAX_FILEPATH (256 bytes)
    - ~~src/db.c (lines 7841, 7852)~~ FIXED (Session 3) - converted to dynamic allocation
-   - ~~src/boards.c (line 254)~~ FIXED (Session 3) - reduced tmstr from 49KB to 32 bytes
+   - ~~src/comms/boards.c (line 254)~~ FIXED (Session 3) - reduced tmstr from 49KB to 32 bytes
 
 ### Low Priority
 2. **Address remaining truncation warnings** - Most are minor and unlikely to cause issues in practice, but could be cleaned up for code quality
@@ -395,7 +395,7 @@ char tmstr[32] = {'\0'};  /* 32 bytes plenty for date format */
 **Files Analyzed (read-only):**
 - src/act.other.c (lines 12950-13030, 13305-13355)
 - src/db.c (lines 1585-1800, 7539-7870)
-- src/boards.c (lines 195-280)
+- src/comms/boards.c (lines 195-280)
 - src/structs.h (MAX_* constant definitions)
 - src/utils.h (READ_SIZE definition)
 
@@ -438,7 +438,7 @@ char tmstr[32] = {'\0'};  /* 32 bytes plenty for date format */
 - `src/utils.c`: Changed `get_filename()` buffer to use `MAX_FILEPATH`
 - `src/sysdep.h`: Changed Windows `PATH_MAX` to use `MAX_FILEPATH`
 - `src/act.other.c`: Reduced spell_list buffers to 256 bytes, fixed unsafe strcpy/strcat
-- `src/boards.c`: Reduced tmstr buffer to 32 bytes
+- `src/comms/boards.c`: Reduced tmstr buffer to 32 bytes
 
 **Build Verification:**
 - Autotools build: SUCCESS (0 errors)

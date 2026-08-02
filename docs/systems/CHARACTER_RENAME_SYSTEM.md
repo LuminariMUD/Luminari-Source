@@ -183,7 +183,7 @@ Two easy-to-miss active keys are:
   `set_eidolon_descs()` in [`players.c`](../../src/players.c#L5527); and
 - both `player_mail.sender` and `player_mail.receiver`, used by inbox/outbox
   listing, read access, delete access, and mail alerts in
-  [`new_mail.c`](../../src/new_mail.c#L308).
+  [`new_mail.c`](../../src/comms/new_mail.c#L308).
 
 The main mail sender is not merely a historical label: sent-mail retrieval is
 keyed by the current `GET_NAME(ch)`. Both columns therefore have to migrate,

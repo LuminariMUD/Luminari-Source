@@ -1,11 +1,12 @@
 # src/ Directory Layout - Phase 2
 
-Working notes. Proposes three more feature directories plus a dead-file
-cleanup. No functional change is involved at any step.
+Record of a completed change. Three feature directories plus a dead-file
+cleanup. No functional change was involved at any step.
 
 Phase 1 is complete and recorded in
 [SRC_DIRECTORY_LAYOUT.md](SRC_DIRECTORY_LAYOUT.md): eleven directories, one
-level deep, 181 files left flat. This phase takes flat from 181 to 133.
+level deep, 181 files left flat. This phase took flat from 181 to 134, in
+fourteen directories.
 
 ## 1) Scope
 
@@ -16,7 +17,12 @@ level deep, 181 files left flat. This phase takes flat from 181 to 133.
 | `src/comms/` | 10 |
 | dead-file cleanup | 3 deleted |
 
-181 - 25 - 10 - 10 - 3 = **133 flat**, and 14 directories.
+181 - 25 - 10 - 10 - 2 = **134 flat**, and 14 directories.
+
+The plan first stated 133, subtracting all three deleted files. Only two of
+them - `test_metamagic.c` and `material_types.h` - were counted in the 181
+baseline; `castle.c.tbamud` does not match the `*.c`/`*.h` glob that produced
+it. The correct figure is 134, which is what the tree now holds.
 
 ### 1.1 A recorded disagreement
 
@@ -184,3 +190,28 @@ correctly flat:
 Phase 3 is not expected. If a future cluster is proposed, it should have to
 clear the same two tests: ten or more files, and a name a newcomer would
 guess without being told.
+
+## 10) Outcome
+
+All three clusters and the cleanup landed, each verified before it was
+committed.
+
+| Commit | Cluster | Renames | Files touched |
+|--------|---------|--------:|--------------:|
+| `42a18f97` | `src/comms/` | 10 | 19 |
+| `37484f10` | `src/quest/` | 10 | 41 |
+| `a05b4a6b` | `src/character/` | 25 | 101 |
+| `40481b06` | dead-file cleanup | 3 deleted | 3 |
+
+Predictions that held: fourteen directories, the per-cluster file counts, and
+the include-rewrite costs. The relative-form unit-test includes flagged in
+section 6 were real - 9 of them across `test_web_onboarding.c` and
+`test_gameplay_e2e.c` - and would have broken `make test` had the sweep missed
+them.
+
+The one prediction that missed was the flat count, off by one for the glob
+reason recorded in section 1.
+
+Section 9 stands: no group of ten or more cohesive files remains. This is the
+finish line unless a future proposal clears both tests - ten or more files,
+and a name a newcomer would guess without being told.

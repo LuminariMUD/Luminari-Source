@@ -27,8 +27,8 @@ The **Staff Event System** allows administrators to run special, time-limited ev
 - **Player Integration**: Special combat mechanics during events
 
 ### Files
-- **Main Implementation**: [`staff_events.c`](../../src/staff_events.c)
-- **Header Definitions**: [`staff_events.h`](../../src/staff_events.h)
+- **Main Implementation**: [`staff_events.c`](../../src/quest/staff_events.c)
+- **Header Definitions**: [`staff_events.h`](../../src/quest/staff_events.h)
 - **Documentation**: This file
 
 ---
@@ -185,7 +185,7 @@ sequenceDiagram
 
 ### Step 1: Define Event Constants
 
-Add to [`staff_events.h`](../../src/staff_events.h):
+Add to [`staff_events.h`](../../src/quest/staff_events.h):
 
 ```c
 // Add after existing event defines
@@ -201,7 +201,7 @@ Add to [`staff_events.h`](../../src/staff_events.h):
 
 ### Step 2: Add Event Data
 
-Add to `staff_events_list` array in [`staff_events.c`](../../src/staff_events.c):
+Add to `staff_events_list` array in [`staff_events.c`](../../src/quest/staff_events.c):
 
 ```c
 {/* YOUR_NEW_EVENT */

@@ -22,7 +22,7 @@ deleted.
 | [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dgscript/dg_event.c` and `src/mud_event.c` still exist separately. |
 | [cbuild-issues.md](cbuild-issues.md) | Partial | CMake build report. Errors are resolved; 76 format warnings remain (plus ~8000 clang-tidy findings tracked separately). |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Player and staff feature suggestions gathered in-game. Not a plan - a source of candidates. |
-| [SRC_LAYOUT_PHASE2.md](SRC_LAYOUT_PHASE2.md) | Not started | Plan for three more feature directories - `character/` (25 files), `quest/` (10), `comms/` (10) - plus deleting three dead files. Takes flat `src/` from 181 to 133. Planning only; nothing implemented. |
+| [SRC_LAYOUT_PHASE2.md](SRC_LAYOUT_PHASE2.md) | Complete | Added `character/` (25 files), `quest/` (10), and `comms/` (10), and deleted three dead files. Flat `src/` went from 181 to 134 across fourteen directories. |
 | [SRC_DIRECTORY_LAYOUT.md](SRC_DIRECTORY_LAYOUT.md) | Complete | Replaced the inconsistent `src/systems/` nest with one flat level of nine feature-sized directories. The old `systems/` and `world/` nests are gone; 212 files remain flat. Enduring content belongs in the formal docs tree, after which this file can be deleted. |
 
 The temporary vessel workspace is retired. Durable vessel requirements and

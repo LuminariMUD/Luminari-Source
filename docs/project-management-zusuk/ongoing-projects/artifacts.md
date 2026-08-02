@@ -342,7 +342,7 @@ commit above.
 | Owner data snapshot | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/lib/misc/artifacts:1-10` |
 | Player-facing design statement | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/lib/text/help/fullhelp.hlp:520-529` |
 | Player-object restore paths that bypass the acquisition hook | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/pfile.c:670-715` |
-| Quest reward path that does use the acquisition hook | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/quest.c:640-662` |
+| Quest reward path that does use the acquisition hook | `/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/quest/quest.c:640-662` |
 
 ### 10.2 Exhaustive search result
 
@@ -450,7 +450,7 @@ This is a last-recipient hook, not reliable ownership:
 Quest rewards normally pass through `obj_to_char()` and therefore update the
 ledger:
 
-`/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/quest.c:650-660`.
+`/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/quest/quest.c:650-660`.
 
 A direct player-to-player give also passes through it:
 

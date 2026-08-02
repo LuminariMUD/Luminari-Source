@@ -95,8 +95,8 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 ### Game mechanics
 - Spells and skills share ONE number space: skills are "skill-spells" starting at `START_SKILLS` (2000) in `magic/spells.h`. There is no skills.c - spell/skill logic lives in `src/magic/`: `spells.c`, `magic.c`, `spell_parser.c` (registration via `spello()` calls in `mag_assign_spells()`), and `spell_prep.c` (the preparation system).
-- Feats: constants in `feats.h`, registered via `feato()` calls inside `assign_feats()` in `feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (`combat/fight.c`, etc.). `evolutions.c` is part of this system, not combat.
-- Combat: `src/combat/fight.c`. Classes: `class.c`. Races: `race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
+- Feats: constants in `character/feats.h`, registered via `feato()` calls inside `assign_feats()` in `character/feats.c` (populates `feat_list[NUM_FEATS]`), logic wired into the relevant system files (`combat/fight.c`, etc.). `character/evolutions.c` is part of this system, not combat.
+- Combat: `src/combat/fight.c`. Classes: `character/class.c`. Races: `character/race.c`. D20 rolls and checks: look in `utils.c`/`act.*` - do not assume an ability_check.c exists.
 
 ### Scripting and building
 - DG Scripts: `src/dgscript/dg_*.c` - trigger-based scripting attached to mobs/objects/rooms; script data lives in `lib/world/trg/`.
@@ -114,14 +114,17 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | `src/mob/` | `mob_*` |
 | `src/movement/` | `movement*` |
 | `src/dgscript/` | `dg_*` |
+| `src/character/` | `class`, `race`, `feats`, `perks`, `talents`, `evolutions`, `backgrounds`, `deities`, `templates`, `premadebuilds`, `character_creation*`, `study.c` |
 | `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes` |
+| `src/quest/` | `quest`, `hlquest`, `missions`, `hunts`, `staff_events` |
+| `src/comms/` | `mail`, `new_mail`, `boards`, `mysql_boards`, `ibt` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
 | `src/pubsub/` | `pubsub*` |
 
-A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `mysql*`, `spec*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`, the `act.*` family) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
 
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` stays with `feats.c` (it is the feats system), `traps*.c` stay flat (they fire from movement and item use), and `actions.c`/`actionqueues.c` stay flat (general scheduling).
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), `traps*.c` stay flat (they fire from movement and item use), and `actions.c`/`actionqueues.c` stay flat (general scheduling).
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 
