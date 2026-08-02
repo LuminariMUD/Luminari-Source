@@ -20,6 +20,9 @@ database_host=
 database_name=
 database_user=
 database_password=
+database_header_hex=
+database_rows_count=
+database_state_sha256=
 mud_port=
 candidate_sha256=
 source_commit=
@@ -32,6 +35,8 @@ observed_gold=
 snapshot_ready=false
 cleanup_needed=false
 acceptance_complete=false
+database_rows_snapshot="$run_dir/kohdee-player-save-objs.before.sql"
+database_state_snapshot="$run_dir/kohdee-database-state.before"
 state_keys=(player player_index objects variables)
 declare -A state_paths
 declare -A state_snapshots
@@ -116,6 +121,41 @@ database_query()
     "$database_name" --execute="$query"
 }
 
+database_dump_player_objects()
+{
+  MYSQL_PWD="$database_password" mariadb-dump --no-defaults \
+    --host="$database_host" --user="$database_user" \
+    --no-create-info --skip-comments --skip-dump-date --skip-lock-tables \
+    --compact --complete-insert --hex-blob \
+    --where="BINARY name = '$target_player'" \
+    "$database_name" player_save_objs
+}
+
+database_player_state()
+{
+  database_query "
+    SELECT CONCAT('HEADER|', HEX(obj_save_header))
+      FROM player_data
+     WHERE BINARY name = '$target_player';
+    SELECT CONCAT('OBJECT|', HEX(name), '|', HEX(serialized_obj), '|',
+                  DATE_FORMAT(creation_date, '%Y-%m-%d %H:%i:%s.%f'), '|',
+                  COALESCE(idnum, 'NULL'))
+      FROM player_save_objs
+     WHERE BINARY name = '$target_player'
+     ORDER BY creation_date, HEX(serialized_obj), idnum;"
+}
+
+database_target_object_counts()
+{
+  database_query "
+    SELECT CONCAT(
+             COALESCE(SUM(LEFT(serialized_obj, 6) = '#70010'), 0), '|',
+             COALESCE(SUM(LEFT(serialized_obj, 6) = '#70011'), 0), '|',
+             COALESCE(SUM(LEFT(serialized_obj, 6) = '#70012'), 0))
+      FROM player_save_objs
+     WHERE BINARY name = '$target_player';"
+}
+
 player_file_value()
 {
   local tag=$1
@@ -136,6 +176,19 @@ player_file_value()
       }
     }
   ' "$input_file"
+}
+
+file_target_object_counts()
+{
+  local input_file=$1
+  local log_count
+  local chart_count
+  local salvage_count
+
+  log_count=$(grep -Fxc '#70010' "$input_file" || true)
+  chart_count=$(grep -Fxc '#70011' "$input_file" || true)
+  salvage_count=$(grep -Fxc '#70012' "$input_file" || true)
+  printf '%s|%s|%s\n' "$log_count" "$chart_count" "$salvage_count"
 }
 
 port_is_listening()
@@ -191,45 +244,6 @@ stop_server()
     sleep 0.1
   done
   return 1
-}
-
-start_current_server()
-{
-  local working_directory
-  local running_sha256
-
-  if systemctl --user is-active --quiet "$server_unit"; then
-    working_directory=$(
-      systemctl --user show --property=WorkingDirectory --value "$server_unit"
-    )
-    if [[ "$working_directory" != "$repo_root" ]]; then
-      systemctl --user stop "$server_unit"
-    fi
-  fi
-
-  if systemctl --user is-active --quiet "$server_unit"; then
-    running_sha256=$(running_binary_sha256)
-    if [[ "$running_sha256" != "$candidate_sha256" ]]; then
-      systemctl --user restart "$server_unit"
-    fi
-  else
-    port_is_listening &&
-      fail "the development port is owned by an unsupervised process"
-    timeout 90 env DEV_MUD_CHARACTER="$target_player" \
-      "$script_dir/dev_kohdee_login_smoke.sh" \
-      >"$run_dir/00-server-start.log" 2>&1 ||
-      fail "the installed development MUD did not start"
-  fi
-
-  wait_for_server || fail "the development MUD is not ready"
-  working_directory=$(
-    systemctl --user show --property=WorkingDirectory --value "$server_unit"
-  )
-  [[ "$working_directory" == "$repo_root" ]] ||
-    fail "the supervised MUD is running from $working_directory"
-  running_sha256=$(running_binary_sha256)
-  [[ "$running_sha256" == "$candidate_sha256" ]] ||
-    fail "the running MUD does not match the installed candidate"
 }
 
 start_server_without_login()
@@ -289,6 +303,31 @@ snapshot_player_state()
   done
 }
 
+snapshot_database_state()
+{
+  database_header_hex=$(database_query "
+    SELECT HEX(obj_save_header)
+      FROM player_data
+     WHERE BINARY name = '$target_player';") ||
+    fail "could not snapshot Kohdee's object-save header"
+  [[ "$database_header_hex" =~ ^[[:xdigit:]]*$ ]] ||
+    fail "Kohdee's object-save header is malformed"
+
+  database_rows_count=$(database_query "
+    SELECT COUNT(*)
+      FROM player_save_objs
+     WHERE BINARY name = '$target_player';") ||
+    fail "could not count Kohdee's database-backed objects"
+  [[ "$database_rows_count" =~ ^[0-9]+$ ]] ||
+    fail "Kohdee's database-backed object count is malformed"
+
+  database_dump_player_objects >"$database_rows_snapshot" ||
+    fail "could not snapshot Kohdee's database-backed objects"
+  database_player_state >"$database_state_snapshot" ||
+    fail "could not snapshot Kohdee's canonical database state"
+  database_state_sha256=$(sha256sum "$database_state_snapshot" | awk '{ print $1 }')
+}
+
 verify_player_state_restored()
 {
   local key
@@ -335,6 +374,29 @@ restore_player_state()
   done
 }
 
+restore_database_state()
+{
+  {
+    printf 'START TRANSACTION;\n'
+    printf "DELETE FROM player_save_objs WHERE BINARY name = '%s';\n" \
+      "$target_player"
+    sed -n 'p' "$database_rows_snapshot"
+    printf "UPDATE player_data SET obj_save_header = UNHEX('%s') " \
+      "$database_header_hex"
+    printf "WHERE BINARY name = '%s';\n" "$target_player"
+    printf 'COMMIT;\n'
+  } | MYSQL_PWD="$database_password" mariadb --no-defaults --batch \
+    --host="$database_host" --user="$database_user" "$database_name"
+}
+
+verify_database_state_restored()
+{
+  local restored_state="$run_dir/kohdee-database-state.restored"
+
+  database_player_state >"$restored_state" || return 1
+  cmp -s "$database_state_snapshot" "$restored_state"
+}
+
 restore_baseline()
 {
   local cleanup_status=0
@@ -346,10 +408,14 @@ restore_baseline()
   printf 'Stopping the development MUD before restoring Kohdee.\n'
   stop_server || cleanup_status=1
   if [[ "$cleanup_status" == 0 ]]; then
+    restore_database_state || cleanup_status=1
+  fi
+  if [[ "$cleanup_status" == 0 ]]; then
     restore_player_state || cleanup_status=1
   fi
   if [[ "$cleanup_status" == 0 ]]; then
     verify_player_state_restored || cleanup_status=1
+    verify_database_state_restored || cleanup_status=1
   fi
 
   restored_derelict_state=$(database_query "
@@ -371,11 +437,12 @@ restore_baseline()
     running_sha256=$(running_binary_sha256)
     [[ "$running_sha256" == "$candidate_sha256" ]] || cleanup_status=1
     verify_player_state_restored || cleanup_status=1
+    verify_database_state_restored || cleanup_status=1
   fi
 
   if [[ "$cleanup_status" == 0 ]]; then
     cleanup_needed=false
-    printf 'Restored Kohdee player, index, object, and DG-variable files exactly.\n'
+    printf 'Restored Kohdee files and database-backed object state exactly.\n'
     return 0
   fi
   return 1
@@ -426,8 +493,8 @@ trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-for command_name in awk cmp cp date env find flock git grep mariadb mkdir \
-  mv sed sha256sum sleep ss stat systemctl systemd-run timeout unlink; do
+for command_name in awk cmp cp date env find flock git grep mariadb mariadb-dump \
+  mkdir mv sed sha256sum sleep ss stat systemctl systemd-run timeout unlink; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command not found: $command_name"
 done
@@ -485,7 +552,20 @@ mud_port=$(awk -F= '
 
 candidate_sha256=$(sha256sum "$repo_root/bin/circle" | awk '{ print $1 }')
 source_commit=$(git -C "$repo_root" rev-parse HEAD)
-start_current_server
+
+if systemctl --user is-active --quiet "$server_unit"; then
+  working_directory=$(
+    systemctl --user show --property=WorkingDirectory --value "$server_unit"
+  )
+  [[ "$working_directory" == "$repo_root" ]] ||
+    fail "the supervised MUD is running from $working_directory"
+  port_is_listening || fail "$server_unit is active but the MUD port is not listening"
+  running_sha256=$(running_binary_sha256)
+  [[ "$running_sha256" == "$candidate_sha256" ]] ||
+    fail "the running MUD does not match the installed candidate"
+elif port_is_listening; then
+  fail "the development port is owned by an unsupervised process"
+fi
 
 derelict_slot=$(database_query "
   SELECT runtime.ship_id
@@ -525,18 +605,11 @@ content_valid=$(database_query "
 [[ "$content_valid" == 1 ]] ||
   fail "the Blackwake runtime or DG mappings are incomplete"
 
-run_kohdee_commands "$run_dir/01-preflight.log" \
-  "shipgoto $derelict_slot" 'shipstatus' 'goto 1204' ||
-  fail "Kohdee could not inspect the provisioned Blackwake hull"
-grep -Fq "Ship Name: $derelict_name" "$run_dir/01-preflight.log" ||
-  fail "shipstatus did not expose the Blackwake identity"
-
 stop_server || fail "the development MUD did not stop for the snapshot"
 snapshot_player_state
+snapshot_database_state
 baseline_gold=$(player_file_value Gold "${state_snapshots[player]}")
 [[ "$baseline_gold" =~ ^[0-9]+$ ]] || fail "Kohdee's baseline gold is malformed"
-grep -Fqx 'Room: 1204' "${state_snapshots[player]}" ||
-  fail "Kohdee did not leave the preflight in the staff room"
 
 baseline_derelict_state=$(database_query "
   SELECT CONCAT(runtime.ship_id, '|', runtime.prototype_id, '|',
@@ -551,6 +624,20 @@ baseline_derelict_state=$(database_query "
 
 snapshot_ready=true
 cleanup_needed=true
+
+if grep -Eq '^blackwake_(log_found|log_read|chart_found|chart_read|salvage_recovered)[[:space:]]' \
+  "${state_snapshots[player]}"; then
+  fail "Kohdee already has Blackwake discovery state; refusing to overwrite it"
+fi
+for target_vnum in 70010 70011 70012; do
+  if [[ ${state_present[objects]} == 1 ]] &&
+     grep -Fqx "#$target_vnum" "${state_snapshots[objects]}"; then
+    fail "Kohdee already has Blackwake object $target_vnum in the file-backed inventory"
+  fi
+done
+[[ $(database_target_object_counts) == '0|0|0' ]] ||
+  fail "Kohdee already has Blackwake objects in the database-backed inventory"
+
 {
   printf 'source_commit=%s\n' "$source_commit"
   printf 'binary_sha256=%s\n' "$candidate_sha256"
@@ -558,6 +645,8 @@ cleanup_needed=true
   printf 'derelict_bridge_room=%s\n' "$derelict_bridge_room"
   printf 'baseline_gold=%s\n' "$baseline_gold"
   printf 'baseline_derelict_state=%s\n' "$baseline_derelict_state"
+  printf 'database_rows=%s\n' "$database_rows_count"
+  printf 'database_state_sha256=%s\n' "$database_state_sha256"
   for key in "${state_keys[@]}"; do
     printf '%s_present=%s\n' "$key" "${state_present[$key]}"
     printf '%s_sha256=%s\n' "$key" "${state_sha256[$key]}"
@@ -566,6 +655,14 @@ cleanup_needed=true
 } >"$run_dir/metadata"
 
 start_server_without_login || fail "the no-login snapshot restart failed"
+
+run_kohdee_commands "$run_dir/01-preflight.log" \
+  "shipgoto $derelict_slot" 'shipstatus' 'goto 1204' ||
+  fail "Kohdee could not inspect the provisioned Blackwake hull"
+grep -Fq "Ship Name: $derelict_name" "$run_dir/01-preflight.log" ||
+  fail "shipstatus did not expose the Blackwake identity"
+grep -Fqx 'Room: 1204' "$player_file" ||
+  fail "Kohdee did not leave the preflight in the staff room"
 
 run_kohdee_commands "$run_dir/03-discovery-before-restart.log" \
   "shipgoto $derelict_slot" \
@@ -599,6 +696,17 @@ done
 grep -Fq 'Buckled panels line the hold' \
   "$run_dir/03-discovery-before-restart.log" ||
   fail "cargo salvage was not gated behind studying the chart"
+if grep -Fq '( 2) [7001' "$run_dir/03-discovery-before-restart.log"; then
+  fail "the first discovery session duplicated a Blackwake object"
+fi
+[[ $(grep -Fxc \
+       "[70010] [T70013] the Blackwake captain's ash-stained log" \
+       "$run_dir/03-discovery-before-restart.log" || true) == 2 ]] ||
+  fail "the first discovery inventories did not expose exactly one captain log"
+[[ $(grep -Fxc \
+       "[70011] [T70014] the Blackwake's salt-stiff chart" \
+       "$run_dir/03-discovery-before-restart.log" || true) == 1 ]] ||
+  fail "the first discovery inventories did not expose exactly one chart"
 
 [[ -f "$player_file" && -f "$object_file" ]] ||
   fail "the first discovery stage did not persist player state"
@@ -611,8 +719,10 @@ if grep -Eq '^blackwake_(chart_read|salvage_recovered)[[:space:]]' \
   "$player_file"; then
   fail "a later Blackwake discovery stage completed too early"
 fi
-grep -Fqx '#70010' "$object_file" || fail "the captain log was not saved"
-grep -Fqx '#70011' "$object_file" || fail "the chart was not saved"
+[[ $(file_target_object_counts "$object_file") == '1|1|0' ]] ||
+  fail "the file-backed inventory did not save exactly one log and one chart"
+[[ $(database_target_object_counts) == '1|1|0' ]] ||
+  fail "the database-backed inventory did not save exactly one log and one chart"
 grep -Fqx "Gold: $baseline_gold" "$player_file" ||
   fail "the first discovery stage changed Kohdee's gold"
 grep -Fqx 'Levl: 30' "$player_file" ||
@@ -664,6 +774,20 @@ for expected_text in \
   grep -Fq "$expected_text" "$run_dir/04-discovery-after-restart.log" ||
     fail "the post-restart session missed '$expected_text'"
 done
+if grep -Fq '( 2) [7001' "$run_dir/04-discovery-after-restart.log"; then
+  fail "a Blackwake object duplicated across the hard restart"
+fi
+[[ $(grep -Fxc \
+       "[70010] [T70013] the Blackwake captain's ash-stained log" \
+       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  fail "the post-restart inventory did not contain exactly one captain log"
+[[ $(grep -Fxc \
+       "[70011] [T70014] the Blackwake's salt-stiff chart" \
+       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  fail "the post-restart inventory did not contain exactly one chart"
+[[ $(grep -Fxc '[70012] a corroded bronze tidefinder gear' \
+       "$run_dir/04-discovery-after-restart.log" || true) == 1 ]] ||
+  fail "the post-restart inventory did not contain exactly one salvage object"
 
 observed_gold=$((baseline_gold + 180))
 grep -Fq "You have $observed_gold gold coins." \
@@ -681,13 +805,10 @@ for expected_var in blackwake_log_found blackwake_log_read \
   grep -Eq "^${expected_var}[[:space:]]+0[[:space:]]+1$" "$player_file" ||
     fail "$expected_var did not persist after restart"
 done
-grep -Fqx '#70010' "$object_file" ||
-  fail "the captain log did not survive the hard restart"
-grep -Fqx '#70011' "$object_file" ||
-  fail "the chart did not survive the hard restart"
-if grep -Fqx '#70012' "$object_file"; then
-  fail "the salvaged tidefinder still exists in Kohdee's object file"
-fi
+[[ $(file_target_object_counts "$object_file") == '1|1|0' ]] ||
+  fail "the file-backed inventory did not retain exactly one log and one chart"
+[[ $(database_target_object_counts) == '1|1|0' ]] ||
+  fail "the database-backed inventory did not retain exactly one log and one chart"
 
 if grep -E 'SYSERR:.*(Blackwake|7001[0-4])' "$server_log" \
   >"$run_dir/05-related-syserr.log"; then
@@ -701,6 +822,8 @@ fi
   printf 'gold_after_salvage=%s\n' "$observed_gold"
   printf 'saved_objects=70010,70011\n'
   printf 'salvaged_object=70012\n'
+  printf 'file_object_counts=1|1|0\n'
+  printf 'database_object_counts=1|1|0\n'
   printf 'discovery_variables=5\n'
 } >"$run_dir/observed-state"
 
