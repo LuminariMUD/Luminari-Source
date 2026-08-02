@@ -543,7 +543,7 @@ else
 
   for expected_text in \
     'At sea: A warship is holding steady way under' \
-    'The broad Vailand Passage draws a dark blue road between the island coasts.' \
+    'Vailand Passage' \
     "The warship's armored hull shoulders through the water."; do
     grep -Fq "$expected_text" "$run_dir/02-kohdee-vessel-narrative.log" ||
       fail "the narrative transcript did not contain '$expected_text'"

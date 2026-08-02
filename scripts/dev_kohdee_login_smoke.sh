@@ -1306,27 +1306,35 @@ proc run_vessel_narrative_check {warship_id} {
   switch -- $weather_name {
     "clear skies" {
       set weather_ambient "Clear light runs cleanly to the horizon."
+      set regional_hint \
+        "The broad Vailand Passage draws a dark blue road between the island coasts."
     }
     "overcast skies" {
       set weather_ambient "Cloud cover flattens the light across the horizon."
+      set regional_hint \
+        "The broad Vailand Passage draws a dark blue road between the island coasts."
     }
     "rain" {
       set weather_ambient "Rain stipples the surrounding water."
+      set regional_hint \
+        "Storm-driven swells run the length of Vailand Passage in marching ranks."
     }
     "a heavy storm" {
       set weather_ambient "Storm winds drive dark water across the deck."
+      set regional_hint \
+        "Storm-driven swells run the length of Vailand Passage in marching ranks."
     }
     "a thunderstorm" {
       set weather_ambient \
         "Lightning throws the vessel and waves into sharp relief."
+      set regional_hint \
+        "Storm-driven swells run the length of Vailand Passage in marching ranks."
     }
   }
   require_game_output $output \
     "At sea: A warship is holding steady way under $weather_name." \
     "narrative class, speed, and weather description"
-  require_game_output $output \
-    "The broad Vailand Passage draws a dark blue road between the island coasts." \
-    "narrative regional hint"
+  require_game_output $output $regional_hint "narrative regional weather hint"
 
   set output [run_game_command "vesseldebug ambient"]
   require_game_output $output \
