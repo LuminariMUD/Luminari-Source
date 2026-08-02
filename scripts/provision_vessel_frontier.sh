@@ -400,7 +400,7 @@ timeout 300 "$script_dir/dev_kohdee_login_smoke.sh" \
 for expected_text in \
   'PASS: raft and riverboat traversed the digitalized Sablebranch River.' \
   'PASS: survey ship crossed Starfall waters with its deck and 12000-lb hold.' \
-  'PASS: warship exposed three weapon slots and two weapons bays without firing a shot.' \
+  'PASS: warship exposed three weapon slots and two weapons decks without firing a shot.' \
   'PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench.' \
   'PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200.' \
   'PASS: transport exposed its 40000-lb hold and three generated cargo rooms.' \

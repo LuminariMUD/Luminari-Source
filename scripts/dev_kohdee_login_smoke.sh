@@ -753,8 +753,8 @@ proc run_frontier_warship {prototype_id target_prototype_id} {
 
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Warship" "$vessel_name interior class"
-  if {[regexp -all {Weapons Bay} $output] < 2} {
-    fail "$vessel_name did not generate both required weapons bays"
+  if {[regexp -all {Weapons Deck} $output] < 2} {
+    fail "$vessel_name did not generate both required weapons decks"
   }
   require_game_output $output "Main Deck" \
     "$vessel_name deck"
@@ -792,7 +792,7 @@ proc run_frontier_submarine {prototype_id} {
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Submarine" "$vessel_name interior class"
   require_game_output $output "Airlock" "$vessel_name airlock"
-  require_game_output $output "Engine Room" \
+  require_game_output $output "Engineering" \
     "$vessel_name engineering room"
   require_frontier_cargo $vessel_name 3000
 
@@ -832,7 +832,7 @@ proc run_frontier_airship {prototype_id} {
   set output [run_game_command "ship_rooms"]
   require_game_output $output "Vessel Type: Airship" "$vessel_name interior class"
   require_game_output $output "Main Deck" "$vessel_name deck"
-  require_game_output $output "Engine Room" \
+  require_game_output $output "Engineering" \
     "$vessel_name engineering room"
   require_frontier_cargo $vessel_name 4000
 
@@ -983,7 +983,7 @@ proc run_vessel_frontier_check {raft_id boat_id ship_id warship_id airship_id su
   set workflow_elapsed_ms [expr {[clock milliseconds] - $workflow_started_at}]
   puts "\nPASS: raft and riverboat traversed the digitalized Sablebranch River."
   puts "PASS: survey ship crossed Starfall waters with its deck and 12000-lb hold."
-  puts "PASS: warship exposed three weapon slots and two weapons bays without firing a shot."
+  puts "PASS: warship exposed three weapon slots and two weapons decks without firing a shot."
   puts "PASS: bathyscaphe reached depth -90 inside the natural-depth Starfall Trench."
   puts "PASS: airship activated the Aetherwind speed lane and reached Shardspire at altitude 200."
   puts "PASS: transport exposed its 40000-lb hold and three generated cargo rooms."
