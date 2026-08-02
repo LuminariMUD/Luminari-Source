@@ -124,8 +124,8 @@ The decision remains valid when:
 
 ## References
 
-- [Product requirements](../PRD.md)
+- [Vessel system product requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
 - [System behavior reference](../systems/VESSEL_SYSTEM.md)
 - [Performance benchmarks](../testing/VESSEL_BENCHMARKS.md)
 - [Manual regression guide](../testing/VESSEL_SYSTEM_TESTING.md)
-- [Release-gate state](../PRD.md#release-gate-state)
+- [Release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state)

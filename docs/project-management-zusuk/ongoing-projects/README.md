@@ -24,5 +24,6 @@ deleted.
 
 The temporary vessel workspace is retired. Durable vessel requirements and
 the authoritative release-gate state live in
-[PRD.md](../../PRD.md#release-gate-state); behavior and evidence live in the
-permanent system, testing, deployment, and changelog documents.
+[Vessel System Product Requirements](../../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md);
+behavior and evidence live in the permanent system, testing, deployment, and
+changelog documents.

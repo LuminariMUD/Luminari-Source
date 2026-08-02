@@ -358,7 +358,7 @@ EXTRA_DIST = \
 	scripts/test_vessel_narrative_in_game.sh \
 	scripts/test_vessel_memory_analyzer.sh \
 	scripts/test_vessel_scale_benchmark_parsers.sh \
-	docs/PRD.md \
+	docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md \
 	docs/deployment/VESSEL_SCHEMA_DEPLOYMENT.md \
 	docs/systems/VESSEL_SYSTEM.md \
 	docs/testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md \

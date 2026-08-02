@@ -8,8 +8,10 @@ development preflight and schema rehearsal pass; player-data balance, human
 beta, and staged production rollout remain
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
-[PRD.md](../PRD.md), including its
-[release-gate state](../PRD.md#release-gate-state); for what shipped when see
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md),
+including its
+[release-gate state](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state);
+for what shipped when see
 [CHANGELOG.md](../CHANGELOG.md).
 
 ---
@@ -1787,7 +1789,8 @@ passes automated tests. Before rollout:
 The current candidate passes these engineering and operator prerequisites.
 They remain candidate-specific and must be repeated after relevant behavior or
 schema changes. Human beta, player-data balance, and rollout state are tracked
-in [PRD.md](../PRD.md#release-gate-state).
+in the
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 ### Deployment
 
@@ -1928,7 +1931,8 @@ For each vessel behavior change:
 
 ## Related Documentation
 
-- [PRD.md](../PRD.md) - Durable requirements, release criteria, and gate state
+- [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) -
+  Durable requirements, release criteria, and gate state
 - [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) - Performance data and memory attribution
 - [CHANGELOG.md](../CHANGELOG.md) - What shipped when
 - [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) - 30-step manual regression script

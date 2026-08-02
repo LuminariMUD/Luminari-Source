@@ -2,7 +2,8 @@
 
 **Version:** 3.0
 **Last updated:** 2026-08-02
-**Status:** Development preflight and schema rehearsal pass; balance, beta, and rollout remain
+**Status:** Development preflight and schema rehearsal pass; balance, beta, and
+rollout remain
 **Product owner:** Zusuk
 
 This document is the durable product contract for the unified vessel system. It
@@ -11,10 +12,10 @@ criteria for release. It intentionally does not contain session plans or a live
 backlog.
 
 Current behavior is documented in
-[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md). Current release-gate state is
+[VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md). Current release-gate state is
 maintained in [Section 8](#release-gate-state), measured evidence is in
-[VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md), and completed work is
-recorded in [CHANGELOG.md](CHANGELOG.md).
+[VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md), and completed work is
+recorded in [CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
@@ -179,7 +180,7 @@ The vessel system follows these invariants:
    encounters, ports, and other setting-specific content live in campaign data.
 
 The implementation-level mapping of these rules is maintained in
-[VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md#wilderness-integration-contract).
+[VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md#wilderness-integration-contract).
 
 ## 6. Quality Requirements
 
@@ -221,8 +222,8 @@ Every behavior-changing vessel update must:
 5. Complete the numbered dev-server regression workflow.
 6. Update the behavior reference in the same change.
 
-See [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md) and
-[TESTING_GUIDE.md](guides/TESTING_GUIDE.md).
+See [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md) and
+[TESTING_GUIDE.md](../guides/TESTING_GUIDE.md).
 
 ## 7. Scope Boundaries
 
@@ -268,8 +269,8 @@ for human beta evidence.
 
 | Gate | State | Owner | Evidence or exit condition |
 |---|---|---|---|
-| Development mechanics and final preflight | Complete | Engineering | The 306-test suite, strict Memcheck, protocol/tooling gates, kill switch, debug-off, help, lifecycle recovery, and 500-vessel run pass; see [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) and [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md). |
-| Production-snapshot schema rehearsal | Complete | Database operator | Forward, verification, idempotence, rollback, full restore, reapply, and database checks pass without production writes; see [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md#august-2-2026-production-snapshot-record). |
+| Development mechanics and final preflight | Complete | Engineering | The 306-test suite, strict Memcheck, protocol/tooling gates, kill switch, debug-off, help, lifecycle recovery, and 500-vessel run pass; see [VESSEL_BENCHMARKS.md](../testing/VESSEL_BENCHMARKS.md) and [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md). |
+| Production-snapshot schema rehearsal | Complete | Database operator | Forward, verification, idempotence, rollback, full restore, reapply, and database checks pass without production writes; see [VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md#august-2-2026-production-snapshot-record). |
 | Player-data balance | Open | Product owner | Collect real beta data, then tune combat time-to-kill, crew wages, freight margins, refit costs, insurance, and dock fees. The deterministic duel/economy report is mechanical evidence only. |
 | Structured human beta | Open | Product owner | Validate first-hour discovery, multiplayer roles, builder independence, a supervised NPC-shipping sample within one hour, and at least 70% `fun` combat feedback. |
 | Staged production rollout | Blocked | Product owner and operator | After balance and beta sign-off, roll out to staff, then a beta cohort, then all players. Retain rollback authority, monitor every stage, publish the announcement, and record the postmortem. Update the permanent behavior and evidence records before declaring vessel system 3.0. |

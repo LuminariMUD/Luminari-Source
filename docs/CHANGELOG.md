@@ -9,10 +9,11 @@
 - The tracked Luminari campaign package now gives a new character a visible,
   free Mosswood waystone to North Vailand, return waystones, and passage boards
   that identify the scheduled `Vailand Ironwind Trader` and work passage.
-- The PRD now owns the authoritative vessel release-gate table with explicit
-  state, owner, evidence, and exit conditions. Engineering preflight and the
-  production-snapshot rehearsal are complete; real-player balance and human
-  beta remain open, and staged rollout is blocked on their sign-off.
+- The vessel product requirements now own the authoritative release-gate table
+  with explicit state, owner, evidence, and exit conditions. Engineering
+  preflight and the production-snapshot rehearsal are complete; real-player
+  balance and human beta remain open, and staged rollout is blocked on their
+  sign-off.
 
 #### Fixed
 
@@ -52,7 +53,11 @@
 
 - Enduring behavior, testing, benchmark, schema, and completion records now
   live only in their permanent documents. The temporary `VESSELS_TODO.md` was
-  retired after its three open gates moved into PRD Section 8.
+  retired after its three open gates moved into Section 8 of the vessel product
+  requirements.
+- Renamed the ambiguous root `docs/PRD.md` to the feature-qualified
+  `docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md`, updated every live
+  reference, and documented the naming rule for future product contracts.
 
 ### Vessel route-failure and soak stability
 
@@ -1328,14 +1333,14 @@ ferry, interior-script, restart, and multiplayer vessel validation.
 ### Documentation - vessel source-of-truth consolidation
 
 Distilled the completed design and implementation knowledge from the temporary
-vessel PRD into the maintained documentation tree. The temporary vessel
-workspace now contains unfinished work only.
+vessel requirements draft into the maintained documentation tree. The
+temporary vessel workspace now contains unfinished work only.
 
 #### Changed
 
-- Replaced the stale root vessel PRD with the durable product vision, design
-  pillars, player and staff outcomes, wilderness contract, quality budgets,
-  scope boundaries, release scorecard, and principal risks.
+- Replaced the stale root vessel requirements draft with the durable product
+  vision, design pillars, player and staff outcomes, wilderness contract,
+  quality budgets, scope boundaries, release scorecard, and principal risks.
 - Updated the vessel architecture decision and behavior reference with the
   shared-wilderness invariants, corrected memory evidence, persistence
   lifecycle, operational gates, and known limitations.
@@ -1355,10 +1360,10 @@ workspace now contains unfinished work only.
 
 #### Removed
 
-- The temporary final vessel PRD after its durable content was incorporated.
-  At that checkpoint, `VESSELS_TODO.md` became the sole file in the vessel
-  workspace and held the dependency-ordered live backlog; it was later retired
-  as recorded above.
+- The temporary final vessel requirements draft after its durable content was
+  incorporated. At that checkpoint, `VESSELS_TODO.md` became the sole file in
+  the vessel workspace and held the dependency-ordered live backlog; it was
+  later retired as recorded above.
 
 ### Vessel system - local end-to-end validation and release boundary
 
@@ -1845,10 +1850,13 @@ wilderness system - no vessel-private geography, weather, or terrain.
 Documentation: `docs/systems/VESSEL_SYSTEM.md` (behavior reference),
 `docs/testing/VESSEL_SYSTEM_TESTING.md` (30-step manual regression script),
 `docs/testing/VESSEL_BENCHMARKS.md` (memory attribution and test figures), and
-`docs/PRD.md` (durable requirements, wilderness contract, and release criteria).
+`docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md` (durable requirements,
+wilderness contract, and release criteria; formerly `docs/PRD.md`).
 At that checkpoint, outstanding work was isolated in
 `docs/project-management-zusuk/vessels/VESSELS_TODO.md`. That workspace was
-later retired; current state is in [PRD Section 8](PRD.md#release-gate-state).
+later retired; current state is in
+Section 8 of the
+[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 #### Added
 
@@ -1999,9 +2007,9 @@ later retired; current state is in [PRD Section 8](PRD.md#release-gate-state).
     regression script.
   - `VESSEL_BENCHMARKS.md` -> `docs/testing/`, with the corrected memory
     attribution.
-  - The working vessel PRD was later distilled into permanent product,
-    architecture, system, testing, and benchmark documentation. The workspace
-    then retained only `VESSELS_TODO.md`, containing unfinished work.
+  - The working vessel requirements draft was later distilled into permanent
+    product, architecture, system, testing, and benchmark documentation. The
+    workspace then retained only `VESSELS_TODO.md`, containing unfinished work.
   - Two working documents were retired entirely once their content landed in
     permanent homes: `VESSEL_CHECKLIST.md` and `todo.md` (the debug logging
     tracker) - completed work to this changelog, outstanding work to
@@ -2058,13 +2066,14 @@ later retired; current state is in [PRD Section 8](PRD.md#release-gate-state).
   ships' references to it. The next hull created in that slot inherited the
   grudge and would be fired on unprovoked by NPC return fire. `vessel_sink()` now
   clears the index fleet-wide.
-- **Memory budget documentation was wrong** - the benchmarks doc and the PRD
-  recorded 1016 bytes per ship with a 2KB cap. The struct actually measures 4744
-  bytes, and was already ~4400 before this work; Phases 04-09 added roughly 340
-  bytes. The dominant cost is legacy (`desc[256]` inside each of ten equipment
-  slots). At 500 ships the fleet costs 2.3 MB, which is negligible, so the
-  documented budget was corrected to 5KB/ship rather than restructuring working
-  Greyhawk display code. Full component attribution is in the benchmarks doc.
+- **Memory budget documentation was wrong** - the benchmarks and vessel product
+  requirements recorded 1016 bytes per ship with a 2KB cap. The struct actually
+  measures 4744 bytes, and was already ~4400 before this work; Phases 04-09
+  added roughly 340 bytes. The dominant legacy cost is ten equipment slots,
+  each containing `desc[256]`. At 500 ships the fleet costs 2.3 MB, which is
+  negligible. The documented budget was corrected to 5KB/ship rather than
+  restructuring working Greyhawk display code. Full component attribution is
+  in the benchmarks doc.
 
 #### Technical Details
 
@@ -2093,7 +2102,8 @@ later retired; current state is in [PRD Section 8](PRD.md#release-gate-state).
 - **Verification status**: all of the above is code-complete and test-verified,
   but has not been exercised on a running server. Live-server verification
   (harbor content, soak testing, tick budget measurement, player beta) remains
-  outstanding - see the Remaining Work section of the PRD.
+  outstanding - see the Remaining Work section of the vessel product
+  requirements.
 
 # [Unreleased] - October 10, 2025
 

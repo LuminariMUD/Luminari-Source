@@ -2,9 +2,9 @@
 
 Numbered manual regression script for the Vessel System. Run on dev after any
 vessel-related change. Every step lists the expected result; any deviation is a
-regression. The durable quality gate is in [PRD.md](../PRD.md); unresolved
-release gates are maintained in
-[PRD.md](../PRD.md#release-gate-state).
+regression. The durable quality gate and unresolved release-gate state are in
+the
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the

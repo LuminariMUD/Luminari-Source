@@ -1031,11 +1031,11 @@ human gates.
 
 The authoritative state and exit conditions for the remaining human and
 rollout gates are maintained in
-[PRD.md](../PRD.md#release-gate-state).
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 ## Related Documentation
 
-- [Vessel Product Requirements](../PRD.md)
+- [Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
 - [Vessel System](../systems/VESSEL_SYSTEM.md)
 - [Vessel System Testing](VESSEL_SYSTEM_TESTING.md)
 - [Vessel Schema Deployment](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md)

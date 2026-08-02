@@ -6,8 +6,9 @@
 
 This document preserves design and maintenance lessons that should survive the
 current backlog. Use [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) for current
-behavior and [PRD.md](PRD.md#release-gate-state) for the product contract and
-authoritative release-gate state.
+behavior and the
+[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
+for the product contract and authoritative release-gate state.
 
 ## Active Concerns
 
@@ -94,7 +95,7 @@ and MSDP vessel state.
 
 That list describes implemented capability, not production readiness. Current
 release state and the owned exit conditions are maintained in
-[PRD.md](PRD.md#release-gate-state).
+[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 ## Evidence Hygiene
 

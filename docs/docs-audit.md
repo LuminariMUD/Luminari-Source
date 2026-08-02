@@ -15,31 +15,35 @@ project records conflated:
    structured human beta, and authorized staged rollout.
 
 The vessel system must not be described as production-ready until the release
-criteria in [PRD.md](PRD.md) have current evidence.
+criteria in the
+[Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md)
+have current evidence.
 
 ## Source-of-Truth Map
 
 | Question | Authoritative document |
 |---|---|
-| Why the product exists and what release means | [PRD.md](PRD.md) |
+| Why the product exists and what release means | [Vessel System Product Requirements](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md) |
 | Which architecture was chosen and why | [0001-unified-vessel-system.md](adr/0001-unified-vessel-system.md) |
 | What the current implementation does | [VESSEL_SYSTEM.md](systems/VESSEL_SYSTEM.md) |
 | How to run the live command regression | [VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md) |
 | What performance and test evidence exists | [VESSEL_BENCHMARKS.md](testing/VESSEL_BENCHMARKS.md) |
 | How schema install, verification, and rollback work | [VESSEL_SCHEMA_DEPLOYMENT.md](deployment/VESSEL_SCHEMA_DEPLOYMENT.md) |
-| What remains unfinished and who owns it | [PRD.md, Release Gate State](PRD.md#release-gate-state) |
+| What remains unfinished and who owns it | [Vessel System Product Requirements, Release Gate State](product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state) |
 | What shipped and when | [CHANGELOG.md](CHANGELOG.md) |
 | Which maintenance lessons should persist | [CONSIDERATIONS.md](CONSIDERATIONS.md) |
 
 The temporary vessel workspace was retired after its completed history was
 verified against the permanent documents and its three open gates were moved
-to the PRD with explicit state, ownership, and exit conditions.
+to the vessel product requirements with explicit state, ownership, and exit
+conditions.
 
 ## Corrections Made
 
-- Replaced the foundation-era root PRD with a durable product contract covering
-  the living-frontier vision, multiplayer and builder outcomes, shared
-  wilderness rules, release budgets, scope, scorecard, and risks.
+- Replaced the foundation-era requirements draft with a durable vessel product
+  contract covering the living-frontier vision, multiplayer and builder
+  outcomes, shared wilderness rules, release budgets, scope, scorecard, and
+  risks.
 - Corrected the base ship structure from the obsolete 1,016-byte claim to the
   measured 4,928 bytes, about 2.35 MiB for 500 fixed fleet entries.
 - Separated historical movement microbenchmarks from the unmeasured complete
@@ -56,12 +60,12 @@ to the PRD with explicit state, ownership, and exit conditions.
 - Generalized the schema runbook across phases 2, 4, 6, 7, and 8 plus the
   authoritative help migration, snapshot rehearsal, property comparison, and
   reverse-order rollback.
-- Retired the temporary final PRD after moving its enduring content into the
-  maintained documents above.
+- Retired the temporary final vessel requirements draft after moving its
+  enduring content into the maintained documents above.
 - Retired `VESSELS_TODO.md` after confirming that behavior, test evidence,
   benchmark results, schema evidence, and completed history already existed in
-  their permanent references; the remaining release gates now live in PRD
-  Section 8.
+  their permanent references; the remaining release gates now live in Section
+  8 of the vessel product requirements.
 
 ## Evidence Rules
 
@@ -69,10 +73,10 @@ to the PRD with explicit state, ownership, and exit conditions.
 - Date every benchmark, test count, Valgrind result, manual pass, and soak
   result. Historical evidence stays labeled historical.
 - Do not turn an implementation checklist into a production-readiness claim.
-- Keep requirements and release-gate state in the PRD, architecture decisions
-  in the ADR, current behavior in the system reference, evidence in testing
-  documents, and completed work in the changelog. Do not create a second
-  vessel release checklist in a temporary workspace.
+- Keep requirements and release-gate state in the vessel product requirements,
+  architecture decisions in the ADR, current behavior in the system reference,
+  evidence in testing documents, and completed work in the changelog. Do not
+  create a second vessel release checklist in a temporary workspace.
 - Update inbound links when a document moves or is retired.
 - Keep documentation ASCII, UTF-8, and LF.
 
@@ -86,6 +90,7 @@ remain open. As evidence lands:
   `VESSEL_SYSTEM_TESTING.md`.
 - Add proven operational remedies to the behavior reference and incident
   runbook.
-- Update the PRD gate table when player-data balance, structured human beta, or
-  a staged rollout changes state; keep the supporting evidence in its
-  permanent behavior, testing, deployment, or changelog document.
+- Update the vessel product requirements gate table when player-data balance,
+  structured human beta, or a staged rollout changes state; keep the supporting
+  evidence in its permanent behavior, testing, deployment, or changelog
+  document.

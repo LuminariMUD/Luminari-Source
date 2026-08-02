@@ -177,6 +177,16 @@ void test_my_function(CuTest *tc)
 - Keep commits atomic enough to revert safely
 - NEVER include AI attribution in commits
 
+## Documentation
+
+- Store feature product contracts in `docs/product-requirements/`.
+- Name each contract `<FEATURE>_REQUIREMENTS.md`; include enough feature context
+  that the filename remains unambiguous outside its directory.
+- Use feature-qualified link labels such as "Vessel System Product
+  Requirements". Do not create or link to a repository-generic `docs/PRD.md`.
+- Keep current implemented behavior in `docs/systems/`; a product contract
+  defines intent, scope, quality requirements, and release acceptance.
+
 ## Configuration Files
 
 - **Never commit:** campaign.h, mud_options.h, vnums.h (environment-specific)

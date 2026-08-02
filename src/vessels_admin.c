@@ -23,7 +23,7 @@ extern struct room_data *world;
 extern room_rnum top_of_world;
 
 /* Warn operators when the shared wilderness dynamic room pool crosses this
- * utilization percentage (PRD Section 4, ground rule 3). */
+ * utilization percentage (vessel product requirements Section 5, invariant 3). */
 #define ROOM_POOL_WARN_PERCENT 80
 
 struct vessel_debug_category_entry

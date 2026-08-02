@@ -288,7 +288,7 @@ affected records with the most recent property census or backup.
    only after state remains stable.
 
 Current vessel release state and owned exit conditions are maintained in
-[PRD.md](../PRD.md#release-gate-state).
+[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
 ---
 

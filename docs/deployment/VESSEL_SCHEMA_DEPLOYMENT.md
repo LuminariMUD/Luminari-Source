@@ -19,9 +19,9 @@ repeatable.
 - Current schema and behavior:
   [VESSEL_SYSTEM.md](../systems/VESSEL_SYSTEM.md#database-schema)
 - Release requirements:
-  [PRD.md](../PRD.md#8-release-acceptance)
+  [Vessel requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#8-release-acceptance)
 - Release-gate state:
-  [PRD.md](../PRD.md#release-gate-state)
+  [Vessel requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md#release-gate-state)
 
 ## Available Components
 

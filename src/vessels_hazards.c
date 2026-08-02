@@ -60,7 +60,7 @@ static bool vessel_encounter_config_loaded = FALSE;
  *
  * Encounters attach to REGION_ENCOUNTER regions authored with the existing
  * region tooling - the vessel system never invents its own geography
- * (PRD Section 4, ground rule 2). Mirrored by
+ * (vessel product requirements Section 5, invariant 2). Mirrored by
  * sql/components/vessels_phase8_schema.sql.
  */
 void vessel_hazard_ensure_schema(void)

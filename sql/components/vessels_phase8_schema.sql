@@ -5,7 +5,7 @@
 -- IMPORTANT: region_vnum must reference a wilderness region of type
 -- REGION_ENCOUNTER (region_type = 2) authored with the existing region
 -- tooling. The vessel system deliberately owns no geography of its own -
--- see docs/PRD.md, "Wilderness Contract".
+-- see docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md, "Wilderness Contract".
 --
 -- Column notes:
 --   mob_vnum     - creature to spawn (0 = message-only atmosphere)
