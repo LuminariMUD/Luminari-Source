@@ -6,6 +6,20 @@
 
 #### Added
 
+- The vessel `tactical` command now renders a 21-by-21 chart from the
+  canonical wilderness map. It distinguishes deep water, shoals, rivers,
+  beaches, ports, coastline, and land; overlays five- and ten-unit range
+  rings plus public region edges; and marks visible contacts by sound,
+  battered, crippled, sinking, or multiple-contact state.
+- Tactical contacts use the production weather/lookout sight range and include
+  a nearest-first roster with vessel slot, name, condition, range, bearing,
+  compass direction, and relative Z. Hidden encounter and sector regions are
+  not disclosed by the chart.
+- `scripts/test_vessel_tactical_in_game.sh` performs a reversible
+  actual-Kohdee tactical-chart session. It checks authoritative help, canonical
+  trench and coastal terrain, region edges, range rings, a real contact's
+  sound-to-battered transition after `shipfire`, exact player restoration,
+  zero temporary hull residue, and restart of the exact candidate.
 - Phase 16 adds the public `vevent status`, `join`, and `leaderboard` actions
   plus staff controls for movement-scored regattas, two-team fleet skirmishes,
   one-to-five-warship ghost fleets, enlistment, completion, cancellation, and

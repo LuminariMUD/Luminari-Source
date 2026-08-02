@@ -5,9 +5,11 @@
 **Status:** Mechanics through Phase 16, the first Luminari campaign shipping
 package, the first data/DG-driven derelict, and the first wilderness frontier
 package are implemented. Regattas, fleet skirmishes, ghost-fleet events, and
-durable leaderboards also pass actual-character acceptance. The core
-development release gates for build,
-regression, Memcheck, bounded ferry recovery, 500-vessel
+durable leaderboards also pass actual-character acceptance. The legacy
+tactical grid has been replaced by a canonical wilderness chart, including
+live contact damage state, and passes its reversible actual-character gate.
+The core development release gates for build, regression, Memcheck, bounded
+ferry recovery, 500-vessel
 performance/stability, economy simulation, shared encounters, Z-axis
 boundaries, native MSDP, named-water crossing, captain-channel isolation, and
 message throttling pass. The installed development candidate is not approved
@@ -108,6 +110,23 @@ restored the player file and all four event tables to identical hashes, left
 zero event runtime or temporary hull rows, and restarted the exact candidate.
 The warning-free production-linked suite passes 282 tests.
 
+**Tactical-chart checkpoint (August 2, 2026, 13:45 IDT):** The `tactical`
+command now renders a 21-by-21 canonical wilderness chart with deep water,
+shoals, rivers, beaches, ports, coastline, land, public geographic and
+threshold-region edges, five- and ten-unit range rings, weather visibility,
+and damage-aware contacts. Reversible run
+`/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`
+is terminal `PASS` in 141 seconds on source `d2a1669e` and installed SHA-256
+`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
+Actual Kohdee charted the Starfall Trench, five- and ten-unit rings, and a
+nearby sound Bastion; a real `shipfire` hit changed that contact to battered
+on both the map and nearest-first roster. A second coastal chart showed real
+shoal, beach, coastline, and region-edge cells. Cleanup purged every temporary
+hull, byte-restored Kohdee's player file (SHA-256
+`53061d7ae86ea0dd8dafdfc0e02bfc13bee1022bec7e5318a9ce5d67e33ae0bb`),
+left zero Bastion runtime/interior rows, and restarted the exact candidate.
+The warning-free production-linked suite passes 287 tests.
+
 Permanent evidence and behavior live in:
 
 - [VESSEL_BENCHMARKS.md](../../testing/VESSEL_BENCHMARKS.md)
@@ -120,7 +139,7 @@ agent-run vessel gates must retain the one-hour total ceiling, including setup,
 recovery, review, and cleanup. Before destructive merchant or hunter checks,
 confirm no benchmark worker owns the development service.
 
-**Remaining checklist:** 10 top-level items: 5 player-experience/presentation
+**Remaining checklist:** 9 top-level items: 4 player-experience/presentation
 and 5 balance/beta/rollout.
 
 ## 1. Add Living-World Content
@@ -136,7 +155,7 @@ and 5 balance/beta/rollout.
 
 ## 2. Finish Player Experience and Presentation
 
-- [ ] Replace the legacy tactical grid with a wilderness-renderer tactical map
+- [x] Replace the legacy tactical grid with a wilderness-renderer tactical map
   showing coastline, shoals, region boundaries, contacts, range rings, and
   damage state.
 - [ ] Build lookout view v2 from actual surrounding wilderness sectors.
@@ -152,6 +171,10 @@ throttling are complete. The harbor provisioner passes a matching crossing/
 `seastate` transcript and same-account Kohdee/Vesselmate cross-room isolation.
 The full scale gate records 23,181 suppressed combat/ambient messages and 20
 shared encounters, confirming the final shared-world encounter model.
+The completed tactical chart reads `get_map()` terrain and the same wilderness
+region polygons used by travel, hides encounter-only metadata, and resolves
+contacts through the production sight-range and damage systems rather than a
+private tactical grid.
 
 ## 3. Balance, Beta, and Roll Out
 

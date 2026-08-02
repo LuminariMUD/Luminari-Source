@@ -9,21 +9,21 @@ findings are tracked in
 **Current run status (August 2, 2026): all 30 steps, the bounded ferry gate,
 the complete 500-vessel scale gate, the Vailand campaign shipping gate, the
 Blackwake derelict discovery gate, the wilderness frontier gate, the Phase 16
-showcase-event gate, and the current candidate's focused build gates pass on
-local development.**
+showcase-event gate, the wilderness tactical-chart gate, and the current
+candidate's focused build gates pass on local development.**
 The legacy identity, generated-room insertion, sailing, route persistence, and
 vehicle transport defects found during the run were repaired and retested with
 Kohdee. Cleanup removed all disposable regression data. The separately named
 shared harbor prototypes, route, ferry, pilot, and schedule intentionally
 remain as reusable development fixtures.
 
-The current normal candidate passes all 282 production-linked tests. The
+The current normal candidate passes all 287 production-linked tests. The
 latest strict actionable Memcheck covered the preceding 277-test candidate
 and reported zero errors and no definite, indirect, or possible loss; that
 revision also passed all 13 focused protocol-parser tests and all 6 integrated
 CTest targets. Required `make install` removed the root artifact and installed
 the current non-profiled SHA-256
-`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
+`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
 
 Prerequisites: staff character (LVL_BUILDER+), MySQL running, server booted
 with vessel commands and ticks enabled. The cedit
@@ -250,6 +250,44 @@ the before/restored player files both hash to
 The final database held zero event, participant, leaderboard, runtime, ghost,
 or acceptance-prototype runtime rows, and the restarted process matched the
 installed SHA-256 above.
+
+## Wilderness Tactical Chart Check
+
+After the Starfall frontier content exists and a clean candidate is installed,
+run:
+
+```bash
+./scripts/test_vessel_tactical_in_game.sh
+```
+
+The development-only harness refuses production, a dirty or stale worktree,
+an active ferry or scale worker, missing canonical Starfall content, an
+installed/running binary mismatch, or a pre-existing Starfall Bastion runtime.
+With the MUD stopped, it snapshots Kohdee's exact player file. Its exit trap
+purges only runtime hulls owned by the known Bastion prototype, restores and
+byte-compares that file, and restarts the exact candidate without another
+login.
+
+One actual Kohdee session creates two Bastions in Starfall waters. The first
+chart must contain canonical wilderness terrain, both range rings, a Starfall
+Trench edge and region listing, and a sound contact in the map and roster.
+Kohdee then fires the production weapon path until a hit changes the other
+hull to battered or worse; a second chart must show that damage state in both
+places. The session purges those hulls, creates a separate Ashenport fixture,
+and requires real shoal `.`, beach `:`, coastline `#`, and public region-edge
+`+` cells before purging it and returning Kohdee to room 1204. The wrapper
+also resolves authoritative `TACTICAL` help and rejects related server
+`SYSERR` rows.
+
+Run
+`/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`
+passed in 141 seconds on source `d2a1669e` and installed SHA-256
+`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
+The before/restored player files both hash to
+`53061d7ae86ea0dd8dafdfc0e02bfc13bee1022bec7e5318a9ce5d67e33ae0bb`;
+the final database held zero Bastion runtime or generated-interior rows. Five
+production-linked unit tests separately lock water classification, terrain
+glyphs, range rings, public-region filtering, and contact damage symbols.
 
 ## Shared Harbor Merchant Loss Check
 
@@ -734,6 +772,10 @@ numbered gameplay flow:
   leaderboard, or runtime rows. The actual-character event harness
   additionally proves transactional leaderboard changes and exact snapshot
   restoration.
+- The wilderness tactical chart passes five production-linked rendering
+  contracts and the reversible actual-character gate above. The transcript
+  proves canonical trench and coastal terrain, public region edges, both range
+  rings, a real sound-to-battered contact transition, and exact cleanup.
 - The Phase 09 runtime migration and verifier passed against local MariaDB.
   `ship_runtime_state` held the expected parent-linked live snapshots and
   `ship_schedules` held the scheduled route.

@@ -13,9 +13,9 @@ trails. At that scale revision, all 277 production-linked tests, strict
 actionable Memcheck, 13 focused protocol tests, and 6 integrated CTest targets
 passed; its normal binary SHA-256 was
 `281c7469702fbbeaa52f40a916a3911b121d3cfa9bd1050ed9feb4f1bad92075`.
-The later Phase 16 event candidate passes 282 production-linked tests and
+The later wilderness-tactical candidate passes 287 production-linked tests and
 installs SHA-256
-`ace95edc41320918cd04ef0d6fa93effea9a65f06a04ae99d545a7e63fa0113a`.
+`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
 Repeat the scale gate during final preflight because the source changed after
 the recorded 500-vessel run.
 
@@ -60,6 +60,15 @@ on all three durable leaderboards. The 61-second reversible run restored the
 player file and four event tables to identical hashes, left no temporary hull
 or runtime row, and restarted the exact installed candidate from source
 `9ffe75d0`.
+
+The wilderness tactical chart passes actual-character acceptance under
+`/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`.
+Kohdee charted canonical Starfall terrain, region edges, five- and ten-unit
+rings, and a nearby sound contact, then used real `shipfire` damage to change
+that contact to battered on the map and roster. A second chart proved actual
+Ashenport shoal, beach, coastline, and region-edge cells. The 141-second run
+purged every temporary hull, restored Kohdee's exact player file, and
+restarted the tested binary from source `d2a1669e`.
 
 Use this smoke test to boot the development MUD, authenticate with the game
 master account, enter the level-34 character `Kohdee`, and leave both the
@@ -312,6 +321,31 @@ restarts the tested binary without logging in again. The August 2 run passed
 in 61 seconds with event-table hash
 `b866266367d4fa5ffca865001a792cd258113e928f69c55e4558cf7536705ec2`
 before and after cleanup.
+
+## Fast Wilderness Tactical Chart
+
+After the frontier prototypes exist and the current clean candidate is built
+and installed, run:
+
+```bash
+./scripts/test_vessel_tactical_in_game.sh
+```
+
+Use this wrapper instead of manually spawning and firing on acceptance hulls.
+It refuses production, stale or dirty source, active scale/ferry ownership,
+missing canonical frontier content, and pre-existing Bastion runtimes. It
+snapshots Kohdee with the MUD stopped, verifies authoritative `TACTICAL` help,
+and runs the lower-level login helper's `--vessel-tactical-check` workflow.
+
+Success requires a 21-by-21 canonical Starfall chart with both range rings,
+the Starfall Trench boundary, and a nearby sound contact. Kohdee fires until a
+real hit changes that contact to battered or worse, and the updated map and
+nearest-first roster must agree. A second Ashenport chart must contain real
+shoal, beach, coastline, and region-edge cells. The cleanup trap purges only
+temporary hulls from the known acceptance prototype, returns Kohdee to room
+1204, byte-restores the player file, and restarts the same executable. The
+passing transcript is `02-kohdee-vessel-tactical.log` inside
+`/tmp/luminari-vessel-tactical-check-1000/runs/20260802T104219Z-1540531`.
 
 ## Fast HUNTED Bounty-Hunter Check
 

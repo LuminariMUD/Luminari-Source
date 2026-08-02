@@ -153,6 +153,9 @@ rollback.
 - Ship state is available through native MSDP without making a graphical
   client mandatory. Native MSDP is the release contract; a separate GMCP
   vessel package is not required for this release.
+- The tactical view consumes canonical wilderness terrain and public regions,
+  and presents range plus visible contact damage state without exposing
+  encounter-only metadata.
 - Staff tooling exposes vessel state and shared wilderness-room pressure.
 - Diagnostics are category-selectable and safe to use on a live server.
 
@@ -280,7 +283,10 @@ destination or capability: River travel, Ocean freight, broadside armament,
 high-altitude lanes, bathymetric diving, high-capacity transport, and magical
 multi-medium movement. Phase 16 adds durable regatta, fleet-skirmish, and
 ghost-fleet history and leaderboards with bounded recovery; one reversible
-Kohdee session passes all three event types.
+Kohdee session passes all three event types. The wilderness tactical view now
+renders canonical terrain, public region edges, range rings, visibility, and
+live contact damage state; a reversible Kohdee session passes trench, coastal,
+and combat-transition acceptance.
 
 Implementation does not equal release acceptance. The local 30-step regression,
 bounded ferry observation, complete 500-vessel performance gate, current

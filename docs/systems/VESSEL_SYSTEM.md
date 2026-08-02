@@ -2,7 +2,8 @@
 
 **Release Status**: Gameplay layer, initial campaign shipping, initial
 data/DG-driven derelict, wilderness frontier package, and Phase 16 showcase
-events implemented; production acceptance incomplete
+events implemented; wilderness tactical chart accepted; production acceptance
+incomplete
 **Last Updated**: 2026-08-02
 **Scope**: Current behavior reference. For the durable product contract see
 [PRD.md](../PRD.md); for outstanding work see
@@ -68,6 +69,7 @@ and operator controls in one system.
 | Component | Description | Source Files |
 |-----------|-------------|--------------|
 | Core Vessels | Ship management, coordinates, movement | vessels.c, vessels.h |
+| Tactical Chart | Wilderness terrain, regions, range rings, contacts | vessels_tactical.c |
 | Autopilot | Waypoint navigation, route following | vessels_autopilot.c |
 | Interior Rooms | Multi-room ship interiors | vessels_rooms.c |
 | Docking | Ship-to-ship docking mechanics | vessels_docking.c |
@@ -460,6 +462,30 @@ visible. High-volume damage, NPC return-fire, miss, and reload messages are
 limited to one copy per class per half-second vessel tick. Sinking, grounding,
 rigging-collapse, and rudder-loss warnings remain immediate. Suppressed copies
 increment the process-wide `vessel_messages_throttled` performance counter.
+
+#### Wilderness Tactical Chart
+
+`tactical` renders a 21-by-21, north-up chart centered on the current vessel.
+Every base cell comes from the canonical `get_map()` wilderness renderer:
+`~` is deep water, `.` is shoal or shallow water, `=` is River, `u` is
+underwater, `:` is Beach, `D` is a seaport, `#` is coastal land, `^` is other
+land, and `?` is an unknown sector. The chart therefore changes with the same
+terrain, path digitalization, and sector transforms that govern movement.
+
+Overlays are applied in gameplay order: terrain, five-unit `o` and ten-unit
+`O` range rings, public region edge `+`, visible contact, then the player's
+`@` vessel. Region edges and the accompanying region list include geographic,
+bathymetric, altitude-lane, and sky-island polygons. Encounter and sector
+regions remain hidden so tactical presentation does not reveal private spawn
+or transform metadata.
+
+Contacts use `vessel_sight_range()`, including the production weather penalty
+and posted-lookout bonus. `V`, `B`, `C`, and `X` report sound, battered,
+crippled, and sinking vessels; `M` marks multiple contacts in one cell. A
+nearest-first roster below the chart includes fleet slot, vessel name,
+condition, three-dimensional range, bearing, compass direction, and relative
+Z. The header reports position, heading, weather, visibility, and the current
+vessel's aggregate internal hull condition.
 
 ### Autopilot Commands
 
@@ -1354,6 +1380,7 @@ and the trigger was removed.
 |------|---------|
 | `src/vessels.h` | Structures, constants, prototypes (includes vehicle definitions) |
 | `src/vessels.c` | Core commands, wilderness movement, terrain system |
+| `src/vessels_tactical.c` | Canonical wilderness chart, range rings, regions, and damage-aware contacts |
 | `src/vessels_rooms.c` | Interior room generation and movement |
 | `src/vessels_docking.c` | Docking, boarding, and ship-to-ship interaction |
 | `src/vessels_db.c` | MySQL persistence layer |
@@ -1387,6 +1414,7 @@ and the trigger was removed.
 | `scripts/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
 | `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
 | `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
+| `scripts/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
 
 ### Database
 

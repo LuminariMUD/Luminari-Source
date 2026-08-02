@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.24
+**Version:** 3.25
 
 **Evidence snapshot:** August 2, 2026
 
@@ -20,8 +20,10 @@ campaign-content, beta, production-snapshot, and rollout gates.
 | Production-linked vessel test gate on July 26, 2026 | 74 of 74 passing | Historical snapshot |
 | Valgrind result for that test gate | 0 errors, 0 leaks | Historical snapshot |
 | Pre-Phase16 root suite on August 2, 2026 | 277 of 277 passing | Full-scale candidate and current strict Memcheck baseline |
-| Phase 16 root suite on August 2, 2026 | 282 of 282 passing | Current production-linked gate; full scale must be repeated at preflight |
-| Phase 16 actual-character event gate | Regatta, skirmish, and ghost fleet pass; exact restoration | Current functional gate passes |
+| Phase 16 root suite on August 2, 2026 | 282 of 282 passing | Historical post-event gate; full scale must be repeated at preflight |
+| Phase 16 actual-character event gate | Regatta, skirmish, and ghost fleet pass; exact restoration | Historical functional gate passes |
+| Wilderness tactical root suite on August 2, 2026 | 287 of 287 passing | Current production-linked gate; full scale must be repeated at preflight |
+| Wilderness tactical actual-character gate | Canonical terrain, rings, regions, and damage contact pass; exact restoration | Current functional gate passes |
 | Pre-Phase15 suite Memcheck | 0 errors; 0 definite, indirect, or possible loss | Historical pre-soak gate; rerun current candidate |
 | Current 268-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Passing after character perk teardown fix |
 | Current 277-test suite Memcheck on August 2, 2026 | 0 errors; 0 definite, indirect, or possible loss | Current complementary stability gate passes |
@@ -727,6 +729,17 @@ captain-name resolution, zero runtime residue, byte-identical player/event
 snapshots, and an exact-binary restart. This closes the functional event gate;
 it does not replace a final 500-vessel rerun with the newly sampled
 `vessel_events` section.
+
+The wilderness tactical candidate passes 287 production-linked tests and
+installs SHA-256
+`68d2cd685f8a3bb82a4d0d94e1ddc4d279205650f22c273a0deebe2f6eb1ebdd`.
+Reversible actual-character run `20260802T104219Z-1540531` completes in 141
+seconds. It proves a 21-by-21 canonical wilderness chart, both range rings,
+the Starfall Trench boundary and listing, a real sound-to-battered contact
+transition through `shipfire`, Ashenport shoal/beach/coastline cells, zero
+temporary runtime/interior residue, byte-identical Kohdee restoration, and an
+exact-binary restart. This closes the tactical presentation gate; it does not
+replace the final 500-vessel rerun after post-scale source changes.
 
 The older vessel-only result remains historical evidence, not a substitute for
 rerunning the current root suite. The authoritative workflow is:
