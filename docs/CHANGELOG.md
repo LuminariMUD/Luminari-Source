@@ -253,6 +253,15 @@
   encounter `SYSERR`. Kohdee reports the six-vessel baseline, 5 of 2,000
   dynamic rooms, zero movement trails, and zero buffer overflows from quiet
   room 1204 before logging out cleanly.
+- Normal run `20260802T050422Z-854067` is terminal `PASS` for its 600-second
+  500-vessel diagnostic. Across 1,221 ticks, median/p95/p99/maximum fall to
+  577/1,524/2,011.60/2,915 usec; autopilot p95 is 1,416 usec and encounters
+  peak at 232 usec. Database executions fall from the preceding 14,942 to
+  1,295. All eight classes, ten departures, six shared encounters, nine live
+  Z values, zero workload errors, zero high-volume log rows, zero overflows,
+  and zero movement trails pass. The 630-second RSS increase of 14,888 KiB
+  remains `REPORT_ONLY` alongside 660 new mobiles and 131 new objects. Cleanup
+  restores six baseline vessels and restarts local development.
 
 ### Durable HUNTED bounty-hunter patrols
 

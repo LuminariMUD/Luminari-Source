@@ -334,6 +334,17 @@ installed hash above, boot loads one encounter definition without a related
 rooms, zero trails, and zero overflows from room 1204. The session logs out
 cleanly in 22 seconds. Keep the timing half open through the scale runner.
 
+Normal diagnostic `20260802T050422Z-854067` now passes the timing half for a
+600-second request. All 500 vessels and eight classes survive 1,221 complete
+ticks with median 577 usec, p95 1,524, p99 2,011.60, and maximum 2,915.
+Autopilot peaks at 2,785 usec, encounters at 232, and schedules at 17,537;
+database executions fall from 14,942 to 1,295. The actual Kohdee session
+records ten departures, six shared encounters, nine Z values, zero workload
+or logging errors, zero overflows, and trails 0/0/0. RSS rises 14,888 KiB
+alongside 660 mobiles and 131 objects, so memory remains `REPORT_ONLY`.
+Cleanup restores six vessels and restarts development. Repeat for the required
+1,800-second window before marking the scale release gate complete.
+
 For the builder-independence timing gate, run:
 
 ```bash

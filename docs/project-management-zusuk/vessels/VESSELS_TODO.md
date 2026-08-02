@@ -319,6 +319,21 @@ reported 6 of 500 fleet slots, 5 of 2,000 dynamic rooms, zero movement trails,
 and zero buffer overflows, then logged out cleanly. Only the normal fleet
 measurement remains open for this repair.
 
+Normal diagnostic
+`/tmp/luminari-vessel-scale-benchmark-1000/runs/20260802T050422Z-854067`
+is terminal `PASS` after 630 seconds of measurement with 500 ships and all
+eight classes. Its 1,221 complete ticks report median 577 usec, p95 1,524,
+p99 2,011.60, and maximum 2,915; autopilot p95 is 1,416 and maximum 2,785,
+encounters peak at 232, and schedules peak at 17,537. Database executions
+fall from 14,942 to 1,295. The actual-character gates retain ten departures,
+six shared encounters, nine Z values from 128 through 208, zero workload
+errors, zero high-volume log rows, and zero overflows. Movement trails remain
+0/0/0. RSS rises 14,888 KiB while the awake world adds 660 mobiles and 131
+objects with constant room count, so memory remains `REPORT_ONLY`. Cleanup
+restores all six baseline vessels and restarts the same installed candidate.
+This accepts the two hotspot repairs under normal load; keep the scale item
+open only for the required 1,800-second release window.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in

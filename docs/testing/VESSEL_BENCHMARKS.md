@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.21
+**Version:** 3.22
 
 **Evidence snapshot:** August 2, 2026
 
@@ -36,7 +36,8 @@ from the full live-game benchmark that still must be run.
 | Post-eighth memory candidate | 275/275 production-linked tests | NPC trail growth removed; installed scale proof required |
 | Post-eighth profiling diagnostic | 631 seconds; 500 ships; trails 0/0/0 | Trail repair accepted; blocking SQL paths identified |
 | Post-profile SQL repair candidate | 277/277 tests; live cache boot confirmed | Empty berth saves suppressed; normal 500-ship proof required |
-| Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
+| Ninth current 500-ship diagnostic on August 2, 2026 | 1,221 ticks; p95 1,524 usec; maximum 2,915 | 600-second diagnostic passes; full 1,800-second gate required |
+| Complete current 500-ship live tick | p95 1,524 usec; maximum 2,915 usec | Short-window target passes |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
 ships and the production gameplay workload enabled. Navigation-only
@@ -474,6 +475,34 @@ into memory without a vessel or encounter `SYSERR`. Kohdee reports six active
 ships, 5 of 2,000 dynamic rooms, zero movement trails, and zero buffer
 overflows from room 1204, then logs out cleanly in 22 seconds. This accepts
 cache initialization and baseline integrity, not fleet timing.
+
+Normal run `20260802T050422Z-854067` is terminal `PASS` for a 600-second
+request and 630-second measured wall window on source `1df8d204` and the same
+installed hash. The complete production profile is:
+
+| Section | Calls | Median usec | p95 usec | p99 usec | Maximum usec |
+|---|---:|---:|---:|---:|---:|
+| `vessel_tick` | 1,221 | 577.00 | 1,524.00 | 2,011.60 | 2,915 |
+| `vessel_autopilot` | 1,221 | 476.00 | 1,416.00 | 1,875.60 | 2,785 |
+| `vessel_combat` | 1,221 | 47.00 | 82.00 | 134.80 | 252 |
+| `vessel_crew_wages` | 1,221 | 19.00 | 31.00 | 45.80 | 83 |
+| `vessel_encounters` | 1,221 | 0.00 | 1.00 | 1.00 | 232 |
+| `vessel_schedules` | 8 | 797.00 | 12,677.60 | 16,565.12 | 17,537 |
+
+All sampled sections remain below 25 ms, including their maxima. Database
+executions fall to 1,295 from 14,942 in the prior normal diagnostic, an
+approximately 91 percent reduction. The workload records 1,120 missed pulses,
+7,684 suppressed messages, ten departures, six shared encounters, and nine Z
+values from 128 through 208. There are zero workload errors, high-volume log
+rows, buffer overflows, or movement trails.
+
+The 22 one-PID process samples retain two threads and 11-12 descriptors. RSS
+rises 783,256 to 798,144 KiB and VSZ 878,956 to 893,764 KiB. During the same
+window mobiles rise 32,381 to 33,041 and objects 24,709 to 24,840 while rooms
+remain 52,441 and trails stay zero. The memory analyzer remains `REPORT_ONLY`.
+Cleanup restores six baseline vessels and restarts local development. This
+accepts the hotspot repairs and short-window performance target; release scale
+still requires the explicit 1,800-second run.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

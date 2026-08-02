@@ -605,6 +605,18 @@ vessel or encounter `SYSERR`. Kohdee entered room 1204, saw 6 of 500 ships,
 logged out cleanly. Commit this evidence before invoking the scale runner,
 which requires a clean tree.
 
+The committed candidate then passes normal 600-second diagnostic
+`20260802T050422Z-854067` with 500 vessels. Its 1,221 complete ticks have
+median 577 usec, p95 1,524, p99 2,011.60, and maximum 2,915; database
+executions fall to 1,295 from 14,942 in the prior release diagnostic.
+Autopilot peaks at 2,785 usec, encounters at 232, and schedules at 17,537.
+All actual-Kohdee workload gates pass with ten departures, six shared
+encounters, nine Z values, no workload or high-volume log errors, no
+overflows, and trails 0/0/0. The 14,888-KiB RSS increase remains
+`REPORT_ONLY` with 660 new mobiles and 131 objects. Cleanup restores the exact
+six-vessel baseline and restarts local development. Use the same command with
+the required 1,800-second duration for final scale acceptance.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process
