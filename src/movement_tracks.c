@@ -348,8 +348,14 @@ size_t count_live_movement_trails(void)
  */
 bool should_create_tracks(struct char_data *ch)
 {
+  /* The retained trail lists describe player footprints. Awake-world NPC
+   * wandering can otherwise allocate a new named record in every room it
+   * crosses even when no player is present to leave a trail. */
+  if (ch == NULL || IS_NPC(ch))
+    return FALSE;
+
   /* Don't create tracks for immortals with nohassle */
-  if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_NOHASSLE))
+  if (PRF_FLAGGED(ch, PRF_NOHASSLE))
     return FALSE;
 
   /* Don't create tracks if riding (mount creates tracks instead) */

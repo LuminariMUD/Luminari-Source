@@ -90,8 +90,13 @@
 - Payroll persists up to five crew walkoffs in one atomic delete instead of
   issuing a delete and multi-row insert for each changed roster.
 - Repeated movement-trail signatures refresh in place, and each room retains
-  at most 16 distinct signatures. Ordinary mobile wandering no longer creates
-  an unbounded trail-node population during a scale window.
+  at most 16 distinct signatures. No individual room can retain an unbounded
+  trail-node population during a scale window.
+- Player movement continues to leave retained footprints, while ordinary NPC
+  movement no longer allocates trail records. The awake world added 47,423
+  NPC-driven nodes and 21,200 KiB RSS during the repaired 631-second fleet
+  diagnostic even with a 16-per-room cap; source tracing found no gameplay
+  reader that consumes those NPC records.
 
 #### Validated
 
@@ -218,6 +223,9 @@
   ticks have median 659 usec, p95 66,429, maximum 103,801, and 2,150 missed
   pulses. RSS grows 21,200 KiB with 47,423 new movement trails over 631
   seconds, so memory remains `REPORT_ONLY` pending the next repair.
+- The post-diagnostic root suite binary passes 275 of 275. Its new production-
+  linked movement case proves NPC movement leaves the live trail count
+  unchanged while the existing player movement case still creates a record.
 
 ### Durable HUNTED bounty-hunter patrols
 

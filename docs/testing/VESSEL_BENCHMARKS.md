@@ -1,6 +1,6 @@
 # Vessel System Benchmarks
 
-**Version:** 3.17
+**Version:** 3.18
 
 **Evidence snapshot:** August 2, 2026
 
@@ -33,6 +33,7 @@ from the full live-game benchmark that still must be run.
 | Seventh current 500-ship attempt on August 2, 2026 | Completed 1,800-second window; 3,665 ticks; zero overflows | Harness, route, memory, and 25 ms gates failed; merchant capacity deferral expected |
 | Post-seventh repair candidate | 274/274 tests; actionable Memcheck clean | Installed; restart and scale rerun required |
 | Eighth current 500-ship diagnostic on August 2, 2026 | Completed 600-second window; 1,217 ticks; all functional gates passed | Tick latency and memory gates failed |
+| Post-eighth memory candidate | 275/275 production-linked tests | NPC trail growth removed; installed scale proof required |
 | Complete current 500-ship live tick | 1,217 ticks; p95 66,429 usec | Release blocker; optimization and rerun required |
 
 The release target is a complete vessel tick at or below 25 ms with 500 active
@@ -415,6 +416,16 @@ descriptors at 11-12. Movement trails increased from 21,472 to 68,895 while
 world room count stayed constant, closely matching the 121,774-KiB/hour RSS
 slope. The analyzer remains `REPORT_ONLY`, but repeated awake NPC movement is
 the retained-growth source to remove before the full 1,800-second rerun.
+
+The following memory repair preserves player movement footprints and declines
+trail creation for ordinary NPC movement. A complete source trace found no
+gameplay reader for `trail_tracks`; the only consumers count them for staff
+allocation output, rename retained player records, clean them, or free rooms.
+The production-linked regression moves an NPC without changing the live count
+and then proves the player path still creates a trail. The root `cutest`
+binary passes 275 of 275. This targets the exact 47,423-node correlated growth
+from the eighth run, but only a fresh installed fleet measurement can establish
+the memory verdict.
 
 The abandoned ferry run was pinned to an earlier executable, so its partial
 observation cannot validate the single-pass target-resolution or Phase 15

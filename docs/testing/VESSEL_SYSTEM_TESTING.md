@@ -300,6 +300,13 @@ RSS grew 786,304 to 807,504 KiB while movement trails grew 21,472 to 68,895;
 memory remains `REPORT_ONLY`. Remove NPC trail retention and the remaining
 synchronous outliers before the required full 1,800-second rerun.
 
+The next memory candidate retains player footprints but does not allocate
+trail records for ordinary NPC movement. Production tracing found no gameplay
+reader for the retained lists. A production-linked test moves an NPC without
+increasing the live count and separately proves that player movement still
+adds a trail; the root suite binary passes 275 of 275. The next installed fleet
+run must show stable trail count and RSS before accepting the memory repair.
+
 For the builder-independence timing gate, run:
 
 ```bash

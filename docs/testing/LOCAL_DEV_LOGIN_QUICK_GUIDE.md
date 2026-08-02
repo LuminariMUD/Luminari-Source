@@ -564,6 +564,15 @@ trails grew from 21,472 to 68,895; memory remains `REPORT_ONLY`. Fix trail
 growth and the remaining synchronous paths, then rebuild, install, and run the
 full 1,800-second gate.
 
+The subsequent memory candidate retains player footprints but skips trail
+allocation for ordinary NPC movement. Source tracing confirms that the live
+trail lists currently have no gameplay reader; staff allocation reports,
+player rename, cleanup, and room teardown are their only consumers. The
+production-linked regression moves both an NPC and a player: only the player
+adds a record, and the root suite binary passes 275 of 275. Recheck the live
+trail row in the next installed 500-vessel run; do not close memory from the
+unit result alone.
+
 The default steady measurement window is 660 seconds. The runner accepts an
 explicit value from 600 through 7200 seconds, but this plan permits at most
 1,800 seconds so the full setup, measurement, result, and restoration process

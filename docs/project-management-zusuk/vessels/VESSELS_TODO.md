@@ -271,6 +271,15 @@ rooms at no more than 10 of 2,000, and world room count was constant. Keep all
 four performance items open while removing NPC trail growth and the remaining
 autopilot and encounter synchronous outliers.
 
+The next memory repair keeps player footprints but stops ordinary NPC movement
+from creating retained trail records. Production tracing found no gameplay
+reader of `trail_tracks`; only staff counting, player rename, cleanup, and room
+teardown consume the lists. A production-linked movement regression proves an
+NPC crosses a room without adding a trail while the existing player path still
+adds one. The root `cutest` binary passes 275 of 275 after this change. Memory
+stability remains open until an installed 500-vessel run confirms that trail
+count and RSS no longer grow with the awake mobile population.
+
 This is the only vessel planning document in the temporary Zusuk workspace. It
 contains outstanding work only. Durable requirements live in
 [PRD.md](../../PRD.md), current behavior and operations in
