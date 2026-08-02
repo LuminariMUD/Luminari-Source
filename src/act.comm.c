@@ -20,7 +20,7 @@
 #include "handler.h"
 #include "db.h"
 #include "screen.h"
-#include "improved-edit.h"
+#include "olc/improved-edit.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "modify.h"

@@ -22,7 +22,7 @@
 #include "treasure.h"
 #include "craft/craft.h"
 #include "assign_wpn_armor.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "item.h"
 #include "staff_events.h"
 #include "feats.h"

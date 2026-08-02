@@ -9,7 +9,7 @@ repos:
       - id: clang-format
         types_or: [c, c++]
         args: [--style=file]
-        exclude: ^src/(genolc\.c|utils\.h)$
+        exclude: ^src/(olc/genolc\.c|utils\.h)$
 
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks

@@ -49,7 +49,7 @@
 #include "assign_wpn_armor.h"
 #include "item.h"
 #include "perks.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "domains_schools.h"
 #include "spells.h"
 #include "spell_prep.h"
@@ -61,7 +61,7 @@
 #include "traps.h" /* For trap system functions */
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
-#include "genolc.h"
+#include "olc/genolc.h"
 #include <time.h>
 
 /* some defines for gain/respec */

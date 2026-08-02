@@ -20,8 +20,8 @@
 #include "dgscript/dg_scripts.h"
 #include "mysql.h"
 #include "perfmon.h"
-#include "genwld.h"
-#include "genzon.h"
+#include "olc/genwld.h"
+#include "olc/genzon.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

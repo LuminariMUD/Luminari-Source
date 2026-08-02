@@ -40,7 +40,7 @@
 #include "boards.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "improved-edit.h"
+#include "olc/improved-edit.h"
 #include "modify.h"
 
 /* Board appearance order. */

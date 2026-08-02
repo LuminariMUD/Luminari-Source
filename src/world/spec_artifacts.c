@@ -44,7 +44,7 @@
 #include "lists.h"
 #include "act.h"
 #include "class.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "campaign.h"
 #include "domains_schools.h"

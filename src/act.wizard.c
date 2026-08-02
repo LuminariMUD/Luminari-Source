@@ -20,19 +20,19 @@
 #include "house.h"
 #include "screen.h"
 #include "constants.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "shop.h"
 #include "shop.h"
 #include "act.h"
 #include "mysql.h"
 #include "copyover_diagnostic.h"
-#include "genzon.h" /* for real_zone_by_thing */
+#include "olc/genzon.h" /* for real_zone_by_thing */
 #include "class.h"
-#include "genolc.h"
+#include "olc/genolc.h"
 #include <sys/stat.h>
 #include <unistd.h>
-#include "genobj.h"
+#include "olc/genobj.h"
 #include "race.h"
 #include "fight.h"
 #include "house.h"
@@ -71,7 +71,7 @@
 #include "vessels/vessels.h"
 #include "movement/movement_tracks.h"
 #include "mob/mob_spellslots.h" /* for show_mob_spell_slots */
-#include "genshp.h"
+#include "olc/genshp.h"
 #include "treasure.h"
 #include "player_rename.h"
 

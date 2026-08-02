@@ -60,7 +60,7 @@
 #include "dgscript/dg_scripts.h"
 #include "comm.h"
 #include "interpreter.h"
-#include "genmob.h"
+#include "olc/genmob.h"
 #include "constants.h"
 #include "spells.h"
 #include "screen.h"

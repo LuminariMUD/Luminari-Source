@@ -25,7 +25,7 @@
 #include "mud_event.h"
 #include "act.h" //perform_wildshapes
 #include "mudlim.h"
-#include "oasis.h" // mob autoroller
+#include "olc/oasis.h" // mob autoroller
 #include "assign_wpn_armor.h"
 #include "domains_schools.h"
 #include "feats.h"

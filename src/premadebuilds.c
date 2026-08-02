@@ -25,7 +25,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "templates.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "spell_prep.h"
 #include "premadebuilds.h"
 #include "craft/alchemy.h"

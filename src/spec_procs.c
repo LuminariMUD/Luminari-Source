@@ -41,7 +41,7 @@
 #include "spell_prep.h"    /* for star circlet proc */
 #include "handler.h"       /* for is_name() */
 #include "evolutions.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "quest.h"
 #include "backgrounds.h"
 #include "perks.h"

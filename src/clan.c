@@ -20,12 +20,12 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "screen.h"
-#include "improved-edit.h"
+#include "olc/improved-edit.h"
 #include "spells.h" /* find skill, etc */
 #include "clan.h"
 #include "clan_benefits.h"
 #include "mudlim.h"
-#include "oasis.h" /* for can_edit_zone */
+#include "olc/oasis.h" /* for can_edit_zone */
 #include "clan_transactions.h"
 
 /* Global Variables used by clans */

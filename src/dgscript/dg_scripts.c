@@ -25,8 +25,8 @@
 #include "screen.h"
 #include "constants.h"
 #include "spells.h"
-#include "oasis.h"
-#include "genzon.h" /* for real_zone_by_thing */
+#include "olc/oasis.h"
+#include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "modify.h"
 

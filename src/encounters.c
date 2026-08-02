@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "screen.h"
 #include "interpreter.h"
 #include "modify.h"
@@ -28,7 +28,7 @@
 #include "race.h"
 #include "encounters.h"
 #include "dgscript/dg_scripts.h"
-#include "prefedit.h"
+#include "olc/prefedit.h"
 #include "mud_event.h"
 #include "act.h"
 

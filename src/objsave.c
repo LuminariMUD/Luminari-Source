@@ -21,7 +21,7 @@
 #include "class.h"
 #include "config.h"
 #include "modify.h"
-#include "genolc.h" /* for strip_cr and sprintascii */
+#include "olc/genolc.h" /* for strip_cr and sprintascii */
 #include "craft/craft.h"
 #include "spec_abilities.h"
 #include "world/spec_artifacts.h"

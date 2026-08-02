@@ -26,7 +26,7 @@
 #include "dgscript/dg_scripts.h"
 #include "templates.h"
 #include "mysql.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 
 extern MYSQL *conn;
 

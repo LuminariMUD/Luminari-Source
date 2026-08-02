@@ -22,9 +22,9 @@
 #include "handler.h"
 #include "mail.h"
 #include "screen.h"
-#include "genolc.h"
-#include "oasis.h"
-#include "improved-edit.h"
+#include "olc/genolc.h"
+#include "olc/oasis.h"
+#include "olc/improved-edit.h"
 #include "dgscript/dg_scripts.h"
 #include "constants.h"
 #include "act.h" /* ACMDs located within the act*.c files, char-creation help */
@@ -32,14 +32,14 @@
 #include "systems/intermud3/i3_client.h" /* I3 command declarations */
 #include "class.h"
 #include "graph.h"
-#include "hedit.h"
+#include "olc/hedit.h"
 #include "house.h"
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
 #include "quest.h"
 #include "hlquest.h"
 #include "asciimap.h"
-#include "prefedit.h"
+#include "olc/prefedit.h"
 #include "resource_system.h" /* Phase 5: Wilderness harvesting commands */
 #include "ibt.h"
 #include "mud_event.h"
@@ -84,7 +84,7 @@
 #include "talents.h" /* crafting/harvesting talent system */
 #include "mysql.h"
 #include "mysql_boards.h"
-#include "bedit.h" /* MySQL board system */
+#include "olc/bedit.h" /* MySQL board system */
 #include "world/spec_artifacts.h"
 #include "systems/web_client/onboarding.h"
 

@@ -24,8 +24,8 @@
 #include "act.h"
 #include "utils.h"
 #include "ibt.h"
-#include "oasis.h"
-#include "improved-edit.h"
+#include "olc/oasis.h"
+#include "olc/improved-edit.h"
 #include "modify.h"
 
 IBT_DATA *first_bug = NULL;

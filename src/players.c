@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "mysql.h"
-#include "genolc.h"              /* for strip_cr */
+#include "olc/genolc.h"          /* for strip_cr */
 #include "config.h"              /* for pclean_criteria[] */
 #include "dgscript/dg_scripts.h" /* To enable saving of player variables to disk */
 #include "quest.h"
@@ -35,7 +35,7 @@
 #include "evolutions.h"
 #include "class.h"
 #include "perks.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "craft/crafting_new.h"
 #include "resource_system.h"
 #include "character_creation.h"

@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "spells.h"
 #include "constants.h"
-#include "genzon.h" /* for real_zone_by_thing */
+#include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "fight.h"
 #include "shop.h" /* shop keepers and mhunt */

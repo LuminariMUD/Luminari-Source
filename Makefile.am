@@ -34,7 +34,7 @@ circle_SOURCES = \
 	src/act.wizard.c \
 	src/actionqueues.c \
 	src/actions.c \
-	src/aedit.c \
+	src/olc/aedit.c \
 	src/ai_cache.c \
 	src/ai_events.c \
 	src/ai_security.c \
@@ -48,15 +48,15 @@ circle_SOURCES = \
 	src/ban.c \
 	src/bardic_performance.c \
 	src/boards.c \
-	src/bedit.c \
+	src/olc/bedit.c \
 	src/mysql_boards.c \
 	src/bsd-snprintf.c \
 	src/craft/brew.c \
-	src/cedit.c \
+	src/olc/cedit.c \
 	src/char_descs.c \
 	src/clan.c \
 	src/clan_economy.c \
-	src/clan_edit.c \
+	src/olc/clan_edit.c \
 	src/clan_transactions.c \
 	src/class.c \
 	src/combat_modes.c \
@@ -98,26 +98,26 @@ circle_SOURCES = \
 	src/perks.c \
 	src/fight.c \
 	src/gain.c \
-	src/genmob.c \
-	src/genobj.c \
-	src/genolc.c \
-	src/genqst.c \
-	src/genshp.c \
-	src/genwld.c \
-	src/genzon.c \
+	src/olc/genmob.c \
+	src/olc/genobj.c \
+	src/olc/genolc.c \
+	src/olc/genqst.c \
+	src/olc/genshp.c \
+	src/olc/genwld.c \
+	src/olc/genzon.c \
 	src/graph.c \
 	src/grapple.c \
 	src/handler.c \
-	src/hedit.c \
+	src/olc/hedit.c \
 	src/help.c \
 	src/helpers.c \
-	src/hlqedit.c \
+	src/olc/hlqedit.c \
 	src/hlquest.c \
 	src/house.c \
-	src/hsedit.c \
+	src/olc/hsedit.c \
 	src/hunts.c \
 	src/ibt.c \
-	src/improved-edit.c \
+	src/olc/improved-edit.c \
 	src/interpreter.c \
 	src/introduce.c \
 	src/kdtree.c \
@@ -125,7 +125,7 @@ circle_SOURCES = \
 	src/lists.c \
 	src/magic.c \
 	src/mail.c \
-	src/medit.c \
+	src/olc/medit.c \
 	src/metamagic_science.c \
 	src/missions.c \
 	src/mob/mob_act.c \
@@ -139,23 +139,23 @@ circle_SOURCES = \
 	src/mob/mob_known_spells.c \
 	src/modify.c \
 	src/moon_bonus_spells.c \
-	src/msgedit.c \
+	src/olc/msgedit.c \
 	src/mud_event.c \
 	src/mud_event_list.c \
 	src/mysql.c \
 	src/new_mail.c \
-	src/oasis.c \
-	src/oasis_copy.c \
-	src/oasis_delete.c \
-	src/oasis_list.c \
+	src/olc/oasis.c \
+	src/olc/oasis_copy.c \
+	src/olc/oasis_delete.c \
+	src/olc/oasis_list.c \
 	src/objsave.c \
-	src/oedit.c \
+	src/olc/oedit.c \
 	src/perfmon.c \
 	src/perlin.c \
 	src/player_rename.c \
 	src/player_rename.h \
 	src/players.c \
-	src/prefedit.c \
+	src/olc/prefedit.c \
 	src/premadebuilds.c \
 	src/protocol.c \
 	src/psionics.c \
@@ -176,20 +176,20 @@ circle_SOURCES = \
 	src/systems/intermud3/i3_client.c \
 	src/systems/intermud3/i3_commands.c \
 	src/systems/intermud3/i3_utils.c \
-	src/qedit.c \
+	src/olc/qedit.c \
 	src/quest.c \
 	src/race.c \
 	src/random.c \
 	src/random_names.c \
 	src/rank.c \
-	src/redit.c \
+	src/olc/redit.c \
 	src/resource_system.c \
 	src/resource_depletion.c \
 	src/resource_descriptions.c \
 	src/resource_regeneration.c \
 	src/roleplay.c \
 	src/routing.c \
-	src/sedit.c \
+	src/olc/sedit.c \
 	src/shop.c \
 	src/spec_abilities.c \
 	src/spec_assign.c \
@@ -202,7 +202,7 @@ circle_SOURCES = \
 	src/spells.c \
 	src/staff_events.c \
 	src/study.c \
-	src/tedit.c \
+	src/olc/tedit.c \
 	src/templates.c \
 	src/trade.c \
 	src/vessels/transport.c \
@@ -239,7 +239,7 @@ circle_SOURCES = \
 	src/weather.c \
 	src/wilderness.c \
 	src/wilderness_kb.c \
-	src/zedit.c \
+	src/olc/zedit.c \
 	src/zmalloc.c \
 	src/zone_procs.c
 

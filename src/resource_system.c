@@ -19,7 +19,7 @@
 #include "resource_descriptions.h" /* For elevation functions */
 #include "mysql.h"
 #include "spells.h"
-#include "genolc.h"
+#include "olc/genolc.h"
 #include "constants.h"
 #include "kdtree.h"
 #include "screen.h"

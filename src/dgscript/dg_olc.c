@@ -13,14 +13,14 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "genolc.h"
+#include "olc/genolc.h"
 #include "interpreter.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "dg_olc.h"
 #include "dg_event.h"
-#include "genzon.h"    /* for real_zone_by_thing */
-#include "constants.h" /* for the *trig_types */
-#include "modify.h"    /* for smash_tilde */
+#include "olc/genzon.h" /* for real_zone_by_thing */
+#include "constants.h"  /* for the *trig_types */
+#include "modify.h"     /* for smash_tilde */
 
 /* local functions */
 static void trigedit_disp_menu(struct descriptor_data *d);

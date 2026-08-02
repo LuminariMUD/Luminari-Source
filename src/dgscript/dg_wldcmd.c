@@ -18,8 +18,8 @@
 #include "handler.h"
 #include "db.h"
 #include "constants.h"
-#include "genzon.h" /* for zone_rnum real_zone_by_thing */
-#include "fight.h"  /* for die() */
+#include "olc/genzon.h" /* for zone_rnum real_zone_by_thing */
+#include "fight.h"      /* for die() */
 
 /* Local functions, macros, defines and structs */
 

@@ -24,8 +24,8 @@
 #include "spell_prep.h"
 #include "evolutions.h"
 #include "fight.h"
-#include "oasis.h"
-#include "genolc.h"
+#include "olc/oasis.h"
+#include "olc/genolc.h"
 
 int evolution_sort_info[NUM_EVOLUTIONS];
 struct evolution_info evolution_list[NUM_EVOLUTIONS];

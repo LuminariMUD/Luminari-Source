@@ -35,9 +35,9 @@
 #include "missions.h"
 #include "random_names.h"
 #include "spec_procs.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "mudlim.h"
-#include "genmob.h"
+#include "olc/genmob.h"
 #include "treasure.h" /* for magic awards */
 #include "hunts.h"
 

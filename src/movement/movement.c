@@ -22,7 +22,7 @@
 #include "dgscript/dg_scripts.h"
 #include "act.h"
 #include "fight.h"
-#include "oasis.h" /* for buildwalk */
+#include "olc/oasis.h" /* for buildwalk */
 #include "spec_procs.h"
 #include "mud_event.h"
 #include "hlquest.h"

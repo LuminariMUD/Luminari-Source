@@ -20,7 +20,7 @@
 #include "constants.h"
 #include "spec_procs.h"
 #include "feats.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "house.h"
 #include "dgscript/dg_scripts.h"
 #include "clan.h"

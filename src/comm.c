@@ -69,8 +69,8 @@
 #include "handler.h"
 #include "db.h"
 #include "house.h"
-#include "oasis.h"
-#include "genolc.h"
+#include "olc/oasis.h"
+#include "olc/genolc.h"
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "screen.h"    /* to support the gemote act type command */
@@ -78,7 +78,7 @@
 #include "boards.h"
 #include "act.h"
 #include "ban.h"
-#include "msgedit.h"
+#include "olc/msgedit.h"
 #include "fight.h"
 #include "spells.h" /* for affect_update */
 #include "modify.h"

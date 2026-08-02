@@ -30,8 +30,8 @@
 #include "mudlim.h"
 #include "item.h"
 #include "domains_schools.h"
-#include "oasis.h"
-#include "genzon.h" /* for real_zone_by_thing */
+#include "olc/oasis.h"
+#include "olc/genzon.h" /* for real_zone_by_thing */
 #include "psionics.h"
 #include "assign_wpn_armor.h"
 #include "actions.h" /* for use_ACTION() */

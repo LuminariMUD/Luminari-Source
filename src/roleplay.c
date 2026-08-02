@@ -22,7 +22,7 @@
 #include "dgscript/dg_scripts.h"
 #include "feats.h"
 #include "constants.h"
-#include "improved-edit.h"
+#include "olc/improved-edit.h"
 #include "roleplay.h"
 #include "character_creation.h"
 #include "character_creation_content.h"

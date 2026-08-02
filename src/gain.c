@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "comm.h"
 #include "db.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "screen.h"
 #include "interpreter.h"
 #include "modify.h"

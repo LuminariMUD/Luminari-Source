@@ -22,18 +22,18 @@
 #include "interpreter.h"
 #include "house.h"
 #include "constants.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "act.h"
 #include "ban.h"
 #include "treasure.h"
 #include "spec_procs.h"
-#include "genzon.h"
-#include "genolc.h"
-#include "genobj.h" /* for free_object_strings */
-#include "genwld.h" /* for free_trail_data_list */
-#include "config.h" /* for the default config values. */
+#include "olc/genzon.h"
+#include "olc/genolc.h"
+#include "olc/genobj.h" /* for free_object_strings */
+#include "olc/genwld.h" /* for free_trail_data_list */
+#include "config.h"     /* for the default config values. */
 #include "fight.h"
 #include "modify.h"
 #include "shop.h"
@@ -45,7 +45,7 @@
 #include "class.h"
 #include "clan.h"
 #include "clan_economy.h"
-#include "msgedit.h"
+#include "olc/msgedit.h"
 #include "craft/craft.h"
 #include "hlquest.h"
 #include "mudlim.h"

@@ -10,7 +10,7 @@
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/fight.h"
-#include "../../src/genwld.h"
+#include "../../src/olc/genwld.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_utils.h"

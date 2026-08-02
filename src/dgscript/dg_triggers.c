@@ -21,7 +21,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "oasis.h"
+#include "olc/oasis.h"
 #include "constants.h"
 #include "spells.h" /* for skill_name() */
 #include "act.h"    /* for cmd_door[] */
