@@ -35,7 +35,7 @@
 #include "spec_abilities.h"
 #include "feats.h"
 #include "actions.h"
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 #include "actionqueues.h"
 #include "craft/craft.h"
 #include "assign_wpn_armor.h"

@@ -24,7 +24,7 @@
 #include "olc/genolc.h" /* for strip_cr and sprintascii */
 #include "craft/craft.h"
 #include "spec_abilities.h"
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 
 #define OBJSAVE_DB 1
 

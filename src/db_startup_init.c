@@ -16,7 +16,7 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
-#include "pubsub.h"
+#include "pubsub/pubsub.h"
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 

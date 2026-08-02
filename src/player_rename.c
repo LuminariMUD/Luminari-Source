@@ -15,7 +15,7 @@
 #include "helpers.h"
 #include "mysql.h"
 #include "account.h"
-#include "pubsub.h"
+#include "pubsub/pubsub.h"
 #include "net/protocol.h"
 #include "movement/movement_tracks.h"
 #include "vessels/vessels.h"

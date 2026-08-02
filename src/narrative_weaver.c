@@ -24,7 +24,7 @@
 #include "mysql.h"
 #include "wilderness/region_hints.h"
 #include "wilderness/resource_descriptions.h"
-#include "systems/narrative_weaver/narrative_weaver.h"
+#include "narrative_weaver.h"
 #include "wilderness/resource_system.h"
 
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)

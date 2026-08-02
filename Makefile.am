@@ -159,19 +159,19 @@ circle_SOURCES = \
 	src/premadebuilds.c \
 	src/net/protocol.c \
 	src/psionics.c \
-	src/pubsub.c \
-	src/systems/pubsub/pubsub_handlers.c \
-	src/systems/pubsub/pubsub_db.c \
-	src/systems/pubsub/pubsub_commands.c \
-	src/systems/pubsub/pubsub_queue.c \
-	src/systems/pubsub/pubsub_spatial.c \
-	src/systems/pubsub/pubsub_event_handlers.c \
+	src/pubsub/pubsub.c \
+	src/pubsub/pubsub_handlers.c \
+	src/pubsub/pubsub_db.c \
+	src/pubsub/pubsub_commands.c \
+	src/pubsub/pubsub_queue.c \
+	src/pubsub/pubsub_spatial.c \
+	src/pubsub/pubsub_event_handlers.c \
 	src/wilderness/spatial_core.c \
 	src/wilderness/spatial_visual.c \
 	src/wilderness/spatial_audio.c \
 	src/wilderness/terrain_bridge.c \
 	src/wilderness/region_hints.c \
-	src/systems/narrative_weaver/narrative_weaver.c \
+	src/narrative_weaver.c \
 	src/net/onboarding.c \
 	src/net/i3_client.c \
 	src/net/i3_commands.c \
@@ -194,7 +194,7 @@ circle_SOURCES = \
 	src/spec_abilities.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
-	src/world/spec_artifacts.c \
+	src/spec_artifacts.c \
 	src/casting_visuals.c \
 	src/spell_parser.c \
 	src/spell_prep.c \

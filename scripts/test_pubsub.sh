@@ -39,9 +39,9 @@ fi
 # Test 4: Check unified header structure
 echo ""
 echo "Test 4: Header Structure Test"
-if grep -q "pubsub_message_type" src/pubsub.h && \
-   grep -q "pubsub_message_category" src/pubsub.h && \
-   grep -q "content_encoding" src/pubsub.h; then
+if grep -q "pubsub_message_type" src/pubsub/pubsub.h && \
+   grep -q "pubsub_message_category" src/pubsub/pubsub.h && \
+   grep -q "content_encoding" src/pubsub/pubsub.h; then
     echo "✅ PASS: Unified header contains V3 enhanced structures"
 else
     echo "❌ FAIL: Header missing V3 enhanced structures"
@@ -50,7 +50,7 @@ fi
 # Test 5: Check for removed V3 files
 echo ""
 echo "Test 5: V3 Files Cleanup Test"
-if [ ! -f "src/pubsub_v3.c" ] && [ ! -f "src/pubsub_v3.h" ]; then
+if [ ! -f "src/pubsub_v3.c" ] && [ ! -f "src/pubsub/pubsub_v3.h" ]; then
     echo "✅ PASS: V3 files successfully removed"
 else
     echo "❌ FAIL: V3 files still present"
@@ -59,9 +59,9 @@ fi
 # Test 6: Check validation functions exist
 echo ""
 echo "Test 6: Validation Functions Test"
-if grep -q "pubsub_is_valid_message_type" src/pubsub.c && \
-   grep -q "pubsub_is_valid_message_category" src/pubsub.c && \
-   grep -q "pubsub_is_valid_type_category_combo" src/pubsub.c; then
+if grep -q "pubsub_is_valid_message_type" src/pubsub/pubsub.c && \
+   grep -q "pubsub_is_valid_message_category" src/pubsub/pubsub.c && \
+   grep -q "pubsub_is_valid_type_category_combo" src/pubsub/pubsub.c; then
     echo "✅ PASS: Enhanced validation functions present"
 else
     echo "❌ FAIL: Validation functions missing"
@@ -71,7 +71,7 @@ fi
 echo ""
 echo "Test 7: Database Functions Test"
 if grep -q "pubsub_db_create_tables" src/pubsub_db.c && \
-   ! grep -q "pubsub_db_create_tables" src/pubsub.c; then
+   ! grep -q "pubsub_db_create_tables" src/pubsub/pubsub.c; then
     echo "✅ PASS: Database functions properly separated"
 else
     echo "❌ FAIL: Database function organization issues"

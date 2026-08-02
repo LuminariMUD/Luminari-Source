@@ -17,7 +17,7 @@
 #include "comm.h"
 #include "mysql.h"
 #include "db_init.h"
-#include "pubsub.h"
+#include "pubsub/pubsub.h"
 #include "vessels/vessels.h"
 
 /* Internal helpers */

@@ -48,7 +48,7 @@
 #include "dgscript/dg_scripts.h"
 #include "campaign.h"
 #include "domains_schools.h"
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 
 /* --------------------------------------------------------------------------
  * Global state

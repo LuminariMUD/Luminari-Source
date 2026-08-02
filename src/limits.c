@@ -38,7 +38,7 @@
 #include "spell_prep.h"
 #include "perks.h"
 #include "moon_bonus_spells.h"
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 
 // external functions
 void save_char_pets(struct char_data *ch);

@@ -2,7 +2,7 @@
  *  File: test_artifacts.c                            Part of LuminariMUD
  *  Usage: Production-linked tests for the artifact system.
  *
- *  These exercise the parts of src/world/spec_artifacts.c that do not need a
+ *  These exercise the parts of src/spec_artifacts.c that do not need a
  *  booted world: registry lookup, the XP curve, binding-name mapping, and
  *  save/load round-tripping of the data file.
  *************************************************************************** */
@@ -20,7 +20,7 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/spells.h"
-#include "../../src/world/spec_artifacts.h"
+#include "../../src/spec_artifacts.h"
 
 /* --------------------------------------------------------------------------
  * Helpers

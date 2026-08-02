@@ -106,13 +106,13 @@
 #include "bardic_performance.h" /* for the bard performance pulse */
 #include "craft/crafting_new.h"
 #include "ai_service.h"                /* for shutdown_ai_service() */
-#include "pubsub.h"                    /* for automatic queue processing */
+#include "pubsub/pubsub.h"             /* for automatic queue processing */
 #include "net/discord_bridge.h"        /* Discord bridge integration */
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
 #include "asciimap.h"
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)

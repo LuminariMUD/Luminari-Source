@@ -912,7 +912,7 @@
 #define PSIONIC_POWER_END 1605
 
 /***************************************/
-/* Artifact system (src/world/spec_artifacts.c) - affect markers only. These
+/* Artifact system (src/spec_artifacts.c) - affect markers only. These
  * are registered for names and wear-off messages, but can never be cast.
  * Free band is 1606-1646. */
 #define SPELL_ARTIFACT_BONUS 1610

@@ -74,7 +74,7 @@
 #include "net/discord_bridge.h"
 #include "evolutions.h"
 #include "deities.h"
-#include "pubsub.h"
+#include "pubsub/pubsub.h"
 #include "mudlim.h"
 #include "backgrounds.h"
 #include "roleplay.h"
@@ -85,7 +85,7 @@
 #include "mysql.h"
 #include "mysql_boards.h"
 #include "olc/bedit.h" /* MySQL board system */
-#include "world/spec_artifacts.h"
+#include "spec_artifacts.h"
 #include "net/onboarding.h"
 
 /* local (file scope) functions */

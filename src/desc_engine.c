@@ -18,7 +18,7 @@
 #include "constants.h"
 #include "mysql.h"
 #include "desc_engine.h"
-#include "systems/narrative_weaver/narrative_weaver.h"
+#include "narrative_weaver.h"
 #include "wilderness/wilderness.h"
 #include "wilderness/resource_descriptions.h"
 #include "wilderness/region_hints.h"
