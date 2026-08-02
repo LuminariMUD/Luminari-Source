@@ -271,8 +271,11 @@ content_valid=$(database_scalar "
   fail "frontier regions, spatial indexes, path, or prototypes are invalid"
 
 timeout 120 "$script_dir/dev_kohdee_login_smoke.sh" --commands \
-  'reglist' \
   'goto -810 480' \
+  'reglist type 5' \
+  'reglist type 6' \
+  'reglist type 7' \
+  'pathlist type 5' \
   'look' \
   'survey' \
   'goto 900 225' \

@@ -47,8 +47,8 @@ static void list_objects(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, ob
 static void list_shops(struct char_data *ch, zone_rnum rnum, shop_vnum vmin, shop_vnum vmax);
 static void list_zones(struct char_data *ch, zone_rnum rnum, zone_vnum vmin, zone_vnum vmax,
                        char *name);
-static void list_regions(struct char_data *ch);
-static void list_paths(struct char_data *ch);
+static void list_regions(struct char_data *ch, int requested_type);
+static void list_paths(struct char_data *ch, int requested_type);
 static void list_object_applies(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax);
 static void list_objects_full(struct char_data *ch, zone_rnum rnum, obj_vnum vmin, obj_vnum vmax,
                               bool show_applies);
@@ -953,18 +953,20 @@ ACMD(do_oasis_list)
         send_to_char(ch, "Available types are:\r\n");
         send_to_char(ch, "\t1 - Road\r\n");
         send_to_char(ch, "\t2 - Dirt Road\r\n");
-        send_to_char(ch, "\t5 - Water\r\n");
+        send_to_char(ch, "\t5 - River\r\n");
         send_to_char(ch, "\r\n");
         return;
-      } /*else {
-          perform_region_type_list(ch, arg2);
-        }
-
-        if (!*arg2 && is_number(arg))
-          perform_region_dist_list(ch, arg);
-        else*/
+      }
+      if (!is_number(arg2) || (atoi(arg2) != PATH_ROAD && atoi(arg2) != PATH_DIRT_ROAD &&
+                               atoi(arg2) != PATH_RIVER))
+      {
+        send_to_char(ch, "Path type must be 1, 2, or 5.\r\n");
+        return;
+      }
+      list_paths(ch, atoi(arg2));
+      return;
     }
-    list_paths(ch);
+    list_paths(ch, 0);
 
     break;
   case SCMD_OASIS_REGLIST:
@@ -996,17 +998,22 @@ ACMD(do_oasis_list)
         send_to_char(ch, "\t2 - Encounter\r\n");
         send_to_char(ch, "\t3 - Sector Transform\r\n");
         send_to_char(ch, "\t4 - Sector\r\n");
+        send_to_char(ch, "\t5 - Bathymetric\r\n");
+        send_to_char(ch, "\t6 - Altitude Lane\r\n");
+        send_to_char(ch, "\t7 - Sky Island\r\n");
         send_to_char(ch, "\r\n");
         return;
-      } /*else {
-          perform_region_type_list(ch, arg2);
-        }
-
-        if (!*arg2 && is_number(arg))
-          perform_region_dist_list(ch, arg);
-        else*/
+      }
+      if (!is_number(arg2) || atoi(arg2) < REGION_GEOGRAPHIC ||
+          atoi(arg2) > REGION_SKY_ISLAND)
+      {
+        send_to_char(ch, "Region type must be between 1 and 7.\r\n");
+        return;
+      }
+      list_regions(ch, atoi(arg2));
+      return;
     }
-    list_regions(ch);
+    list_regions(ch, 0);
 
     break;
 
@@ -1290,7 +1297,7 @@ ACMD(do_oasis_links)
 /* Helper Functions */
 
 /* List all regions in wilderness. */
-static void list_regions(struct char_data *ch)
+static void list_regions(struct char_data *ch, int requested_type)
 {
   region_rnum i;
   int counter = 0, len;
@@ -1308,6 +1315,9 @@ static void list_regions(struct char_data *ch)
 
   for (i = 0; i <= top_of_region_table; i++)
   {
+    if (requested_type && region_table[i].region_type != requested_type)
+      continue;
+
     counter++;
 
     switch (region_table[i].region_type)
@@ -1362,7 +1372,7 @@ static void list_regions(struct char_data *ch)
 }
 
 /* List all paths in wilderness. */
-static void list_paths(struct char_data *ch)
+static void list_paths(struct char_data *ch, int requested_type)
 {
   path_rnum i;
   int counter = 0, len;
@@ -1378,6 +1388,9 @@ static void list_paths(struct char_data *ch)
 
   for (i = 0; i <= top_of_path_table; i++)
   {
+    if (requested_type && path_table[i].path_type != requested_type)
+      continue;
+
     counter++;
 
     len += snprintf(buf + len, sizeof(buf) - len,
@@ -1387,7 +1400,7 @@ static void list_paths(struct char_data *ch)
                          ? "Road"
                          : (path_table[i].path_type == 2
                                 ? "Dirt Road"
-                                : (path_table[i].path_type == 5 ? "Water" : "[UNKNOWN]"))),
+                                : (path_table[i].path_type == 5 ? "River" : "[UNKNOWN]"))),
                     QNRM, QYEL, path_table[i].glyphs[0], path_table[i].glyphs[1],
                     path_table[i].glyphs[2], QNRM);
 
