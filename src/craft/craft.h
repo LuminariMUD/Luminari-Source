@@ -222,4 +222,9 @@ ACMD_DECL(do_need_craft_kit);
 int get_mysql_supply_orders_available(struct char_data *ch);
 void put_mysql_supply_orders_available(struct char_data *ch, int avail);
 
+#ifdef LUMINARI_CUTEST
+int test_award_legacy_crafting_experience(struct char_data *ch, int exp);
+int test_legacy_supply_order_skill(int material);
+#endif
+
 #endif /* CRAFT_H */

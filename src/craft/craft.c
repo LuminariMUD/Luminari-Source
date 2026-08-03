@@ -48,6 +48,9 @@ int farming_nodes = 0;
 int hunting_nodes = 0;
 int foresting_nodes = 0;
 
+static int award_legacy_crafting_experience(struct char_data *ch, int exp);
+static int legacy_supply_order_skill(int material);
+
 /***********************************/
 /* crafting local utility functions*/
 /***********************************/
@@ -294,6 +297,42 @@ int convert_material(int material)
 
   return material;
 }
+
+static int award_legacy_crafting_experience(struct char_data *ch, int exp)
+{
+  int gained = gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
+
+  if (gained > 0)
+    send_to_char(ch, "You gained %d exp for crafting...\r\n", gained);
+
+  return gained;
+}
+
+static int legacy_supply_order_skill(int material)
+{
+  if (IS_HARD_METAL(material) || IS_PRECIOUS_METAL(material))
+    return SKILL_MINING;
+  if (IS_LEATHER(material))
+    return SKILL_HUNTING;
+  if (IS_WOOD(material))
+    return SKILL_FORESTING;
+  if (IS_CLOTH(material))
+    return SKILL_KNITTING;
+
+  return -1;
+}
+
+#ifdef LUMINARI_CUTEST
+int test_award_legacy_crafting_experience(struct char_data *ch, int exp)
+{
+  return award_legacy_crafting_experience(ch, exp);
+}
+
+int test_legacy_supply_order_skill(int material)
+{
+  return legacy_supply_order_skill(material);
+}
+#endif
 
 /* simple function to reset craft data */
 void reset_craft(struct char_data *ch)
@@ -2784,7 +2823,7 @@ EVENTFUNC(event_crafting)
   char buf[MAX_INPUT_LENGTH] = {'\0'};
   char buf2[24] = {'\0'}; /* Small buffer for repeat suffix " (x%d)" or "\tn" */
   int exp = 0;
-  int skill = -1, roll = -1;
+  int skill = -1;
 
   // initialize everything and dummy checks
   if (event_obj == NULL)
@@ -2846,10 +2885,7 @@ EVENTFUNC(event_crafting)
     if (GET_CRAFTING_TYPE(ch) == SCMD_RESIZE)
       exp = 0;
     if (exp > 0)
-    {
-      gain_exp(ch, exp, GAIN_EXP_MODE_CRAFT);
-      send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
-    }
+      award_legacy_crafting_experience(ch, exp);
     send_to_char(ch,
                  "\tnYou have approximately %d seconds "
                  "left to go.\r\n",
@@ -3115,42 +3151,7 @@ EVENTFUNC(event_crafting)
       break;
 
     case SCMD_SUPPLYORDER:
-      /* picking a random trade to notch */
-      roll = dice(1, 10);
-      switch (roll)
-      {
-      case 1:
-        skill = SKILL_ARMOR_SMITHING;
-        break;
-      case 2:
-        skill = SKILL_WEAPON_SMITHING;
-        break;
-      case 3:
-        skill = SKILL_JEWELRY_MAKING;
-        break;
-      case 4:
-        skill = SKILL_CHEMISTRY;
-        break;
-      case 5:
-        skill = SKILL_BONE_ARMOR;
-        break;
-      case 6:
-        skill = SKILL_ELVEN_CRAFTING;
-        break;
-      case 7:
-        skill = SKILL_MASTERWORK_CRAFTING;
-        break;
-      case 8:
-        skill = SKILL_DRACONIC_CRAFTING;
-        break;
-      case 9:
-        skill = SKILL_DWARVEN_CRAFTING;
-        break;
-
-      default:
-        skill = SKILL_LEATHER_WORKING;
-        break;
-      }
+      skill = legacy_supply_order_skill(GET_AUTOCQUEST_MATERIAL(ch));
       GET_AUTOCQUEST_MAKENUM(ch)
       --;
       if (GET_AUTOCQUEST_MAKENUM(ch) <= 0)

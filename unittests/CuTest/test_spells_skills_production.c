@@ -14,6 +14,7 @@
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/craft/craft.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -106,6 +107,71 @@ void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
   CuAssertIntEquals(tc, 15, duration);
   CuAssertIntEquals(tc, RAFF_DARKNESS, affection);
   CuAssertIntEquals(tc, WARLOCK_DARKNESS, spell);
+}
+
+void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct descriptor_data descriptor;
+  int saved_max_exp_gain;
+  int saved_experience_multiplier;
+  int gained;
+  bool modified_gain_reported;
+  bool base_gain_reported;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &ch;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "legacy crafting experience test character";
+  IN_ROOM(&ch) = NOWHERE;
+  GET_CLASS(&ch) = CLASS_WARRIOR;
+  GET_LEVEL(&ch) = 6;
+  ch.player_specials->saved.stage_info.current_stage = 1;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the legacy crafting experience fixture");
+    return;
+  }
+
+  saved_max_exp_gain = CONFIG_MAX_EXP_GAIN;
+  saved_experience_multiplier = CONFIG_EXPERIENCE_MULTIPLIER;
+  CONFIG_MAX_EXP_GAIN = 100000;
+  CONFIG_EXPERIENCE_MULTIPLIER = 100;
+  GET_EXP(&ch) = level_exp(&ch, GET_LEVEL(&ch));
+
+  gained = test_award_legacy_crafting_experience(&ch, 10);
+  modified_gain_reported = strstr(descriptor.output, "You gained 25 exp for crafting...") != NULL;
+  base_gain_reported = strstr(descriptor.output, "You gained 10 exp for crafting...") != NULL;
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+  CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
+  CONFIG_EXPERIENCE_MULTIPLIER = saved_experience_multiplier;
+
+  CuAssertIntEquals(tc, 25, gained);
+  CuAssertTrue(tc, modified_gain_reported);
+  CuAssertTrue(tc, !base_gain_reported);
+}
+
+void Test_legacy_supply_orders_improve_the_material_skill(CuTest *tc)
+{
+  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_STEEL));
+  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_BRONZE));
+  CuAssertIntEquals(tc, SKILL_MINING, test_legacy_supply_order_skill(MATERIAL_COPPER));
+  CuAssertIntEquals(tc, SKILL_HUNTING, test_legacy_supply_order_skill(MATERIAL_LEATHER));
+  CuAssertIntEquals(tc, SKILL_FORESTING, test_legacy_supply_order_skill(MATERIAL_WOOD));
+  CuAssertIntEquals(tc, SKILL_KNITTING, test_legacy_supply_order_skill(MATERIAL_WOOL));
+  CuAssertIntEquals(tc, SKILL_KNITTING, test_legacy_supply_order_skill(MATERIAL_SATIN));
+  CuAssertIntEquals(tc, -1, test_legacy_supply_order_skill(MATERIAL_GLASS));
 }
 
 void Test_spells_production_name_and_level_lookup(CuTest *tc)

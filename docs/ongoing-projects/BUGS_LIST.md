@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 12 actionable code items drawn
-from 13 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 11 actionable code items drawn
+from 12 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 28 unique records remain from the original 146-record
-snapshot. The other 118 were removed because they are resolved, intentional,
+Across both files, 27 unique records remain from the original 146-record
+snapshot. The other 119 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Crafting reports pre-modifier XP and can improve an unrelated skill** -
-  Completion messaging prints base XP even though `gain_exp` applies the
-  newbie bonus, and the legacy completion path can randomly improve a
-  different crafting skill. Reporter: Zylese (L6, R370, 2023-08-19; #082).
 - **Death effects can grant account XP without killing the target** - Recall
   Death and Psychic Crush calculate more than the generic 1,499 damage cap.
   Damage XP is awarded before death resolution, so a high-HP target can survive
