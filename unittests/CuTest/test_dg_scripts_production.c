@@ -43,6 +43,33 @@ void Test_dg_production_variable_lifecycle(CuTest *tc)
   free_varlist(variables);
 }
 
+void Test_dg_production_typed_script_field_lifecycle(CuTest *tc)
+{
+  struct script_data *script = NULL;
+  struct trig_proto_list source_first = {0};
+  struct trig_proto_list source_second = {0};
+  struct trig_proto_list *copy = NULL;
+
+  CREATE(script, struct script_data, 1);
+  add_var(&script->global_vars, "typed_owner", "safe", 0);
+  extract_script(&script);
+  CuAssertPtrEquals(tc, NULL, script);
+
+  source_first.vnum = 101;
+  source_first.next = &source_second;
+  source_second.vnum = 202;
+  copy_proto_script(&source_first, &copy);
+
+  CuAssertPtrNotNull(tc, copy);
+  CuAssertIntEquals(tc, source_first.vnum, copy->vnum);
+  CuAssertPtrNotNull(tc, copy->next);
+  CuAssertIntEquals(tc, source_second.vnum, copy->next->vnum);
+  CuAssertPtrEquals(tc, NULL, copy->next->next);
+
+  free_proto_script(&copy);
+  CuAssertPtrEquals(tc, NULL, copy);
+}
+
 void Test_dg_production_flag_name_matching(CuTest *tc)
 {
   int flags[4];

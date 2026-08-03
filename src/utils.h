@@ -443,6 +443,7 @@ const char *format_time_ymd_hms(time_t when);
 /* Filesystem helpers */
 /* Validates a single filename component, excluding path separators and traversal. */
 bool is_safe_path_component(const char *name);
+bool is_safe_relative_path(const char *path);
 /* Ensures that a directory path exists, creating intermediate directories as needed. */
 bool ensure_dir_exists(const char *path);
 

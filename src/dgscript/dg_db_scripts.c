@@ -305,98 +305,59 @@ void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum)
   }
 }
 
-void assign_triggers(void *i, int type)
+static void assign_trigger_list(struct trig_proto_list *trg_proto, struct script_data **script,
+                                const char *owner_type, int owner_vnum, const char *editor,
+                                const char *script_menu)
 {
-  struct char_data *mob = NULL;
-  struct obj_data *obj = NULL;
-  struct room_data *room = NULL;
   trig_rnum rnum;
-  struct trig_proto_list *trg_proto;
 
-  switch (type)
+  while (trg_proto)
   {
-  case MOB_TRIGGER:
-    mob = (char_data *)i;
-    trg_proto = mob->proto_script;
-    while (trg_proto)
+    rnum = real_trigger(trg_proto->vnum);
+    if (rnum == NOTHING)
     {
-      rnum = real_trigger(trg_proto->vnum);
-      if (rnum == NOTHING)
-      {
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER ERROR: Mobile #%d has non-existent trigger #%d assigned!",
-               mob_index[mob->nr].vnum, trg_proto->vnum);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'medit %d'",
-               trg_proto->vnum, mob_index[mob->nr].vnum);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER HELP: Use 'tlist' to see triggers, 'attach' in medit to manage");
-      }
-      else
-      {
-        if (!SCRIPT(mob))
-          CREATE(SCRIPT(mob), struct script_data, 1);
-        add_trigger(SCRIPT(mob), read_trigger(rnum), -1);
-      }
-      trg_proto = trg_proto->next;
+      mudlog(BRF, LVL_BUILDER, TRUE, "TRIGGER ERROR: %s #%d has non-existent trigger #%d assigned!",
+             owner_type, owner_vnum, trg_proto->vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from '%s %d'",
+             trg_proto->vnum, editor, owner_vnum);
+      mudlog(BRF, LVL_BUILDER, TRUE,
+             "TRIGGER HELP: Use 'tlist' to see triggers, '%s' in %s to manage", script_menu,
+             editor);
     }
-    break;
-  case OBJ_TRIGGER:
-    obj = (obj_data *)i;
-    trg_proto = obj->proto_script;
-    while (trg_proto)
+    else
     {
-      rnum = real_trigger(trg_proto->vnum);
-      if (rnum == NOTHING)
-      {
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER ERROR: Object #%d has non-existent trigger #%d assigned!",
-               obj_index[obj->item_number].vnum, trg_proto->vnum);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'oedit %d'",
-               trg_proto->vnum, obj_index[obj->item_number].vnum);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER HELP: Use 'tlist' to see triggers, 'scripts' in oedit to manage");
-      }
-      else
-      {
-        if (!SCRIPT(obj))
-          CREATE(SCRIPT(obj), struct script_data, 1);
-        add_trigger(SCRIPT(obj), read_trigger(rnum), -1);
-      }
-      trg_proto = trg_proto->next;
+      if (!*script)
+        CREATE(*script, struct script_data, 1);
+      add_trigger(*script, read_trigger(rnum), -1);
     }
-    break;
-  case WLD_TRIGGER:
-    room = (struct room_data *)i;
-    trg_proto = room->proto_script;
-    while (trg_proto)
-    {
-      rnum = real_trigger(trg_proto->vnum);
-      if (rnum == NOTHING)
-      {
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER ERROR: Room #%d has non-existent trigger #%d assigned!", room->number,
-               trg_proto->vnum);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER FIX: Create trigger with 'trigedit %d' OR remove from 'redit %d'",
-               trg_proto->vnum, room->number);
-        mudlog(BRF, LVL_BUILDER, TRUE,
-               "TRIGGER HELP: Use 'tlist' to see triggers, 'scripts' in redit to manage");
-      }
-      else
-      {
-        if (!SCRIPT(room))
-          CREATE(SCRIPT(room), struct script_data, 1);
-        add_trigger(SCRIPT(room), read_trigger(rnum), -1);
-      }
-      trg_proto = trg_proto->next;
-    }
-    break;
-  default:
-    mudlog(BRF, LVL_BUILDER, TRUE,
-           "TRIGGER ERROR: Unknown type passed to assign_triggers() function!");
-    mudlog(BRF, LVL_BUILDER, TRUE, "TRIGGER FIX: This is a code bug - report to developers");
-    break;
+
+    trg_proto = trg_proto->next;
   }
+}
+
+void assign_mob_triggers(struct char_data *mob)
+{
+  if (!mob)
+    return;
+
+  assign_trigger_list(mob->proto_script, &mob->script, "Mobile", mob_index[mob->nr].vnum, "medit",
+                      "attach");
+}
+
+void assign_obj_triggers(struct obj_data *obj)
+{
+  if (!obj)
+    return;
+
+  assign_trigger_list(obj->proto_script, &obj->script, "Object", obj_index[obj->item_number].vnum,
+                      "oedit", "scripts");
+}
+
+void assign_room_triggers(struct room_data *room)
+{
+  if (!room)
+    return;
+
+  assign_trigger_list(room->proto_script, &room->script, "Room", room->number, "redit", "scripts");
 }

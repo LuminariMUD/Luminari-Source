@@ -36,7 +36,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   if ((i = real_room(room->number)) != NOWHERE)
   {
     if (SCRIPT(&world[i]))
-      extract_script(&world[i], WLD_TRIGGER);
+      extract_script(&world[i].script);
     tch = world[i].people;
     tobj = world[i].contents;
     copy_room(&world[i], room);
@@ -209,8 +209,8 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
 
   free_room_strings(room);
   if (SCRIPT(room))
-    extract_script(room, WLD_TRIGGER);
-  free_proto_script(room, WLD_TRIGGER);
+    extract_script(&room->script);
+  free_proto_script(&room->proto_script);
 
   clear_room_event_list(room);
 
