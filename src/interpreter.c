@@ -6122,6 +6122,7 @@ void command_interpreter(struct char_data *ch, char *argument)
            !is_abbrev(complete_cmd_info[cmd].command, "who") &&
            !is_abbrev(complete_cmd_info[cmd].command, "score") &&
            !is_abbrev(complete_cmd_info[cmd].command, "craftscore") &&
+           !is_abbrev(complete_cmd_info[cmd].command, "cexchange") &&
            !is_abbrev(complete_cmd_info[cmd].command, "queue") &&
            !is_abbrev(complete_cmd_info[cmd].command, "help") &&
            !is_abbrev(complete_cmd_info[cmd].command, "feat") &&

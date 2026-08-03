@@ -759,6 +759,36 @@ void Test_gameplay_e2e_command_dispatch_reaches_movement(CuTest *tc)
   CuAssertIntEquals(tc, 1, destination);
 }
 
+void Test_gameplay_e2e_cexchange_preserves_hidden_sneaking(CuTest *tc)
+{
+  struct gameplay_fixture fixture;
+  bool created_command_list;
+  bool remained_hidden;
+  bool remained_sneaking;
+  char command[] = "cexchange";
+
+  begin_gameplay_fixture(&fixture);
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_HIDE);
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_SNEAK);
+
+  command_interpreter(&fixture.actor, command);
+  remained_hidden = AFF_FLAGGED(&fixture.actor, AFF_HIDE);
+  remained_sneaking = AFF_FLAGGED(&fixture.actor, AFF_SNEAK);
+
+  if (created_command_list)
+    free_command_list();
+  end_gameplay_fixture(&fixture);
+
+  CuAssertTrue(tc, remained_hidden);
+  CuAssertTrue(tc, remained_sneaking);
+}
+
 void Test_gameplay_e2e_winters_war_march_recovery_covers_failed_save_slow(CuTest *tc)
 {
   struct gameplay_fixture fixture;
