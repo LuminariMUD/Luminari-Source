@@ -15,6 +15,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 void Test_spells_production_classification_helpers(CuTest *tc)
@@ -59,6 +60,52 @@ void Test_practiced_sneak_makes_stealth_a_class_skill(CuTest *tc)
   CuAssertIntEquals(tc, 1, cross_class_multiclass);
   CuAssertIntEquals(tc, 2, practiced_sneak_direct);
   CuAssertIntEquals(tc, 2, practiced_sneak_multiclass);
+}
+
+void Test_warlock_darkness_lasts_fifteen_rounds(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  struct raff_node *saved_raff_list;
+  struct raff_node *darkness;
+  room_rnum saved_top_of_world;
+  int duration;
+  int affection;
+  int spell;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = "warlock darkness test character";
+  IN_ROOM(&ch) = 0;
+  GET_CLASS(&ch) = CLASS_WARLOCK;
+  GET_LEVEL(&ch) = 6;
+  CLASS_LEVEL((&ch), CLASS_WARLOCK) = 6;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  saved_raff_list = raff_list;
+  world = &room;
+  top_of_world = 0;
+  raff_list = NULL;
+
+  mag_room(GET_LEVEL(&ch), &ch, NULL, WARLOCK_DARKNESS, CAST_INNATE);
+
+  darkness = raff_list;
+  duration = darkness == NULL ? -1 : darkness->timer;
+  affection = darkness == NULL ? -1 : darkness->affection;
+  spell = darkness == NULL ? -1 : darkness->spell;
+  free(darkness);
+  raff_list = saved_raff_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 15, duration);
+  CuAssertIntEquals(tc, RAFF_DARKNESS, affection);
+  CuAssertIntEquals(tc, WARLOCK_DARKNESS, spell);
 }
 
 void Test_spells_production_name_and_level_lookup(CuTest *tc)

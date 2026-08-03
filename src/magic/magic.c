@@ -14164,8 +14164,6 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj __attribute_
     to_room = "$n creates a blanket of pitch black.";
     aff = RAFF_DARKNESS;
     rounds = 15;
-    if (spellnum == WARLOCK_DARKNESS)
-      rounds = GET_WARLOCK_LEVEL(ch);
     break;
 
   case SPELL_SACRED_SPACE: // divination
