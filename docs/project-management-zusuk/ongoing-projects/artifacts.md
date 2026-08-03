@@ -185,93 +185,33 @@ Record approved balance changes in the changelog and update
 Resolved in favour of persistence. The v2.3 ownership format stores the
 ability, proc, and per-slot called-effect stamps; v1, v2.0, v2.1, and v2.2
 files still load, and a stamp in the future is treated as ready rather than
-as a longer wait. Remaining historical notes follow.
-
-
-Active-ability, generic-proc, and called-effect timestamps currently live
-only in memory. Restarting the server makes every power ready. This matches
-the upstream called-effect event-queue behavior but creates an exploitable
-reset on servers that reboot often.
-
-If persistence is required:
-
-- introduce a v2.3 ownership format;
-- store ability, proc, and effect-slot last-use stamps as appropriate;
-- preserve v1, v2.0, v2.1, and v2.2 loading;
-- define behavior for removed, reordered, and newly added effect slots;
-- add migration, round-trip, expired-timer, and clock-skew tests.
+as a longer wait.
 
 ## 6. Validate the effect table at boot - DONE
 
 Implemented as `artifact_validate_metadata()`, run from `artifact_boot()` and
 re-runnable from `testartifact verify`. It covers templates, contracts,
 effects, and passive powers, logs a precise SYSERR naming the offending row,
-and disables only the invalid effect. Remaining historical notes follow.
-
-
-`artifact_effects[]` assigns recharge slots by hand. Runtime rejects an
-out-of-range slot, but duplicate slots on one artifact silently share a
-recharge timer. The current shape test also duplicates expected phrases
-instead of inspecting a public validation result.
-
-Add boot-time validation for:
-
-- VNUMs that resolve to registry artifacts;
-- slots within `0 .. ARTIFACT_MAX_EFFECTS - 1`;
-- unique slots per artifact;
-- nonempty, pre-normalized phrases;
-- valid target and effect identifiers;
-- target requirements consistent with the phrase and dispatcher.
-
-The system should log a precise `SYSERR` and disable only the invalid effect,
-not the entire artifact registry.
+and disables only the invalid effect. Coverage includes registry-resolvable
+VNUMs, in-range and unique recharge slots, nonempty pre-normalized phrases,
+and valid target and effect identifiers.
 
 ## 7. Fix Amaukekel's group recall ordering - DONE
 
 Fixed with `artifact_collect_group()`, which snapshots the origin room and
 the eligible members before anything moves. The same helper drives Courage's
-group invocation. Remaining historical notes follow.
-
-
-`artifact_dimension_shift()` recalls the caller before it iterates the group.
-The later same-room check therefore compares each member's original room with
-the caller's destination room, so ordinary nearby group members are skipped.
-
-Capture the origin room before moving anyone, select eligible group members
-from that origin, and then recall the caller and selected members safely even
-if movement triggers mutate the group or room lists.
-
-Acceptance criteria:
-
-- the caller and every eligible grouped character in the origin room move;
-- absent, ungrouped, and differently located characters do not move;
-- iteration remains safe when recall triggers move or extract a participant;
-- a booted-world regression test covers solo and grouped use.
+group invocation. The prior defect was that `artifact_dimension_shift()`
+recalled the caller before iterating, so the same-room check compared each
+member's origin against the caller's destination and skipped nearby members.
 
 ## 8. Harden staff spawn and reload - DONE
 
 `spawn` now refuses a durably owned artifact and changes nothing when it
 refuses; `testartifact recover` is the audited override. `reload` flushes
-dirty state first unless given the explicit `discard` mode. Remaining
-historical notes follow.
-
-
-`testartifact spawn <vnum>` rejects an existing live object but does not
-reject an artifact recorded as durably owned while its player is offline.
-Spawning that VNUM into an ordinary room can also change
-`instance_persisted` to false, weakening the next zone-reset guard.
-
-`testartifact reload` rebuilds the registry without first flushing dirty
-sub-threshold XP or other deferred state.
-
-Acceptance criteria:
-
-- `spawn` rejects a durably owned artifact unless an explicit,
-  separately-audited recovery operation is used;
-- a rejected spawn does not mutate ownership or persistence flags;
-- `reload` saves dirty state first or requires an explicit discard mode;
-- staff output explains every refusal and destructive override;
-- regression tests cover offline ownership and dirty reload state.
+dirty state first unless given the explicit `discard` mode. The prior gaps
+were `spawn` accepting an artifact durably owned by an offline player (and
+clearing `instance_persisted` in the process), and `reload` rebuilding the
+registry without flushing dirty sub-threshold XP.
 
 ---
 

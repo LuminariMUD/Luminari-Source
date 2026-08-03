@@ -11,6 +11,7 @@
 - Check `lib/.env` whether this is dev or production environment.  We don't modify production code.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
+- When adding or updating features, make sure to update relevant documentation and helpfiles
 
 ## Project Overview
 
@@ -103,7 +104,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - OLC (online creation): `src/olc/` - `genolc.c`, `gen*.c`, `*edit.c`, and the `oasis*` framework. In-game world editing that writes the flat world files.
 
 ### Source layout
-`src/` uses ONE flat level of feature directories. There is no nesting; `src/systems/` and `src/world/` no longer exist.
+`src/` uses ONE flat level of feature directories.
 
 | Directory | Holds |
 |-----------|-------|
@@ -122,9 +123,9 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
 | `src/pubsub/` | `pubsub*` |
 
-A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `mysql*`, `spec*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`, the `act.*` family) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+A directory must hold roughly 8+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`.  Do not nest a second level.
 
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), `traps*.c` stay flat (they fire from movement and item use), and `actions.c`/`actionqueues.c` stay flat (general scheduling).
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system).
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 

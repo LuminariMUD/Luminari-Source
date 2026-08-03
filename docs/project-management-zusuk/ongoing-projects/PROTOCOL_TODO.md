@@ -1,186 +1,118 @@
-# Protocol System TODO - Security and Improvements
+# Protocol System TODO - Security and Robustness
 
-## Status: Issues Identified from Security Audit
+Working notes for `src/net/protocol.c` (3836 lines) and `src/net/protocol.h`.
 
-Based on comprehensive analysis of the Protocol Systems documentation and protocol.c implementation, the following issues have been identified and need to be addressed.
+**Re-verified against source on 2026-08-03.** The previous revision of this
+file was written against an older tree and had drifted badly: it listed three
+CRITICAL remote-code-execution buffer overflows that are all fixed, and every
+line number in it was wrong. Anyone following it would have been sent to
+re-fix working code. What follows is only what the current source actually
+shows. Line numbers below are from the 2026-08-03 tree and will drift again -
+confirm before acting.
 
-## Previously Identified Issues (From Initial Assessment)
+## Already addressed - do not re-open
 
-### L **Issues Still Present (4/6 recommendations)**
+Recorded so a future audit does not re-file them.
 
-1. **Comprehensive null pointer validation** - NOT IMPLEMENTED
-   - Some NULL checks exist but not comprehensive across all functions
-   - Many functions lack consistent NULL pointer validation at entry points
+| Item | Evidence |
+|------|----------|
+| Bounds checking in `ProtocolInput` IAC/IAC parsing | `protocol.c:664` - `apData[Index] == IAC && Index + 1 < aSize && apData[Index + 1] == IAC` |
+| Bounds checking in IAC/SE parsing | `protocol.c:675` - same `Index + 1 < aSize` guard |
+| Bounds checking in MXP escape parsing | `protocol.c:687` - `Index + 3 < aSize` guards the whole `\033[<digit>z` lookahead |
+| Null validation at the `ProtocolInput` entry point | `protocol.c:638-644` - rejects null `apData`/`apOut` and non-positive `aSize`, with a defined fallback path when `pProtocol` is null |
+| Per-descriptor protocol buffers | `protocol.h:746` - `char CmdBuf[MAX_PROTOCOL_BUFFER + 1]` on the descriptor |
+| Buffer overflow detection | Present throughout; still drops the connection rather than degrading - see item 4 below |
+| Guarded `strcat` usage | All 13 call sites are length-checked before the call: `protocol.c:3017-3031` and the surrounding MSDP list builders, `protocol.c:3655-3680` for MSSP. Each failure path calls `ReportBug`. |
 
-2. **Replace malloc with calloc** - NOT IMPLEMENTED  
-   - Code uses `malloc()` in multiple places (protocol.c:303, 331, 340, 562, 1576, 1621, 3576)
-   - No automatic zero-initialization, requiring manual clearing
+The `strcat` entry is the important correction. The old file called these
+"unsafe string operations - buffer overflow attacks, HIGH PRIORITY". They are
+bounded. Converting them to `strncat` is a readability change, not a fix, and
+should not be scheduled as security work.
 
-3. **Graceful buffer overflow handling** - PARTIALLY IMPLEMENTED
-   - Has some buffer checks but uses dangerous functions like `strcat()` and `strncat()`
-   - Buffer overflow detection exists but causes connection drops rather than graceful handling
+## Open items
 
-4. **Standardized error return codes** - NOT IMPLEMENTED
-   - Inconsistent return patterns: some functions return -1, others return 0/1, some return TRUE/FALSE
-   - No standardized error code system across protocol functions
+### 1. Unbounded `sprintf` into `MSSPPair[128]`
 
-5. **Bounds checking for string operations** - NOT IMPLEMENTED
-   - Uses unsafe string functions (`strcat`, `strcpy`) without consistent length validation
-   - Missing comprehensive bounds checking before string operations
+`protocol.c:3361` declares `char MSSPPair[128]`. `protocol.c:3651` fills it
+with `sprintf(MSSPPair, "%c%s%c%s", MSSP_VAR, MSSPTable[i].pName, MSSP_VAL,
+...)` where the value is either a table constant or the return of an MSSP
+callback. The overflow check at `protocol.c:3656` runs *after* the write, so
+it bounds `MSSPBuffer` but not `MSSPPair`.
 
-###  **Already Addressed (2/6 recommendations)**
+Any MSSP value longer than ~120 bytes overruns a stack buffer. Several values
+come from server configuration rather than compile-time constants, so the
+input is staff-settable rather than attacker-settable - which is why this is
+first but not critical.
 
-1. **Per-descriptor buffers** - IMPLEMENTED
-   - Per-descriptor buffers: `CmdBuf[MAX_PROTOCOL_BUFFER + 1]` and `IacBuf[MAX_PROTOCOL_BUFFER + 1]`
+Fix: `snprintf` with `sizeof(MSSPPair)`, and check the truncation return.
 
-2. **Basic buffer overflow detection** - IMPLEMENTED
-   - Has buffer overflow detection (though not graceful)
+### 2. Bare `sprintf` audit - 11 remaining sites
 
-## Critical Security Vulnerabilities (From Comprehensive Audit)
+`protocol.c` uses `snprintf` 23 times and `sprintf` 11 times. The formats are
+all fixed strings, so these are not format-string vulnerabilities - the risk
+is destination sizing only. Sites, with the destination each writes to:
 
-### =¨ **CRITICAL PRIORITY - Immediate Action Required**
+| Line | Destination | Note |
+|------|-------------|------|
+| 1209 | `static char Buffer[64]` (1203) | two ints, safe by construction |
+| 1758, 1776, 1809 | `char MXPBuffer[1024]` | writes caller-supplied `apTag`; needs a length audit of the callers |
+| 1838 | heap `pBuffer` | sized from the trigger string |
+| 3339, 3346 | `static char Buffer[64]` | int and uptime, safe |
+| 3644, 3651, 3672 | `MSSPBuffer` / `MSSPPair` | 3651 is item 1 above |
 
-#### 1. Buffer Overflow in ProtocolInput Function (Lines 631-637)
-- **Risk**: Remote code execution
-- **Issue**: Array index bounds checking with potential off-by-one error
-- **Code**: `if (apData[Index] == (char)IAC && apData[Index + 1] == (char)IAC)`
-- **Fix**: Add bounds check: `if (Index + 1 < aSize && ...)`
+Convert all to `snprintf` for uniformity; the only one carrying real risk is
+3651, with 1758/1776/1809 needing the caller audit before being called safe.
 
-#### 2. Buffer Overflow in MXP Parsing (Lines 654-672)
-- **Risk**: Remote code execution
-- **Issue**: Multiple array access without proper bounds checking
-- **Code**: `apData[Index + 1] == '[' && isdigit(apData[Index + 2]) && apData[Index + 3] == 'z'`
-- **Fix**: Add comprehensive bounds checking for all array accesses
+### 3. `malloc` without zero-initialization - 8 sites
 
-#### 3. Buffer Overflow in IAC Parsing (Lines 642-643)
-- **Risk**: Remote code execution
-- **Issue**: Access without bounds checking
-- **Code**: `if (apData[Index] == (char)IAC && apData[Index + 1] == (char)SE)`
-- **Fix**: Add bounds check before accessing `Index + 1`
+`protocol.c:328, 357, 367, 591, 1661, 1707, 3184, 3823` use `malloc`; only one
+`calloc` appears in the file. Each site currently relies on manual field
+initialization. Converting to `calloc` removes a class of uninitialized-read
+bug and is mechanical.
 
-### =% **HIGH PRIORITY**
+`AllocString` (`protocol.c:3815-3836`) additionally computes `int Size =
+strlen(apString)` with no maximum. It is called with internal constants today,
+so it is not currently reachable with hostile input; bound it anyway if it
+ever takes network data.
 
-#### 4. Unsafe String Operations with strcat (Lines 785, 2826-2928)
-- **Risk**: Buffer overflow attacks
-- **Issue**: Multiple instances of unsafe `strcat` usage
-- **Code**: `strcat(apOut, CmdBuf);`, `strcat(MSDPCommands, " ");`
-- **Fix**: Replace with `strncat` or safer string concatenation functions
+### 4. Graceful buffer-overflow handling
 
-#### 5. Format String Vulnerabilities (Lines 740, 882, 887, 923, 929, 961, 966)
-- **Risk**: Information disclosure, crashes
-- **Issue**: Multiple `sprintf` calls with potential format string issues
-- **Code**: `sprintf(MXPBuffer, "MXP version %s detected...", ...);`
-- **Fix**: Use `snprintf` with explicit format strings
+Overflow is detected but handled by dropping the connection. Degrading -
+truncating the affected message and continuing - is friendlier and removes a
+cheap disconnect vector. Behavioral change; needs a decision before work.
 
-#### 6. Unsafe Memory Operations in AllocString (Lines 3575-3582)
-- **Risk**: Integer overflow, heap corruption
-- **Issue**: Integer overflow potential and unsafe memory operations
-- **Code**: `int Size = strlen(apString); pResult = (char *)malloc(Size + 1);`
-- **Fix**: Add maximum size limits and check for integer overflow
+### 5. Standardized error return codes
 
-###   **MEDIUM PRIORITY**
+Return conventions are inconsistent across the file: some functions return
+`-1`, others `0`/`1`, others `TRUE`/`FALSE`. No standard error enum exists.
+This is a maintainability item, not a security one.
 
-#### 7. Race Condition in String Replacement (Lines 1547-1551, 2461-2462)
-- **Risk**: Use-after-free in multi-threaded environment
-- **Issue**: Non-atomic string replacement operations
-- **Fix**: Implement proper synchronization or atomic operations
+### 6. Comprehensive null validation
 
-#### 8. Potential Null Pointer Dereferences (Lines 607-615)
-- **Risk**: Crashes, denial of service
-- **Issue**: Insufficient null pointer validation
-- **Fix**: Add comprehensive null pointer checks
+Entry-point validation exists in the main parse path (see the table above) but
+is not applied consistently across all exported functions. Worth a sweep; low
+risk given current call sites are all internal.
 
-#### 9. Buffer Length Miscalculation (Lines 1333-1344, 1409-1427)
-- **Risk**: Buffer overflows
-- **Issue**: Manual buffer size calculations prone to errors
-- **Fix**: Use safer string building functions or dynamic allocation
+## Testing
 
-#### 10. Insufficient Input Sanitization (Lines 2448-2453)
-- **Risk**: Injection attacks
-- **Issue**: Limited character validation for client names
-- **Fix**: Implement stricter input validation and sanitization
+The focused harness already exists and is the right place for regression
+coverage on anything changed here:
 
-#### 11. Memory Allocation Without Limits (Lines 562-569, 1576, 1621)
-- **Risk**: Memory exhaustion attacks
-- **Issue**: No limits on memory allocation sizes
-- **Fix**: Implement allocation limits and quotas
+```bash
+cd unittests/CuTest
+make protocol-parser
+make valgrind-protocol
+```
 
-### =Ý **LOW PRIORITY**
+Not yet covered: fuzzing of the parse entry points, and MSSP value-length
+cases for item 1.
 
-#### 12. Unvalidated Array Indices (Lines 2723-2730)
-- **Risk**: Array bounds violations
-- **Issue**: Array access using unvalidated input
-- **Fix**: Validate array indices before use
+## Priority
 
-#### 13. Resource Leak Potential (Lines 1576-1596, 1621-1641)
-- **Risk**: Memory exhaustion
-- **Issue**: Complex memory management with potential leaks
-- **Fix**: Implement proper cleanup on all error paths
+1. Item 1 - the one real memory-safety defect remaining.
+2. Item 2's MXP caller audit (1758/1776/1809).
+3. Item 3 - mechanical, low risk.
+4. Items 4-6 - quality and consistency; schedule when the file is open anyway.
 
-## Implementation Roadmap
-
-### Phase 1: Critical Security Fixes (Immediate - Week 1)
-- [ ] Fix all buffer overflow vulnerabilities in ProtocolInput function
-- [ ] Add bounds checking for MXP and IAC parsing
-- [ ] Replace all unsafe string operations (strcat, sprintf)
-- [ ] Implement comprehensive input validation
-
-### Phase 2: High Priority Security (Week 2-3)
-- [ ] Replace malloc with calloc for zero-initialization
-- [ ] Add comprehensive null pointer validation to all functions
-- [ ] Fix format string vulnerabilities
-- [ ] Implement safe memory allocation patterns
-
-### Phase 3: Stability and Robustness (Week 4-5)
-- [ ] Standardize error return codes across all functions
-- [ ] Implement graceful error handling instead of connection drops
-- [ ] Add resource limits and quotas
-- [ ] Fix race conditions in string operations
-
-### Phase 4: Code Quality and Testing (Week 6+)
-- [ ] Add comprehensive unit tests for all protocol parsing
-- [ ] Implement fuzzing tests for security validation
-- [ ] Add static analysis integration
-- [ ] Create security coding guidelines
-
-## Testing Requirements
-
-### Security Testing
-- [ ] Fuzz testing of all protocol parsing functions
-- [ ] Buffer overflow exploitation testing
-- [ ] Format string vulnerability testing
-- [ ] Memory leak detection with valgrind
-- [ ] Static analysis with tools like Clang Static Analyzer
-
-### Functional Testing
-- [ ] Protocol negotiation testing with various clients
-- [ ] MSDP/GMCP variable transmission testing
-- [ ] Color code processing testing
-- [ ] Unicode handling testing
-- [ ] MXP tag processing testing
-
-## Performance Considerations
-- [ ] Profile memory allocation patterns
-- [ ] Optimize string operations for high-frequency updates
-- [ ] Monitor network bandwidth usage
-- [ ] Test with high concurrent connection loads
-
-## Documentation Updates Required
-- [ ] Update security documentation with new protections
-- [ ] Create developer security guidelines
-- [ ] Document new error handling patterns
-- [ ] Update integration guide with security considerations
-
----
-
-**Priority Order for Implementation:**
-1. **Critical buffer overflow fixes** (Lines 631-637, 654-672, 642-643)
-2. **Unsafe string operation replacements** (strcat, sprintf usage)
-3. **Comprehensive input validation**
-4. **Memory safety improvements** (malloc -> calloc, null checks)
-5. **Error handling standardization**
-6. **Testing and validation framework**
-
-**Estimated Timeline:** 6-8 weeks for complete security hardening
-
-**Risk Assessment:** Current implementation has **CRITICAL** security vulnerabilities that could lead to remote code execution. Immediate action required.
+Nothing here is remote-code-execution class. The previous revision's
+"immediate action required" assessment no longer reflects the source.
