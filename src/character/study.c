@@ -3382,10 +3382,7 @@ void study_parse(struct descriptor_data *d, char *arg)
 
     if (GET_LEVELUP_ABILITY(ch, skill_num) >= (GET_LEVEL(ch) + 3))
       send_to_char(ch, "You are now fully trained for your level in that area.\r\n");
-    if (skill_num == ABILITY_STEALTH && HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK))
-      ;
-    else if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) &&
-             is_class_skill(ch, skill_num) == 1)
+    if (GET_LEVELUP_ABILITY(ch, skill_num) >= ((int)((GET_LEVEL(ch) + 3) / 2)) && skill_type == 1)
       send_to_char(ch, "You are already fully trained for your level in that area.\r\n");
 
     main_skills_disp_menu(d);

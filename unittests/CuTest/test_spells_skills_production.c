@@ -13,6 +13,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 
 #include <string.h>
 
@@ -23,6 +24,41 @@ void Test_spells_production_classification_helpers(CuTest *tc)
   CuAssertTrue(tc, !is_wall_spell(SPELL_MAGIC_MISSILE));
   CuAssertTrue(tc, isEpicSpell(SPELL_HELLBALL));
   CuAssertTrue(tc, !isEpicSpell(SPELL_CURE_LIGHT));
+}
+
+void Test_practiced_sneak_makes_stealth_a_class_skill(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  int saved_stealth_classification;
+  int cross_class_direct;
+  int cross_class_multiclass;
+  int practiced_sneak_direct;
+  int practiced_sneak_multiclass;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  GET_CLASS(&ch) = CLASS_WARRIOR;
+  CLASS_LEVEL((&ch), CLASS_WARRIOR) = 1;
+
+  saved_stealth_classification = class_list[CLASS_WARRIOR].class_abil[ABILITY_STEALTH];
+  class_list[CLASS_WARRIOR].class_abil[ABILITY_STEALTH] = 1;
+
+  cross_class_direct = modify_class_ability(&ch, ABILITY_STEALTH, CLASS_WARRIOR);
+  cross_class_multiclass = is_class_skill(&ch, ABILITY_STEALTH);
+
+  SET_FEAT(&ch, FEAT_PRACTICED_SNEAK, 1);
+
+  practiced_sneak_direct = modify_class_ability(&ch, ABILITY_STEALTH, CLASS_WARRIOR);
+  practiced_sneak_multiclass = is_class_skill(&ch, ABILITY_STEALTH);
+
+  class_list[CLASS_WARRIOR].class_abil[ABILITY_STEALTH] = saved_stealth_classification;
+
+  CuAssertIntEquals(tc, 1, cross_class_direct);
+  CuAssertIntEquals(tc, 1, cross_class_multiclass);
+  CuAssertIntEquals(tc, 2, practiced_sneak_direct);
+  CuAssertIntEquals(tc, 2, practiced_sneak_multiclass);
 }
 
 void Test_spells_production_name_and_level_lookup(CuTest *tc)

@@ -1742,6 +1742,9 @@ int modify_class_ability(struct char_data *ch, int ability, int class)
       ability_value = CA;
   }
 
+  if (HAS_REAL_FEAT(ch, FEAT_PRACTICED_SNEAK) && ability == ABILITY_STEALTH)
+    ability_value = CA;
+
   if (HAS_FEAT(ch, FEAT_SORCERER_BLOODLINE_DRACONIC))
   {
     if (ability == ABILITY_PERCEPTION)
