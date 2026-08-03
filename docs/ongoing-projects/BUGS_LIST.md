@@ -5,25 +5,19 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 23 actionable code items drawn
-from 25 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 22 actionable code items drawn
+from 24 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 40 unique records remain from the original 146-record
-snapshot. The other 106 were removed because they are resolved, intentional,
+Across both files, 39 unique records remain from the original 146-record
+snapshot. The other 107 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
 each symptom before implementing its fix. Reporter metadata uses `L` for
 character level, `R` for room VNUM, and `#` for the record's position in the
 2026-08-03 production snapshot.
-
-## 2022
-
-- **Lich Touch rejects self-targeting in cramped rooms** - Its room-space
-  validation does not exempt `victim == ch`, allowing other occupants to make
-  a self-targeted use fail. Reporter: Diel (L30, R125472, 2022-11-28; #018).
 
 ## 2023
 

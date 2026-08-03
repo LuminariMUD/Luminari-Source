@@ -4,6 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
 #include "../../src/combat/fight.h"
 #include "../../src/magic/spells.h"
 
@@ -55,4 +56,42 @@ void Test_combat_production_damage_type_validation(CuTest *tc)
   CuAssertTrue(tc, ok_damage_handling(SPELL_MAGIC_MISSILE));
   CuAssertTrue(tc, !ok_damage_handling(TYPE_SUFFERING));
   CuAssertTrue(tc, !ok_damage_handling(SKILL_BASH));
+}
+
+void Test_lich_touch_self_heal_ignores_single_file_reach(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool succeeded;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+
+  world = &room;
+  top_of_world = 0;
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_SINGLEFILE);
+  room.people = &ch;
+  ch.player_specials = &player_specials;
+  ch.player.name = "lich touch test character";
+  IN_ROOM(&ch) = 0;
+  GET_REAL_RACE(&ch) = RACE_LICH;
+  GET_LEVEL(&ch) = 30;
+  GET_REAL_INT(&ch) = 12;
+  GET_REAL_MAX_HIT(&ch) = 100;
+  GET_MAX_HIT(&ch) = 100;
+  GET_HIT(&ch) = 10;
+
+  succeeded = perform_lichtouch(&ch, &ch);
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, succeeded);
+  CuAssertTrue(tc, GET_HIT(&ch) > 10);
 }

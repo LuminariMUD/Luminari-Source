@@ -12265,7 +12265,7 @@ ACMD(do_process_attack)
    return FALSE if attack failed to execute */
 bool perform_lichtouch(struct char_data *ch, struct char_data *vict)
 {
-  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
+  if (ch != vict && ROOM_FLAGGED(IN_ROOM(ch), ROOM_SINGLEFILE) && ch->next_in_room != vict &&
       vict->next_in_room != ch)
   {
     send_to_char(ch, "You simply can't reach that far.\r\n");
