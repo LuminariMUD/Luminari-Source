@@ -10011,9 +10011,9 @@ bool is_valid_paralyzed_command(char *command)
       !strcmp(command, "hp") || !strcmp(command, "affects") || !strcmp(command, "idea") ||
       !strcmp(command, "bug") || !strcmp(command, "typo") || !strcmp(command, "inventory") ||
       !strcmp(command, "who") || !strcmp(command, "score") || !strcmp(command, "craftscore") ||
-      !strcmp(command, "queue") || !strcmp(command, "help") || !strcmp(command, "feat") ||
-      !strcmp(command, "tnl") || !strcmp(command, "prefedit") || !strcmp(command, "races") ||
-      !strcmp(command, "classes") || !strcmp(command, "cooldowns") ||
+      !strcmp(command, "queue") || !strcmp(command, "quit") || !strcmp(command, "help") ||
+      !strcmp(command, "feat") || !strcmp(command, "tnl") || !strcmp(command, "prefedit") ||
+      !strcmp(command, "races") || !strcmp(command, "classes") || !strcmp(command, "cooldowns") ||
       !strcmp(command, "abilities") || !strcmp(command, "resistances") ||
       !strcmp(command, "powerattack") || !strcmp(command, "expertise") || !strcmp(command, "ooc") ||
       !strcmp(command, "chat") || !strcmp(command, "osay") || !strcmp(command, "save") ||

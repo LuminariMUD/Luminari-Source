@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 22 actionable code items drawn
-from 24 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 21 actionable code items drawn
+from 23 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 39 unique records remain from the original 146-record
-snapshot. The other 107 were removed because they are resolved, intentional,
+Across both files, 38 unique records remain from the original 146-record
+snapshot. The other 108 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Paralysis prevents a clean logout** - The paralysis command allowlist now
-  permits several communication and status commands, but not `quit`, so the
-  interpreter rejects logout before it reaches the command handler. Reporter:
-  Lydia (L21, R14100, 2023-01-04; #028).
 - **Random encounters can spawn in peaceful rooms** - The encounter spawn path
   does not reject `ROOM_PEACEFUL`, allowing combat encounters to be created
   where combat is prohibited. Reporter: Zusuk (L34, R1000115, 2023-02-03;

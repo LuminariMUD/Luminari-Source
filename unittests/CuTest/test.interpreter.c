@@ -7,9 +7,11 @@
 #include "../../src/interpreter.h"
 #include "../../src/act.h"
 #include "../../src/craft/craft.h"
+#include "../../src/net/protocol.h"
 
 #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 
 
 void Test_three_arguments_u(CuTest *tc)
@@ -139,6 +141,47 @@ void Test_command_dispatch_numeric_and_reserved_parsing(CuTest *tc)
   CuAssertTrue(tc, !is_number("4two"));
   CuAssertTrue(tc, reserved_word(reserved_name));
   CuAssertTrue(tc, !reserved_word(ordinary_name));
+}
+
+void Test_paralyzed_players_can_reach_safe_quit_handler(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data opponent;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  char quit_command[] = "quit";
+  char quitlog_command[] = "quitlog";
+  bool combat_blocked;
+
+  CuAssertTrue(tc, is_valid_paralyzed_command(quit_command));
+  CuAssertTrue(tc, !is_valid_paralyzed_command(quitlog_command));
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&opponent, 0, sizeof(opponent));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = "paralyzed quit test character";
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  if (descriptor.pProtocol == NULL)
+  {
+    CuFail(tc, "ProtocolCreate failed");
+    return;
+  }
+  GET_LEVEL(&ch) = 10;
+  GET_POS(&ch) = POS_STANDING;
+  FIGHTING(&ch) = &opponent;
+
+  do_quit(&ch, "", 0, SCMD_QUIT);
+  combat_blocked = strstr(descriptor.output, "fighting for your life") != NULL;
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertTrue(tc, combat_blocked);
 }
 
 void Test_vessel_commands_are_registered_for_runtime_gating(CuTest *tc)
