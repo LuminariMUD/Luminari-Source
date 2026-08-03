@@ -14,6 +14,7 @@ echo -e "${BLUE}═════════════════════�
 # Check if build directory exists and is configured
 if [ ! -f build/CMakeCache.txt ]; then
     echo -e "${YELLOW}▶ First time setup - configuring CMake...${NC}"
+    mkdir -p build
     cmake -S . -B build/ > build/cmake_config.log 2>&1 &
     pid=$!
     while kill -0 $pid 2>/dev/null; do

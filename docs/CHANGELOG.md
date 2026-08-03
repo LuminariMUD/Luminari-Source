@@ -2,6 +2,23 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Build maintenance
+
+#### Fixed
+
+- `cbuild.sh` now creates `build/` before redirecting the first-time CMake
+  configuration log, so a fresh checkout can configure successfully.
+
+#### Verification
+
+- A clean CMake rebuild of the current tree completed with no compiler warnings
+  or errors.
+- An isolated checkout with no pre-existing `build/` directory completed the
+  full `cbuild.sh` configuration and build path with no compiler warnings or
+  errors.
+- Retired the stale CMake issue report after verifying that none of its tracked
+  build issues remain.
+
 ### Source directory layout
 
 Reorganized `src/` into one flat level of feature directories, across four
