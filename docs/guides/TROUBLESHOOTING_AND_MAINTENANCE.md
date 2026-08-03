@@ -6,14 +6,14 @@ If you're having issues with a fresh install, try:
 
 ```bash
 # Full redeploy (rebuilds, resets config, reapplies database schema)
-./scripts/deploy.sh --auto --init-world
+./scripts/deployment/deploy.sh --auto --init-world
 
 # If you need to bypass MariaDB completely:
-./scripts/deploy.sh --skip-db --init-world
+./scripts/deployment/deploy.sh --skip-db --init-world
 ```
 
 Common quick fixes:
-- **Build fails**: Make sure you ran the full `./scripts/deploy.sh --auto --init-world`
+- **Build fails**: Make sure you ran the full `./scripts/deployment/deploy.sh --auto --init-world`
 - **MUD won't start**: Use `--init-world` to regenerate minimal world data
 - **Missing text files**: Deploy script recreates them automatically
 - **MySQL errors**: Temporarily use `--skip-db`, but remember the default run triggers the in-engine database initializer (`database init`)
@@ -81,27 +81,27 @@ A comprehensive security audit was performed on all PHP tools in the codebase. *
 **Problem:** `./deploy.sh: No such file or directory`
 **Solution:** The script has been moved to the scripts directory:
 ```bash
-./scripts/deploy.sh --quick --skip-db --init-world
+./scripts/deployment/deploy.sh --quick --skip-db --init-world
 ```
 
 #### MUD Won't Start - Missing World Data
 **Problem:** `SYSERR: opening index file 'world/zon/index': No such file or directory`
 **Solution:** Initialize minimal world data:
 ```bash
-./scripts/deploy.sh --skip-deps --skip-db --init-world
+./scripts/deployment/deploy.sh --skip-deps --skip-db --init-world
 ```
 
 #### Missing Text Files
 **Problem:** Multiple `SYSERR` messages about missing text files (news, motd, credits, etc.)
 **Solution:** The deploy script now creates all required text files automatically. Just run:
 ```bash
-./scripts/deploy.sh --skip-deps --skip-db --init-world
+./scripts/deployment/deploy.sh --skip-deps --skip-db --init-world
 ```
 
 #### MySQL Configuration Issues
 **Problem:** `SYSERR: Malformed line in MySQL configuration`
 **Solution:** The MySQL config template now has actual default values. Either:
-1. Skip MySQL: `./scripts/deploy.sh --skip-db`
+1. Skip MySQL: `./scripts/deployment/deploy.sh --skip-db`
 2. Configure MySQL properly:
 ```bash
 cp lib/mysql_config_example lib/mysql_config

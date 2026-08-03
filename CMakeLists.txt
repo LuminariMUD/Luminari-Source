@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5032 LANGUAGES C)
+project(LuminariMUD VERSION 2.5033 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -865,18 +865,18 @@ if (BUILD_TESTS)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME autorun-supervision
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_autorun_supervision.sh)
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh)
     set_tests_properties(autorun-supervision PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME vessel-memory-analyzer
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_memory_analyzer.sh)
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh)
     add_test(NAME vessel-process-memory-details
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_process_memory_details.sh)
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/process-memory/test_process_memory_details.sh)
     add_test(NAME vessel-ferry-soak-preflight
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_ferry_soak_preflight.sh)
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_ferry_soak_preflight.sh)
     add_test(NAME vessel-scale-benchmark-parsers
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_vessel_scale_benchmark_parsers.sh)
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_scale_benchmark_parsers.sh)
     set_tests_properties(
         vessel-memory-analyzer
         vessel-process-memory-details
@@ -886,7 +886,7 @@ if (BUILD_TESTS)
 endif()
 
 add_custom_target(test-autorun-supervision
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_autorun_supervision.sh
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running autorun supervision regression tests"
 )

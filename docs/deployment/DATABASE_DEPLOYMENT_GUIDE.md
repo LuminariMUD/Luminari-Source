@@ -7,10 +7,10 @@ The easiest way to set up the database is using the automated deployment script:
 
 ```bash
 # Full setup including database (RECOMMENDED)
-./scripts/deploy.sh
+./scripts/deployment/deploy.sh
 
 # Skip database setup (NOT RECOMMENDED - you will need to configure manually)
-./scripts/deploy.sh --skip-db
+./scripts/deployment/deploy.sh --skip-db
 ```
 
 **Note:** World initialization is enabled by default. The server requires both database and world data to function properly.

@@ -40,7 +40,7 @@ Build/install first, then provision and verify the complete shared fixture with
 one command:
 
 ```bash
-./scripts/provision_vessel_harbor.sh
+./scripts/vessels/provision_vessel_harbor.sh
 ```
 
 The development-only command merges the tracked world package, seeds three
@@ -79,7 +79,7 @@ Provision and exercise the tracked Luminari campaign package only on local
 development:
 
 ```bash
-./scripts/provision_vessel_campaign.sh
+./scripts/vessels/provision_vessel_campaign.sh
 ```
 
 The provisioner validates the existing North Vailand Sea Port 1000360 at
@@ -115,7 +115,7 @@ rows matched their verifier expectations.
 Exercise the destructive campaign lifecycle immediately after provisioning:
 
 ```bash
-./scripts/test_vessel_merchant_in_game.sh \
+./scripts/vessels/test_vessel_merchant_in_game.sh \
   --merchant "Vailand Ironwind Trader" --temporary-respawn 5
 ```
 
@@ -132,8 +132,8 @@ Provision and exercise the first tracked data/DG-driven derelict only on local
 development:
 
 ```bash
-./scripts/provision_vessel_derelict.sh
-./scripts/test_vessel_derelict_in_game.sh
+./scripts/vessels/provision_vessel_derelict.sh
+./scripts/vessels/test_vessel_derelict_in_game.sh
 ```
 
 The collision-sensitive provisioner installs reserved object VNUMs
@@ -180,7 +180,7 @@ Provision and pilot the tracked trench, river, and sky content only on local
 development:
 
 ```bash
-./scripts/provision_vessel_frontier.sh
+./scripts/vessels/provision_vessel_frontier.sh
 ```
 
 The provisioner requires a clean source tree and fresh installed binary,
@@ -218,7 +218,7 @@ After provisioning the frontier prototypes and installing a clean candidate,
 run the reversible Phase 16 acceptance:
 
 ```bash
-./scripts/test_vessel_events_in_game.sh
+./scripts/vessels/test_vessel_events_in_game.sh
 ```
 
 The development-only harness refuses production, stale or dirty source, active
@@ -260,7 +260,7 @@ After the Starfall frontier content exists and a clean candidate is installed,
 run:
 
 ```bash
-./scripts/test_vessel_tactical_in_game.sh
+./scripts/vessels/test_vessel_tactical_in_game.sh
 ```
 
 The development-only harness refuses production, a dirty or stale worktree,
@@ -298,7 +298,7 @@ After the Starfall frontier content exists and a clean candidate is installed,
 run:
 
 ```bash
-./scripts/test_vessel_lookout_in_game.sh
+./scripts/vessels/test_vessel_lookout_in_game.sh
 ```
 
 The development-only wrapper shares the tactical gate's production refusal,
@@ -336,7 +336,7 @@ After the Vailand campaign regions exist and a clean candidate is installed,
 run:
 
 ```bash
-./scripts/test_vessel_narrative_in_game.sh
+./scripts/vessels/test_vessel_narrative_in_game.sh
 ```
 
 The development-only wrapper refuses production, dirty or stale source, an
@@ -375,7 +375,7 @@ After the Starfall frontier prototype exists and a clean candidate is built
 and installed, run:
 
 ```bash
-./scripts/test_vessel_boarding_in_game.sh
+./scripts/vessels/test_vessel_boarding_in_game.sh
 ```
 
 The development-only wrapper refuses production, dirty or stale source, an
@@ -415,7 +415,7 @@ The provisioner validates but deliberately does not sink its NPC merchant.
 Exercise the real loss and recovery path separately with:
 
 ```bash
-./scripts/test_vessel_merchant_in_game.sh
+./scripts/vessels/test_vessel_merchant_in_game.sh
 ```
 
 The development-only harness uses actual Kohdee sessions to invoke the
@@ -441,7 +441,7 @@ hunter policy without altering Kohdee's bounty. After installation, exercise
 the complete reversible lifecycle with:
 
 ```bash
-./scripts/test_vessel_hunter_in_game.sh
+./scripts/vessels/test_vessel_hunter_in_game.sh
 ```
 
 Require one real Kohdee encounter to create exactly one ownerless hunter with
@@ -461,8 +461,8 @@ Run the bounded ferry release gate through its supervised monitor. The
 the complete task stays within one hour:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 2700 60 900
-./scripts/run_vessel_ferry_soak.sh status
+./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
 The runner retains a historical longer default. Never omit the explicit
@@ -705,7 +705,7 @@ bounded stability check.
 For the builder-independence timing gate, run:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+./scripts/development/dev_kohdee_login_smoke.sh --vessel-builder-check
 ```
 
 This keeps one real Kohdee session open, derives the new prototype ID and ship
@@ -844,7 +844,7 @@ After installing the current clean candidate, run the read-only balance report
 through actual Kohdee:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
+./scripts/development/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
 ```
 
 The equal-warship sample uses armor 40, speed 20, an able gunner, one bearing

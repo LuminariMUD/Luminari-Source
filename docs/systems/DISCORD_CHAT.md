@@ -80,7 +80,7 @@ The Discord Chat Bridge system enables bidirectional real-time communication bet
 
 2. **Start the MUD**:
    ```bash
-   ./autorun.sh
+   ./scripts/autorun/autorun.sh
    ```
 
 3. **Enable Discord Bridge** (as admin):

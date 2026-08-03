@@ -237,10 +237,10 @@ To run manually: `.venv/bin/pre-commit run --all-files`
 |-----------|----------|---------|
 | Platform | Native C | MUD server binary (bin/circle) |
 | Database | MySQL/MariaDB | Required, config in lib/mysql_config |
-| Process Mgmt | autorun.sh | Auto-restart, crash tracking, log rotation |
-| Health Monitor | copyover_watchdog.sh | Process monitoring, state analysis |
+| Process Mgmt | scripts/autorun/autorun.sh | Auto-restart, crash tracking, log rotation |
+| Health Monitor | scripts/copyover/copyover_watchdog.sh | Process monitoring, state analysis |
 | Security | ban.c, comm.c | Site banning, input buffer limits, connection throttling |
-| Deployment | deploy.sh | Full setup automation, systemd service |
+| Deployment | scripts/deployment/deploy.sh | Full setup automation, systemd service |
 | Backup | scripts/backup.sh | World, players, DB, 7-day retention |
 | World Backup | lib/world/backup-zone.sh | Single zone backup utility |
 | CD/Release | .github/workflows/release.yml | GitHub Release on version tags |

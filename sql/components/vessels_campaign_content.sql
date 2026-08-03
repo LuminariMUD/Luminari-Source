@@ -2,7 +2,7 @@
 --
 -- This package uses the existing North and Central Vailand wilderness
 -- seaports. It is idempotent after the collision checks in
--- scripts/provision_vessel_campaign.sh have passed.
+-- scripts/vessels/provision_vessel_campaign.sh have passed.
 
 SET @vailand_north_region_vnum = 1000013;
 SET @vailand_central_region_vnum = 1000014;

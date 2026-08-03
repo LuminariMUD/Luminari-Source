@@ -958,7 +958,7 @@ instance before reporting success.
 On local development, the complete builder gate is:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+./scripts/development/dev_kohdee_login_smoke.sh --vessel-builder-check
 ```
 
 It uses one actual Kohdee session, parses the generated IDs from in-game
@@ -1199,7 +1199,7 @@ development provisioner create the reusable harbor validation environment:
 
 ```bash
 make install
-./scripts/provision_vessel_harbor.sh
+./scripts/vessels/provision_vessel_harbor.sh
 ```
 
 The command refuses to run unless `lib/.env` contains
@@ -1246,7 +1246,7 @@ The tracked campaign package uses existing Luminari wilderness content rather
 than the development harbor fixture:
 
 ```bash
-./scripts/provision_vessel_campaign.sh
+./scripts/vessels/provision_vessel_campaign.sh
 ```
 
 It anchors North Vailand Sea Port 1000360 at `(-599, 455)` and Central Vailand
@@ -1284,7 +1284,7 @@ North Vailand waters so destructive lifecycle acceptance begins under the
 Use the selected-merchant form of the reversible lifecycle harness:
 
 ```bash
-./scripts/test_vessel_merchant_in_game.sh \
+./scripts/vessels/test_vessel_merchant_in_game.sh \
   --merchant "Vailand Ironwind Trader" --temporary-respawn 5
 ```
 
@@ -1308,8 +1308,8 @@ The first tracked derelict combines generated vessel interiors with world-file
 objects and DG programs rather than adding a compiled quest path:
 
 ```bash
-./scripts/provision_vessel_derelict.sh
-./scripts/test_vessel_derelict_in_game.sh
+./scripts/vessels/provision_vessel_derelict.sh
+./scripts/vessels/test_vessel_derelict_in_game.sh
 ```
 
 `lib/world/vessel_derelict/700.obj` defines an ash-stained captain log, a
@@ -1351,7 +1351,7 @@ The tracked frontier package connects the region/path contracts to all eight
 actual vessel classes:
 
 ```bash
-./scripts/provision_vessel_frontier.sh
+./scripts/vessels/provision_vessel_frontier.sh
 ```
 
 `vessels_frontier_content.sql` owns Starfall Trench (region 7100101, minimum
@@ -1395,8 +1395,8 @@ final restart and cleanup. The runner retains its historical long default, so
 always pass the bounded duration explicitly:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 2700 60 900
-./scripts/run_vessel_ferry_soak.sh status
+./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
 The transient user service submits a generated, nonexistent account name but
@@ -1561,13 +1561,13 @@ and the trigger was removed.
 |------|---------|
 | `lib/world/vessel_derelict/700.obj` | Blackwake log, chart, and tidefinder objects |
 | `lib/world/vessel_derelict/700.trg` | Guarded room and object discovery-chain DG programs |
-| `scripts/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
-| `scripts/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
-| `scripts/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
-| `scripts/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
-| `scripts/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
-| `scripts/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
-| `scripts/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
+| `scripts/vessels/provision_vessel_derelict.sh` | Development-only world/SQL provisioning and restart proof |
+| `scripts/vessels/test_vessel_derelict_in_game.sh` | Reversible actual-character discovery and persistence gate |
+| `scripts/vessels/provision_vessel_frontier.sh` | Development-only trench, river, skyway, and sky-island provisioning plus piloted acceptance |
+| `scripts/vessels/test_vessel_events_in_game.sh` | Reversible Kohdee regatta, skirmish, ghost-fleet, and leaderboard gate |
+| `scripts/vessels/test_vessel_tactical_in_game.sh` | Reversible Kohdee wilderness-chart, live-contact, and coastal-symbol gate |
+| `scripts/vessels/test_vessel_lookout_in_game.sh` | Reversible Kohdee lookout, cosmetics, contact, and coastal-sector gate |
+| `scripts/vessels/test_vessel_narrative_in_game.sh` | Reversible Kohdee at-sea and forced-ambient narrative gate |
 
 ### Database
 

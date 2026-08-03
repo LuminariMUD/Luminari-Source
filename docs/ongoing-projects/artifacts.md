@@ -100,7 +100,7 @@ future design and content work.
 `lib/world/artifacts/` contains the required zone, room, object, mobile, and
 help sources, but `.gitignore` excludes the entire directory. A fresh clone
 therefore has no input for `scripts/provision_artifacts.sh`, and both
-`scripts/setup.sh` and `scripts/deploy.sh` fail when the provisioner tries to
+`scripts/deployment/setup.sh` and `scripts/deployment/deploy.sh` fail when the provisioner tries to
 copy the first missing source file.
 
 Choose and implement one durable packaging model:

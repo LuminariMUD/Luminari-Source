@@ -21,7 +21,7 @@ cd Luminari-Source
 
 # Run deployment script (handles everything: database, world data, build)
 # Note: You'll be prompted for MySQL root password during setup
-./scripts/deploy.sh
+./scripts/deployment/deploy.sh
 
 # Start the server
 ./bin/circle -d lib
@@ -40,9 +40,9 @@ git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
 
 # Run deployment with custom options
-./scripts/deploy.sh --dev   # Development build with debug symbols
+./scripts/deployment/deploy.sh --dev   # Development build with debug symbols
 # Or
-./scripts/deploy.sh --auto  # Skip prompts where possible
+./scripts/deployment/deploy.sh --auto  # Skip prompts where possible
 
 # Start the server
 ./bin/circle -d lib
@@ -225,7 +225,7 @@ See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-req
 - Check `log/syslog` for errors
 
 **Missing files:**
-- Run `./scripts/deploy.sh --auto --init-world` to create all required files
+- Run `./scripts/deployment/deploy.sh --auto --init-world` to create all required files
 - Check symlinks exist: `ls -la world text etc`
 
 ## Getting Help

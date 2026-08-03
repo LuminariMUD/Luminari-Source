@@ -57,7 +57,7 @@ The provisioning source is expected at `lib/world/artifacts/`:
 
 `scripts/provision_artifacts.sh` copies missing files into the normal world
 and help directories and adds their names to the corresponding indexes. Both
-`scripts/setup.sh` and `scripts/deploy.sh` call it.
+`scripts/deployment/setup.sh` and `scripts/deployment/deploy.sh` call it.
 
 It never overwrites a deployed file, because a builder may have edited it
 through OLC and that edit is authoritative. Where a file already exists, it

@@ -38,10 +38,10 @@ autoreconf -fvi && ./configure && make -j$(nproc)
 ./bin/circle -d lib
 
 # Full environment setup aka fresh install (deps, MariaDB, world data, build):
-./scripts/deploy.sh
+./scripts/deployment/deploy.sh
 
 # Debug under gdb:
-./scripts/debug_game.sh
+./scripts/debugging/debug_game.sh
 ```
 
 ## Testing

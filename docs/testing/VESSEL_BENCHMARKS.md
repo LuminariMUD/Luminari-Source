@@ -211,7 +211,7 @@ rejects overlaps.
 
 ### Reproducible Development Workload
 
-`scripts/run_vessel_scale_benchmark.sh` now defines the development-only
+`scripts/vessels/run_vessel_scale_benchmark.sh` now defines the development-only
 workload and evidence contract. Its first current-candidate attempt reached the
 complete 500-slot workload but stopped before measurement; a terminal rerun is
 still required. Before launching it, confirm that no legacy ferry monitor
@@ -692,9 +692,9 @@ The runner:
 The user-service interface is:
 
 ```bash
-./scripts/run_vessel_scale_benchmark.sh start 1800
-./scripts/run_vessel_scale_benchmark.sh status
-./scripts/run_vessel_scale_benchmark.sh cleanup
+./scripts/vessels/run_vessel_scale_benchmark.sh start 1800
+./scripts/vessels/run_vessel_scale_benchmark.sh status
+./scripts/vessels/run_vessel_scale_benchmark.sh cleanup
 ```
 
 Instrumentation, capacity, or workload-construction tests passing are not
@@ -915,7 +915,7 @@ to +4,065 KiB/hour; trailing 30-minute, one-hour, and two-hour slopes were
 +4,007, +3,784, and +3,772 KiB/hour. This is useful partial warmup evidence,
 not a plateau, bounded-growth threshold, or duration pass.
 
-`scripts/analyze_vessel_memory_samples.sh` validates either the legacy
+`scripts/vessels/analyze_vessel_memory_samples.sh` validates either the legacy
 headerless ferry process series or the newer headered scale series. It
 requires strictly increasing epochs, one constant PID, and six valid numeric
 metrics; reports consecutive block means plus full, post-warmup, and

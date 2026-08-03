@@ -57,7 +57,7 @@
 > **Verify the authoritative rows and the running game.** Run
 > `sql/components/verify_help_vessel_entries.sql`, then reload or restart help
 > and search every command in game. The vessel sweep is automated by
-> `scripts/dev_kohdee_login_smoke.sh --vessel-help-check`; it requires a
+> `scripts/development/dev_kohdee_login_smoke.sh --vessel-help-check`; it requires a
 > database `Help Tag` and rejects missing or file-fallback results.
 >
 > Runtime files under `lib/text/help/` are ignored deployment data. Standalone

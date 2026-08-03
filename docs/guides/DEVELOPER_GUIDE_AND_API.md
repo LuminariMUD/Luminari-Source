@@ -8,10 +8,10 @@ Get a development environment running in minutes:
 # Clone and setup with development build
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
-./scripts/deploy.sh --auto --dev --init-world
+./scripts/deployment/deploy.sh --auto --dev --init-world
 
 # Start with debugging support
-./debug_game.sh
+./scripts/debugging/debug_game.sh
 ```
 
 The `--dev` flag enables:
@@ -32,7 +32,7 @@ Use the deployment script with development options:
 
 ```bash
 # Full development environment setup (REQUIRED - includes database)
-./scripts/deploy.sh --auto --dev --init-world
+./scripts/deployment/deploy.sh --auto --dev --init-world
 
 Running this command builds the game, provisions MariaDB (REQUIRED), and invokes the in-engine database initializer so every subsystem (wilderness resources, PubSub, vessels, etc.) is ready without manual SQL. The generated credentials are written to `lib/mysql_config`.
 

@@ -80,7 +80,7 @@ cd Luminari-Source
 
 # Run the deployment script (handles everything)
 # Note: You'll be prompted for MySQL root password during setup
-./scripts/deploy.sh
+./scripts/deployment/deploy.sh
 
 # Start the server
 ./bin/circle -d lib
@@ -113,10 +113,10 @@ cd Luminari-Source
 autoreconf -fvi
 
 # Run deployment with custom options
-./scripts/deploy.sh --auto  # Skip prompts where possible
+./scripts/deployment/deploy.sh --auto  # Skip prompts where possible
 
 # Or for development build
-./scripts/deploy.sh --dev   # Includes debug symbols
+./scripts/deployment/deploy.sh --dev   # Includes debug symbols
 
 # Start the server
 ./bin/circle -d lib
@@ -385,7 +385,7 @@ find . -name "*.sh" -exec dos2unix {} \;
 # CAUSE: Missing world data - you MUST use --init-world or provide custom world
 
 # SOLUTION: Re-run deployment with --init-world
-./scripts/deploy.sh --auto --init-world
+./scripts/deployment/deploy.sh --auto --init-world
 
 # OR create required symlinks if they're missing
 ln -sf lib/world world

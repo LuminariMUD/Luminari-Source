@@ -114,7 +114,7 @@ process list, or menu layout.
 From the repository root, run:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh
+./scripts/development/dev_kohdee_login_smoke.sh
 ```
 
 That single command:
@@ -141,11 +141,11 @@ For a short release-boundary checkpoint, use the command batch for non-paged
 output and the dedicated pager-safe help mode separately:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands \
+./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "vdebug status" \
   "vtradecheck 1000" \
   "shiplist summary"
-./scripts/dev_kohdee_login_smoke.sh --help-check shipcustomize
+./scripts/development/dev_kohdee_login_smoke.sh --help-check shipcustomize
 ```
 
 On August 2, 2026 at 16:24 IDT, actual Kohdee reported production-safe debug
@@ -159,7 +159,7 @@ release preflight or human beta.
 After `make install`, provision and verify the complete reusable harbor with:
 
 ```bash
-./scripts/provision_vessel_harbor.sh
+./scripts/vessels/provision_vessel_harbor.sh
 ```
 
 This development-only command reuses the configured master account and Kohdee;
@@ -200,7 +200,7 @@ character receives real faction and bounty consequences. After installing and
 provisioning the current candidate, run the reversible acceptance harness:
 
 ```bash
-./scripts/test_vessel_merchant_in_game.sh
+./scripts/vessels/test_vessel_merchant_in_game.sh
 ```
 
 This development-only script uses actual Kohdee sessions to destroy the active
@@ -232,8 +232,8 @@ After installing the current candidate, provision the tracked campaign
 shipping package and run its real loss/recovery path:
 
 ```bash
-./scripts/provision_vessel_campaign.sh
-./scripts/test_vessel_merchant_in_game.sh \
+./scripts/vessels/provision_vessel_campaign.sh
+./scripts/vessels/test_vessel_merchant_in_game.sh \
   --merchant "Vailand Ironwind Trader" --temporary-respawn 5
 ```
 
@@ -262,8 +262,8 @@ After installing the current candidate, provision the tracked Blackwake
 content and run its reversible discovery path:
 
 ```bash
-./scripts/provision_vessel_derelict.sh
-./scripts/test_vessel_derelict_in_game.sh
+./scripts/vessels/provision_vessel_derelict.sh
+./scripts/vessels/test_vessel_derelict_in_game.sh
 ```
 
 Both commands refuse production, dirty source, stale binaries, identity/VNUM
@@ -309,7 +309,7 @@ derelict.
 After `make test` and `make install`, run:
 
 ```bash
-./scripts/provision_vessel_frontier.sh
+./scripts/vessels/provision_vessel_frontier.sh
 ```
 
 The command refuses production, dirty source, stale binaries, collisions,
@@ -345,7 +345,7 @@ After the frontier prototypes exist and the current clean candidate is built
 and installed, run:
 
 ```bash
-./scripts/test_vessel_events_in_game.sh
+./scripts/vessels/test_vessel_events_in_game.sh
 ```
 
 Do not run the destructive staff sequence manually. The development-only
@@ -371,7 +371,7 @@ After the frontier prototypes exist and the current clean candidate is built
 and installed, run:
 
 ```bash
-./scripts/test_vessel_tactical_in_game.sh
+./scripts/vessels/test_vessel_tactical_in_game.sh
 ```
 
 Use this wrapper instead of manually spawning and firing on acceptance hulls.
@@ -396,7 +396,7 @@ After the frontier prototypes exist and the current clean candidate is built
 and installed, run:
 
 ```bash
-./scripts/test_vessel_lookout_in_game.sh
+./scripts/vessels/test_vessel_lookout_in_game.sh
 ```
 
 The development-only wrapper refuses production, dirty or stale source,
@@ -422,7 +422,7 @@ After the Vailand campaign regions exist and the current clean candidate is
 built and installed, run:
 
 ```bash
-./scripts/test_vessel_narrative_in_game.sh
+./scripts/vessels/test_vessel_narrative_in_game.sh
 ```
 
 The development-only wrapper refuses production, dirty or stale source,
@@ -446,7 +446,7 @@ After the Starfall frontier prototype exists and the current clean candidate
 is built and installed, run:
 
 ```bash
-./scripts/test_vessel_boarding_in_game.sh
+./scripts/vessels/test_vessel_boarding_in_game.sh
 ```
 
 The development-only wrapper refuses production, dirty or stale source,
@@ -469,7 +469,7 @@ transcript is `02-kohdee-vessel-boarding.log` inside
 After installing and provisioning the current candidate, run:
 
 ```bash
-./scripts/test_vessel_hunter_in_game.sh
+./scripts/vessels/test_vessel_hunter_in_game.sh
 ```
 
 This development-only check uses the existing master account and exact
@@ -511,8 +511,8 @@ review, and cleanup, must finish within one hour. Use a 45-minute observation
 to reserve 15 minutes for the terminal work:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 2700 60 900
-./scripts/run_vessel_ferry_soak.sh status
+./scripts/vessels/run_vessel_ferry_soak.sh start 2700 60 900
+./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
 The script retains a historical longer default; do not invoke `start` without
@@ -586,7 +586,7 @@ Inspect process-memory trends without changing the running service:
 
 ```bash
 run_dir=/path/printed/by/the/status/command
-./scripts/analyze_vessel_memory_samples.sh \
+./scripts/vessels/analyze_vessel_memory_samples.sh \
   --warmup-seconds 900 \
   --windows 300,900,1800 \
   "$run_dir/process-samples.tsv"
@@ -599,7 +599,7 @@ for the full, post-warmup, and requested trailing windows. Add `--format kv`
 for stable `key=value` output. Its result is deliberately `REPORT_ONLY`; do
 not treat a low-looking slope from the bounded window as proof that a
 long-horizon leak cannot exist.
-Run `./scripts/test_vessel_memory_analyzer.sh` after changing the analyzer.
+Run `./scripts/vessels/test_vessel_memory_analyzer.sh` after changing the analyzer.
 Runs launched from the current ferry or scale scripts generate the same
 machine-readable report automatically as `memory-analysis.kv` and fail if the
 terminal process series is malformed. The manual command remains safe while a
@@ -613,7 +613,7 @@ data and swap sizes, and the heap mapping's size, RSS, and private-dirty
 pages. Validate a completed series with:
 
 ```bash
-./scripts/sample_process_memory_details.sh \
+./scripts/process-memory/sample_process_memory_details.sh \
   --validate "$run_dir/process-memory-details.tsv"
 ```
 
@@ -635,7 +635,7 @@ from `status` closes the gate.
 For a short monitor shakedown:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 150 10 60
+./scripts/vessels/run_vessel_ferry_soak.sh start 150 10 60
 ```
 
 The three values are duration, database/process interval, and live-character
@@ -663,9 +663,9 @@ long-duration gate.
 The current forced-copyover shakedown used:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh start 240 10 120
-./scripts/dev_kohdee_login_smoke.sh --copyover-check "shiplist summary"
-./scripts/run_vessel_ferry_soak.sh status
+./scripts/vessels/run_vessel_ferry_soak.sh start 240 10 120
+./scripts/development/dev_kohdee_login_smoke.sh --copyover-check "shiplist summary"
+./scripts/vessels/run_vessel_ferry_soak.sh status
 ```
 
 It passed on July 30, 2026 with one same-PID copyover recovery, 132 movement
@@ -682,15 +682,15 @@ terminal `PASS`, install the exact current clean candidate and start the
 consolidated runner:
 
 ```bash
-./scripts/run_vessel_ferry_soak.sh status
+./scripts/vessels/run_vessel_ferry_soak.sh status
 make test
 valgrind --tool=memcheck --leak-check=full \
   --show-leak-kinds=definite,indirect \
   --errors-for-leak-kinds=definite,indirect \
   --error-exitcode=99 ./cutest
 make install
-./scripts/run_vessel_scale_benchmark.sh start 1800
-./scripts/run_vessel_scale_benchmark.sh status
+./scripts/vessels/run_vessel_scale_benchmark.sh start 1800
+./scripts/vessels/run_vessel_scale_benchmark.sh status
 ```
 
 Repeat only the final `status` command until it reports terminal `PASS` or
@@ -731,8 +731,8 @@ After the bounded ferry validation passes and the current clean source is
 built and installed, launch the development-only scale gate with:
 
 ```bash
-./scripts/run_vessel_scale_benchmark.sh start 1800
-./scripts/run_vessel_scale_benchmark.sh status
+./scripts/vessels/run_vessel_scale_benchmark.sh start 1800
+./scripts/vessels/run_vessel_scale_benchmark.sh status
 ```
 
 The August 2 first current-candidate attempt is a retained premeasurement
@@ -996,7 +996,7 @@ cannot affect the verdict. The measured log is preserved separately, its byte
 count is reported, and any normal-build per-step, arrival, wait, or route-loop
 progress row fails the gate. Former unconditional wilderness region, sector,
 elevation, and path progress rows fail it as well. Run
-`./scripts/test_vessel_scale_benchmark_parsers.sh` after changing these
+`./scripts/vessels/test_vessel_scale_benchmark_parsers.sh` after changing these
 parsers. The test rejects missing or inverted tick percentiles and impossible
 sample counts; a live result must contain an ordered median, p95, p99, and
 maximum in the complete ten-field `vessel_tick` row. The test also covers
@@ -1057,7 +1057,7 @@ gone, restarts development, and returns Kohdee to the static room. If an
 interrupted run needs operator recovery, use:
 
 ```bash
-./scripts/run_vessel_scale_benchmark.sh cleanup
+./scripts/vessels/run_vessel_scale_benchmark.sh cleanup
 ```
 
 Do not start this gate while any ferry monitor is active. The scale runner
@@ -1069,7 +1069,7 @@ run.
 Use one actual Kohdee session for the read-only duel, economy, and cost report:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
+./scripts/development/dev_kohdee_login_smoke.sh --commands "vesseldebug balance 1000"
 ```
 
 The command simulates 1,000 representative equal-warship duels without
@@ -1095,12 +1095,12 @@ that character for ordinary command batches. Do not move it with staff
 commands, add gold, unlock gates, or reveal routes from database knowledge:
 
 ```bash
-./scripts/dev_create_test_character.sh Vesselbeta
+./scripts/development/dev_create_test_character.sh Vesselbeta
 DEV_MUD_CHARACTER=Vesselbeta \
-  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  ./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "score" "look" "where"
 DEV_MUD_CHARACTER=Vesselbeta \
-  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  ./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "enter portal" "look" "exits" "where" "score"
 ```
 
@@ -1113,7 +1113,7 @@ was a disconnected Harbor Sandbox fixture. Do not interpret the harbor
 provisioner's staff-assisted test as first-hour discovery acceptance.
 
 Source `eed5d47d` repairs that path through tracked, idempotently provisioned
-campaign content. After running `./scripts/provision_vessel_campaign.sh`, the
+campaign content. After running `./scripts/vessels/provision_vessel_campaign.sh`, the
 ordinary-player acceptance path is:
 
 ```text
@@ -1132,7 +1132,7 @@ aboard and use the login helper's bounded `@wait-vessel-dock` pseudo-command:
 
 ```bash
 DEV_MUD_CHARACTER=Vesselbeta \
-  ./scripts/dev_kohdee_login_smoke.sh --commands \
+  ./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "@wait-vessel-dock" "shipstatus" "disembark" \
   "look" "read board" "enter waystone" "look" "score"
 ```
@@ -1189,7 +1189,7 @@ After the current source is installed on local development, reuse the master
 account and exact Kohdee character for the sustained-market proof:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands "vtradecheck 1000"
+./scripts/development/dev_kohdee_login_smoke.sh --commands "vtradecheck 1000"
 ```
 
 The abandoned July 30 pinned executable came from source `0afad17b`, while
@@ -1222,7 +1222,7 @@ the installed server.
 Run this only when no ferry soak or scale worker owns the installed build:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh \
+./scripts/development/dev_kohdee_login_smoke.sh \
   --vessel-channel-check <ship-slot>
 ```
 
@@ -1252,7 +1252,7 @@ If the master account has no second usable character, add one to that same
 account first:
 
 ```bash
-./scripts/dev_create_test_character.sh Vesselmate
+./scripts/development/dev_create_test_character.sh Vesselmate
 ```
 
 The one-argument creation form uses the master account. Do not create a second
@@ -1267,7 +1267,7 @@ After the current source is installed on local development and a vessel slot
 exists, run:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --vessel-msdp-check <ship-slot>
+./scripts/development/dev_kohdee_login_smoke.sh --vessel-msdp-check <ship-slot>
 ```
 
 The helper reuses the master account and exact Kohdee character. It runs the
@@ -1293,7 +1293,7 @@ soak or scale worker owns the installed server.
 Use one logged-in Kohdee session to exercise the complete no-C builder path:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --vessel-builder-check
+./scripts/development/dev_kohdee_login_smoke.sh --vessel-builder-check
 ```
 
 The helper reads `vedit` usage, moves to the shared harbor, creates a uniquely
@@ -1324,7 +1324,7 @@ Do not repeat the login flow for every test command. Pass a whole sequence as
 single-line arguments to `--commands`:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands \
+./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "goto -66 92" \
   "board gull" \
   "south" \
@@ -1360,7 +1360,7 @@ it only to synchronize two local character sessions or wait for a real
 heartbeat/reload interval:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --commands \
+./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "@wait 2" \
   "trans Testcaptain"
 ```
@@ -1371,10 +1371,10 @@ The same fast path can enter another character by exact name. This is intended
 for disposable lifecycle and multiplayer fixtures, not production accounts:
 
 ```bash
-./scripts/dev_create_test_character.sh Testcaptain
+./scripts/development/dev_create_test_character.sh Testcaptain
 
 DEV_MUD_CHARACTER=Testcaptain \
-./scripts/dev_kohdee_login_smoke.sh --commands \
+./scripts/development/dev_kohdee_login_smoke.sh --commands \
   "score" \
   "look"
 ```
@@ -1393,7 +1393,7 @@ Only account-isolation or destructive account/deletion tests warrant another
 account. For those cases, pass the account explicitly:
 
 ```bash
-./scripts/dev_create_test_character.sh localtestaccount Testcaptain
+./scripts/development/dev_create_test_character.sh localtestaccount Testcaptain
 ```
 
 The same helper logs into that account if it exists or bootstraps it if it
@@ -1416,7 +1416,7 @@ input line; the helper confirms that the final input returned to normal command
 mode before it logs out:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --dialog \
+./scripts/development/dev_kohdee_login_smoke.sh --dialog \
   "cedit" "e" "l" "1" "q" "q" "y"
 ```
 
@@ -1437,7 +1437,7 @@ replacement, requires the server's recovery confirmation, runs every supplied
 command after recovery, and then logs out cleanly:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --copyover-check \
+./scripts/development/dev_kohdee_login_smoke.sh --copyover-check \
   "shiplist" \
   "shipgoto 2" \
   "shipstatus"
@@ -1453,7 +1453,7 @@ helper runs them, starts copyover immediately on the same connection, and runs
 the remaining commands only after recovery:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --copyover-check \
+./scripts/development/dev_kohdee_login_smoke.sh --copyover-check \
   "shipgoto 3" \
   "autopilot on" \
   -- \
@@ -1468,14 +1468,14 @@ consume the private completion marker as pager input. Use `--help-check`
 instead:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --help-check \
+./scripts/development/dev_kohdee_login_smoke.sh --help-check \
   delroute vesseldebug loadvehicle
 ```
 
 For the exhaustive vessel release check, use the single-command form:
 
 ```bash
-./scripts/dev_kohdee_login_smoke.sh --vessel-help-check
+./scripts/development/dev_kohdee_login_smoke.sh --vessel-help-check
 ```
 
 It derives every command carrying `CMD_FEATURE_VESSEL` directly from

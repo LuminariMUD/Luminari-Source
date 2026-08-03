@@ -6,7 +6,7 @@ The easiest way to set up Phase 4 features is using the automated deployment:
 
 ```bash
 # Full setup including database and region effects
-./scripts/deploy.sh --auto --init-world
+./scripts/deployment/deploy.sh --auto --init-world
 
 # Manual database setup only (if you ran deploy with --skip-db)
 # Start the MUD and as an implementor run:

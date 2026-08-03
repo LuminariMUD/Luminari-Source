@@ -15,7 +15,7 @@ The Discord bridge has been fully integrated into LuminariMUD. Here's what's alr
 
 ### 1. Start the MUD
 ```bash
-./autorun.sh
+./scripts/autorun/autorun.sh
 ```
 The Discord bridge TCP server automatically starts on port 8181.
 

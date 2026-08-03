@@ -186,7 +186,7 @@ Password: (from secrets manager)
 ### Development
 - May use minimal test data
 - Frequent resets acceptable
-- Can use `scripts/deploy.sh` for fresh setup
+- Can use `scripts/deployment/deploy.sh` for fresh setup
 
 ### Staging
 - Uses production data snapshot (sanitized)
@@ -204,7 +204,7 @@ Password: (from secrets manager)
 ### Development
 ```bash
 # Quick rebuild
-./cbuild.sh
+./scripts/cbuild.sh
 
 # Or manual
 make clean && make
@@ -213,13 +213,13 @@ make clean && make
 ### Staging
 ```bash
 # Deploy script handles staging
-./scripts/deploy.sh --staging
+./scripts/deployment/deploy.sh --staging
 ```
 
 ### Production
 ```bash
 # Production deployment (requires approval)
-./scripts/deploy.sh --prod
+./scripts/deployment/deploy.sh --prod
 ```
 
 See [DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md) for full deployment procedures.

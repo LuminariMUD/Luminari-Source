@@ -1,6 +1,6 @@
 # LuminariMUD Deployment Status Report
 
-> **⚠️ OBSOLETE DOCUMENT**: This document describes historical issues with `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deploy.sh` instead. This file is kept for historical reference only.
+> **⚠️ OBSOLETE DOCUMENT**: This document describes historical issues with `setup.sh` which is no longer the recommended deployment method. Use `./scripts/deployment/deploy.sh` instead. This file is kept for historical reference only.
 
 **Date:** September 3, 2025
 **Status:** OBSOLETE - Use deploy.sh instead
@@ -15,7 +15,7 @@
 3. **Configuration**: `./configure` completes successfully
 4. **Compilation**: `make` builds all source files without errors
 5. **Installation**: `make install` places binaries in `bin/` directory
-6. **Setup Script**: `./scripts/setup.sh` runs through all steps
+6. **Setup Script**: `./scripts/deployment/setup.sh` runs through all steps
 
 ### ❌ What's Broken
 1. **Server Won't Stay Running**:
@@ -42,7 +42,7 @@ cd Luminari-Source
 
 ### Step 2: Run Setup Script ⚠️
 ```bash
-./scripts/setup.sh
+./scripts/deployment/setup.sh
 ```
 - **Initial Issue**: Script failed with "No targets specified and no makefile found"
 - **Root Cause**: Script doesn't run `autoreconf -fvi` first

@@ -624,7 +624,7 @@ PAUSE=10
 
 ### Supported Autorun Script
 
-The supported Unix/Linux supervisor is [`autorun.sh`](../../autorun.sh):
+The supported Unix/Linux supervisor is [`autorun.sh`](../../scripts/autorun/autorun.sh):
 
 ```bash
 #!/bin/bash

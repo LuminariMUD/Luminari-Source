@@ -46,7 +46,7 @@ cd Luminari-Source
 # 2. Run the deployment script
 #    This handles everything: dependencies, database, world data, build
 #    You'll be prompted for MySQL root password
-./scripts/deploy.sh
+./scripts/deployment/deploy.sh
 
 # 3. Start the MUD server
 ./bin/circle -d lib
@@ -130,7 +130,7 @@ sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
                         libcurl4-openssl-dev libssl-dev mariadb-server git make cmake \
                         autoconf automake libtool pkg-config
 
-# HIGHLY RECOMMENDED: Install debugging tools (used by debug_game.sh and vgrind.sh)
+# HIGHLY RECOMMENDED: Install debugging tools (used by scripts/debugging/ helpers)
 sudo apt-get install -y gdb valgrind
 ```
 
@@ -419,7 +419,7 @@ For complete license details, see the [LICENSE](LICENSE) file.
 - **Forgotten Realms**: Rich world-building traditions
 
 ### Version Information
-- **Current Version**: LuminariMUD 2.5032-beta (tbaMUD 3.64)
+- **Current Version**: LuminariMUD 2.5033-beta (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
 - **Language**: GNU C23

@@ -7,12 +7,12 @@
 # INSTALLATION INSTRUCTIONS:
 # -------------------------
 # Preferred update path (installs, reloads, restarts, and verifies MainPID):
-#    ./scripts/deploy.sh --install-systemd --restart-service
+#    ./scripts/deployment/deploy.sh --install-systemd --restart-service
 #
 # If systemd is inactive while autorun is already running, stop that unmanaged
 # instance first; the installer refuses to start a competing supervisor:
-#    sudo -u luminari ./autorun.sh stop
-#    ./scripts/deploy.sh --install-systemd --restart-service
+#    sudo -u luminari ./scripts/autorun/autorun.sh stop
+#    ./scripts/deployment/deploy.sh --install-systemd --restart-service
 #
 # Manual alternative:
 # 1. Install this file with the required mode:
@@ -54,7 +54,7 @@
 # -------------
 # - User 'luminari' must exist
 # - MUD installed at /home/luminari/Luminari-Source/
-# - autorun.sh must be executable
+# - scripts/autorun/autorun.sh must be executable
 # - MySQL/MariaDB should be running (but not required)
 
 [Unit]
@@ -70,8 +70,8 @@ WorkingDirectory=/home/luminari/Luminari-Source
 PIDFile=/home/luminari/Luminari-Source/.autorun.lock.pid
 
 # autorun.sh now defaults to daemon mode and starts its own watchdog
-ExecStart=/home/luminari/Luminari-Source/autorun.sh
-ExecStop=/home/luminari/Luminari-Source/autorun.sh stop
+ExecStart=/home/luminari/Luminari-Source/scripts/autorun/autorun.sh
+ExecStop=/home/luminari/Luminari-Source/scripts/autorun/autorun.sh stop
 ExecReload=/bin/kill -HUP $MAINPID
 
 # Restart policy - let autorun handle restarts internally

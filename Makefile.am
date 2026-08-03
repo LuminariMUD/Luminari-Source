@@ -337,28 +337,57 @@ EXTRA_DIST = \
 	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
-	scripts/analyze_vessel_memory_samples.sh \
-	scripts/dev_create_test_character.sh \
-	scripts/dev_kohdee_login_smoke.sh \
-	scripts/test_character_rename_schema.sh \
-	scripts/test_character_rename_static.sh \
-	scripts/test_background_help_entries.sh \
-	scripts/test_autorun_supervision.sh \
+	autorun-watchdog.sh \
+	autorun.sh \
+	scripts/README.md \
+	scripts/autorun/autorun-watchdog.sh \
+	scripts/autorun/autorun.sh \
+	scripts/autorun/test_autorun_supervision.sh \
+	scripts/backup.sh \
+	scripts/cbuild.sh \
+	scripts/character-rename/test_character_rename_schema.sh \
+	scripts/character-rename/test_character_rename_static.sh \
+	scripts/copyover/copyover_watchdog.sh \
+	scripts/copyover/enhanced_copyover_diagnostic.sh \
+	scripts/debugging/debug_game.sh \
+	scripts/debugging/vgrind.sh \
+	scripts/deploy.sh \
+	scripts/deployment/deploy.sh \
+	scripts/deployment/move_bin.sh \
+	scripts/deployment/setup.sh \
+	scripts/development/dev_create_test_character.sh \
+	scripts/development/dev_kohdee_login_smoke.sh \
+	scripts/mariadb/setup_mariadb_sudoers.sh \
+	scripts/mariadb/start_mariadb.sh \
+	scripts/move_bin.sh \
+	scripts/permissions/check_permissions.sh \
+	scripts/permissions/fix_permissions.sh \
+	scripts/process-memory/sample_process_memory_details.sh \
+	scripts/process-memory/test_process_memory_details.sh \
 	scripts/provision_artifacts.sh \
-	scripts/provision_vessel_harbor.sh \
-	scripts/run_vessel_ferry_soak.sh \
-	scripts/run_vessel_scale_benchmark.sh \
-	scripts/sample_process_memory_details.sh \
-	scripts/test_process_memory_details.sh \
-	scripts/test_vessel_ferry_soak_preflight.sh \
-	scripts/test_vessel_hunter_in_game.sh \
-	scripts/test_vessel_merchant_in_game.sh \
-	scripts/test_vessel_events_in_game.sh \
-	scripts/test_vessel_tactical_in_game.sh \
-	scripts/test_vessel_lookout_in_game.sh \
-	scripts/test_vessel_narrative_in_game.sh \
-	scripts/test_vessel_memory_analyzer.sh \
-	scripts/test_vessel_scale_benchmark_parsers.sh \
+	scripts/setup.sh \
+	scripts/test_background_help_entries.sh \
+	scripts/test_pubsub.sh \
+	scripts/vessels/analyze_vessel_memory_samples.sh \
+	scripts/vessels/provision_vessel_campaign.sh \
+	scripts/vessels/provision_vessel_derelict.sh \
+	scripts/vessels/provision_vessel_frontier.sh \
+	scripts/vessels/provision_vessel_harbor.sh \
+	scripts/vessels/run_vessel_ferry_soak.sh \
+	scripts/vessels/run_vessel_scale_benchmark.sh \
+	scripts/vessels/test_vessel_boarding_in_game.sh \
+	scripts/vessels/test_vessel_derelict_in_game.sh \
+	scripts/vessels/test_vessel_events_in_game.sh \
+	scripts/vessels/test_vessel_ferry_soak_preflight.sh \
+	scripts/vessels/test_vessel_hunter_in_game.sh \
+	scripts/vessels/test_vessel_lookout_in_game.sh \
+	scripts/vessels/test_vessel_memory_analyzer.sh \
+	scripts/vessels/test_vessel_merchant_in_game.sh \
+	scripts/vessels/test_vessel_narrative_in_game.sh \
+	scripts/vessels/test_vessel_scale_benchmark_parsers.sh \
+	scripts/vessels/test_vessel_tactical_in_game.sh \
+	scripts/world/populate_zone8000_from_south_of_waterdeep.py \
+	scripts/world/populate_zone9000_from_savage_frontier.py \
 	docs/product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md \
 	docs/deployment/VESSEL_SCHEMA_DEPLOYMENT.md \
 	docs/systems/VESSEL_SYSTEM.md \
@@ -444,22 +473,22 @@ test-protocol-fuzz:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-fuzz
 
 test-character-rename-static:
-	./scripts/test_character_rename_static.sh
+	./scripts/character-rename/test_character_rename_static.sh
 
 test-character-rename-schema:
-	./scripts/test_character_rename_schema.sh
+	./scripts/character-rename/test_character_rename_schema.sh
 
 test-background-help-entries:
 	./scripts/test_background_help_entries.sh
 
 test-autorun-supervision:
-	./scripts/test_autorun_supervision.sh
+	./scripts/autorun/test_autorun_supervision.sh
 
 test-vessel-tooling:
-	./scripts/test_vessel_ferry_soak_preflight.sh
-	./scripts/test_vessel_memory_analyzer.sh
-	./scripts/test_process_memory_details.sh
-	./scripts/test_vessel_scale_benchmark_parsers.sh
+	./scripts/vessels/test_vessel_ferry_soak_preflight.sh
+	./scripts/vessels/test_vessel_memory_analyzer.sh
+	./scripts/process-memory/test_process_memory_details.sh
+	./scripts/vessels/test_vessel_scale_benchmark_parsers.sh
 
 # Authoritative full local test entry point. The final install both verifies the
 # install path and removes the root-level circle artifact created by make test.
