@@ -87,9 +87,9 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 ---
 
 Completed behavior is documented in
-[`docs/systems/ARTIFACT_SYSTEM.md`](../../systems/ARTIFACT_SYSTEM.md), and
+[`docs/systems/ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md), and
 completed implementation work is recorded in
-[`docs/CHANGELOG.md`](../../CHANGELOG.md).
+[`docs/CHANGELOG.md`](../CHANGELOG.md).
 
 Sections 1 through 8 track unfinished LuminariMUD work. The second half of
 this file is the complete HomelandMUD artifact-system study requested for

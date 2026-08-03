@@ -56,7 +56,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[INTERMUD3_GATEWAY_API.md](systems/INTERMUD3_GATEWAY_API.md)** - External I3 Gateway API reference (JSON-RPC 2.0)
 - **[INTERMUD3_SECURITY_AUDIT.md](systems/INTERMUD3_SECURITY_AUDIT.md)** - I3 client security audit (remediated 2025-08-26)
 - **[LOCAL_INTERMUD3_E2E.md](runbooks/LOCAL_INTERMUD3_E2E.md)** - Local gateway and MUD end-to-end operations runbook
-- **[PROTOCOL_TODO.md](project-management-zusuk/ongoing-projects/PROTOCOL_TODO.md)** - Outstanding protocol security items
+- **[PROTOCOL_TODO.md](ongoing-projects/PROTOCOL_TODO.md)** - Outstanding protocol security items
 
 ---
 
@@ -163,15 +163,15 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
-- **[Zusuk ongoing projects](project-management-zusuk/ongoing-projects/)** -
+- **[Ongoing projects](ongoing-projects/)** -
   Active work: artifact follow-ups, AI conversation history, SKORE phases 3-4,
   protocol security, event-system merge, CMake warnings, and idea backlog
-- **[artifacts.md](project-management-zusuk/ongoing-projects/artifacts.md)** -
+- **[artifacts.md](ongoing-projects/artifacts.md)** -
   Artifact deployment, placement, integration, balance, cooldown persistence,
   validation, group recall, and staff-tool follow-ups
-- **[AI_TODO_IDEAS.md](project-management-zusuk/ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
-- **[DO_SKORE_PROJECT.md](project-management-zusuk/ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
-- **[IDEA_LIST.md](project-management-zusuk/ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
+- **[AI_TODO_IDEAS.md](ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
+- **[DO_SKORE_PROJECT.md](ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
+- **[IDEA_LIST.md](ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
 
 ### Historical Records
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records

@@ -77,7 +77,7 @@ load, the registry remains inactive.
 
 This packaging issue must be resolved before a clean-clone deployment is
 reliable. It is tracked in
-`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+`docs/ongoing-projects/artifacts.md`.
 
 The ownership file, `lib/world/world.artifact`, is also ignored, but
 intentionally: it is generated runtime state and must not be distributed as
@@ -373,7 +373,7 @@ recovered is the identity of the three items themselves.
 
 The complete audit, original VNUMs, counterpart pattern, porting cautions,
 recommendations, and absolute HomelandMUD source paths are maintained in
-`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+`docs/ongoing-projects/artifacts.md`.
 
 ## Player Commands
 
@@ -807,7 +807,7 @@ and both command handlers.
   an intended acquisition route that live content does not yet implement.
 
 Actionable follow-up work is maintained in
-`docs/project-management-zusuk/ongoing-projects/artifacts.md`.
+`docs/ongoing-projects/artifacts.md`.
 
 ## Related Documentation
 

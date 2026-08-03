@@ -204,7 +204,7 @@ CREATE TABLE ai_conversation_history (
 
 ## Risk Assessment & Mitigation
 
-### Low Risk (Phase 1) ✅
+### Low Risk (Phase 1)
 **Risks**:
 - Memory usage increase (5-10MB)
 - Potential cache key conflicts
@@ -215,7 +215,7 @@ CREATE TABLE ai_conversation_history (
 - Use unique conversation key format (`conv_<vnum>_<playerid>`)
 - Implement conversation pruning to limit memory growth
 
-### Medium Risk (Phase 2) ⚠️
+### Medium Risk (Phase 2)
 **Risks**:
 - Thread safety issues with concurrent access
 - Cache overflow with many active conversations
@@ -226,7 +226,7 @@ CREATE TABLE ai_conversation_history (
 - Implement conversation limits and cleanup
 - Monitor API costs and optimize prompt length
 
-### High Risk (Phase 3) ❌
+### High Risk (Phase 3)
 **Risks**:
 - Database integration complexity
 - Potential data corruption or loss

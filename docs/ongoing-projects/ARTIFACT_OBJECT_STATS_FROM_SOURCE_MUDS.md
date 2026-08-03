@@ -7,7 +7,7 @@ of the current LuminariMUD artifact roster. It records the actual artifact
 object prototypes found in the two source MUD snapshots under `EXAMPLE/`.
 
 The current LuminariMUD implementation is documented in
-[`docs/systems/ARTIFACT_SYSTEM.md`](../../systems/ARTIFACT_SYSTEM.md). The
+[`docs/systems/ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md). The
 long-form HomelandMUD behavior study is in [`artifacts.md`](artifacts.md).
 
 Snapshot provenance:

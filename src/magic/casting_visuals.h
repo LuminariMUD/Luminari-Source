@@ -10,7 +10,7 @@
  * Part of the LuminariMUD Casting Visuals Improvement project.
  *
  * @see casting_visuals.c for implementation
- * @see docs/project-management-zusuk/casting-visuals/ for design docs
+ * @see docs/systems/CASTING_VISUALS_SYSTEM.md for system documentation
  */
 
 #ifndef CASTING_VISUALS_H

@@ -11,10 +11,10 @@
 
 ---
 
-### 2.4 Context Detection ✅ COMPLETE
+### 2.4 Context Detection - COMPLETE
 - [ ] Add context override to scoreconfig (future enhancement)
 
-### 2.5 Active Effects Display ✅ COMPLETE
+### 2.5 Active Effects Display - COMPLETE
 - [ ] Group by spell schools/types (future enhancement)
 
 
@@ -25,7 +25,7 @@
 ### 3.1 Detailed Views
 - [ ] Parse "skore detail <section>" in do_skore
 - [ ] Create display_detailed_combat() function
-- [ ] Create display_detailed_magic() function  
+- [ ] Create display_detailed_magic() function
 - [ ] Create display_detailed_stats() function
 - [ ] Add skill breakdowns to detailed views
 
