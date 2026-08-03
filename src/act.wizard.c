@@ -6468,6 +6468,8 @@ void perform_do_copyover()
   char buf[100], buf2[100];
   char temp_file[256];
   int playing_count = 0, total_count = 0, saved_count = 0;
+  int exec_errno = 0;
+  bool exec_attempted = FALSE;
 
   COPYOVER_DEBUG("perform_do_copyover() called - starting copyover process");
 
@@ -7017,16 +7019,40 @@ void perform_do_copyover()
   /* Check system state before execl */
   check_pre_execl_state();
 
-  /* Now execute the new binary */
-  log_copyover_phase("EXECL", "Calling execl()");
-  execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);
+  /* ITIMER_VIRTUAL survives exec(), but caught signal handlers do not.  Suspend
+   * the checkpoint timer so the replacement cannot receive SIGVTALRM with its
+   * default fatal disposition while boot_db() runs before signal_setup(). */
+  if (suspend_checkpoint_timer())
+  {
+    log_copyover_phase("EXECL", "Calling execl()");
+    exec_attempted = TRUE;
+    execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);
+    exec_errno = errno;
 
-  /* Failed - successful exec will not return */
+    /* A successful exec never returns.  Keep the current process protected if
+     * exec failed and copyover recovery allows the game loop to continue. */
+    resume_checkpoint_timer();
+  }
+  else
+  {
+    exec_errno = errno;
+    log_copyover_phase("FAILED", "Could not suspend virtual checkpoint timer");
+  }
+
+  /* Failed - successful exec will not return. */
   copyover_status = COPYOVER_FAILED;
-  log_execl_failure(errno);
-  log_copyover_phase("FAILED", "execl() failed");
+  if (exec_attempted)
+  {
+    log_execl_failure(exec_errno);
+    log_copyover_phase("FAILED", "execl() failed");
+    log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(exec_errno), exec_errno);
+  }
+  else
+  {
+    log("SYSERR: do_copyover: Refusing to exec with an active checkpoint timer - %s (errno %d)",
+        strerror(exec_errno), exec_errno);
+  }
   close_copyover_diagnostics(0);
-  log("SYSERR: do_copyover: execl() failed - %s (errno %d)", strerror(errno), errno);
   log("SYSERR: Attempted to execute: %s with args: circle %s %s", EXE_FILE, buf2, buf);
 
   /* Try to change back to lib directory for recovery attempt */

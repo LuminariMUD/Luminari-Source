@@ -151,6 +151,10 @@ static byte emergency_unban;             /* signal: SIGUSR2 */
 static int dg_act_check;                 /* toggle for act_trigger */
 static bool fCopyOver;                   /* Are we booting in copyover mode? */
 static char *last_act_message = NULL;
+#ifdef CIRCLE_UNIX
+static struct itimerval checkpoint_timer_before_copyover;
+static bool checkpoint_timer_suspended = FALSE;
+#endif
 
 /* static local function prototypes (current file scope only) */
 static RETSIGTYPE reread_wizlists(int sig);
@@ -3662,8 +3666,9 @@ static void signal_setup(void)
   interval.tv_usec = 0;
   itime.it_interval = interval;
   itime.it_value = interval;
-  setitimer(ITIMER_VIRTUAL, &itime, NULL);
   my_signal(SIGVTALRM, checkpointing);
+  if (setitimer(ITIMER_VIRTUAL, &itime, NULL) != 0)
+    log("SYSERR: Unable to start the virtual checkpoint timer: %s", strerror(errno));
 
   /* just to be on the safe side: */
   my_signal(SIGHUP, hupsig);
@@ -3676,6 +3681,55 @@ static void signal_setup(void)
 }
 
 #endif /* CIRCLE_UNIX || CIRCLE_MACINTOSH */
+
+bool suspend_checkpoint_timer(void)
+{
+#ifdef CIRCLE_UNIX
+  struct itimerval disabled_timer = {0};
+  int timer_errno;
+
+  if (checkpoint_timer_suspended)
+  {
+    log("SYSERR: Virtual checkpoint timer is already suspended");
+    errno = EBUSY;
+    return FALSE;
+  }
+
+  if (setitimer(ITIMER_VIRTUAL, &disabled_timer, &checkpoint_timer_before_copyover) != 0)
+  {
+    timer_errno = errno;
+    log("SYSERR: Unable to suspend the virtual checkpoint timer: %s", strerror(timer_errno));
+    errno = timer_errno;
+    return FALSE;
+  }
+
+  checkpoint_timer_suspended = TRUE;
+#endif
+
+  return TRUE;
+}
+
+bool resume_checkpoint_timer(void)
+{
+#ifdef CIRCLE_UNIX
+  int timer_errno;
+
+  if (!checkpoint_timer_suspended)
+    return TRUE;
+
+  if (setitimer(ITIMER_VIRTUAL, &checkpoint_timer_before_copyover, NULL) != 0)
+  {
+    timer_errno = errno;
+    log("SYSERR: Unable to restore the virtual checkpoint timer: %s", strerror(timer_errno));
+    errno = timer_errno;
+    return FALSE;
+  }
+
+  checkpoint_timer_suspended = FALSE;
+#endif
+
+  return TRUE;
+}
 
 /* Public routines for system-to-player-communication. */
 void game_info(const char *format, ...)

@@ -76,6 +76,8 @@ void echo_on(struct descriptor_data *d);
 void game_loop(socket_t mother_desc);
 void heartbeat(int heart_pulse);
 void copyover_recover(void);
+bool suspend_checkpoint_timer(void);
+bool resume_checkpoint_timer(void);
 
 /* global buffering system - allow access to global variables within comm.c */
 #ifndef __COMM_C__
