@@ -2,6 +2,12 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Bug backlog review
+
+- Completed the verified dev/local source-code backlog and the separate
+  production `lib/`, help, world, quest, script, and shop data backlog.
+- Retired the two finished working trackers from `docs/ongoing-projects/`.
+
 ### Security hardening
 
 #### Fixed
