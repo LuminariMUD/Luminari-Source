@@ -244,11 +244,11 @@ void guard_check(struct char_data *ch, struct char_data *vict)
         GUI_CMBT_CLOSE(vict);
 
         GUI_CMBT_NOTVICT_OPEN(vict, tch);
-        act("$N guards $n succesfully.", FALSE, vict, 0, tch, TO_NOTVICT);
+        act("$N guards $n successfully.", FALSE, vict, 0, tch, TO_NOTVICT);
         GUI_CMBT_NOTVICT_CLOSE(vict, tch);
 
         GUI_CMBT_OPEN(tch);
-        act("You guard $n succesfully.", FALSE, vict, 0, tch, TO_VICT);
+        act("You guard $n successfully.", FALSE, vict, 0, tch, TO_VICT);
         GUI_CMBT_CLOSE(tch);
 
         perform_rescue(tch, vict);

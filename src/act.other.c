@@ -9042,8 +9042,8 @@ static const char *const hints[] = {
     "\tR[HINT]:\tn \ty"
     "The combination of races, classes (MULTICLASS), stat boosts "
     "and feat selection make for nearly limitless choices.  Do not be afraid "
-    "to experiment!  Have fun reading up on feats using commands.  FEATS with no "
-    "argument will show your current feats and show you a bunch of other command "
+    "to experiment!  Have fun reading up on feats using the FEATS command with no "
+    "argument. It will show your current feats and show you a bunch of other command "
     "options on the bottom section."
     "  [use nohint or prefedit to deactivate this]\tn\r\n",
     /* 6*/
@@ -9134,7 +9134,7 @@ static const char *const hints[] = {
     /*12*/
     "\tR[HINT]:\tn \tyIf you find items of value that you do not want to deal with, "
     "you can always DONATE them.  This will cause them to appear in a "
-    "donation pit throughout the realm.  Alternatively if you find an item"
+    "donation pit throughout the realm.  Alternatively if you find an item "
     "that is of no value, you can JUNK it to permanently get rid of it.  "
     "Although not necessary since corpses decompose after a short time, you "
     "can SACrifice corpses to get rid of them."

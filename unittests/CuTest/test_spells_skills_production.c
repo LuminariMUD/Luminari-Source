@@ -46,6 +46,17 @@ void Test_spells_production_name_and_level_lookup(CuTest *tc)
     spell_info[SPELL_MAGIC_MISSILE].min_level[i] = saved_levels[i];
 }
 
+void Test_cure_critical_spell_names_are_canonical(CuTest *tc)
+{
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  CuAssertStrEquals(tc, "cure critical", spell_name(SPELL_CURE_CRITIC));
+  CuAssertStrEquals(tc, "mass cure critical", spell_name(SPELL_MASS_CURE_CRIT));
+  CuAssertIntEquals(tc, SPELL_CURE_CRITIC, find_skill_num("cure critic"));
+  CuAssertIntEquals(tc, SPELL_MASS_CURE_CRIT, find_skill_num("mass cure critic"));
+}
+
 void Test_spells_production_cantrip_bounds(CuTest *tc)
 {
   bool saved_cantrip;

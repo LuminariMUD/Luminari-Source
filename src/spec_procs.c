@@ -4703,7 +4703,7 @@ SPECIAL(clan_cleric)
                      {SPELL_BLESS, "bless            ", 150},
                      {SPELL_REMOVE_POISON, "remove poison    ", 525},
                      {SPELL_CURE_BLIND, "cure blindness   ", 375},
-                     {SPELL_CURE_CRITIC, "critic           ", 525},
+                     {SPELL_CURE_CRITIC, "critical         ", 525},
                      {SPELL_SANCTUARY, "sanctuary       ", 3000},
                      {SPELL_HEAL, "heal            ", 3500},
 

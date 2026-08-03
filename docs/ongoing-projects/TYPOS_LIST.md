@@ -18,62 +18,70 @@ snapshot so that concurrent queue cleanup cannot discard them. Record numbers
 below refer to that initial snapshot. Reporter metadata uses `L` for character
 level and `R` for room VNUM.
 
-## Still Present in the Current Source
+The nine source defects retained from that snapshot were corrected in the
+development checkout on 2026-08-03. The score report was also rendered on the
+development server and is no longer reproducible. Production status labels
+below remain historical until the corrected build is deployed and the
+production queue is reviewed; this local work did not change production.
+
+## Fixed in the Current Development Checkout
 
 - **Craft-resize progress can inherit an item's color** - The resize progress
-  line has no color reset before "You have approximately ... seconds left to
-  go," allowing the preceding item's light-grey color to bleed into it. Source:
+  line now resets color before "You have approximately ... seconds left to go,"
+  preventing the preceding item's light-grey color from bleeding into it. Source:
   `src/craft/craft.c:2853-2856`. Reporter: Janalon (L28, R101772, 2021-01-13;
-  #004). Production status: unresolved.
+  #004). Snapshot production status: unresolved.
 - **Arrow Swarm cooldown names Death Arrow** - When Arrow Swarm is unavailable,
-  its source string says, "You must recover before you can use another death
-  arrow." Source: `src/combat/act.offensive.c:5631-5638`. Reporter: Casseia
-  (L26, R103009, 2021-03-10; #022). Production status: in progress.
+  its cooldown message now names "another swarm of arrows." Source:
+  `src/combat/act.offensive.c:5631-5638`. Reporter: Casseia (L26, R103009,
+  2021-03-10; #022). Snapshot production status: in progress.
 - **`uncommune` emits two spaces after an unmodified spell name** - The format
-  string places one space before the optional metamagic labels and another
-  before `from`; when every label is empty, both spaces remain. Source:
-  `src/magic/spell_prep.c:5057-5067`. Reporter: Raewo (L2, R145202,
-  2021-04-14; #025). Production status: unresolved.
+  strings now prefix only present metamagic labels with spaces, leaving exactly
+  one space before `from` when there are no labels. The preparation-queue and
+  collection variants were both corrected. Source:
+  `src/magic/spell_prep.c:5057-5087`. Reporter: Raewo (L2, R145202, 2021-04-14;
+  #025). Snapshot production status: unresolved.
 - **Smite Evil feat information says good-aligned targets** - The generated feat
-  description says its damage bonus applies against good-aligned targets,
-  despite the ability being Smite Evil. This text is generated from source, not
-  a help file. Source: `src/character/feats.c:3739-3743`. Reporter: Horkesh (L8,
-  R103000, 2022-02-14; #029). Production status: unresolved.
-- **Guard messages misspell `successfully`** - Both successful guard messages
-  use `succesfully`. Source: `src/combat/fight.c:247-251`. The same submission
-  mentions a piercing-death message, but that instance is in
-  `lib/misc/messages` and is intentionally excluded. Reporter: Metvagen (L16,
-  R1925, 2022-08-25; #039). Production status: in progress.
-- **Cure Critical is displayed as Cure Critic** - The public spell registrations
-  use `cure critic` and `mass cure critic`, although other player-facing source
-  text calls the spell Cure Critical Wounds. Source:
-  `src/magic/spell_parser.c:5065` and `src/magic/spell_parser.c:5179`. Reporter:
-  Murdoch (L30, R23820, 2022-11-14; #049). Production status: unresolved.
-- **The feat-selection hint has a broken sentence transition** - The hint says,
-  "Have fun reading up on feats using commands. FEATS with no argument ..." and
-  should join the command name and explanation into a grammatical instruction.
-  Source: `src/act.other.c:9042-9047`. Reporter: Amorea (L1, R14124,
-  2023-03-16; #067). Production status: unresolved.
-- **The donation/Junk hint concatenates `itemthat`** - Adjacent string literals
-  end with `item` and begin with `that` without a separating space. Source:
-  `src/act.other.c:9135-9138`. Reporter: Mddljeu (L1, R14108, 2025-07-05;
-  #081). Production status: unresolved.
-- **The `blood` command says `food on the blood`** - A character without Blood
-  Drain is told, "You don't have the ability to food on the blood of others";
-  `food` should be `feed`. Source: `src/combat/act.offensive.c:14406-14409`.
-  Reporter: Falwel (L3, R145270, 2025-12-01; #083). Production status:
+  description now names evil-aligned targets. This text is generated from
+  source, not a help file. Source: `src/character/feats.c:3739-3743`. Reporter:
+  Horkesh (L8, R103000, 2022-02-14; #029). Snapshot production status:
   unresolved.
+- **Guard messages misspell `successfully`** - Both successful guard messages
+  now use `successfully`. Source: `src/combat/fight.c:247-251`. The same
+  submission mentions a piercing-death message, but that instance is in
+  `lib/misc/messages` and remains intentionally excluded. Reporter: Metvagen
+  (L16, R1925, 2022-08-25; #039). Snapshot production status: in progress.
+- **Cure Critical is displayed as Cure Critic** - The public spell registrations
+  now use `cure critical` and `mass cure critical`. The clan-cleric service
+  label, local fallback help, and generated web references were made
+  consistent. The old spell abbreviations still resolve through normal prefix
+  matching. Source: `src/magic/spell_parser.c:5065`,
+  `src/magic/spell_parser.c:5179`, and `src/spec_procs.c:4706`. Reporter:
+  Murdoch (L30, R23820, 2022-11-14; #049). Snapshot production status:
+  unresolved.
+- **The feat-selection hint has a broken sentence transition** - The hint says,
+  "Have fun reading up on feats using the FEATS command with no argument. It
+  will show ..." Source: `src/act.other.c:9042-9047`. Reporter: Amorea (L1,
+  R14124, 2023-03-16; #067). Snapshot production status: unresolved.
+- **The donation/Junk hint concatenates `itemthat`** - Adjacent string literals
+  now include the missing separating space. Source:
+  `src/act.other.c:9135-9138`. Reporter: Mddljeu (L1, R14108, 2025-07-05;
+  #081). Snapshot production status: unresolved.
+- **The `blood` command says `food on the blood`** - A character without Blood
+  Drain is now told, "You don't have the ability to feed on the blood of
+  others." Source: `src/combat/act.offensive.c:14406-14409`. Reporter: Falwel
+  (L3, R145270, 2025-12-01; #083). Snapshot production status: unresolved.
 
-## Needs In-Game Rendering Verification
+## Verified in Development Rendering
 
 - **Score class row may be misaligned** - The report says the `Class : <Levels>`
-  row does not align with neighboring fields. Score has since been substantially
-  rewritten, but its identity block still constructs differently sized labels
-  and rows manually, so the current rendered output should be checked before
-  closing the report. Source: `src/act.informative.c:4416-4472`. Reporter:
-  Adelais (L1, R14125, 2021-02-02; #019). Production status: unresolved.
+  row does not align with neighboring fields. A development login rendered the
+  current `score` output and showed `Class` beginning in the same column as
+  `Title`; the report is no longer reproducible and no source change was
+  warranted. Source: `src/act.informative.c:4416-4472`. Reporter: Adelais (L1,
+  R14125, 2021-02-02; #019). Snapshot production status: unresolved.
 
-## Reported Typos No Longer Present in the Current Source
+## Already Correct Before This Fix Pass
 
 These reports were still unresolved in the initial production snapshot, but
 the current checkout already contains the reported correction. They should be

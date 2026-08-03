@@ -5056,14 +5056,14 @@ ACMDU(do_consign_to_oblivion)
 
     if (prep_queue_remove_by_class(ch, class, spellnum, metamagic))
     {
-      send_to_char(ch, "You %s \tW%s\tn %s%s%s%s%s%s from your %s preparation queue!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn%s%s%s%s%s%s from your %s preparation queue!\r\n",
                    spell_consign_dict[class][0], spell_name(spellnum),
-                   (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_QUICKEN) ? " \tc[\tnquickened\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? " \tc[\tnempowered\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? " \tc[\tnmaximized\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? " \tc[\tnextended\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_SILENT) ? " \tc[\tnsilent\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_STILL) ? " \tc[\tnstill\tc]\tn" : ""),
                    class == CLASS_ALCHEMIST ? "extract" : "spell");
       return;
     }
@@ -5074,14 +5074,14 @@ ACMDU(do_consign_to_oblivion)
   {
     if (collection_remove_by_class(ch, class, spellnum, metamagic))
     {
-      send_to_char(ch, "You %s \tW%s\tn %s%s%s%s%s%s from your %s collection!\r\n",
+      send_to_char(ch, "You %s \tW%s\tn%s%s%s%s%s%s from your %s collection!\r\n",
                    spell_consign_dict[class][0], spell_name(spellnum),
-                   (IS_SET(metamagic, METAMAGIC_QUICKEN) ? "\tc[\tnquickened\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? "\tc[\tnempowered\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? "\tc[\tnmaximized\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? "\tc[\tnextended\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_SILENT) ? "\tc[\tnsilent\tc]\tn" : ""),
-                   (IS_SET(metamagic, METAMAGIC_STILL) ? "\tc[\tnstill\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_QUICKEN) ? " \tc[\tnquickened\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EMPOWER) ? " \tc[\tnempowered\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_MAXIMIZE) ? " \tc[\tnmaximized\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_EXTEND) ? " \tc[\tnextended\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_SILENT) ? " \tc[\tnsilent\tc]\tn" : ""),
+                   (IS_SET(metamagic, METAMAGIC_STILL) ? " \tc[\tnstill\tc]\tn" : ""),
                    (class == CLASS_ALCHEMIST ? "extract" : "spell"));
       return;
     }

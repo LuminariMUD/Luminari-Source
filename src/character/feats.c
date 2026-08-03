@@ -3738,7 +3738,7 @@ void assign_feats(void)
         "Immunity to fear attacks, +4 bonus to fear saves for group members");
   feato(FEAT_SMITE_EVIL, "smite evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
         "add charisma bonus to hit roll and paladin level to damage",
-        "add charisma bonus to hit roll and paladin level to damage against good aligned targets. "
+        "add charisma bonus to hit roll and paladin level to damage against evil-aligned targets. "
         "against evil outsiders, evil dragons, or undead, "
         "2x paladin level is added to damage instead.");
   feato(FEAT_DETECT_EVIL, "detect evil", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,

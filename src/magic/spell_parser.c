@@ -5062,7 +5062,7 @@ void mag_assign_spells(void)
   // animate dead - shared
 
   // 4th circle
-  spello(SPELL_CURE_CRITIC, "cure critic", 51, 36, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
+  spello(SPELL_CURE_CRITIC, "cure critical", 51, 36, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
          MAG_POINTS, NULL, 3, 14, CONJURATION, FALSE);
   spello(SPELL_VIGORIZE_SERIOUS, "vigorize serious", 51, 36, 1, POS_FIGHTING, TAR_CHAR_ROOM, FALSE,
          MAG_POINTS, NULL, 3, 14, CONJURATION, FALSE);
@@ -5176,7 +5176,7 @@ void mag_assign_spells(void)
          FALSE, MAG_AFFECTS, NULL, 0, 20, ABJURATION, FALSE);
   CantCast(SPELL_GREATER_RAPID_BUFF);
 
-  spello(SPELL_MASS_CURE_CRIT, "mass cure critic", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
+  spello(SPELL_MASS_CURE_CRIT, "mass cure critical", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_GROUPS, NULL, 7, 20, CONJURATION, FALSE);
   spello(SPELL_GROUP_VIGORIZE, "group vigorize", 85, 70, 1, POS_FIGHTING, TAR_IGNORE, FALSE,
          MAG_GROUPS, NULL, 7, 20, CONJURATION, FALSE);

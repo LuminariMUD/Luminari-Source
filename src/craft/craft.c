@@ -2851,7 +2851,7 @@ EVENTFUNC(event_crafting)
       send_to_char(ch, "You gained %d exp for crafting...\r\n", exp);
     }
     send_to_char(ch,
-                 "You have approximately %d seconds "
+                 "\tnYou have approximately %d seconds "
                  "left to go.\r\n",
                  GET_CRAFTING_TICKS(ch) * 6);
 

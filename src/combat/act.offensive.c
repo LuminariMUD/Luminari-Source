@@ -5635,7 +5635,7 @@ ACMD(do_arrowswarm)
   PREREQ_NOT_PEACEFUL_ROOM();
   PREREQ_NOT_SINGLEFILE_ROOM();
   PREREQ_HAS_USES(FEAT_SWARM_OF_ARROWS,
-                  "You must recover before you can use another death arrow.\r\n");
+                  "You must recover before you can use another swarm of arrows.\r\n");
 
   send_to_char(ch, "You open up a barrage of fire!\r\n");
   act("$n opens up a barrage of fire!", FALSE, ch, 0, 0, TO_ROOM);
@@ -14405,7 +14405,7 @@ ACMD(do_blood_drain)
 
   if (!HAS_FEAT(ch, FEAT_VAMPIRE_BLOOD_DRAIN))
   {
-    send_to_char(ch, "You don't have the ability to food on the blood of others.\r\n");
+    send_to_char(ch, "You don't have the ability to feed on the blood of others.\r\n");
     return;
   }
 
