@@ -8,7 +8,7 @@
 - NEVER modify `src/campaign.h`, `src/mud_options.h`, `src/vnums.h` - they are local, customized configuration (gitignored). Edit the `.example.h` templates instead if a template change is needed. Only copy `.example.h` -> `.h` on a fresh clone where the real headers do not exist yet.
 - `lib/mysql_config` and `lib/.env` contain credentials: you may read them, never modify them without permission. Edit `lib/mysql_config_example` / `lib/.env.example` instead.
 - When adding or removing a source file, update BOTH `Makefile.am` and `CMakeLists.txt`.
-- Check `lib/.env` whether this is dev or production environment.  We don't modify production code.
+- Check `lib/.env` whether this is dev or production environment.  We don't modify production code.  We do not create new branches / worktress from production.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
 - When adding or updating features, make sure to update relevant documentation and helpfiles
@@ -124,25 +124,11 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | `src/pubsub/` | `pubsub*` |
 | `src/obj/` | `act.item.c`, `item.h`, `objsave`, `treasure*`, `spec_artifacts`, `shop`, `trade`, `house` |
 
-A directory must hold roughly 8+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`.  Do not nest a second level.
-
-Fifteen directories is the settled state; 104 files stay flat and should. Every remaining flat cluster has been measured against both tests and rejected - `db/`, `ai/`, `clan/`, `player/`, `act/`, `event/`, and a `util/`/`core/` grab bag - so do not re-open the question without new evidence. The genuine core belongs at top level: `comm.c`, `db.c/.h`, `handler.c`, `interpreter.c`, `utils.c/.h`, `structs.h`, `constants.c`, `limits.c`, `mud_event.c/.h`, `players.c`, and the `act.*` family. The remaining prefix groups are all under the floor: `ai_*` (5), `clan*` (7), `db*` (7), `mysql*` (2), `spec*` (3), `random*` (3), and `roleplay`+`char_descs`+`introduce` (5).
-
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), and `traps.h`/`traps_new.c` sit in `src/combat/` as room and encounter hazards rather than in `src/obj/`, which they touch only incidentally through the object vocabulary.
-
-Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
-
-#### Moving a file: the seven reference categories
-
-Grepping for `#include "name.h"` is not sufficient. Each of these categories broke a real build across the three layout phases; sweep all seven:
-
-1. **Bare `#include "name.h"`** - the bulk of the work.
-2. **Relative form `#include "../../src/name.h"`** - used by `unittests/CuTest/`. These compile as part of `cutest_SOURCES`, so missing one breaks `make test`, not the main build. This category was missed in every phase that did not explicitly check it.
-3. **Path-qualified form** `#include "<dir>/name.h"` for a file moving *between* directories. This bites inside the moving set too, where same-directory includes otherwise need no edit.
-4. **`Makefile.am` and `CMakeLists.txt`** - neither globs; both enumerate every source. Check commented-out entries as well.
-5. **`util/`** - a `SUBDIRS` target of the root `Makefile.am` building nine utility programs with `AM_CFLAGS = -I../src`. `util/shopconv.c` includes `shop.h` and broke the `src/obj/` move. The vendored `EXAMPLE/` tree also matches greps but is not built; leave it alone.
-6. **`scripts/`** - source-path assertions, and any script that builds a mirror of the source tree with `mkdir -p`. That one fails at runtime, not compile time, so only running the full suite catches it.
-7. **`sql/components/*.sql`** - header comments naming the source file each schema mirrors.
+Do not nest a second level in src/ .  Fifteen directories is the current state; 104 files in flat.  The genuine MUD-server core belongs at top level.
+Membership is by "what is this file's primary job", not by what it touches. Headers resolve from a namespace rooted at `src/`, so a header still in
+`src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`),
+while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes
+cross-subsystem coupling visible.
 
 Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
 
