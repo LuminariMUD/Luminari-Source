@@ -38,7 +38,7 @@
 #include "vessels/transport.h"
 #include "character/evolutions.h"
 #include "character/feats.h"
-#include "routing.h"
+#include "vessels/routing.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */

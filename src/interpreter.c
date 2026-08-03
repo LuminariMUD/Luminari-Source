@@ -51,7 +51,7 @@
 #include "character/perks.h"
 #include "actions.h"
 #include "actionqueues.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "combat/combat_modes.h"
 #include "traps.h"
 #include "magic/domains_schools.h"

@@ -187,7 +187,7 @@ circle_SOURCES = \
 	src/wilderness/resource_descriptions.c \
 	src/wilderness/resource_regeneration.c \
 	src/roleplay.c \
-	src/routing.c \
+	src/vessels/routing.c \
 	src/olc/sedit.c \
 	src/obj/shop.c \
 	src/combat/spec_abilities.c \

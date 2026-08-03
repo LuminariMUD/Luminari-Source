@@ -58,7 +58,7 @@
 #include "comms/boards.h"
 #include "comms/mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
 

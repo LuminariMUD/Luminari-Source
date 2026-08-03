@@ -51,7 +51,7 @@
 #include "character/evolutions.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "movement/movement_cost.h"
 
 /* toggle for debug mode

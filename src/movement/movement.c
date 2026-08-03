@@ -37,7 +37,7 @@
 #include "quest/hunts.h"
 #include "character/class.h"
 #include "vessels/transport.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "character/perks.h"
 
 /* Include movement system header */
