@@ -152,6 +152,9 @@ Also expect the pre-commit clang-format hook to realign trailing comments on `#i
 ## Conventions
 
 - 2-space indent, Allman braces, 100-column limit, right-aligned pointers; `.clang-format` is provided.
+- Treat files over ~1,000 non-generated LOC as a review prompt, not a violation.
+  -- Exclude comments, generated code, tables, URLs, and unavoidable literals from these guidelines.
+
 - `lower_snake_case` functions/variables, `UPPER_SNAKE_CASE` macros/constants, structs named `*_data`.
 - Safe string functions (`snprintf`, never `sprintf`); NULL-check before dereference; `log("SYSERR: ...")` for errors.
 - Fix all compiler warnings (`-Wall -Wextra`).

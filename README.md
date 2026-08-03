@@ -419,7 +419,7 @@ For complete license details, see the [LICENSE](LICENSE) file.
 - **Forgotten Realms**: Rich world-building traditions
 
 ### Version Information
-- **Current Version**: LuminariMUD 2.5030-beta (tbaMUD 3.64)
+- **Current Version**: LuminariMUD 2.5031-beta (tbaMUD 3.64)
 - **Repository**: https://github.com/LuminariMUD/Luminari-Source
 - **Created**: July 16, 2019
 - **Language**: GNU C23

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5030 LANGUAGES C)
+project(LuminariMUD VERSION 2.5031 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -461,7 +461,6 @@ set(SRC_C_FILES
     src/character/evolutions.c
     src/character/feats.c
     src/combat/fight.c
-    src/gain.c
     src/olc/genmob.c
     src/olc/genobj.c
     src/olc/genolc.c

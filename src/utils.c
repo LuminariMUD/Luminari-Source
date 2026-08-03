@@ -11814,14 +11814,18 @@ int get_natural_empathy_bonus(struct char_data *ch)
 
 bool valid_luminari_race(int race)
 {
-  if (race >= 0 && race < NUM_EXTENDED_RACES)
-  {
-    if (race >= DL_RACE_START && race <= DL_RACE_END)
-      return false;
-    else
-      return true;
-  }
-  return false;
+  if (race < 0 || race >= NUM_EXTENDED_RACES)
+    return false;
+
+  /* The quest-only races sit inside the Dragonlance number range, but they
+   * are Luminari races - see RACE_LICH/RACE_VAMPIRE in structs.h */
+  if (race == RACE_LICH || race == RACE_VAMPIRE)
+    return true;
+
+  if (race >= DL_RACE_START && race <= DL_RACE_END)
+    return false;
+
+  return true;
 }
 
 int get_account_experience(struct char_data *ch)

@@ -97,7 +97,6 @@ circle_SOURCES = \
 	src/character/talents.c \
 	src/character/perks.c \
 	src/combat/fight.c \
-	src/gain.c \
 	src/olc/genmob.c \
 	src/olc/genobj.c \
 	src/olc/genolc.c \
