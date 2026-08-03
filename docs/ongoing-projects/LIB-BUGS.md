@@ -8,8 +8,6 @@ record and take an appropriate backup before changing it.
 The entries were separated from [BUGS_LIST.md](BUGS_LIST.md) after the
 end-to-end review of source revision `ff3bf9e9` on 2026-08-03. This file
 contains 14 production-owned work items drawn from 17 production records.
-Records #111 and #114 also appear in `BUGS_LIST.md` because the Ghost Wolf
-reports require one source-code fix and one mobile-data fix.
 
 File paths below identify the corresponding local mirror. Production data is
 authoritative, so confirm the live record and its surrounding data before
@@ -71,8 +69,8 @@ for the record's position in the 2026-08-03 production snapshot.
   `lib/world/trg/141.trg`. Reporter: Mddljeu (L2, R14107, 2025-07-05; #108).
 - **Ghost Wolf mobile data does not make the summon mountable** - Mobile 801
   lacks `MOB_MOUNTABLE` despite the spell's intended mount behavior. The
-  separate source bug that applies mobility flags to the caster remains in
-  `BUGS_LIST.md`. Production surface: `lib/world/mob/8.mob`. Reporter:
+  separate source bug that applied mobility flags to the caster is resolved.
+  Production surface: `lib/world/mob/8.mob`. Reporter:
   Syman (L7/L18, R145352/R148130, 2025-11-26/27; #111, #114).
 - **The Underdark boulder remains visible after it is pushed** - Switch object
   102600 opens the north route but is neither moved nor given a post-use room

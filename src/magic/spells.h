@@ -1863,6 +1863,7 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
                  int casttype);
 int summon_spell_mob_level(int spellnum, int caster_level);
+void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level);
 void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
                 int spellnum, int savetype, int casttype);
 void mag_unaffects(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,

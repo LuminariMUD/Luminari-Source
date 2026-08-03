@@ -376,6 +376,28 @@ void Test_high_circle_swarm_summons_scale_with_caster_level(CuTest *tc)
   CuAssertIntEquals(tc, 0, summon_spell_mob_level(SPELL_HEAL, 30));
 }
 
+void Test_ghost_wolf_mobility_applies_to_the_summon(CuTest *tc)
+{
+  struct char_data low_level_wolf;
+  struct char_data water_walking_wolf;
+  struct char_data flying_wolf;
+
+  clear_char(&low_level_wolf);
+  clear_char(&water_walking_wolf);
+  clear_char(&flying_wolf);
+
+  apply_ghost_wolf_mobility(&low_level_wolf, 11);
+  apply_ghost_wolf_mobility(&water_walking_wolf, 12);
+  apply_ghost_wolf_mobility(&flying_wolf, 15);
+
+  CuAssertTrue(tc, !AFF_FLAGGED(&low_level_wolf, AFF_WATERWALK));
+  CuAssertTrue(tc, !AFF_FLAGGED(&low_level_wolf, AFF_FLYING));
+  CuAssertTrue(tc, AFF_FLAGGED(&water_walking_wolf, AFF_WATERWALK));
+  CuAssertTrue(tc, !AFF_FLAGGED(&water_walking_wolf, AFF_FLYING));
+  CuAssertTrue(tc, AFF_FLAGGED(&flying_wolf, AFF_WATERWALK));
+  CuAssertTrue(tc, AFF_FLAGGED(&flying_wolf, AFF_FLYING));
+}
+
 void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
 {
   struct char_data ch;

@@ -11680,6 +11680,17 @@ int summon_spell_mob_level(int spellnum, int caster_level)
   }
 }
 
+void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level)
+{
+  if (wolf == NULL)
+    return;
+
+  if (caster_level >= 12)
+    SET_BIT_AR(AFF_FLAGS(wolf), AFF_WATERWALK);
+  if (caster_level >= 15)
+    SET_BIT_AR(AFF_FLAGS(wolf), AFF_FLYING);
+}
+
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum,
                  int savetype __attribute__((unused)), int casttype __attribute__((unused)))
 {
@@ -12463,12 +12474,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
 
     if (spellnum == SPELL_GHOST_WOLF)
-    {
-      if (CASTER_LEVEL(ch) >= 12)
-        SET_BIT_AR(AFF_FLAGS(ch), AFF_WATERWALK);
-      if (CASTER_LEVEL(ch) >= 15)
-        SET_BIT_AR(AFF_FLAGS(ch), AFF_FLYING);
-    }
+      apply_ghost_wolf_mobility(mob, CASTER_LEVEL(ch));
 
     if (IS_SPECIALTY_SCHOOL(ch, spellnum))
     {

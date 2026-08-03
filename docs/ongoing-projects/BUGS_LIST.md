@@ -5,10 +5,9 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 8 actionable code items drawn
-from 9 production records. `LIB-BUGS.md` contains 14 production-owned items
-drawn from 17 records. Records #111 and #114 appear in both files because the
-Ghost Wolf reports require separate source-code and mobile-data fixes.
+then split by fix ownership. This file contains 7 actionable code items drawn
+from 7 production records. `LIB-BUGS.md` contains 14 production-owned items
+drawn from 17 records.
 
 Across both files, 24 unique records remain from the original 146-record
 snapshot. The other 122 were removed because they are resolved, intentional,
@@ -21,10 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **Ghost Wolf mobility flags are applied to the caster** - The summon path
-  sets the wolf's water-walk and flight flags on the caster rather than the
-  summoned mobile. Reporter: Syman (L7/L18, R145352/R148130,
-  2025-11-26/27; #111, #114).
 - **A spell cannot be aborted while it is being cast** - The casting gate tells
   the player to use `abort`, but `abort` is absent from the commands allowed
   through that same gate. Reporter: Syman (L24, R23807, 2025-11-29; #119).
