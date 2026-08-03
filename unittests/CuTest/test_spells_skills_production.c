@@ -135,6 +135,15 @@ void Test_group_heal_restores_health_and_cures_blindness(CuTest *tc)
   CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_BLIND));
 }
 
+void Test_high_circle_swarm_summons_scale_with_caster_level(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 17, summon_spell_mob_level(SPELL_ELEMENTAL_SWARM, 17));
+  CuAssertIntEquals(tc, 20, summon_spell_mob_level(SPELL_ELEMENTAL_SWARM, 30));
+  CuAssertIntEquals(tc, 17, summon_spell_mob_level(SPELL_SHAMBLER, 17));
+  CuAssertIntEquals(tc, 20, summon_spell_mob_level(SPELL_SHAMBLER, 30));
+  CuAssertIntEquals(tc, 0, summon_spell_mob_level(SPELL_HEAL, 30));
+}
+
 void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
 {
   struct char_data ch;

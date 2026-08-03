@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 19 actionable code items drawn
-from 21 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 18 actionable code items drawn
+from 20 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 36 unique records remain from the original 146-record
-snapshot. The other 110 were removed because they are resolved, intentional,
+Across both files, 35 unique records remain from the original 146-record
+snapshot. The other 111 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Elemental Swarm and Shambler create level 7 summons** - Both high-circle
-  spell cases still instantiate their creatures at level 7 rather than scaling
-  them to the caster or spell. Reporter: Arithon (L30, R1004004, 2023-02-14;
-  #037).
 - **Max-HP enhancement selection is order-dependent** - Equipment scanning
   compares the first affect on an item while assigning the current affect's
   modifier, so a smaller enhancement can replace a larger one depending on

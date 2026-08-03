@@ -11668,6 +11668,18 @@ bool isSummonMob(int vnum)
   return false;
 }
 
+int summon_spell_mob_level(int spellnum, int caster_level)
+{
+  switch (spellnum)
+  {
+  case SPELL_ELEMENTAL_SWARM:
+  case SPELL_SHAMBLER:
+    return MIN(20, MAX(1, caster_level));
+  default:
+    return 0;
+  }
+}
+
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum,
                  int savetype __attribute__((unused)), int casttype __attribute__((unused)))
 {
@@ -11878,6 +11890,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     }
 #endif
     num = dice(2, 4);
+    mob_level = summon_spell_mob_level(spellnum, level);
     break;
 
   case SPELL_DJINNI_KIND:
@@ -11951,6 +11964,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     mob_num = 9499;
 #endif
     num = dice(1, 4) + 2;
+    mob_level = summon_spell_mob_level(spellnum, level);
     break;
 
   case SPELL_SHELGARNS_BLADE: // divination
@@ -12228,6 +12242,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     case SPELL_SUMMON_NATURES_ALLY_7:
     case SPELL_SUMMON_CREATURE_7: // conjuration
       GET_LEVEL(mob) = 16;
+      autoroll_mob(mob, TRUE, TRUE);
+      break;
+
+    case SPELL_ELEMENTAL_SWARM:
+    case SPELL_SHAMBLER:
+      GET_LEVEL(mob) = mob_level;
       autoroll_mob(mob, TRUE, TRUE);
       break;
 
