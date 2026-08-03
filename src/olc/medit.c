@@ -420,7 +420,7 @@ void medit_save_internally(struct descriptor_data *d)
 
   /* Update triggers and free old proto list */
   if (mob_proto[new_rnum].proto_script && mob_proto[new_rnum].proto_script != OLC_SCRIPT(d))
-    free_proto_script(&mob_proto[new_rnum], MOB_TRIGGER);
+    free_proto_script(&mob_proto[new_rnum].proto_script);
 
   mob_proto[new_rnum].proto_script = OLC_SCRIPT(d);
 
@@ -432,11 +432,11 @@ void medit_save_internally(struct descriptor_data *d)
 
     /* remove any old scripts */
     if (SCRIPT(mob))
-      extract_script(mob, MOB_TRIGGER);
+      extract_script(&mob->script);
 
-    free_proto_script(mob, MOB_TRIGGER);
-    copy_proto_script(&mob_proto[new_rnum], mob, MOB_TRIGGER);
-    assign_triggers(mob, MOB_TRIGGER);
+    free_proto_script(&mob->proto_script);
+    copy_proto_script(mob_proto[new_rnum].proto_script, &mob->proto_script);
+    assign_mob_triggers(mob);
   }
   /* end trigger update */
 

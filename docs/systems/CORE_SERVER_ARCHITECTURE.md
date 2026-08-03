@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 ```
 
 **Key Command Line Options:**
-- `-f <file>` - Specify configuration file
+- `-f <file>` - Specify a configuration file using a safe library-relative path
 - `-o <file>` - Specify log file
 - `-d <dir>` - Set data directory
 - `-C<socket>` - Copyover recovery mode

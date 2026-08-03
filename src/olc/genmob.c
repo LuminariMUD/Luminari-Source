@@ -158,7 +158,7 @@ static void extract_mobile_all(mob_vnum vnum)
 
         /* free script proto list if it's not the prototype */
         if (ch->proto_script && ch->proto_script != mob_proto[i].proto_script)
-          free_proto_script(ch, MOB_TRIGGER);
+          free_proto_script(&ch->proto_script);
         ch->proto_script = NULL;
       }
       extract_char(ch);
@@ -332,7 +332,7 @@ int free_mobile(struct char_data *mob)
   {
     free_mobile_strings(mob);
     /* free script proto list */
-    free_proto_script(mob, MOB_TRIGGER);
+    free_proto_script(&mob->proto_script);
   }
   else
   { /* Prototyped mobile. */
@@ -352,7 +352,7 @@ int free_mobile(struct char_data *mob)
       free(mob->player.walkout);
     /* free script proto list if it's not the prototype */
     if (mob->proto_script && mob->proto_script != mob_proto[i].proto_script)
-      free_proto_script(mob, MOB_TRIGGER);
+      free_proto_script(&mob->proto_script);
     if (mob->mob_specials.echo_entries &&
         mob->mob_specials.echo_entries != mob_proto[i].mob_specials.echo_entries)
     {
@@ -366,7 +366,7 @@ int free_mobile(struct char_data *mob)
 
   /* free any assigned scripts */
   if (SCRIPT(mob))
-    extract_script(mob, MOB_TRIGGER);
+    extract_script(&mob->script);
 
   /* Free the action queues */
   if (GET_QUEUE(mob))

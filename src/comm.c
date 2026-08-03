@@ -248,10 +248,11 @@ int main(int argc, char **argv)
 {
   /* Copy to stack memory to ensure the version is embedded in core dumps */
   char embed_version[256];
-  snprintf(embed_version, sizeof(embed_version), "%s", luminari_version);
-
   int pos = 1;
+  const char *config_file = NULL;
   const char *dir = NULL;
+
+  snprintf(embed_version, sizeof(embed_version), "%s", luminari_version);
 
 #ifdef MEMORY_DEBUG
   zmalloc_init();
@@ -278,15 +279,14 @@ int main(int argc, char **argv)
   /* Load the game configuration. We must load BEFORE we use any of the
    * constants stored in constants.c.  Otherwise, there will be no variables
    * set to set the rest of the vars to, which will mean trouble --> Mythran */
-  CONFIG_CONFFILE = NULL;
   while (pos < argc && argv[pos] != NULL && *(argv[pos]) == '-')
   {
     if (*(argv[pos] + 1) == 'f')
     {
       if (*(argv[pos] + 2))
-        CONFIG_CONFFILE = argv[pos] + 2;
+        config_file = argv[pos] + 2;
       else if (++pos < argc)
-        CONFIG_CONFFILE = argv[pos];
+        config_file = argv[pos];
       else
       {
         puts("SYSERR: File name to read from expected after option -f.");
@@ -297,8 +297,21 @@ int main(int argc, char **argv)
   }
   pos = 1;
 
+  if (!config_file)
+    config_file = CONFIG_FILE;
+  if (!is_safe_relative_path(config_file))
+  {
+    fputs("SYSERR: Configuration file must be a safe path relative to the library directory.\n",
+          stderr);
+    return EXIT_FAILURE;
+  }
+
+  CONFIG_CONFFILE = strdup(config_file);
   if (!CONFIG_CONFFILE)
-    CONFIG_CONFFILE = strdup(CONFIG_FILE);
+  {
+    perror("SYSERR: strdup configuration file");
+    return EXIT_FAILURE;
+  }
 
   load_config();
 

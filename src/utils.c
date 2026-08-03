@@ -3467,6 +3467,39 @@ bool is_safe_path_component(const char *name)
   return TRUE;
 }
 
+/* Validate a library-relative path without allowing traversal or platform-specific separators. */
+bool is_safe_relative_path(const char *path)
+{
+  const unsigned char *component;
+  const unsigned char *current;
+  size_t component_length;
+
+  if (!path || !*path || *path == '/' || *path == '\\' || strlen(path) >= MAX_FILEPATH)
+    return FALSE;
+
+  component = (const unsigned char *)path;
+  for (current = component;; current++)
+  {
+    if (*current == '\0' || *current == '/')
+    {
+      component_length = (size_t)(current - component);
+      if (component_length == 0 || (component_length == 1 && component[0] == '.') ||
+          (component_length == 2 && component[0] == '.' && component[1] == '.'))
+        return FALSE;
+
+      if (*current == '\0')
+        return TRUE;
+
+      component = current + 1;
+      continue;
+    }
+
+    if (*current == '\\' ||
+        (!isalnum(*current) && *current != '.' && *current != '_' && *current != '-'))
+      return FALSE;
+  }
+}
+
 /** Calculate the number of player characters (PCs) in the room. Any NPC (mob)
  * is not returned in the count.
  * @param room The room to check for PCs. */

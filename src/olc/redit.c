@@ -312,10 +312,10 @@ void redit_save_internally(struct descriptor_data *d)
 
   /* Update triggers and free old proto list */
   if (world[room_num].proto_script && world[room_num].proto_script != OLC_SCRIPT(d))
-    free_proto_script(&world[room_num], WLD_TRIGGER);
+    free_proto_script(&world[room_num].proto_script);
 
   world[room_num].proto_script = OLC_SCRIPT(d);
-  assign_triggers(&world[room_num], WLD_TRIGGER);
+  assign_room_triggers(&world[room_num]);
   /* end trigger update */
 
   /* Debug: Log trail_tracks pointer after script operations */
@@ -410,8 +410,8 @@ void free_room(struct room_data *room)
   free_room_strings(room);
 
   if (SCRIPT(room))
-    extract_script(room, WLD_TRIGGER);
-  free_proto_script(room, WLD_TRIGGER);
+    extract_script(&room->script);
+  free_proto_script(&room->proto_script);
 
   /* Free trails. */
   if (CONFIG_WILDERNESS_SYSTEM == 2)

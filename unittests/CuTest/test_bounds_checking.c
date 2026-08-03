@@ -114,6 +114,13 @@ void Test_path_component_validation(CuTest *tc)
   CuAssertTrue(tc, !is_safe_path_component("zone..obj"));
   CuAssertTrue(tc, get_filename(filename, sizeof(filename), PLR_FILE, "taure_two"));
   CuAssertTrue(tc, !get_filename(filename, sizeof(filename), PLR_FILE, "../../player"));
+  CuAssertTrue(tc, is_safe_relative_path("etc/config"));
+  CuAssertTrue(tc, is_safe_relative_path("config/test-1.cfg"));
+  CuAssertTrue(tc, !is_safe_relative_path("/etc/passwd"));
+  CuAssertTrue(tc, !is_safe_relative_path("../etc/config"));
+  CuAssertTrue(tc, !is_safe_relative_path("etc/../config"));
+  CuAssertTrue(tc, !is_safe_relative_path("etc//config"));
+  CuAssertTrue(tc, !is_safe_relative_path("etc\\config"));
 }
 
 void Test_fopen_restricted_blocks_world_write(CuTest *tc)

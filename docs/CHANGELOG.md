@@ -2,6 +2,22 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Security hardening
+
+#### Fixed
+
+- DG-script ownership helpers now take typed script fields or typed mobile,
+  object, and room owners instead of pairing `void *` values with separate type
+  tags. This removes four type-confusion paths during extraction, prototype
+  copying and cleanup, and trigger assignment.
+- The `-f` configuration option now accepts only bounded, library-relative
+  paths without empty, current-directory, parent-directory, or alternate
+  separator components. The chosen path is copied into owned storage before
+  configuration loading and OLC saving.
+- Player persistence paths continue to require the strict alphanumeric,
+  underscore, and hyphen name allowlist before fixed-directory path
+  construction; regression coverage includes traversal rejection.
+
 ### Build maintenance
 
 #### Fixed

@@ -1278,7 +1278,7 @@ ACMD(do_detach)
       send_to_char(ch, "This room does not have any triggers.\r\n");
     else if (!str_cmp(arg2, "all"))
     {
-      extract_script(room, WLD_TRIGGER);
+      extract_script(&room->script);
       send_to_char(ch, "All triggers removed from room.\r\n");
     }
     else if (remove_trigger(SCRIPT(room), arg2))
@@ -1286,7 +1286,7 @@ ACMD(do_detach)
       send_to_char(ch, "Trigger removed.\r\n");
       if (!TRIGGERS(SCRIPT(room)))
       {
-        extract_script(room, WLD_TRIGGER);
+        extract_script(&room->script);
       }
     }
     else
@@ -1382,7 +1382,7 @@ ACMD(do_detach)
       }
       else if (trigger && !str_cmp(trigger, "all"))
       {
-        extract_script(victim, MOB_TRIGGER);
+        extract_script(&victim->script);
         send_to_char(ch, "All triggers removed from %s.\r\n",
                      IS_NPC(victim) ? GET_SHORT(victim) : GET_NAME(victim));
       }
@@ -1391,7 +1391,7 @@ ACMD(do_detach)
         send_to_char(ch, "Trigger removed.\r\n");
         if (!TRIGGERS(SCRIPT(victim)))
         {
-          extract_script(victim, MOB_TRIGGER);
+          extract_script(&victim->script);
         }
       }
       else
@@ -1409,7 +1409,7 @@ ACMD(do_detach)
       }
       else if (trigger && !str_cmp(trigger, "all"))
       {
-        extract_script(object, OBJ_TRIGGER);
+        extract_script(&object->script);
         send_to_char(ch, "All triggers removed from %s.\r\n",
                      object->short_description ? object->short_description : object->name);
       }
@@ -1418,7 +1418,7 @@ ACMD(do_detach)
         send_to_char(ch, "Trigger removed.\r\n");
         if (!TRIGGERS(SCRIPT(object)))
         {
-          extract_script(object, OBJ_TRIGGER);
+          extract_script(&object->script);
         }
       }
       else
@@ -2080,7 +2080,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
       {
         dg_owner_purged = 1;
       }
-      extract_script(c, MOB_TRIGGER);
+      extract_script(&c->script);
       return;
     }
     if (remove_trigger(SCRIPT(c), trignum_s))
@@ -2091,7 +2091,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
         {
           dg_owner_purged = 1;
         }
-        extract_script(c, MOB_TRIGGER);
+        extract_script(&c->script);
       }
     }
     return;
@@ -2111,7 +2111,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
       {
         dg_owner_purged = 1;
       }
-      extract_script(o, OBJ_TRIGGER);
+      extract_script(&o->script);
       return;
     }
     if (remove_trigger(SCRIPT(o), trignum_s))
@@ -2122,7 +2122,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
         {
           dg_owner_purged = 1;
         }
-        extract_script(o, OBJ_TRIGGER);
+        extract_script(&o->script);
       }
     }
     return;
@@ -2142,7 +2142,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
       {
         dg_owner_purged = 1;
       }
-      extract_script(r, WLD_TRIGGER);
+      extract_script(&r->script);
       return;
     }
     if (remove_trigger(SCRIPT(r), trignum_s))
@@ -2153,7 +2153,7 @@ static void process_detach(void *go, struct script_data *sc, trig_data *trig, in
         {
           dg_owner_purged = 1;
         }
-        extract_script(r, WLD_TRIGGER);
+        extract_script(&r->script);
       }
     }
     return;
@@ -2764,6 +2764,7 @@ int script_driver(struct script_call_args *args)
   struct cmdlist_element *cl = NULL;
   char cmd[MAX_INPUT_LENGTH] = {'\0'}, *p = NULL;
   struct script_data *sc = NULL;
+  struct script_data **owner_script = NULL;
   struct cmdlist_element *temp = NULL;
   void *go = NULL;
 
@@ -3013,15 +3014,18 @@ int script_driver(struct script_call_args *args)
   {
   case MOB_TRIGGER:
     go = *(char_data **)go_adress;
-    sc = SCRIPT((char_data *)go);
+    owner_script = &SCRIPT((char_data *)go);
+    sc = *owner_script;
     break;
   case OBJ_TRIGGER:
     go = *(obj_data **)go_adress;
-    sc = SCRIPT((obj_data *)go);
+    owner_script = &SCRIPT((obj_data *)go);
+    sc = *owner_script;
     break;
   case WLD_TRIGGER:
     go = *(room_data **)go_adress;
-    sc = SCRIPT((room_data *)go);
+    owner_script = &SCRIPT((room_data *)go);
+    sc = *owner_script;
     break;
   default:
     script_log("FATAL: Invalid type %d after validation for trigger %d", type,
@@ -3079,13 +3083,11 @@ int script_driver(struct script_call_args *args)
       break;
     }
 
-    extract_script(go, type);
+    extract_script(owner_script);
 
-    /* extract_script() works on rooms, but on mobiles and objects, it will be
-     * called again if the caller is load_mtrigger or load_otrigger if it is
-     * one of these, we must make sure the script is not just reloaded on the
-     * next mob. We make the calling code decide how to handle it, so it does
-     * not get totally removed unless it's a load_xtrigger(). */
+    /* On mobiles and objects, load_mtrigger() or load_otrigger() may call this
+     * again. Let the calling code decide whether to remove the prototype so a
+     * load trigger is not silently reattached to the next instance. */
     return SCRIPT_ERROR_CODE;
   }
 
@@ -3298,18 +3300,8 @@ int script_driver(struct script_call_args *args)
     }
   }
 
-  switch (type)
-  { /* the script may have been detached */
-  case MOB_TRIGGER:
-    sc = SCRIPT((char_data *)go);
-    break;
-  case OBJ_TRIGGER:
-    sc = SCRIPT((obj_data *)go);
-    break;
-  case WLD_TRIGGER:
-    sc = SCRIPT((room_data *)go);
-    break;
-  }
+  /* The script may have been detached while the trigger was running. */
+  sc = owner_script ? *owner_script : NULL;
   if (sc)
   {
     free_varlist(GET_TRIG_VARS(trig));

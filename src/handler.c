@@ -2567,7 +2567,7 @@ void extract_obj(struct obj_data *obj)
   }
 
   if (SCRIPT(obj))
-    extract_script(obj, OBJ_TRIGGER);
+    extract_script(&obj->script);
 
   if (obj->events != NULL)
   {
@@ -2590,7 +2590,7 @@ void extract_obj(struct obj_data *obj)
 
   if (GET_OBJ_RNUM(obj) == NOTHING ||
       obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
-    free_proto_script(obj, OBJ_TRIGGER);
+    free_proto_script(&obj->proto_script);
 
   free_obj(obj);
 }
@@ -2790,7 +2790,7 @@ void extract_char_final(struct char_data *ch)
     clearMemory(ch);
 
     if (SCRIPT(ch))
-      extract_script(ch, MOB_TRIGGER);
+      extract_script(&ch->script);
 
     if (SCRIPT_MEM(ch))
       extract_script_mem(SCRIPT_MEM(ch));

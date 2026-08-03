@@ -926,9 +926,9 @@ void destroy_db(void)
 
     /* free any assigned scripts */
     if (SCRIPT(&world[cnt]))
-      extract_script(&world[cnt], WLD_TRIGGER);
+      extract_script(&world[cnt].script);
     /* free script proto list */
-    free_proto_script(&world[cnt], WLD_TRIGGER);
+    free_proto_script(&world[cnt].proto_script);
 
     for (itr = 0; itr < NUM_OF_DIRS; itr++)
     { /* NUM_OF_DIRS here, not DIR_COUNT */
@@ -967,7 +967,7 @@ void destroy_db(void)
       free(obj_proto[cnt].sbinfo);
 
     /* free script proto list */
-    free_proto_script(&obj_proto[cnt], OBJ_TRIGGER);
+    free_proto_script(&obj_proto[cnt].proto_script);
   }
   free(obj_proto);
   free(obj_index);
@@ -991,7 +991,7 @@ void destroy_db(void)
       free(mob_proto[cnt].player.walkout);
 
     /* free script proto list */
-    free_proto_script(&mob_proto[cnt], MOB_TRIGGER);
+    free_proto_script(&mob_proto[cnt].proto_script);
 
     while (mob_proto[cnt].affected)
       affect_remove(&mob_proto[cnt], mob_proto[cnt].affected);
@@ -4669,8 +4669,8 @@ struct char_data *read_mobile(mob_vnum nr, int type) /* and mob_rnum */
 
   GET_ID(mob) = 0;
 
-  copy_proto_script(&mob_proto[i], mob, MOB_TRIGGER);
-  assign_triggers(mob, MOB_TRIGGER);
+  copy_proto_script(mob_proto[i].proto_script, &mob->proto_script);
+  assign_mob_triggers(mob);
 
   if (GET_RACE(mob) < 0 || GET_RACE(mob) >= NUM_RACE_TYPES)
     GET_REAL_RACE(mob) = 0;
@@ -4893,8 +4893,8 @@ struct obj_data *read_object(obj_vnum nr, int type) /* and obj_rnum */
     SET_BIT_AR(GET_OBJ_WEAR(obj), ITEM_WEAR_INSTRUMENT);
   }
 
-  copy_proto_script(&obj_proto[i], obj, OBJ_TRIGGER);
-  assign_triggers(obj, OBJ_TRIGGER);
+  copy_proto_script(obj_proto[i].proto_script, &obj->proto_script);
+  assign_obj_triggers(obj);
 
   if (OBJ_FLAGGED(obj, ITEM_SET_STATS_AT_LOAD))
   {
@@ -6483,7 +6483,7 @@ void free_char(struct char_data *ch)
       free(ch->bags);
 
     /* free script proto list */
-    free_proto_script(ch, MOB_TRIGGER);
+    free_proto_script(&ch->proto_script);
   }
   else if ((i = GET_MOB_RNUM(ch)) != (int)NOBODY)
   {
@@ -6504,7 +6504,7 @@ void free_char(struct char_data *ch)
       free(ch->player.walkout);
     /* free script proto list if it's not the prototype */
     if (ch->proto_script && ch->proto_script != mob_proto[i].proto_script)
-      free_proto_script(ch, MOB_TRIGGER);
+      free_proto_script(&ch->proto_script);
     if (ch == &mob_proto[i])
     {
       free_hlquest(ch);
@@ -6541,7 +6541,7 @@ void free_char(struct char_data *ch)
 
   /* free any assigned scripts */
   if (SCRIPT(ch))
-    extract_script(ch, MOB_TRIGGER);
+    extract_script(&ch->script);
 
   /* Mud Events */
   if (ch->events != NULL)
@@ -6610,18 +6610,18 @@ void free_obj(struct obj_data *obj)
   {
     free_object_strings(obj);
     /* free script proto list */
-    free_proto_script(obj, OBJ_TRIGGER);
+    free_proto_script(&obj->proto_script);
   }
   else
   {
     free_object_strings_proto(obj);
     if (obj->proto_script != obj_proto[GET_OBJ_RNUM(obj)].proto_script)
-      free_proto_script(obj, OBJ_TRIGGER);
+      free_proto_script(&obj->proto_script);
   }
 
   /* free any assigned scripts */
   if (SCRIPT(obj))
-    extract_script(obj, OBJ_TRIGGER);
+    extract_script(&obj->script);
 
   /* free special abilities list */
   if (obj->special_abilities)

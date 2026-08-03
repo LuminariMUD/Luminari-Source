@@ -284,7 +284,7 @@ void oedit_save_internally(struct descriptor_data *d)
 
   /* Update triggers and free old proto list  */
   if (obj_proto[robj_num].proto_script && obj_proto[robj_num].proto_script != OLC_SCRIPT(d))
-    free_proto_script(&obj_proto[robj_num], OBJ_TRIGGER);
+    free_proto_script(&obj_proto[robj_num].proto_script);
   /* this will handle new instances of the object: */
   obj_proto[robj_num].proto_script = OLC_SCRIPT(d);
 
@@ -295,11 +295,11 @@ void oedit_save_internally(struct descriptor_data *d)
       continue;
     /* remove any old scripts */
     if (SCRIPT(obj))
-      extract_script(obj, OBJ_TRIGGER);
+      extract_script(&obj->script);
 
-    free_proto_script(obj, OBJ_TRIGGER);
-    copy_proto_script(&obj_proto[robj_num], obj, OBJ_TRIGGER);
-    assign_triggers(obj, OBJ_TRIGGER);
+    free_proto_script(&obj->proto_script);
+    copy_proto_script(obj_proto[robj_num].proto_script, &obj->proto_script);
+    assign_obj_triggers(obj);
   }
   /* end trigger update */
 
@@ -2121,7 +2121,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     case 'N':
       /* If not saving, we must free the script_proto list. */
       OLC_OBJ(d)->proto_script = OLC_SCRIPT(d);
-      free_proto_script(OLC_OBJ(d), OBJ_TRIGGER);
+      free_proto_script(&OLC_OBJ(d)->proto_script);
       cleanup_olc(d, CLEANUP_ALL);
       return;
     case 'a': /* abort quit */
@@ -2189,18 +2189,18 @@ void oedit_parse(struct descriptor_data *d, char *arg)
 
           if (SCRIPT(obj))
           {
-            extract_script(obj, OBJ_TRIGGER);
+            extract_script(&obj->script);
 
             SCRIPT(obj) = NULL;
           }
 
-          free_proto_script(obj, OBJ_TRIGGER);
+          free_proto_script(&obj->proto_script);
 
           robj = real_object(GET_OBJ_VNUM(obj));
 
-          copy_proto_script(&obj_proto[robj], obj, OBJ_TRIGGER);
+          copy_proto_script(obj_proto[robj].proto_script, &obj->proto_script);
 
-          assign_triggers(obj, OBJ_TRIGGER);
+          assign_obj_triggers(obj);
         }
 
         log("OLC: %s iedit a unique #%d", GET_NAME(d->character), GET_OBJ_VNUM(obj));
@@ -3974,7 +3974,7 @@ void iedit_setup_existing(struct descriptor_data *d, struct obj_data *real_num)
 
   if (SCRIPT(obj))
 
-    extract_script(obj, OBJ_TRIGGER);
+    extract_script(&obj->script);
 
   SCRIPT(obj) = NULL;
 

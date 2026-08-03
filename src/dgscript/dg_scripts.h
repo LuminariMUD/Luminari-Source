@@ -341,7 +341,9 @@ trig_data *read_trigger(int nr);
 void trig_data_copy(trig_data *this_data, const trig_data *trg);
 void dg_read_trigger(FILE *fp, void *proto, int type, int proto_vnum);
 void dg_obj_trigger(char *line, struct obj_data *obj, int obj_vnum);
-void assign_triggers(void *i, int type);
+void assign_mob_triggers(struct char_data *mob);
+void assign_obj_triggers(struct obj_data *obj);
+void assign_room_triggers(struct room_data *room);
 
 /* From dg_variables.c */
 void add_var(struct trig_var_data **var_list, const char *name, const char *value, long id);
@@ -360,10 +362,10 @@ void free_context_vars(struct script_data *sc, long context);
 int remove_var(struct trig_var_data **var_list, char *name);
 void free_trigger(trig_data *trig);
 void extract_trigger(struct trig_data *trig);
-void extract_script(void *thing, int type);
+void extract_script(struct script_data **script);
 void extract_script_mem(struct script_memory *sc);
-void free_proto_script(void *thing, int type);
-void copy_proto_script(void *source, void *dest, int type);
+void free_proto_script(struct trig_proto_list **proto_script);
+void copy_proto_script(const struct trig_proto_list *source, struct trig_proto_list **destination);
 void delete_variables(const char *charname);
 void update_wait_events(struct room_data *to, struct room_data *from);
 

@@ -98,7 +98,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
     {
     case CLEANUP_ALL:
       /* free(OLC_SCRIPT(d)) equivalent */
-      free_proto_script(OLC_ROOM(d), WLD_TRIGGER);
+      free_proto_script(&OLC_ROOM(d)->proto_script);
       free_room(OLC_ROOM(d));
       break;
     case CLEANUP_STRUCTS:

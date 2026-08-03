@@ -1180,7 +1180,7 @@ void Test_gameplay_e2e_dg_trigger_parse_and_execute(CuTest *tc)
             break;
           }
         }
-        extract_script(&fixture.rooms[0], WLD_TRIGGER);
+        extract_script(&fixture.rooms[0].script);
       }
     }
   }
@@ -1293,7 +1293,7 @@ void Test_gameplay_e2e_damage_trigger_overrides_damage(CuTest *tc)
             break;
           }
         }
-        extract_script(&fixture.victim, MOB_TRIGGER);
+        extract_script(&fixture.victim.script);
       }
     }
   }
@@ -1396,8 +1396,8 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
     for (i = 0; i < room_count; i++)
     {
       if (parsed_world[i].script != NULL)
-        extract_script(&parsed_world[i], WLD_TRIGGER);
-      free_proto_script(&parsed_world[i], WLD_TRIGGER);
+        extract_script(&parsed_world[i].script);
+      free_proto_script(&parsed_world[i].proto_script);
       free_room_strings(&parsed_world[i]);
       if (parsed_world[i].trail_tracks != NULL)
         free_trail_data_list(parsed_world[i].trail_tracks);
