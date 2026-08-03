@@ -5,12 +5,12 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 5 actionable code items drawn
-from 5 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 4 actionable code items drawn
+from 4 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records.
 
-Across both files, 22 unique records remain from the original 146-record
-snapshot. The other 124 were removed because they are resolved, intentional,
+Across both files, 21 unique records remain from the original 146-record
+snapshot. The other 125 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -20,10 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **Blackguard spell lists are not recognized as spellcaster lists** -
-  `IS_SPELLCASTER_CLASS` excludes Blackguard. With no other casting class the
-  list is empty; after adding Warlock, even an explicit Blackguard request
-  resolves to Warlock. Reporter: Falwel (L9, R40400, 2025-12-03; #126).
 - **Boon Companion calculates but never applies its level bonus** - The summon
   path adds five to a local `level` after assigning the companion's level, and
   that adjusted value is not used before the companion is rolled. Reporter:

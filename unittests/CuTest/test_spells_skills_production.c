@@ -28,6 +28,27 @@ void Test_spells_production_classification_helpers(CuTest *tc)
   CuAssertTrue(tc, !isEpicSpell(SPELL_CURE_LIGHT));
 }
 
+void Test_blackguard_counts_as_a_spellcasting_class(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_BLACKGUARD) = 9;
+
+  CuAssertTrue(tc, IS_SPELLCASTER_CLASS(CLASS_BLACKGUARD));
+  CuAssertTrue(tc, !IS_SPELLCASTER_CLASS(CLASS_ROGUE));
+  CuAssertIntEquals(tc, 1, get_number_of_spellcasting_classes(&ch));
+  CuAssertIntEquals(tc, CLASS_BLACKGUARD, get_first_spellcasting_classes(&ch));
+
+  CLASS_LEVEL((&ch), CLASS_WARLOCK) = 1;
+
+  CuAssertIntEquals(tc, 2, get_number_of_spellcasting_classes(&ch));
+  CuAssertIntEquals(tc, CLASS_BLACKGUARD, get_first_spellcasting_classes(&ch));
+}
+
 void Test_practiced_sneak_makes_stealth_a_class_skill(CuTest *tc)
 {
   struct char_data ch;
