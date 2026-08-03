@@ -7005,6 +7005,17 @@ sbyte isPrimordialMagic(struct char_data *ch __attribute__((unused)), int spelln
   return false;
 }
 
+static bool eidolon_spell_is_at_will(struct char_data *ch, int spellnum)
+{
+  if (!ch || !IS_NPC(ch) || !MOB_FLAGGED(ch, MOB_EIDOLON))
+    return false;
+
+  if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
+    return true;
+
+  return isEidolonMagic(ch, spellnum);
+}
+
 void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribute__((unused)))
 {
   struct char_data *out_to = ch;
@@ -7012,6 +7023,7 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
   char *spell_arg = NULL;
   char *target_arg = NULL;
   int spellnum = 0;
+  int casttype = CAST_SPELL;
 
   if (!IS_NPC(ch))
     return;
@@ -7066,17 +7078,20 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
     return;
   }
 
+  if (eidolon_spell_is_at_will(ch, spellnum))
+    casttype = CAST_INNATE;
+
   // We will need to add more checks if we expand the list of spells that mobs can cast found in the
   // npc_can_cast function
   if (IS_SET(SINFO.targets, TAR_IGNORE))
   {
-    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), casttype);
     return;
   }
 
   if (IS_SET(SINFO.targets, TAR_SELF_ONLY))
   {
-    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+    call_magic(ch, ch, 0, spellnum, 0, GET_LEVEL(ch), casttype);
     return;
   }
 
@@ -7123,7 +7138,7 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
     }
   }
 
-  call_magic(ch, victim, 0, spellnum, 0, GET_LEVEL(ch), CAST_SPELL);
+  call_magic(ch, victim, 0, spellnum, 0, GET_LEVEL(ch), casttype);
 
   if (MOB_FLAGGED(ch, MOB_EIDOLON))
   {
@@ -7139,12 +7154,8 @@ void handle_npc_cast(struct char_data *ch, char *argument, int subcmd __attribut
 
 bool npc_can_cast(struct char_data *ch, int spellnum)
 {
-  /* Check spell slot availability for mobs (unless they have unlimited slots) */
-  if (IS_NPC(ch) && !MOB_FLAGGED(ch, MOB_UNLIMITED_SPELL_SLOTS))
-  {
-    if (!has_spell_slot(ch, spellnum))
-      return false;
-  }
+  if (!ch || !IS_NPC(ch))
+    return false;
 
   if (spellnum > PSIONIC_POWER_START && spellnum < PSIONIC_POWER_END)
   {
@@ -7152,53 +7163,9 @@ bool npc_can_cast(struct char_data *ch, int spellnum)
       return true;
   }
 
-  if (MOB_FLAGGED(ch, MOB_EIDOLON))
-  {
-    if (HAS_EVOLUTION(ch, EVOLUTION_WEB) && spellnum == SPELL_WEB)
-    {
-      return true;
-    }
-    if (HAS_EVOLUTION(ch, EVOLUTION_BASIC_MAGIC))
-    {
-      switch (spellnum)
-      {
-      case SPELL_DAZE_MONSTER:
-      case SPELL_DETECT_MAGIC:
-      case SPELL_CONTINUAL_LIGHT:
-      case SPELL_ACID_SPLASH:
-      case SPELL_RAY_OF_FROST:
-      case SPELL_TOUCH_OF_FATIGUE:
-        return true;
-      }
-    }
-    if (HAS_EVOLUTION(ch, EVOLUTION_MINOR_MAGIC))
-    {
-      switch (spellnum)
-      {
-      case SPELL_BURNING_HANDS:
-      case SPELL_DETECT_ALIGN:
-      case SPELL_MAGIC_MISSILE:
-      case SPELL_OBSCURING_MIST:
-      case SPELL_MINOR_ILLUSION:
-        return true;
-      }
-    }
-    if (HAS_EVOLUTION(ch, EVOLUTION_MAJOR_MAGIC))
-    {
-      switch (spellnum)
-      {
-      case SPELL_ACID_ARROW:
-      case SPELL_DARKNESS:
-      case SPELL_INVISIBLE:
-      case SPELL_LESSER_RESTORATION:
-      case SPELL_LEVITATE:
-      case SPELL_SCORCHING_RAY:
-      case SPELL_DETECT_INVIS:
-      case SPELL_SPIDER_CLIMB:
-        return true;
-      }
-    }
-  }
+  if (eidolon_spell_is_at_will(ch, spellnum))
+    return true;
+
   return false;
 }
 

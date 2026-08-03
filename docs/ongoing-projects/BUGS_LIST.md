@@ -5,12 +5,12 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 2 actionable code items drawn
-from 2 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 1 actionable code item drawn
+from 1 production record. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records.
 
-Across both files, 19 unique records remain from the original 146-record
-snapshot. The other 127 were removed because they are resolved, intentional,
+Across both files, 18 unique records remain from the original 146-record
+snapshot. The other 128 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -20,10 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2026
 
-- **Eidolon Basic Magic is blocked by the generic NPC slot check** - NPC
-  casting rejects an eidolon with no ordinary spell slots before reaching the
-  Basic Magic evolution exception, making the purchased evolution unusable.
-  Reporter: Grimthur (L10, R29002, 2026-04-14; #137).
 - **Follower persistence drops type-specific state** - Logout saves every
   charmed NPC with only its prototype, basic stats, descriptions, and objects.
   Login recreates hired, summoned, and companion followers through one generic

@@ -10,6 +10,7 @@
 #include "../../src/modify.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
+#include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
@@ -330,6 +331,68 @@ void Test_magic_fang_accepts_animal_wild_shapes(CuTest *tc)
   room.people = NULL;
   world = saved_world;
   top_of_world = saved_top_of_world;
+}
+
+void Test_eidolon_basic_magic_is_at_will(CuTest *tc)
+{
+  struct char_data eidolon;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  char cast_argument[] = " 'detect magic'";
+  bool allowed_without_slots;
+  bool applied;
+  bool preserved_slots;
+  bool denied_without_minor_magic;
+  int i;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  event_init();
+
+  clear_char(&eidolon);
+  memset(&room, 0, sizeof(room));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &eidolon;
+  eidolon.player_specials = &dummy_mob;
+  eidolon.player.short_descr = "an eidolon basic magic test creature";
+  IN_ROOM(&eidolon) = 0;
+  GET_LEVEL(&eidolon) = 10;
+  GET_CLASS(&eidolon) = CLASS_WIZARD;
+  GET_POS(&eidolon) = POS_STANDING;
+  SET_BIT_AR(MOB_FLAGS(&eidolon), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(&eidolon), MOB_EIDOLON);
+  HAS_REAL_EVOLUTION(&eidolon, EVOLUTION_BASIC_MAGIC) = 1;
+
+  allowed_without_slots = npc_can_cast(&eidolon, SPELL_DETECT_MAGIC);
+
+  for (i = 0; i < 10; i++)
+    eidolon.mob_specials.spell_slots[i] = 2;
+
+  handle_npc_cast(&eidolon, cast_argument, SCMD_CAST_SPELL);
+  applied = affected_by_spell(&eidolon, SPELL_DETECT_MAGIC);
+  preserved_slots = true;
+  for (i = 0; i < 10; i++)
+  {
+    if (eidolon.mob_specials.spell_slots[i] != 2)
+      preserved_slots = false;
+  }
+  denied_without_minor_magic = !npc_can_cast(&eidolon, SPELL_MAGIC_MISSILE);
+
+  clear_char_event_list(&eidolon);
+  while (eidolon.affected != NULL)
+    affect_remove_no_total(&eidolon, eidolon.affected);
+  room.people = NULL;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, allowed_without_slots);
+  CuAssertTrue(tc, applied);
+  CuAssertTrue(tc, preserved_slots);
+  CuAssertTrue(tc, denied_without_minor_magic);
 }
 
 void Test_aasimar_innate_spells_use_daily_charges(CuTest *tc)
