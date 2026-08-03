@@ -109,14 +109,14 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | Directory | Holds |
 |-----------|-------|
 | `src/olc/` | online creation: `*edit.c`, `gen*.c`, `oasis*`, `improved-edit.c` |
-| `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge` |
-| `src/vessels/` | `vessels_*`, `vehicles*`, `transport*` |
+| `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge`, `desc_engine`, `narrative_weaver` |
+| `src/vessels/` | `vessels_*`, `vehicles*`, `transport*`, `routing` |
 | `src/magic/` | `magic.c`, `spells*`, `spell_parser`, `spell_prep`, `spellbook_scroll`, `casting_visuals`, `metamagic_science`, `domain_powers`, `domains_schools`, `moon_bonus_spells`, `psionics` |
 | `src/mob/` | `mob_*` |
 | `src/movement/` | `movement*` |
 | `src/dgscript/` | `dg_*` |
 | `src/character/` | `class`, `race`, `feats`, `perks`, `talents`, `evolutions`, `backgrounds`, `deities`, `templates`, `premadebuilds`, `character_creation*`, `study.c` |
-| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes` |
+| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes`, `traps*` |
 | `src/quest/` | `quest`, `hlquest`, `missions`, `hunts`, `staff_events` |
 | `src/comms/` | `mail`, `new_mail`, `boards`, `mysql_boards`, `ibt` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
@@ -126,7 +126,9 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 A directory must hold roughly 8+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`.  Do not nest a second level.
 
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), and `traps*.c` stay flat (room and encounter hazards that touch the object vocabulary only incidentally) rather than joining `src/obj/`.
+Fifteen directories is the settled state; 104 files stay flat and should. Every remaining flat cluster has been measured against both tests and rejected - `db/`, `ai/`, `clan/`, `player/`, `act/`, `event/`, and a `util/`/`core/` grab bag - so do not re-open the question without new evidence. The genuine core belongs at top level: `comm.c`, `db.c/.h`, `handler.c`, `interpreter.c`, `utils.c/.h`, `structs.h`, `constants.c`, `limits.c`, `mud_event.c/.h`, `players.c`, and the `act.*` family. The remaining prefix groups are all under the floor: `ai_*` (5), `clan*` (7), `db*` (7), `mysql*` (2), `spec*` (3), `random*` (3), and `roleplay`+`char_descs`+`introduce` (5).
+
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), and `traps.h`/`traps_new.c` sit in `src/combat/` as room and encounter hazards rather than in `src/obj/`, which they touch only incidentally through the object vocabulary.
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 

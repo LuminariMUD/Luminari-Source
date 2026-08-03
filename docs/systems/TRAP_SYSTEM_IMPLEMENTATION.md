@@ -70,7 +70,7 @@ When set on a specific room, that room will ALWAYS get a trap during zone reset,
 **ITEM_TRAPPED Flag:**
 Set automatically when a trap is attached to an object (container/door). This is informational only and helps identify trapped objects.
 
-### 3. Trap System Functions (traps.h & traps_new.c)
+### 3. Trap System Functions (combat/traps.h & combat/traps_new.c)
 
 #### Trap Creation and Management
 ```c
@@ -233,19 +233,18 @@ TRAP: Auto-generated 5 traps in zone 123
 ## Files Modified/Created
 
 ### Modified
-1. `/home/krynn/code/src/structs.h` - Added trap constants, struct trap_data, updated room_data and obj_data
-2. `/home/krynn/code/src/traps.h` - Complete rewrite with new function prototypes and data structures
+1. `src/structs.h` - Added trap constants, struct trap_data, updated room_data and obj_data
+2. `src/combat/traps.h` - Complete rewrite with new function prototypes and data structures
 
 ### Created
-1. `/home/krynn/code/src/traps_new.c` - New trap system implementation (partial, needs completion)
+1. `src/combat/traps_new.c` - New trap system implementation (partial, needs completion)
 
 ### To Be Modified
-1. `src/traps.c` - Needs update to use new system
-2. `src/olc/oedit.c` - Needs trap editing support
-3. `src/olc/redit.c` - Needs trap editing support
-4. `src/db.c` - Needs zone reset integration
-5. `src/movement/movement.c` - Needs trap trigger checks
-6. `src/obj/act.item.c` - Needs trap trigger checks for containers/doors
+1. `src/olc/oedit.c` - Needs trap editing support
+2. `src/olc/redit.c` - Needs trap editing support
+3. `src/db.c` - Needs zone reset integration
+4. `src/movement/movement.c` - Needs trap trigger checks
+5. `src/obj/act.item.c` - Needs trap trigger checks for containers/doors
 
 ## Integration Points
 

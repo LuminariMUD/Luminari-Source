@@ -42,7 +42,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `movement.c:545` - Blocks mounted entry
 - `movement.c:551` - Enforces occupancy limit
-- `desc_engine.c:683` - Dynamic room descriptions
+- `wilderness/desc_engine.c:683` - Dynamic room descriptions
 
 ### ROOM_SINGLEFILE (Index: 20)
 **Effect:** Forces characters to move through the room one at a time in combat situations.
@@ -338,7 +338,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `act.informative.c:8554` - Automap checks
 - `asciimap.c:729` - Map rendering
-- `routing.c:290` - Navigation system
+- `vessels/routing.c:290` - Navigation system
 - `act.wizard.c:10211` - Administrative flag setting
 
 ### ROOM_VEHICLE (Index: 40)
@@ -436,7 +436,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for specific trap encounters
 
 **Code References:**
-- `traps_new.c:547, 575-576` - Forced trap generation
+- `combat/traps_new.c:547, 575-576` - Forced trap generation
 - `db.c:5431` - Zone loading trap setup
 
 ### ROOM_RANDOM_CHEST (Index: 37)
