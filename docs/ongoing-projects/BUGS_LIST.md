@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 18 actionable code items drawn
-from 20 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 17 actionable code items drawn
+from 19 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 35 unique records remain from the original 146-record
-snapshot. The other 111 were removed because they are resolved, intentional,
+Across both files, 34 unique records remain from the original 146-record
+snapshot. The other 112 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Max-HP enhancement selection is order-dependent** - Equipment scanning
-  compares the first affect on an item while assigning the current affect's
-  modifier, so a smaller enhancement can replace a larger one depending on
-  affect order. Reporter: Arithon (L30, R145200, 2023-02-16; #038).
 - **`cexchange` unnecessarily removes Hide** - A hidden and sneaking
   character retains Sneak but loses Hide because the interpreter's
   non-breaking command allowlist omits `cexchange`. Reporter: Zyloch (L30,

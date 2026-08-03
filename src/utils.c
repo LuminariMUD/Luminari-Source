@@ -8027,7 +8027,7 @@ void calculate_max_hp(struct char_data *ch, bool display)
           }
         }
         // we only want the maximum per bonus type
-        else if (obj->affected->modifier > max_value[obj->affected[j].bonus_type])
+        else if (obj->affected[j].modifier > max_value[obj->affected[j].bonus_type])
         {
           max_value[obj->affected[j].bonus_type] = obj->affected[j].modifier;
           max_val_spell[obj->affected[j].bonus_type] = -1;

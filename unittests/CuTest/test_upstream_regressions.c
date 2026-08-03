@@ -144,6 +144,47 @@ void Test_blackguard_mount_vnums_are_callable(CuTest *tc)
   CuAssertTrue(tc, ok_call_mob_vnum(MOB_EPIC_BLACKGUARD_MOUNT));
 }
 
+void Test_max_hp_uses_current_object_affect_when_selecting_bonus(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct obj_data stronger_item;
+  struct obj_data weaker_item;
+  int base_max_hit_points;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&stronger_item, 0, sizeof(stronger_item));
+  memset(&weaker_item, 0, sizeof(weaker_item));
+  ch.player_specials = &player_specials;
+  ch.desc = &descriptor;
+  GET_LEVEL(&ch) = 1;
+  GET_REAL_RACE(&ch) = RACE_HUMAN;
+  GET_REAL_CON(&ch) = 10;
+  ch.aff_abils.con = 10;
+
+  calculate_max_hp(&ch, false);
+  base_max_hit_points = GET_MAX_HIT(&ch);
+
+  stronger_item.affected[0].location = APPLY_HIT;
+  stronger_item.affected[0].modifier = 120;
+  stronger_item.affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  weaker_item.affected[0].location = APPLY_STR;
+  weaker_item.affected[0].modifier = 200;
+  weaker_item.affected[0].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  weaker_item.affected[1].location = APPLY_HIT;
+  weaker_item.affected[1].modifier = 72;
+  weaker_item.affected[1].bonus_type = BONUS_TYPE_ENHANCEMENT;
+  GET_EQ(&ch, WEAR_FINGER_R) = &stronger_item;
+  GET_EQ(&ch, WEAR_FINGER_L) = &weaker_item;
+
+  calculate_max_hp(&ch, false);
+
+  CuAssertIntEquals(tc, base_max_hit_points + 120, GET_MAX_HIT(&ch));
+}
+
 static void assert_undead_respec_preserves_size(CuTest *tc, int race, int class_num,
                                                 int original_size)
 {
