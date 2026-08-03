@@ -5145,7 +5145,7 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
         af.modifier = 0;
         af.duration = dice(1, 4);
         SET_BIT_AR(af.bitvector, AFF_DAZZLED);
-        affect_to_char(ch, &af);
+        affect_to_char(victim, &af);
         act("You are dazzled by $n's attack.", false, ch, 0, victim, TO_VICT);
         act("$N is dazzled by Your attack.", false, ch, 0, victim, TO_CHAR);
         act("$N is dazzled by $n's attack.", false, ch, 0, victim, TO_NOTVICT);
@@ -5442,6 +5442,14 @@ int damage_handling(struct char_data *ch, struct char_data *victim, int dam, int
 
   return dam;
 }
+
+#ifdef LUMINARI_CUTEST
+int test_damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
+                         int dam_type)
+{
+  return damage_handling(ch, victim, dam, attacktype, dam_type);
+}
+#endif
 
 /* victim died at the hands of ch
  * this is called before die() to handle xp gain, corpse, memory and

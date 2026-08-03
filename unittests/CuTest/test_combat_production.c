@@ -5,8 +5,10 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/character/feats.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/mudlim.h"
@@ -72,6 +74,66 @@ void Test_psionic_death_effects_bypass_the_generic_damage_cap(CuTest *tc)
   CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_DEADLY_FEAR));
   CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_PSYCHIC_CRUSH));
   CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_RECALL_DEATH));
+}
+
+void Test_litany_of_righteousness_dazzles_the_evil_target(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data victim;
+  struct player_special_data ch_player_specials;
+  struct player_special_data victim_player_specials;
+  struct affected_type litany;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int damage_dealt;
+  bool caster_dazzled;
+  bool victim_dazzled;
+
+  clear_char(&ch);
+  clear_char(&victim);
+  memset(&ch_player_specials, 0, sizeof(ch_player_specials));
+  memset(&victim_player_specials, 0, sizeof(victim_player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &ch_player_specials;
+  victim.player_specials = &victim_player_specials;
+  ch.player.name = "litany test caster";
+  victim.player.name = "litany test target";
+  GET_LEVEL(&ch) = 10;
+  GET_LEVEL(&victim) = 10;
+  GET_ALIGNMENT(&ch) = 1000;
+  GET_ALIGNMENT(&victim) = -1000;
+  SET_FEAT(&ch, FEAT_AURA_OF_GOOD, 1);
+  SET_FEAT(&victim, FEAT_AURA_OF_EVIL, 1);
+  SET_BIT_AR(PRF_FLAGS(&ch), PRF_HOLYLIGHT);
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  ch.next_in_room = &victim;
+  IN_ROOM(&ch) = 0;
+  IN_ROOM(&victim) = 0;
+
+  new_affect(&litany);
+  litany.spell = SPELL_LITANY_OF_RIGHTEOUSNESS;
+  litany.duration = 3;
+  affect_to_char(&ch, &litany);
+
+  damage_dealt = test_damage_handling(&ch, &victim, 10, TYPE_HIT, DAM_SLICE);
+  caster_dazzled = affected_by_spell(&ch, SPELL_EFFECT_DAZZLED);
+  victim_dazzled = affected_by_spell(&victim, SPELL_EFFECT_DAZZLED);
+
+  affect_from_char(&ch, SPELL_LITANY_OF_RIGHTEOUSNESS);
+  affect_from_char(&ch, SPELL_EFFECT_DAZZLED);
+  affect_from_char(&victim, SPELL_EFFECT_DAZZLED);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 20, damage_dealt);
+  CuAssertTrue(tc, !caster_dazzled);
+  CuAssertTrue(tc, victim_dazzled);
 }
 
 void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
