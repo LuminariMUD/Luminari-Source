@@ -9965,7 +9965,8 @@ void show_character_background_archtype_menu(struct descriptor_data *d)
 
 bool command_can_be_used_while_casting(int cmd)
 {
-  if (!is_abbrev(complete_cmd_info[cmd].command, "look") &&
+  if (!is_abbrev(complete_cmd_info[cmd].command, "abort") &&
+      !is_abbrev(complete_cmd_info[cmd].command, "look") &&
       !is_abbrev(complete_cmd_info[cmd].command, "group") &&
       !is_abbrev(complete_cmd_info[cmd].command, "affects") &&
       !is_abbrev(complete_cmd_info[cmd].command, "gtell") &&

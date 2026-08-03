@@ -5,12 +5,12 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 7 actionable code items drawn
-from 7 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 6 actionable code items drawn
+from 6 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records.
 
-Across both files, 24 unique records remain from the original 146-record
-snapshot. The other 122 were removed because they are resolved, intentional,
+Across both files, 23 unique records remain from the original 146-record
+snapshot. The other 123 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -20,9 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **A spell cannot be aborted while it is being cast** - The casting gate tells
-  the player to use `abort`, but `abort` is absent from the commands allowed
-  through that same gate. Reporter: Syman (L24, R23807, 2025-11-29; #119).
 - **Positive Channel Energy skips grouped living targets** - Its group
   condition skips a living target when that target is grouped with the caster,
   even though the caller supplies only the caster and group members. Reporter:

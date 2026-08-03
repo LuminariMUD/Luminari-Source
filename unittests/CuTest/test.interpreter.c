@@ -7,6 +7,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/act.h"
 #include "../../src/craft/craft.h"
+#include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
 
 #include <stdio.h>
@@ -79,6 +80,32 @@ void Test_command_dispatch_lookup(CuTest *tc)
   CuAssertTrue(tc, help_command >= 0);
   CuAssertTrue(tc, look_command != help_command);
   CuAssertIntEquals(tc, -1, find_command("not-a-real-command"));
+
+  if (created_command_list)
+    free_command_list();
+}
+
+void Test_abort_command_is_allowed_while_casting(CuTest *tc)
+{
+  int abort_command;
+  int north_command;
+  bool created_command_list;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  abort_command = find_command("abort");
+  north_command = find_command("north");
+
+  CuAssertTrue(tc, abort_command >= 0);
+  CuAssertTrue(tc, north_command >= 0);
+  CuAssertTrue(tc, complete_cmd_info[abort_command].command_pointer == do_abort);
+  CuAssertTrue(tc, command_can_be_used_while_casting(abort_command));
+  CuAssertTrue(tc, !command_can_be_used_while_casting(north_command));
 
   if (created_command_list)
     free_command_list();
