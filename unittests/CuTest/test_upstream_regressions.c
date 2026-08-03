@@ -133,6 +133,13 @@ void Test_upstream_index_helpers(CuTest *tc)
   CuAssertIntEquals(tc, (int)NOWHERE, (int)atoidx("99999999999999999999999999999999"));
 }
 
+void Test_blackguard_mount_vnums_are_callable(CuTest *tc)
+{
+  CuAssertTrue(tc, ok_call_mob_vnum(MOB_BLACKGUARD_MOUNT));
+  CuAssertTrue(tc, ok_call_mob_vnum(MOB_ADV_BLACKGUARD_MOUNT));
+  CuAssertTrue(tc, ok_call_mob_vnum(MOB_EPIC_BLACKGUARD_MOUNT));
+}
+
 void Test_upstream_new_affect_initializes_all_fields(CuTest *tc)
 {
   struct affected_type affect;

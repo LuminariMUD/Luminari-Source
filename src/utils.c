@@ -10476,7 +10476,8 @@ bool ok_call_mob_vnum(int mob_num)
   if (mob_num >= 40400 && mob_num <= 40410)
     return true;
 
-  if (mob_num >= 20803 && mob_num <= 20805)
+  if (mob_num == MOB_BLACKGUARD_MOUNT || mob_num == MOB_ADV_BLACKGUARD_MOUNT ||
+      mob_num == MOB_EPIC_BLACKGUARD_MOUNT)
     return true;
 
   return false;
