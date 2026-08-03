@@ -9,6 +9,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/character/feats.h"
+#include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/mudlim.h"
@@ -134,6 +135,31 @@ void Test_litany_of_righteousness_dazzles_the_evil_target(CuTest *tc)
   CuAssertIntEquals(tc, 20, damage_dealt);
   CuAssertTrue(tc, !caster_dazzled);
   CuAssertTrue(tc, victim_dazzled);
+}
+
+void Test_rogues_are_proficient_with_composite_shortbows(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  CLASS_LEVEL((&ch), CLASS_ROGUE) = 1;
+
+  CuAssertTrue(tc, is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_SHORTBOW));
+  CuAssertTrue(tc, is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_SHORTBOW_2));
+  CuAssertTrue(tc, is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_SHORTBOW_3));
+  CuAssertTrue(tc, is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_SHORTBOW_4));
+  CuAssertTrue(tc, is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_SHORTBOW_5));
+  CuAssertTrue(tc, !is_proficient_with_weapon(&ch, WEAPON_TYPE_COMPOSITE_LONGBOW));
+
+  CuAssertTrue(tc, test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_SHORTBOW));
+  CuAssertTrue(tc, test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_SHORTBOW_2));
+  CuAssertTrue(tc, test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_SHORTBOW_3));
+  CuAssertTrue(tc, test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_SHORTBOW_4));
+  CuAssertTrue(tc, test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_SHORTBOW_5));
+  CuAssertTrue(tc, !test_is_rogue_weapon_proficient(WEAPON_TYPE_COMPOSITE_LONGBOW));
 }
 
 void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)

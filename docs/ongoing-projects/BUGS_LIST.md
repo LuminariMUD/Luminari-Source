@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 9 actionable code items drawn
-from 10 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 8 actionable code items drawn
+from 9 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 25 unique records remain from the original 146-record
-snapshot. The other 121 were removed because they are resolved, intentional,
+Across both files, 24 unique records remain from the original 146-record
+snapshot. The other 122 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **Rogues lack composite shortbow proficiency** - Rogue weapon handling
-  includes shortbows but omits both composite shortbow types, unlike the
-  corresponding Assassin handling. Reporter: Kazne (L2, R145207, 2025-09-18;
-  #110).
 - **Ghost Wolf mobility flags are applied to the caster** - The summon path
   sets the wolf's water-walk and flight flags on the caster rather than the
   summoned mobile. Reporter: Syman (L7/L18, R145352/R148130,

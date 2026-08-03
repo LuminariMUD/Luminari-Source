@@ -1123,6 +1123,7 @@ ACMD_DECL(do_set);
 #ifdef LUMINARI_CUTEST
 int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vict,
                                      const char *field, int level);
+int test_is_rogue_weapon_proficient(int weapon);
 #endif
 ACMD_DECL(do_show);
 ACMD_DECL(do_shopstat);

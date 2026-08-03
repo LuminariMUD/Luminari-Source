@@ -154,6 +154,11 @@ int is_proficient_with_weapon(struct char_data *ch, int weapon)
     case WEAPON_TYPE_SAP:
     case WEAPON_TYPE_SHORT_SWORD:
     case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
     }
   }

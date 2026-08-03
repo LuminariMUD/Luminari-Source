@@ -10387,6 +10387,11 @@ int is_weapon_proficient(int weapon, int type)
     case WEAPON_TYPE_SAP:
     case WEAPON_TYPE_SHORT_SWORD:
     case WEAPON_TYPE_SHORT_BOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_2:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_3:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_4:
+    case WEAPON_TYPE_COMPOSITE_SHORTBOW_5:
       return TRUE;
     }
   }
@@ -10525,6 +10530,13 @@ int is_weapon_proficient(int weapon, int type)
   /* nothing! */
   return false;
 }
+
+#ifdef LUMINARI_CUTEST
+int test_is_rogue_weapon_proficient(int weapon)
+{
+  return is_weapon_proficient(weapon, WPT_ROGUE);
+}
+#endif
 
 ACMD(do_weaponproficiencies)
 {
