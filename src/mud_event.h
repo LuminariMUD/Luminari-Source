@@ -252,6 +252,8 @@ typedef enum
   eAURA_READING_DETECT_ALIGN,   /* Inquisitor perk: Detect Alignment daily use */
   eLEGENDARY_RESILIENCE_USED,   /* Inquisitor Legendary Resilience auto-save cooldown */
   ePERFECT_ADAPTATION_COOLDOWN, /* Inquisitor Perfect Adaptation 5-minute cooldown */
+  eAASIMAR_HEALING_HANDS,       /* Aasimar Healing Hands daily uses */
+  eAASIMAR_LIGHT_BEARER,        /* Aasimar Light Bearer daily uses */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

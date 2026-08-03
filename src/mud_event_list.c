@@ -508,6 +508,10 @@ struct mud_event_list mud_event_index[] = {
      "You can benefit from Legendary Resilience again", NULL, FEAT_UNDEFINED, 0},
     {"Perfect Adaptation Cooldown", event_daily_use_cooldown, EVENT_CHAR,
      "You can use Perfect Adaptation again.", NULL, FEAT_UNDEFINED, 0},
+    {"Aasimar Healing Hands", event_daily_use_cooldown, EVENT_CHAR, NULL,
+     "One of your Healing Hands uses has recovered.", FEAT_AASIMAR_HEALING_HANDS, 0},
+    {"Aasimar Light Bearer", event_daily_use_cooldown, EVENT_CHAR, NULL,
+     "One of your Light Bearer uses has recovered.", FEAT_AASIMAR_LIGHT_BEARER, 0},
 };
 
 /* Expose registry count for validation */

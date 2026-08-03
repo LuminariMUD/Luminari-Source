@@ -1239,6 +1239,16 @@ similar method added -zusuk */
     activate_defensive_casting(caster);
   }
 
+  if (!IS_NPC(caster) && casttype == CAST_SPELL)
+  {
+    if (spellnum == SPELL_REGENERATION && HAS_FEAT(caster, FEAT_AASIMAR_HEALING_HANDS) &&
+        daily_uses_remaining(caster, FEAT_AASIMAR_HEALING_HANDS) > 0)
+      start_daily_use_cooldown(caster, FEAT_AASIMAR_HEALING_HANDS);
+    else if (spellnum == SPELL_DAYLIGHT && HAS_FEAT(caster, FEAT_AASIMAR_LIGHT_BEARER) &&
+             daily_uses_remaining(caster, FEAT_AASIMAR_LIGHT_BEARER) > 0)
+      start_daily_use_cooldown(caster, FEAT_AASIMAR_LIGHT_BEARER);
+  }
+
   return (1);
 }
 
@@ -6917,9 +6927,7 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
       return false;
     if (GET_LEVEL(ch) < 1)
       return false;
-    if (GET_RACIAL_COOLDOWN(ch, 0) <= 0 && GET_RACIAL_MAGIC(ch, 0) == 0)
-      GET_RACIAL_MAGIC(ch, 0) = 3;
-    if (GET_RACIAL_MAGIC(ch, 0) <= 0)
+    if (daily_uses_remaining(ch, FEAT_AASIMAR_HEALING_HANDS) <= 0)
     {
       send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
       return false;
@@ -6930,9 +6938,7 @@ sbyte isAasimarMagic(struct char_data *ch, int spellnum)
       return false;
     if (GET_LEVEL(ch) < 3)
       return false;
-    if (GET_RACIAL_COOLDOWN(ch, 1) <= 0 && GET_RACIAL_MAGIC(ch, 1) == 0)
-      GET_RACIAL_MAGIC(ch, 1) = 3;
-    if (GET_RACIAL_MAGIC(ch, 1) <= 0)
+    if (daily_uses_remaining(ch, FEAT_AASIMAR_LIGHT_BEARER) <= 0)
     {
       send_to_char(ch, "That ability is on a cooldown now (type cooldowns)\r\n");
       return false;

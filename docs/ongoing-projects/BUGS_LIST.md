@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 16 actionable code items drawn
-from 18 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 15 actionable code items drawn
+from 17 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 33 unique records remain from the original 146-record
-snapshot. The other 113 were removed because they are resolved, intentional,
+Across both files, 32 unique records remain from the original 146-record
+snapshot. The other 114 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Aasimar Healing Hands is not charged against its daily limit** - The
-  racial-magic counter is initialized and checked, but successful Healing
-  Hands uses never decrement it despite the documented three uses per day.
-  Reporter: Lothelye (L10, R103009, 2023-02-19; #040).
 - **Kill output can award XP and then report zero XP** - Damage-based XP can
   bring a character to the XP cap before the final solo award. The final path
   then prints the zero returned by `gain_exp`, producing contradictory lines.

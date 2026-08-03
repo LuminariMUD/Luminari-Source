@@ -5058,6 +5058,8 @@ int get_daily_uses(struct char_data *ch, int featnum)
   case FEAT_SLA_FAERIE_FIRE:
   case FEAT_SLA_LEVITATE:
   case FEAT_SLA_DARKNESS:
+  case FEAT_AASIMAR_HEALING_HANDS:
+  case FEAT_AASIMAR_LIGHT_BEARER:
   case FEAT_MASTER_OF_THE_MIND:
     daily_uses = 3;
     break;

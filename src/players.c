@@ -3607,6 +3607,14 @@ bool save_char_checked(struct char_data *ch, int mode)
       BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
                    get_daily_uses(ch, FEAT_SLA_FAERIE_FIRE) -
                        daily_uses_remaining(ch, FEAT_SLA_FAERIE_FIRE));
+    if ((pMudEvent = char_has_mud_event(ch, eAASIMAR_HEALING_HANDS)))
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
+                   get_daily_uses(ch, FEAT_AASIMAR_HEALING_HANDS) -
+                       daily_uses_remaining(ch, FEAT_AASIMAR_HEALING_HANDS));
+    if ((pMudEvent = char_has_mud_event(ch, eAASIMAR_LIGHT_BEARER)))
+      BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
+                   get_daily_uses(ch, FEAT_AASIMAR_LIGHT_BEARER) -
+                       daily_uses_remaining(ch, FEAT_AASIMAR_LIGHT_BEARER));
     if ((pMudEvent = char_has_mud_event(ch, eLAYONHANDS)))
       BUFFER_WRITE("%d %ld %d\n", pMudEvent->iId, event_time(pMudEvent->pEvent),
                    get_daily_uses(ch, FEAT_LAYHANDS) - daily_uses_remaining(ch, FEAT_LAYHANDS));

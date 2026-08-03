@@ -2397,6 +2397,12 @@ void perform_cooldowns(struct char_data *ch, struct char_data *k)
   if ((pMudEvent = char_has_mud_event(k, eSLA_FAERIE_FIRE)))
     send_to_char(ch, "Faerie Fire Cooldown - Duration: %d seconds\r\n",
                  (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eAASIMAR_HEALING_HANDS)))
+    send_to_char(ch, "Healing Hands Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
+  if ((pMudEvent = char_has_mud_event(k, eAASIMAR_LIGHT_BEARER)))
+    send_to_char(ch, "Light Bearer Cooldown - Duration: %d seconds\r\n",
+                 (int)(event_time(pMudEvent->pEvent) / 10));
   if ((pMudEvent = char_has_mud_event(k, eLAYONHANDS)))
     send_to_char(ch, "Lay on Hands Cooldown - Duration: %d seconds\r\n",
                  (int)(event_time(pMudEvent->pEvent) / 10));

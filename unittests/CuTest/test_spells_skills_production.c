@@ -5,9 +5,12 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/dgscript/dg_event.h"
 #include "../../src/handler.h"
 #include "../../src/modify.h"
+#include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
+#include "../../src/character/feats.h"
 #include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 
@@ -97,6 +100,86 @@ void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
 
   while (ch.affected != NULL)
     affect_remove_no_total(&ch, ch.affected);
+}
+
+void Test_aasimar_innate_spells_use_daily_charges(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct list_data list_registry;
+  struct list_data *saved_global_lists;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int cast_result[3];
+  int remaining_uses[3];
+  int prepared_cast_result;
+  int remaining_after_prepared_cast;
+  bool fourth_cast_available;
+  int i;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  if (feat_list[FEAT_AASIMAR_HEALING_HANDS].name == NULL)
+    assign_feats();
+  event_init();
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  memset(&list_registry, 0, sizeof(list_registry));
+  saved_global_lists = global_lists;
+  if (global_lists == NULL)
+    global_lists = &list_registry;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  ch.player_specials = &player_specials;
+  ch.player.name = "aasimar healing hands test character";
+  IN_ROOM(&ch) = 0;
+  GET_LEVEL(&ch) = 10;
+  GET_POS(&ch) = POS_STANDING;
+  GET_REAL_MAX_HIT(&ch) = 100;
+  GET_MAX_HIT(&ch) = 100;
+  GET_HIT(&ch) = 10;
+  SET_FEAT(&ch, FEAT_AASIMAR_HEALING_HANDS, 1);
+  SET_FEAT(&ch, FEAT_AASIMAR_LIGHT_BEARER, 1);
+
+  CuAssertIntEquals(tc, 3, get_daily_uses(&ch, FEAT_AASIMAR_HEALING_HANDS));
+  CuAssertIntEquals(tc, 3, get_daily_uses(&ch, FEAT_AASIMAR_LIGHT_BEARER));
+  CuAssertIntEquals(tc, eAASIMAR_HEALING_HANDS, feat_list[FEAT_AASIMAR_HEALING_HANDS].event);
+  CuAssertIntEquals(tc, eAASIMAR_LIGHT_BEARER, feat_list[FEAT_AASIMAR_LIGHT_BEARER].event);
+
+  for (i = 0; i < 3; i++)
+  {
+    CuAssertTrue(tc, isAasimarMagic(&ch, SPELL_REGENERATION));
+    cast_result[i] = call_magic(&ch, &ch, NULL, SPELL_REGENERATION, 0, GET_LEVEL(&ch), CAST_SPELL);
+    remaining_uses[i] = daily_uses_remaining(&ch, FEAT_AASIMAR_HEALING_HANDS);
+  }
+  fourth_cast_available = isAasimarMagic(&ch, SPELL_REGENERATION);
+  prepared_cast_result =
+      call_magic(&ch, &ch, NULL, SPELL_REGENERATION, 0, GET_LEVEL(&ch), CAST_SPELL);
+  remaining_after_prepared_cast = daily_uses_remaining(&ch, FEAT_AASIMAR_HEALING_HANDS);
+
+  clear_char_event_list(&ch);
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  global_lists = saved_global_lists;
+  room.people = NULL;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertIntEquals(tc, 1, cast_result[0]);
+  CuAssertIntEquals(tc, 1, cast_result[1]);
+  CuAssertIntEquals(tc, 1, cast_result[2]);
+  CuAssertIntEquals(tc, 2, remaining_uses[0]);
+  CuAssertIntEquals(tc, 1, remaining_uses[1]);
+  CuAssertIntEquals(tc, 0, remaining_uses[2]);
+  CuAssertTrue(tc, !fourth_cast_available);
+  CuAssertIntEquals(tc, 1, prepared_cast_result);
+  CuAssertIntEquals(tc, 0, remaining_after_prepared_cast);
 }
 
 void Test_group_heal_restores_health_and_cures_blindness(CuTest *tc)
