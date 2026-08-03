@@ -166,7 +166,7 @@ void assign_mobiles(void)
   ASSIGNMOB(103498, buyweapons); // +1 weapons
   ASSIGNMOB(103801, huntsmaster);
   // ASSIGNMOB(103802, buyarmor); // +2 armor - mob #103802 doesn't exist
-  // ASSIGNMOB(103803, buyweapons); // +2 weapons - mob #103803 doesn't exist
+  ASSIGNMOB(103803, buyweapons); // +2 weapons
 
   /* faction mission system */
   ASSIGNMOB(103698, faction_mission);
