@@ -260,13 +260,16 @@ Final layout:
 | `src/combat/` | 13 |
 | `src/craft/` | 13 |
 | `src/net/` | 11 |
+| `src/obj/` | 14 |
 | `src/comms/` | 10 |
 | `src/quest/` | 10 |
 | `src/pubsub/` | 8 |
-| `src/` (flat) | 134 |
+| `src/` (flat) | 120 |
 
 `character/`, `quest/`, and `comms/` landed in phase 2, planned separately in
-[SRC_LAYOUT_PHASE2.md](SRC_LAYOUT_PHASE2.md).
+[SRC_LAYOUT_PHASE2.md](SRC_LAYOUT_PHASE2.md). `obj/` landed in phase 3, planned
+in [SRC_LAYOUT_PHASE3.md](SRC_LAYOUT_PHASE3.md), taking flat from 134 to 120
+across fifteen directories.
 
 Every directory clears the file-count floor. The flat remainder is the core -
 `comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`,
@@ -291,7 +294,10 @@ build to confirm the second source list stayed correct.
   crafting; filing them under `craft/` would misdescribe them, and at 4 files
   they fall below the floor, so they stay flat. `material_types.h` has no
   includers at all and was left in place rather than guessing a home for dead
-  code.
+  code. *(Superseded in phase 3: `shop` and `trade` are commerce in the sense
+  of moving objects, and they now sit in `src/obj/` with the rest of the object
+  lifecycle. The phase 1 reasoning holds - they were never crafting - but they
+  are no longer flat.)*
 - **`comm.c` stays flat.** The plan listed it under `net/`, but it is the main
   select() loop and heartbeat scheduler, not a socket layer. Burying the
   codebase's central file would cost more than the grouping gains.

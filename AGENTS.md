@@ -86,7 +86,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 ### Core flow
 - `comm.c` - main select()-based game loop, networking, heartbeat scheduling.
-- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.item.c, act.wizard.c, plus `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
+- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.wizard.c, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
 - `structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `sysdep.h`, `structs.h`, `utils.h` in that order.
 - `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
 - `handler.c` - object/character manipulation primitives (equip, extract, move).
@@ -122,10 +122,11 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
 | `src/pubsub/` | `pubsub*` |
+| `src/obj/` | `act.item.c`, `item.h`, `objsave`, `treasure*`, `spec_artifacts`, `shop`, `trade`, `house` |
 
 A directory must hold roughly 8+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`.  Do not nest a second level.
 
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system).
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), and `traps*.c` stay flat (room and encounter hazards that touch the object vocabulary only incidentally) rather than joining `src/obj/`.
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 

@@ -582,7 +582,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - `src/combat/fight.c` - Combat restriction checks
 - `src/utils.c` - Light and vision calculations
 - `src/act.informative.c` - Room description handling
-- `src/house.c` - House system integration
+- `src/obj/house.c` - House system integration
 - `src/vessels/vessels_rooms.c` - Vehicle system integration
 
 **Checking Flags:**

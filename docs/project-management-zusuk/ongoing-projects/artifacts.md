@@ -46,9 +46,9 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 
 - `src/magic/spells.h` - added `SPELL_ARTIFACT_PASSIVE` and `SPELL_ARTIFACT_SURGE`
   affect markers in the reserved 1606-1646 band.
-- `src/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
+- `src/obj/spec_artifacts.h` - vnums, chronicle/acquisition/channel/proc/
   stacking constants, provenance and contract fields, new API.
-- `src/spec_artifacts.c` - all runtime work.
+- `src/obj/spec_artifacts.c` - all runtime work.
 - `src/interpreter.c` - registered `invoke`.
 - `src/act.comm.do_spec_comm.c` - whisper channel hook.
 - `lib/world/artifacts/1699.obj` - six new object prototypes.
@@ -394,7 +394,7 @@ ledger:
 
 A direct player-to-player give also passes through it:
 
-`/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/act.item.c:1418-1443`.
+`/home/aiwithapex/projects/Luminari-Source/EXAMPLE/HomelandMUD/src/obj/act.item.c:1418-1443`.
 
 ### 12.3 Paths the owner hook misses
 

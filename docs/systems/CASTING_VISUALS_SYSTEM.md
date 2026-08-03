@@ -479,7 +479,7 @@ Your spell is completely inert!
 | `src/magic/spells.h` | Metamagic defines, cast type defines |
 | `src/movement/movement_position.c` | Position change interrupt |
 | `src/interpreter.c` | Command blocking during cast |
-| `src/act.item.c` | Consumable item casting visuals |
+| `src/obj/act.item.c` | Consumable item casting visuals |
 | `src/magic/magic.c` | Magic failure messages |
 
 ### Line Number Quick Reference

@@ -146,6 +146,9 @@ The six categories phase 1 established, with what each costs here:
    disturb `src/vessels/vessels_trade.c`, which sits adjacent in `Makefile.am`
    and matches a naive `trade` grep.
 5. **Scripts and mirror trees** - verified none reference these files.
+   **This was wrong.** See section 11: `util/shopconv.c` includes `shop.h` and
+   is built by `util/Makefile.am` with `-I../src`, so it broke the build. The
+   check had been run against `scripts/`, not the `util/` tree.
 6. **`sql/components/*.sql` header comments** - verified none.
 
 Also: 11 current documents reference these paths (section 8).
@@ -277,3 +280,55 @@ conclusion.
 
 No functional change was made. The only reachable code touched was the
 declaration source for `real_zone_by_thing`.
+
+## 11) Outcome
+
+Both commits landed, each verified before it was committed. All 14 renames
+were recorded by git at 100% similarity, so both diffs read as pure renames
+plus include rewrites.
+
+| Commit | Cluster | Renames | Files touched |
+|--------|---------|--------:|--------------:|
+| `0abe714a` | commerce (`shop`, `trade`) | 4 | 29 |
+| `b5574ec5` | object core and persistence | 10 | 46 |
+
+Predictions that held, exactly:
+
+- **120 flat files across 15 directories.** Both figures landed on the number.
+- **Every include-rewrite count.** `shop.h` 21 external, `treasure.h` 18,
+  `house.h` 14, `item.h` 9, `spec_artifacts.h` 8, `trade.h` 0.
+- **The relative-form unit-test includes.** Both were real and both would have
+  broken `make test`: `test_web_onboarding.c` (`shop.h`) and `test_artifacts.c`
+  (`spec_artifacts.h`). This is the second phase running where that category
+  was the one most likely to be missed.
+- **clang-format's trailing-comment realignment.** It fired on both commits and
+  was accepted as predicted - 2 files in commit 1, 4 in commit 2, every changed
+  line an `#include` whose comment column shifted under a longer path.
+
+The one prediction that missed:
+
+- **Section 4 category 5 claimed no scripts or mirror trees referenced these
+  files.** `util/shopconv.c` includes `shop.h` and is compiled by
+  `util/Makefile.am` with `AM_CFLAGS = -I../src`, so it failed the commit 1
+  build with `fatal error: shop.h: No such file or directory`. Fixed by
+  qualifying it to `obj/shop.h` like every other external includer. The
+  original check had swept `scripts/` and the `src/` mirror trees but not
+  `util/`, which is a `SUBDIRS` target of the root `Makefile.am` and builds
+  nine utility programs against `../src`. **Any future move must sweep `util/`.**
+  The vendored `EXAMPLE/HomelandMUD/src/util/shopconv.c` also matches, but that
+  tree is not built and was left alone.
+
+A second, smaller surprise: `make test` leaves `cutest-*.o` objects beside each
+source, so the moved files orphaned a second set of build artifacts in `src/`
+on top of the plain `.o` files section 5 step 4 anticipated. Both sets were
+removed.
+
+### 11.1 Verification
+
+Per commit: clean autotools rebuild at zero warnings under `-Wall -Wextra`,
+`make test` OK (307 tests), `make install`, and no root-level `circle` artifact
+left behind. Re-run after each clang-format pass.
+
+Still outstanding, and deliberately not claimed here: the in-game house load
+and `hsort` exercise required by section 7. `make test` does not cover the
+house persistence path, and no game server was started during this work.

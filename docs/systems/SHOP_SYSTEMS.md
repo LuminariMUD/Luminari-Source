@@ -18,7 +18,7 @@ LuminariMUD features a comprehensive shop system that allows players to buy and 
 
 ### Core Features
 
-The standard shop system is implemented in `src/shop.c` and `src/shop.h` using the `shop_keeper` special procedure.
+The standard shop system is implemented in `src/obj/shop.c` and `src/obj/shop.h` using the `shop_keeper` special procedure.
 
 #### Available Commands
 
@@ -38,7 +38,7 @@ The standard shop system is implemented in `src/shop.c` and `src/shop.h` using t
 
 ### Shop Flags
 
-Located in `src/shop.h:172-177`:
+Located in `src/obj/shop.h:172-177`:
 
 - **WILL_START_FIGHT** - Shopkeeper will attack thieves
 - **WILL_BANK_MONEY** - Uses banking system for gold over 15,000
@@ -202,7 +202,7 @@ Player-owned shops are tied to the house system, allowing players to sell items 
 
 ### Shop Data Structure
 
-From `src/shop.h:32-56`:
+From `src/obj/shop.h:32-56`:
 
 ```c
 struct shop_data {
@@ -233,8 +233,8 @@ struct shop_data {
 
 ### Shop Loading Process
 
-1. **boot_the_shops()** (`src/shop.c:1424`) - Loads shop definitions from files
-2. **assign_the_shopkeepers()** (`src/shop.c:1500`) - Assigns shop_keeper spec_proc to mobs
+1. **boot_the_shops()** (`src/obj/shop.c:1424`) - Loads shop definitions from files
+2. **assign_the_shopkeepers()** (`src/obj/shop.c:1500`) - Assigns shop_keeper spec_proc to mobs
 3. Shop data stored in global `shop_index` array
 
 ### Shop File Format
@@ -253,7 +253,7 @@ Shops use a versioned file format (v3.0) with the following structure:
 
 ### Important Macros
 
-From `src/shop.h:125-142`:
+From `src/obj/shop.h:125-142`:
 
 - `SHOP_NUM(i)` - Shop virtual number
 - `SHOP_KEEPER(i)` - Shopkeeper mob rnum
@@ -268,13 +268,13 @@ From `src/shop.h:125-142`:
 
 ### Global Settings
 
-From `src/shop.h:183-184`:
+From `src/obj/shop.h:183-184`:
 - **MIN_OUTSIDE_BANK**: 5000 gold (withdrawal threshold)
 - **MAX_OUTSIDE_BANK**: 15000 gold (deposit threshold)
 
 ### Standard Messages
 
-Located in `src/shop.h:186-195`:
+Located in `src/obj/shop.h:186-195`:
 - MSG_NOT_OPEN_YET
 - MSG_NOT_REOPEN_YET
 - MSG_CLOSED_FOR_DAY
@@ -314,11 +314,11 @@ The shop system integrates with the clan economy (`src/clan_economy.c`):
 
 ### Features
 
-1. **Clan Discounts** (`src/shop.c:553`)
+1. **Clan Discounts** (`src/obj/shop.c:553`)
    - Members get discounts at clan-affiliated shops
    - Discount rates configurable per clan
 
-2. **Transaction Taxes** (`src/shop.c:740,1000`)
+2. **Transaction Taxes** (`src/obj/shop.c:740,1000`)
    - Clan collects taxes on member transactions
    - Applied to both buying and selling
    - Tax rates configurable per clan
@@ -374,7 +374,7 @@ The shop system integrates with the clan economy (`src/clan_economy.c`):
 
 ### Implementation Bugs
 
-1. **Noble Shop Flag Bug** (`src/shop.c:150`)
+1. **Noble Shop Flag Bug** (`src/obj/shop.c:150`)
    - The code incorrectly checks `BLACK_MARKET_SHOP` flag when validating `NOBLE_SHOP` access
    - This causes noble shops to not work correctly
    - Fix: Line 150 should check `IS_SET(SHOP_BITVECTOR(shop_nr), NOBLE_SHOP)`
