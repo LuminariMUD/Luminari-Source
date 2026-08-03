@@ -20,7 +20,7 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
-#include "../../src/spec_artifacts.h"
+#include "../../src/obj/spec_artifacts.h"
 
 /* --------------------------------------------------------------------------
  * Helpers

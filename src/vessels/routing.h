@@ -40,6 +40,6 @@ void start_flight_to_destination_luminari(struct char_data *ch, const char *zone
 void start_flight_to_zone_dl(struct char_data *ch, const char *zone);
 void start_fr_flight_to_zone(struct char_data *ch, const char *zone);
 
-#endif /* _UTILS_H_ */
+#endif /* _ROUTING_H_ */
 
 /*EOF*/

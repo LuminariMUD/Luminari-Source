@@ -28,7 +28,7 @@
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
-#include "desc_engine.h"
+#include "wilderness/desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
@@ -38,7 +38,7 @@
 #include "olc/oasis.h"
 #include "mudlim.h"
 #include "olc/genmob.h"
-#include "treasure.h" /* for magic awards */
+#include "obj/treasure.h" /* for magic awards */
 #include "hunts.h"
 
 /* inits */

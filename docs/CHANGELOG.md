@@ -2,6 +2,76 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Source directory layout
+
+Reorganized `src/` into one flat level of feature directories, across four
+phases. No functional change at any step; every commit was renames plus
+include-path rewrites, verified by a clean autotools build at zero warnings,
+`make test`, and an out-of-tree CMake build.
+
+#### Changed
+
+- `src/` went from 378 flat `.c`/`.h` files beside an inconsistent
+  `src/systems/` nest to **104 flat files across fifteen feature
+  directories**. `src/systems/` and `src/world/` no longer exist, and nothing
+  in `src/` is nested more than one level deep.
+- Phase 1 dissolved the nests into eleven directories (`olc`, `wilderness`,
+  `vessels`, `craft`, `movement`, `mob`, `dgscript`, `net`, `pubsub`, and later
+  `combat` and `magic`), leaving 181 files flat. It also deleted two stale
+  forks, `spatial_core.c` and `spatial_visual.c`, which were absent from both
+  build systems and had diverged 189 lines from the live copies.
+- Phase 2 added `character/` (25 files), `quest/` (10), and `comms/` (10),
+  taking flat from 181 to 134, and deleted three dead files:
+  `src/castle.c.tbamud`, `src/test_metamagic.c`, and `src/material_types.h`.
+- Phase 3 added `obj/` (14 files: `act.item.c`, `item.h`, `objsave.c`,
+  `treasure.c/.h`, `treasure_const.c`, `spec_artifacts.c/.h`, `shop.c/.h`,
+  `trade.c/.h`, `house.c/.h`), taking flat from 134 to 120. `traps*.c` were
+  evaluated for `obj/` and deliberately left flat - they are room and encounter
+  hazards that touch the object vocabulary only incidentally.
+- Phase 4 added no directory. A survey measured every remaining flat cluster
+  against the two tests (roughly 8+ files, and a name a newcomer would guess)
+  and rejected all of them: `db/` (nine files, and eleven only by pulling in
+  `db.h`, the most-included header in the codebase at 217 includers, plus the
+  world loader itself), `ai/` (five files once the wilderness description pair
+  is placed correctly), `clan/` (7), `player/` (7), `act/` (7), `event/` (the
+  scheduler the whole codebase runs on, in the same category as `db.c` and
+  `comm.c`), and a `util/`-or-`core/` grab bag that clears the file count and
+  fails the name test outright. Instead it placed eight files that already
+  belonged in existing directories and deleted four dead ones, taking flat
+  from 120 to 104: `desc_engine.c/.h` and `narrative_weaver.c/.h` to
+  `wilderness/` (their exported surface is wilderness room description, not AI
+  plumbing), `routing.c/.h` to `vessels/` (transport destination data, the
+  data half of `transport.c`), and `traps.h`/`traps_new.c` to `combat/`,
+  superseding phase 3's decision to leave them flat.
+- Deleted in phase 4: `src/traps.c`, a strict subset of `traps_new.c` that was
+  in neither build file and had never been compiled; `src/ai_region_hints.c`
+  and `src/ai_region_hints.h`, an unbuilt draft that produced 8 errors under
+  the project's own flags (four functions defined twice, references to
+  `weather_info` members that do not exist, and a call to a
+  `get_region_for_room()` that exists nowhere in the tree); and `src/gain.c`,
+  the advancement menu system, which was disabled by its own `#undef
+  NEWGAINREADY` above the `#ifdef` guarding the entire file, compiled to an
+  object with zero symbols, and is superseded by `character/study.c` at 6145
+  lines to its 1293.
+- Headers inside a feature directory must now be path-qualified from outside it
+  (`#include "vessels/vessels.h"`), while files within the same directory
+  include them bare. No per-directory `-I` flags were added; the explicit path
+  is what makes cross-subsystem coupling visible.
+- The rules governing this layout, and the seven reference categories that must
+  be swept when a file moves, are documented in `AGENTS.md` under "Source
+  layout".
+
+#### Fixed
+
+- `src/house.c` no longer carries a dead `objsave_parse_objects` forward
+  declaration that duplicated `db.h`, and takes `real_zone_by_thing` from
+  `olc/genzon.h` instead of a local forward declaration. An 83-line
+  commented-out `handle_house_obj` helper was removed, and `House_load` now
+  documents why it loads objects flat and ignores the per-record `locate`
+  nesting: `perform_hsort` re-files everything into the standard category
+  containers immediately afterward, so reconstructed nesting would be
+  discarded. Behavior unchanged.
+
 ### Vessel release hardening and documentation consolidation
 
 #### Added

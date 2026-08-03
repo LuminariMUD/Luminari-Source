@@ -154,6 +154,29 @@ WHERE tag IN (
 AND entry IS NOT NULL
 AND CHAR_LENGTH(TRIM(entry)) > 0;
 
+/* Guard details that previously drifted away from the command handlers. */
+SELECT
+  'content_contracts' AS check_name,
+  COUNT(*) AS actual,
+  12 AS expected,
+  IF(COUNT(*) = 12, 'PASS', 'FAIL') AS result
+FROM help_entries AS h
+JOIN (
+  SELECT 'VESSELS' AS tag, 'moving no faster than speed 2' AS required_pattern
+  UNION ALL SELECT 'VESSELS', 'elevation or depth'
+  UNION ALL SELECT 'SHIPFIRE', 'five real[[:space:]]+minutes'
+  UNION ALL SELECT 'SHIPBROWSE', 'christen the[[:space:]]+ship again later'
+  UNION ALL SELECT 'SHIPBROWSE', 'same room as you'
+  UNION ALL SELECT 'SHIPBROWSE', 'hired crew positions'
+  UNION ALL SELECT 'SHIPBROWSE', 'need not be[[:space:]]+present'
+  UNION ALL SELECT 'SHIPHIRE', 'SHIPDISMISS and[[:space:]]+SHIPWAGES'
+  UNION ALL SELECT 'SHIPLIST', 'evacuates occupants and loose objects'
+  UNION ALL SELECT 'SHIPLIST', 'releases loaded[[:space:]]+vehicles'
+  UNION ALL SELECT 'SHIPLIST', 'slots 0 and 1'
+  UNION ALL SELECT 'VEHICLE-ADMIN', 'does[[:space:]]+not print its ID'
+) AS expected_content ON BINARY h.tag = expected_content.tag
+WHERE h.entry REGEXP expected_content.required_pattern;
+
 SELECT
   'obsolete_duplicates' AS check_name,
   COUNT(*) AS actual,

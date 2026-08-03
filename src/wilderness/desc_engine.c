@@ -19,9 +19,9 @@
 #include "mysql.h"
 #include "desc_engine.h"
 #include "narrative_weaver.h"
-#include "wilderness/wilderness.h"
-#include "wilderness/resource_descriptions.h"
-#include "wilderness/region_hints.h"
+#include "wilderness.h"
+#include "resource_descriptions.h"
+#include "region_hints.h"
 
 /*
  * Luminari Description Engine

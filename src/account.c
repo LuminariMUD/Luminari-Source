@@ -67,7 +67,7 @@
 #include "character/class.h"
 #include "act.h"
 #include "account.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "campaign.h"
 
 extern MYSQL *conn;

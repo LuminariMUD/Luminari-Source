@@ -33,7 +33,7 @@
 #include "spec_procs.h"
 #include "craft/crafting_new.h"
 #include "wilderness/resource_system.h"
-#include "spec_artifacts.h"
+#include "obj/spec_artifacts.h"
 #include "wilderness/resource_depletion.h"
 #include "wilderness/resource_depletion.h"
 #include "character/perks.h"

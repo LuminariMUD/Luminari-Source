@@ -5,6 +5,15 @@
 **Author**: Development Team  
 **Status**: Implementation Ready
 
+> **Status note (2026-08-03):** the `src/ai_region_hints.c` / `src/ai_region_hints.h`
+> draft that accompanied this plan has been deleted. It was in neither
+> `Makefile.am` nor `CMakeLists.txt`, nothing included it, and it did not
+> compile - it defined four functions twice and referenced
+> `weather_info` members and a `get_region_for_room()` that do not exist.
+> The live region-hint machinery is `src/wilderness/region_hints.c/.h`, consumed
+> by `src/wilderness/desc_engine.c` and `src/wilderness/narrative_weaver.c`.
+> Reviving anything below is a design task, not a rescue of the deleted file.
+
 ## Overview
 
 This plan outlines the implementation of an AI-generated region hints system that enhances LuminariMUD's dynamic description engine. AI agents will populate a database with rich descriptive hints that are then used to create immersive, location-specific descriptions that adapt to weather, time, resources, and other environmental factors.

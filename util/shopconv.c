@@ -23,7 +23,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "shop.h"
+#include "obj/shop.h"
 
 /**
  * Basic logging function for the conversion utility

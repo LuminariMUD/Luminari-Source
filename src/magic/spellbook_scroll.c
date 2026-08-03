@@ -24,7 +24,7 @@
 #include "handler.h"    // for obj_from_char()
 #include "spec_procs.h" // for compute_ability
 #include "spell_prep.h"
-#include "item.h"
+#include "obj/item.h"
 
 /* local, global variables, defines */
 char buf[MAX_INPUT_LENGTH] = {'\0'};

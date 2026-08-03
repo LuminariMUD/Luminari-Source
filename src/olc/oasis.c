@@ -12,7 +12,7 @@
 #include "interpreter.h"
 #include "comm.h"
 #include "db.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "genolc.h"
 #include "genmob.h"
 #include "genshp.h"

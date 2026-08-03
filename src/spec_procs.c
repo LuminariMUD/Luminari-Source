@@ -23,7 +23,7 @@
 #include "character/class.h"
 #include "combat/fight.h"
 #include "modify.h"
-#include "house.h"
+#include "obj/house.h"
 #include "clan.h"
 #include "mudlim.h"
 #include "graph.h"
@@ -34,9 +34,9 @@
 #include "magic/domains_schools.h"
 #include "character/feats.h"
 #include "magic/spell_prep.h"
-#include "item.h" /* do_stat_object */
+#include "obj/item.h" /* do_stat_object */
 #include "craft/alchemy.h"
-#include "treasure.h"         /* for set_armor_object */
+#include "obj/treasure.h"     /* for set_armor_object */
 #include "mob/mob_utils.h"    /* npc_find_target() */
 #include "magic/spell_prep.h" /* for star circlet proc */
 #include "handler.h"          /* for is_name() */

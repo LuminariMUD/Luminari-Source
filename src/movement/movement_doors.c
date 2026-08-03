@@ -24,7 +24,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "config.h"
-#include "traps.h"
+#include "combat/traps.h"
 #include "spec_procs.h"
 #include "magic/psionics.h"
 #include "movement_doors.h"

@@ -82,7 +82,7 @@ Changes made to CMakeLists.txt:
 - do_skillcheck buffers reduced (lines ~1145-1147)
 - **Still has 4 warnings** at lines 536, 578, 584, 981 (different functions)
 
-### ~~src/act.item.c (4 warnings)~~ FIXED
+### ~~src/obj/act.item.c (4 warnings)~~ FIXED
 - ~~Lines 6757, 6883, 7009, 7110~~
 - **Fix:** Reduced `metamagic_desc` from MAX_INPUT_LENGTH (512) to 128 bytes in 4 functions
 
@@ -127,7 +127,7 @@ Changes made to CMakeLists.txt:
 - src/handler.c
 - src/olc/hedit.c
 - src/quest/hlquest.c
-- src/house.c
+- src/obj/house.c
 - src/quest/hunts.c
 - src/interpreter.c
 - src/magic/magic.c
@@ -144,16 +144,16 @@ Changes made to CMakeLists.txt:
 - src/quest/quest.c
 - src/olc/redit.c
 - src/olc/sedit.c
-- src/shop.c
+- src/obj/shop.c
 - src/spec_procs.c
 - src/magic/spell_parser.c
 - src/magic/spell_prep.c
 - src/magic/spells.c
 - src/character/study.c
 - src/olc/tedit.c
-- src/trade.c
+- src/obj/trade.c
 - src/vessels/transport.c
-- src/treasure.c
+- src/obj/treasure.c
 - src/utils.c
 - src/wilderness/wilderness.c
 - src/olc/zedit.c
@@ -498,7 +498,7 @@ char tmstr[32] = {'\0'};  /* 32 bytes plenty for date format */
 - Fix: Removed `desc` entirely, simplified to single `%s` format
 
 **Files Modified:**
-- `src/treasure.c`:
+- `src/obj/treasure.c`:
   - Added `RARE_LABEL_SIZE` constant (line 35)
   - Changed `award_magic_weapon()` desc buffer from MEDIUM_STRING to RARE_LABEL_SIZE
   - Removed unused `desc` variable from `give_magic_weapon()`
@@ -619,7 +619,7 @@ Several warnings that were listed in Session 5 (act.informative.c, act.other.c, 
 - Some warnings may have been duplicates or cascade effects from other buffer issues
 
 **Files Modified:**
-- `src/act.item.c`: Lines 6674, 6777, 6903, 7030 - changed `metamagic_desc[MAX_INPUT_LENGTH]` to `metamagic_desc[128]` with comment
+- `src/obj/act.item.c`: Lines 6674, 6777, 6903, 7030 - changed `metamagic_desc[MAX_INPUT_LENGTH]` to `metamagic_desc[128]` with comment
 - `src/act.wizard.c`: Line 7678 - changed `tmstr[MAX_INPUT_LENGTH]` to `tmstr[32]`
 - `src/act.comm.c`: Lines 1145-1147 - changed abiltext/abilname to 64 bytes, output to 128 bytes
 

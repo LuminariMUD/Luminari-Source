@@ -33,7 +33,7 @@
 #include "character/class.h"
 #include "graph.h"
 #include "olc/hedit.h"
-#include "house.h"
+#include "obj/house.h"
 #include "config.h"
 #include "modify.h" /* for do_skillset... */
 #include "quest/quest.h"
@@ -46,14 +46,14 @@
 #include "character/race.h"
 #include "clan.h"
 #include "craft/craft.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "character/feats.h"
 #include "character/perks.h"
 #include "actions.h"
 #include "actionqueues.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "combat/combat_modes.h"
-#include "traps.h"
+#include "combat/traps.h"
 #include "magic/domains_schools.h"
 #include "combat/grapple.h"
 #include "combat/assign_wpn_armor.h"
@@ -85,7 +85,7 @@
 #include "mysql.h"
 #include "comms/mysql_boards.h"
 #include "olc/bedit.h" /* MySQL board system */
-#include "spec_artifacts.h"
+#include "obj/spec_artifacts.h"
 #include "net/onboarding.h"
 
 /* local (file scope) functions */

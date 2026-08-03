@@ -14,7 +14,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "genshp.h"
 #include "genolc.h"
 #include "genzon.h"

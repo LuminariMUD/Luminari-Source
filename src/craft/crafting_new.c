@@ -17,10 +17,10 @@
 #include "magic/spells.h"
 #include "mud_event.h"
 #include "modify.h" // for parse_at()
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "mudlim.h"
 #include "spec_procs.h" /* For GET_ABILITY() */
-#include "item.h"
+#include "obj/item.h"
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"
 #include "olc/genolc.h"

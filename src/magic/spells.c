@@ -24,11 +24,11 @@
 #include "act.h"
 #include "combat/fight.h"
 #include "mud_event.h"
-#include "house.h"  /* for house_can_enter() */
-#include "screen.h" /* for QNRM, etc */
+#include "obj/house.h" /* for house_can_enter() */
+#include "screen.h"    /* for QNRM, etc */
 #include "craft/craft.h"
 #include "mudlim.h"
-#include "item.h"
+#include "obj/item.h"
 #include "domains_schools.h"
 #include "olc/oasis.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
@@ -38,7 +38,7 @@
 #include "vessels/transport.h"
 #include "character/evolutions.h"
 #include "character/feats.h"
-#include "routing.h"
+#include "vessels/routing.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */

@@ -22,7 +22,7 @@
 #include "db.h"
 #include "magic/spells.h"
 #include "screen.h"
-#include "house.h"
+#include "obj/house.h"
 #include "constants.h"
 #ifdef fiendish_boons
 #undef fiendish_boons
@@ -34,20 +34,20 @@
 #include "character/class.h"
 #include "combat/fight.h"
 #include "comms/mail.h" /* for has_mail() */
-#include "shop.h"
+#include "obj/shop.h"
 #include "quest/quest.h"
 #include "modify.h"
 #include "character/race.h"
 #include "clan.h"
 #include "mud_event.h"
 #include "craft/craft.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "mudlim.h"
 #include "combat/spec_abilities.h"
 #include "actions.h"
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
-#include "item.h"
+#include "obj/item.h"
 #include "character/perks.h"
 #include "olc/oasis.h"
 #include "magic/domains_schools.h"
@@ -58,7 +58,7 @@
 #include "account.h"
 #include "character/deities.h"
 #include "character/evolutions.h"
-#include "traps.h" /* For trap system functions */
+#include "combat/traps.h" /* For trap system functions */
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"

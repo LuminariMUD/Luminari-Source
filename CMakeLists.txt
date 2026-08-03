@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 # Version: Keep in sync with src/constants.c, src/structs.h, configure.ac
-project(LuminariMUD VERSION 2.5029 LANGUAGES C)
+project(LuminariMUD VERSION 2.5031 LANGUAGES C)
 
 # Build as GNU C23 while retaining the project's established source style.
 set(CMAKE_C_STANDARD 23)
@@ -394,7 +394,7 @@ set(SRC_C_FILES
     src/act.comm.c
     src/act.comm.do_spec_comm.c
     src/act.informative.c
-    src/act.item.c
+    src/obj/act.item.c
     src/combat/act.offensive.c
     src/act.other.c
     src/act.social.c
@@ -440,7 +440,7 @@ set(SRC_C_FILES
     src/db_startup_init.c
     src/db_admin_commands.c
     src/character/deities.c
-    src/desc_engine.c
+    src/wilderness/desc_engine.c
     src/dgscript/dg_comm.c
     src/net/discord_bridge.c
     src/dgscript/dg_db_scripts.c
@@ -461,7 +461,6 @@ set(SRC_C_FILES
     src/character/evolutions.c
     src/character/feats.c
     src/combat/fight.c
-    src/gain.c
     src/olc/genmob.c
     src/olc/genobj.c
     src/olc/genolc.c
@@ -477,7 +476,7 @@ set(SRC_C_FILES
     src/helpers.c
     src/olc/hlqedit.c
     src/quest/hlquest.c
-    src/house.c
+    src/obj/house.c
     src/olc/hsedit.c
     src/quest/hunts.c
     src/comms/ibt.c
@@ -513,7 +512,7 @@ set(SRC_C_FILES
     src/olc/oasis_copy.c
     src/olc/oasis_delete.c
     src/olc/oasis_list.c
-    src/objsave.c
+    src/obj/objsave.c
     src/olc/oedit.c
     src/perfmon.c
     src/character/perks.c
@@ -537,13 +536,13 @@ set(SRC_C_FILES
     src/wilderness/resource_descriptions.c
     src/wilderness/resource_regeneration.c
     src/roleplay.c
-    src/routing.c
+    src/vessels/routing.c
     src/olc/sedit.c
-    src/shop.c
+    src/obj/shop.c
     src/combat/spec_abilities.c
     src/spec_assign.c
     src/spec_procs.c
-    src/spec_artifacts.c
+    src/obj/spec_artifacts.c
     src/magic/casting_visuals.c
     src/magic/spell_parser.c
     src/magic/spell_prep.c
@@ -554,12 +553,12 @@ set(SRC_C_FILES
     src/character/talents.c
     src/olc/tedit.c
     src/character/templates.c
-    src/trade.c
+    src/obj/trade.c
     src/vessels/transport.c
     src/vessels/transport_unified.c
-    src/traps_new.c
-    src/treasure.c
-    src/treasure_const.c
+    src/combat/traps_new.c
+    src/obj/treasure.c
+    src/obj/treasure_const.c
     src/utils.c
     src/vessels/vehicles.c
     src/vessels/vehicles_commands.c
@@ -612,7 +611,7 @@ set(SRC_C_FILES
     src/wilderness/spatial_audio.c
     src/wilderness/terrain_bridge.c
     src/wilderness/region_hints.c
-    src/narrative_weaver.c
+    src/wilderness/narrative_weaver.c
     src/net/onboarding.c
     src/net/i3_client.c
     src/net/i3_commands.c

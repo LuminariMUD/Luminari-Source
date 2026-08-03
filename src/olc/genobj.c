@@ -10,7 +10,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "constants.h"
 #include "genolc.h"
 #include "genobj.h"

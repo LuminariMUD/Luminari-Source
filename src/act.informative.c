@@ -39,7 +39,7 @@
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
-#include "desc_engine.h"
+#include "wilderness/desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
@@ -49,7 +49,7 @@
 #include "vessels/transport.h"
 #include "combat/encounters.h"
 #include "character/deities.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */
 #include "wilderness/resource_system.h"
 #include "craft/crafting_new.h"
@@ -58,7 +58,7 @@
 #include "comms/boards.h"
 #include "comms/mysql_boards.h" /* MySQL board system */
 #include "perfmon.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
 

@@ -15,7 +15,7 @@
 #include "db.h"
 #include "comm.h"
 #include "handler.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "mob_memory.h"
 
 /* Mob Memory Routines */

@@ -13,7 +13,7 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "db.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "genolc.h"
 #include "genmob.h"
 #include "genzon.h"

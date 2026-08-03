@@ -11,6 +11,7 @@
 - Check `lib/.env` whether this is dev or production environment.  We don't modify production code.
 - All documentation must be valid ASCII, UTF-8, LF line endings.
 - Always trace code; never assume naming conventions.
+- When adding or updating features, make sure to update relevant documentation and helpfiles
 
 ## Project Overview
 
@@ -85,7 +86,7 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 
 ### Core flow
 - `comm.c` - main select()-based game loop, networking, heartbeat scheduling.
-- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.item.c, act.wizard.c, plus `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
+- `interpreter.c` - command parsing. All commands are registered in the `cmd_info[]` table (`src/interpreter.c:119`), declared with `ACMD_DECL()` in `interpreter.h`, implemented as `ACMD(do_xxx)` mostly in `act.*.c` files (act.informative.c, act.wizard.c, plus `obj/act.item.c` and `combat/act.offensive.c`). There is no act.movement.c - movement commands live in `src/movement/`.
 - `structs.h` - the central data model (`char_data`, `obj_data`, `room_data`, descriptors). `utils.h` - the macro layer (`GET_LEVEL()`, `IS_NPC()`, `CREATE()`, `GET_SKILL()`, ...). Nearly every .c file includes `conf.h`, `sysdep.h`, `structs.h`, `utils.h` in that order.
 - `db.c` - boots the world from flat files in `lib/world/` (`.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`) into in-memory arrays. `mysql.c` - MariaDB layer for player/account persistence and many subsystems.
 - `handler.c` - object/character manipulation primitives (equip, extract, move).
@@ -103,30 +104,47 @@ Other test entry points: `make test-character-rename-static` and `make test-char
 - OLC (online creation): `src/olc/` - `genolc.c`, `gen*.c`, `*edit.c`, and the `oasis*` framework. In-game world editing that writes the flat world files.
 
 ### Source layout
-`src/` uses ONE flat level of feature directories. There is no nesting; `src/systems/` and `src/world/` no longer exist.
+`src/` uses ONE flat level of feature directories.
 
 | Directory | Holds |
 |-----------|-------|
 | `src/olc/` | online creation: `*edit.c`, `gen*.c`, `oasis*`, `improved-edit.c` |
-| `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge` |
-| `src/vessels/` | `vessels_*`, `vehicles*`, `transport*` |
+| `src/wilderness/` | `resource_*`, `wilderness*`, `perlin`, `kdtree`, `spatial_*`, `region_hints`, `terrain_bridge`, `desc_engine`, `narrative_weaver` |
+| `src/vessels/` | `vessels_*`, `vehicles*`, `transport*`, `routing` |
 | `src/magic/` | `magic.c`, `spells*`, `spell_parser`, `spell_prep`, `spellbook_scroll`, `casting_visuals`, `metamagic_science`, `domain_powers`, `domains_schools`, `moon_bonus_spells`, `psionics` |
 | `src/mob/` | `mob_*` |
 | `src/movement/` | `movement*` |
 | `src/dgscript/` | `dg_*` |
 | `src/character/` | `class`, `race`, `feats`, `perks`, `talents`, `evolutions`, `backgrounds`, `deities`, `templates`, `premadebuilds`, `character_creation*`, `study.c` |
-| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes` |
+| `src/combat/` | `fight`, `act.offensive.c`, `assign_wpn_armor`, `encounters`, `spec_abilities`, `grapple`, `combat_modes`, `traps*` |
 | `src/quest/` | `quest`, `hlquest`, `missions`, `hunts`, `staff_events` |
 | `src/comms/` | `mail`, `new_mail`, `boards`, `mysql_boards`, `ibt` |
 | `src/craft/` | `craft*`, `crafting*`, `brew`, `alchemy` |
 | `src/net/` | `protocol`, `discord_bridge`, `i3_*` (intermud3), `onboarding` |
 | `src/pubsub/` | `pubsub*` |
+| `src/obj/` | `act.item.c`, `item.h`, `objsave`, `treasure*`, `spec_artifacts`, `shop`, `trade`, `house` |
 
-A directory must hold roughly 10+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`. That is why `ai_*`, `clan*`, `mysql*`, `spec*`, `shop`, `trade`, and the core (`comm.c`, `db.c`, `handler.c`, `interpreter.c`, `structs.h`, `utils.h`, the `act.*` family) sit directly in `src/`. Do not create a directory for a handful of files, and do not nest a second level.
+A directory must hold roughly 8+ files and have a name a newcomer would guess; anything smaller stays flat in `src/`.  Do not nest a second level.
 
-Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), `traps*.c` stay flat (they fire from movement and item use), and `actions.c`/`actionqueues.c` stay flat (general scheduling).
+Fifteen directories is the settled state; 104 files stay flat and should. Every remaining flat cluster has been measured against both tests and rejected - `db/`, `ai/`, `clan/`, `player/`, `act/`, `event/`, and a `util/`/`core/` grab bag - so do not re-open the question without new evidence. The genuine core belongs at top level: `comm.c`, `db.c/.h`, `handler.c`, `interpreter.c`, `utils.c/.h`, `structs.h`, `constants.c`, `limits.c`, `mud_event.c/.h`, `players.c`, and the `act.*` family. The remaining prefix groups are all under the floor: `ai_*` (5), `clan*` (7), `db*` (7), `mysql*` (2), `spec*` (3), `random*` (3), and `roleplay`+`char_descs`+`introduce` (5).
+
+Membership is by "what is this file's primary job", not by what it touches. `src/combat/fight.h` is included by 57 files across movement, OLC, DG scripts, and vessels - proximity to combat does not make a file combat. On that basis `evolutions.c` sits in `src/character/` with `feats.c` (it is the feats system), and `traps.h`/`traps_new.c` sit in `src/combat/` as room and encounter hazards rather than in `src/obj/`, which they touch only incidentally through the object vocabulary.
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
+
+#### Moving a file: the seven reference categories
+
+Grepping for `#include "name.h"` is not sufficient. Each of these categories broke a real build across the three layout phases; sweep all seven:
+
+1. **Bare `#include "name.h"`** - the bulk of the work.
+2. **Relative form `#include "../../src/name.h"`** - used by `unittests/CuTest/`. These compile as part of `cutest_SOURCES`, so missing one breaks `make test`, not the main build. This category was missed in every phase that did not explicitly check it.
+3. **Path-qualified form** `#include "<dir>/name.h"` for a file moving *between* directories. This bites inside the moving set too, where same-directory includes otherwise need no edit.
+4. **`Makefile.am` and `CMakeLists.txt`** - neither globs; both enumerate every source. Check commented-out entries as well.
+5. **`util/`** - a `SUBDIRS` target of the root `Makefile.am` building nine utility programs with `AM_CFLAGS = -I../src`. `util/shopconv.c` includes `shop.h` and broke the `src/obj/` move. The vendored `EXAMPLE/` tree also matches greps but is not built; leave it alone.
+6. **`scripts/`** - source-path assertions, and any script that builds a mirror of the source tree with `mkdir -p`. That one fails at runtime, not compile time, so only running the full suite catches it.
+7. **`sql/components/*.sql`** - header comments naming the source file each schema mirrors.
+
+Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
 
 ### Misc
 - `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
@@ -136,6 +154,9 @@ Headers resolve from a namespace rooted at `src/`, so a header still in `src/` i
 ## Conventions
 
 - 2-space indent, Allman braces, 100-column limit, right-aligned pointers; `.clang-format` is provided.
+- Treat files over ~1,000 non-generated LOC as a review prompt, not a violation.
+  -- Exclude comments, generated code, tables, URLs, and unavoidable literals from these guidelines.
+
 - `lower_snake_case` functions/variables, `UPPER_SNAKE_CASE` macros/constants, structs named `*_data`.
 - Safe string functions (`snprintf`, never `sprintf`); NULL-check before dereference; `log("SYSERR: ...")` for errors.
 - Fix all compiler warnings (`-Wall -Wextra`).

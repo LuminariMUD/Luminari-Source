@@ -142,8 +142,8 @@ player-file account name when restoring an unlinked character.
 
 With `OBJSAVE_DB`, object loading first obtains `obj_save_header` from
 `player_data` and then loads inventory from `player_save_objs` using
-`GET_NAME(ch)`. See [`Crash_load_objs()`](../../src/objsave.c#L2744) and
-[`objsave_parse_objects_db()`](../../src/objsave.c#L2211).
+`GET_NAME(ch)`. See [`Crash_load_objs()`](../../src/obj/objsave.c#L2744) and
+[`objsave_parse_objects_db()`](../../src/obj/objsave.c#L2211).
 
 The following stores are name-keyed:
 

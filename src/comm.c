@@ -68,7 +68,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "house.h"
+#include "obj/house.h"
 #include "olc/oasis.h"
 #include "olc/genolc.h"
 #include "dgscript/dg_scripts.h"
@@ -112,7 +112,7 @@
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
 #include "asciimap.h"
-#include "spec_artifacts.h"
+#include "obj/spec_artifacts.h"
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)

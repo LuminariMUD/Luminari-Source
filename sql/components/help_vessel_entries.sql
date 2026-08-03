@@ -30,7 +30,9 @@ TACTICAL
   edges, range rings, weather visibility, and damage-aware contacts.
 
 SHIPSTATUS
-  Show position, terrain, heading, speed, and armor on all four sides.
+  Show position, terrain, elevation or depth, heading, speed, and armor on all
+  four sides. Merchant registry and unpaid dock-fee details appear when they
+  apply.
 
 SHIPTALK <message>
   Speak over the captain\'s channel to awake, hearing occupants in every room
@@ -55,7 +57,8 @@ CONTACTS
 
 DOCK [vessel]
   With no target, list vessels in docking range. With a name or fleet ID,
-  create a gangway between two stopped, nearby vessels.
+  create a gangway between two nearby vessels moving no faster than speed 2.
+  Docking brings both vessels to a stop.
 
 DOCKFEES [pay]
   Show the one-time berthing fee assessed when an owned vessel enters a port.
@@ -194,8 +197,11 @@ their draft grind to a halt and take bow damage. Check your charts.
 PvP: firing on, boarding, plundering, or claiming another player\'s ship all
 require that you and the ship\'s owner both have PVP enabled (type \'pvp\'),
 exactly as attacking them in person would. Unowned hulls and NPC vessels are
-always fair game. A ship whose owner is not logged in cannot be attacked -
-nobody is there to consent.
+always fair game. A ship whose owner is offline is normally protected. Once a
+mutually consenting fight begins, however, logging out does not immediately
+shield the vessel from that same opponent: the opponent retains five real
+minutes of attack grace. Other attackers remain blocked while the owner is
+offline.
 
 See also: BOARD, DOCK, TACTICAL, SHIPSTATUS, AUTOPILOT', 0, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
@@ -217,8 +223,8 @@ SHIPBUY <id>
   (dockable room). You become the owner.
 
 SHIPCHRISTEN <name>
-  Rename a ship you own (3-60 printable characters). Do it once, do it
-  well - she\'ll carry the name into every port report.
+  Rename a ship you own (3-60 printable characters). An owner may christen the
+  ship again later; the current name appears in port and fleet reports.
 
 SHIPCUSTOMIZE [show]
 SHIPCUSTOMIZE <paint|figurehead> <description|clear>
@@ -226,16 +232,18 @@ SHIPCUSTOMIZE <paint|figurehead> <description|clear>
   3-80 printable characters and appear on the hull and in lookout reports.
 
 SHIPDEED <player>
-  Sign your ship over to another player. They must be aboard with you.
+  Sign your ship over to another player. They must be in the same room as you.
 
 SHIPPERMIT <player> / SHIPREVOKE <player>
   Manage who may take the helm of your ship. Owned ships answer only to
   their owner and permitted helmsmen; everyone else can ride as a
-  passenger but cannot steer, set speed, or dock. Up to 10 permits.
-  Capturing a ship (see CLAIMSHIP) voids all previous permits.
+  passenger but cannot steer, set speed, or dock. The named player need not be
+  present. Up to 10 permits. Capturing a ship (see CLAIMSHIP) voids all
+  previous permits.
 
 SHIPCREW
-  List the ship\'s owner, NPC pilot, and helm permits.
+  List the ship\'s owner, NPC pilot, helm permits, hired crew positions and
+  quality tiers, and any back wages owed.
 
 Ownership survives reboots. Losing your ship in combat is permanent -
 sail accordingly, or don\'t sail what you can\'t afford to lose.
@@ -254,8 +262,9 @@ INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('SHIPBROWSE', 'SHIP-OWNERSHIP');
 
 INSERT INTO help_entries (tag, entry, min_level, auto_generated)
-VALUES ('SHIPHIRE', 'Crew, refits, and insurance - all arranged while moored at a dock, by the
-ship\'s owner.
+VALUES ('SHIPHIRE', 'Crew, refits, and insurance for a ship owner. SHIPHIRE,
+SHIPUPGRADE, and SHIPINSURE require the ship to be in port. SHIPDISMISS and
+SHIPWAGES can be used by the owner anywhere aboard, including while underway.
 
 SHIPHIRE <position> <tier>
   Take on crew. Positions and what they do:
@@ -267,12 +276,13 @@ SHIPHIRE <position> <tier>
   more per payday. Type \'shiphire\' with no arguments for current rates.
 
 SHIPDISMISS <position>
-  Let a crew member go. Their bonus leaves with them.
+  Let a crew member go. Their bonus leaves with them. This does not require a
+  port.
 
 SHIPWAGES
   Review the payroll and settle back wages. Wages accrue on their own
   schedule; leave them unpaid too long and your best-paid hand walks off
-  at the next opportunity.
+  at the next opportunity. Reviewing or paying wages does not require a port.
 
 SHIPUPGRADE [<refit>]
   With no argument, list available refits and prices. Refits:
@@ -498,8 +508,10 @@ SHIPFIX <slot>
 
 SHIPPURGE <slot>
   Permanently remove a dynamic vessel, its persisted records, boardable
-  object, and generated interior rooms. Occupied vessels cannot be purged.
-  The protected legacy fixture slots cannot be purged with this command.
+  object, and generated interior rooms. This is a forced recovery operation:
+  it evacuates occupants and loose objects to the exterior and releases loaded
+  vehicles before reclaiming the interior. Confirm the target carefully. The
+  protected legacy fixture slots 0 and 1 cannot be purged with this command.
 
 SHIPLOAD
   Reserved legacy placeholder. It currently performs no loading operation.
@@ -1089,13 +1101,16 @@ VALUES ('VEHICLE-ADMIN', 'Staff land-vehicle commands:
 VEHICLECREATE <cart|wagon|mount|carriage> [name]
   Create and persist a test vehicle in the current wilderness room. The
   character becomes its owner. Creation is rolled back if persistence fails.
+  The success message prints the new numeric vehicle ID; record it for purge
+  operations.
 
 VEHICLEPURGE <vehicle-id>
   Permanently remove an active vehicle and its database record. All passengers
   must dismount first. VEHICLEPURGE remains available while the vessel-system
   kill switch is off so staff can recover bad state.
 
-Use VSTATUS to inspect a nearby vehicle and its numeric ID.
+Use VSTATUS to inspect a nearby vehicle\'s condition and state. VSTATUS does
+not print its ID; obtain the ID from VEHICLECREATE\'s success message.
 
 See also: VSTATUS, VEHICLE-TRANSPORT, SHIP-ADMIN, VESSELDEBUG', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),

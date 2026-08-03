@@ -31,7 +31,7 @@
 #include "ai_service.h"
 #include "quest/quest.h"
 #include "net/discord_bridge.h"
-#include "spec_artifacts.h"
+#include "obj/spec_artifacts.h"
 
 ACMDU(do_rsay)
 {

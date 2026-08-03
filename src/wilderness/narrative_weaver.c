@@ -20,12 +20,12 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
-#include "wilderness/wilderness.h"
+#include "wilderness.h"
 #include "mysql.h"
-#include "wilderness/region_hints.h"
-#include "wilderness/resource_descriptions.h"
+#include "region_hints.h"
+#include "resource_descriptions.h"
 #include "narrative_weaver.h"
-#include "wilderness/resource_system.h"
+#include "resource_system.h"
 
 #if !defined(CAMPAIGN_DL) && !defined(CAMPAIGN_FR)
 

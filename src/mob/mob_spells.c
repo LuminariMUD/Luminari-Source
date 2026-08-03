@@ -21,7 +21,7 @@
 #include "act.h"
 #include "combat/fight.h"
 #include "mud_event.h"
-#include "shop.h"                 /* for shop_keeper */
+#include "obj/shop.h"             /* for shop_keeper */
 #include "spec_procs.h"           /* for questmaster */
 #include "dgscript/dg_scripts.h"  /* for SCRIPT and TRIGGERS */
 #include "quest/quest.h"          /* for questmaster checks */

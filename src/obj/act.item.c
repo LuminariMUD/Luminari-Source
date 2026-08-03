@@ -31,7 +31,7 @@
 #include "mudlim.h"
 #include "handler.h"
 #include "actions.h"
-#include "traps.h" /* for check_traps() */
+#include "combat/traps.h" /* for check_traps() */
 #include "combat/assign_wpn_armor.h"
 #include "combat/spec_abilities.h"
 #include "item.h"

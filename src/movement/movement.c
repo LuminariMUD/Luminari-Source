@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "house.h"
+#include "obj/house.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
@@ -29,7 +29,7 @@
 #include "mudlim.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "actions.h"
-#include "traps.h" /* for check_traps() */
+#include "combat/traps.h" /* for check_traps() */
 #include "magic/spell_prep.h"
 /* trails.h merged into movement_tracks.h */
 #include "combat/assign_wpn_armor.h"
@@ -37,7 +37,7 @@
 #include "quest/hunts.h"
 #include "character/class.h"
 #include "vessels/transport.h"
-#include "routing.h"
+#include "vessels/routing.h"
 #include "character/perks.h"
 
 /* Include movement system header */
