@@ -367,6 +367,77 @@ void Test_group_heal_restores_health_and_cures_blindness(CuTest *tc)
   CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_BLIND));
 }
 
+void Test_positive_channel_energy_heals_grouped_living_targets(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data ally;
+  struct player_special_data ch_specials;
+  struct player_special_data ally_specials;
+  struct follow_type follower;
+  struct group_data group;
+  struct list_data list_registry;
+  struct list_data *saved_global_lists;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int ally_starting_hit_points;
+
+  clear_char(&ch);
+  clear_char(&ally);
+  memset(&ch_specials, 0, sizeof(ch_specials));
+  memset(&ally_specials, 0, sizeof(ally_specials));
+  memset(&follower, 0, sizeof(follower));
+  memset(&group, 0, sizeof(group));
+  memset(&list_registry, 0, sizeof(list_registry));
+  memset(&room, 0, sizeof(room));
+  saved_global_lists = global_lists;
+  if (global_lists == NULL)
+    global_lists = &list_registry;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+
+  ch.player_specials = &ch_specials;
+  ally.player_specials = &ally_specials;
+  ch.player.name = "positive channel test caster";
+  ally.player.name = "positive channel test ally";
+  GET_CLASS(&ch) = CLASS_CLERIC;
+  GET_LEVEL(&ch) = 4;
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 4;
+  IN_ROOM(&ch) = 0;
+  IN_ROOM(&ally) = 0;
+  GET_REAL_MAX_HIT(&ch) = GET_MAX_HIT(&ch) = 100;
+  GET_REAL_MAX_HIT(&ally) = GET_MAX_HIT(&ally) = 100;
+  GET_HIT(&ch) = 50;
+  GET_HIT(&ally) = 10;
+  ally_starting_hit_points = GET_HIT(&ally);
+
+  group.leader = &ch;
+  group.members = create_list();
+  add_to_list(&ch, group.members);
+  add_to_list(&ally, group.members);
+  GROUP((&ch)) = &group;
+  GROUP((&ally)) = &group;
+  follower.follower = &ally;
+  ch.followers = &follower;
+  ally.master = &ch;
+
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  ch.next_in_room = &ally;
+
+  CuAssertTrue(tc, is_player_grouped(&ch, &ally));
+  mag_groups(GET_LEVEL(&ch), &ch, NULL, ABILITY_CHANNEL_POSITIVE_ENERGY, SAVING_WILL, CAST_INNATE);
+
+  simple_list(NULL);
+  free_list(group.members);
+  global_lists = saved_global_lists;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, GET_HIT(&ally) > ally_starting_hit_points);
+}
+
 void Test_high_circle_swarm_summons_scale_with_caster_level(CuTest *tc)
 {
   CuAssertIntEquals(tc, 17, summon_spell_mob_level(SPELL_ELEMENTAL_SWARM, 17));

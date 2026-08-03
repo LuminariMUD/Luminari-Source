@@ -10514,7 +10514,7 @@ static void perform_mag_groups(int level, struct char_data *ch, struct char_data
     mag_affects(level, ch, tch, obj, SPELL_DAZE_MONSTER, savetype, casttype, 0);
     break;
   case ABILITY_CHANNEL_POSITIVE_ENERGY:
-    if (!IS_UNDEAD(tch) && !is_player_grouped(ch, tch))
+    if (!IS_UNDEAD(tch))
       mag_points(compute_channel_energy_level(ch), ch, tch, obj, ABILITY_CHANNEL_POSITIVE_ENERGY,
                  savetype, casttype);
     break;

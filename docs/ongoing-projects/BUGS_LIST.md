@@ -5,12 +5,12 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 6 actionable code items drawn
-from 6 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 5 actionable code items drawn
+from 5 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records.
 
-Across both files, 23 unique records remain from the original 146-record
-snapshot. The other 123 were removed because they are resolved, intentional,
+Across both files, 22 unique records remain from the original 146-record
+snapshot. The other 124 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -20,10 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **Positive Channel Energy skips grouped living targets** - Its group
-  condition skips a living target when that target is grouped with the caster,
-  even though the caller supplies only the caster and group members. Reporter:
-  Tsoli (L9, R145370, 2025-11-30; #121).
 - **Blackguard spell lists are not recognized as spellcaster lists** -
   `IS_SPELLCASTER_CLASS` excludes Blackguard. With no other casting class the
   list is empty; after adding Warlock, even an explicit Blackguard request
