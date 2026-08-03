@@ -6,7 +6,9 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
+#include "../../src/modify.h"
 #include "../../src/net/protocol.h"
+#include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 
 #include <string.h>
@@ -95,6 +97,49 @@ void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
 
   while (ch.affected != NULL)
     affect_remove_no_total(&ch, ch.affected);
+}
+
+void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  char expected[128];
+  bool found_circle;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+  assign_domains();
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = "domain command test character";
+  GET_PAGE_LENGTH(&ch) = PAGE_LENGTH;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize protocol output for the domain command test");
+    return;
+  }
+
+  do_domain(&ch, "", 0, 0);
+  snprintf(expected, sizeof(expected), "1: %s|",
+           spell_info[domain_list[DOMAIN_AIR].domain_spells[0]].name);
+  found_circle = descriptor.showstr_head != NULL && strstr(descriptor.showstr_head, expected);
+
+  show_string(&descriptor, "q");
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertTrue(tc, found_circle);
 }
 
 void Test_internal_affects_have_registered_wearoff_messages(CuTest *tc)

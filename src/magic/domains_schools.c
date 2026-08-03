@@ -738,7 +738,7 @@ ACMD(do_domain)
     {
       if (domain_list[i].domain_spells[j] != SPELL_RESERVED_DBC)
       {
-        len = snprintf_append(buf, sizeof(buf), len, "%s%s|%s",
+        len = snprintf_append(buf, sizeof(buf), len, "%s%d%s: %s%s|%s", QCYN, j + 1, QNRM,
                               spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);
         /*send_to_char(ch, "%s%s|%s", spell_info[domain_list[i].domain_spells[j]].name, QCYN, QNRM);*/
       }
