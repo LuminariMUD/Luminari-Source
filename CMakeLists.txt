@@ -394,7 +394,7 @@ set(SRC_C_FILES
     src/act.comm.c
     src/act.comm.do_spec_comm.c
     src/act.informative.c
-    src/act.item.c
+    src/obj/act.item.c
     src/combat/act.offensive.c
     src/act.other.c
     src/act.social.c
@@ -477,7 +477,7 @@ set(SRC_C_FILES
     src/helpers.c
     src/olc/hlqedit.c
     src/quest/hlquest.c
-    src/house.c
+    src/obj/house.c
     src/olc/hsedit.c
     src/quest/hunts.c
     src/comms/ibt.c
@@ -513,7 +513,7 @@ set(SRC_C_FILES
     src/olc/oasis_copy.c
     src/olc/oasis_delete.c
     src/olc/oasis_list.c
-    src/objsave.c
+    src/obj/objsave.c
     src/olc/oedit.c
     src/perfmon.c
     src/character/perks.c
@@ -543,7 +543,7 @@ set(SRC_C_FILES
     src/combat/spec_abilities.c
     src/spec_assign.c
     src/spec_procs.c
-    src/spec_artifacts.c
+    src/obj/spec_artifacts.c
     src/magic/casting_visuals.c
     src/magic/spell_parser.c
     src/magic/spell_prep.c
@@ -558,8 +558,8 @@ set(SRC_C_FILES
     src/vessels/transport.c
     src/vessels/transport_unified.c
     src/traps_new.c
-    src/treasure.c
-    src/treasure_const.c
+    src/obj/treasure.c
+    src/obj/treasure_const.c
     src/utils.c
     src/vessels/vehicles.c
     src/vessels/vehicles_commands.c

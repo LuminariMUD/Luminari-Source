@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "house.h"
+#include "obj/house.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"

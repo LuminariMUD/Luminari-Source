@@ -49,7 +49,7 @@
 #include "vessels/transport.h"
 #include "combat/encounters.h"
 #include "character/deities.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "wilderness/resource_depletion.h" /* Phase 6: Conservation system */
 #include "wilderness/resource_system.h"
 #include "craft/crafting_new.h"

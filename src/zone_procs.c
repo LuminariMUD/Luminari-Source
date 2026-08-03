@@ -23,7 +23,7 @@
 #include "actions.h"
 #include "magic/domains_schools.h"
 #include "combat/spec_abilities.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "mob/mob_utils.h"       /* for npc_find_target() */
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */
 #include "quest/staff_events.h"  /* for staff events!  prisoner treasury! */

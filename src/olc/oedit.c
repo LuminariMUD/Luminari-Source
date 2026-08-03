@@ -30,8 +30,8 @@
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
-#include "treasure.h" /* set_weapon_object */
-#include "act.h"      /* get_eq_score() */
+#include "obj/treasure.h" /* set_weapon_object */
+#include "act.h"          /* get_eq_score() */
 #include "character/feats.h"
 #include "handler.h"
 #include "spec_procs.h"

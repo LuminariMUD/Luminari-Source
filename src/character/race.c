@@ -23,7 +23,7 @@
 #include "class.h"
 #include "backgrounds.h"
 #include "character_creation_content.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "spec_procs.h"
 
 /* defines */

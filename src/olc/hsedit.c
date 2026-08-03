@@ -21,7 +21,7 @@
 #include "oasis.h"
 #include "genolc.h"
 #include "genzon.h"
-#include "house.h"
+#include "obj/house.h"
 #include "screen.h"
 
 /*------------------------------------------------------------------------*/

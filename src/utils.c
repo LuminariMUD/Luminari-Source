@@ -42,7 +42,7 @@
 #include "character/evolutions.h"
 #include "character/backgrounds.h"
 #include "char_descs.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "character/perks.h"
 #include <time.h>
 

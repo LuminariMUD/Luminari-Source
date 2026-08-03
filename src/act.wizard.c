@@ -17,7 +17,7 @@
 #include "handler.h"
 #include "db.h"
 #include "magic/spells.h"
-#include "house.h"
+#include "obj/house.h"
 #include "screen.h"
 #include "constants.h"
 #include "olc/oasis.h"
@@ -35,7 +35,7 @@
 #include "olc/genobj.h"
 #include "character/race.h"
 #include "combat/fight.h"
-#include "house.h"
+#include "obj/house.h"
 #include "modify.h"
 #include "quest/quest.h"
 #include "magic/spell_prep.h"
@@ -51,7 +51,7 @@
 #include "wilderness/wilderness_kb.h"
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
-#include "item.h"
+#include "obj/item.h"
 #include "wilderness/resource_system.h"
 #include "wilderness/resource_regeneration.h"
 #include "wilderness/resource_system.h"
@@ -72,7 +72,7 @@
 #include "movement/movement_tracks.h"
 #include "mob/mob_spellslots.h" /* for show_mob_spell_slots */
 #include "olc/genshp.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "player_rename.h"
 
 #define SET_NAME_FIELD 34

@@ -18,7 +18,7 @@
 #include "ban.h" /* for SPECIAL(gen_board) */
 #include "comms/boards.h"
 #include "comms/mail.h"
-#include "treasure.h"
+#include "obj/treasure.h"
 #include "quest/missions.h"
 #include "quest/hunts.h"
 #include "craft/crafting_new.h"

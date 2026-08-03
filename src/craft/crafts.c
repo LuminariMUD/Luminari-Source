@@ -24,7 +24,7 @@
 #include "magic/spells.h"
 #include "mud_event.h"
 #include "crafts.h"
-#include "item.h"
+#include "obj/item.h"
 #include "crafting_new.h"
 
 

@@ -38,7 +38,7 @@
 #include "olc/oasis.h"
 #include "mudlim.h"
 #include "olc/genmob.h"
-#include "treasure.h" /* for magic awards */
+#include "obj/treasure.h" /* for magic awards */
 #include "hunts.h"
 
 /* inits */

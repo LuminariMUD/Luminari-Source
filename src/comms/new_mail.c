@@ -21,7 +21,7 @@
 #include "spec_procs.h"
 #include "character/feats.h"
 #include "olc/oasis.h"
-#include "house.h"
+#include "obj/house.h"
 #include "dgscript/dg_scripts.h"
 #include "clan.h"
 #include "mysql.h"
