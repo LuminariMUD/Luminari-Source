@@ -135,6 +135,7 @@ void init_core_player_tables(void)
                                 "intel INT NOT NULL DEFAULT 0, "
                                 "wis INT NOT NULL, "
                                 "cha INT NOT NULL, "
+                                "runtime_state LONGTEXT DEFAULT NULL, "
                                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                                 "INDEX idx_pet_owner (owner_name)"
                                 ") ENGINE=InnoDB";
@@ -142,6 +143,16 @@ void init_core_player_tables(void)
   if (mysql_query_safe(conn, create_pet_data))
   {
     log("SYSERR: Failed to create pet_data table: %s", mysql_error(conn));
+    return;
+  }
+
+  const char *migrate_pet_runtime_state =
+      "ALTER TABLE pet_data "
+      "ADD COLUMN IF NOT EXISTS runtime_state LONGTEXT DEFAULT NULL AFTER cha";
+
+  if (mysql_query_safe(conn, migrate_pet_runtime_state))
+  {
+    log("SYSERR: Failed to add pet_data.runtime_state: %s", mysql_error(conn));
     return;
   }
 

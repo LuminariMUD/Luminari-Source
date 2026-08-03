@@ -214,10 +214,11 @@ sql -e "
     VALUES (70001, 2, 'Sourcechar', 'sheathed payload', '2026-01-01 01:02:05');
   INSERT INTO pet_data
     (owner_name, vnum, hp, max_hp, str, con, dex, level, ac, intel, wis, cha,
-     pet_name, pet_sdesc, pet_ldesc, pet_ddesc)
+     pet_name, pet_sdesc, pet_ldesc, pet_ddesc, runtime_state)
     VALUES
       ('Sourcechar', 10, 20, 30, 11, 12, 13, 14, 15, 16, 17, 18,
-       'authored pet name', 'authored short', 'authored long', 'authored description');
+       'authored pet name', 'authored short', 'authored long', 'authored description',
+       'runtime state payload');
   SET @pet_id = LAST_INSERT_ID();
   INSERT INTO pet_save_objs
     (pet_idnum, owner_name, serialized_obj, creation_date)
@@ -284,7 +285,7 @@ payload_before=$(sql -e "
     (SELECT GROUP_CONCAT(CONCAT(pet_data_id, ':', vnum, ':', hp, ':', max_hp,
              ':', str, ':', con, ':', dex, ':', level, ':', ac, ':', intel,
              ':', wis, ':', cha, ':', pet_name, ':', pet_sdesc, ':',
-             pet_ldesc, ':', pet_ddesc)
+             pet_ldesc, ':', pet_ddesc, ':', HEX(runtime_state))
              ORDER BY pet_data_id SEPARATOR ';')
        FROM pet_data WHERE owner_name='Sourcechar'),
     (SELECT GROUP_CONCAT(CONCAT(idnum, ':', pet_idnum, ':', HEX(serialized_obj),
@@ -471,7 +472,7 @@ payload_after=$(sql -e "
     (SELECT GROUP_CONCAT(CONCAT(pet_data_id, ':', vnum, ':', hp, ':', max_hp,
              ':', str, ':', con, ':', dex, ':', level, ':', ac, ':', intel,
              ':', wis, ':', cha, ':', pet_name, ':', pet_sdesc, ':',
-             pet_ldesc, ':', pet_ddesc)
+             pet_ldesc, ':', pet_ddesc, ':', HEX(runtime_state))
              ORDER BY pet_data_id SEPARATOR ';')
        FROM pet_data WHERE owner_name='Targetchar'),
     (SELECT GROUP_CONCAT(CONCAT(idnum, ':', pet_idnum, ':', HEX(serialized_obj),

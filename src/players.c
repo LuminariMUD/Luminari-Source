@@ -14,6 +14,7 @@
 #include "utils.h"
 #include "db.h"
 #include "handler.h"
+#include "combat/fight.h"
 #include "pfdefaults.h"
 #include "dgscript/dg_scripts.h"
 #include "comm.h"
@@ -35,6 +36,7 @@
 #include "character/evolutions.h"
 #include "character/class.h"
 #include "character/perks.h"
+#include "spec_procs.h"
 #include "olc/oasis.h"
 #include "craft/crafting_new.h"
 #include "wilderness/resource_system.h"
@@ -52,6 +54,14 @@
 
 #define PLAYER_AFFECT_FILE_VERSION 1
 #define BOARDING_ABILITY_PFILE_VERSION 1
+
+#define PET_RUNTIME_STATE_VERSION 1
+#define PET_RUNTIME_STATE_INITIAL_SIZE 4096
+#define PET_RUNTIME_STATE_MAX_SIZE 65535
+
+_Static_assert(AF_ARRAY_MAX == 4, "pet runtime format requires four affect flag words");
+_Static_assert(PM_ARRAY_MAX == 4, "pet runtime format requires four mobile flag words");
+_Static_assert(NUM_OF_SAVING_THROWS == 5, "pet runtime format requires five saving throws");
 
 #define PT_PNAME(i) (player_table[(i)].name)
 #define PT_IDNUM(i) (player_table[(i)].id)
@@ -123,6 +133,41 @@ static void load_craft_motes(FILE *fl, struct char_data *ch);
 static void load_perks(FILE *fl, struct char_data *ch);
 static void load_perk_points(FILE *fl, struct char_data *ch);
 static void load_perk_toggles(FILE *fl, struct char_data *ch);
+
+/* The legacy pet_data columns retain descriptions and core attributes.  This
+ * versioned payload holds state that cannot be reconstructed from a mobile
+ * prototype: timed affects, raw runtime flags, generated combat statistics,
+ * and follower-type markers.  Prototype flags and reward values are excluded
+ * so current world fixes win on reload and saved followers cannot regain XP. */
+struct pet_runtime_state
+{
+  int extra_aff[AF_ARRAY_MAX];
+  int extra_aff2[AF_ARRAY_MAX];
+  int extra_mob[PM_ARRAY_MAX];
+  int race;
+  int size;
+  int move;
+  int max_move;
+  int psp;
+  int max_psp;
+  int hitroll;
+  int damroll;
+  int damnodice;
+  int damsizedice;
+  int alignment;
+  int saves[NUM_OF_SAVING_THROWS];
+  int spell_slots[10];
+  int max_spell_slots[10];
+  int feat_values[MAX_FEATS];
+  struct affected_type affects[MAX_AFFECT];
+  int affect_count;
+  bool hired_mercenary;
+  bool mercenary_proc_fired;
+};
+
+static char *serialize_pet_runtime_state(struct char_data *pet);
+static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state);
+static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state);
 
 
 // external functions
@@ -5800,6 +5845,486 @@ void update_player_last_on(void)
   }
 }
 
+static bool pet_has_valid_prototype(struct char_data *pet)
+{
+  mob_rnum rnum;
+
+  if (!pet || !mob_proto || !mob_index)
+    return false;
+
+  rnum = GET_MOB_RNUM(pet);
+  return rnum != NOBODY && rnum <= top_of_mobt;
+}
+
+static bool pet_is_hired_mercenary(struct char_data *pet)
+{
+  mob_rnum rnum;
+
+  if (!pet || !IS_NPC(pet))
+    return false;
+  if (MOB_FLAGGED(pet, MOB_MERCENARY))
+    return true;
+  if (!pet_has_valid_prototype(pet))
+    return false;
+
+  rnum = GET_MOB_RNUM(pet);
+  return mob_index[rnum].func == mercenary;
+}
+
+static void init_pet_runtime_state(struct pet_runtime_state *state)
+{
+  int i;
+
+  memset(state, 0, sizeof(*state));
+  for (i = 0; i < MAX_FEATS; i++)
+    state->feat_values[i] = -1;
+}
+
+static void mask_pet_state_bits(int *bits, int array_size, int valid_bits)
+{
+  int bit;
+
+  for (bit = valid_bits; bit < array_size * 32; bit++)
+    REMOVE_BIT_AR(bits, bit);
+}
+
+static void snapshot_pet_runtime_flags(struct char_data *pet, struct pet_runtime_state *state)
+{
+  struct affected_type *af;
+  struct obj_data *obj;
+  mob_rnum rnum;
+  int i, wear;
+
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    state->extra_aff[i] = AFF_FLAGS(pet)[i];
+    state->extra_aff2[i] = AFF2_FLAGS(pet)[i];
+  }
+
+  /* Affect and equipment records are restored independently.  Retain only
+   * raw runtime flags here so those sources are not applied twice. */
+  for (af = pet->affected; af; af = af->next)
+  {
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~af->bitvector[i];
+      state->extra_aff2[i] &= ~af->bitvector2[i];
+    }
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+  {
+    obj = GET_EQ(pet, wear);
+    if (!obj)
+      continue;
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~GET_OBJ_AFFECT(obj)[i];
+      state->extra_aff2[i] &= ~GET_OBJ_AFFECT2(obj)[i];
+    }
+  }
+
+  for (i = 0; i < PM_ARRAY_MAX; i++)
+    state->extra_mob[i] = MOB_FLAGS(pet)[i];
+
+  if (pet_has_valid_prototype(pet))
+  {
+    rnum = GET_MOB_RNUM(pet);
+    for (i = 0; i < AF_ARRAY_MAX; i++)
+    {
+      state->extra_aff[i] &= ~AFF_FLAGS(mob_proto + rnum)[i];
+      state->extra_aff2[i] &= ~AFF2_FLAGS(mob_proto + rnum)[i];
+    }
+    for (i = 0; i < PM_ARRAY_MAX; i++)
+      state->extra_mob[i] &= ~MOB_FLAGS(mob_proto + rnum)[i];
+  }
+
+  REMOVE_BIT_AR(state->extra_mob, MOB_NOTDEADYET);
+  mask_pet_state_bits(state->extra_aff, AF_ARRAY_MAX, NUM_AFF_FLAGS);
+  mask_pet_state_bits(state->extra_aff2, AF_ARRAY_MAX, NUM_AFF2_FLAGS);
+  mask_pet_state_bits(state->extra_mob, PM_ARRAY_MAX, NUM_MOB_FLAGS);
+}
+
+static char *serialize_pet_runtime_state(struct char_data *pet)
+{
+  struct pet_runtime_state state;
+  struct affected_type *af;
+  char *buffer;
+  size_t capacity, used;
+  mob_rnum rnum;
+  int affect_count, i;
+
+  if (!pet || !IS_NPC(pet))
+    return NULL;
+
+  init_pet_runtime_state(&state);
+  snapshot_pet_runtime_flags(pet, &state);
+  state.race = GET_REAL_RACE(pet);
+  state.size = GET_REAL_SIZE(pet);
+  state.move = GET_MOVE(pet);
+  state.max_move = GET_REAL_MAX_MOVE(pet);
+  state.psp = GET_PSP(pet);
+  state.max_psp = GET_REAL_MAX_PSP(pet);
+  state.hitroll = GET_REAL_HITROLL(pet);
+  state.damroll = GET_REAL_DAMROLL(pet);
+  state.damnodice = pet->mob_specials.damnodice;
+  state.damsizedice = pet->mob_specials.damsizedice;
+  state.alignment = GET_ALIGNMENT(pet);
+  state.hired_mercenary = pet_is_hired_mercenary(pet);
+  state.mercenary_proc_fired = state.hired_mercenary && PROC_FIRED(pet);
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    state.saves[i] = GET_REAL_SAVE(pet, i);
+  for (i = 0; i < 10; i++)
+  {
+    state.spell_slots[i] = pet->mob_specials.spell_slots[i];
+    state.max_spell_slots[i] = pet->mob_specials.max_spell_slots[i];
+  }
+
+  capacity = PET_RUNTIME_STATE_INITIAL_SIZE;
+  used = 0;
+  buffer = malloc(capacity);
+  if (!buffer)
+    return NULL;
+  buffer[0] = '\0';
+
+#define PET_STATE_APPEND(...)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    if (!append_player_save_buffer(&buffer, &capacity, &used, __VA_ARGS__) ||                      \
+        used > PET_RUNTIME_STATE_MAX_SIZE)                                                         \
+      goto serialize_failure;                                                                      \
+  } while (0)
+
+  /* V=version, B=affect bits, M=mobile bits, S=stats, R=saves, L=spell slots,
+   * F=feat override, A=timed affect, and E=end. */
+  PET_STATE_APPEND("V %d\n", PET_RUNTIME_STATE_VERSION);
+  PET_STATE_APPEND("B %d %d %d %d %d %d %d %d\n", state.extra_aff[0], state.extra_aff[1],
+                   state.extra_aff[2], state.extra_aff[3], state.extra_aff2[0], state.extra_aff2[1],
+                   state.extra_aff2[2], state.extra_aff2[3]);
+  PET_STATE_APPEND("M %d %d %d %d\n", state.extra_mob[0], state.extra_mob[1], state.extra_mob[2],
+                   state.extra_mob[3]);
+  PET_STATE_APPEND("S %d %d %d %d %d %d %d %d %d %d %d %d %d\n", state.race, state.size, state.move,
+                   state.max_move, state.psp, state.max_psp, state.hitroll, state.damroll,
+                   state.damnodice, state.damsizedice, state.alignment, state.hired_mercenary,
+                   state.mercenary_proc_fired);
+  PET_STATE_APPEND("R %d %d %d %d %d\n", state.saves[0], state.saves[1], state.saves[2],
+                   state.saves[3], state.saves[4]);
+  PET_STATE_APPEND("L %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",
+                   state.spell_slots[0], state.spell_slots[1], state.spell_slots[2],
+                   state.spell_slots[3], state.spell_slots[4], state.spell_slots[5],
+                   state.spell_slots[6], state.spell_slots[7], state.spell_slots[8],
+                   state.spell_slots[9], state.max_spell_slots[0], state.max_spell_slots[1],
+                   state.max_spell_slots[2], state.max_spell_slots[3], state.max_spell_slots[4],
+                   state.max_spell_slots[5], state.max_spell_slots[6], state.max_spell_slots[7],
+                   state.max_spell_slots[8], state.max_spell_slots[9]);
+
+  rnum = pet_has_valid_prototype(pet) ? GET_MOB_RNUM(pet) : NOBODY;
+  for (i = 0; i < MAX_FEATS; i++)
+  {
+    if (rnum != NOBODY && MOB_HAS_FEAT(pet, i) == MOB_HAS_FEAT(mob_proto + rnum, i))
+      continue;
+    if (rnum == NOBODY && MOB_HAS_FEAT(pet, i) == 0)
+      continue;
+    PET_STATE_APPEND("F %d %d\n", i, MOB_HAS_FEAT(pet, i));
+  }
+
+  affect_count = 0;
+  for (af = pet->affected; af; af = af->next)
+  {
+    if (affect_count >= MAX_AFFECT)
+      break;
+    PET_STATE_APPEND("A %d %d %d %d %d %d %d %d %d %d %d %d %d %d\n", af->spell, af->duration,
+                     af->modifier, af->location, af->bitvector[0], af->bitvector[1],
+                     af->bitvector[2], af->bitvector[3], af->bonus_type, af->specific,
+                     af->bitvector2[0], af->bitvector2[1], af->bitvector2[2], af->bitvector2[3]);
+    affect_count++;
+  }
+  PET_STATE_APPEND("E\n");
+
+#undef PET_STATE_APPEND
+  return buffer;
+
+serialize_failure:
+#undef PET_STATE_APPEND
+  free(buffer);
+  return NULL;
+}
+
+static bool pet_state_line_is_complete(const char *line, int consumed)
+{
+  if (consumed < 0)
+    return false;
+  while (line[consumed] && isspace((unsigned char)line[consumed]))
+    consumed++;
+  return line[consumed] == '\0';
+}
+
+static bool pet_state_values_are_valid(const struct pet_runtime_state *state)
+{
+  const struct affected_type *af;
+  int i;
+
+  if (state->race < 0 || state->race >= NUM_RACE_TYPES || state->size < 0 ||
+      state->size >= NUM_SIZES || state->move < 0 || state->max_move < 0 || state->psp < 0 ||
+      state->max_psp < 0 || state->hitroll < SCHAR_MIN || state->hitroll > SCHAR_MAX ||
+      state->damroll < SCHAR_MIN || state->damroll > SCHAR_MAX || state->damnodice < 0 ||
+      state->damsizedice < 0 || state->alignment < -1000 || state->alignment > 1000)
+    return false;
+
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    if (state->saves[i] < SHRT_MIN || state->saves[i] > SHRT_MAX)
+      return false;
+  for (i = 0; i < 10; i++)
+    if (state->spell_slots[i] < 0 || state->max_spell_slots[i] < 0)
+      return false;
+  for (i = 0; i < MAX_FEATS; i++)
+    if (state->feat_values[i] < -1 || state->feat_values[i] > UCHAR_MAX)
+      return false;
+
+  for (i = 0; i < state->affect_count; i++)
+  {
+    af = &state->affects[i];
+    if (af->spell < 0 || af->location < 0 || af->location >= NUM_APPLIES || af->bonus_type < 0 ||
+        af->bonus_type >= NUM_BONUS_TYPES)
+      return false;
+  }
+
+  return true;
+}
+
+static bool parse_pet_runtime_state(const char *serialized, struct pet_runtime_state *state)
+{
+  struct affected_type *af;
+  char *copy, *line, *saveptr;
+  size_t serialized_length;
+  int consumed, feat, feat_value, hired, proc_fired, version;
+  int saw_version, saw_base, saw_mob, saw_stats, saw_saves, saw_slots, saw_end;
+  int affect_values[14];
+  int values[20];
+
+  if (!serialized || !*serialized || !state)
+    return false;
+  serialized_length = strlen(serialized);
+  if (serialized_length > PET_RUNTIME_STATE_MAX_SIZE)
+    return false;
+
+  copy = strdup(serialized);
+  if (!copy)
+    return false;
+  init_pet_runtime_state(state);
+  saveptr = NULL;
+  saw_version = saw_base = saw_mob = saw_stats = saw_saves = saw_slots = saw_end = false;
+
+  for (line = strtok_r(copy, "\n", &saveptr); line; line = strtok_r(NULL, "\n", &saveptr))
+  {
+    consumed = -1;
+    if (saw_end)
+      goto parse_failure;
+    if (line[0] == 'V')
+    {
+      if (saw_version || sscanf(line, "V %d %n", &version, &consumed) != 1 ||
+          !pet_state_line_is_complete(line, consumed) || version != PET_RUNTIME_STATE_VERSION)
+        goto parse_failure;
+      saw_version = true;
+    }
+    else if (line[0] == 'B')
+    {
+      if (!saw_version || saw_base ||
+          sscanf(line, "B %d %d %d %d %d %d %d %d %n", &state->extra_aff[0], &state->extra_aff[1],
+                 &state->extra_aff[2], &state->extra_aff[3], &state->extra_aff2[0],
+                 &state->extra_aff2[1], &state->extra_aff2[2], &state->extra_aff2[3],
+                 &consumed) != 8 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_base = true;
+    }
+    else if (line[0] == 'M')
+    {
+      if (!saw_version || saw_mob ||
+          sscanf(line, "M %d %d %d %d %n", &state->extra_mob[0], &state->extra_mob[1],
+                 &state->extra_mob[2], &state->extra_mob[3], &consumed) != 4 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_mob = true;
+    }
+    else if (line[0] == 'S')
+    {
+      if (!saw_version || saw_stats ||
+          sscanf(line, "S %d %d %d %d %d %d %d %d %d %d %d %d %d %n", &state->race, &state->size,
+                 &state->move, &state->max_move, &state->psp, &state->max_psp, &state->hitroll,
+                 &state->damroll, &state->damnodice, &state->damsizedice, &state->alignment, &hired,
+                 &proc_fired, &consumed) != 13 ||
+          !pet_state_line_is_complete(line, consumed) || (hired != 0 && hired != 1) ||
+          (proc_fired != 0 && proc_fired != 1))
+        goto parse_failure;
+      state->hired_mercenary = hired;
+      state->mercenary_proc_fired = proc_fired;
+      saw_stats = true;
+    }
+    else if (line[0] == 'R')
+    {
+      if (!saw_version || saw_saves ||
+          sscanf(line, "R %d %d %d %d %d %n", &state->saves[0], &state->saves[1], &state->saves[2],
+                 &state->saves[3], &state->saves[4], &consumed) != 5 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      saw_saves = true;
+    }
+    else if (line[0] == 'L')
+    {
+      if (!saw_version || saw_slots ||
+          sscanf(line, "L %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %n",
+                 &values[0], &values[1], &values[2], &values[3], &values[4], &values[5], &values[6],
+                 &values[7], &values[8], &values[9], &values[10], &values[11], &values[12],
+                 &values[13], &values[14], &values[15], &values[16], &values[17], &values[18],
+                 &values[19], &consumed) != 20 ||
+          !pet_state_line_is_complete(line, consumed))
+        goto parse_failure;
+      for (feat = 0; feat < 10; feat++)
+      {
+        state->spell_slots[feat] = values[feat];
+        state->max_spell_slots[feat] = values[feat + 10];
+      }
+      saw_slots = true;
+    }
+    else if (line[0] == 'F')
+    {
+      if (!saw_version || sscanf(line, "F %d %d %n", &feat, &feat_value, &consumed) != 2 ||
+          !pet_state_line_is_complete(line, consumed) || feat < 0 || feat >= MAX_FEATS ||
+          feat_value < 0 || feat_value > UCHAR_MAX)
+        goto parse_failure;
+      state->feat_values[feat] = feat_value;
+    }
+    else if (line[0] == 'A')
+    {
+      if (!saw_version || state->affect_count >= MAX_AFFECT)
+        goto parse_failure;
+      af = &state->affects[state->affect_count];
+      if (sscanf(line, "A %d %d %d %d %d %d %d %d %d %d %d %d %d %d %n", &affect_values[0],
+                 &affect_values[1], &affect_values[2], &affect_values[3], &affect_values[4],
+                 &affect_values[5], &affect_values[6], &affect_values[7], &affect_values[8],
+                 &affect_values[9], &affect_values[10], &affect_values[11], &affect_values[12],
+                 &affect_values[13], &consumed) != 14 ||
+          !pet_state_line_is_complete(line, consumed) || affect_values[0] < 0 ||
+          affect_values[0] > SHRT_MAX || affect_values[1] < SHRT_MIN ||
+          affect_values[1] > SHRT_MAX || affect_values[2] < SHRT_MIN ||
+          affect_values[2] > SHRT_MAX || affect_values[3] < 0 || affect_values[3] >= NUM_APPLIES ||
+          affect_values[8] < 0 || affect_values[8] >= NUM_BONUS_TYPES ||
+          affect_values[9] < SHRT_MIN || affect_values[9] > SHRT_MAX)
+        goto parse_failure;
+      af->spell = affect_values[0];
+      af->duration = affect_values[1];
+      af->modifier = affect_values[2];
+      af->location = affect_values[3];
+      af->bitvector[0] = affect_values[4];
+      af->bitvector[1] = affect_values[5];
+      af->bitvector[2] = affect_values[6];
+      af->bitvector[3] = affect_values[7];
+      af->bonus_type = affect_values[8];
+      af->specific = affect_values[9];
+      af->bitvector2[0] = affect_values[10];
+      af->bitvector2[1] = affect_values[11];
+      af->bitvector2[2] = affect_values[12];
+      af->bitvector2[3] = affect_values[13];
+      af->next = NULL;
+      state->affect_count++;
+    }
+    else if (!strcmp(line, "E"))
+    {
+      saw_end = true;
+    }
+    else
+    {
+      goto parse_failure;
+    }
+  }
+
+  free(copy);
+  if (!saw_version || !saw_base || !saw_mob || !saw_stats || !saw_saves || !saw_slots || !saw_end ||
+      !pet_state_values_are_valid(state))
+    return false;
+
+  mask_pet_state_bits(state->extra_aff, AF_ARRAY_MAX, NUM_AFF_FLAGS);
+  mask_pet_state_bits(state->extra_aff2, AF_ARRAY_MAX, NUM_AFF2_FLAGS);
+  mask_pet_state_bits(state->extra_mob, PM_ARRAY_MAX, NUM_MOB_FLAGS);
+  REMOVE_BIT_AR(state->extra_mob, MOB_NOTDEADYET);
+  return true;
+
+parse_failure:
+  free(copy);
+  return false;
+}
+
+static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runtime_state *state)
+{
+  struct affected_type af;
+  int i;
+
+  if (!pet || !state)
+    return;
+
+  for (i = 0; i < AF_ARRAY_MAX; i++)
+  {
+    AFF_FLAGS(pet)[i] |= state->extra_aff[i];
+    AFF2_FLAGS(pet)[i] |= state->extra_aff2[i];
+  }
+  for (i = 0; i < PM_ARRAY_MAX; i++)
+    MOB_FLAGS(pet)[i] |= state->extra_mob[i];
+  REMOVE_BIT_AR(MOB_FLAGS(pet), MOB_NOTDEADYET);
+
+  GET_REAL_RACE(pet) = state->race;
+  GET_REAL_SIZE(pet) = state->size;
+  GET_MOVE(pet) = state->move;
+  GET_REAL_MAX_MOVE(pet) = state->max_move;
+  GET_PSP(pet) = state->psp;
+  GET_REAL_MAX_PSP(pet) = state->max_psp;
+  GET_REAL_HITROLL(pet) = state->hitroll;
+  GET_REAL_DAMROLL(pet) = state->damroll;
+  pet->mob_specials.damnodice = state->damnodice;
+  pet->mob_specials.damsizedice = state->damsizedice;
+  GET_ALIGNMENT(pet) = state->alignment;
+  for (i = 0; i < NUM_OF_SAVING_THROWS; i++)
+    GET_REAL_SAVE(pet, i) = state->saves[i];
+  for (i = 0; i < 10; i++)
+  {
+    pet->mob_specials.spell_slots[i] = state->spell_slots[i];
+    pet->mob_specials.max_spell_slots[i] = state->max_spell_slots[i];
+  }
+  for (i = 0; i < MAX_FEATS; i++)
+    if (state->feat_values[i] >= 0)
+      MOB_SET_FEAT(pet, i, state->feat_values[i]);
+  for (i = state->affect_count - 1; i >= 0; i--)
+  {
+    af = state->affects[i];
+    af.next = NULL;
+    affect_to_char(pet, &af);
+  }
+
+  if (state->hired_mercenary)
+  {
+    SET_BIT_AR(MOB_FLAGS(pet), MOB_MERCENARY);
+    PROC_FIRED(pet) = state->mercenary_proc_fired;
+  }
+  if (!AFF_FLAGGED(pet, AFF_CHARM))
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+}
+
+#ifdef LUMINARI_CUTEST
+char *serialize_pet_runtime_state_for_test(struct char_data *pet)
+{
+  return serialize_pet_runtime_state(pet);
+}
+
+bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized)
+{
+  struct pet_runtime_state state;
+
+  if (!parse_pet_runtime_state(serialized, &state))
+    return false;
+  apply_pet_runtime_state(pet, &state);
+  return true;
+}
+#endif
+
 bool valid_pet_name(char *name)
 {
   if (!name)
@@ -5819,8 +6344,10 @@ void save_char_pets(struct char_data *ch)
   char *escaped_long_desc = NULL;
   char *escaped_owner = NULL;
   char *escaped_pet_name = NULL;
+  char *escaped_runtime_state = NULL;
   char *escaped_short_desc = NULL;
   char *insert_query = NULL;
+  char *runtime_state = NULL;
   const char *description, *long_desc, *pet_name, *short_desc;
   long int insert_id;
   size_t query_size;
@@ -5880,23 +6407,37 @@ void save_char_pets(struct char_data *ch)
     short_desc = valid_pet_name(tch->player.short_descr) ? tch->player.short_descr : "";
     long_desc = valid_pet_name(tch->player.long_descr) ? tch->player.long_descr : "";
     description = valid_pet_name(tch->player.description) ? tch->player.description : "";
+    runtime_state = serialize_pet_runtime_state(tch);
+    if (!runtime_state)
+    {
+      log("SYSERR: %s: Unable to serialize runtime state for %s's follower %s", __func__,
+          GET_NAME(ch), GET_NAME(tch));
+      runtime_state = strdup("");
+      if (!runtime_state)
+        continue;
+    }
 
     escaped_pet_name = mysql_escape_string_alloc(conn, pet_name);
     escaped_short_desc = mysql_escape_string_alloc(conn, short_desc);
     escaped_long_desc = mysql_escape_string_alloc(conn, long_desc);
     escaped_description = mysql_escape_string_alloc(conn, description);
-    if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description)
+    escaped_runtime_state = mysql_escape_string_alloc(conn, runtime_state);
+    if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description ||
+        !escaped_runtime_state)
     {
       log("SYSERR: %s: Unable to escape pet data for %s", __func__, GET_NAME(ch));
       free(escaped_pet_name);
       free(escaped_short_desc);
       free(escaped_long_desc);
       free(escaped_description);
+      free(escaped_runtime_state);
+      free(runtime_state);
       continue;
     }
 
     query_size = strlen(escaped_owner) + strlen(escaped_pet_name) + strlen(escaped_short_desc) +
-                 strlen(escaped_long_desc) + strlen(escaped_description) + 512;
+                 strlen(escaped_long_desc) + strlen(escaped_description) +
+                 strlen(escaped_runtime_state) + 768;
     insert_query = malloc(query_size);
     if (!insert_query)
     {
@@ -5905,19 +6446,22 @@ void save_char_pets(struct char_data *ch)
       free(escaped_short_desc);
       free(escaped_long_desc);
       free(escaped_description);
+      free(escaped_runtime_state);
+      free(runtime_state);
       continue;
     }
 
-    snprintf(
-        insert_query, query_size,
-        "INSERT INTO pet_data "
-        "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
-        "vnum, level, hp, max_hp, str, con, dex, ac, wis, cha) "
-        "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
-        escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc, escaped_description,
-        GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch), GET_REAL_MAX_HIT(tch), GET_REAL_STR(tch),
-        GET_REAL_CON(tch), GET_REAL_DEX(tch), GET_REAL_AC(tch), GET_REAL_WIS(tch),
-        GET_REAL_CHA(tch));
+    snprintf(insert_query, query_size,
+             "INSERT INTO pet_data "
+             "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
+             "vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, runtime_state) "
+             "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d',"
+             "'%d','%d','%s')",
+             escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc,
+             escaped_description, GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch),
+             GET_REAL_MAX_HIT(tch), GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch),
+             GET_REAL_AC(tch), GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch),
+             escaped_runtime_state);
 
     if (mysql_query(conn, insert_query))
     {
@@ -5928,6 +6472,8 @@ void save_char_pets(struct char_data *ch)
       free(escaped_short_desc);
       free(escaped_long_desc);
       free(escaped_description);
+      free(escaped_runtime_state);
+      free(runtime_state);
       free(escaped_owner);
       return;
     }
@@ -5943,11 +6489,15 @@ void save_char_pets(struct char_data *ch)
     free(escaped_short_desc);
     free(escaped_long_desc);
     free(escaped_description);
+    free(escaped_runtime_state);
+    free(runtime_state);
     insert_query = NULL;
     escaped_pet_name = NULL;
     escaped_short_desc = NULL;
     escaped_long_desc = NULL;
     escaped_description = NULL;
+    escaped_runtime_state = NULL;
+    runtime_state = NULL;
   }
 
   free(escaped_owner);
@@ -5957,14 +6507,18 @@ void load_char_pets(struct char_data *ch)
 {
   MYSQL_RES *result;
   MYSQL_ROW row;
-  char query[200];
+  struct pet_runtime_state runtime_state;
+  struct char_data *mob = NULL;
+  char query[512];
   char buf[MAX_EXTRA_DESC];
   char desc1[MAX_STRING_LENGTH] = {'\0'};
   char desc2[MAX_STRING_LENGTH] = {'\0'};
   char desc3[MAX_STRING_LENGTH] = {'\0'};
   char desc4[MAX_STRING_LENGTH] = {'\0'};
+  char *escaped_name;
   long int pet_idnum = 0;
-  struct char_data *mob = NULL;
+  bool has_runtime_state;
+  bool hired_mercenary;
 
   if (!ch)
     return;
@@ -5979,7 +6533,7 @@ void load_char_pets(struct char_data *ch)
     return;
   }
 
-  char *escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
+  escaped_name = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_name)
   {
     log("SYSERR: Failed to escape player name in load_pet_data");
@@ -5987,13 +6541,15 @@ void load_char_pets(struct char_data *ch)
   }
   snprintf(query, sizeof(query),
            "SELECT vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, pet_name, "
-           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id FROM pet_data WHERE owner_name='%s'",
+           "pet_sdesc, pet_ldesc, pet_ddesc, pet_data_id, runtime_state "
+           "FROM pet_data WHERE owner_name='%s'",
            escaped_name);
   free(escaped_name);
 
   if (mysql_query(conn, query))
   {
     log("SYSERR: Unable to SELECT from pet_data: %s", mysql_error(conn));
+    return;
   }
 
   if (!(result = mysql_store_result(conn)))
@@ -6004,9 +6560,22 @@ void load_char_pets(struct char_data *ch)
 
   while ((row = mysql_fetch_row(result)))
   {
+    if (!row[0])
+    {
+      log("SYSERR: %s: Saved follower for %s has no mobile vnum", __func__, GET_NAME(ch));
+      continue;
+    }
+
+    pet_idnum = 0;
+    has_runtime_state = row[16] && *row[16] && parse_pet_runtime_state(row[16], &runtime_state);
+    if (row[16] && *row[16] && !has_runtime_state)
+      log("SYSERR: %s: Ignoring invalid follower runtime state for %s (vnum %d)", __func__,
+          GET_NAME(ch), atoi(row[0]));
+
     mob = read_mobile(atoi(row[0]), VIRTUAL);
     if (!mob)
       continue;
+    hired_mercenary = pet_is_hired_mercenary(mob);
     if (isSummonMob(atoi(row[0])))
     {
       if (GET_LEVEL(mob) <= 10)
@@ -6046,25 +6615,24 @@ void load_char_pets(struct char_data *ch)
     char_to_room(mob, IN_ROOM(ch));
     IS_CARRYING_W(mob) = 0;
     IS_CARRYING_N(mob) = 0;
-    SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
-    GET_LEVEL(mob) = atoi(row[1]);
+    GET_LEVEL(mob) = row[1] ? atoi(row[1]) : GET_LEVEL(mob);
     autoroll_mob(mob, TRUE, TRUE);
-    if (strlen(row[11]) > 0)
+    if (row[11] && *row[11])
     {
       snprintf(desc1, sizeof(desc1), "%s", row[11]);
       mob->player.name = strdup(desc1);
     }
-    if (strlen(row[12]) > 0)
+    if (row[12] && *row[12])
     {
       snprintf(desc2, sizeof(desc2), "%s", row[12]);
       mob->player.short_descr = strdup(desc2);
     }
-    if (strlen(row[13]) > 0)
+    if (row[13] && *row[13])
     {
       snprintf(desc3, sizeof(desc3), "%s", row[13]);
       mob->player.long_descr = strdup(desc3);
     }
-    if (strlen(row[14]) > 0)
+    if (row[14] && *row[14])
     {
       snprintf(desc4, sizeof(desc4), "%s", row[14]);
       mob->player.description = strdup(desc4);
@@ -6078,10 +6646,12 @@ void load_char_pets(struct char_data *ch)
       if (!apply_clone_owner_identity(mob, GET_NAME(ch)))
         log("SYSERR: Unable to derive clone identity for %s", GET_NAME(ch));
     }
-    if (atol(row[15]) > 0)
+    if (row[15] && atol(row[15]) > 0)
     {
       pet_idnum = atol(row[15]);
     }
+    if (has_runtime_state && IS_SET_AR(runtime_state.extra_mob, MOB_EIDOLON))
+      SET_BIT_AR(MOB_FLAGS(mob), MOB_EIDOLON);
     if (MOB_FLAGGED(mob, MOB_EIDOLON))
     {
       set_eidolon_descs(ch);
@@ -6097,17 +6667,52 @@ void load_char_pets(struct char_data *ch)
         mob->player.description = strdup(buf);
       }
     }
-    GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
-    GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
-    GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
-    GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
-    GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
-    GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
-    GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
-    GET_REAL_MAX_HIT(mob) = atoi(row[3]);
-    GET_HIT(mob) = atoi(row[2]);
+    if (row[4])
+      GET_REAL_STR(mob) = MIN(100, atoi(row[4]));
+    if (row[5])
+      GET_REAL_CON(mob) = MIN(100, atoi(row[5]));
+    if (row[6])
+      GET_REAL_DEX(mob) = MIN(100, atoi(row[6]));
+    if (row[8])
+      GET_REAL_INT(mob) = MIN(100, atoi(row[8]));
+    if (row[9])
+      GET_REAL_WIS(mob) = MIN(100, atoi(row[9]));
+    if (row[10])
+      GET_REAL_CHA(mob) = MIN(100, atoi(row[10]));
+    if (row[7])
+      GET_REAL_AC(mob) = MIN(100, atoi(row[7]));
+    if (row[3])
+      GET_REAL_MAX_HIT(mob) = MAX(1, atoi(row[3]));
+    if (row[2])
+      GET_HIT(mob) = MIN(GET_REAL_MAX_HIT(mob), atoi(row[2]));
+
+    if (has_runtime_state)
+      apply_pet_runtime_state(mob, &runtime_state);
+    else
+    {
+      SET_BIT_AR(AFF_FLAGS(mob), AFF_CHARM);
+      if (hired_mercenary)
+      {
+        SET_BIT_AR(MOB_FLAGS(mob), MOB_MERCENARY);
+        PROC_FIRED(mob) = TRUE;
+      }
+    }
     affect_total(mob);
+    update_pos(mob);
+    if (GET_POS(mob) == POS_DEAD)
+    {
+      log("SYSERR: %s: Discarding dead saved follower for %s (vnum %d)", __func__, GET_NAME(ch),
+          atoi(row[0]));
+      extract_char(mob);
+      continue;
+    }
     load_mtrigger(mob);
+    if (MOB_FLAGGED(mob, MOB_NOTDEADYET))
+    {
+      log("SYSERR: %s: Load trigger extracted %s's saved follower (vnum %d)", __func__,
+          GET_NAME(ch), atoi(row[0]));
+      continue;
+    }
     add_follower(mob, ch);
     pet_load_objs(mob, ch, pet_idnum);
     if (!GROUP(mob) && GROUP(ch) && GROUP_LEADER(GROUP(ch)) == ch)

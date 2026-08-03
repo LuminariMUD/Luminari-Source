@@ -17,7 +17,7 @@ The easiest way to set up the database is using the automated deployment script:
 
 The deployment script automatically:
 - Creates the database and user (prompts for MariaDB root password)
-- Executes the in-engine database initializer so every wilderness/resource table exists—no external SQL files required
+- Executes the in-engine database initializer so every wilderness/resource table exists; no external SQL files required
 - Applies fresh credentials to `lib/mysql_config` (mode 600)
 - Sets up all required permissions
 - Seeds required lookup tables such as `path_types` so wilderness paths display correctly on first boot
@@ -99,7 +99,8 @@ Make sure your `src/campaign.h` includes:
 - `material_qualities` - Quality levels (poor, common, rare, etc.)
 
 ### Companion & Pet Data
-- `pet_data` - Persists charmed companions and summons for player accounts (stats, descriptions, HP)
+- `pet_data` - Persists charmed companions and summons for player accounts, including stats,
+  descriptions, HP, timed affects, and runtime-only follower state
 - `pet_save_objs` - Stores equipment for saved pets tied to `pet_data` rows
 
 ### Analytics & Performance

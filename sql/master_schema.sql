@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS pet_data (
   pet_sdesc VARCHAR(255) NOT NULL,
   pet_ldesc VARCHAR(255) NOT NULL,
   pet_ddesc TEXT NOT NULL,
+  runtime_state LONGTEXT DEFAULT NULL,
   INDEX idx_pet_owner (owner_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

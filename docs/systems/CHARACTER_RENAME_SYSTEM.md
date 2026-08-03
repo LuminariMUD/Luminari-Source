@@ -163,9 +163,10 @@ The object and pet payloads themselves must not be regenerated as part of a
 rename. `player_data.obj_save_header`, object row IDs/order, pet IDs, sheath
 relationships, and every `serialized_obj` value must survive unchanged. Bound
 object ownership is serialized as the immutable numeric `GET_OBJ_BOUND_ID`
-(`Bind:`), so it must not be text-replaced with a character name.
+(`Bind:`), so it must not be text-replaced with a character name. Saved
+follower `runtime_state` must likewise remain byte-for-byte unchanged.
 
-[`save_char_pets()`](../../src/players.c#L5227) is specifically unsafe as a migration
+[`save_char_pets()`](../../src/players.c#L6330) is specifically unsafe as a migration
 mechanism: it deletes all `pet_save_objs` and `pet_data` rows for the owner and
 then rebuilds them from currently loaded followers. Rename the ownership
 columns in place instead.
@@ -456,7 +457,7 @@ the name used at event time. Examples include pubsub message
 not current ownership/retrieval keys and have a numeric or separate owning
 identity where applicable. The recommended policy is to retain them as
 historical snapshots. If product requirements choose display-name rewriting
-instead, implement it as a separately named policy—not as a broad text
+instead, implement it as a separately named policy, not as a broad text
 replacement.
 
 Because deployments may not all have the legacy/optional tables, either:
@@ -505,7 +506,7 @@ compare them after the rename and again after restart/copyover:
 | `player_data` | `name` | row identity, `account_id`, and `obj_save_header` bytes |
 | `player_save_objs` | `name` | row count, `idnum`, `creation_date`, and `serialized_obj` bytes |
 | `player_save_objs_sheathed` | `owner_name` | row count, row ID, `sheath_obj_id`, `sheathed_position`, and `serialized_obj` bytes |
-| `pet_data` | `owner_name` | row count, `pet_data_id`, vnum/stats, and user-authored pet descriptions |
+| `pet_data` | `owner_name` | row count, `pet_data_id`, vnum/stats, descriptions, and `runtime_state` bytes |
 | `pet_save_objs` | `owner_name` | row count, row ID, `pet_idnum`, `creation_date`, and `serialized_obj` bytes |
 | `player_eidolons` | `owner` | row count, `idnum`, `short_desc`, and `long_desc` |
 | legacy `.objs` | pathname only | complete file bytes and metadata as required by the file policy |
