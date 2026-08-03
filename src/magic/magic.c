@@ -13777,12 +13777,12 @@ void mag_creations(int level, struct char_data *ch, struct char_data *vict,
   case SPELL_HOLY_SWORD:
     to_char = "You summon $p.";
     to_room = "$n summons $p.";
-    object_vnum = 20810;
+    object_vnum = 810;
     break;
   case SPELL_UNHOLY_SWORD:
     to_char = "You summon $p.";
     to_room = "$n summons $p.";
-    object_vnum = 20897;
+    object_vnum = 897;
     break;
   case SPELL_MAGIC_STONE:
     to_char = "You create $p.";
