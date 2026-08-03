@@ -130,6 +130,20 @@ Membership is by "what is this file's primary job", not by what it touches. `src
 
 Headers resolve from a namespace rooted at `src/`, so a header still in `src/` is includable by bare name from any depth. A header inside a feature directory must be path-qualified from outside it (`#include "vessels/vessels.h"`), while files within that same directory include it bare. Do not add per-directory `-I` flags to avoid the qualification - the explicit path is what makes cross-subsystem coupling visible.
 
+#### Moving a file: the seven reference categories
+
+Grepping for `#include "name.h"` is not sufficient. Each of these categories broke a real build across the three layout phases; sweep all seven:
+
+1. **Bare `#include "name.h"`** - the bulk of the work.
+2. **Relative form `#include "../../src/name.h"`** - used by `unittests/CuTest/`. These compile as part of `cutest_SOURCES`, so missing one breaks `make test`, not the main build. This category was missed in every phase that did not explicitly check it.
+3. **Path-qualified form** `#include "<dir>/name.h"` for a file moving *between* directories. This bites inside the moving set too, where same-directory includes otherwise need no edit.
+4. **`Makefile.am` and `CMakeLists.txt`** - neither globs; both enumerate every source. Check commented-out entries as well.
+5. **`util/`** - a `SUBDIRS` target of the root `Makefile.am` building nine utility programs with `AM_CFLAGS = -I../src`. `util/shopconv.c` includes `shop.h` and broke the `src/obj/` move. The vendored `EXAMPLE/` tree also matches greps but is not built; leave it alone.
+6. **`scripts/`** - source-path assertions, and any script that builds a mirror of the source tree with `mkdir -p`. That one fails at runtime, not compile time, so only running the full suite catches it.
+7. **`sql/components/*.sql`** - header comments naming the source file each schema mirrors.
+
+Also expect the pre-commit clang-format hook to realign trailing comments on `#include` lines when a longer path shifts the comment column. Accept it, then rebuild and re-test before committing. Historical paths in `docs/CHANGELOG.md` and `docs/previous_changelogs/` are deliberately left stale - they record the tree as it was.
+
 ### Misc
 - `perfmon.c` - performance monitoring (plain C; older docs mentioning perfmon.cpp/C++11 are obsolete).
 - VNUMs: use the defines in `vnums.h`; never hardcode virtual numbers.
