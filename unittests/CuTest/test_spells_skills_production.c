@@ -272,6 +272,66 @@ void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
     affect_remove_no_total(&ch, ch.affected);
 }
 
+void Test_magic_fang_accepts_animal_wild_shapes(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data *target;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  target = &ch;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+  room.people = target;
+  ch.player_specials = &player_specials;
+  ch.player.name = "animal wild shape test character";
+  IN_ROOM(target) = 0;
+  GET_LEVEL(target) = 10;
+  GET_CLASS(target) = CLASS_DRUID;
+  CLASS_LEVEL(target, CLASS_DRUID) = 10;
+  SET_BIT_AR(AFF_FLAGS(target), AFF_WILD_SHAPE);
+  GET_DISGUISE_RACE(target) = RACE_WOLF;
+  IS_MORPHED(target) = RACE_TYPE_ANIMAL;
+
+  CuAssertTrue(tc, IS_WILDSHAPED(target));
+  CuAssertTrue(tc, IS_ANIMAL(target));
+
+  mag_affects(GET_LEVEL(target), target, target, NULL, SPELL_MAGIC_FANG, SAVING_WILL, CAST_SPELL,
+              0);
+  CuAssertTrue(tc, affected_by_spell(target, SPELL_MAGIC_FANG));
+  affect_from_char(target, SPELL_MAGIC_FANG);
+
+  mag_affects(GET_LEVEL(target), target, target, NULL, SPELL_GREATER_MAGIC_FANG, SAVING_WILL,
+              CAST_SPELL, 0);
+  CuAssertTrue(tc, affected_by_spell(target, SPELL_GREATER_MAGIC_FANG));
+  affect_from_char(target, SPELL_GREATER_MAGIC_FANG);
+
+  IS_MORPHED(target) = RACE_TYPE_PLANT;
+  CuAssertTrue(tc, IS_WILDSHAPED(target));
+  CuAssertTrue(tc, !IS_ANIMAL(target));
+
+  mag_affects(GET_LEVEL(target), target, target, NULL, SPELL_MAGIC_FANG, SAVING_WILL, CAST_SPELL,
+              0);
+  mag_affects(GET_LEVEL(target), target, target, NULL, SPELL_GREATER_MAGIC_FANG, SAVING_WILL,
+              CAST_SPELL, 0);
+  CuAssertTrue(tc, !affected_by_spell(target, SPELL_MAGIC_FANG));
+  CuAssertTrue(tc, !affected_by_spell(target, SPELL_GREATER_MAGIC_FANG));
+
+  room.people = NULL;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
 void Test_aasimar_innate_spells_use_daily_charges(CuTest *tc)
 {
   struct char_data ch;
