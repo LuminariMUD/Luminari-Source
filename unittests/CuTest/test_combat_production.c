@@ -62,6 +62,18 @@ void Test_combat_production_damage_type_validation(CuTest *tc)
   CuAssertTrue(tc, !ok_damage_handling(SKILL_BASH));
 }
 
+void Test_psionic_death_effects_bypass_the_generic_damage_cap(CuTest *tc)
+{
+  struct char_data ch;
+
+  memset(&ch, 0, sizeof(ch));
+
+  CuAssertIntEquals(tc, DAMAGE_CAP, test_cap_combat_damage(&ch, 5000, TYPE_HIT));
+  CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_DEADLY_FEAR));
+  CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_PSYCHIC_CRUSH));
+  CuAssertIntEquals(tc, 5000, test_cap_combat_damage(&ch, 5000, PSIONIC_RECALL_DEATH));
+}
+
 void Test_capped_kill_experience_does_not_report_zero_award(CuTest *tc)
 {
   struct char_data ch;

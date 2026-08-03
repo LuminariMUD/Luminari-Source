@@ -22,7 +22,7 @@ Statuses below were re-verified against the source tree on 2026-08-03.
 | [DO_SKORE_PROJECT.md](DO_SKORE_PROJECT.md) | Partial | Phase 1 and Phases 2.1-2.5 complete; Phase 3 (detailed views) and Phase 4 open. System reference: [SKORE_SYSTEM.md](../systems/SKORE_SYSTEM.md) |
 | [PROTOCOL_TODO.md](PROTOCOL_TODO.md) | Partial | Re-verified against source 2026-08-03 and rewritten. The three "critical RCE" overflows it used to list are fixed, and the guarded `strcat` calls were never a defect. One real memory-safety item remains (unbounded `sprintf` into `MSSPPair[128]`), plus a `sprintf`/`malloc` sweep and three quality items. |
 | [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dgscript/dg_event.c` and `src/mud_event.c` still exist separately. |
-| [BUGS_LIST.md](BUGS_LIST.md) | Local code backlog | 11 verified dev/local source-code items drawn from 12 production records. |
+| [BUGS_LIST.md](BUGS_LIST.md) | Local code backlog | 10 verified dev/local source-code items drawn from 11 production records. |
 | [LIB-BUGS.md](LIB-BUGS.md) | Production data backlog | 14 verified production/remote `lib/`, help, world, quest, script, and shop items drawn from 17 records. Ghost Wolf records #111 and #114 are split across both bug lists. |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Production in-game idea queue snapshot from 2026-08-03, plus seven earlier imported ideas no longer present in the current queue. Not a plan - a source of candidates. |
 | [TYPOS_LIST.md](TYPOS_LIST.md) | Backlog | Source-only production typo queue snapshot from 2026-08-03: 19 code-backed submissions consolidated into 18 entries; `lib/`, world, help, quest, and script content is excluded. |

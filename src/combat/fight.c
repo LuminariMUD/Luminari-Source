@@ -131,6 +131,7 @@ static void change_alignment(struct char_data *ch, struct char_data *victim);
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
 static int award_kill_experience(struct char_data *ch, int exp, int mode);
+static int cap_combat_damage(struct char_data *ch, int dam, int w_type);
 /** @todo refactor this function name */
 static char *replace_string(const char *str, const char *weapon_singular,
                             const char *weapon_plural);
@@ -2931,6 +2932,11 @@ static int award_kill_experience(struct char_data *ch, int exp, int mode)
 int test_award_kill_experience(struct char_data *ch, int exp, int mode)
 {
   return award_kill_experience(ch, exp, mode);
+}
+
+int test_cap_combat_damage(struct char_data *ch, int dam, int w_type)
+{
+  return cap_combat_damage(ch, dam, w_type);
 }
 #endif
 
@@ -5734,6 +5740,30 @@ int dam_killed_vict(struct char_data *ch, struct char_data *victim)
   return (-1);
 }
 
+static int cap_combat_damage(struct char_data *ch, int dam, int w_type)
+{
+  switch (w_type)
+  {
+  case PSIONIC_DEADLY_FEAR:
+  case PSIONIC_PSYCHIC_CRUSH:
+  case PSIONIC_RECALL_DEATH:
+    /* A failed save sets damage to current HP + 100 so these effects remain lethal. */
+    return MAX(dam, 0);
+  default:
+    break;
+  }
+
+#if defined(CAMPAIGN_DL)
+  if (IS_NPC(ch))
+    return MAX(MIN(dam, NPC_DAMAGE_CAP), 0);
+
+  return MAX(MIN(dam, DAMAGE_CAP), 0);
+#else
+  (void)ch;
+  return MAX(MIN(dam, DAMAGE_CAP), 0);
+#endif
+}
+
 // death < 0, no dam = 0, damage done > 0
 /* ALLLLLL damage goes through this function */
 /* probably need to bring in another variable letting us know our source, like:
@@ -6010,18 +6040,7 @@ int damage(struct char_data *ch, struct char_data *victim, int dam, int w_type, 
     dam = dam * 110 / 100; /* +10% */
   }
 
-#if defined(CAMPAIGN_DL)
-  if (IS_NPC(ch))
-  {
-    dam = MAX(MIN(dam, NPC_DAMAGE_CAP), 0); // damage cap
-  }
-  else
-  {
-    dam = MAX(MIN(dam, DAMAGE_CAP), 0); // damage cap
-  }
-#else
-  dam = MAX(MIN(dam, 1499), 0); // damage cap
-#endif
+  dam = cap_combat_damage(ch, dam, w_type);
 
   /* Paladin Sacred Defender perk: Sanctuary - 10% damage reduction */
   if (!IS_NPC(victim))

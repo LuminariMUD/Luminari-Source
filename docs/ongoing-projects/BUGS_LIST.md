@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 11 actionable code items drawn
-from 12 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 10 actionable code items drawn
+from 11 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 27 unique records remain from the original 146-record
-snapshot. The other 119 were removed because they are resolved, intentional,
+Across both files, 26 unique records remain from the original 146-record
+snapshot. The other 120 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,11 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Death effects can grant account XP without killing the target** - Recall
-  Death and Psychic Crush calculate more than the generic 1,499 damage cap.
-  Damage XP is awarded before death resolution, so a high-HP target can survive
-  while still granting account XP. Reporter: Iliri (L19, R1004006,
-  2023-09-20; #086).
 - **Litany of Righteousness applies Dazzled to the caster** - In the
   good-caster/evil-target branch, the code builds the Dazzled affect for the
   victim but attaches it to `ch`, matching the reported self-debuff. Reporter:
