@@ -5,12 +5,12 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 4 actionable code items drawn
-from 4 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 3 actionable code items drawn
+from 3 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records.
 
-Across both files, 21 unique records remain from the original 146-record
-snapshot. The other 125 were removed because they are resolved, intentional,
+Across both files, 20 unique records remain from the original 146-record
+snapshot. The other 126 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -20,10 +20,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2025
 
-- **Boon Companion calculates but never applies its level bonus** - The summon
-  path adds five to a local `level` after assigning the companion's level, and
-  that adjusted value is not used before the companion is rolled. Reporter:
-  Bijori (L9, R6758, 2025-12-13; #130).
 - **Magic Fang rejects wild-shaped player characters** - Magic Fang and
   Greater Magic Fang require an animal target, but their validation does not
   accept a player with the wild-shape state. Reporter: Luos (L9, R40431,

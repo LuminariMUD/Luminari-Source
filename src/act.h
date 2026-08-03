@@ -835,6 +835,9 @@ void wildshape_return(struct char_data *ch);
 void perform_wildshape(struct char_data *ch, int form_num, int spellnum);
 void perform_perform(struct char_data *ch);
 void perform_call(struct char_data *ch, int call_type, int level);
+#ifdef LUMINARI_CUTEST
+int test_animal_companion_level(struct char_data *ch, int level);
+#endif
 void update_msdp_group(struct char_data *ch);
 void update_msdp_inventory(struct char_data *ch);
 bool wildshape_engine(struct char_data *ch, const char *argument, int mode);

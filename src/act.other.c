@@ -1682,6 +1682,21 @@ ACMDU(do_perform) {
 }
  */
 
+static int animal_companion_level(struct char_data *ch, int level)
+{
+  if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
+    level += 5;
+
+  return MIN(20, level);
+}
+
+#ifdef LUMINARI_CUTEST
+int test_animal_companion_level(struct char_data *ch, int level)
+{
+  return animal_companion_level(ch, level);
+}
+#endif
+
 void perform_call(struct char_data *ch, int call_type, int level)
 {
   int i = 0;
@@ -1949,9 +1964,7 @@ void perform_call(struct char_data *ch, int call_type, int level)
   switch (call_type)
   {
   case MOB_C_ANIMAL:
-    GET_LEVEL(mob) = MIN(20, level);
-    if (HAS_FEAT(ch, FEAT_BOON_COMPANION))
-      level += 5;
+    GET_LEVEL(mob) = animal_companion_level(ch, level);
     autoroll_mob(mob, true, true);
     GET_REAL_MAX_HIT(mob) += 20;
 

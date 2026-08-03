@@ -144,6 +144,23 @@ void Test_blackguard_mount_vnums_are_callable(CuTest *tc)
   CuAssertTrue(tc, ok_call_mob_vnum(MOB_EPIC_BLACKGUARD_MOUNT));
 }
 
+void Test_boon_companion_increases_the_rolled_level(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+
+  CuAssertIntEquals(tc, 7, test_animal_companion_level(&ch, 7));
+
+  SET_FEAT(&ch, FEAT_BOON_COMPANION, 1);
+
+  CuAssertIntEquals(tc, 12, test_animal_companion_level(&ch, 7));
+  CuAssertIntEquals(tc, 20, test_animal_companion_level(&ch, 18));
+}
+
 void Test_max_hp_uses_current_object_affect_when_selecting_bonus(CuTest *tc)
 {
   struct char_data ch;
