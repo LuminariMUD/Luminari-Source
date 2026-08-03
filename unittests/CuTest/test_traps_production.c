@@ -5,7 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
-#include "../../src/traps.h"
+#include "../../src/combat/traps.h"
 
 #include <string.h>
 #include <time.h>

@@ -205,7 +205,7 @@ circle_SOURCES = \
 	src/character/templates.c \
 	src/obj/trade.c \
 	src/vessels/transport.c \
-	src/traps_new.c \
+	src/combat/traps_new.c \
 	src/obj/treasure.c \
 	src/obj/treasure_const.c \
 	src/utils.c \

@@ -29,7 +29,7 @@
 #include "mudlim.h"
 #include "wilderness/wilderness.h" /* Wilderness! */
 #include "actions.h"
-#include "traps.h" /* for check_traps() */
+#include "combat/traps.h" /* for check_traps() */
 #include "magic/spell_prep.h"
 /* trails.h merged into movement_tracks.h */
 #include "combat/assign_wpn_armor.h"

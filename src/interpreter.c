@@ -53,7 +53,7 @@
 #include "actionqueues.h"
 #include "vessels/routing.h"
 #include "combat/combat_modes.h"
-#include "traps.h"
+#include "combat/traps.h"
 #include "magic/domains_schools.h"
 #include "combat/grapple.h"
 #include "combat/assign_wpn_armor.h"

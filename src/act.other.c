@@ -58,7 +58,7 @@
 #include "account.h"
 #include "character/deities.h"
 #include "character/evolutions.h"
-#include "traps.h" /* For trap system functions */
+#include "combat/traps.h" /* For trap system functions */
 #include "constants.h"
 #include "craft/crafting_new.h" /* For golem repair functions */
 #include "olc/genolc.h"

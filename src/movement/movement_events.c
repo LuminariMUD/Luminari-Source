@@ -28,7 +28,7 @@
 #include "mudlim.h"
 #include "wilderness/wilderness.h"
 #include "actions.h"
-#include "traps.h"
+#include "combat/traps.h"
 #include "magic/spell_prep.h"
 #include "character/class.h"
 #include "vessels/transport.h"
