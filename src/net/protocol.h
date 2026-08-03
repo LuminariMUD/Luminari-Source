@@ -200,21 +200,21 @@ typedef struct descriptor_data descriptor_t;
  * - Combat information panels
  * - Inventory and equipment windows
  *
- * The package is offered via GMCP negotiation and installed with user consent.
- * Only available for the default LuminariMUD campaign (not DL/FR variants).
+ * The package is offered via GMCP negotiation and installed when the Mudlet
+ * profile permits server-provided packages.
  ******************************************************************************/
 
 /**
  * Mudlet GUI package for automatic installation
  *
- * Defines the download URL and version for the LuminariMUD GUI package.
- * Format: "version\ndownload_url"
+ * Defines the stable download URL and update token for the LuminariMUD GUI.
+ * Format: {"version":"update_token","url":"stable_package_url"}
  *
- * @note Only defined for default LuminariMUD campaign
- * @note Dragonlance and Forgotten Realms campaigns use different/no GUIs
+ * @note Mudlet derives package identity from the URL basename. Keep the
+ *       filename exactly LuminariGUI.mpackage across releases.
  */
 #define MUDLET_PACKAGE                                                                             \
-  "{\"version\":4,\"url\":\"https://luminarimud.com/download/LuminariGUI-v2.0.4.015.mpackage\"}"
+  "{\"version\":\"5\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
 
 /******************************************************************************
  *                           PROTOCOL CONSTANTS

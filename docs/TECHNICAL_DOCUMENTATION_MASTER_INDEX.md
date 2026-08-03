@@ -48,6 +48,8 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Communication & Protocols
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
+- **[MUDLET_GUI_PACKAGE.md](systems/MUDLET_GUI_PACKAGE.md)** - Mudlet GUI package
+  identity, updates, and web deployment
 - **[WEB_ONBOARDING_SYSTEM.md](systems/WEB_ONBOARDING_SYSTEM.md)** - Versioned MSDP account, character-creation, and role-play presentation for Luminari Web
 - **[CLIENT_CAPABILITIES_AND_PREFERENCES.md](systems/CLIENT_CAPABILITIES_AND_PREFERENCES.md)** - How client capability auto-detection and player PRF flags interact, what persists, and when
 - **[INTERMUD3.md](systems/INTERMUD3.md)** - Inter-MUD communication system

@@ -436,9 +436,9 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 ```c
 #define SNIPPET_VERSION 8                           // Protocol version
 #define COLOUR_ON_BY_DEFAULT true                   // Default color state
-// JSON payload {version, url}; sent to Mudlet via GMCP Client.GUI
+// Mudlet keys packages by URL basename; keep LuminariGUI.mpackage stable.
 #define MUDLET_PACKAGE \
-  "{\"version\":4,\"url\":\"https://luminarimud.com/download/LuminariGUI-v2.0.4.015.mpackage\"}"
+  "{\"version\":\"5\",\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"}"
 ```
 
 > Full wiring of the Mudlet auto-download (config toggle, cedit option, and the

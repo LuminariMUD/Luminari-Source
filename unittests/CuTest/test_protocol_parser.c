@@ -611,6 +611,22 @@ void TestProtocolParser_SelectedMsdpVariablesCanBeReported(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_MudletPackageUsesStableIdentity(CuTest *tc)
+{
+  const char *version;
+
+  CuAssert(tc, "Mudlet package URL must use the stable LuminariGUI filename",
+           strstr(MUDLET_PACKAGE,
+                  "\"url\":\"https://luminarimud.com/download/LuminariGUI.mpackage\"") != NULL);
+  CuAssert(tc, "Mudlet package URL must not contain a release suffix",
+           strstr(MUDLET_PACKAGE, "LuminariGUI-v") == NULL);
+
+  version = strstr(MUDLET_PACKAGE, "\"version\":\"");
+  CuAssertPtrNotNullMsg(tc, "Mudlet package version must be a JSON string", (void *)version);
+  version += strlen("\"version\":\"");
+  CuAssert(tc, "Mudlet package version must not be empty", *version != '\0' && *version != '"');
+}
+
 CuSuite *ProtocolParserSuite(void)
 {
   CuSuite *suite = CuSuiteNew();
@@ -628,6 +644,7 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MudletPackageUsesStableIdentity);
 
   return suite;
 }
