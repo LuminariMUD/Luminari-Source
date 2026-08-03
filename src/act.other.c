@@ -3113,9 +3113,14 @@ ACMD(do_tame)
 void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
 {
   struct affected_type af;
+  bool preserve_original_size;
+  int original_size;
+  int tempXP;
 
   /* in the clear! */
-  int tempXP = GET_EXP(ch);
+  tempXP = GET_EXP(ch);
+  original_size = GET_REAL_SIZE(ch);
+  preserve_original_size = GET_REAL_RACE(ch) == RACE_LICH || GET_REAL_RACE(ch) == RACE_VAMPIRE;
 
   GET_CLASS(ch) = class;
   GET_PREMADE_BUILD_CLASS(ch) = CLASS_UNDEFINED;
@@ -3147,6 +3152,8 @@ void respec_engine(struct char_data *ch, int class, char *arg, bool silent)
   // stop_follower(ch);
 
   do_start(ch);
+  if (preserve_original_size)
+    GET_REAL_SIZE(ch) = original_size;
   HAS_SET_STATS_STUDY(ch) = FALSE;
   GET_EXP(ch) = tempXP;
 

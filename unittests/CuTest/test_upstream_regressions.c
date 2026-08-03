@@ -4,6 +4,10 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
+#include "../../src/handler.h"
+#include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 #include "../../src/dgscript/dg_olc.h"
 
 #include <stdlib.h>
@@ -138,6 +142,42 @@ void Test_blackguard_mount_vnums_are_callable(CuTest *tc)
   CuAssertTrue(tc, ok_call_mob_vnum(MOB_BLACKGUARD_MOUNT));
   CuAssertTrue(tc, ok_call_mob_vnum(MOB_ADV_BLACKGUARD_MOUNT));
   CuAssertTrue(tc, ok_call_mob_vnum(MOB_EPIC_BLACKGUARD_MOUNT));
+}
+
+static void assert_undead_respec_preserves_size(CuTest *tc, int race, int class_num,
+                                                int original_size)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  int actual_size;
+  int saved_move_gain;
+
+  clear_char(&ch);
+  memset(&player_specials, 0, sizeof(player_specials));
+  ch.player_specials = &player_specials;
+  ch.player.name = "undead respec test character";
+  GET_REAL_RACE(&ch) = race;
+  GET_REAL_SIZE(&ch) = original_size;
+  GET_LEVEL(&ch) = 30;
+  GET_EXP(&ch) = 1;
+
+  saved_move_gain = class_list[class_num].move_gain;
+  class_list[class_num].move_gain = 1;
+  respec_engine(&ch, class_num, NULL, TRUE);
+  actual_size = GET_REAL_SIZE(&ch);
+  class_list[class_num].move_gain = saved_move_gain;
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+  free(GET_TITLE(&ch));
+
+  CuAssertIntEquals(tc, original_size, actual_size);
+}
+
+void Test_undead_respec_preserves_original_size(CuTest *tc)
+{
+  assert_undead_respec_preserves_size(tc, RACE_LICH, CLASS_WIZARD, SIZE_SMALL);
+  assert_undead_respec_preserves_size(tc, RACE_VAMPIRE, CLASS_WARRIOR, SIZE_LARGE);
 }
 
 void Test_upstream_new_affect_initializes_all_fields(CuTest *tc)
