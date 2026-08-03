@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/combat/encounters.h"
 #include "../../src/combat/fight.h"
 #include "../../src/magic/spells.h"
 
@@ -56,6 +57,18 @@ void Test_combat_production_damage_type_validation(CuTest *tc)
   CuAssertTrue(tc, ok_damage_handling(SPELL_MAGIC_MISSILE));
   CuAssertTrue(tc, !ok_damage_handling(TYPE_SUFFERING));
   CuAssertTrue(tc, !ok_damage_handling(SKILL_BASH));
+}
+
+void Test_random_encounters_respect_peaceful_rooms(CuTest *tc)
+{
+  struct room_data room;
+
+  memset(&room, 0, sizeof(room));
+
+  CuAssertTrue(tc, random_encounter_allowed_in_room(&room));
+  SET_BIT_AR(room.room_flags, ROOM_PEACEFUL);
+  CuAssertTrue(tc, !random_encounter_allowed_in_room(&room));
+  CuAssertTrue(tc, !random_encounter_allowed_in_room(NULL));
 }
 
 void Test_lich_touch_self_heal_ignores_single_file_reach(CuTest *tc)

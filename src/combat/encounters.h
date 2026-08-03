@@ -325,6 +325,7 @@ extern struct encounter_data encounter_table[NUM_ENCOUNTER_TYPES];
 
 int get_exploration_dc(struct char_data *ch);
 bool in_encounter_room(struct char_data *ch);
+bool random_encounter_allowed_in_room(const struct room_data *room);
 void check_random_encounter(struct char_data *ch);
 int encounter_chance(struct char_data *ch);
 void populate_encounter_table(void);

@@ -1604,6 +1604,9 @@ void check_random_encounter(struct char_data *ch)
   if (!ch || IN_ROOM(ch) == NOWHERE)
     return;
 
+  if (!random_encounter_allowed_in_room(&world[IN_ROOM(ch)]))
+    return;
+
   if (in_encounter_room(ch))
     return;
 
@@ -1776,6 +1779,14 @@ void check_random_encounter(struct char_data *ch)
   // set treasure type
   // prevent party from exiting the room using normal movement
   // set despawn timer. Timer only goes down if no players are in the room with them
+}
+
+bool random_encounter_allowed_in_room(const struct room_data *room)
+{
+  if (!room)
+    return false;
+
+  return !IS_SET_AR(room->room_flags, ROOM_PEACEFUL);
 }
 
 bool in_encounter_room(struct char_data *ch)
