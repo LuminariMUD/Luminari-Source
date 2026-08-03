@@ -71,6 +71,32 @@ void Test_spells_production_cantrip_bounds(CuTest *tc)
   spell_info[SPELL_DETECT_MAGIC].is_cantrip = saved_cantrip;
 }
 
+void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
+{
+  struct char_data ch;
+  struct affected_type *affect;
+  int duration_seconds;
+
+  clear_char(&ch);
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "sharpened edge test character";
+  GET_LEVEL(&ch) = 5;
+
+  mag_affects(GET_LEVEL(&ch), &ch, &ch, NULL, PSIONIC_SHARPENED_EDGE, SAVING_WILL, CAST_INNATE, 0);
+
+  affect = ch.affected;
+  CuAssertPtrNotNull(tc, affect);
+  if (affect != NULL)
+  {
+    duration_seconds = affect->duration * PULSE_VIOLENCE / PASSES_PER_SEC;
+    CuAssertIntEquals(tc, GET_LEVEL(&ch) * 10 * SECS_PER_REAL_MIN, duration_seconds);
+  }
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+}
+
 void Test_internal_affects_have_registered_wearoff_messages(CuTest *tc)
 {
   static const int internal_affects[] = {

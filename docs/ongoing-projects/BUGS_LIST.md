@@ -5,9 +5,9 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 26 actionable code items drawn
-from 28 production records. `LIB-BUGS.md` contains 13 production-owned items
-drawn from 16 records. Records #111 and #114 appear in both files because the
+then split by fix ownership. This file contains 25 actionable code items drawn
+from 27 production records. `LIB-BUGS.md` contains 14 production-owned items
+drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
 Across both files, 42 unique records remain from the original 146-record
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2022
 
-- **Sharpened Edge lasts less time than documented** - The psionic affect uses
-  `level * 120` ticks. At 15 ticks per minute, a level 5 manifester receives
-  40 minutes instead of the documented 50. Reporter: Murdoch (L19, R14100,
-  2022-11-12; #012).
 - **Domain spell lists omit spell circles** - The domain display prints each
   spell name but no circle, so it does not provide the preparation information
   players need. Reporter: Zusuk (L34, R110409, 2022-11-14; #014).

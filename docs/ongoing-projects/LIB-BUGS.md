@@ -7,7 +7,7 @@ record and take an appropriate backup before changing it.
 
 The entries were separated from [BUGS_LIST.md](BUGS_LIST.md) after the
 end-to-end review of source revision `ff3bf9e9` on 2026-08-03. This file
-contains 13 production-owned work items drawn from 16 production records.
+contains 14 production-owned work items drawn from 17 production records.
 Records #111 and #114 also appear in `BUGS_LIST.md` because the Ghost Wolf
 reports require one source-code fix and one mobile-data fix.
 
@@ -20,6 +20,11 @@ for the record's position in the 2026-08-03 production snapshot.
 
 ## 2022
 
+- **Sharpened Edge help has an obsolete duration** - The source now enforces
+  the canonical ten minutes per level using the current combat-round cadence,
+  but production help still says 120 rounds per level, which is twelve minutes
+  per level at six seconds per round. Production surface: the help database and
+  `lib/text/help/help.hlp`. Reporter: Murdoch (L19, R14100, 2022-11-12; #012).
 - **Hood of Swirling Clouds is configured as heavy full-plate armor** - Object
   144674 uses the full-plate-head armor type even though its name and
   description present it as a hood. Production surface:

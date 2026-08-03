@@ -3858,8 +3858,7 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
     return result;
   }
 }
-/* Note: converted affects to rounds, 20 rounds = 1 real minute, 1200 rounds = 1 real hour
-   old tick = 75 seconds, or 1.25 minutes or 25 rounds */
+/* Affect durations are combat rounds and update once per PULSE_VIOLENCE. */
 
 bool passed_poison_checks(struct char_data *ch, struct char_data *victim, int casttype, int level)
 {
@@ -5176,7 +5175,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case PSIONIC_SHARPENED_EDGE:
-    af[0].duration = level * 120;
+    af[0].duration = (level * 10 * SECS_PER_REAL_MIN) / (PULSE_VIOLENCE / PASSES_PER_SEC);
     af[0].location = APPLY_SPECIAL;
     to_vict = "Any slashing or piercing weapon you wield becomes extremely sharp through your "
               "psychic abilities.";
