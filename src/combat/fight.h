@@ -103,6 +103,9 @@ int is_dual_wielding(struct char_data *ch);
 int get_initiative_modifier(struct char_data *ch);
 int get_monk_stunning_fist_dc(struct char_data *ch);
 
+#ifdef LUMINARI_CUTEST
+int test_award_kill_experience(struct char_data *ch, int exp, int mode);
+#endif
 
 /* Global variables */
 #ifndef __FIGHT_C__

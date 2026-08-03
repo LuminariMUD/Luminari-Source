@@ -5,13 +5,13 @@ item requiring a change under `lib/`, in a help file, or in production help
 data is tracked separately in [LIB-BUGS.md](LIB-BUGS.md).
 
 The backlog was reviewed against source revision `ff3bf9e9` on 2026-08-03,
-then split by fix ownership. This file contains 15 actionable code items drawn
-from 17 production records. `LIB-BUGS.md` contains 14 production-owned items
+then split by fix ownership. This file contains 14 actionable code items drawn
+from 16 production records. `LIB-BUGS.md` contains 14 production-owned items
 drawn from 17 records. Records #111 and #114 appear in both files because the
 Ghost Wolf reports require separate source-code and mobile-data fixes.
 
-Across both files, 32 unique records remain from the original 146-record
-snapshot. The other 114 were removed because they are resolved, intentional,
+Across both files, 31 unique records remain from the original 146-record
+snapshot. The other 115 were removed because they are resolved, intentional,
 contradicted by current code or data, or cannot be tied to a current defect.
 
 This was a source-based review rather than a live reproduction pass. Reproduce
@@ -21,10 +21,6 @@ character level, `R` for room VNUM, and `#` for the record's position in the
 
 ## 2023
 
-- **Kill output can award XP and then report zero XP** - Damage-based XP can
-  bring a character to the XP cap before the final solo award. The final path
-  then prints the zero returned by `gain_exp`, producing contradictory lines.
-  Reporter: Gor (L12, R40428, 2023-04-02; #053).
 - **Practiced Sneak does not make Stealth a class skill** - The Shade racial
   feat's help promises class-skill treatment, but the class-skill and study
   checks do not recognize the feat and continue charging cross-class cost.

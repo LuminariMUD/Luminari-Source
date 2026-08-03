@@ -130,6 +130,7 @@ static void change_alignment(struct char_data *ch, struct char_data *victim);
 #endif
 static void group_gain(struct char_data *ch, struct char_data *victim);
 static void solo_gain(struct char_data *ch, struct char_data *victim);
+static int award_kill_experience(struct char_data *ch, int exp, int mode);
 /** @todo refactor this function name */
 static char *replace_string(const char *str, const char *weapon_singular,
                             const char *weapon_plural);
@@ -2751,21 +2752,7 @@ static void perform_group_gain(struct char_data *ch, int base, struct char_data 
     share = MIN(CONFIG_MAX_EXP_GAIN, MAX(1, hap_share));
   }
 
-  if (!ch->char_specials.post_combat_messages)
-  {
-    if (share > 1)
-      send_to_char(ch, "You receive your share of experience -- %d points.\r\n",
-                   gain_exp(ch, share, GAIN_EXP_MODE_GROUP));
-    else
-    {
-      send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
-      gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
-    }
-  }
-  else
-  {
-    gain_exp(ch, share, GAIN_EXP_MODE_GROUP);
-  }
+  award_kill_experience(ch, share, GAIN_EXP_MODE_GROUP);
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
@@ -2905,19 +2892,47 @@ static void solo_gain(struct char_data *ch, struct char_data *victim)
     exp = MAX(happy_exp, 1);
   }
 
-  if (exp > 1)
-    send_to_char(ch, "You receive %d experience points.\r\n",
-                 gain_exp(ch, exp, GAIN_EXP_MODE_SOLO));
-  else
-  {
-    send_to_char(ch, "You receive one lousy experience point.\r\n");
-    gain_exp(ch, exp, GAIN_EXP_MODE_SOLO);
-  }
+  award_kill_experience(ch, exp, GAIN_EXP_MODE_SOLO);
 
 #if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
   change_alignment(ch, victim);
 #endif
 }
+
+static int award_kill_experience(struct char_data *ch, int exp, int mode)
+{
+  int gained = gain_exp(ch, exp, mode);
+
+  if (ch->char_specials.post_combat_messages)
+  {
+    ch->char_specials.post_combat_exp = gained;
+    return gained;
+  }
+
+  if (gained > 1)
+  {
+    if (mode == GAIN_EXP_MODE_GROUP)
+      send_to_char(ch, "You receive your share of experience -- %d points.\r\n", gained);
+    else
+      send_to_char(ch, "You receive %d experience points.\r\n", gained);
+  }
+  else if (gained == 1)
+  {
+    if (mode == GAIN_EXP_MODE_GROUP)
+      send_to_char(ch, "You receive your share of experience -- one measly little point!\r\n");
+    else
+      send_to_char(ch, "You receive one lousy experience point.\r\n");
+  }
+
+  return gained;
+}
+
+#ifdef LUMINARI_CUTEST
+int test_award_kill_experience(struct char_data *ch, int exp, int mode)
+{
+  return award_kill_experience(ch, exp, mode);
+}
+#endif
 
 /* this function replaces the #w or #W with an appropriate weapon
    constant dependent on plural or not */
