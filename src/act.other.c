@@ -34,7 +34,7 @@
 #include "character/class.h"
 #include "combat/fight.h"
 #include "comms/mail.h" /* for has_mail() */
-#include "shop.h"
+#include "obj/shop.h"
 #include "quest/quest.h"
 #include "modify.h"
 #include "character/race.h"

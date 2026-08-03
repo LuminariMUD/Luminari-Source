@@ -31,7 +31,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/character/race.h"
 #include "../../src/roleplay.h"
-#include "../../src/shop.h"
+#include "../../src/obj/shop.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/onboarding.h"
 

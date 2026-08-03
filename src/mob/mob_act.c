@@ -25,7 +25,7 @@
 #include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "quest/quest.h"         /* so you can identify questmaster mobiles */
 #include "dgscript/dg_scripts.h" /* so you can identify script mobiles */
 #include "character/evolutions.h"

@@ -17,7 +17,7 @@
 #include "genolc.h"
 #include "oasis.h"
 #include "improved-edit.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "screen.h"
 #include "constants.h"
 #include "dgscript/dg_scripts.h"

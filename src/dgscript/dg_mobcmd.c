@@ -22,8 +22,8 @@
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "combat/fight.h"
-#include "shop.h" /* shop keepers and mhunt */
-#include "clan.h" /* clan system */
+#include "obj/shop.h" /* shop keepers and mhunt */
+#include "clan.h"     /* clan system */
 
 /* Local file scope functions. */
 static void mob_log(char_data *mob, const char *format, ...);

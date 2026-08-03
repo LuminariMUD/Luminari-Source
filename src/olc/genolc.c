@@ -14,7 +14,7 @@
 #include "db.h"
 #include "handler.h"
 #include "comm.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "oasis.h"
 #include "genolc.h"
 #include "genwld.h"

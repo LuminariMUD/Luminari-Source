@@ -25,7 +25,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "wilderness/wilderness.h"
-#include "shop.h" /* shopkeepers hunting?! */
+#include "obj/shop.h" /* shopkeepers hunting?! */
 #include "character/evolutions.h"
 #include "character/perks.h"
 

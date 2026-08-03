@@ -190,7 +190,7 @@ circle_SOURCES = \
 	src/roleplay.c \
 	src/routing.c \
 	src/olc/sedit.c \
-	src/shop.c \
+	src/obj/shop.c \
 	src/combat/spec_abilities.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
@@ -204,7 +204,7 @@ circle_SOURCES = \
 	src/character/study.c \
 	src/olc/tedit.c \
 	src/character/templates.c \
-	src/trade.c \
+	src/obj/trade.c \
 	src/vessels/transport.c \
 	src/traps_new.c \
 	src/treasure.c \

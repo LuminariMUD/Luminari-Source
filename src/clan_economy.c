@@ -18,7 +18,7 @@
 #include "handler.h"
 #include "interpreter.h"
 #include "clan.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "constants.h"
 
 /* External variables */

@@ -25,7 +25,7 @@
 #include "act.h"
 #include "character/class.h"
 #include "fight.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "quest/quest.h"
 #include "mud_event.h"
 #include "spec_procs.h"

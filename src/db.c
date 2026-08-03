@@ -36,7 +36,7 @@
 #include "config.h"     /* for the default config values. */
 #include "combat/fight.h"
 #include "modify.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "quest/quest.h"
 #include "comms/ibt.h"
 #include "spec_artifacts.h"

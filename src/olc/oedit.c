@@ -15,7 +15,7 @@
 #include "db.h"
 #include "comms/boards.h"
 #include "constants.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "genolc.h"
 #include "genobj.h"
 #include "genzon.h"

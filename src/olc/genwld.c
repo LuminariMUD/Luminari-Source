@@ -15,7 +15,7 @@
 #include "genolc.h"
 #include "genwld.h"
 #include "genzon.h"
-#include "shop.h"
+#include "obj/shop.h"
 #include "dgscript/dg_olc.h"
 #include "mud_event.h"
 #include "wilderness/wilderness.h"
