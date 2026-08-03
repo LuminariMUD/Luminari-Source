@@ -99,6 +99,42 @@ void Test_sharpened_edge_duration_is_ten_minutes_per_level(CuTest *tc)
     affect_remove_no_total(&ch, ch.affected);
 }
 
+void Test_group_heal_restores_health_and_cures_blindness(CuTest *tc)
+{
+  struct char_data ch;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int starting_hit_points;
+
+  clear_char(&ch);
+  memset(&room, 0, sizeof(room));
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+
+  world = &room;
+  top_of_world = 0;
+  room.people = &ch;
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "group heal test character";
+  IN_ROOM(&ch) = 0;
+  GET_LEVEL(&ch) = 20;
+  GET_REAL_MAX_HIT(&ch) = 100;
+  GET_MAX_HIT(&ch) = 100;
+  GET_HIT(&ch) = 10;
+  SET_BIT_AR(AFF_FLAGS(&ch), AFF_BLIND);
+  starting_hit_points = GET_HIT(&ch);
+
+  mag_groups(GET_LEVEL(&ch), &ch, NULL, SPELL_GROUP_HEAL, SAVING_WILL, CAST_SPELL);
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssertTrue(tc, GET_HIT(&ch) > starting_hit_points);
+  CuAssertTrue(tc, !AFF_FLAGGED(&ch, AFF_BLIND));
+}
+
 void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
 {
   struct char_data ch;

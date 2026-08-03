@@ -10490,6 +10490,7 @@ static void perform_mag_groups(int level, struct char_data *ch, struct char_data
     break;
   case SPELL_GROUP_HEAL:
     mag_points(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
+    mag_unaffects(level, ch, tch, obj, SPELL_HEAL, savetype, casttype);
     break;
   case SPELL_COMMUNAL_MOUNT:
     mag_summons(level, tch, NULL, SPELL_MOUNT, savetype, casttype);
