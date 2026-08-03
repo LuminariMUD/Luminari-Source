@@ -11,7 +11,7 @@
 #include "db.h"
 #include "vessels.h"
 #include "wilderness/wilderness.h"
-#include "narrative_weaver.h"
+#include "wilderness/narrative_weaver.h"
 
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];
 

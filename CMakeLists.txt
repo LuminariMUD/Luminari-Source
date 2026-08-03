@@ -440,7 +440,7 @@ set(SRC_C_FILES
     src/db_startup_init.c
     src/db_admin_commands.c
     src/character/deities.c
-    src/desc_engine.c
+    src/wilderness/desc_engine.c
     src/dgscript/dg_comm.c
     src/net/discord_bridge.c
     src/dgscript/dg_db_scripts.c
@@ -611,7 +611,7 @@ set(SRC_C_FILES
     src/wilderness/spatial_audio.c
     src/wilderness/terrain_bridge.c
     src/wilderness/region_hints.c
-    src/narrative_weaver.c
+    src/wilderness/narrative_weaver.c
     src/net/onboarding.c
     src/net/i3_client.c
     src/net/i3_commands.c

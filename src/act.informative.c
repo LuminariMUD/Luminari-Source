@@ -39,7 +39,7 @@
 #include "character/feats.h"
 #include "combat/assign_wpn_armor.h"
 #include "magic/domains_schools.h"
-#include "desc_engine.h"
+#include "wilderness/desc_engine.h"
 #include "craft/crafts.h"
 #include "craft/alchemy.h"
 #include "character/premadebuilds.h"
