@@ -6,8 +6,15 @@ on:
       - 'src/**'
       - 'unittests/**'
       - 'scripts/world/**'
+      - 'scripts/development/generate-web-guides.sh'
+      - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
       - 'lib/world/minimal/**'
+      - 'docs/world_game-data/**'
+      - 'docs/world/STARTER_AREA.md'
+      - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
+      - 'docs/guides/OLC_SpecProcs.md'
+      - 'docs/web/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
@@ -19,8 +26,15 @@ on:
       - 'src/**'
       - 'unittests/**'
       - 'scripts/world/**'
+      - 'scripts/development/generate-web-guides.sh'
+      - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
       - 'lib/world/minimal/**'
+      - 'docs/world_game-data/**'
+      - 'docs/world/STARTER_AREA.md'
+      - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
+      - 'docs/guides/OLC_SpecProcs.md'
+      - 'docs/web/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
@@ -43,11 +57,25 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install documentation dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
       - name: Run world-data tool tests
         run: python -m unittest discover -s scripts/world/tests -t scripts/world -v
 
       - name: Check extracted constants
         run: python scripts/world/wtool.py constants sync --check
+
+      - name: Check world-building documentation
+        run: python scripts/world/wtool.py docs --check
+
+      - name: Smoke test compatibility wrapper
+        run: |
+          lib/world/validate-zone.sh 100 \
+            --world-root scripts/world/tests/fixtures/phase2/complete \
+            --json >/dev/null
 
   build:
     name: Behavioral tests (${{ matrix.campaign.name }})
@@ -109,7 +137,7 @@ jobs:
           sudo apt-get install -y \
             autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
             libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client \
-            mariadb-server zlib1g-dev
+            mariadb-server pandoc zlib1g-dev
 
       - name: Copy config headers
         run: |

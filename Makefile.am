@@ -370,6 +370,7 @@ world_tool_sources = \
 	scripts/world/tests/test_shops.py \
 	scripts/world/tests/test_source.py \
 	scripts/world/tests/test_triggers.py \
+	scripts/world/tests/test_wrapper.py \
 	scripts/world/tests/test_zones.py \
 	scripts/world/tests/fixtures/phase1/valid/100.zon \
 	scripts/world/tests/fixtures/phase1/valid/100.wld \
@@ -544,12 +545,19 @@ EXTRA_DIST = \
 test: check test-autorun-supervision test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
-.PHONY: test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
+.PHONY: check-world-docs test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-vessel-tooling
 
-test-world-tools:
-	python3 -m unittest discover -s scripts/world/tests -t scripts/world -v
+check-world-docs:
+	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
+	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py docs --check
+
+test-world-tools: check-world-docs
+	cd "$(abs_top_srcdir)" && python3 -m unittest discover -s scripts/world/tests -t scripts/world -v
+	"$(abs_top_srcdir)/lib/world/validate-zone.sh" 100 \
+		--world-root "$(abs_top_srcdir)/scripts/world/tests/fixtures/phase2/complete" \
+		--json >/dev/null
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser

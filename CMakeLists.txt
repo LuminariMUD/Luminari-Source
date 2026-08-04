@@ -821,6 +821,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_shops.py
     scripts/world/tests/test_source.py
     scripts/world/tests/test_triggers.py
+    scripts/world/tests/test_wrapper.py
     scripts/world/tests/test_zones.py
     scripts/world/tests/fixtures/phase1/valid/100.zon
     scripts/world/tests/fixtures/phase1/valid/100.wld
@@ -853,12 +854,23 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase2/complete/zon/index
     scripts/world/tests/fixtures/phase2/complete/zon/index.mini)
 
+add_custom_target(check-world-docs
+    COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check
+    COMMAND Python3::Interpreter scripts/world/wtool.py docs --check
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    SOURCES ${WORLD_TOOL_SOURCES}
+    COMMENT "Checking world-data constants and documentation")
+
 add_custom_target(test-world-tools
     COMMAND Python3::Interpreter -m unittest discover
             -s scripts/world/tests -t scripts/world -v
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100
+            --world-root
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     SOURCES ${WORLD_TOOL_SOURCES}
     COMMENT "Running standalone world-data tool tests")
+add_dependencies(test-world-tools check-world-docs)
 
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
@@ -950,7 +962,20 @@ if (BUILD_TESTS)
     add_test(NAME world-tools
         COMMAND Python3::Interpreter -m unittest discover
                 -s scripts/world/tests -t scripts/world -v)
-    set_tests_properties(world-tools PROPERTIES
+    add_test(NAME world-tool-constants
+        COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check)
+    add_test(NAME world-tool-docs
+        COMMAND Python3::Interpreter scripts/world/wtool.py docs --check)
+    add_test(NAME world-tool-wrapper
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/lib/world/validate-zone.sh 100
+                --world-root
+                ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete)
+    set_tests_properties(
+        world-tools
+        world-tool-constants
+        world-tool-docs
+        world-tool-wrapper
+        PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME autorun-supervision

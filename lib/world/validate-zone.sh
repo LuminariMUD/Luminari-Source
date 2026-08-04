@@ -1,33 +1,66 @@
 #!/usr/bin/env bash
-# Validate a specific zone's files and basic syntax
+# Compatibility entry point for validating one world-data zone package.
+
 set -euo pipefail
 
-ZONE=${1:-}
-if [ -z "$ZONE" ]; then
-  echo "Usage: $0 <zone_number>" >&2
+usage()
+{
+  echo "Usage: $0 <zone_number> [wtool options]" >&2
+}
+
+if [ "$#" -lt 1 ]; then
+  usage
   exit 1
 fi
 
-echo "Validating zone $ZONE..."
+zone_number=$1
+shift
 
-# Check file exists
-for ext in wld mob obj zon; do
-  if [ ! -f "lib/world/${ext}/${ZONE}.${ext}" ]; then
-    echo "WARNING: Missing ${ZONE}.${ext}"
-  fi
-done
+case "$zone_number" in
+  ''|*[!0-9]*)
+    echo "validate-zone.sh: zone_number must be a non-negative integer" >&2
+    exit 2
+    ;;
+esac
 
-# Check for syntax
-if [ -x ./bin/circle ]; then
-  ./bin/circle -c -q 2>&1 | grep -Ei "error|warning" | grep -E "${ZONE}" || true
-elif [ -x ./bin/circle.exe ]; then
-  ./bin/circle.exe -c -q 2>&1 | grep -Ei "error|warning" | grep -E "${ZONE}" || true
-else
-  echo "WARNING: circle binary not found in ./bin, skipping syntax check"
+script_dir=$(CDPATH='' cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+repo_root=$(CDPATH='' cd -- "$script_dir/../.." && pwd -P)
+wtool_path="$repo_root/scripts/world/wtool.py"
+
+if [ ! -f "$wtool_path" ]; then
+  echo "validate-zone.sh: wtool entry point not found at $wtool_path" >&2
+  exit 2
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "validate-zone.sh: python3 is required" >&2
+  exit 2
 fi
 
-# Check for terminators
-echo "Checking terminators..."
-grep -L "~$" lib/world/*/${ZONE}.* 2>/dev/null || true
+global_args=()
+validate_args=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --json)
+      global_args+=("$1")
+      shift
+      ;;
+    --world-root|--config|--ignore-code)
+      if [ "$#" -lt 2 ]; then
+        echo "validate-zone.sh: $1 requires a value" >&2
+        exit 2
+      fi
+      global_args+=("$1" "$2")
+      shift 2
+      ;;
+    --world-root=*|--config=*|--ignore-code=*)
+      global_args+=("$1")
+      shift
+      ;;
+    *)
+      validate_args+=("$1")
+      shift
+      ;;
+  esac
+done
 
-echo "Validation complete"
+exec python3 "$wtool_path" "${global_args[@]}" validate --zone "$zone_number" "${validate_args[@]}"
