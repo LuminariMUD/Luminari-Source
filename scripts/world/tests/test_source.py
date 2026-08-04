@@ -27,6 +27,12 @@ class SourceCursorTests(unittest.TestCase):
     self.assertEqual("value", second.text)
     self.assertEqual(4, second.number)
 
+  def test_unread_raw_replays_the_last_consumed_line(self) -> None:
+    cursor = SourceCursor(self.source(b"one\ntwo\n"))
+    self.assertEqual("one", cursor.read_raw().text)
+    cursor.unread_raw()
+    self.assertEqual("one", cursor.read_raw().text)
+
   def test_tilde_string_tracks_lines_and_normalizes_crlf(self) -> None:
     cursor = SourceCursor(self.source(b"first\nsecond~\r\nnext\n"))
     value = cursor.read_tilde_string()

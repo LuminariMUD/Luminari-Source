@@ -178,7 +178,12 @@ def _dataset_paths(world_root: Path, extension: str, mini: bool) -> tuple[Path, 
   return directory / name, f"{extension}/{name}"
 
 
-def validate_indexes(world_root: Path, repo_root: Path, mini: bool = False) -> ValidationResult:
+def validate_indexes(
+    world_root: Path,
+    repo_root: Path,
+    mini: bool = False,
+    selected_packages: set[int] | None = None,
+) -> ValidationResult:
   mode = "mini" if mini else "all"
   result = ValidationResult(normalized_root_label(world_root, repo_root), mode)
   parsed_indexes: list[ParsedIndex] = []
@@ -219,6 +224,9 @@ def validate_indexes(world_root: Path, repo_root: Path, mini: bool = False) -> V
     )
     for name in conventional:
       if name not in indexed:
+        package_number = int(name.split(".", 1)[0])
+        if selected_packages is not None and package_number not in selected_packages:
+          continue
         result.findings.append(
             _finding(
                 "IDX008",
@@ -230,3 +238,25 @@ def validate_indexes(world_root: Path, repo_root: Path, mini: bool = False) -> V
 
   result.config = {"index_mode": mode}
   return result
+
+
+def indexed_data_paths(world_root: Path, extension: str, mini: bool = False) -> list[Path]:
+  """Return existing, safe files in the same order as the selected index."""
+
+  index_path, _ = _dataset_paths(world_root, extension, mini)
+  if not index_path.is_file():
+    return []
+  paths: list[Path] = []
+  try:
+    tokens = _index_tokens(index_path.read_bytes())
+  except OSError:
+    return []
+  for token, _ in tokens:
+    if token.startswith("$"):
+      break
+    if not is_safe_path_component(token) or Path(token).suffix != f".{extension}":
+      continue
+    path = index_path.parent / token
+    if path.is_file():
+      paths.append(path)
+  return paths

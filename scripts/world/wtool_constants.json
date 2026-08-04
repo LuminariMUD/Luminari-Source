@@ -38,6 +38,22 @@
       "source": "src/structs.h:MAX_WEAPON_SPELLS",
       "value": 3
     },
+    "NUM_CITIES": {
+      "source": "src/structs.h:NUM_CITIES (LUMINARI branch)",
+      "value": 3
+    },
+    "NUM_FACTIONS": {
+      "source": "src/structs.h:NUM_FACTIONS (LUMINARI branch)",
+      "value": 4
+    },
+    "NUM_REGIONS": {
+      "source": "src/structs.h:NUM_REGIONS (LUMINARI branch)",
+      "value": 14
+    },
+    "NUM_WEARS": {
+      "source": "src/structs.h:NUM_WEARS",
+      "value": 43
+    },
     "READ_SIZE": {
       "source": "src/utils.h:READ_SIZE",
       "value": 512

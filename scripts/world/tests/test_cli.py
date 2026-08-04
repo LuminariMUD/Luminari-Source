@@ -25,7 +25,13 @@ def make_world(root: Path) -> None:
     directory = root / extension
     directory.mkdir(parents=True, exist_ok=True)
     (directory / "index").write_text(f"1.{extension}\n$\n", encoding="ascii")
-    (directory / f"1.{extension}").write_text("#1\n$\n", encoding="ascii")
+    if extension == "zon":
+      content = "#1\nBuilder~\nTest Zone~\n100 199 30 2\nS\n$\n"
+    elif extension == "wld":
+      content = "#100\nTest Room~\nA test room.~\n1 0 0 0 0 0\nS\n$~\n"
+    else:
+      content = "#1\n$\n"
+    (directory / f"1.{extension}").write_text(content, encoding="ascii")
 
 
 def tree_hash(root: Path) -> str:
@@ -73,6 +79,42 @@ class CliTests(unittest.TestCase):
     self.assertEqual(2, status)
     self.assertEqual("", stdout)
     self.assertIn("inaccessible", stderr)
+
+  def test_zone_selector_requires_a_readable_zone_package(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      status, stdout, stderr = run_cli(
+          ["--world-root", str(root), "--json", "validate", "--zone", "999"]
+      )
+      self.assertEqual(1, status)
+      self.assertEqual("", stderr)
+      payload = json.loads(stdout)
+      self.assertIn("IDX013", {finding["code"] for finding in payload["findings"]})
+
+  def test_zone_selector_merges_an_unindexed_canonical_package(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      (root / "zon/2.zon").write_text(
+          "#2\nBuilder~\nUnindexed~\n200 299 30 2\nS\n$\n",
+          encoding="ascii",
+      )
+      (root / "wld/2.wld").write_text(
+          "#200\nUnindexed Room~\nAn unindexed room.~\n2 0 0 0 0 0\nS\n$~\n",
+          encoding="ascii",
+      )
+      before = tree_hash(root)
+      status, stdout, stderr = run_cli(
+          ["--world-root", str(root), "--json", "validate", "--zone", "2"]
+      )
+      self.assertEqual(0, status)
+      self.assertEqual("", stderr)
+      payload = json.loads(stdout)
+      self.assertEqual("zone", payload["mode"])
+      self.assertEqual([2], payload["config"]["selected_zones"])
+      self.assertIn("IDX008", {finding["code"] for finding in payload["findings"]})
+      self.assertEqual(before, tree_hash(root))
 
 
 if __name__ == "__main__":

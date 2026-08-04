@@ -1,0 +1,15 @@
+#11400
+Disabled Diagonal~
+This room has a diagonal exit.~
+114 0 0 0 0 0
+D6
+Diagonal exit.~
+door~
+1 -1 11401
+S
+#11401
+Diagonal Target~
+This room is the target.~
+114 0 0 0 0 0
+S
+$~

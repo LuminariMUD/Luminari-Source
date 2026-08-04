@@ -7,23 +7,33 @@ date.
 Implementation progress:
 
 - [x] Phase 0 - Foundation, constants, and indexes
-- [ ] Phase 1 - Zones, rooms, and critical references
+- [x] Phase 1 - Zones, rooms, and critical references
 - [ ] Phase 2 - Mobiles, objects, triggers, shops, and full references
 - [ ] Phase 3 - Semantic and topology lint
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phase 0 is implemented. The source-derived
-manifest contains all selected tables, bounded macros, aliases, reserved
-entries, encoding metadata, and parser limits. The source cursor, typed finding
-and record models, deterministic reporters, four-chunk flag commands, normal
-and mini index validation, Autotools/CMake test targets, and lightweight CI job
-are in place. `make test-world-tools` passes 32 tests; the equivalent CMake
-target and CTest entry pass the same suite; `constants sync --check` is clean.
-The Phase 0 index-only development-world run completed with no errors and 329
-`IDX008` unlisted-file warnings, while mini mode completed with no findings.
-Phase 1 zone and room parsing is next. Phase 5 remains the separately gated
-emitter follow-on described below and is not part of this validator closeout.
+Current checkpoint (2026-08-04): Phases 0 and 1 are implemented. In addition
+to the source-derived constants, source cursor, deterministic reporting, index
+validation, and build integration from Phase 0, `wtool` now parses zones and
+rooms, models reset queue and host state, validates room ownership and load
+order, and checks exits, moving-room links, reset room targets, door targets,
+and persisted room spec-proc names. `validate --zone` merges unindexed
+canonical packages into the normal reference graph, while `validate --paths`
+remains isolated from the live world.
+
+`make test-world-tools` passes 56 tests; the equivalent CMake target and CTest
+entry pass the same suite; `constants sync --check` is clean. The tracked
+artifact and minimal zone/room bundles parse without errors and remain
+byte-for-byte unchanged. A hash-guarded `validate --all` development-world run
+completed in one pass without changing any file. It reported 57 errors:
+`REF001` 9, `REF003` 38, `WLD014` 1, `WLD040` 4, `WLD041` 1, `ZON028` 1,
+`ZON037` 1, and `ZON043` 2. It also reported 565 warnings: `IDX008` 329,
+`ZON027` 230, `ZON033` 2, `ZON036` 3, and `ZON037` 1. These are operational
+findings in ignored builder-owned data, not test failures or repository data
+changes. Phase 2 format parsers and full reference coverage are next. Phase 5
+remains the separately gated emitter follow-on and is not part of this
+validator closeout.
 
 This is the build plan for `wtool`, a standalone world-data validator and
 lookup CLI intended primarily for AI agents doing world-building work, and

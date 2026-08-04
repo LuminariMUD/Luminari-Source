@@ -129,6 +129,7 @@ class ResetCommandRecord:
   string_arguments: list[str]
   span: SourceSpan
   effective: bool = True
+  probability: int | None = None
 
 
 @dataclass(slots=True)
@@ -145,6 +146,11 @@ class ZoneRecord:
   flags: list[str] = field(default_factory=list)
   min_level: int | None = None
   max_level: int | None = None
+  show_weather: int | None = None
+  region: int | None = None
+  faction: int | None = None
+  city: int | None = None
+  header_field_count: int = 0
   commands: list[ResetCommandRecord] = field(default_factory=list)
   complete: bool = True
 
@@ -154,6 +160,25 @@ class MovingConnectionRecord:
   room_vnum: int
   direction: int
   repeat: int
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class ExtraDescriptionRecord:
+  keywords: str | None
+  description: str | None
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class MovingRoomRecord:
+  inbound_direction: int
+  reset_pulses: int
+  random_move: int
+  exit_info: int
+  key_vnum: int
+  messages: list[str | None]
+  connections: list[MovingConnectionRecord]
   span: SourceSpan
 
 
@@ -168,10 +193,13 @@ class RoomRecord:
   flags: list[str] = field(default_factory=list)
   sector: int | None = None
   exits: list[ExitRecord] = field(default_factory=list)
+  extra_descriptions: list[ExtraDescriptionRecord] = field(default_factory=list)
   attachments: list[AttachmentRecord] = field(default_factory=list)
   moving_connections: list[MovingConnectionRecord] = field(default_factory=list)
+  moving_room: MovingRoomRecord | None = None
   spec_proc: str | None = None
   coordinates: tuple[int, int] | None = None
+  owner_zone_vnum: int | None = None
   complete: bool = True
 
 

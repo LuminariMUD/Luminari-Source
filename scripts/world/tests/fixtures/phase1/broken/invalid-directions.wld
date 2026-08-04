@@ -1,0 +1,16 @@
+#11800
+Invalid Directions~
+This room uses directions beyond the Luminari table.~
+118 0 0 0 0 0
+D10
+Invalid exit.~
+door~
+1 -1 11800
+M 10 5 0 0 -1
+Transit message.
+Docking message.
+Destination message.
+11800 10 1
+~
+S
+$~

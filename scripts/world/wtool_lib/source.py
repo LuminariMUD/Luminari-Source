@@ -106,6 +106,13 @@ class SourceCursor:
       self.position += 1
     return line
 
+  def unread_raw(self) -> None:
+    """Return the most recently consumed physical line to the cursor."""
+
+    if self.position <= 0:
+      raise ValueError("cannot unread before the beginning of a source file")
+    self.position -= 1
+
   def read_significant(self) -> SourceLine | None:
     """Match get_line(): skip only empty physical lines and column-zero '*'."""
 
@@ -130,6 +137,7 @@ class SourceCursor:
     total = 0
     end_line = start.number
     terminated = False
+    length_reported = False
 
     while not self.eof:
       line = self.read_raw()
@@ -155,7 +163,7 @@ class SourceCursor:
       pieces.append(piece)
       total += len(piece)
 
-      if total >= max_length:
+      if total >= max_length and not length_reported:
         issues.append(
             SourceIssue(
                 "SRC003",
@@ -164,6 +172,7 @@ class SourceCursor:
                 True,
             )
         )
+        length_reported = True
       if terminated:
         break
 

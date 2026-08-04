@@ -18,9 +18,10 @@ from .constants import (
     write_manifest,
 )
 from .flags import FLAG_SETS, decode_tokens, decoded_entries, encode_bits, resolve_names, resolve_set
-from .indexes import normalized_root_label, validate_indexes
+from .indexes import normalized_root_label
 from .models import TOOL_VERSION
 from .reporting import exit_status, render_human, render_json
+from .world import validate_explicit_paths, validate_indexed_world
 
 
 def _default_world_root() -> Path:
@@ -43,6 +44,8 @@ def _parser() -> argparse.ArgumentParser:
   selector = validate.add_mutually_exclusive_group(required=True)
   selector.add_argument("--all", action="store_true", dest="all_world")
   selector.add_argument("--mini", action="store_true")
+  selector.add_argument("--zone", type=int, nargs="+")
+  selector.add_argument("--paths", type=Path, nargs="+")
   validate.add_argument("--strict", action="store_true")
 
   flags = commands.add_parser("flags", help="list, decode, or encode flat-file flags")
@@ -167,13 +170,34 @@ def _run_constants(args: argparse.Namespace) -> int:
 
 def _run_validate(args: argparse.Namespace) -> int:
   repo_root = default_repo_root()
-  world_root = args.world_root.resolve()
-  if not world_root.is_dir():
-    raise ConfigError(f"requested world root is inaccessible: {world_root}")
-  config = resolve_config(world_root, args.config)
-  result = validate_indexes(world_root, repo_root, mini=args.mini)
-  result.root_label = normalized_root_label(world_root, repo_root)
-  result.config.update(config)
+  manifest = _load_default_manifest()
+  if args.paths:
+    requested_paths = [path.resolve() for path in args.paths]
+    inaccessible = [path for path in requested_paths if not path.exists()]
+    if inaccessible:
+      raise ConfigError(f"requested validation path is inaccessible: {inaccessible[0]}")
+    if args.config is not None:
+      config = resolve_config(Path("/__wtool_isolated__"), args.config)
+    else:
+      config = {"diagonal_dirs": False, "config_source": "source-default", "assumed": True}
+    result = validate_explicit_paths(requested_paths, repo_root, manifest, config)
+  else:
+    world_root = args.world_root.resolve()
+    if not world_root.is_dir():
+      raise ConfigError(f"requested world root is inaccessible: {world_root}")
+    config = resolve_config(world_root, args.config)
+    selected_zones = set(args.zone) if args.zone else None
+    if selected_zones is not None and any(zone < 0 for zone in selected_zones):
+      raise ConfigError("zone selectors must be non-negative integers")
+    result = validate_indexed_world(
+        world_root,
+        repo_root,
+        manifest,
+        config,
+        mini=bool(args.mini),
+        selected_packages=selected_zones,
+    )
+    result.root_label = normalized_root_label(world_root, repo_root)
   ignored_codes = set(args.ignore_code)
   if args.json_output:
     sys.stdout.write(render_json(result, ignored_codes))

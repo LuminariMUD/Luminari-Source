@@ -95,6 +95,7 @@ LIMIT_SPECS = {
     "MAX_OBJ_AFFECT": "src/structs.h",
     "MAX_WEAPON_SPELLS": "src/structs.h",
     "MAX_MOVING_ROOMS": "src/structs.h",
+    "NUM_WEARS": "src/structs.h",
     "MAX_SHOP_OBJ": "src/obj/shop.h",
     "RQ_MAXSIZE": "src/db.h",
 }
@@ -436,6 +437,26 @@ def _extract_limit(repo_root: Path, symbol: str, source_path: str) -> int:
   raise ExtractionError(f"cannot extract {symbol} from {source_path}")
 
 
+def _extract_branch_limit(
+    repo_root: Path,
+    symbol: str,
+    start_marker: str,
+    end_marker: str,
+) -> int:
+  text = (repo_root / "src/structs.h").read_text(encoding="utf-8")
+  start = text.find(start_marker)
+  if start < 0:
+    raise ExtractionError(f"cannot find branch marker {start_marker!r}")
+  conditional = text.find("#if", start)
+  end = text.find(end_marker, conditional)
+  if conditional < 0 or end < 0:
+    raise ExtractionError(f"cannot bound branch constant {symbol}")
+  values, _ = _parse_defines(text[conditional:end])
+  if symbol not in values:
+    raise ExtractionError(f"cannot extract {symbol} from Luminari branch")
+  return values[symbol]
+
+
 def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   root = (repo_root or default_repo_root()).resolve()
   constants_text = (root / "src/constants.c").read_text(encoding="utf-8")
@@ -507,6 +528,18 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
           "source": f"{source_path}:{symbol}",
       }
       for symbol, source_path in sorted(LIMIT_SPECS.items())
+  }
+  limits["NUM_CITIES"] = {
+      "value": _extract_branch_limit(root, "NUM_CITIES", "// cities", "/* Positions */"),
+      "source": "src/structs.h:NUM_CITIES (LUMINARI branch)",
+  }
+  limits["NUM_FACTIONS"] = {
+      "value": _extract_branch_limit(root, "NUM_FACTIONS", "/* factions */", "// cities"),
+      "source": "src/structs.h:NUM_FACTIONS (LUMINARI branch)",
+  }
+  limits["NUM_REGIONS"] = {
+      "value": _extract_branch_limit(root, "NUM_REGIONS", "#define NUM_SEX", "/* factions */"),
+      "source": "src/structs.h:NUM_REGIONS (LUMINARI branch)",
   }
   return {
       "schema_version": MANIFEST_SCHEMA_VERSION,

@@ -1,0 +1,35 @@
+#10000
+Fixture Origin~
+The first room in the phase one fixture.~
+100 0 0 0 0 0
+D0
+A plain doorway leads north.~
+door~
+1 -1 10001
+E
+fixture detail~
+This is an extra description.~
+C
+1 2
+M 1 5 0 0 -1
+The room is moving.
+The room docks.
+The destination receives the room.
+10001 3 2
+~
+Z
+Bank
+S
+T 40000
+#10001
+Fixture Destination~
+The second room in the phase one fixture.~
+100 0 0 0 0 1
+D2
+A plain doorway leads south.~
+door~
+1 -1 10000
+C
+2 2
+S
+$~

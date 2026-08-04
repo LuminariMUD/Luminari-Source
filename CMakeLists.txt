@@ -792,14 +792,32 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/flags.py
     scripts/world/wtool_lib/indexes.py
     scripts/world/wtool_lib/models.py
+    scripts/world/wtool_lib/parsing.py
     scripts/world/wtool_lib/reporting.py
+    scripts/world/wtool_lib/rooms.py
     scripts/world/wtool_lib/source.py
+    scripts/world/wtool_lib/spec_registry.py
+    scripts/world/wtool_lib/world.py
+    scripts/world/wtool_lib/zones.py
     scripts/world/tests/__init__.py
     scripts/world/tests/test_cli.py
     scripts/world/tests/test_constants.py
     scripts/world/tests/test_indexes.py
     scripts/world/tests/test_reporting.py
-    scripts/world/tests/test_source.py)
+    scripts/world/tests/test_rooms.py
+    scripts/world/tests/test_source.py
+    scripts/world/tests/test_zones.py
+    scripts/world/tests/fixtures/phase1/valid/100.zon
+    scripts/world/tests/fixtures/phase1/valid/100.wld
+    scripts/world/tests/fixtures/phase1/broken/diagonal.wld
+    scripts/world/tests/fixtures/phase1/broken/header-truncation.zon
+    scripts/world/tests/fixtures/phase1/broken/invalid-directions.wld
+    scripts/world/tests/fixtures/phase1/broken/invalid-directions.zon
+    scripts/world/tests/fixtures/phase1/broken/moving-limit.wld
+    scripts/world/tests/fixtures/phase1/broken/out-of-order.wld
+    scripts/world/tests/fixtures/phase1/broken/prescan.zon
+    scripts/world/tests/fixtures/phase1/broken/reset-traps.zon
+    scripts/world/tests/fixtures/phase1/broken/room-structure.wld)
 
 add_custom_target(test-world-tools
     COMMAND Python3::Interpreter -m unittest discover

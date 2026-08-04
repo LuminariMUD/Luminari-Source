@@ -1,0 +1,14 @@
+#11500
+Oversized Mover~
+This moving room expands to the unsafe boundary.~
+115 0 0 0 0 0
+M 1 5 0 0 -1
+Transit message.
+Docking message.
+Destination message.
+11501 3 200
+11502 3 50
+11503 3 50
+~
+S
+$~
