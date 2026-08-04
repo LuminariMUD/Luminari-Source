@@ -13,13 +13,23 @@ READ_SIZE = 512
 MAX_STRING_LENGTH = 49152
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class SourceLine:
   number: int
-  text: str
   raw: bytes
   newline: bytes
-  span: SourceSpan
+  display_path: str
+  _text: str | None = None
+
+  @property
+  def text(self) -> str:
+    if self._text is None:
+      self._text = self.raw.decode("utf-8", errors="surrogateescape")
+    return self._text
+
+  @property
+  def span(self) -> SourceSpan:
+    return SourceSpan(self.display_path, self.number)
 
   @property
   def byte_length(self) -> int:
@@ -60,14 +70,12 @@ class SourceFile:
     self.lines = []
     for number, raw_line in enumerate(self.data.splitlines(keepends=True), start=1):
       content, newline = _split_newline(raw_line)
-      text = content.decode("utf-8", errors="surrogateescape")
       self.lines.append(
           SourceLine(
               number=number,
-              text=text,
               raw=content,
               newline=newline,
-              span=SourceSpan(self.display_path, number),
+              display_path=self.display_path,
           )
       )
 

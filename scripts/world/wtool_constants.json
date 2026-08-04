@@ -46,6 +46,10 @@
       "source": "src/obj/shop.h:MAX_SHOP_OBJ",
       "value": 100
     },
+    "MAX_SPELLS": {
+      "source": "src/magic/spells.h:MAX_SPELLS",
+      "value": 2000
+    },
     "MAX_STRING_LENGTH": {
       "source": "src/structs.h:MAX_STRING_LENGTH",
       "value": 49152

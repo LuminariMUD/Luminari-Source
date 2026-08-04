@@ -8,14 +8,14 @@ Implementation progress:
 
 - [x] Phase 0 - Foundation, constants, and indexes
 - [x] Phase 1 - Zones, rooms, and critical references
-- [ ] Phase 2 - Mobiles, objects, triggers, shops, and full references
+- [x] Phase 2 - Mobiles, objects, triggers, shops, and full references
 - [ ] Phase 3 - Semantic and topology lint
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phases 0 and 1 are implemented. Phase 2 is
-implemented through its six structural parsers, source-derived wear-slot and
-limit contracts, typed reference edges, and the first complete graph pass. In addition
+Current checkpoint (2026-08-04): Phases 0 through 2 are implemented. Phase 2
+adds all six structural parsers, source-derived wear-slot and limit contracts,
+typed reference edges, and the complete graph pass. In addition
 to the source-derived constants, source cursor, deterministic reporting, index
 validation, and build integration from Phase 0, `wtool` now parses zones and
 rooms, models reset queue and host state, validates room ownership and load
@@ -24,8 +24,8 @@ and persisted room spec-proc names. `validate --zone` merges unindexed
 canonical packages into the normal reference graph, while `validate --paths`
 remains isolated from the live world.
 
-`make test-world-tools` passes 74 tests; the equivalent CMake target and CTest
-entry will be re-run at the Phase 2 boundary; `constants sync --check` is clean. The tracked
+`make test-world-tools` passes 78 tests; the equivalent CMake target and CTest
+entry pass the same suite; `constants sync --check` is clean. The tracked
 artifact and minimal zone/room bundles parse without errors and remain
 byte-for-byte unchanged. A hash-guarded `validate --all` development-world run
 completed in one pass without changing any file. It reported 57 errors:
@@ -35,9 +35,26 @@ completed in one pass without changing any file. It reported 57 errors:
 findings in ignored builder-owned data, not test failures or repository data
 changes. The tracked Phase 2 fixture now covers all six file types, every
 object extension, enhanced mobiles, all trigger host types, modern and legacy
-shops, moving rooms, reset host state, and normal/mini indexes. Parser and
-graph regression coverage is clean; the full development-world triage and
-performance gate are the remaining Phase 2 boundary work. Phase 5
+shops, moving rooms, reset host state, and normal/mini indexes. The real
+artifact bundle remains clean, while the minimal bundle now exposes its two
+out-of-range mobile positions without being modified.
+
+The hash-guarded Phase 2 development-world run loaded 516 zone files with 516
+records, 517 room files with 50,357 records, 517 mobile files with 14,661
+records, 516 object files with 12,261 records, 332 trigger files with 1,974
+records, and 509 shop files with 709 records. A warm JSON run completed in
+7.97 seconds with a 257,792 KiB maximum resident set and did not change any
+world file. It reported 3,627 errors and 9,954 warnings. Error triage found no
+remaining validator bugs: `OBJ021` (2,863) is the source loader's stale-field
+bug on short `A` records, while the remaining 764 errors are builder-owned
+world-data defects or unsafe values. Those remaining errors are `MOB001` 1,
+`MOB010` 350, `MOB014` 99, `MOB015` 3, `MOB018` 2, `OBJ022` 1, `OBJ040` 2,
+`OBJ041` 1, `REF001` 9, `REF003` 38, `REF021` 17, `REF022` 180, `REF023` 48,
+`SHP016` 3, `WLD014` 1, `WLD040` 4, `WLD041` 1, `ZON028` 1, `ZON037` 1, and
+`ZON043` 2. Warning counts are `IDX008` 329, `MOB017` 4,139, `MOB026` 25,
+`OBJ015` 4,819, `OBJ016` 3, `REF025` 87, `REF030` 315, `REF031` 1, `ZON027`
+230, `ZON033` 2, `ZON036` 3, and `ZON037` 1. Phase 3 semantic and topology
+lint is next. Phase 5
 remains the separately gated emitter follow-on and is not part of this
 validator closeout.
 

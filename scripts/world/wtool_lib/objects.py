@@ -339,7 +339,7 @@ def _parse_extensions(
       if payload is not None and payload[0]:
         values, span = payload
         record.spellbook.append((values[0], values[1], span))
-        if not 1 <= values[0] <= manifest["limits"]["NUM_SPELLS"]["value"]:
+        if not 1 <= values[0] <= manifest["limits"]["MAX_SPELLS"]["value"]:
           result.findings.append(
               finding("OBJ024", "error", f"invalid spellbook spell {values[0]}", span, "object", record.vnum)
           )
@@ -439,7 +439,7 @@ def _parse_extensions(
       if payload is not None and payload[0]:
         record.weapon_spells.append(payload)
         spell = payload[0][0]
-        if not 1 <= spell <= manifest["limits"]["NUM_SPELLS"]["value"]:
+        if not 1 <= spell <= manifest["limits"]["MAX_SPELLS"]["value"]:
           result.findings.append(
               finding("OBJ024", "error", f"invalid weapon spell {spell}", payload[1], "object", record.vnum)
           )

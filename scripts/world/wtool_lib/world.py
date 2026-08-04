@@ -164,6 +164,7 @@ def _validate_room_graph(
     direction_count: int,
 ) -> None:
   rooms_by_vnum: dict[int, RoomRecord] = {}
+  owners_by_room: list[list[ZoneRecord]] = [[] for _ in rooms]
   previous: RoomRecord | None = None
   for room in rooms:
     if room.vnum in rooms_by_vnum and _selected(room, selected_packages):
@@ -192,13 +193,28 @@ def _validate_room_graph(
       )
     previous = room
 
-  for room in rooms:
+  ranged_zones = sorted(
+      (zone for zone in zones if zone.bottom is not None and zone.top is not None),
+      key=lambda zone: (zone.bottom, zone.top),
+  )
+  active_zones: list[ZoneRecord] = []
+  zone_index = 0
+  for room_index, room in sorted(enumerate(rooms), key=lambda item: item[1].vnum):
+    active_zones = [zone for zone in active_zones if zone.top is not None and zone.top >= room.vnum]
+    while zone_index < len(ranged_zones):
+      candidate = ranged_zones[zone_index]
+      assert candidate.bottom is not None
+      if candidate.bottom > room.vnum:
+        break
+      assert candidate.top is not None
+      if candidate.top >= room.vnum:
+        active_zones.append(candidate)
+      zone_index += 1
+    owners_by_room[room_index] = list(active_zones)
+
+  for room_index, room in enumerate(rooms):
     emit = _selected(room, selected_packages)
-    owners = [
-        zone
-        for zone in zones
-        if zone.bottom is not None and zone.top is not None and zone.bottom <= room.vnum <= zone.top
-    ]
+    owners = owners_by_room[room_index]
     if len(owners) != 1:
       if emit:
         findings.append(
@@ -262,12 +278,11 @@ def _validate_room_graph(
             )
         )
 
+  initial_scripted_rooms = {room.vnum for room in rooms if room.attachments}
   for zone in zones:
     if not _selected(zone, selected_packages):
       continue
-    scripted_rooms = {
-        room.vnum for room in rooms if room.attachments
-    }
+    scripted_rooms = set(initial_scripted_rooms)
     for command in zone.commands:
       room_vnum: int | None = None
       if command.command in {"M", "O"} and len(command.arguments) >= 3:
@@ -527,6 +542,12 @@ def _validate_full_graph(
       for entry in manifest["tables"]["item-types"]["entries"]
       if entry["macro"] == "ITEM_KEY"
   )
+  container_types = {
+      entry["index"]
+      for entry in manifest["tables"]["item-types"]["entries"]
+      if entry["macro"] in {"ITEM_CONTAINER", "ITEM_AMMO_POUCH"}
+  }
+  key_uses: dict[int, list[tuple[RoomRecord, SourceSpan, str]]] = {}
 
   for record in [*mobiles, *objects, *shops]:
     if not _selected(record, selected_packages):
@@ -541,6 +562,20 @@ def _validate_full_graph(
           reference.span,
           maps,
       )
+      if reference.role.endswith("key"):
+        key = objects_by_vnum.get(reference.target_vnum)
+        if key is not None and key.item_type != item_key:
+          findings.append(
+              Finding(
+                  "REF025",
+                  "warning",
+                  f"{reference.role} {key.vnum} has item type {key.item_type}, not ITEM_KEY",
+                  reference.span,
+                  record_type=type(record).__name__.removesuffix("Record").lower(),
+                  vnum=record.vnum,
+                  related=_related(key, "object"),
+              )
+          )
 
   for room in rooms:
     if not _selected(room, selected_packages):
@@ -561,21 +596,35 @@ def _validate_full_graph(
     for key_vnum, span, role in keys:
       if key_vnum < 0:
         continue
-      key = objects_by_vnum.get(key_vnum)
-      if key is None:
-        _validate_reference(findings, room, "object", key_vnum, role, span, maps)
-      elif key.item_type != item_key:
-        findings.append(
-            Finding(
-                "REF025",
-                "warning",
-                f"{role} {key_vnum} has item type {key.item_type}, not ITEM_KEY",
-                span,
-                record_type="room",
-                vnum=room.vnum,
-                related=_related(key, "object"),
-            )
+      key_uses.setdefault(key_vnum, []).append((room, span, role))
+
+  for key_vnum, uses in key_uses.items():
+    room, span, role = uses[0]
+    key = objects_by_vnum.get(key_vnum)
+    if key is None:
+      for source_room, source_span, source_role in uses:
+        _validate_reference(
+            findings,
+            source_room,
+            "object",
+            key_vnum,
+            source_role,
+            source_span,
+            maps,
         )
+    elif key.item_type != item_key:
+      count_suffix = f" ({len(uses)} key uses)" if len(uses) > 1 else ""
+      findings.append(
+          Finding(
+              "REF025",
+              "warning",
+              f"{role} {key_vnum} has item type {key.item_type}, not ITEM_KEY{count_suffix}",
+              span,
+              record_type="room",
+              vnum=room.vnum,
+              related=_related(key, "object"),
+          )
+      )
 
   for record, host_type in [
       *((record, "mobile") for record in mobiles),
@@ -626,6 +675,20 @@ def _validate_full_graph(
             command.span,
             maps,
         )
+        container = objects_by_vnum.get(command.arguments[2])
+        if container is not None and container.item_type not in container_types:
+          findings.append(
+              Finding(
+                  "REF031",
+                  "warning",
+                  f"P reset target {container.vnum} has item type {container.item_type}; "
+                  "expected ITEM_CONTAINER or ITEM_AMMO_POUCH",
+                  command.span,
+                  record_type="zone",
+                  vnum=zone.vnum,
+                  related=_related(container, "object"),
+              )
+          )
       if command.command == "E" and len(command.arguments) >= 3:
         obj = objects_by_vnum.get(command.arguments[0])
         position = command.arguments[2]

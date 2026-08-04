@@ -97,6 +97,7 @@ LIMIT_SPECS = {
     "MAX_MOVING_ROOMS": "src/structs.h",
     "NUM_WEARS": "src/structs.h",
     "MAX_SHOP_OBJ": "src/obj/shop.h",
+    "MAX_SPELLS": "src/magic/spells.h",
     "MAX_PROD": "src/obj/shop.h",
     "MAX_TRADE": "src/obj/shop.h",
     "NUM_ATTACK_TYPES": "src/structs.h",

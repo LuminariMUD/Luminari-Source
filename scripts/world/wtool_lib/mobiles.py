@@ -211,12 +211,14 @@ def _parse_simple(
         ("hit", values[3], values[4]),
         ("damage", values[6], values[7]),
     ):
-      if count < 0 or size <= 0:
+      invalid = count < 0 or size < 0 or ((count == 0) != (size == 0))
+      if invalid:
         result.findings.append(
             finding(
                 "MOB015",
                 "error",
-                f"{label} dice {count}d{size} require a non-negative count and positive size",
+                f"{label} dice {count}d{size} require non-negative values and must use "
+                "0d0 only as a complete legacy sentinel",
                 dice_line.span,
                 "mobile",
                 record.vnum,
