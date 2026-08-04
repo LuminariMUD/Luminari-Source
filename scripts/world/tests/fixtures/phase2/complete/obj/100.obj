@@ -1,0 +1,68 @@
+#20000
+fixture weapon~
+a fixture weapon~
+A fixture weapon is here.~
+~
+5 0 0 0 0 8193 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 10 0
+A
+1 2 3 4
+B
+1 5
+C
+53 10 4 10000 0 0 0 summon
+E
+fixture weapon~
+This description exercises the object E extension.~
+G
+1
+H
+1
+I
+5
+J
+10000
+R
+fixture-weapon
+K
+10 1 1 2 3
+P
+S
+1 10 25 1
+T 30001
+Z
+bank
+#20001
+fixture equipped weapon~
+an equipped fixture weapon~
+An equipped fixture weapon is here.~
+~
+5 0 0 0 0 8193 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 10 0
+#20002
+fixture container~
+a fixture container~
+A fixture container is here.~
+~
+15 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
+100 0 -1 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 10 0
+#20003
+fixture light~
+a fixture light~
+A fixture light is here.~
+~
+1 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 10 0
+#20004
+fixture key~
+a fixture key~
+A fixture key is here.~
+~
+18 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+1 100 0 10 0
+$
