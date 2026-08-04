@@ -889,7 +889,7 @@ void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
   new_affect(&forced_failure);
   forced_failure.spell = AFFECT_WIZARD_IRRESISTIBLE_MAGIC;
   forced_failure.duration = 1;
-  affect_to_char(&fixture.victim, &forced_failure);
+  affect_to_char(bard, &forced_failure);
 
   test_pulse_bard_winters_war_march(bard);
 

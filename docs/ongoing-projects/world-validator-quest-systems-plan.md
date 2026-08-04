@@ -191,6 +191,14 @@ Last updated: 2026-08-04.
   variants, installs `ripgrep` for the authoritative `make test-all` entry
   point, and pins gcovr 8.6 under Python 3.12 for GCC 14 coverage data. The
   fixed 3.30 percent line and 2.20 percent branch floors remain unchanged.
+- Completion-audit ownership repair: title initialization no longer passes an
+  already duplicated string to a duplicating setter, replacement titles use
+  that setter so the prior allocation is released, the global DG event queue
+  can be freed idempotently, and production-linked fixtures now release every
+  large descriptor buffer and event queue they allocate. Leak detection and
+  Valgrind error policies remain fully enabled. The concurrent 399-test bard
+  expansion exposed 32 additional fixture-owned event queues and one save-
+  direction test defect; both are included in the same ownership/gate repair.
 - Next implementation step: repair those CI contracts without weakening the
   memory, sanitizer, coverage, or production-linked test gates; then rerun the
   complete workflow and retire this plan only after it is green.
@@ -1012,7 +1020,7 @@ without hiding failures or expanding supported campaign variants.
 - [x] T092 [S0603] Align the behavioral workflow with the repository's Luminari-only campaign policy and retain the supported default build/test gate.
 - [x] T093 [S0604] Restore the authoritative production-linked entry point by installing its traced `rg` dependency in CI.
 - [x] T094 [S0605] Repair coverage generation for the runner's gcov output while preserving both fixed coverage floors and report uploads.
-- [ ] T095 [S0606] Repair production-test ownership cleanup so ASan and Valgrind pass without suppressions or disabled leak detection.
+- [x] T095 [S0606] Repair production-test ownership cleanup so ASan and Valgrind pass without suppressions or disabled leak detection.
 - [ ] T096 [S0607] Run fresh local world-tool, production, sanitizer, memory, coverage, Make, CMake, CTest, install, and no-root-artifact gates.
 - [ ] T097 [S0608] Push the repairs and verify one complete GitHub Actions workflow run is green at the accepted commit.
 - [ ] T098 [S0609] Move corrected acceptance evidence to permanent docs, recheck live-data hashes, and complete T089 by retiring this plan again.

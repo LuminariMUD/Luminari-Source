@@ -384,7 +384,11 @@ void event_free_all(void)
     return;
   }
 
+  if (event_q == NULL)
+    return;
+
   queue_free(event_q);
+  event_q = NULL;
 }
 
 /** Boolean function to tell whether an event is queued or not. Does this by

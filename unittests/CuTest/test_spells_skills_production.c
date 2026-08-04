@@ -4,6 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/handler.h"
@@ -19,6 +20,29 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+static void cleanup_test_descriptor(struct descriptor_data *descriptor)
+{
+  if (descriptor == NULL)
+    return;
+
+  if (descriptor->pProtocol != NULL)
+  {
+    ProtocolDestroy(descriptor->pProtocol);
+    descriptor->pProtocol = NULL;
+  }
+
+  if (descriptor->large_outbuf != NULL)
+  {
+    free(descriptor->large_outbuf->text);
+    free(descriptor->large_outbuf);
+    descriptor->large_outbuf = NULL;
+    if (buf_largecount > 0)
+      buf_largecount--;
+  }
+
+  descriptor->output = descriptor->small_outbuf;
+}
 
 void Test_spells_production_classification_helpers(CuTest *tc)
 {
@@ -175,7 +199,7 @@ void Test_legacy_crafting_reports_modified_experience(CuTest *tc)
   base_gain_reported = strstr(descriptor.output, "You gained 10 exp for crafting...") != NULL;
 
   ch.desc = NULL;
-  ProtocolDestroy(descriptor.pProtocol);
+  cleanup_test_descriptor(&descriptor);
   CONFIG_MAX_EXP_GAIN = saved_max_exp_gain;
   CONFIG_EXPERIENCE_MULTIPLIER = saved_experience_multiplier;
 
@@ -388,6 +412,7 @@ void Test_eidolon_basic_magic_is_at_will(CuTest *tc)
   room.people = NULL;
   world = saved_world;
   top_of_world = saved_top_of_world;
+  event_free_all();
 
   CuAssertTrue(tc, allowed_without_slots);
   CuAssertTrue(tc, applied);
@@ -463,6 +488,7 @@ void Test_aasimar_innate_spells_use_daily_charges(CuTest *tc)
   room.people = NULL;
   world = saved_world;
   top_of_world = saved_top_of_world;
+  event_free_all();
 
   CuAssertIntEquals(tc, 1, cast_result[0]);
   CuAssertIntEquals(tc, 1, cast_result[1]);
@@ -651,7 +677,7 @@ void Test_domain_command_labels_granted_spell_circles(CuTest *tc)
 
   show_string(&descriptor, "q");
   ch.desc = NULL;
-  ProtocolDestroy(descriptor.pProtocol);
+  cleanup_test_descriptor(&descriptor);
 
   CuAssertTrue(tc, found_circle);
 }
@@ -810,7 +836,7 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   while (ch.affected != NULL)
     affect_remove_no_total(&ch, ch.affected);
   ch.desc = NULL;
-  ProtocolDestroy(descriptor.pProtocol);
+  cleanup_test_descriptor(&descriptor);
 
   CuAssertTrue(tc, remained_for_final_tick);
   CuAssertTrue(tc, removed);

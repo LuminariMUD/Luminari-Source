@@ -89,6 +89,7 @@ static void end_bardic_fixture(struct bardic_fixture *fixture)
   while (fixture->bard.affected != NULL)
     affect_remove_no_total(&fixture->bard, fixture->bard.affected);
   clear_char_event_list(&fixture->bard);
+  event_free_all();
   free_attack_queue(GET_ATTACK_QUEUE(&fixture->bard));
   GET_ATTACK_QUEUE(&fixture->bard) = NULL;
   fixture->bard.desc = NULL;

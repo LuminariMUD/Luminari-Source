@@ -267,7 +267,19 @@ static void artint_end(struct artint_fixture *fixture)
 
   fixture->actor.desc = NULL;
   if (fixture->descriptor.pProtocol)
+  {
     ProtocolDestroy(fixture->descriptor.pProtocol);
+    fixture->descriptor.pProtocol = NULL;
+  }
+  if (fixture->descriptor.large_outbuf)
+  {
+    free(fixture->descriptor.large_outbuf->text);
+    free(fixture->descriptor.large_outbuf);
+    fixture->descriptor.large_outbuf = NULL;
+    fixture->descriptor.output = fixture->descriptor.small_outbuf;
+    if (buf_largecount > 0)
+      buf_largecount--;
+  }
 
   fixture->rooms[0].people = NULL;
   fixture->rooms[1].people = NULL;

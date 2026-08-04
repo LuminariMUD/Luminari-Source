@@ -7102,7 +7102,7 @@ int enter_player_game(struct descriptor_data *d)
   {
     if (GET_TITLE(d->character) == NULL)
     {
-      set_title(d->character, strdup(GET_NAME(d->character)));
+      set_title(d->character, GET_NAME(d->character));
     }
     else
     {
@@ -7110,7 +7110,7 @@ int enter_player_game(struct descriptor_data *d)
       {
         snprintf(char_title, sizeof(char_title), "%s %s", GET_NAME(d->character),
                  GET_TITLE(d->character));
-        GET_TITLE(d->character) = strdup(char_title);
+        set_title(d->character, char_title);
       }
     }
     if (GET_IMM_TITLE(d->character) == NULL && GET_LEVEL(d->character) >= LVL_IMMORT)

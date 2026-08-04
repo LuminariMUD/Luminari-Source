@@ -2937,7 +2937,7 @@ void init_start_char(struct char_data *ch)
   GET_EXP(ch) = 1;
 
   /* reset title */
-  set_title(ch, strdup(GET_NAME(ch)));
+  set_title(ch, GET_NAME(ch));
   set_imm_title(ch, "Staff");
 
 
