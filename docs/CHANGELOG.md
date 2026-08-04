@@ -2,6 +2,46 @@
 
 ## [Unreleased] - August 4, 2026
 
+### Bardic performance and structured protocol repair
+
+Completed the BP-001 through BP-019 bardic performance and MSDP overflow audit
+for development versions 2.5039-beta through 2.5043-beta.
+
+#### Fixed
+
+- Made primary and secondary performance state explicit and independent,
+  including safe initialization, atomic command transitions, Master of Motifs,
+  Efficient Performance, spell interruption, failure promotion, disconnect
+  cleanup, and active NPC processing.
+- Batched affect reporting and made MSDP, GMCP, MSSP, and MXP frame queueing
+  atomic with retryable backpressure, bounded fail-closed serialization, and no
+  partial Telnet subnegotiations or in-band overflow marker corruption.
+- Reconciled timing, targeting, eligibility, saves, immunities, source ownership,
+  recipient messages, and documented mechanics for all thirteen base
+  performances.
+- Completed and tested the performance-linked Spellsinger and Warchanter perk
+  integrations, including cast scope, group auras, save and damage direction,
+  temporary HP, Bard slot recovery, and capstone behavior.
+- Corrected bounded-string diagnostics exposed by the final sanitizer build and
+  registered complete-frame retry coverage for both MSDP and GMCP.
+
+#### Changed
+
+- Established one authoritative free, indefinite performance contract with an
+  immediate first verse, an eleven-second recurring verse, and explicit stop or
+  interruption conditions. Runtime registrations, help text, source comments,
+  and the Bard perk design document now describe the same contract.
+
+#### Verification
+
+- Clean warning-free GNU C23 optimized and ASan/UBSan builds pass all 399
+  production-linked root tests. Leak detection is disabled only for the known
+  suite-wide fixture leaks during the sanitizer run.
+- The focused protocol harness passes 22/22 tests, including MSDP and GMCP
+  full-queue rejection, retained dirty state, and complete-frame retry.
+- `make install` produced an executable `bin/circle` and removed the root-level
+  `circle` artifact.
+
 ### World validator and lookup CLI
 
 Completed the standalone `wtool` project and its quest-system expansion. The

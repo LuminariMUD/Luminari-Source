@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: BP-001 through BP-018 verified; BP-019 text reconciled, final optimized validation pending
+Status: Complete - BP-001 through BP-019 verified
 
 Date: 2026-08-04
 
@@ -28,9 +28,9 @@ was installed with `make install` on 2026-08-04. The fourth base-performance
 contract batch passes 389 root tests and all 20 focused protocol tests.
 The fifth perk-integration batch passes 399 production-linked root tests. Its
 runtime registrations, source comments, helper surface, and design document now
-use the same contract. A clean warning-free ASan/UBSan build passes all 399
-tests, and the focused protocol harness passes all 22 tests. The final optimized
-build, test, and install checks remain in progress.
+use the same contract. Clean warning-free ASan/UBSan and optimized builds pass
+all 399 tests, the focused protocol harness passes all 22 tests, and the
+optimized server is installed as `bin/circle` with no root build artifact.
 
 ## Reported Incident
 
@@ -93,8 +93,8 @@ The expanded audit found additional critical and high-severity defects:
 These issues are not one repair. Memory safety, state invariants, affect
 batching, atomic protocol framing, verse timing, source ownership, eligibility,
 the thirteen base-song contracts, and performance-linked perk behavior are now
-repaired. The player-facing perk text is reconciled; only the final optimized
-build, test, and install validation remains.
+repaired. The player-facing perk text is reconciled, the final validation
+matrix is clean, and the audit is closed.
 
 The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
@@ -244,7 +244,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-05 during repair batch 5 final validation.
+Last updated: 2026-08-05 at repair batch 5 closure.
 
 Status meanings:
 
@@ -274,7 +274,7 @@ Status meanings:
 | BP-016 | Verified | Every matrix row now follows an explicit tested implementation contract, and the runtime feat descriptions document those mechanics. A production-linked 13-performance matrix, deterministic Will, Reflex, and Fortitude save cases, and modifier-before-cap healing coverage pass. |
 | BP-017 | Verified | Root coverage proves exact Heightened Harmony refresh, whole-cast Crescendo scope for non-damage, multi-projectile, and area spells, grouped active support auras, Bard-only Maestra caster level/DC/metamagic behavior, post-success Symphonic targeting and saves, bounded temporary HP, and real Bard slot recovery. |
 | BP-018 | Verified | Root coverage proves Song of Heroism recipient bonuses, Rallying Cry group targeting, grouped Warbeat buffs and one first-turn extra attack, defender-only Frostbite cold damage, standard Commanding Cadence saves, Steel Serenade physical reduction, and one room-wide Winter's War March application per target through Fortitude and normal cold resistance paths. |
-| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Runtime registrations, source comments, helper APIs, and `BARD_PERKS.md` now agree on real clocks, targets, prerequisites, and effects. The clean warning-free ASan/UBSan suite passes 399/399 and focused protocol coverage passes 22/22; the optimized build, test, and install matrix remains. |
+| BP-019 | Verified | The authoritative runtime contract remains free, indefinite performances with no round pool. Runtime registrations, source comments, helper APIs, and `BARD_PERKS.md` agree on real clocks, targets, prerequisites, and effects. Clean warning-free ASan/UBSan and optimized suites pass 399/399, focused protocol coverage passes 22/22, and `make install` completed. |
 
 ### Repair Checkpoints
 
@@ -310,11 +310,13 @@ Status meanings:
   active performer and group relationships, fixes spell-cast and combat/save
   scope, moves verse effects onto their real clocks, reconciles runtime and
   design text, removes non-behavioral or redundant helper APIs, and makes the
-  final validation build's bounded-string operations explicit. Verification so
-  far is a clean warning-free ASan/UBSan build with 399/399 tests passing and a
-  focused protocol harness with 22/22 tests passing, including registered MSDP
-  and GMCP full-queue rejection and complete-frame retry cases. The optimized
-  build, test, and install checks remain for development version 2.5043-beta.
+  final validation build's bounded-string operations explicit. Final
+  verification for development version 2.5043-beta is a clean warning-free
+  ASan/UBSan build with 399/399 tests passing, a focused protocol harness with
+  22/22 tests passing, including registered MSDP and GMCP full-queue rejection
+  and complete-frame retry cases, a clean warning-free optimized GNU C23 build,
+  another 399/399 optimized root run, and successful `make install`. The
+  installed `bin/circle` is executable and no root-level `circle` remains.
 
 ## Detailed Findings
 
@@ -409,8 +411,8 @@ current integration is duration.
 
 Repair: Songweaver's duration bonus is computed before the initialization loop,
 and every affect record is passed through `new_affect()` before any song logic
-can read it. Direct Songweaver and sanitizer coverage remain tracked before this
-finding is promoted from Implemented to Verified.
+can read it. Direct Songweaver coverage passes in both optimized and ASan/UBSan
+production-linked suites.
 
 Relevant code:
 
@@ -720,7 +722,7 @@ Each combined Songweaver rank adds one affect round and one point of
 effectiveness, capped by the normal effectiveness ceiling; this potency is
 resolved before offensive saving throws. The feat registry, help topics, and
 perk descriptions state the same timing contract. Dirge and Sustaining Melody
-clocks remain isolated under BP-017.
+use their actual isolated clocks under the completed BP-017 repair.
 
 Relevant code:
 
@@ -861,7 +863,7 @@ Deafening use explicit standard saves and immunities; Forgetfulness ends both
 fighting pointers, Magi's mental modifiers are penalties, and Rooting
 messages describe entanglement rather than paralysis. Resonant Voice is now a
 separate source-owned affect, so every group song can carry it; limiting that
-generic Will bonus to mind-affecting saves remains BP-017 scope.
+generic Will bonus to mind-affecting saves was completed under BP-017.
 
 ### BP-017: Spellsinger Perk Integration Is Partial or Incorrect
 
@@ -874,7 +876,7 @@ Severity: Critical to Medium
 | Harmonic Casting | Bard spells deterministically preserve all active performances under the free-performance contract. | Implemented and dynamically covered; no remaining gap in this perk. |
 | Crescendo | If the song survives Harmonic Casting, the first bard spell sets +2 DC and one pending d6 of sonic damage. | Crescendo requires Harmonic Casting, so the advertised first spell receives no benefit on the 50% interruption path. A non-damaging first spell leaves the sonic die for a later damage spell. `GET_DC_BONUS` is consumed by the first save check, not reliably every target of an area spell. |
 | Sustaining Melody | While fighting and performing, the five-second Luminari pulse has a 20% chance to restore a bard slot. | Advertised per combat round. It also depends on mutable `GET_CASTING_CLASS` being Bard rather than simply checking Bard ownership/slots. |
-| Master of Motifs | Starts and independently pulses two distinct source-owned performances; failure in either slot preserves or promotes the survivor. | Runtime behavior is dynamically covered. Remaining work is to remove stale round-pool language and reconcile prerequisites in the perk documentation. |
+| Master of Motifs | Starts and independently pulses two distinct source-owned performances; failure in either slot preserves or promotes the survivor. | Runtime behavior, the free-performance contract, and reconciled prerequisites are dynamically and textually covered. |
 | Dirge of Dissonance | Deals 1d6 sonic to eligible room foes on each eleven-second verse. PC concentration checks scan for an enemy performing bard and take -2. | Advertised per six-second round. NPC concentration checks receive no penalty. |
 | Heightened Harmony | A metamagic bard cast adds an `APPLY_SKILL` affect with duration three rounds. | The modifier is obtained from a helper that returns +5 only when the affect is already active, so the first proc grants +0. Later casts append duplicate +5 affects. `compute_ability()` sums those affects and then adds the helper's +5 again. Duration is about 18 seconds, not one minute. |
 | Protective Chorus | The perk owner always receives +2 saves and +2 dodge AC through global calculations. | No active performance is required, allies are not located, and AC applies against all attacks rather than attacks of opportunity. |
@@ -960,9 +962,8 @@ Decision: Preserve the established free, indefinite performance engine. There
 is no performance-round pool. Starting or changing a song costs the documented
 action, and explicit stop, invalid state, stutter, disconnect, or ordinary bard
 spellcasting can end it. Harmonic Casting deterministically prevents bard
-spells from interrupting active performances. The repair batches remove the
-remaining round-pool language and implement or redefine perks against this
-contract.
+spells from interrupting active performances. The repair batches removed the
+round-pool language and implemented or redefined perks against this contract.
 
 Reconciliation: Runtime registrations, source comments, behavioral helper APIs,
 and `docs/systems/perks/BARD_PERKS.md` now use that decision. They name the
@@ -1262,7 +1263,7 @@ repaired: batching prevents the known burst, while atomic OOB emission prevents
 the same corruption class elsewhere.
 
 The first five repair batches close and dynamically verify BP-001 through
-BP-018. They also implement one authoritative free, indefinite performance
-contract and align runtime and design text with it. The sanitizer and protocol
-portions of the final matrix are clean. The remaining BP-019 work is the final
-optimized build, test, install, and closure publication.
+BP-019. They implement one authoritative free, indefinite performance contract
+and align runtime and design text with it. Sanitizer, protocol, optimized build,
+root test, install, artifact, and publication checks are complete. No audit work
+remains.
