@@ -6,10 +6,12 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .flags import decode_tokens
+from .hlquests import parse_hlquest_file
 from .indexes import DATA_EXTENSIONS, indexed_data_paths, validate_indexes
 from .mobiles import parse_mobile_file
 from .models import (
     Finding,
+    HlQuestRecord,
     MobileRecord,
     ObjectRecord,
     QuestRecord,
@@ -517,6 +519,7 @@ def _validate_full_graph(
     triggers: list[TriggerRecord],
     shops: list[ShopRecord],
     quests: list[QuestRecord],
+    hlquests: list[HlQuestRecord],
     findings: list[Finding],
     selected_packages: set[int] | None,
     manifest: dict[str, Any],
@@ -528,6 +531,7 @@ def _validate_full_graph(
       (list(triggers), "trigger", "TRG"),
       (list(shops), "shop", "SHP"),
       (list(quests), "quest", "QST"),
+      (list(hlquests), "hlquest", "HLQ"),
   ]
   for records, record_type, prefix in typed_lists:
     _validate_record_order(records, record_type, prefix, findings, selected_packages)
@@ -541,6 +545,7 @@ def _validate_full_graph(
       "trigger": {record.vnum: record for record in triggers},
       "shop": {record.vnum: record for record in shops},
       "quest": {record.vnum: record for record in quests},
+      "hlquest": {record.vnum: record for record in hlquests},
   }
   maps = {
       record_type: records
@@ -757,6 +762,7 @@ def _load_files(
     trigger_paths: Iterable[Path],
     shop_paths: Iterable[Path],
     quest_paths: Iterable[Path],
+    hlquest_paths: Iterable[Path],
     repo_root: Path,
     world_root: Path | None,
     manifest: dict[str, Any],
@@ -771,6 +777,7 @@ def _load_files(
     list[TriggerRecord],
     list[ShopRecord],
     list[QuestRecord],
+    list[HlQuestRecord],
     list[Finding],
     bool,
 ]:
@@ -782,6 +789,7 @@ def _load_files(
   triggers: list[TriggerRecord] = []
   shops: list[ShopRecord] = []
   quests: list[QuestRecord] = []
+  hlquests: list[HlQuestRecord] = []
   complete = True
   direction_count = 10 if config.get("diagonal_dirs") else 6
   spec_names = extract_spec_names(repo_root)
@@ -843,6 +851,9 @@ def _load_files(
   for path in quest_paths:
     parsed = parse_quest_file(path, _display_path(path, world_root, repo_root), manifest)
     merge_parse(path, "quest", parsed, quests)
+  for path in hlquest_paths:
+    parsed = parse_hlquest_file(path, _display_path(path, world_root, repo_root), manifest)
+    merge_parse(path, "hlquest", parsed, hlquests)
   _validate_zone_order(zones, findings, selected_packages)
   _validate_room_graph(zones, rooms, findings, selected_packages, direction_count)
   _validate_full_graph(
@@ -853,6 +864,7 @@ def _load_files(
       triggers,
       shops,
       quests,
+      hlquests,
       findings,
       selected_packages,
       manifest,
@@ -870,7 +882,18 @@ def _load_files(
           direction_count,
       )
   )
-  return zones, rooms, mobiles, objects, triggers, shops, quests, findings, complete
+  return (
+      zones,
+      rooms,
+      mobiles,
+      objects,
+      triggers,
+      shops,
+      quests,
+      hlquests,
+      findings,
+      complete,
+  )
 
 
 def validate_indexed_world(
@@ -894,6 +917,7 @@ def validate_indexed_world(
   trigger_paths = indexed_data_paths(world_root, "trg", mini)
   shop_paths = indexed_data_paths(world_root, "shp", mini)
   quest_paths = indexed_data_paths(world_root, "qst", mini)
+  hlquest_paths = indexed_data_paths(world_root, "hlq", mini)
   if selected_packages is not None:
     for package in sorted(selected_packages):
       for extension, paths in (
@@ -904,6 +928,7 @@ def validate_indexed_world(
           ("trg", trigger_paths),
           ("shp", shop_paths),
           ("qst", quest_paths),
+          ("hlq", hlquest_paths),
       ):
         candidate = world_root / extension / f"{package}.{extension}"
         if candidate.is_file() and candidate not in paths:
@@ -955,6 +980,7 @@ def load_indexed_world_data(
   trigger_paths = indexed_data_paths(world_root, "trg", mini)
   shop_paths = indexed_data_paths(world_root, "shp", mini)
   quest_paths = indexed_data_paths(world_root, "qst", mini)
+  hlquest_paths = indexed_data_paths(world_root, "hlq", mini)
   if selected_packages is not None:
     for package in sorted(selected_packages):
       for extension, paths in (
@@ -965,11 +991,23 @@ def load_indexed_world_data(
           ("trg", trigger_paths),
           ("shp", shop_paths),
           ("qst", quest_paths),
+          ("hlq", hlquest_paths),
       ):
         candidate = world_root / extension / f"{package}.{extension}"
         if candidate.is_file() and candidate not in paths:
           paths.append(candidate)
-  zones, rooms, mobiles, objects, triggers, shops, quests, findings, complete = _load_files(
+  (
+      zones,
+      rooms,
+      mobiles,
+      objects,
+      triggers,
+      shops,
+      quests,
+      hlquests,
+      findings,
+      complete,
+  ) = _load_files(
       zone_paths,
       room_paths,
       mobile_paths,
@@ -977,12 +1015,13 @@ def load_indexed_world_data(
       trigger_paths,
       shop_paths,
       quest_paths,
+      hlquest_paths,
       repo_root,
       world_root,
       manifest,
       config,
       selected_packages,
-      {"zone", "room", "mobile", "object", "trigger", "shop", "quest"},
+      {"zone", "room", "mobile", "object", "trigger", "shop", "quest", "hlquest"},
   )
   return WorldData(
       zones=zones,
@@ -992,6 +1031,7 @@ def load_indexed_world_data(
       triggers=triggers,
       shops=shops,
       quests=quests,
+      hlquests=hlquests,
       findings=findings,
       complete=complete,
   )
@@ -1030,7 +1070,8 @@ def validate_explicit_paths(
         finding(
             "IDX012",
             "error",
-            "explicit paths contain no supported .zon, .wld, .mob, .obj, .shp, .trg, or .qst files",
+            "explicit paths contain no supported .zon, .wld, .mob, .obj, .shp, .trg, .qst, "
+            "or .hlq files",
             SourceSpan("<paths>", 1),
         )
     )
@@ -1044,6 +1085,7 @@ def validate_explicit_paths(
       paths["trg"],
       paths["shp"],
       paths["qst"],
+      paths["hlq"],
       repo_root,
       None,
       manifest,
@@ -1058,6 +1100,7 @@ def validate_explicit_paths(
               "shp": "shop",
               "trg": "trigger",
               "qst": "quest",
+              "hlq": "hlquest",
           }[
               extension
           ]

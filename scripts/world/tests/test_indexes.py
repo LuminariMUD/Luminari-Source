@@ -83,6 +83,36 @@ class IndexTests(unittest.TestCase):
       self.assertEqual(["IDX009"], [finding.code for finding in findings])
       self.assertFalse(result.complete)
 
+  def test_hlq_indexes_are_required_but_may_describe_an_empty_dataset(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      repo = Path(directory)
+      root = repo / "world"
+      make_world(root)
+      (root / "hlq/index").unlink()
+      missing = validate_indexes(root, repo)
+      self.assertIn("IDX009", {finding.code for finding in missing.findings})
+      self.assertFalse(missing.complete)
+
+      (root / "hlq/index").write_text("$\n", encoding="ascii")
+      (root / "hlq/1.hlq").unlink()
+      empty = validate_indexes(root, repo)
+      hlq_findings = [
+          finding for finding in empty.findings if finding.span.path.startswith("hlq/")
+      ]
+      self.assertEqual([], hlq_findings)
+      self.assertTrue(empty.complete)
+
+  def test_missing_hlq_mini_index_uses_the_standard_error(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      repo = Path(directory)
+      root = repo / "world"
+      make_world(root, mini=True)
+      (root / "hlq/index.mini").unlink()
+      result = validate_indexes(root, repo, mini=True)
+      findings = [finding for finding in result.findings if finding.span.path == "hlq/index.mini"]
+      self.assertEqual(["IDX009"], [finding.code for finding in findings])
+      self.assertFalse(result.complete)
+
   def test_mini_is_intentional_subset_without_disk_omission_warnings(self) -> None:
     with tempfile.TemporaryDirectory() as directory:
       repo = Path(directory)

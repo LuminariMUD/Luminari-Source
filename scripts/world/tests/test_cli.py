@@ -55,6 +55,8 @@ def make_world(root: Path) -> None:
           "You complete the test quest.~\nYou leave the test quest.~\n"
           "0 100 0 100 -1 -1 -1\n1 0 1 30 -1 -1 1\n0 0 -1\nS\n$~\n"
       )
+    elif extension == "hlq":
+      content = "#100\nA!\ntest question~\nThe test mobile answers.~\n$~\n"
     else:
       raise AssertionError(extension)
     (directory / f"1.{extension}").write_text(content, encoding="ascii")

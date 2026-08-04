@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
+from tests.test_cli import make_world, run_cli, tree_hash
 from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.hlquests import parse_hlquest_file
+from wtool_lib.world import load_indexed_world_data, validate_explicit_paths
 
 
 def ask_entry(keywords: str = "question", reply: str = "answer", marker: str = "A!") -> str:
@@ -26,6 +29,7 @@ class HlQuestContractTests(unittest.TestCase):
     cls.repo_root = default_repo_root()
     cls.fixtures = cls.repo_root / "scripts/world/tests/fixtures/phase2"
     cls.manifest = load_manifest()
+    cls.config = {"diagonal_dirs": False, "config_source": "test", "assumed": False}
 
   def read_lines(self, relative_path: str) -> list[str]:
     path = self.fixtures / relative_path
@@ -241,6 +245,116 @@ class HlQuestContractTests(unittest.TestCase):
     self.assertFalse(result.complete)
     finding = next(finding for finding in result.findings if finding.code == "HLQ001")
     self.assertEqual(4, finding.span.line)
+
+  def test_duplicate_order_and_package_findings_use_hlq_contract(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      zone = root / "120.zon"
+      hosts = root / "120.hlq"
+      misplaced = root / "121.hlq"
+      zone.write_text(
+          "#120\nBuilder~\nHLQ package test~\n12000 12099 30 2\nS\n$\n",
+          encoding="ascii",
+      )
+      hosts.write_text(
+          "#12001\n" + ask_entry() + "#12000\n" + ask_entry() + "#12000\n$~\n",
+          encoding="ascii",
+      )
+      misplaced.write_text("#12002\n" + ask_entry() + "$~\n", encoding="ascii")
+      result = validate_explicit_paths(
+          [zone, hosts, misplaced], self.repo_root, self.manifest, self.config
+      )
+      codes = {finding.code for finding in result.findings}
+      self.assertTrue({"HLQ040", "HLQ041", "REF010"} <= codes)
+
+  def test_host_order_restarts_at_each_source_package(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      high_package = root / "1191.hlq"
+      low_package = root / "120.hlq"
+      high_package.write_text("#119100\n$~\n", encoding="ascii")
+      low_package.write_text("#12000\n$~\n", encoding="ascii")
+      result = validate_explicit_paths(
+          [high_package, low_package], self.repo_root, self.manifest, self.config
+      )
+      self.assertNotIn("HLQ041", {finding.code for finding in result.findings})
+
+  def test_indexed_normal_mini_and_selected_unindexed_hlq_loading(self) -> None:
+    complete = self.fixtures / "complete"
+    normal = load_indexed_world_data(complete, self.repo_root, self.manifest, self.config)
+    mini = load_indexed_world_data(
+        complete, self.repo_root, self.manifest, self.config, mini=True
+    )
+    self.assertEqual([10000], [record.vnum for record in normal.hlquests])
+    self.assertEqual([10000], [record.vnum for record in mini.hlquests])
+
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      (root / "zon/2.zon").write_text(
+          "#2\nBuilder~\nSelected HLQ zone~\n200 299 30 2\nS\n$\n",
+          encoding="ascii",
+      )
+      (root / "hlq/2.hlq").write_text(
+          "#200\n" + give_entry(commands="X C 1 0\n") + "$~\n",
+          encoding="ascii",
+      )
+      status, stdout, stderr = run_cli(
+          ["--world-root", str(root), "--json", "validate", "--zone", "2"]
+      )
+      self.assertEqual(1, status)
+      self.assertEqual("", stderr)
+      codes = {finding["code"] for finding in json.loads(stdout)["findings"]}
+      self.assertTrue({"IDX008", "HLQ012"} <= codes)
+
+  def test_explicit_hlq_only_uses_an_isolated_reference_universe(self) -> None:
+    path = self.fixtures / "contracts/hlq/canonical.hlq"
+    before = path.read_bytes()
+    result = validate_explicit_paths([path], self.repo_root, self.manifest, self.config)
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    self.assertEqual(before, path.read_bytes())
+
+  def test_zero_byte_indexed_file_reports_parser_incompleteness(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      (root / "hlq/1.hlq").write_bytes(b"")
+      before = tree_hash(root)
+      status, stdout, stderr = run_cli(
+          ["--world-root", str(root), "--json", "validate", "--all"]
+      )
+      self.assertEqual(1, status)
+      self.assertEqual("", stderr)
+      payload = json.loads(stdout)
+      self.assertFalse(payload["complete"])
+      self.assertIn("HLQ014", {finding["code"] for finding in payload["findings"]})
+      self.assertEqual(before, tree_hash(root))
+
+  def test_cli_json_and_human_hlq_findings_are_deterministic(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      (root / "hlq/1.hlq").write_text(
+          "#100\nQ!\nreply~\nI C 1 0\n$~\n",
+          encoding="ascii",
+      )
+      arguments = ["--world-root", str(root), "--json", "validate", "--all"]
+      first = run_cli(arguments)
+      second = run_cli(arguments)
+      self.assertEqual(first, second)
+      self.assertEqual(1, first[0])
+      payload = json.loads(first[1])
+      self.assertFalse(payload["complete"])
+      self.assertIn("HLQ013", {finding["code"] for finding in payload["findings"]})
+
+      human_arguments = ["--world-root", str(root), "validate", "--all"]
+      human_first = run_cli(human_arguments)
+      human_second = run_cli(human_arguments)
+      self.assertEqual(human_first, human_second)
+      self.assertEqual(1, human_first[0])
+      self.assertIn("HLQ013", human_first[1])
+      self.assertIn("parse incomplete", human_first[1])
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # World Validator Quest-System Expansion Plan
 
-Status: in progress (Session 3 - HLQ first-class parsing and selection).
+Status: in progress (Session 4 - references, semantics, lookup, and reporting).
 
 Planning baseline: 2026-08-04 at commit `42378034` on the development
 environment.
@@ -9,7 +9,7 @@ environment.
 
 Last updated: 2026-08-04.
 
-- Active session: Session 3 - HLQ first-class parsing and selection.
+- Active session: Session 4 - references, semantics, lookup, and reporting.
 - Baseline source commit: `4237803456838f3b955462cee2e64acd95d0a04e`.
 - Environment gate: `APP_ENV=development` confirmed; no production work is
   authorized or planned.
@@ -36,7 +36,8 @@ Last updated: 2026-08-04.
   unchanged.
 - Published checkpoints: planning baseline commit `9b41691e`; Session 1
   implementation commit `e3052d35`; Session 2 implementation commit
-  `da08510c`; Session 3 parser checkpoint pending at this update.
+  `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
+  checkpoint pending at this update.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -59,8 +60,14 @@ Last updated: 2026-08-04.
   aggregate had one zero-byte/missing-terminator finding and four real
   post-terminator-content findings; no validator defect was found and the
   audit hash was unchanged.
-- Next implementation step: connect `.hlq` to indexes and every selection
-  mode, add packaging tests, then rerun the complete gates.
+- Session 3 integration: added HLQ index discovery, normal/mini/zone/path
+  loading, host duplicate/order/package checks, selected unindexed package
+  merging, isolated-path behavior, and deterministic human/JSON findings.
+- Session 3 verification: 22 focused HLQ tests and 10 index tests passed;
+  both Make and CMake `test-world-tools` targets passed all 152 tests plus the
+  wrapper. The baseline QST and HLQ aggregate hashes remain unchanged.
+- Next implementation step: add typed QST/HLQ graph edges and semantic
+  validation, then expose both record types through `show` and `refs`.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -783,21 +790,21 @@ and order-sensitive behavior.
 - [x] T040 [S0307] Model physical and effective runtime order for entries, input commands, and output commands.
 - [x] T041 [S0308] Diagnose missing hosts, unsafe host lookup, stale ROOM state, invalid directions/codes, and top-level truncation.
 - [x] T042 [S0309] Implement deterministic entry/host recovery without stale values or cascading references.
-- [ ] T043 [S0310] Diagnose duplicate host blocks, canonical host order, and host/package ownership.
-- [ ] T044 [S0311] Add `hlq` to index discovery, selected packages, explicit paths, and supported-file messages.
-- [ ] T045 [S0312] Add HLQ paths and records to `_load_files()`, `WorldData`, and normal/mini/zone/path results.
-- [ ] T046 [S0313] Make missing `hlq/index.mini` a normal `IDX009` path and test it explicitly.
-- [ ] T047 [S0314] Add canonical ASK/GIVE/ROOM and every-command positive tests.
-- [ ] T048 [S0315] Add malformed host, marker, numeric, string, command, chain, EOF, and recovery tests.
-- [ ] T049 [S0316] Add order-preservation and zero-byte indexed-file tests.
-- [ ] T050 [S0317] Test selected unindexed `N.hlq` merge behavior and isolated-path reference universes.
-- [ ] T051 [S0318] Run the HLQ parser over a temporary copy/list of the live corpus and separate validator defects from builder-data findings.
-- [ ] T052 [S0319] Run focused and full world-tool gates and confirm all input hashes remain unchanged.
+- [x] T043 [S0310] Diagnose duplicate host blocks, canonical host order, and host/package ownership.
+- [x] T044 [S0311] Add `hlq` to index discovery, selected packages, explicit paths, and supported-file messages.
+- [x] T045 [S0312] Add HLQ paths and records to `_load_files()`, `WorldData`, and normal/mini/zone/path results.
+- [x] T046 [S0313] Make missing `hlq/index.mini` a normal `IDX009` path and test it explicitly.
+- [x] T047 [S0314] Add canonical ASK/GIVE/ROOM and every-command positive tests.
+- [x] T048 [S0315] Add malformed host, marker, numeric, string, command, chain, EOF, and recovery tests.
+- [x] T049 [S0316] Add order-preservation and zero-byte indexed-file tests.
+- [x] T050 [S0317] Test selected unindexed `N.hlq` merge behavior and isolated-path reference universes.
+- [x] T051 [S0318] Run the HLQ parser over a temporary copy/list of the live corpus and separate validator defects from builder-data findings.
+- [x] T052 [S0319] Run focused and full world-tool gates and confirm all input hashes remain unchanged.
 
 Session gate:
 
 ```sh
-python3 -m unittest scripts.world.tests.test_hlquests \
+PYTHONPATH=scripts/world python3 -m unittest scripts.world.tests.test_hlquests \
   scripts.world.tests.test_indexes scripts.world.tests.test_reporting -v
 make test-world-tools
 ```
