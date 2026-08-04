@@ -10,6 +10,18 @@
     "obj-affect2": "affect2"
   },
   "limits": {
+    "ITEM_SPECAB_HORN_OF_SUMMONING": {
+      "source": "src/combat/spec_abilities.h:ITEM_SPECAB_HORN_OF_SUMMONING",
+      "value": 53
+    },
+    "ITEM_SPECAB_ITEM_SUMMON": {
+      "source": "src/combat/spec_abilities.h:ITEM_SPECAB_ITEM_SUMMON",
+      "value": 64
+    },
+    "LVL_IMPL": {
+      "source": "src/structs.h:LVL_IMPL",
+      "value": 34
+    },
     "MAX_FILEPATH": {
       "source": "src/structs.h:MAX_FILEPATH",
       "value": 256
@@ -26,6 +38,10 @@
       "source": "src/structs.h:MAX_PATH",
       "value": 50
     },
+    "MAX_PROD": {
+      "source": "src/obj/shop.h:MAX_PROD",
+      "value": 5
+    },
     "MAX_SHOP_OBJ": {
       "source": "src/obj/shop.h:MAX_SHOP_OBJ",
       "value": 100
@@ -34,25 +50,85 @@
       "source": "src/structs.h:MAX_STRING_LENGTH",
       "value": 49152
     },
+    "MAX_TRADE": {
+      "source": "src/obj/shop.h:MAX_TRADE",
+      "value": 5
+    },
     "MAX_WEAPON_SPELLS": {
       "source": "src/structs.h:MAX_WEAPON_SPELLS",
       "value": 3
+    },
+    "NUM_ATTACK_TYPES": {
+      "source": "src/structs.h:NUM_ATTACK_TYPES",
+      "value": 24
     },
     "NUM_CITIES": {
       "source": "src/structs.h:NUM_CITIES (LUMINARI branch)",
       "value": 3
     },
+    "NUM_CLASSES": {
+      "source": "src/structs.h:NUM_CLASSES",
+      "value": 38
+    },
     "NUM_FACTIONS": {
       "source": "src/structs.h:NUM_FACTIONS (LUMINARI branch)",
       "value": 4
+    },
+    "NUM_FEATS": {
+      "source": "src/structs.h:NUM_FEATS",
+      "value": 1263
+    },
+    "NUM_GENDERS": {
+      "source": "src/structs.h:NUM_GENDERS",
+      "value": 3
+    },
+    "NUM_PORTAL_TYPES": {
+      "source": "src/structs.h:NUM_PORTAL_TYPES",
+      "value": 4
+    },
+    "NUM_RACE_TYPES": {
+      "source": "src/structs.h:NUM_RACE_TYPES",
+      "value": 17
     },
     "NUM_REGIONS": {
       "source": "src/structs.h:NUM_REGIONS (LUMINARI branch)",
       "value": 14
     },
+    "NUM_SIZES": {
+      "source": "src/structs.h:NUM_SIZES",
+      "value": 10
+    },
+    "NUM_SPECABS": {
+      "source": "src/combat/spec_abilities.h:NUM_SPECABS",
+      "value": 65
+    },
+    "NUM_SPELLS": {
+      "source": "src/magic/spells.h:NUM_SPELLS",
+      "value": 528
+    },
+    "NUM_SUB_RACES": {
+      "source": "src/structs.h:NUM_SUB_RACES",
+      "value": 23
+    },
     "NUM_WEARS": {
       "source": "src/structs.h:NUM_WEARS",
       "value": 43
+    },
+    "PORTAL_CHECKFLAGS": {
+      "source": "src/structs.h:PORTAL_CHECKFLAGS",
+      "value": 2
+    },
+    "PORTAL_CLANHALL": {
+      "source": "src/structs.h:PORTAL_CLANHALL",
+      "value": 3
+    },
+    "PORTAL_NORMAL": {
+      "source": "src/structs.h:PORTAL_NORMAL",
+      "value": 0
+    },
+    "PORTAL_RANDOM": {
+      "source": "src/structs.h:PORTAL_RANDOM",
+      "value": 1
     },
     "READ_SIZE": {
       "source": "src/utils.h:READ_SIZE",
@@ -61,6 +137,10 @@
     "RQ_MAXSIZE": {
       "source": "src/db.h:RQ_MAXSIZE",
       "value": 127
+    },
+    "SPELLBOOK_SIZE": {
+      "source": "src/structs.h:SPELLBOOK_SIZE",
+      "value": 200
     }
   },
   "schema_version": 1,
@@ -4382,6 +4462,270 @@
       ],
       "source_defines": "src/dgscript/dg_scripts.h:WTRIG_GLOBAL",
       "source_table": "src/constants.c:wtrig_types"
+    },
+    "wear-slots": {
+      "entries": [
+        {
+          "index": 0,
+          "name": "Used as light",
+          "required_wear_index": 0,
+          "required_wear_macro": "ITEM_WEAR_TAKE"
+        },
+        {
+          "index": 1,
+          "name": "Worn on right finger",
+          "required_wear_index": 1,
+          "required_wear_macro": "ITEM_WEAR_FINGER"
+        },
+        {
+          "index": 2,
+          "name": "Worn on left finger",
+          "required_wear_index": 1,
+          "required_wear_macro": "ITEM_WEAR_FINGER"
+        },
+        {
+          "index": 3,
+          "name": "First worn around Neck",
+          "required_wear_index": 2,
+          "required_wear_macro": "ITEM_WEAR_NECK"
+        },
+        {
+          "index": 4,
+          "name": "Second worn around Neck",
+          "required_wear_index": 2,
+          "required_wear_macro": "ITEM_WEAR_NECK"
+        },
+        {
+          "index": 5,
+          "name": "Worn on body",
+          "required_wear_index": 3,
+          "required_wear_macro": "ITEM_WEAR_BODY"
+        },
+        {
+          "index": 6,
+          "name": "Worn on head",
+          "required_wear_index": 4,
+          "required_wear_macro": "ITEM_WEAR_HEAD"
+        },
+        {
+          "index": 7,
+          "name": "Worn on legs",
+          "required_wear_index": 5,
+          "required_wear_macro": "ITEM_WEAR_LEGS"
+        },
+        {
+          "index": 8,
+          "name": "Worn on feet",
+          "required_wear_index": 6,
+          "required_wear_macro": "ITEM_WEAR_FEET"
+        },
+        {
+          "index": 9,
+          "name": "Worn on hands",
+          "required_wear_index": 7,
+          "required_wear_macro": "ITEM_WEAR_HANDS"
+        },
+        {
+          "index": 10,
+          "name": "Worn on arms",
+          "required_wear_index": 8,
+          "required_wear_macro": "ITEM_WEAR_ARMS"
+        },
+        {
+          "index": 11,
+          "name": "Worn as shield",
+          "required_wear_index": 9,
+          "required_wear_macro": "ITEM_WEAR_SHIELD"
+        },
+        {
+          "index": 12,
+          "name": "Worn about body",
+          "required_wear_index": 10,
+          "required_wear_macro": "ITEM_WEAR_ABOUT"
+        },
+        {
+          "index": 13,
+          "name": "Worn around waist",
+          "required_wear_index": 11,
+          "required_wear_macro": "ITEM_WEAR_WAIST"
+        },
+        {
+          "index": 14,
+          "name": "Worn around right wrist",
+          "required_wear_index": 12,
+          "required_wear_macro": "ITEM_WEAR_WRIST"
+        },
+        {
+          "index": 15,
+          "name": "Worn around left wrist",
+          "required_wear_index": 12,
+          "required_wear_macro": "ITEM_WEAR_WRIST"
+        },
+        {
+          "index": 16,
+          "name": "Wielded",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 17,
+          "name": "Held",
+          "required_wear_index": 0,
+          "required_wear_macro": "ITEM_WEAR_TAKE"
+        },
+        {
+          "index": 18,
+          "name": "Wielded offhand",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 19,
+          "name": "Held offhand",
+          "required_wear_index": 0,
+          "required_wear_macro": "ITEM_WEAR_TAKE"
+        },
+        {
+          "index": 20,
+          "name": "Wielded twohands",
+          "required_wear_index": 13,
+          "required_wear_macro": "ITEM_WEAR_WIELD"
+        },
+        {
+          "index": 21,
+          "name": "Held twohands",
+          "required_wear_index": 0,
+          "required_wear_macro": "ITEM_WEAR_TAKE"
+        },
+        {
+          "index": 22,
+          "name": "Worn on face",
+          "required_wear_index": 15,
+          "required_wear_macro": "ITEM_WEAR_FACE"
+        },
+        {
+          "index": 23,
+          "name": "Worn as ammo pouch",
+          "required_wear_index": 16,
+          "required_wear_macro": "ITEM_WEAR_AMMO_POUCH"
+        },
+        {
+          "index": 24,
+          "name": "Worn in right ear",
+          "required_wear_index": 17,
+          "required_wear_macro": "ITEM_WEAR_EAR"
+        },
+        {
+          "index": 25,
+          "name": "Worn in left ear",
+          "required_wear_index": 17,
+          "required_wear_macro": "ITEM_WEAR_EAR"
+        },
+        {
+          "index": 26,
+          "name": "Worn on eyes",
+          "required_wear_index": 18,
+          "required_wear_macro": "ITEM_WEAR_EYES"
+        },
+        {
+          "index": 27,
+          "name": "Worn as badge",
+          "required_wear_index": 19,
+          "required_wear_macro": "ITEM_WEAR_BADGE"
+        },
+        {
+          "index": 28,
+          "name": "Worn on shoulders",
+          "required_wear_index": 21,
+          "required_wear_macro": "ITEM_WEAR_SHOULDERS"
+        },
+        {
+          "index": 29,
+          "name": "Worn on right ankle",
+          "required_wear_index": 22,
+          "required_wear_macro": "ITEM_WEAR_ANKLE"
+        },
+        {
+          "index": 30,
+          "name": "Worn on left ankle",
+          "required_wear_index": 22,
+          "required_wear_macro": "ITEM_WEAR_ANKLE"
+        },
+        {
+          "index": 31,
+          "name": "Worn as sheath",
+          "required_wear_index": 23,
+          "required_wear_macro": "ITEM_WEAR_SHEATH"
+        },
+        {
+          "index": 32,
+          "name": "Used as instrument",
+          "required_wear_index": 20,
+          "required_wear_macro": "ITEM_WEAR_INSTRUMENT"
+        },
+        {
+          "index": 33,
+          "name": "Harvesting sickle (gathering)",
+          "required_wear_index": 24,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_SICKLE"
+        },
+        {
+          "index": 34,
+          "name": "Chopping axe (forestry)",
+          "required_wear_index": 25,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_AXE"
+        },
+        {
+          "index": 35,
+          "name": "Skinning knife (hunting)",
+          "required_wear_index": 26,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_KNIFE"
+        },
+        {
+          "index": 36,
+          "name": "Mining pickaxe (mining)",
+          "required_wear_index": 27,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_PICKAXE"
+        },
+        {
+          "index": 37,
+          "name": "Alchemy set (alchemy)",
+          "required_wear_index": 28,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_ALCHEMY"
+        },
+        {
+          "index": 38,
+          "name": "Armorsmith hammer (armorsmithing)",
+          "required_wear_index": 29,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_ARMOR_HAMMER"
+        },
+        {
+          "index": 39,
+          "name": "Jeweler's pliers (jewelcraft)",
+          "required_wear_index": 30,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_JEWEL_PLIERS"
+        },
+        {
+          "index": 40,
+          "name": "Sewing needle (tailoring)",
+          "required_wear_index": 31,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_NEEDLE"
+        },
+        {
+          "index": 41,
+          "name": "Weaponsmith hammer (weaponsmithing)",
+          "required_wear_index": 32,
+          "required_wear_macro": "ITEM_WEAR_CRAFT_WEAPON_HAMMER"
+        },
+        {
+          "index": 42,
+          "name": "Worn on back",
+          "required_wear_index": 33,
+          "required_wear_macro": "ITEM_WEAR_ON_BACK"
+        }
+      ],
+      "source_names": "src/constants.c:equipment_types",
+      "source_table": "src/obj/act.item.c:perform_wear.wear_bitvectors"
     },
     "zone": {
       "count_symbol": "NUM_ZONE_FLAGS",

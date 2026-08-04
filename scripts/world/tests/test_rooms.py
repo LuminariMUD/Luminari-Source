@@ -125,7 +125,8 @@ class RoomParserTests(unittest.TestCase):
       with self.subTest(bundle=name):
         root = self.repo_root / "lib/world" / name
         before = directory_hash(root)
-        result = validate_explicit_paths([root], self.repo_root, self.manifest, config)
+        phase1_paths = sorted(root.glob("*.zon")) + sorted(root.glob("*.wld"))
+        result = validate_explicit_paths(phase1_paths, self.repo_root, self.manifest, config)
         errors = [finding for finding in result.findings if finding.severity == "error"]
         self.assertEqual([], errors)
         self.assertTrue(result.complete)

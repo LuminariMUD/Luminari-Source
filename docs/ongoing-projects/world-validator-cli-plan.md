@@ -13,7 +13,9 @@ Implementation progress:
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phases 0 and 1 are implemented. In addition
+Current checkpoint (2026-08-04): Phases 0 and 1 are implemented. Phase 2 is
+implemented through its six structural parsers, source-derived wear-slot and
+limit contracts, typed reference edges, and the first complete graph pass. In addition
 to the source-derived constants, source cursor, deterministic reporting, index
 validation, and build integration from Phase 0, `wtool` now parses zones and
 rooms, models reset queue and host state, validates room ownership and load
@@ -22,8 +24,8 @@ and persisted room spec-proc names. `validate --zone` merges unindexed
 canonical packages into the normal reference graph, while `validate --paths`
 remains isolated from the live world.
 
-`make test-world-tools` passes 56 tests; the equivalent CMake target and CTest
-entry pass the same suite; `constants sync --check` is clean. The tracked
+`make test-world-tools` passes 74 tests; the equivalent CMake target and CTest
+entry will be re-run at the Phase 2 boundary; `constants sync --check` is clean. The tracked
 artifact and minimal zone/room bundles parse without errors and remain
 byte-for-byte unchanged. A hash-guarded `validate --all` development-world run
 completed in one pass without changing any file. It reported 57 errors:
@@ -31,7 +33,11 @@ completed in one pass without changing any file. It reported 57 errors:
 `ZON037` 1, and `ZON043` 2. It also reported 565 warnings: `IDX008` 329,
 `ZON027` 230, `ZON033` 2, `ZON036` 3, and `ZON037` 1. These are operational
 findings in ignored builder-owned data, not test failures or repository data
-changes. Phase 2 format parsers and full reference coverage are next. Phase 5
+changes. The tracked Phase 2 fixture now covers all six file types, every
+object extension, enhanced mobiles, all trigger host types, modern and legacy
+shops, moving rooms, reset host state, and normal/mini indexes. Parser and
+graph regression coverage is clean; the full development-world triage and
+performance gate are the remaining Phase 2 boundary work. Phase 5
 remains the separately gated emitter follow-on and is not part of this
 validator closeout.
 

@@ -122,6 +122,14 @@ class AttachmentRecord:
 
 
 @dataclass(slots=True)
+class VnumReference:
+  target_type: str
+  target_vnum: int
+  role: str
+  span: SourceSpan
+
+
+@dataclass(slots=True)
 class ResetCommandRecord:
   command: str
   dependency: int
@@ -215,8 +223,22 @@ class MobileRecord:
   action_flags: list[str] = field(default_factory=list)
   affect_flags: list[str] = field(default_factory=list)
   affect2_flags: list[str] = field(default_factory=list)
+  alignment: int | None = None
+  record_kind: str | None = None
   level: int | None = None
+  hit_roll: int | None = None
+  armor_class: int | None = None
+  hit_dice: tuple[int, int, int] | None = None
+  damage_dice: tuple[int, int, int] | None = None
+  gold: int | None = None
+  experience: int | None = None
+  position: int | None = None
+  default_position: int | None = None
+  sex: int | None = None
+  spec_proc: str | None = None
+  enhanced: dict[str, list[str]] = field(default_factory=dict)
   path_rooms: list[int] = field(default_factory=list)
+  references: list[VnumReference] = field(default_factory=list)
   attachments: list[AttachmentRecord] = field(default_factory=list)
   complete: bool = True
 
@@ -227,6 +249,16 @@ class ObjectAffectRecord:
   modifier: int
   bonus_type: int | None
   specific: int | None
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class ObjectSpecialAbilityRecord:
+  ability: int
+  level: int
+  activation_method: int
+  values: list[int]
+  command_word: str | None
   span: SourceSpan
 
 
@@ -245,10 +277,22 @@ class ObjectRecord:
   affect_flags: list[str] = field(default_factory=list)
   affect2_flags: list[str] = field(default_factory=list)
   values: list[int] = field(default_factory=list)
+  weight: int | None = None
+  cost: int | None = None
+  rent: int | None = None
+  level: int | None = None
+  timer: int | None = None
   affects: list[ObjectAffectRecord] = field(default_factory=list)
+  spellbook: list[tuple[int, int, SourceSpan]] = field(default_factory=list)
+  special_abilities: list[ObjectSpecialAbilityRecord] = field(default_factory=list)
+  extra_descriptions: list[ExtraDescriptionRecord] = field(default_factory=list)
+  activated_spells: list[tuple[list[int], SourceSpan]] = field(default_factory=list)
+  weapon_spells: list[tuple[list[int], SourceSpan]] = field(default_factory=list)
   attachments: list[AttachmentRecord] = field(default_factory=list)
+  references: list[VnumReference] = field(default_factory=list)
   spec_proc: str | None = None
   recipient_vnum: int | None = None
+  restring_identifier: str | None = None
   complete: bool = True
 
 
@@ -260,6 +304,7 @@ class TriggerRecord:
   name: str | None = None
   attach_type: int | None = None
   type_flags: str | None = None
+  type_bits: set[int] = field(default_factory=set)
   numeric_argument: int | None = None
   argument_list: str | None = None
   commands: str | None = None
@@ -278,12 +323,16 @@ class ShopRecord:
   vnum: int
   span: SourceSpan
   source_package: str
+  modern: bool = False
   keeper_vnum: int | None = None
   product_vnums: list[int] = field(default_factory=list)
   buy_types: list[ShopBuyTypeRecord] = field(default_factory=list)
   room_vnums: list[int] = field(default_factory=list)
   open_hours: list[int] = field(default_factory=list)
+  profit_buy: float | None = None
+  profit_sell: float | None = None
   messages: list[str] = field(default_factory=list)
+  references: list[VnumReference] = field(default_factory=list)
   complete: bool = True
 
 

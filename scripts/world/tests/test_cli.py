@@ -29,8 +29,28 @@ def make_world(root: Path) -> None:
       content = "#1\nBuilder~\nTest Zone~\n100 199 30 2\nS\n$\n"
     elif extension == "wld":
       content = "#100\nTest Room~\nA test room.~\n1 0 0 0 0 0\nS\n$~\n"
+    elif extension == "mob":
+      content = (
+          "#100\ntest mobile~\na test mobile~\nA test mobile is here.~\nA test mobile.~\n"
+          "0 0 0 0 0 0 0 0 0 S\n1 20 19 1d1+0 1d1+0\n0 0\n9 9 0\n$\n"
+      )
+    elif extension == "obj":
+      content = (
+          "#100\ntest key~\na test key~\nA test key is here.~\n~\n"
+          "18 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0\n"
+          "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n1 1 0 1 0\n$\n"
+      )
+    elif extension == "trg":
+      content = "#100\nTest trigger~\n2 a 0\n~\n* Empty script~\n$~\n"
+    elif extension == "shp":
+      content = (
+          "LuminariMUD v3.0 Shop File~\n#100~\n100\n-1\n1.00\n1.00\n"
+          "18\n-1\n%s no item.~\n%s no item.~\n%s no buy.~\n%s no cash.~\n"
+          "%s no cash.~\n%s buys for %d.~\n%s sells for %d.~\n0\n0\n100\n0\n"
+          "100\n-1\n0\n28\n0\n28\n$~\n"
+      )
     else:
-      content = "#1\n$\n"
+      raise AssertionError(extension)
     (directory / f"1.{extension}").write_text(content, encoding="ascii")
 
 

@@ -792,20 +792,29 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/flags.py
     scripts/world/wtool_lib/indexes.py
     scripts/world/wtool_lib/models.py
+    scripts/world/wtool_lib/mobiles.py
+    scripts/world/wtool_lib/objects.py
     scripts/world/wtool_lib/parsing.py
     scripts/world/wtool_lib/reporting.py
     scripts/world/wtool_lib/rooms.py
+    scripts/world/wtool_lib/shops.py
     scripts/world/wtool_lib/source.py
     scripts/world/wtool_lib/spec_registry.py
+    scripts/world/wtool_lib/triggers.py
     scripts/world/wtool_lib/world.py
     scripts/world/wtool_lib/zones.py
     scripts/world/tests/__init__.py
     scripts/world/tests/test_cli.py
     scripts/world/tests/test_constants.py
+    scripts/world/tests/test_graph.py
     scripts/world/tests/test_indexes.py
+    scripts/world/tests/test_mobiles.py
+    scripts/world/tests/test_objects.py
     scripts/world/tests/test_reporting.py
     scripts/world/tests/test_rooms.py
+    scripts/world/tests/test_shops.py
     scripts/world/tests/test_source.py
+    scripts/world/tests/test_triggers.py
     scripts/world/tests/test_zones.py
     scripts/world/tests/fixtures/phase1/valid/100.zon
     scripts/world/tests/fixtures/phase1/valid/100.wld
@@ -817,7 +826,26 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase1/broken/out-of-order.wld
     scripts/world/tests/fixtures/phase1/broken/prescan.zon
     scripts/world/tests/fixtures/phase1/broken/reset-traps.zon
-    scripts/world/tests/fixtures/phase1/broken/room-structure.wld)
+    scripts/world/tests/fixtures/phase1/broken/room-structure.wld
+    scripts/world/tests/fixtures/phase2/complete/mob/100.mob
+    scripts/world/tests/fixtures/phase2/complete/mob/index
+    scripts/world/tests/fixtures/phase2/complete/mob/index.mini
+    scripts/world/tests/fixtures/phase2/complete/obj/100.obj
+    scripts/world/tests/fixtures/phase2/complete/obj/index
+    scripts/world/tests/fixtures/phase2/complete/obj/index.mini
+    scripts/world/tests/fixtures/phase2/complete/shp/100.shp
+    scripts/world/tests/fixtures/phase2/complete/shp/index
+    scripts/world/tests/fixtures/phase2/complete/shp/index.mini
+    scripts/world/tests/fixtures/phase2/complete/shp/legacy.shp
+    scripts/world/tests/fixtures/phase2/complete/trg/100.trg
+    scripts/world/tests/fixtures/phase2/complete/trg/index
+    scripts/world/tests/fixtures/phase2/complete/trg/index.mini
+    scripts/world/tests/fixtures/phase2/complete/wld/100.wld
+    scripts/world/tests/fixtures/phase2/complete/wld/index
+    scripts/world/tests/fixtures/phase2/complete/wld/index.mini
+    scripts/world/tests/fixtures/phase2/complete/zon/100.zon
+    scripts/world/tests/fixtures/phase2/complete/zon/index
+    scripts/world/tests/fixtures/phase2/complete/zon/index.mini)
 
 add_custom_target(test-world-tools
     COMMAND Python3::Interpreter -m unittest discover

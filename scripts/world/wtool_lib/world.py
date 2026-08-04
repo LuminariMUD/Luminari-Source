@@ -5,11 +5,28 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Iterable
 
+from .flags import decode_tokens
 from .indexes import indexed_data_paths, validate_indexes
-from .models import Finding, RelatedLocation, RoomRecord, SourceSpan, ValidationResult, ZoneRecord
+from .mobiles import parse_mobile_file
+from .models import (
+    Finding,
+    MobileRecord,
+    ObjectRecord,
+    RelatedLocation,
+    RoomRecord,
+    ShopRecord,
+    SourceSpan,
+    TriggerRecord,
+    ValidationResult,
+    WorldRecord,
+    ZoneRecord,
+)
+from .objects import parse_object_file
 from .parsing import finding
 from .rooms import parse_room_file
+from .shops import parse_shop_file
 from .spec_registry import extract_spec_names
+from .triggers import parse_trigger_file
 from .zones import parse_zone_file
 
 
@@ -25,14 +42,14 @@ def _display_path(path: Path, world_root: Path | None, repo_root: Path) -> str:
     return path.name
 
 
-def _package_number(record: ZoneRecord | RoomRecord) -> int | None:
+def _package_number(record: WorldRecord) -> int | None:
   try:
     return int(record.source_package)
   except ValueError:
     return None
 
 
-def _selected(record: ZoneRecord | RoomRecord, selected_packages: set[int] | None) -> bool:
+def _selected(record: WorldRecord, selected_packages: set[int] | None) -> bool:
   return selected_packages is None or _package_number(record) in selected_packages
 
 
@@ -309,24 +326,391 @@ def _validate_room_graph(
           )
 
 
+def _related(record: WorldRecord, record_type: str) -> RelatedLocation:
+  return RelatedLocation(
+      record.span.path,
+      record.span.line,
+      record.span.column,
+      record_type,
+      record.vnum,
+  )
+
+
+def _validate_record_order(
+    records: list[WorldRecord],
+    record_type: str,
+    code_prefix: str,
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+) -> None:
+  seen: dict[int, WorldRecord] = {}
+  previous: WorldRecord | None = None
+  for record in records:
+    emit = _selected(record, selected_packages)
+    if record.vnum in seen and emit:
+      findings.append(
+          Finding(
+              f"{code_prefix}040",
+              "error",
+              f"duplicate {record_type} vnum {record.vnum}",
+              record.span,
+              record_type=record_type,
+              vnum=record.vnum,
+              related=_related(seen[record.vnum], record_type),
+          )
+      )
+    else:
+      seen[record.vnum] = record
+    if previous is not None and record.vnum <= previous.vnum and emit:
+      findings.append(
+          Finding(
+              f"{code_prefix}041",
+              "error",
+              f"{record_type} vnum {record.vnum} is not strictly increasing after "
+              f"{previous.vnum}",
+              record.span,
+              record_type=record_type,
+              vnum=record.vnum,
+              related=_related(previous, record_type),
+          )
+      )
+    previous = record
+
+
+def _owning_zones(vnum: int, zones: list[ZoneRecord]) -> list[ZoneRecord]:
+  return [
+      zone
+      for zone in zones
+      if zone.bottom is not None and zone.top is not None and zone.bottom <= vnum <= zone.top
+  ]
+
+
+def _validate_packaging(
+    records: list[WorldRecord],
+    record_type: str,
+    zones: list[ZoneRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+) -> None:
+  for record in records:
+    if not _selected(record, selected_packages):
+      continue
+    package = _package_number(record)
+    owners = _owning_zones(record.vnum, zones)
+    if package is not None and len(owners) == 1 and package != owners[0].vnum:
+      findings.append(
+          Finding(
+              "REF010",
+              "warning",
+              f"{record_type} {record.vnum} is packaged in {package}, but zone range ownership "
+              f"selects {owners[0].vnum}",
+              record.span,
+              record_type=record_type,
+              vnum=record.vnum,
+              related=_related(owners[0], "zone"),
+          )
+      )
+
+
+def _all_types_for_vnum(
+    vnum: int,
+    maps: dict[str, dict[int, WorldRecord]],
+) -> list[str]:
+  return sorted(record_type for record_type, records in maps.items() if vnum in records)
+
+
+def _validate_reference(
+    findings: list[Finding],
+    source: WorldRecord,
+    target_type: str,
+    target_vnum: int,
+    role: str,
+    span: SourceSpan,
+    maps: dict[str, dict[int, WorldRecord]],
+) -> None:
+  if target_type not in maps:
+    return
+  if target_vnum in maps[target_type]:
+    return
+  other_types = _all_types_for_vnum(target_vnum, maps)
+  if other_types:
+    code = "REF023"
+    message = (
+        f"{role} requires {target_type} {target_vnum}, but that vnum exists only as "
+        f"{', '.join(other_types)}"
+    )
+  else:
+    code = "REF022"
+    message = f"{role} targets missing {target_type} {target_vnum}"
+  record_type = type(source).__name__.removesuffix("Record").lower()
+  findings.append(finding(code, "error", message, span, record_type, source.vnum))
+
+
+def _validate_attachment(
+    findings: list[Finding],
+    source: WorldRecord,
+    host_type: str,
+    trigger_vnum: int,
+    span: SourceSpan,
+    triggers: dict[int, TriggerRecord],
+    maps: dict[str, dict[int, WorldRecord]],
+) -> None:
+  if "trigger" not in maps:
+    return
+  expected = {"mobile": 0, "object": 1, "room": 2}[host_type]
+  target = triggers.get(trigger_vnum)
+  if target is None:
+    _validate_reference(
+        findings,
+        source,
+        "trigger",
+        trigger_vnum,
+        f"inline {host_type} trigger",
+        span,
+        maps,
+    )
+  elif target.attach_type != expected:
+    record_type = type(source).__name__.removesuffix("Record").lower()
+    findings.append(
+        Finding(
+            "REF021",
+            "error",
+            f"trigger {trigger_vnum} declares attach type {target.attach_type}; "
+            f"{host_type} hosts require {expected}",
+            span,
+            record_type=record_type,
+            vnum=source.vnum,
+            related=_related(target, "trigger"),
+        )
+    )
+
+
+def _validate_full_graph(
+    zones: list[ZoneRecord],
+    rooms: list[RoomRecord],
+    mobiles: list[MobileRecord],
+    objects: list[ObjectRecord],
+    triggers: list[TriggerRecord],
+    shops: list[ShopRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+    manifest: dict[str, Any],
+    reference_types: set[str],
+) -> None:
+  typed_lists: list[tuple[list[WorldRecord], str, str]] = [
+      (list(mobiles), "mobile", "MOB"),
+      (list(objects), "object", "OBJ"),
+      (list(triggers), "trigger", "TRG"),
+      (list(shops), "shop", "SHP"),
+  ]
+  for records, record_type, prefix in typed_lists:
+    _validate_record_order(records, record_type, prefix, findings, selected_packages)
+    _validate_packaging(records, record_type, zones, findings, selected_packages)
+
+  all_maps: dict[str, dict[int, WorldRecord]] = {
+      "zone": {record.vnum: record for record in zones},
+      "room": {record.vnum: record for record in rooms},
+      "mobile": {record.vnum: record for record in mobiles},
+      "object": {record.vnum: record for record in objects},
+      "trigger": {record.vnum: record for record in triggers},
+      "shop": {record.vnum: record for record in shops},
+  }
+  maps = {
+      record_type: records
+      for record_type, records in all_maps.items()
+      if record_type in reference_types or record_type in {"zone", "room"}
+  }
+  triggers_by_vnum = {record.vnum: record for record in triggers}
+  objects_by_vnum = {record.vnum: record for record in objects}
+  item_key = next(
+      entry["index"]
+      for entry in manifest["tables"]["item-types"]["entries"]
+      if entry["macro"] == "ITEM_KEY"
+  )
+
+  for record in [*mobiles, *objects, *shops]:
+    if not _selected(record, selected_packages):
+      continue
+    for reference in record.references:
+      _validate_reference(
+          findings,
+          record,
+          reference.target_type,
+          reference.target_vnum,
+          reference.role,
+          reference.span,
+          maps,
+      )
+
+  for room in rooms:
+    if not _selected(room, selected_packages):
+      continue
+    for attachment in room.attachments:
+      _validate_attachment(
+          findings,
+          room,
+          "room",
+          attachment.trigger_vnum,
+          attachment.span,
+          triggers_by_vnum,
+          maps,
+      )
+    keys = [(exit_record.key_vnum, exit_record.span, "exit key") for exit_record in room.exits]
+    if room.moving_room is not None:
+      keys.append((room.moving_room.key_vnum, room.moving_room.span, "moving-room key"))
+    for key_vnum, span, role in keys:
+      if key_vnum < 0:
+        continue
+      key = objects_by_vnum.get(key_vnum)
+      if key is None:
+        _validate_reference(findings, room, "object", key_vnum, role, span, maps)
+      elif key.item_type != item_key:
+        findings.append(
+            Finding(
+                "REF025",
+                "warning",
+                f"{role} {key_vnum} has item type {key.item_type}, not ITEM_KEY",
+                span,
+                record_type="room",
+                vnum=room.vnum,
+                related=_related(key, "object"),
+            )
+        )
+
+  for record, host_type in [
+      *((record, "mobile") for record in mobiles),
+      *((record, "object") for record in objects),
+  ]:
+    if not _selected(record, selected_packages):
+      continue
+    for attachment in record.attachments:
+      _validate_attachment(
+          findings,
+          record,
+          host_type,
+          attachment.trigger_vnum,
+          attachment.span,
+          triggers_by_vnum,
+          maps,
+      )
+
+  wear_slots = manifest["tables"]["wear-slots"]["entries"]
+  for zone in zones:
+    if not _selected(zone, selected_packages):
+      continue
+    for command in zone.commands:
+      prototype: tuple[str, int, str] | None = None
+      if command.command == "M" and command.arguments:
+        prototype = ("mobile", command.arguments[0], "M reset prototype")
+      elif command.command in {"O", "E", "G", "P"} and command.arguments:
+        prototype = ("object", command.arguments[0], f"{command.command} reset prototype")
+      elif command.command == "R" and len(command.arguments) >= 2:
+        prototype = ("object", command.arguments[1], "R reset object")
+      if prototype is not None:
+        _validate_reference(
+            findings,
+            zone,
+            prototype[0],
+            prototype[1],
+            prototype[2],
+            command.span,
+            maps,
+        )
+      if command.command == "P" and len(command.arguments) >= 3:
+        _validate_reference(
+            findings,
+            zone,
+            "object",
+            command.arguments[2],
+            "P reset container",
+            command.span,
+            maps,
+        )
+      if command.command == "E" and len(command.arguments) >= 3:
+        obj = objects_by_vnum.get(command.arguments[0])
+        position = command.arguments[2]
+        if obj is not None and 0 <= position < len(wear_slots):
+          wear_bits = decode_tokens(obj.wear_flags, len(manifest["tables"]["obj-wear"]["entries"]))
+          required = wear_slots[position]["required_wear_index"]
+          if required not in wear_bits.bits:
+            findings.append(
+                Finding(
+                    "REF030",
+                    "warning",
+                    f"E reset equips object {obj.vnum} in slot {position}, which requires "
+                    f"{wear_slots[position]['required_wear_macro']}",
+                    command.span,
+                    record_type="zone",
+                    vnum=zone.vnum,
+                    related=_related(obj, "object"),
+                )
+            )
+      if command.command == "T" and len(command.arguments) >= 2:
+        host_type = command.arguments[0]
+        trigger_vnum = command.arguments[1]
+        target = triggers_by_vnum.get(trigger_vnum)
+        if target is None:
+          _validate_reference(
+              findings,
+              zone,
+              "trigger",
+              trigger_vnum,
+              "T reset trigger",
+              command.span,
+              maps,
+          )
+        elif host_type in {0, 1, 2} and target.attach_type != host_type:
+          findings.append(
+              Finding(
+                  "REF021",
+                  "error",
+                  f"T reset host type {host_type} disagrees with trigger {trigger_vnum} "
+                  f"attach type {target.attach_type}",
+                  command.span,
+                  record_type="zone",
+                  vnum=zone.vnum,
+                  related=_related(target, "trigger"),
+              )
+          )
+
+
 def _load_files(
     zone_paths: Iterable[Path],
     room_paths: Iterable[Path],
+    mobile_paths: Iterable[Path],
+    object_paths: Iterable[Path],
+    trigger_paths: Iterable[Path],
+    shop_paths: Iterable[Path],
     repo_root: Path,
     world_root: Path | None,
     manifest: dict[str, Any],
     config: dict[str, Any],
     selected_packages: set[int] | None,
-) -> tuple[list[ZoneRecord], list[RoomRecord], list[Finding], bool]:
+    reference_types: set[str],
+) -> tuple[
+    list[ZoneRecord],
+    list[RoomRecord],
+    list[MobileRecord],
+    list[ObjectRecord],
+    list[TriggerRecord],
+    list[ShopRecord],
+    list[Finding],
+    bool,
+]:
   findings: list[Finding] = []
   zones: list[ZoneRecord] = []
   rooms: list[RoomRecord] = []
+  mobiles: list[MobileRecord] = []
+  objects: list[ObjectRecord] = []
+  triggers: list[TriggerRecord] = []
+  shops: list[ShopRecord] = []
   complete = True
   direction_count = 10 if config.get("diagonal_dirs") else 6
   spec_names = extract_spec_names(repo_root)
-  for path in zone_paths:
-    parsed = parse_zone_file(path, _display_path(path, world_root, repo_root), manifest, direction_count)
-    zones.extend(parsed.records)
+
+  def merge_parse(path: Path, label: str, parsed: Any, records: list[Any]) -> None:
+    nonlocal complete
+    records.extend(parsed.records)
     package = int(path.stem) if path.stem.isdigit() else None
     if selected_packages is None or package in selected_packages:
       findings.extend(parsed.findings)
@@ -336,11 +720,15 @@ def _load_files(
               "REF009",
               "error",
               "selected validation cannot build a complete reference graph because this "
-              "unselected zone file could not be fully parsed",
+              f"unselected {label} file could not be fully parsed",
               SourceSpan(_display_path(path, world_root, repo_root), 1),
           )
       )
     complete = complete and parsed.complete
+
+  for path in zone_paths:
+    parsed = parse_zone_file(path, _display_path(path, world_root, repo_root), manifest, direction_count)
+    merge_parse(path, "zone", parsed, zones)
   for path in room_paths:
     parsed = parse_room_file(
         path,
@@ -349,24 +737,44 @@ def _load_files(
         bool(config.get("diagonal_dirs")),
         spec_names,
     )
-    rooms.extend(parsed.records)
-    package = int(path.stem) if path.stem.isdigit() else None
-    if selected_packages is None or package in selected_packages:
-      findings.extend(parsed.findings)
-    elif not parsed.complete:
-      findings.append(
-          finding(
-              "REF009",
-              "error",
-              "selected validation cannot build a complete reference graph because this "
-              "unselected room file could not be fully parsed",
-              SourceSpan(_display_path(path, world_root, repo_root), 1),
-          )
-      )
-    complete = complete and parsed.complete
+    merge_parse(path, "room", parsed, rooms)
+  for path in mobile_paths:
+    parsed = parse_mobile_file(
+        path,
+        _display_path(path, world_root, repo_root),
+        manifest,
+        spec_names,
+    )
+    merge_parse(path, "mobile", parsed, mobiles)
+  for path in object_paths:
+    parsed = parse_object_file(
+        path,
+        _display_path(path, world_root, repo_root),
+        manifest,
+        spec_names,
+    )
+    merge_parse(path, "object", parsed, objects)
+  for path in trigger_paths:
+    parsed = parse_trigger_file(path, _display_path(path, world_root, repo_root), manifest)
+    merge_parse(path, "trigger", parsed, triggers)
+  for path in shop_paths:
+    parsed = parse_shop_file(path, _display_path(path, world_root, repo_root), manifest)
+    merge_parse(path, "shop", parsed, shops)
   _validate_zone_order(zones, findings, selected_packages)
   _validate_room_graph(zones, rooms, findings, selected_packages, direction_count)
-  return zones, rooms, findings, complete
+  _validate_full_graph(
+      zones,
+      rooms,
+      mobiles,
+      objects,
+      triggers,
+      shops,
+      findings,
+      selected_packages,
+      manifest,
+      reference_types,
+  )
+  return zones, rooms, mobiles, objects, triggers, shops, findings, complete
 
 
 def validate_indexed_world(
@@ -385,9 +793,20 @@ def validate_indexed_world(
   )
   zone_paths = indexed_data_paths(world_root, "zon", mini)
   room_paths = indexed_data_paths(world_root, "wld", mini)
+  mobile_paths = indexed_data_paths(world_root, "mob", mini)
+  object_paths = indexed_data_paths(world_root, "obj", mini)
+  trigger_paths = indexed_data_paths(world_root, "trg", mini)
+  shop_paths = indexed_data_paths(world_root, "shp", mini)
   if selected_packages is not None:
     for package in sorted(selected_packages):
-      for extension, paths in (("zon", zone_paths), ("wld", room_paths)):
+      for extension, paths in (
+          ("zon", zone_paths),
+          ("wld", room_paths),
+          ("mob", mobile_paths),
+          ("obj", object_paths),
+          ("trg", trigger_paths),
+          ("shp", shop_paths),
+      ):
         candidate = world_root / extension / f"{package}.{extension}"
         if candidate.is_file() and candidate not in paths:
           paths.append(candidate)
@@ -404,14 +823,19 @@ def validate_indexed_world(
           )
       )
       result.complete = False
-  _, _, graph_findings, graph_complete = _load_files(
+  *_, graph_findings, graph_complete = _load_files(
       zone_paths,
       room_paths,
+      mobile_paths,
+      object_paths,
+      trigger_paths,
+      shop_paths,
       repo_root,
       world_root,
       manifest,
       config,
       selected_packages,
+      {"zone", "room", "mobile", "object", "trigger", "shop"},
   )
   result.findings.extend(graph_findings)
   result.complete = result.complete and graph_complete
@@ -422,9 +846,8 @@ def validate_indexed_world(
   return result
 
 
-def _collect_explicit_paths(requested_paths: Iterable[Path]) -> tuple[list[Path], list[Path]]:
-  zones: list[Path] = []
-  rooms: list[Path] = []
+def _collect_explicit_paths(requested_paths: Iterable[Path]) -> dict[str, list[Path]]:
+  paths = {extension: [] for extension in ("zon", "wld", "mob", "obj", "trg", "shp")}
   seen: set[Path] = set()
   for requested in requested_paths:
     candidates = [requested] if requested.is_file() else sorted(requested.rglob("*"))
@@ -437,11 +860,10 @@ def _collect_explicit_paths(requested_paths: Iterable[Path]) -> tuple[list[Path]
       seen.add(resolved)
       if candidate.name.startswith("index.") or candidate.name.startswith("index.mini."):
         continue
-      if candidate.suffix == ".zon":
-        zones.append(candidate)
-      elif candidate.suffix == ".wld":
-        rooms.append(candidate)
-  return zones, rooms
+      extension = candidate.suffix.removeprefix(".")
+      if extension in paths:
+        paths[extension].append(candidate)
+  return paths
 
 
 def validate_explicit_paths(
@@ -450,27 +872,38 @@ def validate_explicit_paths(
     manifest: dict[str, Any],
     config: dict[str, Any],
 ) -> ValidationResult:
-  zone_paths, room_paths = _collect_explicit_paths(requested_paths)
+  paths = _collect_explicit_paths(requested_paths)
   result = ValidationResult("isolated-paths", "paths", config=dict(config))
-  if not zone_paths and not room_paths:
+  if not any(paths.values()):
     result.findings.append(
         finding(
             "IDX012",
             "error",
-            "explicit paths contain no .zon or .wld files supported by the current phase",
+            "explicit paths contain no supported .zon, .wld, .mob, .obj, .trg, or .shp files",
             SourceSpan("<paths>", 1),
         )
     )
     result.complete = False
     return result
-  _, _, findings, complete = _load_files(
-      zone_paths,
-      room_paths,
+  *_, findings, complete = _load_files(
+      paths["zon"],
+      paths["wld"],
+      paths["mob"],
+      paths["obj"],
+      paths["trg"],
+      paths["shp"],
       repo_root,
       None,
       manifest,
       config,
       None,
+      {
+          {"zon": "zone", "wld": "room", "mob": "mobile", "obj": "object", "trg": "trigger", "shp": "shop"}[
+              extension
+          ]
+          for extension, selected_paths in paths.items()
+          if selected_paths
+      },
   )
   result.findings.extend(findings)
   result.complete = complete

@@ -97,7 +97,27 @@ LIMIT_SPECS = {
     "MAX_MOVING_ROOMS": "src/structs.h",
     "NUM_WEARS": "src/structs.h",
     "MAX_SHOP_OBJ": "src/obj/shop.h",
+    "MAX_PROD": "src/obj/shop.h",
+    "MAX_TRADE": "src/obj/shop.h",
+    "NUM_ATTACK_TYPES": "src/structs.h",
+    "NUM_CLASSES": "src/structs.h",
+    "NUM_FEATS": "src/structs.h",
+    "NUM_GENDERS": "src/structs.h",
+    "NUM_PORTAL_TYPES": "src/structs.h",
+    "NUM_RACE_TYPES": "src/structs.h",
+    "NUM_SIZES": "src/structs.h",
+    "NUM_SPELLS": "src/magic/spells.h",
+    "NUM_SPECABS": "src/combat/spec_abilities.h",
+    "NUM_SUB_RACES": "src/structs.h",
+    "PORTAL_CHECKFLAGS": "src/structs.h",
+    "PORTAL_CLANHALL": "src/structs.h",
+    "PORTAL_NORMAL": "src/structs.h",
+    "PORTAL_RANDOM": "src/structs.h",
     "RQ_MAXSIZE": "src/db.h",
+    "SPELLBOOK_SIZE": "src/structs.h",
+    "LVL_IMPL": "src/structs.h",
+    "ITEM_SPECAB_HORN_OF_SUMMONING": "src/combat/spec_abilities.h",
+    "ITEM_SPECAB_ITEM_SUMMON": "src/combat/spec_abilities.h",
 }
 
 
@@ -490,6 +510,37 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
         "count_symbol": spec.count_symbol,
         "entries": entries,
     }
+
+  wear_source = (root / "src/obj/act.item.c").read_text(encoding="utf-8")
+  wear_match = re.search(r"int\s+wear_bitvectors\[\]\s*=\s*\{(.*?)\};", wear_source, re.DOTALL)
+  if wear_match is None:
+    raise ExtractionError("cannot find wear_bitvectors[] in src/obj/act.item.c")
+  wear_macros = re.findall(r"\bITEM_WEAR_[A-Z0-9_]+\b", _strip_c_comments(wear_match.group(1)))
+  equipment_names = _extract_array(constants_text, "equipment_types")
+  if equipment_names and equipment_names[-1] == "\n":
+    equipment_names.pop()
+  num_wears = _extract_limit(root, "NUM_WEARS", "src/structs.h")
+  if len(wear_macros) != num_wears or len(equipment_names) != num_wears:
+    raise ExtractionError(
+        "wear_bitvectors/equipment_types do not match NUM_WEARS: "
+        f"{len(wear_macros)}/{len(equipment_names)}/{num_wears}"
+    )
+  wear_indices = {
+      entry["macro"]: entry["index"] for entry in tables["obj-wear"]["entries"]
+  }
+  tables["wear-slots"] = {
+      "source_table": "src/obj/act.item.c:perform_wear.wear_bitvectors",
+      "source_names": "src/constants.c:equipment_types",
+      "entries": [
+          {
+              "index": index,
+              "name": equipment_names[index],
+              "required_wear_macro": macro,
+              "required_wear_index": wear_indices[macro],
+          }
+          for index, macro in enumerate(wear_macros)
+      ],
+  }
 
   trigger_header = (root / "src/dgscript/dg_scripts.h").read_text(encoding="utf-8")
   for key, table_name, start_symbol, end_marker, prefix in TRIGGER_SPECS:

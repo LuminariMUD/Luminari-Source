@@ -1,0 +1,39 @@
+#10000
+fixture mobile~
+a fixture mobile~
+A fixture mobile waits here.~
+This mobile exercises the enhanced prototype format.~
+0 0 0 0 0 0 0 0 0 E
+10 20 19 2d8+10 1d6+2
+100 100
+9 9 0
+BareHandAttack: 0
+Str: 20
+StrAdd: 0
+Int: 12
+Wis: 12
+Dex: 12
+Con: 12
+Cha: 12
+KnownSpell: 1
+Race: 1
+SubRace 1: 1
+SubRace 2: 1
+SubRace 3: 1
+Class: 1
+Feat: 1 1
+MFeat: 2 1
+Size: 5
+Walkin: enters from the fixture
+Walkout: leaves for the fixture
+EchoZone: 0
+EchoFreq: 10
+EchoCount: 1
+EchoSequential: 0
+Echo: A fixture echo.
+Path: 5:10000 10001
+Aff2: 0 0 0 0
+SpecProc: bank
+E
+T 30000
+$
