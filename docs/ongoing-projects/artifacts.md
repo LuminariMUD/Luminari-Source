@@ -2,9 +2,15 @@
 
 ## 0. Second-wave implementation status
 
-This section tracks the in-progress work on the thirteen requested features
-and the six HomelandMUD candidate artifacts. It is updated as work lands so
-an interrupted session can resume from here.
+This section tracks the thirteen requested features and the six HomelandMUD
+candidate artifacts. It is updated as work lands so an interrupted session
+can resume from here.
+
+**Current state: every engineering section of this tracker is closed.**
+Sections 1, 3, and 4 are done; section 2 is world-building work and is
+briefed for handoff in
+[`artifact-placement-plan.md`](artifact-placement-plan.md). Nothing in this
+repository is waiting on code.
 
 Item 4 of the original request, the original-and-echo model, is **REJECTED**
 and is not being implemented. Section 16 and section 18.3 below remain as
@@ -56,9 +62,18 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 - `lib/world/artifacts/artifacts.hlp` - chronicle and invoke help entries.
 - `scripts/provision_artifacts.sh` - merges artifacts added to the package
   into an already-provisioned world instead of skipping the file entirely.
-- `unittests/CuTest/test_artifacts.c` - regression coverage, 57 tests.
+- `unittests/CuTest/test_artifacts.c` - registry, persistence, and table
+  regression coverage; its object fixture carries all seventeen vnums.
+- `unittests/CuTest/test_artifact_integration.c` - booted-world coverage; see
+  section 3.
+- `.gitignore`, `Makefile.am`, `CMakeLists.txt` - the deployment package is
+  version controlled and the integration suite is registered in both build
+  systems; see section 1.
 - `docs/systems/ARTIFACT_SYSTEM.md` - behavior documentation.
-- `docs/CHANGELOG.md`, `configure.ac` - release notes and version bump.
+- `docs/ongoing-projects/artifact-placement-plan.md` - the world-building
+  handoff brief; see section 2.
+- `docs/CHANGELOG.md`, `configure.ac`, `src/constants.c`, `src/structs.h` -
+  release notes and version bump to 2.5035-beta.
 
 ### 0.4 Remaining work
 
@@ -81,15 +96,20 @@ is world-building work, briefed in
 ### 0.5 Verification performed
 
 - `make -j$(nproc)` clean, no warnings.
-- `make test` green at 145 tests, up from 133.
+- `make test` green at 363 tests, up from 338 before this round of work and
+  133 before the second wave.
 - `make install`; no stray root-level `circle` binary left behind.
-- Booted `./bin/circle -d lib` against the development database: the log
-  reads `Artifacts: initialized 17 artifacts.` with no metadata SYSERRs, and
-  `lib/world/world.artifact` was rewritten in v2.3 form with a pre-existing
-  v2.2 owner carried across and no provenance invented for it.
-- `scripts/provision_artifacts.sh` run three times in a row: it added the six
-  new prototypes and resets to an already-provisioned world on the first run
-  and changed nothing on the next two.
+- Booted `./bin/circle -d lib` against the development database: the banner
+  reads `LuminariMUD 2.5035-beta`, the log reads
+  `Artifacts: initialized 17 artifacts.` with no artifact SYSERRs at all, and
+  `lib/world/world.artifact` kept its v2.3 form.
+- `scripts/provision_artifacts.sh` run three times against a **fresh clone**:
+  it installed all seventeen object prototypes and seventeen vault resets on
+  the first run and changed nothing on the next two. This is the check that
+  section 1 existed to make possible; before it, a fresh clone had no package
+  to provision from.
+- The cutest binary now logs zero artifact SYSERRs. It had been logging
+  thirty on every run from a partial-registry fixture.
 
 ---
 
