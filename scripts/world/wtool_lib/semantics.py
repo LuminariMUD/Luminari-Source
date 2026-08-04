@@ -170,7 +170,13 @@ def _validate_reserved_flags(
       room_table,
       {"ROOM_HASTRAP", "ROOM_OCCUPIED"},
   )
-  mob_reserved = _reserved_indices(mob_table)
+  # write_mobile_record() persists MOB_ISNPC on every canonical mobile, while
+  # MOB_SPEC and MOB_PLANAR_ALLY are usable behavior flags rather than (R)
+  # prototype-state bits. MOB_NOTDEADYET and true UNUSED entries remain linted.
+  mob_reserved = _reserved_indices(
+      mob_table,
+      excluded_macros={"MOB_ISNPC", "MOB_PLANAR_ALLY", "MOB_SPEC"},
+  )
   affect_reserved = _reserved_indices(
       affect_table,
       {"AFF_CHARM"},
@@ -631,8 +637,8 @@ def _validate_object_values(
   }
   rooms_by_vnum = {room.vnum: room for room in rooms}
   max_level = _limit(manifest, "LVL_IMPL")
+  max_spell = _limit(manifest, "MAX_SPELLS")
   num_spells = _limit(manifest, "NUM_SPELLS")
-  defined_spell_max = num_spells - 1
   num_liquids = _limit(manifest, "NUM_LIQ_TYPES")
   num_trap_triggers = _limit(manifest, "NUM_TRAP_TRIGGERS")
   num_trap_effects = _limit(manifest, "NUM_TRAP_SPECIAL_EFFECTS")
@@ -660,7 +666,7 @@ def _validate_object_values(
             f"object value[0] spell level {values[0]} is outside 0..{max_level}",
         )
       for slot in (1, 2, 3):
-        _check_object_spell(findings, obj, slot, defined_spell_max)
+        _check_object_spell(findings, obj, slot, max_spell)
     elif obj.item_type in {item_types["ITEM_WAND"], item_types["ITEM_STAFF"]}:
       if not 0 <= values[0] <= max_level:
         _object_finding(
@@ -669,7 +675,7 @@ def _validate_object_values(
             "SEM014",
             f"object value[0] spell level {values[0]} is outside 0..{max_level}",
         )
-      _check_object_spell(findings, obj, 3, defined_spell_max)
+      _check_object_spell(findings, obj, 3, max_spell)
       if values[1] < 0 or values[2] < 0 or values[2] > values[1]:
         _object_finding(
             findings,
@@ -695,7 +701,7 @@ def _validate_object_values(
             f"liquid type {values[2]} is outside 0..{num_liquids - 1}",
             "error",
         )
-      _check_object_spell(findings, obj, 3, defined_spell_max)
+      _check_object_spell(findings, obj, 3, max_spell)
     elif obj.item_type in {item_types["ITEM_CONTAINER"], item_types["ITEM_AMMO_POUCH"]}:
       if not -1 <= values[0] <= max_container_size:
         _object_finding(
@@ -736,7 +742,6 @@ def _validate_object_values(
             obj,
             "SEM018",
             f"portal type {values[0]} is outside 0..{num_portal_types - 1}",
-            "error",
         )
       elif values[0] in portal_exact and values[1] <= 0:
         _object_finding(
@@ -779,7 +784,6 @@ def _validate_object_values(
             obj,
             "SEM018",
             f"trap effect {values[2]} is outside 1..{num_trap_effects - 1}",
-            "error",
         )
     elif obj.item_type == item_types["ITEM_SWITCH"]:
       if values[0] not in {0, 1}:
@@ -811,7 +815,7 @@ def _validate_object_values(
     for payload, span in obj.weapon_spells:
       spell, level, percent, in_combat = payload
       if not (
-          1 <= spell <= defined_spell_max
+          1 <= spell <= max_spell
           and level >= 1
           and 1 <= percent <= 50
           and in_combat in {0, 1}
@@ -820,7 +824,7 @@ def _validate_object_values(
             findings,
             obj,
             "SEM021",
-            f"weapon spell values {payload} require spell 1..{defined_spell_max}, level >= 1, "
+            f"weapon spell values {payload} require spell 1..{max_spell}, level >= 1, "
             "percent 1..50, and combat 0 or 1",
             span=span,
         )

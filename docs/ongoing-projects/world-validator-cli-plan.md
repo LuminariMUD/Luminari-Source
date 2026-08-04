@@ -9,12 +9,11 @@ Implementation progress:
 - [x] Phase 0 - Foundation, constants, and indexes
 - [x] Phase 1 - Zones, rooms, and critical references
 - [x] Phase 2 - Mobiles, objects, triggers, shops, and full references
-- [ ] Phase 3 - Semantic and topology lint
+- [x] Phase 3 - Semantic and topology lint
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phases 0 through 2 are complete and Phase 3
-is implemented pending its full development-world operational audit. Phase 2
+Current checkpoint (2026-08-04): Phases 0 through 3 are complete. Phase 2
 adds all six structural parsers, source-derived wear-slot and limit contracts,
 typed reference edges, and the complete graph pass. In addition
 to the source-derived constants, source cursor, deterministic reporting, index
@@ -28,6 +27,8 @@ reverse directions and object bounds; reserved/runtime flag lint; color-aware
 placeholder detection; physical exit, reverse-exit, and reachability checks;
 reset mobile level-band checks; dangerous-room placement warnings; and
 item-specific value validation through stable `SEM001`-`SEM022` codes.
+Source-backed exemptions cover `MOB_ISNPC`, which the canonical writer emits
+on every mobile, plus usable `MOB_SPEC` and `MOB_PLANAR_ALLY` behavior flags.
 
 `make test-world-tools` passes 86 tests; the equivalent CMake target and CTest
 entry pass the same suite; `constants sync --check` is clean. The tracked
@@ -58,8 +59,19 @@ world-data defects or unsafe values. Those remaining errors are `MOB001` 1,
 `SHP016` 3, `WLD014` 1, `WLD040` 4, `WLD041` 1, `ZON028` 1, `ZON037` 1, and
 `ZON043` 2. Warning counts are `IDX008` 329, `MOB017` 4,139, `MOB026` 25,
 `OBJ015` 4,819, `OBJ016` 3, `REF025` 87, `REF030` 315, `REF031` 1, `ZON027`
-230, `ZON033` 2, `ZON036` 3, and `ZON037` 1. Phase 3 semantic and topology
-lint is next. Phase 5
+230, `ZON033` 2, `ZON036` 3, and `ZON037` 1.
+
+The final hash-guarded Phase 3 development-world run completed in 10.62
+seconds with a 291,720 KiB maximum resident set and did not change any world
+file. It reported 3,640 errors, 37,251 warnings, and 206 info findings. The 13
+new semantic errors are builder-owned unsafe values: 10 liquid type indices
+outside the 23-entry runtime arrays and three trap trigger indices outside the
+six supported trigger types. Semantic counts are `SEM003` 925,
+`SEM004` 1,744, `SEM005` 802, `SEM006` 12,993, `SEM007` 425, `SEM008` 623,
+`SEM009` 169, `SEM010` 206, `SEM011` 8,546, `SEM012` 949, `SEM013` 23,
+`SEM016` 36, `SEM018` 69, and `SEM019` 6. No Phase 3 validator defect remains
+after operational triage. Phase 4 lookup, documentation drift gates, wrapper,
+and adoption work is next. Phase 5
 remains the separately gated emitter follow-on and is not part of this
 validator closeout.
 

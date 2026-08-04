@@ -153,7 +153,7 @@ class SemanticTests(unittest.TestCase):
     self.assertIn("ROOM_BFS_MARK", messages)
     self.assertIn("ROOM_OCCUPIED", messages)
     self.assertIn("ROOM_HASTRAP", messages)
-    self.assertIn("MOB_ISNPC", messages)
+    self.assertNotIn("MOB_ISNPC", messages)
     self.assertIn("MOB_NOTDEADYET", messages)
     self.assertIn("AFF_POISON", messages)
     self.assertIn("AFF_CHARM", messages)
@@ -225,7 +225,7 @@ class SemanticTests(unittest.TestCase):
 
   def test_object_value_contract_codes(self) -> None:
     objects = [
-        obj(300, self.item_types["ITEM_POTION"], [35, 999, 0, 0]),
+        obj(300, self.item_types["ITEM_POTION"], [35, 2001, 0, 0]),
         obj(301, self.item_types["ITEM_WAND"], [1, 2, 3, 1]),
         obj(302, self.item_types["ITEM_DRINKCON"], [-2, 5, 23, 0]),
         obj(303, self.item_types["ITEM_CONTAINER"], [-2, 16, -1, 0]),
@@ -236,7 +236,7 @@ class SemanticTests(unittest.TestCase):
         obj(308, self.item_types["ITEM_SWITCH"], [2, 100, 6, 3]),
         obj(309, self.item_types["ITEM_SWITCH"], [0, 100, 0, 0]),
     ]
-    objects[0].weapon_spells.append(([999, 0, 51, 2], span(40)))
+    objects[0].weapon_spells.append(([2001, 0, 51, 2], span(40)))
     objects[0].activated_spells.append(([31, 528, 6, 5, -1], span(41)))
     findings = self.validate([zone(1, 100, 199)], [room(100, 1)], objects=objects)
     codes = {item.code for item in findings}
