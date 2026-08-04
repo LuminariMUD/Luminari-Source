@@ -124,9 +124,35 @@ Last updated: 2026-08-04.
   paths, the workflow parses as YAML, six focused docs tests pass, the source
   constants are current, `docs --check` has zero findings, and all four new
   lookup smoke calls pass.
-- Next implementation step: run the clean world-tool, production build/test,
-  operational audit, install, and development playtest gates, then publish
-  acceptance evidence and close the working plan.
+- Session 5 standalone gates: after cleaning both build trees, Make and CMake
+  each pass all 170 Python tests plus constants, docs, fixture, and wrapper
+  checks. All four `world-tool*` CTest entries pass.
+- Session 5 production gate: a clean production and `-DLUMINARI_CUTEST` build
+  completes without warnings, all 364 production-linked tests pass, and
+  `make install` leaves executable `bin/circle` with no root-level `circle`.
+- Session 5 operational audit: the current development inventory remains 182
+  QST files (162 normal index entries, one mini entry) and 320 HLQ files (283
+  normal index entries, no mini index). `validate --all` completes in 12.13
+  seconds at 301,620 KiB peak RSS and reports 41,468 whole-world findings;
+  the quest-system scope is 372 findings (210 errors, 162 warnings).
+- Quest-system audit classification: 57 unindexed-file warnings and one
+  package warning; four HLQ file-structure errors; 184 missing/wrong-type
+  reference errors; three QST required-field errors; 40 quest-chain
+  reciprocity warnings; 19 unsafe HLQ runtime-value errors; and 64 safe
+  editor-limit/unused-parameter warnings. Every result maps to a demonstrated
+  server-source contract or builder-owned data issue; no validator defect was
+  found and no live data was fixed.
+- Operational mode evidence: missing `hlq/index.mini` produces the expected
+  `IDX009` in 0.15 seconds at 20,352 KiB; zone 3 reports no quest-system
+  findings in 7.76 seconds at 272,156 KiB; `show`/`refs` find QST 300 and HLQ
+  host 374, including one and 19 outgoing edges respectively. Lookup passes
+  take 10.62-11.70 seconds at 281,568-370,700 KiB.
+- Hash guard: after all validation and lookup modes, QST remains
+  `9d80ee4d90c360c10d5c4b38eb939516b7928a2fb5cef76a61c8511393ce0655`
+  and HLQ remains
+  `7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe`.
+- Next implementation step: complete the development boot/playtest, publish
+  permanent acceptance evidence, and close the working plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -916,11 +942,11 @@ data without changing that data.
 - [x] T079 [S0508] Decide and implement or explicitly decline generated HTML routing for the new guides.
 - [x] T080 [S0509] Finalize Makefile/CMake support-file lists and verify they remain exactly synchronized.
 - [x] T081 [S0510] Verify GitHub Actions path filters and world-tool steps cover all new sources and docs.
-- [ ] T082 [S0511] Run `make test-world-tools`, the equivalent CMake target, and all focused CTest world-tool entries from clean outputs.
-- [ ] T083 [S0512] Run the repository-required `make test` followed by `make install`; confirm no root-level `circle` artifact remains.
-- [ ] T084 [S0513] Hash-guard and run `validate --all`, `--mini`, representative `--zone`, `show`, and `refs` against development QST/HLQ data.
-- [ ] T085 [S0514] Classify the live findings into validator defects, server-source hazards, and builder-owned data issues; fix only validator defects in scope.
-- [ ] T086 [S0515] Record aggregate counts, elapsed time, peak memory, and before/after hash evidence without committing live data or sensitive paths.
+- [x] T082 [S0511] Run `make test-world-tools`, the equivalent CMake target, and all focused CTest world-tool entries from clean outputs.
+- [x] T083 [S0512] Run the repository-required `make test` followed by `make install`; confirm no root-level `circle` artifact remains.
+- [x] T084 [S0513] Hash-guard and run `validate --all`, `--mini`, representative `--zone`, `show`, and `refs` against development QST/HLQ data.
+- [x] T085 [S0514] Classify the live findings into validator defects, server-source hazards, and builder-owned data issues; fix only validator defects in scope.
+- [x] T086 [S0515] Record aggregate counts, elapsed time, peak memory, and before/after hash evidence without committing live data or sensitive paths.
 - [ ] T087 [S0516] Boot the development server and playtest one QST and one HLQ flow after validator gates pass; record what static validation cannot prove.
 - [ ] T088 [S0517] Update `docs/CHANGELOG.md`, final CLI examples, version output, and acceptance evidence.
 - [ ] T089 [S0518] Remove this completed working plan and its ongoing-project index row only after all durable content and evidence have moved to permanent docs.
