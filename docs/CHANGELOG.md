@@ -2,6 +2,71 @@
 
 ## [Unreleased] - August 4, 2026
 
+### World validator and lookup CLI
+
+Completed Phases 0-4 of the standalone `wtool` project. The validator now
+parses all six flat world formats without MariaDB or a server boot, reports
+recoverable structural, reference, semantic, and topology findings in one
+pass, and provides deterministic human and versioned JSON output.
+
+#### Added
+
+- `scripts/world/wtool.py` with indexed `--all`, `--mini`, and `--zone`
+  validation plus isolated `--paths` validation.
+- Source-derived flag and constant lookup, four-chunk flag decode/encode,
+  typed `show` record lookup, and incoming/outgoing `refs` traversal from the
+  same parsed model used by validation.
+- Stable source-located diagnostics for indexes, zones, rooms, mobiles,
+  objects, shops, triggers, cross-file references, semantic values, and room
+  topology.
+- A checked-in constants manifest extracted from bounded source blocks, with
+  `constants sync --check` and explicit `--write` maintenance modes.
+- A bounded `docs --check` gate for reference-table coverage and indices,
+  source paths and explicit function citations, registered OLC commands,
+  ASCII/UTF-8/LF policy, and generated builder-guide freshness.
+- Ninety-nine standard-library tests covering parser grammar, recovery,
+  reference graphs, semantics, deterministic output, read-only behavior,
+  lookup, documentation drift, and wrapper status propagation. Synthetic
+  fixtures cover all six formats, normal and mini indexes, legacy forms, and
+  malformed boundaries.
+- [World Validator and Lookup CLI](utilities/WORLD_VALIDATOR_CLI.md), the
+  permanent command, architecture, exit-status, builder-loop, and CI
+  reference.
+
+#### Changed
+
+- `lib/world/validate-zone.sh` is now a compatibility wrapper around
+  `wtool validate --zone`. It resolves the repository from its own path,
+  forwards global and validation options, works outside the worktree, and
+  preserves statuses 0, 1, and 2.
+- `make test-world-tools`, the equivalent CMake target, focused CTest entries,
+  and the `world-tools` GitHub Actions job now enforce the unit, fixture,
+  constants, documentation, and wrapper contracts. CI intentionally validates
+  tracked data only; ignored live world data is not available to the runner.
+- Builder quickstart, zone, shop, object-editor, and builder-manual workflows
+  now use a save-validate-inspect-boot loop. The testing guide, utilities
+  index, and technical documentation master index link the maintained tool.
+- The builder manual now publishes all 37 room sectors, protected against
+  source drift alongside the complete room, mobile, object-extra, wear, and
+  item-type tables.
+
+#### Verification
+
+- `make test-world-tools`, the CMake target, and all four focused world-tool
+  CTest entries pass. `ruff`, ShellCheck, constants sync, documentation drift,
+  generated HTML, build-list symmetry, YAML parsing, and ASCII/LF checks are
+  clean.
+- The full production-linked `make test` suite passes, `make install` leaves
+  an executable `bin/circle`, and the required root-level `circle` artifact is
+  removed.
+- Two complete development-world JSON runs were byte-identical. Each completed
+  in about 11.5 seconds at about 284 MiB maximum RSS and reported the same
+  builder-owned baseline: 3,640 errors, 37,251 warnings, and 206 info findings.
+  Whole-world hashes were identical before validation, after both runs, and
+  after install.
+- The separately reviewed emitter follow-on was not implemented or authorized
+  by this project.
+
 ### World-building documentation audit
 
 Worked the checklist in

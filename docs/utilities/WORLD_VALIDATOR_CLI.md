@@ -40,6 +40,35 @@ Use global `--config PATH` to select another file. The only grammar option
 currently consumed is `diagonal_dirs`; when no readable configuration exists,
 the source default (disabled) is reported as an assumption in the result.
 
+## Architecture and Source of Truth
+
+The entry point is `scripts/world/wtool.py`; implementation modules live under
+`scripts/world/wtool_lib/`, and tests and fixtures live under
+`scripts/world/tests/`.
+
+The tool follows a staged pipeline:
+
+1. A byte-preserving source reader tracks physical lines, C-style numeric
+   parsing, and tilde-string boundaries.
+2. Format parsers build typed zone, room, mobile, object, shop, and trigger
+   records with source spans.
+3. Index, reference, semantic, and topology passes operate on those records.
+4. Validation, `show`, and `refs` consume the same model, so lookup cannot
+   silently disagree with diagnostics.
+5. Human and JSON reporters sort findings deterministically and apply the same
+   exit policy.
+
+`scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
+extractor reads explicit C tables and bounded define blocks instead of broad
+name prefixes, which prevents unrelated constants such as mobile vnums from
+being mistaken for flags. `constants sync --check` is the drift gate between
+the manifest and the current Luminari source branch.
+
+The accepted file grammar comes from the current server loaders and OLC
+writers. The validator intentionally diagnoses several cases that the loader
+silently drops or rewrites, including omitted index entries, dangling exits,
+unsafe short object extensions, and invalid typed references.
+
 ## Validation Modes
 
 Validate the complete normal indexes:
@@ -238,6 +267,15 @@ Use the same loop for hand-edited files and OLC changes:
 The validator mirrors loader behavior but does not replace gameplay testing.
 It does not execute DG Script bodies, query wilderness data from MariaDB, or
 model dynamic references assembled by scripts.
+
+## Emitter Follow-on Is Not Included
+
+There is no `emit` command in this release. Any future structured emitter must
+have its own reviewed plan, write atomically to an explicit staging directory,
+and run validation before reporting success. Writing generated content
+directly into `lib/world/` would require a separate unmistakable opt-in,
+pre-write backups, and additional review; the validator project does not
+authorize it.
 
 ## Test and CI Gates
 
