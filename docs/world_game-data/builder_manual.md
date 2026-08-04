@@ -216,17 +216,51 @@ extra <keyword>            # Add extra description
 - `NO_MAGIC` - Magic doesn't work
 - `TUNNEL` - Only one person at a time
 
-**Sector Types:**
-- `INSIDE` - Indoor rooms
-- `CITY` - Urban areas
-- `FIELD` - Open fields
-- `FOREST` - Wooded areas
-- `HILLS` - Hilly terrain
-- `MOUNTAIN` - Mountainous areas
-- `WATER_SWIM` - Swimmable water
-- `WATER_NOSWIM` - Deep water
-- `UNDERWATER` - Underwater areas
-- `FLYING` - Air/flying areas
+#### Complete Sector Reference
+
+The index is the number selected in REDIT and stored in the room file. The
+source contract is the `SECT_INSIDE` through `NUM_ROOM_SECTORS` block in
+`src/structs.h`; the labels are from `sector_types[]`.
+
+| Index | OLC Display Name | Source Constant |
+|-------|------------------|-----------------|
+| 0 | Inside | SECT_INSIDE |
+| 1 | City | SECT_CITY |
+| 2 | Field | SECT_FIELD |
+| 3 | Forest | SECT_FOREST |
+| 4 | Hills | SECT_HILLS |
+| 5 | Low Mountains | SECT_MOUNTAIN |
+| 6 | Water (Swim) | SECT_WATER_SWIM |
+| 7 | Water (No Swim) | SECT_WATER_NOSWIM |
+| 8 | In Flight | SECT_FLYING |
+| 9 | Underwater | SECT_UNDERWATER |
+| 10 | Zone Entrance | SECT_ZONE_START |
+| 11 | Road North-South | SECT_ROAD_NS |
+| 12 | Road East-West | SECT_ROAD_EW |
+| 13 | Road Intersection | SECT_ROAD_INT |
+| 14 | Desert | SECT_DESERT |
+| 15 | Ocean | SECT_OCEAN |
+| 16 | Marshland | SECT_MARSHLAND |
+| 17 | High Mountains | SECT_HIGH_MOUNTAIN |
+| 18 | Outer Planes | SECT_PLANES |
+| 19 | Underdark - Wild | SECT_UD_WILD |
+| 20 | Underdark - City | SECT_UD_CITY |
+| 21 | Underdark - Inside | SECT_UD_INSIDE |
+| 22 | Underdark - Water (Swim) | SECT_UD_WATER |
+| 23 | Underdark - Water (No Swim) | SECT_UD_NOSWIM |
+| 24 | Underdark - In Flight | SECT_UD_NOGROUND |
+| 25 | Lava | SECT_LAVA |
+| 26 | Dirt Road North-South | SECT_D_ROAD_NS |
+| 27 | Dirt Road East-West | SECT_D_ROAD_EW |
+| 28 | Dirt Road Intersection | SECT_D_ROAD_INT |
+| 29 | Cave | SECT_CAVE |
+| 30 | Jungle | SECT_JUNGLE |
+| 31 | Tundra | SECT_TUNDRA |
+| 32 | Taiga | SECT_TAIGA |
+| 33 | Beach | SECT_BEACH |
+| 34 | Sea Port | SECT_SEAPORT |
+| 35 | Inside Room | SECT_INSIDE_ROOM |
+| 36 | River | SECT_RIVER |
 
 ### Mobile Editor (MEDIT)
 

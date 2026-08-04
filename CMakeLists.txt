@@ -789,6 +789,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/cli.py
     scripts/world/wtool_lib/config.py
     scripts/world/wtool_lib/constants.py
+    scripts/world/wtool_lib/docs_check.py
     scripts/world/wtool_lib/flags.py
     scripts/world/wtool_lib/indexes.py
     scripts/world/wtool_lib/lookup.py
@@ -808,6 +809,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/__init__.py
     scripts/world/tests/test_cli.py
     scripts/world/tests/test_constants.py
+    scripts/world/tests/test_docs_check.py
     scripts/world/tests/test_graph.py
     scripts/world/tests/test_indexes.py
     scripts/world/tests/test_lookup.py

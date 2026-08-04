@@ -17,6 +17,7 @@ from .constants import (
     load_manifest,
     write_manifest,
 )
+from .docs_check import DocumentationError, validate_docs
 from .flags import FLAG_SETS, decode_tokens, decoded_entries, encode_bits, resolve_names, resolve_set
 from .indexes import normalized_root_label
 from .lookup import (
@@ -88,6 +89,9 @@ def _parser() -> argparse.ArgumentParser:
   refs = commands.add_parser("refs", help="show typed incoming and outgoing references")
   refs.add_argument("record_type", choices=CLI_RECORD_TYPES)
   refs.add_argument("vnum", type=int)
+
+  docs = commands.add_parser("docs", help="check world-building documentation drift")
+  docs.add_argument("--check", action="store_true", required=True)
   return parser
 
 
@@ -296,6 +300,16 @@ def _run_refs(args: argparse.Namespace) -> int:
   return 0 if records else 1
 
 
+def _run_docs(args: argparse.Namespace) -> int:
+  result = validate_docs(default_repo_root(), _load_default_manifest())
+  ignored_codes = set(args.ignore_code)
+  if args.json_output:
+    sys.stdout.write(render_json(result, ignored_codes))
+  else:
+    sys.stdout.write(render_human(result, ignored_codes))
+  return exit_status(result, ignored_codes=ignored_codes)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -310,7 +324,9 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_show(args)
     if args.command == "refs":
       return _run_refs(args)
-  except (ConfigError, ExtractionError, OSError, ValueError) as error:
+    if args.command == "docs":
+      return _run_docs(args)
+  except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2
   parser.error(f"unsupported command {args.command}")
