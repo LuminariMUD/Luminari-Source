@@ -24,6 +24,7 @@ bool is_valid_performance(int performance_num);
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,
                         int effectiveness, int aoe);
+int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe);
 void initialize_bardic_performance_state(struct char_data *ch);
 void stop_bardic_performance(struct char_data *ch, bool notify);
 void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
@@ -36,16 +37,17 @@ ACMD_DECL(do_perform);
 #define MAX_PERFORMANCES 13
 #define MAX_PRFM_EFFECT 60 /* maximum effectiveness of performance */
 #define MAX_INSTRUMENT_EFFECT 20
+#define BARDIC_BASE_AFFECT_ROUNDS 2
+#define BARDIC_LINGERING_AFFECT_ROUNDS 3
 
 /* lookup components for song_info */
 #define PERFORMANCE_SKILLNUM 0
 #define INSTRUMENT_NUM 1
-#define INSTRUMENT_SKILLNUM 2
-#define PERFORMANCE_DIFF 3
-#define PERFORMANCE_TYPE 4
-#define PERFORMANCE_AOE 5
-#define PERFORMANCE_FEATNUM 6
-/**/ #define PERFORMANCE_INFO_FIELDS 7
+#define PERFORMANCE_DIFF 2
+#define PERFORMANCE_TYPE 3
+#define PERFORMANCE_AOE 4
+#define PERFORMANCE_FEATNUM 5
+/**/ #define PERFORMANCE_INFO_FIELDS 6
 
 /* types of performances */
 #define PERFORMANCE_TYPE_UNDEFINED 0
@@ -59,15 +61,6 @@ ACMD_DECL(do_perform);
 #define PERFORMANCE_TYPE_WIND 8
 #define PERFORMANCE_TYPE_SING 9
 /**/ #define NUM_PERFORMANCE_TYPES 10
-
-/* these are defines just made for fillers for lookup data song_info
- since they are currently unused in our feat system, could be expanded tho */
-#define SKILL_LYRE 1
-#define SKILL_DRUM 2
-#define SKILL_HORN 3
-#define SKILL_FLUTE 4
-#define SKILL_HARP 5
-#define SKILL_MANDOLIN 6
 
 /* area of effect */
 #define PERFORM_AOE_UNDEFINED 0

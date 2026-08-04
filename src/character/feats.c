@@ -1912,10 +1912,10 @@ void assign_feats(void)
 
   /* putting bard feats (not free) here */
   feato(FEAT_LINGERING_SONG, "lingering performance", TRUE, TRUE, FALSE, FEAT_TYPE_GENERAL,
-        "extra round for bardic performance",
-        "A bardic performance repeats every 7 seconds, and the effects of the performance "
-        "last for 1 round (6 seconds).  This feat increases the duration of the "
-        "effects to 2 rounds (12 seconds).");
+        "bardic performance effects linger for three extra rounds",
+        "A bardic performance begins with an immediate verse and repeats about every 11 "
+        "seconds. Persistent effects normally last 2 combat rounds. This feat adds 3 more "
+        "rounds to their duration.");
 
   feato(FEAT_ENERGY_RESISTANCE, "energy resistance", TRUE, TRUE, TRUE, FEAT_TYPE_GENERAL,
         "reduces all energy related damage by 1 per rank",
@@ -4168,81 +4168,73 @@ void assign_feats(void)
                          "(not yet implemented)Boost group members' resistance to sonic attacks.");
   /* 1*/ feato(FEAT_SONG_OF_HEALING, "song of healing", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song to heal group members (lyre)",
-               "When this song is played, its beautiful verse allows any present gain the "
-               "benefit of its healing power. The amount of healing it provides is "
-               "dependent on the level of the musician. To play this song, the bard must be "
-               "holding a lyre.");
+               "Each verse magically heals the bard and in-room group members. Constructs and "
+               "golems cannot be healed this way. A lyre is the ideal instrument, but it is "
+               "optional.");
   /* 2*/ feato(FEAT_DANCE_OF_PROTECTION, "dance of protection", TRUE, FALSE, FALSE,
                FEAT_TYPE_PERFORMANCE, "dance to protect group members (drum)",
-               "When this dance is performed, it supplies a level of protection "
-               "to its observer. It gives bonuses to armor, making it harder for opponents "
-               "to hit the observer. The dance also gives the benefit of a heightened level "
-               "of spell resistance. To perform this dance, a bard must be holding a drum.");
+               "Each verse grants the bard and in-room group members bonuses to armor class, "
+               "Will saves, and damage reduction. This visual performance works even for deaf "
+               "recipients. A drum is the ideal instrument, but it is optional.");
   /* 3*/ feato(FEAT_SONG_OF_FOCUSED_MIND, "song of focused mind", TRUE, FALSE, FALSE,
                FEAT_TYPE_PERFORMANCE, "song to augment casters (harp)",
-               "This song allows the bard to sing a song that speeds up the "
-               "memorization and praying for spells by anyone in the room at the "
-               "time that the song is sung.  This song lends itself to the harp.");
+               "Each verse grants Intelligence, Wisdom, and Charisma to the bard and in-room "
+               "group members. Its effect also accelerates spell preparation. A harp is the "
+               "ideal instrument, but it is optional.");
   /* 5*/ feato(FEAT_SONG_OF_HEROISM, "song of heroism", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song to enhance combat abilities (drum)",
-               "When this song is played, the listeners are enhanced with fighting "
-               "abilities. In most cases, the listeners gain enhancements in their "
-               "abilities to hit targets and to inflict damage upon them. However, if the "
-               "singer is extremely proficient, the listeners may gain an extra attack per "
-               "round. To play this song, a bard must be holding a drum.");
+               "Each verse grants the bard and in-room group members bonuses to hit, damage, "
+               "Strength, Dexterity, and Constitution. At bard level 10 it also grants haste. "
+               "A drum is the ideal instrument, but it is optional.");
   /* 7*/ feato(FEAT_ORATORY_OF_REJUVENATION, "oratory of rejuvenation", TRUE, FALSE, FALSE,
                FEAT_TYPE_PERFORMANCE, "oratory of light healing of hps/moves (lyre)",
-               "When this oratory is performed, the listeners regain lost movement points. The "
-               "oratory also provides a minor level of healing to its listeners, and has a "
-               "slight chance of removing any poisons present in their system. To play this "
-               "oratory, a bard must be holding a lyre.");
+               "Each verse restores movement and some health to the bard and in-room group "
+               "members, with a chance to remove poison. Constructs and golems cannot receive "
+               "its magical healing. A lyre is the ideal instrument, but it is optional.");
   /* 9*/ feato(FEAT_SONG_OF_FLIGHT, "song of flight", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song bestows flight and restores moves (horn)",
-               "When listeners hear this song playing, they are given the ability to fly for "
-               "a period of time. Movement points are also slightly restored. To play this "
-               "song, the bard must be holding a horn.");
+               "Each verse grants flight and restores movement to the bard and in-room group "
+               "members. A horn is the ideal instrument, but it is optional.");
   /*10*/ feato(FEAT_EFFICIENT_PERFORMANCE, "efficient performance", TRUE, TRUE, FALSE,
                FEAT_TYPE_GENERAL, "performance takes move instead of standard action",
                "A bardic performance now only takes a move action instead of a standard action.");
   /*11*/ feato(FEAT_SONG_OF_REVELATION, "song of revelation", TRUE, FALSE, FALSE,
                FEAT_TYPE_PERFORMANCE, "song enhances perception (flute)",
-               "When this song is played, the listeners begin to see things which they "
-               "formerly could not see. Depending on the proficiency of the musical artist, "
-               "listeners may see invisible beings, magical enchantments, alignments, hidden "
-               "beings, and adjacent rooms. To play this song, a bard must be holding a "
-               "flute.");
+               "Each verse sharpens the senses of the bard and in-room group members. It grants "
+               "detect invisibility, then adds detect alignment, detect magic, sense life, and "
+               "far sight at bard levels 5, 10, 15, and 20. A flute is the ideal instrument, "
+               "but it is optional.");
   /*13*/ feato(FEAT_SONG_OF_FEAR, "song of fear", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song inspires fear in foes (harp)",
-               "This songs put immense fear into the heart of the bard's enemies. They will "
-               "fight less effectively and attempt to flee as quickly as possible.  This "
-               "song lends itself well to the harp.");
+               "Each verse forces eligible foes who can hear it to attempt a Will save. Those "
+               "who fail become afraid and suffer a hit penalty. Mind-affecting and fear "
+               "immunities apply. A harp is the ideal instrument, but it is optional.");
   /*15*/ feato(FEAT_ACT_OF_FORGETFULNESS, "skit of forgetfulness", TRUE, FALSE, FALSE,
                FEAT_TYPE_PERFORMANCE, "skit inspires forgetfulness in foes (flute)",
-               "When this skit is performed, a mob may forget it has been attacked. To act "
-               "this skit, a bard must be holding a flute.");
+               "Each verse forces eligible foes to attempt a Will save. A failed save ends combat "
+               "with that foe and clears an NPC's hostile memory. Mind-affecting immunity applies. "
+               "A flute is ideal, but optional.");
   /*17*/ feato(FEAT_SONG_OF_ROOTING, "song of rooting", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song bogs down foes (mandolin)",
-               "This song creates a strong sense of rooting amongst the enemies of the bard. "
-               "Their get sucked into the ground, making them unable to leave the area, while "
-               "also reducing their capabilities to fight effectively.  This song is appropriate "
-               "for the mandolin.");
+               "Each verse forces eligible foes who can hear it to attempt a Reflex save. Those "
+               "who fail become entangled and slowed and suffer damage and armor penalties. A "
+               "mandolin is the ideal instrument, but it is optional.");
   /*epic*/
   /*21*/ feato(FEAT_SONG_OF_DRAGONS, "song of dragons", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song prepares group for dragon-slaying (horn)",
-               "When this song is played, it can give three different affects to it's "
-               "listeners during each verse: It heals nearly half the affect of the heal "
-               "song, or it grants a great deal of saving versus reflex, as well as enhancing "
-               "armor class. In order to play this song the bard must be holding a horn.");
+               "Each verse steels the bard and in-room group members against draconic might, "
+               "granting armor, all five saving throws, Constitution, and maximum health. A horn "
+               "is the ideal instrument, but it is optional.");
   /*25*/ feato(FEAT_SONG_OF_THE_MAGI, "song of the magi", TRUE, FALSE, FALSE, FEAT_TYPE_PERFORMANCE,
                "song hampers magic defense of foes (mandolin)",
-               "When this song is played, it will strengthen the offensive magic of "
-               "the group-members of the bard, by reducing the spell-save and magic resistance "
-               "of all their enemies in the area.  Uses the mandolin.");
+               "Each verse forces eligible foes who can hear it to attempt a Will save. Those "
+               "who fail suffer penalties to Will saves, spell resistance, Intelligence, "
+               "Wisdom, and Charisma. A mandolin is the ideal instrument, but it is optional.");
   feato(FEAT_DEAFENING_SONG, "deafening song", TRUE, TRUE, FALSE, FEAT_TYPE_PERFORMANCE,
-        "When this song is played it will deafen any enemies that hear it, and also reduce their "
-        "armor class.",
-        "When this song is played it will deafen any enemies that hear it, and also reduce their "
-        "armor class.");
+        "deafen foes and reduce their armor class (drum)",
+        "Each verse forces eligible foes who can hear it and can be deafened to attempt a "
+        "Fortitude save. Those who fail become deaf and suffer an armor penalty. A drum is the "
+        "ideal instrument, but it is optional.");
   feat_prereq_ability(FEAT_DEAFENING_SONG, ABILITY_PERFORM, 21);
   feat_prereq_feat(FEAT_DEAFENING_SONG, FEAT_BARDIC_MUSIC, 1);
 

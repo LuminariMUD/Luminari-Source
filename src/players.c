@@ -4093,7 +4093,7 @@ bool save_char_checked(struct char_data *ch, int mode)
   for (i = 0; i < MAX_AFFECT; i++)
   {
     if (tmp_aff[i].spell)
-      affect_to_char(ch, &tmp_aff[i]);
+      affect_to_char_source(ch, &tmp_aff[i], tmp_aff[i].source_id);
   }
 
   /* Reapply dr.*/

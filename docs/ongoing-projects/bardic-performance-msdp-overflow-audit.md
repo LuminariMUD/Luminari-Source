@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: Repairs in progress; reported overflow path and state lifecycle verified
+Status: Repairs in progress; base performance contract repairs verified
 
 Date: 2026-08-04
 
@@ -22,9 +22,10 @@ a source-level audit of the complete bardic performance subsystem, including:
 
 The initial diagnosis was a static source audit plus execution of the focused
 protocol harness. Repair work is now active in the development tree. The first
-production-linked state and command batch passed all 372 root CuTests. The
-second overflow repair batch passes all 375 root CuTests and all 20 focused
-protocol tests. Both batches were installed with `make install` on 2026-08-04.
+three published batches progressed from 372 to 380 passing root CuTests; the
+overflow batch also passes all 20 focused protocol tests. Each published batch
+was installed with `make install` on 2026-08-04. The fourth base-performance
+contract batch passes 389 root tests and all 20 focused protocol tests.
 
 ## Reported Incident
 
@@ -85,9 +86,10 @@ The expanded audit found additional critical and high-severity defects:
   and indefinite until stopped, interrupted, or failed.
 
 These issues are not one repair. Memory safety, state invariants, affect
-batching, and atomic protocol framing are now repaired and dynamically covered.
-Song mechanics, resource costs, perk contracts, and conflicting player-facing
-text remain in the next implementation batches.
+batching, atomic protocol framing, verse timing, source ownership, eligibility,
+and the thirteen base-song contracts are now repaired. Performance-linked perk
+behavior, resource contracts, and conflicting perk text remain in later
+implementation batches.
 
 The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
@@ -96,8 +98,12 @@ primary and secondary failure, initializes every Songweaver affect record, and
 cleans active state on disconnect or link loss. The second batch emits one
 final `AFFECTS` state for a logical performance mutation, queues structured
 Telnet frames atomically with retryable backpressure, applies only meaningful
-affect slots, and makes affect serialization bounded and fail closed. Song
-mechanics and performance-linked perk repairs remain.
+affect slots, and makes affect serialization bounded and fail closed. The third
+batch closes remaining lifecycle paths and establishes the free, indefinite
+performance contract. The fourth batch adds an immediate first verse, one
+documented refresh clock, source-owned effects, standard defenses, safe target
+iteration, accurate recipient messages, and reconciled base-song descriptions.
+Performance-linked perk repairs remain.
 
 ## Accuracy Check of the Earlier Partial Audit
 
@@ -139,6 +145,7 @@ perform <name>
        -> can_perform()
        -> select move or standard action from the character's feats
        -> start, replace, add, or stop an explicit named slot
+       -> execute an immediate first verse for a newly selected slot
 
 global verse pulse
   -> pulse_bardic_performance()
@@ -156,14 +163,16 @@ bardic_performance_engine()
   -> can_perform()
   -> two Perform checks and instrument adjustments
   -> process_performance()
+       -> use a reentrant group iterator or room traversal
        -> select group, foes, or room targets
        -> performance_effects()
-            -> remove every affect with the same performance skill number
+            -> reject ineligible or immune recipients
+            -> engage foes and resolve a standard save where applicable
+            -> remove only this performer's matching effects
             -> execute instantaneous behavior
-            -> join all eight affect slots
-            -> affect_total()
-            -> update_msdp_affects()
-            -> immediate MSDPFlush()
+            -> join only meaningful source-owned affect slots
+            -> emit one final batched `AFFECTS` update
+            -> message only a successful recipient
 ```
 
 NPC bards do not use this recurring player path. They call the older
@@ -228,7 +237,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-04 after repair batch 3 verification.
+Last updated: 2026-08-04 after repair batch 4 verification with 389 root tests.
 
 Status meanings:
 
@@ -252,13 +261,13 @@ Status meanings:
 | BP-010 | Verified | Forced secondary-engine failure preserves the primary, and forced primary-engine failure promotes the secondary in production-linked tests. |
 | BP-011 | Verified | Input is trimmed and resolved before mutation; root tests cover whitespace, unknown, capitalized, ambiguous, duplicate, and unavailable replacements, and listing scans only valid feat indexes. |
 | BP-012 | Verified | `perform` has no fixed interpreter action gate; command preflight selects move or standard action and root tests cover both paths plus immediate list/stop. |
-| BP-013 | Pending | Timing constants, real-time behavior, Lingering Performance, and help text still need reconciliation. |
-| BP-014 | Pending | Eligibility, immunity, hearing, source ownership, and iterator work remains. |
+| BP-013 | Verified | Starts execute an immediate verse; later verses use the existing 11-second pulse; persistent effects use a two-round base, Lingering adds three, Songweaver adds one round and one effectiveness per combined rank, and Flight follows the same duration contract. Root timing and Songweaver potency coverage pass. |
+| BP-014 | Verified | Performance feats are the ownership gate; fake instrument-skill fields are removed; instruments are optional modifiers; audible recipients must hear; construct healing, standard immunities and saves, bard-level gates, source ownership (including overlapping bitvector effects and Deafening refresh), reentrant iteration, and recipient-only messages pass root coverage. |
 | BP-015 | Verified | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns; direct NPC coverage proves an active verse executes. |
-| BP-016 | Pending | Base performance mechanics matrix remains unresolved. |
-| BP-017 | Partial | Songweaver initialization and Harmonic Casting are repaired and tested; potency, Resonant Voice, Crescendo, timing, and the remaining Spellsinger integrations remain. |
+| BP-016 | Verified | Every matrix row now follows an explicit tested implementation contract, and the runtime feat descriptions document those mechanics. A production-linked 13-performance matrix, deterministic Will, Reflex, and Fortitude save cases, and modifier-before-cap healing coverage pass. |
+| BP-017 | Partial | Songweaver duration and effectiveness scaling, Resonant Voice availability/source ownership, and Harmonic Casting are repaired. Resonant Voice still affects all Will saves; Crescendo, perk clocks, and the remaining Spellsinger integrations remain. |
 | BP-018 | Pending | Warchanter call-order and missing ally effects remain unresolved. |
-| BP-019 | Partial | The authoritative runtime contract is now free, indefinite performances with no round pool; Harmonic Casting implementation and text follow it. Remaining perk and performance documentation must be aligned to that contract. |
+| BP-019 | Partial | The authoritative runtime contract is free, indefinite performances with no round pool. Harmonic Casting, base performance timing, instruments, feat ownership, help text, and base-song descriptions follow it. Remaining perk documentation and implementations must be aligned to that contract. |
 
 ### Repair Checkpoints
 
@@ -278,6 +287,17 @@ Status meanings:
   the central teardown helper. Verification: `make test` with 380/380 passing
   tests, the same complete suite under ASan/UBSan, and `make install` for
   development version 2.5041-beta.
+- Repair batch 4 closes BP-013, BP-014, and BP-016 and advances BP-017 and
+  BP-019. It covers the immediate first verse, timing, source-owned refresh,
+  hearing and construct eligibility, standard defensive mechanics, bard-level
+  scaling (including offensive save DCs), independent modifier and bitvector
+  ownership across performers, reentrant group iteration, accurate messages and
+  modifier-before-cap healing reports, and all thirteen base-song descriptions.
+  Verification: warning-clean GNU C23
+  build, `make test` with 389/389 passing tests, the same 389 tests under
+  ASan/UBSan with leak detection disabled because of known suite-wide fixture
+  leaks, `make protocol-parser` with 20/20 passing tests, and `make install` for
+  development version 2.5042-beta.
 
 ## Detailed Findings
 
@@ -675,6 +695,16 @@ Performance-linked perks also use inconsistent clocks: Dirge is processed by
 the eleven-second verse pulse while advertised per round, and Sustaining Melody
 is checked by the five-second Luminari pulse while advertised per combat round.
 
+Repair: Starting or adding a performance executes its first verse immediately;
+later verses retain the single established 11-second performance pulse. Every
+persistent base-song effect, including Flight, starts at two affect rounds,
+which safely overlaps that pulse. Lingering Performance adds three rounds.
+Each combined Songweaver rank adds one affect round and one point of
+effectiveness, capped by the normal effectiveness ceiling; this potency is
+resolved before offensive saving throws. The feat registry, help topics, and
+perk descriptions state the same timing contract. Dirge and Sustaining Melody
+clocks remain isolated under BP-017.
+
 Relevant code:
 
 - `src/structs.h:5587-5593` - six-second affect and eleven-second verse pulses.
@@ -725,6 +755,20 @@ Ownership and iteration:
 - Verse messages are broadcast to the room before group membership, `aoeOK()`,
   immunity, or random success is known. Non-recipients can see text stating that
   they feel the effect.
+
+Repair: A performance feat is the ownership gate; the table's unused fake
+instrument-skill column was removed, and ideal instruments remain optional
+effectiveness/difficulty modifiers. Bard-level upgrades use actual Bard levels.
+Audible performances reject deaf recipients while Dance and Act remain visual.
+Healing rejects constructs and golems. Fear, Forgetfulness, Rooting, Magi, and
+Deafening use their standard immunity, condition, and saving-throw pipelines.
+Each performer receives a stable runtime source token, and refresh/removal
+matches that source so another bard's lingering effect survives. This includes
+flag-bearing effects such as Flight and allows Deafening Song to refresh the
+deafness created by its own prior verse. Group traversal uses `merge_iterator()`,
+and success text is sent only after an eligible target fails any defense. Root
+coverage exercises each contract, including two bards refreshing the same song
+on one target.
 
 ### BP-015: Pulse Lifecycle and Legacy NPC State Create Stale Conflicts
 
@@ -790,18 +834,30 @@ that slot is `APPLY_NONE`, so it is silently absent from Song of Dragons. It
 grants a generic competence bonus to all Will saves, not a bonus limited to
 mind-affecting effects as advertised.
 
+Repair: The fixed implementation is now the documented contract for every row.
+Instantaneous healing songs add no marker affects; Healing and Rejuvenation
+reject constructs; generic healing modifiers run before the final HP cap and
+Healing reports the amount actually restored. Protection, Focused Mind,
+Heroism, Revelation, Dragons, and Flight descriptions match their applied
+effects and bard-level/duration gates. Fear, Forgetfulness, Rooting, Magi, and
+Deafening use explicit standard saves and immunities; Forgetfulness ends both
+fighting pointers, Magi's mental modifiers are penalties, and Rooting
+messages describe entanglement rather than paralysis. Resonant Voice is now a
+separate source-owned affect, so every group song can carry it; limiting that
+generic Will bonus to mind-affecting saves remains BP-017 scope.
+
 ### BP-017: Spellsinger Perk Integration Is Partial or Incorrect
 
 Severity: Critical to Medium
 
 | Perk | Confirmed behavior | Gap or defect |
 |------|--------------------|---------------|
-| Songweaver I/II | The combined rank helper is used only to add affect duration. | BP-002 is undefined behavior. No potency or effectiveness scaling exists. |
-| Resonant Voice | Adds a competence Will bonus in slot six on group performances. | Applies to all Will saves, disappears when slot six is occupied, and has no source-specific ownership. |
-| Harmonic Casting | A bard spell has a 50% chance not to stop all active songs. | Text describes conserving a performance round, but no round resource exists. On failure both songs are cleared. |
+| Songweaver I/II | Each combined rank adds one affect round and one point of effectiveness after safe initialization. | Implemented and dynamically covered; no remaining gap in this perk. |
+| Resonant Voice | Adds a separate, source-owned competence Will affect to every successful group-song recipient. | It still applies to all Will saves rather than only mind-affecting saves. |
+| Harmonic Casting | Bard spells deterministically preserve all active performances under the free-performance contract. | Implemented and dynamically covered; no remaining gap in this perk. |
 | Crescendo | If the song survives Harmonic Casting, the first bard spell sets +2 DC and one pending d6 of sonic damage. | Crescendo requires Harmonic Casting, so the advertised first spell receives no benefit on the 50% interruption path. A non-damaging first spell leaves the sonic die for a later damage spell. `GET_DC_BONUS` is consumed by the first save check, not reliably every target of an area spell. |
 | Sustaining Melody | While fighting and performing, the five-second Luminari pulse has a 20% chance to restore a bard slot. | Advertised per combat round. It also depends on mutable `GET_CASTING_CLASS` being Bard rather than simply checking Bard ownership/slots. |
-| Master of Motifs | Pulse code can process a primary and secondary integer. | BP-007, BP-009, and BP-010 prevent a safe two-song state. Source and design-doc prerequisites also disagree. |
+| Master of Motifs | Starts and independently pulses two distinct source-owned performances; failure in either slot preserves or promotes the survivor. | Runtime behavior is dynamically covered. Remaining work is to remove stale round-pool language and reconcile prerequisites in the perk documentation. |
 | Dirge of Dissonance | Deals 1d6 sonic to eligible room foes on each eleven-second verse. PC concentration checks scan for an enemy performing bard and take -2. | Advertised per six-second round. NPC concentration checks receive no penalty. |
 | Heightened Harmony | A metamagic bard cast adds an `APPLY_SKILL` affect with duration three rounds. | The modifier is obtained from a helper that returns +5 only when the affect is already active, so the first proc grants +0. Later casts append duplicate +5 affects. `compute_ability()` sums those affects and then adds the helper's +5 again. Duration is about 18 seconds, not one minute. |
 | Protective Chorus | The perk owner always receives +2 saves and +2 dodge AC through global calculations. | No active performance is required, allies are not located, and AC applies against all attacks rather than attacks of opportunity. |
@@ -849,10 +905,11 @@ This makes several runtime descriptions impossible as written:
 
 Documentation also disagrees at several levels:
 
-- `help perform` says seven-second verses, six-second effects, trained Perform
-  thresholds, and Lingering-based overlap.
-- Base performance feat descriptions often require instruments that code makes
-  optional.
+- `help perform` formerly said seven-second verses, six-second effects, trained
+  Perform thresholds, and Lingering-based overlap. It now documents the
+  immediate/11-second/two-round contract and feat ownership.
+- Base performance feat descriptions now identify ideal instruments as
+  optional and describe their implemented targeting and mechanics.
 - `docs/systems/perks/BARD_PERKS.md` and `define_bard_perks()` disagree on
   Spellsong Maestra, Aria of Stasis, available Spellsinger capstones, and some
   prerequisites.
@@ -882,9 +939,8 @@ implementation:
 - There is no JSON construction in `src/bardic_performance.c`.
 - There is no `sprintf()`, `strcpy()`, `strcat()`, or manually managed dynamic
   string buffer in the active implementation.
-- The one `snprintf()` uses a 128-byte local buffer in the disabled event path;
-  its size is safe, although the variable is undeclared and the event branch
-  has a separate brace/preprocessor error.
+- The broken disabled event branch and its local `snprintf()` were retired; no
+  dormant bardic string-construction path remains.
 - `You perform without an instrument...  ` intentionally lacks a newline so
   the following verse message appears on the same line. This is not the
   overflow source.
@@ -1010,6 +1066,9 @@ Required cases:
 
 ### Production-Linked Effect Tests
 
+All eight base-effect requirements below now have production-linked root
+coverage. They remain here as the regression acceptance checklist.
+
 1. Song of Healing heals an eligible target and creates no more than the
    intended marker count.
 2. A later verse refreshes the stable final state without sixteen protocol
@@ -1083,13 +1142,13 @@ GMCP backpressure case remains in the protocol acceptance checklist.
 
 ## Temporary Operational Mitigation
 
-Until the development repair is deployed, an MSDP client can avoid this
-specific decoder failure by not reporting the `AFFECTS` variable. Disabling
-MSDP also avoids this path at the cost of other GUI data.
+On a server deployment that predates the 2.5040-beta overflow repair, an MSDP
+client can avoid this specific decoder failure by not reporting the `AFFECTS`
+variable. Disabling MSDP also avoids this path at the cost of other GUI data.
 
-This is only a client-side workaround. It does not fix Songweaver undefined
-behavior, duplicate Song of Healing, or the general ability to split another
-OOB frame after a sufficiently large output burst.
+This is only a client-side workaround for old deployments. It does not repair
+the server-side state or framing defects; the deployment must be upgraded to a
+version containing the BP-001 through BP-005 repairs.
 
 ## Validation Commands After Implementation
 
@@ -1161,9 +1220,9 @@ and non-atomic server output created the malformed data. Both layers are now
 repaired: batching prevents the known burst, while atomic OOB emission prevents
 the same corruption class elsewhere.
 
-The wider performance subsystem still needs mechanics and perk reconciliation.
-The immediate Songweaver, secondary-slot, state-transition, affect-volume, and
-framing risks are contained in the first two repair batches. Later batches will
-select and implement one authoritative contract for timing, targets, base
-songs, performance resources, and performance-linked perks, then align all
-player-facing documentation with those tested mechanics.
+The first four repair batches close all sixteen safety, lifecycle, timing,
+targeting, and base-performance findings. They also establish one authoritative
+free, indefinite performance contract and partially repair its Spellsinger
+integration. The remaining work is confined to BP-017 through BP-019: complete
+and test the remaining Spellsinger and Warchanter integrations, then align all
+of their runtime and design text with the selected no-round-pool contract.

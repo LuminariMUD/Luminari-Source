@@ -21,13 +21,18 @@ void affect_total(struct char_data *ch);
 void affect_batch_begin(struct char_data *ch);
 void affect_batch_end(struct char_data *ch);
 void affect_to_char(struct char_data *ch, struct affected_type *af);
+void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id);
 void affect_remove(struct char_data *ch, struct affected_type *af);
 void affect_remove_no_total(struct char_data *ch, struct affected_type *af);
 void affect_from_char(struct char_data *ch, int type);
+void affect_from_char_source(struct char_data *ch, int type, long source_id);
 void affect_type_from_char(struct char_data *ch, int type);
 bool affected_by_spell(struct char_data *ch, int type);
+bool affected_by_spell_source(struct char_data *ch, int type, long source_id);
 void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, bool avg_dur,
                  bool add_mod, bool avg_mod);
+void affect_join_source(struct char_data *ch, struct affected_type *af, long source_id,
+                        bool add_dur, bool avg_dur, bool add_mod, bool avg_mod);
 void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bool add);
 void clear_repulsion_lists(struct char_data *ch);
 void ensure_repulsion_lists(struct char_data *ch);

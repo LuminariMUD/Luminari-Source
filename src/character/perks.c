@@ -9414,8 +9414,7 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_SONGWEAVER_I];
   perk->id = PERK_BARD_SONGWEAVER_I;
   perk->name = strdup("Songweaver I");
-  perk->description =
-      strdup("Bard songs gain +1 effective level per rank for duration and potency");
+  perk->description = strdup("Bard songs gain +1 affect round and +1 effectiveness per rank");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 1;
@@ -9425,7 +9424,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Bard songs gain +1 effective level per rank");
+  perk->special_description =
+      strdup("Bard songs gain +1 affect round and +1 effectiveness per rank");
 
   /* Enchanter's Guile I */
   perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_I];
@@ -9483,7 +9483,7 @@ void define_bard_perks(void)
   perk->id = PERK_BARD_SONGWEAVER_II;
   perk->name = strdup("Songweaver II");
   perk->description =
-      strdup("Additional +1 effective song level per rank (stacks with Songweaver I)");
+      strdup("Additional +1 affect round and +1 effectiveness per rank (stacks with Songweaver I)");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 2;
@@ -9493,7 +9493,7 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Additional +1 effective song level per rank");
+  perk->special_description = strdup("Additional +1 affect round and +1 effectiveness per rank");
 
   /* Enchanter's Guile II */
   perk = &perk_list[PERK_BARD_ENCHANTERS_GUILE_II];

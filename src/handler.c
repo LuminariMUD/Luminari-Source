@@ -1239,15 +1239,15 @@ void affect_total(struct char_data *ch)
     update_msdp_affects(ch);
 }
 
-/* Insert an affect_type in a char_data structure. Automatically sets
- * appropriate bits and apply's */
-void affect_to_char(struct char_data *ch, struct affected_type *af)
+/* Insert an affect_type with an explicit runtime source owner. */
+void affect_to_char_source(struct char_data *ch, struct affected_type *af, long source_id)
 {
   struct affected_type *affected_alloc;
 
   CREATE(affected_alloc, struct affected_type, 1);
 
   *affected_alloc = *af;
+  affected_alloc->source_id = source_id;
   affected_alloc->next = ch->affected;
   ch->affected = affected_alloc;
 
@@ -1269,6 +1269,12 @@ void affect_to_char(struct char_data *ch, struct affected_type *af)
   }
 
   affect_total(ch);
+}
+
+/* Insert an ordinary, unowned affect_type in a char_data structure. */
+void affect_to_char(struct char_data *ch, struct affected_type *af)
+{
+  affect_to_char_source(ch, af, 0);
 }
 
 /* Remove an affected_type structure from a char (called when duration reaches
@@ -1475,6 +1481,19 @@ void affect_from_char(struct char_data *ch, int spell)
   }
 }
 
+/* Remove only affects created by one runtime source. */
+void affect_from_char_source(struct char_data *ch, int spell, long source_id)
+{
+  struct affected_type *hjp = NULL, *next = NULL;
+
+  for (hjp = ch->affected; hjp; hjp = next)
+  {
+    next = hjp->next;
+    if (hjp->spell == spell && hjp->source_id == source_id)
+      affect_remove(ch, hjp);
+  }
+}
+
 /* Return TRUE if a char is affected by a spell (SPELL_XXX), FALSE indicates
  * not affected. */
 bool affected_by_spell(struct char_data *ch, int type)
@@ -1486,6 +1505,18 @@ bool affected_by_spell(struct char_data *ch, int type)
       return (TRUE);
 
   return (FALSE);
+}
+
+/* Return TRUE when a spell affect belongs to one runtime source. */
+bool affected_by_spell_source(struct char_data *ch, int type, long source_id)
+{
+  struct affected_type *hjp = NULL;
+
+  for (hjp = ch->affected; hjp; hjp = hjp->next)
+    if (hjp->spell == type && hjp->source_id == source_id)
+      return TRUE;
+
+  return FALSE;
 }
 
 /* primary entry point to adding an affection to a player
@@ -1526,6 +1557,39 @@ void affect_join(struct char_data *ch, struct affected_type *af, bool add_dur, b
   /* no matches in our current affection list, so throw the affection on */
   if (!found)
     affect_to_char(ch, af);
+}
+
+/* Join only affects created by one runtime source. */
+void affect_join_source(struct char_data *ch, struct affected_type *af, long source_id,
+                        bool add_dur, bool avg_dur, bool add_mod, bool avg_mod)
+{
+  struct affected_type *hjp = NULL, *next = NULL;
+  bool found = FALSE;
+
+  for (hjp = ch->affected; !found && hjp; hjp = next)
+  {
+    next = hjp->next;
+    if (hjp->spell == af->spell && hjp->location == af->location && hjp->source_id == source_id &&
+        hjp->bonus_type == af->bonus_type &&
+        (af->location != APPLY_SKILL || hjp->specific == af->specific))
+    {
+      if (add_dur)
+        af->duration += hjp->duration;
+      else if (avg_dur)
+        af->duration = (af->duration + hjp->duration) / 2;
+      if (add_mod)
+        af->modifier += hjp->modifier;
+      else if (avg_mod)
+        af->modifier = (af->modifier + hjp->modifier) / 2;
+
+      affect_remove(ch, hjp);
+      affect_to_char_source(ch, af, source_id);
+      found = TRUE;
+    }
+  }
+
+  if (!found)
+    affect_to_char_source(ch, af, source_id);
 }
 
 /* function to update number of lights in a room */

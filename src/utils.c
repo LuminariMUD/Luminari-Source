@@ -4675,6 +4675,7 @@ void new_affect(struct affected_type *af)
   af->modifier = 0;
   af->location = APPLY_NONE;
   af->bonus_type = BONUS_TYPE_ENHANCEMENT;
+  af->source_id = 0;
   af->specific = 0;
   af->next = NULL; /* CRITICAL: Must initialize next pointer to prevent heap corruption */
 

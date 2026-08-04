@@ -12628,6 +12628,7 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   int start_hp = GET_HIT(victim);
   int start_mv = GET_MOVE(victim);
   int start_psp = GET_PSP(victim);
+  int actual_healing;
 
   /* black mantle reduces effectiveness of healing by 20% */
   if (AFF_FLAGGED(victim, AFF_BLACKMANTLE) || AFF_FLAGGED(ch, AFF_BLACKMANTLE))
@@ -12641,14 +12642,6 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
   // vampire bonuses / penalties for feeding
   healing = healing * (10 + vampire_last_feeding_adjustment(ch)) / 10;
   move = move * (10 + vampire_last_feeding_adjustment(ch)) / 10;
-
-  /* message to ch / victim */
-  if (healing)
-  {
-    send_combat_roll_info(ch, "<%d> ", healing);
-    if (ch != victim)
-      send_combat_roll_info(victim, "<%d> ", healing);
-  }
 
   /* any special handling due to specific spellnum? */
   if (spellnum == -1)
@@ -12692,6 +12685,15 @@ bool process_healing(struct char_data *ch, struct char_data *victim, int spellnu
 
   /* standard practice! */
   update_pos(victim);
+
+  /* Report only hit points actually restored after all modifiers and caps. */
+  actual_healing = MAX(0, GET_HIT(victim) - start_hp);
+  if (actual_healing)
+  {
+    send_combat_roll_info(ch, "<%d> ", actual_healing);
+    if (ch != victim)
+      send_combat_roll_info(victim, "<%d> ", actual_healing);
+  }
 
   /* we improved our starting hp or moves */
   if (GET_HIT(victim) > start_hp || GET_PSP(victim) > start_psp || GET_MOVE(victim) > start_mv)

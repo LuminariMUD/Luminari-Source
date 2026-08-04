@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x03070B = 3.7.11 (corresponds to display version 2.5041-beta)
+ * Current: 0x03070C = 3.7.12 (corresponds to display version 2.5042-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x03070B
+#define _LUMINARIMUD 0x03070C
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -6415,6 +6415,7 @@ struct char_special_data
   struct obj_data *castingTOBJ; // target obj of spell
 
   int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
+  long performance_source_id;                 /* runtime owner for performance affects */
   int affect_batch_depth;                     /* nested deferred affect MSDP updates */
   bool affect_batch_dirty;                    /* affect state changed in current batch */
 
@@ -7153,6 +7154,7 @@ struct affected_type
   int bitvector2[AF_ARRAY_MAX]; /**< Tells which bits to set (AFF2_XXX). */
 
   int bonus_type; /**< What type of bonus (if this is a bonus) is this. */
+  long source_id; /**< Runtime source owner; zero for ordinary affects. */
 
   struct affected_type *next; /**< The next affect in the list of affects. */
   sh_int specific;

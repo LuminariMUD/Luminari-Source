@@ -18,7 +18,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Songweaver I
 - **Max Ranks:** 3
-- **Description:** Your bard songs gain +1 effective level per rank for duration and potency checks.
+- **Description:** Your bard songs gain +1 affect round and +1 effectiveness per rank.
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** None
 
@@ -46,7 +46,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Songweaver II
 - **Max Ranks:** 2
-- **Description:** Additional +1 effective song level per rank (stacks with Songweaver I).
+- **Description:** Additional +1 affect round and +1 effectiveness per rank (stacks with Songweaver I).
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** Songweaver I (2 ranks)
 
