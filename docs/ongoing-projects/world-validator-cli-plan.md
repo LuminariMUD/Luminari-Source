@@ -13,7 +13,8 @@ Implementation progress:
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phases 0 through 2 are implemented. Phase 2
+Current checkpoint (2026-08-04): Phases 0 through 2 are complete and Phase 3
+is implemented pending its full development-world operational audit. Phase 2
 adds all six structural parsers, source-derived wear-slot and limit contracts,
 typed reference edges, and the complete graph pass. In addition
 to the source-derived constants, source cursor, deterministic reporting, index
@@ -22,9 +23,13 @@ rooms, models reset queue and host state, validates room ownership and load
 order, and checks exits, moving-room links, reset room targets, door targets,
 and persisted room spec-proc names. `validate --zone` merges unindexed
 canonical packages into the normal reference graph, while `validate --paths`
-remains isolated from the live world.
+remains isolated from the live world. The Phase 3 pass adds source-derived
+reverse directions and object bounds; reserved/runtime flag lint; color-aware
+placeholder detection; physical exit, reverse-exit, and reachability checks;
+reset mobile level-band checks; dangerous-room placement warnings; and
+item-specific value validation through stable `SEM001`-`SEM022` codes.
 
-`make test-world-tools` passes 78 tests; the equivalent CMake target and CTest
+`make test-world-tools` passes 86 tests; the equivalent CMake target and CTest
 entry pass the same suite; `constants sync --check` is clean. The tracked
 artifact and minimal zone/room bundles parse without errors and remain
 byte-for-byte unchanged. A hash-guarded `validate --all` development-world run

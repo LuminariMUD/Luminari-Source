@@ -223,6 +223,7 @@ class MobileRecord:
   action_flags: list[str] = field(default_factory=list)
   affect_flags: list[str] = field(default_factory=list)
   affect2_flags: list[str] = field(default_factory=list)
+  legacy_affect_encoding: bool = False
   alignment: int | None = None
   record_kind: str | None = None
   level: int | None = None
@@ -276,6 +277,7 @@ class ObjectRecord:
   wear_flags: list[str] = field(default_factory=list)
   affect_flags: list[str] = field(default_factory=list)
   affect2_flags: list[str] = field(default_factory=list)
+  legacy_affect_encoding: bool = False
   values: list[int] = field(default_factory=list)
   weight: int | None = None
   cost: int | None = None

@@ -89,6 +89,19 @@ class ConstantsTests(unittest.TestCase):
     decoded = decode_tokens(["G"], entry_count=127)
     self.assertEqual("FLG002", decoded.issues[0].code)
 
+  def test_all_invalid_flag_encoding_classes_are_diagnosed(self) -> None:
+    decoded = decode_tokens(["?", "-1", "a", "0"], entry_count=64)
+    self.assertEqual(
+        {"FLG001", "FLG004", "FLG006"},
+        {issue.code for issue in decoded.issues},
+    )
+
+  def test_reverse_directions_match_runtime_table(self) -> None:
+    directions = self.manifest["tables"]["directions"]["entries"]
+    self.assertEqual([2, 3, 0, 1, 5, 4, 8, 9, 6, 7], [
+        entry["reverse_index"] for entry in directions
+    ])
+
   def test_numeric_masks_are_valid(self) -> None:
     decoded = decode_tokens(["12", "0", "0", "0"], entry_count=42)
     self.assertEqual({2, 3}, set(decoded.bits))

@@ -22,6 +22,10 @@
       "source": "src/structs.h:LVL_IMPL",
       "value": 34
     },
+    "MAX_CONTAINER_SIZE": {
+      "source": "src/olc/oasis.h:MAX_CONTAINER_SIZE",
+      "value": 10000
+    },
     "MAX_FILEPATH": {
       "source": "src/structs.h:MAX_FILEPATH",
       "value": 256
@@ -30,6 +34,10 @@
       "source": "src/structs.h:MAX_MOVING_ROOMS",
       "value": 150
     },
+    "MAX_NUMBER_OF_ACTIVATED_SPELL_USES": {
+      "source": "src/magic/spells.h:MAX_NUMBER_OF_ACTIVATED_SPELL_USES",
+      "value": 5
+    },
     "MAX_OBJ_AFFECT": {
       "source": "src/structs.h:MAX_OBJ_AFFECT",
       "value": 6
@@ -37,6 +45,10 @@
     "MAX_PATH": {
       "source": "src/structs.h:MAX_PATH",
       "value": 50
+    },
+    "MAX_PEOPLE": {
+      "source": "src/olc/oasis.h:MAX_PEOPLE",
+      "value": 10
     },
     "MAX_PROD": {
       "source": "src/obj/shop.h:MAX_PROD",
@@ -74,6 +86,10 @@
       "source": "src/structs.h:NUM_CLASSES",
       "value": 38
     },
+    "NUM_CONT_FLAGS": {
+      "source": "src/structs.h:NUM_CONT_FLAGS",
+      "value": 4
+    },
     "NUM_FACTIONS": {
       "source": "src/structs.h:NUM_FACTIONS (LUMINARI branch)",
       "value": 4
@@ -85,6 +101,10 @@
     "NUM_GENDERS": {
       "source": "src/structs.h:NUM_GENDERS",
       "value": 3
+    },
+    "NUM_LIQ_TYPES": {
+      "source": "src/structs.h:NUM_LIQ_TYPES",
+      "value": 23
     },
     "NUM_PORTAL_TYPES": {
       "source": "src/structs.h:NUM_PORTAL_TYPES",
@@ -113,6 +133,14 @@
     "NUM_SUB_RACES": {
       "source": "src/structs.h:NUM_SUB_RACES",
       "value": 23
+    },
+    "NUM_TRAP_SPECIAL_EFFECTS": {
+      "source": "src/structs.h:NUM_TRAP_SPECIAL_EFFECTS",
+      "value": 11
+    },
+    "NUM_TRAP_TRIGGERS": {
+      "source": "src/structs.h:NUM_TRAP_TRIGGERS",
+      "value": 6
     },
     "NUM_WEARS": {
       "source": "src/structs.h:NUM_WEARS",
@@ -1084,72 +1112,83 @@
           "index": 0,
           "macro": "NORTH",
           "name": "north",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 2
         },
         {
           "aliases": [],
           "index": 1,
           "macro": "EAST",
           "name": "east",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 3
         },
         {
           "aliases": [],
           "index": 2,
           "macro": "SOUTH",
           "name": "south",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 0
         },
         {
           "aliases": [],
           "index": 3,
           "macro": "WEST",
           "name": "west",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 1
         },
         {
           "aliases": [],
           "index": 4,
           "macro": "UP",
           "name": "up",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 5
         },
         {
           "aliases": [],
           "index": 5,
           "macro": "DOWN",
           "name": "down",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 4
         },
         {
           "aliases": [],
           "index": 6,
           "macro": "NORTHWEST",
           "name": "northwest",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 8
         },
         {
           "aliases": [],
           "index": 7,
           "macro": "NORTHEAST",
           "name": "northeast",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 9
         },
         {
           "aliases": [],
           "index": 8,
           "macro": "SOUTHEAST",
           "name": "southeast",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 6
         },
         {
           "aliases": [],
           "index": 9,
           "macro": "SOUTHWEST",
           "name": "southwest",
-          "reserved": false
+          "reserved": false,
+          "reverse_index": 7
         }
       ],
+      "reverse_source": "src/constants.c:rev_dir",
       "source_defines": "src/structs.h:NORTH..NUM_OF_DIRS",
       "source_table": "src/constants.c:dirs"
     },

@@ -24,6 +24,7 @@ from .models import (
 from .objects import parse_object_file
 from .parsing import finding
 from .rooms import parse_room_file
+from .semantics import validate_semantics
 from .shops import parse_shop_file
 from .spec_registry import extract_spec_names
 from .triggers import parse_trigger_file
@@ -836,6 +837,18 @@ def _load_files(
       selected_packages,
       manifest,
       reference_types,
+  )
+  findings.extend(
+      validate_semantics(
+          zones,
+          rooms,
+          mobiles,
+          objects,
+          triggers,
+          selected_packages,
+          manifest,
+          direction_count,
+      )
   )
   return zones, rooms, mobiles, objects, triggers, shops, findings, complete
 

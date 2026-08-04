@@ -88,6 +88,9 @@ TABLE_SPECS = (
 
 
 LIMIT_SPECS = {
+    "MAX_CONTAINER_SIZE": "src/olc/oasis.h",
+    "MAX_NUMBER_OF_ACTIVATED_SPELL_USES": "src/magic/spells.h",
+    "MAX_PEOPLE": "src/olc/oasis.h",
     "READ_SIZE": "src/utils.h",
     "MAX_STRING_LENGTH": "src/structs.h",
     "MAX_PATH": "src/structs.h",
@@ -102,14 +105,18 @@ LIMIT_SPECS = {
     "MAX_TRADE": "src/obj/shop.h",
     "NUM_ATTACK_TYPES": "src/structs.h",
     "NUM_CLASSES": "src/structs.h",
+    "NUM_CONT_FLAGS": "src/structs.h",
     "NUM_FEATS": "src/structs.h",
     "NUM_GENDERS": "src/structs.h",
+    "NUM_LIQ_TYPES": "src/structs.h",
     "NUM_PORTAL_TYPES": "src/structs.h",
     "NUM_RACE_TYPES": "src/structs.h",
     "NUM_SIZES": "src/structs.h",
     "NUM_SPELLS": "src/magic/spells.h",
     "NUM_SPECABS": "src/combat/spec_abilities.h",
     "NUM_SUB_RACES": "src/structs.h",
+    "NUM_TRAP_SPECIAL_EFFECTS": "src/structs.h",
+    "NUM_TRAP_TRIGGERS": "src/structs.h",
     "PORTAL_CHECKFLAGS": "src/structs.h",
     "PORTAL_CLANHALL": "src/structs.h",
     "PORTAL_NORMAL": "src/structs.h",
@@ -396,6 +403,29 @@ def _extract_array(text: str, table_name: str) -> list[str]:
   return values[:-1]
 
 
+def _extract_integer_array(
+    text: str,
+    table_name: str,
+    values: dict[str, int],
+) -> list[int]:
+  declaration = re.search(
+      rf"(?:const\s+)?int\s+{re.escape(table_name)}\s*\[\s*\]\s*=\s*\{{",
+      text,
+  )
+  if declaration is None:
+    raise ExtractionError(f"cannot find integer table {table_name}")
+  end = text.find("};", declaration.end())
+  if end < 0:
+    raise ExtractionError(f"unterminated integer table {table_name}")
+  body = _strip_c_comments(text[declaration.end() : end])
+  entries: list[int] = []
+  for token in body.split(","):
+    expression = token.strip()
+    if expression:
+      entries.append(_eval_expression(expression, values))
+  return entries
+
+
 def _reserved(display_name: str, macro: str | None, raw: str | None) -> bool:
   combined = " ".join(part for part in (display_name, macro, raw) if part)
   return bool(
@@ -482,6 +512,7 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
   root = (repo_root or default_repo_root()).resolve()
   constants_text = (root / "src/constants.c").read_text(encoding="utf-8")
   tables: dict[str, Any] = {}
+  direction_values: dict[str, int] = {}
 
   for spec in TABLE_SPECS:
     source_text = (root / spec.define_file).read_text(encoding="utf-8")
@@ -492,6 +523,8 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
     else:
       block = _extract_define_block(source_text, spec.start_symbol, spec.end_symbol)
     values, raw_by_symbol = _parse_defines(block)
+    if spec.key == "directions":
+      direction_values = values
     display_names = _extract_array(constants_text, spec.table_name)
     count = values.get(spec.count_symbol)
     if count is None:
@@ -511,6 +544,19 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
         "count_symbol": spec.count_symbol,
         "entries": entries,
     }
+
+  reverse_directions = _extract_integer_array(constants_text, "rev_dir", direction_values)
+  direction_entries = tables["directions"]["entries"]
+  if len(reverse_directions) != len(direction_entries):
+    raise ExtractionError(
+        f"rev_dir has {len(reverse_directions)} entries but directions has "
+        f"{len(direction_entries)}"
+    )
+  if any(not 0 <= reverse < len(direction_entries) for reverse in reverse_directions):
+    raise ExtractionError("rev_dir contains an out-of-range direction")
+  for entry, reverse in zip(direction_entries, reverse_directions, strict=True):
+    entry["reverse_index"] = reverse
+  tables["directions"]["reverse_source"] = "src/constants.c:rev_dir"
 
   wear_source = (root / "src/obj/act.item.c").read_text(encoding="utf-8")
   wear_match = re.search(r"int\s+wear_bitvectors\[\]\s*=\s*\{(.*?)\};", wear_source, re.DOTALL)

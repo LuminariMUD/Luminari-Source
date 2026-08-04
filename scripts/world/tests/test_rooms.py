@@ -42,7 +42,7 @@ class RoomParserTests(unittest.TestCase):
     before = directory_hash(root)
     config = {"diagonal_dirs": False, "config_source": "test", "assumed": False}
     result = validate_explicit_paths([root], self.repo_root, self.manifest, config)
-    self.assertEqual([], result.findings)
+    self.assertEqual({"SEM010"}, {item.code for item in result.findings})
     self.assertTrue(result.complete)
     self.assertEqual(before, directory_hash(root))
 

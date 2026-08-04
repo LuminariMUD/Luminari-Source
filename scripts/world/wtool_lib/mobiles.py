@@ -560,6 +560,7 @@ def parse_mobile_file(
     _line_limit(result, flags_line, record.vnum)
     tokens = flags_line.text.split()
     if len(tokens) == 4:
+      record.legacy_affect_encoding = True
       record.action_flags = [tokens[0]]
       record.affect_flags = [tokens[1]]
       alignment = parse_c_integer_token(tokens[2])

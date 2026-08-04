@@ -599,6 +599,7 @@ def parse_object_file(
           )
       )
     elif len(tokens) == 4:
+      record.legacy_affect_encoding = True
       record.extra_flags = [tokens[1]]
       record.wear_flags = [tokens[2]]
       record.affect_flags = [tokens[3]]

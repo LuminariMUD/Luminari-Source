@@ -346,6 +346,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/reporting.py \
 	scripts/world/wtool_lib/parsing.py \
 	scripts/world/wtool_lib/rooms.py \
+	scripts/world/wtool_lib/semantics.py \
 	scripts/world/wtool_lib/shops.py \
 	scripts/world/wtool_lib/source.py \
 	scripts/world/wtool_lib/spec_registry.py \
@@ -361,6 +362,7 @@ world_tool_sources = \
 	scripts/world/tests/test_objects.py \
 	scripts/world/tests/test_reporting.py \
 	scripts/world/tests/test_rooms.py \
+	scripts/world/tests/test_semantics.py \
 	scripts/world/tests/test_shops.py \
 	scripts/world/tests/test_source.py \
 	scripts/world/tests/test_triggers.py \
