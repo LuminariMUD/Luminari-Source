@@ -167,6 +167,7 @@ LIMIT_SPECS = {
     "MAX_QUEST_DESC": "src/quest/quest.h",
     "MAX_QUEST_MSG": "src/quest/quest.h",
     "MAX_QUEST_NAME": "src/quest/quest.h",
+    "AQ_UNDEFINED": "src/quest/quest.h",
     "NUM_AQ_FLAGS": "src/quest/quest.h",
     "NUM_AQ_TYPES": "src/quest/quest.h",
     "NUM_CHURCHES": "src/character/class.h",

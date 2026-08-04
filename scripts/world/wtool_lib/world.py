@@ -920,6 +920,8 @@ def _load_files(
           selected_packages,
           manifest,
           direction_count,
+          quests,
+          hlquests,
       )
   )
   return (

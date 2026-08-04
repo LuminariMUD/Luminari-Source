@@ -8,11 +8,14 @@ from typing import Any, Iterable
 from .constants import DECODER_ALPHABET
 from .flags import decode_tokens
 from .models import (
-    ExitRecord,
-    Finding,
-    MobileRecord,
-    ObjectRecord,
-    RelatedLocation,
+  ExitRecord,
+  Finding,
+  HlQuestCommandRecord,
+  HlQuestRecord,
+  MobileRecord,
+  ObjectRecord,
+  QuestRecord,
+  RelatedLocation,
     RoomRecord,
     SourceSpan,
     TriggerRecord,
@@ -600,6 +603,710 @@ def _object_finding(
   )
 
 
+def _quest_finding(
+    findings: list[Finding],
+    quest: QuestRecord,
+    code: str,
+    message: str,
+    severity: str = "error",
+    field_name: str | None = None,
+    related: RelatedLocation | None = None,
+) -> None:
+  findings.append(
+      Finding(
+          code,
+          severity,
+          message,
+          quest.field_spans.get(field_name, quest.span) if field_name else quest.span,
+          record_type="quest",
+          vnum=quest.vnum,
+          related=related,
+      )
+  )
+
+
+def _hlquest_finding(
+    findings: list[Finding],
+    quest: HlQuestRecord,
+    code: str,
+    message: str,
+    severity: str = "error",
+    span: SourceSpan | None = None,
+) -> None:
+  findings.append(
+      Finding(
+          code,
+          severity,
+          message,
+          span or quest.span,
+          record_type="hlquest",
+          vnum=quest.vnum,
+      )
+  )
+
+
+def _encoded_length(value: str) -> int:
+  return len(value.encode("utf-8", errors="surrogateescape"))
+
+
+def _raw_quest_value(quest: QuestRecord, field_name: str, default: int = -1) -> int:
+  value = quest.raw_values.get(field_name)
+  if value is not None:
+    return value
+  normalized = getattr(quest, field_name)
+  return normalized if normalized is not None else default
+
+
+def _quest_type_values(manifest: dict[str, Any]) -> dict[str, int]:
+  return {
+      entry["macro"]: int(entry["index"])
+      for entry in manifest["tables"]["quest-types"]["entries"]
+      if entry.get("macro")
+  }
+
+
+def _validate_quest_scalars(
+    quests: list[QuestRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+    manifest: dict[str, Any],
+) -> None:
+  quest_types = _quest_type_values(manifest)
+  valid_types = set(quest_types.values())
+  undefined_type = _limit(manifest, "AQ_UNDEFINED")
+  valid_types.add(undefined_type)
+  max_level = _limit(manifest, "LVL_IMPL")
+  mission_difficulties = _limit(manifest, "NUM_MISSION_DIFFICULTIES")
+  valid_races = {
+      _limit(manifest, "RACE_UNDEFINED"),
+      _limit(manifest, "RACE_LICH"),
+      _limit(manifest, "RACE_VAMPIRE"),
+  }
+  string_limits = (
+      ("name", "name", _limit(manifest, "MAX_QUEST_NAME")),
+      ("description", "description", _limit(manifest, "MAX_QUEST_DESC")),
+      ("accept_message", "accept message", _limit(manifest, "MAX_QUEST_MSG")),
+      (
+          "completion_message",
+          "completion message",
+          _limit(manifest, "MAX_QUEST_MSG"),
+      ),
+      ("quit_message", "quit message", _limit(manifest, "MAX_QUEST_MSG")),
+  )
+  scalar_limits = (
+      ("quantity", "quantity", 1, 50),
+      ("points", "completion points", 0, 999999),
+      ("quit_penalty", "quit penalty", 0, 999999),
+      ("min_level", "minimum level", 0, max_level),
+      ("max_level", "maximum level", 0, max_level),
+      ("time_limit", "time limit", -1, 100),
+      ("gold_reward", "gold reward", 0, 99999),
+      ("experience_reward", "experience reward", 0, 999999),
+  )
+  typed_targets = {
+      quest_types["AQ_OBJ_FIND"],
+      quest_types["AQ_OBJ_RETURN"],
+      quest_types["AQ_ROOM_FIND"],
+      quest_types["AQ_ROOM_CLEAR"],
+      quest_types["AQ_MOB_FIND"],
+      quest_types["AQ_MOB_KILL"],
+      quest_types["AQ_MOB_SAVE"],
+      quest_types["AQ_DIALOGUE"],
+  }
+
+  for quest in quests:
+    if not quest.complete or not _selected(quest, selected_packages):
+      continue
+    if quest.quest_type not in valid_types:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM023",
+          f"quest type {quest.quest_type} is outside the source-defined type table",
+          field_name="quest_type",
+      )
+    if quest.quest_type == undefined_type:
+      continue
+
+    for field_name, label, limit in string_limits:
+      value = getattr(quest, field_name)
+      if value is not None and _encoded_length(value) >= limit:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM024",
+            f"quest {label} is {_encoded_length(value)} bytes; QEDIT stores at most "
+            f"{limit - 1}",
+            "warning",
+            field_name,
+        )
+
+    for field_name, label, minimum, maximum in scalar_limits:
+      value = getattr(quest, field_name)
+      if value is not None and not minimum <= value <= maximum:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM025",
+            f"quest {label} {value} is outside {minimum}..{maximum}",
+            field_name=field_name,
+        )
+    if (
+        quest.min_level is not None
+        and quest.max_level is not None
+        and quest.min_level > quest.max_level
+    ):
+      _quest_finding(
+          findings,
+          quest,
+          "SEM025",
+          f"minimum level {quest.min_level} exceeds maximum level {quest.max_level}",
+          field_name="min_level",
+      )
+    if quest.questmaster_vnum is None:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM026",
+          "quest has no questmaster mobile; players cannot discover or join it normally",
+          field_name="questmaster_vnum",
+      )
+    if quest.quest_type in typed_targets and quest.target is None:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM026",
+          "quest type requires a typed target, but the target uses the -1 sentinel",
+          field_name="target",
+      )
+    if quest.quest_type in {
+        quest_types["AQ_OBJ_RETURN"],
+        quest_types["AQ_GIVE_GOLD"],
+    } and quest.return_mobile_vnum is None:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM026",
+          "quest type requires a return-recipient mobile",
+          field_name="return_mobile_vnum",
+      )
+
+    if quest.quest_type == quest_types["AQ_COMPLETE_MISSION"]:
+      target = _raw_quest_value(quest, "target")
+      if not 0 <= target < mission_difficulties:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            f"mission difficulty {target} is outside 0..{mission_difficulties - 1}",
+            field_name="target",
+        )
+    elif quest.quest_type == quest_types["AQ_WILD_FIND"]:
+      if quest.wilderness_x is None or quest.wilderness_y is None:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            "wilderness quest requires both persisted coordinate fields",
+            field_name=(
+                "wilderness_x" if quest.wilderness_x is None else "wilderness_y"
+            ),
+        )
+    elif quest.quest_type == quest_types["AQ_GIVE_GOLD"]:
+      target = _raw_quest_value(quest, "target")
+      if target < 0:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            f"gold threshold {target} must be non-negative",
+            field_name="target",
+        )
+    elif quest.quest_type == quest_types["AQ_MOB_MULTI_KILL"]:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM026",
+          "Luminari QST files cannot persist the mobile list required by "
+          "AQ_MOB_MULTI_KILL",
+          field_name="quest_type",
+      )
+
+    if "race_reward" in quest.raw_values:
+      race = quest.raw_values["race_reward"]
+      if race not in valid_races:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM026",
+            f"race reward {race} must be -1, RACE_LICH, or RACE_VAMPIRE",
+            field_name="race_reward",
+        )
+
+    dialogue_values = {
+        field_name: _raw_quest_value(quest, field_name)
+        for field_name in ("diplomacy_dc", "intimidate_dc", "bluff_dc")
+    }
+    for field_name, value in dialogue_values.items():
+      if not -1 <= value <= 100:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM027",
+            f"{field_name.replace('_', ' ')} {value} is outside -1..100",
+            field_name=field_name,
+        )
+    if quest.quest_type == quest_types["AQ_DIALOGUE"]:
+      if not any(value > 0 for value in dialogue_values.values()):
+        _quest_finding(
+            findings,
+            quest,
+            "SEM027",
+            "dialogue quest has no positive skill DC and cannot be completed by a "
+            "dialogue command",
+            field_name="quest_type",
+        )
+    else:
+      configured_dcs = [value for value in dialogue_values.values() if value != -1]
+      if configured_dcs:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM027",
+            "non-dialogue quest persists dialogue DCs that the runtime ignores",
+            "warning",
+            "diplomacy_dc",
+        )
+      if quest.dialogue_alternative_quest_vnum is not None:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM027",
+            "non-dialogue quest defines an alternative quest; the target becomes an "
+            "unjoinable dialogue alternative",
+            field_name="dialogue_alternative_quest_vnum",
+        )
+
+
+def _quest_cycles(
+    quests_by_vnum: dict[int, QuestRecord], field_name: str
+) -> list[list[int]]:
+  """Return functional-graph cycles in linear time."""
+
+  visited: set[int] = set()
+  cycles: list[list[int]] = []
+  for start in sorted(quests_by_vnum):
+    if start in visited:
+      continue
+    trail: list[int] = []
+    positions: dict[int, int] = {}
+    current: int | None = start
+    while current is not None and current in quests_by_vnum and current not in visited:
+      if current in positions:
+        cycles.append(trail[positions[current] :])
+        break
+      positions[current] = len(trail)
+      trail.append(current)
+      current = getattr(quests_by_vnum[current], field_name)
+    visited.update(trail)
+  return cycles
+
+
+def _validate_quest_topology(
+    quests: list[QuestRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+    manifest: dict[str, Any],
+) -> None:
+  quests_by_vnum: dict[int, QuestRecord] = {}
+  undefined_type = _limit(manifest, "AQ_UNDEFINED")
+  for quest in quests:
+    if (
+        quest.complete
+        and quest.quest_type != undefined_type
+        and quest.vnum not in quests_by_vnum
+    ):
+      quests_by_vnum[quest.vnum] = quest
+  dialogue_type = _quest_type_values(manifest)["AQ_DIALOGUE"]
+
+  for quest in quests:
+    if (
+        not quest.complete
+        or quest.quest_type == undefined_type
+        or not _selected(quest, selected_packages)
+    ):
+      continue
+    for field_name, label in (
+        ("previous_quest_vnum", "previous"),
+        ("next_quest_vnum", "next"),
+    ):
+      target_vnum = getattr(quest, field_name)
+      if target_vnum is None:
+        continue
+      if target_vnum == quest.vnum:
+        severity = "error" if field_name == "previous_quest_vnum" else "warning"
+        impact = (
+            "prevents a new player from joining the quest"
+            if field_name == "previous_quest_vnum"
+            else "is explicitly ignored when the quest completes"
+        )
+        _quest_finding(
+            findings,
+            quest,
+            "SEM028",
+            f"quest has a self-referential {label} link that {impact}",
+            severity,
+            field_name,
+        )
+        continue
+      target = quests_by_vnum.get(target_vnum)
+      if target is None:
+        continue
+      reciprocal_field = (
+          "next_quest_vnum" if field_name == "previous_quest_vnum" else "previous_quest_vnum"
+      )
+      if getattr(target, reciprocal_field) != quest.vnum:
+        _quest_finding(
+            findings,
+            quest,
+            "SEM028",
+            f"quest {label} link to {target_vnum} is not reciprocated by "
+            f"{reciprocal_field.replace('_quest_vnum', '')}",
+            "warning",
+            field_name,
+            RelatedLocation(
+                target.span.path,
+                target.span.line,
+                target.span.column,
+                "quest",
+                target.vnum,
+            ),
+        )
+
+    alternative = quest.dialogue_alternative_quest_vnum
+    if alternative is None or quest.quest_type != dialogue_type:
+      continue
+    if alternative == quest.vnum:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM027",
+          "dialogue quest cannot use itself as its alternative quest",
+          field_name="dialogue_alternative_quest_vnum",
+      )
+      continue
+    target = quests_by_vnum.get(alternative)
+    if target is not None and target.previous_quest_vnum != quest.vnum:
+      _quest_finding(
+          findings,
+          quest,
+          "SEM027",
+          f"dialogue alternative {alternative} must name quest {quest.vnum} as its "
+          "previous quest",
+          field_name="dialogue_alternative_quest_vnum",
+          related=RelatedLocation(
+              target.span.path,
+              target.span.line,
+              target.span.column,
+              "quest",
+              target.vnum,
+          ),
+      )
+
+  for field_name, label, severity in (
+      ("previous_quest_vnum", "previous", "error"),
+      ("next_quest_vnum", "next", "warning"),
+  ):
+    for cycle in _quest_cycles(quests_by_vnum, field_name):
+      if len(cycle) < 2:
+        continue
+      selected = [
+          quests_by_vnum[vnum]
+          for vnum in cycle
+          if _selected(quests_by_vnum[vnum], selected_packages)
+      ]
+      if not selected:
+        continue
+      owner = min(selected, key=lambda record: record.vnum)
+      ordered = cycle[cycle.index(owner.vnum) :] + cycle[: cycle.index(owner.vnum)]
+      path = " -> ".join(str(vnum) for vnum in (*ordered, ordered[0]))
+      impact = (
+          "blocks entry into the cycle until an impossible prerequisite is completed"
+          if field_name == "previous_quest_vnum"
+          else "can reinstall an earlier stage until completion history breaks the loop"
+      )
+      _quest_finding(
+          findings,
+          owner,
+          "SEM029",
+          f"{label}-quest cycle {path} {impact}",
+          severity,
+          field_name,
+      )
+
+
+def _hlquest_command_context(entry_ordinal: int, command: HlQuestCommandRecord) -> str:
+  return (
+      f"entry {entry_ordinal} {command.direction or command.direction_marker} "
+      f"command {command.physical_ordinal}"
+  )
+
+
+def _validate_hlquest_semantics(
+    hlquests: list[HlQuestRecord],
+    rooms: list[RoomRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+    manifest: dict[str, Any],
+    direction_count: int,
+    exits_by_room: dict[int, dict[int, ExitRecord]],
+) -> None:
+  entry_types = {
+      entry["macro"]: int(entry["index"])
+      for entry in manifest["tables"]["hlquest-entry-types"]["entries"]
+  }
+  command_types = {
+      entry["macro"]: int(entry["index"])
+      for entry in manifest["tables"]["hlquest-commands"]["entries"]
+  }
+  valid_entry_types = set(entry_types.values())
+  valid_command_types = set(command_types.values())
+  coin_type = command_types["QUEST_COMMAND_COINS"]
+  item_type = command_types["QUEST_COMMAND_ITEM"]
+  load_types = {
+      command_types["QUEST_COMMAND_LOAD_OBJECT_INROOM"],
+      command_types["QUEST_COMMAND_LOAD_MOB_INROOM"],
+  }
+  parameter_free = {
+      command_types["QUEST_COMMAND_ATTACK_QUESTOR"],
+      command_types["QUEST_COMMAND_DISAPPEAR"],
+      command_types["QUEST_COMMAND_FOLLOW"],
+  }
+  spell_types = {
+      command_types["QUEST_COMMAND_TEACH_SPELL"],
+      command_types["QUEST_COMMAND_CAST_SPELL"],
+  }
+  open_door_type = command_types["QUEST_COMMAND_OPEN_DOOR"]
+  kit_type = command_types["QUEST_COMMAND_KIT"]
+  church_type = command_types["QUEST_COMMAND_CHURCH"]
+  location_unused = {coin_type, item_type, church_type, *spell_types}
+  num_spells = _limit(manifest, "NUM_SPELLS")
+  reserved_spell = _limit(manifest, "SPELL_RESERVED_DBC")
+  num_classes = _limit(manifest, "NUM_CLASSES")
+  num_churches = _limit(manifest, "NUM_CHURCHES")
+  rooms_by_vnum = {room.vnum: room for room in rooms}
+
+  for quest in hlquests:
+    if not quest.complete or not _selected(quest, selected_packages):
+      continue
+    for entry in quest.entries:
+      if not entry.complete:
+        continue
+      if entry.entry_type not in valid_entry_types:
+        _hlquest_finding(
+            findings,
+            quest,
+            "SEM030",
+            f"entry {entry.physical_ordinal} has invalid type {entry.entry_type}",
+            span=entry.span,
+        )
+        continue
+      if entry.entry_type == entry_types["QUEST_ASK"]:
+        if not entry.keywords or not entry.keywords.strip():
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"ASK entry {entry.physical_ordinal} requires non-empty keywords",
+              span=entry.field_spans.get("keywords", entry.span),
+          )
+        if not entry.reply_message or not entry.reply_message.strip():
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"ASK entry {entry.physical_ordinal} requires a non-empty reply",
+              span=entry.field_spans.get("reply_message", entry.span),
+          )
+        if entry.commands or entry.chain_terminated:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"ASK entry {entry.physical_ordinal} cannot contain a command chain",
+              span=entry.span,
+          )
+      else:
+        if not entry.reply_message or not entry.reply_message.strip():
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"entry {entry.physical_ordinal} requires a non-empty reply",
+              span=entry.field_spans.get("reply_message", entry.span),
+          )
+        if not entry.chain_terminated:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"entry {entry.physical_ordinal} requires an S command-chain terminator",
+              span=entry.span,
+          )
+        if (
+            entry.entry_type == entry_types["QUEST_ROOM"]
+            and entry.room_vnum is None
+        ):
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM030",
+              f"ROOM entry {entry.physical_ordinal} requires a room VNUM",
+              span=entry.field_spans.get("room_vnum", entry.span),
+          )
+
+      for command in entry.commands:
+        if not command.complete or not command.effective:
+          continue
+        context = _hlquest_command_context(entry.physical_ordinal, command)
+        command_type = command.command_type
+        if command_type not in valid_command_types:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM031",
+              f"{context} has invalid command type {command_type}",
+              span=command.field_spans.get("code", command.span),
+          )
+          continue
+        if command.direction == "input" and (
+            entry.entry_type != entry_types["QUEST_GIVE"]
+            or command_type not in {coin_type, item_type}
+        ):
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM031",
+              f"{context} is ignored; only GIVE-entry COINS and ITEM inputs are "
+              "consumed by the runtime",
+              span=command.field_spans.get("direction", command.span),
+          )
+        elif command.direction not in {"input", "output"}:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM031",
+              f"{context} has invalid command direction {command.direction_marker!r}",
+              span=command.field_spans.get("direction", command.span),
+          )
+
+        if command.value is None or command.location is None:
+          continue
+        value = command.value
+        location = command.location
+        value_span = command.field_spans.get("value", command.span)
+        location_span = command.field_spans.get("location", command.span)
+        if command_type == coin_type:
+          if value < 0:
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} coin value {value} must be non-negative",
+                span=value_span,
+            )
+          elif value > 100000:
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} coin value {value} exceeds the editor maximum 100000",
+                "warning",
+                value_span,
+            )
+        elif command_type in spell_types and not reserved_spell < value < num_spells:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM032",
+              f"{context} spell/skill {value} is outside the runtime-safe range "
+              f"{reserved_spell + 1}..{num_spells - 1}",
+              span=value_span,
+          )
+        elif command_type == open_door_type:
+          if not 0 <= value < direction_count:
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} direction {value} is outside 0..{direction_count - 1}",
+                span=value_span,
+            )
+          elif location in rooms_by_vnum and value not in exits_by_room.get(location, {}):
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} targets direction {value} in room {location}, but no exit exists",
+                span=value_span,
+            )
+        elif command_type == kit_type and value != 9999 and location != 9999:
+          if not 0 <= value < num_classes:
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} target class {value} is outside 0..{num_classes - 1}",
+                span=value_span,
+            )
+          if not 0 <= location < num_classes:
+            _hlquest_finding(
+                findings,
+                quest,
+                "SEM032",
+                f"{context} prerequisite class {location} is outside "
+                f"0..{num_classes - 1}",
+                span=location_span,
+            )
+        elif command_type == church_type and not 0 <= value < num_churches:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM032",
+              f"{context} church {value} is outside 0..{num_churches - 1}",
+              span=value_span,
+          )
+        elif command_type in load_types and location < 0:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM032",
+              f"{context} load location {location} must be 0 or a room VNUM",
+              span=location_span,
+          )
+
+        if command_type in parameter_free and (value != 0 or location != 0):
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM033",
+              f"{context} persists unused parameters {value} and {location}; the "
+              "canonical writer emits zeroes",
+              "warning",
+              command.span,
+          )
+        elif command_type in location_unused and location != 0:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM033",
+              f"{context} persists unused location parameter {location}; the canonical "
+              "writer emits zero",
+              "warning",
+              location_span,
+          )
+
+
 def _valid_object_spell(value: int, maximum: int) -> bool:
   return value in {-1, 0} or 1 <= value <= maximum
 
@@ -857,6 +1564,8 @@ def validate_semantics(
     selected_packages: set[int] | None,
     manifest: dict[str, Any],
     direction_count: int,
+    quests: list[QuestRecord] | None = None,
+    hlquests: list[HlQuestRecord] | None = None,
 ) -> list[Finding]:
   """Run only source-backed semantic checks over an already validated graph."""
 
@@ -881,6 +1590,17 @@ def validate_semantics(
   )
   _validate_object_values(
       objects,
+      rooms,
+      findings,
+      selected_packages,
+      manifest,
+      direction_count,
+      exits_by_room,
+  )
+  _validate_quest_scalars(quests or [], findings, selected_packages, manifest)
+  _validate_quest_topology(quests or [], findings, selected_packages, manifest)
+  _validate_hlquest_semantics(
+      hlquests or [],
       rooms,
       findings,
       selected_packages,

@@ -37,7 +37,8 @@ Last updated: 2026-08-04.
 - Published checkpoints: planning baseline commit `9b41691e`; Session 1
   implementation commit `e3052d35`; Session 2 implementation commit
   `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
-  checkpoint `3876e318`; Session 4 graph checkpoint pending at this update.
+  checkpoint `3876e318`; Session 4 graph checkpoint `d6a8ad8e`; Session 4
+  semantic checkpoint pending at this update.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -75,8 +76,29 @@ Last updated: 2026-08-04.
   every new edge role, all target record types, missing/wrong-type behavior,
   nested HLQ context, selected-package filtering, and isolated universes. The
   Make `test-world-tools` gate passes all 156 tests plus the wrapper.
-- Next implementation step: add source-backed QST and HLQ semantic checks,
-  then finish `show`, `refs`, versioning, and compatibility goldens.
+- Session 4 semantic implementation: added source-derived QST type, string,
+  scalar, reward, mission, coordinate, race, dialogue, multi-kill, chain, and
+  alternative-topology checks. Added HLQ entry-shape, legal-direction,
+  runtime-safe coin/spell/direction/class/church/lich/load, no-op door, and
+  unused-parameter checks. Previous/next cycle discovery uses indexed
+  functional graphs rather than pairwise scans.
+- Session 4 semantic verification: 13 semantic tests pass, including explicit
+  below/minimum/maximum/above and sentinel matrices; 53 focused semantic/QST/
+  HLQ tests pass; the Make `test-world-tools` gate passes all 163 tests plus
+  the wrapper. A preliminary hash-guarded development audit identified and
+  removed false errors for the source-defined `AQ_UNDEFINED` state, then
+  reported 126 quest-system semantic findings (22 errors and 104 warnings) in
+  11.13 seconds with 302,156 KiB peak RSS. Both quest-tree hashes were
+  unchanged.
+- Session 4 performance evidence: two complete-fixture JSON validations
+  produced the identical SHA-256
+  `0eecefb644e588bfe409fded0900410c9685292511c08255c68d932f24fbcd74`
+  in 0.06 and 0.07 seconds, each at 17,664 KiB peak RSS. A 10,000-record
+  synthetic chain test completes with at most three typed-map probes per
+  record, locking the cycle scan to indexed linear behavior apart from its
+  deterministic key sort.
+- Next implementation step: finish typed `show`, bidirectional `refs`, public
+  version/schema compatibility, and the Session 4 performance/gate evidence.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -829,18 +851,18 @@ formats.
 - [x] T056 [S0404] Add HLQ host, entry-room, item, load-mobile, load-object, destination-room, and open-door edges.
 - [x] T057 [S0405] Validate every missing QST reference with field-level locations and related records where available.
 - [x] T058 [S0406] Validate every missing HLQ reference with host/entry/command composite context.
-- [ ] T059 [S0407] Add QST type, flag, string, quantity, level, time, point, penalty, and reward semantic bounds.
-- [ ] T060 [S0408] Add QST mission, wilderness-coordinate, race, dialogue-DC, and multi-kill checks.
-- [ ] T061 [S0409] Add QST previous/next/alternative self-link, cycle, reciprocity, and dialogue topology checks with evidence-based severities.
-- [ ] T062 [S0410] Add HLQ entry-shape, approval-marker, and legal input/output command checks.
-- [ ] T063 [S0411] Add HLQ coin, spell, direction, class, church, lich-sentinel, and parameter checks against runtime-safe bounds.
+- [x] T059 [S0407] Add QST type, flag, string, quantity, level, time, point, penalty, and reward semantic bounds.
+- [x] T060 [S0408] Add QST mission, wilderness-coordinate, race, dialogue-DC, and multi-kill checks.
+- [x] T061 [S0409] Add QST previous/next/alternative self-link, cycle, reciprocity, and dialogue topology checks with evidence-based severities.
+- [x] T062 [S0410] Add HLQ entry-shape, approval-marker, and legal input/output command checks.
+- [x] T063 [S0411] Add HLQ coin, spell, direction, class, church, lich-sentinel, and parameter checks against runtime-safe bounds.
 - [ ] T064 [S0412] Add `quest`/`qst` and `hlquest`/`hlq` type normalization and CLI choices.
 - [ ] T065 [S0413] Implement human and JSON `show quest` and `show hlquest`, including physical/runtime ordering.
 - [ ] T066 [S0414] Implement bidirectional human and JSON `refs` for both types and incoming edges on existing records.
 - [ ] T067 [S0415] Bump tool version, make the schema decision, and add unchanged-six-format compatibility goldens.
 - [ ] T068 [S0416] Add graph tests for every edge role, missing target, duplicate, selected-zone filter, and reverse lookup.
-- [ ] T069 [S0417] Add semantic boundary tests at below/min/max/above values and sentinel cases.
-- [ ] T070 [S0418] Measure deterministic full-fixture time/memory and guard against accidental quadratic quest-chain/reference scans.
+- [x] T069 [S0417] Add semantic boundary tests at below/min/max/above values and sentinel cases.
+- [x] T070 [S0418] Measure deterministic full-fixture time/memory and guard against accidental quadratic quest-chain/reference scans.
 - [ ] T071 [S0419] Run the complete Python, constants, docs, wrapper, Make, CMake, and CTest gates.
 
 Session gate:

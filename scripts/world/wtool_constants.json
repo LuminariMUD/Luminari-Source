@@ -10,6 +10,10 @@
     "obj-affect2": "affect2"
   },
   "limits": {
+    "AQ_UNDEFINED": {
+      "source": "src/quest/quest.h:AQ_UNDEFINED",
+      "value": -1
+    },
     "ITEM_SPECAB_HORN_OF_SUMMONING": {
       "source": "src/combat/spec_abilities.h:ITEM_SPECAB_HORN_OF_SUMMONING",
       "value": 53

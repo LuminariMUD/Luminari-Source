@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,8 +9,12 @@ from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.flags import encode_bits
 from wtool_lib.models import (
     ExitRecord,
+    HlQuestCommandRecord,
+    HlQuestEntryRecord,
+    HlQuestRecord,
     MobileRecord,
     ObjectRecord,
+    QuestRecord,
     ResetCommandRecord,
     RoomRecord,
     SourceSpan,
@@ -17,7 +22,7 @@ from wtool_lib.models import (
     ZoneRecord,
 )
 from wtool_lib.rooms import parse_room_file
-from wtool_lib.semantics import strip_color_codes, validate_semantics
+from wtool_lib.semantics import _quest_cycles, strip_color_codes, validate_semantics
 from wtool_lib.spec_registry import extract_spec_names
 
 
@@ -82,6 +87,66 @@ def obj(vnum: int, item_type: int, values: list[int], **fields) -> ObjectRecord:
   return ObjectRecord(vnum, span(vnum), "1", **defaults)
 
 
+def quest_record(vnum: int, quest_type: int, **fields) -> QuestRecord:
+  defaults = {
+      "name": "Finished quest",
+      "description": "A finished quest",
+      "accept_message": "Accept.",
+      "completion_message": "Complete.",
+      "quit_message": "Quit.",
+      "quest_type": quest_type,
+      "questmaster_vnum": 200,
+      "flag_token": "0",
+      "target": None,
+      "points": 0,
+      "quit_penalty": 0,
+      "min_level": 0,
+      "max_level": 34,
+      "time_limit": -1,
+      "quantity": 1,
+      "gold_reward": 0,
+      "experience_reward": 0,
+      "reward_row_width": 7,
+      "raw_values": {"race_reward": -1},
+  }
+  defaults.update(fields)
+  return QuestRecord(vnum, span(vnum), "1", **defaults)
+
+
+def hlq_command(
+    command_type: int,
+    value: int,
+    location: int,
+    direction: str = "output",
+    ordinal: int = 1,
+) -> HlQuestCommandRecord:
+  marker = "I" if direction == "input" else "O"
+  return HlQuestCommandRecord(
+      marker,
+      direction,
+      "?",
+      "?",
+      command_type,
+      value,
+      location,
+      span(ordinal),
+      ordinal,
+  )
+
+
+def hlq_entry(entry_type: int, marker: str, **fields) -> HlQuestEntryRecord:
+  defaults = {
+      "approval_suffix": "!",
+      "approved": True,
+      "span": span(entry_type + 1),
+      "physical_ordinal": 1,
+      "reply_message": "A finished reply.",
+      "chain_terminated": marker != "A",
+  }
+  defaults.update(fields)
+  return HlQuestEntryRecord(entry_type, marker, **defaults)
+
+
 class SemanticTests(unittest.TestCase):
   @classmethod
   def setUpClass(cls) -> None:
@@ -93,6 +158,18 @@ class SemanticTests(unittest.TestCase):
         for entry in cls.manifest["tables"]["item-types"]["entries"]
         if entry.get("macro")
     }
+    cls.quest_types = {
+        entry["macro"]: entry["index"]
+        for entry in cls.manifest["tables"]["quest-types"]["entries"]
+    }
+    cls.hlq_entry_types = {
+        entry["macro"]: entry["index"]
+        for entry in cls.manifest["tables"]["hlquest-entry-types"]["entries"]
+    }
+    cls.hlq_command_types = {
+        entry["macro"]: entry["index"]
+        for entry in cls.manifest["tables"]["hlquest-commands"]["entries"]
+    }
 
   def validate(
       self,
@@ -101,6 +178,8 @@ class SemanticTests(unittest.TestCase):
       mobiles: list[MobileRecord] | None = None,
       objects: list[ObjectRecord] | None = None,
       triggers: list[TriggerRecord] | None = None,
+      quests: list[QuestRecord] | None = None,
+      hlquests: list[HlQuestRecord] | None = None,
   ):
     return validate_semantics(
         zones,
@@ -111,7 +190,20 @@ class SemanticTests(unittest.TestCase):
         None,
         self.manifest,
         6,
+        quests,
+        hlquests,
     )
+
+  def quest_findings(self, quest: QuestRecord):
+    return self.validate([], [], quests=[quest])
+
+  def hlquest_findings(
+      self,
+      entry: HlQuestEntryRecord,
+      rooms: list[RoomRecord] | None = None,
+  ):
+    record = HlQuestRecord(200, span(200), "1", entries=[entry])
+    return self.validate([], rooms or [], hlquests=[record])
 
   def test_color_stripping_placeholder_and_runtime_flags(self) -> None:
     room_flags = list(encode_bits({15, 29, 33}))
@@ -253,6 +345,339 @@ class SemanticTests(unittest.TestCase):
             "SEM022",
         }
         <= codes
+    )
+
+  def test_qst_editor_scalar_and_string_boundaries(self) -> None:
+    base = quest_record(100, self.quest_types["AQ_HOUSE_FIND"])
+    scalar_cases = (
+        ("quantity", 1, 50),
+        ("points", 0, 999999),
+        ("quit_penalty", 0, 999999),
+        ("min_level", 0, 34),
+        ("max_level", 0, 34),
+        ("time_limit", -1, 100),
+        ("gold_reward", 0, 99999),
+        ("experience_reward", 0, 999999),
+    )
+    for field_name, minimum, maximum in scalar_cases:
+      for value in (minimum, maximum):
+        with self.subTest(field=field_name, valid=value):
+          candidate = replace(base, **{field_name: value})
+          if field_name == "min_level":
+            candidate.max_level = maximum
+          elif field_name == "max_level":
+            candidate.min_level = minimum
+          self.assertNotIn(
+              "SEM025", {item.code for item in self.quest_findings(candidate)}
+          )
+      for value in (minimum - 1, maximum + 1):
+        with self.subTest(field=field_name, invalid=value):
+          candidate = replace(base, **{field_name: value})
+          self.assertIn(
+              "SEM025", {item.code for item in self.quest_findings(candidate)}
+          )
+
+    for field_name, limit in (
+        ("name", 40),
+        ("description", 75),
+        ("accept_message", 4096),
+        ("completion_message", 4096),
+        ("quit_message", 4096),
+    ):
+      with self.subTest(field=field_name, boundary="maximum"):
+        candidate = replace(base, **{field_name: "x" * (limit - 1)})
+        self.assertNotIn("SEM024", {item.code for item in self.quest_findings(candidate)})
+      with self.subTest(field=field_name, boundary="above"):
+        candidate = replace(base, **{field_name: "x" * limit})
+        finding = next(
+            item for item in self.quest_findings(candidate) if item.code == "SEM024"
+        )
+        self.assertEqual("warning", finding.severity)
+
+    inverted = replace(base, min_level=20, max_level=10)
+    self.assertTrue(
+        any("exceeds maximum" in item.message for item in self.quest_findings(inverted))
+    )
+
+  def test_qst_type_flags_and_type_specific_domains(self) -> None:
+    base = quest_record(99, self.quest_types["AQ_HOUSE_FIND"])
+    unavailable = quest_record(
+        98, -1, questmaster_vnum=None, previous_quest_vnum=98
+    )
+    self.assertFalse(
+        {item.code for item in self.quest_findings(unavailable)}
+        & {"SEM023", "SEM024", "SEM025", "SEM026", "SEM027", "SEM028", "SEM029"}
+    )
+    invalid_type = quest_record(100, 25, flag_bits={2})
+    type_findings = self.quest_findings(invalid_type)
+    self.assertEqual(1, sum(item.code == "SEM023" for item in type_findings))
+
+    missing_target = quest_record(101, self.quest_types["AQ_MOB_FIND"])
+    missing_master = replace(missing_target, questmaster_vnum=None)
+    messages = "\n".join(item.message for item in self.quest_findings(missing_master))
+    self.assertIn("no questmaster", messages)
+    self.assertIn("requires a typed target", messages)
+
+    for value in (0, 5):
+      mission = quest_record(102, self.quest_types["AQ_COMPLETE_MISSION"], target=value)
+      self.assertNotIn("SEM026", {item.code for item in self.quest_findings(mission)})
+    for value in (-1, 6):
+      mission = quest_record(102, self.quest_types["AQ_COMPLETE_MISSION"], target=value)
+      self.assertIn("SEM026", {item.code for item in self.quest_findings(mission)})
+
+    wilderness = quest_record(103, self.quest_types["AQ_WILD_FIND"])
+    self.assertIn("SEM026", {item.code for item in self.quest_findings(wilderness)})
+    wilderness.wilderness_x = -999
+    wilderness.wilderness_y = 999
+    self.assertNotIn("SEM026", {item.code for item in self.quest_findings(wilderness)})
+
+    for race in (-1, 45, 46):
+      candidate = replace(base, raw_values={"race_reward": race})
+      self.assertNotIn("SEM026", {item.code for item in self.quest_findings(candidate)})
+    bad_race = replace(base, raw_values={"race_reward": 44})
+    self.assertIn("SEM026", {item.code for item in self.quest_findings(bad_race)})
+
+    give_gold = quest_record(
+        104,
+        self.quest_types["AQ_GIVE_GOLD"],
+        target=-1,
+        return_mobile_vnum=None,
+    )
+    self.assertGreaterEqual(
+        sum(item.code == "SEM026" for item in self.quest_findings(give_gold)), 2
+    )
+    multi = quest_record(105, self.quest_types["AQ_MOB_MULTI_KILL"])
+    self.assertTrue(
+        any("cannot persist" in item.message for item in self.quest_findings(multi))
+    )
+
+  def test_qst_dialogue_domains_and_alternative_topology(self) -> None:
+    base = quest_record(99, self.quest_types["AQ_HOUSE_FIND"])
+    dialogue = quest_record(
+        100,
+        self.quest_types["AQ_DIALOGUE"],
+        target=200,
+        diplomacy_dc=1,
+        intimidate_dc=-1,
+        bluff_dc=-1,
+    )
+    self.assertNotIn("SEM027", {item.code for item in self.quest_findings(dialogue)})
+    for value in (-1, 100):
+      candidate = replace(dialogue, diplomacy_dc=value, intimidate_dc=1)
+      self.assertNotIn("SEM027", {item.code for item in self.quest_findings(candidate)})
+    for value in (-2, 101):
+      candidate = replace(dialogue, diplomacy_dc=value, intimidate_dc=1)
+      self.assertIn("SEM027", {item.code for item in self.quest_findings(candidate)})
+
+    impossible = replace(dialogue, diplomacy_dc=-1, intimidate_dc=-1, bluff_dc=-1)
+    self.assertTrue(
+        any("cannot be completed" in item.message for item in self.quest_findings(impossible))
+    )
+    ignored = replace(base, diplomacy_dc=10)
+    ignored_finding = next(
+        item for item in self.quest_findings(ignored) if item.code == "SEM027"
+    )
+    self.assertEqual("warning", ignored_finding.severity)
+
+    parent = replace(dialogue, dialogue_alternative_quest_vnum=101)
+    bad_child = quest_record(101, self.quest_types["AQ_HOUSE_FIND"])
+    findings = self.validate([], [], quests=[parent, bad_child])
+    self.assertTrue(any("must name quest 100" in item.message for item in findings))
+    good_child = replace(bad_child, previous_quest_vnum=100)
+    findings = self.validate([], [], quests=[parent, good_child])
+    self.assertFalse(any(item.code == "SEM027" for item in findings))
+
+    poisoned = replace(base, dialogue_alternative_quest_vnum=101)
+    self.assertTrue(
+        any("unjoinable" in item.message for item in self.quest_findings(poisoned))
+    )
+
+  def test_qst_chain_self_links_reciprocity_and_cycles(self) -> None:
+    previous_self = quest_record(
+        100, self.quest_types["AQ_HOUSE_FIND"], previous_quest_vnum=100
+    )
+    finding = next(
+        item for item in self.quest_findings(previous_self) if item.code == "SEM028"
+    )
+    self.assertEqual("error", finding.severity)
+    next_self = replace(previous_self, previous_quest_vnum=None, next_quest_vnum=100)
+    finding = next(item for item in self.quest_findings(next_self) if item.code == "SEM028")
+    self.assertEqual("warning", finding.severity)
+
+    first = quest_record(100, self.quest_types["AQ_HOUSE_FIND"], next_quest_vnum=101)
+    second = quest_record(101, self.quest_types["AQ_HOUSE_FIND"])
+    findings = self.validate([], [], quests=[first, second])
+    self.assertTrue(any("not reciprocated" in item.message for item in findings))
+
+    previous_cycle = [
+        replace(first, next_quest_vnum=None, previous_quest_vnum=101),
+        replace(second, previous_quest_vnum=100),
+    ]
+    cycle = next(
+        item
+        for item in self.validate([], [], quests=previous_cycle)
+        if item.code == "SEM029"
+    )
+    self.assertEqual("error", cycle.severity)
+    self.assertIn("100 -> 101 -> 100", cycle.message)
+
+    next_cycle = [
+        replace(first, next_quest_vnum=101),
+        replace(second, next_quest_vnum=100),
+    ]
+    cycle = next(
+        item
+        for item in self.validate([], [], quests=next_cycle)
+        if item.code == "SEM029"
+    )
+    self.assertEqual("warning", cycle.severity)
+
+  def test_quest_cycle_scan_has_linear_map_probe_budget(self) -> None:
+    class CountingQuestMap(dict[int, QuestRecord]):
+      def __init__(self, *args):
+        super().__init__(*args)
+        self.probes = 0
+
+      def __contains__(self, key):
+        self.probes += 1
+        return super().__contains__(key)
+
+      def __getitem__(self, key):
+        self.probes += 1
+        return super().__getitem__(key)
+
+    count = 10000
+    records = CountingQuestMap(
+        (
+            vnum,
+            QuestRecord(
+                vnum,
+                span(vnum),
+                "1",
+                next_quest_vnum=(vnum + 1 if vnum < count else None),
+            ),
+        )
+        for vnum in range(1, count + 1)
+    )
+    self.assertEqual([], _quest_cycles(records, "next_quest_vnum"))
+    self.assertLessEqual(records.probes, count * 3)
+
+  def test_hlq_entry_shape_and_command_legality(self) -> None:
+    ask_type = self.hlq_entry_types["QUEST_ASK"]
+    give_type = self.hlq_entry_types["QUEST_GIVE"]
+    room_type = self.hlq_entry_types["QUEST_ROOM"]
+    coin_type = self.hlq_command_types["QUEST_COMMAND_COINS"]
+    item_type = self.hlq_command_types["QUEST_COMMAND_ITEM"]
+    load_type = self.hlq_command_types["QUEST_COMMAND_LOAD_OBJECT_INROOM"]
+
+    ask = hlq_entry(ask_type, "A", keywords="topic", chain_terminated=False)
+    self.assertFalse(
+        {item.code for item in self.hlquest_findings(ask)} & {"SEM030", "SEM031"}
+    )
+    broken_ask = replace(ask, keywords="", reply_message="")
+    self.assertEqual(
+        2, sum(item.code == "SEM030" for item in self.hlquest_findings(broken_ask))
+    )
+    give = hlq_entry(
+        give_type,
+        "Q",
+        commands=[hlq_command(coin_type, 10, 0, "input")],
+    )
+    self.assertNotIn("SEM031", {item.code for item in self.hlquest_findings(give)})
+    item_input = replace(
+        give, commands=[hlq_command(item_type, 300, 0, "input")]
+    )
+    self.assertNotIn("SEM031", {item.code for item in self.hlquest_findings(item_input)})
+    ignored_input = replace(
+        give, commands=[hlq_command(load_type, 300, 100, "input")]
+    )
+    self.assertIn("SEM031", {item.code for item in self.hlquest_findings(ignored_input)})
+
+    room_entry = hlq_entry(
+        room_type,
+        "R",
+        room_vnum=100,
+        commands=[hlq_command(coin_type, 10, 0, "input")],
+    )
+    self.assertIn("SEM031", {item.code for item in self.hlquest_findings(room_entry)})
+    self.assertIn(
+        "SEM030",
+        {item.code for item in self.hlquest_findings(replace(room_entry, room_vnum=None))},
+    )
+    self.assertIn(
+        "SEM030",
+        {item.code for item in self.hlquest_findings(replace(give, chain_terminated=False))},
+    )
+
+  def test_hlq_runtime_safe_command_boundaries_and_parameters(self) -> None:
+    give_type = self.hlq_entry_types["QUEST_GIVE"]
+    command_types = self.hlq_command_types
+
+    def findings(command: HlQuestCommandRecord):
+      entry = hlq_entry(give_type, "Q", commands=[command])
+      return self.hlquest_findings(entry)
+
+    coin = command_types["QUEST_COMMAND_COINS"]
+    for value in (0, 100000):
+      self.assertNotIn("SEM032", {item.code for item in findings(hlq_command(coin, value, 0))})
+    self.assertIn("SEM032", {item.code for item in findings(hlq_command(coin, -1, 0))})
+    high_coin = next(
+        item for item in findings(hlq_command(coin, 100001, 0)) if item.code == "SEM032"
+    )
+    self.assertEqual("warning", high_coin.severity)
+
+    for macro in ("QUEST_COMMAND_TEACH_SPELL", "QUEST_COMMAND_CAST_SPELL"):
+      command_type = command_types[macro]
+      for value in (1, 527):
+        self.assertNotIn(
+            "SEM032", {item.code for item in findings(hlq_command(command_type, value, 0))}
+        )
+      for value in (0, 528):
+        self.assertIn(
+            "SEM032", {item.code for item in findings(hlq_command(command_type, value, 0))}
+        )
+
+    open_door = command_types["QUEST_COMMAND_OPEN_DOOR"]
+    for value in (0, 5):
+      self.assertNotIn(
+          "SEM032", {item.code for item in findings(hlq_command(open_door, value, 100))}
+      )
+    for value in (-1, 6):
+      self.assertIn(
+          "SEM032", {item.code for item in findings(hlq_command(open_door, value, 100))}
+      )
+
+    kit = command_types["QUEST_COMMAND_KIT"]
+    for value, location in ((0, 37), (37, 0), (9999, -999), (-999, 9999)):
+      self.assertNotIn(
+          "SEM032", {item.code for item in findings(hlq_command(kit, value, location))}
+      )
+    for value, location in ((-1, 0), (38, 0), (0, -1), (0, 38)):
+      self.assertIn(
+          "SEM032", {item.code for item in findings(hlq_command(kit, value, location))}
+      )
+
+    church = command_types["QUEST_COMMAND_CHURCH"]
+    for value in (0, 12):
+      self.assertNotIn(
+          "SEM032", {item.code for item in findings(hlq_command(church, value, 0))}
+      )
+    for value in (-1, 13):
+      self.assertIn(
+          "SEM032", {item.code for item in findings(hlq_command(church, value, 0))}
+      )
+
+    attack = command_types["QUEST_COMMAND_ATTACK_QUESTOR"]
+    self.assertIn("SEM033", {item.code for item in findings(hlq_command(attack, 1, 2))})
+    self.assertIn("SEM033", {item.code for item in findings(hlq_command(coin, 1, 2))})
+
+    room_with_no_exit = room(100, 1)
+    entry = hlq_entry(give_type, "Q", commands=[hlq_command(open_door, 0, 100)])
+    self.assertTrue(
+        any(
+            item.code == "SEM032" and "no exit exists" in item.message
+            for item in self.hlquest_findings(entry, [room_with_no_exit])
+        )
     )
 
   def test_sector_and_duplicate_exit_have_parser_level_semantic_codes(self) -> None:

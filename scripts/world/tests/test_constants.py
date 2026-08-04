@@ -70,6 +70,7 @@ class ConstantsTests(unittest.TestCase):
         [entry["name"] for entry in difficulties],
     )
     expected_limits = {
+        "AQ_UNDEFINED": -1,
         "MAX_GOLD": 2140000000,
         "MAX_QUEST_DESC": 75,
         "MAX_QUEST_MSG": 4096,

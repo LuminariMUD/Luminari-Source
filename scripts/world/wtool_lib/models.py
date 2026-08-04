@@ -412,6 +412,7 @@ class HlQuestEntryRecord:
   reply_message: str | None = None
   room_vnum: int | None = None
   commands: list[HlQuestCommandRecord] = field(default_factory=list)
+  chain_terminated: bool = False
   field_spans: dict[str, SourceSpan] = field(default_factory=dict)
   complete: bool = True
 

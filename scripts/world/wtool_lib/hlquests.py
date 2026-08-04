@@ -483,7 +483,7 @@ def _parse_entry(
     return
   if not _read_string(cursor, result, record, entry, "reply_message"):
     return
-  _parse_chain(cursor, result, record, entry, command_types)
+  entry.chain_terminated = _parse_chain(cursor, result, record, entry, command_types)
 
 
 def _finalize_entry_order(record: HlQuestRecord) -> None:
