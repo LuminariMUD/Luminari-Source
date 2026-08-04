@@ -228,7 +228,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-04 after repair batch 2 verification.
+Last updated: 2026-08-04 after repair batch 3 verification.
 
 Status meanings:
 
@@ -241,24 +241,24 @@ Status meanings:
 | ID | Status | Current evidence and remaining work |
 |----|--------|-------------------------------------|
 | BP-001 | Verified | Nested affect batching recalculates live state but emits only the final `AFFECTS` value; root coverage proves one frame for a two-affect batch and zero frames for an unchanged replacement. |
-| BP-002 | Implemented | All eight records now receive `new_affect()` and deterministic fields; add direct Songweaver and sanitizer coverage. |
+| BP-002 | Verified | All eight records receive deterministic initialization; direct stacked Songweaver coverage passes under AddressSanitizer and UndefinedBehaviorSanitizer. |
 | BP-003 | Verified | MSDP, GMCP, MSSP, and MXP frames use an atomic raw queue operation with reserved headroom; focused and production-linked tests prove no partial frame and retry retention under backpressure. |
 | BP-004 | Verified | Each performance marks only meaningful affect slots; root coverage proves Healing creates zero affects, Protection creates three, and refreshed Flight retains exactly one flying affect. |
 | BP-005 | Verified | The bounded serializer validates metadata, preserves the prior value on invalid or oversized input, and checks protocol results; root tests cover invalid indexes and aggregate overflow. |
 | BP-006 | Verified | Bounds are checked before table access; root tests cover negative, maximum, and oversized indexes. |
 | BP-007 | Verified | Master of Motifs can add a distinct secondary song; the root suite preserves both slots. |
-| BP-008 | Partial | Central reset/slot teardown, spell interruption, disconnect cleanup, and the retired duplicate event path are repaired; add direct disconnect and Harmonic Casting tests. |
+| BP-008 | Verified | Central teardown owns command, engine, spell, and disconnect cleanup; production-linked tests cover switched descriptors plus spell interruption with and without Harmonic Casting. |
 | BP-009 | Verified | `clear_char()` and player initialization use `PERFORMANCE_NONE`; the root suite proves both slots begin absent. |
-| BP-010 | Implemented | Per-slot engine failure preserves or promotes the surviving song; direct helper coverage is present and forced engine-failure coverage remains. |
+| BP-010 | Verified | Forced secondary-engine failure preserves the primary, and forced primary-engine failure promotes the secondary in production-linked tests. |
 | BP-011 | Verified | Input is trimmed and resolved before mutation; root tests cover whitespace, unknown, capitalized, ambiguous, duplicate, and unavailable replacements, and listing scans only valid feat indexes. |
 | BP-012 | Verified | `perform` has no fixed interpreter action gate; command preflight selects move or standard action and root tests cover both paths plus immediate list/stop. |
 | BP-013 | Pending | Timing constants, real-time behavior, Lingering Performance, and help text still need reconciliation. |
 | BP-014 | Pending | Eligibility, immunity, hearing, source ownership, and iterator work remains. |
-| BP-015 | Implemented | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns as room conflicts; direct active-NPC pulse coverage remains. |
+| BP-015 | Verified | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns; direct NPC coverage proves an active verse executes. |
 | BP-016 | Pending | Base performance mechanics matrix remains unresolved. |
-| BP-017 | Pending | Spellsinger behavior and placeholders remain unresolved. |
+| BP-017 | Partial | Songweaver initialization and Harmonic Casting are repaired and tested; potency, Resonant Voice, Crescendo, timing, and the remaining Spellsinger integrations remain. |
 | BP-018 | Pending | Warchanter call-order and missing ally effects remain unresolved. |
-| BP-019 | Pending | Resource and documentation contract still requires an explicit implementation decision. |
+| BP-019 | Partial | The authoritative runtime contract is now free, indefinite performances with no round pool; Harmonic Casting implementation and text follow it. Remaining perk and performance documentation must be aligned to that contract. |
 
 ### Repair Checkpoints
 
@@ -272,6 +272,12 @@ Status meanings:
   development version 2.5040-beta. Verification: warning-clean GNU C23 build,
   `make test` with 375/375 passing tests, `make protocol-parser` with 20/20
   passing tests, a 10-second ASan/UBSan protocol fuzz run, and `make install`.
+- Repair batch 3 closes BP-002, BP-008, BP-010, and BP-015 and selects the
+  no-round-pool contract for BP-019. Harmonic Casting now preserves every
+  active song for bard spells; ordinary bard spellcasting interrupts through
+  the central teardown helper. Verification: `make test` with 380/380 passing
+  tests, the same complete suite under ASan/UBSan, and `make install` for
+  development version 2.5041-beta.
 
 ## Detailed Findings
 
@@ -522,6 +528,12 @@ One `stop_bardic_performance()` helper should own all state cleanup and be used
 by commands, spell interruption, validation failure, stutter, disconnect, and
 future event code.
 
+Repair: Central full-state and per-slot teardown helpers now own those paths,
+descriptor cleanup handles both normal and switched characters, the retired
+event implementation and duplicate constant are gone, verse persistence writes
+are removed, and the audited strings are corrected. Production-linked tests
+exercise descriptor cleanup and spell interruption directly.
+
 ### BP-009: The Secondary Slot Initializes as Song of Healing
 
 Severity: Critical
@@ -577,6 +589,10 @@ The raw indexes also have unrelated meanings packed into magic array positions:
 Use named fields or at least named index constants. Model primary and secondary
 slot validation and failure separately, then derive the global active state
 from whether any valid slot remains.
+
+Repair: Named slot constants drive a slot-aware engine. A secondary failure
+clears only that slot; a primary failure promotes the valid secondary. Both
+forced engine-failure paths are covered by the production-linked suite.
 
 ### BP-011: Input Matching and Switching Destroy Valid State
 
@@ -743,6 +759,11 @@ Relevant code:
 - `src/mob/mob_class.c:138-149` - NPC caller.
 - `src/act.informative.c:1148-1149` - event-only status display.
 
+Repair: The pulse traverses `character_list`, stops stale linkless players,
+processes active NPCs, and treats only live `IS_PERFORMING` state as a room
+conflict. Disconnect cleanup and status display use the same state. Tests cover
+linkless cleanup, legacy NPC cooldown exclusion, and a real active NPC verse.
+
 ### BP-016: Base Performance Mechanics and Text Need Reconciliation
 
 Severity: High overall; individual rows range from text drift to probable
@@ -842,6 +863,14 @@ Do not resolve these conflicts by choosing whichever text is easiest to edit.
 First decide whether the intended system has a finite performance resource and
 which perk specification is authoritative. Then update implementation, runtime
 perk descriptions, help files, and design documentation together.
+
+Decision: Preserve the established free, indefinite performance engine. There
+is no performance-round pool. Starting or changing a song costs the documented
+action, and explicit stop, invalid state, stutter, disconnect, or ordinary bard
+spellcasting can end it. Harmonic Casting deterministically prevents bard
+spells from interrupting active performances. Later repair batches must remove
+all remaining round-pool language and implement or redefine perks against this
+contract.
 
 ## Direct String Audit
 

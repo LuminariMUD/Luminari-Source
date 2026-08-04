@@ -27,6 +27,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 void initialize_bardic_performance_state(struct char_data *ch);
 void stop_bardic_performance(struct char_data *ch, bool notify);
 void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
+void stop_descriptor_bardic_performances(struct descriptor_data *d);
+void handle_bardic_spell_performance(struct char_data *ch);
+int process_bardic_performance_slot(struct char_data *ch, int slot);
 ACMD_DECL(do_perform);
 
 /* defines */

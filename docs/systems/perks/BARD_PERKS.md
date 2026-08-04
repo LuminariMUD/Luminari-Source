@@ -5,16 +5,16 @@
 Bards blend martial skill, arcane magic, and inspiring performance. These three perk trees provide clear specialization paths aligned with classic Bard archetypes seen across tabletop and MMO implementations. Each tree has four tiers of progression, with capstones at Tier IV.
 
 **The Three Trees:**
-1. **Spellsinger** – Spellcasting, song power, control, and support
-2. **Warchanter** – Battle anthems, melee presence, and party-wide martial buffs
-3. **Swashbuckler** – Agile duelist, finesse weapons, ripostes, and mobility
+1. **Spellsinger** - Spellcasting, song power, control, and support
+2. **Warchanter** - Battle anthems, melee presence, and party-wide martial buffs
+3. **Swashbuckler** - Agile duelist, finesse weapons, ripostes, and mobility
 
 ---
 
 ## TREE 1: SPELLSINGER
 *Amplify your magic and songs to control battle flow and empower allies.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
 #### Songweaver I
 - **Max Ranks:** 3
@@ -22,7 +22,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** None
 
-#### Enchanter’s Guile I
+#### Enchanter's Guile I
 - **Max Ranks:** 3
 - **Description:** +1 DC to Enchantment and Illusion spells per rank.
 - **Effect Type:** Spell DC bonus (school-specific)
@@ -36,13 +36,13 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Harmonic Casting
 - **Max Ranks:** 1
-- **Description:** Casting a bard spell while maintaining a song has a 50% chance to not consume a performance round.
-- **Effect Type:** Resource efficiency (performance)
+- **Description:** Casting a bard spell no longer interrupts your active performances.
+- **Effect Type:** Performance continuity
 - **Prerequisites:** None
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
 #### Songweaver II
 - **Max Ranks:** 2
@@ -50,11 +50,11 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** Songweaver I (2 ranks)
 
-#### Enchanter’s Guile II
+#### Enchanter's Guile II
 - **Max Ranks:** 2
 - **Description:** Additional +1 DC to Enchantment and Illusion spells per rank.
 - **Effect Type:** Spell DC bonus
-- **Prerequisites:** Enchanter’s Guile I (2 ranks)
+- **Prerequisites:** Enchanter's Guile I (2 ranks)
 
 #### Crescendo
 - **Max Ranks:** 1
@@ -70,11 +70,11 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Master of Motifs
 - **Max Ranks:** 1
-- **Description:** Maintain up to two distinct bard songs simultaneously (shared performance pool).
+- **Description:** Maintain up to two distinct bard songs simultaneously.
 - **Effect Type:** Performance utility
 - **Prerequisites:** Sustaining Melody, Songweaver II (1 rank)
 
@@ -88,7 +88,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Max Ranks:** 1
 - **Description:** When you spend metamagic on a bard spell, You gain +5 to your perform skill for one minute.
 - **Effect Type:** Metamagic synergy
-- **Prerequisites:** Enchanter’s Guile II (1 rank)
+- **Prerequisites:** Enchanter's Guile II (1 rank)
 
 #### Protective Chorus
 - **Max Ranks:** 1
@@ -98,11 +98,11 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER IV – Cost: 5 points each (CAPSTONE)
+### TIER IV - Cost: 5 points each (CAPSTONE)
 
 #### Spellsong Maestra
 - **Max Ranks:** 1
-- **Description:** +1 spell DC to all bard spells, your song effects count as if +2 levels higher, and you can maintain two songs without increased performance cost.
+- **Description:** +1 spell DC to all bard spells and your song effects count as if +2 levels higher.
 - **Effect Type:** Global spell/song capstone
 - **Prerequisites:** Master of Motifs
 
@@ -117,7 +117,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 ## TREE 2: WARCHANTER
 *Rally your allies and dominate the melee with battle anthems and cold-iron resolve.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
 #### Battle Hymn I
 - **Max Ranks:** 3
@@ -125,7 +125,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Effect Type:** Party damage support
 - **Prerequisites:** None
 
-#### Drummer’s Rhythm I
+#### Drummer's Rhythm I
 - **Max Ranks:** 3
 - **Description:** While a song is active, you gain +1 to hit in melee per rank.
 - **Effect Type:** Melee accuracy
@@ -145,7 +145,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
 #### Battle Hymn II
 - **Max Ranks:** 2
@@ -153,11 +153,11 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Effect Type:** Party damage support
 - **Prerequisites:** Battle Hymn I (2 ranks)
 
-#### Drummer’s Rhythm II
+#### Drummer's Rhythm II
 - **Max Ranks:** 2
 - **Description:** Additional +1 melee to-hit per rank while a martial song is active.
 - **Effect Type:** Melee accuracy
-- **Prerequisites:** Drummer’s Rhythm I (2 ranks)
+- **Prerequisites:** Drummer's Rhythm I (2 ranks)
 
 #### Warbeat
 - **Max Ranks:** 1
@@ -173,7 +173,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Anthem of Fortitude
 - **Max Ranks:** 1
@@ -191,7 +191,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Max Ranks:** 1
 - **Description:** While singing, you gain +2 natural AC and 10% physical damage resistance.
 - **Effect Type:** Personal durability
-- **Prerequisites:** Drummer’s Rhythm II (1 rank)
+- **Prerequisites:** Drummer's Rhythm II (1 rank)
 
 #### Banner Verse
 - **Max Ranks:** 1
@@ -201,15 +201,15 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER IV – Cost: 5 points each (CAPSTONE)
+### TIER IV - Cost: 5 points each (CAPSTONE)
 
-#### Warchanter’s Dominance
+#### Warchanter's Dominance
 - **Max Ranks:** 1
 - **Description:** Inspire Courage now also grants +1 attack and +1 AC; your Warbeat now gives allies an additional +1d4 to damage and +1 to AC
 - **Effect Type:** Party-wide martial capstone
 - **Prerequisites:** Anthem of Fortitude
 
-#### Winter’s War March
+#### Winter's War March
 - **Max Ranks:** 1
 - **Description:** Perform a devastating martial anthem: deal 4d6 cold damage to all enemies and slow them for 3 rounds (save halves damage and reduces slow to 1 round). Useable at-will.
 - **Effect Type:** Room-wide burst + control
@@ -220,9 +220,9 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 ## TREE 3: SWASHBUCKLER
 *Dance through combat with finesse, precision, and style.*
 
-### TIER I – Cost: 1 point each
+### TIER I - Cost: 1 point each
 
-#### Fencer’s Footwork I
+#### Fencer's Footwork I
 - **Max Ranks:** 3
 - **Description:** +1 Dodge AC and +1 Reflex save per rank while wielding a finesse weapon or single one-handed weapon.
 - **Effect Type:** Mobility defense
@@ -248,13 +248,13 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER II – Cost: 2 points each
+### TIER II - Cost: 2 points each
 
-#### Fencer’s Footwork II
+#### Fencer's Footwork II
 - **Max Ranks:** 2
 - **Description:** Additional +1 Dodge AC and +1 Reflex per rank while using a finesse/single weapon.
 - **Effect Type:** Mobility defense
-- **Prerequisites:** Fencer’s Footwork I (2 ranks)
+- **Prerequisites:** Fencer's Footwork I (2 ranks)
 
 #### Precise Strike II
 - **Max Ranks:** 2
@@ -262,7 +262,7 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Effect Type:** Precision damage
 - **Prerequisites:** Precise Strike I (2 ranks)
 
-#### Duelist’s Poise
+#### Duelist's Poise
 - **Max Ranks:** 1
 - **Description:** Gain +2 to critical confirmation and +1 critical threat range when using a finesse weapon.
 - **Effect Type:** Critical reliability
@@ -272,17 +272,17 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Max Ranks:** 1
 - **Description:** On a failed flee attempt, you gain +4 AC for 3 rounds. This bonus ends if you move out of the room you're in.
 - **Effect Type:** Skirmish utility
-- **Prerequisites:** Fencer’s Footwork I (1 rank)
+- **Prerequisites:** Fencer's Footwork I (1 rank)
 
 ---
 
-### TIER III – Cost: 3 points each
+### TIER III - Cost: 3 points each
 
 #### Perfect Tempo
 - **Max Ranks:** 1
 - **Description:** If you avoid all melee hits for a full round, your next attack gains +4 to hit and +2d6 precision damage.
 - **Effect Type:** Payoff for clean positioning
-- **Prerequisites:** Duelist’s Poise
+- **Prerequisites:** Duelist's Poise
 
 #### Showstopper
 - **Max Ranks:** 1
@@ -304,9 +304,9 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 ---
 
-### TIER IV – Cost: 5 points each (CAPSTONE)
+### TIER IV - Cost: 5 points each (CAPSTONE)
 
-#### Swashbuckler’s Supreme Style
+#### Swashbuckler's Supreme Style
 - **Max Ranks:** 1
 - **Description:** While wielding a finesse or single one-handed weapon, you gain +2 to hit, +2 Dodge AC, +2 to critical confirmation, and +1 attack per 3 rounds (does not stack with other extra-attack capstones).
 - **Effect Type:** Comprehensive duelist capstone
@@ -321,8 +321,8 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 ---
 
 ## Notes & Implementation Hints
-- Treat “precision damage” as non-multiplied damage that stacks with sneak-like sources where appropriate.
-- “Performance rounds” map to your existing bardic performance/chanting resource; regeneration and conservation effects should respect global limits.
+- Treat "precision damage" as non-multiplied damage that stacks with sneak-like sources where appropriate.
+- Performances are free and indefinite after their start action; there is no performance-round pool.
 - Song "effective level" can scale existing song formulas (duration, potency, save DC adjustments) without creating new song IDs.
 - Control effects (stun/daze/slow/silence) should reuse your standard save/DC pipelines and immunity checks.
-- Where abilities are “1/encounter” or “1/long rest,” adapt to your engine’s timers (cooldowns or daily flags) for parity with other class capstones.
+- Where abilities are "1/encounter" or "1/long rest," adapt to your engine's timers (cooldowns or daily flags) for parity with other class capstones.

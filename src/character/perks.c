@@ -9464,8 +9464,7 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_HARMONIC_CASTING];
   perk->id = PERK_BARD_HARMONIC_CASTING;
   perk->name = strdup("Harmonic Casting");
-  perk->description = strdup("Casting a bard spell while maintaining a song has a 50% chance to "
-                             "not consume a performance round");
+  perk->description = strdup("Casting a bard spell no longer interrupts your active performances");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 1;
@@ -9473,10 +9472,9 @@ void define_bard_perks(void)
   perk->prerequisite_perk = -1;
   perk->prerequisite_rank = 0;
   perk->effect_type = PERK_EFFECT_SPECIAL;
-  perk->effect_value = 50;
+  perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description =
-      strdup("50% chance to save performance round when casting spell during song");
+  perk->special_description = strdup("Bard spells do not interrupt active performances");
 
   /*** SPELLSINGER TREE - TIER II ***/
 

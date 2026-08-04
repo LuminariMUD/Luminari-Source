@@ -229,6 +229,85 @@ void Test_bardic_performance_slot_failure_keeps_other_song_active(CuTest *tc)
   CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_SECONDARY_PERFORMING(&ch));
 }
 
+void Test_bardic_performance_engine_failure_is_scoped_to_requested_slot(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+
+  begin_bardic_fixture(&fixture);
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  GET_SECONDARY_PERFORMING(&fixture.bard) = 3;
+  GET_POS(&fixture.bard) = POS_RESTING;
+
+  CuAssertIntEquals(tc, 0,
+                    process_bardic_performance_slot(&fixture.bard, PERFORMANCE_VAR_SECONDARY));
+  CuAssertTrue(tc, IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, 0, GET_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_SECONDARY_PERFORMING(&fixture.bard));
+
+  GET_SECONDARY_PERFORMING(&fixture.bard) = 3;
+  CuAssertIntEquals(tc, 0, process_bardic_performance_slot(&fixture.bard, PERFORMANCE_VAR_PRIMARY));
+  CuAssertTrue(tc, IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, 3, GET_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_SECONDARY_PERFORMING(&fixture.bard));
+
+  end_bardic_fixture(&fixture);
+}
+
+void Test_disconnect_cleanup_stops_switched_bardic_performances(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data original;
+
+  begin_bardic_fixture(&fixture);
+  clear_char(&original);
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  IS_PERFORMING(&original) = TRUE;
+  GET_PERFORMING(&original) = 3;
+  fixture.descriptor.original = &original;
+
+  stop_descriptor_bardic_performances(&fixture.descriptor);
+
+  CuAssertTrue(tc, !IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_PERFORMING(&fixture.bard));
+  CuAssertTrue(tc, !IS_PERFORMING(&original));
+  CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_PERFORMING(&original));
+  fixture.descriptor.original = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_harmonic_casting_controls_spell_interruption_without_round_resource(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_perk_data harmonic_casting;
+
+  begin_bardic_fixture(&fixture);
+  fixture.player_specials.casting_class = CLASS_BARD;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  handle_bardic_spell_performance(&fixture.bard);
+  CuAssertTrue(tc, !IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, PERFORMANCE_NONE, GET_PERFORMING(&fixture.bard));
+
+  memset(&harmonic_casting, 0, sizeof(harmonic_casting));
+  harmonic_casting.perk_id = PERK_BARD_HARMONIC_CASTING;
+  harmonic_casting.perk_class = CLASS_BARD;
+  harmonic_casting.current_rank = 1;
+  fixture.player_specials.saved.perks = &harmonic_casting;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  GET_SECONDARY_PERFORMING(&fixture.bard) = 3;
+
+  handle_bardic_spell_performance(&fixture.bard);
+  CuAssertTrue(tc, IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, 0, GET_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, 3, GET_SECONDARY_PERFORMING(&fixture.bard));
+
+  end_bardic_fixture(&fixture);
+}
+
 void Test_efficient_performance_selects_action_after_command_preflight(CuTest *tc)
 {
   struct bardic_fixture fixture;
@@ -299,6 +378,33 @@ void Test_legacy_npc_perform_cooldown_is_not_an_active_song(CuTest *tc)
 
   clear_char_event_list(&npc);
   fixture.bard.next_in_room = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_active_npc_bard_receives_performance_pulses(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data npc;
+
+  begin_bardic_fixture(&fixture);
+  clear_char(&npc);
+  SET_BIT_AR(MOB_FLAGS(&npc), MOB_ISNPC);
+  npc.player_specials = &dummy_mob;
+  npc.player.short_descr = "an active performing test NPC";
+  IN_ROOM(&npc) = 0;
+  GET_LEVEL(&npc) = 10;
+  GET_POS(&npc) = POS_STANDING;
+  GET_HIT(&npc) = 1;
+  GET_MAX_HIT(&npc) = 100;
+  IS_PERFORMING(&npc) = TRUE;
+  GET_PERFORMING(&npc) = 0;
+  fixture.room.people = &npc;
+  character_list = &npc;
+
+  pulse_bardic_performance();
+
+  CuAssertTrue(tc, GET_HIT(&npc) > 1);
+  clear_char_event_list(&npc);
   end_bardic_fixture(&fixture);
 }
 
@@ -384,6 +490,38 @@ void Test_bardic_performance_applies_only_meaningful_affect_slots(CuTest *tc)
 
   clear_test_affects(&target);
   fixture.bard.next_in_room = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_songweaver_initializes_every_applied_affect_with_extended_duration(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_perk_data songweaver_i;
+  struct char_perk_data songweaver_ii;
+  struct affected_type *af;
+
+  begin_bardic_fixture(&fixture);
+  memset(&songweaver_i, 0, sizeof(songweaver_i));
+  memset(&songweaver_ii, 0, sizeof(songweaver_ii));
+  songweaver_i.perk_id = PERK_BARD_SONGWEAVER_I;
+  songweaver_i.perk_class = CLASS_BARD;
+  songweaver_i.current_rank = 3;
+  songweaver_i.next = &songweaver_ii;
+  songweaver_ii.perk_id = PERK_BARD_SONGWEAVER_II;
+  songweaver_ii.perk_class = CLASS_BARD;
+  songweaver_ii.current_rank = 2;
+  fixture.player_specials.saved.perks = &songweaver_i;
+
+  CuAssertTrue(tc, performance_effects(&fixture.bard, &fixture.bard, SKILL_DANCE_OF_PROTECTION, 20,
+                                       PERFORM_AOE_GROUP));
+  CuAssertIntEquals(tc, 3, count_spell_affects(&fixture.bard, SKILL_DANCE_OF_PROTECTION));
+  for (af = fixture.bard.affected; af != NULL; af = af->next)
+  {
+    if (af->spell == SKILL_DANCE_OF_PROTECTION)
+      CuAssertIntEquals(tc, 8, af->duration);
+  }
+
+  clear_test_affects(&fixture.bard);
   end_bardic_fixture(&fixture);
 }
 

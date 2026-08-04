@@ -179,6 +179,33 @@ void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify)
   }
 }
 
+void stop_descriptor_bardic_performances(struct descriptor_data *d)
+{
+  if (d == NULL)
+    return;
+
+  if (d->character != NULL && IS_PERFORMING(d->character))
+    stop_bardic_performance(d->character, FALSE);
+  if (d->original != NULL && d->original != d->character && IS_PERFORMING(d->original))
+    stop_bardic_performance(d->original, FALSE);
+}
+
+void handle_bardic_spell_performance(struct char_data *ch)
+{
+  if (ch == NULL || IS_NPC(ch) || GET_CASTING_CLASS(ch) != CLASS_BARD || !IS_PERFORMING(ch))
+    return;
+
+  if (has_bard_harmonic_casting(ch))
+  {
+    send_to_char(ch, "\tCYour harmonious casting sustains your performance.\tn\r\n");
+    return;
+  }
+
+  stop_bardic_performance(ch, FALSE);
+  send_to_char(ch, "\tRYour spellcasting interrupts your performance!\tn\r\n");
+  act("$n's performance falters as $e casts a spell.", TRUE, ch, 0, 0, TO_ROOM);
+}
+
 static void copy_trimmed_performance_argument(const char *argument, char *result,
                                               size_t result_size)
 {
@@ -903,7 +930,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       af[0].duration = 30;
       SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
-      act("$n fly through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
+      act("$n flies through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
       active_affects |= 1U << 0;
     }
     process_healing(ch, tch, SKILL_SONG_OF_FLIGHT, 0, rand_number(50, effectiveness * 10 / 3 + 50),
@@ -963,7 +990,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     break;
 
   case SKILL_DEAFENING_SONG:
-    act("$n hs lost their hearing.", TRUE, tch, 0, 0, TO_ROOM);
+    act("$n has lost their hearing.", TRUE, tch, 0, 0, TO_ROOM);
     SET_BIT_AR(af[0].bitvector, AFF_DEAF);
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = -effectiveness / 5;
@@ -1037,10 +1064,6 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   if (removed_existing)
     update_pos(tch);
   /****/
-
-  /* dummy check: still issues with AC */
-  if (!IS_NPC(tch) && tch->desc)
-    save_char(tch, 0);
 
   /* aggressive song should engage foes */
   if (aoe == PERFORM_AOE_FOES && engage)
@@ -1129,7 +1152,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 
   case SKILL_SONG_OF_FEAR:
     act("You sing a song which strikes fear into your enemies.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n sings a song which stikes fear into your heart!", TRUE, ch, 0, 0, TO_ROOM);
+    act("$n sings a song which strikes fear into your heart!", TRUE, ch, 0, 0, TO_ROOM);
     break;
 
   case SKILL_SONG_OF_ROOTING:
@@ -1243,7 +1266,7 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 }
 
 /* this is the primary engine for the bard songs */
-static int bardic_performance_engine(struct char_data *ch, int slot)
+int process_bardic_performance_slot(struct char_data *ch, int slot)
 {
   struct obj_data *instrument = NULL;
   int effectiveness = 0;
@@ -1260,7 +1283,7 @@ static int bardic_performance_engine(struct char_data *ch, int slot)
     performance_num = GET_SECONDARY_PERFORMING(ch);
   else
   {
-    log("SYSERR: bardic_performance_engine received invalid slot %d", slot);
+    log("SYSERR: process_bardic_performance_slot received invalid slot %d", slot);
     return 0;
   }
 
@@ -1422,10 +1445,10 @@ void pulse_bardic_performance()
     if (!IS_PERFORMING(ch))
       continue;
 
-    bardic_performance_engine(ch, PERFORMANCE_VAR_PRIMARY);
+    process_bardic_performance_slot(ch, PERFORMANCE_VAR_PRIMARY);
 
     if (IS_PERFORMING(ch) && GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
-      bardic_performance_engine(ch, PERFORMANCE_VAR_SECONDARY);
+      process_bardic_performance_slot(ch, PERFORMANCE_VAR_SECONDARY);
 
     /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
     if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))

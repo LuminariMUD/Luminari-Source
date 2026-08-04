@@ -1659,30 +1659,8 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
 
-  /* Bard Spellsinger: Harmonic Casting - chance to not interrupt performance when casting during a song */
-  bool harmony_procced = FALSE;
-  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch))
-  {
-    if (has_bard_harmonic_casting(ch))
-    {
-      /* 50% chance to not interrupt performance */
-      if (!rand_number(0, 1))
-      {
-        harmony_procced = TRUE;
-        send_to_char(
-            ch,
-            "\tCThe harmonious melody flows through your casting, sustaining your song!\tn\r\n");
-      }
-    }
-
-    /* If Harmonic Casting didn't proc, casting interrupts the performance */
-    if (!harmony_procced)
-    {
-      stop_bardic_performance(ch, FALSE);
-      send_to_char(ch, "\tRYour spellcasting interrupts your performance!\tn\r\n");
-      act("$n's performance falters as $e casts a spell.", TRUE, ch, 0, 0, TO_ROOM);
-    }
-  }
+  /* Bard spellcasting normally interrupts performances; Harmonic Casting sustains them. */
+  handle_bardic_spell_performance(ch);
 
   /* Bard Spellsinger: Crescendo - bonus to first spell after starting song */
   if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
