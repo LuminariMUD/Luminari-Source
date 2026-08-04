@@ -19,9 +19,19 @@ from .constants import (
 )
 from .flags import FLAG_SETS, decode_tokens, decoded_entries, encode_bits, resolve_names, resolve_set
 from .indexes import normalized_root_label
-from .models import TOOL_VERSION
+from .lookup import (
+    CLI_RECORD_TYPES,
+    find_records,
+    lookup_error_findings,
+    normalize_record_type,
+    record_to_dict,
+    refs_for_record,
+    render_refs_human,
+    render_show_human,
+)
+from .models import JSON_SCHEMA_VERSION, TOOL_VERSION
 from .reporting import exit_status, render_human, render_json
-from .world import validate_explicit_paths, validate_indexed_world
+from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
 
 def _default_world_root() -> Path:
@@ -70,6 +80,14 @@ def _parser() -> argparse.ArgumentParser:
   sync_mode = sync.add_mutually_exclusive_group(required=True)
   sync_mode.add_argument("--check", action="store_true")
   sync_mode.add_argument("--write", action="store_true")
+
+  show = commands.add_parser("show", help="show one typed world record")
+  show.add_argument("record_type", choices=CLI_RECORD_TYPES)
+  show.add_argument("vnum", type=int)
+
+  refs = commands.add_parser("refs", help="show typed incoming and outgoing references")
+  refs.add_argument("record_type", choices=CLI_RECORD_TYPES)
+  refs.add_argument("vnum", type=int)
   return parser
 
 
@@ -206,6 +224,78 @@ def _run_validate(args: argparse.Namespace) -> int:
   return exit_status(result, strict=args.strict, ignored_codes=ignored_codes)
 
 
+def _load_lookup_world(args: argparse.Namespace):
+  repo_root = default_repo_root()
+  world_root = args.world_root.resolve()
+  if not world_root.is_dir():
+    raise ConfigError(f"requested world root is inaccessible: {world_root}")
+  if args.vnum < 0:
+    raise ConfigError("lookup vnums must be non-negative integers")
+  config = resolve_config(world_root, args.config)
+  world = load_indexed_world_data(
+      world_root,
+      repo_root,
+      _load_default_manifest(),
+      config,
+  )
+  return repo_root, world_root, world
+
+
+def _lookup_envelope(args: argparse.Namespace, root: str, found: bool) -> dict[str, Any]:
+  return {
+      "schema_version": JSON_SCHEMA_VERSION,
+      "tool_version": TOOL_VERSION,
+      "root": root,
+      "record_type": normalize_record_type(args.record_type),
+      "vnum": args.vnum,
+      "found": found,
+  }
+
+
+def _run_show(args: argparse.Namespace) -> int:
+  repo_root, world_root, world = _load_lookup_world(args)
+  records = find_records(world, args.record_type, args.vnum)
+  if args.json_output:
+    data = _lookup_envelope(
+        args,
+        normalized_root_label(world_root, repo_root),
+        bool(records),
+    )
+    data["matches"] = [record_to_dict(record) for record in records]
+    data["lookup_parse_errors"] = len(lookup_error_findings(world))
+    _print_json(data)
+  else:
+    sys.stdout.write(render_show_human(args.record_type, args.vnum, records))
+  return 0 if records else 1
+
+
+def _run_refs(args: argparse.Namespace) -> int:
+  repo_root, world_root, world = _load_lookup_world(args)
+  records = find_records(world, args.record_type, args.vnum)
+  outgoing, incoming = refs_for_record(world, args.record_type, args.vnum)
+  if args.json_output:
+    data = _lookup_envelope(
+        args,
+        normalized_root_label(world_root, repo_root),
+        bool(records),
+    )
+    data["outgoing"] = [edge.to_dict() for edge in outgoing]
+    data["incoming"] = [edge.to_dict() for edge in incoming]
+    data["lookup_parse_errors"] = len(lookup_error_findings(world))
+    _print_json(data)
+  else:
+    sys.stdout.write(
+        render_refs_human(
+            args.record_type,
+            args.vnum,
+            bool(records),
+            outgoing,
+            incoming,
+        )
+    )
+  return 0 if records else 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -216,6 +306,10 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_flags(args)
     if args.command == "constants":
       return _run_constants(args)
+    if args.command == "show":
+      return _run_show(args)
+    if args.command == "refs":
+      return _run_refs(args)
   except (ConfigError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

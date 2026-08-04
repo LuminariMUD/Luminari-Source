@@ -18,6 +18,7 @@ from .models import (
     SourceSpan,
     TriggerRecord,
     ValidationResult,
+    WorldData,
     WorldRecord,
     ZoneRecord,
 )
@@ -899,7 +900,53 @@ def validate_indexed_world(
           )
       )
       result.complete = False
-  *_, graph_findings, graph_complete = _load_files(
+  world = load_indexed_world_data(
+      world_root,
+      repo_root,
+      manifest,
+      config,
+      mini=mini,
+      selected_packages=selected_packages,
+  )
+  result.findings.extend(world.findings)
+  result.complete = result.complete and world.complete
+  result.mode = "zone" if selected_packages is not None else ("mini" if mini else "all")
+  result.config.update(config)
+  if selected_packages is not None:
+    result.config["selected_zones"] = sorted(selected_packages)
+  return result
+
+
+def load_indexed_world_data(
+    world_root: Path,
+    repo_root: Path,
+    manifest: dict[str, Any],
+    config: dict[str, Any],
+    mini: bool = False,
+    selected_packages: set[int] | None = None,
+) -> WorldData:
+  """Load the same indexed parsed model consumed by validation and lookup."""
+
+  zone_paths = indexed_data_paths(world_root, "zon", mini)
+  room_paths = indexed_data_paths(world_root, "wld", mini)
+  mobile_paths = indexed_data_paths(world_root, "mob", mini)
+  object_paths = indexed_data_paths(world_root, "obj", mini)
+  trigger_paths = indexed_data_paths(world_root, "trg", mini)
+  shop_paths = indexed_data_paths(world_root, "shp", mini)
+  if selected_packages is not None:
+    for package in sorted(selected_packages):
+      for extension, paths in (
+          ("zon", zone_paths),
+          ("wld", room_paths),
+          ("mob", mobile_paths),
+          ("obj", object_paths),
+          ("trg", trigger_paths),
+          ("shp", shop_paths),
+      ):
+        candidate = world_root / extension / f"{package}.{extension}"
+        if candidate.is_file() and candidate not in paths:
+          paths.append(candidate)
+  zones, rooms, mobiles, objects, triggers, shops, findings, complete = _load_files(
       zone_paths,
       room_paths,
       mobile_paths,
@@ -913,13 +960,7 @@ def validate_indexed_world(
       selected_packages,
       {"zone", "room", "mobile", "object", "trigger", "shop"},
   )
-  result.findings.extend(graph_findings)
-  result.complete = result.complete and graph_complete
-  result.mode = "zone" if selected_packages is not None else ("mini" if mini else "all")
-  result.config.update(config)
-  if selected_packages is not None:
-    result.config["selected_zones"] = sorted(selected_packages)
-  return result
+  return WorldData(zones, rooms, mobiles, objects, triggers, shops, findings, complete)
 
 
 def _collect_explicit_paths(requested_paths: Iterable[Path]) -> dict[str, list[Path]]:

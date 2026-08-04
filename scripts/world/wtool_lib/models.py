@@ -342,6 +342,31 @@ WorldRecord = ZoneRecord | RoomRecord | MobileRecord | ObjectRecord | TriggerRec
 
 
 @dataclass(slots=True)
+class WorldData:
+  zones: list[ZoneRecord] = field(default_factory=list)
+  rooms: list[RoomRecord] = field(default_factory=list)
+  mobiles: list[MobileRecord] = field(default_factory=list)
+  objects: list[ObjectRecord] = field(default_factory=list)
+  triggers: list[TriggerRecord] = field(default_factory=list)
+  shops: list[ShopRecord] = field(default_factory=list)
+  findings: list[Finding] = field(default_factory=list)
+  complete: bool = True
+
+  def records(self, record_type: str) -> list[WorldRecord]:
+    collections: dict[str, list[WorldRecord]] = {
+        "zone": list(self.zones),
+        "room": list(self.rooms),
+        "mobile": list(self.mobiles),
+        "object": list(self.objects),
+        "trigger": list(self.triggers),
+        "shop": list(self.shops),
+    }
+    if record_type not in collections:
+      raise ValueError(f"unknown world record type {record_type!r}")
+    return collections[record_type]
+
+
+@dataclass(slots=True)
 class ValidationResult:
   root_label: str
   mode: str

@@ -279,7 +279,7 @@ def _add_typed_references(record: ObjectRecord, manifest: dict[str, Any]) -> Non
     if values[1] > 0:
       record.references.append(VnumReference("object", values[1], "trap target", record.span))
   elif record.item_type == item_types["ITEM_SWITCH"]:
-    if values[1] > 0:
+    if values[1] >= 0:
       record.references.append(VnumReference("room", values[1], "switch room", record.span))
   elif record.item_type == item_types["ITEM_GREYHAWK_SHIP"]:
     if values[0] > 0:
