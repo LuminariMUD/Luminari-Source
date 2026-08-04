@@ -42,6 +42,7 @@
 #include "wilderness/resource_system.h"
 #include "character/character_creation.h"
 #include "vessels/vessels.h"
+#include "bardic_performance.h"
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -740,9 +741,7 @@ int load_char(const char *name, struct char_data *ch)
     GET_LAST_ROOM(ch) = 0;
     GET_CURRENT_BUFF_SLOT(ch) = 0;
     IS_BUFFING(ch) = false;
-    for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
-      GET_PERFORMANCE_VAR(ch, i) = 0;
-    GET_PERFORMING(ch) = -1; /* 0 is an actual performance */
+    initialize_bardic_performance_state(ch);
     PIXIE_DUST_USES(ch) = 0;
     PIXIE_DUST_TIMER(ch) = 0;
     GRAVE_TOUCH_USES(ch) = PFDEF_GRAVE_TOUCH_USES;

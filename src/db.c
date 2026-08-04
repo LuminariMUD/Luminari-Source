@@ -87,6 +87,7 @@
 #include "mob/mob_spellslots.h"
 #include "mob/mob_known_spells.h"
 #include "magic/moon_bonus_spells.h" /* For moon-based bonus spell slots */
+#include "bardic_performance.h"
 
 /*  declarations of most of the 'global' variables */
 struct config_data config_info; /* Game configuration list.	 */
@@ -6843,6 +6844,7 @@ void clear_char(struct char_data *ch)
   GET_POS(ch) = POS_STANDING;
   ch->mob_specials.default_pos = POS_STANDING;
   ch->events = NULL;
+  initialize_bardic_performance_state(ch);
 
   /* worried about mobiles having junk-data for wards */
   for (i = 0; i < MAX_WARDING; i++)

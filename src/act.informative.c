@@ -1145,7 +1145,7 @@ static void list_one_char(struct char_data *i, struct char_data *ch)
     send_to_char(ch, " (buildwalk)");
   if (!IS_NPC(i) && PRF_FLAGGED(i, PRF_AFK))
     send_to_char(ch, " (AFK)");
-  if (char_has_mud_event(i, eBARDIC_PERFORMANCE))
+  if (IS_PERFORMING(i))
     send_to_char(ch, " (performing)");
   if (char_has_mud_event(i, eTAUNTED))
     send_to_char(ch, " (taunted)");

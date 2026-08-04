@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030708 = 3.7.8 (corresponds to display version 2.5038-beta)
+ * Current: 0x030709 = 3.7.9 (corresponds to display version 2.5039-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x030708
+#define _LUMINARIMUD 0x030709
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -688,6 +688,12 @@
 /****************************************/
 /* bard performance defines */
 #define MAX_PERFORMANCE_VARS 10
+#define PERFORMANCE_NONE (-1)
+#define PERFORMANCE_VAR_ACTIVE 0
+#define PERFORMANCE_VAR_PRIMARY 1
+#define PERFORMANCE_VAR_SECONDARY 2
+#define PERFORMANCE_VAR_CRESCENDO_USED 3
+#define PERFORMANCE_VAR_CRESCENDO_DICE 4
 /* Instruments - bardic_performance */
 #define INSTRUMENT_LYRE 0
 #define INSTRUMENT_FLUTE 1

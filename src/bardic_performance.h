@@ -20,10 +20,14 @@ extern struct room_data *world;
 extern void clearMemory(struct char_data *ch);
 extern const char *spells[];
 void pulse_bardic_performance(void);
+bool is_valid_performance(int performance_num);
+int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);
+void initialize_bardic_performance_state(struct char_data *ch);
+void stop_bardic_performance(struct char_data *ch, bool notify);
+void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
 ACMD_DECL(do_perform);
 
 /* defines */
-#define VERSE_INTERVAL (11 RL_SEC)
 #define MAX_PERFORMANCES 13
 #define MAX_PRFM_EFFECT 60 /* maximum effectiveness of performance */
 #define MAX_INSTRUMENT_EFFECT 20

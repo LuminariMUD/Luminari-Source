@@ -31,7 +31,6 @@ extern EVENTFUNC(event_tracks);
 extern EVENTFUNC(event_combat_round);
 extern EVENTFUNC(event_action_cooldown);
 extern EVENTFUNC(event_trap_triggered);
-extern EVENTFUNC(event_bardic_performance);
 extern EVENTFUNC(event_craft);
 extern EVENTFUNC(event_copyover);
 extern EVENTFUNC(event_spiritual_weapon);
@@ -210,7 +209,7 @@ struct mud_event_list mud_event_index[] = {
      NULL, FEAT_UNDEFINED, 0},
     {"Crystal body", event_countdown, EVENT_CHAR, "Your body loses its crystal-like properties.",
      NULL, FEAT_UNDEFINED, 0},
-    {"Bardic Performance", event_bardic_performance, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
+    {"Retired Bardic Performance", event_countdown, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED, 0},
     {"Encounter Region Reset", event_countdown, EVENT_REGION, NULL, NULL, FEAT_UNDEFINED,
      0}, /* Special */
     {"Seeker Arrow", event_daily_use_cooldown, EVENT_CHAR, NULL,

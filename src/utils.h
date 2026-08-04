@@ -1245,9 +1245,12 @@ void char_from_furniture(struct char_data *ch);
 #define CASTING_CLASS(ch) ((ch)->char_specials.castingClass)
 
 /* this is an array of variables associated with bardic performance */
-#define GET_PERFORMANCE_VAR(ch, var) (ch->char_specials.performance_vars[var])
-#define IS_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, 0)
-#define GET_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, 1)
+#define GET_PERFORMANCE_VAR(ch, var) ((ch)->char_specials.performance_vars[(var)])
+#define IS_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_ACTIVE)
+#define GET_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_PRIMARY)
+#define GET_SECONDARY_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_SECONDARY)
+#define GET_CRESCENDO_USED(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_CRESCENDO_USED)
+#define GET_CRESCENDO_DICE(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_CRESCENDO_DICE)
 
 // spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */

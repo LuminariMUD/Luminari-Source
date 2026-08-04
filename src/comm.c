@@ -3339,6 +3339,11 @@ void close_socket(struct descriptor_data *d)
     //    if (GET_HOST(d->character))
     //      free(GET_HOST(d->character));
 
+    if (IS_PERFORMING(d->character))
+      stop_bardic_performance(d->character, FALSE);
+    if (d->original != NULL && d->original != d->character && IS_PERFORMING(d->original))
+      stop_bardic_performance(d->original, FALSE);
+
     /* If we're switched, this resets the mobile taken. */
     d->character->desc = NULL;
 

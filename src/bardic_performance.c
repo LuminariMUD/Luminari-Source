@@ -12,7 +12,6 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
-#include "mud_event.h"
 #include "db.h"
 #include "magic/spells.h"
 #include "bardic_performance.h"
@@ -24,8 +23,6 @@
 
 /* defines */
 #define DEBUG_MODE FALSE
-/* this will determine whether the system is ran through events or the tick system */
-/* #define EVENT_RAN */
 
 /* performance types
 Act (comedy, drama, pantomime)
@@ -108,6 +105,156 @@ int performance_info[MAX_PERFORMANCES][PERFORMANCE_INFO_FIELDS] = {
     /*MAX_PERFORMANCES: 13*/
 };
 
+static void reset_performance_crescendo(struct char_data *ch)
+{
+  GET_CRESCENDO_USED(ch) = 0;
+  GET_CRESCENDO_DICE(ch) = 0;
+}
+
+void initialize_bardic_performance_state(struct char_data *ch)
+{
+  int i;
+
+  if (ch == NULL)
+    return;
+
+  for (i = 0; i < MAX_PERFORMANCE_VARS; i++)
+    GET_PERFORMANCE_VAR(ch, i) = 0;
+
+  GET_PERFORMING(ch) = PERFORMANCE_NONE;
+  GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+}
+
+void stop_bardic_performance(struct char_data *ch, bool notify)
+{
+  if (ch == NULL)
+    return;
+
+  IS_PERFORMING(ch) = FALSE;
+  GET_PERFORMING(ch) = PERFORMANCE_NONE;
+  GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+  reset_performance_crescendo(ch);
+
+  if (notify)
+  {
+    act("You stop performing.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n stops performing.", TRUE, ch, 0, 0, TO_ROOM);
+  }
+}
+
+void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify)
+{
+  if (ch == NULL)
+    return;
+
+  if (slot == PERFORMANCE_VAR_PRIMARY)
+  {
+    if (GET_PERFORMING(ch) == PERFORMANCE_NONE)
+      return;
+
+    GET_PERFORMING(ch) = GET_SECONDARY_PERFORMING(ch);
+    GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+  }
+  else if (slot == PERFORMANCE_VAR_SECONDARY)
+  {
+    if (GET_SECONDARY_PERFORMING(ch) == PERFORMANCE_NONE)
+      return;
+
+    GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+  }
+  else
+  {
+    log("SYSERR: stop_bardic_performance_slot received invalid slot %d", slot);
+    return;
+  }
+
+  IS_PERFORMING(ch) = GET_PERFORMING(ch) != PERFORMANCE_NONE;
+  if (!IS_PERFORMING(ch))
+    reset_performance_crescendo(ch);
+
+  if (notify)
+  {
+    act("You stop that performance.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n brings part of $s performance to a close.", TRUE, ch, 0, 0, TO_ROOM);
+  }
+}
+
+static void copy_trimmed_performance_argument(const char *argument, char *result,
+                                              size_t result_size)
+{
+  const char *start;
+  size_t length;
+
+  if (result == NULL || result_size == 0)
+    return;
+
+  result[0] = '\0';
+  if (argument == NULL)
+    return;
+
+  start = argument;
+  while (*start != '\0' && isspace((unsigned char)*start))
+    start++;
+
+  length = strlen(start);
+  while (length > 0 && isspace((unsigned char)start[length - 1]))
+    length--;
+
+  if (length >= result_size)
+    length = result_size - 1;
+
+  memcpy(result, start, length);
+  result[length] = '\0';
+}
+
+static int resolve_performance_name(const char *name, bool *ambiguous)
+{
+  const char *candidate;
+  int exact_match;
+  int prefix_match;
+  int prefix_count;
+  int i;
+
+  if (ambiguous != NULL)
+    *ambiguous = FALSE;
+  if (name == NULL || *name == '\0')
+    return PERFORMANCE_NONE;
+
+  exact_match = PERFORMANCE_NONE;
+  prefix_match = PERFORMANCE_NONE;
+  prefix_count = 0;
+
+  for (i = 0; i < MAX_PERFORMANCES; i++)
+  {
+    candidate = skill_name(performance_info[i][PERFORMANCE_SKILLNUM]);
+    if (candidate != NULL && str_cmp(name, candidate) == 0)
+    {
+      exact_match = i;
+      break;
+    }
+  }
+
+  if (exact_match != PERFORMANCE_NONE)
+    return exact_match;
+
+  for (i = 0; i < MAX_PERFORMANCES; i++)
+  {
+    candidate = skill_name(performance_info[i][PERFORMANCE_SKILLNUM]);
+    if (candidate != NULL && is_abbrev(name, candidate))
+    {
+      prefix_match = i;
+      prefix_count++;
+    }
+  }
+
+  if (prefix_count == 1)
+    return prefix_match;
+  if (prefix_count > 1 && ambiguous != NULL)
+    *ambiguous = TRUE;
+
+  return PERFORMANCE_NONE;
+}
+
 /* local functions for modifying chars points (hitpoints or moves)
  * note: negative (-) is healing -- 09/2022, replaced with process_healing() -zusuk */
 /*
@@ -134,6 +281,9 @@ static void alter_move(struct char_data *ch, int points)
 bool is_valid_performance(int performance_num)
 {
   bool return_val = FALSE;
+
+  if (performance_num < 0 || performance_num >= MAX_PERFORMANCES)
+    return FALSE;
 
   switch (performance_info[performance_num][PERFORMANCE_SKILLNUM])
   {
@@ -184,13 +334,40 @@ bool is_valid_performance(int performance_num)
   return return_val;
 }
 
+static void normalize_bardic_performance_state(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  if (!is_valid_performance(GET_PERFORMING(ch)))
+  {
+    if (is_valid_performance(GET_SECONDARY_PERFORMING(ch)))
+      GET_PERFORMING(ch) = GET_SECONDARY_PERFORMING(ch);
+    else
+      GET_PERFORMING(ch) = PERFORMANCE_NONE;
+    GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+  }
+
+  if (GET_SECONDARY_PERFORMING(ch) == GET_PERFORMING(ch) ||
+      !is_valid_performance(GET_SECONDARY_PERFORMING(ch)))
+    GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+
+  if (!IS_NPC(ch) && GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE &&
+      !has_bard_master_of_motifs(ch))
+    GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+
+  IS_PERFORMING(ch) = GET_PERFORMING(ch) != PERFORMANCE_NONE;
+  if (!IS_PERFORMING(ch))
+    reset_performance_crescendo(ch);
+}
+
 /* will list to the performer which performances are available to them */
 void list_available_performances(struct char_data *ch)
 {
   int i = 0;
 
   send_to_char(ch, "Available performances:\r\n");
-  for (i = 0; i < NUM_FEATS; i++)
+  for (i = 1; i < FEAT_LAST_FEAT; i++)
   {
     if (HAS_FEAT(ch, i))
     {
@@ -241,34 +418,16 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
     return 0;
   }
 
-  if (char_has_mud_event(ch, ePERFORM)) /* OLD perform, this is a dummy check -zusuk */
-  {
-    if (!silent)
-      send_to_char(ch, "You are already performing!\r\n");
-    return 0;
-  }
-
-#ifdef EVENT_RAN
-  if (need_check && char_has_mud_event(ch, eBARDIC_PERFORMANCE))
-  {
-    if (!silent)
-      send_to_char(ch, "You are already in the middle of a performance!\r\n");
-    return 0;
-  }
-#else
   if (need_check && IS_PERFORMING(ch))
   {
-    /* Tier 3 Spellsinger: Master of Motifs - allow dual performances */
     if (!IS_NPC(ch) && has_bard_master_of_motifs(ch))
     {
-      /* Check if they already have 2 performances active */
-      if (GET_PERFORMANCE_VAR(ch, 2) >= 0)
+      if (GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
       {
         if (!silent)
           send_to_char(ch, "You are already maintaining two performances!\r\n");
         return 0;
       }
-      /* They have 1 performance, can start a second */
     }
     else
     {
@@ -278,7 +437,6 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
       return 0;
     }
   }
-#endif
 
   if (((ch->in_room != NOWHERE && ROOM_FLAGGED(ch->in_room, ROOM_SOUNDPROOF)) ||
        AFF_FLAGGED(ch, AFF_SILENCED)) &&
@@ -316,16 +474,14 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 
     if (vict)
     {
-#ifdef EVENT_RAN
-      if (IN_ROOM(vict) != NOWHERE && vict != ch &&
-          (char_has_mud_event(vict, ePERFORM) || char_has_mud_event(vict, eBARDIC_PERFORMANCE)))
-#else
-      if (IN_ROOM(vict) != NOWHERE && vict != ch &&
-          (char_has_mud_event(vict, ePERFORM) || IS_PERFORMING(vict)))
-#endif
+      if (vict != ch && !IS_NPC(vict) && IS_PERFORMING(vict) &&
+          (vict->desc == NULL || !IS_PLAYING(vict->desc)))
+        stop_bardic_performance(vict, FALSE);
+
+      if (IN_ROOM(vict) != NOWHERE && vict != ch && IS_PERFORMING(vict))
       {
         if (!silent)
-          send_to_char(ch, "Your bardic performance conflicts with %s and is abrupted!\r\n",
+          send_to_char(ch, "Your bardic performance conflicts with %s and is interrupted!\r\n",
                        GET_NAME(vict));
         return 0;
       }
@@ -342,141 +498,203 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 /* primary command entry point for the bardic performance */
 ACMD(do_perform)
 {
-  int performance_num = -1;
-  int len = 0;
+  const char *name;
+  const char *remainder;
+  char request[MAX_INPUT_LENGTH];
+  char command[MAX_INPUT_LENGTH];
+  char command_argument[MAX_INPUT_LENGTH];
+  int performance_num;
+  int transition;
+  bool ambiguous;
+  bool explicit_add;
+  bool explicit_replace;
+  bool has_move_action;
+  bool has_standard_action;
 
-  if (!argument || (len = strlen(argument)) == 0)
+  copy_trimmed_performance_argument(argument, request, sizeof(request));
+  normalize_bardic_performance_state(ch);
+
+  if (*request == '\0')
   {
-#ifdef EVENT_RAN
-    if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
+    if (argument != NULL && *argument != '\0')
     {
-      event_cancel_specific(ch, eBARDIC_PERFORMANCE);
-      act("You stopped your performance.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing.", TRUE, ch, 0, 0, TO_ROOM);
+      send_to_char(ch, "Specify a performance name, 'list', or 'stop'.\r\n");
       return;
     }
-#else
     if (IS_PERFORMING(ch))
-    {
-      IS_PERFORMING(ch) = FALSE;
-      act("You stopped your performance.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing.", TRUE, ch, 0, 0, TO_ROOM);
-      return;
-    }
-#endif
+      stop_bardic_performance(ch, TRUE);
     else
     {
-      send_to_char(ch, "Play what performance?\r\n");
+      send_to_char(ch, "Perform what?\r\n");
       list_available_performances(ch);
-      return;
     }
+    return;
   }
 
-#ifdef EVENT_RAN
-  if (char_has_mud_event(ch, eBARDIC_PERFORMANCE))
+  remainder = one_argument(request, command, sizeof(command));
+  copy_trimmed_performance_argument(remainder, command_argument, sizeof(command_argument));
+
+  if (str_cmp(command, "list") == 0 && *command_argument == '\0')
   {
-    act("You stopped your current performance.", FALSE, ch, 0, 0, TO_CHAR);
-    act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
-    event_cancel_specific(ch, eBARDIC_PERFORMANCE);
+    list_available_performances(ch);
+    return;
   }
-#else
+
+  if (str_cmp(command, "stop") == 0)
+  {
+    if (*command_argument == '\0')
+    {
+      if (IS_PERFORMING(ch))
+        stop_bardic_performance(ch, TRUE);
+      else
+        send_to_char(ch, "You are not performing.\r\n");
+      return;
+    }
+
+    performance_num = resolve_performance_name(command_argument, &ambiguous);
+    if (ambiguous)
+    {
+      send_to_char(ch, "That performance name is ambiguous.\r\n");
+      return;
+    }
+    if (performance_num == PERFORMANCE_NONE)
+    {
+      send_to_char(ch, "That is not a performance.\r\n");
+      return;
+    }
+    if (GET_PERFORMING(ch) == performance_num)
+      stop_bardic_performance_slot(ch, PERFORMANCE_VAR_PRIMARY, TRUE);
+    else if (GET_SECONDARY_PERFORMING(ch) == performance_num)
+      stop_bardic_performance_slot(ch, PERFORMANCE_VAR_SECONDARY, TRUE);
+    else
+      send_to_char(ch, "You are not maintaining that performance.\r\n");
+    return;
+  }
+
+  explicit_add = str_cmp(command, "add") == 0;
+  explicit_replace = str_cmp(command, "replace") == 0;
+  if (explicit_add || explicit_replace)
+  {
+    if (*command_argument == '\0')
+    {
+      send_to_char(ch, "Specify the performance to %s.\r\n", explicit_add ? "add" : "replace");
+      return;
+    }
+    name = command_argument;
+  }
+  else
+  {
+    name = request;
+  }
+
+  performance_num = resolve_performance_name(name, &ambiguous);
+  if (ambiguous)
+  {
+    send_to_char(ch, "That performance name is ambiguous.\r\n");
+    return;
+  }
+  if (performance_num == PERFORMANCE_NONE)
+  {
+    send_to_char(ch, "That is not a performance.\r\n");
+    list_available_performances(ch);
+    return;
+  }
+
+  if (!HAS_FEAT(ch, performance_info[performance_num][PERFORMANCE_FEATNUM]))
+  {
+    send_to_char(ch, "You do not know that performance.\r\n");
+    return;
+  }
+
+  if (GET_PERFORMING(ch) == performance_num || GET_SECONDARY_PERFORMING(ch) == performance_num)
+  {
+    send_to_char(ch, "You are already maintaining that performance.\r\n");
+    return;
+  }
+
+  transition = PERFORMANCE_VAR_PRIMARY;
   if (IS_PERFORMING(ch))
   {
-    /* Tier 3 Spellsinger: Master of Motifs - stop performances intelligently */
-    if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && GET_PERFORMANCE_VAR(ch, 2) >= 0)
+    if (explicit_add || (!explicit_replace && !IS_NPC(ch) && has_bard_master_of_motifs(ch) &&
+                         GET_SECONDARY_PERFORMING(ch) == PERFORMANCE_NONE))
     {
-      /* They have 2 performances, stop both */
-      IS_PERFORMING(ch) = FALSE;
-      GET_PERFORMING(ch) = -1;
-      GET_PERFORMANCE_VAR(ch, 2) = -1;
-      act("You stop both of your performances.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
+      if (IS_NPC(ch) || !has_bard_master_of_motifs(ch))
+      {
+        send_to_char(ch, "You cannot maintain a second performance.\r\n");
+        return;
+      }
+      if (GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
+      {
+        send_to_char(ch, "You are already maintaining two performances.\r\n");
+        return;
+      }
+      transition = PERFORMANCE_VAR_SECONDARY;
+    }
+  }
+  else if (explicit_add)
+  {
+    send_to_char(ch, "Start a primary performance before adding a second one.\r\n");
+    return;
+  }
+
+  if (!can_perform(ch, performance_num, FALSE, FALSE))
+    return;
+
+  has_move_action = TRUE;
+  has_standard_action = TRUE;
+  if (!IS_NPC(ch))
+  {
+    has_move_action = is_action_available(ch, atMOVE, FALSE);
+    has_standard_action = is_action_available(ch, atSTANDARD, FALSE);
+
+    if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
+    {
+      if (!has_move_action && !has_standard_action)
+      {
+        send_to_char(ch, "You need a move or standard action to begin performing.\r\n");
+        return;
+      }
+    }
+    else if (!has_standard_action)
+    {
+      send_to_char(ch, "You need a standard action to begin performing.\r\n");
+      return;
+    }
+  }
+
+  if (transition == PERFORMANCE_VAR_SECONDARY)
+  {
+    GET_SECONDARY_PERFORMING(ch) = performance_num;
+    act("You begin a second performance, maintaining both at once.", FALSE, ch, 0, 0, TO_CHAR);
+    act("$n begins a second performance without letting the first lapse.", TRUE, ch, 0, 0, TO_ROOM);
+  }
+  else
+  {
+    GET_PERFORMING(ch) = performance_num;
+    if (!IS_PERFORMING(ch))
+      GET_SECONDARY_PERFORMING(ch) = PERFORMANCE_NONE;
+    act(IS_PERFORMING(ch) ? "You replace your primary performance without losing the rhythm."
+                          : "You start performing.",
+        FALSE, ch, 0, 0, TO_CHAR);
+    act(IS_PERFORMING(ch) ? "$n changes the lead of $s performance." : "$n starts performing.",
+        TRUE, ch, 0, 0, TO_ROOM);
+  }
+
+  IS_PERFORMING(ch) = TRUE;
+  reset_performance_crescendo(ch);
+
+  if (!IS_NPC(ch))
+  {
+    if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
+    {
+      if (has_move_action)
+        USE_MOVE_ACTION(ch);
+      else
+        USE_STANDARD_ACTION(ch);
     }
     else
-    {
-      /* Only 1 performance, stop it normally */
-      IS_PERFORMING(ch) = FALSE;
-      GET_PERFORMING(ch) = -1;
-      GET_PERFORMANCE_VAR(ch, 2) = -1;
-      act("You stop your current performance.", FALSE, ch, 0, 0, TO_CHAR);
-      act("$n stops performing...", TRUE, ch, 0, 0, TO_ROOM);
-    }
+      USE_STANDARD_ACTION(ch);
   }
-#endif
-
-  skip_spaces_c(&argument);
-  len = strlen(argument);
-
-  for (performance_num = 0; performance_num < MAX_PERFORMANCES; performance_num++)
-  {
-    if (!strncmp(argument, skill_name(performance_info[performance_num][PERFORMANCE_SKILLNUM]),
-                 len))
-    {
-      if (!HAS_FEAT(ch, performance_info[performance_num][PERFORMANCE_FEATNUM]))
-      {
-        send_to_char(ch, "But you do not know that performance!\r\n");
-        return;
-      }
-      else
-      {
-        /* check for disqualifiers */
-        if (!can_perform(ch, performance_num, TRUE, FALSE))
-        {
-          /* we DO check if they have a bardic_performanc event here represented by the first TRUE */
-          /* the messages were sent via the last FALSE in can_perform()! */
-          return;
-        }
-
-        /* SUCCESS! */
-        /* Tier 3 Spellsinger: Master of Motifs - handle dual performances */
-        if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && IS_PERFORMING(ch) &&
-            GET_PERFORMANCE_VAR(ch, 2) < 0)
-        {
-          /* Starting a second performance */
-          GET_PERFORMANCE_VAR(ch, 2) = performance_num;
-          act("You begin a second performance, maintaining both songs!", FALSE, ch, 0, 0, TO_CHAR);
-          act("$n begins performing a second song simultaneously!", TRUE, ch, 0, 0, TO_ROOM);
-        }
-        else
-        {
-          /* Starting first performance normally */
-          act("You start performing.", FALSE, ch, 0, 0, TO_CHAR);
-          act("$n starts performing.", TRUE, ch, 0, 0, TO_ROOM);
-        }
-
-#ifdef EVENT_RAN
-        char buf[128];
-        snprintf(buf, sizeof(buf), "%d", i); /* Build the effect string */
-
-        NEW_EVENT(eBARDIC_PERFORMANCE, ch, buf, 4 * PASSES_PER_SEC);
-#else
-        IS_PERFORMING(ch) = TRUE;
-        GET_PERFORMING(ch) = performance_num;
-
-        /* Tier 3 Spellsinger: Master of Motifs - initialize second performance slot */
-        if (!IS_NPC(ch) && GET_PERFORMANCE_VAR(ch, 2) != performance_num)
-        {
-          GET_PERFORMANCE_VAR(ch, 2) = -1; /* -1 means no second performance */
-        }
-
-        /* Bard Spellsinger: Reset Crescendo flags when starting a new performance */
-        ch->char_specials.performance_vars[3] = 0; /* Crescendo used flag */
-        ch->char_specials.performance_vars[4] = 0; /* Crescendo damage dice */
-#endif
-
-        if (HAS_FEAT(ch, FEAT_EFFICIENT_PERFORMANCE))
-          USE_MOVE_ACTION(ch);
-        else
-          USE_STANDARD_ACTION(ch);
-
-        return;
-      }
-    }
-  }
-
-  send_to_char(ch, "But that is not a performance!\r\n");
-  list_available_performances(ch);
-  return;
 }
 
 /* function for processing individual effects for the performance */
@@ -484,6 +702,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
                         int effectiveness, int aoe)
 {
   int return_val = 1, i = 0; /* return_val is 1, very limited reasons to fail here! */
+  int songweaver_bonus;
   bool nomessage = FALSE, engage = TRUE;
   struct affected_type af[BARD_AFFECTS];
 
@@ -499,28 +718,18 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
                  GET_NAME(tch), spellnum, effectiveness, aoe);
   }
 
+  songweaver_bonus = IS_NPC(ch) ? 0 : get_bard_songweaver_level_bonus(ch);
+
   /* init affect array */
   for (i = 0; i < BARD_AFFECTS; i++)
   {
     new_affect(&(af[i]));
 
     af[i].spell = spellnum;
-    af[i].duration = 3;
+    af[i].duration = 3 + songweaver_bonus;
     af[i].bonus_type = BONUS_TYPE_INHERENT;
     af[i].modifier = 1;
     af[i].location = APPLY_NONE;
-    /* Bard Spellsinger: Songweaver I - add duration bonus */
-    if (!IS_NPC(ch))
-    {
-      int songweaver_bonus = get_bard_songweaver_level_bonus(ch);
-      if (songweaver_bonus > 0)
-      {
-        for (i = 0; i < BARD_AFFECTS; i++)
-        {
-          af[i].duration += songweaver_bonus;
-        }
-      }
-    }
   }
 
   if (affected_by_spell(tch, spellnum))
@@ -1014,20 +1223,37 @@ int process_performance(struct char_data *ch, int performance_num, int effective
 }
 
 /* this is the primary engine for the bard songs */
-int bardic_performance_engine(struct char_data *ch, int performance_num)
+static int bardic_performance_engine(struct char_data *ch, int slot)
 {
   struct obj_data *instrument = NULL;
   int effectiveness = 0;
+  int performance_num;
   int spellnum = -1;
   int difficulty = 0;
+
+  if (ch == NULL)
+    return 0;
+
+  if (slot == PERFORMANCE_VAR_PRIMARY)
+    performance_num = GET_PERFORMING(ch);
+  else if (slot == PERFORMANCE_VAR_SECONDARY)
+    performance_num = GET_SECONDARY_PERFORMING(ch);
+  else
+  {
+    log("SYSERR: bardic_performance_engine received invalid slot %d", slot);
+    return 0;
+  }
+
+  if (!is_valid_performance(performance_num))
+  {
+    stop_bardic_performance_slot(ch, slot, FALSE);
+    return 0;
+  }
 
   /* disqualifiers */
   if (!can_perform(ch, performance_num, FALSE, FALSE))
   {
-    /* we don't check if they have a bardic_performanc event here represented by the first FALSE */
-    /* the messages were sent via the last FALSE in can_perform()! */
-    GET_PERFORMING(ch) = -1;
-    IS_PERFORMING(ch) = FALSE;
+    stop_bardic_performance_slot(ch, slot, FALSE);
     return 0;
   }
 
@@ -1136,8 +1362,7 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
                            performance_info[performance_num][PERFORMANCE_AOE]))
   {
     send_to_char(ch, "Your performance fails!\r\n");
-    GET_PERFORMING(ch) = -1;
-    IS_PERFORMING(ch) = FALSE;
+    stop_bardic_performance_slot(ch, slot, FALSE);
     return 0; /* process performance failed somehow */
   }
 
@@ -1146,152 +1371,101 @@ int bardic_performance_engine(struct char_data *ch, int performance_num)
   {
     send_to_char(ch, "Uh oh.. how did the performance go, anyway?\r\n");
     act("$n stutters in the performance!", TRUE, ch, 0, 0, TO_ROOM);
-    GET_PERFORMING(ch) = -1;
-    IS_PERFORMING(ch) = FALSE;
+    stop_bardic_performance_slot(ch, slot, FALSE);
     return 0;
   }
 
-  /* success, we're coming back in VERSE_INTERVAL */
+  /* success, the next verse arrives on the global performance pulse */
   return 1;
 }
 
-/* this is the event called every verse-interval that carries the char_data and performance_num */
-EVENTFUNC(event_bardic_performance)
-{
-#ifdef EVENT_RAN
-  struct mud_event_data *pMudEvent = NULL;
-  struct char_data *ch = NULL;
-  int performance_num = -1;
-
-  /* start handling the event data */
-  pMudEvent = (struct mud_event_data *)event_obj;
-
-  if (!pMudEvent)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent!");
-    return 0;
-  }
-
-  if (!pMudEvent->iId)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent->iId!");
-    return 0;
-  }
-
-  /* extracted the character */
-  ch = (struct char_data *)pMudEvent->pStruct;
-
-  if (!ch)
-  {
-    log("SYSERR: event_bardic_performance missing pMudEvent->pStruct!");
-    return 0;
-  }
-
-  /* extract the variable(s) */
-  if (pMudEvent->sVariables == NULL)
-  {
-    /* This is odd - This field should always be populated! */
-    log("SYSERR: sVariables field is NULL for event_bardic_performance: %d", pMudEvent->iId);
-    return 0;
-  }
-  else
-  {
-    performance_num = atoi((char *)pMudEvent->sVariables);
-  }
-  /* finished handling event data */
-
-  /* this is the main engine */
-  if (bardic_performance_engine(ch, performance_num))
-    return VERSE_INTERVAL;
-
-#else
-  /* we didn't survive the journey through the code! */
-  return 0;
-}
-
-/* this is a very basic function to go through connected players to see if anyone is performing */
+/* Process every active performer. Linkless players are stopped; NPCs can use this engine directly. */
 void pulse_bardic_performance()
 {
-  struct descriptor_data *pt = NULL;
+  struct char_data *ch;
+  struct char_data *next_ch;
 
-  /* we are going to cycle through the online players to find performers */
-  for (pt = descriptor_list; pt; pt = pt->next)
+  for (ch = character_list; ch; ch = next_ch)
   {
-    if (IS_PLAYING(pt) && pt->character && IS_PERFORMING(pt->character) &&
-        (GET_PERFORMING(pt->character) >= 0)) /* GET_PERFORMING: -1 is no perform/fail */
+    next_ch = ch->next;
+
+    if (!IS_PERFORMING(ch))
+      continue;
+
+    if (!IS_NPC(ch) && (ch->desc == NULL || !IS_PLAYING(ch->desc)))
     {
-      struct char_data *ch = pt->character;
+      stop_bardic_performance(ch, FALSE);
+      continue;
+    }
 
-      /* Process primary performance */
-      (bardic_performance_engine(ch, GET_PERFORMING(ch)));
+    normalize_bardic_performance_state(ch);
+    if (!IS_PERFORMING(ch))
+      continue;
 
-      /* Tier 3 Spellsinger: Master of Motifs - process second performance if active */
-      if (!IS_NPC(ch) && has_bard_master_of_motifs(ch) && GET_PERFORMANCE_VAR(ch, 2) >= 0 &&
-          IS_PERFORMING(ch))
+    bardic_performance_engine(ch, PERFORMANCE_VAR_PRIMARY);
+
+    if (IS_PERFORMING(ch) && GET_SECONDARY_PERFORMING(ch) != PERFORMANCE_NONE)
+      bardic_performance_engine(ch, PERFORMANCE_VAR_SECONDARY);
+
+    /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
+    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
+    {
+      struct char_data *tch = NULL, *next_tch = NULL;
+      int dirge_damage = get_bard_dirge_sonic_damage(ch);
+
+      if (dirge_damage > 0)
       {
-        (bardic_performance_engine(ch, GET_PERFORMANCE_VAR(ch, 2)));
-      }
+        send_to_char(ch,
+                     "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
 
-      /* Tier 3 Spellsinger: Dirge of Dissonance - room-wide sonic damage */
-      if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_dirge_of_dissonance(ch))
-      {
-        struct char_data *tch = NULL, *next_tch = NULL;
-        int dirge_damage = get_bard_dirge_sonic_damage(ch);
-
-        if (dirge_damage > 0)
+        /* Damage all enemies in the room */
+        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
         {
-          send_to_char(ch,
-                       "\tMYour Dirge of Dissonance fills the room with discordant tones!\tn\r\n");
+          int dam;
 
-          /* Damage all enemies in the room */
-          for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+          next_tch = tch->next_in_room;
+
+          /* Skip self, allies, and those not valid AOE targets */
+          if (tch == ch || !aoeOK(ch, tch, -1))
+            continue;
+
+          dam = dice(dirge_damage, 6);
+          if (dam > 0)
           {
-            next_tch = tch->next_in_room;
-
-            /* Skip self, allies, and those not valid AOE targets */
-            if (tch == ch || !aoeOK(ch, tch, -1))
-              continue;
-
-            /* Apply sonic damage */
-            int dam = dice(dirge_damage, 6);
-            if (dam > 0)
-            {
-              send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n",
-                           dam);
-              damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
-            }
+            send_to_char(tch, "\tRThe discordant sounds assault your senses! [%d damage]\tn\r\n",
+                         dam);
+            damage(ch, tch, dam, -1, DAM_SOUND, FALSE);
           }
         }
       }
+    }
 
-      /* Tier 4 Spellsinger: Symphonic Resonance - grant temp HP per round */
-      if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
+    /* Tier 4 Spellsinger: Symphonic Resonance - grant temp HP per round */
+    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
+    {
+      int temp_hp = get_bard_symphonic_resonance_temp_hp(ch);
+      if (temp_hp > 0)
       {
-        int temp_hp = get_bard_symphonic_resonance_temp_hp(ch);
-        if (temp_hp > 0)
-        {
-          /* Temporary HP implementation would go here */
-          /* For now, just send a message indicating the effect is active */
-          send_to_char(ch,
-                       "\tCYour song grants temporary protection to you and your allies.\tn\r\n");
-        }
+        /* Temporary HP implementation would go here */
+        /* For now, just send a message indicating the effect is active */
+        send_to_char(ch, "\tCYour song grants temporary protection to you and your allies.\tn\r\n");
       }
+    }
 
-      /* Tier 4 Spellsinger: Endless Refrain - regenerate spell slots per round */
-      if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_endless_refrain(ch))
+    /* Tier 4 Spellsinger: Endless Refrain - regenerate spell slots per round */
+    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_endless_refrain(ch))
+    {
+      int slot_regen = get_bard_endless_refrain_slot_regen(ch);
+      if (slot_regen > 0)
       {
-        int slot_regen = get_bard_endless_refrain_slot_regen(ch);
-        if (slot_regen > 0)
-        {
-          int class_level = CLASS_LEVEL(ch, CLASS_BARD);
-          int circle = MIN(6, class_level / 2);
+        int class_level = CLASS_LEVEL(ch, CLASS_BARD);
+        int circle = MIN(6, class_level / 2);
 
-          if (circle > 0 && circle <= NUM_CIRCLES)
-          {
-            /* Note: Assuming spells_prepared array exists and tracks available slots */
-            /* This needs to match the spell slot tracking system in place */
-            send_to_char(ch, "\tCYour song refills your magical reserves.\tn\r\n");
-          }
+        if (circle > 0 && circle <= NUM_CIRCLES)
+        {
+          /* Note: Assuming spells_prepared array exists and tracks available slots */
+          /* This needs to match the spell slot tracking system in place */
+          send_to_char(ch, "\tCYour song refills your magical reserves.\tn\r\n");
         }
       }
     }
@@ -1299,9 +1473,5 @@ void pulse_bardic_performance()
 
   return;
 }
-#endif
 
-/* this will determine whether the system is ran through events or the tick system */
-#undef EVENT_RAN
-
-  /* EOF */
+/* EOF */

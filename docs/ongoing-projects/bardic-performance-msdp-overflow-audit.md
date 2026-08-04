@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: Full-system diagnosis complete; source repairs not started
+Status: Repairs in progress; state, command, and pulse-lifecycle batch verified
 
 Date: 2026-08-04
 
@@ -20,8 +20,10 @@ a source-level audit of the complete bardic performance subsystem, including:
 - The MSDP `AFFECTS` serializer and descriptor output path involved in the
   reported overflow.
 
-This was a static source audit plus execution of the focused protocol harness.
-No production system was modified or exercised.
+The initial diagnosis was a static source audit plus execution of the focused
+protocol harness. Repair work is now active in the development tree. The first
+production-linked state and command batch passed all 372 root CuTests on
+2026-08-04 and was installed with `make install`.
 
 ## Reported Incident
 
@@ -86,6 +88,13 @@ batching, and atomic protocol framing can be fixed without design input. Song
 mechanics, resource costs, perk contracts, and conflicting player-facing text
 need an explicit gameplay decision before implementation.
 
+The first repair batch now establishes explicit absent sentinels, validates
+performance indexes before table access, makes command transitions atomic,
+enables Master of Motifs and Efficient Performance transitions, separates
+primary and secondary failure, initializes every Songweaver affect record, and
+cleans active state on disconnect or link loss. Affect batching, atomic
+protocol output, song mechanics, and performance-linked perk repairs remain.
+
 ## Accuracy Check of the Earlier Partial Audit
 
 The following earlier conclusions were re-traced and remain correct:
@@ -117,18 +126,22 @@ Two scope clarifications are important:
 
 ```text
 perform <name>
-  -> interpreter standard-action gate
+  -> interpreter dispatch without a fixed action gate
   -> do_perform()
-       -> stop and clear current state before validating new input
-       -> prefix-match a skill name
+       -> normalize transient state
+       -> trim and resolve input before mutation
+       -> exact or unambiguous case-insensitive performance match
        -> can_perform()
-       -> store primary/secondary integer slots
+       -> select move or standard action from the character's feats
+       -> start, replace, add, or stop an explicit named slot
 
-global 11-second pulse
+global verse pulse
   -> pulse_bardic_performance()
-       -> iterate playing descriptors only
-       -> bardic_performance_engine(primary)
-       -> bardic_performance_engine(secondary), if eligible
+       -> iterate the complete character list
+       -> clear stale active state from linkless player characters
+       -> bardic_performance_engine(primary slot)
+       -> bardic_performance_engine(secondary slot), if present
+       -> keep the surviving slot when the other slot fails
        -> performance-linked pulse perks
             -> Dirge of Dissonance
             -> Symphonic Resonance placeholder
@@ -207,6 +220,49 @@ The strings in the incident identify the payload conclusively:
 | BP-017 | Critical to Medium | Spellsinger perk integrations contain incorrect, partial, and placeholder behavior. |
 | BP-018 | Critical to Medium | Performance-linked Warchanter behavior contains reversed damage/save calls and missing ally effects. |
 | BP-019 | High design blocker | Runtime code and documentation assume incompatible performance resource and perk contracts. |
+
+## Implementation Progress
+
+Last updated: 2026-08-04 after repair batch 1 verification.
+
+Status meanings:
+
+- `Verified`: implemented and covered by the production-linked root suite.
+- `Implemented`: source repair is present, but finding-specific dynamic or
+  sanitizer coverage is still pending.
+- `Partial`: part of the finding is repaired and the remaining scope is named.
+- `Pending`: no source repair has been made for that finding.
+
+| ID | Status | Current evidence and remaining work |
+|----|--------|-------------------------------------|
+| BP-001 | Pending | Affect mutations still serialize and flush intermediate full lists. |
+| BP-002 | Implemented | All eight records now receive `new_affect()` and deterministic fields; add direct Songweaver and sanitizer coverage. |
+| BP-003 | Pending | Structured frames still use the truncating descriptor text queue. |
+| BP-004 | Pending | The engine still joins all eight affect slots. |
+| BP-005 | Pending | Serializer index and checked-write hardening remains. |
+| BP-006 | Verified | Bounds are checked before table access; root tests cover negative, maximum, and oversized indexes. |
+| BP-007 | Verified | Master of Motifs can add a distinct secondary song; the root suite preserves both slots. |
+| BP-008 | Partial | Central reset/slot teardown, spell interruption, disconnect cleanup, and the retired duplicate event path are repaired; add direct disconnect and Harmonic Casting tests. |
+| BP-009 | Verified | `clear_char()` and player initialization use `PERFORMANCE_NONE`; the root suite proves both slots begin absent. |
+| BP-010 | Implemented | Per-slot engine failure preserves or promotes the surviving song; direct helper coverage is present and forced engine-failure coverage remains. |
+| BP-011 | Verified | Input is trimmed and resolved before mutation; root tests cover whitespace, unknown, capitalized, ambiguous, duplicate, and unavailable replacements, and listing scans only valid feat indexes. |
+| BP-012 | Verified | `perform` has no fixed interpreter action gate; command preflight selects move or standard action and root tests cover both paths plus immediate list/stop. |
+| BP-013 | Pending | Timing constants, real-time behavior, Lingering Performance, and help text still need reconciliation. |
+| BP-014 | Pending | Eligibility, immunity, hearing, source ownership, and iterator work remains. |
+| BP-015 | Implemented | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns as room conflicts; direct active-NPC pulse coverage remains. |
+| BP-016 | Pending | Base performance mechanics matrix remains unresolved. |
+| BP-017 | Pending | Spellsinger behavior and placeholders remain unresolved. |
+| BP-018 | Pending | Warchanter call-order and missing ally effects remain unresolved. |
+| BP-019 | Pending | Resource and documentation contract still requires an explicit implementation decision. |
+
+### Repair Checkpoints
+
+- `a9f6eb5a` recorded the complete audit, documentation index entry, and the
+  synchronized 2.5038-beta development version before source repairs began.
+- Repair batch 1 covers BP-002 and BP-006 through BP-012, plus the lifecycle
+  portion of BP-015, and publishes as development version 2.5039-beta.
+  Verification: warning-clean GNU C23 build, `make test` with 372/372 passing
+  tests, and `make install`.
 
 ## Detailed Findings
 

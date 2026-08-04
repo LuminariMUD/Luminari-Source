@@ -3130,7 +3130,7 @@ cpp_extern const struct command_info cmd_info[] = {
      ACTION_NONE,
      {0, 0},
      NULL},
-    {"perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_STANDARD, {6, 0}, NULL},
+    {"perform", "perform", POS_FIGHTING, do_perform, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"powerfulblow",
      "powerfulblow",
      POS_FIGHTING,

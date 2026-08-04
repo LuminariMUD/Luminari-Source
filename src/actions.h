@@ -5,6 +5,8 @@
 #ifndef _ACTIONS_H_
 #define _ACTIONS_H_
 
+#include "mud_event.h"
+
 /* Defines for attack actions */
 #define AA_TRIP 0
 #define AA_CHARGE 1

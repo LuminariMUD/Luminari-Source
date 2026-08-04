@@ -264,6 +264,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_vessel_events.c \
@@ -295,6 +296,7 @@ cutest_test_files = \
 	unittests/CuTest/test_traps_production.c \
 	unittests/CuTest/test_combat_production.c \
 	unittests/CuTest/test_copyover_timer.c \
+	unittests/CuTest/test_bardic_performance.c \
 	unittests/CuTest/test_spells_skills_production.c \
 	unittests/CuTest/test_perfmon_production.c \
 	unittests/CuTest/test_vessel_events.c \

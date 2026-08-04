@@ -3716,10 +3716,10 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 
     /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
     int crescendo_sonic_dam = 0;
-    if (!IS_NPC(ch) && ch->char_specials.performance_vars[4] > 0)
+    if (!IS_NPC(ch) && GET_CRESCENDO_DICE(ch) > 0)
     {
-      crescendo_sonic_dam = dice(ch->char_specials.performance_vars[4], 6); /* 1d6 sonic damage */
-      ch->char_specials.performance_vars[4] = 0;                            /* Reset after use */
+      crescendo_sonic_dam = dice(GET_CRESCENDO_DICE(ch), 6);
+      GET_CRESCENDO_DICE(ch) = 0;
     }
 
     int result = damage(ch, victim, dam, spellnum, element, FALSE);

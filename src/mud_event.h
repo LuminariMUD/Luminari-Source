@@ -111,7 +111,7 @@ typedef enum
   eBATTLE_RAGE,                   /*more domain powers*/
   /*80*/ eCRYSTALFIST_AFF,        //  crystal fist affect
   eCRYSTALBODY_AFF,               //  crystal body affect
-  eBARDIC_PERFORMANCE,            // bard performance/song
+  eBARDIC_PERFORMANCE,            /* Retired bard performance event ID. */
   eENCOUNTER_REG_RESET,           // Reset event for encounter regions.
   eSEEKER_ARROW,                  /*pew pew seeker arrows!*/
   /*85*/ eIMBUE_ARROW,            /*pew pew imbued arrows!*/
@@ -327,7 +327,6 @@ EVENTFUNC(event_tracks);
 EVENTFUNC(event_combat_round);
 EVENTFUNC(event_action_cooldown);
 EVENTFUNC(event_trap_triggered);
-EVENTFUNC(event_bardic_performance);
 EVENTFUNC(event_preparation);
 EVENTFUNC(event_craft); /* NewCraft */
 EVENTFUNC(event_copyover);
