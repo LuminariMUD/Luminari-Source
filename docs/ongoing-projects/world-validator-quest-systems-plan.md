@@ -223,6 +223,18 @@ Last updated: 2026-08-05.
   line floor with 24,760 covered lines, proving that a single randomized pass
   was not a stable baseline. The corrected floors use all four available
   post-upgrade CI measurements rather than weakening any test or collector.
+- Completion-audit remote acceptance: complete GitHub Actions run
+  `30960033702` passed all six jobs at commit `954d7c1e`, including the 399-test
+  production entry point, 170-test world-data gate, 22-test protocol harness,
+  supported Luminari build, ASan/UBSan and fuzzing, exact Valgrind, coverage
+  floors, and coverage-artifact upload.
+- Permanent closeout evidence now records the accepted run, 399-test total,
+  ownership-clean sanitizer and Valgrind results, stable coverage floors, and
+  the removal of the unprovisioned third-party destination in the changelog,
+  CLI reference, and testing guide. The final QST and HLQ aggregate hashes are
+  identical to baseline. The restarted development service is active on port
+  4100, and its executable exactly matches installed `bin/circle` at SHA-256
+  `4253a7d2a077e1fadf6d75ff6c6b7bd235bbf162dae8a6cd727da24be25ed3c0`.
 - Completion-audit final local gate: a clean Autotools build and `make test`
   pass all 399 production-linked tests without compiler warnings. Exact
   Valgrind leak checking reports zero errors and no lost blocks. The complete
@@ -230,9 +242,8 @@ Last updated: 2026-08-05.
   22-test protocol, character-rename static/schema, and supporting shell
   suites; its final install leaves executable `bin/circle` and no root-level
   `circle` artifact.
-- Next implementation step: obtain one wholly green workflow with the
-  corrected coverage contract, then move the corrected evidence to permanent
-  docs and retire this plan.
+- Next implementation step: finish moving the corrected evidence to permanent
+  docs, recheck the protected quest-tree hashes, and retire this plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -1053,7 +1064,7 @@ without hiding failures or expanding supported campaign variants.
 - [x] T094 [S0605] Repair coverage generation for the runner's gcov output, ratchet both fixed coverage floors, and preserve the GitHub report upload.
 - [x] T095 [S0606] Repair production-test ownership cleanup so ASan and Valgrind pass without suppressions or disabled leak detection.
 - [x] T096 [S0607] Run fresh local world-tool, production, sanitizer, memory, coverage, Make, CMake, CTest, install, and no-root-artifact gates.
-- [ ] T097 [S0608] Push the repairs and verify one complete GitHub Actions workflow run is green at the accepted commit.
+- [x] T097 [S0608] Push the repairs and verify one complete GitHub Actions workflow run is green at the accepted commit.
 - [ ] T098 [S0609] Move corrected acceptance evidence to permanent docs, recheck live-data hashes, and complete T089 by retiring this plan again.
 
 ## 8. Acceptance Criteria
@@ -1075,7 +1086,7 @@ The project is complete only when all of the following are true:
 - [x] Positive, negative, boundary, recovery, graph, lookup, reporting, CLI, and no-mutation tests pass.
 - [x] `Makefile.am` and `CMakeLists.txt` contain synchronized source, test, fixture, and support-file lists.
 - [x] Make, CMake, CTest, constants, documentation, and wrapper gates pass.
-- [ ] The complete GitHub Actions workflow passes at the accepted commit.
+- [x] The complete GitHub Actions workflow passes at the accepted commit.
 - [x] Permanent QST and HLQ format guides exist and their bounded tables pass `docs --check`.
 - [x] `WORLD_VALIDATOR_CLI.md` accurately states eight-format coverage and remaining limitations.
 - [x] A hash-guarded development-world audit completes without changing a byte in either quest tree.

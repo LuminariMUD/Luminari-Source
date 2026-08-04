@@ -380,7 +380,7 @@ difficulty, event sequencing, or intended gameplay is correct.
 ## Version 0.2.0 Acceptance Snapshot
 
 The quest-system expansion was accepted against the development world on
-2026-08-04. The version and JSON contract were:
+2026-08-05. The version and JSON contract were:
 
 ```text
 $ python3 scripts/world/wtool.py --version
@@ -390,7 +390,17 @@ wtool 0.2.0
 JSON output remained at schema version 1 because quest and HLQ records,
 references, and findings are additive. The clean tracked gates passed all 170
 Python tests through both Make and CMake, all four focused CTest entries, all
-364 production-linked CuTests, and the required `make install` step.
+399 production-linked CuTests, and the required `make install` step.
+
+The completion audit accepted commit
+`954d7c1ece58f24867c1ac5c907eb2cb3a8d7457`. Its complete
+[GitHub Actions run](https://github.com/LuminariMUD/Luminari-Source/actions/runs/30960033702)
+passed all six jobs: world-data tools, `make test-all`, the supported Luminari
+behavioral build, ASan/UBSan plus bounded protocol fuzzing, exact Valgrind, and
+coverage. The coverage job passed 399 production tests and 22 protocol tests,
+reported 24,785 of 235,600 lines and 15,473 of 215,463 branches, enforced the
+stable 10.50-percent line and 7.16-percent branch floors, and uploaded the HTML,
+XML, and JSON reports as a GitHub artifact.
 
 The representative development-world lookup commands were:
 
@@ -430,7 +440,8 @@ and the audit did not repair live data. `validate --mini` reproduced the
 expected `IDX009` error for the absent development `hlq/index.mini`.
 
 The path-and-content aggregate hashes were identical before validation and
-after validation, lookups, server boot, and gameplay:
+after validation, lookups, server boot, gameplay, and the final 2026-08-05
+completion audit:
 
 ```text
 QST  9d80ee4d90c360c10d5c4b38eb939516b7928a2fb5cef76a61c8511393ce0655
@@ -438,7 +449,10 @@ HLQ  7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe
 ```
 
 After all static gates, the development service was restarted on the newly
-installed `bin/circle` and entered the game loop. QST 300 was listed at its
+installed `bin/circle` and entered the game loop. The final installed and
+running executable hashes both equal
+`4253a7d2a077e1fadf6d75ff6c6b7bd235bbf162dae8a6cd727da24be25ed3c0`.
+QST 300 was listed at its
 questmaster, joined, displayed through both progress views, and left. HLQ host
 374 answered its stored `hi` and `lumber` ASK entries. A second login confirmed
 the test character was back in its original room with all quest slots free and

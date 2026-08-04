@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - August 4, 2026
+## [Unreleased] - August 5, 2026
 
 ### Bardic performance and structured protocol repair
 
@@ -35,8 +35,8 @@ for development versions 2.5039-beta through 2.5043-beta.
 #### Verification
 
 - Clean warning-free GNU C23 optimized and ASan/UBSan builds pass all 399
-  production-linked root tests. Leak detection is disabled only for the known
-  suite-wide fixture leaks during the sanitizer run.
+  production-linked root tests with leak detection enabled. The exact
+  production-linked Valgrind gate reports zero errors and no lost blocks.
 - The focused protocol harness passes 22/22 tests, including MSDP and GMCP
   full-queue rejection, retained dirty state, and complete-frame retry.
 - `make install` produced an executable `bin/circle` and removed the root-level
@@ -91,6 +91,12 @@ backward-compatible extensions.
   and the `world-tools` GitHub Actions job now enforce the unit, fixture,
   constants, documentation, and wrapper contracts. CI intentionally validates
   tracked data only; ignored live world data is not available to the runner.
+- The completion audit aligned CI with the supported Luminari-only campaign,
+  installed the `ripgrep` dependency required by `make test-all`, pinned gcovr
+  8.6 for GCC 14 data, and retained coverage reports as GitHub artifacts. The
+  never-provisioned Codecov destination was removed after its API returned
+  `Repository not found`; local gcovr enforcement remains mandatory and its
+  stable floors were raised to 10.50 percent lines and 7.16 percent branches.
 - Builder quickstart, zone, shop, object-editor, QEDIT, HLQEDIT, and
   builder-manual workflows now use a save-validate-inspect-boot loop. The OLC
   system guide now distinguishes the two quest editors and their runtime
@@ -109,8 +115,14 @@ backward-compatible extensions.
   source constants, YAML, ASCII/UTF-8/LF, and generated-document checks are
   clean.
 - A clean GNU C23 production and `-DLUMINARI_CUTEST` build completes without
-  warnings. All 364 production-linked tests pass, and `make install` leaves an
+  warnings. All 399 production-linked tests pass, and `make install` leaves an
   executable `bin/circle` with no root-level `circle` artifact.
+- Complete GitHub Actions
+  [run 30960033702](https://github.com/LuminariMUD/Luminari-Source/actions/runs/30960033702)
+  passed all six jobs at accepted commit `954d7c1e`: world-data tools,
+  production-linked tests, the supported Luminari behavioral build,
+  ASan/UBSan plus protocol fuzzing, exact Valgrind, and coverage with report
+  artifact upload.
 - A hash-guarded `validate --all` development audit completed in 12.13 seconds
   at 301,620 KiB peak RSS. The whole world reported 41,468 existing findings:
   3,849 errors, 37,413 warnings, and 206 info findings. The quest-system scope
