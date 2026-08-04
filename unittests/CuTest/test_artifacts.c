@@ -150,6 +150,35 @@ static int artifact_test_file_contains(const char *path, const char *needle)
   return FALSE;
 }
 
+/* Like artifact_test_file_contains(), but the whole line has to match.  Object
+ * and mobile records are introduced by a bare "#<vnum>" line, and a substring
+ * search for "#16990" would also accept "#169901". */
+static int artifact_test_file_has_line(const char *path, const char *wanted)
+{
+  FILE *fl = NULL;
+  char line[READ_SIZE] = {'\0'};
+  size_t len = 0;
+
+  if (!(fl = fopen(path, "r")))
+    return FALSE;
+
+  while (fgets(line, sizeof(line), fl))
+  {
+    len = strlen(line);
+    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+      line[--len] = '\0';
+
+    if (!strcmp(line, wanted))
+    {
+      fclose(fl);
+      return TRUE;
+    }
+  }
+
+  fclose(fl);
+  return FALSE;
+}
+
 static const char *artifact_test_source_root(void)
 {
   const char *root = getenv("LUMINARI_TEST_ROOT");
@@ -658,53 +687,75 @@ void Test_artifact_v1_layout_loads_timestamp_separately(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, persisted);
 }
 
+/* The deployment package now lives in version control, so a fresh clone always
+ * has these records and this check is hermetic: it reads only tracked files.
+ * The package directory is exempted from the OLC ignore rules in .gitignore -
+ * see the "EXCEPTION: Keep the artifact deployment package" block there. */
 void Test_artifact_world_package_contains_all_deployable_records(CuTest *tc)
 {
   char path[PATH_MAX] = {'\0'};
   char needle[64] = {'\0'};
+  char failure[PATH_MAX + 128] = {'\0'};
   const char *root = artifact_test_source_root();
-  int complete = TRUE;
-  int vnum = 0;
+  int i = 0;
 
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.obj", root);
-  for (vnum = ART_VNUM_TRORXEK; vnum <= ART_VNUM_AEGIS; vnum++)
+  for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
   {
-    snprintf(needle, sizeof(needle), "#%d", vnum);
-    if (!artifact_test_file_contains(path, needle))
-      complete = FALSE;
-  }
-  for (vnum = ART_VNUM_VENGEANCE; vnum <= ART_VNUM_TWILIGHT; vnum++)
-  {
-    snprintf(needle, sizeof(needle), "#%d", vnum);
-    if (!artifact_test_file_contains(path, needle))
-      complete = FALSE;
+    snprintf(needle, sizeof(needle), "#%d", artifact_test_all_vnums[i]);
+    if (!artifact_test_file_has_line(path, needle))
+    {
+      snprintf(failure, sizeof(failure), "object prototype %s missing from %s", needle, path);
+      CuFail(tc, failure);
+      return;
+    }
   }
 
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.zon", root);
-  for (vnum = ART_VNUM_TRORXEK; vnum <= ART_VNUM_AEGIS; vnum++)
+  for (i = 0; i < ARTIFACT_TEST_ALL_COUNT; i++)
   {
-    snprintf(needle, sizeof(needle), "O 0 %d 1 169900", vnum);
+    snprintf(needle, sizeof(needle), "O 0 %d 1 %d", artifact_test_all_vnums[i], ART_VNUM_VAULT);
     if (!artifact_test_file_contains(path, needle))
-      complete = FALSE;
-  }
-  for (vnum = ART_VNUM_VENGEANCE; vnum <= ART_VNUM_TWILIGHT; vnum++)
-  {
-    snprintf(needle, sizeof(needle), "O 0 %d 1 169900", vnum);
-    if (!artifact_test_file_contains(path, needle))
-      complete = FALSE;
+    {
+      snprintf(failure, sizeof(failure), "vault reset '%s' missing from %s", needle, path);
+      CuFail(tc, failure);
+      return;
+    }
   }
 
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.wld", root);
-  complete = complete && artifact_test_file_contains(path, "#169900");
+  snprintf(needle, sizeof(needle), "#%d", ART_VNUM_VAULT);
+  if (!artifact_test_file_has_line(path, needle))
+  {
+    snprintf(failure, sizeof(failure), "vault room %s missing from %s", needle, path);
+    CuFail(tc, failure);
+    return;
+  }
+
   snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.mob", root);
   snprintf(needle, sizeof(needle), "#%d", ART_VNUM_OAKEN_DEFENDER);
-  complete = complete && artifact_test_file_contains(path, needle);
-  snprintf(path, sizeof(path), "%s/lib/world/artifacts/artifacts.hlp", root);
-  complete = complete && artifact_test_file_contains(path, "ARTIFACT ARTIFACTS");
-  snprintf(path, sizeof(path), "%s/scripts/provision_artifacts.sh", root);
-  complete = complete && artifact_test_file_contains(path, "ensure_index_entry");
+  if (!artifact_test_file_has_line(path, needle))
+  {
+    snprintf(failure, sizeof(failure), "mobile %s missing from %s", needle, path);
+    CuFail(tc, failure);
+    return;
+  }
 
-  CuAssertIntEquals(tc, TRUE, complete);
+  snprintf(path, sizeof(path), "%s/lib/world/artifacts/artifacts.hlp", root);
+  if (!artifact_test_file_contains(path, "ARTIFACT ARTIFACTS"))
+  {
+    snprintf(failure, sizeof(failure), "help entry missing from %s", path);
+    CuFail(tc, failure);
+    return;
+  }
+
+  snprintf(path, sizeof(path), "%s/scripts/provision_artifacts.sh", root);
+  if (!artifact_test_file_contains(path, "ensure_index_entry"))
+  {
+    snprintf(failure, sizeof(failure), "provisioner missing or unusable: %s", path);
+    CuFail(tc, failure);
+    return;
+  }
 }
 
 /* --------------------------------------------------------------------------

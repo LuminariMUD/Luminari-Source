@@ -1,0 +1,120 @@
+ARTIFACT ARTIFACTS
+
+Usage: artifact
+       artifact roster
+       artifact chronicle <name>
+       artifact list
+       artifact info <item>
+       artifact progress
+       artifact abilities
+
+Artifacts are unique items of power. Each one exists only once in the world.
+Artifacts grow stronger as they are used, rising from level 1 to level 5, and
+every bonus they grant scales with that level.
+
+Many artifacts bind themselves to a single owner. A bind-on-pickup artifact
+claims you the moment you take it; a bind-on-equip artifact waits until you
+first wear it; a bind-on-account artifact can be shared between your own
+characters. A bound artifact will not answer to anyone else.
+
+Some artifacts grant an ability you invoke by name, such as SOULSTRIKE,
+DIVINEWARD, or DOOMBLAST. Use 'artifact abilities' to see which of yours are
+ready.
+
+Others answer to words. Hold or wear the artifact and use the channel it
+listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
+command. Each artifact decides which. Each such effect recharges on its own
+clock, from once an hour to once a week, independently of every other effect
+on the same artifact, and those clocks survive a reboot. Use
+'artifact info <item>' to see exactly how to speak to an artifact and whether
+each of its powers is ready.
+
+Some artifacts grant always-on powers - senses, speed, protections - simply
+for being worn. Many of those stay locked until the artifact has grown into
+them. 'artifact info <item>' shows both what is active now and what is still
+to come.
+
+Temporary artifact powers of the same kind do not stack with each other. A
+rage and a battle surge are the same thing happening to you, and the first
+one holds until it runs out.
+
+A few artifacts are sworn to a single class and demand real depth in it. Wear
+one without that depth and it will burn you every tick you keep it on, it
+will not tell you its phrases, and it will not answer when you speak them.
+
+See also: ARTIFACT ROSTER, INVOKE, SOULSTRIKE, DIVINEWARD, DOOMBLAST
+#0
+ARTIFACT ROSTER ARTIFACT CHRONICLE CHRONICLE ROSTER
+
+Usage: artifact roster
+       artifact chronicle <name>
+
+The chronicle is the public record of the artifacts of this world. It lists
+every artifact that exists in this campaign and what is currently known of
+it:
+
+  unawakened   nobody has ever claimed it, and its name is not yet spoken
+  unclaimed    it has been found before, and is free again
+  held         someone is carrying it
+  lost         it is owned, but its bearer is not in play
+  recoverable  it is owned on record and no longer anywhere in the world
+
+The chronicle is deliberately incomplete. An artifact nobody has ever found
+is listed only as a rumour, without its name. How an artifact is found stays
+out of the record until somebody has actually done it and let the artifact go
+again. Bearers are named only when that particular artifact's story is a
+public one; otherwise the chronicle names the first bearer instead, which is
+history and cannot be used to find anyone.
+
+The chronicle never records where an artifact is. It is a rumour board, not a
+treasure map.
+
+'artifact chronicle <name>' gives the fuller entry for one artifact you have
+heard of: its lore, how it is come by, and its custody history - when it was
+first claimed, how often it has changed hands, and whether the gods have ever
+had to reach into the world and pull it back out.
+
+See also: ARTIFACT
+#0
+INVOKE
+
+Usage: invoke
+       invoke <word>
+
+A few artifacts do not answer to ordinary speech at all. They answer to a
+command, given deliberately.
+
+Typed on its own, 'invoke' lists every such word that something you are
+carrying will answer to. With a word, it speaks that word to whatever is
+listening.
+
+Other artifacts listen on other channels: most answer to a phrase SAID aloud,
+and some to one WHISPERED. Use 'artifact info <item>' to see which channel a
+particular artifact uses. An artifact only ever answers on its own channel.
+
+See also: ARTIFACT
+#0
+SOULSTRIKE DIVINEWARD DOOMBLAST
+
+Usage: soulstrike <target>
+       divineward
+       doomblast
+
+These are artifact abilities. Each one only works while you have the artifact
+that grants it equipped, and each costs psionic energy and has its own
+cooldown.
+
+SOULSTRIKE hurls a bolt of soul energy at a single target. DIVINEWARD wraps
+you in a sanctuary of divine light. DOOMBLAST unleashes a wave of doom on
+hostile creatures in the room.
+
+Using an artifact ability also feeds experience to the artifact itself.
+
+Artifact abilities are separate from an artifact's called effects, which are
+invoked by speaking a phrase on the artifact's own channel rather than by
+typing a command. Ability cooldowns and called-effect recharges both survive
+a reboot.
+
+See also: ARTIFACT, INVOKE
+#0
+$~

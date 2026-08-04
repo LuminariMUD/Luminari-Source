@@ -329,6 +329,11 @@ src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 
 # Extra files to distribute
 EXTRA_DIST = \
+	lib/world/artifacts/1699.mob \
+	lib/world/artifacts/1699.obj \
+	lib/world/artifacts/1699.wld \
+	lib/world/artifacts/1699.zon \
+	lib/world/artifacts/artifacts.hlp \
 	unittests/README.md \
 	unittests/CuTest/Makefile \
 	unittests/CuTest/README.txt \

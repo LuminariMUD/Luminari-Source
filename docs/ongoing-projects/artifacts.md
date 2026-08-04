@@ -62,11 +62,11 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 
 ### 0.4 Remaining work
 
-- Sections 1 through 4 below (packaging, live placement, booted-world
-  integration coverage, and the balance pass) are unchanged by this work and
-  are still open. Section 2 in particular: the six new artifacts reset into
-  the vault, so their contracts declare an intended acquisition route that
-  world content does not yet implement.
+- Section 1 (packaging) is now **DONE**; see that section for what landed.
+- Sections 2 through 4 below (live placement, booted-world integration
+  coverage, and the balance pass) are still open. Section 2 in particular:
+  the six new artifacts reset into the vault, so their contracts declare an
+  intended acquisition route that world content does not yet implement.
 - Section 10's world-content half is builder work: the code stages the lore
   and hint text and gates it by discovery, but wiring NPC dialogue to it is
   done with ordinary DG scripts against `artifact chronicle`.
@@ -95,31 +95,26 @@ Sections 1 through 8 track unfinished LuminariMUD work. The second half of
 this file is the complete HomelandMUD artifact-system study requested for
 future design and content work.
 
-## 1. Put the deployment package under version control
+## 1. Put the deployment package under version control - DONE
 
-`lib/world/artifacts/` contains the required zone, room, object, mobile, and
-help sources, but `.gitignore` excludes the entire directory. A fresh clone
-therefore has no input for `scripts/provision_artifacts.sh`, and both
-`scripts/deployment/setup.sh` and `scripts/deployment/deploy.sh` fail when the provisioner tries to
-copy the first missing source file.
+Resolved with a narrow Git exception, mirroring the pattern `.gitignore`
+already uses for `lib/world/minimal/`. `lib/world/artifacts/` is no longer
+excluded by the OLC ignore rules, so the zone, room, object, mobile, and help
+sources ship with the repository. That directory is a read-only package
+source; OLC edits the provisioned copies under `lib/world/obj`,
+`lib/world/zon`, `lib/world/wld`, and `lib/world/mob`, which stay ignored.
 
-Choose and implement one durable packaging model:
+Delivered:
 
-- move the package to a tracked data directory outside the OLC ignore rules;
-- add a narrow Git exception for the package; or
-- generate the complete package from a tracked source.
-
-Acceptance criteria:
-
-- a fresh clone contains or can generate object prototypes 169901-169911,
-  vault room 169900, zone 1699, Oaken Defender mobile 169912, and artifact
-  help entries;
-- `scripts/provision_artifacts.sh` succeeds on a fresh clone and remains
-  idempotent;
-- setup and deployment no longer depend on files retained from a developer
-  machine;
-- `Test_artifact_world_package_contains_all_deployable_records` is either
-  made hermetic or moved out of the unit suite into a deployment check.
+- `.gitignore` - removed the blanket `lib/world/artifacts/` exclusion and
+  added an explicit, commented exception block;
+- `Makefile.am` - the five package files are listed in `EXTRA_DIST`, so
+  `make dist` carries them too;
+- `unittests/CuTest/test_artifacts.c` -
+  `Test_artifact_world_package_contains_all_deployable_records` is now
+  hermetic (it reads only tracked files), checks all seventeen artifact
+  vnums rather than two hard-coded ranges, matches record headers on the
+  whole line instead of by substring, and reports the exact missing record.
 
 ## 2. Place artifacts in player-facing content
 

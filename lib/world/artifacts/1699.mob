@@ -1,0 +1,32 @@
+#169912
+oaken defender treant~
+@ythe Oaken Defender@n~
+@yAn ancient treant stands guard, its bark scarred by a thousand seasons.@n
+~
+@yCalled out of Trorxek, the Staff of Ancient Oaks, the Oaken Defender is less
+a summoned creature than a promise kept.  Its trunk is knotted oak grown black
+with age, its arms are limbs thick enough to shatter a shield wall, and its
+eyes are two slow amber lights set deep in the grain.  It does not speak.  It
+simply places itself between its caller and whatever is coming.@n
+~
+83886088 0 0 0 0 0 0 0 1000 E
+20 12 -8 1d20+220 1d16+8
+200 12000
+9 9 0
+Str: 22
+Int: 12
+Wis: 16
+Dex: 10
+Con: 22
+Cha: 12
+SavingFort: 9
+SavingWill: 9
+SavingRefl: 4
+SavingPoison: 9
+SavingDeath: 9
+BareHandAttack: 8
+Race: 1
+Class: 3
+Size: 5
+E
+$

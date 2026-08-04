@@ -289,7 +289,6 @@ lib/world/hlq/*.hlq
 # World Files (OLC)
 ####################
 # These are edited in-game via OLC and should not be in version control
-lib/world/artifacts/
 lib/world/mob/*.mob
 lib/world/obj/*.obj
 lib/world/wld/*.wld
@@ -310,6 +309,13 @@ lib/world/*/index.backup
 # EXCEPTION: Keep minimal world files (required for deployment)
 !lib/world/minimal/
 !lib/world/minimal/*
+
+# EXCEPTION: Keep the artifact deployment package (required for deployment).
+# This directory is the tracked source that scripts/provision_artifacts.sh
+# reads.  It is never written by OLC; OLC edits the provisioned copies under
+# lib/world/obj, lib/world/zon, lib/world/wld, and lib/world/mob instead.
+!lib/world/artifacts/
+!lib/world/artifacts/*
 
 ####################
 # Text Files (In-Game Edited)

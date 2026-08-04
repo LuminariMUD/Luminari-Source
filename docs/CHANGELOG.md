@@ -2,6 +2,26 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Artifact deployment package is now version controlled
+
+#### Fixed
+
+- `lib/world/artifacts/` is no longer excluded by the OLC ignore rules. The
+  artifact zone, vault room, object prototypes, Oaken Defender mobile, and
+  help sources ship with the repository, so `scripts/provision_artifacts.sh`
+  works on a fresh clone and `scripts/deployment/setup.sh` and
+  `scripts/deployment/deploy.sh` no longer depend on files retained from a
+  developer machine. The exception mirrors the one `.gitignore` already
+  carries for `lib/world/minimal/`; the provisioned copies under
+  `lib/world/obj`, `lib/world/zon`, `lib/world/wld`, and `lib/world/mob`
+  remain ignored because OLC writes them.
+- `Makefile.am` distributes the five package files, so `make dist` output is
+  deployable as well.
+- `Test_artifact_world_package_contains_all_deployable_records` is now
+  hermetic. It reads only tracked files, covers all seventeen artifact
+  vnums instead of two hard-coded ranges, matches record headers on the whole
+  line rather than by substring, and names the missing record when it fails.
+
 ### Bug backlog review
 
 - Completed the verified dev/local source-code backlog and the separate
