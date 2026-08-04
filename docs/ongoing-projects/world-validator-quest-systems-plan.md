@@ -40,7 +40,7 @@ Last updated: 2026-08-04.
   `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
   checkpoint `3876e318`; Session 4 graph checkpoint `d6a8ad8e`; Session 4
   semantic checkpoint `6bb7385b`; Session 4 lookup/reporting checkpoint
-  pending at this update.
+  `af0953f0`.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -109,9 +109,14 @@ Last updated: 2026-08-04.
 - Session 4 final verification: 10 lookup and four reporting tests pass. Both
   Make and CMake `test-world-tools` targets pass all 169 tests plus their
   wrapper/fixture checks, and all four `world-tool*` CTest entries pass.
-- Next implementation step: write and wire the permanent QST/HLQ format and
-  CLI/builder documentation, then complete CI, operational audit, build,
-  install, and development playtest evidence.
+- Session 5 format documentation: added permanent QST and HLQ references,
+  including every source-derived type, flag, and command table; registered
+  both guides with the ASCII/UTF-8/LF and source-table documentation gate;
+  and explicitly retained Markdown-only publication. Six focused docs tests
+  and `wtool docs --check` pass with zero findings.
+- Next implementation step: update the CLI, builder, OLC, testing, utility,
+  index, workflow, and changelog documentation, then complete the operational
+  audit, build, install, and development playtest evidence.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -891,14 +896,14 @@ ctest --test-dir build --output-on-failure -R '^world-tool'
 Goal: make the feature discoverable, enforced, and proven against development
 data without changing that data.
 
-- [ ] T072 [S0501] Write `QUEST_FILE_FORMAT.md` from the verified Luminari loader/writer contract.
-- [ ] T073 [S0502] Write `HLQUEST_FILE_FORMAT.md`, including command legality and physical/runtime order.
+- [x] T072 [S0501] Write `QUEST_FILE_FORMAT.md` from the verified Luminari loader/writer contract.
+- [x] T073 [S0502] Write `HLQUEST_FILE_FORMAT.md`, including command legality and physical/runtime order.
 - [ ] T074 [S0503] Expand `WORLD_VALIDATOR_CLI.md` from six to eight formats and document all new commands, findings, and limitations.
 - [ ] T075 [S0504] Update Builder Quickstart and the builder manual with QEDIT/HLQEDIT validation loops.
 - [ ] T076 [S0505] Correct and expand the OLC system documentation for both quest editors.
 - [ ] T077 [S0506] Update the testing guide, utilities README, and technical documentation master index.
-- [ ] T078 [S0507] Add both guides and their source-backed type/flag/command tables to `docs --check`.
-- [ ] T079 [S0508] Decide and implement or explicitly decline generated HTML routing for the new guides.
+- [x] T078 [S0507] Add both guides and their source-backed type/flag/command tables to `docs --check`.
+- [x] T079 [S0508] Decide and implement or explicitly decline generated HTML routing for the new guides.
 - [ ] T080 [S0509] Finalize Makefile/CMake support-file lists and verify they remain exactly synchronized.
 - [ ] T081 [S0510] Verify GitHub Actions path filters and world-tool steps cover all new sources and docs.
 - [ ] T082 [S0511] Run `make test-world-tools`, the equivalent CMake target, and all focused CTest world-tool entries from clean outputs.

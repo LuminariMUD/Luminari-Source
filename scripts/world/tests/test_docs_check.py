@@ -32,6 +32,17 @@ class DocumentationCheckTests(unittest.TestCase):
     findings = _table_findings(text, spec, self.manifest["tables"][spec.table_key]["entries"])
     self.assertTrue(any(finding.code == "DOC005" for finding in findings))
 
+  def test_quest_system_source_tables_are_registered(self) -> None:
+    registered = {(spec.path, spec.table_key) for spec in TABLE_SPECS}
+    self.assertTrue(
+        {
+            ("docs/world_game-data/QUEST_FILE_FORMAT.md", "quest-types"),
+            ("docs/world_game-data/QUEST_FILE_FORMAT.md", "quest"),
+            ("docs/world_game-data/HLQUEST_FILE_FORMAT.md", "hlquest-entry-types"),
+            ("docs/world_game-data/HLQUEST_FILE_FORMAT.md", "hlquest-commands"),
+        }.issubset(registered)
+    )
+
   def test_explicit_command_section_extracts_registered_commands(self) -> None:
     spec = COMMAND_SECTIONS[0]
     text = (self.repo_root / spec.path).read_text(encoding="ascii")

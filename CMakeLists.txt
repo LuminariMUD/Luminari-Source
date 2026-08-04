@@ -888,7 +888,9 @@ set(WORLD_TOOL_SUPPORT_FILES
     docs/world_game-data/BUILDER_QUICKSTART.md
     docs/world_game-data/CRAFTING_SYSTEM_NOTES.md
     docs/world_game-data/MOB_FLAGS.md
+    docs/world_game-data/HLQUEST_FILE_FORMAT.md
     docs/world_game-data/OEDIT_GUIDE.md
+    docs/world_game-data/QUEST_FILE_FORMAT.md
     docs/world_game-data/ROOM_FLAGS.md
     docs/world_game-data/SHOP_FILE_FORMAT.md
     docs/world_game-data/ZONE_FILE_FORMAT.md
