@@ -40,7 +40,9 @@ Last updated: 2026-08-04.
   `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
   checkpoint `3876e318`; Session 4 graph checkpoint `d6a8ad8e`; Session 4
   semantic checkpoint `6bb7385b`; Session 4 lookup/reporting checkpoint
-  `af0953f0`.
+  `af0953f0`; Session 5 format documentation checkpoint `2edab3a9`;
+  integration-documentation checkpoint `da27dc94`; and release-gate evidence
+  checkpoint `57e6db6f`.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -151,8 +153,28 @@ Last updated: 2026-08-04.
   `9d80ee4d90c360c10d5c4b38eb939516b7928a2fb5cef76a61c8511393ce0655`
   and HLQ remains
   `7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe`.
-- Next implementation step: complete the development boot/playtest, publish
-  permanent acceptance evidence, and close the working plan.
+- Session 5 development boot/playtest: the documented user-level development
+  service was restarted after confirming that its old deleted executable did
+  not match the newly installed binary. The restarted process and
+  `bin/circle` both had SHA-256
+  `9fc69a23066295b0f6c63d622e65f9b6a42ae9d6dfb5a6d1dde63772374dcdd9`,
+  and the server entered the game loop. Existing builder and optional-service
+  boot diagnostics remained visible; none prevented the selected flows.
+- Live QST evidence: at Ambah in room 370, `quest list` resolved index 1 to
+  QST 300, `quest join 1` accepted it, both queue and detailed progress named
+  `Complete a Supply Order`, and `quest leave 0` restored the empty slot.
+- Live HLQ evidence: at Sazzy in room 374, `ask sazzy hi` and
+  `ask sazzy lumber` returned the stored HLQ 374 dialogue. A post-logout login
+  confirmed Kohdee was restored to room 1204 with all three quest slots free,
+  zero completed quests, and zero quest points.
+- Playtest hash guard: QST and HLQ hashes remained identical to baseline after
+  boot and gameplay. Static validation cannot prove NPC availability after
+  resets, quest-special dispatch, player queue persistence, or speech-trigger
+  dialogue; the live checks proved those paths for the selected records. It
+  still cannot prove autocraft completion/rewards or HLQ GIVE/ROOM/output
+  effects, which require scenario-specific gameplay tests.
+- Next implementation step: publish permanent acceptance evidence and close
+  the working plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -947,7 +969,7 @@ data without changing that data.
 - [x] T084 [S0513] Hash-guard and run `validate --all`, `--mini`, representative `--zone`, `show`, and `refs` against development QST/HLQ data.
 - [x] T085 [S0514] Classify the live findings into validator defects, server-source hazards, and builder-owned data issues; fix only validator defects in scope.
 - [x] T086 [S0515] Record aggregate counts, elapsed time, peak memory, and before/after hash evidence without committing live data or sensitive paths.
-- [ ] T087 [S0516] Boot the development server and playtest one QST and one HLQ flow after validator gates pass; record what static validation cannot prove.
+- [x] T087 [S0516] Boot the development server and playtest one QST and one HLQ flow after validator gates pass; record what static validation cannot prove.
 - [ ] T088 [S0517] Update `docs/CHANGELOG.md`, final CLI examples, version output, and acceptance evidence.
 - [ ] T089 [S0518] Remove this completed working plan and its ongoing-project index row only after all durable content and evidence have moved to permanent docs.
 
@@ -984,7 +1006,7 @@ The project is complete only when all of the following are true:
 - [ ] `WORLD_VALIDATOR_CLI.md` accurately states eight-format coverage and remaining limitations.
 - [ ] A hash-guarded development-world audit completes without changing a byte in either quest tree.
 - [ ] Every observed live finding is classified; no known validator defect is left hidden as a data issue.
-- [ ] Development boot and representative QST/HLQ playtests complete after static validation.
+- [x] Development boot and representative QST/HLQ playtests complete after static validation.
 - [ ] No ignored live quest file, credential file, protected configuration header, or production system is modified.
 
 ## 9. Known Risks and Decisions Already Made
