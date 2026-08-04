@@ -6,17 +6,24 @@ date.
 
 Implementation progress:
 
-- [ ] Phase 0 - Foundation, constants, and indexes
+- [x] Phase 0 - Foundation, constants, and indexes
 - [ ] Phase 1 - Zones, rooms, and critical references
 - [ ] Phase 2 - Mobiles, objects, triggers, shops, and full references
 - [ ] Phase 3 - Semantic and topology lint
 - [ ] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): repository and environment state reconciled;
-implementation is starting with the Phase 0 source contracts. Phase 5 remains
-the separately gated emitter follow-on described below and is not part of this
-validator closeout.
+Current checkpoint (2026-08-04): Phase 0 is implemented. The source-derived
+manifest contains all selected tables, bounded macros, aliases, reserved
+entries, encoding metadata, and parser limits. The source cursor, typed finding
+and record models, deterministic reporters, four-chunk flag commands, normal
+and mini index validation, Autotools/CMake test targets, and lightweight CI job
+are in place. `make test-world-tools` passes 32 tests; the equivalent CMake
+target and CTest entry pass the same suite; `constants sync --check` is clean.
+The Phase 0 index-only development-world run completed with no errors and 329
+`IDX008` unlisted-file warnings, while mini mode completed with no findings.
+Phase 1 zone and room parsing is next. Phase 5 remains the separately gated
+emitter follow-on described below and is not part of this validator closeout.
 
 This is the build plan for `wtool`, a standalone world-data validator and
 lookup CLI intended primarily for AI agents doing world-building work, and

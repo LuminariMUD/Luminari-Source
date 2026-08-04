@@ -1,0 +1,4508 @@
+{
+  "flag_encoding": {
+    "chunk_width": 32,
+    "decoder_alphabet": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "serialized_chunks": 4,
+    "writer_alphabet": "abcdefghijklmnopqrstuvwxyzABCDEF"
+  },
+  "flag_set_aliases": {
+    "obj-affect": "affect",
+    "obj-affect2": "affect2"
+  },
+  "limits": {
+    "MAX_FILEPATH": {
+      "source": "src/structs.h:MAX_FILEPATH",
+      "value": 256
+    },
+    "MAX_MOVING_ROOMS": {
+      "source": "src/structs.h:MAX_MOVING_ROOMS",
+      "value": 150
+    },
+    "MAX_OBJ_AFFECT": {
+      "source": "src/structs.h:MAX_OBJ_AFFECT",
+      "value": 6
+    },
+    "MAX_PATH": {
+      "source": "src/structs.h:MAX_PATH",
+      "value": 50
+    },
+    "MAX_SHOP_OBJ": {
+      "source": "src/obj/shop.h:MAX_SHOP_OBJ",
+      "value": 100
+    },
+    "MAX_STRING_LENGTH": {
+      "source": "src/structs.h:MAX_STRING_LENGTH",
+      "value": 49152
+    },
+    "MAX_WEAPON_SPELLS": {
+      "source": "src/structs.h:MAX_WEAPON_SPELLS",
+      "value": 3
+    },
+    "READ_SIZE": {
+      "source": "src/utils.h:READ_SIZE",
+      "value": 512
+    },
+    "RQ_MAXSIZE": {
+      "source": "src/db.h:RQ_MAXSIZE",
+      "value": 127
+    }
+  },
+  "schema_version": 1,
+  "source_branch": "LUMINARI",
+  "tables": {
+    "affect": {
+      "count_symbol": "NUM_AFF_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "AFF_DONTUSE",
+          "name": "\u0000",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "AFF_BLIND",
+          "name": "Blinded",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "AFF_INVISIBLE",
+          "name": "Invisible",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "AFF_DETECT_ALIGN",
+          "name": "Detect-Alignment",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "AFF_DETECT_INVIS",
+          "name": "Detect-Invisible",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "AFF_DETECT_MAGIC",
+          "name": "Detect-Magic",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "AFF_SENSE_LIFE",
+          "name": "Sense-Life",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "AFF_WATERWALK",
+          "name": "Water-Walk",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "AFF_SANCTUARY",
+          "name": "Sanctuary",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "AFF_GROUP",
+          "name": "OnLoad MobGroup",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "AFF_CURSE",
+          "name": "Cursed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "AFF_INFRAVISION",
+          "name": "Infra-Vision",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "AFF_POISON",
+          "name": "Poison",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "AFF_PROTECT_EVIL",
+          "name": "Protect-Evil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "AFF_PROTECT_GOOD",
+          "name": "Protect-Good",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "AFF_SLEEP",
+          "name": "Sleep",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "AFF_NOTRACK",
+          "name": "Not-Trackable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "AFF_FLYING",
+          "name": "Flying",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "AFF_WATER_BREATH"
+          ],
+          "index": 18,
+          "macro": "AFF_SCUBA",
+          "name": "Underwater-Breathing",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "AFF_SNEAK",
+          "name": "Sneaking",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "AFF_HIDE",
+          "name": "Hiding",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "AFF_VAMPIRIC_CURSE",
+          "name": "Vampiric-Curse",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "AFF_CHARM",
+          "name": "Charmed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "AFF_BLUR",
+          "name": "Blurred",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "AFF_POWER_ATTACK",
+          "name": "Mode-PowerAttack",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "AFF_EXPERTISE",
+          "name": "Mode-Expertise",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "AFF_HASTE",
+          "name": "Hasted",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "AFF_TOTAL_DEFENSE",
+          "name": "Mode-Total-Defense",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "AFF_ELEMENT_PROT",
+          "name": "Protect-Elements",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "AFF_DEAF",
+          "name": "Deaf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "AFF_FEAR",
+          "name": "Fear",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "AFF_STUN",
+          "name": "Stunned",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "AFF_PARALYZED",
+          "name": "Paralyzed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "AFF_ULTRAVISION",
+          "name": "Ultra-Vision",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "AFF_GRAPPLED",
+          "name": "Grappled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "AFF_TAMED",
+          "name": "Tamed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "AFF_CLIMB",
+          "name": "Climb",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 37,
+          "macro": "AFF_NAUSEATED",
+          "name": "Nauseated",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 38,
+          "macro": "AFF_NON_DETECTION",
+          "name": "Non-Detection",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 39,
+          "macro": "AFF_SLOW",
+          "name": "Slowed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 40,
+          "macro": "AFF_FSHIELD",
+          "name": "Fire-Shielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 41,
+          "macro": "AFF_CSHIELD",
+          "name": "Cold-Shielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 42,
+          "macro": "AFF_MINOR_GLOBE",
+          "name": "Minor-Globed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 43,
+          "macro": "AFF_ASHIELD",
+          "name": "Acid-Shielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 44,
+          "macro": "AFF_SIZECHANGED",
+          "name": "Size-Changed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 45,
+          "macro": "AFF_TRUE_SIGHT",
+          "name": "True-Sight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 46,
+          "macro": "AFF_SPOT",
+          "name": "Spot-Mode",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 47,
+          "macro": "AFF_FATIGUED",
+          "name": "Fatigued",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 48,
+          "macro": "AFF_REGEN",
+          "name": "Regenerating",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 49,
+          "macro": "AFF_DISEASE",
+          "name": "Diseased",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 50,
+          "macro": "AFF_TFORM",
+          "name": "T-Transform",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 51,
+          "macro": "AFF_GLOBE_OF_INVULN",
+          "name": "Globe-of-Invuln",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 52,
+          "macro": "AFF_LISTEN",
+          "name": "Listen-Mode",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 53,
+          "macro": "AFF_DISPLACE",
+          "name": "Displaced",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 54,
+          "macro": "AFF_SPELL_MANTLE",
+          "name": "Spell-Mantled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 55,
+          "macro": "AFF_CONFUSED",
+          "name": "Confused",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 56,
+          "macro": "AFF_REFUGE",
+          "name": "Refuged",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 57,
+          "macro": "AFF_SPELL_TURNING",
+          "name": "Spell-Turning",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 58,
+          "macro": "AFF_MIND_BLANK",
+          "name": "Mind-Blanked",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 59,
+          "macro": "AFF_SHADOW_SHIELD",
+          "name": "Shadow-Shielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 60,
+          "macro": "AFF_TIME_STOPPED",
+          "name": "Time-Stopped",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 61,
+          "macro": "AFF_BRAVERY",
+          "name": "Bravery",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 62,
+          "macro": "AFF_FREE_MOVEMENT",
+          "name": "Free-Movement",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 63,
+          "macro": "AFF_FAERIE_FIRE",
+          "name": "Faerie-Fired",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 64,
+          "macro": "AFF_BATTLETIDE",
+          "name": "Battletide",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 65,
+          "macro": "AFF_SPELL_RESISTANT",
+          "name": "Spell-Resistant",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 66,
+          "macro": "AFF_DIM_LOCK",
+          "name": "Dimensional-Locked",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 67,
+          "macro": "AFF_DEATH_WARD",
+          "name": "Death-Ward",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 68,
+          "macro": "AFF_SPELLBATTLE",
+          "name": "Mode-Spellbattle",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 69,
+          "macro": "AFF_VAMPIRIC_TOUCH",
+          "name": "Vampiric-Touch",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 70,
+          "macro": "AFF_BLACKMANTLE",
+          "name": "Blackmantled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 71,
+          "macro": "AFF_DANGERSENSE",
+          "name": "Danger-Sense",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 72,
+          "macro": "AFF_SAFEFALL",
+          "name": "SafeFall",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 73,
+          "macro": "AFF_TOWER_OF_IRON_WILL",
+          "name": "Tower-of-Iron-Will",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 74,
+          "macro": "AFF_INERTIAL_BARRIER",
+          "name": "Inertial-Barrier",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 75,
+          "macro": "AFF_NOTELEPORT",
+          "name": "Not-teleportable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 76,
+          "macro": "AFF_MAX_DAMAGE",
+          "name": "DamageBoost",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 77,
+          "macro": "AFF_IMMATERIAL",
+          "name": "Incorporeal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 78,
+          "macro": "AFF_CAGE",
+          "name": "Caged",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 79,
+          "macro": "AFF_MAGE_FLAME",
+          "name": "Mage-Flamed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 80,
+          "macro": "AFF_DARKVISION",
+          "name": "Dark-Vision",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 81,
+          "macro": "AFF_BODYWEAPONRY",
+          "name": "Body-Weaponry",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 82,
+          "macro": "AFF_FARSEE",
+          "name": "Farsee",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 83,
+          "macro": "AFF_MENZOCHOKER",
+          "name": "Menz-Choker",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 84,
+          "macro": "AFF_RAPID_SHOT",
+          "name": "Mode-RapidShot",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 85,
+          "macro": "AFF_DAZED",
+          "name": "Dazed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 86,
+          "macro": "AFF_FLAT_FOOTED",
+          "name": "Flat-footed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 87,
+          "macro": "AFF_DUAL_WIELD",
+          "name": "Dual-wield",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 88,
+          "macro": "AFF_FLURRY_OF_BLOWS",
+          "name": "Flurry-of-Blows",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 89,
+          "macro": "AFF_COUNTERSPELL",
+          "name": "Counterspell",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 90,
+          "macro": "AFF_DEFENSIVE_CASTING",
+          "name": "Defensive-Casting",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 91,
+          "macro": "AFF_WHIRLWIND_ATTACK",
+          "name": "Whirlwind-Attack",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 92,
+          "macro": "AFF_CHARGING",
+          "name": "Charging",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 93,
+          "macro": "AFF_WILD_SHAPE",
+          "name": "WildShape",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 94,
+          "macro": "AFF_FEINTED",
+          "name": "Feinted",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 95,
+          "macro": "AFF_PINNED",
+          "name": "Pinned",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 96,
+          "macro": "AFF_MIRROR_IMAGED",
+          "name": "Mirror-Imaged",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 97,
+          "macro": "AFF_WARDED",
+          "name": "Warded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 98,
+          "macro": "AFF_ENTANGLED",
+          "name": "Entangled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 99,
+          "macro": "AFF_ACROBATIC",
+          "name": "Acrobatic",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 100,
+          "macro": "AFF_BLINKING",
+          "name": "Blinking",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 101,
+          "macro": "AFF_AWARE",
+          "name": "Aware",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 102,
+          "macro": "AFF_CRIPPLING_CRITICAL",
+          "name": "Crippled-by-Critical",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 103,
+          "macro": "AFF_LEVITATE",
+          "name": "Levitating",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 104,
+          "macro": "AFF_BLEED",
+          "name": "Bleeding",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 105,
+          "macro": "AFF_STAGGERED",
+          "name": "Staggered",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 106,
+          "macro": "AFF_DAZZLED",
+          "name": "Dazzled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 107,
+          "macro": "AFF_SHAKEN",
+          "name": "Shaken",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 108,
+          "macro": "AFF_ESHIELD",
+          "name": "Electric-Shielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 109,
+          "macro": "AFF_SICKENED",
+          "name": "Sickened",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 110,
+          "macro": "AFF_SILENCED",
+          "name": "Silenced",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 111,
+          "macro": "AFF_HIDE_ALIGNMENT",
+          "name": "Hidden-Alignment",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 112,
+          "macro": "AFF_WIND_WALL",
+          "name": "Wind-Wall",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 113,
+          "macro": "AFF_FEAR_AURA",
+          "name": "Fear-Aura",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 114,
+          "macro": "AFF_SPIDER_CLIMB",
+          "name": "Spider-Climb",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 115,
+          "macro": "AFF_DEADLY_AIM",
+          "name": "Deadly-Aim",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 116,
+          "macro": "AFF_ACID_COAT",
+          "name": "Acid-Coated",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 117,
+          "macro": "AFF_REPULSION",
+          "name": "Repulsion-Fielded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 118,
+          "macro": "AFF_ON_FIRE",
+          "name": "On-Fire",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 119,
+          "macro": "AFF_FLAME_BLADE",
+          "name": "Flame-Blade",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 120,
+          "macro": "AFF_SICKENING_AURA",
+          "name": "Sickening-Aura",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 121,
+          "macro": "AFF_RAPID_BUFF",
+          "name": "Rapid-Buff",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 122,
+          "macro": "AFF_CRIPPLED",
+          "name": "Crippled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 123,
+          "macro": "AFF_ENCASED_IN_ICE",
+          "name": "Encased-in-Ice",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 124,
+          "macro": "AFF_NEXTATTACK_STUN",
+          "name": "Nextattack-Stun",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 125,
+          "macro": "AFF_HIVE_MARKED",
+          "name": "Hive-Marked",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 126,
+          "macro": "AFF_PERFECT_DEFLECTION_ACTIVE",
+          "name": "Perfect-Deflection",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:AFF_DONTUSE..NUM_AFF_FLAGS",
+      "source_table": "src/constants.c:affected_bits"
+    },
+    "affect2": {
+      "count_symbol": "NUM_AFF2_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "AFF2_DONTUSE",
+          "name": "\u0000",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "AFF2_MAGIC_ATTACKS",
+          "name": "Magic-Attacks",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "AFF2_COWERING",
+          "name": "Cowering",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:AFF2_DONTUSE..NUM_AFF2_FLAGS",
+      "source_table": "src/constants.c:affected2_bits"
+    },
+    "directions": {
+      "count_symbol": "NUM_OF_DIRS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "NORTH",
+          "name": "north",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "EAST",
+          "name": "east",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "SOUTH",
+          "name": "south",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "WEST",
+          "name": "west",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "UP",
+          "name": "up",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "DOWN",
+          "name": "down",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "NORTHWEST",
+          "name": "northwest",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "NORTHEAST",
+          "name": "northeast",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "SOUTHEAST",
+          "name": "southeast",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "SOUTHWEST",
+          "name": "southwest",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:NORTH..NUM_OF_DIRS",
+      "source_table": "src/constants.c:dirs"
+    },
+    "item-types": {
+      "count_symbol": "NUM_ITEM_TYPES",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": null,
+          "name": "UNDEFINED",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "ITEM_LIGHT",
+          "name": "Light",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "ITEM_SCROLL",
+          "name": "Scroll",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "ITEM_WAND",
+          "name": "Wand",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "ITEM_STAFF",
+          "name": "Staff",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "ITEM_WEAPON",
+          "name": "Weapon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "ITEM_FURNITURE",
+          "name": "Furniture",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "ITEM_FIREWEAPON",
+          "name": "Ranged-Weapon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "ITEM_TREASURE",
+          "name": "Treasure",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "ITEM_ARMOR",
+          "name": "Armor/Shield",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "ITEM_POTION",
+          "name": "Potion",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "ITEM_WORN",
+          "name": "Wearable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "ITEM_OTHER",
+          "name": "Other",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "ITEM_TRASH",
+          "name": "Trash",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "ITEM_MISSILE",
+          "name": "Ammo",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "ITEM_CONTAINER",
+          "name": "Container",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "ITEM_NOTE",
+          "name": "Note",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "ITEM_DRINKCON",
+          "name": "Liquid-Cont",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "ITEM_KEY",
+          "name": "Key",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "ITEM_FOOD",
+          "name": "Food",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "ITEM_MONEY",
+          "name": "Money",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "ITEM_PEN",
+          "name": "Pen",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "ITEM_BOAT",
+          "name": "Boat",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "ITEM_FOUNTAIN",
+          "name": "Fountain",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "ITEM_CLANARMOR",
+          "name": "Clan-Armor",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "ITEM_CRYSTAL",
+          "name": "Crafting Crystal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "ITEM_ESSENCE",
+          "name": "Essence",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "ITEM_MATERIAL",
+          "name": "Crafting Material",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "ITEM_SPELLBOOK",
+          "name": "Spellbook",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "ITEM_PORTAL",
+          "name": "Portal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "ITEM_PLANT",
+          "name": "Plant",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "ITEM_TRAP",
+          "name": "Trap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "ITEM_TELEPORT",
+          "name": "Teleport",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "ITEM_POISON",
+          "name": "Poison",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "ITEM_SUMMON",
+          "name": "Summon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "ITEM_SWITCH",
+          "name": "Switch",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "ITEM_AMMO_POUCH",
+          "name": "Ammo-Pouch",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 37,
+          "macro": "ITEM_PICK",
+          "name": "Pick",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 38,
+          "macro": "ITEM_INSTRUMENT",
+          "name": "Instrument",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 39,
+          "macro": "ITEM_DISGUISE",
+          "name": "Disguise",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 40,
+          "macro": "ITEM_WALL",
+          "name": "Wall",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 41,
+          "macro": "ITEM_BOWL",
+          "name": "Bowl",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 42,
+          "macro": "ITEM_INGREDIENT",
+          "name": "Ingredient",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 43,
+          "macro": "ITEM_BLOCKER",
+          "name": "Blocker",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 44,
+          "macro": "ITEM_WAGON",
+          "name": "Wagon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 45,
+          "macro": "ITEM_RESOURCE",
+          "name": "Resources",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 46,
+          "macro": "ITEM_PET",
+          "name": "Pet",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 47,
+          "macro": "ITEM_BLUEPRINT",
+          "name": "Blueprint",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 48,
+          "macro": "ITEM_TREASURE_CHEST",
+          "name": "Treasure Chest",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 49,
+          "macro": "ITEM_HUNT_TROPHY",
+          "name": "Hunt Trophy",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 50,
+          "macro": "ITEM_WEAPON_OIL",
+          "name": "Weapon Oil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 51,
+          "macro": "ITEM_GEAR_OUTFIT",
+          "name": "Gear Outfit",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 52,
+          "macro": "ITEM_DRINK",
+          "name": "Drink",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 53,
+          "macro": "ITEM_VEHICLE",
+          "name": "Vehicle",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 54,
+          "macro": "ITEM_SHIP_OBJECT",
+          "name": "Ship-Object",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 55,
+          "macro": "ITEM_VESSEL",
+          "name": "Vessel",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 56,
+          "macro": "ITEM_GREYHAWK_SHIP",
+          "name": "Greyhawk-Ship",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 57,
+          "macro": "ITEM_CRAFTING_TOOL",
+          "name": "Crafting-Tool",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:ITEM_LIGHT..NUM_ITEM_TYPES",
+      "source_table": "src/constants.c:item_types"
+    },
+    "mob": {
+      "count_symbol": "NUM_MOB_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "MOB_SPEC",
+          "name": "<spec>",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "MOB_SENTINEL",
+          "name": "Sentinel",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "MOB_SCAVENGER",
+          "name": "Scavenger",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "MOB_ISNPC",
+          "name": "Mob",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "MOB_AWARE",
+          "name": "Aware",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "MOB_AGGRESSIVE",
+          "name": "Aggro",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "MOB_STAY_ZONE",
+          "name": "Zone-Sentinel",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "MOB_WIMPY",
+          "name": "Wimpy",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "MOB_AGGR_EVIL",
+          "name": "Aggro-Evil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "MOB_AGGR_GOOD",
+          "name": "Aggro-Good",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "MOB_AGGR_NEUTRAL",
+          "name": "Aggro-Neutral",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "MOB_MEMORY",
+          "name": "Memory",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "MOB_HELPER",
+          "name": "Helper",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "MOB_NOCHARM",
+          "name": "Uncharmable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "MOB_NOSUMMON",
+          "name": "Unsummonable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "MOB_NOSLEEP",
+          "name": "Immune-Sleep",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "MOB_NOBASH",
+          "name": "Unbashable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "MOB_NOBLIND",
+          "name": "Unblindable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "MOB_NOKILL",
+          "name": "Unkillable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "MOB_SENTIENT",
+          "name": "Sentient",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "MOB_NOTDEADYET",
+          "name": "!DEAD!",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "MOB_MOUNTABLE",
+          "name": "Mountable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "MOB_NODEAF",
+          "name": "Immune-Deaf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "MOB_NOFIGHT",
+          "name": "Does-Not-Fight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "MOB_NOCLASS",
+          "name": "Classless",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "MOB_NOGRAPPLE",
+          "name": "Ungrappleable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "MOB_C_ANIMAL",
+          "name": "Animal-Companion",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "MOB_C_FAMILIAR",
+          "name": "Familiar",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "MOB_C_MOUNT",
+          "name": "Paladin/Blackguard-Mount",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "MOB_ELEMENTAL",
+          "name": "Summoned-Elemental",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "MOB_ANIMATED_DEAD",
+          "name": "Animated-Dead",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "MOB_GUARD",
+          "name": "Guard",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "MOB_CITIZEN",
+          "name": "Citizen",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "MOB_HUNTER",
+          "name": "Hunter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "MOB_LISTEN",
+          "name": "Listen",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "MOB_LIT",
+          "name": "Lit-Up",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "MOB_PLANAR_ALLY",
+          "name": "Planar-Ally",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 37,
+          "macro": "MOB_NOSTEAL",
+          "name": "No-Steal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 38,
+          "macro": "MOB_INFO_KILL",
+          "name": "Info-Kill",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 39,
+          "macro": "MOB_CUSTOM_GOLD",
+          "name": "Custom-Gold",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 40,
+          "macro": "MOB_NO_AI",
+          "name": "No-AI",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 41,
+          "macro": "MOB_MERCENARY",
+          "name": "Mercenary",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 42,
+          "macro": "MOB_ENCOUNTER",
+          "name": "Encounter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 43,
+          "macro": "MOB_SHADOW",
+          "name": "Shadow",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 44,
+          "macro": "MOB_IS_OBJ",
+          "name": "Mob-Is-Obj",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 45,
+          "macro": "MOB_BLOCK_N",
+          "name": "Mob-Block-North",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 46,
+          "macro": "MOB_BLOCK_E",
+          "name": "Mob-Block-East",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 47,
+          "macro": "MOB_BLOCK_S",
+          "name": "Mob-Block-South",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 48,
+          "macro": "MOB_BLOCK_W",
+          "name": "Mob-Block-West",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 49,
+          "macro": "MOB_BLOCK_NE",
+          "name": "Mob-Block-NE",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 50,
+          "macro": "MOB_BLOCK_SE",
+          "name": "Mob-Block-SE",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 51,
+          "macro": "MOB_BLOCK_SW",
+          "name": "Mob-Block-SW",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 52,
+          "macro": "MOB_BLOCK_NW",
+          "name": "Mob-Block-NW",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 53,
+          "macro": "MOB_BLOCK_U",
+          "name": "Mob-Block-Up",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 54,
+          "macro": "MOB_BLOCK_D",
+          "name": "Mob-Block-Down",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 55,
+          "macro": "MOB_BLOCK_CLASS",
+          "name": "Mob-Block-Class",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 56,
+          "macro": "MOB_BLOCK_RACE",
+          "name": "Mob-Block-Race",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 57,
+          "macro": "MOB_BLOCK_LEVEL",
+          "name": "Mob-Block-Level",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 58,
+          "macro": "MOB_BLOCK_ALIGN",
+          "name": "Mob-Block-Alignment",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 59,
+          "macro": "MOB_BLOCK_ETHOS",
+          "name": "Mob-Block-Ethos",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 60,
+          "macro": "MOB_INFO_KILL_PLR",
+          "name": "Info-Kill-of-Player",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 61,
+          "macro": "MOB_MOB_ASSIST",
+          "name": "Mob-Assist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 62,
+          "macro": "MOB_NOCONFUSE",
+          "name": "No-Confuse",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 63,
+          "macro": "MOB_HUNTS_TARGET",
+          "name": "Hunts-Target",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 64,
+          "macro": "MOB_ABIL_GRAPPLE",
+          "name": "Ability-Grapple",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 65,
+          "macro": "MOB_ABIL_PETRIFY",
+          "name": "Ability-Petrify",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 66,
+          "macro": "MOB_ABIL_TAIL_SPIKES",
+          "name": "Ability-Tail-Spikes",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 67,
+          "macro": "MOB_ABIL_LEVEL_DRAIN",
+          "name": "Ability-Level-Drain",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 68,
+          "macro": "MOB_ABIL_CHARM",
+          "name": "Ability-Charm",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 69,
+          "macro": "MOB_ABIL_BLINK",
+          "name": "Ability-Blink",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 70,
+          "macro": "MOB_ABIL_ENGULF",
+          "name": "Ability-Engulf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 71,
+          "macro": "MOB_ABIL_CAUSE_FEAR",
+          "name": "Ability-Cause-Fear",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 72,
+          "macro": "MOB_ABIL_CORRUPTION",
+          "name": "Ability-Corruption",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 73,
+          "macro": "MOB_ABIL_SWALLOW",
+          "name": "Ability-Swallow",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 74,
+          "macro": "MOB_ABIL_FLIGHT",
+          "name": "Ability-Flight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 75,
+          "macro": "MOB_ABIL_POISON",
+          "name": "Ability-Poison",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 76,
+          "macro": "MOB_ABIL_REGENERATION",
+          "name": "Ability-Regenerate",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 77,
+          "macro": "MOB_ABIL_PARALYZE",
+          "name": "Ability-Paralyze",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 78,
+          "macro": "MOB_ABIL_FIRE_BREATH",
+          "name": "Ability-Fire-Breath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 79,
+          "macro": "MOB_ABIL_LIGHTNING_BREATH",
+          "name": "Ability-Lightning-Breath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 80,
+          "macro": "MOB_ABIL_POISON_BREATH",
+          "name": "Ability-Poison-Breath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 81,
+          "macro": "MOB_ABIL_ACID_BREATH",
+          "name": "Ability-Acid-Breath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 82,
+          "macro": "MOB_ABIL_FROST_BREATH",
+          "name": "Ability-Frost-Breath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 83,
+          "macro": "MOB_ABIL_MAGIC_IMMUNITY",
+          "name": "Ability-Magic-Immunity",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 84,
+          "macro": "MOB_ABIL_INVISIBILITY",
+          "name": "Ability-Invisibility",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 85,
+          "macro": "MOB_C_O_T_N",
+          "name": "Child-of-the-Night",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 86,
+          "macro": "MOB_VAMP_SPWN",
+          "name": "Vampire-Spawn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 87,
+          "macro": "MOB_DRAGON_KNIGHT",
+          "name": "Dragon-Knight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 88,
+          "macro": "MOB_MUMMY_DUST",
+          "name": "Mummy-Dust",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 89,
+          "macro": "MOB_EIDOLON",
+          "name": "Eidolon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 90,
+          "macro": "MOB_BLOCK_EVIL",
+          "name": "Mob-Block-Evil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 91,
+          "macro": "MOB_BLOCK_NEUTRAL",
+          "name": "Mob-Block-Neutral",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 92,
+          "macro": "MOB_BLOCK_GOOD",
+          "name": "Mob-Block-Good",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 93,
+          "macro": "MOB_GENIEKIND",
+          "name": "Mob-Geniekind",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 94,
+          "macro": "MOB_C_DRAGON",
+          "name": "Mob-Dragon-Mount",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 95,
+          "macro": "MOB_RETAINER",
+          "name": "Retainer",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 96,
+          "macro": "MOB_BUFF_OUTSIDE_COMBAT",
+          "name": "UNUSED-96",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 97,
+          "macro": "MOB_NOPARALYZE",
+          "name": "Immune-Paralysis",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 98,
+          "macro": "MOB_AI_ENABLED",
+          "name": "AI-Enabled",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 99,
+          "macro": "MOB_QUARTERMASTER",
+          "name": "Quartermaster",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 100,
+          "macro": "MOB_UNLIMITED_SPELL_SLOTS",
+          "name": "Unlimited-Spell-Slots",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 101,
+          "macro": "MOB_CUSTOM_MOB_STATS",
+          "name": "Custom-Mob-Stats",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 102,
+          "macro": "MOB_NO_BLOCK_BYPASS",
+          "name": "No-Block-Bypass",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 103,
+          "macro": "MOB_GOLEM",
+          "name": "Golem",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 104,
+          "macro": "MOB_NOTELEPORT",
+          "name": "No-Teleport",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:MOB_SPEC..NUM_MOB_FLAGS",
+      "source_table": "src/constants.c:action_bits"
+    },
+    "obj-extra": {
+      "count_symbol": "NUM_ITEM_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "ITEM_GLOW",
+          "name": "Glows",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "ITEM_HUM",
+          "name": "Hums",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "ITEM_NORENT",
+          "name": "Not-Rentable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "ITEM_NODONATE",
+          "name": "Not-Donateable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "ITEM_NOINVIS",
+          "name": "Immune-Invis",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "ITEM_INVISIBLE",
+          "name": "Invisible",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "ITEM_MAGIC",
+          "name": "Magical",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "ITEM_NODROP",
+          "name": "Not-Droppable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "ITEM_BLESS",
+          "name": "Blessed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "ITEM_ANTI_GOOD",
+          "name": "Anti-Good",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "ITEM_ANTI_EVIL",
+          "name": "Anti-Evil",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "ITEM_ANTI_NEUTRAL",
+          "name": "Anti-Neutral",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "ITEM_ANTI_WIZARD",
+          "name": "Anti-Wizard",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "ITEM_ANTI_CLERIC",
+          "name": "Anti-Cleric",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "ITEM_ANTI_ROGUE",
+          "name": "Anti-Rogue",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "ITEM_ANTI_WARRIOR",
+          "name": "Anti-Warrior",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "ITEM_NOSELL",
+          "name": "Not-Sellable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "ITEM_QUEST",
+          "name": "Quest-Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "ITEM_ANTI_HUMAN",
+          "name": "Anti-Human",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "ITEM_ANTI_ELF",
+          "name": "Anti-Elf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "ITEM_ANTI_DWARF",
+          "name": "Anti-Dwarf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "ITEM_ANTI_HALF_TROLL",
+          "name": "Anti-Half-Troll",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "ITEM_ANTI_MONK",
+          "name": "Anti-Monk",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "ITEM_ANTI_DRUID",
+          "name": "Anti-Druid",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "ITEM_MOLD",
+          "name": "Mold",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "ITEM_ANTI_CRYSTAL_DWARF",
+          "name": "Anti-Crystal-Dwarf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "ITEM_ANTI_HALFLING",
+          "name": "Anti-Halfling",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "ITEM_ANTI_H_ELF",
+          "name": "Anti-Half-Elf",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "ITEM_ANTI_H_ORC",
+          "name": "Anti-Half-Orc",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "ITEM_ANTI_GNOME",
+          "name": "Anti-Gnome",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "ITEM_ANTI_BERSERKER",
+          "name": "Anti-Berserker",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "ITEM_ANTI_TRELUX",
+          "name": "Anti-Trelux",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "ITEM_ANTI_SORCERER",
+          "name": "Anti-Sorcerer",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "ITEM_DECAY",
+          "name": "Decaying",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "ITEM_ANTI_PALADIN",
+          "name": "Anti-Paladin",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "ITEM_ANTI_RANGER",
+          "name": "Anti-Ranger",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "ITEM_ANTI_BARD",
+          "name": "Anti-Bard",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 37,
+          "macro": "ITEM_ANTI_ARCANA_GOLEM",
+          "name": "Anti-Arcana-Golem",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 38,
+          "macro": "ITEM_FLOAT",
+          "name": "Floating",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 39,
+          "macro": "ITEM_HIDDEN",
+          "name": "Hidden",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 40,
+          "macro": "ITEM_MAGLIGHT",
+          "name": "Magical-Light",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 41,
+          "macro": "ITEM_NOLOCATE",
+          "name": "No-Locate",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 42,
+          "macro": "ITEM_NOBURN",
+          "name": "No-Burn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 43,
+          "macro": "ITEM_TRANSIENT",
+          "name": "Transient",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 44,
+          "macro": "ITEM_AUTOPROC",
+          "name": "Auto-Proc",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 45,
+          "macro": "ITEM_FLAMING",
+          "name": "Flaming",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 46,
+          "macro": "ITEM_FROST",
+          "name": "Frosty",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 47,
+          "macro": "ITEM_KI_FOCUS",
+          "name": "Ki-Focus",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 48,
+          "macro": "ITEM_ANTI_WEAPONMASTER",
+          "name": "Anti-WeaponMaster",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 49,
+          "macro": "ITEM_ANTI_DROW",
+          "name": "Anti-Drow",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 50,
+          "macro": "ITEM_MASTERWORK",
+          "name": "Masterwork",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 51,
+          "macro": "ITEM_ANTI_DUERGAR",
+          "name": "Anti-Duergar",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 52,
+          "macro": "ITEM_SEEKING",
+          "name": "Seeking",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 53,
+          "macro": "ITEM_ADAPTIVE",
+          "name": "Adaptive",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 54,
+          "macro": "ITEM_AGILE",
+          "name": "Agile",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 55,
+          "macro": "ITEM_CORROSIVE",
+          "name": "Corrosive",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 56,
+          "macro": "ITEM_DISRUPTION",
+          "name": "Disruption",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 57,
+          "macro": "ITEM_DEFENDING",
+          "name": "Defending",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 58,
+          "macro": "ITEM_VICIOUS",
+          "name": "Vicious",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 59,
+          "macro": "ITEM_VORPAL",
+          "name": "Vorpal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 60,
+          "macro": "ITEM_ANTI_LAWFUL",
+          "name": "Anti-Lawful",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 61,
+          "macro": "ITEM_ANTI_CHAOTIC",
+          "name": "Anti-Chaotic",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 62,
+          "macro": "ITEM_REQ_WIZARD",
+          "name": "Wizard-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 63,
+          "macro": "ITEM_REQ_CLERIC",
+          "name": "Cleric-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 64,
+          "macro": "ITEM_REQ_ROGUE",
+          "name": "Rogue-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 65,
+          "macro": "ITEM_REQ_WARRIOR",
+          "name": "Warrior-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 66,
+          "macro": "ITEM_REQ_MONK",
+          "name": "Monk-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 67,
+          "macro": "ITEM_REQ_DRUID",
+          "name": "Druid-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 68,
+          "macro": "ITEM_REQ_BERSERKER",
+          "name": "Berserker-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 69,
+          "macro": "ITEM_REQ_SORCERER",
+          "name": "Sorcerer-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 70,
+          "macro": "ITEM_REQ_PALADIN",
+          "name": "Paladin-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 71,
+          "macro": "ITEM_REQ_RANGER",
+          "name": "Ranger-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 72,
+          "macro": "ITEM_REQ_BARD",
+          "name": "Bard-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 73,
+          "macro": "ITEM_REQ_WEAPONMASTER",
+          "name": "Weaponmaster-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 74,
+          "macro": "ITEM_REQ_ARCANE_ARCHER",
+          "name": "Arcane-Archer-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 75,
+          "macro": "ITEM_REQ_STALWART_DEFENDER",
+          "name": "Stalwart-Defender-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 76,
+          "macro": "ITEM_REQ_SHIFTER",
+          "name": "Shifter-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 77,
+          "macro": "ITEM_REQ_DUELIST",
+          "name": "Duelist-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 78,
+          "macro": "ITEM_REQ_MYSTIC_THEURGE",
+          "name": "Mystic-Theurge-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 79,
+          "macro": "ITEM_REQ_ALCHEMIST",
+          "name": "Alchemist-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 80,
+          "macro": "ITEM_REQ_ARCANE_SHADOW",
+          "name": "Arcane-Shadow-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 81,
+          "macro": "ITEM_REQ_SACRED_FIST",
+          "name": "Sacred-Fist-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 82,
+          "macro": "ITEM_REQ_ELDRITCH_KNIGHT",
+          "name": "Eldritch-Knight-Required",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 83,
+          "macro": "ITEM_ANTI_ARCANE_ARCHER",
+          "name": "Anti-Arcane-Archer",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 84,
+          "macro": "ITEM_ANTI_STALWART_DEFENDER",
+          "name": "Anti-Stalwart-Defender",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 85,
+          "macro": "ITEM_ANTI_SHIFTER",
+          "name": "Anti-Shifter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 86,
+          "macro": "ITEM_ANTI_DUELIST",
+          "name": "Anti-Duelist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 87,
+          "macro": "ITEM_ANTI_MYSTIC_THEURGE",
+          "name": "Anti-Mystic-Theurge",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 88,
+          "macro": "ITEM_ANTI_ALCHEMIST",
+          "name": "Anti-Alchemist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 89,
+          "macro": "ITEM_ANTI_ARCANE_SHADOW",
+          "name": "Anti-Arcane-Shadow",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 90,
+          "macro": "ITEM_ANTI_SACRED_FIST",
+          "name": "Anti-Sacred-Fist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 91,
+          "macro": "ITEM_ANTI_ELDRITCH_KNIGHT",
+          "name": "Anti-Eldritch-Knight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 92,
+          "macro": "ITEM_SHOCK",
+          "name": "Shocking Weapon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 93,
+          "macro": "ITEM_ANTI_LICH",
+          "name": "Anti-Lich",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 94,
+          "macro": "ITEM_ANTI_VAMPIRE",
+          "name": "Anti-Vampire",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 95,
+          "macro": "ITEM_VAMPIRE_ONLY",
+          "name": "Vampire-Only",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 96,
+          "macro": "ITEM_REQ_WARLOCK",
+          "name": "Warlock-Only",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 97,
+          "macro": "ITEM_ANTI_WARLOCK",
+          "name": "Anti-Warlock",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 98,
+          "macro": "ITEM_SET_STATS_AT_LOAD",
+          "name": "Set-Stats-At-Load",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 99,
+          "macro": "ITEM_EXTRACT_AFTER_USE",
+          "name": "Extract-After-Use",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 100,
+          "macro": "ITEM_NOSAC",
+          "name": "No-Sacrifice",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 101,
+          "macro": "ITEM_DOWNGRADED",
+          "name": "Has-Been-Downgraded",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 102,
+          "macro": "ITEM_IDENTIFIED",
+          "name": "Item-Has-Been-Identified",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 103,
+          "macro": "ITEM_CRAFTED",
+          "name": "Crafted-Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 104,
+          "macro": "ITEM_ONLY_EQUIP_ONE",
+          "name": "Can-Only-Equip-One",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 105,
+          "macro": "ITEM_ONLY_POSSES_ONE",
+          "name": "Can-Only-Possess-One",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 106,
+          "macro": "ITEM_CRAFTING_SMELTER",
+          "name": "Crafting-Smelter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 107,
+          "macro": "ITEM_CRAFTING_LOOM",
+          "name": "Crafting-Loom",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 108,
+          "macro": "ITEM_CRAFTING_FORGE",
+          "name": "Crafting-Forge",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 109,
+          "macro": "ITEM_CRAFTING_ALCHEMY_LAB",
+          "name": "Crafting-Alchemy-Lab",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 110,
+          "macro": "ITEM_CRAFTING_JEWELCRAFTING_STATION",
+          "name": "Crafting-Jewelcrafting-Station",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 111,
+          "macro": "ITEM_CRAFTING_TANNERY",
+          "name": "Crafting-Tannery",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 112,
+          "macro": "ITEM_CRAFTING_CARPENTRY_TABLE",
+          "name": "Crafting-Carpentry-Table",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 113,
+          "macro": "ITEM_TRAPPED",
+          "name": "Trapped",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 114,
+          "macro": "ITEM_ACCOUNT_EXP",
+          "name": "Costs-Account-Experience",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 115,
+          "macro": "ITEM_REFORGEABLE",
+          "name": "Can-Be-Reforged",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:ITEM_GLOW..NUM_ITEM_FLAGS",
+      "source_table": "src/constants.c:extra_bits"
+    },
+    "obj-wear": {
+      "count_symbol": "NUM_ITEM_WEARS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "ITEM_WEAR_TAKE",
+          "name": "(Takeable)",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "ITEM_WEAR_FINGER",
+          "name": "Finger",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "ITEM_WEAR_NECK",
+          "name": "Neck",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "ITEM_WEAR_BODY",
+          "name": "Body",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "ITEM_WEAR_HEAD",
+          "name": "Head",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "ITEM_WEAR_LEGS",
+          "name": "Legs",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "ITEM_WEAR_FEET",
+          "name": "Feet",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "ITEM_WEAR_HANDS",
+          "name": "Hands",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "ITEM_WEAR_ARMS",
+          "name": "Arms",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "ITEM_WEAR_SHIELD",
+          "name": "Shield",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "ITEM_WEAR_ABOUT",
+          "name": "About-Body",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "ITEM_WEAR_WAIST",
+          "name": "Waist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "ITEM_WEAR_WRIST",
+          "name": "Wrist",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "ITEM_WEAR_WIELD",
+          "name": "Wield",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "ITEM_WEAR_HOLD",
+          "name": "Hold",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "ITEM_WEAR_FACE",
+          "name": "Face",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "ITEM_WEAR_AMMO_POUCH",
+          "name": "Ammo-Pouch",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "ITEM_WEAR_EAR",
+          "name": "Ears",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "ITEM_WEAR_EYES",
+          "name": "Eyes",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "ITEM_WEAR_BADGE",
+          "name": "Badge",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "ITEM_WEAR_INSTRUMENT",
+          "name": "Instrument",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "ITEM_WEAR_SHOULDERS",
+          "name": "Shoulders",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "ITEM_WEAR_ANKLE",
+          "name": "Ankle",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "ITEM_WEAR_SHEATH",
+          "name": "Sheath",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "ITEM_WEAR_CRAFT_SICKLE",
+          "name": "Gathering-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "ITEM_WEAR_CRAFT_AXE",
+          "name": "Forestry-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "ITEM_WEAR_CRAFT_KNIFE",
+          "name": "Hunting-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "ITEM_WEAR_CRAFT_PICKAXE",
+          "name": "Mining-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "ITEM_WEAR_CRAFT_ALCHEMY",
+          "name": "Alchemy-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "ITEM_WEAR_CRAFT_ARMOR_HAMMER",
+          "name": "Armorsmithing-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "ITEM_WEAR_CRAFT_JEWEL_PLIERS",
+          "name": "Jewelcrafting-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "ITEM_WEAR_CRAFT_NEEDLE",
+          "name": "Tailoring-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "ITEM_WEAR_CRAFT_WEAPON_HAMMER",
+          "name": "Weaponsmithing-Tool",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "ITEM_WEAR_ON_BACK",
+          "name": "On-Back",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:ITEM_WEAR_TAKE..NUM_ITEM_WEARS",
+      "source_table": "src/constants.c:wear_bits"
+    },
+    "positions": {
+      "count_symbol": "NUM_POSITIONS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "POS_DEAD",
+          "name": "\tRDead\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "POS_MORTALLYW",
+          "name": "\tRMortally wounded\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "POS_INCAP",
+          "name": "\tRIncapacitated\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "POS_STUNNED",
+          "name": "\tRStunned\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "POS_SLEEPING",
+          "name": "\tRSleeping\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "POS_CRAWLING"
+          ],
+          "index": 5,
+          "macro": "POS_RECLINING",
+          "name": "\tRReclining\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "POS_RESTING",
+          "name": "\tRResting\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "POS_SITTING",
+          "name": "\tRSitting\tn",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "POS_FIGHTING",
+          "name": "Fighting",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "POS_STANDING",
+          "name": "Standing",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:POS_DEAD..NUM_POSITIONS",
+      "source_table": "src/constants.c:position_types"
+    },
+    "room": {
+      "count_symbol": "NUM_ROOM_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "ROOM_DARK",
+          "name": "Dark",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "ROOM_DEATH",
+          "name": "Death-Trap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "ROOM_NOMOB",
+          "name": "No-Mob",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "ROOM_INDOORS",
+          "name": "Indoors",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "ROOM_PEACEFUL",
+          "name": "Peaceful",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "ROOM_SOUNDPROOF",
+          "name": "Soundproof",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "ROOM_NOTRACK",
+          "name": "No-Track",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "ROOM_NOMAGIC",
+          "name": "No-Magic",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "ROOM_TUNNEL",
+          "name": "Tunnel",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "ROOM_PRIVATE",
+          "name": "Private",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "ROOM_STAFFROOM",
+          "name": "Staff-Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "ROOM_HOUSE",
+          "name": "House",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "ROOM_HOUSE_CRASH",
+          "name": "House-Crash",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "ROOM_ATRIUM",
+          "name": "Atrium",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "ROOM_OLC",
+          "name": "OLC",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "ROOM_BFS_MARK",
+          "name": "*",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "ROOM_WORLDMAP",
+          "name": "Worldmap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "ROOM_REGEN",
+          "name": "Regenerating",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "ROOM_FLY_NEEDED",
+          "name": "Fly-Needed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "ROOM_NORECALL",
+          "name": "No-Recall",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "ROOM_SINGLEFILE",
+          "name": "Singlefile",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "ROOM_NOTELEPORT",
+          "name": "No-Teleport",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "ROOM_MAGICDARK",
+          "name": "Magical-Darkness",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "ROOM_MAGICLIGHT",
+          "name": "Magical-Light",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "ROOM_NOSUMMON",
+          "name": "No-Summon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "ROOM_NOHEAL",
+          "name": "No-Heal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "ROOM_NOFLY",
+          "name": "No-Fly",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "ROOM_FOG",
+          "name": "Fogged",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "ROOM_AIRY",
+          "name": "Airy",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "ROOM_OCCUPIED",
+          "name": "Occupied",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "ROOM_SIZE_TINY",
+          "name": "Tiny-Sized-Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "ROOM_SIZE_DIMINUTIVE",
+          "name": "Diminutive-Sized-Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "ROOM_CLIMB_NEEDED",
+          "name": "Climb-Needed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "ROOM_HASTRAP",
+          "name": "Trapped",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "ROOM_GENDESC",
+          "name": "Wild-Generated-Desc",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "ROOM_PLAYER_SHOP",
+          "name": "Player-Shop",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "ROOM_RANDOM_TRAP",
+          "name": "Random-Trap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 37,
+          "macro": "ROOM_RANDOM_CHEST",
+          "name": "Random-Chest",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 38,
+          "macro": "ROOM_HARVEST_NODE",
+          "name": "Always-Load-Harvest-Node",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 39,
+          "macro": "ROOM_ROAD",
+          "name": "Road",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 40,
+          "macro": "ROOM_VEHICLE",
+          "name": "Vehicle",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 41,
+          "macro": "ROOM_DOCKABLE",
+          "name": "Dockable",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:ROOM_DARK..NUM_ROOM_FLAGS",
+      "source_table": "src/constants.c:room_bits"
+    },
+    "sectors": {
+      "count_symbol": "NUM_ROOM_SECTORS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "SECT_INSIDE",
+          "name": "Inside",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "SECT_CITY",
+          "name": "City",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "SECT_FIELD",
+          "name": "Field",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "SECT_FOREST",
+          "name": "Forest",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "SECT_HILLS",
+          "name": "Hills",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "SECT_MOUNTAIN",
+          "name": "Low Mountains",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "SECT_WATER_SWIM",
+          "name": "Water (Swim)",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "SECT_WATER_NOSWIM",
+          "name": "Water (No Swim)",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "SECT_FLYING",
+          "name": "In Flight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "SECT_UNDERWATER",
+          "name": "Underwater",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "SECT_ZONE_START",
+          "name": "Zone Entrance",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "SECT_ROAD_NS",
+          "name": "Road North-South",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "SECT_ROAD_EW",
+          "name": "Road East-West",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "SECT_ROAD_INT",
+          "name": "Road Intersection",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "SECT_DESERT",
+          "name": "Desert",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "SECT_OCEAN",
+          "name": "Ocean",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "SECT_MARSHLAND",
+          "name": "Marshland",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "SECT_HIGH_MOUNTAIN",
+          "name": "High Mountains",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "SECT_OUTTER_PLANES"
+          ],
+          "index": 18,
+          "macro": "SECT_PLANES",
+          "name": "Outer Planes",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "SECT_UD_WILD",
+          "name": "Underdark - Wild",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "SECT_UD_CITY",
+          "name": "Underdark - City",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "SECT_UD_INSIDE",
+          "name": "Underdark - Inside",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "SECT_UD_WATER",
+          "name": "Underdark - Water (Swim)",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "SECT_UD_WATER_NOSWIM"
+          ],
+          "index": 23,
+          "macro": "SECT_UD_NOSWIM",
+          "name": "Underdark - Water (No Swim)",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "SECT_UD_NOGROUND",
+          "name": "Underdark - In Flight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 25,
+          "macro": "SECT_LAVA",
+          "name": "Lava",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 26,
+          "macro": "SECT_D_ROAD_NS",
+          "name": "Dirt Road North-South",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 27,
+          "macro": "SECT_D_ROAD_EW",
+          "name": "Dirt Road East-West",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 28,
+          "macro": "SECT_D_ROAD_INT",
+          "name": "Dirt Road Intersection",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 29,
+          "macro": "SECT_CAVE",
+          "name": "Cave",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 30,
+          "macro": "SECT_JUNGLE",
+          "name": "Jungle",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 31,
+          "macro": "SECT_TUNDRA",
+          "name": "Tundra",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 32,
+          "macro": "SECT_TAIGA",
+          "name": "Taiga",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 33,
+          "macro": "SECT_BEACH",
+          "name": "Beach",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 34,
+          "macro": "SECT_SEAPORT",
+          "name": "Sea Port",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 35,
+          "macro": "SECT_INSIDE_ROOM",
+          "name": "Inside Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 36,
+          "macro": "SECT_RIVER",
+          "name": "River",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:SECT_INSIDE..NUM_ROOM_SECTORS",
+      "source_table": "src/constants.c:sector_types"
+    },
+    "trigger-types-mob": {
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "MTRIG_GLOBAL",
+          "name": "Global",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "MTRIG_RANDOM",
+          "name": "Random",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "MTRIG_COMMAND",
+          "name": "Command",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "MTRIG_SPEECH",
+          "name": "Speech",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "MTRIG_ACT",
+          "name": "Act",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "MTRIG_DEATH",
+          "name": "Death",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "MTRIG_GREET",
+          "name": "Greet",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "MTRIG_GREET_ALL",
+          "name": "Greet-All",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "MTRIG_ENTRY",
+          "name": "Entry",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "MTRIG_RECEIVE",
+          "name": "Receive",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "MTRIG_FIGHT",
+          "name": "Fight",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "MTRIG_HITPRCNT",
+          "name": "HitPrcnt",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "MTRIG_BRIBE",
+          "name": "Bribe",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "MTRIG_LOAD",
+          "name": "Load",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "MTRIG_MEMORY",
+          "name": "Memory",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "MTRIG_CAST",
+          "name": "Cast",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "MTRIG_LEAVE",
+          "name": "Leave",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "MTRIG_DOOR",
+          "name": "Door",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": null,
+          "name": "UNUSED",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "MTRIG_TIME",
+          "name": "Time",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "MTRIG_DAMAGE",
+          "name": "Damage",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/dgscript/dg_scripts.h:MTRIG_GLOBAL",
+      "source_table": "src/constants.c:trig_types"
+    },
+    "trigger-types-object": {
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "OTRIG_GLOBAL",
+          "name": "Global",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "OTRIG_RANDOM",
+          "name": "Random",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "OTRIG_COMMAND",
+          "name": "Command",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": null,
+          "name": "UNUSED1",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": null,
+          "name": "UNUSED2",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "OTRIG_TIMER",
+          "name": "Timer",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "OTRIG_GET",
+          "name": "Get",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "OTRIG_DROP",
+          "name": "Drop",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "OTRIG_GIVE",
+          "name": "Give",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "OTRIG_WEAR",
+          "name": "Wear",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": null,
+          "name": "UNUSED3",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "OTRIG_REMOVE",
+          "name": "Remove",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": null,
+          "name": "UNUSED4",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "OTRIG_LOAD",
+          "name": "Load",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": null,
+          "name": "UNUSED5",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "OTRIG_CAST",
+          "name": "Cast",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "OTRIG_LEAVE",
+          "name": "Leave",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": null,
+          "name": "UNUSED6",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "OTRIG_CONSUME",
+          "name": "Consume",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "OTRIG_TIME",
+          "name": "Time",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/dgscript/dg_scripts.h:OTRIG_GLOBAL",
+      "source_table": "src/constants.c:otrig_types"
+    },
+    "trigger-types-world": {
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "WTRIG_GLOBAL",
+          "name": "Global",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "WTRIG_RANDOM",
+          "name": "Random",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "WTRIG_COMMAND",
+          "name": "Command",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "WTRIG_SPEECH",
+          "name": "Speech",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": null,
+          "name": "UNUSED1",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "WTRIG_RESET",
+          "name": "Zone Reset",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "WTRIG_ENTER",
+          "name": "Enter",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "WTRIG_DROP",
+          "name": "Drop",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": null,
+          "name": "UNUSED2",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": null,
+          "name": "UNUSED3",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": null,
+          "name": "UNUSED4",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": null,
+          "name": "UNUSED5",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": null,
+          "name": "UNUSED6",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": null,
+          "name": "UNUSED7",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": null,
+          "name": "UNUSED8",
+          "reserved": true
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "WTRIG_CAST",
+          "name": "Cast",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "WTRIG_LEAVE",
+          "name": "Leave",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "WTRIG_DOOR",
+          "name": "Door",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "WTRIG_LOGIN",
+          "name": "Login",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "WTRIG_TIME",
+          "name": "Time",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/dgscript/dg_scripts.h:WTRIG_GLOBAL",
+      "source_table": "src/constants.c:wtrig_types"
+    },
+    "zone": {
+      "count_symbol": "NUM_ZONE_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "ZONE_CLOSED",
+          "name": "Closed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "ZONE_NOIMMORT",
+          "name": "No-Immortal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "ZONE_QUEST",
+          "name": "Quest",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "ZONE_OPEN"
+          ],
+          "index": 3,
+          "macro": "ZONE_GRID",
+          "name": "Open for Players",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "ZONE_NOBUILD",
+          "name": "No-Build",
+          "reserved": false
+        },
+        {
+          "aliases": [
+            "ZONE_NOTELEPORT"
+          ],
+          "index": 5,
+          "macro": "ZONE_NOASTRAL",
+          "name": "No-Teleport",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "ZONE_WORLDMAP",
+          "name": "Worldmap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "ZONE_NOCLAIM",
+          "name": "Not-Claimable",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "ZONE_ASTRAL_PLANE",
+          "name": "Astral-Plane",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "ZONE_ETH_PLANE",
+          "name": "Ethereal-Plane",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "ZONE_ELEMENTAL",
+          "name": "Elemental-Plane",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "ZONE_WILDERNESS",
+          "name": "Wilderness",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "ZONE_RANDOM_CHESTS",
+          "name": "Random-Chests",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "ZONE_RANDOM_TRAPS",
+          "name": "Random-Traps",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "ZONE_NOMAP",
+          "name": "No-Automap",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "ZONE_HUNTS",
+          "name": "Hunts-Can-Load",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "ZONE_MISSIONS",
+          "name": "Missions-Can-Load",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "ZONE_RANDOM_ENCOUNTERS",
+          "name": "Random-Encounters",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/structs.h:ZONE_CLOSED..NUM_ZONE_FLAGS",
+      "source_table": "src/constants.c:zone_bits"
+    }
+  }
+}

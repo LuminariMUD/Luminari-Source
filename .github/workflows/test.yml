@@ -5,6 +5,9 @@ on:
     paths:
       - 'src/**'
       - 'unittests/**'
+      - 'scripts/world/**'
+      - 'lib/world/artifacts/**'
+      - 'lib/world/minimal/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
@@ -15,6 +18,9 @@ on:
     paths:
       - 'src/**'
       - 'unittests/**'
+      - 'scripts/world/**'
+      - 'lib/world/artifacts/**'
+      - 'lib/world/minimal/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
@@ -25,6 +31,24 @@ permissions:
   contents: read
 
 jobs:
+  world-tools:
+    name: World-data tools
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Run world-data tool tests
+        run: python -m unittest discover -s scripts/world/tests -t scripts/world -v
+
+      - name: Check extracted constants
+        run: python scripts/world/wtool.py constants sync --check
+
   build:
     name: Behavioral tests (${{ matrix.campaign.name }})
     runs-on: ubuntu-latest

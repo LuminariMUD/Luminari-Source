@@ -778,6 +778,36 @@ if (BUILD_UTILS)
 
 endif()
 
+# ========== Standalone world-data tools ==========
+find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+
+# Keep this list synchronized with world_tool_sources in Makefile.am.
+set(WORLD_TOOL_SOURCES
+    scripts/world/wtool.py
+    scripts/world/wtool_constants.json
+    scripts/world/wtool_lib/__init__.py
+    scripts/world/wtool_lib/cli.py
+    scripts/world/wtool_lib/config.py
+    scripts/world/wtool_lib/constants.py
+    scripts/world/wtool_lib/flags.py
+    scripts/world/wtool_lib/indexes.py
+    scripts/world/wtool_lib/models.py
+    scripts/world/wtool_lib/reporting.py
+    scripts/world/wtool_lib/source.py
+    scripts/world/tests/__init__.py
+    scripts/world/tests/test_cli.py
+    scripts/world/tests/test_constants.py
+    scripts/world/tests/test_indexes.py
+    scripts/world/tests/test_reporting.py
+    scripts/world/tests/test_source.py)
+
+add_custom_target(test-world-tools
+    COMMAND Python3::Interpreter -m unittest discover
+            -s scripts/world/tests -t scripts/world -v
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    SOURCES ${WORLD_TOOL_SOURCES}
+    COMMENT "Running standalone world-data tool tests")
+
 # ========== Build unit tests AFTER main executable ==========
 # The focused protocol parser harness remains available under unittests/CuTest.
 option(BUILD_TESTS "Build production-linked unit tests" OFF)
@@ -863,6 +893,12 @@ if (BUILD_TESTS)
     add_test(NAME production-cutest COMMAND cutest)
     set_tests_properties(production-cutest PROPERTIES
         ENVIRONMENT "LUMINARI_TEST_ROOT=${CMAKE_CURRENT_SOURCE_DIR}"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+    add_test(NAME world-tools
+        COMMAND Python3::Interpreter -m unittest discover
+                -s scripts/world/tests -t scripts/world -v)
+    set_tests_properties(world-tools PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME autorun-supervision

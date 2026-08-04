@@ -329,8 +329,30 @@ install-exec-hook:
 src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 	touch $@
 
+# Standalone Python world-data tooling. Keep this list synchronized with
+# WORLD_TOOL_SOURCES in CMakeLists.txt.
+world_tool_sources = \
+	scripts/world/wtool.py \
+	scripts/world/wtool_constants.json \
+	scripts/world/wtool_lib/__init__.py \
+	scripts/world/wtool_lib/cli.py \
+	scripts/world/wtool_lib/config.py \
+	scripts/world/wtool_lib/constants.py \
+	scripts/world/wtool_lib/flags.py \
+	scripts/world/wtool_lib/indexes.py \
+	scripts/world/wtool_lib/models.py \
+	scripts/world/wtool_lib/reporting.py \
+	scripts/world/wtool_lib/source.py \
+	scripts/world/tests/__init__.py \
+	scripts/world/tests/test_cli.py \
+	scripts/world/tests/test_constants.py \
+	scripts/world/tests/test_indexes.py \
+	scripts/world/tests/test_reporting.py \
+	scripts/world/tests/test_source.py
+
 # Extra files to distribute
 EXTRA_DIST = \
+	$(world_tool_sources) \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
@@ -470,9 +492,12 @@ EXTRA_DIST = \
 test: check test-autorun-supervision test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
-.PHONY: test-all test-protocol test-protocol-fuzz test-character-rename-static \
+.PHONY: test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
 	test-vessel-tooling
+
+test-world-tools:
+	python3 -m unittest discover -s scripts/world/tests -t scripts/world -v
 
 test-protocol:
 	$(MAKE) -C "$(abs_top_srcdir)/unittests/CuTest" protocol-parser
@@ -502,6 +527,7 @@ test-vessel-tooling:
 # install path and removes the root-level circle artifact created by make test.
 test-all:
 	$(MAKE) test
+	$(MAKE) test-world-tools
 	$(MAKE) test-protocol
 	$(MAKE) test-character-rename-static
 	$(MAKE) test-character-rename-schema

@@ -1,0 +1,275 @@
+"""Typed models shared by the world-data parsers and reporters."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field, replace
+from typing import Any
+
+
+TOOL_VERSION = "0.1.0"
+JSON_SCHEMA_VERSION = 1
+
+
+@dataclass(frozen=True, slots=True)
+class SourceSpan:
+  """A physical source range using one-based line and column numbers."""
+
+  path: str
+  line: int
+  column: int = 1
+  end_line: int | None = None
+  end_column: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RelatedLocation:
+  """The other endpoint involved in a diagnostic."""
+
+  path: str
+  line: int
+  column: int = 1
+  record_type: str | None = None
+  vnum: int | None = None
+
+  def to_dict(self) -> dict[str, Any]:
+    data: dict[str, Any] = {
+        "path": self.path,
+        "line": self.line,
+        "column": self.column,
+    }
+    if self.record_type is not None:
+      data["record_type"] = self.record_type
+    if self.vnum is not None:
+      data["vnum"] = self.vnum
+    return data
+
+
+@dataclass(frozen=True, slots=True)
+class Finding:
+  """A stable, source-located validation result."""
+
+  code: str
+  severity: str
+  message: str
+  span: SourceSpan
+  record_type: str | None = None
+  vnum: int | None = None
+  related: RelatedLocation | None = None
+  suppressed: bool = False
+
+  def sort_key(self) -> tuple[str, int, int, str, str]:
+    return (
+        self.span.path,
+        self.span.line,
+        self.span.column,
+        self.code,
+        self.message,
+    )
+
+  def suppress(self, ignored_codes: set[str]) -> "Finding":
+    if self.code in ignored_codes and self.severity in {"warning", "info"}:
+      return replace(self, suppressed=True)
+    return self
+
+  def to_dict(self) -> dict[str, Any]:
+    data: dict[str, Any] = {
+        "code": self.code,
+        "severity": self.severity,
+        "message": self.message,
+        "path": self.span.path,
+        "line": self.span.line,
+        "column": self.span.column,
+        "suppressed": self.suppressed,
+    }
+    if self.span.end_line is not None:
+      data["end_line"] = self.span.end_line
+    if self.span.end_column is not None:
+      data["end_column"] = self.span.end_column
+    if self.record_type is not None:
+      data["record_type"] = self.record_type
+    if self.vnum is not None:
+      data["vnum"] = self.vnum
+    if self.related is not None:
+      data["related"] = self.related.to_dict()
+    return data
+
+
+@dataclass(slots=True)
+class IndexRecord:
+  name: str
+  extension: str
+  span: SourceSpan
+  exists: bool
+
+
+@dataclass(slots=True)
+class ExitRecord:
+  direction: int
+  description: str | None
+  keyword: str | None
+  door_flags: int
+  key_vnum: int
+  destination_vnum: int
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class AttachmentRecord:
+  trigger_vnum: int
+  host_type: str
+  host_vnum: int
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class ResetCommandRecord:
+  command: str
+  dependency: int
+  arguments: list[int]
+  string_arguments: list[str]
+  span: SourceSpan
+  effective: bool = True
+
+
+@dataclass(slots=True)
+class ZoneRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  name: str | None = None
+  builders: str | None = None
+  bottom: int | None = None
+  top: int | None = None
+  lifespan: int | None = None
+  reset_mode: int | None = None
+  flags: list[str] = field(default_factory=list)
+  min_level: int | None = None
+  max_level: int | None = None
+  commands: list[ResetCommandRecord] = field(default_factory=list)
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class MovingConnectionRecord:
+  room_vnum: int
+  direction: int
+  repeat: int
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class RoomRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  name: str | None = None
+  description: str | None = None
+  file_zone: int | None = None
+  flags: list[str] = field(default_factory=list)
+  sector: int | None = None
+  exits: list[ExitRecord] = field(default_factory=list)
+  attachments: list[AttachmentRecord] = field(default_factory=list)
+  moving_connections: list[MovingConnectionRecord] = field(default_factory=list)
+  spec_proc: str | None = None
+  coordinates: tuple[int, int] | None = None
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class MobileRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  aliases: str | None = None
+  short_description: str | None = None
+  long_description: str | None = None
+  description: str | None = None
+  action_flags: list[str] = field(default_factory=list)
+  affect_flags: list[str] = field(default_factory=list)
+  affect2_flags: list[str] = field(default_factory=list)
+  level: int | None = None
+  path_rooms: list[int] = field(default_factory=list)
+  attachments: list[AttachmentRecord] = field(default_factory=list)
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class ObjectAffectRecord:
+  location: int
+  modifier: int
+  bonus_type: int | None
+  specific: int | None
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class ObjectRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  aliases: str | None = None
+  short_description: str | None = None
+  description: str | None = None
+  action_description: str | None = None
+  item_type: int | None = None
+  extra_flags: list[str] = field(default_factory=list)
+  wear_flags: list[str] = field(default_factory=list)
+  affect_flags: list[str] = field(default_factory=list)
+  affect2_flags: list[str] = field(default_factory=list)
+  values: list[int] = field(default_factory=list)
+  affects: list[ObjectAffectRecord] = field(default_factory=list)
+  attachments: list[AttachmentRecord] = field(default_factory=list)
+  spec_proc: str | None = None
+  recipient_vnum: int | None = None
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class TriggerRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  name: str | None = None
+  attach_type: int | None = None
+  type_flags: str | None = None
+  numeric_argument: int | None = None
+  argument_list: str | None = None
+  commands: str | None = None
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class ShopBuyTypeRecord:
+  item_type: int
+  keywords: str | None
+  span: SourceSpan
+
+
+@dataclass(slots=True)
+class ShopRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  keeper_vnum: int | None = None
+  product_vnums: list[int] = field(default_factory=list)
+  buy_types: list[ShopBuyTypeRecord] = field(default_factory=list)
+  room_vnums: list[int] = field(default_factory=list)
+  open_hours: list[int] = field(default_factory=list)
+  messages: list[str] = field(default_factory=list)
+  complete: bool = True
+
+
+WorldRecord = ZoneRecord | RoomRecord | MobileRecord | ObjectRecord | TriggerRecord | ShopRecord
+
+
+@dataclass(slots=True)
+class ValidationResult:
+  root_label: str
+  mode: str
+  findings: list[Finding] = field(default_factory=list)
+  complete: bool = True
+  config: dict[str, Any] = field(default_factory=dict)
+
+  def normalized_findings(self, ignored_codes: set[str] | None = None) -> list[Finding]:
+    ignored = ignored_codes or set()
+    return sorted((finding.suppress(ignored) for finding in self.findings), key=Finding.sort_key)
