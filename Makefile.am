@@ -340,6 +340,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/constants.py \
 	scripts/world/wtool_lib/docs_check.py \
 	scripts/world/wtool_lib/flags.py \
+	scripts/world/wtool_lib/hlquests.py \
 	scripts/world/wtool_lib/indexes.py \
 	scripts/world/wtool_lib/lookup.py \
 	scripts/world/wtool_lib/models.py \

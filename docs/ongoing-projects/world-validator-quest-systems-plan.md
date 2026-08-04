@@ -35,8 +35,8 @@ Last updated: 2026-08-04.
   constants and documentation checks passed; QST and HLQ live-data hashes are
   unchanged.
 - Published checkpoints: planning baseline commit `9b41691e`; Session 1
-  implementation commit `e3052d35`; Session 2 implementation is ready for
-  its checkpoint commit at this update.
+  implementation commit `e3052d35`; Session 2 implementation commit
+  `da08510c`; Session 3 parser checkpoint pending at this update.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -48,8 +48,19 @@ Last updated: 2026-08-04.
 - Session 2 verification: 18 focused QST tests passed; both Make and CMake
   `test-world-tools` targets passed all 130 tests plus the wrapper; constants
   and documentation checks passed; QST and HLQ live-data hashes are unchanged.
-- Next implementation step: add nested HLQ host/entry/command models and the
-  order-preserving parser, then connect `.hlq` to all selection modes.
+- Session 3 parser implementation: added nested host, entry, and command
+  models; source-derived entry/command decoding; physical and effective
+  runtime ordinals; byte-safe ASK/GIVE/ROOM parsing; and deterministic
+  recovery that does not reproduce stale numeric or uninitialized command
+  state.
+- Session 3 parser verification: 16 focused HLQ tests passed. A hash-guarded
+  read-only pass parsed 320 development files, 1,665 host blocks, 3,654
+  entries, and 2,387 commands in 0.14 seconds with 18,680 KiB peak RSS. The
+  aggregate had one zero-byte/missing-terminator finding and four real
+  post-terminator-content findings; no validator defect was found and the
+  audit hash was unchanged.
+- Next implementation step: connect `.hlq` to indexes and every selection
+  mode, add packaging tests, then rerun the complete gates.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -763,15 +774,15 @@ make test-world-tools
 Goal: load `.hlq` safely in every validation mode while preserving its nested
 and order-sensitive behavior.
 
-- [ ] T034 [S0301] Add host, entry, and command HLQ models with composite identities and source spans.
-- [ ] T035 [S0302] Create `hlquests.py` on the shared source cursor and parse host/file terminators.
-- [ ] T036 [S0303] Parse ASK entries, approval markers, keyword strings, and reply strings.
-- [ ] T037 [S0304] Parse GIVE entries, replies, command chains, and required `S` terminators.
-- [ ] T038 [S0305] Parse ROOM entries, exact room numerics, replies, chains, and terminators.
-- [ ] T039 [S0306] Parse all twelve source-derived command codes and preserve input/output direction, value, and location.
-- [ ] T040 [S0307] Model physical and effective runtime order for entries, input commands, and output commands.
-- [ ] T041 [S0308] Diagnose missing hosts, unsafe host lookup, stale ROOM state, invalid directions/codes, and top-level truncation.
-- [ ] T042 [S0309] Implement deterministic entry/host recovery without stale values or cascading references.
+- [x] T034 [S0301] Add host, entry, and command HLQ models with composite identities and source spans.
+- [x] T035 [S0302] Create `hlquests.py` on the shared source cursor and parse host/file terminators.
+- [x] T036 [S0303] Parse ASK entries, approval markers, keyword strings, and reply strings.
+- [x] T037 [S0304] Parse GIVE entries, replies, command chains, and required `S` terminators.
+- [x] T038 [S0305] Parse ROOM entries, exact room numerics, replies, chains, and terminators.
+- [x] T039 [S0306] Parse all twelve source-derived command codes and preserve input/output direction, value, and location.
+- [x] T040 [S0307] Model physical and effective runtime order for entries, input commands, and output commands.
+- [x] T041 [S0308] Diagnose missing hosts, unsafe host lookup, stale ROOM state, invalid directions/codes, and top-level truncation.
+- [x] T042 [S0309] Implement deterministic entry/host recovery without stale values or cascading references.
 - [ ] T043 [S0310] Diagnose duplicate host blocks, canonical host order, and host/package ownership.
 - [ ] T044 [S0311] Add `hlq` to index discovery, selected packages, explicit paths, and supported-file messages.
 - [ ] T045 [S0312] Add HLQ paths and records to `_load_files()`, `WorldData`, and normal/mini/zone/path results.

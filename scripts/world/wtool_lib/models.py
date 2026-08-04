@@ -381,8 +381,71 @@ class QuestRecord:
   complete: bool = True
 
 
+@dataclass(slots=True)
+class HlQuestCommandRecord:
+  direction_marker: str
+  direction: str | None
+  code_token: str | None
+  code: str | None
+  command_type: int | None
+  value: int | None
+  location: int | None
+  span: SourceSpan
+  physical_ordinal: int
+  effective_runtime_ordinal: int | None = None
+  effective: bool = True
+  field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  complete: bool = True
+
+
+@dataclass(slots=True)
+class HlQuestEntryRecord:
+  entry_type: int
+  marker: str
+  approval_suffix: str
+  approved: bool
+  span: SourceSpan
+  physical_ordinal: int
+  effective_runtime_ordinal: int | None = None
+  keywords: str | None = None
+  reply_message: str | None = None
+  room_vnum: int | None = None
+  commands: list[HlQuestCommandRecord] = field(default_factory=list)
+  field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  complete: bool = True
+
+  @property
+  def input_commands(self) -> list[HlQuestCommandRecord]:
+    return [command for command in self.commands if command.direction == "input"]
+
+  @property
+  def output_commands(self) -> list[HlQuestCommandRecord]:
+    return [command for command in self.commands if command.direction == "output"]
+
+
+@dataclass(slots=True)
+class HlQuestRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  entries: list[HlQuestEntryRecord] = field(default_factory=list)
+  field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  complete: bool = True
+
+  @property
+  def host_mobile_vnum(self) -> int:
+    return self.vnum
+
+
 WorldRecord = (
-    ZoneRecord | RoomRecord | MobileRecord | ObjectRecord | TriggerRecord | ShopRecord | QuestRecord
+    ZoneRecord
+    | RoomRecord
+    | MobileRecord
+    | ObjectRecord
+    | TriggerRecord
+    | ShopRecord
+    | QuestRecord
+    | HlQuestRecord
 )
 
 
@@ -395,6 +458,7 @@ class WorldData:
   triggers: list[TriggerRecord] = field(default_factory=list)
   shops: list[ShopRecord] = field(default_factory=list)
   quests: list[QuestRecord] = field(default_factory=list)
+  hlquests: list[HlQuestRecord] = field(default_factory=list)
   findings: list[Finding] = field(default_factory=list)
   complete: bool = True
 
@@ -407,6 +471,7 @@ class WorldData:
         "trigger": list(self.triggers),
         "shop": list(self.shops),
         "quest": list(self.quests),
+        "hlquest": list(self.hlquests),
     }
     if record_type not in collections:
       raise ValueError(f"unknown world record type {record_type!r}")
