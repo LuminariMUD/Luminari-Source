@@ -2,9 +2,11 @@
 
 Status: ready for a world builder. No code work is outstanding for this.
 
-This document is the content brief for project task 2 in
-[`artifacts.md`](artifacts.md), "Place artifacts in player-facing content".
-It is written to be handed to the production world-building agent. Nothing in
+This document is the content brief for the one open item in the artifact
+system: placing artifacts in player-facing content. It is written to be
+handed to the production world-building agent. The system it plugs into is
+documented in
+[`ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md). Nothing in
 it requires a source change: the artifact runtime, the reset guards, the
 roster, and the contract metadata are all already in place and are described
 below only so the placement decisions respect them.
@@ -222,10 +224,9 @@ So world content and contract text must agree. If a builder puts Icedge in a
 volcano, the hint about a blizzard becomes a lie that players will follow.
 Either build the blizzard chain or change the contract string.
 
-Section 10 of [`artifacts.md`](artifacts.md) notes that wiring NPC dialogue
-to staged lore is ordinary DG-script work against `artifact chronicle`. That
-is the recommended way to seed clues: a mob greet or speech trigger that
-repeats the same hint the chronicle shows.
+Wiring NPC dialogue to staged lore is ordinary DG-script work against
+`artifact chronicle`. That is the recommended way to seed clues: a mob greet
+or speech trigger that repeats the same hint the chronicle shows.
 
 ## 6. Campaign availability
 

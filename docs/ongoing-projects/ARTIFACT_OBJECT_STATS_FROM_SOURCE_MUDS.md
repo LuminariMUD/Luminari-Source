@@ -7,8 +7,15 @@ of the current LuminariMUD artifact roster. It records the actual artifact
 object prototypes found in the two source MUD snapshots under `EXAMPLE/`.
 
 The current LuminariMUD implementation is documented in
-[`docs/systems/ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md). The
-long-form HomelandMUD behavior study is in [`artifacts.md`](artifacts.md).
+[`docs/systems/ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md).
+
+This document also absorbs what survives of the HomelandMUD behavior study
+that the artifact project ran: the functional source map in section 3.3 and
+the recoverable procedure behavior in section 6. Everything else in that
+study was either implemented (the six complete candidates are now
+LuminariMUD VNUMs 169913-169918, and its recommended proc shapes are the
+`ART_SIG_*` library), rejected (the original-and-echo model), or was project
+bookkeeping that the changelog now records.
 
 Snapshot provenance:
 
@@ -109,6 +116,35 @@ weight cost cost_per_day race_restriction_mask
 permanent `AFF_*`, `AFF2_*`, and `AFF3_*` states while worn. Homeland has no
 artifact-level stat overlay, so its decoded prototype is its complete static
 numeric package. Special procedures still add behavior.
+
+### 3.3 HomelandMUD functional source map
+
+Where the rest of Homeland's artifact system lives, for anyone re-opening the
+snapshot. All paths are relative to `EXAMPLE/HomelandMUD/` at the commit in
+section 1.
+
+| Area | Source |
+| --- | --- |
+| Registry structure, nine-VNUM membership switch, save/load, player listing | `src/act.informative.c:881-1010` |
+| Acquisition hook (`obj_to_char`) | `src/handler.c:700-752` |
+| Boot call | `src/db.c:383-396` |
+| Public `artifacts` command registration | `src/interpreter.c:117`, `src/interpreter.c:408` |
+| Artifact and counterpart procedure assignments | `src/spec_assign.c:766-835` |
+| Missing-prototype assignment warning | `src/spec_assign.c:198-204` |
+| Weapon special dispatch, including the critical marker | `src/combat/fight.c:2420-2426`, `src/combat/fight.c:2645-2677` |
+| Per-object special timers | `src/limits.c:548-556` |
+| Timer cadence (one MUD hour is 120 real seconds) | `src/comm.c:799-800`, `src/utils.h:186-187` |
+| Owner-file snapshot | `lib/misc/artifacts:1-10` |
+| Player-facing design statement | `lib/text/help/fullhelp.hlp:520-529` |
+| Restore paths that bypass the acquisition hook | `src/pfile.c:670-715` |
+| Quest reward path that does use it | `src/quest/quest.c:640-662` |
+
+Homeland's ownership model is a last-recipient ledger, not durable ownership:
+the hook fires on `obj_to_char()` only, with no drop, extraction, deletion,
+or rename counterpart, no `IS_NPC()` check, and no duplicate prevention. It
+was studied and deliberately not adopted. The invariants LuminariMUD holds
+instead are listed under Design Decisions in
+[`ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md).
 
 ## 4. RealmsOfLuminari: stored prototype stats
 
@@ -428,6 +464,66 @@ but no object record exists anywhere under
 The procedure implementations preserve behavior shapes, but procedure code
 cannot establish the missing prototypes' dice, static bonuses, flags, or
 canonical names. Those fields must not be reconstructed by guesswork.
+
+### 6.1 What the three procedures actually do
+
+This is the only surviving record of these mechanics; the procedures are the
+sole evidence left for three of Homeland's nine registry entries. Read them
+as design evidence, not as values to copy. Odds are as written in the source
+and are not LuminariMUD-appropriate.
+
+**VNUM 501, `xvim_artifact`** - `src/spec_procs.c:5224-5328`, assigned at
+`src/spec_assign.c:783-785`, owner row `lib/misc/artifacts:9`.
+
+- roughly two rolls in thirty-six begin a burst of four to six extra hits;
+- a rarer nested roll deals 600-800 raw damage and lags the room;
+- three rolls in thirty-six heal an injured wielder by up to 90;
+- `whisper nightmare` summons a globally limited charmed nightmare; and
+- its messages call the object an avenger tied to Iyachtu Xvim.
+
+Defects in the original, all of which is why it was never ported: the
+multi-hit counter is a global `force_blur` rather than per character or item;
+the high-damage branch bypasses normal damage handling; the summon has no
+per-object recharge; the summon cap counts global prototypes rather than
+owner capacity; and line 5322 assigns the new HP expression to the player's
+current HP while setting only the pet's maximum.
+
+**VNUM 513, `halberd`** - `src/spec_procs.c:3265-3346`, assigned at
+`src/spec_assign.c:772-773`, owner row `lib/misc/artifacts:8`.
+
+A single roll from 0 through 30 selects one of four outcomes:
+
+- one result stuns for `5 + 3d4`;
+- one result grants two extra attacks that cannot themselves proc;
+- two results apply slowness and `50 + 5d10` direct damage; and
+- every other result does nothing.
+
+**VNUM 599, `tormblade`** - `src/spec_procs.c:3348-3393`, assigned at
+`src/spec_assign.c:812-813`, owner row `lib/misc/artifacts:7`.
+
+Only ever fires against evil targets:
+
+- a critical hit grants two ticks of protection from evil, biofeedback, and
+  -20 AC; and
+- a non-critical hit has roughly a one-in-thirty-one chance to invoke dispel
+  magic.
+
+"Tormblade" is the procedure identifier, not evidence for a display name.
+
+### 6.2 Where these shapes went
+
+Two of the three shapes were rebuilt on LuminariMUD's own rules and are now
+reusable library entries any artifact can adopt as data. The third is
+implemented but currently unclaimed.
+
+| Homeland procedure | LuminariMUD shape | Used by |
+| --- | --- | --- |
+| `halberd` weighted multi-outcome roll | `ART_SIG_WEIGHTED` | Wyrmfang |
+| `xvim_artifact` extra-hit burst | `ART_SIG_FLURRY` | Icedge |
+| `tormblade` alignment-conditioned critical | `ART_SIG_WARD` | none yet |
+
+What could not be recovered, and therefore was not invented, is the identity
+of the three items: their names, lore, dice, flags, and restrictions.
 
 ## 7. Material source-data findings
 

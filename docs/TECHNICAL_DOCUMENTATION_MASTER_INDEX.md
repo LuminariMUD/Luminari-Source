@@ -163,11 +163,11 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Project Documents
 - **[Ongoing projects](ongoing-projects/)** -
-  Active work: artifact follow-ups, AI conversation history, SKORE phases 3-4,
-  protocol security, event-system merge, CMake warnings, and in-game backlogs
-- **[artifacts.md](ongoing-projects/artifacts.md)** -
-  Artifact deployment, placement, integration, balance, cooldown persistence,
-  validation, group recall, and staff-tool follow-ups
+  Active work: artifact placement handoff, AI conversation history, SKORE
+  phases 3-4, event-system merge, and in-game backlogs
+- **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
+  World-building brief for placing artifacts in player-facing content, the
+  artifact system's one remaining open item
 - **[AI_TODO_IDEAS.md](ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
 - **[IDEA_LIST.md](ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog

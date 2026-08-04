@@ -2,7 +2,7 @@
 
 ## Overview
 
-The artifact system manages eleven unique, levelable items. Normal zone
+The artifact system manages seventeen unique, levelable items. Normal zone
 loading enforces one live instance per artifact. The system records
 persistent ownership and binding, applies level-scaled bonuses, awards
 artifact experience, and provides active, on-hit, and speech-invoked powers.
@@ -20,7 +20,8 @@ is authoritative.
 | --- | --- |
 | `src/obj/spec_artifacts.h` | VNUMs, data model, tunables, and public API |
 | `src/obj/spec_artifacts.c` | Registry, persistence, gameplay, and commands |
-| `unittests/CuTest/test_artifacts.c` | Production-linked regression tests |
+| `unittests/CuTest/test_artifacts.c` | Registry, persistence, and table tests |
+| `unittests/CuTest/test_artifact_integration.c` | Booted-world integration tests |
 | `scripts/provision_artifacts.sh` | World-file and help-index provisioning |
 | `lib/world/world.artifact` | Generated ownership/progression state |
 
@@ -66,21 +67,25 @@ file does not define, and zone resets for VNUMs the live zone does not
 already load. Existing records are never rewritten or reordered, and repeated
 runs add nothing further.
 
-### Current packaging limitation
+### The package is version controlled
 
-`lib/world/artifacts/` is ignored by Git with the rest of the OLC-managed
-world data. The package may exist on a development machine, but it is not
-available in a fresh checkout. On a clean clone, the provisioner therefore
-fails when it tries to copy its first missing source file. If provisioning is
-skipped, `artifact_boot()` logs every missing artifact prototype; if none
-load, the registry remains inactive.
+`lib/world/artifacts/` is exempted from the OLC ignore rules by an explicit
+`.gitignore` block, mirroring the exception already used for
+`lib/world/minimal/`, and its five files are listed in `EXTRA_DIST`. A fresh
+clone therefore has everything the provisioner needs, and `make dist` output
+is deployable.
 
-This packaging issue must be resolved before a clean-clone deployment is
-reliable. It is tracked in
-`docs/ongoing-projects/artifacts.md`.
+The exemption is narrow on purpose. That directory is a read-only package
+source; OLC writes the provisioned copies under `lib/world/obj`,
+`lib/world/zon`, `lib/world/wld`, and `lib/world/mob`, which remain ignored.
+Do not edit the package through OLC, and do not remove the exception without
+also changing how setup and deployment obtain the package.
 
-The ownership file, `lib/world/world.artifact`, is also ignored, but
-intentionally: it is generated runtime state and must not be distributed as
+If provisioning is skipped entirely, `artifact_boot()` logs every missing
+artifact prototype; if none load, the registry remains inactive.
+
+The ownership file, `lib/world/world.artifact`, is ignored, and that one is
+intentional: it is generated runtime state and must not be distributed as
 world content.
 
 ## Registry and Membership
@@ -383,9 +388,17 @@ The halberd's weighted proc and the avenger's bounded flurry now exist as
 reusable shapes (`ART_SIG_WEIGHTED`, `ART_SIG_FLURRY`); what cannot be
 recovered is the identity of the three items themselves.
 
-The complete audit, original VNUMs, counterpart pattern, porting cautions,
-recommendations, and absolute HomelandMUD source paths are maintained in
-`docs/ongoing-projects/artifacts.md`.
+What each of the three procedures actually did, the functional source map
+for Homeland's artifact system, the decoded prototype stats for every
+recoverable artifact in both source snapshots, and the snapshot commits are
+maintained in
+[`docs/ongoing-projects/ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md`](../ongoing-projects/ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md).
+
+Two of the three shapes are already in the reusable proc library:
+`ART_SIG_WEIGHTED` is the halberd's multi-outcome roll and `ART_SIG_FLURRY`
+is the avenger's extra-hit burst. `ART_SIG_WARD`, the alignment-conditioned
+critical, is implemented and validated but no artifact template currently
+claims it; adopting it is a data change, not new code.
 
 ## Player Commands
 
@@ -866,16 +879,21 @@ fresh clone always has the records it looks for.
 - Custody history is written but never consulted by any binding, uniqueness,
   or reset check.
 - The registry and its tables require a rebuild and have no OLC editor.
-- The ignored world-data package prevents reliable clean-clone deployment.
-- World-driven behavior lacks automated integration coverage.
 - The replica or "echo" model described in the HomelandMUD study was
-  considered and rejected. Only one object VNUM per artifact exists, and
-  template VNUM uniqueness is validated at boot.
+  considered and rejected. The pattern - a named original plus a weaker
+  general version sharing its procedure - is real in the source, but on this
+  system it would mean a second object VNUM that must be kept permanently
+  outside ownership, binding, progression, cooldown, and single-instance
+  handling while still looking like the artifact to players. The uniqueness
+  guarantees are the point of the system, and an item designed to sit beside
+  them dilutes them. Only one object VNUM per artifact exists, and template
+  VNUM uniqueness is validated at boot.
 - All seventeen artifacts reset into the staging vault. Their contracts state
   an intended acquisition route that live content does not yet implement.
+  This is the one open item, and it is world-building work rather than code.
 
-Actionable follow-up work is maintained in
-`docs/ongoing-projects/artifacts.md`.
+The content brief for that remaining work is
+[`docs/ongoing-projects/artifact-placement-plan.md`](../ongoing-projects/artifact-placement-plan.md).
 
 ## Related Documentation
 

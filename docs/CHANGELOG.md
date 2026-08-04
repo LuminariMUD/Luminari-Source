@@ -2,6 +2,39 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Artifact project notes retired
+
+#### Changed
+
+- `docs/ongoing-projects/artifacts.md` is deleted. Every engineering section
+  it tracked is complete, and per the ongoing-projects policy its enduring
+  content has moved into the formal documentation tree:
+  - the HomelandMUD functional source map, and the recoverable behavior of
+    the three registry entries whose object prototypes are missing from the
+    snapshot (VNUMs 501, 513, and 599), are now sections 3.3 and 6.1 of
+    `docs/ongoing-projects/ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md`, the
+    source-data reference that already carried the snapshot provenance. That
+    document previously said the procedures "preserve behavior shapes"
+    without recording what those shapes were; this is the only surviving
+    record of them.
+  - where those shapes ended up - `ART_SIG_WEIGHTED` is the halberd's
+    multi-outcome roll, `ART_SIG_FLURRY` is the avenger's extra-hit burst,
+    and `ART_SIG_WARD` is implemented and validated but claimed by no
+    artifact template yet - is recorded in both that document and
+    `docs/systems/ARTIFACT_SYSTEM.md`.
+  - the reasoning behind rejecting the original-and-echo model is now stated
+    in full in the Design Decisions section of
+    `docs/systems/ARTIFACT_SYSTEM.md`, so it is not re-proposed from the
+    source study.
+  - the remaining world-building work keeps its own brief in
+    `docs/ongoing-projects/artifact-placement-plan.md`.
+- `docs/systems/ARTIFACT_SYSTEM.md` corrected: it described eleven artifacts
+  rather than seventeen, still called the deployment package a clean-clone
+  blocker, still listed world-driven behavior as lacking automated coverage,
+  and pointed three times at the deleted tracker.
+- `docs/ongoing-projects/README.md` and
+  `docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md` updated to match.
+
 ### Artifact gameplay balance pass
 
 #### Changed
