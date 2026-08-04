@@ -207,12 +207,27 @@ Last updated: 2026-08-05.
   fresh `BUILD_TESTS=ON` CMake tree passes the world-tool target plus all four
   `world-tool*` CTest entries.
 - Completion-audit remote progress: at commit `01f35740`, the sanitizer,
-  memory, supported behavioral-build, and validator jobs are green. Coverage
-  generation, threshold enforcement, and artifact upload are green, but the
-  Codecov upload still fails; the production-linked job remains in progress.
-- Next implementation step: complete the fresh production/install gate, trace
-  and repair the Codecov upload, obtain one wholly green workflow, then move
-  the corrected evidence to permanent docs and retire this plan.
+  memory, supported behavioral-build, validator, and production-linked jobs
+  are green. Coverage generation, threshold enforcement, and GitHub artifact
+  upload are also green. The only failure is a never-provisioned Codecov
+  destination: OIDC succeeds, then its API returns `Repository not found`, and
+  the repository has no Codecov secret or enablement variable. The stale
+  third-party step and config are removed while the in-repository gcovr gate
+  and GitHub report upload remain mandatory.
+- Completion-audit coverage ratchet: the successful CI measurement under the
+  newly pinned gcovr 8.6 is 24,791 of 235,600 lines (10.52 percent) and 15,477
+  of 215,463 branches (7.18 percent). Both fixed floors are raised to those
+  rounded-down measurements.
+- Completion-audit final local gate: a clean Autotools build and `make test`
+  pass all 399 production-linked tests without compiler warnings. Exact
+  Valgrind leak checking reports zero errors and no lost blocks. The complete
+  `make test-all` entry point passes the production, 170-test world-tool,
+  22-test protocol, character-rename static/schema, and supporting shell
+  suites; its final install leaves executable `bin/circle` and no root-level
+  `circle` artifact.
+- Next implementation step: obtain one wholly green workflow with the
+  corrected coverage contract, then move the corrected evidence to permanent
+  docs and retire this plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -1030,9 +1045,9 @@ without hiding failures or expanding supported campaign variants.
 - [x] T091 [S0602] Reopen this plan after proving the validator-specific job passed but the workflow-level acceptance criterion remained false.
 - [x] T092 [S0603] Align the behavioral workflow with the repository's Luminari-only campaign policy and retain the supported default build/test gate.
 - [x] T093 [S0604] Restore the authoritative production-linked entry point by installing its traced `rg` dependency in CI.
-- [x] T094 [S0605] Repair coverage generation for the runner's gcov output while preserving both fixed coverage floors and report uploads.
+- [x] T094 [S0605] Repair coverage generation for the runner's gcov output, ratchet both fixed coverage floors, and preserve the GitHub report upload.
 - [x] T095 [S0606] Repair production-test ownership cleanup so ASan and Valgrind pass without suppressions or disabled leak detection.
-- [ ] T096 [S0607] Run fresh local world-tool, production, sanitizer, memory, coverage, Make, CMake, CTest, install, and no-root-artifact gates.
+- [x] T096 [S0607] Run fresh local world-tool, production, sanitizer, memory, coverage, Make, CMake, CTest, install, and no-root-artifact gates.
 - [ ] T097 [S0608] Push the repairs and verify one complete GitHub Actions workflow run is green at the accepted commit.
 - [ ] T098 [S0609] Move corrected acceptance evidence to permanent docs, recheck live-data hashes, and complete T089 by retiring this plan again.
 

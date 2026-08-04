@@ -21,7 +21,6 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
-      - 'codecov.yml'
       - '.github/workflows/test.yml'
   pull_request:
     branches: [master, main]
@@ -44,7 +43,6 @@ on:
       - 'CMakeLists.txt'
       - 'configure.ac'
       - 'Makefile.am'
-      - 'codecov.yml'
       - '.github/workflows/test.yml'
 
 permissions:
@@ -239,9 +237,6 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     services:
       mariadb:
         image: mariadb:10.11
@@ -307,8 +302,8 @@ jobs:
 
       - name: Generate coverage report and enforce baseline
         run: |
-          # Measured with the full default-campaign CI suite:
-          # lines 7218/218286 (3.30%), branches 4547/202603 (2.20%).
+          # Measured with the full Luminari CI suite and gcovr 8.6:
+          # lines 24791/235600 (10.52%), branches 15477/215463 (7.18%).
           # Raise both fixed floors whenever the measured result increases.
           gcovr \
             --root . \
@@ -319,8 +314,8 @@ jobs:
             --html-details coverage.html \
             --json-summary coverage-summary.json \
             --json-summary-pretty \
-            --fail-under-line 3.30 \
-            --fail-under-branch 2.20 \
+            --fail-under-line 10.52 \
+            --fail-under-branch 7.18 \
             src unittests/CuTest/build
 
       - name: Upload coverage artifact
@@ -333,10 +328,3 @@ jobs:
             coverage*.css
             coverage.xml
             coverage-summary.json
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: coverage.xml
-          fail_ci_if_error: true
-          use_oidc: true

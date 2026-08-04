@@ -182,28 +182,20 @@ The GitHub Actions coverage job:
 - runs the MariaDB persistence round trip;
 - runs the covered protocol parser harness;
 - creates Cobertura XML, HTML details, and a JSON summary with gcovr;
-- uploads the report as a workflow artifact and to Codecov.
+- uploads every report as a GitHub Actions workflow artifact.
 
-The measured default-campaign baseline is 7,218 of 218,286 lines (3.30
-percent) and 4,547 of 202,603 branches (2.20 percent). gcovr enforces those
-rounded-down fixed floors. Codecov also compares project coverage with the
-base commit using a zero threshold, so pull requests cannot lower the current
-result. Whenever coverage increases, update the counts and fixed floors in
-`.github/workflows/test.yml`; the fixed gates only move upward.
+The measured Luminari baseline with gcovr 8.6 is 24,791 of 235,600 lines
+(10.52 percent) and 15,477 of 215,463 branches (7.18 percent). gcovr enforces
+those rounded-down fixed floors before the artifact upload, so a lower result
+fails the job. Whenever coverage increases, update the counts and fixed floors
+in `.github/workflows/test.yml`; the fixed gates only move upward.
 
 ## Campaign Builds
 
 CI builds and runs the complete production-linked behavioral suite for the
-default, DragonLance, and Forgotten Realms variants. Campaign selection is
-supplied through `CPPFLAGS`:
-
-```sh
-./configure CPPFLAGS="-DCAMPAIGN_DL"
-./configure CPPFLAGS="-DCAMPAIGN_FR"
-```
-
-The default build uses no campaign define. Never edit `src/campaign.h` to
-exercise a campaign build.
+supported Luminari configuration. Retired compile-time campaign variants are
+not supported or tested. The build uses no campaign define, and validation
+must never modify the protected `src/campaign.h` configuration header.
 
 ## Memory Checking
 
@@ -271,11 +263,11 @@ must not be added to the enforced suite.
 
 - standalone world-data unit, fixture, constants, documentation, and wrapper
   checks;
-- default, DragonLance, and Forgotten Realms behavioral suites;
+- the supported Luminari behavioral suite;
 - root `make test-all`;
 - ASan, UBSan, and bounded protocol fuzzing;
 - Valgrind on the production-linked suite;
-- MariaDB-backed gcovr floors and Codecov ratcheting.
+- MariaDB-backed fixed gcovr floors and coverage-artifact upload.
 
-Any change to test sources, build lists, coverage configuration, or the
+Any change to test sources, build lists, covered documentation, or the
 workflow triggers this pipeline.
