@@ -5686,4 +5686,34 @@ ACMD(do_testartifact)
   send_to_char(ch, "Unknown subcommand. Type 'testartifact' for usage.\r\n");
 }
 
+/* --------------------------------------------------------------------------
+ * Test seams
+ *
+ * The integration suite drives the real display and proc paths rather than
+ * re-deriving what they should print.  These exist only in the test build.
+ * -------------------------------------------------------------------------- */
+#ifdef LUMINARI_CUTEST
+void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj)
+{
+  artifact_show_info(ch, obj);
+}
+
+/* Chance rolls make procs untestable as written.  A test forces the shape it
+ * wants by name, skipping only the roll: every other gate - the internal
+ * cooldown, the alignment rule, target legality - still applies. */
+int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                           struct obj_data *weapon, int is_critical)
+{
+  struct artifact_data *art = NULL;
+
+  if (!ch || !victim || !weapon)
+    return FALSE;
+
+  if (!(art = artifact_of_obj(weapon)))
+    return FALSE;
+
+  return artifact_signature_proc(ch, victim, weapon, art, 10, is_critical);
+}
+#endif
+
 /*EOF*/

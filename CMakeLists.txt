@@ -788,6 +788,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_i3_client_production.c
     unittests/CuTest/test_bounds_checking.c
     unittests/CuTest/test_artifacts.c
+    unittests/CuTest/test_artifact_integration.c
     unittests/CuTest/test_player_rename.c
     unittests/CuTest/test.helpers.c
     unittests/CuTest/test.interpreter.c

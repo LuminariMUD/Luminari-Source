@@ -52,9 +52,28 @@ static void artifact_test_registry(int count)
   }
 }
 
+/* Every vnum the shipped tables actually declare.  Metadata validation walks
+ * the real contract, effect, and passive tables and looks each row's vnum up
+ * in the registry, so those checks need the real membership rather than the
+ * synthetic contiguous block artifact_test_registry() builds. */
+static const int artifact_test_all_vnums[] = {
+    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
+    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
+    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
+    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
+    ART_VNUM_TWILIGHT};
+
+#define ARTIFACT_TEST_ALL_COUNT                                                                    \
+  ((int)(sizeof(artifact_test_all_vnums) / sizeof(artifact_test_all_vnums[0])))
+
+/* The object table has to carry every shipped artifact vnum, or a test that
+ * reboots the registry registers only part of the roster and the validator
+ * reports the rest as missing. */
+#define ARTIFACT_TEST_OBJ_COUNT ARTIFACT_TEST_ALL_COUNT
+
 struct artifact_test_object_fixture
 {
-  struct index_data indexes[11];
+  struct index_data indexes[17];
   struct index_data *saved_obj_index;
   obj_rnum saved_top_of_objt;
 };
@@ -67,11 +86,11 @@ static void artifact_test_begin_objects(struct artifact_test_object_fixture *fix
   fixture->saved_obj_index = obj_index;
   fixture->saved_top_of_objt = top_of_objt;
 
-  for (i = 0; i < 11; i++)
-    fixture->indexes[i].vnum = ART_VNUM_TRORXEK + i;
+  for (i = 0; i < ARTIFACT_TEST_OBJ_COUNT; i++)
+    fixture->indexes[i].vnum = artifact_test_all_vnums[i];
 
   obj_index = fixture->indexes;
-  top_of_objt = 10;
+  top_of_objt = ARTIFACT_TEST_OBJ_COUNT - 1;
 }
 
 static void artifact_test_end_objects(struct artifact_test_object_fixture *fixture)
@@ -186,19 +205,6 @@ static const char *artifact_test_source_root(void)
   return root && *root ? root : ".";
 }
 
-/* Every vnum the shipped tables actually declare.  Metadata validation walks
- * the real contract, effect, and passive tables and looks each row's vnum up
- * in the registry, so those checks need the real membership rather than the
- * synthetic contiguous block artifact_test_registry() builds. */
-static const int artifact_test_all_vnums[] = {
-    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
-    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
-    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
-    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
-    ART_VNUM_TWILIGHT};
-
-#define ARTIFACT_TEST_ALL_COUNT                                                                    \
-  ((int)(sizeof(artifact_test_all_vnums) / sizeof(artifact_test_all_vnums[0])))
 
 static void artifact_test_real_registry(void)
 {

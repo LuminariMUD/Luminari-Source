@@ -510,6 +510,13 @@ ACMD_DECL(do_artifact_ability);
 ACMD_DECL(do_artifact_invoke);
 ACMD_DECL(do_testartifact);
 
+/* Test seams - present only in the CuTest build. */
+#ifdef LUMINARI_CUTEST
+void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj);
+int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                           struct obj_data *weapon, int is_critical);
+#endif
+
 #endif /* _SPEC_ARTIFACTS_H_ */
 
 /*EOF*/

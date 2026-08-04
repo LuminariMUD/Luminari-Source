@@ -66,8 +66,9 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 - Section 2 (live placement) is **HANDED OFF** to world building as
   [`artifact-placement-plan.md`](artifact-placement-plan.md). Live world data
   is not version controlled, so placement is not this repository's to make.
-- Sections 3 and 4 below (booted-world integration coverage and the balance
-  pass) are still open.
+- Section 3 (booted-world integration coverage) is now **DONE**; see that
+  section for what landed.
+- Section 4 (the gameplay balance pass) is still open.
 - Section 10's world-content half is builder work: the code stages the lore
   and hint text and gates it by discovery, but wiring NPC dialogue to it is
   done with ordinary DG scripts against `artifact chronicle`.
@@ -156,23 +157,59 @@ section 7 of the placement plan):
 - reboot and zone-reset testing confirms that ownership never creates a
   duplicate instance.
 
-## 3. Add booted-world integration coverage
+## 3. Add booted-world integration coverage - DONE
 
-The production-linked unit suite covers the registry and logic that can run
-without a loaded world. It does not drive a real player through the complete
-feature.
+Delivered as `unittests/CuTest/test_artifact_integration.c`, part of the
+production-linked root suite. The fixture stands up a real registry through
+`artifact_boot()` against the shipped `artifact_templates[]`,
+`artifact_contracts[]`, `artifact_passives[]`, and `artifact_effects[]`
+tables, puts a real player with a descriptor in a real room next to a live
+NPC, and drives production entry points. Everything runs inside a scratch
+directory, so no real game data is read or written.
 
-Add an integration fixture that verifies:
+What it verifies, against the original checklist:
 
-- acquire, equip, bind, unequip, drop, save, reload, and destroy lifecycles;
-- character-bound and account-bound rejection paths;
-- level-scaled bonuses and highest-only resistance;
-- all three active abilities;
-- generic procs and all five signature procedures;
-- called-effect success, refusal, and independent recharge behavior;
-- class-oath burn damage and phrase hiding;
-- player and staff command output;
-- single-instance behavior across reboot and zone reset.
+| Item | Test |
+| --- | --- |
+| acquire, equip, bind, unequip, drop, save, reload, destroy | `full_lifecycle` |
+| character-bound rejection | `character_binding_rejects_a_stranger` |
+| account-bound rejection | `account_binding_rejects_another_account` |
+| level-scaled bonuses | `bonuses_scale_with_artifact_level` |
+| highest-only resistance | `resistance_takes_the_highest_not_the_sum` |
+| all three active abilities | `every_active_ability_is_reachable`, `every_ability_name_is_a_registered_command` |
+| generic proc guards | `generic_proc_respects_its_cooldown` |
+| every signature shape | `every_signature_shape_is_wired`, `signature_procs_run_without_a_roll`, `surge_will_not_stack_with_itself` |
+| called-effect success, refusal, recharge | `called_effect_refuses_while_recharging`, `effect_slots_recharge_independently`, `invocation_channels_do_not_cross` |
+| class-oath burn damage and phrase hiding | `class_oath_burns_and_hides_phrases` |
+| player and staff command output | `player_commands_produce_output`, `chronicle_hides_an_undiscovered_name`, `staff_commands_report_the_registry`, `staff_spawn_refuses_a_durably_owned_artifact` |
+| single instance across reboot and zone reset | `zone_reset_never_makes_a_second_instance`, `ownership_survives_a_reboot` |
+| boot itself | `boot_registers_every_shipped_artifact` |
+
+Two test seams were added to `src/obj/spec_artifacts.c`, both inside
+`#ifdef LUMINARI_CUTEST`:
+
+- `artifact_show_info_for_test()` - drives the real `artifact info` display
+  rather than re-deriving what it should print;
+- `artifact_force_signature_proc_for_test()` - skips only the chance roll.
+  Every other gate the runtime applies (the internal cooldown, the alignment
+  rule, target legality) still runs.
+
+Two limits worth recording:
+
+- Procs are exercised with both combatants already engaged. `damage()`
+  otherwise calls `set_fighting()`, which needs the mud-event queue that a
+  unit-linked fixture does not have. Engaged is also the realistic case: a
+  weapon proc fires mid-fight.
+- `do_artifact_ability()` reads `CMD_NAME`, which indexes `complete_cmd_info`
+  and therefore needs the built command table. Rather than build it, the
+  suite asserts that every template's `ability_name` is registered in
+  `cmd_info[]` and routed to `do_artifact_ability` - which catches the real
+  failure mode, an ability added to the table but never wired to a command.
+
+While adding this, `artifact_test_begin_objects()` in `test_artifacts.c` was
+widened from eleven object-table entries to all seventeen. It had been
+booting a partial registry, which made the validator log thirty SYSERRs on
+every run; the suite is now silent on artifacts.
 
 ## 4. Perform a gameplay balance pass
 

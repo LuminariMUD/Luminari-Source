@@ -1,0 +1,1445 @@
+/* ***************************************************************************
+ *  File: test_artifact_integration.c                 Part of LuminariMUD
+ *  Usage: Booted-world integration coverage for the artifact system.
+ *
+ *  test_artifacts.c covers the parts of src/obj/spec_artifacts.c that need no
+ *  world: registry lookup, the XP curve, file round-tripping.  This file is
+ *  the other half.  It stands up a real registry through artifact_boot()
+ *  against the shipped artifact_templates[], artifact_contracts[],
+ *  artifact_passives[], and artifact_effects[] tables, puts a real player in
+ *  a real room, and drives production entry points from acquisition through
+ *  destruction.
+ *
+ *  Everything here runs inside a scratch directory, so no real game data is
+ *  read or written.
+ *************************************************************************** */
+
+#include "CuTest.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "../../src/conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+#include "../../src/comm.h"
+#include "../../src/db.h"
+#include "../../src/handler.h"
+#include "../../src/interpreter.h"
+#include "../../src/actionqueues.h"
+#include "../../src/combat/fight.h"
+#include "../../src/magic/spells.h"
+#include "../../src/net/protocol.h"
+#include "../../src/obj/spec_artifacts.h"
+
+/* --------------------------------------------------------------------------
+ * The fixture
+ *
+ * artifact_boot() only registers a template whose vnum resolves through
+ * real_object(), so the object table has to exist before the registry does.
+ * Building it by hand from ART_VNUM_* rather than from world files keeps this
+ * hermetic while still booting the real shipped metadata.
+ * -------------------------------------------------------------------------- */
+
+#define ARTINT_OBJ_COUNT 17
+
+static const int artint_vnums[ARTINT_OBJ_COUNT] = {
+    ART_VNUM_TRORXEK,     ART_VNUM_AMAUKEKEL, ART_VNUM_FADE,    ART_VNUM_HENEKAR,
+    ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,  ART_VNUM_KELROM,  ART_VNUM_GESEN,
+    ART_VNUM_STINGER,     ART_VNUM_AVERNUS,   ART_VNUM_AEGIS,   ART_VNUM_VENGEANCE,
+    ART_VNUM_EARTHCRIER,  ART_VNUM_WYRMFANG,  ART_VNUM_COURAGE, ART_VNUM_ICEDGE,
+    ART_VNUM_TWILIGHT};
+
+struct artint_fixture
+{
+  /* saved globals */
+  struct index_data *saved_obj_index;
+  struct obj_data *saved_obj_proto;
+  obj_rnum saved_top_of_objt;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct zone_data *saved_zone_table;
+  zone_rnum saved_top_of_zone_table;
+  struct index_data *saved_mob_index;
+  mob_rnum saved_top_of_mobt;
+  char saved_cwd[PATH_MAX];
+  int in_sandbox;
+
+  /* fixture state */
+  struct index_data indexes[ARTINT_OBJ_COUNT];
+  struct obj_data protos[ARTINT_OBJ_COUNT];
+  struct room_data rooms[2];
+  struct zone_data zones[1];
+  struct index_data mobile_index[1];
+
+  struct char_data actor;
+  struct char_data bystander;
+  struct char_data victim;
+  struct descriptor_data descriptor;
+
+  char sandbox[PATH_MAX];
+};
+
+/* The registry only has to be walked by index; the vnum table above is the
+ * authority on membership. */
+static int artint_rnum_of(int vnum)
+{
+  int i = 0;
+
+  for (i = 0; i < ARTINT_OBJ_COUNT; i++)
+    if (artint_vnums[i] == vnum)
+      return i;
+
+  return NOTHING;
+}
+
+static void artint_clear_output(struct artint_fixture *fixture)
+{
+  fixture->descriptor.small_outbuf[0] = '\0';
+  fixture->descriptor.output = fixture->descriptor.small_outbuf;
+  fixture->descriptor.bufptr = 0;
+  fixture->descriptor.bufspace = SMALL_BUFSIZE - 1;
+}
+
+static int artint_said(struct artint_fixture *fixture, const char *needle)
+{
+  return (strstr(fixture->descriptor.output, needle) != NULL);
+}
+
+static void artint_make_player(struct char_data *ch, const char *name, room_rnum room)
+{
+  clear_char(ch);
+  CREATE(ch->player_specials, struct player_special_data, 1);
+  ch->player.name = strdup(name);
+  ch->player.short_descr = strdup(name);
+  GET_LEVEL(ch) = 20;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 500;
+  GET_MAX_HIT(ch) = 500;
+  GET_MOVE(ch) = 200;
+  GET_MAX_MOVE(ch) = 200;
+  GET_PSP(ch) = 200;
+  GET_MAX_PSP(ch) = 200;
+  GET_REAL_RACE(ch) = RACE_HUMAN;
+  IN_ROOM(ch) = room;
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
+}
+
+static void artint_free_player(struct char_data *ch)
+{
+  while (ch->affected != NULL)
+    affect_remove_no_total(ch, ch->affected);
+
+  if (ch->player.name)
+    free(ch->player.name);
+  if (ch->player.short_descr)
+    free(ch->player.short_descr);
+  if (ch->player_specials)
+    free(ch->player_specials);
+  if (GET_ATTACK_QUEUE(ch))
+    free_attack_queue(GET_ATTACK_QUEUE(ch));
+  GET_ATTACK_QUEUE(ch) = NULL;
+
+  ch->player.name = NULL;
+  ch->player.short_descr = NULL;
+  ch->player_specials = NULL;
+}
+
+static void artint_make_npc(struct char_data *ch, const char *name, room_rnum room)
+{
+  clear_char(ch);
+  SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &dummy_mob;
+  ch->player.short_descr = (char *)name;
+  ch->player.name = (char *)name;
+  GET_LEVEL(ch) = 15;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 400;
+  GET_MAX_HIT(ch) = 400;
+  IN_ROOM(ch) = room;
+  GET_ATTACK_QUEUE(ch) = create_attack_queue();
+}
+
+/* Returns FALSE when the sandbox could not be made; every test bails out in
+ * that case rather than touching lib/. */
+static int artint_begin(struct artint_fixture *fixture)
+{
+  char dir[] = "/tmp/lum_artifact_integration_XXXXXX";
+  char worlddir[PATH_MAX];
+  int i = 0;
+
+  memset(fixture, 0, sizeof(*fixture));
+
+  if (!getcwd(fixture->saved_cwd, sizeof(fixture->saved_cwd)))
+    return FALSE;
+
+  if (!mkdtemp(dir))
+    return FALSE;
+
+  snprintf(worlddir, sizeof(worlddir), "%s/world", dir);
+  if (mkdir(worlddir, 0700) != 0)
+    return FALSE;
+
+  if (chdir(dir) != 0)
+    return FALSE;
+
+  snprintf(fixture->sandbox, sizeof(fixture->sandbox), "%s", dir);
+  fixture->in_sandbox = TRUE;
+
+  fixture->saved_obj_index = obj_index;
+  fixture->saved_obj_proto = obj_proto;
+  fixture->saved_top_of_objt = top_of_objt;
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_zone_table = zone_table;
+  fixture->saved_top_of_zone_table = top_of_zone_table;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
+
+  for (i = 0; i < ARTINT_OBJ_COUNT; i++)
+  {
+    fixture->indexes[i].vnum = artint_vnums[i];
+    clear_object(&fixture->protos[i]);
+    GET_OBJ_RNUM(&fixture->protos[i]) = i;
+    fixture->protos[i].name = (char *)"artifact test";
+    fixture->protos[i].short_description = (char *)"a test artifact";
+    fixture->protos[i].description = (char *)"A test artifact lies here.";
+    GET_OBJ_TYPE(&fixture->protos[i]) = ITEM_WEAPON;
+  }
+
+  obj_index = fixture->indexes;
+  obj_proto = fixture->protos;
+  top_of_objt = ARTINT_OBJ_COUNT - 1;
+
+  fixture->rooms[0].number = 169900;
+  fixture->rooms[0].zone = 0;
+  fixture->rooms[0].sector_type = SECT_INSIDE;
+  fixture->rooms[0].name = (char *)"Artifact integration origin";
+  fixture->rooms[0].description = (char *)"A production-linked artifact test room.\r\n";
+  fixture->rooms[1].number = 169901;
+  fixture->rooms[1].zone = 0;
+  fixture->rooms[1].sector_type = SECT_INSIDE;
+  fixture->rooms[1].name = (char *)"Artifact integration annex";
+  fixture->rooms[1].description = (char *)"A second artifact test room.\r\n";
+
+  fixture->zones[0].number = 1699;
+  fixture->zones[0].bot = 169900;
+  fixture->zones[0].top = 169999;
+  fixture->zones[0].min_level = -1;
+  fixture->zones[0].max_level = LVL_IMPL;
+
+  world = fixture->rooms;
+  top_of_world = 1;
+  zone_table = fixture->zones;
+  top_of_zone_table = 0;
+
+  /* damage() resolves the victim's prototype, so the mobile table has to
+   * exist for any proc that deals damage. */
+  fixture->mobile_index[0].vnum = 1;
+  mob_index = fixture->mobile_index;
+  top_of_mobt = 0;
+
+  artint_make_player(&fixture->actor, "Artifactor", 0);
+  artint_make_player(&fixture->bystander, "Bystander", 0);
+  artint_make_npc(&fixture->victim, "a test victim", 0);
+
+  fixture->rooms[0].people = &fixture->actor;
+  fixture->actor.next_in_room = &fixture->bystander;
+  fixture->bystander.next_in_room = &fixture->victim;
+
+  memset(&fixture->descriptor, 0, sizeof(fixture->descriptor));
+  fixture->descriptor.character = &fixture->actor;
+  fixture->descriptor.pProtocol = ProtocolCreate();
+  artint_clear_output(fixture);
+  fixture->actor.desc = &fixture->descriptor;
+
+  artifact_boot();
+
+  return (art_index != NULL && total_artifacts == ARTINT_OBJ_COUNT);
+}
+
+static void artint_end(struct artint_fixture *fixture)
+{
+  artifact_shutdown();
+
+  fixture->actor.desc = NULL;
+  if (fixture->descriptor.pProtocol)
+    ProtocolDestroy(fixture->descriptor.pProtocol);
+
+  fixture->rooms[0].people = NULL;
+  fixture->rooms[1].people = NULL;
+  fixture->actor.next_in_room = NULL;
+  fixture->bystander.next_in_room = NULL;
+  fixture->victim.next_in_room = NULL;
+
+  while (fixture->victim.affected != NULL)
+    affect_remove_no_total(&fixture->victim, fixture->victim.affected);
+
+  if (GET_ATTACK_QUEUE(&fixture->victim))
+    free_attack_queue(GET_ATTACK_QUEUE(&fixture->victim));
+  GET_ATTACK_QUEUE(&fixture->victim) = NULL;
+
+  artint_free_player(&fixture->actor);
+  artint_free_player(&fixture->bystander);
+
+  obj_index = fixture->saved_obj_index;
+  obj_proto = fixture->saved_obj_proto;
+  top_of_objt = fixture->saved_top_of_objt;
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  zone_table = fixture->saved_zone_table;
+  top_of_zone_table = fixture->saved_top_of_zone_table;
+  mob_index = fixture->saved_mob_index;
+  top_of_mobt = fixture->saved_top_of_mobt;
+
+  if (fixture->in_sandbox && chdir(fixture->saved_cwd) != 0)
+    fixture->in_sandbox = FALSE;
+}
+
+/* A live instance of one artifact, in the actor's inventory but not yet
+ * claimed. */
+static void artint_instance(struct artint_fixture *fixture, struct obj_data *obj, int vnum)
+{
+  clear_object(obj);
+  GET_OBJ_RNUM(obj) = artint_rnum_of(vnum);
+  obj->name = (char *)"artifact test";
+  obj->short_description = (char *)"a test artifact";
+  obj->description = (char *)"A test artifact lies here.";
+  GET_OBJ_TYPE(obj) = ITEM_WEAPON;
+  IN_ROOM(obj) = NOWHERE;
+  (void)fixture;
+}
+
+/* Put an instance in the actor's inventory the way get/give does. */
+static void artint_carry(struct artint_fixture *fixture, struct obj_data *obj)
+{
+  obj->carried_by = &fixture->actor;
+  obj->next_content = fixture->actor.carrying;
+  fixture->actor.carrying = obj;
+  IN_ROOM(obj) = NOWHERE;
+  obj_index[GET_OBJ_RNUM(obj)].number++;
+}
+
+static void artint_uncarry(struct artint_fixture *fixture, struct obj_data *obj)
+{
+  struct obj_data **prev = &fixture->actor.carrying;
+
+  while (*prev)
+  {
+    if (*prev == obj)
+    {
+      *prev = obj->next_content;
+      break;
+    }
+    prev = &(*prev)->next_content;
+  }
+
+  obj->carried_by = NULL;
+  obj->next_content = NULL;
+  if (obj_index[GET_OBJ_RNUM(obj)].number > 0)
+    obj_index[GET_OBJ_RNUM(obj)].number--;
+}
+
+/* --------------------------------------------------------------------------
+ * The fixture itself
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_boot_registers_every_shipped_artifact(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  int i = 0, contracted = 0, in_order = TRUE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  for (i = 0; i < total_artifacts; i++)
+  {
+    if (i > 0 && art_index[i].vnum <= art_index[i - 1].vnum)
+      in_order = FALSE;
+    if (art_index[i].acquisition != ART_ACQ_UNSET)
+      contracted++;
+  }
+
+  CuAssertIntEquals(tc, ARTINT_OBJ_COUNT, total_artifacts);
+  CuAssertIntEquals(tc, TRUE, in_order);
+  /* Every shipped artifact has a contract row; a missing one is the gap the
+   * validator reports. */
+  CuAssertIntEquals(tc, ARTINT_OBJ_COUNT, contracted);
+  /* The validator returns a problem count, so a clean boot is zero. */
+  CuAssertIntEquals(tc, 0, artifact_validate_metadata());
+
+  artint_end(&fixture);
+}
+
+/* --------------------------------------------------------------------------
+ * Lifecycle: acquire, equip, bind, unequip, drop, save, reload, destroy
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_full_lifecycle(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int claimed = FALSE, bound_on_equip = FALSE, bonuses_applied = FALSE;
+  int bonuses_removed = FALSE, kept_owner_on_drop = FALSE, released = FALSE;
+  int owner_survived_reload = FALSE, level_survived_reload = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_instance(&fixture, &obj, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &obj);
+
+  /* acquire */
+  artifact_obj_to_char(&obj, &fixture.actor);
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  claimed = (art && art->owner && !str_cmp(art->owner, "Artifactor") && art->instance_persisted &&
+             art->discovered && art->claim_count == 1);
+
+  /* equip - bind on equip, bonuses, first-equip XP */
+  CuAssertIntEquals(tc, TRUE, artifact_on_equip(&fixture.actor, &obj, WEAR_WIELD_1));
+  bound_on_equip = (art->bound_time > 0);
+  bonuses_applied = (fixture.actor.affected != NULL);
+
+  /* unequip */
+  artifact_on_unequip(&fixture.actor, &obj);
+  bonuses_removed = (fixture.actor.affected == NULL);
+
+  /* drop: a bound artifact keeps its owner but loses persistence, so a zone
+   * reset can recover it after a reboot */
+  artint_uncarry(&fixture, &obj);
+  artifact_obj_from_char(&obj);
+  artifact_from_char(&obj, &fixture.actor);
+  kept_owner_on_drop = (!str_cmp(art->owner, "Artifactor") && !art->instance_persisted);
+
+  /* save and reload: the registry is rebuilt from disk */
+  artifact_save();
+  artifact_reload();
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  owner_survived_reload = (art && !str_cmp(art->owner, "Artifactor"));
+  level_survived_reload = (art && art->level >= 1);
+
+  /* destroy: the instance is gone, so ownership is released outright */
+  artint_carry(&fixture, &obj);
+  artifact_on_extract(&obj);
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  released = (art && !artifact_is_owned(ART_VNUM_TRORXEK) && art->bound_time == 0 &&
+              !art->instance_persisted && art->destroy_count == 1);
+  artint_uncarry(&fixture, &obj);
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, claimed);
+  CuAssertIntEquals(tc, TRUE, bound_on_equip);
+  CuAssertIntEquals(tc, TRUE, bonuses_applied);
+  CuAssertIntEquals(tc, TRUE, bonuses_removed);
+  CuAssertIntEquals(tc, TRUE, kept_owner_on_drop);
+  CuAssertIntEquals(tc, TRUE, owner_survived_reload);
+  CuAssertIntEquals(tc, TRUE, level_survived_reload);
+  CuAssertIntEquals(tc, TRUE, released);
+}
+
+/* --------------------------------------------------------------------------
+ * Rejection paths
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_character_binding_rejects_a_stranger(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int owner_may_use = FALSE, stranger_refused = FALSE, stranger_told_why = FALSE;
+  int equip_refused = FALSE, staff_exempt = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Trorxek binds on equip. */
+  artint_instance(&fixture, &obj, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  artifact_on_equip(&fixture.actor, &obj, WEAR_WIELD_1);
+  artifact_on_unequip(&fixture.actor, &obj);
+
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  owner_may_use = artifact_can_use(&fixture.actor, &obj, TRUE);
+
+  /* The bystander has no descriptor, so drive the message through the actor's
+   * by moving the descriptor for the duration of the check. */
+  fixture.actor.desc = NULL;
+  fixture.bystander.desc = &fixture.descriptor;
+  fixture.descriptor.character = &fixture.bystander;
+  artint_clear_output(&fixture);
+
+  stranger_refused = !artifact_can_use(&fixture.bystander, &obj, FALSE);
+  stranger_told_why = artint_said(&fixture, "is bound to Artifactor");
+  equip_refused = !artifact_on_equip(&fixture.bystander, &obj, WEAR_WIELD_1);
+
+  /* Staff are never locked out of their own tools. */
+  GET_LEVEL(&fixture.bystander) = LVL_IMMORT;
+  staff_exempt = artifact_can_use(&fixture.bystander, &obj, TRUE);
+  GET_LEVEL(&fixture.bystander) = 20;
+
+  fixture.bystander.desc = NULL;
+  fixture.descriptor.character = &fixture.actor;
+  fixture.actor.desc = &fixture.descriptor;
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, TRUE, owner_may_use);
+  CuAssertIntEquals(tc, TRUE, stranger_refused);
+  CuAssertIntEquals(tc, TRUE, stranger_told_why);
+  CuAssertIntEquals(tc, TRUE, equip_refused);
+  CuAssertIntEquals(tc, TRUE, staff_exempt);
+}
+
+void Test_artifact_integration_account_binding_rejects_another_account(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int same_account_ok = FALSE, other_account_refused = FALSE, told_why = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Tiamat's Stinger binds on account. */
+  art = artifact_by_vnum(ART_VNUM_STINGER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ARTIFACT_BIND_ON_ACCOUNT, art->binding_type);
+
+  GET_ACCOUNT_NAME(&fixture.actor) = strdup("firstaccount");
+  GET_ACCOUNT_NAME(&fixture.bystander) = strdup("otheraccount");
+
+  artint_instance(&fixture, &obj, ART_VNUM_STINGER);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  artifact_on_equip(&fixture.actor, &obj, WEAR_WIELD_1);
+  artifact_on_unequip(&fixture.actor, &obj);
+
+  same_account_ok = artifact_can_use(&fixture.actor, &obj, TRUE);
+
+  fixture.actor.desc = NULL;
+  fixture.bystander.desc = &fixture.descriptor;
+  fixture.descriptor.character = &fixture.bystander;
+  artint_clear_output(&fixture);
+
+  other_account_refused = !artifact_can_use(&fixture.bystander, &obj, FALSE);
+  told_why = artint_said(&fixture, "bound to another's account");
+
+  fixture.bystander.desc = NULL;
+  fixture.descriptor.character = &fixture.actor;
+  fixture.actor.desc = &fixture.descriptor;
+
+  artint_uncarry(&fixture, &obj);
+  free(GET_ACCOUNT_NAME(&fixture.actor));
+  free(GET_ACCOUNT_NAME(&fixture.bystander));
+  GET_ACCOUNT_NAME(&fixture.actor) = NULL;
+  GET_ACCOUNT_NAME(&fixture.bystander) = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, same_account_ok);
+  CuAssertIntEquals(tc, TRUE, other_account_refused);
+  CuAssertIntEquals(tc, TRUE, told_why);
+}
+
+/* --------------------------------------------------------------------------
+ * Level-scaled bonuses and highest-only resistance
+ * -------------------------------------------------------------------------- */
+
+static int artint_affect_modifier(struct char_data *ch, int location)
+{
+  struct affected_type *af = NULL;
+  int total = 0;
+
+  for (af = ch->affected; af; af = af->next)
+    if (af->location == location)
+      total += af->modifier;
+
+  return total;
+}
+
+void Test_artifact_integration_bonuses_scale_with_artifact_level(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int hit_at_one = 0, hit_at_five = 0, hp_at_five = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Doombringer: +4 hitroll, +30 hp per artifact level. */
+  art = artifact_by_vnum(ART_VNUM_DOOMBRINGER);
+  CuAssertPtrNotNull(tc, art);
+
+  artint_instance(&fixture, &obj, ART_VNUM_DOOMBRINGER);
+  artint_carry(&fixture, &obj);
+
+  art->level = 1;
+  artifact_apply_bonuses(&fixture.actor, &obj);
+  hit_at_one = artint_affect_modifier(&fixture.actor, APPLY_HITROLL);
+  artifact_remove_bonuses(&fixture.actor, &obj);
+
+  art->level = ARTIFACT_MAX_LEVEL;
+  artifact_apply_bonuses(&fixture.actor, &obj);
+  hit_at_five = artint_affect_modifier(&fixture.actor, APPLY_HITROLL);
+  hp_at_five = artint_affect_modifier(&fixture.actor, APPLY_HIT);
+  artifact_remove_bonuses(&fixture.actor, &obj);
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 4, hit_at_one);
+  CuAssertIntEquals(tc, 4 * ARTIFACT_MAX_LEVEL, hit_at_five);
+  CuAssertIntEquals(tc, 30 * ARTIFACT_MAX_LEVEL, hp_at_five);
+}
+
+void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data weapon;
+  struct obj_data shield;
+  struct artifact_data *fade = NULL;
+  struct artifact_data *aegis = NULL;
+  int one_artifact = 0, two_artifacts = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Fade resists 5% physical; the Aegis of Ages resists 12%.  Wearing both
+   * must apply 12%, never 17%. */
+  fade = artifact_by_vnum(ART_VNUM_FADE);
+  aegis = artifact_by_vnum(ART_VNUM_AEGIS);
+  CuAssertPtrNotNull(tc, fade);
+  CuAssertPtrNotNull(tc, aegis);
+  CuAssertIntEquals(tc, 5, fade->resist_physical);
+  CuAssertIntEquals(tc, 12, aegis->resist_physical);
+
+  artint_instance(&fixture, &weapon, ART_VNUM_FADE);
+  artint_instance(&fixture, &shield, ART_VNUM_AEGIS);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &weapon;
+  weapon.worn_by = &fixture.actor;
+  weapon.worn_on = WEAR_WIELD_1;
+
+  one_artifact = artifact_damage_resist(&fixture.actor, 100, DAM_SLICE);
+
+  GET_EQ(&fixture.actor, WEAR_SHIELD) = &shield;
+  shield.worn_by = &fixture.actor;
+  shield.worn_on = WEAR_SHIELD;
+
+  two_artifacts = artifact_damage_resist(&fixture.actor, 100, DAM_SLICE);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  GET_EQ(&fixture.actor, WEAR_SHIELD) = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 95, one_artifact);
+  CuAssertIntEquals(tc, 88, two_artifacts);
+}
+
+/* --------------------------------------------------------------------------
+ * Active abilities
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int i = 0, abilities = 0, listed = 0;
+  static const int ability_vnums[3] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN};
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  for (i = 0; i < total_artifacts; i++)
+    if (art_index[i].ability_name)
+      abilities++;
+
+  /* 'artifact abilities' lists exactly what the bearer is actually holding. */
+  for (i = 0; i < 3; i++)
+  {
+    art = artifact_by_vnum(ability_vnums[i]);
+    CuAssertPtrNotNull(tc, art);
+    CuAssertPtrNotNull(tc, (void *)art->ability_name);
+
+    artint_instance(&fixture, &obj, ability_vnums[i]);
+    artint_carry(&fixture, &obj);
+    GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+    obj.worn_by = &fixture.actor;
+    obj.worn_on = WEAR_WIELD_1;
+
+    artint_clear_output(&fixture);
+    do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+    if (artint_said(&fixture, art->ability_name))
+      listed++;
+
+    GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+    obj.worn_by = NULL;
+    artint_uncarry(&fixture, &obj);
+  }
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 3, abilities);
+  CuAssertIntEquals(tc, 3, listed);
+}
+
+/* An ability is invoked by typing its own name, so the template's
+ * ability_name has to exist in the interpreter's command table and route to
+ * do_artifact_ability.  An ability added to the template table but never
+ * registered would otherwise be silently unreachable. */
+void Test_artifact_integration_every_ability_name_is_a_registered_command(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  char missing[MAX_STRING_LENGTH] = {'\0'};
+  int i = 0, j = 0, abilities = 0, registered = 0, found = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  for (i = 0; i < total_artifacts; i++)
+  {
+    if (!art_index[i].ability_name)
+      continue;
+
+    abilities++;
+    found = FALSE;
+
+    for (j = 0; *cmd_info[j].command != '\n'; j++)
+      if (!str_cmp(cmd_info[j].command, art_index[i].ability_name) &&
+          cmd_info[j].command_pointer == do_artifact_ability)
+      {
+        found = TRUE;
+        break;
+      }
+
+    if (found)
+      registered++;
+    else
+      snprintf(missing, sizeof(missing), "ability '%s' on vnum %d is not a registered command",
+               art_index[i].ability_name, art_index[i].vnum);
+  }
+
+  artint_end(&fixture);
+
+  CuAssertTrue(tc, abilities > 0);
+  if (registered != abilities)
+  {
+    CuFail(tc, missing);
+    return;
+  }
+  CuAssertIntEquals(tc, abilities, registered);
+}
+
+/* --------------------------------------------------------------------------
+ * Called effects: success, refusal, and independent recharge
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_called_effect_refuses_while_recharging(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int first_ok = FALSE, second_refused = FALSE, told_remaining = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Wyrmfang's 'invoke hunt' is self-targeted, so it cannot fail for want of
+   * a victim. */
+  artint_instance(&fixture, &obj, ART_VNUM_WYRMFANG);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  art = artifact_by_vnum(ART_VNUM_WYRMFANG);
+  CuAssertPtrNotNull(tc, art);
+
+  artint_clear_output(&fixture);
+  first_ok = artifact_command_trigger(&fixture.actor, "hunt");
+
+  artint_clear_output(&fixture);
+  second_refused = !artifact_command_trigger(&fixture.actor, "hunt");
+  told_remaining = artint_said(&fixture, "is spent");
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, first_ok);
+  CuAssertIntEquals(tc, TRUE, second_refused);
+  CuAssertIntEquals(tc, TRUE, told_remaining);
+}
+
+void Test_artifact_integration_effect_slots_recharge_independently(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artifact_data *art = NULL;
+  int slot0_spent = 0, slot1_ready = 0, slot2_ready = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Trorxek has four effect slots.  Spending one must not spend the rest. */
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  CuAssertPtrNotNull(tc, art);
+
+  art->effect_used[0] = time(0);
+  slot0_spent = artifact_recharge_remaining(art, 0);
+  slot1_ready = artifact_recharge_remaining(art, 1);
+  slot2_ready = artifact_recharge_remaining(art, 2);
+
+  artint_end(&fixture);
+
+  CuAssertTrue(tc, slot0_spent > 0);
+  CuAssertIntEquals(tc, 0, slot1_ready);
+  CuAssertIntEquals(tc, 0, slot2_ready);
+}
+
+void Test_artifact_integration_invocation_channels_do_not_cross(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data spear;
+  struct obj_data dagger;
+  int say_ignores_command_phrase = FALSE, whisper_ignores_command_phrase = FALSE;
+  int say_ignores_whisper_phrase = FALSE, whisper_answers = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_instance(&fixture, &spear, ART_VNUM_WYRMFANG);
+  artint_carry(&fixture, &spear);
+  artint_instance(&fixture, &dagger, ART_VNUM_ICEDGE);
+  artint_carry(&fixture, &dagger);
+  artifact_obj_to_char(&spear, &fixture.actor);
+  artifact_obj_to_char(&dagger, &fixture.actor);
+
+  say_ignores_command_phrase = !artifact_speech_trigger(&fixture.actor, "hunt");
+  whisper_ignores_command_phrase = !artifact_whisper_trigger(&fixture.actor, "hunt");
+  say_ignores_whisper_phrase = !artifact_speech_trigger(&fixture.actor, "rime");
+  whisper_answers = artifact_whisper_trigger(&fixture.actor, "rime");
+
+  artint_uncarry(&fixture, &dagger);
+  artint_uncarry(&fixture, &spear);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, say_ignores_command_phrase);
+  CuAssertIntEquals(tc, TRUE, whisper_ignores_command_phrase);
+  CuAssertIntEquals(tc, TRUE, say_ignores_whisper_phrase);
+  CuAssertIntEquals(tc, TRUE, whisper_answers);
+}
+
+/* --------------------------------------------------------------------------
+ * Procs: the generic library and every signature shape
+ *
+ * artifact_weapon_proc() rolls for its chance, so these force the roll by
+ * setting the chance to certainty.  Every other gate the runtime applies -
+ * the internal cooldown, the alignment rule, target legality - is left alone.
+ * -------------------------------------------------------------------------- */
+
+struct artint_proc_case
+{
+  int vnum;
+  int sig_proc;
+  const char *what;
+};
+
+static const struct artint_proc_case artint_signature_cases[] = {
+    {ART_VNUM_EARTHCRIER, ART_SIG_KNOCKDOWN, "knockdown"},
+    {ART_VNUM_VENGEANCE, ART_SIG_MERCY, "mercy"},
+    {ART_VNUM_WYRMFANG, ART_SIG_WEIGHTED, "weighted"},
+    {ART_VNUM_TWILIGHT, ART_SIG_SURGE, "surge"},
+    {ART_VNUM_ICEDGE, ART_SIG_FLURRY, "flurry"}};
+
+#define ARTINT_SIGNATURE_COUNT                                                                     \
+  ((int)(sizeof(artint_signature_cases) / sizeof(artint_signature_cases[0])))
+
+void Test_artifact_integration_every_signature_shape_is_wired(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artifact_data *art = NULL;
+  int i = 0, matched = 0, all_have_a_chance = TRUE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Each shape in the library is claimed by exactly the artifact the roster
+   * says owns it, and none of them is registered with a zero chance. */
+  for (i = 0; i < ARTINT_SIGNATURE_COUNT; i++)
+  {
+    art = artifact_by_vnum(artint_signature_cases[i].vnum);
+    if (!art)
+      continue;
+    if (art->sig_proc == artint_signature_cases[i].sig_proc)
+      matched++;
+    if (art->sig_chance <= 0)
+      all_have_a_chance = FALSE;
+  }
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, matched);
+  CuAssertIntEquals(tc, TRUE, all_have_a_chance);
+}
+
+void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int i = 0, fired = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  for (i = 0; i < ARTINT_SIGNATURE_COUNT; i++)
+  {
+    art = artifact_by_vnum(artint_signature_cases[i].vnum);
+    if (!art)
+      continue;
+
+    /* Certainty, no internal cooldown, and an alignment rule that cannot
+     * refuse: what is left is the shape itself. */
+    art->sig_chance = 100;
+    art->last_proc = 0;
+    art->sig_align = ART_ALIGN_ANY;
+    art->level = ARTIFACT_MAX_LEVEL;
+
+    artint_instance(&fixture, &obj, artint_signature_cases[i].vnum);
+    artint_carry(&fixture, &obj);
+    GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+    obj.worn_by = &fixture.actor;
+    obj.worn_on = WEAR_WIELD_1;
+
+    /* A wounded bearer, so the mercy shape takes its heal branch, and a live
+     * victim in the same room for the shapes that need one.  Both sides are
+     * already engaged: a proc fires mid-combat, and pre-engaging keeps
+     * damage() from having to start a fight, which needs the event queue. */
+    GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) / 2;
+    GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+    GET_POS(&fixture.victim) = POS_STANDING;
+    FIGHTING(&fixture.actor) = &fixture.victim;
+    FIGHTING(&fixture.victim) = &fixture.actor;
+    artifact_stack_clear(&fixture.actor, ART_STACK_COMBAT_SURGE);
+
+    artint_clear_output(&fixture);
+    artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+
+    /* Every shape either says something, moves the victim, heals the bearer,
+     * or raises a stack group.  A shape that did nothing at all is broken. */
+    if (fixture.descriptor.output[0] != '\0' || GET_POS(&fixture.victim) != POS_STANDING ||
+        GET_HIT(&fixture.actor) != GET_MAX_HIT(&fixture.actor) / 2 ||
+        GET_HIT(&fixture.victim) != GET_MAX_HIT(&fixture.victim) ||
+        artifact_stack_active(&fixture.actor, ART_STACK_COMBAT_SURGE))
+      fired++;
+
+    GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+    obj.worn_by = NULL;
+    artint_uncarry(&fixture, &obj);
+    artifact_stack_clear(&fixture.actor, ART_STACK_COMBAT_SURGE);
+    FIGHTING(&fixture.actor) = NULL;
+    FIGHTING(&fixture.victim) = NULL;
+    fixture.actor.last_attacker = NULL;
+    fixture.victim.last_attacker = NULL;
+    GET_POS(&fixture.victim) = POS_STANDING;
+    while (fixture.victim.affected != NULL)
+      affect_remove_no_total(&fixture.victim, fixture.victim.affected);
+  }
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, fired);
+}
+
+void Test_artifact_integration_surge_will_not_stack_with_itself(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int first_raised_it = FALSE, second_refused = FALSE, cleared = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_TWILIGHT);
+  CuAssertPtrNotNull(tc, art);
+  art->sig_chance = 100;
+  art->last_proc = 0;
+  art->level = ARTIFACT_MAX_LEVEL;
+
+  artint_instance(&fixture, &obj, ART_VNUM_TWILIGHT);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  first_raised_it = artifact_stack_active(&fixture.actor, ART_STACK_COMBAT_SURGE);
+
+  /* A second surge while one is running must not add a second set of
+   * affects. */
+  art->last_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  second_refused = (fixture.descriptor.output[0] == '\0');
+
+  artifact_stack_clear(&fixture.actor, ART_STACK_COMBAT_SURGE);
+  cleared = !artifact_stack_active(&fixture.actor, ART_STACK_COMBAT_SURGE);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, first_raised_it);
+  CuAssertIntEquals(tc, TRUE, second_refused);
+  CuAssertIntEquals(tc, TRUE, cleared);
+}
+
+void Test_artifact_integration_generic_proc_respects_its_cooldown(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int silent_on_cooldown = FALSE, no_proc_at_zero_chance = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* The Aegis of Ages has no signature shape and no generic proc chance, so
+   * it is the clean case for the generic path's guards. */
+  art = artifact_by_vnum(ART_VNUM_AEGIS);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_NONE, art->sig_proc);
+  CuAssertIntEquals(tc, 0, art->proc_chance);
+
+  artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
+  artint_carry(&fixture, &obj);
+
+  artint_clear_output(&fixture);
+  artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+  no_proc_at_zero_chance = (fixture.descriptor.output[0] == '\0');
+
+  /* Give it a certain proc but leave the internal cooldown running: the
+   * cooldown wins. */
+  art->proc_chance = 100;
+  art->last_proc = time(0);
+  artint_clear_output(&fixture);
+  artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+  silent_on_cooldown = (fixture.descriptor.output[0] == '\0');
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, no_proc_at_zero_chance);
+  CuAssertIntEquals(tc, TRUE, silent_on_cooldown);
+}
+
+/* --------------------------------------------------------------------------
+ * Class oath: burn damage and phrase hiding
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_class_oath_burns_and_hides_phrases(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  struct char_data *actor = NULL;
+  int hp_before = 0, hp_after = 0;
+  int phrases_hidden = FALSE, phrases_shown = FALSE, refused_effect = FALSE;
+  int oathkeeper_ok = FALSE, oathbreaker_not_ok = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  actor = &fixture.actor;
+
+  /* Trorxek is sworn to druids. */
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, CLASS_DRUID, art->class_restrict);
+  CuAssertTrue(tc, art->class_min_level > 0);
+
+  artint_instance(&fixture, &obj, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  /* No druid levels: it does not recognize the bearer. */
+  CLASS_LEVEL(actor, CLASS_DRUID) = 0;
+  oathbreaker_not_ok = !artifact_class_ok(&fixture.actor, art);
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  phrases_hidden = artint_said(&fixture, "It keeps its own counsel") &&
+                   !artint_said(&fixture, "forest path home");
+
+  /* The runtime agrees with the display: the words do nothing. */
+  artint_clear_output(&fixture);
+  refused_effect = !artifact_speech_trigger(&fixture.actor, "forest path home") &&
+                   artint_said(&fixture, "does not care what you want");
+
+  /* The burn is real damage, once per tick. */
+  hp_before = GET_HIT(&fixture.actor);
+  artifact_burn_tick(&fixture.actor);
+  hp_after = GET_HIT(&fixture.actor);
+
+  /* Enough druid levels: the artifact answers. */
+  CLASS_LEVEL(actor, CLASS_DRUID) = art->class_min_level;
+  oathkeeper_ok = artifact_class_ok(&fixture.actor, art);
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  phrases_shown = artint_said(&fixture, "forest path home");
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, oathbreaker_not_ok);
+  CuAssertIntEquals(tc, TRUE, phrases_hidden);
+  CuAssertIntEquals(tc, TRUE, refused_effect);
+  CuAssertTrue(tc, hp_after < hp_before);
+  CuAssertIntEquals(tc, TRUE, oathkeeper_ok);
+  CuAssertIntEquals(tc, TRUE, phrases_shown);
+}
+
+/* --------------------------------------------------------------------------
+ * Player and staff command output
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_player_commands_produce_output(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  int help_ok = FALSE, list_empty_ok = FALSE, list_shows_held = FALSE;
+  int roster_ok = FALSE, progress_ok = FALSE, info_ok = FALSE, usage_ok = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"help", 0, 0);
+  help_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"list", 0, 0);
+  list_empty_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"list", 0, 0);
+  list_shows_held = artint_said(&fixture, "a test artifact");
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  roster_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"progress", 0, 0);
+  progress_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"info artifact", 0, 0);
+  info_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"nonsense", 0, 0);
+  usage_ok = artint_said(&fixture, "Usage: artifact");
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, help_ok);
+  CuAssertIntEquals(tc, TRUE, list_empty_ok);
+  CuAssertIntEquals(tc, TRUE, list_shows_held);
+  CuAssertIntEquals(tc, TRUE, roster_ok);
+  CuAssertIntEquals(tc, TRUE, progress_ok);
+  CuAssertIntEquals(tc, TRUE, info_ok);
+  CuAssertIntEquals(tc, TRUE, usage_ok);
+}
+
+void Test_artifact_integration_chronicle_hides_an_undiscovered_name(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int hidden_before = FALSE, named_after = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_DOOMBRINGER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, FALSE, art->discovered);
+
+  /* Undiscovered: the roster carries the lore but not the name. */
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  hidden_before = !artint_said(&fixture, "a test artifact");
+
+  /* Claiming it is what makes it public. */
+  artint_instance(&fixture, &obj, ART_VNUM_DOOMBRINGER);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  CuAssertIntEquals(tc, TRUE, art->discovered);
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"roster", 0, 0);
+  named_after = artint_said(&fixture, "a test artifact");
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, hidden_before);
+  CuAssertIntEquals(tc, TRUE, named_after);
+}
+
+void Test_artifact_integration_staff_commands_report_the_registry(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  int list_ok = FALSE, verify_ok = FALSE, usage_ok = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  GET_LEVEL(&fixture.actor) = LVL_IMPL;
+
+  artint_clear_output(&fixture);
+  do_testartifact(&fixture.actor, (char *)"list", 0, 0);
+  list_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_testartifact(&fixture.actor, (char *)"verify", 0, 0);
+  verify_ok = (fixture.descriptor.output[0] != '\0');
+
+  artint_clear_output(&fixture);
+  do_testartifact(&fixture.actor, (char *)"", 0, 0);
+  usage_ok = (fixture.descriptor.output[0] != '\0');
+
+  GET_LEVEL(&fixture.actor) = 20;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, list_ok);
+  CuAssertIntEquals(tc, TRUE, verify_ok);
+  CuAssertIntEquals(tc, TRUE, usage_ok);
+}
+
+void Test_artifact_integration_staff_spawn_refuses_a_durably_owned_artifact(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artifact_data *art = NULL;
+  int refused = FALSE, owner_untouched = FALSE, persistence_untouched = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_AEGIS);
+  CuAssertPtrNotNull(tc, art);
+
+  free(art->owner);
+  art->owner = strdup("Someoneelse");
+  art->bound_time = time(0);
+  art->instance_persisted = TRUE;
+
+  GET_LEVEL(&fixture.actor) = LVL_IMPL;
+  artint_clear_output(&fixture);
+  do_testartifact(&fixture.actor, (char *)"spawn 169911", 0, 0);
+  refused = (fixture.descriptor.output[0] != '\0');
+  owner_untouched = !str_cmp(art->owner, "Someoneelse");
+  persistence_untouched = art->instance_persisted;
+  GET_LEVEL(&fixture.actor) = 20;
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, refused);
+  CuAssertIntEquals(tc, TRUE, owner_untouched);
+  CuAssertIntEquals(tc, TRUE, persistence_untouched);
+}
+
+/* --------------------------------------------------------------------------
+ * Single-instance behavior across reboot and zone reset
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_zone_reset_never_makes_a_second_instance(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  obj_rnum rnum = NOTHING;
+  int blocked_while_live = FALSE, allowed_when_gone = FALSE;
+  int blocked_while_owned_offline = FALSE, allowed_after_release = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  rnum = artint_rnum_of(ART_VNUM_AVERNUS);
+  CuAssertTrue(tc, rnum != NOTHING);
+
+  /* An instance in play blocks the reset outright. */
+  artint_instance(&fixture, &obj, ART_VNUM_AVERNUS);
+  artint_carry(&fixture, &obj);
+  blocked_while_live = artifact_block_zone_load(rnum);
+
+  /* Take it out of play, but leave it durably owned and persisted, as though
+   * the owner logged off with it.  The reset must still be refused. */
+  artifact_obj_to_char(&obj, &fixture.actor);
+  artint_uncarry(&fixture, &obj);
+  blocked_while_owned_offline = artifact_block_zone_load(rnum);
+
+  /* Release it: now the world may put it back. */
+  artifact_from_char(&obj, &fixture.actor);
+  allowed_when_gone = !artifact_block_zone_load(rnum);
+
+  /* And an unowned, uninstanced artifact was never blocked. */
+  allowed_after_release = !artifact_block_zone_load(artint_rnum_of(ART_VNUM_GESEN));
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, blocked_while_live);
+  CuAssertIntEquals(tc, TRUE, blocked_while_owned_offline);
+  CuAssertIntEquals(tc, TRUE, allowed_when_gone);
+  CuAssertIntEquals(tc, TRUE, allowed_after_release);
+}
+
+void Test_artifact_integration_ownership_survives_a_reboot(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  obj_rnum rnum = NOTHING;
+  int owner_survived = FALSE, binding_survived = FALSE, persistence_survived = FALSE;
+  int level_survived = FALSE, blocked_after_reboot = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  rnum = artint_rnum_of(ART_VNUM_ICEDGE);
+  artint_instance(&fixture, &obj, ART_VNUM_ICEDGE);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  artifact_on_equip(&fixture.actor, &obj, WEAR_WIELD_1);
+
+  art = artifact_by_vnum(ART_VNUM_ICEDGE);
+  art->level = 3;
+  art->experience = artifact_xp_to_next(2);
+  artifact_save();
+
+  /* Reboot: the instance goes away with the process, the file does not. */
+  artifact_on_unequip(&fixture.actor, &obj);
+  artint_uncarry(&fixture, &obj);
+  artifact_shutdown();
+  artifact_boot();
+
+  art = artifact_by_vnum(ART_VNUM_ICEDGE);
+  owner_survived = (art && !str_cmp(art->owner, "Artifactor"));
+  binding_survived = (art && art->bound_time > 0);
+  persistence_survived = (art && art->instance_persisted);
+  level_survived = (art && art->level == 3);
+  blocked_after_reboot = artifact_block_zone_load(rnum);
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, owner_survived);
+  CuAssertIntEquals(tc, TRUE, binding_survived);
+  CuAssertIntEquals(tc, TRUE, persistence_survived);
+  CuAssertIntEquals(tc, TRUE, level_survived);
+  CuAssertIntEquals(tc, TRUE, blocked_after_reboot);
+}

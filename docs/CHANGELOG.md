@@ -2,6 +2,34 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Artifact booted-world integration coverage
+
+#### Added
+
+- `unittests/CuTest/test_artifact_integration.c`, a production-linked
+  integration suite for the artifact system. It boots a real registry from
+  the shipped template, contract, passive, and effect tables, puts a real
+  player with a descriptor in a real room beside a live NPC, and drives the
+  production entry points: acquire, equip, bind, unequip, drop, save, reload
+  and destroy; character-bound and account-bound rejection; level-scaled
+  bonuses and highest-only resistance; every active ability; the generic proc
+  guards and every signature shape; called-effect success, refusal, and
+  independent per-slot recharge; invocation-channel separation; class-oath
+  burn damage and phrase hiding; player and staff command output; and
+  single-instance behavior across a zone reset and a reboot. The suite is now
+  360 tests, up from 338.
+- Two `#ifdef LUMINARI_CUTEST` seams in `src/obj/spec_artifacts.c`:
+  `artifact_show_info_for_test()` drives the real display path, and
+  `artifact_force_signature_proc_for_test()` skips only the chance roll -
+  the internal cooldown, alignment rule, and target legality still apply.
+
+#### Fixed
+
+- The artifact unit fixture built an eleven-entry object table, so any test
+  that rebooted the registry registered a partial roster and the metadata
+  validator logged thirty SYSERRs on every run. It now carries all seventeen
+  artifact vnums and the suite is silent on artifacts.
+
 ### Artifact deployment package is now version controlled
 
 #### Fixed
