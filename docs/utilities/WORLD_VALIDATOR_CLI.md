@@ -377,6 +377,79 @@ dialogue rolls, rewards, combat, spell effects, ROOM triggers, or input/output
 command chains. Static validation cannot prove that player-facing text,
 difficulty, event sequencing, or intended gameplay is correct.
 
+## Version 0.2.0 Acceptance Snapshot
+
+The quest-system expansion was accepted against the development world on
+2026-08-04. The version and JSON contract were:
+
+```text
+$ python3 scripts/world/wtool.py --version
+wtool 0.2.0
+```
+
+JSON output remained at schema version 1 because quest and HLQ records,
+references, and findings are additive. The clean tracked gates passed all 170
+Python tests through both Make and CMake, all four focused CTest entries, all
+364 production-linked CuTests, and the required `make install` step.
+
+The representative development-world lookup commands were:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 3
+python3 scripts/world/wtool.py show quest 300
+python3 scripts/world/wtool.py refs quest 300
+python3 scripts/world/wtool.py show hlquest 374
+python3 scripts/world/wtool.py refs hlquest 374
+```
+
+Zone 3 contained no quest-system finding. The zone command still returned
+status 1 because other selected world formats had existing errors. All four
+lookups returned status 0: QST 300 had one outgoing edge, and HLQ host 374 had
+19. Full-world lookup JSON also reported `lookup_parse_errors: 3849`; a found
+record does not imply that unrelated world data is clean.
+
+The hash-guarded `validate --all` audit parsed an inventory of 182 QST files
+and 320 HLQ files. It completed in 12.13 seconds at 301,620 KiB peak RSS and
+reported 41,468 whole-world findings: 3,849 errors, 37,413 warnings, and 206
+info findings. The quest-system subset was 372 findings: 210 errors and 162
+warnings. Its exact classification was:
+
+- 57 `IDX008` unindexed-file warnings and one `REF010` package warning;
+- one `HLQ014` missing-terminator error and three `HLQ015`
+  post-terminator-content errors;
+- five `REF032`, 143 `REF034`, and 36 `REF035` missing or wrong-type
+  reference errors;
+- three `SEM026` required-field errors;
+- 40 `SEM028` chain reciprocity warnings;
+- 19 errors and 31 warnings under `SEM032`; and
+- 33 `SEM033` ignored-parameter warnings.
+
+Every quest-system finding mapped to a source-demonstrated runtime contract or
+a builder-owned data issue. No validator defect remained after classification,
+and the audit did not repair live data. `validate --mini` reproduced the
+expected `IDX009` error for the absent development `hlq/index.mini`.
+
+The path-and-content aggregate hashes were identical before validation and
+after validation, lookups, server boot, and gameplay:
+
+```text
+QST  9d80ee4d90c360c10d5c4b38eb939516b7928a2fb5cef76a61c8511393ce0655
+HLQ  7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe
+```
+
+After all static gates, the development service was restarted on the newly
+installed `bin/circle` and entered the game loop. QST 300 was listed at its
+questmaster, joined, displayed through both progress views, and left. HLQ host
+374 answered its stored `hi` and `lumber` ASK entries. A second login confirmed
+the test character was back in its original room with all quest slots free and
+unchanged quest points.
+
+That playtest proves loader integration, reset availability for the selected
+NPCs, questmaster special dispatch, quest queue save/clear behavior, and HLQ
+ASK dispatch for those records. It does not prove QST autocraft completion or
+rewards, HLQ GIVE/ROOM/output command effects, combat, spell effects, dialogue
+rolls, or the correctness of builder-authored text and balance.
+
 ## Emitter Follow-on Is Not Included
 
 There is no `emit` command in this release. Any future structured emitter must

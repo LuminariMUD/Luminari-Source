@@ -4,34 +4,42 @@
 
 ### World validator and lookup CLI
 
-Completed Phases 0-4 of the standalone `wtool` project. The validator now
-parses all six flat world formats without MariaDB or a server boot, reports
-recoverable structural, reference, semantic, and topology findings in one
-pass, and provides deterministic human and versioned JSON output.
+Completed the standalone `wtool` project and its quest-system expansion. The
+0.2.0 validator now parses all eight flat world formats without MariaDB or a
+server boot, reports recoverable structural, reference, semantic, and topology
+findings in one pass, and provides deterministic human and versioned JSON
+output. JSON schema version 1 is retained because the quest additions are
+backward-compatible extensions.
 
 #### Added
 
 - `scripts/world/wtool.py` with indexed `--all`, `--mini`, and `--zone`
-  validation plus isolated `--paths` validation.
-- Source-derived flag and constant lookup, four-chunk flag decode/encode,
-  typed `show` record lookup, and incoming/outgoing `refs` traversal from the
-  same parsed model used by validation.
+  validation plus isolated `--paths` validation for zones, rooms, mobiles,
+  objects, shops, triggers, quests, and high-level quests.
+- Byte-safe QST and HLQ parsers with typed records, deterministic recovery,
+  physical source spans, normal and mini index handling, selected-package
+  loading, canonical ordering checks, and physical/effective HLQ runtime order.
+- Source-derived flag and constant lookup, four-chunk flag decode/encode for
+  existing bitvectors, one-token quest flag handling, typed `show` record
+  lookup, and incoming/outgoing `refs` traversal from the same parsed model
+  used by validation.
 - Stable source-located diagnostics for indexes, zones, rooms, mobiles,
-  objects, shops, triggers, cross-file references, semantic values, and room
-  topology.
+  objects, shops, triggers, quests, high-level quests, cross-file references,
+  semantic values, and topology.
 - A checked-in constants manifest extracted from bounded source blocks, with
   `constants sync --check` and explicit `--write` maintenance modes.
 - A bounded `docs --check` gate for reference-table coverage and indices,
   source paths and explicit function citations, registered OLC commands,
   ASCII/UTF-8/LF policy, and generated builder-guide freshness.
-- Ninety-nine standard-library tests covering parser grammar, recovery,
+- 170 standard-library tests covering parser grammar, recovery,
   reference graphs, semantics, deterministic output, read-only behavior,
   lookup, documentation drift, and wrapper status propagation. Synthetic
-  fixtures cover all six formats, normal and mini indexes, legacy forms, and
+  fixtures cover all eight formats, normal and mini indexes, legacy forms, and
   malformed boundaries.
 - [World Validator and Lookup CLI](utilities/WORLD_VALIDATOR_CLI.md), the
   permanent command, architecture, exit-status, builder-loop, and CI
-  reference.
+  reference, plus permanent [QST](world_game-data/QUEST_FILE_FORMAT.md) and
+  [HLQ](world_game-data/HLQUEST_FILE_FORMAT.md) format references.
 
 #### Changed
 
@@ -43,27 +51,49 @@ pass, and provides deterministic human and versioned JSON output.
   and the `world-tools` GitHub Actions job now enforce the unit, fixture,
   constants, documentation, and wrapper contracts. CI intentionally validates
   tracked data only; ignored live world data is not available to the runner.
-- Builder quickstart, zone, shop, object-editor, and builder-manual workflows
-  now use a save-validate-inspect-boot loop. The testing guide, utilities
-  index, and technical documentation master index link the maintained tool.
+- Builder quickstart, zone, shop, object-editor, QEDIT, HLQEDIT, and
+  builder-manual workflows now use a save-validate-inspect-boot loop. The OLC
+  system guide now distinguishes the two quest editors and their runtime
+  models. The testing guide, utilities index, and technical documentation
+  master index link the maintained tool.
 - The builder manual now publishes all 37 room sectors, protected against
   source drift alongside the complete room, mobile, object-extra, wear, and
-  item-type tables.
+  item-type tables. The QST and HLQ guides add source-locked quest type, quest
+  flag, HLQ entry type, and HLQ command tables.
 
 #### Verification
 
-- `make test-world-tools`, the CMake target, and all four focused world-tool
-  CTest entries pass. `ruff`, ShellCheck, constants sync, documentation drift,
-  generated HTML, build-list symmetry, YAML parsing, and ASCII/LF checks are
+- Clean Make and CMake `test-world-tools` targets pass all 170 Python tests
+  plus constants, documentation, fixture, and wrapper checks. All four focused
+  world-tool CTest entries pass; the build support lists match at 27 paths;
+  source constants, YAML, ASCII/UTF-8/LF, and generated-document checks are
   clean.
-- The full production-linked `make test` suite passes, `make install` leaves
-  an executable `bin/circle`, and the required root-level `circle` artifact is
-  removed.
-- Two complete development-world JSON runs were byte-identical. Each completed
-  in about 11.5 seconds at about 284 MiB maximum RSS and reported the same
-  builder-owned baseline: 3,640 errors, 37,251 warnings, and 206 info findings.
-  Whole-world hashes were identical before validation, after both runs, and
-  after install.
+- A clean GNU C23 production and `-DLUMINARI_CUTEST` build completes without
+  warnings. All 364 production-linked tests pass, and `make install` leaves an
+  executable `bin/circle` with no root-level `circle` artifact.
+- A hash-guarded `validate --all` development audit completed in 12.13 seconds
+  at 301,620 KiB peak RSS. The whole world reported 41,468 existing findings:
+  3,849 errors, 37,413 warnings, and 206 info findings. The quest-system scope
+  contained 372 findings: 210 errors and 162 warnings.
+- The 372 quest findings comprise 58 packaging/index warnings, four HLQ
+  file-structure errors, 184 missing or wrong-type reference errors, three QST
+  required-field errors, 40 chain reciprocity warnings, 19 unsafe HLQ runtime
+  value errors, and 64 safe editor-limit or unused-parameter warnings. Every
+  result maps to a source-demonstrated hazard or builder-owned data issue; no
+  validator defect remained and no live data was repaired.
+- The expected missing `hlq/index.mini` finding was reproduced. Zone 3 had no
+  quest-system findings, and `show`/`refs` successfully resolved QST 300 and
+  HLQ host 374, including one and 19 outgoing references respectively.
+- Before and after all audit, lookup, boot, and playtest steps, the QST tree
+  hash remained
+  `9d80ee4d90c360c10d5c4b38eb939516b7928a2fb5cef76a61c8511393ce0655`
+  and the HLQ tree hash remained
+  `7f1647e1d55c3404c348a3cb967cc6722bb764fcae518fb256e55d1a058b7bfe`.
+- The development service was restarted on the installed artifact and entered
+  the game loop. At Ambah, QST 300 listed, joined, reported progress, and left
+  cleanly. At Sazzy, HLQ 374 answered both `hi` and `lumber`. A post-logout
+  check confirmed the test character was back in its original room with an
+  empty quest queue and unchanged quest points.
 - The separately reviewed emitter follow-on was not implemented or authorized
   by this project.
 

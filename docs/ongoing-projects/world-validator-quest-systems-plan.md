@@ -173,8 +173,14 @@ Last updated: 2026-08-04.
   dialogue; the live checks proved those paths for the selected records. It
   still cannot prove autocraft completion/rewards or HLQ GIVE/ROOM/output
   effects, which require scenario-specific gameplay tests.
-- Next implementation step: publish permanent acceptance evidence and close
-  the working plan.
+- Session 5 permanent acceptance evidence: `docs/CHANGELOG.md` now describes
+  the eight-format 0.2.0 release, final gates, audit classification, hashes,
+  and gameplay result. `docs/utilities/WORLD_VALIDATOR_CLI.md` now carries the
+  reproducible zone-3 lookup examples, version/schema output, exact audit
+  snapshot, no-mutation evidence, and the boundary between static and live
+  proof. The documentation drift gate and all six focused documentation tests
+  pass.
+- Next implementation step: remove this completed plan and its index row.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -970,7 +976,7 @@ data without changing that data.
 - [x] T085 [S0514] Classify the live findings into validator defects, server-source hazards, and builder-owned data issues; fix only validator defects in scope.
 - [x] T086 [S0515] Record aggregate counts, elapsed time, peak memory, and before/after hash evidence without committing live data or sensitive paths.
 - [x] T087 [S0516] Boot the development server and playtest one QST and one HLQ flow after validator gates pass; record what static validation cannot prove.
-- [ ] T088 [S0517] Update `docs/CHANGELOG.md`, final CLI examples, version output, and acceptance evidence.
+- [x] T088 [S0517] Update `docs/CHANGELOG.md`, final CLI examples, version output, and acceptance evidence.
 - [ ] T089 [S0518] Remove this completed working plan and its ongoing-project index row only after all durable content and evidence have moved to permanent docs.
 
 Session gate:
@@ -987,27 +993,27 @@ make install
 
 The project is complete only when all of the following are true:
 
-- [ ] `DATA_EXTENSIONS` and every indexed/selected/explicit loading path include `qst` and `hlq`.
-- [ ] Normal and mini validation require both quest indexes, while allowing valid empty quest datasets.
-- [ ] `--zone` and the compatibility wrapper include selected `.qst` and `.hlq` packages.
-- [ ] Both parsers match current Luminari loader grammar and current OLC writer output, including documented legacy forms.
-- [ ] Structural corruption produces stable source-located findings and deterministic recovery/completeness.
-- [ ] QST questmaster, targets, rewards, prerequisites, chains, dialogue, and type-specific scalar domains are validated.
-- [ ] HLQ hosts, entries, commands, command direction, typed parameters, scalar bounds, and runtime order are validated.
-- [ ] `show` and `refs` support `quest` and host-keyed `hlquest` in human and JSON output.
-- [ ] Existing records show incoming quest-system references.
-- [ ] Quest flags use one serialized token without changing the four-token behavior of existing sets.
-- [ ] Quest types, flags, HLQ entry types, HLQ command codes, and required limits are source-derived and drift-checked.
-- [ ] The complete tracked fixture has eight clean datasets with normal and mini indexes.
-- [ ] Positive, negative, boundary, recovery, graph, lookup, reporting, CLI, and no-mutation tests pass.
-- [ ] `Makefile.am` and `CMakeLists.txt` contain synchronized source, test, fixture, and support-file lists.
-- [ ] Make, CMake, CTest, constants, documentation, wrapper, and GitHub Actions gates pass.
-- [ ] Permanent QST and HLQ format guides exist and their bounded tables pass `docs --check`.
-- [ ] `WORLD_VALIDATOR_CLI.md` accurately states eight-format coverage and remaining limitations.
-- [ ] A hash-guarded development-world audit completes without changing a byte in either quest tree.
-- [ ] Every observed live finding is classified; no known validator defect is left hidden as a data issue.
+- [x] `DATA_EXTENSIONS` and every indexed/selected/explicit loading path include `qst` and `hlq`.
+- [x] Normal and mini validation require both quest indexes, while allowing valid empty quest datasets.
+- [x] `--zone` and the compatibility wrapper include selected `.qst` and `.hlq` packages.
+- [x] Both parsers match current Luminari loader grammar and current OLC writer output, including documented legacy forms.
+- [x] Structural corruption produces stable source-located findings and deterministic recovery/completeness.
+- [x] QST questmaster, targets, rewards, prerequisites, chains, dialogue, and type-specific scalar domains are validated.
+- [x] HLQ hosts, entries, commands, command direction, typed parameters, scalar bounds, and runtime order are validated.
+- [x] `show` and `refs` support `quest` and host-keyed `hlquest` in human and JSON output.
+- [x] Existing records show incoming quest-system references.
+- [x] Quest flags use one serialized token without changing the four-token behavior of existing sets.
+- [x] Quest types, flags, HLQ entry types, HLQ command codes, and required limits are source-derived and drift-checked.
+- [x] The complete tracked fixture has eight clean datasets with normal and mini indexes.
+- [x] Positive, negative, boundary, recovery, graph, lookup, reporting, CLI, and no-mutation tests pass.
+- [x] `Makefile.am` and `CMakeLists.txt` contain synchronized source, test, fixture, and support-file lists.
+- [x] Make, CMake, CTest, constants, documentation, wrapper, and GitHub Actions gates pass.
+- [x] Permanent QST and HLQ format guides exist and their bounded tables pass `docs --check`.
+- [x] `WORLD_VALIDATOR_CLI.md` accurately states eight-format coverage and remaining limitations.
+- [x] A hash-guarded development-world audit completes without changing a byte in either quest tree.
+- [x] Every observed live finding is classified; no known validator defect is left hidden as a data issue.
 - [x] Development boot and representative QST/HLQ playtests complete after static validation.
-- [ ] No ignored live quest file, credential file, protected configuration header, or production system is modified.
+- [x] No ignored live quest file, credential file, protected configuration header, or production system is modified.
 
 ## 9. Known Risks and Decisions Already Made
 
