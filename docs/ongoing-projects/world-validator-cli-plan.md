@@ -10,10 +10,10 @@ Implementation progress:
 - [x] Phase 1 - Zones, rooms, and critical references
 - [x] Phase 2 - Mobiles, objects, triggers, shops, and full references
 - [x] Phase 3 - Semantic and topology lint
-- [ ] Phase 4 - Lookup, documentation drift gates, and adoption
+- [x] Phase 4 - Lookup, documentation drift gates, and adoption
 - [ ] Completion audit, operational validation, and final documentation move
 
-Current checkpoint (2026-08-04): Phases 0 through 3 are complete. Phase 2
+Current checkpoint (2026-08-04): Phases 0 through 4 are complete. Phase 2
 adds all six structural parsers, source-derived wear-slot and limit contracts,
 typed reference edges, and the complete graph pass. In addition
 to the source-derived constants, source cursor, deterministic reporting, index
@@ -30,8 +30,10 @@ item-specific value validation through stable `SEM001`-`SEM022` codes.
 Source-backed exemptions cover `MOB_ISNPC`, which the canonical writer emits
 on every mobile, plus usable `MOB_SPEC` and `MOB_PLANAR_ALLY` behavior flags.
 
-`make test-world-tools` passes 86 tests; the equivalent CMake target and CTest
-entry pass the same suite; `constants sync --check` is clean. The tracked
+`make test-world-tools` passes 99 tests plus the constants, documentation, and
+compatibility-wrapper gates; the equivalent CMake target and focused CTest
+entries pass the same checks. `constants sync --check` and `docs --check` are
+clean. The tracked
 artifact and minimal zone/room bundles parse without errors and remain
 byte-for-byte unchanged. A hash-guarded `validate --all` development-world run
 completed in one pass without changing any file. It reported 57 errors:
@@ -70,10 +72,12 @@ six supported trigger types. Semantic counts are `SEM003` 925,
 `SEM004` 1,744, `SEM005` 802, `SEM006` 12,993, `SEM007` 425, `SEM008` 623,
 `SEM009` 169, `SEM010` 206, `SEM011` 8,546, `SEM012` 949, `SEM013` 23,
 `SEM016` 36, `SEM018` 69, and `SEM019` 6. No Phase 3 validator defect remains
-after operational triage. Phase 4 lookup, documentation drift gates, wrapper,
-and adoption work is next. Phase 5
-remains the separately gated emitter follow-on and is not part of this
-validator closeout.
+after operational triage. Phase 4 adds typed `show` and `refs` lookup, bounded
+documentation drift checks, a complete sector reference, builder workflow
+adoption, the migrated `validate-zone.sh` wrapper, and enforced Makefile,
+CTest, and CI gates. The completion audit and final documentation move are
+next. Phase 5 remains the separately gated emitter follow-on and is not part
+of this validator closeout.
 
 This is the build plan for `wtool`, a standalone world-data validator and
 lookup CLI intended primarily for AI agents doing world-building work, and

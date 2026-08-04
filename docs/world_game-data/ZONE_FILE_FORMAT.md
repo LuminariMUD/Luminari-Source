@@ -248,6 +248,29 @@ does **not**: an exit pointing at a nonexistent room is quietly rewritten to
 `NOWHERE`. A door that leads nowhere after a boot is usually this, and nothing
 in the log will tell you.
 
+## Validation and Lookup
+
+Run the standalone validator from the repository root before booting a changed
+zone. It catches the parser traps above, validates typed reset targets, and
+detects room exits that the server would silently null:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+lib/world/validate-zone.sh 30 --strict
+```
+
+Use typed lookup when a reset or exit finding crosses files:
+
+```sh
+python3 scripts/world/wtool.py show zone 30
+python3 scripts/world/wtool.py refs room 3000
+```
+
+The wrapper finds the repository from its own path and preserves validator
+exit status when called outside the repository. See the
+[World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for JSON output,
+exit statuses, and staging-world selection.
+
 ## Related
 
 - [Room Flags Reference](ROOM_FLAGS.md)

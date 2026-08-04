@@ -125,6 +125,26 @@ For unusual object types, read the prompts carefully; each menu is sourced from 
 - For DG scripts, coordinate with an implementor when attaching complex triggers.
 - Cross-reference `src/olc/oedit.c`, `src/obj/treasure.c`, and `constants.c` for the definitive lists of types, flags, and ability IDs.
 
+After saving, validate the owning zone and inspect the object from the same
+parsed model used by the checks:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show obj 3000
+python3 scripts/world/wtool.py refs obj 3000
+```
+
+For raw flag fields, decode all four serialized chunks or encode an
+unambiguous source macro or OLC display name:
+
+```sh
+python3 scripts/world/wtool.py flags decode obj-extra 0 0 0 0
+python3 scripts/world/wtool.py flags encode obj-wear ITEM_WEAR_TAKE ITEM_WEAR_HOLD
+```
+
+See the [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for strict
+mode, JSON output, findings, and exit statuses.
+
 ## Extra Flags Reference
 When you select `6) Extra flags` from the main menu, you can toggle any of the
 116 available item flags. Enter `0` to return to the main menu.

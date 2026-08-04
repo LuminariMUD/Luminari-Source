@@ -64,6 +64,44 @@ removing the role-play suite. See
 [WEB_ONBOARDING_SYSTEM.md](../systems/WEB_ONBOARDING_SYSTEM.md) for the
 maintained behavior and security matrix.
 
+## Standalone World-Data Tools
+
+The Python world-data suite requires neither MariaDB nor a `circle` build. Run
+its complete enforced gate from the repository root:
+
+```sh
+make test-world-tools
+```
+
+The target runs the standard-library unit suite, verifies the source-derived
+constants manifest, checks the audited world-building documentation and
+generated HTML, and smoke-tests `lib/world/validate-zone.sh`. Python 3.10 or
+newer and Pandoc are required.
+
+Equivalent CMake and CTest entry points are:
+
+```sh
+cmake --build build --target test-world-tools
+ctest --test-dir build --output-on-failure -R '^world-tool'
+```
+
+Focused checks are also available:
+
+```sh
+make check-world-docs
+python3 scripts/world/wtool.py constants sync --check
+python3 scripts/world/wtool.py docs --check
+lib/world/validate-zone.sh 100 \
+  --world-root scripts/world/tests/fixtures/phase2/complete
+```
+
+Tests use tracked synthetic fixtures plus the tracked artifact and minimal
+bundles. CI cannot validate the ignored builder-owned files under the live
+`lib/world/` type directories; a green workflow verifies the parser, fixtures,
+constants, documentation, and wrapper contracts only. See the
+[World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for validation,
+lookup, JSON, and exit-status usage.
+
 ## Protocol Parser Harness
 
 Run the focused parser harness from the repository root:
@@ -204,6 +242,8 @@ must not be added to the enforced suite.
 
 `.github/workflows/test.yml` enforces:
 
+- standalone world-data unit, fixture, constants, documentation, and wrapper
+  checks;
 - default, DragonLance, and Forgotten Realms behavioral suites;
 - root `make test-all`;
 - ASan, UBSan, and bounded protocol fuzzing;

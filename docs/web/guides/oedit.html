@@ -428,6 +428,17 @@ complex triggers.</li>
 <code>src/obj/treasure.c</code>, and <code>constants.c</code> for the
 definitive lists of types, flags, and ability IDs.</li>
 </ul>
+<p>After saving, validate the owning zone and inspect the object from
+the same parsed model used by the checks:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/world/wtool.py validate <span class="at">--zone</span> 30</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/world/wtool.py show obj 3000</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/world/wtool.py refs obj 3000</span></code></pre></div>
+<p>For raw flag fields, decode all four serialized chunks or encode an
+unambiguous source macro or OLC display name:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/world/wtool.py flags decode obj-extra 0 0 0 0</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> scripts/world/wtool.py flags encode obj-wear ITEM_WEAR_TAKE ITEM_WEAR_HOLD</span></code></pre></div>
+<p>See the <a href="../utilities/WORLD_VALIDATOR_CLI.md">World Validator
+CLI</a> for strict mode, JSON output, findings, and exit statuses.</p>
 <h2 id="extra-flags-reference">Extra Flags Reference</h2>
 <p>When you select <code>6) Extra flags</code> from the main menu, you
 can toggle any of the 116 available item flags. Enter <code>0</code> to

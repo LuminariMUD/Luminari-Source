@@ -894,6 +894,34 @@ The DG (DikuMUD Scripting) system allows builders to create interactive, dynamic
 
 ### Testing Methodology
 
+Use the standalone validator immediately after every OLC save or hand-edited
+file change:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+```
+
+Fix errors first, review warnings, then repeat with `--strict` when the zone is
+expected to have a clean warning budget. The legacy entry point is now a
+compatibility wrapper around the same parser:
+
+```sh
+lib/world/validate-zone.sh 30 --strict
+```
+
+For cross-file problems, inspect exactly one typed record and its incoming and
+outgoing dependencies:
+
+```sh
+python3 scripts/world/wtool.py show mob 3000
+python3 scripts/world/wtool.py refs obj 3000
+```
+
+The tool is read-only and does not require MariaDB or a server build. It does
+not replace boot and gameplay testing; use it to remove structural defects
+before those slower checks. Full command and exit-status documentation is in
+the [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md).
+
 **Systematic Testing:**
 1. **Basic Functionality:** Ensure all rooms, exits, and objects work
 2. **Balance Testing:** Verify appropriate difficulty and rewards

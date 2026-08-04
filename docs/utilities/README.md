@@ -740,6 +740,18 @@ Allow players to enter large containers like buildings or vehicles.
 
 ## Development Utilities
 
+### World Validator and Lookup CLI
+
+[`WORLD_VALIDATOR_CLI.md`](WORLD_VALIDATOR_CLI.md) documents `wtool`, the
+read-only parser, validator, flag converter, record viewer, and typed reference
+lookup for `.zon`, `.wld`, `.mob`, `.obj`, `.shp`, and `.trg` data. It does not
+require MariaDB or a server build. Start a local check from the repository root
+with:
+
+```bash
+python3 scripts/world/wtool.py validate --zone 30
+```
+
 ### Code Analysis Tools
 
 #### Dependency Checker

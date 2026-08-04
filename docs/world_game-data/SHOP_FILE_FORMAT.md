@@ -208,6 +208,29 @@ game hours, allowing a shop to close for a midday break. A shop that is always
 open uses `0` and `28` for the first pair and `0`/`0` for the second, since the
 game day does not reach hour 28.
 
+## Validation and Lookup
+
+Validate the zone package containing the shop after saving it. The normal
+indexed world remains available for keeper, product, room, and item-type
+checks:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+```
+
+Shop vnums can overlap room, mobile, and object vnums, so lookup is always
+typed. `show` displays the normalized shop record; `refs` displays its outgoing
+products, keeper, and room references plus incoming references from other
+records:
+
+```sh
+python3 scripts/world/wtool.py show shop 3000
+python3 scripts/world/wtool.py refs shop 3000
+```
+
+See the [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for strict
+mode, JSON output, and staging-world selection.
+
 ## Related
 
 - [Zone File Format Reference](ZONE_FILE_FORMAT.md) - the shopkeeper must be

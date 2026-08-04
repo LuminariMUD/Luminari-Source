@@ -218,6 +218,34 @@ Reset commands must start in column 0. An indented command is counted
 differently by the parser's two passes and produces
 `SYSERR: Zone command count mismatch`.
 
+## Validate Before Booting
+
+From the repository root, validate the complete zone package after every save:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+```
+
+The compatibility wrapper is shorter and works even when called from another
+current directory:
+
+```sh
+lib/world/validate-zone.sh 30
+```
+
+Fix every error, then review the warnings. Use strict mode when the zone is
+expected to have no warnings, or JSON when another tool will consume the
+result:
+
+```sh
+python3 scripts/world/wtool.py --json validate --zone 30 > /tmp/zone-30.json
+lib/world/validate-zone.sh 30 --strict
+```
+
+The validator reports all independently recoverable parser, reference, and
+topology findings in one run. It is read-only and needs neither MariaDB nor a
+`circle` build.
+
 ## Step 6: Index and Boot
 
 Add `30.wld`, `30.mob`, `30.obj`, and `30.zon` to their respective `index`
@@ -258,7 +286,8 @@ zedit 30                  Add the M and E reset commands
 ```
 
 Each editor saves with `Q` then `Y`. OLC writes the flat files and the index
-entries for you, so there is no separate indexing step.
+entries for you, so there is no separate indexing step. Return to the same
+`validate --zone 30` step after each OLC save.
 
 `dig` is worth learning early. Its full syntax is:
 
@@ -273,6 +302,14 @@ hand-editing mistake.
 Full editor and listing command reference:
 [OLC System](../systems/OLC_ONLINE_CREATION_SYSTEM.md).
 
+When a finding names an unexpected reference, inspect the normalized record
+and both sides of its typed reference graph:
+
+```sh
+python3 scripts/world/wtool.py show room 3000
+python3 scripts/world/wtool.py refs room 3000
+```
+
 ## Where to Go Next
 
 - [Builder Manual](builder_manual.md) - the long-form guide
@@ -280,4 +317,6 @@ Full editor and listing command reference:
 - [Shop File Format Reference](SHOP_FILE_FORMAT.md) - adding a shopkeeper
 - [OEDIT Guide](OEDIT_GUIDE.md) - item types, wear slots, value vectors
 - [ROOM_FLAGS.md](ROOM_FLAGS.md) and [MOB_FLAGS.md](MOB_FLAGS.md)
+- [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) - all commands,
+  finding behavior, and exit statuses
 - [DG Scripting](../systems/SCRIPTING_SYSTEM_DG.md) - making things react

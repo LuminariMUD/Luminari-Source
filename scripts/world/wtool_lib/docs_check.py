@@ -25,6 +25,7 @@ WORLD_DOCUMENTS = (
     "docs/world/STARTER_AREA.md",
     "docs/systems/OLC_ONLINE_CREATION_SYSTEM.md",
     "docs/guides/OLC_SpecProcs.md",
+    "docs/utilities/WORLD_VALIDATOR_CLI.md",
 )
 
 GENERATED_GUIDES = (
