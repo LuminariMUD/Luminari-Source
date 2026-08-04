@@ -63,10 +63,11 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
 ### 0.4 Remaining work
 
 - Section 1 (packaging) is now **DONE**; see that section for what landed.
-- Sections 2 through 4 below (live placement, booted-world integration
-  coverage, and the balance pass) are still open. Section 2 in particular:
-  the six new artifacts reset into the vault, so their contracts declare an
-  intended acquisition route that world content does not yet implement.
+- Section 2 (live placement) is **HANDED OFF** to world building as
+  [`artifact-placement-plan.md`](artifact-placement-plan.md). Live world data
+  is not version controlled, so placement is not this repository's to make.
+- Sections 3 and 4 below (booted-world integration coverage and the balance
+  pass) are still open.
 - Section 10's world-content half is builder work: the code stages the lore
   and hint text and gates it by discovery, but wiring NPC dialogue to it is
   done with ordinary DG scripts against `artifact chronicle`.
@@ -116,18 +117,38 @@ Delivered:
   vnums rather than two hard-coded ranges, matches record headers on the
   whole line instead of by substring, and reports the exact missing record.
 
-## 2. Place artifacts in player-facing content
+## 2. Place artifacts in player-facing content - HANDED OFF
 
-All eleven artifacts currently reset into the private Vault of Ages room
-169900. This is suitable for staff staging but does not make them obtainable
-through gameplay.
+All seventeen artifacts still reset into the private Vault of Ages room
+169900, which is suitable for staff staging but does not make them obtainable
+through gameplay. Closing that gap is world-building work, and live world data
+(`lib/world/zon`, `lib/world/wld`, `lib/world/mob`, `lib/world/obj`) is not
+under version control and is owned by builders, so this repository does not
+place artifacts itself.
 
-A builder must decide what content gates each artifact, then move the
-relevant `O` reset commands into live zones or load the artifacts onto
-selected mobiles. The existing single-instance guard covers `O`, `P`, `G`,
-and `E` reset commands.
+The content brief is
+[`artifact-placement-plan.md`](artifact-placement-plan.md). It is written to
+be handed to the production world-building agent and covers:
 
-Acceptance criteria:
+- the single-instance guard's exact behavior across `O`, `P`, `G`, and `E`
+  resets, and what it means for how many resets an artifact may safely have;
+- placement rules that apply to every artifact;
+- a per-artifact brief for all seventeen, giving binding, class oath,
+  signature proc, passives, called effects, and the acquisition mode each
+  contract already declares;
+- the requirement that world content and contract hint text agree;
+- the verification steps for each of task 2's acceptance criteria, including
+  the reboot and `zreset` duplicate-instance checks; and
+- the source-change budget: contract rows, the roster table, and a changelog
+  entry, and nothing else.
+
+The eleven first-wave artifacts are still `ART_ACQ_VAULT`. Choosing an
+acquisition mode for each is the first decision the handoff needs, and the
+only code change it can produce is the corresponding `artifact_contracts[]`
+row.
+
+Acceptance criteria (unchanged, now restated with verification steps in
+section 7 of the placement plan):
 
 - every intended artifact has a documented acquisition path;
 - placement works in each supported campaign where the artifact should
