@@ -1,8 +1,10 @@
 # Protocol Parser Harness
 
-This document describes the focused source-side protocol parser harness for
-Telnet, MSDP, GMCP, TTYPE, NAWS, unsupported option, and bounded response-path
-validation, including reserved structured-onboarding dispatch.
+This document describes the focused source-side protocol parser harness and
+bounded libFuzzer target for Telnet, MSDP, GMCP, MSSP, MXP, Unicode, TTYPE,
+NAWS, unsupported option, and structured-onboarding paths.
+
+Last verified: 2026-08-04
 
 The harness is a safety baseline for future protocol changes. It does not make
 MCCP, GMCP modules, MXP browser UI, live `MINIMAP`, `QUEST_INFO`, `TITLE`,
@@ -23,6 +25,18 @@ production web-onboarding capability handler, then runs
 
 The focused target uses the same GNU C23 mode as the server and the other
 CuTest targets.
+
+Run the allocation checks and bounded ASan/UBSan fuzz pass with:
+
+```sh
+make -C unittests/CuTest valgrind-protocol
+make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
+```
+
+The fuzz target copies `fuzz_corpus/` to a temporary directory, mutates only
+that copy, and enables sanitizer halt-on-error behavior. It exercises whole,
+split, and small-chunk input together with output parsing, MSDP setters, MXP,
+MSP, copyover, color, Unicode, and invalid-argument paths.
 
 ## Scope
 
@@ -72,41 +86,42 @@ protocol grammar and document the grammar source. Do not paste live bytes.
 
 | Area | Harness Case | Current Coverage |
 |------|--------------|------------------|
-| Split IAC | `TestProtocolParser_SplitIacCurrentGap` | Documents the current source gap: split `IAC` is not retained across calls and the following bytes can become command output. |
 | Doubled IAC | `TestProtocolParser_DoubledIacLiteral` | Validates `IAC IAC` becomes one literal 255 byte in command output. |
-| Incomplete subnegotiation | `TestProtocolParser_IncompleteAndMalformedSubnegotiations` | Validates incomplete subnegotiation does not crash and leaves parser state visible. |
+| Telnet NUL | `TestProtocolParser_NulPaddingIsIgnored` | Validates NUL transport padding does not terminate or enter command text. |
+| Split IAC | `TestProtocolParser_SplitIacIsRetained` | Validates negotiation state is retained across calls and following command text remains intact. |
+| Incomplete subnegotiation | `TestProtocolParser_IncompleteAndMalformedSubnegotiations` | Completes an MSDP frame in a later call and validates the retained payload is processed. |
 | Malformed MSDP | `TestProtocolParser_IncompleteAndMalformedSubnegotiations` | Validates malformed `REPORT` without `VAL` does not mark variables for reporting. |
 | Malformed GMCP | `TestProtocolParser_IncompleteAndMalformedSubnegotiations` | Validates malformed GMCP payload is ignored without output. |
+| Truncated lookahead | `TestProtocolParser_TruncatedLookaheadSequences` | Validates partial IAC, negotiation, and MXP prefixes stay bounded. |
 | TTYPE | `TestProtocolParser_TtypeAndNawsNegotiation` | Validates TTYPE request output, client ID storage, and xterm 256-color detection. |
 | NAWS | `TestProtocolParser_TtypeAndNawsNegotiation` | Validates valid four-byte NAWS payload updates width and height. |
+| Short payloads | `TestProtocolParser_ShortSubnegotiationsAreIgnored` | Validates short NAWS and empty CHARSET payloads are ignored without state changes. |
 | Unsupported options | `TestProtocolParser_UnsupportedOptionNegotiation` | Validates unknown `WILL`/`DO` options produce deterministic `DONT`/`WONT` replies. |
+| MSDP/GMCP coexistence | `TestProtocolParser_GmcpAndMsdpCanCoexist` | Validates GMCP negotiation does not clear an active MSDP state. |
 | Web onboarding capability | `TestProtocolParser_WebOnboardingCapability` | Validates the reserved MSDP capability reaches the production handler and records the negotiated version. |
 | Web onboarding action | `TestProtocolParser_WebOnboardingActionUsesReservedVariable` | Validates the reserved v2 action variable reaches the isolated production handler without becoming command output. |
-| MSDP oversized response | `TestProtocolParser_OversizedResponsePaths` | Validates oversized MSDP list output is rejected and logged instead of emitted. |
-| MXP oversized tag | `TestProtocolParser_OversizedResponsePaths` | Validates overlong MXP tags are returned unchanged. |
+| Initialization | `TestProtocolParser_CreateInitializesAllParserState` | Validates parser state and every MSDP allocation are zero-initialized. |
+| Error returns | `TestProtocolParser_NullAndInvalidMsdpInputsAreSafe` | Validates public null and invalid inputs return the standardized error codes. |
+| Graceful overflow | `TestProtocolParser_GracefulTruncationKeepsConnectionUsable` | Validates oversized commands, subnegotiations, MXP responses, and output are bounded while later input remains usable. |
+| MSSP pair length | `TestProtocolParser_MsspPairLengthIsCheckedBeforeAppend` | Validates an overlong runtime MSSP value is rejected before it can modify the destination buffer. |
+| Unicode fallback | `TestProtocolParser_UnicodeFallbackHasValidLifetime` | Validates ASCII fallback and UTF-8 substitution remain valid after output parsing. |
+| MSDP oversized response | `TestProtocolParser_OversizedResponsePaths` | Validates maximum-length strings work and overlong strings, tables, arrays, and lists are rejected. |
+| MXP oversized tag | `TestProtocolParser_OversizedResponsePaths` | Validates maximum-length tags are formatted and overlong tags are returned or rejected without copying. |
 | Copyover string | `TestProtocolParser_OversizedResponsePaths` | Validates copyover protocol flags fit the bounded static buffer. |
 | MSSP response | `TestProtocolParser_MsspResponseIsBounded` | Validates MSSP response framing is emitted and stays below `MAX_MSSP_BUFFER`. |
+| MSDP reporting | `TestProtocolParser_SelectedMsdpVariablesCanBeReported` | Validates selected numeric and string values are emitted and cleared from dirty state. |
+| Mudlet identity | `TestProtocolParser_MudletPackageUsesStableIdentity` | Validates the package URL and version identity contract. |
 
 ## Known Gaps
 
 These are recorded as validation findings, not support claims:
 
-- Split `IAC` state is not retained across `ProtocolInput()` calls. The harness
-  documents current behavior so future parser hardening can change the expected
-  outcome deliberately.
-- Incomplete subnegotiation payload bytes are not retained across calls even
-  though `bIACMode` remains set. Future hardening should add persistent
-  subnegotiation length tracking.
-- Short NAWS payloads are not separately asserted as safe because the current
-  source parser reads four bytes without checking `aSize`. Add a failing or
-  fixed expectation when that parser boundary is hardened.
-- Direct full-table MSSP and MXP stress coverage is bounded to emitted response
-  size and public helper behavior. Deeper string/allocation hardening belongs in
-  the follow-up source hardening work identified by the Phase 04 backlog.
 - MCCP compression start/end and proxy decompression behavior are outside the
   current harness because source compression is still stubbed.
 - GMCP module schema validation is outside the current harness because source
   module ownership and payload contracts are not yet defined.
+- The fuzzer is intentionally time-bounded and uses only synthetic seeds; it is
+  regression evidence, not an exhaustive proof over every byte sequence.
 
 ## Adding Cases
 
@@ -118,6 +133,6 @@ These are recorded as validation findings, not support claims:
 6. Update this matrix and the Luminari Web protocol backlog if the support
    boundary changes.
 
-Future parser behavior changes should update the current-gap tests to assert
-the hardened outcome. Do not remove a gap without replacing it with an explicit
-passing expectation.
+Future parser behavior changes should replace affected expectations with an
+explicit passing outcome and extend the synthetic fuzz corpus when a compact
+regression seed is useful.

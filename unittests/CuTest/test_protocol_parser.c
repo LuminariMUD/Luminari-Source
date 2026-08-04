@@ -21,9 +21,10 @@
 #include "../../src/net/onboarding.h"
 
 #define TEST_CAPTURE_SIZE 65536
-#define TEST_FIXTURE_SIZE 8192
+#define TEST_FIXTURE_SIZE (MAX_PROTOCOL_BUFFER + 2048)
 
 struct config_data config_info;
+struct player_special_data dummy_mob;
 
 static unsigned char s_output_capture[TEST_CAPTURE_SIZE];
 static size_t s_output_capture_len = 0;
@@ -217,7 +218,28 @@ void TestProtocolParser_DoubledIacLiteral(CuTest *tc)
   harness_destroy(&harness);
 }
 
-void TestProtocolParser_SplitIacCurrentGap(CuTest *tc)
+void TestProtocolParser_NulPaddingIsIgnored(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  ssize_t consumed;
+
+  harness_init(tc, &harness);
+  fixture_init(&fixture);
+  fixture_byte(&fixture, 'a');
+  fixture_byte(&fixture, '\0');
+  fixture_byte(&fixture, 'b');
+  assert_fixture_valid(tc, &fixture);
+
+  consumed = harness_input(&harness, &fixture);
+
+  CuAssertIntEquals(tc, 2, (int)consumed);
+  CuAssertStrEquals(tc, "ab", harness.output);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_SplitIacIsRetained(CuTest *tc)
 {
   protocol_harness_t harness;
   protocol_fixture_t first;
@@ -233,6 +255,7 @@ void TestProtocolParser_SplitIacCurrentGap(CuTest *tc)
   consumed = harness_input(&harness, &first);
   CuAssertIntEquals(tc, 0, (int)consumed);
   CuAssertStrEquals(tc, "", harness.output);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_IAC, harness.descriptor.pProtocol->InputState);
 
   fixture_init(&second);
   fixture_byte(&second, (unsigned char)WILL);
@@ -242,11 +265,9 @@ void TestProtocolParser_SplitIacCurrentGap(CuTest *tc)
 
   consumed = harness_input(&harness, &second);
 
-  CuAssertIntEquals(tc, 3, (int)consumed);
-  CuAssertIntEquals(tc, WILL, (unsigned char)harness.output[0]);
-  CuAssertIntEquals(tc, TELOPT_MSDP, (unsigned char)harness.output[1]);
-  CuAssertIntEquals(tc, 'x', (unsigned char)harness.output[2]);
-  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertIntEquals(tc, 1, (int)consumed);
+  CuAssertStrEquals(tc, "x", harness.output);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_TEXT, harness.descriptor.pProtocol->InputState);
 
   harness_destroy(&harness);
 }
@@ -263,6 +284,7 @@ void TestProtocolParser_IncompleteAndMalformedSubnegotiations(CuTest *tc)
   const unsigned char gmcp_payload[] = {'M', 'S', 'D', 'P', '.', 'H', 'E', 'A', 'L', 'T', 'H'};
 
   harness_init(tc, &partial);
+  partial.descriptor.pProtocol->bMSDP = bool_t_true;
   fixture_init(&fixture);
   fixture_byte(&fixture, (unsigned char)IAC);
   fixture_byte(&fixture, (unsigned char)SB);
@@ -273,7 +295,20 @@ void TestProtocolParser_IncompleteAndMalformedSubnegotiations(CuTest *tc)
 
   CuAssertIntEquals(tc, 0, (int)harness_input(&partial, &fixture));
   CuAssertIntEquals(tc, 1, partial.descriptor.pProtocol->bIACMode);
+  CuAssertIntEquals(tc, 8, (int)partial.descriptor.pProtocol->IacLength);
   CuAssertStrEquals(tc, "", partial.output);
+
+  fixture_init(&fixture);
+  fixture_byte(&fixture, MSDP_VAL);
+  fixture_text(&fixture, "HEALTH");
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SE);
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 0, (int)harness_input(&partial, &fixture));
+  CuAssertIntEquals(tc, 0, partial.descriptor.pProtocol->bIACMode);
+  CuAssertIntEquals(tc, 0, (int)partial.descriptor.pProtocol->IacLength);
+  CuAssertIntEquals(tc, 1, partial.descriptor.pProtocol->pVariables[eMSDP_HEALTH]->bReport);
   harness_destroy(&partial);
 
   harness_init(tc, &malformed_msdp);
@@ -311,19 +346,26 @@ void TestProtocolParser_TruncatedLookaheadSequences(CuTest *tc)
   fixture_byte(&fixture, (unsigned char)IAC);
   consumed = harness_input(&harness, &fixture);
   CuAssertIntEquals(tc, 0, (int)consumed);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_IAC, harness.descriptor.pProtocol->InputState);
+  harness_destroy(&harness);
 
+  harness_init(tc, &harness);
   fixture_init(&fixture);
   fixture_byte(&fixture, (unsigned char)IAC);
   fixture_byte(&fixture, (unsigned char)WILL);
   consumed = harness_input(&harness, &fixture);
   CuAssertIntEquals(tc, 0, (int)consumed);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_NEGOTIATION, harness.descriptor.pProtocol->InputState);
+  harness_destroy(&harness);
 
+  harness_init(tc, &harness);
   fixture_init(&fixture);
   fixture_byte(&fixture, 27);
   fixture_byte(&fixture, '[');
   fixture_byte(&fixture, '1');
   consumed = harness_input(&harness, &fixture);
   CuAssertIntEquals(tc, 3, (int)consumed);
+  CuAssertIntEquals(tc, 27, (unsigned char)harness.output[0]);
 
   harness_destroy(&harness);
 }
@@ -371,6 +413,34 @@ void TestProtocolParser_TtypeAndNawsNegotiation(CuTest *tc)
 
   CuAssertIntEquals(tc, 120, harness.descriptor.pProtocol->ScreenWidth);
   CuAssertIntEquals(tc, 40, harness.descriptor.pProtocol->ScreenHeight);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_ShortSubnegotiationsAreIgnored(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  const unsigned char short_naws[] = {0, 120, 0};
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bNAWS = bool_t_true;
+  harness.descriptor.pProtocol->bCHARSET = bool_t_true;
+  harness.descriptor.pProtocol->ScreenWidth = 80;
+  harness.descriptor.pProtocol->ScreenHeight = 24;
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_NAWS, short_naws, sizeof(short_naws));
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, 80, harness.descriptor.pProtocol->ScreenWidth);
+  CuAssertIntEquals(tc, 24, harness.descriptor.pProtocol->ScreenHeight);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_CHARSET, NULL, 0);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_UTF_8]->ValueInt);
 
   harness_destroy(&harness);
 }
@@ -472,28 +542,193 @@ void TestProtocolParser_WebOnboardingActionUsesReservedVariable(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_CreateInitializesAllParserState(CuTest *tc)
+{
+  protocol_t *protocol;
+  int i;
+
+  protocol = ProtocolCreate();
+  CuAssertPtrNotNullMsg(tc, "ProtocolCreate returned NULL", protocol);
+  CuAssertIntEquals(tc, 0, protocol->WriteOOB);
+  CuAssertIntEquals(tc, 0, protocol->bIACMode);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_TEXT, protocol->InputState);
+  CuAssertIntEquals(tc, 0, (int)protocol->IacLength);
+  CuAssertIntEquals(tc, 0, protocol->PendingCommand);
+  CuAssertIntEquals(tc, 0, protocol->bIacTruncated);
+  CuAssertIntEquals(tc, '\0', protocol->CmdBuf[0]);
+  CuAssertIntEquals(tc, '\0', protocol->IacBuf[0]);
+
+  for (i = eMSDP_NONE + 1; i < eMSDP_MAX; i++)
+    CuAssertPtrNotNullMsg(tc, "MSDP variable allocation was NULL", protocol->pVariables[i]);
+
+  ProtocolDestroy(protocol);
+}
+
 void TestProtocolParser_NullAndInvalidMsdpInputsAreSafe(CuTest *tc)
 {
   protocol_harness_t harness;
+  char raw[] = "x";
+  char output[MAX_PROTOCOL_BUFFER + 1] = {'\0'};
+  char unicode_buffer[8] = {'\0'};
+  char *unicode_pos = unicode_buffer;
+  char *null_unicode_pos = NULL;
 
-  MSDPUpdate(NULL);
-  MSDPFlush(NULL, eMSDP_HEALTH);
-  MSDPSend(NULL, eMSDP_HEALTH);
-  MSDPSendPair(NULL, "HEALTH", "1");
-  MSDPSendList(NULL, "COMMANDS", "LOOK");
-  MSDPSetNumber(NULL, eMSDP_HEALTH, 1);
-  MSDPSetString(NULL, eMSDP_TITLE, "title");
-  MSDPSetTable(NULL, eMSDP_ROOM, "room");
-  MSDPSetArray(NULL, eMSDP_ROOM_EXITS, "north");
+  ProtocolDestroy(NULL);
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, ProtocolNegotiate(NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, ProtocolNoEcho(NULL, bool_t_true));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, CopyoverSet(NULL, "state"));
+  CuAssertStrEquals(tc, "", CopyoverGet(NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, (int)ProtocolInput(NULL, NULL, 1, output));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, (int)ProtocolInput(NULL, raw, 1, NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT, (int)ProtocolInput(NULL, raw, -1, output));
+  CuAssertIntEquals(tc, 1, (int)ProtocolInput(NULL, raw, 1, output));
+  CuAssertStrEquals(tc, "x", output);
+  CuAssertStrEquals(tc, "", ProtocolOutput(NULL, NULL, NULL));
+
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPUpdate(NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPFlush(NULL, eMSDP_HEALTH));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSend(NULL, eMSDP_HEALTH));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSendPair(NULL, "HEALTH", "1"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSendList(NULL, "COMMANDS", "LOOK"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSetNumber(NULL, eMSDP_HEALTH, 1));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSetString(NULL, eMSDP_TITLE, "title"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSetTable(NULL, eMSDP_ROOM, "room"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MSDPSetArray(NULL, eMSDP_ROOM_EXITS, "north"));
   CuAssertPtrEquals(tc, NULL, (void *)MXPCreateTag(NULL, NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, MXPSendTag(NULL, "<VERSION>"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, SoundSend(NULL, "sound.wav"));
+  CuAssertStrEquals(tc, "", ColourRGB(NULL, "F500"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, UnicodeAdd(NULL, 65));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER, UnicodeAdd(&null_unicode_pos, 65));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT, UnicodeAdd(&unicode_pos, 0x110000));
 
   harness_init(tc, &harness);
-  MSDPSetString(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
-  MSDPSetString(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
-  MSDPSetTable(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
-  MSDPSetTable(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
-  MSDPSetArray(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid");
-  MSDPSetArray(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid");
+  CuAssertStrEquals(tc, "plain", ProtocolOutput(&harness.descriptor, "plain", NULL));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetString(&harness.descriptor, (variable_t)eMSDP_NONE, "invalid"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetString(&harness.descriptor, (variable_t)eMSDP_MAX, "invalid"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetTable(&harness.descriptor, eMSDP_HEALTH, "invalid"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetArray(&harness.descriptor, eMSDP_HEALTH, "invalid"));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetNumber(&harness.descriptor, eMSDP_TITLE, 1));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_NULL_POINTER,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, NULL));
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GracefulTruncationKeepsConnectionUsable(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  char long_output[MAX_OUTPUT_BUFFER + 32];
+  const char *processed;
+  ssize_t consumed;
+  size_t i;
+  int output_length;
+
+  harness_init(tc, &harness);
+  fixture_init(&fixture);
+  for (i = 0; i < MAX_PROTOCOL_BUFFER + 64; i++)
+    fixture_byte(&fixture, 'a');
+  assert_fixture_valid(tc, &fixture);
+
+  consumed = harness_input(&harness, &fixture);
+  CuAssertIntEquals(tc, MAX_PROTOCOL_BUFFER - 1, (int)consumed);
+  CuAssertIntEquals(tc, MAX_PROTOCOL_BUFFER - 1, (int)strlen(harness.output));
+  CuAssert(tc, "command truncation was not logged", s_log_count > 0);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_TEXT, harness.descriptor.pProtocol->InputState);
+
+  harness.output[0] = '\0';
+  fixture_init(&fixture);
+  fixture_text(&fixture, "ok");
+  CuAssertIntEquals(tc, 2, (int)harness_input(&harness, &fixture));
+  CuAssertStrEquals(tc, "ok", harness.output);
+
+  harness.output[0] = '\0';
+  fixture_init(&fixture);
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SB);
+  fixture_byte(&fixture, (unsigned char)TELOPT_MSDP);
+  for (i = 0; i < MAX_PROTOCOL_BUFFER + 32; i++)
+    fixture_byte(&fixture, 'A');
+  fixture_byte(&fixture, (unsigned char)IAC);
+  fixture_byte(&fixture, (unsigned char)SE);
+  fixture_byte(&fixture, 'y');
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 1, (int)harness_input(&harness, &fixture));
+  CuAssertStrEquals(tc, "y", harness.output);
+  CuAssertIntEquals(tc, ePROTOCOL_INPUT_TEXT, harness.descriptor.pProtocol->InputState);
+  CuAssertIntEquals(tc, 0, (int)harness.descriptor.pProtocol->IacLength);
+
+  harness.output[0] = '\0';
+  fixture_init(&fixture);
+  fixture_byte(&fixture, 27);
+  fixture_byte(&fixture, '[');
+  fixture_byte(&fixture, '1');
+  fixture_byte(&fixture, 'z');
+  for (i = 0; i < MAX_MXP_TAG_LENGTH + 32; i++)
+    fixture_byte(&fixture, 'M');
+  fixture_byte(&fixture, '>');
+  fixture_byte(&fixture, 'x');
+  assert_fixture_valid(tc, &fixture);
+
+  CuAssertIntEquals(tc, 1, (int)harness_input(&harness, &fixture));
+  CuAssertStrEquals(tc, "x", harness.output);
+
+  memset(long_output, 'q', sizeof(long_output) - 1);
+  long_output[sizeof(long_output) - 1] = '\0';
+  output_length = (int)strlen(long_output);
+  processed = ProtocolOutput(&harness.descriptor, long_output, &output_length);
+  CuAssertIntEquals(tc, MAX_OUTPUT_BUFFER, output_length);
+  CuAssertIntEquals(tc, MAX_OUTPUT_BUFFER, (int)strlen(processed));
+  CuAssertIntEquals(tc, 'q', processed[0]);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_MsspPairLengthIsCheckedBeforeAppend(CuTest *tc)
+{
+  char buffer[MAX_MSSP_BUFFER] = "prefix";
+  char original[MAX_MSSP_BUFFER];
+  char long_value[MAX_MSSP_PAIR + 32];
+  protocol_error_t result;
+
+  memset(long_value, 'L', sizeof(long_value) - 1);
+  long_value[sizeof(long_value) - 1] = '\0';
+  strlcpy(original, buffer, sizeof(original));
+
+  result = ProtocolTestAppendMSSPPair(buffer, sizeof(buffer), "NAME", long_value);
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL, result);
+  CuAssertStrEquals(tc, original, buffer);
+
+  result = ProtocolTestAppendMSSPPair(buffer, sizeof(buffer), "PLAYERS", "12");
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, result);
+  CuAssert(tc, "bounded MSSP pair was not appended", strlen(buffer) > strlen(original));
+  CuAssertIntEquals(tc, MSSP_VAR, (unsigned char)buffer[strlen(original)]);
+}
+
+void TestProtocolParser_UnicodeFallbackHasValidLifetime(CuTest *tc)
+{
+  protocol_harness_t harness;
+  const char *processed;
+  int input_length;
+
+  harness_init(tc, &harness);
+  input_length = (int)strlen("\t[U65/Z]");
+  processed = ProtocolOutput(&harness.descriptor, "\t[U65/Z]", &input_length);
+  CuAssertStrEquals(tc, "Z", processed);
+  CuAssertIntEquals(tc, 1, input_length);
+
+  harness.descriptor.pProtocol->pVariables[eMSDP_UTF_8]->ValueInt = 1;
+  input_length = (int)strlen("\t[U65/Z]");
+  processed = ProtocolOutput(&harness.descriptor, "\t[U65/Z]", &input_length);
+  CuAssertStrEquals(tc, "A", processed);
+  CuAssertIntEquals(tc, 1, input_length);
+
   harness_destroy(&harness);
 }
 
@@ -501,6 +736,8 @@ void TestProtocolParser_OversizedResponsePaths(CuTest *tc)
 {
   protocol_harness_t harness;
   char long_value[MAX_VARIABLE_LENGTH + 1];
+  char too_long_value[MAX_VARIABLE_LENGTH + 2];
+  char valid_tag[MAX_MXP_TAG_LENGTH + 1];
   char long_tag[MAX_MXP_TAG_LENGTH + 2];
   const char *tag_result;
   const char *copyover;
@@ -512,18 +749,40 @@ void TestProtocolParser_OversizedResponsePaths(CuTest *tc)
   for (i = 0; i < MAX_VARIABLE_LENGTH; i++)
     long_value[i] = 'A';
   long_value[MAX_VARIABLE_LENGTH] = '\0';
+  memset(too_long_value, 'B', sizeof(too_long_value) - 1);
+  too_long_value[sizeof(too_long_value) - 1] = '\0';
 
-  MSDPSendList(&harness.descriptor, "REPORTABLE_VARIABLES", long_value);
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, long_value));
+  CuAssertIntEquals(
+      tc, MAX_VARIABLE_LENGTH,
+      (int)strlen(harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->pValueString));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, too_long_value));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL,
+                    MSDPSetTable(&harness.descriptor, eMSDP_ROOM, too_long_value));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL,
+                    MSDPSetArray(&harness.descriptor, eMSDP_ROOM_EXITS, too_long_value));
+
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL,
+                    MSDPSendList(&harness.descriptor, "REPORTABLE_VARIABLES", long_value));
   CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
   CuAssert(tc, "oversized MSDP list did not log rejection", s_log_count > 0);
 
+  for (i = 0; i < MAX_MXP_TAG_LENGTH; i++)
+    valid_tag[i] = 'V';
+  valid_tag[MAX_MXP_TAG_LENGTH] = '\0';
   for (i = 0; i < sizeof(long_tag) - 1; i++)
     long_tag[i] = 'M';
   long_tag[sizeof(long_tag) - 1] = '\0';
 
   harness.descriptor.pProtocol->pVariables[eMSDP_MXP]->ValueInt = 1;
+  tag_result = MXPCreateTag(&harness.descriptor, valid_tag);
+  CuAssert(tc, "maximum-length MXP tag was not formatted", tag_result != valid_tag);
+  CuAssertIntEquals(tc, MAX_MXP_TAG_LENGTH + 8, (int)strlen(tag_result));
   tag_result = MXPCreateTag(&harness.descriptor, long_tag);
   CuAssertPtrEquals(tc, long_tag, (void *)tag_result);
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT, MXPSendTag(&harness.descriptor, long_tag));
 
   harness.descriptor.pProtocol->ScreenWidth = 120;
   harness.descriptor.pProtocol->ScreenHeight = 40;
@@ -632,15 +891,21 @@ CuSuite *ProtocolParserSuite(void)
   CuSuite *suite = CuSuiteNew();
 
   SUITE_ADD_TEST(suite, TestProtocolParser_DoubledIacLiteral);
-  SUITE_ADD_TEST(suite, TestProtocolParser_SplitIacCurrentGap);
+  SUITE_ADD_TEST(suite, TestProtocolParser_NulPaddingIsIgnored);
+  SUITE_ADD_TEST(suite, TestProtocolParser_SplitIacIsRetained);
   SUITE_ADD_TEST(suite, TestProtocolParser_IncompleteAndMalformedSubnegotiations);
   SUITE_ADD_TEST(suite, TestProtocolParser_TruncatedLookaheadSequences);
   SUITE_ADD_TEST(suite, TestProtocolParser_TtypeAndNawsNegotiation);
+  SUITE_ADD_TEST(suite, TestProtocolParser_ShortSubnegotiationsAreIgnored);
   SUITE_ADD_TEST(suite, TestProtocolParser_UnsupportedOptionNegotiation);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpAndMsdpCanCoexist);
   SUITE_ADD_TEST(suite, TestProtocolParser_WebOnboardingCapability);
   SUITE_ADD_TEST(suite, TestProtocolParser_WebOnboardingActionUsesReservedVariable);
+  SUITE_ADD_TEST(suite, TestProtocolParser_CreateInitializesAllParserState);
   SUITE_ADD_TEST(suite, TestProtocolParser_NullAndInvalidMsdpInputsAreSafe);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GracefulTruncationKeepsConnectionUsable);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MsspPairLengthIsCheckedBeforeAppend);
+  SUITE_ADD_TEST(suite, TestProtocolParser_UnicodeFallbackHasValidLifetime);
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);

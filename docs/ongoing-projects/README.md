@@ -12,7 +12,7 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-03.
+Statuses below were re-verified against the source tree on 2026-08-04.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
@@ -20,7 +20,6 @@ Statuses below were re-verified against the source tree on 2026-08-03.
 | [ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md](ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md) | Reference | Source-verified static object stats, flags, affects, procedures, and Realms artifact overlays for the HomelandMUD and RealmsOfLuminari snapshots. |
 | [AI_TODO_IDEAS.md](AI_TODO_IDEAS.md) | Not started | Implementation plan for AI NPC conversation history. No `conversation_history` code exists yet. Its stated foundation still holds, but the dialogue trigger has moved to `src/act.comm.c:526-529` from the `545-548` the document cites. |
 | [DO_SKORE_PROJECT.md](DO_SKORE_PROJECT.md) | Partial | Phase 1 and Phases 2.1-2.5 complete; Phase 3 (detailed views) and Phase 4 open. System reference: [SKORE_SYSTEM.md](../systems/SKORE_SYSTEM.md) |
-| [PROTOCOL_TODO.md](PROTOCOL_TODO.md) | Partial | Re-verified against source 2026-08-03 and rewritten. The three "critical RCE" overflows it used to list are fixed, and the guarded `strcat` calls were never a defect. One real memory-safety item remains (unbounded `sprintf` into `MSSPPair[128]`), plus a `sprintf`/`malloc` sweep and three quality items. |
 | [MERGE_MUD_EVENTS.md](MERGE_MUD_EVENTS.md) | Not started | Plan to unify the DG event queue and the MUD event layer. Both `src/dgscript/dg_event.c` and `src/mud_event.c` still exist separately. |
 | [IDEA_LIST.md](IDEA_LIST.md) | Backlog | Production in-game idea queue snapshot from 2026-08-03, plus seven earlier imported ideas no longer present in the current queue. Not a plan - a source of candidates. |
 | [TYPOS_LIST.md](TYPOS_LIST.md) | Backlog | Source-only production typo queue snapshot from 2026-08-03: 19 code-backed submissions consolidated into 18 entries; `lib/`, world, help, quest, and script content is excluded. |

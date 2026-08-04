@@ -21,6 +21,7 @@ endif
 PROTOCOL_TEST_CFLAGS ?= -Wall -Wextra $(CSTD_FLAG) -g -O0 \
 	-ffunction-sections -fdata-sections
 PROTOCOL_TEST_LDFLAGS ?= -lm -Wl,--gc-sections
+PROTOCOL_TEST_DEFINES = -DLUMINARI_PROTOCOL_TEST=1
 
 BUILD_DIR = build
 CUTEST_OBJ = $(BUILD_DIR)/CuTest.o
@@ -47,11 +48,13 @@ $(CUTEST_OBJ): CuTest.c CuTest.h | $(BUILD_DIR)
 
 $(PROTOCOL_PARSER_TEST_OBJ): test_protocol_parser.c CuTest.h \
 		../../src/net/protocol.h ../../src/structs.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c test_protocol_parser.c -o $@
+	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) -I../../src \
+		-c test_protocol_parser.c -o $@
 
 $(PROTOCOL_SOURCE_OBJ): ../../src/net/protocol.c ../../src/net/protocol.h \
 		../../src/structs.h ../../src/net/onboarding.h | $(BUILD_DIR)
-	$(CC) $(PROTOCOL_TEST_CFLAGS) -I../../src -c ../../src/net/protocol.c -o $@
+	$(CC) $(PROTOCOL_TEST_CFLAGS) $(PROTOCOL_TEST_DEFINES) -I../../src \
+		-c ../../src/net/protocol.c -o $@
 
 $(PROTOCOL_ONBOARDING_OBJ): ../../src/net/onboarding.c \
 		../../src/net/onboarding.h ../../src/structs.h | $(BUILD_DIR)
@@ -87,6 +90,8 @@ protocol-fuzz: $(PROTOCOL_FUZZ_EXE)
 	cp fuzz_corpus/* "$$fuzz_work/"; \
 	ASAN_SYMBOLIZER_PATH=$$(command -v llvm-symbolizer 2>/dev/null || \
 		command -v llvm-symbolizer-18 2>/dev/null || true) \
+	ASAN_OPTIONS=halt_on_error=1 \
+	UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 \
 	./$(PROTOCOL_FUZZ_EXE) -max_total_time=$(FUZZ_SECONDS) -timeout=5 \
 		-print_funcs=0 -verbosity=0 -max_len=16384 "$$fuzz_work"
 

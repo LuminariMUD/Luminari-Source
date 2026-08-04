@@ -97,6 +97,44 @@ static void fuzz_protocol_chunk(struct descriptor_data *descriptor, const uint8_
   ProtocolInput(descriptor, (char *)data, (int)size, output);
 }
 
+static void fuzz_protocol_output(struct descriptor_data *descriptor, const uint8_t *data,
+                                 size_t size)
+{
+  char input[MAX_OUTPUT_BUFFER + 2];
+  char msdp_value[MAX_VARIABLE_LENGTH + 1];
+  char unicode_buffer[8] = {'\0'};
+  char *unicode_pos = unicode_buffer;
+  size_t input_size;
+  size_t msdp_size;
+  int output_length;
+  int codepoint;
+
+  input_size = size < MAX_OUTPUT_BUFFER ? size : MAX_OUTPUT_BUFFER;
+  memcpy(input, data, input_size);
+  input[input_size] = '\0';
+  input[input_size + 1] = '\0';
+  output_length = (int)input_size;
+  ProtocolOutput(descriptor, input, &output_length);
+  ProtocolOutput(descriptor, input, NULL);
+
+  msdp_size = size < MAX_VARIABLE_LENGTH ? size : MAX_VARIABLE_LENGTH;
+  memcpy(msdp_value, data, msdp_size);
+  msdp_value[msdp_size] = '\0';
+  MSDPSetString(descriptor, eMSDP_TITLE, msdp_value);
+  MSDPSetTable(descriptor, eMSDP_ROOM, msdp_value);
+  MSDPSetArray(descriptor, eMSDP_ROOM_EXITS, msdp_value);
+  MXPCreateTag(descriptor, msdp_value);
+  MXPSendTag(descriptor, msdp_value);
+  SoundSend(descriptor, msdp_value);
+  CopyoverSet(descriptor, msdp_value);
+  ColourRGB(descriptor, msdp_value);
+
+  codepoint = 0;
+  if (size >= sizeof(codepoint))
+    memcpy(&codepoint, data, sizeof(codepoint));
+  UnicodeAdd(&unicode_pos, codepoint);
+}
+
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   struct descriptor_data descriptor;
@@ -104,6 +142,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   char descriptor_output[MAX_PROTOCOL_BUFFER + 1];
   char output[MAX_PROTOCOL_BUFFER + 1];
   size_t payload_size;
+  size_t chunk_size;
+  size_t offset;
   size_t split;
 
   if (data == NULL || size == 0)
@@ -119,16 +159,41 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   descriptor.pProtocol = protocol;
 
   payload_size = size - 1;
-  if ((data[0] & 1U) != 0U && payload_size > 1)
+  switch (data[0] & 3U)
   {
+  case 0:
+    fuzz_protocol_chunk(&descriptor, data + 1, payload_size, output);
+    break;
+  case 1:
+    if (payload_size <= 1)
+    {
+      fuzz_protocol_chunk(&descriptor, data + 1, payload_size, output);
+      break;
+    }
     split = 1 + (data[0] % (payload_size - 1));
     fuzz_protocol_chunk(&descriptor, data + 1, split, output);
     fuzz_protocol_chunk(&descriptor, data + 1 + split, payload_size - split, output);
-  }
-  else
-  {
+    break;
+  case 2:
+    offset = 0;
+    while (offset < payload_size)
+    {
+      chunk_size = 1 + (data[offset + 1] & 7U);
+      if (chunk_size > payload_size - offset)
+        chunk_size = payload_size - offset;
+      fuzz_protocol_chunk(&descriptor, data + 1 + offset, chunk_size, output);
+      offset += chunk_size;
+    }
+    break;
+  default:
     fuzz_protocol_chunk(&descriptor, data + 1, payload_size, output);
+    fuzz_protocol_output(&descriptor, data + 1, payload_size);
+    break;
   }
+
+  ProtocolInput(&descriptor, NULL, 1, output);
+  ProtocolInput(&descriptor, (char *)data, -1, output);
+  ProtocolOutput(&descriptor, NULL, NULL);
 
   ProtocolDestroy(protocol);
   descriptor.pProtocol = NULL;

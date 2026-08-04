@@ -1,5 +1,7 @@
 # LuminariMUD Protocol Systems Documentation
 
+Last verified: 2026-08-04
+
 ## Overview
 
 LuminariMUD implements **KaVir's Protocol Snippet v8**, a comprehensive suite of MUD client protocols that enhance the player experience through advanced client integration. The protocol system handles telnet negotiation, real-time data exchange, multimedia features, and graphical user interface elements.
@@ -456,22 +458,30 @@ GAUGE_1: [NAME]Health[COLOR]red[VAR]HEALTH[MAX]HEALTH_MAX[END]
 #### Buffer Sizes
 ```c
 #define MAX_PROTOCOL_BUFFER (12 * 1024)  // Same as MAX_RAW_INPUT_LENGTH
-#define MAX_VARIABLE_LENGTH 4096
+#define MAX_VARIABLE_LENGTH 16384
 #define MAX_OUTPUT_BUFFER LARGE_BUFSIZE
 #define MAX_MSSP_BUFFER 4096
+#define MAX_MSSP_PAIR 128
 ```
 
 ## Security Features
 
 ### MXP Security
 - **Secure Line Mode**: Prevents client command injection
-- **Tag Validation**: All MXP tags validated before transmission
+- **Bounded Tags**: Outbound tags longer than `MAX_MXP_TAG_LENGTH` are rejected
 - **Escape Sequences**: Proper escape sequence handling
 
 ### Input Validation
-- **Buffer Limits**: All protocol buffers size-limited
+- **Persistent Telnet State**: Split IAC negotiation and subnegotiation frames
+  are retained across socket reads
+- **Buffer Limits**: Oversized command text is truncated; oversized Telnet,
+  MXP, MSDP, MSSP, and output frames are rejected or discarded without
+  disconnecting the session
+- **Short Payloads**: NAWS and CHARSET payload sizes are checked before access
 - **Command Validation**: Client commands validated before execution
 - **Character Filtering**: Control character filtering
+- **Public API Validation**: Fallible protocol actions reject null and invalid
+  inputs with `protocol_error_t`
 
 ## Debugging and Troubleshooting
 
@@ -519,7 +529,8 @@ log("Protocol: MSDP %s, GMCP %s, MXP %s",
 ```c
 protocol_t *ProtocolCreate(void);                    // Create protocol structure
 void ProtocolDestroy(protocol_t *protocol);         // Clean up protocol data
-void ProtocolNegotiate(descriptor_t *descriptor);   // Start negotiation
+protocol_error_t ProtocolNegotiate(descriptor_t *descriptor); // Start negotiation
+protocol_error_t ProtocolNoEcho(descriptor_t *descriptor, bool_t on);
 ```
 
 #### Input/Output Processing
@@ -530,19 +541,19 @@ const char *ProtocolOutput(descriptor_t *d, const char *data, int *length);
 
 #### MSDP Variable Management
 ```c
-void MSDPUpdate(descriptor_t *descriptor);                    // Send all dirty variables
-void MSDPFlush(descriptor_t *descriptor, variable_t var);     // Send specific variable
-void MSDPSetNumber(descriptor_t *d, variable_t var, int val); // Set numeric variable
-void MSDPSetString(descriptor_t *d, variable_t var, const char *val); // Set string variable
-void MSDPSetArray(descriptor_t *d, variable_t var, const char *val);  // Set array variable
-void MSDPSetTable(descriptor_t *d, variable_t var, const char *val);  // Set table variable
+protocol_error_t MSDPUpdate(descriptor_t *descriptor);
+protocol_error_t MSDPFlush(descriptor_t *descriptor, variable_t var);
+protocol_error_t MSDPSetNumber(descriptor_t *d, variable_t var, int val);
+protocol_error_t MSDPSetString(descriptor_t *d, variable_t var, const char *val);
+protocol_error_t MSDPSetArray(descriptor_t *d, variable_t var, const char *val);
+protocol_error_t MSDPSetTable(descriptor_t *d, variable_t var, const char *val);
 ```
 
 #### Direct Protocol Communication
 ```c
-void MSDPSend(descriptor_t *descriptor, variable_t var);           // Send variable immediately
-void MSDPSendPair(descriptor_t *d, const char *var, const char *val); // Send custom pair
-void MSDPSendList(descriptor_t *d, const char *var, const char *val); // Send custom list
+protocol_error_t MSDPSend(descriptor_t *descriptor, variable_t var);
+protocol_error_t MSDPSendPair(descriptor_t *d, const char *var, const char *val);
+protocol_error_t MSDPSendList(descriptor_t *d, const char *var, const char *val);
 ```
 
 #### MSSP Functions
@@ -553,12 +564,12 @@ void MSSPSetPlayers(int player_count);  // Update player count for MSSP
 #### MXP Functions
 ```c
 const char *MXPCreateTag(descriptor_t *d, const char *tag);  // Create MXP tag
-void MXPSendTag(descriptor_t *descriptor, const char *tag);  // Send MXP tag
+protocol_error_t MXPSendTag(descriptor_t *descriptor, const char *tag);
 ```
 
 #### Sound Functions
 ```c
-void SoundSend(descriptor_t *descriptor, const char *trigger); // Send sound trigger
+protocol_error_t SoundSend(descriptor_t *descriptor, const char *trigger);
 ```
 
 #### Color Functions
@@ -569,14 +580,20 @@ const char *ColourRGB(descriptor_t *d, const char *rgb);  // Convert RGB to esca
 #### Unicode Functions
 ```c
 char *UnicodeGet(int unicode_value);                          // Get UTF-8 sequence
-void UnicodeAdd(char **string, int unicode_value);           // Append UTF-8 sequence
+protocol_error_t UnicodeAdd(char **string, int unicode_value);
 ```
 
 #### Copyover Support
 ```c
 const char *CopyoverGet(descriptor_t *descriptor);           // Get protocol state
-void CopyoverSet(descriptor_t *descriptor, const char *data); // Restore protocol state
+protocol_error_t CopyoverSet(descriptor_t *descriptor, const char *data);
 ```
+
+Fallible actions return `PROTOCOL_SUCCESS` or a negative
+`protocol_error_t`. `ProtocolInput()` returns a nonnegative command-byte count
+on success or a negative protocol error for invalid arguments. Oversized
+network data is handled in place and does not use an error return to request a
+disconnect.
 
 ### Usage Patterns
 
@@ -604,7 +621,7 @@ if (FIGHTING(ch)) {
 #### Group Information
 ```c
 // Group member list as MSDP array
-sprintf(msdp_buffer, "%c%s%c%s%c%s",
+snprintf(msdp_buffer, sizeof(msdp_buffer), "%c%s%c%s%c%s",
     MSDP_VAL, "PlayerOne",
     MSDP_VAL, "PlayerTwo",
     MSDP_VAL, "PlayerThree");
@@ -614,7 +631,7 @@ MSDPSetArray(ch->desc, eMSDP_GROUP, msdp_buffer);
 #### Room Information Table
 ```c
 // Room data as MSDP table
-sprintf(msdp_buffer, "%cVNUM%c%d%cNAME%c%s%cEXITS%c%s",
+snprintf(msdp_buffer, sizeof(msdp_buffer), "%cVNUM%c%d%cNAME%c%s%cEXITS%c%s",
     MSDP_VAR, MSDP_VAL, world[IN_ROOM(ch)].number,
     MSDP_VAR, MSDP_VAL, world[IN_ROOM(ch)].name,
     MSDP_VAR, MSDP_VAL, exit_string);
@@ -684,7 +701,7 @@ Item and equipment information is transmitted on changes:
 
 ### Memory Management
 - **Per-Descriptor Buffers**: Each connection has separate protocol buffers
-- **Variable Storage**: Pre-allocated MSDP variable arrays
+- **Variable Storage**: Zero-initialized MSDP structures and bounded strings
 - **String Handling**: Proper allocation/deallocation with NULL checks
 - **Cleanup**: Protocol structures properly freed on disconnect
 

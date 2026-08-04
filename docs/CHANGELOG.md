@@ -23,6 +23,35 @@
 - Player persistence paths continue to require the strict alphanumeric,
   underscore, and hyphen name allowlist before fixed-directory path
   construction; regression coverage includes traversal rejection.
+- Protocol input now retains fragmented Telnet negotiation and
+  subnegotiation state across socket reads, validates short payloads, ignores
+  Telnet NUL padding, and recovers after oversized command, Telnet, or MXP
+  input instead of requesting a disconnect.
+- Protocol output, MSSP pairs, MXP tags, MSP triggers, copyover state, color,
+  Unicode, and MSDP paths now use bounded formatting and length checks.
+  Overlong runtime MSSP values are rejected before their fixed-size pair
+  buffer is modified.
+- Protocol structures and dynamic payloads are zero-initialized, copied
+  strings have a hard maximum, public fallible actions use
+  `protocol_error_t`, and exported entry points consistently reject null or
+  invalid arguments.
+- The focused protocol suite now covers boundary-length MSSP, MSDP, MXP,
+  Unicode, fragmented Telnet, short payload, error-return, initialization,
+  and graceful-overflow cases. The libFuzzer target also exercises output and
+  public helper paths under fail-fast ASan and UBSan settings.
+- Retired `docs/ongoing-projects/PROTOCOL_TODO.md` after completing every
+  verified source, test, and documentation item.
+
+#### Verification
+
+- A clean GNU C23 Autotools build completed without compiler warnings, and the
+  production-linked suite passed all 338 tests.
+- The focused protocol suite passed all 20 tests. Valgrind reported zero
+  errors, zero leaked bytes, and balanced 2,912 allocations and frees.
+- A 20-second libFuzzer run over the synthetic corpus completed under
+  fail-fast ASan and UBSan without a sanitizer finding.
+- `make install` installed the verified server as `bin/circle` and removed the
+  root-level build artifact.
 
 ### Build maintenance
 

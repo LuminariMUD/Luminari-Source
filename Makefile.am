@@ -335,6 +335,7 @@ EXTRA_DIST = \
 	unittests/CuTest/fuzz_protocol_parser.c \
 	unittests/CuTest/fuzz_corpus/plain_command.txt \
 	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
+	unittests/CuTest/fuzz_corpus/output_unicode.txt \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
 	autorun-watchdog.sh \

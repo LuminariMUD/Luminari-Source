@@ -239,6 +239,7 @@ typedef struct descriptor_data descriptor_t;
 #define MAX_VARIABLE_LENGTH 16384       /**< Maximum length for MSDP variable values */
 #define MAX_OUTPUT_BUFFER LARGE_BUFSIZE /**< Output buffer for processed protocol data */
 #define MAX_MSSP_BUFFER 4096            /**< Buffer for MSSP server status data */
+#define MAX_MSSP_PAIR 128               /**< Maximum serialized MSSP name/value pair */
 
 /**
  * Telnet negotiation states
@@ -376,6 +377,12 @@ typedef enum
  * functions. They follow Unix convention with 0 for success and negative
  * values for different error conditions.
  *
+ * Fallible public actions return protocol_error_t. Functions that return
+ * strings use NULL or an empty string for invalid input as documented, and
+ * predicates continue to return bool_t. ProtocolInput() is the one mixed
+ * interface: it returns a nonnegative output-byte count on success or a
+ * negative protocol_error_t value for invalid arguments.
+ *
  * @usage Check return values from protocol functions:
  * @code
  *   protocol_error_t result = SomeProtocolFunction(...);
@@ -393,6 +400,16 @@ typedef enum
   PROTOCOL_ERROR_BUFFER_FULL = -3,   /**< Buffer overflow prevented */
   PROTOCOL_ERROR_NULL_POINTER = -4   /**< Null pointer passed to function */
 } protocol_error_t;
+
+/** Internal state for parsing Telnet commands split across socket reads. */
+typedef enum
+{
+  ePROTOCOL_INPUT_TEXT = 0,
+  ePROTOCOL_INPUT_IAC,
+  ePROTOCOL_INPUT_NEGOTIATION,
+  ePROTOCOL_INPUT_SUBNEGOTIATION,
+  ePROTOCOL_INPUT_SUBNEGOTIATION_IAC
+} protocol_input_state_t;
 
 /**
  * Protocol negotiation status enumeration
@@ -745,6 +762,10 @@ typedef struct
   /* Per-descriptor buffers for thread safety */
   char CmdBuf[MAX_PROTOCOL_BUFFER + 1]; /**< Command parsing buffer */
   char IacBuf[MAX_PROTOCOL_BUFFER + 1]; /**< Telnet IAC command buffer */
+  size_t IacLength;                     /**< Bytes retained for a split subnegotiation */
+  protocol_input_state_t InputState;    /**< Parser state retained across socket reads */
+  unsigned char PendingCommand;         /**< DO/DONT/WILL/WONT awaiting its option byte */
+  bool_t bIacTruncated;                 /**< Current subnegotiation exceeded its buffer */
 } protocol_t;
 
 /******************************************************************************
@@ -843,7 +864,7 @@ protocol_t *ProtocolCreate(void);
  *   }
  * @endcode
  *
- * @note Safe to call multiple times or with NULL pointer
+ * @note Safe with NULL; clear the caller's pointer after destruction
  * @note Should be called before freeing the descriptor structure
  * @see ProtocolCreate()
  */
@@ -881,6 +902,7 @@ void ProtocolDestroy(protocol_t *apProtocol);
  * - Later negotiation avoids interfering with login process
  *
  * @param apDescriptor Client connection descriptor with initialized protocol structure
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  *
  * @usage Typical negotiation timing:
  * @code
@@ -899,7 +921,7 @@ void ProtocolDestroy(protocol_t *apProtocol);
  * @note Requires valid protocol structure (call ProtocolCreate() first)
  * @see ProtocolCreate(), ProtocolInput(), ProtocolOutput()
  */
-void ProtocolNegotiate(descriptor_t *apDescriptor);
+protocol_error_t ProtocolNegotiate(descriptor_t *apDescriptor);
 
 /* MUD Primary Colours */
 extern const char *RGBone;
@@ -923,6 +945,7 @@ extern const char *RGBthree;
  *
  * @param apDescriptor Client connection descriptor
  * @param abOn True to enable echo, false to disable for password input
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  *
  * @usage Password input sequence:
  * @code
@@ -937,7 +960,7 @@ extern const char *RGBthree;
  * @note Gracefully handles clients that don't support ECHO option
  * @see ProtocolNegotiate()
  */
-void ProtocolNoEcho(descriptor_t *apDescriptor, bool_t abOn);
+protocol_error_t ProtocolNoEcho(descriptor_t *apDescriptor, bool_t abOn);
 
 /**
  * Process input data and extract protocol sequences
@@ -965,13 +988,14 @@ void ProtocolNoEcho(descriptor_t *apDescriptor, bool_t abOn);
  * - Uses per-descriptor buffers for thread safety
  * - Handles fragmented protocol sequences
  * - Prevents buffer overflows with size checking
+ * - Truncates command text and discards oversized protocol frames
  * - Maintains input stream integrity
  *
  * @param apDescriptor Client connection descriptor
  * @param apData Raw input data from client
  * @param aSize Size of input data in bytes
  * @param apOut Buffer to receive processed text output
- * @return Number of bytes written to output buffer, or -1 on error
+ * @return Number of command bytes appended, or a negative protocol_error_t value
  *
  * @usage Called in main input processing loop:
  * @code
@@ -1205,6 +1229,7 @@ const char *CopyoverGet(descriptor_t *apDescriptor);
  *
  * @param apDescriptor Client connection descriptor with valid protocol structure
  * @param apData Protocol state string from CopyoverGet()
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  *
  * @usage Restore protocol state after copyover:
  * @code
@@ -1219,7 +1244,7 @@ const char *CopyoverGet(descriptor_t *apDescriptor);
  * @note Safe to call with NULL descriptor or empty string
  * @see CopyoverGet(), ProtocolNegotiate()
  */
-void CopyoverSet(descriptor_t *apDescriptor, const char *apData);
+protocol_error_t CopyoverSet(descriptor_t *apDescriptor, const char *apData);
 
 /******************************************************************************
  *                           MSDP FUNCTIONS
@@ -1281,9 +1306,10 @@ void CopyoverSet(descriptor_t *apDescriptor, const char *apData);
  *
  * @note Safe to call frequently - only sends changed data
  * @note Automatically handles MSDP/GMCP fallback
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSetNumber(), MSDPSetString(), MSDPFlush()
  */
-void MSDPUpdate(descriptor_t *apDescriptor);
+protocol_error_t MSDPUpdate(descriptor_t *apDescriptor);
 
 /**
  * Send a specific MSDP variable immediately
@@ -1314,9 +1340,10 @@ void MSDPUpdate(descriptor_t *apDescriptor);
  *
  * @note Only sends if variable is both reported and dirty
  * @note More expensive than batched updates via MSDPUpdate()
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPUpdate(), MSDPSetNumber(), MSDPSetString()
  */
-void MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP);
+protocol_error_t MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP);
 
 /**
  * Send an MSDP variable regardless of report/dirty status
@@ -1346,9 +1373,10 @@ void MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP);
  *
  * @note Should not be used in normal operation - use MSDPUpdate() instead
  * @note Bypasses efficiency mechanisms (report checking, dirty flags)
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPUpdate(), MSDPFlush()
  */
-void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP);
+protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP);
 
 /**
  * Send a custom MSDP variable/value pair
@@ -1374,15 +1402,17 @@ void MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP);
  *   MSDPSendPair(ch->desc, "GUILD_RANK", "Initiate");
  *
  *   // Send dynamic data
- *   sprintf(buffer, "%d", special_calculation());
+ *   snprintf(buffer, sizeof(buffer), "%d", special_calculation());
  *   MSDPSendPair(ch->desc, "CALCULATED_VALUE", buffer);
  * @endcode
  *
  * @note Automatically uses GMCP if MSDP not supported
  * @note Client must understand custom variable meanings
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSendList(), MSDPSetString()
  */
-void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
+protocol_error_t MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable,
+                              const char *apValue);
 
 /**
  * Send a custom MSDP array variable
@@ -1409,15 +1439,17 @@ void MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable, const char
  *   MSDPSendList(ch->desc, "GROUP_MEMBERS", "Alice Bob Charlie");
  *
  *   // Send dynamic list
- *   sprintf(buffer, "%s %s %s", item1, item2, item3);
+ *   snprintf(buffer, sizeof(buffer), "%s %s %s", item1, item2, item3);
  *   MSDPSendList(ch->desc, "INVENTORY_TYPES", buffer);
  * @endcode
  *
  * @note Values should be separated by single spaces
  * @note Automatically uses GMCP if MSDP not supported
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSendPair(), MSDPSetArray()
  */
-void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
+protocol_error_t MSDPSendList(descriptor_t *apDescriptor, const char *apVariable,
+                              const char *apValue);
 
 /**
  * Set an MSDP numeric variable
@@ -1462,9 +1494,10 @@ void MSDPSendList(descriptor_t *apDescriptor, const char *apVariable, const char
  *
  * @note Works with any integer-compatible type (bool, char, enum, short)
  * @note Only triggers update if value actually changes
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPUpdate(), MSDPSetString(), MSDPFlush()
  */
-void MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
+protocol_error_t MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
 
 /**
  * Set an MSDP string variable
@@ -1474,7 +1507,7 @@ void MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
  * for updating text-based game data like names, descriptions, etc.
  *
  * STRING HANDLING:
- * - Safely handles NULL pointers (converts to empty string)
+ * - Rejects NULL pointers with PROTOCOL_ERROR_NULL_POINTER
  * - Performs string comparison to avoid unnecessary updates
  * - Dynamically allocates/deallocates string memory
  * - Properly manages memory to prevent leaks
@@ -1487,7 +1520,7 @@ void MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
  *
  * @param apDescriptor Client connection descriptor
  * @param aMSDP MSDP variable identifier (eMSDP_* enum)
- * @param apValue New string value for the variable (may be NULL)
+ * @param apValue New string value for the variable
  *
  * @usage Update character information:
  * @code
@@ -1507,16 +1540,18 @@ void MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue);
  *       MSDPSetString(ch->desc, eMSDP_OPPONENT_NAME, "");
  *   }
  *
- *   // Handle NULL safely
- *   MSDPSetString(ch->desc, eMSDP_POSITION, position_types[GET_POS(ch)]); // Even if NULL
+ *   // Validate optional values before calling
+ *   if (position_types[GET_POS(ch)] != NULL)
+ *       MSDPSetString(ch->desc, eMSDP_POSITION, position_types[GET_POS(ch)]);
  * @endcode
  *
- * @note NULL pointers are converted to empty strings
+ * @note NULL input is rejected; use "" to clear a string
  * @note Only triggers update if string content actually changes
  * @note Memory is managed automatically
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPUpdate(), MSDPSetNumber(), MSDPSetArray()
  */
-void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
+protocol_error_t MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /**
  * Set an MSDP table variable
@@ -1544,7 +1579,7 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
  *   char room_buffer[MAX_STRING_LENGTH];
  *
  *   // Build room table: VNUM, NAME, EXITS
- *   sprintf(room_buffer, "%c%s%c%d%c%s%c%s%c%s%c%s",
+ *   snprintf(room_buffer, sizeof(room_buffer), "%c%s%c%d%c%s%c%s%c%s%c%s",
  *           MSDP_VAR, "VNUM", MSDP_VAL, world[room].number,
  *           MSDP_VAR, "NAME", MSDP_VAL, world[room].name,
  *           MSDP_VAR, "EXITS", MSDP_VAL, get_exits_string(room));
@@ -1552,7 +1587,7 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
  *   MSDPSetTable(ch->desc, eMSDP_ROOM, room_buffer);
  *
  *   // Character equipment table
- *   sprintf(equip_buffer, "%c%s%c%s%c%s%c%s%c%s%c%s",
+ *   snprintf(equip_buffer, sizeof(equip_buffer), "%c%s%c%s%c%s%c%s%c%s%c%s",
  *           MSDP_VAR, "WEAPON", MSDP_VAL, weapon_name,
  *           MSDP_VAR, "ARMOR", MSDP_VAL, armor_name,
  *           MSDP_VAR, "SHIELD", MSDP_VAL, shield_name);
@@ -1562,9 +1597,10 @@ void MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, const char *apV
  *
  * @note Value must be pre-formatted with MSDP_VAR/MSDP_VAL markers
  * @note Each variable name and value should be null-terminated strings
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSetString(), MSDPSetArray(), MSDP_VAR, MSDP_VAL
  */
-void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
+protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /**
  * Set an MSDP array variable
@@ -1593,7 +1629,7 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
  *   char exits_buffer[MAX_STRING_LENGTH];
  *
  *   // Build affects array
- *   sprintf(affects_buffer, "%c%s%c%s%c%s",
+ *   snprintf(affects_buffer, sizeof(affects_buffer), "%c%s%c%s%c%s",
  *           MSDP_VAL, "blind",
  *           MSDP_VAL, "haste",
  *           MSDP_VAL, "fly");
@@ -1601,7 +1637,7 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
  *   MSDPSetArray(ch->desc, eMSDP_AFFECTS, affects_buffer);
  *
  *   // Build inventory array
- *   sprintf(inventory_buffer, "%c%s%c%s%c%s%c%s",
+ *   snprintf(inventory_buffer, sizeof(inventory_buffer), "%c%s%c%s%c%s%c%s",
  *           MSDP_VAL, "a sword",
  *           MSDP_VAL, "a shield",
  *           MSDP_VAL, "a potion",
@@ -1610,7 +1646,7 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
  *   MSDPSetArray(ch->desc, eMSDP_INVENTORY, inventory_buffer);
  *
  *   // Build exits array
- *   sprintf(exits_buffer, "%c%s%c%s%c%s%c%s",
+ *   snprintf(exits_buffer, sizeof(exits_buffer), "%c%s%c%s%c%s%c%s",
  *           MSDP_VAL, "north",
  *           MSDP_VAL, "south",
  *           MSDP_VAL, "east",
@@ -1621,9 +1657,10 @@ void MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, const char *apVa
  *
  * @note Value must be pre-formatted with MSDP_VAL markers
  * @note Each array element should be a null-terminated string
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSetString(), MSDPSetTable(), MSDP_VAL
  */
-void MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
+protocol_error_t MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, const char *apValue);
 
 /******************************************************************************
  *                           MSSP FUNCTIONS
@@ -1778,9 +1815,10 @@ const char *MXPCreateTag(descriptor_t *apDescriptor, const char *apTag);
  *
  * @note Sends immediately - does not wait for output flush
  * @note Mainly for protocol setup, not regular content
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MXPCreateTag(), ProtocolOutput()
  */
-void MXPSendTag(descriptor_t *apDescriptor, const char *apTag);
+protocol_error_t MXPSendTag(descriptor_t *apDescriptor, const char *apTag);
 
 /******************************************************************************
  *                           SOUND FUNCTIONS
@@ -1850,9 +1888,10 @@ void MXPSendTag(descriptor_t *apDescriptor, const char *apTag);
  * @note Sound files should be in MUD's public sound directory
  * @note Graceful fallback if client doesn't support sound
  * @note No error if sound file doesn't exist - client handles silently
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDP SOUND variable, MSP protocol documentation
  */
-void SoundSend(descriptor_t *apDescriptor, const char *apTrigger);
+protocol_error_t SoundSend(descriptor_t *apDescriptor, const char *apTrigger);
 
 /******************************************************************************
  *                           COLOR FUNCTIONS
@@ -2009,21 +2048,21 @@ char *UnicodeGet(int aValue);
  * - Appends to existing string without null terminator
  * - Extends string length by 1-4 bytes as needed
  * - Does not add null terminator (caller must add)
- * - Modifies string pointer if reallocation needed
+ * - Advances the caller's write pointer by the encoded byte count
  *
  * MEMORY MANAGEMENT:
- * - May reallocate string buffer if needed
- * - Updates string pointer if buffer moves
+ * - Does not allocate, reallocate, or check destination capacity
+ * - Caller must reserve at least four writable bytes per code point
  * - Caller responsible for final null termination
- * - Caller responsible for freeing allocated memory
+ * - Caller owns the destination buffer
  *
  * @param apString Pointer to string pointer (may be modified)
  * @param aValue Unicode code point to append
  *
  * @usage Build Unicode strings:
  * @code
- *   char *symbol_string = malloc(100);
- *   *symbol_string = '\0';  // Start with empty string
+ *   char symbol_buffer[32];
+ *   char *symbol_string = symbol_buffer;
  *
  *   // Build a string with multiple Unicode symbols
  *   UnicodeAdd(&symbol_string, 9733);    // Star
@@ -2033,26 +2072,32 @@ char *UnicodeGet(int aValue);
  *   UnicodeAdd(&symbol_string, 9830);    // Diamond
  *
  *   // Don't forget null terminator
- *   strcat(symbol_string, "\0");
+ *   *symbol_string = '\0';
  *
- *   write_to_output(d, "Symbols: %s\r\n", symbol_string);
- *   free(symbol_string);
+ *   write_to_output(d, "Symbols: %s\r\n", symbol_buffer);
  *
  *   // Building directional indicators
- *   char *direction_string = strdup("Go ");
+ *   char direction_buffer[32] = "Go ";
+ *   char *direction_string = direction_buffer + strlen(direction_buffer);
  *   UnicodeAdd(&direction_string, 8594);  // Right arrow
- *   strcat(direction_string, " to exit");
+ *   snprintf(direction_string, sizeof(direction_buffer) -
+ *            (size_t)(direction_string - direction_buffer), " to exit");
  *
- *   write_to_output(d, "%s\r\n", direction_string);
- *   free(direction_string);
+ *   write_to_output(d, "%s\r\n", direction_buffer);
  * @endcode
  *
- * @note String pointer may change due to reallocation
+ * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
+ * @note The pointer advances within the caller-owned buffer
  * @note Caller must add null terminator when finished
- * @note Caller responsible for memory management
+ * @note Unicode scalar values exclude surrogate code points
  * @see UnicodeGet(), ProtocolOutput()
  */
-void UnicodeAdd(char **apString, int aValue);
+protocol_error_t UnicodeAdd(char **apString, int aValue);
+
+#ifdef LUMINARI_PROTOCOL_TEST
+protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, const char *apName,
+                                            const char *apValue);
+#endif
 
 /******************************************************************************
  *                           USAGE EXAMPLES

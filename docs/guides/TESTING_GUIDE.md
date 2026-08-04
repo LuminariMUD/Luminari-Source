@@ -143,8 +143,9 @@ exercise a campaign build.
 ## Memory Checking
 
 CI runs the production-linked suite under ASan and UBSan with leak detection,
-then fuzzes the production protocol parser with libFuzzer. It separately runs
-the suite under Valgrind. The sanitizer build uses:
+then fuzzes production protocol input, output, and public helper paths with
+libFuzzer. It separately runs the suite under Valgrind. The sanitizer build
+uses:
 
 ```sh
 ./configure \
@@ -158,7 +159,7 @@ LUMINARI_TEST_ROOT="$PWD" ./cutest
 
 The bounded protocol fuzz target copies its synthetic seed corpus to a
 temporary directory before running, so it never adds generated inputs to the
-repository:
+repository. It sets ASan and UBSan to halt on the first finding:
 
 ```sh
 make -C unittests/CuTest protocol-fuzz FUZZ_SECONDS=15
