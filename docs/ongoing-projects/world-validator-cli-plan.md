@@ -1,7 +1,22 @@
 # World Validator CLI - Implementation Plan
 
-Status: not started. No `wtool` code exists as of 2026-08-04. This plan was
-re-audited against the current source tree on that date.
+Status: implementation in progress. Work began on 2026-08-04 from commit
+`f3f105af`. This plan was re-audited against the current source tree on that
+date.
+
+Implementation progress:
+
+- [ ] Phase 0 - Foundation, constants, and indexes
+- [ ] Phase 1 - Zones, rooms, and critical references
+- [ ] Phase 2 - Mobiles, objects, triggers, shops, and full references
+- [ ] Phase 3 - Semantic and topology lint
+- [ ] Phase 4 - Lookup, documentation drift gates, and adoption
+- [ ] Completion audit, operational validation, and final documentation move
+
+Current checkpoint (2026-08-04): repository and environment state reconciled;
+implementation is starting with the Phase 0 source contracts. Phase 5 remains
+the separately gated emitter follow-on described below and is not part of this
+validator closeout.
 
 This is the build plan for `wtool`, a standalone world-data validator and
 lookup CLI intended primarily for AI agents doing world-building work, and
