@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: Repairs in progress; state, command, and pulse-lifecycle batch verified
+Status: Repairs in progress; reported overflow path and state lifecycle verified
 
 Date: 2026-08-04
 
@@ -22,8 +22,9 @@ a source-level audit of the complete bardic performance subsystem, including:
 
 The initial diagnosis was a static source audit plus execution of the focused
 protocol harness. Repair work is now active in the development tree. The first
-production-linked state and command batch passed all 372 root CuTests on
-2026-08-04 and was installed with `make install`.
+production-linked state and command batch passed all 372 root CuTests. The
+second overflow repair batch passes all 375 root CuTests and all 20 focused
+protocol tests. Both batches were installed with `make install` on 2026-08-04.
 
 ## Reported Incident
 
@@ -84,16 +85,19 @@ The expanded audit found additional critical and high-severity defects:
   and indefinite until stopped, interrupted, or failed.
 
 These issues are not one repair. Memory safety, state invariants, affect
-batching, and atomic protocol framing can be fixed without design input. Song
-mechanics, resource costs, perk contracts, and conflicting player-facing text
-need an explicit gameplay decision before implementation.
+batching, and atomic protocol framing are now repaired and dynamically covered.
+Song mechanics, resource costs, perk contracts, and conflicting player-facing
+text remain in the next implementation batches.
 
-The first repair batch now establishes explicit absent sentinels, validates
+The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
 enables Master of Motifs and Efficient Performance transitions, separates
 primary and secondary failure, initializes every Songweaver affect record, and
-cleans active state on disconnect or link loss. Affect batching, atomic
-protocol output, song mechanics, and performance-linked perk repairs remain.
+cleans active state on disconnect or link loss. The second batch emits one
+final `AFFECTS` state for a logical performance mutation, queues structured
+Telnet frames atomically with retryable backpressure, applies only meaningful
+affect slots, and makes affect serialization bounded and fail closed. Song
+mechanics and performance-linked perk repairs remain.
 
 ## Accuracy Check of the Earlier Partial Audit
 
@@ -107,8 +111,9 @@ The following earlier conclusions were re-traced and remain correct:
   the `AFFECTS` payload and descriptor overflow path.
 - `MSDPSend()` validates only its local 16 KiB frame buffer, not the descriptor's
   remaining cumulative capacity.
-- The focused protocol harness currently passes twenty tests, but does not use
-  the real cumulative descriptor limit.
+- The focused protocol harness now passes twenty tests, including a full-queue
+  rejection followed by a complete-frame retry. A production-linked web
+  onboarding test separately exercises the real descriptor queue limit.
 - The Songweaver nested-loop defect is reachable and is more serious than the
   output overflow because it is undefined behavior.
 
@@ -223,7 +228,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-04 after repair batch 1 verification.
+Last updated: 2026-08-04 after repair batch 2 verification.
 
 Status meanings:
 
@@ -235,11 +240,11 @@ Status meanings:
 
 | ID | Status | Current evidence and remaining work |
 |----|--------|-------------------------------------|
-| BP-001 | Pending | Affect mutations still serialize and flush intermediate full lists. |
+| BP-001 | Verified | Nested affect batching recalculates live state but emits only the final `AFFECTS` value; root coverage proves one frame for a two-affect batch and zero frames for an unchanged replacement. |
 | BP-002 | Implemented | All eight records now receive `new_affect()` and deterministic fields; add direct Songweaver and sanitizer coverage. |
-| BP-003 | Pending | Structured frames still use the truncating descriptor text queue. |
-| BP-004 | Pending | The engine still joins all eight affect slots. |
-| BP-005 | Pending | Serializer index and checked-write hardening remains. |
+| BP-003 | Verified | MSDP, GMCP, MSSP, and MXP frames use an atomic raw queue operation with reserved headroom; focused and production-linked tests prove no partial frame and retry retention under backpressure. |
+| BP-004 | Verified | Each performance marks only meaningful affect slots; root coverage proves Healing creates zero affects, Protection creates three, and refreshed Flight retains exactly one flying affect. |
+| BP-005 | Verified | The bounded serializer validates metadata, preserves the prior value on invalid or oversized input, and checks protocol results; root tests cover invalid indexes and aggregate overflow. |
 | BP-006 | Verified | Bounds are checked before table access; root tests cover negative, maximum, and oversized indexes. |
 | BP-007 | Verified | Master of Motifs can add a distinct secondary song; the root suite preserves both slots. |
 | BP-008 | Partial | Central reset/slot teardown, spell interruption, disconnect cleanup, and the retired duplicate event path are repaired; add direct disconnect and Harmonic Casting tests. |
@@ -263,6 +268,10 @@ Status meanings:
   portion of BP-015, and publishes as development version 2.5039-beta.
   Verification: warning-clean GNU C23 build, `make test` with 372/372 passing
   tests, and `make install`.
+- Repair batch 2 covers BP-001 and BP-003 through BP-005 and publishes as
+  development version 2.5040-beta. Verification: warning-clean GNU C23 build,
+  `make test` with 375/375 passing tests, `make protocol-parser` with 20/20
+  passing tests, a 10-second ASan/UBSan protocol fuzz run, and `make install`.
 
 ## Detailed Findings
 
@@ -298,6 +307,11 @@ initialized normal paths and can behave differently or fail outright.
 This work occurs once per eligible group member or foe. It is wasteful even if
 the client is not reporting `AFFECTS`; when reporting is enabled, every
 intermediate list is serialized and sent.
+
+Repair: Affect batches keep in-memory totals current after every mutation but
+defer MSDP serialization until the outer batch ends. `performance_effects()`
+wraps replacement and insertion in one batch. The root suite verifies one
+final frame for a changed batch and no frame when the final value is unchanged.
 
 Relevant code:
 
@@ -350,6 +364,11 @@ fully initialized before its duration is assigned. Songweaver's advertised
 potency scaling also needs a separate design and implementation; the only
 current integration is duration.
 
+Repair: Songweaver's duration bonus is computed before the initialization loop,
+and every affect record is passed through `new_affect()` before any song logic
+can read it. Direct Songweaver and sanitizer coverage remain tracked before this
+finding is promoted from Implemented to Verified.
+
 Relevant code:
 
 - `src/bardic_performance.c:503-524` - reused loop variable.
@@ -382,6 +401,13 @@ does not fit, the server should append none of it, return
 `PROTOCOL_ERROR_BUFFER_FULL`, retain the dirty flag, and retry after queued
 output drains.
 
+Repair: Encoded structured frames now bypass the truncating display-text path
+and enter the descriptor queue through an all-or-nothing raw append with 512
+bytes of reserved headroom. Queue rejection does not advance onboarding
+transfers or clear an MSDP dirty value. The focused harness proves a rejected
+frame appends zero bytes and a later retry ends with `IAC SE`; the root suite
+exercises the production queue at capacity.
+
 Relevant code:
 
 - `src/net/protocol.c:36-50` - status-less `Write()` wrapper.
@@ -408,6 +434,12 @@ The implementation should use an active-slot count or mask. If a persistent
 marker is needed to identify or refresh a song, it should add one explicit
 marker. Instantaneous songs should not manufacture eight identical records.
 
+Repair: `performance_effects()` now records an explicit active-slot mask for
+each song and joins only those slots. Conditional flag effects set their mask
+only when applied, instantaneous songs use no marker, and Resonant Voice marks
+its additional slot explicitly. Root tests cover zero-, one-, and three-slot
+paths plus replacement of an existing one-slot Flight effect.
+
 ### BP-005: Affect Serialization Does Not Fail Closed
 
 Severity: Medium
@@ -424,6 +456,12 @@ can produce a truncated local object or leave a stale protocol value.
 
 Use a bounded writer that records overflow. Validate `spell`, `location`, and
 `bonus_type` before lookup. On failure, log the condition and send nothing.
+
+Repair: The serializer writes directly into a `MAX_VARIABLE_LENGTH`-bounded
+buffer through a checked append helper, validates every metadata index and
+pointer before lookup, reserves frame space, and checks both set and flush
+results. Invalid and oversized states leave the prior protocol value unchanged
+and queue no output in production-linked tests.
 
 ### BP-006: Performance Index Validation Reads Before Validating
 
@@ -918,8 +956,9 @@ After mechanics are selected and tested, update together:
 
 ### Production-Linked State and Command Tests
 
-Add a root CuTest source for bard behavior and register it in both `Makefile.am`
-and `CMakeLists.txt`.
+Production-linked bard behavior now lives in the existing registered
+`unittests/CuTest/test_bardic_performance.c` suite. The following list remains
+the acceptance checklist as later repair batches add mechanics coverage.
 
 Required cases:
 
@@ -1007,15 +1046,17 @@ The focused protocol harness passed all twenty current tests on 2026-08-04:
 OK (20 tests)
 ```
 
-It stubs `write_to_output()` with a capture buffer and does not exercise the
-real cumulative descriptor limit. Its oversized-response coverage checks a
-single source buffer, not multiple individually valid frames filling one queue.
+The harness now stubs both text and atomic raw output, models the descriptor
+capacity, and covers a cumulative full-queue rejection and retry. The
+production-linked web onboarding suite separately exercises the real atomic
+descriptor append at the cumulative limit. MSDP retry is covered; a dedicated
+GMCP backpressure case remains in the protocol acceptance checklist.
 
 ## Temporary Operational Mitigation
 
-Until the server repair is deployed, an MSDP client can avoid this specific
-decoder failure by not reporting the `AFFECTS` variable. Disabling MSDP also
-avoids this path at the cost of other GUI data.
+Until the development repair is deployed, an MSDP client can avoid this
+specific decoder failure by not reporting the `AFFECTS` variable. Disabling
+MSDP also avoids this path at the cost of other GUI data.
 
 This is only a client-side workaround. It does not fix Songweaver undefined
 behavior, duplicate Song of Healing, or the general ability to split another
@@ -1082,19 +1123,18 @@ Player-facing text and tests:
 - `lib/text/help/help.hlp`
 - `docs/systems/perks/BARD_PERKS.md`
 - `unittests/CuTest/test_protocol_parser.c`
-- Future production-linked bard test source
+- `unittests/CuTest/test_bardic_performance.c`
 
 ## Audit Outcome
 
-The Mudlet error must not be closed as client-only. Bard affect churn is the
-known trigger, and the malformed data is created by non-atomic server output.
-Both layers need repair: batching prevents the known burst, while atomic OOB
-emission prevents the same corruption class elsewhere.
+The Mudlet error is not client-only. Bard affect churn was the known trigger,
+and non-atomic server output created the malformed data. Both layers are now
+repaired: batching prevents the known burst, while atomic OOB emission prevents
+the same corruption class elsewhere.
 
-The wider performance subsystem also needs a state-safety pass before feature
-polish. Songweaver and the secondary-slot sentinel are immediate correctness
-risks. After those are contained, the team must select authoritative contracts
-for song mechanics, performance resources, and performance-linked perks before
-aligning implementation and documentation.
-
-No runtime source-code repair was made as part of this audit.
+The wider performance subsystem still needs mechanics and perk reconciliation.
+The immediate Songweaver, secondary-slot, state-transition, affect-volume, and
+framing risks are contained in the first two repair batches. Later batches will
+select and implement one authoritative contract for timing, targets, base
+songs, performance resources, and performance-linked perks, then align all
+player-facing documentation with those tested mechanics.

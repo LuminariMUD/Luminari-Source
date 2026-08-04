@@ -1020,11 +1020,47 @@ void cleanup_disguise(struct char_data *ch)
   //   set_bonus_attributes(ch, 0, 0, 0, 0);
   // }
 }
+
+struct msdp_affect_writer
+{
+  char *buffer;
+  size_t capacity;
+  size_t length;
+  bool overflow;
+};
+
+static bool append_msdp_affect_data(struct msdp_affect_writer *writer, const char *format, ...)
+{
+  va_list args;
+  int written;
+
+  if (writer == NULL || writer->buffer == NULL || format == NULL || writer->overflow ||
+      writer->length >= writer->capacity)
+    return FALSE;
+
+  va_start(args, format);
+  written =
+      vsnprintf(writer->buffer + writer->length, writer->capacity - writer->length, format, args);
+  va_end(args);
+
+  if (written < 0 || (size_t)written >= writer->capacity - writer->length)
+  {
+    writer->overflow = TRUE;
+    return FALSE;
+  }
+
+  writer->length += (size_t)written;
+  return TRUE;
+}
+
 void update_msdp_affects(struct char_data *ch)
 {
-  char msdp_buffer[MAX_STRING_LENGTH] = {'\0'};
+  char msdp_buffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
   struct affected_type *af, *next;
-  int i = 0;
+  struct msdp_affect_writer writer;
+  const char *affect_name;
+  protocol_error_t result;
+  int i;
 
   /* MSDP */
 
@@ -1042,68 +1078,134 @@ void update_msdp_affects(struct char_data *ch)
   if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
     return;
 
-  msdp_buffer[0] = '\0';
+  writer.buffer = msdp_buffer;
+  writer.capacity = sizeof(msdp_buffer);
+  writer.length = 0;
+  writer.overflow = FALSE;
+
   /* Open up the AFFECTS table */
-  char buf2[100];
-  snprintf(buf2, sizeof(buf2),
-           "%c"
-           "%c%s%c"
-           "%c",
-           (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
-           (char)MSDP_ARRAY_OPEN);
-  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  append_msdp_affect_data(&writer,
+                          "%c"
+                          "%c%s%c"
+                          "%c",
+                          (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
+                          (char)MSDP_ARRAY_OPEN);
   for (i = 1; i < NUM_AFF_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(ch), i))
     {
-      char buf[200];
-      snprintf(buf, sizeof(buf),
-               "%c%c"
-               "%c%s%c%s"
-               "%c%s%c%s"
-               "%c",
-               (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME", (char)MSDP_VAL,
-               affected_bits[i], (char)MSDP_VAR, "DESC", (char)MSDP_VAL, affected_bit_descs[i],
-               (char)MSDP_TABLE_CLOSE);
-      strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
+      if (affected_bits[i] == NULL || affected_bit_descs[i] == NULL)
+      {
+        log("SYSERR: update_msdp_affects found missing affect metadata at index %d", i);
+        return;
+      }
+
+      append_msdp_affect_data(&writer,
+                              "%c%c"
+                              "%c%s%c%s"
+                              "%c%s%c%s"
+                              "%c",
+                              (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME",
+                              (char)MSDP_VAL, affected_bits[i], (char)MSDP_VAR, "DESC",
+                              (char)MSDP_VAL, affected_bit_descs[i], (char)MSDP_TABLE_CLOSE);
     }
   }
-  snprintf(buf2, sizeof(buf2),
-           "%c"
-           "%c%s%c"
-           "%c",
-           (char)MSDP_ARRAY_CLOSE, (char)MSDP_VAR, "SPELL_LIKE_AFFECTS", (char)MSDP_VAL,
-           (char)MSDP_ARRAY_OPEN);
-  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  append_msdp_affect_data(&writer,
+                          "%c"
+                          "%c%s%c"
+                          "%c",
+                          (char)MSDP_ARRAY_CLOSE, (char)MSDP_VAR, "SPELL_LIKE_AFFECTS",
+                          (char)MSDP_VAL, (char)MSDP_ARRAY_OPEN);
   for (af = ch->affected; af; af = next)
   {
-    char buf[400]; // Buffer for building the affect table for MSDP
     next = af->next;
-    snprintf(buf, sizeof(buf),
-             "%c%c"
-             "%c%s%c%s"
-             "%c%s%c%s"
-             "%c%s%c%d"
-             "%c%s%c%s"
-             "%c%s%c%d"
-             "%c",
-             (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME", (char)MSDP_VAL,
-             spell_name(af->spell), (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL,
-             apply_types[(int)af->location], (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL,
-             af->modifier, (char)MSDP_VAR, "TYPE", (char)MSDP_VAL, bonus_types[af->bonus_type],
-             (char)MSDP_VAR, "DURATION", (char)MSDP_VAL, af->duration, (char)MSDP_TABLE_CLOSE);
-    strlcat(msdp_buffer, buf, sizeof(msdp_buffer));
+    if (af->spell < TYPE_UNDEFINED || af->spell > TOP_SPELL_DEFINE || af->location < 0 ||
+        af->location >= NUM_APPLIES || af->bonus_type < 0 || af->bonus_type >= NUM_BONUS_TYPES)
+    {
+      log("SYSERR: update_msdp_affects rejected invalid affect fields: spell=%d location=%d "
+          "bonus_type=%d",
+          af->spell, af->location, af->bonus_type);
+      return;
+    }
+
+    affect_name = spell_name(af->spell);
+    if (affect_name == NULL || apply_types[af->location] == NULL ||
+        bonus_types[af->bonus_type] == NULL)
+    {
+      log("SYSERR: update_msdp_affects found missing metadata for affect spell=%d location=%d "
+          "bonus_type=%d",
+          af->spell, af->location, af->bonus_type);
+      return;
+    }
+
+    append_msdp_affect_data(&writer,
+                            "%c%c"
+                            "%c%s%c%s"
+                            "%c%s%c%s"
+                            "%c%s%c%d"
+                            "%c%s%c%s"
+                            "%c%s%c%d"
+                            "%c",
+                            (char)MSDP_VAL, (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "NAME",
+                            (char)MSDP_VAL, affect_name, (char)MSDP_VAR, "LOCATION", (char)MSDP_VAL,
+                            apply_types[af->location], (char)MSDP_VAR, "MODIFIER", (char)MSDP_VAL,
+                            af->modifier, (char)MSDP_VAR, "TYPE", (char)MSDP_VAL,
+                            bonus_types[af->bonus_type], (char)MSDP_VAR, "DURATION", (char)MSDP_VAL,
+                            af->duration, (char)MSDP_TABLE_CLOSE);
   }
-  snprintf(buf2, sizeof(buf2),
-           "%c"
-           "%c",
-           (char)MSDP_ARRAY_CLOSE, (char)MSDP_TABLE_CLOSE);
-  strlcat(msdp_buffer, buf2, sizeof(msdp_buffer));
+  append_msdp_affect_data(&writer, "%c%c", (char)MSDP_ARRAY_CLOSE, (char)MSDP_TABLE_CLOSE);
 
-  // send_to_char(ch, "%s", msdp_buffer);
+  if (writer.overflow)
+  {
+    log("SYSERR: update_msdp_affects payload exceeded MAX_VARIABLE_LENGTH for %s", GET_NAME(ch));
+    return;
+  }
+  if (writer.length + strlen("AFFECTS") + 12 >= MAX_VARIABLE_LENGTH + 1)
+  {
+    log("SYSERR: update_msdp_affects payload left no room for protocol framing for %s",
+        GET_NAME(ch));
+    return;
+  }
 
-  MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
-  MSDPFlush(ch->desc, eMSDP_AFFECTS);
+  result = MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+  if (result != PROTOCOL_SUCCESS)
+  {
+    log("SYSERR: update_msdp_affects could not store AFFECTS for %s: %d", GET_NAME(ch), result);
+    return;
+  }
+
+  result = MSDPFlush(ch->desc, eMSDP_AFFECTS);
+  if (result != PROTOCOL_SUCCESS && result != PROTOCOL_ERROR_BUFFER_FULL)
+    log("SYSERR: update_msdp_affects could not flush AFFECTS for %s: %d", GET_NAME(ch), result);
+}
+
+void affect_batch_begin(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  ch->char_specials.affect_batch_depth++;
+}
+
+void affect_batch_end(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  if (ch->char_specials.affect_batch_depth <= 0)
+  {
+    log("SYSERR: affect_batch_end called without a matching begin for %s", GET_NAME(ch));
+    ch->char_specials.affect_batch_depth = 0;
+    ch->char_specials.affect_batch_dirty = FALSE;
+    return;
+  }
+
+  ch->char_specials.affect_batch_depth--;
+  if (ch->char_specials.affect_batch_depth == 0 && ch->char_specials.affect_batch_dirty)
+  {
+    ch->char_specials.affect_batch_dirty = FALSE;
+    update_msdp_affects(ch);
+  }
 }
 
 /* This updates a character by subtracting everything he is affected by
@@ -1111,6 +1213,16 @@ void update_msdp_affects(struct char_data *ch)
 void affect_total(struct char_data *ch)
 {
   int at_armor = 100;
+  bool defer_msdp;
+
+  if (ch == NULL)
+    return;
+
+  defer_msdp = ch->char_specials.affect_batch_depth > 0;
+  if (defer_msdp)
+    ch->char_specials.affect_batch_dirty = TRUE;
+  else
+    ch->char_specials.affect_batch_dirty = FALSE;
 
   /* cleanup for disguise system */
   cleanup_disguise(ch);
@@ -1123,7 +1235,8 @@ void affect_total(struct char_data *ch)
   affect_total_plus(ch, at_armor);
 
   /* MSDP */
-  update_msdp_affects(ch);
+  if (!defer_msdp)
+    update_msdp_affects(ch);
 }
 
 /* Insert an affect_type in a char_data structure. Automatically sets

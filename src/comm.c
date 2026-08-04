@@ -2431,6 +2431,56 @@ size_t write_to_output(struct descriptor_data *t, const char *txt, ...)
   return left;
 }
 
+/* Queue an already encoded protocol frame as one indivisible output record. */
+bool write_to_output_raw_atomic(struct descriptor_data *t, const char *data, size_t data_length,
+                                size_t headroom)
+{
+  size_t available;
+
+  if (t == NULL || data == NULL || t->output == NULL || t->bufptr < 0 || t->bufspace == 0 ||
+      (size_t)t->bufptr >= LARGE_BUFSIZE)
+    return FALSE;
+
+  available = LARGE_BUFSIZE - 1 - (size_t)t->bufptr;
+  if (data_length > available || headroom > available - data_length)
+    return FALSE;
+
+  if (data_length < (size_t)t->bufspace)
+  {
+    memcpy(t->output + t->bufptr, data, data_length);
+    t->bufptr += (int)data_length;
+    t->bufspace -= (int)data_length;
+    t->output[t->bufptr] = '\0';
+    return TRUE;
+  }
+
+  buf_switches++;
+  if (t->large_outbuf == NULL)
+  {
+    if (bufpool != NULL)
+    {
+      t->large_outbuf = bufpool;
+      bufpool = bufpool->next;
+    }
+    else
+    {
+      CREATE(t->large_outbuf, struct txt_block, 1);
+      CREATE(t->large_outbuf->text, char, LARGE_BUFSIZE);
+      buf_largecount++;
+    }
+  }
+
+  if (t->output != t->large_outbuf->text)
+    memcpy(t->large_outbuf->text, t->output, (size_t)t->bufptr + 1);
+
+  t->output = t->large_outbuf->text;
+  memcpy(t->output + t->bufptr, data, data_length);
+  t->bufptr += (int)data_length;
+  t->output[t->bufptr] = '\0';
+  t->bufspace = LARGE_BUFSIZE - 1 - t->bufptr;
+  return TRUE;
+}
+
 /* Add a new string to a player's output queue. */
 size_t vwrite_to_output(struct descriptor_data *t, const char *format, va_list args)
 {

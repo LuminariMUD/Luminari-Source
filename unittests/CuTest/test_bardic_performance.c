@@ -10,11 +10,13 @@
 #include "../../src/character/perks.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 
+#include <arpa/telnet.h>
 #include <string.h>
 
 struct bardic_fixture
@@ -86,6 +88,51 @@ static int perform_command_actions(void)
   }
 
   return -1;
+}
+
+static int count_spell_affects(struct char_data *ch, int spellnum)
+{
+  struct affected_type *af;
+  int count;
+
+  count = 0;
+  for (af = ch->affected; af != NULL; af = af->next)
+  {
+    if (af->spell == spellnum)
+      count++;
+  }
+
+  return count;
+}
+
+static int count_msdp_frames(const char *output, size_t length)
+{
+  int count;
+  size_t i;
+
+  count = 0;
+  for (i = 0; i + 2 < length; i++)
+  {
+    if ((unsigned char)output[i] == IAC && (unsigned char)output[i + 1] == SB &&
+        (unsigned char)output[i + 2] == TELOPT_MSDP)
+      count++;
+  }
+
+  return count;
+}
+
+static void clear_test_affects(struct char_data *ch)
+{
+  while (ch->affected != NULL)
+    affect_remove_no_total(ch, ch->affected);
+}
+
+static void reset_bardic_fixture_output(struct bardic_fixture *fixture)
+{
+  fixture->descriptor.output = fixture->descriptor.small_outbuf;
+  fixture->descriptor.small_outbuf[0] = '\0';
+  fixture->descriptor.bufptr = 0;
+  fixture->descriptor.bufspace = SMALL_BUFSIZE - 1;
 }
 
 void Test_bardic_performance_state_uses_named_absent_sentinels(CuTest *tc)
@@ -252,5 +299,139 @@ void Test_legacy_npc_perform_cooldown_is_not_an_active_song(CuTest *tc)
 
   clear_char_event_list(&npc);
   fixture.bard.next_in_room = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_bardic_affect_batch_emits_only_final_msdp_state(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct affected_type hitroll;
+  struct affected_type damroll;
+
+  begin_bardic_fixture(&fixture);
+  fixture.descriptor.pProtocol->bMSDP = bool_t_true;
+  fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->bReport = bool_t_true;
+
+  new_affect(&hitroll);
+  hitroll.spell = SKILL_SONG_OF_HEROISM;
+  hitroll.duration = 3;
+  hitroll.modifier = 2;
+  hitroll.location = APPLY_HITROLL;
+  hitroll.bonus_type = BONUS_TYPE_INHERENT;
+  new_affect(&damroll);
+  damroll.spell = SKILL_SONG_OF_HEROISM;
+  damroll.duration = 3;
+  damroll.modifier = 2;
+  damroll.location = APPLY_DAMROLL;
+  damroll.bonus_type = BONUS_TYPE_INHERENT;
+
+  affect_batch_begin(&fixture.bard);
+  affect_to_char(&fixture.bard, &hitroll);
+  affect_to_char(&fixture.bard, &damroll);
+  CuAssertIntEquals(tc, 0, fixture.descriptor.bufptr);
+  affect_batch_end(&fixture.bard);
+
+  CuAssertIntEquals(tc, 1, count_msdp_frames(fixture.descriptor.output, fixture.descriptor.bufptr));
+  CuAssertTrue(tc, !fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->bDirty);
+
+  reset_bardic_fixture_output(&fixture);
+  affect_batch_begin(&fixture.bard);
+  affect_from_char(&fixture.bard, SKILL_SONG_OF_HEROISM);
+  affect_to_char(&fixture.bard, &hitroll);
+  affect_to_char(&fixture.bard, &damroll);
+  affect_batch_end(&fixture.bard);
+
+  CuAssertIntEquals(tc, 0, fixture.descriptor.bufptr);
+  clear_test_affects(&fixture.bard);
+  end_bardic_fixture(&fixture);
+}
+
+void Test_bardic_performance_applies_only_meaningful_affect_slots(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data target;
+
+  begin_bardic_fixture(&fixture);
+  clear_char(&target);
+  SET_BIT_AR(MOB_FLAGS(&target), MOB_ISNPC);
+  target.player_specials = &dummy_mob;
+  target.player.short_descr = "a bardic affect target";
+  IN_ROOM(&target) = 0;
+  GET_LEVEL(&target) = 10;
+  GET_POS(&target) = POS_STANDING;
+  GET_HIT(&target) = 100;
+  GET_MAX_HIT(&target) = 100;
+  fixture.bard.next_in_room = &target;
+
+  CuAssertTrue(tc, performance_effects(&fixture.bard, &target, SKILL_SONG_OF_HEALING, 20,
+                                       PERFORM_AOE_GROUP));
+  CuAssertIntEquals(tc, 0, count_spell_affects(&target, SKILL_SONG_OF_HEALING));
+
+  CuAssertTrue(tc, performance_effects(&fixture.bard, &target, SKILL_DANCE_OF_PROTECTION, 20,
+                                       PERFORM_AOE_GROUP));
+  CuAssertIntEquals(tc, 3, count_spell_affects(&target, SKILL_DANCE_OF_PROTECTION));
+
+  clear_test_affects(&target);
+  affect_total(&target);
+  CuAssertTrue(
+      tc, performance_effects(&fixture.bard, &target, SKILL_SONG_OF_FLIGHT, 20, PERFORM_AOE_GROUP));
+  CuAssertTrue(tc, AFF_FLAGGED(&target, AFF_FLYING));
+  CuAssertIntEquals(tc, 1, count_spell_affects(&target, SKILL_SONG_OF_FLIGHT));
+  CuAssertTrue(
+      tc, performance_effects(&fixture.bard, &target, SKILL_SONG_OF_FLIGHT, 20, PERFORM_AOE_GROUP));
+  CuAssertTrue(tc, AFF_FLAGGED(&target, AFF_FLYING));
+  CuAssertIntEquals(tc, 1, count_spell_affects(&target, SKILL_SONG_OF_FLIGHT));
+
+  clear_test_affects(&target);
+  fixture.bard.next_in_room = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_msdp_affect_serializer_rejects_invalid_and_oversized_state(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct affected_type invalid;
+  struct affected_type *many;
+  int i;
+  const int many_count = 256;
+
+  begin_bardic_fixture(&fixture);
+  fixture.descriptor.pProtocol->bMSDP = bool_t_true;
+  fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->bReport = bool_t_true;
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&fixture.descriptor, eMSDP_AFFECTS, "sentinel"));
+  fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->bDirty = false;
+
+  new_affect(&invalid);
+  invalid.spell = SKILL_SONG_OF_HEROISM;
+  invalid.location = NUM_APPLIES;
+  fixture.bard.affected = &invalid;
+  update_msdp_affects(&fixture.bard);
+  CuAssertStrEquals(tc, "sentinel",
+                    fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->pValueString);
+  CuAssertIntEquals(tc, 0, fixture.descriptor.bufptr);
+
+  many = calloc((size_t)many_count, sizeof(*many));
+  CuAssertPtrNotNull(tc, many);
+  if (many != NULL)
+  {
+    for (i = 0; i < many_count; i++)
+    {
+      new_affect(&many[i]);
+      many[i].spell = SKILL_SONG_OF_HEROISM;
+      many[i].location = APPLY_HITROLL;
+      many[i].bonus_type = BONUS_TYPE_INHERENT;
+      many[i].duration = i;
+      many[i].next = i + 1 < many_count ? &many[i + 1] : NULL;
+    }
+    fixture.bard.affected = many;
+    update_msdp_affects(&fixture.bard);
+    CuAssertStrEquals(tc, "sentinel",
+                      fixture.descriptor.pProtocol->pVariables[eMSDP_AFFECTS]->pValueString);
+    CuAssertIntEquals(tc, 0, fixture.descriptor.bufptr);
+    free(many);
+  }
+
+  fixture.bard.affected = NULL;
   end_bardic_fixture(&fixture);
 }

@@ -703,7 +703,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 {
   int return_val = 1, i = 0; /* return_val is 1, very limited reasons to fail here! */
   int songweaver_bonus;
+  unsigned int active_affects = 0;
   bool nomessage = FALSE, engage = TRUE;
+  bool removed_existing = FALSE;
   struct affected_type af[BARD_AFFECTS];
 
   if (!ch)
@@ -732,17 +734,14 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[i].location = APPLY_NONE;
   }
 
+  affect_batch_begin(tch);
   if (affected_by_spell(tch, spellnum))
   {
     nomessage = TRUE;
+    removed_existing = TRUE;
     /* purpose: refresh song duration */
     affect_from_char(tch, spellnum);
-    update_pos(tch);
   }
-
-  /* dummy check: still issues with AC */
-  if (!IS_NPC(tch) && tch->desc)
-    save_char(tch, 0);
 
   switch (spellnum)
   {
@@ -761,6 +760,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
     af[2].location = APPLY_DR;
     af[2].modifier = effectiveness / 13;
+    active_affects = (1U << 3) - 1;
 
     break;
 
@@ -786,6 +786,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       act("You feel the world slow down around you.", FALSE, tch, 0, 0, TO_CHAR);
       act("$n starts to move with uncanny speed.", TRUE, tch, 0, 0, TO_ROOM);
     }
+    active_affects = (1U << 5) - 1;
     break;
 
   case SKILL_ORATORY_OF_REJUVENATION:
@@ -812,30 +813,35 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       af[0].location = APPLY_HITROLL;
       af[0].modifier = 0;
       SET_BIT_AR(af[0].bitvector, AFF_DETECT_INVIS);
+      active_affects |= 1U << 0;
     }
     if (!AFF_FLAGGED(tch, AFF_DETECT_ALIGN) && GET_LEVEL(ch) >= 5)
     {
       af[1].location = APPLY_DAMROLL;
       af[1].modifier = 0;
       SET_BIT_AR(af[1].bitvector, AFF_DETECT_ALIGN);
+      active_affects |= 1U << 1;
     }
     if (!AFF_FLAGGED(tch, AFF_DETECT_MAGIC) && GET_LEVEL(ch) >= 10)
     {
       af[2].location = APPLY_AC;
       af[2].modifier = 0;
       SET_BIT_AR(af[2].bitvector, AFF_DETECT_MAGIC);
+      active_affects |= 1U << 2;
     }
     if (!AFF_FLAGGED(tch, AFF_SENSE_LIFE) && GET_LEVEL(ch) >= 15)
     {
       af[3].location = APPLY_DEX;
       af[3].modifier = 0;
       SET_BIT_AR(af[3].bitvector, AFF_SENSE_LIFE);
+      active_affects |= 1U << 3;
     }
     if (!AFF_FLAGGED(tch, AFF_FARSEE) && GET_LEVEL(ch) >= 20)
     {
       af[4].location = APPLY_AGE;
       af[4].modifier = 0;
       SET_BIT_AR(af[4].bitvector, AFF_FARSEE);
+      active_affects |= 1U << 4;
     }
     if (nomessage == FALSE)
       act("You feel your eyes tingle.", FALSE, tch, 0, 0, TO_CHAR);
@@ -874,6 +880,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[7].location = APPLY_HIT;
     af[7].modifier = 40 + effectiveness * 4;
     af[7].bonus_type = BONUS_TYPE_INHERENT;
+    active_affects = (1U << BARD_AFFECTS) - 1;
 
     break;
 
@@ -897,6 +904,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[0].bitvector, AFF_FLYING);
       act("You fly through the air, free as a bird!", FALSE, tch, 0, 0, TO_CHAR);
       act("$n fly through the air, free as a bird!", TRUE, tch, 0, 0, TO_ROOM);
+      active_affects |= 1U << 0;
     }
     process_healing(ch, tch, SKILL_SONG_OF_FLIGHT, 0, rand_number(50, effectiveness * 10 / 3 + 50),
                     0);
@@ -910,6 +918,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[1].modifier = 1 + effectiveness / 7;
     af[2].location = APPLY_CHA;
     af[2].modifier = 1 + effectiveness / 7;
+    active_affects = (1U << 3) - 1;
 
     /* using affected_by_spell() for memorization bonus */
 
@@ -933,6 +942,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[0].bitvector, AFF_FEAR);
       af[0].location = APPLY_HITROLL;
       af[0].modifier = -(1 + effectiveness / 10);
+      active_affects |= 1U << 0;
     }
     break;
 
@@ -948,6 +958,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[1].bitvector, AFF_SLOW);
       af[1].location = APPLY_AC_NEW;
       af[1].modifier = -effectiveness / 9;
+      active_affects |= (1U << 2) - 1;
     }
     break;
 
@@ -956,6 +967,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     SET_BIT_AR(af[0].bitvector, AFF_DEAF);
     af[0].location = APPLY_AC_NEW;
     af[0].modifier = -effectiveness / 5;
+    active_affects |= 1U << 0;
     break;
 
   /* enemy spell resistance / saves reduced */
@@ -977,6 +989,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
 
       af[4].location = APPLY_CHA;
       af[4].modifier = 1 + effectiveness / 7;
+      active_affects |= (1U << 5) - 1;
     }
     break;
 
@@ -1002,6 +1015,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
         af[6].location = APPLY_SAVING_WILL;
         af[6].modifier = resonant_bonus;
         af[6].bonus_type = BONUS_TYPE_COMPETENCE;
+        active_affects |= 1U << 6;
       }
     }
   }
@@ -1009,6 +1023,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
   /*** now we apply the affection(s) */
   for (i = 0; i < BARD_AFFECTS; i++)
   {
+    if (!(active_affects & (1U << i)))
+      continue;
+
     /* lingering song bonus */
     if (HAS_FEAT(ch, FEAT_LINGERING_SONG))
       af[i].duration += 3;
@@ -1016,6 +1033,9 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     /* attach the affections! */
     affect_join(tch, af + i, FALSE, FALSE, FALSE, FALSE);
   }
+  affect_batch_end(tch);
+  if (removed_existing)
+    update_pos(tch);
   /****/
 
   /* dummy check: still issues with AC */

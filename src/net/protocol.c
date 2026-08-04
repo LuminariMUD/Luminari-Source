@@ -49,6 +49,30 @@ static void Write(descriptor_t *apDescriptor, const char *apData)
   write_to_output(apDescriptor, "%s", apData);
 }
 
+static protocol_error_t WriteFrame(descriptor_t *apDescriptor, const char *apData,
+                                   size_t aDataLength)
+{
+  int next_oob;
+  bool mark_oob;
+
+  if (apDescriptor == NULL || apData == NULL || apDescriptor->pProtocol == NULL)
+    return PROTOCOL_ERROR_NULL_POINTER;
+
+  next_oob = apDescriptor->pProtocol->WriteOOB;
+  mark_oob = apDescriptor->has_prompt && apDescriptor->output != NULL &&
+             (next_oob > 0 || *(apDescriptor->output) == '\0');
+  if (mark_oob)
+    next_oob = 2;
+  if (next_oob > 0)
+    next_oob--;
+
+  if (!write_to_output_raw_atomic(apDescriptor, apData, aDataLength, PROTOCOL_OUTPUT_HEADROOM))
+    return PROTOCOL_ERROR_BUFFER_FULL;
+
+  apDescriptor->pProtocol->WriteOOB = next_oob;
+  return PROTOCOL_SUCCESS;
+}
+
 static void ReportBug(const char *apText)
 {
   if (apText != NULL)
@@ -1628,8 +1652,7 @@ protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
     return PROTOCOL_ERROR_BUFFER_FULL;
   }
 
-  Write(apDescriptor, MSDPBuffer);
-  return PROTOCOL_SUCCESS;
+  return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
 }
 
 protocol_error_t MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable,
@@ -1678,8 +1701,7 @@ protocol_error_t MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable
   if (Written < 0 || (size_t)Written >= sizeof(MSDPBuffer))
     return PROTOCOL_ERROR_BUFFER_FULL;
 
-  Write(apDescriptor, MSDPBuffer);
-  return PROTOCOL_SUCCESS;
+  return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
 }
 
 protocol_error_t MSDPSendList(descriptor_t *apDescriptor, const char *apVariable,
@@ -1738,8 +1760,7 @@ protocol_error_t MSDPSendList(descriptor_t *apDescriptor, const char *apVariable
   if (Written < 0 || (size_t)Written >= sizeof(MSDPBuffer))
     return PROTOCOL_ERROR_BUFFER_FULL;
 
-  Write(apDescriptor, MSDPBuffer);
-  return PROTOCOL_SUCCESS;
+  return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
 }
 
 protocol_error_t MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue)
@@ -1951,7 +1972,7 @@ protocol_error_t MXPSendTag(descriptor_t *apDescriptor, const char *apTag)
     Written = snprintf(MXPBuffer, sizeof(MXPBuffer), "\033[1z%s\033[7z\r\n", apTag);
     if (Written < 0 || (size_t)Written >= sizeof(MXPBuffer))
       return PROTOCOL_ERROR_BUFFER_FULL;
-    Write(apDescriptor, MXPBuffer);
+    return WriteFrame(apDescriptor, MXPBuffer, (size_t)Written);
   }
   else if (pProtocol->bRenegotiate)
   {
@@ -3547,8 +3568,9 @@ static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const c
     }
 
     /* Just in case someone calls this function without checking GMCP */
-    if (GMCPBuffer[0] != '\0')
-      Write(apDescriptor, GMCPBuffer);
+    if (GMCPBuffer[0] != '\0' &&
+        WriteFrame(apDescriptor, GMCPBuffer, strlen(GMCPBuffer)) != PROTOCOL_SUCCESS)
+      ReportBug("SendGMCP: descriptor output queue is full");
   }
 }
 #endif /* MUDLET_PACKAGE */
@@ -3928,7 +3950,8 @@ static void SendMSSP(descriptor_t *apDescriptor)
   }
 
   /* Send the sequence */
-  Write(apDescriptor, MSSPBuffer);
+  if (WriteFrame(apDescriptor, MSSPBuffer, strlen(MSSPBuffer)) != PROTOCOL_SUCCESS)
+    ReportBug("SendMSSP: descriptor output queue is full");
 }
 
 #if defined(__GNUC__)

@@ -18,6 +18,8 @@ void check_room_lighting(room_rnum room, struct char_data *ch, bool enter);
 int affect_total_sub(struct char_data *ch);
 void affect_total_plus(struct char_data *ch, int at_armor);
 void affect_total(struct char_data *ch);
+void affect_batch_begin(struct char_data *ch);
+void affect_batch_end(struct char_data *ch);
 void affect_to_char(struct char_data *ch, struct affected_type *af);
 void affect_remove(struct char_data *ch, struct affected_type *af);
 void affect_remove_no_total(struct char_data *ch, struct affected_type *af);

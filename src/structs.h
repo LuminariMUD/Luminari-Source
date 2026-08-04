@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030709 = 3.7.9 (corresponds to display version 2.5039-beta)
+ * Current: 0x03070A = 3.7.10 (corresponds to display version 2.5040-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x030709
+#define _LUMINARIMUD 0x03070A
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -6415,6 +6415,8 @@ struct char_special_data
   struct obj_data *castingTOBJ; // target obj of spell
 
   int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
+  int affect_batch_depth;                     /* nested deferred affect MSDP updates */
+  bool affect_batch_dirty;                    /* affect state changed in current batch */
 
   /** crafting **/
   ubyte crafting_type;              // like SCMD_x

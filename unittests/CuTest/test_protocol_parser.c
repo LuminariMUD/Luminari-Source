@@ -91,6 +91,27 @@ size_t write_to_output(struct descriptor_data *d, const char *txt, ...)
   return length;
 }
 
+bool write_to_output_raw_atomic(struct descriptor_data *d, const char *data, size_t data_length,
+                                size_t headroom)
+{
+  size_t available;
+
+  if (d == NULL || data == NULL || d->output == NULL || d->bufptr < 0 ||
+      (size_t)d->bufptr >= LARGE_BUFSIZE)
+    return FALSE;
+
+  available = LARGE_BUFSIZE - 1 - (size_t)d->bufptr;
+  if (data_length > available || headroom > available - data_length ||
+      s_output_capture_len + data_length >= sizeof(s_output_capture))
+    return FALSE;
+
+  memcpy(s_output_capture + s_output_capture_len, data, data_length);
+  s_output_capture_len += data_length;
+  d->bufptr += (int)data_length;
+  d->bufspace = LARGE_BUFSIZE - 1 - d->bufptr;
+  return TRUE;
+}
+
 static void reset_capture(void)
 {
   memset(s_output_capture, 0, sizeof(s_output_capture));
@@ -170,6 +191,7 @@ static void harness_init(CuTest *tc, protocol_harness_t *harness)
 
   harness->descriptor_output[0] = '\0';
   harness->descriptor.output = harness->descriptor_output;
+  harness->descriptor.bufspace = LARGE_BUFSIZE - 1;
   harness->descriptor.pProtocol = ProtocolCreate();
 
   CuAssertPtrNotNullMsg(tc, "ProtocolCreate returned NULL", harness->descriptor.pProtocol);
@@ -866,6 +888,38 @@ void TestProtocolParser_SelectedMsdpVariablesCanBeReported(CuTest *tc)
   CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_FORTITUDE]->bDirty);
   CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_REFLEX]->bDirty);
   CuAssertIntEquals(tc, 0, harness.descriptor.pProtocol->pVariables[eMSDP_WILLPOWER]->bDirty);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_error_t result;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport = bool_t_true;
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, "Atomic frame"));
+
+  harness.descriptor.bufptr = LARGE_BUFSIZE - PROTOCOL_OUTPUT_HEADROOM - 4;
+  harness.descriptor.bufspace = 3;
+  result = MSDPFlush(&harness.descriptor, eMSDP_TITLE);
+
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL, result);
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+
+  harness.descriptor.bufptr = 0;
+  harness.descriptor.bufspace = LARGE_BUFSIZE - 1;
+  result = MSDPFlush(&harness.descriptor, eMSDP_TITLE);
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, result);
+  CuAssertTrue(tc, s_output_capture_len > 2);
+  CuAssertIntEquals(tc, IAC, s_output_capture[s_output_capture_len - 2]);
+  CuAssertIntEquals(tc, SE, s_output_capture[s_output_capture_len - 1]);
+  CuAssertTrue(tc, !harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
 
   harness_destroy(&harness);
 }

@@ -87,6 +87,24 @@ size_t write_to_output(struct descriptor_data *d, const char *txt, ...)
   return length;
 }
 
+bool write_to_output_raw_atomic(struct descriptor_data *d, const char *data, size_t data_length,
+                                size_t headroom)
+{
+  size_t available;
+
+  if (d == NULL || data == NULL || d->output == NULL || d->bufptr < 0 ||
+      (size_t)d->bufptr >= LARGE_BUFSIZE)
+    return FALSE;
+
+  available = LARGE_BUFSIZE - 1 - (size_t)d->bufptr;
+  if (data_length > available || headroom > available - data_length)
+    return FALSE;
+
+  d->bufptr += (int)data_length;
+  d->bufspace = LARGE_BUFSIZE - 1 - d->bufptr;
+  return TRUE;
+}
+
 static void fuzz_protocol_chunk(struct descriptor_data *descriptor, const uint8_t *data,
                                 size_t size, char *output)
 {
@@ -153,6 +171,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   memset(&config_info, 0, sizeof(config_info));
   descriptor_output[0] = '\0';
   descriptor.output = descriptor_output;
+  descriptor.bufspace = LARGE_BUFSIZE - 1;
   protocol = ProtocolCreate();
   if (protocol == NULL)
     return 0;

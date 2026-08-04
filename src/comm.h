@@ -68,6 +68,8 @@ int write_to_descriptor(socket_t desc, const char *txt);
 size_t write_to_output(struct descriptor_data *d, const char *txt, ...)
     __attribute__((format(printf, 2, 3)));
 size_t vwrite_to_output(struct descriptor_data *d, const char *format, va_list args);
+bool write_to_output_raw_atomic(struct descriptor_data *d, const char *data, size_t data_length,
+                                size_t headroom);
 
 typedef RETSIGTYPE sigfunc(int);
 

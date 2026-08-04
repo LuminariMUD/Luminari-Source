@@ -238,6 +238,7 @@ typedef struct descriptor_data descriptor_t;
 #define MAX_PROTOCOL_BUFFER (12 * 1024) /**< Main protocol buffer (matches MAX_RAW_INPUT_LENGTH) */
 #define MAX_VARIABLE_LENGTH 16384       /**< Maximum length for MSDP variable values */
 #define MAX_OUTPUT_BUFFER LARGE_BUFSIZE /**< Output buffer for processed protocol data */
+#define PROTOCOL_OUTPUT_HEADROOM 512    /**< Reserved queue space around protocol frames */
 #define MAX_MSSP_BUFFER 4096            /**< Buffer for MSSP server status data */
 #define MAX_MSSP_PAIR 128               /**< Maximum serialized MSSP name/value pair */
 

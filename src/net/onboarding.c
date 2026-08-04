@@ -4351,28 +4351,6 @@ bool web_onboarding_build_payload(struct descriptor_data *d, char *buf, size_t b
   return build_state_payload(d, screen, buf, buf_size);
 }
 
-/*
- * Leave enough room for protocol framing and unrelated prompt output. A
- * maximum editor value expands to about 66 KiB after base64, while a Circle
- * descriptor can buffer less than 24 KiB, so exactly one content frame is
- * queued per game-loop tick.
- */
-#define WEB_ONBOARDING_OUTPUT_HEADROOM 512
-
-static bool msdp_frame_fits(struct descriptor_data *d, const char *variable, const char *payload)
-{
-  size_t frame_bytes = 0;
-  size_t available_bytes = 0;
-
-  if (d == NULL || variable == NULL || payload == NULL || d->bufptr < 0 ||
-      (size_t)d->bufptr >= LARGE_BUFSIZE)
-    return FALSE;
-
-  frame_bytes = strlen(variable) + strlen(payload) + 12;
-  available_bytes = LARGE_BUFSIZE - 1 - (size_t)d->bufptr;
-  return frame_bytes + WEB_ONBOARDING_OUTPUT_HEADROOM <= available_bytes;
-}
-
 static void fail_outbound_transfer(struct descriptor_data *d)
 {
   clear_outbound_transfer(d);
@@ -4391,6 +4369,7 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
   size_t raw_bytes = 0;
   int encoded_bytes = 0;
   int written = 0;
+  protocol_error_t result;
 
   if (d == NULL || (session = d->web_onboarding_session) == NULL)
     return;
@@ -4416,10 +4395,14 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
       fail_outbound_transfer(d);
       return;
     }
-    if (!msdp_frame_fits(d, WEB_ONBOARDING_CONTENT_VARIABLE, begin))
+    result = MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, begin);
+    if (result == PROTOCOL_ERROR_BUFFER_FULL)
       return;
-
-    MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, begin);
+    if (result != PROTOCOL_SUCCESS)
+    {
+      fail_outbound_transfer(d);
+      return;
+    }
     transfer->begin_sent = TRUE;
     return;
   }
@@ -4448,13 +4431,18 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
       fail_outbound_transfer(d);
       return;
     }
-    if (!msdp_frame_fits(d, WEB_ONBOARDING_CONTENT_VARIABLE, envelope))
+    result = MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, envelope);
+    if (result == PROTOCOL_ERROR_BUFFER_FULL)
     {
       OPENSSL_cleanse(encoded, sizeof(encoded));
       return;
     }
-
-    MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, envelope);
+    if (result != PROTOCOL_SUCCESS)
+    {
+      OPENSSL_cleanse(encoded, sizeof(encoded));
+      fail_outbound_transfer(d);
+      return;
+    }
     transfer->sent_bytes += raw_bytes;
     transfer->next_index++;
     OPENSSL_cleanse(encoded, sizeof(encoded));
@@ -4474,16 +4462,21 @@ static void emit_outbound_transfer_frame(struct descriptor_data *d)
     fail_outbound_transfer(d);
     return;
   }
-  if (!msdp_frame_fits(d, WEB_ONBOARDING_CONTENT_VARIABLE, commit))
+  result = MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, commit);
+  if (result == PROTOCOL_ERROR_BUFFER_FULL)
     return;
-
-  MSDPSendPair(d, WEB_ONBOARDING_CONTENT_VARIABLE, commit);
+  if (result != PROTOCOL_SUCCESS)
+  {
+    fail_outbound_transfer(d);
+    return;
+  }
   clear_outbound_transfer(d);
 }
 
 static void emit_state(struct descriptor_data *d, const struct onboarding_screen_info *screen)
 {
   char payload[WEB_ONBOARDING_MAX_PAYLOAD + 1];
+  protocol_error_t result;
 
   d->web_onboarding_revision++;
   prepare_outbound_transfer(d, screen);
@@ -4494,15 +4487,14 @@ static void emit_state(struct descriptor_data *d, const struct onboarding_screen
     return;
   }
 
-  if (!msdp_frame_fits(d, WEB_ONBOARDING_MSDP_VARIABLE, payload))
+  result = MSDPSendPair(d, WEB_ONBOARDING_MSDP_VARIABLE, payload);
+  if (result != PROTOCOL_SUCCESS)
   {
     clear_outbound_transfer(d);
     d->web_onboarding_revision--;
     d->web_onboarding_dirty = TRUE;
     return;
   }
-
-  MSDPSendPair(d, WEB_ONBOARDING_MSDP_VARIABLE, payload);
 }
 
 void web_onboarding_tick(struct descriptor_data *d)

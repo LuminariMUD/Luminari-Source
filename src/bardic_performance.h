@@ -22,6 +22,8 @@ extern const char *spells[];
 void pulse_bardic_performance(void);
 bool is_valid_performance(int performance_num);
 int can_perform(struct char_data *ch, int performance_num, bool need_check, bool silent);
+int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,
+                        int effectiveness, int aoe);
 void initialize_bardic_performance_state(struct char_data *ch);
 void stop_bardic_performance(struct char_data *ch, bool notify);
 void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
