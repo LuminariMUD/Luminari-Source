@@ -9433,9 +9433,9 @@ ACMD(do_areas)
       {
         if (strcmp(areas[j], areas[j + 1]) > 0)
         {
-          strcpy(temp, areas[j]);
-          strcpy(areas[j], areas[j + 1]);
-          strcpy(areas[j + 1], temp);
+          strlcpy(temp, areas[j], sizeof(temp));
+          strlcpy(areas[j], areas[j + 1], sizeof(areas[j]));
+          strlcpy(areas[j + 1], temp, sizeof(areas[j + 1]));
         }
       }
     }

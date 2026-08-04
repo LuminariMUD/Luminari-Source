@@ -896,6 +896,9 @@ void TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
 {
   protocol_harness_t harness;
   protocol_error_t result;
+  const unsigned char frame_start[] = {(unsigned char)IAC, (unsigned char)SB,
+                                       (unsigned char)TELOPT_MSDP};
+  const unsigned char overflow_marker[] = "**OVERFLOW**";
 
   harness_init(tc, &harness);
   harness.descriptor.pProtocol->bMSDP = bool_t_true;
@@ -917,8 +920,51 @@ void TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
 
   CuAssertIntEquals(tc, PROTOCOL_SUCCESS, result);
   CuAssertTrue(tc, s_output_capture_len > 2);
+  CuAssert(tc, "MSDP subnegotiation start was not emitted",
+           capture_contains(frame_start, sizeof(frame_start)));
   CuAssertIntEquals(tc, IAC, s_output_capture[s_output_capture_len - 2]);
   CuAssertIntEquals(tc, SE, s_output_capture[s_output_capture_len - 1]);
+  CuAssert(tc, "overflow marker appeared inside the MSDP frame",
+           !capture_contains(overflow_marker, sizeof(overflow_marker) - 1));
+  CuAssertTrue(tc, !harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GmcpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_error_t result;
+  const unsigned char frame_start[] = {(unsigned char)IAC, (unsigned char)SB,
+                                       (unsigned char)TELOPT_GMCP};
+  const unsigned char overflow_marker[] = "**OVERFLOW**";
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport = bool_t_true;
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, "Atomic GMCP frame"));
+
+  harness.descriptor.bufptr = LARGE_BUFSIZE - PROTOCOL_OUTPUT_HEADROOM - 4;
+  harness.descriptor.bufspace = 3;
+  result = MSDPFlush(&harness.descriptor, eMSDP_TITLE);
+
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL, result);
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+
+  harness.descriptor.bufptr = 0;
+  harness.descriptor.bufspace = LARGE_BUFSIZE - 1;
+  result = MSDPFlush(&harness.descriptor, eMSDP_TITLE);
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, result);
+  CuAssertTrue(tc, s_output_capture_len > 2);
+  CuAssert(tc, "GMCP subnegotiation start was not emitted",
+           capture_contains(frame_start, sizeof(frame_start)));
+  CuAssertIntEquals(tc, IAC, s_output_capture[s_output_capture_len - 2]);
+  CuAssertIntEquals(tc, SE, s_output_capture[s_output_capture_len - 1]);
+  CuAssert(tc, "overflow marker appeared inside the GMCP frame",
+           !capture_contains(overflow_marker, sizeof(overflow_marker) - 1));
   CuAssertTrue(tc, !harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
 
   harness_destroy(&harness);
@@ -963,6 +1009,8 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpFrameRetriesWithoutPartialQueueWrite);
   SUITE_ADD_TEST(suite, TestProtocolParser_MudletPackageUsesStableIdentity);
 
   return suite;

@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: BP-001 through BP-018 verified; BP-019 text reconciled, final validation pending
+Status: BP-001 through BP-018 verified; BP-019 text reconciled, final optimized validation pending
 
 Date: 2026-08-04
 
@@ -28,8 +28,9 @@ was installed with `make install` on 2026-08-04. The fourth base-performance
 contract batch passes 389 root tests and all 20 focused protocol tests.
 The fifth perk-integration batch passes 399 production-linked root tests. Its
 runtime registrations, source comments, helper surface, and design document now
-use the same contract; sanitizer, protocol, install, and final checks remain in
-progress.
+use the same contract. A clean warning-free ASan/UBSan build passes all 399
+tests, and the focused protocol harness passes all 22 tests. The final optimized
+build, test, and install checks remain in progress.
 
 ## Reported Incident
 
@@ -92,7 +93,8 @@ The expanded audit found additional critical and high-severity defects:
 These issues are not one repair. Memory safety, state invariants, affect
 batching, atomic protocol framing, verse timing, source ownership, eligibility,
 the thirteen base-song contracts, and performance-linked perk behavior are now
-repaired. The player-facing perk text is reconciled; final validation remains.
+repaired. The player-facing perk text is reconciled; only the final optimized
+build, test, and install validation remains.
 
 The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
@@ -242,7 +244,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-04 during repair batch 5 dynamic verification.
+Last updated: 2026-08-05 during repair batch 5 final validation.
 
 Status meanings:
 
@@ -272,7 +274,7 @@ Status meanings:
 | BP-016 | Verified | Every matrix row now follows an explicit tested implementation contract, and the runtime feat descriptions document those mechanics. A production-linked 13-performance matrix, deterministic Will, Reflex, and Fortitude save cases, and modifier-before-cap healing coverage pass. |
 | BP-017 | Verified | Root coverage proves exact Heightened Harmony refresh, whole-cast Crescendo scope for non-damage, multi-projectile, and area spells, grouped active support auras, Bard-only Maestra caster level/DC/metamagic behavior, post-success Symphonic targeting and saves, bounded temporary HP, and real Bard slot recovery. |
 | BP-018 | Verified | Root coverage proves Song of Heroism recipient bonuses, Rallying Cry group targeting, grouped Warbeat buffs and one first-turn extra attack, defender-only Frostbite cold damage, standard Commanding Cadence saves, Steel Serenade physical reduction, and one room-wide Winter's War March application per target through Fortitude and normal cold resistance paths. |
-| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Runtime registrations, source comments, helper APIs, and `BARD_PERKS.md` now agree on real clocks, targets, prerequisites, and effects. Final validation is pending. |
+| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Runtime registrations, source comments, helper APIs, and `BARD_PERKS.md` now agree on real clocks, targets, prerequisites, and effects. The clean warning-free ASan/UBSan suite passes 399/399 and focused protocol coverage passes 22/22; the optimized build, test, and install matrix remains. |
 
 ### Repair Checkpoints
 
@@ -307,10 +309,12 @@ Status meanings:
   contract. It replaces placeholder capstones, routes recipient effects through
   active performer and group relationships, fixes spell-cast and combat/save
   scope, moves verse effects onto their real clocks, reconciles runtime and
-  design text, and removes non-behavioral or redundant helper APIs.
-  Preliminary verification is a warning-clean optimized root suite with 399/399
-  tests passing. Sanitizer/protocol reruns and install are still pending for
-  development version 2.5043-beta.
+  design text, removes non-behavioral or redundant helper APIs, and makes the
+  final validation build's bounded-string operations explicit. Verification so
+  far is a clean warning-free ASan/UBSan build with 399/399 tests passing and a
+  focused protocol harness with 22/22 tests passing, including registered MSDP
+  and GMCP full-queue rejection and complete-frame retry cases. The optimized
+  build, test, and install checks remain for development version 2.5043-beta.
 
 ## Detailed Findings
 
@@ -1163,19 +1167,19 @@ Extend protocol/output coverage with the real cumulative-capacity behavior:
 9. Build an invalid affect and assert that serialization logs and sends nothing
    without indexing outside lookup tables.
 
-The focused protocol harness passed all twenty current tests on 2026-08-04:
+The focused protocol harness passed all twenty-two current tests on 2026-08-05:
 
 ```text
-....................
+......................
 
-OK (20 tests)
+OK (22 tests)
 ```
 
 The harness now stubs both text and atomic raw output, models the descriptor
 capacity, and covers a cumulative full-queue rejection and retry. The
 production-linked web onboarding suite separately exercises the real atomic
-descriptor append at the cumulative limit. MSDP retry is covered; a dedicated
-GMCP backpressure case remains in the protocol acceptance checklist.
+descriptor append at the cumulative limit. Dedicated MSDP and GMCP cases both
+prove zero partial output, retained dirty state, and a later complete frame.
 
 ## Temporary Operational Mitigation
 
@@ -1259,5 +1263,6 @@ the same corruption class elsewhere.
 
 The first five repair batches close and dynamically verify BP-001 through
 BP-018. They also implement one authoritative free, indefinite performance
-contract and align runtime and design text with it. The remaining BP-019 work
-is to pass the final validation matrix and publish closure.
+contract and align runtime and design text with it. The sanitizer and protocol
+portions of the final matrix are clean. The remaining BP-019 work is the final
+optimized build, test, install, and closure publication.

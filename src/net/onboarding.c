@@ -2174,7 +2174,7 @@ static void build_alignment_choices(struct json_writer *w, struct descriptor_dat
 
   for (align = 0; align < NUM_ALIGNMENTS; align++)
   {
-    char wire[8];
+    char wire[16];
 
     if (!valid_align_by_class(align, GET_CLASS(d->character)))
       continue;
@@ -2232,7 +2232,7 @@ static void build_account_characters(struct json_writer *w, struct descriptor_da
   for (slot = 0; slot < MAX_CHARS_PER_ACCOUNT; slot++)
   {
     struct char_data *tch = NULL;
-    char wire[8];
+    char wire[16];
     char classes[MAX_INPUT_LENGTH];
     size_t classes_len = 0;
     int class_index = 0;

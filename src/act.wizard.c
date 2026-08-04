@@ -3544,7 +3544,7 @@ ACMD(do_show)
   char field[MAX_INPUT_LENGTH] = {'\0'}, value[MAX_INPUT_LENGTH] = {'\0'},
        arg[MAX_INPUT_LENGTH] = {'\0'}, buf[MAX_STRING_LENGTH] = {'\0'};
   int r = 0, g = 0, b = 0;
-  char colour[16] = {'\0'};
+  char colour[36] = {'\0'};
   int q_total = 0, q_approved = 0;
   struct quest_entry *quest = NULL;
   size_t movement_trail_count = 0;

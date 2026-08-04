@@ -4280,6 +4280,7 @@ struct player_removal_transaction *prepare_player_removal_checked(int pfilepos)
   int file_type = 0;
   int path_attempt = 0;
   int written = 0;
+  size_t original_path_length = 0;
 
   if (pfilepos < 0 || pfilepos > top_of_p_table || player_table[pfilepos].name == NULL ||
       !*player_table[pfilepos].name)
@@ -4314,15 +4315,20 @@ struct player_removal_transaction *prepare_player_removal_checked(int pfilepos)
 
     for (path_attempt = 0; path_attempt < 100; path_attempt++)
     {
-      written = snprintf(transaction->staged_paths[file_type],
-                         sizeof(transaction->staged_paths[file_type]), "%s.creation-restart-%ld-%d",
-                         transaction->original_paths[file_type], (long)getpid(), path_attempt);
-      if (written < 0 || written >= (int)sizeof(transaction->staged_paths[file_type]))
+      original_path_length = strlen(transaction->original_paths[file_type]);
+      written = snprintf(NULL, 0, ".creation-restart-%ld-%d", (long)getpid(), path_attempt);
+      if (written < 0 ||
+          original_path_length + (size_t)written >= sizeof(transaction->staged_paths[file_type]))
       {
         log("SYSERR: Staged player-file path is too long");
         rollback_player_removal_checked(transaction);
         return NULL;
       }
+      strlcpy(transaction->staged_paths[file_type], transaction->original_paths[file_type],
+              sizeof(transaction->staged_paths[file_type]));
+      snprintf_append(transaction->staged_paths[file_type],
+                      sizeof(transaction->staged_paths[file_type]), (int)original_path_length,
+                      ".creation-restart-%ld-%d", (long)getpid(), path_attempt);
       if (lstat(transaction->staged_paths[file_type], &file_status) != 0 && errno == ENOENT)
         break;
     }
