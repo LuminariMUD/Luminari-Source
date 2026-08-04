@@ -1251,6 +1251,11 @@ void char_from_furniture(struct char_data *ch);
 #define GET_SECONDARY_PERFORMING(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_SECONDARY)
 #define GET_CRESCENDO_USED(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_CRESCENDO_USED)
 #define GET_CRESCENDO_DICE(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_CRESCENDO_DICE)
+#define GET_CRESCENDO_DC(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_CRESCENDO_DC)
+#define GET_CRESCENDO_CAST_SERIAL(ch) ((ch)->char_specials.crescendo_cast_serial)
+#define GET_CRESCENDO_LAST_CAST_SERIAL(ch) ((ch)->char_specials.crescendo_last_cast_serial)
+#define GET_MAESTRA_CAST(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_MAESTRA_CAST)
+#define GET_WARBEAT_USED(ch) GET_PERFORMANCE_VAR(ch, PERFORMANCE_VAR_WARBEAT_USED)
 
 // spell preparation queue and collection (prepared spells))
 /* this refers to items in the list of spells the ch is trying to prepare */

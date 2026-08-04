@@ -138,6 +138,14 @@ int get_speed(struct char_data *ch, sbyte to_display)
     }
   }
 
+  /* Aria of Stasis reduces the speed of foes near its active performer. */
+  {
+    int aria_penalty = get_bard_aria_stasis_movement_penalty(ch);
+
+    if (aria_penalty > 0)
+      speed -= (speed * aria_penalty) / 100;
+  }
+
   return speed;
 }
 

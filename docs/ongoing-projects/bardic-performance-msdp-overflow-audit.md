@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: Repairs in progress; base performance contract repairs verified
+Status: BP-001 through BP-018 verified; BP-019 text reconciliation pending
 
 Date: 2026-08-04
 
@@ -26,6 +26,8 @@ three published batches progressed from 372 to 380 passing root CuTests; the
 overflow batch also passes all 20 focused protocol tests. Each published batch
 was installed with `make install` on 2026-08-04. The fourth base-performance
 contract batch passes 389 root tests and all 20 focused protocol tests.
+The fifth perk-integration batch passes 398 production-linked root tests; its
+sanitizer, protocol, install, and final text checks remain in progress.
 
 ## Reported Incident
 
@@ -87,9 +89,8 @@ The expanded audit found additional critical and high-severity defects:
 
 These issues are not one repair. Memory safety, state invariants, affect
 batching, atomic protocol framing, verse timing, source ownership, eligibility,
-and the thirteen base-song contracts are now repaired. Performance-linked perk
-behavior, resource contracts, and conflicting perk text remain in later
-implementation batches.
+the thirteen base-song contracts, and performance-linked perk behavior are now
+repaired. Final player-facing perk text and validation remain.
 
 The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
@@ -103,7 +104,8 @@ batch closes remaining lifecycle paths and establishes the free, indefinite
 performance contract. The fourth batch adds an immediate first verse, one
 documented refresh clock, source-owned effects, standard defenses, safe target
 iteration, accurate recipient messages, and reconciled base-song descriptions.
-Performance-linked perk repairs remain.
+The fifth batch implements and dynamically verifies the remaining Spellsinger
+and Warchanter integrations against the free, indefinite performance contract.
 
 ## Accuracy Check of the Earlier Partial Audit
 
@@ -155,9 +157,10 @@ global verse pulse
        -> bardic_performance_engine(secondary slot), if present
        -> keep the surviving slot when the other slot fails
        -> performance-linked pulse perks
-            -> Dirge of Dissonance
-            -> Symphonic Resonance placeholder
-            -> Endless Refrain placeholder
+            -> Dirge of Dissonance damage
+            -> Winter's War March room damage and slow
+            -> Symphonic Resonance bounded temporary HP
+            -> Endless Refrain Bard slot recovery
 
 bardic_performance_engine()
   -> can_perform()
@@ -237,7 +240,7 @@ The strings in the incident identify the payload conclusively:
 
 ## Implementation Progress
 
-Last updated: 2026-08-04 after repair batch 4 verification with 389 root tests.
+Last updated: 2026-08-04 during repair batch 5 dynamic verification.
 
 Status meanings:
 
@@ -265,9 +268,9 @@ Status meanings:
 | BP-014 | Verified | Performance feats are the ownership gate; fake instrument-skill fields are removed; instruments are optional modifiers; audible recipients must hear; construct healing, standard immunities and saves, bard-level gates, source ownership (including overlapping bitvector effects and Deafening refresh), reentrant iteration, and recipient-only messages pass root coverage. |
 | BP-015 | Verified | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns; direct NPC coverage proves an active verse executes. |
 | BP-016 | Verified | Every matrix row now follows an explicit tested implementation contract, and the runtime feat descriptions document those mechanics. A production-linked 13-performance matrix, deterministic Will, Reflex, and Fortitude save cases, and modifier-before-cap healing coverage pass. |
-| BP-017 | Partial | Songweaver duration and effectiveness scaling, Resonant Voice availability/source ownership, and Harmonic Casting are repaired. Resonant Voice still affects all Will saves; Crescendo, perk clocks, and the remaining Spellsinger integrations remain. |
-| BP-018 | Pending | Warchanter call-order and missing ally effects remain unresolved. |
-| BP-019 | Partial | The authoritative runtime contract is free, indefinite performances with no round pool. Harmonic Casting, base performance timing, instruments, feat ownership, help text, and base-song descriptions follow it. Remaining perk documentation and implementations must be aligned to that contract. |
+| BP-017 | Verified | Root coverage proves exact Heightened Harmony refresh, whole-cast Crescendo scope for non-damage, multi-projectile, and area spells, grouped active support auras, Bard-only Maestra caster level/DC/metamagic behavior, post-success Symphonic targeting and saves, bounded temporary HP, and real Bard slot recovery. |
+| BP-018 | Verified | Root coverage proves Song of Heroism recipient bonuses, grouped Warbeat buffs and one first-turn extra attack, defender-only Frostbite cold damage, standard Commanding Cadence saves, Steel Serenade physical reduction, and one room-wide Winter's War March application per target through Fortitude and normal cold resistance paths. |
+| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Placeholder resource behavior is removed and mechanics coverage passes; final synchronized runtime and design-document wording remains. |
 
 ### Repair Checkpoints
 
@@ -298,6 +301,13 @@ Status meanings:
   ASan/UBSan with leak detection disabled because of known suite-wide fixture
   leaks, `make protocol-parser` with 20/20 passing tests, and `make install` for
   development version 2.5042-beta.
+- Repair batch 5 closes BP-017 and BP-018 and implements the selected BP-019
+  contract. It replaces placeholder capstones, routes recipient effects through
+  active performer and group relationships, fixes spell-cast and combat/save
+  scope, and moves verse effects onto their real clocks. Preliminary
+  verification is a warning-clean optimized root suite with 398/398 tests
+  passing. Final text reconciliation, sanitizer/protocol reruns, and install are
+  still pending for development version 2.5043-beta.
 
 ## Detailed Findings
 
@@ -1220,9 +1230,7 @@ and non-atomic server output created the malformed data. Both layers are now
 repaired: batching prevents the known burst, while atomic OOB emission prevents
 the same corruption class elsewhere.
 
-The first four repair batches close all sixteen safety, lifecycle, timing,
-targeting, and base-performance findings. They also establish one authoritative
-free, indefinite performance contract and partially repair its Spellsinger
-integration. The remaining work is confined to BP-017 through BP-019: complete
-and test the remaining Spellsinger and Warchanter integrations, then align all
-of their runtime and design text with the selected no-round-pool contract.
+The first five repair batches close and dynamically verify BP-001 through
+BP-018. They also implement one authoritative free, indefinite performance
+contract. The remaining BP-019 work is to align all runtime and design text
+with that contract, rerun the final validation matrix, and publish closure.

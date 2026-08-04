@@ -31,6 +31,12 @@ void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
 void stop_descriptor_bardic_performances(struct descriptor_data *d);
 void handle_bardic_spell_performance(struct char_data *ch);
 int process_bardic_performance_slot(struct char_data *ch, int slot);
+int get_active_bardic_resonant_voice_bonus(struct char_data *ch);
+#ifdef LUMINARI_CUTEST
+void test_pulse_bard_winters_war_march(struct char_data *ch);
+void test_pulse_bard_symphonic_resonance(struct char_data *ch);
+void test_pulse_bard_endless_refrain(struct char_data *ch);
+#endif
 ACMD_DECL(do_perform);
 
 /* defines */
@@ -39,6 +45,8 @@ ACMD_DECL(do_perform);
 #define MAX_INSTRUMENT_EFFECT 20
 #define BARDIC_BASE_AFFECT_ROUNDS 2
 #define BARDIC_LINGERING_AFFECT_ROUNDS 3
+#define BARDIC_SYMPHONIC_TEMP_HP_CAP 30
+#define BARDIC_RESONANT_VOICE_MARKER 30001
 
 /* lookup components for song_info */
 #define PERFORMANCE_SKILLNUM 0

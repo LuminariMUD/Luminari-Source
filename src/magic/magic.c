@@ -41,9 +41,31 @@
 #include "wilderness/spatial_audio.h"
 #include "wilderness/wilderness.h"
 #include "character/perks.h"
+#include "bardic_performance.h"
 
 // external
 extern struct raff_node *raff_list;
+
+#ifdef LUMINARI_CUTEST
+static int bard_crescendo_damage_applications;
+static int bard_crescendo_save_applications;
+
+void test_reset_bard_crescendo_observations(void)
+{
+  bard_crescendo_damage_applications = 0;
+  bard_crescendo_save_applications = 0;
+}
+
+int test_get_bard_crescendo_damage_applications(void)
+{
+  return bard_crescendo_damage_applications;
+}
+
+int test_get_bard_crescendo_save_applications(void)
+{
+  return bard_crescendo_save_applications;
+}
+#endif
 void save_char_pets(struct char_data *ch);
 void set_vampire_spawn_feats(struct char_data *mob);
 
@@ -527,17 +549,16 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   if (!IS_NPC(vict))
     savethrow += get_paladin_bulwark_saves_bonus(vict);
 
-  /* Bard Spellsinger: Protective Chorus - +2 to all saves for allies */
-  if (!IS_NPC(vict))
-  {
+  /* Bard Spellsinger support applies only from an active grouped performer. */
+  if (casttype == CAST_SPELL)
     savethrow += get_bard_protective_chorus_save_bonus(vict);
-  }
+  savethrow += get_bard_aria_stasis_ally_saves_bonus(vict);
+  savethrow += get_bard_banner_verse_save_bonus(vict);
+  if (type == SAVING_FORT)
+    savethrow += get_bard_anthem_fortitude_save_bonus(vict);
 
-  /* Bard Spellsinger: Aria of Stasis - +4 to all saves for allies while performing */
-  if (!IS_NPC(vict) && ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0)
-  {
-    savethrow += get_bard_aria_stasis_ally_saves_bonus(ch);
-  }
+  if (type == SAVING_WILL && (school == ENCHANTMENT || is_spell_mind_affecting(spellnum)))
+    savethrow += get_active_bardic_resonant_voice_bonus(vict);
 
   /* Paladin Sacred Defender perk: Aura of Protection - +2 to all saves for allies in aura */
   if (!IS_NPC(vict) && GROUP(vict) != NULL)
@@ -745,7 +766,7 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   }
 
   /* Bard Spellsinger Tree - Spellsong Maestra adds +2 DC to bard spells while performing */
-  if (ch && !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_BARD) > 0 && casttype == CAST_SPELL)
+  if (ch && !IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && casttype == CAST_SPELL)
   {
     challenge += get_bard_spellsong_maestra_dc_bonus(ch);
   }
@@ -811,6 +832,11 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   {
     challenge += GET_DC_BONUS(ch);
     GET_DC_BONUS(ch) = 0;
+    challenge += GET_CRESCENDO_DC(ch);
+#ifdef LUMINARI_CUTEST
+    if (GET_CRESCENDO_DC(ch) != 0)
+      bard_crescendo_save_applications++;
+#endif
   }
 
   if (ch && AFF_FLAGGED(vict, AFF_PROTECT_GOOD) && IS_GOOD(ch))
@@ -1491,7 +1517,8 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
 {
   int dam = 0, element = 0, num_dice = 0, save = savetype, size_dice = 0, min_dice_roll = 0,
       bonus = 0, mag_resist = TRUE, spell_school = NOSCHOOL, save_negates = FALSE,
-      mag_resist_bonus = 0, dc_mod = 0;
+      mag_resist_bonus = 0, dc_mod = 0, crescendo_sonic_dam = 0, result;
+  bool apply_crescendo;
   char desc[200];
 
   if (victim == NULL || ch == NULL)
@@ -3714,19 +3741,24 @@ int mag_damage(int level, struct char_data *ch, struct char_data *victim,
       }
     }
 
-    /* Bard Spellsinger: Crescendo - add sonic damage to first spell after song */
-    int crescendo_sonic_dam = 0;
-    if (!IS_NPC(ch) && GET_CRESCENDO_DICE(ch) > 0)
+    /* Bard Spellsinger: Crescendo - add sonic damage once per target for this cast. */
+    apply_crescendo = !IS_NPC(ch) && GET_CRESCENDO_DICE(ch) > 0 &&
+                      GET_CRESCENDO_CAST_SERIAL(ch) != 0 &&
+                      GET_CRESCENDO_LAST_CAST_SERIAL(victim) != GET_CRESCENDO_CAST_SERIAL(ch);
+    if (apply_crescendo)
     {
+      GET_CRESCENDO_LAST_CAST_SERIAL(victim) = GET_CRESCENDO_CAST_SERIAL(ch);
       crescendo_sonic_dam = dice(GET_CRESCENDO_DICE(ch), 6);
-      GET_CRESCENDO_DICE(ch) = 0;
     }
 
-    int result = damage(ch, victim, dam, spellnum, element, FALSE);
+    result = damage(ch, victim, dam, spellnum, element, FALSE);
 
     /* Apply Crescendo sonic damage as additional damage */
     if (crescendo_sonic_dam > 0)
     {
+#ifdef LUMINARI_CUTEST
+      bard_crescendo_damage_applications++;
+#endif
       damage(ch, victim, crescendo_sonic_dam, spellnum, DAM_SOUND, FALSE);
     }
 
@@ -7058,35 +7090,13 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
     af[1].duration = level + 10;
     af[1].location = APPLY_DAMROLL;
-    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE) + get_bard_battle_hymn_damage_bonus(ch);
+    af[1].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
     af[1].bonus_type = BONUS_TYPE_MORALE;
 
     af[2].duration = level + 10;
     af[2].location = APPLY_SAVING_WILL;
     af[2].modifier = 2 + HAS_FEAT(ch, FEAT_INSPIRE_COURAGE);
     af[2].bonus_type = BONUS_TYPE_MORALE;
-
-    /* Warchanter's Dominance: Additional +1 attack and +1 AC to allies */
-    if (has_bard_warchanters_dominance(ch))
-    {
-      /* Additional +1 to hit from Warchanter's Dominance */
-      af[3].duration = level + 10;
-      af[3].location = APPLY_HITROLL;
-      af[3].modifier = 1;
-      af[3].bonus_type = BONUS_TYPE_MORALE;
-
-      /* Additional +1 AC from Warchanter's Dominance (negative for AC system) */
-      af[4].duration = level + 10;
-      af[4].location = APPLY_AC_NEW;
-      af[4].modifier = -1;
-      af[4].bonus_type = BONUS_TYPE_MORALE;
-
-      /* Warbeat Enhancement: Additional +1 damage to allies */
-      af[5].duration = level + 10;
-      af[5].location = APPLY_DAMROLL;
-      af[5].modifier = 1;
-      af[5].bonus_type = BONUS_TYPE_MORALE;
-    }
 
     to_room = "$n looks more confident!";
     to_vict = "Your courage surges and with it your fighting prowess!";

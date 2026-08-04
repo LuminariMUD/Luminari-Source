@@ -759,6 +759,7 @@
 #define AFFECT_PSIONICIST_LINKED_MENACE 1333
 #define AFFECT_PSIONICIST_PSYCHIC_SUNDERING 1334
 #define AFFECT_INTIMIDATING_PRESENCE 1335
+#define AFFECT_BARD_WARBEAT 1336
 
 // 1470 to 1493 are poisons with room saved for more poisons up to 1498
 
@@ -1876,6 +1877,15 @@ void mag_room(int level, struct char_data *ch, struct obj_data *obj, int spellnu
 
 int call_magic(struct char_data *caster, struct char_data *cvict, struct obj_data *ovict,
                int spellnum, int metamagic, int level, int casttype);
+#ifdef LUMINARI_CUTEST
+void test_prepare_bard_spell_perks(struct char_data *ch, bool *trigger_symphonic);
+void test_complete_bard_spell_perks(struct char_data *ch, int spellnum, bool trigger_symphonic,
+                                    int magic_result);
+void test_clear_bard_spell_perks(struct char_data *ch);
+void test_reset_bard_crescendo_observations(void);
+int test_get_bard_crescendo_damage_applications(void);
+int test_get_bard_crescendo_save_applications(void);
+#endif
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,
                int metamagic);

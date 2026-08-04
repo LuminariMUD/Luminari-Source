@@ -22,6 +22,7 @@
 #include "lists.h"
 #include "character/feats.h"
 #include "character/perks.h"
+#include "magic/spell_prep.h"
 
 /* defines */
 #define DEBUG_MODE FALSE
@@ -174,6 +175,26 @@ static void reset_performance_crescendo(struct char_data *ch)
 {
   GET_CRESCENDO_USED(ch) = 0;
   GET_CRESCENDO_DICE(ch) = 0;
+  GET_CRESCENDO_DC(ch) = 0;
+}
+
+int get_active_bardic_resonant_voice_bonus(struct char_data *ch)
+{
+  struct affected_type *af;
+  int bonus;
+
+  if (ch == NULL)
+    return 0;
+
+  bonus = 0;
+  for (af = ch->affected; af; af = af->next)
+  {
+    if (af->source_id != 0 && af->location == APPLY_NONE &&
+        af->specific == BARDIC_RESONANT_VOICE_MARKER)
+      bonus = MAX(bonus, af->modifier);
+  }
+
+  return bonus;
 }
 
 void initialize_bardic_performance_state(struct char_data *ch)
@@ -1077,7 +1098,8 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     af[0].modifier = 1 + effectiveness / 10;
 
     af[1].location = APPLY_DAMROLL;
-    af[1].modifier = effectiveness / 10;
+    af[1].modifier = effectiveness / 10 + get_bard_battle_hymn_damage_bonus(ch) +
+                     get_bard_battle_hymn_ii_damage_bonus(ch);
 
     af[2].location = APPLY_STR;
     af[2].modifier = effectiveness / 10;
@@ -1095,6 +1117,13 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
       SET_BIT_AR(af[1].bitvector, AFF_HASTE);
     }
     active_affects = (1U << 5) - 1;
+    if (has_bard_warchanters_dominance(ch))
+    {
+      af[0].modifier += get_bard_warchanters_dominance_tohit_bonus(ch);
+      af[5].location = APPLY_AC_NEW;
+      af[5].modifier = get_bard_warchanters_dominance_ac_bonus(ch);
+      active_affects |= 1U << 5;
+    }
     break;
 
   case SKILL_ORATORY_OF_REJUVENATION:
@@ -1286,9 +1315,10 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
     {
       resonant_af.spell = spellnum;
       resonant_af.duration = BARDIC_BASE_AFFECT_ROUNDS + songweaver_bonus;
-      resonant_af.location = APPLY_SAVING_WILL;
+      resonant_af.location = APPLY_NONE;
       resonant_af.modifier = resonant_bonus;
       resonant_af.bonus_type = BONUS_TYPE_COMPETENCE;
+      resonant_af.specific = BARDIC_RESONANT_VOICE_MARKER;
       resonant_active = TRUE;
     }
   }
@@ -1569,6 +1599,112 @@ int process_bardic_performance_slot(struct char_data *ch, int slot)
   return process_bardic_performance_slot_internal(ch, slot, TRUE);
 }
 
+static void pulse_bard_winters_war_march(struct char_data *ch)
+{
+  struct char_data *tch;
+  struct char_data *next_tch;
+  struct affected_type af;
+  int damage_dice;
+  int save_level;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || !has_bard_winters_war_march(ch))
+    return;
+
+  damage_dice = get_bard_winters_war_march_damage(ch);
+  save_level = MAX(1, CLASS_LEVEL(ch, CLASS_BARD) / 2 + GET_CHA_BONUS(ch));
+  if (damage_dice <= 0)
+    return;
+
+  send_to_char(ch, "\tCYour winter war march surges through the room!\tn\r\n");
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    int cold_damage;
+    int slow_duration;
+    bool saved;
+
+    next_tch = tch->next_in_room;
+    if (tch == ch || !aoeOK(ch, tch, -1))
+      continue;
+
+    saved = savingthrow_full(ch, tch, SAVING_FORT, 0, CAST_INNATE, save_level, EVOCATION,
+                             AFFECT_BARD_WINTERS_WAR_MARCH);
+    cold_damage = dice(damage_dice, 6);
+    slow_duration = saved ? 1 : 3;
+    if (saved)
+      cold_damage /= 2;
+
+    new_affect(&af);
+    af.spell = AFFECT_BARD_WINTERS_WAR_MARCH;
+    af.duration = slow_duration;
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+
+    if (saved)
+      act("You partially resist $n's frigid march, but its rhythm still slows you.", FALSE, ch, 0,
+          tch, TO_VICT);
+    else
+      act("$n's frigid march freezes and slows you!", FALSE, ch, 0, tch, TO_VICT);
+    damage(ch, tch, cold_damage, AFFECT_BARD_WINTERS_WAR_MARCH, DAM_COLD, FALSE);
+  }
+}
+
+static void pulse_bard_symphonic_resonance(struct char_data *ch)
+{
+  int temp_hp_dice;
+  int temp_hp;
+  int available;
+
+  if (ch == NULL || IS_NPC(ch) || !IS_PERFORMING(ch) || !has_bard_symphonic_resonance(ch))
+    return;
+
+  temp_hp_dice = get_bard_symphonic_resonance_temp_hp(ch);
+  available = GET_MAX_HIT(ch) + BARDIC_SYMPHONIC_TEMP_HP_CAP - GET_HIT(ch);
+  temp_hp = MIN(MAX(0, available), dice(temp_hp_dice, 6));
+  if (temp_hp > 0)
+  {
+    GET_HIT(ch) += temp_hp;
+    send_to_char(ch, "\tCYour symphonic resonance grants you %d temporary HP.\tn\r\n", temp_hp);
+  }
+}
+
+static void pulse_bard_endless_refrain(struct char_data *ch)
+{
+  int slot_regen;
+  int recovered;
+  int i;
+
+  if (ch == NULL || IS_NPC(ch) || !IS_PERFORMING(ch) || !has_bard_endless_refrain(ch))
+    return;
+
+  slot_regen = get_bard_endless_refrain_slot_regen(ch);
+  recovered = 0;
+  for (i = 0; i < slot_regen; i++)
+  {
+    if (sustain_melody_recover_one_slot(ch, CLASS_BARD))
+      recovered++;
+  }
+  if (recovered > 0)
+    send_to_char(ch, "\tCYour endless refrain recovers %d Bard spell slot%s.\tn\r\n", recovered,
+                 recovered == 1 ? "" : "s");
+}
+
+#ifdef LUMINARI_CUTEST
+void test_pulse_bard_winters_war_march(struct char_data *ch)
+{
+  pulse_bard_winters_war_march(ch);
+}
+
+void test_pulse_bard_symphonic_resonance(struct char_data *ch)
+{
+  pulse_bard_symphonic_resonance(ch);
+}
+
+void test_pulse_bard_endless_refrain(struct char_data *ch)
+{
+  pulse_bard_endless_refrain(ch);
+}
+#endif
+
 /* Process every active performer. Linkless players are stopped; NPCs can use this engine directly. */
 void pulse_bardic_performance()
 {
@@ -1630,35 +1766,15 @@ void pulse_bardic_performance()
       }
     }
 
-    /* Tier 4 Spellsinger: Symphonic Resonance - grant temp HP per round */
-    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_symphonic_resonance(ch))
-    {
-      int temp_hp = get_bard_symphonic_resonance_temp_hp(ch);
-      if (temp_hp > 0)
-      {
-        /* Temporary HP implementation would go here */
-        /* For now, just send a message indicating the effect is active */
-        send_to_char(ch, "\tCYour song grants temporary protection to you and your allies.\tn\r\n");
-      }
-    }
+    /* Tier 4 Warchanter: room-wide cold damage and slow once per verse. */
+    if (!IS_NPC(ch) && IS_PERFORMING(ch))
+      pulse_bard_winters_war_march(ch);
 
-    /* Tier 4 Spellsinger: Endless Refrain - regenerate spell slots per round */
-    if (!IS_NPC(ch) && IS_PERFORMING(ch) && has_bard_endless_refrain(ch))
-    {
-      int slot_regen = get_bard_endless_refrain_slot_regen(ch);
-      if (slot_regen > 0)
-      {
-        int class_level = CLASS_LEVEL(ch, CLASS_BARD);
-        int circle = MIN(6, class_level / 2);
+    /* Tier 4 Spellsinger: Symphonic Resonance - grant temporary HP each verse. */
+    pulse_bard_symphonic_resonance(ch);
 
-        if (circle > 0 && circle <= NUM_CIRCLES)
-        {
-          /* Note: Assuming spells_prepared array exists and tracks available slots */
-          /* This needs to match the spell slot tracking system in place */
-          send_to_char(ch, "\tCYour song refills your magical reserves.\tn\r\n");
-        }
-      }
-    }
+    /* Tier 4 Spellsinger: Endless Refrain - recover one Bard slot each verse. */
+    pulse_bard_endless_refrain(ch);
   }
 
   return;

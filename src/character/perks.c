@@ -15215,18 +15215,6 @@ int get_perk_weapon_damage_bonus(struct char_data *ch, struct obj_data *wielded)
     bonus = get_perk_bonus(ch, PERK_EFFECT_WEAPON_DAMAGE, -1);
   }
 
-  /* Add Bard Warchanter perks */
-  /* Battle Hymn I & II: +1 damage per rank for Inspire Courage recipients */
-  bonus += get_bard_battle_hymn_damage_bonus(ch);
-  bonus += get_bard_battle_hymn_ii_damage_bonus(ch);
-
-  /* Frostbite Refrain I & II: +1 cold damage per rank while performing */
-  bonus += get_bard_frostbite_cold_damage(ch);
-  bonus += get_bard_frostbite_refrain_ii_cold_damage(ch);
-
-  /* Warchanter's Dominance: +1 damage while performing */
-  bonus += get_bard_warchanters_dominance_damage_bonus(ch);
-
   /* Add Bard Swashbuckler perks */
   /* Precise Strike I: +1 precision damage per rank with appropriate weapons */
   bonus += get_bard_precise_strike_i_bonus(ch);
@@ -15280,9 +15268,6 @@ int get_perk_weapon_tohit_bonus(struct char_data *ch, struct obj_data *wielded)
   /* Add Drummer's Rhythm I & II bonus while performing */
   bonus += get_bard_drummers_rhythm_tohit_bonus(ch);
   bonus += get_bard_drummers_rhythm_ii_tohit_bonus(ch);
-
-  /* Add Warchanter's Dominance bonus */
-  bonus += get_bard_warchanters_dominance_tohit_bonus(ch);
 
   /* Add Bard Swashbuckler bonuses */
   /* Flourish: +2 to hit while active */
@@ -21421,6 +21406,47 @@ int get_bard_resonant_voice_save_bonus(struct char_data *ch)
   return bonus;
 }
 
+/* Return whether recipient is currently supported by a grouped bard who owns perk_id. */
+static bool bard_has_active_support_perk(struct char_data *recipient, int perk_id)
+{
+  struct char_data *performer;
+
+  if (recipient == NULL || IN_ROOM(recipient) == NOWHERE)
+    return FALSE;
+
+  for (performer = world[IN_ROOM(recipient)].people; performer; performer = performer->next_in_room)
+  {
+    if (IS_NPC(performer) || !IS_PERFORMING(performer) || !has_perk(performer, perk_id))
+      continue;
+    if (performer == recipient ||
+        (GROUP(performer) != NULL && GROUP(performer) == GROUP(recipient)))
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/* Return whether ch is opposed by an active Aria performer in the same room. */
+static bool bard_has_hostile_active_aria(struct char_data *ch)
+{
+  struct char_data *performer;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE)
+    return FALSE;
+
+  for (performer = world[IN_ROOM(ch)].people; performer; performer = performer->next_in_room)
+  {
+    if (performer == ch || IS_NPC(performer) || !IS_PERFORMING(performer) ||
+        !has_bard_aria_of_stasis(performer))
+      continue;
+    if (GROUP(performer) != NULL && GROUP(performer) == GROUP(ch))
+      continue;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 /**
  * Check if character has Harmonic Casting perk.
  *
@@ -21621,14 +21647,14 @@ bool has_bard_heightened_harmony(struct char_data *ch)
  * Get perform skill bonus from Heightened Harmony.
  *
  * @param ch The character
- * @return Perform skill bonus (+5 if has perk and buff is active, 0 otherwise)
+ * @return Perform skill bonus applied by the trigger (+5 if the perk is known, 0 otherwise)
  */
 int get_bard_heightened_harmony_perform_bonus(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (has_bard_heightened_harmony(ch) && affected_by_spell(ch, AFFECT_BARD_HEIGHTENED_HARMONY))
+  if (has_bard_heightened_harmony(ch))
     return 5; /* +5 to perform skill */
 
   return 0;
@@ -21657,10 +21683,7 @@ bool has_bard_protective_chorus(struct char_data *ch)
  */
 int get_bard_protective_chorus_save_bonus(struct char_data *ch)
 {
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_protective_chorus(ch))
+  if (bard_has_active_support_perk(ch, PERK_BARD_PROTECTIVE_CHORUS))
     return 2; /* +2 to saves vs. spells */
 
   return 0;
@@ -21674,10 +21697,7 @@ int get_bard_protective_chorus_save_bonus(struct char_data *ch)
  */
 int get_bard_protective_chorus_ac_bonus(struct char_data *ch)
 {
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_protective_chorus(ch))
+  if (bard_has_active_support_perk(ch, PERK_BARD_PROTECTIVE_CHORUS))
     return 2; /* +2 AC vs. attacks of opportunity */
 
   return 0;
@@ -21714,7 +21734,8 @@ int get_bard_spellsong_maestra_caster_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+  if (GET_CASTING_CLASS(ch) == CLASS_BARD && has_bard_spellsong_maestra(ch) &&
+      (IS_PERFORMING(ch) || GET_MAESTRA_CAST(ch)))
     return 2; /* +2 caster level */
 
   return 0;
@@ -21732,7 +21753,8 @@ int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return 0;
 
-  if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
+  if (GET_CASTING_CLASS(ch) == CLASS_BARD && has_bard_spellsong_maestra(ch) &&
+      (IS_PERFORMING(ch) || GET_MAESTRA_CAST(ch)))
     return 2; /* +2 spell DC */
 
   return 0;
@@ -21780,10 +21802,7 @@ bool has_bard_aria_of_stasis(struct char_data *ch)
  */
 int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch)
 {
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_aria_of_stasis(ch))
+  if (bard_has_active_support_perk(ch, PERK_BARD_ARIA_OF_STASIS))
     return 4; /* +4 to all saves */
 
   return 0;
@@ -21798,10 +21817,7 @@ int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch)
  */
 int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch)
 {
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_aria_of_stasis(ch))
+  if (bard_has_hostile_active_aria(ch))
     return -2; /* -2 to hit */
 
   return 0;
@@ -21816,13 +21832,21 @@ int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch)
  */
 int get_bard_aria_stasis_movement_penalty(struct char_data *ch)
 {
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_aria_of_stasis(ch))
+  if (bard_has_hostile_active_aria(ch))
     return 10; /* 10% movement speed reduction */
 
   return 0;
+}
+
+/**
+ * Check whether a grouped active Aria protects a character from slow.
+ *
+ * @param ch The prospective slow target
+ * @return TRUE while an allied active Aria is present, FALSE otherwise
+ */
+bool has_bard_aria_stasis_slow_immunity(struct char_data *ch)
+{
+  return bard_has_active_support_perk(ch, PERK_BARD_ARIA_OF_STASIS);
 }
 
 /**
@@ -21926,23 +21950,6 @@ int get_bard_endless_refrain_slot_regen(struct char_data *ch)
   return 0;
 }
 
-/**
- * Check if Endless Refrain allows performance to continue without consuming resources.
- * When active, performance costs nothing and doesn't consume rounds.
- *
- * @param ch The character
- * @return FALSE if Endless Refrain is active (don't consume), TRUE otherwise
- */
-bool should_endless_refrain_consume_performance(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return TRUE;
-
-  if (has_bard_endless_refrain(ch) && IS_PERFORMING(ch))
-    return FALSE; /* Don't consume performance */
-
-  return TRUE; /* Normal bards consume performance */
-}
 /* ============================================================================
  * WARCHANTER TREE PERK FUNCTIONS
  * ============================================================================ */
@@ -22269,9 +22276,6 @@ bool has_bard_anthem_of_fortitude(struct char_data *ch)
   if (!ch || IS_NPC(ch))
     return FALSE;
 
-  if (!IS_PERFORMING(ch))
-    return FALSE;
-
   return has_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE);
 }
 
@@ -22284,11 +22288,7 @@ bool has_bard_anthem_of_fortitude(struct char_data *ch)
  */
 int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch)
 {
-  if (!has_bard_anthem_of_fortitude(ch))
-    return 0;
-
-  /* Anthem of Fortitude: +10% max HP */
-  return 10;
+  return bard_has_active_support_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE) ? 10 : 0;
 }
 
 /**
@@ -22300,11 +22300,7 @@ int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch)
  */
 int get_bard_anthem_fortitude_save_bonus(struct char_data *ch)
 {
-  if (!has_bard_anthem_of_fortitude(ch))
-    return 0;
-
-  /* Anthem of Fortitude: +2 to Fortitude saves */
-  return 2;
+  return bard_has_active_support_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE) ? 2 : 0;
 }
 
 /**
@@ -22320,22 +22316,6 @@ bool has_bard_commanding_cadence(struct char_data *ch)
     return FALSE;
 
   return has_perk(ch, PERK_BARD_COMMANDING_CADENCE);
-}
-
-/**
- * Get daze chance (save DC) from Commanding Cadence.
- * Returns the Will save DC that enemies must beat to avoid daze.
- *
- * @param ch The character
- * @return 1 (flag that daze should be applied if save fails)
- */
-int get_bard_commanding_cadence_daze_chance(struct char_data *ch)
-{
-  if (!has_bard_commanding_cadence(ch))
-    return 0;
-
-  /* Commanding Cadence: 1 indicates daze should be applied */
-  return 1;
 }
 
 /**
@@ -22412,11 +22392,7 @@ bool has_bard_banner_verse(struct char_data *ch)
  */
 int get_bard_banner_verse_tohit_bonus(struct char_data *ch)
 {
-  if (!has_bard_banner_verse(ch))
-    return 0;
-
-  /* Banner Verse: +2 to hit in the room */
-  return 2;
+  return bard_has_active_support_perk(ch, PERK_BARD_BANNER_VERSE) ? 2 : 0;
 }
 
 /**
@@ -22428,11 +22404,7 @@ int get_bard_banner_verse_tohit_bonus(struct char_data *ch)
  */
 int get_bard_banner_verse_save_bonus(struct char_data *ch)
 {
-  if (!has_bard_banner_verse(ch))
-    return 0;
-
-  /* Banner Verse: +2 to all saves in the room */
-  return 2;
+  return bard_has_active_support_perk(ch, PERK_BARD_BANNER_VERSE) ? 2 : 0;
 }
 
 /* ============================================================================
@@ -22449,9 +22421,6 @@ int get_bard_banner_verse_save_bonus(struct char_data *ch)
 bool has_bard_warchanters_dominance(struct char_data *ch)
 {
   if (!ch || IS_NPC(ch))
-    return FALSE;
-
-  if (!IS_PERFORMING(ch))
     return FALSE;
 
   return has_perk(ch, PERK_BARD_WARCHANTERS_DOMINANCE);

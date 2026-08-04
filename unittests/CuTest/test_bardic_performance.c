@@ -4,6 +4,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/actionqueues.h"
 #include "../../src/actions.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/feats.h"
@@ -11,12 +12,15 @@
 #include "../../src/combat/fight.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
+#include "../../src/dgscript/dg_scripts.h"
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/lists.h"
+#include "../../src/magic/spell_prep.h"
 #include "../../src/magic/spells.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
+#include "../../src/spec_procs.h"
 
 #include <arpa/telnet.h>
 #include <string.h>
@@ -27,9 +31,12 @@ struct bardic_fixture
   struct char_data bard;
   struct player_special_data player_specials;
   struct descriptor_data descriptor;
+  struct index_data mob_index_entry;
   struct room_data *saved_world;
   struct char_data *saved_character_list;
+  struct index_data *saved_mob_index;
   room_rnum saved_top_of_world;
+  mob_rnum saved_top_of_mobt;
 };
 
 static void begin_bardic_fixture(struct bardic_fixture *fixture)
@@ -42,8 +49,11 @@ static void begin_bardic_fixture(struct bardic_fixture *fixture)
   fixture->saved_world = world;
   fixture->saved_top_of_world = top_of_world;
   fixture->saved_character_list = character_list;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
 
   clear_char(&fixture->bard);
+  GET_ATTACK_QUEUE(&fixture->bard) = create_attack_queue();
   fixture->bard.player_specials = &fixture->player_specials;
   fixture->bard.player.name = "bardic performance test character";
   fixture->bard.desc = &fixture->descriptor;
@@ -67,6 +77,9 @@ static void begin_bardic_fixture(struct bardic_fixture *fixture)
   world = &fixture->room;
   top_of_world = 0;
   character_list = &fixture->bard;
+  fixture->mob_index_entry.vnum = DG_CASTER_PROXY;
+  mob_index = &fixture->mob_index_entry;
+  top_of_mobt = 0;
 }
 
 static void end_bardic_fixture(struct bardic_fixture *fixture)
@@ -74,12 +87,16 @@ static void end_bardic_fixture(struct bardic_fixture *fixture)
   while (fixture->bard.affected != NULL)
     affect_remove_no_total(&fixture->bard, fixture->bard.affected);
   clear_char_event_list(&fixture->bard);
+  free_attack_queue(GET_ATTACK_QUEUE(&fixture->bard));
+  GET_ATTACK_QUEUE(&fixture->bard) = NULL;
   fixture->bard.desc = NULL;
   if (fixture->descriptor.pProtocol != NULL)
     ProtocolDestroy(fixture->descriptor.pProtocol);
   world = fixture->saved_world;
   top_of_world = fixture->saved_top_of_world;
   character_list = fixture->saved_character_list;
+  mob_index = fixture->saved_mob_index;
+  top_of_mobt = fixture->saved_top_of_mobt;
 }
 
 static int perform_command_actions(void)
@@ -171,6 +188,57 @@ static void reset_bardic_fixture_output(struct bardic_fixture *fixture)
   fixture->descriptor.small_outbuf[0] = '\0';
   fixture->descriptor.bufptr = 0;
   fixture->descriptor.bufspace = SMALL_BUFSIZE - 1;
+}
+
+static void initialize_bardic_test_pc(struct char_data *ch, struct player_special_data *specials,
+                                      const char *name)
+{
+  memset(specials, 0, sizeof(*specials));
+  clear_char(ch);
+  ch->player_specials = specials;
+  ch->player.name = (char *)name;
+  IN_ROOM(ch) = 0;
+  GET_LEVEL(ch) = 10;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 100;
+  GET_MAX_HIT(ch) = 100;
+}
+
+static void initialize_bardic_test_npc(struct char_data *ch, const char *name)
+{
+  clear_char(ch);
+  SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &dummy_mob;
+  ch->player.short_descr = (char *)name;
+  IN_ROOM(ch) = 0;
+  GET_LEVEL(ch) = 10;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 100;
+  GET_MAX_HIT(ch) = 100;
+}
+
+static void initialize_bardic_test_perk(struct char_perk_data *perk, int perk_id, int rank,
+                                        struct char_perk_data *next)
+{
+  memset(perk, 0, sizeof(*perk));
+  perk->perk_id = perk_id;
+  perk->perk_class = CLASS_BARD;
+  perk->current_rank = rank;
+  perk->next = next;
+}
+
+static struct affected_type *find_spell_affect_location(struct char_data *ch, int spellnum,
+                                                        int location)
+{
+  struct affected_type *af;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+  {
+    if (af->spell == spellnum && af->location == location)
+      return af;
+  }
+
+  return NULL;
 }
 
 void Test_bardic_performance_state_uses_named_absent_sentinels(CuTest *tc)
@@ -1093,5 +1161,554 @@ void Test_msdp_affect_serializer_rejects_invalid_and_oversized_state(CuTest *tc)
   }
 
   fixture.bard.affected = NULL;
+  end_bardic_fixture(&fixture);
+}
+
+void Test_heightened_harmony_is_one_exact_refreshing_minute_long_bonus(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_perk_data heightened;
+  struct affected_type *af;
+  int base_perform;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_perk(&heightened, PERK_BARD_HEIGHTENED_HARMONY, 1, NULL);
+  fixture.player_specials.saved.perks = &heightened;
+  fixture.player_specials.casting_class = CLASS_BARD;
+  CASTING_METAMAGIC(&fixture.bard) = METAMAGIC_EXTEND;
+  base_perform = compute_ability(&fixture.bard, ABILITY_PERFORM);
+
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_HASTE, FALSE, 1);
+  CuAssertIntEquals(tc, 1, count_spell_affects(&fixture.bard, AFFECT_BARD_HEIGHTENED_HARMONY));
+  af = find_spell_affect_location(&fixture.bard, AFFECT_BARD_HEIGHTENED_HARMONY, APPLY_SKILL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+  {
+    CuAssertIntEquals(tc, ABILITY_PERFORM, af->specific);
+    CuAssertIntEquals(tc, 5, af->modifier);
+    CuAssertIntEquals(tc, 10, af->duration);
+  }
+  CuAssertIntEquals(tc, base_perform + 5, compute_ability(&fixture.bard, ABILITY_PERFORM));
+
+  if (af != NULL)
+    af->duration = 2;
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_HASTE, FALSE, 1);
+  CuAssertIntEquals(tc, 1, count_spell_affects(&fixture.bard, AFFECT_BARD_HEIGHTENED_HARMONY));
+  af = find_spell_affect_location(&fixture.bard, AFFECT_BARD_HEIGHTENED_HARMONY, APPLY_SKILL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 10, af->duration);
+  CuAssertIntEquals(tc, base_perform + 5, compute_ability(&fixture.bard, ABILITY_PERFORM));
+
+  end_bardic_fixture(&fixture);
+}
+
+void Test_crescendo_scopes_damage_and_dc_to_exactly_one_whole_bard_cast(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_perk_data crescendo;
+  struct char_perk_data harmonic;
+  struct char_data first_target;
+  struct char_data second_target;
+  bool trigger_symphonic;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_perk(&harmonic, PERK_BARD_HARMONIC_CASTING, 1, NULL);
+  initialize_bardic_test_perk(&crescendo, PERK_BARD_CRESCENDO, 1, NULL);
+  fixture.player_specials.saved.perks = &crescendo;
+  fixture.player_specials.casting_class = CLASS_BARD;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  trigger_symphonic = FALSE;
+  test_prepare_bard_spell_perks(&fixture.bard, &trigger_symphonic);
+  CuAssertTrue(tc, !IS_PERFORMING(&fixture.bard));
+  CuAssertIntEquals(tc, 1, GET_CRESCENDO_USED(&fixture.bard));
+  CuAssertIntEquals(tc, 1, GET_CRESCENDO_DICE(&fixture.bard));
+  CuAssertIntEquals(tc, 2, GET_CRESCENDO_DC(&fixture.bard));
+
+  test_reset_bard_crescendo_observations();
+  CuAssertTrue(tc,
+               call_magic(&fixture.bard, &fixture.bard, NULL, SPELL_HASTE, 0, 10, CAST_SPELL) != 0);
+  CuAssertIntEquals(tc, 0, test_get_bard_crescendo_damage_applications());
+  CuAssertIntEquals(tc, 0, test_get_bard_crescendo_save_applications());
+  CuAssertIntEquals(tc, 1, GET_CRESCENDO_DICE(&fixture.bard));
+  test_clear_bard_spell_perks(&fixture.bard);
+
+  fixture.player_specials.saved.perks = &crescendo;
+  crescendo.next = &harmonic;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  GET_CRESCENDO_USED(&fixture.bard) = 0;
+  test_prepare_bard_spell_perks(&fixture.bard, &trigger_symphonic);
+  CuAssertTrue(tc, IS_PERFORMING(&fixture.bard));
+
+  initialize_bardic_test_npc(&first_target, "a crescendo single target");
+  GET_HIT(&first_target) = GET_MAX_HIT(&first_target) = 1000;
+  fixture.bard.next_in_room = &first_target;
+  test_reset_bard_crescendo_observations();
+  CuAssertTrue(tc, call_magic(&fixture.bard, &first_target, NULL, SPELL_MAGIC_MISSILE, 0, 10,
+                              CAST_SPELL) != 0);
+  CuAssertIntEquals(tc, 1, test_get_bard_crescendo_damage_applications());
+  CuAssertIntEquals(tc, 1, GET_CRESCENDO_DICE(&fixture.bard));
+  test_clear_bard_spell_perks(&fixture.bard);
+
+  initialize_bardic_test_npc(&second_target, "a crescendo area target");
+  GET_HIT(&second_target) = GET_MAX_HIT(&second_target) = 1000;
+  first_target.next_in_room = &second_target;
+  fixture.player_specials.casting_class = CLASS_BARD;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  GET_CRESCENDO_USED(&fixture.bard) = 0;
+  test_prepare_bard_spell_perks(&fixture.bard, &trigger_symphonic);
+  test_reset_bard_crescendo_observations();
+  circle_srandom(1);
+  CuAssertTrue(tc, call_magic(&fixture.bard, NULL, NULL, SPELL_FIREBALL, 0, 10, CAST_SPELL) != 0);
+  CuAssertIntEquals(tc, 2, test_get_bard_crescendo_damage_applications());
+  CuAssertIntEquals(tc, 2, test_get_bard_crescendo_save_applications());
+  CuAssertIntEquals(tc, 1, GET_CRESCENDO_DICE(&fixture.bard));
+  CuAssertIntEquals(tc, 2, GET_CRESCENDO_DC(&fixture.bard));
+  test_clear_bard_spell_perks(&fixture.bard);
+
+  if (FIGHTING(&fixture.bard) != NULL)
+    stop_fighting(&fixture.bard);
+  if (FIGHTING(&first_target) != NULL)
+    stop_fighting(&first_target);
+  if (FIGHTING(&second_target) != NULL)
+    stop_fighting(&second_target);
+  fixture.bard.next_in_room = NULL;
+  first_target.next_in_room = NULL;
+  clear_char_event_list(&first_target);
+  clear_char_event_list(&second_target);
+  circle_srandom((unsigned long)time(NULL));
+  end_bardic_fixture(&fixture);
+}
+
+void Test_spellsinger_support_auras_require_an_active_grouped_performer(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data member;
+  struct char_data bystander;
+  struct player_special_data member_specials;
+  struct player_special_data bystander_specials;
+  struct char_perk_data protective;
+  struct char_perk_data aria;
+  struct char_perk_data anthem;
+  struct char_perk_data banner;
+  struct affected_type slow_af;
+  struct group_data group;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_pc(&member, &member_specials, "a supported bard ally");
+  initialize_bardic_test_pc(&bystander, &bystander_specials, "an unsupported bard bystander");
+  initialize_bardic_test_perk(&banner, PERK_BARD_BANNER_VERSE, 1, NULL);
+  initialize_bardic_test_perk(&anthem, PERK_BARD_ANTHEM_OF_FORTITUDE, 1, &banner);
+  initialize_bardic_test_perk(&aria, PERK_BARD_ARIA_OF_STASIS, 1, &anthem);
+  initialize_bardic_test_perk(&protective, PERK_BARD_PROTECTIVE_CHORUS, 1, &aria);
+  fixture.player_specials.saved.perks = &protective;
+
+  memset(&group, 0, sizeof(group));
+  group.leader = &fixture.bard;
+  group.members = create_list();
+  add_to_list(&fixture.bard, group.members);
+  add_to_list(&member, group.members);
+  fixture.bard.group = &group;
+  member.group = &group;
+  fixture.bard.next_in_room = &member;
+  member.next_in_room = &bystander;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  CuAssertIntEquals(tc, 2, get_bard_protective_chorus_save_bonus(&member));
+  CuAssertIntEquals(tc, 2, get_bard_protective_chorus_ac_bonus(&member));
+  CuAssertIntEquals(tc, 4, get_bard_aria_stasis_ally_saves_bonus(&member));
+  CuAssertTrue(tc, has_bard_aria_stasis_slow_immunity(&member));
+  CuAssertIntEquals(tc, 10, get_bard_anthem_fortitude_hp_bonus(&member));
+  CuAssertIntEquals(tc, 2, get_bard_anthem_fortitude_save_bonus(&member));
+  CuAssertIntEquals(tc, 2, get_bard_banner_verse_tohit_bonus(&member));
+  CuAssertIntEquals(tc, 2, get_bard_banner_verse_save_bonus(&member));
+  CuAssertIntEquals(tc, -2, get_bard_aria_stasis_enemy_tohit_penalty(&bystander));
+  CuAssertIntEquals(tc, 10, get_bard_aria_stasis_movement_penalty(&bystander));
+  CuAssertIntEquals(tc, 0, get_bard_protective_chorus_save_bonus(&bystander));
+
+  new_affect(&slow_af);
+  slow_af.spell = SPELL_SLOW;
+  slow_af.duration = 2;
+  SET_BIT_AR(slow_af.bitvector, AFF_SLOW);
+  affect_to_char(&member, &slow_af);
+  CuAssertTrue(tc, !AFF_FLAGGED(&member, AFF_SLOW));
+
+  stop_bardic_performance(&fixture.bard, FALSE);
+  CuAssertIntEquals(tc, 0, get_bard_protective_chorus_save_bonus(&member));
+  CuAssertIntEquals(tc, 0, get_bard_aria_stasis_ally_saves_bonus(&member));
+  CuAssertIntEquals(tc, 0, get_bard_anthem_fortitude_hp_bonus(&member));
+  CuAssertIntEquals(tc, 0, get_bard_banner_verse_tohit_bonus(&member));
+  CuAssertIntEquals(tc, 0, get_bard_aria_stasis_enemy_tohit_penalty(&bystander));
+
+  clear_test_affects(&member);
+  fixture.bard.group = NULL;
+  member.group = NULL;
+  free_list(group.members);
+  fixture.bard.next_in_room = NULL;
+  member.next_in_room = NULL;
+  clear_char_event_list(&member);
+  clear_char_event_list(&bystander);
+  end_bardic_fixture(&fixture);
+}
+
+void Test_spellsong_maestra_is_bard_only_and_implements_all_components(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_perk_data maestra;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_perk(&maestra, PERK_BARD_SPELLSONG_MAESTRA, 1, NULL);
+  fixture.player_specials.saved.perks = &maestra;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  fixture.player_specials.casting_class = CLASS_BARD;
+
+  CuAssertIntEquals(tc, 2, get_bard_spellsong_maestra_caster_bonus(&fixture.bard));
+  CuAssertIntEquals(tc, 2, get_bard_spellsong_maestra_dc_bonus(&fixture.bard));
+  CuAssertIntEquals(tc, 0,
+                    test_calculate_metamagic_modifier(&fixture.bard, CLASS_BARD,
+                                                      METAMAGIC_EMPOWER | METAMAGIC_EXTEND));
+  CuAssertIntEquals(tc, 3,
+                    test_calculate_metamagic_modifier(&fixture.bard, CLASS_WIZARD,
+                                                      METAMAGIC_EMPOWER | METAMAGIC_EXTEND));
+
+  fixture.player_specials.casting_class = CLASS_WIZARD;
+  CuAssertIntEquals(tc, 0, get_bard_spellsong_maestra_caster_bonus(&fixture.bard));
+  CuAssertIntEquals(tc, 0, get_bard_spellsong_maestra_dc_bonus(&fixture.bard));
+
+  end_bardic_fixture(&fixture);
+}
+
+void Test_symphonic_resonance_obeys_success_save_pk_and_resource_contracts(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data npc_target;
+  struct char_data pc_target;
+  struct player_special_data pc_specials;
+  struct char_perk_data symphonic;
+  struct char_perk_data endless;
+  struct innate_magic_data *recovering_slot;
+  bool saved_pk_allowed;
+  int i;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_perk(&endless, PERK_BARD_ENDLESS_REFRAIN, 1, NULL);
+  initialize_bardic_test_perk(&symphonic, PERK_BARD_SYMPHONIC_RESONANCE, 1, &endless);
+  fixture.player_specials.saved.perks = &symphonic;
+  fixture.player_specials.casting_class = CLASS_BARD;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  initialize_bardic_test_npc(&npc_target, "a symphonic resonance NPC target");
+  initialize_bardic_test_pc(&pc_target, &pc_specials, "a symphonic resonance PC target");
+  GET_SAVE(&npc_target, SAVING_WILL) = -100;
+  GET_SAVE(&pc_target, SAVING_WILL) = -100;
+  fixture.bard.next_in_room = &npc_target;
+  npc_target.next_in_room = &pc_target;
+  saved_pk_allowed = CONFIG_PK_ALLOWED;
+  CONFIG_PK_ALLOWED = FALSE;
+
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 0);
+  CuAssertTrue(tc, !AFF_FLAGGED(&npc_target, AFF_DAZED));
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 1);
+  CuAssertTrue(tc, AFF_FLAGGED(&npc_target, AFF_DAZED));
+  CuAssertTrue(tc, !AFF_FLAGGED(&pc_target, AFF_DAZED));
+
+  clear_test_affects(&npc_target);
+  clear_test_affects(&pc_target);
+  CONFIG_PK_ALLOWED = TRUE;
+  circle_srandom(1);
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 1);
+  CuAssertTrue(tc, AFF_FLAGGED(&npc_target, AFF_DAZED));
+  CuAssertTrue(tc, AFF_FLAGGED(&pc_target, AFF_DAZED));
+
+  clear_test_affects(&npc_target);
+  clear_test_affects(&pc_target);
+  GET_SAVE(&npc_target, SAVING_WILL) = 100;
+  GET_SAVE(&pc_target, SAVING_WILL) = 100;
+  circle_srandom(1);
+  test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 1);
+  CuAssertTrue(tc, !AFF_FLAGGED(&npc_target, AFF_DAZED));
+  CuAssertTrue(tc, !AFF_FLAGGED(&pc_target, AFF_DAZED));
+
+  GET_HIT(&fixture.bard) = GET_MAX_HIT(&fixture.bard);
+  circle_srandom(1);
+  for (i = 0; i < 20; i++)
+    test_pulse_bard_symphonic_resonance(&fixture.bard);
+  CuAssertTrue(tc, GET_HIT(&fixture.bard) > GET_MAX_HIT(&fixture.bard));
+  CuAssertTrue(tc,
+               GET_HIT(&fixture.bard) <= GET_MAX_HIT(&fixture.bard) + BARDIC_SYMPHONIC_TEMP_HP_CAP);
+
+  recovering_slot = calloc(1, sizeof(*recovering_slot));
+  CuAssertPtrNotNull(tc, recovering_slot);
+  if (recovering_slot != NULL)
+  {
+    recovering_slot->circle = 2;
+    INNATE_MAGIC(&fixture.bard, CLASS_BARD) = recovering_slot;
+    test_pulse_bard_endless_refrain(&fixture.bard);
+    CuAssertPtrEquals(tc, NULL, INNATE_MAGIC(&fixture.bard, CLASS_BARD));
+  }
+
+  CONFIG_PK_ALLOWED = saved_pk_allowed;
+  fixture.bard.next_in_room = NULL;
+  npc_target.next_in_room = NULL;
+  clear_char_event_list(&npc_target);
+  clear_char_event_list(&pc_target);
+  circle_srandom((unsigned long)time(NULL));
+  end_bardic_fixture(&fixture);
+}
+
+void Test_battle_hymn_and_dominance_modify_song_of_heroism_recipients(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data target;
+  struct char_perk_data battle_i;
+  struct char_perk_data battle_ii;
+  struct char_perk_data dominance;
+  struct affected_type *af;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_npc(&target, "a heroic warchanter ally");
+  initialize_bardic_test_perk(&dominance, PERK_BARD_WARCHANTERS_DOMINANCE, 1, NULL);
+  initialize_bardic_test_perk(&battle_ii, PERK_BARD_BATTLE_HYMN_II, 2, &dominance);
+  initialize_bardic_test_perk(&battle_i, PERK_BARD_BATTLE_HYMN_I, 3, &battle_ii);
+  fixture.player_specials.saved.perks = &battle_i;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 3;
+
+  CuAssertTrue(tc, performance_effects(&fixture.bard, &target, SKILL_SONG_OF_HEROISM, 20,
+                                       PERFORM_AOE_GROUP));
+  CuAssertIntEquals(tc, 6, count_spell_affects(&target, SKILL_SONG_OF_HEROISM));
+  af = find_spell_affect_location(&target, SKILL_SONG_OF_HEROISM, APPLY_DAMROLL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 7, af->modifier);
+  af = find_spell_affect_location(&target, SKILL_SONG_OF_HEROISM, APPLY_HITROLL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 4, af->modifier);
+  af = find_spell_affect_location(&target, SKILL_SONG_OF_HEROISM, APPLY_AC_NEW);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 1, af->modifier);
+
+  clear_test_affects(&target);
+  CuAssertTrue(tc, performance_effects(&fixture.bard, &target, SKILL_DANCE_OF_PROTECTION, 20,
+                                       PERFORM_AOE_GROUP));
+  CuAssertPtrEquals(tc, NULL,
+                    find_spell_affect_location(&target, SKILL_DANCE_OF_PROTECTION, APPLY_DAMROLL));
+
+  clear_test_affects(&target);
+  clear_char_event_list(&target);
+  end_bardic_fixture(&fixture);
+}
+
+void Test_warbeat_buffs_only_allies_and_opens_combat_once(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data member;
+  struct char_data bystander;
+  struct char_data enemy;
+  struct player_special_data member_specials;
+  struct player_special_data bystander_specials;
+  struct char_perk_data warbeat;
+  struct char_perk_data dominance;
+  struct affected_type *af;
+  struct group_data group;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_pc(&member, &member_specials, "a warbeat ally");
+  initialize_bardic_test_pc(&bystander, &bystander_specials, "a warbeat bystander");
+  initialize_bardic_test_npc(&enemy, "a warbeat enemy");
+  GET_HIT(&enemy) = GET_MAX_HIT(&enemy) = 10000;
+  initialize_bardic_test_perk(&dominance, PERK_BARD_WARCHANTERS_DOMINANCE, 1, NULL);
+  initialize_bardic_test_perk(&warbeat, PERK_BARD_WARBEAT, 1, &dominance);
+  fixture.player_specials.saved.perks = &warbeat;
+
+  memset(&group, 0, sizeof(group));
+  group.leader = &fixture.bard;
+  group.members = create_list();
+  add_to_list(&fixture.bard, group.members);
+  add_to_list(&member, group.members);
+  fixture.bard.group = &group;
+  member.group = &group;
+  fixture.bard.next_in_room = &member;
+  member.next_in_room = &bystander;
+  bystander.next_in_room = &enemy;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  circle_srandom(1);
+  test_apply_bard_warbeat_allies(&fixture.bard);
+  CuAssertIntEquals(tc, 2, count_spell_affects(&fixture.bard, AFFECT_BARD_WARBEAT));
+  CuAssertIntEquals(tc, 2, count_spell_affects(&member, AFFECT_BARD_WARBEAT));
+  CuAssertIntEquals(tc, 0, count_spell_affects(&bystander, AFFECT_BARD_WARBEAT));
+  af = find_spell_affect_location(&member, AFFECT_BARD_WARBEAT, APPLY_DAMROLL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertTrue(tc, af->modifier >= 2 && af->modifier <= 8);
+  af = find_spell_affect_location(&member, AFFECT_BARD_WARBEAT, APPLY_AC_NEW);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 1, af->modifier);
+
+  set_fighting(&fixture.bard, &enemy);
+  test_reset_bard_warbeat_observations();
+  perform_violence(&fixture.bard, 0);
+  CuAssertIntEquals(tc, 1, test_get_bard_warbeat_opening_attacks());
+  CuAssertIntEquals(tc, 1, GET_WARBEAT_USED(&fixture.bard));
+  if (FIGHTING(&fixture.bard) != NULL)
+    perform_violence(&fixture.bard, 0);
+  CuAssertIntEquals(tc, 1, test_get_bard_warbeat_opening_attacks());
+
+  if (FIGHTING(&fixture.bard) != NULL)
+    stop_fighting(&fixture.bard);
+  if (FIGHTING(&enemy) != NULL)
+    stop_fighting(&enemy);
+  CuAssertIntEquals(tc, 0, GET_WARBEAT_USED(&fixture.bard));
+  clear_test_affects(&fixture.bard);
+  clear_test_affects(&member);
+  fixture.bard.group = NULL;
+  member.group = NULL;
+  free_list(group.members);
+  fixture.bard.next_in_room = NULL;
+  member.next_in_room = NULL;
+  bystander.next_in_room = NULL;
+  clear_char_event_list(&member);
+  clear_char_event_list(&bystander);
+  clear_char_event_list(&enemy);
+  circle_srandom((unsigned long)time(NULL));
+  end_bardic_fixture(&fixture);
+}
+
+void Test_frostbite_cadence_and_steel_use_standard_defender_paths(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data target;
+  struct char_perk_data frostbite_i;
+  struct char_perk_data frostbite_ii;
+  struct char_perk_data cadence;
+  struct char_perk_data steel;
+  int attacker_hp;
+  int active_reduction;
+  int inactive_reduction;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_npc(&target, "a frostbite cadence target");
+  initialize_bardic_test_perk(&steel, PERK_BARD_STEEL_SERENADE, 1, NULL);
+  initialize_bardic_test_perk(&cadence, PERK_BARD_COMMANDING_CADENCE, 1, &steel);
+  initialize_bardic_test_perk(&frostbite_ii, PERK_BARD_FROSTBITE_REFRAIN_II, 2, &cadence);
+  initialize_bardic_test_perk(&frostbite_i, PERK_BARD_FROSTBITE_REFRAIN_I, 3, &frostbite_ii);
+  fixture.player_specials.saved.perks = &frostbite_i;
+  fixture.bard.next_in_room = &target;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+  attacker_hp = GET_HIT(&fixture.bard);
+
+  GET_RESISTANCES(&target, DAM_COLD) = 100;
+  test_apply_bard_frostbite_rider(&fixture.bard, &target, 10, 1, ATTACK_TYPE_PRIMARY);
+  CuAssertIntEquals(tc, 100, GET_HIT(&target));
+  CuAssertIntEquals(tc, attacker_hp, GET_HIT(&fixture.bard));
+
+  GET_RESISTANCES(&target, DAM_COLD) = 0;
+  test_apply_bard_frostbite_rider(&fixture.bard, &target, 10, 1, ATTACK_TYPE_PRIMARY);
+  CuAssertIntEquals(tc, 95, GET_HIT(&target));
+  CuAssertIntEquals(tc, attacker_hp, GET_HIT(&fixture.bard));
+
+  GET_SAVE(&fixture.bard, SAVING_WILL) = 100;
+  GET_SAVE(&target, SAVING_WILL) = -100;
+  circle_srandom(1);
+  test_apply_bard_commanding_cadence(&fixture.bard, &target, 1);
+  CuAssertTrue(tc, AFF_FLAGGED(&target, AFF_DAZED));
+  CuAssertTrue(tc, affected_by_spell(&target, AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY));
+
+  clear_test_affects(&target);
+  GET_SAVE(&fixture.bard, SAVING_WILL) = -100;
+  GET_SAVE(&target, SAVING_WILL) = 100;
+  circle_srandom(1);
+  test_apply_bard_commanding_cadence(&fixture.bard, &target, 1);
+  CuAssertTrue(tc, !AFF_FLAGGED(&target, AFF_DAZED));
+  CuAssertTrue(tc, affected_by_spell(&target, AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY));
+
+  active_reduction = compute_damtype_reduction(&fixture.bard, DAM_SLASHING, &target, TYPE_HIT);
+  stop_bardic_performance(&fixture.bard, FALSE);
+  inactive_reduction = compute_damtype_reduction(&fixture.bard, DAM_SLASHING, &target, TYPE_HIT);
+  CuAssertIntEquals(tc, inactive_reduction + 10, active_reduction);
+
+  if (FIGHTING(&fixture.bard) != NULL)
+    stop_fighting(&fixture.bard);
+  if (FIGHTING(&target) != NULL)
+    stop_fighting(&target);
+  clear_test_affects(&target);
+  fixture.bard.next_in_room = NULL;
+  clear_char_event_list(&target);
+  circle_srandom((unsigned long)time(NULL));
+  end_bardic_fixture(&fixture);
+}
+
+void Test_winters_war_march_hits_each_foe_once_with_fortitude_and_cold_resistance(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data failed_target;
+  struct char_data saved_target;
+  struct char_perk_data winter;
+  struct affected_type *af;
+  int saved_damage;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_npc(&failed_target, "a winter march failing target");
+  initialize_bardic_test_npc(&saved_target, "a winter march saving target");
+  GET_HIT(&failed_target) = GET_MAX_HIT(&failed_target) = 1000;
+  GET_HIT(&saved_target) = GET_MAX_HIT(&saved_target) = 1000;
+  initialize_bardic_test_perk(&winter, PERK_BARD_WINTERS_WAR_MARCH, 1, NULL);
+  fixture.player_specials.saved.perks = &winter;
+  fixture.bard.next_in_room = &failed_target;
+  failed_target.next_in_room = &saved_target;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  GET_SAVE(&fixture.bard, SAVING_FORT) = 100;
+  GET_SAVE(&failed_target, SAVING_FORT) = -100;
+  GET_SAVE(&saved_target, SAVING_FORT) = 100;
+  GET_REAL_RESISTANCES(&failed_target, DAM_COLD) = 100;
+  GET_RESISTANCES(&failed_target, DAM_COLD) = 100;
+  circle_srandom(1);
+  test_pulse_bard_winters_war_march(&fixture.bard);
+
+  CuAssertIntEquals(tc, 1000, GET_HIT(&failed_target));
+  CuAssertIntEquals(tc, 1, count_spell_affects(&failed_target, AFFECT_BARD_WINTERS_WAR_MARCH));
+  af = find_spell_affect_location(&failed_target, AFFECT_BARD_WINTERS_WAR_MARCH, APPLY_NONE);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 3, af->duration);
+  CuAssertTrue(tc, AFF_FLAGGED(&failed_target, AFF_SLOW));
+
+  saved_damage = 1000 - GET_HIT(&saved_target);
+  CuAssertTrue(tc, saved_damage >= 2 && saved_damage <= 12);
+  CuAssertIntEquals(tc, 1, count_spell_affects(&saved_target, AFFECT_BARD_WINTERS_WAR_MARCH));
+  af = find_spell_affect_location(&saved_target, AFFECT_BARD_WINTERS_WAR_MARCH, APPLY_NONE);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+    CuAssertIntEquals(tc, 1, af->duration);
+  CuAssertTrue(tc, AFF_FLAGGED(&saved_target, AFF_SLOW));
+
+  if (FIGHTING(&fixture.bard) != NULL)
+    stop_fighting(&fixture.bard);
+  if (FIGHTING(&failed_target) != NULL)
+    stop_fighting(&failed_target);
+  if (FIGHTING(&saved_target) != NULL)
+    stop_fighting(&saved_target);
+  clear_test_affects(&failed_target);
+  clear_test_affects(&saved_target);
+  fixture.bard.next_in_room = NULL;
+  failed_target.next_in_room = NULL;
+  clear_char_event_list(&failed_target);
+  clear_char_event_list(&saved_target);
+  circle_srandom((unsigned long)time(NULL));
   end_bardic_fixture(&fixture);
 }

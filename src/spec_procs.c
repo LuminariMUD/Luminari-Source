@@ -1622,7 +1622,7 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     }
 
     /* Bard Spellsinger: Dirge of Dissonance - foes suffer concentration penalty */
-    if (!IS_NPC(ch))
+    if (IN_ROOM(ch) != NOWHERE)
     {
       struct char_data *i = NULL;
       for (i = world[IN_ROOM(ch)].people; i; i = i->next_in_room)
@@ -1932,11 +1932,6 @@ int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive)
     return value;
   case ABILITY_PERFORM:
     value += GET_CHA_BONUS(ch);
-    /* Tier 3 Spellsinger: Heightened Harmony - metamagic → perform bonus */
-    if (!IS_NPC(ch))
-    {
-      value += get_bard_heightened_harmony_perform_bonus(ch);
-    }
     return value;
 
   case ABILITY_LINGUISTICS:

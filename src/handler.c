@@ -383,7 +383,8 @@ void affect_modify_ar(struct char_data *ch, byte loc, sh_int mod, int bitv[], bo
   {
     for (i = 0; i < AF_ARRAY_MAX; i++)
       for (j = 0; j < 32; j++)
-        if (IS_SET_AR(bitv, (i * 32) + j))
+        if (IS_SET_AR(bitv, (i * 32) + j) &&
+            ((i * 32) + j != AFF_SLOW || !has_bard_aria_stasis_slow_immunity(ch)))
           SET_BIT_AR(AFF_FLAGS(ch), (i * 32) + j);
   }
   else

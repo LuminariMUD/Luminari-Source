@@ -118,6 +118,19 @@ struct attack_hit_type attack_damage_type_text[NUM_ATTACK_DAMAGE_TYPE_TEXT] = {
 
 /* local (file scope only) variables */
 static struct char_data *next_combat_list = NULL;
+#ifdef LUMINARI_CUTEST
+static int bard_warbeat_opening_attacks;
+
+void test_reset_bard_warbeat_observations(void)
+{
+  bard_warbeat_opening_attacks = 0;
+}
+
+int test_get_bard_warbeat_opening_attacks(void)
+{
+  return bard_warbeat_opening_attacks;
+}
+#endif
 
 /* local file scope utility functions */
 struct obj_data *get_wielded(struct char_data *ch, int attack_type);
@@ -1152,22 +1165,10 @@ int compute_armor_class(struct char_data *attacker, struct char_data *ch, int is
       }
     }
 
-    /* Bard Spellsinger: Protective Chorus - +2 dodge AC for allies in song */
-    if (!IS_NPC(ch))
-    {
-      bonuses[BONUS_TYPE_DODGE] += get_bard_protective_chorus_ac_bonus(ch);
-    }
-
     /* Bard Warchanter: Steel Serenade - +2 natural AC while performing */
     if (!IS_NPC(ch))
     {
       bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_steel_serenade_ac_bonus(ch);
-    }
-
-    /* Bard Warchanter: Warchanter's Dominance - +1 AC while performing (capstone) */
-    if (!IS_NPC(ch))
-    {
-      bonuses[BONUS_TYPE_NATURALARMOR] += get_bard_warchanters_dominance_ac_bonus(ch);
     }
 
     /* Bard Swashbuckler: Fencer's Footwork I - +1 Dodge AC per rank while wielding finesse/single weapon */
@@ -1756,6 +1757,7 @@ bool set_fighting(struct char_data *ch, struct char_data *vict)
   }
 
   FIGHTING(ch) = vict;
+  GET_WARBEAT_USED(ch) = 0;
 
   if (!CONFIG_PK_ALLOWED)
     check_killer(ch, vict);
@@ -1841,6 +1843,7 @@ void stop_fighting(struct char_data *ch)
   REMOVE_FROM_LIST(ch, combat_list, next_fighting);
   ch->next_fighting = NULL;
   FIGHTING(ch) = NULL;
+  GET_WARBEAT_USED(ch) = 0;
   FIRING(ch) = FALSE;
   if (GET_POS(ch) == POS_FIGHTING) /* in case they are position fighting */
     change_position(ch, POS_STANDING);
@@ -3830,6 +3833,10 @@ int compute_damtype_reduction(struct char_data *ch, int dam_type, struct char_da
 
   /* base resistance */
   damtype_reduction += GET_RESISTANCES(ch, dam_type);
+
+  /* Steel Serenade reduces physical damage while its owner performs. */
+  if (dam_type == DAM_SLASHING || dam_type == DAM_PIERCING || dam_type == DAM_BLUDGEON)
+    damtype_reduction += get_bard_steel_serenade_damage_resistance(ch);
 
   /* universal bonsues */
 
@@ -10862,23 +10869,10 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
         send_to_char(ch, "-4: %-50s\r\n", "Smite Good Target");
     }
 
-    /* Bard Spellsinger: Aria of Stasis - -2 to hit enemies attacking protected allies */
-    if (!IS_NPC(victim) && GROUP(victim) != NULL)
-    {
-      struct char_data *tch = NULL;
-      simple_list(NULL); /* Reset iterator */
-      while ((tch = (struct char_data *)simple_list(GROUP(victim)->members)) != NULL)
-      {
-        if (tch != victim && IN_ROOM(tch) == IN_ROOM(victim) && !IS_NPC(tch) &&
-            CLASS_LEVEL(tch, CLASS_BARD) > 0 && has_bard_aria_of_stasis(tch))
-        {
-          bonuses[BONUS_TYPE_UNDEFINED] -= 2;
-          if (display)
-            send_to_char(ch, "-2: %-50s\r\n", "Aria of Stasis (enemy penalty)");
-          break; /* Only one Aria penalty */
-        }
-      }
-    }
+    /* Aria of Stasis penalizes foes near its active performer. */
+    bonuses[BONUS_TYPE_UNDEFINED] += get_bard_aria_stasis_enemy_tohit_penalty(ch);
+    if (display && get_bard_aria_stasis_enemy_tohit_penalty(ch) != 0)
+      send_to_char(ch, "-2: %-50s\r\n", "Aria of Stasis (enemy penalty)");
   }
 
   // Assassin stuff
@@ -11119,6 +11113,18 @@ int compute_attack_bonus_full(struct char_data *ch,     /* Attacker */
       bonuses[BONUS_TYPE_UNDEFINED] += perk_bonus;
       if (display)
         send_to_char(ch, "%2d: %-50s\r\n", perk_bonus, "Perk Weapon To-Hit Bonus");
+    }
+  }
+
+  /* Banner Verse is an active performance aura for the performer and grouped allies. */
+  if (!IS_NPC(ch))
+  {
+    int banner_bonus = get_bard_banner_verse_tohit_bonus(ch);
+    if (banner_bonus != 0)
+    {
+      bonuses[BONUS_TYPE_COMPETENCE] += banner_bonus;
+      if (display)
+        send_to_char(ch, "%2d: %-50s\r\n", banner_bonus, "Banner Verse");
     }
   }
 
@@ -13835,17 +13841,6 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
       return_val = damage(victim, ch, dice(2, 6), SPELL_ASHIELD_DAM, DAM_ACID, attack_type);
     }
 
-    /* Frostbite Refrain I: cold damage rider on melee hits while performing */
-    if (dam && !IS_NPC(ch) && has_bard_frostbite_refrain(ch))
-    {
-      int cold_dam = get_bard_frostbite_cold_damage(ch);
-      if (cold_dam > 0)
-      {
-        return_val =
-            damage(victim, ch, cold_dam, PERK_BARD_FROSTBITE_REFRAIN_I, DAM_COLD, attack_type);
-      }
-    }
-
     if (dam && victim && GET_HIT(victim) >= -1 &&
         (dam_type == DAM_SLICE || dam_type == DAM_PUNCTURE) &&
         affected_by_spell(victim, SPELL_CAUSTIC_BLOOD))
@@ -13904,6 +13899,78 @@ int damage_shield_check(struct char_data *ch, struct char_data *victim, int atta
 
   return return_val;
 }
+
+static void apply_bard_commanding_cadence(struct char_data *ch, struct char_data *victim,
+                                          int can_hit)
+{
+  struct affected_type daze_af;
+  struct affected_type cooldown_af;
+  int save_level;
+
+  if (ch == NULL || victim == NULL || IS_NPC(ch) || !IS_PERFORMING(ch) || can_hit <= 0 ||
+      !has_bard_commanding_cadence(ch) ||
+      affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE) ||
+      affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY))
+    return;
+
+  save_level = MAX(1, CLASS_LEVEL(ch, CLASS_BARD) / 2 + GET_CHA_BONUS(ch));
+  if (can_daze(victim) && !is_immune_mind_affecting(ch, victim, FALSE) &&
+      !savingthrow_full(ch, victim, SAVING_WILL, 0, CAST_INNATE, save_level, ENCHANTMENT,
+                        AFFECT_BARD_COMMANDING_CADENCE))
+  {
+    new_affect(&daze_af);
+    daze_af.spell = AFFECT_BARD_COMMANDING_CADENCE;
+    daze_af.location = APPLY_NONE;
+    daze_af.duration = 1;
+    SET_BIT_AR(daze_af.bitvector, AFF_DAZED);
+    daze_af.bonus_type = BONUS_TYPE_UNDEFINED;
+    affect_join(victim, &daze_af, FALSE, FALSE, FALSE, FALSE);
+
+    act("\tM[\tYCOMMANDING CADENCE\tM]\tn Your rhythm dazzles $N, leaving them dazed!", FALSE, ch,
+        0, victim, TO_CHAR);
+    act("\tM[\tYCOMMANDING CADENCE\tM]\tn The bard's commanding rhythm dazzles you, leaving you "
+        "dazed!",
+        FALSE, ch, 0, victim, TO_VICT);
+    act("\tM[\tYCOMMANDING CADENCE\tM]\tn $n's commanding rhythm dazzles $N!", FALSE, ch, 0, victim,
+        TO_NOTVICT);
+  }
+
+  new_affect(&cooldown_af);
+  cooldown_af.spell = AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY;
+  cooldown_af.location = APPLY_NONE;
+  cooldown_af.duration = 5;
+  cooldown_af.bonus_type = BONUS_TYPE_UNDEFINED;
+  affect_join(victim, &cooldown_af, FALSE, FALSE, FALSE, FALSE);
+}
+
+static int apply_bard_frostbite_rider(struct char_data *ch, struct char_data *victim,
+                                      int weapon_damage, int can_hit, int attack_type)
+{
+  int cold_damage;
+
+  if (ch == NULL || victim == NULL || IS_NPC(ch) || weapon_damage <= 0 || can_hit <= 0 ||
+      attack_type == ATTACK_TYPE_RANGED || attack_type == ATTACK_TYPE_BOMB_TOSS || DEAD(victim))
+    return 0;
+
+  cold_damage = get_bard_frostbite_cold_damage(ch) + get_bard_frostbite_refrain_ii_cold_damage(ch);
+  if (cold_damage <= 0)
+    return 0;
+
+  return damage(ch, victim, cold_damage, AFFECT_BARD_FROSTBITE_REFRAIN_I, DAM_COLD, attack_type);
+}
+
+#ifdef LUMINARI_CUTEST
+void test_apply_bard_commanding_cadence(struct char_data *ch, struct char_data *victim, int can_hit)
+{
+  apply_bard_commanding_cadence(ch, victim, can_hit);
+}
+
+int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *victim,
+                                    int weapon_damage, int can_hit, int attack_type)
+{
+  return apply_bard_frostbite_rider(ch, victim, weapon_damage, can_hit, attack_type);
+}
+#endif
 
 /* primary function for a single melee attack
    ch -> attacker, victim -> defender
@@ -14221,6 +14288,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
     /* Shadow Scout perk: Uncanny Dodge II */
     if (!IS_NPC(victim))
       victim_ac += get_uncanny_dodge_aoo_ac_bonus(victim);
+    victim_ac += get_bard_protective_chorus_ac_bonus(victim);
     if (has_teamwork_feat(ch, FEAT_PAIRED_OPPORTUNISTS))
       victim_ac -= 4;
     send_combat_roll_info(ch, "\tW[\tRAOO\tW]\tn");
@@ -14538,7 +14606,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   }
 
   /* Frostbite Refrain I: Apply -1 to attack debuff on natural 20 while performing */
-  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain(ch) && can_hit > 0)
+  if (!IS_NPC(ch) && diceroll == 20 && has_bard_frostbite_refrain(ch) &&
+      !has_bard_frostbite_refrain_ii(ch) && can_hit > 0)
   {
     int debuff_modifier = get_bard_frostbite_natural_20_debuff(ch);
     if (debuff_modifier < 0)
@@ -14550,7 +14619,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       af.duration = 1;               /* 1 round */
       af.modifier = debuff_modifier; /* -1 to attack */
       af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
 
       act("\tC[\tBFROSTBITE\tC]\tn Your frostbite refrain freezes $N's movements, making them "
           "sluggish!",
@@ -14578,7 +14647,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       af.duration = 1;             /* 1 round */
       af.modifier = attack_debuff; /* -2 to attack */
       af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
     }
 
     if (ac_debuff < 0)
@@ -14586,11 +14655,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       struct affected_type af = {0};
       new_affect(&af);
       af.spell = AFFECT_BARD_FROSTBITE_REFRAIN_II;
-      af.location = APPLY_AC;
+      af.location = APPLY_AC_NEW;
       af.duration = 1;         /* 1 round */
       af.modifier = ac_debuff; /* -1 to AC */
       af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
+      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
     }
 
     act("\tC[\tBFROSTBITE\tC]\tn Your enhanced frostbite refrain DEEPLY freezes $N, sapping their "
@@ -14603,113 +14672,10 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
         victim, TO_NOTVICT);
   }
 
-  /* Bard Warchanter: Commanding Cadence - Daze on melee hit (once per target per 5 rounds) */
-  if (!IS_NPC(ch) && has_bard_commanding_cadence(ch) && can_hit > 0 &&
-      !affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE) &&
-      !affected_by_spell(victim, AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY))
-  {
-    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
+  apply_bard_commanding_cadence(ch, victim, can_hit);
 
-    if (!savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
-    {
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_COMMANDING_CADENCE;
-      af.location = APPLY_NONE;
-      af.duration = 1; /* 1 round daze */
-      SET_BIT_AR(af.bitvector, AFF_DAZED);
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, TRUE, FALSE, FALSE, FALSE);
-
-      act("\tM[\tYCOMMANDING CADENCE\tM]\tn Your rhythm dazzles $N, leaving them dazed!", FALSE, ch,
-          0, victim, TO_CHAR);
-      act("\tM[\tYCOMMANDING CADENCE\tM]\tn The bard's commanding rhythm dazzles you, leaving you "
-          "dazed!",
-          FALSE, ch, 0, victim, TO_VICT);
-      act("\tM[\tYCOMMANDING CADENCE\tM]\tn $n's commanding rhythm dazzles $N!", FALSE, ch, 0,
-          victim, TO_NOTVICT);
-    }
-
-    /* Apply 5-round cooldown on this target */
-    struct affected_type af = {0};
-    new_affect(&af);
-    af.spell = AFFECT_BARD_COMMANDING_CADENCE_IMMUNITY;
-    af.location = APPLY_NONE;
-    af.duration = 5; /* 5 round cooldown */
-    af.bonus_type = BONUS_TYPE_UNDEFINED;
-    affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
-  }
-
-  /* Bard Warchanter: Winter's War March - Room-wide damage and slow (capstone) */
-  if (!IS_NPC(ch) && has_bard_winters_war_march(ch) && can_hit > 0 &&
-      !affected_by_spell(victim, AFFECT_BARD_WINTERS_WAR_MARCH) &&
-      !affected_by_spell(victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY))
-  {
-    int cold_damage = 0, i = 0;
-    int num_dice = get_bard_winters_war_march_damage(ch);
-    int save_dc = 10 + (GET_CHA_BONUS(ch) / 2);
-    int slow_duration = 0;
-
-    /* Roll 4d6 cold damage */
-    for (i = 0; i < num_dice; i++)
-      cold_damage += rand_number(1, 6);
-
-    /* Check if victim saves */
-    if (savingthrow(victim, ch, SAVING_WILL, save_dc, CAST_INNATE, GET_LEVEL(ch), EVOCATION))
-    {
-      cold_damage /= 2; /* Half damage on save */
-
-      /* Apply 1 round slow on successful save */
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_WINTERS_WAR_MARCH;
-      af.location = APPLY_STR;
-      af.modifier = -4;
-      slow_duration = 1;
-      af.duration = slow_duration;
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
-
-      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn You partially resist the frigid martial anthem, taking "
-          "\tW%d\tn cold damage and moving slowly!",
-          FALSE, ch, 0, victim, TO_VICT);
-      GET_HIT(victim) -= cold_damage;
-    }
-    else
-    {
-      /* Full damage + 3 round slow on failed save */
-      struct affected_type af = {0};
-      new_affect(&af);
-      af.spell = AFFECT_BARD_WINTERS_WAR_MARCH;
-      af.location = APPLY_STR;
-      af.modifier = -4;
-      slow_duration = 3;
-      af.duration = slow_duration;
-      af.bonus_type = BONUS_TYPE_UNDEFINED;
-      affect_join(victim, &af, FALSE, FALSE, FALSE, FALSE);
-
-      act("\tC[\tBWINTER'S WAR MARCH\tC]\tn The devastating martial anthem freezes you, dealing "
-          "\tW%d\tn cold damage and severely slowing your movement!",
-          FALSE, ch, 0, victim, TO_VICT);
-      GET_HIT(victim) -= cold_damage;
-    }
-
-    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn Your martial anthem engulfs $N in frigid power!", FALSE,
-        ch, 0, victim, TO_CHAR);
-    act("\tC[\tBWINTER'S WAR MARCH\tC]\tn $n's martial anthem engulfs $N in frigid power!", FALSE,
-        ch, 0, victim, TO_NOTVICT);
-
-    /* Apply cooldown so this doesn't proc constantly */
-    struct affected_type af_cd = {0};
-    new_affect(&af_cd);
-    af_cd.spell = AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY;
-    af_cd.location = APPLY_NONE;
-    /* Keep the two-round cooldown, but never announce recovery while the slow still blocks the
-     * proc. */
-    af_cd.duration = MAX(2, slow_duration);
-    af_cd.bonus_type = BONUS_TYPE_UNDEFINED;
-    affect_join(victim, &af_cd, FALSE, FALSE, FALSE, FALSE);
-  }
+  /* Frostbite Refrain is one correctly attributed cold rider per successful melee hit. */
+  apply_bard_frostbite_rider(ch, victim, dam, can_hit, attack_type);
 
   hitprcnt_mtrigger(victim); // hitprcnt trigger
 
@@ -16149,6 +16115,59 @@ void handle_smash_defense(struct char_data *ch)
   return;
 }
 
+static void apply_bard_warbeat_allies(struct char_data *ch)
+{
+  struct char_data *tch;
+  struct affected_type af;
+  int damage_dice;
+  int ac_bonus;
+
+  if (ch == NULL || IN_ROOM(ch) == NOWHERE || !IS_PERFORMING(ch) || !has_bard_warbeat(ch))
+    return;
+
+  damage_dice =
+      get_bard_warbeat_ally_damage_bonus(ch) + get_bard_warchanters_dominance_damage_bonus(ch);
+  ac_bonus = get_bard_warchanters_dominance_ac_bonus(ch);
+  if (damage_dice <= 0)
+    return;
+
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = tch->next_in_room)
+  {
+    if (tch != ch && (GROUP(ch) == NULL || GROUP(tch) != GROUP(ch)))
+      continue;
+
+    affect_batch_begin(tch);
+    new_affect(&af);
+    af.spell = AFFECT_BARD_WARBEAT;
+    af.duration = 2;
+    af.location = APPLY_DAMROLL;
+    af.modifier = dice(damage_dice, 4);
+    af.bonus_type = BONUS_TYPE_MORALE;
+    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+
+    if (ac_bonus > 0)
+    {
+      new_affect(&af);
+      af.spell = AFFECT_BARD_WARBEAT;
+      af.duration = 2;
+      af.location = APPLY_AC_NEW;
+      af.modifier = ac_bonus;
+      af.bonus_type = BONUS_TYPE_MORALE;
+      affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+    }
+    affect_batch_end(tch);
+
+    send_to_char(tch, "\tYThe driving warbeat empowers your attacks for two rounds!\tn\r\n");
+  }
+}
+
+#ifdef LUMINARI_CUTEST
+void test_apply_bard_warbeat_allies(struct char_data *ch)
+{
+  apply_bard_warbeat_allies(ch);
+}
+#endif
+
 /* control the fights going on.
  * Called from combat round event. */
 void perform_violence(struct char_data *ch, int phase)
@@ -16172,8 +16191,29 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (phase == 1 || phase == 0)
   { /* make sure this doesn't happen more than once a round */
+    if (!IS_NPC(ch) && has_bard_warbeat(ch) && !GET_WARBEAT_USED(ch))
+    {
+      int warbeat_result;
+
+      GET_WARBEAT_USED(ch) = 1;
+      if (IS_PERFORMING(ch) && FIGHTING(ch) && !is_using_ranged_weapon(ch, TRUE))
+      {
+        send_to_char(ch, "\tYYour warbeat drives an opening attack!\tn\r\n");
+#ifdef LUMINARI_CUTEST
+        bard_warbeat_opening_attacks++;
+#endif
+        warbeat_result =
+            hit(ch, FIGHTING(ch), TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+        if (warbeat_result > 0)
+          apply_bard_warbeat_allies(ch);
+      }
+    }
+
 #define RETURN_NUM_ATTACKS 1
-    TOTAL_DEFENSE(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+    if (FIGHTING(ch))
+      TOTAL_DEFENSE(ch) = perform_attacks(ch, RETURN_NUM_ATTACKS, phase);
+    else
+      TOTAL_DEFENSE(ch) = 0;
 #undef RETURN_NUM_ATTACKS
 
     /* Once per round when your mount is hit in combat, you may attempt a Ride

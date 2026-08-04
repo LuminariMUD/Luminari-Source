@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x03070C = 3.7.12 (corresponds to display version 2.5042-beta)
+ * Current: 0x03070D = 3.7.13 (corresponds to display version 2.5043-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x03070C
+#define _LUMINARIMUD 0x03070D
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because
@@ -694,6 +694,9 @@
 #define PERFORMANCE_VAR_SECONDARY 2
 #define PERFORMANCE_VAR_CRESCENDO_USED 3
 #define PERFORMANCE_VAR_CRESCENDO_DICE 4
+#define PERFORMANCE_VAR_CRESCENDO_DC 5
+#define PERFORMANCE_VAR_MAESTRA_CAST 6
+#define PERFORMANCE_VAR_WARBEAT_USED 7
 /* Instruments - bardic_performance */
 #define INSTRUMENT_LYRE 0
 #define INSTRUMENT_FLUTE 1
@@ -6416,6 +6419,8 @@ struct char_special_data
 
   int performance_vars[MAX_PERFORMANCE_VARS]; /* bardic performance variables */
   long performance_source_id;                 /* runtime owner for performance affects */
+  unsigned long crescendo_cast_serial;        /* current Crescendo spell invocation */
+  unsigned long crescendo_last_cast_serial;   /* last Crescendo invocation received */
   int affect_batch_depth;                     /* nested deferred affect MSDP updates */
   bool affect_batch_dirty;                    /* affect state changed in current batch */
 

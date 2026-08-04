@@ -936,6 +936,7 @@ bool has_bard_aria_of_stasis(struct char_data *ch);
 int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch);
 int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch);
 int get_bard_aria_stasis_movement_penalty(struct char_data *ch);
+bool has_bard_aria_stasis_slow_immunity(struct char_data *ch);
 
 bool has_bard_symphonic_resonance(struct char_data *ch);
 int get_bard_symphonic_resonance_temp_hp(struct char_data *ch);
@@ -944,7 +945,6 @@ int get_bard_symphonic_resonance_daze_range(struct char_data *ch);
 
 bool has_bard_endless_refrain(struct char_data *ch);
 int get_bard_endless_refrain_slot_regen(struct char_data *ch);
-bool should_endless_refrain_consume_performance(struct char_data *ch);
 
 /* Bard Warchanter Tree Tier 1 Functions */
 int get_bard_battle_hymn_damage_bonus(struct char_data *ch);
@@ -970,7 +970,6 @@ bool has_bard_anthem_of_fortitude(struct char_data *ch);
 int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch);
 int get_bard_anthem_fortitude_save_bonus(struct char_data *ch);
 bool has_bard_commanding_cadence(struct char_data *ch);
-int get_bard_commanding_cadence_daze_chance(struct char_data *ch);
 bool has_bard_steel_serenade(struct char_data *ch);
 int get_bard_steel_serenade_ac_bonus(struct char_data *ch);
 int get_bard_steel_serenade_damage_resistance(struct char_data *ch);

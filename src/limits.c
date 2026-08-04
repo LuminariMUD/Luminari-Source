@@ -396,10 +396,10 @@ void pulse_luminari()
     affliction_tick(i);
 
     /* Bard Spellsinger: Sustaining Melody - recover PC spell slots (spontaneous) */
-    if (!IS_NPC(i) && GET_CASTING_CLASS(i) == CLASS_BARD && FIGHTING(i) && IS_PERFORMING(i) &&
+    if (!IS_NPC(i) && CLASS_LEVEL(i, CLASS_BARD) > 0 && FIGHTING(i) && IS_PERFORMING(i) &&
         has_bard_sustaining_melody(i))
     {
-      /* 20% chance per combat round to recover 1 spell slot */
+      /* 20% chance per five-second Luminari pulse to recover one Bard slot. */
       if (rand_number(1, 100) <= 20)
       {
         if (sustain_melody_recover_one_slot(i, CLASS_BARD))

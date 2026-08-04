@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/act.h"
 #include "../../src/actionqueues.h"
+#include "../../src/bardic_performance.h"
 #include "../../src/craft/craft.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
@@ -847,18 +848,16 @@ void Test_gameplay_e2e_cexchange_preserves_hidden_sneaking(CuTest *tc)
   CuAssertTrue(tc, remained_sneaking);
 }
 
-void Test_gameplay_e2e_winters_war_march_recovery_covers_failed_save_slow(CuTest *tc)
+void Test_gameplay_e2e_winters_war_march_failed_save_slow_expires(CuTest *tc)
 {
   struct gameplay_fixture fixture;
   struct affected_type forced_failure;
   struct affected_type *effect;
   struct char_data *bard;
   struct char_data *saved_character_list;
-  int recovery_duration;
   int slow_duration;
   int update;
-  bool recovery_never_preceded_slow;
-  bool recovery_removed;
+  bool immunity_absent;
   bool slow_removed;
 
   begin_gameplay_fixture(&fixture);
@@ -892,30 +891,21 @@ void Test_gameplay_e2e_winters_war_march_recovery_covers_failed_save_slow(CuTest
   forced_failure.duration = 1;
   affect_to_char(&fixture.victim, &forced_failure);
 
-  hit(bard, &fixture.victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+  test_pulse_bard_winters_war_march(bard);
 
-  recovery_duration = -1;
   slow_duration = -1;
   for (effect = fixture.victim.affected; effect; effect = effect->next)
   {
     if (effect->spell == AFFECT_BARD_WINTERS_WAR_MARCH)
       slow_duration = effect->duration;
-    else if (effect->spell == AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY)
-      recovery_duration = effect->duration;
   }
+  immunity_absent = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY);
 
   saved_character_list = character_list;
   fixture.victim.next = NULL;
   character_list = &fixture.victim;
-  recovery_never_preceded_slow = true;
   for (update = 0; update < 4; update++)
-  {
     affect_update();
-    if (affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH) &&
-        !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY))
-      recovery_never_preceded_slow = false;
-  }
-  recovery_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH_IMMUNITY);
   slow_removed = !affected_by_spell(&fixture.victim, AFFECT_BARD_WINTERS_WAR_MARCH);
   character_list = saved_character_list;
 
@@ -931,9 +921,7 @@ void Test_gameplay_e2e_winters_war_march_recovery_covers_failed_save_slow(CuTest
   end_gameplay_fixture(&fixture);
 
   CuAssertIntEquals(tc, 3, slow_duration);
-  CuAssertIntEquals(tc, slow_duration, recovery_duration);
-  CuAssertTrue(tc, recovery_never_preceded_slow);
-  CuAssertTrue(tc, recovery_removed);
+  CuAssertTrue(tc, immunity_absent);
   CuAssertTrue(tc, slow_removed);
 }
 

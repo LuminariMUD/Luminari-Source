@@ -1615,9 +1615,154 @@ int castingCheckOk(struct char_data *ch)
   return 1;
 }
 
+static void apply_bard_heightened_harmony(struct char_data *ch)
+{
+  struct affected_type af;
+
+  if (ch == NULL || IS_NPC(ch) || GET_CASTING_CLASS(ch) != CLASS_BARD ||
+      CASTING_METAMAGIC(ch) == METAMAGIC_NONE || !has_bard_heightened_harmony(ch))
+    return;
+
+  new_affect(&af);
+  af.spell = AFFECT_BARD_HEIGHTENED_HARMONY;
+  af.duration = 10; /* One real minute at six seconds per affect round. */
+  af.location = APPLY_SKILL;
+  af.specific = ABILITY_PERFORM;
+  af.modifier = get_bard_heightened_harmony_perform_bonus(ch);
+  af.bonus_type = BONUS_TYPE_COMPETENCE;
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  send_to_char(ch, "\tCYour metamagic resonates, heightening your performance! (+%d)\tn\r\n",
+               af.modifier);
+}
+
+static void apply_bard_symphonic_resonance(struct char_data *ch, int spellnum, bool was_performing)
+{
+  struct char_data *tch;
+  struct char_data *next_tch;
+  struct affected_type af;
+  int duration;
+  int range;
+  int save_level;
+  int affected_count;
+
+  if (ch == NULL || IS_NPC(ch) || GET_CASTING_CLASS(ch) != CLASS_BARD || !was_performing ||
+      !has_bard_symphonic_resonance(ch) || spellnum <= 0 || spellnum >= NUM_SPELLS ||
+      (spell_info[spellnum].schoolOfMagic != ENCHANTMENT &&
+       spell_info[spellnum].schoolOfMagic != ILLUSION))
+    return;
+
+  duration = get_bard_symphonic_resonance_daze_duration(ch);
+  range = get_bard_symphonic_resonance_daze_range(ch);
+  if (duration <= 0 || range <= 0 || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  save_level = MAX(1, CLASS_LEVEL(ch, CLASS_BARD) / 2 + GET_CHA_BONUS(ch));
+  affected_count = 0;
+  for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
+  {
+    next_tch = tch->next_in_room;
+    if (!aoeOK(ch, tch, spellnum) || is_immune_mind_affecting(ch, tch, FALSE) ||
+        savingthrow_full(ch, tch, SAVING_WILL, 0, CAST_INNATE, save_level, ENCHANTMENT,
+                         AFFECT_BARD_SYMPHONIC_RESONANCE))
+      continue;
+
+    new_affect(&af);
+    af.spell = AFFECT_BARD_SYMPHONIC_RESONANCE;
+    af.duration = duration;
+    SET_BIT_AR(af.bitvector, AFF_DAZED);
+    affect_join(tch, &af, FALSE, FALSE, FALSE, FALSE);
+    send_to_char(tch, "\tMThe symphonic resonance dazes you!\tn\r\n");
+    affected_count++;
+  }
+
+  if (affected_count > 0)
+    send_to_char(ch, "\tCYour spell resonates through %d feet, dazing nearby enemies!\tn\r\n",
+                 range);
+}
+
+static void prepare_bard_spell_perks(struct char_data *ch, bool *trigger_symphonic)
+{
+  static unsigned long next_crescendo_cast_serial = 1;
+  bool trigger_crescendo;
+
+  if (trigger_symphonic != NULL)
+    *trigger_symphonic = FALSE;
+  if (ch == NULL)
+    return;
+
+  GET_CRESCENDO_CAST_SERIAL(ch) = 0;
+
+  trigger_crescendo = !IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
+                      has_bard_crescendo(ch) && GET_CRESCENDO_USED(ch) == 0;
+  if (trigger_symphonic != NULL)
+    *trigger_symphonic = !IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
+                         has_bard_symphonic_resonance(ch);
+  GET_MAESTRA_CAST(ch) = !IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
+                         has_bard_spellsong_maestra(ch);
+
+  /* Ordinary bard spellcasting stops every song; Harmonic Casting preserves them. */
+  handle_bardic_spell_performance(ch);
+
+  if (trigger_crescendo)
+  {
+    GET_CRESCENDO_USED(ch) = 1;
+    GET_CRESCENDO_DICE(ch) = get_bard_crescendo_sonic_damage(ch);
+    GET_CRESCENDO_DC(ch) = get_bard_crescendo_dc_bonus(ch);
+    GET_CRESCENDO_CAST_SERIAL(ch) = next_crescendo_cast_serial++;
+    if (next_crescendo_cast_serial == 0)
+      next_crescendo_cast_serial = 1;
+    send_to_char(ch, "\tYYour spell reaches a crescendo of power!\tn\r\n");
+  }
+}
+
+static void apply_bard_successful_spell_perks(struct char_data *ch, int spellnum,
+                                              bool trigger_symphonic)
+{
+  apply_bard_heightened_harmony(ch);
+  apply_bard_symphonic_resonance(ch, spellnum, trigger_symphonic);
+}
+
+static void complete_bard_spell_perks(struct char_data *ch, int spellnum, bool trigger_symphonic,
+                                      int magic_result)
+{
+  if (magic_result != 0)
+    apply_bard_successful_spell_perks(ch, spellnum, trigger_symphonic);
+}
+
+static void clear_bard_spell_perks(struct char_data *ch)
+{
+  if (ch == NULL)
+    return;
+
+  GET_CRESCENDO_DICE(ch) = 0;
+  GET_CRESCENDO_DC(ch) = 0;
+  GET_CRESCENDO_CAST_SERIAL(ch) = 0;
+  GET_MAESTRA_CAST(ch) = 0;
+}
+
+#ifdef LUMINARI_CUTEST
+void test_prepare_bard_spell_perks(struct char_data *ch, bool *trigger_symphonic)
+{
+  prepare_bard_spell_perks(ch, trigger_symphonic);
+}
+
+void test_complete_bard_spell_perks(struct char_data *ch, int spellnum, bool trigger_symphonic,
+                                    int magic_result)
+{
+  complete_bard_spell_perks(ch, spellnum, trigger_symphonic, magic_result);
+}
+
+void test_clear_bard_spell_perks(struct char_data *ch)
+{
+  clear_bard_spell_perks(ch);
+}
+#endif
+
 /* moment of completion of spell casting */
 void finishCasting(struct char_data *ch)
 {
+  bool trigger_symphonic;
+
   if (CASTING_SPELLNUM(ch) > 0 && CASTING_SPELLNUM(ch) < NUM_SPELLS)
   {
     if (!IS_NPC(ch) && HAS_FEAT(ch, FEAT_EMPOWERED_MAGIC))
@@ -1659,77 +1804,7 @@ void finishCasting(struct char_data *ch)
 
   say_spell(ch, CASTING_SPELLNUM(ch), CASTING_TCH(ch), CASTING_TOBJ(ch), FALSE);
 
-  /* Bard spellcasting normally interrupts performances; Harmonic Casting sustains them. */
-  handle_bardic_spell_performance(ch);
-
-  /* Bard Spellsinger: Crescendo - bonus to first spell after starting song */
-  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
-      has_bard_crescendo(ch))
-  {
-    /* Check if this is the first spell cast after starting a song. */
-    if (GET_CRESCENDO_USED(ch) == 0)
-    {
-      /* Mark that we've used the crescendo bonus this performance */
-      GET_CRESCENDO_USED(ch) = 1;
-      GET_CRESCENDO_DICE(ch) = get_bard_crescendo_sonic_damage(ch);
-      GET_DC_BONUS(ch) += get_bard_crescendo_dc_bonus(ch);
-      send_to_char(ch, "\tYYour spell reaches a crescendo of power!\tn\r\n");
-    }
-  }
-
-  /* Bard Spellsinger: Heightened Harmony - apply perform bonus after metamagic cast */
-  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && CASTING_METAMAGIC(ch) != 0 &&
-      has_bard_heightened_harmony(ch))
-  {
-    struct affected_type hh_af;
-    new_affect(&hh_af);
-    hh_af.spell = AFFECT_BARD_HEIGHTENED_HARMONY;
-    hh_af.duration = 3; /* lasts a few rounds */
-    hh_af.location = APPLY_SKILL;
-    hh_af.specific = ABILITY_PERFORM;
-    hh_af.modifier = get_bard_heightened_harmony_perform_bonus(ch); /* +5 */
-    hh_af.bonus_type = BONUS_TYPE_COMPETENCE;
-    affect_to_char(ch, &hh_af);
-    send_to_char(ch, "\tCYour metamagic resonates, heightening your performance! (+%d)\tn\r\n",
-                 hh_af.modifier);
-  }
-
-  /* Tier 4 Spellsinger: Symphonic Resonance - daze enemies on Enchantment/Illusion spells */
-  if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_BARD && IS_PERFORMING(ch) &&
-      has_bard_symphonic_resonance(ch))
-  {
-    int spellnum = CASTING_SPELLNUM(ch);
-    if (spellnum > 0 && spellnum < NUM_SPELLS)
-    {
-      int school = spell_info[spellnum].schoolOfMagic;
-      if (school == ENCHANTMENT || school == ILLUSION)
-      {
-        int duration = get_bard_symphonic_resonance_daze_duration(ch); /* 1 round */
-        struct char_data *tch = NULL, *next_tch = NULL;
-
-        /* Daze all enemies in range within the same room */
-        for (tch = world[IN_ROOM(ch)].people; tch; tch = next_tch)
-        {
-          next_tch = tch->next_in_room;
-
-          /* Skip self, allies, and NPCs */
-          if (tch == ch || !aoeOK(ch, tch, -1) || IS_NPC(tch))
-            continue;
-
-          /* Apply daze affect */
-          struct affected_type daze_af;
-          new_affect(&daze_af);
-          daze_af.spell = AFFECT_BARD_SYMPHONIC_RESONANCE;
-          daze_af.duration = duration;
-          SET_BIT_AR(daze_af.bitvector, AFF_DAZED);
-          affect_to_char(tch, &daze_af);
-
-          send_to_char(tch, "\tMThe symphonic resonance dazes you!\tn\r\n");
-          send_to_char(ch, "\tCYour spell resonates, dazing nearby enemies!\tn\r\n");
-        }
-      }
-    }
-  }
+  prepare_bard_spell_perks(ch, &trigger_symphonic);
 
   /* Consume metamagic reduction use if applicable */
   if (!IS_NPC(ch) && CASTING_METAMAGIC(ch) != 0)
@@ -1764,6 +1839,8 @@ void finishCasting(struct char_data *ch)
   }
   else
   {
+    int casting_level;
+    int magic_result;
     const int spellnum = CASTING_SPELLNUM(ch);
 
     /* Master Alchemist: 10% chance to maximize extracts */
@@ -1793,9 +1870,15 @@ void finishCasting(struct char_data *ch)
       send_to_char(ch, "\tY[Your extract persists longer than expected!]\tn\r\n");
     }
 
-    call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
-               (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch),
-               CAST_SPELL);
+    casting_level =
+        (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch);
+    if (CASTING_CLASS(ch) == CLASS_BARD)
+      casting_level += get_bard_spellsong_maestra_caster_bonus(ch);
+
+    magic_result = call_magic(ch, CASTING_TCH(ch), CASTING_TOBJ(ch), spellnum, final_metamagic,
+                              casting_level, CAST_SPELL);
+
+    complete_bard_spell_perks(ch, spellnum, trigger_symphonic, magic_result);
 
     /* Psionicist Telepathic Control Tier I mechanics */
     if (!IS_NPC(ch) && GET_CASTING_CLASS(ch) == CLASS_PSIONICIST && is_spellnum_psionic(spellnum))
@@ -2018,6 +2101,7 @@ void finishCasting(struct char_data *ch)
   if (can_mastermind_power(ch, CASTING_SPELLNUM(ch)))
     affect_from_char(ch, PSIONIC_ABILITY_MASTERMIND);
 
+  clear_bard_spell_perks(ch);
   resetCastingData(ch);
 }
 
@@ -5820,6 +5904,7 @@ void mag_assign_spells(void)
           "Your mind closes against the psychic sundering.");
   affecto(AFFECT_INTIMIDATING_PRESENCE, "berserker intimidating presence",
           "You shake off the intimidating presence.");
+  affecto(AFFECT_BARD_WARBEAT, "bard warbeat", "The driving warbeat fades from you.");
 
   affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
   affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");

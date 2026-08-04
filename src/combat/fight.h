@@ -108,6 +108,13 @@ int test_award_kill_experience(struct char_data *ch, int exp, int mode);
 int test_cap_combat_damage(struct char_data *ch, int dam, int w_type);
 int test_damage_handling(struct char_data *ch, struct char_data *victim, int dam, int attacktype,
                          int dam_type);
+void test_apply_bard_commanding_cadence(struct char_data *ch, struct char_data *victim,
+                                        int can_hit);
+int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *victim,
+                                    int weapon_damage, int can_hit, int attack_type);
+void test_apply_bard_warbeat_allies(struct char_data *ch);
+void test_reset_bard_warbeat_observations(void);
+int test_get_bard_warbeat_opening_attacks(void);
 #endif
 
 /* Global variables */

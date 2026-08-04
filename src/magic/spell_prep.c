@@ -2010,6 +2010,11 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
     }
   }
 
+  /* Spellsong Maestra removes the circle surcharge from metamagic Bard spells. */
+  if (metamagic > 0 && ch && !IS_NPC(ch) && char_class == CLASS_BARD &&
+      has_bard_spellsong_maestra_metamagic_free(ch))
+    metamagic_mod = 0;
+
   /* Inquisitor Spell Metamastery: one metamagic cast at no extra circle cost every 5 minutes */
   if (metamagic > 0 && ch && !IS_NPC(ch) && char_class == CLASS_INQUISITOR &&
       has_inquisitor_spell_metamastery(ch) && !char_has_mud_event(ch, eSPELL_METAMASTERY_USED))
@@ -2040,6 +2045,13 @@ static int calculate_metamagic_modifier(struct char_data *ch, int char_class, in
 
   return metamagic_mod;
 }
+
+#ifdef LUMINARI_CUTEST
+int test_calculate_metamagic_modifier(struct char_data *ch, int char_class, int metamagic)
+{
+  return calculate_metamagic_modifier(ch, char_class, metamagic);
+}
+#endif
 
 /**
  * apply_automatic_metamagic_reduction - Reduce metamagic cost for automatic feats

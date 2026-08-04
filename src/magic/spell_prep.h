@@ -428,6 +428,9 @@ void innate_magic_add(struct char_data *ch, int ch_class, int circle, int metama
      * if a slot was recovered, FALSE if no recovering slots were found.
      */
 bool sustain_melody_recover_one_slot(struct char_data *ch, int ch_class);
+#ifdef LUMINARI_CUTEST
+int test_calculate_metamagic_modifier(struct char_data *ch, int char_class, int metamagic);
+#endif
 
 /**
      * collection_add - Add prepared spell to collection
