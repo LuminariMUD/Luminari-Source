@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 from .models import (
     Finding,
+    HlQuestRecord,
     SourceSpan,
     WorldData,
     WorldRecord,
@@ -279,11 +280,38 @@ def render_show_human(record_type: str, vnum: int, records: list[WorldRecord]) -
       lines.append("")
     lines.append(f"{canonical} {vnum} ({record.span.path}:{record.span.line})")
     data = record_to_dict(record)
+    entries = data.pop("entries", None) if isinstance(record, HlQuestRecord) else None
     for name, value in data.items():
       if name in {"record_type", "span", "vnum"}:
         continue
       rendered = json.dumps(value, ensure_ascii=True, sort_keys=True)
       lines.append(f"{name}: {rendered}")
+    if entries is not None:
+      lines.append("entries (physical order):")
+      for entry in record.entries:
+        runtime = entry.effective_runtime_ordinal
+        lines.append(
+            f"  entry physical={entry.physical_ordinal} runtime={runtime} "
+            f"type={entry.entry_type} marker={entry.marker + entry.approval_suffix!r} "
+            f"approved={str(entry.approved).lower()} "
+            f"({entry.span.path}:{entry.span.line})"
+        )
+        for name in ("keywords", "reply_message", "room_vnum"):
+          value = getattr(entry, name)
+          if value is not None:
+            rendered = json.dumps(value, ensure_ascii=True, sort_keys=True)
+            lines.append(f"    {name}: {rendered}")
+        if entry.marker != "A":
+          lines.append(f"    chain_terminated: {str(entry.chain_terminated).lower()}")
+        for command in entry.commands:
+          lines.append(
+              f"    command physical={command.physical_ordinal} "
+              f"runtime={command.effective_runtime_ordinal} "
+              f"direction={command.direction or command.direction_marker} "
+              f"code={command.code!r} type={command.command_type} "
+              f"value={command.value} location={command.location} "
+              f"({command.span.path}:{command.span.line})"
+          )
   return "\n".join(lines) + "\n"
 
 

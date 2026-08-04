@@ -1,0 +1,284 @@
+{
+  "mobile": {
+    "action_flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "affect2_flags": [],
+    "affect_flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "aliases": "test mobile",
+    "alignment": 0,
+    "armor_class": 19,
+    "attachments": [],
+    "complete": true,
+    "damage_dice": [
+      1,
+      1,
+      0
+    ],
+    "default_position": 9,
+    "description": "A test mobile.",
+    "enhanced": {},
+    "experience": 0,
+    "gold": 0,
+    "hit_dice": [
+      1,
+      1,
+      0
+    ],
+    "hit_roll": 20,
+    "legacy_affect_encoding": false,
+    "level": 1,
+    "long_description": "A test mobile is here.",
+    "path_rooms": [],
+    "position": 9,
+    "record_kind": "S",
+    "record_type": "mobile",
+    "references": [],
+    "sex": 0,
+    "short_description": "a test mobile",
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "line": 1,
+      "path": "mob/1.mob"
+    },
+    "vnum": 100
+  },
+  "object": {
+    "action_description": "",
+    "activated_spells": [],
+    "affect2_flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "affect_flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "affects": [],
+    "aliases": "test key",
+    "attachments": [],
+    "complete": true,
+    "cost": 1,
+    "description": "A test key is here.",
+    "extra_descriptions": [],
+    "extra_flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "item_type": 18,
+    "legacy_affect_encoding": false,
+    "level": 1,
+    "record_type": "object",
+    "references": [],
+    "rent": 0,
+    "short_description": "a test key",
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "line": 1,
+      "path": "obj/1.obj"
+    },
+    "special_abilities": [],
+    "spellbook": [],
+    "timer": 0,
+    "values": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "vnum": 100,
+    "weapon_spells": [],
+    "wear_flags": [
+      "1",
+      "0",
+      "0",
+      "0"
+    ],
+    "weight": 1
+  },
+  "room": {
+    "attachments": [],
+    "complete": true,
+    "description": "A test room.",
+    "exits": [],
+    "extra_descriptions": [],
+    "file_zone": 1,
+    "flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "moving_connections": [],
+    "name": "Test Room",
+    "owner_zone_vnum": 1,
+    "record_type": "room",
+    "sector": 0,
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "line": 1,
+      "path": "wld/1.wld"
+    },
+    "vnum": 100
+  },
+  "shop": {
+    "buy_types": [
+      {
+        "item_type": 18,
+        "span": {
+          "column": 1,
+          "line": 7,
+          "path": "shp/1.shp"
+        }
+      }
+    ],
+    "complete": true,
+    "keeper_vnum": 100,
+    "messages": [
+      "%s no item.",
+      "%s no item.",
+      "%s no buy.",
+      "%s no cash.",
+      "%s no cash.",
+      "%s buys for %d.",
+      "%s sells for %d."
+    ],
+    "modern": true,
+    "open_hours": [
+      0,
+      28,
+      0,
+      28
+    ],
+    "product_vnums": [
+      100
+    ],
+    "profit_buy": 1.0,
+    "profit_sell": 1.0,
+    "record_type": "shop",
+    "references": [
+      {
+        "role": "shop product",
+        "span": {
+          "column": 1,
+          "line": 3,
+          "path": "shp/1.shp"
+        },
+        "target_type": "object",
+        "target_vnum": 100
+      },
+      {
+        "role": "shop keeper",
+        "span": {
+          "column": 1,
+          "end_line": 2,
+          "line": 2,
+          "path": "shp/1.shp"
+        },
+        "target_type": "mobile",
+        "target_vnum": 100
+      },
+      {
+        "role": "shop room",
+        "span": {
+          "column": 1,
+          "line": 20,
+          "path": "shp/1.shp"
+        },
+        "target_type": "room",
+        "target_vnum": 100
+      }
+    ],
+    "room_vnums": [
+      100
+    ],
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "end_line": 2,
+      "line": 2,
+      "path": "shp/1.shp"
+    },
+    "vnum": 100
+  },
+  "trigger": {
+    "argument_list": "",
+    "attach_type": 2,
+    "commands": "* Empty script",
+    "complete": true,
+    "name": "Test trigger",
+    "numeric_argument": 0,
+    "record_type": "trigger",
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "line": 1,
+      "path": "trg/1.trg"
+    },
+    "type_bits": [
+      0
+    ],
+    "type_flags": "a",
+    "vnum": 100
+  },
+  "zone": {
+    "bottom": 100,
+    "builders": "Builder",
+    "city": 0,
+    "commands": [],
+    "complete": true,
+    "faction": 0,
+    "flags": [
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    "header_field_count": 4,
+    "lifespan": 30,
+    "max_level": -1,
+    "min_level": -1,
+    "name": "Test Zone",
+    "record_type": "zone",
+    "region": 0,
+    "reset_mode": 2,
+    "show_weather": 1,
+    "source_package": "1",
+    "span": {
+      "column": 1,
+      "line": 1,
+      "path": "zon/1.zon"
+    },
+    "top": 199,
+    "vnum": 1
+  }
+}

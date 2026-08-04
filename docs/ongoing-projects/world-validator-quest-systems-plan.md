@@ -1,6 +1,6 @@
 # World Validator Quest-System Expansion Plan
 
-Status: in progress (Session 4 - references, semantics, lookup, and reporting).
+Status: in progress (Session 5 - documentation, CI, operational audit, and closeout).
 
 Planning baseline: 2026-08-04 at commit `42378034` on the development
 environment.
@@ -9,7 +9,8 @@ environment.
 
 Last updated: 2026-08-04.
 
-- Active session: Session 4 - references, semantics, lookup, and reporting.
+- Active session: Session 5 - documentation, CI, operational audit, and
+  closeout.
 - Baseline source commit: `4237803456838f3b955462cee2e64acd95d0a04e`.
 - Environment gate: `APP_ENV=development` confirmed; no production work is
   authorized or planned.
@@ -38,7 +39,8 @@ Last updated: 2026-08-04.
   implementation commit `e3052d35`; Session 2 implementation commit
   `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
   checkpoint `3876e318`; Session 4 graph checkpoint `d6a8ad8e`; Session 4
-  semantic checkpoint pending at this update.
+  semantic checkpoint `6bb7385b`; Session 4 lookup/reporting checkpoint
+  pending at this update.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -97,8 +99,19 @@ Last updated: 2026-08-04.
   synthetic chain test completes with at most three typed-map probes per
   record, locking the cycle scan to indexed linear behavior apart from its
   deterministic key sort.
-- Next implementation step: finish typed `show`, bidirectional `refs`, public
-  version/schema compatibility, and the Session 4 performance/gate evidence.
+- Session 4 lookup/reporting implementation: enabled canonical and short type
+  aliases, typed QST and host-keyed HLQ human/JSON `show`, explicit HLQ
+  physical/runtime ordering, separate duplicate-host matches, and
+  bidirectional quest-system `refs` on both new and existing record types.
+  `TOOL_VERSION` is now `0.2.0`; `JSON_SCHEMA_VERSION` remains 1 because all
+  output changes are additive. A full six-existing-record JSON golden locks
+  the unchanged payloads.
+- Session 4 final verification: 10 lookup and four reporting tests pass. Both
+  Make and CMake `test-world-tools` targets pass all 169 tests plus their
+  wrapper/fixture checks, and all four `world-tool*` CTest entries pass.
+- Next implementation step: write and wire the permanent QST/HLQ format and
+  CLI/builder documentation, then complete CI, operational audit, build,
+  install, and development playtest evidence.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -856,14 +869,14 @@ formats.
 - [x] T061 [S0409] Add QST previous/next/alternative self-link, cycle, reciprocity, and dialogue topology checks with evidence-based severities.
 - [x] T062 [S0410] Add HLQ entry-shape, approval-marker, and legal input/output command checks.
 - [x] T063 [S0411] Add HLQ coin, spell, direction, class, church, lich-sentinel, and parameter checks against runtime-safe bounds.
-- [ ] T064 [S0412] Add `quest`/`qst` and `hlquest`/`hlq` type normalization and CLI choices.
-- [ ] T065 [S0413] Implement human and JSON `show quest` and `show hlquest`, including physical/runtime ordering.
-- [ ] T066 [S0414] Implement bidirectional human and JSON `refs` for both types and incoming edges on existing records.
-- [ ] T067 [S0415] Bump tool version, make the schema decision, and add unchanged-six-format compatibility goldens.
-- [ ] T068 [S0416] Add graph tests for every edge role, missing target, duplicate, selected-zone filter, and reverse lookup.
+- [x] T064 [S0412] Add `quest`/`qst` and `hlquest`/`hlq` type normalization and CLI choices.
+- [x] T065 [S0413] Implement human and JSON `show quest` and `show hlquest`, including physical/runtime ordering.
+- [x] T066 [S0414] Implement bidirectional human and JSON `refs` for both types and incoming edges on existing records.
+- [x] T067 [S0415] Bump tool version, make the schema decision, and add unchanged-six-format compatibility goldens.
+- [x] T068 [S0416] Add graph tests for every edge role, missing target, duplicate, selected-zone filter, and reverse lookup.
 - [x] T069 [S0417] Add semantic boundary tests at below/min/max/above values and sentinel cases.
 - [x] T070 [S0418] Measure deterministic full-fixture time/memory and guard against accidental quadratic quest-chain/reference scans.
-- [ ] T071 [S0419] Run the complete Python, constants, docs, wrapper, Make, CMake, and CTest gates.
+- [x] T071 [S0419] Run the complete Python, constants, docs, wrapper, Make, CMake, and CTest gates.
 
 Session gate:
 

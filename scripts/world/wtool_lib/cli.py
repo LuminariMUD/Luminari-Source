@@ -93,11 +93,11 @@ def _parser() -> argparse.ArgumentParser:
   sync_mode.add_argument("--write", action="store_true")
 
   show = commands.add_parser("show", help="show one typed world record")
-  show.add_argument("record_type", choices=CLI_RECORD_TYPES)
+  show.add_argument("record_type", metavar="{" + ",".join(CLI_RECORD_TYPES) + "}")
   show.add_argument("vnum", type=int)
 
   refs = commands.add_parser("refs", help="show typed incoming and outgoing references")
-  refs.add_argument("record_type", choices=CLI_RECORD_TYPES)
+  refs.add_argument("record_type", metavar="{" + ",".join(CLI_RECORD_TYPES) + "}")
   refs.add_argument("vnum", type=int)
 
   docs = commands.add_parser("docs", help="check world-building documentation drift")

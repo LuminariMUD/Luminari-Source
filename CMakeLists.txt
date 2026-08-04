@@ -864,6 +864,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase2/complete/zon/index
     scripts/world/tests/fixtures/phase2/complete/zon/index.mini
     scripts/world/tests/fixtures/phase2/contracts/hlq/canonical.hlq
+    scripts/world/tests/fixtures/phase2/contracts/lookup/existing-six.json
     scripts/world/tests/fixtures/phase2/contracts/qst/canonical.qst
     scripts/world/tests/fixtures/phase2/contracts/qst/legacy.qst)
 

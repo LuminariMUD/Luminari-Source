@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 import unittest
 
-from wtool_lib.models import Finding, SourceSpan, ValidationResult
+from wtool_lib.models import (
+    Finding,
+    JSON_SCHEMA_VERSION,
+    SourceSpan,
+    TOOL_VERSION,
+    ValidationResult,
+)
 from wtool_lib.reporting import exit_status, render_human, render_json
 
 
@@ -28,6 +34,13 @@ class ReportingTests(unittest.TestCase):
     self.assertEqual(["IDX001", "SEM001", "SEM002"], [item["code"] for item in payload["findings"]])
     self.assertTrue(payload["findings"][1]["suppressed"])
     self.assertNotIn("timestamp", payload)
+
+  def test_additive_record_types_bump_tool_but_not_json_schema(self) -> None:
+    self.assertEqual("0.2.0", TOOL_VERSION)
+    self.assertEqual(1, JSON_SCHEMA_VERSION)
+    payload = json.loads(render_json(self.result()))
+    self.assertEqual("0.2.0", payload["tool_version"])
+    self.assertEqual(1, payload["schema_version"])
 
   def test_human_output_omits_suppressed_findings(self) -> None:
     output = render_human(self.result(), {"SEM001"})
