@@ -54,7 +54,9 @@ lib/world/obj/30.obj     objects        indexed in lib/world/obj/index
 lib/world/zon/30.zon     zone + resets  indexed in lib/world/zon/index
 ```
 
-Shops (`shp/`) and triggers (`trg/`) work the same way and are optional.
+Shops (`shp/`), triggers (`trg/`), quests (`qst/`), and high-level quests
+(`hlq/`) work the same way and are optional. A `.qst` record is keyed by its
+quest VNUM. An `.hlq` block is keyed by the mobile VNUM that hosts its entries.
 
 An index file is one filename per line, terminated by a line containing `$`:
 
@@ -289,6 +291,34 @@ Each editor saves with `Q` then `Y`. OLC writes the flat files and the index
 entries for you, so there is no separate indexing step. Return to the same
 `validate --zone 30` step after each OLC save.
 
+The two quest editors use different models:
+
+```text
+qedit 3001       Edit a numbered quest record saved in qst/30.qst
+hlqedit 3000     Edit ASK/GIVE/ROOM entries attached to mobile 3000
+```
+
+After QEDIT saves, inspect the quest and every typed dependency:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show quest 3001
+python3 scripts/world/wtool.py refs quest 3001
+```
+
+After HLQEDIT saves, use the host mobile VNUM. The display includes both file
+order and effective runtime order:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show hlquest 3000
+python3 scripts/world/wtool.py refs hlquest 3000
+```
+
+Validation is still followed by a development boot and playtest. In
+particular, exercise quest acceptance/completion and the intended HLQ
+conversation, give, room, input, and output paths.
+
 `dig` is worth learning early. Its full syntax is:
 
 ```
@@ -315,6 +345,10 @@ python3 scripts/world/wtool.py refs room 3000
 - [Builder Manual](builder_manual.md) - the long-form guide
 - [Zone File Format Reference](ZONE_FILE_FORMAT.md) - every reset command
 - [Shop File Format Reference](SHOP_FILE_FORMAT.md) - adding a shopkeeper
+- [Quest File Format Reference](QUEST_FILE_FORMAT.md) - QST grammar, types,
+  flags, rewards, and chains
+- [High-Level Quest File Format Reference](HLQUEST_FILE_FORMAT.md) - HLQ
+  entries, commands, legality, and runtime order
 - [OEDIT Guide](OEDIT_GUIDE.md) - item types, wear slots, value vectors
 - [ROOM_FLAGS.md](ROOM_FLAGS.md) and [MOB_FLAGS.md](MOB_FLAGS.md)
 - [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) - all commands,

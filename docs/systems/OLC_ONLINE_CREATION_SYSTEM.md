@@ -2,7 +2,10 @@
 
 ## Overview
 
-The Online Level Creation (OLC) system in LuminariMUD provides powerful in-game tools for builders to create and modify world content including rooms, objects, mobiles, shops, zones, and quests. The system allows real-time world building without requiring server restarts or file editing.
+The Online Level Creation (OLC) system in LuminariMUD provides in-game tools
+for builders to create and modify rooms, objects, mobiles, shops, zones,
+triggers, numbered quests, and mobile-hosted high-level quests. Editing occurs
+against live in-memory copies; saving writes the applicable flat-file package.
 
 > **About the code samples in this document.** Most C listings below are
 > *illustrative*: they show the shape of the system, not the literal source.
@@ -27,7 +30,8 @@ Every editor and listing command below is registered in `cmd_info[]`
 | `zedit` | Zones and reset commands | |
 | `sedit` | Shops | |
 | `trigedit` | DG Script triggers | See [SCRIPTING_SYSTEM_DG.md](SCRIPTING_SYSTEM_DG.md) |
-| `qedit` | Quests | |
+| `qedit` | Numbered quests | Uses a quest VNUM; see the [QST format](../world_game-data/QUEST_FILE_FORMAT.md) |
+| `hlqedit` | High-level quests | Uses an existing host mobile VNUM; see the [HLQ format](../world_game-data/HLQUEST_FILE_FORMAT.md) |
 | `hedit` | Help entries | Database-backed; see [HELP_SYSTEM.md](HELP_SYSTEM.md) |
 | `aedit` | Socials | `LVL_STAFF`. See [docs/utilities/README.md](../utilities/README.md) |
 | `iedit` | A live object instance | `LVL_STAFF`. Scripting is disabled in this mode |
@@ -84,7 +88,7 @@ typedef enum {
   CON_HEDIT,     // Help editing
   CON_AEDIT,     // Action editing
   CON_TRIGEDIT,  // Trigger editing
-  CON_HLQEDIT    // Help quest editing
+  CON_HLQEDIT    // High-level quest editing
 } olc_state_t;
 ```
 
@@ -108,12 +112,103 @@ struct olc_data {
     struct char_data *mob;     // Mobile data
     struct shop_data *shop;    // Shop data
     struct zone_data *zone;    // Zone data
-    struct quest_data *quest;  // Quest data
+    struct aq_data *quest;     // Numbered QEDIT quest data
+    struct quest_entry *hlquest; // HLQEDIT host entry list
+    struct quest_entry *entry; // HLQEDIT entry under construction
+    struct quest_command *qcom; // HLQEDIT command under construction
     struct help_index_element *help; // Help data
     struct trig_data *trig;    // Trigger data
   } data;
 };
 ```
+
+The actual `struct oasis_olc_data` is not a union and contains additional
+editor state. See `src/olc/oasis.h`; the listing above shows only the ownership
+shape relevant to the editors discussed here.
+
+## Quest Editors (QEDIT and HLQEDIT)
+
+The two quest editors are separate systems and must not be treated as aliases.
+
+### QEDIT: Numbered Quests
+
+Start QEDIT with a quest VNUM owned by an editable zone:
+
+```text
+qedit 3001
+```
+
+QEDIT edits one `struct aq_data` record. Its menu covers the questmaster,
+source-defined quest type and flags, type-dependent target, prerequisite,
+quantity, level range, time limit, return recipient, rewards, previous/next
+links, and dialogue fields. A new quest starts with type `AQ_UNDEFINED`; set a
+real type and questmaster before expecting players to discover it.
+
+Saving updates the in-memory quest table and writes the owning `.qst` package
+through `save_quests()` in `src/olc/genqst.c`. The writer emits the current
+seven-field reward row and a `D` block. The loader also accepts the historical
+three-field reward row and an omitted `D` block, as documented in the
+[Quest File Format](../world_game-data/QUEST_FILE_FORMAT.md).
+
+After answering `Q` and `Y`, validate and inspect the same VNUM:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show quest 3001
+python3 scripts/world/wtool.py refs quest 3001
+```
+
+QEDIT can verify many direct VNUM choices while editing, but it does not make
+chain topology, every persisted scalar, or every cross-package condition safe.
+The validator supplies those checks before boot and playtesting.
+
+### HLQEDIT: Mobile-Hosted Entries
+
+HLQEDIT's numeric argument is an existing host mobile VNUM, not a quest VNUM:
+
+```text
+hlqedit 3000
+```
+
+The editor refuses a host that does not exist and prevents simultaneous MEDIT
+or HLQEDIT work on that mobile. One host can contain:
+
+- ASK entries with keywords and a reply;
+- GIVE entries with coin/item inputs, a reply, and output commands; and
+- ROOM entries with a room trigger, a reply, and output commands.
+
+Approval is a normal workflow state. An unapproved entry is retained and is
+not a validation error; the canonical approved disk marker is `!`.
+
+The output-command menu supports coins, item delivery, object/mobile loads,
+attack, disappear, teach/cast spell, open door, follow, kit/lich transition,
+and church changes. Only coin and item commands are consumed as GIVE inputs.
+ROOM inputs and other input command types can exist in hand-edited files but
+are ignored by the runtime and are validator errors.
+
+Saving writes both the zone's `.hlq` package and its mobile package. The disk
+loader prepends entries and input commands but appends output commands, so
+physical file order and effective runtime order differ. Inspect both views
+after saving:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show hlquest 3000
+python3 scripts/world/wtool.py refs hlquest 3000
+```
+
+The [High-Level Quest File Format](../world_game-data/HLQUEST_FILE_FORMAT.md)
+lists every command code, legal direction, scalar bound, reference role, and
+loader hazard.
+
+### Required Runtime Check
+
+Static validation cannot execute either quest system. After a clean structural
+pass, boot only a development server and play through the changed behavior.
+For QEDIT, test join gates, target progress, completion, quit behavior,
+rewards, and chain/dialogue transitions. For HLQEDIT, test the intended ASK,
+GIVE, and ROOM matches and verify input consumption and output effects in the
+runtime order shown by `wtool`.
 
 ## Room Editor (REDIT)
 

@@ -136,7 +136,10 @@ lib/world/
 
 ### OLC Overview
 
-The Online Creation (OLC) system allows builders to create and modify world content while the MUD is running. This powerful system provides menu-driven interfaces for creating rooms, mobiles, objects, shops, and zones.
+The Online Creation (OLC) system allows builders to create and modify world
+content while the MUD is running. This powerful system provides menu-driven
+interfaces for rooms, mobiles, objects, shops, zones, DG triggers, numbered
+quests, and mobile-hosted high-level quests.
 
 **OLC Advantages:**
 - Real-time creation and testing
@@ -155,6 +158,7 @@ The Online Creation (OLC) system allows builders to create and modify world cont
 - `sedit <shop_vnum>` - Edit shops
 - `trigedit <trigger_vnum>` - Edit DG Script triggers
 - `qedit <quest_vnum>` - Edit quests
+- `hlqedit <host_mobile_vnum>` - Edit ASK/GIVE/ROOM quests attached to a mobile
 
 Note: `tedit` is **not** the trigger editor. It edits the server's static text
 files - `motd`, `news`, `policies`, `credits`, and similar. The trigger editor
@@ -178,6 +182,13 @@ detected at boot, and the later definition silently wins.
 
 A full editor and listing reference is in
 [OLC_ONLINE_CREATION_SYSTEM.md](../systems/OLC_ONLINE_CREATION_SYSTEM.md).
+
+QEDIT records have their own quest VNUM and are stored in `.qst` packages.
+HLQEDIT records do not have a quest VNUM: the editor argument and validator
+lookup key are the host mobile VNUM. See the
+[QST format](QUEST_FILE_FORMAT.md) and
+[HLQ format](HLQUEST_FILE_FORMAT.md) references before hand-editing either
+format.
 
 ### Room Editor (REDIT)
 
@@ -917,6 +928,23 @@ python3 scripts/world/wtool.py show mob 3000
 python3 scripts/world/wtool.py refs obj 3000
 ```
 
+For a numbered QEDIT quest:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show quest 3001
+python3 scripts/world/wtool.py refs quest 3001
+```
+
+For HLQEDIT, look up the host mobile. `show` makes the reversed runtime entry
+and input-command ordering explicit:
+
+```sh
+python3 scripts/world/wtool.py validate --zone 30
+python3 scripts/world/wtool.py show hlquest 3000
+python3 scripts/world/wtool.py refs hlquest 3000
+```
+
 The tool is read-only and does not require MariaDB or a server build. It does
 not replace boot and gameplay testing; use it to remove structural defects
 before those slower checks. Full command and exit-status documentation is in
@@ -927,6 +955,10 @@ the [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md).
 2. **Balance Testing:** Verify appropriate difficulty and rewards
 3. **Player Experience:** Test from player perspective
 4. **Edge Cases:** Test unusual situations and combinations
+5. **QST Flow:** Join, quit where applicable, complete, claim rewards, and
+   verify previous/next/dialogue alternatives
+6. **HLQ Flow:** Exercise each intended ASK, GIVE, and ROOM match plus command
+   effects in their displayed runtime order
 
 **Testing Tools:**
 - **Goto Command:** Quick navigation for testing
@@ -1065,6 +1097,8 @@ Remember that building is an iterative process - your first areas may not be per
 - **Administrator's Guide:** Server management and policies
 - **Developer's Guide:** Code modification and programming
 - **[DG Scripting System](../systems/SCRIPTING_SYSTEM_DG.md):** Complete DG Scripts documentation
+- **[Quest File Format](QUEST_FILE_FORMAT.md):** QEDIT disk grammar and semantic rules
+- **[High-Level Quest File Format](HLQUEST_FILE_FORMAT.md):** HLQEDIT entries and commands
 - **File Format Specifications:** Technical file format details
 
 ### Community Resources
@@ -1083,4 +1117,4 @@ Remember that building is an iterative process - your first areas may not be per
 
 *This manual is based on the original tbaMUD building documentation, updated and expanded for Luminari MUD. For the most current information and updates, consult the official documentation and community resources.*
 
-*Last updated: July 2025*
+*Last updated: August 2026*

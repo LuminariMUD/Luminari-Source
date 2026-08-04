@@ -78,6 +78,12 @@ constants manifest, checks the audited world-building documentation and
 generated HTML, and smoke-tests `lib/world/validate-zone.sh`. Python 3.10 or
 newer and Pandoc are required.
 
+The tracked complete fixture covers all eight validator datasets: `.zon`,
+`.wld`, `.mob`, `.obj`, `.shp`, `.trg`, `.qst`, and `.hlq`. Quest tests lock
+canonical and legacy QST grammar, malformed recovery, all HLQ entry/command
+types, physical versus runtime order, reference roles, semantic boundaries,
+lookup aliases, and unchanged JSON for the original six record types.
+
 Equivalent CMake and CTest entry points are:
 
 ```sh
@@ -95,12 +101,33 @@ lib/world/validate-zone.sh 100 \
   --world-root scripts/world/tests/fixtures/phase2/complete
 ```
 
+Run only the quest-system parser, graph, semantic, lookup, and reporting tests
+while developing with:
+
+```sh
+PYTHONPATH=scripts/world python3 -m unittest \
+  scripts.world.tests.test_quests \
+  scripts.world.tests.test_hlquests \
+  scripts.world.tests.test_semantics \
+  scripts.world.tests.test_lookup \
+  scripts.world.tests.test_reporting -v
+```
+
+Before an operational validation of ignored development data, hash
+`lib/world/qst` and `lib/world/hlq`; repeat the same path-and-content hash after
+`validate`, `show`, and `refs`. These commands are read-only, so any change is
+a failed safety check. Retain only aggregate counts, timing, peak memory, and
+hash evidence in repository documentation; do not add builder-owned files.
+
 Tests use tracked synthetic fixtures plus the tracked artifact and minimal
 bundles. CI cannot validate the ignored builder-owned files under the live
 `lib/world/` type directories; a green workflow verifies the parser, fixtures,
 constants, documentation, and wrapper contracts only. See the
 [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for validation,
-lookup, JSON, and exit-status usage.
+lookup, JSON, and exit-status usage, and the
+[QST](../world_game-data/QUEST_FILE_FORMAT.md) and
+[HLQ](../world_game-data/HLQUEST_FILE_FORMAT.md) references for their exact
+test contracts.
 
 ## Protocol Parser Harness
 

@@ -48,8 +48,10 @@ class DocumentationCheckTests(unittest.TestCase):
     text = (self.repo_root / spec.path).read_text(encoding="ascii")
     commands, findings = _documented_commands(text, spec)
     self.assertEqual([], findings)
-    self.assertIn(("redit", 24), commands)
-    self.assertIn(("pathlist", 51), commands)
+    command_names = {command for command, _ in commands}
+    self.assertIn("redit", command_names)
+    self.assertIn("hlqedit", command_names)
+    self.assertIn("pathlist", command_names)
 
   def test_unregistered_command_in_reference_is_reported(self) -> None:
     spec = COMMAND_SECTIONS[0]

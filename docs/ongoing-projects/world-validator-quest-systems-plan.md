@@ -114,9 +114,19 @@ Last updated: 2026-08-04.
   both guides with the ASCII/UTF-8/LF and source-table documentation gate;
   and explicitly retained Markdown-only publication. Six focused docs tests
   and `wtool docs --check` pass with zero findings.
-- Next implementation step: update the CLI, builder, OLC, testing, utility,
-  index, workflow, and changelog documentation, then complete the operational
-  audit, build, install, and development playtest evidence.
+- Session 5 integration documentation: expanded the CLI from six to eight
+  formats with version/schema behavior and all new finding families; added
+  QEDIT/HLQEDIT validation and playtest loops to builder and OLC guides; and
+  updated the testing guide, utilities index, and master documentation index.
+  GitHub Actions now watches every affected permanent document and smoke-tests
+  QST/HLQ `show` and `refs` against the complete fixture.
+- Session 5 documentation verification: the support lists match exactly at 27
+  paths, the workflow parses as YAML, six focused docs tests pass, the source
+  constants are current, `docs --check` has zero findings, and all four new
+  lookup smoke calls pass.
+- Next implementation step: run the clean world-tool, production build/test,
+  operational audit, install, and development playtest gates, then publish
+  acceptance evidence and close the working plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -898,14 +908,14 @@ data without changing that data.
 
 - [x] T072 [S0501] Write `QUEST_FILE_FORMAT.md` from the verified Luminari loader/writer contract.
 - [x] T073 [S0502] Write `HLQUEST_FILE_FORMAT.md`, including command legality and physical/runtime order.
-- [ ] T074 [S0503] Expand `WORLD_VALIDATOR_CLI.md` from six to eight formats and document all new commands, findings, and limitations.
-- [ ] T075 [S0504] Update Builder Quickstart and the builder manual with QEDIT/HLQEDIT validation loops.
-- [ ] T076 [S0505] Correct and expand the OLC system documentation for both quest editors.
-- [ ] T077 [S0506] Update the testing guide, utilities README, and technical documentation master index.
+- [x] T074 [S0503] Expand `WORLD_VALIDATOR_CLI.md` from six to eight formats and document all new commands, findings, and limitations.
+- [x] T075 [S0504] Update Builder Quickstart and the builder manual with QEDIT/HLQEDIT validation loops.
+- [x] T076 [S0505] Correct and expand the OLC system documentation for both quest editors.
+- [x] T077 [S0506] Update the testing guide, utilities README, and technical documentation master index.
 - [x] T078 [S0507] Add both guides and their source-backed type/flag/command tables to `docs --check`.
 - [x] T079 [S0508] Decide and implement or explicitly decline generated HTML routing for the new guides.
-- [ ] T080 [S0509] Finalize Makefile/CMake support-file lists and verify they remain exactly synchronized.
-- [ ] T081 [S0510] Verify GitHub Actions path filters and world-tool steps cover all new sources and docs.
+- [x] T080 [S0509] Finalize Makefile/CMake support-file lists and verify they remain exactly synchronized.
+- [x] T081 [S0510] Verify GitHub Actions path filters and world-tool steps cover all new sources and docs.
 - [ ] T082 [S0511] Run `make test-world-tools`, the equivalent CMake target, and all focused CTest world-tool entries from clean outputs.
 - [ ] T083 [S0512] Run the repository-required `make test` followed by `make install`; confirm no root-level `circle` artifact remains.
 - [ ] T084 [S0513] Hash-guard and run `validate --all`, `--mini`, representative `--zone`, `show`, and `refs` against development QST/HLQ data.

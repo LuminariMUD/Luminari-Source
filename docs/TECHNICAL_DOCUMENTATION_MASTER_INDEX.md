@@ -138,6 +138,8 @@ This master index provides a comprehensive guide to all technical documentation 
 ### World File Formats
 - **[Zone File Format](world_game-data/ZONE_FILE_FORMAT.md)** - `.zon` header fields, reset commands, and parser gotchas
 - **[Shop File Format](world_game-data/SHOP_FILE_FORMAT.md)** - `.shp` field-by-field reference
+- **[Quest File Format](world_game-data/QUEST_FILE_FORMAT.md)** - `.qst` grammar, source-backed types and flags, rewards, references, and chain rules
+- **[High-Level Quest File Format](world_game-data/HLQUEST_FILE_FORMAT.md)** - `.hlq` host entries, command legality, bounds, references, and runtime order
 - **[OEDIT Guide](world_game-data/OEDIT_GUIDE.md)** - Object editor, item types, wear slots, and the object value vectors
 - **[Room Flags](world_game-data/ROOM_FLAGS.md)** - All 42 room flags
 - **[Mobile Flags](world_game-data/MOB_FLAGS.md)** - All 105 mobile action flags

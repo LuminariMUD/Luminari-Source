@@ -14,7 +14,9 @@ on:
       - 'docs/world/STARTER_AREA.md'
       - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
       - 'docs/guides/OLC_SpecProcs.md'
-      - 'docs/utilities/WORLD_VALIDATOR_CLI.md'
+      - 'docs/guides/TESTING_GUIDE.md'
+      - 'docs/utilities/**'
+      - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
       - 'docs/web/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
@@ -35,7 +37,9 @@ on:
       - 'docs/world/STARTER_AREA.md'
       - 'docs/systems/OLC_ONLINE_CREATION_SYSTEM.md'
       - 'docs/guides/OLC_SpecProcs.md'
-      - 'docs/utilities/WORLD_VALIDATOR_CLI.md'
+      - 'docs/guides/TESTING_GUIDE.md'
+      - 'docs/utilities/**'
+      - 'docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md'
       - 'docs/web/**'
       - 'CMakeLists.txt'
       - 'configure.ac'
@@ -78,6 +82,21 @@ jobs:
           lib/world/validate-zone.sh 100 \
             --world-root scripts/world/tests/fixtures/phase2/complete \
             --json >/dev/null
+
+      - name: Smoke test quest-system lookup
+        run: |
+          python scripts/world/wtool.py \
+            --world-root scripts/world/tests/fixtures/phase2/complete \
+            show quest 10000 >/dev/null
+          python scripts/world/wtool.py \
+            --world-root scripts/world/tests/fixtures/phase2/complete \
+            refs quest 10000 >/dev/null
+          python scripts/world/wtool.py \
+            --world-root scripts/world/tests/fixtures/phase2/complete \
+            show hlquest 10000 >/dev/null
+          python scripts/world/wtool.py \
+            --world-root scripts/world/tests/fixtures/phase2/complete \
+            refs hlquest 10000 >/dev/null
 
   build:
     name: Behavioral tests (${{ matrix.campaign.name }})

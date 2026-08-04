@@ -744,13 +744,20 @@ Allow players to enter large containers like buildings or vehicles.
 
 [`WORLD_VALIDATOR_CLI.md`](WORLD_VALIDATOR_CLI.md) documents `wtool`, the
 read-only parser, validator, flag converter, record viewer, and typed reference
-lookup for `.zon`, `.wld`, `.mob`, `.obj`, `.shp`, and `.trg` data. It does not
-require MariaDB or a server build. Start a local check from the repository root
-with:
+lookup for `.zon`, `.wld`, `.mob`, `.obj`, `.shp`, `.trg`, `.qst`, and `.hlq`
+data. It does not require MariaDB or a server build. Start a local check from
+the repository root with:
 
 ```bash
 python3 scripts/world/wtool.py validate --zone 30
 ```
+
+Numbered quests use `show quest <quest-vnum>` and `refs quest <quest-vnum>`.
+High-level quests use the host mobile VNUM with `show hlquest` and
+`refs hlquest`; `qst` and `hlq` are short aliases. The source-backed disk
+contracts are documented in
+[`QUEST_FILE_FORMAT.md`](../world_game-data/QUEST_FILE_FORMAT.md) and
+[`HLQUEST_FILE_FORMAT.md`](../world_game-data/HLQUEST_FILE_FORMAT.md).
 
 ### Code Analysis Tools
 
