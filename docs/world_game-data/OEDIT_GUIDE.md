@@ -57,34 +57,42 @@
 - `S) Script` jumps into the DG Script editor. Note that scripting is disabled when editing a live instance via `iedit`.
 
 ## Editing Values (C)
-Selecting `C` zeroes all 16 value slots before prompting. The sequence of prompts varies by item type; set the type first so the correct path is taken. Below are the most common cases:
+
+Selecting `C` zeroes all 16 value slots before prompting. The sequence of
+prompts varies by item type; set the type first so the correct path is taken.
+
+The full slot-by-slot layout for every type lives in the
+[Object Value Reference](#object-value-reference) below. Note that the editor's
+`ValueN` labels are one higher than the file-format `value[N-1]` slot they
+write. The notes here cover the cases that behave unusually:
 
 ### Weapons (`ITEM_WEAPON`)
 - Picking the weapon type auto-populates dice, cost, weight, material, size, and wear slots from `weapon_list`.
-- After the type is chosen you go straight to the enhancement prompt (`Value5`).
-- You can revisit `C` if you need to tweak damage dice (`Value2/Value3`) or attack type (`Value4`); be aware that re-running `C` resets enhancements.
+- After the type is chosen you go straight to the enhancement prompt (`Value5`, which is `value[4]`).
+- You can revisit `C` if you need to tweak damage dice or attack type; be aware that re-running `C` resets enhancements.
 
 ### Armor (`ITEM_ARMOR` and `ITEM_CLANARMOR`)
-- Normal armor uses `Value2` for its subtype and auto-fills AC, size, material, and wear flags via `set_armor_object`.
-- Clan armor uses `Value2` for the clan vnum. The value must identify an existing clan.
-- Both armor types collect an enhancement bonus at `Value5` (0-10).
+- Normal armor takes its subtype at `Value2` (`value[1]`) and auto-fills AC, size, material, and wear flags via `set_armor_object()`.
+- Clan armor uses that same slot for the clan vnum instead. The value must identify an existing clan.
+- Both armor types collect an enhancement bonus at `Value5` (`value[4]`).
 
 ### Ammunition & Ranged
-- `ITEM_FIREWEAPON`: `Value1` sets damage dice, `Value3` sets break chance (2-98), `Value5` is enhancement.
-- `ITEM_MISSILE`: `Value0` picks ammo category, `Value3` sets break chance, `Value5` handles enhancement.
-- `ITEM_AMMO_POUCH` / `ITEM_CONTAINER`: `Value0` capacity (lbs; `-1` unlimited). `Value1` opens a flag toggle for closeable/lockable bits; enter `0` when done. `Value2` key vnum (`-1` none).
+- `ITEM_FIREWEAPON`: prompts for weapon type, damage dice, then break chance (2-98). Enhancement is `Value5`.
+- `ITEM_MISSILE`: prompts for ammo category, then break chance, then enhancement at `Value5`.
+- `ITEM_AMMO_POUCH` / `ITEM_CONTAINER`: capacity in pounds (`-1` unlimited), then a flag toggle for the closeable/lockable bits - enter `0` when done - then the key vnum (`-1` for none).
 
 ### Consumables
-- `ITEM_POTION` / `ITEM_SCROLL`: `Value0` spell level. `Value1-3` choose spells (use `-1` or `0` to clear a slot). `Value4` accepts an optional third spell.
-- `ITEM_WAND` / `ITEM_STAFF`: `Value0` spell level, `Value1` max charges, `Value2` current charges, `Value3` spell to cast. A value of `-1` clears a spell slot.
-- `ITEM_POISON`: prompts for poison spell, level, applications, and hits per application across the first four values.
+- `ITEM_POTION` / `ITEM_SCROLL`: spell level first, then up to three spells. Use `-1` or `0` to clear a slot.
+- `ITEM_WAND` / `ITEM_STAFF`: spell level, max charges, charges remaining, then the spell to cast.
+- `ITEM_POISON`: poison spell, level, applications, and hits per application, across the first four slots.
 
 ### Lights & Miscellaneous
-- `ITEM_LIGHT`: jump straight to `Value3` for burn hours (`-1` = infinite, `0` = burnt out).
-- `ITEM_DRINKCON` / `ITEM_FOUNTAIN`: values cover capacity, remaining units, and liquid type.
-- `ITEM_PORTAL`: values depend on portal mode; the prompts call out the required vnums or ranges.
-- `ITEM_TREASURE_CHEST`: values cover loot tier, guaranteed loot type, random chest flag, search DC, pick DC, and optional trap type.
-- `ITEM_GEAR_OUTFIT`: values configure preset gear bundles--type, enhancement, material, applies, and bonus types.
+- `ITEM_LIGHT`: the first two slots are unused, so the editor jumps straight to burn hours (`-1` infinite, `0` burnt out).
+- `ITEM_DRINKCON` / `ITEM_FOUNTAIN`: capacity, current units, liquid type, then an optional spell on drink.
+- `ITEM_PORTAL`: which slots you are asked for depends on the portal type chosen at the first prompt. A clanhall portal asks for nothing further.
+- `ITEM_TRAP`: likewise branches - the second prompt is a direction, an object vnum, or skipped entirely depending on the trigger.
+- `ITEM_TREASURE_CHEST`: loot tier, loot type, random-load flag, search DC, then pick-lock DC.
+- `ITEM_GEAR_OUTFIT`: outfit type, enhancement, material, then apply type and modifier.
 
 For unusual object types, read the prompts carefully; each menu is sourced from `src/olc/oedit.c` and mirrors the in-game expectations.
 
@@ -118,7 +126,12 @@ For unusual object types, read the prompts carefully; each menu is sourced from 
 - Cross-reference `src/olc/oedit.c`, `src/obj/treasure.c`, and `constants.c` for the definitive lists of types, flags, and ability IDs.
 
 ## Extra Flags Reference
-When you select `6) Extra flags` from the main menu, you can toggle any of the 114 available item flags by entering their number. Enter `0` to return to the main menu. Below is the complete list:
+When you select `6) Extra flags` from the main menu, you can toggle any of the
+116 available item flags. Enter `0` to return to the main menu.
+
+**The `#` column below is the bit number stored in the `.obj` file. The editor
+prompts for `bit + 1`.** To toggle `Glows` (bit 0) you type `1`. The wear-flag
+menu uses the same offset. Below is the complete list:
 
 ### Display & Visual Effects
 | # | Flag Name | Code Constant | Description |
@@ -271,9 +284,230 @@ When you select `6) Extra flags` from the main menu, you can toggle any of the 1
 | 111 | Crafting-Tannery | ITEM_CRAFTING_TANNERY | Marks object as tannery station for leatherworking; required for leather crafting recipes |
 | 112 | Crafting-Carpentry-Table | ITEM_CRAFTING_CARPENTRY_TABLE | Marks object as carpentry workstation; required for woodworking/carpentry crafts |
 | 113 | Trapped | ITEM_TRAPPED | Indicates object has trap mechanism attached via trap system; used to mark trapped chests/doors for comprehensive trap system (not currently actively used for runtime trap behavior) |
+| 114 | Costs-Account-Experience | ITEM_ACCOUNT_EXP | Purchasing or acquiring the item is paid for in account experience rather than gold |
+| 115 | Can-Be-Reforged | ITEM_REFORGEABLE | Item is eligible for the reforging path, which rerolls or upgrades its stats through the crafting system |
 
-**Total: 114 flags (0-113)**
+**Total: 116 flags (bits 0-115, `NUM_ITEM_FLAGS`)**
 
-**Note:** These flags are defined in `src/structs.h` (lines 3958-4077) and their display names in `src/constants.c` (lines 2482-2598).
+**Note:** These flags are defined in `src/structs.h` as the `ITEM_*` define block
+ending at `ITEM_REFORGEABLE`, and their display names in the `extra_bits[]`
+table in `src/constants.c`.
+
+## Item Types Reference
+
+`5) Type` accepts a number from this list. The number you type at the menu is the
+same as the type constant - unlike the flag menus, item types are not offset.
+Type 0 (`UNDEFINED`) is not a usable type; setting it leaves the object inert.
+
+Setting the type is the first thing you do, because it decides which value
+prompts `C) Values` shows you. See [Object Value Reference](#object-value-reference)
+for what each type stores in its value slots.
+
+| # | Name | Constant | Notes |
+|---|------|----------|-------|
+| 0 | UNDEFINED | - | Placeholder. Not a usable type. |
+| 1 | Light | ITEM_LIGHT | Light source; burn hours live in value 2. |
+| 2 | Scroll | ITEM_SCROLL | Up to three spells, consumed on read. |
+| 3 | Wand | ITEM_WAND | Charged, single-target spell device. |
+| 4 | Staff | ITEM_STAFF | Charged, area-effect spell device. |
+| 5 | Weapon | ITEM_WEAPON | Melee weapon. Type selection auto-fills dice and stats. |
+| 6 | Furniture | ITEM_FURNITURE | Sittable; value 0 is occupant capacity. |
+| 7 | Ranged-Weapon | ITEM_FIREWEAPON | Bows and crossbows. Marked deprecated in the source but still in use. |
+| 8 | Treasure | ITEM_TREASURE | Valuables that are not coins. No values. |
+| 9 | Armor/Shield | ITEM_ARMOR | Armor. Subtype selection auto-fills AC, size, material, wear. |
+| 10 | Potion | ITEM_POTION | Up to three spells, consumed on quaff. |
+| 11 | Wearable | ITEM_WORN | General worn gear with no type-specific behavior. |
+| 12 | Other | ITEM_OTHER | Catch-all. No values. |
+| 13 | Trash | ITEM_TRASH | Shopkeepers refuse to buy. No values. |
+| 14 | Ammo | ITEM_MISSILE | Ammunition for ranged weapons. |
+| 15 | Container | ITEM_CONTAINER | Holds objects; capacity, flags, and key vnum in values. |
+| 16 | Note | ITEM_NOTE | Writable with a pen. No values. |
+| 17 | Liquid-Cont | ITEM_DRINKCON | Drink container. |
+| 18 | Key | ITEM_KEY | Opens a matching lock by vnum. No values. |
+| 19 | Food | ITEM_FOOD | Edible; value 0 is duration in rounds. |
+| 20 | Money | ITEM_MONEY | Coin pile; value 0 is the gold amount. |
+| 21 | Pen | ITEM_PEN | Writes on notes. No values. |
+| 22 | Boat | ITEM_BOAT | Permits water travel. No values. |
+| 23 | Fountain | ITEM_FOUNTAIN | Fixed drink source; same value layout as a drink container. |
+| 24 | Clan-Armor | ITEM_CLANARMOR | Armor restricted to a clan; value 1 is the clan vnum. |
+| 25 | Crafting Crystal | ITEM_CRYSTAL | Crafting input. |
+| 26 | Essence | ITEM_ESSENCE | Crafting input. |
+| 27 | Crafting Material | ITEM_MATERIAL | Crafting input. |
+| 28 | Spellbook | ITEM_SPELLBOOK | Stores spells; managed from `T) Spellbook menu`, not `C`. |
+| 29 | Portal | ITEM_PORTAL | Destination travel object. Value layout depends on portal mode. |
+| 30 | Plant | ITEM_PLANT | Target for the plant-transport spell. No values. |
+| 31 | Trap | ITEM_TRAP | Trap object; trigger, target, and effect live in the values. |
+| 32 | Teleport | ITEM_TELEPORT | Teleports on command. |
+| 33 | Poison | ITEM_POISON | Weapon poison; spell, level, applications, hits per application. |
+| 34 | Summon | ITEM_SUMMON | Summons a mob on command. |
+| 35 | Switch | ITEM_SWITCH | Lever or button that manipulates a door in another room. |
+| 36 | Ammo-Pouch | ITEM_AMMO_POUCH | Container specialized for ammunition. |
+| 37 | Pick | ITEM_PICK | Grants a bonus to lock picking. |
+| 38 | Instrument | ITEM_INSTRUMENT | Bard instrument; type, difficulty reduction, level, breakability. |
+| 39 | Disguise | ITEM_DISGUISE | Kit used by the disguise command. |
+| 40 | Wall | ITEM_WALL | Magical wall object, as created by wall spells. |
+| 41 | Bowl | ITEM_BOWL | Mixing vessel for recipes. |
+| 42 | Ingredient | ITEM_INGREDIENT | Used with a bowl for recipes. |
+| 43 | Blocker | ITEM_BLOCKER | Blocks movement in one direction. |
+| 44 | Wagon | ITEM_WAGON | Carries resources for trade. |
+| 45 | Resources | ITEM_RESOURCE | Trade goods carried by a wagon. |
+| 46 | Pet | ITEM_PET | Converts into a mobile follower on purchase. |
+| 47 | Blueprint | ITEM_BLUEPRINT | NewCraft recipe; value 0 is the craft ID. |
+| 48 | Treasure Chest | ITEM_TREASURE_CHEST | Lootable chest used by the `loot` command. |
+| 49 | Hunt Trophy | ITEM_HUNT_TROPHY | Marks a hunt target mob. |
+| 50 | Weapon Oil | ITEM_WEAPON_OIL | Applied to a weapon for a temporary effect. |
+| 51 | Gear Outfit | ITEM_GEAR_OUTFIT | Preset gear bundle; expands into a full kit. |
+| 52 | Drink | ITEM_DRINK | Newer drink system; replaces drink containers and fountains. |
+| 53 | Vehicle | ITEM_VEHICLE | General vehicle object. |
+| 54 | Ship-Object | ITEM_SHIP_OBJECT | Outcast-style ship object. |
+| 55 | Vessel | ITEM_VESSEL | Unified vessel system object. |
+| 56 | Greyhawk-Ship | ITEM_GREYHAWK_SHIP | Greyhawk ship; value 0 interior room vnum, value 1 ship index. |
+| 57 | Crafting-Tool | ITEM_CRAFTING_TOOL | Tool granting a bonus to one crafting ability. |
+
+**Total: 58 types (0-57, `NUM_ITEM_TYPES`)**
+
+## Wear Flags Reference
+
+`7) Wear flags` toggles the slots an item can occupy. **The menu numbers are
+offset by one from the bit numbers**: the list below gives the bit index that
+appears in the `.obj` file, and the editor prompts for `bit + 1`. To set
+`Finger` (bit 1) you type `2`. The same offset applies to the extra-flag menu.
+
+Bit 0 (`(Takeable)`) is not a slot - it controls whether the item can be picked
+up at all. Nearly every object needs it. An item with wear flags but without
+`(Takeable)` can be equipped only by staff loading it directly.
+
+| Bit | Menu # | Name | Constant |
+|-----|--------|------|----------|
+| 0 | 1 | (Takeable) | ITEM_WEAR_TAKE |
+| 1 | 2 | Finger | ITEM_WEAR_FINGER |
+| 2 | 3 | Neck | ITEM_WEAR_NECK |
+| 3 | 4 | Body | ITEM_WEAR_BODY |
+| 4 | 5 | Head | ITEM_WEAR_HEAD |
+| 5 | 6 | Legs | ITEM_WEAR_LEGS |
+| 6 | 7 | Feet | ITEM_WEAR_FEET |
+| 7 | 8 | Hands | ITEM_WEAR_HANDS |
+| 8 | 9 | Arms | ITEM_WEAR_ARMS |
+| 9 | 10 | Shield | ITEM_WEAR_SHIELD |
+| 10 | 11 | About-Body | ITEM_WEAR_ABOUT |
+| 11 | 12 | Waist | ITEM_WEAR_WAIST |
+| 12 | 13 | Wrist | ITEM_WEAR_WRIST |
+| 13 | 14 | Wield | ITEM_WEAR_WIELD |
+| 14 | 15 | Hold | ITEM_WEAR_HOLD |
+| 15 | 16 | Face | ITEM_WEAR_FACE |
+| 16 | 17 | Ammo-Pouch | ITEM_WEAR_AMMO_POUCH |
+| 17 | 18 | Ears | ITEM_WEAR_EAR |
+| 18 | 19 | Eyes | ITEM_WEAR_EYES |
+| 19 | 20 | Badge | ITEM_WEAR_BADGE |
+| 20 | 21 | Instrument | ITEM_WEAR_INSTRUMENT |
+| 21 | 22 | Shoulders | ITEM_WEAR_SHOULDERS |
+| 22 | 23 | Ankle | ITEM_WEAR_ANKLE |
+| 23 | 24 | Sheath | ITEM_WEAR_SHEATH |
+| 24 | 25 | Gathering-Tool | ITEM_WEAR_CRAFT_SICKLE |
+| 25 | 26 | Forestry-Tool | ITEM_WEAR_CRAFT_AXE |
+| 26 | 27 | Hunting-Tool | ITEM_WEAR_CRAFT_KNIFE |
+| 27 | 28 | Mining-Tool | ITEM_WEAR_CRAFT_PICKAXE |
+| 28 | 29 | Alchemy-Tool | ITEM_WEAR_CRAFT_ALCHEMY |
+| 29 | 30 | Armorsmithing-Tool | ITEM_WEAR_CRAFT_ARMOR_HAMMER |
+| 30 | 31 | Jewelcrafting-Tool | ITEM_WEAR_CRAFT_JEWEL_PLIERS |
+| 31 | 32 | Tailoring-Tool | ITEM_WEAR_CRAFT_NEEDLE |
+| 32 | 33 | Weaponsmithing-Tool | ITEM_WEAR_CRAFT_WEAPON_HAMMER |
+| 33 | 34 | On-Back | ITEM_WEAR_ON_BACK |
+
+**Total: 34 wear bits (0-33, `NUM_ITEM_WEARS`)**
+
+The nine crafting-tool slots (bits 24-32) are worn simultaneously with normal
+gear and pair with `ITEM_CRAFTING_TOOL` objects. A gathering sickle occupies
+`Gathering-Tool`, not `Hold`, so carrying a full tool set costs a player no
+combat slots.
+
+## Object Value Reference
+
+Every object carries 16 integer value slots. What they mean is decided entirely
+by the item type - there is no shared meaning across types, and a value that is
+meaningful for one type is ignored for another.
+
+### Two naming schemes, one array
+
+This trips up nearly everyone:
+
+- The **file format and the code** use `value[0]` through `value[15]`.
+- The **OEDIT prompts** are labelled `Value1` through `Value6`.
+
+`ValueN` in the editor writes `value[N-1]`. The table below uses the file-format
+numbering. When a prompt says "Value5: Enhancement bonus", that is `value[4]`.
+
+### The value line in a `.obj` file
+
+The second numeric line of an object record holds the values. `parse_object()`
+in `src/db.c` accepts **exactly 4 integers or exactly 16** - any other count is
+a fatal boot error:
+
+```
+SYSERR: Format error in second numeric line (expecting 4 or 16 args, got N)
+```
+
+Four values is the legacy CircleMUD format and is silently upgraded, leaving
+`value[4]` through `value[15]` at zero. Since enhancement bonuses live in
+`value[4]`, **any object that needs an enhancement must use the 16-value form.**
+Write all 16 for anything new.
+
+### Per-type value layout
+
+Slots not listed are unused for that type and should be left at 0.
+
+| Type | value[0] | value[1] | value[2] | value[3] | value[4] |
+|------|----------|----------|----------|----------|----------|
+| Light | unused | unused | Hours of light (`-1` infinite, `0` burnt out) | - | - |
+| Scroll | Spell level | Spell 1 | Spell 2 | Spell 3 | - |
+| Potion | Spell level | Spell 1 | Spell 2 | Spell 3 | - |
+| Wand | Spell level | Max charges | Charges remaining | Spell | - |
+| Staff | Spell level | Max charges | Charges remaining | Spell | - |
+| Weapon | Weapon type (`weapon_list`) | Number of damage dice | Damage die size | Attack message type | Enhancement bonus |
+| Ranged-Weapon | Weapon type | Number of damage dice | Breaking probability (2-98) | - | Enhancement bonus |
+| Ammo | Ammo category | unused | Breaking probability | - | Enhancement bonus |
+| Armor/Shield | Armor class apply | Armor subtype (`armor_list`) | - | - | Enhancement bonus |
+| Clan-Armor | Armor class apply | Clan vnum | - | - | Enhancement bonus |
+| Container | Max weight held (`-1` unlimited) | Container flags (bitvector) | Key vnum (`-1` none) | - | - |
+| Ammo-Pouch | Max weight held (`-1` unlimited) | Container flags (bitvector) | Key vnum (`-1` none) | - | - |
+| Liquid-Cont | Max drink units (`-1` unlimited) | Current drink units | Liquid type | Spell on drink (`0` none) | - |
+| Fountain | Max drink units (`-1` unlimited) | Current drink units | Liquid type | Spell on drink (`0` none) | - |
+| Food | Duration in rounds (6s each) | - | - | - | - |
+| Drink | Duration in rounds (6s each) | - | - | - | - |
+| Money | Number of gold coins | - | - | - | - |
+| Furniture | Number of people it holds | - | - | - | - |
+| Portal | Portal type | Target room vnum, or low vnum of range | High vnum of range (random only) | - | - |
+| Trap | Trap trigger type | Direction or target object vnum | Trap effect | - | - |
+| Switch | Activating command (`0` pull, `1` push) | Room vnum to manipulate | Direction (`0`n `1`e `2`s `3`w `4`u `5`d) | - | - |
+| Poison | Poison spell | Poison level | Applications | Hits per application | - |
+| Instrument | Instrument type | Difficulty reduction (0-30) | Instrument level (0-10) | Breakability (0 unbreakable) | - |
+| Blueprint | Craft ID number | - | - | - | - |
+| Treasure Chest | Loot tier / level | Loot type | Random-load chest (`1`/`0`) | Search DC (`0` not hidden) | Pick Lock DC (`0` unlocked) |
+| Greyhawk-Ship | Interior room vnum | Ship index (0-499, unique) | - | - | - |
+| Crafting-Tool | Crafting ability (`ABILITY_*`) | Bonus amount | Quality / durability | Special flags | - |
+| Gear Outfit | Outfit type (`1` weapon, `2` armor set) | Enhancement bonus | Material | Body apply type | Apply modifier amount |
+| Wearable | Special worn value (e.g. monk glove enhancement) | - | - | - | - |
+
+Types with no values at all: `Treasure`, `Trash`, `Other`, `Note`, `Pen`, `Key`,
+`Boat`, `Plant`. Selecting `C` on these returns straight to the main menu.
+
+### Notes on specific types
+
+- **Weapon and Armor auto-fill.** Choosing the weapon type or armor subtype runs
+  `set_weapon_object()` / `set_armor_object()`, which overwrite dice, cost,
+  weight, material, size, and wear flags from the master tables. Set those
+  first, then adjust. Re-running `C` resets the enhancement bonus.
+- **Portal values shift by mode.** With `PORTAL_NORMAL` or `PORTAL_CHECKFLAGS`,
+  `value[1]` is the destination room. With `PORTAL_RANDOM`, `value[1]` and
+  `value[2]` bound a vnum range. `PORTAL_CLANHALL` needs no room at all - it
+  always sends the player to their own clan hall.
+- **Trap values shift by trigger.** `value[1]` is a direction for the door
+  triggers, an object vnum for the container and get-object triggers, and unused
+  for the rest.
+- **Container flags are a bitvector**, not an index. The editor toggles bits;
+  entering the same number twice clears it.
+- **Enhancement lives in `value[4]`** for weapons, ranged weapons, ammo, and
+  both armor types. This is the single most common reason a hand-written object
+  ends up with no enhancement: the record was written with only four values.
 
 Happy building!

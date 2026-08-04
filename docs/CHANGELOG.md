@@ -1,5 +1,84 @@
 # Changelog
 
+## [Unreleased] - August 4, 2026
+
+### World-building documentation audit
+
+Worked the checklist in
+`docs/ongoing-projects/world-doc-audit-checklist.md` to completion. Eleven
+documents audited against the source; three new references written.
+
+#### Added
+
+- `docs/world_game-data/ZONE_FILE_FORMAT.md` - `.zon` reference: the numeric
+  header and all four field counts the parser accepts, zone flags, every reset
+  command with its argument arity, all 17 door states, and the parser behaviors
+  that abort a boot.
+- `docs/world_game-data/SHOP_FILE_FORMAT.md` - `.shp` field-by-field reference,
+  including the `v3.0` tag that silently changes how the produce and buy-type
+  lists are parsed.
+- `docs/world_game-data/BUILDER_QUICKSTART.md` - one zone from empty to
+  bootable, by hand and via OLC, with a table mapping first-boot `SYSERR`
+  messages to their causes.
+- `scripts/development/generate-web-guides.sh` - regenerates the three builder
+  pages under `docs/web/guides/` from their Markdown sources. `--check` reports
+  stale pages without writing. The HTML had been a hand-maintained duplicate of
+  the three most-edited builder docs with no generator; `docs/web/README_WEB.md`
+  now records that it is build output.
+- `docs/world_game-data/OEDIT_GUIDE.md` gained complete item type (58), wear
+  slot (34), and object value-vector references. It previously documented 24
+  item types and 4 wear slots, and the value semantics existed nowhere.
+
+#### Fixed
+
+- **Flag document citations.** Of 103 `file.c:line` citations across
+  `ROOM_FLAGS.md` and `MOB_FLAGS.md`, 93 pointed nowhere near the flag they
+  claimed to document. All 104 regenerated as path-qualified file plus
+  enclosing function name. No bare line numbers remain.
+- `MOB_FLAGS.md` documented 101 flags; there are 105. Added
+  `Custom-Mob-Stats`, `No-Block-Bypass`, `Golem`, and `No-Teleport`, and a
+  warning that many `MOB_*` defines are mob vnums rather than flag bits -
+  `MOB_BLOCK_E` and `MOB_DIRE_SPIDER` are both 46.
+- `ROOM_FLAGS.md` was missing bit 2 `No-Mob`, and cited a `vessels_src.c` that
+  does not exist.
+- Both flag documents' quick reference tables gained an OLC display-name column;
+  they previously used only constant names, so searching for what the in-game
+  menu shows found nothing.
+- `OLC_ONLINE_CREATION_SYSTEM.md` presented a `ZCMD_*` constant set that does
+  not exist, and 21 identifiers in its code samples - including a `massroomset`
+  command - are not in the tree. Replaced the zone command section with the real
+  `struct reset_com`, added a full editor and listing command reference, and
+  flagged the remaining listings as illustrative.
+- `wilderness_system.md` configuration section: of 27 documented constants, 16
+  did not exist and 6 more had wrong values. Replaced with the real headers.
+  The resource map symbol table was also wrong - it showed Unicode block
+  characters where the game emits `#`, `*`, `+`, `.`, `,`. Added the `.wld` `C`
+  block format, which was undocumented.
+- `builder_manual.md` listed `tedit` as the trigger editor; it edits the
+  server's static text files. Corrected, and the zone reset command list and
+  `zedit new` syntax completed.
+- `gear_guide.md` referenced `APPLY_MANA`, which does not exist; the constant is
+  `APPLY_PSP`.
+- `crafting_notes_old.md` renamed to `CRAFTING_SYSTEM_NOTES.md`. All fifteen
+  skill numbers in it were pre-`START_SKILLS` values (471-485) and are now
+  2071-2085.
+- `STARTER_AREA.md` described the tracked starter bundle as living in
+  `lib/world/`; it is a flat directory at `lib/world/minimal/`, and the live
+  directories are gitignored.
+- Non-ASCII bytes removed from `wilderness_system.md`, `gear_guide.md`,
+  `builder_manual.md`, `OLC_SpecProcs.md`, and `STARTER_AREA.md`, per the
+  project ASCII rule.
+
+#### Notes
+
+Five source-level bugs in `src/db.c` were found while writing the format
+references and are recorded in `docs/known-issues.md`: the unreachable
+`case 'I'` and `case 'R'` in `load_zones()`, the non-functional `L` reset
+command, silent degradation of the zone header when the field count is between
+the accepted values, the column-0 prescan desync behind
+`Zone command count mismatch`, and `renum_world()` nulling dangling exits with
+no log line. No source was changed.
+
 ## [Unreleased] - July 30, 2026
 
 ### Artifact project notes retired

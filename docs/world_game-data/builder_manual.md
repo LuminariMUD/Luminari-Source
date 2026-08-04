@@ -89,12 +89,12 @@ Game balance is crucial for maintaining a fair and enjoyable experience. Each ar
 **File Organization:**
 ```
 lib/world/
-├── wld/    # Room files (.wld)
-├── mob/    # Mobile files (.mob)
-├── obj/    # Object files (.obj)
-├── shp/    # Shop files (.shp)
-├── trg/    # Trigger files (.trg)
-└── zon/    # Zone files (.zon)
+|-- wld/    # Room files (.wld)
+|-- mob/    # Mobile files (.mob)
+|-- obj/    # Object files (.obj)
+|-- shp/    # Shop files (.shp)
+|-- trg/    # Trigger files (.trg)
+`-- zon/    # Zone files (.zon)
 ```
 
 **Zone Numbering:**
@@ -153,13 +153,31 @@ The Online Creation (OLC) system allows builders to create and modify world cont
 - `oedit <obj_vnum>` - Edit objects
 - `zedit <zone_num>` - Edit zones
 - `sedit <shop_vnum>` - Edit shops
-- `tedit <trigger_vnum>` - Edit triggers
+- `trigedit <trigger_vnum>` - Edit DG Script triggers
+- `qedit <quest_vnum>` - Edit quests
 
-**Navigation Commands:**
-- `show` - Display current item being edited
-- `save` - Save changes to disk
-- `abort` - Cancel changes and exit
-- `?` or `help` - Show available commands
+Note: `tedit` is **not** the trigger editor. It edits the server's static text
+files - `motd`, `news`, `policies`, `credits`, and similar. The trigger editor
+is `trigedit`.
+
+**Finding free vnums:**
+- `rlist`, `mlist`, `olist`, `slist`, `tlist`, `qlist`, `zlist`
+
+Each takes no argument for the current zone, a zone number, or a vnum range:
+`rlist 3000 3099`. Run these before creating anything - a vnum collision is not
+detected at boot, and the later definition silently wins.
+
+**Inside an editor:**
+- Menu choices are single characters or plain numbers, as shown on the menu
+- `Q` quits, then `Y` saves to disk or `N` discards
+- Changes are buffered in memory until you answer `Y`
+
+**Saving a whole zone from outside an editor:**
+- `redit save`, `sedit save` - write the current zone's rooms or shops to disk
+- Append a zone number to save a different zone: `redit save 30`
+
+A full editor and listing reference is in
+[OLC_ONLINE_CREATION_SYSTEM.md](../systems/OLC_ONLINE_CREATION_SYSTEM.md).
 
 ### Room Editor (REDIT)
 
@@ -305,24 +323,43 @@ extra <keyword>            # Add extra description
 
 **Starting Zone Editing:**
 ```
-zedit <zone_num>     # Edit existing zone
-zedit new            # Create new zone
+zedit <zone_num>                                # Edit existing zone
+zedit new <zone number> <bottom-room> <upper-room>   # Create new zone
 ```
+
+`zedit new` requires all three arguments. `zedit new 30` on its own only prints
+the usage line.
 
 **Zone Properties:**
 - **Name:** Zone name and description
-- **Lifespan:** How long zone resets last
+- **Lifespan:** Minutes between resets
 - **Reset Mode:** When zone resets occur
 - **Commands:** Zone reset commands
 
 **Zone Reset Commands:**
 - `M` - Load mobile into room
 - `O` - Load object into room
-- `G` - Give object to mobile
-- `E` - Equip object on mobile
+- `G` - Give object to the last mobile loaded
+- `E` - Equip the last mobile loaded with an object
 - `P` - Put object in container
 - `D` - Set door state
 - `R` - Remove object from room
+- `T` - Attach a trigger
+- `V` - Assign a DG Script variable
+- `J` - Jump over the following lines
+- `I` - Load random treasure onto a mobile
+- `L` - Load random treasure into a container (non-functional; do not use)
+- `S` - Terminates the command list
+
+Each command takes an if-flag as its first argument: `0` runs the command
+unconditionally, `1` runs it only if the previous command ran. Use `1` on `G`
+and `E` so equipment does not spawn on a mobile that failed to load.
+
+`M`, `O`, and `P` accept an optional trailing load percentage; `G` accepts one
+too. Omitting it means the command always runs.
+
+Full field-by-field syntax, door states, and the parser's failure modes are in
+the [Zone File Format Reference](ZONE_FILE_FORMAT.md).
 
 **Reset Modes:**
 - `0` - Never reset

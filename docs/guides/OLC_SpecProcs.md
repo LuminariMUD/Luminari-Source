@@ -29,11 +29,11 @@ The selected SpecProc is stored by name and resolved at boot.
     - Line 1: `Z`
     - Line 2: `<Name>`
 
-If the name isn’t recognized in the SpecProc registry, the function won’t be assigned at boot.
+If the name isn't recognized in the SpecProc registry, the function won't be assigned at boot.
 
 ## Notes and Tips
 - Names must match entries in `spec_func_list[]` (see `src/spec_assign.c`).
-- Some SpecProcs are intended for specific types (mob/object/room). Assigning a mismatched SpecProc won’t crash, but may do nothing.
+- Some SpecProcs are intended for specific types (mob/object/room). Assigning a mismatched SpecProc won't crash, but may do nothing.
 - Clearing a SpecProc removes the corresponding lines from the world file on next save.
 - The selector is 1-based; `0` always clears.
 

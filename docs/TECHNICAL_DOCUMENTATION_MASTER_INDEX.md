@@ -130,11 +130,19 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Building & Content Creation
 
 ### Building Guides
+- **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 
+### World File Formats
+- **[Zone File Format](world_game-data/ZONE_FILE_FORMAT.md)** - `.zon` header fields, reset commands, and parser gotchas
+- **[Shop File Format](world_game-data/SHOP_FILE_FORMAT.md)** - `.shp` field-by-field reference
+- **[OEDIT Guide](world_game-data/OEDIT_GUIDE.md)** - Object editor, item types, wear slots, and the object value vectors
+- **[Room Flags](world_game-data/ROOM_FLAGS.md)** - All 42 room flags
+- **[Mobile Flags](world_game-data/MOB_FLAGS.md)** - All 105 mobile action flags
+
 ### Equipment & Items
-- **[crafting_notes_old.md](world_game-data/crafting_notes_old.md)** - Crafting system notes
+- **[CRAFTING_SYSTEM_NOTES.md](world_game-data/CRAFTING_SYSTEM_NOTES.md)** - Crafting system design notes (partial; verify against `src/craft/`)
 - **[gear_guide.md](world_game-data/gear_guide.md)** - Combined gear stat distribution (equipment balance, loot generation, stats by wear location)
 
 ---
@@ -171,7 +179,6 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[AI_TODO_IDEAS.md](ongoing-projects/AI_TODO_IDEAS.md)** - AI conversation history implementation plan
 - **[DO_SKORE_PROJECT.md](ongoing-projects/DO_SKORE_PROJECT.md)** - Skore system phases 3-4
 - **[IDEA_LIST.md](ongoing-projects/IDEA_LIST.md)** - Player and staff feature idea backlog
-- **[TYPOS_LIST.md](ongoing-projects/TYPOS_LIST.md)** - Source-only production in-game typo backlog
 
 ### Historical Records
 - **[Previous Changelogs](previous_changelogs/)** - Historical development records

@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` (lines 1131-1232) and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **101 mobile flags** (indices 0-100) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **105 mobile flags** (indices 0-104, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -26,6 +26,27 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
     // Flag is set, apply behavior/restriction
 }
 ```
+
+### Warning: not every `MOB_*` define is a flag
+
+`src/structs.h` and its neighbours contain many constants beginning with `MOB_`
+that are **not** action-flag bit numbers. They are mobile vnums and summon
+identifiers that happen to share the prefix:
+
+| Example | Value | What it actually is |
+|---------|-------|---------------------|
+| `MOB_GHOST_WOLF` | 801 | A mobile vnum |
+| `MOB_DIRE_RAT` | 9400 | A mobile vnum |
+| `MOB_MOUNT_SPELL` | 101320 | A summon identifier |
+
+Because bit numbers only run 0-104, values above that range are a reliable
+tell - but the ranges also **collide**. `MOB_BLOCK_E` is bit 46 and
+`MOB_DIRE_SPIDER` is vnum 46; nothing in the name distinguishes them.
+
+If you are grepping for `MOB_` to enumerate flags, do not. The authoritative
+list of action flags is the `action_bits[]` table in `src/constants.c`, whose
+index *is* the bit number, terminated by a `"\n"` entry. Anything not in that
+table is not an action flag, whatever it is called.
 
 ---
 
@@ -47,9 +68,9 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 - Used for stationary guards, shopkeepers, and landmark NPCs
 
 **Code References:**
-- `mob_act.c:397` - Prevents random movement
-- `mob_act.c:419, 431` - Position management for sentinels
-- `utils.c:7171` - Drag restrictions
+- `src/mob/mob_act.c` - Prevents random movement (`mobile_activity()`)
+- `src/mob/mob_act.c` - Position management for sentinels (`mobile_activity()`)
+- `src/utils.c` - Drag restrictions (`push_attempt()`)
 
 ### MOB_SCAVENGER (Index: 2)
 **Effect:** Mobile picks up items from the ground.
@@ -66,8 +87,8 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 - Used for alert guards, paranoid NPCs, creatures with special senses
 
 **Code References:**
-- `act.offensive.c:4076` - Backstab prevention
-- `act.offensive.c:8940` - Sneak attack prevention
+- `src/combat/act.offensive.c` - Backstab prevention (`do_backstab()`, `do_circle()`)
+- `src/combat/act.offensive.c` - Sneak attack prevention (`do_backstab()`, `do_circle()`)
 
 ### MOB_WIMPY (Index: 7)
 **Effect:** Mobile flees when severely injured.
@@ -76,8 +97,8 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 - Behavior similar to player wimpy setting
 
 **Code References:**
-- `fight.c:5779` - Flee trigger check
-- `mob_act.c:196` - Wimpy behavior handling
+- `src/combat/fight.c` - Flee trigger check (`damage()`)
+- `src/mob/mob_act.c` - Wimpy behavior handling (`mobile_activity()`)
 
 ### MOB_SENTIENT (Index: 19)
 **Effect:** Marks mobile as sentient/intelligent.
@@ -108,9 +129,9 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 - Used for hostile monsters and aggressive creatures
 
 **Code References:**
-- `mob_act.c:221` - Aggression trigger
-- `limits.c:2245` - Set during rage/charm effects
-- `db.c:3173-3177` - Boot-time validation with alignment aggro flags
+- `src/mob/mob_act.c` - Aggression trigger (`mobile_activity()`)
+- `src/limits.c` - Set during rage/charm effects (`proc_d20_round()`)
+- `src/db.c` - Boot-time validation with alignment aggro flags (`parse_mobile()`)
 
 ### MOB_AGGR_EVIL (Index: 8)
 **Effect:** Mobile attacks evil-aligned characters on sight.
@@ -141,8 +162,8 @@ if (MOB_FLAGGED(mob, MOB_FLAGNAME)) {
 - Essential for boss monsters
 
 **Code References:**
-- `spells.c:388` - Charm spell blocking
-- `spec_abilities.c:611, 622, 640, 1359` - Ability-based charm blocking
+- `src/magic/spells.c` - Charm spell blocking (`effect_charm()`)
+- `src/combat/spec_abilities.c` - Ability-based charm blocking (`process_weapon_abilities()`, `process_item_abilities()`)
 
 ### MOB_NOSUMMON (Index: 14)
 **Effect:** Mobile cannot be summoned or teleported.
@@ -295,9 +316,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for intelligent creatures and guards
 
 **Code References:**
-- `mob_memory.c:31` - Memory system check
-- `fight.c:5154, 5475, 12301` - Adding to memory
-- `graph.c:411` - Pathfinding to remembered enemies
+- `src/mob/mob_memory.c` - Memory system check (`is_in_memory()`)
+- `src/combat/fight.c` - Adding to memory (`dam_killed_vict()`, `damage()`, `hit()`)
+- `src/graph.c` - Pathfinding to remembered enemies (`hunt_victim()`)
 
 ### MOB_HELPER (Index: 12)
 **Effect:** Mobile assists other NPCs fighting against players.
@@ -306,8 +327,8 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for pack tactics and coordinated defense
 
 **Code References:**
-- `mob_act.c:190, 285, 291` - Helper behavior logic
-- `limits.c:2246` - Removed when mob becomes aggressive
+- `src/mob/mob_act.c` - Helper behavior logic (`mobile_activity()`)
+- `src/limits.c` - Removed when mob becomes aggressive (`proc_d20_round()`)
 
 ### MOB_GUARD (Index: 31)
 **Effect:** Mobile protects citizens and assists them in combat.
@@ -316,8 +337,8 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for city guards and protectors
 
 **Code References:**
-- `mob_act.c:285, 290, 311, 313` - Guard protection logic
-- `missions.c:511, 633, 732` - Mission guard assignment
+- `src/mob/mob_act.c` - Guard protection logic (`mobile_activity()`)
+- `src/quest/missions.c` - Mission guard assignment (`create_mission_mobs()`)
 
 ### MOB_CITIZEN (Index: 32)
 **Effect:** Mobile is protected by guards.
@@ -326,8 +347,8 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Creates natural guard/citizen relationships
 
 **Code References:**
-- `mob_act.c:311, 313` - Protection checks
-- `missions.c:518, 640, 739` - Citizen designation
+- `src/mob/mob_act.c` - Protection checks (`mobile_activity()`)
+- `src/quest/missions.c` - Citizen designation (`create_mission_mobs()`)
 
 ### MOB_HUNTER (Index: 33)
 **Effect:** Mobile actively tracks down and hunts enemies.
@@ -336,8 +357,8 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for predators and assassins
 
 **Code References:**
-- `mob_act.c:371` - Hunter behavior trigger
-- `fight.c:5486` - Hunt initiation
+- `src/mob/mob_act.c` - Hunter behavior trigger (`mobile_activity()`)
+- `src/combat/fight.c` - Hunt initiation (`damage()`)
 
 ### MOB_MOB_ASSIST (Index: 61)
 **Effect:** Mobile will assist other mobs in its group/following.
@@ -381,9 +402,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Used for horses, griffons, etc.
 
 **Code References:**
-- `act.other.c:2457, 2561` - Mount command checks
-- `movement_cost.c:38` - Movement cost adjustments
-- `evolutions.c:715` - Eidolon mountable flag
+- `src/act.other.c` - Mount command checks (`do_mount()`, `do_tame()`)
+- `src/movement/movement_cost.c` - Movement cost adjustments (`get_speed()`)
+- `src/character/evolutions.c` - Eidolon mountable flag (`assign_eidolon_evolutions()`)
 
 ### MOB_ELEMENTAL (Index: 29)
 **Effect:** Mobile is an elemental creature.
@@ -664,6 +685,46 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - Can cast spells without running out
 - Used for powerful casters, bosses
 
+### MOB_CUSTOM_MOB_STATS (Index: 101)
+**Effect:** The mobile uses the stat modifiers written on its prototype instead of the defaults for its category.
+- Without this flag, a mobile's stats are derived from its level and category at load
+- With it, the values a builder set in `medit` are applied verbatim
+- Set it whenever you have deliberately hand-tuned a mob's abilities and do not want them overwritten
+
+**Code References:**
+- `src/utils.c` - Stat application (`apply_mob_stat_modifiers()`)
+
+### MOB_NO_BLOCK_BYPASS (Index: 102)
+**Effect:** Prevents the Ghost perk and similar abilities from slipping past this mobile's blocking.
+- Blocking mobiles normally have bypass routes available to certain classes and perks
+- This flag closes them, making the block absolute
+- Intended for gatekeepers and chokepoint guardians that must not be circumvented
+
+**Code References:**
+- `src/movement/movement.c` - Block bypass check (`do_simple_move()`)
+
+### MOB_GOLEM (Index: 103)
+**Effect:** Marks the mobile as a constructed golem.
+- Used for follower tracking, so a player's golem is distinguished from ordinary charmed followers
+- Enables the golem repair and destroy commands to find it
+- Changes corpse handling on death
+
+**Code References:**
+- `src/act.other.c` - Golem commands (`do_destroygolem()`, `do_golemrepair()`)
+- `src/craft/crafting_new.c` - Golem crafting and repair (`has_golem_follower()`, `craft_golem_complete()`, `can_repair_golem()`)
+- `src/utils.c` - Follower tracking (`can_add_follower()`)
+- `src/combat/fight.c` - Corpse generation (`make_corpse()`)
+
+### MOB_NOTELEPORT (Index: 104)
+**Effect:** The mobile cannot be teleported.
+- Blocks teleport spells that would move this mobile
+- Also respected by the creation spells when placing summoned creatures
+- Use for mobiles whose location is load-bearing: shopkeepers, quest targets, and anything a zone reset assumes stays put
+
+**Code References:**
+- `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
+- `src/magic/magic.c` - Creation placement (`mag_creations()`)
+
 ### MOB_BUFF_OUTSIDE_COMBAT (Index: 96)
 **Effect:** UNUSED - Kept for backward compatibility.
 - No longer functional
@@ -676,109 +737,113 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 
 ### Quick Reference Table
 
-| Index | Flag Name | Category | Primary Purpose |
-|-------|-----------|----------|----------------|
-| 0 | MOB_SPEC | System | Has special procedure |
-| 1 | MOB_SENTINEL | Behavior | Won't move |
-| 2 | MOB_SCAVENGER | Behavior | Picks up items |
-| 3 | MOB_ISNPC | System | Is NPC (read-only) |
-| 4 | MOB_AWARE | Combat | Can't be backstabbed |
-| 5 | MOB_AGGRESSIVE | Combat | Attacks everyone |
-| 6 | MOB_STAY_ZONE | Movement | Stays in zone |
-| 7 | MOB_WIMPY | Behavior | Flees when hurt |
-| 8 | MOB_AGGR_EVIL | Combat | Attacks evil |
-| 9 | MOB_AGGR_GOOD | Combat | Attacks good |
-| 10 | MOB_AGGR_NEUTRAL | Combat | Attacks neutral |
-| 11 | MOB_MEMORY | Combat | Remembers attackers |
-| 12 | MOB_HELPER | Combat | Assists other NPCs |
-| 13 | MOB_NOCHARM | Immunity | Can't be charmed |
-| 14 | MOB_NOSUMMON | Immunity | Can't be summoned |
-| 15 | MOB_NOSLEEP | Immunity | Can't be slept |
-| 16 | MOB_NOBASH | Immunity | Can't be bashed |
-| 17 | MOB_NOBLIND | Immunity | Can't be blinded |
-| 18 | MOB_NOKILL | Immunity | Can't be attacked |
-| 19 | MOB_SENTIENT | Classification | Intelligent being |
-| 20 | MOB_NOTDEADYET | System | Being extracted |
-| 21 | MOB_MOUNTABLE | Companion | Can be ridden |
-| 22 | MOB_NODEAF | Immunity | Can't be deafened |
-| 23 | MOB_NOFIGHT | Behavior | Won't fight |
-| 24 | MOB_NOCLASS | Classification | No class |
-| 25 | MOB_NOGRAPPLE | Immunity | Can't be grappled |
-| 26 | MOB_C_ANIMAL | Companion | Animal companion |
-| 27 | MOB_C_FAMILIAR | Companion | Familiar |
-| 28 | MOB_C_MOUNT | Companion | Summoned mount |
-| 29 | MOB_ELEMENTAL | Companion | Elemental |
-| 30 | MOB_ANIMATED_DEAD | Companion | Animated undead |
-| 31 | MOB_GUARD | Combat | Protects citizens |
-| 32 | MOB_CITIZEN | Classification | Protected by guards |
-| 33 | MOB_HUNTER | Combat | Tracks foes |
-| 34 | MOB_LISTEN | Behavior | Hears fighting |
-| 35 | MOB_LIT | Environment | Emits light |
-| 36 | MOB_PLANAR_ALLY | Companion | Planar ally (unused) |
-| 37 | MOB_NOSTEAL | Immunity | Can't be stolen from |
-| 38 | MOB_INFO_KILL | System | Broadcasts death |
-| 39 | MOB_CUSTOM_GOLD | System | Custom gold drops |
-| 40 | MOB_NO_AI | System | AI disabled |
-| 41 | MOB_MERCENARY | Companion | Hired mercenary |
-| 42 | MOB_ENCOUNTER | System | Wilderness encounter |
-| 43 | MOB_SHADOW | Companion | Shadow companion |
-| 44 | MOB_IS_OBJ | System | Represents object |
-| 45 | MOB_BLOCK_N | Blocking | Blocks north |
-| 46 | MOB_BLOCK_E | Blocking | Blocks east |
-| 47 | MOB_BLOCK_S | Blocking | Blocks south |
-| 48 | MOB_BLOCK_W | Blocking | Blocks west |
-| 49 | MOB_BLOCK_NE | Blocking | Blocks northeast |
-| 50 | MOB_BLOCK_SE | Blocking | Blocks southeast |
-| 51 | MOB_BLOCK_SW | Blocking | Blocks southwest |
-| 52 | MOB_BLOCK_NW | Blocking | Blocks northwest |
-| 53 | MOB_BLOCK_U | Blocking | Blocks up |
-| 54 | MOB_BLOCK_D | Blocking | Blocks down |
-| 55 | MOB_BLOCK_CLASS | Blocking | Class exemption |
-| 56 | MOB_BLOCK_RACE | Blocking | Race exemption |
-| 57 | MOB_BLOCK_LEVEL | Blocking | Level restriction |
-| 58 | MOB_BLOCK_ALIGN | Blocking | Alignment exemption |
-| 59 | MOB_BLOCK_ETHOS | Blocking | Ethos exemption |
-| 60 | MOB_INFO_KILL_PLR | System | Broadcasts PC death |
-| 61 | MOB_MOB_ASSIST | Combat | Assists other mobs |
-| 62 | MOB_NOCONFUSE | Immunity | Can't be confused |
-| 63 | MOB_HUNTS_TARGET | Combat | Hunts specific target |
-| 64 | MOB_ABIL_GRAPPLE | Ability | Grapple attack |
-| 65 | MOB_ABIL_PETRIFY | Ability | Petrification |
-| 66 | MOB_ABIL_TAIL_SPIKES | Ability | Spike attack |
-| 67 | MOB_ABIL_LEVEL_DRAIN | Ability | Level drain |
-| 68 | MOB_ABIL_CHARM | Ability | Charm attack |
-| 69 | MOB_ABIL_BLINK | Ability | Blink/teleport |
-| 70 | MOB_ABIL_ENGULF | Ability | Engulf attack |
-| 71 | MOB_ABIL_CAUSE_FEAR | Ability | Cause fear |
-| 72 | MOB_ABIL_CORRUPTION | Ability | Corruption touch |
-| 73 | MOB_ABIL_SWALLOW | Ability | Swallow whole |
-| 74 | MOB_ABIL_FLIGHT | Ability | Can fly |
-| 75 | MOB_ABIL_POISON | Ability | Poison attack |
-| 76 | MOB_ABIL_REGENERATION | Ability | Regenerates HP |
-| 77 | MOB_ABIL_PARALYZE | Ability | Paralyze attack |
-| 78 | MOB_ABIL_FIRE_BREATH | Ability | Fire breath |
-| 79 | MOB_ABIL_LIGHTNING_BREATH | Ability | Lightning breath |
-| 80 | MOB_ABIL_POISON_BREATH | Ability | Poison breath |
-| 81 | MOB_ABIL_ACID_BREATH | Ability | Acid breath |
-| 82 | MOB_ABIL_FROST_BREATH | Ability | Frost breath |
-| 83 | MOB_ABIL_MAGIC_IMMUNITY | Ability | Immune to magic |
-| 84 | MOB_ABIL_INVISIBILITY | Ability | Naturally invisible |
-| 85 | MOB_C_O_T_N | Companion | Children of Night |
-| 86 | MOB_VAMP_SPWN | Companion | Vampire spawn |
-| 87 | MOB_DRAGON_KNIGHT | Companion | Dragon knight mount |
-| 88 | MOB_MUMMY_DUST | Companion | Mummy dust creation |
-| 89 | MOB_EIDOLON | Companion | Eidolon |
-| 90 | MOB_BLOCK_EVIL | Blocking | Blocks evil |
-| 91 | MOB_BLOCK_NEUTRAL | Blocking | Blocks neutral |
-| 92 | MOB_BLOCK_GOOD | Blocking | Blocks good |
-| 93 | MOB_GENIEKIND | Classification | Genie-type |
-| 94 | MOB_C_DRAGON | Companion | Companion dragon |
-| 95 | MOB_RETAINER | Companion | Leadership retainer |
-| 96 | MOB_BUFF_OUTSIDE_COMBAT | Deprecated | UNUSED |
-| 97 | MOB_NOPARALYZE | Immunity | Can't be paralyzed |
-| 98 | MOB_AI_ENABLED | System | Advanced AI |
-| 99 | MOB_QUARTERMASTER | System | Supply orders |
-| 100 | MOB_UNLIMITED_SPELL_SLOTS | System | No spell limits |
+| Index | Flag Name | OLC Display Name | Category | Primary Purpose |
+|-------|-----------|------------------|----------|----------------|
+| 0 | MOB_SPEC | <spec> | System | Has special procedure |
+| 1 | MOB_SENTINEL | Sentinel | Behavior | Won't move |
+| 2 | MOB_SCAVENGER | Scavenger | Behavior | Picks up items |
+| 3 | MOB_ISNPC | Mob | System | Is NPC (read-only) |
+| 4 | MOB_AWARE | Aware | Combat | Can't be backstabbed |
+| 5 | MOB_AGGRESSIVE | Aggro | Combat | Attacks everyone |
+| 6 | MOB_STAY_ZONE | Zone-Sentinel | Movement | Stays in zone |
+| 7 | MOB_WIMPY | Wimpy | Behavior | Flees when hurt |
+| 8 | MOB_AGGR_EVIL | Aggro-Evil | Combat | Attacks evil |
+| 9 | MOB_AGGR_GOOD | Aggro-Good | Combat | Attacks good |
+| 10 | MOB_AGGR_NEUTRAL | Aggro-Neutral | Combat | Attacks neutral |
+| 11 | MOB_MEMORY | Memory | Combat | Remembers attackers |
+| 12 | MOB_HELPER | Helper | Combat | Assists other NPCs |
+| 13 | MOB_NOCHARM | Uncharmable | Immunity | Can't be charmed |
+| 14 | MOB_NOSUMMON | Unsummonable | Immunity | Can't be summoned |
+| 15 | MOB_NOSLEEP | Immune-Sleep | Immunity | Can't be slept |
+| 16 | MOB_NOBASH | Unbashable | Immunity | Can't be bashed |
+| 17 | MOB_NOBLIND | Unblindable | Immunity | Can't be blinded |
+| 18 | MOB_NOKILL | Unkillable | Immunity | Can't be attacked |
+| 19 | MOB_SENTIENT | Sentient | Classification | Intelligent being |
+| 20 | MOB_NOTDEADYET | !DEAD! | System | Being extracted |
+| 21 | MOB_MOUNTABLE | Mountable | Companion | Can be ridden |
+| 22 | MOB_NODEAF | Immune-Deaf | Immunity | Can't be deafened |
+| 23 | MOB_NOFIGHT | Does-Not-Fight | Behavior | Won't fight |
+| 24 | MOB_NOCLASS | Classless | Classification | No class |
+| 25 | MOB_NOGRAPPLE | Ungrappleable | Immunity | Can't be grappled |
+| 26 | MOB_C_ANIMAL | Animal-Companion | Companion | Animal companion |
+| 27 | MOB_C_FAMILIAR | Familiar | Companion | Familiar |
+| 28 | MOB_C_MOUNT | Paladin/Blackguard-Mount | Companion | Summoned mount |
+| 29 | MOB_ELEMENTAL | Summoned-Elemental | Companion | Elemental |
+| 30 | MOB_ANIMATED_DEAD | Animated-Dead | Companion | Animated undead |
+| 31 | MOB_GUARD | Guard | Combat | Protects citizens |
+| 32 | MOB_CITIZEN | Citizen | Classification | Protected by guards |
+| 33 | MOB_HUNTER | Hunter | Combat | Tracks foes |
+| 34 | MOB_LISTEN | Listen | Behavior | Hears fighting |
+| 35 | MOB_LIT | Lit-Up | Environment | Emits light |
+| 36 | MOB_PLANAR_ALLY | Planar-Ally | Companion | Planar ally (unused) |
+| 37 | MOB_NOSTEAL | No-Steal | Immunity | Can't be stolen from |
+| 38 | MOB_INFO_KILL | Info-Kill | System | Broadcasts death |
+| 39 | MOB_CUSTOM_GOLD | Custom-Gold | System | Custom gold drops |
+| 40 | MOB_NO_AI | No-AI | System | AI disabled |
+| 41 | MOB_MERCENARY | Mercenary | Companion | Hired mercenary |
+| 42 | MOB_ENCOUNTER | Encounter | System | Wilderness encounter |
+| 43 | MOB_SHADOW | Shadow | Companion | Shadow companion |
+| 44 | MOB_IS_OBJ | Mob-Is-Obj | System | Represents object |
+| 45 | MOB_BLOCK_N | Mob-Block-North | Blocking | Blocks north |
+| 46 | MOB_BLOCK_E | Mob-Block-East | Blocking | Blocks east |
+| 47 | MOB_BLOCK_S | Mob-Block-South | Blocking | Blocks south |
+| 48 | MOB_BLOCK_W | Mob-Block-West | Blocking | Blocks west |
+| 49 | MOB_BLOCK_NE | Mob-Block-NE | Blocking | Blocks northeast |
+| 50 | MOB_BLOCK_SE | Mob-Block-SE | Blocking | Blocks southeast |
+| 51 | MOB_BLOCK_SW | Mob-Block-SW | Blocking | Blocks southwest |
+| 52 | MOB_BLOCK_NW | Mob-Block-NW | Blocking | Blocks northwest |
+| 53 | MOB_BLOCK_U | Mob-Block-Up | Blocking | Blocks up |
+| 54 | MOB_BLOCK_D | Mob-Block-Down | Blocking | Blocks down |
+| 55 | MOB_BLOCK_CLASS | Mob-Block-Class | Blocking | Class exemption |
+| 56 | MOB_BLOCK_RACE | Mob-Block-Race | Blocking | Race exemption |
+| 57 | MOB_BLOCK_LEVEL | Mob-Block-Level | Blocking | Level restriction |
+| 58 | MOB_BLOCK_ALIGN | Mob-Block-Alignment | Blocking | Alignment exemption |
+| 59 | MOB_BLOCK_ETHOS | Mob-Block-Ethos | Blocking | Ethos exemption |
+| 60 | MOB_INFO_KILL_PLR | Info-Kill-of-Player | System | Broadcasts PC death |
+| 61 | MOB_MOB_ASSIST | Mob-Assist | Combat | Assists other mobs |
+| 62 | MOB_NOCONFUSE | No-Confuse | Immunity | Can't be confused |
+| 63 | MOB_HUNTS_TARGET | Hunts-Target | Combat | Hunts specific target |
+| 64 | MOB_ABIL_GRAPPLE | Ability-Grapple | Ability | Grapple attack |
+| 65 | MOB_ABIL_PETRIFY | Ability-Petrify | Ability | Petrification |
+| 66 | MOB_ABIL_TAIL_SPIKES | Ability-Tail-Spikes | Ability | Spike attack |
+| 67 | MOB_ABIL_LEVEL_DRAIN | Ability-Level-Drain | Ability | Level drain |
+| 68 | MOB_ABIL_CHARM | Ability-Charm | Ability | Charm attack |
+| 69 | MOB_ABIL_BLINK | Ability-Blink | Ability | Blink/teleport |
+| 70 | MOB_ABIL_ENGULF | Ability-Engulf | Ability | Engulf attack |
+| 71 | MOB_ABIL_CAUSE_FEAR | Ability-Cause-Fear | Ability | Cause fear |
+| 72 | MOB_ABIL_CORRUPTION | Ability-Corruption | Ability | Corruption touch |
+| 73 | MOB_ABIL_SWALLOW | Ability-Swallow | Ability | Swallow whole |
+| 74 | MOB_ABIL_FLIGHT | Ability-Flight | Ability | Can fly |
+| 75 | MOB_ABIL_POISON | Ability-Poison | Ability | Poison attack |
+| 76 | MOB_ABIL_REGENERATION | Ability-Regenerate | Ability | Regenerates HP |
+| 77 | MOB_ABIL_PARALYZE | Ability-Paralyze | Ability | Paralyze attack |
+| 78 | MOB_ABIL_FIRE_BREATH | Ability-Fire-Breath | Ability | Fire breath |
+| 79 | MOB_ABIL_LIGHTNING_BREATH | Ability-Lightning-Breath | Ability | Lightning breath |
+| 80 | MOB_ABIL_POISON_BREATH | Ability-Poison-Breath | Ability | Poison breath |
+| 81 | MOB_ABIL_ACID_BREATH | Ability-Acid-Breath | Ability | Acid breath |
+| 82 | MOB_ABIL_FROST_BREATH | Ability-Frost-Breath | Ability | Frost breath |
+| 83 | MOB_ABIL_MAGIC_IMMUNITY | Ability-Magic-Immunity | Ability | Immune to magic |
+| 84 | MOB_ABIL_INVISIBILITY | Ability-Invisibility | Ability | Naturally invisible |
+| 85 | MOB_C_O_T_N | Child-of-the-Night | Companion | Children of Night |
+| 86 | MOB_VAMP_SPWN | Vampire-Spawn | Companion | Vampire spawn |
+| 87 | MOB_DRAGON_KNIGHT | Dragon-Knight | Companion | Dragon knight mount |
+| 88 | MOB_MUMMY_DUST | Mummy-Dust | Companion | Mummy dust creation |
+| 89 | MOB_EIDOLON | Eidolon | Companion | Eidolon |
+| 90 | MOB_BLOCK_EVIL | Mob-Block-Evil | Blocking | Blocks evil |
+| 91 | MOB_BLOCK_NEUTRAL | Mob-Block-Neutral | Blocking | Blocks neutral |
+| 92 | MOB_BLOCK_GOOD | Mob-Block-Good | Blocking | Blocks good |
+| 93 | MOB_GENIEKIND | Mob-Geniekind | Classification | Genie-type |
+| 94 | MOB_C_DRAGON | Mob-Dragon-Mount | Companion | Companion dragon |
+| 95 | MOB_RETAINER | Retainer | Companion | Leadership retainer |
+| 96 | MOB_BUFF_OUTSIDE_COMBAT | UNUSED-96 | Deprecated | UNUSED |
+| 97 | MOB_NOPARALYZE | Immune-Paralysis | Immunity | Can't be paralyzed |
+| 98 | MOB_AI_ENABLED | AI-Enabled | System | Advanced AI |
+| 99 | MOB_QUARTERMASTER | Quartermaster | System | Supply orders |
+| 100 | MOB_UNLIMITED_SPELL_SLOTS | Unlimited-Spell-Slots | System | No spell limits |
+| 101 | MOB_CUSTOM_MOB_STATS | Custom-Mob-Stats | System | Use hand-set stats, not category defaults |
+| 102 | MOB_NO_BLOCK_BYPASS | No-Block-Bypass | Combat | Blocking cannot be bypassed |
+| 103 | MOB_GOLEM | Golem | System | Constructed golem, for follower tracking |
+| 104 | MOB_NOTELEPORT | No-Teleport | System | Cannot be teleported |
 
 ---
 
@@ -851,7 +916,7 @@ REMOVE_BIT_AR(MOB_FLAGS(mob), MOB_AGGRESSIVE);
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` (lines 1131-1232) - Flag definitions
+- `src/structs.h` - Flag definitions (the `MOB_*` define block ending at `MOB_NOTELEPORT`)
 - `src/mob/mob_act.c` - Mobile AI and behavior
 - `src/combat/fight.c` - Combat interactions
 - `src/movement/movement.c` - Movement and blocking

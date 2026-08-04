@@ -4,6 +4,68 @@
 
 The Online Level Creation (OLC) system in LuminariMUD provides powerful in-game tools for builders to create and modify world content including rooms, objects, mobiles, shops, zones, and quests. The system allows real-time world building without requiring server restarts or file editing.
 
+> **About the code samples in this document.** Most C listings below are
+> *illustrative*: they show the shape of the system, not the literal source.
+> Several named functions (`olc_save_to_disk()`, `validate_room_data()`,
+> `create_new_room()`, `trigedit_save_to_disk()`, and others) do not exist under
+> `src/`, and the `massroomset` command described near the end of this document
+> is not registered in `cmd_info[]`. Read them as pseudocode. For the actual
+> implementation, start at `src/olc/oasis.c` and the individual `*edit.c` files.
+
+## Command Reference
+
+Every editor and listing command below is registered in `cmd_info[]`
+(`src/interpreter.c`). All are `LVL_BUILDER` unless noted.
+
+### Editors
+
+| Command | Edits | Notes |
+|---------|-------|-------|
+| `redit` | Rooms | Also `dig` to create and link a room in one step |
+| `oedit` | Objects | See the [OEDIT Guide](../world_game-data/OEDIT_GUIDE.md) |
+| `medit` | Mobiles | |
+| `zedit` | Zones and reset commands | |
+| `sedit` | Shops | |
+| `trigedit` | DG Script triggers | See [SCRIPTING_SYSTEM_DG.md](SCRIPTING_SYSTEM_DG.md) |
+| `qedit` | Quests | |
+| `hedit` | Help entries | Database-backed; see [HELP_SYSTEM.md](HELP_SYSTEM.md) |
+| `aedit` | Socials | `LVL_STAFF`. See [docs/utilities/README.md](../utilities/README.md) |
+| `iedit` | A live object instance | `LVL_STAFF`. Scripting is disabled in this mode |
+| `bedit` | Message boards | Database-backed; `blist` shows existing boards |
+
+### Listing Commands
+
+These are how you discover which vnums are already in use before creating
+anything. Skipping this step is the most common cause of vnum collisions.
+
+| Command | Lists |
+|---------|-------|
+| `rlist` | Rooms |
+| `mlist` | Mobiles |
+| `olist` | Objects |
+| `slist` | Shops |
+| `tlist` | Triggers |
+| `qlist` | Quests |
+| `zlist` | Zones (no level restriction) |
+| `blist` | Message boards |
+| `pathlist` | Wilderness paths; only usable while in the wilderness |
+
+All of them except `blist` and `pathlist` are the same function
+(`do_oasis_list()` in `src/olc/oasis_list.c`) and take the same arguments:
+
+```
+rlist              List everything in the zone you are standing in
+rlist .            Same as above
+rlist 30           List everything in zone 30
+rlist 3000 3099    List everything in the vnum range 3000-3099
+```
+
+`zlist` additionally accepts a builder name instead of a zone number, which
+lists the zones that builder is assigned to.
+
+Note that `plist` is **not** part of this family - it lists *players* and lives
+in `src/act.wizard.c`.
+
 ## OLC Architecture
 
 ### Core Components
@@ -408,28 +470,46 @@ void medit_disp_stats_menu(struct descriptor_data *d) {
 ## Zone Editor (ZEDIT)
 
 ### Zone Commands
-```c
-// Zone command structure
-struct reset_com {
-  char command;   // Command type (M, O, P, G, E, D, R)
-  bool if_flag;   // If-flag for conditional execution
-  int arg1;       // First argument
-  int arg2;       // Second argument  
-  int arg3;       // Third argument
-  int line;       // Line number in zone file
-  char *sarg1;    // String argument 1
-  char *sarg2;    // String argument 2
-};
 
-// Zone command types
-#define ZCMD_MOBILE    'M'  // Load mobile
-#define ZCMD_OBJECT    'O'  // Load object to room
-#define ZCMD_PUT       'P'  // Put object in container
-#define ZCMD_GIVE      'G'  // Give object to mobile
-#define ZCMD_EQUIP     'E'  // Equip mobile with object
-#define ZCMD_DOOR      'D'  // Set door state
-#define ZCMD_REMOVE    'R'  // Remove object from room
+Zone reset commands are stored as `struct reset_com` (`src/db.h`):
+
+```c
+struct reset_com
+{
+  char command; /* current command                      */
+
+  signed char if_flag; /* if TRUE: exe only if preceding exe'd */
+  int arg1;            /*                                      */
+  int arg2;            /* Arguments to the command             */
+  int arg3;            /*                                      */
+  int arg4;            /* probability of command executing     */
+  int line;            /* line number this command appears on  */
+  char *sarg1;         /* string argument                      */
+  char *sarg2;         /* string argument                      */
+};
 ```
+
+There are no `ZCMD_*` constants - the command is stored and compared as a bare
+character literal throughout `src/db.c` and `src/olc/zedit.c`. The full command
+set, argument arities, and file syntax are documented in the
+[Zone File Format Reference](../world_game-data/ZONE_FILE_FORMAT.md).
+
+| Char | Meaning |
+|------|---------|
+| `M` | Load a mobile into a room |
+| `O` | Load an object into a room |
+| `P` | Put an object into another object |
+| `G` | Give an object to the last mobile loaded |
+| `E` | Equip the last mobile loaded with an object |
+| `D` | Set the state of a door |
+| `R` | Remove an object from a room |
+| `T` | Attach a trigger |
+| `V` | Assign a DG script variable |
+| `J` | Load a mobile with a load probability |
+| `I` | Load random treasure on a mobile |
+| `L` | Load random treasure into a container |
+| `S` | Terminates the command list (required) |
+| `*` | Comment line |
 
 ### Zone Reset Menu
 ```c

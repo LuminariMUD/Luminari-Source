@@ -1,6 +1,14 @@
 # Luminari MUD Wilderness System Documentation
 
-*Last Updated: January 2025*
+*Last Updated: 2026-08-04*
+
+> **About the code samples.** The `#define` blocks in
+> [Configuration](#configuration) were re-derived from the headers on
+> 2026-08-04 and are accurate. The longer C listings elsewhere are
+> **illustrative** - they show the algorithm, not the literal source. A few
+> functions they name (`create_wilderness_exits()`, `find_downhill_direction()`,
+> `spatial_init()`, `debug_wilderness_memory()`) do not exist under `src/`.
+> For the implementation, read `src/wilderness/`.
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -69,10 +77,10 @@ systems/spatial/*           - Spatial system components
 ### Data Flow
 
 ```
-Player Movement → Coordinate Calculation → Room Lookup/Creation →
-Terrain Generation → Resource Calculation → Region/Path Application →
-Room Assignment → Weather/Description Generation → Spatial Event Processing →
-PubSub Event Distribution → Player Display/Audio Delivery
+Player Movement -> Coordinate Calculation -> Room Lookup/Creation ->
+Terrain Generation -> Resource Calculation -> Region/Path Application ->
+Room Assignment -> Weather/Description Generation -> Spatial Event Processing ->
+PubSub Event Distribution -> Player Display/Audio Delivery
 ```
 
 ### System Integration
@@ -137,7 +145,7 @@ The system uses multiple Perlin noise layers:
 4. **Temperature** (calculated from latitude and elevation)
    - Gradient based on distance from equator (Y=0)
    - Modified by elevation: `temp = base_temp - (MAX(1.5 * elevation - WATERLINE, 0)) / 10`
-   - Range: -30°C to +35°C
+   - Range: -30C to +35C
    - Function: `get_temperature(NOISE_MATERIAL_PLANE_ELEV, x, y)`
    - Affects biome selection
 
@@ -172,12 +180,12 @@ int get_temperature(int map, int x, int y) {
 **Temperature Features:**
 - **Latitude Gradient**: Temperature decreases with distance from equator (Y=0)
 - **Elevation Cooling**: Higher elevations are colder using 1.5x elevation multiplier
-- **Range**: -30°C to +35°C across the entire wilderness
+- **Range**: -30C to +35C across the entire wilderness
 - **Critical Thresholds**:
-  - 8°C: Tundra/marshland boundary
-  - 10°C: Taiga formation threshold
-  - 18°C: Jungle formation threshold
-  - 25°C: Desert formation threshold
+  - 8C: Tundra/marshland boundary
+  - 10C: Taiga formation threshold
+  - 18C: Jungle formation threshold
+  - 25C: Desert formation threshold
 - **Integration**: Used in `get_sector_type()` for biome determination
 
 ### Sector Type Determination
@@ -246,8 +254,8 @@ int get_sector_type(int elevation, int temperature, int moisture) {
 **Sector Types Include:**
 - `SECT_FIELD` - Grasslands and plains (moderate elevation, moderate conditions)
 - `SECT_FOREST` - Wooded areas (moderate elevation, default forest type)
-- `SECT_JUNGLE` - Tropical forests (temperature > 18°C, moisture > 180)
-- `SECT_TAIGA` - Coniferous forests (temperature < 10°C, moisture > 128 for hills)
+- `SECT_JUNGLE` - Tropical forests (temperature > 18C, moisture > 180)
+- `SECT_TAIGA` - Coniferous forests (temperature < 10C, moisture > 128 for hills)
 - `SECT_HILLS` - Rolling hills (elevation > 175, moderate temperature)
 - `SECT_MOUNTAIN` - Mountain peaks (elevation > 185)
 - `SECT_HIGH_MOUNTAIN` - Impassable peaks (elevation > 200)
@@ -255,9 +263,9 @@ int get_sector_type(int elevation, int temperature, int moisture) {
 - `SECT_OCEAN` - Deep water (elevation < waterline - 20)
 - `SECT_RIVER` - Flowing water (path override)
 - `SECT_BEACH` - Coastal areas (elevation < waterline + 5, dry conditions)
-- `SECT_MARSHLAND` - Wetlands (low elevation, moisture > 180, temperature > 8°C)
-- `SECT_DESERT` - Arid regions (plains elevation, temperature > 25°C, moisture < 80)
-- `SECT_TUNDRA` - Cold plains (plains elevation, temperature < 8°C)
+- `SECT_MARSHLAND` - Wetlands (low elevation, moisture > 180, temperature > 8C)
+- `SECT_DESERT` - Arid regions (plains elevation, temperature > 25C, moisture < 80)
+- `SECT_TUNDRA` - Cold plains (plains elevation, temperature < 8C)
 
 ### Terrain Visualization
 
@@ -326,10 +334,6 @@ Variant selection is based on coordinate-based noise values to ensure consistent
 
 ```c
 room_rnum find_room_by_coordinates(int x, int y) {
-    #ifdef CAMPAIGN_FR
-        return NOWHERE; // Wilderness disabled in Forgotten Realms
-    #endif
-
     // 1. Check static rooms first (KD-Tree lookup)
     room = find_static_room_by_coordinates(x, y);
     if (room != NOWHERE) return room;
@@ -514,7 +518,7 @@ The system supports 10 distinct resource types, each with unique distribution pa
 ### Material Subtype System (Phase 4.5)
 
 The resource system includes a three-tier hierarchy for specific named materials:
-**Structure**: Category → Subtype → Quality
+**Structure**: Category -> Subtype -> Quality
 
 #### Herb Subtypes
 - **Marjoram** - Common healing herb
@@ -617,13 +621,13 @@ The cascade system models ecological interdependencies between resources:
 - **Regeneration Impacts**: Changes to recovery rates
 
 **Cascade Relationships:**
-- **Vegetation → Herbs**: Herbs depend on vegetation coverage
-- **Vegetation → Game**: Wildlife requires plant food sources
-- **Water → Vegetation**: Plants need water to thrive
-- **Water → Clay**: Clay formation requires moisture
-- **Wood → Game**: Animals need forest habitat
-- **Minerals → Crystal**: Crystal formation in mineral-rich areas
-- **Stone → Minerals**: Mineral veins form in stone deposits
+- **Vegetation -> Herbs**: Herbs depend on vegetation coverage
+- **Vegetation -> Game**: Wildlife requires plant food sources
+- **Water -> Vegetation**: Plants need water to thrive
+- **Water -> Clay**: Clay formation requires moisture
+- **Wood -> Game**: Animals need forest habitat
+- **Minerals -> Crystal**: Crystal formation in mineral-rich areas
+- **Stone -> Minerals**: Mineral veins form in stone deposits
 
 **Impact Severity Levels:**
 - **None** (0-10% depletion): No cascade effects
@@ -642,18 +646,32 @@ survey network               # Show resource interdependency network
 
 ### Resource Visualization
 
-The system provides rich visual feedback through ASCII maps:
+The system provides visual feedback through plain ASCII maps. Symbols come from
+`get_resource_map_symbol_with_coords()` and colors from `get_resource_color()`,
+both in `src/wilderness/resource_system.c`.
 
-| Symbol | Density | Color | Meaning |
-|--------|---------|-------|---------|
-| `█` | 90%+ | 🟢 Bright Green | Very High |
-| `▓` | 70-89% | 🟢 Green | High |
-| `▒` | 50-69% | 🟡 Yellow | Medium-High |
-| `░` | 30-49% | 🟠 Orange | Medium |
-| `▪` | 10-29% | ⚫ Gray | Low |
-| `·` | 5-9% | ⚫ Dark Gray | Very Low |
-| ` ` | 0-4% | ⚫ Black | None |
-| `@` | - | ⚪ White | Your Position |
+| Symbol | Effective level | Color | Meaning |
+|--------|-----------------|-------|---------|
+| `#` | 75%+ | `\tG` green | Very rich |
+| `*` | 55-74% | `\tY` yellow | Rich |
+| `+` | 35-54% | `\ty` light yellow | Moderate |
+| `.` | 15-34% | `\tR` red | Poor |
+| `,` | 3-14% | `\tr` dark red | Trace |
+| ` ` | below 3% | `\tL` dark grey | None |
+| `@` | - | `\tW` white | Your position |
+
+Two details matter when reading a map:
+
+- The symbol thresholds above are the ones the map actually uses. They are
+  applied to the level *after* a small coordinate-derived offset (up to +/-0.025)
+  that softens hard boundaries between adjacent squares, so a square can show
+  one step above or below its raw level.
+- The color thresholds are a separate ladder (80/60/40/20/5 percent) taken from
+  the unadjusted level, so symbol and color can disagree by one step near a
+  boundary. This is cosmetic, not a data error.
+
+The level shown is the effective level: base abundance multiplied by the
+square's current depletion factor.
 
 ### Administrative Tools
 
@@ -860,7 +878,7 @@ pubsubqueue status         # Queue processing statistics
 ## Player Experience
 
 ### Movement and Navigation
-- **Movement**: Standard directions (±1 coordinate), auto room creation
+- **Movement**: Standard directions (+/-1 coordinate), auto room creation
 - **Map**: 21x21 automap, ASCII-only symbols (2025 fix for alignment), line-of-sight, weather overlay
 - **Navigation**: Coordinate display, static landmarks, path guidance
 - **Resource Discovery**: Visual resource mapping and detailed surveys
@@ -929,10 +947,43 @@ OLC_ROOM(d)->coords[1] = y_coordinate;
 4. Update external documentation
 
 **Key Requirements:**
-- Zone must be flagged as `ZONE_WILDERNESS`
+- Zone must be flagged as `ZONE_WILDERNESS` (zone flag bit 11)
 - Rooms must have valid coordinates set
 - Exits must point to navigation room for wilderness movement
 - Static rooms should be in VNUM range 1000000-1003999
+
+#### Coordinates in the `.wld` File
+
+Coordinates are stored on a room with a `C` block, which is a **two-line**
+construct: a line containing only `C`, followed by a line with the X and Y
+values separated by whitespace.
+
+```
+#1000123
+A Windswept Ridge~
+   The ground falls away to the south.
+~
+100 0 0 0 0 4
+C
+-312 87
+D2
+~
+~
+0 -1 1000124
+S
+```
+
+The `C` block goes after the room's numeric line and alongside the `D` exit
+blocks, before the closing `S`. `parse_room()` reads it with a plain
+`sscanf(line, "%d %d", ...)`, so a malformed or missing second line leaves the
+coordinates at whatever the previous parse left behind rather than erroring.
+
+Valid coordinates run from -1024 to +1024 on both axes, derived from
+`WILD_X_SIZE` and `WILD_Y_SIZE` (2048 each) in `src/wilderness/wilderness.h`.
+
+`redit` writes this block for you when you set coordinates in the editor, and
+`buildwalk` sets them automatically for rooms it paints. Hand-editing is rarely
+necessary.
 
 #### Builder's Quick Guide
 
@@ -1427,63 +1478,84 @@ int wild_waterline = 128;                  // Runtime waterline for actual terra
 
 ### Resource System Configuration
 
+From `src/wilderness/resource_system.h`:
+
 ```c
-// Resource types and counts
-#define MAX_RESOURCE_TYPES 16          // Maximum supported resource types
-#define NUM_RESOURCE_TYPES 10          // Currently active resource types
+/* Resource types */
+#define MAX_RESOURCE_TYPES 16          /* Maximum supported resource types */
 
-// Resource density ranges
-#define RESOURCE_DENSITY_MIN 0.0       // Minimum resource density (0%)
-#define RESOURCE_DENSITY_MAX 1.0       // Maximum resource density (100%)
+/* NUM_RESOURCE_TYPES is the terminator of enum resource_types, currently 10.
+   It is an enum member, not a #define - do not grep for it as a macro. */
 
-// Map visualization
-#define DEFAULT_RESOURCE_MAP_RADIUS 7   // Default map radius
-#define MAX_RESOURCE_MAP_RADIUS 15      // Maximum allowed map radius
-#define MIN_RESOURCE_MAP_RADIUS 3       // Minimum allowed map radius
+/* Caching */
+#define RESOURCE_CACHE_LIFETIME 300    /* Cache lifetime in seconds */
+#define RESOURCE_CACHE_MAX_NODES 1000  /* Maximum cached nodes */
+#define RESOURCE_CACHE_GRID_SIZE 10    /* Cache every N coordinates */
 
-// Material subtypes (Phase 4.5)
-#define NUM_HERB_SUBTYPES 8              // Number of specific herb types
-#define NUM_CRYSTAL_SUBTYPES 8           // Number of crystal varieties
-#define NUM_ORE_SUBTYPES 8               // Number of ore types
-#define NUM_WOOD_SUBTYPES 8              // Number of wood varieties
-#define NUM_VEGETATION_SUBTYPES 8        // Number of vegetation types
+/* Quality tiers */
+#define RESOURCE_QUALITY_POOR 1
+#define RESOURCE_QUALITY_COMMON 2
+#define RESOURCE_QUALITY_UNCOMMON 3
+#define RESOURCE_QUALITY_RARE 4
+#define RESOURCE_QUALITY_LEGENDARY 5
 ```
+
+Material subtypes are also enum terminators, one per category, each currently
+8: `NUM_HERB_SUBTYPES`, `NUM_CRYSTAL_SUBTYPES`, `NUM_ORE_SUBTYPES`,
+`NUM_WOOD_SUBTYPES`, `NUM_VEGETATION_SUBTYPES`, plus stone, game, water, clay,
+and salt.
+
+Resource levels are plain floats in the range 0.0 to 1.0; there are no named
+minimum and maximum constants. The resource map radius defaults to 7 and is
+set inline in `show_resource_map()` rather than by a constant.
 
 ### PubSub System Configuration
 
+From `src/pubsub/pubsub.h`:
+
 ```c
-// System versioning and features
-#define PUBSUB_VERSION 3               // Current PubSub system version
-#define PUBSUB_DEVELOPMENT_MODE 0      // Enable development mode features
+/* System versioning and features */
+#define PUBSUB_VERSION 1                   /* Current PubSub system version */
+#define PUBSUB_DEVELOPMENT_MODE 0          /* Set to 0 for production */
 
-// Message and queue limits
-#define PUBSUB_DEFAULT_MESSAGE_TTL 3600    // Default message TTL (1 hour)
-#define PUBSUB_QUEUE_BATCH_SIZE 10         // Messages processed per batch
-#define SUBSCRIPTION_CACHE_SIZE 256        // Player subscription cache size
+/* Message and queue limits */
+#define PUBSUB_DEFAULT_MESSAGE_TTL 3600    /* Default message TTL (1 hour) */
+#define PUBSUB_QUEUE_BATCH_SIZE 50         /* Messages processed per batch */
+#define SUBSCRIPTION_CACHE_SIZE 1024       /* Player subscription cache size */
 
-// Topic and handler limits
-#define PUBSUB_MAX_TOPIC_NAME_LENGTH 64    // Maximum topic name length
-#define PUBSUB_MAX_HANDLER_NAME_LENGTH 32  // Maximum handler name length
+/* Topic and handler limits */
+#define PUBSUB_MAX_TOPIC_NAME_LENGTH 255   /* Maximum topic name length */
+#define PUBSUB_MAX_HANDLER_NAME_LENGTH 64  /* Maximum handler name length */
 
-// Spatial audio defaults
-#define PUBSUB_DEFAULT_SPATIAL_RANGE 25    // Default spatial audio range
-#define PUBSUB_PRIORITY_NORMAL 5           // Normal message priority
+/* Priorities */
+#define PUBSUB_PRIORITY_NORMAL 2           /* Normal message priority */
 ```
+
+There is no `PUBSUB_DEFAULT_SPATIAL_RANGE`; spatial range comes from the
+spatial system below.
 
 ### Spatial System Configuration
 
+From `src/wilderness/spatial_core.h`:
+
 ```c
-// Distance calculation parameters
-#define SPATIAL_ELEVATION_WEIGHT 4.0       // Z-axis distance weighting factor
-#define SPATIAL_MAX_TRANSMISSION_RANGE 50   // Maximum audio transmission range
+/* Range and thresholds */
+#define SPATIAL_MAX_RANGE 2000.0f          /* Maximum transmission range */
+#define SPATIAL_MIN_THRESHOLD 0.1f         /* Below this, nothing is delivered */
 
-// Processing intervals
-#define SPATIAL_PROCESSING_INTERVAL 3       // Process every N pulses
-#define SPATIAL_CACHE_CLEANUP_INTERVAL 100  // Cache cleanup interval
+/* Limits */
+#define SPATIAL_MAX_MESSAGE_LENGTH 1024
+#define SPATIAL_MAX_OBSTACLES 100
+#define SPATIAL_MAX_NEARBY_ENTITIES 50
+#define SPATIAL_CACHE_SIZE 256
 
-// System limits
-#define MAX_SPATIAL_SYSTEMS 16              // Maximum registered systems
-#define SPATIAL_MAX_SIMULTANEOUS_EVENTS 32  // Maximum concurrent events
+/* Return codes */
+#define SPATIAL_SUCCESS 0
+#define SPATIAL_ERROR_STIMULUS -1
+#define SPATIAL_ERROR_LOS -2
+#define SPATIAL_ERROR_MODIFIERS -3
+#define SPATIAL_ERROR_BELOW_THRESHOLD -4
+#define SPATIAL_ERROR_INVALID_PARAM -5
 ```
 
 ### Database Configuration
@@ -1853,7 +1925,7 @@ if (rnum != NOWHERE) {
 
 1. **Clear Phase:** All existing region events are cancelled
    - clear_region_event_list() called for each region
-   - event_cancel() → cleanup_event_obj() → free_mud_event()
+   - event_cancel() -> cleanup_event_obj() -> free_mud_event()
    - Events removed from both event_q and region->events
 
 2. **Free Phase:** Region memory is freed

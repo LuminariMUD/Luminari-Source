@@ -176,40 +176,40 @@ pandoc docs/world_game-data/OEDIT_GUIDE.md \
   --toc-depth=2
 ```
 
-### Batch Conversion Script
+### Builder Guides Are Generated - Do Not Hand-Edit
 
-Create a script to convert multiple files:
+The three pages under `docs/web/guides/` are **build output**. Their Markdown
+sources in `docs/world_game-data/` are authoritative:
+
+| Generated page | Markdown source |
+|----------------|-----------------|
+| `guides/oedit.html` | `docs/world_game-data/OEDIT_GUIDE.md` |
+| `guides/mob_flags.html` | `docs/world_game-data/MOB_FLAGS.md` |
+| `guides/room_flags.html` | `docs/world_game-data/ROOM_FLAGS.md` |
+
+Editing the HTML directly is always wrong: the next regeneration discards it,
+and in the meantime the two copies disagree. Fix the Markdown, then run the
+generator from the project root:
 
 ```bash
-#!/bin/bash
-# convert-guides.sh
-
-TEMPLATE="docs/web/assets/pandoc-template.html"
-
-# Convert OEDIT guide
-pandoc docs/world_game-data/OEDIT_GUIDE.md \
-  -o docs/web/guides/oedit.html \
-  --template=$TEMPLATE \
-  --metadata title="OEDIT Guide" \
-  --toc --toc-depth=2
-
-# Convert Builder Manual
-pandoc docs/world_game-data/builder_manual.md \
-  -o docs/web/guides/builder-manual.html \
-  --template=$TEMPLATE \
-  --metadata title="Builder Manual" \
-  --toc --toc-depth=2
-
-# Add more conversions as needed...
-
-echo "Conversion complete!"
+./scripts/development/generate-web-guides.sh
 ```
 
-Make it executable and run:
+To confirm the committed HTML still matches its source without rewriting
+anything - useful before a commit or in CI:
+
 ```bash
-chmod +x convert-guides.sh
-./convert-guides.sh
+./scripts/development/generate-web-guides.sh --check
 ```
+
+`--check` exits non-zero and names each stale page. Commit the regenerated HTML
+in the same commit as the Markdown change so the two never drift apart.
+
+### Adding Another Generated Guide
+
+Append a `source|output|title|subtitle` line to the `GUIDES` array in
+`scripts/development/generate-web-guides.sh`, run the script, add a link on
+`docs/web/index.html`, and add a row to the table above.
 
 ---
 

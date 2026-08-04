@@ -19,7 +19,7 @@ This document provides comprehensive information about all room flags (ROOM_*) u
 
 ## Overview
 
-Room flags are bitflags defined in `src/structs.h` (lines 225-271) and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 42 room flags (indices 0-41) that control everything from movement restrictions to magical effects.
+Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 42 room flags (indices 0-41) that control everything from movement restrictions to magical effects.
 
 **Usage Pattern:**
 ```c
@@ -40,9 +40,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for narrow passages, tunnels, and chokepoints
 
 **Code References:**
-- `movement.c:545` - Blocks mounted entry
-- `movement.c:551` - Enforces occupancy limit
-- `wilderness/desc_engine.c:683` - Dynamic room descriptions
+- `src/movement/movement.c` - Blocks mounted entry (`do_simple_move()`)
+- `src/movement/movement.c` - Enforces occupancy limit (`do_simple_move()`)
+- `src/wilderness/desc_engine.c` - Dynamic room descriptions (`gen_room_description()`)
 
 ### ROOM_SINGLEFILE (Index: 20)
 **Effect:** Forces characters to move through the room one at a time in combat situations.
@@ -51,8 +51,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for narrow corridors and single-file passages
 
 **Code References:**
-- `movement.c:306, 914` - Movement restrictions
-- `fight.c:216, 7895, 12269, 13997` - Combat positioning checks
+- `src/movement/movement.c` - Movement restrictions (`do_simple_move()`)
+- `src/combat/fight.c` - Combat positioning checks (`guard_check()`, `compute_hit_damage()`, `hit()`)
 - 20+ additional checks across combat and spell systems
 
 ### ROOM_FLY_NEEDED (Index: 18)
@@ -62,9 +62,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for aerial rooms, cliff edges, and suspended platforms
 
 **Code References:**
-- `movement_falling.c:72` - Character falling check
-- `movement_falling.c:47` - Object falling check
-- `craft.c:664, 700` - Crafting system checks
+- `src/movement/movement_falling.c` - Character falling check (`obj_should_fall()`, `char_should_fall()`, `event_falling()`)
+- `src/movement/movement_falling.c` - Object falling check (`obj_should_fall()`, `char_should_fall()`, `event_falling()`)
+- `src/craft/craft.c` - Crafting system checks (`reset_harvesting_rooms()`)
 
 ### ROOM_CLIMB_NEEDED (Index: 32)
 **Effect:** Requires a skill check to enter the room.
@@ -72,8 +72,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for cliffs, mountains, and vertical obstacles
 
 **Code References:**
-- `movement.c:570` - Entry skill check
-- `craft.c:666, 702` - Crafting restrictions
+- `src/movement/movement.c` - Entry skill check (`do_simple_move()`)
+- `src/craft/craft.c` - Crafting restrictions (`reset_harvesting_rooms()`)
 
 ### ROOM_NOFLY (Index: 26)
 **Effect:** Prevents flying creatures from entering the room.
@@ -81,7 +81,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used in low-ceiling areas and confined spaces
 
 **Code References:**
-- `movement.c:501` - Entry restriction check
+- `src/movement/movement.c` - Entry restriction check (`do_simple_move()`)
 
 ### ROOM_PRIVATE (Index: 9)
 **Effect:** Limits room to 2 occupants maximum.
@@ -90,10 +90,20 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for private meeting rooms and intimate spaces
 
 **Code References:**
-- `movement.c:1249` - Entry restriction
-- `act.wizard.c:268, 347` - Teleport restrictions
-- `spells.c:299` - Spell targeting restrictions
-- `house.c:445, 627, 664` - House management integration
+- `src/movement/movement.c` - Entry restriction (`do_enter()`)
+- `src/act.wizard.c` - Teleport restrictions (`find_target_room()`)
+- `src/magic/spells.c` - Spell targeting restrictions (`valid_mortal_tele_dest()`)
+- `src/obj/house.c` - House management integration (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
+
+### ROOM_NOMOB (Index: 2)
+**Effect:** NPCs will not wander into this room.
+- Checked by the mobile movement routine, so a mob will not choose this room as a destination
+- Does **not** prevent a mobile from being placed here by a zone reset, a summon, or a staff `transfer`
+- Use it to keep wandering mobiles out of shops, guild rooms, and quest areas
+  without having to make the exits impassable
+
+**Code References:**
+- `src/mob/mob_act.c` - Wandering destination check (`mobile_activity()`)
 
 ### ROOM_STAFFROOM (Index: 10)
 **Effect:** Only staff (LVL_STAFF+) can enter this room.
@@ -101,7 +111,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for immortal areas and staff lounges
 
 **Code References:**
-- `movement.c:563` - Level check on entry
+- `src/movement/movement.c` - Level check on entry (`do_simple_move()`, `do_enter()`)
 
 ---
 
@@ -115,9 +125,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Strongest magic restriction available
 
 **Code References:**
-- `spell_parser.c:540, 547, 3046` - Spell casting prevention
-- `fight.c:8518, 8522, 8639` - Combat magic checks
-- `magic.c:12643` - General magic check
+- `src/magic/spell_parser.c` - Spell casting prevention (`call_magic()`, `do_gen_cast()`)
+- `src/combat/fight.c` - Combat magic checks (`weapon_spells()`, `idle_weapon_spells()`)
+- `src/magic/magic.c` - General magic check (`mag_room()`)
 
 ### ROOM_NOTELEPORT (Index: 21)
 **Effect:** Prevents teleportation into or out of the room.
@@ -126,9 +136,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for secured areas and restricted zones
 
 **Code References:**
-- `spells.c:314` - Teleport destination check
-- `spells.c:2199-2398` - Multiple recall/teleport spell checks
-- `act.other.c:808, 896, 11637` - Recall and portal restrictions
+- `src/magic/spells.c` - Teleport destination check (`valid_mortal_tele_dest()`, `spell_recall()`, `spell_luskan_recall()`)
+- `src/magic/spells.c` - Multiple recall/teleport spell checks (`valid_mortal_tele_dest()`, `spell_recall()`, `spell_luskan_recall()`)
+- `src/act.other.c` - Recall and portal restrictions (`do_abundantstep()`, `do_shadowstep()`)
 
 ### ROOM_NOSUMMON (Index: 24)
 **Effect:** Prevents summoning spells from targeting this room.
@@ -136,7 +146,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for protected sanctuaries and anti-summoning zones
 
 **Code References:**
-- `spells.c:2912-2913` - Summon spell checks
+- `src/magic/spells.c` - Summon spell checks (`spell_summon()`)
 
 ### ROOM_NORECALL (Index: 19)
 **Effect:** Prevents recall/return spells from working.
@@ -144,7 +154,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used in dungeons and combat zones where escape should be prevented
 
 **Code References:**
-- `spells.c:2200-2399` - Multiple recall spell checks (8 matches)
+- `src/magic/spells.c` - Multiple recall spell checks (8 matches) (`spell_recall()`, `spell_luskan_recall()`, `spell_triboar_recall()`)
 
 ---
 
@@ -159,11 +169,11 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used in safe zones, towns, and newbie areas
 
 **Code References:**
-- `fight.c:1509, 5370, 12251, 12259` - Combat initiation blocks
-- `spells.c:698, 756, 881, 916, 1319, 1810, 2569, 2598` - Offensive spell blocks
-- `grapple.c:218` - Grappling prevention
-- `domain_powers.c:76, 818, 903, 988, 1073, 1156` - Domain power checks
-- `spell_parser.c:554, 3062` - Spell casting restrictions
+- `src/combat/fight.c` - Combat initiation blocks (`check_killer()`, `damage()`, `hit()`)
+- `src/magic/spells.c` - Offensive spell blocks (`event_acid_arrow()`, `event_aqueous_orb()`, `event_implode()`)
+- `src/combat/grapple.c` - Grappling prevention (`do_grapple()`)
+- `src/magic/domain_powers.c` - Domain power checks (`do_eviltouch()`, `do_lightningarc()`, `do_aciddart()`)
+- `src/magic/spell_parser.c` - Spell casting restrictions (`call_magic()`, `do_gen_cast()`)
 
 ### ROOM_DEATH (Index: 1)
 **Effect:** Kills characters or deals severe damage when entering/remaining in room.
@@ -173,11 +183,11 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Staff can bypass with appropriate level
 
 **Code References:**
-- `act.informative.c:1263, 1475` - Display warnings
-- `movement.c:1256` - Entry damage/death
-- `mob_act.c:400` - NPC avoidance
-- `spells.c:302` - Teleport blocking
-- `act.other.c:11637` - Additional teleport checks
+- `src/act.informative.c` - Display warnings (`look_at_room_number()`, `look_at_room()`)
+- `src/movement/movement.c` - Entry damage/death (`do_enter()`)
+- `src/mob/mob_act.c` - NPC avoidance (`mobile_activity()`)
+- `src/magic/spells.c` - Teleport blocking (`valid_mortal_tele_dest()`)
+- `src/act.other.c` - Additional teleport checks (`do_shadowstep()`)
 
 ### ROOM_SOUNDPROOF (Index: 5)
 **Effect:** Blocks sound-based abilities and prevents communication.
@@ -187,10 +197,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Staff can override (LVL_STAFF+)
 
 **Code References:**
-- `act.comm.c:465, 473, 810, 984` - Communication blocking
-- `bardic_performance.c:264` - Bardic performance prevention
-- `spell_parser.c:1770` - Spell casting restriction (psionics exempt)
-- `act.social.c:275` - Social action blocking
+- `src/act.comm.c` - Communication blocking (`is_tell_ok()`, `do_gen_comm()`)
+- `src/bardic_performance.c` - Bardic performance prevention (`can_perform()`)
+- `src/magic/spell_parser.c` - Spell casting restriction (psionics exempt) (`say_spell()`, `cast_spell()`)
+- `src/act.social.c` - Social action blocking (`do_gmote()`)
 
 ---
 
@@ -204,9 +214,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for buildings, caves, and sheltered areas
 
 **Code References:**
-- `utils.c:823, 911` - Weather and outdoor checks
-- `movement.c:1372` - Outdoor transition detection
-- `vessels_rooms.c:40-96, 190-191, 606` - Vehicle room templates
+- `src/utils.c` - Weather and outdoor checks (`is_room_outdoors()`, `ultra_blind()`)
+- `src/movement/movement.c` - Outdoor transition detection (`do_leave()`)
+- `src/vessels/vessels_rooms.c` - Vehicle room templates (`load_ship_room_templates_from_db()`, `create_ship_room()`, `room_has_outside_view()`)
 
 ### ROOM_REGEN (Index: 17)
 **Effect:** Doubles natural regeneration rates for HP, mana, and movement.
@@ -215,8 +225,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for healing sanctuaries and rest areas
 
 **Code References:**
-- `limits.c:595` - HP regeneration doubling
-- `spell_prep.c:3778` - Spell preparation bonus
+- `src/limits.c` - HP regeneration doubling (`regen_hps()`)
+- `src/magic/spell_prep.c` - Spell preparation bonus (`compute_spells_prep_time()`)
 
 ### ROOM_NOHEAL (Index: 25)
 **Effect:** Prevents natural healing and regeneration.
@@ -225,7 +235,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for cursed areas and unholy ground
 
 **Code References:**
-- `limits.c:622` - Regeneration blocking
+- `src/limits.c` - Regeneration blocking (`regen_hps()`)
 
 ---
 
@@ -239,10 +249,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Stacks with ROOM_MAGICDARK for absolute darkness
 
 **Code References:**
-- `utils.c:3594, 3656, 3697` - Darkness calculations
-- `act.informative.c:1282-1383` - Room description handling
-- `magic.c:12654, 12658` - Darkness spell interaction
-- `mud_event.c:169` - Temporary darkness removal
+- `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
+- `src/wilderness/desc_engine.c` - Dynamic description generation (`gen_room_description()`)
+- `src/magic/magic.c` - Darkness spell interaction (`mag_room()`)
+- `src/mud_event.c` - Temporary darkness removal (`event_countdown()`)
 
 ### ROOM_MAGICDARK (Index: 22)
 **Effect:** Creates magical darkness that penetrates normal light sources.
@@ -252,8 +262,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for shadow magic zones and deep darkness effects
 
 **Code References:**
-- `utils.c:3596, 3643, 3697` - Darkness calculations
-- `act.informative.c:1205, 1211, 1296, 8463` - Display and description handling
+- `src/utils.c` - Darkness calculations (`room_is_daylit()`, `room_is_dark()`, `is_room_in_sunlight()`)
+- `src/act.informative.c` - Display and description handling (`look_at_room_number()`, `look_at_room()`, `do_scan()`)
 
 ### ROOM_MAGICLIGHT (Index: 23)
 **Effect:** Creates magical light that prevents the room from being dark.
@@ -262,7 +272,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for magically illuminated areas
 
 **Code References:**
-- `utils.c:3626` - Light calculation override
+- `src/utils.c` - Light calculation override (`room_is_dark()`)
 
 ### ROOM_FOG (Index: 27)
 **Effect:** Creates fog that obscures vision and limits visibility.
@@ -273,10 +283,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Can be removed by gust of wind spell
 
 **Code References:**
-- `act.informative.c:1199, 1259, 1447, 1550, 1572, 8458, 8617, 8977` - Vision restrictions
-- `asciimap.c:760` - Automap limitation
-- `spells.c:515, 519` - Gust of wind removes fog
-- `utils.c:917, 3699` - Weather and vision checks
+- `src/act.informative.c` - Vision restrictions (`look_at_room_number()`, `look_at_room()`, `look_in_direction()`)
+- `src/asciimap.c` - Automap limitation (`do_map()`)
+- `src/magic/spells.c` - Gust of wind removes fog (`perform_dispel()`)
+- `src/utils.c` - Weather and vision checks (`ultra_blind()`, `is_room_in_sunlight()`)
 
 ### ROOM_NOTRACK (Index: 6)
 **Effect:** Prevents tracking abilities from working through this room.
@@ -286,9 +296,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for anti-tracking zones and rivers
 
 **Code References:**
-- `movement_tracks.c:256` - Track skill blocking
-- `graph.c:59` - Pathfinding restriction
-- `mob_act.c:383` - NPC tracking limitation
+- `src/movement/movement_tracks.c` - Track skill blocking (`should_create_tracks()`)
+- `src/graph.c` - Pathfinding restriction
+- `src/mob/mob_act.c` - NPC tracking limitation (`mobile_activity()`)
 
 ---
 
@@ -302,9 +312,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used with ROOM_HOUSE_CRASH for persistence
 
 **Code References:**
-- `house.c:296, 444, 626, 663, 665, 714, 849, 904` - House management
-- `handler.c:2212-2213, 2247-2248` - Crash save integration
-- `act.wizard.c:270, 349, 1712, 5581` - Teleport restrictions and admin tools
+- `src/obj/house.c` - House management (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
+- `src/handler.c` - Crash save integration (`obj_to_room()`, `obj_from_room()`)
+- `src/act.wizard.c` - Teleport restrictions and admin tools (`find_target_room()`, `do_switch()`, `do_zcheck()`)
 
 ### ROOM_HOUSE_CRASH (Index: 12)
 **Effect:** Marks that items in this house room should be saved.
@@ -314,9 +324,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for house persistence system
 
 **Code References:**
-- `house.c:296, 714` - Save operations
-- `handler.c:2213, 2248` - Auto-flagging on item changes
-- `hsedit.c:211` - House editor cleanup
+- `src/obj/house.c` - Save operations (`hcontrol_destroy_house()`, `hcontrol_pay_house()`)
+- `src/handler.c` - Auto-flagging on item changes (`obj_to_room()`, `obj_from_room()`)
+- `src/olc/hsedit.c` - House editor cleanup (`hsedit_delete_house()`)
 
 ### ROOM_ATRIUM (Index: 13)
 **Effect:** Marks room as a house atrium (entry point).
@@ -325,9 +335,9 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Managed by house system automatically
 
 **Code References:**
-- `house.c:446, 628, 657, 678, 682` - House system integration
-- `movement.c:520` - Entry point detection
-- `hsedit.c:168, 206, 224, 230` - House editor management
+- `src/obj/house.c` - House system integration (`find_house()`, `hcontrol_build_house()`, `hcontrol_destroy_house()`)
+- `src/movement/movement.c` - Entry point detection (`do_simple_move()`)
+- `src/olc/hsedit.c` - House editor management (`hsedit_save_internally()`, `hsedit_delete_house()`)
 
 ### ROOM_WORLDMAP (Index: 16)
 **Effect:** Marks room as part of the overworld/wilderness map system.
@@ -336,10 +346,10 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Affects routing and navigation commands
 
 **Code References:**
-- `act.informative.c:8554` - Automap checks
-- `asciimap.c:729` - Map rendering
-- `vessels/routing.c:290` - Navigation system
-- `act.wizard.c:10211` - Administrative flag setting
+- `src/act.informative.c` - Automap checks (`do_survey()`)
+- `src/asciimap.c` - Map rendering (`show_worldmap()`)
+- `src/vessels/routing.c` - Navigation system (`start_fr_flight_to_zone()`)
+- `src/act.wizard.c` - Administrative flag setting (`do_setworldsect()`)
 
 ### ROOM_VEHICLE (Index: 40)
 **Effect:** Marks room as part of a vehicle or vessel.
@@ -349,9 +359,15 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Integrates with vessel system
 
 **Code References:**
-- `vessels_rooms.c:40-103, 188-189` - Vehicle room templates
-- `vessels_src.c:282, 301, 368, 384, 505-506` - Vehicle movement system
-- `vessels_docking.c:562` - Docking restrictions
+- `src/vessels/vessels_rooms.c` - `room_templates[]` sets `ROOM_VEHICLE` on every (`load_ship_room_templates_from_db()`, `create_ship_room()`)
+  built-in ship room template; `load_ship_room_templates_from_db()` uses the same
+  pair as the fallback when a database row omits the flags column
+- `src/vessels/vessels_rooms.c` - `create_ship_room()` copies the flag onto the (`load_ship_room_templates_from_db()`, `create_ship_room()`)
+  generated room
+
+Note: the flag is set by the vessel room generator and read by the vessel
+system as a whole. It is not consulted directly by the docking or movement
+code, so do not expect to find it there.
 
 ### ROOM_HARVEST_NODE (Index: 38)
 **Effect:** Marks room as a resource harvesting location.
@@ -360,7 +376,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for mining nodes, herb gardens, etc.
 
 **Code References:**
-- `crafting_new.c:531` - Harvest node detection
+- `src/craft/crafting_new.c` - Harvest node detection (`will_room_have_harvest_materials()`)
 
 ### ROOM_PLAYER_SHOP (Index: 35)
 **Effect:** Marks room as a player-run shop.
@@ -387,7 +403,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Temporary flag during world editing
 
 **Code References:**
-- `act.wizard.c:5581, 5587` - Administrative cleanup avoidance
+- `src/act.wizard.c` - Administrative cleanup avoidance (`do_zcheck()`)
 
 ### ROOM_BFS_MARK (Index: 15)
 **Effect:** Temporary flag used by pathfinding algorithms.
@@ -397,8 +413,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Internal system flag
 
 **Code References:**
-- `graph.c:59` - Pathfinding algorithm
-- `act.wizard.c:5581` - Cleanup detection
+- `src/graph.c` - Pathfinding algorithm
+- `src/act.wizard.c` - Cleanup detection (`do_zcheck()`)
 
 ---
 
@@ -436,8 +452,8 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - Used for specific trap encounters
 
 **Code References:**
-- `combat/traps_new.c:547, 575-576` - Forced trap generation
-- `db.c:5431` - Zone loading trap setup
+- `src/combat/traps_new.c` - Forced trap generation (`auto_generate_object_trap()`, `auto_generate_zone_traps()`)
+- `src/db.c` - Zone loading trap setup (`reset_zone()`)
 
 ### ROOM_RANDOM_CHEST (Index: 37)
 **Effect:** Marks room as eligible for random treasure chest spawning.
@@ -480,50 +496,50 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 
 ### Quick Reference Table
 
-| Index | Flag Name | Primary Purpose | Category |
-|-------|-----------|----------------|----------|
-| 0 | ROOM_DARK | Forces darkness | Vision |
-| 1 | ROOM_DEATH | Death trap | Hazard |
-| 2 | ROOM_NOMOB | NPC restriction | Movement |
-| 3 | ROOM_INDOORS | Indoor room | Environment |
-| 4 | ROOM_PEACEFUL | No combat | Combat |
-| 5 | ROOM_SOUNDPROOF | Blocks sound | Perception |
-| 6 | ROOM_NOTRACK | Blocks tracking | Perception |
-| 7 | ROOM_NOMAGIC | No magic | Magic |
-| 8 | ROOM_TUNNEL | Occupancy limit | Movement |
-| 9 | ROOM_PRIVATE | 2 person limit | Movement |
-| 10 | ROOM_STAFFROOM | Staff only | Access |
-| 11 | ROOM_HOUSE | Player house | Special |
-| 12 | ROOM_HOUSE_CRASH | House save flag | System |
-| 13 | ROOM_ATRIUM | House entrance | Special |
-| 14 | ROOM_OLC | Being edited | System |
-| 15 | ROOM_BFS_MARK | Pathfinding temp | System |
-| 16 | ROOM_WORLDMAP | Wilderness map | Special |
-| 17 | ROOM_REGEN | Double regen | Environment |
-| 18 | ROOM_FLY_NEEDED | Must fly | Movement |
-| 19 | ROOM_NORECALL | No recall | Magic |
-| 20 | ROOM_SINGLEFILE | One at a time | Movement |
-| 21 | ROOM_NOTELEPORT | No teleport | Magic |
-| 22 | ROOM_MAGICDARK | Magical darkness | Vision |
-| 23 | ROOM_MAGICLIGHT | Magical light | Vision |
-| 24 | ROOM_NOSUMMON | No summoning | Magic |
-| 25 | ROOM_NOHEAL | No healing | Environment |
-| 26 | ROOM_NOFLY | Flying blocked | Movement |
-| 27 | ROOM_FOG | Fog obscurement | Vision |
-| 28 | ROOM_AIRY | Airy atmosphere | Environment |
-| 29 | ROOM_OCCUPIED | Occupied status | Special |
-| 30 | ROOM_SIZE_TINY | Tiny size | Size |
-| 31 | ROOM_SIZE_DIMINUTIVE | Diminutive size | Size |
-| 32 | ROOM_CLIMB_NEEDED | Requires climbing | Movement |
-| 33 | ROOM_HASTRAP | Contains trap | Zone Feature |
-| 34 | ROOM_GENDESC | Generated desc | System |
-| 35 | ROOM_PLAYER_SHOP | Player shop | Special |
-| 36 | ROOM_RANDOM_TRAP | Random trap spawn | Zone Feature |
-| 37 | ROOM_RANDOM_CHEST | Random chest spawn | Zone Feature |
-| 38 | ROOM_HARVEST_NODE | Harvest location | Special |
-| 39 | ROOM_ROAD | Road/path | Environment |
-| 40 | ROOM_VEHICLE | Vehicle room | Special |
-| 41 | ROOM_DOCKABLE | Docking location | Special |
+| Index | Flag Name | OLC Display Name | Primary Purpose | Category |
+|-------|-----------|------------------|----------------|----------|
+| 0 | ROOM_DARK | Dark | Forces darkness | Vision |
+| 1 | ROOM_DEATH | Death-Trap | Death trap | Hazard |
+| 2 | ROOM_NOMOB | No-Mob | NPC restriction | Movement |
+| 3 | ROOM_INDOORS | Indoors | Indoor room | Environment |
+| 4 | ROOM_PEACEFUL | Peaceful | No combat | Combat |
+| 5 | ROOM_SOUNDPROOF | Soundproof | Blocks sound | Perception |
+| 6 | ROOM_NOTRACK | No-Track | Blocks tracking | Perception |
+| 7 | ROOM_NOMAGIC | No-Magic | No magic | Magic |
+| 8 | ROOM_TUNNEL | Tunnel | Occupancy limit | Movement |
+| 9 | ROOM_PRIVATE | Private | 2 person limit | Movement |
+| 10 | ROOM_STAFFROOM | Staff-Room | Staff only | Access |
+| 11 | ROOM_HOUSE | House | Player house | Special |
+| 12 | ROOM_HOUSE_CRASH | House-Crash | House save flag | System |
+| 13 | ROOM_ATRIUM | Atrium | House entrance | Special |
+| 14 | ROOM_OLC | OLC | Being edited | System |
+| 15 | ROOM_BFS_MARK | * | Pathfinding temp | System |
+| 16 | ROOM_WORLDMAP | Worldmap | Wilderness map | Special |
+| 17 | ROOM_REGEN | Regenerating | Double regen | Environment |
+| 18 | ROOM_FLY_NEEDED | Fly-Needed | Must fly | Movement |
+| 19 | ROOM_NORECALL | No-Recall | No recall | Magic |
+| 20 | ROOM_SINGLEFILE | Singlefile | One at a time | Movement |
+| 21 | ROOM_NOTELEPORT | No-Teleport | No teleport | Magic |
+| 22 | ROOM_MAGICDARK | Magical-Darkness | Magical darkness | Vision |
+| 23 | ROOM_MAGICLIGHT | Magical-Light | Magical light | Vision |
+| 24 | ROOM_NOSUMMON | No-Summon | No summoning | Magic |
+| 25 | ROOM_NOHEAL | No-Heal | No healing | Environment |
+| 26 | ROOM_NOFLY | No-Fly | Flying blocked | Movement |
+| 27 | ROOM_FOG | Fogged | Fog obscurement | Vision |
+| 28 | ROOM_AIRY | Airy | Airy atmosphere | Environment |
+| 29 | ROOM_OCCUPIED | Occupied | Occupied status | Special |
+| 30 | ROOM_SIZE_TINY | Tiny-Sized-Room | Tiny size | Size |
+| 31 | ROOM_SIZE_DIMINUTIVE | Diminutive-Sized-Room | Diminutive size | Size |
+| 32 | ROOM_CLIMB_NEEDED | Climb-Needed | Requires climbing | Movement |
+| 33 | ROOM_HASTRAP | Trapped | Contains trap | Zone Feature |
+| 34 | ROOM_GENDESC | Wild-Generated-Desc | Generated desc | System |
+| 35 | ROOM_PLAYER_SHOP | Player-Shop | Player shop | Special |
+| 36 | ROOM_RANDOM_TRAP | Random-Trap | Random trap spawn | Zone Feature |
+| 37 | ROOM_RANDOM_CHEST | Random-Chest | Random chest spawn | Zone Feature |
+| 38 | ROOM_HARVEST_NODE | Always-Load-Harvest-Node | Harvest location | Special |
+| 39 | ROOM_ROAD | Road | Road/path | Environment |
+| 40 | ROOM_VEHICLE | Vehicle | Vehicle room | Special |
+| 41 | ROOM_DOCKABLE | Dockable | Docking location | Special |
 
 ---
 
@@ -576,7 +592,7 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` (lines 225-271) - Flag definitions
+- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_DOCKABLE`)
 - `src/movement/movement.c` - Movement restriction checks
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks

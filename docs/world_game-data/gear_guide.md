@@ -17,14 +17,14 @@ Normalization notes:
   - Resources: Hit Points, Movement Points, Mana Points, Psionic Points.
   - Saving throws: Fortitude Save, Reflex Save, Willpower Save.
   - Resistances: Resist Fire, Cold, Air, Earth, Acid, Holy, Electric, Unholy, Slice, Puncture, Force, Sound, Poison, Disease, Negative, Illusion, Mental, Light, Energy, Water.
-- “Enhancement only” indicates no specific stat bonuses, only enhancement/special/proc effects.
+- "Enhancement only" indicates no specific stat bonuses, only enhancement/special/proc effects.
 
 Additional context incorporated from Armor Information:
 - Piecemeal armor system governs AC contribution by protective slots (Head, Body, Arms, Legs).
 - Object values (VAL0..VAL4) govern AC and enhancement settings.
 - Builder-set fields (armor-type, material, enhancement, special abilities, custom cost) and auto-assigned fields (AC, wear pos, material, cost, max Dex, check penalty, ASF, weight, don/remove times, speeds).
 - AC rating distribution across protective slots and shields, plus weight distribution tables.
-- Enhancement averaging across worn gear, and stacking rules via “bonus types”.
+- Enhancement averaging across worn gear, and stacking rules via "bonus types".
 - Random treasure/crafted gear bonus rules and caps integration with stat points.
 
 ---
@@ -57,7 +57,7 @@ Additional context incorporated from Armor Information:
   - Resist Unholy
   - Psionic Points
   - Mana Points
-  - Note: Psionic Points (per 2022 doc); Mana Points (per 2013 doc). See “Contradictions and Variances”.
+  - Note: Psionic Points (per 2022 doc); Mana Points (per 2013 doc). See "Contradictions and Variances".
 
 - HOLD / HELD (One-handed Held Item)
   - Intelligence
@@ -117,7 +117,7 @@ Additional context incorporated from Armor Information:
   - Intelligence
   - Charisma
   - Hit Points
-  - Note: 2013 doc lists stats; 2022 doc lists “2H HOLD” under enhancement-only. See “Contradictions and Variances”.
+  - Note: 2013 doc lists stats; 2022 doc lists "2H HOLD" under enhancement-only. See "Contradictions and Variances".
 
 - LIGHT (Light Source)
   - Enhancement only (per 2022 doc)
@@ -185,7 +185,7 @@ Additional context incorporated from Armor Information:
   - WIELD, WIELD OFFHAND, WIELD TWOHANDED
   - SHIELD
   - LIGHT, BADGE, FACE, EAR
-  - 2H HOLD (Two-Handed Held Item) — per 2022 doc only; conflicts with 2013 doc which lists stats on Held Twohanded
+  - 2H HOLD (Two-Handed Held Item) - per 2022 doc only; conflicts with 2013 doc which lists stats on Held Twohanded
 
 ---
 
@@ -194,11 +194,21 @@ Additional context incorporated from Armor Information:
 Reference: http://www.d20pfsrd.com/gamemastering/other-rules/piecemeal-armor
 
 ### Object Values (VAL fields)
-- Value 0: Armor Class apply (AC) — not settable
-- Value 1: Armor-type (or swapped with Value 2) — settable
-- Value 2: unused/unspecified
-- Value 3: unused/unspecified
-- Value 4: Enhancement bonus — settable
+
+For armor, verified against `src/olc/oedit.c` and `src/utils.h`:
+
+- `value[0]`: Armor Class apply. Filled in by `set_armor_object()` when you
+  choose the subtype; not set directly.
+- `value[1]`: Armor subtype, indexing `armor_list`. This is the field you set.
+  Choosing it auto-fills AC, size, material, and wear flags.
+- `value[2]`, `value[3]`: unused for armor.
+- `value[4]`: Enhancement bonus. Settable, and reachable only if the object
+  record uses the 16-value form - the legacy 4-value form cannot hold it.
+
+The editor labels these `Value1` through `Value5`, one higher than the
+file-format slot each one writes. The complete per-type layout for every item
+type is in the
+[OEDIT Guide](OEDIT_GUIDE.md#object-value-reference).
 
 ### Builder-Set Fields
 - Armor-type
@@ -270,7 +280,7 @@ Number of protective slots with example ratings (Full Plate total 8.0):
 - Use average enhancement bonus across all worn gear instead.
 
 ### Bonus Types and Stacking
-- Use “bonus types” (d20 rules) to prevent unintended stacking across multiple slots.
+- Use "bonus types" (d20 rules) to prevent unintended stacking across multiple slots.
 - Typed bonuses do not stack (highest applies). Untyped and Dodge stack.
 
 Example:
@@ -297,13 +307,13 @@ Rules:
 
 ---
 
-## Slot Inventory and Notes From “Current Gear Stats Distribution” (Structure)
+## Slot Inventory and Notes From "Current Gear Stats Distribution" (Structure)
 
-The “Current Gear Stats Distribution” sheet defines the complete slot list and indicates that some are “Enhancement, Special-Ability, Proc ONLY”:
+The "Current Gear Stats Distribution" sheet defines the complete slot list and indicates that some are "Enhancement, Special-Ability, Proc ONLY":
 - Slots listed: Finger, Neck, Body, Head, Legs, Arms, Hands, Feet, Shield, About, Waist, Wrist, Wield, Held, Wield Offhand, Held Offhand, Wield Twohand, Held Twohand.
-- Note: “Body, Head, Legs, Arms, Shield, Wielded Slots are Enhancement, Special-Ability, Proc ONLY.”
+- Note: "Body, Head, Legs, Arms, Shield, Wielded Slots are Enhancement, Special-Ability, Proc ONLY."
 - This aligns with enhancement-only classification for Body, Head, Legs, Arms, Shield, Wield/Wield Offhand/Wield Twohanded.
-- Held/Held Offhand/Held Twohanded are not listed as enhancement-only in that sheet, allowing stat bonuses, consistent with the 2013 doc, and in partial conflict with the 2022 doc for “2H HOLD.”
+- Held/Held Offhand/Held Twohanded are not listed as enhancement-only in that sheet, allowing stat bonuses, consistent with the 2013 doc, and in partial conflict with the 2022 doc for "2H HOLD."
 
 ---
 
@@ -322,7 +332,7 @@ Core Attributes
 
 Resource Pools
 ```
-#define APPLY_MANA             12   // Mana Points
+#define APPLY_PSP              12   // Psionic Power Points
 #define APPLY_HIT              13   // Hit Points
 #define APPLY_MOVE             14   // Movement Points
 ```
@@ -362,7 +372,7 @@ Resistances
 
 ## Game Mechanics (from 2013 document)
 
-General Rules — Attribute Priority
+General Rules - Attribute Priority
 - Physical attributes are more valuable than mental attributes
 - Priority: Strength, Dexterity, Constitution > Intelligence, Wisdom, Charisma
 
@@ -378,10 +388,10 @@ Specific Attribute Benefits
 - Charisma: Spell Slots, Better Shop Prices
 - *HP bonus may vary based on system
 
-Equipment Value System — Rare Equipment Point System
-- Base Value: 2500 × character level
+Equipment Value System - Rare Equipment Point System
+- Base Value: 2500 x character level
 - Epic Crafting/Bosses (Level 30): Up to 100,000 value
-- Alternative Calculation: 3333 × character level
+- Alternative Calculation: 3333 x character level
 - Reference: http://www.d20srd.org/srd/magicItems/creatingMagicItems.htm#tableEstimatingMagicItemGoldPieceValues
 
 Practical Stat Caps (preliminary)
@@ -409,8 +419,8 @@ Practical Stat Caps (preliminary)
 ## Contradictions and Variances
 
 1) Held Twohanded vs 2H Hold
-- 2022 “Stats by Wear Location”: Lists “2H HOLD (Two-Handed Held Item)” in Enhancement-Only, implying no specific stats.
-- 2013 “Stat Distribution on Gear Drops”: “Held Twohanded” lists Intelligence, Charisma, Hit Points.
+- 2022 "Stats by Wear Location": Lists "2H HOLD (Two-Handed Held Item)" in Enhancement-Only, implying no specific stats.
+- 2013 "Stat Distribution on Gear Drops": "Held Twohanded" lists Intelligence, Charisma, Hit Points.
 - Impact: Contradictory classification for two-handed held items. This document preserves both claims; master mapping shows Held Twohanded with stats but flags this note.
 
 2) Wrist Resource Stat: Psionic Points vs Mana Points
@@ -420,15 +430,15 @@ Practical Stat Caps (preliminary)
 - Impact: Variant implementations or terminology divergence. Both retained in master mapping and flagged here.
 
 3) Enhancement-only scope for Held categories
-- “Current Gear Stats Distribution” note states “Body, Head, Legs, Arms, Shield, Wielded Slots are Enhancement, Special-Ability, Proc ONLY,” which does not include Held/Held Twohanded in the enhancement-only list.
-- 2022 doc includes “2H HOLD” among enhancement-only, creating an inconsistency specifically for the two-handed held variant.
+- "Current Gear Stats Distribution" note states "Body, Head, Legs, Arms, Shield, Wielded Slots are Enhancement, Special-Ability, Proc ONLY," which does not include Held/Held Twohanded in the enhancement-only list.
+- 2022 doc includes "2H HOLD" among enhancement-only, creating an inconsistency specifically for the two-handed held variant.
 - Impact: Reinforces Contradiction (1).
 
 No other direct contradictions found; differences like separate slots (Held, Held Offhand, Held Twohanded) in 2013 vs single HOLD in 2022 are treated as granularity expansions rather than conflicts.
 
 ---
 
-## Original “Current Gear Stats Distribution” Table (Structure Preserved)
+## Original "Current Gear Stats Distribution" Table (Structure Preserved)
 
 Note: The original file provided a table layout with empty stat cells and a note about enhancement-only slots. The structure is preserved here for reference and future population. The master mapping above contains the consolidated allocations.
 
@@ -478,6 +488,6 @@ Footer note from the original sheet:
 ---
 
 ## Cross-References
-- More info referenced by armor_information.md: “current stat distribution on random drops” corresponds to the mappings in this combined document and stat_distribute_on_gear_drop.md.
+- More info referenced by armor_information.md: "current stat distribution on random drops" corresponds to the mappings in this combined document and stat_distribute_on_gear_drop.md.
 
 End of combined document.
