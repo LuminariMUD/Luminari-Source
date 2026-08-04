@@ -9,7 +9,7 @@ import re
 from .models import Finding, IndexRecord, SourceSpan, ValidationResult
 
 
-DATA_EXTENSIONS = ("zon", "wld", "mob", "obj", "shp", "trg")
+DATA_EXTENSIONS = ("zon", "wld", "mob", "obj", "shp", "trg", "qst")
 REQUIRED_FULL_DATASETS = frozenset({"zon", "wld", "mob", "obj"})
 _SAFE_COMPONENT = re.compile(r"^[A-Za-z0-9._-]+$")
 _NUMERIC_PACKAGE = re.compile(r"^(\d+)\.([A-Za-z0-9]+)$")

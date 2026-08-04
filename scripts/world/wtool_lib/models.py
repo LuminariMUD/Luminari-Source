@@ -338,7 +338,52 @@ class ShopRecord:
   complete: bool = True
 
 
-WorldRecord = ZoneRecord | RoomRecord | MobileRecord | ObjectRecord | TriggerRecord | ShopRecord
+@dataclass(slots=True)
+class QuestRecord:
+  vnum: int
+  span: SourceSpan
+  source_package: str
+  name: str | None = None
+  description: str | None = None
+  accept_message: str | None = None
+  completion_message: str | None = None
+  quit_message: str | None = None
+  quest_type: int | None = None
+  questmaster_vnum: int | None = None
+  flag_token: str | None = None
+  flag_bits: set[int] = field(default_factory=set)
+  target: int | None = None
+  previous_quest_vnum: int | None = None
+  next_quest_vnum: int | None = None
+  prerequisite_object_vnum: int | None = None
+  points: int | None = None
+  quit_penalty: int | None = None
+  min_level: int | None = None
+  max_level: int | None = None
+  time_limit: int | None = None
+  return_mobile_vnum: int | None = None
+  quantity: int | None = None
+  gold_reward: int | None = None
+  experience_reward: int | None = None
+  reward_object_vnum: int | None = None
+  reward_row_width: int = 0
+  race_reward: int | None = None
+  wilderness_x: int | None = None
+  wilderness_y: int | None = None
+  follower_mobile_vnum: int | None = None
+  diplomacy_dc: int | None = None
+  intimidate_dc: int | None = None
+  bluff_dc: int | None = None
+  dialogue_alternative_quest_vnum: int | None = None
+  dialogue_block_count: int = 0
+  raw_values: dict[str, int] = field(default_factory=dict)
+  field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  complete: bool = True
+
+
+WorldRecord = (
+    ZoneRecord | RoomRecord | MobileRecord | ObjectRecord | TriggerRecord | ShopRecord | QuestRecord
+)
 
 
 @dataclass(slots=True)
@@ -349,6 +394,7 @@ class WorldData:
   objects: list[ObjectRecord] = field(default_factory=list)
   triggers: list[TriggerRecord] = field(default_factory=list)
   shops: list[ShopRecord] = field(default_factory=list)
+  quests: list[QuestRecord] = field(default_factory=list)
   findings: list[Finding] = field(default_factory=list)
   complete: bool = True
 
@@ -360,6 +406,7 @@ class WorldData:
         "object": list(self.objects),
         "trigger": list(self.triggers),
         "shop": list(self.shops),
+        "quest": list(self.quests),
     }
     if record_type not in collections:
       raise ValueError(f"unknown world record type {record_type!r}")

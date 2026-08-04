@@ -346,6 +346,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/mobiles.py \
 	scripts/world/wtool_lib/objects.py \
 	scripts/world/wtool_lib/parsing.py \
+	scripts/world/wtool_lib/quests.py \
 	scripts/world/wtool_lib/reporting.py \
 	scripts/world/wtool_lib/rooms.py \
 	scripts/world/wtool_lib/semantics.py \

@@ -6,12 +6,13 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .flags import decode_tokens
-from .indexes import indexed_data_paths, validate_indexes
+from .indexes import DATA_EXTENSIONS, indexed_data_paths, validate_indexes
 from .mobiles import parse_mobile_file
 from .models import (
     Finding,
     MobileRecord,
     ObjectRecord,
+    QuestRecord,
     RelatedLocation,
     RoomRecord,
     ShopRecord,
@@ -24,6 +25,7 @@ from .models import (
 )
 from .objects import parse_object_file
 from .parsing import finding
+from .quests import parse_quest_file
 from .rooms import parse_room_file
 from .semantics import validate_semantics
 from .shops import parse_shop_file
@@ -378,7 +380,12 @@ def _validate_record_order(
       )
     else:
       seen[record.vnum] = record
-    if previous is not None and record.vnum <= previous.vnum and emit:
+    if (
+        previous is not None
+        and record.source_package == previous.source_package
+        and record.vnum <= previous.vnum
+        and emit
+    ):
       findings.append(
           Finding(
               f"{code_prefix}041",
@@ -509,6 +516,7 @@ def _validate_full_graph(
     objects: list[ObjectRecord],
     triggers: list[TriggerRecord],
     shops: list[ShopRecord],
+    quests: list[QuestRecord],
     findings: list[Finding],
     selected_packages: set[int] | None,
     manifest: dict[str, Any],
@@ -519,6 +527,7 @@ def _validate_full_graph(
       (list(objects), "object", "OBJ"),
       (list(triggers), "trigger", "TRG"),
       (list(shops), "shop", "SHP"),
+      (list(quests), "quest", "QST"),
   ]
   for records, record_type, prefix in typed_lists:
     _validate_record_order(records, record_type, prefix, findings, selected_packages)
@@ -531,6 +540,7 @@ def _validate_full_graph(
       "object": {record.vnum: record for record in objects},
       "trigger": {record.vnum: record for record in triggers},
       "shop": {record.vnum: record for record in shops},
+      "quest": {record.vnum: record for record in quests},
   }
   maps = {
       record_type: records
@@ -746,6 +756,7 @@ def _load_files(
     object_paths: Iterable[Path],
     trigger_paths: Iterable[Path],
     shop_paths: Iterable[Path],
+    quest_paths: Iterable[Path],
     repo_root: Path,
     world_root: Path | None,
     manifest: dict[str, Any],
@@ -759,6 +770,7 @@ def _load_files(
     list[ObjectRecord],
     list[TriggerRecord],
     list[ShopRecord],
+    list[QuestRecord],
     list[Finding],
     bool,
 ]:
@@ -769,6 +781,7 @@ def _load_files(
   objects: list[ObjectRecord] = []
   triggers: list[TriggerRecord] = []
   shops: list[ShopRecord] = []
+  quests: list[QuestRecord] = []
   complete = True
   direction_count = 10 if config.get("diagonal_dirs") else 6
   spec_names = extract_spec_names(repo_root)
@@ -792,7 +805,9 @@ def _load_files(
     complete = complete and parsed.complete
 
   for path in zone_paths:
-    parsed = parse_zone_file(path, _display_path(path, world_root, repo_root), manifest, direction_count)
+    parsed = parse_zone_file(
+        path, _display_path(path, world_root, repo_root), manifest, direction_count
+    )
     merge_parse(path, "zone", parsed, zones)
   for path in room_paths:
     parsed = parse_room_file(
@@ -825,6 +840,9 @@ def _load_files(
   for path in shop_paths:
     parsed = parse_shop_file(path, _display_path(path, world_root, repo_root), manifest)
     merge_parse(path, "shop", parsed, shops)
+  for path in quest_paths:
+    parsed = parse_quest_file(path, _display_path(path, world_root, repo_root), manifest)
+    merge_parse(path, "quest", parsed, quests)
   _validate_zone_order(zones, findings, selected_packages)
   _validate_room_graph(zones, rooms, findings, selected_packages, direction_count)
   _validate_full_graph(
@@ -834,6 +852,7 @@ def _load_files(
       objects,
       triggers,
       shops,
+      quests,
       findings,
       selected_packages,
       manifest,
@@ -851,7 +870,7 @@ def _load_files(
           direction_count,
       )
   )
-  return zones, rooms, mobiles, objects, triggers, shops, findings, complete
+  return zones, rooms, mobiles, objects, triggers, shops, quests, findings, complete
 
 
 def validate_indexed_world(
@@ -874,6 +893,7 @@ def validate_indexed_world(
   object_paths = indexed_data_paths(world_root, "obj", mini)
   trigger_paths = indexed_data_paths(world_root, "trg", mini)
   shop_paths = indexed_data_paths(world_root, "shp", mini)
+  quest_paths = indexed_data_paths(world_root, "qst", mini)
   if selected_packages is not None:
     for package in sorted(selected_packages):
       for extension, paths in (
@@ -883,6 +903,7 @@ def validate_indexed_world(
           ("obj", object_paths),
           ("trg", trigger_paths),
           ("shp", shop_paths),
+          ("qst", quest_paths),
       ):
         candidate = world_root / extension / f"{package}.{extension}"
         if candidate.is_file() and candidate not in paths:
@@ -933,6 +954,7 @@ def load_indexed_world_data(
   object_paths = indexed_data_paths(world_root, "obj", mini)
   trigger_paths = indexed_data_paths(world_root, "trg", mini)
   shop_paths = indexed_data_paths(world_root, "shp", mini)
+  quest_paths = indexed_data_paths(world_root, "qst", mini)
   if selected_packages is not None:
     for package in sorted(selected_packages):
       for extension, paths in (
@@ -942,29 +964,41 @@ def load_indexed_world_data(
           ("obj", object_paths),
           ("trg", trigger_paths),
           ("shp", shop_paths),
+          ("qst", quest_paths),
       ):
         candidate = world_root / extension / f"{package}.{extension}"
         if candidate.is_file() and candidate not in paths:
           paths.append(candidate)
-  zones, rooms, mobiles, objects, triggers, shops, findings, complete = _load_files(
+  zones, rooms, mobiles, objects, triggers, shops, quests, findings, complete = _load_files(
       zone_paths,
       room_paths,
       mobile_paths,
       object_paths,
       trigger_paths,
       shop_paths,
+      quest_paths,
       repo_root,
       world_root,
       manifest,
       config,
       selected_packages,
-      {"zone", "room", "mobile", "object", "trigger", "shop"},
+      {"zone", "room", "mobile", "object", "trigger", "shop", "quest"},
   )
-  return WorldData(zones, rooms, mobiles, objects, triggers, shops, findings, complete)
+  return WorldData(
+      zones=zones,
+      rooms=rooms,
+      mobiles=mobiles,
+      objects=objects,
+      triggers=triggers,
+      shops=shops,
+      quests=quests,
+      findings=findings,
+      complete=complete,
+  )
 
 
 def _collect_explicit_paths(requested_paths: Iterable[Path]) -> dict[str, list[Path]]:
-  paths = {extension: [] for extension in ("zon", "wld", "mob", "obj", "trg", "shp")}
+  paths = {extension: [] for extension in DATA_EXTENSIONS}
   seen: set[Path] = set()
   for requested in requested_paths:
     candidates = [requested] if requested.is_file() else sorted(requested.rglob("*"))
@@ -996,7 +1030,7 @@ def validate_explicit_paths(
         finding(
             "IDX012",
             "error",
-            "explicit paths contain no supported .zon, .wld, .mob, .obj, .trg, or .shp files",
+            "explicit paths contain no supported .zon, .wld, .mob, .obj, .shp, .trg, or .qst files",
             SourceSpan("<paths>", 1),
         )
     )
@@ -1009,13 +1043,22 @@ def validate_explicit_paths(
       paths["obj"],
       paths["trg"],
       paths["shp"],
+      paths["qst"],
       repo_root,
       None,
       manifest,
       config,
       None,
       {
-          {"zon": "zone", "wld": "room", "mob": "mobile", "obj": "object", "trg": "trigger", "shp": "shop"}[
+          {
+              "zon": "zone",
+              "wld": "room",
+              "mob": "mobile",
+              "obj": "object",
+              "shp": "shop",
+              "trg": "trigger",
+              "qst": "quest",
+          }[
               extension
           ]
           for extension, selected_paths in paths.items()

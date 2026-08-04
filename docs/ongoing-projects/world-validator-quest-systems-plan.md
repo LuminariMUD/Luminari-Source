@@ -1,6 +1,6 @@
 # World Validator Quest-System Expansion Plan
 
-Status: in progress (Session 2 - QST first-class parsing and selection).
+Status: in progress (Session 3 - HLQ first-class parsing and selection).
 
 Planning baseline: 2026-08-04 at commit `42378034` on the development
 environment.
@@ -9,7 +9,7 @@ environment.
 
 Last updated: 2026-08-04.
 
-- Active session: Session 2 - QST first-class parsing and selection.
+- Active session: Session 3 - HLQ first-class parsing and selection.
 - Baseline source commit: `4237803456838f3b955462cee2e64acd95d0a04e`.
 - Environment gate: `APP_ENV=development` confirmed; no production work is
   authorized or planned.
@@ -35,9 +35,21 @@ Last updated: 2026-08-04.
   constants and documentation checks passed; QST and HLQ live-data hashes are
   unchanged.
 - Published checkpoints: planning baseline commit `9b41691e`; Session 1
-  implementation commit pending at this update.
-- Next implementation step: add the typed QST model and byte-safe parser, then
-  connect `.qst` to index, selection, and explicit-path loading.
+  implementation commit `e3052d35`; Session 2 implementation is ready for
+  its checkpoint commit at this update.
+- Session 2 implementation: added the typed QST model and field spans, a
+  byte-safe five-string/three-row/dialogue parser, deterministic recovery,
+  QST index and selection support, package/order checks, explicit-path
+  support, and normal/mini/zone/path tests.
+- Session 2 live audit: all 182 ignored QST files parsed completely in 0.09
+  seconds with 18,420 KiB peak RSS. An initial cross-package order false
+  positive was fixed; the final aggregate contains one real `QST040` duplicate
+  finding and no parser incompleteness. No live content was committed.
+- Session 2 verification: 18 focused QST tests passed; both Make and CMake
+  `test-world-tools` targets passed all 130 tests plus the wrapper; constants
+  and documentation checks passed; QST and HLQ live-data hashes are unchanged.
+- Next implementation step: add nested HLQ host/entry/command models and the
+  order-preserving parser, then connect `.hlq` to all selection modes.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -720,28 +732,28 @@ make check-world-docs
 Goal: load `.qst` safely in every validation mode and produce complete
 structural findings.
 
-- [ ] T017 [S0201] Add `QuestRecord` and field-level span structures to `models.py`.
-- [ ] T018 [S0202] Create `quests.py` on the shared source cursor and parse record/file terminators.
-- [ ] T019 [S0203] Parse the five Luminari tilde strings with correct length and recovery behavior.
-- [ ] T020 [S0204] Parse numeric row one, preserve raw sentinels/VNUMs, and decode exactly one flag token.
-- [ ] T021 [S0205] Parse numeric row two with signed C-integer bounds and field spans.
-- [ ] T022 [S0206] Parse both three-field and seven-field reward rows without inventing omitted defaults.
-- [ ] T023 [S0207] Parse optional/repeated `D` blocks and `S`, diagnosing overwrite and unknown-marker hazards.
-- [ ] T024 [S0208] Implement credible-header recovery and per-record/file completeness.
-- [ ] T025 [S0209] Diagnose duplicate/inaccessible VNUMs, canonical ordering, and QST package ownership.
-- [ ] T026 [S0210] Add `qst` to index discovery, selected packages, explicit paths, and supported-file messages.
-- [ ] T027 [S0211] Add QST paths and records to `_load_files()`, `WorldData`, and normal/mini/zone/path results.
-- [ ] T028 [S0212] Add canonical, legacy, malformed, overflow, flag, extension, and recovery unit tests.
-- [ ] T029 [S0213] Test empty QST datasets, missing indexes, unindexed files, and missing listed files.
-- [ ] T030 [S0214] Test selected unindexed `N.qst` merge behavior and isolated-path reference universes.
-- [ ] T031 [S0215] Add human/JSON parser findings and completeness golden tests.
-- [ ] T032 [S0216] Run the QST parser over a temporary copy/list of the live corpus, triage parser defects separately from data findings, and retain only aggregate evidence.
-- [ ] T033 [S0217] Run focused and full world-tool gates and confirm all input hashes remain unchanged.
+- [x] T017 [S0201] Add `QuestRecord` and field-level span structures to `models.py`.
+- [x] T018 [S0202] Create `quests.py` on the shared source cursor and parse record/file terminators.
+- [x] T019 [S0203] Parse the five Luminari tilde strings with correct length and recovery behavior.
+- [x] T020 [S0204] Parse numeric row one, preserve raw sentinels/VNUMs, and decode exactly one flag token.
+- [x] T021 [S0205] Parse numeric row two with signed C-integer bounds and field spans.
+- [x] T022 [S0206] Parse both three-field and seven-field reward rows without inventing omitted defaults.
+- [x] T023 [S0207] Parse optional/repeated `D` blocks and `S`, diagnosing overwrite and unknown-marker hazards.
+- [x] T024 [S0208] Implement credible-header recovery and per-record/file completeness.
+- [x] T025 [S0209] Diagnose duplicate/inaccessible VNUMs, canonical ordering, and QST package ownership.
+- [x] T026 [S0210] Add `qst` to index discovery, selected packages, explicit paths, and supported-file messages.
+- [x] T027 [S0211] Add QST paths and records to `_load_files()`, `WorldData`, and normal/mini/zone/path results.
+- [x] T028 [S0212] Add canonical, legacy, malformed, overflow, flag, extension, and recovery unit tests.
+- [x] T029 [S0213] Test empty QST datasets, missing indexes, unindexed files, and missing listed files.
+- [x] T030 [S0214] Test selected unindexed `N.qst` merge behavior and isolated-path reference universes.
+- [x] T031 [S0215] Add human/JSON parser findings and completeness golden tests.
+- [x] T032 [S0216] Run the QST parser over a temporary copy/list of the live corpus, triage parser defects separately from data findings, and retain only aggregate evidence.
+- [x] T033 [S0217] Run focused and full world-tool gates and confirm all input hashes remain unchanged.
 
 Session gate:
 
 ```sh
-python3 -m unittest scripts.world.tests.test_quests \
+PYTHONPATH=scripts/world python3 -m unittest scripts.world.tests.test_quests \
   scripts.world.tests.test_indexes scripts.world.tests.test_reporting -v
 make test-world-tools
 ```

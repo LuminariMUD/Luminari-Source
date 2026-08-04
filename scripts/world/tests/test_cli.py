@@ -49,6 +49,12 @@ def make_world(root: Path) -> None:
           "%s no cash.~\n%s buys for %d.~\n%s sells for %d.~\n0\n0\n100\n0\n"
           "100\n-1\n0\n28\n0\n28\n$~\n"
       )
+    elif extension == "qst":
+      content = (
+          "#100\nTest Quest~\nA test quest.~\nYou accept the test quest.~\n"
+          "You complete the test quest.~\nYou leave the test quest.~\n"
+          "0 100 0 100 -1 -1 -1\n1 0 1 30 -1 -1 1\n0 0 -1\nS\n$~\n"
+      )
     else:
       raise AssertionError(extension)
     (directory / f"1.{extension}").write_text(content, encoding="ascii")
