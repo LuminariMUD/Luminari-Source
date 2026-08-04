@@ -2,6 +2,54 @@
 
 ## [Unreleased] - July 30, 2026
 
+### Artifact gameplay balance pass
+
+#### Changed
+
+- **`bring annhilation forth` is bounded.** It hit every valid hostile in the
+  room, making it the only multi-target artifact power whose total output rose
+  with however many happened to be standing there; Doom Blast has had a flat
+  cap of five since it was written. It now hits at most `1 + artifact_level`
+  targets. Per-target damage is unchanged.
+- **`doomblast` pays one XP award per use, not one per target.** Fifty XP
+  every 180 seconds in a crowded room was the fastest progression path in the
+  system, and it contradicted Courage's group invocation, which has always
+  paid one flat award however many it reaches.
+- **Kelrarin's holy blast scales with artifact level.** A flat 350 meant a
+  level-1 hammer carried a level-5 nuke; it now grows from 100 to 350 the same
+  way its own lesser throw already did.
+- **Kelrarin's execute skips boss-tier targets.** The follow-up killed any NPC
+  left below the blast's damage with no exemption, so a one-in-thirty-three
+  roll on every swing was a reliable finisher on any worn-down boss - which
+  nothing else in the roster can do. It now uses the same three-level boss
+  margin the XP system uses.
+- **Kelrom's healback has a cooldown and a group share.** It had no roll and
+  no cooldown at all, so a level-5 Kelrom healed the whole group for half of
+  every single hit. It is the only always-on procedure in the roster and is
+  now the only hand-written one subject to the shared 30-second internal
+  cooldown; the bearer keeps the full share and other group members receive
+  half.
+- **The Horn of Henekar's charm cap scales.** It accepted any NPC up to 2000
+  maximum HP at artifact level 1, which is a mini-boss in most content and
+  contradicts its own contract line about recruiting lesser creatures. The cap
+  now climbs to 2000 across the five artifact levels. Follower count,
+  wielder-level, `MOB_NOCHARM`, and follower-slot checks are unchanged.
+- **The class-oath burn scales with the bearer.** A flat `5d4` is 5 to 20
+  points, which the level-30 character most likely to be carrying an artifact
+  it has no claim to does not notice. The burn is now 3 percent of maximum HP
+  with the historical dice as its floor. The ten-class-level oath threshold is
+  unchanged and remains appropriate for a thirty-level multiclass game.
+
+XP rates were audited and otherwise left alone. With Doom Blast corrected,
+the fastest routes to artifact level 5 are called effects at 25 per use on
+one-hour-to-one-week recharges and active abilities at 10 to 20 on three- to
+ten-minute cooldowns, which reach the 2000-point total over a long haul
+rather than a session.
+
+Regression coverage for each decision is in
+`unittests/CuTest/test_artifact_integration.c`, and the reasoning is recorded
+in `docs/systems/ARTIFACT_SYSTEM.md` beside the behavior it explains.
+
 ### Artifact booted-world integration coverage
 
 #### Added

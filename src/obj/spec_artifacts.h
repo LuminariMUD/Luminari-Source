@@ -125,6 +125,13 @@
 /* Doom Blast target cap. */
 #define ARTIFACT_DOOMBLAST_MAX_TARGETS 5
 
+/* Annihilation's target cap, one plus the artifact's level, so a young blade
+ * clears a skirmish and a grown one clears a room.  Before the balance pass
+ * this effect had no cap at all and its total output scaled with however many
+ * hostiles happened to be standing there. */
+#define ARTIFACT_ANNIHILATION_TARGETS_PER_LEVEL 1
+#define ARTIFACT_ANNIHILATION_TARGETS_BASE 1
+
 /* --------------------------------------------------------------------------
  * Class restriction and the burn penalty
  *
@@ -132,8 +139,12 @@
  * check.  LuminariMUD is multi-class, so the gate is a minimum number of
  * levels in the named class rather than "is that your class".
  * -------------------------------------------------------------------------- */
+/* The burn scales with whoever it is rejecting.  A flat 5d4 is 5 to 20 points,
+ * which a level-30 character does not notice; the percentage is what makes the
+ * refusal mean something at every tier, and the dice are its floor. */
 #define ARTIFACT_BURN_DICE 5
 #define ARTIFACT_BURN_SIDES 4
+#define ARTIFACT_BURN_PERCENT 3 /* percent of max HP, floored by the dice */
 
 /* --------------------------------------------------------------------------
  * Called effects - the per-artifact special procedures
@@ -194,7 +205,11 @@
 #define NUM_ART_EFFECTS 19
 
 /* Tunables for the called effects. */
-#define ARTIFACT_CHARM_MAX_HP 2000 /* ROL's cap on "join my quest"        */
+/* ROL's flat 2000 is the ceiling, not the entry price: a level-1 horn calls
+ * lesser creatures, and only a grown one can call something that large.  The
+ * contract line is "recruits the lesser creatures nearby", and a 2000-max-HP
+ * mobile is a mini-boss in most content. */
+#define ARTIFACT_CHARM_MAX_HP 2000 /* ROL's cap, reached at artifact level 5 */
 #define ARTIFACT_CHARM_MAX 3       /* how many may answer at once         */
 #define ARTIFACT_ENRAGE_DURATION 10
 
@@ -332,7 +347,16 @@
 #define ARTIFACT_GESEN_THROW_ODDS 31
 #define ARTIFACT_AVERNUS_HEAL_THRESHOLD 100
 #define ARTIFACT_AVERNUS_HEAL_CHANCE 30
+/* Kelrom's healback.  The bearer gets the full share; everyone else in the
+ * group gets half of it.  Before the balance pass this fired on every single
+ * hit with no cooldown and gave the whole group the full amount, which made a
+ * level-5 Kelrom a party-wide 50%-of-damage lifesteal on every swing. */
 #define ARTIFACT_KELROM_HEALBACK_PERCENT 10
+#define ARTIFACT_KELROM_GROUP_SHARE 50 /* percent of the bearer's share    */
+
+/* Kelrarin's mega blast scales like its own lesser throw does; a level-1
+ * hammer should not carry a level-5 nuke. */
+#define ARTIFACT_KELRARIN_MEGA_MIN 100
 
 /* --------------------------------------------------------------------------
  * Data model

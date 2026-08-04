@@ -68,10 +68,15 @@ the vault. Vnums are allocated in the existing artifact zone 1699.
   is not version controlled, so placement is not this repository's to make.
 - Section 3 (booted-world integration coverage) is now **DONE**; see that
   section for what landed.
-- Section 4 (the gameplay balance pass) is still open.
+- Section 4 (the gameplay balance pass) is now **DONE**; see that section
+  for the decision table.
 - Section 10's world-content half is builder work: the code stages the lore
   and hint text and gates it by discovery, but wiring NPC dialogue to it is
   done with ordinary DG scripts against `artifact chronicle`.
+
+Every section of this tracker is now either done or handed off. What remains
+is world-building work, briefed in
+[`artifact-placement-plan.md`](artifact-placement-plan.md).
 
 ### 0.5 Verification performed
 
@@ -211,27 +216,31 @@ widened from eleven object-table entries to all seventeen. It had been
 booting a partial registry, which made the validator log thirty SYSERRs on
 every run; the suite is now silent on artifacts.
 
-## 4. Perform a gameplay balance pass
+## 4. Perform a gameplay balance pass - DONE
 
-The called effects and signature procedures follow the shape of the upstream
-system but were scaled by hand for LuminariMUD and have not had a sustained
-playtest.
+Every item on the review list was measured against LuminariMUD's own numbers
+(level 30 mortal cap, `DAMAGE_CAP` of 1499, the 100/300/600/1000 artifact XP
+curve) and either changed or explicitly kept. Decisions are recorded in
+`docs/CHANGELOG.md` and beside the behavior they explain in
+`docs/systems/ARTIFACT_SYSTEM.md`; each has a regression test in
+`unittests/CuTest/test_artifact_integration.c`.
 
-Review at least:
+| Reviewed | Finding | Decision |
+| --- | --- | --- |
+| `bring annhilation forth` | The only multi-target power with no target cap; total output scaled with room population. Doom Blast has always capped at five. | Capped at `1 + artifact_level` targets. Per-target damage unchanged. |
+| Kelrarin's 350 mega blast | Flat, so a level-1 hammer carried a level-5 nuke, while its own lesser throw was already level-scaled. | Scales 100 to 350 across the five levels. |
+| Kelrarin's NPC sudden death | Killed any NPC left under the blast damage, with no boss exemption. One-in-thirty-three per swing made it a reliable boss finisher. | Skips boss-tier targets, reusing the XP system's three-level margin. |
+| Kelrom's group healback | No roll and no cooldown: the whole group healed for a share of every hit, up to 50% at level 5. | Now on the shared 30-second internal cooldown; the bearer keeps the full share, others get half. |
+| Horn of Henekar's 2000-HP charm threshold | A mini-boss in most content, available at artifact level 1, against a contract line about "lesser creatures". | Scales to 2000 across the five levels. Other charm checks unchanged. |
+| XP for critical and boss-tier combat | 1/3/10 with x2 and x3 boss multipliers, paid once per event rather than once per equipped artifact. | Kept. |
+| XP for called effects | 25 per successful use, one award however many targets. | Kept; this is the reference the others were measured against. |
+| XP for multi-target Doom Blast | Paid 10 *per target*, so 50 every 180 seconds - the fastest path in the system, and inconsistent with Courage's group invocation. | One flat award per use. |
+| Ten-class-level oath threshold | Appropriate for a thirty-level multiclass game; `CLASS_LEVEL()` already makes it multiclass-aware. | Kept. |
+| `5d4` burn penalty | 5 to 20 points, which the level-30 character most likely to be misusing an artifact does not feel. | Now 3 percent of maximum HP, floored by the historical dice. |
 
-- `bring annhilation forth`, currently
-  `dice(10 + artifact_level * 4, 12) + character_level * 3` against every
-  valid hostile target in the room;
-- Kelrarin's 350-point mega blast and NPC sudden-death follow-up;
-- Kelrom's group healback, which scales from 10% to 50% of triggering
-  damage;
-- the 2000-max-HP Horn of Henekar charm threshold;
-- XP rates for critical and boss-tier combat, called effects, and
-  multi-target Doom Blast;
-- the ten-class-level oath threshold and `5d4` burn penalty.
-
-Record approved balance changes in the changelog and update
-`docs/systems/ARTIFACT_SYSTEM.md`.
+Kelrom's animal clause - it kills its wielder for striking an animal - was
+reviewed and deliberately kept. That is the item's identity, not a tuning
+value.
 
 ## 5. Decide whether cooldowns must survive reboot - RESOLVED
 

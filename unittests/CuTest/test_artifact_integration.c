@@ -1443,3 +1443,129 @@ void Test_artifact_integration_ownership_survives_a_reboot(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, level_survived);
   CuAssertIntEquals(tc, TRUE, blocked_after_reboot);
 }
+
+/* --------------------------------------------------------------------------
+ * Balance-pass regressions
+ *
+ * Each of these locks in a decision from the gameplay balance pass recorded
+ * in docs/systems/ARTIFACT_SYSTEM.md.
+ * -------------------------------------------------------------------------- */
+
+void Test_artifact_integration_oath_burn_scales_with_the_bearer(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  struct char_data *actor = NULL;
+  int small_burn = 0, large_burn = 0;
+  int dice_ceiling = ARTIFACT_BURN_DICE * ARTIFACT_BURN_SIDES;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  actor = &fixture.actor;
+  art = artifact_by_vnum(ART_VNUM_TRORXEK);
+  CuAssertPtrNotNull(tc, art);
+
+  artint_instance(&fixture, &obj, ART_VNUM_TRORXEK);
+  artint_carry(&fixture, &obj);
+  GET_EQ(actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = actor;
+  obj.worn_on = WEAR_WIELD_1;
+  CLASS_LEVEL(actor, CLASS_DRUID) = 0;
+
+  /* A small bearer takes at least the historical dice. */
+  GET_MAX_HIT(actor) = 200;
+  GET_HIT(actor) = 200;
+  artifact_burn_tick(actor);
+  small_burn = 200 - GET_HIT(actor);
+
+  /* A large one takes a share of what it actually has, which the flat 5d4
+   * could never reach. */
+  GET_MAX_HIT(actor) = 5000;
+  GET_HIT(actor) = 5000;
+  artifact_burn_tick(actor);
+  large_burn = 5000 - GET_HIT(actor);
+
+  GET_EQ(actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertTrue(tc, small_burn >= ARTIFACT_BURN_DICE);
+  CuAssertTrue(tc, large_burn > dice_ceiling);
+}
+
+void Test_artifact_integration_kelrom_healback_respects_the_cooldown(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int first_healed = 0, second_healed = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Kelrom is the only always-on procedure in the roster, so it is the only
+   * one that has to answer to the shared internal cooldown. */
+  art = artifact_by_vnum(ART_VNUM_KELROM);
+  CuAssertPtrNotNull(tc, art);
+  art->level = ARTIFACT_MAX_LEVEL;
+  art->last_proc = 0;
+
+  artint_instance(&fixture, &obj, ART_VNUM_KELROM);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  GET_HIT(&fixture.actor) = 100;
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  first_healed = GET_HIT(&fixture.actor) - 100;
+
+  GET_HIT(&fixture.actor) = 100;
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  second_healed = GET_HIT(&fixture.actor) - 100;
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertTrue(tc, first_healed > 0);
+  CuAssertIntEquals(tc, 0, second_healed);
+}
+
+void Test_artifact_integration_multi_target_powers_are_capped(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  int annihilation_cap_at_one = 0, annihilation_cap_at_five = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Both multi-target powers are bounded, and annihilation's bound grows with
+   * the artifact rather than with how crowded the room happens to be. */
+  annihilation_cap_at_one =
+      ARTIFACT_ANNIHILATION_TARGETS_BASE + (ARTIFACT_ANNIHILATION_TARGETS_PER_LEVEL * 1);
+  annihilation_cap_at_five = ARTIFACT_ANNIHILATION_TARGETS_BASE +
+                             (ARTIFACT_ANNIHILATION_TARGETS_PER_LEVEL * ARTIFACT_MAX_LEVEL);
+
+  artint_end(&fixture);
+
+  CuAssertTrue(tc, annihilation_cap_at_one >= 1);
+  CuAssertTrue(tc, annihilation_cap_at_five > annihilation_cap_at_one);
+  CuAssertTrue(tc, ARTIFACT_DOOMBLAST_MAX_TARGETS > 0);
+}

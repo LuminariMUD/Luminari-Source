@@ -250,8 +250,14 @@ Five artifacts require ten levels in a named class:
 
 The gate uses `CLASS_LEVEL()` so it works with LuminariMUD multiclass
 characters. Wearing an artifact without the required depth is allowed, but
-once per `point_update()` it deals `5d4` fire damage. Only one burn is
-applied per update even when several equipped artifacts reject the wearer.
+once per `point_update()` it burns the wearer for fire damage equal to 3
+percent of maximum HP, with `5d4` as the floor. Only one burn is applied per
+update even when several equipped artifacts reject the wearer.
+
+The burn was a flat `5d4` until the balance pass. Five to twenty points is
+nothing to the level-30 character most likely to be carrying an artifact it
+has no claim to, so it is now proportional to whoever is being rejected and
+keeps the historical dice as its minimum.
 
 A rejected wielder cannot invoke that artifact's called speech effects and
 cannot see their phrases in `artifact info`. The current active-ability path
@@ -288,12 +294,18 @@ registry.
 | Generic soul/heal/fear/doom/ultimate proc | 2/1/3/4/10 | Proc artifact |
 | `soulstrike` | 15 | Kelrarin's Hammer |
 | `divineward` | 20 | Amaukekel |
-| `doomblast` | 10 per target | Doombringer |
+| `doomblast` | 10 | Doombringer |
 | Successful called effect | 25 | Calling artifact |
 
 A boss-tier target is an NPC at least three levels above the attacker.
 Generic hit and kill XP is paid once, not once per equipped artifact. Five
 percent of XP grants also print a progress message.
+
+Every multi-target power pays one award per use, however many targets it
+reaches. `doomblast` paid 10 per target until the balance pass, which made a
+crowded room the fastest progression path in the system: fifty XP every 180
+seconds outpaced every called effect. Courage's group invocation always
+worked this way, and `doomblast` now matches it.
 
 ## Artifact Roster
 
@@ -575,15 +587,31 @@ hit as a generic proc if the victim survives.
 | --- | --- |
 | Trorxek | Every eligible critical hit blinds for `1 + level / 2` rounds |
 | Kelrarin | 1-in-29 returning throw with level-scaled force damage and full lifesteal |
-| Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 holy blast plus NPC execute check |
-| Kelrom | Kills its wielder for striking an animal; otherwise applies group healback |
+| Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 level-scaled holy blast plus a non-boss NPC execute check |
+| Kelrom | Kills its wielder for striking an animal; otherwise applies group healback, on the shared 30-second internal cooldown |
 | Gesen | 1-in-31 returning throw that invokes `SPELL_HARM` |
 | Avernus | Below 100 HP, a `30 + 2 * level` percent chance to restore the wielder to full HP |
 
-Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5.
-Kelrom's healback grows from 10% to 50% of triggering damage. Signature
-effects scale their spell or effect level through
-`artifact_effect_level()`.
+Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5, and its
+holy blast grows from 100 to 350 the same way. Kelrom's healback grows from
+10% to 50% of triggering damage for the bearer; other group members in the
+room receive half of that. Signature effects scale their spell or effect
+level through `artifact_effect_level()`.
+
+Three of these were changed by the balance pass:
+
+- Kelrarin's holy blast was a flat 350 regardless of artifact level, so a
+  level-1 hammer carried a level-5 nuke. It now scales like its own lesser
+  throw already did.
+- Kelrarin's execute followed the blast against any NPC left below the blast's
+  damage, with no boss exemption. A one-in-thirty-three roll on every swing
+  made it a reliable finisher on any worn-down boss, which nothing else in the
+  roster can do. It now skips boss-tier targets, using the same three-level
+  margin the XP system uses.
+- Kelrom had no roll and no cooldown at all: it healed the whole group for a
+  share of every single hit. It is the only always-on procedure in the roster,
+  so it is now the only hand-written one that answers to the shared 30-second
+  internal cooldown, and non-bearers take half the bearer's share.
 
 ## Called Effects
 
@@ -612,9 +640,9 @@ not spend the recharge. Recharges are persisted and survive a restart.
 | Fade | `shadowy path to <target>` | 1 hour | Travel to a visible named player |
 | Henekar | `you see darkness <target>` | 6 hours | Invoke `SPELL_BLINDNESS` |
 | Henekar | `peace to you` | 12 hours | Stop every fight in the room |
-| Henekar | `join my quest` | 12 hours | Charm eligible NPCs with at most 2000 max HP |
+| Henekar | `join my quest` | 12 hours | Charm eligible NPCs up to a level-scaled max-HP cap |
 | Henekar | `sonic path to <target>` | 1 hour | Travel to a visible named player |
-| Doombringer | `bring annhilation forth` | 1 week | Damage every valid hostile target in the room |
+| Doombringer | `bring annhilation forth` | 1 week | Damage up to `1 + level` valid hostile targets in the room |
 | Doombringer | `feel my power <target>` | 1 day | Level-scaled electrical damage to one target |
 | Doombringer | `enrage me doombringer` | 1 day | Ten-round Str/hit/damage morale bonuses, `ART_STACK_COMBAT_SURGE` |
 | Courage | `courage` | 6 hours | Morale, will save, and vitality for the same-room group |
@@ -629,6 +657,21 @@ Travel effects honor visibility, `AFF_NOTELEPORT`, `ROOM_NOTELEPORT`,
 `valid_mortal_tele_dest()`, and elemental, ethereal, and astral plane
 restrictions. Hostile room targets and Doombringer's room attack use
 `aoeOK()`.
+
+Two of these were bounded by the balance pass:
+
+- `bring annhilation forth` hit every valid target in the room. It was the
+  only multi-target power in the roster whose total output rose with however
+  many hostiles happened to be standing there; `doomblast` has had a flat cap
+  of five since it was written. It now hits at most `1 + artifact_level`
+  targets, so the ceiling grows with the artifact rather than with the room.
+  Per-target damage is unchanged: `dice(10 + level * 4, 12) + char_level * 3`.
+- `join my quest` accepted any NPC up to 2000 maximum HP at every artifact
+  level. That is a mini-boss in most content, and the horn's own contract
+  line calls it recruiting "the lesser creatures nearby". The cap now scales
+  to 2000 across the five artifact levels; the follower-count cap, the
+  wielder-level check, `MOB_NOCHARM`, and the follower-slot accounting are
+  unchanged.
 
 ### Group-targeted effects
 
@@ -759,26 +802,51 @@ make test
 make install
 ```
 
-`unittests/CuTest/test_artifacts.c` currently contains 57 artifact test
-functions. Coverage includes registry search, ownership sentinels, XP and
-level boundaries, binding names, v1, v2.0, v2.2, and v2.3 persistence,
-provenance and cooldown round-tripping, clock-skew handling, dirty saves,
-extraction scopes, destruction, recoverable drops, single-instance guards,
-reload reassociation, affect-message suppression, NULL safety, recharge
-arithmetic, phrase refusal paths, table shape, shipped-metadata validation,
-chronicle state derivation, state and acquisition naming, invocation-channel
-isolation, stacking-group independence, second-wave VNUM allocation, class
-checks, dropped-state reporting, memory accounting, random single-recipient
-combat XP, and critical-hit XP.
+Two artifact suites run from there.
 
-The test that reads `lib/world/artifacts/` is a deployment-package check, not
-a hermetic unit test. It passes only on machines that retain the ignored
-package.
+`unittests/CuTest/test_artifacts.c` covers everything that does not need a
+loaded world: registry search, ownership sentinels, XP and level boundaries,
+binding names, v1, v2.0, v2.2, and v2.3 persistence, provenance and cooldown
+round-tripping, clock-skew handling, dirty saves, extraction scopes,
+destruction, recoverable drops, single-instance guards, reload
+reassociation, affect-message suppression, NULL safety, recharge arithmetic,
+phrase refusal paths, table shape, shipped-metadata validation, chronicle
+state derivation, state and acquisition naming, invocation-channel isolation,
+stacking-group independence, second-wave VNUM allocation, class checks,
+dropped-state reporting, memory accounting, random single-recipient combat
+XP, and critical-hit XP.
 
-World-dependent behavior is not automated end to end. A booted-world player
-harness is still needed for equip and binding enforcement, resistance,
-generic and signature procs, active abilities, called effects, burn damage,
-and both command handlers.
+`unittests/CuTest/test_artifact_integration.c` is the booted-world half. It
+stands up a real registry through `artifact_boot()` against the shipped
+template, contract, passive, and effect tables, puts a real player with a
+descriptor in a real room beside a live NPC, and drives production entry
+points: the full acquire-equip-bind-unequip-drop-save-reload-destroy
+lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
+highest-only resistance, active abilities, the generic proc guards and every
+signature shape, called-effect success and refusal and per-slot recharge,
+invocation-channel separation, class-oath burn and phrase hiding, player and
+staff command output, single-instance behavior across a zone reset and a
+reboot, and the balance-pass decisions recorded above. It runs inside a
+scratch directory and never reads or writes real game data.
+
+Two test seams in `src/obj/spec_artifacts.c` support it, both inside
+`#ifdef LUMINARI_CUTEST`: `artifact_show_info_for_test()` drives the real
+display path, and `artifact_force_signature_proc_for_test()` skips only the
+chance roll - the internal cooldown, the alignment rule, and target legality
+all still apply.
+
+Two things the integration suite deliberately does not do. Procs run with
+both combatants already engaged, because `damage()` otherwise calls
+`set_fighting()`, which needs the mud-event queue a unit-linked fixture does
+not have; engaged is also the realistic case for a weapon proc. And
+`do_artifact_ability()` is not called directly, because it reads `CMD_NAME`
+and therefore needs the built command table; instead the suite asserts that
+every template's `ability_name` is registered in `cmd_info[]` and routed to
+`do_artifact_ability`, which is the failure mode that actually matters.
+
+The deployment-package check reads `lib/world/artifacts/`, which is version
+controlled through an explicit `.gitignore` exception, so it is hermetic: a
+fresh clone always has the records it looks for.
 
 ## Design Decisions and Current Limitations
 

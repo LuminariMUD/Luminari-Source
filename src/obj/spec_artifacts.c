@@ -2438,7 +2438,7 @@ void artifact_burn_tick(struct char_data *ch)
 {
   struct artifact_data *art = NULL;
   struct obj_data *obj = NULL;
-  int i = 0, worst = 0;
+  int i = 0, worst = 0, burn = 0;
 
   if (!ch || IS_NPC(ch) || !art_index)
     return;
@@ -2469,7 +2469,13 @@ void artifact_burn_tick(struct char_data *ch)
   if (!worst)
     return;
 
-  damage(ch, ch, dice(ARTIFACT_BURN_DICE, ARTIFACT_BURN_SIDES), TYPE_UNDEFINED, DAM_FIRE, FALSE);
+  /* Proportional to whoever is being rejected, with the historical dice as
+   * the floor.  A flat 5d4 is 5 to 20 points, which is exactly the tier of
+   * character most likely to be carrying an artifact it has no claim to. */
+  burn = MAX(dice(ARTIFACT_BURN_DICE, ARTIFACT_BURN_SIDES),
+             (GET_MAX_HIT(ch) * ARTIFACT_BURN_PERCENT) / 100);
+
+  damage(ch, ch, burn, TYPE_UNDEFINED, DAM_FIRE, FALSE);
 }
 
 /* --------------------------------------------------------------------------
@@ -2946,12 +2952,17 @@ static int artifact_effect_level(struct char_data *ch, struct artifact_data *art
 static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim,
                                   struct obj_data *weapon, struct artifact_data *art)
 {
-  int amount = 0;
+  int amount = 0, mega = 0;
 
   /* The mega blast: only for the near-saintly, and only while unhurt. */
   if (GET_ALIGNMENT(ch) > ARTIFACT_KELRARIN_MEGA_ALIGN &&
       GET_HIT(ch) >= (GET_MAX_HIT(ch) * 9) / 10 && rand_number(1, ARTIFACT_KELRARIN_MEGA_ODDS) == 1)
   {
+    /* Scaled by artifact level, exactly as the lesser throw below is.  A
+     * flat 350 meant a level-1 hammer carried a level-5 nuke. */
+    mega = MAX(ARTIFACT_KELRARIN_MEGA_MIN,
+               (ARTIFACT_KELRARIN_MEGA_DAMAGE * art->level) / ARTIFACT_MAX_LEVEL);
+
     act("\tW$p blazes like a fallen star and BREAKS over $N!\tn", FALSE, ch, weapon, victim,
         TO_CHAR);
     act("\tW$p blazes like a fallen star and BREAKS over $N!\tn", FALSE, ch, weapon, victim,
@@ -2959,11 +2970,14 @@ static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim
     act("\tW$p breaks over you like the judgement of heaven!\tn", FALSE, ch, weapon, victim,
         TO_VICT);
 
-    if (damage(ch, victim, ARTIFACT_KELRARIN_MEGA_DAMAGE, TYPE_UNDEFINED, DAM_HOLY, FALSE) == -1)
+    if (damage(ch, victim, mega, TYPE_UNDEFINED, DAM_HOLY, FALSE) == -1)
       return TRUE;
 
-    /* ROL's SuddenDeath: anything left standing but badly broken simply ends. */
-    if (IS_NPC(victim) && GET_HIT(victim) < ARTIFACT_KELRARIN_MEGA_DAMAGE)
+    /* ROL's SuddenDeath: anything left standing but badly broken simply ends.
+     * Not against a boss, though.  Unrestricted, a one-in-thirty-three roll on
+     * every swing was a reliable execute on any worn-down boss, which no other
+     * artifact in the roster can do. */
+    if (IS_NPC(victim) && !artifact_is_boss(ch, victim) && GET_HIT(victim) < mega)
     {
       act("\tW$N is unmade where $E stands.\tn", FALSE, ch, weapon, victim, TO_CHAR);
       act("\tW$N is unmade where $E stands.\tn", FALSE, ch, weapon, victim, TO_NOTVICT);
@@ -3001,7 +3015,7 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
                                 struct obj_data *weapon, struct artifact_data *art, int dam)
 {
   struct char_data *tch = NULL;
-  int healed = 0;
+  int healed = 0, share = 0;
 
   if (IS_ANIMAL(victim))
   {
@@ -3016,10 +3030,22 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
   if (dam <= 0)
     return FALSE;
 
+  /* The only always-on procedure in the roster, so it is the only one that
+   * needs the shared internal cooldown.  Without it this healed the whole
+   * group for a share of every single swing. */
+  if (art->last_proc > 0 && (time(0) - art->last_proc) < ARTIFACT_PROC_ICD)
+    return FALSE;
+
+  art->last_proc = time(0);
+
   healed = MAX(1, (dam * ARTIFACT_KELROM_HEALBACK_PERCENT * art->level) / 100);
 
   if (GROUP(ch))
   {
+    /* The bearer takes the wounds, so the bearer takes the full share; the
+     * rest of the group gets half. */
+    share = MAX(1, (healed * ARTIFACT_KELROM_GROUP_SHARE) / 100);
+
     simple_list(NULL);
 
     while ((tch = (struct char_data *)simple_list(GROUP(ch)->members)) != NULL)
@@ -3029,7 +3055,7 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
       if (GET_HIT(tch) >= GET_MAX_HIT(tch))
         continue;
 
-      GET_HIT(tch) = MIN(GET_HIT(tch) + healed, GET_MAX_HIT(tch));
+      GET_HIT(tch) = MIN(GET_HIT(tch) + (tch == ch ? healed : share), GET_MAX_HIT(tch));
       send_to_char(tch, "\tGA warm green light spills from Kelrom and knits your wounds.\tn\r\n");
     }
 
@@ -3993,10 +4019,16 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
                                struct artifact_data *art)
 {
   struct char_data *vict = NULL, *next_vict = NULL;
-  int recruited = 0, cap = 0;
+  int recruited = 0, cap = 0, hp_cap = 0;
 
   if (IN_ROOM(ch) == NOWHERE)
     return FALSE;
+
+  /* How large a thing will answer, scaled by artifact level.  ROL's flat 2000
+   * is the ceiling a grown horn reaches, not the entry price: a 2000-max-HP
+   * mobile is a mini-boss in most content, and the contract line for this
+   * power is "recruits the lesser creatures nearby". */
+  hp_cap = MAX(1, (ARTIFACT_CHARM_MAX_HP * art->level) / ARTIFACT_MAX_LEVEL);
 
   /* One at level 1, up to ARTIFACT_CHARM_MAX once the horn has grown, and
    * never more than the follower engine has room for.  ROL had no such limit
@@ -4020,7 +4052,7 @@ static int artifact_charm_room(struct char_data *ch, struct obj_data *obj,
       continue;
     if (AFF_FLAGGED(vict, AFF_CHARM) || MOB_FLAGGED(vict, MOB_NOCHARM))
       continue;
-    if (GET_MAX_HIT(vict) > ARTIFACT_CHARM_MAX_HP)
+    if (GET_MAX_HIT(vict) > hp_cap)
       continue;
     if (GET_LEVEL(vict) > GET_LEVEL(ch))
       continue;
@@ -4058,10 +4090,16 @@ static int artifact_annihilation(struct char_data *ch, struct obj_data *obj,
                                  struct artifact_data *art)
 {
   struct char_data *vict = NULL, *next_vict = NULL;
-  int hit_count = 0, amount = 0;
+  int hit_count = 0, amount = 0, cap = 0;
 
   if (IN_ROOM(ch) == NOWHERE)
     return FALSE;
+
+  /* One target plus one per artifact level.  Uncapped, this was the only
+   * multi-target power in the roster whose total output rose with however
+   * many hostiles happened to be standing in the room; Doom Blast has had a
+   * flat cap of five since it was written. */
+  cap = ARTIFACT_ANNIHILATION_TARGETS_BASE + (ARTIFACT_ANNIHILATION_TARGETS_PER_LEVEL * art->level);
 
   for (vict = world[IN_ROOM(ch)].people; vict; vict = vict->next_in_room)
     if (vict != ch && CAN_SEE(ch, vict) && aoeOK(ch, vict, -1))
@@ -4079,7 +4117,7 @@ static int artifact_annihilation(struct char_data *ch, struct obj_data *obj,
 
   hit_count = 0;
 
-  for (vict = world[IN_ROOM(ch)].people; vict; vict = next_vict)
+  for (vict = world[IN_ROOM(ch)].people; vict && hit_count < cap; vict = next_vict)
   {
     next_vict = vict->next_in_room;
 
@@ -5221,7 +5259,11 @@ static void artifact_ability_doomblast(struct char_data *ch, struct obj_data *ob
     targets++;
   }
 
-  artifact_grant_xp_obj(ch, obj, ARTIFACT_XP_ABILITY_DOOMBLAST * targets);
+  /* One award per use, however many it reached.  Multiplying by the target
+   * count made a crowded room the fastest progression path in the system:
+   * five targets every 180 seconds outpaced every called effect, which each
+   * grant one flat award no matter how many they touch. */
+  artifact_grant_xp_obj(ch, obj, ARTIFACT_XP_ABILITY_DOOMBLAST);
 }
 
 ACMD(do_artifact_ability)
