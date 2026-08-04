@@ -788,6 +788,9 @@ void display_all_classes(struct char_data *ch)
 
   for (counter = 0; counter < NUM_CLASSES; counter++)
   {
+    if (!CLSLIST_INGAME(counter))
+      continue;
+
     write_to_output(d, "%s%-20.20s %s",
                     class_is_available(ch, counter, MODE_CLASSLIST_NORMAL, NULL) ? " " : "*",
                     CLSLIST_NAME(counter), !(++columns % 3) ? "\r\n" : "");

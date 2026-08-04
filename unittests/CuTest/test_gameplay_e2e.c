@@ -19,6 +19,7 @@
 #include "../../src/character/perks.h"
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -429,6 +430,63 @@ void Test_gameplay_e2e_set_supports_every_playable_class(CuTest *tc)
 
   free_char(staff);
   free_char(victim);
+}
+
+void Test_gameplay_e2e_class_list_hides_disabled_classes(CuTest *tc)
+{
+  struct class_table saved_class_list[NUM_CLASSES];
+  struct char_data character;
+  struct player_special_data player_specials;
+  struct descriptor_data descriptor;
+  struct account_data account;
+  bool saw_wizard;
+  bool saw_placeholder_1;
+  bool saw_placeholder_2;
+  int i;
+
+  memcpy(saved_class_list, class_list, sizeof(saved_class_list));
+  for (i = 0; i < NUM_CLASSES; i++)
+  {
+    memset(&class_list[i], 0, sizeof(class_list[i]));
+    class_list[i].name = "disabled class";
+    class_list[i].max_level = 20;
+  }
+  class_list[CLASS_WIZARD].name = "wizard";
+  class_list[CLASS_WIZARD].in_game = true;
+  class_list[CLASS_PLACEHOLDER_1].name = "placeholder 1";
+  class_list[CLASS_PLACEHOLDER_2].name = "placeholder 2";
+
+  memset(&character, 0, sizeof(character));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&account, 0, sizeof(account));
+  character.player_specials = &player_specials;
+  character.desc = &descriptor;
+  descriptor.character = &character;
+  descriptor.account = &account;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+
+  if (descriptor.pProtocol == NULL)
+  {
+    memcpy(class_list, saved_class_list, sizeof(saved_class_list));
+    CuFail(tc, "could not initialize the class list descriptor");
+    return;
+  }
+
+  do_class(&character, "list", 0, 0);
+
+  saw_wizard = strstr(descriptor.output, "wizard") != NULL;
+  saw_placeholder_1 = strstr(descriptor.output, "placeholder 1") != NULL;
+  saw_placeholder_2 = strstr(descriptor.output, "placeholder 2") != NULL;
+
+  ProtocolDestroy(descriptor.pProtocol);
+  memcpy(class_list, saved_class_list, sizeof(saved_class_list));
+
+  CuAssertTrue(tc, saw_wizard);
+  CuAssertTrue(tc, !saw_placeholder_1);
+  CuAssertTrue(tc, !saw_placeholder_2);
 }
 
 void Test_gameplay_e2e_combat_applies_real_damage(CuTest *tc)
