@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/actionqueues.h"
 #include "../../src/actions.h"
+#include "../../src/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/feats.h"
 #include "../../src/character/perks.h"
@@ -18,6 +19,7 @@
 #include "../../src/lists.h"
 #include "../../src/magic/spell_prep.h"
 #include "../../src/magic/spells.h"
+#include "../../src/movement/movement_cost.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 #include "../../src/spec_procs.h"
@@ -1356,6 +1358,67 @@ void Test_spellsinger_support_auras_require_an_active_grouped_performer(CuTest *
   end_bardic_fixture(&fixture);
 }
 
+void Test_warchanter_rallying_cry_cleanses_and_bolsters_only_grouped_targets(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data member;
+  struct char_data bystander;
+  struct player_special_data member_specials;
+  struct player_special_data bystander_specials;
+  struct char_perk_data rallying_cry;
+  struct affected_type *af;
+  struct group_data group;
+  int base_speed;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_pc(&member, &member_specials, "a rallied bard ally");
+  initialize_bardic_test_pc(&bystander, &bystander_specials, "an unrallied bard bystander");
+  initialize_bardic_test_perk(&rallying_cry, PERK_BARD_RALLYING_CRY, 1, NULL);
+  fixture.player_specials.saved.perks = &rallying_cry;
+
+  memset(&group, 0, sizeof(group));
+  group.leader = &fixture.bard;
+  group.members = create_list();
+  add_to_list(&fixture.bard, group.members);
+  add_to_list(&member, group.members);
+  fixture.bard.group = &group;
+  member.group = &group;
+  fixture.bard.next_in_room = &member;
+  member.next_in_room = &bystander;
+  SET_BIT_AR(AFF_FLAGS(&fixture.bard), AFF_SHAKEN);
+  SET_BIT_AR(AFF_FLAGS(&member), AFF_SHAKEN);
+  SET_BIT_AR(AFF_FLAGS(&bystander), AFF_SHAKEN);
+  base_speed = get_speed(&member, TRUE);
+
+  do_rallying_cry(&fixture.bard, "", 0, 0);
+
+  CuAssertTrue(tc, !AFF_FLAGGED(&fixture.bard, AFF_SHAKEN));
+  CuAssertTrue(tc, !AFF_FLAGGED(&member, AFF_SHAKEN));
+  CuAssertTrue(tc, AFF_FLAGGED(&bystander, AFF_SHAKEN));
+  CuAssertTrue(tc, affected_by_spell(&fixture.bard, AFFECT_RALLYING_CRY));
+  CuAssertTrue(tc, affected_by_spell(&member, AFFECT_RALLYING_CRY));
+  CuAssertTrue(tc, !affected_by_spell(&bystander, AFFECT_RALLYING_CRY));
+  af = find_spell_affect_location(&member, AFFECT_RALLYING_CRY, APPLY_SAVING_WILL);
+  CuAssertPtrNotNull(tc, af);
+  if (af != NULL)
+  {
+    CuAssertIntEquals(tc, 2, af->modifier);
+    CuAssertIntEquals(tc, 5, af->duration);
+  }
+  CuAssertIntEquals(tc, base_speed + 5, get_speed(&member, TRUE));
+
+  clear_test_affects(&member);
+  fixture.bard.group = NULL;
+  member.group = NULL;
+  free_list(group.members);
+  fixture.bard.next_in_room = NULL;
+  member.next_in_room = NULL;
+  REMOVE_BIT_AR(AFF_FLAGS(&bystander), AFF_SHAKEN);
+  clear_char_event_list(&member);
+  clear_char_event_list(&bystander);
+  end_bardic_fixture(&fixture);
+}
+
 void Test_spellsong_maestra_is_bard_only_and_implements_all_components(CuTest *tc)
 {
   struct bardic_fixture fixture;
@@ -1415,6 +1478,7 @@ void Test_symphonic_resonance_obeys_success_save_pk_and_resource_contracts(CuTes
 
   test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 0);
   CuAssertTrue(tc, !AFF_FLAGGED(&npc_target, AFF_DAZED));
+  circle_srandom(1);
   test_complete_bard_spell_perks(&fixture.bard, SPELL_CHARM, TRUE, 1);
   CuAssertTrue(tc, AFF_FLAGGED(&npc_target, AFF_DAZED));
   CuAssertTrue(tc, !AFF_FLAGGED(&pc_target, AFF_DAZED));

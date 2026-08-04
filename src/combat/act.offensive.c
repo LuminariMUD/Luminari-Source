@@ -15079,20 +15079,24 @@ ACMD(do_rallying_cry)
   send_to_char(ch, "You raise your arm and rally your allies!\r\n");
   act("$n raises $s arm and rallies $s allies.", false, ch, 0, 0, TO_ROOM);
 
-  /* If using Warchanter perk, remove shaken condition from all allies in the room */
+  /* The Warchanter perk removes shaken from the performer and grouped room allies. */
   if (!IS_NPC(ch) && has_bard_rallying_cry_perk(ch))
   {
     struct char_data *in_room_ch;
 
     for (in_room_ch = world[IN_ROOM(ch)].people; in_room_ch; in_room_ch = in_room_ch->next_in_room)
     {
-      if (in_room_ch != ch && !IS_NPC(in_room_ch) && in_room_ch->master != ch &&
-          IS_AFFECTED(in_room_ch, AFF_SHAKEN))
+      if (are_grouped(ch, in_room_ch) && IS_AFFECTED(in_room_ch, AFF_SHAKEN))
       {
         REMOVE_BIT_AR(AFF_FLAGS(in_room_ch), AFF_SHAKEN);
-        send_to_char(in_room_ch,
-                     "You feel the shaken condition lift as your ally rallies you!\r\n");
-        act("$N looks bolstered by $n's rally cry!", false, ch, 0, in_room_ch, TO_NOTVICT);
+        if (in_room_ch == ch)
+          send_to_char(ch, "Your rallying cry banishes your fear!\r\n");
+        else
+        {
+          send_to_char(in_room_ch,
+                       "You feel the shaken condition lift as your ally rallies you!\r\n");
+          act("$N looks bolstered by $n's rally cry!", false, ch, 0, in_room_ch, TO_NOTVICT);
+        }
       }
     }
   }

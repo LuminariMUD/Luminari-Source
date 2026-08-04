@@ -1641,7 +1641,6 @@ static void apply_bard_symphonic_resonance(struct char_data *ch, int spellnum, b
   struct char_data *next_tch;
   struct affected_type af;
   int duration;
-  int range;
   int save_level;
   int affected_count;
 
@@ -1652,8 +1651,7 @@ static void apply_bard_symphonic_resonance(struct char_data *ch, int spellnum, b
     return;
 
   duration = get_bard_symphonic_resonance_daze_duration(ch);
-  range = get_bard_symphonic_resonance_daze_range(ch);
-  if (duration <= 0 || range <= 0 || IN_ROOM(ch) == NOWHERE)
+  if (duration <= 0 || IN_ROOM(ch) == NOWHERE)
     return;
 
   save_level = MAX(1, CLASS_LEVEL(ch, CLASS_BARD) / 2 + GET_CHA_BONUS(ch));
@@ -1676,8 +1674,7 @@ static void apply_bard_symphonic_resonance(struct char_data *ch, int spellnum, b
   }
 
   if (affected_count > 0)
-    send_to_char(ch, "\tCYour spell resonates through %d feet, dazing nearby enemies!\tn\r\n",
-                 range);
+    send_to_char(ch, "\tCYour spell resonates through the room, dazing nearby enemies!\tn\r\n");
 }
 
 static void prepare_bard_spell_perks(struct char_data *ch, bool *trigger_symphonic)
@@ -5653,7 +5650,7 @@ void mag_assign_spells(void)
   spello(ABILITY_CROWN_OF_KNIGHTHOOD, "crown of knighthood", 0, 0, 0, POS_FIGHTING, TAR_IGNORE,
          TRUE, MAG_AFFECTS, "Your crown of knighthood fades.", 1, 1, NOSCHOOL, FALSE);
 
-  spello(AFFECT_RALLYING_CRY, "rallying cry", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE, MAG_GROUPS,
+  spello(AFFECT_RALLYING_CRY, "rallying cry", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS,
          "The rallying cry fades.", 1, 1, NOSCHOOL, FALSE);
 
   spello(AFFECT_INSPIRE_COURAGE, "inspire courage", 0, 0, 0, POS_FIGHTING, TAR_IGNORE, TRUE,

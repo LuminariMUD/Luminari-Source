@@ -9447,8 +9447,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_RESONANT_VOICE_I];
   perk->id = PERK_BARD_RESONANT_VOICE_I;
   perk->name = strdup("Resonant Voice I");
-  perk->description =
-      strdup("Allies under your songs gain +1 competence to saves vs. mind-affecting per rank");
+  perk->description = strdup("Group members affected by your songs gain +1 competence to Will "
+                             "saves against mind-affecting effects per rank");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 1;
@@ -9458,7 +9458,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Allies gain +1 save vs. mind-affecting per rank");
+  perk->special_description =
+      strdup("Song recipients gain +1 Will vs. mind-affecting effects per rank");
 
   /* Harmonic Casting */
   perk = &perk_list[PERK_BARD_HARMONIC_CASTING];
@@ -9516,8 +9517,9 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_CRESCENDO];
   perk->id = PERK_BARD_CRESCENDO;
   perk->name = strdup("Crescendo");
-  perk->description = strdup("The first spell you cast after starting a song deals +1d6 sonic "
-                             "damage and has +2 to its save DC");
+  perk->description = strdup("The first Bard spell you cast while performing after starting a "
+                             "song gains +2 save DC and deals +1d6 sonic damage once to each "
+                             "target it damages");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 2;
@@ -9527,14 +9529,15 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 6;
   perk->effect_modifier = 2;
-  perk->special_description = strdup("First spell after song: +1d6 sonic damage, +2 save DC");
+  perk->special_description =
+      strdup("First Bard spell after starting a song: +2 save DC and +1d6 sonic per target");
 
   /* Sustaining Melody */
   perk = &perk_list[PERK_BARD_SUSTAINING_MELODY];
   perk->id = PERK_BARD_SUSTAINING_MELODY;
   perk->name = strdup("Sustaining Melody");
-  perk->description = strdup("While a song is active, you have a 20% chance per combat round to "
-                             "recover 1 spell slot only while in combat");
+  perk->description = strdup("While performing in combat, each five-second pulse has a 20% chance "
+                             "to recover one expended Bard spell slot");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 2;
@@ -9544,8 +9547,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 20;
   perk->effect_modifier = 1;
-  perk->special_description =
-      strdup("20% chance per round to recover 1 spell slot while performing in combat");
+  perk->special_description = strdup(
+      "20% chance per five-second combat pulse to recover one Bard spell slot while performing");
 
   /* ========================================================================
    * TIER III - SPELLSINGER TREE
@@ -9555,8 +9558,7 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_MASTER_OF_MOTIFS];
   perk->id = PERK_BARD_MASTER_OF_MOTIFS;
   perk->name = strdup("Master of Motifs");
-  perk->description =
-      strdup("Maintain up to two distinct bard songs simultaneously (shared performance pool)");
+  perk->description = strdup("Maintain up to two distinct bard songs simultaneously");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 3;
@@ -9572,8 +9574,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_DIRGE_OF_DISSONANCE];
   perk->id = PERK_BARD_DIRGE_OF_DISSONANCE;
   perk->name = strdup("Dirge of Dissonance");
-  perk->description = strdup("Enemies in the room take 1d6 sonic damage per round and -2 penalty "
-                             "to concentration checks while your song persists");
+  perk->description = strdup("While performing, enemies in the room suffer -2 to concentration "
+                             "checks and take 1d6 sonic damage on each eleven-second verse");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 3;
@@ -9584,7 +9586,7 @@ void define_bard_perks(void)
   perk->effect_value = 6;     /* 1d6 damage */
   perk->effect_modifier = -2; /* concentration penalty */
   perk->special_description =
-      strdup("Room-wide attrition: 1d6 sonic damage and -2 concentration per round");
+      strdup("Enemies: -2 concentration; 1d6 sonic damage each eleven-second verse");
 
   /* Heightened Harmony */
   perk = &perk_list[PERK_BARD_HEIGHTENED_HARMONY];
@@ -9607,8 +9609,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_PROTECTIVE_CHORUS];
   perk->id = PERK_BARD_PROTECTIVE_CHORUS;
   perk->name = strdup("Protective Chorus");
-  perk->description = strdup(
-      "Allies under your song gain +2 to saves vs. spells and +2 to AC vs. attacks of opportunity");
+  perk->description = strdup("While performing, you and grouped allies in the room gain +2 to "
+                             "saves vs. spells and +2 AC vs. attacks of opportunity");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 3;
@@ -9618,7 +9620,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;    /* save bonus */
   perk->effect_modifier = 2; /* AC bonus */
-  perk->special_description = strdup("Allies gain +2 saves vs. spells and +2 AC vs. AoO");
+  perk->special_description =
+      strdup("Active grouped aura: +2 saves vs. spells and +2 AC vs. attacks of opportunity");
 
   /* Tier IV Spellsinger Perks - Capstones */
 
@@ -9626,8 +9629,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_SPELLSONG_MAESTRA];
   perk->id = PERK_BARD_SPELLSONG_MAESTRA;
   perk->name = strdup("Spellsong Maestra");
-  perk->description = strdup("While performing, bard spells gain +2 caster level, +2 spell DC, and "
-                             "metamagic on bard spells is free");
+  perk->description = strdup("While performing, Bard spells gain +2 caster level and +2 spell DC, "
+                             "and metamagic adds no spell-circle surcharge");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 5;
@@ -9637,15 +9640,16 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;    /* caster level bonus */
   perk->effect_modifier = 2; /* DC bonus */
-  perk->special_description = strdup(
-      "Capstone: +2 caster, +2 DC on bard spells while performing; free metamagic on bard spells");
+  perk->special_description = strdup("Capstone: +2 caster level and +2 DC on Bard spells while "
+                                     "performing; no metamagic circle surcharge");
 
   /* Aria of Stasis */
   perk = &perk_list[PERK_BARD_ARIA_OF_STASIS];
   perk->id = PERK_BARD_ARIA_OF_STASIS;
   perk->name = strdup("Aria of Stasis");
-  perk->description = strdup("Allies gain +4 to all saves and immunity to slow. Enemies suffer -2 "
-                             "to hit and 10% movement penalty");
+  perk->description = strdup("While performing, you and grouped allies in the room gain +4 to all "
+                             "saves and slow immunity; other creatures in the room suffer -2 to "
+                             "hit and 10% lower movement speed");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 5;
@@ -9655,15 +9659,17 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4;    /* ally save bonus */
   perk->effect_modifier = 2; /* enemy tohit penalty */
-  perk->special_description =
-      strdup("Capstone: Allies +4 saves/immune to slow; Enemies -2 hit/10% slow");
+  perk->special_description = strdup(
+      "Active grouped aura: allies +4 saves/slow immunity; others -2 hit/10% movement speed");
 
   /* Symphonic Resonance */
   perk = &perk_list[PERK_BARD_SYMPHONIC_RESONANCE];
   perk->id = PERK_BARD_SYMPHONIC_RESONANCE;
   perk->name = strdup("Symphonic Resonance");
-  perk->description = strdup("Each round while performing, gain 1d6 temp HP (max 30 rounds). "
-                             "Enchantment/Illusion spells in songs daze enemies 1 round in 20 ft");
+  perk->description = strdup("Each eleven-second verse while performing grants 1d6 temporary HP, "
+                             "capped at 30 above maximum HP. After a successful Enchantment or "
+                             "Illusion Bard spell, valid room enemies that fail a Will save are "
+                             "dazed for 1 round");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 5;
@@ -9673,15 +9679,15 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 6;    /* temp HP d6 */
   perk->effect_modifier = 1; /* daze duration */
-  perk->special_description = strdup("Capstone: 1d6 temp HP/round (max 180 total); "
-                                     "Enchantment/Illusion spells daze in 20 ft radius");
+  perk->special_description = strdup("Capstone: 1d6 temporary HP per verse (cap 30); successful "
+                                     "Enchantment/Illusion Bard spells can daze room enemies");
 
   /* Endless Refrain */
   perk = &perk_list[PERK_BARD_ENDLESS_REFRAIN];
   perk->id = PERK_BARD_ENDLESS_REFRAIN;
   perk->name = strdup("Endless Refrain");
-  perk->description = strdup("Performance costs nothing and regenerates 1 spell slot per round. "
-                             "Songs last indefinitely until stopped");
+  perk->description = strdup("On each eleven-second verse while performing, recover one expended "
+                             "Bard spell slot");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_SPELLSINGER;
   perk->cost = 5;
@@ -9691,8 +9697,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1; /* spell slot regen */
   perk->effect_modifier = 0;
-  perk->special_description = strdup(
-      "Capstone: Performance is free; regenerate 1 spell slot per round; songs last indefinitely");
+  perk->special_description =
+      strdup("Capstone: recover one expended Bard spell slot per eleven-second verse");
 
   /*** WARCHANTER TREE - TIER I ***/
 
@@ -9700,7 +9706,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_BATTLE_HYMN_I];
   perk->id = PERK_BARD_BATTLE_HYMN_I;
   perk->name = strdup("Battle Hymn I");
-  perk->description = strdup("Inspire Courage also grants +1 competence to damage per rank");
+  perk->description =
+      strdup("Song of Heroism grants +1 competence to damage per rank to its recipients");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 1;
@@ -9710,13 +9717,14 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 0;
-  perk->special_description = strdup("Inspire Courage grants +1 competence to damage per rank");
+  perk->special_description =
+      strdup("Song of Heroism recipients gain +1 competence damage per rank");
 
   /* Drummer's Rhythm I */
   perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_I];
   perk->id = PERK_BARD_DRUMMERS_RHYTHM_I;
   perk->name = strdup("Drummer's Rhythm I");
-  perk->description = strdup("While a song is active, you gain +1 to hit in melee per rank");
+  perk->description = strdup("While performing, you gain +1 to hit in melee per rank");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 1;
@@ -9732,8 +9740,9 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_RALLYING_CRY];
   perk->id = PERK_BARD_RALLYING_CRY;
   perk->name = strdup("Rallying Cry");
-  perk->description = strdup("Activate to remove the shaken condition from allies and grant +2 "
-                             "morale to saves vs. fear for 5 rounds");
+  perk->description = strdup("As a swift action, remove shaken from yourself and grouped allies "
+                             "in the room; you and those allies gain +1 to hit, +2 to Will saves, "
+                             "and +5 movement speed for 5 rounds");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 1;
@@ -9744,14 +9753,14 @@ void define_bard_perks(void)
   perk->effect_value = 2;
   perk->effect_modifier = 5;
   perk->special_description =
-      strdup("Remove shaken condition; grant +2 morale to fear saves for 5 rounds");
+      strdup("Swift group rally: remove shaken; +1 hit, +2 Will, +5 movement speed for 5 rounds");
 
   /* Frostbite Refrain I */
   perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_I];
   perk->id = PERK_BARD_FROSTBITE_REFRAIN_I;
   perk->name = strdup("Frostbite Refrain I");
-  perk->description = strdup("Your melee hits deal +1 cold damage per rank while a song is active; "
-                             "enemies you hit suffer -1 to attack for 1 round on a natural 20");
+  perk->description = strdup("While performing, your melee hits deal +1 cold damage per rank; a "
+                             "natural 20 gives the target -1 to attack for 1 round");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 1;
@@ -9770,8 +9779,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_BATTLE_HYMN_II];
   perk->id = PERK_BARD_BATTLE_HYMN_II;
   perk->name = strdup("Battle Hymn II");
-  perk->description = strdup(
-      "Additional +1 damage granted by Inspire Courage per rank (stacks with Battle Hymn I)");
+  perk->description = strdup("Song of Heroism grants an additional +1 competence damage per rank "
+                             "to its recipients (stacks with Battle Hymn I)");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 2;
@@ -9782,13 +9791,13 @@ void define_bard_perks(void)
   perk->effect_value = 1;
   perk->effect_modifier = 0;
   perk->special_description =
-      strdup("Inspire Courage grants additional +1 competence to damage per rank");
+      strdup("Song of Heroism recipients gain another +1 competence damage per rank");
 
   /* Drummer's Rhythm II */
   perk = &perk_list[PERK_BARD_DRUMMERS_RHYTHM_II];
   perk->id = PERK_BARD_DRUMMERS_RHYTHM_II;
   perk->name = strdup("Drummer's Rhythm II");
-  perk->description = strdup("Additional +1 melee to-hit per rank while a martial song is active "
+  perk->description = strdup("While performing, gain an additional +1 melee to-hit per rank "
                              "(stacks with Drummer's Rhythm I)");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
@@ -9805,8 +9814,9 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_WARBEAT];
   perk->id = PERK_BARD_WARBEAT;
   perk->name = strdup("Warbeat");
-  perk->description = strdup("On your first turn in combat, make an extra melee attack at your "
-                             "highest bonus; on hit, grant allies +1d4 damage for 2 rounds");
+  perk->description = strdup("While performing, make an extra melee attack at your highest bonus "
+                             "on your first turn in combat; on hit, you and grouped allies in the "
+                             "room gain +1d4 damage for 2 rounds");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 2;
@@ -9816,15 +9826,16 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4;
   perk->effect_modifier = 2;
-  perk->special_description = strdup(
-      "First turn in combat: extra melee attack; on hit grants allies +1d4 damage for 2 rounds");
+  perk->special_description = strdup("While performing, first combat turn: extra melee attack; on "
+                                     "hit grouped room allies gain +1d4 damage for 2 rounds");
 
   /* Frostbite Refrain II */
   perk = &perk_list[PERK_BARD_FROSTBITE_REFRAIN_II];
   perk->id = PERK_BARD_FROSTBITE_REFRAIN_II;
   perk->name = strdup("Frostbite Refrain II");
-  perk->description = strdup("Melee hits deal an additional +1 cold damage per rank; your natural "
-                             "20 debuff becomes -2 to attack and -1 to AC for 1 round");
+  perk->description = strdup("While performing, melee hits deal an additional +1 cold damage per "
+                             "rank; your natural 20 debuff becomes -2 to attack and -1 to AC for "
+                             "1 round");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 2;
@@ -9834,8 +9845,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = -2;
-  perk->special_description = strdup(
-      "Melee hits +1 cold damage per rank; nat 20 applies -2 attack and -1 AC debuff for 1 round");
+  perk->special_description =
+      strdup("While performing: melee hits +1 cold per rank; natural 20 gives -2 attack/-1 AC");
 
   /*** WARCHANTER TREE - TIER III ***/
 
@@ -9843,7 +9854,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_ANTHEM_OF_FORTITUDE];
   perk->id = PERK_BARD_ANTHEM_OF_FORTITUDE;
   perk->name = strdup("Anthem of Fortitude");
-  perk->description = strdup("Allies under your songs gain +10% max HP and +2 to Fortitude saves");
+  perk->description = strdup("While performing, you and grouped allies in the room gain +10% "
+                             "maximum HP and +2 to Fortitude saves");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 3;
@@ -9853,15 +9865,14 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
   perk->effect_modifier = 10;
-  perk->special_description =
-      strdup("While performing: allies gain +10% max HP and +2 to Fortitude saves");
+  perk->special_description = strdup("Active grouped aura: +10% maximum HP and +2 Fortitude saves");
 
   /* Commanding Cadence */
   perk = &perk_list[PERK_BARD_COMMANDING_CADENCE];
   perk->id = PERK_BARD_COMMANDING_CADENCE;
   perk->name = strdup("Commanding Cadence");
-  perk->description = strdup(
-      "Enemies you hit in melee must save or be dazed for 1 round (once per target per 5 rounds)");
+  perk->description = strdup("While performing, enemies you hit in melee must make a Will save or "
+                             "be dazed for 1 round (once per target per 5 rounds)");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 3;
@@ -9871,15 +9882,15 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 5;
-  perk->special_description = strdup(
-      "On melee hit: enemy must save vs Will or be dazed 1 round (once per target per 5 rounds)");
+  perk->special_description = strdup("While performing, melee hit: target must make a Will save or "
+                                     "be dazed 1 round; 5-round per-target recovery");
 
   /* Steel Serenade */
   perk = &perk_list[PERK_BARD_STEEL_SERENADE];
   perk->id = PERK_BARD_STEEL_SERENADE;
   perk->name = strdup("Steel Serenade");
   perk->description =
-      strdup("While singing, you gain +2 natural AC and 10% physical damage resistance");
+      strdup("While performing, you gain +2 natural AC and 10% physical damage resistance");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 3;
@@ -9896,8 +9907,8 @@ void define_bard_perks(void)
   perk = &perk_list[PERK_BARD_BANNER_VERSE];
   perk->id = PERK_BARD_BANNER_VERSE;
   perk->name = strdup("Banner Verse");
-  perk->description = strdup("Plant a musical standard object in the room for 5 rounds; allies in "
-                             "the room gain +2 to hit and +2 to all saves");
+  perk->description = strdup("While performing, you and grouped allies in the room gain +2 to hit "
+                             "and +2 to all saves");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 3;
@@ -9906,16 +9917,16 @@ void define_bard_perks(void)
   perk->prerequisite_rank = 1;
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 2;
-  perk->effect_modifier = 5;
-  perk->special_description = strdup(
-      "Plant musical banner: allies in room gain +2 to hit and +2 to all saves for 5 rounds");
+  perk->effect_modifier = 0;
+  perk->special_description =
+      strdup("Active performance aura: grouped room allies gain +2 to hit and +2 to all saves");
 
   /* Warchanter's Dominance - Tier 4 Capstone */
   perk = &perk_list[PERK_BARD_WARCHANTERS_DOMINANCE];
   perk->id = PERK_BARD_WARCHANTERS_DOMINANCE;
   perk->name = strdup("Warchanter's Dominance");
-  perk->description = strdup("Inspire Courage now also grants +1 attack and +1 AC; your Warbeat "
-                             "now gives allies an additional +1d4 to damage and +1 to AC");
+  perk->description = strdup("Song of Heroism now also grants +1 attack and +1 AC; your Warbeat "
+                             "gives its recipients an additional +1d4 damage and +1 AC");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 5;
@@ -9925,16 +9936,16 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 1;
   perk->effect_modifier = 1;
-  perk->special_description = strdup("Capstone: Inspire Courage grants +1 attack/+1 AC; Warbeat "
-                                     "grants +1d4 damage/+1 AC to allies");
+  perk->special_description = strdup("Capstone: Song of Heroism grants +1 attack/+1 AC; Warbeat "
+                                     "grants another +1d4 damage/+1 AC");
 
   /* Winter's War March - Tier 4 Capstone */
   perk = &perk_list[PERK_BARD_WINTERS_WAR_MARCH];
   perk->id = PERK_BARD_WINTERS_WAR_MARCH;
   perk->name = strdup("Winter's War March");
-  perk->description = strdup(
-      "Perform a devastating martial anthem: deal 4d6 cold damage to all enemies and slow them for "
-      "3 rounds (save halves damage and reduces slow to 1 round). Useable at-will.");
+  perk->description = strdup("On each eleven-second verse while performing, valid enemies in the "
+                             "room take 4d6 cold damage and are slowed for 3 rounds; a successful "
+                             "Fortitude save halves damage and reduces the slow to 1 round");
   perk->associated_class = CLASS_BARD;
   perk->perk_category = PERK_CATEGORY_WARCHANTER;
   perk->cost = 5;
@@ -9944,8 +9955,8 @@ void define_bard_perks(void)
   perk->effect_type = PERK_EFFECT_SPECIAL;
   perk->effect_value = 4;
   perk->effect_modifier = 3;
-  perk->special_description = strdup("Room-wide martial anthem: 4d6 cold damage, enemies slow for "
-                                     "3 rounds (save halves/reduces to 1 round)");
+  perk->special_description = strdup("Each verse: room enemies take 4d6 cold and slow 3 rounds; "
+                                     "Fortitude save halves damage and slow duration becomes 1");
 
   /*** SWASHBUCKLER TREE - TIER I ***/
 
@@ -21426,7 +21437,7 @@ static bool bard_has_active_support_perk(struct char_data *recipient, int perk_i
   return FALSE;
 }
 
-/* Return whether ch is opposed by an active Aria performer in the same room. */
+/* Return whether ch is outside the group of an active Aria performer in the same room. */
 static bool bard_has_hostile_active_aria(struct char_data *ch)
 {
   struct char_data *performer;
@@ -21460,44 +21471,6 @@ bool has_bard_harmonic_casting(struct char_data *ch)
 
   return has_perk(ch, PERK_BARD_HARMONIC_CASTING);
 }
-/**
- * Get Songweaver II song level bonus (Tier 2).
- *
- * @param ch The character
- * @return Additional effective song level bonus from Tier 2
- */
-int get_bard_songweaver_ii_level_bonus(struct char_data *ch)
-{
-  int bonus = 0;
-
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  /* Songweaver II: +1 additional effective song level per rank */
-  bonus += get_perk_rank(ch, PERK_BARD_SONGWEAVER_II, CLASS_BARD);
-
-  return bonus;
-}
-
-/**
- * Get Enchanter's Guile II DC bonus (Tier 2).
- *
- * @param ch The character
- * @return Additional DC bonus for Enchantment/Illusion spells from Tier 2
- */
-int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch)
-{
-  int bonus = 0;
-
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  /* Enchanter's Guile II: +1 additional DC per rank */
-  bonus += get_perk_rank(ch, PERK_BARD_ENCHANTERS_GUILE_II, CLASS_BARD);
-
-  return bonus;
-}
-
 /**
  * Check if character has Crescendo perk.
  *
@@ -21598,7 +21571,7 @@ bool has_bard_dirge_of_dissonance(struct char_data *ch)
  * Get sonic damage dice value for Dirge of Dissonance.
  *
  * @param ch The character
- * @return Number of d6 dice to roll for sonic damage per round (1 if has perk, 0 otherwise)
+ * @return Number of d6 dice to roll for sonic damage per verse (1 if has perk, 0 otherwise)
  */
 int get_bard_dirge_sonic_damage(struct char_data *ch)
 {
@@ -21606,7 +21579,7 @@ int get_bard_dirge_sonic_damage(struct char_data *ch)
     return 0;
 
   if (has_bard_dirge_of_dissonance(ch))
-    return 1; /* 1d6 sonic damage per round */
+    return 1; /* 1d6 sonic damage per verse */
 
   return 0;
 }
@@ -21658,21 +21631,6 @@ int get_bard_heightened_harmony_perform_bonus(struct char_data *ch)
     return 5; /* +5 to perform skill */
 
   return 0;
-}
-
-/**
- * Check if character has Protective Chorus perk.
- * Grants defensive bonuses to allies under bard songs.
- *
- * @param ch The character
- * @return TRUE if has Protective Chorus, FALSE otherwise
- */
-bool has_bard_protective_chorus(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return FALSE;
-
-  return has_perk(ch, PERK_BARD_PROTECTIVE_CHORUS);
 }
 
 /**
@@ -21761,11 +21719,11 @@ int get_bard_spellsong_maestra_dc_bonus(struct char_data *ch)
 }
 
 /**
- * Check if Spellsong Maestra allows free metamagic on bard spells.
- * When active during performance, metamagic on bard spells costs nothing.
+ * Check if Spellsong Maestra removes the circle surcharge from Bard metamagic.
+ * When active during performance, metamagic does not raise the Bard spell circle.
  *
  * @param ch The character
- * @return TRUE if metamagic is free on bard spells, FALSE otherwise
+ * @return TRUE if Bard metamagic has no circle surcharge, FALSE otherwise
  */
 bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch)
 {
@@ -21773,7 +21731,7 @@ bool has_bard_spellsong_maestra_metamagic_free(struct char_data *ch)
     return FALSE;
 
   if (has_bard_spellsong_maestra(ch) && IS_PERFORMING(ch))
-    return TRUE; /* Metamagic on bard spells is free while performing */
+    return TRUE; /* Bard metamagic has no circle surcharge while performing */
 
   return FALSE;
 }
@@ -21809,7 +21767,7 @@ int get_bard_aria_stasis_ally_saves_bonus(struct char_data *ch)
 }
 
 /**
- * Get to-hit penalty from Aria of Stasis for enemies.
+ * Get to-hit penalty from Aria of Stasis for creatures outside the performer's group.
  * Applies -2 to hit penalty.
  *
  * @param ch The character
@@ -21824,7 +21782,7 @@ int get_bard_aria_stasis_enemy_tohit_penalty(struct char_data *ch)
 }
 
 /**
- * Get movement speed penalty from Aria of Stasis for enemies.
+ * Get movement speed penalty from Aria of Stasis for creatures outside the performer's group.
  * Returns percentage reduction (10).
  *
  * @param ch The character
@@ -21865,7 +21823,7 @@ bool has_bard_symphonic_resonance(struct char_data *ch)
 }
 
 /**
- * Get temporary HP from Symphonic Resonance per round.
+ * Get temporary HP from Symphonic Resonance per verse.
  * Returns 1d6.
  *
  * @param ch The character
@@ -21877,7 +21835,7 @@ int get_bard_symphonic_resonance_temp_hp(struct char_data *ch)
     return 0;
 
   if (has_bard_symphonic_resonance(ch))
-    return 1; /* 1d6 temp HP per round */
+    return 1; /* 1d6 temporary HP per verse */
 
   return 0;
 }
@@ -21901,25 +21859,8 @@ int get_bard_symphonic_resonance_daze_duration(struct char_data *ch)
 }
 
 /**
- * Get daze range from Symphonic Resonance in feet.
- *
- * @param ch The character
- * @return Daze range in feet (20 if has perk, 0 otherwise)
- */
-int get_bard_symphonic_resonance_daze_range(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  if (has_bard_symphonic_resonance(ch))
-    return 20; /* 20 feet range */
-
-  return 0;
-}
-
-/**
  * Check if character has Endless Refrain perk.
- * Makes performance free and regenerates spell slots.
+ * Regenerates Bard spell slots while performing.
  *
  * @param ch The character
  * @return TRUE if has Endless Refrain, FALSE otherwise
@@ -21934,10 +21875,10 @@ bool has_bard_endless_refrain(struct char_data *ch)
 
 /**
  * Get spell slot regeneration from Endless Refrain.
- * Returns number of spell slots regenerated per round.
+ * Returns number of spell slots regenerated per verse.
  *
  * @param ch The character
- * @return Spell slots regenerated per round (1 if has perk, 0 otherwise)
+ * @return Spell slots regenerated per verse (1 if has perk, 0 otherwise)
  */
 int get_bard_endless_refrain_slot_regen(struct char_data *ch)
 {
@@ -21945,7 +21886,7 @@ int get_bard_endless_refrain_slot_regen(struct char_data *ch)
     return 0;
 
   if (has_bard_endless_refrain(ch))
-    return 1; /* Regenerate 1 spell slot per round */
+    return 1; /* Regenerate 1 spell slot per verse */
 
   return 0;
 }
@@ -21956,7 +21897,7 @@ int get_bard_endless_refrain_slot_regen(struct char_data *ch)
 
 /**
  * Get damage bonus from Battle Hymn I.
- * Provides +1 competence damage per rank to Inspire Courage recipients.
+ * Provides +1 competence damage per rank to Song of Heroism recipients.
  *
  * @param ch The character
  * @return Damage bonus per rank (cumulative)
@@ -22010,25 +21951,6 @@ bool has_bard_rallying_cry_perk(struct char_data *ch)
     return FALSE;
 
   return has_perk(ch, PERK_BARD_RALLYING_CRY);
-}
-
-/**
- * Get fear save bonus from Rallying Cry effect.
- * Returns morale bonus to saves vs. fear.
- *
- * @param ch The character
- * @return +2 if affected by Rallying Cry, 0 otherwise
- */
-int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return 0;
-
-  /* Check if character is affected by AFFECT_RALLYING_CRY */
-  if (affected_by_spell(ch, AFFECT_RALLYING_CRY))
-    return 2; /* +2 morale to fear saves */
-
-  return 0;
 }
 
 /**
@@ -22100,7 +22022,7 @@ int get_bard_frostbite_natural_20_debuff(struct char_data *ch)
 
 /**
  * Get additional damage bonus from Battle Hymn II.
- * Provides additional +1 competence damage per rank to Inspire Courage recipients (stacks with Tier 1).
+ * Provides additional +1 competence damage per rank to Song of Heroism recipients.
  *
  * @param ch The character
  * @return Additional damage bonus per rank (cumulative)
@@ -22265,21 +22187,6 @@ int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch)
  * ============================================================================ */
 
 /**
- * Check if character has Anthem of Fortitude perk.
- * Grants allies +10% max HP and +2 to Fortitude saves while performing.
- *
- * @param ch The character
- * @return TRUE if has Anthem of Fortitude, FALSE otherwise
- */
-bool has_bard_anthem_of_fortitude(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return FALSE;
-
-  return has_perk(ch, PERK_BARD_ANTHEM_OF_FORTITUDE);
-}
-
-/**
  * Get max HP bonus from Anthem of Fortitude for allies.
  * Returns the percentage of max HP bonus.
  *
@@ -22341,7 +22248,7 @@ bool has_bard_steel_serenade(struct char_data *ch)
  * Returns the AC improvement while performing.
  *
  * @param ch The character
- * @return +2 AC (note: lower is better in this system)
+ * @return +2 natural AC
  */
 int get_bard_steel_serenade_ac_bonus(struct char_data *ch)
 {
@@ -22366,21 +22273,6 @@ int get_bard_steel_serenade_damage_resistance(struct char_data *ch)
 
   /* Steel Serenade: 10% physical damage resistance */
   return 10;
-}
-
-/**
- * Check if character has Banner Verse perk.
- * Plants a musical standard that grants allies bonuses.
- *
- * @param ch The character
- * @return TRUE if has Banner Verse, FALSE otherwise
- */
-bool has_bard_banner_verse(struct char_data *ch)
-{
-  if (!ch || IS_NPC(ch))
-    return FALSE;
-
-  return has_perk(ch, PERK_BARD_BANNER_VERSE);
 }
 
 /**
@@ -22413,7 +22305,7 @@ int get_bard_banner_verse_save_bonus(struct char_data *ch)
 
 /**
  * Check if character has Warchanter's Dominance perk.
- * Capstone that enhances Inspire Courage and Warbeat effects.
+ * Capstone that enhances Song of Heroism and Warbeat effects.
  *
  * @param ch The character
  * @return TRUE if has perk, FALSE otherwise
@@ -22428,7 +22320,7 @@ bool has_bard_warchanters_dominance(struct char_data *ch)
 
 /**
  * Get to-hit bonus from Warchanter's Dominance.
- * Inspire Courage grants +1 additional attack bonus.
+ * Song of Heroism grants +1 additional attack bonus.
  *
  * @param ch The character
  * @return +1 to hit while performing
@@ -22438,39 +22330,39 @@ int get_bard_warchanters_dominance_tohit_bonus(struct char_data *ch)
   if (!has_bard_warchanters_dominance(ch))
     return 0;
 
-  /* Warchanter's Dominance: +1 to hit from Inspire Courage enhancement */
+  /* Warchanter's Dominance: +1 to hit from Song of Heroism enhancement */
   return 1;
 }
 
 /**
  * Get AC bonus from Warchanter's Dominance.
- * Inspire Courage grants +1 additional AC.
+ * Song of Heroism grants +1 additional AC.
  *
  * @param ch The character
- * @return +1 AC while performing (negative value for AC system)
+ * @return +1 AC for Song of Heroism recipients
  */
 int get_bard_warchanters_dominance_ac_bonus(struct char_data *ch)
 {
   if (!has_bard_warchanters_dominance(ch))
     return 0;
 
-  /* Warchanter's Dominance: +1 AC from Inspire Courage enhancement */
+  /* Warchanter's Dominance: +1 AC from Song of Heroism enhancement */
   return 1;
 }
 
 /**
- * Get damage bonus from Warchanter's Dominance.
- * Enhance damage output on first attack (Warbeat enhancement).
+ * Get Warbeat damage-die bonus from Warchanter's Dominance.
+ * Enhances the successful Warbeat opening-hit buff.
  *
  * @param ch The character
- * @return +1 to damage
+ * @return One additional d4 for the Warbeat recipient buff
  */
 int get_bard_warchanters_dominance_damage_bonus(struct char_data *ch)
 {
   if (!has_bard_warchanters_dominance(ch))
     return 0;
 
-  /* Warchanter's Dominance: +1 to damage via Warbeat enhancement */
+  /* Warchanter's Dominance: one additional d4 in the Warbeat buff */
   return 1;
 }
 

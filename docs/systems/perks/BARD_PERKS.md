@@ -2,12 +2,23 @@
 
 ## Overview
 
-Bards blend martial skill, arcane magic, and inspiring performance. These three perk trees provide clear specialization paths aligned with classic Bard archetypes seen across tabletop and MMO implementations. Each tree has four tiers of progression, with capstones at Tier IV.
+Bards blend martial skill, arcane magic, and inspiring performance. These three
+perk trees provide clear specialization paths aligned with classic Bard
+archetypes seen across tabletop and MMO implementations. Each tree has four
+tiers of progression, with capstones at Tier IV.
 
 **The Three Trees:**
 1. **Spellsinger** - Spellcasting, song power, control, and support
 2. **Warchanter** - Battle anthems, melee presence, and party-wide martial buffs
 3. **Swashbuckler** - Agile duelist, finesse weapons, ripostes, and mobility
+
+**Performance Contract:** Bardic performances have no rounds-per-day, daily-use,
+or shared-pool cost. Starting or changing a performance spends the action shown
+by the `perform` command. A successful performance applies its first verse
+immediately, repeats every eleven seconds, and continues until stopped by the
+bard, a stutter, an interruption, or an invalid state. Unless a perk says
+otherwise, an aura that applies "while performing" affects the performer and
+grouped allies in the same room.
 
 ---
 
@@ -30,7 +41,8 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Resonant Voice I
 - **Max Ranks:** 3
-- **Description:** Allies affected by your songs gain +1 competence to saves vs. mind-affecting per rank.
+- **Description:** Group members affected by your songs gain +1 competence to
+  Will saves against mind-affecting effects per rank.
 - **Effect Type:** Party defensive support
 - **Prerequisites:** None
 
@@ -46,7 +58,8 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Songweaver II
 - **Max Ranks:** 2
-- **Description:** Additional +1 affect round and +1 effectiveness per rank (stacks with Songweaver I).
+- **Description:** Additional +1 affect round and +1 effectiveness per rank
+  (stacks with Songweaver I).
 - **Effect Type:** Bardic performance scaling
 - **Prerequisites:** Songweaver I (2 ranks)
 
@@ -58,13 +71,16 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Crescendo
 - **Max Ranks:** 1
-- **Description:** The first spell you cast after starting a song deals +1d6 sonic damage and has +2 to its save DC.
+- **Description:** The first Bard spell you cast while performing after starting
+  a song gains +2 save DC and deals +1d6 sonic damage once to each target it
+  damages.
 - **Effect Type:** Opening burst/control
 - **Prerequisites:** Harmonic Casting
 
 #### Sustaining Melody
 - **Max Ranks:** 1
-- **Description:** While a song is active, you have a 20% chance per combat round to recover 1 spell slot only while in combat.
+- **Description:** While performing in combat, each five-second pulse has a 20%
+  chance to recover one expended Bard spell slot.
 - **Effect Type:** Resource regeneration
 - **Prerequisites:** Songweaver I (1 rank)
 
@@ -76,23 +92,26 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 - **Max Ranks:** 1
 - **Description:** Maintain up to two distinct bard songs simultaneously.
 - **Effect Type:** Performance utility
-- **Prerequisites:** Sustaining Melody, Songweaver II (1 rank)
+- **Prerequisites:** Sustaining Melody
 
 #### Dirge of Dissonance
 - **Max Ranks:** 1
-- **Description:** Enemies in the room take 1d6 sonic damage per round and -2 penalty to concentration checks while your song persists.
+- **Description:** While performing, enemies in the room suffer -2 to
+  concentration checks and take 1d6 sonic damage on each eleven-second verse.
 - **Effect Type:** Area debuff + attrition damage
 - **Prerequisites:** Crescendo
 
 #### Heightened Harmony
 - **Max Ranks:** 1
-- **Description:** When you spend metamagic on a bard spell, You gain +5 to your perform skill for one minute.
+- **Description:** When you spend metamagic on a Bard spell, you gain +5 to your
+  Perform skill for one minute.
 - **Effect Type:** Metamagic synergy
 - **Prerequisites:** Enchanter's Guile II (1 rank)
 
 #### Protective Chorus
 - **Max Ranks:** 1
-- **Description:** Allies under your song gain +2 to saves vs. spells and +2 to AC vs. attacks of opportunity.
+- **Description:** While performing, you and grouped allies in the room gain +2
+  to saves vs. spells and +2 AC vs. attacks of opportunity.
 - **Effect Type:** Party protection
 - **Prerequisites:** Resonant Voice I (2 ranks)
 
@@ -102,15 +121,34 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Spellsong Maestra
 - **Max Ranks:** 1
-- **Description:** +1 spell DC to all bard spells and your song effects count as if +2 levels higher.
-- **Effect Type:** Global spell/song capstone
+- **Description:** While performing, Bard spells gain +2 caster level and +2
+  spell DC, and metamagic adds no spell-circle surcharge.
+- **Effect Type:** Spellcasting capstone
 - **Prerequisites:** Master of Motifs
 
 #### Aria of Stasis
 - **Max Ranks:** 1
-- **Description:** 1/10 minutes, perform a room-wide harmonic stasis: enemies must save or be slowed and silenced for 5 rounds; on success, they are slowed for 1 round.
-- **Effect Type:** Encounter control (daily power)
-- **Prerequisites:** Dirge of Dissonance
+- **Description:** While performing, you and grouped allies in the room gain +4
+  to all saves and immunity to slow; other creatures in the room suffer -2 to
+  hit and 10% lower movement speed.
+- **Effect Type:** Persistent defensive and control aura
+- **Prerequisites:** Protective Chorus
+
+#### Symphonic Resonance
+- **Max Ranks:** 1
+- **Description:** Each eleven-second verse while performing grants 1d6
+  temporary HP, capped at 30 above maximum HP. After a successful Enchantment
+  or Illusion Bard spell, valid room enemies that fail a Will save are dazed for
+  1 round.
+- **Effect Type:** Personal durability and spell-triggered control
+- **Prerequisites:** Crescendo
+
+#### Endless Refrain
+- **Max Ranks:** 1
+- **Description:** On each eleven-second verse while performing, recover one
+  expended Bard spell slot.
+- **Effect Type:** Spell-slot regeneration
+- **Prerequisites:** Sustaining Melody
 
 ---
 
@@ -121,25 +159,28 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Battle Hymn I
 - **Max Ranks:** 3
-- **Description:** Inspire Courage also grants +1 competence to damage per rank.
+- **Description:** Song of Heroism grants +1 competence to damage per rank to its recipients.
 - **Effect Type:** Party damage support
 - **Prerequisites:** None
 
 #### Drummer's Rhythm I
 - **Max Ranks:** 3
-- **Description:** While a song is active, you gain +1 to hit in melee per rank.
+- **Description:** While performing, you gain +1 to hit in melee per rank.
 - **Effect Type:** Melee accuracy
 - **Prerequisites:** None
 
 #### Rallying Cry
 - **Max Ranks:** 1
-- **Description:** Activate to remove the shaken condition from allies and grant +2 morale to saves vs. fear for 5 rounds.
-- **Effect Type:** Condition cleanse + morale
+- **Description:** As a swift action, remove shaken from yourself and grouped
+  allies in the room; you and those allies gain +1 to hit, +2 to Will saves,
+  and +5 movement speed for 5 rounds.
+- **Effect Type:** Condition cleanse and group rally
 - **Prerequisites:** None
 
 #### Frostbite Refrain I
 - **Max Ranks:** 3
-- **Description:** Your melee hits deal +1 cold damage per rank while a song is active; enemies you hit suffer -1 to attack for 1 round on a natural 20.
+- **Description:** While performing, your melee hits deal +1 cold damage per
+  rank; a natural 20 gives the target -1 to attack for 1 round.
 - **Effect Type:** Elemental rider + minor debuff
 - **Prerequisites:** None
 
@@ -149,25 +190,31 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Battle Hymn II
 - **Max Ranks:** 2
-- **Description:** Additional +1 damage granted by Inspire Courage per rank (stacks with Battle Hymn I).
+- **Description:** Song of Heroism grants an additional +1 competence damage per
+  rank to its recipients (stacks with Battle Hymn I).
 - **Effect Type:** Party damage support
 - **Prerequisites:** Battle Hymn I (2 ranks)
 
 #### Drummer's Rhythm II
 - **Max Ranks:** 2
-- **Description:** Additional +1 melee to-hit per rank while a martial song is active.
+- **Description:** While performing, gain an additional +1 melee to-hit per rank
+  (stacks with Drummer's Rhythm I).
 - **Effect Type:** Melee accuracy
 - **Prerequisites:** Drummer's Rhythm I (2 ranks)
 
 #### Warbeat
 - **Max Ranks:** 1
-- **Description:** On your first turn in combat, make an extra melee attack at your highest bonus; on hit, grant allies +1d4 damage for 2 rounds.
+- **Description:** While performing, make an extra melee attack at your highest
+  bonus on your first turn in combat; on hit, you and grouped allies in the room
+  gain +1d4 damage for 2 rounds.
 - **Effect Type:** Offensive trigger + party buff
 - **Prerequisites:** Rallying Cry
 
 #### Frostbite Refrain II
 - **Max Ranks:** 2
-- **Description:** Melee hits deal an additional +1 cold damage per rank; your natural 20 debuff becomes -2 to attack and -1 to AC for 1 round.
+- **Description:** While performing, melee hits deal an additional +1 cold
+  damage per rank; your natural 20 debuff becomes -2 to attack and -1 to AC for
+  1 round.
 - **Effect Type:** Elemental rider + improved debuff
 - **Prerequisites:** Frostbite Refrain I (2 ranks)
 
@@ -177,26 +224,29 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Anthem of Fortitude
 - **Max Ranks:** 1
-- **Description:** Allies under your songs gain +10% max HP and +2 to Fortitude saves.
+- **Description:** While performing, you and grouped allies in the room gain +10%
+  maximum HP and +2 to Fortitude saves.
 - **Effect Type:** Party durability
 - **Prerequisites:** Battle Hymn II (1 rank)
 
 #### Commanding Cadence
 - **Max Ranks:** 1
-- **Description:** Enemies you hit in melee must save or be dazed for 1 round (once per target per 5 rounds).
+- **Description:** While performing, enemies you hit in melee must make a Will
+  save or be dazed for 1 round (once per target per 5 rounds).
 - **Effect Type:** Soft control on hit
 - **Prerequisites:** Warbeat
 
 #### Steel Serenade
 - **Max Ranks:** 1
-- **Description:** While singing, you gain +2 natural AC and 10% physical damage resistance.
+- **Description:** While performing, you gain +2 natural AC and 10% physical damage resistance.
 - **Effect Type:** Personal durability
 - **Prerequisites:** Drummer's Rhythm II (1 rank)
 
 #### Banner Verse
 - **Max Ranks:** 1
-- **Description:** Plant a musical standard object in the room for 5 rounds; allies in the room gain +2 to hit and +2 to all saves.
-- **Effect Type:** Zone-based team aura
+- **Description:** While performing, you and grouped allies in the room gain +2
+  to hit and +2 to all saves.
+- **Effect Type:** Persistent team aura
 - **Prerequisites:** Rallying Cry
 
 ---
@@ -205,15 +255,18 @@ Bards blend martial skill, arcane magic, and inspiring performance. These three 
 
 #### Warchanter's Dominance
 - **Max Ranks:** 1
-- **Description:** Inspire Courage now also grants +1 attack and +1 AC; your Warbeat now gives allies an additional +1d4 to damage and +1 to AC
+- **Description:** Song of Heroism now also grants +1 attack and +1 AC; your
+  Warbeat gives its recipients an additional +1d4 damage and +1 AC.
 - **Effect Type:** Party-wide martial capstone
 - **Prerequisites:** Anthem of Fortitude
 
 #### Winter's War March
 - **Max Ranks:** 1
-- **Description:** Perform a devastating martial anthem: deal 4d6 cold damage to all enemies and slow them for 3 rounds (save halves damage and reduces slow to 1 round). Useable at-will.
-- **Effect Type:** Room-wide burst + control
-- **Prerequisites:** Commanding Cadence, Frostbite Refrain II
+- **Description:** On each eleven-second verse while performing, valid enemies
+  in the room take 4d6 cold damage and are slowed for 3 rounds; a successful
+  Fortitude save halves damage and reduces the slow to 1 round.
+- **Effect Type:** Repeating room-wide damage and control
+- **Prerequisites:** Commanding Cadence
 
 ---
 

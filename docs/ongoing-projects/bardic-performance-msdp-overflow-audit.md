@@ -1,6 +1,6 @@
 # Bardic Performance and MSDP Overflow Audit
 
-Status: BP-001 through BP-018 verified; BP-019 text reconciliation pending
+Status: BP-001 through BP-018 verified; BP-019 text reconciled, final validation pending
 
 Date: 2026-08-04
 
@@ -26,8 +26,10 @@ three published batches progressed from 372 to 380 passing root CuTests; the
 overflow batch also passes all 20 focused protocol tests. Each published batch
 was installed with `make install` on 2026-08-04. The fourth base-performance
 contract batch passes 389 root tests and all 20 focused protocol tests.
-The fifth perk-integration batch passes 398 production-linked root tests; its
-sanitizer, protocol, install, and final text checks remain in progress.
+The fifth perk-integration batch passes 399 production-linked root tests. Its
+runtime registrations, source comments, helper surface, and design document now
+use the same contract; sanitizer, protocol, install, and final checks remain in
+progress.
 
 ## Reported Incident
 
@@ -90,7 +92,7 @@ The expanded audit found additional critical and high-severity defects:
 These issues are not one repair. Memory safety, state invariants, affect
 batching, atomic protocol framing, verse timing, source ownership, eligibility,
 the thirteen base-song contracts, and performance-linked perk behavior are now
-repaired. Final player-facing perk text and validation remain.
+repaired. The player-facing perk text is reconciled; final validation remains.
 
 The first repair batch establishes explicit absent sentinels, validates
 performance indexes before table access, makes command transitions atomic,
@@ -269,8 +271,8 @@ Status meanings:
 | BP-015 | Verified | Pulsing uses `character_list`, clears linkless player state, processes active NPC state, and ignores legacy `ePERFORM` cooldowns; direct NPC coverage proves an active verse executes. |
 | BP-016 | Verified | Every matrix row now follows an explicit tested implementation contract, and the runtime feat descriptions document those mechanics. A production-linked 13-performance matrix, deterministic Will, Reflex, and Fortitude save cases, and modifier-before-cap healing coverage pass. |
 | BP-017 | Verified | Root coverage proves exact Heightened Harmony refresh, whole-cast Crescendo scope for non-damage, multi-projectile, and area spells, grouped active support auras, Bard-only Maestra caster level/DC/metamagic behavior, post-success Symphonic targeting and saves, bounded temporary HP, and real Bard slot recovery. |
-| BP-018 | Verified | Root coverage proves Song of Heroism recipient bonuses, grouped Warbeat buffs and one first-turn extra attack, defender-only Frostbite cold damage, standard Commanding Cadence saves, Steel Serenade physical reduction, and one room-wide Winter's War March application per target through Fortitude and normal cold resistance paths. |
-| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Placeholder resource behavior is removed and mechanics coverage passes; final synchronized runtime and design-document wording remains. |
+| BP-018 | Verified | Root coverage proves Song of Heroism recipient bonuses, Rallying Cry group targeting, grouped Warbeat buffs and one first-turn extra attack, defender-only Frostbite cold damage, standard Commanding Cadence saves, Steel Serenade physical reduction, and one room-wide Winter's War March application per target through Fortitude and normal cold resistance paths. |
+| BP-019 | Implemented | The authoritative runtime contract remains free, indefinite performances with no round pool. Runtime registrations, source comments, helper APIs, and `BARD_PERKS.md` now agree on real clocks, targets, prerequisites, and effects. Final validation is pending. |
 
 ### Repair Checkpoints
 
@@ -304,10 +306,11 @@ Status meanings:
 - Repair batch 5 closes BP-017 and BP-018 and implements the selected BP-019
   contract. It replaces placeholder capstones, routes recipient effects through
   active performer and group relationships, fixes spell-cast and combat/save
-  scope, and moves verse effects onto their real clocks. Preliminary
-  verification is a warning-clean optimized root suite with 398/398 tests
-  passing. Final text reconciliation, sanitizer/protocol reruns, and install are
-  still pending for development version 2.5043-beta.
+  scope, moves verse effects onto their real clocks, reconciles runtime and
+  design text, and removes non-behavioral or redundant helper APIs.
+  Preliminary verification is a warning-clean optimized root suite with 399/399
+  tests passing. Sanitizer/protocol reruns and install are still pending for
+  development version 2.5043-beta.
 
 ## Detailed Findings
 
@@ -876,6 +879,15 @@ Severity: Critical to Medium
 | Symphonic Resonance | Before an Enchantment/Illusion spell resolves, code attempts to daze non-NPC room enemies for one round. | Temporary HP is a message-only TODO. The daze skips every NPC; on a no-PK server `aoeOK()` then rejects PCs, leaving no targets. It has no save, ignores the 20-foot helper, and can occur before the triggering spell succeeds. |
 | Endless Refrain | The verse pulse prints a spell-reserve message. | Slot regeneration is a TODO. The resource-conservation helper is unused, and every base song is already free and indefinite. |
 
+Repair: Resonant Voice now modifies only mind-affecting Will saves. Crescendo
+has whole-cast DC scope and one sonic rider per damaged target. Sustaining and
+Dirge use their real clocks and Bard ownership; Master of Motifs follows the
+free two-slot contract. Heightened Harmony refreshes one exact one-minute
+affect. Protective Chorus, Aria, and Maestra have active, Bard-only group/cast
+scope. Symphonic runs after successful spells with standard targeting and a
+save, and its verse HP is capped at 30 above maximum. Endless Refrain recovers
+one real Bard slot per verse. The production-linked cases cover each behavior.
+
 ### BP-018: Performance-Linked Warchanter Behavior Is Incorrect or Missing
 
 Severity: Critical to Medium
@@ -884,6 +896,7 @@ Severity: Critical to Medium
 |------|--------------------|---------------|
 | Battle Hymn I/II | Rank bonuses are added to the perk owner's generic melee weapon damage. | No active performance or Inspire Courage affect is required. Allies receiving Inspire Courage get nothing. |
 | Drummer's Rhythm I/II | Adds melee to-hit to the owner while `IS_PERFORMING`. | This personal portion matches the source description, subject to the unreliable shared performance state. |
+| Rallying Cry | The command tries to cleanse shaken and invoke a group affect. | Its cleanse condition excludes direct group followers and selects unrelated players; the beneficial group affect is registered as violent and can be rejected by PvP checks. |
 | Frostbite Refrain I/II | Rank damage is added through generic weapon damage while performing; natural 20 debuffs are applied to the target. | The generic damage is not typed cold. `damage_shield_check()` then attempts an extra Tier I cold rider as `damage(victim, ch, ...)`, damaging the bard and attributing it to the target. The Tier I amount is therefore both included in outgoing generic damage and reflected back as cold damage. |
 | Warbeat | Helper functions exist. | No call site implements the first-turn extra attack or ally damage buff. |
 | Anthem of Fortitude | Maximum-HP calculation gives the performing perk owner +10%. | Allies are not found. The +2 Fortitude helper has no call site. |
@@ -897,6 +910,14 @@ The reversed calls are especially important because the signature is
 `savingthrow(caster, victim, type, victim_modifier, ...)`. Higher
 `victim_modifier` values improve the victim's chance to resist; they are not an
 absolute DC.
+
+Repair: Battle Hymn and Dominance now modify Song of Heroism recipients;
+Drummer remains a performer bonus. Rallying Cry is a nonviolent group effect
+and cleanses only its performer and grouped room targets. Frostbite is one
+correctly attributed cold rider. Warbeat, Anthem, Banner, and Dominance use
+tested group relationships. Commanding Cadence uses the standard save order,
+Steel Serenade reduces physical damage, and Winter's War March uses the normal
+room, Fortitude, cold-resistance, damage, and slow paths once per verse.
 
 ### BP-019: Resource and Documentation Contracts Are Incompatible
 
@@ -935,9 +956,15 @@ Decision: Preserve the established free, indefinite performance engine. There
 is no performance-round pool. Starting or changing a song costs the documented
 action, and explicit stop, invalid state, stutter, disconnect, or ordinary bard
 spellcasting can end it. Harmonic Casting deterministically prevents bard
-spells from interrupting active performances. Later repair batches must remove
-all remaining round-pool language and implement or redefine perks against this
+spells from interrupting active performances. The repair batches remove the
+remaining round-pool language and implement or redefine perks against this
 contract.
+
+Reconciliation: Runtime registrations, source comments, behavioral helper APIs,
+and `docs/systems/perks/BARD_PERKS.md` now use that decision. They name the
+actual five- and eleven-second clocks, group and room scope, save types,
+Song of Heroism dependency, capstone prerequisites, and implemented effects.
+Redundant or non-behavioral Bard helper APIs were removed instead of advertised.
 
 ## Direct String Audit
 
@@ -1232,5 +1259,5 @@ the same corruption class elsewhere.
 
 The first five repair batches close and dynamically verify BP-001 through
 BP-018. They also implement one authoritative free, indefinite performance
-contract. The remaining BP-019 work is to align all runtime and design text
-with that contract, rerun the final validation matrix, and publish closure.
+contract and align runtime and design text with it. The remaining BP-019 work
+is to pass the final validation matrix and publish closure.

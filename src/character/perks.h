@@ -908,8 +908,6 @@ int get_bard_enchanters_guile_dc_bonus(struct char_data *ch);
 int get_bard_songweaver_level_bonus(struct char_data *ch);
 int get_bard_resonant_voice_save_bonus(struct char_data *ch);
 bool has_bard_harmonic_casting(struct char_data *ch);
-int get_bard_songweaver_ii_level_bonus(struct char_data *ch);
-int get_bard_enchanters_guile_ii_dc_bonus(struct char_data *ch);
 bool has_bard_crescendo(struct char_data *ch);
 int get_bard_crescendo_sonic_damage(struct char_data *ch);
 int get_bard_crescendo_dc_bonus(struct char_data *ch);
@@ -922,7 +920,6 @@ int get_bard_dirge_sonic_damage(struct char_data *ch);
 int get_bard_dirge_concentration_penalty(struct char_data *ch);
 bool has_bard_heightened_harmony(struct char_data *ch);
 int get_bard_heightened_harmony_perform_bonus(struct char_data *ch);
-bool has_bard_protective_chorus(struct char_data *ch);
 int get_bard_protective_chorus_save_bonus(struct char_data *ch);
 int get_bard_protective_chorus_ac_bonus(struct char_data *ch);
 
@@ -941,7 +938,6 @@ bool has_bard_aria_stasis_slow_immunity(struct char_data *ch);
 bool has_bard_symphonic_resonance(struct char_data *ch);
 int get_bard_symphonic_resonance_temp_hp(struct char_data *ch);
 int get_bard_symphonic_resonance_daze_duration(struct char_data *ch);
-int get_bard_symphonic_resonance_daze_range(struct char_data *ch);
 
 bool has_bard_endless_refrain(struct char_data *ch);
 int get_bard_endless_refrain_slot_regen(struct char_data *ch);
@@ -950,7 +946,6 @@ int get_bard_endless_refrain_slot_regen(struct char_data *ch);
 int get_bard_battle_hymn_damage_bonus(struct char_data *ch);
 int get_bard_drummers_rhythm_tohit_bonus(struct char_data *ch);
 bool has_bard_rallying_cry_perk(struct char_data *ch);
-int get_bard_rallying_cry_fear_save_bonus(struct char_data *ch);
 bool has_bard_frostbite_refrain(struct char_data *ch);
 int get_bard_frostbite_cold_damage(struct char_data *ch);
 int get_bard_frostbite_natural_20_debuff(struct char_data *ch);
@@ -966,14 +961,12 @@ int get_bard_frostbite_refrain_ii_natural_20_debuff_attack(struct char_data *ch)
 int get_bard_frostbite_refrain_ii_natural_20_debuff_ac(struct char_data *ch);
 
 /* Bard Warchanter Tree Tier 3 Functions */
-bool has_bard_anthem_of_fortitude(struct char_data *ch);
 int get_bard_anthem_fortitude_hp_bonus(struct char_data *ch);
 int get_bard_anthem_fortitude_save_bonus(struct char_data *ch);
 bool has_bard_commanding_cadence(struct char_data *ch);
 bool has_bard_steel_serenade(struct char_data *ch);
 int get_bard_steel_serenade_ac_bonus(struct char_data *ch);
 int get_bard_steel_serenade_damage_resistance(struct char_data *ch);
-bool has_bard_banner_verse(struct char_data *ch);
 int get_bard_banner_verse_tohit_bonus(struct char_data *ch);
 int get_bard_banner_verse_save_bonus(struct char_data *ch);
 
