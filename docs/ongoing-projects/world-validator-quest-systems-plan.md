@@ -7,7 +7,7 @@ environment.
 
 ## Implementation Progress
 
-Last updated: 2026-08-04.
+Last updated: 2026-08-05.
 
 - Active session: Completion audit - full GitHub Actions acceptance repair.
 - Baseline source commit: `4237803456838f3b955462cee2e64acd95d0a04e`.
@@ -199,9 +199,20 @@ Last updated: 2026-08-04.
   Valgrind error policies remain fully enabled. The concurrent 399-test bard
   expansion exposed 32 additional fixture-owned event queues and one save-
   direction test defect; both are included in the same ownership/gate repair.
-- Next implementation step: repair those CI contracts without weakening the
-  memory, sanitizer, coverage, or production-linked test gates; then rerun the
-  complete workflow and retire this plan only after it is green.
+- Completion-audit local evidence: the 399-test production suite passes under
+  exact Valgrind leak checking and a fresh ASan/UBSan clone with leak detection
+  enabled. A fresh GCC coverage clone passes all 399 production tests and 22
+  protocol tests; gcovr 8.6 reports 10.5 percent lines and 7.1 percent branches,
+  above the unchanged fixed floors. Make passes all 170 world-tool tests, and a
+  fresh `BUILD_TESTS=ON` CMake tree passes the world-tool target plus all four
+  `world-tool*` CTest entries.
+- Completion-audit remote progress: at commit `01f35740`, the sanitizer,
+  memory, supported behavioral-build, and validator jobs are green. Coverage
+  generation, threshold enforcement, and artifact upload are green, but the
+  Codecov upload still fails; the production-linked job remains in progress.
+- Next implementation step: complete the fresh production/install gate, trace
+  and repair the Codecov upload, obtain one wholly green workflow, then move
+  the corrected evidence to permanent docs and retire this plan.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
