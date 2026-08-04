@@ -184,11 +184,13 @@ The GitHub Actions coverage job:
 - creates Cobertura XML, HTML details, and a JSON summary with gcovr;
 - uploads every report as a GitHub Actions workflow artifact.
 
-The measured Luminari baseline with gcovr 8.6 is 24,791 of 235,600 lines
-(10.52 percent) and 15,477 of 215,463 branches (7.18 percent). gcovr enforces
-those rounded-down fixed floors before the artifact upload, so a lower result
-fails the job. Whenever coverage increases, update the counts and fixed floors
-in `.github/workflows/test.yml`; the fixed gates only move upward.
+Repeated Luminari measurements with gcovr 8.6 establish fixed floors of 10.50
+percent for lines and 7.16 percent for branches. Exact executed counts vary
+slightly because game tests exercise randomized paths; the floors use the
+lowest observed results rounded down to two decimals. gcovr enforces them
+before the artifact upload, so a lower result fails the job. Whenever the
+stable coverage range increases, update the fixed floors in
+`.github/workflows/test.yml`; the gates only move upward.
 
 ## Campaign Builds
 

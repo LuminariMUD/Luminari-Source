@@ -214,10 +214,15 @@ Last updated: 2026-08-05.
   the repository has no Codecov secret or enablement variable. The stale
   third-party step and config are removed while the in-repository gcovr gate
   and GitHub report upload remain mandatory.
-- Completion-audit coverage ratchet: the successful CI measurement under the
-  newly pinned gcovr 8.6 is 24,791 of 235,600 lines (10.52 percent) and 15,477
-  of 215,463 branches (7.18 percent). Both fixed floors are raised to those
-  rounded-down measurements.
+- Completion-audit coverage ratchet: four CI measurements under the newly
+  pinned gcovr 8.6 ranged from 24,760 to 24,815 covered lines and 15,444 to
+  15,510 covered branches because randomized game tests take slightly
+  different paths. The fixed floors are raised to the lowest observed results
+  rounded down: 10.50 percent lines and 7.16 percent branches.
+- Ratchet correction: run `30959743674` rejected the initial 10.52-percent
+  line floor with 24,760 covered lines, proving that a single randomized pass
+  was not a stable baseline. The corrected floors use all four available
+  post-upgrade CI measurements rather than weakening any test or collector.
 - Completion-audit final local gate: a clean Autotools build and `make test`
   pass all 399 production-linked tests without compiler warnings. Exact
   Valgrind leak checking reports zero errors and no lost blocks. The complete
