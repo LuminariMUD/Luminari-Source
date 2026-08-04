@@ -378,6 +378,7 @@ class QuestRecord:
   dialogue_block_count: int = 0
   raw_values: dict[str, int] = field(default_factory=dict)
   field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  references: list[VnumReference] = field(default_factory=list)
   complete: bool = True
 
 
@@ -430,6 +431,7 @@ class HlQuestRecord:
   source_package: str
   entries: list[HlQuestEntryRecord] = field(default_factory=list)
   field_spans: dict[str, SourceSpan] = field(default_factory=dict)
+  references: list[VnumReference] = field(default_factory=list)
   complete: bool = True
 
   @property

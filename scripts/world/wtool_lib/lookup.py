@@ -24,8 +24,12 @@ RECORD_TYPE_ALIASES = {
     "object": "object",
     "shop": "shop",
     "trigger": "trigger",
+    "qst": "quest",
+    "quest": "quest",
+    "hlq": "hlquest",
+    "hlquest": "hlquest",
 }
-CLI_RECORD_TYPES = ("zone", "room", "mob", "obj", "shop", "trigger")
+CLI_RECORD_TYPES = ("zone", "room", "mob", "obj", "shop", "trigger", "quest", "hlquest")
 
 
 @dataclass(frozen=True, slots=True)
@@ -215,7 +219,13 @@ def reference_edges(world: WorldData) -> list[ReferenceEdge]:
           "inline trigger attachment",
           attachment.span,
       )
-  for record in [*world.mobiles, *world.objects, *world.shops]:
+  for record in [
+      *world.mobiles,
+      *world.objects,
+      *world.shops,
+      *world.quests,
+      *world.hlquests,
+  ]:
     for reference in record.references:
       _add_edge(
           edges,

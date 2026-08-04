@@ -6,7 +6,33 @@ import unittest
 
 from tests.test_cli import make_world, tree_hash
 from wtool_lib.constants import default_repo_root, load_manifest
-from wtool_lib.world import validate_explicit_paths, validate_indexed_world
+from wtool_lib.world import (
+    load_indexed_world_data,
+    validate_explicit_paths,
+    validate_indexed_world,
+)
+
+
+def quest_with_references(
+    vnum: int,
+    quest_type: int,
+    target: int,
+    questmaster: int = 100,
+    previous: int = -1,
+    next_quest: int = -1,
+    prerequisite: int = -1,
+    return_mobile: int = -1,
+    reward_object: int = -1,
+    follower_mobile: int = -1,
+    alternative: int = -1,
+) -> str:
+  return (
+      f"#{vnum}\nQuest {vnum}~\nA graph quest.~\nAccepted.~\nCompleted.~\nQuit.~\n"
+      f"{quest_type} {questmaster} 0 {target} {previous} {next_quest} {prerequisite}\n"
+      f"1 0 1 30 -1 {return_mobile} 1\n"
+      f"0 0 {reward_object} -1 0 0 {follower_mobile}\n"
+      f"D\n-1 -1 -1 {alternative}\nS\n"
+  )
 
 
 class FullGraphTests(unittest.TestCase):
@@ -15,6 +41,11 @@ class FullGraphTests(unittest.TestCase):
     cls.repo_root = default_repo_root()
     cls.manifest = load_manifest()
     cls.config = {"diagonal_dirs": False, "config_source": "test", "assumed": False}
+    cls.quest_types = {
+        entry["macro"]: entry["index"]
+        for entry in cls.manifest["tables"]["quest-types"]["entries"]
+        if entry.get("macro")
+    }
 
   def validate(self, root: Path):
     return validate_indexed_world(root, self.repo_root, self.manifest, self.config)
@@ -178,6 +209,161 @@ class FullGraphTests(unittest.TestCase):
           "shop keeper",
       ):
         self.assertTrue(any(role in message for message in messages), role)
+
+  def test_qst_reference_model_covers_every_edge_role_and_target_type(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      qst = root / "qst/1.qst"
+      qst.write_text(
+          quest_with_references(
+              100,
+              self.quest_types["AQ_OBJ_RETURN"],
+              100,
+              previous=101,
+              next_quest=102,
+              prerequisite=100,
+              return_mobile=100,
+              reward_object=100,
+              follower_mobile=100,
+          )
+          + quest_with_references(101, self.quest_types["AQ_ROOM_FIND"], 100)
+          + quest_with_references(102, self.quest_types["AQ_MOB_FIND"], 100)
+          + quest_with_references(
+              103,
+              self.quest_types["AQ_DIALOGUE"],
+              100,
+              alternative=102,
+          )
+          + "$~\n",
+          encoding="ascii",
+      )
+      world = load_indexed_world_data(
+          root, self.repo_root, self.manifest, self.config
+      )
+      references = [reference for record in world.quests for reference in record.references]
+      roles = {reference.role for reference in references}
+      self.assertEqual(
+          {
+              "questmaster mobile",
+              "type-sensitive quest target",
+              "quest return recipient",
+              "quest prerequisite object",
+              "quest reward object",
+              "quest follower reward",
+              "previous quest",
+              "next quest",
+              "dialogue alternative quest",
+          },
+          roles,
+      )
+      target_types = {
+          reference.target_type
+          for reference in references
+          if reference.role == "type-sensitive quest target"
+      }
+      self.assertEqual({"mobile", "object", "room"}, target_types)
+      self.assertFalse(any(item.code.startswith("REF03") for item in world.findings))
+
+  def test_qst_missing_and_wrong_type_references_are_source_located(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      qst = root / "qst/1.qst"
+      qst.write_text(
+          quest_with_references(
+              100,
+              self.quest_types["AQ_OBJ_RETURN"],
+              999,
+              questmaster=999,
+              previous=999,
+              next_quest=999,
+              prerequisite=999,
+              return_mobile=999,
+              reward_object=999,
+              follower_mobile=999,
+              alternative=999,
+          )
+          + "$~\n",
+          encoding="ascii",
+      )
+      missing = [item for item in self.validate(root).findings if item.code == "REF032"]
+      self.assertEqual(9, len(missing))
+      self.assertTrue(all(item.span.path == "qst/1.qst" for item in missing))
+      self.assertTrue(all(item.span.column > 1 for item in missing))
+
+      room_file = root / "wld/1.wld"
+      room_file.write_text(
+          room_file.read_text(encoding="ascii").replace(
+              "$~\n",
+              "#101\nWrong Type~\nA room-only target.~\n1 0 0 0 0 0\nS\n$~\n",
+          ),
+          encoding="ascii",
+      )
+      qst.write_text(
+          quest_with_references(100, self.quest_types["AQ_MOB_FIND"], 101) + "$~\n",
+          encoding="ascii",
+      )
+      wrong = [item for item in self.validate(root).findings if item.code == "REF033"]
+      self.assertEqual(1, len(wrong))
+      self.assertIsNotNone(wrong[0].related)
+      self.assertEqual("room", wrong[0].related.record_type)
+
+  def test_hlq_reference_model_and_missing_targets_cover_nested_context(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      hlq = root / "hlq/1.hlq"
+      hlq.write_text(
+          "#100\nR!\n100\nRoom reply.~\n"
+          "I I 100 0\nO I 100 0\nO O 100 100\nO M 100 100\nO X 0 100\nS\n$~\n",
+          encoding="ascii",
+      )
+      world = load_indexed_world_data(
+          root, self.repo_root, self.manifest, self.config
+      )
+      references = world.hlquests[0].references
+      self.assertEqual(9, len(references))
+      self.assertEqual(
+          {"mobile", "object", "room"},
+          {reference.target_type for reference in references},
+      )
+      self.assertTrue(any("entry 1 input command 1 item" in ref.role for ref in references))
+      self.assertFalse(any(item.code.startswith("REF03") for item in world.findings))
+
+      hlq.write_text(
+          "#999\nR!\n999\nRoom reply.~\n"
+          "I I 999 0\nO I 999 0\nO O 999 999\nO M 999 999\nO X 0 999\nS\n$~\n",
+          encoding="ascii",
+      )
+      missing = [item for item in self.validate(root).findings if item.code == "REF034"]
+      self.assertEqual(9, len(missing))
+      self.assertTrue(all("entry 1" in item.message or "host" in item.message for item in missing))
+
+  def test_quest_reference_findings_respect_selected_packages(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory) / "world"
+      make_world(root)
+      (root / "qst/1.qst").write_text(
+          quest_with_references(100, self.quest_types["AQ_MOB_FIND"], 999) + "$~\n",
+          encoding="ascii",
+      )
+      (root / "zon/2.zon").write_text(
+          "#2\nBuilder~\nSelected graph zone~\n200 299 30 2\nS\n$\n",
+          encoding="ascii",
+      )
+      (root / "qst/2.qst").write_text(
+          quest_with_references(200, self.quest_types["AQ_MOB_FIND"], 100) + "$~\n",
+          encoding="ascii",
+      )
+      result = validate_indexed_world(
+          root,
+          self.repo_root,
+          self.manifest,
+          self.config,
+          selected_packages={2},
+      )
+      self.assertNotIn("REF032", {item.code for item in result.findings})
 
 
 if __name__ == "__main__":

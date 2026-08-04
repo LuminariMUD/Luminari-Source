@@ -7,7 +7,7 @@ import re
 from typing import Any
 
 from .flags import decode_tokens
-from .models import QuestRecord, SourceSpan
+from .models import QuestRecord, SourceSpan, VnumReference
 from .parsing import ParseResult, finding, source_issue_finding
 from .source import (
     READ_SIZE,
@@ -330,6 +330,90 @@ def _parse_dialogue_block(
   )
 
 
+def _quest_type_values(manifest: dict[str, Any]) -> dict[str, int]:
+  return {
+      entry["macro"]: entry["index"]
+      for entry in manifest["tables"]["quest-types"]["entries"]
+      if entry.get("macro")
+  }
+
+
+def _add_reference(
+    record: QuestRecord,
+    target_type: str,
+    target_vnum: int | None,
+    role: str,
+    field_name: str,
+) -> None:
+  if target_vnum is None:
+    return
+  record.references.append(
+      VnumReference(
+          target_type,
+          target_vnum,
+          role,
+          record.field_spans.get(field_name, record.span),
+      )
+  )
+
+
+def _populate_references(record: QuestRecord, manifest: dict[str, Any]) -> None:
+  types = _quest_type_values(manifest)
+  target_types = {
+      types["AQ_OBJ_FIND"]: "object",
+      types["AQ_OBJ_RETURN"]: "object",
+      types["AQ_ROOM_FIND"]: "room",
+      types["AQ_ROOM_CLEAR"]: "room",
+      types["AQ_MOB_FIND"]: "mobile",
+      types["AQ_MOB_KILL"]: "mobile",
+      types["AQ_MOB_SAVE"]: "mobile",
+      types["AQ_DIALOGUE"]: "mobile",
+  }
+  record.references.clear()
+  _add_reference(
+      record,
+      "mobile",
+      record.questmaster_vnum,
+      "questmaster mobile",
+      "questmaster_vnum",
+  )
+  if record.quest_type in target_types:
+    _add_reference(
+        record,
+        target_types[record.quest_type],
+        record.target,
+        "type-sensitive quest target",
+        "target",
+    )
+  if record.quest_type in {types["AQ_OBJ_RETURN"], types["AQ_GIVE_GOLD"]}:
+    _add_reference(
+        record,
+        "mobile",
+        record.return_mobile_vnum,
+        "quest return recipient",
+        "return_mobile_vnum",
+    )
+  for target_type, value, role, field_name in (
+      (
+          "object",
+          record.prerequisite_object_vnum,
+          "quest prerequisite object",
+          "prerequisite_object_vnum",
+      ),
+      ("object", record.reward_object_vnum, "quest reward object", "reward_object_vnum"),
+      ("mobile", record.follower_mobile_vnum, "quest follower reward", "follower_mobile_vnum"),
+      ("quest", record.previous_quest_vnum, "previous quest", "previous_quest_vnum"),
+      ("quest", record.next_quest_vnum, "next quest", "next_quest_vnum"),
+      (
+          "quest",
+          record.dialogue_alternative_quest_vnum,
+          "dialogue alternative quest",
+          "dialogue_alternative_quest_vnum",
+      ),
+  ):
+    _add_reference(record, target_type, value, role, field_name)
+
+
 def parse_quest_file(
     path: Path,
     display_path: str,
@@ -552,4 +636,6 @@ def parse_quest_file(
         )
     )
     result.complete = False
+  for record in result.records:
+    _populate_references(record, manifest)
   return result

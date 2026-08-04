@@ -37,7 +37,7 @@ Last updated: 2026-08-04.
 - Published checkpoints: planning baseline commit `9b41691e`; Session 1
   implementation commit `e3052d35`; Session 2 implementation commit
   `da08510c`; Session 3 parser checkpoint `b820d4d6`; Session 3 integration
-  checkpoint pending at this update.
+  checkpoint `3876e318`; Session 4 graph checkpoint pending at this update.
 - Session 2 implementation: added the typed QST model and field spans, a
   byte-safe five-string/three-row/dialogue parser, deterministic recovery,
   QST index and selection support, package/order checks, explicit-path
@@ -66,8 +66,17 @@ Last updated: 2026-08-04.
 - Session 3 verification: 22 focused HLQ tests and 10 index tests passed;
   both Make and CMake `test-world-tools` targets passed all 152 tests plus the
   wrapper. The baseline QST and HLQ aggregate hashes remain unchanged.
-- Next implementation step: add typed QST/HLQ graph edges and semantic
-  validation, then expose both record types through `show` and `refs`.
+- Session 4 graph implementation: populated shared typed references for every
+  QST questmaster, target, return, prerequisite, reward, follower, chain, and
+  dialogue role plus every HLQ host, ROOM, item, load, destination, and door
+  role. Dedicated `REF032` through `REF035` findings distinguish missing and
+  wrong-type quest targets with field spans and related locations.
+- Session 4 graph verification: 13 focused full-graph tests pass, including
+  every new edge role, all target record types, missing/wrong-type behavior,
+  nested HLQ context, selected-package filtering, and isolated universes. The
+  Make `test-world-tools` gate passes all 156 tests plus the wrapper.
+- Next implementation step: add source-backed QST and HLQ semantic checks,
+  then finish `show`, `refs`, versioning, and compatibility goldens.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -814,12 +823,12 @@ make test-world-tools
 Goal: make parsed quest data as useful and safe as the existing six typed
 formats.
 
-- [ ] T053 [S0401] Build typed QST and host-keyed HLQ maps alongside existing room/mobile/object maps.
-- [ ] T054 [S0402] Add duplicate and selected-package filtering behavior to the full graph pass.
-- [ ] T055 [S0403] Add questmaster, target, return-mobile, prerequisite, reward, follower, chain, and dialogue QST edges.
-- [ ] T056 [S0404] Add HLQ host, entry-room, item, load-mobile, load-object, destination-room, and open-door edges.
-- [ ] T057 [S0405] Validate every missing QST reference with field-level locations and related records where available.
-- [ ] T058 [S0406] Validate every missing HLQ reference with host/entry/command composite context.
+- [x] T053 [S0401] Build typed QST and host-keyed HLQ maps alongside existing room/mobile/object maps.
+- [x] T054 [S0402] Add duplicate and selected-package filtering behavior to the full graph pass.
+- [x] T055 [S0403] Add questmaster, target, return-mobile, prerequisite, reward, follower, chain, and dialogue QST edges.
+- [x] T056 [S0404] Add HLQ host, entry-room, item, load-mobile, load-object, destination-room, and open-door edges.
+- [x] T057 [S0405] Validate every missing QST reference with field-level locations and related records where available.
+- [x] T058 [S0406] Validate every missing HLQ reference with host/entry/command composite context.
 - [ ] T059 [S0407] Add QST type, flag, string, quantity, level, time, point, penalty, and reward semantic bounds.
 - [ ] T060 [S0408] Add QST mission, wilderness-coordinate, race, dialogue-DC, and multi-kill checks.
 - [ ] T061 [S0409] Add QST previous/next/alternative self-link, cycle, reciprocity, and dialogue topology checks with evidence-based severities.

@@ -453,23 +453,42 @@ def _validate_reference(
     role: str,
     span: SourceSpan,
     maps: dict[str, dict[int, WorldRecord]],
+    missing_code: str = "REF022",
+    wrong_type_code: str = "REF023",
+    include_related: bool = False,
 ) -> None:
   if target_type not in maps:
     return
   if target_vnum in maps[target_type]:
     return
+  record_type = type(source).__name__.removesuffix("Record").lower()
   other_types = _all_types_for_vnum(target_vnum, maps)
+  if include_related:
+    other_types = [item for item in other_types if item != record_type]
+  related = None
   if other_types:
-    code = "REF023"
+    code = wrong_type_code
     message = (
         f"{role} requires {target_type} {target_vnum}, but that vnum exists only as "
         f"{', '.join(other_types)}"
     )
+    if include_related:
+      related_type = other_types[0]
+      related = _related(maps[related_type][target_vnum], related_type)
   else:
-    code = "REF022"
+    code = missing_code
     message = f"{role} targets missing {target_type} {target_vnum}"
-  record_type = type(source).__name__.removesuffix("Record").lower()
-  findings.append(finding(code, "error", message, span, record_type, source.vnum))
+  findings.append(
+      Finding(
+          code,
+          "error",
+          message,
+          span,
+          record_type=record_type,
+          vnum=source.vnum,
+          related=related,
+      )
+  )
 
 
 def _validate_attachment(
@@ -550,7 +569,7 @@ def _validate_full_graph(
   maps = {
       record_type: records
       for record_type, records in all_maps.items()
-      if record_type in reference_types or record_type in {"zone", "room"}
+      if record_type in reference_types
   }
   triggers_by_vnum = {record.vnum: record for record in triggers}
   objects_by_vnum = {record.vnum: record for record in objects}
@@ -593,6 +612,27 @@ def _validate_full_graph(
                   related=_related(key, "object"),
               )
           )
+
+  for records, missing_code, wrong_type_code in (
+      (quests, "REF032", "REF033"),
+      (hlquests, "REF034", "REF035"),
+  ):
+    for record in records:
+      if not _selected(record, selected_packages):
+        continue
+      for reference in record.references:
+        _validate_reference(
+            findings,
+            record,
+            reference.target_type,
+            reference.target_vnum,
+            reference.role,
+            reference.span,
+            maps,
+            missing_code,
+            wrong_type_code,
+            include_related=True,
+        )
 
   for room in rooms:
     if not _selected(room, selected_packages):

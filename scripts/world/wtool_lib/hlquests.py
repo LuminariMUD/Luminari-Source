@@ -11,6 +11,7 @@ from .models import (
     HlQuestEntryRecord,
     HlQuestRecord,
     SourceSpan,
+    VnumReference,
 )
 from .parsing import ParseResult, finding, source_issue_finding
 from .source import (
@@ -490,6 +491,107 @@ def _finalize_entry_order(record: HlQuestRecord) -> None:
     entry.effective_runtime_ordinal = ordinal
 
 
+def _reference_role(entry: HlQuestEntryRecord, command: HlQuestCommandRecord, role: str) -> str:
+  direction = command.direction or command.direction_marker
+  return (
+      f"entry {entry.physical_ordinal} {direction} command "
+      f"{command.physical_ordinal} {role}"
+  )
+
+
+def _add_reference(
+    record: HlQuestRecord,
+    target_type: str,
+    target_vnum: int | None,
+    role: str,
+    span: SourceSpan,
+) -> None:
+  if target_vnum is None:
+    return
+  record.references.append(VnumReference(target_type, target_vnum, role, span))
+
+
+def _populate_references(record: HlQuestRecord, manifest: dict[str, Any]) -> None:
+  command_types = {
+      entry["macro"]: entry["index"]
+      for entry in manifest["tables"]["hlquest-commands"]["entries"]
+  }
+  entry_types = {
+      entry["macro"]: entry["index"]
+      for entry in manifest["tables"]["hlquest-entry-types"]["entries"]
+  }
+  record.references.clear()
+  _add_reference(
+      record,
+      "mobile",
+      record.vnum,
+      "attached host mobile",
+      record.field_spans.get("host_mobile_vnum", record.span),
+  )
+  for entry in record.entries:
+    if entry.entry_type == entry_types["QUEST_ROOM"]:
+      _add_reference(
+          record,
+          "room",
+          entry.room_vnum,
+          f"entry {entry.physical_ordinal} ROOM location",
+          entry.field_spans.get("room_vnum", entry.span),
+      )
+    for command in entry.commands:
+      if not command.effective or command.command_type is None:
+        continue
+      value_span = command.field_spans.get("value", command.span)
+      location_span = command.field_spans.get("location", command.span)
+      if command.command_type == command_types["QUEST_COMMAND_ITEM"]:
+        _add_reference(
+            record,
+            "object",
+            command.value,
+            _reference_role(entry, command, "item"),
+            value_span,
+        )
+      elif command.command_type == command_types["QUEST_COMMAND_LOAD_OBJECT_INROOM"]:
+        _add_reference(
+            record,
+            "object",
+            command.value,
+            _reference_role(entry, command, "load-object prototype"),
+            value_span,
+        )
+        if command.location != 0:
+          _add_reference(
+              record,
+              "room",
+              command.location,
+              _reference_role(entry, command, "load destination"),
+              location_span,
+          )
+      elif command.command_type == command_types["QUEST_COMMAND_LOAD_MOB_INROOM"]:
+        _add_reference(
+            record,
+            "mobile",
+            command.value,
+            _reference_role(entry, command, "load-mobile prototype"),
+            value_span,
+        )
+        if command.location != 0:
+          _add_reference(
+              record,
+              "room",
+              command.location,
+              _reference_role(entry, command, "load destination"),
+              location_span,
+          )
+      elif command.command_type == command_types["QUEST_COMMAND_OPEN_DOOR"]:
+        _add_reference(
+            record,
+            "room",
+            command.location,
+            _reference_role(entry, command, "open-door location"),
+            location_span,
+        )
+
+
 def _parse_host_header(
     line: Any,
     path: Path,
@@ -643,6 +745,7 @@ def parse_hlquest_file(
 
   for record in result.records:
     _finalize_entry_order(record)
+    _populate_references(record, manifest)
   if not found_file_end and not truncated:
     result.findings.append(
         finding(
