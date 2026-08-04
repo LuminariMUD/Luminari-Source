@@ -854,11 +854,39 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase2/complete/zon/index
     scripts/world/tests/fixtures/phase2/complete/zon/index.mini)
 
+# Keep this list synchronized with world_tool_support_files in Makefile.am.
+set(WORLD_TOOL_SUPPORT_FILES
+    lib/world/validate-zone.sh
+    lib/world/minimal/0.mob
+    lib/world/minimal/0.obj
+    lib/world/minimal/0.wld
+    lib/world/minimal/0.zon
+    lib/world/minimal/16.mob
+    scripts/development/generate-web-guides.sh
+    docs/guides/OLC_SpecProcs.md
+    docs/systems/OLC_ONLINE_CREATION_SYSTEM.md
+    docs/utilities/WORLD_VALIDATOR_CLI.md
+    docs/web/assets/pandoc-template.html
+    docs/web/guides/mob_flags.html
+    docs/web/guides/oedit.html
+    docs/web/guides/room_flags.html
+    docs/world/STARTER_AREA.md
+    docs/world_game-data/BUILDER_QUICKSTART.md
+    docs/world_game-data/CRAFTING_SYSTEM_NOTES.md
+    docs/world_game-data/MOB_FLAGS.md
+    docs/world_game-data/OEDIT_GUIDE.md
+    docs/world_game-data/ROOM_FLAGS.md
+    docs/world_game-data/SHOP_FILE_FORMAT.md
+    docs/world_game-data/ZONE_FILE_FORMAT.md
+    docs/world_game-data/builder_manual.md
+    docs/world_game-data/gear_guide.md
+    docs/world_game-data/wilderness_system.md)
+
 add_custom_target(check-world-docs
     COMMAND Python3::Interpreter scripts/world/wtool.py constants sync --check
     COMMAND Python3::Interpreter scripts/world/wtool.py docs --check
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    SOURCES ${WORLD_TOOL_SOURCES}
+    SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
     COMMENT "Checking world-data constants and documentation")
 
 add_custom_target(test-world-tools
@@ -868,7 +896,7 @@ add_custom_target(test-world-tools
             --world-root
             ${CMAKE_CURRENT_SOURCE_DIR}/scripts/world/tests/fixtures/phase2/complete
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    SOURCES ${WORLD_TOOL_SOURCES}
+    SOURCES ${WORLD_TOOL_SOURCES} ${WORLD_TOOL_SUPPORT_FILES}
     COMMENT "Running standalone world-data tool tests")
 add_dependencies(test-world-tools check-world-docs)
 

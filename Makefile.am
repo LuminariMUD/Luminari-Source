@@ -403,9 +403,39 @@ world_tool_sources = \
 	scripts/world/tests/fixtures/phase2/complete/zon/index \
 	scripts/world/tests/fixtures/phase2/complete/zon/index.mini
 
+# Runtime and documentation inputs needed by the world-tool gates. Keep this
+# list synchronized with WORLD_TOOL_SUPPORT_FILES in CMakeLists.txt.
+world_tool_support_files = \
+	lib/world/validate-zone.sh \
+	lib/world/minimal/0.mob \
+	lib/world/minimal/0.obj \
+	lib/world/minimal/0.wld \
+	lib/world/minimal/0.zon \
+	lib/world/minimal/16.mob \
+	scripts/development/generate-web-guides.sh \
+	docs/guides/OLC_SpecProcs.md \
+	docs/systems/OLC_ONLINE_CREATION_SYSTEM.md \
+	docs/utilities/WORLD_VALIDATOR_CLI.md \
+	docs/web/assets/pandoc-template.html \
+	docs/web/guides/mob_flags.html \
+	docs/web/guides/oedit.html \
+	docs/web/guides/room_flags.html \
+	docs/world/STARTER_AREA.md \
+	docs/world_game-data/BUILDER_QUICKSTART.md \
+	docs/world_game-data/CRAFTING_SYSTEM_NOTES.md \
+	docs/world_game-data/MOB_FLAGS.md \
+	docs/world_game-data/OEDIT_GUIDE.md \
+	docs/world_game-data/ROOM_FLAGS.md \
+	docs/world_game-data/SHOP_FILE_FORMAT.md \
+	docs/world_game-data/ZONE_FILE_FORMAT.md \
+	docs/world_game-data/builder_manual.md \
+	docs/world_game-data/gear_guide.md \
+	docs/world_game-data/wilderness_system.md
+
 # Extra files to distribute
 EXTRA_DIST = \
 	$(world_tool_sources) \
+	$(world_tool_support_files) \
 	lib/world/artifacts/1699.mob \
 	lib/world/artifacts/1699.obj \
 	lib/world/artifacts/1699.wld \
