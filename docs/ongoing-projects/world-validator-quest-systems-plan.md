@@ -1,6 +1,6 @@
 # World Validator Quest-System Expansion Plan
 
-Status: in progress (Session 1 - contracts, constants, and fixtures).
+Status: in progress (Session 2 - QST first-class parsing and selection).
 
 Planning baseline: 2026-08-04 at commit `42378034` on the development
 environment.
@@ -9,7 +9,7 @@ environment.
 
 Last updated: 2026-08-04.
 
-- Active session: Session 1 - contracts, constants, and fixtures.
+- Active session: Session 2 - QST first-class parsing and selection.
 - Baseline source commit: `4237803456838f3b955462cee2e64acd95d0a04e`.
 - Environment gate: `APP_ENV=development` confirmed; no production work is
   authorized or planned.
@@ -23,9 +23,21 @@ Last updated: 2026-08-04.
   and indexed `1068.hlq` is zero bytes.
 - Verification completed: local and remote baseline commits match after
   `git fetch origin master`; the planning snapshot counts were reproduced.
-- Next implementation step: inventory existing finding codes, trace the
-  source-extraction and flag contracts, then add source-backed quest constants
-  and focused tests.
+- Session 1 implementation: generalized source-table extraction, added
+  source-derived QST types/flags, HLQ entry/command contracts, mission
+  difficulties, validator limits, per-set flag chunk metadata, one-token quest
+  flag commands, tracked QST/HLQ packages, and canonical/legacy samples.
+- Finding-code inventory: `QST001` and `HLQ001` begin new format ranges;
+  reference findings continue at `REF032`; semantic findings continue at
+  `SEM023`. Existing highest allocated codes are `REF031` and `SEM022`.
+- Session 1 verification: 33 focused contract/CLI tests passed; both Make and
+  CMake `test-world-tools` targets passed all 113 tests plus the wrapper; the
+  constants and documentation checks passed; QST and HLQ live-data hashes are
+  unchanged.
+- Published checkpoints: planning baseline commit `9b41691e`; Session 1
+  implementation commit pending at this update.
+- Next implementation step: add the typed QST model and byte-safe parser, then
+  connect `.qst` to index, selection, and explicit-path loading.
 
 This plan extends the read-only `wtool` system documented in
 [`docs/utilities/WORLD_VALIDATOR_CLI.md`](../utilities/WORLD_VALIDATOR_CLI.md)
@@ -676,28 +688,30 @@ own focused gate passing.
 Goal: establish source-derived contracts and test scaffolding without changing
 validation behavior prematurely.
 
-- [ ] T001 [S0101] Reconfirm `APP_ENV=development`, clean working tree, baseline commit, and protected-file rules.
-- [ ] T002 [S0102] Hash the ignored QST/HLQ trees and record count-only normal/mini/index/file baselines without adding them to Git.
-- [ ] T003 [S0103] Inventory all existing finding codes and reserve noncolliding `QST`, `HLQ`, `REF`, and `SEM` ranges.
-- [ ] T004 [S0104] Write parser contract tests from `parse_quest()`, `save_quests()`, `boot_the_quests()`, and `hlqedit_save_to_disk()` examples.
-- [ ] T005 [S0105] Generalize manifest table specifications to support source tables outside `src/constants.c`.
-- [ ] T006 [S0106] Extract QST types and display names with count/order drift checks.
-- [ ] T007 [S0107] Extract QST flags and aliases with count/order drift checks.
-- [ ] T008 [S0108] Extract HLQ entry enums and command enum/code pairing with length/order/uniqueness checks.
-- [ ] T009 [S0109] Extract mission difficulty and all missing QST/HLQ scalar limits from bounded source regions.
-- [ ] T010 [S0110] Refactor flag metadata for per-set chunk counts while preserving existing four-token behavior.
-- [ ] T011 [S0111] Add one-token quest flag list/decode/encode support and invalid-token tests.
-- [ ] T012 [S0112] Add clean QST and HLQ packages plus normal/mini indexes to the complete tracked fixture.
-- [ ] T013 [S0113] Add canonical-writer and legacy positive samples without copying builder-owned live content.
-- [ ] T014 [S0114] Add new sources, tests, fixtures, and source-contract support files to `Makefile.am` and `CMakeLists.txt` in lockstep.
-- [ ] T015 [S0115] Regenerate and review `wtool_constants.json`; confirm no unrelated manifest entries changed.
-- [ ] T016 [S0116] Run constants, flag, fixture-inventory, Make, and CMake focused gates; verify QST/HLQ hashes are unchanged.
+- [x] T001 [S0101] Reconfirm `APP_ENV=development`, clean working tree, baseline commit, and protected-file rules.
+- [x] T002 [S0102] Hash the ignored QST/HLQ trees and record count-only normal/mini/index/file baselines without adding them to Git.
+- [x] T003 [S0103] Inventory all existing finding codes and reserve noncolliding `QST`, `HLQ`, `REF`, and `SEM` ranges.
+- [x] T004 [S0104] Write parser contract tests from `parse_quest()`, `save_quests()`, `boot_the_quests()`, and `hlqedit_save_to_disk()` examples.
+- [x] T005 [S0105] Generalize manifest table specifications to support source tables outside `src/constants.c`.
+- [x] T006 [S0106] Extract QST types and display names with count/order drift checks.
+- [x] T007 [S0107] Extract QST flags and aliases with count/order drift checks.
+- [x] T008 [S0108] Extract HLQ entry enums and command enum/code pairing with length/order/uniqueness checks.
+- [x] T009 [S0109] Extract mission difficulty and all missing QST/HLQ scalar limits from bounded source regions.
+- [x] T010 [S0110] Refactor flag metadata for per-set chunk counts while preserving existing four-token behavior.
+- [x] T011 [S0111] Add one-token quest flag list/decode/encode support and invalid-token tests.
+- [x] T012 [S0112] Add clean QST and HLQ packages plus normal/mini indexes to the complete tracked fixture.
+- [x] T013 [S0113] Add canonical-writer and legacy positive samples without copying builder-owned live content.
+- [x] T014 [S0114] Add new sources, tests, fixtures, and source-contract support files to `Makefile.am` and `CMakeLists.txt` in lockstep.
+- [x] T015 [S0115] Regenerate and review `wtool_constants.json`; confirm no unrelated manifest entries changed.
+- [x] T016 [S0116] Run constants, flag, fixture-inventory, Make, and CMake focused gates; verify QST/HLQ hashes are unchanged.
 
 Session gate:
 
 ```sh
 python3 scripts/world/wtool.py constants sync --check
-python3 -m unittest scripts.world.tests.test_constants scripts.world.tests.test_cli -v
+PYTHONPATH=scripts/world python3 -m unittest \
+  scripts.world.tests.test_constants scripts.world.tests.test_cli \
+  scripts.world.tests.test_quests scripts.world.tests.test_hlquests -v
 make check-world-docs
 ```
 

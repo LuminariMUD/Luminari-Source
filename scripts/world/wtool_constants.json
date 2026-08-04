@@ -30,6 +30,10 @@
       "source": "src/structs.h:MAX_FILEPATH",
       "value": 256
     },
+    "MAX_GOLD": {
+      "source": "src/structs.h:MAX_GOLD",
+      "value": 2140000000
+    },
     "MAX_MOVING_ROOMS": {
       "source": "src/structs.h:MAX_MOVING_ROOMS",
       "value": 150
@@ -54,6 +58,18 @@
       "source": "src/obj/shop.h:MAX_PROD",
       "value": 5
     },
+    "MAX_QUEST_DESC": {
+      "source": "src/quest/quest.h:MAX_QUEST_DESC",
+      "value": 75
+    },
+    "MAX_QUEST_MSG": {
+      "source": "src/quest/quest.h:MAX_QUEST_MSG",
+      "value": 4096
+    },
+    "MAX_QUEST_NAME": {
+      "source": "src/quest/quest.h:MAX_QUEST_NAME",
+      "value": 40
+    },
     "MAX_SHOP_OBJ": {
       "source": "src/obj/shop.h:MAX_SHOP_OBJ",
       "value": 100
@@ -74,9 +90,21 @@
       "source": "src/structs.h:MAX_WEAPON_SPELLS",
       "value": 3
     },
+    "NUM_AQ_FLAGS": {
+      "source": "src/quest/quest.h:NUM_AQ_FLAGS",
+      "value": 2
+    },
+    "NUM_AQ_TYPES": {
+      "source": "src/quest/quest.h:NUM_AQ_TYPES",
+      "value": 25
+    },
     "NUM_ATTACK_TYPES": {
       "source": "src/structs.h:NUM_ATTACK_TYPES",
       "value": 24
+    },
+    "NUM_CHURCHES": {
+      "source": "src/character/class.h:NUM_CHURCHES",
+      "value": 13
     },
     "NUM_CITIES": {
       "source": "src/structs.h:NUM_CITIES (LUMINARI branch)",
@@ -105,6 +133,10 @@
     "NUM_LIQ_TYPES": {
       "source": "src/structs.h:NUM_LIQ_TYPES",
       "value": 23
+    },
+    "NUM_MISSION_DIFFICULTIES": {
+      "source": "src/quest/missions.h:NUM_MISSION_DIFFICULTIES",
+      "value": 6
     },
     "NUM_PORTAL_TYPES": {
       "source": "src/structs.h:NUM_PORTAL_TYPES",
@@ -162,6 +194,18 @@
       "source": "src/structs.h:PORTAL_RANDOM",
       "value": 1
     },
+    "RACE_LICH": {
+      "source": "src/structs.h:RACE_LICH",
+      "value": 45
+    },
+    "RACE_UNDEFINED": {
+      "source": "src/structs.h:RACE_UNDEFINED",
+      "value": -1
+    },
+    "RACE_VAMPIRE": {
+      "source": "src/structs.h:RACE_VAMPIRE",
+      "value": 46
+    },
     "READ_SIZE": {
       "source": "src/utils.h:READ_SIZE",
       "value": 512
@@ -173,6 +217,14 @@
     "SPELLBOOK_SIZE": {
       "source": "src/structs.h:SPELLBOOK_SIZE",
       "value": 200
+    },
+    "SPELL_RESERVED_DBC": {
+      "source": "src/magic/spells.h:SPELL_RESERVED_DBC",
+      "value": 0
+    },
+    "TOP_SKILL_DEFINE": {
+      "source": "src/magic/spells.h:TOP_SKILL_DEFINE",
+      "value": 3500
     }
   },
   "schema_version": 1,
@@ -1073,6 +1125,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:AFF_DONTUSE..NUM_AFF_FLAGS",
       "source_table": "src/constants.c:affected_bits"
     },
@@ -1101,6 +1154,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:AFF2_DONTUSE..NUM_AFF2_FLAGS",
       "source_table": "src/constants.c:affected2_bits"
     },
@@ -1191,6 +1245,134 @@
       "reverse_source": "src/constants.c:rev_dir",
       "source_defines": "src/structs.h:NORTH..NUM_OF_DIRS",
       "source_table": "src/constants.c:dirs"
+    },
+    "hlquest-commands": {
+      "entries": [
+        {
+          "aliases": [],
+          "code": "C",
+          "index": 0,
+          "macro": "QUEST_COMMAND_COINS",
+          "name": "Coins",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "I",
+          "index": 1,
+          "macro": "QUEST_COMMAND_ITEM",
+          "name": "Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "O",
+          "index": 2,
+          "macro": "QUEST_COMMAND_LOAD_OBJECT_INROOM",
+          "name": "Load Object Inroom",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "M",
+          "index": 3,
+          "macro": "QUEST_COMMAND_LOAD_MOB_INROOM",
+          "name": "Load Mob Inroom",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "A",
+          "index": 4,
+          "macro": "QUEST_COMMAND_ATTACK_QUESTOR",
+          "name": "Attack Questor",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "D",
+          "index": 5,
+          "macro": "QUEST_COMMAND_DISAPPEAR",
+          "name": "Disappear",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "T",
+          "index": 6,
+          "macro": "QUEST_COMMAND_TEACH_SPELL",
+          "name": "Teach Spell",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "X",
+          "index": 7,
+          "macro": "QUEST_COMMAND_OPEN_DOOR",
+          "name": "Open Door",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "F",
+          "index": 8,
+          "macro": "QUEST_COMMAND_FOLLOW",
+          "name": "Follow",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "K",
+          "index": 9,
+          "macro": "QUEST_COMMAND_KIT",
+          "name": "Kit",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "U",
+          "index": 10,
+          "macro": "QUEST_COMMAND_CHURCH",
+          "name": "Church",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "S",
+          "index": 11,
+          "macro": "QUEST_COMMAND_CAST_SPELL",
+          "name": "Cast Spell",
+          "reserved": false
+        }
+      ],
+      "source_codes": "src/olc/hlqedit.c:hlqedit_command",
+      "source_enum": "src/quest/hlquest.h:enum quest_command_type"
+    },
+    "hlquest-entry-types": {
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "QUEST_ASK",
+          "name": "Ask",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "QUEST_GIVE",
+          "name": "Give",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "QUEST_ROOM",
+          "name": "Room",
+          "reserved": false
+        }
+      ],
+      "source_enum": "src/quest/hlquest.h:enum quest_type"
     },
     "item-types": {
       "count_symbol": "NUM_ITEM_TYPES",
@@ -1604,6 +1786,55 @@
       ],
       "source_defines": "src/structs.h:ITEM_LIGHT..NUM_ITEM_TYPES",
       "source_table": "src/constants.c:item_types"
+    },
+    "mission-difficulties": {
+      "count_symbol": "NUM_MISSION_DIFFICULTIES",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "MISSION_DIFF_EASY",
+          "name": "easy",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "MISSION_DIFF_NORMAL",
+          "name": "normal",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "MISSION_DIFF_TOUGH",
+          "name": "tough",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "MISSION_DIFF_CHALLENGING",
+          "name": "challenging",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "MISSION_DIFF_ARDUOUS",
+          "name": "arduous",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "MISSION_DIFF_SEVERE",
+          "name": "severe",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/quest/missions.h:MISSION_DIFF_EASY..NUM_MISSION_DIFFICULTIES",
+      "source_table": "src/quest/missions.c:mission_difficulty"
     },
     "mob": {
       "count_symbol": "NUM_MOB_FLAGS",
@@ -2344,6 +2575,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:MOB_SPEC..NUM_MOB_FLAGS",
       "source_table": "src/constants.c:action_bits"
     },
@@ -3163,6 +3395,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:ITEM_GLOW..NUM_ITEM_FLAGS",
       "source_table": "src/constants.c:extra_bits"
     },
@@ -3408,6 +3641,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:ITEM_WEAR_TAKE..NUM_ITEM_WEARS",
       "source_table": "src/constants.c:wear_bits"
     },
@@ -3489,6 +3723,210 @@
       ],
       "source_defines": "src/structs.h:POS_DEAD..NUM_POSITIONS",
       "source_table": "src/constants.c:position_types"
+    },
+    "quest": {
+      "count_symbol": "NUM_AQ_FLAGS",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "AQ_REPEATABLE",
+          "name": "REPEATABLE",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "AQ_REPLACE_OBJ_REWARD",
+          "name": "REPLACE-OBJ-REWARD",
+          "reserved": false
+        }
+      ],
+      "serialized_chunks": 1,
+      "source_defines": "src/quest/quest.h:AQ_REPEATABLE..NUM_AQ_FLAGS",
+      "source_table": "src/quest/quest.c:aq_flags"
+    },
+    "quest-types": {
+      "count_symbol": "NUM_AQ_TYPES",
+      "entries": [
+        {
+          "aliases": [],
+          "index": 0,
+          "macro": "AQ_OBJ_FIND",
+          "name": "Acquire Object",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 1,
+          "macro": "AQ_ROOM_FIND",
+          "name": "Find Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 2,
+          "macro": "AQ_MOB_FIND",
+          "name": "Find Mob",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 3,
+          "macro": "AQ_MOB_KILL",
+          "name": "Kill Mob",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 4,
+          "macro": "AQ_MOB_SAVE",
+          "name": "Save Mob",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 5,
+          "macro": "AQ_OBJ_RETURN",
+          "name": "Return Object",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 6,
+          "macro": "AQ_ROOM_CLEAR",
+          "name": "Clear Room",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 7,
+          "macro": "AQ_AUTOCRAFT",
+          "name": "Complete a Supplyorder",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 8,
+          "macro": "AQ_CRAFT",
+          "name": "Craft Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 9,
+          "macro": "AQ_CRAFT_RESIZE",
+          "name": "ReSize Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 10,
+          "macro": "AQ_CRAFT_DIVIDE",
+          "name": "Divide Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 11,
+          "macro": "AQ_CRAFT_MINE",
+          "name": "Mine Crafting Mat",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 12,
+          "macro": "AQ_CRAFT_HUNT",
+          "name": "Hunt for Crafting Mat",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 13,
+          "macro": "AQ_CRAFT_KNIT",
+          "name": "Knit Crafting Mat",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 14,
+          "macro": "AQ_CRAFT_FOREST",
+          "name": "Forest for Crafting Mat",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 15,
+          "macro": "AQ_CRAFT_DISENCHANT",
+          "name": "Disenchant Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 16,
+          "macro": "AQ_CRAFT_AUGMENT",
+          "name": "Augment Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 17,
+          "macro": "AQ_CRAFT_CONVERT",
+          "name": "Convert Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 18,
+          "macro": "AQ_CRAFT_RESTRING",
+          "name": "ReString Item",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 19,
+          "macro": "AQ_COMPLETE_MISSION",
+          "name": "Complete a Mission",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 20,
+          "macro": "AQ_HOUSE_FIND",
+          "name": "Find a Player House",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 21,
+          "macro": "AQ_WILD_FIND",
+          "name": "Get to Wilderness Coordinates",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 22,
+          "macro": "AQ_GIVE_GOLD",
+          "name": "Give Gold",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 23,
+          "macro": "AQ_MOB_MULTI_KILL",
+          "name": "Kill Multi Mob (comma-separated vnums)",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 24,
+          "macro": "AQ_DIALOGUE",
+          "name": "Dialogue Quest",
+          "reserved": false
+        }
+      ],
+      "source_defines": "src/quest/quest.h:AQ_UNDEFINED..NUM_AQ_TYPES",
+      "source_table": "src/quest/quest.c:quest_types"
     },
     "room": {
       "count_symbol": "NUM_ROOM_FLAGS",
@@ -3788,6 +4226,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:ROOM_DARK..NUM_ROOM_FLAGS",
       "source_table": "src/constants.c:room_bits"
     },
@@ -4904,6 +5343,7 @@
           "reserved": false
         }
       ],
+      "serialized_chunks": 4,
       "source_defines": "src/structs.h:ZONE_CLOSED..NUM_ZONE_FLAGS",
       "source_table": "src/constants.c:zone_bits"
     }

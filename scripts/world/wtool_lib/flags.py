@@ -1,4 +1,4 @@
-"""Four-chunk flat-file flag encoding and lookup."""
+"""Flat-file flag encoding and lookup with per-set serialized widths."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ FLAG_SETS = (
     "obj-wear",
     "obj-affect",
     "obj-affect2",
+    "quest",
 )
 
 
@@ -32,7 +33,7 @@ class FlagIssue:
 @dataclass(frozen=True, slots=True)
 class DecodedFlags:
   bits: frozenset[int]
-  chunks: tuple[int, int, int, int]
+  chunks: tuple[int, ...]
   issues: tuple[FlagIssue, ...]
 
 
@@ -69,17 +70,23 @@ def _decode_alpha(token: str, token_index: int) -> tuple[int, list[FlagIssue]]:
   return mask, issues
 
 
-def decode_tokens(tokens: list[str], entry_count: int | None = None) -> DecodedFlags:
+def decode_tokens(
+    tokens: list[str],
+    entry_count: int | None = None,
+    serialized_chunks: int = SERIALIZED_CHUNKS,
+) -> DecodedFlags:
+  if serialized_chunks <= 0:
+    raise ValueError("serialized flag chunk count must be positive")
   issues: list[FlagIssue] = []
-  if len(tokens) > SERIALIZED_CHUNKS:
+  if len(tokens) > serialized_chunks:
     issues.append(
         FlagIssue(
             "FLG003",
-            f"received {len(tokens)} flag chunks; only {SERIALIZED_CHUNKS} are serialized",
+            f"received {len(tokens)} flag chunks; only {serialized_chunks} are serialized",
         )
     )
-  chunks = [0, 0, 0, 0]
-  for token_index, token in enumerate(tokens[:SERIALIZED_CHUNKS]):
+  chunks = [0] * serialized_chunks
+  for token_index, token in enumerate(tokens[:serialized_chunks]):
     if re.fullmatch(r"[+-]?\d+", token):
       value = int(token, 10)
       if value < 0:
@@ -118,11 +125,16 @@ def decode_tokens(tokens: list[str], entry_count: int | None = None) -> DecodedF
   return DecodedFlags(frozenset(bits), tuple(chunks), tuple(issues))
 
 
-def encode_bits(bits: set[int] | frozenset[int]) -> tuple[str, str, str, str]:
-  chunks = [0, 0, 0, 0]
+def encode_bits(
+    bits: set[int] | frozenset[int],
+    serialized_chunks: int = SERIALIZED_CHUNKS,
+) -> tuple[str, ...]:
+  if serialized_chunks <= 0:
+    raise ValueError("serialized flag chunk count must be positive")
+  chunks = [0] * serialized_chunks
   for bit in bits:
-    if bit < 0 or bit >= CHUNK_WIDTH * SERIALIZED_CHUNKS:
-      raise ValueError(f"flag bit {bit} is outside the four serialized chunks")
+    if bit < 0 or bit >= CHUNK_WIDTH * serialized_chunks:
+      raise ValueError(f"flag bit {bit} is outside {serialized_chunks} serialized chunks")
     chunks[bit // CHUNK_WIDTH] |= 1 << (bit % CHUNK_WIDTH)
   encoded: list[str] = []
   for mask in chunks:
@@ -132,7 +144,7 @@ def encode_bits(bits: set[int] | frozenset[int]) -> tuple[str, str, str, str]:
     encoded.append(
         "".join(WRITER_ALPHABET[bit] for bit in range(CHUNK_WIDTH) if mask & (1 << bit))
     )
-  return tuple(encoded)  # type: ignore[return-value]
+  return tuple(encoded)
 
 
 def _normalized_name(name: str) -> str:

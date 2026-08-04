@@ -811,10 +811,12 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_constants.py
     scripts/world/tests/test_docs_check.py
     scripts/world/tests/test_graph.py
+    scripts/world/tests/test_hlquests.py
     scripts/world/tests/test_indexes.py
     scripts/world/tests/test_lookup.py
     scripts/world/tests/test_mobiles.py
     scripts/world/tests/test_objects.py
+    scripts/world/tests/test_quests.py
     scripts/world/tests/test_reporting.py
     scripts/world/tests/test_rooms.py
     scripts/world/tests/test_semantics.py
@@ -834,12 +836,18 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase1/broken/prescan.zon
     scripts/world/tests/fixtures/phase1/broken/reset-traps.zon
     scripts/world/tests/fixtures/phase1/broken/room-structure.wld
+    scripts/world/tests/fixtures/phase2/complete/hlq/100.hlq
+    scripts/world/tests/fixtures/phase2/complete/hlq/index
+    scripts/world/tests/fixtures/phase2/complete/hlq/index.mini
     scripts/world/tests/fixtures/phase2/complete/mob/100.mob
     scripts/world/tests/fixtures/phase2/complete/mob/index
     scripts/world/tests/fixtures/phase2/complete/mob/index.mini
     scripts/world/tests/fixtures/phase2/complete/obj/100.obj
     scripts/world/tests/fixtures/phase2/complete/obj/index
     scripts/world/tests/fixtures/phase2/complete/obj/index.mini
+    scripts/world/tests/fixtures/phase2/complete/qst/100.qst
+    scripts/world/tests/fixtures/phase2/complete/qst/index
+    scripts/world/tests/fixtures/phase2/complete/qst/index.mini
     scripts/world/tests/fixtures/phase2/complete/shp/100.shp
     scripts/world/tests/fixtures/phase2/complete/shp/index
     scripts/world/tests/fixtures/phase2/complete/shp/index.mini
@@ -852,7 +860,10 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/fixtures/phase2/complete/wld/index.mini
     scripts/world/tests/fixtures/phase2/complete/zon/100.zon
     scripts/world/tests/fixtures/phase2/complete/zon/index
-    scripts/world/tests/fixtures/phase2/complete/zon/index.mini)
+    scripts/world/tests/fixtures/phase2/complete/zon/index.mini
+    scripts/world/tests/fixtures/phase2/contracts/hlq/canonical.hlq
+    scripts/world/tests/fixtures/phase2/contracts/qst/canonical.qst
+    scripts/world/tests/fixtures/phase2/contracts/qst/legacy.qst)
 
 # Keep this list synchronized with world_tool_support_files in Makefile.am.
 set(WORLD_TOOL_SUPPORT_FILES

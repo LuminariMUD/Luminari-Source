@@ -31,6 +31,64 @@ class ConstantsTests(unittest.TestCase):
     self.assertEqual("ROOM_DOCKABLE", entries[41]["macro"])
     self.assertEqual("Dockable", entries[41]["name"])
 
+  def test_quest_tables_match_source_contract(self) -> None:
+    quest_types = self.manifest["tables"]["quest-types"]
+    self.assertEqual("src/quest/quest.c:quest_types", quest_types["source_table"])
+    self.assertEqual(25, len(quest_types["entries"]))
+    self.assertEqual("AQ_OBJ_FIND", quest_types["entries"][0]["macro"])
+    self.assertEqual("Acquire Object", quest_types["entries"][0]["name"])
+    self.assertEqual("AQ_DIALOGUE", quest_types["entries"][24]["macro"])
+    self.assertEqual("Dialogue Quest", quest_types["entries"][24]["name"])
+
+    quest_flags = self.manifest["tables"]["quest"]
+    self.assertEqual(1, quest_flags["serialized_chunks"])
+    self.assertEqual(
+        ["AQ_REPEATABLE", "AQ_REPLACE_OBJ_REWARD"],
+        [entry["macro"] for entry in quest_flags["entries"]],
+    )
+    self.assertEqual(
+        ["REPEATABLE", "REPLACE-OBJ-REWARD"],
+        [entry["name"] for entry in quest_flags["entries"]],
+    )
+
+  def test_hlquest_enums_and_command_codes_match_source_contract(self) -> None:
+    entry_types = self.manifest["tables"]["hlquest-entry-types"]
+    self.assertEqual(
+        ["QUEST_ASK", "QUEST_GIVE", "QUEST_ROOM"],
+        [entry["macro"] for entry in entry_types["entries"]],
+    )
+    commands = self.manifest["tables"]["hlquest-commands"]
+    self.assertEqual("CIOMADTXFKUS", "".join(entry["code"] for entry in commands["entries"]))
+    self.assertEqual(12, len(commands["entries"]))
+    self.assertEqual("QUEST_COMMAND_COINS", commands["entries"][0]["macro"])
+    self.assertEqual("QUEST_COMMAND_CAST_SPELL", commands["entries"][-1]["macro"])
+
+  def test_mission_difficulties_and_quest_limits_match_source(self) -> None:
+    difficulties = self.manifest["tables"]["mission-difficulties"]["entries"]
+    self.assertEqual(
+        ["easy", "normal", "tough", "challenging", "arduous", "severe"],
+        [entry["name"] for entry in difficulties],
+    )
+    expected_limits = {
+        "MAX_GOLD": 2140000000,
+        "MAX_QUEST_DESC": 75,
+        "MAX_QUEST_MSG": 4096,
+        "MAX_QUEST_NAME": 40,
+        "NUM_AQ_FLAGS": 2,
+        "NUM_AQ_TYPES": 25,
+        "NUM_CHURCHES": 13,
+        "NUM_MISSION_DIFFICULTIES": 6,
+        "RACE_LICH": 45,
+        "RACE_UNDEFINED": -1,
+        "RACE_VAMPIRE": 46,
+        "SPELL_RESERVED_DBC": 0,
+        "TOP_SKILL_DEFINE": 3500,
+    }
+    self.assertEqual(
+        expected_limits,
+        {symbol: self.manifest["limits"][symbol]["value"] for symbol in expected_limits},
+    )
+
   def test_bounded_blocks_keep_aliases_without_prefix_collisions(self) -> None:
     zone = self.manifest["tables"]["zone"]["entries"]
     positions = self.manifest["tables"]["positions"]["entries"]
@@ -84,6 +142,26 @@ class ConstantsTests(unittest.TestCase):
     decoded = decode_tokens(list(tokens), entry_count=127)
     self.assertEqual({0, 41, 95, 126}, set(decoded.bits))
     self.assertEqual((), decoded.issues)
+
+  def test_quest_flags_round_trip_as_exactly_one_chunk(self) -> None:
+    _, table = resolve_set(self.manifest, "quest")
+    chunks = table["serialized_chunks"]
+    tokens = encode_bits({0, 1}, serialized_chunks=chunks)
+    self.assertEqual(("ab",), tokens)
+    decoded = decode_tokens(list(tokens), entry_count=2, serialized_chunks=chunks)
+    self.assertEqual({0, 1}, set(decoded.bits))
+    self.assertEqual((3,), decoded.chunks)
+    self.assertEqual((), decoded.issues)
+
+  def test_quest_flags_reject_a_second_serialized_chunk(self) -> None:
+    decoded = decode_tokens(["a", "b"], entry_count=2, serialized_chunks=1)
+    self.assertEqual({0}, set(decoded.bits))
+    self.assertEqual({"FLG003"}, {issue.code for issue in decoded.issues})
+
+  def test_existing_flag_sets_still_emit_four_chunks(self) -> None:
+    _, room = resolve_set(self.manifest, "room")
+    self.assertEqual(4, room["serialized_chunks"])
+    self.assertEqual(("a", "0", "0", "0"), encode_bits({0}))
 
   def test_high_local_decoder_bit_is_diagnosed(self) -> None:
     decoded = decode_tokens(["G"], entry_count=127)

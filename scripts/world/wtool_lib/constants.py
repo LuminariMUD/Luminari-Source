@@ -32,6 +32,10 @@ class TableSpec:
   end_symbol: str
   prefix: str
   count_symbol: str
+  table_file: str = "src/constants.c"
+  value_kind: str = "index"
+  serialized_chunks: int | None = None
+  has_sentinel: bool = True
 
 
 TABLE_SPECS = (
@@ -84,6 +88,39 @@ TABLE_SPECS = (
     TableSpec(
         "obj-extra", "extra_bits", "src/structs.h", "ITEM_GLOW", "NUM_ITEM_FLAGS", "ITEM_", "NUM_ITEM_FLAGS"
     ),
+    TableSpec(
+        "quest-types",
+        "quest_types",
+        "src/quest/quest.h",
+        "AQ_UNDEFINED",
+        "NUM_AQ_TYPES",
+        "AQ_",
+        "NUM_AQ_TYPES",
+        table_file="src/quest/quest.c",
+    ),
+    TableSpec(
+        "quest",
+        "aq_flags",
+        "src/quest/quest.h",
+        "AQ_REPEATABLE",
+        "NUM_AQ_FLAGS",
+        "AQ_",
+        "NUM_AQ_FLAGS",
+        table_file="src/quest/quest.c",
+        value_kind="bitmask",
+        serialized_chunks=1,
+    ),
+    TableSpec(
+        "mission-difficulties",
+        "mission_difficulty",
+        "src/quest/missions.h",
+        "MISSION_DIFF_EASY",
+        "NUM_MISSION_DIFFICULTIES",
+        "MISSION_DIFF_",
+        "NUM_MISSION_DIFFICULTIES",
+        table_file="src/quest/missions.c",
+        has_sentinel=False,
+    ),
 )
 
 
@@ -126,6 +163,19 @@ LIMIT_SPECS = {
     "LVL_IMPL": "src/structs.h",
     "ITEM_SPECAB_HORN_OF_SUMMONING": "src/combat/spec_abilities.h",
     "ITEM_SPECAB_ITEM_SUMMON": "src/combat/spec_abilities.h",
+    "MAX_GOLD": "src/structs.h",
+    "MAX_QUEST_DESC": "src/quest/quest.h",
+    "MAX_QUEST_MSG": "src/quest/quest.h",
+    "MAX_QUEST_NAME": "src/quest/quest.h",
+    "NUM_AQ_FLAGS": "src/quest/quest.h",
+    "NUM_AQ_TYPES": "src/quest/quest.h",
+    "NUM_CHURCHES": "src/character/class.h",
+    "NUM_MISSION_DIFFICULTIES": "src/quest/missions.h",
+    "RACE_LICH": "src/structs.h",
+    "RACE_UNDEFINED": "src/structs.h",
+    "RACE_VAMPIRE": "src/structs.h",
+    "SPELL_RESERVED_DBC": "src/magic/spells.h",
+    "TOP_SKILL_DEFINE": "src/magic/spells.h",
 }
 
 
@@ -376,9 +426,9 @@ def _parse_defines(text: str) -> tuple[dict[str, int], dict[str, str]]:
   return values, raw_by_symbol
 
 
-def _extract_array(text: str, table_name: str) -> list[str]:
+def _extract_array(text: str, table_name: str, has_sentinel: bool = True) -> list[str]:
   declaration = re.search(
-      rf"const\s+char\s*\*\s*{re.escape(table_name)}\s*\[\s*\]\s*=\s*\{{",
+      rf"const\s+char\s*\*\s*(?:const\s+)?{re.escape(table_name)}\s*\[[^\]]*\]\s*=\s*\{{",
       text,
   )
   if declaration is None:
@@ -398,9 +448,54 @@ def _extract_array(text: str, table_name: str) -> list[str]:
     if not isinstance(value, str):
       raise ExtractionError(f"non-string entry in {table_name}")
     values.append(value)
-  if not values or values[-1] != "\n":
-    raise ExtractionError(f"table {table_name} lacks its newline sentinel")
-  return values[:-1]
+  if has_sentinel:
+    if not values or values[-1] != "\n":
+      raise ExtractionError(f"table {table_name} lacks its newline sentinel")
+    return values[:-1]
+  return values
+
+
+def _extract_string_constant(text: str, symbol: str) -> str:
+  match = re.search(
+      rf"const\s+char\s*\*\s*const\s+{re.escape(symbol)}\s*=\s*(\"(?:\\.|[^\"\\])*\")\s*;",
+      _strip_c_comments(text),
+  )
+  if match is None:
+    raise ExtractionError(f"cannot find string constant {symbol}")
+  try:
+    value = ast.literal_eval(match.group(1))
+  except (SyntaxError, ValueError) as error:
+    raise ExtractionError(f"invalid string constant {symbol}") from error
+  if not isinstance(value, str):
+    raise ExtractionError(f"non-string value for {symbol}")
+  return value
+
+
+def _extract_enum(text: str, enum_name: str) -> dict[str, int]:
+  declaration = re.search(rf"\benum\s+{re.escape(enum_name)}\s*\{{", text)
+  if declaration is None:
+    raise ExtractionError(f"cannot find enum {enum_name}")
+  end = text.find("}", declaration.end())
+  if end < 0:
+    raise ExtractionError(f"unterminated enum {enum_name}")
+  body = _strip_c_comments(text[declaration.end() : end])
+  values: dict[str, int] = {}
+  current = -1
+  for raw_entry in body.split(","):
+    entry = raw_entry.strip()
+    if not entry:
+      continue
+    match = re.fullmatch(r"([A-Za-z_]\w*)(?:\s*=\s*(.+))?", entry, re.DOTALL)
+    if match is None:
+      raise ExtractionError(f"unsupported entry {entry!r} in enum {enum_name}")
+    symbol, expression = match.groups()
+    current = _eval_expression(expression.strip(), values) if expression else current + 1
+    if symbol in values:
+      raise ExtractionError(f"duplicate symbol {symbol} in enum {enum_name}")
+    values[symbol] = current
+  if not values:
+    raise ExtractionError(f"enum {enum_name} is empty")
+  return values
 
 
 def _extract_integer_array(
@@ -470,6 +565,52 @@ def _entry_table(
   return entries
 
 
+def _bitmask_entry_table(
+    display_names: list[str],
+    values: dict[str, int],
+    raw_by_symbol: dict[str, str],
+    prefix: str,
+) -> list[dict[str, Any]]:
+  symbols_by_index: dict[int, list[str]] = {}
+  for symbol, mask in values.items():
+    if not symbol.startswith(prefix) or mask <= 0 or mask & (mask - 1):
+      continue
+    index = mask.bit_length() - 1
+    if index < len(display_names):
+      symbols_by_index.setdefault(index, []).append(symbol)
+
+  entries: list[dict[str, Any]] = []
+  for index, display_name in enumerate(display_names):
+    symbols = symbols_by_index.get(index, [])
+    macro = symbols[0] if symbols else None
+    entries.append(
+        {
+            "index": index,
+            "name": display_name,
+            "macro": macro,
+            "aliases": symbols[1:],
+            "reserved": _reserved(display_name, macro, raw_by_symbol.get(macro or "")),
+        }
+    )
+  return entries
+
+
+def _enum_entries(values: dict[str, int], prefix: str) -> list[dict[str, Any]]:
+  ordered = sorted(values.items(), key=lambda item: item[1])
+  if [value for _, value in ordered] != list(range(len(ordered))):
+    raise ExtractionError("enum values must be unique and contiguous from zero")
+  return [
+      {
+          "index": value,
+          "name": symbol.removeprefix(prefix).replace("_", " ").title(),
+          "macro": symbol,
+          "aliases": [],
+          "reserved": False,
+      }
+      for symbol, value in ordered
+  ]
+
+
 def _extract_limit(repo_root: Path, symbol: str, source_path: str) -> int:
   text = (repo_root / source_path).read_text(encoding="utf-8")
   clean = _strip_c_comments(text)
@@ -525,7 +666,8 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
     values, raw_by_symbol = _parse_defines(block)
     if spec.key == "directions":
       direction_values = values
-    display_names = _extract_array(constants_text, spec.table_name)
+    table_text = (root / spec.table_file).read_text(encoding="utf-8")
+    display_names = _extract_array(table_text, spec.table_name, spec.has_sentinel)
     count = values.get(spec.count_symbol)
     if count is None:
       raise ExtractionError(f"{spec.count_symbol} was not resolved")
@@ -533,17 +675,55 @@ def extract_manifest(repo_root: Path | None = None) -> dict[str, Any]:
       raise ExtractionError(
           f"{spec.table_name} has {len(display_names)} entries but {spec.count_symbol} is {count}"
       )
-    entries = _entry_table(display_names, values, raw_by_symbol, spec.prefix, spec.key)
+    if spec.value_kind == "index":
+      entries = _entry_table(display_names, values, raw_by_symbol, spec.prefix, spec.key)
+    elif spec.value_kind == "bitmask":
+      entries = _bitmask_entry_table(display_names, values, raw_by_symbol, spec.prefix)
+    else:
+      raise ExtractionError(f"unsupported table value kind {spec.value_kind!r}")
     missing = [entry["index"] for entry in entries if entry["macro"] is None]
     allowed_missing = [0] if spec.key == "item-types" else []
     if missing != allowed_missing:
       raise ExtractionError(f"{spec.table_name} has unmatched source indices: {missing}")
     tables[spec.key] = {
-        "source_table": f"src/constants.c:{spec.table_name}",
+        "source_table": f"{spec.table_file}:{spec.table_name}",
         "source_defines": f"{spec.define_file}:{spec.start_symbol}..{spec.end_symbol}",
         "count_symbol": spec.count_symbol,
         "entries": entries,
     }
+    if spec.serialized_chunks is not None:
+      tables[spec.key]["serialized_chunks"] = spec.serialized_chunks
+
+  for flag_table in ("room", "zone", "mob", "affect", "affect2", "obj-extra", "obj-wear"):
+    tables[flag_table]["serialized_chunks"] = SERIALIZED_CHUNKS
+
+  hlquest_header_path = "src/quest/hlquest.h"
+  hlquest_header = (root / hlquest_header_path).read_text(encoding="utf-8")
+  entry_values = _extract_enum(hlquest_header, "quest_type")
+  tables["hlquest-entry-types"] = {
+      "source_enum": f"{hlquest_header_path}:enum quest_type",
+      "entries": _enum_entries(entry_values, "QUEST_"),
+  }
+
+  command_values = _extract_enum(hlquest_header, "quest_command_type")
+  command_entries = _enum_entries(command_values, "QUEST_COMMAND_")
+  hlqedit_path = "src/olc/hlqedit.c"
+  hlqedit_source = (root / hlqedit_path).read_text(encoding="utf-8")
+  command_codes = _extract_string_constant(hlqedit_source, "hlqedit_command")
+  if len(command_codes) != len(command_entries):
+    raise ExtractionError(
+        f"hlqedit_command has {len(command_codes)} codes but enum quest_command_type has "
+        f"{len(command_entries)} entries"
+    )
+  if len(set(command_codes)) != len(command_codes):
+    raise ExtractionError("hlqedit_command contains duplicate command codes")
+  for entry, code in zip(command_entries, command_codes, strict=True):
+    entry["code"] = code
+  tables["hlquest-commands"] = {
+      "source_enum": f"{hlquest_header_path}:enum quest_command_type",
+      "source_codes": f"{hlqedit_path}:hlqedit_command",
+      "entries": command_entries,
+  }
 
   reverse_directions = _extract_integer_array(constants_text, "rev_dir", direction_values)
   direction_entries = tables["directions"]["entries"]

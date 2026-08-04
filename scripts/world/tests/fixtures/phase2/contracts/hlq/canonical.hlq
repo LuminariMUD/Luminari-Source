@@ -1,0 +1,26 @@
+#10000
+A!
+canonical question~
+The canonical ASK reply.~
+Q!
+The canonical GIVE reply.~
+I C 5 0
+I I 20000 0
+O C 5 0
+O I 20000 0
+O O 20000 10000
+O M 10000 10000
+O A 0 0
+O D 0 0
+O T 1 0
+O X 0 10000
+O F 0 0
+O K 0 0
+O U 0 0
+O S 1 0
+S
+R!
+10000
+The canonical ROOM reply.~
+S
+$~

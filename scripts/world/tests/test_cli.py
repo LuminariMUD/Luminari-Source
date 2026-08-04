@@ -78,6 +78,42 @@ class CliTests(unittest.TestCase):
     self.assertEqual([41], payload["bits"])
     self.assertEqual(["0", "j", "0", "0"], payload["tokens"])
 
+  def test_quest_flag_cli_uses_one_serialized_token(self) -> None:
+    status, stdout, stderr = run_cli(
+        ["--json", "flags", "encode", "quest", "AQ_REPEATABLE", "AQ_REPLACE_OBJ_REWARD"]
+    )
+    self.assertEqual(0, status)
+    self.assertEqual("", stderr)
+    payload = json.loads(stdout)
+    self.assertEqual([0, 1], payload["bits"])
+    self.assertEqual(["ab"], payload["tokens"])
+
+  def test_quest_flag_cli_rejects_extra_tokens(self) -> None:
+    status, stdout, stderr = run_cli(["flags", "decode", "quest", "a", "b"])
+    self.assertEqual(1, status)
+    self.assertEqual("a\n", stdout.splitlines()[0] + "\n")
+    self.assertIn("FLG003", stderr)
+
+  def test_quest_constant_lists_are_source_derived(self) -> None:
+    status, stdout, stderr = run_cli(["constants", "list", "quest-types"])
+    self.assertEqual(0, status)
+    self.assertEqual("", stderr)
+    self.assertEqual(25, len(stdout.splitlines()))
+    self.assertIn("AQ_DIALOGUE", stdout)
+
+    status, stdout, stderr = run_cli(["constants", "list", "hlquest-entry-types"])
+    self.assertEqual(0, status)
+    self.assertEqual("", stderr)
+    self.assertEqual(3, len(stdout.splitlines()))
+    self.assertIn("QUEST_ROOM", stdout)
+
+    status, stdout, stderr = run_cli(["constants", "list", "hlquest-commands"])
+    self.assertEqual(0, status)
+    self.assertEqual("", stderr)
+    self.assertEqual(12, len(stdout.splitlines()))
+    self.assertIn("QUEST_COMMAND_CAST_SPELL", stdout)
+    self.assertIn("code=S", stdout)
+
   def test_validate_is_read_only_and_json_is_repeatable(self) -> None:
     with tempfile.TemporaryDirectory() as directory:
       root = Path(directory) / "world"

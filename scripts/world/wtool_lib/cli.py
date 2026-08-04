@@ -75,7 +75,17 @@ def _parser() -> argparse.ArgumentParser:
   constant_list = constant_commands.add_parser("list")
   constant_list.add_argument(
       "table_name",
-      choices=("sectors", "item-types", "positions", "directions", "trigger-types"),
+      choices=(
+          "sectors",
+          "item-types",
+          "positions",
+          "directions",
+          "trigger-types",
+          "quest-types",
+          "hlquest-entry-types",
+          "hlquest-commands",
+          "mission-difficulties",
+      ),
   )
   sync = constant_commands.add_parser("sync")
   sync_mode = sync.add_mutually_exclusive_group(required=True)
@@ -110,7 +120,8 @@ def _list_entries(entries: list[dict[str, Any]], json_output: bool) -> int:
   for entry in entries:
     macro = entry.get("macro") or "-"
     reserved = " reserved" if entry.get("reserved") else ""
-    sys.stdout.write(f"{entry['index']:3d} {macro:<36} {entry['name']}{reserved}\n")
+    code = f" code={entry['code']}" if entry.get("code") else ""
+    sys.stdout.write(f"{entry['index']:3d} {macro:<36} {entry['name']}{code}{reserved}\n")
   return 0
 
 
@@ -118,10 +129,17 @@ def _run_flags(args: argparse.Namespace) -> int:
   manifest = _load_default_manifest()
   _, table = resolve_set(manifest, args.set_name)
   entries = table["entries"]
+  serialized_chunks = table.get(
+      "serialized_chunks", manifest["flag_encoding"]["serialized_chunks"]
+  )
   if args.flag_command == "list":
     return _list_entries(entries, args.json_output)
   if args.flag_command == "decode":
-    decoded = decode_tokens(args.tokens, entry_count=len(entries))
+    decoded = decode_tokens(
+        args.tokens,
+        entry_count=len(entries),
+        serialized_chunks=serialized_chunks,
+    )
     data = {
         "set": args.set_name,
         "tokens": args.tokens,
@@ -136,7 +154,9 @@ def _run_flags(args: argparse.Namespace) -> int:
     if args.json_output:
       _print_json(data)
     else:
-      sys.stdout.write(" ".join(encode_bits(decoded.bits)) + "\n")
+      sys.stdout.write(
+          " ".join(encode_bits(decoded.bits, serialized_chunks=serialized_chunks)) + "\n"
+      )
       for entry in data["entries"]:
         sys.stdout.write(f"{entry['index']:3d} {entry.get('macro') or '-':<36} {entry['name']}\n")
       for issue in decoded.issues:
@@ -144,7 +164,7 @@ def _run_flags(args: argparse.Namespace) -> int:
     return 1 if decoded.issues else 0
 
   bits = resolve_names(table, args.names)
-  tokens = encode_bits(bits)
+  tokens = encode_bits(bits, serialized_chunks=serialized_chunks)
   if args.json_output:
     _print_json({"set": args.set_name, "bits": sorted(bits), "tokens": list(tokens)})
   else:

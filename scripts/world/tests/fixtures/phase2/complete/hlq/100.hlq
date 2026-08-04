@@ -1,0 +1,18 @@
+#10000
+A!
+fixture greeting~
+The fixture mobile answers your question.~
+Q!
+The fixture mobile accepts the fixture object.~
+I I 20000 0
+O C 10 0
+O I 20001 0
+S
+R!
+10001
+The destination room recognizes your arrival.~
+O O 20002 10001
+O M 10000 10001
+O X 2 10001
+S
+$~
