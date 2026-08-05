@@ -12,10 +12,12 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-05.
+Statuses below were re-verified against the source tree on 2026-08-06.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [production-crash-2026-08-05-pet-persistence.md](production-crash-2026-08-05-pet-persistence.md) | Investigated - P0 containment pending | Production aborted after glibc detected corrupted heap metadata. The exact writer is unlocalized, but the missing `pet_data.runtime_state` migration and destructive delete-before-insert pet persistence path are confirmed. Production schema repair, affected-row recovery, transactional persistence, and a core-backed reproduction remain. |
+| [ARTIFACT_MECHANICS_GAP_AUDIT.md](ARTIFACT_MECHANICS_GAP_AUDIT.md) | Audit complete; remediation open | All 17 live artifacts were traced against current runtime, prototypes, tests, and both source-MUD snapshots. Three identity-defining combat packages are missing, three current runtime defects need repair, and the remaining passive/content decisions are prioritized in ART-AUD-001 through ART-AUD-014. |
 | [bardic-instrument-slot-audit.md](bardic-instrument-slot-audit.md) | Complete (retained audit record) | BI-001 through BI-010 are verified. The warning-free suite passes 410/410; authoritative help passes all database checks; generated docs, install, and repository safeguards are clean. No bardic instrument work remains. |
 | [syntax-check-event-init-order.md](syntax-check-event-init-order.md) | Diagnosed | Installed `circle -c` reaches region loading before the event queue is initialized and exits 139 when encounter reset events are scheduled. This was discovered during the bard completion smoke but is unrelated to that repair. |
 | [mudlet-msdp-json-decoder-investigation.md](mudlet-msdp-json-decoder-investigation.md) | Complete (retained investigation record) | MJD-001, MJD-004, and MJD-005 are verified. Native scalar values are plain, the GMCP fallback is strict JSON in both directions, and all server gates pass. MJD-002 and MJD-003 are documented external findings outside server scope. |
