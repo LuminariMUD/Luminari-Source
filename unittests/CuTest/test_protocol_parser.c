@@ -442,6 +442,12 @@ void TestProtocolParser_TtypeAndNawsNegotiation(CuTest *tc)
   const unsigned char ttype_is[] = {
       0, 'x', 't', 'e', 'r', 'm', '-', '2', '5', '6', 'c', 'o', 'l', 'o', 'r',
   };
+  const unsigned char mudlet_is[] = {
+      0, 'M', 'u', 'd', 'l', 'e', 't', ' ', '4', '.', '1', '7', '.', '2',
+  };
+  const unsigned char decaf_is[] = {
+      0, 'D', 'e', 'c', 'a', 'f', 'M', 'U', 'D', ' ', '1', '.', '2',
+  };
   const unsigned char request_ttype[] = {(unsigned char)IAC,          (unsigned char)SB,
                                          (unsigned char)TELOPT_TTYPE, SEND,
                                          (unsigned char)IAC,          (unsigned char)SE};
@@ -465,6 +471,26 @@ void TestProtocolParser_TtypeAndNawsNegotiation(CuTest *tc)
   CuAssertStrEquals(tc, "xterm-256color",
                     harness.descriptor.pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
   CuAssertIntEquals(tc, eYES, harness.descriptor.pProtocol->b256Support);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_TTYPE, mudlet_is, sizeof(mudlet_is));
+  assert_fixture_valid(tc, &fixture);
+  harness_input(&harness, &fixture);
+
+  CuAssertStrEquals(tc, "Mudlet",
+                    harness.descriptor.pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+  CuAssertStrEquals(tc, "4.17.2",
+                    harness.descriptor.pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_TTYPE, decaf_is, sizeof(decaf_is));
+  assert_fixture_valid(tc, &fixture);
+  harness_input(&harness, &fixture);
+
+  CuAssertStrEquals(tc, "DecafMUD",
+                    harness.descriptor.pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
+  CuAssertStrEquals(tc, "1.2",
+                    harness.descriptor.pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString);
 
   fixture_init(&fixture);
   fixture_telnet3(&fixture, (unsigned char)WILL, (unsigned char)TELOPT_NAWS);

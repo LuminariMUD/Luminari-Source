@@ -305,6 +305,8 @@ static bool_t MatchString(const char *apFirst, const char *apSecond);
 static bool_t PrefixString(const char *apPart, const char *apWhole);
 static bool_t IsNumber(const char *apString);
 static char *AllocString(const char *apString);
+static char *AllocStringBounded(const char *apString, size_t aCapacity);
+static char *AllocStringLength(const char *apString, size_t aLength);
 static void ParseMxpResponse(descriptor_t *apDescriptor, char *apResponse);
 
 /******************************************************************************
@@ -2875,7 +2877,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
       /* Store the first TTYPE as the client name */
       if (!strcmp(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString, "Unknown"))
       {
-        char *new_client_string = AllocString(pClientName);
+        char *new_client_string = AllocStringBounded(pClientName, (size_t)MaxClientLength + 1);
         if (new_client_string)
         {
           char *old_client_string = pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString;
@@ -2933,7 +2935,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
         /* Store the TTYPE */
         if (pProtocol->pLastTTYPE)
           free(pProtocol->pLastTTYPE);
-        pProtocol->pLastTTYPE = AllocString(pClientName);
+        pProtocol->pLastTTYPE = AllocStringBounded(pClientName, (size_t)MaxClientLength + 1);
 
         /* Look for 256 colour support */
         if ((pStartPos != NULL && MatchString(pStartPos, "-256color")) ||
@@ -2979,9 +2981,11 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
         {
           pClientName[6] = '\0';
           free(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = AllocString(pClientName);
+          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString =
+              AllocStringBounded(pClientName, (size_t)MaxClientLength + 1);
           free(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString);
-          pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = AllocString(pClientName + 7);
+          pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString =
+              AllocStringBounded(pClientName + 7, (size_t)MaxClientLength + 1 - 7);
 
           /* Mudlet 1.1 and later supports 256 colours. */
           if (strcmp(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString, "1.1") >= 0)
@@ -3013,9 +3017,11 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
         {
           pClientName[8] = '\0';
           free(pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString);
-          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString = AllocString(pClientName);
+          pProtocol->pVariables[eMSDP_CLIENT_ID]->pValueString =
+              AllocStringBounded(pClientName, (size_t)MaxClientLength + 1);
           free(pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString);
-          pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString = AllocString(pClientName + 9);
+          pProtocol->pVariables[eMSDP_CLIENT_VERSION]->pValueString =
+              AllocStringBounded(pClientName + 9, (size_t)MaxClientLength + 1 - 9);
         }
       }
       else if (MatchString(pClientName, "MUSHCLIENT") || MatchString(pClientName, "CMUD") ||
@@ -4399,7 +4405,6 @@ static bool_t IsNumber(const char *apString)
 
 static char *AllocString(const char *apString)
 {
-  char *pResult = NULL;
   size_t Size;
 
   if (apString == NULL)
@@ -4412,14 +4417,46 @@ static char *AllocString(const char *apString)
     return NULL;
   }
 
-  pResult = (char *)calloc(Size + 1, sizeof(char));
+  return AllocStringLength(apString, Size);
+}
+
+static char *AllocStringBounded(const char *apString, size_t aCapacity)
+{
+  size_t ScanLength;
+  size_t Size;
+
+  if (apString == NULL || aCapacity == 0)
+    return NULL;
+
+  ScanLength = aCapacity;
+  if (ScanLength > (size_t)MAX_VARIABLE_LENGTH + 1)
+    ScanLength = (size_t)MAX_VARIABLE_LENGTH + 1;
+  Size = strnlen(apString, ScanLength);
+  if (Size == ScanLength)
+  {
+    ReportBug(aCapacity > MAX_VARIABLE_LENGTH ? "AllocString: String exceeds MAX_VARIABLE_LENGTH"
+                                              : "AllocString: String is not terminated");
+    return NULL;
+  }
+
+  return AllocStringLength(apString, Size);
+}
+
+static char *AllocStringLength(const char *apString, size_t aLength)
+{
+  char *pResult;
+
+  if (apString == NULL || aLength > MAX_VARIABLE_LENGTH)
+    return NULL;
+
+  pResult = (char *)calloc(aLength + 1, sizeof(char));
   if (pResult == NULL)
   {
     ReportBug("AllocString: calloc failed");
     return NULL;
   }
 
-  memcpy(pResult, apString, Size);
+  memcpy(pResult, apString, aLength);
 
   return pResult;
 }
