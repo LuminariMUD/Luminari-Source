@@ -2975,9 +2975,13 @@ static int artifact_effect_level(struct char_data *ch, struct artifact_data *art
 
 /* Kelrarin's Hammer: the thrown hammer, and the alignment-gated mega blast. */
 static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim,
-                                  struct obj_data *weapon, struct artifact_data *art)
+                                  struct obj_data *weapon, struct artifact_data *art, int dam,
+                                  int is_critical)
 {
   int amount = 0, mega = 0;
+
+  (void)dam;
+  (void)is_critical;
 
   /* The mega blast: only for the near-saintly, and only while unhurt. */
   if (GET_ALIGNMENT(ch) > ARTIFACT_KELRARIN_MEGA_ALIGN &&
@@ -3037,10 +3041,13 @@ static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim
 
 /* Kelrom, the Axe of Pahluruk: it will not be turned on an animal. */
 static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
-                                struct obj_data *weapon, struct artifact_data *art, int dam)
+                                struct obj_data *weapon, struct artifact_data *art, int dam,
+                                int is_critical)
 {
   struct char_data *tch = NULL;
   int healed = 0, share = 0;
+
+  (void)is_critical;
 
   if (IS_ANIMAL(victim))
   {
@@ -3098,8 +3105,12 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
 
 /* Gesen, the Returning Axe: thrown, and it carries a full harm with it. */
 static int artifact_proc_gesen(struct char_data *ch, struct char_data *victim,
-                               struct obj_data *weapon, struct artifact_data *art)
+                               struct obj_data *weapon, struct artifact_data *art, int dam,
+                               int is_critical)
 {
+  (void)dam;
+  (void)is_critical;
+
   if (rand_number(1, ARTIFACT_GESEN_THROW_ODDS) != 1)
     return FALSE;
 
@@ -3117,9 +3128,14 @@ static int artifact_proc_gesen(struct char_data *ch, struct char_data *victim,
 }
 
 /* Avernus, the Black Blade: it keeps its wielder alive to keep swinging. */
-static int artifact_proc_avernus(struct char_data *ch, struct obj_data *weapon,
-                                 struct artifact_data *art)
+static int artifact_proc_avernus(struct char_data *ch, struct char_data *victim,
+                                 struct obj_data *weapon, struct artifact_data *art, int dam,
+                                 int is_critical)
 {
+  (void)victim;
+  (void)dam;
+  (void)is_critical;
+
   if (GET_HIT(ch) >= ARTIFACT_AVERNUS_HEAL_THRESHOLD)
     return FALSE;
 
@@ -3140,10 +3156,12 @@ static int artifact_proc_avernus(struct char_data *ch, struct obj_data *weapon,
 
 /* Trorxek, the Staff of Ancient Oaks: a blinding strike on a critical hit. */
 static int artifact_proc_trorxek(struct char_data *ch, struct char_data *victim,
-                                 struct obj_data *weapon, struct artifact_data *art,
+                                 struct obj_data *weapon, struct artifact_data *art, int dam,
                                  int is_critical)
 {
   struct affected_type af;
+
+  (void)dam;
 
   if (!is_critical)
     return FALSE;
@@ -3166,6 +3184,32 @@ static int artifact_proc_trorxek(struct char_data *ch, struct char_data *victim,
 
   artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_FEAR);
   return FALSE;
+}
+
+typedef int (*artifact_hand_proc_fn)(struct char_data *ch, struct char_data *victim,
+                                     struct obj_data *weapon, struct artifact_data *art, int dam,
+                                     int is_critical);
+
+struct artifact_hand_proc_entry
+{
+  int vnum;
+  artifact_hand_proc_fn handler;
+};
+
+static const struct artifact_hand_proc_entry artifact_hand_procs[] = {
+    {ART_VNUM_TRORXEK, artifact_proc_trorxek}, {ART_VNUM_KELRARIN, artifact_proc_kelrarin},
+    {ART_VNUM_KELROM, artifact_proc_kelrom},   {ART_VNUM_GESEN, artifact_proc_gesen},
+    {ART_VNUM_AVERNUS, artifact_proc_avernus}, {-1, NULL}};
+
+static const struct artifact_hand_proc_entry *artifact_hand_proc_for_vnum(int vnum)
+{
+  int i = 0;
+
+  for (i = 0; artifact_hand_procs[i].vnum != -1; i++)
+    if (artifact_hand_procs[i].vnum == vnum)
+      return &artifact_hand_procs[i];
+
+  return NULL;
 }
 
 /* --------------------------------------------------------------------------
@@ -3554,24 +3598,15 @@ static int artifact_signature_proc(struct char_data *ch, struct char_data *victi
                                    struct obj_data *weapon, struct artifact_data *art, int dam,
                                    int is_critical)
 {
+  const struct artifact_hand_proc_entry *hand_proc = NULL;
+
   if (art->sig_proc != ART_SIG_NONE)
     return artifact_reusable_proc(ch, victim, weapon, art, is_critical);
 
-  switch (art->vnum)
-  {
-  case ART_VNUM_TRORXEK:
-    return artifact_proc_trorxek(ch, victim, weapon, art, is_critical);
-  case ART_VNUM_KELRARIN:
-    return artifact_proc_kelrarin(ch, victim, weapon, art);
-  case ART_VNUM_KELROM:
-    return artifact_proc_kelrom(ch, victim, weapon, art, dam);
-  case ART_VNUM_GESEN:
-    return artifact_proc_gesen(ch, victim, weapon, art);
-  case ART_VNUM_AVERNUS:
-    return artifact_proc_avernus(ch, weapon, art);
-  default:
+  if (!(hand_proc = artifact_hand_proc_for_vnum(art->vnum)))
     return FALSE;
-  }
+
+  return hand_proc->handler(ch, victim, weapon, art, dam, is_critical);
 }
 
 int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
@@ -5854,6 +5889,60 @@ int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_dat
     return FALSE;
 
   return artifact_signature_proc(ch, victim, weapon, art, 10, is_critical);
+}
+
+/* Read the exact production tables and dispatch lookup into one stable test
+ * record.  A zero effect or a NOTHING hand procedure means an explicit none. */
+int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *identity)
+{
+  const struct artifact_effect *effect = NULL;
+  const struct artifact_hand_proc_entry *hand_proc = NULL;
+  struct artifact_data *art = NULL;
+  int i = 0, passive_count = 0;
+
+  if (!identity)
+    return FALSE;
+
+  memset(identity, 0, sizeof(*identity));
+  identity->hand_proc_vnum = NOTHING;
+  for (i = 0; i < ARTIFACT_MAX_EFFECTS; i++)
+    identity->called_channels[i] = NOTHING;
+
+  if (!(art = artifact_by_vnum(vnum)))
+    return FALSE;
+
+  identity->ability_name = art->ability_name;
+  identity->generic_proc_chance = art->proc_chance;
+  identity->signature_proc = art->sig_proc;
+  hand_proc = artifact_hand_proc_for_vnum(vnum);
+  if (hand_proc)
+    identity->hand_proc_vnum = hand_proc->vnum;
+
+  for (i = 0; i < ARTIFACT_MAX_EFFECTS; i++)
+  {
+    if (!(effect = artifact_effect_at(vnum, i)))
+      continue;
+    identity->called_effects[i] = effect->effect;
+    identity->called_channels[i] = effect->channel;
+  }
+
+  for (i = 0; artifact_passives[i].vnum != -1; i++)
+  {
+    if (artifact_passives[i].vnum != vnum)
+      continue;
+
+    if (passive_count < ARTIFACT_TEST_MAX_PASSIVES)
+    {
+      identity->passives[passive_count].min_level = artifact_passives[i].min_level;
+      identity->passives[passive_count].aff_flag = artifact_passives[i].aff_flag;
+      identity->passives[passive_count].location = artifact_passives[i].location;
+      identity->passives[passive_count].modifier = artifact_passives[i].modifier;
+    }
+    passive_count++;
+  }
+
+  identity->passive_count = passive_count;
+  return TRUE;
 }
 #endif
 

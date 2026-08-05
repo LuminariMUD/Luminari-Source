@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 resolved
+**Status:** Remediation in progress; ART-AUD-001 and ART-AUD-013 resolved
 
 **Audited:** 2026-08-06
 
@@ -22,6 +22,13 @@ its declared save DC, and Kelrom's hand-written proc makes its advertised 14
 percent generic proc unreachable. These defects affect more than source parity
 and should be addressed before artifact placement. ART-AUD-001, the lethal-proc
 boundary defect, was resolved first on 2026-08-06.
+
+ART-AUD-013 was resolved next on 2026-08-06. A production-linked identity
+contract now names the combat handler, active ability, called-effect slots,
+invocation channels, generic proc chance, and progressive passives expected
+for each of the 17 artifacts. The still-missing Fade, Doombringer, and Avernus
+packages are explicit contract entries rather than behavior inferred from
+their nonzero generic percentages.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -91,7 +98,7 @@ contracts.
 | ART-AUD-010 | Medium | Confirmed UX defect | The displayed generic proc percentage is an attempt rate; successful rolls can consume cooldown with no visible or mechanical result. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Confirmed metadata defect | Called-effect `stack_group` is validated but never used; Wyrmfang declares none while its handler hardcodes the ward group. | Wyrmfang, future effects |
-| ART-AUD-013 | High preventive | Confirmed test gap | Tests cover reusable shapes but not the complete hand-written roster, source-identity contracts, lethal return propagation, or generic-proc reachability. | Whole system |
+| ART-AUD-013 | High preventive | Resolved 2026-08-06 | All 17 artifacts now have an exact production-linked identity contract, including deliberate `none` entries and generic-proc separation. | Whole system |
 | ART-AUD-014 | Low dormant | Confirmed library defect | Unclaimed `ART_SIG_WARD` skips its chance roll, so every eligible noncritical hit dispels despite documentation saying it only has a chance. | No live claimant |
 
 ## Detailed findings
@@ -352,10 +359,33 @@ Use the table field in execution or remove it. Leaving decorative control data
 invites the next artifact implementation to appear correct in validation while
 behaving differently at runtime.
 
-### ART-AUD-013: tests prove shapes, not artifact identities
+### ART-AUD-013: tests prove shapes, not artifact identities [resolved]
 
-The integration suite is valuable but currently leaves the omission pattern
-unprotected:
+Resolution (2026-08-06):
+
+- A 17-row integration-test matrix now states every artifact's reusable or
+  hand-written combat handler, active ability, generic proc chance, four
+  called-effect and channel slots, and exact progressive-passive rows.
+- A CuTest-only snapshot reads the booted production template, effect,
+  passive, and hand-dispatch lookups. The test does not infer identity from
+  the expected table or substitute a parallel runtime registry.
+- `NULL`, zero, and `NOTHING` values are deliberate contract entries. Fade's
+  absent life drain, Doombringer's absent five-hit burst, and Avernus's
+  emergency-heal-only handler remain visible until ART-AUD-002 through
+  ART-AUD-004 change production and expectation together.
+- The test reports the first drift by artifact VNUM and field. The
+  production-linked suite passes 419/419 tests.
+- `make install` installed the tested binary and removed the root build
+  artifact. The development server survived copyover, table metadata
+  validated, and Kohdee's read-only `artifact info` output matched the
+  contract for Fade, Avernus, and Wyrmfang. Kohdee logged out cleanly without
+  changing artifact state. Full verification still reports the pre-existing
+  duplicate instances described under ART-AUD-001; this test did not mutate
+  them.
+
+Original evidence at audited revision `61c03285`:
+
+The integration suite was valuable but left the omission pattern unprotected:
 
 - `artint_signature_cases[]` covers the six claimed reusable shapes only
   (`unittests/CuTest/test_artifact_integration.c:901-949`).
@@ -368,12 +398,17 @@ unprotected:
 - Kelrom's test confirms only that healback observes cooldown. It does not
   detect that the same timestamp shadows its generic proc
   (`unittests/CuTest/test_artifact_integration.c:1679-1721`).
-- There is no lethal artifact-proc test at the outer `fight.c` boundary.
+- There was no lethal artifact-proc test at the outer `fight.c` boundary;
+  ART-AUD-001 supplied both signature and generic lethal cases before this
+  identity matrix was added.
 
-Add a data-driven identity contract for all 17 artifacts. Each row should state
-which named combat handler, active ability, called effects, and progressive
-passives it is expected to own. A deliberate `none` should be explicit, not
-inferred from an empty field.
+Completed remediation contract:
+
+1. [x] Add a data-driven identity row for all 17 artifacts.
+2. [x] State the named combat handler, active ability, called effects, and
+   progressive passives expected for each row.
+3. [x] Keep deliberate `none` values explicit rather than inferring them from
+   generic proc percentages or empty registries.
 
 ### ART-AUD-014: the dormant ward shape ignores chance
 
@@ -430,9 +465,9 @@ runtime ignores.
 
 1. **Completed 2026-08-06: make the combat boundary death-safe.** ART-AUD-001
    now has lethal signature and generic-proc outer-hook tests.
-2. **Add identity-contract tests.** Encode all 17 expected named behaviors so a
-   generic percentage cannot masquerade as a named mechanic again
-   (ART-AUD-013).
+2. **Completed 2026-08-06: add identity-contract tests.** All 17 expected
+   identities are explicit, so a generic percentage cannot masquerade as a
+   named mechanic again (ART-AUD-013).
 3. **Restore the three confirmed missing packages.** Implement safe,
    level-scaled versions of Fade, Doombringer, and Avernus
    (ART-AUD-002 through ART-AUD-004).

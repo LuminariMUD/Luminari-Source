@@ -496,6 +496,130 @@ static int artint_run_lethal_outer_hook(struct artint_fixture *fixture, struct o
   return TRUE;
 }
 
+struct artint_identity_case
+{
+  int vnum;
+  const char *ability_name;
+  int generic_proc_chance;
+  int signature_proc;
+  int hand_proc_vnum;
+  int called_effects[ARTIFACT_MAX_EFFECTS];
+  int called_channels[ARTIFACT_MAX_EFFECTS];
+  int passive_count;
+};
+
+struct artint_passive_case
+{
+  int vnum;
+  int min_level;
+  int aff_flag;
+  int location;
+  int modifier;
+};
+
+/* This is an identity contract, not a coverage shortcut.  A zero signature,
+ * zero effect, NULL ability, or NOTHING hand procedure is a deliberate none.
+ * Confirmed gaps stay explicit until their individual audit item changes the
+ * production behavior and this row together. */
+/* clang-format off */
+static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT] = {
+    {ART_VNUM_TRORXEK, NULL, 12, ART_SIG_NONE, ART_VNUM_TRORXEK,
+     {ART_EFFECT_SUMMON_TREANT, ART_EFFECT_CREEPING_DOOM, ART_EFFECT_RECALL,
+      ART_EFFECT_TRAVEL_TO},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+    {ART_VNUM_AMAUKEKEL, "divineward", 0, ART_SIG_NONE, NOTHING,
+     {ART_EFFECT_DIMENSION_SHIFT, ART_EFFECT_RESURRECT, ART_EFFECT_DISPEL_EVIL, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
+    /* ART-AUD-002: the inherited life-drain combat handler is still absent. */
+    {ART_VNUM_FADE, NULL, 16, ART_SIG_NONE, NOTHING,
+     {ART_EFFECT_BLIND, ART_EFFECT_DARKNESS, ART_EFFECT_WEAKEN, ART_EFFECT_TRAVEL_TO},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+    {ART_VNUM_HENEKAR, NULL, 0, ART_SIG_NONE, NOTHING,
+     {ART_EFFECT_BLIND, ART_EFFECT_PACIFY, ART_EFFECT_CHARM, ART_EFFECT_TRAVEL_TO},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+    /* ART-AUD-003: the inherited five-hit combat burst is still absent. */
+    {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, NOTHING,
+     {ART_EFFECT_ANNIHILATION, ART_EFFECT_BLACK_LIGHTNING, ART_EFFECT_ENRAGE, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
+    {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    {ART_VNUM_GESEN, NULL, 18, ART_SIG_NONE, ART_VNUM_GESEN,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    {ART_VNUM_STINGER, NULL, 18, ART_SIG_LIFESTEAL, NOTHING,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    /* ART-AUD-004: the hand procedure is currently emergency-heal only. */
+    {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    {ART_VNUM_AEGIS, NULL, 0, ART_SIG_NONE, NOTHING,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+    {ART_VNUM_VENGEANCE, NULL, 0, ART_SIG_MERCY, NOTHING,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 3},
+    {ART_VNUM_EARTHCRIER, NULL, 0, ART_SIG_KNOCKDOWN, NOTHING,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 2},
+    {ART_VNUM_WYRMFANG, NULL, 0, ART_SIG_WEIGHTED, NOTHING,
+     {ART_EFFECT_DRAGON_SIGHT, 0, 0, 0},
+     {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING}, 5},
+    {ART_VNUM_COURAGE, NULL, 0, ART_SIG_NONE, NOTHING,
+     {ART_EFFECT_GROUP_VALOR, 0, 0, 0},
+     {ART_INVOKE_SAY, NOTHING, NOTHING, NOTHING}, 4},
+    {ART_VNUM_ICEDGE, NULL, 0, ART_SIG_FLURRY, NOTHING,
+     {ART_EFFECT_FROST_WARD, 0, 0, 0},
+     {ART_INVOKE_WHISPER, NOTHING, NOTHING, NOTHING}, 3},
+    {ART_VNUM_TWILIGHT, NULL, 0, ART_SIG_SURGE, NOTHING,
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 4}};
+
+static const struct artint_passive_case artint_passive_cases[] = {
+    {ART_VNUM_WYRMFANG, 1, AFF_DETECT_INVIS, APPLY_NONE, 0},
+    {ART_VNUM_WYRMFANG, 2, AFF_INFRAVISION, APPLY_NONE, 0},
+    {ART_VNUM_WYRMFANG, 3, AFF_SENSE_LIFE, APPLY_NONE, 0},
+    {ART_VNUM_WYRMFANG, 4, AFF_FARSEE, APPLY_NONE, 0},
+    {ART_VNUM_WYRMFANG, 5, AFF_HASTE, APPLY_NONE, 0},
+    {ART_VNUM_COURAGE, 1, 0, APPLY_SAVING_WILL, 2},
+    {ART_VNUM_COURAGE, 2, 0, APPLY_RES_ELECTRIC, 10},
+    {ART_VNUM_COURAGE, 3, 0, APPLY_SAVING_FORT, 2},
+    {ART_VNUM_COURAGE, 4, AFF_HASTE, APPLY_NONE, 0},
+    {ART_VNUM_ICEDGE, 1, 0, APPLY_RES_COLD, 15},
+    {ART_VNUM_ICEDGE, 3, 0, APPLY_SPELL_RES, 4},
+    {ART_VNUM_ICEDGE, 5, AFF_TRUE_SIGHT, APPLY_NONE, 0},
+    {ART_VNUM_TWILIGHT, 2, AFF_INFRAVISION, APPLY_NONE, 0},
+    {ART_VNUM_TWILIGHT, 3, AFF_SENSE_LIFE, APPLY_NONE, 0},
+    {ART_VNUM_TWILIGHT, 4, AFF_FARSEE, APPLY_NONE, 0},
+    {ART_VNUM_TWILIGHT, 5, AFF_HASTE, APPLY_NONE, 0},
+    {ART_VNUM_VENGEANCE, 1, AFF_DETECT_INVIS, APPLY_NONE, 0},
+    {ART_VNUM_VENGEANCE, 3, 0, APPLY_SAVING_WILL, 3},
+    {ART_VNUM_VENGEANCE, 5, 0, APPLY_RES_UNHOLY, 15},
+    {ART_VNUM_EARTHCRIER, 2, 0, APPLY_SAVING_FORT, 3},
+    {ART_VNUM_EARTHCRIER, 4, 0, APPLY_RES_PUNCTURE, 10}};
+/* clang-format on */
+
+static const struct artint_passive_case *artint_expected_passive(int vnum, int ordinal)
+{
+  int i = 0, found = 0;
+
+  for (i = 0; i < (int)(sizeof(artint_passive_cases) / sizeof(artint_passive_cases[0])); i++)
+  {
+    if (artint_passive_cases[i].vnum != vnum)
+      continue;
+    if (found == ordinal)
+      return &artint_passive_cases[i];
+    found++;
+  }
+
+  return NULL;
+}
+
+static void artint_record_identity_mismatch(char *failure, size_t failure_size, int vnum,
+                                            const char *field, int expected, int actual)
+{
+  if (!failure || failure[0] != '\0' || expected == actual)
+    return;
+
+  snprintf(failure, failure_size, "artifact %d identity %s: expected %d, got %d", vnum, field,
+           expected, actual);
+}
+
 /* --------------------------------------------------------------------------
  * The fixture itself
  * -------------------------------------------------------------------------- */
@@ -529,6 +653,93 @@ void Test_artifact_integration_boot_registers_every_shipped_artifact(CuTest *tc)
   CuAssertIntEquals(tc, 0, artifact_validate_metadata());
 
   artint_end(&fixture);
+}
+
+void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artifact_test_identity_data actual;
+  const struct artint_identity_case *expected = NULL;
+  const struct artint_passive_case *passive = NULL;
+  char failure[256], field[64];
+  int i = 0, j = 0;
+
+  failure[0] = '\0';
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_record_identity_mismatch(failure, sizeof(failure), 0, "roster count", ARTINT_OBJ_COUNT,
+                                  total_artifacts);
+
+  for (i = 0; i < ARTINT_OBJ_COUNT && failure[0] == '\0'; i++)
+  {
+    expected = &artint_identity_cases[i];
+    memset(&actual, 0, sizeof(actual));
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "fixture roster vnum",
+                                    expected->vnum, artint_vnums[i]);
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum,
+                                    "registered roster vnum", expected->vnum, art_index[i].vnum);
+
+    if (failure[0] == '\0' && !artifact_identity_for_test(expected->vnum, &actual))
+      snprintf(failure, sizeof(failure), "artifact %d has no production identity", expected->vnum);
+
+    if (failure[0] == '\0' &&
+        ((expected->ability_name == NULL) != (actual.ability_name == NULL) ||
+         (expected->ability_name && strcmp(expected->ability_name, actual.ability_name))))
+      snprintf(failure, sizeof(failure), "artifact %d active ability: expected %s, got %s",
+               expected->vnum, expected->ability_name ? expected->ability_name : "none",
+               actual.ability_name ? actual.ability_name : "none");
+
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "generic proc chance",
+                                    expected->generic_proc_chance, actual.generic_proc_chance);
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "signature proc",
+                                    expected->signature_proc, actual.signature_proc);
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "hand procedure",
+                                    expected->hand_proc_vnum, actual.hand_proc_vnum);
+
+    for (j = 0; j < ARTIFACT_MAX_EFFECTS && failure[0] == '\0'; j++)
+    {
+      snprintf(field, sizeof(field), "called effect slot %d", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      expected->called_effects[j], actual.called_effects[j]);
+      snprintf(field, sizeof(field), "called channel slot %d", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      expected->called_channels[j], actual.called_channels[j]);
+    }
+
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "passive count",
+                                    expected->passive_count, actual.passive_count);
+    for (j = 0; j < expected->passive_count && failure[0] == '\0'; j++)
+    {
+      passive = artint_expected_passive(expected->vnum, j);
+      if (!passive)
+      {
+        snprintf(failure, sizeof(failure), "artifact %d expected passive %d is undefined",
+                 expected->vnum, j);
+        break;
+      }
+
+      snprintf(field, sizeof(field), "passive %d level", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      passive->min_level, actual.passives[j].min_level);
+      snprintf(field, sizeof(field), "passive %d affect", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      passive->aff_flag, actual.passives[j].aff_flag);
+      snprintf(field, sizeof(field), "passive %d location", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      passive->location, actual.passives[j].location);
+      snprintf(field, sizeof(field), "passive %d modifier", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      passive->modifier, actual.passives[j].modifier);
+    }
+  }
+
+  artint_end(&fixture);
+  CuAssert(tc, failure[0] ? failure : "artifact identity contract mismatch", failure[0] == '\0');
 }
 
 /* --------------------------------------------------------------------------

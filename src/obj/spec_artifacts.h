@@ -550,9 +550,32 @@ ACMD_DECL(do_testartifact);
 
 /* Test seams - present only in the CuTest build. */
 #ifdef LUMINARI_CUTEST
+#define ARTIFACT_TEST_MAX_PASSIVES ART_PASSIVE_MAX_PER_ARTIFACT
+
+struct artifact_test_passive_data
+{
+  int min_level;
+  int aff_flag;
+  int location;
+  int modifier;
+};
+
+struct artifact_test_identity_data
+{
+  const char *ability_name;
+  int generic_proc_chance;
+  int signature_proc;
+  int hand_proc_vnum;
+  int called_effects[ARTIFACT_MAX_EFFECTS];
+  int called_channels[ARTIFACT_MAX_EFFECTS];
+  int passive_count;
+  struct artifact_test_passive_data passives[ARTIFACT_TEST_MAX_PASSIVES];
+};
+
 void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj);
 int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *weapon, int is_critical);
+int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *identity);
 #endif
 
 #endif /* _SPEC_ARTIFACTS_H_ */

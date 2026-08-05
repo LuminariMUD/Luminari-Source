@@ -818,7 +818,12 @@ change so it lands in the smallest existing extension surface:
 The `proc_chance` column in `artifact_templates[]` controls only the generic
 level-based proc table. It does not imply that an artifact's named or source
 MUD power exists. The signature columns are a separate path. This distinction
-is the first thing to check when a power appears to be impossibly rare.
+is the first thing to check when a power appears to be impossibly rare. The
+17-row integration identity contract records both values independently, along
+with hand-written dispatch, active abilities, called effects, invocation
+channels, and progressive passives. A deliberate absence is recorded as
+`ART_SIG_NONE`, `NOTHING`, zero, or `NULL`; it is never inferred from a generic
+percentage.
 
 ### Rebalancing an artifact
 
@@ -837,8 +842,8 @@ data migration.
    extension surfaces above.
 5. Extend the registry and table tests in
    `unittests/CuTest/test_artifacts.c`.
-6. Extend the booted-world behavior tests in
-   `unittests/CuTest/test_artifact_integration.c`.
+6. Add the artifact to the exact identity matrix and extend the booted-world
+   behavior tests in `unittests/CuTest/test_artifact_integration.c`.
 7. Verify clean boot, metadata validation, single-instance reset behavior,
    save round trips, and the player lifecycle.
 
@@ -1042,20 +1047,23 @@ template, contract, passive, and effect tables, puts a real player with a
 descriptor in a real room beside a live NPC, and drives production entry
 points: the full acquire-equip-bind-unequip-drop-save-reload-destroy
 lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
-highest-only resistance, active abilities, the generic proc guards and every
-signature shape, Tiamat's actual-damage lifesteal and healing cap,
-called-effect success and refusal and per-slot recharge, invocation-channel
-separation, class-oath burn and phrase hiding, player and
-staff command output, single-instance behavior across a zone reset and a
-reboot, and the balance-pass decisions recorded above. It runs inside a
-scratch directory and never reads or writes real game data.
+highest-only resistance, the exact identity contract for all 17 artifacts,
+active abilities, the generic proc guards and every signature shape, lethal
+signature and generic procs at the outer combat boundary, Tiamat's
+actual-damage lifesteal and healing cap, called-effect success and refusal and
+per-slot recharge, invocation-channel separation, class-oath burn and phrase
+hiding, player and staff command output, single-instance behavior across a
+zone reset and a reboot, and the balance-pass decisions recorded above. It
+runs inside a scratch directory and never reads or writes real game data.
 
-Two test seams in `src/obj/spec_artifacts.c` support it, both inside
+Three test seams in `src/obj/spec_artifacts.c` support it, all inside
 `#ifdef LUMINARI_CUTEST`: `artifact_show_info_for_test()` drives the real
-display path, and `artifact_force_signature_proc_for_test()` exposes the real
-signature dispatcher. Tests make the chance deterministic by setting
-`sig_chance` to a controlled value; the shape's cooldown policy, alignment
-rule, target legality, and effect implementation still apply.
+display path, `artifact_force_signature_proc_for_test()` exposes the real
+signature dispatcher, and `artifact_identity_for_test()` snapshots the booted
+production template, effect, passive, and hand-dispatch lookups. Tests make
+signature chance deterministic by setting `sig_chance` to a controlled value;
+the shape's cooldown policy, alignment rule, target legality, and effect
+implementation still apply.
 
 Two things the integration suite deliberately does not do. Procs run with
 both combatants already engaged, because `damage()` otherwise calls

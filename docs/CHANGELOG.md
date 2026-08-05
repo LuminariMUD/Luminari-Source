@@ -2,6 +2,29 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Artifact identity contract coverage
+
+#### Added
+
+- Added an exact production-linked identity contract for all 17 artifacts.
+  Every row records its generic proc chance, reusable or hand-written combat
+  handler, active ability, four called-effect and invocation-channel slots,
+  and progressive passives, including deliberate `none` values.
+- Added a CuTest-only snapshot of the booted production template, effect,
+  passive, and hand-dispatch lookups. Contract failures identify the first
+  drift by artifact VNUM and field.
+
+#### Verification
+
+- The production-linked suite passes all 419 tests. The new matrix preserves
+  explicit pending entries for Fade's life drain, Doombringer's five-hit
+  burst, and Avernus's emergency-heal-only combat package.
+- `make install` installed the tested binary and removed the root build
+  artifact. The development server survived copyover; table metadata
+  validated; and Kohdee's read-only Fade, Avernus, and Wyrmfang information
+  matched the contract before a clean logout. The pre-existing duplicate
+  instances remain untouched and still make the full integrity result fail.
+
 ### Artifact lethal-proc combat safety
 
 #### Fixed
