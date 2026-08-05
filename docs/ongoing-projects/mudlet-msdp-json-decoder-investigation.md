@@ -313,11 +313,11 @@ References:
 
 | ID | Severity | Status | Finding |
 |----|----------|--------|---------|
-| MJD-001 | High | Open; diagnosed | LuminariMUD sends internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
+| MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
 | MJD-002 | Medium | Open; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
 | MJD-003 | Low | Open; diagnosed | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
 | MJD-004 | High | Open; related | LuminariMUD's MSDP-over-GMCP fallback does not perform valid general JSON serialization for strings, arrays, or tables. |
-| MJD-005 | Medium | Open; diagnosed | Current regression coverage does not exercise colored scalar MSDP values through a Mudlet-compatible decode contract. |
+| MJD-005 | Medium | In progress | Current regression coverage does not exercise colored scalar MSDP values through a Mudlet-compatible decode contract. |
 
 ### MJD-001: Internal color markup leaks into scalar OOB values
 
@@ -371,6 +371,9 @@ When native MSDP is unavailable and GMCP is active, `MSDPSend()` uses:
 for string variables. `MSDPSendPair()` and `MSDPSendList()` use the same raw interpolation
 pattern. Problems include:
 
+- The standard mapping uses the case-sensitive `MSDP` package with one JSON object, such as
+  `MSDP {"HEALTH": 10}`. The current `MSDP.HEALTH 10` package/payload shape is not the
+  documented MSDP-over-GMCP mapping.
 - A scalar such as `LuminariMUD` is emitted without JSON quotes.
 - Quotes, backslashes, tabs, newlines, and other JSON-sensitive bytes are not escaped.
 - Stored MSDP tables and arrays contain binary MSDP delimiter bytes, not JSON object/array
@@ -386,15 +389,34 @@ The local protocol documentation already characterizes GMCP helpers as an unstab
 but code that emits a negotiated GMCP module should still emit valid JSON or decline to send.
 This needs a real serializer, not only `strip_colors()` at three call sites.
 
+## Implementation Progress
+
+### 2026-08-05: Plain scalar boundary repair implemented
+
+- Added one bounded production helper in `src/comm.c` that copies a scalar source, strips MUD
+  color markup from the copy, and stores the plain result through `MSDPSetString()`.
+- Routed `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` through that helper. The canonical alignment,
+  zone, and room strings remain unchanged for terminal output.
+- Added `unittests/CuTest/test_msdp_production.c` to both supported production test manifests.
+  Its fixtures use the real True Neutral source string and colored Vault-style room/area names,
+  assert the three stored values are plain, assert the sources are not modified, and assert an
+  unchanged clean value is not marked dirty again.
+- Source formatting and `git diff --check` pass. The warning-free optimized build succeeds,
+  the production-linked CuTest suite passes 413/413, and `make install` installs `bin/circle`
+  and leaves no root-level `circle` artifact.
+- While tracing MJD-004, verified that the fallback also uses the wrong GMCP package shape; the
+  repair must emit `MSDP` followed by a JSON object, not `MSDP.<variable>` followed by a raw
+  value.
+
 ### MJD-005: Tests cover safety but not this compatibility contract
 
-The protocol parser harness and fuzz target exercise malformed input and call
-`MSDPSetString()`, but no located test asserts that production text variables are free of
-internal color markup or that the bytes accepted by Mudlet can be converted to Lua without a
-JSON error.
+Before remediation, the protocol parser harness and fuzz target exercised malformed input and
+called `MSDPSetString()`, but no test asserted that production text variables were free of
+internal color markup or that a GMCP fallback payload was parseable JSON.
 
-The existing test gap allowed nearby string fields to be sanitized while these three remained
-raw. It also leaves the GMCP fallback's invalid string serialization unverified.
+The production suite now covers the three color-bearing scalar sources and unchanged-value
+dirty tracking. Focused serializer coverage remains open for native framing, JSON escaping,
+UTF-8, nested tables and arrays, malformed marker rejection, and post-escape size limits.
 
 ## User-Visible Impact
 

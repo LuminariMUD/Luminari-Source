@@ -47,6 +47,11 @@ void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
 void update_msdp_room(struct char_data *ch);
 void send_to_mud(struct char_data *broadcaster, char *message);
 
+#if defined(LUMINARI_CUTEST)
+protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variable_t variable,
+                                              const char *value);
+#endif
+
 /* Act type settings and flags */
 #define TO_ROOM 1      /**< act() type: to everyone in room, except ch. */
 #define TO_VICT 2      /**< act() type: to vict_obj. */

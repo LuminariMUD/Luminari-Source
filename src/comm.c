@@ -4404,6 +4404,32 @@ static void circle_sleep(struct timeval *timeout)
 #define MODE_DISPLAY_OFFHAND 3 // Display damage info offhand
 #define MODE_DISPLAY_RANGED 4  // Display damage info ranged
 
+static protocol_error_t set_msdp_plain_text(struct descriptor_data *d, variable_t variable,
+                                            const char *value)
+{
+  char plain_text[MAX_VARIABLE_LENGTH + 1];
+  size_t value_length;
+
+  if (d == NULL || value == NULL)
+    return PROTOCOL_ERROR_NULL_POINTER;
+
+  value_length = strnlen(value, sizeof(plain_text));
+  if (value_length >= sizeof(plain_text))
+    return PROTOCOL_ERROR_BUFFER_FULL;
+
+  memcpy(plain_text, value, value_length + 1);
+  strip_colors(plain_text);
+  return MSDPSetString(d, variable, plain_text);
+}
+
+#if defined(LUMINARI_CUTEST)
+protocol_error_t set_msdp_plain_text_for_test(struct descriptor_data *d, variable_t variable,
+                                              const char *value)
+{
+  return set_msdp_plain_text(d, variable, value);
+}
+#endif
+
 static void update_msdp_automap(struct descriptor_data *d, struct char_data *ch)
 {
   char mapbuf[MAX_STRING_LENGTH] = {'\0'};
@@ -5079,7 +5105,7 @@ static void msdp_update(void)
       ++PlayerCount;
 
       MSDPSetString(d, eMSDP_CHARACTER_NAME, GET_NAME(ch));
-      MSDPSetString(d, eMSDP_ALIGNMENT, get_align_by_num(GET_ALIGNMENT(ch)));
+      set_msdp_plain_text(d, eMSDP_ALIGNMENT, get_align_by_num(GET_ALIGNMENT(ch)));
       snprintf(buf, sizeof(buf), "%s", GET_TITLE(ch) ? GET_TITLE(ch) : "");
       strip_colors(buf);
       MSDPSetString(d, eMSDP_TITLE, buf);
@@ -5196,9 +5222,9 @@ static void msdp_update(void)
 
         //        send_to_char(ch, "DEBUG: %s\r\n", buf2);
 
-        MSDPSetString(d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name);
+        set_msdp_plain_text(d, eMSDP_AREA_NAME, zone_table[GET_ROOM_ZONE(IN_ROOM(ch))].name);
 
-        MSDPSetString(d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name);
+        set_msdp_plain_text(d, eMSDP_ROOM_NAME, world[IN_ROOM(ch)].name);
         MSDPSetTable(d, eMSDP_ROOM_EXITS, room_exits);
         MSDPSetNumber(d, eMSDP_ROOM_VNUM, GET_ROOM_VNUM(IN_ROOM(ch)));
       } /*end location info*/
