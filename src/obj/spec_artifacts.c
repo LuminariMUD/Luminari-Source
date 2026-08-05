@@ -3320,7 +3320,7 @@ static int artifact_proc_lifesteal(struct char_data *ch, struct char_data *victi
   }
 
   if (damage_dealt <= 0)
-    return FALSE;
+    return victim_died;
 
   if (GET_POS(ch) > POS_DEAD && GET_HIT(ch) < GET_MAX_HIT(ch))
   {
@@ -3574,37 +3574,37 @@ static int artifact_signature_proc(struct char_data *ch, struct char_data *victi
   }
 }
 
-void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
-                          int dam, int is_critical)
+int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
+                         int dam, int is_critical)
 {
   struct artifact_data *art = NULL;
   struct affected_type af;
-  int proc_type = 0, amount = 0;
+  int proc_type = 0, amount = 0, victim_died = FALSE;
 
   if (!ch || !victim || !weapon || !art_index)
-    return;
+    return FALSE;
 
   if (!(art = artifact_of_obj(weapon)))
-    return;
+    return FALSE;
 
   /* Extra swings bought by the flurry shape are free hits, not fresh chances
    * at every proc the artifact owns. */
   if (artifact_in_flurry)
-    return;
+    return FALSE;
 
   /* The hand-written procedures roll first and answer to nothing else. */
   if (artifact_signature_proc(ch, victim, weapon, art, dam, is_critical))
-    return;
+    return TRUE;
 
   if (art->proc_chance <= 0)
-    return;
+    return FALSE;
 
   /* Internal cooldown, so a fast weapon cannot chain procs every swing. */
   if (art->last_proc > 0 && (time(0) - art->last_proc) < ARTIFACT_PROC_ICD)
-    return;
+    return FALSE;
 
   if (rand_number(1, 100) > art->proc_chance)
-    return;
+    return FALSE;
 
   proc_type = rand_number(1, art->level);
 
@@ -3616,7 +3616,7 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
     act("$p glows with dark energy as it tears at $N's soul!", FALSE, ch, weapon, victim,
         TO_NOTVICT);
     act("$p tears at your very soul!", FALSE, ch, weapon, victim, TO_VICT);
-    damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+    victim_died = (damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
     artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SOUL);
     break;
 
@@ -3650,7 +3650,8 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
     act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_CHAR);
     act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_NOTVICT);
     act("You feel doomed!", FALSE, ch, weapon, victim, TO_VICT);
-    damage(ch, victim, dice(art->level, 8), TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+    victim_died =
+        (damage(ch, victim, dice(art->level, 8), TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
     artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_DOOM);
     break;
 
@@ -3667,7 +3668,8 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
         TO_CHAR);
     act("$p ERUPTS with ultimate power, utterly destroying $N!", FALSE, ch, weapon, victim,
         TO_NOTVICT);
-    damage(ch, victim, GET_HIT(victim) + 100, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+    victim_died =
+        (damage(ch, victim, GET_HIT(victim) + 100, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
     artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_ULTIMATE);
     break;
 
@@ -3677,6 +3679,7 @@ void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct
 
   art->last_proc = time(0);
   artifact_mark_dirty();
+  return victim_died;
 }
 
 /* --------------------------------------------------------------------------

@@ -116,6 +116,13 @@ static void artint_make_player(struct char_data *ch, const char *name, room_rnum
   ch->player.name = strdup(name);
   ch->player.short_descr = strdup(name);
   GET_LEVEL(ch) = 20;
+  GET_REAL_STR(ch) = 10;
+  GET_REAL_DEX(ch) = 10;
+  GET_REAL_CON(ch) = 10;
+  GET_REAL_INT(ch) = 10;
+  GET_REAL_WIS(ch) = 10;
+  GET_REAL_CHA(ch) = 10;
+  ch->aff_abils = ch->real_abils;
   GET_POS(ch) = POS_STANDING;
   GET_HIT(ch) = 500;
   GET_MAX_HIT(ch) = 500;
@@ -353,6 +360,140 @@ static void artint_uncarry(struct artint_fixture *fixture, struct obj_data *obj)
   obj->next_content = NULL;
   if (obj_index[GET_OBJ_RNUM(obj)].number > 0)
     obj_index[GET_OBJ_RNUM(obj)].number--;
+}
+
+struct artint_lethal_result
+{
+  int hook_reported_death;
+  int extraction_marked;
+  int proc_message_seen;
+  int downstream_vampiric_seen;
+};
+
+/* Drive the real successful-hit boundary with a disposable production mobile.
+ * The one-hit target is heap allocated through read_mobile() because a lethal
+ * damage() call marks NPCs for deferred extraction. */
+static int artint_run_lethal_outer_hook(struct artint_fixture *fixture, struct obj_data *obj,
+                                        int artifact_vnum, int generic_proc,
+                                        struct artint_lethal_result *result)
+{
+  struct artifact_data *art = NULL;
+  struct char_data mobile_proto;
+  struct char_data *victim = NULL;
+  struct char_data *saved_character_list = NULL;
+  struct char_data *saved_mob_proto = NULL;
+  struct obj_data *saved_object_list = NULL;
+  int base_damage = 0;
+
+  if (!fixture || !obj || !result)
+    return FALSE;
+
+  memset(result, 0, sizeof(*result));
+  saved_character_list = character_list;
+  saved_mob_proto = mob_proto;
+  saved_object_list = object_list;
+
+  clear_char(&mobile_proto);
+  SET_BIT_AR(MOB_FLAGS(&mobile_proto), MOB_ISNPC);
+  mobile_proto.player_specials = &dummy_mob;
+  mobile_proto.player.name = (char *)"artifact lethal target";
+  mobile_proto.player.short_descr = (char *)"an artifact lethal target";
+  GET_MOB_RNUM(&mobile_proto) = 0;
+  GET_LEVEL(&mobile_proto) = 1;
+  GET_CLASS(&mobile_proto) = CLASS_WARRIOR;
+  GET_REAL_RACE(&mobile_proto) = RACE_HUMAN;
+  GET_REAL_SIZE(&mobile_proto) = SIZE_MEDIUM;
+  GET_POS(&mobile_proto) = POS_STANDING;
+  GET_DEFAULT_POS(&mobile_proto) = POS_STANDING;
+  GET_HIT(&mobile_proto) = 2;
+  GET_PSP(&mobile_proto) = 2;
+  GET_MAX_HIT(&mobile_proto) = 1;
+
+  character_list = NULL;
+  object_list = NULL;
+  mob_proto = &mobile_proto;
+  victim = read_mobile(0, REAL);
+  if (!victim)
+  {
+    character_list = saved_character_list;
+    object_list = saved_object_list;
+    mob_proto = saved_mob_proto;
+    return FALSE;
+  }
+
+  GET_HIT(victim) = 1;
+  GET_MAX_HIT(victim) = 1;
+  char_to_room(victim, 0);
+  SET_BIT_AR(AFF_FLAGS(&fixture->actor), AFF_VAMPIRIC_TOUCH);
+
+  artint_instance(fixture, obj, artifact_vnum);
+  artint_carry(fixture, obj);
+  GET_EQ(&fixture->actor, WEAR_WIELD_2H) = obj;
+  obj->worn_by = &fixture->actor;
+  obj->worn_on = WEAR_WIELD_2H;
+
+  art = artifact_by_vnum(artifact_vnum);
+  if (!art)
+  {
+    extract_char(victim);
+    extract_pending_chars();
+    character_list = saved_character_list;
+    object_list = saved_object_list;
+    mob_proto = saved_mob_proto;
+    GET_EQ(&fixture->actor, WEAR_WIELD_2H) = NULL;
+    obj->worn_by = NULL;
+    artint_uncarry(fixture, obj);
+    return FALSE;
+  }
+
+  art->level = generic_proc ? 1 : ARTIFACT_MAX_LEVEL;
+  art->last_proc = 0;
+  if (generic_proc)
+  {
+    art->sig_proc = ART_SIG_NONE;
+    art->sig_chance = 0;
+    art->proc_chance = 100;
+  }
+  else
+  {
+    art->sig_chance = 100;
+    art->proc_chance = 0;
+  }
+
+  FIGHTING(&fixture->actor) = victim;
+  FIGHTING(victim) = &fixture->actor;
+  base_damage = 1 + compute_hit_damage(&fixture->actor, victim, TYPE_HIT, 10, MODE_NORMAL_HIT,
+                                       FALSE, ATTACK_TYPE_PRIMARY, DAM_SLICE);
+  GET_HIT(victim) = base_damage - 10;
+  GET_MAX_HIT(victim) = MAX(1, base_damage);
+  GET_HIT(&fixture->actor) = GET_MAX_HIT(&fixture->actor);
+  artint_clear_output(fixture);
+
+  result->hook_reported_death =
+      test_handle_successful_artifact_attack(&fixture->actor, victim, obj, 1, FALSE, DAM_SLICE);
+  result->extraction_marked = MOB_FLAGGED(victim, MOB_NOTDEADYET);
+  result->proc_message_seen =
+      generic_proc ? artint_said(fixture, "tears at") : artint_said(fixture, "Five colors");
+  result->downstream_vampiric_seen = artint_said(fixture, "vampiric");
+
+  if (!MOB_FLAGGED(victim, MOB_NOTDEADYET))
+    extract_char(victim);
+  extract_pending_chars();
+
+  while (object_list)
+    extract_obj(object_list);
+
+  character_list = saved_character_list;
+  object_list = saved_object_list;
+  mob_proto = saved_mob_proto;
+  FIGHTING(&fixture->actor) = NULL;
+  fixture->actor.last_attacker = NULL;
+  GET_EQ(&fixture->actor, WEAR_WIELD_2H) = NULL;
+  obj->worn_by = NULL;
+  obj->worn_on = -1;
+  artint_uncarry(fixture, obj);
+
+  return TRUE;
 }
 
 /* --------------------------------------------------------------------------
@@ -1274,6 +1415,63 @@ void Test_artifact_integration_generic_proc_respects_its_cooldown(CuTest *tc)
 
   CuAssertIntEquals(tc, TRUE, no_proc_at_zero_chance);
   CuAssertIntEquals(tc, TRUE, silent_on_cooldown);
+}
+
+void Test_artifact_integration_lethal_signature_stops_outer_hit_pipeline(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artint_lethal_result result;
+  struct obj_data obj;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  if (!artint_run_lethal_outer_hook(&fixture, &obj, ART_VNUM_STINGER, FALSE, &result))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not run the lethal signature fixture");
+    return;
+  }
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, result.hook_reported_death);
+  CuAssertIntEquals(tc, TRUE, result.extraction_marked);
+  CuAssertIntEquals(tc, TRUE, result.proc_message_seen);
+  CuAssertIntEquals(tc, FALSE, result.downstream_vampiric_seen);
+}
+
+void Test_artifact_integration_lethal_generic_proc_stops_outer_hit_pipeline(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artint_lethal_result result;
+  struct obj_data obj;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* A level-1 generic table can select only the soul-damage branch. */
+  if (!artint_run_lethal_outer_hook(&fixture, &obj, ART_VNUM_AEGIS, TRUE, &result))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not run the lethal generic-proc fixture");
+    return;
+  }
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, result.hook_reported_death);
+  CuAssertIntEquals(tc, TRUE, result.extraction_marked);
+  CuAssertIntEquals(tc, TRUE, result.proc_message_seen);
+  CuAssertIntEquals(tc, FALSE, result.downstream_vampiric_seen);
 }
 
 /* --------------------------------------------------------------------------

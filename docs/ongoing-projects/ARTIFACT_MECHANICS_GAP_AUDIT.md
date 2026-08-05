@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Audit complete; remediation open
+**Status:** Remediation in progress; ART-AUD-001 resolved
 
 **Audited:** 2026-08-06
 
@@ -17,14 +17,15 @@ combat mechanics from its executable source material:
    life-stealing strike, automatic stand-up behavior, and minor combat heal.
 
 The audit also found three independent runtime defects: lethal artifact damage
-is not propagated back to the combat caller, Earthcrier calculates but ignores
+was not propagated back to the combat caller, Earthcrier calculates but ignores
 its declared save DC, and Kelrom's hand-written proc makes its advertised 14
 percent generic proc unreachable. These defects affect more than source parity
-and should be addressed before artifact placement.
+and should be addressed before artifact placement. ART-AUD-001, the lethal-proc
+boundary defect, was resolved first on 2026-08-06.
 
-No gameplay code was changed as part of this audit. This document records the
-evidence, separates confirmed defects from design choices, and defines a safe
-order for remediation.
+The initial audit changed no gameplay code. Remediation work is now tracked in
+this document as each item is implemented, tested, live-validated, committed,
+and closed one at a time.
 
 ## Evidence baseline
 
@@ -78,7 +79,7 @@ contracts.
 
 | ID | Severity | Classification | Finding | Affected artifacts |
 | --- | --- | --- | --- | --- |
-| ART-AUD-001 | Critical | Confirmed defect | A lethal artifact proc can extract an NPC, but the combat caller continues using the old victim pointer. | Any damaging proc |
+| ART-AUD-001 | Critical | Resolved 2026-08-06 | A lethal artifact proc did not report death to the combat caller, which then continued through later victim-dependent riders. | Any damaging proc |
 | ART-AUD-002 | High | Confirmed source gap | Fade's named life-draining strike is absent. Its 16 percent value is only the generic proc table. | Fade |
 | ART-AUD-003 | High | Confirmed source gap | Doombringer's five-extra-hit combat burst and its own recharge are absent. Its 20 percent value is only the generic proc table. | Doombringer |
 | ART-AUD-004 | High | Confirmed source gap | Avernus implements only emergency healing; its primary life steal and auto-stand package are absent. | Avernus |
@@ -95,9 +96,31 @@ contracts.
 
 ## Detailed findings
 
-### ART-AUD-001: proc death is discarded by the combat hook
+### ART-AUD-001: proc death is discarded by the combat hook [resolved]
 
-Evidence:
+Resolution (2026-08-06):
+
+- `artifact_weapon_proc()` now returns whether its secondary damage killed the
+  victim. The generic soul, doom, and ultimate branches propagate the
+  `damage()` death result just like signature helpers.
+- `handle_successful_attack()` reports lethal artifact damage to `hit()` and
+  returns immediately. `hit()` also returns immediately, before critical
+  riders, triggers, or any other victim access.
+- Tiamat's Stinger preserves a lethal result even when the victim was already
+  at zero HP and therefore contributes no drain healing.
+- Production-linked tests kill a disposable production mobile through both
+  Stinger's reusable signature and the generic soul proc. They assert deferred
+  extraction, the outer-hook death result, proc output, and absence of the
+  downstream vampiric-touch rider.
+- The full suite passes 418/418 tests. The installed binary survived a local
+  copyover, and Kohdee exercised the real five-attack Stinger loop against a
+  disposable Oaken Defender with clean combat and temporary-target cleanup.
+  Measured test gold and artifact progression were restored afterward.
+  `testartifact verify` validated table metadata but still reports duplicate
+  instances already held by Kohdee, Zusuk, and Bwarg; this remediation did not
+  mutate that unrelated development state.
+
+Original evidence at audited revision `61c03285`:
 
 - Signature helpers return true when `damage()` kills the victim
   (`src/obj/spec_artifacts.c:2966`, `3292-3337`, and `3486-3575`).
@@ -114,15 +137,15 @@ Evidence:
 - The generic soul, doom, and ultimate branches call `damage()` without
   checking its death result (`src/obj/spec_artifacts.c:3611-3672`).
 
-Required remediation contract:
+Completed remediation contract:
 
-1. Make the artifact proc boundary report victim death to `fight.c`.
-2. Set or re-evaluate `victim_is_dead` immediately after the hook.
-3. Stop all later victim access on death.
-4. Add lethal tests for both a reusable signature and a generic proc.
+1. [x] Make the artifact proc boundary report victim death to `fight.c`.
+2. [x] Set or re-evaluate `victim_is_dead` immediately after the hook.
+3. [x] Stop all later victim access on death.
+4. [x] Add lethal tests for both a reusable signature and a generic proc.
 
-This is the first fix because adding the missing Fade, Doombringer, or Avernus
-damage paths would increase exposure to the unsafe caller.
+This was fixed first because adding the missing Fade, Doombringer, or Avernus
+damage paths would have increased exposure to the unsafe caller.
 
 ### ART-AUD-002: Fade's combat life drain is absent
 
@@ -405,8 +428,8 @@ runtime ignores.
 
 ## Recommended remediation order
 
-1. **Make the combat boundary death-safe.** Fix ART-AUD-001 and add lethal
-   outer-hook tests before adding any damage proc.
+1. **Completed 2026-08-06: make the combat boundary death-safe.** ART-AUD-001
+   now has lethal signature and generic-proc outer-hook tests.
 2. **Add identity-contract tests.** Encode all 17 expected named behaviors so a
    generic percentage cannot masquerade as a named mechanic again
    (ART-AUD-013).

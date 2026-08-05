@@ -12337,7 +12337,7 @@ static int fist_air_callback(struct char_data *ch, struct char_data *tch, void *
 int handle_successful_attack(struct char_data *ch, struct char_data *victim,
                              struct obj_data *wielded, int dam, int w_type, int type, int diceroll,
                              int is_critical, int attack_type, int dam_type,
-                             struct obj_data *missile)
+                             struct obj_data *missile, bool *artifact_victim_died)
 {
   struct affected_type af = {0}; /* for crippling strike */
   struct affected_type *af2;     // for hostile juxtaposition
@@ -12348,6 +12348,10 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   char hit_msg[32] = "";
   int sneakdam = 0; /* Additional sneak attack damage. */
   bool victim_is_dead = FALSE;
+
+  if (artifact_victim_died)
+    *artifact_victim_died = FALSE;
+
   GET_CONSECUTIVE_HITS(ch)++;
 
   if (affected_by_spell(ch, SPELL_RIGHTEOUS_VIGOR))
@@ -13762,8 +13766,13 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
   if (ch && victim && !victim_is_dead && dam > 0)
   {
     artifact_combat_hit(ch, victim, dam, is_critical);
-    if (wielded)
-      artifact_weapon_proc(ch, victim, wielded, dam, is_critical);
+    if (wielded && artifact_weapon_proc(ch, victim, wielded, dam, is_critical))
+    {
+      victim_is_dead = TRUE;
+      if (artifact_victim_died)
+        *artifact_victim_died = TRUE;
+      return dam;
+    }
   }
 
   /* special weapon (or gloves for monk) procedures.  Need to implement something similar for the new system. */
@@ -13820,6 +13829,20 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
 
   return dam;
 }
+
+#ifdef LUMINARI_CUTEST
+int test_handle_successful_artifact_attack(struct char_data *ch, struct char_data *victim,
+                                           struct obj_data *wielded, int dam, int is_critical,
+                                           int dam_type)
+{
+  bool artifact_victim_died = FALSE;
+
+  (void)handle_successful_attack(ch, victim, wielded, dam, TYPE_HIT, TYPE_UNDEFINED, 10,
+                                 is_critical, ATTACK_TYPE_PRIMARY, dam_type, NULL,
+                                 &artifact_victim_died);
+  return artifact_victim_died;
+}
+#endif
 
 /* damage inflicting shields, like fire shield */
 int damage_shield_check(struct char_data *ch, struct char_data *victim, int attack_type, int dam,
@@ -14008,6 +14031,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       dam = 0;            /* Damage for the attack, with mods. */
 
   struct affected_type af = {0};
+  bool artifact_victim_died = FALSE;
 
   bool is_critical = FALSE;
 
@@ -14525,8 +14549,11 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
   {
     /* OK, attack should be a success at this stage */
     dam = handle_successful_attack(ch, victim, wielded, dam, w_type, type, diceroll, is_critical,
-                                   attack_type, dam_type, missile);
+                                   attack_type, dam_type, missile, &artifact_victim_died);
   }
+
+  if (artifact_victim_died)
+    return dam;
 
   if (is_critical)
   {

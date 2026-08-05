@@ -1069,7 +1069,6 @@ void Test_artifact_hooks_tolerate_null(CuTest *tc)
   artifact_remove_bonuses(NULL, NULL);
   artifact_grant_xp(NULL, 10);
   artifact_grant_xp_obj(NULL, NULL, 10);
-  artifact_weapon_proc(NULL, NULL, NULL, 0, FALSE);
   artifact_combat_hit(NULL, NULL, 0, FALSE);
   artifact_combat_kill(NULL, NULL);
   artifact_burn_tick(NULL);
@@ -1085,6 +1084,7 @@ void Test_artifact_hooks_tolerate_null(CuTest *tc)
   CuAssertIntEquals(tc, FALSE, artifact_is_artifact(NULL));
   CuAssertPtrEquals(tc, NULL, artifact_of_obj(NULL));
   CuAssertIntEquals(tc, FALSE, artifact_block_zone_load(NOTHING));
+  CuAssertIntEquals(tc, FALSE, artifact_weapon_proc(NULL, NULL, NULL, 0, FALSE));
 
   /* Damage passes through untouched when there is no victim. */
   CuAssertIntEquals(tc, 100, artifact_damage_resist(NULL, 100, DAM_FIRE));

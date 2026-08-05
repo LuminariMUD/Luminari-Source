@@ -538,8 +538,9 @@ int artifact_block_zone_load(obj_rnum obj_rnum);
 int artifact_damage_resist(struct char_data *victim, int dam, int dam_type);
 void artifact_combat_hit(struct char_data *ch, struct char_data *victim, int dam, int is_critical);
 void artifact_combat_kill(struct char_data *ch, struct char_data *victim);
-void artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
-                          int dam, int is_critical);
+/* Returns TRUE when secondary proc damage killed the victim. */
+int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
+                         int dam, int is_critical);
 
 /* Commands */
 ACMD_DECL(do_artifact);

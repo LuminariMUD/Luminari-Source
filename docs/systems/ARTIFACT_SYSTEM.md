@@ -859,9 +859,17 @@ weapon attack reaches an artifact proc through this sequence:
    `artifact_combat_hit()` awards general combat XP.
 3. Only a non-NULL weapon is passed to `artifact_weapon_proc()`.
 4. `artifact_weapon_proc()` resolves registry membership, blocks proc loops,
-   runs the signature path first, and then considers the generic proc table.
+   runs the signature path first, and then considers the generic proc table. It
+   returns true when secondary artifact damage kills the victim.
 5. `artifact_signature_proc()` selects either a reusable `ART_SIG_*` shape or
    one of the inherited hand-written procedures.
+6. A lethal result makes `handle_successful_attack()` and then `hit()` return
+   immediately, before any later rider, trigger, or victim access.
+
+The return value of `artifact_weapon_proc()` is a combat-safety contract, not
+proc flavor. Every generic or signature branch that calls `damage()` must
+propagate `damage() == -1`; the caller must stop the outer attack pipeline when
+that result is true.
 
 This separates three failures that look identical in combat text:
 
@@ -898,8 +906,10 @@ That preserves mitigation, immunity, combat bookkeeping, and death handling.
 If a secondary effect depends on damage dealt, use the actual result rather
 than the requested amount. Remember that a killing `damage()` call returns
 `-1` and may extract the victim; snapshot any required victim state before the
-call and do not dereference the victim afterward. Healing must be capped by
-missing HP, and a successful proc should grant XP exactly once.
+call and do not dereference the victim afterward. Preserve that death result
+even when the proc has no secondary healing or other post-damage work to do.
+Healing must be capped by missing HP, and a successful proc should grant XP
+exactly once.
 
 ### Tiamat's Stinger case study
 
@@ -927,6 +937,9 @@ apparently broken artifact proc:
    is deliberately not persisted.
 7. The drain uses negative damage through `damage()`. Healing is based on
    damage actually inflicted and is capped by the wielder's missing HP.
+8. A lethal drain is returned through `artifact_weapon_proc()` to the outer
+   combat hook even when the target was already at zero HP and no healing can
+   be credited.
 
 The reusable lesson is to prove attack generation, weapon attribution, and
 power dispatch separately. Increasing a percentage before tracing those three
@@ -947,7 +960,7 @@ production-linked suite:
 | Bad-luck protection | Chance zero stays quiet before the limit and fires exactly at the limit |
 | Cooldown | Both signature and generic paths obey the documented interaction, including same-hit suppression |
 | Effect result | Damage type and scaling are bounded; healing equals actual damage and cannot exceed maximum HP |
-| Death safety | A killing proc does not reuse an extracted victim or over-credit healing |
+| Death safety | A lethal signature and a lethal generic proc both stop the outer hit pipeline before later victim-dependent riders |
 | Runtime state | Success, boot, and ownership changes reset transient counters as designed |
 | Player output | `artifact info` and combat messages state the behavior players actually receive |
 

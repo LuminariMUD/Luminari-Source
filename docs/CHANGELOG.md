@@ -1,6 +1,34 @@
 # Changelog
 
-## [Unreleased] - August 5, 2026
+## [Unreleased] - August 6, 2026
+
+### Artifact lethal-proc combat safety
+
+#### Fixed
+
+- Made artifact weapon procs report lethal secondary damage through the
+  successful-attack handler and back to `hit()`. The outer attack now stops
+  before weapon specials, vampiric riders, critical riders, or triggers can
+  touch the dead victim.
+- Propagated death from the generic soul, doom, and ultimate proc branches as
+  well as reusable and hand-written signature procedures.
+- Preserved Tiamat's Stinger's lethal result when it strikes a target already
+  at zero HP, where no drain healing can be credited.
+
+#### Verification
+
+- The production-linked suite passes all 418 tests. New outer-hook tests kill
+  a disposable production mobile through both Stinger's reusable lifesteal
+  signature and the generic soul proc, then prove the later vampiric-touch
+  rider did not run.
+- The installed development binary survived copyover. Kohdee equipped
+  Stinger, confirmed all five attacks were attributed to it, killed a
+  disposable 500-HP Oaken Defender through the normal combat loop, removed the
+  weapon, and left no temporary mobile or corpse behind. The measured test
+  gold and artifact progression were restored afterward.
+- `testartifact verify` accepted the table metadata. Its full integrity result
+  still reports the pre-existing duplicate artifact instances held by Kohdee,
+  Zusuk, and Bwarg; this repair did not alter those characters or their items.
 
 ### Tiamat's Stinger lifesteal
 
