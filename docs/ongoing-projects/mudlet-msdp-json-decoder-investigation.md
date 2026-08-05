@@ -426,7 +426,8 @@ This needs a real serializer, not only `strip_colors()` at three call sites.
 - Replaced the legacy inbound GMCP `@NAME value` parser with strict UTF-8 JSON parsing for
   standard messages such as `MSDP {"REPORT":["HEALTH","TITLE"]}`. Only the case-sensitive
   `MSDP` package is routed to the existing MSDP command executor; malformed or unsupported JSON
-  is rejected before any command in the object is applied.
+  is rejected before any command in the object is applied. Lexical validation also rejects
+  escaped NUL in either a JSON member name or value before `json-c` can normalize it.
 - Normalized `AFFECTS` to store table content through `MSDPSetTable()` instead of embedding an
   outer table in `MSDPSetString()`. Its update path now supports either native MSDP or the GMCP
   fallback, matching the other structured producers.
@@ -434,8 +435,14 @@ This needs a real serializer, not only `strip_colors()` at three call sites.
   harnesses. The focused harness now passes 29/29 tests, covering strict scalar JSON round trips,
   all escape classes, UTF-8, JSON numeric typing, nested objects and arrays, GUI array defaults,
   pair/list typing, native list framing, malformed marker rejection, invalid UTF-8, post-escape
-  overflow, and standard inbound REPORT arrays. The sanitizer fuzz target builds successfully;
-  full production-linked tests and installation are still pending.
+  overflow, standard inbound REPORT arrays, atomic rejection, and escaped NUL in member names and
+  values. A ten-second ASan/UBSan fuzz run completed without a finding, and a warning-free
+  optimized server build linked the new serializer successfully. Full production-linked tests
+  and installation are still pending.
+- Updated the canonical protocol and variable references, their legacy mirror, API comments,
+  performance notes, and the changelog with the plain-text and JSON contracts. The in-game help
+  corpus has no existing MSDP or GMCP entry to update; the maintained contract is developer- and
+  integration-facing documentation.
 
 ### MJD-005: Tests cover safety but not this compatibility contract
 

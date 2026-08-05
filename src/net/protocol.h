@@ -22,7 +22,7 @@
  * - MCCP: Compression protocol framework (not fully implemented)
  *
  * KEY FEATURES:
- * - Real-time variable updates every game pulse (0.1 seconds)
+ * - Real-time variable evaluation once per second plus immediate subsystem updates
  * - 200+ predefined MSDP variables covering all game aspects
  * - Color system with RGB support and Unicode characters
  * - GUI elements (buttons and gauges) for compatible clients
@@ -273,7 +273,7 @@ typedef struct descriptor_data descriptor_t;
  * complex data types like arrays and tables. They form the foundation
  * of MSDP's type-safe data exchange system.
  *
- * Example MSDP array: VAR "AFFECTS" VAL "blind" VAL "haste" VAL "fly"
+ * Example MSDP array: VAR "ITEMS" VAL "sword" VAL "shield" VAL "potion"
  * Example MSDP table: VAR "ROOM" VAR "NAME" VAL "Temple" VAR "EXITS" VAL "north"
  */
 #define MSDP_VAR 1         /**< Variable name marker */
@@ -510,7 +510,7 @@ typedef enum
   eMSDP_SNIPPET_VERSION, /**< Protocol snippet version (8) */
 
   /* Character statistics and progression */
-  eMSDP_AFFECTS,         /**< Active spell effects and conditions (array) */
+  eMSDP_AFFECTS,         /**< Active effect categories and entries (table of arrays) */
   eMSDP_INVENTORY,       /**< Character inventory items (array) */
   eMSDP_ALIGNMENT,       /**< Character alignment text (Lawful Good, Neutral Evil, etc.) */
   eMSDP_TITLE,           /**< Player title, or empty string when unavailable */
@@ -566,7 +566,7 @@ typedef enum
   /* World and environment information */
   eMSDP_ROOM,                   /**< Complete room information (table) */
   eMSDP_AREA_NAME,              /**< Current area/zone name */
-  eMSDP_ROOM_EXITS,             /**< Available exits from current room (array) */
+  eMSDP_ROOM_EXITS,             /**< Available exits keyed by direction (table) */
   eMSDP_ROOM_NAME,              /**< Current room name */
   eMSDP_ROOM_VNUM,              /**< Current room virtual number */
   eMSDP_WORLD_TIME,             /**< Game world time */
@@ -1272,7 +1272,7 @@ protocol_error_t CopyoverSet(descriptor_t *apDescriptor, const char *apData);
  *
  * Transmits all MSDP variables that have been marked as dirty (changed)
  * and are being reported by the client. This is the main function for
- * regular MSDP updates and should be called frequently (every game pulse).
+ * regular MSDP updates and is called once per second by LuminariMUD's game loop.
  *
  * UPDATE PROCESS:
  * 1. Iterates through all MSDP variables
@@ -1284,14 +1284,14 @@ protocol_error_t CopyoverSet(descriptor_t *apDescriptor, const char *apData);
  * TRANSMISSION EFFICIENCY:
  * - Only sends variables the client has requested
  * - Only sends variables that have actually changed
- * - Batches all updates into single protocol message
+ * - Sends each dirty variable as one all-or-nothing protocol frame
  * - Minimizes network traffic and client processing
  *
  * @param apDescriptor Client connection descriptor
  *
- * @usage Called every game pulse for real-time updates:
+ * @usage Called once per second for real-time updates:
  * @code
- *   // In main game loop (every 0.1 seconds)
+ *   // In the once-per-second section of the main game loop
  *   for (d = descriptor_list; d; d = d->next) {
  *       if (STATE(d) == CON_PLAYING && d->pProtocol) {
  *           // Update all character data
@@ -1374,6 +1374,7 @@ protocol_error_t MSDPFlush(descriptor_t *apDescriptor, variable_t aMSDP);
  *
  * @note Should not be used in normal operation - use MSDPUpdate() instead
  * @note Bypasses efficiency mechanisms (report checking, dirty flags)
+ * @note A GMCP-only connection receives `MSDP {"VARIABLE":value}` with strict UTF-8 JSON
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPUpdate(), MSDPFlush()
  */
@@ -1407,7 +1408,8 @@ protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP);
  *   MSDPSendPair(ch->desc, "CALCULATED_VALUE", buffer);
  * @endcode
  *
- * @note Automatically uses GMCP if MSDP not supported
+ * @note apValue is scalar text, not a pre-encoded JSON value
+ * @note A GMCP-only connection receives apValue as a JSON string in the `MSDP` package
  * @note Client must understand custom variable meanings
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSendList(), MSDPSetString()
@@ -1444,8 +1446,8 @@ protocol_error_t MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable
  *   MSDPSendList(ch->desc, "INVENTORY_TYPES", buffer);
  * @endcode
  *
- * @note Values should be separated by single spaces
- * @note Automatically uses GMCP if MSDP not supported
+ * @note Space runs are separators; leading, repeated, and trailing spaces create no empty items
+ * @note A GMCP-only connection receives a JSON string array in the `MSDP` package
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSendPair(), MSDPSetArray()
  */
@@ -1509,6 +1511,7 @@ protocol_error_t MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int
  *
  * STRING HANDLING:
  * - Rejects NULL pointers with PROTOCOL_ERROR_NULL_POINTER
+ * - Rejects reserved MSDP delimiter bytes and Telnet IAC in scalar content
  * - Performs string comparison to avoid unnecessary updates
  * - Dynamically allocates/deallocates string memory
  * - Properly manages memory to prevent leaks
@@ -1547,6 +1550,8 @@ protocol_error_t MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int
  * @endcode
  *
  * @note NULL input is rejected; use "" to clear a string
+ * @note Pass client-facing text, not terminal strings containing internal color markup
+ * @note Use MSDPSetTable() or MSDPSetArray() for values containing structural MSDP markers
  * @note Only triggers update if string content actually changes
  * @note Memory is managed automatically
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
@@ -1596,8 +1601,8 @@ protocol_error_t MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, con
  *   MSDPSetTable(ch->desc, eMSDP_ACTIONS, equip_buffer);
  * @endcode
  *
- * @note Value must be pre-formatted with MSDP_VAR/MSDP_VAL markers
- * @note Each variable name and value should be null-terminated strings
+ * @note Value is table content; this function adds the outer table-open/table-close markers
+ * @note Malformed, unbalanced, or unexpected MSDP marker sequences are rejected
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSetString(), MSDPSetArray(), MSDP_VAR, MSDP_VAL
  */
@@ -1607,8 +1612,8 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
  * Set an MSDP array variable
  *
  * Updates an MSDP variable with structured array data containing
- * multiple values. Arrays are used for lists like inventory items,
- * group members, available exits, spell effects, etc.
+ * multiple values. Arrays are used for lists such as inventory items,
+ * group members, and GUI definitions.
  *
  * ARRAY FORMAT:
  * Arrays use MSDP_VAL markers to separate array elements:
@@ -1625,17 +1630,16 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
  *
  * @usage Create structured array data:
  * @code
- *   char affects_buffer[MAX_STRING_LENGTH];
+ *   char group_buffer[MAX_STRING_LENGTH];
  *   char inventory_buffer[MAX_STRING_LENGTH];
- *   char exits_buffer[MAX_STRING_LENGTH];
  *
- *   // Build affects array
- *   snprintf(affects_buffer, sizeof(affects_buffer), "%c%s%c%s%c%s",
- *           MSDP_VAL, "blind",
- *           MSDP_VAL, "haste",
- *           MSDP_VAL, "fly");
+ *   // Build a group-name array
+ *   snprintf(group_buffer, sizeof(group_buffer), "%c%s%c%s%c%s",
+ *           MSDP_VAL, "Alice",
+ *           MSDP_VAL, "Bob",
+ *           MSDP_VAL, "Charlie");
  *
- *   MSDPSetArray(ch->desc, eMSDP_AFFECTS, affects_buffer);
+ *   MSDPSetArray(ch->desc, eMSDP_GROUP, group_buffer);
  *
  *   // Build inventory array
  *   snprintf(inventory_buffer, sizeof(inventory_buffer), "%c%s%c%s%c%s%c%s",
@@ -1645,19 +1649,10 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
  *           MSDP_VAL, "some gold");
  *
  *   MSDPSetArray(ch->desc, eMSDP_INVENTORY, inventory_buffer);
- *
- *   // Build exits array
- *   snprintf(exits_buffer, sizeof(exits_buffer), "%c%s%c%s%c%s%c%s",
- *           MSDP_VAL, "north",
- *           MSDP_VAL, "south",
- *           MSDP_VAL, "east",
- *           MSDP_VAL, "up");
- *
- *   MSDPSetArray(ch->desc, eMSDP_ROOM_EXITS, exits_buffer);
  * @endcode
  *
- * @note Value must be pre-formatted with MSDP_VAL markers
- * @note Each array element should be a null-terminated string
+ * @note Value is array content; this function adds the outer array-open/array-close markers
+ * @note Malformed, unbalanced, or unexpected MSDP marker sequences are rejected
  * @return PROTOCOL_SUCCESS, or a negative protocol_error_t value
  * @see MSDPSetString(), MSDPSetTable(), MSDP_VAL
  */
@@ -1691,7 +1686,7 @@ protocol_error_t MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, cons
  *
  * USAGE FREQUENCY:
  * - Should be called whenever player count changes
- * - Typically called every game pulse (0.1 seconds)
+ * - Called once per second by LuminariMUD's game loop
  * - Used by MUD listing services for real-time data
  *
  * @param aPlayers Current number of connected players
@@ -2157,7 +2152,7 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
 /*
  * MSDP UPDATE EXAMPLE:
  *
- * // Update function called every game pulse (0.1 seconds)
+ * // Update function called once per second
  * void update_msdp_data(void) {
  *     descriptor_t *d;
  *     struct char_data *ch;
@@ -2231,10 +2226,10 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
  *     MSDPSetNumber(d, eMSDP_ROOM_VNUM, world[IN_ROOM(ch)].number);
  *     MSDPSetString(d, eMSDP_AREA_NAME, zone_table[world[IN_ROOM(ch)].zone].name);
  *
- *     // Build exits array
+ *     // Build exits table
  *     char exits_buf[MAX_STRING_LENGTH];
- *     build_exits_array(ch, exits_buf);
- *     MSDPSetArray(d, eMSDP_ROOM_EXITS, exits_buf);
+ *     build_exits_table(ch, exits_buf);
+ *     MSDPSetTable(d, eMSDP_ROOM_EXITS, exits_buf);
  *
  *     // Send immediately for responsive movement
  *     MSDPFlush(d, eMSDP_ROOM_NAME);
@@ -2249,8 +2244,8 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
  *     if (!d || !d->pProtocol) return;
  *
  *     char affects_buf[MAX_STRING_LENGTH];
- *     build_affects_array(ch, affects_buf);
- *     MSDPSetArray(d, eMSDP_AFFECTS, affects_buf);
+ *     build_affects_table(ch, affects_buf);
+ *     MSDPSetTable(d, eMSDP_AFFECTS, affects_buf);
  *     MSDPFlush(d, eMSDP_AFFECTS);
  * }
  *
@@ -2352,7 +2347,7 @@ protocol_error_t ProtocolTestAppendMSSPPair(char *apBuffer, size_t aBufferSize, 
  *                           INTEGRATION NOTES
  *
  * PERFORMANCE CONSIDERATIONS:
- * - Call MSDPUpdate() every game pulse (0.1s) for real-time data
+ * - Call MSDPUpdate() once per second and use MSDPFlush() for immediate updates
  * - Use MSDPFlush() sparingly for immediate critical updates
  * - Dirty flag system prevents unnecessary network traffic
  * - Per-descriptor buffers prevent memory allocation overhead

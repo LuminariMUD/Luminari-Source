@@ -1,16 +1,17 @@
 # LuminariMUD Protocol Systems Documentation
 
-Last verified: 2026-08-04
+Last verified: 2026-08-05
 
 ## Overview
 
 LuminariMUD implements **KaVir's Protocol Snippet v8**, a comprehensive suite of MUD client protocols that enhance the player experience through advanced client integration. The protocol system handles telnet negotiation, real-time data exchange, multimedia features, and graphical user interface elements.
 
-**Current Status**: MSDP is integrated into the game loop with real-time
-variable updates sent every game pulse (0.1 seconds). Source-side GMCP helper
-paths exist as an MSDP fallback and Mudlet package delivery mechanism, but they
-are not a stable Luminari Web module contract. MCCP is framework-only until
-compression functions are implemented.
+**Current Status**: MSDP is integrated into the game loop with reported dirty
+variables evaluated and sent once per second. A GMCP-only connection
+uses the standard case-sensitive `MSDP` package with strict UTF-8 JSON in both
+directions. Optional Mudlet package delivery uses a separate GMCP module and is
+not a Luminari Web module contract. MCCP is framework-only until compression
+functions are implemented.
 
 ## Supported Protocols
 
@@ -18,25 +19,56 @@ compression functions are implemented.
 **Primary data exchange protocol for real-time game state information**
 
 - **Purpose**: Provides structured data about character stats, world state, and game information
-- **Fallback**: Automatically uses GMCP if MSDP unavailable
-- **Update Frequency**: Every game pulse (10 times per second)
+- **Fallback**: Uses the standard MSDP-over-GMCP JSON mapping if native MSDP is unavailable
+- **Update Frequency**: Once per second, plus immediate subsystem-specific updates
 - **Variables**: 200+ predefined variables covering all game aspects
 
 ### 2. GMCP (Generic Mud Communication Protocol) - TELOPT 201
-**Source-side MSDP fallback and Mudlet package path**
+**Standards-compliant MSDP fallback and optional Mudlet package path**
 
-- **Purpose**: Structured data exchange using JSON format
-- **Compatibility**: Used by source helper code when MSDP is unavailable and
-  by optional Mudlet package delivery
+- **Purpose**: Structured data exchange using UTF-8 JSON
+- **Compatibility**: Uses the case-sensitive `MSDP` package when native MSDP
+  is unavailable; optional Mudlet package delivery uses its own module
 - **Integration**: Does not currently define source-owned module names,
   versions, schemas, or a Luminari Web proxy/client contract
+
+## MSDP Wire and Content Contract
+
+Native MSDP and MSDP-over-GMCP expose the same logical values:
+
+- Scalar text is client-facing content. Do not pass terminal strings containing
+  internal tab-color directives to `MSDPSetString()`. Copy and strip those
+  directives at the producer boundary when the canonical source is also used
+  for colored terminal output. `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` follow
+  this rule.
+- Bytes `MSDP_VAR` through `MSDP_ARRAY_CLOSE`, Telnet IAC, and NUL are not
+  scalar content. Use `MSDPSetTable()` and `MSDPSetArray()` for structured
+  values; both functions add their own outer markers and reject malformed or
+  unbalanced marker sequences.
+- Native clients receive binary MSDP framing. GMCP-only clients receive one
+  JSON object in the exact package form `MSDP {"VARIABLE":value}`. Integer
+  variables become JSON numbers, scalar variables become JSON strings, and
+  nested MSDP tables and arrays become JSON objects and arrays. Typeless leaf
+  values inside native MSDP structures remain JSON strings.
+- GMCP strings are validated as UTF-8 and JSON-escaped. Size checks apply to
+  the final escaped frame. An invalid or oversized value queues no partial
+  frame and remains dirty when sent through `MSDPFlush()` or `MSDPUpdate()`.
+- Inbound fallback commands use a strict JSON object, for example
+  `MSDP {"REPORT":["HEALTH","TITLE"]}`. A command value may be a string,
+  integer, Boolean, or an array of those scalar values. Unsupported nesting,
+  embedded NUL, invalid UTF-8, and malformed JSON are rejected before any
+  command in the object is applied. The `MSDP` package name is case-sensitive.
+
+See [MSDP_VARIABLES.md](MSDP_VARIABLES.md) for the variable-level contract and
+the [MSDP-over-GMCP reference](https://mudstandards.org/gmcp/msdp/) for the wire
+mapping.
 
 ### 3. MSSP (MUD Server Status Protocol) - TELOPT 70
 **Server advertisement and discovery protocol**
 
 - **Purpose**: Provides MUD listing services with server information
 - **Data**: Player counts, uptime, codebase info, features
-- **Updates**: Player count updated every game pulse
+- **Updates**: Player count updated once per second
 
 ### 4. MXP (MUD eXtension Protocol) - TELOPT 91
 **Enhanced markup and interaction protocol**
@@ -178,7 +210,7 @@ TANK_NAME / TANK_HEALTH / TANK_HEALTH_MAX - Group tank info
 RACE                    - Character race
 CLASS                   - Character class
 POSITION                - Current position (standing, sitting, etc.)
-AFFECTS                 - Active spell effects (array)
+AFFECTS                 - Active effect categories (table containing arrays)
 INVENTORY               - Inventory items (array)
 GROUP                   - Group members (array)
 ```
@@ -187,7 +219,7 @@ GROUP                   - Group members (array)
 ```
 ROOM_NAME               - Current room name
 ROOM_VNUM               - Current room virtual number
-ROOM_EXITS              - Available exits (array)
+ROOM_EXITS              - Available exits keyed by direction (table)
 AREA_NAME               - Current area name
 WORLD_TIME              - Game world time
 SECTORS                 - Room sector information
@@ -678,6 +710,7 @@ Item and equipment information is transmitted on changes:
 
 ### Fully Implemented Features
 - **MSDP**: Complete variable system with real-time updates
+- **MSDP over GMCP**: Strict JSON conversion and command handling for GMCP-only clients
 - **MSSP**: Server status reporting with player count updates
 - **MXP**: Basic tag support with secure line mode
 - **MSP**: Sound trigger support via MSDP/GMCP
@@ -706,8 +739,8 @@ Item and equipment information is transmitted on changes:
 - **Cleanup**: Protocol structures properly freed on disconnect
 
 ### Network Optimization
-- **Batch Updates**: All dirty variables sent in single MSDP packet
-- **Binary Format**: Efficient MSDP encoding reduces bandwidth
+- **Atomic Updates**: Dirty variables are sent as independent all-or-nothing protocol frames
+- **Wire Formats**: Native binary MSDP or a strict JSON MSDP package over GMCP
 - **Smart Updates**: Only reports variables client has requested
 - **OOB Handling**: Out-of-band data properly flagged and transmitted
 
@@ -739,7 +772,7 @@ The system includes predefined GUI configurations for compatible clients:
 1. **No Protocol Response**: Check if client supports MSDP/GMCP
 2. **Missing Variables**: Verify client has sent REPORT commands
 3. **Memory Leaks**: Ensure proper cleanup in update functions
-4. **Color Problems**: Check tab character handling in client
+4. **Color Problems**: Verify scalar producers strip internal tab-color markup before storage
 
 ### Debug Commands
 ```c
@@ -755,4 +788,4 @@ MSDPFlush(d, eMSDP_HEALTH);  // Send specific variable immediately
 
 ---
 
-*This documentation reflects the actual implementation of KaVir's Protocol Snippet v8 in LuminariMUD as of 2025. For implementation details, refer to `protocol.h` and `protocol.c`. For integration points, see `comm.c`, `handler.c`, `actions.c`, and `act.other.c`.*
+*This documentation reflects the LuminariMUD implementation as verified on 2026-08-05. For implementation details, refer to `protocol.h`, `protocol.c`, and `msdp_json.c`. For integration points, see `comm.c`, `handler.c`, `actions.c`, and `act.other.c`.*

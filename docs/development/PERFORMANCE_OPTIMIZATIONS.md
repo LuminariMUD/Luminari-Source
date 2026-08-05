@@ -12,7 +12,7 @@ This document tracks performance optimizations implemented in LuminariMUD to imp
 
 **Root Causes**:
 1. Unnecessary MSDP Updates for NPCs
-2. No protocol checking for MSDP support
+2. No protocol checking for native MSDP or its GMCP fallback
 3. Heavy string operations for all characters
 4. Processing characters without affects
 
@@ -31,8 +31,9 @@ if (!IS_NPC(i))
 if (!ch || !ch->desc || IS_NPC(ch))
   return;
 
-/* Skip if client doesn't support MSDP */
-if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
+/* Skip if the client supports neither native MSDP nor the GMCP fallback. */
+if (!ch->desc->pProtocol ||
+    (!ch->desc->pProtocol->bMSDP && !ch->desc->pProtocol->bGMCP))
   return;
 ```
 
@@ -45,7 +46,7 @@ if (!i->affected && IS_NPC(i))
 
 **Performance Impact**:
 - **NPCs**: 100% reduction in MSDP processing overhead
-- **Players without MSDP**: 100% reduction in string operations
+- **Players without MSDP or its GMCP fallback**: 100% reduction in string operations
 - **Overall**: 80-90% reduction in CPU usage from affect_update()
 
 ### Performance Monitoring

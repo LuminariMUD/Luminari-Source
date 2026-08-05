@@ -6,7 +6,7 @@ The `affect_update()` function was consuming 30% CPU constantly due to inefficie
 ## Root Causes
 1. **Unnecessary MSDP Updates**: Every character (including NPCs) was getting full MSDP affect updates every 6 seconds
 2. **NPCs Don't Need MSDP**: NPCs don't have client connections and can't receive MSDP data
-3. **No Protocol Checking**: Even players without MSDP support were getting expensive string operations
+3. **No Protocol Checking**: Even players without native MSDP or its GMCP fallback were getting expensive string operations
 4. **Heavy String Operations**: Complex string concatenation using strlcat() for every affected character
 
 ## Optimizations Implemented
@@ -24,8 +24,9 @@ if (!IS_NPC(i))
 if (!ch || !ch->desc || IS_NPC(ch))
   return;
 
-/* Skip if client doesn't support MSDP */
-if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
+/* Skip if the client supports neither native MSDP nor the GMCP fallback. */
+if (!ch->desc->pProtocol ||
+    (!ch->desc->pProtocol->bMSDP && !ch->desc->pProtocol->bGMCP))
   return;
 ```
 
@@ -42,13 +43,13 @@ if (update_count % 100 == 0)
 
 ## Expected Performance Improvement
 - **NPCs**: 100% reduction in MSDP processing overhead (typically 90%+ of all characters)
-- **Players without MSDP**: 100% reduction in string operations
+- **Players without MSDP or its GMCP fallback**: 100% reduction in string operations
 - **Overall**: Expected 80-90% reduction in CPU usage from affect_update()
 
 ## Testing
 1. Monitor CPU usage before and after changes
 2. Check performance logs for character counts
-3. Verify MSDP still works for players with compatible clients
+3. Verify native MSDP and the GMCP fallback still work for compatible clients
 4. Ensure affects still expire correctly for all characters
 
 ### 4. Skip NPCs Without Affects

@@ -2,6 +2,44 @@
 
 ## [Unreleased] - August 5, 2026
 
+### MSDP plain-text and JSON compatibility repair
+
+#### Fixed
+
+- Removed internal tab-color directives from the `ALIGNMENT`, `AREA_NAME`, and
+  `ROOM_NAME` scalar protocol values without modifying their canonical colored
+  sources.
+- Replaced raw MSDP fallback interpolation with bounded, strict UTF-8 JSON in
+  the standard case-sensitive `MSDP` GMCP package. Numbers, strings, nested
+  tables, and arrays retain their logical types.
+- Replaced the legacy fallback command parser with atomic strict-JSON handling
+  for scalar commands and scalar arrays, including standard `REPORT` requests.
+- Normalized `AFFECTS` as a table of arrays and enabled its update path for
+  either native MSDP or the GMCP fallback.
+
+#### Hardened
+
+- Reject malformed marker structures, reserved framing bytes in scalar data,
+  invalid UTF-8, embedded JSON NUL escapes, unsupported command nesting, and
+  post-escape frame overflow without queuing partial output or clearing dirty
+  state.
+- Made native and GMCP list helpers share deterministic whitespace
+  tokenization, with no empty elements from leading, repeated, or trailing
+  separators.
+
+#### Documentation
+
+- Defined the plain scalar, structured value, native framing, JSON fallback,
+  and inbound command contracts in the canonical protocol references and API
+  comments.
+
+#### Verification
+
+- The focused protocol harness passes 29/29 framing, escaping, structure,
+  validation, and inbound-command tests. A ten-second ASan/UBSan fuzz run
+  completed without a finding, and the warning-free optimized server build
+  succeeds.
+
 ### Bardic instrument equipment and durability repair
 
 #### Fixed
