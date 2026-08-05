@@ -94,6 +94,20 @@ bool bardic_instrument_breaks(int breakability)
          MIN(breakability, INSTRUMENT_BREAKABILITY_SCALE);
 }
 
+static int bardic_instrument_difficulty_reduction(const struct obj_data *instrument)
+{
+  return GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION);
+}
+
+static int bardic_instrument_effectiveness_adjustment(const struct obj_data *instrument,
+                                                      int ideal_subtype)
+{
+  if (GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE) == ideal_subtype)
+    return GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_EFFECTIVENESS);
+
+  return -2;
+}
+
 static bool bardic_performance_requires_hearing(int spellnum)
 {
   int performance_num;
@@ -1528,7 +1542,7 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
   else
   {
     /* the effectiveness / difficulty bonus of our instrument is all handled here */
-    difficulty -= GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION);
+    difficulty -= bardic_instrument_difficulty_reduction(instrument);
 
     if (bardic_instrument_breaks(GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_BREAKABILITY)))
     {
@@ -1544,12 +1558,14 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
              performance_info[performance_num][INSTRUMENT_NUM])
     {
       /* can add a check to see how proficient one is at given instrument */
-      effectiveness += GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_EFFECTIVENESS);
+      effectiveness += bardic_instrument_effectiveness_adjustment(
+          instrument, performance_info[performance_num][INSTRUMENT_NUM]);
     }
     else
     { /* wrong instrument */
       send_to_char(ch, "Not the ideal instrument, but better than nothing!  ");
-      effectiveness -= 2;
+      effectiveness += bardic_instrument_effectiveness_adjustment(
+          instrument, performance_info[performance_num][INSTRUMENT_NUM]);
     }
   }
 
@@ -1719,6 +1735,13 @@ void test_pulse_bard_endless_refrain(struct char_data *ch)
 int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot)
 {
   return process_bardic_performance_slot_internal(ch, slot, FALSE);
+}
+
+void test_bardic_instrument_modifiers(const struct obj_data *instrument, int ideal_subtype,
+                                      int *difficulty_reduction, int *effectiveness_adjustment)
+{
+  *difficulty_reduction = bardic_instrument_difficulty_reduction(instrument);
+  *effectiveness_adjustment = bardic_instrument_effectiveness_adjustment(instrument, ideal_subtype);
 }
 #endif
 

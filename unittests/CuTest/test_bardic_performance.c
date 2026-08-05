@@ -12,6 +12,7 @@
 #include "../../src/character/perks.h"
 #include "../../src/combat/fight.h"
 #include "../../src/constants.h"
+#include "../../src/craft/crafting_new.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
@@ -63,6 +64,8 @@ static void begin_bardic_fixture(struct bardic_fixture *fixture)
   fixture->bard.desc = &fixture->descriptor;
   IN_ROOM(&fixture->bard) = 0;
   GET_LEVEL(&fixture->bard) = 10;
+  GET_REAL_SIZE(&fixture->bard) = SIZE_MEDIUM;
+  fixture->bard.points.size = SIZE_MEDIUM;
   fixture->player_specials.saved.class_level[CLASS_BARD] = 10;
   GET_POS(&fixture->bard) = POS_STANDING;
   GET_HIT(&fixture->bard) = 100;
@@ -324,6 +327,108 @@ void Test_bardic_instrument_breakability_uses_documented_scale(CuTest *tc)
   circle_srandom((unsigned long)time(NULL));
 }
 
+void Test_bardic_instrument_values_apply_exact_verse_modifiers(CuTest *tc)
+{
+  struct obj_data instrument;
+  int difficulty_reduction;
+  int effectiveness_adjustment;
+
+  initialize_bardic_test_instrument(&instrument, INSTRUMENT_LYRE);
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = 30;
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_EFFECTIVENESS) = 10;
+
+  test_bardic_instrument_modifiers(&instrument, INSTRUMENT_LYRE, &difficulty_reduction,
+                                   &effectiveness_adjustment);
+  CuAssertIntEquals(tc, 30, difficulty_reduction);
+  CuAssertIntEquals(tc, 10, effectiveness_adjustment);
+
+  test_bardic_instrument_modifiers(&instrument, INSTRUMENT_FLUTE, &difficulty_reduction,
+                                   &effectiveness_adjustment);
+  CuAssertIntEquals(tc, 30, difficulty_reduction);
+  CuAssertIntEquals(tc, -2, effectiveness_adjustment);
+}
+
+void Test_crafted_instrument_uses_normal_dedicated_wear_path(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data *bard;
+  struct obj_data instrument;
+
+  begin_bardic_fixture(&fixture);
+  bard = &fixture.bard;
+  initialize_bardic_test_instrument(&instrument, INSTRUMENT_LYRE);
+  GET_CRAFT(bard).crafting_specific = CRAFT_INSTRUMENT_HARP;
+  GET_CRAFT(bard).instrument_quality = 12;
+  GET_CRAFT(bard).instrument_effectiveness = 7;
+  GET_CRAFT(bard).instrument_breakability = 3;
+
+  set_craft_instrument_object(&instrument, bard);
+  CuAssertIntEquals(tc, ITEM_INSTRUMENT, GET_OBJ_TYPE(&instrument));
+  CuAssertIntEquals(tc, INSTRUMENT_HARP, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_TYPE));
+  CuAssertIntEquals(tc, 12, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION));
+  CuAssertIntEquals(tc, 7, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_EFFECTIVENESS));
+  CuAssertIntEquals(tc, 3, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_BREAKABILITY));
+  CuAssertTrue(tc, CAN_WEAR(&instrument, ITEM_WEAR_TAKE));
+  CuAssertTrue(tc, CAN_WEAR(&instrument, ITEM_WEAR_INSTRUMENT));
+  CuAssertTrue(tc, !CAN_WEAR(&instrument, ITEM_WEAR_HOLD));
+
+  obj_to_char(&instrument, bard);
+  perform_wear(bard, &instrument, WEAR_INSTRUMENT);
+  CuAssertPtrEquals(tc, &instrument, GET_EQ(bard, WEAR_INSTRUMENT));
+  CuAssertPtrEquals(tc, &instrument, get_equipped_bardic_instrument(bard));
+
+  CuAssertPtrEquals(tc, &instrument, unequip_char(bard, WEAR_INSTRUMENT));
+  end_bardic_fixture(&fixture);
+}
+
+void Test_summoned_instrument_uses_engine_lifecycle_and_normal_wear_path(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct obj_data *instrument;
+  struct obj_data *saved_object_list;
+
+  begin_bardic_fixture(&fixture);
+  saved_object_list = object_list;
+  strlcpy(cast_arg2, "harp", MAX_INPUT_LENGTH);
+  spell_summon_instrument(10, &fixture.bard, NULL, NULL, CAST_SPELL);
+  instrument = fixture.bard.carrying;
+
+  CuAssertTrue(tc, instrument != NULL);
+  CuAssertIntEquals(tc, ITEM_INSTRUMENT, GET_OBJ_TYPE(instrument));
+  CuAssertIntEquals(tc, INSTRUMENT_HARP, GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE));
+  CuAssertTrue(tc, CAN_WEAR(instrument, ITEM_WEAR_TAKE));
+  CuAssertTrue(tc, CAN_WEAR(instrument, ITEM_WEAR_INSTRUMENT));
+  CuAssertTrue(tc, !CAN_WEAR(instrument, ITEM_WEAR_HOLD));
+  CuAssertPtrEquals(tc, instrument, object_list);
+  CuAssertPtrEquals(tc, saved_object_list, instrument->next);
+
+  perform_wear(&fixture.bard, instrument, WEAR_INSTRUMENT);
+  CuAssertPtrEquals(tc, instrument, GET_EQ(&fixture.bard, WEAR_INSTRUMENT));
+  CuAssertPtrEquals(tc, instrument, get_equipped_bardic_instrument(&fixture.bard));
+
+  extract_obj(instrument);
+  CuAssertPtrEquals(tc, saved_object_list, object_list);
+  cast_arg2[0] = '\0';
+  end_bardic_fixture(&fixture);
+}
+
+void Test_loaded_instrument_auto_equips_and_remains_recognized(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct obj_data instrument;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_instrument(&instrument, INSTRUMENT_DRUM);
+  SET_BIT_AR(GET_OBJ_WEAR(&instrument), ITEM_WEAR_INSTRUMENT);
+
+  test_auto_equip_loaded_object(&fixture.bard, &instrument, WEAR_INSTRUMENT + 1);
+  CuAssertPtrEquals(tc, &instrument, GET_EQ(&fixture.bard, WEAR_INSTRUMENT));
+  CuAssertPtrEquals(tc, &instrument, get_equipped_bardic_instrument(&fixture.bard));
+
+  CuAssertPtrEquals(tc, &instrument, unequip_char(&fixture.bard, WEAR_INSTRUMENT));
+  end_bardic_fixture(&fixture);
+}
+
 void Test_instrument_subtype_names_reject_invalid_values(CuTest *tc)
 {
   CuAssertTrue(tc, is_valid_instrument_subtype(INSTRUMENT_LYRE));
@@ -346,6 +451,55 @@ void Test_instrument_identify_handles_invalid_subtype(CuTest *tc)
 
   CuAssertTrue(tc, strstr(fixture.descriptor.output, "Instrument subtype:    INVALID") != NULL);
   end_bardic_fixture(&fixture);
+}
+
+void Test_flamekissed_instrument_transformation_is_nonlethal_and_case_insensitive(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct obj_data instrument;
+  bool created_command_list;
+  int say_command;
+
+  created_command_list = false;
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+  say_command = find_command("say");
+  CuAssertTrue(tc, say_command >= 0);
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_instrument(&instrument, INSTRUMENT_FLUTE);
+  GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = &instrument;
+  instrument.worn_by = &fixture.bard;
+  instrument.worn_on = WEAR_INSTRUMENT;
+
+  CuAssertIntEquals(tc, 1, flamekissed_instrument(&fixture.bard, &instrument, 0, "identify"));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "cannot reduce you below 1") != NULL);
+
+  reset_bardic_fixture_output(&fixture);
+  GET_HIT(&fixture.bard) = 20;
+  CuAssertIntEquals(tc, 1, flamekissed_instrument(&fixture.bard, &instrument, say_command, "Lyre"));
+  CuAssertIntEquals(tc, INSTRUMENT_FLUTE, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_TYPE));
+  CuAssertIntEquals(tc, 20, GET_HIT(&fixture.bard));
+  CuAssertPtrEquals(tc, NULL, char_has_mud_event(&fixture.bard, eMOVEACTION));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "need more than 20 hit points") != NULL);
+
+  reset_bardic_fixture_output(&fixture);
+  GET_HIT(&fixture.bard) = 21;
+  CuAssertIntEquals(tc, 1,
+                    flamekissed_instrument(&fixture.bard, &instrument, say_command, "MANDOLIN"));
+  CuAssertIntEquals(tc, INSTRUMENT_MANDOLIN, GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_TYPE));
+  CuAssertIntEquals(tc, 1, GET_HIT(&fixture.bard));
+  CuAssertTrue(tc, char_has_mud_event(&fixture.bard, eMOVEACTION) != NULL);
+
+  GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = NULL;
+  instrument.worn_by = NULL;
+  instrument.worn_on = -1;
+  end_bardic_fixture(&fixture);
+  if (created_command_list)
+    free_command_list();
 }
 
 void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest *tc)

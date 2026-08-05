@@ -14,6 +14,7 @@
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
+#include "constants.h"
 #include "magic/spells.h"
 #include "act.h"        /* for act related stuff, like act.offensive fuctions */
 #include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
@@ -1983,6 +1984,7 @@ int celestial_leviathan_attacks(struct char_data *ch)
 /* in treasure room */
 #define ETHER_LEGGINGS 34548
 #define FLAMEKISS_LYRE 34549
+#define FLAMEKISSED_TRANSFORM_HIT_COST 20
 /* following 4 items are on the elite squads, 1 per squad */
 #define SLAADI_BELT 34550
 #define BASTION 34551
@@ -2493,138 +2495,78 @@ SPECIAL(fg_invasion_loader)
   return 1;
 }
 
-/* for the low price of 20 hps, this special instrument will transform to any type -zusuk */
+static int flamekissed_instrument_subtype(const char *argument)
+{
+  int subtype;
+
+  if (argument == NULL)
+    return -1;
+
+  for (subtype = 0; subtype < MAX_INSTRUMENTS; subtype++)
+  {
+    if (!str_cmp(argument, instrument_subtype_name(subtype)))
+      return subtype;
+  }
+
+  return -1;
+}
+
+/* This special instrument transforms to any subtype for a nonlethal hit-point cost. */
 SPECIAL(flamekissed_instrument)
 {
-  if (!ch)
+  struct obj_data *obj;
+  int subtype;
+  char char_message[MAX_STRING_LENGTH];
+  char room_message[MAX_STRING_LENGTH];
+
+  if (ch == NULL || argument == NULL)
     return 0;
 
   if (!cmd && !strcmp(argument, "identify"))
   {
-    send_to_char(ch, "Say an instrument name while holding to transform to that type, you will "
-                     "take 20 damage for the transformation.\r\n");
+    send_to_char(ch,
+                 "Say an instrument subtype while wearing this instrument to transform it. "
+                 "The transformation costs %d hit points and cannot reduce you below 1.\r\n",
+                 FLAMEKISSED_TRANSFORM_HIT_COST);
     return 1;
   }
 
-  struct obj_data *obj = (struct obj_data *)me;
+  obj = (struct obj_data *)me;
 
-  if (!obj)
-    return 0;
-
-  if (!is_wearing(ch, FLAMEKISS_LYRE))
+  if (obj == NULL || !cmd || !CMD_IS("say") || obj->worn_by != ch)
     return 0;
 
   skip_spaces(&argument);
+  subtype = flamekissed_instrument_subtype(argument);
 
-  if (!strcmp(argument, "lyre") && CMD_IS("say"))
+  if (!is_valid_instrument_subtype(subtype))
+    return 0;
+
+  if (GET_HIT(ch) <= FLAMEKISSED_TRANSFORM_HIT_COST)
   {
-    act("\tyAs you say, '\tWlyre\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWlyre\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWlyre\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWlyre\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
-
-    GET_OBJ_VAL(obj, 0) = 0; /* lyre */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
-
+    send_to_char(ch,
+                 "The flames refuse to answer. You need more than %d hit points to transform "
+                 "the instrument.\r\n",
+                 FLAMEKISSED_TRANSFORM_HIT_COST);
     return 1;
   }
 
-  if (!strcmp(argument, "flute") && CMD_IS("say"))
-  {
-    act("\tyAs you say, '\tWflute\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWflute\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWflute\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWflute\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
+  snprintf(char_message, sizeof(char_message),
+           "\tyAs you say, '\tW%s\ty' to $p\ty, it rises from your hand. \tRFlame engulfs "
+           "it and you\ty as it transforms, then returns to your hands.\tn",
+           instrument_subtype_name(subtype));
+  snprintf(room_message, sizeof(room_message),
+           "\tyAs $n\ty says, '\tW%s\ty' to $p\ty, it rises from $s hand. \tRFlame engulfs "
+           "it and $m\ty as it transforms, then returns to $s hands.\tn",
+           instrument_subtype_name(subtype));
+  act(char_message, FALSE, ch, obj, NULL, TO_CHAR);
+  act(room_message, FALSE, ch, obj, NULL, TO_ROOM);
 
-    GET_OBJ_VAL(obj, 0) = 1; /* flute */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
+  GET_OBJ_VAL(obj, INSTRUMENT_VALUE_TYPE) = subtype;
+  GET_HIT(ch) -= FLAMEKISSED_TRANSFORM_HIT_COST;
+  USE_MOVE_ACTION(ch);
 
-    return 1;
-  }
-
-  if (!strcmp(argument, "horn") && CMD_IS("say"))
-  {
-    act("\tyAs you say, '\tWhorn\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWhorn\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWhorn\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWhorn\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
-
-    GET_OBJ_VAL(obj, 0) = 2; /* horn */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
-
-    return 1;
-  }
-
-  if (!strcmp(argument, "drum") && CMD_IS("say"))
-  {
-    act("\tyAs you say, '\tWdrum\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWdrum\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWdrum\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWdrum\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
-
-    GET_OBJ_VAL(obj, 0) = 3; /* drum */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
-
-    return 1;
-  }
-
-  if (!strcmp(argument, "harp") && CMD_IS("say"))
-  {
-    act("\tyAs you say, '\tWharp\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWharp\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWharp\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWharp\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
-
-    GET_OBJ_VAL(obj, 0) = 4; /* harp */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
-
-    return 1;
-  }
-
-  if (!strcmp(argument, "mandolin") && CMD_IS("say"))
-  {
-    act("\tyAs you say, '\tWmandolin\ty' to $p\ty, \tyit rises forth from your hand, "
-        "\tRflame engulfs it and yourself\ty as it transforms into a \tWmandolin\ty "
-        "then returning to your hands.\tn",
-        FALSE, ch, obj, NULL, TO_CHAR);
-    act("\tyAs $n\ty says, '\tWmandolin\ty' to $p\ty, \tyit rises forth from $s hand, "
-        "\tRflame engulfs it and $n\ty as it transforms into a \tWmandolin\ty "
-        "then returning to $s hands.\tn",
-        FALSE, ch, obj, NULL, TO_ROOM);
-
-    GET_OBJ_VAL(obj, 0) = 5; /* mandolin */
-    USE_MOVE_ACTION(ch);
-    GET_HIT(ch) -= 20;
-
-    return 1;
-  }
-
-  return 0;
+  return 1;
 }
 
 /* Undefines! */
@@ -2633,6 +2575,7 @@ SPECIAL(flamekissed_instrument)
 #undef MAX_FG_GUARDS
 #undef ETHER_LEGGINGS
 #undef FLAMEKISS_LYRE
+#undef FLAMEKISSED_TRANSFORM_HIT_COST
 #undef SLAADI_BELT
 #undef BASTION
 #undef DIVINE_SPARK

@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Implementation in progress
+Status: Implementation complete; final validation in progress
 
 Scope: Bardic performance instrument discovery, object vnum 34549, instrument creation,
 equipment persistence, the flame-kissed transformation procedure, and focused test coverage.
@@ -22,6 +22,13 @@ Checkpoint 1 repairs that mismatch. `get_equipped_bardic_instrument()` now searc
 dedicated slot first, then retains all three legacy hold slots as compatibility fallbacks. The
 production-linked suite verifies dedicated-slot precedence, invalid-object rejection, both
 performance slots, ideal instruments, and wrong instruments.
+
+Checkpoint 2 defines one breakability contract and makes subtype/field metadata range-safe and
+consistent. Checkpoint 3 completes the construction, persistence, value-effect, and
+flame-kissed coverage. Crafted and summoned instruments now pass through the normal wear path,
+loaded instruments auto-equip back into the dedicated slot, and summoned instruments use the
+engine object lifecycle. The flame-kissed transformation is case-insensitive and nonlethal: it
+requires more than 20 hit points, costs exactly 20, and can leave the wearer at 1 hit point.
 
 Before checkpoint 1, this meant that every verse using vnum 34549:
 
@@ -115,10 +122,10 @@ slot-plus-one location contract.
 | Value 2 | 10 | effectiveness bonus |
 | Value 3 | 0 | unbreakable |
 
-`src/spec_assign.c:843-844` assigns the `flamekissed_instrument` special procedure. The
-procedure at `src/zone_procs.c:2497-2625` changes only value 0 among the six valid instrument
-subtypes. It does not change the object type or remove a wear flag. Its `is_wearing()` gate
-scans every equipment slot (`src/spec_procs.c:2438-2448`), including slot 32.
+`src/spec_assign.c:843-844` assigns the `flamekissed_instrument` special procedure. The audited
+procedure changed only value 0 among the six valid instrument subtypes. It did not change the
+object type or remove a wear flag. Checkpoint 3 retains that narrow mutation while requiring
+the exact procedure object to be worn by the invoking character.
 
 The prototype and special procedure therefore do not explain the absence result.
 
@@ -135,11 +142,12 @@ which exposes the pre-existing discovery mismatch.
 |----|----------|--------|---------|
 | BI-001 | High | Resolved; verified | Bardic performance ignored the dedicated instrument equipment slot. |
 | BI-002 | High | Resolved; verified | Crafted and summoned instruments could not enter any slot the engine searched. |
-| BI-003 | Medium | In progress | The production-linked bard suite lacked equipped-instrument coverage. |
+| BI-003 | Medium | Resolved; verified | The production-linked bard suite lacked equipped-instrument coverage. |
 | BI-004 | Medium | Resolved; verified | Breakability code, comments, crafting text, and OLC text described different probabilities. |
-| BI-005 | Medium | Pending | The flame-kissed transform subtracts hit points directly without normal damage/death handling. |
+| BI-005 | Medium | Resolved; verified | The flame-kissed transform could leave a character at zero or negative hit points. |
 | BI-006 | Low | Resolved; verified | Instrument subtype display paths indexed a table without validating object value 0. |
 | BI-007 | Low | Resolved; verified | Value 2 was inconsistently called level or effectiveness, and identify misspelled effectiveness. |
+| BI-008 | Medium | Resolved; verified | Summoned instruments bypassed the engine object lifecycle and global object list. |
 
 ### BI-001: Dedicated Slot Is Ignored
 
@@ -167,7 +175,7 @@ The repair adds `get_equipped_bardic_instrument()` as the single slot-policy hel
 `WEAR_INSTRUMENT` first, validates `ITEM_INSTRUMENT`, then checks `WEAR_HOLD_1`, `WEAR_HOLD_2`,
 and `WEAR_HOLD_2H` in order.
 
-Temporary workaround for vnum 34549 only:
+Pre-fix workaround for vnum 34549 (no longer required):
 
 ```text
 remove flame
@@ -182,29 +190,31 @@ instruments lack the hold flag.
 
 Severity: High
 
-Status: Resolved and verified in checkpoint 1 by the canonical dedicated-slot lookup.
+Status: Resolved and verified across checkpoints 1 through 3.
 
 `src/craft/crafting_new.c:3770-3798` clears every wear flag on a completed crafted instrument,
 then sets only `ITEM_WEAR_TAKE` and `ITEM_WEAR_INSTRUMENT`.
 
-`src/magic/spells.c:2767-2801` does the same for the `summon instrument` spell. The spell says
-the object appears "in your hands," but it actually puts the object in inventory. Wearing it
-uses slot 32. The `hold` command rejects it because `src/obj/act.item.c:4794-4799` requires the
-hold wear flag for ordinary objects.
+`src/magic/spells.c:2767-2801` does the same for the `summon instrument` spell. At audit time,
+the spell said the object appeared "in your hands," but it actually put the object in inventory.
+Wearing it uses slot 32. The `hold` command rejects it because `src/obj/act.item.c:4794-4799`
+requires the hold wear flag for ordinary objects.
 
 These instruments can be equipped exactly as their creators intend. Checkpoint 1 makes the
-performance engine discover them without adding inappropriate hold flags.
+performance engine discover them without adding inappropriate hold flags. Checkpoint 3 verifies
+both constructors through `perform_wear()` and the canonical dedicated slot.
 
-The summon message should separately be changed to say the object appears in the bard's
-possession/inventory, or the spell should intentionally equip it into an empty instrument slot.
+Checkpoint 2 also changes the summon message to say the object appears in the bard's possession,
+matching its actual inventory destination.
 
 ### BI-003: Tests Exercise Only the No-Instrument Branch
 
 Severity: Medium
 
-Status: In progress. Checkpoint 1 adds direct equipment lookup and full verse-path coverage for
-the dedicated slot, both performance slots, ideal and wrong subtypes, invalid dedicated-slot
-objects, and legacy slot precedence. Construction and persistence coverage remain.
+Status: Resolved and verified across checkpoints 1 through 3. Coverage now includes direct
+equipment lookup, the dedicated slot, both performance slots, ideal and wrong subtypes, invalid
+dedicated-slot objects, legacy slot precedence, exact value effects, normal crafted/summoned
+wear, summoned lifecycle registration, and loaded-object auto-equip.
 
 At audit time, `unittests/CuTest/test_bardic_performance.c` had broad state, timing, targeting,
 perk, and protocol coverage, but declared no `obj_data`, set no `ITEM_INSTRUMENT`, and populated
@@ -212,7 +222,7 @@ no hold or instrument equipment slot. Existing `do_perform()` tests therefore ra
 reported no-instrument path without asserting its message.
 
 This explains how the earlier bardic performance repair suite passed while the canonical
-instrument path remained broken. Checkpoint 1 adds the first dedicated regression matrix.
+instrument path remained broken. The completed regression matrix now covers every case below.
 
 Required regression cases:
 
@@ -226,8 +236,8 @@ Required regression cases:
 - save/reload preserves recognition; and
 - primary and secondary performance slots use the same instrument policy.
 
-No new test source file is required; these cases belong in the existing production-linked
-`test_bardic_performance.c` suite.
+These cases remain in the existing production-linked `test_bardic_performance.c` suite; no new
+test source file was required.
 
 ### BI-004: Breakability Probability Is Internally Inconsistent
 
@@ -279,6 +289,8 @@ tests cover negative, zero, one, boundary, and above-boundary inputs.
 
 Severity: Medium
 
+Status: Resolved and verified in checkpoint 3.
+
 Each transform branch at `src/zone_procs.c:2519-2623` performs:
 
 ```c
@@ -290,15 +302,11 @@ type. A character at 20 or fewer hit points can be left at zero or negative hit 
 the normal damage pipeline resolving the state. The text describes this as taking damage, but
 the implementation also bypasses any intended fire/damage rules.
 
-Recommended repair:
-
-- decide whether the cost may kill;
-- either reject transformation when the cost cannot be paid or use the standard damage path;
-- apply the cost and action consumption once in a shared helper; and
-- replace the six duplicated exact-case branches with validated subtype lookup.
-
-The current exact `strcmp()` checks also make `say Lyre` fail while `say lyre` succeeds, an
-avoidable usability inconsistency.
+Checkpoint 3 defines the transformation as a nonlethal hit-point cost. The procedure rejects a
+recognized transformation when the wearer has 20 or fewer hit points, leaving hit points,
+subtype, and action state unchanged. At 21 or more hit points it subtracts exactly 20 and consumes
+one move action. One validated, case-insensitive subtype lookup and one shared mutation path
+replace the six duplicated exact-case branches. The identify text documents this contract.
 
 ### BI-006: Instrument Subtype Display Is Not Range-Safe
 
@@ -335,7 +343,28 @@ The identify output at `src/obj/act.item.c:933-945` also spelled `Effectiveness`
 effectiveness bonus, and breakability. These names are shared by runtime code, OLC, crafting,
 identify/lore, object listing, and the builder guide.
 
+### BI-008: Summoned Instrument Bypassed the Object Lifecycle
+
+Severity: Medium
+
+Status: Resolved and verified in checkpoint 3.
+
+While adding the required summoned-instrument coverage, the constructor was found to allocate
+with `CREATE()` and call `clear_object()` directly. Unlike `create_obj()`, that sequence does not
+insert the object into the global `object_list`. The resulting carried object violated the normal
+creation/extraction contract and was absent from global object iteration.
+
+The summon spell now uses `create_obj()`. Its regression test verifies that the new instrument is
+the global-list head, preserves the previous head as its successor, equips through
+`perform_wear()`, is recognized by bardic performance, and restores the previous list head when
+extracted.
+
 ## Recommended Repair Order
+
+The implementation work in this order is complete. The development behaviors in step 3 are
+covered by production-linked constructor, wear, modifier, and loaded-object auto-equip tests.
+Checkpoint 3 closes the matrix that remained after checkpoints 1 and 2; final repository-wide
+validation is tracked below.
 
 1. Repair BI-001 with a centralized dedicated-first instrument lookup.
 2. Add the BI-003 regression matrix before changing any other instrument behavior.
@@ -388,6 +417,21 @@ values, and special assignment are all valid.
 - Ran `make test`: passed 404/404 tests with no compiler warnings.
 - Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
 
+### Checkpoint 3: Construction, Persistence, and Flame-Kissed Safety
+
+- Added exact tests for the 30-point difficulty reduction, 10-point ideal effectiveness bonus,
+  and -2 wrong-subtype adjustment.
+- Verified crafted and summoned instruments through their constructors and the normal
+  `perform_wear()` path without adding a hold wear flag.
+- Verified persisted instruments auto-equip into `WEAR_INSTRUMENT` and remain discoverable.
+- Changed summoned instruments to use `create_obj()` and verified global-list lifecycle cleanup.
+- Defined the flame-kissed transformation as a nonlethal 20-hit-point cost, consolidated its six
+  branches, required the exact object to be worn, and made subtype matching case-insensitive.
+- Added focused regression coverage for the transformation help, refusal boundary, successful
+  boundary, subtype mutation, hit-point result, and action consumption.
+- Ran `make test`: passed 409/409 tests with no compiler warnings.
+- Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
+
 ## Validation Performed for the Original Audit
 
 - Confirmed `APP_ENV=development` without modifying `lib/.env`.
@@ -398,6 +442,7 @@ values, and special assignment are all valid.
 - Checked the inclusive RNG implementation and calculated the breakability probabilities above.
 - Made no source, world-data, credential, configuration, or production changes.
 
-No build was needed for this documentation-only audit. The primary failure is a direct,
-deterministic slot mismatch, while the existing suite has no test capable of accepting or
-rejecting that behavior.
+No build was needed for the original documentation-only audit. At that stage, the primary
+failure was a direct, deterministic slot mismatch and the existing suite had no test capable of
+accepting or rejecting that behavior. The implementation checkpoints above supersede that test
+state.

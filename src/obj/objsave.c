@@ -787,6 +787,13 @@ static void auto_equip(struct char_data *ch, struct obj_data *obj, int location)
   }
 }
 
+#ifdef LUMINARI_CUTEST
+void test_auto_equip_loaded_object(struct char_data *ch, struct obj_data *obj, int location)
+{
+  auto_equip(ch, obj, location);
+}
+#endif
+
 /* given a character's name, delete their crash-save-file */
 int Crash_delete_file(char *name)
 {

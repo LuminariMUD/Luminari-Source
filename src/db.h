@@ -325,6 +325,9 @@ obj_save_data *objsave_parse_objects_db(char *name, room_vnum house_vnum);
 int objsave_save_obj_record(struct obj_data *obj, struct char_data *ch, FILE *fl, int location);
 int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_vnum house_vnum,
                                FILE *fl, int location);
+#ifdef LUMINARI_CUTEST
+void test_auto_equip_loaded_object(struct char_data *ch, struct obj_data *obj, int location);
+#endif
 /* Special functions */
 SPECIAL_DECL(receptionist);
 SPECIAL_DECL(cryogenicist);

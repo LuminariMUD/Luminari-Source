@@ -39,6 +39,8 @@ void test_pulse_bard_winters_war_march(struct char_data *ch);
 void test_pulse_bard_symphonic_resonance(struct char_data *ch);
 void test_pulse_bard_endless_refrain(struct char_data *ch);
 int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot);
+void test_bardic_instrument_modifiers(const struct obj_data *instrument, int ideal_subtype,
+                                      int *difficulty_reduction, int *effectiveness_adjustment);
 #endif
 ACMD_DECL(do_perform);
 

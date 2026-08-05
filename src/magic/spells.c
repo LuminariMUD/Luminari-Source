@@ -2765,8 +2765,7 @@ ASPELL(spell_summon_instrument)
     instrument_lower[i] = LOWER(instrument_lower[i]);
 
   /* Create the instrument object */
-  CREATE(instrument, struct obj_data, 1);
-  clear_object(instrument);
+  instrument = create_obj();
 
   /* Set basic object type and values */
   GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
