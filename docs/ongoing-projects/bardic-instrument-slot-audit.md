@@ -23,7 +23,7 @@ dedicated slot first, then retains all three legacy hold slots as compatibility 
 production-linked suite verifies dedicated-slot precedence, invalid-object rejection, both
 performance slots, ideal instruments, and wrong instruments.
 
-For vnum 34549 this means that every verse:
+Before checkpoint 1, this meant that every verse using vnum 34549:
 
 - prints `You perform without an instrument...`;
 - applies the no-instrument effectiveness penalty;
@@ -136,10 +136,10 @@ which exposes the pre-existing discovery mismatch.
 | BI-001 | High | Resolved; verified | Bardic performance ignored the dedicated instrument equipment slot. |
 | BI-002 | High | Resolved; verified | Crafted and summoned instruments could not enter any slot the engine searched. |
 | BI-003 | Medium | In progress | The production-linked bard suite lacked equipped-instrument coverage. |
-| BI-004 | Medium | Pending | Breakability code, comments, crafting text, and OLC text describe different probabilities. |
+| BI-004 | Medium | Resolved; verified | Breakability code, comments, crafting text, and OLC text described different probabilities. |
 | BI-005 | Medium | Pending | The flame-kissed transform subtracts hit points directly without normal damage/death handling. |
-| BI-006 | Low | Pending | Instrument subtype display paths index a table without validating object value 0. |
-| BI-007 | Low | Pending | Value 2 is inconsistently called level or effectiveness, and identify misspells effectiveness. |
+| BI-006 | Low | Resolved; verified | Instrument subtype display paths indexed a table without validating object value 0. |
+| BI-007 | Low | Resolved; verified | Value 2 was inconsistently called level or effectiveness, and identify misspelled effectiveness. |
 
 ### BI-001: Dedicated Slot Is Ignored
 
@@ -233,10 +233,12 @@ No new test source file is required; these cases belong in the existing producti
 
 Severity: Medium
 
+Status: Resolved and verified in checkpoint 2.
+
 This does not affect vnum 34549 because its breakability is zero, but it affects ordinary,
 crafted, and summoned instruments once discovery is fixed.
 
-The engine at `src/bardic_performance.c:1521-1528` requires both:
+The original engine at `src/bardic_performance.c:1521-1528` required both:
 
 ```c
 !rand_number(0, 9)
@@ -263,9 +265,15 @@ Consequences:
 Relevant contradictory text appears at `src/craft/crafting_new.c:1597-1608`,
 `src/olc/oedit.c:1360-1362`, and `src/magic/spells.c:2772-2776`.
 
-Choose one probability contract, implement it with one clearly bounded roll, and update every
-builder/player-facing description. If the crafting contract is authoritative, a direct roll
-from 1 through 11,111 is the clearest expression.
+Checkpoint 2 makes the crafting scale authoritative. `bardic_instrument_breaks()` now performs
+one inclusive roll from 1 through 11,111 and breaks when the roll is less than or equal to the
+stored value. Values at or below zero are unbreakable, and values above 11,111 are clamped to
+the always-break boundary. Named value indices and `INSTRUMENT_BREAKABILITY_SCALE` replace the
+previous magic numbers.
+
+The OLC prompts, crafting validation, identify/lore output, object-list output, summoned-item
+comment, and builder guide now use the same terminology and exact per-verse scale. Deterministic
+tests cover negative, zero, one, boundary, and above-boundary inputs.
 
 ### BI-005: Flame-Kissed Transformation Bypasses Damage Handling
 
@@ -296,17 +304,23 @@ avoidable usability inconsistency.
 
 Severity: Low
 
+Status: Resolved and verified in checkpoint 2.
+
 `src/obj/act.item.c:930-946` and `src/olc/oasis_list.c:514-519` index
 `instrument_names[value_0]` without checking that value 0 is between zero and
 `MAX_INSTRUMENTS - 1`. Normal OLC, crafting, summoning, and vnum 34549 produce valid values, so
 this is not part of the report. A malformed world prototype or persisted override could still
 cause an out-of-bounds read during identify/lore or object listing.
 
-Use a shared subtype validation/name helper and show an explicit `INVALID` label for bad data.
+Checkpoint 2 adds shared subtype validation and naming helpers. Identify/lore and OLC object
+listing use them and show an explicit `INVALID` label for malformed data. Tests cover both
+valid endpoints and out-of-range values, including the identify output path.
 
 ### BI-007: Instrument Field Names Have Drifted
 
 Severity: Low
+
+Status: Resolved and verified in checkpoint 2.
 
 The same object values are described differently across the subsystem:
 
@@ -316,9 +330,10 @@ The same object values are described differently across the subsystem:
 | 2 | Adds ideal-instrument effectiveness | Level, instrument level, effectiveness |
 | 3 | Controls break probability | Breakability; incorrectly called quality in one comment |
 
-The identify output at `src/obj/act.item.c:933-945` also spells `Effectiveness` as
-`Effextiveness`. Standardize named value macros and UI terminology so builders do not create
-content against the wrong interpretation.
+The identify output at `src/obj/act.item.c:933-945` also spelled `Effectiveness` as
+`Effextiveness`. Checkpoint 2 standardizes the fields as subtype, difficulty reduction,
+effectiveness bonus, and breakability. These names are shared by runtime code, OLC, crafting,
+identify/lore, object listing, and the builder guide.
 
 ## Recommended Repair Order
 
@@ -359,6 +374,19 @@ values, and special assignment are all valid.
 - Ran `make test`: passed 401/401 tests with no compiler warnings.
 - Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
 - Baseline audit commit `d243b7d9` was pushed before implementation.
+
+### Checkpoint 2: Durability and Instrument Metadata
+
+- Replaced the contradictory two-gate break check with one documented 1-in-11,111-scale roll.
+- Added deterministic boundary coverage for unbreakable, minimum, maximum, and clamped values.
+- Introduced named instrument value indices and standardized subtype, difficulty reduction,
+  effectiveness bonus, and breakability terminology across runtime and builder surfaces.
+- Added range-safe subtype naming; malformed values now display as `INVALID` rather than indexing
+  outside the subtype table.
+- Corrected the summoned-instrument message to describe the inventory behavior accurately.
+- Updated `docs/world_game-data/OEDIT_GUIDE.md` and regenerated its checked web guide.
+- Ran `make test`: passed 404/404 tests with no compiler warnings.
+- Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
 
 ## Validation Performed for the Original Audit
 

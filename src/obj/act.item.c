@@ -930,20 +930,25 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   case ITEM_INSTRUMENT: /* 38 */
     if (mode == ITEM_STAT_MODE_G_LORE)
       send_to_group(NULL, GROUP(ch),
-                    "Instrument class: %s\r\n"
-                    "Quality:          %d\r\n"
-                    "Effextiveness:    %d\r\n"
-                    "Breakability:     %d\r\n",
-                    instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
-                    GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+                    "Instrument subtype:    %s\r\n"
+                    "Difficulty reduction: %d\r\n"
+                    "Effectiveness bonus:  %d\r\n"
+                    "Breakability:         %d in %d per verse\r\n",
+                    instrument_subtype_name(GET_OBJ_VAL(item, INSTRUMENT_VALUE_TYPE)),
+                    GET_OBJ_VAL(item, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION),
+                    GET_OBJ_VAL(item, INSTRUMENT_VALUE_EFFECTIVENESS),
+                    GET_OBJ_VAL(item, INSTRUMENT_VALUE_BREAKABILITY),
+                    INSTRUMENT_BREAKABILITY_SCALE);
     else
       send_to_char(ch,
-                   "Instrument class: %s\r\n"
-                   "Quality:          %d\r\n"
-                   "Effextiveness:    %d\r\n"
-                   "Breakability:     %d\r\n",
-                   instrument_names[GET_OBJ_VAL(item, 0)], GET_OBJ_VAL(item, 1),
-                   GET_OBJ_VAL(item, 2), GET_OBJ_VAL(item, 3));
+                   "Instrument subtype:    %s\r\n"
+                   "Difficulty reduction: %d\r\n"
+                   "Effectiveness bonus:  %d\r\n"
+                   "Breakability:         %d in %d per verse\r\n",
+                   instrument_subtype_name(GET_OBJ_VAL(item, INSTRUMENT_VALUE_TYPE)),
+                   GET_OBJ_VAL(item, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION),
+                   GET_OBJ_VAL(item, INSTRUMENT_VALUE_EFFECTIVENESS),
+                   GET_OBJ_VAL(item, INSTRUMENT_VALUE_BREAKABILITY), INSTRUMENT_BREAKABILITY_SCALE);
 
     /* Special abilities*/
     found = FALSE;

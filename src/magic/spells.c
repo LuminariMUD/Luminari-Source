@@ -2770,10 +2770,10 @@ ASPELL(spell_summon_instrument)
 
   /* Set basic object type and values */
   GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
-  GET_OBJ_VAL(instrument, 0) = instrument_type;
-  GET_OBJ_VAL(instrument, 1) = 0;  /* Quality */
-  GET_OBJ_VAL(instrument, 2) = 0;  /* Effectiveness */
-  GET_OBJ_VAL(instrument, 3) = 10; /* 10% breakability */
+  GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE) = instrument_type;
+  GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = 0;
+  GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_EFFECTIVENESS) = 0;
+  GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_BREAKABILITY) = 10; /* 10 in 11,111 per verse. */
 
   /* Set object properties */
   GET_OBJ_COST(instrument) = 0;
@@ -2801,7 +2801,7 @@ ASPELL(spell_summon_instrument)
   obj_to_char(instrument, ch);
 
   /* Send messages */
-  send_to_char(ch, "A summoned %s appears in your hands!\r\n", instrument_lower);
+  send_to_char(ch, "A summoned %s appears in your possession!\r\n", instrument_lower);
   act("$n summons a $o!", FALSE, ch, instrument, 0, TO_ROOM);
 }
 

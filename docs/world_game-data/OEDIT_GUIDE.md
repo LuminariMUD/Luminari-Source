@@ -363,7 +363,7 @@ for what each type stores in its value slots.
 | 35 | Switch | ITEM_SWITCH | Lever or button that manipulates a door in another room. |
 | 36 | Ammo-Pouch | ITEM_AMMO_POUCH | Container specialized for ammunition. |
 | 37 | Pick | ITEM_PICK | Grants a bonus to lock picking. |
-| 38 | Instrument | ITEM_INSTRUMENT | Bard instrument; type, difficulty reduction, level, breakability. |
+| 38 | Instrument | ITEM_INSTRUMENT | Bard instrument; subtype, difficulty reduction, effectiveness bonus, breakability. |
 | 39 | Disguise | ITEM_DISGUISE | Kit used by the disguise command. |
 | 40 | Wall | ITEM_WALL | Magical wall object, as created by wall spells. |
 | 41 | Bowl | ITEM_BOWL | Mixing vessel for recipes. |
@@ -500,7 +500,7 @@ Slots not listed are unused for that type and should be left at 0.
 | Trap | Trap trigger type | Direction or target object vnum | Trap effect | - | - |
 | Switch | Activating command (`0` pull, `1` push) | Room vnum to manipulate | Direction (`0`n `1`e `2`s `3`w `4`u `5`d) | - | - |
 | Poison | Poison spell | Poison level | Applications | Hits per application | - |
-| Instrument | Instrument type | Difficulty reduction (0-30) | Instrument level (0-10) | Breakability (0 unbreakable) | - |
+| Instrument | Instrument subtype | Difficulty reduction (0-30) | Effectiveness bonus (0-10) | Breakability chance in 11,111 per performance verse (0 unbreakable) | - |
 | Blueprint | Craft ID number | - | - | - | - |
 | Treasure Chest | Loot tier / level | Loot type | Random-load chest (`1`/`0`) | Search DC (`0` not hidden) | Pick Lock DC (`0` unlocked) |
 | Greyhawk-Ship | Interior room vnum | Ship index (0-499, unique) | - | - | - |
@@ -521,6 +521,10 @@ Types with no values at all: `Treasure`, `Trash`, `Other`, `Note`, `Pen`, `Key`,
   `value[1]` is the destination room. With `PORTAL_RANDOM`, `value[1]` and
   `value[2]` bound a vnum range. `PORTAL_CLANHALL` needs no room at all - it
   always sends the player to their own clan hall.
+- **Instrument breakability is a numerator.** A value from 0 through 11,111 is
+  rolled once per performance verse while the instrument is used. Zero is
+  unbreakable, 1 is a 1-in-11,111 chance, 30 is a 30-in-11,111 chance, and
+  11,111 always breaks.
 - **Trap values shift by trigger.** `value[1]` is a direction for the door
   triggers, an object vnum for the container and get-object triggers, and unused
   for the rest.

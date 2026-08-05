@@ -1725,7 +1725,7 @@ application.</td>
 <td>38</td>
 <td>Instrument</td>
 <td>ITEM_INSTRUMENT</td>
-<td>Bard instrument; type, difficulty reduction, level,
+<td>Bard instrument; subtype, difficulty reduction, effectiveness bonus,
 breakability.</td>
 </tr>
 <tr class="even">
@@ -2311,10 +2311,11 @@ out)</td>
 </tr>
 <tr class="odd">
 <td>Instrument</td>
-<td>Instrument type</td>
+<td>Instrument subtype</td>
 <td>Difficulty reduction (0-30)</td>
-<td>Instrument level (0-10)</td>
-<td>Breakability (0 unbreakable)</td>
+<td>Effectiveness bonus (0-10)</td>
+<td>Breakability chance in 11,111 per performance verse (0
+unbreakable)</td>
 <td>-</td>
 </tr>
 <tr class="even">
@@ -2387,6 +2388,10 @@ bonus.</li>
 <code>value[2]</code> bound a vnum range. <code>PORTAL_CLANHALL</code>
 needs no room at all - it always sends the player to their own clan
 hall.</li>
+<li><strong>Instrument breakability is a numerator.</strong> A value
+from 0 through 11,111 is rolled once per performance verse while the
+instrument is used. Zero is unbreakable, 1 is a 1-in-11,111 chance, 30
+is a 30-in-11,111 chance, and 11,111 always breaks.</li>
 <li><strong>Trap values shift by trigger.</strong> <code>value[1]</code>
 is a direction for the door triggers, an object vnum for the container
 and get-object triggers, and unused for the rest.</li>

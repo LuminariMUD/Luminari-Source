@@ -26,6 +26,7 @@ int performance_effects(struct char_data *ch, struct char_data *tch, int spellnu
                         int effectiveness, int aoe);
 int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe);
 struct obj_data *get_equipped_bardic_instrument(struct char_data *ch);
+bool bardic_instrument_breaks(int breakability);
 void initialize_bardic_performance_state(struct char_data *ch);
 void stop_bardic_performance(struct char_data *ch, bool notify);
 void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);

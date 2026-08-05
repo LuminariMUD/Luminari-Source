@@ -11,6 +11,7 @@
 #include "../../src/character/feats.h"
 #include "../../src/character/perks.h"
 #include "../../src/combat/fight.h"
+#include "../../src/constants.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_event.h"
 #include "../../src/dgscript/dg_scripts.h"
@@ -22,6 +23,7 @@
 #include "../../src/movement/movement_cost.h"
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
+#include "../../src/obj/item.h"
 #include "../../src/spec_procs.h"
 
 #include <arpa/telnet.h>
@@ -236,7 +238,7 @@ static void initialize_bardic_test_instrument(struct obj_data *instrument, int s
   instrument->name = (char *)"test instrument";
   instrument->short_description = (char *)"a test instrument";
   GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
-  GET_OBJ_VAL(instrument, 0) = subtype;
+  GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE) = subtype;
 }
 
 static struct affected_type *find_spell_affect_location(struct char_data *ch, int spellnum,
@@ -307,6 +309,45 @@ void Test_bardic_instrument_lookup_prefers_dedicated_then_legacy_slots(CuTest *t
   CuAssertPtrEquals(tc, &held_secondary, get_equipped_bardic_instrument(&ch));
 }
 
+void Test_bardic_instrument_breakability_uses_documented_scale(CuTest *tc)
+{
+  circle_srandom(1);
+  CuAssertTrue(tc, !bardic_instrument_breaks(-1));
+  CuAssertTrue(tc, !bardic_instrument_breaks(0));
+
+  circle_srandom(11111);
+  CuAssertTrue(tc, bardic_instrument_breaks(1));
+
+  circle_srandom(1);
+  CuAssertTrue(tc, bardic_instrument_breaks(INSTRUMENT_BREAKABILITY_SCALE));
+  CuAssertTrue(tc, bardic_instrument_breaks(INSTRUMENT_BREAKABILITY_SCALE + 1));
+  circle_srandom((unsigned long)time(NULL));
+}
+
+void Test_instrument_subtype_names_reject_invalid_values(CuTest *tc)
+{
+  CuAssertTrue(tc, is_valid_instrument_subtype(INSTRUMENT_LYRE));
+  CuAssertTrue(tc, is_valid_instrument_subtype(INSTRUMENT_MANDOLIN));
+  CuAssertTrue(tc, !is_valid_instrument_subtype(-1));
+  CuAssertTrue(tc, !is_valid_instrument_subtype(MAX_INSTRUMENTS));
+  CuAssertStrEquals(tc, "Lyre", instrument_subtype_name(INSTRUMENT_LYRE));
+  CuAssertStrEquals(tc, "INVALID", instrument_subtype_name(-1));
+  CuAssertStrEquals(tc, "INVALID", instrument_subtype_name(MAX_INSTRUMENTS));
+}
+
+void Test_instrument_identify_handles_invalid_subtype(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct obj_data instrument;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_instrument(&instrument, MAX_INSTRUMENTS);
+  display_item_object_values(&fixture.bard, &instrument, ITEM_STAT_MODE_IDENTIFY_SPELL);
+
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "Instrument subtype:    INVALID") != NULL);
+  end_bardic_fixture(&fixture);
+}
+
 void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest *tc)
 {
   struct bardic_fixture fixture;
@@ -314,8 +355,8 @@ void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest
 
   begin_bardic_fixture(&fixture);
   initialize_bardic_test_instrument(&instrument, INSTRUMENT_LYRE);
-  GET_OBJ_VAL(&instrument, 1) = 30;
-  GET_OBJ_VAL(&instrument, 2) = 10;
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = 30;
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_EFFECTIVENESS) = 10;
   GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = &instrument;
   IS_PERFORMING(&fixture.bard) = TRUE;
   GET_PERFORMING(&fixture.bard) = 0;
@@ -329,7 +370,7 @@ void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest
 
   reset_bardic_fixture_output(&fixture);
   GET_SECONDARY_PERFORMING(&fixture.bard) = 3;
-  GET_OBJ_VAL(&instrument, 0) = INSTRUMENT_DRUM;
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_TYPE) = INSTRUMENT_DRUM;
   circle_srandom(1);
   CuAssertIntEquals(tc, 1,
                     test_process_bardic_performance_slot_without_stutter(
@@ -338,7 +379,7 @@ void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest
   CuAssertTrue(tc, strstr(fixture.descriptor.output, "Not the ideal instrument") == NULL);
 
   reset_bardic_fixture_output(&fixture);
-  GET_OBJ_VAL(&instrument, 0) = INSTRUMENT_FLUTE;
+  GET_OBJ_VAL(&instrument, INSTRUMENT_VALUE_TYPE) = INSTRUMENT_FLUTE;
   circle_srandom(1);
   CuAssertIntEquals(
       tc, 1,

@@ -1602,10 +1602,11 @@ void set_crafting_instrument(struct char_data *ch, char *arg2)
       send_to_char(
           ch,
           "The breakability must be between 0 and %d.\r\n"
-          "This will set the chance of breaking the instrument by that amount in 11,111.\r\n"
-          "Ie. breakability 0 means unbreakable, 1 means 1 in 11,111 chance to break, 30 means 30 "
-          "in 11,111 chance to break.\r\n",
-          INSTRUMENT_BREAKABILITY_DEFAULT);
+          "This is the chance that the instrument breaks on each performance verse: the value "
+          "in %d.\r\n"
+          "For example, 0 is unbreakable, 1 is 1 in %d, and 30 is 30 in %d.\r\n",
+          INSTRUMENT_BREAKABILITY_DEFAULT, INSTRUMENT_BREAKABILITY_SCALE,
+          INSTRUMENT_BREAKABILITY_SCALE, INSTRUMENT_BREAKABILITY_SCALE);
       return;
     }
     GET_CRAFT(ch).instrument_breakability = value;
@@ -3773,14 +3774,11 @@ void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch)
 
   GET_OBJ_TYPE(obj) = ITEM_INSTRUMENT;
 
-  // Instrument Type
-  GET_OBJ_VAL(obj, 0) = craft_instrument_type_to_actual(GET_CRAFT(ch).crafting_specific);
-  // Quality
-  GET_OBJ_VAL(obj, 1) = GET_CRAFT(ch).instrument_quality;
-  // Effecitveness
-  GET_OBJ_VAL(obj, 2) = GET_CRAFT(ch).instrument_effectiveness;
-  // Breakability
-  GET_OBJ_VAL(obj, 3) = GET_CRAFT(ch).instrument_breakability;
+  GET_OBJ_VAL(obj, INSTRUMENT_VALUE_TYPE) =
+      craft_instrument_type_to_actual(GET_CRAFT(ch).crafting_specific);
+  GET_OBJ_VAL(obj, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = GET_CRAFT(ch).instrument_quality;
+  GET_OBJ_VAL(obj, INSTRUMENT_VALUE_EFFECTIVENESS) = GET_CRAFT(ch).instrument_effectiveness;
+  GET_OBJ_VAL(obj, INSTRUMENT_VALUE_BREAKABILITY) = GET_CRAFT(ch).instrument_breakability;
 
   /* for convenience we are going to go ahead and set some other values */
   GET_OBJ_COST(obj) = 100;

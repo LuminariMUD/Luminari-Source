@@ -514,9 +514,10 @@ void perform_obj_type_list(struct char_data *ch, char *arg)
         case ITEM_INSTRUMENT:
           tmp_len = snprintf(
               buf + len, sizeof(buf) - len,
-              "%s%3d%s) %s%7d%s (%s%s | Difficulty: %d | Level: %d | Breakability: %d) %s%s\r\n",
-              QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_names[v1], QNRM, v2, v3, v4,
-              obj_proto[r_num].short_description, QNRM);
+              "%s%3d%s) %s%7d%s (%s%s | Difficulty reduction: %d | Effectiveness bonus: %d | "
+              "Breakability: %d in %d) %s%s\r\n",
+              QGRN, ++found, QNRM, QYEL, ov, QNRM, instrument_subtype_name(v1), QNRM, v2, v3, v4,
+              INSTRUMENT_BREAKABILITY_SCALE, obj_proto[r_num].short_description, QNRM);
           break;
 
         /* The 'normal' items - don't provide extra info */

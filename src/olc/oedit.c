@@ -1257,7 +1257,7 @@ static void oedit_disp_val3_menu(struct descriptor_data *d)
     write_to_output(d, "Applications : ");
     break;
   case ITEM_INSTRUMENT:
-    write_to_output(d, "Instrument Level (0-10): ");
+    write_to_output(d, "Instrument effectiveness bonus (0-10): ");
     break;
   case ITEM_SCROLL:
   case ITEM_POTION:
@@ -1358,8 +1358,10 @@ static void oedit_disp_val4_menu(struct descriptor_data *d)
     write_to_output(d, "Hits per Application : ");
     break;
   case ITEM_INSTRUMENT:
-    write_to_output(d, "Instrument Breakability (0 = unbreakable, 2000 = will "
-                       "break on first use) (recommended values 0-30): ");
+    write_to_output(d,
+                    "Instrument breakability (chance in %d per performance verse; "
+                    "0 = unbreakable, %d = always; recommended values 0-30): ",
+                    INSTRUMENT_BREAKABILITY_SCALE, INSTRUMENT_BREAKABILITY_SCALE);
     break;
   case ITEM_WEAPON:
     // oedit_disp_weapon_menu(d);
@@ -2575,7 +2577,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     switch (GET_OBJ_TYPE(OLC_OBJ(d)))
     {
     case ITEM_INSTRUMENT:
-      GET_OBJ_VAL(OLC_OBJ(d), 0) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
+      GET_OBJ_VAL(OLC_OBJ(d), INSTRUMENT_VALUE_TYPE) = MIN(MAX(atoi(arg), 0), MAX_INSTRUMENTS - 1);
       break;
 
     case ITEM_SWITCH:
@@ -2674,8 +2676,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         oedit_disp_val3_menu(d);
       }
       break;
-    case ITEM_INSTRUMENT: /* reduce difficulty */
-      GET_OBJ_VAL(OLC_OBJ(d), 1) = LIMIT(number, 0, 30);
+    case ITEM_INSTRUMENT:
+      GET_OBJ_VAL(OLC_OBJ(d), INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = LIMIT(number, 0, 30);
       oedit_disp_val3_menu(d);
       break;
     case ITEM_TREASURE_CHEST:
@@ -2787,7 +2789,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       min_val = 1;
       max_val = NUM_SPELLS;
       break;
-    case ITEM_INSTRUMENT: /* instrument level */
+    case ITEM_INSTRUMENT:
       min_val = 0;
       max_val = 10;
       break;
@@ -2885,10 +2887,8 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       max_val = NUM_SPELLS;
       break;
     case ITEM_INSTRUMENT:
-      /* breakability: 0 = indestructable, 2000 = break on first use
-       * recommended values are 0-30 */
       min_val = 0;
-      max_val = 2000;
+      max_val = INSTRUMENT_BREAKABILITY_SCALE;
       break;
     case ITEM_WEAPON:
       min_val = 0;

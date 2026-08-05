@@ -85,6 +85,15 @@ struct obj_data *get_equipped_bardic_instrument(struct char_data *ch)
   return NULL;
 }
 
+bool bardic_instrument_breaks(int breakability)
+{
+  if (breakability <= 0)
+    return FALSE;
+
+  return rand_number(1, INSTRUMENT_BREAKABILITY_SCALE) <=
+         MIN(breakability, INSTRUMENT_BREAKABILITY_SCALE);
+}
+
 static bool bardic_performance_requires_hearing(int spellnum)
 {
   int performance_num;
@@ -121,11 +130,7 @@ Wind instruments (flute, pan pipes, recorder, trumpet)
 Sing (ballad, chant, melody)
 */
 
-/* Instruments obj vals are
-   0 - type (lyre/drum/etc)
-   1 - diffulty
-   2 - level
-   3 - breakability   ***/
+/* Instrument values are subtype, difficulty reduction, effectiveness bonus, and breakability. */
 
 /* order of current song difficulty (level)
 song of healing          1
@@ -1523,10 +1528,9 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
   else
   {
     /* the effectiveness / difficulty bonus of our instrument is all handled here */
-    difficulty -= GET_OBJ_VAL(instrument, 1);
+    difficulty -= GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION);
 
-    /* instrument of quality <= 0 is unbreakable */
-    if (!rand_number(0, 9) && rand_number(2, 11111) <= GET_OBJ_VAL(instrument, 3))
+    if (bardic_instrument_breaks(GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_BREAKABILITY)))
     {
       act("Your $p cannot take the strain of magic any longer, and it breaks!", FALSE, ch,
           instrument, 0, TO_CHAR);
@@ -1536,10 +1540,11 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
       instrument = NULL;
       effectiveness -= 5;
     }
-    else if (GET_OBJ_VAL(instrument, 0) == performance_info[performance_num][INSTRUMENT_NUM])
+    else if (GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_TYPE) ==
+             performance_info[performance_num][INSTRUMENT_NUM])
     {
       /* can add a check to see how proficient one is at given instrument */
-      effectiveness += GET_OBJ_VAL(instrument, 2);
+      effectiveness += GET_OBJ_VAL(instrument, INSTRUMENT_VALUE_EFFECTIVENESS);
     }
     else
     { /* wrong instrument */

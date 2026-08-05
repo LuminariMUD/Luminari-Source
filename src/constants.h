@@ -47,6 +47,8 @@ extern const char *class_names[NUM_CLASSES + 1];
 extern const char *alignment_names_nocolor[NUM_ALIGNMENTS + 1];
 extern const char *attack_hit_types[];
 extern const char *instrument_names[MAX_INSTRUMENTS + 1];
+bool is_valid_instrument_subtype(int subtype);
+const char *instrument_subtype_name(int subtype);
 extern const char *random_male_names[NUM_MALE_NAMES + 1];
 extern const char *random_female_names[NUM_FEMALE_NAMES + 1];
 extern const char *random_surnames[NUM_SURNAMES + 1];

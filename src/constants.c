@@ -584,6 +584,16 @@ const char *instrument_names[] = {"Lyre", "Flute", "Horn", "Drum", "Harp", "Mand
                                   "\n"};
 CHECK_TABLE_SIZE(instrument_names, MAX_INSTRUMENTS + 1);
 
+bool is_valid_instrument_subtype(int subtype)
+{
+  return subtype >= 0 && subtype < MAX_INSTRUMENTS;
+}
+
+const char *instrument_subtype_name(int subtype)
+{
+  return is_valid_instrument_subtype(subtype) ? instrument_names[subtype] : "INVALID";
+}
+
 // const char *spec_armor_type[] = {
 //     "Undefined",
 //     /**/

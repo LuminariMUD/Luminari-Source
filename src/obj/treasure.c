@@ -3803,10 +3803,10 @@ void award_misc_magic_item(struct char_data *ch, int category, int grade)
     GET_OBJ_VAL(obj, 0) = grade;
     break;
   case 15: /* instrument */
-    GET_OBJ_VAL(obj, 0) = instrument_type;
-    GET_OBJ_VAL(obj, 1) = dice(1, level) + 5;       // quality
-    GET_OBJ_VAL(obj, 2) = dice(1, (level + 5) / 5); // effectiveness
-    GET_OBJ_VAL(obj, 3) = dice(1, level) / 5;       // breakability
+    GET_OBJ_VAL(obj, INSTRUMENT_VALUE_TYPE) = instrument_type;
+    GET_OBJ_VAL(obj, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION) = dice(1, level) + 5;
+    GET_OBJ_VAL(obj, INSTRUMENT_VALUE_EFFECTIVENESS) = dice(1, (level + 5) / 5);
+    GET_OBJ_VAL(obj, INSTRUMENT_VALUE_BREAKABILITY) = dice(1, level) / 5;
   default:
     break;
   }
