@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Server remediation in progress
+Status: Server remediation complete; external client findings remain
 
 ## Purpose
 
@@ -24,7 +24,7 @@ LuminariGUI package was connected to LuminariMUD:
 The Vault error appeared twice. The displayed spaces are literal horizontal-tab bytes expanded
 by the error display. They are not ordinary runs of spaces.
 
-The investigation was read-only. It inspected the development checkout, the public
+The diagnostic phase was read-only. It inspected the development checkout, the public
 LuminariGUI source, the package currently served by the documented stable download URL, the
 current public Mudlet source, and the MSDP protocol references. It did not connect to or alter
 production.
@@ -64,8 +64,9 @@ below.
 
 ## Executive Summary
 
-The primary defect is at the LuminariMUD structured-data boundary. Three native MSDP scalar
-values are sent with LuminariMUD's internal tab-based color markup still embedded:
+At the inspected snapshot, the primary defect was at the LuminariMUD structured-data boundary.
+Three native MSDP scalar values were sent with LuminariMUD's internal tab-based color markup
+still embedded:
 
 | Wire value | MSDP variable | Error count in the report |
 |------------|---------------|---------------------------|
@@ -314,10 +315,10 @@ References:
 | ID | Severity | Status | Finding |
 |----|----------|--------|---------|
 | MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
-| MJD-002 | Medium | Open; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
-| MJD-003 | Low | Open; diagnosed | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
-| MJD-004 | High | Implemented; integration verification pending | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
-| MJD-005 | Medium | In progress | Production scalar and focused wire-format regression coverage is implemented; the full integration run remains pending. |
+| MJD-002 | Medium | External; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
+| MJD-003 | Low | External; diagnosed | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
+| MJD-004 | High | Fixed; verified | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
+| MJD-005 | Medium | Complete; verified | Production scalar, wire-format, malformed-input, memory-tool, fuzz, alternate-build, and installation coverage passes. |
 
 ### MJD-001: Internal color markup leaks into scalar OOB values
 
@@ -362,32 +363,30 @@ future player display, the clean server contract should be established first.
 This is not the transport path identified in the reported log, but it was found while tracing
 the shared sender.
 
-When native MSDP is unavailable and GMCP is active, `MSDPSend()` uses:
+Before remediation, when native MSDP was unavailable and GMCP was active, `MSDPSend()` used:
 
 ```c
 "MSDP.%s %s"
 ```
 
-for string variables. `MSDPSendPair()` and `MSDPSendList()` use the same raw interpolation
-pattern. Problems include:
+for string variables. `MSDPSendPair()` and `MSDPSendList()` used the same raw interpolation
+pattern. The defects were:
 
 - The standard mapping uses the case-sensitive `MSDP` package with one JSON object, such as
-  `MSDP {"HEALTH": 10}`. The current `MSDP.HEALTH 10` package/payload shape is not the
+  `MSDP {"HEALTH": 10}`. The old `MSDP.HEALTH 10` package/payload shape was not the
   documented MSDP-over-GMCP mapping.
-- A scalar such as `LuminariMUD` is emitted without JSON quotes.
-- Quotes, backslashes, tabs, newlines, and other JSON-sensitive bytes are not escaped.
+- A scalar such as `LuminariMUD` was emitted without JSON quotes.
+- Quotes, backslashes, tabs, newlines, and other JSON-sensitive bytes were not escaped.
 - Stored MSDP tables and arrays contain binary MSDP delimiter bytes, not JSON object/array
   syntax.
-- Only simple numeric payloads are naturally valid JSON in the current generic path.
+- Only simple numeric payloads were naturally valid JSON in the old generic path.
 
 The MSDP-over-GMCP reference explicitly notes that JSON cannot carry raw control codes and that
 the conversion layer must handle the difference:
 
 - <https://mudstandards.org/gmcp/msdp/>
 
-The local protocol documentation already characterizes GMCP helpers as an unstable fallback,
-but code that emits a negotiated GMCP module should still emit valid JSON or decline to send.
-This needs a real serializer, not only `strip_colors()` at three call sites.
+The repair therefore required a real serializer, not only `strip_colors()` at three call sites.
 
 ## Implementation Progress
 
@@ -437,14 +436,32 @@ This needs a real serializer, not only `strip_colors()` at three call sites.
   pair/list typing, native list framing, malformed marker rejection, invalid UTF-8, post-escape
   overflow, standard inbound REPORT arrays, atomic rejection, and escaped NUL in member names and
   values. A ten-second ASan/UBSan fuzz run completed without a finding, and a warning-free
-  optimized server build linked the new serializer successfully. Full production-linked tests
-  and installation are still pending.
+  optimized server build linked the new serializer successfully.
 - Updated the canonical protocol and variable references, their legacy mirror, API comments,
   performance notes, and the changelog with the plain-text and JSON contracts. The in-game help
   corpus has no existing MSDP or GMCP entry to update; the maintained contract is developer- and
   integration-facing documentation.
 
-### MJD-005: Tests cover safety but not this compatibility contract
+### 2026-08-05: Final verification and server closure
+
+- The production-linked CuTest suite passes 413/413 after rebuilding the server and test binary
+  with GNU C23, `-Wall`, and `-Wextra`.
+- The authoritative `make test-all` path passes the 413 production tests, 170 world-tool tests,
+  29 focused protocol tests, documentation validation, both character-rename checks, and the
+  final installation step.
+- The focused 29-test suite passes under Valgrind with zero errors, zero bytes in use at exit,
+  and 4,259 allocations matched by 4,259 frees.
+- A final ten-second ASan/UBSan protocol fuzz run completed without a finding.
+- A CMake Release build compiles and links `src/net/msdp_json.c`. It exposed object-bound
+  diagnostics in the shared TTYPE allocator; client and version copies now use the actual
+  65-byte working-buffer capacity, and focused tests cover both Mudlet and DecafMUD splitting.
+  The final CMake build emits no protocol-source diagnostic.
+- `make install` restored the authoritative Autotools build in `bin/circle`, verified its
+  `libjson-c` and MariaDB linkage, and removed the root-level `circle` artifact.
+- Formatting hooks, trailing-whitespace checks, merge-marker checks, ASCII documentation checks,
+  and `git diff --check` pass.
+
+### MJD-005: Regression coverage and verification complete
 
 Before remediation, the protocol parser harness and fuzz target exercised malformed input and
 called `MSDPSetString()`, but no test asserted that production text variables were free of
@@ -453,11 +470,12 @@ internal color markup or that a GMCP fallback payload was parseable JSON.
 The production suite now covers the three color-bearing scalar sources and unchanged-value
 dirty tracking. The focused harness covers native framing, strict JSON escaping, UTF-8, nested
 tables and arrays, malformed marker rejection, post-escape size limits, and inbound
-MSDP-over-GMCP commands. Full production-linked verification remains open.
+MSDP-over-GMCP commands. The production, focused, fuzz, Valgrind, CMake, documentation, and
+installation gates all pass.
 
 ## User-Visible Impact
 
-For the current LuminariGUI package:
+Before server remediation, the inspected LuminariGUI package experienced these effects:
 
 - Mudlet logs one decoder error for alignment and one each for the scalar area and room name
   when those values are reported.
@@ -468,11 +486,17 @@ For the current LuminariGUI package:
 - The visible player panel currently does not render alignment.
 - The visible room panel and mapper use the separately sanitized `msdp.ROOM` table, so they
   should remain functional.
-- Errors can recur after a fresh REPORT batch, profile reset, reconnect, alignment change, or
+- Errors could recur after a fresh REPORT batch, profile reset, reconnect, alignment change, or
   movement into another colored room/zone value.
 
 This incident does not show evidence of memory corruption, descriptor overflow, partial Telnet
 framing, malformed world files, or a Lua exception thrown by LuminariGUI code.
+
+The repaired server now stores the three scalars as plain text and therefore no longer supplies
+the literal tabs that triggered these reported decoder errors. GMCP-only clients receive the
+same logical values as strict JSON. No live Mudlet or LuminariGUI session was used during
+verification, so the independent generic Mudlet escaping limitation and the GUI's broad report
+list remain external findings rather than claims of client-side closure.
 
 ## Distinction From the Bardic MSDP Overflow Incident
 
@@ -494,7 +518,9 @@ remove color markup from otherwise complete `ALIGNMENT`, `AREA_NAME`, or `ROOM_N
 
 ## Recommended Repair Order
 
-### 1. Repair the server's three production values
+The list below preserves the original repair order; each heading now records its disposition.
+
+### 1. Repair the server's three production values (complete)
 
 At the protocol boundary:
 
@@ -506,7 +532,7 @@ At the protocol boundary:
 
 This is the smallest repair that addresses the reported incident for every native MSDP client.
 
-### 2. Add production-linked regression coverage
+### 2. Add production-linked regression coverage (complete)
 
 Tests should prove:
 
@@ -519,7 +545,7 @@ Tests should prove:
 The root production-linked CuTest suite is the appropriate place for production room/alignment
 behavior. The focused parser harness can cover byte-level conversion and framing helpers.
 
-### 3. Narrow the GUI subscription set
+### 3. Narrow the GUI subscription set (external follow-up)
 
 In the LuminariGUI source-of-truth fragment, remove `AREA_NAME` and `ROOM_NAME` if no current
 consumer needs them beyond debug logging. Evaluate `ALIGNMENT` similarly until it is actually
@@ -528,7 +554,7 @@ rendered. Keep `ROOM`, which supplies the mapper and room panel.
 This reduces unnecessary reports and provides an immediate client-package mitigation, but it
 must not replace the server correction.
 
-### 4. Replace the GMCP fallback interpolation with serialization
+### 4. Replace the GMCP fallback interpolation with serialization (complete)
 
 Define one explicit conversion from the stored MSDP value model to JSON:
 
@@ -543,7 +569,7 @@ Define one explicit conversion from the stored MSDP value model to JSON:
 Add independent tests for quotes, backslashes, all JSON control escapes, UTF-8 text, nested
 tables, arrays, and boundary lengths.
 
-### 5. Report the general Mudlet escaping gap upstream
+### 5. Report the general Mudlet escaping gap upstream (external follow-up)
 
 A focused upstream reproducer can feed native MSDP with a scalar horizontal tab and assert that
 Mudlet stores the intended Lua string without logging a JSON error. Broader cases should cover
@@ -551,26 +577,33 @@ every native MSDP byte that is legal on the wire but requires escaping in JSON.
 
 The server repair should not wait for an upstream Mudlet release.
 
-## Acceptance Criteria for Future Closure
+## Acceptance Criteria and Closure
 
-The investigation can move from Diagnosed to Complete when all applicable items below are
-verified:
+All server-owned criteria are complete:
 
 - Native MSDP `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` contain no internal color controls.
-- Mudlet receives the three values without a `json_to_value` error.
-- The values in Mudlet's `msdp` table are the expected plain text.
-- The complete `ROOM` table and mapper continue to work.
-- Colored normal terminal output remains unchanged.
+- Production fixtures prove expected plain values while preserving the canonical colored
+  sources used by terminal output.
 - Production-linked tests cover color-bearing alignment, room, and zone sources.
-- The LuminariGUI REPORT list contains only fields the package intentionally consumes.
-- The GMCP fallback either emits parseable JSON for all supported value shapes or is explicitly
-  disabled instead of emitting invalid frames.
-- Protocol documentation and relevant help/developer documentation describe the plain-text OOB
-  contract.
-- `make test` and `make install` pass, with no root-level `circle` artifact left behind.
+- The complete native value model, including nested tables and arrays, converts to parseable
+  strict JSON over GMCP or fails atomically for malformed and oversized values.
+- Protocol, API, variable, performance, changelog, and investigation documentation describes
+  the plain-text OOB and JSON fallback contracts.
+- The authoritative test and install gates pass, with no root-level `circle` artifact.
+
+The following observations require changes or live acceptance work in repositories explicitly
+excluded from this server remediation. They do not hold server closure open:
+
+- Confirming the absence of `json_to_value` errors in a live Mudlet profile and inspecting its
+  `msdp` Lua table.
+- Exercising the LuminariGUI room panel and mapper against a deployed server build.
+- Narrowing the LuminariGUI REPORT list to fields the package intentionally consumes.
+- Repairing and reporting Mudlet's general native-MSDP control-byte escaping gap upstream.
 
 ## Investigation Boundaries
 
 No code, world data, package source, configuration, credentials, or production system was
-modified during the diagnosis. The only network reads were the public hosted GUI package,
-public source repositories, and public protocol documentation.
+modified during the diagnostic phase. Remediation changed only the development checkout's
+server code, server-owned tests, build manifests, and documentation. It did not modify Mudlet,
+LuminariGUI, credentials, world data, or production. The only network reads were the public
+hosted GUI package, public source repositories, and public protocol documentation.

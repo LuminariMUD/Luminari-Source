@@ -26,6 +26,9 @@
 - Made native and GMCP list helpers share deterministic whitespace
   tokenization, with no empty elements from leading, repeated, or trailing
   separators.
+- Bounded TTYPE client and version copies by the actual negotiation buffer
+  capacity, retaining Mudlet and DecafMUD identity splitting without the
+  Release-build object-bound warnings.
 
 #### Documentation
 
@@ -35,10 +38,16 @@
 
 #### Verification
 
-- The focused protocol harness passes 29/29 framing, escaping, structure,
-  validation, and inbound-command tests. A ten-second ASan/UBSan fuzz run
-  completed without a finding, and the warning-free optimized server build
-  succeeds.
+- The authoritative `make test-all` gate passes 413/413 production-linked
+  tests, 170/170 world-tool tests, 29/29 focused protocol tests, documentation
+  validation, both character-rename checks, and installation.
+- The focused protocol harness reports zero Valgrind errors, no leaks, and
+  balanced 4,259 allocation/free operations. A ten-second ASan/UBSan fuzz run
+  completed without a finding.
+- Warning-free optimized Autotools builds pass. A CMake Release build also
+  links the serializer and completes without protocol-source diagnostics.
+  `make install` leaves an executable `bin/circle` linked to `libjson-c` and no
+  root-level `circle` artifact.
 
 ### Bardic instrument equipment and durability repair
 
