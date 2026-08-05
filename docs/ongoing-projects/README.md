@@ -12,10 +12,11 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-04.
+Statuses below were re-verified against the source tree on 2026-08-05.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
+| [bardic-instrument-slot-audit.md](bardic-instrument-slot-audit.md) | Confirmed; repair pending | Bardic performance ignores the dedicated instrument slot, making canonical crafted and summoned instruments undiscoverable. Regression coverage, breakability reconciliation, and flame-kissed transform hardening remain. |
 | [bardic-performance-msdp-overflow-audit.md](bardic-performance-msdp-overflow-audit.md) | Complete (retained audit record) | BP-001 through BP-019 are verified. Clean warning-free ASan/UBSan and optimized suites pass 399/399, focused protocol coverage passes 22/22, and the installed artifact is clean. No work remains. |
 | [artifact-placement-plan.md](artifact-placement-plan.md) | Handoff | Content brief for a world builder: acquisition routes for all seventeen artifacts, the single-instance reset contract, and verification steps. No code work outstanding. The artifact project's engineering sections are complete and its working notes have been retired; enduring content moved to [ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md) and [ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md](ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md). |
 | [ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md](ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md) | Reference | Source-verified static object stats, flags, affects, procedures, and Realms artifact overlays for the HomelandMUD and RealmsOfLuminari snapshots, plus the functional source map and the recoverable behavior of Homeland's three prototype-missing artifacts. |
