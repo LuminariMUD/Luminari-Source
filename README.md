@@ -6,6 +6,17 @@
 
 A text-based multiplayer online role-playing game (MUD) server implementing Pathfinder/D&D 3.5 mechanics, built on the robust tbaMUD/CircleMUD foundation with extensive custom enhancements.
 
+## The "Lumiverse"
+
+Our affectionate name for the multi-product software ecosystem of LuminariMUD.
+- [LuminariMUD the Best Open-Source MUD Server of ALL time](https://github.com/LuminariMUD/Luminari-Source/)
+- [Sage GraphRAG Lore & World-Building](https://github.com/LuminariMUD/sage)
+- [Web Client w/ React Media Experience](https://github.com/LuminariMUD/luminariweb)
+- [InterMUD-3 I3 Client - MUD to MUD Chat](https://github.com/LuminariMUD/Intermud3)
+- [Two way chat between Discord & your MUD](https://github.com/LuminariMUD/discord-mud-chat)
+- [Full-stack Wilderness Editor](https://github.com/LuminariMUD/wildeditor)
+- [Custom Luminari UI & Dev System for Mudlet](https://github.com/LuminariMUD/LuminariGUI)
+
 ## Table of Contents
 
 - [Quick Start](#quick-start) - See also [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
