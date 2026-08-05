@@ -381,6 +381,37 @@ void Test_crafted_instrument_uses_normal_dedicated_wear_path(CuTest *tc)
   end_bardic_fixture(&fixture);
 }
 
+void Test_crafted_instrument_status_uses_value_names_and_mote_pluralization(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct char_data *bard;
+
+  begin_bardic_fixture(&fixture);
+  bard = &fixture.bard;
+  GET_CRAFT(bard).crafting_item_type = CRAFT_TYPE_INSTRUMENT;
+  GET_CRAFT(bard).crafting_specific = 0;
+  GET_CRAFT(bard).craft_variant = -1;
+  GET_CRAFT(bard).instrument_quality = 3;
+  GET_CRAFT(bard).instrument_effectiveness = 1;
+  GET_CRAFT(bard).instrument_breakability = INSTRUMENT_BREAKABILITY_DEFAULT - 5;
+  GET_CRAFT(bard).instrument_motes[INSTRUMENT_VALUE_DIFFICULTY_REDUCTION] = 1;
+  GET_CRAFT(bard).instrument_motes[INSTRUMENT_VALUE_EFFECTIVENESS] = 1;
+  GET_CRAFT(bard).instrument_motes[INSTRUMENT_VALUE_BREAKABILITY] = 1;
+
+  show_current_craft(bard);
+
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "-- difficulty reduction: 3") != NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "-- effectiveness bonus : 1") != NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "air mote)") != NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "water mote)") != NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "earth mote)") != NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "air motes)") == NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "water motes)") == NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "earth motes)") == NULL);
+
+  end_bardic_fixture(&fixture);
+}
+
 void Test_summoned_instrument_uses_engine_lifecycle_and_normal_wear_path(CuTest *tc)
 {
   struct bardic_fixture fixture;

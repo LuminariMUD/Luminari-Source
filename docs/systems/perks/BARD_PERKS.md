@@ -20,6 +20,15 @@ bard, a stutter, an interruption, or an invalid state. Unless a perk says
 otherwise, an aura that applies "while performing" affects the performer and
 grouped allies in the same room.
 
+**Instrument Contract:** An `ITEM_INSTRUMENT` in the dedicated
+`WEAR_INSTRUMENT` slot is preferred; the three legacy hold slots remain
+compatibility fallbacks. Every equipped instrument applies its difficulty
+reduction. Its effectiveness bonus applies only when its subtype is ideal for
+the performance; a non-ideal instrument instead applies -2 effectiveness, and
+no instrument applies -3. Breakability is a numerator in 11,111 checked per
+verse, with zero meaning unbreakable. The crafting command retains `quality` as
+the established name for the stored difficulty-reduction field.
+
 ---
 
 ## TREE 1: SPELLSINGER

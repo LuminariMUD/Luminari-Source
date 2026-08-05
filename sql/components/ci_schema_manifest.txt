@@ -10,6 +10,7 @@ apply character_rename_transactional_schema.sql
 skip dynamic_descriptions_deployment.sql
 apply fix_help_entries_production.sql
 skip fix_narrative_weaver_schema_inconsistencies.sql
+apply help_bardic_instrument_entries.sql
 apply help_character_backgrounds.sql
 apply help_intermud3_entries.sql
 apply help_system_indexes.sql
@@ -29,6 +30,7 @@ skip resource_cascade_db.sql
 apply resource_depletion_db.sql
 apply resource_depletion_schema.sql
 skip test_vessels_integrity.sql
+skip verify_help_bardic_instrument_entries.sql
 skip verify_help_intermud3_entries.sql
 skip verify_help_vessel_entries.sql
 skip verify_vessels_campaign_content.sql

@@ -333,6 +333,7 @@ struct obj_data *setup_craft_weapon(struct char_data *ch, int w_type);
 struct obj_data *setup_craft_misc(struct char_data *ch, int vnum);
 struct obj_data *setup_craft_armor(struct char_data *ch, int a_type);
 void set_crafting_instrument(struct char_data *ch, char *arg2);
+void show_current_craft(struct char_data *ch);
 int get_crafting_instrument_dc_modifier(struct char_data *ch);
 int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amount);
 void set_craft_instrument_object(struct obj_data *obj, struct char_data *ch);

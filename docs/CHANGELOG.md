@@ -2,6 +2,46 @@
 
 ## [Unreleased] - August 5, 2026
 
+### Bardic instrument equipment and durability repair
+
+#### Fixed
+
+- Made bardic performance recognize `ITEM_INSTRUMENT` objects in the dedicated
+  `{Used As Instrument}` equipment slot while retaining legacy held-instrument
+  compatibility and deterministic dedicated-slot precedence.
+- Restored the instrument difficulty reduction and ideal-subtype effectiveness
+  bonus for dedicated-slot instruments, including flame-kissed object vnum
+  34549, crafted instruments, summoned instruments, and loaded equipment.
+- Replaced contradictory durability gates with one bounded breakability roll in
+  11,111 per verse, made subtype display range-safe, and standardized instrument
+  value names across runtime, identify/lore, OLC, crafting status, and builder
+  documentation.
+- Made flame-kissed transformations case-insensitive and nonlethal: the wearer
+  must have more than 20 hit points, pays exactly 20, and cannot fall below 1.
+- Routed summoned instruments through the normal object lifecycle and corrected
+  the crafting status display to pluralize each instrument mote type from its
+  own required count.
+
+#### Documentation
+
+- Added idempotent authoritative `PERFORM` and `INSTRUMENT` database help with a
+  read-only verifier, plus the permanent Bard instrument contract and completed
+  audit record.
+
+#### Verification
+
+- The warning-free GNU C23 production-linked suite passes 410/410 tests,
+  including dedicated/legacy slot policy, both performance slots, exact value
+  effects, breakability boundaries, subtype safety, crafted/summoned/load
+  paths, object lifecycle, flame-kissed hit-point boundaries, and craft-status
+  field/pluralization output.
+- The authoritative help migration is idempotent in the development database;
+  its verifier passes two-entry, thirteen-keyword, player-access, and 10/10
+  content-contract checks.
+- Generated builder guides, source constants, and documentation validation are
+  current. `make install` produced `bin/circle` and removed the root-level
+  `circle` artifact.
+
 ### Bardic performance and structured protocol repair
 
 Completed the BP-001 through BP-019 bardic performance and MSDP overflow audit

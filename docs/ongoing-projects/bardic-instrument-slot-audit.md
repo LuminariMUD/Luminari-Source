@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Implementation complete; final validation in progress
+Status: Complete
 
 Scope: Bardic performance instrument discovery, object vnum 34549, instrument creation,
 equipment persistence, the flame-kissed transformation procedure, and focused test coverage.
@@ -29,6 +29,10 @@ flame-kissed coverage. Crafted and summoned instruments now pass through the nor
 loaded instruments auto-equip back into the dedicated slot, and summoned instruments use the
 engine object lifecycle. The flame-kissed transformation is case-insensitive and nonlethal: it
 requires more than 20 hit points, costs exactly 20, and can leave the wearer at 1 hit point.
+
+Checkpoint 4 closes the completion sweep with consistent craft-status output, authoritative
+database help, permanent documentation, and a warning-free 410-test production-linked suite.
+All ten findings and every acceptance criterion are resolved and verified.
 
 Before checkpoint 1, this meant that every verse using vnum 34549:
 
@@ -148,6 +152,8 @@ which exposes the pre-existing discovery mismatch.
 | BI-006 | Low | Resolved; verified | Instrument subtype display paths indexed a table without validating object value 0. |
 | BI-007 | Low | Resolved; verified | Value 2 was inconsistently called level or effectiveness, and identify misspelled effectiveness. |
 | BI-008 | Medium | Resolved; verified | Summoned instruments bypassed the engine object lifecycle and global object list. |
+| BI-009 | Low | Resolved; verified | Craft status pluralized two mote types using the difficulty-reduction mote count. |
+| BI-010 | Low | Resolved; verified | Authoritative database help omitted the dedicated-slot and value contracts. |
 
 ### BI-001: Dedicated Slot Is Ignored
 
@@ -340,8 +346,12 @@ The same object values are described differently across the subsystem:
 
 The identify output at `src/obj/act.item.c:933-945` also spelled `Effectiveness` as
 `Effextiveness`. Checkpoint 2 standardizes the fields as subtype, difficulty reduction,
-effectiveness bonus, and breakability. These names are shared by runtime code, OLC, crafting,
-identify/lore, object listing, and the builder guide.
+effectiveness bonus, and breakability. These names are shared by runtime code, OLC, completed
+object/craft-status output, identify/lore, object listing, and the builder guide.
+
+The established crafting command continues to accept and display `quality` while configuring a
+project. The completed object, craft status, and all object/runtime surfaces identify that stored
+value as difficulty reduction, and the permanent documentation explicitly records the mapping.
 
 ### BI-008: Summoned Instrument Bypassed the Object Lifecycle
 
@@ -358,6 +368,35 @@ The summon spell now uses `create_obj()`. Its regression test verifies that the 
 the global-list head, preserves the previous head as its successor, equips through
 `perform_wear()`, is recognized by bardic performance, and restores the previous list head when
 extracted.
+
+### BI-009: Craft Status Used the Wrong Mote Counts for Pluralization
+
+Severity: Low
+
+Status: Resolved and verified in checkpoint 4.
+
+The instrument section of `craft show` selected the effectiveness and breakability `mote`/`motes`
+suffixes by comparing the difficulty-reduction mote count to 2 and 3. This could print plural
+words for a one-mote requirement and singular words for unrelated combinations.
+
+Checkpoint 4 gives the display named instrument value indices and bases every suffix on that
+field's own required count. A production-linked regression checks one-mote difficulty,
+effectiveness, and breakability output independently.
+
+### BI-010: Authoritative Help Omitted the Implemented Contract
+
+Severity: Low
+
+Status: Resolved and verified in checkpoint 4.
+
+The legacy local `help.hlp` mentioned optional and ideal instruments but did not explain the
+dedicated slot, exact -3/-2 effectiveness adjustments, durability denominator, normal
+crafted/summoned wear path, or flame-kissed low-hit-point rule. Runtime help files are ignored
+deployment data; MySQL `help_entries` and `help_keywords` are authoritative.
+
+Checkpoint 4 adds an idempotent SQL migration for the `PERFORM` and `INSTRUMENT` entries and a
+read-only verifier. The development database passes the two-entry, thirteen-keyword,
+player-access, and 10/10 content-contract checks.
 
 ## Recommended Repair Order
 
@@ -379,6 +418,8 @@ values, and special assignment are all valid.
 
 ## Acceptance Criteria
 
+All acceptance criteria are satisfied.
+
 - `{Used As Instrument}` equipment is recognized by all base bardic performances.
 - Vnum 34549 no longer prints the no-instrument message while in slot 32.
 - In ideal form, vnum 34549 contributes value 1 (30) and value 2 (10).
@@ -389,6 +430,8 @@ values, and special assignment are all valid.
 - Legacy explicitly held instruments continue to work if compatibility is retained.
 - Transforming vnum 34549 at low hit points follows a defined, valid damage/cost contract.
 - Instrument identify/list output handles malformed subtype values without an invalid read.
+- Craft status uses consistent field names and correct per-field mote pluralization.
+- Authoritative player help describes the dedicated slot and exact instrument contracts.
 - The production-linked test suite covers the dedicated slot and passes warning-free.
 - After `make test`, `make install` is run so no root-level `circle` artifact is left behind.
 
@@ -431,6 +474,26 @@ values, and special assignment are all valid.
   boundary, subtype mutation, hit-point result, and action consumption.
 - Ran `make test`: passed 409/409 tests with no compiler warnings.
 - Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
+
+### Checkpoint 4: Completion Sweep
+
+- Re-audited instrument producers, consumers, value indexing, subtype-table access, wear-slot
+  policy, durability wording, and the unchanged vnum 34549 prototype.
+- Corrected the craft-status mote pluralization defect and added focused coverage.
+- Added the permanent instrument contract to `docs/systems/perks/BARD_PERKS.md` and recorded the
+  completed work in `docs/CHANGELOG.md`.
+- Added authoritative MySQL `PERFORM` and `INSTRUMENT` help, classified it for fresh-schema CI,
+  and added a read-only verifier.
+- Applied the idempotent help migration to the development database; entry, keyword, access, and
+  all 10 content-contract checks pass.
+- Ran `make test`: passed 410/410 tests with no compiler warnings.
+- Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
+- Confirmed generated builder guides, the constants manifest, and documentation checks are clean.
+- Confirmed the vnum 34549 prototype and protected configuration/credential files are unchanged.
+- Reapplied the help migration and verifier to prove idempotency; all checks remain passing.
+- An additional installed `circle -c` smoke exposed an unrelated syntax-check event-order defect.
+  It is preserved separately in `syntax-check-event-init-order.md` and does not traverse bardic
+  instrument code.
 
 ## Validation Performed for the Original Audit
 

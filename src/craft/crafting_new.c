@@ -1498,33 +1498,33 @@ int get_crafting_instrument_dc_modifier(struct char_data *ch)
   return dc_mod;
 }
 
-// type is the object value associated with the query: 1 = quality, 2 = effectiveness, 3 = breakability
-// get_amount is FALSE if you want to get the type of mote, or TRUE if you want to get the number of motes
+/* type is the instrument value index: difficulty reduction, effectiveness, or breakability.
+ * Crafting retains "quality" as the player-facing name for difficulty reduction. */
 int get_crafting_instrument_motes(struct char_data *ch, int type, bool get_amount)
 {
   switch (type)
   {
-  case 1: // quality
+  case INSTRUMENT_VALUE_DIFFICULTY_REDUCTION:
     if (!get_amount)
     {
       return CRAFTING_MOTE_AIR;
     }
     else
     {
-      return GET_CRAFT(ch).instrument_quality / 3; // 1-30 quality, so 0-10 motes
+      return GET_CRAFT(ch).instrument_quality / 3; /* 1-30 quality, so 0-10 motes. */
     }
     break;
-  case 2: // effectiveness
+  case INSTRUMENT_VALUE_EFFECTIVENESS:
     if (!get_amount)
     {
       return CRAFTING_MOTE_WATER;
     }
     else
     {
-      return GET_CRAFT(ch).instrument_effectiveness; // 1-10 effectiveness, so 1-10 motes
+      return GET_CRAFT(ch).instrument_effectiveness; /* 1-10 effectiveness, so 1-10 motes. */
     }
     break;
-  case 3: // breakability
+  case INSTRUMENT_VALUE_BREAKABILITY:
     if (!get_amount)
     {
       return CRAFTING_MOTE_EARTH;
@@ -2147,6 +2147,7 @@ void show_current_craft(struct char_data *ch)
   int project_material = 0;
   int project_amount = 0;
   int skill = 0, dc = 0, spec_type = 0;
+  int difficulty_motes = 0, effectiveness_motes = 0, breakability_motes = 0;
 
   snprintf(extra_desc, sizeof(extra_desc), " ");
 
@@ -2265,23 +2266,31 @@ void show_current_craft(struct char_data *ch)
 
   if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_INSTRUMENT)
   {
+    difficulty_motes =
+        get_crafting_instrument_motes(ch, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION, TRUE);
+    effectiveness_motes = get_crafting_instrument_motes(ch, INSTRUMENT_VALUE_EFFECTIVENESS, TRUE);
+    breakability_motes = get_crafting_instrument_motes(ch, INSTRUMENT_VALUE_BREAKABILITY, TRUE);
     send_to_char(ch, "\r\n");
     send_to_char(ch, "\tc   INSTRUMENT INFO:\tn\r\n");
-    send_to_char(ch, "-- quality       : %d (motes: %2d/%2d %s%s)\r\n",
-                 GET_CRAFT(ch).instrument_quality, GET_CRAFT(ch).instrument_motes[1],
-                 get_crafting_instrument_motes(ch, 1, TRUE),
-                 crafting_motes[get_crafting_instrument_motes(ch, 1, FALSE)],
-                 get_crafting_instrument_motes(ch, 1, TRUE) == 1 ? "" : "s");
-    send_to_char(ch, "-- effectiveness : %d (motes: %2d/%2d %s%s)\r\n",
-                 GET_CRAFT(ch).instrument_effectiveness, GET_CRAFT(ch).instrument_motes[2],
-                 get_crafting_instrument_motes(ch, 2, TRUE),
-                 crafting_motes[get_crafting_instrument_motes(ch, 2, FALSE)],
-                 get_crafting_instrument_motes(ch, 1, TRUE) == 2 ? "" : "s");
-    send_to_char(ch, "-- breakability  : %d (motes: %2d/%2d %s%s)\r\n",
-                 GET_CRAFT(ch).instrument_breakability, GET_CRAFT(ch).instrument_motes[3],
-                 get_crafting_instrument_motes(ch, 3, TRUE),
-                 crafting_motes[get_crafting_instrument_motes(ch, 3, FALSE)],
-                 get_crafting_instrument_motes(ch, 1, TRUE) == 3 ? "" : "s");
+    send_to_char(ch, "-- difficulty reduction: %d (motes: %2d/%2d %s%s)\r\n",
+                 GET_CRAFT(ch).instrument_quality,
+                 GET_CRAFT(ch).instrument_motes[INSTRUMENT_VALUE_DIFFICULTY_REDUCTION],
+                 difficulty_motes,
+                 crafting_motes[get_crafting_instrument_motes(
+                     ch, INSTRUMENT_VALUE_DIFFICULTY_REDUCTION, FALSE)],
+                 difficulty_motes == 1 ? "" : "s");
+    send_to_char(
+        ch, "-- effectiveness bonus : %d (motes: %2d/%2d %s%s)\r\n",
+        GET_CRAFT(ch).instrument_effectiveness,
+        GET_CRAFT(ch).instrument_motes[INSTRUMENT_VALUE_EFFECTIVENESS], effectiveness_motes,
+        crafting_motes[get_crafting_instrument_motes(ch, INSTRUMENT_VALUE_EFFECTIVENESS, FALSE)],
+        effectiveness_motes == 1 ? "" : "s");
+    send_to_char(
+        ch, "-- breakability        : %d (motes: %2d/%2d %s%s)\r\n",
+        GET_CRAFT(ch).instrument_breakability,
+        GET_CRAFT(ch).instrument_motes[INSTRUMENT_VALUE_BREAKABILITY], breakability_motes,
+        crafting_motes[get_crafting_instrument_motes(ch, INSTRUMENT_VALUE_BREAKABILITY, FALSE)],
+        breakability_motes == 1 ? "" : "s");
   }
 
   if (GET_CRAFT(ch).crafting_item_type == CRAFT_TYPE_WEAPON ||
