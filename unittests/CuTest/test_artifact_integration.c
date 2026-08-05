@@ -503,6 +503,7 @@ struct artint_identity_case
   int generic_proc_chance;
   int signature_proc;
   int hand_proc_vnum;
+  int hand_entry_odds;
   int called_effects[ARTIFACT_MAX_EFFECTS];
   int called_channels[ARTIFACT_MAX_EFFECTS];
   int passive_count;
@@ -523,51 +524,50 @@ struct artint_passive_case
  * production behavior and this row together. */
 /* clang-format off */
 static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT] = {
-    {ART_VNUM_TRORXEK, NULL, 12, ART_SIG_NONE, ART_VNUM_TRORXEK,
+    {ART_VNUM_TRORXEK, NULL, 12, ART_SIG_NONE, ART_VNUM_TRORXEK, 0,
      {ART_EFFECT_SUMMON_TREANT, ART_EFFECT_CREEPING_DOOM, ART_EFFECT_RECALL,
       ART_EFFECT_TRAVEL_TO},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
-    {ART_VNUM_AMAUKEKEL, "divineward", 0, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_AMAUKEKEL, "divineward", 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_DIMENSION_SHIFT, ART_EFFECT_RESURRECT, ART_EFFECT_DISPEL_EVIL, 0},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
-    /* ART-AUD-002: the inherited life-drain combat handler is still absent. */
-    {ART_VNUM_FADE, NULL, 16, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_FADE, NULL, 16, ART_SIG_NONE, ART_VNUM_FADE, ARTIFACT_FADE_DRAIN_ODDS,
      {ART_EFFECT_BLIND, ART_EFFECT_DARKNESS, ART_EFFECT_WEAKEN, ART_EFFECT_TRAVEL_TO},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
-    {ART_VNUM_HENEKAR, NULL, 0, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_HENEKAR, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_BLIND, ART_EFFECT_PACIFY, ART_EFFECT_CHARM, ART_EFFECT_TRAVEL_TO},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
     /* ART-AUD-003: the inherited five-hit combat burst is still absent. */
-    {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_ANNIHILATION, ART_EFFECT_BLACK_LIGHTNING, ART_EFFECT_ENRAGE, 0},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
-    {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN,
+    {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM,
+    {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    {ART_VNUM_GESEN, NULL, 18, ART_SIG_NONE, ART_VNUM_GESEN,
+    {ART_VNUM_GESEN, NULL, 18, ART_SIG_NONE, ART_VNUM_GESEN, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    {ART_VNUM_STINGER, NULL, 18, ART_SIG_LIFESTEAL, NOTHING,
+    {ART_VNUM_STINGER, NULL, 18, ART_SIG_LIFESTEAL, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
     /* ART-AUD-004: the hand procedure is currently emergency-heal only. */
-    {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS,
+    {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    {ART_VNUM_AEGIS, NULL, 0, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_AEGIS, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    {ART_VNUM_VENGEANCE, NULL, 0, ART_SIG_MERCY, NOTHING,
+    {ART_VNUM_VENGEANCE, NULL, 0, ART_SIG_MERCY, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 3},
-    {ART_VNUM_EARTHCRIER, NULL, 0, ART_SIG_KNOCKDOWN, NOTHING,
+    {ART_VNUM_EARTHCRIER, NULL, 0, ART_SIG_KNOCKDOWN, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 2},
-    {ART_VNUM_WYRMFANG, NULL, 0, ART_SIG_WEIGHTED, NOTHING,
+    {ART_VNUM_WYRMFANG, NULL, 0, ART_SIG_WEIGHTED, NOTHING, 0,
      {ART_EFFECT_DRAGON_SIGHT, 0, 0, 0},
      {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING}, 5},
-    {ART_VNUM_COURAGE, NULL, 0, ART_SIG_NONE, NOTHING,
+    {ART_VNUM_COURAGE, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_GROUP_VALOR, 0, 0, 0},
      {ART_INVOKE_SAY, NOTHING, NOTHING, NOTHING}, 4},
-    {ART_VNUM_ICEDGE, NULL, 0, ART_SIG_FLURRY, NOTHING,
+    {ART_VNUM_ICEDGE, NULL, 0, ART_SIG_FLURRY, NOTHING, 0,
      {ART_EFFECT_FROST_WARD, 0, 0, 0},
      {ART_INVOKE_WHISPER, NOTHING, NOTHING, NOTHING}, 3},
-    {ART_VNUM_TWILIGHT, NULL, 0, ART_SIG_SURGE, NOTHING,
+    {ART_VNUM_TWILIGHT, NULL, 0, ART_SIG_SURGE, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 4}};
 
 static const struct artint_passive_case artint_passive_cases[] = {
@@ -700,6 +700,8 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
                                     expected->signature_proc, actual.signature_proc);
     artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "hand procedure",
                                     expected->hand_proc_vnum, actual.hand_proc_vnum);
+    artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "hand entry odds",
+                                    expected->hand_entry_odds, actual.hand_entry_odds);
 
     for (j = 0; j < ARTIFACT_MAX_EFFECTS && failure[0] == '\0'; j++)
     {
@@ -1371,6 +1373,117 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
   artint_end(&fixture);
 
   CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, fired);
+}
+
+void Test_artifact_integration_fade_siphons_only_living_npcs(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  time_t cooldown_before = 0;
+  int original_race = 0;
+  int level_one_damage = 0, level_one_healing = 0;
+  int level_five_damage = 0, level_five_healing = 0;
+  int cooldown_ignored = FALSE, healing_capped = FALSE, info_described = FALSE;
+  int undead_refused = FALSE, dragon_refused = FALSE, player_refused = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_FADE);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_NONE, art->sig_proc);
+  CuAssertIntEquals(tc, 16, art->proc_chance);
+  CuAssertIntEquals(tc, 16, ARTIFACT_FADE_DRAIN_ODDS);
+  CuAssertIntEquals(tc, 200, ARTIFACT_FADE_DRAIN_MAX_DAMAGE);
+  CuAssertIntEquals(tc, 25, ARTIFACT_FADE_DRAIN_HEAL_PERCENT);
+
+  artint_instance(&fixture, &obj, ART_VNUM_FADE);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "Combat:") && artint_said(&fixture, "16% chance") &&
+                   artint_said(&fixture, "Signature:") && artint_said(&fixture, "1-in-16") &&
+                   artint_said(&fixture, "40 x artifact level") && artint_said(&fixture, "25%");
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  original_race = GET_REAL_RACE(&fixture.victim);
+  cooldown_before = time(0);
+  art->last_proc = cooldown_before;
+
+  art->level = 1;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_one_damage = GET_MAX_HIT(&fixture.victim) - GET_HIT(&fixture.victim);
+  level_one_healing = GET_HIT(&fixture.actor) - 100;
+  cooldown_ignored = art->last_proc == cooldown_before;
+
+  art->level = ARTIFACT_MAX_LEVEL;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_five_damage = GET_MAX_HIT(&fixture.victim) - GET_HIT(&fixture.victim);
+  level_five_healing = GET_HIT(&fixture.actor) - 100;
+
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) - 1;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  healing_capped = GET_HIT(&fixture.actor) == GET_MAX_HIT(&fixture.actor);
+
+  GET_REAL_RACE(&fixture.victim) = RACE_TYPE_UNDEAD;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  undead_refused = GET_HIT(&fixture.actor) == 100 &&
+                   GET_HIT(&fixture.victim) == GET_MAX_HIT(&fixture.victim) &&
+                   fixture.descriptor.output[0] == '\0';
+
+  GET_REAL_RACE(&fixture.victim) = RACE_TYPE_DRAGON;
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  dragon_refused = GET_HIT(&fixture.actor) == 100 &&
+                   GET_HIT(&fixture.victim) == GET_MAX_HIT(&fixture.victim) &&
+                   fixture.descriptor.output[0] == '\0';
+
+  GET_REAL_RACE(&fixture.victim) = original_race;
+  GET_HIT(&fixture.bystander) = GET_MAX_HIT(&fixture.bystander);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.bystander, &obj, FALSE);
+  player_refused = GET_HIT(&fixture.bystander) == GET_MAX_HIT(&fixture.bystander) &&
+                   fixture.descriptor.output[0] == '\0';
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 40, level_one_damage);
+  CuAssertIntEquals(tc, 10, level_one_healing);
+  CuAssertIntEquals(tc, 200, level_five_damage);
+  CuAssertIntEquals(tc, 50, level_five_healing);
+  CuAssertIntEquals(tc, TRUE, cooldown_ignored);
+  CuAssertIntEquals(tc, TRUE, healing_capped);
+  CuAssertIntEquals(tc, TRUE, undead_refused);
+  CuAssertIntEquals(tc, TRUE, dragon_refused);
+  CuAssertIntEquals(tc, TRUE, player_refused);
+  CuAssertIntEquals(tc, TRUE, info_described);
 }
 
 void Test_artifact_integration_stinger_lifesteal_drains_and_heals_safely(CuTest *tc)

@@ -2,23 +2,59 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Fade Shadowblade life siphon
+
+#### Added
+
+- Restored Fade's inherited 1-in-16 weapon-hit siphon as a named handler
+  separate from its existing 16 percent generic artifact proc. It targets
+  living non-dragon NPCs and refuses players, dragons, and undead.
+- Scaled the siphon from 40 negative damage at artifact level 1 to the
+  inherited 200-point ceiling at level 5 through the normal damage pipeline.
+  Fade heals 25 percent of damage actually inflicted, capped by the wielder's
+  missing hit points.
+
+#### Changed
+
+- Made `artifact info` display Fade's generic and named chances separately,
+  with its target, damage, and healing rules. Updated artifact player help and
+  the formal system guide to match.
+
+#### Verification
+
+- The focused and full production-linked suites pass all 420 tests. Fade's
+  deterministic test covers both scaling endpoints, actual healing, max-HP
+  capping, generic-cooldown independence, player/dragon/undead refusal,
+  identity wiring, and player-visible information.
+- `make install` installed the tested binary and removed the root build
+  artifact. The development server survived copyover, and `testartifact
+  verify` validated the production tables while continuing to report only the
+  pre-existing duplicate instances.
+- Kohdee wielded Fade against a temporary 10,000-HP Oaken Defender through the
+  normal five-attack combat loop. Two visible siphons each dealt 40 damage and
+  restored 10 hit points; the independent generic soul strike also fired in
+  the same fight. The mobile was purged and Kohdee's hit points, movement,
+  gold, equipment, and Fade's ownership and progression were restored.
+
 ### Artifact identity contract coverage
 
 #### Added
 
 - Added an exact production-linked identity contract for all 17 artifacts.
   Every row records its generic proc chance, reusable or hand-written combat
-  handler, active ability, four called-effect and invocation-channel slots,
-  and progressive passives, including deliberate `none` values.
+  handler and table-owned odds, active ability, four called-effect and
+  invocation-channel slots, and progressive passives, including deliberate
+  `none` values.
 - Added a CuTest-only snapshot of the booted production template, effect,
   passive, and hand-dispatch lookups. Contract failures identify the first
   drift by artifact VNUM and field.
 
 #### Verification
 
-- The production-linked suite passes all 419 tests. The new matrix preserves
-  explicit pending entries for Fade's life drain, Doombringer's five-hit
-  burst, and Avernus's emergency-heal-only combat package.
+- The production-linked suite passes all 419 tests. The original matrix made
+  Fade's missing life drain explicit; ART-AUD-002 has since advanced that row
+  to its callable handler. Doombringer's five-hit burst and Avernus's
+  emergency-heal-only combat package remain explicit pending entries.
 - `make install` installed the tested binary and removed the root build
   artifact. The development server survived copyover; table metadata
   validated; and Kohdee's read-only Fade, Avernus, and Wyrmfang information

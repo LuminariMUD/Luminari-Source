@@ -265,7 +265,7 @@
 /* --------------------------------------------------------------------------
  * Reusable signature-proc shapes
  *
- * Five inherited procedures remain hand-written.  Table-driven signature
+ * Six inherited procedures remain hand-written.  Table-driven signature
  * powers select a shape, chance, and alignment condition here so the same
  * behavior can be reused without another vnum-specific dispatch function.
  * -------------------------------------------------------------------------- */
@@ -351,6 +351,9 @@
  * Independent of the generic proc system: these roll on every successful hit
  * and ignore the shared internal cooldown, exactly as ROL's did.
  * -------------------------------------------------------------------------- */
+#define ARTIFACT_FADE_DRAIN_ODDS 16
+#define ARTIFACT_FADE_DRAIN_MAX_DAMAGE 200
+#define ARTIFACT_FADE_DRAIN_HEAL_PERCENT 25
 #define ARTIFACT_KELRARIN_THROW_ODDS 29
 #define ARTIFACT_KELRARIN_THROW_MAX 250
 #define ARTIFACT_KELRARIN_MEGA_ODDS 33
@@ -566,6 +569,7 @@ struct artifact_test_identity_data
   int generic_proc_chance;
   int signature_proc;
   int hand_proc_vnum;
+  int hand_entry_odds;
   int called_effects[ARTIFACT_MAX_EFFECTS];
   int called_channels[ARTIFACT_MAX_EFFECTS];
   int passive_count;

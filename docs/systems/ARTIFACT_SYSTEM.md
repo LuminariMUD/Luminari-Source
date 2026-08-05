@@ -299,7 +299,7 @@ registry.
 | Boss-tier hit | Base hit XP x2 | One random equipped artifact |
 | Boss-tier kill | Base kill XP x3 | One random equipped artifact |
 | Generic soul/heal/fear/doom/ultimate proc | 2/1/3/4/10 | Proc artifact |
-| Reusable signature proc | 3 | Proc artifact |
+| Reusable or named signature proc | 3 | Proc artifact |
 | `soulstrike` | 15 | Kelrarin's Hammer |
 | `divineward` | 20 | Amaukekel |
 | `doomblast` | 10 | Doombringer |
@@ -324,7 +324,7 @@ mobile. Neither is an artifact registry entry.
 | --- | --- | --- | --- | --- | --- | --- |
 | 169901 | Trorxek, the Staff of Ancient Oaks | Equip | Druid | - | 12% | 4 |
 | 169902 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
-| 169903 | Fade, the Shadowblade | Equip | Rogue | - | 16% | 4 |
+| 169903 | Fade, the Shadowblade | Equip | Rogue | - | 16% generic + 1-in-16 siphon | 4 |
 | 169904 | The Horn of Henekar | Equip | Rogue | - | - | 4 |
 | 169905 | Doombringer | Pickup | Warrior | `doomblast` | 20% | 3 |
 | 169906 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
@@ -535,8 +535,9 @@ was not ported.
 
 ## Reusable Signature Procs
 
-Five inherited procedures remain hand-written and dispatched by VNUM.
-Table-driven signature powers select a shape from this reusable library:
+Six inherited procedures remain hand-written and dispatched through the
+callable handler table. Table-driven signature powers select a shape from
+this reusable library:
 
 | Shape | Behavior |
 | --- | --- |
@@ -611,7 +612,7 @@ succeeds, the proc kind is `rand_number(1, artifact_level)`.
 | 4 | `dice(level, 8)` negative doom damage |
 | 5 | At level 5, a further 5% chance to execute an NPC no higher than the wielder |
 
-Signature procedures run before this generic system. The five hand-written
+Signature procedures run before this generic system. The six hand-written
 procedures have independent odds and may occur on the same hit as a generic
 proc if the victim survives. Reusable signature shapes normally share the
 generic 30-second internal cooldown. Tiamat's lifesteal ignores that cooldown
@@ -623,11 +624,20 @@ cannot also fire on that hit.
 | Artifact | Behavior |
 | --- | --- |
 | Trorxek | Every eligible critical hit blinds for `1 + level / 2` rounds |
+| Fade | 1-in-16 siphon against a living non-dragon NPC; `40 * artifact_level` negative damage and 25% actual-damage healing |
 | Kelrarin | 1-in-29 returning throw with level-scaled force damage and full lifesteal |
 | Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 level-scaled holy blast plus a non-boss NPC execute check |
 | Kelrom | Kills its wielder for striking an animal; otherwise applies group healback, on the shared 30-second internal cooldown |
 | Gesen | 1-in-31 returning throw that invokes `SPELL_HARM` |
 | Avernus | Below 100 HP, a `30 + 2 * level` percent chance to restore the wielder to full HP |
+
+Fade's siphon rolls independently of the generic 30-second cooldown. It
+refuses players, dragons, and undead before applying
+`40 * artifact_level` negative damage through `damage()`. Healing is 25
+percent of damage actually inflicted, rounded down and capped by missing hit
+points. At artifact level 5 this preserves the source procedure's 200 damage
+and 50 healing without its direct HP mutation or overhealing. Fade's separate
+16 percent generic proc still runs through the generic table above.
 
 Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5, and its
 holy blast grows from 100 to 350 the same way. Kelrom's healback grows from
@@ -820,10 +830,10 @@ level-based proc table. It does not imply that an artifact's named or source
 MUD power exists. The signature columns are a separate path. This distinction
 is the first thing to check when a power appears to be impossibly rare. The
 17-row integration identity contract records both values independently, along
-with hand-written dispatch, active abilities, called effects, invocation
-channels, and progressive passives. A deliberate absence is recorded as
-`ART_SIG_NONE`, `NOTHING`, zero, or `NULL`; it is never inferred from a generic
-percentage.
+with hand-written dispatch and table-owned odds, active abilities, called
+effects, invocation channels, and progressive passives. A deliberate absence
+is recorded as `ART_SIG_NONE`, `NOTHING`, zero, or `NULL`; it is never inferred
+from a generic percentage.
 
 ### Rebalancing an artifact
 
@@ -1049,21 +1059,23 @@ points: the full acquire-equip-bind-unequip-drop-save-reload-destroy
 lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
 highest-only resistance, the exact identity contract for all 17 artifacts,
 active abilities, the generic proc guards and every signature shape, lethal
-signature and generic procs at the outer combat boundary, Tiamat's
-actual-damage lifesteal and healing cap, called-effect success and refusal and
-per-slot recharge, invocation-channel separation, class-oath burn and phrase
-hiding, player and staff command output, single-instance behavior across a
-zone reset and a reboot, and the balance-pass decisions recorded above. It
-runs inside a scratch directory and never reads or writes real game data.
+signature and generic procs at the outer combat boundary, Fade's level-scaled
+living-target siphon and refusal rules, Tiamat's actual-damage lifesteal and
+healing cap, called-effect success and refusal and per-slot recharge,
+invocation-channel separation, class-oath burn and phrase hiding, player and
+staff command output, single-instance behavior across a zone reset and a
+reboot, and the balance-pass decisions recorded above. It runs inside a
+scratch directory and never reads or writes real game data.
 
 Three test seams in `src/obj/spec_artifacts.c` support it, all inside
 `#ifdef LUMINARI_CUTEST`: `artifact_show_info_for_test()` drives the real
 display path, `artifact_force_signature_proc_for_test()` exposes the real
 signature dispatcher, and `artifact_identity_for_test()` snapshots the booted
 production template, effect, passive, and hand-dispatch lookups. Tests make
-signature chance deterministic by setting `sig_chance` to a controlled value;
-the shape's cooldown policy, alignment rule, target legality, and effect
-implementation still apply.
+reusable signature chance deterministic by setting `sig_chance` to a
+controlled value. The force seam bypasses a hand-table entry's outer odds for
+Fade. Cooldown policy, alignment rules, target legality, and effect
+implementations still apply.
 
 Two things the integration suite deliberately does not do. Procs run with
 both combatants already engaged, because `damage()` otherwise calls

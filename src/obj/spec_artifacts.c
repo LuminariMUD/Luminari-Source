@@ -44,6 +44,7 @@
 #include "lists.h"
 #include "act.h"
 #include "character/class.h"
+#include "character/evolutions.h"
 #include "olc/oasis.h"
 #include "dgscript/dg_scripts.h"
 #include "campaign.h"
@@ -2973,6 +2974,59 @@ static int artifact_effect_level(struct char_data *ch, struct artifact_data *art
   return MAX(20, GET_LEVEL(ch) + (art->level * 2));
 }
 
+/* Fade, the Shadowblade: siphon a living foe through normal negative damage,
+ * then return only a quarter of the life actually taken. */
+static int artifact_proc_fade(struct char_data *ch, struct char_data *victim,
+                              struct obj_data *weapon, struct artifact_data *art, int dam,
+                              int is_critical)
+{
+  int amount = 0, damage_dealt = 0, healing = 0, victim_died = FALSE, victim_hit = 0;
+
+  (void)dam;
+  (void)is_critical;
+
+  if (!IS_NPC(victim) || IS_DRAGON(victim) || IS_UNDEAD(victim))
+    return FALSE;
+
+  amount = MAX(1, (ARTIFACT_FADE_DRAIN_MAX_DAMAGE * art->level) / ARTIFACT_MAX_LEVEL);
+  victim_hit = MAX(0, GET_HIT(victim));
+
+  act("\tD$p drinks $N's life force and feeds it back to you!\tn", FALSE, ch, weapon, victim,
+      TO_CHAR);
+  act("\tD$N screams as $n's $p draws out $S life force.\tn", FALSE, ch, weapon, victim,
+      TO_NOTVICT);
+  act("\tD$p draws the warmth out of your body and into $n.\tn", FALSE, ch, weapon, victim,
+      TO_VICT);
+
+  damage_dealt = damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+
+  /* A lethal damage() call may extract the victim.  Use the pre-hit snapshot
+   * to account for life removed without touching the victim again. */
+  if (damage_dealt < 0)
+  {
+    victim_died = TRUE;
+    damage_dealt = MIN(amount, victim_hit);
+  }
+
+  if (damage_dealt <= 0)
+    return victim_died;
+
+  if (GET_POS(ch) > POS_DEAD && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    healing = (damage_dealt * ARTIFACT_FADE_DRAIN_HEAL_PERCENT) / 100;
+    healing = MIN(healing, GET_MAX_HIT(ch) - GET_HIT(ch));
+    if (healing > 0)
+    {
+      GET_HIT(ch) += healing;
+      send_to_char(ch, "\tDThe stolen life restores %d hit point%s.\tn\r\n", healing,
+                   healing == 1 ? "" : "s");
+    }
+  }
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SIGNATURE);
+  return victim_died;
+}
+
 /* Kelrarin's Hammer: the thrown hammer, and the alignment-gated mega blast. */
 static int artifact_proc_kelrarin(struct char_data *ch, struct char_data *victim,
                                   struct obj_data *weapon, struct artifact_data *art, int dam,
@@ -3194,12 +3248,18 @@ struct artifact_hand_proc_entry
 {
   int vnum;
   artifact_hand_proc_fn handler;
+  int proc_odds; /* optional roll before the handler; zero = handler-owned */
+  const char *description;
 };
 
 static const struct artifact_hand_proc_entry artifact_hand_procs[] = {
-    {ART_VNUM_TRORXEK, artifact_proc_trorxek}, {ART_VNUM_KELRARIN, artifact_proc_kelrarin},
-    {ART_VNUM_KELROM, artifact_proc_kelrom},   {ART_VNUM_GESEN, artifact_proc_gesen},
-    {ART_VNUM_AVERNUS, artifact_proc_avernus}, {-1, NULL}};
+    {ART_VNUM_TRORXEK, artifact_proc_trorxek, 0, NULL},
+    {ART_VNUM_FADE, artifact_proc_fade, ARTIFACT_FADE_DRAIN_ODDS, "siphon a living non-dragon NPC"},
+    {ART_VNUM_KELRARIN, artifact_proc_kelrarin, 0, NULL},
+    {ART_VNUM_KELROM, artifact_proc_kelrom, 0, NULL},
+    {ART_VNUM_GESEN, artifact_proc_gesen, 0, NULL},
+    {ART_VNUM_AVERNUS, artifact_proc_avernus, 0, NULL},
+    {-1, NULL, 0, NULL}};
 
 static const struct artifact_hand_proc_entry *artifact_hand_proc_for_vnum(int vnum)
 {
@@ -3215,7 +3275,7 @@ static const struct artifact_hand_proc_entry *artifact_hand_proc_for_vnum(int vn
 /* --------------------------------------------------------------------------
  * The reusable signature-proc library
  *
- * The five procedures above are one function per artifact, inherited from
+ * The six procedures above are one function per artifact, inherited from
  * ROL.  Everything added since is a shape from this library, selected by a
  * row in artifact_templates[].  A new artifact reuses a shape; it does not
  * add a function.
@@ -3596,7 +3656,7 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
 /* Dispatch.  Returns TRUE when the victim is gone. */
 static int artifact_signature_proc(struct char_data *ch, struct char_data *victim,
                                    struct obj_data *weapon, struct artifact_data *art, int dam,
-                                   int is_critical)
+                                   int is_critical, int force_hand_proc)
 {
   const struct artifact_hand_proc_entry *hand_proc = NULL;
 
@@ -3604,6 +3664,9 @@ static int artifact_signature_proc(struct char_data *ch, struct char_data *victi
     return artifact_reusable_proc(ch, victim, weapon, art, is_critical);
 
   if (!(hand_proc = artifact_hand_proc_for_vnum(art->vnum)))
+    return FALSE;
+
+  if (!force_hand_proc && hand_proc->proc_odds > 0 && rand_number(1, hand_proc->proc_odds) != 1)
     return FALSE;
 
   return hand_proc->handler(ch, victim, weapon, art, dam, is_critical);
@@ -3628,7 +3691,7 @@ int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct 
     return FALSE;
 
   /* The hand-written procedures roll first and answer to nothing else. */
-  if (artifact_signature_proc(ch, victim, weapon, art, dam, is_critical))
+  if (artifact_signature_proc(ch, victim, weapon, art, dam, is_critical, FALSE))
     return TRUE;
 
   if (art->proc_chance <= 0)
@@ -4719,6 +4782,7 @@ static void artifact_show_called_effects(struct char_data *ch, struct artifact_d
 
 static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
 {
+  const struct artifact_hand_proc_entry *hand_proc = NULL;
   struct artifact_data *art = NULL;
   int i = 0;
 
@@ -4789,6 +4853,20 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
   if (art->proc_chance > 0)
     send_to_char(ch, "\r\n\tYCombat:\tn %d%% chance per hit to unleash a special strike.\r\n",
                  art->proc_chance);
+
+  hand_proc = artifact_hand_proc_for_vnum(art->vnum);
+  if (hand_proc && hand_proc->proc_odds > 0 && hand_proc->description)
+  {
+    send_to_char(ch, "\r\n\tYSignature:\tn 1-in-%d chance per hit to %s.\r\n", hand_proc->proc_odds,
+                 hand_proc->description);
+
+    if (art->vnum == ART_VNUM_FADE)
+      send_to_char(ch,
+                   "  Drain: %d x artifact level negative damage, up to %d.\r\n"
+                   "  Healing equals %d%% of damage inflicted, capped by missing hit points.\r\n",
+                   ARTIFACT_FADE_DRAIN_MAX_DAMAGE / ARTIFACT_MAX_LEVEL,
+                   ARTIFACT_FADE_DRAIN_MAX_DAMAGE, ARTIFACT_FADE_DRAIN_HEAL_PERCENT);
+  }
 
   if (art->sig_proc != ART_SIG_NONE && art->sig_chance > 0)
   {
@@ -5888,7 +5966,7 @@ int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_dat
   if (!(art = artifact_of_obj(weapon)))
     return FALSE;
 
-  return artifact_signature_proc(ch, victim, weapon, art, 10, is_critical);
+  return artifact_signature_proc(ch, victim, weapon, art, 10, is_critical, TRUE);
 }
 
 /* Read the exact production tables and dispatch lookup into one stable test
@@ -5916,7 +5994,10 @@ int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *ide
   identity->signature_proc = art->sig_proc;
   hand_proc = artifact_hand_proc_for_vnum(vnum);
   if (hand_proc)
+  {
     identity->hand_proc_vnum = hand_proc->vnum;
+    identity->hand_entry_odds = hand_proc->proc_odds;
+  }
 
   for (i = 0; i < ARTIFACT_MAX_EFFECTS; i++)
   {

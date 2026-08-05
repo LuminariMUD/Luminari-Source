@@ -27,6 +27,12 @@ true per-hit effects roll independently, and some protect against long streaks
 of failed rolls. Use 'artifact info <item>' to see the chance and exact
 behavior of a signature strike once you hold the artifact.
 
+Fade, the Shadowblade, has two separate on-hit rolls. Its generic artifact
+strike is not its life siphon. The siphon rolls 1-in-16 against living
+non-dragon NPCs, deals 40 damage per artifact level through the normal damage
+system, and heals 25 percent of the damage actually inflicted. It never heals
+beyond your maximum hit points. Use 'artifact info fade' to see both chances.
+
 Others answer to words. Hold or wear the artifact and use the channel it
 listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
 command. Each artifact decides which. Each such effect recharges on its own
