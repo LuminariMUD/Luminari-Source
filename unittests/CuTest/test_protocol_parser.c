@@ -8,6 +8,7 @@
 #include "CuTest.h"
 
 #include <arpa/telnet.h>
+#include <json-c/json.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -133,6 +134,48 @@ static int capture_contains(const unsigned char *needle, size_t needle_length)
   }
 
   return 0;
+}
+
+static json_object *parse_captured_msdp_json(CuTest *tc)
+{
+  struct json_tokener *tokener;
+  enum json_tokener_error error;
+  json_object *root;
+  const char *payload;
+  const char *json_data;
+  size_t payload_length;
+  size_t json_length;
+  size_t parse_end;
+
+  CuAssert(tc, "captured frame is too short", s_output_capture_len >= 10);
+  CuAssertIntEquals(tc, IAC, s_output_capture[0]);
+  CuAssertIntEquals(tc, SB, s_output_capture[1]);
+  CuAssertIntEquals(tc, TELOPT_GMCP, s_output_capture[2]);
+  CuAssertIntEquals(tc, IAC, s_output_capture[s_output_capture_len - 2]);
+  CuAssertIntEquals(tc, SE, s_output_capture[s_output_capture_len - 1]);
+
+  payload = (const char *)s_output_capture + 3;
+  payload_length = s_output_capture_len - 5;
+  CuAssert(tc, "GMCP package is not the case-sensitive MSDP package",
+           payload_length >= 5 && memcmp(payload, "MSDP ", 5) == 0);
+  json_data = payload + 5;
+  json_length = payload_length - 5;
+
+  tokener = json_tokener_new();
+  CuAssertPtrNotNullMsg(tc, "could not allocate strict JSON parser", tokener);
+  json_tokener_set_flags(tokener, JSON_TOKENER_STRICT | JSON_TOKENER_VALIDATE_UTF8);
+  root = json_tokener_parse_ex(tokener, json_data, (int)json_length);
+  error = json_tokener_get_error(tokener);
+  parse_end = json_tokener_get_parse_end(tokener);
+
+  CuAssertIntEquals(tc, json_tokener_success, error);
+  CuAssertIntEquals(tc, (int)json_length, (int)parse_end);
+  CuAssertPtrNotNullMsg(tc, "GMCP payload did not parse as JSON", root);
+  CuAssert(tc, "GMCP MSDP payload is not a JSON object",
+           json_object_is_type(root, json_type_object));
+  json_tokener_free(tokener);
+
+  return root;
 }
 
 static void fixture_init(protocol_fixture_t *fixture)
@@ -892,6 +935,309 @@ void TestProtocolParser_SelectedMsdpVariablesCanBeReported(CuTest *tc)
   harness_destroy(&harness);
 }
 
+void TestProtocolParser_GmcpMsdpScalarUsesStrictJson(CuTest *tc)
+{
+  protocol_harness_t harness;
+  json_object *root;
+  json_object *title;
+  const char value[] = "quote=\" slash=/ backslash=\\\b\f\n\r\t\007\013\037 caf\303\251";
+  const unsigned char legacy_package[] = "MSDP.";
+  const unsigned char escaped_quote[] = "\\\"";
+  const unsigned char escaped_backslash[] = "\\\\";
+  const unsigned char escaped_bell[] = "\\u0007";
+  const unsigned char escaped_vertical_tab[] = "\\u000b";
+  const unsigned char escaped_unit_separator[] = "\\u001f";
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSetString(&harness.descriptor, eMSDP_TITLE, value));
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSend(&harness.descriptor, eMSDP_TITLE));
+
+  CuAssert(tc, "legacy MSDP.<variable> GMCP package was emitted",
+           !capture_contains(legacy_package, sizeof(legacy_package) - 1));
+  CuAssert(tc, "JSON quote was not escaped",
+           capture_contains(escaped_quote, sizeof(escaped_quote) - 1));
+  CuAssert(tc, "JSON backslash was not escaped",
+           capture_contains(escaped_backslash, sizeof(escaped_backslash) - 1));
+  CuAssert(tc, "JSON control byte was not escaped as Unicode",
+           capture_contains(escaped_bell, sizeof(escaped_bell) - 1));
+  CuAssert(tc, "JSON vertical tab was not escaped as Unicode",
+           capture_contains(escaped_vertical_tab, sizeof(escaped_vertical_tab) - 1));
+  CuAssert(tc, "JSON unit separator was not escaped as Unicode",
+           capture_contains(escaped_unit_separator, sizeof(escaped_unit_separator) - 1));
+
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "TITLE was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "TITLE", &title));
+  CuAssert(tc, "TITLE was not a JSON string", json_object_is_type(title, json_type_string));
+  CuAssertIntEquals(tc, (int)strlen(value), json_object_get_string_len(title));
+  CuAssertStrEquals(tc, value, json_object_get_string(title));
+
+  json_object_put(root);
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GmcpMsdpNumberUsesJsonNumber(CuTest *tc)
+{
+  protocol_harness_t harness;
+  json_object *root;
+  json_object *health;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSetNumber(&harness.descriptor, eMSDP_HEALTH, -42));
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSend(&harness.descriptor, eMSDP_HEALTH));
+
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "HEALTH was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "HEALTH", &health));
+  CuAssert(tc, "HEALTH was not a JSON number", json_object_is_type(health, json_type_int));
+  CuAssertIntEquals(tc, -42, json_object_get_int(health));
+
+  json_object_put(root);
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GmcpMsdpSerializesNestedStructures(CuTest *tc)
+{
+  protocol_harness_t harness;
+  json_object *root;
+  json_object *room;
+  json_object *exits;
+  json_object *north;
+  json_object *tags;
+  json_object *button;
+  char table[256];
+  int written;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+
+  written = snprintf(table, sizeof(table),
+                     "%cNAME%cThe Vault%cEXITS%c%c%cnorth%c123%c%cTAGS%c%c%csafe%ccaf\303\251%c",
+                     MSDP_VAR, MSDP_VAL, MSDP_VAR, MSDP_VAL, MSDP_TABLE_OPEN, MSDP_VAR, MSDP_VAL,
+                     MSDP_TABLE_CLOSE, MSDP_VAR, MSDP_VAL, MSDP_ARRAY_OPEN, MSDP_VAL, MSDP_VAL,
+                     MSDP_ARRAY_CLOSE);
+  CuAssert(tc, "nested MSDP table fixture overflowed",
+           written > 0 && (size_t)written < sizeof(table));
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSetTable(&harness.descriptor, eMSDP_ROOM, table));
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSend(&harness.descriptor, eMSDP_ROOM));
+
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "ROOM was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "ROOM", &room));
+  CuAssert(tc, "ROOM was not a JSON object", json_object_is_type(room, json_type_object));
+  CuAssert(tc, "nested EXITS object was absent", json_object_object_get_ex(room, "EXITS", &exits));
+  CuAssert(tc, "EXITS was not a JSON object", json_object_is_type(exits, json_type_object));
+  CuAssert(tc, "north exit was absent", json_object_object_get_ex(exits, "north", &north));
+  CuAssertStrEquals(tc, "123", json_object_get_string(north));
+  CuAssert(tc, "nested TAGS array was absent", json_object_object_get_ex(room, "TAGS", &tags));
+  CuAssert(tc, "TAGS was not a JSON array", json_object_is_type(tags, json_type_array));
+  CuAssertIntEquals(tc, 2, (int)json_object_array_length(tags));
+  CuAssertStrEquals(tc, "safe", json_object_get_string(json_object_array_get_idx(tags, 0)));
+  CuAssertStrEquals(tc, "caf\303\251", json_object_get_string(json_object_array_get_idx(tags, 1)));
+  json_object_put(root);
+
+  reset_capture();
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSend(&harness.descriptor, eMSDP_BUTTON_1));
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "BUTTON_1 was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "BUTTON_1", &button));
+  CuAssert(tc, "BUTTON_1 default was not a JSON array",
+           json_object_is_type(button, json_type_array));
+  CuAssertIntEquals(tc, 2, (int)json_object_array_length(button));
+  CuAssertStrEquals(tc, "Help", json_object_get_string(json_object_array_get_idx(button, 0)));
+  CuAssertStrEquals(tc, "help", json_object_get_string(json_object_array_get_idx(button, 1)));
+
+  json_object_put(root);
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_MsdpPairAndListPreserveTypes(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t expected;
+  json_object *root;
+  json_object *custom;
+  json_object *commands;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSendPair(&harness.descriptor, "CUSTOM", "42"));
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "CUSTOM was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "CUSTOM", &custom));
+  CuAssert(tc, "custom pair was not a JSON string", json_object_is_type(custom, json_type_string));
+  CuAssertStrEquals(tc, "42", json_object_get_string(custom));
+  json_object_put(root);
+
+  reset_capture();
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSendList(&harness.descriptor, "COMMANDS", "  LIST   REPORT  "));
+  root = parse_captured_msdp_json(tc);
+  CuAssert(tc, "COMMANDS was absent from GMCP MSDP object",
+           json_object_object_get_ex(root, "COMMANDS", &commands));
+  CuAssert(tc, "COMMANDS was not a JSON array", json_object_is_type(commands, json_type_array));
+  CuAssertIntEquals(tc, 2, (int)json_object_array_length(commands));
+  CuAssertStrEquals(tc, "LIST", json_object_get_string(json_object_array_get_idx(commands, 0)));
+  CuAssertStrEquals(tc, "REPORT", json_object_get_string(json_object_array_get_idx(commands, 1)));
+  json_object_put(root);
+
+  reset_capture();
+  harness.descriptor.pProtocol->bGMCP = bool_t_false;
+  harness.descriptor.pProtocol->bMSDP = bool_t_true;
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSendList(&harness.descriptor, "COMMANDS", "  LIST   REPORT  "));
+
+  fixture_init(&expected);
+  fixture_byte(&expected, (unsigned char)IAC);
+  fixture_byte(&expected, (unsigned char)SB);
+  fixture_byte(&expected, (unsigned char)TELOPT_MSDP);
+  fixture_byte(&expected, MSDP_VAR);
+  fixture_text(&expected, "COMMANDS");
+  fixture_byte(&expected, MSDP_VAL);
+  fixture_byte(&expected, MSDP_ARRAY_OPEN);
+  fixture_byte(&expected, MSDP_VAL);
+  fixture_text(&expected, "LIST");
+  fixture_byte(&expected, MSDP_VAL);
+  fixture_text(&expected, "REPORT");
+  fixture_byte(&expected, MSDP_ARRAY_CLOSE);
+  fixture_byte(&expected, (unsigned char)IAC);
+  fixture_byte(&expected, (unsigned char)SE);
+  assert_fixture_valid(tc, &expected);
+  CuAssertIntEquals(tc, (int)expected.length, (int)s_output_capture_len);
+  CuAssert(tc, "native MSDP list framing changed",
+           memcmp(expected.bytes, s_output_capture, expected.length) == 0);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_MsdpRejectsMalformedStoredValues(CuTest *tc)
+{
+  protocol_harness_t harness;
+  const char malformed_table[] = {MSDP_VAR,        'N',      'A', 'M', 'E', MSDP_VAL,
+                                  MSDP_ARRAY_OPEN, MSDP_VAL, 'x', '\0'};
+  const char malformed_array[] = {'x', '\0'};
+  const char marker_scalar[] = {'x', MSDP_VAR, 'y', '\0'};
+  const char iac_scalar[] = {'x', (char)IAC, 'y', '\0'};
+
+  harness_init(tc, &harness);
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS, MSDPSetString(&harness.descriptor, eMSDP_ROOM, "stable"));
+  harness.descriptor.pProtocol->pVariables[eMSDP_ROOM]->bDirty = bool_t_false;
+
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetTable(&harness.descriptor, eMSDP_ROOM, malformed_table));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetArray(&harness.descriptor, eMSDP_ROOM, malformed_array));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetString(&harness.descriptor, eMSDP_ROOM, marker_scalar));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT,
+                    MSDPSetString(&harness.descriptor, eMSDP_ROOM, iac_scalar));
+  CuAssertStrEquals(tc, "stable",
+                    harness.descriptor.pProtocol->pVariables[eMSDP_ROOM]->pValueString);
+  CuAssertIntEquals(tc, bool_t_false, harness.descriptor.pProtocol->pVariables[eMSDP_ROOM]->bDirty);
+
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GmcpMsdpRejectsInvalidUtf8AndEscapedOverflow(CuTest *tc)
+{
+  protocol_harness_t harness;
+  char invalid_utf8[] = {'x', (char)0xc3, '(', '\0'};
+  char *expanding_value;
+  size_t index;
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+  harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport = bool_t_true;
+
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, invalid_utf8));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_INVALID_INPUT, MSDPFlush(&harness.descriptor, eMSDP_TITLE));
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+
+  expanding_value = malloc(3001);
+  CuAssertPtrNotNullMsg(tc, "could not allocate escaping boundary fixture", expanding_value);
+  for (index = 0; index < 3000; index++)
+    expanding_value[index] = '\007';
+  expanding_value[3000] = '\0';
+
+  reset_capture();
+  CuAssertIntEquals(tc, PROTOCOL_SUCCESS,
+                    MSDPSetString(&harness.descriptor, eMSDP_TITLE, expanding_value));
+  CuAssertIntEquals(tc, PROTOCOL_ERROR_BUFFER_FULL, MSDPFlush(&harness.descriptor, eMSDP_TITLE));
+  CuAssertIntEquals(tc, 0, (int)s_output_capture_len);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bDirty);
+
+  free(expanding_value);
+  harness_destroy(&harness);
+}
+
+void TestProtocolParser_GmcpMsdpCommandsUseJsonObject(CuTest *tc)
+{
+  protocol_harness_t harness;
+  protocol_fixture_t fixture;
+  const unsigned char report_payload[] = "MSDP {\"REPORT\":[\"TITLE\",\"HEALTH\"]}";
+  const unsigned char invalid_payload[] = "MSDP {\"REPORT\":[\"TITLE\",{\"nested\":true}]}";
+  const unsigned char lowercase_payload[] = "msdp {\"REPORT\":\"TITLE\"}";
+  const unsigned char nul_key_payload[] = "MSDP {\"REPORT\\u0000IGNORED\":\"TITLE\"}";
+  const unsigned char nul_value_payload[] = "MSDP {\"REPORT\":\"TITLE\\u0000HEALTH\"}";
+
+  harness_init(tc, &harness);
+  harness.descriptor.pProtocol->bGMCP = bool_t_true;
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP, report_payload,
+                         sizeof(report_payload) - 1);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+  CuAssertTrue(tc, harness.descriptor.pProtocol->pVariables[eMSDP_HEALTH]->bReport);
+
+  harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport = bool_t_false;
+  harness.descriptor.pProtocol->pVariables[eMSDP_HEALTH]->bReport = bool_t_false;
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP, invalid_payload,
+                         sizeof(invalid_payload) - 1);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, bool_t_false,
+                    harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+  CuAssertIntEquals(tc, bool_t_false,
+                    harness.descriptor.pProtocol->pVariables[eMSDP_HEALTH]->bReport);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP, lowercase_payload,
+                         sizeof(lowercase_payload) - 1);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, bool_t_false,
+                    harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP, nul_key_payload,
+                         sizeof(nul_key_payload) - 1);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, bool_t_false,
+                    harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+
+  fixture_init(&fixture);
+  fixture_subnegotiation(&fixture, (unsigned char)TELOPT_GMCP, nul_value_payload,
+                         sizeof(nul_value_payload) - 1);
+  assert_fixture_valid(tc, &fixture);
+  CuAssertIntEquals(tc, 0, (int)harness_input(&harness, &fixture));
+  CuAssertIntEquals(tc, bool_t_false,
+                    harness.descriptor.pProtocol->pVariables[eMSDP_TITLE]->bReport);
+
+  harness_destroy(&harness);
+}
+
 void TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite(CuTest *tc)
 {
   protocol_harness_t harness;
@@ -1009,6 +1355,13 @@ CuSuite *ProtocolParserSuite(void)
   SUITE_ADD_TEST(suite, TestProtocolParser_OversizedResponsePaths);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsspResponseIsBounded);
   SUITE_ADD_TEST(suite, TestProtocolParser_SelectedMsdpVariablesCanBeReported);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpScalarUsesStrictJson);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpNumberUsesJsonNumber);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpSerializesNestedStructures);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MsdpPairAndListPreserveTypes);
+  SUITE_ADD_TEST(suite, TestProtocolParser_MsdpRejectsMalformedStoredValues);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpRejectsInvalidUtf8AndEscapedOverflow);
+  SUITE_ADD_TEST(suite, TestProtocolParser_GmcpMsdpCommandsUseJsonObject);
   SUITE_ADD_TEST(suite, TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite);
   SUITE_ADD_TEST(suite, TestProtocolParser_GmcpFrameRetriesWithoutPartialQueueWrite);
   SUITE_ADD_TEST(suite, TestProtocolParser_MudletPackageUsesStableIdentity);

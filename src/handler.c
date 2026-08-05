@@ -1075,8 +1075,8 @@ void update_msdp_affects(struct char_data *ch)
   if (GET_POS(ch) == POS_DEAD)
     return;
 
-  /* Skip if client doesn't support MSDP */
-  if (!ch->desc->pProtocol || !ch->desc->pProtocol->bMSDP)
+  /* Skip if the client supports neither native MSDP nor the GMCP fallback. */
+  if (!ch->desc->pProtocol || (!ch->desc->pProtocol->bMSDP && !ch->desc->pProtocol->bGMCP))
     return;
 
   writer.buffer = msdp_buffer;
@@ -1084,13 +1084,11 @@ void update_msdp_affects(struct char_data *ch)
   writer.length = 0;
   writer.overflow = FALSE;
 
-  /* Open up the AFFECTS table */
+  /* Build the contents of the AFFECTS table. MSDPSetTable adds the outer markers. */
   append_msdp_affect_data(&writer,
-                          "%c"
                           "%c%s%c"
                           "%c",
-                          (char)MSDP_TABLE_OPEN, (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL,
-                          (char)MSDP_ARRAY_OPEN);
+                          (char)MSDP_VAR, "AFFECTED_BY", (char)MSDP_VAL, (char)MSDP_ARRAY_OPEN);
   for (i = 1; i < NUM_AFF_FLAGS; i++)
   {
     if (IS_SET_AR(AFF_FLAGS(ch), i))
@@ -1154,21 +1152,14 @@ void update_msdp_affects(struct char_data *ch)
                             bonus_types[af->bonus_type], (char)MSDP_VAR, "DURATION", (char)MSDP_VAL,
                             af->duration, (char)MSDP_TABLE_CLOSE);
   }
-  append_msdp_affect_data(&writer, "%c%c", (char)MSDP_ARRAY_CLOSE, (char)MSDP_TABLE_CLOSE);
+  append_msdp_affect_data(&writer, "%c", (char)MSDP_ARRAY_CLOSE);
 
   if (writer.overflow)
   {
     log("SYSERR: update_msdp_affects payload exceeded MAX_VARIABLE_LENGTH for %s", GET_NAME(ch));
     return;
   }
-  if (writer.length + strlen("AFFECTS") + 12 >= MAX_VARIABLE_LENGTH + 1)
-  {
-    log("SYSERR: update_msdp_affects payload left no room for protocol framing for %s",
-        GET_NAME(ch));
-    return;
-  }
-
-  result = MSDPSetString(ch->desc, eMSDP_AFFECTS, msdp_buffer);
+  result = MSDPSetTable(ch->desc, eMSDP_AFFECTS, msdp_buffer);
   if (result != PROTOCOL_SUCCESS)
   {
     log("SYSERR: update_msdp_affects could not store AFFECTS for %s: %d", GET_NAME(ch), result);

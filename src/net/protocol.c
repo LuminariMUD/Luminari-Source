@@ -7,6 +7,7 @@
  Header files.
  ******************************************************************************/
 #include <arpa/telnet.h>
+#include <json-c/json.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <time.h>
@@ -25,6 +26,7 @@
 #include "act.h"
 #include "modify.h"
 #include "onboarding.h"
+#include "msdp_json.h"
 
 /* Globals */
 const char *RGBone = "F022";
@@ -283,7 +285,7 @@ static bool_t ConfirmNegotiation(descriptor_t *apDescriptor, negotiated_t aProto
 static void ParseMSDP(descriptor_t *apDescriptor, const char *apData);
 static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable,
                             const char *apValue);
-static void ParseGMCP(descriptor_t *apDescriptor, const char *apData);
+static void ParseGMCP(descriptor_t *apDescriptor, const char *apData, int aSize);
 
 #ifdef MUDLET_PACKAGE
 static void SendGMCP(descriptor_t *apDescriptor, const char *apVariable, const char *apValue);
@@ -1583,7 +1585,9 @@ protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
 {
   char MSDPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+  protocol_error_t Result;
   size_t RequiredBuffer;
+  size_t FrameLength;
   int Written;
 
   if (pProtocol == NULL)
@@ -1593,37 +1597,48 @@ protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
   if (pProtocol->pVariables == NULL || pProtocol->pVariables[aMSDP] == NULL)
     return PROTOCOL_ERROR_NULL_POINTER;
 
+  if (!pProtocol->bMSDP && !pProtocol->bGMCP)
+    return PROTOCOL_SUCCESS;
+
   if (VariableNameTable[aMSDP].bString)
   {
     if (pProtocol->pVariables[aMSDP]->pValueString == NULL)
       return PROTOCOL_ERROR_NULL_POINTER;
 
-    RequiredBuffer = strlen(VariableNameTable[aMSDP].pName) +
-                     strlen(pProtocol->pVariables[aMSDP]->pValueString) + 12;
-    if (RequiredBuffer >= sizeof(MSDPBuffer))
-    {
-      snprintf(MSDPBuffer, sizeof(MSDPBuffer),
-               "MSDPSend: %s %zu bytes (exceeds MAX_VARIABLE_LENGTH of %d).\n",
-               VariableNameTable[aMSDP].pName, RequiredBuffer, MAX_VARIABLE_LENGTH);
-      ReportBug(MSDPBuffer);
-      return PROTOCOL_ERROR_BUFFER_FULL;
-    }
+    if (pProtocol->pVariables[aMSDP]->pValueString[0] == MSDP_TABLE_OPEN ||
+        pProtocol->pVariables[aMSDP]->pValueString[0] == MSDP_ARRAY_OPEN)
+      Result = msdp_json_validate_structured(pProtocol->pVariables[aMSDP]->pValueString);
+    else
+      Result = msdp_json_validate_scalar(pProtocol->pVariables[aMSDP]->pValueString);
+    if (Result != PROTOCOL_SUCCESS)
+      return Result;
 
     if (pProtocol->bMSDP)
     {
+      RequiredBuffer = strlen(VariableNameTable[aMSDP].pName) +
+                       strlen(pProtocol->pVariables[aMSDP]->pValueString) + 7;
+      if (RequiredBuffer >= sizeof(MSDPBuffer))
+      {
+        ReportBug("MSDPSend: Native MSDP frame exceeds MAX_VARIABLE_LENGTH\n");
+        return PROTOCOL_ERROR_BUFFER_FULL;
+      }
+
       Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%c%c%s%c%s%c%c", IAC, SB, TELOPT_MSDP,
                          MSDP_VAR, VariableNameTable[aMSDP].pName, MSDP_VAL,
                          pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
     }
-    else if (pProtocol->bGMCP)
-    {
-      Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%cMSDP.%s %s%c%c", IAC, SB,
-                         TELOPT_GMCP, VariableNameTable[aMSDP].pName,
-                         pProtocol->pVariables[aMSDP]->pValueString, IAC, SE);
-    }
     else
     {
-      return PROTOCOL_SUCCESS;
+      Result = msdp_json_build_string_frame(
+          MSDPBuffer, sizeof(MSDPBuffer), VariableNameTable[aMSDP].pName,
+          pProtocol->pVariables[aMSDP]->pValueString, &FrameLength);
+      if (Result != PROTOCOL_SUCCESS)
+      {
+        if (Result == PROTOCOL_ERROR_BUFFER_FULL)
+          ReportBug("MSDPSend: Escaped GMCP frame exceeds MAX_VARIABLE_LENGTH\n");
+        return Result;
+      }
+      return WriteFrame(apDescriptor, MSDPBuffer, FrameLength);
     }
   }
   else
@@ -1634,15 +1649,18 @@ protocol_error_t MSDPSend(descriptor_t *apDescriptor, variable_t aMSDP)
                          MSDP_VAR, VariableNameTable[aMSDP].pName, MSDP_VAL,
                          pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
     }
-    else if (pProtocol->bGMCP)
-    {
-      Written =
-          snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%cMSDP.%s %d%c%c", IAC, SB, TELOPT_GMCP,
-                   VariableNameTable[aMSDP].pName, pProtocol->pVariables[aMSDP]->ValueInt, IAC, SE);
-    }
     else
     {
-      return PROTOCOL_SUCCESS;
+      Result = msdp_json_build_number_frame(MSDPBuffer, sizeof(MSDPBuffer),
+                                            VariableNameTable[aMSDP].pName,
+                                            pProtocol->pVariables[aMSDP]->ValueInt, &FrameLength);
+      if (Result != PROTOCOL_SUCCESS)
+      {
+        if (Result == PROTOCOL_ERROR_BUFFER_FULL)
+          ReportBug("MSDPSend: GMCP numeric frame exceeds MAX_VARIABLE_LENGTH\n");
+        return Result;
+      }
+      return WriteFrame(apDescriptor, MSDPBuffer, FrameLength);
     }
   }
 
@@ -1660,48 +1678,59 @@ protocol_error_t MSDPSendPair(descriptor_t *apDescriptor, const char *apVariable
 {
   char MSDPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+  protocol_error_t Result;
   size_t VariableLength;
   size_t ValueLength;
   size_t RequiredBuffer;
+  size_t FrameLength;
   int Written;
 
   if (pProtocol == NULL || apVariable == NULL || apValue == NULL)
     return PROTOCOL_ERROR_NULL_POINTER;
 
-  VariableLength = strnlen(apVariable, MAX_VARIABLE_LENGTH + 1);
+  Result = msdp_json_validate_name(apVariable);
+  if (Result != PROTOCOL_SUCCESS)
+    return Result;
+  Result = msdp_json_validate_scalar(apValue);
+  if (Result != PROTOCOL_SUCCESS)
+    return Result;
+
+  VariableLength = strlen(apVariable);
   ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH + 1);
-  if (VariableLength > MAX_VARIABLE_LENGTH || ValueLength > MAX_VARIABLE_LENGTH)
+  if (ValueLength > MAX_VARIABLE_LENGTH)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
-  RequiredBuffer = VariableLength + ValueLength + 12;
-  if (RequiredBuffer >= sizeof(MSDPBuffer))
-  {
-    snprintf(MSDPBuffer, sizeof(MSDPBuffer),
-             "MSDPSendPair: %zu bytes exceeds MAX_VARIABLE_LENGTH of %d.\n", RequiredBuffer,
-             MAX_VARIABLE_LENGTH);
-    ReportBug(MSDPBuffer);
-    return PROTOCOL_ERROR_BUFFER_FULL;
-  }
+  if (!pProtocol->bMSDP && !pProtocol->bGMCP)
+    return PROTOCOL_SUCCESS;
 
   if (pProtocol->bMSDP)
   {
+    RequiredBuffer = VariableLength + ValueLength + 7;
+    if (RequiredBuffer >= sizeof(MSDPBuffer))
+    {
+      ReportBug("MSDPSendPair: Native MSDP frame exceeds MAX_VARIABLE_LENGTH\n");
+      return PROTOCOL_ERROR_BUFFER_FULL;
+    }
+
     Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%c%c%s%c%s%c%c", IAC, SB, TELOPT_MSDP,
                        MSDP_VAR, apVariable, MSDP_VAL, apValue, IAC, SE);
-  }
-  else if (pProtocol->bGMCP)
-  {
-    Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%cMSDP.%s %s%c%c", IAC, SB, TELOPT_GMCP,
-                       apVariable, apValue, IAC, SE);
-  }
-  else
-  {
-    return PROTOCOL_SUCCESS;
+
+    if (Written < 0 || (size_t)Written >= sizeof(MSDPBuffer))
+      return PROTOCOL_ERROR_BUFFER_FULL;
+
+    return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
   }
 
-  if (Written < 0 || (size_t)Written >= sizeof(MSDPBuffer))
-    return PROTOCOL_ERROR_BUFFER_FULL;
+  Result = msdp_json_build_string_frame(MSDPBuffer, sizeof(MSDPBuffer), apVariable, apValue,
+                                        &FrameLength);
+  if (Result != PROTOCOL_SUCCESS)
+  {
+    if (Result == PROTOCOL_ERROR_BUFFER_FULL)
+      ReportBug("MSDPSendPair: Escaped GMCP frame exceeds MAX_VARIABLE_LENGTH\n");
+    return Result;
+  }
 
-  return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
+  return WriteFrame(apDescriptor, MSDPBuffer, FrameLength);
 }
 
 protocol_error_t MSDPSendList(descriptor_t *apDescriptor, const char *apVariable,
@@ -1709,58 +1738,105 @@ protocol_error_t MSDPSendList(descriptor_t *apDescriptor, const char *apVariable
 {
   char MSDPBuffer[MAX_VARIABLE_LENGTH + 1] = {'\0'};
   protocol_t *pProtocol = apDescriptor ? apDescriptor->pProtocol : NULL;
+  protocol_error_t Result;
+  const char *Cursor;
+  const char *TokenStart;
   size_t VariableLength;
   size_t ValueLength;
   size_t RequiredBuffer;
-  int Written;
-  int i;
+  size_t TokenBytes;
+  size_t TokenCount;
+  size_t FrameLength;
+  size_t Position;
 
   if (pProtocol == NULL || apVariable == NULL || apValue == NULL)
     return PROTOCOL_ERROR_NULL_POINTER;
 
-  VariableLength = strnlen(apVariable, MAX_VARIABLE_LENGTH + 1);
+  Result = msdp_json_validate_name(apVariable);
+  if (Result != PROTOCOL_SUCCESS)
+    return Result;
+  Result = msdp_json_validate_scalar(apValue);
+  if (Result != PROTOCOL_SUCCESS)
+    return Result;
+
+  VariableLength = strlen(apVariable);
   ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH + 1);
-  if (VariableLength > MAX_VARIABLE_LENGTH || ValueLength > MAX_VARIABLE_LENGTH)
+  if (ValueLength > MAX_VARIABLE_LENGTH)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
-  RequiredBuffer = VariableLength + ValueLength + 14;
-  if (RequiredBuffer >= sizeof(MSDPBuffer))
-  {
-    snprintf(MSDPBuffer, sizeof(MSDPBuffer),
-             "MSDPSendList: %zu bytes exceeds MAX_VARIABLE_LENGTH of %d.\n", RequiredBuffer,
-             MAX_VARIABLE_LENGTH);
-    ReportBug(MSDPBuffer);
-    return PROTOCOL_ERROR_BUFFER_FULL;
-  }
+  if (!pProtocol->bMSDP && !pProtocol->bGMCP)
+    return PROTOCOL_SUCCESS;
 
   if (pProtocol->bMSDP)
   {
-    Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%c%c%s%c%c%c%s%c%c%c", IAC, SB,
-                       TELOPT_MSDP, MSDP_VAR, apVariable, MSDP_VAL, MSDP_ARRAY_OPEN, MSDP_VAL,
-                       apValue, MSDP_ARRAY_CLOSE, IAC, SE);
-    if (Written >= 0 && (size_t)Written < sizeof(MSDPBuffer))
+    Cursor = apValue;
+    TokenBytes = 0;
+    TokenCount = 0;
+    while (*Cursor != '\0')
     {
-      for (i = 0; MSDPBuffer[i] != '\0'; ++i)
-      {
-        if (MSDPBuffer[i] == ' ')
-          MSDPBuffer[i] = MSDP_VAL;
-      }
+      while (*Cursor == ' ')
+        Cursor++;
+      if (*Cursor == '\0')
+        break;
+      TokenStart = Cursor;
+      while (*Cursor != '\0' && *Cursor != ' ')
+        Cursor++;
+      TokenBytes += (size_t)(Cursor - TokenStart);
+      TokenCount++;
     }
-  }
-  else if (pProtocol->bGMCP)
-  {
-    Written = snprintf(MSDPBuffer, sizeof(MSDPBuffer), "%c%c%cMSDP.%s %s%c%c", IAC, SB, TELOPT_GMCP,
-                       apVariable, apValue, IAC, SE);
-  }
-  else
-  {
-    return PROTOCOL_SUCCESS;
+
+    RequiredBuffer = VariableLength + TokenBytes + TokenCount + 9;
+    if (RequiredBuffer >= sizeof(MSDPBuffer))
+    {
+      ReportBug("MSDPSendList: Native MSDP frame exceeds MAX_VARIABLE_LENGTH\n");
+      return PROTOCOL_ERROR_BUFFER_FULL;
+    }
+
+    Position = 0;
+    MSDPBuffer[Position++] = (char)IAC;
+    MSDPBuffer[Position++] = (char)SB;
+    MSDPBuffer[Position++] = (char)TELOPT_MSDP;
+    MSDPBuffer[Position++] = (char)MSDP_VAR;
+    memcpy(MSDPBuffer + Position, apVariable, VariableLength);
+    Position += VariableLength;
+    MSDPBuffer[Position++] = (char)MSDP_VAL;
+    MSDPBuffer[Position++] = (char)MSDP_ARRAY_OPEN;
+
+    Cursor = apValue;
+    while (*Cursor != '\0')
+    {
+      size_t TokenLength;
+
+      while (*Cursor == ' ')
+        Cursor++;
+      if (*Cursor == '\0')
+        break;
+      TokenStart = Cursor;
+      while (*Cursor != '\0' && *Cursor != ' ')
+        Cursor++;
+      TokenLength = (size_t)(Cursor - TokenStart);
+      MSDPBuffer[Position++] = (char)MSDP_VAL;
+      memcpy(MSDPBuffer + Position, TokenStart, TokenLength);
+      Position += TokenLength;
+    }
+
+    MSDPBuffer[Position++] = (char)MSDP_ARRAY_CLOSE;
+    MSDPBuffer[Position++] = (char)IAC;
+    MSDPBuffer[Position++] = (char)SE;
+    MSDPBuffer[Position] = '\0';
+    return WriteFrame(apDescriptor, MSDPBuffer, Position);
   }
 
-  if (Written < 0 || (size_t)Written >= sizeof(MSDPBuffer))
-    return PROTOCOL_ERROR_BUFFER_FULL;
+  Result =
+      msdp_json_build_list_frame(MSDPBuffer, sizeof(MSDPBuffer), apVariable, apValue, &FrameLength);
+  if (Result != PROTOCOL_SUCCESS)
+  {
+    if (Result == PROTOCOL_ERROR_BUFFER_FULL)
+      ReportBug("MSDPSendList: Escaped GMCP frame exceeds MAX_VARIABLE_LENGTH\n");
+    return Result;
+  }
 
-  return WriteFrame(apDescriptor, MSDPBuffer, (size_t)Written);
+  return WriteFrame(apDescriptor, MSDPBuffer, FrameLength);
 }
 
 protocol_error_t MSDPSetNumber(descriptor_t *apDescriptor, variable_t aMSDP, int aValue)
@@ -1801,6 +1877,9 @@ protocol_error_t MSDPSetString(descriptor_t *apDescriptor, variable_t aMSDP, con
   ValidationResult = ValidateMSDPValue(aMSDP, apValue);
   if (ValidationResult != PROTOCOL_SUCCESS)
     return ValidationResult;
+  ValidationResult = msdp_json_validate_scalar(apValue);
+  if (ValidationResult != PROTOCOL_SUCCESS)
+    return ValidationResult;
 
   if (!strcmp(pProtocol->pVariables[aMSDP]->pValueString, apValue))
     return PROTOCOL_SUCCESS;
@@ -1823,6 +1902,7 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
   const char MsdpTableStart = (char)MSDP_TABLE_OPEN;
   const char MsdpTableStop = (char)MSDP_TABLE_CLOSE;
   size_t ValueLength;
+  protocol_error_t ValidationResult;
   char *pTable;
   char *pOldValue;
 
@@ -1837,7 +1917,7 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
   if (*apValue == '\0')
     return MSDPSetString(apDescriptor, aMSDP, apValue);
 
-  ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH);
+  ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH + 1);
   if (ValueLength > MAX_VARIABLE_LENGTH - 2)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
@@ -1851,6 +1931,13 @@ protocol_error_t MSDPSetTable(descriptor_t *apDescriptor, variable_t aMSDP, cons
   pTable[0] = MsdpTableStart;
   memcpy(pTable + 1, apValue, ValueLength);
   pTable[ValueLength + 1] = MsdpTableStop;
+
+  ValidationResult = msdp_json_validate_structured(pTable);
+  if (ValidationResult != PROTOCOL_SUCCESS)
+  {
+    free(pTable);
+    return ValidationResult;
+  }
 
   if (!strcmp(pProtocol->pVariables[aMSDP]->pValueString, pTable))
   {
@@ -1871,6 +1958,7 @@ protocol_error_t MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, cons
   const char MsdpArrayStart = (char)MSDP_ARRAY_OPEN;
   const char MsdpArrayStop = (char)MSDP_ARRAY_CLOSE;
   size_t ValueLength;
+  protocol_error_t ValidationResult;
   char *pArray;
   char *pOldValue;
 
@@ -1885,7 +1973,7 @@ protocol_error_t MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, cons
   if (*apValue == '\0')
     return MSDPSetString(apDescriptor, aMSDP, apValue);
 
-  ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH);
+  ValueLength = strnlen(apValue, MAX_VARIABLE_LENGTH + 1);
   if (ValueLength > MAX_VARIABLE_LENGTH - 2)
     return PROTOCOL_ERROR_BUFFER_FULL;
 
@@ -1899,6 +1987,13 @@ protocol_error_t MSDPSetArray(descriptor_t *apDescriptor, variable_t aMSDP, cons
   pArray[0] = MsdpArrayStart;
   memcpy(pArray + 1, apValue, ValueLength);
   pArray[ValueLength + 1] = MsdpArrayStop;
+
+  ValidationResult = msdp_json_validate_structured(pArray);
+  if (ValidationResult != PROTOCOL_SUCCESS)
+  {
+    free(pArray);
+    return ValidationResult;
+  }
 
   if (!strcmp(pProtocol->pVariables[aMSDP]->pValueString, pArray))
   {
@@ -2977,7 +3072,7 @@ static void PerformSubnegotiation(descriptor_t *apDescriptor, char aCmd, char *a
   case (char)TELOPT_GMCP:
     if (pProtocol->bGMCP && aSize > 0)
     {
-      ParseGMCP(apDescriptor, apData);
+      ParseGMCP(apDescriptor, apData, aSize);
     }
     break;
 
@@ -3486,40 +3581,239 @@ static void ExecuteMSDPPair(descriptor_t *apDescriptor, const char *apVariable, 
  Local GMCP functions.
  ******************************************************************************/
 
-static void ParseGMCP(descriptor_t *apDescriptor, const char *apData)
+static bool gmcp_msdp_scalar_is_valid(json_object *value)
 {
-  char Variable[MSDP_VAL][MAX_MSDP_SIZE + 1] = {{'\0'}, {'\0'}};
-  char *pPos = NULL, *pStart = NULL;
+  const char *text;
+  int text_length;
+  int64_t number;
 
-  if (apDescriptor == NULL || apDescriptor->pProtocol == NULL || apData == NULL)
-    return;
+  if (value == NULL)
+    return false;
 
-  while (*apData)
+  if (json_object_is_type(value, json_type_string))
   {
-    switch (*apData)
-    {
-    case '@':
-      pPos = pStart = Variable[0];
-      apData++;
-      break;
-    case ' ':
-      pPos = pStart = Variable[1];
-      apData++;
-      break;
-    default: /* Anything else */
-      if (pPos && pPos - pStart < MAX_MSDP_SIZE)
-      {
-        *pPos++ = *apData;
-        *pPos = '\0';
-      }
+    text = json_object_get_string(value);
+    text_length = json_object_get_string_len(value);
+    if (text == NULL || text_length < 0 || (size_t)text_length > MAX_MSDP_VALUE_SIZE ||
+        strlen(text) != (size_t)text_length)
+      return false;
+    return msdp_json_validate_scalar(text) == PROTOCOL_SUCCESS;
+  }
 
-      if (*++apData)
-        continue;
+  if (json_object_is_type(value, json_type_int))
+  {
+    number = json_object_get_int64(value);
+    return number >= INT_MIN && number <= INT_MAX;
+  }
+
+  return json_object_is_type(value, json_type_boolean);
+}
+
+static bool gmcp_msdp_value_is_valid(json_object *value)
+{
+  size_t index;
+  size_t length;
+
+  if (value == NULL)
+    return false;
+
+  if (!json_object_is_type(value, json_type_array))
+    return gmcp_msdp_scalar_is_valid(value);
+
+  length = json_object_array_length(value);
+  for (index = 0; index < length; index++)
+  {
+    if (!gmcp_msdp_scalar_is_valid(json_object_array_get_idx(value, index)))
+      return false;
+  }
+
+  return true;
+}
+
+static void execute_gmcp_msdp_scalar(descriptor_t *descriptor, const char *variable,
+                                     json_object *value)
+{
+  char number[32];
+  int written;
+
+  if (json_object_is_type(value, json_type_string))
+  {
+    ExecuteMSDPPair(descriptor, variable, json_object_get_string(value));
+  }
+  else if (json_object_is_type(value, json_type_int))
+  {
+    written = snprintf(number, sizeof(number), "%d", (int)json_object_get_int64(value));
+    if (written >= 0 && (size_t)written < sizeof(number))
+      ExecuteMSDPPair(descriptor, variable, number);
+  }
+  else if (json_object_is_type(value, json_type_boolean))
+  {
+    ExecuteMSDPPair(descriptor, variable, json_object_get_boolean(value) ? "1" : "0");
+  }
+}
+
+static void execute_gmcp_msdp_value(descriptor_t *descriptor, const char *variable,
+                                    json_object *value)
+{
+  size_t index;
+  size_t length;
+
+  if (!json_object_is_type(value, json_type_array))
+  {
+    execute_gmcp_msdp_scalar(descriptor, variable, value);
+    return;
+  }
+
+  length = json_object_array_length(value);
+  for (index = 0; index < length; index++)
+    execute_gmcp_msdp_scalar(descriptor, variable, json_object_array_get_idx(value, index));
+}
+
+static bool gmcp_json_contains_nul(const char *data, size_t length)
+{
+  bool in_string;
+  size_t index;
+
+  if (data == NULL)
+    return true;
+
+  in_string = false;
+  index = 0;
+  while (index < length)
+  {
+    unsigned char value;
+
+    value = (unsigned char)data[index];
+    if (value == '\0')
+      return true;
+    if (!in_string)
+    {
+      if (value == '"')
+        in_string = true;
+      index++;
+      continue;
     }
 
-    ExecuteMSDPPair(apDescriptor, Variable[MSDP_VAR - 1], Variable[MSDP_VAL - 1]);
-    Variable[MSDP_VAL - 1][0] = '\0';
+    if (value == '"')
+    {
+      in_string = false;
+      index++;
+      continue;
+    }
+    if (value != '\\')
+    {
+      index++;
+      continue;
+    }
+
+    if (index + 1 >= length)
+      return false;
+    if (data[index + 1] == 'u' && index + 5 < length && data[index + 2] == '0' &&
+        data[index + 3] == '0' && data[index + 4] == '0' && data[index + 5] == '0')
+      return true;
+    index += 2;
   }
+
+  return false;
+}
+
+static void ParseGMCP(descriptor_t *apDescriptor, const char *apData, int aSize)
+{
+  struct json_object_iterator iterator;
+  struct json_object_iterator end_iterator;
+  struct json_tokener *tokener;
+  enum json_tokener_error json_error;
+  json_object *root;
+  json_object *value;
+  const char *separator;
+  const char *json_data;
+  const char *variable;
+  size_t package_length;
+  size_t json_length;
+  size_t parse_end;
+  bool valid;
+
+  if (apDescriptor == NULL || apDescriptor->pProtocol == NULL || apData == NULL || aSize <= 0)
+    return;
+
+  separator = memchr(apData, ' ', (size_t)aSize);
+  if (separator == NULL)
+    return;
+  package_length = (size_t)(separator - apData);
+  if (package_length != strlen("MSDP") || memcmp(apData, "MSDP", package_length) != 0)
+    return;
+
+  json_data = separator + 1;
+  json_length = (size_t)aSize - package_length - 1;
+  if (json_length == 0)
+  {
+    ReportBug("ParseGMCP: Empty MSDP JSON payload rejected\n");
+    return;
+  }
+  if (gmcp_json_contains_nul(json_data, json_length))
+  {
+    ReportBug("ParseGMCP: MSDP JSON payload contains an unsupported NUL\n");
+    return;
+  }
+
+  tokener = json_tokener_new();
+  if (tokener == NULL)
+  {
+    ReportBug("ParseGMCP: Could not allocate JSON parser\n");
+    return;
+  }
+
+  json_tokener_set_flags(tokener, JSON_TOKENER_STRICT | JSON_TOKENER_VALIDATE_UTF8);
+  root = json_tokener_parse_ex(tokener, json_data, (int)json_length);
+  json_error = json_tokener_get_error(tokener);
+  parse_end = json_tokener_get_parse_end(tokener);
+  while (parse_end < json_length && isspace((unsigned char)json_data[parse_end]))
+    parse_end++;
+
+  if (json_error != json_tokener_success || root == NULL || parse_end != json_length ||
+      !json_object_is_type(root, json_type_object))
+  {
+    ReportBug("ParseGMCP: Invalid MSDP JSON payload rejected\n");
+    if (root != NULL)
+      json_object_put(root);
+    json_tokener_free(tokener);
+    return;
+  }
+
+  valid = true;
+  iterator = json_object_iter_begin(root);
+  end_iterator = json_object_iter_end(root);
+  while (!json_object_iter_equal(&iterator, &end_iterator))
+  {
+    variable = json_object_iter_peek_name(&iterator);
+    value = json_object_iter_peek_value(&iterator);
+    if (msdp_json_validate_name(variable) != PROTOCOL_SUCCESS || !gmcp_msdp_value_is_valid(value))
+    {
+      valid = false;
+      break;
+    }
+    json_object_iter_next(&iterator);
+  }
+
+  if (!valid)
+  {
+    ReportBug("ParseGMCP: Unsupported MSDP JSON value rejected\n");
+    json_object_put(root);
+    json_tokener_free(tokener);
+    return;
+  }
+
+  iterator = json_object_iter_begin(root);
+  while (!json_object_iter_equal(&iterator, &end_iterator))
+  {
+    variable = json_object_iter_peek_name(&iterator);
+    value = json_object_iter_peek_value(&iterator);
+    execute_gmcp_msdp_value(apDescriptor, variable, value);
+    json_object_iter_next(&iterator);
+  }
+
+  json_object_put(root);
+  json_tokener_free(tokener);
 }
 
 #ifdef MUDLET_PACKAGE

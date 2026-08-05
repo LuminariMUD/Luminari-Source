@@ -156,6 +156,8 @@ circle_SOURCES = \
 	src/players.c \
 	src/olc/prefedit.c \
 	src/character/premadebuilds.c \
+	src/net/msdp_json.c \
+	src/net/msdp_json.h \
 	src/net/protocol.c \
 	src/magic/psionics.c \
 	src/pubsub/pubsub.c \

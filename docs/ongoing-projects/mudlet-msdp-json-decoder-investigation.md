@@ -316,8 +316,8 @@ References:
 | MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
 | MJD-002 | Medium | Open; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
 | MJD-003 | Low | Open; diagnosed | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
-| MJD-004 | High | Open; related | LuminariMUD's MSDP-over-GMCP fallback does not perform valid general JSON serialization for strings, arrays, or tables. |
-| MJD-005 | Medium | In progress | Current regression coverage does not exercise colored scalar MSDP values through a Mudlet-compatible decode contract. |
+| MJD-004 | High | Implemented; integration verification pending | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
+| MJD-005 | Medium | In progress | Production scalar and focused wire-format regression coverage is implemented; the full integration run remains pending. |
 
 ### MJD-001: Internal color markup leaks into scalar OOB values
 
@@ -408,6 +408,35 @@ This needs a real serializer, not only `strip_colors()` at three call sites.
   repair must emit `MSDP` followed by a JSON object, not `MSDP.<variable>` followed by a raw
   value.
 
+### 2026-08-05: Standards-compliant MSDP-over-GMCP conversion implemented
+
+- Added a bounded MSDP-to-JSON serializer in `src/net/msdp_json.c`. It emits the exact
+  case-sensitive `MSDP` GMCP package with one JSON object, quotes scalar strings, preserves
+  integer variables as JSON numbers, and recursively converts MSDP tables and arrays to JSON
+  objects and arrays.
+- The serializer validates UTF-8 for GMCP, escapes quotes, backslashes, JSON short-control
+  characters, and remaining legal control bytes, rejects reserved MSDP marker bytes in scalar
+  text, rejects malformed or over-deep marker structures, and performs its capacity check after
+  escaping. A failed send queues no partial frame and leaves a reported variable dirty for
+  retry.
+- `MSDPSendPair()` now preserves its value as a JSON string, while `MSDPSendList()` produces an
+  actual JSON array and ignores leading, repeated, and trailing space separators. The native
+  list path now follows the same tokenization and no longer creates empty elements from repeated
+  spaces.
+- Replaced the legacy inbound GMCP `@NAME value` parser with strict UTF-8 JSON parsing for
+  standard messages such as `MSDP {"REPORT":["HEALTH","TITLE"]}`. Only the case-sensitive
+  `MSDP` package is routed to the existing MSDP command executor; malformed or unsupported JSON
+  is rejected before any command in the object is applied.
+- Normalized `AFFECTS` to store table content through `MSDPSetTable()` instead of embedding an
+  outer table in `MSDPSetString()`. Its update path now supports either native MSDP or the GMCP
+  fallback, matching the other structured producers.
+- Added the new source and header to both build manifests and to the focused protocol and fuzz
+  harnesses. The focused harness now passes 29/29 tests, covering strict scalar JSON round trips,
+  all escape classes, UTF-8, JSON numeric typing, nested objects and arrays, GUI array defaults,
+  pair/list typing, native list framing, malformed marker rejection, invalid UTF-8, post-escape
+  overflow, and standard inbound REPORT arrays. The sanitizer fuzz target builds successfully;
+  full production-linked tests and installation are still pending.
+
 ### MJD-005: Tests cover safety but not this compatibility contract
 
 Before remediation, the protocol parser harness and fuzz target exercised malformed input and
@@ -415,8 +444,9 @@ called `MSDPSetString()`, but no test asserted that production text variables we
 internal color markup or that a GMCP fallback payload was parseable JSON.
 
 The production suite now covers the three color-bearing scalar sources and unchanged-value
-dirty tracking. Focused serializer coverage remains open for native framing, JSON escaping,
-UTF-8, nested tables and arrays, malformed marker rejection, and post-escape size limits.
+dirty tracking. The focused harness covers native framing, strict JSON escaping, UTF-8, nested
+tables and arrays, malformed marker rejection, post-escape size limits, and inbound
+MSDP-over-GMCP commands. Full production-linked verification remains open.
 
 ## User-Visible Impact
 
