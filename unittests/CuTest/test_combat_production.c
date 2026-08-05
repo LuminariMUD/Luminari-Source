@@ -65,6 +65,32 @@ void Test_combat_production_damage_type_validation(CuTest *tc)
   CuAssertTrue(tc, !ok_damage_handling(SKILL_BASH));
 }
 
+void Test_combat_production_weapon_lookup_excludes_natural_attacks(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data primary;
+  struct obj_data offhand;
+  struct obj_data twohand;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&primary, 0, sizeof(primary));
+  memset(&offhand, 0, sizeof(offhand));
+  memset(&twohand, 0, sizeof(twohand));
+
+  GET_EQ(&ch, WEAR_WIELD_1) = &primary;
+  GET_EQ(&ch, WEAR_WIELD_OFFHAND) = &offhand;
+  GET_EQ(&ch, WEAR_WIELD_2H) = &twohand;
+
+  CuAssertPtrEquals(tc, &primary, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY));
+  CuAssertPtrEquals(tc, &offhand, test_get_wielded(&ch, ATTACK_TYPE_OFFHAND));
+  CuAssertPtrEquals(tc, &twohand, test_get_wielded(&ch, ATTACK_TYPE_TWOHAND));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_UNARMED));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY_EVO_BITE));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_PRIMARY_EVO_CLAWS));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_PSIONICS));
+  CuAssertPtrEquals(tc, NULL, test_get_wielded(&ch, ATTACK_TYPE_ELDRITCH_BLAST));
+}
+
 void Test_psionic_death_effects_bypass_the_generic_damage_cap(CuTest *tc)
 {
   struct char_data ch;

@@ -2,6 +2,36 @@
 
 ## [Unreleased] - August 5, 2026
 
+### Tiamat's Stinger lifesteal
+
+#### Added
+
+- Gave Tiamat's Stinger a 10 percent lifesteal roll on each successful hit
+  made with the rapier. The drain deals level-scaled negative damage through
+  the normal combat pipeline and heals only the damage actually inflicted,
+  capped by the wielder's missing hit points.
+- Added runtime bad-luck protection: after fourteen consecutive failed rolls,
+  the fifteenth eligible Stinger hit drains automatically. The roll is not
+  suppressed by the generic artifact proc cooldown; a successful drain still
+  starts that cooldown so both proc paths cannot fire on the same strike.
+
+#### Fixed
+
+- Stopped natural, evolution, psionic, spell, and unknown attack types from
+  inheriting the primary weapon pointer. Claws and similar attacks can no
+  longer trigger Stinger or other weapon-only effects.
+
+#### Verification
+
+- The production-linked suite passes all 416 tests, including exact drain and
+  healing behavior, cooldown independence, the fifteen-hit dry-streak limit,
+  and natural-attack weapon attribution.
+- A local in-game test with Kohdee confirmed all five attacks in the normal
+  rotation were main-hand Stinger attacks. An eight-second fight produced
+  three visible drains for 114, 118, and 112 hit points. A post-copyover run
+  also reproduced a long dry streak followed by a 117-point drain, with clean
+  combat and character-state cleanup afterward.
+
 ### MSDP plain-text and JSON compatibility repair
 
 #### Fixed

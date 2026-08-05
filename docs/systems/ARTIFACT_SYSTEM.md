@@ -22,7 +22,9 @@ is authoritative.
 | `src/obj/spec_artifacts.c` | Registry, persistence, gameplay, and commands |
 | `unittests/CuTest/test_artifacts.c` | Registry, persistence, and table tests |
 | `unittests/CuTest/test_artifact_integration.c` | Booted-world integration tests |
+| `unittests/CuTest/test_combat_production.c` | Shared combat-hook and weapon-attribution tests |
 | `scripts/provision_artifacts.sh` | World-file and help-index provisioning |
+| `lib/world/artifacts/artifacts.hlp` | Version-controlled player help source |
 | `lib/world/world.artifact` | Generated ownership/progression state |
 
 The main integration points are:
@@ -297,6 +299,7 @@ registry.
 | Boss-tier hit | Base hit XP x2 | One random equipped artifact |
 | Boss-tier kill | Base kill XP x3 | One random equipped artifact |
 | Generic soul/heal/fear/doom/ultimate proc | 2/1/3/4/10 | Proc artifact |
+| Reusable signature proc | 3 | Proc artifact |
 | `soulstrike` | 15 | Kelrarin's Hammer |
 | `divineward` | 20 | Amaukekel |
 | `doomblast` | 10 | Doombringer |
@@ -317,7 +320,7 @@ worked this way, and `doomblast` now matches it.
 VNUM 169900 is the Vault of Ages room, and 169912 is the Oaken Defender
 mobile. Neither is an artifact registry entry.
 
-| VNUM | Artifact | Binding | Oath | Active ability | Generic proc | Called effects |
+| VNUM | Artifact | Binding | Oath | Active ability | Combat proc | Called effects |
 | --- | --- | --- | --- | --- | --- | --- |
 | 169901 | Trorxek, the Staff of Ancient Oaks | Equip | Druid | - | 12% | 4 |
 | 169902 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
@@ -327,7 +330,7 @@ mobile. Neither is an artifact registry entry.
 | 169906 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
 | 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% | - |
 | 169908 | Gesen, the Returning Axe | None | - | - | 18% | - |
-| 169909 | Tiamat's Stinger | Account | - | - | 18% | - |
+| 169909 | Tiamat's Stinger | Account | - | - | 18% + lifesteal | - |
 | 169910 | Avernus, the Black Blade | Equip | - | - | 15% | - |
 | 169911 | The Aegis of Ages | Equip | - | - | - | - |
 | 169913 | Vengeance | Equip | Paladin | - | mercy | - |
@@ -388,11 +391,10 @@ The halberd's weighted proc and the avenger's bounded flurry now exist as
 reusable shapes (`ART_SIG_WEIGHTED`, `ART_SIG_FLURRY`); what cannot be
 recovered is the identity of the three items themselves.
 
-What each of the three procedures actually did, the functional source map
-for Homeland's artifact system, the decoded prototype stats for every
-recoverable artifact in both source snapshots, and the snapshot commits are
-maintained in
-[`docs/ongoing-projects/ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md`](../ongoing-projects/ARTIFACT_OBJECT_STATS_FROM_SOURCE_MUDS.md).
+The durable conclusions recovered from those source procedures are the
+reusable shapes documented here. Historical source snapshots are research
+inputs rather than the current system contract; the Luminari implementation
+and this document are authoritative.
 
 Two of the three shapes are already in the reusable proc library:
 `ART_SIG_WEIGHTED` is the halberd's multi-outcome roll and `ART_SIG_FLURRY`
@@ -533,8 +535,8 @@ was not ported.
 
 ## Reusable Signature Procs
 
-The five original artifacts each have a hand-written procedure dispatched by
-VNUM. Everything added since selects a shape from a library instead:
+Five inherited procedures remain hand-written and dispatched by VNUM.
+Table-driven signature powers select a shape from this reusable library:
 
 | Shape | Behavior |
 | --- | --- |
@@ -544,15 +546,34 @@ VNUM. Everything added since selects a shape from a library instead:
 | `ART_SIG_WEIGHTED` | One roll, several weighted outcomes, and a real chance of nothing |
 | `ART_SIG_SURGE` | A bounded temporary combat surge in a stacking group |
 | `ART_SIG_FLURRY` | A bounded burst of extra attacks that cannot proc anything themselves |
+| `ART_SIG_LIFESTEAL` | Negative damage returned as healing, capped by actual damage and missing HP |
 
 Each shape also carries an alignment rule (`ART_ALIGN_*`) that gates whether
 it fires at all. `ART_SIG_MERCY` is the exception: its heal branch is
 unconditional and only its offense branch is gated.
 
-Every shape obeys the same rules: the shared internal cooldown gates it, it
-uses the normal damage and affect helpers, temporary affects are
+Every shape uses the normal damage and affect helpers, temporary affects are
 source-tagged and group-exclusive, target legality and immunity are explicit,
-and exactly one XP award is paid per successful proc.
+and exactly one XP award is paid per successful proc. Most shapes use the
+shared internal cooldown. Lifesteal is the explicit exception because it
+models an inherited per-hit procedure rather than a periodic power.
+
+Tiamat's Stinger selects `ART_SIG_LIFESTEAL` with a 10 percent chance per
+successful hit made with the Stinger. It rolls on every such hit regardless
+of the generic proc's 30-second cooldown; five successful Stinger attacks
+therefore have about a 41.0 percent chance to produce at least one drain.
+Consecutive misses build a runtime-only bad-luck counter, and the fifteenth
+eligible hit is guaranteed to drain if none of the first fourteen did. A
+successful drain resets that counter and stamps the generic cooldown so both
+proc paths cannot fire on that same hit. Its drain is
+`dice(2 + artifact_level, 10) + artifact_level * 10 + character_level`
+negative damage. The damage passes through the normal combat pipeline; the
+wielder heals only the damage actually inflicted and never beyond maximum
+HP. This replaces the source MUD's direct transfer of up to 200 HP, which
+bypassed mitigation and allowed overhealing. The source used a roughly 5
+percent roll; Luminari uses 10 percent because a 45-hit dry streak occurs
+about 10 percent of the time at the source rate but less than 1 percent of the
+time at the local rate.
 
 A new artifact reuses a shape; it does not add a function.
 
@@ -590,9 +611,12 @@ succeeds, the proc kind is `rand_number(1, artifact_level)`.
 | 4 | `dice(level, 8)` negative doom damage |
 | 5 | At level 5, a further 5% chance to execute an NPC no higher than the wielder |
 
-Signature procedures run before this generic system. They have their own
-odds, do not consume the generic internal cooldown, and may occur on the same
-hit as a generic proc if the victim survives.
+Signature procedures run before this generic system. The five hand-written
+procedures have independent odds and may occur on the same hit as a generic
+proc if the victim survives. Reusable signature shapes normally share the
+generic 30-second internal cooldown. Tiamat's lifesteal ignores that cooldown
+when rolling per hit, but refreshes it when a drain fires so the generic proc
+cannot also fire on that hit.
 
 ## Signature Weapon Procedures
 
@@ -776,29 +800,199 @@ fault.
 
 ## Development and Extension
 
+### Choose the extension surface first
+
+Do not begin by adding a VNUM-specific function. First classify the requested
+change so it lands in the smallest existing extension surface:
+
+| Change | Preferred implementation |
+| --- | --- |
+| Stat, resistance, binding, oath, or generic proc balance | Edit the artifact's `artifact_templates[]` row |
+| Existing signature behavior on another weapon | Select an existing `ART_SIG_*` shape in the template row |
+| New behavior that another artifact could reasonably reuse | Add one `ART_SIG_*` shape, one helper, and one reusable-proc dispatch case |
+| Truly unique inherited weapon behavior | Extend the hand-written signature dispatcher only when no reusable shape fits |
+| Equipped command such as `soulstrike` | Use the template ability fields and `do_artifact_ability()` |
+| Spoken, whispered, or invoked phrase | Add an `artifact_effects[]` row and reuse or extend `ART_EFFECT_*` |
+| Level-gated passive affect | Add an `artifact_passives[]` row |
+
+The `proc_chance` column in `artifact_templates[]` controls only the generic
+level-based proc table. It does not imply that an artifact's named or source
+MUD power exists. The signature columns are a separate path. This distinction
+is the first thing to check when a power appears to be impossibly rare.
+
 ### Rebalancing an artifact
 
 Edit its entry in `artifact_templates[]`. Template values are applied at boot
-and are not stored in v2.2, so a restart applies the new balance without a
+and are not stored in v2.3, so a restart applies the new balance without a
 data migration.
 
 ### Adding an artifact
 
 1. Allocate a VNUM in the reserved range and add a named constant to
    `src/obj/spec_artifacts.h`.
-2. Create and deploy its object prototype.
-3. Add one `artifact_templates[]` entry.
-4. Add any speech powers to `artifact_effects[]`.
-5. Add production-linked tests in `unittests/CuTest/test_artifacts.c`.
-6. Verify clean boot, single-instance reset behavior, save round trips, and
-   player lifecycle behavior.
+2. Create its object prototype and update the version-controlled package in
+   `lib/world/artifacts/` and its player help when needed.
+3. Add one `artifact_templates[]` entry and one `artifact_contracts[]` entry.
+4. Add optional passive, signature, active, or called effects through the
+   extension surfaces above.
+5. Extend the registry and table tests in
+   `unittests/CuTest/test_artifacts.c`.
+6. Extend the booted-world behavior tests in
+   `unittests/CuTest/test_artifact_integration.c`.
+7. Verify clean boot, metadata validation, single-instance reset behavior,
+   save round trips, and the player lifecycle.
 
 There is no artifact OLC. Membership and behavior remain compile-time data.
 
 Each `artifact_effects[]` slot must be unique within its artifact and between
-zero and `ARTIFACT_MAX_EFFECTS - 1`. Runtime rejects an out-of-range slot,
-but duplicate slots currently share a recharge stamp silently. Boot-time
-table validation is still planned.
+zero and `ARTIFACT_MAX_EFFECTS - 1`. Boot-time metadata validation disables an
+invalid effect row and reports out-of-range or duplicate slots precisely.
+
+### Adding or repairing an on-hit power
+
+Trace the production path before changing odds or adding logging. A successful
+weapon attack reaches an artifact proc through this sequence:
+
+1. `hit()` in `src/combat/fight.c` resolves the weapon for the current
+   `ATTACK_TYPE_*` through `get_wielded()`.
+2. After positive base damage, while the victim is still alive,
+   `artifact_combat_hit()` awards general combat XP.
+3. Only a non-NULL weapon is passed to `artifact_weapon_proc()`.
+4. `artifact_weapon_proc()` resolves registry membership, blocks proc loops,
+   runs the signature path first, and then considers the generic proc table.
+5. `artifact_signature_proc()` selects either a reusable `ART_SIG_*` shape or
+   one of the inherited hand-written procedures.
+
+This separates three failures that look identical in combat text:
+
+| Question | Where to verify it |
+| --- | --- |
+| Did the character receive a normal attack? | The in-game `attacks` display and the attack loop in `fight.c` |
+| Was the correct weapon attributed to that attack? | `get_wielded()` and a negative test for every non-weapon attack type |
+| Did the artifact have a power to roll? | Its template `sig_proc`, `sig_chance`, and signature dispatch case |
+
+Use this implementation sequence for a new reusable shape:
+
+1. Write the behavior contract first: eligible hit, chance, cooldown policy,
+   target restrictions, damage type and formula, healing or affects, XP,
+   messages, and what happens on death.
+2. Add a named `ART_SIG_*` value before `NUM_ART_SIG` and named balance
+   constants in `src/obj/spec_artifacts.h`. Keep balance numbers out of the
+   dispatch code.
+3. Select the shape and chance in the artifact's `artifact_templates[]` row.
+   Do not also add a VNUM branch for the same behavior.
+4. Implement one focused `artifact_proc_*()` helper using normal combat and
+   affect APIs, then add its case to `artifact_reusable_proc()`.
+5. If the shape needs state, decide whether it is transient or durable.
+   Initialize transient fields during `artifact_boot()` and reset them when
+   ownership changes. Durable fields require the versioned persistence work
+   described below.
+6. Make cooldown interaction explicit. Decide independently whether the
+   signature is gated by `last_proc`, whether success refreshes `last_proc`,
+   and whether the generic proc may run on the same hit.
+7. Add a concise description to `artifact_show_info()` and update player help
+   when the behavior changes what players need to know.
+
+Damage-producing helpers must call `damage()` rather than editing victim HP.
+That preserves mitigation, immunity, combat bookkeeping, and death handling.
+If a secondary effect depends on damage dealt, use the actual result rather
+than the requested amount. Remember that a killing `damage()` call returns
+`-1` and may extract the victim; snapshot any required victim state before the
+call and do not dereference the victim afterward. Healing must be capped by
+missing HP, and a successful proc should grant XP exactly once.
+
+### Tiamat's Stinger case study
+
+The Stinger investigation is the reference example for diagnosing an
+apparently broken artifact proc:
+
+1. The template had `ART_SIG_NONE`. Its visible 18 percent chance belonged to
+   the generic proc table, so lifesteal was absent rather than unusually rare.
+2. A live `attacks` check on Kohdee showed the complete five-attack rotation,
+   all attributed to Tiamat's Stinger. Staff status was not suppressing normal
+   attacks.
+3. Tracing `get_wielded()` found a separate attribution defect: its old
+   default returned the primary weapon for natural, evolution, psionic,
+   spell, and unknown attack types. Those attacks could falsely trigger
+   weapon-only behavior. The safe default is no weapon; every real weapon
+   attack type is mapped explicitly.
+4. `ART_SIG_LIFESTEAL` was added as a reusable shape and selected by the
+   Stinger template. Its balance constants live beside the other signature
+   tunables in `spec_artifacts.h`.
+5. The shape rolls on each successful Stinger hit, bypasses the generic
+   30-second cooldown while rolling, and refreshes that cooldown on success so
+   the generic proc cannot also fire on the same hit.
+6. A transient miss counter guarantees a drain on the fifteenth eligible hit
+   after fourteen misses. It resets on success, boot, and ownership change and
+   is deliberately not persisted.
+7. The drain uses negative damage through `damage()`. Healing is based on
+   damage actually inflicted and is capped by the wielder's missing HP.
+
+The reusable lesson is to prove attack generation, weapon attribution, and
+power dispatch separately. Increasing a percentage before tracing those three
+layers can hide a missing dispatch row or multiply proc attempts from attacks
+that never used the weapon.
+
+### On-hit power regression matrix
+
+Every new or repaired weapon power should cover these cases in the
+production-linked suite:
+
+| Area | Required evidence |
+| --- | --- |
+| Template wiring | Expected VNUM selects the expected shape and chance |
+| Eligibility | A positive hit with the artifact can proc; a miss, dead target, non-artifact, and wrong weapon cannot |
+| Weapon attribution | Primary, offhand, two-handed, and ranged mappings work; natural and spell-like attacks return no weapon |
+| Chance | A deterministic success path tests the effect without relying on random luck |
+| Bad-luck protection | Chance zero stays quiet before the limit and fires exactly at the limit |
+| Cooldown | Both signature and generic paths obey the documented interaction, including same-hit suppression |
+| Effect result | Damage type and scaling are bounded; healing equals actual damage and cannot exceed maximum HP |
+| Death safety | A killing proc does not reuse an extracted victim or over-credit healing |
+| Runtime state | Success, boot, and ownership changes reset transient counters as designed |
+| Player output | `artifact info` and combat messages state the behavior players actually receive |
+
+`artifact_show_info_for_test()` drives the production display path.
+`artifact_force_signature_proc_for_test()` exposes the production signature
+dispatcher; tests make chance deterministic by temporarily setting
+`sig_chance` to a controlled value. Cooldown, alignment, target legality, and
+the effect implementation still run normally.
+
+### Local live-validation ladder
+
+Automated tests prove boundaries and deterministic behavior; a short live
+fight proves that the real attack loop reaches the code. Use both, in this
+order:
+
+```sh
+make test
+make install
+./scripts/development/dev_kohdee_login_smoke.sh \
+  --copyover-check "artifact info tiamat"
+```
+
+`make install` is required after `make test`: it installs the tested server as
+`bin/circle` and removes the root-level build artifact. The login smoke script
+reads credentials internally, refuses a non-development environment, performs
+the copyover check, and logs the test character out. Never print credentials
+or copy them into commands or documentation.
+
+For an interactive combat check, record the artifact's owner, account,
+binding, level, XP, and location before touching it. Then:
+
+1. Run `testartifact verify` and `artifact info <keyword>`.
+2. Equip only the weapon under test and inspect `attacks`.
+3. Fight a controlled target long enough to see multiple eligible hits; count
+   weapon hits, not every condensed combat or rider message.
+4. Confirm the effect amount, healing, cooldown interaction, and combat
+   rotation.
+5. Stop combat, remove temporary targets, restore only state changed by the
+   test, run `testartifact verify` again, and log out cleanly.
+
+Do not use a short live sample to prove probability. Exact chance boundaries
+and drought limits belong in deterministic tests. Do not use
+`testartifact spawn`, `recover`, or `reset` merely to make testing convenient;
+those commands change uniqueness or ownership state and must follow their
+documented staff semantics.
 
 ### Changing persisted fields
 
@@ -836,17 +1030,19 @@ descriptor in a real room beside a live NPC, and drives production entry
 points: the full acquire-equip-bind-unequip-drop-save-reload-destroy
 lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
 highest-only resistance, active abilities, the generic proc guards and every
-signature shape, called-effect success and refusal and per-slot recharge,
-invocation-channel separation, class-oath burn and phrase hiding, player and
+signature shape, Tiamat's actual-damage lifesteal and healing cap,
+called-effect success and refusal and per-slot recharge, invocation-channel
+separation, class-oath burn and phrase hiding, player and
 staff command output, single-instance behavior across a zone reset and a
 reboot, and the balance-pass decisions recorded above. It runs inside a
 scratch directory and never reads or writes real game data.
 
 Two test seams in `src/obj/spec_artifacts.c` support it, both inside
 `#ifdef LUMINARI_CUTEST`: `artifact_show_info_for_test()` drives the real
-display path, and `artifact_force_signature_proc_for_test()` skips only the
-chance roll - the internal cooldown, the alignment rule, and target legality
-all still apply.
+display path, and `artifact_force_signature_proc_for_test()` exposes the real
+signature dispatcher. Tests make the chance deterministic by setting
+`sig_chance` to a controlled value; the shape's cooldown policy, alignment
+rule, target legality, and effect implementation still apply.
 
 Two things the integration suite deliberately does not do. Procs run with
 both combatants already engaged, because `damage()` otherwise calls

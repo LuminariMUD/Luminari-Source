@@ -157,7 +157,7 @@ static const struct artifact_template artifact_templates[] = {
 
     {ART_VNUM_STINGER, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_ACCOUNT,
      {1, 0, 0, 3, 0, 0}, 5, 1, 0, 0, 0, 50, 10, 0, 0, 18, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_LIFESTEAL, ARTIFACT_STINGER_LIFESTEAL_CHANCE, ART_ALIGN_ANY},
 
     {ART_VNUM_AVERNUS, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 0, 1, 1, 0}, 4, 4, 0, 25, 0, 0, 0, 0, 10, 15, CLASS_UNDEFINED, 0,
@@ -524,6 +524,29 @@ const char *artifact_binding_name(int binding)
     return "Unknown";
 
   return artifact_binding_names[binding];
+}
+
+static const char *artifact_signature_desc(int signature)
+{
+  switch (signature)
+  {
+  case ART_SIG_KNOCKDOWN:
+    return "knock a foe from its feet";
+  case ART_SIG_MERCY:
+    return "heal you while wounded or smite an evil foe while healthy";
+  case ART_SIG_WARD:
+    return "raise a ward on a critical strike or dispel a foe";
+  case ART_SIG_WEIGHTED:
+    return "stagger, slow, or drive through a foe";
+  case ART_SIG_SURGE:
+    return "drive you into a temporary combat surge";
+  case ART_SIG_FLURRY:
+    return "unleash a flurry of additional attacks";
+  case ART_SIG_LIFESTEAL:
+    return "drain a foe's vitality as healing, with a fifteen-hit bad-luck limit";
+  default:
+    return "unleash a unique effect";
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -1640,6 +1663,7 @@ void artifact_boot(void)
     art->sig_proc = ART_SIG_NONE;
     art->sig_chance = 0;
     art->sig_align = ART_ALIGN_ANY;
+    art->sig_miss_streak = 0;
 
     art->first_owner = strdup(ARTIFACT_OWNER_NONE);
     art->first_account = strdup(ARTIFACT_OWNER_NONE);
@@ -1920,6 +1944,7 @@ static void artifact_set_owner(struct artifact_data *art, struct char_data *ch)
     art->account = strdup(ARTIFACT_OWNER_NONE);
   }
 
+  art->sig_miss_streak = 0;
   artifact_mark_dirty();
 }
 
@@ -3264,6 +3289,51 @@ static int artifact_proc_mercy(struct char_data *ch, struct char_data *victim,
   return (damage(ch, victim, amount, TYPE_UNDEFINED, DAM_HOLY, FALSE) == -1);
 }
 
+/* Tiamat's Stinger: steal only the life the normal damage pipeline actually
+ * takes.  The source procedure moved hit points directly, ignored mitigation,
+ * and could heal beyond maximum HP; none of those shortcuts belong here. */
+static int artifact_proc_lifesteal(struct char_data *ch, struct char_data *victim,
+                                   struct obj_data *weapon, struct artifact_data *art)
+{
+  int amount = 0, damage_dealt = 0, healing = 0, victim_died = FALSE, victim_hit = 0;
+
+  amount =
+      dice(ARTIFACT_STINGER_LIFESTEAL_DICE_BASE + art->level, ARTIFACT_STINGER_LIFESTEAL_DIE_SIZE) +
+      (art->level * ARTIFACT_STINGER_LIFESTEAL_BONUS_PER_LEVEL) + GET_LEVEL(ch);
+  victim_hit = MAX(0, GET_HIT(victim));
+
+  act("\tMFive colors race along $p as it bites into $N and drinks deep!\tn", FALSE, ch, weapon,
+      victim, TO_CHAR);
+  act("\tMFive colors race along $p as it bites into $N and drinks deep!\tn", FALSE, ch, weapon,
+      victim, TO_NOTVICT);
+  act("\tMFive colors burn through $p as it tears the life from you!\tn", FALSE, ch, weapon, victim,
+      TO_VICT);
+
+  damage_dealt = damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+
+  /* damage() returns -1 after a kill.  At that point the victim may already
+   * be extracted, so use the HP snapshot rather than touching it again. */
+  if (damage_dealt < 0)
+  {
+    victim_died = TRUE;
+    damage_dealt = MIN(amount, victim_hit);
+  }
+
+  if (damage_dealt <= 0)
+    return FALSE;
+
+  if (GET_POS(ch) > POS_DEAD && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    healing = MIN(damage_dealt, GET_MAX_HIT(ch) - GET_HIT(ch));
+    GET_HIT(ch) += healing;
+    send_to_char(ch, "\tMStolen vitality closes your wounds, restoring %d hit point%s.\tn\r\n",
+                 healing, healing == 1 ? "" : "s");
+  }
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SIGNATURE);
+  return victim_died;
+}
+
 /* Tormblade's shape: an alignment-conditioned critical that wards its bearer,
  * and an ordinary hit that occasionally strips what the target is hiding
  * behind. */
@@ -3419,16 +3489,20 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
                                   struct obj_data *weapon, struct artifact_data *art,
                                   int is_critical)
 {
-  if (art->sig_proc == ART_SIG_NONE || art->sig_chance <= 0)
+  int force_proc = FALSE;
+
+  if (art->sig_proc == ART_SIG_NONE)
     return FALSE;
 
-  /* The shared internal cooldown applies to every shape in this library.  The
-   * five inherited procedures deliberately do not use it. */
-  if (art->last_proc > 0 && (time(0) - art->last_proc) < ARTIFACT_PROC_ICD)
+  if (art->sig_proc != ART_SIG_LIFESTEAL && art->sig_chance <= 0)
     return FALSE;
 
-  /* The ward shape reacts to a critical hit rather than rolling for one. */
-  if (art->sig_proc != ART_SIG_WARD && rand_number(1, 100) > art->sig_chance)
+  /* Stinger inherits a per-hit roll, not a once-per-cooldown power.  It still
+   * stamps last_proc when it fires so the generic proc cannot double-trigger
+   * on that swing, but neither a generic proc nor an earlier drain may stop
+   * its next successful hit from rolling. */
+  if (art->sig_proc != ART_SIG_LIFESTEAL && art->last_proc > 0 &&
+      (time(0) - art->last_proc) < ARTIFACT_PROC_ICD)
     return FALSE;
 
   /* Every shape but mercy is gated wholesale by the alignment rule; mercy
@@ -3436,7 +3510,22 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
   if (art->sig_proc != ART_SIG_MERCY && !artifact_align_ok(ch, victim, art->sig_align))
     return FALSE;
 
+  if (art->sig_proc == ART_SIG_LIFESTEAL)
+  {
+    art->sig_miss_streak++;
+    force_proc = art->sig_miss_streak >= ARTIFACT_STINGER_LIFESTEAL_GUARANTEE;
+
+    if (!force_proc && (art->sig_chance <= 0 || rand_number(1, 100) > art->sig_chance))
+      return FALSE;
+
+    art->sig_miss_streak = 0;
+  }
+  /* The ward shape reacts to a critical hit rather than rolling for one. */
+  else if (art->sig_proc != ART_SIG_WARD && rand_number(1, 100) > art->sig_chance)
+    return FALSE;
+
   art->last_proc = time(0);
+  artifact_mark_dirty();
 
   switch (art->sig_proc)
   {
@@ -3452,6 +3541,8 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
     return artifact_proc_surge(ch, weapon, art);
   case ART_SIG_FLURRY:
     return artifact_proc_flurry(ch, victim, weapon, art);
+  case ART_SIG_LIFESTEAL:
+    return artifact_proc_lifesteal(ch, victim, weapon, art);
   default:
     log("SYSERR: artifact_reusable_proc: unknown shape %d on vnum %d", art->sig_proc, art->vnum);
     return FALSE;
@@ -4662,10 +4753,15 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                  art->proc_chance);
 
   if (art->sig_proc != ART_SIG_NONE && art->sig_chance > 0)
-    send_to_char(ch,
-                 "\r\n\tYSignature:\tn %d%% chance per hit of something it does and no other\r\n"
-                 "  artifact does.\r\n",
-                 art->sig_chance);
+  {
+    send_to_char(ch, "\r\n\tYSignature:\tn %d%% chance per hit to %s.\r\n", art->sig_chance,
+                 artifact_signature_desc(art->sig_proc));
+
+    if (art->sig_proc == ART_SIG_LIFESTEAL)
+      send_to_char(ch,
+                   "  Drain: (2 + artifact level)d10 + (10 x artifact level) + wielder level.\r\n"
+                   "  Healing equals damage inflicted, capped by missing hit points.\r\n");
+  }
 
   if (art->ability_name)
   {

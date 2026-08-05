@@ -265,9 +265,9 @@
 /* --------------------------------------------------------------------------
  * Reusable signature-proc shapes
  *
- * The first five artifacts each had a hand-written procedure.  Everything
- * added since is a row in artifact_procs[]: a shape, a chance, and an
- * alignment condition.  New artifacts reuse a shape instead of adding code.
+ * Five inherited procedures remain hand-written.  Table-driven signature
+ * powers select a shape, chance, and alignment condition here so the same
+ * behavior can be reused without another vnum-specific dispatch function.
  * -------------------------------------------------------------------------- */
 #define ART_SIG_NONE 0
 #define ART_SIG_KNOCKDOWN 1 /* save-or-fall, with immunity rules         */
@@ -276,7 +276,8 @@
 #define ART_SIG_WEIGHTED 4  /* one of several weighted outcomes          */
 #define ART_SIG_SURGE 5     /* bounded temporary combat surge            */
 #define ART_SIG_FLURRY 6    /* bounded burst of extra attacks            */
-#define NUM_ART_SIG 7
+#define ART_SIG_LIFESTEAL 7 /* damage returned as healing                */
+#define NUM_ART_SIG 8
 
 /* When a reusable proc is allowed to fire at all. */
 #define ART_ALIGN_ANY 0         /* no condition                          */
@@ -319,6 +320,17 @@
 #define ARTIFACT_MERCY_HEAL_BASE 40
 #define ARTIFACT_MERCY_HEAL_DICE 4
 #define ARTIFACT_MERCY_HEAL_SIDES 15
+
+/* Tiamat's Stinger.  ROL's procedure directly moved up to 200 hit points on a
+ * 1-in-21 per-hit roll, bypassing mitigation and maximum-HP limits.  This
+ * version keeps the independent per-hit behavior but uses 10% to avoid common
+ * forty-plus-hit droughts, scales with the artifact and wielder, then heals
+ * only the damage the normal combat pipeline actually applied. */
+#define ARTIFACT_STINGER_LIFESTEAL_CHANCE 10
+#define ARTIFACT_STINGER_LIFESTEAL_GUARANTEE 15
+#define ARTIFACT_STINGER_LIFESTEAL_DICE_BASE 2
+#define ARTIFACT_STINGER_LIFESTEAL_DIE_SIZE 10
+#define ARTIFACT_STINGER_LIFESTEAL_BONUS_PER_LEVEL 10
 
 /* XP for the reusable shapes.  One award per successful proc. */
 #define ARTIFACT_XP_PROC_SIGNATURE 3
@@ -425,9 +437,10 @@ struct artifact_data
   int proc_chance;
 
   /* Reusable signature proc - a shape from the library, not new code. */
-  int sig_proc;   /* ART_SIG_*                                  */
-  int sig_chance; /* percent per successful hit                 */
-  int sig_align;  /* ART_ALIGN_*                                */
+  int sig_proc;        /* ART_SIG_*                                  */
+  int sig_chance;      /* percent per successful hit                 */
+  int sig_align;       /* ART_ALIGN_*                                */
+  int sig_miss_streak; /* runtime-only bad-luck protection      */
 
   /* Content contract - see the template table.  Copied in at boot so the
    * roster and validator read one place. */

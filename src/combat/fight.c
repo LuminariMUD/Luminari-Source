@@ -10019,14 +10019,13 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
                              int attack_type)      /* Type of attack. */
 {
   struct obj_data *wielded = NULL;
-  /* Check the primary hand location. */
-  wielded = GET_EQ(ch, WEAR_WIELD_1);
 
   switch (attack_type)
   {
   case ATTACK_TYPE_RANGED:
   case ATTACK_TYPE_PRIMARY:
   case ATTACK_TYPE_PRIMARY_SNEAK:
+    wielded = GET_EQ(ch, WEAR_WIELD_1);
     if (!wielded)
     { // 2-hand weapon, primary hand
       wielded = GET_EQ(ch, WEAR_WIELD_2H);
@@ -10051,11 +10050,21 @@ struct obj_data *get_wielded(struct char_data *ch, /* Wielder */
     wielded = GET_EQ(ch, WEAR_WIELD_2H);
     break;
   default:
+    /* Natural, evolution, psionic, and spell attacks are not delivered by
+     * the primary weapon.  Treating an unknown attack as primary falsely
+     * fires weapon abilities, poison, specials, and artifact procs. */
     break;
   }
 
   return wielded;
 }
+
+#ifdef LUMINARI_CUTEST
+struct obj_data *test_get_wielded(struct char_data *ch, int attack_type)
+{
+  return get_wielded(ch, attack_type);
+}
+#endif
 
 int compute_attack_bonus(struct char_data *ch,     /* Attacker */
                          struct char_data *victim, /* Defender */

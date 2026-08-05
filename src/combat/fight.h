@@ -115,6 +115,7 @@ int test_apply_bard_frostbite_rider(struct char_data *ch, struct char_data *vict
 void test_apply_bard_warbeat_allies(struct char_data *ch);
 void test_reset_bard_warbeat_observations(void);
 int test_get_bard_warbeat_opening_attacks(void);
+struct obj_data *test_get_wielded(struct char_data *ch, int attack_type);
 #endif
 
 /* Global variables */

@@ -21,6 +21,12 @@ Some artifacts grant an ability you invoke by name, such as SOULSTRIKE,
 DIVINEWARD, or DOOMBLAST. Use 'artifact abilities' to see which of yours are
 ready.
 
+Artifact weapons may also carry signature strikes that trigger during
+combat. Most use the same internal recharge as their other weapon procs, but
+true per-hit effects roll independently, and some protect against long streaks
+of failed rolls. Use 'artifact info <item>' to see the chance and exact
+behavior of a signature strike once you hold the artifact.
+
 Others answer to words. Hold or wear the artifact and use the channel it
 listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
 command. Each artifact decides which. Each such effect recharges on its own

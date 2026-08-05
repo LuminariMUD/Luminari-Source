@@ -910,7 +910,8 @@ static const struct artint_proc_case artint_signature_cases[] = {
     {ART_VNUM_VENGEANCE, ART_SIG_MERCY, "mercy"},
     {ART_VNUM_WYRMFANG, ART_SIG_WEIGHTED, "weighted"},
     {ART_VNUM_TWILIGHT, ART_SIG_SURGE, "surge"},
-    {ART_VNUM_ICEDGE, ART_SIG_FLURRY, "flurry"}};
+    {ART_VNUM_ICEDGE, ART_SIG_FLURRY, "flurry"},
+    {ART_VNUM_STINGER, ART_SIG_LIFESTEAL, "lifesteal"}};
 
 #define ARTINT_SIGNATURE_COUNT                                                                     \
   ((int)(sizeof(artint_signature_cases) / sizeof(artint_signature_cases[0])))
@@ -1018,6 +1019,169 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
   artint_end(&fixture);
 
   CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, fired);
+}
+
+void Test_artifact_integration_stinger_lifesteal_drains_and_heals_safely(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int actor_before = 0, victim_before = 0, damage_dealt = 0, healing = 0;
+  int first_fired = FALSE, cooldown_stamped = FALSE, second_fired = FALSE;
+  int generic_refused = FALSE, healing_capped = FALSE, signature_described = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_STINGER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_LIFESTEAL, art->sig_proc);
+  CuAssertIntEquals(tc, 10, ARTIFACT_STINGER_LIFESTEAL_CHANCE);
+  CuAssertIntEquals(tc, ARTIFACT_STINGER_LIFESTEAL_CHANCE, art->sig_chance);
+
+  art->sig_chance = 100;
+  art->last_proc = 0;
+  art->level = ARTIFACT_MAX_LEVEL;
+
+  artint_instance(&fixture, &obj, ART_VNUM_STINGER);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  signature_described = artint_said(&fixture, "drain a foe's vitality") &&
+                        artint_said(&fixture, "Healing equals damage inflicted") &&
+                        artint_said(&fixture, "10 x artifact level");
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  actor_before = GET_HIT(&fixture.actor);
+  victim_before = GET_HIT(&fixture.victim);
+
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  damage_dealt = victim_before - GET_HIT(&fixture.victim);
+  healing = GET_HIT(&fixture.actor) - actor_before;
+  first_fired = damage_dealt > 0 && artint_said(&fixture, "Stolen vitality closes your wounds");
+  cooldown_stamped = art->last_proc > 0;
+
+  /* This source-style per-hit proc must roll again even though its first
+   * drain stamped the generic proc cooldown. */
+  actor_before = GET_HIT(&fixture.actor);
+  victim_before = GET_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  second_fired = GET_HIT(&fixture.actor) > actor_before &&
+                 GET_HIT(&fixture.victim) < victim_before &&
+                 artint_said(&fixture, "Stolen vitality closes your wounds");
+
+  /* A drain still refreshes last_proc so the generic table cannot also fire
+   * on the same hit or during its own 30-second recharge. */
+  art->sig_chance = 0;
+  art->proc_chance = 100;
+  actor_before = GET_HIT(&fixture.actor);
+  victim_before = GET_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+  generic_refused = GET_HIT(&fixture.actor) == actor_before &&
+                    GET_HIT(&fixture.victim) == victim_before &&
+                    fixture.descriptor.output[0] == '\0';
+
+  /* Healing can consume only missing hit points, even when the drain deals
+   * more damage than the wielder needs. */
+  art->sig_chance = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) - 1;
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  healing_capped = GET_HIT(&fixture.actor) == GET_MAX_HIT(&fixture.actor);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, first_fired);
+  CuAssertTrue(tc, damage_dealt > 0);
+  CuAssertIntEquals(tc, damage_dealt, healing);
+  CuAssertIntEquals(tc, TRUE, cooldown_stamped);
+  CuAssertIntEquals(tc, TRUE, second_fired);
+  CuAssertIntEquals(tc, TRUE, generic_refused);
+  CuAssertIntEquals(tc, TRUE, healing_capped);
+  CuAssertIntEquals(tc, TRUE, signature_described);
+}
+
+void Test_artifact_integration_stinger_lifesteal_caps_its_dry_streak(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int i = 0, quiet_before_limit = TRUE, fired_at_limit = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_STINGER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, 15, ARTIFACT_STINGER_LIFESTEAL_GUARANTEE);
+
+  art->sig_chance = 0;
+  art->proc_chance = 0;
+  art->last_proc = time(0);
+  art->level = ARTIFACT_MAX_LEVEL;
+
+  artint_instance(&fixture, &obj, ART_VNUM_STINGER);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+
+  for (i = 1; i < ARTIFACT_STINGER_LIFESTEAL_GUARANTEE; i++)
+  {
+    artint_clear_output(&fixture);
+    artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+    if (fixture.descriptor.output[0] != '\0')
+      quiet_before_limit = FALSE;
+  }
+
+  CuAssertIntEquals(tc, ARTIFACT_STINGER_LIFESTEAL_GUARANTEE - 1, art->sig_miss_streak);
+
+  artint_clear_output(&fixture);
+  artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+  fired_at_limit = artint_said(&fixture, "Stolen vitality closes your wounds") &&
+                   art->sig_miss_streak == 0 && GET_HIT(&fixture.actor) > 100;
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, quiet_before_limit);
+  CuAssertIntEquals(tc, TRUE, fired_at_limit);
 }
 
 void Test_artifact_integration_surge_will_not_stack_with_itself(CuTest *tc)
