@@ -4059,11 +4059,11 @@ void column_list(struct char_data *ch, int num_cols, const char **list, int list
   page_string(ch->desc, buf, TRUE);
 }
 
-/* column_list
-   The list is output in a fixed format, and only the number of columns can be adjusted
-   This function will output the list to the player
+/* column_list_applies
+   Outputs an apply list in columns and highlights applies appropriate for the object.
    Vars:
      ch          - the player
+     obj         - the object used to determine highlighted applies
      num_cols    - the desired number of columns
      list        - a pointer to a list of strings
      list_length - So we can work with lists that don't end with /n
@@ -4079,22 +4079,22 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
   bool highlight = false;
   bool overflow = false;
 
-  if (!ch || !obj)
+  if (!ch || !obj || !list || list_length <= 0)
     return;
+
+  /* Column selection must use the actual longest entry or narrow columns will wrap. */
+  for (i = 0; i < list_length; i++)
+    if (list[i] && max_len < strlen(list[i]))
+      max_len = strlen(list[i]);
 
   /* auto columns case */
   if (num_cols == 0)
   {
-    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / (max_len + (show_nums ? 5 : 1));
+    num_cols = (IS_NPC(ch) ? 80 : GET_SCREEN_WIDTH(ch)) / ((int)max_len + (show_nums ? 5 : 1));
   }
 
   /* Ensure that the number of columns is in the range 1-10 */
   num_cols = MIN(MAX(num_cols, 1), 10);
-
-  /* Work out the longest list item */
-  for (i = 0; i < list_length; i++)
-    if (max_len < strlen(list[i]))
-      max_len = strlen(list[i]);
 
   /* Calculate the width of each column */
   if (IS_NPC(ch))
@@ -4106,7 +4106,7 @@ void column_list_applies(struct char_data *ch, struct obj_data *obj, int num_col
     col_width -= 4;
 
   if (col_width < 0 || (size_t)col_width < max_len)
-    log("Warning: columns too narrow for correct output to %s in simple_column_list (utils.c)",
+    log("Warning: columns too narrow for correct output to %s in column_list_applies (utils.c)",
         GET_NAME(ch));
 
   /* Calculate how many list items there should be per column */

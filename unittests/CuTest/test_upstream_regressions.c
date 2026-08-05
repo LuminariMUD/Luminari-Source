@@ -9,6 +9,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
 #include "../../src/dgscript/dg_olc.h"
+#include "../../src/net/protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -88,6 +89,92 @@ void Test_upstream_string_comparison_and_pruning(CuTest *tc)
   CuAssertTrue(tc, str_cmp("b", "a") > 0);
   CuAssertIntEquals(tc, 0, strn_cmp("hello!", "hellox", 5));
   CuAssertTrue(tc, strn_cmp("abc", "xyz", 3) != 0);
+}
+
+static void copy_visible_output_line(char *dest, size_t dest_size, const char *source)
+{
+  size_t written;
+
+  if (!dest || dest_size == 0)
+    return;
+
+  written = 0;
+  while (source && *source && *source != '\r' && *source != '\n' && written + 1 < dest_size)
+  {
+    if (*source == '\033' && source[1] == '[')
+    {
+      source += 2;
+      while (*source && *source != 'm')
+        source++;
+      if (*source == 'm')
+        source++;
+      continue;
+    }
+
+    dest[written++] = *source++;
+  }
+  dest[written] = '\0';
+}
+
+void Test_column_list_applies_uses_item_width_for_auto_columns(CuTest *tc)
+{
+  const char *items[] = {"Strength", "Dexterity",    "Resist-Bludgeoning",
+                         "Wisdom",   "Constitution", "Spell-Penetration"};
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  struct obj_data obj;
+  const char *first_break;
+  const char *second_row;
+  char first_visible_row[81];
+  char second_visible_row[81];
+  bool first_row_aligned;
+  bool second_row_aligned;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&obj, 0, sizeof(obj));
+
+  descriptor.character = &ch;
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+  ch.player_specials = &player_specials;
+  ch.player.name = "column list test character";
+  GET_SCREEN_WIDTH(&ch) = 80;
+  GET_PAGE_LENGTH(&ch) = 100;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the column list fixture");
+    return;
+  }
+
+  column_list_applies(&ch, &obj, 0, items, 6, TRUE);
+
+  first_break = strstr(descriptor.output, "\r\n");
+  second_row = first_break ? first_break + 2 : NULL;
+  copy_visible_output_line(first_visible_row, sizeof(first_visible_row), descriptor.output);
+  copy_visible_output_line(second_visible_row, sizeof(second_visible_row), second_row);
+  first_row_aligned =
+      strlen(first_visible_row) == 78 &&
+      strstr(first_visible_row, " 1) Strength") == first_visible_row &&
+      strstr(first_visible_row, " 3) Resist-Bludgeoning") == first_visible_row + 26 &&
+      strstr(first_visible_row, " 5) Constitution") == first_visible_row + 52;
+  second_row_aligned =
+      second_row != NULL && strstr(second_visible_row, " 2) Dexterity") == second_visible_row &&
+      strstr(second_visible_row, " 4) Wisdom") == second_visible_row + 26 &&
+      strstr(second_visible_row, " 6) Spell-Penetration") == second_visible_row + 52;
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssert(tc, "the first apply-list row should contain three aligned columns", first_row_aligned);
+  CuAssert(tc, "the second apply-list row should contain three aligned columns",
+           second_row_aligned);
 }
 
 void Test_upstream_type_and_bit_formatting(CuTest *tc)
