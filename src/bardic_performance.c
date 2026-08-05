@@ -66,6 +66,25 @@ static int find_performance_by_spell(int spellnum)
   return PERFORMANCE_NONE;
 }
 
+struct obj_data *get_equipped_bardic_instrument(struct char_data *ch)
+{
+  static const int instrument_slots[] = {WEAR_INSTRUMENT, WEAR_HOLD_1, WEAR_HOLD_2, WEAR_HOLD_2H};
+  struct obj_data *instrument;
+  size_t i;
+
+  if (ch == NULL)
+    return NULL;
+
+  for (i = 0; i < sizeof(instrument_slots) / sizeof(instrument_slots[0]); i++)
+  {
+    instrument = GET_EQ(ch, instrument_slots[i]);
+    if (instrument != NULL && GET_OBJ_TYPE(instrument) == ITEM_INSTRUMENT)
+      return instrument;
+  }
+
+  return NULL;
+}
+
 static bool bardic_performance_requires_hearing(int spellnum)
 {
   int performance_num;
@@ -1492,19 +1511,7 @@ static int process_bardic_performance_slot_internal(struct char_data *ch, int sl
     difficulty -= 4;
   }
 
-  /* find an instrument */
-  instrument = GET_EQ(ch, WEAR_HOLD_1);
-  if (!instrument || GET_OBJ_TYPE(instrument) != ITEM_INSTRUMENT)
-  {
-    instrument = GET_EQ(ch, WEAR_HOLD_2);
-  }
-  if (!instrument || GET_OBJ_TYPE(instrument) != ITEM_INSTRUMENT)
-  {
-    instrument = GET_EQ(ch, WEAR_HOLD_2H);
-  }
-  if (!instrument || GET_OBJ_TYPE(instrument) != ITEM_INSTRUMENT)
-    instrument = NULL; /* nope, nothing! */
-  /* END find an instrument */
+  instrument = get_equipped_bardic_instrument(ch);
 
   /* Any instrument is better than nothing, if its the designated instrument,
    * and good at it, then even better.. */
@@ -1702,6 +1709,11 @@ void test_pulse_bard_symphonic_resonance(struct char_data *ch)
 void test_pulse_bard_endless_refrain(struct char_data *ch)
 {
   pulse_bard_endless_refrain(ch);
+}
+
+int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot)
+{
+  return process_bardic_performance_slot_internal(ch, slot, FALSE);
 }
 #endif
 

@@ -2,11 +2,11 @@
 
 Date: 2026-08-05
 
-Status: Confirmed, repair pending
+Status: Implementation in progress
 
 Scope: Bardic performance instrument discovery, object vnum 34549, instrument creation,
 equipment persistence, the flame-kissed transformation procedure, and focused test coverage.
-This is a source-and-world-data audit. No production or gameplay code was changed.
+This began as a source-and-world-data audit and now tracks the implementation through completion.
 
 ## Executive Summary
 
@@ -14,9 +14,14 @@ The character and object are not the cause of the reported message. Object vnum 
 valid `ITEM_INSTRUMENT`, has valid instrument values, and is equipped in the dedicated
 `WEAR_INSTRUMENT` slot. The equipment text `{Used As Instrument}` proves that last point.
 
-The active bardic performance engine does not inspect `WEAR_INSTRUMENT`. It only searches
-`WEAR_HOLD_1`, `WEAR_HOLD_2`, and `WEAR_HOLD_2H`. It therefore deterministically treats an
-instrument in the game's designated instrument slot as absent.
+The bardic performance engine did not inspect `WEAR_INSTRUMENT`. It only searched
+`WEAR_HOLD_1`, `WEAR_HOLD_2`, and `WEAR_HOLD_2H`, so it deterministically treated an instrument
+in the game's designated instrument slot as absent.
+
+Checkpoint 1 repairs that mismatch. `get_equipped_bardic_instrument()` now searches the
+dedicated slot first, then retains all three legacy hold slots as compatibility fallbacks. The
+production-linked suite verifies dedicated-slot precedence, invalid-object rejection, both
+performance slots, ideal instruments, and wrong instruments.
 
 For vnum 34549 this means that every verse:
 
@@ -26,12 +31,12 @@ For vnum 34549 this means that every verse:
 - ignores its 10-point effectiveness bonus when it is transformed into the ideal subtype; and
 - skips the instrument breakability path (irrelevant for this object because its value is zero).
 
-This is systemic rather than object-specific. Boot conversion gives every `ITEM_INSTRUMENT`
-the dedicated wear flag, while crafted and summoned instruments are created with only the
-take and dedicated instrument wear flags. Those runtime-created instruments cannot be put in
-any of the three slots that bardic performance currently searches.
+The original defect was systemic rather than object-specific. Boot conversion gives every
+`ITEM_INSTRUMENT` the dedicated wear flag, while crafted and summoned instruments are created
+with only the take and dedicated instrument wear flags. Those runtime-created instruments
+could not be put in any of the three legacy slots that bardic performance searched.
 
-## Reported Symptom and Deterministic Failure Chain
+## Original Symptom and Deterministic Failure Chain
 
 ```text
 wear flame
@@ -68,11 +73,11 @@ actual populated equipment slot. It is not an object wear-capability label.
 | `WEAR_HOLD_2H` | 21 |
 | `WEAR_INSTRUMENT` | 32 |
 
-### 2. Bardic performance omits the designated slot
+### 2. Bardic performance omitted the designated slot
 
-`src/bardic_performance.c:1495-1506` searches the three held slots above and sets the local
-instrument pointer to `NULL` if none contains an `ITEM_INSTRUMENT`. There is no read of
-`WEAR_INSTRUMENT` anywhere in the bardic performance subsystem.
+The audited implementation at `src/bardic_performance.c:1495-1506` searched the three held
+slots above and set the local instrument pointer to `NULL` if none contained an
+`ITEM_INSTRUMENT`. Checkpoint 1 replaces that block with the dedicated-first helper.
 
 `src/bardic_performance.c:1511-1541` then applies one of three paths:
 
@@ -126,23 +131,25 @@ which exposes the pre-existing discovery mismatch.
 
 ## Findings
 
-| ID | Severity | Type | Finding |
-|----|----------|------|---------|
-| BI-001 | High | Confirmed bug | Bardic performance ignores the dedicated instrument equipment slot. |
-| BI-002 | High | Confirmed systemic impact | Crafted and summoned instruments cannot enter any slot the engine searches. |
-| BI-003 | Medium | Test gap | The production-linked bard suite has no equipped-instrument coverage. |
-| BI-004 | Medium | Confirmed rules/UI defect | Breakability code, comments, crafting text, and OLC text describe different probabilities. |
-| BI-005 | Medium | State-integrity warning | The flame-kissed transform subtracts hit points directly without normal damage/death handling. |
-| BI-006 | Low | Robustness warning | Instrument subtype display paths index a table without validating object value 0. |
-| BI-007 | Low | Builder-facing drift | Value 2 is inconsistently called level or effectiveness, and identify misspells effectiveness. |
+| ID | Severity | Status | Finding |
+|----|----------|--------|---------|
+| BI-001 | High | Resolved; verified | Bardic performance ignored the dedicated instrument equipment slot. |
+| BI-002 | High | Resolved; verified | Crafted and summoned instruments could not enter any slot the engine searched. |
+| BI-003 | Medium | In progress | The production-linked bard suite lacked equipped-instrument coverage. |
+| BI-004 | Medium | Pending | Breakability code, comments, crafting text, and OLC text describe different probabilities. |
+| BI-005 | Medium | Pending | The flame-kissed transform subtracts hit points directly without normal damage/death handling. |
+| BI-006 | Low | Pending | Instrument subtype display paths index a table without validating object value 0. |
+| BI-007 | Low | Pending | Value 2 is inconsistently called level or effectiveness, and identify misspells effectiveness. |
 
 ### BI-001: Dedicated Slot Is Ignored
 
 Severity: High
 
-This is the direct cause of the report. Slot 32 is purpose-built, visible in `equipment`, saved
-and restored, selected by `wear`, and automatically enabled for instrument objects. The one
-consumer that needs it does not read it.
+Status: Resolved and verified in checkpoint 1.
+
+This was the direct cause of the report. Slot 32 is purpose-built, visible in `equipment`, saved
+and restored, selected by `wear`, and automatically enabled for instrument objects. Before
+checkpoint 1, the one consumer that needed it did not read it.
 
 The defect applies to every base performance because all thirteen entries pass through
 `process_bardic_performance_slot_internal()`. It is independent of character class state,
@@ -156,8 +163,9 @@ Recommended repair:
 3. Require `ITEM_INSTRUMENT` in every candidate slot.
 4. Define dedicated-slot precedence when a bard somehow has more than one instrument equipped.
 
-A small helper such as `get_equipped_bardic_instrument()` would keep slot policy in one place
-and make it directly testable.
+The repair adds `get_equipped_bardic_instrument()` as the single slot-policy helper. It checks
+`WEAR_INSTRUMENT` first, validates `ITEM_INSTRUMENT`, then checks `WEAR_HOLD_1`, `WEAR_HOLD_2`,
+and `WEAR_HOLD_2H` in order.
 
 Temporary workaround for vnum 34549 only:
 
@@ -174,6 +182,8 @@ instruments lack the hold flag.
 
 Severity: High
 
+Status: Resolved and verified in checkpoint 1 by the canonical dedicated-slot lookup.
+
 `src/craft/crafting_new.c:3770-3798` clears every wear flag on a completed crafted instrument,
 then sets only `ITEM_WEAR_TAKE` and `ITEM_WEAR_INSTRUMENT`.
 
@@ -182,9 +192,8 @@ the object appears "in your hands," but it actually puts the object in inventory
 uses slot 32. The `hold` command rejects it because `src/obj/act.item.c:4794-4799` requires the
 hold wear flag for ordinary objects.
 
-These instruments can be equipped exactly as their creators intend, but the performance engine
-cannot discover them. Fixing BI-001 repairs this entire path without adding inappropriate hold
-flags.
+These instruments can be equipped exactly as their creators intend. Checkpoint 1 makes the
+performance engine discover them without adding inappropriate hold flags.
 
 The summon message should separately be changed to say the object appears in the bard's
 possession/inventory, or the spell should intentionally equip it into an empty instrument slot.
@@ -193,13 +202,17 @@ possession/inventory, or the spell should intentionally equip it into an empty i
 
 Severity: Medium
 
-`unittests/CuTest/test_bardic_performance.c` has broad state, timing, targeting, perk, and
-protocol coverage. It never declares an `obj_data`, never sets `ITEM_INSTRUMENT`, and never
-populates any hold or instrument equipment slot. Existing `do_perform()` tests therefore run
-through the reported no-instrument path without asserting its message.
+Status: In progress. Checkpoint 1 adds direct equipment lookup and full verse-path coverage for
+the dedicated slot, both performance slots, ideal and wrong subtypes, invalid dedicated-slot
+objects, and legacy slot precedence. Construction and persistence coverage remain.
 
-This explains how the earlier bardic performance repair suite could pass while the canonical
-instrument path remained broken.
+At audit time, `unittests/CuTest/test_bardic_performance.c` had broad state, timing, targeting,
+perk, and protocol coverage, but declared no `obj_data`, set no `ITEM_INSTRUMENT`, and populated
+no hold or instrument equipment slot. Existing `do_perform()` tests therefore ran through the
+reported no-instrument path without asserting its message.
+
+This explains how the earlier bardic performance repair suite passed while the canonical
+instrument path remained broken. Checkpoint 1 adds the first dedicated regression matrix.
 
 Required regression cases:
 
@@ -335,7 +348,19 @@ values, and special assignment are all valid.
 - The production-linked test suite covers the dedicated slot and passes warning-free.
 - After `make test`, `make install` is run so no root-level `circle` artifact is left behind.
 
-## Validation Performed for This Audit
+## Implementation Checkpoints
+
+### Checkpoint 1: Dedicated Instrument Slot
+
+- Added centralized, dedicated-first instrument discovery in `src/bardic_performance.c`.
+- Retained `WEAR_HOLD_1`, `WEAR_HOLD_2`, and `WEAR_HOLD_2H` compatibility in that order.
+- Added production-linked regression coverage in
+  `unittests/CuTest/test_bardic_performance.c`.
+- Ran `make test`: passed 401/401 tests with no compiler warnings.
+- Ran `make install`: installed `bin/circle` and confirmed no root-level `circle` remains.
+- Baseline audit commit `d243b7d9` was pushed before implementation.
+
+## Validation Performed for the Original Audit
 
 - Confirmed `APP_ENV=development` without modifying `lib/.env`.
 - Traced equipment display, wear selection, save/load validation, bard performance, crafted and

@@ -25,6 +25,7 @@ int can_perform(struct char_data *ch, int performance_num, bool need_check, bool
 int performance_effects(struct char_data *ch, struct char_data *tch, int spellnum,
                         int effectiveness, int aoe);
 int process_performance(struct char_data *ch, int performance_num, int effectiveness, int aoe);
+struct obj_data *get_equipped_bardic_instrument(struct char_data *ch);
 void initialize_bardic_performance_state(struct char_data *ch);
 void stop_bardic_performance(struct char_data *ch, bool notify);
 void stop_bardic_performance_slot(struct char_data *ch, int slot, bool notify);
@@ -36,6 +37,7 @@ int get_active_bardic_resonant_voice_bonus(struct char_data *ch);
 void test_pulse_bard_winters_war_march(struct char_data *ch);
 void test_pulse_bard_symphonic_resonance(struct char_data *ch);
 void test_pulse_bard_endless_refrain(struct char_data *ch);
+int test_process_bardic_performance_slot_without_stutter(struct char_data *ch, int slot);
 #endif
 ACMD_DECL(do_perform);
 

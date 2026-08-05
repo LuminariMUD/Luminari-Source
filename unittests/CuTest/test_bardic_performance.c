@@ -230,6 +230,15 @@ static void initialize_bardic_test_perk(struct char_perk_data *perk, int perk_id
   perk->next = next;
 }
 
+static void initialize_bardic_test_instrument(struct obj_data *instrument, int subtype)
+{
+  clear_object(instrument);
+  instrument->name = (char *)"test instrument";
+  instrument->short_description = (char *)"a test instrument";
+  GET_OBJ_TYPE(instrument) = ITEM_INSTRUMENT;
+  GET_OBJ_VAL(instrument, 0) = subtype;
+}
+
 static struct affected_type *find_spell_affect_location(struct char_data *ch, int spellnum,
                                                         int location)
 {
@@ -264,6 +273,90 @@ void Test_bardic_performance_index_validation_checks_bounds_first(CuTest *tc)
   CuAssertTrue(tc, !is_valid_performance(MAX_PERFORMANCES + 100));
   CuAssertTrue(tc, is_valid_performance(0));
   CuAssertTrue(tc, is_valid_performance(MAX_PERFORMANCES - 1));
+}
+
+void Test_bardic_instrument_lookup_prefers_dedicated_then_legacy_slots(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data dedicated;
+  struct obj_data held_primary;
+  struct obj_data held_secondary;
+  struct obj_data held_two_handed;
+
+  clear_char(&ch);
+  initialize_bardic_test_instrument(&dedicated, INSTRUMENT_LYRE);
+  initialize_bardic_test_instrument(&held_primary, INSTRUMENT_FLUTE);
+  initialize_bardic_test_instrument(&held_secondary, INSTRUMENT_HORN);
+  initialize_bardic_test_instrument(&held_two_handed, INSTRUMENT_DRUM);
+
+  CuAssertPtrEquals(tc, NULL, get_equipped_bardic_instrument(NULL));
+  CuAssertPtrEquals(tc, NULL, get_equipped_bardic_instrument(&ch));
+
+  GET_EQ(&ch, WEAR_HOLD_2H) = &held_two_handed;
+  CuAssertPtrEquals(tc, &held_two_handed, get_equipped_bardic_instrument(&ch));
+  GET_EQ(&ch, WEAR_HOLD_2) = &held_secondary;
+  CuAssertPtrEquals(tc, &held_secondary, get_equipped_bardic_instrument(&ch));
+  GET_EQ(&ch, WEAR_HOLD_1) = &held_primary;
+  CuAssertPtrEquals(tc, &held_primary, get_equipped_bardic_instrument(&ch));
+  GET_EQ(&ch, WEAR_INSTRUMENT) = &dedicated;
+  CuAssertPtrEquals(tc, &dedicated, get_equipped_bardic_instrument(&ch));
+
+  GET_OBJ_TYPE(&dedicated) = ITEM_WEAPON;
+  CuAssertPtrEquals(tc, &held_primary, get_equipped_bardic_instrument(&ch));
+  GET_OBJ_TYPE(&held_primary) = ITEM_WEAPON;
+  CuAssertPtrEquals(tc, &held_secondary, get_equipped_bardic_instrument(&ch));
+}
+
+void Test_bardic_performance_recognizes_dedicated_slot_in_both_song_slots(CuTest *tc)
+{
+  struct bardic_fixture fixture;
+  struct obj_data instrument;
+
+  begin_bardic_fixture(&fixture);
+  initialize_bardic_test_instrument(&instrument, INSTRUMENT_LYRE);
+  GET_OBJ_VAL(&instrument, 1) = 30;
+  GET_OBJ_VAL(&instrument, 2) = 10;
+  GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = &instrument;
+  IS_PERFORMING(&fixture.bard) = TRUE;
+  GET_PERFORMING(&fixture.bard) = 0;
+
+  circle_srandom(1);
+  CuAssertIntEquals(
+      tc, 1,
+      test_process_bardic_performance_slot_without_stutter(&fixture.bard, PERFORMANCE_VAR_PRIMARY));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "without an instrument") == NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "Not the ideal instrument") == NULL);
+
+  reset_bardic_fixture_output(&fixture);
+  GET_SECONDARY_PERFORMING(&fixture.bard) = 3;
+  GET_OBJ_VAL(&instrument, 0) = INSTRUMENT_DRUM;
+  circle_srandom(1);
+  CuAssertIntEquals(tc, 1,
+                    test_process_bardic_performance_slot_without_stutter(
+                        &fixture.bard, PERFORMANCE_VAR_SECONDARY));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "without an instrument") == NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "Not the ideal instrument") == NULL);
+
+  reset_bardic_fixture_output(&fixture);
+  GET_OBJ_VAL(&instrument, 0) = INSTRUMENT_FLUTE;
+  circle_srandom(1);
+  CuAssertIntEquals(
+      tc, 1,
+      test_process_bardic_performance_slot_without_stutter(&fixture.bard, PERFORMANCE_VAR_PRIMARY));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "without an instrument") == NULL);
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "Not the ideal instrument") != NULL);
+
+  reset_bardic_fixture_output(&fixture);
+  GET_OBJ_TYPE(&instrument) = ITEM_WEAPON;
+  circle_srandom(1);
+  CuAssertIntEquals(
+      tc, 1,
+      test_process_bardic_performance_slot_without_stutter(&fixture.bard, PERFORMANCE_VAR_PRIMARY));
+  CuAssertTrue(tc, strstr(fixture.descriptor.output, "without an instrument") != NULL);
+
+  GET_EQ(&fixture.bard, WEAR_INSTRUMENT) = NULL;
+  circle_srandom((unsigned long)time(NULL));
+  end_bardic_fixture(&fixture);
 }
 
 void Test_bardic_performance_command_matching_preserves_valid_state(CuTest *tc)
