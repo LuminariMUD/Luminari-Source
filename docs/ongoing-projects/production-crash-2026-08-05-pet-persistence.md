@@ -31,8 +31,8 @@ Status meanings:
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Pending | Add a safe dirty/interval policy without allowing logout, extraction, combat, spell, or administrative save sites to lose a changed snapshot. |
-| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, and rollback at all nine transaction queries. Broader lifecycle and sanitizer loops remain. |
-| Memory reproduction and diagnostics | Pending | Exercise repeated timed-affect saves, forced failures, equipment, multiple followers, and lifecycle transitions under ASan/UBSan and Valgrind; preserve exact commands and results. |
+| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, and rollback at all nine transaction queries. The same fixture now supports repeated timed-affect mutation and passed 100 saves under sanitizers. Disconnect and extraction transitions remain. |
+| Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots passed ASan/LeakSanitizer and a production-linked seven-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. The unavailable exact `2.5033-beta` source and lifecycle transitions remain gaps. |
 | Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
@@ -62,8 +62,70 @@ Status meanings:
   remains intact. An oversized object payload is rejected and rolled back. The
   installed `bin/circle` then verified schema version `2026080504`, loaded the
   full development world, and completed syntax-check cleanup.
-- Next checkpoint: run sanitizer and Valgrind loops over the full transactional
-  fixture before addressing timed save churn.
+- Atomic-save checkpoint commit: `45abcba5` (`Make pet snapshot saves
+  atomic`), pushed to `origin/master`.
+- Memory-diagnostic checkpoint: the transaction fixture now attaches a timed
+  charm affect, changes its duration on each pass, and performs a configurable
+  number of complete saves while retaining two followers plus equipped,
+  carried, and nested objects. One hundred passes completed under
+  ASan/LeakSanitizer with all 439 tests passing. A generated
+  database-persistence CuTest executable then passed all seven tests under
+  Valgrind after 8,252 allocations, with zero errors and zero definitely lost
+  bytes. The initial ASan run also found and corrected an independent test
+  parser width that allowed an 8,191-byte scan into a 512-byte buffer.
+- Sanitizer boundary: fail-fast UBSan stops the forked full-world syntax check
+  at `src/db.c:7463`, where `check_bitvector_names()` shifts by a wrapped
+  negative count when the number of known flags exceeds the bitvector width.
+  This occurs before the parent runs the persistence fixture and is not a pet
+  persistence failure. A complete Valgrind world boot also reports three
+  existing cleanup leak contexts: one four-byte region allocation and 4,782
+  room-name/description strings. Those child-process findings are kept
+  separate from the clean persistence-suite result.
+- Next checkpoint: add disconnect and extraction transition coverage, then
+  reduce periodic save churn without weakening explicit lifecycle saves.
+
+### Memory Diagnostic Commands
+
+Database environment values were loaded from the development
+`lib/mysql_config` without printing them. The relevant variable names and
+commands were:
+
+```bash
+cmake -S . -B "$asan_build" -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug \
+  '-DCMAKE_C_FLAGS=-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer' \
+  '-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address,undefined'
+cmake --build "$asan_build" --target cutest -j"$(nproc)"
+
+LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_PET_SAVE_LOOPS=100 \
+  LUMINARI_TEST_ROOT="$PWD" \
+  ASAN_OPTIONS='abort_on_error=1:detect_leaks=1:strict_string_checks=1' \
+  UBSAN_OPTIONS='halt_on_error=0:print_stacktrace=1' \
+  "$asan_build/cutest"
+```
+
+That run passed all 439 tests. Repeating it with
+`UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1'` preserved the pet-test
+pass but made the overall suite fail on the independent world-loader shift
+described above.
+
+The focused Valgrind pass used the complete generated suite from
+`test_database_persistence.c`, not an individual test-function filter:
+
+```bash
+unittests/CuTest/make-tests.sh \
+  unittests/CuTest/test_database_persistence.c \
+  > unittests/CuTest/AllTests.c
+make -j"$(nproc)" cutest
+
+LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_PET_SAVE_LOOPS=100 \
+  valgrind --tool=memcheck --leak-check=full \
+    --show-leak-kinds=definite --errors-for-leak-kinds=definite \
+    --track-origins=yes --error-exitcode=99 \
+    --suppressions=unittests/CuTest/cutest.supp ./cutest
+```
+
+The normal 439-test `AllTests.c` runner was regenerated immediately after the
+focused diagnostic.
 
 ## Scope and Safety
 

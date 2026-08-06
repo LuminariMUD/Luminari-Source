@@ -16,6 +16,8 @@
 int luminari_main(int argc, char **argv);
 
 #define SYNTAX_CHECK_OUTPUT_SIZE (1024 * 1024)
+#define SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS 60U
+#define SYNTAX_CHECK_MAX_TIMEOUT_SECONDS 600UL
 
 static const char *syntax_check_test_root(void)
 {
@@ -23,6 +25,25 @@ static const char *syntax_check_test_root(void)
 
   root = getenv("LUMINARI_TEST_ROOT");
   return root != NULL && *root != '\0' ? root : ".";
+}
+
+static unsigned int syntax_check_timeout_seconds(void)
+{
+  const char *timeout_text;
+  char *end;
+  unsigned long timeout;
+
+  timeout_text = getenv("LUMINARI_TEST_SYNTAX_TIMEOUT_SECONDS");
+  if (timeout_text == NULL || *timeout_text == '\0')
+    return SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS;
+
+  end = NULL;
+  timeout = strtoul(timeout_text, &end, 10);
+  if (end == timeout_text || *end != '\0' || timeout == 0 ||
+      timeout > SYNTAX_CHECK_MAX_TIMEOUT_SECONDS)
+    return SYNTAX_CHECK_DEFAULT_TIMEOUT_SECONDS;
+
+  return (unsigned int)timeout;
 }
 
 void Test_syntax_check_empty_event_queue_lifecycle(CuTest *tc)
@@ -75,7 +96,7 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
     argv[5] = NULL;
     argv[6] = NULL;
 
-    alarm(60);
+    alarm(syntax_check_timeout_seconds());
     event_test_reset_lifecycle_counts();
     result = luminari_main(5, argv);
     if (result != EXIT_SUCCESS)
@@ -101,6 +122,8 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
   close(output_pipe[0]);
 
   CuAssertIntEquals(tc, child_pid, waitpid(child_pid, &child_status, 0));
+  if (!WIFEXITED(child_status) || WEXITSTATUS(child_status) != EXIT_SUCCESS)
+    fprintf(stderr, "Syntax-check child output:\n%s\n", output);
   CuAssert(tc, "syntax-check child did not exit normally", WIFEXITED(child_status));
   CuAssertIntEquals(tc, EXIT_SUCCESS, WEXITSTATUS(child_status));
   CuAssertPtrNotNull(tc, strstr(output, "Creating encounter reset event"));

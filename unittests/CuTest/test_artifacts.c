@@ -284,7 +284,7 @@ static int artifact_test_object_identity_fields(const char *path, int vnum, int 
       continue;
     }
 
-    if (sscanf(line, "%d %*s %*s %*s %*s %8191s", item_type, wear) == 2)
+    if (sscanf(line, "%d %*s %*s %*s %*s %511s", item_type, wear) == 2)
     {
       *wear_flags = asciiflag_conv(wear);
       fclose(fl);

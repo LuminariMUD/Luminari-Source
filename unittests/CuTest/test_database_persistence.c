@@ -32,6 +32,7 @@ struct pet_save_fixture
   struct obj_data equipped_object;
   struct obj_data inventory_object;
   struct obj_data contained_object;
+  struct affected_type timed_affect;
 };
 
 static void free_test_affects(struct char_data *ch)
@@ -204,6 +205,11 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
   GET_REAL_INT(&fixture->first_pet) = 5;
   GET_REAL_WIS(&fixture->first_pet) = 12;
   GET_REAL_CHA(&fixture->first_pet) = 7;
+  new_affect(&fixture->timed_affect);
+  fixture->timed_affect.spell = SPELL_CHARM_MONSTER;
+  fixture->timed_affect.duration = 12;
+  SET_BIT_AR(fixture->timed_affect.bitvector, AFF_CHARM);
+  fixture->first_pet.affected = &fixture->timed_affect;
 
   SET_BIT_AR(MOB_FLAGS(&fixture->second_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&fixture->second_pet), AFF_CHARM);
@@ -489,6 +495,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
 {
   struct pet_save_fixture fixture;
   const char *enabled;
+  const char *loop_count_text;
   MYSQL *connection;
   MYSQL *saved_conn;
   bool saved_available;
@@ -497,6 +504,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   bool snapshot_saved;
   bool rollback_coverage_passed;
   bool overflow_rollback_passed;
+  bool repeated_saves_passed;
   bool forced_save_result;
   char *oversized_object_name;
   int save_query_count;
@@ -507,6 +515,8 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   int quoted_payload_rows;
   int old_rows;
   int failure_query;
+  int repeat_count;
+  int repeat_index;
 
   enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
   if (enabled == NULL || strcmp(enabled, "1") != 0)
@@ -585,6 +595,27 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
     free(oversized_object_name);
   }
 
+  loop_count_text = getenv("LUMINARI_TEST_PET_SAVE_LOOPS");
+  repeat_count = loop_count_text ? atoi(loop_count_text) : 3;
+  if (repeat_count < 1)
+    repeat_count = 1;
+  if (repeat_count > 10000)
+    repeat_count = 10000;
+  repeated_saves_passed = true;
+  for (repeat_index = 0; repeated_saves_passed && repeat_index < repeat_count; repeat_index++)
+  {
+    fixture.timed_affect.duration = 120 - (repeat_index % 100);
+    repeated_saves_passed = save_char_pets(&fixture.owner);
+  }
+  repeated_saves_passed =
+      repeated_saves_passed &&
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data AS pet JOIN pet_save_objs AS object "
+                       "ON object.pet_idnum = pet.pet_data_id "
+                       "WHERE pet.owner_name = 'SnapshotOwner' "
+                       "AND object.owner_name = 'SnapshotOwner'",
+                       -1) == 3;
+
   mysql_test_clear_query_failure();
   conn = saved_conn;
   mysql_available = saved_available;
@@ -602,6 +633,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   CuAssertIntEquals(tc, 0, old_rows);
   CuAssertTrue(tc, rollback_coverage_passed);
   CuAssertTrue(tc, overflow_rollback_passed);
+  CuAssertTrue(tc, repeated_saves_passed);
 }
 
 void Test_follower_runtime_state_round_trip(CuTest *tc)
