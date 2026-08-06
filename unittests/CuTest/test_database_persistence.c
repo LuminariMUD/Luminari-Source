@@ -198,10 +198,10 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
 
   SET_BIT_AR(MOB_FLAGS(&fixture->first_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&fixture->first_pet), AFF_CHARM);
-  fixture->first_pet.player.name = (char *)"FirstPet";
-  fixture->first_pet.player.short_descr = (char *)"the first saved pet";
-  fixture->first_pet.player.long_descr = (char *)"The first saved pet is here.";
-  fixture->first_pet.player.description = (char *)"A transaction test pet.";
+  fixture->first_pet.player.name = (char *)"FirstPet's marker";
+  fixture->first_pet.player.short_descr = (char *)"the first pet's saved form";
+  fixture->first_pet.player.long_descr = (char *)"The first pet's saved form is here.";
+  fixture->first_pet.player.description = (char *)"A transaction pet's description.";
   GET_LEVEL(&fixture->first_pet) = 8;
   GET_HIT(&fixture->first_pet) = 71;
   GET_REAL_MAX_HIT(&fixture->first_pet) = 90;
@@ -219,10 +219,10 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
 
   SET_BIT_AR(MOB_FLAGS(&fixture->second_pet), MOB_ISNPC);
   SET_BIT_AR(AFF_FLAGS(&fixture->second_pet), AFF_CHARM);
-  fixture->second_pet.player.name = (char *)"SecondPet";
-  fixture->second_pet.player.short_descr = (char *)"the second saved pet";
-  fixture->second_pet.player.long_descr = (char *)"The second saved pet is here.";
-  fixture->second_pet.player.description = (char *)"Another transaction test pet.";
+  fixture->second_pet.player.name = (char *)"SecondPet's marker";
+  fixture->second_pet.player.short_descr = (char *)"the second pet's saved form";
+  fixture->second_pet.player.long_descr = (char *)"The second pet's saved form is here.";
+  fixture->second_pet.player.description = (char *)"Another transaction pet's description.";
   GET_LEVEL(&fixture->second_pet) = 9;
   GET_HIT(&fixture->second_pet) = 81;
   GET_REAL_MAX_HIT(&fixture->second_pet) = 100;
@@ -518,6 +518,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   int pet_rows;
   int object_rows;
   int linked_rows;
+  int quoted_pet_rows;
   int runtime_rows;
   int quoted_payload_rows;
   int old_rows;
@@ -565,6 +566,12 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
       query_single_int(connection,
                        "SELECT COUNT(*) FROM pet_data WHERE owner_name = 'SnapshotOwner' "
                        "AND runtime_state IS NOT NULL AND runtime_state <> ''",
+                       -1);
+  quoted_pet_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data WHERE LOCATE(CHAR(39), pet_name) > 0 "
+                       "AND LOCATE(CHAR(39), pet_sdesc) > 0 AND LOCATE(CHAR(39), pet_ldesc) > 0 "
+                       "AND LOCATE(CHAR(39), pet_ddesc) > 0",
                        -1);
   quoted_payload_rows = query_single_int(
       connection, "SELECT COUNT(*) FROM pet_save_objs WHERE LOCATE(CHAR(39), serialized_obj) > 0",
@@ -639,6 +646,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   CuAssertIntEquals(tc, 3, object_rows);
   CuAssertIntEquals(tc, 3, linked_rows);
   CuAssertIntEquals(tc, 2, runtime_rows);
+  CuAssertIntEquals(tc, 2, quoted_pet_rows);
   CuAssertIntEquals(tc, 3, quoted_payload_rows);
   CuAssertIntEquals(tc, 0, old_rows);
   CuAssertTrue(tc, rollback_coverage_passed);

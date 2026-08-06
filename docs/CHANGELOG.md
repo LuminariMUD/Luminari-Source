@@ -2,6 +2,48 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Pet persistence and crash observability
+
+#### Fixed
+
+- Added unconditional pet migrations `2026080501` through `2026080504` and a
+  fail-closed startup contract for both InnoDB pet tables, required types,
+  nullability, keys, indexes, and migration version.
+- Replaced delete-before-insert pet persistence with one owner transaction.
+  Pet rows are prepared before mutation, recursive object failures propagate,
+  and every query or commit failure preserves the prior linked snapshot.
+- Corrected partial socket-write accounting that could make a descriptor's
+  next output append address memory before its output buffer.
+- Synchronized incident-window I3 connection state, bounded terrain batch
+  parsing, and made timed-affect wear-off dispatch safe when callbacks mutate
+  the affect list.
+
+#### Changed
+
+- Moved periodic pet snapshots from the six-second miscellaneous update to the
+  existing one-minute save pulse while retaining immediate lifecycle saves.
+- Replaced full failed SQL payload logs with bounded, rate-limited operation,
+  owner, pet VNUM, MariaDB error, schema version, and suppression context.
+- Both build systems now install immutable build-ID releases with matching
+  debug symbols and manifests. Autorun pins each process and crash analysis to
+  its exact executable and reports active-versus-installed identity drift.
+
+#### Verification
+
+- The ordinary and development-MariaDB production-linked suites pass all 444
+  tests. Coverage includes idempotent legacy migration, incompatible-schema
+  rejection, two followers, equipped/carried/nested objects, punctuation,
+  rollback at all nine transaction queries, oversized payload rollback, and
+  lifecycle transitions.
+- One hundred repeated snapshots pass ASan/LeakSanitizer; the focused
+  persistence suite passes Valgrind with zero errors and zero definitely lost
+  bytes. A clean detached source completes a warning-free build, aggregate
+  tests, and immutable `make install`.
+- The exact writer behind the August 5 allocator abort remains unproven because
+  its original executable and core are unavailable. Production deployment,
+  recovery, pet smoke testing, and core-capture verification follow the
+  [incident handoff](ongoing-projects/production-crash-2026-08-05-pet-persistence.md).
+
 ### Artifact bonus stacking
 
 #### Changed

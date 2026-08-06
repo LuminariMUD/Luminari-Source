@@ -1,6 +1,7 @@
 # Pet System Comparison: Luminari and Chronicles of Krynn
 
-Status: comparison complete; design and remediation decisions remain open
+Status: comparison complete; incident P0 persistence safeguards are repaired;
+pet-policy and lifetime decisions remain open
 
 Verified against source: 2026-08-06
 
@@ -41,13 +42,12 @@ upstream or merge target.
 5. Both implementations persist every charmed NPC follower, including
    temporary summons and ordinary charmed creatures, and both reload saved
    followers without rechecking current admission limits.
-6. Both persistence paths delete the owner's previous rows before rebuilding
-   them and do not use a transaction. A failed insert can therefore destroy a
-   previously valid snapshot. This is already material to Luminari's separate
-   production incident investigation.
-7. A selective startup initializer prevents pet column migrations from running
-   on an existing `pet_data` table in both trees. Schema files and runtime table
-   creation also disagree.
+6. Chronicles still deletes the owner's previous rows before rebuilding them
+   without a transaction. Luminari now prepares the replacement first and
+   atomically replaces both pet and pet-object rows in one InnoDB transaction.
+7. Chronicles still places its pet-column migration behind a selective table
+   initializer. Luminari now runs an unconditional versioned migration series,
+   verifies its pet schema contract, and fails startup closed on mismatch.
 8. The best direction is a combined design: retain Luminari's validated runtime
    state, add explicit lifetime persistence, and replace admission with one
    typed, centralized category engine whose result is shared by enforcement,
@@ -294,11 +294,12 @@ persistence to permanent companion flags. Loading recreates the prototype,
 applies saved fields, restores objects, adds charm, and links the follower to
 the player.
 
-Both trees save pets frequently, including the periodic player update path,
-and both rewrite the complete owner snapshot. The rewrite sequence deletes
-old object rows and pet rows before inserting replacements, without a
-transaction or staging generation. A later query failure can leave no usable
-snapshot.
+Both trees rewrite a complete owner snapshot rather than individual dirty
+followers. Chronicles performs that work in the frequent periodic player
+update and deletes old rows before unprotected replacement. Luminari now saves
+periodically once per minute, prepares every pet row before mutation, and
+performs both deletes plus every pet/object insert in one transaction. A failed
+query rolls the Luminari owner snapshot back to its prior linked state.
 
 ### Luminari strengths
 
@@ -331,9 +332,10 @@ summon can therefore reload without its original expiration event. Timed spell
 affects may survive through `runtime_state`, but event-based lifetime and affect
 duration are separate mechanisms.
 
-Its strongest state model also increases the cost of the shared destructive
-rewrite and startup-migration defects. The confirmed production incident and
-containment work are tracked separately in
+Its strongest state model still makes a complete owner rewrite more expensive
+than dirty-record persistence. The destructive rewrite and skipped-migration
+defects were repaired on 2026-08-06. Production deployment, recovery, and
+validation are tracked separately in
 [production-crash-2026-08-05-pet-persistence.md](production-crash-2026-08-05-pet-persistence.md).
 
 ### Chronicles strengths
@@ -374,17 +376,18 @@ must also state which follower categories are durable. Persisting every
 
 ## 6. Schema and migration findings
 
-Both startup initializers call `init_core_player_tables()` only when
-`player_data` or `pet_data` is missing. Column-addition logic placed inside that
-initializer is therefore skipped when the tables already exist. In Luminari,
-that includes the `runtime_state` migration. In Chronicles, it includes the
-`purge_mob_timer` migration. Column migrations need an unconditional,
-idempotent startup path with a schema version or migration ledger.
+The Chronicles startup initializer calls `init_core_player_tables()` only when
+`player_data` or `pet_data` is missing, so its `purge_mob_timer` column change
+is skipped when the table already exists. Luminari no longer shares this
+defect: startup always applies migrations `2026080501` through `2026080504`,
+then verifies the required engines, types, nullability, keys, indexes, and
+migration version before world loading.
 
 There is additional schema drift:
 
-- Luminari's runtime initializer and `sql/master_schema.sql` disagree on the
-  `pet_save_objs` primary-key name, owner length, and serialized-data type.
+- Luminari's runtime initializer and `sql/master_schema.sql` still disagree on
+  several `pet_data` descriptive-field widths, nullability/defaults, and
+  unsigned identifier details outside the incident startup contract.
 - The Chronicles master schema contains `pet_save_objs` but no `pet_data`
   definition at all; runtime initialization is required to complete a fresh
   schema.
@@ -413,11 +416,17 @@ error context without logging the complete serialized SQL payload.
 
 ### P0: protect durable state
 
-1. Move pet schema changes to unconditional, versioned, idempotent migrations.
-2. Replace delete-before-insert with a transaction or staged snapshot swap.
-3. Reconcile `db_init.c` and `sql/master_schema.sql` from one authoritative
-   schema definition.
-4. Treat any partial save as failure and preserve the last valid snapshot.
+Completed on 2026-08-06:
+
+1. Pet schema changes run through unconditional, versioned, idempotent
+   migrations with a fail-closed contract.
+2. Owner replacement uses one transaction and preserves the last valid linked
+   snapshot after any partial failure.
+3. Recursive pet-object serialization propagates failure instead of committing
+   a partial snapshot.
+
+Remaining outside the incident repair: reconcile every `pet_data` definition
+from one authoritative schema source.
 
 ### P1: establish one pet policy
 
@@ -450,8 +459,10 @@ error context without logging the complete serialized SQL payload.
 
 ## 9. Required regression coverage
 
-Before replacing the current limiter or expanding pet features, add production-
-linked tests for:
+The incident repair now covers nested pet equipment/inventory, rollback after
+each transaction query failure, and migration from the supported deployed
+legacy schema. Before replacing the current limiter or expanding pet features,
+add production-linked tests for the remaining policy work:
 
 - classification of every follower flag and relevant spell-summon VNUM;
 - the complete category-by-category admission matrix;
@@ -464,9 +475,6 @@ linked tests for:
 - runtime-state round trips for each durable category;
 - purge lifetime across save, disconnect, expiry, and reload;
 - expired temporary pets not loading;
-- nested pet equipment and inventory;
-- transaction rollback after each simulated query failure;
-- migrations from every supported prior `pet_data` schema;
 - player rename or stable-ID ownership behavior.
 
 ## Final assessment
@@ -476,8 +484,8 @@ categories, summoner-specific capacity, purge-timer persistence, and additional
 eidolon or golem features. Luminari is the better base for state fidelity,
 validation, defensive loading, and existing focused tests.
 
-The safe path is selective synthesis, not synchronization: first repair
-Luminari's migration and atomicity risks, then introduce a tested central
-category policy, and finally add explicit lifetime and durability rules. Feature
+The safe path is selective synthesis, not synchronization. With Luminari's
+migration and atomicity foundation repaired, the next work is a tested central
+category policy followed by explicit lifetime and durability rules. Feature
 ports should follow that foundation so they do not deepen the current split
 between relationship management, limits, persistence, and display.

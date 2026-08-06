@@ -534,29 +534,51 @@ or a defect elsewhere could corrupt one of those structures before this path
 runs. Only a captured stack or an instrumented reproduction can distinguish
 that from unrelated older corruption.
 
-## Test Evidence and Gaps
+## Baseline and Repaired Test Evidence
 
-The available development `cutest` binary passed all 416 tests normally and
+### Baseline before repair
+
+The original development `cutest` binary passed all 416 tests normally and
 under Valgrind. Valgrind reported zero errors, zero definitely lost bytes, and
-39,260 allocations during the suite.
+39,260 allocations during that suite. Pet coverage then consisted only of one
+runtime-state round trip and rejection of one incomplete serialized payload.
+It did not exercise an existing-table migration, the startup contract, atomic
+replacement, query failures, repeated saves, multiple followers, or pet
+objects. The production defect could therefore coexist with that clean
+baseline.
 
-This is useful but not exonerating. Existing pet coverage tests only:
+### Repaired-source evidence
 
-- one follower runtime-state serialize/restore round trip; and
-- rejection of one incomplete serialized payload.
+The production-linked suite now contains 444 tests and adds these incident
+controls:
 
-There is no automated coverage for:
+- a real MariaDB temporary legacy schema is migrated twice, retains its linked
+  rows, records exactly migrations `2026080501` through `2026080504`, and
+  accepts its legacy NULL runtime state;
+- an incompatible schema is rejected by the same structural contract used at
+  startup;
+- a two-follower owner snapshot stores equipped, carried, and nested objects,
+  timed runtime state, and apostrophes in pet text and object payloads;
+- the previous linked snapshot survives forced failure at every one of the
+  nine transaction queries and an oversized recursive object payload;
+- repeated snapshots vary the timed-affect duration, and lifecycle coverage
+  verifies connected periodic saves, disconnected periodic skips,
+  descriptor-detached explicit saves, and follower-removal deletion;
+- partial descriptor writes, terrain batch bounds, list-mutating affect
+  expiration, immutable copyover, versioned installation, and supervisor
+  identity have focused regressions.
 
-- upgrading an already-existing `pet_data` table;
-- startup verification of required columns;
-- `load_char_pets()` against a legacy schema;
-- a failed `save_char_pets()` INSERT preserving old rows;
-- repeated live pet saves with a timed affect;
-- the complete six-second delete/serialize/error cleanup path; or
-- transactionality between `pet_data` and `pet_save_objs`.
+The ordinary and development-MariaDB suites both pass all 444 tests. The
+database run performs ten complete snapshot replacements; the ASan/LeakSanitizer
+run performs 100. The focused persistence suite passes Valgrind with zero
+errors and zero definitely lost bytes.
 
-The production defect can therefore coexist with a clean test suite and clean
-Valgrind run.
+A raw legacy table is intentionally not a supported load state: startup must
+migrate and verify it before `load_char_pets()` can run, or boot fails closed.
+Legacy rows whose newly added `runtime_state` is NULL remain supported. The
+unavailable historical `2.5033-beta` source, a historical core, and a live
+production pet-load/recovery test remain evidence and operator boundaries, not
+unimplemented development paths.
 
 ## Required Production Containment
 
@@ -687,61 +709,50 @@ maintenance window. Do not reopen the game if any required check fails.
     perform another managed restart; do not reverse the schema migrations or
     replay pet rows blindly.
 
-## Required Development Repairs
+## Development Repair Requirements and Disposition
 
-All implementable source repairs below are complete and locally verified. The
-historical `2.5033-beta` source cannot be identified, and production core
-capture, deployment, pet recovery, and live validation remain operator-owned.
+All implementable source work is complete and locally verified. The tables
+below preserve the original requirements and make their final disposition
+explicit.
 
 ### P0: Schema and persistence safety
 
-- Move the pet column change into an unconditional, versioned startup migration
-  path. Startup must verify columns, indexes, and types, not only table names.
-- Make startup fail closed, or explicitly disable pet persistence, when the
-  runtime schema does not satisfy the code contract. A success log must not be
-  emitted after a required migration was skipped or failed.
-- Make pet saves transactional. Do not delete the previous durable snapshot
-  until all replacement pet and pet-object rows have been serialized and
-  inserted successfully. Roll back the whole owner save on any error.
-- Add a legacy-schema load fallback only if backward compatibility is required;
-  it must not be allowed to feed the current delete-before-insert path.
+| Requirement | Disposition | Evidence |
+|-------------|-------------|----------|
+| Unconditional, versioned pet migrations with structural verification | Verified | Migrations `2026080501` through `2026080504`, the startup schema contract, and the idempotent MariaDB legacy fixture |
+| Fail closed when migration or contract validation fails | Verified | `startup_database_init()` returns failure and `boot_world()` exits before world loading; the incompatible-schema fixture is rejected |
+| Replace each owner snapshot atomically | Verified | Pet rows are prepared first; one InnoDB transaction owns both deletes, all pet/object inserts, and commit; every failure point preserves the prior linked snapshot |
+| Legacy compatibility must not reach destructive save behavior | Verified by design | Startup migration is mandatory; NULL legacy runtime state loads through the existing fallback, while an unverified raw legacy schema cannot boot |
 
 ### P1: Reproduction and memory diagnostics
 
-- Reproduce in an isolated database cloned with the legacy production table,
-  Gerok's last logged runtime payload, and the source revision that produced
-  version `2.5033-beta`.
-- Loop the full six-second save path under ASan/UBSan and Valgrind, including
-  forced INSERT failure, timed-affect mutation, equipment, multiple followers,
-  and disconnect/extraction transitions.
-- Run with allocator diagnostics that fail close to the first inconsistency,
-  and preserve a core plus all thread backtraces.
-- Audit the periodic I3, terrain, event, affect, and output paths from the same
-  final three-minute window if the isolated pet loop remains clean.
+| Requirement | Disposition | Evidence |
+|-------------|-------------|----------|
+| Reproduce the legacy schema and incident-shaped pet state in isolation | Verified for available evidence | The MariaDB fixture reproduces the deployed table defect and exercises two followers, timed state, equipment, inventory, nesting, punctuation, and forced failures |
+| Reproduce the exact `2.5033-beta` process and Gerok payload | Historical evidence unavailable | The binary did not expose a commit, its on-disk image was replaced, no core exists, and the retained payload was not copied into development; no local source change can reconstruct these artifacts |
+| Loop persistence under ASan/UBSan and Valgrind | Verified on repaired source | ASan/LeakSanitizer completes 100 snapshot loops and lifecycle transitions; the focused production-linked persistence suite passes Memcheck with zero errors and zero definitely lost bytes |
+| Audit other periodic paths from the incident window | Verified | Output accounting, I3 state synchronization, terrain input, affect expiration, and event ownership were traced; concrete output, I3, terrain, and affect defects were repaired and tested |
 
 ### P1: Core and deployment observability
 
-- Never replace a live executable without completing the matching restart.
-  In-place replacement made Apport discard the only useful crash artifact.
-- Keep versioned binaries and matching debug symbols by build ID until the
-  release is retired.
-- Log the Git commit and ELF build ID at boot, and expose the active process
-  identity in health checks.
-- Verify core capture end to end with the actual systemd/Apport configuration.
-  `autorun.sh` currently archives only a local `core` file and cannot recover a
-  core that Apport ignores.
+| Requirement | Disposition | Evidence |
+|-------------|-------------|----------|
+| Do not replace a live executable in place | Verified | Both build systems install an immutable release and atomically rotate only `bin/circle`; live legacy migration is refused |
+| Retain matching binaries and symbols by build ID | Verified | Each release directory contains `circle`, `circle.debug`, and a manifest checked against build ID and SHA-256 |
+| Publish active Git and ELF identity | Verified | The binary exposes `--build-info`, boot logs identity, and autorun records and compares active and installed executable, commit, build ID, and SHA-256 |
+| Capture and analyze cores with the exact executable | Verified locally; production operator action | Synthetic autorun coverage selects the launched release and GDB image; `verify_core_capture.sh --self-test` reports the local WSL route as `UNVERIFIED`, so the production host must pass the same end-to-end test |
 
 ### P2: Churn, logs, and tests
 
-- Save pets on a dirty flag or a safer interval instead of deleting and
-  rebuilding every owner's rows every six seconds.
-- Stop logging complete failed INSERT statements. They expose descriptions and
-  runtime state and expanded the retained log to about 26 MiB. Log a bounded
-  owner identifier, pet VNUM, error code, and schema version instead, with rate
-  limiting.
-- Add production-linked tests for legacy-schema migration, migration
-  idempotence, rollback after every failure point, multi-row owner saves, and
-  pet-object foreign-key preservation.
+| Requirement | Disposition | Evidence |
+|-------------|-------------|----------|
+| Stop rewriting every six seconds | Verified | Periodic pet snapshots moved to the existing 60-second save pulse; lifecycle boundaries remain immediate |
+| Bound and rate-limit persistence errors | Verified | Full SQL payloads are removed; logs contain bounded operation, owner, pet VNUM, MariaDB code/detail, schema version, and suppression count |
+| Add production-linked migration and rollback coverage | Verified | The 444-test suite covers migration idempotence, schema rejection, every transaction query failure, two pet rows, three linked object rows, recursive payload failure, and lifecycle transitions |
+
+Production deployment, schema application, pet recovery, live validation, and
+the real host core-capture self-test remain operator-owned and are covered by
+the preceding checklist.
 
 ## Open Questions
 
