@@ -3915,12 +3915,101 @@ static int artifact_signature_proc(struct char_data *ch, struct char_data *victi
   return hand_proc->handler(ch, victim, weapon, art, dam, is_critical);
 }
 
+static int artifact_generic_proc(struct char_data *ch, struct char_data *victim,
+                                 struct obj_data *weapon, struct artifact_data *art, int proc_type)
+{
+  struct affected_type af;
+  int amount = 0, proc_fired = FALSE, victim_died = FALSE;
+
+  switch (proc_type)
+  {
+  case ARTIFACT_PROC_SOUL:
+    proc_fired = TRUE;
+    amount = dice(art->level, 6);
+    act("$p glows with dark energy as it tears at $N's soul!", FALSE, ch, weapon, victim, TO_CHAR);
+    act("$p glows with dark energy as it tears at $N's soul!", FALSE, ch, weapon, victim,
+        TO_NOTVICT);
+    act("$p tears at your very soul!", FALSE, ch, weapon, victim, TO_VICT);
+    victim_died = (damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SOUL);
+    break;
+
+  case ARTIFACT_PROC_HEAL:
+    if (GET_HIT(ch) >= GET_MAX_HIT(ch))
+      break;
+    proc_fired = TRUE;
+    amount = dice(art->level, 4);
+    GET_HIT(ch) = MIN(GET_HIT(ch) + amount, GET_MAX_HIT(ch));
+    act("$p glows with holy light, healing your wounds!", FALSE, ch, weapon, NULL, TO_CHAR);
+    act("$p glows with holy light, healing $n's wounds!", FALSE, ch, weapon, NULL, TO_ROOM);
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
+    break;
+
+  case ARTIFACT_PROC_FEAR:
+    if (AFF_FLAGGED(victim, AFF_FEAR))
+      break;
+    proc_fired = TRUE;
+    new_affect(&af);
+    af.spell = SPELL_FEAR;
+    af.duration = 1 + (art->level / 2);
+    SET_BIT_AR(af.bitvector, AFF_FEAR);
+    affect_to_char(victim, &af);
+    act("$p emanates waves of terror at $N!", FALSE, ch, weapon, victim, TO_CHAR);
+    act("$p emanates waves of terror at $N!", FALSE, ch, weapon, victim, TO_NOTVICT);
+    act("You are overcome with terror!", FALSE, ch, weapon, victim, TO_VICT);
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_FEAR);
+    break;
+
+  case ARTIFACT_PROC_DOOM:
+    if (art->level < 4)
+      break;
+    proc_fired = TRUE;
+    act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_CHAR);
+    act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_NOTVICT);
+    act("You feel doomed!", FALSE, ch, weapon, victim, TO_VICT);
+    victim_died =
+        (damage(ch, victim, dice(art->level, 8), TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_DOOM);
+    break;
+
+  case ARTIFACT_PROC_ULTIMATE:
+    /* Level 5 only, never against players or high-level foes, and then only
+     * one time in twenty. */
+    if (art->level < ARTIFACT_MAX_LEVEL || !IS_NPC(victim))
+      break;
+    if (GET_LEVEL(victim) > GET_LEVEL(ch))
+      break;
+    if (rand_number(1, 100) > 5)
+      break;
+    proc_fired = TRUE;
+    act("$p ERUPTS with ultimate power, utterly destroying $N!", FALSE, ch, weapon, victim,
+        TO_CHAR);
+    act("$p ERUPTS with ultimate power, utterly destroying $N!", FALSE, ch, weapon, victim,
+        TO_NOTVICT);
+    victim_died =
+        (damage(ch, victim, GET_HIT(victim) + 100, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
+    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_ULTIMATE);
+    break;
+
+  default:
+    break;
+  }
+
+  /* The displayed percentage is an attempt rate.  An ineligible branch is
+   * silent and leaves the artifact ready for a later hit. */
+  if (proc_fired)
+  {
+    art->last_proc = time(0);
+    artifact_mark_dirty();
+  }
+  return victim_died;
+}
+
 int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct obj_data *weapon,
                          int dam, int is_critical)
 {
   struct artifact_data *art = NULL;
-  struct affected_type af;
-  int proc_type = 0, amount = 0, victim_died = FALSE;
+  int proc_type = 0;
 
   if (!ch || !victim || !weapon || !art_index)
     return FALSE;
@@ -3948,79 +4037,7 @@ int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct 
     return FALSE;
 
   proc_type = rand_number(1, art->level);
-
-  switch (proc_type)
-  {
-  case ARTIFACT_PROC_SOUL:
-    amount = dice(art->level, 6);
-    act("$p glows with dark energy as it tears at $N's soul!", FALSE, ch, weapon, victim, TO_CHAR);
-    act("$p glows with dark energy as it tears at $N's soul!", FALSE, ch, weapon, victim,
-        TO_NOTVICT);
-    act("$p tears at your very soul!", FALSE, ch, weapon, victim, TO_VICT);
-    victim_died = (damage(ch, victim, amount, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
-    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SOUL);
-    break;
-
-  case ARTIFACT_PROC_HEAL:
-    if (GET_HIT(ch) >= GET_MAX_HIT(ch))
-      break;
-    amount = dice(art->level, 4);
-    GET_HIT(ch) = MIN(GET_HIT(ch) + amount, GET_MAX_HIT(ch));
-    act("$p glows with holy light, healing your wounds!", FALSE, ch, weapon, NULL, TO_CHAR);
-    act("$p glows with holy light, healing $n's wounds!", FALSE, ch, weapon, NULL, TO_ROOM);
-    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
-    break;
-
-  case ARTIFACT_PROC_FEAR:
-    if (AFF_FLAGGED(victim, AFF_FEAR))
-      break;
-    new_affect(&af);
-    af.spell = SPELL_FEAR;
-    af.duration = 1 + (art->level / 2);
-    SET_BIT_AR(af.bitvector, AFF_FEAR);
-    affect_to_char(victim, &af);
-    act("$p emanates waves of terror at $N!", FALSE, ch, weapon, victim, TO_CHAR);
-    act("$p emanates waves of terror at $N!", FALSE, ch, weapon, victim, TO_NOTVICT);
-    act("You are overcome with terror!", FALSE, ch, weapon, victim, TO_VICT);
-    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_FEAR);
-    break;
-
-  case ARTIFACT_PROC_DOOM:
-    if (art->level < 4)
-      break;
-    act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_CHAR);
-    act("$p curses $N with impending doom!", FALSE, ch, weapon, victim, TO_NOTVICT);
-    act("You feel doomed!", FALSE, ch, weapon, victim, TO_VICT);
-    victim_died =
-        (damage(ch, victim, dice(art->level, 8), TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
-    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_DOOM);
-    break;
-
-  case ARTIFACT_PROC_ULTIMATE:
-    /* Level 5 only, never against players or high-level foes, and then only
-     * one time in twenty. */
-    if (art->level < ARTIFACT_MAX_LEVEL || !IS_NPC(victim))
-      break;
-    if (GET_LEVEL(victim) > GET_LEVEL(ch))
-      break;
-    if (rand_number(1, 100) > 5)
-      break;
-    act("$p ERUPTS with ultimate power, utterly destroying $N!", FALSE, ch, weapon, victim,
-        TO_CHAR);
-    act("$p ERUPTS with ultimate power, utterly destroying $N!", FALSE, ch, weapon, victim,
-        TO_NOTVICT);
-    victim_died =
-        (damage(ch, victim, GET_HIT(victim) + 100, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE) == -1);
-    artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_ULTIMATE);
-    break;
-
-  default:
-    break;
-  }
-
-  art->last_proc = time(0);
-  artifact_mark_dirty();
-  return victim_died;
+  return artifact_generic_proc(ch, victim, weapon, art, proc_type);
 }
 
 /* --------------------------------------------------------------------------
@@ -5095,7 +5112,9 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
   }
 
   if (art->proc_chance > 0)
-    send_to_char(ch, "\r\n\tYCombat:\tn %d%% chance per hit to unleash a special strike.\r\n",
+    send_to_char(ch,
+                 "\r\n\tYCombat:\tn %d%% chance per hit to attempt a special strike.\r\n"
+                 "  Attempts that cannot affect anything spend no cooldown.\r\n",
                  art->proc_chance);
 
   if (art->vnum == ART_VNUM_KELROM)
@@ -6227,6 +6246,22 @@ ACMD(do_testartifact)
 void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj)
 {
   artifact_show_info(ch, obj);
+}
+
+/* Select one generic branch without its outer random roll.  Branch eligibility,
+ * cooldown stamping, output, XP, and effects remain production behavior. */
+int artifact_force_generic_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *weapon, int proc_type)
+{
+  struct artifact_data *art = NULL;
+
+  if (!ch || !victim || !weapon)
+    return FALSE;
+
+  if (!(art = artifact_of_obj(weapon)))
+    return FALSE;
+
+  return artifact_generic_proc(ch, victim, weapon, art, proc_type);
 }
 
 /* Chance rolls make procs untestable as written.  A test forces the shape it

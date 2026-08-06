@@ -592,6 +592,8 @@ struct artifact_test_identity_data
 };
 
 void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj);
+int artifact_force_generic_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                         struct obj_data *weapon, int proc_type);
 int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *weapon, int is_critical);
 int artifact_force_doombringer_nested_proc_for_test(struct char_data *ch, struct char_data *victim,

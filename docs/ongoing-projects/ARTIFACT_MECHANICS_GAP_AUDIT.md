@@ -1,8 +1,8 @@
 # Artifact Mechanics Gap Audit
 
 **Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
-ART-AUD-008, ART-AUD-012, and ART-AUD-013 resolved; ART-AUD-009 partially
-resolved for Earthcrier and Wyrmfang
+ART-AUD-008, ART-AUD-010, ART-AUD-012, and ART-AUD-013 resolved; ART-AUD-009
+partially resolved for Earthcrier and Wyrmfang
 
 **Audited:** 2026-08-06
 
@@ -82,6 +82,12 @@ every artifact. A production-linked interlock test and a controlled live
 invocation both proved that hunter's sight blocks Icedge's rime without
 spending Icedge's recharge.
 
+ART-AUD-010 is resolved. The generic percentage is now labeled as a per-hit
+attempt rate, and a selected branch that cannot affect anything remains silent
+without spending the generic cooldown or awarding proc XP. Deterministic
+production-linked coverage proves the full-health heal, repeated fear, and
+ineligible ultimate cases as well as the successful-heal control.
+
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
 and closed one at a time.
@@ -147,7 +153,7 @@ contracts.
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
 | ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
 | ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier and Wyrmfang are now Large and use two hands for a normal Medium bearer; only Aegis identity remains a design decision. | Earthcrier, Wyrmfang, Aegis |
-| ART-AUD-010 | Medium | Confirmed UX defect | The displayed generic proc percentage is an attempt rate; successful rolls can consume cooldown with no visible or mechanical result. | Every generic-proc artifact |
+| ART-AUD-010 | Medium | Resolved 2026-08-06 | Generic proc percentages are labeled as attempt rates, and selected no-op branches spend neither cooldown nor proc XP. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Resolved 2026-08-06 | Called-effect handlers now use validated table-owned stack groups, and Wyrmfang declares the ward group it actually creates. | Wyrmfang, future effects |
 | ART-AUD-013 | High preventive | Resolved 2026-08-06 | All 17 artifacts now have an exact production-linked identity contract, including deliberate `none` entries and generic-proc separation. | Whole system |
@@ -581,7 +587,29 @@ One content decision remains:
 Earthcrier's internal contradiction and Wyrmfang's source-parity decision are
 resolved in the tracked contract. ART-AUD-009 remains open only for Aegis.
 
-### ART-AUD-010: displayed generic chance overstates observable behavior
+### ART-AUD-010: displayed generic chance overstates observable behavior [resolved]
+
+Resolution (2026-08-06):
+
+- The shared generic dispatcher now stamps `last_proc` and dirties the registry
+  only when the selected soul, heal, fear, doom, or ultimate branch actually
+  fires. Full-health healing, repeated fear, and rejected ultimate attempts
+  remain silent, award no proc XP, and leave the artifact ready.
+- `artifact info` labels the configured percentage as a per-hit attempt rate
+  and states that an attempt unable to affect anything spends no cooldown.
+  Canonical player help and the formal system guide describe the same rule.
+- A production-linked test forces all three no-op families through the real
+  branch dispatcher, then forces a successful heal as a positive control. It
+  asserts cooldown, output, XP, healing, and the player-visible information.
+- The test-first checkpoint passed 428/429 tests and failed only on the old
+  unconditional cooldown behavior. The corrected root suite passes 429/429.
+- On the installed development binary, `artifact info kelrom` displayed the
+  14 percent attempt rate and no-op cooldown rule, the paged `help artifact`
+  entry carried the same contract, and `testartifact verify` passed all 17
+  rows. Kohdee's player, supplier, inventory-order, and artifact-registry files
+  were restored byte-for-byte before a final login-free restart.
+
+Original evidence at audited revision `61c03285`:
 
 `artifact info` says the configured percentage is a "chance per hit to unleash
 a special strike" (`src/obj/spec_artifacts.c:4751-4753`). After that roll wins,
@@ -721,7 +749,7 @@ runtime ignores.
 | 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Source passives and active-oath policy remain open (ART-AUD-007, ART-AUD-011). |
 | 169906 | Kelrarin | Review source delta | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. Realms' returning throw also had a nested 1-in-6 second bounded strike that current code omits. Its passive package is unresolved (ART-AUD-007). |
 | 169907 | Kelrom | Runtime defect fixed; redesign review | Animal punishment and group healback remain, and the independent 14 percent generic proc is reachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; the current identity remains a substantial rebuild. Source passives remain open (ART-AUD-007). |
-| 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap was found beyond system-wide ART-AUD-001 and ART-AUD-010. |
+| 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap remains after the system-wide ART-AUD-001 and ART-AUD-010 fixes. |
 | 169909 | Tiamat's Stinger | Core mechanic fixed; review passives | The separate lifesteal signature now uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table is correctly separate. Realms' five permanent states remain a product decision (ART-AUD-007). |
 | 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
@@ -767,9 +795,9 @@ runtime ignores.
 5. **Make product decisions.** Approve or reject first-wave passives,
    class-oath scope, and Aegis identity. Record every rejection in
    `docs/systems/ARTIFACT_SYSTEM.md`.
-6. **Clean the framework.** Table-owned called-effect stack groups are complete
-   (ART-AUD-012). Make proc reporting accurate and repair or remove the dormant
-   ward shape (ART-AUD-010 and ART-AUD-014).
+6. **Clean the framework.** Table-owned called-effect stack groups and accurate
+   generic-proc reporting are complete (ART-AUD-012 and ART-AUD-010). Repair or
+   remove the dormant ward shape (ART-AUD-014).
 
 ## Acceptance criteria for the future implementation pass
 
@@ -788,8 +816,8 @@ runtime ignores.
   tracked Large prototype requires two hands for a normal Medium bearer.
 - Kelrom either has a reachable generic proc or advertises no generic proc; a
   no-heal event consumes neither cooldown nor proc XP.
-- `artifact info` distinguishes attempt chance from successful/visible proc
-  chance, or no-op attempts do not consume cooldown.
+- `artifact info` labels generic percentages as attempt rates, and a selected
+  no-op branch consumes neither cooldown nor proc XP.
 - Called effects use their validated table-owned stack groups for both
   exclusivity checks and temporary-affect tags.
 - Prototype type, size, lore, placement notes, and runtime content contracts

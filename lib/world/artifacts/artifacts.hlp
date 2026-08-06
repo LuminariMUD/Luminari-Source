@@ -27,6 +27,11 @@ true per-hit effects roll independently, and some protect against long streaks
 of failed rolls. Use 'artifact info <item>' to see the chance and exact
 behavior of a signature strike once you hold the artifact.
 
+The generic percentage shown under Combat is a per-hit attempt rate. If the
+selected effect cannot change anything, such as healing a bearer already at
+full health, the artifact spends no internal recharge and may try again on a
+later hit.
+
 Fade, the Shadowblade, has two separate on-hit rolls. Its generic artifact
 strike is not its life siphon. The siphon rolls 1-in-16 against living
 non-dragon NPCs, deals 40 damage per artifact level through the normal damage

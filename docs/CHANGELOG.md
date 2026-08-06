@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Generic proc no-op cooldowns
+
+#### Fixed
+
+- Made generic artifact-proc attempts spend their 30-second cooldown only when
+  the selected effect actually fires. Full-health healing, repeated fear, and
+  rejected ultimate attempts remain ready for a later hit and award no proc XP.
+
+#### Changed
+
+- Labeled the generic combat percentage as a per-hit attempt rate in
+  `artifact info`, canonical player help, and the formal artifact guide.
+
+#### Verification
+
+- The test-first run passed 428/429 tests and failed only because a no-op still
+  stamped the old shared cooldown. Deterministic production-linked coverage
+  now forces three rejected branches and a successful-heal control; the full
+  corrected suite passes 429/429 tests.
+- On the installed development binary, `artifact info kelrom` showed the 14
+  percent attempt rate and cooldown rule, the paged artifact help showed the
+  same contract, and all 17 metadata rows passed verification. Kohdee's
+  measured files were restored byte-for-byte before a login-free restart.
+
 ### Called-effect stack metadata
 
 #### Fixed

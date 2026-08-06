@@ -634,9 +634,10 @@ before spending PSP or starting its cooldown.
 
 ## Generic Weapon Procs
 
-An artifact weapon with a nonzero proc chance rolls once per successful hit,
-subject to a 30-second internal cooldown for that artifact. If the chance
-succeeds, the proc kind is `rand_number(1, artifact_level)`.
+An artifact weapon with a nonzero proc chance rolls once per successful hit
+while its 30-second internal cooldown is ready. The configured percentage is
+an attempt rate. If the chance succeeds, the proc kind is
+`rand_number(1, artifact_level)`.
 
 | Roll | Effect |
 | --- | --- |
@@ -645,6 +646,12 @@ succeeds, the proc kind is `rand_number(1, artifact_level)`.
 | 3 | Fear for `1 + level / 2` rounds |
 | 4 | `dice(level, 8)` negative doom damage |
 | 5 | At level 5, a further 5% chance to execute an NPC no higher than the wielder |
+
+Only a selected branch that actually fires stamps the cooldown. Healing at
+full health, fear against an already-feared target, and an ultimate attempt
+rejected by its level, target, or inner 5-percent gate remain silent, award no
+proc XP, and leave the artifact ready for a later hit. Successful soul, heal,
+fear, doom, and ultimate branches keep their normal output, XP, and cooldown.
 
 Signature procedures run before this generic system. The seven hand-written
 procedures have independent odds and may occur on the same hit as a generic

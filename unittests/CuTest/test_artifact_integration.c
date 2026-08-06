@@ -2192,6 +2192,80 @@ void Test_artifact_integration_generic_proc_respects_its_cooldown(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, silent_on_cooldown);
 }
 
+void Test_artifact_integration_generic_no_op_attempts_do_not_spend_cooldown(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int full_heal_free = FALSE, repeated_fear_free = FALSE, invalid_ultimate_free = FALSE;
+  int successful_heal_stamps = FALSE, info_described = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* Aegis has no signature handler, so it is a clean carrier for exercising
+   * each branch of the shared generic library. */
+  art = artifact_by_vnum(ART_VNUM_AEGIS);
+  CuAssertPtrNotNull(tc, art);
+  art->level = ARTIFACT_MAX_LEVEL;
+  art->proc_chance = 100;
+  art->experience = 0;
+  art->last_proc = 0;
+
+  artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
+  artint_carry(&fixture, &obj);
+
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor);
+  artint_clear_output(&fixture);
+  artifact_force_generic_proc_for_test(&fixture.actor, &fixture.victim, &obj, ARTIFACT_PROC_HEAL);
+  full_heal_free =
+      art->last_proc == 0 && art->experience == 0 && fixture.descriptor.output[0] == '\0';
+
+  SET_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_FEAR);
+  art->last_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_generic_proc_for_test(&fixture.actor, &fixture.victim, &obj, ARTIFACT_PROC_FEAR);
+  repeated_fear_free =
+      art->last_proc == 0 && art->experience == 0 && fixture.descriptor.output[0] == '\0';
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.victim), AFF_FEAR);
+
+  GET_LEVEL(&fixture.victim) = GET_LEVEL(&fixture.actor) + 1;
+  art->last_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_generic_proc_for_test(&fixture.actor, &fixture.victim, &obj,
+                                       ARTIFACT_PROC_ULTIMATE);
+  invalid_ultimate_free =
+      art->last_proc == 0 && art->experience == 0 && fixture.descriptor.output[0] == '\0';
+
+  /* XP stops at level 5, so step back one level to prove that a successful
+   * branch stamps the clock and awards its normal proc XP. */
+  art->level = ARTIFACT_MAX_LEVEL - 1;
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) - 100;
+  art->last_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_generic_proc_for_test(&fixture.actor, &fixture.victim, &obj, ARTIFACT_PROC_HEAL);
+  successful_heal_stamps = art->last_proc > 0 && art->experience == ARTIFACT_XP_PROC_HEAL &&
+                           GET_HIT(&fixture.actor) > GET_MAX_HIT(&fixture.actor) - 100 &&
+                           artint_said(&fixture, "healing your wounds");
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "Attempts that cannot affect anything spend no cooldown");
+
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, full_heal_free);
+  CuAssertIntEquals(tc, TRUE, repeated_fear_free);
+  CuAssertIntEquals(tc, TRUE, invalid_ultimate_free);
+  CuAssertIntEquals(tc, TRUE, successful_heal_stamps);
+  CuAssertIntEquals(tc, TRUE, info_described);
+}
+
 void Test_artifact_integration_lethal_signature_stops_outer_hit_pipeline(CuTest *tc)
 {
   struct artint_fixture fixture;
