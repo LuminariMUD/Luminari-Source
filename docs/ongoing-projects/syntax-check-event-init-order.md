@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Repair in progress
+Status: Complete
 
 Scope: The installed server's `-c` syntax-check boot path.
 
@@ -61,7 +61,7 @@ rather than logging a false null-list programming error during otherwise valid c
       process and requires a clean exit without the pre-initialization diagnostic.
 - [x] Cover encounter-bearing and minimal event-queue lifecycles.
 - [x] Make partial-world cleanup tolerate the craft subsystem remaining uninitialized.
-- [ ] Run the warning-free production-linked suite, install the binary, and verify the installed
+- [x] Run the warning-free production-linked suite, install the binary, and verify the installed
       syntax-check command.
 
 ## Verification Log
@@ -74,3 +74,23 @@ rather than logging a false null-list programming error during otherwise valid c
   zero, one `event_init()` call, and one `event_free_all()` call.
 - The regression confirmed that neither the pre-initialization diagnostic nor the partial-list
   cleanup diagnostic was emitted.
+
+### 2026-08-06 - Final verification
+
+- `make test`: PASS, including auxiliary script checks and 436/436 production-linked tests.
+- `make install`: PASS; installed `bin/circle` and removed the root build artifact.
+- `./bin/circle -c -q -d lib`: PASS against the encounter-bearing development world; observed
+  encounter event creation, world cleanup, `Done.`, and exit status zero. Neither repaired
+  diagnostic was emitted.
+- `./bin/circle -q -d lib 54321`, followed by SIGTERM after `Entering game loop.`: PASS; observed
+  graceful signal handling, normal termination, world cleanup, `Done.`, and exit status zero.
+- Source-path review confirms normal startup calls `event_init()` once in `init_game()` and common
+  shutdown calls `event_free_all()` once through `destroy_db()`. The child regression separately
+  asserts one initialization and one cleanup for syntax-check mode.
+
+## Resolution
+
+Syntax-check mode now initializes the event queue before any world loader can schedule an event.
+The common database teardown tolerates subsystems that the partial syntax-check boot intentionally
+does not initialize, and list teardown tolerates the absent optional debug registry. The regression
+suite covers both an empty queue and the production-linked encounter-bearing syntax-check path.
