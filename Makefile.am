@@ -195,6 +195,7 @@ circle_SOURCES = \
 	src/obj/shop.c \
 	src/combat/spec_abilities.c \
 	src/spec/spec_binding.c \
+	src/spec/spec_effective_binding.c \
 	src/spec/spec_registry.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
@@ -287,6 +288,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_spec_fixtures.c \
 	unittests/CuTest/test_spec_authored_bindings.c \
 	unittests/CuTest/test_spec_binding_round_trip.c \
+	unittests/CuTest/test_spec_effective_binding.c \
 	unittests/CuTest/test_spec_registry_persistence.c \
 	unittests/CuTest/test_spec_registry_validation.c \
 	unittests/CuTest/test_spec_owner_aware_olc.c \
@@ -330,6 +332,7 @@ cutest_test_files = \
 	unittests/CuTest/test_spec_fixtures.c \
 	unittests/CuTest/test_spec_authored_bindings.c \
 	unittests/CuTest/test_spec_binding_round_trip.c \
+	unittests/CuTest/test_spec_effective_binding.c \
 	unittests/CuTest/test_spec_registry_persistence.c \
 	unittests/CuTest/test_spec_registry_validation.c \
 	unittests/CuTest/test_spec_owner_aware_olc.c \
@@ -578,12 +581,14 @@ EXTRA_DIST = \
 	lib/world/vessel_harbor/700.trg \
 	lib/world/vessel_harbor/700.zon \
 	sql/components/character_rename_transactional_schema.sql \
+	sql/components/help_specproc_entries.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
 	sql/components/help_necromancer_entries.sql \
 	sql/components/ci_schema_manifest.txt \
 	sql/components/test_vessels_integrity.sql \
 	sql/components/verify_help_necromancer_entries.sql \
+	sql/components/verify_help_specproc_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \
 	sql/components/verify_vessels_schema.sql \
 	sql/components/verify_vessels_phase4.sql \

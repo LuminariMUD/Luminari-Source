@@ -37,6 +37,7 @@ int get_spec_func_count(void);
 const char *get_spec_func_name_by_index(int idx);
 SPECIAL_DECL(*get_spec_func_by_index(int idx));
 SPECIAL_DECL(*find_spec_func_by_name(const char *name));
+SPECIAL_DECL(moving_rooms);
 
 /*****************************************************************************
  * Begin Functions and defines for spec_procs.c

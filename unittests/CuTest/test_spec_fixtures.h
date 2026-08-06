@@ -39,6 +39,9 @@ SPECIAL_DECL(*spec_test_fixture_loaded_handler(const struct spec_test_fixture *f
                                                enum spec_test_owner owner));
 const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_test_fixture *fixture,
                                                             enum spec_test_owner owner);
+const struct spec_effective_binding *
+spec_test_fixture_loaded_effective_binding(const struct spec_test_fixture *fixture,
+                                           enum spec_test_owner owner);
 bool spec_test_fixture_set_loaded_handler(struct spec_test_fixture *fixture,
                                           enum spec_test_owner owner, SPECIAL_DECL(*handler));
 bool spec_test_fixture_discard_loaded_binding(struct spec_test_fixture *fixture,
@@ -68,5 +71,11 @@ int spec_test_fixture_olc_changed(const struct spec_test_fixture *fixture);
 const char *spec_test_fixture_olc_output(const struct spec_test_fixture *fixture);
 bool spec_test_fixture_activation_enabled(const struct spec_test_fixture *fixture,
                                           enum spec_test_owner owner);
+bool spec_test_fixture_expect_room_load_rejection(struct spec_test_fixture *fixture,
+                                                  bool moving_field_first);
+bool spec_test_fixture_set_loaded_room_mover(struct spec_test_fixture *fixture);
+bool spec_test_fixture_force_room_olc_binding(struct spec_test_fixture *fixture, const char *name,
+                                              char *error, size_t error_size);
+int spec_test_fixture_save_room(struct spec_test_fixture *fixture, char *error, size_t error_size);
 
 #endif /* TEST_SPEC_FIXTURES_H */

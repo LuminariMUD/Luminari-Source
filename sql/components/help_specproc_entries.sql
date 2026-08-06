@@ -1,0 +1,44 @@
+-- Builder help for registry-backed special procedures.
+--
+-- The help system is database-first. This idempotent migration is the
+-- reviewable source for the builder-facing SpecProc topic.
+
+START TRANSACTION;
+
+INSERT INTO help_entries (tag, entry, min_level, auto_generated)
+VALUES ('spec-proc', 'SPECIAL PROCEDURES (SPECPROCS)
+
+Special procedures provide coded behavior for rooms, mobiles, and objects.
+In medit, oedit, or redit, choose Z) SpecProc to view procedures that are safe
+for that prototype type. The menu explains each procedure\'s events and any
+required flags or placement. Enter a menu number to select it or 0 to clear it,
+then save normally. The selected name is stored in the world file and restored
+at boot.
+
+A moving room cannot also have a named room SpecProc. Both features own the
+same callback slot, so redit refuses that selection and zone saving or boot
+rejects a room containing both forms of data.
+
+Use trigedit when a script is sufficient. Ask a coder when the needed behavior
+is not present in the SpecProc menu. Shops, quests, pet shops, and boards have
+additional setup requirements beyond choosing a callback.
+
+See also: OLC, MEDIT, OEDIT, REDIT, TRIGEDIT, PETSHOP, BOARDS', 31, FALSE)
+ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
+  auto_generated = VALUES(auto_generated);
+
+-- Retire the two stale file-imported entries from keyword search. The help
+-- query displays only its first database match, so duplicate mappings would
+-- make the maintained result nondeterministic.
+DELETE FROM help_keywords
+WHERE UPPER(keyword) IN (
+  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECPROC'
+);
+
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC-PROC');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIAL-PROCEDURE');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIALS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECPROC');
+
+COMMIT;

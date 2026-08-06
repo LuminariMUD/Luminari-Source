@@ -72,6 +72,39 @@ canonical name. Entering `0` clears both the authored record and callback, so th
 on the next zone save. Merely opening and saving an editor preserves the existing requested name,
 including unresolved content that a builder may need to repair later.
 
+## Moving Rooms
+
+A moving room's `M` data and a named room SpecProc both own the room's single callback slot. They
+cannot be combined. REdit refuses to open the SpecProc selector for a moving room, rejects a
+defensive internal save containing both forms of ownership, and the room writer rejects the whole
+zone before opening its output file if it would emit both `M` and `Z` for any room.
+
+Boot enforces the same rule in either field order. A room file containing `M` followed by `Z`, or
+`Z` followed by `M`, stops loading with a diagnostic naming the room VNUM and conflicting field.
+Choose either moving-room behavior or a registry-backed room SpecProc before saving the zone.
+
+## Startup Diagnostics
+
+Boot logs effective binding provenance after the normal assignment sequence. Each contribution is
+one `SPEC_BIND` line containing the mode, owner, VNUM, step, source, requested name, installed
+handler, outcome, source location, and saved secondary handler. A `SPEC_BIND_FINAL` line then gives
+the authored name, contribution and collision counts, and final source and handler. The surrounding
+`SPEC_BIND_SUMMARY` lines provide aggregate prototype, contribution, and collision counts.
+
+Contribution outcomes have these meanings:
+
+- `selected`: the contribution installed the first resolved callback after no callback was active.
+- `unresolved`: the authored request resolved to no callback.
+- `overridden`: a later source replaced a different active callback.
+- `reasserted`: a later source installed the same callback again.
+- `wrapped`: a shop or quest wrapper became effective and preserved the displayed `secondary`
+  callback for its existing delegation behavior.
+
+The `source` field distinguishes `world`, `parser-hook`, `legacy-assignment`, `shop`, and `quest`.
+Normal boot reports every source that actually contributed. With `-s`, named world and moving-room
+parser records are still reported, while the guarded legacy, shop, and quest assignment sources are
+absent. This describes the existing boot path; it does not add a new runtime dispatch switch.
+
 ## Notes and Tips
 
 - Names should match a canonical name or explicit alias in `src/spec/spec_registry.c`; other names
@@ -82,6 +115,8 @@ including unresolved content that a builder may need to repair later.
   owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error
   that stops boot; an unknown persisted name remains a content error and is not assigned.
+- A moving room cannot also select or persist a named room SpecProc because both require the same
+  callback slot.
 - Clearing a SpecProc removes the corresponding lines from the world file on next save.
 - The selector is 1-based; `0` always clears.
 
@@ -92,6 +127,8 @@ including unresolved content that a builder may need to repair later.
   placement. The selector deliberately does not change those flags for you.
 - Procedure is absent from one editor: it is not compatible with that owner type or is not allowed
   for builder-authored world binding.
+- REdit refuses the SpecProc selector: the room has moving-room ownership; remove that configuration
+  before assigning a named room procedure.
 - Persistence missing after reboot: verify the saved name is a canonical name or alias in the
   definition registry and has not been renamed.
 - File merge conflicts: the `SpecProc`/`Z` entries are safe to keep; ensure the SpecProc name remains on its own line as shown above.

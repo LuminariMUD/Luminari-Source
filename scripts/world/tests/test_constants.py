@@ -15,6 +15,7 @@ from wtool_lib.constants import (
     manifest_text,
 )
 from wtool_lib.flags import decode_tokens, encode_bits, resolve_names, resolve_set
+from wtool_lib.spec_registry import SpecRegistryError, extract_spec_names
 
 
 class ConstantsTests(unittest.TestCase):
@@ -190,6 +191,52 @@ class ConstantsTests(unittest.TestCase):
     _, table = resolve_set(self.manifest, "zone")
     self.assertEqual({3}, resolve_names(table, ["Open for Players"]))
     self.assertEqual({3}, resolve_names(table, ["ZONE_OPEN"]))
+
+
+class SpecRegistryTests(unittest.TestCase):
+  def test_current_registry_exposes_canonical_and_alias_names(self) -> None:
+    names = extract_spec_names(default_repo_root())
+    self.assertEqual(29, len(names))
+    self.assertIn("bank", names)
+    self.assertIn("guild", names)
+    self.assertIn("guildmaster", names)
+    self.assertIn("greyhawk ship commands", names)
+
+  def test_registry_extractor_requires_referenced_alias_initializers(self) -> None:
+    source = """\
+static const struct spec_definition spec_definitions[] = {
+    {
+        .canonical_name = "Canonical",
+        .aliases = missing_aliases,
+    },
+};
+"""
+    with tempfile.TemporaryDirectory() as directory:
+      registry = Path(directory) / "src/spec/spec_registry.c"
+      registry.parent.mkdir(parents=True)
+      registry.write_text(source, encoding="ascii")
+      with self.assertRaisesRegex(SpecRegistryError, "missing_aliases"):
+        extract_spec_names(Path(directory))
+
+  def test_registry_extractor_ignores_commented_entries(self) -> None:
+    source = """\
+static const char *const live_aliases[] = {
+    "Live Alias", /* "Commented Alias" */
+};
+static const struct spec_definition spec_definitions[] = {
+    {
+        .canonical_name = "Live",
+        // .canonical_name = "Commented Canonical",
+        .aliases = live_aliases,
+        /* .aliases = missing_aliases, } */
+    },
+};
+"""
+    with tempfile.TemporaryDirectory() as directory:
+      registry = Path(directory) / "src/spec/spec_registry.c"
+      registry.parent.mkdir(parents=True)
+      registry.write_text(source, encoding="ascii")
+      self.assertEqual({"live", "live alias"}, extract_spec_names(Path(directory)))
 
 
 if __name__ == "__main__":

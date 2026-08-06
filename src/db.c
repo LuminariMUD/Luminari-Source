@@ -30,6 +30,7 @@
 #include "obj/treasure.h"
 #include "spec_procs.h"
 #include "spec/spec_binding.h"
+#include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
 #include "olc/genzon.h"
 #include "olc/genolc.h"
@@ -831,11 +832,15 @@ static void free_extra_descriptions(struct extra_descr_data *edesc)
 }
 
 static spec_legacy_handler load_world_spec_binding(struct spec_binding **target,
+                                                   struct spec_effective_binding **effective_target,
                                                    spec_owner_mask owner,
                                                    unsigned int prototype_vnum,
                                                    const char *requested_name,
                                                    const char *source_location)
 {
+  const struct spec_definition *definition;
+  struct spec_effective_contribution_input contribution;
+  spec_legacy_handler handler;
   char diagnostic[MAX_STRING_LENGTH];
   char error[256];
 
@@ -849,7 +854,67 @@ static spec_legacy_handler load_world_spec_binding(struct spec_binding **target,
   if (spec_binding_format_diagnostic(*target, diagnostic, sizeof(diagnostic)))
     log("WARNING: Special-procedure %s.", diagnostic);
 
-  return spec_binding_legacy_handler(*target);
+  handler = spec_binding_legacy_handler(*target);
+  definition = handler != NULL ? (*target)->definition : NULL;
+  contribution.source = SPEC_BINDING_SOURCE_WORLD;
+  contribution.requested_name = requested_name;
+  contribution.handler_name = definition != NULL ? definition->canonical_name : NULL;
+  contribution.source_location = source_location;
+  contribution.handler = handler;
+  contribution.wrapper = false;
+  contribution.secondary_handler = NULL;
+  contribution.secondary_name = NULL;
+  if (!spec_effective_binding_contribute(effective_target, owner, prototype_vnum, &contribution,
+                                         error, sizeof(error)))
+    log("SYSERR: Unable to record effective world special-procedure binding: %s", error);
+
+  return handler;
+}
+
+static void report_effective_spec_bindings(void)
+{
+  size_t collisions;
+  size_t contributions;
+  size_t prototypes;
+  mob_rnum mobile;
+  obj_rnum object;
+  room_rnum room;
+
+  collisions = 0;
+  contributions = 0;
+  prototypes = 0;
+  log("SPEC_BIND_SUMMARY mode=%s status=begin", no_specials ? "no_specials" : "normal");
+
+  for (mobile = 0; mobile <= top_of_mobt; mobile++)
+  {
+    if (mob_index[mobile].effective_binding == NULL)
+      continue;
+    spec_effective_binding_log(mob_index[mobile].effective_binding, no_specials != 0);
+    prototypes++;
+    contributions += mob_index[mobile].effective_binding->contribution_count;
+    collisions += mob_index[mobile].effective_binding->collision_count;
+  }
+  for (object = 0; object <= top_of_objt; object++)
+  {
+    if (obj_index[object].effective_binding == NULL)
+      continue;
+    spec_effective_binding_log(obj_index[object].effective_binding, no_specials != 0);
+    prototypes++;
+    contributions += obj_index[object].effective_binding->contribution_count;
+    collisions += obj_index[object].effective_binding->collision_count;
+  }
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (world[room].effective_binding == NULL)
+      continue;
+    spec_effective_binding_log(world[room].effective_binding, no_specials != 0);
+    prototypes++;
+    contributions += world[room].effective_binding->contribution_count;
+    collisions += world[room].effective_binding->collision_count;
+  }
+
+  log("SPEC_BIND_SUMMARY mode=%s status=complete prototypes=%zu contributions=%zu collisions=%zu",
+      no_specials ? "no_specials" : "normal", prototypes, contributions, collisions);
 }
 
 /* Free the world, in a memory allocation sense. */
@@ -912,6 +977,7 @@ void destroy_db(void)
   for (cnt = 0; cnt <= top_of_world; cnt++)
   {
     spec_binding_free(&world[cnt].spec_binding);
+    spec_effective_binding_free(&world[cnt].effective_binding);
 
     /* Skip freeing names/descriptions for wilderness rooms as they use static strings
      * Wilderness rooms are identified by their vnum range */
@@ -980,6 +1046,7 @@ void destroy_db(void)
   for (cnt = 0; cnt <= top_of_objt; cnt++)
   {
     spec_binding_free(&obj_index[cnt].spec_binding);
+    spec_effective_binding_free(&obj_index[cnt].effective_binding);
 
     if (obj_proto[cnt].name)
       free(obj_proto[cnt].name);
@@ -1009,6 +1076,7 @@ void destroy_db(void)
   for (cnt = 0; cnt <= top_of_mobt; cnt++)
   {
     spec_binding_free(&mob_index[cnt].spec_binding);
+    spec_effective_binding_free(&mob_index[cnt].effective_binding);
 
     if (mob_proto[cnt].player.name)
       free(mob_proto[cnt].player.name);
@@ -1242,6 +1310,8 @@ void boot_db(void)
     log("   Questmasters.");
     assign_the_quests();
   }
+
+  report_effective_spec_bindings();
 
   /* this MUST come after boot_world because the class_list where we have
      all the data for assigning min. level for spells needs to be initialized
@@ -2204,6 +2274,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 
   world[room_nr].func = NULL;
   world[room_nr].spec_binding = NULL;
+  world[room_nr].effective_binding = NULL;
   world[room_nr].contents = NULL;
   world[room_nr].people = NULL;
   world[room_nr].light = 0; /* Zero light sources */
@@ -2242,8 +2313,34 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       setup_dir(fl, room_nr, atoi(line + 1));
       break;
     case 'M':
+      if (world[room_nr].spec_binding != NULL)
+      {
+        log("SYSERR: Room #%d cannot load moving-room M data after named Z binding '%s'.",
+            virtual_nr, world[room_nr].spec_binding->requested_name);
+        exit(1);
+      }
       setup_moving_room(fl, room_nr, virtual_nr, (line + 1));
       world[room_nr].func = &moving_rooms;
+      {
+        struct spec_effective_contribution_input contribution;
+        char effective_error[256];
+        char source_location[READ_SIZE];
+
+        snprintf(source_location, sizeof(source_location), "%s room M field",
+                 filename ? filename : "unknown world file");
+        contribution.source = SPEC_BINDING_SOURCE_PARSER_HOOK;
+        contribution.requested_name = "moving_rooms";
+        contribution.handler_name = "moving_rooms";
+        contribution.source_location = source_location;
+        contribution.handler = &moving_rooms;
+        contribution.wrapper = false;
+        contribution.secondary_handler = NULL;
+        contribution.secondary_name = NULL;
+        if (!spec_effective_binding_contribute(&world[room_nr].effective_binding, SPEC_OWNER_ROOM,
+                                               (unsigned int)virtual_nr, &contribution,
+                                               effective_error, sizeof(effective_error)))
+          log("SYSERR: Unable to record moving-room parser-hook binding: %s", effective_error);
+      }
       break;
     case 'Z': /* SpecProc name for room */
     {
@@ -2254,11 +2351,17 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
         log("SYSERR: Format error in 'Z' field for room #%d: missing spec name", virtual_nr);
         exit(1);
       }
+      if (world[room_nr].mover != NULL)
+      {
+        log("SYSERR: Room #%d cannot load named Z binding '%s' after moving-room M data.",
+            virtual_nr, line);
+        exit(1);
+      }
       snprintf(source_location, sizeof(source_location), "%s room Z field",
                filename ? filename : "unknown world file");
       world[room_nr].func =
-          load_world_spec_binding(&world[room_nr].spec_binding, SPEC_OWNER_ROOM,
-                                  (unsigned int)virtual_nr, line, source_location);
+          load_world_spec_binding(&world[room_nr].spec_binding, &world[room_nr].effective_binding,
+                                  SPEC_OWNER_ROOM, (unsigned int)virtual_nr, line, source_location);
       break;
     }
     case 'E':
@@ -3131,8 +3234,9 @@ static void interpret_espec(const char *keyword, const char *value, int i, int n
   CASE("SpecProc")
   {
     if (value && *value)
-      mob_index[i].func = load_world_spec_binding(&mob_index[i].spec_binding, SPEC_OWNER_MOBILE,
-                                                  (unsigned int)nr, value, "mobile SpecProc field");
+      mob_index[i].func = load_world_spec_binding(
+          &mob_index[i].spec_binding, &mob_index[i].effective_binding, SPEC_OWNER_MOBILE,
+          (unsigned int)nr, value, "mobile SpecProc field");
   }
 
   /* end saving throws */
@@ -3449,6 +3553,7 @@ void parse_mobile(FILE *mob_f, int nr)
   mob_index[i].number = 0;
   mob_index[i].func = NULL;
   mob_index[i].spec_binding = NULL;
+  mob_index[i].effective_binding = NULL;
 
   clear_char(mob_proto + i);
 
@@ -3641,6 +3746,7 @@ const char *parse_object(FILE *obj_f, int nr)
   obj_index[i].number = 0;
   obj_index[i].func = NULL;
   obj_index[i].spec_binding = NULL;
+  obj_index[i].effective_binding = NULL;
 
   clear_object(obj_proto + i);
   obj_proto[i].item_number = i;
@@ -4172,8 +4278,9 @@ const char *parse_object(FILE *obj_f, int nr)
             buf2);
         exit(1);
       }
-      obj_index[i].func = load_world_spec_binding(&obj_index[i].spec_binding, SPEC_OWNER_OBJECT,
-                                                  (unsigned int)nr, line, "object Z field");
+      obj_index[i].func =
+          load_world_spec_binding(&obj_index[i].spec_binding, &obj_index[i].effective_binding,
+                                  SPEC_OWNER_OBJECT, (unsigned int)nr, line, "object Z field");
       break;
     case '$':
     case '#':

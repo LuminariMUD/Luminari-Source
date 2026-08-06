@@ -22,6 +22,8 @@
 #include "quest/missions.h"
 #include "quest/hunts.h"
 #include "craft/crafting_new.h"
+#include "spec/spec_effective_binding.h"
+#include "spec/spec_registry.h"
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
@@ -35,41 +37,82 @@ SPECIAL_DECL(identify_mob);
 SPECIAL_DECL(replace_quest_item);
 SPECIAL_DECL(temple);
 
-/* local (file scope only) functions */
-static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname));
-static void ASSIGNMOB(mob_vnum mob, SPECIAL_DECL(fname));
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL_DECL(fname));
+#define SPEC_ASSIGN_STRINGIFY_INNER(value) #value
+#define SPEC_ASSIGN_STRINGIFY(value) SPEC_ASSIGN_STRINGIFY_INNER(value)
+#define SPEC_ASSIGN_LOCATION "src/spec_assign.c:" SPEC_ASSIGN_STRINGIFY(__LINE__)
+
+static void record_legacy_assignment(struct spec_effective_binding **target, spec_owner_mask owner,
+                                     unsigned int prototype_vnum, spec_legacy_handler handler,
+                                     const char *symbol, const char *source_location)
+{
+  const struct spec_definition *definition;
+  struct spec_effective_contribution_input contribution;
+  char error[256];
+
+  definition = spec_registry_find_by_handler(handler);
+  contribution.source = SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT;
+  contribution.requested_name = symbol;
+  contribution.handler_name = definition != NULL ? definition->canonical_name : symbol;
+  contribution.source_location = source_location;
+  contribution.handler = handler;
+  contribution.wrapper = false;
+  contribution.secondary_handler = NULL;
+  contribution.secondary_name = NULL;
+  if (!spec_effective_binding_contribute(target, owner, prototype_vnum, &contribution, error,
+                                         sizeof(error)))
+    log("SYSERR: Unable to record legacy special-procedure assignment: %s", error);
+}
 
 /* functions to perform assignments */
-static void ASSIGNMOB(mob_vnum mob, SPECIAL_DECL(fname))
+static void assign_mobile_spec(mob_vnum mob, spec_legacy_handler handler, const char *symbol,
+                               const char *source_location)
 {
   mob_rnum rnum;
 
   if ((rnum = real_mobile(mob)) != NOBODY)
-    mob_index[rnum].func = fname;
+  {
+    mob_index[rnum].func = handler;
+    record_legacy_assignment(&mob_index[rnum].effective_binding, SPEC_OWNER_MOBILE,
+                             (unsigned int)mob, handler, symbol, source_location);
+  }
   else if (!mini_mud)
     log("SYSERR: Attempt to assign spec to non-existant mob #%d", mob);
 }
 
-static void ASSIGNOBJ(obj_vnum obj, SPECIAL_DECL(fname))
+static void assign_object_spec(obj_vnum obj, spec_legacy_handler handler, const char *symbol,
+                               const char *source_location)
 {
   obj_rnum rnum;
 
   if ((rnum = real_object(obj)) != NOTHING)
-    obj_index[rnum].func = fname;
+  {
+    obj_index[rnum].func = handler;
+    record_legacy_assignment(&obj_index[rnum].effective_binding, SPEC_OWNER_OBJECT,
+                             (unsigned int)obj, handler, symbol, source_location);
+  }
   else if (!mini_mud)
     log("SYSERR: Attempt to assign spec to non-existant obj #%d", obj);
 }
 
-static void ASSIGNROOM(room_vnum room, SPECIAL_DECL(fname))
+static void assign_room_spec(room_vnum room, spec_legacy_handler handler, const char *symbol,
+                             const char *source_location)
 {
   room_rnum rnum;
 
   if ((rnum = real_room(room)) != NOWHERE)
-    world[rnum].func = fname;
+  {
+    world[rnum].func = handler;
+    record_legacy_assignment(&world[rnum].effective_binding, SPEC_OWNER_ROOM, (unsigned int)room,
+                             handler, symbol, source_location);
+  }
   else if (!mini_mud)
     log("SYSERR: Attempt to assign spec to non-existant room #%d", room);
 }
+
+#define ASSIGNMOB(mob, handler) assign_mobile_spec((mob), (handler), #handler, SPEC_ASSIGN_LOCATION)
+#define ASSIGNOBJ(obj, handler) assign_object_spec((obj), (handler), #handler, SPEC_ASSIGN_LOCATION)
+#define ASSIGNROOM(room, handler)                                                                  \
+  assign_room_spec((room), (handler), #handler, SPEC_ASSIGN_LOCATION)
 
 /* Assignments */
 
@@ -1164,7 +1207,11 @@ void assign_rooms(void)
   if (CONFIG_DTS_ARE_DUMPS)
     for (i = 0; i <= top_of_world; i++)
       if (ROOM_FLAGGED(i, ROOM_DEATH))
+      {
         world[i].func = dump;
+        record_legacy_assignment(&world[i].effective_binding, SPEC_OWNER_ROOM,
+                                 (unsigned int)world[i].number, dump, "dump", SPEC_ASSIGN_LOCATION);
+      }
 }
 
 /*eof*/

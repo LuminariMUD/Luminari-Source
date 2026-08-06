@@ -24,6 +24,7 @@
 #include "wilderness/wilderness.h"
 #include "movement/movement_tracks.h" /* includes trail data structures */
 #include "spec/spec_binding.h"
+#include "spec/spec_effective_binding.h"
 #include "spec_procs.h"
 #include "spec_menu.h"
 
@@ -35,6 +36,26 @@ static void redit_disp_exit_flag_menu(struct descriptor_data *d);
 static void redit_disp_flag_menu(struct descriptor_data *d);
 static void redit_disp_sector_menu(struct descriptor_data *d);
 static void redit_disp_menu(struct descriptor_data *d);
+
+static bool redit_has_named_room_binding(const struct spec_binding *binding,
+                                         spec_legacy_handler handler)
+{
+  const struct spec_definition *definition;
+
+  if (binding != NULL)
+    return true;
+  definition = spec_registry_find_by_handler(handler);
+  return definition != NULL && spec_definition_supports_owner(definition, SPEC_OWNER_ROOM);
+}
+
+static bool redit_has_moving_room_binding_conflict(const struct descriptor_data *d)
+{
+  if (d == NULL || OLC(d) == NULL || OLC_ROOM(d) == NULL || OLC_ROOM(d)->mover == NULL)
+    return false;
+
+  return redit_has_named_room_binding(OLC_SPECROOM_BINDING(d), OLC(d)->specroom) ||
+         redit_has_named_room_binding(OLC_ROOM(d)->spec_binding, OLC_ROOM(d)->func);
+}
 
 static int redit_exit_vnum(const struct room_direction_data *exit)
 {
@@ -210,6 +231,7 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
 
   *room = world[real_num];
   room->spec_binding = NULL;
+  room->effective_binding = NULL;
 
   /* Make new room people list be empty.                          */
   /* Fixes bug where copying a room from within that room creates */
@@ -287,6 +309,9 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
     log("SYSERR: redit_setup_existing: Unable to copy authored binding: %s", binding_error);
   else if (OLC_SPECROOM_BINDING(d) != NULL)
     OLC_SPECROOM_BINDING(d)->prototype_vnum = OLC_NUM(d);
+  if (!spec_effective_binding_copy(&room->effective_binding, world[real_num].effective_binding,
+                                   binding_error, sizeof(binding_error)))
+    log("SYSERR: redit_setup_existing: Unable to copy effective binding: %s", binding_error);
 }
 
 void redit_save_internally(struct descriptor_data *d)
@@ -295,6 +320,15 @@ void redit_save_internally(struct descriptor_data *d)
   int j, new_room = FALSE;
   struct descriptor_data *dsc;
   char binding_error[256];
+
+  if (redit_has_moving_room_binding_conflict(d))
+  {
+    log("SYSERR: redit_save_internally: Room #%d has moving-room and named SpecProc ownership.",
+        OLC_NUM(d));
+    write_to_output(
+        d, "A moving room cannot also own a named room special procedure. Save rejected.\r\n");
+    return;
+  }
 
   if (OLC_ROOM(d)->number == NOWHERE)
     new_room = TRUE;
@@ -429,6 +463,7 @@ void free_room(struct room_data *room)
   /* Free the strings (Mythran). */
   free_room_strings(room);
   spec_binding_free(&room->spec_binding);
+  spec_effective_binding_free(&room->effective_binding);
 
   if (SCRIPT(room))
     extract_script(&room->script);
@@ -642,6 +677,13 @@ void redit_parse(struct descriptor_data *d, char *arg)
     const struct spec_definition *definition;
     enum spec_olc_selection_result selection_result;
 
+    if (OLC_ROOM(d)->mover != NULL)
+    {
+      write_to_output(
+          d, "Moving rooms own the room callback slot; a named SpecProc cannot be selected.\r\n");
+      redit_disp_menu(d);
+      return;
+    }
     if (!*arg)
     {
       write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
@@ -690,6 +732,13 @@ void redit_parse(struct descriptor_data *d, char *arg)
     {
     case 'y':
     case 'Y':
+      if (redit_has_moving_room_binding_conflict(d))
+      {
+        write_to_output(
+            d, "A moving room cannot also own a named room special procedure. Save rejected.\r\n");
+        OLC_MODE(d) = REDIT_MAIN_MENU;
+        return;
+      }
       redit_save_internally(d);
       mudlog(CMP, MAX(LVL_BUILDER, GET_INVIS_LEV(d->character)), TRUE, "OLC: %s edits room %d.",
              GET_NAME(d->character), OLC_NUM(d));
@@ -723,6 +772,12 @@ void redit_parse(struct descriptor_data *d, char *arg)
     case 'z':
     case 'Z':
     {
+      if (OLC_ROOM(d)->mover != NULL)
+      {
+        write_to_output(
+            d, "Moving rooms own the room callback slot; a named SpecProc cannot be selected.\r\n");
+        return;
+      }
       spec_olc_display_menu(d, SPEC_OWNER_ROOM);
       OLC_MODE(d) = REDIT_SPEC_PROC;
       return;

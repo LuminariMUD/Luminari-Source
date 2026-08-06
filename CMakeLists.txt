@@ -589,6 +589,7 @@ set(SRC_C_FILES
     src/obj/shop.c
     src/combat/spec_abilities.c
     src/spec/spec_binding.c
+    src/spec/spec_effective_binding.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c
@@ -1011,6 +1012,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_spec_fixtures.c
     unittests/CuTest/test_spec_authored_bindings.c
     unittests/CuTest/test_spec_binding_round_trip.c
+    unittests/CuTest/test_spec_effective_binding.c
     unittests/CuTest/test_spec_registry_persistence.c
     unittests/CuTest/test_spec_registry_validation.c
     unittests/CuTest/test_spec_owner_aware_olc.c

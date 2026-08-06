@@ -1,7 +1,7 @@
 # Session 08: Effective Binding Observability
 
 **Session ID**: `phase00-session08-effective-binding-observability`
-**Status**: Not Started
+**Status**: Complete
 **Estimated Tasks**: ~20-24
 **Estimated Duration**: 2-4 hours
 
@@ -38,9 +38,9 @@ preserving current world, assignment, shop, quest, and no_specials outcomes.
 
 ## Prerequisites
 
-- [ ] Sessions 02 and 03 provide scheduling, mode, and secondary-callback characterization.
-- [ ] Sessions 06 and 07 provide durable authored identity and writer behavior.
-- [ ] Session 04 provides validated definitions and binding-source compatibility.
+- [x] Sessions 02 and 03 provide scheduling, mode, and secondary-callback characterization.
+- [x] Sessions 06 and 07 provide durable authored identity and writer behavior.
+- [x] Session 04 provides validated definitions and binding-source compatibility.
 
 ---
 
@@ -55,10 +55,10 @@ preserving current world, assignment, shop, quest, and no_specials outcomes.
 
 ## Success Criteria
 
-- [ ] Operators can identify requested, contributing, and effective binding state for each
+- [x] Operators can identify requested, contributing, and effective binding state for each
   prototype.
-- [ ] World, hard-coded, shop, and quest outcomes match the characterized boot sequence.
-- [ ] Saved secondary callbacks remain visible and behaviorally unchanged.
-- [ ] Normal and -s diagnostics reflect actual per-path behavior.
-- [ ] Incompatible moving-room and registered room-procedure ownership cannot be persisted or
+- [x] World, hard-coded, shop, and quest outcomes match the characterized boot sequence.
+- [x] Saved secondary callbacks remain visible and behaviorally unchanged.
+- [x] Normal and -s diagnostics reflect actual per-path behavior.
+- [x] Incompatible moving-room and registered room-procedure ownership cannot be persisted or
   loaded.

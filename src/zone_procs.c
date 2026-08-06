@@ -29,6 +29,8 @@
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */
 #include "quest/staff_events.h"  /* for staff events!  prisoner treasury! */
 #include "character/evolutions.h"
+#include "spec/spec_effective_binding.h"
+#include "spec/spec_registry.h"
 
 /* local, file scope restricted functions */
 static mob_vnum castle_virtual(mob_vnum offset);
@@ -47,8 +49,6 @@ static void fry_victim(struct char_data *ch);
 static int castle_cleaner(struct char_data *ch, int cmd, int gripe);
 static int castle_twin_proc(struct char_data *ch, int cmd, char *arg, int ctlnum,
                             const char *twinname);
-static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc));
-
 /* end head of file */
 
 /******************************************************************/
@@ -74,10 +74,14 @@ SPECIAL_DECL(jerry);
 
 /* Assign castle special procedures. NOTE: The mobile number isn't fully
  * specified. It's only an offset from the zone's base. */
-static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc))
+static void castle_mob_spec_recorded(mob_vnum mobnum, spec_legacy_handler handler,
+                                     const char *symbol, const char *source_location)
 {
+  const struct spec_definition *definition;
+  struct spec_effective_contribution_input contribution;
   mob_vnum vmv = castle_virtual(mobnum);
   mob_rnum rmr = NOBODY;
+  char error[256];
 
   if (vmv != NOBODY)
     rmr = real_mobile(vmv);
@@ -91,8 +95,28 @@ static void castle_mob_spec(mob_vnum mobnum, SPECIAL_DECL(*specproc))
      * this error will result. */
   }
   else
-    mob_index[rmr].func = specproc;
+  {
+    mob_index[rmr].func = handler;
+    definition = spec_registry_find_by_handler(handler);
+    contribution.source = SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT;
+    contribution.requested_name = symbol;
+    contribution.handler_name = definition != NULL ? definition->canonical_name : symbol;
+    contribution.source_location = source_location;
+    contribution.handler = handler;
+    contribution.wrapper = false;
+    contribution.secondary_handler = NULL;
+    contribution.secondary_name = NULL;
+    if (!spec_effective_binding_contribute(&mob_index[rmr].effective_binding, SPEC_OWNER_MOBILE,
+                                           (unsigned int)vmv, &contribution, error, sizeof(error)))
+      log("SYSERR: Unable to record castle special-procedure assignment: %s", error);
+  }
 }
+
+#define CASTLE_SPEC_STRINGIFY_INNER(value) #value
+#define CASTLE_SPEC_STRINGIFY(value) CASTLE_SPEC_STRINGIFY_INNER(value)
+#define castle_mob_spec(mobnum, handler)                                                           \
+  castle_mob_spec_recorded((mobnum), (handler), #handler,                                          \
+                           "src/zone_procs.c:" CASTLE_SPEC_STRINGIFY(__LINE__))
 
 static mob_vnum castle_virtual(mob_vnum offset)
 {

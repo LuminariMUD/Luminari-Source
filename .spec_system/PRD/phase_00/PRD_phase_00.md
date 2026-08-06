@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 3-5 working days
 
-**Progress**: 7/9 sessions (78%)
+**Progress**: 8/9 sessions (89%)
 
 ---
 
@@ -30,7 +30,7 @@ syntax, activation behavior, or boot precedence.
 | 05 | Owner-Aware OLC | Complete | 23 | 2026-08-07 |
 | 06 | Authored Binding Model | Complete | 24 | 2026-08-07 |
 | 07 | Binding Round-Trip Persistence | Complete | 21 | 2026-08-07 |
-| 08 | Effective Binding Observability | Not Started | ~20-24 | - |
+| 08 | Effective Binding Observability | Complete | 24 | 2026-08-07 |
 | 09 | Documentation and Phase Validation | Not Started | ~14-18 | - |
 
 ---
@@ -44,12 +44,12 @@ syntax, activation behavior, or boot precedence.
 - Session 05: Owner-Aware OLC - completed 2026-08-07
 - Session 06: Authored Binding Model - completed 2026-08-07
 - Session 07: Binding Round-Trip Persistence - completed 2026-08-07
+- Session 08: Effective Binding Observability - completed 2026-08-07
 
 ---
 
 ## Upcoming Sessions
 
-- Session 08: Effective Binding Observability
 - Session 09: Documentation and Phase Validation
 
 ---

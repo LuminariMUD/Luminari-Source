@@ -29,6 +29,7 @@
 #include "msgedit.h"
 #include "craft/crafts.h" /* NewCraft */
 #include "spec/spec_binding.h"
+#include "spec/spec_effective_binding.h"
 
 /* Internal Data Structures */
 /** @deprecated olc_scmd_info appears to be deprecated. Commented out for now.
@@ -108,6 +109,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
       break;
     case CLEANUP_STRUCTS:
       spec_binding_free(&OLC_ROOM(d)->spec_binding);
+      spec_effective_binding_free(&OLC_ROOM(d)->effective_binding);
       free(OLC_ROOM(d));
       break;
     case CLEANUP_CONFIG:

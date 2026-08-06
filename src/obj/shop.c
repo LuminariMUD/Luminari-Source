@@ -32,6 +32,8 @@
 #include "item.h"
 #include "character/backgrounds.h"
 #include "clan_economy.h"
+#include "spec/spec_effective_binding.h"
+#include "spec/spec_registry.h"
 
 /* Global variables definitions used externally */
 /* Constant list for printing out who we sell to */
@@ -1664,6 +1666,12 @@ void boot_the_shops(FILE *shop_f, char *filename, int rec_count)
 
 void assign_the_shopkeepers(void)
 {
+  const struct spec_definition *definition;
+  const char *secondary_name;
+  struct spec_effective_contribution_input contribution;
+  spec_legacy_handler secondary_handler;
+  char effective_error[256];
+  char source_location[64];
   int cindex;
 
   cmd_say = find_command("say");
@@ -1688,6 +1696,28 @@ void assign_the_shopkeepers(void)
       SHOP_FUNC(cindex) = mob_index[SHOP_KEEPER(cindex)].func;
 
     mob_index[SHOP_KEEPER(cindex)].func = shop_keeper;
+    secondary_handler = SHOP_FUNC(cindex);
+    secondary_name = spec_effective_binding_handler_name(
+        mob_index[SHOP_KEEPER(cindex)].effective_binding, secondary_handler);
+    if (secondary_handler != NULL && secondary_name == NULL)
+    {
+      definition = spec_registry_find_by_handler(secondary_handler);
+      secondary_name = definition != NULL ? definition->canonical_name : "unregistered-callback";
+    }
+    snprintf(source_location, sizeof(source_location), "shop #%d", SHOP_NUM(cindex));
+    contribution.source = SPEC_BINDING_SOURCE_SHOP;
+    contribution.requested_name = "shop_keeper";
+    contribution.handler_name = "shop_keeper";
+    contribution.source_location = source_location;
+    contribution.handler = shop_keeper;
+    contribution.wrapper = true;
+    contribution.secondary_handler = secondary_handler;
+    contribution.secondary_name = secondary_name;
+    if (!spec_effective_binding_contribute(&mob_index[SHOP_KEEPER(cindex)].effective_binding,
+                                           SPEC_OWNER_MOBILE,
+                                           (unsigned int)mob_index[SHOP_KEEPER(cindex)].vnum,
+                                           &contribution, effective_error, sizeof(effective_error)))
+      log("SYSERR: Unable to record shopkeeper effective binding: %s", effective_error);
     SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_CUSTOM_GOLD);
     SET_BIT_AR(MOB_FLAGS(&mob_proto[SHOP_KEEPER(cindex)]), MOB_NO_AI);
     GET_GOLD(&mob_proto[SHOP_KEEPER(cindex)]) = 100000;

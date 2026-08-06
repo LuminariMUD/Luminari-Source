@@ -28,6 +28,8 @@
 #include "db_init.h"
 #include "dgscript/dg_scripts.h" /* for load_mtrigger() */
 #include "modify.h"
+#include "spec/spec_effective_binding.h"
+#include "spec/spec_registry.h"
 
 /*-------------------------------------------------------------------*/
 /* External data */
@@ -429,6 +431,12 @@ void parse_quest(FILE *quest_f, int nr)
 /* assign the quests to their questmasters */
 void assign_the_quests(void)
 {
+  const struct spec_definition *definition;
+  const char *secondary_name;
+  struct spec_effective_contribution_input contribution;
+  spec_legacy_handler secondary_handler;
+  char effective_error[256];
+  char source_location[64];
   qst_rnum rnum;
   mob_rnum mrnum;
 
@@ -472,6 +480,27 @@ void assign_the_quests(void)
     if (mob_index[(mrnum)].func && mob_index[(mrnum)].func != questmaster)
       QST_FUNC(rnum) = mob_index[(mrnum)].func;
     mob_index[(mrnum)].func = questmaster;
+    secondary_handler = QST_FUNC(rnum);
+    secondary_name = spec_effective_binding_handler_name(mob_index[(mrnum)].effective_binding,
+                                                         secondary_handler);
+    if (secondary_handler != NULL && secondary_name == NULL)
+    {
+      definition = spec_registry_find_by_handler(secondary_handler);
+      secondary_name = definition != NULL ? definition->canonical_name : "unregistered-callback";
+    }
+    snprintf(source_location, sizeof(source_location), "quest #%d", QST_NUM(rnum));
+    contribution.source = SPEC_BINDING_SOURCE_QUEST;
+    contribution.requested_name = "questmaster";
+    contribution.handler_name = "Questmaster";
+    contribution.source_location = source_location;
+    contribution.handler = questmaster;
+    contribution.wrapper = true;
+    contribution.secondary_handler = secondary_handler;
+    contribution.secondary_name = secondary_name;
+    if (!spec_effective_binding_contribute(&mob_index[(mrnum)].effective_binding, SPEC_OWNER_MOBILE,
+                                           (unsigned int)mob_index[(mrnum)].vnum, &contribution,
+                                           effective_error, sizeof(effective_error)))
+      log("SYSERR: Unable to record questmaster effective binding: %s", effective_error);
   }
 }
 

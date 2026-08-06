@@ -11,6 +11,7 @@
 #include "../../src/olc/spec_menu.h"
 #include "../../src/net/protocol.h"
 #include "../../src/spec/spec_binding.h"
+#include "../../src/spec/spec_effective_binding.h"
 #include "../../src/spec_procs.h"
 #include "test_spec_fixtures.h"
 
@@ -80,6 +81,7 @@ struct spec_test_fixture
   struct obj_data test_obj_proto[1];
   struct index_data test_obj_index[1];
   struct zone_data test_zone_table[2];
+  struct moving_room_data test_mover;
 
   struct room_data *saved_world;
   struct char_data *saved_mob_proto;
@@ -553,6 +555,7 @@ static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
   if (fixture->mobile_loaded)
   {
     spec_binding_free(&fixture->test_mob_index[0].spec_binding);
+    spec_effective_binding_free(&fixture->test_mob_index[0].effective_binding);
     free_mobile_strings(&fixture->test_mob_proto[0]);
     fixture->mobile_loaded = false;
   }
@@ -560,6 +563,7 @@ static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
   if (fixture->object_loaded)
   {
     spec_binding_free(&fixture->test_obj_index[0].spec_binding);
+    spec_effective_binding_free(&fixture->test_obj_index[0].effective_binding);
     free_object_strings(&fixture->test_obj_proto[0]);
     fixture->object_loaded = false;
   }
@@ -567,6 +571,7 @@ static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
   if (fixture->room_loaded)
   {
     spec_binding_free(&fixture->test_world[0].spec_binding);
+    spec_effective_binding_free(&fixture->test_world[0].effective_binding);
     free_room_strings(&fixture->test_world[0]);
     free_trail_data_list(fixture->test_world[0].trail_tracks);
     fixture->test_world[0].trail_tracks = NULL;
@@ -928,6 +933,28 @@ const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_te
     return fixture->object_loaded ? fixture->test_obj_index[0].spec_binding : NULL;
   case SPEC_TEST_OWNER_ROOM:
     return fixture->room_loaded ? fixture->test_world[0].spec_binding : NULL;
+  case SPEC_TEST_OWNER_COUNT:
+    return NULL;
+  }
+
+  return NULL;
+}
+
+const struct spec_effective_binding *
+spec_test_fixture_loaded_effective_binding(const struct spec_test_fixture *fixture,
+                                           enum spec_test_owner owner)
+{
+  if (fixture == NULL)
+    return NULL;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    return fixture->mobile_loaded ? fixture->test_mob_index[0].effective_binding : NULL;
+  case SPEC_TEST_OWNER_OBJECT:
+    return fixture->object_loaded ? fixture->test_obj_index[0].effective_binding : NULL;
+  case SPEC_TEST_OWNER_ROOM:
+    return fixture->room_loaded ? fixture->test_world[0].effective_binding : NULL;
   case SPEC_TEST_OWNER_COUNT:
     return NULL;
   }
@@ -1335,4 +1362,122 @@ bool spec_test_fixture_activation_enabled(const struct spec_test_fixture *fixtur
   }
 
   return false;
+}
+
+bool spec_test_fixture_expect_room_load_rejection(struct spec_test_fixture *fixture,
+                                                  bool moving_field_first)
+{
+  static const char moving_first_record[] = "A Conflicting Moving Room~\n"
+                                            "A conflicting moving room.\n~\n"
+                                            "14 0 0 0 0 0\n"
+                                            "C\n"
+                                            "0 0\n"
+                                            "M 0 10 0 0 -1\n"
+                                            "~\n"
+                                            "~\n"
+                                            "~\n"
+                                            "~\n"
+                                            "Z\n"
+                                            "Bazaar\n"
+                                            "S\n"
+                                            "$~\n";
+  static const char binding_first_record[] = "A Conflicting Moving Room~\n"
+                                             "A conflicting moving room.\n~\n"
+                                             "14 0 0 0 0 0\n"
+                                             "C\n"
+                                             "0 0\n"
+                                             "Z\n"
+                                             "Bazaar\n"
+                                             "M 0 10 0 0 -1\n"
+                                             "~\n"
+                                             "~\n"
+                                             "~\n"
+                                             "~\n"
+                                             "S\n"
+                                             "$~\n";
+  const char *record_text;
+  pid_t child;
+  pid_t waited;
+  int status;
+
+  if (fixture == NULL || fixture->room_loaded)
+    return false;
+
+  record_text = moving_field_first ? moving_first_record : binding_first_record;
+  child = fork();
+  if (child < 0)
+    return false;
+  if (child == 0)
+  {
+    FILE *record;
+
+    record = spec_test_open_record(record_text, NULL, 0);
+    if (record == NULL)
+      _exit(99);
+    parse_room(record, SPEC_TEST_ROOM_VNUM, "moving-room conflict fixture");
+    fclose(record);
+    _exit(0);
+  }
+
+  do
+  {
+    waited = waitpid(child, &status, 0);
+  } while (waited < 0 && errno == EINTR);
+
+  return waited == child && WIFEXITED(status) && WEXITSTATUS(status) == 1;
+}
+
+bool spec_test_fixture_set_loaded_room_mover(struct spec_test_fixture *fixture)
+{
+  if (fixture == NULL || !fixture->room_loaded)
+    return false;
+
+  memset(&fixture->test_mover, 0, sizeof(fixture->test_mover));
+  fixture->test_mover.destination = SPEC_TEST_ROOM_VNUM;
+  fixture->test_world[0].mover = &fixture->test_mover;
+  fixture->test_world[0].func = moving_rooms;
+  return true;
+}
+
+bool spec_test_fixture_force_room_olc_binding(struct spec_test_fixture *fixture, const char *name,
+                                              char *error, size_t error_size)
+{
+  if (fixture == NULL || fixture->olc.room == NULL || name == NULL)
+  {
+    spec_test_set_error(error, error_size, "cannot force a room binding on an incomplete fixture");
+    return false;
+  }
+
+  if (!spec_binding_replace(&fixture->olc.specroom_binding, SPEC_OWNER_ROOM, SPEC_TEST_ROOM_VNUM,
+                            name, SPEC_BINDING_SOURCE_WORLD, "forced test selection", error,
+                            error_size))
+    return false;
+  fixture->olc.specroom = spec_binding_legacy_handler(fixture->olc.specroom_binding);
+  return true;
+}
+
+int spec_test_fixture_save_room(struct spec_test_fixture *fixture, char *error, size_t error_size)
+{
+  int restore_result;
+  int save_result;
+
+  if (fixture == NULL || !fixture->room_loaded || !fixture->sandbox_created)
+  {
+    spec_test_set_error(error, error_size, "cannot save an incomplete room fixture");
+    return FALSE;
+  }
+  if (chdir(fixture->sandbox) != 0)
+  {
+    spec_test_set_error(error, error_size, "unable to enter room fixture sandbox");
+    return FALSE;
+  }
+
+  save_result = save_rooms(1);
+  restore_result = chdir(fixture->original_cwd);
+  if (restore_result != 0)
+  {
+    spec_test_set_error(error, error_size, "unable to restore working directory after room save");
+    return FALSE;
+  }
+  return save_result;
 }
