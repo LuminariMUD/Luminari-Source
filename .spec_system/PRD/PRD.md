@@ -179,7 +179,7 @@ sessions with 12-25 tasks each.
 
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
-| 00 | Registry Safety and Observability | TBD | Not Started |
+| 00 | Registry Safety and Observability | 9 | In Progress |
 | 01 | Call-Site Gateway Compatibility | TBD | Not Started |
 | 02 | Declarative Legacy Assignments | TBD | Not Started |
 | 03 | Behavior-Preserving Content Extraction | TBD | Not Started |
@@ -203,13 +203,17 @@ sessions with 12-25 tasks each.
 5. Update builder guidance, the `SPECIALS` help entry, and architecture documentation for the
    behavior actually delivered in this phase.
 
-### Sessions (To Be Defined)
+### Sessions
 
-Sessions are defined via `phasebuild` as `session_NN_name.md` stubs under
-`.spec_system/PRD/phase_00/`.
-
-**Note**: This command does not create phase directories or session stubs. Run `phasebuild` after
-creating the PRD.
+1. Registry and Persistence Characterization
+2. Command and Pulse Characterization
+3. Combat and Secondary Characterization
+4. Validated Definition Registry
+5. Owner-Aware OLC
+6. Authored Binding Model
+7. Binding Round-Trip Persistence
+8. Effective Binding Observability
+9. Documentation and Phase Validation
 
 ## Technical Stack
 

@@ -1005,6 +1005,8 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_dg_scripts_production.c
     unittests/CuTest/test_upstream_regressions.c
     unittests/CuTest/test_world_loading_production.c
+    unittests/CuTest/test_spec_fixtures.c
+    unittests/CuTest/test_spec_registry_persistence.c
     unittests/CuTest/test_gameplay_e2e.c
 )
 

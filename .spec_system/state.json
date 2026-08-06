@@ -7,11 +7,30 @@
   "monorepo": false,
   "phases": {
     "0": {
-      "name": "Foundation",
-      "status": "not_started",
-      "session_count": 0
+      "name": "Registry Safety and Observability",
+      "description": "Make special-procedure definitions and bindings safe and observable.",
+      "status": "in_progress",
+      "session_count": 9
     }
   },
-  "completed_sessions": [],
-  "next_session_history": []
+  "completed_sessions": [
+    "phase00-session01-registry-and-persistence-characterization"
+  ],
+  "next_session_history": [
+    {
+      "date": "2026-08-06",
+      "session": "phase00-session01-registry-and-persistence-characterization",
+      "status": "planned"
+    },
+    {
+      "date": "2026-08-06",
+      "session": "phase00-session01-registry-and-persistence-characterization",
+      "status": "validated"
+    },
+    {
+      "date": "2026-08-06",
+      "session": "phase00-session01-registry-and-persistence-characterization",
+      "status": "completed"
+    }
+  ]
 }
