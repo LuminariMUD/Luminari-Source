@@ -13,6 +13,7 @@ skip fix_narrative_weaver_schema_inconsistencies.sql
 apply help_bardic_instrument_entries.sql
 apply help_character_backgrounds.sql
 apply help_intermud3_entries.sql
+apply help_necromancer_entries.sql
 apply help_system_indexes.sql
 apply help_vessel_entries.sql
 apply insert_room_templates.sql
@@ -32,6 +33,7 @@ apply resource_depletion_schema.sql
 skip test_vessels_integrity.sql
 skip verify_help_bardic_instrument_entries.sql
 skip verify_help_intermud3_entries.sql
+skip verify_help_necromancer_entries.sql
 skip verify_help_vessel_entries.sql
 skip verify_vessels_campaign_content.sql
 skip verify_vessels_derelict_content.sql

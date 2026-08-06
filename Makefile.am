@@ -545,8 +545,10 @@ EXTRA_DIST = \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
+	sql/components/help_necromancer_entries.sql \
 	sql/components/ci_schema_manifest.txt \
 	sql/components/test_vessels_integrity.sql \
+	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \
 	sql/components/verify_vessels_schema.sql \
 	sql/components/verify_vessels_phase4.sql \

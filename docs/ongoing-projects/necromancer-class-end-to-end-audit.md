@@ -9,7 +9,8 @@
   `0262cf59ca37f250dafe278406289ca594fe620d`
 - Implementation branch: `codex/necromancer-completion-20260806`
 - Environment: development, as identified by `lib/.env`
-- Runtime mutation: none
+- Runtime mutation: the authoritative Necromancer help migration was applied to
+  the configured development database; no production system was accessed
 
 This document audits the Necromancer prestige class from eligibility and level
 advancement through feat execution, summoned mobile creation, follower admission,
@@ -45,7 +46,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-012 | Focused verification passed | Immediate and delayed casts use the one selected progression for summon tiers. |
 | NEC-013 | Focused verification passed | Resistances apply to the cohort; mandatory Undead Appearance is free and the budget is nonnegative. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
-| NEC-015 | Open | Authoritative help update and database verification pending. |
+| NEC-015 | Database verification passed | Nine authoritative entries, 23 required keywords, collision cleanup, and 20 content contracts pass. |
 | NEC-016 | In progress | Twenty-eight production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
@@ -176,6 +177,35 @@ master checkpoint. This table is updated with every implementation checkpoint.
   described above. The isolated ASan/UBSan suite passes all 27 focused
   Necromancer tests with leak detection enabled.
 
+### Checkpoint 6: authoritative help and final Touch scaling trace
+
+- A final call-chain trace found that the generic innate-affect path replaced the
+  selected Touch level with total character level. It also found that Touch had
+  selected only the arcane or divine side and could aggregate multiple base
+  classes. Touch and animated-undead summons now share one preferred-base-class
+  progression helper, and all five Touch effects preserve that exact supplied
+  level through save and duration calculations.
+- One additional production-linked regression test covers all five Touch ability
+  IDs at the affect-engine choke point, the unchanged behavior of an unrelated
+  innate effect, and a non-innate control. The existing Touch level test now uses
+  multiple arcane and divine base classes to prove the preferred class wins. The
+  isolated ASan/UBSan suite passes all 28 tests with leak detection enabled.
+- `help_necromancer_entries.sql` is the rerunnable authoritative source for nine
+  class, spell, feat, and command topics with 23 required keywords. It separates
+  the no-argument `animatedead` daily command from the `animate dead` corpse
+  spell and removes the two stale aliases that conflated them.
+- Source feat descriptions now match the repaired command syntax, resource and
+  action rules, selected progression, Bone Armor aggregation, cohort point
+  accounting, summon naming, and immunity behavior.
+- The help migration and verifier are classified in the component schema
+  manifest and packaged by Autotools. A fresh isolated MariaDB schema accepted
+  `master_schema.sql`, two consecutive migration applications, and all five
+  verifier checks: nine entries, 23 keywords, nine player/manual rows, zero stale
+  aliases, and 20 content contracts.
+- After an explicit `APP_ENV=development` guard, the same migration was applied
+  to the configured development database. All five read-only verifier checks
+  pass there. No production database was accessed.
+
 ## Executive verdict
 
 The Necromancer class is registered, selectable when its prerequisites are met,
@@ -183,10 +213,10 @@ and all advertised class feats are assigned at a level. The original progression
 Bone Armor, Touch of Undeath, and animated-undead summon blockers now have focused
 production-linked and sanitizer verification.
 
-The release verdict remains not ready while authoritative help and final
-build/install verification remain open. The original findings below are retained
-as the audit record; the implementation-progress table and checkpoints are the
-current status.
+The release verdict remains not ready while final build, full-suite, install, and
+protocol-harness verification remain open. The original findings below are
+retained as the audit record; the implementation-progress table and checkpoints
+are the current status.
 
 ## Class registration and progression
 

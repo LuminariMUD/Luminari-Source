@@ -5179,8 +5179,10 @@ void assign_feats(void)
 
   /* Pale/Death Master */
   feato(FEAT_ANIMATE_DEAD, "animate dead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "allows innate use of animate dead spell",
-        "Allows innate use of animate dead spell once per day.  You get one use per ");
+        "uses the animatedead command to call one undead per feat rank each day",
+        "The animatedead command uses a standard action and no corpse to call an undead follower "
+        "based on your composite caster level. You gain one daily use per feat rank. This command "
+        "is separate from casting the animate dead spell on a corpse.");
 
   feato(FEAT_CONCOCT_LVL_1, "1st circle alchemical concoctions", TRUE, FALSE, FALSE,
         FEAT_TYPE_SPELLCASTING, "alchemist 1st circle slot",
@@ -5476,40 +5478,38 @@ void assign_feats(void)
   /* feat-number | name | in game? | learnable? | stackable? | feat-type | short-descrip | long descrip */
 
   /* Pale/Death Master */
-  feato(FEAT_BONE_ARMOR, "bone armor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "allows creation of bone armor with the bonearmor command, and 10 percent arcane spell "
-        "failure reduction in per rank, if and only if all armor slots are made of bone (body, "
-        "arms, legs and head).",
-        "allows creation of bone armor with the bonearmor command,  and 10 percent arcane spell "
-        "failure reduction "
-        "in per rank, if and only if all armor slots are made of bone (body, arms, legs and head). "
-        "To do so, ensure "
-        "that you have a crafting station in your same room or a crafting kit in your inventory. "
-        "Put the armor piece "
-        "or shield in the kit and type: bonearmor (new item description) Eg. 'put breastplate kit' "
-        "then 'bonearmor a "
-        "bone breast plate'. There will be a gold cost, and then the armor piece will be placed in "
-        "your inventory with "
-        "the new description and the item's material now being bone.");
+  feato(
+      FEAT_BONE_ARMOR, "bone armor", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
+      "converts armor or shields to bone and reduces spell failure by 10 percent per rank when "
+      "all equipped armor is bone",
+      "Put exactly one armor piece or shield in a held crafting kit, or use a crafting station in "
+      "the room, then type bonearmor <new description>. The description must contain the word "
+      "bone. Conversion costs one third of the item's value. If at least one relevant armor or "
+      "shield slot is equipped and every equipped piece in those slots is bone, spell failure is "
+      "reduced by 10 percent per Bone Armor rank.");
   feato(FEAT_ESSENCE_OF_UNDEATH, "essence of undeath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical "
-        "hits.",
-        "Gives immunity to poison, sleep and death affects, paralysis, sneak attack and critical "
-        "hits.");
+        "gives undead-like immunity to poison, sleep, death magic, paralysis, sneak attacks, and "
+        "critical hits",
+        "Gives immunity to poison damage and poison effects, sleep effects, death magic, "
+        "paralysis, sneak attacks, critical hits, and physical ability drain applied by magic.");
   feato(FEAT_SUMMON_GREATER_UNDEAD, "summon greater undead", TRUE, FALSE, FALSE,
-        FEAT_TYPE_CLASS_ABILITY, "allows innate use of greater animation spell at-will.",
-        "allows innate use of greater animation spell at-will.");
+        FEAT_TYPE_CLASS_ABILITY, "allows at-will use of greater animation without a spell slot",
+        "Allows at-will use of the greater animation spell on a corpse without consuming a "
+        "prepared spell or spontaneous spell slot.");
   feato(FEAT_SUMMON_UNDEAD, "summon undead", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "allows innate use of animate dead spell at-will.",
-        "allows innate use of animate dead spell at-will.");
+        "allows at-will use of animate dead without a spell slot",
+        "Allows at-will use of the animate dead spell on a corpse without consuming a prepared "
+        "spell or spontaneous spell slot.");
   feato(FEAT_TOUCH_OF_UNDEATH, "touch of undeath", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Allows the necromancer to make various touch attacks as they gain necromancer levels.",
-        "Allows the necromancer to make various touch attacks as they gain necromancer levels.");
+        "uses undeath <target> <variant> for scaling swift-action touch attacks",
+        "Use undeath <target> <paralyze|weaken|degenerate|destroy|death>. A valid attempt consumes "
+        "one daily use and a swift action whether the attack hits or misses. You gain one use at "
+        "level 6, two at level 8, and three at level 10.");
   feato(FEAT_UNDEAD_COHORT, "undead cohort", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Allows the necromancer to call an eidolon, similar to summoners. The eidolon starts off "
-        "with the undead appearance evolution.",
-        "Allows the necromancer to call an eidolon, similar to summoners. The eidolon starts off "
-        "with the undead appearance evolution.");
+        "uses call cohort to summon an eidolon with a free undead appearance evolution",
+        "Use call cohort to summon an eidolon scaled by your combined Summoner and Necromancer "
+        "levels, capped at level 30. Configure its base form and evolutions through study. One "
+        "mandatory rank of Undead Appearance is granted without consuming an evolution point.");
   feato(FEAT_PALE_MASTER_WEAPONS, "necromancer weapons", TRUE, FALSE, FALSE,
         FEAT_TYPE_CLASS_ABILITY,
         "Necromancers are proficient with Scythes, and get weapon focus: polearms at necromancer "
@@ -5524,29 +5524,29 @@ void assign_feats(void)
         "One of the necromancer's arms is replaced by an undead arm of bone, giving a permanent +4 "
         "bonus to strength.");
   feato(FEAT_PARALYZING_TOUCH, "paralyzing touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Target must succeed on a fortitude save or be paralyzed for 1d4+1 rounds. Uses undeath "
-        "command.",
-        "Target must succeed on a fortitude save or be paralyzed for 1d4+1 rounds. Uses undeath "
-        "command.");
+        "undeath <target> paralyze; Fortitude negates 1d4+1 rounds of paralysis",
+        "Use undeath <target> paralyze. The living target must succeed on a Fortitude save or be "
+        "paralyzed for 1d4+1 rounds.");
   feato(FEAT_WEAKENING_TOUCH, "weakening touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Target loses 1d6 points of strength, no save. Uses undeath command.",
-        "Target loses 1d6 points of strength, no save. Uses undeath command.");
+        "undeath <target> weaken; inflicts 1d6 Strength loss without a save",
+        "Use undeath <target> weaken. The living target loses 1d6 Strength without a save for a "
+        "duration based on your selected Necromancer spell progression.");
   feato(FEAT_DEGENERATIVE_TOUCH, "degenerative touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Target suffers -2 penalty on hitroll and damroll, no save. Uses undeath command.",
-        "Target suffers -2 penalty on hitroll and damroll, no save. Uses undeath command.");
+        "undeath <target> degenerate; inflicts -2 hit and damage without a save",
+        "Use undeath <target> degenerate. The living target suffers -2 hit roll and damage roll "
+        "without a save for a duration based on your selected Necromancer spell progression.");
   feato(FEAT_DESTRUCTIVE_TOUCH, "destructive touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Target loses 1d6 points of constitution, no save. Uses undeath command.",
-        "Target loses 1d6 points of constitution, no save. Uses undeath command.");
+        "undeath <target> destroy; inflicts 1d6 Constitution loss without a save",
+        "Use undeath <target> destroy. The living target loses 1d6 Constitution without a save for "
+        "a duration based on your selected Necromancer spell progression.");
   feato(FEAT_DEATHLESS_TOUCH, "deathless touch", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Target loses all hit points, or takes 600 damage, whichever is less. Fortitude save will "
-        "half the damage. Uses undeath command.",
-        "Target loses all hit points, or takes 600 damage, whichever is less. Fortitude save will "
-        "half the damage. Uses undeath command. "
-        "If the creature is killed by this touch, the stats on the next animate dead or greater "
-        "conjuration follower will be increased.");
+        "undeath <target> death; deals up to 600 lethal damage with Fortitude for half",
+        "Use undeath <target> death. The living target takes a lethal amount of damage up to 600, "
+        "with a Fortitude save for half. If this kills the target, your next successful animate "
+        "dead or greater animation follower gains increased attributes.");
   feato(FEAT_TOUGH_AS_BONE, "tough as bone", TRUE, FALSE, FALSE, FEAT_TYPE_CLASS_ABILITY,
-        "Necromancer becomes immunse to disease and stunning.",
-        "Necromancer becomes immunse to disease and stunning.");
+        "makes the Necromancer immune to disease and stunning",
+        "The Necromancer becomes immune to disease effects and all stun effects and events.");
 
 
   /* Assassin */
