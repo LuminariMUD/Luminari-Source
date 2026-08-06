@@ -11704,8 +11704,21 @@ bool isSummonMob(int vnum)
 
 int summon_spell_mob_level(int spellnum, int caster_level)
 {
+  int minimum_level;
+
   switch (spellnum)
   {
+  case SPELL_GREATER_ANIMATION:
+    caster_level = MAX(1, caster_level);
+    if (caster_level >= 30)
+      minimum_level = 27;
+    else if (caster_level >= 25)
+      minimum_level = 23;
+    else if (caster_level >= 20)
+      minimum_level = 19;
+    else
+      minimum_level = MAX(1, MIN(caster_level - 1, 15));
+    return rand_number(minimum_level, caster_level);
   case SPELL_ELEMENTAL_SWARM:
   case SPELL_SHAMBLER:
     return MIN(20, MAX(1, caster_level));
@@ -11713,6 +11726,77 @@ int summon_spell_mob_level(int spellnum, int caster_level)
     return 0;
   }
 }
+
+mob_vnum animated_dead_summon_mob(int spellnum, int caster_level)
+{
+  if (spellnum == SPELL_ANIMATE_DEAD || spellnum == WARLOCK_THE_DEAD_WALK)
+  {
+    if (caster_level >= 30)
+      return MOB_MUMMY;
+    if (caster_level >= 20)
+      return MOB_GIANT_SKELETON;
+    if (caster_level >= 10)
+      return MOB_GHOUL;
+    return MOB_ZOMBIE;
+  }
+
+  if (spellnum == SPELL_GREATER_ANIMATION)
+  {
+    if (caster_level >= 30)
+      return MOB_WIGHT;
+    if (caster_level >= 25)
+      return MOB_BANSHEE;
+    if (caster_level >= 20)
+      return MOB_SPECTRE;
+    return MOB_GHOST;
+  }
+
+  return NOBODY;
+}
+
+bool summon_spell_rejects_holy_room(int spellnum)
+{
+  return spellnum == WARLOCK_THE_DEAD_WALK || spellnum == SPELL_ANIMATE_DEAD ||
+         spellnum == SPELL_GREATER_ANIMATION || spellnum == ABILITY_CREATE_VAMPIRE_SPAWN;
+}
+
+static bool deathless_touch_empowers_summon(struct char_data *ch, int spellnum)
+{
+  return ch != NULL && ch->char_specials.deathless_touch &&
+         (spellnum == SPELL_ANIMATE_DEAD || spellnum == SPELL_GREATER_ANIMATION);
+}
+
+static void complete_deathless_touch_summon(struct char_data *ch, int spellnum, bool succeeded)
+{
+  if (succeeded && deathless_touch_empowers_summon(ch, spellnum))
+    ch->char_specials.deathless_touch = false;
+}
+
+static void report_summon_persistence_result(struct char_data *ch, bool saved)
+{
+  if (ch == NULL || IS_NPC(ch) || saved)
+    return;
+
+  send_to_char(ch, "\tYWarning: your summoned follower is active, but could not be saved. "
+                   "Use 'save' again before disconnecting; contact staff if this persists.\tn\r\n");
+}
+
+#ifdef LUMINARI_CUTEST
+bool test_deathless_touch_empowers_summon(struct char_data *ch, int spellnum)
+{
+  return deathless_touch_empowers_summon(ch, spellnum);
+}
+
+void test_complete_deathless_touch_summon(struct char_data *ch, int spellnum, bool succeeded)
+{
+  complete_deathless_touch_summon(ch, spellnum, succeeded);
+}
+
+void test_report_summon_persistence_result(struct char_data *ch, bool saved)
+{
+  report_summon_persistence_result(ch, saved);
+}
+#endif
 
 void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level)
 {
@@ -11734,6 +11818,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
   int mob_level = 0;
   //int temp_level = 0;
   mob_vnum mob_num = 0;
+  bool pets_saved;
   char desc[200];
 
   if (ch == NULL)
@@ -11808,22 +11893,15 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
     }
-    if (IS_HOLY(IN_ROOM(ch)))
+    if (summon_spell_rejects_holy_room(spellnum) && IS_HOLY(IN_ROOM(ch)))
     {
-      send_to_char(ch, "This place is too holy for such blasphemy!");
+      send_to_char(ch, "This place is too holy for such blasphemy!\r\n");
       return;
     }
     handle_corpse = TRUE;
     msg = 12;
     fmsg = rand_number(2, 6); /* Random fail message. */
-    if (CASTER_LEVEL(ch) >= 30)
-      mob_num = MOB_MUMMY;
-    else if (CASTER_LEVEL(ch) >= 20)
-      mob_num = MOB_GIANT_SKELETON;
-    else if (CASTER_LEVEL(ch) >= 10)
-      mob_num = MOB_GHOUL;
-    else
-      mob_num = MOB_ZOMBIE;
+    mob_num = animated_dead_summon_mob(spellnum, level);
     pfail = 10; /* 10% failure, should vary in the future. */
     break;
 
@@ -11833,9 +11911,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
     }
-    if (IS_HOLY(IN_ROOM(ch)))
+    if (summon_spell_rejects_holy_room(spellnum) && IS_HOLY(IN_ROOM(ch)))
     {
-      send_to_char(ch, "This place is too holy for such blasphemy!");
+      send_to_char(ch, "This place is too holy for such blasphemy!\r\n");
       return;
     }
     handle_corpse = TRUE;
@@ -11851,29 +11929,16 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
       act(mag_summon_fail_msgs[7], FALSE, ch, 0, 0, TO_CHAR);
       return;
     }
+    if (summon_spell_rejects_holy_room(spellnum) && IS_HOLY(IN_ROOM(ch)))
+    {
+      send_to_char(ch, "This place is too holy for such blasphemy!\r\n");
+      return;
+    }
     handle_corpse = TRUE;
     msg = 12;
     fmsg = rand_number(2, 6); /* Random fail message. */
-    if (CASTER_LEVEL(ch) >= 30)
-    {
-      mob_num = MOB_WIGHT;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 27), CASTER_LEVEL(ch));
-    }
-    else if (CASTER_LEVEL(ch) >= 25)
-    {
-      mob_num = MOB_BANSHEE;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 23), CASTER_LEVEL(ch));
-    }
-    else if (CASTER_LEVEL(ch) >= 20)
-    {
-      mob_num = MOB_SPECTRE;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 19), CASTER_LEVEL(ch));
-    }
-    else
-    {
-      mob_num = MOB_GHOST;
-      mob_level = rand_number(MIN(CASTER_LEVEL(ch) - 1, 15), CASTER_LEVEL(ch));
-    }
+    mob_num = animated_dead_summon_mob(spellnum, level);
+    mob_level = summon_spell_mob_level(spellnum, level);
     pfail = 10; /* 10% failure, should vary in the future. */
 
     break;
@@ -12279,8 +12344,12 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
 
     case SPELL_SUMMON_NATURES_ALLY_8:
     case SPELL_SUMMON_CREATURE_8: // conjuration
-    case SPELL_GREATER_ANIMATION: // necromancy
       GET_LEVEL(mob) = 18;
+      autoroll_mob(mob, TRUE, TRUE);
+      break;
+
+    case SPELL_GREATER_ANIMATION: // necromancy
+      GET_LEVEL(mob) = mob_level;
       autoroll_mob(mob, TRUE, TRUE);
       break;
 
@@ -12440,7 +12509,7 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
         spell_focus_bonus++;
         send_to_char(ch, "*epic spell focus* ");
       }
-      if (ch->char_specials.deathless_touch)
+      if (deathless_touch_empowers_summon(ch, spellnum))
       {
         spell_focus_bonus++;
         send_to_char(ch, "*deathless touch* ");
@@ -12641,7 +12710,9 @@ void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spel
     extract_obj(obj);
   }
 
-  save_char_pets(ch);
+  complete_deathless_touch_summon(ch, spellnum, true);
+  pets_saved = IS_NPC(ch) || save_char_pets(ch);
+  report_summon_persistence_result(ch, pets_saved);
 
   send_to_char(ch, "You can 'dismiss <creature-name>' if you are in the same room, or 'dismiss' "
                    "with no argument to dismiss all your non-present summoned creatures.\r\n");

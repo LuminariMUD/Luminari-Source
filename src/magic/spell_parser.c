@@ -22,6 +22,7 @@
 #include "mud_event.h"
 #include "spec_procs.h"
 #include "character/class.h"
+#include "character/feats.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"
 #include "domains_schools.h"
@@ -52,6 +53,9 @@ const char *unused_wearoff = "!UNUSED WEAROFF!"; /* So we can get &unused_wearof
 /* Local (File Scope) Function Prototypes */
 static void say_spell(struct char_data *ch, int spellnum, struct char_data *tch,
                       struct obj_data *tobj, bool start);
+static int at_will_casting_class(struct char_data *ch, int spellnum);
+static int necromancer_summon_caster_level(struct char_data *ch, int spellnum);
+static bool should_extract_prepared_spell(struct char_data *ch, int spellnum);
 void spello(int spl, const char *name, int max_psp, int min_psp, int psp_change, int minpos,
             int targets, int violent, int routines, const char *wearoff, int time, int memtime,
             int school, bool quest);
@@ -87,6 +91,60 @@ static struct syllable syls[] = {
     {"w", "x"},      {"x", "n"},       {"y", "l"},           {"z", "k"},        {"", ""},
     {"1", "echad"},  {"2", "shtayim"}, {"3", "shelosh"},     {"4", "arba"},     {"5", "chamesh"},
     {"6", "sheish"}, {"7", "shevah"},  {"8", "shmoneh"},     {"9", "teisha"},   {"0", "efes"}};
+
+static int at_will_casting_class(struct char_data *ch, int spellnum)
+{
+  int casting_class;
+
+  if (isPaleMasterMagic(ch, spellnum))
+  {
+    /* Some eligible progression classes do not list these at-will spells. Use
+     * canonical spell metadata while scaling from the selected class below. */
+    return NECROMANCER_CAST_TYPE(ch) == CASTING_TYPE_DIVINE ? CLASS_CLERIC : CLASS_WIZARD;
+  }
+
+  if (isWarlockMagic(ch, spellnum))
+    return CLASS_WARLOCK;
+
+  casting_class = find_cantrip_class(ch, spellnum);
+  return casting_class == CLASS_UNDEFINED ? CLASS_WIZARD : casting_class;
+}
+
+static int necromancer_summon_caster_level(struct char_data *ch, int spellnum)
+{
+  int casting_class;
+
+  if (ch == NULL || !isPaleMasterMagic(ch, spellnum))
+    return 0;
+
+  casting_class = get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
+  if (casting_class == CLASS_UNDEFINED)
+    return CLASS_LEVEL(ch, CLASS_NECROMANCER);
+
+  return CLASS_LEVEL(ch, casting_class) + BONUS_CASTER_LEVEL(ch, casting_class);
+}
+
+static bool should_extract_prepared_spell(struct char_data *ch, int spellnum)
+{
+  return !canCastAtWill(ch, spellnum);
+}
+
+#ifdef LUMINARI_CUTEST
+int test_at_will_casting_class(struct char_data *ch, int spellnum)
+{
+  return at_will_casting_class(ch, spellnum);
+}
+
+int test_necromancer_summon_caster_level(struct char_data *ch, int spellnum)
+{
+  return necromancer_summon_caster_level(ch, spellnum);
+}
+
+bool test_should_extract_prepared_spell(struct char_data *ch, int spellnum)
+{
+  return should_extract_prepared_spell(ch, spellnum);
+}
+#endif
 
 /* may use this for mobs to control their casting
 static int mag_pspcost(struct char_data *ch, int spellnum)
@@ -1867,8 +1925,11 @@ void finishCasting(struct char_data *ch)
       send_to_char(ch, "\tY[Your extract persists longer than expected!]\tn\r\n");
     }
 
-    casting_level =
-        (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch);
+    if (isPaleMasterMagic(ch, spellnum))
+      casting_level = necromancer_summon_caster_level(ch, spellnum);
+    else
+      casting_level =
+          (CASTING_CLASS(ch) == CLASS_PSIONICIST) ? GET_PSIONIC_LEVEL(ch) : CASTER_LEVEL(ch);
     if (CASTING_CLASS(ch) == CLASS_BARD)
       casting_level += get_bard_spellsong_maestra_caster_bonus(ch);
 
@@ -2750,14 +2811,16 @@ will be using for casting this spell */
            * - This requires modification to spell_prep_gen_extract to accept a "free metamagic" flag
            * - Notify player: "You channel your Spell Metamastery to enhance this spell without cost!"
            */
-          ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
-          if (canCastAtWill(ch, spellnum))
+          if (!should_extract_prepared_spell(ch, spellnum))
           {
-            ch_class = CLASS_WIZARD;
-            clevel = GET_LEVEL(ch);
+            ch_class = at_will_casting_class(ch, spellnum);
+            clevel = isPaleMasterMagic(ch, spellnum) ? necromancer_summon_caster_level(ch, spellnum)
+                                                     : GET_LEVEL(ch);
+            CASTING_CLASS(ch) = ch_class;
           }
           else
           {
+            ch_class = spell_prep_gen_extract(ch, spellnum, metamagic);
             if (ch_class == CLASS_UNDEFINED)
             {
               /* Additional safeguard: Log if metamagic spell extraction failed */
@@ -3579,17 +3642,7 @@ return;
     {
       if (canCastAtWill(ch, spellnum))
       {
-        int atwill_class = CLASS_UNDEFINED;
-
-        if (isWarlockMagic(ch, spellnum))
-          atwill_class = CLASS_WARLOCK;
-        else
-          atwill_class = find_cantrip_class(ch, spellnum);
-
-        if (atwill_class == CLASS_UNDEFINED)
-          atwill_class = CLASS_WIZARD;
-
-        GET_CASTING_CLASS(ch) = class_num = atwill_class;
+        GET_CASTING_CLASS(ch) = class_num = at_will_casting_class(ch, spellnum);
       }
       else
         GET_CASTING_CLASS(ch) = class_num;

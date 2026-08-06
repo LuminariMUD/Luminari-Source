@@ -15,6 +15,7 @@
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/craft/craft.h"
 #include "../../src/magic/spells.h"
+#include "../../src/net/protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -396,4 +397,176 @@ void Test_necromancer_touch_command_declares_swift_action(CuTest *tc)
 
   CuAssertTrue(tc, undeath_command >= 0);
   CuAssertIntEquals(tc, ACTION_SWIFT, actions_required);
+}
+
+void Test_necromancer_at_will_summons_skip_prepared_resource_extraction(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  SET_FEAT(&ch, FEAT_SUMMON_UNDEAD, 1);
+  SET_FEAT(&ch, FEAT_SUMMON_GREATER_UNDEAD, 1);
+
+  CuAssertTrue(tc, !test_should_extract_prepared_spell(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertTrue(tc, !test_should_extract_prepared_spell(&ch, SPELL_GREATER_ANIMATION));
+
+  SET_FEAT(&ch, FEAT_SUMMON_UNDEAD, 0);
+  SET_FEAT(&ch, FEAT_SUMMON_GREATER_UNDEAD, 0);
+  CuAssertTrue(tc, test_should_extract_prepared_spell(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertTrue(tc, test_should_extract_prepared_spell(&ch, SPELL_GREATER_ANIMATION));
+}
+
+void Test_necromancer_summon_level_uses_selected_progression(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 9;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 20;
+  CLASS_LEVEL((&ch), CLASS_SORCERER) = 5;
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 4;
+  CLASS_LEVEL((&ch), CLASS_DRUID) = 7;
+  SET_FEAT(&ch, FEAT_SUMMON_UNDEAD, 1);
+
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_ARCANE;
+  GET_PREFERRED_ARCANE((&ch)) = CLASS_SORCERER;
+  CuAssertIntEquals(tc, CLASS_WIZARD, test_at_will_casting_class(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertIntEquals(tc, 14, test_necromancer_summon_caster_level(&ch, SPELL_ANIMATE_DEAD));
+
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_DIVINE;
+  GET_PREFERRED_DIVINE((&ch)) = CLASS_DRUID;
+  CuAssertIntEquals(tc, CLASS_CLERIC, test_at_will_casting_class(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertIntEquals(tc, 16, test_necromancer_summon_caster_level(&ch, SPELL_ANIMATE_DEAD));
+
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_NONE;
+  CuAssertIntEquals(tc, CLASS_WIZARD, test_at_will_casting_class(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertIntEquals(tc, 9, test_necromancer_summon_caster_level(&ch, SPELL_ANIMATE_DEAD));
+}
+
+static void setup_animated_dead_follower(struct char_data *pet, struct follow_type *link,
+                                         struct char_data *master, struct follow_type *next)
+{
+  clear_char(pet);
+  memset(link, 0, sizeof(*link));
+  SET_BIT_AR(MOB_FLAGS(pet), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(pet), MOB_ANIMATED_DEAD);
+  SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+  pet->master = master;
+  link->follower = pet;
+  link->next = next;
+}
+
+void Test_necromancer_animated_undead_admission_has_exact_boundaries(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data first_pet;
+  struct char_data second_pet;
+  struct player_special_data player_specials;
+  struct follow_type first_link;
+  struct follow_type second_link;
+
+  setup_necromancer_character(&ch, &player_specials);
+  setup_animated_dead_follower(&first_pet, &first_link, &ch, NULL);
+  setup_animated_dead_follower(&second_pet, &second_link, &ch, &first_link);
+
+  ch.followers = NULL;
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 0;
+  CuAssertTrue(tc, can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
+  ch.followers = &first_link;
+  CuAssertTrue(tc, !can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
+
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 2;
+  CuAssertTrue(tc, can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
+  ch.followers = &second_link;
+  CuAssertTrue(tc, !can_add_follower_by_flag(&ch, MOB_ANIMATED_DEAD));
+}
+
+void Test_necromancer_animated_undead_tiers_use_supplied_caster_level(CuTest *tc)
+{
+  CuAssertIntEquals(tc, MOB_ZOMBIE, animated_dead_summon_mob(SPELL_ANIMATE_DEAD, 9));
+  CuAssertIntEquals(tc, MOB_GHOUL, animated_dead_summon_mob(SPELL_ANIMATE_DEAD, 10));
+  CuAssertIntEquals(tc, MOB_GIANT_SKELETON, animated_dead_summon_mob(SPELL_ANIMATE_DEAD, 20));
+  CuAssertIntEquals(tc, MOB_MUMMY, animated_dead_summon_mob(SPELL_ANIMATE_DEAD, 30));
+
+  CuAssertIntEquals(tc, MOB_GHOST, animated_dead_summon_mob(SPELL_GREATER_ANIMATION, 19));
+  CuAssertIntEquals(tc, MOB_SPECTRE, animated_dead_summon_mob(SPELL_GREATER_ANIMATION, 20));
+  CuAssertIntEquals(tc, MOB_BANSHEE, animated_dead_summon_mob(SPELL_GREATER_ANIMATION, 25));
+  CuAssertIntEquals(tc, MOB_WIGHT, animated_dead_summon_mob(SPELL_GREATER_ANIMATION, 30));
+
+  CuAssertTrue(tc, summon_spell_rejects_holy_room(SPELL_ANIMATE_DEAD));
+  CuAssertTrue(tc, summon_spell_rejects_holy_room(SPELL_GREATER_ANIMATION));
+}
+
+void Test_necromancer_greater_animation_preserves_scaled_mob_level(CuTest *tc)
+{
+  int caster_levels[] = {19, 20, 25, 30};
+  int minimum_levels[] = {15, 19, 23, 27};
+  int caster_index;
+  int mob_level;
+  int roll;
+  bool valid = true;
+
+  for (caster_index = 0; caster_index < 4; caster_index++)
+  {
+    for (roll = 0; roll < 128; roll++)
+    {
+      mob_level = summon_spell_mob_level(SPELL_GREATER_ANIMATION, caster_levels[caster_index]);
+      if (mob_level < minimum_levels[caster_index] || mob_level > caster_levels[caster_index])
+        valid = false;
+    }
+  }
+
+  CuAssertTrue(tc, valid);
+}
+
+void Test_necromancer_deathless_touch_is_consumed_only_by_successful_undead_summon(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  ch.char_specials.deathless_touch = true;
+
+  CuAssertTrue(tc, test_deathless_touch_empowers_summon(&ch, SPELL_ANIMATE_DEAD));
+  CuAssertTrue(tc, !test_deathless_touch_empowers_summon(&ch, SPELL_MUMMY_DUST));
+
+  test_complete_deathless_touch_summon(&ch, SPELL_ANIMATE_DEAD, false);
+  CuAssertTrue(tc, ch.char_specials.deathless_touch);
+  test_complete_deathless_touch_summon(&ch, SPELL_MUMMY_DUST, true);
+  CuAssertTrue(tc, ch.char_specials.deathless_touch);
+  test_complete_deathless_touch_summon(&ch, SPELL_GREATER_ANIMATION, true);
+  CuAssertTrue(tc, !ch.char_specials.deathless_touch);
+}
+
+void Test_necromancer_summon_persistence_failure_warns_without_rollback(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct player_special_data player_specials;
+  bool warned;
+
+  setup_necromancer_character(&ch, &player_specials);
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  descriptor.bufspace = SMALL_BUFSIZE - 1;
+  descriptor.character = &ch;
+  descriptor.pProtocol = ProtocolCreate();
+  ch.desc = &descriptor;
+
+  if (descriptor.pProtocol == NULL)
+  {
+    ch.desc = NULL;
+    CuFail(tc, "could not initialize the summon persistence warning fixture");
+    return;
+  }
+
+  test_report_summon_persistence_result(&ch, false);
+  warned = strstr(descriptor.output, "summoned follower is active, but could not be saved") != NULL;
+
+  ch.desc = NULL;
+  ProtocolDestroy(descriptor.pProtocol);
+
+  CuAssertTrue(tc, warned);
 }

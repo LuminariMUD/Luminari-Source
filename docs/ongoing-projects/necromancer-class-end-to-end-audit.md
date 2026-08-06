@@ -35,18 +35,18 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-002 | Focused verification passed | Safe kit cardinality and description ownership; ASan/UBSan clean. |
 | NEC-003 | Focused verification passed | Valid attempts spend the correct daily use and swift action; dispatcher and queue enforcement are tested. |
 | NEC-004 | Focused verification passed | Innate cast type, selected progression level, fallback, and `1d4+1` duration are tested. |
-| NEC-005 | Open | At-will resource extraction repair and tests pending. |
-| NEC-006 | Open | Animated-undead follower boundary repair and tests pending. |
-| NEC-007 | Open | Greater Animation final-level repair and tests pending. |
-| NEC-008 | Open | One-shot Deathless Touch consumption repair and tests pending. |
+| NEC-005 | Focused verification passed | At-will summon casts bypass prepared and spontaneous resource extraction. |
+| NEC-006 | Focused verification passed | Non-Necromancers allow one animated undead; Necromancers allow exactly two. |
+| NEC-007 | Focused verification passed | Greater Animation applies its computed tier-scaled mobile level. |
+| NEC-008 | Focused verification passed | Deathless Touch empowers and is consumed by one successful eligible summon. |
 | NEC-009 | Focused verification passed | Every equipped armor material is aggregated independent of slot order. |
 | NEC-010 | Open | Central stun-admission repair and ingress tests pending. |
-| NEC-011 | Open | Holy-room parity repair and tests pending. |
-| NEC-012 | Open | Summon caster-level contract and tests pending. |
+| NEC-011 | Focused verification passed | Animate Dead and Greater Animation share the holy-room rejection policy. |
+| NEC-012 | Focused verification passed | Immediate and delayed casts use the one selected progression for summon tiers. |
 | NEC-013 | Open | Cohort resistance target and point-accounting repair pending. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Sixteen production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | In progress | Twenty-three production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -113,27 +113,47 @@ master checkpoint. This table is updated with every implementation checkpoint.
 - The isolated ASan/UBSan build with leak detection passed all 16 focused
   Necromancer tests with no sanitizer finding.
 
+### Checkpoint 4: animated-undead summon lifecycle
+
+- At-will Necromancer summons are identified before the destructive preparation
+  hook, so neither a prepared copy nor a spontaneous slot is consumed. They
+  remain at-will spells with the normal spoken-cast action, concentration, and
+  failure semantics; failed validation or the ten-percent summon roll consumes
+  no spell resource and leaves the corpse in place.
+- Both immediate and delayed casts now derive their effective level from the one
+  selected Necromancer base progression. The summon routine uses that supplied
+  level for mobile-tier selection instead of the composite all-class caster
+  macro. Legacy characters without an unambiguous selection fall back to their
+  Necromancer class level.
+- Animated-undead admission now counts all matching charmed followers and tests
+  `current < allowance`. Non-Necromancers may control one and Necromancers may
+  control exactly two; the extra allowance no longer spills into other follower
+  flags.
+- Greater Animation applies its calculated tier-scaled mobile level instead of
+  overwriting every result with level 18. It now shares Animate Dead's holy-room
+  rejection policy.
+- Deathless Touch contributes only to Animate Dead or Greater Animation and is
+  cleared after one successful eligible summon. Invalid corpses, holy rooms,
+  random failure, follower-cap rejection, and mobile-load failure retain it.
+- A pet-persistence failure does not destroy an already-created follower or
+  restore an already-consumed corpse. The existing structured error log remains,
+  and the player now receives a warning to save again before disconnecting.
+- Seven additional production-linked tests cover the complete contract above.
+  The normal suite reports 462 runs, 461 passes, and the same unrelated
+  environment failure described above. The isolated ASan/UBSan suite passes all
+  23 focused Necromancer tests with leak detection enabled.
+
 ## Executive verdict
 
 The Necromancer class is registered, selectable when its prerequisites are met,
-and all advertised class feats are assigned at a level. Several passive bonuses
-also work. That wiring is not enough to call the class fully implemented.
+and all advertised class feats are assigned at a level. The original progression,
+Bone Armor, Touch of Undeath, and animated-undead summon blockers now have focused
+production-linked and sanitizer verification.
 
-There are three release-blocking areas:
-
-1. The selected arcane or divine spell progression is not honored by the
-   class-specific caster-level calculation. Necromancer levels advance every
-   eligible base casting class on both sides.
-2. The `bonearmor` conversion path has null-dereference and double-free defects.
-3. Touch of Undeath charges the wrong daily feat, uses conflicting action types,
-   and resolves with the wrong cast-type namespace and the arcane level even for a
-   divine Necromancer.
-
-The two requested summon feats are present and can reach successful follower
-creation, but they are not production-complete. At-will casts can consume a real
-prepared spell or spontaneous slot, the intended second undead is rejected,
-Greater Animation forces every result to level 18, and Deathless Touch's one-shot
-summon enhancement is never consumed.
+The release verdict remains not ready while Tough as Bone's stun admission,
+Undead Cohort evolution accounting, authoritative help, and final build/install
+verification remain open. The original findings below are retained as the audit
+record; the implementation-progress table and checkpoints are the current status.
 
 ## Class registration and progression
 
@@ -158,15 +178,15 @@ bonus class-feat point at level 7, and Undead Appearance for the cohort at level
 | Level | Granted behavior | Audit result |
 |-------|------------------|--------------|
 | 1 | Necromancer weapons; Undead Cohort | Weapons work. Cohort creation works, but evolution resistance assignment is wrong and its point budget is ambiguous. |
-| 2 | Summon Undead | Partially implemented through `animate dead`; see the summon audit. |
+| 2 | Summon Undead | Focused lifecycle verification passed; see Checkpoint 4. |
 | 3 | Ultravision | Implemented through the standard feat visibility check. |
-| 4 | Light armor; Bone Armor rank 1 | Proficiency is wired. Bone conversion is memory-unsafe and its spell-failure condition is incorrect. |
+| 4 | Light armor; Bone Armor rank 1 | Proficiency and the repaired conversion/failure contract have focused verification. |
 | 5 | Deathless Vigor; Weapon Focus: Polearms | Implemented: +4 Fortitude and the weapon-family focus hook are present. |
-| 6 | Undead Graft; Touch of Undeath; Paralyzing Touch | +4 real Strength works. The touch subsystem has blocking accounting and resolution defects. |
-| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon and point grants work. Disease immunity is wired, but stun immunity is bypassed by several direct stun paths. Touch remains defective. |
-| 8 | Medium armor; Bone Armor rank 2; Degenerative Touch | Proficiency is wired. Bone Armor and Touch defects remain. |
-| 9 | Summon Greater Undead; Destructive Touch | Both are reachable, but Greater Animation scaling is broken and Touch remains defective. |
-| 10 | Essence of Undeath; Deathless Touch | Most Essence checks are wired. Deathless Touch's summon empowerment never clears after it is earned. |
+| 6 | Undead Graft; Touch of Undeath; Paralyzing Touch | Strength and the repaired touch execution contract have focused verification. |
+| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon, point, and Touch behavior pass focused checks; direct stun bypasses remain open. |
+| 8 | Medium armor; Bone Armor rank 2; Degenerative Touch | Proficiency, Bone Armor, and Touch behavior pass focused checks. |
+| 9 | Summon Greater Undead; Destructive Touch | Greater Animation scaling and Touch behavior pass focused checks. |
+| 10 | Essence of Undeath; Deathless Touch | Most Essence checks are wired; one-shot summon empowerment passes focused checks. |
 
 ## Prioritized findings
 

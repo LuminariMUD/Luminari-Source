@@ -1179,27 +1179,26 @@ bool can_add_follower_by_flag(struct char_data *ch, int flag)
 {
   struct char_data *pet;
   struct follow_type *k, *next;
-  int undead = 0;
-  int undead_allowed = CLASS_LEVEL(ch, CLASS_NECROMANCER) ? 2 : 1;
+  int matching_followers = 0;
+  int followers_allowed = 1;
 
+  if (ch == NULL)
+    return false;
 
-  /* loop through followers */
+  if (flag == MOB_ANIMATED_DEAD && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0)
+    followers_allowed = 2;
+
+  /* Count current charmed followers with the requested mobile flag. */
   for (k = ch->followers; k; k = next)
   {
     next = k->next;
 
     pet = k->follower;
-    if (IS_PET(pet))
-    {
-      if (MOB_FLAGGED(pet, flag))
-      {
-        undead++;
-        if (undead <= undead_allowed)
-          return false;
-      }
-    }
+    if (pet != NULL && IS_PET(pet) && MOB_FLAGGED(pet, flag))
+      matching_followers++;
   }
-  return true;
+
+  return matching_followers < followers_allowed;
 }
 
 bool can_add_follower(struct char_data *ch, int mob_vnum)
