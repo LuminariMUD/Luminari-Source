@@ -172,6 +172,7 @@ static socket_t init_socket(ush_int port);
 static int new_descriptor(socket_t s);
 static int get_max_players(void);
 static int process_output(struct descriptor_data *t);
+static void retain_unsent_output(struct descriptor_data *t, const char *output, int result);
 static int process_input(struct descriptor_data *t);
 static void timediff(struct timeval *diff, struct timeval *a, struct timeval *b);
 static void timeadd(struct timeval *sum, struct timeval *a, struct timeval *b);
@@ -2868,8 +2869,8 @@ static int process_output(struct descriptor_data *t)
   {
     t->has_prompt = FALSE;
     result = write_to_descriptor(t->descriptor, i);
-    if (result >= 2)
-      result -= 2;
+    if (result > 0)
+      result = MAX(0, result - 2);
   }
   else
     result = write_to_descriptor(t->descriptor, osb);
@@ -2885,6 +2886,22 @@ static int process_output(struct descriptor_data *t)
   if (t->snoop_by)
     write_to_output(t->snoop_by, "%% %*s%%%%", result, t->output);
 
+  retain_unsent_output(t, osb, result);
+  return (result);
+}
+
+/* Retain exactly the portion of an output snapshot that was not accepted by
+ * the kernel. Keep descriptor buffer accounting valid across partial writes. */
+static void retain_unsent_output(struct descriptor_data *t, const char *output, int result)
+{
+  struct txt_block *tmp;
+  size_t output_length;
+  size_t remaining;
+  int pool_count;
+
+  if (t == NULL || output == NULL || result < 0)
+    return;
+
   /* The common case: all saved output was handed off to the kernel buffer. */
   if (result >= t->bufptr)
   {
@@ -2893,8 +2910,8 @@ static int process_output(struct descriptor_data *t)
     if (t->large_outbuf)
     {
       /* Count how many buffers are already in the pool */
-      int pool_count = 0;
-      struct txt_block *tmp = bufpool;
+      pool_count = 0;
+      tmp = bufpool;
       while (tmp)
       {
         pool_count++;
@@ -2923,27 +2940,37 @@ static int process_output(struct descriptor_data *t)
     t->bufptr = 0;
     *(t->output) = '\0';
 
-    /* If the overflow message or prompt were partially written, try to save
-     * them. There will be enough space for them if this is true.  'result'
-     * is effectively unsigned here anyway. */
-    if ((unsigned int)result < strlen(osb))
+    /* If a generated overflow message or prompt was only partly written,
+     * preserve its remaining suffix in the small output buffer. */
+    output_length = strlen(output);
+    if ((size_t)result < output_length)
     {
-      size_t savetextlen = strlen(osb + result);
-
-      strcat(t->output, osb + result);
-      t->bufptr -= savetextlen;
-      t->bufspace += savetextlen;
+      remaining = output_length - (size_t)result;
+      if (remaining >= SMALL_BUFSIZE)
+        remaining = SMALL_BUFSIZE - 1;
+      memcpy(t->output, output + result, remaining);
+      t->output[remaining] = '\0';
+      t->bufptr = (int)remaining;
+      t->bufspace = SMALL_BUFSIZE - 1 - t->bufptr;
     }
   }
   else
   {
     /* Not all data in buffer sent.  result < output buffersize. */
-    strcpy(t->output, t->output + result); /* strcpy: OK (overlap) */
-    t->bufptr -= result;
+    remaining = (size_t)(t->bufptr - result);
+    memmove(t->output, t->output + result, remaining);
+    t->output[remaining] = '\0';
+    t->bufptr = (int)remaining;
     t->bufspace += result;
   }
-  return (result);
 }
+
+#if defined(LUMINARI_CUTEST)
+void comm_test_retain_unsent_output(struct descriptor_data *t, const char *output, int result)
+{
+  retain_unsent_output(t, output, result);
+}
+#endif
 
 /* perform_socket_write: takes a descriptor, a pointer to text, and a
  * text length, and tries once to send that text to the OS.  This is

@@ -31,9 +31,10 @@ Status meanings:
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
-| Production-linked regression coverage | Verified | All 441 tests pass with the development database enabled. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, and copyover pinning to the running release. |
+| Production-linked regression coverage | Verified | All 442 tests pass in the ordinary suite; the last database-enabled run passed all 441 tests before the output-path regression was added. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, copyover pinning, and partial output writes. |
 | Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
 | Deployment and crash observability | In progress | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
+| Incident-window periodic path audit | In progress | The output path contained a confirmed partial-write accounting defect: one branch used overlapping `strcpy`, while another subtracted retained prompt bytes from a zero buffer pointer and added them to free space. The repair uses bounded `memcpy`/`memmove`, restores exact counters, and has production-linked regression coverage. I3, terrain, event, and affect review remains. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -146,7 +147,18 @@ Status meanings:
   suite with the development MariaDB fixture and ten complete pet snapshot
   loops both pass all 441 tests. The supervision and immutable installer shell
   suites also pass. Changed copyover production objects compile warning-free.
-- Next checkpoint: complete focused code audit of the other incident-window
+- Supervisor/crash checkpoint commit: `90899995` (`Pin crash diagnostics to
+  exact releases`), pushed to `origin/master`.
+- Partial-output audit checkpoint: `process_output()` used overlapping
+  `strcpy()` when a socket accepted only part of queued output. If the socket
+  accepted all queued output but only part of an appended prompt or overflow
+  message, the code then subtracted the retained suffix length from a zero
+  `bufptr` and added it to `bufspace`. The next ordinary formatted output could
+  consequently address memory before the descriptor output buffer. The repair
+  uses bounded copies and exact buffer accounting for both partial-write cases;
+  a production-linked regression proves the retained content and a subsequent
+  append. The ordinary suite passes all 442 tests.
+- Next checkpoint: complete focused code audit of the remaining incident-window
   periodic paths, run all build/test gates available after the concurrent
   source blocker clears, and finalize the production operator checklist.
 

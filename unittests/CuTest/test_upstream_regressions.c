@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/act.h"
+#include "../../src/comm.h"
 #include "../../src/handler.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
@@ -14,6 +15,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+void Test_partial_output_writes_preserve_buffer_accounting(CuTest *tc)
+{
+  struct descriptor_data descriptor;
+
+  memset(&descriptor, 0, sizeof(descriptor));
+  descriptor.output = descriptor.small_outbuf;
+  strlcpy(descriptor.output, "abcdef", sizeof(descriptor.small_outbuf));
+  descriptor.bufptr = 6;
+  descriptor.bufspace = SMALL_BUFSIZE - 1 - descriptor.bufptr;
+
+  comm_test_retain_unsent_output(&descriptor, "abcdef", 2);
+  CuAssertStrEquals(tc, "cdef", descriptor.output);
+  CuAssertIntEquals(tc, 4, descriptor.bufptr);
+  CuAssertIntEquals(tc, SMALL_BUFSIZE - 5, descriptor.bufspace);
+
+  strlcpy(descriptor.output, "abcdef", sizeof(descriptor.small_outbuf));
+  descriptor.bufptr = 6;
+  descriptor.bufspace = SMALL_BUFSIZE - 1 - descriptor.bufptr;
+
+  comm_test_retain_unsent_output(&descriptor, "abcdef> ", 6);
+  CuAssertStrEquals(tc, "> ", descriptor.output);
+  CuAssertIntEquals(tc, 2, descriptor.bufptr);
+  CuAssertIntEquals(tc, SMALL_BUFSIZE - 3, descriptor.bufspace);
+  CuAssertTrue(tc, write_to_output_raw_atomic(&descriptor, "next", 4, 0));
+  CuAssertStrEquals(tc, "> next", descriptor.output);
+  CuAssertIntEquals(tc, 6, descriptor.bufptr);
+  CuAssertIntEquals(tc, SMALL_BUFSIZE - 7, descriptor.bufspace);
+}
 
 void Test_upstream_random_generator_sequence(CuTest *tc)
 {
