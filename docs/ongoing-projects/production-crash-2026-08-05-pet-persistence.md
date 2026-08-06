@@ -1,10 +1,49 @@
 # Production Crash and Pet Persistence Investigation
 
-Status: Investigated - crash site unlocalized; production containment and repair pending
+Status: Development repair in progress; production containment remains operator-owned
 
 Incident: 2026-08-05 20:38:58-20:38:59 UTC
 
 Investigation date: 2026-08-06
+
+Repair started: 2026-08-06
+
+## Development Repair Progress
+
+The repair is being implemented and verified in the development checkout. The
+production host remains out of scope for changes; production containment,
+backup, schema application, recovery, restart, and validation remain explicit
+operator actions.
+
+Status meanings:
+
+- `Verified`: implemented and covered by the named local evidence.
+- `In progress`: implementation or task-specific verification is underway.
+- `Pending`: no repair evidence has been recorded yet.
+- `Operator action`: intentionally not performed from the development checkout.
+
+| Work item | Status | Current evidence and remaining work |
+|-----------|--------|-------------------------------------|
+| Development environment safety | Verified | `lib/.env` reports `APP_ENV=development`; no production write or configuration action has been performed. |
+| Legacy-schema reproduction | Verified | The local development database has InnoDB `pet_data` and `pet_save_objs` tables but no `pet_data.runtime_state`, no `schema_migrations` table, and no owner indexes. |
+| Unconditional versioned migration | In progress | Startup currently reaches migrations only through help-table initialization. Add an unconditional pet migration, make it idempotent, and record it independently of help migrations. |
+| Schema contract and fail-closed startup | Pending | Verify required pet tables, column types, engines, primary keys, and owner indexes after migration; boot must not report success or enter the world with an invalid pet persistence contract. |
+| Atomic owner snapshot save | Pending | Make pet rows and pet-object rows one transaction, propagate every serialization and object-save failure, and preserve the previous committed snapshot on rollback. |
+| Bounded failure logging | Pending | Remove full failed INSERT payload logging and replace it with bounded owner, pet VNUM, database error code, and migration version context. |
+| Save-churn reduction | Pending | Add a safe dirty/interval policy without allowing logout, extraction, combat, spell, or administrative save sites to lose a changed snapshot. |
+| Production-linked regression coverage | Pending | Cover legacy migration, idempotence, schema rejection, rollback at each query/object failure, multiple followers, equipment rows, and prior-row preservation. |
+| Memory reproduction and diagnostics | Pending | Exercise repeated timed-affect saves, forced failures, equipment, multiple followers, and lifecycle transitions under ASan/UBSan and Valgrind; preserve exact commands and results. |
+| Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
+| Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
+
+### Repair Checkpoints
+
+- Baseline checkpoint: traced startup, schema verification, pet row save/load,
+  pet-object serialization, and database wrappers at `b0a61a8d`. The unrelated
+  local deletion of `docs/ongoing-projects/syntax-check-event-init-order.md`
+  predates this repair and is excluded from repair commits.
+- Next checkpoint: implement and locally prove the unconditional migration and
+  fail-closed pet schema contract before changing the save transaction.
 
 ## Scope and Safety
 
