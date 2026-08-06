@@ -587,6 +587,7 @@ set(SRC_C_FILES
     src/olc/sedit.c
     src/obj/shop.c
     src/combat/spec_abilities.c
+    src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c
     src/obj/spec_artifacts.c
@@ -1007,6 +1008,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_world_loading_production.c
     unittests/CuTest/test_spec_fixtures.c
     unittests/CuTest/test_spec_registry_persistence.c
+    unittests/CuTest/test_spec_registry_validation.c
     unittests/CuTest/test_spec_command_pulse.c
     unittests/CuTest/test_spec_combat_secondary.c
     unittests/CuTest/test_gameplay_e2e.c

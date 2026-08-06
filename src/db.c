@@ -29,6 +29,7 @@
 #include "ban.h"
 #include "obj/treasure.h"
 #include "spec_procs.h"
+#include "spec/spec_registry.h"
 #include "olc/genzon.h"
 #include "olc/genolc.h"
 #include "olc/genobj.h" /* for free_object_strings */
@@ -1166,6 +1167,9 @@ void boot_db(void)
 
   log("Initializing object rnum hash table.");
   init_obj_rnum_hash();
+
+  log("Validating special-procedure definitions.");
+  spec_registry_boot_validate();
 
   boot_world();
 

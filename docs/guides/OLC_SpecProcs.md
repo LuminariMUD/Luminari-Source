@@ -4,7 +4,7 @@ This note explains how builders can assign and persist special procedures (SpecP
 
 ## Overview
 - New menu option in all three editors: `Z) SpecProc`.
-- Select from the centralized registry (defined in `src/spec_assign.c` via `spec_func_list[]`).
+- Select from the centralized registry defined in `src/spec/spec_registry.c`.
 - Selections apply at save time and now persist across reboots via world files.
 
 ## Usage (medit/oedit/redit)
@@ -32,14 +32,19 @@ The selected SpecProc is stored by name and resolved at boot.
 If the name isn't recognized in the SpecProc registry, the function won't be assigned at boot.
 
 ## Notes and Tips
-- Names must match entries in `spec_func_list[]` (see `src/spec_assign.c`).
-- Some SpecProcs are intended for specific types (mob/object/room). Assigning a mismatched SpecProc won't crash, but may do nothing.
+- Names must match a canonical name or explicit alias in `src/spec/spec_registry.c`.
+- The registry records compatible mob, object, and room types plus event prerequisites. The current
+  selector still displays its historical compatibility list; owner-aware filtering is not yet
+  applied by these menus, so avoid selecting a procedure for an incompatible owner type.
+- Registry metadata is validated before world parsing. An invalid registry is a programmer error
+  that stops boot; an unknown persisted name remains a content error and is not assigned.
 - Clearing a SpecProc removes the corresponding lines from the world file on next save.
 - The selector is 1-based; `0` always clears.
 
 ## Troubleshooting
 - Change not taking effect after save: ensure the zone was saved and the game reloaded the zone or rebooted.
-- Persistence missing after reboot: verify the saved name exists in `spec_func_list[]` and has not been renamed.
+- Persistence missing after reboot: verify the saved name is a canonical name or alias in the
+  definition registry and has not been renamed.
 - File merge conflicts: the `SpecProc`/`Z` entries are safe to keep; ensure the SpecProc name remains on its own line as shown above.
 
 ## Examples

@@ -24,6 +24,80 @@ The `--dev` flag enables:
 
 This guide provides comprehensive information for developers working on LuminariMUD, including coding standards, architecture patterns, API references, and contribution workflows. It covers both core engine development and content creation.
 
+## Special-Procedure Definition Registry
+
+Special procedures registered for world data and OLC are defined in
+`src/spec/spec_registry.c`. Public metadata and accessors are declared in
+`src/spec/spec_registry.h`. Assignment code remains in `src/spec_assign.c`, and runtime invocation
+continues to use the legacy `SPECIAL` callback ABI:
+
+```c
+int handler(struct char_data *ch, void *me, int cmd, const char *argument);
+```
+
+### Definition Contract
+
+Each immutable `struct spec_definition` declares:
+
+- a stable `canonical_name` used for persistence and reverse lookup;
+- a separate builder-facing `display_name` and explicit aliases;
+- compatible mobile, object, or room owner bits;
+- one or more event contracts, including prototype and placement prerequisites;
+- permitted binding sources and explicit builder visibility;
+- a non-empty category and description; and
+- exactly one legacy or typed handler.
+
+The current event catalog covers command dispatch, mobile activity, mobile combat turns, object
+auto-pulses, item identification, weapon hits, defense reactions, combat maneuvers, mounted charge,
+and moving-room relocation. Shop and quest secondary callbacks preserve an incoming command context
+and therefore remain compatibility composition around these definitions rather than separate event
+values.
+
+`spec_registry_boot_validate()` runs in `boot_db()` before `boot_world()`. Invalid programmer
+metadata terminates startup with a `SYSERR` diagnostic before MySQL world initialization or any
+world file is parsed. Validation rejects missing required text, case-insensitive name or alias
+collisions, invalid masks, incompatible owner/event combinations, missing event prerequisites,
+duplicate events, invalid visibility, and handlerless or dual-handler definitions.
+
+### Lookup APIs
+
+Use the canonical API for new engine code:
+
+```c
+const struct spec_definition *definition;
+
+definition = spec_registry_find_for_owner("Bank", SPEC_OWNER_OBJECT);
+if (definition != NULL &&
+    spec_definition_supports_event(definition, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND))
+{
+  /* The name, owner, and event contract are compatible. */
+}
+```
+
+- `spec_registry_count()` and `spec_registry_get()` iterate canonical definitions only.
+- `spec_registry_find_by_name()` resolves canonical names and aliases case-insensitively.
+- `spec_registry_find_for_owner()` also requires exactly one compatible owner type.
+- `spec_registry_find_by_handler()` returns the first canonical identity for a legacy callback.
+- `spec_definition_get_event()` exposes the prerequisites for one supported event.
+- `spec_definition_allows_binding()` checks one binding source at a time.
+
+All indexed and bitmask accessors reject invalid or multi-bit query values. Returned definitions,
+event contracts, aliases, and strings are process-lifetime immutable data and must not be freed or
+modified.
+
+### Compatibility Surface
+
+The established functions in `spec_procs.h` remain available to world loaders and the current OLC
+editors. They expose the historical 29-name order even though the canonical registry contains 28
+definitions. `Guild` is the canonical identity, `Guildmaster` is its explicit alias, both names
+resolve to `guild`, and handler reverse lookup always returns `Guild`.
+
+When adding a registered procedure, add its handler declaration, immutable definition metadata, and
+event contracts in `src/spec/spec_registry.c`; update the compatibility projection only when a new
+persisted/OLC name is required. Add production-linked validation coverage and update both
+`Makefile.am` and `CMakeLists.txt` if any source file is added or removed. Do not rename a canonical
+identity without a separately tested content migration.
+
 ## Development Environment Setup
 
 ### Automated Setup (Recommended)

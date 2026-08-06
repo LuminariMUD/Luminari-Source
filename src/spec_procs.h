@@ -60,7 +60,7 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /****************************************************************************/
 
 /* Special functions */
-/** !!MAKE SURE TO ADD TO: spec_func_list!!!  **/
+/** Procedures exposed through world persistence or OLC also need registry metadata. **/
 
 /* a-c */
 SPECIAL_DECL(abyss_randomizer);
@@ -255,6 +255,6 @@ SPECIAL_DECL(ymir_cloak);
 SPECIAL_DECL(greyhawk_ship_object);
 SPECIAL_DECL(greyhawk_ship_commands);
 
-/** !!MAKE SURE TO ADD TO: spec_func_list!!!  **/
+/** Procedures exposed through world persistence or OLC also need registry metadata. **/
 
 #endif /* _SPEC_PROCS_H_ */

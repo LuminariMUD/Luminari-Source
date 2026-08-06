@@ -16,7 +16,8 @@
   "completed_sessions": [
     "phase00-session01-registry-and-persistence-characterization",
     "phase00-session02-command-and-pulse-characterization",
-    "phase00-session03-combat-and-secondary-characterization"
+    "phase00-session03-combat-and-secondary-characterization",
+    "phase00-session04-validated-definition-registry"
   ],
   "next_session_history": [
     {
@@ -62,6 +63,21 @@
     {
       "date": "2026-08-06",
       "session": "phase00-session03-combat-and-secondary-characterization",
+      "status": "completed"
+    },
+    {
+      "date": "2026-08-06",
+      "session": "phase00-session04-validated-definition-registry",
+      "status": "planned"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session04-validated-definition-registry",
+      "status": "validated"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session04-validated-definition-registry",
       "status": "completed"
     }
   ]
