@@ -10,6 +10,7 @@
 #include "../../src/olc/oasis.h"
 #include "../../src/olc/spec_menu.h"
 #include "../../src/net/protocol.h"
+#include "../../src/spec/spec_binding.h"
 #include "../../src/spec_procs.h"
 #include "test_spec_fixtures.h"
 
@@ -37,39 +38,39 @@ struct spec_test_child_result
   char error[SPEC_TEST_CHILD_ERROR_SIZE];
 };
 
-static const char spec_test_mobile_record[] = "postmaster~\n"
-                                              "the test postmaster~\n"
-                                              "The test postmaster is here.\n~\n"
-                                              "A test postmaster.\n~\n"
-                                              "0 0 0 0 0 0 0 0 0 E\n"
-                                              "1 20 10 1d1+0 1d1+0\n"
-                                              "0 0\n"
-                                              "8 8 0\n"
-                                              "SpecProc: Postmaster\n"
-                                              "DR_MOD: 0\n"
-                                              "E\n"
-                                              "$~\n";
+static const char spec_test_mobile_record_format[] = "postmaster~\n"
+                                                     "the test postmaster~\n"
+                                                     "The test postmaster is here.\n~\n"
+                                                     "A test postmaster.\n~\n"
+                                                     "0 0 0 0 0 0 0 0 0 E\n"
+                                                     "1 20 10 1d1+0 1d1+0\n"
+                                                     "0 0\n"
+                                                     "8 8 0\n"
+                                                     "SpecProc: %s\n"
+                                                     "DR_MOD: 0\n"
+                                                     "E\n"
+                                                     "$~\n";
 
-static const char spec_test_object_record[] = "test vessel~\n"
-                                              "a test vessel~\n"
-                                              "A test vessel is here.~\n"
-                                              "~\n"
-                                              "12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
-                                              "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
-                                              "1 0 0 1 0\n"
-                                              "Z\n"
-                                              "Greyhawk Ship\n"
-                                              "$~\n";
+static const char spec_test_object_record_format[] = "test vessel~\n"
+                                                     "a test vessel~\n"
+                                                     "A test vessel is here.~\n"
+                                                     "~\n"
+                                                     "12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+                                                     "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n"
+                                                     "1 0 0 1 0\n"
+                                                     "Z\n"
+                                                     "%s\n"
+                                                     "$~\n";
 
-static const char spec_test_room_record[] = "A Test Vessel Room~\n"
-                                            "A test vessel room.\n~\n"
-                                            "14 0 0 0 0 0\n"
-                                            "C\n"
-                                            "0 0\n"
-                                            "Z\n"
-                                            "Greyhawk Ship Commands\n"
-                                            "S\n"
-                                            "$~\n";
+static const char spec_test_room_record_format[] = "A Test Vessel Room~\n"
+                                                   "A test vessel room.\n~\n"
+                                                   "14 0 0 0 0 0\n"
+                                                   "C\n"
+                                                   "0 0\n"
+                                                   "Z\n"
+                                                   "%s\n"
+                                                   "S\n"
+                                                   "$~\n";
 
 struct spec_test_fixture
 {
@@ -107,6 +108,8 @@ struct spec_test_fixture
   bool object_loaded;
   bool room_loaded;
   bool sandbox_created;
+  bool olc_subject_owned;
+  enum spec_test_owner olc_subject_owner;
 };
 
 static void spec_test_set_error(char *error, size_t error_size, const char *message)
@@ -490,27 +493,90 @@ static FILE *spec_test_open_record(const char *record, char *error, size_t error
   return file;
 }
 
+static FILE *spec_test_open_named_record(const char *format, const char *name, char *error,
+                                         size_t error_size)
+{
+  char record[MAX_STRING_LENGTH];
+  int length;
+
+  if (format == NULL || name == NULL || strchr(name, '\n') != NULL || strchr(name, '\r') != NULL)
+  {
+    spec_test_set_error(error, error_size, "invalid named world record input");
+    return NULL;
+  }
+
+  length = snprintf(record, sizeof(record), format, name);
+  if (length < 0 || (size_t)length >= sizeof(record))
+  {
+    spec_test_set_error(error, error_size, "named world record is too large");
+    return NULL;
+  }
+
+  return spec_test_open_record(record, error, error_size);
+}
+
 static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
 {
   if (fixture->mobile_loaded)
   {
+    spec_binding_free(&fixture->test_mob_index[0].spec_binding);
     free_mobile_strings(&fixture->test_mob_proto[0]);
     fixture->mobile_loaded = false;
   }
 
   if (fixture->object_loaded)
   {
+    spec_binding_free(&fixture->test_obj_index[0].spec_binding);
     free_object_strings(&fixture->test_obj_proto[0]);
     fixture->object_loaded = false;
   }
 
   if (fixture->room_loaded)
   {
+    spec_binding_free(&fixture->test_world[0].spec_binding);
     free_room_strings(&fixture->test_world[0]);
     free_trail_data_list(fixture->test_world[0].trail_tracks);
     fixture->test_world[0].trail_tracks = NULL;
     fixture->room_loaded = false;
   }
+}
+
+static void spec_test_release_olc_subject(struct spec_test_fixture *fixture)
+{
+  if (fixture == NULL || !fixture->olc_subject_owned)
+    return;
+
+  switch (fixture->olc_subject_owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    free_mobile(fixture->olc.mob);
+    fixture->olc.mob = NULL;
+    break;
+  case SPEC_TEST_OWNER_OBJECT:
+    if (fixture->olc.obj != NULL)
+    {
+      free_object_strings(fixture->olc.obj);
+      free(fixture->olc.obj);
+      fixture->olc.obj = NULL;
+    }
+    break;
+  case SPEC_TEST_OWNER_ROOM:
+    if (fixture->olc.room != NULL)
+    {
+      if (CONFIG_WILDERNESS_SYSTEM != 2 && fixture->olc.room->trail_tracks != NULL)
+      {
+        free_trail_data_list(fixture->olc.room->trail_tracks);
+        fixture->olc.room->trail_tracks = NULL;
+      }
+      free_room(fixture->olc.room);
+      fixture->olc.room = NULL;
+    }
+    break;
+  case SPEC_TEST_OWNER_COUNT:
+    break;
+  }
+
+  fixture->olc_subject_owned = false;
 }
 
 static void spec_test_restore_globals(const struct spec_test_fixture *fixture)
@@ -663,6 +729,10 @@ bool spec_test_fixture_destroy(struct spec_test_fixture *fixture, char *error, s
     success = false;
   }
 
+  spec_test_release_olc_subject(fixture);
+  spec_binding_free(&fixture->olc.specmob_binding);
+  spec_binding_free(&fixture->olc.specobj_binding);
+  spec_binding_free(&fixture->olc.specroom_binding);
   spec_test_free_loaded_data(fixture);
   spec_test_restore_globals(fixture);
 
@@ -690,6 +760,14 @@ bool spec_test_fixture_destroy(struct spec_test_fixture *fixture, char *error, s
 bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, char *error,
                                            size_t error_size)
 {
+  return spec_test_fixture_load_binding_names(fixture, "Postmaster", "Greyhawk Ship",
+                                              "Greyhawk Ship Commands", error, error_size);
+}
+
+bool spec_test_fixture_load_binding_names(struct spec_test_fixture *fixture,
+                                          const char *mobile_name, const char *object_name,
+                                          const char *room_name, char *error, size_t error_size)
+{
   FILE *record;
 
   if (error != NULL && error_size > 0)
@@ -705,7 +783,8 @@ bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, ch
     return false;
   }
 
-  record = spec_test_open_record(spec_test_mobile_record, error, error_size);
+  record =
+      spec_test_open_named_record(spec_test_mobile_record_format, mobile_name, error, error_size);
   if (record == NULL)
     return false;
   parse_mobile(record, SPEC_TEST_MOBILE_VNUM);
@@ -716,7 +795,8 @@ bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, ch
     return false;
   }
 
-  record = spec_test_open_record(spec_test_object_record, error, error_size);
+  record =
+      spec_test_open_named_record(spec_test_object_record_format, object_name, error, error_size);
   if (record == NULL)
     return false;
   parse_object(record, SPEC_TEST_OBJECT_VNUM);
@@ -727,7 +807,7 @@ bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, ch
     return false;
   }
 
-  record = spec_test_open_record(spec_test_room_record, error, error_size);
+  record = spec_test_open_named_record(spec_test_room_record_format, room_name, error, error_size);
   if (record == NULL)
     return false;
   parse_room(record, SPEC_TEST_ROOM_VNUM, "special-procedure test fixture");
@@ -739,6 +819,27 @@ bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, ch
   }
 
   return true;
+}
+
+const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_test_fixture *fixture,
+                                                            enum spec_test_owner owner)
+{
+  if (fixture == NULL)
+    return NULL;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    return fixture->mobile_loaded ? fixture->test_mob_index[0].spec_binding : NULL;
+  case SPEC_TEST_OWNER_OBJECT:
+    return fixture->object_loaded ? fixture->test_obj_index[0].spec_binding : NULL;
+  case SPEC_TEST_OWNER_ROOM:
+    return fixture->room_loaded ? fixture->test_world[0].spec_binding : NULL;
+  case SPEC_TEST_OWNER_COUNT:
+    return NULL;
+  }
+
+  return NULL;
 }
 
 SPECIAL_DECL(*spec_test_fixture_loaded_handler(const struct spec_test_fixture *fixture,
@@ -827,6 +928,10 @@ bool spec_test_fixture_reset_olc(struct spec_test_fixture *fixture, enum spec_te
   if (fixture == NULL)
     return false;
 
+  spec_test_release_olc_subject(fixture);
+  spec_binding_free(&fixture->olc.specmob_binding);
+  spec_binding_free(&fixture->olc.specobj_binding);
+  spec_binding_free(&fixture->olc.specroom_binding);
   memset(&fixture->olc, 0, sizeof(fixture->olc));
   fixture->descriptor.olc = &fixture->olc;
   spec_test_reset_output(fixture);
@@ -863,6 +968,107 @@ bool spec_test_fixture_reset_olc(struct spec_test_fixture *fixture, enum spec_te
   }
 
   return true;
+}
+
+bool spec_test_fixture_setup_existing_olc(struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner, char *error,
+                                          size_t error_size)
+{
+  if (error != NULL && error_size > 0)
+    error[0] = '\0';
+  if (fixture == NULL)
+  {
+    spec_test_set_error(error, error_size, "cannot set up OLC on a null fixture");
+    return false;
+  }
+
+  spec_test_release_olc_subject(fixture);
+  spec_binding_free(&fixture->olc.specmob_binding);
+  spec_binding_free(&fixture->olc.specobj_binding);
+  spec_binding_free(&fixture->olc.specroom_binding);
+  memset(&fixture->olc, 0, sizeof(fixture->olc));
+  fixture->descriptor.olc = &fixture->olc;
+  spec_test_reset_output(fixture);
+  fixture->olc_subject_owner = owner;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    if (!fixture->mobile_loaded)
+      break;
+    fixture->olc.number = SPEC_TEST_MOBILE_VNUM;
+    medit_setup_existing(&fixture->descriptor, 0, QMODE_NONE);
+    fixture->olc.mode = MEDIT_SPEC_PROC;
+    fixture->olc_subject_owned = fixture->olc.mob != NULL;
+    return fixture->olc_subject_owned;
+  case SPEC_TEST_OWNER_OBJECT:
+    if (!fixture->object_loaded)
+      break;
+    fixture->olc.number = SPEC_TEST_OBJECT_VNUM;
+    oedit_setup_existing(&fixture->descriptor, 0, QMODE_NONE);
+    fixture->olc.mode = OEDIT_SPEC_PROC;
+    fixture->olc_subject_owned = fixture->olc.obj != NULL;
+    return fixture->olc_subject_owned;
+  case SPEC_TEST_OWNER_ROOM:
+    if (!fixture->room_loaded)
+      break;
+    fixture->olc.zone_num = 1;
+    fixture->olc.number = SPEC_TEST_ROOM_VNUM;
+    redit_setup_existing(&fixture->descriptor, 0, QMODE_NONE);
+    fixture->olc.mode = REDIT_SPEC_PROC;
+    fixture->olc_subject_owned = fixture->olc.room != NULL;
+    return fixture->olc_subject_owned;
+  case SPEC_TEST_OWNER_COUNT:
+    break;
+  }
+
+  spec_test_set_error(error, error_size, "requested OLC prototype is not loaded");
+  return false;
+}
+
+bool spec_test_fixture_save_current_olc(struct spec_test_fixture *fixture,
+                                        enum spec_test_owner owner)
+{
+  if (fixture == NULL || !fixture->olc_subject_owned || fixture->olc_subject_owner != owner)
+    return false;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    medit_save_internally(&fixture->descriptor);
+    return true;
+  case SPEC_TEST_OWNER_OBJECT:
+    oedit_save_internally(&fixture->descriptor);
+    return true;
+  case SPEC_TEST_OWNER_ROOM:
+    redit_save_internally(&fixture->descriptor);
+    return true;
+  case SPEC_TEST_OWNER_COUNT:
+    return false;
+  }
+
+  return false;
+}
+
+const struct spec_binding *spec_test_fixture_olc_binding(const struct spec_test_fixture *fixture,
+                                                         enum spec_test_owner owner)
+{
+  if (fixture == NULL)
+    return NULL;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    return fixture->olc.specmob_binding;
+  case SPEC_TEST_OWNER_OBJECT:
+    return fixture->olc.specobj_binding;
+  case SPEC_TEST_OWNER_ROOM:
+    return fixture->olc.specroom_binding;
+  case SPEC_TEST_OWNER_COUNT:
+    return NULL;
+  }
+
+  return NULL;
 }
 
 bool spec_test_fixture_parse_olc(struct spec_test_fixture *fixture, enum spec_test_owner owner,

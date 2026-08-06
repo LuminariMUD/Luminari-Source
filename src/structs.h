@@ -6125,6 +6125,7 @@ struct raff_node
 
 /* From trails.h */
 struct trail_data_list;
+struct spec_binding;
 
 /** The Room Structure. */
 struct room_data
@@ -6142,6 +6143,7 @@ struct room_data
   byte light;                                          /**< Number of lightsources in room */
   byte globe;                                          /**< Number of darkness sources in room */
   SPECIAL_DECL(*func);                  /**< Points to special function attached to room */
+  struct spec_binding *spec_binding;    /**< Owned authored special-procedure binding */
   struct trig_proto_list *proto_script; /**< list of default triggers */
   struct script_data *script;           /**< script info for the room */
   struct obj_data *contents;            /**< List of items in room */
@@ -7712,8 +7714,9 @@ struct index_data
      * the source code. */
   SPECIAL_DECL(*func);
 
-  char *farg;              /**< String argument for special function. */
-  struct trig_data *proto; /**< Points to the trigger prototype. */
+  struct spec_binding *spec_binding; /**< Owned authored special-procedure binding. */
+  char *farg;                        /**< String argument for special function. */
+  struct trig_data *proto;           /**< Points to the trigger prototype. */
 };
 
 /** Master linked list for the mob/object prototype trigger lists. */

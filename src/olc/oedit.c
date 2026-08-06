@@ -34,6 +34,7 @@
 #include "act.h"          /* get_eq_score() */
 #include "character/feats.h"
 #include "handler.h"
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 #include "spec_menu.h"
 
@@ -246,6 +247,7 @@ static void oedit_setup_new(struct descriptor_data *d)
 void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode __attribute__((unused)))
 {
   struct obj_data *obj;
+  char binding_error[256];
 
   /* Allocate object in memory. */
   CREATE(obj, struct obj_data, 1);
@@ -262,7 +264,14 @@ void oedit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
   OLC_OBJ(d)->proto_script = NULL;
   /* Initialize current spec proc selection from prototype index */
   if (real_num != (int)NOTHING)
+  {
     OLC(d)->specobj = obj_index[real_num].func;
+    if (!spec_binding_copy(&OLC_SPECOBJ_BINDING(d), obj_index[real_num].spec_binding, binding_error,
+                           sizeof(binding_error)))
+      log("SYSERR: oedit_setup_existing: Unable to copy authored binding: %s", binding_error);
+    else if (OLC_SPECOBJ_BINDING(d) != NULL)
+      OLC_SPECOBJ_BINDING(d)->prototype_vnum = OLC_NUM(d);
+  }
 }
 
 void oedit_save_internally(struct descriptor_data *d)
@@ -271,14 +280,30 @@ void oedit_save_internally(struct descriptor_data *d)
   obj_rnum robj_num;
   struct descriptor_data *dsc;
   struct obj_data *obj;
+  struct spec_binding *binding_copy = NULL;
+  char binding_error[256];
 
   i = (real_object(OLC_NUM(d)) == NOTHING);
+
+  if (!spec_binding_copy(&binding_copy, OLC_SPECOBJ_BINDING(d), binding_error,
+                         sizeof(binding_error)))
+  {
+    log("SYSERR: oedit_save_internally: Unable to prepare authored binding: %s", binding_error);
+    write_to_output(d, "Unable to save the special-procedure binding.\r\n");
+    return;
+  }
+  if (binding_copy != NULL)
+    binding_copy->prototype_vnum = OLC_NUM(d);
 
   if ((robj_num = add_object(OLC_OBJ(d), OLC_NUM(d))) == NOTHING)
   {
     log("oedit_save_internally: add_object failed.");
+    spec_binding_free(&binding_copy);
     return;
   }
+
+  spec_binding_free(&obj_index[robj_num].spec_binding);
+  obj_index[robj_num].spec_binding = binding_copy;
 
   /* Apply selected spec proc to prototype index */
   obj_index[robj_num].func = OLC(d)->specobj;
@@ -2090,6 +2115,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
     selection_result = spec_olc_parse_selection(SPEC_OWNER_OBJECT, arg, &definition);
     if (selection_result == SPEC_OLC_SELECTION_CLEAR)
     {
+      spec_binding_free(&OLC_SPECOBJ_BINDING(d));
       OLC(d)->specobj = NULL;
       OLC_VAL(d) = 1;
       oedit_disp_menu(d);
@@ -2101,7 +2127,19 @@ void oedit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC(d)->specobj = definition->legacy_handler;
+    {
+      char binding_error[256];
+
+      if (!spec_binding_replace(&OLC_SPECOBJ_BINDING(d), SPEC_OWNER_OBJECT, OLC_NUM(d),
+                                definition->canonical_name, SPEC_BINDING_SOURCE_WORLD,
+                                "oedit selection", binding_error, sizeof(binding_error)))
+      {
+        log("SYSERR: oedit_parse: Unable to replace authored binding: %s", binding_error);
+        write_to_output(d, "Unable to retain that selection. Try again: ");
+        return;
+      }
+    }
+    OLC(d)->specobj = spec_binding_legacy_handler(OLC_SPECOBJ_BINDING(d));
     OLC_VAL(d) = 1;
     oedit_disp_menu(d);
     return;

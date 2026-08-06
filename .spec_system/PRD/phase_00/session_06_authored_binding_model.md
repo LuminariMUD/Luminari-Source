@@ -1,7 +1,7 @@
 # Session 06: Authored Binding Model
 
 **Session ID**: `phase00-session06-authored-binding-model`
-**Status**: Not Started
+**Status**: Complete
 **Estimated Tasks**: ~20-24
 **Estimated Duration**: 2-4 hours
 
@@ -38,8 +38,8 @@ loading, including owned unresolved names and explicit incompatibility diagnosti
 
 ## Prerequisites
 
-- [ ] Session 04 provides validated canonical, alias, owner, and binding-source metadata.
-- [ ] Session 05 defines valid builder-facing owner selection behavior.
+- [x] Session 04 provides validated canonical, alias, owner, and binding-source metadata.
+- [x] Session 05 defines valid builder-facing owner selection behavior.
 
 ---
 
@@ -54,8 +54,8 @@ loading, including owned unresolved names and explicit incompatibility diagnosti
 
 ## Success Criteria
 
-- [ ] Every named world binding retains its authored identity and source independently of its
+- [x] Every named world binding retains its authored identity and source independently of its
   effective callback.
-- [ ] Unknown names remain owned and diagnosable instead of collapsing to an untraceable null.
-- [ ] Wrong-owner names are reported and cannot become an effective incompatible callback.
-- [ ] Copy and free paths are leak-free and safe across prototypes and OLC working copies.
+- [x] Unknown names remain owned and diagnosable instead of collapsing to an untraceable null.
+- [x] Wrong-owner names are reported and cannot become an effective incompatible callback.
+- [x] Copy and free paths are leak-free and safe across prototypes and OLC working copies.

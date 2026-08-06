@@ -18,6 +18,7 @@
 #include "dgscript/dg_olc.h"
 #include "magic/spells.h"
 #include "actionqueues.h"
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 
 /* local functions */
@@ -63,6 +64,7 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
       mob_index[i].vnum = vnum;
       mob_index[i].number = 0;
       mob_index[i].func = 0;
+      mob_index[i].spec_binding = NULL;
       found = i;
       break;
     }
@@ -78,6 +80,7 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
     mob_index[0].vnum = vnum;
     mob_index[0].number = 0;
     mob_index[0].func = 0;
+    mob_index[0].spec_binding = NULL;
   }
 
   log("GenOLC: add_mobile: Added mobile %d at index #%d.", vnum, found);
@@ -191,6 +194,7 @@ int delete_mobile(mob_rnum refpt)
 
   extract_mobile_all(vnum);
   extract_char(proto);
+  spec_binding_free(&mob_index[refpt].spec_binding);
 
   for (counter = refpt; counter < top_of_mobt; counter++)
   {

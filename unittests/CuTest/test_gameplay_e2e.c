@@ -21,6 +21,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/magic/spells.h"
 #include "../../src/character/class.h"
+#include "../../src/spec/spec_binding.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -1474,6 +1475,7 @@ void Test_gameplay_e2e_actual_minimal_world_parse(CuTest *tc)
       if (parsed_world[i].script != NULL)
         extract_script(&parsed_world[i].script);
       free_proto_script(&parsed_world[i].proto_script);
+      spec_binding_free(&parsed_world[i].spec_binding);
       free_room_strings(&parsed_world[i]);
       if (parsed_world[i].trail_tracks != NULL)
         free_trail_data_list(parsed_world[i].trail_tracks);

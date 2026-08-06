@@ -18,7 +18,8 @@
     "phase00-session02-command-and-pulse-characterization",
     "phase00-session03-combat-and-secondary-characterization",
     "phase00-session04-validated-definition-registry",
-    "phase00-session05-owner-aware-olc"
+    "phase00-session05-owner-aware-olc",
+    "phase00-session06-authored-binding-model"
   ],
   "next_session_history": [
     {
@@ -94,6 +95,21 @@
     {
       "date": "2026-08-07",
       "session": "phase00-session05-owner-aware-olc",
+      "status": "completed"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session06-authored-binding-model",
+      "status": "planned"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session06-authored-binding-model",
+      "status": "validated"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session06-authored-binding-model",
       "status": "completed"
     }
   ]

@@ -48,6 +48,22 @@ The selected SpecProc is stored by name and resolved at boot.
 
 If the name isn't recognized in the SpecProc registry, the function won't be assigned at boot.
 
+## Authored Binding State
+
+World loading now keeps an owned authored-binding record on each mobile, object, or room prototype.
+The record includes the exact requested name, owner and VNUM, source kind, source location, resolved
+registry definition, and resolution status. Canonical names and aliases resolve to the same immutable
+definition while preserving the spelling that appeared in the world file.
+
+Unknown names and definitions that are incompatible with the owner or source remain available for
+diagnostics, but they do not install a callback. Boot warnings identify the persisted field, owner,
+VNUM, requested name, and reason. Prototype copies and OLC editing use independent owned records so
+editing or deleting one prototype cannot invalidate another.
+
+At this migration stage, disk writers still derive output from the active callback. Exact alias
+spelling and unresolved names are retained in memory but are not yet guaranteed to round-trip on the
+next world-file save.
+
 ## Notes and Tips
 
 - Names must match a canonical name or explicit alias in `src/spec/spec_registry.c`.

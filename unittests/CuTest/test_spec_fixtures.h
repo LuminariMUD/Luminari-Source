@@ -30,8 +30,13 @@ bool spec_test_cleanup_sandbox(const char *sandbox, char *error, size_t error_si
 
 bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, char *error,
                                            size_t error_size);
+bool spec_test_fixture_load_binding_names(struct spec_test_fixture *fixture,
+                                          const char *mobile_name, const char *object_name,
+                                          const char *room_name, char *error, size_t error_size);
 SPECIAL_DECL(*spec_test_fixture_loaded_handler(const struct spec_test_fixture *fixture,
                                                enum spec_test_owner owner));
+const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_test_fixture *fixture,
+                                                            enum spec_test_owner owner);
 
 bool spec_test_fixture_save_named_bindings(struct spec_test_fixture *fixture, char *error,
                                            size_t error_size);
@@ -40,12 +45,19 @@ const char *spec_test_fixture_saved_text(const struct spec_test_fixture *fixture
 
 bool spec_test_fixture_reset_olc(struct spec_test_fixture *fixture, enum spec_test_owner owner,
                                  SPECIAL_DECL(*initial_handler));
+bool spec_test_fixture_setup_existing_olc(struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner, char *error,
+                                          size_t error_size);
+bool spec_test_fixture_save_current_olc(struct spec_test_fixture *fixture,
+                                        enum spec_test_owner owner);
 bool spec_test_fixture_parse_olc(struct spec_test_fixture *fixture, enum spec_test_owner owner,
                                  const char *argument);
 bool spec_test_fixture_open_olc_menu(struct spec_test_fixture *fixture, enum spec_test_owner owner);
 bool spec_test_fixture_display_olc_menu(struct spec_test_fixture *fixture, spec_owner_mask owner);
 SPECIAL_DECL(*spec_test_fixture_olc_handler(const struct spec_test_fixture *fixture,
                                             enum spec_test_owner owner));
+const struct spec_binding *spec_test_fixture_olc_binding(const struct spec_test_fixture *fixture,
+                                                         enum spec_test_owner owner);
 int spec_test_fixture_olc_changed(const struct spec_test_fixture *fixture);
 const char *spec_test_fixture_olc_output(const struct spec_test_fixture *fixture);
 bool spec_test_fixture_activation_enabled(const struct spec_test_fixture *fixture,

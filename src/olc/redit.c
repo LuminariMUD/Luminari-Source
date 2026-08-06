@@ -23,6 +23,7 @@
 #include "modify.h"
 #include "wilderness/wilderness.h"
 #include "movement/movement_tracks.h" /* includes trail data structures */
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 #include "spec_menu.h"
 
@@ -201,12 +202,14 @@ static void redit_setup_new(struct descriptor_data *d)
 void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __attribute__((unused)))
 {
   struct room_data *room;
+  char binding_error[256];
   int counter;
 
   /* Build a copy of the room for editing. */
   CREATE(room, struct room_data, 1);
 
   *room = world[real_num];
+  room->spec_binding = NULL;
 
   /* Make new room people list be empty.                          */
   /* Fixes bug where copying a room from within that room creates */
@@ -279,6 +282,11 @@ void redit_setup_existing(struct descriptor_data *d, int real_num, int mode __at
 
   /* Initialize current spec proc selection from existing room */
   OLC(d)->specroom = world[real_num].func;
+  if (!spec_binding_copy(&OLC_SPECROOM_BINDING(d), world[real_num].spec_binding, binding_error,
+                         sizeof(binding_error)))
+    log("SYSERR: redit_setup_existing: Unable to copy authored binding: %s", binding_error);
+  else if (OLC_SPECROOM_BINDING(d) != NULL)
+    OLC_SPECROOM_BINDING(d)->prototype_vnum = OLC_NUM(d);
 }
 
 void redit_save_internally(struct descriptor_data *d)
@@ -286,6 +294,7 @@ void redit_save_internally(struct descriptor_data *d)
   room_rnum room_num;
   int j, new_room = FALSE;
   struct descriptor_data *dsc;
+  char binding_error[256];
 
   if (OLC_ROOM(d)->number == NOWHERE)
     new_room = TRUE;
@@ -293,6 +302,16 @@ void redit_save_internally(struct descriptor_data *d)
   OLC_ROOM(d)->number = OLC_NUM(d);
   /* FIXME: Why is this not set elsewhere? */
   OLC_ROOM(d)->zone = OLC_ZNUM(d);
+
+  if (!spec_binding_copy(&OLC_ROOM(d)->spec_binding, OLC_SPECROOM_BINDING(d), binding_error,
+                         sizeof(binding_error)))
+  {
+    log("SYSERR: redit_save_internally: Unable to prepare authored binding: %s", binding_error);
+    write_to_output(d, "Unable to save the special-procedure binding.\r\n");
+    return;
+  }
+  if (OLC_ROOM(d)->spec_binding != NULL)
+    OLC_ROOM(d)->spec_binding->prototype_vnum = OLC_NUM(d);
 
   if ((room_num = add_room(OLC_ROOM(d))) == NOWHERE)
   {
@@ -409,6 +428,7 @@ void free_room(struct room_data *room)
 {
   /* Free the strings (Mythran). */
   free_room_strings(room);
+  spec_binding_free(&room->spec_binding);
 
   if (SCRIPT(room))
     extract_script(&room->script);
@@ -636,6 +656,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
     selection_result = spec_olc_parse_selection(SPEC_OWNER_ROOM, arg, &definition);
     if (selection_result == SPEC_OLC_SELECTION_CLEAR)
     {
+      spec_binding_free(&OLC_SPECROOM_BINDING(d));
       OLC(d)->specroom = NULL;
       OLC_VAL(d) = 1;
       redit_disp_menu(d);
@@ -647,7 +668,19 @@ void redit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC(d)->specroom = definition->legacy_handler;
+    {
+      char binding_error[256];
+
+      if (!spec_binding_replace(&OLC_SPECROOM_BINDING(d), SPEC_OWNER_ROOM, OLC_NUM(d),
+                                definition->canonical_name, SPEC_BINDING_SOURCE_WORLD,
+                                "redit selection", binding_error, sizeof(binding_error)))
+      {
+        log("SYSERR: redit_parse: Unable to replace authored binding: %s", binding_error);
+        write_to_output(d, "Unable to retain that selection. Try again: ");
+        return;
+      }
+    }
+    OLC(d)->specroom = spec_binding_legacy_handler(OLC_SPECROOM_BINDING(d));
     OLC_VAL(d) = 1;
     redit_disp_menu(d);
     return;

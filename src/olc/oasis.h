@@ -135,10 +135,13 @@ struct oasis_olc_data
   struct trig_proto_list *script; /* for assigning triggers in [r|o|m]edit*/
   struct help_entry_list *help;   /* Hedit uses this */
 
-  /* Spec proc selections (OLC-time only, not persisted here) */
+  /* Spec proc selections and independently owned authored metadata. */
   SPECIAL_DECL(*specmob);
   SPECIAL_DECL(*specobj);
   SPECIAL_DECL(*specroom);
+  struct spec_binding *specmob_binding;
+  struct spec_binding *specobj_binding;
+  struct spec_binding *specroom_binding;
 };
 
 /* Exported globals. */
@@ -176,6 +179,9 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define OLC_IBT(d) (OLC(d)->ibt)         /**< IBT (idea/bug/typo) structure */
 #define OLC_CLAN(d) (OLC(d)->clan)       /**< Clan structure       */
 #define OLC_REGION(d) (OLC(d)->region)   /**< Region structure  */
+#define OLC_SPECMOB_BINDING(d) (OLC(d)->specmob_binding)
+#define OLC_SPECOBJ_BINDING(d) (OLC(d)->specobj_binding)
+#define OLC_SPECROOM_BINDING(d) (OLC(d)->specroom_binding)
 
 /* NewCraft */
 #define OLC_CRAFT(d) (OLC(d)->craft) /**< Craft structure      */

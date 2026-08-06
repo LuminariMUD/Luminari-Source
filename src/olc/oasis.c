@@ -28,6 +28,7 @@
 #include "comms/ibt.h"
 #include "msgedit.h"
 #include "craft/crafts.h" /* NewCraft */
+#include "spec/spec_binding.h"
 
 /* Internal Data Structures */
 /** @deprecated olc_scmd_info appears to be deprecated. Commented out for now.
@@ -90,6 +91,10 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
   if (d->olc == NULL)
     return;
 
+  spec_binding_free(&OLC_SPECMOB_BINDING(d));
+  spec_binding_free(&OLC_SPECOBJ_BINDING(d));
+  spec_binding_free(&OLC_SPECROOM_BINDING(d));
+
   /* Check for a room. free_room doesn't perform sanity checks, we must be
    * careful here. */
   if (OLC_ROOM(d))
@@ -102,6 +107,7 @@ void cleanup_olc(struct descriptor_data *d, byte cleanup_type)
       free_room(OLC_ROOM(d));
       break;
     case CLEANUP_STRUCTS:
+      spec_binding_free(&OLC_ROOM(d)->spec_binding);
       free(OLC_ROOM(d));
       break;
     case CLEANUP_CONFIG:

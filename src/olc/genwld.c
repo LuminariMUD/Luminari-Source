@@ -20,13 +20,19 @@
 #include "mud_event.h"
 #include "wilderness/wilderness.h"
 #include "oasis.h"
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 #include "vessels/vessels.h"
+
+static int copy_room_with_binding(struct room_data *to, struct room_data *from,
+                                  struct spec_binding *binding_copy);
 
 static room_rnum add_room_internal(struct room_data *room, bool persistent)
 {
   struct char_data *tch;
   struct obj_data *tobj;
+  struct spec_binding *binding_copy = NULL;
+  char binding_error[256];
   int j;
   room_rnum i, found = 0;
 
@@ -35,17 +41,30 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
 
   if ((i = real_room(room->number)) != NOWHERE)
   {
+    if (!spec_binding_copy(&binding_copy, room->spec_binding, binding_error, sizeof(binding_error)))
+    {
+      log("SYSERR: GenOLC: add_room: Unable to copy authored binding for room #%u: %s",
+          room->number, binding_error);
+      return NOWHERE;
+    }
     if (SCRIPT(&world[i]))
       extract_script(&world[i].script);
     tch = world[i].people;
     tobj = world[i].contents;
-    copy_room(&world[i], room);
+    copy_room_with_binding(&world[i], room, binding_copy);
     world[i].people = tch;
     world[i].contents = tobj;
     if (persistent)
       add_to_save_list(zone_table[room->zone].number, SL_WLD);
     log("GenOLC: add_room: Updated existing room #%d.", room->number);
     return i;
+  }
+
+  if (!spec_binding_copy(&binding_copy, room->spec_binding, binding_error, sizeof(binding_error)))
+  {
+    log("SYSERR: GenOLC: add_room: Unable to copy authored binding for room #%u: %s", room->number,
+        binding_error);
+    return NOWHERE;
   }
 
   RECREATE(world, struct room_data, top_of_world + 2);
@@ -56,6 +75,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
     if (room->number > world[i - 1].number)
     {
       world[i] = *room;
+      world[i].spec_binding = binding_copy;
       copy_room_strings(&world[i], room);
       found = i;
       break;
@@ -79,6 +99,7 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
   if (!found)
   {
     world[0] = *room; /* Last place, in front. */
+    world[0].spec_binding = binding_copy;
     copy_room_strings(&world[0], room);
   }
 
@@ -208,6 +229,7 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   }
 
   free_room_strings(room);
+  spec_binding_free(&room->spec_binding);
   if (SCRIPT(room))
     extract_script(&room->script);
   free_proto_script(&room->proto_script);
@@ -590,6 +612,29 @@ int save_rooms(zone_rnum rzone)
 
 int copy_room(struct room_data *to, struct room_data *from)
 {
+  struct spec_binding *binding_copy = NULL;
+  char binding_error[256];
+
+  if (to == NULL || from == NULL)
+  {
+    log("SYSERR: GenOLC: copy_room: NULL values passed.");
+    return FALSE;
+  }
+  if (to == from)
+    return TRUE;
+
+  if (!spec_binding_copy(&binding_copy, from->spec_binding, binding_error, sizeof(binding_error)))
+  {
+    log("SYSERR: GenOLC: copy_room: Unable to copy authored binding: %s", binding_error);
+    return FALSE;
+  }
+
+  return copy_room_with_binding(to, from, binding_copy);
+}
+
+static int copy_room_with_binding(struct room_data *to, struct room_data *from,
+                                  struct spec_binding *binding_copy)
+{
   /* Free any existing trail data before copying */
   if (CONFIG_WILDERNESS_SYSTEM == 2)
   {
@@ -601,7 +646,9 @@ int copy_room(struct room_data *to, struct room_data *from)
   }
 
   free_room_strings(to);
+  spec_binding_free(&to->spec_binding);
   *to = *from;
+  to->spec_binding = binding_copy;
   copy_room_strings(to, from);
   to->events = from->events;
 

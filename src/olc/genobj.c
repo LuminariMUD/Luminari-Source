@@ -21,6 +21,7 @@
 #include "comms/boards.h" /* for board_info */
 #include "craft/craft.h"
 #include "magic/spells.h"
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 
 /* local functions */
@@ -193,6 +194,7 @@ obj_rnum index_object(struct obj_data *obj, obj_vnum ovnum, obj_rnum ornum)
   obj_index[ornum].vnum = ovnum;
   obj_index[ornum].number = 0;
   obj_index[ornum].func = NULL;
+  obj_index[ornum].spec_binding = NULL;
 
   copy_object_preserve(&obj_proto[ornum], obj);
   obj_proto[ornum].in_room = NOWHERE;
@@ -596,6 +598,7 @@ int delete_object(obj_rnum rnum)
 
   /* Make sure all are removed. */
   assert(obj_index[rnum].number == 0);
+  spec_binding_free(&obj_index[rnum].spec_binding);
 
   /* Adjust rnums of all other objects. */
   for (tmp = object_list; tmp; tmp = tmp->next)

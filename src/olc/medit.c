@@ -29,6 +29,7 @@
 #include "character/class.h"
 #include "character/feats.h"
 #include "modify.h" /* for smash_tilde */
+#include "spec/spec_binding.h"
 #include "spec_procs.h"
 #include "spec_menu.h"
 
@@ -356,6 +357,7 @@ void medit_setup_new(struct descriptor_data *d)
 void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode __attribute__((unused)))
 {
   struct char_data *mob;
+  char binding_error[256];
 
   /* Allocate a scratch mobile structure. */
   CREATE(mob, struct char_data, 1);
@@ -373,7 +375,14 @@ void medit_setup_existing(struct descriptor_data *d, int rmob_num, int mode __at
   OLC_MOB(d)->proto_script = NULL;
   /* Initialize current spec proc selection from prototype index */
   if (rmob_num != (int)NOBODY)
+  {
     OLC(d)->specmob = mob_index[rmob_num].func;
+    if (!spec_binding_copy(&OLC_SPECMOB_BINDING(d), mob_index[rmob_num].spec_binding, binding_error,
+                           sizeof(binding_error)))
+      log("SYSERR: medit_setup_existing: Unable to copy authored binding: %s", binding_error);
+    else if (OLC_SPECMOB_BINDING(d) != NULL)
+      OLC_SPECMOB_BINDING(d)->prototype_vnum = OLC_NUM(d);
+  }
 }
 
 /* Ideally, this function should be in db.c, but I'll put it here for portability. */
@@ -407,14 +416,30 @@ void medit_save_internally(struct descriptor_data *d)
   mob_rnum new_rnum;
   struct descriptor_data *dsc;
   struct char_data *mob;
+  struct spec_binding *binding_copy = NULL;
+  char binding_error[256];
 
   i = (real_mobile(OLC_NUM(d)) == NOBODY);
+
+  if (!spec_binding_copy(&binding_copy, OLC_SPECMOB_BINDING(d), binding_error,
+                         sizeof(binding_error)))
+  {
+    log("SYSERR: medit_save_internally: Unable to prepare authored binding: %s", binding_error);
+    write_to_output(d, "Unable to save the special-procedure binding.\r\n");
+    return;
+  }
+  if (binding_copy != NULL)
+    binding_copy->prototype_vnum = OLC_NUM(d);
 
   if ((new_rnum = add_mobile(OLC_MOB(d), OLC_NUM(d))) == NOBODY)
   {
     log("medit_save_internally: add_mobile failed.");
+    spec_binding_free(&binding_copy);
     return;
   }
+
+  spec_binding_free(&mob_index[new_rnum].spec_binding);
+  mob_index[new_rnum].spec_binding = binding_copy;
 
   /* Apply selected spec proc to prototype index */
   mob_index[new_rnum].func = OLC(d)->specmob;
@@ -1018,6 +1043,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     selection_result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, arg, &definition);
     if (selection_result == SPEC_OLC_SELECTION_CLEAR)
     {
+      spec_binding_free(&OLC_SPECMOB_BINDING(d));
       OLC(d)->specmob = NULL;
       OLC_VAL(d) = 1;
       medit_disp_menu(d);
@@ -1029,7 +1055,19 @@ void medit_parse(struct descriptor_data *d, char *arg)
       return;
     }
 
-    OLC(d)->specmob = definition->legacy_handler;
+    {
+      char binding_error[256];
+
+      if (!spec_binding_replace(&OLC_SPECMOB_BINDING(d), SPEC_OWNER_MOBILE, OLC_NUM(d),
+                                definition->canonical_name, SPEC_BINDING_SOURCE_WORLD,
+                                "medit selection", binding_error, sizeof(binding_error)))
+      {
+        log("SYSERR: medit_parse: Unable to replace authored binding: %s", binding_error);
+        write_to_output(d, "Unable to retain that selection. Try again: ");
+        return;
+      }
+    }
+    OLC(d)->specmob = spec_binding_legacy_handler(OLC_SPECMOB_BINDING(d));
     OLC_VAL(d) = 1;
     medit_disp_menu(d);
     return;
