@@ -568,7 +568,7 @@ this reusable library:
 | --- | --- |
 | `ART_SIG_KNOCKDOWN` | Base Reflex DC `14 + artifact_level` or knocked to sitting, honoring `MOB_NOBASH`, freedom of movement, incorporeality, and already-down targets |
 | `ART_SIG_MERCY` | Heals while its bearer is below 60% health, strikes while healthy |
-| `ART_SIG_WARD` | On a critical, a group-exclusive ward; otherwise a chance to dispel |
+| `ART_SIG_WARD` | On an eligible critical, a group-exclusive ward that bypasses `sig_chance`; otherwise `sig_chance` to dispel |
 | `ART_SIG_WEIGHTED` | One roll, several weighted outcomes, and a real chance of nothing |
 | `ART_SIG_SURGE` | A bounded temporary combat surge in a stacking group |
 | `ART_SIG_FLURRY` | A bounded burst of extra attacks that cannot proc anything themselves |
@@ -1058,6 +1058,9 @@ production-linked suite:
 dispatcher; tests make chance deterministic by temporarily setting
 `sig_chance` to a controlled value. Cooldown, alignment, target legality, and
 the effect implementation still run normally.
+`artifact_force_signature_roll_for_test()` supplies an exact percentage roll
+to that same reusable dispatcher. It covers dormant shapes and precise chance
+boundaries without changing a production artifact template.
 
 ### Local live-validation ladder
 
@@ -1142,15 +1145,14 @@ staff command output, single-instance behavior across a zone reset and a
 reboot, and the balance-pass decisions recorded above. It runs inside a
 scratch directory and never reads or writes real game data.
 
-Three test seams in `src/obj/spec_artifacts.c` support it, all inside
-`#ifdef LUMINARI_CUTEST`: `artifact_show_info_for_test()` drives the real
-display path, `artifact_force_signature_proc_for_test()` exposes the real
-signature dispatcher, and `artifact_identity_for_test()` snapshots the booted
-production template, effect, passive, and hand-dispatch lookups. Tests make
-reusable signature chance deterministic by setting `sig_chance` to a
-controlled value. The force seam bypasses a hand-table entry's outer odds for
-Fade. Cooldown policy, alignment rules, target legality, and effect
-implementations still apply.
+Focused test seams in `src/obj/spec_artifacts.c`, all inside
+`#ifdef LUMINARI_CUTEST`, drive the real display, generic branch, reusable
+signature dispatcher, exact reusable chance roll, and inherited hand-proc
+paths. `artifact_identity_for_test()` snapshots the booted production
+template, effect, passive, and hand-dispatch lookups. The exact-roll seam
+covers the unclaimed ward shape without changing live identity; the hand-proc
+force seam bypasses Fade's outer odds. Cooldown policy, alignment rules, target
+legality, and effect implementations still apply.
 
 Two things the integration suite deliberately does not do. Procs run with
 both combatants already engaged, because `damage()` otherwise calls

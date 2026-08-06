@@ -1,8 +1,8 @@
 # Artifact Mechanics Gap Audit
 
 **Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
-ART-AUD-008, ART-AUD-010, ART-AUD-012, and ART-AUD-013 resolved; ART-AUD-009
-partially resolved for Earthcrier and Wyrmfang
+ART-AUD-008, ART-AUD-010, and ART-AUD-012 through ART-AUD-014 resolved;
+ART-AUD-009 partially resolved for Earthcrier and Wyrmfang
 
 **Audited:** 2026-08-06
 
@@ -88,6 +88,11 @@ without spending the generic cooldown or awarding proc XP. Deterministic
 production-linked coverage proves the full-health heal, repeated fear, and
 ineligible ultimate cases as well as the successful-heal control.
 
+ART-AUD-014 is resolved. The dormant ward shape now bypasses its configured
+chance only for the critical-hit ward branch; its ordinary dispel branch uses
+the declared percentage. Exact-roll production coverage protects the rejection
+and success boundary without assigning the shape to a live artifact.
+
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
 and closed one at a time.
@@ -157,7 +162,7 @@ contracts.
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Resolved 2026-08-06 | Called-effect handlers now use validated table-owned stack groups, and Wyrmfang declares the ward group it actually creates. | Wyrmfang, future effects |
 | ART-AUD-013 | High preventive | Resolved 2026-08-06 | All 17 artifacts now have an exact production-linked identity contract, including deliberate `none` entries and generic-proc separation. | Whole system |
-| ART-AUD-014 | Low dormant | Confirmed library defect | Unclaimed `ART_SIG_WARD` skips its chance roll, so every eligible noncritical hit dispels despite documentation saying it only has a chance. | No live claimant |
+| ART-AUD-014 | Low dormant | Resolved 2026-08-06 | Unclaimed `ART_SIG_WARD` now bypasses chance only for its critical ward; ordinary dispels use `sig_chance`. | No live claimant |
 
 ## Detailed findings
 
@@ -726,7 +731,28 @@ Completed remediation contract:
 3. [x] Keep deliberate `none` values explicit rather than inferring them from
    generic proc percentages or empty registries.
 
-### ART-AUD-014: the dormant ward shape ignores chance
+### ART-AUD-014: the dormant ward shape ignores chance [resolved]
+
+Resolution (2026-08-06):
+
+- The reusable dispatcher now bypasses `sig_chance` only when
+  `ART_SIG_WARD` receives a critical hit. A noncritical dispel goes through the
+  same configured percentage gate as other reusable shapes.
+- A production-linked exact-roll seam exercises the dormant library shape on
+  a neutral Aegis test carrier without changing any live artifact identity.
+  Roll 41 rejects a 40 percent noncritical dispel without cooldown, output, or
+  XP; roll 40 fires; and a critical still raises `ART_STACK_WARD` despite a
+  roll of 100.
+- The test-first checkpoint passed 429/430 tests and failed only because the
+  rejected noncritical roll still fired. The corrected root suite passes
+  430/430.
+- On the installed development binary, `artifact info aegis` confirmed that
+  the neutral test carrier gained no live signature assignment, and
+  `testartifact verify` passed all 17 production rows. Kohdee's player,
+  supplier, inventory-order, and registry files were restored byte-for-byte
+  before a final login-free restart.
+
+Original evidence at audited revision `61c03285`:
 
 No live artifact currently claims `ART_SIG_WARD`, so this is not a current
 player-facing defect. The dispatcher deliberately skips the percentage roll
@@ -795,9 +821,9 @@ runtime ignores.
 5. **Make product decisions.** Approve or reject first-wave passives,
    class-oath scope, and Aegis identity. Record every rejection in
    `docs/systems/ARTIFACT_SYSTEM.md`.
-6. **Clean the framework.** Table-owned called-effect stack groups and accurate
-   generic-proc reporting are complete (ART-AUD-012 and ART-AUD-010). Repair or
-   remove the dormant ward shape (ART-AUD-014).
+6. **Completed 2026-08-06: clean the framework.** Table-owned called-effect
+   stack groups, accurate generic-proc reporting, and the dormant ward chance
+   contract are complete (ART-AUD-012, ART-AUD-010, and ART-AUD-014).
 
 ## Acceptance criteria for the future implementation pass
 
@@ -820,6 +846,8 @@ runtime ignores.
   no-op branch consumes neither cooldown nor proc XP.
 - Called effects use their validated table-owned stack groups for both
   exclusivity checks and temporary-affect tags.
+- `ART_SIG_WARD` bypasses `sig_chance` for its otherwise-eligible critical ward
+  and applies `sig_chance` to its ordinary dispel branch.
 - Prototype type, size, lore, placement notes, and runtime content contracts
   agree for Earthcrier and Wyrmfang; Aegis remains the tracked identity
   decision.

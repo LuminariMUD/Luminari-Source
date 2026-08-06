@@ -1441,6 +1441,63 @@ void Test_artifact_integration_every_signature_shape_is_wired(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, all_have_a_chance);
 }
 
+void Test_artifact_integration_dormant_ward_respects_noncritical_chance(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int rejected_free = FALSE, accepted = FALSE, critical_bypassed_roll = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  /* No live template claims ART_SIG_WARD.  Aegis is a neutral carrier for
+   * testing the dormant reusable shape without changing artifact identity. */
+  art = artifact_by_vnum(ART_VNUM_AEGIS);
+  CuAssertPtrNotNull(tc, art);
+  art->level = ARTIFACT_MAX_LEVEL - 1;
+  art->sig_proc = ART_SIG_WARD;
+  art->sig_chance = 40;
+  art->sig_align = ART_ALIGN_ANY;
+  art->experience = 0;
+  art->last_proc = 0;
+
+  artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
+  artint_carry(&fixture, &obj);
+
+  artint_clear_output(&fixture);
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 41);
+  rejected_free =
+      art->last_proc == 0 && art->experience == 0 && fixture.descriptor.output[0] == '\0';
+
+  art->last_proc = 0;
+  art->experience = 0;
+  artint_clear_output(&fixture);
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 40);
+  accepted = art->last_proc > 0 && art->experience == ARTIFACT_XP_PROC_SIGNATURE &&
+             artint_said(&fixture, "sweeps through whatever");
+
+  art->last_proc = 0;
+  art->experience = 0;
+  artint_clear_output(&fixture);
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, TRUE, 100);
+  critical_bypassed_roll = art->last_proc > 0 && art->experience == ARTIFACT_XP_PROC_SIGNATURE &&
+                           artifact_stack_active(&fixture.actor, ART_STACK_WARD) &&
+                           artint_said(&fixture, "closes around you");
+
+  artifact_stack_clear(&fixture.actor, ART_STACK_WARD);
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, rejected_free);
+  CuAssertIntEquals(tc, TRUE, accepted);
+  CuAssertIntEquals(tc, TRUE, critical_bypassed_roll);
+}
+
 void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
 {
   struct artint_fixture fixture;

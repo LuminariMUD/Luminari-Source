@@ -3828,9 +3828,17 @@ static int artifact_proc_flurry(struct char_data *ch, struct char_data *victim,
 
 /* Select and run whatever shape the template named.  Returns TRUE when the
  * victim is gone. */
-static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim,
-                                  struct obj_data *weapon, struct artifact_data *art,
-                                  int is_critical)
+static int artifact_reusable_chance_roll(int forced_roll)
+{
+  if (forced_roll >= 1 && forced_roll <= 100)
+    return forced_roll;
+
+  return rand_number(1, 100);
+}
+
+static int artifact_reusable_proc_with_roll(struct char_data *ch, struct char_data *victim,
+                                            struct obj_data *weapon, struct artifact_data *art,
+                                            int is_critical, int forced_roll)
 {
   int force_proc = FALSE;
 
@@ -3858,13 +3866,16 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
     art->sig_miss_streak++;
     force_proc = art->sig_miss_streak >= ARTIFACT_STINGER_LIFESTEAL_GUARANTEE;
 
-    if (!force_proc && (art->sig_chance <= 0 || rand_number(1, 100) > art->sig_chance))
+    if (!force_proc &&
+        (art->sig_chance <= 0 || artifact_reusable_chance_roll(forced_roll) > art->sig_chance))
       return FALSE;
 
     art->sig_miss_streak = 0;
   }
-  /* The ward shape reacts to a critical hit rather than rolling for one. */
-  else if (art->sig_proc != ART_SIG_WARD && rand_number(1, 100) > art->sig_chance)
+  /* A critical raises the ward without a roll; its ordinary dispel still uses
+   * the configured per-hit chance. */
+  else if (!(art->sig_proc == ART_SIG_WARD && is_critical) &&
+           artifact_reusable_chance_roll(forced_roll) > art->sig_chance)
     return FALSE;
 
   art->last_proc = time(0);
@@ -3890,6 +3901,13 @@ static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim
     log("SYSERR: artifact_reusable_proc: unknown shape %d on vnum %d", art->sig_proc, art->vnum);
     return FALSE;
   }
+}
+
+static int artifact_reusable_proc(struct char_data *ch, struct char_data *victim,
+                                  struct obj_data *weapon, struct artifact_data *art,
+                                  int is_critical)
+{
+  return artifact_reusable_proc_with_roll(ch, victim, weapon, art, is_critical, 0);
 }
 
 /* Dispatch.  Returns TRUE when the victim is gone. */
@@ -6262,6 +6280,24 @@ int artifact_force_generic_proc_for_test(struct char_data *ch, struct char_data 
     return FALSE;
 
   return artifact_generic_proc(ch, victim, weapon, art, proc_type);
+}
+
+/* Drive the reusable signature dispatcher with an exact percentage roll.
+ * Eligibility, cooldown, output, XP, and the selected shape remain production
+ * behavior. */
+int artifact_force_signature_roll_for_test(struct char_data *ch, struct char_data *victim,
+                                           struct obj_data *weapon, int is_critical,
+                                           int chance_roll)
+{
+  struct artifact_data *art = NULL;
+
+  if (!ch || !victim || !weapon || chance_roll < 1 || chance_roll > 100)
+    return FALSE;
+
+  if (!(art = artifact_of_obj(weapon)))
+    return FALSE;
+
+  return artifact_reusable_proc_with_roll(ch, victim, weapon, art, is_critical, chance_roll);
 }
 
 /* Chance rolls make procs untestable as written.  A test forces the shape it

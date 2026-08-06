@@ -2,6 +2,26 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Dormant ward signature chance
+
+#### Fixed
+
+- Made unclaimed `ART_SIG_WARD` bypass its configured chance only when a
+  critical hit raises its group-exclusive ward. Ordinary-hit dispels now use
+  `sig_chance` instead of firing on every eligible hit.
+
+#### Verification
+
+- Added a production-linked exact-roll test without assigning the dormant
+  shape to a live artifact. At 40 percent, roll 41 is silent and cooldown-free,
+  roll 40 dispels and awards XP, and a critical still raises the ward when the
+  supplied roll is 100.
+- The test-first run passed 429/430 tests and failed only on the rejected
+  noncritical boundary. The corrected root suite passes 430/430 tests.
+- On the installed development binary, Aegis remained signature-free and all
+  17 production artifact rows passed verification. Kohdee's measured files
+  were restored byte-for-byte before a login-free restart.
+
 ### Generic proc no-op cooldowns
 
 #### Fixed
