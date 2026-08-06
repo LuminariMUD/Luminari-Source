@@ -21,12 +21,12 @@
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
 
 /* Main startup database initialization function called from boot_db() */
-void startup_database_init(void)
+int startup_database_init(void)
 {
   if (!mysql_available || !conn)
   {
-    log("MySQL not available during startup - skipping database initialization");
-    return;
+    log("SYSERR: MySQL not available during required startup database initialization");
+    return FALSE;
   }
 
   log("Starting database startup initialization...");
@@ -34,13 +34,27 @@ void startup_database_init(void)
   /* Perform selective table initialization - only create missing tables */
   initialize_missing_tables();
 
+  /* Required migrations run on every startup, even when all tables exist. */
+  if (!run_pet_persistence_migrations())
+  {
+    log("SYSERR: Required pet persistence migrations failed during startup");
+    return FALSE;
+  }
+
   /* Verify critical systems are functional */
   if (!verify_core_player_tables())
   {
-    log("WARNING: Core player tables verification failed during startup");
+    log("SYSERR: Core player tables verification failed during startup");
+    return FALSE;
+  }
+  if (!verify_pet_persistence_schema())
+  {
+    log("SYSERR: Pet persistence schema verification failed during startup");
+    return FALSE;
   }
 
   log("Database startup initialization completed successfully");
+  return TRUE;
 }
 
 /* Selectively initialize only missing table systems */

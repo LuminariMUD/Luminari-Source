@@ -25,13 +25,13 @@ Status meanings:
 | Work item | Status | Current evidence and remaining work |
 |-----------|--------|-------------------------------------|
 | Development environment safety | Verified | `lib/.env` reports `APP_ENV=development`; no production write or configuration action has been performed. |
-| Legacy-schema reproduction | Verified | The local development database has InnoDB `pet_data` and `pet_save_objs` tables but no `pet_data.runtime_state`, no `schema_migrations` table, and no owner indexes. |
-| Unconditional versioned migration | In progress | Startup currently reaches migrations only through help-table initialization. Add an unconditional pet migration, make it idempotent, and record it independently of help migrations. |
-| Schema contract and fail-closed startup | Pending | Verify required pet tables, column types, engines, primary keys, and owner indexes after migration; boot must not report success or enter the world with an invalid pet persistence contract. |
+| Legacy-schema reproduction | Verified | The local development database started with InnoDB pet tables, no `pet_data.runtime_state`, no owner indexes, and a unique `pet_save_objs.idnum` key instead of the required primary key. |
+| Unconditional versioned migration | Verified | Startup now runs migrations `2026080501` through `2026080504` independently of help initialization. A MariaDB temporary legacy schema reproduces the unique-key variant, migrates twice with exactly four records, and preserves its pet and pet-object rows. |
+| Schema contract and fail-closed startup | Verified | Startup verifies both InnoDB engines, required column types and nullability, primary keys, owner/relation indexes, and migration version. `boot_world()` exits before world load on migration or contract failure; an incompatible MariaDB fixture is rejected. |
 | Atomic owner snapshot save | Pending | Make pet rows and pet-object rows one transaction, propagate every serialization and object-save failure, and preserve the previous committed snapshot on rollback. |
 | Bounded failure logging | Pending | Remove full failed INSERT payload logging and replace it with bounded owner, pet VNUM, database error code, and migration version context. |
 | Save-churn reduction | Pending | Add a safe dirty/interval policy without allowing logout, extraction, combat, spell, or administrative save sites to lose a changed snapshot. |
-| Production-linked regression coverage | Pending | Cover legacy migration, idempotence, schema rejection, rollback at each query/object failure, multiple followers, equipment rows, and prior-row preservation. |
+| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, row/link preservation, and incompatible-schema rejection. Transaction rollback, multiple followers, and equipment failure cases remain. |
 | Memory reproduction and diagnostics | Pending | Exercise repeated timed-affect saves, forced failures, equipment, multiple followers, and lifecycle transitions under ASan/UBSan and Valgrind; preserve exact commands and results. |
 | Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
@@ -42,8 +42,18 @@ Status meanings:
   pet-object serialization, and database wrappers at `b0a61a8d`. The unrelated
   local deletion of `docs/ongoing-projects/syntax-check-event-init-order.md`
   predates this repair and is excluded from repair commits.
-- Next checkpoint: implement and locally prove the unconditional migration and
-  fail-closed pet schema contract before changing the save transaction.
+- Schema checkpoint: added unconditional dated migrations, structural contract
+  verification, and a fail-closed world boot gate. A warning-free GNU C23 build
+  passed. The first database-enabled production-linked run exposed the local
+  legacy unique-key variant through the syntax-check boot; migration
+  `2026080504` now promotes it to the required primary key. A direct development
+  syntax-check boot applied that migration, verified schema version
+  `2026080504`, loaded the world, and exited cleanly. The regression fixtures
+  remain connection-local temporary tables. The database-enabled
+  production-linked suite then passed all 438 tests.
+- Next checkpoint: make each owner's pet rows and pet-object rows one atomic
+  transaction, propagate every failure, and prove rollback preserves the prior
+  snapshot.
 
 ## Scope and Safety
 

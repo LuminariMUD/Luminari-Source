@@ -669,7 +669,11 @@ void boot_world(void)
   connect_to_mysql();
 
   log("Initializing database tables and procedures.");
-  startup_database_init();
+  if (!startup_database_init())
+  {
+    log("SYSERR: Required database initialization failed; refusing to boot world");
+    exit(1);
+  }
 
   log("Loading zone table.");
   index_boot(DB_BOOT_ZON);

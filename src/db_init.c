@@ -255,13 +255,13 @@ void init_core_player_tables(void)
 
   /* pet_save_objs - Pet object saves */
   const char *create_pet_save_objs = "CREATE TABLE IF NOT EXISTS pet_save_objs ("
-                                     "id INT AUTO_INCREMENT PRIMARY KEY, "
+                                     "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
                                      "pet_idnum BIGINT NOT NULL, "
-                                     "owner_name VARCHAR(20) NOT NULL, "
-                                     "serialized_obj LONGTEXT NOT NULL, "
+                                     "owner_name VARCHAR(50) NOT NULL, "
+                                     "serialized_obj TEXT NOT NULL, "
                                      "creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                                     "INDEX idx_pet_idnum (pet_idnum), "
-                                     "INDEX idx_owner_name (owner_name)"
+                                     "INDEX idx_pet_save_objs_pet (pet_idnum), "
+                                     "INDEX idx_pet_save_objs_owner (owner_name)"
                                      ") ENGINE=InnoDB";
 
   if (mysql_query_safe(conn, create_pet_save_objs))
@@ -1589,7 +1589,7 @@ static void create_vessel_procedures(void)
 /* ===== HELP SYSTEM TABLES ===== */
 
 /* Database Migration System */
-void init_database_migrations(void)
+static int init_database_migrations(void)
 {
   const char *create_migrations_table =
       "CREATE TABLE IF NOT EXISTS schema_migrations ("
@@ -1600,38 +1600,53 @@ void init_database_migrations(void)
       ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 "
       "COMMENT='Tracks database schema migrations'";
 
+  if (!mysql_available || !conn)
+  {
+    log("SYSERR: Database unavailable while initializing schema migrations");
+    return FALSE;
+  }
+
   if (mysql_query_safe(conn, create_migrations_table))
   {
     log("SYSERR: Failed to create schema_migrations table: %s", mysql_error(conn));
-    return;
+    return FALSE;
   }
 
   log("Info: Schema migrations table initialized");
+  return TRUE;
 }
 
 /* Apply a migration if not already applied */
-int apply_migration(int version, const char *description, const char *sql)
+static int apply_migration(int version, const char *description, const char *sql)
 {
   char query[MAX_STRING_LENGTH];
   MYSQL_RES *result;
   int already_applied = 0;
 
+  if (!description || !sql)
+  {
+    log("SYSERR: Invalid schema migration %d", version);
+    return FALSE;
+  }
+
   /* Check if migration already applied */
   snprintf(query, sizeof(query), "SELECT version FROM schema_migrations WHERE version = %d",
            version);
 
-  if (!mysql_query_safe(conn, query))
+  if (mysql_query_safe(conn, query))
   {
-    result = mysql_store_result(conn);
-    if (result)
-    {
-      if (mysql_num_rows(result) > 0)
-      {
-        already_applied = 1;
-      }
-      mysql_free_result(result);
-    }
+    log("SYSERR: Failed to inspect migration %d: %s", version, mysql_error(conn));
+    return FALSE;
   }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Failed to read migration %d status: %s", version, mysql_error(conn));
+    return FALSE;
+  }
+  already_applied = mysql_num_rows(result) > 0;
+  mysql_free_result(result);
 
   if (already_applied)
   {
@@ -1662,6 +1677,41 @@ int apply_migration(int version, const char *description, const char *sql)
   return 1;
 }
 
+int run_pet_persistence_migrations(void)
+{
+  if (!init_database_migrations())
+    return FALSE;
+
+  if (!apply_migration(2026080501, "Add pet runtime state",
+                       "ALTER TABLE pet_data "
+                       "ADD COLUMN IF NOT EXISTS runtime_state LONGTEXT DEFAULT NULL AFTER cha"))
+    return FALSE;
+
+  if (!apply_migration(2026080502, "Normalize pet data persistence contract",
+                       "ALTER TABLE pet_data "
+                       "ENGINE=InnoDB, "
+                       "MODIFY COLUMN owner_name VARCHAR(50) NOT NULL, "
+                       "MODIFY COLUMN runtime_state LONGTEXT DEFAULT NULL, "
+                       "ADD INDEX IF NOT EXISTS idx_pet_owner (owner_name)"))
+    return FALSE;
+
+  if (!apply_migration(2026080503, "Normalize pet object persistence contract",
+                       "ALTER TABLE pet_save_objs "
+                       "ENGINE=InnoDB, "
+                       "MODIFY COLUMN pet_idnum BIGINT NOT NULL, "
+                       "MODIFY COLUMN owner_name VARCHAR(50) NOT NULL, "
+                       "ADD INDEX IF NOT EXISTS idx_pet_save_objs_pet (pet_idnum), "
+                       "ADD INDEX IF NOT EXISTS idx_pet_save_objs_owner (owner_name)"))
+    return FALSE;
+
+  if (!apply_migration(2026080504, "Promote pet object identifier to primary key",
+                       "ALTER TABLE pet_save_objs "
+                       "ADD PRIMARY KEY IF NOT EXISTS (idnum)"))
+    return FALSE;
+
+  return TRUE;
+}
+
 /* Run all pending migrations */
 void run_database_migrations(void)
 {
@@ -1672,7 +1722,8 @@ void run_database_migrations(void)
   }
 
   /* Initialize migrations table */
-  init_database_migrations();
+  if (!init_database_migrations())
+    return;
 
   /* Migration 1: Add help_versions table for version control */
   apply_migration(1, "Add help_versions table for version history",

@@ -943,12 +943,249 @@ int verify_database_integrity(void)
 
 /* ===== INDIVIDUAL SYSTEM VERIFICATION FUNCTIONS ===== */
 
+static int pet_schema_type_matches(const char *actual, const char *expected)
+{
+  size_t expected_length;
+
+  if (!actual || !expected)
+    return FALSE;
+
+  expected_length = strlen(expected);
+  if (strncasecmp(actual, expected, expected_length) != 0)
+    return FALSE;
+
+  return actual[expected_length] == '\0' ||
+         (actual[expected_length] == '(' && strchr(expected, '(') == NULL);
+}
+
+static int pet_schema_table_uses_innodb(const char *table_name)
+{
+  char query[128];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches;
+
+  snprintf(query, sizeof(query), "SHOW CREATE TABLE `%s`", table_name);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required pet table %s: %s", table_name, mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required pet table %s definition: %s", table_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  row = mysql_fetch_row(result);
+  matches = row && row[1] && strstr(row[1], "ENGINE=InnoDB") != NULL;
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required pet table %s is not using InnoDB", table_name);
+
+  return matches;
+}
+
+static int pet_schema_column_matches(const char *table_name, const char *column_name,
+                                     const char *expected_type, const char *alternate_type,
+                                     int expected_nullable)
+{
+  char query[192];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches;
+  int nullable;
+
+  snprintf(query, sizeof(query), "SHOW COLUMNS FROM `%s` LIKE '%s'", table_name, column_name);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required pet column %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required pet column %s.%s: %s", table_name, column_name,
+        mysql_error(conn));
+    return FALSE;
+  }
+
+  row = mysql_fetch_row(result);
+  nullable = row && row[2] && strcasecmp(row[2], "YES") == 0;
+  matches = row && row[1] &&
+            (pet_schema_type_matches(row[1], expected_type) ||
+             (alternate_type && pet_schema_type_matches(row[1], alternate_type))) &&
+            nullable == expected_nullable;
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required pet column %s.%s has an incompatible type or nullability", table_name,
+        column_name);
+
+  return matches;
+}
+
+static int pet_schema_has_index(const char *table_name, const char *column_name,
+                                int require_primary)
+{
+  char query[128];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches = FALSE;
+
+  snprintf(query, sizeof(query), "SHOW INDEX FROM `%s`", table_name);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required pet indexes on %s: %s", table_name, mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required pet indexes on %s: %s", table_name, mysql_error(conn));
+    return FALSE;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    if (!row[2] || !row[3] || !row[4] || atoi(row[3]) != 1 || strcasecmp(row[4], column_name) != 0)
+      continue;
+    if (require_primary && strcasecmp(row[2], "PRIMARY") != 0)
+      continue;
+    matches = TRUE;
+    break;
+  }
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required %sindex on %s.%s is missing", require_primary ? "primary " : "",
+        table_name, column_name);
+
+  return matches;
+}
+
+static int pet_schema_has_primary_key(const char *table_name)
+{
+  char query[128];
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int matches = FALSE;
+
+  snprintf(query, sizeof(query), "SHOW INDEX FROM `%s`", table_name);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect required primary key on %s: %s", table_name, mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read required primary key on %s: %s", table_name, mysql_error(conn));
+    return FALSE;
+  }
+
+  while ((row = mysql_fetch_row(result)))
+  {
+    if (row[2] && row[3] && atoi(row[3]) == 1 && strcasecmp(row[2], "PRIMARY") == 0)
+    {
+      matches = TRUE;
+      break;
+    }
+  }
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Required primary key on %s is missing", table_name);
+
+  return matches;
+}
+
+static int pet_schema_migration_is_current(void)
+{
+  char query[160];
+  MYSQL_RES *result;
+  int matches;
+
+  snprintf(query, sizeof(query), "SELECT version FROM schema_migrations WHERE version = %d",
+           PET_PERSISTENCE_SCHEMA_VERSION);
+  if (mysql_query_safe(conn, query))
+  {
+    log("SYSERR: Unable to inspect pet persistence migration version: %s", mysql_error(conn));
+    return FALSE;
+  }
+
+  result = mysql_store_result_safe(conn);
+  if (!result)
+  {
+    log("SYSERR: Unable to read pet persistence migration version: %s", mysql_error(conn));
+    return FALSE;
+  }
+
+  matches = mysql_num_rows(result) == 1;
+  mysql_free_result(result);
+  if (!matches)
+    log("SYSERR: Pet persistence migration version %d is not recorded",
+        PET_PERSISTENCE_SCHEMA_VERSION);
+
+  return matches;
+}
+
+int verify_pet_persistence_schema(void)
+{
+  int valid = TRUE;
+
+  if (!mysql_available || !conn)
+  {
+    log("SYSERR: Database unavailable while verifying pet persistence schema");
+    return FALSE;
+  }
+
+  if (!pet_schema_table_uses_innodb("pet_data"))
+    valid = FALSE;
+  if (!pet_schema_table_uses_innodb("pet_save_objs"))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "pet_data_id", "int", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "owner_name", "varchar(50)", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_data", "runtime_state", "longtext", NULL, TRUE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_save_objs", "owner_name", "varchar(50)", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_save_objs", "pet_idnum", "bigint", NULL, FALSE))
+    valid = FALSE;
+  if (!pet_schema_column_matches("pet_save_objs", "serialized_obj", "text", "longtext", FALSE))
+    valid = FALSE;
+  if (!pet_schema_has_index("pet_data", "pet_data_id", TRUE))
+    valid = FALSE;
+  if (!pet_schema_has_primary_key("pet_save_objs"))
+    valid = FALSE;
+  if (!pet_schema_has_index("pet_data", "owner_name", FALSE))
+    valid = FALSE;
+  if (!pet_schema_has_index("pet_save_objs", "owner_name", FALSE))
+    valid = FALSE;
+  if (!pet_schema_has_index("pet_save_objs", "pet_idnum", FALSE))
+    valid = FALSE;
+  if (!pet_schema_migration_is_current())
+    valid = FALSE;
+
+  if (valid)
+    log("Info: Pet persistence schema contract verified at version %d",
+        PET_PERSISTENCE_SCHEMA_VERSION);
+
+  return valid;
+}
+
 /* Verify core player tables exist */
 int verify_core_player_tables(void)
 {
   const char *tables[] = {"player_data",      "account_data",     "unlocked_races",
                           "unlocked_classes", "player_save_objs", "player_save_objs_sheathed",
-                          "pet_save_objs"};
+                          "pet_data",         "pet_save_objs"};
   int num_tables = sizeof(tables) / sizeof(tables[0]);
   char query[1024];
   int i;

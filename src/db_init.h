@@ -17,6 +17,8 @@
 #include "utils.h"
 #include "db.h"
 
+#define PET_PERSISTENCE_SCHEMA_VERSION 2026080504
+
 /* ===== MAIN INITIALIZATION FUNCTIONS ===== */
 
 /* Master database initialization function - creates ALL tables */
@@ -83,6 +85,10 @@ int test_database_permissions(void);
 /* Verify all required tables exist */
 int verify_database_integrity(void);
 
+/* Apply and verify the required pet persistence schema contract. */
+int run_pet_persistence_migrations(void);
+int verify_pet_persistence_schema(void);
+
 /* Show database initialization status */
 void show_database_status(struct char_data *ch);
 
@@ -106,7 +112,7 @@ ACMD_DECL(do_db_init_system); /* Initialize specific systems */
 ACMD_DECL(do_db_info);        /* Database information command */
 
 /* ===== STARTUP INITIALIZATION FUNCTIONS ===== */
-void startup_database_init(void);
+int startup_database_init(void);
 void initialize_missing_tables(void);
 int table_exists(const char *table_name);
 int procedure_exists(const char *procedure_name);

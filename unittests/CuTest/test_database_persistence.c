@@ -7,6 +7,7 @@
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/mysql.h"
+#include "../../src/db_init.h"
 #include "../../src/magic/spells.h"
 
 #include <stdlib.h>
@@ -60,6 +61,72 @@ static MYSQL *open_test_database(void)
   }
 
   return connection;
+}
+
+static bool create_legacy_pet_temporary_schema(MYSQL *connection)
+{
+  const char *queries[] = {"CREATE TEMPORARY TABLE schema_migrations ("
+                           "version INT NOT NULL PRIMARY KEY, description VARCHAR(255) NOT NULL, "
+                           "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB",
+                           "CREATE TEMPORARY TABLE pet_data ("
+                           "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+                           "owner_name VARCHAR(50) NOT NULL, cha INT NOT NULL) ENGINE=InnoDB",
+                           "CREATE TEMPORARY TABLE pet_save_objs ("
+                           "idnum INT UNSIGNED AUTO_INCREMENT, owner_name VARCHAR(50) NOT NULL, "
+                           "pet_idnum INT NOT NULL, serialized_obj TEXT NOT NULL, "
+                           "UNIQUE KEY IDNUM (idnum)) ENGINE=InnoDB",
+                           "INSERT INTO pet_data (owner_name, cha) VALUES ('LegacyOwner', 17)",
+                           "INSERT INTO pet_save_objs (owner_name, pet_idnum, serialized_obj) "
+                           "VALUES ('LegacyOwner', 1, '#1234')",
+                           NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+
+  return true;
+}
+
+static bool create_invalid_pet_temporary_schema(MYSQL *connection)
+{
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE schema_migrations ("
+      "version INT NOT NULL PRIMARY KEY, description VARCHAR(255) NOT NULL, "
+      "applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE pet_data ("
+      "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+      "owner_name VARCHAR(50) NOT NULL, runtime_state VARCHAR(32) NOT NULL) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE pet_save_objs ("
+      "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, owner_name VARCHAR(50) NOT NULL, "
+      "pet_idnum INT NOT NULL, serialized_obj TEXT NOT NULL) ENGINE=InnoDB",
+      "INSERT INTO schema_migrations (version, description) "
+      "VALUES (2026080504, 'invalid contract test fixture')",
+      NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+
+  return true;
+}
+
+static int query_single_int(MYSQL *connection, const char *query, int fallback)
+{
+  MYSQL_RES *result;
+  MYSQL_ROW row;
+  int value;
+
+  if (mysql_query(connection, query))
+    return fallback;
+  result = mysql_store_result(connection);
+  if (!result)
+    return fallback;
+  row = mysql_fetch_row(result);
+  value = row && row[0] ? atoi(row[0]) : fallback;
+  mysql_free_result(result);
+  return value;
 }
 
 void Test_database_production_invalid_prepared_statement_inputs(CuTest *tc)
@@ -161,6 +228,121 @@ void Test_database_production_prepared_statement_round_trip(CuTest *tc)
   CuAssertTrue(tc, fetched);
   CuAssertTrue(tc, payload_matches);
   CuAssertIntEquals(tc, 42, stored_count);
+}
+
+void Test_pet_persistence_legacy_schema_migration_is_idempotent(CuTest *tc)
+{
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool fixture_created;
+  bool first_migration;
+  bool first_verification;
+  bool second_migration;
+  bool second_verification;
+  int first_migration_count;
+  int second_migration_count;
+  int pet_rows;
+  int object_rows;
+  int linked_rows;
+  int runtime_state_null_rows;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  fixture_created = create_legacy_pet_temporary_schema(connection);
+  first_migration = fixture_created && run_pet_persistence_migrations();
+  first_verification = first_migration && verify_pet_persistence_schema();
+  first_migration_count =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
+                       "AND 2026080504",
+                       -1);
+  pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+  object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+  linked_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data AS pet JOIN pet_save_objs AS object "
+                       "ON object.pet_idnum = pet.pet_data_id "
+                       "WHERE pet.owner_name = 'LegacyOwner' AND object.owner_name = 'LegacyOwner'",
+                       -1);
+  runtime_state_null_rows =
+      query_single_int(connection, "SELECT COUNT(*) FROM pet_data WHERE runtime_state IS NULL", -1);
+  second_migration = first_migration && run_pet_persistence_migrations();
+  second_verification = second_migration && verify_pet_persistence_schema();
+  second_migration_count =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM schema_migrations WHERE version BETWEEN 2026080501 "
+                       "AND 2026080504",
+                       -1);
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, fixture_created);
+  CuAssertTrue(tc, first_migration);
+  CuAssertTrue(tc, first_verification);
+  CuAssertIntEquals(tc, 4, first_migration_count);
+  CuAssertIntEquals(tc, 1, pet_rows);
+  CuAssertIntEquals(tc, 1, object_rows);
+  CuAssertIntEquals(tc, 1, linked_rows);
+  CuAssertIntEquals(tc, 1, runtime_state_null_rows);
+  CuAssertTrue(tc, second_migration);
+  CuAssertTrue(tc, second_verification);
+  CuAssertIntEquals(tc, 4, second_migration_count);
+}
+
+void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
+{
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool fixture_created;
+  bool verified;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  fixture_created = create_invalid_pet_temporary_schema(connection);
+  verified = fixture_created && verify_pet_persistence_schema();
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, fixture_created);
+  CuAssertTrue(tc, !verified);
 }
 
 void Test_follower_runtime_state_round_trip(CuTest *tc)
