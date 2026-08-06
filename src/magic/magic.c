@@ -49,6 +49,7 @@ extern struct raff_node *raff_list;
 #ifdef LUMINARI_CUTEST
 static int bard_crescendo_damage_applications;
 static int bard_crescendo_save_applications;
+static int last_savingthrow_challenge;
 
 void test_reset_bard_crescendo_observations(void)
 {
@@ -64,6 +65,16 @@ int test_get_bard_crescendo_damage_applications(void)
 int test_get_bard_crescendo_save_applications(void)
 {
   return bard_crescendo_save_applications;
+}
+
+void test_reset_savingthrow_observation(void)
+{
+  last_savingthrow_challenge = 0;
+}
+
+int test_get_last_savingthrow_challenge(void)
+{
+  return last_savingthrow_challenge;
 }
 #endif
 void save_char_pets(struct char_data *ch);
@@ -485,8 +496,7 @@ const char *save_names[NUM_SAVINGS] = {"Fort", "Refl", "Will", "Poison", "Death"
 int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int modifier,
                      int casttype, int level, int school, int spellnum)
 {
-  int challenge = 10, // 10 is base DC
-      diceroll = d20(vict), stat_bonus = 0, savethrow = 0;
+  int challenge = SAVING_THROW_BASE_DC, diceroll = d20(vict), stat_bonus = 0, savethrow = 0;
   struct affected_type *af = NULL;
 
   /* Irresistible Magic perk - auto-fail saving throw for victim */
@@ -955,6 +965,10 @@ int savingthrow_full(struct char_data *ch, struct char_data *vict, int type, int
   }
 
   savethrow = MAX(1, savethrow);
+
+#ifdef LUMINARI_CUTEST
+  last_savingthrow_challenge = challenge;
+#endif
 
   /* Inquisitor Legendary Resilience: 10% chance to auto-succeed, once per 5 minutes */
   if (!IS_NPC(vict) && has_inquisitor_legendary_resilience(vict) &&

@@ -31,6 +31,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/actionqueues.h"
 #include "../../src/combat/fight.h"
+#include "../../src/magic/domains_schools.h"
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/spec_artifacts.h"
@@ -1373,6 +1374,75 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
   artint_end(&fixture);
 
   CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, fired);
+}
+
+void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int level_one_dc = 0, level_five_dc = 0, info_described = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_EARTHCRIER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_KNOCKDOWN, art->sig_proc);
+  CuAssertIntEquals(tc, 14, ARTIFACT_KNOCKDOWN_DC);
+
+  artint_instance(&fixture, &obj, ART_VNUM_EARTHCRIER);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  art->sig_chance = 100;
+  art->sig_align = ART_ALIGN_ANY;
+  /* A zeroed player has NOSCHOOL as its specialty, which the general save
+   * system treats as a situational +2 match.  Use a real, unrelated school so
+   * this assertion observes Earthcrier's unmodified base challenge. */
+  GET_SPECIALTY_SCHOOL(&fixture.actor) = ABJURATION;
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+
+  art->level = 1;
+  art->last_proc = 0;
+  GET_POS(&fixture.victim) = POS_STANDING;
+  test_reset_savingthrow_observation();
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_one_dc = test_get_last_savingthrow_challenge();
+
+  art->level = ARTIFACT_MAX_LEVEL;
+  art->last_proc = 0;
+  GET_POS(&fixture.victim) = POS_STANDING;
+  test_reset_savingthrow_observation();
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_five_dc = test_get_last_savingthrow_challenge();
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "base Reflex DC 14 + artifact level") &&
+                   artint_said(&fixture, "19 at this level") &&
+                   artint_said(&fixture, "free-moving") &&
+                   artint_said(&fixture, "already-down foes");
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 15, level_one_dc);
+  CuAssertIntEquals(tc, 19, level_five_dc);
+  CuAssertIntEquals(tc, TRUE, info_described);
 }
 
 void Test_artifact_integration_fade_siphons_only_living_npcs(CuTest *tc)

@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-004 and ART-AUD-013 resolved
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-005 and ART-AUD-013 resolved
 
 **Audited:** 2026-08-06
 
@@ -22,11 +22,12 @@ All three confirmed identity packages are now present in code and deterministic
 integration coverage.
 
 The audit also found three independent runtime defects: lethal artifact damage
-was not propagated back to the combat caller, Earthcrier calculates but ignores
+was not propagated back to the combat caller, Earthcrier calculated but ignored
 its declared save DC, and Kelrom's hand-written proc makes its advertised 14
 percent generic proc unreachable. These defects affect more than source parity
 and should be addressed before artifact placement. ART-AUD-001, the lethal-proc
-boundary defect, was resolved first on 2026-08-06.
+boundary defect, was resolved first on 2026-08-06. ART-AUD-005, Earthcrier's
+save defect, is now also resolved. Kelrom remains open as ART-AUD-006.
 
 ART-AUD-013 was resolved next on 2026-08-06. A production-linked identity
 contract now names the combat handler and table-owned odds, active ability,
@@ -46,6 +47,11 @@ its 20 percent generic proc.
 ART-AUD-004 was resolved in the current remediation pass. Avernus now owns an
 always-checked Bladesong survival layer plus a separate 1-in-31 life-transfer
 strike while retaining its 15 percent generic proc.
+
+ART-AUD-005 was resolved in the current remediation pass. Earthcrier now passes
+the save-system level component that produces its declared base Reflex DC of
+`14 + artifact level`, rather than a wielder-derived effect level. The installed
+binary survived copyover and a natural combat proc knocked its target down.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -107,7 +113,7 @@ contracts.
 | ART-AUD-002 | High | Resolved 2026-08-06 | Fade now has its separate 1-in-16 level-scaled life siphon; the 16 percent generic table remains independent. | Fade |
 | ART-AUD-003 | High | Resolved 2026-08-06 | Doombringer now has its separate 1-in-31, level-scaled extra-attack burst and independent one-third-hour recharge. | Doombringer |
 | ART-AUD-004 | High | Resolved 2026-08-06 | Avernus now has its primary life steal, minor Bladesong heal, safe knockdown recovery, and emergency healing package. | Avernus |
-| ART-AUD-005 | High | Confirmed defect | Earthcrier computes `14 + artifact level` but sends a different, much higher level-derived DC to the save system. | Earthcrier |
+| ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier now sends its declared `14 + artifact level` base DC to the save system, with tested boundaries of 15 and 19. | Earthcrier |
 | ART-AUD-006 | High | Confirmed defect | Kelrom's always-run signature path owns the shared cooldown, making its configured 14 percent generic proc unreachable. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
 | ART-AUD-008 | Medium | Likely gap | Wyrmfang ports five of its six source senses but omits danger sense, which exists in the current engine. | Wyrmfang |
@@ -345,7 +351,29 @@ The replacement should use current damage, position, immunity, and healing
 helpers. The source's direct HP writes and over-max healing are not safe porting
 targets.
 
-### ART-AUD-005: Earthcrier's declared DC is dead code
+### ART-AUD-005: Earthcrier's declared DC is dead code [resolved]
+
+Implementation (2026-08-06):
+
+- The save system's common base DC is now named `SAVING_THROW_BASE_DC` instead
+  of remaining an unexplained literal inside `savingthrow_full()`.
+- Earthcrier passes `declared DC - SAVING_THROW_BASE_DC` as the weapon-spell
+  level component. Its base Reflex challenge is therefore 15 at artifact
+  level 1 and 19 at level 5. Legitimate situational save and DC modifiers
+  remain part of the common save path.
+- `artifact info`, player help, and the formal system guide disclose the
+  formula and immunity rules.
+- A production-linked test invokes the real knockdown handler at levels 1 and
+  5 and observes the challenge calculated inside `savingthrow()`. The complete
+  root suite passes 424/424 tests.
+- The installed binary survived copyover, exposed a base DC of 15 at artifact
+  level 1, and validated all 17 production artifact metadata rows. In a
+  controlled normal combat loop, Earthcrier's natural proc produced challenge
+  21 after legitimate situational modifiers against Reflex 14, failed the
+  target's save, and left it sitting. Temporary and measured persistent state
+  was restored afterward.
+
+Original evidence at audited revision `61c03285`:
 
 `ARTIFACT_KNOCKDOWN_DC` declares a DC of `14 + artifact level`
 (`src/obj/spec_artifacts.h:310-312`). The handler calculates exactly that value,
@@ -574,7 +602,7 @@ runtime ignores.
 | 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
-| 169914 | Earthcrier | Confirmed defects | Knockdown exists, but its save DC ignores the declared constant and its prototype contradicts the two-handed current lore (ART-AUD-005, ART-AUD-009). |
+| 169914 | Earthcrier | DC fixed; handedness unresolved | Knockdown now uses its declared level-scaled base DC and has boundary and live-combat coverage (ART-AUD-005). Its prototype still contradicts the two-handed current lore (ART-AUD-009). |
 | 169915 | Wyrmfang | Likely passive gap; identity review | Weighted signature, `invoke hunt`, and five source senses exist. Danger sense is the one omitted source state, and source handedness differs (ART-AUD-008, ART-AUD-009). |
 | 169916 | Courage | Covered intentional rebuild | The current group valor effect and progressive defenses replace a Homeland combat branch that contained no finished mechanic. No additional gap was found. |
 | 169917 | Icedge | Covered intentional rebuild | Cold defenses, rime, and a bounded reusable flurry are implemented. The flurry shape was recovered from a mechanics-only Homeland artifact rather than claimed as a literal Icedge source proc. |
@@ -608,9 +636,9 @@ runtime ignores.
    Fade, Doombringer, and Avernus are covered by deterministic integration
    tests and controlled in-game verification (ART-AUD-002 through
    ART-AUD-004).
-4. **Repair current contradictions.** Resolve Earthcrier's DC and handedness,
-   then make an explicit Kelrom generic/healback choice
-   (ART-AUD-005, ART-AUD-006, ART-AUD-009).
+4. **In progress: repair current contradictions.** Earthcrier's DC correction
+   is complete. Make an explicit Kelrom generic/healback choice, then resolve
+   Earthcrier's handedness (ART-AUD-006, ART-AUD-009).
 5. **Make product decisions.** Approve or reject first-wave passives,
    Wyrmfang danger sense, class-oath scope, Wyrmfang handedness, and Aegis
    identity. Record every rejection in `docs/systems/ARTIFACT_SYSTEM.md`.

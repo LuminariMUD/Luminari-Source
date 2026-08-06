@@ -70,6 +70,10 @@
 #define CAST_WALL 12
 #define CAST_DEVICE 13 /* For artificer devices */
 
+/* savingthrow() begins every challenge at this value before applying the
+ * cast-type level and any situational bonuses. */
+#define SAVING_THROW_BASE_DC 10
+
 #define MAG_DAMAGE (1 << 0)
 #define MAG_AFFECTS (1 << 1)
 #define MAG_UNAFFECTS (1 << 2)
@@ -1885,6 +1889,8 @@ void test_clear_bard_spell_perks(struct char_data *ch);
 void test_reset_bard_crescendo_observations(void);
 int test_get_bard_crescendo_damage_applications(void);
 int test_get_bard_crescendo_save_applications(void);
+void test_reset_savingthrow_observation(void);
+int test_get_last_savingthrow_challenge(void);
 #endif
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,

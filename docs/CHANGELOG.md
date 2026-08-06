@@ -2,6 +2,36 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Earthcrier knockdown DC correction
+
+#### Fixed
+
+- Made Earthcrier use its declared base Reflex DC of
+  `14 + artifact level`, from 15 at level 1 through 19 at level 5. The old
+  handler calculated that value but instead passed a wielder-derived effect
+  level to the save system, producing a base DC of at least 30.
+- Named the save system's shared base DC so artifact code can pass the exact
+  remaining level component instead of duplicating an unexplained literal.
+
+#### Changed
+
+- `artifact info` now discloses Earthcrier's base DC and its immunity rules.
+  Updated player help and the formal artifact guide to match.
+
+#### Verification
+
+- A production-linked test drives Earthcrier's real knockdown handler and
+  observes the final unmodified challenge inside `savingthrow()` at both
+  artifact-level boundaries. The complete root suite passes 424/424 tests.
+- The installed development binary survived copyover. `artifact info`
+  reported the level-1 base Reflex DC of 15, and `testartifact verify`
+  validated the production metadata for all 17 artifacts.
+- In controlled combat, Earthcrier's natural knockdown proc fired through the
+  normal attack loop. The live save reported challenge 21 after legitimate
+  situational modifiers against Reflex 14, failed, and left the Oaken Defender
+  sitting. The temporary target and all measured character, inventory, and
+  artifact-registry state were restored afterward.
+
 ### Avernus Bladesong restoration
 
 #### Added

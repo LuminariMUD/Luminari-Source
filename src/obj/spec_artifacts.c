@@ -3559,15 +3559,15 @@ static int artifact_proc_knockdown(struct char_data *ch, struct char_data *victi
       IS_INCORPOREAL(victim) || GET_POS(victim) <= POS_SITTING)
     return FALSE;
 
-  if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, artifact_effect_level(ch, art),
+  /* savingthrow() adds its own base DC.  Pass only the remainder so the
+   * declared 14 + artifact-level challenge is the one actually rolled. */
+  if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, dc - SAVING_THROW_BASE_DC,
                   NOSCHOOL))
   {
     act("$p slams down beside $N, who rides it out.", FALSE, ch, weapon, victim, TO_CHAR);
     act("$p slams down beside you and you ride it out.", FALSE, ch, weapon, victim, TO_VICT);
     return FALSE;
   }
-
-  (void)dc;
 
   act("\tY$p lands like a falling wall and takes $N off $S feet!\tn", FALSE, ch, weapon, victim,
       TO_CHAR);
@@ -5125,6 +5125,11 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
       send_to_char(ch,
                    "  Drain: (2 + artifact level)d10 + (10 x artifact level) + wielder level.\r\n"
                    "  Healing equals damage inflicted, capped by missing hit points.\r\n");
+    else if (art->sig_proc == ART_SIG_KNOCKDOWN)
+      send_to_char(ch,
+                   "  Save: base Reflex DC %d + artifact level (%d at this level).\r\n"
+                   "  No effect on no-bash, free-moving, incorporeal, or already-down foes.\r\n",
+                   ARTIFACT_KNOCKDOWN_DC, ARTIFACT_KNOCKDOWN_DC + art->level);
   }
 
   if (art->ability_name)
