@@ -1,0 +1,868 @@
+#include "CuTest.h"
+
+#include "../../src/conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+
+#include "../../src/comm.h"
+#include "../../src/db.h"
+#include "../../src/interpreter.h"
+#include "../../src/mob/mob_act.h"
+#include "../../src/olc/oasis.h"
+
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define SPEC_PULSE_ROOM_COUNT 2
+#define SPEC_PULSE_MOBILE_COUNT 2
+#define SPEC_PULSE_OBJECT_COUNT 6
+#define SPEC_PULSE_OWNER_COUNT 9
+#define SPEC_PULSE_MAX_CALLS 16
+#define SPEC_PULSE_SOURCE_LIMIT (1024L * 1024L)
+
+void proc_update(void);
+
+struct spec_pulse_call
+{
+  struct char_data *actor;
+  void *owner;
+  int command;
+  bool argument_is_null;
+  char argument[MAX_INPUT_LENGTH];
+};
+
+struct spec_pulse_recorder
+{
+  struct spec_pulse_call calls[SPEC_PULSE_MAX_CALLS];
+  int returns[SPEC_PULSE_MAX_CALLS];
+  int return_count;
+  int call_count;
+};
+
+struct spec_pulse_fixture
+{
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct index_data *saved_mob_index;
+  mob_rnum saved_top_of_mobt;
+  struct index_data *saved_obj_index;
+  obj_rnum saved_top_of_objt;
+  struct char_data *saved_character_list;
+  struct obj_data *saved_object_list;
+  struct moving_room_data *saved_moving_rooms;
+  struct command_info *saved_complete_cmd_info;
+  int saved_no_specials;
+
+  struct room_data rooms[SPEC_PULSE_ROOM_COUNT];
+  struct index_data mob_indexes[SPEC_PULSE_MOBILE_COUNT];
+  struct index_data obj_indexes[SPEC_PULSE_OBJECT_COUNT];
+  struct char_data actor;
+  struct char_data mobiles[SPEC_PULSE_MOBILE_COUNT];
+  struct obj_data objects[SPEC_PULSE_OBJECT_COUNT];
+  struct moving_room_data moving_room;
+  struct command_info commands[2];
+  struct spec_pulse_recorder recorder;
+
+  int command_handler_calls;
+  struct char_data *command_handler_actor;
+  int command_handler_command;
+  int command_handler_subcommand;
+  bool command_handler_argument_is_null;
+  char command_handler_argument[MAX_INPUT_LENGTH];
+};
+
+static struct spec_pulse_fixture *active_spec_pulse_fixture;
+
+static SPECIAL_DECL(spec_pulse_record_callback)
+{
+  struct spec_pulse_call *call;
+  int call_index;
+
+  if (active_spec_pulse_fixture == NULL)
+    return 0;
+
+  call_index = active_spec_pulse_fixture->recorder.call_count;
+  if (call_index < SPEC_PULSE_MAX_CALLS)
+  {
+    call = &active_spec_pulse_fixture->recorder.calls[call_index];
+    call->actor = ch;
+    call->owner = me;
+    call->command = cmd;
+    call->argument_is_null = argument == NULL;
+    if (argument != NULL)
+      snprintf(call->argument, sizeof(call->argument), "%s", argument);
+  }
+  active_spec_pulse_fixture->recorder.call_count++;
+
+  if (call_index >= 0 && call_index < active_spec_pulse_fixture->recorder.return_count &&
+      call_index < SPEC_PULSE_MAX_CALLS)
+    return active_spec_pulse_fixture->recorder.returns[call_index];
+
+  return 0;
+}
+
+static void spec_pulse_command_handler(struct char_data *ch, const char *argument, int cmd,
+                                       int subcmd)
+{
+  if (active_spec_pulse_fixture == NULL)
+    return;
+
+  active_spec_pulse_fixture->command_handler_calls++;
+  active_spec_pulse_fixture->command_handler_actor = ch;
+  active_spec_pulse_fixture->command_handler_command = cmd;
+  active_spec_pulse_fixture->command_handler_subcommand = subcmd;
+  active_spec_pulse_fixture->command_handler_argument_is_null = argument == NULL;
+  if (argument != NULL)
+    snprintf(active_spec_pulse_fixture->command_handler_argument,
+             sizeof(active_spec_pulse_fixture->command_handler_argument), "%s", argument);
+}
+
+static bool spec_pulse_fixture_begin(struct spec_pulse_fixture *fixture)
+{
+  int index;
+
+  if (fixture == NULL || active_spec_pulse_fixture != NULL)
+    return false;
+
+  memset(fixture, 0, sizeof(*fixture));
+  fixture->saved_world = world;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_top_of_mobt = top_of_mobt;
+  fixture->saved_obj_index = obj_index;
+  fixture->saved_top_of_objt = top_of_objt;
+  fixture->saved_character_list = character_list;
+  fixture->saved_object_list = object_list;
+  fixture->saved_moving_rooms = movingRoomList;
+  fixture->saved_complete_cmd_info = complete_cmd_info;
+  fixture->saved_no_specials = no_specials;
+
+  fixture->rooms[0].number = 100;
+  fixture->rooms[1].number = 200;
+  for (index = 0; index < SPEC_PULSE_MOBILE_COUNT; index++)
+    fixture->mob_indexes[index].vnum = 1000 + index;
+  for (index = 0; index < SPEC_PULSE_OBJECT_COUNT; index++)
+    fixture->obj_indexes[index].vnum = 2000 + index;
+
+  world = fixture->rooms;
+  top_of_world = SPEC_PULSE_ROOM_COUNT - 1;
+  mob_index = fixture->mob_indexes;
+  top_of_mobt = SPEC_PULSE_MOBILE_COUNT - 1;
+  obj_index = fixture->obj_indexes;
+  top_of_objt = SPEC_PULSE_OBJECT_COUNT - 1;
+  character_list = NULL;
+  object_list = NULL;
+  movingRoomList = NULL;
+  no_specials = 0;
+  active_spec_pulse_fixture = fixture;
+  return true;
+}
+
+static void spec_pulse_fixture_end(struct spec_pulse_fixture *fixture)
+{
+  if (fixture == NULL || active_spec_pulse_fixture != fixture)
+    return;
+
+  active_spec_pulse_fixture = NULL;
+  world = fixture->saved_world;
+  top_of_world = fixture->saved_top_of_world;
+  mob_index = fixture->saved_mob_index;
+  top_of_mobt = fixture->saved_top_of_mobt;
+  obj_index = fixture->saved_obj_index;
+  top_of_objt = fixture->saved_top_of_objt;
+  character_list = fixture->saved_character_list;
+  object_list = fixture->saved_object_list;
+  movingRoomList = fixture->saved_moving_rooms;
+  complete_cmd_info = fixture->saved_complete_cmd_info;
+  no_specials = fixture->saved_no_specials;
+}
+
+static void spec_pulse_recorder_reset(struct spec_pulse_fixture *fixture)
+{
+  memset(&fixture->recorder, 0, sizeof(fixture->recorder));
+}
+
+static void spec_pulse_set_mobile_flags(struct char_data *mobile, bool has_special)
+{
+  memset(MOB_FLAGS(mobile), 0, sizeof(mobile->char_specials.saved.act));
+  SET_BIT_AR(MOB_FLAGS(mobile), MOB_ISNPC);
+  SET_BIT_AR(MOB_FLAGS(mobile), MOB_SENTINEL);
+  if (has_special)
+    SET_BIT_AR(MOB_FLAGS(mobile), MOB_SPEC);
+}
+
+static void spec_pulse_prepare_command_graph(struct spec_pulse_fixture *fixture,
+                                             void **expected_owners)
+{
+  int index;
+
+  fixture->rooms[0].func = spec_pulse_record_callback;
+  IN_ROOM(&fixture->actor) = 0;
+
+  for (index = 0; index < SPEC_PULSE_OBJECT_COUNT; index++)
+  {
+    GET_OBJ_RNUM(&fixture->objects[index]) = index;
+    fixture->obj_indexes[index].func = spec_pulse_record_callback;
+  }
+  GET_EQ(&fixture->actor, 0) = &fixture->objects[0];
+  GET_EQ(&fixture->actor, NUM_WEARS - 1) = &fixture->objects[1];
+  fixture->actor.carrying = &fixture->objects[2];
+  fixture->objects[2].next_content = &fixture->objects[3];
+
+  for (index = 0; index < SPEC_PULSE_MOBILE_COUNT; index++)
+  {
+    fixture->mobiles[index].nr = index;
+    IN_ROOM(&fixture->mobiles[index]) = 0;
+    SET_BIT_AR(MOB_FLAGS(&fixture->mobiles[index]), MOB_ISNPC);
+    fixture->mob_indexes[index].func = spec_pulse_record_callback;
+  }
+  fixture->rooms[0].people = &fixture->mobiles[0];
+  fixture->mobiles[0].next_in_room = &fixture->mobiles[1];
+
+  fixture->rooms[0].contents = &fixture->objects[4];
+  fixture->objects[4].next_content = &fixture->objects[5];
+
+  expected_owners[0] = &fixture->rooms[0];
+  expected_owners[1] = &fixture->objects[0];
+  expected_owners[2] = &fixture->objects[1];
+  expected_owners[3] = &fixture->objects[2];
+  expected_owners[4] = &fixture->objects[3];
+  expected_owners[5] = &fixture->mobiles[0];
+  expected_owners[6] = &fixture->mobiles[1];
+  expected_owners[7] = &fixture->objects[4];
+  expected_owners[8] = &fixture->objects[5];
+}
+
+static void spec_pulse_prepare_mobile_activity(struct spec_pulse_fixture *fixture,
+                                               SPECIAL_DECL(*callback))
+{
+  struct char_data *mobile;
+  time_t now;
+
+  mobile = &fixture->mobiles[0];
+  now = time(NULL);
+  mobile->nr = 0;
+  IN_ROOM(mobile) = 0;
+  mobile->player.short_descr = "pulse mobile";
+  GET_LEVEL(mobile) = 0;
+  GET_HIT(mobile) = 10;
+  GET_POS(mobile) = POS_RESTING;
+  GET_DEFAULT_POS(mobile) = POS_SITTING;
+  GET_MOB_LOADROOM(mobile) = 0;
+  mobile->mob_specials.last_slot_regen = now;
+  mobile->mob_specials.last_known_slot_regen = now;
+  spec_pulse_set_mobile_flags(mobile, true);
+
+  fixture->mob_indexes[0].func = callback;
+  fixture->rooms[0].people = mobile;
+  character_list = mobile;
+}
+
+static bool spec_pulse_calls_match(struct spec_pulse_fixture *fixture, void **owners,
+                                   int owner_count, struct char_data *actor, int command,
+                                   const char *argument)
+{
+  struct spec_pulse_call *call;
+  int index;
+
+  if (fixture->recorder.call_count != owner_count || owner_count > SPEC_PULSE_MAX_CALLS)
+    return false;
+
+  for (index = 0; index < owner_count; index++)
+  {
+    call = &fixture->recorder.calls[index];
+    if (call->owner != owners[index] || call->actor != actor || call->command != command ||
+        call->argument_is_null || strcmp(call->argument, argument) != 0)
+      return false;
+  }
+  return true;
+}
+
+static const char *spec_pulse_source_root(void)
+{
+  const char *root;
+
+  root = getenv("LUMINARI_TEST_ROOT");
+  return root != NULL && *root != '\0' ? root : ".";
+}
+
+static bool spec_pulse_read_source(const char *relative_path, char **text)
+{
+  FILE *file;
+  char path[PATH_MAX];
+  char *buffer;
+  long source_length;
+  size_t bytes_read;
+  bool success;
+
+  *text = NULL;
+  if (snprintf(path, sizeof(path), "%s/%s", spec_pulse_source_root(), relative_path) >=
+      (int)sizeof(path))
+    return false;
+
+  file = fopen(path, "rb");
+  if (file == NULL)
+    return false;
+
+  success = fseek(file, 0, SEEK_END) == 0;
+  source_length = success ? ftell(file) : -1;
+  if (source_length < 0 || source_length > SPEC_PULSE_SOURCE_LIMIT || fseek(file, 0, SEEK_SET) != 0)
+    success = false;
+
+  buffer = NULL;
+  if (success)
+  {
+    buffer = malloc((size_t)source_length + 1);
+    success = buffer != NULL;
+  }
+  if (success)
+  {
+    bytes_read = fread(buffer, 1, (size_t)source_length, file);
+    success = bytes_read == (size_t)source_length && ferror(file) == 0;
+    buffer[bytes_read] = '\0';
+  }
+  if (fclose(file) != 0)
+    success = false;
+
+  if (!success)
+  {
+    free(buffer);
+    return false;
+  }
+
+  *text = buffer;
+  return true;
+}
+
+void Test_spec_command_traverses_all_owners_in_order(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  void *owners[SPEC_PULSE_OWNER_COUNT];
+  char argument[] = "  exact payload";
+  bool setup_ok;
+  bool calls_match;
+  bool mobile_flags_absent;
+  int handled;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize command fixture");
+    return;
+  }
+
+  spec_pulse_prepare_command_graph(&fixture, owners);
+  mobile_flags_absent =
+      !MOB_FLAGGED(&fixture.mobiles[0], MOB_SPEC) && !MOB_FLAGGED(&fixture.mobiles[1], MOB_SPEC);
+  handled = special(&fixture.actor, 37, argument);
+  calls_match = spec_pulse_calls_match(&fixture, owners, SPEC_PULSE_OWNER_COUNT, &fixture.actor, 37,
+                                       argument);
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertIntEquals(tc, 0, handled);
+  CuAssertTrue(tc, calls_match);
+  CuAssertTrue(tc, mobile_flags_absent);
+}
+
+void Test_spec_command_stops_at_each_first_nonzero_owner(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  void *owners[SPEC_PULSE_OWNER_COUNT];
+  char argument[] = " stop payload";
+  bool setup_ok;
+  bool all_prefixes_match;
+  int stop_index;
+  int handled;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize command fixture");
+    return;
+  }
+
+  spec_pulse_prepare_command_graph(&fixture, owners);
+  all_prefixes_match = true;
+  for (stop_index = 0; stop_index < SPEC_PULSE_OWNER_COUNT; stop_index++)
+  {
+    spec_pulse_recorder_reset(&fixture);
+    fixture.recorder.return_count = stop_index + 1;
+    fixture.recorder.returns[stop_index] = 1;
+    handled = special(&fixture.actor, 19, argument);
+    if (handled != 1 ||
+        !spec_pulse_calls_match(&fixture, owners, stop_index + 1, &fixture.actor, 19, argument))
+      all_prefixes_match = false;
+  }
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, all_prefixes_match);
+}
+
+void Test_spec_command_rejects_nowhere_and_skips_pending_mobile(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  void *owners[SPEC_PULSE_OWNER_COUNT];
+  void *without_pending[SPEC_PULSE_OWNER_COUNT - 1];
+  char argument[] = " pending payload";
+  bool setup_ok;
+  bool pending_skipped;
+  bool nowhere_skipped;
+  int index;
+  int handled;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize command fixture");
+    return;
+  }
+
+  spec_pulse_prepare_command_graph(&fixture, owners);
+  SET_BIT_AR(MOB_FLAGS(&fixture.mobiles[0]), MOB_NOTDEADYET);
+  for (index = 0; index < 5; index++)
+    without_pending[index] = owners[index];
+  without_pending[5] = owners[6];
+  without_pending[6] = owners[7];
+  without_pending[7] = owners[8];
+
+  handled = special(&fixture.actor, 23, argument);
+  pending_skipped =
+      handled == 0 && spec_pulse_calls_match(&fixture, without_pending, SPEC_PULSE_OWNER_COUNT - 1,
+                                             &fixture.actor, 23, argument);
+
+  spec_pulse_recorder_reset(&fixture);
+  IN_ROOM(&fixture.actor) = NOWHERE;
+  handled = special(&fixture.actor, 23, argument);
+  nowhere_skipped = handled == 0 && fixture.recorder.call_count == 0;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, pending_skipped);
+  CuAssertTrue(tc, nowhere_skipped);
+}
+
+void Test_spec_command_no_specials_bypasses_special_dispatch(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  char normal_command[] = "specprobe payload";
+  char suppressed_command[] = "specprobe payload";
+  bool setup_ok;
+  bool normal_handled;
+  bool suppressed_bypassed;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize command fixture");
+    return;
+  }
+
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.nr = NOBODY;
+  IN_ROOM(&fixture.actor) = 0;
+  GET_POS(&fixture.actor) = POS_STANDING;
+  GET_LEVEL(&fixture.actor) = 0;
+  fixture.actor.player.short_descr = "command actor";
+  fixture.rooms[0].func = spec_pulse_record_callback;
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+
+  fixture.commands[0].command = "specprobe";
+  fixture.commands[0].sort_as = "specprobe";
+  fixture.commands[0].minimum_position = POS_DEAD;
+  fixture.commands[0].command_pointer = spec_pulse_command_handler;
+  fixture.commands[0].minimum_level = 0;
+  fixture.commands[0].subcmd = 71;
+  fixture.commands[0].ignore_wait = TRUE;
+  fixture.commands[0].actions_required = ACTION_NONE;
+  fixture.commands[1].command = "\n";
+  fixture.commands[1].sort_as = "\n";
+  complete_cmd_info = fixture.commands;
+
+  command_interpreter(&fixture.actor, normal_command);
+  normal_handled = fixture.recorder.call_count == 1 && fixture.command_handler_calls == 0 &&
+                   fixture.recorder.calls[0].actor == &fixture.actor &&
+                   fixture.recorder.calls[0].owner == &fixture.rooms[0] &&
+                   fixture.recorder.calls[0].command == 0 &&
+                   strcmp(fixture.recorder.calls[0].argument, " payload") == 0;
+
+  spec_pulse_recorder_reset(&fixture);
+  no_specials = 1;
+  command_interpreter(&fixture.actor, suppressed_command);
+  suppressed_bypassed =
+      fixture.recorder.call_count == 0 && fixture.command_handler_calls == 1 &&
+      fixture.command_handler_actor == &fixture.actor && fixture.command_handler_command == 0 &&
+      fixture.command_handler_subcommand == 71 && !fixture.command_handler_argument_is_null &&
+      strcmp(fixture.command_handler_argument, " payload") == 0;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, normal_handled);
+  CuAssertTrue(tc, suppressed_bypassed);
+}
+
+void Test_spec_mobile_activity_handled_callback_skips_default_ai(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct spec_pulse_call call;
+  bool setup_ok;
+  bool payload_matches;
+  int position;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize mobile fixture");
+    return;
+  }
+
+  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+  mobile_activity();
+  call = fixture.recorder.calls[0];
+  position = (unsigned char)GET_POS(&fixture.mobiles[0]);
+  payload_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.mobiles[0] &&
+                    call.owner == &fixture.mobiles[0] && call.command == 0 &&
+                    !call.argument_is_null && call.argument[0] == '\0';
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, payload_matches);
+  CuAssertIntEquals(tc, POS_RESTING, position);
+}
+
+void Test_spec_mobile_activity_zero_callback_runs_default_ai(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  bool setup_ok;
+  bool callback_called;
+  int position;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize mobile fixture");
+    return;
+  }
+
+  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
+  mobile_activity();
+  callback_called = fixture.recorder.call_count == 1;
+  position = (unsigned char)GET_POS(&fixture.mobiles[0]);
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, callback_called);
+  CuAssertIntEquals(tc, POS_SITTING, position);
+}
+
+void Test_spec_mobile_activity_activation_gates(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct char_data *mobile;
+  bool setup_ok;
+  bool flag_gate;
+  bool suppression_gate;
+  bool missing_callback_gate;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize mobile fixture");
+    return;
+  }
+
+  spec_pulse_prepare_mobile_activity(&fixture, spec_pulse_record_callback);
+  mobile = &fixture.mobiles[0];
+
+  spec_pulse_set_mobile_flags(mobile, false);
+  mobile_activity();
+  flag_gate = fixture.recorder.call_count == 0 && GET_POS(mobile) == POS_SITTING;
+
+  spec_pulse_recorder_reset(&fixture);
+  spec_pulse_set_mobile_flags(mobile, true);
+  GET_POS(mobile) = POS_RESTING;
+  no_specials = 1;
+  mobile_activity();
+  suppression_gate = fixture.recorder.call_count == 0 && MOB_FLAGGED(mobile, MOB_SPEC) &&
+                     GET_POS(mobile) == POS_SITTING;
+
+  spec_pulse_recorder_reset(&fixture);
+  spec_pulse_set_mobile_flags(mobile, true);
+  GET_POS(mobile) = POS_RESTING;
+  fixture.mob_indexes[0].func = NULL;
+  no_specials = 0;
+  mobile_activity();
+  missing_callback_gate = fixture.recorder.call_count == 0 && !MOB_FLAGGED(mobile, MOB_SPEC) &&
+                          GET_POS(mobile) == POS_SITTING;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, flag_gate);
+  CuAssertTrue(tc, suppression_gate);
+  CuAssertTrue(tc, missing_callback_gate);
+}
+
+void Test_spec_proc_update_worn_object_uses_wearer_once(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct spec_pulse_call call;
+  struct obj_data *object;
+  bool setup_ok;
+  bool call_matches;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize object fixture");
+    return;
+  }
+
+  object = &fixture.objects[0];
+  GET_OBJ_RNUM(object) = 0;
+  SET_BIT_AR(GET_OBJ_EXTRA(object), ITEM_AUTOPROC);
+  object->worn_by = &fixture.actor;
+  fixture.obj_indexes[0].func = spec_pulse_record_callback;
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+  object_list = object;
+
+  proc_update();
+  call = fixture.recorder.calls[0];
+  call_matches = fixture.recorder.call_count == 1 && call.actor == &fixture.actor &&
+                 call.owner == object && call.command == 0 && !call.argument_is_null &&
+                 call.argument[0] == '\0';
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, call_matches);
+}
+
+void Test_spec_proc_update_carried_object_uses_null_then_carrier(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct obj_data *object;
+  bool setup_ok;
+  bool fallback_matches;
+  bool handled_null_stops;
+  bool unowned_repeats_null;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize object fixture");
+    return;
+  }
+
+  object = &fixture.objects[0];
+  GET_OBJ_RNUM(object) = 0;
+  SET_BIT_AR(GET_OBJ_EXTRA(object), ITEM_AUTOPROC);
+  object->carried_by = &fixture.actor;
+  fixture.obj_indexes[0].func = spec_pulse_record_callback;
+  object_list = object;
+
+  fixture.recorder.return_count = 2;
+  fixture.recorder.returns[0] = 0;
+  fixture.recorder.returns[1] = 1;
+  proc_update();
+  fallback_matches = fixture.recorder.call_count == 2 && fixture.recorder.calls[0].actor == NULL &&
+                     fixture.recorder.calls[1].actor == &fixture.actor &&
+                     fixture.recorder.calls[0].owner == object &&
+                     fixture.recorder.calls[1].owner == object;
+
+  spec_pulse_recorder_reset(&fixture);
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+  proc_update();
+  handled_null_stops = fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL;
+
+  spec_pulse_recorder_reset(&fixture);
+  object->carried_by = NULL;
+  proc_update();
+  unowned_repeats_null = fixture.recorder.call_count == 2 &&
+                         fixture.recorder.calls[0].actor == NULL &&
+                         fixture.recorder.calls[1].actor == NULL;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, fallback_matches);
+  CuAssertTrue(tc, handled_null_stops);
+  CuAssertTrue(tc, unowned_repeats_null);
+}
+
+void Test_spec_proc_update_gates_and_ignores_no_specials(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct obj_data *unflagged;
+  struct obj_data *inert_weapon;
+  struct obj_data *missing_callback;
+  bool setup_ok;
+  bool gates_match;
+  bool suppression_ignored;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize object fixture");
+    return;
+  }
+
+  unflagged = &fixture.objects[0];
+  inert_weapon = &fixture.objects[1];
+  missing_callback = &fixture.objects[2];
+  GET_OBJ_RNUM(unflagged) = 0;
+  GET_OBJ_RNUM(inert_weapon) = 1;
+  GET_OBJ_RNUM(missing_callback) = 2;
+  fixture.obj_indexes[0].func = spec_pulse_record_callback;
+  fixture.obj_indexes[1].func = spec_pulse_record_callback;
+  fixture.obj_indexes[2].func = NULL;
+  SET_BIT_AR(GET_OBJ_EXTRA(inert_weapon), ITEM_AUTOPROC);
+  GET_OBJ_TYPE(inert_weapon) = ITEM_WEAPON;
+  GET_OBJ_VAL(inert_weapon, 0) = 0;
+  SET_BIT_AR(GET_OBJ_EXTRA(missing_callback), ITEM_AUTOPROC);
+  unflagged->next = inert_weapon;
+  inert_weapon->next = missing_callback;
+  object_list = unflagged;
+
+  proc_update();
+  gates_match = fixture.recorder.call_count == 0;
+
+  spec_pulse_recorder_reset(&fixture);
+  SET_BIT_AR(GET_OBJ_EXTRA(unflagged), ITEM_AUTOPROC);
+  unflagged->worn_by = &fixture.actor;
+  unflagged->next = NULL;
+  no_specials = 1;
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 1;
+  proc_update();
+  suppression_ignored = fixture.recorder.call_count == 1 &&
+                        fixture.recorder.calls[0].actor == &fixture.actor &&
+                        fixture.recorder.calls[0].owner == unflagged;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, gates_match);
+  CuAssertTrue(tc, suppression_ignored);
+}
+
+void Test_spec_moving_rooms_timer_payload_and_return(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  struct spec_pulse_call first_call;
+  struct spec_pulse_call second_call;
+  bool setup_ok;
+  bool first_tick_waited;
+  bool first_expiry_matches;
+  bool second_expiry_matches;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize moving-room fixture");
+    return;
+  }
+
+  fixture.rooms[1].func = spec_pulse_record_callback;
+  fixture.moving_room.destination = 200;
+  fixture.moving_room.remainingZonePulses = 2;
+  fixture.moving_room.resetZonePulse = 5;
+  movingRoomList = &fixture.moving_room;
+
+  moving_rooms_update();
+  first_tick_waited =
+      fixture.recorder.call_count == 0 && fixture.moving_room.remainingZonePulses == 1;
+
+  fixture.recorder.return_count = 1;
+  fixture.recorder.returns[0] = 0;
+  moving_rooms_update();
+  first_call = fixture.recorder.calls[0];
+  first_expiry_matches = fixture.recorder.call_count == 1 && first_call.actor == NULL &&
+                         first_call.owner == &fixture.moving_room && first_call.command == 0 &&
+                         first_call.argument_is_null &&
+                         fixture.moving_room.remainingZonePulses == 5;
+
+  fixture.moving_room.remainingZonePulses = 1;
+  fixture.recorder.return_count = 2;
+  fixture.recorder.returns[1] = 1;
+  moving_rooms_update();
+  second_call = fixture.recorder.calls[1];
+  second_expiry_matches = fixture.recorder.call_count == 2 && second_call.actor == NULL &&
+                          second_call.owner == &fixture.moving_room && second_call.command == 0 &&
+                          second_call.argument_is_null &&
+                          fixture.moving_room.remainingZonePulses == 5;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, first_tick_waited);
+  CuAssertTrue(tc, first_expiry_matches);
+  CuAssertTrue(tc, second_expiry_matches);
+}
+
+void Test_spec_moving_rooms_ignores_no_specials(CuTest *tc)
+{
+  struct spec_pulse_fixture fixture;
+  bool setup_ok;
+  bool suppression_ignored;
+
+  setup_ok = spec_pulse_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize moving-room fixture");
+    return;
+  }
+
+  fixture.rooms[1].func = spec_pulse_record_callback;
+  fixture.moving_room.destination = 200;
+  fixture.moving_room.remainingZonePulses = 1;
+  fixture.moving_room.resetZonePulse = 7;
+  movingRoomList = &fixture.moving_room;
+  no_specials = 1;
+
+  moving_rooms_update();
+  suppression_ignored =
+      fixture.recorder.call_count == 1 && fixture.recorder.calls[0].actor == NULL &&
+      fixture.recorder.calls[0].owner == &fixture.moving_room &&
+      fixture.recorder.calls[0].argument_is_null && fixture.moving_room.remainingZonePulses == 7;
+  spec_pulse_fixture_end(&fixture);
+
+  CuAssertTrue(tc, suppression_ignored);
+}
+
+void Test_spec_heartbeat_preserves_noncombat_proc_schedule(CuTest *tc)
+{
+  char *source;
+  char *moving_gate;
+  char *moving_call;
+  char *one_second_gate;
+  char *mobile_gate;
+  char *mobile_call;
+  char *proc_call;
+  char *violence_gate;
+  bool source_loaded;
+  bool moving_schedule_matches;
+  bool pulse_order_matches;
+
+  source = NULL;
+  source_loaded = spec_pulse_read_source("src/comm.c", &source);
+  moving_schedule_matches = false;
+  pulse_order_matches = false;
+  if (source_loaded)
+  {
+    moving_gate = strstr(source, "if (!(heart_pulse % (PASSES_PER_SEC * 10)))");
+    moving_call = moving_gate != NULL ? strstr(moving_gate, "moving_rooms_update();") : NULL;
+    one_second_gate =
+        moving_gate != NULL ? strstr(moving_gate, "if (!(heart_pulse % PASSES_PER_SEC))") : NULL;
+    moving_schedule_matches = moving_gate != NULL && moving_call != NULL &&
+                              one_second_gate != NULL && moving_call < one_second_gate;
+
+    mobile_gate = strstr(source, "if (!(heart_pulse % PULSE_MOBILE))");
+    mobile_call = mobile_gate != NULL ? strstr(mobile_gate, "mobile_activity();") : NULL;
+    proc_call = mobile_gate != NULL ? strstr(mobile_gate, "proc_update();") : NULL;
+    violence_gate =
+        mobile_gate != NULL ? strstr(mobile_gate, "if (!(heart_pulse % PULSE_VIOLENCE))") : NULL;
+    pulse_order_matches = mobile_gate != NULL && mobile_call != NULL && proc_call != NULL &&
+                          violence_gate != NULL && mobile_call < proc_call &&
+                          proc_call < violence_gate;
+  }
+  free(source);
+
+  CuAssertTrue(tc, source_loaded);
+  CuAssertTrue(tc, moving_schedule_matches);
+  CuAssertTrue(tc, pulse_order_matches);
+}

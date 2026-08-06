@@ -1,8 +1,9 @@
 # Session 02: Command and Pulse Characterization
 
 **Session ID**: `phase00-session02-command-and-pulse-characterization`
-**Status**: Not Started
-**Estimated Tasks**: ~20-24
+**Status**: Complete
+**Completed**: 2026-08-06
+**Tasks**: 24
 **Estimated Duration**: 2-4 hours
 
 ---
@@ -37,8 +38,8 @@ arguments, activation gates, scheduling positions, return handling, and normal v
 
 ## Prerequisites
 
-- [ ] Session 01 test fixtures and production-linked suite membership are available.
-- [ ] Current command and heartbeat call sites have been retraced before test assertions are fixed.
+- [x] Session 01 test fixtures and production-linked suite membership are available.
+- [x] Current command and heartbeat call sites have been retraced before test assertions are fixed.
 
 ---
 
@@ -53,7 +54,7 @@ arguments, activation gates, scheduling positions, return handling, and normal v
 
 ## Success Criteria
 
-- [ ] All command owners execute in the verified order and a handled command stops later traversal.
-- [ ] Mobile and object pulse behavior records exact flag, actor, fallback, and return contracts.
-- [ ] Moving-room scheduling and payload translation are covered without changing their behavior.
-- [ ] Applicable normal and -s differences are explicit and passing in production-linked tests.
+- [x] All command owners execute in the verified order and a handled command stops later traversal.
+- [x] Mobile and object pulse behavior records exact flag, actor, fallback, and return contracts.
+- [x] Moving-room scheduling and payload translation are covered without changing their behavior.
+- [x] Applicable normal and -s differences are explicit and passing in production-linked tests.
