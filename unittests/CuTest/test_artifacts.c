@@ -198,6 +198,51 @@ static int artifact_test_file_has_line(const char *path, const char *wanted)
   return FALSE;
 }
 
+/* Read one integer extension field from a specific tracked object record.
+ * This keeps prototype-contract tests tied to the shipped world data instead
+ * of duplicating values in a synthetic fixture. */
+static int artifact_test_object_integer_field(const char *path, int vnum, char field, int *value)
+{
+  FILE *fl = NULL;
+  char line[READ_SIZE] = {'\0'};
+  char record[64] = {'\0'};
+  size_t len = 0;
+  int in_record = FALSE;
+
+  if (!value || !(fl = fopen(path, "r")))
+    return FALSE;
+
+  snprintf(record, sizeof(record), "#%d", vnum);
+
+  while (fgets(line, sizeof(line), fl))
+  {
+    len = strlen(line);
+    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+      line[--len] = '\0';
+
+    if (line[0] == '#')
+    {
+      if (in_record)
+        break;
+      in_record = !strcmp(line, record);
+      continue;
+    }
+
+    if (in_record && line[0] == field && line[1] == '\0')
+    {
+      if (fgets(line, sizeof(line), fl) && sscanf(line, "%d", value) == 1)
+      {
+        fclose(fl);
+        return TRUE;
+      }
+      break;
+    }
+  }
+
+  fclose(fl);
+  return FALSE;
+}
+
 static const char *artifact_test_source_root(void)
 {
   const char *root = getenv("LUMINARI_TEST_ROOT");
@@ -762,6 +807,32 @@ void Test_artifact_world_package_contains_all_deployable_records(CuTest *tc)
     CuFail(tc, failure);
     return;
   }
+}
+
+void Test_artifact_world_package_earthcrier_is_two_handed(CuTest *tc)
+{
+  struct char_data wielder;
+  struct obj_data earthcrier;
+  char path[PATH_MAX] = {'\0'};
+  char failure[PATH_MAX + 128] = {'\0'};
+  const char *root = artifact_test_source_root();
+  int size = SIZE_UNDEFINED;
+
+  snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.obj", root);
+  if (!artifact_test_object_integer_field(path, ART_VNUM_EARTHCRIER, 'I', &size))
+  {
+    snprintf(failure, sizeof(failure), "could not read Earthcrier's size field from %s", path);
+    CuFail(tc, failure);
+    return;
+  }
+
+  clear_char(&wielder);
+  clear_object(&earthcrier);
+  wielder.points.size = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&earthcrier) = size;
+
+  CuAssertIntEquals(tc, SIZE_LARGE, size);
+  CuAssertIntEquals(tc, 2, hands_needed_full(&wielder, &earthcrier, FALSE));
 }
 
 /* --------------------------------------------------------------------------

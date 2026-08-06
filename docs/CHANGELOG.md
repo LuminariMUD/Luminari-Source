@@ -2,6 +2,38 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Earthcrier two-handed prototype
+
+#### Fixed
+
+- Changed Earthcrier's tracked object size from Medium to Large. The standard
+  weapon-size calculation now gives a Medium bearer the two-handed maul
+  promised by its description and acquisition contract.
+- Kept normal size exceptions intact: size-changing abilities, Monkey Grip,
+  and Powerful Build can still reduce the hands required.
+
+#### Changed
+
+- Updated artifact help, the formal system guide, and the mechanics audit with
+  the exact size contract. Existing builder-owned world records remain
+  protected from automatic replacement and must apply the one-field size
+  change through OLC or an equivalent reviewed edit.
+
+#### Verification
+
+- The new production-linked regression first failed against the Medium
+  prototype, then read the corrected Large value from the tracked world file
+  and passed it through the real `hands_needed_full()` calculation. The
+  complete root suite passes 425/425 tests.
+- After a cold development boot, `stat object earthcrier` reported Large. With
+  Kohdee's size feats temporarily set to zero, wielding used the two-handed
+  slot and a second weapon was refused for needing an extra hand. Both feat
+  ranks and all measured character, inventory, and registry state were
+  restored afterward.
+- The live help entry loaded, `testartifact verify` passed all 17 artifact
+  rows, and the server was restarted on the installed binary without a
+  character session.
+
 ### Kelrom proc cooldown separation
 
 #### Fixed

@@ -1,6 +1,7 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and ART-AUD-013 resolved
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and
+ART-AUD-013 resolved; ART-AUD-009 partially resolved for Earthcrier
 
 **Audited:** 2026-08-06
 
@@ -59,6 +60,13 @@ now uses its own persisted 30-second recharge, leaving its 14 percent generic
 proc independently reachable. A no-heal attempt spends neither recharge nor
 artifact XP. Copyover preserved both clocks, and controlled combat produced
 both mechanics within one healback recharge window.
+
+The confirmed Earthcrier portion of ART-AUD-009 is resolved. Its tracked
+prototype is now Large, so the ordinary size calculation assigns two hands to
+a Medium bearer. A cold development boot loaded that size, exercised the
+two-handed slot and full-hands refusal, and preserved the intended size-feat
+exceptions. Wyrmfang's handedness and Aegis's armor-versus-shield identity
+remain product decisions; ART-AUD-009 is therefore only partially resolved.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -124,7 +132,7 @@ contracts.
 | ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
 | ART-AUD-008 | Medium | Likely gap | Wyrmfang ports five of its six source senses but omits danger sense, which exists in the current engine. | Wyrmfang |
-| ART-AUD-009 | Medium | Confirmed defect / design decision | Earthcrier says it requires two hands but is one-handed for a medium bearer; Wyrmfang and Aegis also have unresolved object-identity differences. | Earthcrier, Wyrmfang, Aegis |
+| ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier's tracked prototype is now Large and uses two hands for a normal Medium bearer; Wyrmfang handedness and Aegis identity remain design decisions. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Confirmed UX defect | The displayed generic proc percentage is an attempt rate; successful rolls can consume cooldown with no visible or mechanical result. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Confirmed metadata defect | Called-effect `stack_group` is validated but never used; Wyrmfang declares none while its handler hardcodes the ward group. | Wyrmfang, future effects |
@@ -485,17 +493,32 @@ This is a likely omission because it is the only dropped member of an otherwise
 directly translated package. It still needs a balance decision about which
 artifact level should unlock it.
 
-### ART-AUD-009: object identity and handedness are inconsistent
+### ART-AUD-009: object identity and handedness are inconsistent [partially resolved]
 
-Three records need content decisions:
+Earthcrier resolution (2026-08-06):
 
-- Earthcrier's current description says, "It takes two hands," and its
-  acquisition hint also says it is swung two-handed
-  (`lib/world/artifacts/1699.obj:264-285` and
-  `src/obj/spec_artifacts.c:280-282`). Its object size is medium. The wielding
-  code requires two hands only when the weapon is one size larger than the
-  bearer, so a medium character uses one hand
-  (`src/obj/act.item.c:4100-4126`; size constants at `src/structs.h:445-456`).
+- Earthcrier's tracked object size is now Large, matching both its description
+  and acquisition hint. The ordinary wielding calculation therefore assigns
+  two hands to a Medium bearer while preserving the engine's existing
+  size-changing and weapon-size feat rules.
+- A production-linked regression reads Earthcrier's `I` extension from the
+  tracked world file and passes that value through `hands_needed_full()` for a
+  Medium bearer. The test first failed against the old Medium prototype.
+- The provisioner deliberately preserves existing builder-owned records, so
+  an existing world must set VNUM 169914's size to Large through OLC or an
+  equivalent reviewed world-data edit. Fresh worlds receive the corrected
+  package value.
+- The full suite passes 425/425 tests. The installed development world then
+  cold-booted the corrected prototype, and `stat object earthcrier` reported
+  Large. With Kohdee's Monkey Grip and Powerful Build ranks temporarily set to
+  zero, Earthcrier occupied the two-handed slot and an attempted second weapon
+  was refused for needing an extra hand. Both ranks were restored to 1.
+- `help artifact` loaded the updated player contract, `testartifact verify`
+  passed all 17 rows, and Kohdee's measured character, inventory, and artifact
+  registry state was restored before a final login-free restart.
+
+Two content decisions remain:
+
 - Homeland Wyrmfang is explicitly a two-handed weapon, while current Wyrmfang
   is also medium-sized (`EXAMPLE/HomelandMUD/lib/world/obj/170.obj:400-424` and
   `lib/world/artifacts/1699.obj:287-309`). This is a source-parity decision,
@@ -506,8 +529,9 @@ Three records need content decisions:
   describes a pure defensive shield. Aegis has no historical counterpart to
   break the tie.
 
-Earthcrier is a current defect. Wyrmfang and Aegis require a declared content
-choice before prototype edits.
+Earthcrier's internal contradiction is resolved in the tracked contract.
+Wyrmfang and Aegis still require a declared content choice before prototype
+edits, so ART-AUD-009 remains open for those two artifacts.
 
 ### ART-AUD-010: displayed generic chance overstates observable behavior
 
@@ -633,7 +657,7 @@ runtime ignores.
 | 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
-| 169914 | Earthcrier | DC fixed; handedness unresolved | Knockdown now uses its declared level-scaled base DC and has boundary and live-combat coverage (ART-AUD-005). Its prototype still contradicts the two-handed current lore (ART-AUD-009). |
+| 169914 | Earthcrier | DC and handedness fixed | Knockdown uses its declared level-scaled base DC (ART-AUD-005). Its Large prototype now makes a normal Medium bearer wield it with two hands, matching current lore (Earthcrier portion of ART-AUD-009). |
 | 169915 | Wyrmfang | Likely passive gap; identity review | Weighted signature, `invoke hunt`, and five source senses exist. Danger sense is the one omitted source state, and source handedness differs (ART-AUD-008, ART-AUD-009). |
 | 169916 | Courage | Covered intentional rebuild | The current group valor effect and progressive defenses replace a Homeland combat branch that contained no finished mechanic. No additional gap was found. |
 | 169917 | Icedge | Covered intentional rebuild | Cold defenses, rime, and a bounded reusable flurry are implemented. The flurry shape was recovered from a mechanics-only Homeland artifact rather than claimed as a literal Icedge source proc. |
@@ -667,9 +691,10 @@ runtime ignores.
    Fade, Doombringer, and Avernus are covered by deterministic integration
    tests and controlled in-game verification (ART-AUD-002 through
    ART-AUD-004).
-4. **In progress: repair current contradictions.** Earthcrier's DC and Kelrom's
-   independent generic/healback contract are complete. Next resolve
-   Earthcrier's handedness (ART-AUD-009).
+4. **Completed 2026-08-06: repair confirmed current contradictions.**
+   Earthcrier's DC and handedness and Kelrom's independent generic/healback
+   contract now agree with their declared behavior. ART-AUD-009 remains open
+   only for the Wyrmfang and Aegis product decisions.
 5. **Make product decisions.** Approve or reject first-wave passives,
    Wyrmfang danger sense, class-oath scope, Wyrmfang handedness, and Aegis
    identity. Record every rejection in `docs/systems/ARTIFACT_SYSTEM.md`.
@@ -686,6 +711,8 @@ runtime ignores.
 - Fade, Doombringer, and Avernus produce their approved named behavior in
   deterministic integration tests.
 - Earthcrier's tested DC matches one documented formula.
+- Earthcrier's tracked Large prototype requires two hands for a normal Medium
+  bearer through the production wielding calculation.
 - Kelrom either has a reachable generic proc or advertises no generic proc; a
   no-heal event consumes neither cooldown nor proc XP.
 - `artifact info` distinguishes attempt chance from successful/visible proc

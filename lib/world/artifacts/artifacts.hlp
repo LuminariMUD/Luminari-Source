@@ -48,7 +48,9 @@ timer. Use 'artifact info avernus' for the exact scaling and healing rules.
 Earthcrier has an 8 percent chance per successful hit to force a Reflex save
 against a base DC of 14 plus its artifact level. A failed save knocks a
 standing target down. No-bash, free-moving, incorporeal, and already-down foes
-are immune. Use 'artifact info earthcrier' to see its current DC.
+are immune. Earthcrier is a Large weapon, so a Medium bearer needs two hands
+under the normal size rules. Size-changing abilities and weapon-size feats
+still work normally. Use 'artifact info earthcrier' to see its current DC.
 
 Kelrom keeps two independent on-hit mechanics. Its generic artifact strike has
 a 14 percent chance. Its group healback restores 10 percent of the triggering

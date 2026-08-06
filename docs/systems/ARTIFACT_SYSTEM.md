@@ -69,6 +69,11 @@ file does not define, and zone resets for VNUMs the live zone does not
 already load. Existing records are never rewritten or reordered, and repeated
 runs add nothing further.
 
+When a tracked prototype contract changes, existing worlds must apply that
+specific field through OLC or an equivalent reviewed world-data edit. For
+Earthcrier, VNUM 169914, the `I` extension must be `6` (`SIZE_LARGE`). Fresh
+worlds receive that value directly from the tracked package.
+
 ### The package is version controlled
 
 `lib/world/artifacts/` is exempted from the OLC ignore rules by an explicit
@@ -567,7 +572,9 @@ base Reflex DC is `14 + artifact_level`, so it grows from 15 at level 1 to 19
 at level 5; normal situational save and DC modifiers still apply. A failed save
 moves a standing target to sitting and applies a one-round combat wait. The
 shape does nothing to a `MOB_NOBASH`, free-moving, incorporeal, or already-down
-target.
+target. Its prototype is Large, so the standard weapon-size calculation uses
+two hands for a Medium bearer. Size-changing abilities, Monkey Grip, and
+Powerful Build continue to modify that calculation normally.
 
 Tiamat's Stinger selects `ART_SIG_LIFESTEAL` with a 10 percent chance per
 successful hit made with the Stinger. It rolls on every such hit regardless
