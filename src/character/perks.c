@@ -12082,7 +12082,7 @@ void use_singular_impact(struct char_data *ch, struct char_data *victim)
   }
 
   /* Apply stun on failed Fort save (50% chance or save negates) */
-  if (victim && GET_POS(victim) > POS_DEAD)
+  if (victim && GET_POS(victim) > POS_DEAD && can_stun(victim))
   {
     if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, GET_PSIONIC_LEVEL(ch), PSYCHOKINESIS))
     {

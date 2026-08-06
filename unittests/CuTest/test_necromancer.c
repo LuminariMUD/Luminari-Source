@@ -8,13 +8,16 @@
 #include "../../src/actions.h"
 #include "../../src/actionqueues.h"
 #include "../../src/db.h"
+#include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/lists.h"
 #include "../../src/mud_event.h"
+#include "../../src/magic/spells.h"
+#include "../../src/character/class.h"
+#include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/craft/craft.h"
-#include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
 
 #include <stdlib.h>
@@ -569,4 +572,136 @@ void Test_necromancer_summon_persistence_failure_warns_without_rollback(CuTest *
   ProtocolDestroy(descriptor.pProtocol);
 
   CuAssertTrue(tc, warned);
+}
+
+void Test_necromancer_tough_as_bone_blocks_stun_affects_at_admission(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct affected_type af;
+  bool immune_has_affect;
+  bool immune_is_stunned;
+  bool ordinary_has_affect;
+  bool ordinary_is_stunned;
+
+  setup_necromancer_character(&ch, &player_specials);
+  SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 1);
+  new_affect(&af);
+  af.spell = SPELL_POWER_WORD_STUN;
+  af.duration = 1;
+  SET_BIT_AR(af.bitvector, AFF_STUN);
+
+  affect_to_char(&ch, &af);
+  immune_has_affect = ch.affected != NULL;
+  immune_is_stunned = AFF_FLAGGED(&ch, AFF_STUN);
+
+  SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 0);
+  affect_to_char(&ch, &af);
+  ordinary_has_affect = ch.affected != NULL;
+  ordinary_is_stunned = AFF_FLAGGED(&ch, AFF_STUN);
+
+  if (ch.affected != NULL)
+    affect_from_char(&ch, SPELL_POWER_WORD_STUN);
+
+  CuAssertTrue(tc, !immune_has_affect);
+  CuAssertTrue(tc, !immune_is_stunned);
+  CuAssertTrue(tc, ordinary_has_affect);
+  CuAssertTrue(tc, ordinary_is_stunned);
+}
+
+void Test_necromancer_tough_as_bone_blocks_timed_stun_events_at_admission(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct list_data list_registry;
+  struct list_data *saved_global_lists;
+  bool immune_has_event;
+  bool ordinary_has_event;
+
+  setup_necromancer_character(&ch, &player_specials);
+  memset(&list_registry, 0, sizeof(list_registry));
+  saved_global_lists = global_lists;
+  if (global_lists == NULL)
+    global_lists = &list_registry;
+  event_free_all();
+  event_init();
+
+  SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 1);
+  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), 6 * PASSES_PER_SEC);
+  immune_has_event = char_has_mud_event(&ch, eSTUNNED) != NULL;
+
+  SET_FEAT(&ch, FEAT_TOUGH_AS_BONE, 0);
+  attach_mud_event(new_mud_event(eSTUNNED, &ch, NULL), 6 * PASSES_PER_SEC);
+  ordinary_has_event = char_has_mud_event(&ch, eSTUNNED) != NULL;
+
+  clear_char_event_list(&ch);
+  event_free_all();
+  global_lists = saved_global_lists;
+
+  CuAssertTrue(tc, !immune_has_event);
+  CuAssertTrue(tc, ordinary_has_event);
+}
+
+void Test_necromancer_cohort_resistance_evolutions_modify_only_cohort(CuTest *tc)
+{
+  struct char_data ch;
+  struct char_data cohort;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  clear_char(&cohort);
+  GET_LEVEL(&cohort) = 10;
+  KNOWS_EVOLUTION(&ch, EVOLUTION_FIRE_RESIST) = 1;
+  KNOWS_EVOLUTION(&ch, EVOLUTION_COLD_RESIST) = 1;
+  KNOWS_EVOLUTION(&ch, EVOLUTION_ACID_RESIST) = 1;
+  KNOWS_EVOLUTION(&ch, EVOLUTION_ELECTRIC_RESIST) = 1;
+  KNOWS_EVOLUTION(&ch, EVOLUTION_SONIC_RESIST) = 1;
+
+  assign_eidolon_evolutions(&ch, &cohort, true);
+
+  CuAssertIntEquals(tc, 0, GET_RESISTANCES(&ch, DAM_FIRE));
+  CuAssertIntEquals(tc, 0, GET_RESISTANCES(&ch, DAM_COLD));
+  CuAssertIntEquals(tc, 0, GET_RESISTANCES(&ch, DAM_ACID));
+  CuAssertIntEquals(tc, 0, GET_RESISTANCES(&ch, DAM_ELECTRIC));
+  CuAssertIntEquals(tc, 0, GET_RESISTANCES(&ch, DAM_SOUND));
+  CuAssertIntEquals(tc, 50, GET_RESISTANCES(&cohort, DAM_FIRE));
+  CuAssertIntEquals(tc, 50, GET_RESISTANCES(&cohort, DAM_COLD));
+  CuAssertIntEquals(tc, 50, GET_RESISTANCES(&cohort, DAM_ACID));
+  CuAssertIntEquals(tc, 50, GET_RESISTANCES(&cohort, DAM_ELECTRIC));
+  CuAssertIntEquals(tc, 50, GET_RESISTANCES(&cohort, DAM_SOUND));
+}
+
+void Test_necromancer_mandatory_cohort_identity_is_free_and_budget_nonnegative(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct level_data levelup;
+  int saved_undead_cost;
+  int saved_resistance_cost;
+  int mandatory_only_points;
+  int overspent_points;
+  bool has_choice;
+
+  setup_necromancer_character(&ch, &player_specials);
+  memset(&levelup, 0, sizeof(levelup));
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 1;
+  LEVELUP((&ch)) = &levelup;
+  LEVELUP((&ch))->eidolon_base_form = EIDOLON_BASE_FORM_BIPED;
+  LEVELUP((&ch))->eidolon_evolutions[EVOLUTION_UNDEAD_APPEARANCE] = 1;
+  saved_undead_cost = evolution_list[EVOLUTION_UNDEAD_APPEARANCE].evolution_points;
+  saved_resistance_cost = evolution_list[EVOLUTION_FIRE_RESIST].evolution_points;
+  evolution_list[EVOLUTION_UNDEAD_APPEARANCE].evolution_points = 2;
+  evolution_list[EVOLUTION_FIRE_RESIST].evolution_points = 2;
+
+  mandatory_only_points = num_free_evolution_points(&ch);
+  has_choice = has_evolutions_unchosen(&ch);
+  LEVELUP((&ch))->eidolon_evolutions[EVOLUTION_FIRE_RESIST] = 1;
+  overspent_points = num_free_evolution_points(&ch);
+
+  evolution_list[EVOLUTION_UNDEAD_APPEARANCE].evolution_points = saved_undead_cost;
+  evolution_list[EVOLUTION_FIRE_RESIST].evolution_points = saved_resistance_cost;
+
+  CuAssertIntEquals(tc, 1, mandatory_only_points);
+  CuAssertTrue(tc, has_choice);
+  CuAssertIntEquals(tc, 0, overspent_points);
 }

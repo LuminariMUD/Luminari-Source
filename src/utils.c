@@ -7619,6 +7619,9 @@ bool can_poison(struct char_data *ch)
 // returns true if the target doesn't have immunity to stun
 bool can_stun(struct char_data *ch)
 {
+  if (ch == NULL)
+    return false;
+
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))
     return false;
   if (affected_by_spell(ch, PSIONIC_BODY_OF_IRON))

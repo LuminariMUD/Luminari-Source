@@ -5914,24 +5914,7 @@ void study_eidolon_main_menu_select(struct descriptor_data *d)
 
 int study_num_free_evolution_points(struct char_data *ch)
 {
-  int num_points =
-      evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
-  int num_spent = 0, form_evo = 0;
-  int i = 0;
-
-  for (i = 1; i < NUM_EVOLUTIONS; i++)
-  {
-    form_evo = is_eidolon_base_form_evolution(
-        GET_EIDOLON_BASE_FORM(ch) > 0 ? GET_EIDOLON_BASE_FORM(ch) : LEVELUP(ch)->eidolon_base_form,
-        i);
-    if (LEVELUP(ch)->eidolon_evolutions[i] > 0)
-    {
-      num_spent += MAX(0, LEVELUP(ch)->eidolon_evolutions[i] - form_evo) *
-                   evolution_list[i].evolution_points;
-    }
-  }
-
-  return (num_points - num_spent);
+  return num_free_evolution_points(ch);
 }
 
 void study_show_evolution_select_bottom_text(struct descriptor_data *d)

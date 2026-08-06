@@ -560,6 +560,33 @@ bool study_evolution_already_taken_or_maxxed(struct char_data *ch, int evolution
   return false;
 }
 
+int num_free_evolution_points(struct char_data *ch)
+{
+  int num_points;
+  int num_spent = 0;
+  int form_evo;
+  int class_evo;
+  int i;
+
+  if (ch == NULL || LEVELUP(ch) == NULL)
+    return 0;
+
+  num_points =
+      evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
+
+  for (i = 1; i < NUM_EVOLUTIONS; i++)
+  {
+    form_evo = is_eidolon_base_form_evolution(
+        GET_EIDOLON_BASE_FORM(ch) > 0 ? GET_EIDOLON_BASE_FORM(ch) : LEVELUP(ch)->eidolon_base_form,
+        i);
+    class_evo = i == EVOLUTION_UNDEAD_APPEARANCE && CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0 ? 1 : 0;
+    num_spent += MAX(0, LEVELUP(ch)->eidolon_evolutions[i] - form_evo - class_evo) *
+                 evolution_list[i].evolution_points;
+  }
+
+  return MAX(0, num_points - num_spent);
+}
+
 // This will return true if the character passes all of the requirement checks
 // otherwise it will return false.
 bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_pc)
@@ -581,7 +608,7 @@ bool study_qualifies_for_evolution(struct char_data *ch, int evolution, bool is_
       LEVELUP(ch)->eidolon_evolutions[evolution] > (level / evolution_list[evolution].stack_level))
     return false;
 
-  if (study_num_free_evolution_points(ch) < evolution_list[evolution].evolution_points)
+  if (num_free_evolution_points(ch) < evolution_list[evolution].evolution_points)
     return false;
 
   // if it's not available to PCs and we're checking for aspects return false
@@ -915,23 +942,23 @@ void assign_eidolon_evolutions(struct char_data *ch, struct char_data *mob, bool
 
   if (HAS_EVOLUTION(mob, EVOLUTION_FIRE_RESIST))
   {
-    GET_RESISTANCES(ch, DAM_FIRE) += amt;
+    GET_RESISTANCES(mob, DAM_FIRE) += amt;
   }
   if (HAS_EVOLUTION(mob, EVOLUTION_COLD_RESIST))
   {
-    GET_RESISTANCES(ch, DAM_COLD) += amt;
+    GET_RESISTANCES(mob, DAM_COLD) += amt;
   }
   if (HAS_EVOLUTION(mob, EVOLUTION_ACID_RESIST))
   {
-    GET_RESISTANCES(ch, DAM_ACID) += amt;
+    GET_RESISTANCES(mob, DAM_ACID) += amt;
   }
   if (HAS_EVOLUTION(mob, EVOLUTION_ELECTRIC_RESIST))
   {
-    GET_RESISTANCES(ch, DAM_ELECTRIC) += amt;
+    GET_RESISTANCES(mob, DAM_ELECTRIC) += amt;
   }
   if (HAS_EVOLUTION(mob, EVOLUTION_SONIC_RESIST))
   {
-    GET_RESISTANCES(ch, DAM_SOUND) += amt;
+    GET_RESISTANCES(mob, DAM_SOUND) += amt;
   }
 
   // ability scores

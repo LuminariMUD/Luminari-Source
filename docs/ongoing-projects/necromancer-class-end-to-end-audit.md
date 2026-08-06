@@ -40,13 +40,13 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-007 | Focused verification passed | Greater Animation applies its computed tier-scaled mobile level. |
 | NEC-008 | Focused verification passed | Deathless Touch empowers and is consumed by one successful eligible summon. |
 | NEC-009 | Focused verification passed | Every equipped armor material is aggregated independent of slot order. |
-| NEC-010 | Open | Central stun-admission repair and ingress tests pending. |
+| NEC-010 | Focused verification passed | Shared affect and timed-event admission enforce stun immunity; direct producers are guarded. |
 | NEC-011 | Focused verification passed | Animate Dead and Greater Animation share the holy-room rejection policy. |
 | NEC-012 | Focused verification passed | Immediate and delayed casts use the one selected progression for summon tiers. |
-| NEC-013 | Open | Cohort resistance target and point-accounting repair pending. |
+| NEC-013 | Focused verification passed | Resistances apply to the cohort; mandatory Undead Appearance is free and the budget is nonnegative. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Twenty-three production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | In progress | Twenty-seven production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -143,6 +143,31 @@ master checkpoint. This table is updated with every implementation checkpoint.
   environment failure described above. The isolated ASan/UBSan suite passes all
   23 focused Necromancer tests with leak detection enabled.
 
+### Checkpoint 5: Tough as Bone and Undead Cohort
+
+- Stun admission is now enforced in both shared representations. An `AFF_STUN`
+  affect is rejected by `affect_to_char_source()` when `can_stun()` denies the
+  victim, and an `eSTUNNED` event is rejected and freed before it enters the
+  event queue. `can_stun()` also safely rejects a null target.
+- The confirmed direct producers now check immunity before success messaging or
+  event attachment: Stunning Critical, Stunning Fist, Pressure Point Strike,
+  Singular Impact, and stun traps. The trace also found and repaired Berserker
+  Stunning Blow. Existing spell, poison, and weapon-proc paths already checked
+  `can_stun()`; the shared gates protect future and load-time callers.
+- Fire, Cold, Acid, Electricity, and Sonic resistance evolutions now modify the
+  cohort passed to `assign_eidolon_evolutions()`, never its owner.
+- One automatically granted Undead Appearance rank is free for a Necromancer.
+  The evolution menu and eligibility checks now use the same cost-aware point
+  calculation, and invalid legacy overspending is displayed as zero rather than
+  a negative point balance. A level 1 Necromancer has one usable cohort
+  evolution point after the mandatory identity grant.
+- Four additional production-linked tests exercise affect-based and event-based
+  stun admission, all five cohort resistance targets, the mandatory evolution
+  grant, menu availability, and a nonnegative overspent budget. The normal suite
+  reports 466 runs, 465 passes, and the same unrelated environment failure
+  described above. The isolated ASan/UBSan suite passes all 27 focused
+  Necromancer tests with leak detection enabled.
+
 ## Executive verdict
 
 The Necromancer class is registered, selectable when its prerequisites are met,
@@ -150,10 +175,10 @@ and all advertised class feats are assigned at a level. The original progression
 Bone Armor, Touch of Undeath, and animated-undead summon blockers now have focused
 production-linked and sanitizer verification.
 
-The release verdict remains not ready while Tough as Bone's stun admission,
-Undead Cohort evolution accounting, authoritative help, and final build/install
-verification remain open. The original findings below are retained as the audit
-record; the implementation-progress table and checkpoints are the current status.
+The release verdict remains not ready while authoritative help and final
+build/install verification remain open. The original findings below are retained
+as the audit record; the implementation-progress table and checkpoints are the
+current status.
 
 ## Class registration and progression
 
@@ -177,13 +202,13 @@ bonus class-feat point at level 7, and Undead Appearance for the cohort at level
 
 | Level | Granted behavior | Audit result |
 |-------|------------------|--------------|
-| 1 | Necromancer weapons; Undead Cohort | Weapons work. Cohort creation works, but evolution resistance assignment is wrong and its point budget is ambiguous. |
+| 1 | Necromancer weapons; Undead Cohort | Weapons and cohort creation work; resistance ownership and the free mandatory identity grant pass focused checks. |
 | 2 | Summon Undead | Focused lifecycle verification passed; see Checkpoint 4. |
 | 3 | Ultravision | Implemented through the standard feat visibility check. |
 | 4 | Light armor; Bone Armor rank 1 | Proficiency and the repaired conversion/failure contract have focused verification. |
 | 5 | Deathless Vigor; Weapon Focus: Polearms | Implemented: +4 Fortitude and the weapon-family focus hook are present. |
 | 6 | Undead Graft; Touch of Undeath; Paralyzing Touch | Strength and the repaired touch execution contract have focused verification. |
-| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon, point, and Touch behavior pass focused checks; direct stun bypasses remain open. |
+| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon, point, Touch, and centralized stun-immunity behavior pass focused checks. |
 | 8 | Medium armor; Bone Armor rank 2; Degenerative Touch | Proficiency, Bone Armor, and Touch behavior pass focused checks. |
 | 9 | Summon Greater Undead; Destructive Touch | Greater Animation scaling and Touch behavior pass focused checks. |
 | 10 | Essence of Undeath; Deathless Touch | Most Essence checks are wired; one-shot summon empowerment passes focused checks. |
@@ -279,7 +304,7 @@ The variants themselves are gated at the intended class levels and route to the
 expected ability IDs. The shared execution contract must be corrected before any
 variant can be considered complete.
 
-### NEC-010: Tough as Bone is only a partial immunity
+### NEC-010: Tough as Bone was only a partial immunity
 
 `can_disease()` and `can_stun()` both reject their effects when the victim has
 Tough as Bone (`src/utils.c:7385-7386` and `7567-7568`). Standard spell paths that
@@ -294,9 +319,9 @@ attach `eSTUNNED` without calling `can_stun()`, including:
 - Singular Impact in `src/character/perks.c:12084-12094`.
 - Stun traps in `src/combat/traps_new.c:1018-1023`.
 
-`affect_to_char()` does not apply an immunity guard, so these direct callers really
-do bypass the feat. Disease immunity was found on the standard disease admission
-path; the stun half of the feat is demonstrably incomplete.
+At the implementation baseline, `affect_to_char()` did not apply an immunity
+guard, so these direct callers bypassed the feat. Checkpoint 5 records the shared
+affect/event admission repair and direct-producer checks that close this finding.
 
 ## Summon Undead and Summon Greater Undead
 
@@ -424,7 +449,7 @@ level, capped at 30, apply evolutions, add the follower, call pet persistence, a
 attach the standard Eidolon call cooldown. The automatic Undead Appearance
 evolution is granted at the first Necromancer level.
 
-Two gaps remain:
+The implementation-baseline trace found two gaps:
 
 1. `assign_eidolon_evolutions()` checks the cohort's resistance evolutions but
    adds Fire, Cold, Acid, Electricity, and Sonic resistance to `ch`, the owner,
@@ -433,7 +458,12 @@ Two gaps remain:
    two-point cost of the automatically granted Undead Appearance evolution
    (`src/character/study.c:5894-5913`). A level 1 Necromancer with no Summoner
    levels can therefore begin at negative one free point. The intended treatment
-   of this mandatory class identity needs to be decided and documented.
+   of this mandatory class identity needed to be decided and documented.
+
+Checkpoint 5 resolves both gaps. Resistance evolutions now affect the cohort.
+One class-granted Undead Appearance rank is exempt from cost, leaving the level 1
+Necromancer's one point usable; all evolution menus use the same cost-aware,
+nonnegative calculation.
 
 ## Passive feat results
 
@@ -452,8 +482,9 @@ trace:
   helpers and combat/magic paths audited.
 
 Essence of Undeath is substantially wired, but it still lacks regression tests for
-every immunity ingress. Tough as Bone cannot be placed in this passing group due
-to the confirmed direct-stun bypasses.
+every immunity ingress. Tough as Bone's stun half now has shared affect/event
+admission gates and direct-producer regression coverage as recorded in Checkpoint
+5.
 
 ## NEC-014: Study and persistence gaps
 

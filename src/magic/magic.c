@@ -5734,6 +5734,8 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     break;
 
   case ABILITY_STUNNING_CRITICAL:
+    if (!can_stun(victim))
+      return;
     if (HAS_EVOLUTION(victim, EVOLUTION_UNDEAD_APPEARANCE))
       misc_bonus += get_evolution_appearance_save_bonus(victim);
     af[0].duration =
