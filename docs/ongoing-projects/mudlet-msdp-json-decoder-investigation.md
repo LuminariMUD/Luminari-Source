@@ -410,9 +410,15 @@ The repair therefore required a real serializer, not only `strip_colors()` at th
 - Added a lifecycle regression that rejects any reintroduction of the three scalar reports,
   requires `ROOM`, checks uniqueness and exact REPORT dispatch, and verifies that package
   consumers and event ownership no longer reference the unused scalar fields.
-- Updated the package changelog, Mudlet smoke procedure, and resource-ownership baseline. Built
-  package version `2.0.4.045`; the focused lifecycle suite passes 37/37 and the generated-output
-  drift guard passes. The broader package gates remain in progress.
+- Updated the package changelog, Mudlet smoke procedure, and resource-ownership baseline. Follow-up
+  documentation commit `5daf2cc` corrects the protocol reference's `ALIGNMENT` type, replaces its
+  scalar `ROOM_NAME` consumer example with structured `ROOM.NAME`, documents the package omission,
+  and shows the native Mudlet `sendMSDP("REPORT", variable)` subscription call.
+- Built package version `2.0.4.045`. Build validation and generated-output drift checks pass; all
+  8 supported test suites pass, including 37/37 lifecycle regressions and 82/82 Lua syntax checks;
+  package validation passes; and the resource analyzer reports 36 owned and zero unowned runtime
+  handlers plus 21 owned and zero unowned timer sites. GitHub checks remain in progress for the
+  final pushed commit.
 
 ### 2026-08-05: Plain scalar boundary repair implemented
 
