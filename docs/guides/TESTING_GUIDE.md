@@ -46,6 +46,20 @@ This retains the tested binary and matching symbols under its immutable
 and removes the root-level `circle` artifact that the test build may leave
 behind.
 
+## Bardic Performance Regression Ownership
+
+`unittests/CuTest/test_bardic_performance.c` is the production-linked owner for
+the base performance engine and its Spellsinger and Warchanter integrations.
+It covers both performance slots, command and action transitions, lifecycle
+cleanup, all thirteen base performances, source-owned refresh, duration and
+target defenses, affect batching and bounded `AFFECTS` serialization, spell
+scope, group auras, and perk damage/save direction.
+
+Behavior changes in `src/bardic_performance.c`, Bard performance registrations,
+or performance-linked perk helpers must extend this suite rather than creating
+a standalone mirror of production behavior. Structured frame construction and
+descriptor backpressure remain owned by the focused protocol parser harness.
+
 ## Structured Web Onboarding
 
 `unittests/CuTest/test_web_onboarding.c` is part of the production-linked

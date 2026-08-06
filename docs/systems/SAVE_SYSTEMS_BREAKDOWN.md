@@ -6,7 +6,7 @@ Luminari MUD uses a hybrid save system combining **ASCII file storage** for prim
 
 ## System Categories
 
-### 📁 **File-Only Save Systems**
+### File-Only Save Systems
 
 These systems use file-based storage exclusively for persistence.
 
@@ -89,7 +89,7 @@ Levl: 1
 
 ---
 
-### 🗄️ **MySQL-Only Save Systems**
+### MySQL-Only Save Systems
 
 These systems use MySQL database storage exclusively.
 
@@ -103,7 +103,37 @@ These systems use MySQL database storage exclusively.
   - Character name associations
   - Unlocked races and classes
 
-#### 2. Wilderness System Data
+#### 2. Persistent Followers (Pets, Summons, and Cohorts)
+
+- **Tables**: `pet_data`, `pet_save_objs`
+- **Functions**: `save_char_pets()` and `load_char_pets()` in `src/players.c`;
+  recursive object storage in `src/obj/objsave.c`
+- **Contents**: One base row per saved charmed follower, serialized runtime state,
+  and its equipped, carried, and nested objects
+
+`save_char_pets()` replaces the complete snapshot for one owner. It prepares
+every follower row before starting the transaction, then deletes the old linked
+rows and inserts the new pet and object rows in one transaction. A failed delete,
+pet insert, recursive object save, or commit rolls back the whole replacement;
+callers must not treat an in-memory follower as proof that the snapshot was saved.
+
+The startup migration runner checks versions `2026080501` through `2026080504`
+on every boot, including when both tables already exist. Startup verifies the
+InnoDB engines, required column types and nullability, primary keys,
+owner/relation indexes, and migration version before loading world data. A
+failed migration or contract check stops the boot instead of allowing gameplay
+against an incompatible schema.
+
+Failures use bounded, rate-limited operation, owner, pet VNUM, MariaDB, and
+schema-version context. Do not restore full SQL-payload logging: pet text and
+serialized runtime state belong to player data, not diagnostic output.
+
+`load_char_pets()` rebuilds the follower from its mobile prototype, saved fields,
+runtime state, and object rows. Legacy rows with a NULL runtime state retain the
+compatibility load path. A nonempty malformed runtime record is rejected rather
+than applied to the follower.
+
+#### 3. Wilderness System Data
 - **Tables**: `region_data`, `path_data`, `region_index`, `path_index`
 - **Functions**: `load_regions()`, `load_paths()` in `mysql.c`
 - **Contains**:
@@ -112,7 +142,7 @@ These systems use MySQL database storage exclusively.
   - Spatial indexes for performance
   - Wilderness configuration
 
-#### 3. Game Statistics and Analytics
+#### 4. Game Statistics and Analytics
 - **Tables**: Multiple analytics tables
 - **Contains**:
   - Combat logs and statistics
@@ -120,7 +150,7 @@ These systems use MySQL database storage exclusively.
   - Performance metrics
   - Economy data
 
-#### 4. Object Database (Analytics)
+#### 5. Object Database (Analytics)
 - **Tables**: `object_database_*` series
 - **Function**: `save_objects_to_database()` in `db.c`
 - **Purpose**: Complete object catalog for analysis
@@ -130,7 +160,7 @@ These systems use MySQL database storage exclusively.
   - Wear slot information
   - Object flags and affects
 
-#### 5. Template System
+#### 6. Template System
 - **Tables**: Template-related tables
 - **Functions**: Various in `templates.c`
 - **Contains**:
@@ -139,7 +169,7 @@ These systems use MySQL database storage exclusively.
 
 ---
 
-### 🔄 **Hybrid Save Systems (Both File and MySQL)**
+### Hybrid Save Systems (Both File and MySQL)
 
 These systems maintain data in both locations for redundancy or different purposes.
 
@@ -184,16 +214,21 @@ These systems maintain data in both locations for redundancy or different purpos
    - On level gain, important events
    - On logout/quit
 
-2. **Object Crash-Save**
+2. **Persistent Follower Snapshot**
+   - Saves playing characters' follower snapshots once per minute
+   - Important summon, charm, dismissal, quit, idle, and administrative paths
+     save at their lifecycle boundary
+
+3. **Object Crash-Save**
    - When `PLR_CRASH` flag is set
    - Equipment changes, inventory modifications
    - Rent/quit situations
 
-3. **House Auto-Save**
+4. **House Auto-Save**
    - Periodic saves via `House_save_all()`
    - On house modifications
 
-4. **Account Auto-Save**
+5. **Account Auto-Save**
    - On account changes
    - Character creation/deletion
 

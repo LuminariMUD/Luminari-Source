@@ -3,7 +3,7 @@
 This document lists the MSDP (Mud Server Data Protocol) variables that LuminariMUD exposes to
 compatible clients over native MSDP or the standard MSDP-over-GMCP fallback.
 
-Last verified: 2026-08-05
+Last verified: 2026-08-06
 
 ## Overview
 
@@ -200,7 +200,9 @@ ROOM "NAME" "Temple Square" "EXITS" "N" "E" "S" "W" "VNUM" "3001"
 ```
 
 `AFFECTS` is a table whose `AFFECTED_BY` and `SPELL_LIKE_AFFECTS` members are arrays of
-tables. `ROOM_EXITS` is a table keyed by direction name.
+tables. Each `AFFECTED_BY` entry contains `NAME` and `DESC`. Each `SPELL_LIKE_AFFECTS`
+entry contains `NAME`, `LOCATION`, `MODIFIER`, `TYPE`, and `DURATION`. `ROOM_EXITS` is a
+table keyed by direction name.
 
 ## Wire Encodings
 
@@ -234,6 +236,12 @@ change:
   the protocol boundary. Their canonical colored sources are not modified.
 - `AFFECTS` is stored as table content through `MSDPSetTable()` and is available over either
   native MSDP or the GMCP fallback.
+- `AFFECTS` is built with a checked `MAX_VARIABLE_LENGTH` writer. Spell, apply-location, and
+  bonus-type metadata are validated before lookup. Invalid metadata or aggregate overflow logs
+  the rejection, preserves the previously stored value, and queues no output.
+- Affect batches recalculate live character totals after each mutation but serialize and flush
+  only the final list when the outer batch ends. A changed logical batch therefore emits at most
+  one final `AFFECTS` frame.
 - `TITLE` is emitted as a plain string from player title data, with an empty string for missing
   titles.
 - `FORTITUDE`, `REFLEX`, and `WILLPOWER` are signed integer saving throw modifiers from

@@ -4,7 +4,7 @@ This document describes the focused source-side protocol parser harness and
 bounded libFuzzer target for Telnet, MSDP, GMCP, MSSP, MXP, Unicode, TTYPE,
 NAWS, unsupported option, and structured-onboarding paths.
 
-Last verified: 2026-08-04
+Last verified: 2026-08-06
 
 The harness is a safety baseline for future protocol changes. It does not make
 MCCP, GMCP modules, MXP browser UI, live `MINIMAP`, `QUEST_INFO`, `TITLE`,
@@ -48,6 +48,7 @@ minimal source-compatible doubles:
 | `struct descriptor_data` fixture | Holds `pProtocol`, output pointer, and source parser state. |
 | `ProtocolCreate()` / `ProtocolDestroy()` | Allocates and releases real `protocol_t` state for each case. |
 | `write_to_output()` stub | Captures protocol writes without opening a socket. |
+| `write_to_output_raw_atomic()` stub | Models descriptor capacity, reserved headroom, and all-or-nothing frame writes. |
 | `basic_mud_log()` stub | Records visible rejection or guard-path logging. |
 | `config_info` stub | Keeps source config reads deterministic and default-disabled. |
 
@@ -110,6 +111,15 @@ protocol grammar and document the grammar source. Do not paste live bytes.
 | Copyover string | `TestProtocolParser_OversizedResponsePaths` | Validates copyover protocol flags fit the bounded static buffer. |
 | MSSP response | `TestProtocolParser_MsspResponseIsBounded` | Validates MSSP response framing is emitted and stays below `MAX_MSSP_BUFFER`. |
 | MSDP reporting | `TestProtocolParser_SelectedMsdpVariablesCanBeReported` | Validates selected numeric and string values are emitted and cleared from dirty state. |
+| GMCP scalar JSON | `TestProtocolParser_GmcpMsdpScalarUsesStrictJson` | Validates the case-sensitive `MSDP` package, UTF-8 strings, and JSON escaping of quotes, slashes, and control bytes. |
+| GMCP numeric JSON | `TestProtocolParser_GmcpMsdpNumberUsesJsonNumber` | Validates numeric MSDP variables remain JSON numbers rather than strings. |
+| GMCP nested values | `TestProtocolParser_GmcpMsdpSerializesNestedStructures` | Validates MSDP tables and arrays become nested JSON objects and arrays. |
+| Pair and list types | `TestProtocolParser_MsdpPairAndListPreserveTypes` | Validates pair strings, list arrays, and native MSDP list framing. |
+| Stored-value validation | `TestProtocolParser_MsdpRejectsMalformedStoredValues` | Rejects malformed structures and reserved bytes without replacing the prior value or dirty state. |
+| GMCP UTF-8 and size | `TestProtocolParser_GmcpMsdpRejectsInvalidUtf8AndEscapedOverflow` | Rejects invalid UTF-8 and post-escape overflow with zero output and retained dirty state. |
+| GMCP command JSON | `TestProtocolParser_GmcpMsdpCommandsUseJsonObject` | Accepts the strict command object and rejects wrong package case, unsupported nesting, and embedded NUL. |
+| Atomic MSDP retry | `TestProtocolParser_MsdpFrameRetriesWithoutPartialQueueWrite` | Proves full-queue rejection appends no prefix, retains dirty state, and later emits a complete `IAC SE`-terminated frame. |
+| Atomic GMCP retry | `TestProtocolParser_GmcpFrameRetriesWithoutPartialQueueWrite` | Proves the same full-queue and retry contract for the GMCP fallback. |
 | Mudlet identity | `TestProtocolParser_MudletPackageUsesStableIdentity` | Validates the package URL and version identity contract. |
 
 ## Known Gaps

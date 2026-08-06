@@ -69,6 +69,7 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Core Mechanics
 - **[GAME_MECHANICS_SYSTEMS.md](systems/GAME_MECHANICS_SYSTEMS.md)** - Overview of all game systems
+- **[BARD_PERKS.md](systems/perks/BARD_PERKS.md)** - Base performance contract and Bard perk trees
 - **[COMBAT_SYSTEM.md](systems/COMBAT_SYSTEM.md)** - Combat mechanics and formulas
 - **[SPELL_PREPARATION_SYSTEM.md](systems/SPELL_PREPARATION_SYSTEM.md)** - Magic and spell preparation
 - **[PLAYER_MANAGEMENT_SYSTEM.md](systems/PLAYER_MANAGEMENT_SYSTEM.md)** - Character and account management
@@ -117,6 +118,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CASTING_VISUALS_TESTING.md](testing/CASTING_VISUALS_TESTING.md)** - Casting visuals in-game verification checklist
 - **[vessel_test_results.md](testing/vessel_test_results.md)** - Historical Phase 00 vessel test record (superseded; see VESSEL_BENCHMARKS.md)
 - **[CuTest_README.md](testing/CuTest_README.md)** - Unit testing with CuTest
+- **[PROTOCOL_PARSER_HARNESS.md](testing/PROTOCOL_PARSER_HARNESS.md)** - Focused protocol safety and framing regression matrix
 
 ### Performance & Optimization
 - **[PERFORMANCE_OPTIMIZATIONS.md](development/PERFORMANCE_OPTIMIZATIONS.md)** - Performance tuning guide

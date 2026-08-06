@@ -334,9 +334,9 @@ duration are separate mechanisms.
 
 Its strongest state model still makes a complete owner rewrite more expensive
 than dirty-record persistence. The destructive rewrite and skipped-migration
-defects were repaired on 2026-08-06. Production deployment, recovery, and
-validation are tracked separately in
-[production-crash-2026-08-05-pet-persistence.md](production-crash-2026-08-05-pet-persistence.md).
+defects were repaired on 2026-08-06. The permanent snapshot, schema, and
+failure-handling contracts are documented in
+[SAVE_SYSTEMS_BREAKDOWN.md](../systems/SAVE_SYSTEMS_BREAKDOWN.md).
 
 ### Chronicles strengths
 

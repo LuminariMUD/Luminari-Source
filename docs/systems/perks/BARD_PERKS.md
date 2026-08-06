@@ -29,6 +29,46 @@ no instrument applies -3. Breakability is a numerator in 11,111 checked per
 verse, with zero meaning unbreakable. The crafting command retains `quality` as
 the established name for the stored difficulty-reduction field.
 
+## Base Performance Runtime Contract
+
+The active player engine defines thirteen feat-gated performances. Group
+performances affect the performer and grouped characters in the same room.
+Offensive performances use normal foe eligibility and engage valid targets.
+
+| Performance | Scope | Successful verse |
+|-------------|-------|------------------|
+| Song of Healing | Group | Restores hit points immediately and creates no marker affect. |
+| Dance of Protection | Group, visual | Grants AC, Will saves, and damage reduction. |
+| Song of Focused Mind | Group | Grants Intelligence, Wisdom, and Charisma and accelerates spell preparation while active. |
+| Song of Heroism | Group | Grants hit, damage, Strength, Dexterity, and Constitution; grants haste at Bard level 10. |
+| Oratory of Rejuvenation | Group | Restores hit points and movement and can remove poison; creates no marker affect. |
+| Song of Flight | Group | Grants flight and restores movement. |
+| Song of Revelation | Group | Adds detection abilities at Bard levels 1, 5, 10, 15, and 20. |
+| Song of Fear | Foes | Will-negated fear and attack penalty; uses fear and mind-affecting immunities. |
+| Skit of Forgetfulness | Foes, visual | Will-negated memory clearing for NPCs and disengagement from the performer. |
+| Song of Rooting | Foes | Reflex-negated entangle, slow, damage penalty, and AC penalty. |
+| Song of Dragons | Group | Grants AC, five save bonuses, Constitution, and maximum hit points. |
+| Song of the Magi | Foes | Will-negated penalties to Will, spell resistance, Intelligence, Wisdom, and Charisma. |
+| Deafening Song | Foes | Fortitude-negated deafness and AC penalty; respects standard deafness immunity. |
+
+Audible performances reject deaf recipients; Dance of Protection and Skit of
+Forgetfulness are visual. Magical healing performances reject constructs and
+golems. Persistent effects last two affect rounds by default. Lingering
+Performance adds three rounds, and each combined Songweaver rank adds one
+round and one point of effectiveness.
+
+Performance effects carry a stable source identifier. Refresh and removal
+therefore replace only effects from the same performer, allowing another
+bard's lingering effects to survive. Logical effect replacement is batched so
+clients receive only the final `AFFECTS` state; see
+[Protocol Systems](../PROTOCOL_SYSTEMS.md#outbound-frame-and-backpressure-contract).
+
+The primary and optional Master of Motifs slot are independent. Failure of the
+secondary leaves the primary active; failure of the primary promotes a valid
+secondary. Invalid command input is resolved before state mutation, linkless
+player state is cleared, active NPC state can pulse, and Bard spellcasting ends
+all active performances unless Harmonic Casting applies.
+
 ---
 
 ## TREE 1: SPELLSINGER

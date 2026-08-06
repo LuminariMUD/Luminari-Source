@@ -1,0 +1,17 @@
+{
+  "version": "2.0",
+  "project_name": "LuminariMUD",
+  "description": "Refactor LuminariMUD special procedures into observable definitions, bindings, event gateways, and responsibility-owned content without compatibility drift.",
+  "current_phase": 0,
+  "current_session": null,
+  "monorepo": false,
+  "phases": {
+    "0": {
+      "name": "Foundation",
+      "status": "not_started",
+      "session_count": 0
+    }
+  },
+  "completed_sessions": [],
+  "next_session_history": []
+}

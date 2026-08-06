@@ -114,7 +114,6 @@ util/wld2html
 .cursorignore
 WORK.md
 .mcp.json
-.spec_system/
 
 ####################
 # Backup Files

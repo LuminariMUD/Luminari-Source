@@ -32,36 +32,46 @@ This runbook provides procedures for responding to incidents affecting the Lumin
 
 **Diagnosis:**
 ```bash
-# Check if server process is running
-ps aux | grep circle
+# Compare the managed process with the installed immutable release
+./scripts/autorun/autorun.sh status
 
-# Check port availability
-netstat -tulpn | grep :4000
+# Inspect the service and recent supervisor output
+sudo systemctl status luminari.service --no-pager
+sudo journalctl -u luminari.service -n 200 --no-pager
 
-# Check recent logs
-tail -100 lib/log/syslog
+# Check the crash archive produced by autorun
+find dumps -maxdepth 2 -type f -print
 ```
 
 **Resolution:**
+
+Autorun normally restarts a crashed game. Preserve `.autorun.state`, the crash
+archive and identity sidecar, and the matching `bin/releases/<ELF-build-ID>/`
+directory before changing binaries. Do not replace the recorded executable or
+debug symbols before analysis.
+
 ```bash
-# 1. Check for core dump
-ls -la lib/
+# If the managed service did not recover, restart through systemd
+sudo systemctl restart luminari.service
 
-# 2. Restart server
-./bin/circle -d lib &
-
-# Or use autorun for automatic restart
-./autorun &
-
-# 3. Verify server is running
-telnet localhost 4000
+# Require the active and installed executable identities to agree
+./scripts/autorun/autorun.sh status
 ```
 
 **Post-Incident:**
-- Review syslog for crash cause
-- Check core dump with gdb if available
-- Document incident in incident log
-- Create GitHub issue if bug found
+- Analyze a core only with the immutable executable and `circle.debug` recorded
+  for the crashed PID. Autorun places the selected executable identity and full
+  backtrace beside a captured core under `dumps/`.
+- Treat allocator diagnostics as detection points, not proof of the corrupting
+  write. Record confirmed facts separately from candidate causes when no usable
+  core or instrumented reproduction exists.
+- During a controlled maintenance window, run
+  `./scripts/debugging/verify_core_capture.sh --self-test`. Exit 0 is the required
+  end-to-end result; exit 2 means capture remains unverified on that host.
+- Follow the detailed
+  [crash guide](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md#server-crash-recovery)
+  and [deployment identity contract](../deployment/DEPLOYMENT_GUIDE.md).
+- Document the incident and create an issue for any confirmed code defect.
 
 ---
 

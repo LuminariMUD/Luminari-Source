@@ -1,6 +1,6 @@
 # LuminariMUD Protocol Systems Documentation
 
-Last verified: 2026-08-05
+Last verified: 2026-08-06
 
 ## Overview
 
@@ -58,6 +58,27 @@ Native MSDP and MSDP-over-GMCP expose the same logical values:
   integer, Boolean, or an array of those scalar values. Unsupported nesting,
   embedded NUL, invalid UTF-8, and malformed JSON are rejected before any
   command in the object is applied. The `MSDP` package name is case-sensitive.
+
+## Outbound Frame and Backpressure Contract
+
+Encoded MSDP, GMCP, MSSP, and MXP subnegotiations enter the descriptor queue
+through `WriteFrame()` and `write_to_output_raw_atomic()`. The entire frame and
+the 512-byte `PROTOCOL_OUTPUT_HEADROOM` reservation must fit. Otherwise the
+queue is unchanged and the caller receives `PROTOCOL_ERROR_BUFFER_FULL`.
+Structured protocol producers must never use the truncating display-text
+writer for an already encoded frame.
+
+`MSDPFlush()` and `MSDPUpdate()` clear a variable's dirty flag only after a
+successful complete write. A full descriptor queue therefore leaves the value
+dirty for a later retry. Local construction and final wire encoding are also
+bounded; invalid UTF-8, invalid MSDP structure, and expansion beyond the final
+frame limit fail without queuing a prefix.
+
+`AFFECTS` has an additional producer-side transaction. Nested affect mutations
+continue to recalculate live character state, but `affect_batch_begin()` and
+`affect_batch_end()` defer serialization until the outer logical mutation is
+complete. See [MSDP Variables](MSDP_VARIABLES.md#current-contract-notes) for
+the payload and failure contract.
 
 See [MSDP_VARIABLES.md](MSDP_VARIABLES.md) for the variable-level contract and
 the [MSDP-over-GMCP reference](https://mudstandards.org/gmcp/msdp/) for the wire
@@ -533,6 +554,25 @@ if (!descriptor->pProtocol->bMSDP) {
 MSDPSetNumber(descriptor, eMSDP_HEALTH, GET_HIT(ch));
 MSDPFlush(descriptor, eMSDP_HEALTH);  // Immediate send
 ```
+
+#### Structured Decoder or Truncated Frame
+
+Prompt bytes, terminal color codes, or an overflow marker inside a structured
+value indicate a server framing regression, especially if the raw Telnet
+subnegotiation lacks its final `IAC SE`. A valid backpressure rejection appends
+zero frame bytes and retains MSDP dirty state.
+
+Run both regression owners before changing queue sizes or client decoders:
+
+```sh
+make test
+make install
+make -C unittests/CuTest protocol-parser
+```
+
+For `AFFECTS`, also verify that a logical multi-affect mutation is enclosed by
+the affect batch API. Stopping a client from reporting `AFFECTS` can isolate
+that producer, but it is not a repair for partial server output.
 
 #### Client Compatibility
 ```c
