@@ -12660,7 +12660,8 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
         (weapon_list[GET_WEAPON_TYPE(wielded)].weaponFamily == WEAPON_FAMILY_MONK))
     {
       /* check for save */
-      if (!savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
+      if (can_stun(victim) &&
+          !savingthrow(ch, victim, SAVING_FORT, 0, CAST_INNATE, MONK_TYPE(ch), NOSCHOOL))
       {
         if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_CONDENSED))
         {
@@ -13218,7 +13219,7 @@ int handle_successful_attack(struct char_data *ch, struct char_data *victim,
           !affected_by_spell(victim, SKILL_PRESSURE_POINT_STRIKE))
       {
         /* 5% chance to trigger */
-        if (rand_number(1, 100) <= 5)
+        if (rand_number(1, 100) <= 5 && can_stun(victim))
         {
           int dc = 10 + (MONK_TYPE(ch) / 2) + GET_WIS_BONUS(ch);
           (void)dc; /* DC computed for future use or debugging */
@@ -14619,7 +14620,8 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
 
     /* Target makes Fortitude save or is stunned for 2 rounds */
     int dc = 10 + GET_LEVEL(ch) + GET_STR_BONUS(ch);
-    if (!savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
+    if (can_stun(victim) &&
+        !savingthrow(ch, victim, SAVING_FORT, dc, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL))
     {
       struct affected_type af = {0};
       new_affect(&af);

@@ -499,6 +499,17 @@ void attach_mud_event(struct mud_event_data *pMudEvent, long time)
   room_vnum *rvnum = NULL;
   region_vnum *regvnum = NULL;
 
+  if (pMudEvent == NULL)
+    return;
+
+  /* Timed stun is a second status ingress independent of AFF_STUN. */
+  if (pMudEvent->iId == eSTUNNED && !can_stun((struct char_data *)pMudEvent->pStruct))
+  {
+    free(pMudEvent->sVariables);
+    free(pMudEvent);
+    return;
+  }
+
   /* Create the actual event and set its timer.
    * event_create() adds it to the global event queue. */
   pEvent = event_create(mud_event_index[pMudEvent->iId].func, pMudEvent, time);

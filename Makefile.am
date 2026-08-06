@@ -257,6 +257,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
+	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/CuTest.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_artifacts.c \
@@ -293,6 +294,7 @@ cutest_test_files = \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
+	unittests/CuTest/test_necromancer.c \
 	unittests/CuTest/test_artifacts.c \
 	unittests/CuTest/test_artifact_integration.c \
 	unittests/CuTest/test_player_rename.c \
@@ -559,8 +561,10 @@ EXTRA_DIST = \
 	sql/components/character_rename_transactional_schema.sql \
 	sql/components/help_vessel_entries.sql \
 	sql/components/help_character_backgrounds.sql \
+	sql/components/help_necromancer_entries.sql \
 	sql/components/ci_schema_manifest.txt \
 	sql/components/test_vessels_integrity.sql \
+	sql/components/verify_help_necromancer_entries.sql \
 	sql/components/verify_help_vessel_entries.sql \
 	sql/components/verify_vessels_schema.sql \
 	sql/components/verify_vessels_phase4.sql \

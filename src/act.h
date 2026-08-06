@@ -272,6 +272,11 @@ ACMD_DECL(do_mercies);
 ACMD_DECL(do_cruelties);
 ACMD_DECL(do_touch_of_corruption);
 ACMD_DECL(do_touch_of_undeath);
+#ifdef LUMINARI_CUTEST
+int test_necromancer_touch_level(struct char_data *ch);
+int test_necromancer_touch_cast_type(void);
+void test_consume_necromancer_touch_attempt(struct char_data *ch);
+#endif
 ACMD_DECL(do_midnight_edict);
 ACMD_DECL(do_brutalfoe);
 ACMD_DECL(do_profanebond);

@@ -1016,6 +1016,8 @@ void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap)
     break;
 
   case TRAP_SPECIAL_STUN:
+    if (!can_stun(ch))
+      return;
     af.spell = SPELL_POWER_WORD_STUN;
     SET_BIT_AR(af.bitvector, AFF_STUN);
     send_to_char(ch, "You are stunned!\r\n");

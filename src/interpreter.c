@@ -5899,6 +5899,24 @@ void sort_commands(void)
   qsort(cmd_sort_info + 1, num_of_cmds - 2, sizeof(int), sort_commands_helper);
 }
 
+bool command_actions_available(struct char_data *ch, int actions_required)
+{
+  if (ch == NULL)
+    return false;
+
+  if (IS_SET(actions_required, ACTION_STANDARD) && !is_action_available(ch, atSTANDARD, FALSE))
+    return false;
+
+  if (IS_SET(actions_required, ACTION_MOVE) && !is_action_available(ch, atMOVE, FALSE) &&
+      !is_action_available(ch, atSTANDARD, FALSE))
+    return false;
+
+  if (IS_SET(actions_required, ACTION_SWIFT) && !is_action_available(ch, atSWIFT, FALSE))
+    return false;
+
+  return true;
+}
+
 /* This is the actual command interpreter called from game_loop() in comm.c
  * It makes sure you are the proper level and position to execute the command,
  * then calls the appropriate function. */
@@ -6286,11 +6304,7 @@ void command_interpreter(struct char_data *ch, char *argument)
       //    } else if (HAS_WAIT(ch) && complete_cmd_info[cmd].ignore_wait == FALSE) {
       //      send_to_char(ch, "You need to wait longer before you are able to do that.\r\n");
     }
-  else if (!IS_NPC(ch) && ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_STANDARD) &&
-                            !is_action_available(ch, atSTANDARD, FALSE)) ||
-                           ((IS_SET(complete_cmd_info[cmd].actions_required, ACTION_MOVE) &&
-                             (!is_action_available(ch, atMOVE, FALSE) &&
-                              !is_action_available(ch, atSTANDARD, FALSE))))))
+  else if (!IS_NPC(ch) && !command_actions_available(ch, complete_cmd_info[cmd].actions_required))
   {
     if (pending_actions(ch) > MAX_QUEUE_SIZE)
     {

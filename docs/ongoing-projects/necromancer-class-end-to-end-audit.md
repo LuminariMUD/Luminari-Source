@@ -3,47 +3,262 @@
 ## Audit state
 
 - Audit date: 2026-08-06
-- Status: Audit complete; remediation open
-- Release verdict: Not ready
-- Source baseline at final verification: commit
-  `45abcba50b16e0ff99ca5f38e95f9d20093e3d72`
+- Status: Implementation complete; production validation pending
+- Release verdict: Ready for production validation
+- Implementation baseline: commit
+  `0262cf59ca37f250dafe278406289ca594fe620d`
+- Implementation branch: `codex/necromancer-completion-20260806`
 - Environment: development, as identified by `lib/.env`
-- Runtime mutation: none
+- Runtime mutation: the authoritative Necromancer help migration was applied to
+  the configured development database; no production system was accessed
 
 This document audits the Necromancer prestige class from eligibility and level
 advancement through feat execution, summoned mobile creation, follower admission,
-pet persistence calls, live help, and automated coverage. It is a working audit,
-not an authoritative description of intended game behavior.
+pet persistence calls, live help, and automated coverage. It retains the original
+findings as a baseline record and records the repaired behavior in the implementation
+checkpoints.
 
 Existing unrelated working-tree changes were preserved and excluded from this
 audit.
 
-The audit used direct source tracing, the development help database, and the live
-world mobile prototypes. No production system was accessed or changed. No build or
-test suite was run because this was a documentation-only audit and the existing
-suite contains no Necromancer behavior coverage.
+The initial audit used direct source tracing, the development help database, and
+the live world mobile prototypes. No production system was accessed or changed.
+The initial audit did not run the build or test suite because it made no source
+change and the existing suite contained no Necromancer behavior coverage.
+
+## Implementation progress
+
+Last updated: 2026-08-06, final local verification completed on the isolated
+implementation branch.
+
+| Finding | Status | Verification evidence |
+|---------|--------|-----------------------|
+| NEC-001 | Focused verification passed | Exactly one selected base class advances; seven progression/study tests pass. |
+| NEC-002 | Focused verification passed | Safe kit cardinality and description ownership; ASan/UBSan clean. |
+| NEC-003 | Focused verification passed | Valid attempts spend the correct daily use and swift action; dispatcher and queue enforcement are tested. |
+| NEC-004 | Focused verification passed | Innate cast type, preferred base progression, affect-engine preservation, fallback, and `1d4+1` duration are tested. |
+| NEC-005 | Focused verification passed | At-will summon casts bypass prepared and spontaneous resource extraction. |
+| NEC-006 | Focused verification passed | Non-Necromancers allow one animated undead; Necromancers allow exactly two. |
+| NEC-007 | Focused verification passed | Greater Animation applies its computed tier-scaled mobile level. |
+| NEC-008 | Focused verification passed | Deathless Touch empowers and is consumed by one successful eligible summon. |
+| NEC-009 | Focused verification passed | Every equipped armor material is aggregated independent of slot order. |
+| NEC-010 | Focused verification passed | Shared affect and timed-event admission enforce stun immunity; direct producers are guarded. |
+| NEC-011 | Focused verification passed | Animate Dead and Greater Animation share the holy-room rejection policy. |
+| NEC-012 | Focused verification passed | Immediate and delayed casts use the one selected progression for summon tiers. |
+| NEC-013 | Focused verification passed | Resistances apply to the cohort; mandatory Undead Appearance is free and the budget is nonnegative. |
+| NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
+| NEC-015 | Database verification passed | Nine authoritative entries, 23 required keywords, collision cleanup, and 20 content contracts pass. |
+| NEC-016 | Local verification passed | Twenty-eight focused regressions and the 467-test production-linked suite pass under disposable local fixtures. |
+
+### Checkpoint 1: selected spell progression and first-level study
+
+- Necromancer bonus caster levels now advance only the selected preferred base
+  class. If no preference is needed because exactly one supported base class is
+  present on the chosen side, that class is inferred. Ambiguous multi-class
+  selections remain unresolved until the player chooses a preferred class.
+- Study now uses the pending level-up casting selection, so a first-level
+  spontaneous Necromancer can choose newly earned known spells before saving.
+  Study refuses to save an ambiguous Necromancer progression and directs the
+  player to complete the casting-type and preferred-class choices.
+- Paladin and Ranger are available in the divine preferred-class menu, matching
+  the divine caster-level calculation already used by the game.
+- Seven production-linked CuTest cases cover selected arcane and divine classes,
+  sole-class inference, ambiguous multi-class rejection, and pending arcane and
+  divine known-spell study. The warning-free test binary builds successfully.
+- The local suite currently reports 446 runs, 445 passes, and one environment
+  failure. The unrelated encounter-world syntax test cannot boot from this fresh
+  worktree without ignored database configuration. Pointing it at the existing
+  development data reaches that data but is incompatible with the fresh
+  worktree's required example configuration headers. No credential or customized
+  configuration file was copied or changed.
+
+### Checkpoint 2: Bone Armor safety and aggregation
+
+- Bone Armor now counts the complete crafting-kit contents list and accepts
+  exactly one object. Empty and multi-object kits return before any object
+  dereference or conversion work.
+- Description replacement has one owner transition per string. The room
+  description is freed once, eliminating the normal conversion double free.
+- Spell-failure reduction now requires at least one equipped armor piece and
+  keeps an aggregate all-bone result across body, head, legs, arms, and shield
+  slots. A later bone slot can no longer erase an earlier non-bone result.
+- Four additional production-linked tests cover zero, one, and two kit objects,
+  replacement of allocated descriptions, mixed materials in the formerly
+  order-sensitive direction, and the two-rank all-bone reduction. The normal
+  suite reports 450 runs, 449 passes, and the same unrelated environment
+  failure described above.
+- An isolated ASan/UBSan build with leak detection passed the focused
+  Necromancer suite: 11 runs, 11 passes, and no sanitizer finding. The
+  instrumented full suite reached the known bootstrap assertion; its CuTest
+  failure-message allocation is retained at exit, so it is not a clean
+  leak-detection target in this fresh worktree.
+
+### Checkpoint 3: Touch of Undeath execution contract
+
+- `undeath` now has one swift-action contract at the command dispatcher, queued
+  action executor, and direct handler. A queued swift command remains pending
+  until a swift action is available, and a valid attack attempt consumes the
+  swift action immediately before its attack roll.
+- A valid attempt spends a Touch of Undeath daily use whether the touch attack
+  hits or misses. Invalid room, target, undead-target, and player-killing checks
+  return without spending either resource. The cooldown is attached to
+  `FEAT_TOUCH_OF_UNDEATH`; Touch of Corruption is no longer charged.
+- Touch effects use `CAST_INNATE` and the selected preferred base class plus its
+  applicable bonus caster levels. Touch and animated-undead summons now share
+  that calculation. Legacy characters without an unambiguous selection fall
+  back to their Necromancer class level instead of silently resolving at zero.
+  Paralyzing Touch now lasts `1d4+1` rounds.
+- The affect engine's generic innate path formerly replaced the supplied Touch
+  level with total character level after command validation. All five Touch
+  ability IDs now preserve the exact supplied progression level, including
+  duration and save calculations, while unrelated innate effects retain their
+  existing total-level behavior.
+- Six additional production-linked tests cover daily-use breakpoints, selected
+  preferred arcane and divine levels in multiclass cases, fallback and cast type,
+  affect-engine level preservation, the full duration range, cooldown/action
+  consumption, queue enforcement, and command registration. The
+  normal suite reports 455 runs, 454 passes, and the same unrelated environment
+  failure described above.
+- The isolated ASan/UBSan build with leak detection passes all 28 currently
+  focused Necromancer tests; the Touch checkpoint originally contained 16
+  Necromancer tests with no sanitizer finding.
+
+### Checkpoint 4: animated-undead summon lifecycle
+
+- At-will Necromancer summons are identified before the destructive preparation
+  hook, so neither a prepared copy nor a spontaneous slot is consumed. They
+  remain at-will spells with the normal spoken-cast action, concentration, and
+  failure semantics; failed validation or the ten-percent summon roll consumes
+  no spell resource and leaves the corpse in place.
+- Both immediate and delayed casts now derive their effective level from the one
+  selected Necromancer base progression. The summon routine uses that supplied
+  level for mobile-tier selection instead of the composite all-class caster
+  macro. Legacy characters without an unambiguous selection fall back to their
+  Necromancer class level.
+- Animated-undead admission now counts all matching charmed followers and tests
+  `current < allowance`. Non-Necromancers may control one and Necromancers may
+  control exactly two; the extra allowance no longer spills into other follower
+  flags.
+- Greater Animation applies its calculated tier-scaled mobile level instead of
+  overwriting every result with level 18. It now shares Animate Dead's holy-room
+  rejection policy.
+- Deathless Touch contributes only to Animate Dead or Greater Animation and is
+  cleared after one successful eligible summon. Invalid corpses, holy rooms,
+  random failure, follower-cap rejection, and mobile-load failure retain it.
+- A pet-persistence failure does not destroy an already-created follower or
+  restore an already-consumed corpse. The existing structured error log remains,
+  and the player now receives a warning to save again before disconnecting.
+- Seven additional production-linked tests cover the complete contract above.
+  The normal suite reports 462 runs, 461 passes, and the same unrelated
+  environment failure described above. The isolated ASan/UBSan suite passes all
+  23 focused Necromancer tests with leak detection enabled.
+
+### Checkpoint 5: Tough as Bone and Undead Cohort
+
+- Stun admission is now enforced in both shared representations. An `AFF_STUN`
+  affect is rejected by `affect_to_char_source()` when `can_stun()` denies the
+  victim, and an `eSTUNNED` event is rejected and freed before it enters the
+  event queue. `can_stun()` also safely rejects a null target.
+- The confirmed direct producers now check immunity before success messaging or
+  event attachment: Stunning Critical, Stunning Fist, Pressure Point Strike,
+  Singular Impact, and stun traps. The trace also found and repaired Berserker
+  Stunning Blow. Existing spell, poison, and weapon-proc paths already checked
+  `can_stun()`; the shared gates protect future and load-time callers.
+- Fire, Cold, Acid, Electricity, and Sonic resistance evolutions now modify the
+  cohort passed to `assign_eidolon_evolutions()`, never its owner.
+- One automatically granted Undead Appearance rank is free for a Necromancer.
+  The evolution menu and eligibility checks now use the same cost-aware point
+  calculation, and invalid legacy overspending is displayed as zero rather than
+  a negative point balance. A level 1 Necromancer has one usable cohort
+  evolution point after the mandatory identity grant.
+- Four additional production-linked tests exercise affect-based and event-based
+  stun admission, all five cohort resistance targets, the mandatory evolution
+  grant, menu availability, and a nonnegative overspent budget. The normal suite
+  reports 466 runs, 465 passes, and the same unrelated environment failure
+  described above. The isolated ASan/UBSan suite passes all 27 focused
+  Necromancer tests with leak detection enabled.
+
+### Checkpoint 6: authoritative help and final Touch scaling trace
+
+- A final call-chain trace found that the generic innate-affect path replaced the
+  selected Touch level with total character level. It also found that Touch had
+  selected only the arcane or divine side and could aggregate multiple base
+  classes. Touch and animated-undead summons now share one preferred-base-class
+  progression helper, and all five Touch effects preserve that exact supplied
+  level through save and duration calculations.
+- One additional production-linked regression test covers all five Touch ability
+  IDs at the affect-engine choke point, the unchanged behavior of an unrelated
+  innate effect, and a non-innate control. The existing Touch level test now uses
+  multiple arcane and divine base classes to prove the preferred class wins. The
+  isolated ASan/UBSan suite passes all 28 tests with leak detection enabled.
+- `help_necromancer_entries.sql` is the rerunnable authoritative source for nine
+  class, spell, feat, and command topics with 23 required keywords. It separates
+  the no-argument `animatedead` daily command from the `animate dead` corpse
+  spell and removes the two stale aliases that conflated them.
+- Source feat descriptions now match the repaired command syntax, resource and
+  action rules, selected progression, Bone Armor aggregation, cohort point
+  accounting, summon naming, and immunity behavior.
+- The help migration and verifier are classified in the component schema
+  manifest and packaged by Autotools. A fresh isolated MariaDB schema accepted
+  `master_schema.sql`, two consecutive migration applications, and all five
+  verifier checks: nine entries, 23 keywords, nine player/manual rows, zero stale
+  aliases, and 20 content contracts.
+- After an explicit `APP_ENV=development` guard, the same migration was applied
+  to the configured development database. All five read-only verifier checks
+  pass there. No production database was accessed.
+
+### Checkpoint 7: final local verification and release handoff
+
+- A clean Autotools rebuild with GNU C23 completed without compiler warnings.
+  The aggregate `make test` path passed every auxiliary script check and all
+  467 production-linked CuTest cases. `make install` then installed `bin/circle`
+  and removed the root-level `circle` artifact as required.
+- The fresh worktree deliberately has no ignored database credentials or installed
+  world. Its shared Git configuration also materializes five tracked compatibility
+  symlinks as regular target-path files. Final integration testing therefore used
+  a user-owned temporary MariaDB socket, a fresh schema, a tracked minimal world
+  with one synthetic encounter region, and temporary symlink representations.
+  No customized configuration was copied, the compatibility files were restored,
+  and the database process was stopped after the test.
+- A fresh Debug CMake configuration with tests enabled built both `circle` and
+  `cutest` without warnings. The independently linked CMake CuTest executable also
+  passed all 467 cases against the disposable fixture.
+- The focused Necromancer suite passed 28 of 28 cases under ASan and UBSan with
+  leak detection and fail-fast sanitizer settings. The standalone protocol parser
+  passed 29 of 29 cases normally and under Valgrind; Valgrind reported zero errors,
+  zero bytes in use at exit, and no leaks.
+- A fresh `master_schema.sql` database accepted every component manifest entry
+  classified for application. The Necromancer help migration remained idempotent
+  on consecutive applications, and its verifier passed nine entries, 23 required
+  keywords, nine player/manual rows, zero stale aliases, and 20 content contracts.
+- Final repository checks found no whitespace errors, no non-ASCII or CRLF content
+  in changed documentation or SQL, no root-level `circle`, and no changes to the
+  protected local headers or credential files. The branch is pushed for production
+  validation; production code and data were not accessed.
+- Integration with `master` at `42f2b0ba` and source commit `520e6d93` repeated a
+  clean warning-free GNU C23 build and the authoritative `make test-all` gate. The
+  merged production-linked suite passed 472 of 472 cases, the world-tool suite
+  passed 170 of 170, the protocol harness passed 29 of 29, both character-rename
+  checks passed, installation removed the root build artifact, and the development
+  help verifier passed all five contracts.
 
 ## Executive verdict
 
 The Necromancer class is registered, selectable when its prerequisites are met,
-and all advertised class feats are assigned at a level. Several passive bonuses
-also work. That wiring is not enough to call the class fully implemented.
+and all advertised class feats are assigned at a level. The original progression,
+Bone Armor, Touch of Undeath, and animated-undead summon blockers now have focused
+production-linked and sanitizer verification.
 
-There are three release-blocking areas:
+All sixteen original findings now have an implemented and locally verified
+disposition. Progression, Bone Armor, Touch of Undeath, animated-undead lifecycle,
+stun admission, cohort accounting, help content, and regression coverage pass the
+final local gates described above.
 
-1. The selected arcane or divine spell progression is not honored by the
-   class-specific caster-level calculation. Necromancer levels advance every
-   eligible base casting class on both sides.
-2. The `bonearmor` conversion path has null-dereference and double-free defects.
-3. Touch of Undeath charges the wrong daily feat, uses conflicting action types,
-   and resolves with the wrong cast-type namespace and the arcane level even for a
-   divine Necromancer.
-
-The two requested summon feats are present and can reach successful follower
-creation, but they are not production-complete. At-will casts can consume a real
-prepared spell or spontaneous slot, the intended second undead is rejected,
-Greater Animation forces every result to level 18, and Deathless Touch's one-shot
-summon enhancement is never consumed.
+The branch is ready for the requested production validation, not yet declared
+production-certified. Live-world behavior, restart persistence through the shared
+pet subsystem, and operator review of the migrated help remain production handoff
+checks. The original findings below are retained as the audit record; the
+implementation-progress table and checkpoints are the current status.
 
 ## Class registration and progression
 
@@ -67,16 +282,16 @@ bonus class-feat point at level 7, and Undead Appearance for the cohort at level
 
 | Level | Granted behavior | Audit result |
 |-------|------------------|--------------|
-| 1 | Necromancer weapons; Undead Cohort | Weapons work. Cohort creation works, but evolution resistance assignment is wrong and its point budget is ambiguous. |
-| 2 | Summon Undead | Partially implemented through `animate dead`; see the summon audit. |
+| 1 | Necromancer weapons; Undead Cohort | Weapons and cohort creation work; resistance ownership and the free mandatory identity grant pass focused checks. |
+| 2 | Summon Undead | Focused lifecycle verification passed; see Checkpoint 4. |
 | 3 | Ultravision | Implemented through the standard feat visibility check. |
-| 4 | Light armor; Bone Armor rank 1 | Proficiency is wired. Bone conversion is memory-unsafe and its spell-failure condition is incorrect. |
+| 4 | Light armor; Bone Armor rank 1 | Proficiency and the repaired conversion/failure contract have focused verification. |
 | 5 | Deathless Vigor; Weapon Focus: Polearms | Implemented: +4 Fortitude and the weapon-family focus hook are present. |
-| 6 | Undead Graft; Touch of Undeath; Paralyzing Touch | +4 real Strength works. The touch subsystem has blocking accounting and resolution defects. |
-| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon and point grants work. Disease immunity is wired, but stun immunity is bypassed by several direct stun paths. Touch remains defective. |
-| 8 | Medium armor; Bone Armor rank 2; Degenerative Touch | Proficiency is wired. Bone Armor and Touch defects remain. |
-| 9 | Summon Greater Undead; Destructive Touch | Both are reachable, but Greater Animation scaling is broken and Touch remains defective. |
-| 10 | Essence of Undeath; Deathless Touch | Most Essence checks are wired. Deathless Touch's summon empowerment never clears after it is earned. |
+| 6 | Undead Graft; Touch of Undeath; Paralyzing Touch | Strength and the repaired touch execution contract have focused verification. |
+| 7 | Tough as Bone; Weakening Touch; Weapon Specialization; bonus class-feat point | Weapon, point, Touch, and centralized stun-immunity behavior pass focused checks. |
+| 8 | Medium armor; Bone Armor rank 2; Degenerative Touch | Proficiency, Bone Armor, and Touch behavior pass focused checks. |
+| 9 | Summon Greater Undead; Destructive Touch | Greater Animation scaling and Touch behavior pass focused checks. |
+| 10 | Essence of Undeath; Deathless Touch | Most Essence checks are wired; one-shot summon empowerment passes focused checks. |
 
 ## Prioritized findings
 
@@ -169,7 +384,7 @@ The variants themselves are gated at the intended class levels and route to the
 expected ability IDs. The shared execution contract must be corrected before any
 variant can be considered complete.
 
-### NEC-010: Tough as Bone is only a partial immunity
+### NEC-010: Tough as Bone was only a partial immunity
 
 `can_disease()` and `can_stun()` both reject their effects when the victim has
 Tough as Bone (`src/utils.c:7385-7386` and `7567-7568`). Standard spell paths that
@@ -184,9 +399,9 @@ attach `eSTUNNED` without calling `can_stun()`, including:
 - Singular Impact in `src/character/perks.c:12084-12094`.
 - Stun traps in `src/combat/traps_new.c:1018-1023`.
 
-`affect_to_char()` does not apply an immunity guard, so these direct callers really
-do bypass the feat. Disease immunity was found on the standard disease admission
-path; the stun half of the feat is demonstrably incomplete.
+At the implementation baseline, `affect_to_char()` did not apply an immunity
+guard, so these direct callers bypassed the feat. Checkpoint 5 records the shared
+affect/event admission repair and direct-producer checks that close this finding.
 
 ## Summon Undead and Summon Greater Undead
 
@@ -314,7 +529,7 @@ level, capped at 30, apply evolutions, add the follower, call pet persistence, a
 attach the standard Eidolon call cooldown. The automatic Undead Appearance
 evolution is granted at the first Necromancer level.
 
-Two gaps remain:
+The implementation-baseline trace found two gaps:
 
 1. `assign_eidolon_evolutions()` checks the cohort's resistance evolutions but
    adds Fire, Cold, Acid, Electricity, and Sonic resistance to `ch`, the owner,
@@ -323,7 +538,12 @@ Two gaps remain:
    two-point cost of the automatically granted Undead Appearance evolution
    (`src/character/study.c:5894-5913`). A level 1 Necromancer with no Summoner
    levels can therefore begin at negative one free point. The intended treatment
-   of this mandatory class identity needs to be decided and documented.
+   of this mandatory class identity needed to be decided and documented.
+
+Checkpoint 5 resolves both gaps. Resistance evolutions now affect the cohort.
+One class-granted Undead Appearance rank is exempt from cost, leaving the level 1
+Necromancer's one point usable; all evolution menus use the same cost-aware,
+nonnegative calculation.
 
 ## Passive feat results
 
@@ -342,8 +562,9 @@ trace:
   helpers and combat/magic paths audited.
 
 Essence of Undeath is substantially wired, but it still lacks regression tests for
-every immunity ingress. Tough as Bone cannot be placed in this passing group due
-to the confirmed direct-stun bypasses.
+every immunity ingress. Tough as Bone's stun half now has shared affect/event
+admission gates and direct-producer regression coverage as recorded in Checkpoint
+5.
 
 ## NEC-014: Study and persistence gaps
 
@@ -419,7 +640,7 @@ Minimum release coverage should include:
     persistence, and combined Summoner/Necromancer scaling.
 13. Database-backed checks for class, feat, command, and spell help.
 
-## Recommended remediation order
+## Original recommended remediation order
 
 1. Fix and sanitizer-test Bone Armor before allowing the command to be used.
 2. Define one selected base spellcasting progression and repair every consumer of
@@ -435,6 +656,11 @@ Minimum release coverage should include:
 7. Add production-linked regression tests, then update the authoritative database
    help and enduring class documentation to match the approved contracts.
 
-The class should not be described as fully implemented until the blocker and high
-findings are repaired, the ambiguous scaling/action contracts are decided, and the
-minimum regression matrix passes against the production-linked game sources.
+## Resolution
+
+The blocker and high findings are repaired, the previously ambiguous scaling and
+action contracts are explicit, and the production-linked regression suite passes
+locally. The wider baseline coverage list above remains useful for future expansion,
+especially exhaustive Essence of Undeath ingress tests and live pet save/reload
+scenarios, but it no longer blocks this implementation branch from production
+validation.

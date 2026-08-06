@@ -9981,14 +9981,7 @@ bool has_evolutions_unchosen(struct char_data *ch)
   if (GET_EIDOLON_BASE_FORM(ch) == 0 && LEVELUP(ch)->eidolon_base_form == 0)
     return false;
 
-  int num_evos =
-      evolution_points[CLASS_LEVEL(ch, CLASS_SUMMONER)] + CLASS_LEVEL(ch, CLASS_NECROMANCER);
-  int num_chosen = num_eidolon_evolutions_known(ch);
-
-  if ((num_evos - num_chosen) > 0)
-    return true;
-
-  return false;
+  return num_free_evolution_points(ch) > 0;
 }
 
 sbyte has_eidolon_choices_unchosen(struct char_data *ch)

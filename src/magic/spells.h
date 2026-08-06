@@ -1868,6 +1868,8 @@ void mag_areas(int level, struct char_data *ch, struct obj_data *obj, int spelln
 void mag_summons(int level, struct char_data *ch, struct obj_data *obj, int spellnum, int savetype,
                  int casttype);
 int summon_spell_mob_level(int spellnum, int caster_level);
+mob_vnum animated_dead_summon_mob(int spellnum, int caster_level);
+bool summon_spell_rejects_holy_room(int spellnum);
 void apply_ghost_wolf_mobility(struct char_data *wolf, int caster_level);
 void mag_points(int level, struct char_data *ch, struct char_data *victim, struct obj_data *obj,
                 int spellnum, int savetype, int casttype);
@@ -1891,6 +1893,15 @@ int test_get_bard_crescendo_damage_applications(void);
 int test_get_bard_crescendo_save_applications(void);
 void test_reset_savingthrow_observation(void);
 int test_get_last_savingthrow_challenge(void);
+int test_paralyzing_touch_duration(void);
+int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int supplied_level,
+                                   int modified_level, int casttype);
+int test_at_will_casting_class(struct char_data *ch, int spellnum);
+int test_necromancer_summon_caster_level(struct char_data *ch, int spellnum);
+bool test_should_extract_prepared_spell(struct char_data *ch, int spellnum);
+bool test_deathless_touch_empowers_summon(struct char_data *ch, int spellnum);
+void test_complete_deathless_touch_summon(struct char_data *ch, int spellnum, bool succeeded);
+void test_report_summon_persistence_result(struct char_data *ch, bool saved);
 #endif
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,

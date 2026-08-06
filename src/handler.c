@@ -1236,6 +1236,13 @@ void affect_to_char_source(struct char_data *ch, struct affected_type *af, long 
 {
   struct affected_type *affected_alloc;
 
+  if (ch == NULL || af == NULL)
+    return;
+
+  /* Stun immunity is an admission rule, not a caller convention. */
+  if (IS_SET_AR(af->bitvector, AFF_STUN) && !can_stun(ch))
+    return;
+
   CREATE(affected_alloc, struct affected_type, 1);
 
   *affected_alloc = *af;

@@ -225,6 +225,8 @@ void put_mysql_supply_orders_available(struct char_data *ch, int avail);
 #ifdef LUMINARI_CUTEST
 int test_award_legacy_crafting_experience(struct char_data *ch, int exp);
 int test_legacy_supply_order_skill(int material);
+struct obj_data *test_get_single_bone_armor_object(struct obj_data *kit, int *num_objs);
+void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument);
 #endif
 
 #endif /* CRAFT_H */

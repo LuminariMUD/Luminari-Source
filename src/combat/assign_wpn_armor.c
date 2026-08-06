@@ -1587,7 +1587,8 @@ int compute_gear_spell_failure(struct char_data *ch)
 {
   int spell_failure = 0, i, count = 0;
   struct obj_data *obj = NULL;
-  bool bonearmor = false;
+  bool has_armor = false;
+  bool all_armor_is_bone = true;
 
   for (i = 0; i < NUM_WEARS; i++)
   {
@@ -1595,10 +1596,10 @@ int compute_gear_spell_failure(struct char_data *ch)
     if (obj && GET_OBJ_TYPE(obj) == ITEM_ARMOR &&
         (i == WEAR_BODY || i == WEAR_HEAD || i == WEAR_LEGS || i == WEAR_ARMS || i == WEAR_SHIELD))
     {
-      // all armor pieces must be bone to benefit from bone armor necromancer ability
-      bonearmor = false;
-      if (GET_OBJ_MATERIAL(obj) == MATERIAL_BONE)
-        bonearmor = true;
+      /* All equipped armor pieces must be bone to receive the Necromancer reduction. */
+      has_armor = true;
+      if (GET_OBJ_MATERIAL(obj) != MATERIAL_BONE)
+        all_armor_is_bone = false;
 
       if (i != WEAR_SHIELD) /* shield and armor combined increase spell failure chance */
         count++;
@@ -1616,7 +1617,7 @@ int compute_gear_spell_failure(struct char_data *ch)
     spell_failure -= 20;
   else if (HAS_FEAT(ch, FEAT_ARCANE_ARMOR_TRAINING))
     spell_failure -= 10;
-  if (bonearmor && HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
+  if (has_armor && all_armor_is_bone && HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
     spell_failure -= (10 * HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR));
 
   if (affected_by_spell(ch, PSIONIC_OAK_BODY))

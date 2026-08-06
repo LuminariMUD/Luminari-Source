@@ -12639,7 +12639,41 @@ ACMD(do_touch_of_corruption)
 }
 
 
-// Necromancer's ability to cause status affects to enemies
+static int necromancer_touch_level(struct char_data *ch)
+{
+  return get_necromancer_progression_level(ch);
+}
+
+static int necromancer_touch_cast_type(void)
+{
+  return CAST_INNATE;
+}
+
+static void consume_necromancer_touch_attempt(struct char_data *ch)
+{
+  if (!IS_NPC(ch))
+    start_daily_use_cooldown(ch, FEAT_TOUCH_OF_UNDEATH);
+  USE_SWIFT_ACTION(ch);
+}
+
+#ifdef LUMINARI_CUTEST
+int test_necromancer_touch_level(struct char_data *ch)
+{
+  return necromancer_touch_level(ch);
+}
+
+int test_necromancer_touch_cast_type(void)
+{
+  return necromancer_touch_cast_type();
+}
+
+void test_consume_necromancer_touch_attempt(struct char_data *ch)
+{
+  consume_necromancer_touch_attempt(ch);
+}
+#endif
+
+/* Necromancer ability to cause status effects with an undead touch. */
 ACMD(do_touch_of_undeath)
 {
   int uses_remaining = 0;
@@ -12665,6 +12699,9 @@ ACMD(do_touch_of_undeath)
     send_to_char(ch, "You are not experienced enough.\r\n");
     return;
   }
+
+  if (!IS_NPC(ch) && !is_action_available(ch, atSWIFT, TRUE))
+    return;
 
   two_arguments(argument, arg, sizeof(arg), arg2, sizeof(arg2));
 
@@ -12772,6 +12809,8 @@ ACMD(do_touch_of_undeath)
   if (!pvp_ok(ch, vict, true))
     return;
 
+  consume_necromancer_touch_attempt(ch);
+
   if (!attack_roll(ch, vict, ATTACK_TYPE_PRIMARY, TRUE, 0))
   {
     act("You reach out to touch $N with your undead arm, but $E avoids you.", FALSE, ch, 0, vict,
@@ -12787,14 +12826,9 @@ ACMD(do_touch_of_undeath)
       vict, TO_CHAR);
   act("$n reaches out and touches you with $s undead arm, causing $M to suffer visibly.", FALSE, ch,
       0, vict, TO_VICT);
-  act("$n reaches out and touches $N with $s undead arm, causing $M to syffer visibly.", FALSE, ch,
+  act("$n reaches out and touches $N with $s undead arm, causing $M to suffer visibly.", FALSE, ch,
       0, vict, TO_NOTVICT);
-  call_magic(ch, vict, 0, spellnum, 0, compute_arcane_level(ch), CASTING_TYPE_ARCANE);
-
-  if (!IS_NPC(ch))
-    start_daily_use_cooldown(ch, FEAT_TOUCH_OF_CORRUPTION);
-
-  USE_STANDARD_ACTION(ch);
+  call_magic(ch, vict, 0, spellnum, 0, necromancer_touch_level(ch), necromancer_touch_cast_type());
 }
 
 void apply_blackguard_cruelty(struct char_data *ch, struct char_data *vict, char *cruelty)
