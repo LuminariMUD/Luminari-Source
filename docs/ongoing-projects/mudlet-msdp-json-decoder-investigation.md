@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Server remediation complete; external client findings remain
+Status: Server remediation complete; LuminariGUI remediation in progress; Mudlet finding remains external
 
 ## Purpose
 
@@ -39,10 +39,10 @@ to LuminariMUD server behavior and server-owned tests and documentation:
   value shape, or explicitly decline unsupported values; and
 - MJD-005: add regression coverage for the native and GMCP compatibility contracts.
 
-MJD-002 (Mudlet core) and MJD-003 (LuminariGUI subscriptions) remain documented external
-findings. They are not implementation requirements for this server-only remediation and will
-not be used to hold server completion open. No production connection or production change is
-part of this work.
+MJD-002 (Mudlet core) remains a documented external finding. MJD-003 (LuminariGUI
+subscriptions) was originally excluded from the server-only remediation, but package-owned
+follow-up began on 2026-08-06 in the LuminariGUI repository. It remains separate from server
+closure and does not require a production connection or production change.
 
 ## Snapshot and Provenance
 
@@ -316,7 +316,7 @@ References:
 |----|----------|--------|---------|
 | MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
 | MJD-002 | Medium | External; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
-| MJD-003 | Low | External; diagnosed | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
+| MJD-003 | Low | Remediation in progress | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
 | MJD-004 | High | Fixed; verified | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
 | MJD-005 | Medium | Complete; verified | Production scalar, wire-format, malformed-input, memory-tool, fuzz, alternate-build, and installation coverage passes. |
 
@@ -357,6 +357,15 @@ fresh REPORT cycle.
 Removing unused reports can reduce errors and traffic. It should be treated as cleanup or a
 temporary mitigation, not as closure of MJD-001 or MJD-002. If alignment is intended for a
 future player display, the clean server contract should be established first.
+
+On 2026-08-06, the LuminariGUI `master` branch at `7698e3b` (package version `2.0.4.044`) was
+re-audited before implementation. `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` are still present
+in `GUI.MSDP_REPORT_VARS`. The latter two are read only into `GUI.updateRoom()` debug state.
+`ALIGNMENT` is read only into `GUI.updatePlayer()` debug state and has an event-table entry that
+refreshes a panel whose rendered HTML does not use alignment. The structured `ROOM` report
+continues to supply the visible room panel and mapper. The package remediation will remove the
+three unused reports, their debug-only reads, and the now-unowned alignment event entry, then
+add regression coverage for the intended subscription contract.
 
 ### MJD-004: The GMCP fallback has a separate serialization defect
 
