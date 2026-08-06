@@ -41,8 +41,10 @@ After `make test`, always run:
 make install
 ```
 
-This installs the tested binary as `bin/circle` and removes the root-level
-`circle` artifact that the test build may leave behind.
+This retains the tested binary and matching symbols under its immutable
+`bin/releases/<ELF-build-ID>/` directory, atomically activates `bin/circle`,
+and removes the root-level `circle` artifact that the test build may leave
+behind.
 
 ## Structured Web Onboarding
 

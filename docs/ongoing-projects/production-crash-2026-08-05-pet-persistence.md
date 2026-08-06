@@ -33,7 +33,7 @@ Status meanings:
 | Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
 | Production-linked regression coverage | Verified | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, rollback at all nine transaction queries, repeated timed-affect mutation, disconnected-periodic skipping, descriptor detachment, and follower removal. |
 | Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
-| Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
+| Deployment and crash observability | In progress | Both build systems now install immutable `bin/releases/<ELF-build-ID>/circle` and `circle.debug` artifacts and atomically activate `bin/circle`; builds embed commit and dirty identity. Active-process health identity, exact-binary core handling, and end-to-end capture diagnostics remain underway. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -91,8 +91,32 @@ Status meanings:
   runs on the existing 60-second character-save pulse instead of every six
   seconds; all event-driven save sites remain unchanged. The database-enabled
   suite passes all 440 tests.
-- Next checkpoint: implement local build/process identity and audit the
-  install/restart and core-capture paths.
+- Lifecycle and churn checkpoint commit: `bb6e70ca` (`Preserve pet lifecycle
+  saves and reduce churn`), pushed to `origin/master`.
+- Deployment audit checkpoint: Autotools installs the server directly over
+  `bin/circle`; CMake writes the linked server directly to the same pathname
+  even before its install step. Autorun then launches that mutable pathname,
+  identifies live processes against its current target, and runs GDB against
+  its current contents after a crash. This explains how an install without a
+  restart both invalidates external core handling and loses the exact debugger
+  image. The local repair will install immutable build-ID release paths, retain
+  matching symbols, launch and record the resolved path, and report both active
+  and candidate identities.
+- Immutable-release checkpoint: both Autotools and CMake now build away from
+  the launch alias and promote candidates through one installer. The installer
+  requires an ELF build ID and machine-readable embedded Git identity, retains
+  the executable, a matching `circle.debug`, and a SHA-256 manifest under the
+  build ID, and atomically updates `bin/circle`. A regression test verifies two
+  releases, activation while the first immutable release is executing, symbol
+  retention, manifest identity, and refusal to migrate a live legacy regular
+  file. The real local Autotools install preserved the prior `19841857...`
+  release and symbols, installed the new `5a4c29b3...` release and symbols,
+  activated the symlink, and removed the root executable. CMake configuration
+  and both identity-bearing C objects also compile cleanly. The full recursive
+  install remains blocked only by the unrelated concurrent unmatched `#endif`
+  in `src/act.informative.c`; the already-linked root install phase completed.
+- Next checkpoint: pin autorun launch, state, status, and crash analysis to the
+  exact resolved release identity, then add local core-capture diagnostics.
 
 ### Memory Diagnostic Commands
 

@@ -251,8 +251,10 @@ int main(int argc, char **argv)
   int pos = 1;
   const char *config_file = NULL;
   const char *dir = NULL;
+  const char *elf_build_id;
 
-  snprintf(embed_version, sizeof(embed_version), "%s", luminari_version);
+  snprintf(embed_version, sizeof(embed_version), "%s git=%s dirty=%d", luminari_version,
+           luminari_build_git_commit, luminari_build_git_dirty ? 1 : 0);
 
 #ifdef MEMORY_DEBUG
   zmalloc_init();
@@ -274,6 +276,14 @@ int main(int argc, char **argv)
   {
     fputs("SYSERR: Invalid process argument vector.\n", stderr);
     return EXIT_FAILURE;
+  }
+
+  if (argc == 2 && strcmp(argv[1], "--build-info") == 0)
+  {
+    printf("VERSION=%s\n", luminari_version);
+    printf("GIT_COMMIT=%s\n", luminari_build_git_commit);
+    printf("GIT_DIRTY=%d\n", luminari_build_git_dirty ? 1 : 0);
+    return EXIT_SUCCESS;
   }
 
   /* Load the game configuration. We must load BEFORE we use any of the
@@ -380,6 +390,7 @@ int main(int argc, char **argv)
              "  -c             Enable syntax check mode.\n"
              "  -d <directory> Specify library directory (defaults to 'lib').\n"
              "  -h             Print this command line argument help.\n"
+             "  --build-info   Print machine-readable build identity and exit.\n"
              "  -m             Start in mini-MUD mode.\n"
              "  -f<file>       Use <file> for configuration.\n"
              "  -o <file>      Write log to <file> instead of stderr.\n"
@@ -417,6 +428,12 @@ int main(int argc, char **argv)
    * in the log if stderr is redirected to a file. */
   log("Loading configuration.");
   log("%s", luminari_version);
+  elf_build_id = getenv("LUMINARI_ELF_BUILD_ID");
+  if (elf_build_id == NULL || *elf_build_id == '\0' || strlen(elf_build_id) > 128 ||
+      strspn(elf_build_id, "0123456789abcdefABCDEF") != strlen(elf_build_id))
+    elf_build_id = "unavailable";
+  log("Build identity: git_commit=%s git_dirty=%d elf_build_id=%s", luminari_build_git_commit,
+      luminari_build_git_dirty ? 1 : 0, elf_build_id);
 
   if (dir == NULL || *dir == '\0')
   {

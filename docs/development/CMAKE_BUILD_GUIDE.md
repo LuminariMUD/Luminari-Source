@@ -23,9 +23,10 @@ cp src/vnums.example.h src/vnums.h
 
 # Configure and build with CMake
 cmake -S . -B build/
-cmake --build build/ -j$(nproc)
+cmake --build build/ -j"$(nproc)"
+cmake --install build/
 
-# The binary will be created at: bin/circle
+# The candidate is build/bin/circle; installation activates bin/circle
 ls -la bin/circle
 ```
 
@@ -85,6 +86,9 @@ cmake -DGD_LIBRARY=/usr/lib/libgd.so ..
 ```bash
 # Build main server
 cmake --build build/ --target circle
+
+# Install the server release after it has been tested
+cmake --install build/
 
 # Build specific utility (if enabled)
 cmake --build build/ --target autowiz
@@ -211,8 +215,10 @@ make -j4
 
 ## Notes
 
-1. CMake is now the recommended build system for LuminariMUD
-2. Both CMake and Autotools produce the same `circle` executable in `bin/`
+1. Autotools is preferred for incremental development; CMake remains supported
+2. CMake builds the candidate at `build/bin/circle`; `cmake --install build/`
+   retains it and its symbols under `bin/releases/<ELF-build-ID>/` and
+   atomically activates `bin/circle`
 3. CMake requires GNU C23 and retains compiler extensions
 4. The build configuration no longer generates `conf.h` - all defines are passed directly to the compiler
 5. MySQL configuration still uses `lib/mysql_config` file

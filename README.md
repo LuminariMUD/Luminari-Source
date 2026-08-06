@@ -157,14 +157,16 @@ cp src/mud_options.example.h src/mud_options.h
 cp src/vnums.example.h src/vnums.h
 # Edit these files as needed for your configuration
 
-# Option 1: Build with CMake (recommended)
+# Option 1: Build with CMake
 cmake -S . -B build/
-cmake --build build/ -j$(nproc)
+cmake --build build/ -j"$(nproc)"
+cmake --install build/
 
-# Option 2: Traditional build with Autotools
+# Option 2: Build with Autotools (preferred for incremental development)
 autoreconf -fvi  # Only if configure script missing
 ./configure
 make
+make install
 
 # Run the server (after configuration)
 bin/circle

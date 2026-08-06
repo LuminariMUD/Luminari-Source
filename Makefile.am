@@ -320,17 +320,29 @@ cutest_test_files = \
 unittests/CuTest/AllTests.c: $(cutest_test_files) unittests/CuTest/make-tests.sh
 	unittests/CuTest/make-tests.sh $(cutest_test_files) > $@
 
-BUILT_SOURCES = unittests/CuTest/AllTests.c
+BUILT_SOURCES = build_identity.h unittests/CuTest/AllTests.c
 
 # Clean up generated files
-CLEANFILES = unittests/CuTest/AllTests.c
+CLEANFILES = build_identity.h unittests/CuTest/AllTests.c
 
-# Install to local bin directory
-bindir = $(top_builddir)/bin
+.PHONY: FORCE_BUILD_IDENTITY
+FORCE_BUILD_IDENTITY:
+
+build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identity.sh
+	$(AM_V_GEN)$(SHELL) $(abs_top_srcdir)/scripts/deployment/generate_build_identity.sh \
+		$@ $(abs_top_srcdir)
+
+# Stage the server away from the mutable launch alias. The install hook below
+# promotes it into an immutable build-ID release and updates bin/circle.
+bindir = $(top_builddir)/bin/.circle-install
 
 # After installation, remove the executable from the source directory
 install-exec-hook:
+	$(SHELL) $(abs_top_srcdir)/scripts/deployment/install_versioned_binary.sh \
+		$(bindir)/circle $(top_builddir)/bin
 	$(SHELL) $(abs_top_srcdir)/scripts/provision_artifacts.sh
+	rm -f $(bindir)/circle
+	rmdir $(bindir)
 	rm -f $(bin_PROGRAMS)
 
 # Ensure constants.c is rebuilt when other sources change
@@ -490,8 +502,11 @@ EXTRA_DIST = \
 	scripts/debugging/vgrind.sh \
 	scripts/deploy.sh \
 	scripts/deployment/deploy.sh \
+	scripts/deployment/generate_build_identity.sh \
+	scripts/deployment/install_versioned_binary.sh \
 	scripts/deployment/move_bin.sh \
 	scripts/deployment/setup.sh \
+	scripts/deployment/test_versioned_binary_install.sh \
 	scripts/development/dev_create_test_character.sh \
 	scripts/development/dev_kohdee_login_smoke.sh \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
@@ -596,12 +611,13 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision test-background-help-entries test-vessel-tooling
+test: check test-autorun-supervision test-versioned-binary-install \
+	test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: check-world-docs test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
-	test-vessel-tooling
+	test-versioned-binary-install test-vessel-tooling
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -630,6 +646,9 @@ test-background-help-entries:
 
 test-autorun-supervision:
 	./scripts/autorun/test_autorun_supervision.sh
+
+test-versioned-binary-install:
+	./scripts/deployment/test_versioned_binary_install.sh
 
 test-vessel-tooling:
 	./scripts/vessels/test_vessel_ferry_soak_preflight.sh

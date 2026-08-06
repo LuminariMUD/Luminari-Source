@@ -342,7 +342,7 @@ build_project() {
 
         # Build
         print_msg "$GREEN" "Building (this may take a few minutes)..."
-        make -j$(nproc) all
+        make -j"$(nproc)" all
 
         # Install
         print_msg "$GREEN" "Installing..."
@@ -372,7 +372,10 @@ build_project() {
         fi
 
         # Build
-        cmake --build build/ -j$(nproc)
+        cmake --build build/ -j"$(nproc)"
+
+        # Install the immutable server release and utility binaries.
+        cmake --install build/
 
     else
         print_msg "$RED" "No build system found!"

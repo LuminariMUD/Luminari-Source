@@ -80,6 +80,7 @@ dkms.conf
 bin/*
 # But keep the directory itself
 !bin/.gitkeep
+/build_identity.h
 
 # Also ignore utility executables if they're built in util/
 util/asciipasswd

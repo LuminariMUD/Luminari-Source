@@ -27,9 +27,54 @@ if (NOT LUMINARI_HAVE_C23_KEYWORDS)
     message(FATAL_ERROR "The C compiler does not provide the required GNU C23 language support")
 endif()
 
-# Output paths - LuminariMUD uses bin/circle convention
-set(BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
+# Build outside the mutable launch alias. Installation promotes circle into an
+# immutable build-ID release under the source tree's bin directory.
+set(BIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
+set(INSTALL_BIN_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_OUTPUT_DIR})
+
+set(BUILD_IDENTITY_HEADER ${CMAKE_CURRENT_BINARY_DIR}/build_identity.h)
+execute_process(
+    COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
+            ${BUILD_IDENTITY_HEADER}
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE BUILD_IDENTITY_RESULT)
+if (NOT BUILD_IDENTITY_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to generate build identity")
+endif()
+
+execute_process(
+    COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} rev-parse --git-path HEAD
+    OUTPUT_VARIABLE GIT_HEAD_PATH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+execute_process(
+    COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} symbolic-ref -q HEAD
+    OUTPUT_VARIABLE GIT_HEAD_REFERENCE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+if (GIT_HEAD_PATH)
+    if (NOT IS_ABSOLUTE ${GIT_HEAD_PATH})
+        set(GIT_HEAD_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${GIT_HEAD_PATH})
+    endif()
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${GIT_HEAD_PATH})
+endif()
+if (GIT_HEAD_REFERENCE)
+    execute_process(
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR} rev-parse --git-path ${GIT_HEAD_REFERENCE}
+        OUTPUT_VARIABLE GIT_HEAD_REFERENCE_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
+    if (GIT_HEAD_REFERENCE_PATH)
+        if (NOT IS_ABSOLUTE ${GIT_HEAD_REFERENCE_PATH})
+            set(GIT_HEAD_REFERENCE_PATH
+                ${CMAKE_CURRENT_SOURCE_DIR}/${GIT_HEAD_REFERENCE_PATH})
+        endif()
+        set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+                     ${GIT_HEAD_REFERENCE_PATH})
+    endif()
+endif()
 
 # Prefer CMake's binary directory for generated headers.
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
@@ -627,10 +672,19 @@ set(SRC_C_FILES
     # src/net/i3_test.c
 )
 
-set(SRC_FILES ${SRC_C_FILES})
+set(SRC_FILES ${SRC_C_FILES} ${BUILD_IDENTITY_HEADER})
+set_source_files_properties(${BUILD_IDENTITY_HEADER} PROPERTIES GENERATED TRUE)
 
 # ========== Build main executable FIRST ==========
 add_executable(circle ${SRC_FILES})
+add_custom_target(refresh_build_identity ALL
+    COMMAND bash
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/generate_build_identity.sh
+            ${BUILD_IDENTITY_HEADER}
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    BYPRODUCTS ${BUILD_IDENTITY_HEADER}
+    COMMENT "Refreshing embedded Git build identity")
+add_dependencies(circle refresh_build_identity)
 
 # Add compile definitions based on detected features
 target_compile_definitions(circle PRIVATE
@@ -984,6 +1038,7 @@ if (BUILD_TESTS)
         ${CUTEST_TEST_SOURCES}
         ${CUTEST_ALL_TESTS_SOURCE}
         ${SRC_FILES})
+    add_dependencies(cutest refresh_build_identity)
     set_target_properties(cutest PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(cutest PRIVATE
@@ -1031,6 +1086,11 @@ if (BUILD_TESTS)
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun/test_autorun_supervision.sh)
     set_tests_properties(autorun-supervision PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(NAME versioned-binary-install
+        COMMAND
+            ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh)
+    set_tests_properties(versioned-binary-install PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
     add_test(NAME vessel-memory-analyzer
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh)
@@ -1054,9 +1114,24 @@ add_custom_target(test-autorun-supervision
     COMMENT "Running autorun supervision regression tests"
 )
 
+add_custom_target(test-versioned-binary-install
+    COMMAND
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running versioned binary installation regression test"
+)
+
 # ========== Installation ==========
-install(TARGETS circle DESTINATION ${BIN_OUTPUT_DIR})
 install(CODE "
+    execute_process(
+        COMMAND
+            \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/install_versioned_binary.sh\"
+            \"$<TARGET_FILE:circle>\"
+            \"${INSTALL_BIN_OUTPUT_DIR}\"
+        RESULT_VARIABLE versioned_install_result)
+    if (NOT versioned_install_result EQUAL 0)
+        message(FATAL_ERROR \"Versioned circle installation failed\")
+    endif()
     execute_process(
         COMMAND \"${CMAKE_CURRENT_SOURCE_DIR}/scripts/provision_artifacts.sh\"
         RESULT_VARIABLE artifact_provision_result)
@@ -1067,7 +1142,7 @@ install(CODE "
 if (BUILD_UTILS)
     install(TARGETS autowiz asciipasswd plrtoascii rebuildAsciiIndex
                     rebuildMailIndex shopconv sign split wld2html
-            DESTINATION ${BIN_OUTPUT_DIR})
+            DESTINATION ${INSTALL_BIN_OUTPUT_DIR})
 endif()
 
 # ========== Summary ==========
@@ -1078,6 +1153,7 @@ message(STATUS "  MySQL Support: ${CIRCLE_MYSQL}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Build Utilities: ${BUILD_UTILS}")
 message(STATUS "  Build Tests: ${BUILD_TESTS}")
+message(STATUS "  Install Binary Output: ${INSTALL_BIN_OUTPUT_DIR}")
 message(STATUS "  Install Prefix: ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "  Binary Output: ${BIN_OUTPUT_DIR}")
 message(STATUS "========================================")

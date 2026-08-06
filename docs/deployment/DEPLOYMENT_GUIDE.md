@@ -174,8 +174,22 @@ make clean
 # Build using all available cores
 make -j$(nproc)
 
-# Install binaries to bin/
+# Install an immutable build-ID release and activate bin/circle
 make install
+```
+
+`make install` does not overwrite the bytes of a running executable. It keeps
+each server and its matching `circle.debug` file under
+`bin/releases/<ELF-build-ID>/`, then atomically points `bin/circle` at the new
+release. Existing releases are retained for core analysis. The first upgrade
+from a legacy regular `bin/circle` must be performed while that legacy process
+is stopped; installation refuses to unlink a live legacy executable.
+
+Use the managed service deployment path when updating a running server so the
+new launch alias and active process are brought back into agreement:
+
+```bash
+./scripts/deployment/deploy.sh --install-systemd --restart-service
 ```
 
 #### 5. Create Required Symlinks

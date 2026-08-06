@@ -82,6 +82,8 @@ extern const int size_modifiers_inverse[];
 extern const int grapple_size_modifiers[];
 extern const char *room_affections[];
 extern const char *const luminari_version;
+extern const char *const luminari_build_git_commit;
+extern const bool luminari_build_git_dirty;
 extern const char *damtype_display[];
 extern const char *dirs[];
 extern const char *dirs_short[];
