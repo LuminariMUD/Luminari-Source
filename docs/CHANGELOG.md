@@ -2,6 +2,34 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Called-effect stack metadata
+
+#### Fixed
+
+- Made called-effect stacking use the validated `stack_group` on each effect
+  row. Enrage, group valor, frost ward, and hunter's sight no longer hardcode
+  their own runtime groups.
+- Corrected Wyrmfang's `invoke hunt` metadata from no group to
+  `ART_STACK_WARD`, matching its intended exclusion with Icedge's rime and any
+  future `ART_SIG_WARD` claimant.
+
+#### Changed
+
+- Extended the 17-artifact production identity contract to cover all four
+  called-effect stack-group slots, including deliberate no-group entries.
+  Documented the table as the runtime source of truth.
+
+#### Verification
+
+- The test-first run passed 427 tests and failed only because Wyrmfang expected
+  the ward group but declared no group. The complete corrected suite passes
+  428/428 tests.
+- On the installed development binary, `invoke hunt` created hunter's sight;
+  an immediate whispered `rime` was refused because a ward was already active.
+  Icedge remained ready, proving the refusal spent no recharge. All 17 metadata
+  rows validated, and the temporary mobile, Wyrmfang XP and cooldown, and
+  measured player state were restored.
+
 ### Wyrmfang source identity restoration
 
 #### Fixed

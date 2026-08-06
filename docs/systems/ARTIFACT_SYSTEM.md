@@ -540,11 +540,18 @@ running holds; the second refuses, costs nothing, and says so.
 | --- | --- |
 | `ART_STACK_COMBAT_SURGE` | Twilight's surge, Doombringer's `enrage me doombringer` |
 | `ART_STACK_MORALE` | Courage's group invocation |
-| `ART_STACK_WARD` | Vengeance's ward, Icedge's rime, Wyrmfang's hunter's sight |
+| `ART_STACK_WARD` | Icedge's rime, Wyrmfang's hunter's sight, and `ART_SIG_WARD` if claimed |
 
 Every temporary affect an artifact creates is a `SPELL_ARTIFACT_SURGE` affect
 whose `specific` field carries the group, so it can be found again without
 guessing at spell numbers.
+
+For called effects, `artifact_effects[].stack_group` is the runtime source of
+truth. The dispatcher passes that field into the enrage, group-valor,
+frost-ward, and hunter's-sight handlers; those handlers use it both to test
+exclusivity and to tag every affect they create. Production-linked identity
+coverage records all four called-effect stack-group slots, including explicit
+`ART_STACK_NONE` entries.
 
 Twilight's surge is a bounded, artifact-level-scaled hitroll and damroll
 bonus. The upstream version added the wielder's current hit and damage rolls

@@ -510,6 +510,7 @@ struct artint_identity_case
   int hand_entry_odds;
   int called_effects[ARTIFACT_MAX_EFFECTS];
   int called_channels[ARTIFACT_MAX_EFFECTS];
+  int called_stack_groups[ARTIFACT_MAX_EFFECTS];
   int passive_count;
 };
 
@@ -531,48 +532,65 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
     {ART_VNUM_TRORXEK, NULL, 12, ART_SIG_NONE, ART_VNUM_TRORXEK, 0,
      {ART_EFFECT_SUMMON_TREANT, ART_EFFECT_CREEPING_DOOM, ART_EFFECT_RECALL,
       ART_EFFECT_TRAVEL_TO},
-     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_AMAUKEKEL, "divineward", 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_DIMENSION_SHIFT, ART_EFFECT_RESURRECT, ART_EFFECT_DISPEL_EVIL, 0},
-     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_FADE, NULL, 16, ART_SIG_NONE, ART_VNUM_FADE, ARTIFACT_FADE_DRAIN_ODDS,
      {ART_EFFECT_BLIND, ART_EFFECT_DARKNESS, ART_EFFECT_WEAKEN, ART_EFFECT_TRAVEL_TO},
-     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_HENEKAR, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_BLIND, ART_EFFECT_PACIFY, ART_EFFECT_CHARM, ART_EFFECT_TRAVEL_TO},
-     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, ART_VNUM_DOOMBRINGER,
      ARTIFACT_DOOMBRINGER_BURST_ODDS,
      {ART_EFFECT_ANNIHILATION, ART_EFFECT_BLACK_LIGHTNING, ART_EFFECT_ENRAGE, 0},
-     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
+     {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_COMBAT_SURGE, ART_STACK_NONE}, 0},
     {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_KELROM, NULL, 14, ART_SIG_NONE, ART_VNUM_KELROM, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_GESEN, NULL, 18, ART_SIG_NONE, ART_VNUM_GESEN, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_STINGER, NULL, 18, ART_SIG_LIFESTEAL, NOTHING, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS,
      ARTIFACT_AVERNUS_DRAIN_ODDS,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_AEGIS, NULL, 0, ART_SIG_NONE, NOTHING, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 0},
     {ART_VNUM_VENGEANCE, NULL, 0, ART_SIG_MERCY, NOTHING, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 3},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 3},
     {ART_VNUM_EARTHCRIER, NULL, 0, ART_SIG_KNOCKDOWN, NOTHING, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 2},
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 2},
     {ART_VNUM_WYRMFANG, NULL, 0, ART_SIG_WEIGHTED, NOTHING, 0,
      {ART_EFFECT_DRAGON_SIGHT, 0, 0, 0},
-     {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING}, 6},
+     {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_WARD, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 6},
     {ART_VNUM_COURAGE, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_GROUP_VALOR, 0, 0, 0},
-     {ART_INVOKE_SAY, NOTHING, NOTHING, NOTHING}, 4},
+     {ART_INVOKE_SAY, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_MORALE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 4},
     {ART_VNUM_ICEDGE, NULL, 0, ART_SIG_FLURRY, NOTHING, 0,
      {ART_EFFECT_FROST_WARD, 0, 0, 0},
-     {ART_INVOKE_WHISPER, NOTHING, NOTHING, NOTHING}, 3},
+     {ART_INVOKE_WHISPER, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_WARD, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 3},
     {ART_VNUM_TWILIGHT, NULL, 0, ART_SIG_SURGE, NOTHING, 0,
-     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 4}};
+     {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING},
+     {ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE, ART_STACK_NONE}, 4}};
 
 static const struct artint_passive_case artint_passive_cases[] = {
     {ART_VNUM_WYRMFANG, 1, AFF_DETECT_INVIS, APPLY_NONE, 0},
@@ -716,6 +734,10 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
       snprintf(field, sizeof(field), "called channel slot %d", j);
       artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
                                       expected->called_channels[j], actual.called_channels[j]);
+      snprintf(field, sizeof(field), "called stack group slot %d", j);
+      artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, field,
+                                      expected->called_stack_groups[j],
+                                      actual.called_stack_groups[j]);
     }
 
     artint_record_identity_mismatch(failure, sizeof(failure), expected->vnum, "passive count",
@@ -1245,6 +1267,54 @@ void Test_artifact_integration_called_effect_refuses_while_recharging(CuTest *tc
   CuAssertIntEquals(tc, TRUE, first_ok);
   CuAssertIntEquals(tc, TRUE, second_refused);
   CuAssertIntEquals(tc, TRUE, told_remaining);
+}
+
+void Test_artifact_integration_called_effects_share_the_declared_ward_group(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data wyrmfang, icedge;
+  struct artifact_data *wyrmfang_art = NULL, *icedge_art = NULL;
+  int hunt_ok = FALSE, ward_active = FALSE;
+  int rime_refused = FALSE, refusal_explained = FALSE, rime_recharge_free = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_instance(&fixture, &wyrmfang, ART_VNUM_WYRMFANG);
+  artint_carry(&fixture, &wyrmfang);
+  artifact_obj_to_char(&wyrmfang, &fixture.actor);
+  wyrmfang_art = artifact_by_vnum(ART_VNUM_WYRMFANG);
+  CuAssertPtrNotNull(tc, wyrmfang_art);
+
+  artint_instance(&fixture, &icedge, ART_VNUM_ICEDGE);
+  artint_carry(&fixture, &icedge);
+  artifact_obj_to_char(&icedge, &fixture.actor);
+  icedge_art = artifact_by_vnum(ART_VNUM_ICEDGE);
+  CuAssertPtrNotNull(tc, icedge_art);
+
+  artint_clear_output(&fixture);
+  hunt_ok = artifact_command_trigger(&fixture.actor, "hunt");
+  ward_active = artifact_stack_active(&fixture.actor, ART_STACK_WARD);
+
+  artint_clear_output(&fixture);
+  rime_refused = !artifact_whisper_trigger(&fixture.actor, "rime");
+  refusal_explained = artint_said(&fixture, "already wearing one ward");
+  rime_recharge_free = (icedge_art->effect_used[0] == 0);
+
+  artifact_stack_clear(&fixture.actor, ART_STACK_WARD);
+  artint_uncarry(&fixture, &icedge);
+  artint_uncarry(&fixture, &wyrmfang);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, hunt_ok);
+  CuAssertIntEquals(tc, TRUE, ward_active);
+  CuAssertIntEquals(tc, TRUE, rime_refused);
+  CuAssertIntEquals(tc, TRUE, refusal_explained);
+  CuAssertIntEquals(tc, TRUE, rime_recharge_free);
 }
 
 void Test_artifact_integration_effect_slots_recharge_independently(CuTest *tc)

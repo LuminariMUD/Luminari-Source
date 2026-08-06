@@ -1,8 +1,8 @@
 # Artifact Mechanics Gap Audit
 
 **Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
-ART-AUD-008, and ART-AUD-013 resolved; ART-AUD-009 partially resolved for
-Earthcrier and Wyrmfang
+ART-AUD-008, ART-AUD-012, and ART-AUD-013 resolved; ART-AUD-009 partially
+resolved for Earthcrier and Wyrmfang
 
 **Audited:** 2026-08-06
 
@@ -75,6 +75,13 @@ sizes, exercised the two-handed slot and full-hands refusal, and preserved the
 intended size-feat exceptions. Only Aegis's armor-versus-shield identity
 remains a product decision, so ART-AUD-009 remains partially resolved.
 
+ART-AUD-012 is resolved. Called-effect handlers now take their stacking group
+from the validated `artifact_effects[]` row, Wyrmfang declares
+`ART_STACK_WARD`, and the identity contract records all four group slots for
+every artifact. A production-linked interlock test and a controlled live
+invocation both proved that hunter's sight blocks Icedge's rime without
+spending Icedge's recharge.
+
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
 and closed one at a time.
@@ -142,7 +149,7 @@ contracts.
 | ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier and Wyrmfang are now Large and use two hands for a normal Medium bearer; only Aegis identity remains a design decision. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Confirmed UX defect | The displayed generic proc percentage is an attempt rate; successful rolls can consume cooldown with no visible or mechanical result. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
-| ART-AUD-012 | Low | Confirmed metadata defect | Called-effect `stack_group` is validated but never used; Wyrmfang declares none while its handler hardcodes the ward group. | Wyrmfang, future effects |
+| ART-AUD-012 | Low | Resolved 2026-08-06 | Called-effect handlers now use validated table-owned stack groups, and Wyrmfang declares the ward group it actually creates. | Wyrmfang, future effects |
 | ART-AUD-013 | High preventive | Resolved 2026-08-06 | All 17 artifacts now have an exact production-linked identity contract, including deliberate `none` entries and generic-proc separation. | Whole system |
 | ART-AUD-014 | Low dormant | Confirmed library defect | Unclaimed `ART_SIG_WARD` skips its chance roll, so every eligible noncritical hit dispels despite documentation saying it only has a chance. | No live claimant |
 
@@ -606,16 +613,37 @@ Doombringer's `doomblast` while the artifact burns them. Decide whether the burn
 is the entire penalty or whether all named powers require recognition, then make
 called effects, active abilities, help, and tests agree.
 
-### ART-AUD-012: stack-group metadata is not the runtime source of truth
+### ART-AUD-012: stack-group metadata is not the runtime source of truth [resolved]
+
+Resolution (2026-08-06):
+
+- Wyrmfang's `hunt` row now declares `ART_STACK_WARD`.
+- The called-effect dispatcher passes each row's `stack_group` into the
+  enrage, group-valor, frost-ward, and hunter's-sight handlers. Those handlers
+  use the supplied value for both the exclusivity check and every temporary
+  affect they create; no called-effect handler hardcodes its own group.
+- The 17-artifact identity contract now records all four called-effect group
+  slots, including deliberate `ART_STACK_NONE` entries. A behavioral test
+  invokes Wyrmfang's hunt, confirms the ward group is active, then proves that
+  Icedge's rime refuses without starting its recharge.
+- The test-first run failed only on Wyrmfang's declared group, with 427 other
+  tests passing. The corrected complete suite passes 428/428 tests.
+- On the installed development binary, `invoke hunt` created the hunter's
+  sight, whispered `rime` reported that one ward was already active, and
+  `artifact info icedge` still reported rime ready. All 17 metadata rows
+  validated, and the staged cooldown, XP, temporary target, and measured
+  player state were restored.
+
+Original evidence at audited revision `61c03285`:
 
 `artifact_effect.stack_group` is range-validated, but no runtime dispatcher
 reads it (`src/obj/spec_artifacts.c:367-378` and `897-902`). Wyrmfang's `hunt`
 row declares `ART_STACK_NONE`, while `artifact_dragon_sight()` directly uses
 `ART_STACK_WARD` (`src/obj/spec_artifacts.c:438-440` and `3983-4002`).
 
-Use the table field in execution or remove it. Leaving decorative control data
-invites the next artifact implementation to appear correct in validation while
-behaving differently at runtime.
+The table field needed to drive execution or be removed. Decorative control
+data allowed an implementation to appear correct in validation while behaving
+differently at runtime.
 
 ### ART-AUD-013: tests prove shapes, not artifact identities [resolved]
 
@@ -623,7 +651,7 @@ Resolution (2026-08-06):
 
 - A 17-row integration-test matrix now states every artifact's reusable or
   hand-written combat handler and table-owned odds, active ability, generic
-  proc chance, four called-effect and channel slots, and exact
+  proc chance, four called-effect, channel, and stack-group slots, and exact
   progressive-passive rows.
 - A CuTest-only snapshot reads the booted production template, effect,
   passive, and hand-dispatch lookups. The test does not infer identity from
@@ -699,7 +727,7 @@ runtime ignores.
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
 | 169914 | Earthcrier | DC and handedness fixed | Knockdown uses its declared level-scaled base DC (ART-AUD-005). Its Large prototype now makes a normal Medium bearer wield it with two hands, matching current lore (Earthcrier portion of ART-AUD-009). |
-| 169915 | Wyrmfang | Source package restored | Its weighted signature and `invoke hunt` remain safe rebuilds. All six source passive states now exist, culminating in level-5 haste and danger sense, and its Large prototype uses two hands for a normal Medium bearer (ART-AUD-008 and the Wyrmfang portion of ART-AUD-009). |
+| 169915 | Wyrmfang | Source package restored | Its weighted signature and `invoke hunt` remain safe rebuilds. All six source passive states now exist, culminating in level-5 haste and danger sense, and its Large prototype uses two hands for a normal Medium bearer. Hunter's sight declares and executes through the shared ward group (ART-AUD-008, ART-AUD-009, ART-AUD-012). |
 | 169916 | Courage | Covered intentional rebuild | The current group valor effect and progressive defenses replace a Homeland combat branch that contained no finished mechanic. No additional gap was found. |
 | 169917 | Icedge | Covered intentional rebuild | Cold defenses, rime, and a bounded reusable flurry are implemented. The flurry shape was recovered from a mechanics-only Homeland artifact rather than claimed as a literal Icedge source proc. |
 | 169918 | Twilight | Covered intentional rebuild | Progressive awareness and a bounded surge replace Homeland's unsafe stat-doubling behavior. Current large size preserves two-handed use. No additional gap was found. |
@@ -739,14 +767,15 @@ runtime ignores.
 5. **Make product decisions.** Approve or reject first-wave passives,
    class-oath scope, and Aegis identity. Record every rejection in
    `docs/systems/ARTIFACT_SYSTEM.md`.
-6. **Clean the framework.** Make proc reporting accurate, use table stack-group
-   data, and repair or remove the dormant ward shape
-   (ART-AUD-010, ART-AUD-012, ART-AUD-014).
+6. **Clean the framework.** Table-owned called-effect stack groups are complete
+   (ART-AUD-012). Make proc reporting accurate and repair or remove the dormant
+   ward shape (ART-AUD-010 and ART-AUD-014).
 
 ## Acceptance criteria for the future implementation pass
 
 - Every one of the 17 artifact rows has an explicit test contract for named
-  combat proc, active command, called effects, and progressive passives.
+  combat proc, active command, called effects with channels and stack groups,
+  and progressive passives.
 - A lethal signature or generic proc returns safely through the outer combat
   hook without later victim access.
 - Fade, Doombringer, and Avernus produce their approved named behavior in
@@ -761,6 +790,8 @@ runtime ignores.
   no-heal event consumes neither cooldown nor proc XP.
 - `artifact info` distinguishes attempt chance from successful/visible proc
   chance, or no-op attempts do not consume cooldown.
+- Called effects use their validated table-owned stack groups for both
+  exclusivity checks and temporary-affect tags.
 - Prototype type, size, lore, placement notes, and runtime content contracts
   agree for Earthcrier and Wyrmfang; Aegis remains the tracked identity
   decision.

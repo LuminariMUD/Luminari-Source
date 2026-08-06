@@ -586,6 +586,7 @@ struct artifact_test_identity_data
   int hand_entry_odds;
   int called_effects[ARTIFACT_MAX_EFFECTS];
   int called_channels[ARTIFACT_MAX_EFFECTS];
+  int called_stack_groups[ARTIFACT_MAX_EFFECTS];
   int passive_count;
   struct artifact_test_passive_data passives[ARTIFACT_TEST_MAX_PASSIVES];
 };

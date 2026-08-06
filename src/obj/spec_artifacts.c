@@ -440,7 +440,7 @@ static const struct artifact_effect artifact_effects[] = {
 
     /* Wyrmfang - an explicit command.  The spear does not answer to talk. */
     {ART_VNUM_WYRMFANG, 0, "hunt", ART_TARGET_NONE, ARTIFACT_RECHARGE_HOUR, ART_EFFECT_DRAGON_SIGHT,
-     ART_INVOKE_COMMAND, ART_STACK_NONE, "opens the hunter's sight"},
+     ART_INVOKE_COMMAND, ART_STACK_WARD, "opens the hunter's sight"},
 
     {-1, 0, NULL, ART_TARGET_NONE, 0, 0, ART_INVOKE_SAY, ART_STACK_NONE, NULL}};
 /* clang-format on */
@@ -4248,7 +4248,7 @@ static int artifact_dimension_shift(struct char_data *ch, struct obj_data *obj)
  * If nobody is eligible the invocation refuses outright and costs nothing -
  * the caller only stamps the recharge when this returns TRUE. */
 static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
-                                struct artifact_data *art)
+                                struct artifact_data *art, int stack_group)
 {
   struct char_data *targets[ARTIFACT_VALOR_MAX_TARGETS];
   room_rnum origin = IN_ROOM(ch);
@@ -4268,19 +4268,19 @@ static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
 
     /* Morale does not stack with itself, and a refusal for one person is not
      * a refusal for the group. */
-    if (artifact_stack_active(targets[i], ART_STACK_MORALE))
+    if (artifact_stack_active(targets[i], stack_group))
     {
       send_to_char(targets[i], "You are already as brave as you are going to get.\r\n");
       continue;
     }
 
-    artifact_add_temp_affect(targets[i], ART_STACK_MORALE, APPLY_HITROLL,
+    artifact_add_temp_affect(targets[i], stack_group, APPLY_HITROLL,
                              ARTIFACT_VALOR_HITROLL + art->level, BONUS_TYPE_MORALE,
                              ARTIFACT_VALOR_DURATION, 0);
-    artifact_add_temp_affect(targets[i], ART_STACK_MORALE, APPLY_SAVING_WILL,
+    artifact_add_temp_affect(targets[i], stack_group, APPLY_SAVING_WILL,
                              ARTIFACT_VALOR_SAVES + (art->level / 2), BONUS_TYPE_MORALE,
                              ARTIFACT_VALOR_DURATION, 0);
-    artifact_add_temp_affect(targets[i], ART_STACK_MORALE, APPLY_HIT,
+    artifact_add_temp_affect(targets[i], stack_group, APPLY_HIT,
                              ARTIFACT_VALOR_HP_PER_LEVEL * art->level, BONUS_TYPE_MORALE,
                              ARTIFACT_VALOR_DURATION, 0);
     affect_total(targets[i]);
@@ -4304,17 +4304,17 @@ static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
 
 /* Icedge's whispered ward. */
 static int artifact_frost_ward(struct char_data *ch, struct obj_data *obj,
-                               struct artifact_data *art)
+                               struct artifact_data *art, int stack_group)
 {
-  if (artifact_stack_active(ch, ART_STACK_WARD))
+  if (artifact_stack_active(ch, stack_group))
   {
     send_to_char(ch, "You are already wearing one ward; a second will not settle.\r\n");
     return FALSE;
   }
 
-  artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_RES_COLD, 10 + (art->level * 5),
+  artifact_add_temp_affect(ch, stack_group, APPLY_RES_COLD, 10 + (art->level * 5),
                            BONUS_TYPE_DEFLECTION, 5 + art->level, 0);
-  artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_AC, -(1 + art->level), BONUS_TYPE_DEFLECTION,
+  artifact_add_temp_affect(ch, stack_group, APPLY_AC, -(1 + art->level), BONUS_TYPE_DEFLECTION,
                            5 + art->level, 0);
   affect_total(ch);
 
@@ -4326,17 +4326,17 @@ static int artifact_frost_ward(struct char_data *ch, struct obj_data *obj,
 
 /* Wyrmfang's commanded hunter's sight. */
 static int artifact_dragon_sight(struct char_data *ch, struct obj_data *obj,
-                                 struct artifact_data *art)
+                                 struct artifact_data *art, int stack_group)
 {
-  if (artifact_stack_active(ch, ART_STACK_WARD))
+  if (artifact_stack_active(ch, stack_group))
   {
     send_to_char(ch, "The spear is already showing you everything it intends to.\r\n");
     return FALSE;
   }
 
-  artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_NONE, 0, BONUS_TYPE_ENHANCEMENT,
+  artifact_add_temp_affect(ch, stack_group, APPLY_NONE, 0, BONUS_TYPE_ENHANCEMENT,
                            5 + (art->level * 2), AFF_DETECT_ALIGN);
-  artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_HITROLL, 1 + (art->level / 2),
+  artifact_add_temp_affect(ch, stack_group, APPLY_HITROLL, 1 + (art->level / 2),
                            BONUS_TYPE_ENHANCEMENT, 5 + (art->level * 2), 0);
   affect_total(ch);
 
@@ -4589,7 +4589,8 @@ static int artifact_black_lightning(struct char_data *ch, struct obj_data *obj,
 }
 
 /* Doombringer's rage. */
-static int artifact_enrage(struct char_data *ch, struct obj_data *obj, struct artifact_data *art)
+static int artifact_enrage(struct char_data *ch, struct obj_data *obj, struct artifact_data *art,
+                           int stack_group)
 {
   int i = 0;
   const int locations[3] = {APPLY_HITROLL, APPLY_DAMROLL, APPLY_STR};
@@ -4597,14 +4598,14 @@ static int artifact_enrage(struct char_data *ch, struct obj_data *obj, struct ar
 
   /* Rage and Twilight's surge are the same kind of thing happening to the
    * same person, so they share a group and the first one wins. */
-  if (artifact_stack_active(ch, ART_STACK_COMBAT_SURGE))
+  if (artifact_stack_active(ch, stack_group))
   {
     send_to_char(ch, "You are already as far gone as the blade can take you.\r\n");
     return FALSE;
   }
 
   for (i = 0; i < 3; i++)
-    artifact_add_temp_affect(ch, ART_STACK_COMBAT_SURGE, locations[i], modifiers[i] + art->level,
+    artifact_add_temp_affect(ch, stack_group, locations[i], modifiers[i] + art->level,
                              BONUS_TYPE_MORALE, ARTIFACT_ENRAGE_DURATION, 0);
 
   affect_total(ch);
@@ -4723,16 +4724,16 @@ static int artifact_do_effect(struct char_data *ch, struct obj_data *obj, struct
     return artifact_black_lightning(ch, obj, art, victim);
 
   case ART_EFFECT_ENRAGE:
-    return artifact_enrage(ch, obj, art);
+    return artifact_enrage(ch, obj, art, effect->stack_group);
 
   case ART_EFFECT_GROUP_VALOR:
-    return artifact_group_valor(ch, obj, art);
+    return artifact_group_valor(ch, obj, art, effect->stack_group);
 
   case ART_EFFECT_FROST_WARD:
-    return artifact_frost_ward(ch, obj, art);
+    return artifact_frost_ward(ch, obj, art, effect->stack_group);
 
   case ART_EFFECT_DRAGON_SIGHT:
-    return artifact_dragon_sight(ch, obj, art);
+    return artifact_dragon_sight(ch, obj, art, effect->stack_group);
 
   default:
     log("SYSERR: artifact_do_effect: unknown effect %d on vnum %d", effect->effect, art->vnum);
@@ -6319,6 +6320,7 @@ int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *ide
       continue;
     identity->called_effects[i] = effect->effect;
     identity->called_channels[i] = effect->channel;
+    identity->called_stack_groups[i] = effect->stack_group;
   }
 
   for (i = 0; artifact_passives[i].vnum != -1; i++)
