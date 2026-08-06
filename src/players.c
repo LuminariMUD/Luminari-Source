@@ -13,6 +13,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
+#include "db_init.h"
 #include "handler.h"
 #include "combat/fight.h"
 #include "pfdefaults.h"
@@ -123,7 +124,7 @@ static void load_wands(FILE *fl, struct char_data *ch);
 static void load_staves(FILE *fl, struct char_data *ch);
 static void load_discoveries(FILE *fl, struct char_data *ch);
 void load_temp_evolutions(FILE *fl, struct char_data *ch);
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 static void load_mercies(FILE *fl, struct char_data *ch);
 static void load_cruelties(FILE *fl, struct char_data *ch);
 static void load_buffs(FILE *fl, struct char_data *ch);
@@ -173,7 +174,7 @@ static void apply_pet_runtime_state(struct char_data *pet, const struct pet_runt
 
 // external functions
 void autoroll_mob(struct char_data *mob, bool realmode, bool summoned);
-void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
+bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 void pet_load_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum);
 
 /* New version to build player index for ASCII Player Files. Generate index
@@ -6340,172 +6341,330 @@ bool valid_pet_name(char *name)
   return true;
 }
 
-void save_char_pets(struct char_data *ch)
+#define PET_SAVE_LOG_BUCKETS 32
+#define PET_SAVE_LOG_INTERVAL 60
+#define PET_SAVE_LOG_OWNER_LENGTH 50
+#define PET_SAVE_LOG_DETAIL_LENGTH 160
+
+struct pet_save_record
 {
-  struct follow_type *f = NULL;
-  struct char_data *tch = NULL;
-  char *delete_query = NULL;
-  char *escaped_description = NULL;
-  char *escaped_long_desc = NULL;
-  char *escaped_owner = NULL;
-  char *escaped_pet_name = NULL;
-  char *escaped_runtime_state = NULL;
-  char *escaped_short_desc = NULL;
-  char *insert_query = NULL;
-  char *runtime_state = NULL;
-  const char *description, *long_desc, *pet_name, *short_desc;
-  long int insert_id;
+  struct char_data *pet;
+  char *insert_query;
+  int pet_vnum;
+  struct pet_save_record *next;
+};
+
+struct pet_save_log_bucket
+{
+  char owner[PET_SAVE_LOG_OWNER_LENGTH + 1];
+  time_t last_logged;
+  unsigned int suppressed;
+};
+
+static struct pet_save_log_bucket pet_save_log_buckets[PET_SAVE_LOG_BUCKETS];
+
+static void log_pet_save_failure(struct char_data *owner, int pet_vnum, const char *operation,
+                                 unsigned int error_code, const char *detail)
+{
+  struct pet_save_log_bucket *bucket;
+  struct pet_save_log_bucket *empty;
+  struct pet_save_log_bucket *oldest;
+  const char *owner_name;
+  char safe_detail[PET_SAVE_LOG_DETAIL_LENGTH + 1];
+  time_t now;
+  unsigned int suppressed;
+  size_t index;
+
+  owner_name = owner && GET_NAME(owner) ? GET_NAME(owner) : "unknown";
+  detail = detail && *detail ? detail : "no database error detail";
+  snprintf(safe_detail, sizeof(safe_detail), "%s", detail);
+  for (index = 0; safe_detail[index] != '\0'; index++)
+    if (safe_detail[index] == '\r' || safe_detail[index] == '\n')
+      safe_detail[index] = ' ';
+
+  bucket = NULL;
+  empty = NULL;
+  oldest = &pet_save_log_buckets[0];
+  for (index = 0; index < PET_SAVE_LOG_BUCKETS; index++)
+  {
+    if (strncmp(pet_save_log_buckets[index].owner, owner_name, PET_SAVE_LOG_OWNER_LENGTH) == 0)
+    {
+      bucket = &pet_save_log_buckets[index];
+      break;
+    }
+    if (!empty && pet_save_log_buckets[index].owner[0] == '\0')
+      empty = &pet_save_log_buckets[index];
+    if (pet_save_log_buckets[index].last_logged < oldest->last_logged)
+      oldest = &pet_save_log_buckets[index];
+  }
+  if (!bucket)
+  {
+    bucket = empty ? empty : oldest;
+    strlcpy(bucket->owner, owner_name, sizeof(bucket->owner));
+    bucket->last_logged = 0;
+    bucket->suppressed = 0;
+  }
+
+  now = time(NULL);
+  if (bucket->last_logged != 0 && now >= bucket->last_logged &&
+      now - bucket->last_logged < PET_SAVE_LOG_INTERVAL)
+  {
+    bucket->suppressed++;
+    return;
+  }
+
+  suppressed = bucket->suppressed;
+  bucket->suppressed = 0;
+  bucket->last_logged = now;
+  log("SYSERR: save_char_pets: operation=%.40s owner=%.50s pet_vnum=%d mysql_errno=%u "
+      "schema=%d detail=\"%.160s\" suppressed=%u",
+      operation ? operation : "unknown", owner_name, pet_vnum, error_code,
+      PET_PERSISTENCE_SCHEMA_VERSION, safe_detail, suppressed);
+}
+
+static void free_pet_save_records(struct pet_save_record *records)
+{
+  struct pet_save_record *next;
+
+  while (records)
+  {
+    next = records->next;
+    free(records->insert_query);
+    free(records);
+    records = next;
+  }
+}
+
+static struct pet_save_record *
+prepare_pet_save_record(struct char_data *owner, struct char_data *pet, const char *escaped_owner)
+{
+  struct pet_save_record *record;
+  char *escaped_description;
+  char *escaped_long_desc;
+  char *escaped_pet_name;
+  char *escaped_runtime_state;
+  char *escaped_short_desc;
+  char *insert_query;
+  char *runtime_state;
+  const char *description;
+  const char *long_desc;
+  const char *pet_name;
+  const char *short_desc;
   size_t query_size;
+  int pet_vnum;
+  int written;
+
+  record = NULL;
+  escaped_description = NULL;
+  escaped_long_desc = NULL;
+  escaped_pet_name = NULL;
+  escaped_runtime_state = NULL;
+  escaped_short_desc = NULL;
+  insert_query = NULL;
+  runtime_state = NULL;
+  pet_vnum = GET_MOB_VNUM(pet);
+
+  pet_name = valid_pet_name(pet->player.name) ? GET_NAME(pet) : "";
+  short_desc = valid_pet_name(pet->player.short_descr) ? pet->player.short_descr : "";
+  long_desc = valid_pet_name(pet->player.long_descr) ? pet->player.long_descr : "";
+  description = valid_pet_name(pet->player.description) ? pet->player.description : "";
+  runtime_state = serialize_pet_runtime_state(pet);
+  if (!runtime_state)
+  {
+    log_pet_save_failure(owner, pet_vnum, "serialize runtime state", 0,
+                         "runtime-state serialization failed");
+    goto cleanup;
+  }
+
+  escaped_pet_name = mysql_escape_string_alloc(conn, pet_name);
+  escaped_short_desc = mysql_escape_string_alloc(conn, short_desc);
+  escaped_long_desc = mysql_escape_string_alloc(conn, long_desc);
+  escaped_description = mysql_escape_string_alloc(conn, description);
+  escaped_runtime_state = mysql_escape_string_alloc(conn, runtime_state);
+  if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description ||
+      !escaped_runtime_state)
+  {
+    log_pet_save_failure(owner, pet_vnum, "escape pet snapshot", mysql_errno(conn),
+                         "memory allocation while escaping pet snapshot");
+    goto cleanup;
+  }
+
+  query_size = strlen(escaped_owner) + strlen(escaped_pet_name) + strlen(escaped_short_desc) +
+               strlen(escaped_long_desc) + strlen(escaped_description) +
+               strlen(escaped_runtime_state) + 768;
+  insert_query = malloc(query_size);
+  if (!insert_query)
+  {
+    log_pet_save_failure(owner, pet_vnum, "allocate pet insert", 0, "pet INSERT allocation failed");
+    goto cleanup;
+  }
+
+  written =
+      snprintf(insert_query, query_size,
+               "INSERT INTO pet_data "
+               "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
+               "vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, runtime_state) "
+               "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d',"
+               "'%d','%d','%s')",
+               escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc,
+               escaped_description, pet_vnum, GET_LEVEL(pet), GET_HIT(pet), GET_REAL_MAX_HIT(pet),
+               GET_REAL_STR(pet), GET_REAL_CON(pet), GET_REAL_DEX(pet), GET_REAL_AC(pet),
+               GET_REAL_INT(pet), GET_REAL_WIS(pet), GET_REAL_CHA(pet), escaped_runtime_state);
+  if (written < 0 || (size_t)written >= query_size)
+  {
+    log_pet_save_failure(owner, pet_vnum, "format pet insert", 0,
+                         "pet INSERT exceeded its allocated buffer");
+    goto cleanup;
+  }
+
+  record = malloc(sizeof(*record));
+  if (!record)
+  {
+    log_pet_save_failure(owner, pet_vnum, "allocate pet record", 0,
+                         "pet save-record allocation failed");
+    goto cleanup;
+  }
+  record->pet = pet;
+  record->insert_query = insert_query;
+  record->pet_vnum = pet_vnum;
+  record->next = NULL;
+  insert_query = NULL;
+
+cleanup:
+  free(insert_query);
+  free(escaped_pet_name);
+  free(escaped_short_desc);
+  free(escaped_long_desc);
+  free(escaped_description);
+  free(escaped_runtime_state);
+  free(runtime_state);
+  return record;
+}
+
+bool save_char_pets(struct char_data *ch)
+{
+  struct pet_save_record *current;
+  struct pet_save_record *records;
+  struct pet_save_record *tail;
+  struct follow_type *f;
+  char delete_query[256];
+  char *escaped_owner;
+  const char *error_detail;
+  long int insert_id;
+  my_ulonglong raw_insert_id;
+  bool success;
+  bool transaction_started;
 
   if (!ch || !ch->desc || IS_NPC(ch))
-    return;
+    return false;
 
   /* Ensure database connection is active before save operations */
   if (!MYSQL_PING_CONN(conn))
   {
-    log("SYSERR: %s: Database connection failed for player %s", __func__, GET_NAME(ch));
-    return;
+    log_pet_save_failure(ch, NOBODY, "connect", conn ? mysql_errno(conn) : 0,
+                         conn ? mysql_error(conn) : "database connection unavailable");
+    return false;
   }
 
+  escaped_owner = NULL;
+  records = NULL;
+  tail = NULL;
+  success = false;
+  transaction_started = false;
   escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(ch));
   if (!escaped_owner)
   {
-    log("SYSERR: %s: Unable to escape player name", __func__);
-    return;
+    log_pet_save_failure(ch, NOBODY, "escape owner", mysql_errno(conn),
+                         "owner-name escaping failed");
+    goto cleanup;
   }
 
-  query_size = strlen(escaped_owner) + 128;
-  delete_query = malloc(query_size);
-  if (!delete_query)
+  /* Prepare every pet row before opening the replacement transaction. */
+  for (f = ch->followers; f; f = f->next)
   {
-    log("SYSERR: %s: Unable to allocate pet deletion query", __func__);
-    free(escaped_owner);
-    return;
+    if (!f->follower || !IS_NPC(f->follower) || !AFF_FLAGGED(f->follower, AFF_CHARM))
+      continue;
+
+    current = prepare_pet_save_record(ch, f->follower, escaped_owner);
+    if (!current)
+      goto cleanup;
+    if (tail)
+      tail->next = current;
+    else
+      records = current;
+    tail = current;
   }
 
-  /* Delete existing save data.  In the future may just flag these for deletion. */
-  snprintf(delete_query, query_size, "delete from pet_save_objs where owner_name = '%s';",
+  if (mysql_query(conn, "START TRANSACTION"))
+  {
+    log_pet_save_failure(ch, NOBODY, "start transaction", mysql_errno(conn), mysql_error(conn));
+    goto cleanup;
+  }
+  transaction_started = true;
+
+  snprintf(delete_query, sizeof(delete_query), "DELETE FROM pet_save_objs WHERE owner_name = '%s'",
            escaped_owner);
   if (mysql_query(conn, delete_query))
   {
-    /* Table might not exist, continue anyway */
-    log("Info: pet_save_objs table might not exist: %s", mysql_error(conn));
+    log_pet_save_failure(ch, NOBODY, "delete pet objects", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
   }
 
-  snprintf(delete_query, query_size, "DELETE FROM pet_data WHERE owner_name = '%s'", escaped_owner);
+  snprintf(delete_query, sizeof(delete_query), "DELETE FROM pet_data WHERE owner_name = '%s'",
+           escaped_owner);
   if (mysql_query(conn, delete_query))
   {
-    log("SYSERR: Unable to DELETE from pet_data: %s", mysql_error(conn));
+    log_pet_save_failure(ch, NOBODY, "delete pet rows", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
   }
-  free(delete_query);
-  delete_query = NULL;
 
-  for (f = ch->followers; f; f = f->next)
+  for (current = records; current; current = current->next)
   {
-    tch = f->follower;
-    if (!IS_NPC(tch))
-      continue;
-    if (!AFF_FLAGGED(tch, AFF_CHARM))
-      continue;
-
-    pet_name = valid_pet_name(tch->player.name) ? GET_NAME(tch) : "";
-    short_desc = valid_pet_name(tch->player.short_descr) ? tch->player.short_descr : "";
-    long_desc = valid_pet_name(tch->player.long_descr) ? tch->player.long_descr : "";
-    description = valid_pet_name(tch->player.description) ? tch->player.description : "";
-    runtime_state = serialize_pet_runtime_state(tch);
-    if (!runtime_state)
+    if (mysql_query(conn, current->insert_query))
     {
-      log("SYSERR: %s: Unable to serialize runtime state for %s's follower %s", __func__,
-          GET_NAME(ch), GET_NAME(tch));
-      runtime_state = strdup("");
-      if (!runtime_state)
-        continue;
+      log_pet_save_failure(ch, current->pet_vnum, "insert pet row", mysql_errno(conn),
+                           mysql_error(conn));
+      goto rollback;
     }
-
-    escaped_pet_name = mysql_escape_string_alloc(conn, pet_name);
-    escaped_short_desc = mysql_escape_string_alloc(conn, short_desc);
-    escaped_long_desc = mysql_escape_string_alloc(conn, long_desc);
-    escaped_description = mysql_escape_string_alloc(conn, description);
-    escaped_runtime_state = mysql_escape_string_alloc(conn, runtime_state);
-    if (!escaped_pet_name || !escaped_short_desc || !escaped_long_desc || !escaped_description ||
-        !escaped_runtime_state)
+    raw_insert_id = mysql_insert_id(conn);
+    if (raw_insert_id == 0 || raw_insert_id > LONG_MAX)
     {
-      log("SYSERR: %s: Unable to escape pet data for %s", __func__, GET_NAME(ch));
-      free(escaped_pet_name);
-      free(escaped_short_desc);
-      free(escaped_long_desc);
-      free(escaped_description);
-      free(escaped_runtime_state);
-      free(runtime_state);
-      continue;
+      log_pet_save_failure(ch, current->pet_vnum, "read pet insert id", 0,
+                           "pet INSERT returned an invalid identifier");
+      goto rollback;
     }
+    insert_id = (long int)raw_insert_id;
 
-    query_size = strlen(escaped_owner) + strlen(escaped_pet_name) + strlen(escaped_short_desc) +
-                 strlen(escaped_long_desc) + strlen(escaped_description) +
-                 strlen(escaped_runtime_state) + 768;
-    insert_query = malloc(query_size);
-    if (!insert_query)
+    if (!pet_save_objs(current->pet, ch, insert_id))
     {
-      log("SYSERR: %s: Unable to allocate pet insertion query", __func__);
-      free(escaped_pet_name);
-      free(escaped_short_desc);
-      free(escaped_long_desc);
-      free(escaped_description);
-      free(escaped_runtime_state);
-      free(runtime_state);
-      continue;
+      error_detail = mysql_error(conn);
+      log_pet_save_failure(ch, current->pet_vnum, "insert pet objects", mysql_errno(conn),
+                           error_detail && *error_detail ? error_detail
+                                                         : "pet object serialization failed");
+      goto rollback;
     }
-
-    snprintf(insert_query, query_size,
-             "INSERT INTO pet_data "
-             "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, "
-             "vnum, level, hp, max_hp, str, con, dex, ac, intel, wis, cha, runtime_state) "
-             "VALUES(NULL,'%s','%s','%s','%s','%s','%d','%d','%d','%d','%d','%d','%d','%d','%d',"
-             "'%d','%d','%s')",
-             escaped_owner, escaped_pet_name, escaped_short_desc, escaped_long_desc,
-             escaped_description, GET_MOB_VNUM(tch), GET_LEVEL(tch), GET_HIT(tch),
-             GET_REAL_MAX_HIT(tch), GET_REAL_STR(tch), GET_REAL_CON(tch), GET_REAL_DEX(tch),
-             GET_REAL_AC(tch), GET_REAL_INT(tch), GET_REAL_WIS(tch), GET_REAL_CHA(tch),
-             escaped_runtime_state);
-
-    if (mysql_query(conn, insert_query))
-    {
-      log("SYSERR: Unable to INSERT INTO pet_data: %s", mysql_error(conn));
-      log("QUERY: %s", insert_query);
-      free(insert_query);
-      free(escaped_pet_name);
-      free(escaped_short_desc);
-      free(escaped_long_desc);
-      free(escaped_description);
-      free(escaped_runtime_state);
-      free(runtime_state);
-      free(escaped_owner);
-      return;
-    }
-    insert_id = mysql_insert_id(conn);
-
-    if (insert_id > 0)
-    {
-      pet_save_objs(tch, ch, insert_id);
-    }
-
-    free(insert_query);
-    free(escaped_pet_name);
-    free(escaped_short_desc);
-    free(escaped_long_desc);
-    free(escaped_description);
-    free(escaped_runtime_state);
-    free(runtime_state);
-    insert_query = NULL;
-    escaped_pet_name = NULL;
-    escaped_short_desc = NULL;
-    escaped_long_desc = NULL;
-    escaped_description = NULL;
-    escaped_runtime_state = NULL;
-    runtime_state = NULL;
   }
 
+  if (mysql_query(conn, "COMMIT"))
+  {
+    log_pet_save_failure(ch, NOBODY, "commit transaction", mysql_errno(conn), mysql_error(conn));
+    goto rollback;
+  }
+  transaction_started = false;
+  success = true;
+  goto cleanup;
+
+rollback:
+  if (mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(ch, NOBODY, "rollback transaction", mysql_errno(conn), mysql_error(conn));
+  transaction_started = false;
+
+cleanup:
+  if (transaction_started && mysql_query(conn, "ROLLBACK"))
+    log_pet_save_failure(ch, NOBODY, "cleanup rollback", mysql_errno(conn), mysql_error(conn));
+  free_pet_save_records(records);
   free(escaped_owner);
+  return success;
 }
 
 void load_char_pets(struct char_data *ch)

@@ -28,10 +28,10 @@ Status meanings:
 | Legacy-schema reproduction | Verified | The local development database started with InnoDB pet tables, no `pet_data.runtime_state`, no owner indexes, and a unique `pet_save_objs.idnum` key instead of the required primary key. |
 | Unconditional versioned migration | Verified | Startup now runs migrations `2026080501` through `2026080504` independently of help initialization. A MariaDB temporary legacy schema reproduces the unique-key variant, migrates twice with exactly four records, and preserves its pet and pet-object rows. |
 | Schema contract and fail-closed startup | Verified | Startup verifies both InnoDB engines, required column types and nullability, primary keys, owner/relation indexes, and migration version. `boot_world()` exits before world load on migration or contract failure; an incompatible MariaDB fixture is rejected. |
-| Atomic owner snapshot save | Pending | Make pet rows and pet-object rows one transaction, propagate every serialization and object-save failure, and preserve the previous committed snapshot on rollback. |
-| Bounded failure logging | Pending | Remove full failed INSERT payload logging and replace it with bounded owner, pet VNUM, database error code, and migration version context. |
+| Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
+| Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Pending | Add a safe dirty/interval policy without allowing logout, extraction, combat, spell, or administrative save sites to lose a changed snapshot. |
-| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, row/link preservation, and incompatible-schema rejection. Transaction rollback, multiple followers, and equipment failure cases remain. |
+| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, and rollback at all nine transaction queries. Broader lifecycle and sanitizer loops remain. |
 | Memory reproduction and diagnostics | Pending | Exercise repeated timed-affect saves, forced failures, equipment, multiple followers, and lifecycle transitions under ASan/UBSan and Valgrind; preserve exact commands and results. |
 | Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
@@ -51,9 +51,19 @@ Status meanings:
   `2026080504`, loaded the world, and exited cleanly. The regression fixtures
   remain connection-local temporary tables. The database-enabled
   production-linked suite then passed all 438 tests.
-- Next checkpoint: make each owner's pet rows and pet-object rows one atomic
-  transaction, propagate every failure, and prove rollback preserves the prior
-  snapshot.
+- Schema checkpoint commit: `6e1232c9` (`Make pet schema migration fail
+  closed`), pushed to `origin/master`.
+- Atomic-save checkpoint: pet row queries are prepared before a single owner
+  transaction; pet-object payloads are SQL-escaped; recursive equipment and
+  inventory failures propagate; and failed commits roll back. The
+  database-enabled suite passes all 439 tests. Its two-follower fixture saves
+  one equipped object plus carried and nested objects, then injects failure at
+  each of the nine transaction queries and verifies the old linked snapshot
+  remains intact. An oversized object payload is rejected and rolled back. The
+  installed `bin/circle` then verified schema version `2026080504`, loaded the
+  full development world, and completed syntax-check cleanup.
+- Next checkpoint: run sanitizer and Valgrind loops over the full transactional
+  fixture before addressing timed save churn.
 
 ## Scope and Safety
 

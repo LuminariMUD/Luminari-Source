@@ -85,7 +85,7 @@ static void print_group(struct char_data *ch);
 static void display_group_list(struct char_data *ch);
 
 // external functions
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 
 /*****************/
 

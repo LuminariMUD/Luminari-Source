@@ -75,7 +75,7 @@ struct obj_data *last_missile = NULL;
 struct char_data *combat_list = NULL;
 
 // external functions
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 bool is_using_keen_weapon(struct char_data *ch);
 int hands_used(struct char_data *ch);
 

@@ -44,7 +44,7 @@
 /*  Functions, Events, etc needed to perform manual spells  */
 /************************************************************/
 
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 
 /* Reference
 #define SPELL_WALL_OF_FORCE             147

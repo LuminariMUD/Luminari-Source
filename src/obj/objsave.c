@@ -1048,8 +1048,10 @@ static int Crash_save_pet(struct obj_data *obj, struct char_data *ch, struct cha
 
   if (obj)
   {
-    Crash_save_pet(obj->next_content, ch, owner, pet_idnum, location);
-    Crash_save_pet(obj->contains, ch, owner, pet_idnum, MIN(0, location) - 1);
+    if (!Crash_save_pet(obj->next_content, ch, owner, pet_idnum, location))
+      return FALSE;
+    if (!Crash_save_pet(obj->contains, ch, owner, pet_idnum, MIN(0, location) - 1))
+      return FALSE;
 
     /* save a single object to file */
     result = objsave_save_obj_record_db_pet(obj, ch, owner, pet_idnum, location);
@@ -1159,7 +1161,7 @@ static void Crash_calculate_rent(struct obj_data *obj, int *cost)
   }
 }
 
-void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
+bool pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_idnum)
 {
   int j = 0;
 
@@ -1169,7 +1171,7 @@ void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_i
       /* recursive write-to-file function (like bags) */
       if (!Crash_save_pet(GET_EQ(ch, j), ch, owner, pet_idnum, j + 1))
       {
-        return;
+        return false;
       }
       /* makes sure containers have proper weight for carrying objects with weight value */
       // Crash_restore_weight(GET_EQ(ch, j));
@@ -1178,8 +1180,10 @@ void pet_save_objs(struct char_data *ch, struct char_data *owner, long int pet_i
   /* inventory: recursive write-to-file function (like bags) */
   if (!Crash_save_pet(ch->carrying, ch, owner, pet_idnum, 0))
   {
-    return;
+    return false;
   }
+
+  return true;
 }
 
 void Crash_crashsave(struct char_data *ch)
@@ -3125,14 +3129,20 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
                                    struct char_data *ch __attribute__((unused)),
                                    struct char_data *owner, long int pet_idnum, int locate)
 {
-  static char ins_buf[36767]; /* For MySQL insert - static to avoid stack allocation */
-  static char line_buf[4096]; /* For building MySQL insert statement - reduced size */
+  static char ins_buf[36767]; /* Serialized object payload; static to avoid stack allocation */
+  static char line_buf[36767];
+  static char buf1[36767];
 
   int counter2, i = 0;
   struct extra_descr_data *ex_desc;
-  char buf1[4096]; /* Reduced from MAX_STRING_LENGTH */
+  char *escaped_owner = NULL;
+  char *escaped_payload = NULL;
+  char *insert_query = NULL;
   struct obj_data *temp = NULL;
   struct obj_special_ability *specab = NULL;
+  size_t query_size;
+  int result = 0;
+  int written;
 
   /* load up the object */
   if (GET_OBJ_VNUM(obj) != NOTHING)
@@ -3142,6 +3152,8 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
     temp = create_obj();
     temp->item_number = NOWHERE;
   }
+  if (!temp)
+    return 0;
 
   /* copy the action-description to buf1 */
   if (obj->action_description)
@@ -3152,10 +3164,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
   else
     *buf1 = 0;
 
-  snprintf(
-      ins_buf, sizeof(ins_buf),
-      "insert into pet_save_objs (pet_idnum, owner_name, serialized_obj) values ('%ld', '%s', '",
-      pet_idnum, GET_NAME(owner));
+  *ins_buf = '\0';
 
   snprintf(line_buf, sizeof(line_buf), "#%d\n", GET_OBJ_VNUM(obj));
   strlcat(ins_buf, line_buf, sizeof(ins_buf));
@@ -3178,6 +3187,7 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
 
   snprintf(line_buf, sizeof(line_buf), "Flag: %d %d %d %d\n", GET_OBJ_EXTRA(obj)[0],
            GET_OBJ_EXTRA(obj)[1], GET_OBJ_EXTRA(obj)[2], GET_OBJ_EXTRA(obj)[3]);
+  strlcat(ins_buf, line_buf, sizeof(ins_buf));
 
 #define TEST_OBJS(obj1, obj2, field)                                                               \
   ((!obj1->field || !obj2->field || strcmp(obj1->field, obj2->field)))
@@ -3357,19 +3367,38 @@ int objsave_save_obj_record_db_pet(struct obj_data *obj,
 
   /*** end checks for object modifications ****/
 
-  snprintf(line_buf, sizeof(line_buf), "');");
-  strlcat(ins_buf, line_buf, sizeof(ins_buf));
-  if (mysql_query(conn, ins_buf))
-  {
-    log("SYSERR: Unable to INSERT into pet_save_objs: %s", mysql_error(conn));
-    /* Table doesn't exist, skip saving pet objects */
-    extract_obj(temp);
-    return 0;
-  }
+  /* Any truncating append fills the payload buffer.  Treat it as a failed
+   * serialization so the owner transaction rolls back instead of storing a
+   * partial object record. */
+  if (strlen(ins_buf) >= sizeof(ins_buf) - 1)
+    goto cleanup;
 
+  escaped_owner = mysql_escape_string_alloc(conn, GET_NAME(owner));
+  escaped_payload = mysql_escape_string_alloc(conn, ins_buf);
+  if (!escaped_owner || !escaped_payload)
+    goto cleanup;
+
+  query_size = strlen(escaped_owner) + strlen(escaped_payload) + 160;
+  insert_query = malloc(query_size);
+  if (!insert_query)
+    goto cleanup;
+  written = snprintf(insert_query, query_size,
+                     "INSERT INTO pet_save_objs (pet_idnum, owner_name, serialized_obj) "
+                     "VALUES (%ld, '%s', '%s')",
+                     pet_idnum, escaped_owner, escaped_payload);
+  if (written < 0 || (size_t)written >= query_size)
+    goto cleanup;
+  if (mysql_query(conn, insert_query))
+    goto cleanup;
+
+  result = 1;
+
+cleanup:
+  free(insert_query);
+  free(escaped_payload);
+  free(escaped_owner);
   extract_obj(temp);
-
-  return 1;
+  return result;
 }
 #undef TEST_OBJS
 #undef TEST_OBJN

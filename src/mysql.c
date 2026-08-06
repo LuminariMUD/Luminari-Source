@@ -38,9 +38,33 @@ pthread_mutex_t mysql_mutex3 = PTHREAD_MUTEX_INITIALIZER;
 /* Count SQL statement executions across direct, safe, and pooled queries. */
 static atomic_uint_fast64_t query_execution_count;
 
+#ifdef LUMINARI_CUTEST
+static atomic_uint test_query_failure_countdown;
+
+static bool mysql_test_should_fail_query(void)
+{
+  unsigned int countdown;
+
+  countdown = atomic_load_explicit(&test_query_failure_countdown, memory_order_relaxed);
+  while (countdown > 0)
+  {
+    if (atomic_compare_exchange_weak_explicit(&test_query_failure_countdown, &countdown,
+                                              countdown - 1, memory_order_relaxed,
+                                              memory_order_relaxed))
+      return countdown == 1;
+  }
+
+  return false;
+}
+#endif
+
 int luminari_mysql_query(MYSQL *mysql_conn, const char *query)
 {
   atomic_fetch_add_explicit(&query_execution_count, 1, memory_order_relaxed);
+#ifdef LUMINARI_CUTEST
+  if (mysql_test_should_fail_query())
+    return 1;
+#endif
   return (mysql_query)(mysql_conn, query);
 }
 
@@ -53,6 +77,18 @@ void mysql_query_counter_reset(void)
 {
   atomic_store_explicit(&query_execution_count, 0, memory_order_relaxed);
 }
+
+#ifdef LUMINARI_CUTEST
+void mysql_test_fail_nth_query(unsigned int query_number)
+{
+  atomic_store_explicit(&test_query_failure_countdown, query_number, memory_order_relaxed);
+}
+
+void mysql_test_clear_query_failure(void)
+{
+  atomic_store_explicit(&test_query_failure_countdown, 0, memory_order_relaxed);
+}
+#endif
 
 void after_world_load()
 {

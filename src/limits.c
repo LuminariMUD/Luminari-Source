@@ -41,7 +41,7 @@
 #include "obj/spec_artifacts.h"
 
 // external functions
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 void rem_room_aff(struct raff_node *raff);
 
 /* added this for falling event, general dummy check */

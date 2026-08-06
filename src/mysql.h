@@ -101,6 +101,11 @@ int luminari_mysql_query(MYSQL *mysql_conn, const char *query);
 uint64_t mysql_query_counter_value(void);
 void mysql_query_counter_reset(void);
 
+#ifdef LUMINARI_CUTEST
+void mysql_test_fail_nth_query(unsigned int query_number);
+void mysql_test_clear_query_failure(void);
+#endif
+
 /* Count direct mysql_query() calls without changing their return semantics.
  * The parenthesized library symbol in luminari_mysql_query() bypasses this
  * function-like macro and prevents recursion. */

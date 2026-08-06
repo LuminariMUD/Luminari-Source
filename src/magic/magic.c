@@ -77,7 +77,7 @@ int test_get_last_savingthrow_challenge(void)
   return last_savingthrow_challenge;
 }
 #endif
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 void set_vampire_spawn_feats(struct char_data *mob);
 
 /* local file scope function prototypes */

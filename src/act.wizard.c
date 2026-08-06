@@ -112,7 +112,7 @@ bool delete_path(region_vnum vnum);
 static struct recent_player *recent_list = NULL; /** Global list of recent players */
 
 // external functions
-void save_char_pets(struct char_data *ch);
+bool save_char_pets(struct char_data *ch);
 
 ACMD(do_quitlog)
 {

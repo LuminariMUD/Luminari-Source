@@ -17,6 +17,22 @@ extern MYSQL *conn;
 extern bool mysql_available;
 extern char *serialize_pet_runtime_state_for_test(struct char_data *pet);
 extern bool restore_pet_runtime_state_for_test(struct char_data *pet, const char *serialized);
+extern bool save_char_pets(struct char_data *ch);
+
+static int query_single_int(MYSQL *connection, const char *query, int fallback);
+
+struct pet_save_fixture
+{
+  struct char_data owner;
+  struct char_data first_pet;
+  struct char_data second_pet;
+  struct descriptor_data descriptor;
+  struct follow_type first_follower;
+  struct follow_type second_follower;
+  struct obj_data equipped_object;
+  struct obj_data inventory_object;
+  struct obj_data contained_object;
+};
 
 static void free_test_affects(struct char_data *ch)
 {
@@ -110,6 +126,130 @@ static bool create_invalid_pet_temporary_schema(MYSQL *connection)
       return false;
 
   return true;
+}
+
+static bool create_pet_snapshot_temporary_schema(MYSQL *connection)
+{
+  const char *queries[] = {
+      "CREATE TEMPORARY TABLE pet_data ("
+      "pet_data_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
+      "owner_name VARCHAR(50) NOT NULL, pet_name VARCHAR(50), pet_sdesc VARCHAR(255), "
+      "pet_ldesc TEXT, pet_ddesc TEXT, vnum INT NOT NULL, level INT NOT NULL, "
+      "hp INT NOT NULL, max_hp INT NOT NULL, str INT NOT NULL, con INT NOT NULL, "
+      "dex INT NOT NULL, ac INT NOT NULL, intel INT NOT NULL, wis INT NOT NULL, "
+      "cha INT NOT NULL, runtime_state LONGTEXT) ENGINE=InnoDB",
+      "CREATE TEMPORARY TABLE pet_save_objs ("
+      "idnum INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, pet_idnum BIGINT NOT NULL, "
+      "owner_name VARCHAR(50) NOT NULL, serialized_obj TEXT NOT NULL) ENGINE=InnoDB",
+      NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+
+  return true;
+}
+
+static bool reset_old_pet_snapshot(MYSQL *connection)
+{
+  const char *queries[] = {
+      "DELETE FROM pet_save_objs", "DELETE FROM pet_data",
+      "INSERT INTO pet_data "
+      "(pet_data_id, owner_name, pet_name, pet_sdesc, pet_ldesc, pet_ddesc, vnum, level, "
+      "hp, max_hp, str, con, dex, ac, intel, wis, cha, runtime_state) VALUES "
+      "(700, 'SnapshotOwner', 'OldPet', 'old pet', 'old pet is here', 'old description', "
+      "1, 1, 10, 10, 10, 10, 10, 10, 10, 10, 10, 'old-runtime')",
+      "INSERT INTO pet_save_objs (pet_idnum, owner_name, serialized_obj) "
+      "VALUES (700, 'SnapshotOwner', '#old-object')",
+      NULL};
+  int index;
+
+  for (index = 0; queries[index] != NULL; index++)
+    if (mysql_query(connection, queries[index]))
+      return false;
+
+  return true;
+}
+
+static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
+{
+  memset(fixture, 0, sizeof(*fixture));
+  clear_char(&fixture->owner);
+  clear_char(&fixture->first_pet);
+  clear_char(&fixture->second_pet);
+  clear_object(&fixture->equipped_object);
+  clear_object(&fixture->inventory_object);
+  clear_object(&fixture->contained_object);
+
+  fixture->owner.player.name = (char *)"SnapshotOwner";
+  fixture->owner.desc = &fixture->descriptor;
+  fixture->owner.followers = &fixture->first_follower;
+  fixture->first_follower.follower = &fixture->first_pet;
+  fixture->first_follower.next = &fixture->second_follower;
+  fixture->second_follower.follower = &fixture->second_pet;
+
+  SET_BIT_AR(MOB_FLAGS(&fixture->first_pet), MOB_ISNPC);
+  SET_BIT_AR(AFF_FLAGS(&fixture->first_pet), AFF_CHARM);
+  fixture->first_pet.player.name = (char *)"FirstPet";
+  fixture->first_pet.player.short_descr = (char *)"the first saved pet";
+  fixture->first_pet.player.long_descr = (char *)"The first saved pet is here.";
+  fixture->first_pet.player.description = (char *)"A transaction test pet.";
+  GET_LEVEL(&fixture->first_pet) = 8;
+  GET_HIT(&fixture->first_pet) = 71;
+  GET_REAL_MAX_HIT(&fixture->first_pet) = 90;
+  GET_REAL_STR(&fixture->first_pet) = 15;
+  GET_REAL_CON(&fixture->first_pet) = 14;
+  GET_REAL_DEX(&fixture->first_pet) = 13;
+  GET_REAL_INT(&fixture->first_pet) = 5;
+  GET_REAL_WIS(&fixture->first_pet) = 12;
+  GET_REAL_CHA(&fixture->first_pet) = 7;
+
+  SET_BIT_AR(MOB_FLAGS(&fixture->second_pet), MOB_ISNPC);
+  SET_BIT_AR(AFF_FLAGS(&fixture->second_pet), AFF_CHARM);
+  fixture->second_pet.player.name = (char *)"SecondPet";
+  fixture->second_pet.player.short_descr = (char *)"the second saved pet";
+  fixture->second_pet.player.long_descr = (char *)"The second saved pet is here.";
+  fixture->second_pet.player.description = (char *)"Another transaction test pet.";
+  GET_LEVEL(&fixture->second_pet) = 9;
+  GET_HIT(&fixture->second_pet) = 81;
+  GET_REAL_MAX_HIT(&fixture->second_pet) = 100;
+  GET_REAL_STR(&fixture->second_pet) = 16;
+  GET_REAL_CON(&fixture->second_pet) = 15;
+  GET_REAL_DEX(&fixture->second_pet) = 14;
+  GET_REAL_INT(&fixture->second_pet) = 6;
+  GET_REAL_WIS(&fixture->second_pet) = 13;
+  GET_REAL_CHA(&fixture->second_pet) = 8;
+
+  fixture->equipped_object.name = (char *)"pet's test collar";
+  fixture->equipped_object.short_description = (char *)"a pet's test collar";
+  fixture->equipped_object.description = (char *)"A pet's test collar lies here.";
+  fixture->first_pet.equipment[0] = &fixture->equipped_object;
+
+  fixture->inventory_object.name = (char *)"pet's carried token";
+  fixture->inventory_object.short_description = (char *)"a pet's carried token";
+  fixture->inventory_object.description = (char *)"A pet's carried token lies here.";
+  fixture->inventory_object.carried_by = &fixture->second_pet;
+  fixture->second_pet.carrying = &fixture->inventory_object;
+
+  fixture->contained_object.name = (char *)"pet's nested token";
+  fixture->contained_object.short_description = (char *)"a pet's nested token";
+  fixture->contained_object.description = (char *)"A pet's nested token lies here.";
+  fixture->contained_object.in_obj = &fixture->inventory_object;
+  fixture->inventory_object.contains = &fixture->contained_object;
+}
+
+static bool old_pet_snapshot_is_intact(MYSQL *connection)
+{
+  return query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 1 &&
+         query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 1 &&
+         query_single_int(connection,
+                          "SELECT COUNT(*) FROM pet_data AS pet JOIN pet_save_objs AS object "
+                          "ON object.pet_idnum = pet.pet_data_id "
+                          "WHERE pet.pet_data_id = 700 AND pet.owner_name = 'SnapshotOwner' "
+                          "AND pet.pet_name = 'OldPet' AND pet.runtime_state = 'old-runtime' "
+                          "AND object.serialized_obj = '#old-object'",
+                          -1) == 1;
 }
 
 static int query_single_int(MYSQL *connection, const char *query, int fallback)
@@ -343,6 +483,125 @@ void Test_pet_persistence_schema_rejects_incompatible_contract(CuTest *tc)
 
   CuAssertTrue(tc, fixture_created);
   CuAssertTrue(tc, !verified);
+}
+
+void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failure(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  bool saved_available;
+  bool schema_created;
+  bool seeded;
+  bool snapshot_saved;
+  bool rollback_coverage_passed;
+  bool overflow_rollback_passed;
+  bool forced_save_result;
+  char *oversized_object_name;
+  int save_query_count;
+  int pet_rows;
+  int object_rows;
+  int linked_rows;
+  int runtime_rows;
+  int quoted_payload_rows;
+  int old_rows;
+  int failure_query;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  conn = connection;
+  mysql_available = true;
+  initialize_pet_save_fixture(&fixture);
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+  seeded = schema_created && reset_old_pet_snapshot(connection);
+  mysql_query_counter_reset();
+  snapshot_saved = seeded && save_char_pets(&fixture.owner);
+  save_query_count = (int)mysql_query_counter_value();
+  pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+  object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+  linked_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data AS pet JOIN pet_save_objs AS object "
+                       "ON object.pet_idnum = pet.pet_data_id "
+                       "WHERE pet.owner_name = 'SnapshotOwner' "
+                       "AND object.owner_name = 'SnapshotOwner'",
+                       -1);
+  runtime_rows =
+      query_single_int(connection,
+                       "SELECT COUNT(*) FROM pet_data WHERE owner_name = 'SnapshotOwner' "
+                       "AND runtime_state IS NOT NULL AND runtime_state <> ''",
+                       -1);
+  quoted_payload_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_save_objs WHERE LOCATE(CHAR(39), serialized_obj) > 0",
+      -1);
+  old_rows = query_single_int(
+      connection, "SELECT COUNT(*) FROM pet_data WHERE pet_data_id = 700 OR pet_name = 'OldPet'",
+      -1);
+
+  rollback_coverage_passed = snapshot_saved && save_query_count == 9;
+  for (failure_query = 1; rollback_coverage_passed && failure_query <= save_query_count;
+       failure_query++)
+  {
+    if (!reset_old_pet_snapshot(connection))
+    {
+      rollback_coverage_passed = false;
+      break;
+    }
+    mysql_query_counter_reset();
+    mysql_test_fail_nth_query((unsigned int)failure_query);
+    forced_save_result = save_char_pets(&fixture.owner);
+    mysql_test_clear_query_failure();
+    if (forced_save_result || !old_pet_snapshot_is_intact(connection))
+      rollback_coverage_passed = false;
+  }
+
+  oversized_object_name = malloc(40000);
+  overflow_rollback_passed = oversized_object_name != NULL;
+  if (overflow_rollback_passed)
+  {
+    memset(oversized_object_name, 'x', 39999);
+    oversized_object_name[39999] = '\0';
+    overflow_rollback_passed = reset_old_pet_snapshot(connection);
+    fixture.equipped_object.name = oversized_object_name;
+    forced_save_result = save_char_pets(&fixture.owner);
+    overflow_rollback_passed =
+        overflow_rollback_passed && !forced_save_result && old_pet_snapshot_is_intact(connection);
+    fixture.equipped_object.name = (char *)"pet's test collar";
+    free(oversized_object_name);
+  }
+
+  mysql_test_clear_query_failure();
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, seeded);
+  CuAssertTrue(tc, snapshot_saved);
+  CuAssertIntEquals(tc, 9, save_query_count);
+  CuAssertIntEquals(tc, 2, pet_rows);
+  CuAssertIntEquals(tc, 3, object_rows);
+  CuAssertIntEquals(tc, 3, linked_rows);
+  CuAssertIntEquals(tc, 2, runtime_rows);
+  CuAssertIntEquals(tc, 3, quoted_payload_rows);
+  CuAssertIntEquals(tc, 0, old_rows);
+  CuAssertTrue(tc, rollback_coverage_passed);
+  CuAssertTrue(tc, overflow_rollback_passed);
 }
 
 void Test_follower_runtime_state_round_trip(CuTest *tc)
