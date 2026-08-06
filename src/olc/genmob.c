@@ -440,9 +440,14 @@ int write_mobile_espec(mob_vnum mvnum, struct char_data *mob, FILE *fd)
   /* Persist SpecProc by name if present on this prototype */
   {
     mob_rnum rmob = real_mobile(mvnum);
-    if (rmob != NOBODY && mob_index[rmob].func)
+    const char *spname = NULL;
+
+    if (rmob != NOBODY)
     {
-      const char *spname = get_spec_func_name(mob_index[rmob].func);
+      if (mob_index[rmob].spec_binding != NULL)
+        spname = spec_binding_persisted_name(mob_index[rmob].spec_binding);
+      else if (mob_index[rmob].func != NULL)
+        spname = get_spec_func_name(mob_index[rmob].func);
       if (spname && *spname)
         fprintf(fd, "SpecProc: %s\n", spname);
     }

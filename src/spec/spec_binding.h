@@ -52,6 +52,9 @@ void spec_binding_free(struct spec_binding **binding);
 /** Return the authored compatibility handler only for a fully resolved binding. */
 spec_legacy_handler spec_binding_legacy_handler(const struct spec_binding *binding);
 
+/** Return the exact single-line requested name for a valid world-authored persistence record. */
+const char *spec_binding_persisted_name(const struct spec_binding *binding);
+
 /** Return a stable diagnostic label for one exact binding source bit. */
 const char *spec_binding_source_name(spec_binding_source_mask source);
 

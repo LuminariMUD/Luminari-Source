@@ -575,7 +575,12 @@ int save_rooms(zone_rnum rzone)
 
       /* Z: SpecProc name (persist room spec proc) */
       {
-        const char *spname = get_spec_func_name(world[rnum].func);
+        const char *spname = NULL;
+
+        if (world[rnum].spec_binding != NULL)
+          spname = spec_binding_persisted_name(world[rnum].spec_binding);
+        else if (world[rnum].func != NULL)
+          spname = get_spec_func_name(world[rnum].func);
         if (spname && *spname)
         {
           fprintf(sf, "Z\n");

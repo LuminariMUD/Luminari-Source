@@ -411,7 +411,10 @@ int save_objects(zone_rnum zone_num)
       /* Z: SpecProc name (persist object spec proc) */
       {
         const char *spname = NULL;
-        if (obj_index[realcounter].func)
+
+        if (obj_index[realcounter].spec_binding != NULL)
+          spname = spec_binding_persisted_name(obj_index[realcounter].spec_binding);
+        else if (obj_index[realcounter].func != NULL)
           spname = get_spec_func_name(obj_index[realcounter].func);
         if (spname && *spname)
         {

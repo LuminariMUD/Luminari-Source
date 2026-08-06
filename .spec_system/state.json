@@ -19,7 +19,8 @@
     "phase00-session03-combat-and-secondary-characterization",
     "phase00-session04-validated-definition-registry",
     "phase00-session05-owner-aware-olc",
-    "phase00-session06-authored-binding-model"
+    "phase00-session06-authored-binding-model",
+    "phase00-session07-binding-round-trip-persistence"
   ],
   "next_session_history": [
     {
@@ -110,6 +111,21 @@
     {
       "date": "2026-08-07",
       "session": "phase00-session06-authored-binding-model",
+      "status": "completed"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session07-binding-round-trip-persistence",
+      "status": "planned"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session07-binding-round-trip-persistence",
+      "status": "validated"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session07-binding-round-trip-persistence",
       "status": "completed"
     }
   ]

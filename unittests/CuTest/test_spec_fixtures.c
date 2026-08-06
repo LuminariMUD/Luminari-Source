@@ -515,6 +515,39 @@ static FILE *spec_test_open_named_record(const char *format, const char *name, c
   return spec_test_open_record(record, error, error_size);
 }
 
+static FILE *spec_test_open_saved_record(const struct spec_test_fixture *fixture,
+                                         const char *relative, const char *expected_header,
+                                         char *error, size_t error_size)
+{
+  char path[PATH_MAX];
+  char header[64];
+  FILE *file;
+
+  if (fixture == NULL || relative == NULL || expected_header == NULL ||
+      !spec_test_build_path(path, sizeof(path), fixture->sandbox, relative))
+  {
+    spec_test_set_error(error, error_size, "saved world record path is invalid");
+    return NULL;
+  }
+
+  file = fopen(path, "r");
+  if (file == NULL)
+  {
+    spec_test_set_error(error, error_size, "unable to open a saved world record for reload");
+    return NULL;
+  }
+  if (fgets(header, sizeof(header), file) == NULL ||
+      strncmp(header, expected_header, strlen(expected_header)) != 0 ||
+      (header[strlen(expected_header)] != '\n' && header[strlen(expected_header)] != '\r'))
+  {
+    fclose(file);
+    spec_test_set_error(error, error_size, "saved world record has an unexpected header");
+    return NULL;
+  }
+
+  return file;
+}
+
 static void spec_test_free_loaded_data(struct spec_test_fixture *fixture)
 {
   if (fixture->mobile_loaded)
@@ -821,6 +854,66 @@ bool spec_test_fixture_load_binding_names(struct spec_test_fixture *fixture,
   return true;
 }
 
+bool spec_test_fixture_load_saved_bindings(struct spec_test_fixture *fixture, char *error,
+                                           size_t error_size)
+{
+  FILE *record;
+
+  if (error != NULL && error_size > 0)
+    *error = '\0';
+  if (fixture == NULL)
+  {
+    spec_test_set_error(error, error_size, "cannot reload bindings into a null fixture");
+    return false;
+  }
+  if (fixture->mobile_loaded || fixture->object_loaded || fixture->room_loaded)
+  {
+    spec_test_set_error(error, error_size, "saved binding fixture cannot be loaded twice");
+    return false;
+  }
+  if (!spec_test_read_saved_file(fixture, "world/mob/12.mob",
+                                 &fixture->saved_text[SPEC_TEST_OWNER_MOBILE], error, error_size) ||
+      !spec_test_read_saved_file(fixture, "world/obj/14.obj",
+                                 &fixture->saved_text[SPEC_TEST_OWNER_OBJECT], error, error_size) ||
+      !spec_test_read_saved_file(fixture, "world/wld/14.wld",
+                                 &fixture->saved_text[SPEC_TEST_OWNER_ROOM], error, error_size))
+    return false;
+
+  record = spec_test_open_saved_record(fixture, "world/mob/12.mob", "#1201", error, error_size);
+  if (record == NULL)
+    return false;
+  parse_mobile(record, SPEC_TEST_MOBILE_VNUM);
+  fixture->mobile_loaded = true;
+  if (fclose(record) != 0)
+  {
+    spec_test_set_error(error, error_size, "unable to close reloaded mobile world record");
+    return false;
+  }
+
+  record = spec_test_open_saved_record(fixture, "world/obj/14.obj", "#1402", error, error_size);
+  if (record == NULL)
+    return false;
+  parse_object(record, SPEC_TEST_OBJECT_VNUM);
+  fixture->object_loaded = true;
+  if (fclose(record) != 0)
+  {
+    spec_test_set_error(error, error_size, "unable to close reloaded object world record");
+    return false;
+  }
+  record = spec_test_open_saved_record(fixture, "world/wld/14.wld", "#1403", error, error_size);
+  if (record == NULL)
+    return false;
+  parse_room(record, SPEC_TEST_ROOM_VNUM, "saved special-procedure round-trip fixture");
+  fixture->room_loaded = true;
+  if (fclose(record) != 0)
+  {
+    spec_test_set_error(error, error_size, "unable to close reloaded room world record");
+    return false;
+  }
+
+  return true;
+}
+
 const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_test_fixture *fixture,
                                                             enum spec_test_owner owner)
 {
@@ -861,6 +954,66 @@ SPECIAL_DECL(*spec_test_fixture_loaded_handler(const struct spec_test_fixture *f
   }
 
   return NULL;
+}
+
+bool spec_test_fixture_set_loaded_handler(struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner, SPECIAL_DECL(*handler))
+{
+  if (fixture == NULL)
+    return false;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    if (!fixture->mobile_loaded)
+      return false;
+    fixture->test_mob_index[0].func = handler;
+    return true;
+  case SPEC_TEST_OWNER_OBJECT:
+    if (!fixture->object_loaded)
+      return false;
+    fixture->test_obj_index[0].func = handler;
+    return true;
+  case SPEC_TEST_OWNER_ROOM:
+    if (!fixture->room_loaded)
+      return false;
+    fixture->test_world[0].func = handler;
+    return true;
+  case SPEC_TEST_OWNER_COUNT:
+    return false;
+  }
+
+  return false;
+}
+
+bool spec_test_fixture_discard_loaded_binding(struct spec_test_fixture *fixture,
+                                              enum spec_test_owner owner)
+{
+  if (fixture == NULL)
+    return false;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    if (!fixture->mobile_loaded)
+      return false;
+    spec_binding_free(&fixture->test_mob_index[0].spec_binding);
+    return true;
+  case SPEC_TEST_OWNER_OBJECT:
+    if (!fixture->object_loaded)
+      return false;
+    spec_binding_free(&fixture->test_obj_index[0].spec_binding);
+    return true;
+  case SPEC_TEST_OWNER_ROOM:
+    if (!fixture->room_loaded)
+      return false;
+    spec_binding_free(&fixture->test_world[0].spec_binding);
+    return true;
+  case SPEC_TEST_OWNER_COUNT:
+    return false;
+  }
+
+  return false;
 }
 
 bool spec_test_fixture_save_named_bindings(struct spec_test_fixture *fixture, char *error,

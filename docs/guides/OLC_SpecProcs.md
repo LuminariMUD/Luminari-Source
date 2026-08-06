@@ -46,7 +46,8 @@ The selected SpecProc is stored by name and resolved at boot.
     - Line 1: `Z`
     - Line 2: `<Name>`
 
-If the name isn't recognized in the SpecProc registry, the function won't be assigned at boot.
+If the name is not recognized in the SpecProc registry, the function is not assigned at boot, but
+the authored name remains attached to the prototype for diagnostics and later saves.
 
 ## Authored Binding State
 
@@ -60,13 +61,21 @@ diagnostics, but they do not install a callback. Boot warnings identify the pers
 VNUM, requested name, and reason. Prototype copies and OLC editing use independent owned records so
 editing or deleting one prototype cannot invalidate another.
 
-At this migration stage, disk writers still derive output from the active callback. Exact alias
-spelling and unresolved names are retained in memory but are not yet guaranteed to round-trip on the
-next world-file save.
+Disk writers use this authored record whenever it exists. Exact loaded aliases, unknown names, and
+owner- or source-incompatible names therefore survive unrelated OLC saves. A later hard-coded
+callback override remains effective at runtime but is not promoted into the authored world field.
+Only legacy prototypes with no authored record use callback reverse lookup as a compatibility
+fallback.
+
+Builder actions are explicit. Selecting a registry entry replaces any prior record with its
+canonical name. Entering `0` clears both the authored record and callback, so the field is omitted
+on the next zone save. Merely opening and saving an editor preserves the existing requested name,
+including unresolved content that a builder may need to repair later.
 
 ## Notes and Tips
 
-- Names must match a canonical name or explicit alias in `src/spec/spec_registry.c`.
+- Names should match a canonical name or explicit alias in `src/spec/spec_registry.c`; other names
+  remain persisted and diagnosable but do not install a callback.
 - The selector shows canonical definitions only. An alias such as `Guildmaster` still loads for
   compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited

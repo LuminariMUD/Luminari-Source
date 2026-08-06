@@ -33,10 +33,16 @@ bool spec_test_fixture_load_named_bindings(struct spec_test_fixture *fixture, ch
 bool spec_test_fixture_load_binding_names(struct spec_test_fixture *fixture,
                                           const char *mobile_name, const char *object_name,
                                           const char *room_name, char *error, size_t error_size);
+bool spec_test_fixture_load_saved_bindings(struct spec_test_fixture *fixture, char *error,
+                                           size_t error_size);
 SPECIAL_DECL(*spec_test_fixture_loaded_handler(const struct spec_test_fixture *fixture,
                                                enum spec_test_owner owner));
 const struct spec_binding *spec_test_fixture_loaded_binding(const struct spec_test_fixture *fixture,
                                                             enum spec_test_owner owner);
+bool spec_test_fixture_set_loaded_handler(struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner, SPECIAL_DECL(*handler));
+bool spec_test_fixture_discard_loaded_binding(struct spec_test_fixture *fixture,
+                                              enum spec_test_owner owner);
 
 bool spec_test_fixture_save_named_bindings(struct spec_test_fixture *fixture, char *error,
                                            size_t error_size);

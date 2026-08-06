@@ -201,6 +201,17 @@ spec_legacy_handler spec_binding_legacy_handler(const struct spec_binding *bindi
   return binding->definition->legacy_handler;
 }
 
+const char *spec_binding_persisted_name(const struct spec_binding *binding)
+{
+  if (binding == NULL || binding->source != SPEC_BINDING_SOURCE_WORLD ||
+      binding->requested_name == NULL || *binding->requested_name == '\0' ||
+      strchr(binding->requested_name, '\n') != NULL ||
+      strchr(binding->requested_name, '\r') != NULL)
+    return NULL;
+
+  return binding->requested_name;
+}
+
 const char *spec_binding_source_name(spec_binding_source_mask source)
 {
   switch (source)

@@ -286,6 +286,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_world_loading_production.c \
 	unittests/CuTest/test_spec_fixtures.c \
 	unittests/CuTest/test_spec_authored_bindings.c \
+	unittests/CuTest/test_spec_binding_round_trip.c \
 	unittests/CuTest/test_spec_registry_persistence.c \
 	unittests/CuTest/test_spec_registry_validation.c \
 	unittests/CuTest/test_spec_owner_aware_olc.c \
@@ -328,6 +329,7 @@ cutest_test_files = \
 	unittests/CuTest/test_world_loading_production.c \
 	unittests/CuTest/test_spec_fixtures.c \
 	unittests/CuTest/test_spec_authored_bindings.c \
+	unittests/CuTest/test_spec_binding_round_trip.c \
 	unittests/CuTest/test_spec_registry_persistence.c \
 	unittests/CuTest/test_spec_registry_validation.c \
 	unittests/CuTest/test_spec_owner_aware_olc.c \

@@ -1,7 +1,7 @@
 # Session 07: Binding Round-Trip Persistence
 
 **Session ID**: `phase00-session07-binding-round-trip-persistence`
-**Status**: Not Started
+**Status**: Complete
 **Estimated Tasks**: ~18-22
 **Estimated Duration**: 2-4 hours
 
@@ -38,8 +38,8 @@ identity from the effective callback pointer.
 
 ## Prerequisites
 
-- [ ] Session 06 provides owned authored binding state and loader diagnostics.
-- [ ] Session 05 provides compatible select, replace, and clear editor flows.
+- [x] Session 06 provides owned authored binding state and loader diagnostics.
+- [x] Session 05 provides compatible select, replace, and clear editor flows.
 
 ---
 
@@ -54,7 +54,7 @@ identity from the effective callback pointer.
 
 ## Success Criteria
 
-- [ ] An unrelated OLC save never erases an unresolved authored name.
-- [ ] A boot-time override never promotes its effective callback into authored world data.
-- [ ] Explicit select, replace, and clear actions produce deterministic canonical output.
-- [ ] Existing single-name world files remain backward compatible and round-trip cleanly.
+- [x] An unrelated OLC save never erases an unresolved authored name.
+- [x] A boot-time override never promotes its effective callback into authored world data.
+- [x] Explicit select, replace, and clear actions produce deterministic canonical output.
+- [x] Existing single-name world files remain backward compatible and round-trip cleanly.
