@@ -16,7 +16,7 @@ void log_copyover_file_op(const char *operation, const char *filename, int resul
 void log_copyover_descriptors(int total, int playing, int saved);
 
 /* Check system state before execl */
-void check_pre_execl_state(void);
+void check_pre_execl_state(const char *executable_path);
 
 /* Log execl failure details */
 void log_execl_failure(int error_code);

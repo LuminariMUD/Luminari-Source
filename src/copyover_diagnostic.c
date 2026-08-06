@@ -198,7 +198,7 @@ void log_copyover_descriptors(int total, int playing, int saved)
 }
 
 /* Check system state before execl */
-void check_pre_execl_state(void)
+void check_pre_execl_state(const char *executable_path)
 {
   struct stat st;
   char cwd[1024];
@@ -217,7 +217,8 @@ void check_pre_execl_state(void)
     fprintf(diag_file, "  Current directory: UNKNOWN (errno=%d)\n", errno);
 
   /* Check if binary exists and permissions */
-  if (stat(EXE_FILE, &st) == 0)
+  fprintf(diag_file, "  Binary path: %s\n", executable_path);
+  if (stat(executable_path, &st) == 0)
   {
     fprintf(diag_file, "  Binary exists: YES\n");
     fprintf(diag_file, "  Binary size: %ld bytes\n", (long)st.st_size);

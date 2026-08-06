@@ -499,6 +499,7 @@ EXTRA_DIST = \
 	scripts/copyover/copyover_watchdog.sh \
 	scripts/copyover/enhanced_copyover_diagnostic.sh \
 	scripts/debugging/debug_game.sh \
+	scripts/debugging/verify_core_capture.sh \
 	scripts/debugging/vgrind.sh \
 	scripts/deploy.sh \
 	scripts/deployment/deploy.sh \

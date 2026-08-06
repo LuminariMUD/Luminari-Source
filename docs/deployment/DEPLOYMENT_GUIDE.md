@@ -192,6 +192,15 @@ new launch alias and active process are brought back into agreement:
 ./scripts/deployment/deploy.sh --install-systemd --restart-service
 ```
 
+That command reports success only after systemd has a supervisor `MainPID` and
+`.autorun.state` proves the managed game PID is running the same resolved
+executable and ELF build ID as the installed alias. Inspect the same identity
+without changing service state with:
+
+```bash
+./scripts/autorun/autorun.sh status
+```
+
 #### 5. Create Required Symlinks
 ```bash
 # The MUD expects these in the root directory

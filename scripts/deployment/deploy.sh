@@ -723,10 +723,70 @@ setup_environment() {
     print_msg "$GREEN" "Environment setup complete!"
 }
 
+# Verify that the restarted supervisor launched the currently installed release
+# rather than merely publishing its own MainPID.
+verify_active_release_after_restart() {
+    local active_build_id
+    local active_executable
+    local active_pid
+    local attempt
+    local expected_executable
+    local identity_match
+    local installed_build_id
+    local last_update
+    local minimum_update="$1"
+    local previous_mud_pid="$2"
+    local state_file="$PROJECT_ROOT/.autorun.state"
+    local timeout_seconds="${DEPLOY_IDENTITY_TIMEOUT_SECONDS:-120}"
+
+    expected_executable=$(readlink -f "$PROJECT_ROOT/bin/circle" 2>/dev/null || true)
+    if [[ -z "$expected_executable" ]] || [[ ! -x "$expected_executable" ]]; then
+        print_msg "$RED" "Installed bin/circle is missing or not executable"
+        return 1
+    fi
+    if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
+        print_msg "$RED" "DEPLOY_IDENTITY_TIMEOUT_SECONDS must be a positive integer"
+        return 1
+    fi
+
+    for ((attempt = 0; attempt < timeout_seconds; attempt++)); do
+        if [[ -r "$state_file" ]]; then
+            active_pid=$(awk -F= '$1 == "MUD_PID" {print $2; exit}' "$state_file")
+            active_executable=$(awk -F= '$1 == "MUD_EXECUTABLE" {
+                print substr($0, index($0, "=") + 1); exit
+            }' "$state_file")
+            active_build_id=$(awk -F= '$1 == "MUD_ELF_BUILD_ID" {print $2; exit}' "$state_file")
+            installed_build_id=$(awk -F= '$1 == "INSTALLED_ELF_BUILD_ID" {print $2; exit}' "$state_file")
+            identity_match=$(awk -F= '$1 == "MUD_IDENTITY_MATCH" {print $2; exit}' "$state_file")
+            last_update=$(awk -F= '$1 == "LAST_UPDATE" {print $2; exit}' "$state_file")
+            if [[ "$active_pid" =~ ^[1-9][0-9]*$ ]] &&
+               [[ "$active_pid" != "$previous_mud_pid" ]] &&
+               kill -0 "$active_pid" 2>/dev/null &&
+               [[ "$last_update" =~ ^[0-9]+$ ]] &&
+               [[ "$last_update" -ge "$minimum_update" ]] &&
+               [[ "$active_executable" == "$expected_executable" ]] &&
+               [[ -n "$active_build_id" ]] &&
+               [[ "$active_build_id" == "$installed_build_id" ]] &&
+               [[ "$identity_match" == yes ]]; then
+                print_msg "$GREEN" \
+                    "Active MUD release verified: PID $active_pid, build ID $active_build_id"
+                return 0
+            fi
+        fi
+        sleep 1
+    done
+
+    print_msg "$RED" \
+        "Restarted service did not launch the installed MUD release within ${timeout_seconds}s"
+    return 1
+}
+
 # Function to create systemd service
 create_systemd_service() {
     local installed_pid_file
     local main_pid
+    local previous_mud_pid=""
+    local restart_epoch
     local service_active=false
     local service_group
     local service_template="$PROJECT_ROOT/luminari.service"
@@ -820,6 +880,11 @@ create_systemd_service() {
             return 1
         fi
 
+        if [[ -r "$PROJECT_ROOT/.autorun.state" ]]; then
+            previous_mud_pid=$(awk -F= '$1 == "MUD_PID" {print $2; exit}' \
+                "$PROJECT_ROOT/.autorun.state")
+        fi
+        restart_epoch=$(date +%s)
         sudo systemctl restart luminari.service
         main_pid=$(sudo systemctl show luminari.service \
             --property=MainPID --value 2>/dev/null || true)
@@ -828,6 +893,7 @@ create_systemd_service() {
             return 1
         fi
         print_msg "$GREEN" "Systemd service restarted with MainPID $main_pid"
+        verify_active_release_after_restart "$restart_epoch" "$previous_mud_pid"
     elif [[ "$service_active" == true ]]; then
         print_msg "$YELLOW" "The running service must be restarted to apply the new unit:"
         print_msg "$YELLOW" "  sudo systemctl restart luminari.service"

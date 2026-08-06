@@ -586,25 +586,46 @@ sudo unattended-upgrades --dry-run
 ## Emergency Procedures
 
 ### Server Crash Recovery
+
+First verify the host's real core route. The self-test deliberately aborts a
+small temporary probe, retrieves its core when the configured handler is
+supported, and opens it with the matching probe executable:
+
 ```bash
-#!/bin/bash
-# crash_recovery.sh
+scripts/debugging/verify_core_capture.sh
+scripts/debugging/verify_core_capture.sh --self-test
+```
 
-# Check for core dump
-if [ -f core ]; then
-  echo "Core dump found, analyzing..."
-  gdb ../bin/circle core -batch -ex "bt" -ex "quit" > crash_analysis.txt
-  mv core core.$(date +%Y%m%d_%H%M%S)
-fi
+Exit status 0 from `--self-test` is the required end-to-end pass. Status 2
+means the kernel handed the crash to a pipe handler that this checkout cannot
+retrieve, or uses an absolute path that the non-mutating probe will not scan.
+Resolve that host configuration before relying on crash capture.
 
+The managed server records active and installed identities in
+`.autorun.state`; `autorun.sh status` displays whether a restart is pending:
+
+```bash
+scripts/autorun/autorun.sh status
+```
+
+After a crash, autorun scans local `core`/`core.*` locations and can retrieve a
+PID-specific systemd core through `coredumpctl`. It archives the core, a full
+all-thread backtrace, and an identity record under `dumps/`. GDB is always
+given the immutable executable recorded when that PID launched, never the
+current `bin/circle` alias. Preserve the corresponding
+`bin/releases/<ELF-build-ID>/` directory until the incident is retired.
+
+Then check database integrity and restart through the managed service:
+
+```bash
 # Check database integrity
 mysql -u luminari -p luminari -e "CHECK TABLE player_data;"
 
-# Restart server with logging
-nohup ../bin/circle > ../log/recovery.log 2>&1 &
+sudo systemctl restart luminari.service
+scripts/autorun/autorun.sh status
 
-# Monitor startup
-tail -f ../log/recovery.log
+# Monitor startup and crash collection
+sudo journalctl -u luminari.service -f
 ```
 
 ### Data Recovery

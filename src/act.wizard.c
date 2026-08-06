@@ -6406,7 +6406,7 @@ const char *get_copyover_state_string(void)
 }
 
 /* Validate environment before attempting copyover */
-static bool validate_copyover_environment()
+static bool validate_copyover_environment(const char *copyover_executable)
 {
   char current_dir[256];
   struct stat st;
@@ -6425,17 +6425,17 @@ static bool validate_copyover_environment()
     return FALSE;
   }
 
-  /* Check if the binary exists in parent directory */
-  if (stat("../" EXE_FILE, &st) != 0)
+  /* Check the exact running binary selected for the exec handoff. */
+  if (stat(copyover_executable, &st) != 0)
   {
-    log("SYSERR: copyover: Cannot find executable at ../%s: %s", EXE_FILE, strerror(errno));
+    log("SYSERR: copyover: Cannot find executable at %s: %s", copyover_executable, strerror(errno));
     return FALSE;
   }
 
   /* Check if binary is executable */
   if (!(st.st_mode & S_IXUSR))
   {
-    log("SYSERR: copyover: Binary ../%s is not executable", EXE_FILE);
+    log("SYSERR: copyover: Binary %s is not executable", copyover_executable);
     return FALSE;
   }
 
@@ -6466,10 +6466,31 @@ void perform_do_copyover()
   FILE *fp;
   struct descriptor_data *d, *d_next;
   char buf[100], buf2[100];
+  char copyover_executable[4096];
   char temp_file[256];
+#if defined(__linux__)
+  ssize_t executable_length;
+#endif
   int playing_count = 0, total_count = 0, saved_count = 0;
   int exec_errno = 0;
   bool exec_attempted = FALSE;
+
+#if defined(__linux__)
+  executable_length =
+      readlink("/proc/self/exe", copyover_executable, sizeof(copyover_executable) - 1);
+  if (executable_length < 1 || (size_t)executable_length >= sizeof(copyover_executable) - 1)
+  {
+    log("SYSERR: copyover: Cannot resolve the running executable: %s", strerror(errno));
+    return;
+  }
+  copyover_executable[executable_length] = '\0';
+#else
+  if (realpath("../" EXE_FILE, copyover_executable) == NULL)
+  {
+    log("SYSERR: copyover: Cannot resolve the running executable: %s", strerror(errno));
+    return;
+  }
+#endif
 
   COPYOVER_DEBUG("perform_do_copyover() called - starting copyover process");
 
@@ -6499,7 +6520,7 @@ void perform_do_copyover()
   copyover_status = COPYOVER_PREPARING;
 
   /* Validate environment before proceeding */
-  if (!validate_copyover_environment())
+  if (!validate_copyover_environment(copyover_executable))
   {
     copyover_status = COPYOVER_FAILED;
     /* Notify all players of failure */
@@ -6932,10 +6953,10 @@ void perform_do_copyover()
   }
 
   /* Check if binary exists and is executable before attempting execl */
-  if (access(EXE_FILE, X_OK) != 0)
+  if (access(copyover_executable, X_OK) != 0)
   {
-    log("SYSERR: Copyover failed - binary not found or not executable: %s (error: %s)", EXE_FILE,
-        strerror(errno));
+    log("SYSERR: Copyover failed - binary not found or not executable: %s (error: %s)",
+        copyover_executable, strerror(errno));
     copyover_status = COPYOVER_FAILED;
 
     /* Try to change back to lib directory */
@@ -7013,11 +7034,11 @@ void perform_do_copyover()
 
   /* Update state to executing */
   copyover_status = COPYOVER_EXECUTING;
-  COPYOVER_DEBUG("copyover: Executing new binary %s", EXE_FILE);
+  COPYOVER_DEBUG("copyover: Executing running binary %s", copyover_executable);
   log_copyover_phase("PRE_EXECL", "About to execute new binary");
 
   /* Check system state before execl */
-  check_pre_execl_state();
+  check_pre_execl_state(copyover_executable);
 
   /* ITIMER_VIRTUAL survives exec(), but caught signal handlers do not.  Suspend
    * the checkpoint timer so the replacement cannot receive SIGVTALRM with its
@@ -7026,7 +7047,7 @@ void perform_do_copyover()
   {
     log_copyover_phase("EXECL", "Calling execl()");
     exec_attempted = TRUE;
-    execl(EXE_FILE, "circle", buf2, buf, (char *)NULL);
+    execl(copyover_executable, "circle", buf2, buf, (char *)NULL);
     exec_errno = errno;
 
     /* A successful exec never returns.  Keep the current process protected if
@@ -7053,7 +7074,7 @@ void perform_do_copyover()
         strerror(exec_errno), exec_errno);
   }
   close_copyover_diagnostics(0);
-  log("SYSERR: Attempted to execute: %s with args: circle %s %s", EXE_FILE, buf2, buf);
+  log("SYSERR: Attempted to execute: %s with args: circle %s %s", copyover_executable, buf2, buf);
 
   /* Try to change back to lib directory for recovery attempt */
   if (chdir("lib") != 0)

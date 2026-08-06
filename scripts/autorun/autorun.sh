@@ -94,6 +94,7 @@ readonly IGNORE_DISK_SPACE="${IGNORE_DISK_SPACE:-true}"  # Default: keep running
 readonly STATE_UPDATE_INTERVAL="${AUTORUN_STATE_INTERVAL:-60}"
 readonly AUTORUN_PID_FILE="${PROJECT_ROOT}/.autorun.lock.pid"
 readonly MUD_PID_FILE="${PROJECT_ROOT}/.mud.pid"
+readonly MUD_IDENTITY_FILE="${PROJECT_ROOT}/.mud.identity"
 
 # Date format patterns
 readonly DATE_FORMAT_LOG="%Y-%m-%d %H:%M:%S"
@@ -184,6 +185,141 @@ write_pid_file() {
         rm -f -- "$pid_tmp"
         return 1
     fi
+}
+
+# Read one field from a generated identity or release manifest without
+# evaluating its contents as shell input.
+read_identity_value() {
+    local identity_file="$1"
+    local identity_key="$2"
+
+    if [[ ! "$identity_key" =~ ^[A-Z0-9_]+$ ]] ||
+       [[ ! -r "$identity_file" ]]; then
+        return 1
+    fi
+
+    awk -F= -v key="$identity_key" '
+        $1 == key {
+            print substr($0, index($0, "=") + 1)
+            exit
+        }
+    ' "$identity_file"
+}
+
+# Resolve and verify the executable, release manifest, and matching symbols.
+# Legacy binaries without a release manifest remain launchable with unknown
+# Git identity so an existing installation can be migrated deliberately.
+resolve_mud_binary_identity() {
+    local binary_path="$1"
+    local debug_build_id=""
+    local manifest=""
+    local manifest_build_id=""
+    local manifest_sha256=""
+    local real_path=""
+
+    RESOLVED_MUD_EXECUTABLE=""
+    RESOLVED_MUD_BUILD_ID="unavailable"
+    RESOLVED_MUD_GIT_COMMIT="unknown"
+    RESOLVED_MUD_GIT_DIRTY="unknown"
+    RESOLVED_MUD_SHA256="unavailable"
+
+    real_path=$(readlink -f -- "$binary_path" 2>/dev/null || true)
+    if [[ -z "$real_path" ]] || [[ ! -f "$real_path" ]] || [[ ! -x "$real_path" ]]; then
+        return 1
+    fi
+    RESOLVED_MUD_EXECUTABLE="$real_path"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        RESOLVED_MUD_SHA256=$(sha256sum "$real_path" 2>/dev/null |
+            awk '{print $1; exit}')
+        if [[ ! "$RESOLVED_MUD_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+            RESOLVED_MUD_SHA256="unavailable"
+        fi
+    fi
+
+    if command -v readelf >/dev/null 2>&1; then
+        RESOLVED_MUD_BUILD_ID=$(readelf -nW "$real_path" 2>/dev/null |
+            awk '/Build ID:/ {print tolower($NF); exit}')
+        if [[ ! "$RESOLVED_MUD_BUILD_ID" =~ ^[0-9a-f]{16,}$ ]]; then
+            RESOLVED_MUD_BUILD_ID="unavailable"
+        fi
+    fi
+
+    manifest="$(dirname "$real_path")/manifest"
+    if [[ ! -r "$manifest" ]]; then
+        if [[ "$real_path" == */releases/*/circle ]]; then
+            return 2
+        fi
+        return 0
+    fi
+
+    manifest_build_id=$(read_identity_value "$manifest" ELF_BUILD_ID)
+    manifest_sha256=$(read_identity_value "$manifest" SHA256)
+    RESOLVED_MUD_GIT_COMMIT=$(read_identity_value "$manifest" GIT_COMMIT)
+    RESOLVED_MUD_GIT_DIRTY=$(read_identity_value "$manifest" GIT_DIRTY)
+    if [[ "$manifest_build_id" != "$RESOLVED_MUD_BUILD_ID" ]] ||
+       [[ "$manifest_sha256" != "$RESOLVED_MUD_SHA256" ]] ||
+       [[ "$RESOLVED_MUD_GIT_COMMIT" != unknown &&
+          ! "$RESOLVED_MUD_GIT_COMMIT" =~ ^[0-9a-f]{40}$ ]] ||
+       [[ "$RESOLVED_MUD_GIT_DIRTY" != 0 && "$RESOLVED_MUD_GIT_DIRTY" != 1 ]]; then
+        return 2
+    fi
+
+    if [[ ! -r "$(dirname "$real_path")/circle.debug" ]]; then
+        return 2
+    fi
+    debug_build_id=$(readelf -nW "$(dirname "$real_path")/circle.debug" 2>/dev/null |
+        awk '/Build ID:/ {print tolower($NF); exit}')
+    if [[ "$debug_build_id" != "$RESOLVED_MUD_BUILD_ID" ]]; then
+        return 2
+    fi
+
+    return 0
+}
+
+# Publish the exact launched executable identity atomically. The file survives
+# process exit until crash collection has used it.
+write_mud_identity() {
+    local identity_tmp
+    local mud_pid="$1"
+
+    identity_tmp=$(mktemp "${MUD_IDENTITY_FILE}.tmp.XXXXXX") || return 1
+    if ! cat > "$identity_tmp" <<EOF
+PID=$mud_pid
+EXECUTABLE=$LAST_MUD_EXECUTABLE
+GIT_COMMIT=$LAST_MUD_GIT_COMMIT
+GIT_DIRTY=$LAST_MUD_GIT_DIRTY
+ELF_BUILD_ID=$LAST_MUD_BUILD_ID
+SHA256=$LAST_MUD_SHA256
+EOF
+    then
+        rm -f -- "$identity_tmp"
+        return 1
+    fi
+
+    if ! mv -f -- "$identity_tmp" "$MUD_IDENTITY_FILE"; then
+        rm -f -- "$identity_tmp"
+        return 1
+    fi
+}
+
+# Return the executable recorded for a specific MUD PID. Refuse stale or
+# malformed identity rather than following the current launch alias.
+get_recorded_mud_executable() {
+    local expected_pid="$1"
+    local identity_pid
+    local recorded_executable
+
+    identity_pid=$(read_identity_value "$MUD_IDENTITY_FILE" PID 2>/dev/null || true)
+    recorded_executable=$(read_identity_value "$MUD_IDENTITY_FILE" EXECUTABLE 2>/dev/null || true)
+    if [[ "$identity_pid" != "$expected_pid" ]] ||
+       [[ -z "$recorded_executable" ]] ||
+       [[ "$recorded_executable" != /* ]] ||
+       [[ ! -f "$recorded_executable" ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "$recorded_executable"
 }
 
 # Verify both the PID and its exact executable/script before sending a signal.
@@ -315,6 +451,7 @@ get_verified_autorun_pid() {
 get_verified_mud_child_pid() {
     local child
     local children_file
+    local expected_command
     local found_pid=""
     local mud_command="${BIN_DIR}/${MUD_BINARY}"
     local supervisor_pid
@@ -334,8 +471,12 @@ get_verified_mud_child_pid() {
 
     read -r -a children < "$children_file" || true
     for child in "${children[@]}"; do
+        expected_command=$(get_recorded_mud_executable "$child" 2>/dev/null || true)
+        if [[ -z "$expected_command" ]]; then
+            expected_command="$mud_command"
+        fi
         if kill -0 "$child" 2>/dev/null &&
-           pid_matches_command "$child" "$mud_command" "" &&
+           pid_matches_command "$child" "$expected_command" "" &&
            pid_has_argument "$child" "$MUD_PORT"; then
             if [[ -n "$found_pid" ]]; then
                 return 2
@@ -452,6 +593,8 @@ get_mud_pid() {
         return $?
     fi
 
+    mud_command=$(get_recorded_mud_executable "$pid" 2>/dev/null || printf '%s\n' "$mud_command")
+
     if kill -0 "$pid" 2>/dev/null &&
        pid_matches_command "$pid" "$mud_command" "" &&
        pid_has_argument "$pid" "$MUD_PORT"; then
@@ -466,44 +609,105 @@ get_mud_pid() {
 # Core Dump Management
 #############################################################################
 
-# Archive core dump file with timestamp and generate backtrace
+# Archive a local or systemd-managed core and analyze it with the exact
+# immutable executable that produced it.
 archive_core_dump() {
-    # Check multiple possible core file locations
+    local bt_file
+    local cf
     local core_file=""
-    local possible_cores=("${LIB_DIR}/core" "core" "${BIN_DIR}/core")
+    local core_pattern
+    local crash_exit_code="${1:-0}"
+    local dump_name
+    local dump_path
+    local executable_sha256
+    local gdb_commands
+    local identity_file
+    local process_start_time="${2:-0}"
+    local system_info_tmp
+    local -a possible_cores=()
 
-    for cf in "${possible_cores[@]}"; do
-        if [[ -f "$cf" ]]; then
+    shopt -s nullglob
+    possible_cores=(
+        "${LIB_DIR}"/core
+        "${LIB_DIR}"/core.*
+        core
+        core.*
+        "${BIN_DIR}"/core
+        "${BIN_DIR}"/core.*
+    )
+    shopt -u nullglob
+
+    if [[ ! "$process_start_time" =~ ^[0-9]+$ ]]; then
+        process_start_time=0
+    fi
+    for cf in "${possible_cores[@]:-}"; do
+        if [[ -f "$cf" ]] &&
+           [[ $(stat -c '%Y' "$cf" 2>/dev/null || printf '0') -ge $process_start_time ]] &&
+           { [[ -z "$core_file" ]] || [[ "$cf" -nt "$core_file" ]]; }; then
             core_file="$cf"
-            break
         fi
     done
 
+    mkdir -p "$DUMPS_DIR"
+    dump_name="core.${HOSTNAME}.$(date "+${DATE_FORMAT_DUMP}").pid-${LAST_MUD_PID:-unknown}.build-${LAST_MUD_BUILD_ID:-unknown}"
+    dump_path="${DUMPS_DIR}/${dump_name}"
+
+    if [[ -z "$core_file" ]] &&
+       [[ "$LAST_MUD_PID" =~ ^[1-9][0-9]*$ ]] &&
+       command -v coredumpctl >/dev/null 2>&1; then
+        if coredumpctl dump "$LAST_MUD_PID" --output="$dump_path" >/dev/null 2>&1; then
+            core_file="$dump_path"
+            log_info "Retrieved core for PID $LAST_MUD_PID from systemd-coredump"
+        else
+            rm -f -- "$dump_path"
+        fi
+    fi
+
     if [[ -z "$core_file" ]]; then
+        if [[ "$crash_exit_code" -ne 0 ]]; then
+            core_pattern=$(cat /proc/sys/kernel/core_pattern 2>/dev/null || printf 'unavailable')
+            log_warn "No retrievable core for PID ${LAST_MUD_PID:-unknown}; kernel core pattern: $core_pattern"
+        fi
         return 0
     fi
 
-    # Create dumps directory if needed
-    mkdir -p "$DUMPS_DIR"
-
-    local dump_name="core.${HOSTNAME}.$(date "+${DATE_FORMAT_DUMP}")"
-    local dump_path="${DUMPS_DIR}/${dump_name}"
-
     log_info "Archiving core dump to ${dump_path}"
 
-    if mv "$core_file" "$dump_path" 2>/dev/null; then
+    if [[ "$core_file" == "$dump_path" ]] || mv "$core_file" "$dump_path" 2>/dev/null; then
         log_info "Core dump archived successfully"
 
-        # Generate backtrace if gdb is available
+        identity_file="${DUMPS_DIR}/identity.${dump_name}.txt"
+        {
+            printf 'PID=%s\n' "${LAST_MUD_PID:-unknown}"
+            printf 'EXECUTABLE=%s\n' "${LAST_MUD_EXECUTABLE:-unknown}"
+            printf 'GIT_COMMIT=%s\n' "${LAST_MUD_GIT_COMMIT:-unknown}"
+            printf 'GIT_DIRTY=%s\n' "${LAST_MUD_GIT_DIRTY:-unknown}"
+            printf 'ELF_BUILD_ID=%s\n' "${LAST_MUD_BUILD_ID:-unknown}"
+            printf 'SHA256=%s\n' "${LAST_MUD_SHA256:-unknown}"
+            printf 'EXIT_CODE=%s\n' "$crash_exit_code"
+        } > "$identity_file"
+
+        if [[ -z "${LAST_MUD_EXECUTABLE:-}" ]] || [[ ! -f "$LAST_MUD_EXECUTABLE" ]]; then
+            log_error "Exact MUD executable is unavailable; preserving core without a backtrace"
+            return 0
+        fi
+        executable_sha256=$(sha256sum "$LAST_MUD_EXECUTABLE" 2>/dev/null |
+            awk '{print $1; exit}')
+        if [[ "$LAST_MUD_SHA256" != unavailable ]] &&
+           [[ "$executable_sha256" != "$LAST_MUD_SHA256" ]]; then
+            log_error "Exact MUD executable failed its recorded SHA-256; preserving core without GDB"
+            return 0
+        fi
+
         if command -v gdb >/dev/null 2>&1; then
-            local bt_file="${DUMPS_DIR}/backtrace.${dump_name}.txt"
+            bt_file="${DUMPS_DIR}/backtrace.${dump_name}.txt"
             log_info "Generating backtrace to ${bt_file}"
 
-            # Create comprehensive GDB commands
-            cat > gdb.tmp <<EOF
-echo === BACKTRACE ===\n
-bt full
-echo \n=== REGISTERS ===\n
+            gdb_commands=$(mktemp "${DUMPS_DIR}/.gdb-commands.XXXXXX")
+            cat > "$gdb_commands" <<EOF
+echo === ALL THREAD BACKTRACES ===\n
+thread apply all bt full
+echo \n=== CURRENT THREAD REGISTERS ===\n
 info registers
 echo \n=== THREADS ===\n
 info threads
@@ -514,10 +718,11 @@ info sharedlibrary
 quit
 EOF
 
-            gdb "${BIN_DIR}/${MUD_BINARY}" "$dump_path" -batch -command gdb.tmp > "$bt_file" 2>&1
-            rm -f gdb.tmp
+            gdb "$LAST_MUD_EXECUTABLE" "$dump_path" -batch -command "$gdb_commands" \
+                > "$bt_file" 2>&1
+            rm -f -- "$gdb_commands"
 
-            # Add system information to backtrace
+            system_info_tmp=$(mktemp "${bt_file}.tmp.XXXXXX")
             {
                 echo "=== SYSTEM INFORMATION ==="
                 echo "Date: $(date)"
@@ -526,7 +731,7 @@ EOF
                 echo "Memory: $(free -h 2>/dev/null || true)"
                 echo ""
                 cat "$bt_file"
-            } > "${bt_file}.tmp" && mv "${bt_file}.tmp" "$bt_file"
+            } > "$system_info_tmp" && mv -f -- "$system_info_tmp" "$bt_file"
 
             log_info "Backtrace generated successfully"
         else
@@ -534,6 +739,19 @@ EOF
         fi
     else
         log_error "Failed to archive core dump"
+    fi
+}
+
+log_core_capture_configuration() {
+    local core_limit
+    local core_pattern
+
+    core_limit=$(ulimit -Sc 2>/dev/null || printf 'unavailable')
+    core_pattern=$(cat /proc/sys/kernel/core_pattern 2>/dev/null || printf 'unavailable')
+    log_info "Core capture configuration: soft_limit=$core_limit pattern=$core_pattern"
+    if [[ "$core_pattern" == \|* ]] &&
+       ! command -v coredumpctl >/dev/null 2>&1; then
+        log_warn "Kernel cores are owned by a pipe handler and cannot be retrieved by autorun; run scripts/debugging/verify_core_capture.sh --self-test on this host"
     fi
 }
 
@@ -754,6 +972,8 @@ cleanup_zombie_processes() {
         return 0
     fi
 
+    mud_command=$(get_recorded_mud_executable "$pid" 2>/dev/null || printf '%s\n' "$mud_command")
+
     if ! kill -0 "$pid" 2>/dev/null; then
         rm -f -- "$MUD_PID_FILE"
         return 0
@@ -781,6 +1001,7 @@ cleanup_zombie_processes() {
 # Verify MUD binary exists and is executable
 verify_mud_binary() {
     local binary_path="${BIN_DIR}/${MUD_BINARY}"
+    local identity_status
 
     # Security check: ensure paths don't contain shell metacharacters
     if [[ "$binary_path" =~ [';|&<>$`'] ]]; then
@@ -788,23 +1009,14 @@ verify_mud_binary() {
         return 2
     fi
 
-    if [[ ! -f "$binary_path" ]]; then
-        log_error "MUD binary not found: $binary_path"
+    resolve_mud_binary_identity "$binary_path"
+    identity_status=$?
+    if [[ $identity_status -eq 1 ]]; then
+        log_error "MUD binary not found or not executable: $binary_path"
         return 2
-    fi
-
-    if [[ ! -x "$binary_path" ]]; then
-        log_error "MUD binary not executable: $binary_path"
+    elif [[ $identity_status -ne 0 ]]; then
+        log_error "MUD release identity or matching debug symbols failed verification: $binary_path"
         return 2
-    fi
-
-    # Verify it's a regular file (not symlink to dangerous location)
-    if [[ ! -f "$binary_path" ]] || [[ -L "$binary_path" ]]; then
-        local real_path=$(readlink -f "$binary_path" 2>/dev/null || echo "")
-        if [[ -z "$real_path" ]] || [[ ! -f "$real_path" ]]; then
-            log_error "MUD binary is not a regular file or broken symlink: $binary_path"
-            return 2
-        fi
     fi
 
     return 0
@@ -830,8 +1042,10 @@ check_improper_shutdown() {
 # Start the MUD server
 start_mud() {
     local exit_code
-    local heartbeat_pid
+    local heartbeat_pid=""
+    local identity_status
     local mud_pid
+    local -a mud_flags=()
 
     log_info "Starting MUD server on port $MUD_PORT"
     log_info "Command: ${BIN_DIR}/${MUD_BINARY} ${FLAGS} ${MUD_PORT}"
@@ -840,36 +1054,50 @@ start_mud() {
     # CRITICAL: We must handle ALL possible failures gracefully
     set +e
 
-    # Check if binary still exists before starting
-    if [[ ! -x "${BIN_DIR}/${MUD_BINARY}" ]]; then
-        log_error "MUD binary not found or not executable: ${BIN_DIR}/${MUD_BINARY}"
+    resolve_mud_binary_identity "${BIN_DIR}/${MUD_BINARY}"
+    identity_status=$?
+    if [[ $identity_status -ne 0 ]]; then
+        log_error "MUD binary identity verification failed: ${BIN_DIR}/${MUD_BINARY}"
         log_info "Binary missing - waiting 60 seconds before retry"
         return 1
     fi
 
-    # Refresh the health state while the shell waits for the MUD. The heartbeat
-    # exits if its autorun parent dies and cannot keep the autorun lock open.
-    (
-        trap 'exit 0' INT TERM
-        while kill -0 "$AUTORUN_PID" 2>/dev/null; do
-            sleep "$STATE_UPDATE_INTERVAL"
-            if kill -0 "$AUTORUN_PID" 2>/dev/null; then
-                write_autorun_state
-            fi
-        done
-    ) 200>&- &
-    heartbeat_pid=$!
+    LAST_MUD_EXECUTABLE="$RESOLVED_MUD_EXECUTABLE"
+    LAST_MUD_BUILD_ID="$RESOLVED_MUD_BUILD_ID"
+    LAST_MUD_GIT_COMMIT="$RESOLVED_MUD_GIT_COMMIT"
+    LAST_MUD_GIT_DIRTY="$RESOLVED_MUD_GIT_DIRTY"
+    LAST_MUD_SHA256="$RESOLVED_MUD_SHA256"
+    log_info "Resolved MUD executable: $LAST_MUD_EXECUTABLE"
+    log_info "Release identity: git_commit=$LAST_MUD_GIT_COMMIT dirty=$LAST_MUD_GIT_DIRTY build_id=$LAST_MUD_BUILD_ID sha256=$LAST_MUD_SHA256"
 
     # Run the MUD in the foreground as before, but do not let it inherit the
     # autorun lock descriptor.
-    "${BIN_DIR}/${MUD_BINARY}" ${FLAGS} ${MUD_PORT} 200>&- >> syslog 2>&1 &
+    read -r -a mud_flags <<< "$FLAGS"
+    LUMINARI_ELF_BUILD_ID="$LAST_MUD_BUILD_ID" \
+        "$LAST_MUD_EXECUTABLE" "${mud_flags[@]}" "$MUD_PORT" 200>&- >> syslog 2>&1 &
     mud_pid=$!
-    if ! write_pid_file "$MUD_PID_FILE" "$mud_pid"; then
-        log_error "Unable to publish MUD PID"
+    LAST_MUD_PID="$mud_pid"
+    ACTIVE_MUD_PID="$mud_pid"
+    if ! write_pid_file "$MUD_PID_FILE" "$mud_pid" ||
+       ! write_mud_identity "$mud_pid"; then
+        log_error "Unable to publish MUD PID and release identity"
         kill -TERM "$mud_pid" 2>/dev/null || true
         wait "$mud_pid" 2>/dev/null || true
         exit_code=1
     else
+        write_autorun_state
+        # Fork the heartbeat only after active identity is populated so its
+        # subshell reports the exact running release while the parent waits.
+        (
+            trap 'exit 0' INT TERM
+            while kill -0 "$AUTORUN_PID" 2>/dev/null; do
+                sleep "$STATE_UPDATE_INTERVAL"
+                if kill -0 "$AUTORUN_PID" 2>/dev/null; then
+                    write_autorun_state
+                fi
+            done
+        ) 200>&- &
+        heartbeat_pid=$!
         wait "$mud_pid"
         exit_code=$?
     fi
@@ -877,10 +1105,13 @@ start_mud() {
     if [[ "$(read_pid_file "$MUD_PID_FILE" 2>/dev/null || true)" == "$mud_pid" ]]; then
         rm -f -- "$MUD_PID_FILE"
     fi
-
     # The MUD has exited, so stop and reap its state heartbeat.
-    kill "$heartbeat_pid" 2>/dev/null || true
-    wait "$heartbeat_pid" 2>/dev/null || true
+    if [[ "$heartbeat_pid" =~ ^[1-9][0-9]*$ ]]; then
+        kill "$heartbeat_pid" 2>/dev/null || true
+        wait "$heartbeat_pid" 2>/dev/null || true
+    fi
+    ACTIVE_MUD_PID=""
+    write_autorun_state
 
     # NO MATTER WHAT HAPPENS, WE CONTINUE!
     # The script should continue running even if the MUD explodes spectacularly
@@ -925,6 +1156,17 @@ handle_shutdown() {
 
 # Display status information
 show_status() {
+    local active_build_id="unknown"
+    local active_commit="unknown"
+    local active_dirty="unknown"
+    local active_executable="unknown"
+    local active_sha256="unknown"
+    local identity_match="unknown"
+    local installed_build_id="unknown"
+    local installed_commit="unknown"
+    local installed_executable="unknown"
+    local pid=""
+
     echo "========================================"
     echo "LuminariMUD Autorun Status"
     echo "========================================"
@@ -932,15 +1174,52 @@ show_status() {
     echo "MUD Port: $MUD_PORT"
     echo "MUD Binary: ${BIN_DIR}/${MUD_BINARY}"
 
-    if is_mud_running; then
-        pid=$(get_mud_pid 2>/dev/null || true)
-        if [[ -n "$pid" ]]; then
+    pid=$(get_mud_pid 2>/dev/null || true)
+    if [[ -n "$pid" ]]; then
+        if is_mud_running; then
             echo "MUD Status: RUNNING (PID: $pid)"
         else
-            echo "MUD Status: RUNNING (PID unavailable)"
+            echo "MUD Status: STARTING OR RESTARTING (PID: $pid)"
         fi
+        active_executable=$(read_identity_value "$MUD_IDENTITY_FILE" EXECUTABLE 2>/dev/null ||
+            printf 'unknown')
+        active_commit=$(read_identity_value "$MUD_IDENTITY_FILE" GIT_COMMIT 2>/dev/null ||
+            printf 'unknown')
+        active_dirty=$(read_identity_value "$MUD_IDENTITY_FILE" GIT_DIRTY 2>/dev/null ||
+            printf 'unknown')
+        active_build_id=$(read_identity_value "$MUD_IDENTITY_FILE" ELF_BUILD_ID 2>/dev/null ||
+            printf 'unknown')
+        active_sha256=$(read_identity_value "$MUD_IDENTITY_FILE" SHA256 2>/dev/null ||
+            printf 'unknown')
+        echo "Active Executable: $active_executable"
+        echo "Active Git Commit: $active_commit (dirty=$active_dirty)"
+        echo "Active ELF Build ID: $active_build_id"
+        echo "Active SHA-256: $active_sha256"
+    elif is_mud_running; then
+        echo "MUD Status: PORT LISTENING (managed PID unavailable)"
     else
         echo "MUD Status: NOT RUNNING"
+    fi
+
+    if resolve_mud_binary_identity "${BIN_DIR}/${MUD_BINARY}"; then
+        installed_executable="$RESOLVED_MUD_EXECUTABLE"
+        installed_commit="$RESOLVED_MUD_GIT_COMMIT"
+        installed_build_id="$RESOLVED_MUD_BUILD_ID"
+        echo "Installed Executable: $installed_executable"
+        echo "Installed Git Commit: $installed_commit (dirty=$RESOLVED_MUD_GIT_DIRTY)"
+        echo "Installed ELF Build ID: $installed_build_id"
+        echo "Installed SHA-256: $RESOLVED_MUD_SHA256"
+        if [[ -n "$pid" ]]; then
+            if [[ "$active_executable" == "$installed_executable" ]] &&
+               [[ "$active_build_id" == "$installed_build_id" ]]; then
+                identity_match="yes"
+            else
+                identity_match="no - restart required"
+            fi
+            echo "Active Matches Installed: $identity_match"
+        fi
+    else
+        echo "Installed Identity: INVALID OR UNAVAILABLE"
     fi
 
     echo "WebSocket Policy: $ENABLE_WEBSOCKET"
@@ -1016,6 +1295,11 @@ case "${1:-}" in
         if [[ "$mud_command" != /* ]]; then
             mud_command="${PROJECT_ROOT}/${mud_command}"
         fi
+        mud_pid=$(read_pid_file "$MUD_PID_FILE" 2>/dev/null || true)
+        if [[ -n "$mud_pid" ]]; then
+            mud_command=$(get_recorded_mud_executable "$mud_pid" 2>/dev/null ||
+                printf '%s\n' "$mud_command")
+        fi
 
         log_info "Stopping autorun"
         touch .killscript
@@ -1040,6 +1324,8 @@ case "${1:-}" in
         if [[ $mud_signal_status -eq 1 ]]; then
             if mud_pid=$(get_verified_mud_child_pid); then
                 log_info "Using verified supervisor child for legacy MUD shutdown"
+                mud_command=$(get_recorded_mud_executable "$mud_pid" 2>/dev/null ||
+                    printf '%s\n' "$mud_command")
                 signal_verified_process "$mud_pid" "$mud_command" "" "MUD server"
                 mud_signal_status=$?
             else
@@ -1209,6 +1495,10 @@ cleanup_stale_pidfiles() {
     fi
     if [[ -f "$MUD_PID_FILE" ]]; then
         old_pid=$(read_pid_file "$MUD_PID_FILE" 2>/dev/null || true)
+        if [[ -n "$old_pid" ]]; then
+            mud_command=$(get_recorded_mud_executable "$old_pid" 2>/dev/null ||
+                printf '%s\n' "$mud_command")
+        fi
         if [[ -z "$old_pid" ]] ||
            ! kill -0 "$old_pid" 2>/dev/null ||
            ! pid_matches_command "$old_pid" "$mud_command" ""; then
@@ -1222,6 +1512,7 @@ cleanup_stale_pidfiles
 # Set core dump size to unlimited
 ulimit -c unlimited
 log_info "Core dump size set to unlimited"
+log_core_capture_configuration
 
 # Verify the MUD binary exists (non-fatal if it fails)
 if ! verify_mud_binary; then
@@ -1310,6 +1601,13 @@ CRASH_COUNT=0
 CRASH_WINDOW_START=$(date +%s)
 MAX_CRASHES_PER_HOUR=10
 MAX_UPTIME_HOURS="${MAX_UPTIME_HOURS:-168}"  # Default: restart after 7 days
+ACTIVE_MUD_PID=""
+LAST_MUD_PID=""
+LAST_MUD_EXECUTABLE=""
+LAST_MUD_GIT_COMMIT="unknown"
+LAST_MUD_GIT_DIRTY="unknown"
+LAST_MUD_BUILD_ID="unavailable"
+LAST_MUD_SHA256="unavailable"
 
 # Autorun health tracking
 AUTORUN_START_TIME=$(date +%s)
@@ -1318,8 +1616,41 @@ log_info "Autorun started with PID $AUTORUN_PID at $(date)"
 
 # Write autorun state file for external monitoring
 write_autorun_state() {
+    local active_build_id=""
+    local active_commit=""
+    local active_dirty=""
+    local active_executable=""
+    local active_identity_match="not-running"
+    local active_sha256=""
+    local installed_build_id="unavailable"
+    local installed_commit="unknown"
+    local installed_dirty="unknown"
+    local installed_executable="unavailable"
+    local installed_sha256="unavailable"
     local state_file="${PROJECT_ROOT}/.autorun.state"
     local state_tmp
+
+    if resolve_mud_binary_identity "${BIN_DIR}/${MUD_BINARY}"; then
+        installed_build_id="$RESOLVED_MUD_BUILD_ID"
+        installed_commit="$RESOLVED_MUD_GIT_COMMIT"
+        installed_dirty="$RESOLVED_MUD_GIT_DIRTY"
+        installed_executable="$RESOLVED_MUD_EXECUTABLE"
+        installed_sha256="$RESOLVED_MUD_SHA256"
+    fi
+
+    if [[ "$ACTIVE_MUD_PID" =~ ^[1-9][0-9]*$ ]]; then
+        active_executable="$LAST_MUD_EXECUTABLE"
+        active_commit="$LAST_MUD_GIT_COMMIT"
+        active_dirty="$LAST_MUD_GIT_DIRTY"
+        active_build_id="$LAST_MUD_BUILD_ID"
+        active_sha256="$LAST_MUD_SHA256"
+        if [[ "$active_executable" == "$installed_executable" ]] &&
+           [[ "$active_build_id" == "$installed_build_id" ]]; then
+            active_identity_match="yes"
+        else
+            active_identity_match="restart-required"
+        fi
+    fi
 
     state_tmp=$(mktemp "${state_file}.tmp.XXXXXX") || {
         log_error "Unable to create temporary autorun state file"
@@ -1333,6 +1664,18 @@ LAST_UPDATE=$(date +%s)
 STATUS=RUNNING
 CRASH_COUNT=$CRASH_COUNT
 MUD_PORT=$MUD_PORT
+MUD_PID=$ACTIVE_MUD_PID
+MUD_EXECUTABLE=$active_executable
+MUD_GIT_COMMIT=$active_commit
+MUD_GIT_DIRTY=$active_dirty
+MUD_ELF_BUILD_ID=$active_build_id
+MUD_SHA256=$active_sha256
+INSTALLED_EXECUTABLE=$installed_executable
+INSTALLED_GIT_COMMIT=$installed_commit
+INSTALLED_GIT_DIRTY=$installed_dirty
+INSTALLED_ELF_BUILD_ID=$installed_build_id
+INSTALLED_SHA256=$installed_sha256
+MUD_IDENTITY_MATCH=$active_identity_match
 EOF
     then
         log_error "Unable to write autorun state"
@@ -1467,7 +1810,7 @@ while true; do
     fi
 
     # Archive any core dump
-    archive_core_dump
+    archive_core_dump "$mud_exit_code" "$mud_start_time"
 
     # Process logs
     proc_syslog

@@ -31,9 +31,9 @@ Status meanings:
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
-| Production-linked regression coverage | Verified | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, rollback at all nine transaction queries, repeated timed-affect mutation, disconnected-periodic skipping, descriptor detachment, and follower removal. |
+| Production-linked regression coverage | Verified | All 441 tests pass with the development database enabled. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, and copyover pinning to the running release. |
 | Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
-| Deployment and crash observability | In progress | Both build systems now install immutable `bin/releases/<ELF-build-ID>/circle` and `circle.debug` artifacts and atomically activate `bin/circle`; builds embed commit and dirty identity. Active-process health identity, exact-binary core handling, and end-to-end capture diagnostics remain underway. |
+| Deployment and crash observability | In progress | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -115,8 +115,40 @@ Status meanings:
   and both identity-bearing C objects also compile cleanly. The full recursive
   install remains blocked only by the unrelated concurrent unmatched `#endif`
   in `src/act.informative.c`; the already-linked root install phase completed.
-- Next checkpoint: pin autorun launch, state, status, and crash analysis to the
-  exact resolved release identity, then add local core-capture diagnostics.
+- Immutable-release checkpoint commit: `1946ccdf` (`Install immutable build-ID
+  releases`), pushed to `origin/master`.
+- Supervisor identity checkpoint: autorun resolves and verifies the activated
+  release once, launches that exact path with its ELF build ID, and atomically
+  records PID, executable, Git commit/dirty state, build ID, and SHA-256.
+  Process discovery, status, shutdown, and stale-PID handling consult the
+  recorded executable, so changing `bin/circle` cannot redirect management of
+  an older process. The health state reports active and installed identities
+  plus `yes`, `restart-required`, or `not-running`. Managed systemd restart now
+  waits for a fresh, distinct game PID and exact installed identity, not only
+  the supervisor `MainPID`. Copyover resolves `/proc/self/exe` before teardown
+  and re-execs that immutable path, preventing an alias activation from
+  switching binaries inside the already-recorded PID.
+- Crash-observability checkpoint: autorun retains the last launched identity,
+  scans `core` and `core.*` in the project, library, and bin locations, can
+  retrieve a PID-specific systemd core through `coredumpctl`, archives an
+  identity sidecar, verifies the executable SHA-256, and requests full
+  all-thread GDB backtraces from that exact immutable executable. The expanded
+  supervision regression rotates the alias from release A to B while A is
+  running, observes `restart-required`, safely stops A, and proves both the
+  crash identity and fake-GDB executable argument still name A.
+- Host core-capture boundary: `verify_core_capture.sh --self-test` generated a
+  real local SIGABRT, but this WSL kernel pipes cores to
+  `/wsl-capture-crash` and provides neither `coredumpctl` nor another supported
+  retrieval client. The verifier therefore exited 2 as `UNVERIFIED`, rather
+  than claiming capture success. Production must run the same self-test against
+  its actual Apport/systemd configuration.
+- Current regression result: the ordinary production-linked suite and the same
+  suite with the development MariaDB fixture and ten complete pet snapshot
+  loops both pass all 441 tests. The supervision and immutable installer shell
+  suites also pass. Changed copyover production objects compile warning-free.
+- Next checkpoint: complete focused code audit of the other incident-window
+  periodic paths, run all build/test gates available after the concurrent
+  source blocker clears, and finalize the production operator checklist.
 
 ### Memory Diagnostic Commands
 

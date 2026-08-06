@@ -8,6 +8,43 @@
 
 #include <string.h>
 
+void Test_copyover_reexecs_the_running_release(CuTest *tc)
+{
+  char line[1024];
+  char source_path[4096];
+  const char *test_root;
+  FILE *source_file;
+  bool found_exact_exec = FALSE;
+  bool found_proc_resolution = FALSE;
+  bool found_mutable_exec = FALSE;
+
+  test_root = getenv("LUMINARI_TEST_ROOT");
+  if (test_root == NULL || *test_root == '\0')
+    test_root = ".";
+  snprintf(source_path, sizeof(source_path), "%s/src/act.wizard.c", test_root);
+  source_file = fopen(source_path, "r");
+  if (source_file == NULL)
+  {
+    CuFail(tc, "Unable to inspect the production copyover implementation");
+    return;
+  }
+
+  while (fgets(line, sizeof(line), source_file) != NULL)
+  {
+    if (strstr(line, "readlink(\"/proc/self/exe\"") != NULL)
+      found_proc_resolution = TRUE;
+    if (strstr(line, "execl(copyover_executable") != NULL)
+      found_exact_exec = TRUE;
+    if (strstr(line, "execl(EXE_FILE") != NULL)
+      found_mutable_exec = TRUE;
+  }
+  fclose(source_file);
+
+  CuAssertTrue(tc, found_proc_resolution);
+  CuAssertTrue(tc, found_exact_exec);
+  CuAssertTrue(tc, !found_mutable_exec);
+}
+
 void Test_copyover_checkpoint_timer_is_suspended_and_restored(CuTest *tc)
 {
 #ifdef CIRCLE_UNIX

@@ -57,6 +57,10 @@ cleanup()
   local pid
 
   set +e
+  if [[ "${LUMINARI_TEST_KEEP_TMP:-0}" == 1 ]]; then
+    printf 'autorun supervision test artifacts retained at %s\n' "$test_root" >&2
+    return
+  fi
   if [[ -n "${test_root:-}" ]] && [[ -d "$test_root" ]]; then
     while read -r pid; do
       if [[ -n "$pid" ]] && [[ "$pid" != "$$" ]]; then
@@ -147,6 +151,7 @@ test_autorun_startup_and_locking()
   local current_update
   local daemon_dir="$test_root/daemon"
   local heartbeat_attempt
+  local identity_dump
   local initial_update
   local inode_after
   local inode_before
@@ -161,18 +166,28 @@ test_autorun_startup_and_locking()
     fail "a cleanup target removes the persistent autorun lock file"
   fi
 
-  mkdir -p "$daemon_dir/bin" "$daemon_dir/log" "$daemon_dir/dumps" "$unrelated_dir"
+  mkdir -p "$daemon_dir/bin/test-release-one" \
+    "$daemon_dir/bin/test-release-two" "$daemon_dir/fake-bin" \
+    "$daemon_dir/lib" "$daemon_dir/log" "$daemon_dir/dumps" "$unrelated_dir"
   cp "$project_root/scripts/autorun/autorun.sh" "$daemon_dir/autorun.sh"
 
-  cat > "$daemon_dir/bin/circle" <<'EOF'
+  cat > "$daemon_dir/bin/test-release-one/circle" <<'EOF'
 #!/usr/bin/env bash
 set -u
-script_dir=$(cd "$(dirname "$0")/.." && pwd)
+script_dir=$(pwd)
 printf '%s\n' "$$" > "$script_dir/.circle.pid"
-trap 'exit 0' INT TERM
+trap 'touch "$script_dir/lib/core"; exit 134' INT TERM
 while [[ ! -f "$script_dir/.stop-circle" ]]; do
   sleep 0.1
 done
+EOF
+  cp "$daemon_dir/bin/test-release-one/circle" \
+    "$daemon_dir/bin/test-release-two/circle"
+  ln -s "test-release-one/circle" "$daemon_dir/bin/circle"
+
+  cat > "$daemon_dir/fake-bin/gdb" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$(pwd)/.gdb-args"
 EOF
 
   cat > "$daemon_dir/autorun-watchdog.sh" <<'EOF'
@@ -190,7 +205,9 @@ fi
 touch "$script_dir/.watchdog-missing-state"
 exit 1
 EOF
-  chmod +x "$daemon_dir/bin/circle" "$daemon_dir/autorun-watchdog.sh"
+  chmod +x "$daemon_dir/bin/test-release-one/circle" \
+    "$daemon_dir/bin/test-release-two/circle" \
+    "$daemon_dir/fake-bin/gdb" "$daemon_dir/autorun-watchdog.sh"
 
   cat > "$unrelated_dir/autorun.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -206,7 +223,8 @@ EOF
   port=$(find_unused_port)
   (
     cd "$daemon_dir"
-    AUTORUN_STATE_INTERVAL=1 MUD_PORT="$port" ./autorun.sh
+    PATH="$daemon_dir/fake-bin:$PATH" \
+      AUTORUN_STATE_INTERVAL=1 MUD_PORT="$port" ./autorun.sh
   ) > "$daemon_dir/launcher.log" 2>&1
 
   wait_for_file "$daemon_dir/.watchdog-saw-state"
@@ -220,6 +238,12 @@ EOF
   circle_pid=$(sed -n '1p' "$daemon_dir/.circle.pid")
   [[ "$(sed -n '1p' "$daemon_dir/.mud.pid")" == "$circle_pid" ]] ||
     fail "MUD PID file does not identify the fake MUD"
+  grep -Fxq "PID=$circle_pid" "$daemon_dir/.mud.identity" ||
+    fail "MUD identity does not identify the fake MUD"
+  grep -Fxq \
+    "EXECUTABLE=$daemon_dir/bin/test-release-one/circle" \
+    "$daemon_dir/.mud.identity" ||
+    fail "MUD identity does not pin the resolved release"
   kill -0 "$state_pid" 2>/dev/null || fail "foreground supervisor is not running"
   kill -0 "$circle_pid" 2>/dev/null || fail "fake MUD is not running"
 
@@ -260,6 +284,26 @@ EOF
   [[ "$inode_before" == "$inode_after" ]] ||
     fail "actively locked autorun file was replaced"
 
+  ln -s "test-release-two/circle" "$daemon_dir/bin/.circle-next"
+  mv -Tf "$daemon_dir/bin/.circle-next" "$daemon_dir/bin/circle"
+  wait_for_pattern "$daemon_dir/.autorun.state" \
+    "MUD_IDENTITY_MATCH=restart-required"
+  (
+    cd "$daemon_dir"
+    MUD_PORT="$port" ./autorun.sh status
+  ) > "$daemon_dir/status.log" 2>&1
+  grep -Fq \
+    "Active Executable: $daemon_dir/bin/test-release-one/circle" \
+    "$daemon_dir/status.log" ||
+    fail "status did not report the active release"
+  grep -Fq \
+    "Installed Executable: $daemon_dir/bin/test-release-two/circle" \
+    "$daemon_dir/status.log" ||
+    fail "status did not report the installed release"
+  grep -Fq "Active Matches Installed: no - restart required" \
+    "$daemon_dir/status.log" ||
+    fail "status did not report the pending restart"
+
   # Simulate upgrading a live pre-PID-file supervisor. The safe fallback must
   # use .autorun.state plus the exact supervisor-child relationship.
   rm -f "$daemon_dir/.mud.pid" "$daemon_dir/.autorun.lock.pid"
@@ -272,6 +316,17 @@ EOF
     fail "legacy supervisor shutdown did not use the verified child fallback"
   wait_for_pid_exit "$state_pid"
   wait_for_lock_release "$daemon_dir/.autorun.lock"
+  wait_for_file "$daemon_dir/.gdb-args"
+  [[ "$(sed -n '1p' "$daemon_dir/.gdb-args")" == \
+      "$daemon_dir/bin/test-release-one/circle" ]] ||
+    fail "core analysis did not use the exact active release"
+  identity_dump=$(find "$daemon_dir/dumps" -maxdepth 1 \
+    -type f -name 'identity.core.*' -print -quit)
+  [[ -n "$identity_dump" ]] || fail "core identity report was not archived"
+  grep -Fxq \
+    "EXECUTABLE=$daemon_dir/bin/test-release-one/circle" \
+    "$identity_dump" ||
+    fail "core identity report does not name the active release"
   kill -0 "$unrelated_pid" 2>/dev/null ||
     fail "stop command signaled another checkout's autorun process"
   [[ ! -e "$daemon_dir/.mud.pid" ]] ||
@@ -505,9 +560,10 @@ test_systemd_unit_installation()
   local deploy_dir="$test_root/deploy"
   local fake_bin="$deploy_dir/fake-bin"
   local installed_unit="$deploy_dir/installed/luminari.service"
+  local test_pid=$$
 
   mkdir -p "$deploy_dir/scripts/autorun" "$deploy_dir/scripts/deployment" \
-    "$fake_bin" "$deploy_dir/installed"
+    "$deploy_dir/bin/releases/test-build" "$fake_bin" "$deploy_dir/installed"
   cp "$project_root/scripts/deployment/deploy.sh" \
     "$deploy_dir/scripts/deployment/deploy.sh"
   cp "$project_root/scripts/autorun/autorun.sh" \
@@ -515,6 +571,8 @@ test_systemd_unit_installation()
   cp "$project_root/luminari.service" "$deploy_dir/luminari.service"
   chmod +x "$deploy_dir/scripts/autorun/autorun.sh" \
     "$deploy_dir/scripts/deployment/deploy.sh"
+  cp /bin/true "$deploy_dir/bin/releases/test-build/circle"
+  ln -s "releases/test-build/circle" "$deploy_dir/bin/circle"
 
   cat > "$fake_bin/sudo" <<'EOF'
 #!/usr/bin/env bash
@@ -546,6 +604,15 @@ case "${1:-}" in
     [[ "${FAKE_SERVICE_ACTIVE:-true}" == "true" ]]
     ;;
   restart)
+    active_executable=$(readlink -f "$FAKE_PROJECT_ROOT/bin/circle")
+    cat > "$FAKE_PROJECT_ROOT/.autorun.state" <<STATE
+LAST_UPDATE=$(date +%s)
+MUD_PID=$FAKE_LIVE_PID
+MUD_EXECUTABLE=$active_executable
+MUD_ELF_BUILD_ID=test-build
+INSTALLED_ELF_BUILD_ID=test-build
+MUD_IDENTITY_MATCH=yes
+STATE
     exit 0
     ;;
 esac
@@ -555,6 +622,7 @@ EOF
 
   PATH="$fake_bin:$PATH" \
     FAKE_PROJECT_ROOT="$deploy_dir" \
+    FAKE_LIVE_PID="$test_pid" \
     FAKE_SYSTEMD_UNIT="$installed_unit" \
     FAKE_SYSTEMCTL_LOG="$deploy_dir/systemctl.log" \
     "$deploy_dir/scripts/deployment/deploy.sh" --install-systemd --restart-service \
@@ -579,6 +647,9 @@ EOF
     fail "requested service restart was not performed"
   grep -Fq "Systemd service restarted with MainPID 4242" "$deploy_dir/install.log" ||
     fail "systemd installer did not verify the restarted MainPID"
+  grep -Fq "Active MUD release verified: PID $test_pid, build ID test-build" \
+    "$deploy_dir/install.log" ||
+    fail "systemd installer did not verify the active MUD release"
 
   : > "$deploy_dir/.autorun.lock"
   (
@@ -589,6 +660,7 @@ EOF
     set +e
     PATH="$fake_bin:$PATH" \
       FAKE_PROJECT_ROOT="$deploy_dir" \
+      FAKE_LIVE_PID="$test_pid" \
       FAKE_SERVICE_ACTIVE=false \
       FAKE_SYSTEMD_UNIT="$installed_unit" \
       FAKE_SYSTEMCTL_LOG="$deploy_dir/guard-systemctl.log" \
