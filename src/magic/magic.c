@@ -1254,13 +1254,44 @@ void rem_room_aff(struct raff_node *raff)
   free(raff);
 }
 
+/* Dispatch wear-off side effects only after the affect traversal has released
+ * every expiring node. Some handlers add or remove other affects. */
+static void dispatch_affect_wearoff(struct char_data *ch, int spell)
+{
+  const char *wearoff;
+
+  if (spell <= 0 || spell >= TOP_SPELL_DEFINE)
+    return;
+
+  /* Skill and special handlers can perform required cleanup in addition to
+   * sending text. Run them before the generic generated wear-off message. */
+  if (alt_wear_off_msg(ch, spell))
+  {
+    ;
+  }
+  else if (spec_wear_off(ch, spell))
+  {
+    ;
+  }
+  else if ((wearoff = get_wearoff(spell)) != NULL)
+  {
+    send_to_char(ch, "%s\r\n", wearoff);
+  }
+  else
+  {
+    send_to_char(ch, "Please send to staff: Missing wear-off message for: (%d)\r\n", spell);
+  }
+}
+
 /* affect_update: called from comm.c (causes spells to wear off) */
 void affect_update(void)
 {
   struct affected_type *af, *next;
   struct char_data *i, *next_char;
   struct raff_node *raff, *next_raff;
+  int *wearoff_spells;
   static int update_count = 0;
+  size_t expired_count, wearoff_count, wearoff_index;
   int char_count = 0, npc_count = 0, pc_count = 0;
   int affected_chars = 0, processed_affects = 0;
 
@@ -1285,6 +1316,16 @@ void affect_update(void)
     if (i->affected)
       affected_chars++;
 
+    expired_count = 0;
+    for (af = i->affected; af; af = af->next)
+      if (af->duration == 0)
+        expired_count++;
+
+    wearoff_spells = NULL;
+    if (expired_count > 0)
+      CREATE(wearoff_spells, int, expired_count);
+    wearoff_count = 0;
+
     for (af = i->affected; af; af = next)
     { /* loop his/her aff list */
       processed_affects++;
@@ -1295,42 +1336,20 @@ void affect_update(void)
         ;
       else
       { /* affect wore off! */
-        /* handle spells/skills (use to just handle spells) */
+        /* Queue one wear-off dispatch for the last adjacent component. The
+         * dispatch happens after traversal because it may mutate this list. */
+        if (af->spell > 0 && af->spell < TOP_SPELL_DEFINE &&
+            (!af->next || af->next->spell != af->spell || af->next->duration > 0))
+          wearoff_spells[wearoff_count++] = af->spell;
 
-        if ((af->spell > 0) && (af->spell < TOP_SPELL_DEFINE))
-        { /*valid spellnum?*/
-
-          /* this is our check to avoid duplicate wear-off messages */
-          if (!af->next || (af->next->spell != af->spell) || (af->next->duration > 0))
-          {
-            /* do we have a built-in spell wear-off message? */
-            if (get_wearoff(af->spell))
-            {
-              send_to_char(i, "%s\r\n", get_wearoff(af->spell));
-            }
-            /* check for alternative message! (skills) */
-            else if (alt_wear_off_msg(i, af->spell))
-            {
-              ;
-            }
-            /* check for alternative message! (specs, like morph) */
-            else if (spec_wear_off(i, af->spell))
-            {
-              ;
-            }
-            else
-            {
-              /* should not get here, problem! */
-              send_to_char(i, "Please send to staff: Missing wear-off message for: (%d)\r\n",
-                           af->spell);
-            }
-          }
-        }
-
-        /* ok, finally remove affect */
         affect_remove(i, af);
       }
     }
+
+    for (wearoff_index = 0; wearoff_index < wearoff_count; wearoff_index++)
+      dispatch_affect_wearoff(i, wearoff_spells[wearoff_index]);
+    free(wearoff_spells);
+
     /* Only update MSDP for player characters with active descriptors */
     if (!IS_NPC(i) && i->desc)
       update_msdp_affects(i);

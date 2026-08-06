@@ -51,6 +51,7 @@ static i3_command_t *i3_pop_command(void);
 static void i3_free_command(i3_command_t *cmd);
 static void i3_heartbeat(void);
 static void i3_reconnect(void);
+static i3_state_t i3_current_state(void);
 static void i3_update_mudlist(json_object *result_obj);
 static void i3_update_channel_list(json_object *result_obj);
 static struct char_data *i3_find_online_player(const char *name);
@@ -271,17 +272,17 @@ void *i3_client_thread(void *arg)
   }
 
   /* Main loop */
-  while (i3_client->state != I3_STATE_SHUTDOWN)
+  while (i3_current_state() != I3_STATE_SHUTDOWN)
   {
     /* Check for reconnection */
-    if (i3_client->state == I3_STATE_DISCONNECTED && i3_client->auto_reconnect)
+    if (i3_current_state() == I3_STATE_DISCONNECTED && i3_client->auto_reconnect)
     {
-      for (result = 0; result < i3_client->reconnect_delay && i3_client->state != I3_STATE_SHUTDOWN;
-           result++)
+      for (result = 0;
+           result < i3_client->reconnect_delay && i3_current_state() != I3_STATE_SHUTDOWN; result++)
       {
         sleep(1);
       }
-      if (i3_client->state == I3_STATE_SHUTDOWN)
+      if (i3_current_state() == I3_STATE_SHUTDOWN)
       {
         continue;
       }
@@ -349,7 +350,7 @@ void *i3_client_thread(void *arg)
 
     /* Send heartbeat */
     now = time(NULL);
-    if (i3_client->state == I3_STATE_CONNECTED && now - last_heartbeat >= I3_HEARTBEAT_INTERVAL)
+    if (i3_current_state() == I3_STATE_CONNECTED && now - last_heartbeat >= I3_HEARTBEAT_INTERVAL)
     {
       i3_heartbeat();
       last_heartbeat = now;
@@ -405,17 +406,33 @@ void i3_disconnect(void)
   {
     i3_client->state = I3_STATE_DISCONNECTED;
   }
+  i3_client->authenticated = 0;
   pthread_mutex_unlock(mutex_ptr);
 
-  i3_client->authenticated = 0;
   i3_client->receive_length = 0;
   i3_log("Disconnected from I3 gateway");
+}
+
+/* Read the connection state under the same mutex used by every state writer. */
+static i3_state_t i3_current_state(void)
+{
+  i3_state_t state;
+  pthread_mutex_t *mutex_ptr;
+
+  if (!i3_client || !i3_client->state_mutex)
+    return I3_STATE_SHUTDOWN;
+
+  mutex_ptr = (pthread_mutex_t *)i3_client->state_mutex;
+  pthread_mutex_lock(mutex_ptr);
+  state = i3_client->state;
+  pthread_mutex_unlock(mutex_ptr);
+  return state;
 }
 
 /* Check if connected */
 int i3_is_connected(void)
 {
-  return (i3_client && i3_client->state == I3_STATE_CONNECTED) ? 1 : 0;
+  return i3_current_state() == I3_STATE_CONNECTED ? 1 : 0;
 }
 
 /* Create TCP socket connection */
@@ -2174,12 +2191,15 @@ void i3_debug(const char *format, ...)
 /* Get state string */
 const char *i3_get_state_string(void)
 {
+  i3_state_t state;
+
   if (!i3_client)
   {
     return "Not initialized";
   }
 
-  switch (i3_client->state)
+  state = i3_current_state();
+  switch (state)
   {
   case I3_STATE_DISCONNECTED:
     return "Disconnected";

@@ -842,3 +842,43 @@ void Test_skill_numbered_affect_expiration_dispatches_wearoff(CuTest *tc)
   CuAssertTrue(tc, removed);
   CuAssertTrue(tc, announced);
 }
+
+void Test_affect_wearoff_callback_can_remove_the_cached_successor(CuTest *tc)
+{
+  struct affected_type af;
+  struct char_data ch;
+  struct char_data *saved_character_list;
+
+  if (spell_info[SPELL_ARMOR].name == NULL || spell_info[SPELL_ARMOR].name == unused_spellname)
+    mag_assign_spells();
+
+  clear_char(&ch);
+  ch.player_specials = &dummy_mob;
+  ch.player.short_descr = "affect mutation test character";
+  SET_BIT_AR(MOB_FLAGS(&ch), MOB_ISNPC);
+  GET_LEVEL(&ch) = 20;
+  GET_HIT(&ch) = 1000;
+  GET_MAX_HIT(&ch) = 1000;
+
+  new_affect(&af);
+  af.spell = AFFECT_BERSERKER_INDOMITABLE_WILL;
+  af.duration = -1;
+  affect_to_char(&ch, &af);
+
+  new_affect(&af);
+  af.spell = SKILL_RAGE;
+  af.duration = 0;
+  affect_to_char(&ch, &af);
+
+  saved_character_list = character_list;
+  ch.next = NULL;
+  character_list = &ch;
+  affect_update();
+  character_list = saved_character_list;
+
+  CuAssertTrue(tc, !affected_by_spell(&ch, SKILL_RAGE));
+  CuAssertTrue(tc, !affected_by_spell(&ch, AFFECT_BERSERKER_INDOMITABLE_WILL));
+
+  while (ch.affected != NULL)
+    affect_remove_no_total(&ch, ch.affected);
+}

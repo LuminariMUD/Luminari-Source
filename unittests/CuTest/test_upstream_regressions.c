@@ -11,6 +11,7 @@
 #include "../../src/character/class.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/net/protocol.h"
+#include "../../src/wilderness/terrain_bridge.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,29 @@ void Test_partial_output_writes_preserve_buffer_accounting(CuTest *tc)
   CuAssertStrEquals(tc, "> next", descriptor.output);
   CuAssertIntEquals(tc, 6, descriptor.bufptr);
   CuAssertIntEquals(tc, SMALL_BUFSIZE - 7, descriptor.bufspace);
+}
+
+void Test_terrain_bridge_rejects_unbounded_batch_ranges(CuTest *tc)
+{
+  char *response;
+
+  response = process_terrain_request("{\"command\":null}");
+  CuAssertPtrNotNull(tc, response);
+  CuAssertPtrNotNull(tc, strstr(response, "Missing or invalid command field"));
+  free(response);
+
+  response = process_terrain_request(
+      "{\"command\":\"get_terrain_batch\",\"params\":{"
+      "\"x_min\":-2147483648,\"x_max\":2147483647,\"y_min\":0,\"y_max\":0}}");
+  CuAssertPtrNotNull(tc, response);
+  CuAssertPtrNotNull(tc, strstr(response, "Batch coordinates out of bounds"));
+  free(response);
+
+  response = process_terrain_request("{\"command\":\"get_terrain_batch\",\"params\":{"
+                                     "\"x_min\":0,\"x_max\":1000,\"y_min\":0,\"y_max\":1000}}");
+  CuAssertPtrNotNull(tc, response);
+  CuAssertPtrNotNull(tc, strstr(response, "Batch too large"));
+  free(response);
 }
 
 void Test_upstream_random_generator_sequence(CuTest *tc)

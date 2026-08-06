@@ -337,15 +337,26 @@ char *process_terrain_request(const char *json_request)
   }
 
   /* Get command */
-  if (!json_object_object_get_ex(root, "command", &cmd_obj))
+  if (!json_object_object_get_ex(root, "command", &cmd_obj) ||
+      !json_object_is_type(cmd_obj, json_type_string))
   {
     json_object_put(root);
-    return strdup("{\"error\":\"Missing command field\",\"success\":false}");
+    return strdup("{\"error\":\"Missing or invalid command field\",\"success\":false}");
   }
   command = json_object_get_string(cmd_obj);
+  if (!command)
+  {
+    json_object_put(root);
+    return strdup("{\"error\":\"Missing or invalid command field\",\"success\":false}");
+  }
 
   /* Create response object */
   response = json_object_new_object();
+  if (!response)
+  {
+    json_object_put(root);
+    return strdup("{\"error\":\"Unable to allocate response\",\"success\":false}");
+  }
 
   if (strcmp(command, "get_terrain") == 0)
   {
@@ -416,63 +427,90 @@ char *process_terrain_request(const char *json_request)
     else
     {
       json_object *x_min_obj, *x_max_obj, *y_min_obj, *y_max_obj;
+      int64_t height, total_coords_wide, width;
       int x_min, x_max, y_min, y_max;
+      int total_coords;
 
       if (json_object_object_get_ex(params_obj, "x_min", &x_min_obj) &&
           json_object_object_get_ex(params_obj, "x_max", &x_max_obj) &&
           json_object_object_get_ex(params_obj, "y_min", &y_min_obj) &&
-          json_object_object_get_ex(params_obj, "y_max", &y_max_obj))
+          json_object_object_get_ex(params_obj, "y_max", &y_max_obj) &&
+          json_object_is_type(x_min_obj, json_type_int) &&
+          json_object_is_type(x_max_obj, json_type_int) &&
+          json_object_is_type(y_min_obj, json_type_int) &&
+          json_object_is_type(y_max_obj, json_type_int))
       {
-        x_min = json_object_get_int(x_min_obj);
-        x_max = json_object_get_int(x_max_obj);
-        y_min = json_object_get_int(y_min_obj);
-        y_max = json_object_get_int(y_max_obj);
-
-        /* Validate batch parameters */
-        int total_coords = (x_max - x_min + 1) * (y_max - y_min + 1);
-        if (total_coords > TERRAIN_API_MAX_BATCH_SIZE)
+        if (json_object_get_int64(x_min_obj) < -1024 || json_object_get_int64(x_min_obj) > 1024 ||
+            json_object_get_int64(x_max_obj) < -1024 || json_object_get_int64(x_max_obj) > 1024 ||
+            json_object_get_int64(y_min_obj) < -1024 || json_object_get_int64(y_min_obj) > 1024 ||
+            json_object_get_int64(y_max_obj) < -1024 || json_object_get_int64(y_max_obj) > 1024)
         {
           json_object_object_add(response, "error",
-                                 json_object_new_string("Batch too large (max 1000 coordinates)"));
-          json_object_object_add(response, "success", json_object_new_boolean(FALSE));
-        }
-        else if (x_min > x_max || y_min > y_max)
-        {
-          json_object_object_add(response, "error",
-                                 json_object_new_string("Invalid coordinate range"));
+                                 json_object_new_string("Batch coordinates out of bounds"));
           json_object_object_add(response, "success", json_object_new_boolean(FALSE));
         }
         else
         {
-          /* Process batch request */
-          json_object *data_array = json_object_new_array();
-          int bx, by;
+          x_min = (int)json_object_get_int64(x_min_obj);
+          x_max = (int)json_object_get_int64(x_max_obj);
+          y_min = (int)json_object_get_int64(y_min_obj);
+          y_max = (int)json_object_get_int64(y_max_obj);
 
-          for (bx = x_min; bx <= x_max; bx++)
+          if (x_min > x_max || y_min > y_max)
           {
-            for (by = y_min; by <= y_max; by++)
+            json_object_object_add(response, "error",
+                                   json_object_new_string("Invalid coordinate range"));
+            json_object_object_add(response, "success", json_object_new_boolean(FALSE));
+          }
+          else
+          {
+            width = (int64_t)x_max - x_min + 1;
+            height = (int64_t)y_max - y_min + 1;
+            total_coords_wide = width * height;
+            if (total_coords_wide > TERRAIN_API_MAX_BATCH_SIZE)
             {
-              json_object *coord_obj = json_object_new_object();
+              json_object_object_add(
+                  response, "error",
+                  json_object_new_string("Batch too large (max 1000 coordinates)"));
+              json_object_object_add(response, "success", json_object_new_boolean(FALSE));
+            }
+            else
+            {
+              json_object *data_array;
+              int bx, by;
 
-              int elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, bx, by);
-              int moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, bx, by);
-              int temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, bx, by);
-              int sector = get_sector_type(elevation, temperature, moisture);
+              total_coords = (int)total_coords_wide;
+              data_array = json_object_new_array();
+              for (bx = x_min; bx <= x_max; bx++)
+              {
+                for (by = y_min; by <= y_max; by++)
+                {
+                  json_object *coord_obj;
+                  int elevation, moisture, sector, temperature;
 
-              json_object_object_add(coord_obj, "x", json_object_new_int(bx));
-              json_object_object_add(coord_obj, "y", json_object_new_int(by));
-              json_object_object_add(coord_obj, "elevation", json_object_new_int(elevation));
-              json_object_object_add(coord_obj, "moisture", json_object_new_int(moisture));
-              json_object_object_add(coord_obj, "temperature", json_object_new_int(temperature));
-              json_object_object_add(coord_obj, "sector_type", json_object_new_int(sector));
+                  coord_obj = json_object_new_object();
+                  elevation = get_elevation(NOISE_MATERIAL_PLANE_ELEV, bx, by);
+                  moisture = get_moisture(NOISE_MATERIAL_PLANE_MOISTURE, bx, by);
+                  temperature = get_temperature(NOISE_MATERIAL_PLANE_ELEV, bx, by);
+                  sector = get_sector_type(elevation, temperature, moisture);
 
-              json_object_array_add(data_array, coord_obj);
+                  json_object_object_add(coord_obj, "x", json_object_new_int(bx));
+                  json_object_object_add(coord_obj, "y", json_object_new_int(by));
+                  json_object_object_add(coord_obj, "elevation", json_object_new_int(elevation));
+                  json_object_object_add(coord_obj, "moisture", json_object_new_int(moisture));
+                  json_object_object_add(coord_obj, "temperature",
+                                         json_object_new_int(temperature));
+                  json_object_object_add(coord_obj, "sector_type", json_object_new_int(sector));
+
+                  json_object_array_add(data_array, coord_obj);
+                }
+              }
+
+              json_object_object_add(response, "success", json_object_new_boolean(TRUE));
+              json_object_object_add(response, "data", data_array);
+              json_object_object_add(response, "count", json_object_new_int(total_coords));
             }
           }
-
-          json_object_object_add(response, "success", json_object_new_boolean(TRUE));
-          json_object_object_add(response, "data", data_array);
-          json_object_object_add(response, "count", json_object_new_int(total_coords));
         }
       }
       else
