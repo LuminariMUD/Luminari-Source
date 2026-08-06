@@ -1,7 +1,8 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and
-ART-AUD-013 resolved; ART-AUD-009 partially resolved for Earthcrier
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
+ART-AUD-008, and ART-AUD-013 resolved; ART-AUD-009 partially resolved for
+Earthcrier and Wyrmfang
 
 **Audited:** 2026-08-06
 
@@ -61,12 +62,18 @@ proc independently reachable. A no-heal attempt spends neither recharge nor
 artifact XP. Copyover preserved both clocks, and controlled combat produced
 both mechanics within one healback recharge window.
 
-The confirmed Earthcrier portion of ART-AUD-009 is resolved. Its tracked
-prototype is now Large, so the ordinary size calculation assigns two hands to
-a Medium bearer. A cold development boot loaded that size, exercised the
-two-handed slot and full-hands refusal, and preserved the intended size-feat
-exceptions. Wyrmfang's handedness and Aegis's armor-versus-shield identity
-remain product decisions; ART-AUD-009 is therefore only partially resolved.
+ART-AUD-008 is resolved. Wyrmfang now gains danger sense alongside haste at
+artifact level 5, completing the six-state package carried by its Homeland
+prototype without changing the level 1 through 4 progression curve. A
+production-linked test covers the locked and active boundaries, the real
+directional danger check, player-visible information, and clean removal.
+
+The confirmed Earthcrier and Wyrmfang portions of ART-AUD-009 are resolved.
+Both tracked prototypes are now Large, so the ordinary size calculation
+assigns two hands to a Medium bearer. Cold development boots loaded both
+sizes, exercised the two-handed slot and full-hands refusal, and preserved the
+intended size-feat exceptions. Only Aegis's armor-versus-shield identity
+remains a product decision, so ART-AUD-009 remains partially resolved.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -131,8 +138,8 @@ contracts.
 | ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier now sends its declared `14 + artifact level` base DC to the save system, with tested boundaries of 15 and 19. | Earthcrier |
 | ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
-| ART-AUD-008 | Medium | Likely gap | Wyrmfang ports five of its six source senses but omits danger sense, which exists in the current engine. | Wyrmfang |
-| ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier's tracked prototype is now Large and uses two hands for a normal Medium bearer; Wyrmfang handedness and Aegis identity remain design decisions. | Earthcrier, Wyrmfang, Aegis |
+| ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
+| ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier and Wyrmfang are now Large and use two hands for a normal Medium bearer; only Aegis identity remains a design decision. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Confirmed UX defect | The displayed generic proc percentage is an attempt rate; successful rolls can consume cooldown with no visible or mechanical result. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Confirmed metadata defect | Called-effect `stack_group` is validated but never used; Wyrmfang declares none while its handler hardcodes the ward group. | Wyrmfang, future effects |
@@ -481,7 +488,24 @@ to restore every old flag. Decide per artifact which states are identity,
 convert approved ones into progressive passives, and record rejected states in
 the formal system document.
 
-### ART-AUD-008: Wyrmfang drops one member of a six-state source package
+### ART-AUD-008: Wyrmfang drops one member of a six-state source package [resolved]
+
+Resolution (2026-08-06):
+
+- Wyrmfang now unlocks `AFF_DANGERSENSE` at artifact level 5 alongside haste.
+  This completes the source package without changing its level 1 through 4
+  progression.
+- A production-linked test proves that danger sense is absent and silent at
+  level 4, active at level 5, reaches the real `check_dangersense()` behavior
+  against an aggressive mobile, appears in `artifact info`, and is removed
+  cleanly with the other artifact passives.
+- The complete root suite passes 427/427 tests. On the installed development
+  binary, `artifact info wyrmfang` listed all six powers as active at level 5.
+  With an aggressive mobile in the adjacent room, `look north` printed
+  `You feel danger there.` The temporary mobile and staged artifact level were
+  removed and the exact measured state was restored.
+
+Original evidence at audited revision `61c03285`:
 
 Homeland Wyrmfang carries detect invisibility, sense life, infravision,
 farsee, haste, and danger sense (`EXAMPLE/HomelandMUD/lib/world/obj/170.obj:400-424`).
@@ -489,9 +513,10 @@ The current progressive table ports the first five exactly, one per artifact
 level (`src/obj/spec_artifacts.c:320-325`). It omits danger sense even though
 the current engine defines `AFF_DANGERSENSE` (`src/structs.h:1600`).
 
-This is a likely omission because it is the only dropped member of an otherwise
-directly translated package. It still needs a balance decision about which
-artifact level should unlock it.
+This was a likely omission because it was the only dropped member of an
+otherwise directly translated package. Level 5 was selected because danger
+sense joins the source's final haste state without increasing lower-level
+power.
 
 ### ART-AUD-009: object identity and handedness are inconsistent [partially resolved]
 
@@ -517,21 +542,37 @@ Earthcrier resolution (2026-08-06):
   passed all 17 rows, and Kohdee's measured character, inventory, and artifact
   registry state was restored before a final login-free restart.
 
-Two content decisions remain:
+Wyrmfang resolution (2026-08-06):
 
-- Homeland Wyrmfang is explicitly a two-handed weapon, while current Wyrmfang
-  is also medium-sized (`EXAMPLE/HomelandMUD/lib/world/obj/170.obj:400-424` and
-  `lib/world/artifacts/1699.obj:287-309`). This is a source-parity decision,
-  not an internal prose contradiction.
+- Wyrmfang's tracked prototype is now Large, matching the Homeland weapon's
+  explicit two-handed flag and nearly eight-foot description. A normal Medium
+  bearer therefore uses two hands, while size-changing abilities, Monkey Grip,
+  and Powerful Build remain normal systemic exceptions.
+- A production-linked regression reads Wyrmfang's `I` extension from the
+  tracked world file and passes it through `hands_needed_full()`. It first
+  failed against the old Medium value and passes against `SIZE_LARGE`.
+- Existing builder-owned records must set VNUM 169915's size to Large through
+  OLC or an equivalent reviewed edit. Fresh worlds receive the corrected
+  package value.
+- The full suite passes 427/427 tests. A cold development boot reported
+  Wyrmfang as Large. With Kohdee's Monkey Grip and Powerful Build ranks set
+  temporarily to zero, Wyrmfang occupied the two-handed slot and Kelrom was
+  refused for needing another hand. Both ranks were restored to 1.
+- The same session verified Wyrmfang's restored level-5 danger sense,
+  `help artifact`, and all 17 metadata rows. Kohdee's measured character,
+  inventory, and artifact registry state was restored before a final
+  login-free restart.
+
+One content decision remains:
+
 - The current Aegis prototype is body-worn breastplate armor
   (`lib/world/artifacts/1699.obj:220-240`), while its runtime content contract
   calls it a shield (`src/obj/spec_artifacts.c:270-272`) and the placement plan
   describes a pure defensive shield. Aegis has no historical counterpart to
   break the tie.
 
-Earthcrier's internal contradiction is resolved in the tracked contract.
-Wyrmfang and Aegis still require a declared content choice before prototype
-edits, so ART-AUD-009 remains open for those two artifacts.
+Earthcrier's internal contradiction and Wyrmfang's source-parity decision are
+resolved in the tracked contract. ART-AUD-009 remains open only for Aegis.
 
 ### ART-AUD-010: displayed generic chance overstates observable behavior
 
@@ -658,7 +699,7 @@ runtime ignores.
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
 | 169914 | Earthcrier | DC and handedness fixed | Knockdown uses its declared level-scaled base DC (ART-AUD-005). Its Large prototype now makes a normal Medium bearer wield it with two hands, matching current lore (Earthcrier portion of ART-AUD-009). |
-| 169915 | Wyrmfang | Likely passive gap; identity review | Weighted signature, `invoke hunt`, and five source senses exist. Danger sense is the one omitted source state, and source handedness differs (ART-AUD-008, ART-AUD-009). |
+| 169915 | Wyrmfang | Source package restored | Its weighted signature and `invoke hunt` remain safe rebuilds. All six source passive states now exist, culminating in level-5 haste and danger sense, and its Large prototype uses two hands for a normal Medium bearer (ART-AUD-008 and the Wyrmfang portion of ART-AUD-009). |
 | 169916 | Courage | Covered intentional rebuild | The current group valor effect and progressive defenses replace a Homeland combat branch that contained no finished mechanic. No additional gap was found. |
 | 169917 | Icedge | Covered intentional rebuild | Cold defenses, rime, and a bounded reusable flurry are implemented. The flurry shape was recovered from a mechanics-only Homeland artifact rather than claimed as a literal Icedge source proc. |
 | 169918 | Twilight | Covered intentional rebuild | Progressive awareness and a bounded surge replace Homeland's unsafe stat-doubling behavior. Current large size preserves two-handed use. No additional gap was found. |
@@ -692,12 +733,12 @@ runtime ignores.
    tests and controlled in-game verification (ART-AUD-002 through
    ART-AUD-004).
 4. **Completed 2026-08-06: repair confirmed current contradictions.**
-   Earthcrier's DC and handedness and Kelrom's independent generic/healback
-   contract now agree with their declared behavior. ART-AUD-009 remains open
-   only for the Wyrmfang and Aegis product decisions.
+   Earthcrier's DC and handedness, Kelrom's independent generic/healback
+   contract, and Wyrmfang's passive and handedness package now agree with their
+   declared behavior. ART-AUD-009 remains open only for Aegis.
 5. **Make product decisions.** Approve or reject first-wave passives,
-   Wyrmfang danger sense, class-oath scope, Wyrmfang handedness, and Aegis
-   identity. Record every rejection in `docs/systems/ARTIFACT_SYSTEM.md`.
+   class-oath scope, and Aegis identity. Record every rejection in
+   `docs/systems/ARTIFACT_SYSTEM.md`.
 6. **Clean the framework.** Make proc reporting accurate, use table stack-group
    data, and repair or remove the dormant ward shape
    (ART-AUD-010, ART-AUD-012, ART-AUD-014).
@@ -713,12 +754,16 @@ runtime ignores.
 - Earthcrier's tested DC matches one documented formula.
 - Earthcrier's tracked Large prototype requires two hands for a normal Medium
   bearer through the production wielding calculation.
+- Wyrmfang exposes all six source passive states at their documented levels,
+  its danger sense reaches the production directional-look check, and its
+  tracked Large prototype requires two hands for a normal Medium bearer.
 - Kelrom either has a reachable generic proc or advertises no generic proc; a
   no-heal event consumes neither cooldown nor proc XP.
 - `artifact info` distinguishes attempt chance from successful/visible proc
   chance, or no-op attempts do not consume cooldown.
 - Prototype type, size, lore, placement notes, and runtime content contracts
-  agree for Earthcrier, Wyrmfang, and Aegis.
+  agree for Earthcrier and Wyrmfang; Aegis remains the tracked identity
+  decision.
 - Formal system documentation and help files are updated alongside the code.
 
 The implementation workflow and the Tiamat's Stinger case study already live in

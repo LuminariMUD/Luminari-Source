@@ -2,6 +2,41 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Wyrmfang source identity restoration
+
+#### Fixed
+
+- Restored danger sense, the sixth permanent state on Wyrmfang's Homeland
+  prototype. It unlocks alongside haste at artifact level 5, leaving the
+  earlier progression curve unchanged.
+- Changed Wyrmfang's tracked size from Medium to Large. A normal Medium bearer
+  now needs the two hands promised by its source flag and nearly eight-foot
+  description.
+
+#### Changed
+
+- Updated Wyrmfang's lore, artifact help, formal system guide, and mechanics
+  audit with the six-state progression and handedness contract. Existing
+  builder-owned worlds must apply the one-field size update through OLC or an
+  equivalent reviewed edit.
+
+#### Verification
+
+- The test-first run failed on the missing passive count, inactive danger
+  sense, and Medium prototype. Production-linked coverage now tests level 4
+  lockout, level 5 behavior through `check_dangersense()`, visible information,
+  clean removal, and the real wielding calculation. The complete root suite
+  passes 427/427 tests.
+- After a cold development boot, `stat object wyrmfang` reported Large and
+  `artifact info wyrmfang` listed all six passives at level 5. With Kohdee's
+  size feats temporarily removed, Wyrmfang occupied the two-handed slot and a
+  second weapon was refused for needing another hand.
+- An aggressive mobile in the adjoining room caused `look north` to report
+  `You feel danger there.` The mobile, staged artifact level, feat ranks, and
+  all measured character, inventory, and registry state were restored. The
+  live help and all 17 artifact rows validated before a final login-free
+  restart on the installed binary.
+
 ### Earthcrier two-handed prototype
 
 #### Fixed

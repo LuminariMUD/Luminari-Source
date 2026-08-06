@@ -36,6 +36,9 @@
 #include "../../src/net/protocol.h"
 #include "../../src/obj/spec_artifacts.h"
 
+/* Production look helper exercised by Wyrmfang's danger-sense contract. */
+void check_dangersense(struct char_data *ch, room_rnum room);
+
 /* --------------------------------------------------------------------------
  * The fixture
  *
@@ -561,7 +564,7 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 2},
     {ART_VNUM_WYRMFANG, NULL, 0, ART_SIG_WEIGHTED, NOTHING, 0,
      {ART_EFFECT_DRAGON_SIGHT, 0, 0, 0},
-     {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING}, 5},
+     {ART_INVOKE_COMMAND, NOTHING, NOTHING, NOTHING}, 6},
     {ART_VNUM_COURAGE, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_GROUP_VALOR, 0, 0, 0},
      {ART_INVOKE_SAY, NOTHING, NOTHING, NOTHING}, 4},
@@ -577,6 +580,7 @@ static const struct artint_passive_case artint_passive_cases[] = {
     {ART_VNUM_WYRMFANG, 3, AFF_SENSE_LIFE, APPLY_NONE, 0},
     {ART_VNUM_WYRMFANG, 4, AFF_FARSEE, APPLY_NONE, 0},
     {ART_VNUM_WYRMFANG, 5, AFF_HASTE, APPLY_NONE, 0},
+    {ART_VNUM_WYRMFANG, 5, AFF_DANGERSENSE, APPLY_NONE, 0},
     {ART_VNUM_COURAGE, 1, 0, APPLY_SAVING_WILL, 2},
     {ART_VNUM_COURAGE, 2, 0, APPLY_RES_ELECTRIC, 10},
     {ART_VNUM_COURAGE, 3, 0, APPLY_SAVING_FORT, 2},
@@ -1033,6 +1037,70 @@ void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *
 
   CuAssertIntEquals(tc, 95, one_artifact);
   CuAssertIntEquals(tc, 88, two_artifacts);
+}
+
+void Test_artifact_integration_wyrmfang_unlocks_source_danger_sense_at_level_five(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int locked_at_four = FALSE, silent_at_four = FALSE;
+  int active_at_five = FALSE, sensed_danger = FALSE;
+  int info_described = FALSE, removed_cleanly = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_WYRMFANG);
+  CuAssertPtrNotNull(tc, art);
+  artint_instance(&fixture, &obj, ART_VNUM_WYRMFANG);
+  artint_carry(&fixture, &obj);
+
+  fixture.bystander.next_in_room = NULL;
+  fixture.rooms[1].people = &fixture.victim;
+  IN_ROOM(&fixture.victim) = 1;
+  SET_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_AGGRESSIVE);
+
+  art->level = 4;
+  artifact_apply_passives(&fixture.actor, art);
+  locked_at_four = !AFF_FLAGGED(&fixture.actor, AFF_DANGERSENSE);
+  artint_clear_output(&fixture);
+  check_dangersense(&fixture.actor, 1);
+  silent_at_four = !artint_said(&fixture, "You feel danger there");
+  artifact_remove_passives(&fixture.actor, art);
+
+  art->level = ARTIFACT_MAX_LEVEL;
+  artifact_apply_passives(&fixture.actor, art);
+  active_at_five = !!AFF_FLAGGED(&fixture.actor, AFF_DANGERSENSE);
+  artint_clear_output(&fixture);
+  check_dangersense(&fixture.actor, 1);
+  sensed_danger = artint_said(&fixture, "You feel danger there");
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "[active]") &&
+                   artint_said(&fixture, "feels danger beyond the next door");
+
+  artifact_remove_passives(&fixture.actor, art);
+  removed_cleanly = !AFF_FLAGGED(&fixture.actor, AFF_DANGERSENSE);
+
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.victim), MOB_AGGRESSIVE);
+  fixture.rooms[1].people = NULL;
+  IN_ROOM(&fixture.victim) = 0;
+  fixture.bystander.next_in_room = &fixture.victim;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, locked_at_four);
+  CuAssertIntEquals(tc, TRUE, silent_at_four);
+  CuAssertIntEquals(tc, TRUE, active_at_five);
+  CuAssertIntEquals(tc, TRUE, sensed_danger);
+  CuAssertIntEquals(tc, TRUE, info_described);
+  CuAssertIntEquals(tc, TRUE, removed_cleanly);
 }
 
 /* --------------------------------------------------------------------------

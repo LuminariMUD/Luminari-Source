@@ -71,8 +71,9 @@ runs add nothing further.
 
 When a tracked prototype contract changes, existing worlds must apply that
 specific field through OLC or an equivalent reviewed world-data edit. For
-Earthcrier, VNUM 169914, the `I` extension must be `6` (`SIZE_LARGE`). Fresh
-worlds receive that value directly from the tracked package.
+Earthcrier, VNUM 169914, and Wyrmfang, VNUM 169915, the `I` extension must be
+`6` (`SIZE_LARGE`). Fresh worlds receive those values directly from the
+tracked package.
 
 ### The package is version controlled
 
@@ -520,6 +521,15 @@ equip, reapplied on level-up, and stripped on unequip.
 
 `artifact info` shows both the active powers and the locked ones with the
 level that opens them, because what progression buys is the point.
+
+Wyrmfang recovers all six permanent states from its Homeland prototype through
+this progression table. It gains detect invisibility at level 1, infravision
+at level 2, sense life at level 3, farsee at level 4, then haste and danger
+sense together at level 5. Danger sense uses the normal directional-look
+check and warns when an aggressive enemy is in the room beyond an exit.
+Wyrmfang's prototype is Large, so the standard weapon-size calculation uses
+two hands for a Medium bearer. Size-changing abilities, Monkey Grip, and
+Powerful Build continue to modify that calculation normally.
 
 ## Proc Stacking Groups
 

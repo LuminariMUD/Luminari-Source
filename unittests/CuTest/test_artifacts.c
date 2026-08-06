@@ -835,6 +835,32 @@ void Test_artifact_world_package_earthcrier_is_two_handed(CuTest *tc)
   CuAssertIntEquals(tc, 2, hands_needed_full(&wielder, &earthcrier, FALSE));
 }
 
+void Test_artifact_world_package_wyrmfang_is_two_handed(CuTest *tc)
+{
+  struct char_data wielder;
+  struct obj_data wyrmfang;
+  char path[PATH_MAX] = {'\0'};
+  char failure[PATH_MAX + 128] = {'\0'};
+  const char *root = artifact_test_source_root();
+  int size = SIZE_UNDEFINED;
+
+  snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.obj", root);
+  if (!artifact_test_object_integer_field(path, ART_VNUM_WYRMFANG, 'I', &size))
+  {
+    snprintf(failure, sizeof(failure), "could not read Wyrmfang's size field from %s", path);
+    CuFail(tc, failure);
+    return;
+  }
+
+  clear_char(&wielder);
+  clear_object(&wyrmfang);
+  wielder.points.size = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&wyrmfang) = size;
+
+  CuAssertIntEquals(tc, SIZE_LARGE, size);
+  CuAssertIntEquals(tc, 2, hands_needed_full(&wielder, &wyrmfang, FALSE));
+}
+
 /* --------------------------------------------------------------------------
  * Shutdown
  * -------------------------------------------------------------------------- */

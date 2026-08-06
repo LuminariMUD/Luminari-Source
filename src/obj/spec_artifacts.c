@@ -283,7 +283,7 @@ static const struct artifact_contract artifact_contracts[] = {
      "Something large enough to swing it two-handed is already carrying it."},
 
     {ART_VNUM_WYRMFANG, ART_ACQ_BOSS, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
-     "A night-black spear cut from the horn of a gargantuan black dragon.",
+     "An eight-foot night-black spear cut from a gargantuan black dragon's horn.",
      "It was taken from a dragon once. It will have to be taken again."},
 
     {ART_VNUM_COURAGE, ART_ACQ_STAFF_EVENT, ART_CAMPAIGN_ALL, ART_OWNER_PUBLIC,
@@ -324,6 +324,8 @@ static const struct artifact_passive artifact_passives[] = {
     {ART_VNUM_WYRMFANG, 3, AFF_SENSE_LIFE, APPLY_NONE, 0, "feels life moving nearby"},
     {ART_VNUM_WYRMFANG, 4, AFF_FARSEE, APPLY_NONE, 0, "looks further than the room"},
     {ART_VNUM_WYRMFANG, 5, AFF_HASTE, APPLY_NONE, 0, "moves the way a hunting spear should"},
+    {ART_VNUM_WYRMFANG, 5, AFF_DANGERSENSE, APPLY_NONE, 0,
+     "feels danger beyond the next door"},
 
     /* Courage: defenses first, then the speed the legend remembers. */
     {ART_VNUM_COURAGE, 1, 0, APPLY_SAVING_WILL, 2, "steadies the nerve"},

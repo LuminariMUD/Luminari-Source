@@ -52,6 +52,13 @@ are immune. Earthcrier is a Large weapon, so a Medium bearer needs two hands
 under the normal size rules. Size-changing abilities and weapon-size feats
 still work normally. Use 'artifact info earthcrier' to see its current DC.
 
+Wyrmfang is a Large spear, so a Medium bearer normally needs two hands to
+wield it. Size-changing abilities and weapon-size feats still work normally.
+As Wyrmfang grows, it unlocks progressively stronger senses. At level 5 it
+grants both haste and danger sense; looking through an exit warns of an
+aggressive enemy in the next room. Use 'artifact info wyrmfang' to see every
+active and locked power.
+
 Kelrom keeps two independent on-hit mechanics. Its generic artifact strike has
 a 14 percent chance. Its group healback restores 10 percent of the triggering
 damage per artifact level to its bearer and half that share to nearby group
