@@ -1,7 +1,7 @@
 # Production Crash and Pet Persistence Investigation
 
-Status: Development repair implemented; final local validation in progress;
-production containment remains operator-owned
+Status: Development repair and local validation complete; production
+deployment, recovery, and validation remain operator-owned
 
 Incident: 2026-08-05 20:38:58-20:38:59 UTC
 
@@ -32,10 +32,11 @@ Status meanings:
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
-| Production-linked regression coverage | Verified | All 444 tests pass in the ordinary suite. The last database-enabled run passed all 441 tests before the three incident-window regressions were added; the final database-enabled rerun remains in progress. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, copyover pinning, partial output writes, terrain range rejection, and callback-safe affect expiration. |
-| Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
+| Production-linked regression coverage | Verified | The ordinary and development-MariaDB runs both pass all 444 production-linked tests; the database run performs ten complete pet snapshot replacements. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, copyover pinning, partial output writes, terrain range rejection, and callback-safe affect expiration. |
+| Memory diagnostics on repaired source | Verified | One hundred repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. A refreshed 444-test ASan/UBSan binary also exits cleanly with leak detection enabled. Fail-fast UBSan separately exposes the documented pre-existing world-loader shift error. The unavailable exact `2.5033-beta` source and historical allocator abort cannot be reproduced. |
 | Deployment and crash observability | Verified | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
 | Incident-window periodic path audit | Verified | Output partial writes had a confirmed write-before-buffer defect and now preserve exact counters. I3 state/authentication reads and writes now share a mutex. Terrain batch input now rejects invalid types, null commands, out-of-bounds coordinates, overflowing products, and batches above 1,000 cells. Affect expiration detaches nodes before invoking list-mutating cleanup callbacks. Event queue ownership and deferred extraction were traced without finding a concrete incident-window defect. |
+| Clean build, test, and install | Verified | A detached clean source at `470f5a1f`, using the same development database and world fixture, completes `autoreconf`, `configure`, a warning-free parallel build, the aggregate `make test` target, and `make install`. All 444 CuTests and every shell regression pass. The installed dirty=0 release has build ID `3f60699d1a84846baf03af239252afacf564a2f8`, matching symbols and manifest, and no root `circle` remains. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -182,9 +183,29 @@ Status meanings:
   The ordinary production-linked suite passes all 444 tests.
 - Periodic-path checkpoint commit: `f0b6f7b9` (`Harden incident-window periodic
   paths`), pushed to `origin/master`.
-- Next checkpoint: rerun database-enabled persistence coverage and memory
-  diagnostics, complete the available build/install gates, and finalize the
-  production operator checklist.
+- Final database and memory checkpoint: the development-MariaDB run passes all
+  444 tests with ten complete snapshot replacements. A refreshed 444-test
+  ASan/UBSan executable, containing the output, terrain, I3, and affect changes,
+  exits zero with strict string checks and leak detection enabled. The complete
+  normal executable also exits zero under Valgrind Memcheck with invalid-access
+  failures configured to return 99. The earlier focused persistence Memcheck
+  remains the authoritative leak summary because full server lifecycle tests
+  close Valgrind's reporting descriptor.
+- Clean-source validation checkpoint: the primary checkout cannot compile its
+  unrelated concurrent `src/act.informative.c` change because line 9998 has an
+  unmatched `#endif`; that file is not part of this repair and was not changed.
+  A detached worktree at `470f5a1f`, with fresh-clone example configuration
+  headers and read-only links to the same development database/world fixture,
+  completes `autoreconf`, `configure`, a warning-free parallel build,
+  `make test`, and `make install`. The aggregate target passes all 444 CuTests,
+  autorun supervision, versioned installation, background help, and vessel
+  tooling regressions. Installation activates dirty=0 build ID
+  `3f60699d1a84846baf03af239252afacf564a2f8`, preserves its manifest and
+  symbols, and removes the root `circle` artifact.
+- Development completion boundary: source repairs and available local gates
+  are complete. Applying migrations, restarting production, validating pet
+  state, testing core capture on the real host, and recovering affected owners
+  remain operator actions.
 
 ### Memory Diagnostic Commands
 
@@ -254,6 +275,10 @@ damaged the heap is not.
   proven to be the corrupting path. glibc detected the damage during a later
   allocator operation, and the same failed pet branch had completed 22,767
   times in the retained logs before the one abort.
+- A separate output-buffer defect could write before a descriptor buffer after
+  a partial socket write. That is a confirmed heap-corruption mechanism and a
+  credible incident candidate, but no retained evidence proves that the
+  required partial-write state occurred before this abort.
 - A separate P0 defect is proven: existing databases never receive the new
   `pet_data.runtime_state` column. Startup checks only whether `pet_data`
   exists, not whether its required columns exist, so it skips the ALTER and
@@ -281,6 +306,7 @@ containment even if they prove unrelated to the heap corruption.
 | Startup migration logic skips the required ALTER | Confirmed | Source control flow and five production boot sequences |
 | Pet persistence is deleting durable data | Confirmed | Delete-before-insert source order, failed INSERTs, and zero current rows for all four observed owners |
 | The pet code corrupted the heap | Unproven, low confidence | Strong temporal correlation but no stack, no core, no obvious error in the failing cleanup branch, and thousands of prior executions |
+| Partial output accounting corrupted this process | Unproven | The old branch can address memory before its buffer after a partial write, but no core or socket-write trace ties that state to the incident |
 | Recurrence is possible | Confirmed | The column remains absent and post-restart SELECT failures continued |
 
 ## Incident Timeline
@@ -559,7 +585,113 @@ These actions were not performed during this investigation.
    Do not blindly replay all 22,767 attempts. Pet equipment needs a backup or
    another independent source.
 
+## Production Deployment and Validation Checklist
+
+Run this checklist from the production project root during an approved
+maintenance window. Do not reopen the game if any required check fails.
+
+### Preflight and backup
+
+1. Record the current source and process identity before making changes:
+
+   ```bash
+   git rev-parse HEAD
+   readlink -f bin/circle
+   ./scripts/autorun/autorun.sh status
+   ```
+
+2. Stop normal player access and take a verified full logical database backup.
+   Copy it off-host. Record current `pet_data` and `pet_save_objs` totals and
+   the rows for Gerok, Zridt, Xantos, and Raistalyn before migration or
+   recovery.
+3. Confirm the checkout is the intended clean commit. If `bin/circle` is still
+   a regular file and that same inode is live, stop the service once before
+   installation. The installer deliberately refuses to replace a live legacy
+   executable.
+
+### Build and activate
+
+4. Build, test, and install in that order:
+
+   ```bash
+   make clean
+   make -j"$(nproc)"
+   make test
+   make install
+   ```
+
+   Require every test to pass and confirm no root-level `circle` remains.
+5. Verify that the activated alias, immutable release, debug symbols, and
+   manifest agree:
+
+   ```bash
+   test -L bin/circle
+   bin/circle --build-info
+   release_dir=$(dirname "$(readlink -f bin/circle)")
+   cat "$release_dir/manifest"
+   readelf -nW "$release_dir/circle" | awk '/Build ID:/ {print $NF; exit}'
+   readelf -nW "$release_dir/circle.debug" | awk '/Build ID:/ {print $NF; exit}'
+   sha256sum "$release_dir/circle"
+   ```
+
+6. Restart through the managed service and verify the newly installed identity:
+
+   ```bash
+   sudo systemctl restart luminari.service
+   ./scripts/autorun/autorun.sh status
+   awk -F= '$1 == "MUD_IDENTITY_MATCH" {print $2}' .autorun.state
+   ```
+
+   Require `MUD_IDENTITY_MATCH=yes`. The active executable, Git commit, ELF
+   build ID, and SHA-256 must match the installed release.
+
+### Schema, pet behavior, and recovery
+
+7. Inspect the boot log. Migrations `2026080501` through `2026080504` must
+   either apply successfully or already be recorded, followed by:
+
+   ```text
+   Info: Pet persistence schema contract verified at version 2026080504
+   ```
+
+   Any migration or schema-contract error is a fail-closed startup failure, not
+   a warning to bypass. Confirm both pet tables use InnoDB, the required
+   columns and indexes exist, and the migration table records all four
+   versions.
+8. With a disposable test owner, verify all of the following before reopening:
+   two followers; equipped, carried, and nested pet objects; punctuation in
+   names/descriptions; save and quit; login; a managed restart; login again;
+   then dismiss one follower, save, and confirm it does not reappear.
+9. Recover Gerok, Zridt, Xantos, and Raistalyn only from a trusted backup or a
+   separately reviewed recovery transaction. Validate ownership, follower
+   count, runtime state, equipment, carried objects, and nested objects for
+   each owner. Keep the pre-recovery snapshot and an audit of every row
+   restored.
+
+### Crash capture and observation
+
+10. Verify real host core capture end to end:
+
+    ```bash
+    ./scripts/debugging/verify_core_capture.sh --self-test
+    ```
+
+    Require `SELF_TEST=PASS`. Exit 2 or `UNVERIFIED` is not sufficient for
+    production crash readiness.
+11. During the maintenance smoke test and after reopening, monitor the game,
+    autorun, MariaDB, and system logs for pet-persistence failures, allocator
+    diagnostics, restarts, and identity drift. Preserve any core together with
+    its generated identity sidecar and exact immutable release directory.
+12. If validation fails, keep maintenance mode active and preserve the new
+    schema. Assess whether to reactivate a previous immutable release and
+    perform another managed restart; do not reverse the schema migrations or
+    replay pet rows blindly.
+
 ## Required Development Repairs
+
+All implementable source repairs below are complete and locally verified. The
+historical `2.5033-beta` source cannot be identified, and production core
+capture, deployment, pet recovery, and live validation remain operator-owned.
 
 ### P0: Schema and persistence safety
 
