@@ -354,6 +354,10 @@ bonuses, resistance percentages, ability costs, cooldowns, and proc chance.
 `artifact_contracts[]` is authoritative for where each one comes from,
 which campaigns it exists in, and whether its bearer is named publicly.
 
+The Aegis of Ages is body-worn breastplate armor, not shield-slot equipment.
+Its tracked prototype, public chronicle lore, placement brief, and
+production-linked identity regression all use that form.
+
 ### Content contract
 
 Every artifact declares one row in `artifact_contracts[]`:

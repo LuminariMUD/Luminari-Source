@@ -243,6 +243,61 @@ static int artifact_test_object_integer_field(const char *path, int vnum, char f
   return FALSE;
 }
 
+/* Read the item type and first wear-flag field from a tracked object record.
+ * Four tilde-terminated strings precede the first numeric line. */
+static int artifact_test_object_identity_fields(const char *path, int vnum, int *item_type,
+                                                bitvector_t *wear_flags)
+{
+  FILE *fl = NULL;
+  char line[READ_SIZE] = {'\0'};
+  char record[64] = {'\0'};
+  char wear[READ_SIZE] = {'\0'};
+  size_t len = 0;
+  int in_record = FALSE, strings = 0;
+
+  if (!item_type || !wear_flags || !(fl = fopen(path, "r")))
+    return FALSE;
+
+  snprintf(record, sizeof(record), "#%d", vnum);
+
+  while (fgets(line, sizeof(line), fl))
+  {
+    len = strlen(line);
+    while (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r'))
+      line[--len] = '\0';
+
+    if (line[0] == '#')
+    {
+      if (in_record)
+        break;
+      in_record = !strcmp(line, record);
+      continue;
+    }
+
+    if (!in_record)
+      continue;
+
+    if (strings < 4)
+    {
+      if (len > 0 && line[len - 1] == '~')
+        strings++;
+      continue;
+    }
+
+    if (sscanf(line, "%d %*s %*s %*s %*s %8191s", item_type, wear) == 2)
+    {
+      *wear_flags = asciiflag_conv(wear);
+      fclose(fl);
+      return TRUE;
+    }
+
+    break;
+  }
+
+  fclose(fl);
+  return FALSE;
+}
+
 static const char *artifact_test_source_root(void)
 {
   const char *root = getenv("LUMINARI_TEST_ROOT");
@@ -859,6 +914,28 @@ void Test_artifact_world_package_wyrmfang_is_two_handed(CuTest *tc)
 
   CuAssertIntEquals(tc, SIZE_LARGE, size);
   CuAssertIntEquals(tc, 2, hands_needed_full(&wielder, &wyrmfang, FALSE));
+}
+
+void Test_artifact_world_package_aegis_is_body_armor(CuTest *tc)
+{
+  char path[PATH_MAX] = {'\0'};
+  char failure[PATH_MAX + 128] = {'\0'};
+  const char *root = artifact_test_source_root();
+  bitvector_t wear_flags = 0;
+  int item_type = 0;
+
+  snprintf(path, sizeof(path), "%s/lib/world/artifacts/1699.obj", root);
+  if (!artifact_test_object_identity_fields(path, ART_VNUM_AEGIS, &item_type, &wear_flags))
+  {
+    snprintf(failure, sizeof(failure), "could not read Aegis identity fields from %s", path);
+    CuFail(tc, failure);
+    return;
+  }
+
+  CuAssertIntEquals(tc, ITEM_ARMOR, item_type);
+  CuAssertIntEquals(tc, TRUE, IS_SET(wear_flags, Q_BIT(ITEM_WEAR_TAKE)) != 0);
+  CuAssertIntEquals(tc, TRUE, IS_SET(wear_flags, Q_BIT(ITEM_WEAR_BODY)) != 0);
+  CuAssertIntEquals(tc, FALSE, IS_SET(wear_flags, Q_BIT(ITEM_WEAR_SHIELD)) != 0);
 }
 
 /* --------------------------------------------------------------------------

@@ -678,6 +678,28 @@ void Test_artifact_integration_boot_registers_every_shipped_artifact(CuTest *tc)
   artint_end(&fixture);
 }
 
+void Test_artifact_integration_aegis_lore_matches_breastplate_identity(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct artifact_data *art = NULL;
+  int lore_matches = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_AEGIS);
+  lore_matches =
+      art && art->lore && strstr(art->lore, "breastplate") && !strstr(art->lore, "shield");
+
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, lore_matches);
+}
+
 void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(CuTest *tc)
 {
   struct artint_fixture fixture;
@@ -1017,7 +1039,7 @@ void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *
 {
   struct artint_fixture fixture;
   struct obj_data weapon;
-  struct obj_data shield;
+  struct obj_data armor;
   struct artifact_data *fade = NULL;
   struct artifact_data *aegis = NULL;
   int one_artifact = 0, two_artifacts = 0;
@@ -1039,7 +1061,7 @@ void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *
   CuAssertIntEquals(tc, 12, aegis->resist_physical);
 
   artint_instance(&fixture, &weapon, ART_VNUM_FADE);
-  artint_instance(&fixture, &shield, ART_VNUM_AEGIS);
+  artint_instance(&fixture, &armor, ART_VNUM_AEGIS);
 
   GET_EQ(&fixture.actor, WEAR_WIELD_1) = &weapon;
   weapon.worn_by = &fixture.actor;
@@ -1047,14 +1069,14 @@ void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *
 
   one_artifact = artifact_damage_resist(&fixture.actor, 100, DAM_SLICE);
 
-  GET_EQ(&fixture.actor, WEAR_SHIELD) = &shield;
-  shield.worn_by = &fixture.actor;
-  shield.worn_on = WEAR_SHIELD;
+  GET_EQ(&fixture.actor, WEAR_BODY) = &armor;
+  armor.worn_by = &fixture.actor;
+  armor.worn_on = WEAR_BODY;
 
   two_artifacts = artifact_damage_resist(&fixture.actor, 100, DAM_SLICE);
 
   GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
-  GET_EQ(&fixture.actor, WEAR_SHIELD) = NULL;
+  GET_EQ(&fixture.actor, WEAR_BODY) = NULL;
   artint_end(&fixture);
 
   CuAssertIntEquals(tc, 95, one_artifact);

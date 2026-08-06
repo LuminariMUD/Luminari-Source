@@ -2,6 +2,28 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Aegis breastplate identity
+
+#### Fixed
+
+- Kept the Aegis of Ages as the body-worn breastplate defined by its shipped
+  prototype and replaced the stale shield rumor in its public chronicle lore.
+- Corrected the world-building placement brief to call for defensive
+  breastplate armor rather than shield-slot equipment.
+
+#### Verification
+
+- Added a production-linked prototype regression that requires Aegis to be
+  takeable body armor and rejects a shield wear flag. A booted-registry
+  regression also requires breastplate lore without shield wording.
+- The test-first run passed 431/432 tests and failed only on the stale public
+  lore. The corrected root suite passes 432/432 tests.
+- On the installed development binary, `stat object aegis` reported takeable
+  body armor, wearing it used the body slot while the shield slot remained
+  empty, its chronicle printed the new breastplate lore, and all 17 artifact
+  rows passed verification. Kohdee's measured files were restored
+  byte-for-byte before a login-free restart.
+
 ### Dormant ward signature chance
 
 #### Fixed

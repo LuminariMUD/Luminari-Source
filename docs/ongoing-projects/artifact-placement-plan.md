@@ -113,7 +113,7 @@ one-line source change and the only code work this whole task can generate.
 | 169908 | Gesen | **none** | none | exploration | The only unbound artifact in the roster. It can change hands freely, so it is the safest one to place somewhere reachable. |
 | 169909 | Tiamat's Stinger | **on account** | none | boss | A chromatic dragon boss. Account binding means one per account, ever. |
 | 169910 | Avernus | on equip | none | boss | Infernal theme. |
-| 169911 | Aegis of Ages | on equip | none | quest | A pure defensive shield; a fortress or siege chain fits. |
+| 169911 | Aegis of Ages | on equip | none | quest | Pure defensive breastplate armor; a fortress or siege chain fits. |
 
 ### 4.2 Second wave - acquisition mode already declared
 

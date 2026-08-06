@@ -1,8 +1,8 @@
 # Artifact Mechanics Gap Audit
 
 **Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
-ART-AUD-008, ART-AUD-010, and ART-AUD-012 through ART-AUD-014 resolved;
-ART-AUD-009 partially resolved for Earthcrier and Wyrmfang
+ART-AUD-008 through ART-AUD-010, and ART-AUD-012 through ART-AUD-014
+resolved
 
 **Audited:** 2026-08-06
 
@@ -68,12 +68,11 @@ prototype without changing the level 1 through 4 progression curve. A
 production-linked test covers the locked and active boundaries, the real
 directional danger check, player-visible information, and clean removal.
 
-The confirmed Earthcrier and Wyrmfang portions of ART-AUD-009 are resolved.
-Both tracked prototypes are now Large, so the ordinary size calculation
-assigns two hands to a Medium bearer. Cold development boots loaded both
-sizes, exercised the two-handed slot and full-hands refusal, and preserved the
-intended size-feat exceptions. Only Aegis's armor-versus-shield identity
-remains a product decision, so ART-AUD-009 remains partially resolved.
+ART-AUD-009 is resolved. Earthcrier and Wyrmfang are Large, so the ordinary
+size calculation assigns two hands to a Medium bearer while preserving the
+intended size-feat exceptions. Aegis retains the detailed body-worn
+breastplate prototype shipped in the deployment package; its older one-line
+shield rumor and the placement brief now agree with that playable identity.
 
 ART-AUD-012 is resolved. Called-effect handlers now take their stacking group
 from the validated `artifact_effects[]` row, Wyrmfang declares
@@ -157,7 +156,7 @@ contracts.
 | ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
 | ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
-| ART-AUD-009 | Medium | Partially resolved 2026-08-06 | Earthcrier and Wyrmfang are now Large and use two hands for a normal Medium bearer; only Aegis identity remains a design decision. | Earthcrier, Wyrmfang, Aegis |
+| ART-AUD-009 | Medium | Resolved 2026-08-06 | Earthcrier and Wyrmfang are Large and use two hands for a normal Medium bearer; Aegis is explicitly body-worn breastplate armor. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Resolved 2026-08-06 | Generic proc percentages are labeled as attempt rates, and selected no-op branches spend neither cooldown nor proc XP. | Every generic-proc artifact |
 | ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Resolved 2026-08-06 | Called-effect handlers now use validated table-owned stack groups, and Wyrmfang declares the ward group it actually creates. | Wyrmfang, future effects |
@@ -536,7 +535,7 @@ otherwise directly translated package. Level 5 was selected because danger
 sense joins the source's final haste state without increasing lower-level
 power.
 
-### ART-AUD-009: object identity and handedness are inconsistent [partially resolved]
+### ART-AUD-009: object identity and handedness are inconsistent [resolved]
 
 Earthcrier resolution (2026-08-06):
 
@@ -581,16 +580,38 @@ Wyrmfang resolution (2026-08-06):
   inventory, and artifact registry state was restored before a final
   login-free restart.
 
-One content decision remains:
+Aegis resolution (2026-08-06):
 
-- The current Aegis prototype is body-worn breastplate armor
+- The tracked body-worn breastplate is authoritative. It is the playable
+  prototype, carries detailed breastplate keywords and descriptions, and has
+  armor values and body wear flags. Aegis has no historical counterpart that
+  argues for changing those mechanics.
+- The public chronicle line now describes the repaired breastplate, and the
+  placement brief calls it pure defensive breastplate armor. The older shield
+  wording was a one-line rumor and did not define a shield prototype.
+- A production-linked world-package regression reads Aegis's real item type
+  and wear flags, requiring takeable body armor and rejecting the shield slot.
+  A booted-registry regression requires the public lore to say breastplate and
+  reject shield wording. The existing resistance test now equips its synthetic
+  Aegis on the body slot.
+- The test-first run passed 431/432 tests and failed only because the stale
+  public lore still said shield. The corrected suite passes 432/432 tests.
+- On the installed development binary, `stat object aegis` reported takeable
+  body armor and a body wear slot. Kohdee wore it on the body while equipment
+  reported no shield, and the public chronicle printed the repaired-breastplate
+  lore. `testartifact verify` passed all 17 rows. Kohdee's player, inventory,
+  and registry files were restored byte-for-byte before a login-free restart.
+
+Original Aegis evidence at audited revision `61c03285`:
+
+- The current Aegis prototype was body-worn breastplate armor
   (`lib/world/artifacts/1699.obj:220-240`), while its runtime content contract
-  calls it a shield (`src/obj/spec_artifacts.c:270-272`) and the placement plan
-  describes a pure defensive shield. Aegis has no historical counterpart to
-  break the tie.
-
-Earthcrier's internal contradiction and Wyrmfang's source-parity decision are
-resolved in the tracked contract. ART-AUD-009 remains open only for Aegis.
+  called it a shield (`src/obj/spec_artifacts.c:270-272`) and the placement
+  plan described a pure defensive shield.
+- Aegis had no historical counterpart to break the tie. Source history showed
+  that the detailed playable breastplate package and the one-line shield rumor
+  were independently authored; preserving the prototype avoided a gameplay
+  and equipment-balance change.
 
 ### ART-AUD-010: displayed generic chance overstates observable behavior [resolved]
 
@@ -778,7 +799,7 @@ runtime ignores.
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap remains after the system-wide ART-AUD-001 and ART-AUD-010 fixes. |
 | 169909 | Tiamat's Stinger | Core mechanic fixed; review passives | The separate lifesteal signature now uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table is correctly separate. Realms' five permanent states remain a product decision (ART-AUD-007). |
 | 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
-| 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
+| 169911 | Aegis of Ages | Covered current-original | Its pure defensive numeric package is implemented and tested. The tracked body-worn breastplate is authoritative over the retired shield rumor; it has no historical counterpart (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
 | 169914 | Earthcrier | DC and handedness fixed | Knockdown uses its declared level-scaled base DC (ART-AUD-005). Its Large prototype now makes a normal Medium bearer wield it with two hands, matching current lore (Earthcrier portion of ART-AUD-009). |
 | 169915 | Wyrmfang | Source package restored | Its weighted signature and `invoke hunt` remain safe rebuilds. All six source passive states now exist, culminating in level-5 haste and danger sense, and its Large prototype uses two hands for a normal Medium bearer. Hunter's sight declares and executes through the shared ward group (ART-AUD-008, ART-AUD-009, ART-AUD-012). |
@@ -798,6 +819,7 @@ runtime ignores.
 - Vengeance, Earthcrier, Wyrmfang, Courage, Icedge, and Twilight were documented
   as rebuilds. Exact numeric parity with Homeland is not expected.
 - Aegis of Ages is current-original and has no source-MUD mechanic to recover.
+  Its body-worn breastplate prototype is the explicit form contract.
 - Trorxek's critical blind is present even though the Realms identify text and
   executable procedure disagreed.
 - Henekar's source procedure does not substantiate its identify claim of a

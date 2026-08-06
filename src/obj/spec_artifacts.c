@@ -269,7 +269,7 @@ static const struct artifact_contract artifact_contracts[] = {
      "Staged for release."},
 
     {ART_VNUM_AEGIS, ART_ACQ_VAULT, ART_CAMPAIGN_ALL, ART_OWNER_SECRET,
-     "A shield that has outlasted everyone who ever set it down.",
+     "A breastplate repaired in every age, with no two patches alike and none yet broken.",
      "Staged for release."},
 
     /* ---- second wave: each one has a real, stated acquisition mode ------- */
