@@ -104,7 +104,7 @@ struct artifact_template
   int class_min_level; /* levels required in that class         */
 
   /* Reusable signature proc.  ART_SIG_NONE means either none at all or one
-   * of the five hand-written procedures dispatched by vnum. */
+   * of the seven hand-written procedures dispatched by vnum. */
   int sig_proc;   /* ART_SIG_*                                   */
   int sig_chance; /* percent per successful hit                  */
   int sig_align;  /* ART_ALIGN_*                                 */
@@ -1337,12 +1337,13 @@ void artifact_save(void)
   }
 
   current_time = time(0);
-  fprintf(fl, "# Artifact Ownership File v2.3\n");
+  fprintf(fl, "# Artifact Ownership File v2.4\n");
   fprintf(fl, "# Format: vnum owner account level exp bound_time instance_persisted\n");
   fprintf(fl, "#         first_owner first_account first_claimed last_claimed\n");
   fprintf(fl,
           "#         claims transfers destroys recoveries overrides discovered discovered_at\n");
-  fprintf(fl, "#         last_ability last_proc effect_used[0..%d]\n", ARTIFACT_MAX_EFFECTS - 1);
+  fprintf(fl, "#         last_ability last_proc last_signature effect_used[0..%d]\n",
+          ARTIFACT_MAX_EFFECTS - 1);
   if (!ctime_r(&current_time, generated_at))
     strlcpy(generated_at, "Unknown\n", sizeof(generated_at));
   fprintf(fl, "# Generated: %s", generated_at);
@@ -1368,7 +1369,8 @@ void artifact_save(void)
             art_index[i].destroy_count, art_index[i].recovery_count, art_index[i].override_count,
             art_index[i].discovered ? 1 : 0, (long)art_index[i].discovered_at);
 
-    fprintf(fl, " %ld %ld", (long)art_index[i].last_ability_use, (long)art_index[i].last_proc);
+    fprintf(fl, " %ld %ld %ld", (long)art_index[i].last_ability_use, (long)art_index[i].last_proc,
+            (long)art_index[i].last_signature_proc);
 
     for (j = 0; j < ARTIFACT_MAX_EFFECTS; j++)
       fprintf(fl, " %ld", (long)art_index[i].effect_used[j]);
@@ -1397,12 +1399,13 @@ enum artifact_file_format
   ARTIFACT_FORMAT_V20,
   ARTIFACT_FORMAT_V21,
   ARTIFACT_FORMAT_V22,
-  ARTIFACT_FORMAT_V23
+  ARTIFACT_FORMAT_V23,
+  ARTIFACT_FORMAT_V24
 };
 
 /* One parsed line.  Every format fills the fields it has and leaves the rest
  * at the defaults set by artifact_record_init(), so a v1 file loads into the
- * same structure a v2.3 file does. */
+ * same structure a v2.4 file does. */
 struct artifact_record
 {
   int vnum;
@@ -1427,6 +1430,7 @@ struct artifact_record
 
   long last_ability_use;
   long last_proc;
+  long last_signature_proc;
   long effect_used[ARTIFACT_MAX_EFFECTS];
 
   int has_history;   /* the file carried provenance          */
@@ -1447,8 +1451,8 @@ static void artifact_record_init(struct artifact_record *rec)
     rec->effect_used[i] = 0;
 }
 
-/* Count whitespace-separated fields.  v2.3 is distinguished from v2.2 by
- * length, which is unambiguous: no earlier format ever wrote more than seven.
+/* Count whitespace-separated fields.  v2.3 and v2.4 are distinguished from
+ * older formats by length; v2.4 adds one signature-cooldown column.
  */
 static int artifact_count_fields(const char *line)
 {
@@ -1472,6 +1476,7 @@ static int artifact_count_fields(const char *line)
 }
 
 #define ARTIFACT_V23_FIELDS (20 + ARTIFACT_MAX_EFFECTS)
+#define ARTIFACT_V24_FIELDS (21 + ARTIFACT_MAX_EFFECTS)
 
 static enum artifact_file_format artifact_detect_record_format(const char *line)
 {
@@ -1483,6 +1488,8 @@ static enum artifact_file_format artifact_detect_record_format(const char *line)
 
   fields = artifact_count_fields(line);
 
+  if (fields >= ARTIFACT_V24_FIELDS)
+    return ARTIFACT_FORMAT_V24;
   if (fields >= ARTIFACT_V23_FIELDS)
     return ARTIFACT_FORMAT_V23;
 
@@ -1499,9 +1506,10 @@ static enum artifact_file_format artifact_detect_record_format(const char *line)
   return ARTIFACT_FORMAT_UNKNOWN;
 }
 
-/* Read the trailing v2.3 columns, which are all numeric and positional.  The
- * head of the line has already been consumed by the v2.2 parse. */
-static int artifact_load_v23_tail(const char *line, struct artifact_record *rec)
+/* Read the trailing v2.3/v2.4 columns, which are all numeric and positional.
+ * The head of the line has already been consumed by the v2.2 parse. */
+static int artifact_load_modern_tail(const char *line, struct artifact_record *rec,
+                                     int has_signature_cooldown)
 {
   const char *p = line;
   int i = 0, consumed = 0;
@@ -1534,6 +1542,13 @@ static int artifact_load_v23_tail(const char *line, struct artifact_record *rec)
     return FALSE;
   p += consumed;
 
+  if (has_signature_cooldown)
+  {
+    if (sscanf(p, " %ld%n", &rec->last_signature_proc, &consumed) != 1)
+      return FALSE;
+    p += consumed;
+  }
+
   for (i = 0; i < ARTIFACT_MAX_EFFECTS; i++)
   {
     if (sscanf(p, " %ld%n", &rec->effect_used[i], &consumed) != 1)
@@ -1555,11 +1570,17 @@ static int artifact_load_record(const char *line, enum artifact_file_format form
 
   switch (format)
   {
+  case ARTIFACT_FORMAT_V24:
+    if (sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
+               &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
+      return FALSE;
+    return artifact_load_modern_tail(line, rec, TRUE);
+
   case ARTIFACT_FORMAT_V23:
     if (sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
                &rec->level, &rec->exp, &rec->bound_time, &rec->instance_persisted) != 7)
       return FALSE;
-    return artifact_load_v23_tail(line, rec);
+    return artifact_load_modern_tail(line, rec, FALSE);
 
   case ARTIFACT_FORMAT_V22:
     return sscanf(line, "%d %511s %511s %d %d %ld %d", &rec->vnum, rec->owner, rec->account,
@@ -1637,6 +1658,7 @@ void artifact_boot(void)
     art->instance_persisted = FALSE;
     art->last_ability_use = 0;
     art->last_proc = 0;
+    art->last_signature_proc = 0;
     art->class_restrict = CLASS_UNDEFINED;
     art->class_min_level = 0;
 
@@ -1712,7 +1734,9 @@ void artifact_boot(void)
     {
       if (line[0] == '#')
       {
-        if (strstr(line, "v2.3"))
+        if (strstr(line, "v2.4"))
+          file_format = ARTIFACT_FORMAT_V24;
+        else if (strstr(line, "v2.3"))
           file_format = ARTIFACT_FORMAT_V23;
         else if (strstr(line, "v2.2"))
           file_format = ARTIFACT_FORMAT_V22;
@@ -1757,7 +1781,7 @@ void artifact_boot(void)
         rec.instance_persisted = FALSE;
 
       if (record_format == ARTIFACT_FORMAT_V21 || record_format == ARTIFACT_FORMAT_V22 ||
-          record_format == ARTIFACT_FORMAT_V23)
+          record_format == ARTIFACT_FORMAT_V23 || record_format == ARTIFACT_FORMAT_V24)
       {
         if (art->account)
           free(art->account);
@@ -1805,6 +1829,10 @@ void artifact_boot(void)
                                     : 0;
         art->last_proc =
             (rec.last_proc > 0 && rec.last_proc <= (long)now) ? (time_t)rec.last_proc : 0;
+        art->last_signature_proc =
+            (rec.last_signature_proc > 0 && rec.last_signature_proc <= (long)now)
+                ? (time_t)rec.last_signature_proc
+                : 0;
 
         for (j = 0; j < ARTIFACT_MAX_EFFECTS; j++)
           art->effect_used[j] = (rec.effect_used[j] > 0 && rec.effect_used[j] <= (long)now)
@@ -2960,9 +2988,9 @@ void artifact_combat_kill(struct char_data *ch, struct char_data *victim)
 /* --------------------------------------------------------------------------
  * Signature weapon procedures
  *
- * ROL wrote these by hand, one per artifact, and rolled them on every hit
- * independently of any shared cooldown.  They run before the generic proc
- * system and do not consume it.
+ * ROL wrote these by hand, one per artifact.  Their table-owned rolls run
+ * before the generic proc system.  Each handler explicitly owns its recharge
+ * policy; Doombringer keeps the source's independent one-third-hour stamp.
  *
  * Returns TRUE when the victim died, so the caller stops touching it.
  * -------------------------------------------------------------------------- */
@@ -3025,6 +3053,80 @@ static int artifact_proc_fade(struct char_data *ch, struct char_data *victim,
 
   artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SIGNATURE);
   return victim_died;
+}
+
+/* Doombringer: turn one successful hit into a bounded run of real main-hand
+ * attacks.  Its source ceiling was five; artifact progression earns that
+ * ceiling one attack at a time. */
+static int artifact_in_doombringer_burst = FALSE;
+#ifdef LUMINARI_CUTEST
+static int artifact_test_doombringer_attacks = 0;
+#endif
+
+static int artifact_proc_doombringer(struct char_data *ch, struct char_data *victim,
+                                     struct obj_data *weapon, struct artifact_data *art, int dam,
+                                     int is_critical)
+{
+  int extra_attacks = 0, i = 0, target_unavailable = FALSE, target_was_good = FALSE;
+
+  (void)dam;
+  (void)is_critical;
+
+  if (!IS_NPC(victim) || artifact_in_doombringer_burst)
+    return FALSE;
+
+  /* The inherited procedure had its own one-third-MUD-hour recharge.  Keep it
+   * separate so the generic proc cannot continually mask the named identity. */
+  if (art->last_signature_proc > 0 &&
+      (time(0) - art->last_signature_proc) < ARTIFACT_DOOMBRINGER_BURST_COOLDOWN)
+    return FALSE;
+
+  extra_attacks = MIN(ARTIFACT_DOOMBRINGER_BURST_MAX_ATTACKS, MAX(1, art->level));
+  target_was_good = IS_GOOD(victim);
+  art->last_signature_proc = time(0);
+  artifact_mark_dirty();
+
+  act("\tRBlack tendrils race down $p, and you explode into a killing frenzy!\tn", FALSE, ch,
+      weapon, victim, TO_CHAR);
+  act("\tRBlack tendrils race down $n's $p as $e explodes into a killing frenzy!\tn", FALSE, ch,
+      weapon, victim, TO_NOTVICT);
+  act("\tR$n blurs around you as $p drives in again and again!\tn", FALSE, ch, weapon, victim,
+      TO_VICT);
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SIGNATURE);
+  artifact_in_doombringer_burst = TRUE;
+
+  for (i = 0; i < extra_attacks; i++)
+  {
+    /* FIGHTING() is safe to compare after a lethal hit even when the mobile
+     * has been queued for extraction.  Do not dereference the old target. */
+    if (i > 0 && FIGHTING(ch) != victim)
+    {
+      target_unavailable = TRUE;
+      break;
+    }
+
+#ifdef LUMINARI_CUTEST
+    artifact_test_doombringer_attacks++;
+#endif
+    hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
+
+    if (FIGHTING(ch) != victim)
+    {
+      target_unavailable = TRUE;
+      break;
+    }
+  }
+
+  artifact_in_doombringer_burst = FALSE;
+
+  if (target_was_good)
+  {
+    GET_ALIGNMENT(ch) = MAX(-1000, GET_ALIGNMENT(ch) - ARTIFACT_DOOMBRINGER_ALIGNMENT_COST);
+    send_to_char(ch, "\tRA sliver of your conscience goes dark.\tn\r\n");
+  }
+
+  return target_unavailable;
 }
 
 /* Kelrarin's Hammer: the thrown hammer, and the alignment-gated mega blast. */
@@ -3255,6 +3357,8 @@ struct artifact_hand_proc_entry
 static const struct artifact_hand_proc_entry artifact_hand_procs[] = {
     {ART_VNUM_TRORXEK, artifact_proc_trorxek, 0, NULL},
     {ART_VNUM_FADE, artifact_proc_fade, ARTIFACT_FADE_DRAIN_ODDS, "siphon a living non-dragon NPC"},
+    {ART_VNUM_DOOMBRINGER, artifact_proc_doombringer, ARTIFACT_DOOMBRINGER_BURST_ODDS,
+     "burst into extra attacks against an NPC"},
     {ART_VNUM_KELRARIN, artifact_proc_kelrarin, 0, NULL},
     {ART_VNUM_KELROM, artifact_proc_kelrom, 0, NULL},
     {ART_VNUM_GESEN, artifact_proc_gesen, 0, NULL},
@@ -3275,7 +3379,7 @@ static const struct artifact_hand_proc_entry *artifact_hand_proc_for_vnum(int vn
 /* --------------------------------------------------------------------------
  * The reusable signature-proc library
  *
- * The six procedures above are one function per artifact, inherited from
+ * The seven procedures above are one function per artifact, inherited from
  * ROL.  Everything added since is a shape from this library, selected by a
  * row in artifact_templates[].  A new artifact reuses a shape; it does not
  * add a function.
@@ -3685,9 +3789,9 @@ int artifact_weapon_proc(struct char_data *ch, struct char_data *victim, struct 
   if (!(art = artifact_of_obj(weapon)))
     return FALSE;
 
-  /* Extra swings bought by the flurry shape are free hits, not fresh chances
-   * at every proc the artifact owns. */
-  if (artifact_in_flurry)
+  /* Extra swings bought by a bounded multi-hit proc are free hits, not fresh
+   * chances at every proc the artifact owns. */
+  if (artifact_in_flurry || artifact_in_doombringer_burst)
     return FALSE;
 
   /* The hand-written procedures roll first and answer to nothing else. */
@@ -4866,6 +4970,12 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                    "  Healing equals %d%% of damage inflicted, capped by missing hit points.\r\n",
                    ARTIFACT_FADE_DRAIN_MAX_DAMAGE / ARTIFACT_MAX_LEVEL,
                    ARTIFACT_FADE_DRAIN_MAX_DAMAGE, ARTIFACT_FADE_DRAIN_HEAL_PERCENT);
+    else if (art->vnum == ART_VNUM_DOOMBRINGER)
+      send_to_char(ch,
+                   "  Burst: one extra main-hand attack per artifact level, up to %d.\r\n"
+                   "  Independent %d-second recharge; good targets cost %d alignment.\r\n",
+                   ARTIFACT_DOOMBRINGER_BURST_MAX_ATTACKS, ARTIFACT_DOOMBRINGER_BURST_COOLDOWN,
+                   ARTIFACT_DOOMBRINGER_ALIGNMENT_COST);
   }
 
   if (art->sig_proc != ART_SIG_NONE && art->sig_chance > 0)
@@ -5960,6 +6070,8 @@ int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_dat
 {
   struct artifact_data *art = NULL;
 
+  artifact_test_doombringer_attacks = 0;
+
   if (!ch || !victim || !weapon)
     return FALSE;
 
@@ -5967,6 +6079,23 @@ int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_dat
     return FALSE;
 
   return artifact_signature_proc(ch, victim, weapon, art, 10, is_critical, TRUE);
+}
+
+int artifact_doombringer_attacks_for_test(void)
+{
+  return artifact_test_doombringer_attacks;
+}
+
+int artifact_force_doombringer_nested_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                                    struct obj_data *weapon)
+{
+  int victim_died = FALSE;
+
+  artifact_in_doombringer_burst = TRUE;
+  victim_died = artifact_weapon_proc(ch, victim, weapon, 10, FALSE);
+  artifact_in_doombringer_burst = FALSE;
+
+  return victim_died;
 }
 
 /* Read the exact production tables and dispatch lookup into one stable test

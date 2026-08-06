@@ -265,7 +265,7 @@
 /* --------------------------------------------------------------------------
  * Reusable signature-proc shapes
  *
- * Six inherited procedures remain hand-written.  Table-driven signature
+ * Seven inherited procedures remain hand-written.  Table-driven signature
  * powers select a shape, chance, and alignment condition here so the same
  * behavior can be reused without another vnum-specific dispatch function.
  * -------------------------------------------------------------------------- */
@@ -354,6 +354,10 @@
 #define ARTIFACT_FADE_DRAIN_ODDS 16
 #define ARTIFACT_FADE_DRAIN_MAX_DAMAGE 200
 #define ARTIFACT_FADE_DRAIN_HEAL_PERCENT 25
+#define ARTIFACT_DOOMBRINGER_BURST_ODDS 31
+#define ARTIFACT_DOOMBRINGER_BURST_MAX_ATTACKS 5
+#define ARTIFACT_DOOMBRINGER_BURST_COOLDOWN (SECS_PER_MUD_HOUR / 3)
+#define ARTIFACT_DOOMBRINGER_ALIGNMENT_COST 1
 #define ARTIFACT_KELRARIN_THROW_ODDS 29
 #define ARTIFACT_KELRARIN_THROW_MAX 250
 #define ARTIFACT_KELRARIN_MEGA_ODDS 33
@@ -385,13 +389,14 @@ struct artifact_data
   struct char_data *ch; /* last holder, NULL when released           */
 
   /* Progression */
-  int level;               /* 1 .. ARTIFACT_MAX_LEVEL                */
-  int experience;          /* running XP total                       */
-  int binding_type;        /* ARTIFACT_BIND_*                        */
-  time_t bound_time;       /* when binding occurred, 0 = unbound     */
-  int instance_persisted;  /* instance is in a player/house save     */
-  time_t last_ability_use; /* ability cooldown stamp                 */
-  time_t last_proc;        /* weapon proc internal cooldown stamp    */
+  int level;                  /* 1 .. ARTIFACT_MAX_LEVEL                */
+  int experience;             /* running XP total                       */
+  int binding_type;           /* ARTIFACT_BIND_*                        */
+  time_t bound_time;          /* when binding occurred, 0 = unbound     */
+  int instance_persisted;     /* instance is in a player/house save     */
+  time_t last_ability_use;    /* ability cooldown stamp                 */
+  time_t last_proc;           /* weapon proc internal cooldown stamp    */
+  time_t last_signature_proc; /* independent signature cooldown stamp */
 
   /* Called-effect recharge stamps, one per effect slot.  Persisted from v2.3
    * onward: a server that reboots often must not hand every power back. */
@@ -579,6 +584,9 @@ struct artifact_test_identity_data
 void artifact_show_info_for_test(struct char_data *ch, struct obj_data *obj);
 int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_data *victim,
                                            struct obj_data *weapon, int is_critical);
+int artifact_force_doombringer_nested_proc_for_test(struct char_data *ch, struct char_data *victim,
+                                                    struct obj_data *weapon);
+int artifact_doombringer_attacks_for_test(void);
 int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *identity);
 #endif
 

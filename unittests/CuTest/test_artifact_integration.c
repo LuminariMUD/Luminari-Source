@@ -537,8 +537,8 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
     {ART_VNUM_HENEKAR, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {ART_EFFECT_BLIND, ART_EFFECT_PACIFY, ART_EFFECT_CHARM, ART_EFFECT_TRAVEL_TO},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY}, 0},
-    /* ART-AUD-003: the inherited five-hit combat burst is still absent. */
-    {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, NOTHING, 0,
+    {ART_VNUM_DOOMBRINGER, "doomblast", 20, ART_SIG_NONE, ART_VNUM_DOOMBRINGER,
+     ARTIFACT_DOOMBRINGER_BURST_ODDS,
      {ART_EFFECT_ANNIHILATION, ART_EFFECT_BLACK_LIGHTNING, ART_EFFECT_ENRAGE, 0},
      {ART_INVOKE_SAY, ART_INVOKE_SAY, ART_INVOKE_SAY, NOTHING}, 0},
     {ART_VNUM_KELRARIN, "soulstrike", 15, ART_SIG_NONE, ART_VNUM_KELRARIN, 0,
@@ -1482,6 +1482,107 @@ void Test_artifact_integration_fade_siphons_only_living_npcs(CuTest *tc)
   CuAssertIntEquals(tc, TRUE, healing_capped);
   CuAssertIntEquals(tc, TRUE, undead_refused);
   CuAssertIntEquals(tc, TRUE, dragon_refused);
+  CuAssertIntEquals(tc, TRUE, player_refused);
+  CuAssertIntEquals(tc, TRUE, info_described);
+}
+
+void Test_artifact_integration_doombringer_scales_its_extra_attack_burst(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  time_t generic_stamp = 0, signature_stamp = 0;
+  int level_one_attacks = 0, level_five_attacks = 0, alignment_after = 0;
+  int cooldown_blocked = FALSE, generic_independent = FALSE, nested_procs_suppressed = FALSE;
+  int player_refused = FALSE, info_described = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_DOOMBRINGER);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_NONE, art->sig_proc);
+  CuAssertIntEquals(tc, 20, art->proc_chance);
+  CuAssertIntEquals(tc, 31, ARTIFACT_DOOMBRINGER_BURST_ODDS);
+  CuAssertIntEquals(tc, 5, ARTIFACT_DOOMBRINGER_BURST_MAX_ATTACKS);
+  CuAssertIntEquals(tc, SECS_PER_MUD_HOUR / 3, ARTIFACT_DOOMBRINGER_BURST_COOLDOWN);
+  CuAssertIntEquals(tc, 1, ARTIFACT_DOOMBRINGER_ALIGNMENT_COST);
+
+  artint_instance(&fixture, &obj, ART_VNUM_DOOMBRINGER);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "Combat:") && artint_said(&fixture, "20% chance") &&
+                   artint_said(&fixture, "Signature:") && artint_said(&fixture, "1-in-31") &&
+                   artint_said(&fixture, "one extra main-hand attack per artifact level") &&
+                   artint_said(&fixture, "Independent 25-second recharge") &&
+                   artint_said(&fixture, "cost 1 alignment");
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  GET_MAX_HIT(&fixture.victim) = 100000;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  art->level = 1;
+  art->last_proc = 0;
+  art->last_signature_proc = 0;
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_one_attacks = artifact_doombringer_attacks_for_test();
+
+  art->proc_chance = 100;
+  art->last_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_doombringer_nested_proc_for_test(&fixture.actor, &fixture.victim, &obj);
+  nested_procs_suppressed = art->last_proc == 0 && fixture.descriptor.output[0] == '\0';
+
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  GET_ALIGNMENT(&fixture.actor) = 0;
+  GET_ALIGNMENT(&fixture.victim) = 1000;
+  art->level = ARTIFACT_MAX_LEVEL;
+  art->proc_chance = 20;
+  generic_stamp = time(0);
+  art->last_proc = generic_stamp;
+  art->last_signature_proc = 0;
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_five_attacks = artifact_doombringer_attacks_for_test();
+  alignment_after = GET_ALIGNMENT(&fixture.actor);
+  signature_stamp = art->last_signature_proc;
+  generic_independent = art->last_proc == generic_stamp;
+
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  cooldown_blocked = artifact_doombringer_attacks_for_test() == 0 &&
+                     art->last_signature_proc == signature_stamp &&
+                     art->last_proc == generic_stamp && fixture.descriptor.output[0] == '\0';
+
+  art->last_signature_proc = 0;
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.bystander, &obj, FALSE);
+  player_refused = artifact_doombringer_attacks_for_test() == 0 && art->last_signature_proc == 0 &&
+                   fixture.descriptor.output[0] == '\0';
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 1, level_one_attacks);
+  CuAssertIntEquals(tc, 5, level_five_attacks);
+  CuAssertIntEquals(tc, -1, alignment_after);
+  CuAssertIntEquals(tc, TRUE, cooldown_blocked);
+  CuAssertIntEquals(tc, TRUE, generic_independent);
+  CuAssertIntEquals(tc, TRUE, nested_procs_suppressed);
   CuAssertIntEquals(tc, TRUE, player_refused);
   CuAssertIntEquals(tc, TRUE, info_described);
 }

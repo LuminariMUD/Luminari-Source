@@ -33,6 +33,12 @@ non-dragon NPCs, deals 40 damage per artifact level through the normal damage
 system, and heals 25 percent of the damage actually inflicted. It never heals
 beyond your maximum hit points. Use 'artifact info fade' to see both chances.
 
+Doombringer also has two separate on-hit rolls. Its named frenzy rolls 1-in-31
+against NPCs and makes one extra main-hand attack per artifact level, up to
+five. It has its own 25-second recharge, separate from the generic strike, and
+using the frenzy against a good target darkens your alignment by one point.
+Use 'artifact info doombringer' to see both chances.
+
 Others answer to words. Hold or wear the artifact and use the channel it
 listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
 command. Each artifact decides which. Each such effect recharges on its own

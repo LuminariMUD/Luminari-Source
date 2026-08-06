@@ -2,6 +2,46 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Doombringer combat burst
+
+#### Added
+
+- Restored Doombringer's inherited 1-in-31 weapon-hit frenzy against NPCs as
+  a named handler separate from its existing 20 percent generic artifact proc.
+- Scaled the burst from one real main-hand attack at artifact level 1 to the
+  inherited five-attack ceiling at level 5. The loop stops as soon as its
+  target leaves combat or dies.
+- Preserved the one-point alignment cost when the burst is used against a good
+  target, capped at the normal -1000 alignment floor.
+
+#### Changed
+
+- Preserved the inherited independent one-third-MUD-hour recharge, currently
+  25 seconds. Extra attacks suppress recursive artifact processing, while the
+  original hit may still reach the separate generic table if its target lives.
+- Advanced the ownership registry to v2.4 with a dedicated persisted signature
+  timestamp. V2.3 remains readable and initializes the new recharge as ready.
+- Made `artifact info` state the separate chances, attack scaling, cooldown,
+  target restriction, and alignment consequence. Updated player help and the
+  formal system guide to match.
+
+#### Verification
+
+- Doombringer's deterministic test drives the real main-hand attack loop at
+  both scaling endpoints and covers its independent cooldown, nested-proc
+  suppression, player refusal, alignment cost, identity wiring, and visible
+  information. Registry tests cover v2.4 round trips, clock skew, and v2.3
+  compatibility. The complete root suite passes 422/422 tests.
+- `make install` installed the tested binary and removed the root `circle`
+  artifact. Kohdee survived copyover, wrote and reloaded v2.4, and retained all
+  16 baseline inventory objects.
+- In a controlled live fight, the generic soul strike fired first and the
+  black-tendril frenzy still fired while that generic timer was active. The
+  level-1 burst made one extra main-hand attack and printed its good-target
+  conscience consequence. The temporary artifact and Oaken Defender were
+  removed, and Kohdee's character, inventory, room, and registry state were
+  restored.
+
 ### Fade Shadowblade life siphon
 
 #### Added
@@ -52,9 +92,9 @@
 #### Verification
 
 - The production-linked suite passes all 419 tests. The original matrix made
-  Fade's missing life drain explicit; ART-AUD-002 has since advanced that row
-  to its callable handler. Doombringer's five-hit burst and Avernus's
-  emergency-heal-only combat package remain explicit pending entries.
+  Fade's and Doombringer's missing combat packages explicit; ART-AUD-002 and
+  ART-AUD-003 have since advanced those rows to callable handlers. Avernus's
+  emergency-heal-only combat package remains an explicit pending entry.
 - `make install` installed the tested binary and removed the root build
   artifact. The development server survived copyover; table metadata
   validated; and Kohdee's read-only Fade, Avernus, and Wyrmfang information

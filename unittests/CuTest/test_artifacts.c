@@ -1419,7 +1419,7 @@ void Test_artifact_crit_xp_beats_a_plain_hit(CuTest *tc)
 }
 
 /* --------------------------------------------------------------------------
- * v2.3: provenance and persistent cooldowns
+ * v2.4: provenance and independent signature cooldowns
  * -------------------------------------------------------------------------- */
 
 /* Count whitespace-separated fields, so the record layout is asserted rather
@@ -1467,7 +1467,7 @@ static int artifact_test_first_record(char *out, size_t size)
   return FALSE;
 }
 
-void Test_artifact_v23_writes_history_and_cooldown_columns(CuTest *tc)
+void Test_artifact_v24_writes_history_and_cooldown_columns(CuTest *tc)
 {
   char record[READ_SIZE] = {'\0'};
   int fields = 0;
@@ -1481,7 +1481,7 @@ void Test_artifact_v23_writes_history_and_cooldown_columns(CuTest *tc)
   artifact_test_registry(11);
   artifact_save();
 
-  CuAssertIntEquals(tc, TRUE, artifact_test_file_contains(ARTIFACT_FILE, "v2.3"));
+  CuAssertIntEquals(tc, TRUE, artifact_test_file_contains(ARTIFACT_FILE, "v2.4"));
   CuAssertIntEquals(tc, TRUE, artifact_test_first_record(record, sizeof(record)));
 
   fields = artifact_test_field_count(record);
@@ -1489,17 +1489,17 @@ void Test_artifact_v23_writes_history_and_cooldown_columns(CuTest *tc)
   artifact_test_leave_sandbox();
   artifact_shutdown();
 
-  /* Seven v2.2 columns, eleven provenance columns, two ability/proc stamps,
+  /* Seven v2.2 columns, eleven provenance columns, three ability/proc stamps,
    * and one stamp per called-effect slot. */
-  CuAssertIntEquals(tc, 20 + ARTIFACT_MAX_EFFECTS, fields);
+  CuAssertIntEquals(tc, 21 + ARTIFACT_MAX_EFFECTS, fields);
 }
 
-void Test_artifact_v23_round_trips_provenance_and_cooldowns(CuTest *tc)
+void Test_artifact_v24_round_trips_provenance_and_cooldowns(CuTest *tc)
 {
   struct artifact_test_object_fixture fixture;
   time_t now = time(0);
   int reloaded_claims = -1, reloaded_recoveries = -1, reloaded_discovered = -1;
-  time_t reloaded_first = 0, reloaded_proc = 0, reloaded_slot1 = 0;
+  time_t reloaded_first = 0, reloaded_proc = 0, reloaded_signature = 0, reloaded_slot1 = 0;
   char *reloaded_first_owner = NULL;
 
   if (!artifact_test_enter_sandbox())
@@ -1526,6 +1526,7 @@ void Test_artifact_v23_round_trips_provenance_and_cooldowns(CuTest *tc)
   art_index[0].discovered_at = now - 5000;
   art_index[0].last_ability_use = now - 60;
   art_index[0].last_proc = now - 10;
+  art_index[0].last_signature_proc = now - 20;
   art_index[0].effect_used[1] = now - 30;
 
   artifact_save();
@@ -1543,6 +1544,7 @@ void Test_artifact_v23_round_trips_provenance_and_cooldowns(CuTest *tc)
       reloaded_recoveries = art->recovery_count;
       reloaded_discovered = art->discovered;
       reloaded_proc = art->last_proc;
+      reloaded_signature = art->last_signature_proc;
       reloaded_slot1 = art->effect_used[1];
     }
   }
@@ -1558,16 +1560,17 @@ void Test_artifact_v23_round_trips_provenance_and_cooldowns(CuTest *tc)
   CuAssertIntEquals(tc, 4, reloaded_recoveries);
   CuAssertIntEquals(tc, TRUE, reloaded_discovered);
   CuAssertIntEquals(tc, (int)(now - 10), (int)reloaded_proc);
+  CuAssertIntEquals(tc, (int)(now - 20), (int)reloaded_signature);
   CuAssertIntEquals(tc, (int)(now - 30), (int)reloaded_slot1);
 
   free(reloaded_first_owner);
 }
 
-void Test_artifact_v23_treats_future_cooldowns_as_ready(CuTest *tc)
+void Test_artifact_v24_treats_future_cooldowns_as_ready(CuTest *tc)
 {
   struct artifact_test_object_fixture fixture;
   time_t now = time(0);
-  time_t reloaded_proc = -1, reloaded_slot0 = -1;
+  time_t reloaded_proc = -1, reloaded_signature = -1, reloaded_slot0 = -1;
 
   if (!artifact_test_enter_sandbox())
   {
@@ -1581,6 +1584,7 @@ void Test_artifact_v23_treats_future_cooldowns_as_ready(CuTest *tc)
   /* A stamp from the future means the clock moved backwards, not that a
    * power is owed a longer wait. */
   art_index[0].last_proc = now + 100000;
+  art_index[0].last_signature_proc = now + 100000;
   art_index[0].effect_used[0] = now + 100000;
 
   artifact_save();
@@ -1593,6 +1597,7 @@ void Test_artifact_v23_treats_future_cooldowns_as_ready(CuTest *tc)
     if (art)
     {
       reloaded_proc = art->last_proc;
+      reloaded_signature = art->last_signature_proc;
       reloaded_slot0 = art->effect_used[0];
     }
   }
@@ -1602,14 +1607,60 @@ void Test_artifact_v23_treats_future_cooldowns_as_ready(CuTest *tc)
   artifact_test_leave_sandbox();
 
   CuAssertIntEquals(tc, 0, (int)reloaded_proc);
+  CuAssertIntEquals(tc, 0, (int)reloaded_signature);
   CuAssertIntEquals(tc, 0, (int)reloaded_slot0);
+}
+
+void Test_artifact_v23_file_still_loads_without_signature_cooldown(CuTest *tc)
+{
+  struct artifact_test_object_fixture fixture;
+  int claims = -1;
+  time_t proc = -1, signature = -1, slot0 = -1;
+
+  if (!artifact_test_enter_sandbox())
+  {
+    CuFail(tc, "could not create a scratch directory");
+    return;
+  }
+
+  artifact_test_begin_objects(&fixture);
+
+  artifact_test_write_file("# Artifact Ownership File v2.3\n"
+                           "\n"
+                           "169901 Karaz karaz_account 3 250 12345 1 "
+                           "Gosric gosric_account 100 200 3 2 1 4 5 1 100 "
+                           "300 400 500 600 700 800\n");
+
+  artifact_boot();
+
+  if (art_index && total_artifacts > 0)
+  {
+    struct artifact_data *art = artifact_by_vnum(ART_VNUM_TRORXEK);
+
+    if (art)
+    {
+      claims = art->claim_count;
+      proc = art->last_proc;
+      signature = art->last_signature_proc;
+      slot0 = art->effect_used[0];
+    }
+  }
+
+  artifact_shutdown();
+  artifact_test_end_objects(&fixture);
+  artifact_test_leave_sandbox();
+
+  CuAssertIntEquals(tc, 3, claims);
+  CuAssertIntEquals(tc, 400, (int)proc);
+  CuAssertIntEquals(tc, 0, (int)signature);
+  CuAssertIntEquals(tc, 500, (int)slot0);
 }
 
 void Test_artifact_v22_file_still_loads_without_history(CuTest *tc)
 {
   struct artifact_test_object_fixture fixture;
   int level = -1, exp = -1, discovered = -1, claims = -1;
-  time_t proc = -1;
+  time_t proc = -1, signature = -1;
 
   if (!artifact_test_enter_sandbox())
   {
@@ -1635,6 +1686,7 @@ void Test_artifact_v22_file_still_loads_without_history(CuTest *tc)
       exp = art->experience;
       claims = art->claim_count;
       proc = art->last_proc;
+      signature = art->last_signature_proc;
       discovered = art->discovered;
     }
   }
@@ -1650,6 +1702,7 @@ void Test_artifact_v22_file_still_loads_without_history(CuTest *tc)
    * artifact is self-evidently one that has been found. */
   CuAssertIntEquals(tc, 0, claims);
   CuAssertIntEquals(tc, 0, (int)proc);
+  CuAssertIntEquals(tc, 0, (int)signature);
   CuAssertIntEquals(tc, TRUE, discovered);
 }
 

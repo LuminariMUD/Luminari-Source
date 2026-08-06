@@ -107,7 +107,8 @@ The registry owns:
 - artifact level and cumulative experience;
 - binding rule and bind timestamp;
 - whether the live instance is in durable player or house storage;
-- in-memory ability, proc, and called-effect cooldown stamps;
+- in-memory ability, generic-proc, signature-proc, and called-effect cooldown
+  stamps;
 - template-derived bonuses, resistances, powers, and class oath.
 
 ## Persistence
@@ -116,16 +117,16 @@ The registry owns:
 `lib/world/world.artifact.tmp` and atomically renames it over
 `lib/world/world.artifact`.
 
-The current v2.3 format is one line per artifact, in three groups:
+The current v2.4 format is one line per artifact, in three groups:
 
 ```text
-# Artifact Ownership File v2.3
+# Artifact Ownership File v2.4
 # Format: vnum owner account level exp bound_time instance_persisted
 #         first_owner first_account first_claimed last_claimed
 #         claims transfers destroys recoveries overrides discovered discovered_at
-#         last_ability last_proc effect_used[0..3]
-169901 noone noone 1 0 0 0 noone noone 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-169905 Zusuk zusuk_acct 3 450 1700000000 1 Vari vari_acct 1699000000 1700000000 2 1 0 0 0 1 1699000000 0 0 0 0 0 0
+#         last_ability last_proc last_signature effect_used[0..3]
+169901 noone noone 1 0 0 0 noone noone 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+169905 Zusuk zusuk_acct 3 450 1700000000 1 Vari vari_acct 1699000000 1700000000 2 1 0 0 0 1 1699000000 0 0 0 0 0 0 0
 ```
 
 The loader also accepts:
@@ -134,10 +135,11 @@ The loader also accepts:
 - ROL v2.0: `vnum owner level exp binding_type bound_time`
 - LuminariMUD v2.1: `vnum owner account level exp bound_time`
 - LuminariMUD v2.2: v2.1 plus `instance_persisted`
+- LuminariMUD v2.3: v2.2 plus provenance and the existing cooldown stamps
 
-Records are told apart by field count, which is unambiguous because no
-format before v2.3 ever wrote more than seven columns. `noone`, `nobody`,
-`none`, and `no` all mean unowned.
+Records are told apart by field count. V2.3 has 24 fields and v2.4 has 25;
+no earlier format wrote more than seven. `noone`, `nobody`, `none`, and `no`
+all mean unowned.
 
 Persisted state is ownership, account, level, experience, bind time,
 durable-instance state, the full custody history, and every cooldown stamp.
@@ -153,7 +155,8 @@ that has been found, but leaves the first bearer and every counter at zero.
 
 Active-ability, generic-proc, and called-effect stamps survive a restart from
 v2.3 onward. A server that reboots often no longer hands every week-long
-power back for free.
+power back for free. V2.4 adds the independent signature-proc stamp used by
+Doombringer; loading a v2.3 file initializes that new recharge as ready.
 
 A stamp in the future is treated as ready rather than as a longer wait: it
 means the clock moved backwards, not that a power is owed more time.
@@ -326,7 +329,7 @@ mobile. Neither is an artifact registry entry.
 | 169902 | Amaukekel, the Rod of Light | Equip | Cleric | `divineward` | - | 3 |
 | 169903 | Fade, the Shadowblade | Equip | Rogue | - | 16% generic + 1-in-16 siphon | 4 |
 | 169904 | The Horn of Henekar | Equip | Rogue | - | - | 4 |
-| 169905 | Doombringer | Pickup | Warrior | `doomblast` | 20% | 3 |
+| 169905 | Doombringer | Pickup | Warrior | `doomblast` | 20% generic + 1-in-31 burst | 3 |
 | 169906 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
 | 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% | - |
 | 169908 | Gesen, the Returning Axe | None | - | - | 18% | - |
@@ -535,7 +538,7 @@ was not ported.
 
 ## Reusable Signature Procs
 
-Six inherited procedures remain hand-written and dispatched through the
+Seven inherited procedures remain hand-written and dispatched through the
 callable handler table. Table-driven signature powers select a shape from
 this reusable library:
 
@@ -612,12 +615,13 @@ succeeds, the proc kind is `rand_number(1, artifact_level)`.
 | 4 | `dice(level, 8)` negative doom damage |
 | 5 | At level 5, a further 5% chance to execute an NPC no higher than the wielder |
 
-Signature procedures run before this generic system. The six hand-written
+Signature procedures run before this generic system. The seven hand-written
 procedures have independent odds and may occur on the same hit as a generic
 proc if the victim survives. Reusable signature shapes normally share the
-generic 30-second internal cooldown. Tiamat's lifesteal ignores that cooldown
-when rolling per hit, but refreshes it when a drain fires so the generic proc
-cannot also fire on that hit.
+generic 30-second internal cooldown. Doombringer instead keeps the source's
+independent 25-second, one-third-MUD-hour recharge. Tiamat's lifesteal ignores
+the generic cooldown while rolling per hit, but refreshes it when a drain fires
+so the generic proc cannot also fire on that hit.
 
 ## Signature Weapon Procedures
 
@@ -625,6 +629,7 @@ cannot also fire on that hit.
 | --- | --- |
 | Trorxek | Every eligible critical hit blinds for `1 + level / 2` rounds |
 | Fade | 1-in-16 siphon against a living non-dragon NPC; `40 * artifact_level` negative damage and 25% actual-damage healing |
+| Doombringer | 1-in-31 burst against an NPC; one extra main-hand attack per artifact level, up to five |
 | Kelrarin | 1-in-29 returning throw with level-scaled force damage and full lifesteal |
 | Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 level-scaled holy blast plus a non-boss NPC execute check |
 | Kelrom | Kills its wielder for striking an animal; otherwise applies group healback, on the shared 30-second internal cooldown |
@@ -638,6 +643,14 @@ percent of damage actually inflicted, rounded down and capped by missing hit
 points. At artifact level 5 this preserves the source procedure's 200 damage
 and 50 healing without its direct HP mutation or overhealing. Fade's separate
 16 percent generic proc still runs through the generic table above.
+
+Doombringer's burst refuses players and executes one real main-hand attack per
+artifact level, up to the inherited five-attack ceiling. It stops when its
+target leaves combat or dies. Its extra attacks cannot recursively trigger any
+artifact proc. The named burst and generic strike use independent persisted
+recharges, so either may occur on the original hit if the target survives.
+Using the burst against a good target lowers the wielder's alignment by one,
+to a floor of -1000.
 
 Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5, and its
 holy blast grows from 100 to 350 the same way. Kelrom's healback grows from
@@ -747,7 +760,7 @@ the group.
 | --- | --- |
 | `testartifact status` | Count owned, dropped, and unowned entries; show memory and data path |
 | `testartifact verify` | Check live duplicates, levels, owners, prototypes, and table metadata |
-| `testartifact save` | Write v2.3 state immediately |
+| `testartifact save` | Write v2.4 state immediately |
 | `testartifact reload` | Flush dirty state, then rebuild the registry and reassociate holders |
 | `testartifact reload discard` | Rebuild without saving; deferred state is lost |
 | `testartifact spawn <vnum>` | Create an *unowned* artifact in the staff member's room |
@@ -838,7 +851,7 @@ from a generic percentage.
 ### Rebalancing an artifact
 
 Edit its entry in `artifact_templates[]`. Template values are applied at boot
-and are not stored in v2.3, so a restart applies the new balance without a
+and are not stored in v2.4, so a restart applies the new balance without a
 data migration.
 
 ### Adding an artifact
@@ -910,9 +923,10 @@ Use this implementation sequence for a new reusable shape:
    Initialize transient fields during `artifact_boot()` and reset them when
    ownership changes. Durable fields require the versioned persistence work
    described below.
-6. Make cooldown interaction explicit. Decide independently whether the
-   signature is gated by `last_proc`, whether success refreshes `last_proc`,
-   and whether the generic proc may run on the same hit.
+6. Make cooldown interaction explicit. Decide whether the signature uses
+   `last_proc`, a dedicated persisted stamp, or no recharge; whether success
+   refreshes the generic stamp; and whether the generic proc may run on the
+   same hit.
 7. Add a concise description to `artifact_show_info()` and update player help
    when the behavior changes what players need to know.
 
@@ -1041,8 +1055,8 @@ Two artifact suites run from there.
 
 `unittests/CuTest/test_artifacts.c` covers everything that does not need a
 loaded world: registry search, ownership sentinels, XP and level boundaries,
-binding names, v1, v2.0, v2.2, and v2.3 persistence, provenance and cooldown
-round-tripping, clock-skew handling, dirty saves, extraction scopes,
+binding names, v1, v2.0, v2.2, v2.3, and v2.4 persistence, provenance and
+cooldown round-tripping, clock-skew handling, dirty saves, extraction scopes,
 destruction, recoverable drops, single-instance guards, reload
 reassociation, affect-message suppression, NULL safety, recharge arithmetic,
 phrase refusal paths, table shape, shipped-metadata validation, chronicle
@@ -1060,8 +1074,9 @@ lifecycle, character-bound and account-bound rejection, level-scaled bonuses,
 highest-only resistance, the exact identity contract for all 17 artifacts,
 active abilities, the generic proc guards and every signature shape, lethal
 signature and generic procs at the outer combat boundary, Fade's level-scaled
-living-target siphon and refusal rules, Tiamat's actual-damage lifesteal and
-healing cap, called-effect success and refusal and per-slot recharge,
+living-target siphon and refusal rules, Doombringer's bounded extra-attack
+burst and independent cooldown, Tiamat's actual-damage lifesteal and healing
+cap, called-effect success and refusal and per-slot recharge,
 invocation-channel separation, class-oath burn and phrase hiding, player and
 staff command output, single-instance behavior across a zone reset and a
 reboot, and the balance-pass decisions recorded above. It runs inside a
@@ -1101,7 +1116,8 @@ fresh clone always has the records it looks for.
   flag.
 - Artifact behavior uses explicit core hooks and one channel-aware invocation
   dispatcher rather than `SPECIAL()` procedures.
-- Cooldown state is persisted from v2.3 onward; effect slots are positional,
+- Ability, generic-proc, and effect cooldown state is persisted from v2.3;
+  v2.4 adds independent signature cooldown state. Effect slots are positional,
   so reordering an artifact's effects reassigns recorded recharges.
 - Passive status powers live in `artifact_passives[]` and must never also be
   prototype affect bits.

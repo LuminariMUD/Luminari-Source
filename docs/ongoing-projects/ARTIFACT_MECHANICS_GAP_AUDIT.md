@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001, ART-AUD-002, and ART-AUD-013 resolved
+**Status:** Remediation in progress; ART-AUD-001, ART-AUD-002, ART-AUD-003, and ART-AUD-013 resolved
 
 **Audited:** 2026-08-06
 
@@ -12,11 +12,12 @@ The audit originally found three omissions of identity-defining combat
 mechanics from the executable source material:
 
 1. Fade had no life-draining combat strike. This was resolved by ART-AUD-002.
-2. Doombringer has no extra-attack combat burst.
+2. Doombringer had no extra-attack combat burst. This was resolved by
+   ART-AUD-003.
 3. Avernus retains only its emergency full heal and is missing its main
    life-stealing strike, automatic stand-up behavior, and minor combat heal.
 
-Doombringer and Avernus are the two confirmed identity packages still absent.
+Avernus is the one confirmed identity package still absent.
 
 The audit also found three independent runtime defects: lethal artifact damage
 was not propagated back to the combat caller, Earthcrier calculates but ignores
@@ -35,6 +36,10 @@ percentages.
 ART-AUD-002 was resolved after that contract was in place. Fade now owns a
 separate 1-in-16 siphon against living non-dragon NPCs while retaining its 16
 percent generic proc as an independent mechanic.
+
+ART-AUD-003 was resolved in the current remediation pass. Doombringer now owns
+a separate 1-in-31, artifact-level-scaled extra-attack burst while retaining
+its 20 percent generic proc.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -94,7 +99,7 @@ contracts.
 | --- | --- | --- | --- | --- |
 | ART-AUD-001 | Critical | Resolved 2026-08-06 | A lethal artifact proc did not report death to the combat caller, which then continued through later victim-dependent riders. | Any damaging proc |
 | ART-AUD-002 | High | Resolved 2026-08-06 | Fade now has its separate 1-in-16 level-scaled life siphon; the 16 percent generic table remains independent. | Fade |
-| ART-AUD-003 | High | Confirmed source gap | Doombringer's five-extra-hit combat burst and its own recharge are absent. Its 20 percent value is only the generic proc table. | Doombringer |
+| ART-AUD-003 | High | Resolved 2026-08-06 | Doombringer now has its separate 1-in-31, level-scaled extra-attack burst and independent one-third-hour recharge. | Doombringer |
 | ART-AUD-004 | High | Confirmed source gap | Avernus implements only emergency healing; its primary life steal and auto-stand package are absent. | Avernus |
 | ART-AUD-005 | High | Confirmed defect | Earthcrier computes `14 + artifact level` but sends a different, much higher level-derived DC to the save system. | Earthcrier |
 | ART-AUD-006 | High | Confirmed defect | Kelrom's always-run signature path owns the shared cooldown, making its configured 14 percent generic proc unreachable. | Kelrom |
@@ -219,20 +224,69 @@ Completed remediation contract:
    refusal.
 4. [x] Scale the inherited 200 damage and 50 healing across artifact levels.
 
-### ART-AUD-003: Doombringer's combat burst is absent
+### ART-AUD-003: Doombringer's combat burst [resolved]
+
+Implementation checkpoint (2026-08-06):
+
+- Doombringer is now a callable row in the production hand-written handler
+  table with its inherited exact 1-in-31 weapon-hit roll. Its existing 20
+  percent generic proc remains a separate table entry and display line.
+- The burst accepts NPC targets and refuses players. It makes one real
+  main-hand attack per artifact level, reaching the inherited five-attack
+  ceiling at level 5, and stops immediately when its target leaves combat or
+  dies.
+- The source's one-point alignment loss against a good target is preserved and
+  capped at -1000.
+- The burst preserves the source's independent one-third-MUD-hour recharge,
+  currently 25 seconds, in a dedicated persisted signature timestamp. Burst
+  attacks cannot recursively trigger another artifact proc; the original hit
+  may still reach the separate generic table if its target survives.
+- A first implementation shared the generic 30-second timestamp and passed its
+  deterministic suite, but repeated local combat windows showed the 20 percent
+  generic strike repeatedly taking the lockout before the 1-in-31 identity
+  could fire. That live design finding rejected the shared-cooldown version.
+- Registry format v2.4 persists the dedicated timestamp. The v2.3 loader
+  remains compatible and initializes the new recharge as ready.
+- `artifact info` states the named and generic chances, target rule, scaling,
+  cooldown, and alignment consequence. Player help distinguishes the burst
+  from the generic table.
+- A deterministic production-linked test drives the real attack loop at
+  levels 1 and 5 and proves exact attack counts, independent cooldown behavior,
+  nested-proc suppression, player refusal, alignment loss, display text, and
+  the updated identity row. Persistence tests cover v2.4 round trips, future
+  timestamps, and v2.3 compatibility.
+- The complete root suite passes 422/422 tests. `make install` installed the
+  tested binary and removed the root `circle` artifact. Kohdee survived
+  copyover on that binary, wrote v2.4, reloaded it, and retained all 16 baseline
+  inventory objects.
+- In a controlled live fight, Doombringer's generic soul strike fired first;
+  the black-tendril frenzy then fired while the generic timer was active,
+  proving the timers independent. At artifact level 1 it produced one extra
+  main-hand attack and the good-target conscience message. The temporary
+  weapon and 17,000-HP Oaken Defender were removed, and Kohdee's inventory,
+  equipment, room, HP, movement, gold, alignment, and registry row were
+  restored.
+
+Original evidence at audited revision `61c03285`:
 
 Realms' executable combat branch rolls 1-in-31, makes five additional attacks,
 reduces alignment when used against a good target, and starts a separate
 `PULSE_HOUR / 3` recharge (`EXAMPLE/RealmsOfLuminari/src/specs.artifacts.c:2479-2524`).
 
-Current Doombringer has its three called effects and `doomblast`, but no named
-signature dispatch. Its 20 percent value is the generic table
+At the audited revision, Doombringer had its three called effects and
+`doomblast`, but no named signature dispatch. Its 20 percent value is the
+generic table
 (`src/obj/spec_artifacts.c:140-143`, `419-425`, and `3552-3575`).
 
-The existing reusable flurry shape proves that bounded extra attacks and
-re-entrancy suppression already exist. A remediation still needs an explicit
-decision about attack count, alignment consequences, and whether Doombringer
-uses the source's independent recharge or the current shared internal cooldown.
+Completed implementation contract:
+
+1. [x] Preserve the inherited 1-in-31 identity separately from the generic
+   20 percent proc table.
+2. [x] Scale one through five real main-hand attacks across artifact levels and
+   stop safely when the target is unavailable.
+3. [x] Preserve and test the one-point good-target alignment consequence.
+4. [x] Preserve and disclose the independent persisted one-third-MUD-hour
+   recharge.
 
 ### ART-AUD-004: Avernus is missing most of Bladesong
 
@@ -414,9 +468,9 @@ Resolution (2026-08-06):
   passive, and hand-dispatch lookups. The test does not infer identity from
   the expected table or substitute a parallel runtime registry.
 - `NULL`, zero, and `NOTHING` values are deliberate contract entries. The
-  matrix exposed Fade's missing life drain until ART-AUD-002 updated runtime
-  and expectation together; Doombringer's absent five-hit burst and Avernus's
-  emergency-heal-only handler remain visible for ART-AUD-003 and ART-AUD-004.
+  matrix exposed Fade's and Doombringer's missing combat packages until
+  ART-AUD-002 and ART-AUD-003 updated runtime and expectation together;
+  Avernus's emergency-heal-only handler remains visible for ART-AUD-004.
 - The test reports the first drift by artifact VNUM and field. The
   production-linked suite passes 419/419 tests.
 - `make install` installed the tested binary and removed the root build
@@ -474,7 +528,7 @@ runtime ignores.
 | 169902 | Amaukekel | Review passive/oath decisions | Three called effects and `divineward` exist. No missing named combat branch was found. Realms permanent states are absent and the active ability bypasses its Cleric oath (ART-AUD-007, ART-AUD-011). |
 | 169903 | Fade | Core mechanic restored; review passives | The separate 1-in-16 life siphon and all four called effects exist. The generic 16 percent table remains independent. Source passives are still unresolved (ART-AUD-007). |
 | 169904 | Horn of Henekar | Source conflict; review passives | Four called effects exist. Realms identify text claims a hitpoint-sucking combat hit, but its executable procedure contains no such combat branch, so there is no reliable mechanic to port without a design decision. Source passives are absent (ART-AUD-007). |
-| 169905 | Doombringer | Confirmed gap | `doomblast` and all three called effects exist; the five-hit combat burst does not (ART-AUD-003). Source passives and active-oath policy remain open (ART-AUD-007, ART-AUD-011). |
+| 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Source passives and active-oath policy remain open (ART-AUD-007, ART-AUD-011). |
 | 169906 | Kelrarin | Review source delta | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. Realms' returning throw also had a nested 1-in-6 second bounded strike that current code omits. Its passive package is unresolved (ART-AUD-007). |
 | 169907 | Kelrom | Confirmed current defect; redesign review | Animal punishment and the current group healback exist, but the 14 percent generic proc is unreachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; current behavior is a substantial rebuild whose intended identity should be confirmed. Source passives remain open (ART-AUD-007). |
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap was found beyond system-wide ART-AUD-001 and ART-AUD-010. |
@@ -512,9 +566,8 @@ runtime ignores.
 2. **Completed 2026-08-06: add identity-contract tests.** All 17 expected
    identities are explicit, so a generic percentage cannot masquerade as a
    named mechanic again (ART-AUD-013).
-3. **In progress: restore the three confirmed missing packages.** Fade is
-   complete. Implement safe, level-scaled versions of Doombringer and Avernus
-   next (ART-AUD-003 and ART-AUD-004).
+3. **In progress: restore the three confirmed missing packages.** Fade and
+   Doombringer are complete. Implement Avernus next (ART-AUD-004).
 4. **Repair current contradictions.** Resolve Earthcrier's DC and handedness,
    then make an explicit Kelrom generic/healback choice
    (ART-AUD-005, ART-AUD-006, ART-AUD-009).
@@ -531,8 +584,8 @@ runtime ignores.
   combat proc, active command, called effects, and progressive passives.
 - A lethal signature or generic proc returns safely through the outer combat
   hook without later victim access.
-- Fade produces its approved named behavior in a deterministic integration
-  test; Doombringer and Avernus still require equivalent coverage.
+- Fade and Doombringer produce their approved named behavior in deterministic
+  integration tests; Avernus still requires equivalent coverage.
 - Earthcrier's tested DC matches one documented formula.
 - Kelrom either has a reachable generic proc or advertises no generic proc; a
   no-heal event consumes neither cooldown nor proc XP.
