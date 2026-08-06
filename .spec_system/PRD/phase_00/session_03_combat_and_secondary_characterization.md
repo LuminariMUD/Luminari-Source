@@ -1,8 +1,9 @@
 # Session 03: Combat and Secondary Characterization
 
 **Session ID**: `phase00-session03-combat-and-secondary-characterization`
-**Status**: Not Started
-**Estimated Tasks**: ~20-24
+**Status**: Complete
+**Completed**: 2026-08-06
+**Tasks**: 22
 **Estimated Duration**: 2-4 hours
 
 ---
@@ -36,8 +37,8 @@ legacy SPECIAL callback but supply different tokens and interpret returns differ
 
 ## Prerequisites
 
-- [ ] Session 01 provides production-linked test fixtures and manifest integration.
-- [ ] Every covered call site has been retraced for current arguments and return handling.
+- [x] Sessions 01 and 02 provide production-linked test fixtures and manifest integration.
+- [x] Every covered call site has been retraced for current arguments and return handling.
 
 ---
 
@@ -52,7 +53,7 @@ legacy SPECIAL callback but supply different tokens and interpret returns differ
 
 ## Success Criteria
 
-- [ ] Each remaining verified invocation category has at least one production-linked assertion.
-- [ ] Exact tokens and caller-specific ignored or propagated returns are frozen.
-- [ ] Shop-over-original and quest-over-existing secondary behavior is characterized.
-- [ ] Tests preserve current dispatch and pass with zero new compiler warnings.
+- [x] Each remaining verified invocation category has at least one production-linked assertion.
+- [x] Exact tokens and caller-specific ignored or propagated returns are frozen.
+- [x] Shop-over-original and quest-over-existing secondary behavior is characterized.
+- [x] Tests preserve current dispatch and pass with zero new compiler warnings.

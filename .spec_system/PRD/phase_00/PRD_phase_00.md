@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 3-5 working days
 
-**Progress**: 2/9 sessions (22%)
+**Progress**: 3/9 sessions (33%)
 
 ---
 
@@ -25,7 +25,7 @@ syntax, activation behavior, or boot precedence.
 |---------|------|--------|------------|-----------|
 | 01 | Registry and Persistence Characterization | Complete | 23 | 2026-08-06 |
 | 02 | Command and Pulse Characterization | Complete | 24 | 2026-08-06 |
-| 03 | Combat and Secondary Characterization | Not Started | ~20-24 | - |
+| 03 | Combat and Secondary Characterization | Complete | 22 | 2026-08-06 |
 | 04 | Validated Definition Registry | Not Started | ~20-24 | - |
 | 05 | Owner-Aware OLC | Not Started | ~18-22 | - |
 | 06 | Authored Binding Model | Not Started | ~20-24 | - |
@@ -39,12 +39,12 @@ syntax, activation behavior, or boot precedence.
 
 - Session 01: Registry and Persistence Characterization - completed 2026-08-06
 - Session 02: Command and Pulse Characterization - completed 2026-08-06
+- Session 03: Combat and Secondary Characterization - completed 2026-08-06
 
 ---
 
 ## Upcoming Sessions
 
-- Session 03: Combat and Secondary Characterization
 - Session 04: Validated Definition Registry
 - Session 05: Owner-Aware OLC
 - Session 06: Authored Binding Model
