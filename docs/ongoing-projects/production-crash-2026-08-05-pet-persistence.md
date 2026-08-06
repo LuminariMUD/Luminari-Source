@@ -36,7 +36,7 @@ Status meanings:
 | Memory diagnostics on repaired source | Verified | One hundred repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. A refreshed 444-test ASan/UBSan binary also exits cleanly with leak detection enabled. Fail-fast UBSan separately exposes the documented pre-existing world-loader shift error. The unavailable exact `2.5033-beta` source and historical allocator abort cannot be reproduced. |
 | Deployment and crash observability | Verified | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
 | Incident-window periodic path audit | Verified | Output partial writes had a confirmed write-before-buffer defect and now preserve exact counters. I3 state/authentication reads and writes now share a mutex. Terrain batch input now rejects invalid types, null commands, out-of-bounds coordinates, overflowing products, and batches above 1,000 cells. Affect expiration detaches nodes before invoking list-mutating cleanup callbacks. Event queue ownership and deferred extraction were traced without finding a concrete incident-window defect. |
-| Clean build, test, and install | Verified | A detached clean source at `470f5a1f`, using the same development database and world fixture, completes `autoreconf`, `configure`, a warning-free parallel build, the aggregate `make test` target, and `make install`. All 444 CuTests and every shell regression pass. The installed dirty=0 release has build ID `3f60699d1a84846baf03af239252afacf564a2f8`, matching symbols and manifest, and no root `circle` remains. |
+| Clean build, test, and install | Verified | A detached clean source at `f427c35d`, using fresh-clone configuration headers, the development database, and the tracked minimal world fixture, completes `autoreconf`, `configure`, a warning-free parallel build, the aggregate `make test` target, the database-enabled 444-test run with ten snapshot loops, and `make install`. The installed dirty=0 release has build ID `be2e0fdd81657bff5f12a99c531824148326cf07`, matching symbols, SHA-256, and manifest, and no root `circle` remains. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -202,6 +202,26 @@ Status meanings:
   tooling regressions. Installation activates dirty=0 build ID
   `3f60699d1a84846baf03af239252afacf564a2f8`, preserves its manifest and
   symbols, and removes the root `circle` artifact.
+- Completion-audit checkpoint: a second detached, Git-clean worktree at
+  `f427c35d` used fresh-clone example configuration headers and read-only links
+  to the development database configuration. `autoreconf`, `configure`, and a
+  warning-free parallel build passed. With temporary indexes pointing at the
+  tracked minimal world fixture, the aggregate `make test` target passed all
+  444 CuTests plus autorun supervision, versioned installation, background
+  help, vessel preflight and memory analysis, process-memory, and vessel-scale
+  parser regressions. The database-enabled binary separately passed all 444
+  tests with ten complete pet snapshot replacements and verified apostrophes
+  through all four pet text columns and recursive object payloads. The current
+  mutable development world was not used for final evidence because its room
+  `#9433` has an unrelated format error; the first audit run exposed that
+  fixture defect without changing it.
+- Completion-audit install: after removing the temporary fixture indexes, the
+  worktree was Git-clean and `make install` activated release
+  `be2e0fdd81657bff5f12a99c531824148326cf07`. The binary reports commit
+  `f427c35da3a6c5be6234dbf55ed8726cea2a8b6f` with `GIT_DIRTY=0`; its executable
+  and detached symbols share that ELF build ID; the manifest records SHA-256
+  `e027bd9268eaebaa705724942dd8f919d22bc20675eca7c7dd874402d77f8156`; and
+  installation removes the root `circle` artifact.
 - Development completion boundary: source repairs and available local gates
   are complete. Applying migrations, restarting production, validating pet
   state, testing core capture on the real host, and recovering affected owners
@@ -572,6 +592,13 @@ The ordinary and development-MariaDB suites both pass all 444 tests. The
 database run performs ten complete snapshot replacements; the ASan/LeakSanitizer
 run performs 100. The focused persistence suite passes Valgrind with zero
 errors and zero definitely lost bytes.
+
+The final completion audit ran from detached clean source at `f427c35d`. The
+aggregate target passed against the tracked minimal world fixture, and the
+database-enabled rerun passed with all persistence checks active. A separate
+attempt against the mutable development world stopped at its unrelated room
+`#9433` format error; this is an external world-data fixture issue, not a
+failure in the repaired source or tracked test fixture.
 
 A raw legacy table is intentionally not a supported load state: startup must
 migrate and verify it before `load_char_pets()` can run, or boot fails closed.
