@@ -1,7 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and
-ART-AUD-008 through ART-AUD-014 resolved
+**Status:** Complete; ART-AUD-001 through ART-AUD-014 resolved
 
 **Audited:** 2026-08-06
 
@@ -97,9 +96,18 @@ chance only for the critical-hit ward branch; its ordinary dispel branch uses
 the declared percentage. Exact-roll production coverage protects the rejection
 and success boundary without assigning the shape to a live artifact.
 
+ART-AUD-007 is resolved. The nine Realms first-wave permanent-state packages
+are deliberately rejected from the current level-scaled rebuild; Gesen's
+source prototype had no states to adjudicate. The shared source masks were
+mostly equipment-tier bundles rather than distinctive named mechanics:
+Doombringer and Kelrom used the exact same six-state mask, Henekar and Avernus
+were small variants, and Kelrarin's two prototypes disagreed. Every artifact
+now declares whether passives are absent, rejected legacy, or progressive,
+and boot validation enforces that policy against `artifact_passives[]`.
+
 The initial audit changed no gameplay code. Remediation work is now tracked in
-this document as each item is implemented, tested, live-validated, committed,
-and closed one at a time.
+this document. All findings have been implemented or explicitly rejected,
+tested, live-validated, committed, and closed one at a time.
 
 ## Evidence baseline
 
@@ -159,7 +167,7 @@ contracts.
 | ART-AUD-004 | High | Resolved 2026-08-06 | Avernus now has its primary life steal, minor Bladesong heal, safe knockdown recovery, and emergency healing package. | Avernus |
 | ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier now sends its declared `14 + artifact level` base DC to the save system, with tested boundaries of 15 and 19. | Earthcrier |
 | ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
-| ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
+| ART-AUD-007 | Medium | Resolved 2026-08-06 | Nine mapped first-wave state packages are explicitly rejected from the current rebuild; Gesen explicitly has none. | First wave |
 | ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
 | ART-AUD-009 | Medium | Resolved 2026-08-06 | Earthcrier and Wyrmfang are Large and use two hands for a normal Medium bearer; Aegis is explicitly body-worn breastplate armor. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Resolved 2026-08-06 | Generic proc percentages are labeled as attempt rates, and selected no-op branches spend neither cooldown nor proc XP. | Every generic-proc artifact |
@@ -478,7 +486,38 @@ advertised generic proc, or give the healback and generic table independent,
 well-tested gating. Do not consume cooldown or award proc XP when no healing
 occurred.
 
-### ART-AUD-007: first-wave passive powers need a product decision
+### ART-AUD-007: first-wave passive powers need a product decision [resolved]
+
+Resolution (2026-08-06):
+
+- The nine historical packages are rejected from the current identities.
+  Gesen explicitly uses the source-none policy. This adds no gameplay buffs;
+  the current numeric bonuses, resistances, procs, abilities, and called
+  effects remain authoritative.
+- This is a per-artifact recorded decision, not an inference from missing
+  rows. Each template now declares `ART_PASSIVE_REJECT_LEGACY`,
+  `ART_PASSIVE_NONE`, or `ART_PASSIVE_PROGRESSIVE`. Validation rejects unset
+  policies, progressive policies with no rows, and passive rows attached to
+  either non-progressive policy.
+- The source masks support rejection as legacy equipment-tier packages.
+  Doombringer and Kelrom share the exact same six-state mask; Henekar and
+  Avernus are close variants; and the two Kelrarin prototypes disagree on the
+  states beyond their shared sense/haste core. Restoring the masks would give
+  nearly the entire first wave the same haste and detection suite while
+  duplicating the distinct progression identity already assigned to the
+  second wave.
+- A production-linked regression requires all nine rejection policies, zero
+  passive rows for them, and Gesen's separate source-none policy. The
+  test-first run passed 433/434 tests and failed only on the new policy
+  regression; the corrected full root suite passes 434/434 tests.
+- On the installed development binary, Kohdee validated all 17 metadata rows
+  and inspected all nine carried first-wave artifacts. None displayed an
+  Always-on Powers section, while runtime and paged help both stated that an
+  absent section means no hidden states. Kohdee's measured player and
+  inventory files, 16-row MySQL inventory order, exact rent header, and the
+  registry file were restored before a final login-free restart.
+
+Original evidence at audited revision `61c03285`:
 
 Realms prototypes give permanent states to nine of the ten mapped first-wave
 artifacts. Gesen is the exception. Current object prototypes contain no
@@ -505,10 +544,9 @@ in that tree.
 
 Some legacy elemental protections may already have deliberate numeric
 resistance analogues in current templates. Sensory states and haste do not.
-Because the current artifacts are level-scaled rebuilds, this is not an order
-to restore every old flag. Decide per artifact which states are identity,
-convert approved ones into progressive passives, and record rejected states in
-the formal system document.
+Because the current artifacts are level-scaled rebuilds, this was not an order
+to restore every old flag. The formal system document now records the rejected
+states and the current identity retained for each artifact.
 
 ### ART-AUD-008: Wyrmfang drops one member of a six-state source package [resolved]
 
@@ -828,16 +866,16 @@ runtime ignores.
 
 | VNUM | Artifact | Audit disposition | Findings and source delta |
 | --- | --- | --- | --- |
-| 169901 | Trorxek | Review passive decision | Current critical blind and four called effects cover the stated identity. Realms' identify text promised critical blind although its procedure omitted the executable branch; current code supplies it. Realms permanent states remain undecided (ART-AUD-007). |
-| 169902 | Amaukekel | Review passive decision | Three called effects and `divineward` exist, and all four named powers obey its Cleric oath (ART-AUD-011). No missing named combat branch was found. Realms permanent states remain unresolved (ART-AUD-007). |
-| 169903 | Fade | Core mechanic restored; review passives | The separate 1-in-16 life siphon and all four called effects exist. The generic 16 percent table remains independent. Source passives are still unresolved (ART-AUD-007). |
-| 169904 | Horn of Henekar | Source conflict; review passives | Four called effects exist. Realms identify text claims a hitpoint-sucking combat hit, but its executable procedure contains no such combat branch, so there is no reliable mechanic to port without a design decision. Source passives are absent (ART-AUD-007). |
-| 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Its called effects and `doomblast` obey the Warrior oath (ART-AUD-011). Source passives remain open (ART-AUD-007). |
-| 169906 | Kelrarin | Review source delta | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. Realms' returning throw also had a nested 1-in-6 second bounded strike that current code omits. Its passive package is unresolved (ART-AUD-007). |
-| 169907 | Kelrom | Runtime defect fixed; redesign review | Animal punishment and group healback remain, and the independent 14 percent generic proc is reachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; the current identity remains a substantial rebuild. Source passives remain open (ART-AUD-007). |
+| 169901 | Trorxek | Covered intentional rebuild | Current critical blind and four called effects cover the stated identity. Realms' identify text promised critical blind although its procedure omitted the executable branch; current code supplies it. The legacy state bundle is explicitly rejected (ART-AUD-007). |
+| 169902 | Amaukekel | Covered intentional rebuild | Three called effects and `divineward` exist, and all four named powers obey its Cleric oath (ART-AUD-011). No missing named combat branch was found. The legacy state bundle is explicitly rejected (ART-AUD-007). |
+| 169903 | Fade | Core mechanic restored | The separate 1-in-16 life siphon and all four called effects exist. The generic 16 percent table remains independent. The legacy state bundle is explicitly rejected (ART-AUD-002, ART-AUD-007). |
+| 169904 | Horn of Henekar | Covered source conflict | Four called effects exist. Realms identify text claims a hitpoint-sucking combat hit, but its executable procedure contains no such combat branch, so that stale claim is not ported. The legacy state bundle is explicitly rejected (ART-AUD-007). |
+| 169905 | Doombringer | Core mechanic restored | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Its called effects and `doomblast` obey the Warrior oath. The legacy state bundle is explicitly rejected (ART-AUD-003, ART-AUD-007, ART-AUD-011). |
+| 169906 | Kelrarin | Covered current rebuild | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. The nested second strike from one source variant and both conflicting legacy state remainders are not part of the current identity (ART-AUD-007). |
+| 169907 | Kelrom | Covered current rebuild | Animal punishment and group healback remain, and the independent 14 percent generic proc is reachable. The unsafe source branches and shared legacy state bundle are superseded by this documented rebuild (ART-AUD-006, ART-AUD-007). |
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap remains after the system-wide ART-AUD-001 and ART-AUD-010 fixes. |
-| 169909 | Tiamat's Stinger | Core mechanic fixed; review passives | The separate lifesteal signature now uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table is correctly separate. Realms' five permanent states remain a product decision (ART-AUD-007). |
-| 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
+| 169909 | Tiamat's Stinger | Core mechanic fixed | The separate lifesteal signature uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table remains separate, and the legacy state bundle is explicitly rejected (ART-AUD-007). |
+| 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified. The legacy state bundle is explicitly rejected (ART-AUD-004, ART-AUD-007). |
 | 169911 | Aegis of Ages | Covered current-original | Its pure defensive numeric package is implemented and tested. The tracked body-worn breastplate is authoritative over the retired shield rumor; it has no historical counterpart (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
 | 169914 | Earthcrier | DC and handedness fixed | Knockdown uses its declared level-scaled base DC (ART-AUD-005). Its Large prototype now makes a normal Medium bearer wield it with two hands, matching current lore (Earthcrier portion of ART-AUD-009). |
@@ -855,6 +893,14 @@ runtime ignores.
 - Tiamat's Stinger deliberately drains actual post-mitigation damage and caps
   healing. Its dry-streak guarantee is a current usability improvement.
 - Kelrarin's mega damage scales with artifact level and does not execute bosses.
+- Kelrarin's nested second strike from one Realms prototype is not part of the
+  current returning-throw package; the two source prototypes also disagree on
+  their broader state packages.
+- Kelrom's current animal-punishment and bounded group-heal identity supersedes
+  the source's unsafe full-heal, execute, and direct-hit-point branches.
+- The nine first-wave Realms state bundles are explicitly rejected. The
+  current template's numeric resistance is authoritative where present, and
+  no unlisted haste, sense, movement, or protection state is implied.
 - Vengeance, Earthcrier, Wyrmfang, Courage, Icedge, and Twilight were documented
   as rebuilds. Exact numeric parity with Homeland is not expected.
 - Aegis of Ages is current-original and has no source-MUD mechanic to recover.
@@ -879,19 +925,22 @@ runtime ignores.
    Earthcrier's DC and handedness, Kelrom's independent generic/healback
    contract, and Wyrmfang's passive and handedness package now agree with their
    declared behavior. Aegis is explicitly the shipped body-worn breastplate.
-5. **Partially completed 2026-08-06: make product decisions.** Aegis identity
-   is closed by ART-AUD-009, and ART-AUD-011 applies class oaths to all named
-   powers. Approve or reject the first-wave passive packages in ART-AUD-007
-   and record that final decision in `docs/systems/ARTIFACT_SYSTEM.md`.
+5. **Completed 2026-08-06: make product decisions.** Aegis identity is closed
+   by ART-AUD-009, ART-AUD-011 applies class oaths to all named powers, and
+   ART-AUD-007 rejects the first-wave legacy passive bundles through an
+   explicit validated template policy and per-artifact system documentation.
 6. **Completed 2026-08-06: clean the framework.** Table-owned called-effect
    stack groups, accurate generic-proc reporting, and the dormant ward chance
    contract are complete (ART-AUD-012, ART-AUD-010, and ART-AUD-014).
 
-## Acceptance criteria for the future implementation pass
+## Acceptance criteria
 
 - Every one of the 17 artifact rows has an explicit test contract for named
   combat proc, active command, called effects with channels and stack groups,
   and progressive passives.
+- Every artifact declares a validated passive policy; the nine audited Realms
+  bundles remain explicitly rejected, and Gesen remains explicitly
+  source-none.
 - A lethal signature or generic proc returns safely through the outer combat
   hook without later victim access.
 - Fade, Doombringer, and Avernus produce their approved named behavior in
@@ -916,6 +965,6 @@ runtime ignores.
   agree for Earthcrier, Wyrmfang, and the body-worn Aegis breastplate.
 - Formal system documentation and help files are updated alongside the code.
 
-The implementation workflow and the Tiamat's Stinger case study already live in
+The implementation workflow and the Tiamat's Stinger case study live in
 [`docs/systems/ARTIFACT_SYSTEM.md`](../systems/ARTIFACT_SYSTEM.md). Use that
-playbook for the remediation pass; this audit is the open findings ledger.
+playbook for future artifact work; this audit is the closed findings ledger.

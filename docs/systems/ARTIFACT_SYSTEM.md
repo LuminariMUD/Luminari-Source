@@ -527,6 +527,52 @@ equip, reapplied on level-up, and stripped on unequip.
 `artifact info` shows both the active powers and the locked ones with the
 level that opens them, because what progression buys is the point.
 
+Every template also declares one passive policy. Boot validation rejects an
+unset policy, a progressive policy without table rows, or any row owned by a
+non-progressive policy.
+
+| Policy | Contract |
+| --- | --- |
+| `ART_PASSIVE_NONE` | The current identity has no passive status package. |
+| `ART_PASSIVE_REJECT_LEGACY` | A historical package was audited and deliberately not adopted. |
+| `ART_PASSIVE_PROGRESSIVE` | One or more validated `artifact_passives[]` rows define the package. |
+
+### First-wave Realms decision
+
+The flat permanent-state packages on the Realms first wave are not part of
+the current LuminariMUD identities. This is an explicit rejection, not an
+unimplemented backlog. The source masks show that most of the states were a
+shared equipment tier: Doombringer and Kelrom have the exact same six-state
+mask, while Henekar and Avernus are small variants of it. Kelrarin's two
+source prototypes do not even agree on the remainder of its package. Those
+patterns are weak evidence for artifact-specific identity.
+
+The current first wave is a native five-level rebuild. It already separates
+scaling statistics and resistance percentages from generic procs, named
+weapon procedures, active commands, and called effects. Adding the old masks
+would give nearly the whole wave the same haste and detection suite, add a
+second broad power layer to the most mechanically dense artifacts, and blur
+the progressive-passive identity of the second wave. Numeric resistance in a
+current template remains authoritative where present; an old protection flag
+does not add another resistance implicitly.
+
+| Artifact | Rejected Realms states | Current identity retained |
+| --- | --- | --- |
+| Trorxek | Detect invisibility, barkskin, elemental protection, detect good/evil | Druid oath, scaling nature statistics, magical resistance, critical blind, and four nature calls |
+| Amaukekel | Farsee, detect invisibility, infravision, elemental protection, detect good/evil | Cleric oath, magical resistance, `divineward`, and three light/life calls |
+| Fade | Detect invisibility, haste, sneak, fire protection, detect good/evil | Rogue oath, movement and physical resistance, generic strike, independent siphon, and four shadow calls |
+| Horn of Henekar | Farsee, detect invisibility, haste, sense life, fly, fire protection | Mental and magical bonuses plus four control/travel calls |
+| Doombringer | Farsee, detect invisibility, haste, sense life, infravision, fire protection | Warrior oath, offensive scaling, generic strike, frenzy, `doomblast`, and three chaos calls |
+| Kelrarin | Shared senses and haste plus the conflicting variants' remaining protections | Returning lifesteal, holy blast, elemental resistance, generic strike, and `soulstrike` |
+| Kelrom | Farsee, detect invisibility, haste, sense life, infravision, fire protection | Animal punishment, group healback, physical resistance, and an independent generic strike |
+| Tiamat's Stinger | Farsee, detect invisibility, haste, sense life, sneak | Physical resistance, movement, generic strike, and its independent life siphon |
+| Avernus | Farsee, detect invisibility, haste, sense life, fire protection | Elemental resistance, generic strike, Bladesong survival, and life transfer |
+| Gesen | None in the source prototype | `ART_PASSIVE_NONE`; its returning harm strike and generic proc are the complete current package |
+
+The Aegis of Ages also uses `ART_PASSIVE_NONE` because it is current-original
+and has no historical package. All six second-wave artifacts use
+`ART_PASSIVE_PROGRESSIVE` and own the rows described below.
+
 Wyrmfang recovers all six permanent states from its Homeland prototype through
 this progression table. It gains detect invisibility at level 1, infravision
 at level 2, sense life at level 3, farsee at level 4, then haste and danger

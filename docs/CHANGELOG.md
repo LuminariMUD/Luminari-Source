@@ -2,6 +2,39 @@
 
 ## [Unreleased] - August 6, 2026
 
+### First-wave passive contract
+
+#### Changed
+
+- Rejected the nine Realms first-wave permanent-state bundles from the current
+  level-scaled artifact identities. Gesen's source prototype remains the
+  explicit no-passive case. This records the existing balance contract and
+  adds no new player buffs.
+- Added a passive policy to every artifact template. Metadata validation now
+  rejects an unset policy, a progressive policy without passive rows, or rows
+  owned by a no-passive or legacy-rejected artifact.
+- Documented every first-wave decision and clarified in runtime and player
+  help that an artifact with no Always-on Powers section grants no hidden
+  states.
+
+#### Verification
+
+- Added a production-linked regression covering all nine explicit legacy
+  rejections, their zero passive counts, and Gesen's distinct source-none
+  policy. The test-first run passed 433/434 tests and failed only on the new
+  policy contract; the corrected full root suite passes 434/434. `make
+  install` installed the tested binary and removed the root-level `circle`.
+- Source-mask comparison confirmed that Doombringer and Kelrom used an
+  identical generic six-state package, Henekar and Avernus were close
+  variants, and Kelrarin's two prototypes disagreed beyond their shared core.
+- On the installed development binary, Kohdee ran `testartifact verify` for
+  all 17 rows and inspected the nine carried first-wave artifacts. None
+  exposed an Always-on Powers section, while runtime and paged help both
+  stated the no-hidden-state rule.
+- Restored Kohdee's player and inventory mirrors byte-for-byte, restored the
+  16-row MySQL inventory order and exact rent header, and restarted the
+  installed binary without a character session.
+
 ### Artifact active-ability class oaths
 
 #### Fixed

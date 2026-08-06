@@ -345,6 +345,15 @@
  * -------------------------------------------------------------------------- */
 #define ART_PASSIVE_MAX_PER_ARTIFACT 6
 
+/* Every artifact declares why its passive table is empty or populated.  The
+ * distinction between NONE and REJECT_LEGACY records an audited product
+ * decision; neither policy may own artifact_passives[] rows. */
+#define ART_PASSIVE_UNSET 0
+#define ART_PASSIVE_NONE 1
+#define ART_PASSIVE_REJECT_LEGACY 2
+#define ART_PASSIVE_PROGRESSIVE 3
+#define NUM_ART_PASSIVE_POLICIES 4
+
 /* --------------------------------------------------------------------------
  * Signature weapon-hit procedures
  *
@@ -443,6 +452,9 @@ struct artifact_data
   int resist_physical;
   int resist_magical;
   int resist_element;
+
+  /* Why this artifact does or does not own progressive passive rows. */
+  int passive_policy; /* ART_PASSIVE_* */
 
   /* Active ability */
   const char *ability_name; /* also the command that invokes it      */
@@ -582,6 +594,7 @@ struct artifact_test_identity_data
   const char *ability_name;
   int generic_proc_chance;
   int signature_proc;
+  int passive_policy;
   int hand_proc_vnum;
   int hand_entry_odds;
   int called_effects[ARTIFACT_MAX_EFFECTS];

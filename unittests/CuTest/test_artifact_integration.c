@@ -794,6 +794,55 @@ void Test_artifact_integration_every_artifact_has_an_explicit_identity_contract(
   CuAssert(tc, failure[0] ? failure : "artifact identity contract mismatch", failure[0] == '\0');
 }
 
+void Test_artifact_integration_first_wave_legacy_passives_are_explicitly_rejected(CuTest *tc)
+{
+  static const int rejected_vnums[] = {ART_VNUM_TRORXEK, ART_VNUM_AMAUKEKEL,   ART_VNUM_FADE,
+                                       ART_VNUM_HENEKAR, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN,
+                                       ART_VNUM_KELROM,  ART_VNUM_STINGER,     ART_VNUM_AVERNUS};
+  struct artifact_test_identity_data identity;
+  struct artint_fixture fixture;
+  char failure[256] = {'\0'};
+  int i = 0;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  for (i = 0; i < (int)(sizeof(rejected_vnums) / sizeof(rejected_vnums[0])); i++)
+  {
+    if (!artifact_identity_for_test(rejected_vnums[i], &identity))
+    {
+      snprintf(failure, sizeof(failure), "artifact %d has no identity snapshot", rejected_vnums[i]);
+      break;
+    }
+
+    if (identity.passive_policy != ART_PASSIVE_REJECT_LEGACY || identity.passive_count != 0)
+    {
+      snprintf(failure, sizeof(failure),
+               "artifact %d legacy-passive policy/count: expected %d/0, got %d/%d",
+               rejected_vnums[i], ART_PASSIVE_REJECT_LEGACY, identity.passive_policy,
+               identity.passive_count);
+      break;
+    }
+  }
+
+  if (failure[0] == '\0')
+  {
+    if (!artifact_identity_for_test(ART_VNUM_GESEN, &identity))
+      snprintf(failure, sizeof(failure), "Gesen has no identity snapshot");
+    else if (identity.passive_policy != ART_PASSIVE_NONE || identity.passive_count != 0)
+      snprintf(failure, sizeof(failure),
+               "Gesen source-none passive policy/count: expected %d/0, got %d/%d", ART_PASSIVE_NONE,
+               identity.passive_policy, identity.passive_count);
+  }
+
+  artint_end(&fixture);
+  CuAssert(tc, failure[0] ? failure : "first-wave passive policy mismatch", failure[0] == '\0');
+}
+
 /* --------------------------------------------------------------------------
  * Lifecycle: acquire, equip, bind, unequip, drop, save, reload, destroy
  * -------------------------------------------------------------------------- */

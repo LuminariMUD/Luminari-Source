@@ -82,7 +82,8 @@ each of its powers is ready.
 Some artifacts grant always-on powers - senses, speed, protections - simply
 for being worn. Many of those stay locked until the artifact has grown into
 them. 'artifact info <item>' shows both what is active now and what is still
-to come.
+to come. If that section is absent, the artifact grants no hidden always-on
+states.
 
 Temporary artifact powers of the same kind do not stack with each other. A
 rage and a battle surge are the same thing happening to you, and the first

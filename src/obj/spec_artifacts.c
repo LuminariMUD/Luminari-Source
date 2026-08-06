@@ -105,9 +105,10 @@ struct artifact_template
 
   /* Reusable signature proc.  ART_SIG_NONE means either none at all or one
    * of the seven hand-written procedures dispatched by vnum. */
-  int sig_proc;   /* ART_SIG_*                                   */
-  int sig_chance; /* percent per successful hit                  */
-  int sig_align;  /* ART_ALIGN_*                                 */
+  int sig_proc;       /* ART_SIG_*                                   */
+  int sig_chance;     /* percent per successful hit                  */
+  int sig_align;      /* ART_ALIGN_*                                 */
+  int passive_policy; /* ART_PASSIVE_*                            */
 };
 
 /* Levels required in an artifact's class before it stops burning you.  ROL
@@ -119,54 +120,58 @@ struct artifact_template
 static const struct artifact_template artifact_templates[] = {
     /* vnum, ability, desc, cd, cost, binding,
        {str,int,wis,dex,con,cha}, hit, dam, ac, hp, psp, mv, rphys, rmag, relem, proc,
-       class, class level, sig proc, sig chance, sig alignment rule */
+       class, class level, sig proc, sig chance, sig alignment rule, passive policy */
+
+    /* The nine Realms first-wave state bundles were audited and rejected from
+     * the current rebuild.  Gesen's source prototype had no such states. */
 
     {ART_VNUM_TRORXEK, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 0, 2, 0, 2, 0}, 2, 2, 0, 25, 30, 0, 0, 10, 0, 12, CLASS_DRUID, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_AMAUKEKEL, "divineward", "Wraps you in a sanctuary of divine light", 600, 100,
      ARTIFACT_BIND_ON_EQUIP,
      {0, 2, 2, 0, 0, 0}, 1, 1, 2, 0, 50, 0, 0, 15, 0, 0, CLASS_CLERIC, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_FADE, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 0, 0, 3, 0, 0}, 4, 2, 1, 20, 0, 25, 5, 0, 0, 16, CLASS_ROGUE, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_HENEKAR, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 2, 1, 0, 0, 2}, 0, 0, 0, 0, 75, 0, 0, 15, 0, 0, CLASS_ROGUE, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_DOOMBRINGER, "doomblast", "Unleashes a wave of doom on everyone nearby", 180, 75,
      ARTIFACT_BIND_ON_PICKUP,
      {3, 0, 0, 1, 0, 0}, 4, 5, 0, 30, 0, 0, 0, 0, 0, 20, CLASS_WARRIOR, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_KELRARIN, "soulstrike", "Strikes a single target with soul energy", 300, 50,
      ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 0, 0, 1, 0}, 3, 3, 0, 20, 0, 0, 0, 0, 5, 15, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_KELROM, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 1, 0, 2, 0}, 2, 4, 0, 40, 0, 0, 5, 0, 0, 14, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_GESEN, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_NONE,
      {1, 0, 0, 2, 0, 0}, 3, 2, 0, 0, 0, 30, 0, 0, 0, 18, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_NONE},
 
     {ART_VNUM_STINGER, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_ACCOUNT,
      {1, 0, 0, 3, 0, 0}, 5, 1, 0, 0, 0, 50, 10, 0, 0, 18, CLASS_UNDEFINED, 0,
-     ART_SIG_LIFESTEAL, ARTIFACT_STINGER_LIFESTEAL_CHANCE, ART_ALIGN_ANY},
+     ART_SIG_LIFESTEAL, ARTIFACT_STINGER_LIFESTEAL_CHANCE, ART_ALIGN_ANY,
+     ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_AVERNUS, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 0, 1, 1, 0}, 4, 4, 0, 25, 0, 0, 0, 0, 10, 15, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_REJECT_LEGACY},
 
     {ART_VNUM_AEGIS, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 0, 0, 0, 3, 0}, 0, 0, 4, 60, 0, 0, 12, 12, 12, 0, CLASS_UNDEFINED, 0,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_NONE},
 
     /* ---- second wave ---------------------------------------------------- */
 
@@ -174,37 +179,37 @@ static const struct artifact_template artifact_templates[] = {
      * on the wicked while whole. */
     {ART_VNUM_VENGEANCE, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 0, 1, 0, 1, 1}, 2, 2, 1, 20, 0, 0, 0, 8, 0, 0, CLASS_PALADIN, ART_CLASS_GATE,
-     ART_SIG_MERCY, 8, ART_ALIGN_TARGET_EVIL},
+     ART_SIG_MERCY, 8, ART_ALIGN_TARGET_EVIL, ART_PASSIVE_PROGRESSIVE},
 
     /* Earthcrier - the mithril maul.  A control weapon, not a damage one. */
     {ART_VNUM_EARTHCRIER, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_PICKUP,
      {3, 0, 0, 0, 1, 0}, 3, 4, 0, 25, 0, 0, 6, 0, 0, 0, CLASS_UNDEFINED, 0,
-     ART_SIG_KNOCKDOWN, 8, ART_ALIGN_SELF_EVIL},
+     ART_SIG_KNOCKDOWN, 8, ART_ALIGN_SELF_EVIL, ART_PASSIVE_PROGRESSIVE},
 
     /* Wyrmfang - the spear of dragons.  Awareness and pursuit, with a
      * multi-outcome strike. */
     {ART_VNUM_WYRMFANG, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {2, 0, 0, 2, 0, 0}, 4, 3, 0, 0, 0, 20, 0, 0, 6, 0, CLASS_UNDEFINED, 0,
-     ART_SIG_WEIGHTED, 10, ART_ALIGN_ANY},
+     ART_SIG_WEIGHTED, 10, ART_ALIGN_ANY, ART_PASSIVE_PROGRESSIVE},
 
     /* Courage - the golden mace.  The first artifact whose signature power
      * helps everyone standing with you rather than only its bearer. */
     {ART_VNUM_COURAGE, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_EQUIP,
      {0, 0, 2, 0, 2, 0}, 2, 1, 0, 20, 20, 0, 0, 0, 5, 0, CLASS_CLERIC, ART_CLASS_GATE,
-     ART_SIG_NONE, 0, ART_ALIGN_ANY},
+     ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_PROGRESSIVE},
 
     /* Icedge - the dagger of cold.  Fast, and it gets faster. */
     {ART_VNUM_ICEDGE, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_ACCOUNT,
      {0, 0, 0, 3, 0, 0}, 3, 2, 0, 0, 0, 20, 0, 4, 10, 0, CLASS_UNDEFINED, 0,
-     ART_SIG_FLURRY, 6, ART_ALIGN_ANY},
+     ART_SIG_FLURRY, 6, ART_ALIGN_ANY, ART_PASSIVE_PROGRESSIVE},
 
     /* Twilight - the sword of destruction.  A surge, never a stat doubling. */
     {ART_VNUM_TWILIGHT, NULL, NULL, ARTIFACT_DEFAULT_COOLDOWN, 0, ARTIFACT_BIND_ON_PICKUP,
      {3, 0, 0, 1, 0, 0}, 4, 4, 0, 20, 0, 0, 0, 0, 0, 0, CLASS_UNDEFINED, 0,
-     ART_SIG_SURGE, 6, ART_ALIGN_ANY},
+     ART_SIG_SURGE, 6, ART_ALIGN_ANY, ART_PASSIVE_PROGRESSIVE},
 
     {-1, NULL, NULL, 0, 0, 0, {0, 0, 0, 0, 0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     CLASS_UNDEFINED, 0, ART_SIG_NONE, 0, ART_ALIGN_ANY}};
+     CLASS_UNDEFINED, 0, ART_SIG_NONE, 0, ART_ALIGN_ANY, ART_PASSIVE_UNSET}};
 
 /* --------------------------------------------------------------------------
  * The content contract
@@ -627,48 +632,57 @@ static void artifact_mark_dirty(void)
   artifact_dirty = TRUE;
 }
 
+static const struct artifact_template *artifact_template_of(int vnum)
+{
+  int i = 0;
+
+  for (i = 0; artifact_templates[i].vnum != -1; i++)
+    if (artifact_templates[i].vnum == vnum)
+      return &artifact_templates[i];
+
+  return NULL;
+}
+
 /* Stamp the code-side template onto a registry entry.  Ownership and
  * progression fields are left alone; those come from the save file. */
 static void artifact_apply_template(struct artifact_data *art)
 {
-  int i = 0, j = 0;
+  const struct artifact_template *template = NULL;
+  int j = 0;
 
   art->ability_cooldown = ARTIFACT_DEFAULT_COOLDOWN;
 
-  for (i = 0; artifact_templates[i].vnum != -1; i++)
-  {
-    if (artifact_templates[i].vnum != art->vnum)
-      continue;
-
-    art->ability_name = artifact_templates[i].ability_name;
-    art->ability_desc = artifact_templates[i].ability_desc;
-    art->ability_cooldown = artifact_templates[i].ability_cooldown;
-    art->ability_cost = artifact_templates[i].ability_cost;
-
-    /* The template owns the binding rule; the save file only records
-     * whether a binding has already been taken (bound_time). */
-    art->binding_type = artifact_templates[i].binding_type;
-
-    for (j = 0; j < ARTIFACT_NUM_STATS; j++)
-      art->stat_bonus[j] = artifact_templates[i].stat_bonus[j];
-
-    art->hitroll_bonus = artifact_templates[i].hitroll_bonus;
-    art->damroll_bonus = artifact_templates[i].damroll_bonus;
-    art->ac_bonus = artifact_templates[i].ac_bonus;
-    art->hp_bonus = artifact_templates[i].hp_bonus;
-    art->psp_bonus = artifact_templates[i].psp_bonus;
-    art->move_bonus = artifact_templates[i].move_bonus;
-    art->resist_physical = artifact_templates[i].resist_physical;
-    art->resist_magical = artifact_templates[i].resist_magical;
-    art->resist_element = artifact_templates[i].resist_element;
-    art->proc_chance = artifact_templates[i].proc_chance;
-    art->class_restrict = artifact_templates[i].class_restrict;
-    art->class_min_level = artifact_templates[i].class_min_level;
-    art->sig_proc = artifact_templates[i].sig_proc;
-    art->sig_chance = artifact_templates[i].sig_chance;
-    art->sig_align = artifact_templates[i].sig_align;
+  if (!(template = artifact_template_of(art->vnum)))
     return;
-  }
+
+  art->ability_name = template->ability_name;
+  art->ability_desc = template->ability_desc;
+  art->ability_cooldown = template->ability_cooldown;
+  art->ability_cost = template->ability_cost;
+
+  /* The template owns the binding rule; the save file only records
+   * whether a binding has already been taken (bound_time). */
+  art->binding_type = template->binding_type;
+
+  for (j = 0; j < ARTIFACT_NUM_STATS; j++)
+    art->stat_bonus[j] = template->stat_bonus[j];
+
+  art->hitroll_bonus = template->hitroll_bonus;
+  art->damroll_bonus = template->damroll_bonus;
+  art->ac_bonus = template->ac_bonus;
+  art->hp_bonus = template->hp_bonus;
+  art->psp_bonus = template->psp_bonus;
+  art->move_bonus = template->move_bonus;
+  art->resist_physical = template->resist_physical;
+  art->resist_magical = template->resist_magical;
+  art->resist_element = template->resist_element;
+  art->passive_policy = template->passive_policy;
+  art->proc_chance = template->proc_chance;
+  art->class_restrict = template->class_restrict;
+  art->class_min_level = template->class_min_level;
+  art->sig_proc = template->sig_proc;
+  art->sig_chance = template->sig_chance;
+  art->sig_align = template->sig_align;
 }
 
 /* Which campaign is compiled in.  One bit, decided once. */
@@ -1054,6 +1068,14 @@ static int artifact_validate_templates(void)
           artifact_templates[i].vnum, artifact_templates[i].binding_type);
       problems++;
     }
+
+    if (artifact_templates[i].passive_policy <= ART_PASSIVE_UNSET ||
+        artifact_templates[i].passive_policy >= NUM_ART_PASSIVE_POLICIES)
+    {
+      log("SYSERR: artifact template (vnum %d): passive policy %d is unknown",
+          artifact_templates[i].vnum, artifact_templates[i].passive_policy);
+      problems++;
+    }
   }
 
   return problems;
@@ -1141,6 +1163,7 @@ static int artifact_validate_contracts(void)
 
 static int artifact_validate_passives(void)
 {
+  const struct artifact_template *template = NULL;
   int i = 0, j = 0, problems = 0, per_artifact = 0;
 
   for (i = 0; artifact_passives[i].vnum != -1; i++)
@@ -1195,6 +1218,7 @@ static int artifact_validate_passives(void)
 
   for (i = 0; i < total_artifacts; i++)
   {
+    template = artifact_template_of(art_index[i].vnum);
     per_artifact = 0;
 
     for (j = 0; artifact_passives[j].vnum != -1; j++)
@@ -1205,6 +1229,23 @@ static int artifact_validate_passives(void)
     {
       log("SYSERR: artifact %d declares %d passive powers; the limit is %d", art_index[i].vnum,
           per_artifact, ART_PASSIVE_MAX_PER_ARTIFACT);
+      problems++;
+    }
+
+    if (!template || template->passive_policy <= ART_PASSIVE_UNSET ||
+        template->passive_policy >= NUM_ART_PASSIVE_POLICIES)
+      continue;
+
+    if (template->passive_policy == ART_PASSIVE_PROGRESSIVE && per_artifact == 0)
+    {
+      log("SYSERR: artifact %d declares progressive passives but has no passive rows",
+          art_index[i].vnum);
+      problems++;
+    }
+    else if (template->passive_policy != ART_PASSIVE_PROGRESSIVE && per_artifact != 0)
+    {
+      log("SYSERR: artifact %d declares no progressive passives but has %d passive rows",
+          art_index[i].vnum, per_artifact);
       problems++;
     }
   }
@@ -1679,6 +1720,7 @@ void artifact_boot(void)
     art->resist_physical = 0;
     art->resist_magical = 0;
     art->resist_element = 0;
+    art->passive_policy = ART_PASSIVE_UNSET;
     art->ability_name = NULL;
     art->ability_desc = NULL;
     art->ability_cooldown = ARTIFACT_DEFAULT_COOLDOWN;
@@ -4972,7 +5014,8 @@ static void artifact_show_help(struct char_data *ch)
                "  Some artifacts grant senses, speed, or protections simply for\r\n"
                "  being worn. Many of those stay shut until the artifact has grown\r\n"
                "  into them. \tcartifact info <item>\tn shows both what is active now\r\n"
-               "  and what is still locked.\r\n"
+               "  and what is still locked. If that section is absent, the artifact\r\n"
+               "  grants no hidden always-on states.\r\n"
                "\r\n"
                "\tYStacking:\tn\r\n"
                "  Temporary artifact powers of the same kind do not stack. A rage\r\n"
@@ -6401,6 +6444,7 @@ int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *ide
   identity->ability_name = art->ability_name;
   identity->generic_proc_chance = art->proc_chance;
   identity->signature_proc = art->sig_proc;
+  identity->passive_policy = art->passive_policy;
   hand_proc = artifact_hand_proc_for_vnum(vnum);
   if (hand_proc)
   {
