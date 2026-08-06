@@ -2230,7 +2230,7 @@ static void artifact_add_affect(struct char_data *ch, struct artifact_data *art,
   af.duration = -1;
   af.location = location;
   af.modifier = modifier;
-  af.bonus_type = BONUS_TYPE_ENHANCEMENT;
+  af.bonus_type = BONUS_TYPE_UNIVERSAL;
   af.specific = (sh_int)(artifact_search(art->vnum) + 1);
 
   affect_to_char(ch, &af);
@@ -3606,14 +3606,14 @@ static int artifact_align_ok(struct char_data *ch, struct char_data *victim, int
 static int artifact_proc_knockdown(struct char_data *ch, struct char_data *victim,
                                    struct obj_data *weapon, struct artifact_data *art)
 {
-  int dc = ARTIFACT_KNOCKDOWN_DC + art->level;
+  int dc = ARTIFACT_KNOCKDOWN_DC + art->level + GET_STR_BONUS(ch) + GET_CON_BONUS(ch);
 
   if (MOB_FLAGGED(victim, MOB_NOBASH) || AFF_FLAGGED(victim, AFF_FREE_MOVEMENT) ||
       IS_INCORPOREAL(victim) || GET_POS(victim) <= POS_SITTING)
     return FALSE;
 
   /* savingthrow() adds its own base DC.  Pass only the remainder so the
-   * declared 14 + artifact-level challenge is the one actually rolled. */
+   * declared artifact and wielder-derived challenge is the one rolled. */
   if (savingthrow(ch, victim, SAVING_REFL, 0, CAST_WEAPON_SPELL, dc - SAVING_THROW_BASE_DC,
                   NOSCHOOL))
   {
@@ -5232,9 +5232,14 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                    "  Healing equals damage inflicted, capped by missing hit points.\r\n");
     else if (art->sig_proc == ART_SIG_KNOCKDOWN)
       send_to_char(ch,
-                   "  Save: base Reflex DC %d + artifact level (%d at this level).\r\n"
+                   "  Save: Reflex DC %d + artifact level + Strength bonus + Constitution "
+                   "bonus (%d for you at this level).\r\n"
+                   "  Requires a non-good wielder and has a %d-second internal "
+                   "recharge.\r\n"
                    "  No effect on no-bash, free-moving, incorporeal, or already-down foes.\r\n",
-                   ARTIFACT_KNOCKDOWN_DC, ARTIFACT_KNOCKDOWN_DC + art->level);
+                   ARTIFACT_KNOCKDOWN_DC,
+                   ARTIFACT_KNOCKDOWN_DC + art->level + GET_STR_BONUS(ch) + GET_CON_BONUS(ch),
+                   ARTIFACT_PROC_ICD);
   }
 
   if (art->ability_name && !artifact_class_ok(ch, art))

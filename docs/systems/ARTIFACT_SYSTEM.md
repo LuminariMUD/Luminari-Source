@@ -237,7 +237,9 @@ and movement. Armor Class is negated when applied because lower AC is better.
 Bonuses use permanent `SPELL_ARTIFACT_BONUS` affects. Each affect stores
 `registry_index + 1` in `affected_type.specific`, allowing unequip to remove
 only the originating artifact's affects. Level-up refreshes those affects
-immediately without requiring re-equip.
+immediately without requiring re-equip. These bonuses use the Universal bonus
+type, so bonuses to the same location from multiple artifacts stack with one
+another and with bonuses from other sources.
 
 Physical, magical, and elemental resistance values are percentages and do
 not scale with artifact level. When multiple equipped artifacts apply, only
@@ -344,7 +346,7 @@ mobile. Neither is an artifact registry entry.
 | 169910 | Avernus, the Black Blade | Equip | - | - | 15% generic + 1-in-31 life transfer | - |
 | 169911 | The Aegis of Ages | Equip | - | - | - | - |
 | 169913 | Vengeance | Equip | Paladin | - | mercy | - |
-| 169914 | Earthcrier | Pickup | - | - | 8% knockdown, base Reflex DC `14 + level` | - |
+| 169914 | Earthcrier | Pickup | - | - | 8% knockdown, Reflex DC `21 + level + Str bonus + Con bonus` | - |
 | 169915 | Wyrmfang, the Spear of Dragons | Equip | - | - | weighted | 1 |
 | 169916 | Courage | Equip | Cleric | - | - | 1 |
 | 169917 | Icedge, the Dagger of Cold | Account | - | - | flurry | 1 |
@@ -617,7 +619,7 @@ this reusable library:
 
 | Shape | Behavior |
 | --- | --- |
-| `ART_SIG_KNOCKDOWN` | Base Reflex DC `14 + artifact_level` or knocked to sitting, honoring `MOB_NOBASH`, freedom of movement, incorporeality, and already-down targets |
+| `ART_SIG_KNOCKDOWN` | Reflex DC `21 + artifact_level + wielder Strength bonus + wielder Constitution bonus` or knocked to sitting, honoring `MOB_NOBASH`, freedom of movement, incorporeality, and already-down targets |
 | `ART_SIG_MERCY` | Heals while its bearer is below 60% health, strikes while healthy |
 | `ART_SIG_WARD` | On an eligible critical, a group-exclusive ward that bypasses `sig_chance`; otherwise `sig_chance` to dispel |
 | `ART_SIG_WEIGHTED` | One roll, several weighted outcomes, and a real chance of nothing |
@@ -635,14 +637,18 @@ and exactly one XP award is paid per successful proc. Most shapes use the
 shared internal cooldown. Lifesteal is the explicit exception because it
 models an inherited per-hit procedure rather than a periodic power.
 
-Earthcrier selects `ART_SIG_KNOCKDOWN` with an 8 percent chance. Its declared
-base Reflex DC is `14 + artifact_level`, so it grows from 15 at level 1 to 19
-at level 5; normal situational save and DC modifiers still apply. A failed save
-moves a standing target to sitting and applies a one-round combat wait. The
-shape does nothing to a `MOB_NOBASH`, free-moving, incorporeal, or already-down
-target. Its prototype is Large, so the standard weapon-size calculation uses
-two hands for a Medium bearer. Size-changing abilities, Monkey Grip, and
-Powerful Build continue to modify that calculation normally.
+Earthcrier selects `ART_SIG_KNOCKDOWN` with an 8 percent chance on each
+successful damaging hit made with the weapon. Its Reflex DC is
+`21 + artifact_level + GET_STR_BONUS(wielder) + GET_CON_BONUS(wielder)`, so
+current equipment and temporary ability changes contribute. Normal situational
+save and DC modifiers still apply. The signature requires a non-good wielder
+and has a 30-second internal recharge. Earthcrier has no generic proc, so no
+other on-hit effect competes for that timer. A failed save moves a standing
+target to sitting and applies a one-round combat wait. The shape does nothing
+to a `MOB_NOBASH`, free-moving, incorporeal, or already-down target.
+Its prototype is Large, so the standard weapon-size calculation uses two hands
+for a Medium bearer. Size-changing abilities, Monkey Grip, and Powerful Build
+continue to modify that calculation normally.
 
 Tiamat's Stinger selects `ART_SIG_LIFESTEAL` with a 10 percent chance per
 successful hit made with the Stinger. It rolls on every such hit regardless

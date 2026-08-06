@@ -2,6 +2,41 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Artifact bonus stacking
+
+#### Changed
+
+- Changed permanent level-scaled artifact bonuses from Enhancement to
+  Universal, allowing bonuses to the same stat or combat value from multiple
+  artifacts to stack with one another and with other bonus sources.
+
+#### Verification
+
+- Extended the production-linked artifact bonus regression to require every
+  generated `SPELL_ARTIFACT_BONUS` affect to use the Universal bonus type.
+
+### Earthcrier knockdown scaling and requirements
+
+#### Changed
+
+- Raised Earthcrier's base knockdown DC from 14 to 21 and added the wielder's
+  current Strength and Constitution bonuses. The full formula is now
+  `21 + artifact level + Strength bonus + Constitution bonus`.
+- Made `artifact info` and player help disclose the signature's non-good
+  wielder requirement, 8 percent damaging-hit chance, 30-second internal
+  recharge, Reflex save, target immunities, and absence of a generic proc.
+
+#### Verification
+
+- Extended the production-linked Earthcrier regression to prove that a good
+  wielder cannot trigger the save, roll 9 misses while roll 8 reaches the save,
+  and the next attempt is blocked by the cooldown. The test also confirms
+  Earthcrier's generic proc chance is zero. A neutral wielder
+  with 10 Strength and Constitution produces DC 22 at artifact level 1; an
+  18 Strength, 16 Constitution wielder produces DC 33 at artifact level 5.
+  The test also verifies the runtime explanation. The complete root suite
+  passes 434/434.
+
 ### First-wave passive contract
 
 #### Changed

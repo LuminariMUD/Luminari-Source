@@ -50,9 +50,11 @@ always-checked Bladesong survival layer plus a separate 1-in-31 life-transfer
 strike while retaining its 15 percent generic proc.
 
 ART-AUD-005 was resolved in the current remediation pass. Earthcrier now passes
-the save-system level component that produces its declared base Reflex DC of
-`14 + artifact level`, rather than a wielder-derived effect level. The installed
-binary survived copyover and a natural combat proc knocked its target down.
+the save-system level component that produces its Reflex DC of
+`21 + artifact level + wielder Strength bonus + wielder Constitution bonus`,
+rather than the unrelated artifact effect level. Its non-good wielder gate and
+30-second recharge are disclosed in runtime info and player help. Earthcrier
+has no generic proc competing for that timer.
 
 ART-AUD-006 was resolved in the current remediation pass. Kelrom's healback
 now uses its own persisted 30-second recharge, leaving its 14 percent generic
@@ -165,7 +167,7 @@ contracts.
 | ART-AUD-002 | High | Resolved 2026-08-06 | Fade now has its separate 1-in-16 level-scaled life siphon; the 16 percent generic table remains independent. | Fade |
 | ART-AUD-003 | High | Resolved 2026-08-06 | Doombringer now has its separate 1-in-31, level-scaled extra-attack burst and independent one-third-hour recharge. | Doombringer |
 | ART-AUD-004 | High | Resolved 2026-08-06 | Avernus now has its primary life steal, minor Bladesong heal, safe knockdown recovery, and emergency healing package. | Avernus |
-| ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier now sends its declared `14 + artifact level` base DC to the save system, with tested boundaries of 15 and 19. | Earthcrier |
+| ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier sends `21 + artifact level + wielder Strength bonus + wielder Constitution bonus` to the save system; alignment and recharge requirements are disclosed, and its generic proc chance is explicitly tested as zero. | Earthcrier |
 | ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
 | ART-AUD-007 | Medium | Resolved 2026-08-06 | Nine mapped first-wave state packages are explicitly rejected from the current rebuild; Gesen explicitly has none. | First wave |
 | ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
@@ -424,6 +426,16 @@ Implementation (2026-08-06):
   21 after legitimate situational modifiers against Reflex 14, failed the
   target's save, and left it sitting. Temporary and measured persistent state
   was restored afterward.
+
+Follow-up (2026-08-06):
+
+- The wielder's current Strength and Constitution bonuses now add to the
+  corrected base challenge. Production-linked coverage observes DC 22 for a
+  level-1 artifact with +0 ability modifiers and DC 33 for a level-5 artifact
+  with +4 Strength and +3 Constitution modifiers.
+- The regression also proves the existing non-good wielder gate, while runtime
+  info and player help now disclose that gate and its 30-second recharge. It
+  also confirms Earthcrier has no generic proc competing for that timer.
 
 Original evidence at audited revision `61c03285`:
 

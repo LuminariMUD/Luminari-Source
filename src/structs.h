@@ -48,9 +48,9 @@
  * on an older version. You are supposed to compare this with the macro
  * LUMINARIMUD_VERSION() in utils.h.
  * It is read as Major/Minor/Patchlevel - MMmmPP (hex values)
- * Current: 0x030710 = 3.7.16 (corresponds to display version 2.5046-beta)
+ * Current: 0x030711 = 3.7.17 (corresponds to display version 2.5047-beta)
  * See also: src/constants.c (luminari_version string) */
-#define _LUMINARIMUD 0x030710
+#define _LUMINARIMUD 0x030711
 
 /** If you want equipment to be automatically equipped to the same place
  * it was when players rented, set the define below to 1 because

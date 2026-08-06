@@ -308,7 +308,7 @@
 #define ARTIFACT_SURGE_DAMROLL 3 /* multiplied by artifact level          */
 
 /* Earthcrier's knockdown. */
-#define ARTIFACT_KNOCKDOWN_DC 14 /* + artifact level                      */
+#define ARTIFACT_KNOCKDOWN_DC 21 /* + level + wielder Str and Con bonuses */
 #define ARTIFACT_KNOCKDOWN_WAIT 1
 
 /* Icedge's flurry. */

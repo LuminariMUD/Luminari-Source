@@ -1049,7 +1049,9 @@ void Test_artifact_integration_bonuses_scale_with_artifact_level(CuTest *tc)
 {
   struct artint_fixture fixture;
   struct obj_data obj;
+  struct affected_type *af = NULL;
   struct artifact_data *art = NULL;
+  int artifact_bonus_count = 0, artifact_bonuses_are_universal = TRUE;
   int hit_at_one = 0, hit_at_five = 0, hp_at_five = 0;
 
   if (!artint_begin(&fixture))
@@ -1075,6 +1077,15 @@ void Test_artifact_integration_bonuses_scale_with_artifact_level(CuTest *tc)
   artifact_apply_bonuses(&fixture.actor, &obj);
   hit_at_five = artint_affect_modifier(&fixture.actor, APPLY_HITROLL);
   hp_at_five = artint_affect_modifier(&fixture.actor, APPLY_HIT);
+  for (af = fixture.actor.affected; af; af = af->next)
+  {
+    if (af->spell != SPELL_ARTIFACT_BONUS)
+      continue;
+
+    artifact_bonus_count++;
+    if (af->bonus_type != BONUS_TYPE_UNIVERSAL)
+      artifact_bonuses_are_universal = FALSE;
+  }
   artifact_remove_bonuses(&fixture.actor, &obj);
 
   artint_uncarry(&fixture, &obj);
@@ -1083,6 +1094,8 @@ void Test_artifact_integration_bonuses_scale_with_artifact_level(CuTest *tc)
   CuAssertIntEquals(tc, 4, hit_at_one);
   CuAssertIntEquals(tc, 4 * ARTIFACT_MAX_LEVEL, hit_at_five);
   CuAssertIntEquals(tc, 30 * ARTIFACT_MAX_LEVEL, hp_at_five);
+  CuAssertTrue(tc, artifact_bonus_count > 1);
+  CuAssertIntEquals(tc, TRUE, artifact_bonuses_are_universal);
 }
 
 void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *tc)
@@ -1799,12 +1812,13 @@ void Test_artifact_integration_signature_procs_run_without_a_roll(CuTest *tc)
   CuAssertIntEquals(tc, ARTINT_SIGNATURE_COUNT, fired);
 }
 
-void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
+void Test_artifact_integration_earthcrier_uses_wielder_stats_for_knockdown_dc(CuTest *tc)
 {
   struct artint_fixture fixture;
   struct obj_data obj;
   struct artifact_data *art = NULL;
-  int level_one_dc = 0, level_five_dc = 0, info_described = FALSE;
+  int good_wielder_dc = 0, missed_roll_dc = 0, level_one_dc = 0, cooldown_dc = 0;
+  int level_five_dc = 0, info_described = FALSE;
 
   if (!artint_begin(&fixture))
   {
@@ -1816,7 +1830,9 @@ void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
   art = artifact_by_vnum(ART_VNUM_EARTHCRIER);
   CuAssertPtrNotNull(tc, art);
   CuAssertIntEquals(tc, ART_SIG_KNOCKDOWN, art->sig_proc);
-  CuAssertIntEquals(tc, 14, ARTIFACT_KNOCKDOWN_DC);
+  CuAssertIntEquals(tc, 8, art->sig_chance);
+  CuAssertIntEquals(tc, 0, art->proc_chance);
+  CuAssertIntEquals(tc, 21, ARTIFACT_KNOCKDOWN_DC);
 
   artint_instance(&fixture, &obj, ART_VNUM_EARTHCRIER);
   artint_carry(&fixture, &obj);
@@ -1824,8 +1840,6 @@ void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
   obj.worn_by = &fixture.actor;
   obj.worn_on = WEAR_WIELD_1;
 
-  art->sig_chance = 100;
-  art->sig_align = ART_ALIGN_ANY;
   /* A zeroed player has NOSCHOOL as its specialty, which the general save
    * system treats as a situational +2 match.  Use a real, unrelated school so
    * this assertion observes Earthcrier's unmodified base challenge. */
@@ -1833,24 +1847,47 @@ void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
   FIGHTING(&fixture.actor) = &fixture.victim;
   FIGHTING(&fixture.victim) = &fixture.actor;
 
+  GET_ALIGNMENT(&fixture.actor) = 1000;
   art->level = 1;
   art->last_proc = 0;
   GET_POS(&fixture.victim) = POS_STANDING;
   test_reset_savingthrow_observation();
-  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 1);
+  good_wielder_dc = test_get_last_savingthrow_challenge();
+
+  GET_ALIGNMENT(&fixture.actor) = 0;
+  art->level = 1;
+  art->last_proc = 0;
+  GET_POS(&fixture.victim) = POS_STANDING;
+  test_reset_savingthrow_observation();
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 9);
+  missed_roll_dc = test_get_last_savingthrow_challenge();
+
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 8);
   level_one_dc = test_get_last_savingthrow_challenge();
 
+  GET_POS(&fixture.victim) = POS_STANDING;
+  test_reset_savingthrow_observation();
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 1);
+  cooldown_dc = test_get_last_savingthrow_challenge();
+
+  GET_REAL_STR(&fixture.actor) = 18;
+  GET_REAL_CON(&fixture.actor) = 16;
+  fixture.actor.aff_abils = fixture.actor.real_abils;
   art->level = ARTIFACT_MAX_LEVEL;
   art->last_proc = 0;
   GET_POS(&fixture.victim) = POS_STANDING;
   test_reset_savingthrow_observation();
-  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  artifact_force_signature_roll_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, 8);
   level_five_dc = test_get_last_savingthrow_challenge();
 
   artint_clear_output(&fixture);
   artifact_show_info_for_test(&fixture.actor, &obj);
-  info_described = artint_said(&fixture, "base Reflex DC 14 + artifact level") &&
-                   artint_said(&fixture, "19 at this level") &&
+  info_described = artint_said(&fixture, "Reflex DC 21 + artifact level + Strength bonus + "
+                                         "Constitution bonus") &&
+                   artint_said(&fixture, "33 for you at this level") &&
+                   artint_said(&fixture, "Requires a non-good wielder") &&
+                   artint_said(&fixture, "has a 30-second internal recharge") &&
                    artint_said(&fixture, "free-moving") &&
                    artint_said(&fixture, "already-down foes");
 
@@ -1863,8 +1900,11 @@ void Test_artifact_integration_earthcrier_uses_declared_knockdown_dc(CuTest *tc)
   fixture.victim.last_attacker = NULL;
   artint_end(&fixture);
 
-  CuAssertIntEquals(tc, 15, level_one_dc);
-  CuAssertIntEquals(tc, 19, level_five_dc);
+  CuAssertIntEquals(tc, 0, good_wielder_dc);
+  CuAssertIntEquals(tc, 0, missed_roll_dc);
+  CuAssertIntEquals(tc, 22, level_one_dc);
+  CuAssertIntEquals(tc, 0, cooldown_dc);
+  CuAssertIntEquals(tc, 33, level_five_dc);
   CuAssertIntEquals(tc, TRUE, info_described);
 }
 
