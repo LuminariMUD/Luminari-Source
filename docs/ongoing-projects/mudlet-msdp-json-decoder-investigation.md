@@ -417,8 +417,10 @@ The repair therefore required a real serializer, not only `strip_colors()` at th
 - Built package version `2.0.4.045`. Build validation and generated-output drift checks pass; all
   8 supported test suites pass, including 37/37 lifecycle regressions and 82/82 Lua syntax checks;
   package validation passes; and the resource analyzer reports 36 owned and zero unowned runtime
-  handlers plus 21 owned and zero unowned timer sites. GitHub checks remain in progress for the
-  final pushed commit.
+  handlers plus 21 owned and zero unowned timer sites. The first CI run identified only a Ruff
+  formatting mismatch in the new Python test; commit `ab33a52` applies the repository formatter,
+  passes the exact Ruff check and focused 37/37 lifecycle suite, and is the final verification SHA.
+  GitHub checks remain in progress for that commit.
 
 ### 2026-08-05: Plain scalar boundary repair implemented
 
