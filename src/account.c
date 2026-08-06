@@ -163,18 +163,9 @@ int change_account_xp(struct char_data *ch, int change_val)
 */
 int has_unlocked_race(struct char_data *ch, int race)
 {
-  if (IS_CAMPAIGN_DL || IS_CAMPAIGN_FR)
-  {
-    // In FR/DL campaigns, we allow LICH and Vampire
-    if (!ch || !ch->desc || !ch->desc->account)
-      return FALSE;
-  }
-  else
-  {
-    // In non-FR/DL builds, LICH and VAMPIRE races are always locked out here.
-    if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
-      return FALSE;
-  }
+  // In non-FR/DL builds, LICH and VAMPIRE races are always locked out here.
+  if (!ch || !ch->desc || !ch->desc->account || race == RACE_LICH || race == RACE_VAMPIRE)
+    return FALSE;
 
   /* If a race isn't locked, it's available by default. */
   if (!is_locked_race(race))
@@ -356,21 +347,8 @@ ACMD(do_accexp)
     int start = 0;
     int end = 0;
 
-    if (IS_CAMPAIGN_FR)
-    {
-      start = 0;
-      end = NUM_EXTENDED_PC_RACES;
-    }
-    else if (IS_CAMPAIGN_DL)
-    {
-      start = DL_RACE_START;
-      end = DL_RACE_END;
-    }
-    else
-    {
-      start = 0;
-      end = NUM_RACES;
-    }
+    start = 0;
+    end = NUM_RACES;
 
     /* No argument: list lockable races that are not yet unlocked */
     if (!*arg2)

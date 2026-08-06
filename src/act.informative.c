@@ -7472,20 +7472,12 @@ ACMD(do_who)
     const int min_level;
     const int max_level;
     int count; /* must always start as 0 */
-  } rank[] = {
-#if defined(CAMPAIGN_DL)
-      {"\tb--\tB= \tCChronicles of Krynn Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n",
-       LVL_IMMORT, LVL_IMPL, 0},
-#elif defined(CAMPAIGN_FR)
-      {"\tb--\tB= \tCFaerun Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT,
-       LVL_IMPL, 0},
-#else
-      {"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", LVL_IMMORT,
-       LVL_IMPL, 0},
-#endif
-      {"\tb--\tB=\tC Mortals \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", 1, LVL_IMMORT - 1,
-       0},
-      {"\n", 0, 0, 0}};
+  } rank[] = {{"\tb--\tB= \tCLuminari Staff \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n",
+               LVL_IMMORT, LVL_IMPL, 0},
+
+              {"\tb--\tB=\tC Mortals \tB=\tb--\tn\r\n\tc-=-=-=-=-=-=-=-=-=-=-=-\tn\r\n", 1,
+               LVL_IMMORT - 1, 0},
+              {"\n", 0, 0, 0}};
 
   // remove spaces in front of argument
   skip_spaces_c(&argument);
@@ -9557,41 +9549,6 @@ ACMD(do_moves)
   send_to_char(ch, "You have %d movement points left.\r\n", GET_MOVE(ch));
 }
 
-#ifdef CAMPAIGN_FR
-
-ACMD(do_survey)
-{
-  int x, y, room, i = 0;
-
-  if (!ch || IN_ROOM(ch) == NOWHERE)
-    return;
-
-  if (!ROOM_FLAGGED(IN_ROOM(ch), ROOM_WORLDMAP))
-  {
-    send_to_char(ch, "This command can only be used on the worldmap.\r\n");
-    return;
-  }
-
-  set_x_y_coords(world[IN_ROOM(ch)].number, &x, &y, &room);
-
-  send_to_char(ch, "\tAYou are in room x=%d, y=%d\r\n", x, y);
-  for (i = 0; i < 80; i++)
-    send_to_char(ch, "-");
-  send_to_char(ch, "\tn\r\n");
-
-  for (i = 0; i < NUM_MAP_POINTS; i++)
-  {
-    set_x_y_coords(atoi(asciimap_points[i][1]), &x, &y, &room);
-    send_to_char(ch, "-- %-40s (%d,%d)\r\n", asciimap_points[i][0], x, y);
-  }
-
-  for (i = 0; i < 80; i++)
-    send_to_char(ch, "-");
-  send_to_char(ch, "\tn\r\n\r\n");
-}
-
-#else
-
 /* survey - get information on zone locations, current position, and natural resources
             Enhanced version that focuses on wilderness resource surveying
             -Zusuk */
@@ -10037,8 +9994,6 @@ ACMD(do_survey)
     send_to_char(ch, "Use cascade preview to understand ecological impacts before harvesting.\r\n");
   }
 }
-
-#endif
 
 /* see exits */
 ACMD(do_exits)

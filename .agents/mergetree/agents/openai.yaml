@@ -1,0 +1,4 @@
+interface:
+  display_name: "Merge Worktree"
+  short_description: "Safely merge a worktree into the canonical branch"
+  default_prompt: "Use $mergetree to safely merge a worktree branch into the canonical branch."
