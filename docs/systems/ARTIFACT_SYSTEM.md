@@ -334,7 +334,7 @@ mobile. Neither is an artifact registry entry.
 | 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% | - |
 | 169908 | Gesen, the Returning Axe | None | - | - | 18% | - |
 | 169909 | Tiamat's Stinger | Account | - | - | 18% + lifesteal | - |
-| 169910 | Avernus, the Black Blade | Equip | - | - | 15% | - |
+| 169910 | Avernus, the Black Blade | Equip | - | - | 15% generic + 1-in-31 life transfer | - |
 | 169911 | The Aegis of Ages | Equip | - | - | - | - |
 | 169913 | Vengeance | Equip | Paladin | - | mercy | - |
 | 169914 | Earthcrier | Pickup | - | - | knockdown | - |
@@ -634,7 +634,7 @@ so the generic proc cannot also fire on that hit.
 | Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 level-scaled holy blast plus a non-boss NPC execute check |
 | Kelrom | Kills its wielder for striking an animal; otherwise applies group healback, on the shared 30-second internal cooldown |
 | Gesen | 1-in-31 returning throw that invokes `SPELL_HARM` |
-| Avernus | Below 100 HP, a `30 + 2 * level` percent chance to restore the wielder to full HP |
+| Avernus | Always-checked Bladesong survival reactions plus a separate 1-in-31 life transfer against a living foe |
 
 Fade's siphon rolls independently of the generic 30-second cooldown. It
 refuses players, dragons, and undead before applying
@@ -651,6 +651,22 @@ artifact proc. The named burst and generic strike use independent persisted
 recharges, so either may occur on the original hit if the target survives.
 Using the burst against a good target lowers the wielder's alignment by one,
 to a floor of -1000.
+
+Avernus checks its Bladesong survival package on every successful hit. Below
+100 HP, it has a `30 + 2 * artifact_level` percent chance to restore the
+wielder to maximum HP; that emergency takes priority over the named drain for
+the hit. A separate 1-in-11 Bladesong event heals two HP when more than ten are
+missing. Avernus also restores a sitting, resting, or prone active wielder to a
+fighting stance, but does not bypass sleep, paralysis, or pinning.
+
+The life transfer then rolls 1-in-31 independently of the generic cooldown.
+Its requested transfer is
+`min(50 * artifact_level, max(0, victim_hp) + 9)`, up to the inherited
+250-point ceiling, and it requests three times that amount as negative damage.
+Undead and constructs are immune. Healing is one third of damage actually
+inflicted, capped by both the requested transfer and missing HP. The named
+strike does not stamp the generic timer, so Avernus retains its separate 15
+percent generic proc.
 
 Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5, and its
 holy blast grows from 100 to 350 the same way. Kelrom's healback grows from

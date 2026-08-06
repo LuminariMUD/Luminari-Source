@@ -2,6 +2,44 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Avernus Bladesong restoration
+
+#### Added
+
+- Restored Avernus's inherited 1-in-31 life-transfer strike as a named handler
+  separate from its existing 15 percent generic artifact proc.
+- Scaled the transfer from 50 points at artifact level 1 to the inherited
+  250-point ceiling at level 5. It deals triple negative damage to living
+  targets and heals one third of damage actually inflicted, capped by the
+  transfer and the wielder's missing HP.
+- Restored the always-checked Bladesong package: the below-100-HP emergency
+  full heal, a 1-in-11 two-point combat heal, and automatic recovery from an
+  ordinary knockdown. Sleep, paralysis, and pinning still prevent recovery.
+
+#### Changed
+
+- Split always-checked artifact reactions from table-owned named-proc rolls so
+  Avernus's survival behavior remains per hit while its primary identity is
+  visible as an independent 1-in-31 strike.
+- Made `artifact info` state Avernus's generic and named chances, transfer and
+  damage scaling, actual-damage healing rule, nonliving immunity, and survival
+  behavior. Updated artifact player help and the formal system guide to match.
+
+#### Verification
+
+- Avernus's deterministic production-linked test covers both scaling
+  endpoints, max-HP capping, generic-cooldown independence, undead and
+  construct refusal, emergency and minor heals, knockdown recovery, pin
+  immunity, identity wiring, and player-visible information. The complete root
+  suite passes 423/423 tests.
+- The installed binary survived copyover and exposed the new contract through
+  `artifact info`. In controlled combat, the generic strike and named drain
+  both fired independently, the level-1 drain dealt 145 after target damage
+  reduction, a level-2 drain dealt 295 and capped its heal at the wielder's 14
+  missing HP, the minor heal restored two HP, and the below-100 emergency
+  restored 50 HP to full. Test XP, ownership, cooldown, and player inventory
+  state were restored afterward.
+
 ### Doombringer combat burst
 
 #### Added

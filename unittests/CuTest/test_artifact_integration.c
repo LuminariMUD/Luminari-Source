@@ -549,8 +549,8 @@ static const struct artint_identity_case artint_identity_cases[ARTINT_OBJ_COUNT]
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
     {ART_VNUM_STINGER, NULL, 18, ART_SIG_LIFESTEAL, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
-    /* ART-AUD-004: the hand procedure is currently emergency-heal only. */
-    {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS, 0,
+    {ART_VNUM_AVERNUS, NULL, 15, ART_SIG_NONE, ART_VNUM_AVERNUS,
+     ARTIFACT_AVERNUS_DRAIN_ODDS,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
     {ART_VNUM_AEGIS, NULL, 0, ART_SIG_NONE, NOTHING, 0,
      {0, 0, 0, 0}, {NOTHING, NOTHING, NOTHING, NOTHING}, 0},
@@ -1584,6 +1584,148 @@ void Test_artifact_integration_doombringer_scales_its_extra_attack_burst(CuTest 
   CuAssertIntEquals(tc, TRUE, generic_independent);
   CuAssertIntEquals(tc, TRUE, nested_procs_suppressed);
   CuAssertIntEquals(tc, TRUE, player_refused);
+  CuAssertIntEquals(tc, TRUE, info_described);
+}
+
+void Test_artifact_integration_avernus_restores_its_full_bladesong_package(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  time_t generic_stamp = 0;
+  int original_race = 0;
+  int level_one_damage = 0, level_one_healing = 0;
+  int level_five_damage = 0, level_five_healing = 0;
+  int cooldown_ignored = FALSE, healing_capped = FALSE, info_described = FALSE;
+  int undead_refused = FALSE, construct_refused = FALSE;
+  int emergency_healed = FALSE, bladesong_healed = FALSE;
+  int knockdown_recovered = FALSE, pin_respected = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  art = artifact_by_vnum(ART_VNUM_AVERNUS);
+  CuAssertPtrNotNull(tc, art);
+  CuAssertIntEquals(tc, ART_SIG_NONE, art->sig_proc);
+  CuAssertIntEquals(tc, 15, art->proc_chance);
+  CuAssertIntEquals(tc, 31, ARTIFACT_AVERNUS_DRAIN_ODDS);
+  CuAssertIntEquals(tc, 250, ARTIFACT_AVERNUS_DRAIN_MAX_TRANSFER);
+  CuAssertIntEquals(tc, 3, ARTIFACT_AVERNUS_DRAIN_DAMAGE_MULTIPLIER);
+  CuAssertIntEquals(tc, 11, ARTIFACT_AVERNUS_BLADESONG_ODDS);
+  CuAssertIntEquals(tc, 2, ARTIFACT_AVERNUS_BLADESONG_HEAL);
+
+  artint_instance(&fixture, &obj, ART_VNUM_AVERNUS);
+  artint_carry(&fixture, &obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "Combat:") && artint_said(&fixture, "15% chance") &&
+                   artint_said(&fixture, "Signature:") && artint_said(&fixture, "1-in-31") &&
+                   artint_said(&fixture, "50 x artifact level") &&
+                   artint_said(&fixture, "triple damage") &&
+                   artint_said(&fixture, "ordinary knockdown") &&
+                   artint_said(&fixture, "30 + (2 x level)% chance");
+
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  original_race = GET_REAL_RACE(&fixture.victim);
+  GET_MAX_HIT(&fixture.victim) = 2000;
+  generic_stamp = time(0);
+  art->last_proc = generic_stamp;
+
+  art->level = 1;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_one_damage = GET_MAX_HIT(&fixture.victim) - GET_HIT(&fixture.victim);
+  level_one_healing = GET_HIT(&fixture.actor) - 100;
+  cooldown_ignored = art->last_proc == generic_stamp;
+
+  art->level = ARTIFACT_MAX_LEVEL;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  level_five_damage = GET_MAX_HIT(&fixture.victim) - GET_HIT(&fixture.victim);
+  level_five_healing = GET_HIT(&fixture.actor) - 100;
+
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) - 1;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  healing_capped = GET_HIT(&fixture.actor) == GET_MAX_HIT(&fixture.actor);
+
+  GET_REAL_RACE(&fixture.victim) = RACE_TYPE_UNDEAD;
+  GET_HIT(&fixture.actor) = 100;
+  GET_HIT(&fixture.victim) = GET_MAX_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  undead_refused = GET_HIT(&fixture.actor) == 100 &&
+                   GET_HIT(&fixture.victim) == GET_MAX_HIT(&fixture.victim) &&
+                   fixture.descriptor.output[0] == '\0';
+
+  GET_REAL_RACE(&fixture.victim) = RACE_TYPE_CONSTRUCT;
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  construct_refused = GET_HIT(&fixture.actor) == 100 &&
+                      GET_HIT(&fixture.victim) == GET_MAX_HIT(&fixture.victim) &&
+                      fixture.descriptor.output[0] == '\0';
+  GET_REAL_RACE(&fixture.victim) = original_race;
+
+  art->level = 1;
+  GET_HIT(&fixture.actor) = 50;
+  GET_POS(&fixture.actor) = POS_FIGHTING;
+  artint_clear_output(&fixture);
+  artifact_force_avernus_survival_for_test(&fixture.actor, &fixture.victim, &obj, TRUE, FALSE);
+  emergency_healed = GET_HIT(&fixture.actor) == GET_MAX_HIT(&fixture.actor) &&
+                     artint_said(&fixture, "pours everything it has back into you");
+
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor) - 20;
+  artint_clear_output(&fixture);
+  artifact_force_avernus_survival_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, TRUE);
+  bladesong_healed = GET_HIT(&fixture.actor) == GET_MAX_HIT(&fixture.actor) - 18 &&
+                     artint_said(&fixture, "rhythm closes 2 hit points");
+
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor);
+  GET_POS(&fixture.actor) = POS_SITTING;
+  artint_clear_output(&fixture);
+  artifact_force_avernus_survival_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, FALSE);
+  knockdown_recovered = GET_POS(&fixture.actor) == POS_FIGHTING &&
+                        artint_said(&fixture, "back into a fighting stance");
+
+  GET_POS(&fixture.actor) = POS_SITTING;
+  SET_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_PINNED);
+  artint_clear_output(&fixture);
+  artifact_force_avernus_survival_for_test(&fixture.actor, &fixture.victim, &obj, FALSE, FALSE);
+  pin_respected = GET_POS(&fixture.actor) == POS_SITTING && fixture.descriptor.output[0] == '\0';
+  REMOVE_BIT_AR(AFF_FLAGS(&fixture.actor), AFF_PINNED);
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, 150, level_one_damage);
+  CuAssertIntEquals(tc, 50, level_one_healing);
+  CuAssertIntEquals(tc, 750, level_five_damage);
+  CuAssertIntEquals(tc, 250, level_five_healing);
+  CuAssertIntEquals(tc, TRUE, cooldown_ignored);
+  CuAssertIntEquals(tc, TRUE, healing_capped);
+  CuAssertIntEquals(tc, TRUE, undead_refused);
+  CuAssertIntEquals(tc, TRUE, construct_refused);
+  CuAssertIntEquals(tc, TRUE, emergency_healed);
+  CuAssertIntEquals(tc, TRUE, bladesong_healed);
+  CuAssertIntEquals(tc, TRUE, knockdown_recovered);
+  CuAssertIntEquals(tc, TRUE, pin_respected);
   CuAssertIntEquals(tc, TRUE, info_described);
 }
 

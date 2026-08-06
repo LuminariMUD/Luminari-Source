@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001, ART-AUD-002, ART-AUD-003, and ART-AUD-013 resolved
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-004 and ART-AUD-013 resolved
 
 **Audited:** 2026-08-06
 
@@ -14,10 +14,12 @@ mechanics from the executable source material:
 1. Fade had no life-draining combat strike. This was resolved by ART-AUD-002.
 2. Doombringer had no extra-attack combat burst. This was resolved by
    ART-AUD-003.
-3. Avernus retains only its emergency full heal and is missing its main
-   life-stealing strike, automatic stand-up behavior, and minor combat heal.
+3. Avernus retained only its emergency full heal. Its life-stealing strike,
+   automatic stand-up behavior, and minor combat heal were restored by
+   ART-AUD-004.
 
-Avernus is the one confirmed identity package still absent.
+All three confirmed identity packages are now present in code and deterministic
+integration coverage.
 
 The audit also found three independent runtime defects: lethal artifact damage
 was not propagated back to the combat caller, Earthcrier calculates but ignores
@@ -40,6 +42,10 @@ percent generic proc as an independent mechanic.
 ART-AUD-003 was resolved in the current remediation pass. Doombringer now owns
 a separate 1-in-31, artifact-level-scaled extra-attack burst while retaining
 its 20 percent generic proc.
+
+ART-AUD-004 was resolved in the current remediation pass. Avernus now owns an
+always-checked Bladesong survival layer plus a separate 1-in-31 life-transfer
+strike while retaining its 15 percent generic proc.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -100,7 +106,7 @@ contracts.
 | ART-AUD-001 | Critical | Resolved 2026-08-06 | A lethal artifact proc did not report death to the combat caller, which then continued through later victim-dependent riders. | Any damaging proc |
 | ART-AUD-002 | High | Resolved 2026-08-06 | Fade now has its separate 1-in-16 level-scaled life siphon; the 16 percent generic table remains independent. | Fade |
 | ART-AUD-003 | High | Resolved 2026-08-06 | Doombringer now has its separate 1-in-31, level-scaled extra-attack burst and independent one-third-hour recharge. | Doombringer |
-| ART-AUD-004 | High | Confirmed source gap | Avernus implements only emergency healing; its primary life steal and auto-stand package are absent. | Avernus |
+| ART-AUD-004 | High | Resolved 2026-08-06 | Avernus now has its primary life steal, minor Bladesong heal, safe knockdown recovery, and emergency healing package. | Avernus |
 | ART-AUD-005 | High | Confirmed defect | Earthcrier computes `14 + artifact level` but sends a different, much higher level-derived DC to the save system. | Earthcrier |
 | ART-AUD-006 | High | Confirmed defect | Kelrom's always-run signature path owns the shared cooldown, making its configured 14 percent generic proc unreachable. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
@@ -288,7 +294,38 @@ Completed implementation contract:
 4. [x] Preserve and disclose the independent persisted one-third-MUD-hour
    recharge.
 
-### ART-AUD-004: Avernus is missing most of Bladesong
+### ART-AUD-004: Avernus is missing most of Bladesong [resolved]
+
+Implementation (2026-08-06):
+
+- Avernus now checks its survival reactions on every successful hit while its
+  named life-transfer strike keeps a separate table-owned 1-in-31 roll. The
+  existing 15 percent generic proc remains independent.
+- The transfer ceiling grows from 50 at artifact level 1 to the inherited 250
+  at level 5. It deals three times the transfer as normal negative damage,
+  refuses undead and constructs, and heals from one third of damage actually
+  inflicted without exceeding the wielder's missing hit points.
+- Bladesong retains the 1-in-11 style event and two-point heal when more than
+  ten HP are missing. It also recovers an active wielder from an ordinary
+  knockdown without bypassing sleep, paralysis, or pinning.
+- The emergency heal retains its below-100-HP threshold and
+  `30 + 2 * artifact level` percent chance, caps at maximum HP, and takes
+  priority over the named drain on that hit.
+- A production-linked integration test covers both scaling endpoints, capped
+  healing, nonliving immunity, generic-cooldown independence, all three
+  survival reactions, identity metadata, and player-visible information. The
+  complete root suite passes 423/423 tests.
+- The installed binary passed copyover and exposed both chances and the exact
+  rules through `artifact info`. Controlled live combat produced the generic
+  proc and named drain independently; the named drain dealt 145 damage at
+  artifact level 1 after target damage reduction, then 295 at level 2 and
+  capped its heal at the wielder's 14 missing HP. The minor Bladesong event
+  restored two HP, and the emergency reaction restored a 50-HP wielder to
+  full. The deterministic test covers knockdown recovery because normal player
+  auto-stand took priority in the live combat loop. All temporary XP,
+  ownership, cooldown, and inventory changes were restored after verification.
+
+Original evidence at audited revision `61c03285`:
 
 Realms identifies Avernus as "the life stealer" and implements four weapon-hit
 behaviors (`EXAMPLE/RealmsOfLuminari/src/specs.artifacts.c:1883-1972`):
@@ -299,10 +336,10 @@ behaviors (`EXAMPLE/RealmsOfLuminari/src/specs.artifacts.c:1883-1972`):
 - a 1-in-31 main proc that transfers a bounded amount to the wielder and deals
   three times that amount to the victim.
 
-Current `artifact_proc_avernus()` accepts no victim and no hit damage. It only
-implements the emergency full heal (`src/obj/spec_artifacts.c:3119-3139`). It
-therefore cannot perform the artifact's main life-stealing strike or stand its
-wielder up.
+At audited revision `61c03285`, `artifact_proc_avernus()` accepted no victim
+and no hit damage. It only implemented the emergency full heal
+(`src/obj/spec_artifacts.c:3119-3139`), so it could not perform the artifact's
+main life-stealing strike or stand its wielder up.
 
 The replacement should use current damage, position, immunity, and healing
 helpers. The source's direct HP writes and over-max healing are not safe porting
@@ -469,8 +506,9 @@ Resolution (2026-08-06):
   the expected table or substitute a parallel runtime registry.
 - `NULL`, zero, and `NOTHING` values are deliberate contract entries. The
   matrix exposed Fade's and Doombringer's missing combat packages until
-  ART-AUD-002 and ART-AUD-003 updated runtime and expectation together;
-  Avernus's emergency-heal-only handler remains visible for ART-AUD-004.
+  ART-AUD-002 and ART-AUD-003 updated runtime and expectation together; it
+  likewise exposed Avernus's emergency-heal-only handler until ART-AUD-004
+  restored the complete package.
 - The test reports the first drift by artifact VNUM and field. The
   production-linked suite passes 419/419 tests.
 - `make install` installed the tested binary and removed the root build
@@ -533,7 +571,7 @@ runtime ignores.
 | 169907 | Kelrom | Confirmed current defect; redesign review | Animal punishment and the current group healback exist, but the 14 percent generic proc is unreachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; current behavior is a substantial rebuild whose intended identity should be confirmed. Source passives remain open (ART-AUD-007). |
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap was found beyond system-wide ART-AUD-001 and ART-AUD-010. |
 | 169909 | Tiamat's Stinger | Core mechanic fixed; review passives | The separate lifesteal signature now uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table is correctly separate. Realms' five permanent states remain a product decision (ART-AUD-007). |
-| 169910 | Avernus | Confirmed gap | Emergency full heal exists; primary lifesteal, auto-stand, and minor Bladesong heal do not (ART-AUD-004). Source passives are absent (ART-AUD-007). |
+| 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
 | 169911 | Aegis of Ages | Current-original; identity decision | Its pure defensive numeric package is implemented and tested. It has no historical counterpart. Resolve whether it is a breastplate or shield (ART-AUD-009). |
 | 169913 | Vengeance | Covered intentional rebuild | Current mercy signature and three progressive passives are an explicit safe redesign, not a literal Homeland port. No additional gap was found. |
 | 169914 | Earthcrier | Confirmed defects | Knockdown exists, but its save DC ignores the declared constant and its prototype contradicts the two-handed current lore (ART-AUD-005, ART-AUD-009). |
@@ -566,8 +604,10 @@ runtime ignores.
 2. **Completed 2026-08-06: add identity-contract tests.** All 17 expected
    identities are explicit, so a generic percentage cannot masquerade as a
    named mechanic again (ART-AUD-013).
-3. **In progress: restore the three confirmed missing packages.** Fade and
-   Doombringer are complete. Implement Avernus next (ART-AUD-004).
+3. **Completed 2026-08-06: restore the three confirmed missing packages.**
+   Fade, Doombringer, and Avernus are covered by deterministic integration
+   tests and controlled in-game verification (ART-AUD-002 through
+   ART-AUD-004).
 4. **Repair current contradictions.** Resolve Earthcrier's DC and handedness,
    then make an explicit Kelrom generic/healback choice
    (ART-AUD-005, ART-AUD-006, ART-AUD-009).
@@ -584,8 +624,8 @@ runtime ignores.
   combat proc, active command, called effects, and progressive passives.
 - A lethal signature or generic proc returns safely through the outer combat
   hook without later victim access.
-- Fade and Doombringer produce their approved named behavior in deterministic
-  integration tests; Avernus still requires equivalent coverage.
+- Fade, Doombringer, and Avernus produce their approved named behavior in
+  deterministic integration tests.
 - Earthcrier's tested DC matches one documented formula.
 - Kelrom either has a reachable generic proc or advertises no generic proc; a
   no-heal event consumes neither cooldown nor proc XP.

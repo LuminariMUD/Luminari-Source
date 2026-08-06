@@ -3283,20 +3283,12 @@ static int artifact_proc_gesen(struct char_data *ch, struct char_data *victim,
   return (DEAD(victim) || GET_POS(victim) == POS_DEAD);
 }
 
-/* Avernus, the Black Blade: it keeps its wielder alive to keep swinging. */
-static int artifact_proc_avernus(struct char_data *ch, struct char_data *victim,
-                                 struct obj_data *weapon, struct artifact_data *art, int dam,
-                                 int is_critical)
+/* Avernus, the Black Blade: Bladesong keeps its wielder moving between the
+ * blade's rarer life-stealing strikes. */
+static int artifact_avernus_emergency_heal(struct char_data *ch, struct obj_data *weapon)
 {
-  (void)victim;
-  (void)dam;
-  (void)is_critical;
-
-  if (GET_HIT(ch) >= ARTIFACT_AVERNUS_HEAL_THRESHOLD)
-    return FALSE;
-
-  /* A higher-level blade is quicker to spend itself keeping you upright. */
-  if (rand_number(1, 100) > ARTIFACT_AVERNUS_HEAL_CHANCE + (art->level * 2))
+  if (GET_POS(ch) <= POS_DEAD || GET_HIT(ch) >= ARTIFACT_AVERNUS_HEAL_THRESHOLD ||
+      GET_HIT(ch) >= GET_MAX_HIT(ch))
     return FALSE;
 
   GET_HIT(ch) = GET_MAX_HIT(ch);
@@ -3307,7 +3299,136 @@ static int artifact_proc_avernus(struct char_data *ch, struct char_data *victim,
       TO_ROOM);
 
   artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
+  return TRUE;
+}
+
+static void artifact_avernus_bladesong(struct char_data *ch, struct char_data *victim,
+                                       struct obj_data *weapon)
+{
+  int healing = 0, missing = 0;
+
+  if (GET_POS(ch) <= POS_DEAD)
+    return;
+
+  act("\tLYou charge, evade, and parry as $p guides you through the Bladesong.\tn", FALSE, ch,
+      weapon, victim, TO_CHAR);
+  act("\tL$n charges and parries with impossible grace as $p guides every step.\tn", FALSE, ch,
+      weapon, victim, TO_NOTVICT);
+
+  missing = MAX(0, GET_MAX_HIT(ch) - GET_HIT(ch));
+  if (missing <= ARTIFACT_AVERNUS_BLADESONG_MIN_MISSING)
+    return;
+
+  healing = MIN(ARTIFACT_AVERNUS_BLADESONG_HEAL, missing);
+  GET_HIT(ch) += healing;
+  send_to_char(ch, "\tLThe rhythm closes %d hit point%s of your wounds.\tn\r\n", healing,
+               healing == 1 ? "" : "s");
+}
+
+static void artifact_avernus_recover(struct char_data *ch, struct char_data *victim,
+                                     struct obj_data *weapon)
+{
+  if (GET_POS(ch) <= POS_SLEEPING || GET_POS(ch) >= POS_FIGHTING)
+    return;
+
+  /* Bladesong defeats an ordinary knockdown, not sleep, paralysis, or a pin. */
+  if (AFF_FLAGGED(ch, AFF_SLEEP) || AFF_FLAGGED(ch, AFF_PARALYZED) || AFF_FLAGGED(ch, AFF_PINNED))
+    return;
+
+  char_from_furniture(ch);
+  change_position(ch, FIGHTING(ch) ? POS_FIGHTING : POS_STANDING);
+
+  act("\tL$p pulls you from the ground and back into a fighting stance!\tn", FALSE, ch, weapon,
+      victim, TO_CHAR);
+  act("\tL$p pulls $n from the ground and back into a fighting stance!\tn", FALSE, ch, weapon,
+      victim, TO_NOTVICT);
+}
+
+/* This reaction is checked on every successful hit.  Returning TRUE asks the
+ * dispatcher to skip only Avernus's 1-in-31 main strike on a hit where the
+ * emergency heal already spent the blade's attention. */
+static int artifact_react_avernus(struct char_data *ch, struct char_data *victim,
+                                  struct obj_data *weapon, struct artifact_data *art, int dam,
+                                  int is_critical)
+{
+  (void)dam;
+  (void)is_critical;
+
+  if (GET_HIT(ch) < ARTIFACT_AVERNUS_HEAL_THRESHOLD &&
+      rand_number(1, 100) <=
+          ARTIFACT_AVERNUS_HEAL_CHANCE + (art->level * ARTIFACT_AVERNUS_HEAL_CHANCE_PER_LEVEL) &&
+      artifact_avernus_emergency_heal(ch, weapon))
+    return TRUE;
+
+  if (rand_number(1, ARTIFACT_AVERNUS_BLADESONG_ODDS) == 1)
+    artifact_avernus_bladesong(ch, victim, weapon);
+
+  artifact_avernus_recover(ch, victim, weapon);
   return FALSE;
+}
+
+/* The inherited ceiling is 250 points transferred and three times that much
+ * victim damage.  Artifact progression earns one fifth of the ceiling per
+ * level; healing follows damage actually inflicted and never exceeds the
+ * wielder's missing hit points. */
+static int artifact_proc_avernus(struct char_data *ch, struct char_data *victim,
+                                 struct obj_data *weapon, struct artifact_data *art, int dam,
+                                 int is_critical)
+{
+  int damage_dealt = 0, healing = 0, requested_damage = 0, transfer = 0;
+  int transfer_cap = 0, victim_died = FALSE, victim_hit = 0;
+
+  (void)dam;
+  (void)is_critical;
+
+  if (!IS_LIVING(victim))
+    return FALSE;
+
+  transfer_cap = MAX(1, (ARTIFACT_AVERNUS_DRAIN_MAX_TRANSFER * art->level) / ARTIFACT_MAX_LEVEL);
+  victim_hit = MAX(0, GET_HIT(victim));
+  transfer = MIN(transfer_cap, victim_hit);
+  if (transfer < transfer_cap)
+    transfer = MIN(transfer_cap, transfer + ARTIFACT_AVERNUS_DRAIN_DEATH_MARGIN);
+  requested_damage = transfer * ARTIFACT_AVERNUS_DRAIN_DAMAGE_MULTIPLIER;
+
+  if (requested_damage <= 0)
+    return FALSE;
+
+  act("\tL$p glows black-white and draws $N's life through its blade!\tn", FALSE, ch, weapon,
+      victim, TO_CHAR);
+  act("\tL$p flares in $n's hands as a dark stream runs from $N into its blade!\tn", FALSE, ch,
+      weapon, victim, TO_NOTVICT);
+  act("\tL$p tears your life away in a flash of black-white light!\tn", FALSE, ch, weapon, victim,
+      TO_VICT);
+
+  damage_dealt = damage(ch, victim, requested_damage, TYPE_UNDEFINED, DAM_NEGATIVE, FALSE);
+
+  /* A lethal damage() call may extract the victim.  Account from the pre-hit
+   * snapshot without touching it again. */
+  if (damage_dealt < 0)
+  {
+    victim_died = TRUE;
+    damage_dealt = MIN(requested_damage, victim_hit);
+  }
+
+  if (damage_dealt <= 0)
+    return victim_died;
+
+  if (GET_POS(ch) > POS_DEAD && GET_HIT(ch) < GET_MAX_HIT(ch))
+  {
+    healing = damage_dealt / ARTIFACT_AVERNUS_DRAIN_DAMAGE_MULTIPLIER;
+    healing = MIN(healing, transfer);
+    healing = MIN(healing, GET_MAX_HIT(ch) - GET_HIT(ch));
+    if (healing > 0)
+    {
+      GET_HIT(ch) += healing;
+      send_to_char(ch, "\tLThe stolen life restores %d hit point%s.\tn\r\n", healing,
+                   healing == 1 ? "" : "s");
+    }
+  }
+
+  artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_SIGNATURE);
+  return victim_died;
 }
 
 /* Trorxek, the Staff of Ancient Oaks: a blinding strike on a critical hit. */
@@ -3349,21 +3470,24 @@ typedef int (*artifact_hand_proc_fn)(struct char_data *ch, struct char_data *vic
 struct artifact_hand_proc_entry
 {
   int vnum;
+  artifact_hand_proc_fn reaction; /* always checked before the named roll */
   artifact_hand_proc_fn handler;
   int proc_odds; /* optional roll before the handler; zero = handler-owned */
   const char *description;
 };
 
 static const struct artifact_hand_proc_entry artifact_hand_procs[] = {
-    {ART_VNUM_TRORXEK, artifact_proc_trorxek, 0, NULL},
-    {ART_VNUM_FADE, artifact_proc_fade, ARTIFACT_FADE_DRAIN_ODDS, "siphon a living non-dragon NPC"},
-    {ART_VNUM_DOOMBRINGER, artifact_proc_doombringer, ARTIFACT_DOOMBRINGER_BURST_ODDS,
+    {ART_VNUM_TRORXEK, NULL, artifact_proc_trorxek, 0, NULL},
+    {ART_VNUM_FADE, NULL, artifact_proc_fade, ARTIFACT_FADE_DRAIN_ODDS,
+     "siphon a living non-dragon NPC"},
+    {ART_VNUM_DOOMBRINGER, NULL, artifact_proc_doombringer, ARTIFACT_DOOMBRINGER_BURST_ODDS,
      "burst into extra attacks against an NPC"},
-    {ART_VNUM_KELRARIN, artifact_proc_kelrarin, 0, NULL},
-    {ART_VNUM_KELROM, artifact_proc_kelrom, 0, NULL},
-    {ART_VNUM_GESEN, artifact_proc_gesen, 0, NULL},
-    {ART_VNUM_AVERNUS, artifact_proc_avernus, 0, NULL},
-    {-1, NULL, 0, NULL}};
+    {ART_VNUM_KELRARIN, NULL, artifact_proc_kelrarin, 0, NULL},
+    {ART_VNUM_KELROM, NULL, artifact_proc_kelrom, 0, NULL},
+    {ART_VNUM_GESEN, NULL, artifact_proc_gesen, 0, NULL},
+    {ART_VNUM_AVERNUS, artifact_react_avernus, artifact_proc_avernus, ARTIFACT_AVERNUS_DRAIN_ODDS,
+     "steal a living foe's vitality for triple damage"},
+    {-1, NULL, NULL, 0, NULL}};
 
 static const struct artifact_hand_proc_entry *artifact_hand_proc_for_vnum(int vnum)
 {
@@ -3768,6 +3892,10 @@ static int artifact_signature_proc(struct char_data *ch, struct char_data *victi
     return artifact_reusable_proc(ch, victim, weapon, art, is_critical);
 
   if (!(hand_proc = artifact_hand_proc_for_vnum(art->vnum)))
+    return FALSE;
+
+  if (!force_hand_proc && hand_proc->reaction &&
+      hand_proc->reaction(ch, victim, weapon, art, dam, is_critical))
     return FALSE;
 
   if (!force_hand_proc && hand_proc->proc_odds > 0 && rand_number(1, hand_proc->proc_odds) != 1)
@@ -4976,6 +5104,16 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                    "  Independent %d-second recharge; good targets cost %d alignment.\r\n",
                    ARTIFACT_DOOMBRINGER_BURST_MAX_ATTACKS, ARTIFACT_DOOMBRINGER_BURST_COOLDOWN,
                    ARTIFACT_DOOMBRINGER_ALIGNMENT_COST);
+    else if (art->vnum == ART_VNUM_AVERNUS)
+      send_to_char(
+          ch,
+          "  Drain: up to %d x artifact level transferred from a living foe; triple damage.\r\n"
+          "  Healing follows one-third of damage inflicted and is capped by missing hit points.\r\n"
+          "  Bladesong may restore %d hit points or recover from an ordinary knockdown.\r\n"
+          "  Below %d HP, it has a %d + (%d x level)%% chance per hit to restore full HP.\r\n",
+          ARTIFACT_AVERNUS_DRAIN_MAX_TRANSFER / ARTIFACT_MAX_LEVEL, ARTIFACT_AVERNUS_BLADESONG_HEAL,
+          ARTIFACT_AVERNUS_HEAL_THRESHOLD, ARTIFACT_AVERNUS_HEAL_CHANCE,
+          ARTIFACT_AVERNUS_HEAL_CHANCE_PER_LEVEL);
   }
 
   if (art->sig_proc != ART_SIG_NONE && art->sig_chance > 0)
@@ -6096,6 +6234,25 @@ int artifact_force_doombringer_nested_proc_for_test(struct char_data *ch, struct
   artifact_in_doombringer_burst = FALSE;
 
   return victim_died;
+}
+
+void artifact_force_avernus_survival_for_test(struct char_data *ch, struct char_data *victim,
+                                              struct obj_data *weapon, int emergency_heal,
+                                              int bladesong_heal)
+{
+  struct artifact_data *art = NULL;
+
+  if (!ch || !victim || !weapon)
+    return;
+
+  if (!(art = artifact_of_obj(weapon)) || art->vnum != ART_VNUM_AVERNUS)
+    return;
+
+  if (emergency_heal)
+    artifact_avernus_emergency_heal(ch, weapon);
+  if (bladesong_heal)
+    artifact_avernus_bladesong(ch, victim, weapon);
+  artifact_avernus_recover(ch, victim, weapon);
 }
 
 /* Read the exact production tables and dispatch lookup into one stable test

@@ -366,6 +366,14 @@
 #define ARTIFACT_GESEN_THROW_ODDS 31
 #define ARTIFACT_AVERNUS_HEAL_THRESHOLD 100
 #define ARTIFACT_AVERNUS_HEAL_CHANCE 30
+#define ARTIFACT_AVERNUS_HEAL_CHANCE_PER_LEVEL 2
+#define ARTIFACT_AVERNUS_BLADESONG_ODDS 11
+#define ARTIFACT_AVERNUS_BLADESONG_HEAL 2
+#define ARTIFACT_AVERNUS_BLADESONG_MIN_MISSING 10
+#define ARTIFACT_AVERNUS_DRAIN_ODDS 31
+#define ARTIFACT_AVERNUS_DRAIN_MAX_TRANSFER 250
+#define ARTIFACT_AVERNUS_DRAIN_DEATH_MARGIN 9
+#define ARTIFACT_AVERNUS_DRAIN_DAMAGE_MULTIPLIER 3
 /* Kelrom's healback.  The bearer gets the full share; everyone else in the
  * group gets half of it.  Before the balance pass this fired on every single
  * hit with no cooldown and gave the whole group the full amount, which made a
@@ -587,6 +595,9 @@ int artifact_force_signature_proc_for_test(struct char_data *ch, struct char_dat
 int artifact_force_doombringer_nested_proc_for_test(struct char_data *ch, struct char_data *victim,
                                                     struct obj_data *weapon);
 int artifact_doombringer_attacks_for_test(void);
+void artifact_force_avernus_survival_for_test(struct char_data *ch, struct char_data *victim,
+                                              struct obj_data *weapon, int emergency_heal,
+                                              int bladesong_heal);
 int artifact_identity_for_test(int vnum, struct artifact_test_identity_data *identity);
 #endif
 

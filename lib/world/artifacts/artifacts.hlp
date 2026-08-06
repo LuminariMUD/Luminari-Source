@@ -39,6 +39,12 @@ five. It has its own 25-second recharge, separate from the generic strike, and
 using the frenzy against a good target darkens your alignment by one point.
 Use 'artifact info doombringer' to see both chances.
 
+Avernus has an always-checked Bladesong package and a separate named strike.
+Bladesong may heal its wielder or pull them out of an ordinary knockdown on
+any successful hit. The life transfer rolls 1-in-31 against a living foe,
+deals triple damage, and does not consume or wait on the generic artifact-proc
+timer. Use 'artifact info avernus' for the exact scaling and healing rules.
+
 Others answer to words. Hold or wear the artifact and use the channel it
 listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
 command. Each artifact decides which. Each such effect recharges on its own
