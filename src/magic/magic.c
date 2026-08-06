@@ -46,6 +46,11 @@
 // external
 extern struct raff_node *raff_list;
 
+static int paralyzing_touch_duration(void)
+{
+  return dice(1, 4) + 1;
+}
+
 #ifdef LUMINARI_CUTEST
 static int bard_crescendo_damage_applications;
 static int bard_crescendo_save_applications;
@@ -75,6 +80,11 @@ void test_reset_savingthrow_observation(void)
 int test_get_last_savingthrow_challenge(void)
 {
   return last_savingthrow_challenge;
+}
+
+int test_paralyzing_touch_duration(void)
+{
+  return paralyzing_touch_duration();
 }
 #endif
 bool save_char_pets(struct char_data *ch);
@@ -8395,7 +8405,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
     }
 
     SET_BIT_AR(af[0].bitvector, AFF_PARALYZED);
-    af[0].duration = dice(1, 4 + 1);
+    af[0].duration = paralyzing_touch_duration();
     to_room = "$n freezes in place!";
     to_vict = "You freeze in place!";
     break;

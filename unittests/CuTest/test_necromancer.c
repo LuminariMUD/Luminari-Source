@@ -4,10 +4,17 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
+#include "../../src/actions.h"
+#include "../../src/actionqueues.h"
 #include "../../src/db.h"
+#include "../../src/interpreter.h"
+#include "../../src/lists.h"
+#include "../../src/mud_event.h"
 #include "../../src/character/feats.h"
 #include "../../src/combat/assign_wpn_armor.h"
 #include "../../src/craft/craft.h"
+#include "../../src/magic/spells.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -258,4 +265,135 @@ void Test_necromancer_bone_armor_all_bone_applies_each_real_rank(CuTest *tc)
   armor_list[SPEC_ARMOR_TYPE_PADDED_HEAD].spellFail = saved_head_spell_failure;
 
   CuAssertIntEquals(tc, 10, spell_failure);
+}
+
+void Test_necromancer_touch_daily_uses_scale_at_class_breakpoints(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 6;
+  CuAssertIntEquals(tc, 1, get_daily_uses(&ch, FEAT_TOUCH_OF_UNDEATH));
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 8;
+  CuAssertIntEquals(tc, 2, get_daily_uses(&ch, FEAT_TOUCH_OF_UNDEATH));
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 10;
+  CuAssertIntEquals(tc, 3, get_daily_uses(&ch, FEAT_TOUCH_OF_UNDEATH));
+}
+
+void Test_necromancer_touch_level_follows_selected_casting_track(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 6;
+  CLASS_LEVEL((&ch), CLASS_WIZARD) = 5;
+  CLASS_LEVEL((&ch), CLASS_CLERIC) = 9;
+
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_ARCANE;
+  CuAssertIntEquals(tc, 11, test_necromancer_touch_level(&ch));
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_DIVINE;
+  CuAssertIntEquals(tc, 15, test_necromancer_touch_level(&ch));
+  NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_NONE;
+  CuAssertIntEquals(tc, 6, test_necromancer_touch_level(&ch));
+  CuAssertIntEquals(tc, CAST_INNATE, test_necromancer_touch_cast_type());
+}
+
+void Test_necromancer_paralyzing_touch_duration_is_one_d_four_plus_one(CuTest *tc)
+{
+  int duration;
+  int roll;
+  bool valid = true;
+
+  for (roll = 0; roll < 256; roll++)
+  {
+    duration = test_paralyzing_touch_duration();
+    if (duration < 2 || duration > 5)
+      valid = false;
+  }
+
+  CuAssertTrue(tc, valid);
+}
+
+void Test_necromancer_touch_attempt_spends_own_use_and_swift_action(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct action_data *action;
+  struct list_data list_registry;
+  struct list_data *saved_global_lists;
+  event_id saved_touch_event;
+  bool has_touch_event;
+  bool has_corruption_event;
+  bool has_swift_event;
+  bool swift_available;
+  int remaining_uses;
+  int queued_actions;
+
+  setup_necromancer_character(&ch, &player_specials);
+  CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 6;
+  SET_FEAT(&ch, FEAT_TOUCH_OF_UNDEATH, 1);
+  GET_QUEUE(&ch) = create_action_queue();
+
+  memset(&list_registry, 0, sizeof(list_registry));
+  saved_global_lists = global_lists;
+  if (global_lists == NULL)
+    global_lists = &list_registry;
+  saved_touch_event = feat_list[FEAT_TOUCH_OF_UNDEATH].event;
+  feat_list[FEAT_TOUCH_OF_UNDEATH].event = eTOUCHOFUNDEATH;
+  event_free_all();
+  event_init();
+
+  test_consume_necromancer_touch_attempt(&ch);
+  has_touch_event = char_has_mud_event(&ch, eTOUCHOFUNDEATH) != NULL;
+  has_corruption_event = char_has_mud_event(&ch, eTOUCHOFCORRUPTION) != NULL;
+  has_swift_event = char_has_mud_event(&ch, eSWIFTACTION) != NULL;
+  swift_available = command_actions_available(&ch, ACTION_SWIFT);
+  remaining_uses = daily_uses_remaining(&ch, FEAT_TOUCH_OF_UNDEATH);
+
+  action = calloc(1, sizeof(*action));
+  action->argument = strdup("look");
+  action->actions_required = ACTION_SWIFT;
+  enqueue_action(GET_QUEUE(&ch), action);
+  execute_next_action(&ch);
+  queued_actions = pending_actions(&ch);
+
+  clear_char_event_list(&ch);
+  event_free_all();
+  free_action_queue(GET_QUEUE(&ch));
+  GET_QUEUE(&ch) = NULL;
+  feat_list[FEAT_TOUCH_OF_UNDEATH].event = saved_touch_event;
+  global_lists = saved_global_lists;
+
+  CuAssertTrue(tc, has_touch_event);
+  CuAssertTrue(tc, !has_corruption_event);
+  CuAssertTrue(tc, has_swift_event);
+  CuAssertTrue(tc, !swift_available);
+  CuAssertIntEquals(tc, 0, remaining_uses);
+  CuAssertIntEquals(tc, 1, queued_actions);
+}
+
+void Test_necromancer_touch_command_declares_swift_action(CuTest *tc)
+{
+  bool created_command_list = false;
+  int actions_required = ACTION_NONE;
+  int undeath_command;
+
+  if (complete_cmd_info == NULL)
+  {
+    create_command_list();
+    created_command_list = true;
+  }
+
+  undeath_command = find_command("undeath");
+  if (undeath_command >= 0)
+    actions_required = complete_cmd_info[undeath_command].actions_required;
+
+  if (created_command_list)
+    free_command_list();
+
+  CuAssertTrue(tc, undeath_command >= 0);
+  CuAssertIntEquals(tc, ACTION_SWIFT, actions_required);
 }

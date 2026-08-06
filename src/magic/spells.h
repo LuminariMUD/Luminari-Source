@@ -1891,6 +1891,7 @@ int test_get_bard_crescendo_damage_applications(void);
 int test_get_bard_crescendo_save_applications(void);
 void test_reset_savingthrow_observation(void);
 int test_get_last_savingthrow_challenge(void);
+int test_paralyzing_touch_duration(void);
 #endif
 void mag_objectmagic(struct char_data *ch, struct obj_data *obj, char *argument);
 int cast_spell(struct char_data *ch, struct char_data *tch, struct obj_data *tobj, int spellnum,

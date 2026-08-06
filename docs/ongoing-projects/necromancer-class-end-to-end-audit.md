@@ -33,8 +33,8 @@ master checkpoint. This table is updated with every implementation checkpoint.
 |---------|--------|-----------------------|
 | NEC-001 | Focused verification passed | Exactly one selected base class advances; seven progression/study tests pass. |
 | NEC-002 | Focused verification passed | Safe kit cardinality and description ownership; ASan/UBSan clean. |
-| NEC-003 | Open | Touch resource/action accounting repair and tests pending. |
-| NEC-004 | Open | Touch cast type, level, and duration repair and tests pending. |
+| NEC-003 | Focused verification passed | Valid attempts spend the correct daily use and swift action; dispatcher and queue enforcement are tested. |
+| NEC-004 | Focused verification passed | Innate cast type, selected progression level, fallback, and `1d4+1` duration are tested. |
 | NEC-005 | Open | At-will resource extraction repair and tests pending. |
 | NEC-006 | Open | Animated-undead follower boundary repair and tests pending. |
 | NEC-007 | Open | Greater Animation final-level repair and tests pending. |
@@ -46,7 +46,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-013 | Open | Cohort resistance target and point-accounting repair pending. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Eleven production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | In progress | Sixteen production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -90,6 +90,28 @@ master checkpoint. This table is updated with every implementation checkpoint.
   instrumented full suite reached the known bootstrap assertion; its CuTest
   failure-message allocation is retained at exit, so it is not a clean
   leak-detection target in this fresh worktree.
+
+### Checkpoint 3: Touch of Undeath execution contract
+
+- `undeath` now has one swift-action contract at the command dispatcher, queued
+  action executor, and direct handler. A queued swift command remains pending
+  until a swift action is available, and a valid attack attempt consumes the
+  swift action immediately before its attack roll.
+- A valid attempt spends a Touch of Undeath daily use whether the touch attack
+  hits or misses. Invalid room, target, undead-target, and player-killing checks
+  return without spending either resource. The cooldown is attached to
+  `FEAT_TOUCH_OF_UNDEATH`; Touch of Corruption is no longer charged.
+- Touch effects use `CAST_INNATE` and the selected Necromancer progression's
+  arcane or divine level. Legacy characters without an unambiguous selection
+  fall back to their Necromancer class level instead of silently resolving at
+  zero. Paralyzing Touch now lasts `1d4+1` rounds.
+- Five additional production-linked tests cover daily-use breakpoints, selected
+  arcane and divine levels, fallback and cast type, the full duration range,
+  cooldown/action consumption, queue enforcement, and command registration. The
+  normal suite reports 455 runs, 454 passes, and the same unrelated environment
+  failure described above.
+- The isolated ASan/UBSan build with leak detection passed all 16 focused
+  Necromancer tests with no sanitizer finding.
 
 ## Executive verdict
 

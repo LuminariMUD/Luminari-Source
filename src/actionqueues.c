@@ -231,11 +231,7 @@ void execute_next_action(struct char_data *ch)
   if (action == NULL) /* No action. */
     return;
 
-  if (IS_SET(action->actions_required, ACTION_STANDARD) &&
-      !is_action_available(ch, atSTANDARD, FALSE))
-    return;
-
-  if (IS_SET(action->actions_required, ACTION_MOVE) && !is_action_available(ch, atMOVE, FALSE))
+  if (!command_actions_available(ch, action->actions_required))
     return;
 
   action = dequeue_action(GET_QUEUE(ch));
