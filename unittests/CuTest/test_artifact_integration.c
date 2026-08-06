@@ -2511,12 +2511,15 @@ void Test_artifact_integration_oath_burn_scales_with_the_bearer(CuTest *tc)
   CuAssertTrue(tc, large_burn > dice_ceiling);
 }
 
-void Test_artifact_integration_kelrom_healback_respects_the_cooldown(CuTest *tc)
+void Test_artifact_integration_kelrom_healback_and_generic_use_independent_cooldowns(CuTest *tc)
 {
   struct artint_fixture fixture;
   struct obj_data obj;
   struct artifact_data *art = NULL;
-  int first_healed = 0, second_healed = 0;
+  time_t healback_stamp = 0;
+  int exp_after_heal = 0, first_healed = 0, generic_damage = 0;
+  int generic_reachable = FALSE, heal_awarded_xp = FALSE, info_described = FALSE;
+  int no_heal_was_free = FALSE, second_healed = 0, second_was_free = FALSE;
 
   if (!artint_begin(&fixture))
   {
@@ -2525,12 +2528,12 @@ void Test_artifact_integration_kelrom_healback_respects_the_cooldown(CuTest *tc)
     return;
   }
 
-  /* Kelrom is the only always-on procedure in the roster, so it is the only
-   * one that has to answer to the shared internal cooldown. */
   art = artifact_by_vnum(ART_VNUM_KELROM);
   CuAssertPtrNotNull(tc, art);
-  art->level = ARTIFACT_MAX_LEVEL;
+  art->level = 1;
+  art->experience = 0;
   art->last_proc = 0;
+  art->last_signature_proc = 0;
 
   artint_instance(&fixture, &obj, ART_VNUM_KELROM);
   artint_carry(&fixture, &obj);
@@ -2538,21 +2541,67 @@ void Test_artifact_integration_kelrom_healback_respects_the_cooldown(CuTest *tc)
   obj.worn_by = &fixture.actor;
   obj.worn_on = WEAR_WIELD_1;
 
-  GET_HIT(&fixture.actor) = 100;
+  /* A no-heal attempt is not a successful proc and spends nothing. */
+  GET_HIT(&fixture.actor) = GET_MAX_HIT(&fixture.actor);
+  artint_clear_output(&fixture);
   artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
-  first_healed = GET_HIT(&fixture.actor) - 100;
+  no_heal_was_free = art->last_signature_proc == 0 && art->last_proc == 0 && art->experience == 0 &&
+                     fixture.descriptor.output[0] == '\0';
 
   GET_HIT(&fixture.actor) = 100;
+  artint_clear_output(&fixture);
+  artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
+  first_healed = GET_HIT(&fixture.actor) - 100;
+  healback_stamp = art->last_signature_proc;
+  exp_after_heal = art->experience;
+  heal_awarded_xp = exp_after_heal == ARTIFACT_XP_PROC_HEAL && art->last_proc == 0 &&
+                    artint_said(&fixture, "warm green light");
+
+  GET_HIT(&fixture.actor) = 100;
+  artint_clear_output(&fixture);
   artifact_force_signature_proc_for_test(&fixture.actor, &fixture.victim, &obj, FALSE);
   second_healed = GET_HIT(&fixture.actor) - 100;
+  second_was_free = art->last_signature_proc == healback_stamp &&
+                    art->experience == exp_after_heal && fixture.descriptor.output[0] == '\0';
+
+  /* The active healback recharge must not shadow Kelrom's generic clock.
+   * Level 1 makes the certain generic roll select soul damage deterministically. */
+  art->proc_chance = 100;
+  art->last_proc = 0;
+  FIGHTING(&fixture.actor) = &fixture.victim;
+  FIGHTING(&fixture.victim) = &fixture.actor;
+  generic_damage = GET_HIT(&fixture.victim);
+  artint_clear_output(&fixture);
+  artifact_weapon_proc(&fixture.actor, &fixture.victim, &obj, 10, FALSE);
+  generic_damage -= GET_HIT(&fixture.victim);
+  generic_reachable = generic_damage > 0 && art->last_proc > 0 &&
+                      art->last_signature_proc == healback_stamp &&
+                      artint_said(&fixture, "tears at");
+
+  art->proc_chance = 14;
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &obj);
+  info_described = artint_said(&fixture, "14% chance per hit") &&
+                   artint_said(&fixture, "restore 10% of their damage") &&
+                   artint_said(&fixture, "Independent 30-second recharge") &&
+                   artint_said(&fixture, "no recharge is spent");
 
   GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
   obj.worn_by = NULL;
   artint_uncarry(&fixture, &obj);
+  FIGHTING(&fixture.actor) = NULL;
+  FIGHTING(&fixture.victim) = NULL;
+  fixture.actor.last_attacker = NULL;
+  fixture.victim.last_attacker = NULL;
   artint_end(&fixture);
 
-  CuAssertTrue(tc, first_healed > 0);
+  CuAssertIntEquals(tc, TRUE, no_heal_was_free);
+  CuAssertIntEquals(tc, 1, first_healed);
+  CuAssertIntEquals(tc, TRUE, heal_awarded_xp);
   CuAssertIntEquals(tc, 0, second_healed);
+  CuAssertIntEquals(tc, TRUE, second_was_free);
+  CuAssertIntEquals(tc, TRUE, generic_reachable);
+  CuAssertIntEquals(tc, TRUE, info_described);
 }
 
 void Test_artifact_integration_multi_target_powers_are_capped(CuTest *tc)

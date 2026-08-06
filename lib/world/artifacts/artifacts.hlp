@@ -50,6 +50,13 @@ against a base DC of 14 plus its artifact level. A failed save knocks a
 standing target down. No-bash, free-moving, incorporeal, and already-down foes
 are immune. Use 'artifact info earthcrier' to see its current DC.
 
+Kelrom keeps two independent on-hit mechanics. Its generic artifact strike has
+a 14 percent chance. Its group healback restores 10 percent of the triggering
+damage per artifact level to its bearer and half that share to nearby group
+members, then recharges for 30 seconds. If no one needs healing, it spends no
+recharge. Striking an animal turns the axe's punishment on its wielder. Use
+'artifact info kelrom' for the current healback share.
+
 Others answer to words. Hold or wear the artifact and use the channel it
 listens on: SAY the phrase aloud, WHISPER it to someone, or INVOKE it as a
 command. Each artifact decides which. Each such effect recharges on its own

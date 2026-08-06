@@ -331,7 +331,7 @@ mobile. Neither is an artifact registry entry.
 | 169904 | The Horn of Henekar | Equip | Rogue | - | - | 4 |
 | 169905 | Doombringer | Pickup | Warrior | `doomblast` | 20% generic + 1-in-31 burst | 3 |
 | 169906 | Kelrarin's Hammer | Equip | - | `soulstrike` | 15% | - |
-| 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% | - |
+| 169907 | Kelrom, the Axe of Pahluruk | Equip | - | - | 14% generic + group healback | - |
 | 169908 | Gesen, the Returning Axe | None | - | - | 18% | - |
 | 169909 | Tiamat's Stinger | Account | - | - | 18% + lifesteal | - |
 | 169910 | Avernus, the Black Blade | Equip | - | - | 15% generic + 1-in-31 life transfer | - |
@@ -626,9 +626,11 @@ Signature procedures run before this generic system. The seven hand-written
 procedures have independent odds and may occur on the same hit as a generic
 proc if the victim survives. Reusable signature shapes normally share the
 generic 30-second internal cooldown. Doombringer instead keeps the source's
-independent 25-second, one-third-MUD-hour recharge. Tiamat's lifesteal ignores
-the generic cooldown while rolling per hit, but refreshes it when a drain fires
-so the generic proc cannot also fire on that hit.
+independent 25-second, one-third-MUD-hour recharge. Kelrom's healback uses an
+independent persisted 30-second clock and spends it only when healing occurs.
+Tiamat's lifesteal ignores the generic cooldown while rolling per hit, but
+refreshes it when a drain fires so the generic proc cannot also fire on that
+hit.
 
 ## Signature Weapon Procedures
 
@@ -639,7 +641,7 @@ so the generic proc cannot also fire on that hit.
 | Doombringer | 1-in-31 burst against an NPC; one extra main-hand attack per artifact level, up to five |
 | Kelrarin | 1-in-29 returning throw with level-scaled force damage and full lifesteal |
 | Kelrarin | Above 990 alignment and at least 90% HP, 1-in-33 level-scaled holy blast plus a non-boss NPC execute check |
-| Kelrom | Kills its wielder for striking an animal; otherwise applies group healback, on the shared 30-second internal cooldown |
+| Kelrom | Kills its wielder for striking an animal; otherwise applies group healback on an independent 30-second recharge |
 | Gesen | 1-in-31 returning throw that invokes `SPELL_HARM` |
 | Avernus | Always-checked Bladesong survival reactions plus a separate 1-in-31 life transfer against a living foe |
 
@@ -678,9 +680,12 @@ percent generic proc.
 Kelrarin's throw ceiling grows from 50 at level 1 to 250 at level 5, and its
 holy blast grows from 100 to 350 the same way. Kelrom's healback grows from
 10% to 50% of triggering damage for the bearer; other group members in the
-room receive half of that. Signature effects scale their spell or effect
-level through `artifact_effect_level()` when their documented contract calls
-for caster scaling. Earthcrier instead owns the explicit knockdown DC above.
+room receive half of that. It uses its own persisted 30-second recharge, so
+Kelrom's 14 percent generic proc remains independently reachable. If nobody
+actually regains hit points, healback spends no recharge and awards no proc XP.
+Signature effects scale their spell or effect level through
+`artifact_effect_level()` when their documented contract calls for caster
+scaling. Earthcrier instead owns the explicit knockdown DC above.
 
 Three of these were changed by the balance pass:
 
@@ -693,9 +698,9 @@ Three of these were changed by the balance pass:
   roster can do. It now skips boss-tier targets, using the same three-level
   margin the XP system uses.
 - Kelrom had no roll and no cooldown at all: it healed the whole group for a
-  share of every single hit. It is the only always-on procedure in the roster,
-  so it is now the only hand-written one that answers to the shared 30-second
-  internal cooldown, and non-bearers take half the bearer's share.
+  share of every single hit. The balance pass added a 30-second recharge and
+  reduced non-bearers to half the bearer's share. That recharge now uses the
+  independent signature clock so it cannot shadow the generic proc table.
 
 ## Called Effects
 

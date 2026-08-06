@@ -1,6 +1,6 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-005 and ART-AUD-013 resolved
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and ART-AUD-013 resolved
 
 **Audited:** 2026-08-06
 
@@ -23,11 +23,12 @@ integration coverage.
 
 The audit also found three independent runtime defects: lethal artifact damage
 was not propagated back to the combat caller, Earthcrier calculated but ignored
-its declared save DC, and Kelrom's hand-written proc makes its advertised 14
+its declared save DC, and Kelrom's hand-written proc made its advertised 14
 percent generic proc unreachable. These defects affect more than source parity
-and should be addressed before artifact placement. ART-AUD-001, the lethal-proc
-boundary defect, was resolved first on 2026-08-06. ART-AUD-005, Earthcrier's
-save defect, is now also resolved. Kelrom remains open as ART-AUD-006.
+and were prioritized before artifact placement. ART-AUD-001, the lethal-proc
+boundary defect, was resolved first on 2026-08-06. ART-AUD-005 resolved
+Earthcrier's save defect, and ART-AUD-006 now resolves Kelrom's timestamp
+collision. All three runtime defects are closed.
 
 ART-AUD-013 was resolved next on 2026-08-06. A production-linked identity
 contract now names the combat handler and table-owned odds, active ability,
@@ -52,6 +53,12 @@ ART-AUD-005 was resolved in the current remediation pass. Earthcrier now passes
 the save-system level component that produces its declared base Reflex DC of
 `14 + artifact level`, rather than a wielder-derived effect level. The installed
 binary survived copyover and a natural combat proc knocked its target down.
+
+ART-AUD-006 was resolved in the current remediation pass. Kelrom's healback
+now uses its own persisted 30-second recharge, leaving its 14 percent generic
+proc independently reachable. A no-heal attempt spends neither recharge nor
+artifact XP. Copyover preserved both clocks, and controlled combat produced
+both mechanics within one healback recharge window.
 
 The initial audit changed no gameplay code. Remediation work is now tracked in
 this document as each item is implemented, tested, live-validated, committed,
@@ -114,7 +121,7 @@ contracts.
 | ART-AUD-003 | High | Resolved 2026-08-06 | Doombringer now has its separate 1-in-31, level-scaled extra-attack burst and independent one-third-hour recharge. | Doombringer |
 | ART-AUD-004 | High | Resolved 2026-08-06 | Avernus now has its primary life steal, minor Bladesong heal, safe knockdown recovery, and emergency healing package. | Avernus |
 | ART-AUD-005 | High | Resolved 2026-08-06 | Earthcrier now sends its declared `14 + artifact level` base DC to the save system, with tested boundaries of 15 and 19. | Earthcrier |
-| ART-AUD-006 | High | Confirmed defect | Kelrom's always-run signature path owns the shared cooldown, making its configured 14 percent generic proc unreachable. | Kelrom |
+| ART-AUD-006 | High | Resolved 2026-08-06 | Kelrom's healback and 14 percent generic proc now use independent persisted cooldowns, and no-heal attempts are free. | Kelrom |
 | ART-AUD-007 | Medium | Design decision | Nine mapped first-wave artifacts had permanent states in Realms, but the current first-wave has no progressive passive rows. | First wave except Gesen |
 | ART-AUD-008 | Medium | Likely gap | Wyrmfang ports five of its six source senses but omits danger sense, which exists in the current engine. | Wyrmfang |
 | ART-AUD-009 | Medium | Confirmed defect / design decision | Earthcrier says it requires two hands but is one-handed for a medium bearer; Wyrmfang and Aegis also have unresolved object-identity differences. | Earthcrier, Wyrmfang, Aegis |
@@ -389,7 +396,31 @@ artifact, rather than the declared 15 through 19.
 
 Choose one DC model, delete the other, and assert boundary values in tests.
 
-### ART-AUD-006: Kelrom's generic proc cannot fire
+### ART-AUD-006: Kelrom's generic proc cannot fire [resolved]
+
+Implementation checkpoint (2026-08-06):
+
+- The current rebuild keeps both advertised mechanics. Healback now uses the
+  persisted `last_signature_proc` clock for its own 30-second recharge, while
+  the generic table continues to use `last_proc`.
+- The handler totals hit points actually restored across eligible in-room
+  group members. Only a positive total stamps the healback clock and awards
+  proc XP; a full-health party spends neither.
+- The two clocks are independent, so the 14 percent generic roll can run on
+  the same hit as healback and throughout healback's recharge.
+- `artifact info`, player help, and the formal system guide now state the
+  generic chance, healback scaling, group share, recharge, and animal taboo.
+- A production-linked test proves the no-heal rule, one successful heal and XP
+  award, repeat-heal refusal, independent generic damage, and visible contract.
+  The complete root suite passes 424/424 tests.
+- The installed binary survived copyover, exposed both mechanics through
+  `artifact info`, and validated all 17 production artifact metadata rows. In
+  controlled combat, healback raised Kohdee from 500 to 521 HP on the opening
+  attack; the natural generic soul strike fired less than 20 seconds later,
+  while healback's 30-second recharge was still active. Temporary and measured
+  persistent state was restored afterward.
+
+Original evidence at audited revision `61c03285`:
 
 Kelrom is configured with a 14 percent generic proc chance
 (`src/obj/spec_artifacts.c:150-152`). On every eligible hit, the hand-written
@@ -596,7 +627,7 @@ runtime ignores.
 | 169904 | Horn of Henekar | Source conflict; review passives | Four called effects exist. Realms identify text claims a hitpoint-sucking combat hit, but its executable procedure contains no such combat branch, so there is no reliable mechanic to port without a design decision. Source passives are absent (ART-AUD-007). |
 | 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Source passives and active-oath policy remain open (ART-AUD-007, ART-AUD-011). |
 | 169906 | Kelrarin | Review source delta | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. Realms' returning throw also had a nested 1-in-6 second bounded strike that current code omits. Its passive package is unresolved (ART-AUD-007). |
-| 169907 | Kelrom | Confirmed current defect; redesign review | Animal punishment and the current group healback exist, but the 14 percent generic proc is unreachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; current behavior is a substantial rebuild whose intended identity should be confirmed. Source passives remain open (ART-AUD-007). |
+| 169907 | Kelrom | Runtime defect fixed; redesign review | Animal punishment and group healback remain, and the independent 14 percent generic proc is reachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; the current identity remains a substantial rebuild. Source passives remain open (ART-AUD-007). |
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap was found beyond system-wide ART-AUD-001 and ART-AUD-010. |
 | 169909 | Tiamat's Stinger | Core mechanic fixed; review passives | The separate lifesteal signature now uses actual damage, capped healing, a 10 percent roll, and a 15-hit guarantee. The generic 18 percent table is correctly separate. Realms' five permanent states remain a product decision (ART-AUD-007). |
 | 169910 | Avernus | Core mechanic restored | The independent 1-in-31 life transfer, emergency heal, minor Bladesong heal, and safe knockdown recovery are implemented and live-verified (ART-AUD-004). Source passives remain unresolved (ART-AUD-007). |
@@ -636,9 +667,9 @@ runtime ignores.
    Fade, Doombringer, and Avernus are covered by deterministic integration
    tests and controlled in-game verification (ART-AUD-002 through
    ART-AUD-004).
-4. **In progress: repair current contradictions.** Earthcrier's DC correction
-   is complete. Make an explicit Kelrom generic/healback choice, then resolve
-   Earthcrier's handedness (ART-AUD-006, ART-AUD-009).
+4. **In progress: repair current contradictions.** Earthcrier's DC and Kelrom's
+   independent generic/healback contract are complete. Next resolve
+   Earthcrier's handedness (ART-AUD-009).
 5. **Make product decisions.** Approve or reject first-wave passives,
    Wyrmfang danger sense, class-oath scope, Wyrmfang handedness, and Aegis
    identity. Record every rejection in `docs/systems/ARTIFACT_SYSTEM.md`.

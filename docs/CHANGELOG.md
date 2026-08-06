@@ -2,6 +2,38 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Kelrom proc cooldown separation
+
+#### Fixed
+
+- Gave Kelrom's group healback its own persisted 30-second recharge instead of
+  stamping the generic weapon-proc clock. Its configured 14 percent generic
+  strike is now reachable and remains independent of healback.
+- Healback now stamps its recharge and awards artifact XP only after at least
+  one eligible group member actually regains hit points. A full-health party
+  leaves both progression and recharge untouched.
+
+#### Changed
+
+- `artifact info` now describes Kelrom's generic chance, level-scaled
+  healback, group share, independent recharge, no-heal rule, and animal taboo.
+  Updated player help and the formal artifact guide to match.
+
+#### Verification
+
+- The production-linked Kelrom test proves no-heal attempts are free, actual
+  healing awards XP once, a second heal is blocked by its own clock, and a
+  deterministic generic soul strike remains reachable while that clock is
+  active. The complete root suite passes 424/424 tests.
+- The installed development binary survived copyover, exposed the complete
+  contract through `artifact info`, and validated all 17 production artifact
+  rows.
+- In controlled combat, healback raised Kohdee from 500 to 521 HP on the
+  opening attack. Kelrom's natural generic soul strike then fired less than 20
+  seconds later, while the 30-second healback recharge was still active. The
+  temporary target and all measured character, inventory, and artifact state
+  were restored afterward.
+
 ### Earthcrier knockdown DC correction
 
 #### Fixed

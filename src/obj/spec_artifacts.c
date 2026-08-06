@@ -3201,7 +3201,7 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
                                 int is_critical)
 {
   struct char_data *tch = NULL;
-  int healed = 0, share = 0;
+  int amount = 0, bearer_share = 0, group_share = 0, total_healed = 0;
 
   (void)is_critical;
 
@@ -3218,21 +3218,19 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
   if (dam <= 0)
     return FALSE;
 
-  /* The only always-on procedure in the roster, so it is the only one that
-   * needs the shared internal cooldown.  Without it this healed the whole
-   * group for a share of every single swing. */
-  if (art->last_proc > 0 && (time(0) - art->last_proc) < ARTIFACT_PROC_ICD)
+  /* This always-checked healback has its own recharge.  Sharing last_proc
+   * made Kelrom's advertised generic proc unreachable on every damaging hit. */
+  if (art->last_signature_proc > 0 &&
+      (time(0) - art->last_signature_proc) < ARTIFACT_KELROM_HEALBACK_COOLDOWN)
     return FALSE;
 
-  art->last_proc = time(0);
-
-  healed = MAX(1, (dam * ARTIFACT_KELROM_HEALBACK_PERCENT * art->level) / 100);
+  bearer_share = MAX(1, (dam * ARTIFACT_KELROM_HEALBACK_PERCENT * art->level) / 100);
 
   if (GROUP(ch))
   {
     /* The bearer takes the wounds, so the bearer takes the full share; the
      * rest of the group gets half. */
-    share = MAX(1, (healed * ARTIFACT_KELROM_GROUP_SHARE) / 100);
+    group_share = MAX(1, (bearer_share * ARTIFACT_KELROM_GROUP_SHARE) / 100);
 
     simple_list(NULL);
 
@@ -3243,7 +3241,9 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
       if (GET_HIT(tch) >= GET_MAX_HIT(tch))
         continue;
 
-      GET_HIT(tch) = MIN(GET_HIT(tch) + (tch == ch ? healed : share), GET_MAX_HIT(tch));
+      amount = MIN(tch == ch ? bearer_share : group_share, GET_MAX_HIT(tch) - GET_HIT(tch));
+      GET_HIT(tch) += amount;
+      total_healed += amount;
       send_to_char(tch, "\tGA warm green light spills from Kelrom and knits your wounds.\tn\r\n");
     }
 
@@ -3251,10 +3251,19 @@ static int artifact_proc_kelrom(struct char_data *ch, struct char_data *victim,
   }
   else if (GET_HIT(ch) < GET_MAX_HIT(ch))
   {
-    GET_HIT(ch) = MIN(GET_HIT(ch) + healed, GET_MAX_HIT(ch));
+    amount = MIN(bearer_share, GET_MAX_HIT(ch) - GET_HIT(ch));
+    GET_HIT(ch) += amount;
+    total_healed += amount;
     send_to_char(ch, "\tGA warm green light spills from Kelrom and knits your wounds.\tn\r\n");
   }
 
+  /* A full-health party has received no proc.  Leave both its recharge and
+   * progression untouched so the next eligible hit can still help. */
+  if (total_healed <= 0)
+    return FALSE;
+
+  art->last_signature_proc = time(0);
+  artifact_mark_dirty();
   artifact_grant_xp_obj(ch, weapon, ARTIFACT_XP_PROC_HEAL);
   return FALSE;
 }
@@ -5085,6 +5094,18 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
   if (art->proc_chance > 0)
     send_to_char(ch, "\r\n\tYCombat:\tn %d%% chance per hit to unleash a special strike.\r\n",
                  art->proc_chance);
+
+  if (art->vnum == ART_VNUM_KELROM)
+    send_to_char(ch,
+                 "\r\n\tYSignature:\tn Damaging hits restore %d%% of their damage as group "
+                 "healing.\r\n"
+                 "  The bearer receives the full share; nearby group members receive %d%% of "
+                 "it.\r\n"
+                 "  Independent %d-second recharge; no recharge is spent when no one needs "
+                 "healing.\r\n"
+                 "  Striking an animal instead turns the axe's punishment on its wielder.\r\n",
+                 ARTIFACT_KELROM_HEALBACK_PERCENT * art->level, ARTIFACT_KELROM_GROUP_SHARE,
+                 ARTIFACT_KELROM_HEALBACK_COOLDOWN);
 
   hand_proc = artifact_hand_proc_for_vnum(art->vnum);
   if (hand_proc && hand_proc->proc_odds > 0 && hand_proc->description)

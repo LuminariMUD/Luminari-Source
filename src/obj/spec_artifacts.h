@@ -380,6 +380,7 @@
  * level-5 Kelrom a party-wide 50%-of-damage lifesteal on every swing. */
 #define ARTIFACT_KELROM_HEALBACK_PERCENT 10
 #define ARTIFACT_KELROM_GROUP_SHARE 50 /* percent of the bearer's share    */
+#define ARTIFACT_KELROM_HEALBACK_COOLDOWN ARTIFACT_PROC_ICD
 
 /* Kelrarin's mega blast scales like its own lesser throw does; a level-1
  * hammer should not carry a level-5 nuke. */
