@@ -1087,7 +1087,7 @@ void destroy_db(void)
 
   /* Craft Cleanup */
   /* Clear craft list - must be done safely without using simple_list during removal */
-  if (global_craft_list->iSize > 0)
+  if (global_craft_list != NULL && global_craft_list->iSize > 0)
   {
     struct craft_data *craft;
     struct iterator_data iter;
@@ -1106,7 +1106,11 @@ void destroy_db(void)
     }
     remove_iterator(&iter);
   }
-  free_list(global_craft_list);
+  if (global_craft_list != NULL)
+  {
+    free_list(global_craft_list);
+    global_craft_list = NULL;
+  }
 
   /* Events */
   event_free_all();

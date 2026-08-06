@@ -109,4 +109,10 @@ long queue_elmt_key(struct q_element *qe);
 void queue_free(struct dg_queue *q);
 int event_is_queued(struct event *event);
 
+#if defined(LUMINARI_CUTEST)
+void event_test_reset_lifecycle_counts(void);
+int event_test_init_call_count(void);
+int event_test_free_all_call_count(void);
+#endif
+
 #endif /* _DG_EVENT_H_ */

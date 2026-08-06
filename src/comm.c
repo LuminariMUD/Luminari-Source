@@ -435,7 +435,10 @@ int main(int argc, char **argv)
     log("Info: Copyover mode detected, mother_desc=%d", mother_desc);
 
   if (scheck)
+  {
+    event_init();
     boot_world();
+  }
   else
   {
     log("Running game on port %d.", port);

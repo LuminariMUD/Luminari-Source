@@ -253,6 +253,7 @@ check_PROGRAMS = cutest
 
 # CuTest sources
 cutest_SOURCES = \
+	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_i3_client_production.c \
 	unittests/CuTest/test_msdp_production.c \
@@ -287,6 +288,7 @@ cutest_CFLAGS = $(AM_CFLAGS) -DLUMINARI_CUTEST
 cutest_LDADD = $(circle_LDADD)
 
 cutest_test_files = \
+	unittests/CuTest/test_syntax_check_boot.c \
 	unittests/CuTest/test_bounds_checking.c \
 	unittests/CuTest/test_web_onboarding.c \
 	unittests/CuTest/test_i3_client_production.c \

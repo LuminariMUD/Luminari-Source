@@ -130,7 +130,7 @@ void free_list(struct list_data *pList)
   pList->iIterators = 0;
 
   /* Remove this list from the global list registry (unless it IS global_lists) */
-  if (pList != global_lists)
+  if (global_lists != NULL && pList != global_lists)
     remove_from_list(pList, global_lists);
 
   /* Finally, free the list container structure itself */

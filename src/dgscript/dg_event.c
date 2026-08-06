@@ -39,11 +39,26 @@ static int processing_events = 0;
 /** Counter to track total number of events in the system (resource exhaustion protection) */
 static int total_events = 0;
 
+#if defined(LUMINARI_CUTEST)
+static int event_init_calls = 0;
+static int event_free_all_calls = 0;
+#endif
+
 /** Initializes the main event queue event_q.
  * @post The main event queue, event_q, has been created and initialized.
  */
 void event_init(void)
 {
+#if defined(LUMINARI_CUTEST)
+  event_init_calls++;
+#endif
+
+  if (event_q != NULL)
+  {
+    log("SYSERR: event_init called while the event queue is already initialized");
+    return;
+  }
+
   event_q = queue_init();
 }
 
@@ -372,6 +387,10 @@ long event_time(struct event *event)
  */
 void event_free_all(void)
 {
+#if defined(LUMINARI_CUTEST)
+  event_free_all_calls++;
+#endif
+
   /* CRITICAL SAFETY CHECK:
    * We must ensure event_process() is not currently running.
    * If it is, we risk freeing events that are being processed,
@@ -390,6 +409,24 @@ void event_free_all(void)
   queue_free(event_q);
   event_q = NULL;
 }
+
+#if defined(LUMINARI_CUTEST)
+void event_test_reset_lifecycle_counts(void)
+{
+  event_init_calls = 0;
+  event_free_all_calls = 0;
+}
+
+int event_test_init_call_count(void)
+{
+  return event_init_calls;
+}
+
+int event_test_free_all_call_count(void)
+{
+  return event_free_all_calls;
+}
+#endif
 
 /** Boolean function to tell whether an event is queued or not. Does this by
  * checking if event->q_el points to anything but null.
