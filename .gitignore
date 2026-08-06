@@ -414,7 +414,8 @@ ascii_map.txt
 FRMUD-HEX-Aunauroch.jpg
 plan.md
 scripts/world/populate_zone7000_from_aunauroch.py
-scripts/**/__pycache__/
+**/__pycache__/
+*.py[cod]
 
 # Root-level working changelog (docs/CHANGELOG.md stays tracked)
 /changelog
