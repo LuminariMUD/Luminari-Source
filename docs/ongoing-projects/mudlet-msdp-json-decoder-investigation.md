@@ -2,7 +2,7 @@
 
 Date: 2026-08-05
 
-Status: Server remediation complete; LuminariGUI remediation in progress; Mudlet finding remains external
+Status: Server and LuminariGUI remediation complete; Mudlet finding remains external
 
 ## Purpose
 
@@ -316,7 +316,7 @@ References:
 |----|----------|--------|---------|
 | MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
 | MJD-002 | Medium | External; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
-| MJD-003 | Low | Fixed; final verification in progress | LuminariGUI subscribed to all three failing scalars although its visible UI did not consume them. |
+| MJD-003 | Low | Fixed; verified | LuminariGUI subscribed to all three failing scalars although its visible UI did not consume them. |
 | MJD-004 | High | Fixed; verified | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
 | MJD-005 | Medium | Complete; verified | Production scalar, wire-format, malformed-input, memory-tool, fuzz, alternate-build, and installation coverage passes. |
 
@@ -420,7 +420,8 @@ The repair therefore required a real serializer, not only `strip_colors()` at th
   handlers plus 21 owned and zero unowned timer sites. The first CI run identified only a Ruff
   formatting mismatch in the new Python test; commit `ab33a52` applies the repository formatter,
   passes the exact Ruff check and focused 37/37 lifecycle suite, and is the final verification SHA.
-  GitHub checks remain in progress for that commit.
+  Final-SHA GitHub CI, Coverage, and Security workflows all pass, including quality,
+  build-and-test, CodeQL, Semgrep Lua, and Gitleaks jobs.
 
 ### 2026-08-05: Plain scalar boundary repair implemented
 
@@ -526,9 +527,10 @@ framing, malformed world files, or a Lua exception thrown by LuminariGUI code.
 
 The repaired server now stores the three scalars as plain text and therefore no longer supplies
 the literal tabs that triggered these reported decoder errors. GMCP-only clients receive the
-same logical values as strict JSON. No live Mudlet or LuminariGUI session was used during
-verification, so the independent generic Mudlet escaping limitation and the GUI's broad report
-list remain external findings rather than claims of client-side closure.
+same logical values as strict JSON. LuminariGUI no longer requests the three redundant scalar
+values. No live Mudlet or LuminariGUI session was used during verification, so the independent
+generic Mudlet escaping limitation remains an external finding and live behavior remains a
+manual acceptance item rather than a claim made by the automated package checks.
 
 ## Distinction From the Bardic MSDP Overflow Incident
 
@@ -577,7 +579,7 @@ Tests should prove:
 The root production-linked CuTest suite is the appropriate place for production room/alignment
 behavior. The focused parser harness can cover byte-level conversion and framing helpers.
 
-### 3. Narrow the GUI subscription set (implemented; verification in progress)
+### 3. Narrow the GUI subscription set (complete)
 
 In the LuminariGUI source-of-truth fragment, remove `AREA_NAME` and `ROOM_NAME` if no current
 consumer needs them beyond debug logging. Evaluate `ALIGNMENT` similarly until it is actually
@@ -611,7 +613,7 @@ The server repair should not wait for an upstream Mudlet release.
 
 ## Acceptance Criteria and Closure
 
-All server-owned criteria are complete:
+All server-owned and LuminariGUI package criteria are complete:
 
 - Native MSDP `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` contain no internal color controls.
 - Production fixtures prove expected plain values while preserving the canonical colored
@@ -622,20 +624,28 @@ All server-owned criteria are complete:
 - Protocol, API, variable, performance, changelog, and investigation documentation describes
   the plain-text OOB and JSON fallback contracts.
 - The authoritative test and install gates pass, with no root-level `circle` artifact.
+- LuminariGUI no longer reports `ALIGNMENT`, `AREA_NAME`, or `ROOM_NAME`, retains the structured
+  `ROOM` report, and contains no runtime consumer or owned event entry for those removed scalar
+  subscriptions.
+- The package regression executes the production subscription function, requires a unique and
+  ordered REPORT set, rejects the three redundant scalars, and requires structured `ROOM`.
+- LuminariGUI build, drift, test, syntax, package, resource-ownership, coverage, quality, and
+  security checks pass for final commit `ab33a52`.
 
-The following observations require changes or live acceptance work in repositories explicitly
-excluded from this server remediation. They do not hold server closure open:
+The following observations require live acceptance or a change outside LuminariGUI. They do not
+hold the completed server and package implementation open:
 
 - Confirming the absence of `json_to_value` errors in a live Mudlet profile and inspecting its
   `msdp` Lua table.
 - Exercising the LuminariGUI room panel and mapper against a deployed server build.
-- Narrowing the LuminariGUI REPORT list to fields the package intentionally consumes.
 - Repairing and reporting Mudlet's general native-MSDP control-byte escaping gap upstream.
 
 ## Investigation Boundaries
 
 No code, world data, package source, configuration, credentials, or production system was
-modified during the diagnostic phase. Remediation changed only the development checkout's
-server code, server-owned tests, build manifests, and documentation. It did not modify Mudlet,
-LuminariGUI, credentials, world data, or production. The only network reads were the public
-hosted GUI package, public source repositories, and public protocol documentation.
+modified during the diagnostic phase. Server remediation changed only the development
+checkout's server code, server-owned tests, build manifests, and documentation. The subsequent
+LuminariGUI remediation changed package source, generated package XML, package tests, and
+package documentation in its own repository. Neither remediation modified Mudlet, credentials,
+world data, or production. The only diagnostic network reads were the public hosted GUI package,
+public source repositories, and public protocol documentation.
