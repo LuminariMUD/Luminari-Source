@@ -30,9 +30,9 @@ Status meanings:
 | Schema contract and fail-closed startup | Verified | Startup verifies both InnoDB engines, required column types and nullability, primary keys, owner/relation indexes, and migration version. `boot_world()` exits before world load on migration or contract failure; an incompatible MariaDB fixture is rejected. |
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
-| Save-churn reduction | Pending | Add a safe dirty/interval policy without allowing logout, extraction, combat, spell, or administrative save sites to lose a changed snapshot. |
-| Production-linked regression coverage | In progress | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, and rollback at all nine transaction queries. The same fixture now supports repeated timed-affect mutation and passed 100 saves under sanitizers. Disconnect and extraction transitions remain. |
-| Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots passed ASan/LeakSanitizer and a production-linked seven-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. The unavailable exact `2.5033-beta` source and lifecycle transitions remain gaps. |
+| Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
+| Production-linked regression coverage | Verified | The database-enabled root suite covers legacy migration, idempotence, schema rejection, multi-follower commit, quoted object payloads, nested equipment/inventory links, overflow rejection, rollback at all nine transaction queries, repeated timed-affect mutation, disconnected-periodic skipping, descriptor detachment, and follower removal. |
+| Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
 | Deployment and crash observability | Pending | Audit install/restart coupling, versioned binaries and debug symbols, boot commit/build identity, health identity, and end-to-end core capture. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
@@ -68,9 +68,9 @@ Status meanings:
   charm affect, changes its duration on each pass, and performs a configurable
   number of complete saves while retaining two followers plus equipped,
   carried, and nested objects. One hundred passes completed under
-  ASan/LeakSanitizer with all 439 tests passing. A generated
-  database-persistence CuTest executable then passed all seven tests under
-  Valgrind after 8,252 allocations, with zero errors and zero definitely lost
+  ASan/LeakSanitizer with all 440 tests passing. A generated
+  database-persistence CuTest executable then passed all eight tests under
+  Valgrind after 8,386 allocations, with zero errors and zero definitely lost
   bytes. The initial ASan run also found and corrected an independent test
   parser width that allowed an 8,191-byte scan into a 512-byte buffer.
 - Sanitizer boundary: fail-fast UBSan stops the forked full-world syntax check
@@ -81,8 +81,18 @@ Status meanings:
   existing cleanup leak contexts: one four-byte region allocation and 4,782
   room-name/description strings. Those child-process findings are kept
   separate from the clean persistence-suite result.
-- Next checkpoint: add disconnect and extraction transition coverage, then
-  reduce periodic save churn without weakening explicit lifecycle saves.
+- Lifecycle and churn checkpoint: tracing every call site found that idle
+  extraction detaches `ch->desc` before its explicit pet save, while
+  `save_char_pets()` rejected descriptor-less owners. Pet saves now depend on
+  player identity rather than an attached socket. A database fixture verifies
+  the playing periodic save, confirms disconnected descriptors are skipped,
+  saves successfully after descriptor detachment, and atomically removes the
+  durable snapshot after follower removal. The ordinary periodic save now
+  runs on the existing 60-second character-save pulse instead of every six
+  seconds; all event-driven save sites remain unchanged. The database-enabled
+  suite passes all 440 tests.
+- Next checkpoint: implement local build/process identity and audit the
+  install/restart and core-capture paths.
 
 ### Memory Diagnostic Commands
 
@@ -103,7 +113,7 @@ LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_PET_SAVE_LOOPS=100 \
   "$asan_build/cutest"
 ```
 
-That run passed all 439 tests. Repeating it with
+That run passed all 440 tests. Repeating it with
 `UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1'` preserved the pet-test
 pass but made the overall suite fail on the independent world-loader shift
 described above.
@@ -124,7 +134,7 @@ LUMINARI_TEST_MYSQL_ENABLE=1 LUMINARI_TEST_PET_SAVE_LOOPS=100 \
     --suppressions=unittests/CuTest/cutest.supp ./cutest
 ```
 
-The normal 439-test `AllTests.c` runner was regenerated immediately after the
+The normal 440-test `AllTests.c` runner was regenerated immediately after the
 focused diagnostic.
 
 ## Scope and Safety

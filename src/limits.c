@@ -1807,6 +1807,28 @@ void recharge_activated_items(void)
   }
 }
 
+bool save_player_pets(void)
+{
+  struct descriptor_data *d = NULL;
+  struct char_data *ch = NULL;
+  bool all_saved = true;
+
+  for (d = descriptor_list; d; d = d->next)
+  {
+    ch = d->character;
+    if (!ch)
+      continue;
+
+    if (STATE(d) != CON_PLAYING)
+      continue;
+
+    if (!save_char_pets(ch))
+      all_saved = false;
+  }
+
+  return all_saved;
+}
+
 void update_player_misc(void)
 {
   struct descriptor_data *d = NULL;
@@ -1822,7 +1844,6 @@ void update_player_misc(void)
     if (STATE(d) != CON_PLAYING)
       continue;
 
-    save_char_pets(ch);
     affect_total(ch);
 
     if (GET_MISSION_COOLDOWN(ch) > 0)

@@ -1650,9 +1650,10 @@ void heartbeat(int heart_pulse)
     check_thirty_seconds();
   }
 
-  /* save characters once per minute */
+  /* save characters and their pets once per minute */
   if (!(heart_pulse % (60 * PASSES_PER_SEC)))
   {
+    save_player_pets();
     save_chars();
     artifact_save_if_dirty();
   }

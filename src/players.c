@@ -6555,7 +6555,7 @@ bool save_char_pets(struct char_data *ch)
   bool success;
   bool transaction_started;
 
-  if (!ch || !ch->desc || IS_NPC(ch))
+  if (!ch || IS_NPC(ch) || !GET_NAME(ch) || !*GET_NAME(ch))
     return false;
 
   /* Ensure database connection is active before save operations */

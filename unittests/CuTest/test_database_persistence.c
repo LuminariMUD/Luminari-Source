@@ -4,10 +4,12 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
 #include "../../src/mysql.h"
 #include "../../src/db_init.h"
+#include "../../src/mudlim.h"
 #include "../../src/magic/spells.h"
 
 #include <stdlib.h>
@@ -24,6 +26,7 @@ static int query_single_int(MYSQL *connection, const char *query, int fallback);
 struct pet_save_fixture
 {
   struct char_data owner;
+  struct player_special_data owner_specials;
   struct char_data first_pet;
   struct char_data second_pet;
   struct descriptor_data descriptor;
@@ -184,7 +187,10 @@ static void initialize_pet_save_fixture(struct pet_save_fixture *fixture)
   clear_object(&fixture->contained_object);
 
   fixture->owner.player.name = (char *)"SnapshotOwner";
+  fixture->owner.player_specials = &fixture->owner_specials;
   fixture->owner.desc = &fixture->descriptor;
+  fixture->descriptor.character = &fixture->owner;
+  STATE(&fixture->descriptor) = CON_PLAYING;
   fixture->owner.followers = &fixture->first_follower;
   fixture->first_follower.follower = &fixture->first_pet;
   fixture->first_follower.next = &fixture->second_follower;
@@ -498,6 +504,7 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   const char *loop_count_text;
   MYSQL *connection;
   MYSQL *saved_conn;
+  struct descriptor_data *saved_descriptor_list;
   bool saved_available;
   bool schema_created;
   bool seeded;
@@ -539,9 +546,12 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   initialize_pet_save_fixture(&fixture);
   schema_created = create_pet_snapshot_temporary_schema(connection);
   seeded = schema_created && reset_old_pet_snapshot(connection);
+  saved_descriptor_list = descriptor_list;
+  descriptor_list = &fixture.descriptor;
   mysql_query_counter_reset();
-  snapshot_saved = seeded && save_char_pets(&fixture.owner);
+  snapshot_saved = seeded && save_player_pets();
   save_query_count = (int)mysql_query_counter_value();
+  descriptor_list = saved_descriptor_list;
   pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
   object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
   linked_rows =
@@ -634,6 +644,103 @@ void Test_pet_snapshot_save_commits_whole_owner_and_rolls_back_every_query_failu
   CuAssertTrue(tc, rollback_coverage_passed);
   CuAssertTrue(tc, overflow_rollback_passed);
   CuAssertTrue(tc, repeated_saves_passed);
+}
+
+void Test_pet_snapshot_lifecycle_handles_disconnect_and_follower_removal(CuTest *tc)
+{
+  struct pet_save_fixture fixture;
+  const char *enabled;
+  MYSQL *connection;
+  MYSQL *saved_conn;
+  struct descriptor_data *saved_descriptor_list;
+  bool saved_available;
+  bool schema_created;
+  bool initial_saved;
+  bool disconnected_skipped;
+  bool detached_saved;
+  bool followers_removed;
+  int initial_save_queries;
+  int disconnected_save_queries;
+  int detached_save_queries;
+  int removal_save_queries;
+  int initial_pet_rows;
+  int initial_object_rows;
+  int final_pet_rows;
+  int final_object_rows;
+
+  enabled = getenv("LUMINARI_TEST_MYSQL_ENABLE");
+  if (enabled == NULL || strcmp(enabled, "1") != 0)
+  {
+    CuAssertTrue(tc, 1);
+    return;
+  }
+
+  connection = open_test_database();
+  if (connection == NULL)
+  {
+    CuFail(tc, "could not connect to the explicitly configured test database");
+    return;
+  }
+
+  saved_conn = conn;
+  saved_available = mysql_available;
+  saved_descriptor_list = descriptor_list;
+  conn = connection;
+  mysql_available = true;
+  initialize_pet_save_fixture(&fixture);
+  descriptor_list = &fixture.descriptor;
+
+  schema_created = create_pet_snapshot_temporary_schema(connection);
+  mysql_query_counter_reset();
+  initial_saved = schema_created && save_player_pets();
+  initial_save_queries = (int)mysql_query_counter_value();
+  initial_pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+  initial_object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+
+  STATE(&fixture.descriptor) = CON_DISCONNECT;
+  mysql_query_counter_reset();
+  disconnected_skipped = save_player_pets();
+  disconnected_save_queries = (int)mysql_query_counter_value();
+  disconnected_skipped =
+      disconnected_skipped && disconnected_save_queries == 0 &&
+      query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
+      query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
+
+  fixture.owner.desc = NULL;
+  fixture.descriptor.character = NULL;
+  mysql_query_counter_reset();
+  detached_saved = save_char_pets(&fixture.owner);
+  detached_save_queries = (int)mysql_query_counter_value();
+  detached_saved = detached_saved && detached_save_queries == 9 &&
+                   query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1) == 2 &&
+                   query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1) == 3;
+
+  fixture.owner.followers = NULL;
+  mysql_query_counter_reset();
+  followers_removed = save_char_pets(&fixture.owner);
+  removal_save_queries = (int)mysql_query_counter_value();
+  final_pet_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_data", -1);
+  final_object_rows = query_single_int(connection, "SELECT COUNT(*) FROM pet_save_objs", -1);
+
+  mysql_test_clear_query_failure();
+  descriptor_list = saved_descriptor_list;
+  conn = saved_conn;
+  mysql_available = saved_available;
+  mysql_close(connection);
+
+  CuAssertTrue(tc, schema_created);
+  CuAssertTrue(tc, initial_saved);
+  CuAssertIntEquals(tc, 9, initial_save_queries);
+  CuAssertIntEquals(tc, 2, initial_pet_rows);
+  CuAssertIntEquals(tc, 3, initial_object_rows);
+  CuAssertTrue(tc, disconnected_skipped);
+  CuAssertIntEquals(tc, 0, disconnected_save_queries);
+  CuAssertTrue(tc, detached_saved);
+  CuAssertIntEquals(tc, 9, detached_save_queries);
+  CuAssertTrue(tc, followers_removed);
+  CuAssertIntEquals(tc, 4, removal_save_queries);
+  CuAssertIntEquals(tc, 0, final_pet_rows);
+  CuAssertIntEquals(tc, 0, final_object_rows);
 }
 
 void Test_follower_runtime_state_round_trip(CuTest *tc)
