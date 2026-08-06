@@ -1577,13 +1577,70 @@ int resize(char *argument, struct obj_data *kit, struct char_data *ch)
 }
 
 
+static struct obj_data *get_single_bone_armor_object(struct obj_data *kit, int *num_objs)
+{
+  struct obj_data *obj;
+  struct obj_data *selected_obj = NULL;
+
+  if (num_objs == NULL)
+    return NULL;
+
+  *num_objs = 0;
+  if (kit == NULL)
+    return NULL;
+
+  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  {
+    if (*num_objs == 0)
+      selected_obj = obj;
+    (*num_objs)++;
+  }
+
+  return *num_objs == 1 ? selected_obj : NULL;
+}
+
+static void update_bone_armor_descriptions(struct obj_data *obj, char *argument)
+{
+  char buf[MAX_STRING_LENGTH];
+
+  if (obj == NULL || argument == NULL)
+    return;
+
+  parse_at(argument);
+
+  if (obj->name)
+    free(obj->name);
+  obj->name = strdup(argument);
+  strip_colors(obj->name);
+
+  if (obj->short_description)
+    free(obj->short_description);
+  obj->short_description = strdup(argument);
+
+  snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
+  if (obj->description)
+    free(obj->description);
+  obj->description = strdup(buf);
+}
+
+#ifdef LUMINARI_CUTEST
+struct obj_data *test_get_single_bone_armor_object(struct obj_data *kit, int *num_objs)
+{
+  return get_single_bone_armor_object(kit, num_objs);
+}
+
+void test_update_bone_armor_descriptions(struct obj_data *obj, char *argument)
+{
+  update_bone_armor_descriptions(obj, argument);
+}
+#endif
+
 /* change armor from original material to bone material */
 int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
 {
   int num_objs = 0, cost;
   struct obj_data *obj = NULL;
   int fast_craft_bonus = GET_SKILL(ch, SKILL_FAST_CRAFTER) / 33;
-  char buf[MAX_STRING_LENGTH];
 
   if (!HAS_REAL_FEAT(ch, FEAT_BONE_ARMOR))
   {
@@ -1591,14 +1648,12 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     return 1;
   }
 
-  /* Cycle through contents */
-  /* resize requires just one item be inside the kit */
-  for (obj = kit->contains; obj != NULL; obj = obj->next_content)
+  obj = get_single_bone_armor_object(kit, &num_objs);
+  if (num_objs == 0)
   {
-    num_objs++;
-    break;
+    send_to_char(ch, "You must place one armor item in the kit.\r\n");
+    return 1;
   }
-
   if (num_objs > 1)
   {
     send_to_char(ch, "Only one item should be inside the kit.\r\n");
@@ -1642,26 +1697,10 @@ int bonearmor(char *argument, struct obj_data *kit, struct char_data *ch)
     GET_GOLD(ch) -= cost;
   }
 
-  /* you need to parse the @ sign */
-  parse_at(argument);
-
-  /* success!! */
-  if (obj->name)
-    free(obj->name);
-  obj->name = strdup(argument);
-  strip_colors(obj->name);
-  if (obj->short_description)
-    free(obj->short_description);
-  obj->short_description = strdup(argument);
-  snprintf(buf, sizeof(buf), "%s lies here.", CAP(argument));
-  if (obj->description)
-    free(obj->description);
-  if (obj->description)
-    free(obj->description);
-  obj->description = strdup(buf);
+  update_bone_armor_descriptions(obj, argument);
 
   send_to_char(ch, "You begin to convert %s into bone.\r\n", obj->short_description);
-  act("$n begins convetring $p to bone.", FALSE, ch, obj, 0, TO_ROOM);
+  act("$n begins converting $p to bone.", FALSE, ch, obj, 0, TO_ROOM);
   obj_from_obj(obj);
 
   GET_OBJ_MATERIAL(obj) = MATERIAL_BONE;

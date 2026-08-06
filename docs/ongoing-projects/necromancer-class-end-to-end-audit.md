@@ -32,21 +32,21 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | Finding | Status | Verification evidence |
 |---------|--------|-----------------------|
 | NEC-001 | Focused verification passed | Exactly one selected base class advances; seven progression/study tests pass. |
-| NEC-002 | Open | Bone Armor conversion safety repair and sanitizer coverage pending. |
+| NEC-002 | Focused verification passed | Safe kit cardinality and description ownership; ASan/UBSan clean. |
 | NEC-003 | Open | Touch resource/action accounting repair and tests pending. |
 | NEC-004 | Open | Touch cast type, level, and duration repair and tests pending. |
 | NEC-005 | Open | At-will resource extraction repair and tests pending. |
 | NEC-006 | Open | Animated-undead follower boundary repair and tests pending. |
 | NEC-007 | Open | Greater Animation final-level repair and tests pending. |
 | NEC-008 | Open | One-shot Deathless Touch consumption repair and tests pending. |
-| NEC-009 | Open | All-bone equipment aggregation repair and tests pending. |
+| NEC-009 | Focused verification passed | Every equipped armor material is aggregated independent of slot order. |
 | NEC-010 | Open | Central stun-admission repair and ingress tests pending. |
 | NEC-011 | Open | Holy-room parity repair and tests pending. |
 | NEC-012 | Open | Summon caster-level contract and tests pending. |
 | NEC-013 | Open | Cohort resistance target and point-accounting repair pending. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Seven production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | In progress | Eleven production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -69,6 +69,27 @@ master checkpoint. This table is updated with every implementation checkpoint.
   development data reaches that data but is incompatible with the fresh
   worktree's required example configuration headers. No credential or customized
   configuration file was copied or changed.
+
+### Checkpoint 2: Bone Armor safety and aggregation
+
+- Bone Armor now counts the complete crafting-kit contents list and accepts
+  exactly one object. Empty and multi-object kits return before any object
+  dereference or conversion work.
+- Description replacement has one owner transition per string. The room
+  description is freed once, eliminating the normal conversion double free.
+- Spell-failure reduction now requires at least one equipped armor piece and
+  keeps an aggregate all-bone result across body, head, legs, arms, and shield
+  slots. A later bone slot can no longer erase an earlier non-bone result.
+- Four additional production-linked tests cover zero, one, and two kit objects,
+  replacement of allocated descriptions, mixed materials in the formerly
+  order-sensitive direction, and the two-rank all-bone reduction. The normal
+  suite reports 450 runs, 449 passes, and the same unrelated environment
+  failure described above.
+- An isolated ASan/UBSan build with leak detection passed the focused
+  Necromancer suite: 11 runs, 11 passes, and no sanitizer finding. The
+  instrumented full suite reached the known bootstrap assertion; its CuTest
+  failure-message allocation is retained at exit, so it is not a clean
+  leak-detection target in this fresh worktree.
 
 ## Executive verdict
 
