@@ -89,8 +89,8 @@ rage and a battle surge are the same thing happening to you, and the first
 one holds until it runs out.
 
 A few artifacts are sworn to a single class and demand real depth in it. Wear
-one without that depth and it will burn you every tick you keep it on, it
-will not tell you its phrases, and it will not answer when you speak them.
+one without that depth and it will burn you every tick you keep it on. It
+will not reveal or answer its called words or its active command.
 
 See also: ARTIFACT ROSTER, INVOKE, SOULSTRIKE, DIVINEWARD, DOOMBLAST
 #0
@@ -153,6 +153,9 @@ Usage: soulstrike <target>
 These are artifact abilities. Each one only works while you have the artifact
 that grants it equipped, and each costs psionic energy and has its own
 cooldown.
+
+A class-sworn artifact grants its active command only to a bearer it
+recognizes. A rejected command costs no energy and starts no cooldown.
 
 SOULSTRIKE hurls a bolt of soul energy at a single target. DIVINEWARD wraps
 you in a sanctuary of divine light. DOOMBLAST unleashes a wave of doom on

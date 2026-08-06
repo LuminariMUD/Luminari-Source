@@ -275,11 +275,12 @@ nothing to the level-30 character most likely to be carrying an artifact it
 has no claim to, so it is now proportional to whoever is being rejected and
 keeps the historical dice as its minimum.
 
-A rejected wielder cannot invoke that artifact's called speech effects and
-cannot see their phrases in `artifact info`. The current active-ability path
-does not apply the class-oath check; it applies binding, cooldown, and PSP
-checks only. NPCs and characters at `LVL_IMMORT` or above are exempt from the
-oath.
+A rejected wielder cannot invoke that artifact's called effects or active
+command. `artifact info` and `artifact abilities` conceal those names, and a
+rejected attempt spends no PSP, starts no cooldown, grants no artifact XP, and
+never reaches the ability-specific handler. Binding is checked first, then the
+oath, then cooldown and PSP. NPCs and characters at `LVL_IMMORT` or above are
+exempt from the oath.
 
 ## Progression
 

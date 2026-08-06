@@ -4982,7 +4982,8 @@ static void artifact_show_help(struct char_data *ch)
                "\tYOaths:\tn\r\n"
                "  A few artifacts are sworn to one class and demand real depth\r\n"
                "  in it. Wear one without that depth and it will burn you every\r\n"
-               "  tick you keep it on, and it will not answer when you speak.\r\n"
+               "  tick you keep it on. It will conceal and refuse every named\r\n"
+               "  power, whether called with words or used as an active command.\r\n"
                "\r\n"
                "\tYProgression:\tn\r\n"
                "  Artifacts gain experience from combat and from their own\r\n"
@@ -5193,7 +5194,11 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                    ARTIFACT_KNOCKDOWN_DC, ARTIFACT_KNOCKDOWN_DC + art->level);
   }
 
-  if (art->ability_name)
+  if (art->ability_name && !artifact_class_ok(ch, art))
+  {
+    send_to_char(ch, "\r\n\tYAbility:\tn It keeps its own counsel. That power is not for you.\r\n");
+  }
+  else if (art->ability_name)
   {
     send_to_char(ch, "\r\n\tYAbility:\tn \tc%s\tn - %s\r\n", art->ability_name,
                  art->ability_desc ? art->ability_desc : "");
@@ -5210,7 +5215,8 @@ static void artifact_show_info(struct char_data *ch, struct obj_data *obj)
                  art->class_min_level == 1 ? "" : "s");
 
     if (!artifact_class_ok(ch, art))
-      send_to_char(ch, "  \trIt does not recognize you, and it burns you for holding it.\tn\r\n");
+      send_to_char(
+          ch, "  \trIt does not recognize you, burns you, and withholds its named powers.\tn\r\n");
   }
 
   send_to_char(ch, "\tY=====================================\tn\r\n");
@@ -5500,7 +5506,7 @@ static void artifact_show_abilities(struct char_data *ch)
 {
   struct obj_data *obj = NULL;
   struct artifact_data *art = NULL;
-  int i = 0, found = 0, remaining = 0;
+  int i = 0, found = 0, remaining = 0, withheld = 0;
 
   send_to_char(ch, "\tY========== Artifact Abilities ==========\tn\r\n");
 
@@ -5512,6 +5518,11 @@ static void artifact_show_abilities(struct char_data *ch)
       continue;
     if (!art->ability_name)
       continue;
+    if (!artifact_class_ok(ch, art))
+    {
+      withheld++;
+      continue;
+    }
 
     send_to_char(ch, "  \tc%-12s\tn %s\r\n", art->ability_name,
                  art->ability_desc ? art->ability_desc : "");
@@ -5526,7 +5537,12 @@ static void artifact_show_abilities(struct char_data *ch)
     found++;
   }
 
-  if (!found)
+  if (withheld > 0)
+    send_to_char(ch, "  %d sworn artifact%s withhold%s %s named power%s from you.\r\n", withheld,
+                 withheld == 1 ? "" : "s", withheld == 1 ? "s" : "",
+                 withheld == 1 ? "its" : "their", withheld == 1 ? "" : "s");
+
+  if (!found && !withheld)
     send_to_char(ch, "  You have no artifact abilities equipped.\r\n");
 
   send_to_char(ch, "\tY=======================================\tn\r\n");
@@ -5634,6 +5650,13 @@ static int artifact_ability_ready(struct char_data *ch, struct obj_data *obj,
 
   if (!artifact_can_use(ch, obj, FALSE))
     return FALSE;
+
+  if (!artifact_class_ok(ch, art))
+  {
+    send_to_char(ch, "\tr%s rejects your command and withholds its power.\tn\r\n",
+                 GET_OBJ_SHORT(obj));
+    return FALSE;
+  }
 
   if (art->last_ability_use > 0)
   {

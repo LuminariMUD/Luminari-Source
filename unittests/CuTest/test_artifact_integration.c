@@ -25,6 +25,7 @@
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
 #include "../../src/utils.h"
+#include "../../src/act.h"
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/handler.h"
@@ -1156,6 +1157,7 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
   struct artint_fixture fixture;
   struct obj_data obj;
   struct artifact_data *art = NULL;
+  struct char_data *actor = NULL;
   int i = 0, abilities = 0, listed = 0;
   static const int ability_vnums[3] = {ART_VNUM_AMAUKEKEL, ART_VNUM_DOOMBRINGER, ART_VNUM_KELRARIN};
 
@@ -1170,6 +1172,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
     if (art_index[i].ability_name)
       abilities++;
 
+  actor = &fixture.actor;
+
   /* 'artifact abilities' lists exactly what the bearer is actually holding. */
   for (i = 0; i < 3; i++)
   {
@@ -1182,6 +1186,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
     GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
     obj.worn_by = &fixture.actor;
     obj.worn_on = WEAR_WIELD_1;
+    if (art->class_restrict != CLASS_UNDEFINED)
+      CLASS_LEVEL(actor, art->class_restrict) = art->class_min_level;
 
     artint_clear_output(&fixture);
     do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
@@ -1190,6 +1196,8 @@ void Test_artifact_integration_every_active_ability_is_reachable(CuTest *tc)
 
     GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
     obj.worn_by = NULL;
+    if (art->class_restrict != CLASS_UNDEFINED)
+      CLASS_LEVEL(actor, art->class_restrict) = 0;
     artint_uncarry(&fixture, &obj);
   }
 
@@ -1248,6 +1256,155 @@ void Test_artifact_integration_every_ability_name_is_a_registered_command(CuTest
     return;
   }
   CuAssertIntEquals(tc, abilities, registered);
+}
+
+void Test_artifact_integration_active_abilities_obey_class_oaths(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data divine_obj, doom_obj;
+  struct artifact_data *divine = NULL, *doom = NULL;
+  struct char_data *actor = NULL;
+  int created_commands = FALSE;
+  int divine_cmd = NOTHING, doom_cmd = NOTHING;
+  int psp_before = 0, xp_before = 0;
+  int divine_info_hidden = FALSE, divine_list_hidden = FALSE;
+  int divine_refused = FALSE, divine_control = FALSE;
+  int doom_info_hidden = FALSE, doom_list_hidden = FALSE;
+  int doom_refused = FALSE, doom_control = FALSE;
+  char no_argument[] = "";
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  if (!complete_cmd_info)
+  {
+    create_command_list();
+    created_commands = TRUE;
+  }
+
+  divine_cmd = find_command("divineward");
+  doom_cmd = find_command("doomblast");
+  if (divine_cmd <= 0 || doom_cmd <= 0)
+  {
+    if (created_commands)
+      free_command_list();
+    artint_end(&fixture);
+    CuFail(tc, "could not resolve artifact ability commands");
+    return;
+  }
+
+  divine = artifact_by_vnum(ART_VNUM_AMAUKEKEL);
+  doom = artifact_by_vnum(ART_VNUM_DOOMBRINGER);
+  CuAssertPtrNotNull(tc, divine);
+  CuAssertPtrNotNull(tc, doom);
+  actor = &fixture.actor;
+
+  GET_MAX_PSP(&fixture.actor) = 500;
+  GET_PSP(&fixture.actor) = 500;
+
+  artint_instance(&fixture, &divine_obj, ART_VNUM_AMAUKEKEL);
+  artint_carry(&fixture, &divine_obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &divine_obj;
+  divine_obj.worn_by = &fixture.actor;
+  divine_obj.worn_on = WEAR_WIELD_1;
+  CLASS_LEVEL(actor, CLASS_CLERIC) = 0;
+  divine->last_ability_use = 0;
+  divine->experience = 0;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &divine_obj);
+  divine_info_hidden = !artint_said(&fixture, "divineward");
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+  divine_list_hidden = !artint_said(&fixture, "divineward") && artint_said(&fixture, "withholds");
+
+  psp_before = GET_PSP(&fixture.actor);
+  xp_before = divine->experience;
+  artint_clear_output(&fixture);
+  do_artifact_ability(&fixture.actor, no_argument, divine_cmd, 0);
+  divine_refused = !AFF_FLAGGED(&fixture.actor, AFF_SANCTUARY) &&
+                   GET_PSP(&fixture.actor) == psp_before && divine->experience == xp_before &&
+                   divine->last_ability_use == 0 && artint_said(&fixture, "withholds its power");
+
+  affect_from_char(&fixture.actor, SPELL_SANCTUARY);
+  GET_PSP(&fixture.actor) = psp_before;
+  divine->experience = xp_before;
+  divine->last_ability_use = 0;
+  CLASS_LEVEL(actor, CLASS_CLERIC) = divine->class_min_level;
+  artint_clear_output(&fixture);
+  do_artifact_ability(&fixture.actor, no_argument, divine_cmd, 0);
+  divine_control = AFF_FLAGGED(&fixture.actor, AFF_SANCTUARY) &&
+                   GET_PSP(&fixture.actor) == psp_before - divine->ability_cost &&
+                   divine->experience == xp_before + ARTIFACT_XP_ABILITY_DIVINEWARD &&
+                   divine->last_ability_use > 0;
+
+  affect_from_char(&fixture.actor, SPELL_SANCTUARY);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  divine_obj.worn_by = NULL;
+  artint_uncarry(&fixture, &divine_obj);
+
+  /* The target-free boundary proves a qualified bearer reaches the ability
+   * handler without pulling the combat event scheduler into this fixture. */
+  fixture.rooms[0].people = &fixture.actor;
+  fixture.actor.next_in_room = NULL;
+
+  artint_instance(&fixture, &doom_obj, ART_VNUM_DOOMBRINGER);
+  artint_carry(&fixture, &doom_obj);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &doom_obj;
+  doom_obj.worn_by = &fixture.actor;
+  doom_obj.worn_on = WEAR_WIELD_1;
+  CLASS_LEVEL(actor, CLASS_WARRIOR) = 0;
+  GET_PSP(&fixture.actor) = 500;
+  doom->last_ability_use = 0;
+  doom->experience = 0;
+
+  artint_clear_output(&fixture);
+  artifact_show_info_for_test(&fixture.actor, &doom_obj);
+  doom_info_hidden = !artint_said(&fixture, "doomblast");
+
+  artint_clear_output(&fixture);
+  do_artifact(&fixture.actor, (char *)"abilities", 0, 0);
+  doom_list_hidden = !artint_said(&fixture, "doomblast") && artint_said(&fixture, "withholds");
+
+  psp_before = GET_PSP(&fixture.actor);
+  xp_before = doom->experience;
+  artint_clear_output(&fixture);
+  do_artifact_ability(&fixture.actor, no_argument, doom_cmd, 0);
+  doom_refused = GET_PSP(&fixture.actor) == psp_before && doom->experience == xp_before &&
+                 doom->last_ability_use == 0 && artint_said(&fixture, "withholds its power") &&
+                 !artint_said(&fixture, "There are no valid targets here");
+
+  GET_PSP(&fixture.actor) = psp_before;
+  doom->experience = xp_before;
+  doom->last_ability_use = 0;
+  CLASS_LEVEL(actor, CLASS_WARRIOR) = doom->class_min_level;
+  artint_clear_output(&fixture);
+  do_artifact_ability(&fixture.actor, no_argument, doom_cmd, 0);
+  doom_control = artint_said(&fixture, "There are no valid targets here") &&
+                 GET_PSP(&fixture.actor) == psp_before && doom->experience == xp_before &&
+                 doom->last_ability_use == 0;
+
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  doom_obj.worn_by = NULL;
+  artint_uncarry(&fixture, &doom_obj);
+
+  artint_end(&fixture);
+  if (created_commands)
+    free_command_list();
+
+  CuAssertIntEquals(tc, TRUE, divine_info_hidden);
+  CuAssertIntEquals(tc, TRUE, divine_list_hidden);
+  CuAssertIntEquals(tc, TRUE, divine_refused);
+  CuAssertIntEquals(tc, TRUE, divine_control);
+  CuAssertIntEquals(tc, TRUE, doom_info_hidden);
+  CuAssertIntEquals(tc, TRUE, doom_list_hidden);
+  CuAssertIntEquals(tc, TRUE, doom_refused);
+  CuAssertIntEquals(tc, TRUE, doom_control);
 }
 
 /* --------------------------------------------------------------------------

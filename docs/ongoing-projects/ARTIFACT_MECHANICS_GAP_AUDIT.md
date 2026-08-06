@@ -1,8 +1,7 @@
 # Artifact Mechanics Gap Audit
 
-**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006,
-ART-AUD-008 through ART-AUD-010, and ART-AUD-012 through ART-AUD-014
-resolved
+**Status:** Remediation in progress; ART-AUD-001 through ART-AUD-006 and
+ART-AUD-008 through ART-AUD-014 resolved
 
 **Audited:** 2026-08-06
 
@@ -87,6 +86,12 @@ without spending the generic cooldown or awarding proc XP. Deterministic
 production-linked coverage proves the full-health heal, repeated fear, and
 ineligible ultimate cases as well as the successful-heal control.
 
+ART-AUD-011 is resolved. A class-sworn artifact now applies the same oath to
+every named power: called effects and active commands. Wrong-class bearers can
+still equip the artifact and suffer its burn, but `artifact info` and
+`artifact abilities` conceal the command name and a direct attempt stops before
+cooldown, PSP, XP, or the ability-specific handler.
+
 ART-AUD-014 is resolved. The dormant ward shape now bypasses its configured
 chance only for the critical-hit ward branch; its ordinary dispel branch uses
 the declared percentage. Exact-roll production coverage protects the rejection
@@ -158,7 +163,7 @@ contracts.
 | ART-AUD-008 | Medium | Resolved 2026-08-06 | Wyrmfang now unlocks source danger sense alongside haste at level 5, completing its six-state passive package. | Wyrmfang |
 | ART-AUD-009 | Medium | Resolved 2026-08-06 | Earthcrier and Wyrmfang are Large and use two hands for a normal Medium bearer; Aegis is explicitly body-worn breastplate armor. | Earthcrier, Wyrmfang, Aegis |
 | ART-AUD-010 | Medium | Resolved 2026-08-06 | Generic proc percentages are labeled as attempt rates, and selected no-op branches spend neither cooldown nor proc XP. | Every generic-proc artifact |
-| ART-AUD-011 | Medium | Design decision | Wrong-class wielders cannot use called effects but can use Amaukekel's and Doombringer's active commands while the artifact burns them. | Amaukekel, Doombringer |
+| ART-AUD-011 | Medium | Resolved 2026-08-06 | Amaukekel's and Doombringer's active commands now obey their class oaths, remain concealed from wrong-class bearers, and reject without cost. | Amaukekel, Doombringer |
 | ART-AUD-012 | Low | Resolved 2026-08-06 | Called-effect handlers now use validated table-owned stack groups, and Wyrmfang declares the ward group it actually creates. | Wyrmfang, future effects |
 | ART-AUD-013 | High preventive | Resolved 2026-08-06 | All 17 artifacts now have an exact production-linked identity contract, including deliberate `none` entries and generic-proc separation. | Whole system |
 | ART-AUD-014 | Low dormant | Resolved 2026-08-06 | Unclaimed `ART_SIG_WARD` now bypasses chance only for its critical ward; ordinary dispels use `sig_chance`. | No live claimant |
@@ -654,18 +659,52 @@ broken or dramatically rarer than advertised.
 Either reroll/no-op without consuming cooldown, or label the number accurately
 and expose a debug counter for attempted, rejected, and successful procs.
 
-### ART-AUD-011: active abilities bypass class oaths
+### ART-AUD-011: active abilities bypass class oaths [resolved]
 
-Called effects check `artifact_class_ok()` and refuse an unrecognized wielder
-(`src/obj/spec_artifacts.c:4484-4494`). `do_artifact_ability()` finds the
-equipped artifact and proceeds through binding, cooldown, and PSP checks without
-the oath check (`src/obj/spec_artifacts.c:5365-5410`).
+Resolution (2026-08-06):
 
-The formal system document already discloses this behavior. Its consequence is
-still surprising: a wrong-class character can use Amaukekel's `divineward` or
-Doombringer's `doomblast` while the artifact burns them. Decide whether the burn
-is the entire penalty or whether all named powers require recognition, then make
-called effects, active abilities, help, and tests agree.
+- The oath contract now covers every named power. A wrong-class bearer may
+  still equip the artifact and suffer its periodic burn, but neither a called
+  effect nor an active command will answer.
+- The shared active-ability readiness path checks binding, then class
+  recognition, then cooldown and PSP. Oath rejection therefore starts no
+  cooldown, spends no PSP, grants no artifact XP, and never reaches the
+  ability-specific handler.
+- `artifact info` replaces the active-command name and description with a
+  generic refusal for an unrecognized bearer. `artifact abilities` likewise
+  omits the name and reports only that a sworn artifact withholds a named
+  power. Runtime help, canonical player help, and the formal system document
+  state the same rule.
+- A production-linked regression uses the real `divineward` and `doomblast`
+  command registrations. It proves concealment and cost-free rejection for
+  both artifacts, then proves that a Cleric at Amaukekel's required depth
+  applies sanctuary and spends its resources while a qualified Warrior reaches
+  Doomblast's safe no-target handler boundary.
+- The test-first checkpoint passed 432/433 tests and failed only on the new
+  oath regression. The corrected complete suite passes 433/433 tests.
+- On the installed development binary, Kohdee was temporarily made a level-30
+  wrong-class bearer. Amaukekel concealed `divineward` in both information
+  views and rejected the command; Doombringer did the same for `doomblast`,
+  which never reached its no-target message. Current PSP and each artifact's
+  post-equip XP were unchanged across its rejected command. Runtime and paged
+  help showed the new contract, and all 17 artifact rows validated.
+- Kohdee's player and mirrored inventory files, Zusuk's source files, and the
+  artifact registry were restored byte-for-byte. The temporary MySQL
+  Doombringer row was removed from Kohdee, restoring the 16-row Kohdee and
+  21-row Zusuk inventories and Kohdee's baseline rent header before a final
+  login-free restart.
+
+Original evidence at audited revision `61c03285`:
+
+Called effects checked `artifact_class_ok()` and refused an unrecognized
+wielder (`src/obj/spec_artifacts.c:4484-4494`). `do_artifact_ability()` found
+the equipped artifact and proceeded through binding, cooldown, and PSP checks
+without the oath check (`src/obj/spec_artifacts.c:5365-5410`).
+
+The formal system document disclosed that behavior. Its surprising consequence
+was that a wrong-class character could use Amaukekel's `divineward` or
+Doombringer's `doomblast` while the artifact burned them. The resolved policy
+is that all named powers require recognition.
 
 ### ART-AUD-012: stack-group metadata is not the runtime source of truth [resolved]
 
@@ -790,10 +829,10 @@ runtime ignores.
 | VNUM | Artifact | Audit disposition | Findings and source delta |
 | --- | --- | --- | --- |
 | 169901 | Trorxek | Review passive decision | Current critical blind and four called effects cover the stated identity. Realms' identify text promised critical blind although its procedure omitted the executable branch; current code supplies it. Realms permanent states remain undecided (ART-AUD-007). |
-| 169902 | Amaukekel | Review passive/oath decisions | Three called effects and `divineward` exist. No missing named combat branch was found. Realms permanent states are absent and the active ability bypasses its Cleric oath (ART-AUD-007, ART-AUD-011). |
+| 169902 | Amaukekel | Review passive decision | Three called effects and `divineward` exist, and all four named powers obey its Cleric oath (ART-AUD-011). No missing named combat branch was found. Realms permanent states remain unresolved (ART-AUD-007). |
 | 169903 | Fade | Core mechanic restored; review passives | The separate 1-in-16 life siphon and all four called effects exist. The generic 16 percent table remains independent. Source passives are still unresolved (ART-AUD-007). |
 | 169904 | Horn of Henekar | Source conflict; review passives | Four called effects exist. Realms identify text claims a hitpoint-sucking combat hit, but its executable procedure contains no such combat branch, so there is no reliable mechanic to port without a design decision. Source passives are absent (ART-AUD-007). |
-| 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Source passives and active-oath policy remain open (ART-AUD-007, ART-AUD-011). |
+| 169905 | Doombringer | Core mechanic restored; review passives | The separate 1-in-31 burst scales to five real main-hand attacks, uses an independent 25-second recharge, and preserves the good-target alignment cost. Its called effects and `doomblast` obey the Warrior oath (ART-AUD-011). Source passives remain open (ART-AUD-007). |
 | 169906 | Kelrarin | Review source delta | Current code retains the returning lifesteal throw, holy mega blast, and `soulstrike`, with safer scaling and boss handling. Realms' returning throw also had a nested 1-in-6 second bounded strike that current code omits. Its passive package is unresolved (ART-AUD-007). |
 | 169907 | Kelrom | Runtime defect fixed; redesign review | Animal punishment and group healback remain, and the independent 14 percent generic proc is reachable (ART-AUD-006). Realms instead had rare group full heal, lightning/execute, and bounded lifesteal branches; the current identity remains a substantial rebuild. Source passives remain open (ART-AUD-007). |
 | 169908 | Gesen | Covered | The returning `SPELL_HARM` procedure exists, and the source prototype had no permanent states. No artifact-specific gap remains after the system-wide ART-AUD-001 and ART-AUD-010 fixes. |
@@ -839,10 +878,11 @@ runtime ignores.
 4. **Completed 2026-08-06: repair confirmed current contradictions.**
    Earthcrier's DC and handedness, Kelrom's independent generic/healback
    contract, and Wyrmfang's passive and handedness package now agree with their
-   declared behavior. ART-AUD-009 remains open only for Aegis.
-5. **Make product decisions.** Approve or reject first-wave passives,
-   class-oath scope, and Aegis identity. Record every rejection in
-   `docs/systems/ARTIFACT_SYSTEM.md`.
+   declared behavior. Aegis is explicitly the shipped body-worn breastplate.
+5. **Partially completed 2026-08-06: make product decisions.** Aegis identity
+   is closed by ART-AUD-009, and ART-AUD-011 applies class oaths to all named
+   powers. Approve or reject the first-wave passive packages in ART-AUD-007
+   and record that final decision in `docs/systems/ARTIFACT_SYSTEM.md`.
 6. **Completed 2026-08-06: clean the framework.** Table-owned called-effect
    stack groups, accurate generic-proc reporting, and the dormant ward chance
    contract are complete (ART-AUD-012, ART-AUD-010, and ART-AUD-014).
@@ -870,9 +910,10 @@ runtime ignores.
   exclusivity checks and temporary-affect tags.
 - `ART_SIG_WARD` bypasses `sig_chance` for its otherwise-eligible critical ward
   and applies `sig_chance` to its ordinary dispel branch.
+- Class-sworn called effects and active commands share one recognition rule;
+  rejected active commands stay concealed and consume no cooldown, PSP, or XP.
 - Prototype type, size, lore, placement notes, and runtime content contracts
-  agree for Earthcrier and Wyrmfang; Aegis remains the tracked identity
-  decision.
+  agree for Earthcrier, Wyrmfang, and the body-worn Aegis breastplate.
 - Formal system documentation and help files are updated alongside the code.
 
 The implementation workflow and the Tiamat's Stinger case study already live in

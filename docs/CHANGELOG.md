@@ -2,6 +2,39 @@
 
 ## [Unreleased] - August 6, 2026
 
+### Artifact active-ability class oaths
+
+#### Fixed
+
+- Applied each artifact's class oath to its active command as well as its
+  called effects. Wrong-class bearers of Amaukekel and Doombringer can still
+  equip the artifact and suffer its burn, but `divineward` and `doomblast`
+  now reject before cooldown, PSP, XP, or ability-specific handling.
+- Concealed class-sworn active-command names and descriptions from
+  wrong-class `artifact info` and `artifact abilities` output.
+
+#### Changed
+
+- Updated runtime artifact help, canonical player help, and the formal system
+  guide to define one recognition rule for every named artifact power.
+
+#### Verification
+
+- Added production-linked coverage through the real `divineward` and
+  `doomblast` command registrations, including wrong-class concealment and
+  rejection plus qualified Cleric and Warrior controls. The test-first run
+  passed 432/433 tests and failed only on the new oath regression; the
+  corrected root suite passes 433/433 tests.
+- On the installed development binary, level-30 wrong-class Kohdee saw only a
+  generic withheld-power notice for each artifact. Both direct commands
+  reported oath rejection, Doomblast never reached its no-target handler, and
+  current PSP and per-artifact XP were unchanged across each attempt. Runtime
+  help, paged player help, and all 17 metadata rows also validated.
+- Restored Kohdee's and Zusuk's measured files byte-for-byte, removed the one
+  temporary Doombringer row from Kohdee's MySQL inventory, restored the
+  baseline rent header and inventory counts, and restarted the installed
+  binary without a character session.
+
 ### Aegis breastplate identity
 
 #### Fixed
