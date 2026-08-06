@@ -316,7 +316,7 @@ References:
 |----|----------|--------|---------|
 | MJD-001 | High | Fixed; verified | LuminariMUD sent internal tab color markup in `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` scalar values. |
 | MJD-002 | Medium | External; diagnosed | Mudlet's native MSDP conversion does not JSON-escape a literal tab before calling `json_to_value`. |
-| MJD-003 | Low | Remediation in progress | LuminariGUI subscribes to all three failing scalars although its current visible UI does not consume them. |
+| MJD-003 | Low | Fixed; final verification in progress | LuminariGUI subscribed to all three failing scalars although its visible UI did not consume them. |
 | MJD-004 | High | Fixed; verified | LuminariMUD's MSDP-over-GMCP fallback used a nonstandard package shape, emitted invalid JSON, and could not receive standard JSON commands. |
 | MJD-005 | Medium | Complete; verified | Production scalar, wire-format, malformed-input, memory-tool, fuzz, alternate-build, and installation coverage passes. |
 
@@ -398,6 +398,21 @@ the conversion layer must handle the difference:
 The repair therefore required a real serializer, not only `strip_colors()` at three call sites.
 
 ## Implementation Progress
+
+### 2026-08-06: LuminariGUI subscription narrowing implemented
+
+- LuminariGUI commit `59d267e` removes `ALIGNMENT`, `AREA_NAME`, and `ROOM_NAME` from
+  `GUI.MSDP_REPORT_VARS` while retaining the structured `ROOM` report used by the room panel
+  and mapper.
+- Removed the debug-only `msdp.ALIGNMENT` read and its obsolete player-refresh event entry.
+  Room debug snapshots now take `NAME` and `AREA` from the same structured `ROOM` value used by
+  the visible UI.
+- Added a lifecycle regression that rejects any reintroduction of the three scalar reports,
+  requires `ROOM`, checks uniqueness and exact REPORT dispatch, and verifies that package
+  consumers and event ownership no longer reference the unused scalar fields.
+- Updated the package changelog, Mudlet smoke procedure, and resource-ownership baseline. Built
+  package version `2.0.4.045`; the focused lifecycle suite passes 37/37 and the generated-output
+  drift guard passes. The broader package gates remain in progress.
 
 ### 2026-08-05: Plain scalar boundary repair implemented
 
@@ -554,7 +569,7 @@ Tests should prove:
 The root production-linked CuTest suite is the appropriate place for production room/alignment
 behavior. The focused parser harness can cover byte-level conversion and framing helpers.
 
-### 3. Narrow the GUI subscription set (external follow-up)
+### 3. Narrow the GUI subscription set (implemented; verification in progress)
 
 In the LuminariGUI source-of-truth fragment, remove `AREA_NAME` and `ROOM_NAME` if no current
 consumer needs them beyond debug logging. Evaluate `ALIGNMENT` similarly until it is actually
