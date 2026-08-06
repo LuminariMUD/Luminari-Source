@@ -8,6 +8,7 @@
 #include "../../src/olc/genobj.h"
 #include "../../src/olc/genwld.h"
 #include "../../src/olc/oasis.h"
+#include "../../src/olc/spec_menu.h"
 #include "../../src/net/protocol.h"
 #include "../../src/spec_procs.h"
 #include "test_spec_fixtures.h"
@@ -17,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define SPEC_TEST_MOBILE_VNUM 1201
@@ -25,6 +28,14 @@
 #define SPEC_TEST_MOBILE_ZONE 12
 #define SPEC_TEST_OBJECT_ROOM_ZONE 14
 #define SPEC_TEST_MAX_SAVED_FILE (1024L * 1024L)
+#define SPEC_TEST_CHILD_TIMEOUT 30
+#define SPEC_TEST_CHILD_ERROR_SIZE 512
+
+struct spec_test_child_result
+{
+  int success;
+  char error[SPEC_TEST_CHILD_ERROR_SIZE];
+};
 
 static const char spec_test_mobile_record[] = "postmaster~\n"
                                               "the test postmaster~\n"
@@ -212,6 +223,145 @@ bool spec_test_cleanup_sandbox(const char *sandbox, char *error, size_t error_si
   }
 
   return success;
+}
+
+static bool spec_test_write_all(int descriptor, const void *buffer, size_t length)
+{
+  const char *cursor;
+  ssize_t written;
+
+  cursor = buffer;
+  while (length > 0)
+  {
+    written = write(descriptor, cursor, length);
+    if (written < 0 && errno == EINTR)
+      continue;
+    if (written <= 0)
+      return false;
+    cursor += written;
+    length -= (size_t)written;
+  }
+
+  return true;
+}
+
+bool spec_test_run_isolated_with_path(spec_test_isolated_scenario scenario, char *sandbox_result,
+                                      size_t sandbox_result_size, char *error, size_t error_size)
+{
+  struct spec_test_child_result result;
+  char cleanup_error[SPEC_TEST_CHILD_ERROR_SIZE];
+  char sandbox[PATH_MAX];
+  int result_pipe[2];
+  int child_status;
+  pid_t child_pid;
+  pid_t waited_pid;
+  size_t received;
+  ssize_t read_result;
+
+  memset(&result, 0, sizeof(result));
+  if (scenario == NULL)
+  {
+    spec_test_set_error(error, error_size, "cannot run a null isolated test scenario");
+    return false;
+  }
+  if (snprintf(sandbox, sizeof(sandbox), "/tmp/luminari-spec-registry-run-XXXXXX") >=
+          (int)sizeof(sandbox) ||
+      mkdtemp(sandbox) == NULL)
+  {
+    spec_test_set_error(error, error_size, "unable to create isolated test sandbox");
+    return false;
+  }
+  if (sandbox_result != NULL &&
+      snprintf(sandbox_result, sandbox_result_size, "%s", sandbox) >= (int)sandbox_result_size)
+  {
+    spec_test_cleanup_sandbox(sandbox, cleanup_error, sizeof(cleanup_error));
+    spec_test_set_error(error, error_size, "isolated test sandbox result buffer is too small");
+    return false;
+  }
+  if (pipe(result_pipe) != 0)
+  {
+    if (!spec_test_cleanup_sandbox(sandbox, cleanup_error, sizeof(cleanup_error)))
+    {
+      spec_test_set_error(error, error_size, cleanup_error);
+      return false;
+    }
+    spec_test_set_error(error, error_size, "unable to create isolated test result pipe");
+    return false;
+  }
+
+  child_pid = fork();
+  if (child_pid < 0)
+  {
+    close(result_pipe[0]);
+    close(result_pipe[1]);
+    if (!spec_test_cleanup_sandbox(sandbox, cleanup_error, sizeof(cleanup_error)))
+    {
+      spec_test_set_error(error, error_size, cleanup_error);
+      return false;
+    }
+    spec_test_set_error(error, error_size, "unable to fork isolated parser test");
+    return false;
+  }
+
+  if (child_pid == 0)
+  {
+    close(result_pipe[0]);
+    alarm(SPEC_TEST_CHILD_TIMEOUT);
+    result.success = scenario(sandbox, result.error, sizeof(result.error));
+    if (!result.success && result.error[0] == '\0')
+      spec_test_set_error(result.error, sizeof(result.error), "isolated scenario failed");
+    if (!spec_test_write_all(result_pipe[1], &result, sizeof(result)))
+      _exit(2);
+    close(result_pipe[1]);
+    _exit(result.success ? EXIT_SUCCESS : EXIT_FAILURE);
+  }
+
+  close(result_pipe[1]);
+  received = 0;
+  while (received < sizeof(result))
+  {
+    read_result = read(result_pipe[0], (char *)&result + received, sizeof(result) - received);
+    if (read_result < 0 && errno == EINTR)
+      continue;
+    if (read_result <= 0)
+      break;
+    received += (size_t)read_result;
+  }
+  close(result_pipe[0]);
+
+  do
+  {
+    waited_pid = waitpid(child_pid, &child_status, 0);
+  } while (waited_pid < 0 && errno == EINTR);
+
+  if (!spec_test_cleanup_sandbox(sandbox, cleanup_error, sizeof(cleanup_error)))
+  {
+    spec_test_set_error(error, error_size, cleanup_error);
+    return false;
+  }
+  if (waited_pid != child_pid || received != sizeof(result))
+  {
+    spec_test_set_error(error, error_size, "isolated parser test exited before reporting a result");
+    return false;
+  }
+  if (!WIFEXITED(child_status))
+  {
+    spec_test_set_error(error, error_size, "isolated parser test did not exit normally");
+    return false;
+  }
+  if (WEXITSTATUS(child_status) != EXIT_SUCCESS || !result.success)
+  {
+    spec_test_set_error(error, error_size,
+                        result.error[0] != '\0' ? result.error : "isolated parser test failed");
+    return false;
+  }
+
+  return true;
+}
+
+bool spec_test_run_isolated(spec_test_isolated_scenario scenario, char *error, size_t error_size)
+{
+  return spec_test_run_isolated_with_path(scenario, NULL, 0, error, error_size);
 }
 
 static bool spec_test_create_sandbox(struct spec_test_fixture *fixture, const char *sandbox,
@@ -746,6 +896,36 @@ bool spec_test_fixture_parse_olc(struct spec_test_fixture *fixture, enum spec_te
   return false;
 }
 
+bool spec_test_fixture_open_olc_menu(struct spec_test_fixture *fixture, enum spec_test_owner owner)
+{
+  static const int owner_main_modes[SPEC_TEST_OWNER_COUNT] = {
+      MEDIT_MAIN_MENU,
+      OEDIT_MAIN_MENU,
+      REDIT_MAIN_MENU,
+  };
+  int owner_index;
+
+  if (fixture == NULL)
+    return false;
+
+  owner_index = (int)owner;
+  if (owner_index < 0 || owner_index >= SPEC_TEST_OWNER_COUNT)
+    return false;
+
+  OLC_MODE(&fixture->descriptor) = owner_main_modes[owner_index];
+  return spec_test_fixture_parse_olc(fixture, owner, "Z");
+}
+
+bool spec_test_fixture_display_olc_menu(struct spec_test_fixture *fixture, spec_owner_mask owner)
+{
+  if (fixture == NULL)
+    return false;
+
+  spec_test_reset_output(fixture);
+  spec_olc_display_menu(&fixture->descriptor, owner);
+  return true;
+}
+
 SPECIAL_DECL(*spec_test_fixture_olc_handler(const struct spec_test_fixture *fixture,
                                             enum spec_test_owner owner))
 {
@@ -775,4 +955,25 @@ int spec_test_fixture_olc_changed(const struct spec_test_fixture *fixture)
 const char *spec_test_fixture_olc_output(const struct spec_test_fixture *fixture)
 {
   return fixture != NULL ? fixture->descriptor.output : NULL;
+}
+
+bool spec_test_fixture_activation_enabled(const struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner)
+{
+  if (fixture == NULL)
+    return false;
+
+  switch (owner)
+  {
+  case SPEC_TEST_OWNER_MOBILE:
+    return fixture->mobile_loaded && IS_SET_AR(MOB_FLAGS(&fixture->test_mob_proto[0]), MOB_SPEC);
+  case SPEC_TEST_OWNER_OBJECT:
+    return fixture->object_loaded &&
+           IS_SET_AR(GET_OBJ_EXTRA(&fixture->test_obj_proto[0]), ITEM_AUTOPROC);
+  case SPEC_TEST_OWNER_ROOM:
+  case SPEC_TEST_OWNER_COUNT:
+    return false;
+  }
+
+  return false;
 }

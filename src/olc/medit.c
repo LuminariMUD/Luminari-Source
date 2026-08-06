@@ -30,6 +30,7 @@
 #include "character/feats.h"
 #include "modify.h" /* for smash_tilde */
 #include "spec_procs.h"
+#include "spec_menu.h"
 
 /* local functions */
 static void init_mobile(struct char_data *mob);
@@ -1000,8 +1001,9 @@ void medit_parse(struct descriptor_data *d, char *arg)
   {
   case MEDIT_SPEC_PROC:
   {
-    /* Expecting a number: 0 clears, otherwise select by 1-based index */
-    int choice = atoi(arg);
+    const struct spec_definition *definition;
+    enum spec_olc_selection_result selection_result;
+
     if (!*arg)
     {
       write_to_output(d, "Enter selection (0 to clear, Q to quit): ");
@@ -1012,20 +1014,22 @@ void medit_parse(struct descriptor_data *d, char *arg)
       medit_disp_menu(d);
       return;
     }
-    if (choice == 0)
+
+    selection_result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, arg, &definition);
+    if (selection_result == SPEC_OLC_SELECTION_CLEAR)
     {
       OLC(d)->specmob = NULL;
       OLC_VAL(d) = 1;
       medit_disp_menu(d);
       return;
     }
-    choice--; /* convert to 0-based */
-    if (choice < 0 || choice >= get_spec_func_count())
+    if (selection_result != SPEC_OLC_SELECTION_DEFINITION)
     {
       write_to_output(d, "Invalid selection. Try again: ");
       return;
     }
-    OLC(d)->specmob = get_spec_func_by_index(choice);
+
+    OLC(d)->specmob = definition->legacy_handler;
     OLC_VAL(d) = 1;
     medit_disp_menu(d);
     return;
@@ -1072,17 +1076,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
     case 'z':
     case 'Z':
     {
-      /* List all available spec procs */
-      int count = get_spec_func_count();
-      int n;
-      clear_screen(d);
-      write_to_output(d, "Spec Procedures (0 = None)\r\n");
-      for (n = 0; n < count; n++)
-      {
-        write_to_output(d, "%3d) %-25s%s", n + 1, get_spec_func_name_by_index(n),
-                        ((n + 1) % 3 == 0 || n == count - 1) ? "\r\n" : "");
-      }
-      write_to_output(d, "\r\nEnter selection (0 to clear, Q to quit): ");
+      spec_olc_display_menu(d, SPEC_OWNER_MOBILE);
       OLC_MODE(d) = MEDIT_SPEC_PROC;
       return;
     }

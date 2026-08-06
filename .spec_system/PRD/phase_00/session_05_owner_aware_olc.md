@@ -1,9 +1,10 @@
 # Session 05: Owner-Aware OLC
 
 **Session ID**: `phase00-session05-owner-aware-olc`
-**Status**: Not Started
-**Estimated Tasks**: ~18-22
+**Status**: Complete
+**Tasks**: 23
 **Estimated Duration**: 2-4 hours
+**Completed**: 2026-08-07
 
 ---
 
@@ -37,9 +38,9 @@ events and prerequisites required for each selection.
 
 ## Prerequisites
 
-- [ ] Session 04 provides validated owner, event, visibility, description, and prerequisite
+- [x] Session 04 provides validated owner, event, visibility, description, and prerequisite
   metadata.
-- [ ] Session 01 provides baseline OLC selection and clear characterization.
+- [x] Session 01 provides baseline OLC selection and clear characterization.
 
 ---
 
@@ -54,7 +55,7 @@ events and prerequisites required for each selection.
 
 ## Success Criteria
 
-- [ ] Each editor lists only definitions valid for its owner type and allowed binding source.
-- [ ] Builders can inspect why and when a definition runs before selecting it.
-- [ ] Select and clear operations map to the intended definition in all three editors.
-- [ ] Incompatible selections fail explicitly without changing activation flags or world syntax.
+- [x] Each editor lists only definitions valid for its owner type and allowed binding source.
+- [x] Builders can inspect why and when a definition runs before selecting it.
+- [x] Select and clear operations map to the intended definition in all three editors.
+- [x] Incompatible selections fail explicitly without changing activation flags or world syntax.

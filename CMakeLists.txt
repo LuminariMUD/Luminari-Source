@@ -585,6 +585,7 @@ set(SRC_C_FILES
     src/roleplay.c
     src/vessels/routing.c
     src/olc/sedit.c
+    src/olc/spec_menu.c
     src/obj/shop.c
     src/combat/spec_abilities.c
     src/spec/spec_registry.c
@@ -1009,6 +1010,7 @@ set(CUTEST_TEST_SOURCES
     unittests/CuTest/test_spec_fixtures.c
     unittests/CuTest/test_spec_registry_persistence.c
     unittests/CuTest/test_spec_registry_validation.c
+    unittests/CuTest/test_spec_owner_aware_olc.c
     unittests/CuTest/test_spec_command_pulse.c
     unittests/CuTest/test_spec_combat_secondary.c
     unittests/CuTest/test_gameplay_e2e.c

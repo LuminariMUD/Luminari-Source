@@ -1,18 +1,35 @@
 # OLC: SpecProc Editing and Persistence
 
-This note explains how builders can assign and persist special procedures (SpecProcs) using the OLC editors for mobs, objects, and rooms.
+This note explains how builders can assign and persist special procedures (SpecProcs) using the OLC
+editors for mobs, objects, and rooms.
 
 ## Overview
-- New menu option in all three editors: `Z) SpecProc`.
+
+- All three editors provide `Z) SpecProc`.
 - Select from the centralized registry defined in `src/spec/spec_registry.c`.
+- Each editor lists only builder-visible definitions compatible with that mobile, object, or room.
 - Selections apply at save time and now persist across reboots via world files.
 
 ## Usage (medit/oedit/redit)
+
 - From the main menu, press `Z` to open the SpecProc selector.
+- Read the category, description, supported events, and per-event prerequisites beneath each entry.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
+Numbers are specific to the filtered editor view. The current views contain 18 mobile definitions,
+5 object definitions, and 6 room definitions in canonical registry order. The saved world record
+uses the procedure name, not the displayed number.
+
+Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
+
+- `MOB_SPEC` enables mobile activity and combat-turn callbacks that require it.
+- `ITEM_AUTOPROC` enables object auto-pulses that require it.
+- `carried`, `equipped`, and `combat` state describe where an event can run.
+- `prerequisites: none` means that event has no registry-level flag or placement requirement.
+
 ## File Format Persistence
+
 The selected SpecProc is stored by name and resolved at boot.
 
 - Mobs (E-spec block):
@@ -32,17 +49,24 @@ The selected SpecProc is stored by name and resolved at boot.
 If the name isn't recognized in the SpecProc registry, the function won't be assigned at boot.
 
 ## Notes and Tips
+
 - Names must match a canonical name or explicit alias in `src/spec/spec_registry.c`.
-- The registry records compatible mob, object, and room types plus event prerequisites. The current
-  selector still displays its historical compatibility list; owner-aware filtering is not yet
-  applied by these menus, so avoid selecting a procedure for an incompatible owner type.
+- The selector shows canonical definitions only. An alias such as `Guildmaster` still loads for
+  compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
+- A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
+  owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error
   that stops boot; an unknown persisted name remains a content error and is not assigned.
 - Clearing a SpecProc removes the corresponding lines from the world file on next save.
 - The selector is 1-based; `0` always clears.
 
 ## Troubleshooting
+
 - Change not taking effect after save: ensure the zone was saved and the game reloaded the zone or rebooted.
+- Procedure does not run on a pulse: reopen the selector and check the event's required flags and
+  placement. The selector deliberately does not change those flags for you.
+- Procedure is absent from one editor: it is not compatible with that owner type or is not allowed
+  for builder-authored world binding.
 - Persistence missing after reboot: verify the saved name is a canonical name or alias in the
   definition registry and has not been renamed.
 - File merge conflicts: the `SpecProc`/`Z` entries are safe to keep; ensure the SpecProc name remains on its own line as shown above.

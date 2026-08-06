@@ -4,6 +4,7 @@
 #include "../../src/conf.h"
 #include "../../src/sysdep.h"
 #include "../../src/structs.h"
+#include "../../src/spec/spec_registry.h"
 
 enum spec_test_owner
 {
@@ -14,6 +15,12 @@ enum spec_test_owner
 };
 
 struct spec_test_fixture;
+
+typedef bool (*spec_test_isolated_scenario)(const char *sandbox, char *error, size_t error_size);
+
+bool spec_test_run_isolated(spec_test_isolated_scenario scenario, char *error, size_t error_size);
+bool spec_test_run_isolated_with_path(spec_test_isolated_scenario scenario, char *sandbox_result,
+                                      size_t sandbox_result_size, char *error, size_t error_size);
 
 struct spec_test_fixture *spec_test_fixture_create(char *error, size_t error_size);
 struct spec_test_fixture *spec_test_fixture_create_at(const char *sandbox, char *error,
@@ -35,9 +42,13 @@ bool spec_test_fixture_reset_olc(struct spec_test_fixture *fixture, enum spec_te
                                  SPECIAL_DECL(*initial_handler));
 bool spec_test_fixture_parse_olc(struct spec_test_fixture *fixture, enum spec_test_owner owner,
                                  const char *argument);
+bool spec_test_fixture_open_olc_menu(struct spec_test_fixture *fixture, enum spec_test_owner owner);
+bool spec_test_fixture_display_olc_menu(struct spec_test_fixture *fixture, spec_owner_mask owner);
 SPECIAL_DECL(*spec_test_fixture_olc_handler(const struct spec_test_fixture *fixture,
                                             enum spec_test_owner owner));
 int spec_test_fixture_olc_changed(const struct spec_test_fixture *fixture);
 const char *spec_test_fixture_olc_output(const struct spec_test_fixture *fixture);
+bool spec_test_fixture_activation_enabled(const struct spec_test_fixture *fixture,
+                                          enum spec_test_owner owner);
 
 #endif /* TEST_SPEC_FIXTURES_H */

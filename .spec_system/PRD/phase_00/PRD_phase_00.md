@@ -4,7 +4,7 @@
 **Sessions**: 9 (initial estimate)
 **Estimated Duration**: 3-5 working days
 
-**Progress**: 4/9 sessions (44%)
+**Progress**: 5/9 sessions (56%)
 
 ---
 
@@ -27,7 +27,7 @@ syntax, activation behavior, or boot precedence.
 | 02 | Command and Pulse Characterization | Complete | 24 | 2026-08-06 |
 | 03 | Combat and Secondary Characterization | Complete | 22 | 2026-08-06 |
 | 04 | Validated Definition Registry | Complete | 24 | 2026-08-07 |
-| 05 | Owner-Aware OLC | Not Started | ~18-22 | - |
+| 05 | Owner-Aware OLC | Complete | 23 | 2026-08-07 |
 | 06 | Authored Binding Model | Not Started | ~20-24 | - |
 | 07 | Binding Round-Trip Persistence | Not Started | ~18-22 | - |
 | 08 | Effective Binding Observability | Not Started | ~20-24 | - |
@@ -41,12 +41,12 @@ syntax, activation behavior, or boot precedence.
 - Session 02: Command and Pulse Characterization - completed 2026-08-06
 - Session 03: Combat and Secondary Characterization - completed 2026-08-06
 - Session 04: Validated Definition Registry - completed 2026-08-07
+- Session 05: Owner-Aware OLC - completed 2026-08-07
 
 ---
 
 ## Upcoming Sessions
 
-- Session 05: Owner-Aware OLC
 - Session 06: Authored Binding Model
 - Session 07: Binding Round-Trip Persistence
 - Session 08: Effective Binding Observability
