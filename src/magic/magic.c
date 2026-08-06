@@ -51,6 +51,31 @@ static int paralyzing_touch_duration(void)
   return dice(1, 4) + 1;
 }
 
+static bool is_necromancer_touch_ability(int spellnum)
+{
+  switch (spellnum)
+  {
+  case ABILITY_PARALYZING_TOUCH:
+  case ABILITY_WEAKENING_TOUCH:
+  case ABILITY_DEGENERATIVE_TOUCH:
+  case ABILITY_DESTRUCTIVE_TOUCH:
+  case ABILITY_DEATHLESS_TOUCH:
+    return true;
+  default:
+    return false;
+  }
+}
+
+static int resolve_affect_cast_level(struct char_data *ch, int spellnum, int supplied_level,
+                                     int modified_level, int casttype)
+{
+  if (casttype != CAST_INNATE)
+    return modified_level;
+  if (is_necromancer_touch_ability(spellnum))
+    return supplied_level;
+  return GET_LEVEL(ch);
+}
+
 #ifdef LUMINARI_CUTEST
 static int bard_crescendo_damage_applications;
 static int bard_crescendo_save_applications;
@@ -85,6 +110,12 @@ int test_get_last_savingthrow_challenge(void)
 int test_paralyzing_touch_duration(void)
 {
   return paralyzing_touch_duration();
+}
+
+int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int supplied_level,
+                                   int modified_level, int casttype)
+{
+  return resolve_affect_cast_level(ch, spellnum, supplied_level, modified_level, casttype);
 }
 #endif
 bool save_char_pets(struct char_data *ch);
@@ -3947,6 +3978,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
                       bool recursive_call)
 {
   struct affected_type af[MAX_SPELL_AFFECTS];
+  int supplied_level = level;
   bool accum_affect = FALSE, accum_duration = FALSE;
   const char *to_vict = NULL, *to_room = NULL;
   int i, j, x, spell_school = NOSCHOOL, dc_mod = 0;
@@ -4031,8 +4063,7 @@ void mag_affects_full(int level, struct char_data *ch, struct char_data *victim,
 
   /* caster level is used for calculating bonuses - be aware that certain
      cast types coming in here are not even related to magic (hack) */
-  if (casttype == CAST_INNATE)
-    level = GET_LEVEL(ch);
+  level = resolve_affect_cast_level(ch, spellnum, supplied_level, level, casttype);
 
   /* various bonus/penalty; added IS_NPC check to prevent NPCs from getting incorrect bonuses,
    * since RACE_TYPE_HUMAN = RACE_ELF, etc. -Nashak */

@@ -182,6 +182,22 @@ int get_necromancer_progression_class(struct char_data *ch, int cast_type)
   return selected_class;
 }
 
+int get_necromancer_progression_level(struct char_data *ch)
+{
+  int casting_class;
+
+  if (ch == NULL)
+    return 0;
+  if (IS_NPC(ch))
+    return GET_LEVEL(ch);
+
+  casting_class = get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
+  if (casting_class == CLASS_UNDEFINED)
+    return CLASS_LEVEL(ch, CLASS_NECROMANCER);
+
+  return CLASS_LEVEL(ch, casting_class) + BONUS_CASTER_LEVEL(ch, casting_class);
+}
+
 /* can this CH select the option to change their 'known' spells
  in the study system? */
 bool can_study_known_spells(struct char_data *ch)

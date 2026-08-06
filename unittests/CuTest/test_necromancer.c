@@ -294,15 +294,43 @@ void Test_necromancer_touch_level_follows_selected_casting_track(CuTest *tc)
   setup_necromancer_character(&ch, &player_specials);
   CLASS_LEVEL((&ch), CLASS_NECROMANCER) = 6;
   CLASS_LEVEL((&ch), CLASS_WIZARD) = 5;
+  CLASS_LEVEL((&ch), CLASS_SORCERER) = 3;
   CLASS_LEVEL((&ch), CLASS_CLERIC) = 9;
+  CLASS_LEVEL((&ch), CLASS_DRUID) = 4;
 
   NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_ARCANE;
+  GET_PREFERRED_ARCANE((&ch)) = CLASS_WIZARD;
   CuAssertIntEquals(tc, 11, test_necromancer_touch_level(&ch));
   NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_DIVINE;
+  GET_PREFERRED_DIVINE((&ch)) = CLASS_CLERIC;
   CuAssertIntEquals(tc, 15, test_necromancer_touch_level(&ch));
   NECROMANCER_CAST_TYPE((&ch)) = CASTING_TYPE_NONE;
   CuAssertIntEquals(tc, 6, test_necromancer_touch_level(&ch));
   CuAssertIntEquals(tc, CAST_INNATE, test_necromancer_touch_cast_type());
+}
+
+void Test_necromancer_touch_affects_keep_selected_progression_level(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+
+  setup_necromancer_character(&ch, &player_specials);
+  GET_LEVEL((&ch)) = 30;
+
+  CuAssertIntEquals(
+      tc, 11, test_resolve_affect_cast_level(&ch, ABILITY_PARALYZING_TOUCH, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 11, test_resolve_affect_cast_level(&ch, ABILITY_WEAKENING_TOUCH, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 11, test_resolve_affect_cast_level(&ch, ABILITY_DEGENERATIVE_TOUCH, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 11, test_resolve_affect_cast_level(&ch, ABILITY_DESTRUCTIVE_TOUCH, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 11, test_resolve_affect_cast_level(&ch, ABILITY_DEATHLESS_TOUCH, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 30, test_resolve_affect_cast_level(&ch, SPELL_HIDEOUS_LAUGHTER, 11, 13, CAST_INNATE));
+  CuAssertIntEquals(
+      tc, 13, test_resolve_affect_cast_level(&ch, ABILITY_WEAKENING_TOUCH, 11, 13, CAST_SPELL));
 }
 
 void Test_necromancer_paralyzing_touch_duration_is_one_d_four_plus_one(CuTest *tc)

@@ -112,16 +112,10 @@ static int at_will_casting_class(struct char_data *ch, int spellnum)
 
 static int necromancer_summon_caster_level(struct char_data *ch, int spellnum)
 {
-  int casting_class;
-
   if (ch == NULL || !isPaleMasterMagic(ch, spellnum))
     return 0;
 
-  casting_class = get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
-  if (casting_class == CLASS_UNDEFINED)
-    return CLASS_LEVEL(ch, CLASS_NECROMANCER);
-
-  return CLASS_LEVEL(ch, casting_class) + BONUS_CASTER_LEVEL(ch, casting_class);
+  return get_necromancer_progression_level(ch);
 }
 
 static bool should_extract_prepared_spell(struct char_data *ch, int spellnum)

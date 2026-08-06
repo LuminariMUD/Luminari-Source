@@ -154,6 +154,7 @@ int get_default_spell_weapon(struct char_data *ch);
 bool can_study_known_spells(struct char_data *ch);
 bool can_study_known_psionics(struct char_data *ch);
 int get_necromancer_progression_class(struct char_data *ch, int cast_type);
+int get_necromancer_progression_level(struct char_data *ch);
 int compute_bonus_caster_level(struct char_data *ch, int class);
 int compute_arcane_level(struct char_data *ch);
 bool can_npc_command(struct char_data *ch);

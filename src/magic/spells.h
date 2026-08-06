@@ -1894,6 +1894,8 @@ int test_get_bard_crescendo_save_applications(void);
 void test_reset_savingthrow_observation(void);
 int test_get_last_savingthrow_challenge(void);
 int test_paralyzing_touch_duration(void);
+int test_resolve_affect_cast_level(struct char_data *ch, int spellnum, int supplied_level,
+                                   int modified_level, int casttype);
 int test_at_will_casting_class(struct char_data *ch, int spellnum);
 int test_necromancer_summon_caster_level(struct char_data *ch, int spellnum);
 bool test_should_extract_prepared_spell(struct char_data *ch, int spellnum);

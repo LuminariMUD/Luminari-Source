@@ -34,7 +34,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-001 | Focused verification passed | Exactly one selected base class advances; seven progression/study tests pass. |
 | NEC-002 | Focused verification passed | Safe kit cardinality and description ownership; ASan/UBSan clean. |
 | NEC-003 | Focused verification passed | Valid attempts spend the correct daily use and swift action; dispatcher and queue enforcement are tested. |
-| NEC-004 | Focused verification passed | Innate cast type, selected progression level, fallback, and `1d4+1` duration are tested. |
+| NEC-004 | Focused verification passed | Innate cast type, preferred base progression, affect-engine preservation, fallback, and `1d4+1` duration are tested. |
 | NEC-005 | Focused verification passed | At-will summon casts bypass prepared and spontaneous resource extraction. |
 | NEC-006 | Focused verification passed | Non-Necromancers allow one animated undead; Necromancers allow exactly two. |
 | NEC-007 | Focused verification passed | Greater Animation applies its computed tier-scaled mobile level. |
@@ -46,7 +46,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-013 | Focused verification passed | Resistances apply to the cohort; mandatory Undead Appearance is free and the budget is nonnegative. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Twenty-seven production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | In progress | Twenty-eight production-linked tests added; full-suite environment exception recorded below. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -101,16 +101,24 @@ master checkpoint. This table is updated with every implementation checkpoint.
   hits or misses. Invalid room, target, undead-target, and player-killing checks
   return without spending either resource. The cooldown is attached to
   `FEAT_TOUCH_OF_UNDEATH`; Touch of Corruption is no longer charged.
-- Touch effects use `CAST_INNATE` and the selected Necromancer progression's
-  arcane or divine level. Legacy characters without an unambiguous selection
-  fall back to their Necromancer class level instead of silently resolving at
-  zero. Paralyzing Touch now lasts `1d4+1` rounds.
-- Five additional production-linked tests cover daily-use breakpoints, selected
-  arcane and divine levels, fallback and cast type, the full duration range,
-  cooldown/action consumption, queue enforcement, and command registration. The
+- Touch effects use `CAST_INNATE` and the selected preferred base class plus its
+  applicable bonus caster levels. Touch and animated-undead summons now share
+  that calculation. Legacy characters without an unambiguous selection fall
+  back to their Necromancer class level instead of silently resolving at zero.
+  Paralyzing Touch now lasts `1d4+1` rounds.
+- The affect engine's generic innate path formerly replaced the supplied Touch
+  level with total character level after command validation. All five Touch
+  ability IDs now preserve the exact supplied progression level, including
+  duration and save calculations, while unrelated innate effects retain their
+  existing total-level behavior.
+- Six additional production-linked tests cover daily-use breakpoints, selected
+  preferred arcane and divine levels in multiclass cases, fallback and cast type,
+  affect-engine level preservation, the full duration range, cooldown/action
+  consumption, queue enforcement, and command registration. The
   normal suite reports 455 runs, 454 passes, and the same unrelated environment
   failure described above.
-- The isolated ASan/UBSan build with leak detection passed all 16 focused
+- The isolated ASan/UBSan build with leak detection passes all 28 currently
+  focused Necromancer tests; the Touch checkpoint originally contained 16
   Necromancer tests with no sanitizer finding.
 
 ### Checkpoint 4: animated-undead summon lifecycle

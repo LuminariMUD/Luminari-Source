@@ -12641,20 +12641,7 @@ ACMD(do_touch_of_corruption)
 
 static int necromancer_touch_level(struct char_data *ch)
 {
-  if (ch == NULL)
-    return 0;
-  if (IS_NPC(ch))
-    return GET_LEVEL(ch);
-
-  switch (NECROMANCER_CAST_TYPE(ch))
-  {
-  case CASTING_TYPE_ARCANE:
-    return compute_arcane_level(ch);
-  case CASTING_TYPE_DIVINE:
-    return compute_divine_level(ch);
-  default:
-    return CLASS_LEVEL(ch, CLASS_NECROMANCER);
-  }
+  return get_necromancer_progression_level(ch);
 }
 
 static int necromancer_touch_cast_type(void)
