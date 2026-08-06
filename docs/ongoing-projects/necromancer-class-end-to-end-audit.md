@@ -3,8 +3,8 @@
 ## Audit state
 
 - Audit date: 2026-08-06
-- Status: Implementation in progress
-- Release verdict: Not ready
+- Status: Implementation complete; production validation pending
+- Release verdict: Ready for production validation
 - Implementation baseline: commit
   `0262cf59ca37f250dafe278406289ca594fe620d`
 - Implementation branch: `codex/necromancer-completion-20260806`
@@ -14,8 +14,9 @@
 
 This document audits the Necromancer prestige class from eligibility and level
 advancement through feat execution, summoned mobile creation, follower admission,
-pet persistence calls, live help, and automated coverage. It is a working audit,
-not an authoritative description of intended game behavior.
+pet persistence calls, live help, and automated coverage. It retains the original
+findings as a baseline record and records the repaired behavior in the implementation
+checkpoints.
 
 Existing unrelated working-tree changes were preserved and excluded from this
 audit.
@@ -27,8 +28,8 @@ change and the existing suite contained no Necromancer behavior coverage.
 
 ## Implementation progress
 
-Last updated: 2026-08-06, isolated worktree and branch created from the development
-master checkpoint. This table is updated with every implementation checkpoint.
+Last updated: 2026-08-06, final local verification completed on the isolated
+implementation branch.
 
 | Finding | Status | Verification evidence |
 |---------|--------|-----------------------|
@@ -47,7 +48,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-013 | Focused verification passed | Resistances apply to the cohort; mandatory Undead Appearance is free and the budget is nonnegative. |
 | NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Database verification passed | Nine authoritative entries, 23 required keywords, collision cleanup, and 20 content contracts pass. |
-| NEC-016 | In progress | Twenty-eight production-linked tests added; full-suite environment exception recorded below. |
+| NEC-016 | Local verification passed | Twenty-eight focused regressions and the 467-test production-linked suite pass under disposable local fixtures. |
 
 ### Checkpoint 1: selected spell progression and first-level study
 
@@ -206,6 +207,35 @@ master checkpoint. This table is updated with every implementation checkpoint.
   to the configured development database. All five read-only verifier checks
   pass there. No production database was accessed.
 
+### Checkpoint 7: final local verification and release handoff
+
+- A clean Autotools rebuild with GNU C23 completed without compiler warnings.
+  The aggregate `make test` path passed every auxiliary script check and all
+  467 production-linked CuTest cases. `make install` then installed `bin/circle`
+  and removed the root-level `circle` artifact as required.
+- The fresh worktree deliberately has no ignored database credentials or installed
+  world. Its shared Git configuration also materializes five tracked compatibility
+  symlinks as regular target-path files. Final integration testing therefore used
+  a user-owned temporary MariaDB socket, a fresh schema, a tracked minimal world
+  with one synthetic encounter region, and temporary symlink representations.
+  No customized configuration was copied, the compatibility files were restored,
+  and the database process was stopped after the test.
+- A fresh Debug CMake configuration with tests enabled built both `circle` and
+  `cutest` without warnings. The independently linked CMake CuTest executable also
+  passed all 467 cases against the disposable fixture.
+- The focused Necromancer suite passed 28 of 28 cases under ASan and UBSan with
+  leak detection and fail-fast sanitizer settings. The standalone protocol parser
+  passed 29 of 29 cases normally and under Valgrind; Valgrind reported zero errors,
+  zero bytes in use at exit, and no leaks.
+- A fresh `master_schema.sql` database accepted every component manifest entry
+  classified for application. The Necromancer help migration remained idempotent
+  on consecutive applications, and its verifier passed nine entries, 23 required
+  keywords, nine player/manual rows, zero stale aliases, and 20 content contracts.
+- Final repository checks found no whitespace errors, no non-ASCII or CRLF content
+  in changed documentation or SQL, no root-level `circle`, and no changes to the
+  protected local headers or credential files. The branch is pushed for production
+  validation; production code and data were not accessed.
+
 ## Executive verdict
 
 The Necromancer class is registered, selectable when its prerequisites are met,
@@ -213,10 +243,16 @@ and all advertised class feats are assigned at a level. The original progression
 Bone Armor, Touch of Undeath, and animated-undead summon blockers now have focused
 production-linked and sanitizer verification.
 
-The release verdict remains not ready while final build, full-suite, install, and
-protocol-harness verification remain open. The original findings below are
-retained as the audit record; the implementation-progress table and checkpoints
-are the current status.
+All sixteen original findings now have an implemented and locally verified
+disposition. Progression, Bone Armor, Touch of Undeath, animated-undead lifecycle,
+stun admission, cohort accounting, help content, and regression coverage pass the
+final local gates described above.
+
+The branch is ready for the requested production validation, not yet declared
+production-certified. Live-world behavior, restart persistence through the shared
+pet subsystem, and operator review of the migrated help remain production handoff
+checks. The original findings below are retained as the audit record; the
+implementation-progress table and checkpoints are the current status.
 
 ## Class registration and progression
 
@@ -598,7 +634,7 @@ Minimum release coverage should include:
     persistence, and combined Summoner/Necromancer scaling.
 13. Database-backed checks for class, feat, command, and spell help.
 
-## Recommended remediation order
+## Original recommended remediation order
 
 1. Fix and sanitizer-test Bone Armor before allowing the command to be used.
 2. Define one selected base spellcasting progression and repair every consumer of
@@ -614,6 +650,11 @@ Minimum release coverage should include:
 7. Add production-linked regression tests, then update the authoritative database
    help and enduring class documentation to match the approved contracts.
 
-The class should not be described as fully implemented until the blocker and high
-findings are repaired, the ambiguous scaling/action contracts are decided, and the
-minimum regression matrix passes against the production-linked game sources.
+## Resolution
+
+The blocker and high findings are repaired, the previously ambiguous scaling and
+action contracts are explicit, and the production-linked regression suite passes
+locally. The wider baseline coverage list above remains useful for future expansion,
+especially exhaustive Essence of Undeath ingress tests and live pet save/reload
+scenarios, but it no longer blocks this implementation branch from production
+validation.
