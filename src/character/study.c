@@ -1672,6 +1672,8 @@ static void set_preferred_divine(struct descriptor_data *d)
   write_to_output(d, "%d) %s\r\n", CLASS_CLERIC, CLSLIST_NAME(CLASS_CLERIC));
   write_to_output(d, "%d) %s\r\n", CLASS_INQUISITOR, CLSLIST_NAME(CLASS_INQUISITOR));
   write_to_output(d, "%d) %s\r\n", CLASS_DRUID, CLSLIST_NAME(CLASS_DRUID));
+  write_to_output(d, "%d) %s\r\n", CLASS_PALADIN, CLSLIST_NAME(CLASS_PALADIN));
+  write_to_output(d, "%d) %s\r\n", CLASS_RANGER, CLSLIST_NAME(CLASS_RANGER));
   write_to_output(d, "\r\n");
   write_to_output(d, "\r\n%sEnter your preferred divine class : ", nrm);
 }
@@ -2833,6 +2835,7 @@ void study_parse(struct descriptor_data *d, char *arg)
   int intel_bonus = 0;
   int tempXP = 0;
   int i = 0;
+  int necromancer_progression_class = CLASS_UNDEFINED;
   bool can_add_spell = TRUE, found = FALSE;
   char arg1[200] = {'\0'}, arg2[200] = {'\0'};
   char buf[200] = {'\0'};
@@ -2840,6 +2843,10 @@ void study_parse(struct descriptor_data *d, char *arg)
   two_arguments(arg, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
   sprintf(arg, "%s", arg1);
+
+  if (LEVELUP(ch) != NULL && LEVELUP(ch)->class == CLASS_NECROMANCER)
+    necromancer_progression_class =
+        get_necromancer_progression_class(ch, LEVELUP(ch)->necromancer_bonus_levels);
 
   switch (OLC_MODE(d))
   {
@@ -2878,6 +2885,15 @@ void study_parse(struct descriptor_data *d, char *arg)
     {
     case 'q':
     case 'Q':
+      if (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+          necromancer_progression_class == CLASS_UNDEFINED)
+      {
+        write_to_output(
+            d, "Choose your Necromancer casting type with option H. If you have multiple "
+               "classes on that side, also select the class to advance with option A.\r\n");
+        generic_main_disp_menu(d);
+        break;
+      }
       if (GET_LEVEL(ch) == 1)
       {
         write_to_output(
@@ -2919,9 +2935,10 @@ void study_parse(struct descriptor_data *d, char *arg)
               LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
               LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
               LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-              (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-             GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
+              LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+             GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) ||
+            (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+             necromancer_progression_class == CLASS_SORCERER))
           sorc_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_BARD ||
                  ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER ||
@@ -2929,9 +2946,10 @@ void study_parse(struct descriptor_data *d, char *arg)
                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW ||
                    LEVELUP(ch)->class == CLASS_SPELLSWORD ||
                    LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-                  GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                  GET_PREFERRED_ARCANE(ch) == CLASS_BARD) ||
+                 (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+                  necromancer_progression_class == CLASS_BARD))
           bard_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_SUMMONER ||
                  ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER ||
@@ -2939,16 +2957,18 @@ void study_parse(struct descriptor_data *d, char *arg)
                    LEVELUP(ch)->class == CLASS_ARCANE_SHADOW ||
                    LEVELUP(ch)->class == CLASS_SPELLSWORD ||
                    LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-                  GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
+                   LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+                  GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER) ||
+                 (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+                  necromancer_progression_class == CLASS_SUMMONER))
           summoner_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
                  ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
                    LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA ||
-                   LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL ||
-                   (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) &&
-                  GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+                   LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL) &&
+                  GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR) ||
+                 (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+                  necromancer_progression_class == CLASS_INQUISITOR))
           inquisitor_known_spells_disp_menu(d);
         else if (LEVELUP(ch)->class == CLASS_WARLOCK)
           warlock_known_spells_disp_menu(d);
@@ -4826,7 +4846,8 @@ void study_parse(struct descriptor_data *d, char *arg)
     break;
   case SET_PREFERRED_DIVINE:
     number = atoi(arg);
-    if (number != CLASS_DRUID && number != CLASS_INQUISITOR && number != CLASS_CLERIC)
+    if (number != CLASS_DRUID && number != CLASS_INQUISITOR && number != CLASS_CLERIC &&
+        number != CLASS_PALADIN && number != CLASS_RANGER)
     {
       write_to_output(d, "Invalid value!  Try again.\r\n");
       OLC_MODE(d) = SET_PREFERRED_DIVINE;

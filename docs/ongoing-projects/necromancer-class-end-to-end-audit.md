@@ -31,7 +31,7 @@ master checkpoint. This table is updated with every implementation checkpoint.
 
 | Finding | Status | Verification evidence |
 |---------|--------|-----------------------|
-| NEC-001 | Open | Selected spell progression repair and tests pending. |
+| NEC-001 | Focused verification passed | Exactly one selected base class advances; seven progression/study tests pass. |
 | NEC-002 | Open | Bone Armor conversion safety repair and sanitizer coverage pending. |
 | NEC-003 | Open | Touch resource/action accounting repair and tests pending. |
 | NEC-004 | Open | Touch cast type, level, and duration repair and tests pending. |
@@ -44,9 +44,31 @@ master checkpoint. This table is updated with every implementation checkpoint.
 | NEC-011 | Open | Holy-room parity repair and tests pending. |
 | NEC-012 | Open | Summon caster-level contract and tests pending. |
 | NEC-013 | Open | Cohort resistance target and point-accounting repair pending. |
-| NEC-014 | Open | Pending study-choice propagation and tests pending. |
+| NEC-014 | Focused verification passed | Pending first-level choices now drive known-spell study before save. |
 | NEC-015 | Open | Authoritative help update and database verification pending. |
-| NEC-016 | In progress | Production-linked test coverage will be added alongside each repair. |
+| NEC-016 | In progress | Seven production-linked tests added; full-suite environment exception recorded below. |
+
+### Checkpoint 1: selected spell progression and first-level study
+
+- Necromancer bonus caster levels now advance only the selected preferred base
+  class. If no preference is needed because exactly one supported base class is
+  present on the chosen side, that class is inferred. Ambiguous multi-class
+  selections remain unresolved until the player chooses a preferred class.
+- Study now uses the pending level-up casting selection, so a first-level
+  spontaneous Necromancer can choose newly earned known spells before saving.
+  Study refuses to save an ambiguous Necromancer progression and directs the
+  player to complete the casting-type and preferred-class choices.
+- Paladin and Ranger are available in the divine preferred-class menu, matching
+  the divine caster-level calculation already used by the game.
+- Seven production-linked CuTest cases cover selected arcane and divine classes,
+  sole-class inference, ambiguous multi-class rejection, and pending arcane and
+  divine known-spell study. The warning-free test binary builds successfully.
+- The local suite currently reports 446 runs, 445 passes, and one environment
+  failure. The unrelated encounter-world syntax test cannot boot from this fresh
+  worktree without ignored database configuration. Pointing it at the existing
+  development data reaches that data but is incompatible with the fresh
+  worktree's required example configuration headers. No credential or customized
+  configuration file was copied or changed.
 
 ## Executive verdict
 

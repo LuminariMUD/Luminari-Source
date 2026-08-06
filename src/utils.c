@@ -139,18 +139,70 @@ void gui_room_desc_wrap_close(struct char_data *ch)
   }
 }
 
+static bool necromancer_spellcasting_class_matches_type(int class, int cast_type)
+{
+  switch (cast_type)
+  {
+  case CASTING_TYPE_ARCANE:
+    return class == CLASS_WIZARD || class == CLASS_SORCERER || class == CLASS_BARD ||
+           class == CLASS_SUMMONER;
+  case CASTING_TYPE_DIVINE:
+    return class == CLASS_CLERIC || class == CLASS_DRUID || class == CLASS_RANGER ||
+           class == CLASS_PALADIN || class == CLASS_INQUISITOR;
+  default:
+    return false;
+  }
+}
+
+int get_necromancer_progression_class(struct char_data *ch, int cast_type)
+{
+  int preferred_class;
+  int selected_class = CLASS_UNDEFINED;
+  int class;
+
+  if (ch == NULL || IS_NPC(ch))
+    return CLASS_UNDEFINED;
+
+  preferred_class =
+      cast_type == CASTING_TYPE_ARCANE ? GET_PREFERRED_ARCANE(ch) : GET_PREFERRED_DIVINE(ch);
+  if (necromancer_spellcasting_class_matches_type(preferred_class, cast_type) &&
+      CLASS_LEVEL(ch, preferred_class) > 0)
+    return preferred_class;
+
+  for (class = 0; class < NUM_CLASSES; class ++)
+  {
+    if (!necromancer_spellcasting_class_matches_type(class, cast_type) ||
+        CLASS_LEVEL(ch, class) <= 0)
+      continue;
+    if (selected_class != CLASS_UNDEFINED)
+      return CLASS_UNDEFINED;
+    selected_class = class;
+  }
+
+  return selected_class;
+}
+
 /* can this CH select the option to change their 'known' spells
  in the study system? */
 bool can_study_known_spells(struct char_data *ch)
 {
+  int necromancer_progression_class = CLASS_UNDEFINED;
+
+  if (ch == NULL || LEVELUP(ch) == NULL)
+    return false;
+
+  if (LEVELUP(ch)->class == CLASS_NECROMANCER)
+    necromancer_progression_class =
+        get_necromancer_progression_class(ch, LEVELUP(ch)->necromancer_bonus_levels);
+
   /* sorcerer*/
   if (LEVELUP(ch)->class == CLASS_SORCERER ||
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
         LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-        (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-       GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER))
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_SORCERER) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_SORCERER))
     return TRUE;
 
   /* bard */
@@ -158,9 +210,9 @@ bool can_study_known_spells(struct char_data *ch)
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
         LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-        (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-       GET_PREFERRED_ARCANE(ch) == CLASS_BARD))
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_BARD) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_BARD))
     return TRUE;
 
   /* summoner */
@@ -168,18 +220,19 @@ bool can_study_known_spells(struct char_data *ch)
       ((LEVELUP(ch)->class == CLASS_ARCANE_ARCHER || LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_ARCANE_SHADOW || LEVELUP(ch)->class == CLASS_SPELLSWORD ||
         LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_THORN ||
-        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT ||
-        (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 1)) &&
-       GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER))
+        LEVELUP(ch)->class == CLASS_ELDRITCH_KNIGHT) &&
+       GET_PREFERRED_ARCANE(ch) == CLASS_SUMMONER) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER && necromancer_progression_class == CLASS_SUMMONER))
     return TRUE;
 
   /* inquisitor */
   if (LEVELUP(ch)->class == CLASS_INQUISITOR ||
       ((LEVELUP(ch)->class == CLASS_MYSTIC_THEURGE ||
         LEVELUP(ch)->class == CLASS_KNIGHT_OF_SOLAMNIA ||
-        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL ||
-        (LEVELUP(ch)->class == CLASS_NECROMANCER && NECROMANCER_CAST_TYPE(ch) == 2)) &&
-       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR))
+        LEVELUP(ch)->class == CLASS_KNIGHT_OF_THE_SKULL) &&
+       GET_PREFERRED_DIVINE(ch) == CLASS_INQUISITOR) ||
+      (LEVELUP(ch)->class == CLASS_NECROMANCER &&
+       necromancer_progression_class == CLASS_INQUISITOR))
     return TRUE;
 
   /* warlock */
@@ -203,6 +256,13 @@ bool can_study_known_psionics(struct char_data *ch)
 /* ch, given class we're computing bonus spells for, figure out
  if one of our other classes (probably just prestige, example is
  arcane archer) is adding bonus caster levels */
+static bool necromancer_advances_spellcasting_class(struct char_data *ch, int class)
+{
+  if (ch == NULL || IS_NPC(ch) || CLASS_LEVEL(ch, CLASS_NECROMANCER) <= 0)
+    return false;
+  return class == get_necromancer_progression_class(ch, NECROMANCER_CAST_TYPE(ch));
+}
+
 int compute_bonus_caster_level(struct char_data *ch, int class)
 {
   int bonus_levels = 0;
@@ -213,22 +273,24 @@ int compute_bonus_caster_level(struct char_data *ch, int class)
   case CLASS_SORCERER:
   case CLASS_BARD:
   case CLASS_SUMMONER:
-    bonus_levels += CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 +
-                    CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) + CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) +
-                    ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) +
-                    CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) +
-                    CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN) + CLASS_LEVEL(ch, CLASS_NECROMANCER);
+    bonus_levels +=
+        CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) * 3 / 4 + CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) +
+        CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) + ((1 + CLASS_LEVEL(ch, CLASS_SPELLSWORD)) / 2) +
+        CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE) + CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN);
+    if (necromancer_advances_spellcasting_class(ch, class))
+      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     break;
   case CLASS_CLERIC:
   case CLASS_DRUID:
   case CLASS_RANGER:
   case CLASS_PALADIN:
   case CLASS_INQUISITOR:
-    bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     bonus_levels += CLASS_LEVEL(ch, CLASS_MYSTIC_THEURGE);
     bonus_levels += CLASS_LEVEL(ch, CLASS_SACRED_FIST);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA);
     bonus_levels += CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL);
+    if (necromancer_advances_spellcasting_class(ch, class))
+      bonus_levels += CLASS_LEVEL(ch, CLASS_NECROMANCER);
     break;
   default:
     break;
