@@ -1,6 +1,7 @@
 # Production Crash and Pet Persistence Investigation
 
-Status: Development repair in progress; production containment remains operator-owned
+Status: Development repair implemented; final local validation in progress;
+production containment remains operator-owned
 
 Incident: 2026-08-05 20:38:58-20:38:59 UTC
 
@@ -31,10 +32,10 @@ Status meanings:
 | Atomic owner snapshot save | Verified | Each owner replacement now uses one transaction. Pet rows are prepared before it starts; recursive object-save failures propagate; any failed start, delete, pet insert, object insert, or commit rolls back. A two-follower MariaDB fixture preserved its prior linked snapshot at all nine forced query failures and on object-payload overflow. |
 | Bounded failure logging | Verified | Full failed INSERT payload logging is removed. Pet-save failures now report rate-limited, bounded operation, owner, pet VNUM, database error code/detail, schema version, and suppressed-count context. |
 | Save-churn reduction | Verified | The unconditional heartbeat rewrite moved from the six-second miscellaneous update to the existing 60-second save pulse. Explicit quit, idle extraction, death, charm, summon, dismissal, combat, spell-transfer, manual-save, copyover, and administrative sites remain immediate. |
-| Production-linked regression coverage | Verified | All 442 tests pass in the ordinary suite; the last database-enabled run passed all 441 tests before the output-path regression was added. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, copyover pinning, and partial output writes. |
+| Production-linked regression coverage | Verified | All 444 tests pass in the ordinary suite. The last database-enabled run passed all 441 tests before the three incident-window regressions were added; the final database-enabled rerun remains in progress. Coverage includes legacy migration, schema rejection, multi-follower commit, nested objects, rollback at all nine transaction queries, timed-affect mutation, lifecycle transitions, copyover pinning, partial output writes, terrain range rejection, and callback-safe affect expiration. |
 | Memory reproduction and diagnostics | In progress | On the current repaired source, 100 repeated full snapshots plus lifecycle transitions passed ASan/LeakSanitizer, and a production-linked eight-test persistence suite passed Valgrind with zero errors and zero definitely lost bytes. Fail-fast UBSan exposed an unrelated pre-existing world-loader shift error. Reproducing the unavailable exact `2.5033-beta` source and allocator crash remains a gap. |
-| Deployment and crash observability | In progress | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
-| Incident-window periodic path audit | In progress | The output path contained a confirmed partial-write accounting defect: one branch used overlapping `strcpy`, while another subtracted retained prompt bytes from a zero buffer pointer and added them to free space. The repair uses bounded `memcpy`/`memmove`, restores exact counters, and has production-linked regression coverage. I3, terrain, event, and affect review remains. |
+| Deployment and crash observability | Verified | Both build systems install immutable build-ID binaries/symbols; autorun pins each PID to its resolved executable, publishes active-versus-installed health identity, and analyzes local/systemd cores with that exact image. Synthetic supervisor/core handling is verified. The local WSL pipe handler has no retrieval client, and the real production core route remains an operator self-test. |
+| Incident-window periodic path audit | Verified | Output partial writes had a confirmed write-before-buffer defect and now preserve exact counters. I3 state/authentication reads and writes now share a mutex. Terrain batch input now rejects invalid types, null commands, out-of-bounds coordinates, overflowing products, and batches above 1,000 cells. Affect expiration detaches nodes before invoking list-mutating cleanup callbacks. Event queue ownership and deferred extraction were traced without finding a concrete incident-window defect. |
 | Production containment and recovery | Operator action | Follow `Required Production Containment` only after a verified backup and controlled maintenance window. |
 
 ### Repair Checkpoints
@@ -158,9 +159,32 @@ Status meanings:
   uses bounded copies and exact buffer accounting for both partial-write cases;
   a production-linked regression proves the retained content and a subsequent
   append. The ordinary suite passes all 442 tests.
-- Next checkpoint: complete focused code audit of the remaining incident-window
-  periodic paths, run all build/test gates available after the concurrent
-  source blocker clears, and finalize the production operator checklist.
+- Periodic-path audit checkpoint: I3 connection state and authentication now
+  use the same mutex for all reads and writes exercised by the client thread,
+  presence publisher, and status paths. The presence publisher continues to
+  traverse descriptors only on the main thread and transfers one owned JSON
+  reference through the locked command queue. Terrain batch parsing previously
+  coerced arbitrary JSON values to `int`, calculated dimensions in signed
+  `int`, and could accept an overflowed product as a small batch; it now
+  validates integer types and wilderness bounds before an `int64_t` size
+  calculation and rejects batches above 1,000 cells. A null command can no
+  longer reach `strcmp()`.
+- Affect/event audit checkpoint: custom skill wear-off handlers were hidden
+  behind automatically generated generic messages, so rage and defensive
+  stance cleanup did not run on timed expiration. This masking means those
+  callbacks are not a candidate for the August 5 abort. The corrected dispatch
+  order invokes custom cleanup only after every expired affect node has been
+  detached, preventing a handler that removes or replaces another affect from
+  invalidating the traversal. Event processing was traced from queue removal
+  through callbacks, cancellation, extraction, and cleanup; callbacks receive
+  dequeued events, self-cancellation avoids double free, and character
+  extraction is deferred. No concrete incident-window event defect was found.
+  The ordinary production-linked suite passes all 444 tests.
+- Periodic-path checkpoint commit: `f0b6f7b9` (`Harden incident-window periodic
+  paths`), pushed to `origin/master`.
+- Next checkpoint: rerun database-enabled persistence coverage and memory
+  diagnostics, complete the available build/install gates, and finalize the
+  production operator checklist.
 
 ### Memory Diagnostic Commands
 
