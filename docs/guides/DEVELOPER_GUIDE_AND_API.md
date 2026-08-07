@@ -210,7 +210,11 @@ coordination uses `src/spec/spec_zone_feybranche.h`, and Abyssal Vortex exit rot
 `src/spec/spec_zone_orc_ruins.h`. Illithid Enclave access control uses
 `src/spec/spec_zone_illithid_enclave.h`. Kobold Caverns, Bandit Castle, and Secomber access guards
 use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`, and
-`src/spec/spec_zone_secomber.h`. Use
+`src/spec/spec_zone_secomber.h`. Longsaddle Harpell coordination uses
+`src/spec/spec_zone_longsaddle.h`; Flaming Tower load-room and mirror behavior uses
+`src/spec/spec_zone_flaming_tower.h`; Mere of Dead Men summoning and daylight relocation use
+`src/spec/spec_zone_mere_of_dead_men.h`; and Battlemaze access control uses
+`src/spec/spec_zone_battlemaze.h`. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.

@@ -607,19 +607,23 @@ set(SRC_C_FILES
     src/spec/spec_zone_agrach_dyrr.c
     src/spec/spec_zone_air_plane.c
     src/spec/spec_zone_bandit_castle.c
+    src/spec/spec_zone_battlemaze.c
     src/spec/spec_zone_banshee.c
     src/spec/spec_zone_celestial_leviathan.c
     src/spec/spec_zone_crimson_flame.c
     src/spec/spec_zone_earth_plane.c
     src/spec/spec_zone_feybranche.c
     src/spec/spec_zone_fire_giant.c
+    src/spec/spec_zone_flaming_tower.c
     src/spec/spec_zone_hive_of_passion.c
     src/spec/spec_zone_illithid_enclave.c
     src/spec/spec_zone_jot.c
     src/spec/spec_zone_kenjin_tower.c
     src/spec/spec_zone_kings_castle.c
     src/spec/spec_zone_kobold_caverns.c
+    src/spec/spec_zone_longsaddle.c
     src/spec/spec_zone_mad_drow.c
+    src/spec/spec_zone_mere_of_dead_men.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_zone_orc_ruins.c
     src/spec/spec_zone_prisoner.c

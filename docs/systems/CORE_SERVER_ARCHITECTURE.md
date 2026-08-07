@@ -386,7 +386,10 @@ in `src/spec/spec_zone_hive_of_passion.c`. Fey-Branche combat coordination lives
 `src/spec/spec_zone_orc_ruins.c`. Illithid Enclave access control lives in
 `src/spec/spec_zone_illithid_enclave.c`. Kobold Caverns, Bandit Castle, and Secomber access guards
 live in `src/spec/spec_zone_kobold_caverns.c`, `src/spec/spec_zone_bandit_castle.c`, and
-`src/spec/spec_zone_secomber.c`; all seventeen packages have dedicated owner APIs.
+`src/spec/spec_zone_secomber.c`. Longsaddle, Flaming Tower, Mere of Dead Men, and Battlemaze
+behavior lives in `src/spec/spec_zone_longsaddle.c`, `src/spec/spec_zone_flaming_tower.c`,
+`src/spec/spec_zone_mere_of_dead_men.c`, and `src/spec/spec_zone_battlemaze.c`; all twenty-one
+packages have dedicated owner APIs.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in

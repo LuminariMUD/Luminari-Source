@@ -1026,6 +1026,45 @@ behavior contract changed.
 | both build manifests include all three zone owner sources | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 30 - Independent Zone Procedure Batch
+
+Checkpoint 30 moves six callbacks across four independent zone owners in one batched checkpoint:
+
+- `harpell` moves to `src/spec/spec_zone_longsaddle.c`; its computed assignment loop remains
+  unchanged;
+- `wallach` and `beltush` move together to `src/spec/spec_zone_flaming_tower.c` and remain assigned
+  to mobile VNUMs 112600 and 112607;
+- `mereshaman` and `willowisp` move together to `src/spec/spec_zone_mere_of_dead_men.c` and remain
+  assigned to mobile VNUMs 126717, 126707, and 126715; and
+- `battlemaze_guard` moves to `src/spec/spec_zone_battlemaze.c` and remains assigned to mobile VNUM
+  135603.
+
+Each owner publishes a dedicated header. None of the callbacks has a registry definition or
+authored world binding. `src/spec_assign.c` includes each owner header directly, while
+`src/spec_procs.h` retains the owner includes as a compatibility surface.
+
+This is an ownership-only batch. All 162 legacy implementation lines are unchanged, including the
+Harpell reinforcement selection and spell/combat calls, Flaming Tower load-room and mirror logic,
+Mere summoning and daylight relocation, Battlemaze movement and level gate, messages, targets,
+state writes, and return values. Removing seven separator lines reduces `src/spec_procs.c` from 918
+to 749 lines. Both build manifests link the 74-line Longsaddle, 50-line Flaming Tower, 74-line Mere
+of Dead Men, and 37-line Battlemaze owner sources. No player or builder helpfile changed because no
+command, authored-data, or behavior contract changed.
+
+### Checkpoint 30 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 29 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 162 moved legacy lines | PASS, no content drift |
+| both build manifests include all four zone owner sources | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -1035,9 +1074,10 @@ behavior contract changed.
 
 ## Resume Point
 
-Batch the next independent zone boundaries from `src/spec_procs.c`: `harpell` for Longsaddle;
-`wallach` and `beltush` for the Flaming Tower; `mereshaman` and `willowisp` for the Mere of Dead
-Men; and `battlemaze_guard` for the Battlemaze. Preserve the computed Harpell assignment loop and
-the direct mobile assignments at VNUMs 112600, 112607, 126717, 126707, 126715, and 135603. Keep
-each zone's callbacks together, retain every global name and callback type, compare the complete
-exported symbol table, and validate the batch once through both build systems and full test suites.
+Batch the remaining compiled zone callbacks from `src/spec_procs.c`: Fire Plane `imix` and
+`fp_invoker`, Water Plane `olhydra`, Snake Pit `naga_golem` and `naga`, and Menzoberranzan `gromph`.
+Keep the private `zone_yell()` helper with all three of its consumers without adding a global
+symbol, and keep private `gr_stalled` state with `gromph`. Preserve the direct assignments, callback
+names and types, helper body, ordering, and complete exported symbol table. The dormant commented
+guild and Emporium blocks are not compiled callbacks and should remain untouched until the final
+legacy-file retirement boundary is audited.

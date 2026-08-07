@@ -30,19 +30,23 @@
 #include "spec/spec_zone_agrach_dyrr.h"
 #include "spec/spec_zone_air_plane.h"
 #include "spec/spec_zone_bandit_castle.h"
+#include "spec/spec_zone_battlemaze.h"
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_earth_plane.h"
 #include "spec/spec_zone_feybranche.h"
 #include "spec/spec_zone_fire_giant.h"
+#include "spec/spec_zone_flaming_tower.h"
 #include "spec/spec_zone_hive_of_passion.h"
 #include "spec/spec_zone_illithid_enclave.h"
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_kobold_caverns.h"
+#include "spec/spec_zone_longsaddle.h"
 #include "spec/spec_zone_mad_drow.h"
+#include "spec/spec_zone_mere_of_dead_men.h"
 #include "spec/spec_zone_orc_ruins.h"
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
@@ -84,8 +88,6 @@ SPECIAL_DECL(air_sphere);
 SPECIAL_DECL(alandor_ferry);
 SPECIAL_DECL(angel_leggings);
 SPECIAL_DECL(dragon_robes);
-SPECIAL_DECL(battlemaze_guard);
-SPECIAL_DECL(beltush);
 SPECIAL_DECL(bloodaxe);
 SPECIAL_DECL(bolthammer);
 SPECIAL_DECL(stability_boots);
@@ -118,7 +120,6 @@ SPECIAL_DECL(greatsword);
 SPECIAL_DECL(gromph);
 SPECIAL_DECL(guild_golem);
 SPECIAL_DECL(halberd);
-SPECIAL_DECL(harpell);
 SPECIAL_DECL(haste_bracers);
 SPECIAL_DECL(hellfire);
 SPECIAL_DECL(helmblade);
@@ -133,7 +134,6 @@ SPECIAL_DECL(magma);
 SPECIAL_DECL(malevolence);
 SPECIAL_DECL(md_carpet);
 SPECIAL_DECL(menzo_chokers);
-SPECIAL_DECL(mereshaman);
 SPECIAL_DECL(mithril_rapier);
 SPECIAL_DECL(monk_glove);
 SPECIAL_DECL(monk_glove_cold);
@@ -176,10 +176,8 @@ SPECIAL_DECL(tyrantseye);
 /* v-z */
 SPECIAL_DECL(vengeance);
 SPECIAL_DECL(viperdagger);
-SPECIAL_DECL(wallach);
 SPECIAL_DECL(warbow);
 SPECIAL_DECL(whisperwind);
-SPECIAL_DECL(willowisp);
 SPECIAL_DECL(witherdirk);
 SPECIAL_DECL(xvim_artifact);
 SPECIAL_DECL(xvim_normal);
