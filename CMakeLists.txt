@@ -592,6 +592,7 @@ set(SRC_C_FILES
     src/spec/spec_binding.c
     src/spec/spec_dispatch.c
     src/spec/spec_effective_binding.c
+    src/spec/spec_objects.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c
@@ -617,6 +618,7 @@ set(SRC_C_FILES
     src/vessels/vehicles_commands.c
     src/vessels/vehicles_transport.c
     src/vessels/vessels.c
+    src/vessels/vessels_legacy.c
     src/vessels/vessels_tactical.c
     src/vessels/vessels_lookout.c
     src/vessels/vessels_narrative.c

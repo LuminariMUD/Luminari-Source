@@ -21,7 +21,7 @@ subsystems are indexed in the
 | World boot and persistence | `src/db.c`, `src/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |
 | Core data and mutation | `src/structs.h`, `src/utils.h`, `src/handler.c` | Shared structures, macros, and object/character lifecycle |
 | Game systems | `src/combat/`, `src/magic/`, `src/character/`, `src/obj/` | Combat, spells and skills, characters, items, shops, and trade |
-| Content behavior | `src/dgscript/`, `src/spec/`, `src/spec_procs.c` | DG Scripts and special-procedure control/runtime compatibility |
+| Content behavior | `src/dgscript/`, `src/spec/`, `src/spec_procs.c`, feature owners | DG Scripts, special-procedure control/runtime compatibility, and extracted feature-owned callbacks |
 | Online creation | `src/olc/` | In-game room, mobile, object, zone, and related editors |
 | Wilderness and transport | `src/wilderness/`, `src/vessels/`, `src/movement/` | Overworld, spatial support, vessels, vehicles, and movement |
 | Operations | `scripts/autorun/`, `scripts/deployment/`, `scripts/operations/` | Supervision, immutable installation, deployment, and readiness |
@@ -51,6 +51,11 @@ and the
 [Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
 the
 [Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
+Phase 03 is moving unchanged legacy callbacks to coherent owners:
+`src/spec/spec_objects.c` contains the first general object group, while
+`src/vessels/vessels_legacy.c` contains legacy route, ferry, and Greyhawk ship
+behavior. See the
+[Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
 ## Operational Boundary
 

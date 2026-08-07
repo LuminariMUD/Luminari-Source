@@ -347,6 +347,13 @@ registered definition. Numeric, computed, and campaign-compatibility assignments
 calls, but both forms use the same owner-specific assignment helpers and effective-history recorder.
 The table is a validated compatibility source, not a new precedence level.
 
+Phase 03 source extraction does not change this control flow. The first general object group now
+lives in `src/spec/spec_objects.c`; legacy route, ferry, and Greyhawk ship callbacks live in
+`src/vessels/vessels_legacy.c`. Their public names, callback ABI, assignment and registry
+references, and initialization order remain unchanged. The current ownership inventory and
+validation evidence are in
+[Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
+
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
 general chain. Under `-s`, world names and parser hooks still load while the assignment block is

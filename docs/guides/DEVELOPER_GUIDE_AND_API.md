@@ -2,8 +2,8 @@
 
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
-control plane delivered through Phase 02; other subsystem APIs remain in their
-source-linked system documents.
+control plane delivered through Phase 02 and the Phase 03 extraction now in
+progress; other subsystem APIs remain in their source-linked system documents.
 
 ## Quick Start
 
@@ -171,8 +171,10 @@ Phases 00-02 preserve the single callback slot, `SPECIAL` ABI, world grammar,
 command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
-observable compatibility path. Content extraction, shared mechanics,
-typed-handler conversion, and general chains remain future work.
+observable compatibility path. Behavior-preserving content extraction is in
+progress: general object callbacks are moving under `src/spec/`, and vessel
+callbacks under `src/vessels/`. Shared mechanics, typed-handler conversion,
+and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -186,4 +188,6 @@ the
 [Phase 01 gateway matrix](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
 the
 [Phase 02 assignment matrix](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
+the
+[Phase 03 progress record](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md),
 and [architecture](../ARCHITECTURE.md).

@@ -198,6 +198,7 @@ circle_SOURCES = \
 	src/spec/spec_binding.c \
 	src/spec/spec_dispatch.c \
 	src/spec/spec_effective_binding.c \
+	src/spec/spec_objects.c \
 	src/spec/spec_registry.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
@@ -222,6 +223,7 @@ circle_SOURCES = \
 	src/vessels/vehicles_transport.c \
 	src/vessels/transport_unified.c \
 	src/vessels/vessels.c \
+	src/vessels/vessels_legacy.c \
 	src/vessels/vessels_tactical.c \
 	src/vessels/vessels_lookout.c \
 	src/vessels/vessels_narrative.c \

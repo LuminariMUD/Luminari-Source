@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00-02 are complete. Phases 03-06 are not started.
+Phases 00-02 are complete. Phase 03 is in progress. Phases 04-06 are not started.
 
 ## Goals
 
@@ -50,7 +50,7 @@ Phases 00-02 are complete. Phases 03-06 are not started.
 | 00 | Registry Safety and Observability | Complete (2026-08-07) |
 | 01 | Call-Site Gateway Compatibility | Complete (2026-08-07) |
 | 02 | Declarative Legacy Assignments | Complete (2026-08-07) |
-| 03 | Behavior-Preserving Content Extraction | Not Started |
+| 03 | Behavior-Preserving Content Extraction | In Progress (2026-08-07) |
 | 04 | Narrow Shared Mechanics | Not Started |
 | 05 | Incremental Typed Handlers | Not Started |
 | 06 | Conditional Composition and Lifecycle Hooks | Not Started |
@@ -121,6 +121,12 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
+Checkpoint 1 extracted the first general object group to `src/spec/spec_objects.c` and moved the
+legacy route, ferry, and Greyhawk ship procedures to `src/vessels/vessels_legacy.c`. Both files
+are linked by Autotools and CMake for production and CuTest. Zone-specific Neverwinter controls and
+`floating_teleport` remain pending their cohesive ownership decision. The callback ABI, exported
+symbols, registry identities, assignments, and behavior remain unchanged.
+
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.
 3. Split `zone_procs.c` by its existing cohesive zone packages.
@@ -129,6 +135,9 @@ Acceptance evidence:
 
 Exit when responsibilities are coherent, characterization is unchanged, and both build manifests
 list identical production and test sources.
+
+Current evidence and the interruption-safe resume point are recorded in
+[Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
 ### Phase 04 - Narrow Shared Mechanics
 
