@@ -623,6 +623,7 @@ set(SRC_C_FILES
     src/spec/spec_zone_shadow_dragon.c
     src/spec/spec_zone_shobalar.c
     src/spec/spec_zone_ttf.c
+    src/spec/spec_zone_zusuk.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c

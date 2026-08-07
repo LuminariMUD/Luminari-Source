@@ -45,6 +45,7 @@
 #include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_shobalar.h"
 #include "spec/spec_zone_ttf.h"
+#include "spec/spec_zone_zusuk.h"
 #include "vessels/vessels_moving_rooms.h"
 
 /*****************************************************************************
@@ -106,7 +107,6 @@ SPECIAL_DECL(fog_dagger);
 SPECIAL_DECL(forest_idol);
 SPECIAL_DECL(fp_invoker);
 SPECIAL_DECL(frosty_scimitar);
-SPECIAL_DECL(fzoul);
 
 /* g-i */
 SPECIAL_DECL(speed_gaunts);

@@ -216,21 +216,6 @@ SPECIAL(olhydra)
 /* General guild and mobile procedures are implemented by their feature owners. */
 
 /* from homeland */
-SPECIAL(fzoul)
-{
-  if (!ch && !cmd)
-    return FALSE;
-
-  if (cmd && CMD_IS("kneel"))
-  {
-    send_to_char(ch, "\tLFzoul tells you, '\tgSee how easy it is to kneel before the beauty of our "
-                     "god.\tL'\tn\r\n");
-    return TRUE;
-  }
-  return FALSE;
-}
-
-/* from homeland */
 SPECIAL(shar_heart)
 {
   if (!ch)

@@ -901,6 +901,35 @@ changed.
 | both build manifests include `src/spec/spec_zone_air_plane.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 26 - Zusuk Zone Procedure
+
+Checkpoint 26 moves the `fzoul` mobile callback from `src/spec_procs.c` to
+`src/spec/spec_zone_zusuk.c`, with its declaration published through `src/spec/spec_zone_zusuk.h`.
+Its only direct assignment remains mobile VNUM 100581, whose prototype belongs to the zone-file
+range 1005. It has no registry definition or authored world binding. The assignment source includes
+the owner header directly, while `src/spec_procs.h` retains the owner include as a compatibility
+surface.
+
+This is an ownership-only move. All 14 legacy implementation lines are unchanged, including the
+historical `from homeland` comment, null guard, exact `kneel` command match, message, and return
+values. Removing the adjacent separator line reduces `src/spec_procs.c` from 1,096 to 1,081 lines.
+Both build manifests link the 30-line owner source. No player or builder helpfile changed because no
+command, authored-data, or behavior contract changed.
+
+### Checkpoint 26 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 25 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 14 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_zusuk.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -910,10 +939,11 @@ changed.
 
 ## Resume Point
 
-Move the standalone 14-line `fzoul` block at `src/spec_procs.c:218-231` to a dedicated zone owner.
-Its only direct assignment is mobile VNUM 100581, whose prototype belongs to zone-file range 1005;
-it has no registry definition or authored world binding. Preserve the global callback name and
-type, the historical `from homeland` comment, exact `kneel` command match, message, guards, return
-values, and exported-symbol parity. Add the new implementation to both build manifests and make
-`src/spec_assign.c` include the owner header directly. The following `shar_heart` and `shar_statue`
-block is a separate Orc Ruins package and must not be coupled to this checkpoint.
+Move the cohesive 80-line Orc Ruins block at `src/spec_procs.c:218-297` to a dedicated owner. The
+`shar_heart` object callback remains assigned to object VNUM 106229, and the `shar_statue` mobile
+callback remains assigned to mobile VNUM 106231. Neither callback has a registry definition or
+authored world binding. Preserve both global names and types, affect construction, direct damage,
+summoned mobile VNUMs 106240 and 106241, follower setup, messages, chances, `PROC_FIRED` state,
+return values, and exported-symbol parity. Add the implementation to both build manifests and make
+`src/spec_assign.c` include the owner header directly. The following `illithid_gguard` belongs to a
+different zone package.
