@@ -36,6 +36,7 @@
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
+#include "spec/spec_zone_orc_ruins.h"
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
 #include "spec/spec_zone_shadow_dragon.h"

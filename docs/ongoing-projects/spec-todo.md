@@ -121,7 +121,7 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-26 extracted the complete audited general object section to
+Checkpoints 1-27 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
@@ -135,14 +135,14 @@ combat and companion archetypes now live in `src/spec/spec_mobile_archetypes.c`,
 cleric and guard services live in `src/clan_services.c`. The complete King's Castle, Abyss, Crimson
 Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF, Shadow Dragon, Banshee,
 Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, Abyssal Vortex, House Agrach-Dyrr, House
-Shobalar, Earth Plane, Air Plane, and Zusuk packages now live in dedicated `src/spec/spec_zone_*`
-owners. The
+Shobalar, Earth Plane, Air Plane, Zusuk, and Orc Ruins packages now live in dedicated
+`src/spec/spec_zone_*` owners. The
 final TTF move retired all 4,202 baseline lines and removed `src/zone_procs.c` from both build
 manifests. Autotools and CMake link every new source for production and CuTest. The callback ABI,
 exported symbols,
 registry identities and assignments, world grammar, scheduling, and behavior remain unchanged.
 The cross-file `is_wearing()` equipment predicate now lives with `equip_char()` and
-`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 1,081 lines, down 11,131 lines from the
+`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 1,000 lines, down 11,212 lines from the
 Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
@@ -243,8 +243,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 26 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 26. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 27 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 27. |
 
 ## Risks and Guardrails
 

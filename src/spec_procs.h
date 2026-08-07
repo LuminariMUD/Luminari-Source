@@ -40,6 +40,7 @@
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
+#include "spec/spec_zone_orc_ruins.h"
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
 #include "spec/spec_zone_shadow_dragon.h"
@@ -154,8 +155,6 @@ SPECIAL_DECL(rughnark);
 
 /* s-u */
 SPECIAL_DECL(sarn);
-SPECIAL_DECL(shar_heart);
-SPECIAL_DECL(shar_statue);
 SPECIAL_DECL(rune_scimitar);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(secomber_guard);

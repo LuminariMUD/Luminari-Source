@@ -930,6 +930,35 @@ command, authored-data, or behavior contract changed.
 | both build manifests include `src/spec/spec_zone_zusuk.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 27 - Orc Ruins Zone Procedures
+
+Checkpoint 27 moves the `shar_heart` object callback and `shar_statue` mobile callback from
+`src/spec_procs.c` to `src/spec/spec_zone_orc_ruins.c`, with declarations published through
+`src/spec/spec_zone_orc_ruins.h`. Their direct assignments remain object VNUM 106229 and mobile VNUM
+106231. Neither callback has a registry definition or authored world binding. The assignment source
+includes the owner header directly, while `src/spec_procs.h` retains the owner include as a
+compatibility surface.
+
+This is an ownership-only move. All 80 legacy implementation lines are unchanged, including affect
+construction, direct hit-point damage, both summoned mobile VNUMs, follower setup, messages,
+chances, `PROC_FIRED` state, and return values. Removing the adjacent separator line reduces
+`src/spec_procs.c` from 1,081 to 1,000 lines. Both build manifests link the 99-line owner source. No
+player or builder helpfile changed because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 27 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 26 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 80 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_orc_ruins.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -939,11 +968,10 @@ command, authored-data, or behavior contract changed.
 
 ## Resume Point
 
-Move the cohesive 80-line Orc Ruins block at `src/spec_procs.c:218-297` to a dedicated owner. The
-`shar_heart` object callback remains assigned to object VNUM 106229, and the `shar_statue` mobile
-callback remains assigned to mobile VNUM 106231. Neither callback has a registry definition or
-authored world binding. Preserve both global names and types, affect construction, direct damage,
-summoned mobile VNUMs 106240 and 106241, follower setup, messages, chances, `PROC_FIRED` state,
-return values, and exported-symbol parity. Add the implementation to both build manifests and make
-`src/spec_assign.c` include the owner header directly. The following `illithid_gguard` belongs to a
-different zone package.
+Move the 19-line Illithid Enclave block at `src/spec_procs.c:218-236` to a dedicated owner. The
+`illithid_gguard` callback remains assigned to mobile VNUM 126928 and has no registry definition or
+authored world binding. Preserve the global name and type, movement-command guard, east-direction
+match, both messages and targets, dormant race-restriction comment, return values, and
+exported-symbol parity. Add the implementation to both build manifests and make `src/spec_assign.c`
+include the owner header directly. The following `duergar_guard` belongs to a different zone
+package.

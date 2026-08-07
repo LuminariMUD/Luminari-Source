@@ -382,7 +382,8 @@ in `src/spec/spec_zone_hive_of_passion.c`. Fey-Branche combat coordination lives
 `src/spec/spec_zone_shobalar.c`. Earth Plane reinforcement behavior lives in
 `src/spec/spec_zone_earth_plane.c`, and Air Plane combat and reinforcement behavior lives in
 `src/spec/spec_zone_air_plane.c`. The Zusuk Fzoul callback lives in
-`src/spec/spec_zone_zusuk.c`; all twelve packages have dedicated owner APIs.
+`src/spec/spec_zone_zusuk.c`, and the Orc Ruins Shar callbacks live in
+`src/spec/spec_zone_orc_ruins.c`; all thirteen packages have dedicated owner APIs.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in
