@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "db.h"
 #include "comm.h"
 #include "handler.h"
@@ -2423,10 +2424,7 @@ void moving_rooms_update(void)
 
       if (real_room(mover) > 0)
       {
-        if (world[real_room(mover)].func != NULL)
-        {
-          world[real_room(mover)].func(NULL, nextRoom, 0, NULL);
-        }
+        spec_gateway_moving_room(world + real_room(mover), nextRoom, mover);
       }
       else
       {

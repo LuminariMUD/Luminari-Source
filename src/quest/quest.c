@@ -13,6 +13,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
@@ -2690,7 +2691,7 @@ SPECIAL(questmaster)
     ;
   if (rnum >= total_quests)
     return FALSE; /* No quests for this mob */
-  else if (QST_FUNC(rnum) && (QST_FUNC(rnum)(ch, me, cmd, argument)))
+  else if (spec_gateway_quest_secondary(QST_FUNC(rnum), ch, me, cmd, argument))
     return TRUE; /* The secondary spec proc handled this command */
   else if (CMD_IS("quest"))
   {

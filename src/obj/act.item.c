@@ -12,6 +12,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "screen.h"
 #include "interpreter.h"
@@ -110,7 +111,6 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   int line_length = 80, i = 0;
   char actmtds[MAX_STRING_LENGTH] = {'\0'};
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   bool found = FALSE;
 
   /* zusuk set these up for quicker setup of new items */
@@ -1370,15 +1370,13 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
   // code to support proc information..
   if (GET_OBJ_RNUM(item) != NOTHING)
   {
-    name = obj_index[GET_OBJ_RNUM(item)].func;
     if (mode == ITEM_STAT_MODE_IMMORTAL)
     {
       if (mode == ITEM_STAT_MODE_G_LORE)
         ;
       else
         send_to_char(ch, "Special Procedure 'identify' tag:\r\n");
-      if (name)
-        (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+      spec_gateway_item_identify(ch, item); /* show identify info tagged in the proc */
     }
     else
     {
@@ -1387,8 +1385,7 @@ void display_item_object_values(struct char_data *ch, struct obj_data *item, int
       else if (GET_OBJ_TYPE(item) != ITEM_FOOD && GET_OBJ_TYPE(item) != ITEM_DRINK)
         send_to_char(ch, "Special 'identify' tag:\r\n");
 
-      if (name)
-        (name)(ch, item, 0, "identify"); /* show identify info tagged in the actual proc */
+      spec_gateway_item_identify(ch, item); /* show identify info tagged in the proc */
     }
   }
 }

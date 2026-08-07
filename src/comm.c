@@ -64,6 +64,7 @@
 
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -1452,18 +1453,19 @@ void game_loop(socket_t local_mother_desc)
 /*  This was ported to accomodate the HL objects that were imported */
 void proc_update()
 {
-  struct obj_data *obj = NULL;
+  struct obj_data *obj = NULL, *next_obj = NULL;
 
-  for (obj = object_list; obj; obj = obj->next)
+  /* Cache the successor: an auto-proc may extract its own object. */
+  for (obj = object_list; obj; obj = next_obj)
   {
+    next_obj = obj->next;
+
     // start_fall_object_event(obj);
     if (!OBJ_FLAGGED(obj, ITEM_AUTOPROC) ||
         (GET_OBJ_TYPE(obj) == ITEM_WEAPON && GET_OBJ_VAL(obj, 0) == 0))
       continue;
 
-    if (obj_index[GET_OBJ_RNUM(obj)].func != NULL)
-      if (!(obj_index[GET_OBJ_RNUM(obj)].func)(obj->worn_by, obj, 0, ""))
-        (obj_index[GET_OBJ_RNUM(obj)].func)(obj->carried_by, obj, 0, "");
+    spec_gateway_object_auto_pulse(obj);
   }
 }
 

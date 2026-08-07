@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -1400,8 +1401,6 @@ void perform_rescue(struct char_data *ch, struct char_data *vict)
 void perform_charge(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af[CHARGE_AFFECTS];
-  extern struct index_data *mob_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   int i = 0;
 
   if (AFF_FLAGGED(ch, AFF_CHARGING))
@@ -1437,9 +1436,7 @@ void perform_charge(struct char_data *ch, struct char_data *vict)
     act("You urge $N forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_CHAR);
     act("$n urges you forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_VICT);
     act("$n urges $N forward for a \tYcharge\tn!", FALSE, ch, NULL, RIDING(ch), TO_NOTVICT);
-    name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;
-    if (name)
-      (name)(ch, RIDING(ch), 0, "charge");
+    spec_gateway_mount_charge(ch, RIDING(ch), vict);
   }
   else
   {
@@ -1962,8 +1959,6 @@ bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill, 
  * equipment, also check for any enhancing feats. */
 bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
 {
-  extern struct index_data *obj_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
@@ -2013,9 +2008,7 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
   else
   {
     damage(ch, vict, dice(1, 6) + (GET_STR_BONUS(ch) / 2), SKILL_SHIELD_PUNCH, DAM_FORCE, FALSE);
-    name = obj_index[GET_OBJ_RNUM(shield)].func;
-    if (name)
-      (name)(ch, shield, 0, "shieldpunch");
+    spec_gateway_combat_maneuver(ch, shield, vict, "shieldpunch");
 
     /* fire-shield, etc check */
     damage_shield_check(ch, vict, ATTACK_TYPE_UNARMED, TRUE, DAM_FORCE);
@@ -2033,8 +2026,6 @@ bool perform_shieldpunch(struct char_data *ch, struct char_data *vict)
  */
 bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
 {
-  extern struct index_data *obj_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
@@ -2079,9 +2070,7 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
   else
   {
     damage(ch, vict, dice(1, 6) + GET_STR_BONUS(ch), SKILL_SHIELD_CHARGE, DAM_FORCE, FALSE);
-    name = obj_index[GET_OBJ_RNUM(shield)].func;
-    if (name)
-      (name)(ch, shield, 0, "shieldcharge");
+    spec_gateway_combat_maneuver(ch, shield, vict, "shieldcharge");
 
     perform_knockdown(ch, vict, SKILL_SHIELD_CHARGE, true, true);
 
@@ -2101,8 +2090,6 @@ bool perform_shieldcharge(struct char_data *ch, struct char_data *vict)
 bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
 {
   struct affected_type af;
-  extern struct index_data *obj_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   struct obj_data *shield = GET_EQ(ch, WEAR_SHIELD);
 
   if (!shield)
@@ -2146,9 +2133,7 @@ bool perform_shieldslam(struct char_data *ch, struct char_data *vict)
   else
   {
     damage(ch, vict, dice(1, 6) + (GET_STR_BONUS(ch) / 2), SKILL_SHIELD_SLAM, DAM_FORCE, FALSE);
-    name = obj_index[GET_OBJ_RNUM(shield)].func;
-    if (name)
-      (name)(ch, shield, 0, "shieldslam");
+    spec_gateway_combat_maneuver(ch, shield, vict, "shieldslam");
 
     if (!savingthrow(ch, vict, SAVING_FORT, 0, CAST_INNATE, GET_LEVEL(ch), NOSCHOOL) &&
         can_daze(vict))

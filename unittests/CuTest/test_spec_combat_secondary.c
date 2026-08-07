@@ -483,30 +483,28 @@ void Test_spec_defense_reactions_preserve_exact_ignored_tokens(CuTest *tc)
       "src/combat/fight.c",
       "int skill_message(int dam, struct char_data *ch, struct char_data *vict, int attacktype,",
       "int compute_energy_absorb(struct char_data *ch, int dam_type)", &region);
-  shieldblock_matches = source_loaded && spec_combat_region_has_statement(
-                                             &region, "(name)(vict, shield, 0, \"shieldblock\");");
-  parry_matches = source_loaded && spec_combat_region_has_statement(
-                                       &region, "(name)(vict, opponent_weapon, 0, \"parry\");");
-  glance_matches = source_loaded &&
-                   spec_combat_region_has_statement(&region, "(name)(vict, armor, 0, \"glance\");");
-  dodge_matches = source_loaded && spec_combat_region_has_statement(
-                                       &region, "(name)(vict, opponent_weapon, 0, \"dodge\");");
+  /* Phase 01 routes every defense reaction through the gateway, which owns the
+   * pointer gate. The defender stays the actor and the attacker becomes the
+   * typed target; the legacy token is unchanged. */
+  shieldblock_matches =
+      source_loaded &&
+      spec_combat_region_has_statement(
+          &region, "spec_gateway_defense_reaction(vict, shield, ch, \"shieldblock\");");
+  parry_matches =
+      source_loaded &&
+      spec_combat_region_has_statement(
+          &region, "spec_gateway_defense_reaction(vict, opponent_weapon, ch, \"parry\");");
+  glance_matches =
+      source_loaded && spec_combat_region_has_statement(
+                           &region, "spec_gateway_defense_reaction(vict, armor, ch, \"glance\");");
+  dodge_matches =
+      source_loaded &&
+      spec_combat_region_has_statement(
+          &region, "spec_gateway_defense_reaction(vict, opponent_weapon, ch, \"dodge\");");
   pointer_gates_match =
       source_loaded &&
-      spec_combat_region_find(
-          &region, "name = obj_index[GET_OBJ_RNUM(shield)].func;\n          if (name)\n            "
-                   "(name)(vict, shield, 0, \"shieldblock\");") != NULL &&
-      spec_combat_region_find(
-          &region,
-          "name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;\n          if (name)\n            "
-          "(name)(vict, opponent_weapon, 0, \"parry\");") != NULL &&
-      spec_combat_region_find(
-          &region, "name = obj_index[GET_OBJ_RNUM(armor)].func;\n          if (name)\n            "
-                   "(name)(vict, armor, 0, \"glance\");") != NULL &&
-      spec_combat_region_find(
-          &region, "name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;\n            if (name)\n "
-                   "           "
-                   "{\n              (name)(vict, opponent_weapon, 0, \"dodge\");") != NULL;
+      spec_combat_region_find(&region, "obj_index[GET_OBJ_RNUM(shield)].func") == NULL &&
+      spec_combat_region_find(&region, "if (name)") == NULL;
   no_specials_absent = source_loaded && spec_combat_region_find(&region, "no_specials") == NULL;
   if (source_loaded)
     spec_combat_release_region(&region);
@@ -547,23 +545,25 @@ void Test_spec_shield_maneuvers_preserve_exact_ignored_tokens(CuTest *tc)
       "bool perform_shieldslam(struct char_data *ch, struct char_data *vict)",
       "void perform_headbutt(struct char_data *ch, struct char_data *vict)", &slam_region);
 
-  punch_matches = punch_loaded && spec_combat_region_has_statement(
-                                      &punch_region, "(name)(ch, shield, 0, \"shieldpunch\");");
-  charge_matches = charge_loaded && spec_combat_region_has_statement(
-                                        &charge_region, "(name)(ch, shield, 0, \"shieldcharge\");");
-  slam_matches = slam_loaded && spec_combat_region_has_statement(
-                                    &slam_region, "(name)(ch, shield, 0, \"shieldslam\");");
+  /* Phase 01 routes each shield maneuver through the gateway; the shield stays
+   * the owner and the maneuver token is unchanged. */
+  punch_matches =
+      punch_loaded &&
+      spec_combat_region_has_statement(
+          &punch_region, "spec_gateway_combat_maneuver(ch, shield, vict, \"shieldpunch\");");
+  charge_matches =
+      charge_loaded &&
+      spec_combat_region_has_statement(
+          &charge_region, "spec_gateway_combat_maneuver(ch, shield, vict, \"shieldcharge\");");
+  slam_matches =
+      slam_loaded &&
+      spec_combat_region_has_statement(
+          &slam_region, "spec_gateway_combat_maneuver(ch, shield, vict, \"shieldslam\");");
   pointer_gates_match =
       punch_loaded && charge_loaded && slam_loaded &&
-      spec_combat_region_find(&punch_region,
-                              "name = obj_index[GET_OBJ_RNUM(shield)].func;\n    if (name)\n      "
-                              "(name)(ch, shield, 0, \"shieldpunch\");") != NULL &&
-      spec_combat_region_find(&charge_region,
-                              "name = obj_index[GET_OBJ_RNUM(shield)].func;\n    if (name)\n      "
-                              "(name)(ch, shield, 0, \"shieldcharge\");") != NULL &&
-      spec_combat_region_find(&slam_region,
-                              "name = obj_index[GET_OBJ_RNUM(shield)].func;\n    if (name)\n      "
-                              "(name)(ch, shield, 0, \"shieldslam\");") != NULL;
+      spec_combat_region_find(&punch_region, "obj_index[GET_OBJ_RNUM(shield)].func") == NULL &&
+      spec_combat_region_find(&charge_region, "obj_index[GET_OBJ_RNUM(shield)].func") == NULL &&
+      spec_combat_region_find(&slam_region, "obj_index[GET_OBJ_RNUM(shield)].func") == NULL;
   no_specials_absent = punch_loaded && charge_loaded && slam_loaded &&
                        spec_combat_region_find(&punch_region, "no_specials") == NULL &&
                        spec_combat_region_find(&charge_region, "no_specials") == NULL &&
@@ -598,12 +598,15 @@ void Test_spec_mounted_charge_preserves_exact_ignored_token(CuTest *tc)
       "src/combat/act.offensive.c",
       "void perform_charge(struct char_data *ch, struct char_data *vict)",
       "bool perform_knockdown(struct char_data *ch, struct char_data *vict, int skill,", &region);
-  payload_matches = source_loaded && spec_combat_region_has_statement(
-                                         &region, "(name)(ch, RIDING(ch), 0, \"charge\");");
-  pointer_gate_matches = source_loaded &&
-                         spec_combat_region_find(
-                             &region, "name = mob_index[GET_MOB_RNUM(RIDING(ch))].func;") != NULL &&
-                         spec_combat_region_find(&region, "if (name)") != NULL;
+  /* Phase 01 routes the mounted charge through the gateway, which owns the
+   * pointer gate and carries the charge target the caller already holds. */
+  payload_matches =
+      source_loaded &&
+      spec_combat_region_has_statement(&region, "spec_gateway_mount_charge(ch, RIDING(ch), vict);");
+  pointer_gate_matches =
+      source_loaded &&
+      spec_combat_region_find(&region, "mob_index[GET_MOB_RNUM(RIDING(ch))].func") == NULL &&
+      spec_combat_region_find(&region, "if (name)") == NULL;
   no_specials_absent = source_loaded && spec_combat_region_find(&region, "no_specials") == NULL;
   if (source_loaded)
     spec_combat_release_region(&region);
@@ -716,7 +719,7 @@ void Test_spec_mobile_combat_turn_follows_attacks_and_cleave(CuTest *tc)
           : NULL;
   cleave_call = source_loaded ? spec_combat_region_find(&region, "handle_cleave(ch);") : NULL;
   callback_call = source_loaded
-                      ? spec_combat_region_find(&region, "(GET_MOB_SPEC(ch))(ch, ch, 0, actbuf);")
+                      ? spec_combat_region_find(&region, "spec_gateway_mobile_combat_turn(ch);")
                       : NULL;
   order_matches = attack_call != NULL && cleave_call != NULL && callback_call != NULL &&
                   attack_call < cleave_call && cleave_call < callback_call;
@@ -726,8 +729,10 @@ void Test_spec_mobile_combat_turn_follows_attacks_and_cleave(CuTest *tc)
           &region, "if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, "
                    "MOB_NOTDEADYET) &&") != NULL &&
       spec_combat_region_find(&region, "GET_HIT(ch) > 0)") != NULL;
+  /* The gateway returns void, so the combat caller still cannot act on a
+   * return value. */
   return_ignored = source_loaded && spec_combat_region_has_statement(
-                                        &region, "(GET_MOB_SPEC(ch))(ch, ch, 0, actbuf);");
+                                        &region, "spec_gateway_mobile_combat_turn(ch);");
   no_specials_absent = source_loaded && spec_combat_region_find(&region, "no_specials") == NULL;
   if (source_loaded)
     spec_combat_release_region(&region);

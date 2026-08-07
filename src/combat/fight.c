@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "handler.h"
 #include "interpreter.h"
@@ -3227,7 +3228,6 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
   struct obj_data *opponent_weapon = GET_EQ(vict, WEAR_WIELD_1);
   struct obj_data *weap = GET_EQ(ch, WEAR_WIELD_1);
   struct obj_data *shield = NULL;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
   bool is_ranged = FALSE;
 
   if (DEBUGMODE)
@@ -3443,9 +3443,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
           act("$N blocks $n's attack with $p!", ACT_CONDENSE_VALUE, ch, shield, vict, TO_NOTVICT);
 
           /* fire any shieldblock specs we might have */
-          name = obj_index[GET_OBJ_RNUM(shield)].func;
-          if (name)
-            (name)(vict, shield, 0, "shieldblock");
+          spec_gateway_defense_reaction(vict, shield, ch, "shieldblock");
 
           /* parry */
         }
@@ -3483,9 +3481,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
               TO_NOTVICT);
 
           /* fire any parry specs we might have */
-          name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-          if (name)
-            (name)(vict, opponent_weapon, 0, "parry");
+          spec_gateway_defense_reaction(vict, opponent_weapon, ch, "parry");
 
           /* glance off armor */
         }
@@ -3522,9 +3518,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
               TO_NOTVICT);
 
           /* fire any glance specs we might have */
-          name = obj_index[GET_OBJ_RNUM(armor)].func;
-          if (name)
-            (name)(vict, armor, 0, "glance");
+          spec_gateway_defense_reaction(vict, armor, ch, "glance");
         }
         else
         {
@@ -3566,11 +3560,7 @@ int skill_message(int dam, struct char_data *ch, struct char_data *vict, int att
           /* fire any dodge specs we might have, right now its only on weapons */
           if (opponent_weapon)
           {
-            name = obj_index[GET_OBJ_RNUM(opponent_weapon)].func;
-            if (name)
-            {
-              (name)(vict, opponent_weapon, 0, "dodge");
-            }
+            spec_gateway_defense_reaction(vict, opponent_weapon, ch, "dodge");
           }
         }
       } /* this ends our check for a scenario where no damage is inflicted */
@@ -9994,16 +9984,7 @@ int weapon_special(struct obj_data *wpn, struct char_data *ch, char *hit_msg)
   if (!wpn)
     return 0;
 
-  extern struct index_data *obj_index;
-  int (*name)(struct char_data *ch, void *me, int cmd, const char *argument);
-
-  name = obj_index[GET_OBJ_RNUM(wpn)].func;
-
-  if (!name)
-
-    return 0;
-
-  return (name)(ch, wpn, 0, hit_msg);
+  return spec_gateway_weapon_hit(ch, wpn, FIGHTING(ch), hit_msg);
 }
 
 /* Return the wielded weapon based on the attack type.
@@ -14413,10 +14394,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 3))
       {
-        int (*name)(struct char_data *victim, void *me, int cmd, const char *argument);
-        name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
-        if (name)
-          (name)(victim, opp_wpn, 0, "parry");
+        spec_gateway_defense_reaction(victim, opp_wpn, ch, "parry");
       }
 
       /* Encapsulate this?  We need better control of 'hit()s' */
@@ -14437,10 +14415,7 @@ int hit(struct char_data *ch, struct char_data *victim, int type, int dam_type, 
       struct obj_data *opp_wpn = get_wielded(victim, ATTACK_TYPE_PRIMARY);
       if (opp_wpn && !rand_number(0, 3))
       {
-        int (*name)(struct char_data *victim, void *me, int cmd, const char *argument);
-        name = obj_index[GET_OBJ_RNUM(opp_wpn)].func;
-        if (name)
-          (name)(victim, opp_wpn, 0, "parry");
+        spec_gateway_defense_reaction(victim, opp_wpn, ch, "parry");
       }
 
       return (HIT_MISS);
@@ -16681,10 +16656,7 @@ void perform_violence(struct char_data *ch, int phase)
 
   if (MOB_FLAGGED(ch, MOB_SPEC) && GET_MOB_SPEC(ch) && !MOB_FLAGGED(ch, MOB_NOTDEADYET) &&
       GET_HIT(ch) > 0)
-  {
-    char actbuf[MAX_INPUT_LENGTH] = "";
-    (GET_MOB_SPEC(ch))(ch, ch, 0, actbuf);
-  }
+    spec_gateway_mobile_combat_turn(ch);
 
   // the mighty awesome fear code
   if (AFF_FLAGGED(ch, AFF_FEAR) && !rand_number(0, 2))

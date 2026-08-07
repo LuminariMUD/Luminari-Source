@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "handler.h"
 #include "db.h"
@@ -1324,9 +1325,9 @@ SPECIAL(shop_keeper)
   if (shop_nr > top_shop)
     return (FALSE);
 
-  if (SHOP_FUNC(shop_nr)) /* Check secondary function */
-    if ((SHOP_FUNC(shop_nr))(ch, me, cmd, argument))
-      return (TRUE);
+  /* Check secondary function; nonzero propagates as command consumed. */
+  if (spec_gateway_shop_secondary(SHOP_FUNC(shop_nr), ch, me, cmd, argument))
+    return (TRUE);
 
   if (keeper == ch)
   {

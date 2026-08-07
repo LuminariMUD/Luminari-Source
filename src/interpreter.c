@@ -14,6 +14,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
@@ -6702,8 +6703,8 @@ int find_command(const char *command)
 
 int special(struct char_data *ch, int cmd, char *arg)
 {
-  struct obj_data *i;
-  struct char_data *k;
+  struct obj_data *i, *next_obj;
+  struct char_data *k, *next_k;
   int j;
 
 
@@ -6711,38 +6712,44 @@ int special(struct char_data *ch, int cmd, char *arg)
     return 0;
 
   /* special in room? */
-  if (GET_ROOM_SPEC(IN_ROOM(ch)) != NULL)
-    if (GET_ROOM_SPEC(IN_ROOM(ch))(ch, world + IN_ROOM(ch), cmd, arg))
-      return (1);
+  if (spec_gateway_command_room(ch, world + IN_ROOM(ch), cmd, arg))
+    return (1);
 
   /* special in equipment list? */
   for (j = 0; j < NUM_WEARS; j++)
-    if (GET_EQ(ch, j) && GET_OBJ_SPEC(GET_EQ(ch, j)) != NULL)
-      if (GET_OBJ_SPEC(GET_EQ(ch, j))(ch, GET_EQ(ch, j), cmd, arg))
-        return (1);
+    if (spec_gateway_command_object(ch, GET_EQ(ch, j), cmd, arg))
+      return (1);
 
-  /* special in inventory? */
-  for (i = ch->carrying; i; i = i->next_content)
-    if (GET_OBJ_SPEC(i) != NULL)
-      if (GET_OBJ_SPEC(i)(ch, i, cmd, arg))
-        return (1);
+  /* special in inventory?  Cache the successor: a handler may extract its
+   * owner and still return zero. */
+  for (i = ch->carrying; i; i = next_obj)
+  {
+    next_obj = i->next_content;
+    if (spec_gateway_command_object(ch, i, cmd, arg))
+      return (1);
+  }
 
   /* special in mobile present? */
   if (IN_ROOM(ch) != NOWHERE)
   {
-    for (k = world[IN_ROOM(ch)].people; k; k = k->next_in_room)
+    for (k = world[IN_ROOM(ch)].people; k; k = next_k)
+    {
+      next_k = k->next_in_room;
       if (!MOB_FLAGGED(k, MOB_NOTDEADYET))
-        if (GET_MOB_SPEC(k) && GET_MOB_SPEC(k)(ch, k, cmd, arg))
+        if (spec_gateway_command_mobile(ch, k, cmd, arg))
           return (1);
+    }
   }
 
   /* special in object present? */
   if (IN_ROOM(ch) != NOWHERE)
   {
-    for (i = world[IN_ROOM(ch)].contents; i; i = i->next_content)
-      if (GET_OBJ_SPEC(i) != NULL)
-        if (GET_OBJ_SPEC(i)(ch, i, cmd, arg))
-          return (1);
+    for (i = world[IN_ROOM(ch)].contents; i; i = next_obj)
+    {
+      next_obj = i->next_content;
+      if (spec_gateway_command_object(ch, i, cmd, arg))
+        return (1);
+    }
   }
 
   return (0);

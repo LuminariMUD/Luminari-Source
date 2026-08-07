@@ -13,6 +13,7 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_dispatch.h"
 #include "db.h"
 #include "comm.h"
 #include "interpreter.h"
@@ -101,8 +102,7 @@ void mobile_activity(void)
       }
       else
       {
-        char actbuf[MAX_INPUT_LENGTH] = "";
-        if ((spec_func)(ch, ch, 0, actbuf))
+        if (spec_gateway_mobile_activity(ch, spec_func))
           continue; /* go to next char */
       }
     }
