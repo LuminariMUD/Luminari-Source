@@ -122,6 +122,67 @@ They remain mandatory when their owning implementation phase begins:
 All maintained documentation is ASCII-compatible UTF-8 with Unix LF endings. Current behavior is
 written in present tense; later phases are labeled proposed or deferred.
 
+## Security and Privacy Assessment
+
+**Assessment date:** 2026-08-07
+
+**Scope:** Phase 00 changes only
+
+**Result:** PASS with no open finding
+
+This is a targeted phase assessment, not a repository-wide security or privacy audit. All six
+findings opened during Phase 00 were resolved before phase closeout; no Critical, High, Medium, or
+Low finding remained open.
+
+### Privacy Scope
+
+Phase 00 introduced no player, account, or other personal-data processing. Persisted and logged
+data added by the phase is limited to static procedure identities, source locations, owner types,
+prototype VNUMs, and synthetic test fixtures. Authored and effective binding diagnostics exclude
+player and account values.
+
+| Requirement | Status | Phase 00 evidence |
+|-------------|--------|-------------------|
+| Data collection has a documented purpose | N/A | No personal-data collection was added. |
+| Consent before data storage | N/A | No personal-data storage was added. |
+| Data minimization | N/A | Diagnostics contain only static world and binding metadata. |
+| Deletion or erasure path | N/A | No personal-data lifecycle was added. |
+| No PII in application logs | PASS | New diagnostics exclude player and account data. |
+| Third-party transfers | N/A | No third-party transfer was added. |
+
+### Dependency and CI Security
+
+No dependency manifest or vendored dependency changed in Phase 00. CodeQL and Gitleaks were green
+on the transition commits. GitHub dependency review is pull-request scoped and was therefore
+skipped on the final push event; that skip is not evidence of a dependency scan failure.
+
+### Resolved Findings
+
+| ID | Finding | Severity | Resolution |
+|----|---------|----------|------------|
+| P00-S07 | Persisted procedure names allowed multiline output | Low | The persistence boundary rejects CR/LF and tests the single-line contract. |
+| P00-S08 | Structured diagnostic validation gaps | Medium | Added strict bounds, control-byte escaping, truncation failure, owner/source invariants, and stable paths. |
+| P00-S08B | Room conflict validation could occur after mutation | Medium | Whole-zone preflight rejects `M` plus `Z` before output creation or mover mutation. |
+| P00-S09 | Validation used a reusable fixed scratch path | Medium | Replaced it with a unique validated path, quoted operations, an exit trap, and deterministic cleanup. |
+| P00-P01 | CI exposed undefined bit shifts and ownership leaks | Medium | Width-correct masks and complete object/room lifecycle cleanup pass ASan, UBSan, and Valgrind. |
+| P00-I01 | Output-path override freed borrowed argv memory | Medium | The override duplicates the path, releases prior owned storage, and survives graceful shutdown under ASan. |
+
+### Continuing Guardrails
+
+1. Preserve the production-linked characterization matrix while introducing Phase 01 gateways,
+   especially successor caching and event-specific post-callback invalidation rules.
+2. Keep authored names and effective diagnostics bounded, single-line, and free of player or
+   account values as gateway context expands.
+3. Continue isolated loopback MariaDB fixtures and fail-closed path validation for CI and
+   operational tests; never point them at protected repository data or production databases.
+4. Complete the approved production health install, restart, and probe before closing the
+   infrastructure exception.
+
+Environment, credential, and loopback boundaries are maintained in
+[environments.md](../environments.md). The managed-service procedure and activation status are in
+[deployment.md](../deployment.md), while durable migration risks remain in
+[Project Considerations](../CONSIDERATIONS.md#special-procedure-architecture-refactor).
+
 ## Reproducible Validation
 
 ### Autotools And Installation

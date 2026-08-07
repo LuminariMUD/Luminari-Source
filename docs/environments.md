@@ -90,7 +90,12 @@ loopback URL. Valid listener ports are 1025 through 65535.
   an approved operational change and backup/rollback plan.
 - The health listener is loopback-only. Do not expose it through a public
   proxy without a separately reviewed authentication and transport design.
+- Phase 00 special-procedure diagnostics contain static binding names, source
+  locations, owner types, and prototype VNUMs. Keep them bounded, single-line,
+  and free of player or account values as later gateway context is added.
 
 See [Deployment and CI/CD](deployment.md), the detailed
 [deployment guide](deployment/DEPLOYMENT_GUIDE.md), and the
-[incident runbook](runbooks/incident-response.md).
+[incident runbook](runbooks/incident-response.md). The targeted Phase 00
+security and privacy result is recorded in the
+[validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment).

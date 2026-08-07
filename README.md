@@ -81,7 +81,7 @@ and the [builder quickstart](docs/world_game-data/BUILDER_QUICKSTART.md).
 The special-procedure architecture initiative completed Phase 00, Registry
 Safety and Observability. Later gateway, assignment, extraction, shared
 mechanics, typed-handler, and conditional-composition phases remain planned in
-the [project PRD](.spec_system/PRD/PRD.md).
+the [special-procedure refactor PRD](docs/ongoing-projects/spec-todo.md).
 
 ## Related Projects
 

@@ -58,5 +58,6 @@ Production-linked regression tests compile against the real server sources;
 the required root gate is `make test` followed by `make install`.
 
 Architectural decisions with long-term tradeoffs belong in [ADRs](adr/).
-Planned behavior remains in `.spec_system/PRD/PRD.md`, not in this current-state
-reference.
+Planned behavior remains in the
+[special-procedure refactor PRD](ongoing-projects/spec-todo.md), not in this
+current-state reference.

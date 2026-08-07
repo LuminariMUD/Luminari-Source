@@ -182,13 +182,19 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Planning & Tracking
 - **[TASK_LIST.md](TASK_LIST.md)** - Current development priorities
-- **[docs-audit.md](docs-audit.md)** - Vessel documentation source-of-truth and evidence audit
+- **[docs-audit.md](docs-audit.md)** - Phase 00 transition and vessel documentation audit ledger
+- **[CONSIDERATIONS.md](CONSIDERATIONS.md)** - Durable special-procedure and vessel maintenance lessons
+- **[CONVENTIONS.md](CONVENTIONS.md)** - Canonical engineering, build, test, documentation, and operational conventions
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
 - **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
-  Active work: artifact placement handoff, AI conversation history, SKORE
-  phases 3-4, event-system merge, and in-game backlogs
+  Active work: special-procedure architecture, artifact placement handoff, AI
+  conversation history, SKORE phases 3-4, event-system merge, and in-game
+  backlogs
+- **[Special Procedure Refactor PRD](ongoing-projects/spec-todo.md)** -
+  Phase 00 delivered; gateway, assignment, extraction, shared-mechanics,
+  typed-handler, and conditional-composition phases remain planned
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item
@@ -290,7 +296,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Current Audit Boundary
 
 The Phase 00 transition audit is recorded in
-`.spec_system/docs-audit.md`. It verifies the required project entry points,
+[docs-audit.md](docs-audit.md). It verifies the required project entry points,
 the special-procedure documentation delivered in Phase 00, and the operational
 health/deployment surface. Older subsystem documents remain independently
 maintained and must be retraced before behavioral edits.

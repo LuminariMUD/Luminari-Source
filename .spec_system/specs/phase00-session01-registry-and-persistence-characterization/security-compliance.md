@@ -8,7 +8,7 @@
 
 **Files reviewed** (all session changes at the validation boundary):
 
-- `.spec_system/PRD/PRD.md` - master phase plan
+- `docs/ongoing-projects/spec-todo.md` - master phase plan
 - `.spec_system/PRD/phase_00/PRD_phase_00.md` - Phase 00 plan
 - `.spec_system/PRD/phase_00/session_01_registry_and_persistence_characterization.md` through
   `.spec_system/PRD/phase_00/session_09_documentation_and_phase_validation.md` - session stubs

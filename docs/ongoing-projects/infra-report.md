@@ -46,7 +46,8 @@ The repository is a development checkout. Validation used an isolated local
 runtime, a disposable MariaDB 10.11 container bound to loopback, game port
 4199, and health port 4182. No protected runtime configuration or credentials
 were changed. Production application is intentionally deferred by repository
-policy and is recorded in `known-issues.md`.
+policy and is recorded in the
+[Apex known-issues ledger](../../.spec_system/audit/known-issues.md).
 
 ## Evidence Ledger
 

@@ -43,6 +43,12 @@ through systemd `ExecStartPost`:
 Run this only on an approved host. A development checkout must not modify the
 production service or runtime.
 
+As of the Phase 00 transition on 2026-08-07, the endpoint, probe, and rendered
+unit passed against an isolated local MariaDB runtime. Installing the released
+unit, restarting the production service, and probing production readiness still
+require an approved operator action; local success is not a production
+activation claim.
+
 ## Release Storage and Rollback
 
 `make install` stores immutable server and debug binaries under
@@ -59,5 +65,6 @@ their subsystem deployment guides.
 
 - [Environment boundaries](environments.md)
 - [Health API contract](api/README_api.md)
+- [Phase 00 security and privacy assessment](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md#security-and-privacy-assessment)
 - [Incident response](runbooks/incident-response.md)
 - [Troubleshooting and maintenance](guides/TROUBLESHOOTING_AND_MAINTENANCE.md)

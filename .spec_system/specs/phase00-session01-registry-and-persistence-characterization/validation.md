@@ -35,7 +35,7 @@
 | Installation | `make install`; `test -x bin/circle && test -L bin/circle && test ! -e circle` | PASS | Installed build ID `4b1ce2285eb8dd9282f89d14693011d5a059b6f5`; active alias present and root artifact absent. |
 | Database/schema | Changed/untracked filename inspection for `sql`, schema, migration, seed, and `src/mysql.c` artifacts | N/A | No DB-layer or persisted data-shape implementation changed. |
 | Success criteria | `spec.md` criteria inspection, ten generated `Test_spec_*` entries, manifest diff, world digest, tests, install, formatter, and compiler output | PASS | Every one of the 14 criteria has direct passing evidence. |
-| Conventions | `.spec_system/CONVENTIONS.md` spot-check plus `clang-format --dry-run --Werror` and build-manifest diff | PASS | Lower snake case, Allman layout, top-of-block declarations, bounded strings, test placement, and dual-manifest membership comply. |
+| Conventions | `docs/CONVENTIONS.md` spot-check plus `clang-format --dry-run --Werror` and build-manifest diff | PASS | Lower snake case, Allman layout, top-of-block declarations, bounded strings, test placement, and dual-manifest membership comply. |
 | Security/GDPR | `security-compliance-checklist.md`, changed-file inspection, credential-assignment scan, and sandbox trust-boundary inspection | PASS | No security findings; no personal data collection or processing. |
 | Behavioral quality | Application-code scope inspection using base diff and untracked inventory | N/A | Only tests, build membership, and workflow documentation changed; no `src/` application file changed. |
 | UI product surface | Changed-file inventory and session scope inspection | N/A | No command output, help text, screen, menu implementation, or other user-facing surface changed. |

@@ -539,8 +539,9 @@
 **Files Changed**:
 - `.spec_system/specs/phase00-session09-documentation-and-phase-validation/` - Final review,
   security, validation, notes, task, spec, and summary evidence.
-- `.spec_system/PRD/PRD.md`, `.spec_system/archive/phases/phase_00/`, `.spec_system/state.json` -
-  Completed MVP and archived Phase 00 workflow state.
+- `docs/ongoing-projects/spec-todo.md`, `.spec_system/archive/phases/phase_00/`, and
+  `.spec_system/state.json` - Completed MVP and archived Phase 00 workflow state. The PRD was
+  relocated to its current documentation path after phase closeout.
 
 **Verification**:
 - Command/check: Apex `creview`, `validate`, and `updateprd` gates

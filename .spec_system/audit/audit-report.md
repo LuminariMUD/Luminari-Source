@@ -11,7 +11,7 @@
   `.spec_system/scripts/analyze-project.sh --json` entry point.
 - The repository was clean at `92db8da0e9a59df1bc95a9d3d7b7e031fab7f21c`, matching
   `origin/master`, before audit remediation began.
-- `.spec_system/CONVENTIONS.md` identifies a GNU C23 application with Autotools as the preferred
+- `docs/CONVENTIONS.md` identifies a GNU C23 application with Autotools as the preferred
   build and CMake as the supported secondary build.
 - `.spec_system/audit/known-issues.md` was absent. Known issues loaded: 0 paths, 0 rules, 0 tests.
 
@@ -58,7 +58,7 @@ adding a parallel logger or runtime dependency:
    and diagnostic artifact links.
 3. Installed the configured pre-push hook, which was missing from this checkout.
 4. Recorded existing linting, type-safety, database, and dev-startup tooling in
-   `.spec_system/CONVENTIONS.md`.
+   `docs/CONVENTIONS.md`.
 5. Documented incident triage and the structured record in maintained project documentation.
 6. Corrected the CMake audit invocation after the repository defaulted `BUILD_TESTS` to `OFF`, then
    rebuilt with `-DBUILD_TESTS=ON` and ran every CTest target.

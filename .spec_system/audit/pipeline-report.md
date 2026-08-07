@@ -8,7 +8,7 @@ Branch: `master`
 
 This transition run validated the repository's existing CI/CD surface rather
 than adding another workflow bundle. All five pipeline bundles were already
-present and were adopted as the project baseline in `.spec_system/CONVENTIONS.md`.
+present and were adopted as the project baseline in `docs/CONVENTIONS.md`.
 
 | Bundle | Repository surface | Result |
 |--------|--------------------|--------|

@@ -10,7 +10,7 @@
 
 **Files reviewed** (all changes since the base commit):
 
-- `.spec_system/PRD/PRD.md` - tracked modified
+- `docs/ongoing-projects/spec-todo.md` - master PRD, relocated after phase closeout
 - `.spec_system/PRD/phase_00/PRD_phase_00.md` - tracked modified
 - `.spec_system/PRD/phase_00/session_01_registry_and_persistence_characterization.md` - untracked
 - `.spec_system/PRD/phase_00/session_02_command_and_pulse_characterization.md` - untracked

@@ -174,18 +174,17 @@ runtime scheduling until a separately tested migration intentionally changes the
 
 ## Phases
 
-This system delivers the product via phases. Each phase is implemented via multiple 2-4 hour
-sessions with 12-25 tasks each.
+This system delivers the product via phases.
 
-| Phase | Name | Sessions | Status |
-|-------|------|----------|--------|
-| 00 | Registry Safety and Observability | 9 | Complete |
-| 01 | Call-Site Gateway Compatibility | TBD | Not Started |
-| 02 | Declarative Legacy Assignments | TBD | Not Started |
-| 03 | Behavior-Preserving Content Extraction | TBD | Not Started |
-| 04 | Narrow Shared Mechanics | TBD | Not Started |
-| 05 | Incremental Typed Handlers | TBD | Not Started |
-| 06 | Conditional Composition and Lifecycle Hooks | TBD | Not Started |
+| Phase | Name | Status |
+|-------|------|--------|
+| 00 | Registry Safety and Observability | Complete |
+| 01 | Call-Site Gateway Compatibility | Not Started |
+| 02 | Declarative Legacy Assignments | Not Started |
+| 03 | Behavior-Preserving Content Extraction | Not Started |
+| 04 | Narrow Shared Mechanics | Not Started |
+| 05 | Incremental Typed Handlers | Not Started |
+| 06 | Conditional Composition and Lifecycle Hooks | Not Started |
 
 ## Phase 00: Registry Safety and Observability
 
@@ -203,25 +202,13 @@ sessions with 12-25 tasks each.
 5. Update builder guidance, the `SPECIALS` help entry, and architecture documentation for the
    behavior actually delivered in this phase.
 
-### Sessions
-
-1. Registry and Persistence Characterization
-2. Command and Pulse Characterization
-3. Combat and Secondary Characterization
-4. Validated Definition Registry
-5. Owner-Aware OLC
-6. Authored Binding Model
-7. Binding Round-Trip Persistence
-8. Effective Binding Observability
-9. Documentation and Phase Validation
-
 ### Completion
 
-Phase 00 completed on 2026-08-07 with all nine sessions validated. The delivered MVP retains the
-legacy runtime ABI and precedence while adding validated definitions, owner-aware OLC, owned
-authored identity, effective boot provenance, moving-room collision safety, database-first help,
-and 78 dedicated production-linked tests. The durable acceptance evidence is in
-[Special Procedure Phase 00 Validation](../../docs/testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
+Phase 00 was fully completed and verified on 2026-08-07, with all nine sessions validated. The
+delivered MVP retains the legacy runtime ABI and precedence while adding validated definitions,
+owner-aware OLC, owned authored identity, effective boot provenance, moving-room collision safety,
+database-first help, and 78 dedicated production-linked tests. The durable acceptance evidence is in
+[Special Procedure Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
 
 ## Technical Stack
 
@@ -235,7 +222,10 @@ and 78 dedicated production-linked tests. The durable acceptance evidence is in
 - Flat world files and Oasis OLC - Existing authored binding and builder persistence surfaces.
 - DG Scripts - Complementary trigger system retained for localized scripted behavior.
 
-## Success Criteria
+## Whole-Program Success Criteria
+
+These checkboxes are whole-program exit criteria, not Phase 00 status; they remain open until final
+refactor validation. Phase 00 is fully complete and verified as documented above.
 
 - [ ] Every verified invocation category has production-linked characterization coverage before its
   gateway migration changes control flow.
