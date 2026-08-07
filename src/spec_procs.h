@@ -31,6 +31,7 @@
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_jot.h"
+#include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
@@ -120,9 +121,7 @@ SPECIAL_DECL(illithid_gguard);
 SPECIAL_DECL(imix);
 
 /* j-l */
-SPECIAL_DECL(kt_kenjin);
 SPECIAL_DECL(kt_shadowmaker);
-SPECIAL_DECL(kt_twister);
 
 /* m-o */
 SPECIAL_DECL(magi_staff);

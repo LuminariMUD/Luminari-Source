@@ -373,7 +373,8 @@ ABI, world grammar, pulse position, assignment and registry references, initiali
 calculations, and display behavior remain unchanged. The Shadow Dragon combat-pulse callback lives
 in `src/spec/spec_zone_shadow_dragon.c`, and the Banshee one-shot wail lives in
 `src/spec/spec_zone_banshee.c`. Quicksand room effects live in
-`src/spec/spec_zone_quicksand.c`; all three have dedicated owner APIs.
+`src/spec/spec_zone_quicksand.c`. The Tower of Kenjin mobile encounter and rotating rooms live
+together in `src/spec/spec_zone_kenjin_tower.c`; all four packages have dedicated owner APIs.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in
