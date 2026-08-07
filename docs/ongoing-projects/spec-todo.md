@@ -121,7 +121,7 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-12 extracted the complete audited general object section to
+Checkpoints 1-13 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
@@ -133,11 +133,11 @@ loader, runtime list, zone-pulse scheduler, relocation helpers, and callback now
 research, and pet-shop commerce live with `src/character/`, `src/magic/`, and `src/obj/`. Reusable
 combat and companion archetypes now live in `src/spec/spec_mobile_archetypes.c`, while clan-hall
 cleric and guard services live in `src/clan_services.c`. The complete King's Castle, Abyss, Crimson
-Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, and Mad Drow packages now live in dedicated
-`src/spec/spec_zone_*` owners; `zone_procs.c` is 204 lines, down 3,998 lines from its Phase 03
-baseline. Autotools and CMake link every new source for production and CuTest. The callback ABI,
-exported symbols, registry identities, assignments, world grammar, scheduling, and behavior remain
-unchanged.
+Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, and TTF packages now live in
+dedicated `src/spec/spec_zone_*` owners. The final TTF move retired all 4,202 baseline lines and
+removed `src/zone_procs.c` from both build manifests. Autotools and CMake link every new source for
+production and CuTest. The callback ABI, exported symbols, registry identities, assignments, world
+grammar, scheduling, and behavior remain unchanged.
 `src/spec_procs.c` is 1,943 lines, down 10,269 lines from the Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
@@ -238,8 +238,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 12 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 12. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 13 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 13. |
 
 ## Risks and Guardrails
 
@@ -434,17 +434,18 @@ reporting every contributing source.
 
 ### File Ownership Problems
 
-`zone_procs.c` holds zone-associated mobile and object procedures, encounter state, and helpers; it
-is not a zone callback system, and `struct zone_data` has no special-procedure callback. Future zone
-events need an explicit lifecycle interface, not a zone pointer hidden in `void *me`.
+At the Phase 03 baseline, `zone_procs.c` held zone-associated mobile and object procedures,
+encounter state, and helpers; it was not a zone callback system, and `struct zone_data` has no
+special-procedure callback. Checkpoint 13 completed its package split and retired the file. Future
+zone events still need an explicit lifecycle interface, not a zone pointer hidden in `void *me`.
 
 At the Phase 03 baseline, `spec_procs.c` also held work owned elsewhere: spell/skill/ability listing
 and calculation; moving-room and legacy ship behavior; vendor item construction and naming; and
-crafting-mold purchase and construction. Checkpoints 1-12 have moved every item in that list, the
+crafting-mold purchase and construction. Checkpoints 1-13 have moved every item in that list, the
 traced general mobile/room slice, reusable combat/companion archetypes, and clan services. The
-King's Castle, Abyss, Crimson Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, and Mad Drow
-packages have also moved intact from the legacy files. The remaining legacy callbacks are cohesive
-zone content.
+King's Castle, Abyss, Crimson Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, and
+TTF packages have also moved intact from the legacy files. The remaining legacy callbacks in
+`src/spec_procs.c` are cohesive zone content.
 Splitting them by owner type alone would still preserve zone-ownership mistakes. Moving rooms
 retain their temporary gateway and now live in the vessel subsystem; a direct typed hook remains a
 later behavior-changing phase.
@@ -493,7 +494,7 @@ src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
-Shipped content ownership (Phase 03 Checkpoints 1-12):
+Shipped content ownership (Phase 03 Checkpoints 1-13):
 
 ```text
 src/spec/spec_objects.c
@@ -509,6 +510,7 @@ src/spec/spec_zone_kings_castle.c|.h
 src/spec/spec_zone_mad_drow.c|.h
 src/spec/spec_zone_neverwinter.c
 src/spec/spec_zone_prisoner.c|.h
+src/spec/spec_zone_ttf.c|.h
 src/vessels/vessels_legacy.c
 src/vessels/vessels_moving_rooms.c|.h
 src/obj/player_shop.c
@@ -529,7 +531,6 @@ Proposed for the remainder of Phase 03 and later phases, subject to traced owner
 ```text
 src/spec/spec_cooldown.c|.h        (needs two real consumers)
 src/spec/spec_effects.c|.h         (needs two real consumers)
-src/spec/spec_zone_ttf.c|.h
 ```
 
 This is a responsibility map, not permission to create empty modules. Top-level `spec_procs.c` and
@@ -733,8 +734,9 @@ If separately scheduled, an artifact split under `src/obj/` may use `artifact_re
   construction under `src/craft/`.
 - **Rooms**: general room behavior may share a room-procedure module. Moving rooms and vessel control
   rooms belong to the vessel subsystem.
-- **Zones**: keep the natural packages in `zone_procs.c` intact with private helpers and encounter
-  state file-local. Extract shared mechanics only when two packages need the same contract.
+- **Zones**: the natural packages formerly in `zone_procs.c` now live intact under `src/spec/` with
+  their private helpers and encounter state. Extract shared mechanics only when two packages need
+  the same contract.
 
 ## Conditional Composition and Lifecycle Hooks
 

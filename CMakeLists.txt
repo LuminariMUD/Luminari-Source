@@ -611,6 +611,7 @@ set(SRC_C_FILES
     src/spec/spec_zone_mad_drow.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_zone_prisoner.c
+    src/spec/spec_zone_ttf.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c
@@ -668,7 +669,6 @@ set(SRC_C_FILES
     src/wilderness/wilderness_kb.c
     src/olc/zedit.c
     src/zmalloc.c
-    src/zone_procs.c
     src/movement/movement.c
     src/movement/movement_validation.c
     src/movement/movement_cost.c

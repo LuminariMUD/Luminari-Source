@@ -9454,7 +9454,7 @@ int get_eq_score(obj_rnum a)
     score += (GET_WEAPON_TYPE(obj) != 0 ? 0 : GET_OBJ_VAL(obj, 1) * GET_OBJ_VAL(obj, 2));
   }
 
-  /* spec procs in our spec_procs/zone_procs.c files */
+  /* Object special procedures with extra value beyond their base statistics. */
   if (obj_index[GET_OBJ_RNUM(obj)].func)
   {
     score += 500;

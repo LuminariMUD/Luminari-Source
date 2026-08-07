@@ -494,22 +494,59 @@ baseline.
 | exact comparison of all 419 moved legacy lines | PASS, no content drift |
 | `git diff --check` | PASS |
 
+## Checkpoint 13 - Temple of Twisted Flesh and Legacy Zone Source Retirement
+
+Checkpoint 13 moves the final `src/zone_procs.c` package to `src/spec/spec_zone_ttf.c` and `.h`.
+The owner contains:
+
+- `ttf_monstrosity` and `ttf_abomination`, including their room-wide knockdown behavior;
+- `ttf_rotbringer` and its one-time flesh-mound follower summon;
+- the exported `ttf_path` patrol route; and
+- `ttf_patrol`, including its per-mobile path index and delay scheduling.
+
+The TTF owner directly includes the existing AOE, position, graph, movement, mobile-loading,
+follower, and room-operation APIs it uses. `src/spec_assign.c` includes the owner header directly,
+while `src/spec_procs.h` retains it as a compatibility include and no longer redeclares the four
+callbacks. Both build manifests replace `src/zone_procs.c` with the TTF implementation for
+production and CuTest, completing the legacy zone-source split. Stale source-name comments in object
+valuation and Prisoner death handling now describe their actual responsibility and owner.
+
+This is an ownership-only move. All 167 legacy package lines are unchanged, including exported
+names and types, path contents and order, AOE traversal, chance and health thresholds, wait states,
+follower construction, path delay and index mutation, assignment references, messages, and callback
+returns. The new cohesive implementation is 189 lines. The remaining 37-line include shell and
+placeholder are retired with `src/zone_procs.c`. No player or builder helpfile changed because no
+command, authored-data, or behavior contract changed.
+
+### Checkpoint 13 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 12 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 167 moved legacy lines | PASS, no content drift |
+| both build manifests omit the retired `src/zone_procs.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Move the final TTF package from `src/zone_procs.c`, retaining its path state with its callbacks,
-   then retire the empty compatibility source from both build manifests.
-2. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages,
-   then relocate the remaining cross-file equipment helper.
-3. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
-4. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
+1. Relocate the remaining cross-file equipment helper, then move the cohesive zone-specific content
+   from `src/spec_procs.c` with its packages.
+2. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
+3. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Move the complete Temple of Twisted Flesh boundary beginning with its opening marker and ending
-after the TTF end marker. Keep `ttf_monstrosity`, `ttf_abomination`, `ttf_rotbringer`, the exported
-`ttf_path` table, and `ttf_patrol` together. The boundary is 167 legacy lines. Trace and include the
-true owners of AOE combat, follower creation, graph pathfinding, and movement dependencies; preserve
-all exported names and types, path order, pulse and probability checks, combat and movement order,
-messages, assignment and registry references, and symbol parity. Once the package is linked by both
-build systems, remove the now-empty `src/zone_procs.c` compatibility source from both manifests.
+Move the 13-line `is_wearing()` equipment predicate beginning with its legacy comment at
+`src/spec_procs.c:123` to `src/handler.c` and publish it from `src/handler.h`, alongside the existing
+equipment manipulation API. Preserve its exported name, `bool` return type, `obj_vnum` parameter,
+wear-slot traversal order, null-slot handling, and symbol type. Its traced consumers are
+`src/spec/spec_objects.c`, `src/spec/spec_zone_jot.c`, `src/combat/act.offensive.c`, and
+`src/combat/fight.c`; all already include `handler.h`. Remove only the compatibility declaration
+from `src/spec_procs.h`, then verify complete symbol parity before beginning the remaining authored
+zone packages in `src/spec_procs.c`.

@@ -217,6 +217,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_mad_drow.c \
 	src/spec/spec_zone_neverwinter.c \
 	src/spec/spec_zone_prisoner.c \
+	src/spec/spec_zone_ttf.c \
 	src/spec/spec_registry.c \
 	src/spec_assign.c \
 	src/spec_procs.c \
@@ -272,8 +273,7 @@ circle_SOURCES = \
 	src/wilderness/wilderness.c \
 	src/wilderness/wilderness_kb.c \
 	src/olc/zedit.c \
-	src/zmalloc.c \
-	src/zone_procs.c
+	src/zmalloc.c
 
 # Libraries to link
 circle_LDADD = @LIBS@ @CRYPTLIB@ @NETLIB@ -lcrypt -lgd -lm -lmariadb -lcurl -lssl -lcrypto -lpthread -ljson-c

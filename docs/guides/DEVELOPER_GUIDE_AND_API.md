@@ -194,7 +194,8 @@ that package. Jot invasion state, relative-VNUM conversion, mobile encounters, a
 objects use `src/spec/spec_zone_jot.h`; the owner intentionally remains cohesive even though its
 implementation is just over the file-size review prompt. Mad Drow cube-slider state, row tables,
 exit helpers, and callback use `src/spec/spec_zone_mad_drow.h`; keep the complete puzzle state and
-mutation order in that owner.
+mutation order in that owner. TTF AOE encounters, follower summoning, and patrol state use
+`src/spec/spec_zone_ttf.h`. That final package retired the legacy `src/zone_procs.c` source.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 

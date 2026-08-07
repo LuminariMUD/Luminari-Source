@@ -1,37 +1,24 @@
 /**************************************************************************
- *  File: zone_procs.c                                 Part of LuminariMUD *
- *  Usage: Special procedures for zones                                    *
- *  Author:  Zusuk                                                         *
+ *  File: spec/spec_zone_ttf.c                         Part of LuminariMUD *
+ *  Usage: Temple of Twisted Flesh procedures.                           *
  *                                                                         *
- *  Header File:  spec_procs.h                                             *
+ *  All rights reserved.  See license for complete information.            *
  **************************************************************************/
 
 #include "conf.h"
 #include "sysdep.h"
+
 #include "structs.h"
 #include "utils.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
 #include "db.h"
-#include "constants.h"
 #include "magic/spells.h"
-#include "act.h"        /* for act related stuff, like act.offensive fuctions */
-#include "spec_procs.h" /**< zone_procs.c is part of the spec_procs module */
-#include "combat/fight.h"
 #include "graph.h"
-#include "mud_event.h"
-#include "actions.h"
-#include "magic/domains_schools.h"
-#include "combat/spec_abilities.h"
-#include "obj/treasure.h"
-#include "mob/mob_utils.h"       /* for npc_find_target() */
-#include "dgscript/dg_scripts.h" /* for load_mtrigger() */
-#include "quest/staff_events.h"  /* for staff events!  prisoner treasury! */
-#include "character/evolutions.h"
-#include "spec/spec_effective_binding.h"
-#include "spec/spec_registry.h"
-
+#include "movement/movement.h"
+#include "movement/movement_position.h"
+#include "spec_zone_ttf.h"
 
 /*****************/
 /* Temple of Twisted Flesh (TTF) */
@@ -200,5 +187,3 @@ SPECIAL(ttf_patrol)
 /*****************/
 /* End Temple of Twisted Flesh (TTF) */
 /*****************/
-
-/* put new zone procs here */

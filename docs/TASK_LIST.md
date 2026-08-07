@@ -326,7 +326,7 @@ The LuminariMUD codebase demonstrates a mixed documentation state with areas of 
 **Excellent Examples:**
 - **ai_events.c** - Modern doxygen-style with @file, @author, @brief tags
 - **magic.c::compute_spell_res()** - Comprehensive function documentation
-- **zone_procs.c** - Well-organized with clear section markers
+- **spec/spec_zone_*.c** - Cohesive zone owners with clear package boundaries
 
 **Poor Documentation:**
 - **crafting_new.c** - 6,154 lines with minimal function documentation

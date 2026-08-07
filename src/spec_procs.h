@@ -1,7 +1,7 @@
 /**
  * @file spec_procs.h                                   LuminariMUD
  * Header file for special procedure modules. This file groups a lot of the
- * legacy special procedures found in spec_procs.c and zone_procs.c.
+ * legacy special procedures found in spec_procs.c and their feature owners.
  *
  * Part of the core tbaMUD source code distribution, which is a derivative
  * of, and continuation of, CircleMUD.
@@ -33,11 +33,8 @@
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
+#include "spec/spec_zone_ttf.h"
 #include "vessels/vessels_moving_rooms.h"
-
-/*****************************************************************************
- * Begin Functions and defines for zone_procs.c
- ****************************************************************************/
 
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
@@ -177,10 +174,6 @@ SPECIAL_DECL(trade_bandit);
 SPECIAL_DECL(trade_master);
 SPECIAL_DECL(trade_object);
 SPECIAL_DECL(treantshield);
-SPECIAL_DECL(ttf_abomination);
-SPECIAL_DECL(ttf_monstrosity);
-SPECIAL_DECL(ttf_patrol);
-SPECIAL_DECL(ttf_rotbringer);
 SPECIAL_DECL(tyrantseye);
 
 /* v-z */
