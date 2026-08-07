@@ -192,7 +192,9 @@ dependency. Fire Giant invasion loading and the transforming instrument use
 `src/spec/spec_zone_fire_giant.h`; keep their shared load definitions and transformation cost with
 that package. Jot invasion state, relative-VNUM conversion, mobile encounters, and zone-specific
 objects use `src/spec/spec_zone_jot.h`; the owner intentionally remains cohesive even though its
-implementation is just over the file-size review prompt.
+implementation is just over the file-size review prompt. Mad Drow cube-slider state, row tables,
+exit helpers, and callback use `src/spec/spec_zone_mad_drow.h`; keep the complete puzzle state and
+mutation order in that owner.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 

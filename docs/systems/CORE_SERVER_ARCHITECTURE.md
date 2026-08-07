@@ -365,8 +365,10 @@ the Celestial Leviathan no-op callback and dormant helpers live in their own adj
 Giant invasion construction and the transforming instrument live together in
 `src/spec/spec_zone_fire_giant.c`. Jot invasion state, position tables, relative-VNUM conversion,
 group and equipment loading, mobile encounters, and zone-specific objects live together in
-`src/spec/spec_zone_jot.c`. The public names, callback ABI, world grammar, pulse position, assignment
-and registry references, initialization order, calculations, and display behavior remain unchanged.
+`src/spec/spec_zone_jot.c`. Mad Drow cube-slider flags, row tables, exit mutation helpers,
+cube-wide messages, and callback live together in `src/spec/spec_zone_mad_drow.c`. The public names,
+callback ABI, world grammar, pulse position, assignment and registry references, initialization
+order, calculations, and display behavior remain unchanged.
 The current ownership inventory and evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

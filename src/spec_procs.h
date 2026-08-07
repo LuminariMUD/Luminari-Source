@@ -31,6 +31,7 @@
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kings_castle.h"
+#include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
 #include "vessels/vessels_moving_rooms.h"
 
@@ -87,7 +88,6 @@ SPECIAL_DECL(courage);
 SPECIAL_DECL(crafting_kit);
 SPECIAL_DECL(crafting_quest);
 SPECIAL_DECL(cryogenicist);
-SPECIAL_DECL(cube_slider);
 
 /* d-f */
 SPECIAL_DECL(disruption_mace);

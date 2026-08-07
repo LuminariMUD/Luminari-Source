@@ -455,10 +455,49 @@ baseline.
 | complete exported global-symbol comparison against Checkpoint 10 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 12 - Mad Drow Zone Package
+
+Checkpoint 12 moves the complete Mad Drow cube-slider boundary to
+`src/spec/spec_zone_mad_drow.c` and `.h`. The owner now contains:
+
+- the exported `open_msg` and `close_msg` state flags and `struct slider_row`;
+- all sixty north/south, east/west, and up/down slider-row tables;
+- `open_exit()`, `close_exit()`, `open_row()`, `close_row()`, and `toggle_row()`;
+- the private cube-wide broadcast helper; and
+- the assigned and registered `cube_slider` callback.
+
+`src/spec_assign.c` and `src/spec/spec_registry.c` include the owner header directly.
+`src/spec_procs.h` retains it as a compatibility include and no longer redeclares the moved
+callback. The implementation explicitly includes `act.h`, which owns the legacy `EXITN` and
+`IS_CLOSED` macros previously supplied by the monolith's broad include surface. Both build
+manifests link the new implementation for production and CuTest.
+
+This is an ownership-only move. All 419 legacy package lines are unchanged, including exported
+names and types, state initialization, table contents and order, room and exit mutation order,
+random-toggle frequency, delay state, assignment and registry references, messages, and callback
+returns. The new cohesive implementation is 437 lines. No player or builder helpfile changed
+because no command, authored-data, or behavior contract changed.
+
+The checkpoint reduces `src/zone_procs.c` from 624 to 204 lines and by 3,998 lines from its Phase 03
+baseline.
+
+### Checkpoint 12 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 11 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 419 moved legacy lines | PASS, no content drift |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
-   private static state with each package.
+1. Move the final TTF package from `src/zone_procs.c`, retaining its path state with its callbacks,
+   then retire the empty compatibility source from both build manifests.
 2. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages,
    then relocate the remaining cross-file equipment helper.
 3. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
@@ -467,10 +506,10 @@ baseline.
 
 ## Resume Point
 
-Move the complete Mad Drow boundary beginning with `open_msg` and `close_msg` and ending after
-`cube_slider` and the Mad Drow end marker. Keep both message flags, every slider-row table, exit
-opening and closing helpers, cube broadcast helper, row toggle logic, and the assigned callback
-together. The boundary is 419 legacy lines; the earlier proposed separate Cube Slider owner is
-superseded by the trace showing that it is the only callback over the Mad Drow package's private
-tables and state. Preserve all exported names and types, assignment and registry references, room
-and exit mutation order, messages, and symbol parity before proceeding to TTF.
+Move the complete Temple of Twisted Flesh boundary beginning with its opening marker and ending
+after the TTF end marker. Keep `ttf_monstrosity`, `ttf_abomination`, `ttf_rotbringer`, the exported
+`ttf_path` table, and `ttf_patrol` together. The boundary is 167 legacy lines. Trace and include the
+true owners of AOE combat, follower creation, graph pathfinding, and movement dependencies; preserve
+all exported names and types, path order, pulse and probability checks, combat and movement order,
+messages, assignment and registry references, and symbol parity. Once the package is linked by both
+build systems, remove the now-empty `src/zone_procs.c` compatibility source from both manifests.

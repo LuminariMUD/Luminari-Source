@@ -608,6 +608,7 @@ set(SRC_C_FILES
     src/spec/spec_zone_fire_giant.c
     src/spec/spec_zone_jot.c
     src/spec/spec_zone_kings_castle.c
+    src/spec/spec_zone_mad_drow.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_zone_prisoner.c
     src/spec/spec_registry.c

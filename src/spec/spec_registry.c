@@ -21,6 +21,7 @@
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_jot.h"
+#include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
 
 #include <ctype.h>
