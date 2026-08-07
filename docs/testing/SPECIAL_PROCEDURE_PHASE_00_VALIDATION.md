@@ -161,11 +161,31 @@ The validated prefix and exit trap remove only the generated temporary directory
 
 ### Help SQL
 
-In one MariaDB development connection, create connection-local temporary `help_entries` and
-`help_keywords` tables with the required columns and unique keys. Source
-`help_specproc_entries.sql` twice, then source `verify_help_specproc_entries.sql`. The entry,
-content, required-keyword, and conflicting-keyword checks must all return `PASS`. Temporary tables
-must shadow the persistent names for the entire operation.
+Run both checks below. The isolated check proves repeatable SQL behavior without changing persistent
+content; the development acceptance proves that builders can retrieve the maintained topic from the
+authoritative database through the running game.
+
+For the isolated migration check, create connection-local temporary `help_entries` and
+`help_keywords` tables with the required columns and unique keys in one MariaDB development
+connection. Source `help_specproc_entries.sql` twice, then source
+`verify_help_specproc_entries.sql`. The entry, content, required-keyword, and conflicting-keyword
+checks must all return `PASS`. Temporary tables must shadow the persistent names for the entire
+operation.
+
+For persistent development acceptance, first confirm that `lib/.env` identifies a development
+environment and that the configured database is the intended development database. Apply
+`help_specproc_entries.sql` twice through the normal migration process, then run
+`verify_help_specproc_entries.sql` against the persistent tables. All four checks must return
+`PASS`. Install the tested server, reload or restart it, and exercise every authoritative keyword:
+
+```sh
+./scripts/development/dev_kohdee_login_smoke.sh --help-check \
+  SPECIALS SPEC SPEC-PROC SPECIAL-PROCEDURE SPECPROC
+```
+
+Each keyword must report `PASS` and resolve to database tag `spec-proc`. A temporary-table result by
+itself does not satisfy the in-game help acceptance criterion. Never run this development procedure
+against production.
 
 ### Integrity And Hygiene
 
