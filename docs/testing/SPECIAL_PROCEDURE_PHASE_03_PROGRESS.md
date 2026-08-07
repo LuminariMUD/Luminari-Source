@@ -143,9 +143,45 @@ lines and from the Phase 03 baseline of 12,212 lines by 7,867 lines.
 | complete exported global-symbol comparison against Checkpoint 2 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 4 - Legacy Moving-Room Ownership
+
+Checkpoint 4 consolidates the complete legacy moving-room package under
+`src/vessels/vessels_moving_rooms.c` and `.h`. The owner now contains:
+
+- the `movingRoomList` runtime list;
+- world `M` record loading and `setup_moving_room()`;
+- the zone-pulse scheduler in `moving_rooms_update()`;
+- `prepMovingRoom()`, `unlinkMovingRoom()`, and `linkMovingRoom()`; and
+- the legacy `moving_rooms` callback reached through the Phase 01 gateway.
+
+The loader and scheduler moved out of `src/db.c`; the relocation helpers and callback moved out of
+`src/spec_procs.c`. `src/comm.c`, `src/db.c`, `src/olc/genwld.c`, and the production-linked
+moving-room tests include the owner header directly. `src/spec_procs.h` retains it as a compatibility
+include, while `src/olc/oasis.h` no longer publishes declarations owned by vessels.
+
+This is an ownership-only move. The world `M` grammar, allocation and list order, callback ABI,
+gateway translation, zone-pulse position, pulse reset, route selection, `currentInbound` updates,
+exit mutation order, messages, and global symbol names are unchanged. Both build manifests add the
+same implementation file. No player or builder helpfile changed because no command, authored data,
+or visible behavior changed.
+
+The checkpoint removes 325 more lines from `src/spec_procs.c`, reducing it from 4,345 to 4,020
+lines and from the Phase 03 baseline of 12,212 lines by 8,192 lines.
+
+### Checkpoint 4 verification
+
+| Gate | Result |
+|------|--------|
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 3 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Extract reusable mobile and room procedures, and move legacy moving-room behavior to vessels.
+1. Extract reusable mobile and room procedures to coherent general or feature owners.
 2. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
    static state with each package.
 3. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
@@ -155,7 +191,8 @@ lines and from the Phase 03 baseline of 12,212 lines by 7,867 lines.
 
 ## Resume Point
 
-Start with the moving-room state and callback in `src/spec_procs.c`; keep them together when moving
-them under `src/vessels/`. Then extract only genuinely reusable mobile and room groups to general
-spec modules. Keep zone-specific callbacks with the cohesive packages that will move from
+Trace the remaining reusable mobile and room callbacks before moving them. General candidates begin
+with `mayor`, `snake`, `hound`, `thief`, `magic_user`, `guild_guard`, `puff`, `fido`, `janitor`,
+`dump`, `pet_shops`, and `wizard_library`, but ownership must follow behavior rather than the legacy
+section order. Keep zone-specific callbacks with the cohesive packages that will move from
 `src/zone_procs.c`.

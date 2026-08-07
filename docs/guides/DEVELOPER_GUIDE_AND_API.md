@@ -173,8 +173,9 @@ shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
 observable compatibility path. Behavior-preserving content extraction is in
 progress: general object callbacks are under `src/spec/`; vessel callbacks are
-under `src/vessels/`; and player-shop, vendor, crafting, vampire-cloak,
-quest-service, and Neverwinter callbacks are now owned by their feature
+under `src/vessels/`, including the complete legacy moving-room loader,
+scheduler, relocation, and callback package. Player-shop, vendor, crafting,
+vampire-cloak, quest-service, and Neverwinter callbacks are now owned by their feature
 directories. Character ability calculations and skill list/training APIs are
 declared by `src/character/abilities.h` and `src/character/skill_lists.h`;
 spell sorting and display are declared by `src/magic/spell_lists.h`.

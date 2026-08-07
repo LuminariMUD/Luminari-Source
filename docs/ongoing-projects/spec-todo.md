@@ -121,16 +121,18 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-3 extracted the complete audited general object section to
+Checkpoints 1-4 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
 callback, not vessel behavior. Ability calculations and skill display/training now live under
-`src/character/`; spell sorting and display live under `src/magic/`. The Celestial Leviathan stub
-remains with the legacy file until its encounter package moves from `zone_procs.c`. Autotools and
-CMake link every new source for production and CuTest. The callback ABI, exported symbols, registry
-identities, assignments, and behavior remain unchanged. `src/spec_procs.c` is 4,345 lines, down
-7,867 lines from the Phase 03 baseline.
+`src/character/`; spell sorting and display live under `src/magic/`. The legacy moving-room `M`
+loader, runtime list, zone-pulse scheduler, relocation helpers, and callback now form one package in
+`src/vessels/vessels_moving_rooms.c`. The Celestial Leviathan stub remains with the legacy file until
+its encounter package moves from `zone_procs.c`. Autotools and CMake link every new source for
+production and CuTest. The callback ABI, exported symbols, registry identities, assignments, world
+grammar, scheduling, and behavior remain unchanged. `src/spec_procs.c` is 4,020 lines, down 8,192
+lines from the Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.
@@ -230,8 +232,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 3 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 3. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 4 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 4. |
 
 ## Risks and Guardrails
 

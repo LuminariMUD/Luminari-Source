@@ -628,6 +628,7 @@ set(SRC_C_FILES
     src/vessels/vehicles_transport.c
     src/vessels/vessels.c
     src/vessels/vessels_legacy.c
+    src/vessels/vessels_moving_rooms.c
     src/vessels/vessels_tactical.c
     src/vessels/vessels_lookout.c
     src/vessels/vessels_narrative.c

@@ -912,13 +912,6 @@ void print_zone(struct char_data *ch, zone_rnum rnum);
 ACMD_DECL(do_oasis_links);
 ACMD_DECL(do_oasis_list);
 
-extern struct moving_room_data *movingRoomList;
-int prepMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int *cibIdx,
-                   int *nextIdx);
-int linkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx);
-int unlinkMovingRoom(struct moving_room_data *theRoom, struct oldNextMove *ONMdata, int cibIdx);
-void setup_moving_room(FILE *fl, int rroom, int vroom, char *line);
-void moving_rooms_update(void);
 void dump_moving(struct moving_room_data *mr, struct char_data *ch);
 
 // dragon riders

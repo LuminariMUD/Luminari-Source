@@ -18,6 +18,7 @@
 #include "character/skill_lists.h"
 #include "magic/spell_lists.h"
 #include "magic/spells.h"
+#include "vessels/vessels_moving_rooms.h"
 
 extern int prisoner_heads;
 
@@ -40,7 +41,6 @@ int get_spec_func_count(void);
 const char *get_spec_func_name_by_index(int idx);
 SPECIAL_DECL(*get_spec_func_by_index(int idx));
 SPECIAL_DECL(*find_spec_func_by_name(const char *name));
-SPECIAL_DECL(moving_rooms);
 
 /*****************************************************************************
  * Compatibility functions still implemented by special-procedure modules

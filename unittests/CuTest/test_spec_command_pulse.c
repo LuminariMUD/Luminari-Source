@@ -10,6 +10,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/mob/mob_act.h"
 #include "../../src/olc/oasis.h"
+#include "../../src/vessels/vessels_moving_rooms.h"
 
 #include <limits.h>
 #include <stdio.h>

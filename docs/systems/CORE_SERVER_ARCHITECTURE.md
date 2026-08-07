@@ -349,12 +349,15 @@ The table is a validated compatibility source, not a new precedence level.
 
 Phase 03 source extraction does not change this control flow. General object callbacks now live in
 `src/spec/spec_objects.c`; legacy route, ferry, and Greyhawk ship callbacks live in
-`src/vessels/vessels_legacy.c`. Player shops, commerce and item services, crafting molds,
+`src/vessels/vessels_legacy.c`. Legacy moving-room `M` loading, runtime-list ownership, zone-pulse
+scheduling, relocation helpers, and callback live together in
+`src/vessels/vessels_moving_rooms.c`. Player shops, commerce and item services, crafting molds,
 vampire-cloak customization, quest reward replacement, and the Neverwinter control puzzle live with
 their respective feature owners. Ability calculations and skill list/training behavior live under
 `src/character/`, and spell sorting and list display live under `src/magic/`. The public names,
-callback ABI, assignment and registry references, initialization order, calculations, and display
-behavior remain unchanged. The current ownership inventory and evidence are in
+callback ABI, world grammar, pulse position, assignment and registry references, initialization
+order, calculations, and display behavior remain unchanged. The current ownership inventory and
+evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest

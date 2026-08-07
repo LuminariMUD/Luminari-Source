@@ -24,6 +24,7 @@
 #include "spec/spec_effective_binding.h"
 #include "spec_procs.h"
 #include "vessels/vessels.h"
+#include "vessels/vessels_moving_rooms.h"
 
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,

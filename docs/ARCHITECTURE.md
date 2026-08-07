@@ -54,7 +54,9 @@ the
 Phase 03 is moving unchanged legacy callbacks to coherent owners:
 `src/spec/spec_objects.c` contains the audited general object procedures, while
 `src/vessels/vessels_legacy.c` contains legacy route, ferry, and Greyhawk ship
-behavior. Player shops, commerce, crafting molds, vampire-cloak customization,
+behavior. `src/vessels/vessels_moving_rooms.c` owns legacy world `M` loading, the
+moving-room runtime list and pulse scheduler, relocation helpers, and callback.
+Player shops, commerce, crafting molds, vampire-cloak customization,
 quest reward replacement, and the Neverwinter puzzle now live with their feature owners.
 Character ability calculation and skill listing/training now live in
 `src/character/abilities.c` and `src/character/skill_lists.c`; spell sorting and

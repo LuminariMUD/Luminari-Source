@@ -112,6 +112,7 @@
 #include "wilderness/terrain_bridge.h" /* Terrain bridge API server */
 #include "net/i3_client.h"             /* Intermud3 client */
 #include "vessels/vessels.h"           /* Vessel persistence */
+#include "vessels/vessels_moving_rooms.h"
 #include "asciimap.h"
 #include "obj/spec_artifacts.h"
 
@@ -204,7 +205,6 @@ void check_auto_happy_hour(void);
 void regen_psp(void);
 void process_walkto_actions(void);
 void self_buffing(void);
-void moving_rooms_update(void);
 void recharge_activated_items(void);
 void check_thirty_seconds(void);
 void craft_update(void);
