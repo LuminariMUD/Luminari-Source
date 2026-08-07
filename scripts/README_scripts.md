@@ -1,4 +1,4 @@
-# Project scripts
+# Project Scripts
 
 Run commands from the project root unless a script says otherwise. Scripts resolve the
 project root from their own location where they need repository files.

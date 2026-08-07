@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
 Last Updated: 2026-08-07
-Version: 1.3
+Version: 1.4
 
 ## Documentation Overview
 
@@ -22,8 +22,12 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Essential First Steps
 - **[README.md](../README.md)** - Project overview, quick start, and essential information
+- **[onboarding.md](onboarding.md)** - Fresh-clone developer checklist
+- **[SETUP_AND_BUILD_GUIDE.md](guides/SETUP_AND_BUILD_GUIDE.md)** - Verified Autotools and CMake setup and build paths
 - **[LUMINARI_OVERVIEW.md](guides/LUMINARI_OVERVIEW.md)** - What LuminariMUD is: the world, its systems, and what makes it distinct (written for players and newcomers to MUDs)
+- **[deployment.md](deployment.md)** - CI/CD, release, managed-service, and rollback boundaries
 - **[DEPLOYMENT_GUIDE.md](deployment/DEPLOYMENT_GUIDE.md)** - Complete setup and deployment instructions
+- **[environments.md](environments.md)** - Development and production configuration boundaries
 - **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute to the project
 - **[CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)** - Community guidelines and expectations
 
@@ -37,7 +41,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Architecture & Core Systems
 
 ### System Architecture
-- **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Overall system design and module organization
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Verified system overview, component boundaries, and data flow
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
 - **[Special-Procedure Boot Control Plane](systems/CORE_SERVER_ARCHITECTURE.md#special-procedure-boot-control-plane)** - Definition, authored/effective binding, boot precedence, diagnostics, and compatibility boundaries
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures
@@ -49,6 +53,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[HELP_SYSTEM.md](systems/HELP_SYSTEM.md)** - Database-first help content, SQL migration, verification, and legacy import/export workflow
 
 ### Communication & Protocols
+- **[Operational API Contracts](api/README_api.md)** - Loopback readiness and liveness HTTP contract
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
 - **[MUDLET_GUI_PACKAGE.md](systems/MUDLET_GUI_PACKAGE.md)** - Mudlet GUI package
   identity, updates, and web deployment
@@ -108,6 +113,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Development Guides
 
 ### Core Development
+- **[development.md](development.md)** - Current daily commands, build gates, and source map
 - **[DEVELOPER_GUIDE_AND_API.md](guides/DEVELOPER_GUIDE_AND_API.md)** - Comprehensive developer reference
 - **[RESOURCE_SYSTEM_REFERENCE.md](guides/RESOURCE_SYSTEM_REFERENCE.md)** - Resource system player/admin reference
 - **[RESOURCE_REGENERATION_API.md](development/RESOURCE_REGENERATION_API.md)** - Resource regeneration API for developers
@@ -159,15 +165,16 @@ This master index provides a comprehensive guide to all technical documentation 
 ## Administration & Operations
 
 ### Admin Tools
-- **[Admin README](admin/README.md)** - Administration overview
-- **[FAQ.md](admin/FAQ.md)** - Frequently asked questions
+- **[Incident response](runbooks/incident-response.md)** - Source-backed diagnosis, containment, and recovery
+- **[Admin README](admin/README_admin.md)** - Legacy administration overview
+- **[FAQ.md](admin/FAQ.md)** - Legacy gameplay/administration FAQ; current operator commands are linked at its top
 
 ### Utilities
-- **[Utilities README](utilities/README.md)** - External utility programs
+- **[Utilities README](utilities/README_utilities.md)** - External utility programs
 
 ### Legal & Licensing
 - **[LICENSE](../LICENSE)** - Project licensing information
-- **[Legal README](legal/README.md)** - Legal considerations
+- **[Legal README](legal/README_legal.md)** - Legal considerations
 
 ---
 
@@ -179,7 +186,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CHANGELOG.md](CHANGELOG.md)** - Recent changes and updates
 
 ### Project Documents
-- **[Ongoing projects](ongoing-projects/)** -
+- **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
   Active work: artifact placement handoff, AI conversation history, SKORE
   phases 3-4, event-system merge, and in-game backlogs
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
@@ -200,16 +207,18 @@ This master index provides a comprehensive guide to all technical documentation 
 
 #### For New Developers
 1. README.md
-2. DEPLOYMENT_GUIDE.md
-3. DEVELOPER_GUIDE_AND_API.md
-4. ARCHITECTURE.md
-5. CONTRIBUTING.md
+2. onboarding.md
+3. SETUP_AND_BUILD_GUIDE.md
+4. development.md
+5. ARCHITECTURE.md
+6. CONTRIBUTING.md
 
 #### For System Administrators
-1. DEPLOYMENT_GUIDE.md
-2. DATABASE_INTEGRATION.md
-3. TROUBLESHOOTING_AND_MAINTENANCE.md
-4. PHP_TOOLS_README.md
+1. deployment.md
+2. DEPLOYMENT_GUIDE.md
+3. incident-response.md
+4. DATABASE_INTEGRATION.md
+5. TROUBLESHOOTING_AND_MAINTENANCE.md
 
 #### For Content Builders
 1. OLC_ONLINE_CREATION_SYSTEM.md
@@ -261,9 +270,10 @@ This master index provides a comprehensive guide to all technical documentation 
 4. **By Code**: Refer to DEVELOPER_GUIDE_AND_API.md
 
 ### Document Naming Convention
+- `README.md` - Root repository overview only
+- `README_<directory>.md` - Subdirectory overview documents
 - `*_SYSTEM.md` - System documentation
 - `*_GUIDE.md` - How-to guides
-- `*_README.md` - Overview documents
 - `*_TODO.md` - Planning documents
 - `*_TASK_LIST.md` - Work tracking
 
@@ -277,18 +287,13 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ## Notes
 
-### Recent Updates (2025)
-- Documentation reorganized into categorical directories
-- Removed redundant `/guides/` paths
-- Updated to reflect GNU C23 compliance
-- Added performance optimization documentation
-- Enhanced security documentation
+### Current Audit Boundary
 
-### Documentation Gaps
-- Need more examples in API documentation
-- Combat formulas need detailed breakdown
-- Scripting cookbook would be helpful
-- Video tutorials for OLC system
+The Phase 00 transition audit is recorded in
+`.spec_system/docs-audit.md`. It verifies the required project entry points,
+the special-procedure documentation delivered in Phase 00, and the operational
+health/deployment surface. Older subsystem documents remain independently
+maintained and must be retraced before behavioral edits.
 
 ### Contributing to Documentation
 1. Follow markdown best practices

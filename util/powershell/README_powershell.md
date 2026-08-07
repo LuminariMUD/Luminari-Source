@@ -1,4 +1,7 @@
-# Luminari-Source PowerShell utilities
+# Luminari-Source PowerShell Utilities
+
+> These helpers are optional host tooling; the supported server build runs in
+> Linux or a Linux-compatible environment.
 
 These scripts help contributors install, update, or remove a managed profile block that enables helpful defaults for this project across PowerShell hosts.
 

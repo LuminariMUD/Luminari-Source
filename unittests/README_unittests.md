@@ -1,4 +1,4 @@
-# LuminariMUD Unittests
+# LuminariMUD Unit Tests
 
 This directory contains the maintained automated tests for the server.
 

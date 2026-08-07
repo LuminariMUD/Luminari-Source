@@ -33,7 +33,7 @@ Every editor and listing command below is registered in `cmd_info[]`
 | `qedit` | Numbered quests | Uses a quest VNUM; see the [QST format](../world_game-data/QUEST_FILE_FORMAT.md) |
 | `hlqedit` | High-level quests | Uses an existing host mobile VNUM; see the [HLQ format](../world_game-data/HLQUEST_FILE_FORMAT.md) |
 | `hedit` | Help entries | Database-backed; see [HELP_SYSTEM.md](HELP_SYSTEM.md) |
-| `aedit` | Socials | `LVL_STAFF`. See [docs/utilities/README.md](../utilities/README.md) |
+| `aedit` | Socials | `LVL_STAFF`. See [utilities guide](../utilities/README_utilities.md) |
 | `iedit` | A live object instance | `LVL_STAFF`. Scripting is disabled in this mode |
 | `bedit` | Message boards | Database-backed; `blist` shows existing boards |
 

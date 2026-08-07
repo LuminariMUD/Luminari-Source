@@ -27,7 +27,7 @@ cd Luminari-Source
 ./bin/circle -d lib
 ```
 
-That's it! Connect to `localhost:4000` with any MUD client.
+That's it! Connect to `localhost:4100` with any MUD client.
 
 **What it does:** The script automatically sets up the database, initializes world data, copies config files, and builds the MUD. World initialization is enabled by default (required for the server to start).
 
@@ -74,7 +74,7 @@ You can connect using any MUD client:
 
 **Basic Connection:**
 - Host: `localhost` or `127.0.0.1`
-- Port: `4000` (default)
+- Port: `4100` (default)
 
 ### First Login
 1. Create your first character (automatically gets admin privileges)
@@ -208,7 +208,8 @@ Edit startup command:
 ```
 
 ### Database Setup (REQUIRED)
-See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-required) for MySQL/MariaDB setup details.
+See the [Database Initialization Guide](guides/DATABASE_INITIALIZATION_GUIDE.md)
+for MySQL/MariaDB setup details.
 
 ## Troubleshooting
 
@@ -217,7 +218,7 @@ See [Deployment Guide](deployment/DEPLOYMENT_GUIDE.md#database-configuration-req
 **Can't connect:**
 - Verify server is running: `ps aux | grep circle`
 - Check firewall settings
-- Try `telnet localhost 4000` to test
+- Try `telnet localhost 4100` to test
 
 **Build errors:**
 - Ensure all dependencies installed

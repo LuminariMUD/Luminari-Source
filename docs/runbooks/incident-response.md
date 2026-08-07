@@ -1,379 +1,190 @@
 # LuminariMUD Incident Response Runbook
 
-## Overview
+## Scope and Escalation
 
-This runbook provides procedures for responding to incidents affecting the LuminariMUD game server.
+This runbook contains repository-backed diagnosis and containment steps. The
+repository does not define an on-call roster, response-time SLA, maintenance
+window, or private security-reporting contact. Operators must use the approved
+organizational escalation path for the affected host and record those missing
+ownership details outside this codebase.
 
-## Severity Levels
+Preserve evidence before rebuilding, replacing binaries, mutating world data,
+or changing database state.
 
-| Level | Description | Response Time | Example |
-|-------|-------------|---------------|---------|
-| P0 | Complete server outage | Immediate | Server crashed, all players disconnected |
-| P1 | Major feature broken | < 1 hour | Combat system not working, login broken |
-| P2 | Minor feature broken | < 4 hours | Single command broken, cosmetic issues |
-| P3 | Minor/cosmetic | Next business day | Typo in message, minor display bug |
+## First Response
 
-## Contact Information
+1. Record detection time, symptoms, affected players/systems, current commit,
+   and the active executable identity.
+2. Check supervisor, process, liveness, and readiness separately.
+3. Preserve logs, `.autorun.state`, crash archives, relevant world files, and a
+   database backup before corrective writes.
+4. Prefer the normal systemd or autorun control path. Avoid broad process kills,
+   file deletion, or unrehearsed database rollback.
 
-| Role | Contact Method | Availability |
-|------|----------------|--------------|
-| Primary On-Call | Discord @oncall | 24/7 for P0/P1 |
-| Core Team | Discord #dev-team | Business hours |
-| Community Support | Discord #support | Best effort |
-
-## Common Incidents
-
-### Server Crash (P0)
-
-**Symptoms:**
-- All players disconnected
-- Cannot connect to port 4000
-- No response from server
-
-**Diagnosis:**
 ```bash
-# Compare the managed process with the installed immutable release
 ./scripts/autorun/autorun.sh status
-
-# Inspect the service and recent supervisor output
 sudo systemctl status luminari.service --no-pager
 sudo journalctl -u luminari.service -n 200 --no-pager
-
-# Distinguish process liveness from database-backed readiness
 curl -fsS http://127.0.0.1:8182/health/live
 ./scripts/operations/healthcheck.sh
-
-# Check the crash archive produced by autorun
-find dumps -maxdepth 2 -type f -print
 ```
 
-**Resolution:**
+Interpret the probes independently:
 
-Autorun normally restarts a crashed game. Preserve `.autorun.state`, the crash
-archive and identity sidecar, and the matching `bin/releases/<ELF-build-ID>/`
-directory before changing binaries. Do not replace the recorded executable or
-debug symbols before analysis.
+- Liveness failure means the initialized game loop is not serving the local
+  listener.
+- Liveness success with readiness failure means the loop is active but the
+  required MariaDB connection is unhealthy.
+- Both probes succeeding does not prove every gameplay subsystem is healthy;
+  continue with symptom-specific checks.
+
+## Server Crash or Failed Startup
+
+### Evidence
+
+Autorun writes current output to root `syslog`, rotates prior logs under
+`log/`, and stores crash evidence under `dumps/`. Preserve the matching
+`bin/releases/<ELF-build-ID>/` directory before installing another binary.
 
 ```bash
-# If the managed service did not recover, restart through systemd
-sudo systemctl restart luminari.service
-
-# Require the active and installed executable identities to agree
 ./scripts/autorun/autorun.sh status
+find dumps -maxdepth 2 -type f -print
+tail -200 syslog
+```
 
-# Require the game loop and MariaDB connection to be ready
+### Recovery
+
+Autorun normally restarts a crashed game. If the managed service did not
+recover and an operator has confirmed there is no competing supervisor:
+
+```bash
+sudo systemctl restart luminari.service
+./scripts/autorun/autorun.sh status
 ./scripts/operations/healthcheck.sh --wait
 ```
 
-**Post-Incident:**
-- Analyze a core only with the immutable executable and `circle.debug` recorded
-  for the crashed PID. Autorun places the selected executable identity and full
-  backtrace beside a captured core under `dumps/`.
-- Treat allocator diagnostics as detection points, not proof of the corrupting
-  write. Record confirmed facts separately from candidate causes when no usable
-  core or instrumented reproduction exists.
-- During a controlled maintenance window, run
-  `./scripts/debugging/verify_core_capture.sh --self-test`. Exit 0 is the required
-  end-to-end result; exit 2 means capture remains unverified on that host.
-- Follow the detailed
-  [crash guide](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md#server-crash-recovery)
-  and [deployment identity contract](../deployment/DEPLOYMENT_GUIDE.md).
-- Document the incident and create an issue for any confirmed code defect.
+Analyze a core only with the executable and `circle.debug` recorded for the
+crashed process. During a controlled maintenance window, the maintained capture
+self-test is:
 
----
-
-### Database Connection Lost (P1)
-
-**Symptoms:**
-- Players cannot save
-- New logins fail
-- Database-related errors in syslog
-
-**Diagnosis:**
 ```bash
-# Check MariaDB/MySQL service
-sudo systemctl status mariadb
-# or
-sudo systemctl status mysql
-
-# Check connection manually
-mysql -u luminari_mud -p luminari_mudprod -e "SELECT 1;"
-
-# Check recent database errors
-tail -50 /var/log/mysql/error.log
+./scripts/debugging/verify_core_capture.sh --self-test
 ```
 
-**Resolution:**
+Exit 0 verifies capture; exit 2 means the host remains unverified. Follow the
+[crash recovery guide](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md#logs-and-crash-evidence)
+for detailed analysis.
+
+## Database Readiness Failure
+
+### Diagnosis
+
 ```bash
-# 1. Restart database service
-sudo systemctl restart mariadb
+curl -fsS http://127.0.0.1:8182/health/live
+./scripts/operations/healthcheck.sh
+sudo systemctl status mariadb --no-pager
+sudo journalctl -u mariadb -n 200 --no-pager
+```
 
-# 2. If needed, restart MUD server to reconnect
-# (send shutdown command in-game first if possible)
+If liveness succeeds and readiness returns 503, focus on MariaDB availability,
+the local `lib/mysql_config`, permissions, capacity, and database logs. Do not
+paste credentials into tickets, chat, or command output.
 
-# 3. Verify connection restored
+### Recovery
+
+After the database fault is corrected, require readiness before reopening or
+declaring recovery:
+
+```bash
 ./scripts/operations/healthcheck.sh --wait
 ```
 
-**Post-Incident:**
-- Review database logs for root cause
-- Check disk space if corruption suspected
-- Verify all player data saved correctly
+Restart the MUD only when the application did not reconnect or the approved
+maintenance plan requires it.
 
----
+## Port Conflict
 
-### Memory Leak (P1/P2)
+Check both the game port (default 4100) and loopback health port (default 8182):
 
-**Symptoms:**
-- Server becomes slow over time
-- High memory usage in `top`
-- Eventually crashes
-
-**Diagnosis:**
 ```bash
-# Check current memory usage
-ps aux | grep circle
-
-# Monitor over time
-watch -n 60 'ps aux | grep circle'
-
-# If possible, run with Valgrind
-valgrind --leak-check=full ./bin/circle -d lib
+sudo lsof -i :4100
+sudo lsof -i :8182
+./scripts/autorun/autorun.sh status
 ```
 
-**Resolution:**
-```bash
-# 1. Schedule server restart during low-activity period
-# 2. Notify players of planned restart
-# 3. Execute controlled shutdown in-game:
-#    shutdown 5 Scheduled restart for maintenance
+Resolve the owner before stopping anything. Use
+`sudo systemctl stop luminari.service` for the managed service or
+`./scripts/autorun/autorun.sh stop` for an unmanaged supervisor. A direct local
+server can use another final positional game port; the health listener uses
+`TERRAIN_API_PORT` and requires a matching `LUMINARI_HEALTH_URL` for probes.
 
-# 4. Restart server
-./bin/circle -d lib &
+## High Memory or CPU
+
+Record the process identity and sample the live process before restart:
+
+```bash
+./scripts/autorun/autorun.sh status
+ps -o pid,ppid,etime,%cpu,%mem,rss,vsz,cmd -C circle
+./scripts/process-memory/sample_process_memory_details.sh --header
 ```
 
-**Post-Incident:**
-- Identify leak source using Valgrind
-- Create GitHub issue with Valgrind output
-- Prioritize fix based on severity
+Use a controlled maintenance restart for containment. Reproduce suspected
+memory defects in development with the maintained sanitizer or Valgrind gates;
+do not attach an intrusive debugger to production without approval.
+The sampler accepts `--sample <pid> <label>` after the process identity has
+been verified.
 
----
+## World or Content Boot Failure
 
-### High CPU Usage (P2)
+Preserve the failing file and log output. Validate a copied or development
+world tree with the read-only world tool before changing production content:
 
-**Symptoms:**
-- Server lag reported by players
-- High CPU in `top`
-- Slow command response
-
-**Diagnosis:**
 ```bash
-# Check CPU usage
-top -p $(pgrep circle)
-
-# Check for infinite loops in logs
-tail -f lib/log/syslog | grep -i "loop\|hang\|stuck"
-
-# Check connected player count
-# (high player count = normal high CPU)
+python scripts/world/wtool.py --help
 ```
 
-**Resolution:**
+Do not rename, delete, or overwrite a production world file merely to bypass a
+parser failure. Restore only from an identified backup and validate references
+before restart.
+
+## Vessel Incident
+
+For vessel command failure, persistence mismatch, room pressure, or tick
+latency, preserve syslog, application identity, `shiplist` output, and a
+database backup. Confirm the checkout marker without printing credentials:
+
 ```bash
-# 1. If caused by specific player/room, investigate
-# 2. If general overload, consider:
-#    - Reducing max connections temporarily
-#    - Disabling resource-intensive features
-
-# 3. If runaway process, controlled restart:
-shutdown 2 Emergency maintenance restart
-```
-
----
-
-### Port Already in Use (P2)
-
-**Symptoms:**
-- Server won't start
-- "Address already in use" error
-
-**Diagnosis:**
-```bash
-# Find what's using the port
-netstat -tulpn | grep :4000
-lsof -i :4000
-```
-
-**Resolution:**
-```bash
-# 1. If old server process, kill it
-kill -9 $(lsof -t -i:4000)
-
-# 2. If another service, change port
-./bin/circle -p 4001 -d lib
-
-# 3. Restart server
-./bin/circle -d lib &
-```
-
----
-
-### Corrupted World File (P2)
-
-**Symptoms:**
-- Server crashes on boot
-- Specific zone fails to load
-- "Error loading zone" in syslog
-
-**Diagnosis:**
-```bash
-# Check recent syslog
-grep -i "error\|corrupt\|fail" lib/log/syslog | tail -50
-
-# Identify affected zone file
-# Look for last successful zone load
-```
-
-**Resolution:**
-```bash
-# 1. Restore from backup
-cp lib/world/backup/<zonefile>.wld lib/world/wld/
-
-# 2. If no backup, disable zone temporarily
-mv lib/world/wld/<problem>.wld lib/world/wld/<problem>.wld.disabled
-
-# 3. Restart server
-./bin/circle -d lib &
-```
-
-**Post-Incident:**
-- Investigate cause of corruption
-- Restore zone from backup or rebuild
-- Re-enable zone after fix
-
----
-
-### Vessel System Issue (P2/P3)
-
-**Symptoms:**
-- Vessel commands not working
-- Vessels stuck at coordinates
-- Interior room issues
-- Vessel tick latency above 25 ms
-- Wilderness dynamic-room pressure above the operational threshold
-- Missing ownership, cargo, crew, route, or schedule state after restart
-
-**Diagnosis:**
-```bash
-# Check vessel-related errors
-rg -i "vessel|ship|greyhawk" lib/log/syslog | tail -50
-
-# Check the configured environment without printing credentials
 rg '^APP_ENV=' lib/.env
 ```
 
-In game, use `shiplist` to record fleet state, positions, owners, and
-dynamic-room utilization. Use the approved MySQL client configuration to run
-the verification scripts listed in
-[VESSEL_SCHEMA_DEPLOYMENT.md](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md). Compare
-affected records with the most recent property census or backup.
+Use the cedit vessel option for containment when the behavior is understood;
+do not purge ships, reuse fleet slots, edit ownership rows, or apply a schema
+rollback to hide symptoms. Recovery and validation are defined in the
+[vessel testing guide](../testing/VESSEL_SYSTEM_TESTING.md),
+[vessel schema deployment guide](../deployment/VESSEL_SCHEMA_DEPLOYMENT.md),
+and [vessel requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
 
-**Containment:**
+## Post-Incident Record
 
-- Preserve syslog, the application revision, `shiplist` output, and a database
-  incident backup before changing vessel state.
-- Set the cedit vessel option to `Off`. Confirm a gated command reports that the
-  system is disabled, an active ship's coordinates remain fixed, and
-  `shiplist` is still available. If any check fails, use the rehearsed
-  maintenance stop or application rollback instead.
-- Do not purge ships, reuse fleet slots, edit ownership rows, or run a phase
-  rollback merely to clear symptoms. Those actions can destroy player
-  property or evidence.
-- Escalate immediately for data loss, fleet-slot identity disagreement,
-  sustained tick overruns, room-pool exhaustion, or failed recovery.
+Record:
 
-**Recovery:**
+- detection, containment, recovery, and verification times;
+- symptoms and confirmed scope;
+- active commit and immutable executable identity;
+- preserved logs, crash artifacts, world files, and database backup identity;
+- commands and changes performed;
+- confirmed cause versus unresolved hypotheses;
+- follow-up owner, test, documentation, and rollout action.
 
-1. Correct or roll back the application fault while writes remain stopped.
-2. Restore or migrate the database using the rehearsed schema runbook.
-3. Compare ownership, interiors, cargo, crew, routes, and schedules with the
-   pre-incident census.
-4. Run the affected sections of
-   [VESSEL_SYSTEM_TESTING.md](../testing/VESSEL_SYSTEM_TESTING.md), including
-   reboot or copyover when persistence was involved.
-5. Reopen first to staff, observe logs and tick/room metrics, and expand access
-   only after state remains stable.
+Create a tracked issue for confirmed code or operational defects without
+including credentials, player data, raw production database content, or other
+sensitive evidence.
 
-Current vessel release state and owned exit conditions are maintained in
-[Vessel System Product Requirements](../product-requirements/VESSEL_SYSTEM_REQUIREMENTS.md).
+## References
 
----
+- [Deployment guide](../deployment/DEPLOYMENT_GUIDE.md)
+- [Health API contract](../api/README_api.md)
+- [Environment boundaries](../environments.md)
+- [Troubleshooting and maintenance](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
 
-## Escalation Procedures
-
-### When to Escalate
-
-| Situation | Escalate To |
-|-----------|-------------|
-| P0 not resolved in 15 minutes | Core Team Lead |
-| P1 not resolved in 1 hour | Core Team |
-| Security incident | Core Team + Server Admin |
-| Data loss confirmed | Core Team + Database Lead |
-
-### Escalation Process
-
-1. Document current status and actions taken
-2. Contact appropriate person via Discord DM
-3. Provide incident summary:
-   - When it started
-   - What symptoms observed
-   - What actions attempted
-   - Current status
-
-## Post-Incident Review
-
-After any P0 or P1 incident:
-
-1. **Document Timeline**
-   - When detected
-   - When responded
-   - When resolved
-   - Total downtime
-
-2. **Root Cause Analysis**
-   - What caused the incident
-   - Why it wasn't prevented
-   - Contributing factors
-
-3. **Action Items**
-   - Preventive measures
-   - Monitoring improvements
-   - Documentation updates
-
-4. **Create GitHub Issue**
-   - Tag as `incident-review`
-   - Link to any related bugs
-   - Track action items
-
-## Maintenance Windows
-
-Regular maintenance windows for non-emergency work:
-
-| Day | Time (UTC) | Duration | Activities |
-|-----|------------|----------|------------|
-| Sunday | 06:00 | 2 hours | Database maintenance, backups |
-| As needed | (announced) | Varies | Deployments, upgrades |
-
-### Scheduled Maintenance Procedure
-
-1. Announce 24 hours in advance on Discord
-2. Remind 1 hour before
-3. Final warning 10 minutes before
-4. Execute maintenance
-5. Verify server healthy
-6. Announce completion
-
----
-
-*Last Updated: 2025-12-30*
-*Review Frequency: Quarterly*
+Last updated: 2026-08-07

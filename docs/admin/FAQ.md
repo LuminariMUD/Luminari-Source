@@ -1,5 +1,9 @@
 # Luminari MUD Frequently Asked Questions (FAQ)
 
+> This legacy FAQ has not received the current source-backed command audit.
+> Use `docs/onboarding.md`, `docs/deployment.md`, and
+> `docs/runbooks/incident-response.md` for setup and operator procedures.
+
 ## Table of Contents
 
 1. [Introduction](#introduction)

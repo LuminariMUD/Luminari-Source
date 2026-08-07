@@ -1,0 +1,62 @@
+# Architecture
+
+## System Overview
+
+LuminariMUD is one GNU C23 server process built on tbaMUD/CircleMUD. Its
+single-threaded `select()` loop owns network I/O, heartbeat scheduling, command
+dispatch, and game-state mutation. MariaDB/MySQL is a required runtime
+dependency; flat files remain the authored world-data source.
+
+The detailed source of truth is the
+[core server architecture](systems/CORE_SERVER_ARCHITECTURE.md). Individual
+subsystems are indexed in the
+[technical documentation master index](TECHNICAL_DOCUMENTATION_MASTER_INDEX.md).
+
+## Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Game loop and networking | `src/comm.c`, `src/net/` | Connections, protocol handling, heartbeats, and shutdown |
+| Command dispatch | `src/interpreter.c`, `src/act.*.c`, feature directories | Command parsing, authorization, and behavior |
+| World boot and persistence | `src/db.c`, `src/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |
+| Core data and mutation | `src/structs.h`, `src/utils.h`, `src/handler.c` | Shared structures, macros, and object/character lifecycle |
+| Game systems | `src/combat/`, `src/magic/`, `src/character/`, `src/obj/` | Combat, spells and skills, characters, items, shops, and trade |
+| Content behavior | `src/dgscript/`, `src/spec/`, `src/spec_procs.c` | DG Scripts and special-procedure control/runtime compatibility |
+| Online creation | `src/olc/` | In-game room, mobile, object, zone, and related editors |
+| Wilderness and transport | `src/wilderness/`, `src/vessels/`, `src/movement/` | Overworld, spatial support, vessels, vehicles, and movement |
+| Operations | `scripts/autorun/`, `scripts/deployment/`, `scripts/operations/` | Supervision, immutable installation, deployment, and readiness |
+
+## Data and Dependency Flow
+
+```text
+client -> comm.c -> interpreter.c -> command/game subsystem -> shared game state
+                          |
+                          `-> DG Script or special procedure when configured
+
+lib/world/* -> db.c -> in-memory rooms, mobiles, objects, zones, shops, triggers
+MariaDB <-> mysql.c and subsystem persistence <-> accounts and runtime data
+```
+
+World boot validates special-procedure definitions before parsing world files.
+Definitions, exact authored binding intent, and ordered effective boot
+provenance are separate state layers; the existing callback slot remains the
+runtime dispatch authority until later gateway phases are implemented. See the
+[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
+
+## Operational Boundary
+
+The existing Terrain API listener shares the main game loop and binds only to
+loopback. It exposes readiness and liveness routes for systemd and local
+operators. See the [operational API contract](api/README_api.md) and
+[incident runbook](runbooks/incident-response.md).
+
+## Build Boundaries
+
+Autotools is the preferred incremental build and CMake is supported. Source
+membership must remain synchronized in `Makefile.am` and `CMakeLists.txt`.
+Production-linked regression tests compile against the real server sources;
+the required root gate is `make test` followed by `make install`.
+
+Architectural decisions with long-term tradeoffs belong in [ADRs](adr/).
+Planned behavior remains in `.spec_system/PRD/PRD.md`, not in this current-state
+reference.

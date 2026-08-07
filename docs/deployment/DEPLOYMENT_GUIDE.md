@@ -1,487 +1,234 @@
 # LuminariMUD Deployment Guide
 
-## Overview
+## Scope
 
-LuminariMUD is a comprehensive MUD codebase implementing Pathfinder/D&D 3.5 mechanics. This guide covers the complete deployment process from source code to running server.
+This guide covers a fresh local installation, an existing development build,
+and the repository-managed systemd service. MariaDB/MySQL and world data are
+required; the server will not run without them.
 
-**Important**: This is a substantial deployment process for a complex C-based MUD server. Expect the initial setup to take 15-30 minutes depending on your system and experience level.
+Production changes require an approved release and operator action. A
+development checkout must not modify or restart production.
 
----
+## Requirements
 
-## System Requirements
+- Linux or a Linux-compatible environment such as Ubuntu under WSL2
+- GCC 13+ or Clang 18+ with GNU C23 support
+- GNU Autotools; CMake 3.21+ is supported as a secondary build
+- MariaDB/MySQL server and development headers
+- crypt, GD, curl, OpenSSL, pthread, and json-c development libraries
+- `curl` on a managed host for the systemd readiness probe
 
-### Minimum Requirements
-- **Operating System**: Linux (Ubuntu 18.04+, CentOS 7+, Debian 9+) or Unix-like system
-- **Memory**: 512MB RAM (2GB+ recommended for production)
-- **Storage**: 1GB+ free disk space
-- **Network**: TCP/IP networking capability
-- **Compiler**: GCC 13+ or Clang 18+ with GNU C23 support (`gnu2x` is accepted
-  as GCC's legacy flag spelling only when the C23 feature probe passes)
-
-### Recommended Requirements
-- **Operating System**: Ubuntu 20.04+ LTS or CentOS 8+
-- **Memory**: 4GB+ RAM for development, 2GB+ for production
-- **Storage**: 5GB+ free disk space
-- **Compiler**: GCC 13+ or Clang 18+
-- **Build System**: GNU Autotools (automake, autoconf)
-- **Database**: MariaDB 10.3+ (optional but recommended)
-
----
-
-## Dependencies Installation
-
-### Ubuntu/Debian (including WSL2)
+Ubuntu, Debian, and WSL2 packages:
 
 ```bash
-# Update package list
 sudo apt-get update
-
-# Install REQUIRED build dependencies
-sudo apt-get install -y build-essential git make autoconf automake
-
-# Optional but recommended dependencies
-sudo apt-get install -y libcrypt-dev libgd-dev libmariadb-dev \
-                        libcurl4-openssl-dev libssl-dev mariadb-server \
-                        pkg-config libjson-c-dev
-
-# For debugging (recommended)
-sudo apt-get install -y gdb valgrind
-
-# If encountering line ending issues
-sudo apt-get install -y dos2unix
+sudo apt-get install -y build-essential git make autoconf automake libtool \
+  cmake pkg-config mariadb-server libmariadb-dev libcrypt-dev libgd-dev \
+  libcurl4-openssl-dev libssl-dev libjson-c-dev gdb valgrind
 ```
 
-### CentOS/RHEL/Fedora
+## Fresh Install
+
+The preferred path is the repository deployment script:
 
 ```bash
-# For CentOS 7/RHEL 7
-sudo yum install -y gcc make git autoconf automake
-
-# For CentOS 8+/RHEL 8+/Fedora
-sudo dnf install -y gcc make git autoconf automake
-
-# Optional but recommended
-sudo dnf install -y mariadb-server mariadb-devel gd-devel \
-                    libcrypt-devel libtool json-c-devel
-```
-
----
-
-## Deployment Process
-
-### Method 1: Automated Deployment Script (Recommended)
-
-The deployment script handles all necessary steps automatically:
-
-```bash
-# Clone the repository
 git clone https://github.com/LuminariMUD/Luminari-Source.git
 cd Luminari-Source
-
-# Run the deployment script (handles everything)
-# Note: You'll be prompted for MySQL root password during setup
 ./scripts/deployment/deploy.sh
-
-# Start the server
-./bin/circle -d lib
 ```
 
-The deployment script automatically performs:
-- Installs dependencies (if needed)
-- Generates the build system (autoreconf + configure - autotools preferred)
-- Copies required configuration files (.example.h -> .h)
-- Builds the entire codebase
-- Installs binaries to bin/
-- Sets up and configures MariaDB database (REQUIRED)
-- Creates database and runs initialization
-- **Initializes minimal world data (zones, rooms, mobs, objects) - enabled by default**
-- Creates required symlinks
-- Creates necessary directories
+It installs missing dependencies, copies only missing local configuration from
+tracked examples, provisions MariaDB, initializes minimal world data, configures
+Autotools, builds, and installs `bin/circle`.
 
-**Note:** World initialization is ON by default. Use `--no-init-world` only if you have custom world files.
+Verified options from `./scripts/deployment/deploy.sh --help`:
 
-### Method 2: Deploy Script with Custom Options
-
-For more control over the deployment process:
-
-```bash
-# Clone the repository
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-
-# Generate build system first (optional - deploy.sh will do this)
-autoreconf -fvi
-
-# Run deployment with custom options
-./scripts/deployment/deploy.sh --auto  # Skip prompts where possible
-
-# Or for development build
-./scripts/deployment/deploy.sh --dev   # Includes debug symbols
-
-# Start the server
-./bin/circle -d lib
-```
-
-Deploy script options:
-| Option | Description |
-|--------|-------------|
-| `--auto` | Skip prompts where possible (still prompts for MySQL root password) |
-| `--no-init-world` | Skip world initialization (only if you have custom world files) |
-| `--skip-db` | Skip database setup (NOT RECOMMENDED - database is required) |
+| Option | Behavior |
+|--------|----------|
+| `--auto` | Use defaults without prompts |
+| `--dev` | Development build with debugging tools |
+| `--prod` | Optimized production build |
 | `--skip-deps` | Skip dependency installation |
-| `--dev` | Development build with debug symbols |
-| `--prod` | Production optimized build |
-| `-h, --help` | Show help message |
+| `--skip-db` | Skip database setup; the server still requires a configured database |
+| `--init-world` | Initialize minimal world data; enabled by default |
+| `--no-init-world` | Preserve an existing custom world instead of initializing one |
+| `--install-systemd` | Install/update the canonical unit and reload systemd |
+| `--restart-service` | Restart after unit installation; requires `--install-systemd` |
 
-**Note:** World initialization is enabled by default. The server requires world data to start.
+The script writes generated database credentials to `lib/mysql_config` with
+mode 600. Treat its terminal output and that file as sensitive.
 
-Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and executes the in-engine database initializer (equivalent to running `db_init_system all`). This ensures every required table and stored procedure exists, including wilderness resources, region hints, vessels, and PubSub, without touching external `.sql` scripts. If you have custom data to seed, add it through the game or your own migrations after the initializer completes.
+## Existing Development Checkout
 
-The generated credentials are written to `lib/mysql_config` (owned by the invoking user, mode 600) so the game can authenticate automatically. Re-running the deploy script refreshes credentials and reapplies the schema safely.
+Autotools is preferred for incremental work:
 
-### Method 3: Manual Deployment (Advanced Users Only)
-
-For complete control over each step:
-
-#### 1. Clone Repository
 ```bash
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-```
-
-#### 2. Generate Build System
-```bash
-# Generate configure script and Makefiles
-autoreconf -fvi
-```
-
-#### 3. Copy Configuration Files
-```bash
-# Required for compilation
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
-```
-
-#### 4. Configure and Build
-```bash
-# Configure the build
-./configure
-
-# Clean any previous builds
 make clean
-
-# Build using all available cores
-make -j$(nproc)
-
-# Install an immutable build-ID release and activate bin/circle
+make -j"$(nproc)"
+make test
 make install
 ```
 
-`make install` does not overwrite the bytes of a running executable. It keeps
-each server and its matching `circle.debug` file under
-`bin/releases/<ELF-build-ID>/`, then atomically points `bin/circle` at the new
-release. Existing releases are retained for core analysis. The first upgrade
-from a legacy regular `bin/circle` must be performed while that legacy process
-is stopped; installation refuses to unlink a live legacy executable.
+If generated build files are missing:
 
-Use the managed service deployment path when updating a running server so the
-new launch alias and active process are brought back into agreement:
+```bash
+autoreconf -fvi
+./configure
+make -j"$(nproc)"
+make test
+make install
+```
+
+The [setup and build guide](../guides/SETUP_AND_BUILD_GUIDE.md) documents fresh
+manual configuration and the CMake path.
+
+## Configuration Boundaries
+
+The following real files are local and protected:
+
+- `src/campaign.h`, `src/mud_options.h`, and `src/vnums.h`
+- `lib/mysql_config` and `lib/.env`
+
+Their tracked examples are `src/*.example.h`, `lib/mysql_config_example`, and
+`lib/.env_example`. Copy an example only on a fresh clone when the real file is
+absent. Never commit credentials or replace an existing local configuration.
+
+For manual database creation and schema initialization, use the
+[database initialization guide](../guides/DATABASE_INITIALIZATION_GUIDE.md).
+
+## Immutable Installation
+
+`make install` stores the executable and matching debug file under
+`bin/releases/<ELF-build-ID>/`, then atomically points `bin/circle` at the new
+release. Existing releases remain available for crash analysis. Installation
+refuses to replace a live legacy regular `bin/circle` during the first upgrade.
+
+After testing, verify the installed identity and absence of a root artifact:
+
+```bash
+./bin/circle --build-info
+test ! -e ./circle
+```
+
+## Direct Runtime
+
+Start the server against the repository runtime tree:
+
+```bash
+./bin/circle -d lib
+```
+
+The checked-in runtime configuration defaults to game port 4100. Supply a
+different port as the final positional argument when required:
+
+```bash
+./bin/circle -d lib 4200
+```
+
+Use direct startup for local development. For a supervised local process:
+
+```bash
+./scripts/autorun/autorun.sh
+./scripts/autorun/autorun.sh status
+./scripts/autorun/autorun.sh stop
+```
+
+## Managed systemd Service
+
+The canonical `luminari.service` starts autorun, tracks the supervisor PID, and
+runs a bounded readiness check after startup. On an approved host:
 
 ```bash
 ./scripts/deployment/deploy.sh --install-systemd --restart-service
+./scripts/autorun/autorun.sh status
+./scripts/operations/healthcheck.sh
 ```
 
-That command reports success only after systemd has a supervisor `MainPID` and
-`.autorun.state` proves the managed game PID is running the same resolved
-executable and ELF build ID as the installed alias. Inspect the same identity
-without changing service state with:
+The deployment command succeeds only when systemd and `.autorun.state` agree
+with the active immutable executable identity. If systemd is inactive while an
+unmanaged autorun is already active, stop that instance before installing the
+managed unit.
+
+Common service commands:
 
 ```bash
-./scripts/autorun/autorun.sh status
+sudo systemctl status luminari.service --no-pager
+sudo journalctl -u luminari.service -n 200 --no-pager
+sudo systemctl restart luminari.service
 ```
 
-The canonical systemd unit also runs a bounded readiness probe after startup.
-The MUD serves the probe on the loopback-only Terrain API listener, so it is
-not exposed to game clients or the public network. Verify it directly with:
+## Readiness and Liveness
+
+The loopback Terrain API listener defaults to port 8182:
 
 ```bash
 ./scripts/operations/healthcheck.sh
 curl -fsS http://127.0.0.1:8182/health/live
 ```
 
-`/health` and `/health/ready` return HTTP 200 only after the game loop and its
-required MariaDB connection are ready. `/health/live` checks the initialized
-game loop without querying MariaDB. Set `TERRAIN_API_PORT` and the matching
-`LUMINARI_HEALTH_URL` in the service environment when port 8182 is unavailable.
+`/health` and `/health/ready` require both the initialized game loop and
+MariaDB. `/health/live` does not query MariaDB. When the listener port changes,
+set both `TERRAIN_API_PORT` and the matching `LUMINARI_HEALTH_URL`. See the
+[health API contract](../api/README_api.md).
 
-#### 5. Create Required Symlinks
-```bash
-# The MUD expects these in the root directory
-ln -sf lib/world world
-ln -sf lib/text text
-ln -sf lib/etc etc
-```
+## Rollback Boundary
 
-#### 6. Set Up World Files
-```bash
-# Create world directories
-mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
+The repository does not implement one general application rollback command.
+Before a production change, preserve the current immutable release identity,
+database backup, world data, and service state. Use the approved host procedure
+to reactivate a prior release, and use only subsystem rollback scripts whose
+deployment guides specify their order and validation.
 
-# Copy minimal world files
-for dir in zon wld mob obj shp trg qst; do
-    if [ -f lib/world/minimal/index.${dir} ]; then
-        cp lib/world/minimal/index.${dir} lib/world/${dir}/index
-    else
-        echo '$' > lib/world/${dir}/index
-    fi
-    cp lib/world/minimal/*.${dir} lib/world/${dir}/ 2>/dev/null || true
-done
-
-# Create HLQ index
-echo '$' > lib/world/hlq/index
-```
-
-#### 7. Create Text Files
-```bash
-# Create directories
-mkdir -p lib/text/help lib/etc
-
-# Create required text files
-echo "Welcome to LuminariMUD!" > lib/text/news
-echo "LuminariMUD Credits" > lib/text/credits
-echo "Message of the Day" > lib/text/motd
-echo "Immortal MOTD" > lib/text/imotd
-echo "Help" > lib/text/help/help
-echo "Immortal Help" > lib/text/help/ihelp
-echo "Info" > lib/text/info
-echo "Wizard List" > lib/text/wizlist
-echo "Immortal List" > lib/text/immlist
-echo "Policies" > lib/text/policies
-echo "Handbook" > lib/text/handbook
-echo "Background" > lib/text/background
-echo "Welcome!" > lib/text/greetings
-
-# Create help index
-echo '$' > lib/text/help/index
-
-# Create minimal config
-echo "# LuminariMUD Configuration" > lib/etc/config
-```
-
-#### 8. Create Required Directories
-```bash
-mkdir -p lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-mkdir -p lib/house
-mkdir -p lib/mudmail
-mkdir -p log
-```
-
-#### 9. Start the Server
-```bash
-./bin/circle -d lib
-```
-
----
-
-## Database Configuration (REQUIRED)
-
-MySQL/MariaDB is **required** for LuminariMUD to function properly. The database provides essential persistent storage for player data, world state, wilderness systems, and many core game features.
-
-### Setting Up MySQL/MariaDB
-
-#### 1. Install and Start Database
-```bash
-# Ubuntu/Debian
-sudo apt-get install mariadb-server
-sudo systemctl start mariadb
-sudo systemctl enable mariadb
-
-# Secure the installation
-sudo mysql_secure_installation
-```
-
-#### 2. Create Database and User
-```bash
-mysql -u root -p
-
-CREATE DATABASE luminari CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'luminari'@'localhost' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON luminari.* TO 'luminari'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-#### 3. Configure Connection
-```bash
-# Create configuration file
-cat > lib/mysql_config << EOF
-mysql_host = localhost
-mysql_database = luminari
-mysql_username = luminari
-mysql_password = your_secure_password
-EOF
-
-# Set secure permissions
-chmod 600 lib/mysql_config
-```
-
----
-
-## Running the Server
-
-### Using the Autorun Script (Recommended for Production)
-```bash
-# Start with auto-restart on crash
-./autorun
-
-# Run in background
-nohup ./autorun &
-```
-
-### Direct Startup
-```bash
-# Start on default port (4000)
-./bin/circle -d lib
-
-# Start on specific port
-./bin/circle -q 5000 -d lib
-
-# Run in background
-nohup ./bin/circle -d lib > log/server.log 2>&1 &
-```
-
-### Using Screen/Tmux (Recommended for Remote Servers)
-```bash
-# Using screen
-screen -S luminari
-./bin/circle -d lib
-# Detach: Ctrl+A then D
-# Reattach: screen -r luminari
-
-# Using tmux
-tmux new -s luminari
-./bin/circle -d lib
-# Detach: Ctrl+B then D
-# Reattach: tmux attach -t luminari
-```
-
-### Server Management
-```bash
-# Check if running
-ps aux | grep circle
-
-# View logs
-tail -f log/syslog
-
-# Stop autorun script
-touch .killscript
-
-# Pause autorun temporarily
-touch pause
-```
-
----
+Never improvise a rollback by deleting `bin/releases/`, overwriting a running
+executable, or applying database scripts without their component runbook.
 
 ## Troubleshooting
 
-### Common Issues
+### Build Configuration Missing
 
-#### Build Fails - Missing Configuration Files
 ```bash
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
-```
-
-#### Build Fails - No Makefile
-```bash
-# Generate build system first
 autoreconf -fvi
 ./configure
 ```
 
-#### Binary Not in bin/ Directory
+### Installed Binary Missing
+
 ```bash
-# Must run make install after building
 make install
+test -x ./bin/circle
 ```
 
-#### Windows Line Endings (CRLF) Errors
+### Database Unavailable
+
 ```bash
-# Fix line endings
-sudo apt-get install dos2unix
-dos2unix configure autorun
-find . -name "*.sh" -exec dos2unix {} \;
+sudo systemctl status mariadb --no-pager
+./scripts/operations/healthcheck.sh
 ```
 
-#### MUD Won't Start - Missing World Files
+Review `lib/mysql_config` without copying its values into logs or issue text.
+
+### Port Already in Use
+
 ```bash
-# ERROR: opening index file 'world/zon/index': No such file or directory
-# CAUSE: Missing world data - you MUST use --init-world or provide custom world
-
-# SOLUTION: Re-run deployment with --init-world
-./scripts/deployment/deploy.sh --auto --init-world
-
-# OR create required symlinks if they're missing
-ln -sf lib/world world
-ln -sf lib/text text
-ln -sf lib/etc etc
+sudo lsof -i :4100
+./scripts/autorun/autorun.sh status
 ```
 
-#### Port Already in Use
-```bash
-# Find what's using port 4000
-sudo lsof -i :4000
+Stop the owning service or supervisor through its normal control command; do
+not send an unconditional `SIGKILL` to an unresolved PID.
 
-# Kill the process
-kill -9 [PID]
+### Crash or Failed Startup
 
-# Or use a different port
-./bin/circle -q 5000 -d lib
-```
+Follow the [incident response runbook](../runbooks/incident-response.md) and
+[troubleshooting guide](../guides/TROUBLESHOOTING_AND_MAINTENANCE.md). Preserve
+the crash archive and its matching immutable executable before rebuilding.
 
-#### MySQL Connection Fails
-- Verify service is running: `sudo systemctl status mariadb`
-- Check credentials in `lib/mysql_config`
-- Test connection: `mysql -u luminari -p luminari`
-- **The database is REQUIRED** - you must fix connection issues for the MUD to function properly
+## Related Documentation
 
----
+- [Deployment and CI/CD overview](../deployment.md)
+- [Environment boundaries](../environments.md)
+- [Database deployment](DATABASE_DEPLOYMENT_GUIDE.md)
+- [Testing guide](../guides/TESTING_GUIDE.md)
+- [Incident response](../runbooks/incident-response.md)
 
-## Post-Deployment
-
-After successful deployment:
-
-1. **Connect to the MUD**: Use any MUD client to connect to `localhost:4000`
-2. **Create Admin Character**: The first character created gets admin privileges
-3. **Review Documentation**:
-   - [Getting Started](../GETTING_STARTED.md) - Player and builder basics
-   - [Developer Guide](../guides/DEVELOPER_GUIDE_AND_API.md) - For code development
-   - [Database Guide](DATABASE_DEPLOYMENT_GUIDE.md) - Database details
-4. **Start Building**: Use OLC (Online Creation) commands to build your world
-
----
-
-## Known Issues
-
-### Minor Issues (Non-blocking)
-1. **Configure script cosmetic error**: `cat: ./src/conf.h.in: No such file or directory` - harmless, doesn't affect build
-2. **MySQL config template**: Uses placeholder values - customize as needed
-3. **Start room warnings**: "Immort/Frozen start room does not exist" - cosmetic warnings on startup
-
-These issues do not prevent successful deployment.
-
----
-
-## Support
-
-- **GitHub Issues**: [Report bugs or request features](https://github.com/LuminariMUD/Luminari-Source/issues)
-- **Documentation**: Check the `docs/` directory for detailed guides
-- **Logs**: Check `log/syslog` for error messages
-
----
-
-*Last updated: September 2025*
-*Deployment status: WORKING*
+Last updated: 2026-08-07

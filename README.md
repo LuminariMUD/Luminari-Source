@@ -1,447 +1,107 @@
 # LuminariMUD
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![C](https://img.shields.io/badge/language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language))
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Unix-lightgrey.svg)](https://github.com/LuminariMUD/Luminari-Source)
+LuminariMUD is a text-based multiplayer game server implementing Pathfinder and
+D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. The supported server is
+written in GNU C23 and requires MariaDB or MySQL at runtime.
 
-A text-based multiplayer online role-playing game (MUD) server implementing Pathfinder/D&D 3.5 mechanics, built on the robust tbaMUD/CircleMUD foundation with extensive custom enhancements.
-
-## The "Lumiverse"
-
-Our affectionate name for the multi-product software ecosystem of LuminariMUD.
-- [LuminariMUD the Best Open-Source MUD Server of ALL time](https://github.com/LuminariMUD/Luminari-Source/)
-- [Sage GraphRAG Lore & World-Building](https://github.com/LuminariMUD/sage)
-- [Web Client w/ React Media Experience](https://github.com/LuminariMUD/luminariweb)
-- [InterMUD-3 I3 Client - MUD to MUD Chat](https://github.com/LuminariMUD/Intermud3)
-- [Two way chat between Discord & your MUD](https://github.com/LuminariMUD/discord-mud-chat)
-- [Full-stack Wilderness Editor](https://github.com/LuminariMUD/wildeditor)
-- [Custom Luminari UI & Dev System for Mudlet](https://github.com/LuminariMUD/LuminariGUI)
-
-## Table of Contents
-
-- [Quick Start](#quick-start) - See also [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [Community](#community)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+Current version: `2.5051-beta` (tbaMUD 3.64).
 
 ## Quick Start
 
-Get LuminariMUD running quickly with these simple steps:
-
-### Prerequisites
-
-Install required libraries first:
+On Ubuntu, Debian, or WSL2, the repository's one-command setup installs
+dependencies, prepares local configuration and world data, provisions MariaDB,
+builds the server, and installs `bin/circle`:
 
 ```bash
-# Ubuntu/Debian/WSL2
-sudo apt-get update
-sudo apt-get install -y build-essential git make autoconf automake \
-                        libcrypt-dev libgd-dev libmariadb-dev \
-                        libcurl4-openssl-dev libssl-dev mariadb-server \
-                        cmake libtool pkg-config gdb valgrind
+./scripts/deployment/deploy.sh
 ```
 
-### Installation
+Then start the server:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
-
-# 2. Run the deployment script
-#    This handles everything: dependencies, database, world data, build
-#    You'll be prompted for MySQL root password
-./scripts/deployment/deploy.sh
-
-# 3. Start the MUD server
 ./bin/circle -d lib
 ```
 
-That's it! Connect to `localhost:4000` with any MUD client.
+The checked-in runtime configuration defaults to game port 4100. Connect a MUD
+client to `localhost:4100`. The deployment script supports noninteractive,
+development, production, and managed-systemd modes; inspect the exact options
+with `./scripts/deployment/deploy.sh --help`.
 
-### What `deploy.sh` Does
+For a fresh clone, start with the [onboarding checklist](docs/onboarding.md) or
+the [setup and build guide](docs/guides/SETUP_AND_BUILD_GUIDE.md).
 
-The deployment script automatically:
-- Copies configuration files (.example.h -> .h)
-- Installs any missing dependencies
-- Sets up MariaDB database (prompts for root password)
-- Creates database and user with generated password
-- Initializes world data (zones, rooms, mobs, objects)
-- Builds the MUD using autotools (preferred) or CMake
-- Creates all required directories and symlinks
+## Development Check
 
-**Optional flags:**
-- `--auto` - Skip prompts where possible (still needs MySQL root password)
-- `--skip-db` - Skip database setup (not recommended)
-- `--dev` - Development build with debug symbols
-- `--prod` - Production optimized build
+Autotools is the preferred incremental build. The authoritative one-command
+test and installation gate is:
 
-For detailed information, see [docs/deployment/DEPLOYMENT_GUIDE.md](docs/deployment/DEPLOYMENT_GUIDE.md)
-
-## Overview
-
-LuminariMUD is a feature-rich MUD server that brings the beloved Pathfinder/D&D 3.5 rule system to life in a text-based multiplayer environment. Built upon the proven tbaMUD/CircleMUD codebase, it features an original world inspired by Biblical, Dragonlance, and Forgotten Realms stories.
-
-### Project Vision
-
-Create a MUD with authentic Pathfinder/d20/D&D 3.5 mechanics featuring an original world that fosters a safe, friendly community for like-minded gamers. Our primary goal is building meaningful connections through collaborative storytelling and adventure.
-
-### Project Philosophy
-
-This project embodies commitment, self-motivation, and perseverance through challenges. Creating a MUD is inherently rewarding work, regardless of player base size. We remain dedicated to our initial vision and the hard work required to make this project successful.
-
-## Features
-
-### Core Game Systems
-- **Authentic Pathfinder/D&D 3.5 Mechanics**: Complete implementation of familiar rule systems
-- **Advanced Character System**: Multiple races, classes, feats, and skills
-- **Dynamic Combat**: Initiative-based combat with tactical positioning
-- **Spell System**: Comprehensive magic system with spell preparation and components
-- **Crafting & Alchemy**: Extensive item creation and enhancement systems
-
-### World & Content
-- **Original World Design**: Unique setting inspired by Biblical, Dragonlance, and Forgotten Realms
-- **Quest-Driven Progression**: Story-oriented advancement system
-- **Living World**: Heavy scripting for dynamic, responsive environments
-- **Zone-to-Zone Travel**: World map navigation with vehicle support
-- **High-Quality Content**: Custom zones replacing stock content
-
-### Technical Features
-- **MySQL Integration**: Persistent player data and world state
-- **DG Scripting System**: Powerful scripting for NPCs, objects, and rooms
-- **Online Level Creation (OLC)**: In-game world building tools
-- **Advanced Networking**: Support for modern MUD protocols including MSDP
-- **Performance Monitoring**: Built-in profiling and debugging tools with C++ optimization
-- **Security Hardened**: All PHP tools audited and secured (January 2025)
-- **Memory Management**: Advanced debugging with Valgrind integration
-
-## Quick Start
-
-### Prerequisites
-- **Operating System**: Linux or Unix-like system (including WSL2 Ubuntu)
-- **Compiler**: GCC 13+ or Clang 18+ with GNU C23 support; the build accepts GCC's
-  legacy `gnu2x` spelling only when the required C23 feature probe passes
-- **Build System**: CMake 3.21+ or Autotools
-- **Database**: MariaDB 10.0+ or MySQL 5.7+ (REQUIRED - not optional)
-- **Libraries**:
-  - libmariadb-dev (MariaDB client library - required)
-  - libcrypt, libgd, libm, libcurl, libssl, libcrypto, libpthread
-
-#### Quick Install for Ubuntu/WSL2:
 ```bash
-# Install all required dependencies (updated for MariaDB)
-sudo apt-get update
-sudo apt-get install -y build-essential libcrypt-dev libgd-dev libmariadb-dev \
-                        libcurl4-openssl-dev libssl-dev mariadb-server git make cmake \
-                        autoconf automake libtool pkg-config
-
-# HIGHLY RECOMMENDED: Install debugging tools (used by scripts/debugging/ helpers)
-sudo apt-get install -y gdb valgrind
+make test && make install
 ```
 
-### Build and Run
-```bash
-# Clone the repository
-git clone https://github.com/LuminariMUD/Luminari-Source.git
-cd Luminari-Source
+`make test` builds the production-linked CuTest suite and shell regressions.
+`make install` activates the tested immutable build under `bin/releases/` and
+removes the root-level `circle` artifact.
 
-# Configure required headers (one-time setup)
-cp src/campaign.example.h src/campaign.h
-cp src/mud_options.example.h src/mud_options.h
-cp src/vnums.example.h src/vnums.h
-# Edit these files as needed for your configuration
+## Repository Structure
 
-# Option 1: Build with CMake
-cmake -S . -B build/
-cmake --build build/ -j"$(nproc)"
-cmake --install build/
-
-# Option 2: Build with Autotools (preferred for incremental development)
-autoreconf -fvi  # Only if configure script missing
-./configure
-make
-make install
-
-# Run the server (after configuration)
-bin/circle
-
-# Or use the autorun script for automatic restarts
-./autorun
+```text
+.
+|-- src/          # GNU C23 server and game systems
+|-- lib/          # Runtime configuration, text, and flat-file world data
+|-- sql/          # Master schema and component migrations/verifiers
+|-- scripts/      # Deployment, operations, debugging, and world tools
+|-- unittests/    # Production-linked CuTest and focused harnesses
+|-- docs/         # Maintained developer, builder, and operator documentation
+`-- .spec_system/ # Specification, validation, and phase evidence
 ```
 
-## Installation
-
-For detailed installation instructions including system requirements, dependencies, database setup, and configuration, please see the **[Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md)**.
-
-Windows users (WSL): See the "Ubuntu/Debian (including WSL2)" section of the Deployment Guide.
-
-
-## Usage
-
-### Basic Commands
-
-#### Building and Development
-```bash
-# Build everything
-make all
-
-# Clean build artifacts
-make clean
-
-# Clean autotools files (keeps Makefile & config.h)
-make scrub
-
-# Full clean (removes everything, requires autoreconf)
-make distclean
-
-# Run unit tests
-make cutest
-
-# Generate dependencies
-make depend
-
-# Rebuild from scratch
-autoreconf -fiv && ./configure && make all
-```
-
-#### Server Management
-```bash
-# Start the server directly
-bin/circle
-
-# Start with specific port
-bin/circle -p 4000
-
-# Run with autorun script (recommended for production)
-./autorun
-
-# Run in background
-nohup bin/circle &
-```
-
-### Configuration Files
-
-- **`campaign.h`**: Core game settings and world configuration
-- **`mud_options.h`**: Server options and feature toggles
-- **`vnums.h`**: Virtual number assignments for objects, rooms, and NPCs
-
-### Common Use Cases
-
-#### For Players
-- Connect via telnet: `telnet your-server-ip 4000`
-- Use a MUD client like MUSHclient, TinTin++, or Mudlet for enhanced experience
-
-#### For Builders
-- Use in-game OLC (Online Level Creation) commands
-- Access building documentation in `/docs/`
-- Follow building standards and guidelines
-
-#### For Developers
-- Review code in modular C files
-- Use the DG scripting system for advanced features
-- Contribute via GitHub pull requests
+MariaDB stores accounts, characters, help, and subsystem data. Flat files under
+`lib/world/` remain the authored room, mobile, object, zone, shop, quest, and
+trigger sources. The server uses a single select-based game loop; DG Scripts
+provide content-local behavior and Oasis OLC provides in-game world editing.
 
 ## Documentation
 
-### Quick Access
-- **[Technical Master Index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)**: Complete technical documentation overview
-- **[Getting Started](docs/GETTING_STARTED.md)**: Quick start guide for new users
+- [Documentation index](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Development commands](docs/development.md)
+- [Deployment and CI/CD](docs/deployment.md)
+- [Environment boundaries](docs/environments.md)
+- [Testing guide](docs/guides/TESTING_GUIDE.md)
+- [Incident response](docs/runbooks/incident-response.md)
+- [Operational API contracts](docs/api/README_api.md)
+- [Contributing](CONTRIBUTING.md)
 
-### Technical Documentation
-- **[Architecture](docs/systems/CORE_SERVER_ARCHITECTURE.md)**: Server architecture and design patterns
-- **[Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md)**: Coding standards and API reference
-- **[Build Guide](docs/development/CMAKE_BUILD_GUIDE.md)**: CMake build system details
+Player and builder orientation remains in [Getting Started](docs/GETTING_STARTED.md)
+and the [builder quickstart](docs/world_game-data/BUILDER_QUICKSTART.md).
 
-### Game Documentation
-- **[Combat System](docs/systems/COMBAT_SYSTEM.md)**: Combat mechanics and calculations
-- **[Player Management](docs/systems/PLAYER_MANAGEMENT_SYSTEM.md)**: Character creation and progression
-- **[Vessel System](docs/systems/VESSEL_SYSTEM.md)**: Ships, airships, and navigation
+## Project Status
 
-### Additional Resources
-- **[Testing Guide](docs/guides/TESTING_GUIDE.md)**: Quality assurance and testing procedures
-- **[Troubleshooting](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)**: Common issues and solutions
-- **[Ultimate Writing Guide](docs/guides/ultimate-mud-writing-guide.md)**: Zone building and content creation
-- **[AI Assistant Guide](CLAUDE.md)**: Comprehensive guide for AI-assisted development
-## Contributing
+The special-procedure architecture initiative completed Phase 00, Registry
+Safety and Observability. Later gateway, assignment, extraction, shared
+mechanics, typed-handler, and conditional-composition phases remain planned in
+the [project PRD](.spec_system/PRD/PRD.md).
 
-We welcome contributions from developers, builders, and community members! Please read our guidelines before contributing.
+## Related Projects
 
-### How to Contribute
+- [Sage GraphRAG lore and world building](https://github.com/LuminariMUD/sage)
+- [Luminari web client](https://github.com/LuminariMUD/luminariweb)
+- [InterMUD-3 client](https://github.com/LuminariMUD/Intermud3)
+- [Discord bridge](https://github.com/LuminariMUD/discord-mud-chat)
+- [Wilderness editor](https://github.com/LuminariMUD/wildeditor)
+- [Mudlet interface](https://github.com/LuminariMUD/LuminariGUI)
 
-1. **Fork the Repository**
-   ```bash
-   # Fork on GitHub, then clone your fork
-   git clone https://github.com/YOUR_USERNAME/Luminari-Source.git
-   cd Luminari-Source
-   ```
+## Contributing and Community
 
-2. **Create a Feature Branch**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating in project spaces.
+Questions and bug reports can be raised through
+[GitHub Issues](https://github.com/LuminariMUD/Luminari-Source/issues).
 
-3. **Make Your Changes**
-   - Follow our coding standards (see [Developer Guide](docs/guides/DEVELOPER_GUIDE_AND_API.md))
-   - Add tests for new functionality
-   - Update documentation as needed
-
-4. **Test Your Changes**
-   ```bash
-   make clean
-   make all
-   make cutest  # Run unit tests
-   ```
-
-5. **Submit a Pull Request**
-   - Push your branch to your fork
-   - Create a pull request with a clear description
-   - Reference any related issues
-
-### Contribution Guidelines
-
-#### Code Contributions
-- **Coding Standards**: Follow existing code style and conventions
-- **Documentation**: Update relevant documentation for new features
-- **Testing**: Include unit tests for new functionality
-- **Commit Messages**: Use clear, descriptive commit messages
-
-#### Content Contributions
-- **World Building**: Follow established lore and building standards
-- **Help Files**: Maintain consistency with existing help system
-- **Scripts**: Use DG scripting best practices
-
-#### Bug Reports
-- Use GitHub Issues to report bugs
-- Include steps to reproduce the issue
-- Provide system information and error messages
-- Check existing issues before creating new ones
-
-### Development Team Structure
-
-#### Core Development
-- **Lead Programmer**: Manages code standards and development workflow
-- **Game Designer**: Defines game mechanics and project direction
-- **Programmers**: Implement game mechanics and features
-
-#### Content Creation
-- **World Designer**: Designs maps, zones, and building standards
-- **Lore Designer**: Develops world background and stories
-- **Quest Designers**: Creates quest content and rewards
-- **Builders**: Creates world content, scripts, and quests
-- **Lead Scripter**: Develops universal scripts and provides support
-
-#### Community Management
-- **Lead Administrator**: Manages staff and community standards
-- **Administrators**: Support player relations and enforce guidelines
-- **Help File Lead**: Organizes help system and documentation
-
-### Contributor License Agreement
-
-Contributions to this project must be accompanied by a Contributor License Agreement. You retain copyright to your contribution; this gives us permission to use and redistribute your contributions as part of the project.
-
-## Community
-
-### Join Our Community
-- **Discord**: [Join our community](https://discord.gg/Me3Tuu4) - Primary communication hub
-- **GitHub Discussions**: Use for development-related discussions
-- **Issues**: Report bugs and request features
-
-### Community Guidelines
-- **Respect**: Treat all community members with respect and kindness
-- **Collaboration**: Work together towards common goals
-- **Constructive Feedback**: Provide helpful, actionable feedback
-- **Inclusivity**: Welcome newcomers and help them get started
-
-### Getting Help
-- **Discord**: Ask questions in appropriate channels
-- **Documentation**: Check our comprehensive documentation first
-- **GitHub Issues**: For bug reports and feature requests
-- **In-Game Help**: Use the built-in help system
-
-## Troubleshooting
-
-### Common Issues
-
-#### Build Problems
-```bash
-# Missing dependencies
-sudo apt-get install build-essential mariadb-server libmariadb-dev libgd-dev
-
-# Permission issues
-chmod +x configure
-
-# Clean build
-make clean && make
-```
-
-#### Runtime Issues
-```bash
-# Database connection problems
-# Check MariaDB service status
-sudo systemctl status mariadb
-# Or for older systems:
-sudo systemctl status mysql
-
-# Port already in use
-# Check what's using port 4000
-netstat -tulpn | grep :4000
-```
-
-#### Configuration Issues
-- Verify all `.h` configuration files are properly set up
-- Check file permissions on configuration files
-- Ensure database credentials are correct
-
-### Getting Support
-1. Check the [Troubleshooting Guide](docs/guides/TROUBLESHOOTING_AND_MAINTENANCE.md)
-2. Search existing GitHub Issues
-3. Ask on Discord for community support
-4. Create a GitHub Issue for bugs or feature requests
 ## License
 
-This project uses a dual licensing approach:
-
-### tbaMUD/CircleMUD Code
-Code contributed by the tbaMUD project follows their licensing terms. See [tbamud.com](https://tbamud.com) for details.
-
-### LuminariMUD Custom Code
-Custom code developed for LuminariMUD is released into the **public domain**:
-
-> This is free and unencumbered software released into the public domain.
->
-> Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software, either in source code form or as a compiled binary, for any purpose, commercial or non-commercial, and by any means.
-
-For complete license details, see the [LICENSE](LICENSE) file.
-
-## Acknowledgments
-
-### Built Upon
-- **[tbaMUD](https://tbamud.com)**: The base MUD codebase
-- **[CircleMUD](http://www.circlemud.org)**: The original foundation
-- **CWG (Copper) MUD**: Additional enhancements and features
-
-### Inspiration
-- **Biblical Stories**: Spiritual and moral themes
-- **Dragonlance**: Epic fantasy elements
-- **Forgotten Realms**: Rich world-building traditions
-
-### Version Information
-- **Current Version**: LuminariMUD 2.5051-beta (tbaMUD 3.64)
-- **Repository**: https://github.com/LuminariMUD/Luminari-Source
-- **Created**: July 16, 2019
-- **Language**: GNU C23
-- **Last Updated**: August 2026
-
-> Version is defined in: `src/constants.c` (canonical), `src/structs.h`, `configure.ac`, `CMakeLists.txt`
-
----
-
-**Remember**: *The work itself is the reward. Focus on creating something meaningful for the community.*
-
-For more information, visit our [technical documentation](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md) or join our [Discord community](https://discord.gg/Me3Tuu4).
+Custom LuminariMUD code is dedicated to the public domain under the Unlicense.
+Inherited tbaMUD, CircleMUD, DikuMUD, and licensed game content retain their
+respective terms. See [LICENSE](LICENSE) and the
+[legal notes](docs/legal/README_legal.md) for the project's complete notice.

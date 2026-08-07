@@ -1,5 +1,7 @@
 # Ongoing Projects
 
+> This is a planning index, not a current behavior reference.
+
 Developer workspace for work that is **not finished**. This is scratch space, not
 official documentation - nothing here should be cited as a description of how the
 game currently behaves.

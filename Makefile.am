@@ -505,7 +505,7 @@ EXTRA_DIST = \
 	lib/world/artifacts/1699.wld \
 	lib/world/artifacts/1699.zon \
 	lib/world/artifacts/artifacts.hlp \
-	unittests/README.md \
+	unittests/README_unittests.md \
 	unittests/CuTest/Makefile \
 	unittests/CuTest/README.txt \
 	unittests/CuTest/fuzz_protocol_parser.c \
@@ -519,7 +519,7 @@ EXTRA_DIST = \
 	unittests/CuTest/test_protocol_parser.c \
 	autorun-watchdog.sh \
 	autorun.sh \
-	scripts/README.md \
+	scripts/README_scripts.md \
 	scripts/autorun/autorun-watchdog.sh \
 	scripts/autorun/autorun.sh \
 	scripts/autorun/test_autorun_supervision.sh \

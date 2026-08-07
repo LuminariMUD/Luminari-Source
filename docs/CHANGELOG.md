@@ -2,6 +2,26 @@
 
 ## [Unreleased] - August 7, 2026
 
+### Documentation entry points and operator safety
+
+#### Changed
+
+- Replaced duplicated or stale root setup, contribution, environment,
+  deployment, architecture, and incident instructions with source-backed entry
+  points and links to the maintained detailed references.
+- Added developer onboarding, daily development, CI/CD, and loopback health API
+  contracts; restored the setup/build path referenced by deployment help.
+- Renamed active subdirectory overview files to unique `README_<directory>.md`
+  names and repaired their maintained inbound links and distribution entries.
+
+#### Fixed
+
+- Aligned deployment output and user-facing connection instructions with the
+  checked-in game and autorun default port, 4100.
+- Removed undocumented staging commands, unsafe unconditional process-kill
+  guidance, invented on-call/maintenance policy, and stale source-layout or
+  test commands from the audited documentation surface.
+
 ### Operational health and readiness
 
 #### Added
@@ -84,7 +104,7 @@
 - The exact writer behind the August 5 allocator abort remains unproven because
   its original executable and core are unavailable. Production deployment,
   recovery, pet smoke testing, and core-capture verification follow the
-  [incident handoff](ongoing-projects/production-crash-2026-08-05-pet-persistence.md).
+  [incident runbook](runbooks/incident-response.md).
 
 ### Artifact bonus stacking
 
