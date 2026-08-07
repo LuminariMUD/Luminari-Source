@@ -1,12 +1,10 @@
 /**
  * @file spec_dispatch.c
- * Phase 01 event gateways for special-procedure invocation.
+ * Event gateways and incremental typed dispatch for special procedures.
  *
- * Each gateway builds complete event data at the call site, then performs the
- * exact legacy translation the caller used before the migration. No handler is
- * converted here: legacy procedures still receive the same `ch`, `me`, `cmd`,
- * and argument tokens, and each gateway returns exactly what its caller
- * interpreted previously.
+ * Each gateway builds complete event data at the call site. Registered typed
+ * adapters dispatch that context directly; every other callback receives the
+ * exact legacy `ch`, `me`, `cmd`, argument, and return translation.
  */
 
 #include "conf.h"
@@ -57,6 +55,13 @@ static bool spec_event_uses_flow(spec_event_mask event)
   }
 }
 
+static void spec_context_reset_outcome(struct spec_event_context *context)
+{
+  context->flow = SPEC_FLOW_CONTINUE;
+  context->invalidation = SPEC_INVALIDATE_NONE;
+  context->legacy_return = 0;
+}
+
 int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler handler)
 {
   enum spec_context_result context_result;
@@ -68,9 +73,7 @@ int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler
     return 0;
   }
 
-  context->flow = SPEC_FLOW_CONTINUE;
-  context->invalidation = SPEC_INVALIDATE_NONE;
-  context->legacy_return = 0;
+  spec_context_reset_outcome(context);
 
   if (handler == NULL)
     return 0;
@@ -90,6 +93,83 @@ int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler
     context->flow = SPEC_FLOW_STOP;
 
   return result;
+}
+
+int spec_dispatch_typed(struct spec_event_context *context,
+                        const struct spec_definition *definition)
+{
+  enum spec_context_result context_result;
+  int result;
+
+  if (context == NULL)
+  {
+    log("SYSERR: spec_dispatch_typed called without a context.");
+    return 0;
+  }
+
+  spec_context_reset_outcome(context);
+
+  if (definition == NULL || definition->typed_handler == NULL)
+  {
+    log("SYSERR: spec_dispatch_typed called without a typed definition.");
+    return 0;
+  }
+
+  context_result = spec_context_validate_event(context);
+  if (context_result != SPEC_CONTEXT_VALID)
+  {
+    log("SYSERR: spec_dispatch_typed rejected invalid context: %s.",
+        spec_context_result_name(context_result));
+    return 0;
+  }
+  if (!spec_definition_supports_event(definition, context->owner_type, context->event))
+  {
+    log("SYSERR: Typed special procedure '%s' does not support %s for %s owners.",
+        definition->canonical_name, spec_event_name(context->event),
+        spec_owner_name(context->owner_type));
+    return 0;
+  }
+
+  result = definition->typed_handler(context);
+
+  if (context->flow != SPEC_FLOW_CONTINUE && context->flow != SPEC_FLOW_STOP)
+  {
+    log("SYSERR: Typed special procedure '%s' returned invalid flow %d.",
+        definition->canonical_name, context->flow);
+    context->flow = SPEC_FLOW_CONTINUE;
+  }
+  if ((context->invalidation & ~SPEC_INVALIDATE_ALL) != 0)
+  {
+    log("SYSERR: Typed special procedure '%s' returned invalid invalidation mask 0x%x.",
+        definition->canonical_name, context->invalidation);
+    context->invalidation = SPEC_INVALIDATE_NONE;
+  }
+
+  if (spec_event_uses_flow(context->event))
+  {
+    if (result != 0)
+      context->flow = SPEC_FLOW_STOP;
+    return context->flow == SPEC_FLOW_STOP;
+  }
+
+  if (context->flow == SPEC_FLOW_STOP)
+  {
+    log("SYSERR: Typed special procedure '%s' requested STOP for notification-only event %s.",
+        definition->canonical_name, spec_event_name(context->event));
+    context->flow = SPEC_FLOW_CONTINUE;
+  }
+  return result;
+}
+
+int spec_dispatch(struct spec_event_context *context, spec_legacy_handler handler)
+{
+  const struct spec_definition *definition;
+
+  definition = spec_registry_find_by_handler(handler);
+  if (definition != NULL && definition->typed_handler != NULL)
+    return spec_dispatch_typed(context, definition);
+
+  return spec_dispatch_legacy(context, handler);
 }
 
 /**
@@ -126,7 +206,7 @@ int spec_gateway_command_room(struct char_data *ch, struct room_data *room, int 
 
   spec_context_init(&context, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND, room, ch, cmd, argument);
 
-  return (spec_dispatch_legacy(&context, room->func) != 0);
+  return (spec_dispatch(&context, room->func) != 0);
 }
 
 int spec_gateway_command_object(struct char_data *ch, struct obj_data *obj, int cmd,
@@ -144,7 +224,7 @@ int spec_gateway_command_object(struct char_data *ch, struct obj_data *obj, int 
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND, obj, ch, cmd, argument);
 
-  return (spec_dispatch_legacy(&context, handler) != 0);
+  return (spec_dispatch(&context, handler) != 0);
 }
 
 int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int cmd,
@@ -162,7 +242,7 @@ int spec_gateway_command_mobile(struct char_data *ch, struct char_data *mob, int
 
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND, mob, ch, cmd, argument);
 
-  return (spec_dispatch_legacy(&context, handler) != 0);
+  return (spec_dispatch(&context, handler) != 0);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -180,7 +260,9 @@ int spec_gateway_mobile_activity(struct char_data *mob, spec_legacy_handler hand
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY, mob, mob, 0,
                     spec_empty_argument);
 
-  return (spec_dispatch_legacy(&context, handler) != 0);
+  context.target = FIGHTING(mob);
+
+  return (spec_dispatch(&context, handler) != 0);
 }
 
 void spec_gateway_mobile_combat_turn(struct char_data *mob)
@@ -197,8 +279,9 @@ void spec_gateway_mobile_combat_turn(struct char_data *mob)
 
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN, mob, mob, 0,
                     spec_empty_argument);
+  context.target = FIGHTING(mob);
 
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 void spec_gateway_object_auto_pulse(struct obj_data *obj)
@@ -216,12 +299,12 @@ void spec_gateway_object_auto_pulse(struct obj_data *obj)
   /* Worn invocation first; a nonzero result skips the carried fallback. */
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, obj->worn_by, 0,
                     spec_empty_argument);
-  if (spec_dispatch_legacy(&context, handler) != 0)
+  if (spec_dispatch(&context, handler) != 0)
     return;
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE, obj, obj->carried_by,
                     0, spec_empty_argument);
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *mover,
@@ -243,7 +326,7 @@ void spec_gateway_moving_room(struct room_data *room, struct moving_room_data *m
   context.moving_room = mover;
   context.destination_room = destination_vnum;
 
-  (void)spec_dispatch_legacy(&context, room->func);
+  (void)spec_dispatch(&context, room->func);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -264,7 +347,7 @@ void spec_gateway_item_identify(struct char_data *ch, struct obj_data *obj)
 
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_ITEM_IDENTIFY, obj, ch, 0, "identify");
 
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 int spec_gateway_weapon_hit(struct char_data *ch, struct obj_data *weapon, struct char_data *target,
@@ -283,7 +366,7 @@ int spec_gateway_weapon_hit(struct char_data *ch, struct obj_data *weapon, struc
   spec_context_init(&context, SPEC_OWNER_OBJECT, SPEC_EVENT_WEAPON_HIT, weapon, ch, 0, hit_token);
   context.target = target;
 
-  return spec_dispatch_legacy(&context, handler);
+  return spec_dispatch(&context, handler);
 }
 
 void spec_gateway_defense_reaction(struct char_data *defender, struct obj_data *obj,
@@ -304,7 +387,7 @@ void spec_gateway_defense_reaction(struct char_data *defender, struct obj_data *
                     reaction_token);
   context.target = attacker;
 
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 void spec_gateway_combat_maneuver(struct char_data *ch, struct obj_data *shield,
@@ -324,7 +407,7 @@ void spec_gateway_combat_maneuver(struct char_data *ch, struct obj_data *shield,
                     maneuver_token);
   context.target = target;
 
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 void spec_gateway_mount_charge(struct char_data *ch, struct char_data *mount,
@@ -343,7 +426,7 @@ void spec_gateway_mount_charge(struct char_data *ch, struct char_data *mount,
   spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOUNT_CHARGE, mount, ch, 0, "charge");
   context.target = target;
 
-  (void)spec_dispatch_legacy(&context, handler);
+  (void)spec_dispatch(&context, handler);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -367,7 +450,7 @@ static int spec_gateway_secondary(spec_legacy_handler secondary, spec_owner_mask
 
   spec_context_init(&context, owner_type, SPEC_EVENT_COMMAND, me, ch, cmd, argument);
 
-  return (spec_dispatch_legacy(&context, secondary) != 0);
+  return (spec_dispatch(&context, secondary) != 0);
 }
 
 int spec_gateway_shop_secondary(spec_legacy_handler secondary, struct char_data *ch, void *me,

@@ -1067,7 +1067,7 @@ void medit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC(d)->specmob = spec_binding_legacy_handler(OLC_SPECMOB_BINDING(d));
+    OLC(d)->specmob = spec_binding_callback(OLC_SPECMOB_BINDING(d));
     OLC_VAL(d) = 1;
     medit_disp_menu(d);
     return;

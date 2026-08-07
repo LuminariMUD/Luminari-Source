@@ -2139,7 +2139,7 @@ void oedit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC(d)->specobj = spec_binding_legacy_handler(OLC_SPECOBJ_BINDING(d));
+    OLC(d)->specobj = spec_binding_callback(OLC_SPECOBJ_BINDING(d));
     OLC_VAL(d) = 1;
     oedit_disp_menu(d);
     return;

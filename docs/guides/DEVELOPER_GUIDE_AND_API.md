@@ -3,7 +3,7 @@
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
 control plane delivered through Phase 02, the completed Phase 03 ownership
-extraction, and the Phase 04 shared mechanics; other subsystem APIs remain in
+extraction, the Phase 04 shared mechanics, and Phase 05 typed dispatch; other subsystem APIs remain in
 their source-linked system documents.
 
 ## Quick Start
@@ -23,7 +23,7 @@ required.
 
 World/OLC special procedures are defined in `src/spec/spec_registry.c`, with
 public metadata and accessors in `src/spec/spec_registry.h`. Assignment remains
-in `src/spec_assign.c`; runtime invocation still uses the legacy ABI:
+in `src/spec_assign.c`. Prototype callback slots retain the legacy-shaped ABI:
 
 ```c
 int handler(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -36,7 +36,7 @@ Each immutable `struct spec_definition` declares:
 - supported events and their prototype/placement prerequisites;
 - permitted binding sources and builder visibility;
 - nonempty category and description; and
-- exactly one legacy or typed handler.
+- exactly one complete legacy handler or typed-adapter/handler pair.
 
 `spec_registry_boot_validate()` runs in `boot_db()` before `boot_world()`.
 Invalid programmer metadata terminates startup before MySQL world
@@ -63,7 +63,10 @@ if (definition != NULL &&
   case sensitivity.
 - `spec_registry_find_for_owner()` also requires one compatible owner type.
 - `spec_registry_find_by_handler()` returns the first canonical identity for a
-  legacy callback.
+  callback-slot pointer, including a typed adapter.
+- `spec_definition_callback()` returns the pointer stored in a prototype slot.
+- `spec_registry_legacy_count()` and `spec_registry_typed_count()` expose the
+  remaining implementation population.
 - `spec_definition_get_event()` exposes one supported event contract.
 - `spec_definition_allows_binding()` checks one binding source.
 
@@ -81,7 +84,7 @@ Unknown name, incompatible owner, and incompatible source are retained states,
 not allocation failures.
 
 - `spec_binding_replace()` resolves and transactionally replaces a record.
-- `spec_binding_legacy_handler()` returns a callback only for a resolved record.
+- `spec_binding_callback()` returns a callback-slot pointer only for a resolved record.
 - `spec_binding_copy()` and `spec_binding_free()` implement prototype and OLC
   ownership.
 - `spec_binding_persisted_name()` returns only valid single-line world-authored
@@ -177,6 +180,29 @@ Use `is_wearing()` when same-VNUM membership is intentionally the policy. Use
 `spec_context_validate_worn_object()` when the callback must prove that its own object instance is
 equipped. Do not invent a second affect source field or use pointer values as source keys.
 
+### Typed Dispatch API
+
+Phase 05 permits one of two validated definition shapes: a complete `legacy_handler`, or both a
+unique `typed_adapter` and `typed_handler`. A typed adapter retains the callback pointer stored in
+world prototypes and must fail safely if entered directly. It contains no behavior; existing event
+gateways recognize it through registry reverse lookup and call the typed handler with the context
+captured at the engine call site.
+
+Use `spec_dispatch()` from gateways and compatibility composition. It selects
+`spec_dispatch_typed()` for a registered adapter and otherwise delegates to
+`spec_dispatch_legacy()`. Typed dispatch:
+
+- validates the context and the definition's owner/event contract before behavior runs;
+- maps a nonzero result or explicit `SPEC_FLOW_STOP` to the local STOP meaning only for
+  flow-bearing events;
+- rejects STOP for notification-only events and continues safely; and
+- validates `SPEC_INVALIDATE_*` independently from flow.
+
+Bank and Vampire Cloak are the first typed definitions. Their canonical names and callback-slot
+pointers remain `Bank`/`bank` and `Vampire Cloak`/`vampire_cloak`. The production registry contains
+2 typed and 26 legacy definitions; 194 source-level legacy behavior implementations still require
+the compatibility ABI.
+
 ## Adding or Changing a Registered Procedure
 
 1. Characterize every affected invocation and exact legacy argument before
@@ -185,17 +211,19 @@ equipped. Do not invent a second affect source field or use pointer values as so
    `src/spec/spec_registry.c`.
 3. Preserve the canonical persisted name; use an explicit alias for compatible
    historical input.
-4. Derive owner, source, visibility, flag, and placement metadata from traced
+4. Implement new behavior as a typed handler plus safe callback-slot adapter. Convert an existing
+   legacy handler only with characterization for every supported event.
+5. Derive owner, source, visibility, flag, and placement metadata from traced
    callers.
-5. Add production-linked registry, OLC, persistence, and invocation coverage as
+6. Add production-linked registry, OLC, persistence, and invocation coverage as
    applicable.
-6. Update both `Makefile.am` and `CMakeLists.txt` for source membership changes.
-7. Update builder documentation and database-first help migration/verifier when
+7. Update both `Makefile.am` and `CMakeLists.txt` for source membership changes.
+8. Update builder documentation and database-first help migration/verifier when
    the contract changes.
 
 ## Compatibility Boundary
 
-Phases 00-04 preserve the single callback slot, `SPECIAL` ABI, world grammar,
+Phases 00-05 preserve the single callback slot, `SPECIAL` ABI, world grammar,
 command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
@@ -249,8 +277,8 @@ use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`,
 Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranzan.h`. The final
 move retired `src/spec_procs.c`; its header remains the compatibility include surface. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate, and use the
-Phase 04 context API when exact pointer identity is required. Typed-handler conversion and general
-chains remain future work.
+Phase 04 context API when exact pointer identity is required. Bank and Vampire Cloak are typed
+behind unchanged adapters; additional conversions and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -268,4 +296,6 @@ the
 [Phase 03 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
 the
 [Phase 04 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
+the
+[Phase 05 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

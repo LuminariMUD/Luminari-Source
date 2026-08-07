@@ -1452,7 +1452,7 @@ bool spec_test_fixture_force_room_olc_binding(struct spec_test_fixture *fixture,
                             name, SPEC_BINDING_SOURCE_WORLD, "forced test selection", error,
                             error_size))
     return false;
-  fixture->olc.specroom = spec_binding_legacy_handler(fixture->olc.specroom_binding);
+  fixture->olc.specroom = spec_binding_callback(fixture->olc.specroom_binding);
   return true;
 }
 

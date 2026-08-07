@@ -719,7 +719,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
         return;
       }
     }
-    OLC(d)->specroom = spec_binding_legacy_handler(OLC_SPECROOM_BINDING(d));
+    OLC(d)->specroom = spec_binding_callback(OLC_SPECROOM_BINDING(d));
     OLC_VAL(d) = 1;
     redit_disp_menu(d);
     return;

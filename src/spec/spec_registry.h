@@ -15,7 +15,7 @@ struct spec_event_context;
 
 /** Legacy callback type retained by the compatibility registry. */
 typedef int (*spec_legacy_handler)(struct char_data *ch, void *me, int cmd, const char *argument);
-/** Reserved typed callback shape; Phase 00 registers no typed handlers. */
+/** Typed callback shape used after an event gateway has built complete context. */
 typedef int (*spec_typed_handler)(struct spec_event_context *context);
 
 typedef uint32_t spec_owner_mask;
@@ -122,7 +122,16 @@ struct spec_definition
   enum spec_builder_visibility builder_visibility;
   const char *category;
   const char *description;
+  /** Complete legacy behavior, or NULL for a typed definition. */
   spec_legacy_handler legacy_handler;
+  /**
+   * Legacy-shaped callback-slot identity for a typed definition.
+   *
+   * Existing prototypes still store SPECIAL pointers. The event gateways
+   * recognize this adapter and invoke typed_handler with the context captured
+   * at the call site. The adapter must fail safely if called directly.
+   */
+  spec_legacy_handler typed_adapter;
   spec_typed_handler typed_handler;
 };
 
@@ -134,8 +143,15 @@ const struct spec_definition *spec_registry_get(int index);
 const struct spec_definition *spec_registry_find_by_name(const char *name);
 /** Resolve a name only when its definition supports exactly one requested owner type. */
 const struct spec_definition *spec_registry_find_for_owner(const char *name, spec_owner_mask owner);
-/** Reverse-resolve a legacy callback to its first canonical definition. */
+/** Reverse-resolve a callback-slot pointer to its first canonical definition. */
 const struct spec_definition *spec_registry_find_by_handler(spec_legacy_handler handler);
+
+/** Return the callback stored in legacy prototype slots for this definition. */
+spec_legacy_handler spec_definition_callback(const struct spec_definition *definition);
+/** Return the number of definitions still implemented as legacy callbacks. */
+size_t spec_registry_legacy_count(void);
+/** Return the number of definitions implemented as typed handlers. */
+size_t spec_registry_typed_count(void);
 
 /** Report whether a definition supports exactly one requested owner type. */
 bool spec_definition_supports_owner(const struct spec_definition *definition,

@@ -350,6 +350,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_spec_assign_table.c \
 	unittests/CuTest/test_spec_dispatch.c \
 	unittests/CuTest/test_spec_mechanics.c \
+	unittests/CuTest/test_spec_typed_handlers.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c \
 	unittests/CuTest/AllTests.c \
@@ -397,6 +398,7 @@ cutest_test_files = \
 	unittests/CuTest/test_spec_assign_table.c \
 	unittests/CuTest/test_spec_dispatch.c \
 	unittests/CuTest/test_spec_mechanics.c \
+	unittests/CuTest/test_spec_typed_handlers.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c
 

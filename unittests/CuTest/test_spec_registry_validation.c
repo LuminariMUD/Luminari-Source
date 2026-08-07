@@ -69,6 +69,7 @@ static struct spec_definition spec_test_valid_definition(const char *name)
   definition.category = "Test";
   definition.description = "Valid test definition.";
   definition.legacy_handler = spec_test_legacy_handler;
+  definition.typed_adapter = NULL;
   definition.typed_handler = NULL;
 
   return definition;
@@ -168,6 +169,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
   CuAssertIntEquals(tc, 28, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 26, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -181,8 +184,10 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
     CuAssertPtrNotNull(tc, definition->category);
     CuAssertPtrNotNull(tc, definition->description);
     CuAssertTrue(tc, definition->event_count > 0);
-    CuAssertTrue(tc, definition->legacy_handler != NULL);
-    CuAssertTrue(tc, definition->typed_handler == NULL);
+    CuAssertPtrNotNull(tc, spec_definition_callback(definition));
+    CuAssertTrue(tc, (definition->legacy_handler != NULL) != (definition->typed_handler != NULL));
+    if (definition->typed_handler != NULL)
+      CuAssertPtrNotNull(tc, definition->typed_adapter);
     CuAssertIntEquals(tc, SPEC_BUILDER_VISIBLE, definition->builder_visibility);
     CuAssertTrue(tc, spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_WORLD));
     alias_count += definition->alias_count;
@@ -266,7 +271,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       return;
     CuAssertStrEquals(tc, expected[definition_index].name, definition->canonical_name);
     CuAssertStrEquals(tc, expected[definition_index].name, definition->display_name);
-    CuAssertTrue(tc, expected[definition_index].handler == definition->legacy_handler);
+    CuAssertTrue(tc, expected[definition_index].handler == spec_definition_callback(definition));
     CuAssertIntEquals(tc, (int)expected[definition_index].owner_mask, (int)definition->owner_mask);
     CuAssertIntEquals(tc, (int)expected[definition_index].event_mask,
                       (int)spec_test_definition_event_mask(definition));
@@ -572,18 +577,29 @@ void Test_spec_registry_rejects_invalid_event_contracts(CuTest *tc)
 void Test_spec_registry_enforces_handler_exclusivity_and_bounded_diagnostics(CuTest *tc)
 {
   struct spec_definition definition;
+  struct spec_definition definitions[2];
   char error[8];
 
   definition = spec_test_valid_definition("Valid");
   definition.legacy_handler = NULL;
-  spec_test_expect_invalid(tc, &definition, 1, "exactly one");
+  spec_test_expect_invalid(tc, &definition, 1, "typed behavior requires");
 
   definition = spec_test_valid_definition("Valid");
   definition.typed_handler = spec_test_typed_handler;
-  spec_test_expect_invalid(tc, &definition, 1, "exactly one");
+  spec_test_expect_invalid(tc, &definition, 1, "legacy behavior cannot");
 
   definition.legacy_handler = NULL;
+  spec_test_expect_invalid(tc, &definition, 1, "typed behavior requires");
+
+  definition.typed_adapter = spec_test_legacy_handler;
   CuAssertTrue(tc, spec_registry_validate_definitions(&definition, 1, NULL, 0));
+
+  definitions[0] = spec_test_valid_definition("First");
+  definitions[1] = spec_test_valid_definition("Second");
+  definitions[1].legacy_handler = NULL;
+  definitions[1].typed_adapter = spec_test_legacy_handler;
+  definitions[1].typed_handler = spec_test_typed_handler;
+  spec_test_expect_invalid(tc, definitions, 2, "typed adapter collides");
 
   definition = spec_test_valid_definition("Valid");
   definition.description = NULL;

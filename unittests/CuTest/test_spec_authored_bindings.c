@@ -179,7 +179,7 @@ static bool spec_binding_alias_loader_scenario(const char *sandbox, char *error,
                                         SPEC_BINDING_RESOLVED, "mobile SpecProc field", error,
                                         error_size) ||
       binding->requested_name == binding->definition->canonical_name ||
-      spec_binding_legacy_handler(binding) != guild ||
+      spec_binding_callback(binding) != guild ||
       !spec_binding_test_record_matches(
           spec_test_fixture_loaded_binding(fixture, SPEC_TEST_OWNER_OBJECT), SPEC_TEST_OWNER_OBJECT,
           "Bank", "Bank", SPEC_BINDING_RESOLVED, "object Z field", error, error_size) ||
@@ -224,7 +224,7 @@ static bool spec_binding_unknown_loader_scenario(const char *sandbox, char *erro
                                           SPEC_BINDING_UNKNOWN_NAME, locations[owner], error,
                                           error_size) ||
         spec_test_fixture_loaded_handler(fixture, owner) != NULL ||
-        spec_binding_legacy_handler(binding) != NULL ||
+        spec_binding_callback(binding) != NULL ||
         !spec_binding_test_diagnostic_matches(binding, "unknown special procedure", error,
                                               error_size))
       return spec_binding_test_finish_fixture(fixture, false, error, error_size);
@@ -270,7 +270,7 @@ static bool spec_binding_incompatible_loader_scenario(const char *sandbox, char 
                                           SPEC_BINDING_INCOMPATIBLE_OWNER, locations[owner], error,
                                           error_size) ||
         spec_test_fixture_loaded_handler(fixture, owner) != NULL ||
-        spec_binding_legacy_handler(binding) != NULL ||
+        spec_binding_callback(binding) != NULL ||
         !spec_binding_test_diagnostic_matches(binding, "incompatible owner", error, error_size))
       return spec_binding_test_finish_fixture(fixture, false, error, error_size);
   }
@@ -397,7 +397,7 @@ void TestSpecAuthoredBindingModelCopyReplaceAndCleanup(CuTest *tc)
     return;
   }
   CuAssertStrEquals(tc, "Guild", binding->definition->canonical_name);
-  CuAssertTrue(tc, spec_binding_legacy_handler(binding) == guild);
+  CuAssertTrue(tc, spec_binding_callback(binding) == guild);
   CuAssertTrue(tc, !spec_binding_format_diagnostic(binding, diagnostic, sizeof(diagnostic)));
 
   CuAssertTrue(tc, spec_binding_copy(&copy, binding, error, sizeof(error)));
@@ -439,7 +439,7 @@ void TestSpecAuthoredBindingSourceCompatibilityAndDiagnostics(CuTest *tc)
     return;
   CuAssertIntEquals(tc, SPEC_BINDING_INCOMPATIBLE_SOURCE, binding->resolution);
   CuAssertPtrNotNull(tc, binding->definition);
-  CuAssertPtrEquals(tc, NULL, spec_binding_legacy_handler(binding));
+  CuAssertPtrEquals(tc, NULL, spec_binding_callback(binding));
   CuAssertStrEquals(tc, "shop", spec_binding_source_name(binding->source));
   CuAssertStrEquals(tc, "incompatible source", spec_binding_resolution_name(binding->resolution));
   CuAssertTrue(tc, spec_binding_format_diagnostic(binding, diagnostic, sizeof(diagnostic)));

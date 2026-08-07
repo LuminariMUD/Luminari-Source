@@ -41,36 +41,61 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "character/vampire_cloak.h"
+#include "spec/spec_context.h"
+#include "spec/spec_dispatch.h"
 
 SPECIAL(vampire_cloak)
 {
-  if (!cmd && !strcmp(argument, "identify"))
+  (void)ch;
+  (void)me;
+  (void)cmd;
+  (void)argument;
+
+  log("SYSERR: Typed Vampire Cloak adapter invoked outside a special-procedure gateway.");
+  return FALSE;
+}
+
+int vampire_cloak_typed(struct spec_event_context *context)
+{
+  struct char_data *ch;
+  struct obj_data *obj;
+  const char *argument;
+  char arg[200];
+  char desc[255];
+  char long_description[255];
+  char old_description[255];
+  int choice;
+  int cmd;
+  int count;
+  int i;
+  int result;
+
+  ch = context->actor;
+  obj = (struct obj_data *)context->owner;
+  argument = context->argument;
+  cmd = context->command;
+  choice = 0;
+  count = 0;
+  result = 0;
+
+  if (context->event == SPEC_EVENT_ITEM_IDENTIFY)
   {
     send_to_char(ch, "This vampire cloak can be customized using the 'setcloak' command.\r\n");
     send_to_char(ch, "Type 'setcloak' while wearing the cloak to see available options.\r\n");
     return TRUE;
   }
+  if (context->event != SPEC_EVENT_COMMAND)
+    return FALSE;
 
   if (!CMD_IS("setcloak"))
-  {
-    return 0;
-  }
+    return FALSE;
 
   if (IS_NPC(ch))
-  {
-    return 0;
-  }
+    return FALSE;
 
-  struct obj_data *obj = NULL;
-  int i = 0, count = 0, choice = 0, result = 0;
-
-  if (!(obj = GET_EQ(ch, WEAR_ABOUT)))
-  {
-    send_to_char(ch, "You must be wearing your vampire cloak to set its abilities.\r\n");
-    return 1;
-  }
-
-  if (GET_OBJ_VNUM(obj) != VAMPIRE_CLOAK_OBJ_VNUM)
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID ||
+      obj->worn_on != WEAR_ABOUT || GET_OBJ_VNUM(obj) != VAMPIRE_CLOAK_OBJ_VNUM)
   {
     send_to_char(ch, "You must be wearing your vampire cloak to set its abilities.\r\n");
     return 1;
@@ -81,8 +106,6 @@ SPECIAL(vampire_cloak)
     send_to_char(ch, "Only vampires can benefit from a vampire cloak.\r\n");
     return 1;
   }
-
-  // todo: check to see if setcloak timer is in effect
 
   if (!*argument)
   {
@@ -116,9 +139,7 @@ SPECIAL(vampire_cloak)
     return 1;
   }
 
-  char arg[200], desc[255], longD[255], oldD[255];
-
-  half_chop(argument, arg, desc);
+  half_chop_c(argument, arg, sizeof(arg), desc, sizeof(desc));
 
   if (is_abbrev(arg, "description"))
   {
@@ -134,14 +155,14 @@ SPECIAL(vampire_cloak)
       send_to_char(ch, "That description is too long.\r\n");
     }
 
-    snprintf(oldD, sizeof(oldD), "%s", obj->short_description);
+    snprintf(old_description, sizeof(old_description), "%s", obj->short_description);
     parse_at(desc);
     obj->short_description = strdup(desc);
-    send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", oldD, desc);
+    send_to_char(ch, "You have renamed '%s' to '%s'.\r\n", old_description, desc);
     strip_colors(desc);
     obj->name = strdup(desc);
-    snprintf(longD, sizeof(longD), "%s is here.", CAP(desc));
-    obj->description = strdup(longD);
+    snprintf(long_description, sizeof(long_description), "%s is here.", CAP(desc));
+    obj->description = strdup(long_description);
     return 1;
   }
 
@@ -183,7 +204,7 @@ SPECIAL(vampire_cloak)
     return 1;
   }
 
-  // clear existing bonuses
+  /* Clear existing bonuses. */
   for (i = 0; i < MAX_SPELL_AFFECTS; i++)
   {
     obj->affected[i].location = 0;
@@ -192,7 +213,7 @@ SPECIAL(vampire_cloak)
     obj->affected[i].specific = 0;
   }
 
-  // add on new bonuses
+  /* Add the selected bonus. */
   obj->affected[0].location = result;
   obj->affected[0].modifier = get_vampire_cloak_bonus(GET_LEVEL(ch), result);
   obj->affected[0].bonus_type = BONUS_TYPE_RACIAL;
@@ -200,11 +221,10 @@ SPECIAL(vampire_cloak)
   send_to_char(ch, "\tcYour vampire cloak now offers +%d to your %s!\r\n\tn",
                obj->affected[0].modifier, apply_types_lowercase(result));
 
-  // set the min level on the cloak
-  GET_OBJ_LEVEL(obj) =
-      (GET_LEVEL(ch) / 15) * 15; // This ensures the only results will be 0, 15 and 30.
+  /* This intentionally produces only levels 0, 15, and 30. */
+  GET_OBJ_LEVEL(obj) = (GET_LEVEL(ch) / 15) * 15;
 
-  // make sure it's vampire only
+  /* Make the customized cloak vampire-only. */
   REMOVE_OBJ_FLAG(obj, ITEM_ANTI_VAMPIRE);
   SET_OBJ_FLAG(obj, ITEM_VAMPIRE_ONLY);
 

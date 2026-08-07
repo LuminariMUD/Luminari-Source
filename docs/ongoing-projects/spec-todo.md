@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00-04 are complete. Phases 05-06 are not started.
+Phases 00-05 are complete. Phase 06 is not started.
 
 ## Goals
 
@@ -52,7 +52,7 @@ Phases 00-04 are complete. Phases 05-06 are not started.
 | 02 | Declarative Legacy Assignments | Complete (2026-08-07) |
 | 03 | Behavior-Preserving Content Extraction | Complete (2026-08-07) |
 | 04 | Narrow Shared Mechanics | Complete (2026-08-07) |
-| 05 | Incremental Typed Handlers | Not Started |
+| 05 | Incremental Typed Handlers | Complete (2026-08-07) |
 | 06 | Conditional Composition and Lifecycle Hooks | Not Started |
 
 ### Phase 00 - Registry Safety and Observability (Complete)
@@ -180,15 +180,28 @@ representative callbacks without mechanically converting the remaining procedure
 Acceptance evidence:
 [Special Procedure Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
 
-### Phase 05 - Incremental Typed Handlers
+### Phase 05 - Incremental Typed Handlers (Complete)
 
-1. Implement new procedures as typed handlers behind existing gateways.
-2. Convert a legacy procedure when it is otherwise changing, or when conversion removes a proven
-   safety risk.
-3. Preserve canonical persisted identities; compare against characterization tests.
-4. Track the remaining legacy population before considering removal of compatibility support.
+Delivered a dual-shape registry contract: a definition owns either one complete legacy handler or a
+typed handler plus a unique legacy-shaped callback-slot adapter. `spec_dispatch()` now selects typed
+dispatch for registered adapters and exact compatibility translation for every other callback.
+Typed dispatch validates owner/event support, preserves gateway-local flow separately from pointer
+invalidation, and rejects STOP on notification-only events.
 
-Exit when converted handlers no longer infer event data from magic strings or ambient combat state.
+Bank and Vampire Cloak are the first production typed handlers. Both identify through explicit
+`SPEC_EVENT_ITEM_IDENTIFY` context instead of command zero plus the magic string `identify`.
+Vampire Cloak command handling also validates the exact context owner as the cloak worn in
+`WEAR_ABOUT`, so a same-VNUM carried copy cannot stand in for the invoking object. Their callback
+pointers, canonical persisted names, assignments, OLC rows, accepted commands, output, and legacy
+return interpretation remain stable.
+
+The post-conversion inventory contains 196 source-level `SPECIAL` definitions: two safe adapters
+and 194 legacy behavior implementations. The canonical registry contains 28 definitions: two typed
+and 26 legacy. Compatibility support therefore remains required. Five focused production-linked
+tests bring the root suite to 588 tests.
+
+Acceptance evidence:
+[Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
 ### Phase 06 - Conditional Composition and Lifecycle Hooks
 
@@ -601,8 +614,8 @@ shop/quest wrappers -------| (explicit compatibility composition)
 
 ### Typed Runtime Context
 
-The first typed API models only current invocation paths. Exact C representation is a session-level
-choice; the semantic separation is not.
+The shipped `struct spec_event_context` models only current invocation paths. Its semantic fields
+remain deliberately narrower than a general event system.
 
 | Concept | Required Values or Fields |
 |---------|---------------------------|
@@ -618,9 +631,9 @@ choice; the semantic separation is not.
 | Outcome flow | Continue or gateway-local stop |
 | Outcome invalidation | Independent owner, actor, and target flags |
 
-The non-binding reference design used `SPEC_OWNER_*`, `SPEC_EVENT_*`, `SPEC_FLOW_CONTINUE`/`_STOP`,
-and `SPEC_INVALIDATE_NONE|OWNER|ACTOR|TARGET`. Event-specific payload structs may replace a union.
-Zone and world lifecycle events are not initial event values.
+The implementation uses `SPEC_OWNER_*`, `SPEC_EVENT_*`, `SPEC_FLOW_CONTINUE`/`_STOP`, and
+`SPEC_INVALIDATE_NONE|OWNER|ACTOR|TARGET`. Zone and world lifecycle events are not current event
+values.
 
 ### Gateway Flow and Invalidation
 
@@ -650,12 +663,12 @@ Implemented in Phase 00; the invariants below must survive later phases. Field-l
 
 Each immutable definition carries a persisted `canonical_name` plus separate display name, explicit
 aliases, owner mask, per-event prototype-flag and placement prerequisites, binding-source mask and
-builder visibility, exactly one handler, and non-empty description and category. Boot validation runs
-before world parsing: invalid metadata is a programmer error and fails boot; an unknown world-data
-name is a content error whose source location and raw identity are preserved. Aliases never become
-canonical through reverse pointer lookup, and accessors are bounds-safe at both extremes. Builders
-explicitly replace or clear an unresolved request; the effective callback stays empty until content
-resolves it.
+builder visibility, exactly one legacy behavior or typed-adapter/handler pair, and non-empty
+description and category. Boot validation runs before world parsing: invalid metadata is a
+programmer error and fails boot; an unknown world-data name is a content error whose source location
+and raw identity are preserved. Aliases never become canonical through reverse pointer lookup, and
+accessors are bounds-safe at both extremes. Builders explicitly replace or clear an unresolved
+request; the effective callback stays empty until content resolves it.
 
 Each binding record carries owner type and prototype identity, requested name including owned
 unresolved raw text, resolved definition when known, source (world data, parser hook, legacy
@@ -828,16 +841,13 @@ covers registry identity and validation, accessor bounds, owner-aware OLC, autho
 effective precedence, moving-room rejection, command/pulse/combat characterization, and `-s` mode
 (78 tests). Phase 01 adds gateway translation exactness, gateway-local flow, null-safety, secondary
 forwarding, and both successor-caching corrections (12 tests). Phase 02 adds declarative-row,
-owner/source, table-diagnostic, and source-label coverage (11 tests). Remaining coverage required as
-later phases land:
-
-- Exact equipped-object pointer identity with duplicate-VNUM instances.
-- Cooldown units, slot bounds, reboot and persistence behavior, and intended spending outcomes.
-- Target death, character pending extraction, and immediate object extraction during execution.
-- Multi-target iteration safety and recursive extra-attack suppression.
-- Affect source removal, source namespace separation, and stacking rejection.
-- Multiple-handler ordering if composition is introduced.
-- Shop and quest secondary behavior throughout migration.
+owner/source, table-diagnostic, and source-label coverage (11 tests). Phase 04 adds nine focused tests
+for typed context rejection, exact object and combat identity, phrase and cooldown behavior, damage
+results, and affect source/stacking separation. Phase 05 adds five tests for mixed dispatch, stable
+callback identities, flow/invalidation, explicit identify events, and exact Vampire Cloak ownership.
+Phase 06 requires multiple-handler ordering only if composition is introduced, shop and quest
+secondary coverage for any deliberate migration, and ordering/lifetime coverage for every approved
+lifecycle hook.
 
 After root `make test`, always run `make install` so the tested server is installed at `bin/circle`
 and no root-level `circle` artifact remains.

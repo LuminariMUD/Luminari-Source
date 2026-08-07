@@ -22,7 +22,7 @@ Three states are intentionally separate:
   hooks, legacy assignments, shops, and quests contribute in their established boot order.
 
 OLC edits authored state. Startup diagnostics observe effective state. Neither surface changes the
-legacy callback dispatch rules.
+callback slot or event-gateway dispatch rules.
 
 ## Usage (medit/oedit/redit)
 
@@ -78,8 +78,7 @@ editing or deleting one prototype cannot invalidate another.
 Disk writers use this authored record whenever it exists. Exact loaded aliases, unknown names, and
 owner- or source-incompatible names therefore survive unrelated OLC saves. A later hard-coded
 callback override remains effective at runtime but is not promoted into the authored world field.
-Only legacy prototypes with no authored record use callback reverse lookup as a compatibility
-fallback.
+Only prototypes with no authored record use callback reverse lookup as a compatibility fallback.
 
 Builder actions are explicit. Selecting a registry entry replaces any prior record with its
 canonical name. Entering `0` clears both the authored record and callback, so the field is omitted
@@ -141,22 +140,25 @@ The boot-log lines and `specbind` output are diagnostics, not world-file input o
 prototype callback pointer remains runtime authority. A collision count reports that more than one
 source contributed; it does not create a multiple-handler chain.
 
-## Compatibility Boundary Through Phase 02
+## Compatibility Boundary Through Phase 05
 
-Phases 00-04 change registration, selection, persistence safety, observability, call-site routing,
-two eligible legacy assignments, source ownership, and narrow runtime safety mechanics. They do not
+Phases 00-05 change registration, selection, persistence safety, observability, call-site routing,
+two eligible legacy assignments, source ownership, narrow runtime safety mechanics, and two typed
+implementations. They do not
 change the `SPECIAL` callback ABI, command-owner
 traversal, heartbeat positions, caller-specific return handling, activation flags, world-file
 grammar, or established assignment precedence. Shop and quest wrappers keep their existing
 saved-secondary behavior.
 
-Event-specific gateways and typed event context are implemented, but they are an engine-side
-concern: nothing a builder selects, sees, or saves in OLC changed, and every procedure still runs
-with its existing behavior. A validated declarative table now owns the two Luminari assignments
-whose handlers are registered and whose VNUMs are symbolic. Unsupported numeric, computed, and
-campaign-compatibility assignments stay on the legacy path and remain visible through the same
-effective-binding diagnostics. Content extraction and shared mechanics are complete; typed handlers
-and general multiple-procedure composition remain later-phase proposals.
+Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
+OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
+their behavior receives explicit event context. The other 26 registered definitions use
+compatibility dispatch; across the source tree, 194 legacy behavior implementations remain. A
+validated declarative table
+owns the two Luminari assignments whose handlers are registered and whose VNUMs are symbolic.
+Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the
+same effective-binding diagnostics. General multiple-procedure composition remains a later-phase
+proposal.
 
 For the implementation boundaries, see
 [Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
@@ -165,7 +167,8 @@ production-linked evidence, see
 [Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
 [Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
 [Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md), and
-[Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
+[Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md), and
+[Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
 ## Notes and Tips
 

@@ -192,13 +192,13 @@ void spec_binding_free(struct spec_binding **binding)
   *binding = NULL;
 }
 
-spec_legacy_handler spec_binding_legacy_handler(const struct spec_binding *binding)
+spec_legacy_handler spec_binding_callback(const struct spec_binding *binding)
 {
   if (binding == NULL || binding->resolution != SPEC_BINDING_RESOLVED ||
       binding->definition == NULL)
     return NULL;
 
-  return binding->definition->legacy_handler;
+  return spec_definition_callback(binding->definition);
 }
 
 const char *spec_binding_persisted_name(const struct spec_binding *binding)

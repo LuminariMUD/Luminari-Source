@@ -21,7 +21,7 @@ static bool spec_olc_definition_selectable(const struct spec_definition *definit
                                            spec_owner_mask owner)
 {
   if (definition == NULL || definition->builder_visibility != SPEC_BUILDER_VISIBLE ||
-      definition->legacy_handler == NULL)
+      spec_definition_callback(definition) == NULL)
     return false;
 
   return spec_definition_supports_owner(definition, owner) &&

@@ -41,7 +41,7 @@
 - Added production-linked route-contract coverage, shell probe regressions,
   and an isolated MariaDB-backed curl smoke test.
 
-### Special-procedure architecture Phases 00-04
+### Special-procedure architecture Phases 00-05
 
 #### Changed
 
@@ -68,7 +68,13 @@
   `specific`; passive removal retains backward cleanup for old persisted tags, while six temporary
   power paths use atomic modifier batches.
 - Reconciled database-first `SPECIALS` help and builder, developer, architecture, help-system, and
-  testing documentation with the delivered Phase 00-04 behavior.
+  testing documentation with the delivered Phase 00-05 behavior.
+- Added mixed typed/legacy registry dispatch behind unchanged callback slots; Bank and Vampire
+  Cloak now consume explicit event context instead of inferring identification from a magic string.
+- Made Vampire Cloak command handling validate the exact invoking cloak instance while preserving
+  its persisted identity, assignment, accepted command, and output.
+- Recorded 2 typed and 26 legacy registry definitions plus 194 remaining source-level legacy
+  behavior implementations, retaining compatibility dispatch and direct assignments deliberately.
 
 #### Verification
 
@@ -78,12 +84,16 @@
 - Added nine focused Phase 04 tests for typed payload rejection, exact instance and combat context,
   phrase compatibility, cooldown bounds, damage outcomes, source-selective affect removal, atomic
   stacking conflicts, and representative invoked-object behavior.
+- Added five focused Phase 05 tests for typed registry identity, flow/invalidation rules,
+  notification-only STOP rejection, explicit identify events, and exact Vampire Cloak ownership.
 - The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
   verifier, dual-build manifest comparison, and documentation/integrity gates pass.
 - The Phase 03 close passes 574 root tests and 12/12 CTest targets; exact moved-body checks and a
   complete exported-symbol comparison show no behavior or linkage drift.
 - The Phase 04 close passes 583 root tests and 12/12 CTest targets with both build manifests
   synchronized and a warning-clean production build.
+- The Phase 05 close passes 588 root tests and 12/12 CTest targets with persisted callback
+  identities unchanged and 2 typed definitions dispatched through existing gateways.
 
 ### Pet persistence and crash observability
 

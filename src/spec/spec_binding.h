@@ -49,8 +49,8 @@ bool spec_binding_copy(struct spec_binding **target, const struct spec_binding *
 /** Free a binding and null the caller-owned pointer. */
 void spec_binding_free(struct spec_binding **binding);
 
-/** Return the authored compatibility handler only for a fully resolved binding. */
-spec_legacy_handler spec_binding_legacy_handler(const struct spec_binding *binding);
+/** Return the callback-slot handler only for a fully resolved binding. */
+spec_legacy_handler spec_binding_callback(const struct spec_binding *binding);
 
 /** Return the exact single-line requested name for a valid world-authored persistence record. */
 const char *spec_binding_persisted_name(const struct spec_binding *binding);

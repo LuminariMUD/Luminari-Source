@@ -44,8 +44,9 @@ Definitions, exact authored binding intent, and ordered effective boot
 provenance are separate state layers; the existing callback slot remains the
 runtime dispatch authority. Every engine call site now reaches that slot through
 an event gateway in `src/spec/spec_dispatch.c`, which builds typed event context
-where complete data still exists and then performs the exact legacy `SPECIAL`
-translation. Handlers themselves are still legacy. See the
+where complete data still exists. The generic dispatcher reverse-resolves a
+registered typed adapter and otherwise performs the exact legacy `SPECIAL`
+translation. See the
 [Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)
 and the
 [Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
@@ -82,6 +83,13 @@ affect helpers under `src/spec/`. The helpers retain the production combat and a
 separate `source_id` ownership from spell-scoped stacking identity, and have multiple object, mobile,
 gateway, and artifact consumers. Weapon-hit context now receives the actual combat victim. See the
 [Phase 04 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
+
+Phase 05 converts Bank and Vampire Cloak to typed handlers behind their unchanged callback-slot
+adapters. Identification now uses explicit event identity instead of a magic argument, and Vampire
+Cloak commands validate the exact invoking object. The registry contains 2 typed and 26 legacy
+definitions; 194 source-level legacy behavior implementations remain, so compatibility dispatch is
+still required. See the
+[Phase 05 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
 ## Operational Boundary
 

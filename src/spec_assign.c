@@ -16,6 +16,7 @@
 #include "interpreter.h"
 #include "spec_procs.h"
 #include "character/guild_services.h"
+#include "character/vampire_cloak.h"
 #include "magic/spellbook_scroll.h"
 #include "obj/vendor.h"
 #include "spec/spec_mobile_archetypes.h"
@@ -71,7 +72,6 @@ SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(buymolds);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
-SPECIAL_DECL(vampire_cloak);
 SPECIAL_DECL(replace_quest_item);
 SPECIAL_DECL(temple);
 
@@ -193,8 +193,8 @@ static void apply_object_assignments(const struct spec_obj_assignment *rows, siz
       log("SYSERR: Skipping declarative object assignment for #%d: %s", rows[index].vnum, error);
       continue;
     }
-    assign_object_spec(rows[index].vnum, definition->legacy_handler, definition->canonical_name,
-                       source_location);
+    assign_object_spec(rows[index].vnum, spec_definition_callback(definition),
+                       definition->canonical_name, source_location);
   }
 }
 #endif

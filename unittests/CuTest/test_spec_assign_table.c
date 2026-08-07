@@ -32,14 +32,15 @@ void Test_spec_assign_table_resolves_converted_production_rows(CuTest *tc)
   crafting_kit = spec_assign_table_resolve("Crafting Kit", SPEC_OWNER_OBJECT, error, sizeof(error));
   CuAssertPtrNotNull(tc, (void *)crafting_kit);
   CuAssertStrEquals(tc, "Crafting Kit", crafting_kit->canonical_name);
-  CuAssertPtrNotNull(tc, (void *)crafting_kit->legacy_handler);
+  CuAssertPtrNotNull(tc, (void *)spec_definition_callback(crafting_kit));
   CuAssertStrEquals(tc, "", error);
 
   vampire_cloak =
       spec_assign_table_resolve("Vampire Cloak", SPEC_OWNER_OBJECT, error, sizeof(error));
   CuAssertPtrNotNull(tc, (void *)vampire_cloak);
   CuAssertStrEquals(tc, "Vampire Cloak", vampire_cloak->canonical_name);
-  CuAssertPtrNotNull(tc, (void *)vampire_cloak->legacy_handler);
+  CuAssertPtrNotNull(tc, (void *)spec_definition_callback(vampire_cloak));
+  CuAssertPtrNotNull(tc, (void *)vampire_cloak->typed_handler);
   CuAssertStrEquals(tc, "", error);
 }
 

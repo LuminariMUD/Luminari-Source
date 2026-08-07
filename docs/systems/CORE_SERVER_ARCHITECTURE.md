@@ -417,6 +417,16 @@ ambient combat state. Legacy callback translation remains synchronous and ABI-co
 complete mechanic, lifetime, and consumer matrix is in
 [Special Procedure Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
 
+Phase 05 adds mixed typed and legacy dispatch behind the unchanged prototype callback slot. Each
+definition now validates as either one complete legacy handler or a unique callback-slot adapter
+paired with a typed handler. Every gateway calls `spec_dispatch()`, which reverse-resolves typed
+adapters and otherwise performs exact legacy translation. Bank and Vampire Cloak are the first typed
+consumers; they use explicit item-identify event identity, and Vampire Cloak validates the exact
+invoking worn object. Their persisted names, callback pointers, assignments, and builder rows remain
+unchanged. The registry reports 2 typed and 26 legacy definitions; the source tree still contains
+194 legacy behavior implementations. See
+[Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
+
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
 general chain. Under `-s`, world names and parser hooks still load while the assignment block is
@@ -441,9 +451,9 @@ It cannot share the room callback slot with a named `Z` binding. Boot rejects bo
 REdit blocks selection and defensive internal save, and the room writer preflights the complete zone
 before opening output or mutating mover state.
 
-Phases 00-04 do not convert a legacy handler or introduce multiple-handler dispatch. Later typed
-handlers and optional composition must preserve the characterized scheduling, traversal,
-activation, return, and precedence rules.
+Phases 00-05 do not introduce multiple-handler dispatch. Two handlers are typed behind stable
+adapters; remaining conversions and optional composition must preserve the characterized
+scheduling, traversal, activation, return, and precedence rules.
 
 ## Performance Monitoring
 

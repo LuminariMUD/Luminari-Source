@@ -1,12 +1,11 @@
 /**
  * @file spec_dispatch.h
- * Phase 01 event gateways for special-procedure invocation.
+ * Event gateways and incremental typed dispatch for special procedures.
  *
- * Every engine call site builds a typed context here and lets one gateway
- * perform the legacy `SPECIAL` translation. Gateways preserve the exact `ch`,
- * `me`, `cmd`, argument, and return interpretation each caller used before the
- * migration; they do not decide where a procedure is bound and they never
- * mutate prototypes.
+ * Every engine call site builds a typed context here. Registered typed
+ * adapters receive it directly; compatibility handlers retain the exact
+ * `SPECIAL` translation. Gateways do not decide where a procedure is bound
+ * and never mutate prototypes.
  */
 
 #ifndef LUMINARI_SPEC_DISPATCH_H
@@ -38,6 +37,8 @@ enum spec_invalidate_flag
   SPEC_INVALIDATE_ACTOR = (1U << 1),
   SPEC_INVALIDATE_TARGET = (1U << 2)
 };
+
+#define SPEC_INVALIDATE_ALL (SPEC_INVALIDATE_OWNER | SPEC_INVALIDATE_ACTOR | SPEC_INVALIDATE_TARGET)
 
 /**
  * Complete event data captured where it still exists.
@@ -83,6 +84,22 @@ const char *spec_invalidate_name(spec_invalidate_mask invalidation);
  * type, event, owner, actor, command, and argument for this call site.
  */
 int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler handler);
+
+/**
+ * Invoke a typed definition after validating its owner and event contract.
+ *
+ * Flow-bearing events return nonzero when the typed result stops that gateway;
+ * notification-only events return the typed handler's raw result while
+ * discarding an invalid STOP request.
+ */
+int spec_dispatch_typed(struct spec_event_context *context,
+                        const struct spec_definition *definition);
+
+/**
+ * Dispatch a callback-slot handler through typed metadata when registered,
+ * otherwise preserve exact legacy invocation.
+ */
+int spec_dispatch(struct spec_event_context *context, spec_legacy_handler handler);
 
 /* --------------------------------------------------------------------------
  * Command gateway. STOP consumes the command and stops later owner traversal.

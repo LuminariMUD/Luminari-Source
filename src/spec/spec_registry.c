@@ -11,6 +11,7 @@
 #include "spec/spec_registry.h"
 #include "spec_procs.h"
 #include "character/guild_services.h"
+#include "character/vampire_cloak.h"
 #include "magic/spellbook_scroll.h"
 #include "obj/vendor.h"
 #include "spec/spec_mobile_archetypes.h"
@@ -34,7 +35,6 @@ SPECIAL_DECL(eqstats);
 SPECIAL_DECL(huntsmaster);
 SPECIAL_DECL(new_supply_orders);
 SPECIAL_DECL(temple);
-SPECIAL_DECL(vampire_cloak);
 
 #define SPEC_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -82,8 +82,9 @@ static const struct spec_definition spec_definitions[] = {
         .category = "Services",
         .description = "Provides balance, deposit, and withdrawal services; bank objects also "
                        "describe themselves when identified.",
-        .legacy_handler = bank,
-        .typed_handler = NULL,
+        .legacy_handler = NULL,
+        .typed_adapter = bank,
+        .typed_handler = bank_typed,
     },
     {
         .canonical_name = "Bazaar",
@@ -452,8 +453,9 @@ static const struct spec_definition spec_definitions[] = {
         .category = "Equipment",
         .description = "Lets a vampire customize an equipped cloak and explains the feature during "
                        "identification.",
-        .legacy_handler = vampire_cloak,
-        .typed_handler = NULL,
+        .legacy_handler = NULL,
+        .typed_adapter = vampire_cloak,
+        .typed_handler = vampire_cloak_typed,
     },
     {
         .canonical_name = "Wizard Library",
@@ -819,11 +821,46 @@ static bool spec_validate_definition(const struct spec_definition *definition, s
                                  "definition[%zu] '%s': builder_visibility %d is invalid", index,
                                  definition->canonical_name, definition->builder_visibility);
 
-  if ((definition->legacy_handler == NULL) == (definition->typed_handler == NULL))
+  if (definition->legacy_handler != NULL)
+  {
+    if (definition->typed_adapter != NULL || definition->typed_handler != NULL)
+      return spec_validation_error(
+          error, error_size,
+          "definition[%zu] '%s': legacy behavior cannot also define a typed adapter or handler",
+          index, definition->canonical_name);
+  }
+  else if (definition->typed_adapter == NULL || definition->typed_handler == NULL)
     return spec_validation_error(
         error, error_size,
-        "definition[%zu] '%s': exactly one legacy_handler or typed_handler is required", index,
+        "definition[%zu] '%s': typed behavior requires both typed_adapter and typed_handler", index,
         definition->canonical_name);
+
+  return true;
+}
+
+static bool spec_validate_unique_callbacks(const struct spec_definition *definitions, size_t count,
+                                           char *error, size_t error_size)
+{
+  spec_legacy_handler callback;
+  spec_legacy_handler other_callback;
+  size_t definition_index;
+  size_t other_index;
+
+  for (definition_index = 0; definition_index < count; definition_index++)
+  {
+    callback = spec_definition_callback(&definitions[definition_index]);
+    for (other_index = definition_index + 1U; other_index < count; other_index++)
+    {
+      other_callback = spec_definition_callback(&definitions[other_index]);
+      if (callback == other_callback && (definitions[definition_index].typed_handler != NULL ||
+                                         definitions[other_index].typed_handler != NULL))
+        return spec_validation_error(
+            error, error_size,
+            "definition[%zu] '%s': typed adapter collides with definition[%zu] '%s'",
+            definition_index, definitions[definition_index].canonical_name, other_index,
+            definitions[other_index].canonical_name);
+    }
+  }
 
   return true;
 }
@@ -946,6 +983,25 @@ size_t spec_registry_count(void)
   return SPEC_ARRAY_SIZE(spec_definitions);
 }
 
+size_t spec_registry_legacy_count(void)
+{
+  size_t count;
+  size_t definition_index;
+
+  count = 0;
+  for (definition_index = 0; definition_index < SPEC_ARRAY_SIZE(spec_definitions);
+       definition_index++)
+    if (spec_definitions[definition_index].legacy_handler != NULL)
+      count++;
+
+  return count;
+}
+
+size_t spec_registry_typed_count(void)
+{
+  return spec_registry_count() - spec_registry_legacy_count();
+}
+
 const struct spec_definition *spec_registry_get(int index)
 {
   if (index < 0 || (size_t)index >= SPEC_ARRAY_SIZE(spec_definitions))
@@ -1002,11 +1058,20 @@ const struct spec_definition *spec_registry_find_by_handler(spec_legacy_handler 
   for (definition_index = 0; definition_index < SPEC_ARRAY_SIZE(spec_definitions);
        definition_index++)
   {
-    if (spec_definitions[definition_index].legacy_handler == handler)
+    if (spec_definition_callback(&spec_definitions[definition_index]) == handler)
       return &spec_definitions[definition_index];
   }
 
   return NULL;
+}
+
+spec_legacy_handler spec_definition_callback(const struct spec_definition *definition)
+{
+  if (definition == NULL)
+    return NULL;
+
+  return definition->legacy_handler != NULL ? definition->legacy_handler
+                                            : definition->typed_adapter;
 }
 
 bool spec_definition_supports_owner(const struct spec_definition *definition, spec_owner_mask owner)
@@ -1119,6 +1184,9 @@ bool spec_registry_validate_definitions(const struct spec_definition *definition
       return false;
   }
 
+  if (!spec_validate_unique_callbacks(definitions, count, error, error_size))
+    return false;
+
   return spec_validate_unique_names(definitions, count, error, error_size);
 }
 
@@ -1141,7 +1209,8 @@ void spec_registry_boot_validate(void)
     exit(EXIT_FAILURE);
   }
 
-  log("Special-procedure registry: validated %zu canonical definitions.", spec_registry_count());
+  log("Special-procedure registry: validated %zu canonical definitions (%zu legacy, %zu typed).",
+      spec_registry_count(), spec_registry_legacy_count(), spec_registry_typed_count());
 }
 
 int get_spec_func_count(void)
@@ -1168,7 +1237,7 @@ SPECIAL_DECL(*get_spec_func_by_index(int idx))
   if (entry->definition_index < 0 || entry->definition_index >= SPEC_DEFINITION_INDEX_COUNT)
     return NULL;
 
-  return spec_definitions[entry->definition_index].legacy_handler;
+  return spec_definition_callback(&spec_definitions[entry->definition_index]);
 }
 
 SPECIAL_DECL(*find_spec_func_by_name(const char *name))
@@ -1176,7 +1245,7 @@ SPECIAL_DECL(*find_spec_func_by_name(const char *name))
   const struct spec_definition *definition;
 
   definition = spec_registry_find_by_name(name);
-  return definition == NULL ? NULL : definition->legacy_handler;
+  return spec_definition_callback(definition);
 }
 
 const char *get_spec_func_name(SPECIAL_DECL(*func))

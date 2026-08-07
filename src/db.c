@@ -853,7 +853,7 @@ static spec_legacy_handler load_world_spec_binding(struct spec_binding **target,
   if (spec_binding_format_diagnostic(*target, diagnostic, sizeof(diagnostic)))
     log("WARNING: Special-procedure %s.", diagnostic);
 
-  handler = spec_binding_legacy_handler(*target);
+  handler = spec_binding_callback(*target);
   definition = handler != NULL ? (*target)->definition : NULL;
   contribution.source = SPEC_BINDING_SOURCE_WORLD;
   contribution.requested_name = requested_name;

@@ -248,7 +248,7 @@ void Test_spec_owner_olc_filtered_inventories_are_exact(CuTest *tc)
       CuAssertIntEquals(tc, SPEC_BUILDER_VISIBLE, definition->builder_visibility);
       CuAssertTrue(tc, spec_definition_supports_owner(definition, view->owner));
       CuAssertTrue(tc, spec_definition_allows_binding(definition, SPEC_BINDING_SOURCE_WORLD));
-      CuAssertTrue(tc, definition->legacy_handler != NULL);
+      CuAssertPtrNotNull(tc, (void *)spec_definition_callback(definition));
       CuAssertPtrNotNull(tc, definition->category);
       CuAssertPtrNotNull(tc, definition->description);
     }
@@ -387,7 +387,7 @@ static bool spec_owner_mapping_scenario(const char *sandbox, char *error, size_t
           !spec_test_fixture_reset_olc(fixture, view->fixture_owner, bank) ||
           !spec_test_fixture_parse_olc(fixture, view->fixture_owner, selection) ||
           spec_test_fixture_olc_handler(fixture, view->fixture_owner) !=
-              definition->legacy_handler ||
+              spec_definition_callback(definition) ||
           spec_test_fixture_olc_changed(fixture) != 1)
       {
         snprintf(error, error_size, "production editor failed filtered selection %zu for %s",

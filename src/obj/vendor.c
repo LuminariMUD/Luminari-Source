@@ -40,16 +40,37 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "spec/spec_dispatch.h"
 
 SPECIAL(bank)
 {
-  int amount;
+  (void)ch;
+  (void)me;
+  (void)cmd;
+  (void)argument;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  log("SYSERR: Typed Bank adapter invoked outside a special-procedure gateway.");
+  return FALSE;
+}
+
+int bank_typed(struct spec_event_context *context)
+{
+  struct char_data *ch;
+  const char *argument;
+  int amount;
+  int cmd;
+
+  ch = context->actor;
+  argument = context->argument;
+  cmd = context->command;
+
+  if (context->event == SPEC_EVENT_ITEM_IDENTIFY)
   {
     send_to_char(ch, "This appears to be a bank.\r\n");
     return TRUE;
   }
+  if (context->event != SPEC_EVENT_COMMAND)
+    return FALSE;
 
   if (CMD_IS("balance"))
   {
@@ -62,7 +83,7 @@ SPECIAL(bank)
   else if (CMD_IS("deposit"))
   {
     /* code to accomdate "all" */
-    skip_spaces(&argument);
+    skip_spaces_c(&argument);
     if (is_abbrev(argument, "all"))
     {
       amount = GET_GOLD(ch);
@@ -92,7 +113,7 @@ SPECIAL(bank)
   else if (CMD_IS("withdraw"))
   {
     /* code to accomdate "all" */
-    skip_spaces(&argument);
+    skip_spaces_c(&argument);
     if (is_abbrev(argument, "all"))
     {
       amount = GET_BANK_GOLD(ch);
