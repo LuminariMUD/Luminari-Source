@@ -121,7 +121,7 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-21 extracted the complete audited general object section to
+Checkpoints 1-22 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
@@ -134,14 +134,14 @@ research, and pet-shop commerce live with `src/character/`, `src/magic/`, and `s
 combat and companion archetypes now live in `src/spec/spec_mobile_archetypes.c`, while clan-hall
 cleric and guard services live in `src/clan_services.c`. The complete King's Castle, Abyss, Crimson
 Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF, Shadow Dragon, Banshee,
-Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, and Abyssal Vortex packages now live in
-dedicated `src/spec/spec_zone_*` owners. The
+Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, Abyssal Vortex, and House Agrach-Dyrr
+packages now live in dedicated `src/spec/spec_zone_*` owners. The
 final TTF move retired all 4,202 baseline lines and removed `src/zone_procs.c` from both build
 manifests. Autotools and CMake link every new source for production and CuTest. The callback ABI,
 exported symbols,
 registry identities and assignments, world grammar, scheduling, and behavior remain unchanged.
 The cross-file `is_wearing()` equipment predicate now lives with `equip_char()` and
-`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 1,590 lines, down 10,622 lines from the
+`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 1,523 lines, down 10,689 lines from the
 Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
@@ -242,8 +242,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 21 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 21. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 22 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 22. |
 
 ## Risks and Guardrails
 
@@ -445,12 +445,12 @@ zone events still need an explicit lifecycle interface, not a zone pointer hidde
 
 At the Phase 03 baseline, `spec_procs.c` also held work owned elsewhere: spell/skill/ability listing
 and calculation; moving-room and legacy ship behavior; vendor item construction and naming; and
-crafting-mold purchase and construction. Checkpoints 1-21 have moved every item in that list, the
+crafting-mold purchase and construction. Checkpoints 1-22 have moved every item in that list, the
 traced general mobile/room slice, reusable combat/companion archetypes, and clan services. The
 King's Castle, Abyss, Crimson Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF,
-Shadow Dragon, Banshee, Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, and Abyssal Vortex
-packages have also moved intact from the legacy files. The remaining callbacks in `src/spec_procs.c`
-are cohesive zone content; its former
+Shadow Dragon, Banshee, Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, Abyssal Vortex,
+and House Agrach-Dyrr packages have also moved intact from the legacy files. The remaining callbacks
+in `src/spec_procs.c` are cohesive zone content; its former
 cross-file equipment predicate now lives in `src/handler.c`.
 Splitting them by owner type alone would still preserve zone-ownership mistakes. Moving rooms
 retain their temporary gateway and now live in the vessel subsystem; a direct typed hook remains a
@@ -500,7 +500,7 @@ src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
-Shipped content ownership (Phase 03 Checkpoints 1-21):
+Shipped content ownership (Phase 03 Checkpoints 1-22):
 
 ```text
 src/spec/spec_objects.c
@@ -509,6 +509,7 @@ src/spec/spec_mobiles.c|.h
 src/spec/spec_rooms.c|.h
 src/spec/spec_zone_abyss.c|.h
 src/spec/spec_zone_abyssal_vortex.c|.h
+src/spec/spec_zone_agrach_dyrr.c|.h
 src/spec/spec_zone_banshee.c|.h
 src/spec/spec_zone_celestial_leviathan.c|.h
 src/spec/spec_zone_crimson_flame.c|.h

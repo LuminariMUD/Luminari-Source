@@ -210,6 +210,7 @@ circle_SOURCES = \
 	src/spec/spec_rooms.c \
 	src/spec/spec_zone_abyss.c \
 	src/spec/spec_zone_abyssal_vortex.c \
+	src/spec/spec_zone_agrach_dyrr.c \
 	src/spec/spec_zone_banshee.c \
 	src/spec/spec_zone_celestial_leviathan.c \
 	src/spec/spec_zone_crimson_flame.c \
