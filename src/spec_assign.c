@@ -22,6 +22,7 @@
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
+#include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
