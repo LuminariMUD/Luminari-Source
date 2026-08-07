@@ -560,6 +560,36 @@ because no command, authored-data, or behavior contract changed.
 | exact comparison of all 13 moved helper lines | PASS, no content drift |
 | `git diff --check` | PASS |
 
+## Checkpoint 15 - Shadow Dragon Zone Procedures
+
+Checkpoint 15 moves the `shadowdragon` mobile callback from `src/spec_procs.c` to
+`src/spec/spec_zone_shadow_dragon.c` and publishes its callback declaration through
+`src/spec/spec_zone_shadow_dragon.h`. Its only direct assignment remains mobile VNUM 110600 in
+`src/spec_assign.c`; no registry definition or authored world binding changed. The assignment
+source now includes the owner header directly, while `src/spec_procs.h` retains the owner include as
+a compatibility surface.
+
+This is an ownership-only move. All 36 legacy implementation lines are unchanged, including the
+one-in-five combat-pulse chance, room traversal with cached successors, player and pet eligibility,
+message targets, direct move-point subtraction, darkness spell call and arguments, and return
+values. Removing the adjacent separator line reduces `src/spec_procs.c` from 1,929 to 1,892 lines.
+The 54-line owner source is linked by both build manifests. No player or builder helpfile changed
+because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 15 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 14 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 36 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_shadow_dragon.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -569,10 +599,11 @@ because no command, authored-data, or behavior contract changed.
 
 ## Resume Point
 
-Move the 36-line Shadow Dragon boundary at `src/spec_procs.c:369-404`, beginning with its procedure
-comment and ending after `shadowdragon`, to a dedicated zone owner. Its only assignment is mobile
-VNUM 110600 in `src/spec_assign.c`; it has no registry definition. Preserve the callback name and
-type, one-in-five pulse chance, room traversal and successor caching, player/pet eligibility,
-message targets, direct move-point subtraction, darkness spell call and arguments, assignment
-order, return values, and exported-symbol parity. Add the new implementation to both build
-manifests and make `src/spec_assign.c` include the owner header directly.
+Move the 31-line Banshee boundary at `src/spec_procs.c:454-484`, beginning with its procedure
+comment and ending after `banshee`, to a dedicated zone owner. Its direct assignments are mobile VNUMs
+109718 and 106230 in `src/spec_assign.c`; it has no registry definition. Preserve the callback name
+and type, command and position guards, `PROC_FIRED` reset and one-shot semantics, one-in-41 combat
+pulse chance, room traversal, player-only eligibility, saving throw arguments, message targets,
+direct hit-point assignment, assignment order, return values, and exported-symbol parity. Add the
+new implementation to both build manifests and make `src/spec_assign.c` include the owner header
+directly.

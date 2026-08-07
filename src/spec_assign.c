@@ -29,6 +29,7 @@
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
+#include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_ttf.h"
 #include "ban.h" /* for SPECIAL(gen_board) */
 #include "comms/boards.h"

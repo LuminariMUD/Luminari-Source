@@ -33,6 +33,7 @@
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
+#include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_ttf.h"
 #include "vessels/vessels_moving_rooms.h"
 
@@ -153,7 +154,6 @@ SPECIAL_DECL(rughnark);
 
 /* s-u */
 SPECIAL_DECL(sarn);
-SPECIAL_DECL(shadowdragon);
 SPECIAL_DECL(shar_heart);
 SPECIAL_DECL(shar_statue);
 SPECIAL_DECL(rune_scimitar);

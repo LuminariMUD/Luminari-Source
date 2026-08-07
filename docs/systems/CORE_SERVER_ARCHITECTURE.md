@@ -370,7 +370,8 @@ cube-wide messages, and callback live together in `src/spec/spec_zone_mad_drow.c
 encounters, follower summoning, patrol route, and per-mobile path scheduling live in
 `src/spec/spec_zone_ttf.c`; that final package retired `src/zone_procs.c`. The public names, callback
 ABI, world grammar, pulse position, assignment and registry references, initialization order,
-calculations, and display behavior remain unchanged.
+calculations, and display behavior remain unchanged. The Shadow Dragon combat-pulse callback lives
+in `src/spec/spec_zone_shadow_dragon.c` with its dedicated owner API.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in

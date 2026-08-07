@@ -196,7 +196,8 @@ implementation is just over the file-size review prompt. Mad Drow cube-slider st
 exit helpers, and callback use `src/spec/spec_zone_mad_drow.h`; keep the complete puzzle state and
 mutation order in that owner. TTF AOE encounters, follower summoning, and patrol state use
 `src/spec/spec_zone_ttf.h`. That final package retired the legacy `src/zone_procs.c` source. Use
-`is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
+`src/spec/spec_zone_shadow_dragon.h` for the Shadow Dragon encounter callback. Use `is_wearing()`
+from `handler.h` for the established same-VNUM equipment predicate.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 
