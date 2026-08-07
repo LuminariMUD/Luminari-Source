@@ -83,7 +83,9 @@ assignments. Content extraction, shared mechanics, typed handlers, and
 conditional composition remain planned in the
 [special-procedure refactor PRD](docs/ongoing-projects/spec-todo.md).
 
-## Related Projects
+## LuminariMUD Eco-System
+
+What we call the "Lumiverse":
 
 - [Sage GraphRAG lore and world building](https://github.com/LuminariMUD/sage)
 - [Luminari web client](https://github.com/LuminariMUD/luminariweb)
