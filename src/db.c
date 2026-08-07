@@ -7609,15 +7609,16 @@ static int check_object_level(struct obj_data *obj, int val)
 static int check_bitvector_names(bitvector_t bits, size_t namecount, const char *whatami,
                                  const char *whatbits)
 {
+  const size_t bit_count = sizeof(bitvector_t) * CHAR_BIT;
   unsigned int flagnum;
   bool error = FALSE;
 
   /* See if any bits are set above the ones we know about. */
-  if (bits <= (~(bitvector_t)0 >> (sizeof(bitvector_t) * 8 - namecount)))
+  if (namecount >= bit_count || (bits >> namecount) == 0)
     return (FALSE);
 
-  for (flagnum = namecount; (size_t)flagnum < sizeof(bitvector_t) * 8; flagnum++)
-    if ((1 << flagnum) & bits)
+  for (flagnum = namecount; (size_t)flagnum < bit_count; flagnum++)
+    if (((bitvector_t)1 << flagnum) & bits)
     {
       log("SYSERR: %s has unknown %s flag, bit %d (0 through %d known).", whatami, whatbits,
           flagnum, (int)namecount - 1);

@@ -696,14 +696,11 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy)
 {
-  /* Free any existing trail data before copying */
-  if (CONFIG_WILDERNESS_SYSTEM == 2)
+  /* Trail data is runtime state and is never retained across an OLC copy. */
+  if (to->trail_tracks)
   {
-    if (to->trail_tracks)
-    {
-      free_trail_data_list(to->trail_tracks);
-      to->trail_tracks = NULL;
-    }
+    free_trail_data_list(to->trail_tracks);
+    to->trail_tracks = NULL;
   }
 
   free_room_strings(to);
@@ -716,6 +713,7 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   to->events = from->events;
 
   /* Trail data is runtime data - don't copy it, start fresh */
+  free_trail_data_list(from->trail_tracks);
   to->trail_tracks = NULL;
 
   /* Don't put people and objects in two locations. Should this be done here? */

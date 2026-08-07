@@ -366,7 +366,7 @@ jobs:
         run: |
           make -C unittests/CuTest protocol-parser \
             PROTOCOL_TEST_CFLAGS='-Wall -Wextra -std=gnu2x -g -O0 --coverage -ffunction-sections -fdata-sections' \
-            PROTOCOL_TEST_LDFLAGS='-lm -Wl,--gc-sections --coverage'
+            PROTOCOL_TEST_LDFLAGS='-lm -ljson-c -Wl,--gc-sections --coverage'
 
       - name: Generate coverage report and enforce baseline
         run: |

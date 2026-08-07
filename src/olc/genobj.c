@@ -37,7 +37,8 @@ obj_rnum add_object(struct obj_data *newobj, obj_vnum ovnum)
   /* Write object to internal tables. */
   if ((newobj->item_number = real_object(ovnum)) != NOTHING)
   {
-    copy_object(&obj_proto[newobj->item_number], newobj);
+    free_object_strings(&obj_proto[newobj->item_number]);
+    copy_object_main(&obj_proto[newobj->item_number], newobj, TRUE);
     update_all_objects(&obj_proto[newobj->item_number]);
     add_to_save_list(zone_table[rznum].number, SL_OBJ);
     return newobj->item_number;
