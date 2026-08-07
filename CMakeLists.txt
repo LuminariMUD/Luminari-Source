@@ -1106,6 +1106,11 @@ if (BUILD_TESTS)
     set_tests_properties(versioned-binary-install PROPERTIES
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
+    add_test(NAME healthcheck
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh)
+    set_tests_properties(healthcheck PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
     add_test(NAME vessel-memory-analyzer
         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/vessels/test_vessel_memory_analyzer.sh)
     add_test(NAME vessel-process-memory-details
@@ -1133,6 +1138,12 @@ add_custom_target(test-versioned-binary-install
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/deployment/test_versioned_binary_install.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Running versioned binary installation regression test"
+)
+
+add_custom_target(test-healthcheck
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/operations/test_healthcheck.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Running healthcheck regression tests"
 )
 
 # ========== Installation ==========

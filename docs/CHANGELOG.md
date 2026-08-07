@@ -2,6 +2,25 @@
 
 ## [Unreleased] - August 7, 2026
 
+### Operational health and readiness
+
+#### Added
+
+- Added loopback HTTP `/health`, `/health/ready`, and `/health/live` routes to
+  the existing Terrain API listener, including MariaDB-backed readiness and a
+  configurable listener port.
+- Added a bounded operator healthcheck command and a systemd startup probe.
+
+#### Fixed
+
+- Preserved ownership of command-line `-o` log paths so graceful shutdown no
+  longer frees argument-vector memory after startup smoke tests.
+
+#### Verification
+
+- Added production-linked route-contract coverage, shell probe regressions,
+  and an isolated MariaDB-backed curl smoke test.
+
 ### Special-procedure registry safety and observability
 
 #### Changed

@@ -55,7 +55,8 @@
 # - User 'luminari' must exist
 # - MUD installed at /home/luminari/Luminari-Source/
 # - scripts/autorun/autorun.sh must be executable
-# - MySQL/MariaDB should be running (but not required)
+# - MySQL/MariaDB must be running
+# - curl is required for the startup readiness probe
 
 [Unit]
 Description=LuminariMUD Game Server
@@ -71,6 +72,7 @@ PIDFile=/home/luminari/Luminari-Source/.autorun.lock.pid
 
 # autorun.sh now defaults to daemon mode and starts its own watchdog
 ExecStart=/home/luminari/Luminari-Source/scripts/autorun/autorun.sh
+ExecStartPost=/home/luminari/Luminari-Source/scripts/operations/healthcheck.sh --wait
 ExecStop=/home/luminari/Luminari-Source/scripts/autorun/autorun.sh stop
 ExecReload=/bin/kill -HUP $MAINPID
 
@@ -84,6 +86,8 @@ TimeoutStopSec=30
 # Environment variables
 Environment="MUD_PORT=4100"
 Environment="MUD_FLAGS=-q"
+Environment="TERRAIN_API_PORT=8182"
+Environment="LUMINARI_HEALTH_URL=http://127.0.0.1:8182/health"
 Environment="ENABLE_WEBSOCKET=false"
 Environment="ENABLE_FLASH=false"
 Environment="IGNORE_DISK_SPACE=true"

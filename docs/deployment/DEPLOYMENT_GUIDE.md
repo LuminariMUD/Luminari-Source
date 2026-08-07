@@ -89,7 +89,7 @@ cd Luminari-Source
 The deployment script automatically performs:
 - Installs dependencies (if needed)
 - Generates the build system (autoreconf + configure - autotools preferred)
-- Copies required configuration files (.example.h → .h)
+- Copies required configuration files (.example.h -> .h)
 - Builds the entire codebase
 - Installs binaries to bin/
 - Sets up and configures MariaDB database (REQUIRED)
@@ -135,7 +135,7 @@ Deploy script options:
 
 **Note:** World initialization is enabled by default. The server requires world data to start.
 
-Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and executes the in-engine database initializer (equivalent to running `db_init_system all`). This ensures every required table and stored procedure exists—including wilderness resources, region hints, vessels, and PubSub—without touching external `.sql` scripts. If you have custom data to seed, add it through the game or your own migrations after the initializer completes.
+Running without `--skip-db` prompts for the MariaDB root password, creates the `luminari` database and user, and executes the in-engine database initializer (equivalent to running `db_init_system all`). This ensures every required table and stored procedure exists, including wilderness resources, region hints, vessels, and PubSub, without touching external `.sql` scripts. If you have custom data to seed, add it through the game or your own migrations after the initializer completes.
 
 The generated credentials are written to `lib/mysql_config` (owned by the invoking user, mode 600) so the game can authenticate automatically. Re-running the deploy script refreshes credentials and reapplies the schema safely.
 
@@ -200,6 +200,20 @@ without changing service state with:
 ```bash
 ./scripts/autorun/autorun.sh status
 ```
+
+The canonical systemd unit also runs a bounded readiness probe after startup.
+The MUD serves the probe on the loopback-only Terrain API listener, so it is
+not exposed to game clients or the public network. Verify it directly with:
+
+```bash
+./scripts/operations/healthcheck.sh
+curl -fsS http://127.0.0.1:8182/health/live
+```
+
+`/health` and `/health/ready` return HTTP 200 only after the game loop and its
+required MariaDB connection are ready. `/health/live` checks the initialized
+game loop without querying MariaDB. Set `TERRAIN_API_PORT` and the matching
+`LUMINARI_HEALTH_URL` in the service environment when port 8182 is unavailable.
 
 #### 5. Create Required Symlinks
 ```bash

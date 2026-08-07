@@ -18,6 +18,7 @@
 #include "terrain_bridge.h"
 #include "wilderness.h"
 #include "modify.h" /* For strip_colors() */
+#include "mysql.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -78,6 +79,191 @@ static int terrain_api_debug_enabled = 0;
 #endif
 
 static struct terrain_api_server *terrain_api = NULL;
+
+static bool terrain_api_request_is_http(const char *request)
+{
+  static const char *const methods[] = {"GET ",    "HEAD ",    "POST ",  "PUT ",
+                                        "DELETE ", "OPTIONS ", "PATCH ", NULL};
+  int i;
+
+  if (!request)
+    return false;
+
+  for (i = 0; methods[i]; i++)
+  {
+    if (!strncmp(request, methods[i], strlen(methods[i])))
+      return true;
+  }
+
+  return false;
+}
+
+static bool terrain_api_http_request_complete(const char *request)
+{
+  return request && (strstr(request, "\r\n\r\n") || strstr(request, "\n\n"));
+}
+
+static bool terrain_api_http_request_needs_database(const char *request)
+{
+  char method[16];
+  char path[256];
+  char version[16];
+  char *query;
+
+  if (!request || sscanf(request, "%15s %255s %15s", method, path, version) != 3)
+    return false;
+
+  query = strchr(path, '?');
+  if (query)
+    *query = '\0';
+
+  return !strcmp(path, "/health") || !strcmp(path, "/health/ready");
+}
+
+static bool terrain_api_database_is_healthy(void)
+{
+  return mysql_available && conn && ensure_mysql_connection(conn, __func__);
+}
+
+static bool terrain_api_send_all(socket_t client_socket, const char *data, size_t data_length)
+{
+  size_t total_sent = 0;
+  ssize_t sent;
+
+  while (total_sent < data_length)
+  {
+    sent = send(client_socket, data + total_sent, data_length - total_sent, 0);
+    if (sent > 0)
+    {
+      total_sent += (size_t)sent;
+      continue;
+    }
+    if (sent < 0 && errno == EINTR)
+      continue;
+    return false;
+  }
+
+  return true;
+}
+
+static bool terrain_api_send_http_response(socket_t client_socket, int status_code, bool head_only,
+                                           const char *body)
+{
+  const char *reason;
+  char header[512];
+  size_t body_length;
+  int header_length;
+
+  if (!body)
+    return false;
+
+  switch (status_code)
+  {
+  case 200:
+    reason = "OK";
+    break;
+  case 400:
+    reason = "Bad Request";
+    break;
+  case 404:
+    reason = "Not Found";
+    break;
+  case 405:
+    reason = "Method Not Allowed";
+    break;
+  case 503:
+    reason = "Service Unavailable";
+    break;
+  default:
+    reason = "Internal Server Error";
+    status_code = 500;
+    break;
+  }
+
+  body_length = strlen(body);
+  header_length = snprintf(header, sizeof(header),
+                           "HTTP/1.1 %d %s\r\n"
+                           "Content-Type: application/json\r\n"
+                           "Content-Length: %zu\r\n"
+                           "Cache-Control: no-store\r\n"
+                           "Connection: close\r\n\r\n",
+                           status_code, reason, body_length);
+  if (header_length < 0 || (size_t)header_length >= sizeof(header) ||
+      !terrain_api_send_all(client_socket, header, (size_t)header_length))
+    return false;
+
+  return head_only || terrain_api_send_all(client_socket, body, body_length);
+}
+
+/**
+ * @brief Build the JSON body and status for the loopback HTTP health endpoint.
+ *
+ * `/health` and `/health/ready` report readiness, including the required
+ * MariaDB connection. `/health/live` only proves that the initialized game
+ * loop is servicing requests. The listener itself remains bound to loopback.
+ */
+char *process_terrain_http_request(const char *http_request, bool database_healthy, long uptime,
+                                   int *status_code, bool *head_only)
+{
+  char method[16];
+  char path[256];
+  char version[16];
+  char body[512];
+  char *query;
+  int written;
+
+  if (!status_code || !head_only)
+    return NULL;
+
+  *status_code = 400;
+  *head_only = false;
+  if (!http_request || sscanf(http_request, "%15s %255s %15s", method, path, version) != 3 ||
+      (strcmp(version, "HTTP/1.0") && strcmp(version, "HTTP/1.1")))
+    return strdup("{\"service\":\"luminari-mud\",\"status\":\"bad_request\"}");
+
+  if (!strcmp(method, "HEAD"))
+    *head_only = true;
+  else if (strcmp(method, "GET"))
+  {
+    *status_code = 405;
+    return strdup("{\"service\":\"luminari-mud\",\"status\":\"method_not_allowed\"}");
+  }
+
+  query = strchr(path, '?');
+  if (query)
+    *query = '\0';
+  if (uptime < 0)
+    uptime = 0;
+
+  if (!strcmp(path, "/health/live"))
+  {
+    *status_code = 200;
+    written = snprintf(body, sizeof(body),
+                       "{\"service\":\"luminari-mud\",\"status\":\"healthy\","
+                       "\"database\":\"not_checked\",\"uptime_seconds\":%ld}",
+                       uptime);
+  }
+  else if (!strcmp(path, "/health") || !strcmp(path, "/health/ready"))
+  {
+    *status_code = database_healthy ? 200 : 503;
+    written = snprintf(body, sizeof(body),
+                       "{\"service\":\"luminari-mud\",\"status\":\"%s\","
+                       "\"database\":\"%s\",\"uptime_seconds\":%ld}",
+                       database_healthy ? "healthy" : "unhealthy",
+                       database_healthy ? "healthy" : "unhealthy", uptime);
+  }
+  else
+  {
+    *status_code = 404;
+    written =
+        snprintf(body, sizeof(body), "{\"service\":\"luminari-mud\",\"status\":\"not_found\"}");
+  }
+
+  if (written < 0 || (size_t)written >= sizeof(body))
+    return NULL;
+
+  return strdup(body);
+}
 
 /**
  * @brief Initialize and start the terrain API server
@@ -1116,6 +1302,20 @@ char *process_terrain_request(const char *json_request)
 void terrain_api_process_clients(void)
 {
   int i;
+  int remaining_space;
+  int status_code;
+  char *newline;
+  char *response;
+  char *response_with_newline;
+  char temp_buffer[1024];
+  bool database_healthy;
+  bool head_only;
+  bool is_http;
+  long uptime;
+  size_t response_len;
+  ssize_t bytes_read;
+  ssize_t sent;
+
   for (i = 0; i < terrain_api->max_clients; i++)
   {
     struct terrain_api_client *client = &terrain_api->clients[i];
@@ -1126,41 +1326,63 @@ void terrain_api_process_clients(void)
     }
 
     /* Read data from client */
-    char temp_buffer[1024];
-    ssize_t bytes_read = recv(client->socket, temp_buffer, sizeof(temp_buffer) - 1, 0);
+    bytes_read = recv(client->socket, temp_buffer, sizeof(temp_buffer) - 1, 0);
 
     if (bytes_read > 0)
     {
       temp_buffer[bytes_read] = '\0';
 
       /* Append to input buffer */
-      int remaining_space = TERRAIN_API_MAX_MSG_SIZE - client->input_pos - 1;
+      remaining_space = TERRAIN_API_MAX_MSG_SIZE - client->input_pos - 1;
       if (bytes_read <= remaining_space)
       {
         strncpy(client->input_buffer + client->input_pos, temp_buffer, bytes_read);
         client->input_pos += bytes_read;
         client->input_buffer[client->input_pos] = '\0';
 
-        /* Check for complete message (newline terminated) */
-        char *newline = strchr(client->input_buffer, '\n');
+        is_http = terrain_api_request_is_http(client->input_buffer);
+        if (is_http && !terrain_api_http_request_complete(client->input_buffer))
+          continue;
+
+        /* Check for a complete legacy JSON message (newline terminated). */
+        newline = strchr(client->input_buffer, '\n');
         if (newline)
         {
-          *newline = '\0'; /* Null-terminate the message */
+          if (is_http)
+          {
+            uptime = time(NULL) - terrain_api->start_time;
+            database_healthy = !terrain_api_http_request_needs_database(client->input_buffer) ||
+                               terrain_api_database_is_healthy();
+            response = process_terrain_http_request(client->input_buffer, database_healthy, uptime,
+                                                    &status_code, &head_only);
+            if (!response ||
+                !terrain_api_send_http_response(client->socket, status_code, head_only, response))
+              log("Terrain-API: HTTP response failed for client %d", i);
+            else
+            {
+              client->requests_processed++;
+              terrain_api->total_requests++;
+            }
+            free(response);
+            terrain_api_disconnect_client(i);
+            continue;
+          }
+
+          *newline = '\0'; /* Null-terminate the legacy JSON message */
 
           /* Process the request */
-          char *response = process_terrain_request(client->input_buffer);
+          response = process_terrain_request(client->input_buffer);
 
           /* Send response */
           if (response)
           {
-            size_t response_len = strlen(response);
-            char *response_with_newline = malloc(response_len + 2);
+            response_len = strlen(response);
+            response_with_newline = malloc(response_len + 2);
             if (response_with_newline)
             {
               snprintf(response_with_newline, response_len + 2, "%s\n", response);
 
-              ssize_t sent =
-                  send(client->socket, response_with_newline, strlen(response_with_newline), 0);
+              sent = send(client->socket, response_with_newline, strlen(response_with_newline), 0);
               if (sent < 0)
               {
                 log("Terrain-API: Send failed for client %d: %s", i, strerror(errno));
@@ -1258,6 +1480,10 @@ struct terrain_api_server *get_terrain_api_server(void)
 /* Wrapper functions for automatic startup/shutdown */
 void terrain_api_start(void)
 {
+  const char *configured_port;
+  char *end;
+  long port;
+
   /* Debug logging for automatic startup */
   TERRAIN_DEBUG("terrain_api_start() called during initialization");
 
@@ -1268,15 +1494,28 @@ void terrain_api_start(void)
     return;
   }
 
-  /* Directly call server start like the working manual command */
-  TERRAIN_DEBUG("Calling start_terrain_api_server(port=%d)", TERRAIN_API_DEFAULT_PORT);
-  if (start_terrain_api_server(TERRAIN_API_DEFAULT_PORT))
+  port = TERRAIN_API_DEFAULT_PORT;
+  configured_port = getenv("TERRAIN_API_PORT");
+  if (configured_port && *configured_port)
   {
-    log("Terrain-API Info: Automatic startup successful on port %d", TERRAIN_API_DEFAULT_PORT);
+    errno = 0;
+    port = strtol(configured_port, &end, 10);
+    if (errno || *end || port <= 1024 || port > 65535)
+    {
+      log("Terrain-API: ERROR - TERRAIN_API_PORT must be an integer from 1025 through 65535");
+      return;
+    }
+  }
+
+  /* Directly call server start like the working manual command */
+  TERRAIN_DEBUG("Calling start_terrain_api_server(port=%ld)", port);
+  if (start_terrain_api_server((int)port))
+  {
+    log("Terrain-API Info: Automatic startup successful on port %ld", port);
   }
   else
   {
-    log("Terrain-API: ERROR - Automatic startup failed on port %d", TERRAIN_API_DEFAULT_PORT);
+    log("Terrain-API: ERROR - Automatic startup failed on port %ld", port);
   }
 }
 

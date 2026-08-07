@@ -104,7 +104,7 @@ install_dependencies() {
             sudo apt-get install -y \
                 build-essential cmake autoconf automake libtool pkg-config \
                 libcrypt-dev libgd-dev libmariadb-dev libcurl4-openssl-dev \
-                libssl-dev libjson-c-dev mariadb-server git make
+                libssl-dev libjson-c-dev mariadb-server curl git make
 
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo apt-get install -y gdb valgrind
@@ -116,7 +116,7 @@ install_dependencies() {
             sudo yum install -y \
                 gcc gcc-c++ make cmake autoconf automake libtool \
                 mariadb mariadb-devel mariadb-server \
-                gd-devel openssl-devel libcurl-devel json-c-devel git
+                gd-devel openssl-devel libcurl-devel json-c-devel curl git
 
             if [[ "$BUILD_TYPE" == "development" ]]; then
                 sudo yum install -y gdb valgrind
@@ -832,6 +832,10 @@ create_systemd_service() {
             print "ExecStart=" project_root "/scripts/autorun/autorun.sh"
             next
         }
+        /^ExecStartPost=/ {
+            print "ExecStartPost=" project_root "/scripts/operations/healthcheck.sh --wait"
+            next
+        }
         /^ExecStop=/ {
             print "ExecStop=" project_root "/scripts/autorun/autorun.sh stop"
             next
@@ -847,7 +851,10 @@ create_systemd_service() {
 
     if ! grep -Fxq "Type=forking" "$service_tmp" ||
        ! grep -Fxq "PIDFile=$PROJECT_ROOT/.autorun.lock.pid" "$service_tmp" ||
-       ! grep -Fxq "ExecStart=$PROJECT_ROOT/scripts/autorun/autorun.sh" "$service_tmp"; then
+       ! grep -Fxq "ExecStart=$PROJECT_ROOT/scripts/autorun/autorun.sh" "$service_tmp" ||
+       ! grep -Fxq \
+           "ExecStartPost=$PROJECT_ROOT/scripts/operations/healthcheck.sh --wait" \
+           "$service_tmp"; then
         rm -f -- "$service_tmp"
         print_msg "$RED" "Rendered systemd service failed validation"
         return 1

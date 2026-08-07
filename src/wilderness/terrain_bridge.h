@@ -49,6 +49,8 @@ void terrain_api_accept_connections(void);
 void terrain_api_process_clients(void);
 void terrain_api_disconnect_client(int client_index);
 char *process_terrain_request(const char *json_request);
+char *process_terrain_http_request(const char *http_request, bool database_healthy, long uptime,
+                                   int *status_code, bool *head_only);
 void log_terrain_api_stats(void);
 
 /* Accessor functions for terrain API server */

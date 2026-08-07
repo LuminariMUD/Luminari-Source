@@ -597,14 +597,18 @@ test_systemd_unit_installation()
   local test_pid=$$
 
   mkdir -p "$deploy_dir/scripts/autorun" "$deploy_dir/scripts/deployment" \
+    "$deploy_dir/scripts/operations" \
     "$deploy_dir/bin/releases/test-build" "$fake_bin" "$deploy_dir/installed"
   cp "$project_root/scripts/deployment/deploy.sh" \
     "$deploy_dir/scripts/deployment/deploy.sh"
   cp "$project_root/scripts/autorun/autorun.sh" \
     "$deploy_dir/scripts/autorun/autorun.sh"
+  cp "$project_root/scripts/operations/healthcheck.sh" \
+    "$deploy_dir/scripts/operations/healthcheck.sh"
   cp "$project_root/luminari.service" "$deploy_dir/luminari.service"
   chmod +x "$deploy_dir/scripts/autorun/autorun.sh" \
-    "$deploy_dir/scripts/deployment/deploy.sh"
+    "$deploy_dir/scripts/deployment/deploy.sh" \
+    "$deploy_dir/scripts/operations/healthcheck.sh"
   cp /bin/true "$deploy_dir/bin/releases/test-build/circle"
   ln -s "releases/test-build/circle" "$deploy_dir/bin/circle"
 
@@ -672,6 +676,10 @@ EOF
     fail "installed systemd unit does not publish the autorun PID file"
   grep -Fxq "ExecStart=$deploy_dir/scripts/autorun/autorun.sh" "$installed_unit" ||
     fail "installed systemd unit does not start autorun"
+  grep -Fxq \
+    "ExecStartPost=$deploy_dir/scripts/operations/healthcheck.sh --wait" \
+    "$installed_unit" ||
+    fail "installed systemd unit does not run the readiness probe"
   grep -Fxq "ExecStop=$deploy_dir/scripts/autorun/autorun.sh stop" "$installed_unit" ||
     fail "installed systemd unit does not use the PID-safe stop path"
   if grep -Fq "ExecStart=$deploy_dir/bin/circle" "$installed_unit"; then

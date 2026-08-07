@@ -216,6 +216,7 @@ jobs:
       LUMINARI_TEST_MYSQL_PORT: '3306'
       LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
       LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
+      TERRAIN_API_PORT: '4182'
 
     steps:
       - name: Checkout
@@ -226,7 +227,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev \
             autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev \
-            mariadb-client netcat-openbsd
+            curl mariadb-client netcat-openbsd
 
       - name: Copy config headers
         run: |
@@ -286,6 +287,9 @@ jobs:
           fi
 
           echo "Server is accepting connections on port 4100"
+          LUMINARI_HEALTH_URL=http://127.0.0.1:4182/health \
+            LUMINARI_HEALTH_TIMEOUT_SECONDS=20 \
+            scripts/operations/healthcheck.sh --wait
           test -f "$server_log" || {
             echo "::error::Server log was not created"
             exit 1
@@ -298,5 +302,30 @@ jobs:
             grep -in "SYSERR" "$server_log"
             exit 1
           fi
+
+          kill -TERM "$server_pid"
+          for _attempt in {1..20}; do
+            kill -0 "$server_pid" 2>/dev/null || break
+            sleep 0.2
+          done
+          if kill -0 "$server_pid" 2>/dev/null; then
+            echo "::error::Server did not complete graceful shutdown"
+            exit 1
+          fi
+          set +e
+          wait "$server_pid"
+          shutdown_status=$?
+          set -e
+          server_pid=""
+          trap - EXIT
+          if [[ "$shutdown_status" -ne 0 ]]; then
+            echo "::error::Server graceful shutdown exited with status $shutdown_status"
+            tail -100 "$server_log"
+            exit 1
+          fi
+          grep -q "Normal termination of game" "$server_log" || {
+            echo "::error::Server log did not record normal termination"
+            exit 1
+          }
 
           echo "Server startup smoke test PASSED"

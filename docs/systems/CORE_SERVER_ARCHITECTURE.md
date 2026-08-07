@@ -163,6 +163,22 @@ for (d = descriptor_list; d; d = next_d) {
 - Protocol handling (telnet, MSDP, etc.)
 - Flow control and connection management
 
+### Operational Health Endpoint
+
+The existing Terrain API listener binds only to loopback and shares the main
+select-driven game loop. It accepts HTTP health requests in addition to its
+newline-delimited JSON terrain protocol:
+
+- `GET /health` and `GET /health/ready` return HTTP 200 only when the main
+  MariaDB connection responds; otherwise they return HTTP 503.
+- `GET /health/live` returns HTTP 200 once the initialized game loop is
+  servicing the listener and does not query MariaDB.
+- Health responses are JSON, disable caching, and close the connection.
+
+The listener defaults to port 8182. `TERRAIN_API_PORT` can select another
+unprivileged port, while `scripts/operations/healthcheck.sh` consumes the
+matching `LUMINARI_HEALTH_URL` for systemd and operator checks.
+
 ### Future Native WebSocket Considerations
 
 Luminari-Source does not currently document or expose a native WebSocket

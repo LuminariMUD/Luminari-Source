@@ -545,6 +545,8 @@ EXTRA_DIST = \
 	scripts/mariadb/setup_mariadb_sudoers.sh \
 	scripts/mariadb/start_mariadb.sh \
 	scripts/move_bin.sh \
+	scripts/operations/healthcheck.sh \
+	scripts/operations/test_healthcheck.sh \
 	scripts/permissions/check_permissions.sh \
 	scripts/permissions/fix_permissions.sh \
 	scripts/process-memory/sample_process_memory_details.sh \
@@ -648,13 +650,13 @@ EXTRA_DIST = \
 	README.md
 
 # Run unit tests
-test: check test-autorun-supervision test-versioned-binary-install \
+test: check test-autorun-supervision test-versioned-binary-install test-healthcheck \
 	test-background-help-entries test-vessel-tooling
 	LUMINARI_TEST_ROOT="$(abs_top_srcdir)" ./cutest
 
 .PHONY: check-world-docs test-all test-world-tools test-protocol test-protocol-fuzz test-character-rename-static \
 	test-character-rename-schema test-background-help-entries test-autorun-supervision \
-	test-versioned-binary-install test-vessel-tooling
+	test-versioned-binary-install test-healthcheck test-vessel-tooling
 
 check-world-docs:
 	cd "$(abs_top_srcdir)" && python3 scripts/world/wtool.py constants sync --check
@@ -686,6 +688,9 @@ test-autorun-supervision:
 
 test-versioned-binary-install:
 	./scripts/deployment/test_versioned_binary_install.sh
+
+test-healthcheck:
+	./scripts/operations/test_healthcheck.sh
 
 test-vessel-tooling:
 	./scripts/vessels/test_vessel_ferry_soak_preflight.sh

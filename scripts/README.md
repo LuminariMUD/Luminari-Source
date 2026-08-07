@@ -14,6 +14,7 @@ project root from their own location where they need repository files.
 | `deployment/` | Deployment, setup, and binary installation |
 | `development/` | Local test-character and login helpers |
 | `mariadb/` | Local MariaDB startup and sudoers setup |
+| `operations/` | HTTP readiness probe and its regression test |
 | `permissions/` | Permission inspection and repair |
 | `process-memory/` | Process memory sampler and regression test |
 | `vessels/` | Vessel provisioning, acceptance tests, soak tests, and benchmarks |
@@ -21,6 +22,11 @@ project root from their own location where they need repository files.
 
 General one-off entry points remain directly under `scripts/`: clean builds, backups,
 artifact provisioning, and single-subsystem tests.
+
+The server exposes readiness on the loopback Terrain API listener. Run
+`scripts/operations/healthcheck.sh` for a single check or add `--wait` during
+service startup. Override the default `http://127.0.0.1:8182/health` URL with
+`LUMINARI_HEALTH_URL` when the listener uses a non-default port.
 
 ## Compatibility paths
 

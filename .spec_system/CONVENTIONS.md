@@ -149,6 +149,19 @@ CI test boots use `scripts/ci/prepare_test_runtime.sh` with a local isolated
 MariaDB service and `.ci-runtime/lib`. The preparer refuses the protected
 repository `lib/` tree and non-local database hosts.
 
+## Infrastructure
+
+| Component | Provider | Details |
+|-----------|----------|---------|
+| Hosting | Self-managed systemd | `luminari.service` supervises `scripts/autorun/autorun.sh` |
+| Database | MariaDB/MySQL | Required runtime dependency; credentials stay in `lib/mysql_config` |
+| Health | Luminari loopback HTTP | `/health` checks game-loop and MariaDB readiness on port 8182 |
+| Startup probe | systemd `ExecStartPost` | Bounded `scripts/operations/healthcheck.sh --wait` check |
+
+The health listener is loopback-only. `TERRAIN_API_PORT` changes its port and
+`LUMINARI_HEALTH_URL` must identify the matching readiness URL. The CI smoke
+test uses port 4182 against an isolated MariaDB-backed runtime.
+
 ## When In Doubt
 
 - Decide from traced repository evidence and document material assumptions.

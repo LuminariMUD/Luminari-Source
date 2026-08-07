@@ -69,6 +69,51 @@ void Test_terrain_bridge_rejects_unbounded_batch_ranges(CuTest *tc)
   free(response);
 }
 
+void Test_terrain_bridge_http_health_contract(CuTest *tc)
+{
+  char *response;
+  int status_code;
+  bool head_only;
+
+  response = process_terrain_http_request("GET /health HTTP/1.1\r\nHost: localhost\r\n\r\n", true,
+                                          42, &status_code, &head_only);
+  CuAssertPtrNotNull(tc, response);
+  CuAssertIntEquals(tc, 200, status_code);
+  CuAssertTrue(tc, !head_only);
+  CuAssertPtrNotNull(tc, strstr(response, "\"status\":\"healthy\""));
+  CuAssertPtrNotNull(tc, strstr(response, "\"database\":\"healthy\""));
+  CuAssertPtrNotNull(tc, strstr(response, "\"uptime_seconds\":42"));
+  free(response);
+
+  response = process_terrain_http_request("GET /health/ready HTTP/1.1\r\n\r\n", false, 7,
+                                          &status_code, &head_only);
+  CuAssertPtrNotNull(tc, response);
+  CuAssertIntEquals(tc, 503, status_code);
+  CuAssertPtrNotNull(tc, strstr(response, "\"status\":\"unhealthy\""));
+  CuAssertPtrNotNull(tc, strstr(response, "\"database\":\"unhealthy\""));
+  free(response);
+
+  response = process_terrain_http_request("HEAD /health/live HTTP/1.0\r\n\r\n", false, 9,
+                                          &status_code, &head_only);
+  CuAssertPtrNotNull(tc, response);
+  CuAssertIntEquals(tc, 200, status_code);
+  CuAssertTrue(tc, head_only);
+  CuAssertPtrNotNull(tc, strstr(response, "\"database\":\"not_checked\""));
+  free(response);
+
+  response = process_terrain_http_request("POST /health HTTP/1.1\r\n\r\n", true, 1, &status_code,
+                                          &head_only);
+  CuAssertPtrNotNull(tc, response);
+  CuAssertIntEquals(tc, 405, status_code);
+  free(response);
+
+  response = process_terrain_http_request("GET /not-health HTTP/1.1\r\n\r\n", true, 1, &status_code,
+                                          &head_only);
+  CuAssertPtrNotNull(tc, response);
+  CuAssertIntEquals(tc, 404, status_code);
+  free(response);
+}
+
 void Test_upstream_random_generator_sequence(CuTest *tc)
 {
   unsigned long first, second;

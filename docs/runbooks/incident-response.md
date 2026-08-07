@@ -39,6 +39,10 @@ This runbook provides procedures for responding to incidents affecting the Lumin
 sudo systemctl status luminari.service --no-pager
 sudo journalctl -u luminari.service -n 200 --no-pager
 
+# Distinguish process liveness from database-backed readiness
+curl -fsS http://127.0.0.1:8182/health/live
+./scripts/operations/healthcheck.sh
+
 # Check the crash archive produced by autorun
 find dumps -maxdepth 2 -type f -print
 ```
@@ -56,6 +60,9 @@ sudo systemctl restart luminari.service
 
 # Require the active and installed executable identities to agree
 ./scripts/autorun/autorun.sh status
+
+# Require the game loop and MariaDB connection to be ready
+./scripts/operations/healthcheck.sh --wait
 ```
 
 **Post-Incident:**
@@ -105,7 +112,7 @@ sudo systemctl restart mariadb
 # (send shutdown command in-game first if possible)
 
 # 3. Verify connection restored
-# Check syslog for successful reconnection
+./scripts/operations/healthcheck.sh --wait
 ```
 
 **Post-Incident:**

@@ -253,6 +253,8 @@ int main(int argc, char **argv)
   const char *config_file = NULL;
   const char *dir = NULL;
   const char *elf_build_id;
+  const char *logname_override;
+  char *owned_logname;
 
   snprintf(embed_version, sizeof(embed_version), "%s git=%s dirty=%d", luminari_version,
            luminari_build_git_commit, luminari_build_git_dirty ? 1 : 0);
@@ -339,14 +341,22 @@ int main(int argc, char **argv)
       break;
     case 'o':
       if (*(argv[pos] + 2))
-        CONFIG_LOGNAME = argv[pos] + 2;
+        logname_override = argv[pos] + 2;
       else if (++pos < argc)
-        CONFIG_LOGNAME = argv[pos];
+        logname_override = argv[pos];
       else
       {
         puts("SYSERR: File name to log to expected after option -o.");
         exit(1);
       }
+      owned_logname = strdup(logname_override);
+      if (!owned_logname)
+      {
+        perror("SYSERR: strdup log file name");
+        exit(1);
+      }
+      free(CONFIG_LOGNAME);
+      CONFIG_LOGNAME = owned_logname;
       break;
     case 'C': /* -C<socket number> - recover from copyover, this is the control socket */
       fCopyOver = TRUE;
