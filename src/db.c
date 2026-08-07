@@ -1268,6 +1268,7 @@ void boot_db(void)
 
   log("Validating special-procedure definitions.");
   spec_registry_boot_validate();
+  spec_assign_table_boot_validate();
 
   boot_world();
 

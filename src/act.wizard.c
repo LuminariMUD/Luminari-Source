@@ -12,6 +12,9 @@
 #include "sysdep.h"
 #include "structs.h"
 #include "utils.h"
+#include "spec/spec_binding.h"
+#include "spec/spec_effective_binding.h"
+#include "spec/spec_registry.h"
 #include "comm.h"
 #include "interpreter.h"
 #include "handler.h"
@@ -13215,6 +13218,110 @@ ACMD(do_settestkit)
   /* Save the character */
   if (!IS_NPC(vict))
     save_char(vict, 0);
+}
+
+/* specbind - inspect the complete post-boot special-procedure binding chain for
+ * one prototype.
+ *
+ * Boot already logs every contribution, but a log dump is not a diagnostic a
+ * builder or operator can use against a live server. This command reports the
+ * same recorded provenance on demand: the authored world name, every ordered
+ * contribution with its source and source location, each collision outcome,
+ * saved shop and quest secondaries, and the final chosen callback.
+ */
+static void specbind_show(struct char_data *ch, const struct spec_effective_binding *binding,
+                          const char *owner_label, int vnum, spec_legacy_handler effective)
+{
+  const struct spec_effective_contribution *contribution;
+  size_t index;
+
+  send_to_char(ch, "\tcSpecial-procedure binding for %s #%d\tn\r\n", owner_label, vnum);
+  send_to_char(ch, "Effective callback: %s\r\n",
+               effective != NULL ? get_spec_func_name(effective) : "None");
+
+  if (binding == NULL)
+  {
+    send_to_char(ch, "No recorded binding contributions.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "Contributions: %zu   Collisions: %zu\r\n", binding->contribution_count,
+               binding->collision_count);
+
+  index = 0;
+  for (contribution = binding->first; contribution != NULL; contribution = contribution->next)
+  {
+    index++;
+    send_to_char(ch, "%2zu. [%s] requested '%s' -> '%s' (%s)\r\n", index,
+                 spec_binding_source_name(contribution->source),
+                 contribution->requested_name != NULL ? contribution->requested_name : "none",
+                 contribution->handler_name != NULL ? contribution->handler_name : "none",
+                 spec_effective_outcome_name(contribution->outcome));
+    if (contribution->source_location != NULL)
+      send_to_char(ch, "    from %s\r\n", contribution->source_location);
+    if (contribution->wrapper)
+      send_to_char(ch, "    wrapper; saved secondary: %s\r\n",
+                   contribution->secondary_name != NULL ? contribution->secondary_name : "none");
+  }
+
+  if (binding->effective_contribution != NULL)
+    send_to_char(ch, "Chosen source: %s ('%s')\r\n",
+                 spec_binding_source_name(binding->effective_contribution->source),
+                 binding->effective_contribution->handler_name != NULL
+                     ? binding->effective_contribution->handler_name
+                     : "none");
+}
+
+ACMD(do_specbind)
+{
+  char arg_owner[MAX_INPUT_LENGTH] = {'\0'};
+  char arg_vnum[MAX_INPUT_LENGTH] = {'\0'};
+  mob_rnum mob_rn;
+  obj_rnum obj_rn;
+  room_rnum room_rn;
+  int vnum;
+
+  two_arguments(argument, arg_owner, sizeof(arg_owner), arg_vnum, sizeof(arg_vnum));
+
+  if (!*arg_owner || !*arg_vnum || !isdigit((unsigned char)*arg_vnum))
+  {
+    send_to_char(ch, "Usage: specbind <mob|obj|room> <vnum>\r\n");
+    return;
+  }
+
+  vnum = atoi(arg_vnum);
+
+  if (is_abbrev(arg_owner, "mobile") || is_abbrev(arg_owner, "mob"))
+  {
+    if ((mob_rn = real_mobile(vnum)) == NOBODY)
+    {
+      send_to_char(ch, "There is no mobile prototype #%d.\r\n", vnum);
+      return;
+    }
+    specbind_show(ch, mob_index[mob_rn].effective_binding, "mobile", vnum, mob_index[mob_rn].func);
+  }
+  else if (is_abbrev(arg_owner, "object") || is_abbrev(arg_owner, "obj"))
+  {
+    if ((obj_rn = real_object(vnum)) == NOTHING)
+    {
+      send_to_char(ch, "There is no object prototype #%d.\r\n", vnum);
+      return;
+    }
+    specbind_show(ch, obj_index[obj_rn].effective_binding, "object", vnum, obj_index[obj_rn].func);
+  }
+  else if (is_abbrev(arg_owner, "room"))
+  {
+    if ((room_rn = real_room(vnum)) == NOWHERE)
+    {
+      send_to_char(ch, "There is no room #%d.\r\n", vnum);
+      return;
+    }
+    specbind_show(ch, world[room_rn].effective_binding, "room", vnum, world[room_rn].func);
+  }
+  else
+  {
+    send_to_char(ch, "Usage: specbind <mob|obj|room> <vnum>\r\n");
+  }
 }
 
 /* EOF */

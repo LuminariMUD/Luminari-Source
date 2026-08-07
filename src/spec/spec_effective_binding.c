@@ -400,6 +400,9 @@ const char *spec_effective_outcome_name(enum spec_effective_outcome outcome)
   }
 }
 
+/* Hyphenated tokens: these appear in the machine-readable SPEC_BIND_* boot log,
+ * which is a distinct format from the spaced builder-facing names in
+ * spec_binding.c. */
 static const char *spec_effective_source_token(spec_binding_source_mask source)
 {
   switch (source)

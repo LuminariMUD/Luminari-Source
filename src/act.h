@@ -1134,6 +1134,7 @@ int perform_set_class_level_for_test(struct char_data *ch, struct char_data *vic
 int test_is_rogue_weapon_proficient(int weapon);
 #endif
 ACMD_DECL(do_show);
+ACMD_DECL(do_specbind);
 ACMD_DECL(do_shopstat);
 ACMD_DECL(do_shoplist);
 ACMD_DECL(do_snoop);

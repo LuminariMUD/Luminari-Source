@@ -22,6 +22,7 @@
 #include "quest/missions.h"
 #include "quest/hunts.h"
 #include "craft/crafting_new.h"
+#include "spec/spec_assign_table.h"
 #include "spec/spec_effective_binding.h"
 #include "spec/spec_registry.h"
 
@@ -113,6 +114,76 @@ static void assign_room_spec(room_vnum room, spec_legacy_handler handler, const 
 #define ASSIGNOBJ(obj, handler) assign_object_spec((obj), (handler), #handler, SPEC_ASSIGN_LOCATION)
 #define ASSIGNROOM(room, handler)                                                                  \
   assign_room_spec((room), (handler), #handler, SPEC_ASSIGN_LOCATION)
+
+/* Declarative compatibility assignments (Phase 02)
+ *
+ * A hard-coded assignment qualifies for a validated table row only when its
+ * procedure is registered in `src/spec/spec_registry.c` AND its VNUM has a
+ * traced symbolic constant. Rows are owner-typed so a room or mobile constant
+ * cannot enter an object table: VNUM namespaces overlap by value, and a shared
+ * row type would accept the wrong one without any diagnostic.
+ *
+ * The remaining ASSIGNMOB/ASSIGNOBJ/ASSIGNROOM calls below are deliberately
+ * unconverted. They use raw numeric VNUMs with no symbolic constant, and most
+ * name procedures that are not registered. Converting them would move literals
+ * into table rows without making anything traceable, so they stay as they are
+ * until their canonical identities and VNUM constants exist. Their effective
+ * bindings and collisions are still recorded through the same provenance path.
+ */
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+static const struct spec_obj_assignment luminari_object_assignments[] = {
+    {NOOB_CRAFTING_KIT, "Crafting Kit"},
+    {VAMPIRE_CLOAK_OBJ_VNUM, "Vampire Cloak"},
+};
+
+#define LUMINARI_OBJECT_ASSIGNMENT_COUNT                                                           \
+  (sizeof(luminari_object_assignments) / sizeof(luminari_object_assignments[0]))
+
+/** Apply one validated object table through the shared assignment path. */
+static void apply_object_assignments(const struct spec_obj_assignment *rows, size_t count,
+                                     const char *source_location)
+{
+  const struct spec_definition *definition;
+  char error[256];
+  size_t index;
+
+  for (index = 0; index < count; index++)
+  {
+    definition = spec_assign_table_resolve(rows[index].definition_name, SPEC_OWNER_OBJECT, error,
+                                           sizeof(error));
+    if (definition == NULL)
+    {
+      log("SYSERR: Skipping declarative object assignment for #%d: %s", rows[index].vnum, error);
+      continue;
+    }
+    assign_object_spec(rows[index].vnum, definition->legacy_handler, definition->canonical_name,
+                       source_location);
+  }
+}
+#endif
+
+/**
+ * Validate every declarative table against the registry.
+ *
+ * A bad row is a programmer error, not content, so it fails boot rather than
+ * silently binding nothing. This matches the registry's own pre-world-load
+ * contract and runs alongside it.
+ */
+void spec_assign_table_boot_validate(void)
+{
+  char error[512];
+
+#if !defined(CAMPAIGN_FR) && !defined(CAMPAIGN_DL)
+  if (!spec_assign_table_validate_objects(luminari_object_assignments,
+                                          LUMINARI_OBJECT_ASSIGNMENT_COUNT, error, sizeof(error)))
+  {
+    log("SYSERR: Invalid declarative object assignment table: %s", error);
+    exit(1);
+  }
+#else
+  (void)error;
+#endif
+}
 
 /* Assignments */
 
@@ -826,6 +897,9 @@ void assign_objects(void)
   ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
 
 #else
+  apply_object_assignments(luminari_object_assignments, LUMINARI_OBJECT_ASSIGNMENT_COUNT,
+                           SPEC_ASSIGN_LOCATION);
+
   ASSIGNOBJ(1226, gen_board);   /* builder's board */
   ASSIGNOBJ(1227, gen_board);   /* staff board */
   ASSIGNOBJ(1228, gen_board);   /* advertising board */
@@ -873,8 +947,6 @@ void assign_objects(void)
     ASSIGNOBJ(135051, bank);
     ASSIGNOBJ(138809, bank);
    */
-
-  ASSIGNOBJ(3118, crafting_kit);
 
   ASSIGNOBJ(128106, ches); // weapon
 
@@ -962,8 +1034,6 @@ void assign_objects(void)
   ASSIGNOBJ(103672, bought_pet);
   ASSIGNOBJ(103673, bought_pet);
   ASSIGNOBJ(103674, bought_pet);
-
-  ASSIGNOBJ(VAMPIRE_CLOAK_OBJ_VNUM, vampire_cloak);
 
   /* not yet defined
   ASSIGNOBJ(101290, storage_chest);

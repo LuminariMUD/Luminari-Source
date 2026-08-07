@@ -29,6 +29,7 @@ void prisoner_on_death(struct char_data *ch);
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
  ****************************************************************************/
+void spec_assign_table_boot_validate(void);
 void assign_mobiles(void);
 void assign_objects(void);
 void assign_rooms(void);

@@ -4010,6 +4010,7 @@ cpp_extern const struct command_info cmd_info[] = {
     {"speak", "speak", POS_RECLINING, do_speak, 0, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spelllist", "spelllist", POS_RECLINING, do_spelllist, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
     {"spells", "spells", POS_RECLINING, do_spells, 1, 0, FALSE, ACTION_NONE, {0, 0}, NULL},
+    {"specbind", "specbind", POS_DEAD, do_specbind, LVL_IMMORT, 0, TRUE, ACTION_NONE, {0, 0}, NULL},
     {"spellrecall",
      "spellrecall",
      POS_RECLINING,
