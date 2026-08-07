@@ -375,6 +375,42 @@ from its Phase 03 baseline. The new Prisoner and Celestial Leviathan implementat
 | complete exported global-symbol comparison against Checkpoint 8 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 10 - Fire Giant Zone Package
+
+Checkpoint 10 moves the complete Fire Giant boundary to
+`src/spec/spec_zone_fire_giant.c` and `.h`. The owner now contains:
+
+- `fg_invasion_loader` and every invasion limit, treasure, room, mobile, and equipment definition
+  used by its load sequence;
+- all four elite-squad construction paths, distributed attackers, throne guards, and the Valkyrie
+  arrival; and
+- `flamekissed_instrument`, its private subtype parser, transformation messages, and hit-point and
+  move-action cost.
+
+`src/spec_assign.c` and `src/spec/spec_registry.c` include the owner header directly.
+`src/spec_procs.h` retains it as a compatibility include and no longer redeclares the two moved
+callbacks. Both build manifests link the new implementation for production and CuTest.
+
+This is an ownership-only move. The callback bodies, exported names and types, package constants,
+load counts and order, assignment and registry references, equipment placement, command matching,
+instrument subtype resolution, messages, resource costs, and pulse behavior remain unchanged. No
+player or builder helpfile changed because no command, authored-data, or behavior contract changed.
+
+The checkpoint removes another 634 lines from `src/zone_procs.c`, reducing it from 2,242 to 1,608
+lines and by 2,594 lines from the Phase 03 baseline. The new cohesive implementation is 657 lines.
+
+### Checkpoint 10 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 9 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
@@ -387,8 +423,10 @@ from its Phase 03 baseline. The new Prisoner and Celestial Leviathan implementat
 
 ## Resume Point
 
-Move the complete Fire Giant boundary beginning with its invasion limits and loader and ending with
-`flamekissed_instrument` and the package undefines. Keep the invasion room/mobile tables, treasure
-VNUMs, loader state, instrument subtype parser, and hit-point cost together. Preserve all exported
-names, callback signatures, assignment and registry references, and compare the complete symbol set
-before proceeding to the much larger Jot package.
+Move the complete Jot boundary beginning with `JOT_VNUM` and ending after `giantslayer` and the Jot
+end marker. Keep invasion state and position counters, the converter and loader, mobile callbacks,
+object callbacks, path table, package constants, and private helpers together. The boundary is
+approximately 983 legacy lines and may cross the 1,000-line review prompt after owner includes and
+file documentation; review its cohesion rather than splitting shared encounter state by owner type.
+Preserve all exported names, callback signatures, assignment and registry references, and compare
+the complete symbol set before proceeding to the Mad Drow package.

@@ -28,6 +28,7 @@
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
+#include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_prisoner.h"
 #include "vessels/vessels_moving_rooms.h"
@@ -96,8 +97,6 @@ SPECIAL_DECL(duergar_guard);
 SPECIAL_DECL(etherealness);
 SPECIAL_DECL(feybranche);
 SPECIAL_DECL(fake_twilight);
-SPECIAL_DECL(fg_invasion_loader);
-SPECIAL_DECL(flamekissed_instrument);
 SPECIAL_DECL(flaming_scimitar);
 SPECIAL_DECL(flamingwhip);
 SPECIAL_DECL(floating_teleport);

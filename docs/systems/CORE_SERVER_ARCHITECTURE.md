@@ -361,9 +361,11 @@ and object owners. The King's Castle assignment, mobile callbacks, private helpe
 state live together in `src/spec/spec_zone_kings_castle.c`; Abyss exit randomization and Crimson
 Flame encounter behavior live in their corresponding `src/spec/spec_zone_*` owners. The Prisoner
 raid state, death transition, treasury loader, and callbacks live in `src/spec/spec_zone_prisoner.c`;
-the Celestial Leviathan no-op callback and dormant helpers live in their own adjacent owner. The
-public names, callback ABI, world grammar, pulse position, assignment and registry references,
-initialization order, calculations, and display behavior remain unchanged.
+the Celestial Leviathan no-op callback and dormant helpers live in their own adjacent owner. Fire
+Giant invasion construction and the transforming instrument live together in
+`src/spec/spec_zone_fire_giant.c`. The public names, callback ABI, world grammar, pulse position,
+assignment and registry references, initialization order, calculations, and display behavior remain
+unchanged.
 The current ownership inventory and evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

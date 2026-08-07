@@ -24,6 +24,7 @@
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
+#include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_prisoner.h"
 #include "ban.h" /* for SPECIAL(gen_board) */

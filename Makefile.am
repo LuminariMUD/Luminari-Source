@@ -211,6 +211,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_abyss.c \
 	src/spec/spec_zone_celestial_leviathan.c \
 	src/spec/spec_zone_crimson_flame.c \
+	src/spec/spec_zone_fire_giant.c \
 	src/spec/spec_zone_kings_castle.c \
 	src/spec/spec_zone_neverwinter.c \
 	src/spec/spec_zone_prisoner.c \

@@ -188,7 +188,9 @@ that cohesive zone package. Abyss and Crimson Flame procedures use `src/spec/spe
 `src/spec/spec_zone_crimson_flame.h`; their room/mobile conversion helpers remain with their zone
 owners. The Prisoner raid API and shared event state use `src/spec/spec_zone_prisoner.h`; the
 Celestial Leviathan owner explicitly includes that header for its existing `prisoner_heads`
-dependency.
+dependency. Fire Giant invasion loading and the transforming instrument use
+`src/spec/spec_zone_fire_giant.h`; keep their shared load definitions and transformation cost with
+that package.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 
