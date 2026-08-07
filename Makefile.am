@@ -214,6 +214,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_banshee.c \
 	src/spec/spec_zone_celestial_leviathan.c \
 	src/spec/spec_zone_crimson_flame.c \
+	src/spec/spec_zone_earth_plane.c \
 	src/spec/spec_zone_feybranche.c \
 	src/spec/spec_zone_fire_giant.c \
 	src/spec/spec_zone_hive_of_passion.c \

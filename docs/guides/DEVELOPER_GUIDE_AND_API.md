@@ -203,7 +203,8 @@ mutation order in that owner. TTF AOE encounters, follower summoning, and patrol
 coordination uses `src/spec/spec_zone_feybranche.h`, and Abyssal Vortex exit rotation uses
 `src/spec/spec_zone_abyssal_vortex.h`. House Agrach-Dyrr combat coordination uses
 `src/spec/spec_zone_agrach_dyrr.h`, and House Shobalar coordination uses
-`src/spec/spec_zone_shobalar.h`. Use
+`src/spec/spec_zone_shobalar.h`. Earth Plane reinforcement behavior uses
+`src/spec/spec_zone_earth_plane.h`. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.

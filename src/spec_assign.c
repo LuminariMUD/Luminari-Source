@@ -27,6 +27,7 @@
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
+#include "spec/spec_zone_earth_plane.h"
 #include "spec/spec_zone_feybranche.h"
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_hive_of_passion.h"
