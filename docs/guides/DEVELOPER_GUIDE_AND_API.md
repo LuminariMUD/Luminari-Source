@@ -175,7 +175,10 @@ observable compatibility path. Behavior-preserving content extraction is in
 progress: general object callbacks are under `src/spec/`; vessel callbacks are
 under `src/vessels/`; and player-shop, vendor, crafting, vampire-cloak,
 quest-service, and Neverwinter callbacks are now owned by their feature
-directories. Shared
+directories. Character ability calculations and skill list/training APIs are
+declared by `src/character/abilities.h` and `src/character/skill_lists.h`;
+spell sorting and display are declared by `src/magic/spell_lists.h`.
+`src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`

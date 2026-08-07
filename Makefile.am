@@ -42,6 +42,7 @@ circle_SOURCES = \
 	src/craft/alchemy.c \
 	src/asciimap.c \
 	src/combat/assign_wpn_armor.c \
+	src/character/abilities.c \
 	src/character/backgrounds.c \
 	src/character/character_creation.c \
 	src/character/character_creation_content.c \
@@ -210,9 +211,11 @@ circle_SOURCES = \
 	src/magic/casting_visuals.c \
 	src/magic/spell_parser.c \
 	src/magic/spell_prep.c \
+	src/magic/spell_lists.c \
 	src/magic/spellbook_scroll.c \
 	src/magic/spells.c \
 	src/quest/staff_events.c \
+	src/character/skill_lists.c \
 	src/character/study.c \
 	src/olc/tedit.c \
 	src/character/templates.c \

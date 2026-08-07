@@ -111,20 +111,51 @@ or call site changes.
 | CMake `ctest --output-on-failure` | PASS, 12/12 tests |
 | complete exported global-symbol comparison against Checkpoint 1 | PASS, no symbol added, removed, or retyped |
 
+## Checkpoint 3 - Ability, Skill, and Spell Ownership
+
+Checkpoint 3 removes the non-procedure calculation and display block from `src/spec_procs.c` and
+splits it by primary game-system responsibility:
+
+- `src/character/abilities.c` and `.h` own `compute_ability()` and
+  `compute_ability_full()`;
+- `src/character/skill_lists.c` and `.h` own skill prerequisites, skill and ability lists,
+  training effects, and the existing `cross_names` and `skills_alphabetic` data;
+- `src/magic/spell_lists.c` and `.h` own spell sorting, spell-list display, and the existing
+  `spell_sort_info` data.
+
+Direct consumers now include the owner headers. `src/spec_procs.h` includes them as a compatibility
+surface for callers that have not yet narrowed their dependency. This is an ownership-only move:
+function and data names, linkage, signatures, list ordering, calculations, text, and runtime behavior
+are unchanged.
+
+Both build manifests add the same three implementation files for the production and CuTest links.
+The checkpoint removes 2,012 more lines from `src/spec_procs.c`, reducing it from 6,357 to 4,345
+lines and from the Phase 03 baseline of 12,212 lines by 7,867 lines.
+
+### Checkpoint 3 verification
+
+| Gate | Result |
+|------|--------|
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 2 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Move spell, skill, and ability calculation/listing work to its character-system owner.
-2. Extract reusable mobile and room procedures, and move legacy moving-room behavior to vessels.
-3. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
+1. Extract reusable mobile and room procedures, and move legacy moving-room behavior to vessels.
+2. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
    static state with each package.
-4. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
-5. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
-6. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
+3. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
+4. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
+5. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Start with the spell, skill, and ability block at the top of `src/spec_procs.c`. Give it a direct
-character-system API while retaining compatibility for existing `spec_procs.h` consumers. Then
-extract reusable mobile and room groups; keep the moving-room state and callback together when
-moving them under `src/vessels/`.
+Start with the moving-room state and callback in `src/spec_procs.c`; keep them together when moving
+them under `src/vessels/`. Then extract only genuinely reusable mobile and room groups to general
+spec modules. Keep zone-specific callbacks with the cohesive packages that will move from
+`src/zone_procs.c`.

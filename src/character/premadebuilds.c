@@ -15,8 +15,8 @@
 #include "interpreter.h"
 #include "class.h"
 #include "race.h"
-#include "spec_procs.h" // for compute_ability
-#include "mud_event.h"  // for purgemob event
+#include "abilities.h"
+#include "mud_event.h" // for purgemob event
 #include "feats.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"

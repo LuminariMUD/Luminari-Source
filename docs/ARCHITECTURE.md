@@ -56,6 +56,10 @@ Phase 03 is moving unchanged legacy callbacks to coherent owners:
 `src/vessels/vessels_legacy.c` contains legacy route, ferry, and Greyhawk ship
 behavior. Player shops, commerce, crafting molds, vampire-cloak customization,
 quest reward replacement, and the Neverwinter puzzle now live with their feature owners.
+Character ability calculation and skill listing/training now live in
+`src/character/abilities.c` and `src/character/skill_lists.c`; spell sorting and
+display live in `src/magic/spell_lists.c`. `src/spec_procs.h` retains compatibility
+includes while direct consumers migrate to those owner APIs.
 See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

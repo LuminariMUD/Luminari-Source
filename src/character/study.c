@@ -31,6 +31,8 @@
 #include "evolutions.h"
 #include "constants.h"
 #include "talents.h"
+#include "abilities.h"
+#include "skill_lists.h"
 
 /*-------------------------------------------------------------------*/
 /*. Function prototypes . */
@@ -51,10 +53,7 @@ static void main_boosts_disp_menu(struct descriptor_data *d);
 
 void init_study(struct descriptor_data *d, int class);
 void finalize_study(struct descriptor_data *d);
-int compute_ability(struct char_data *ch, int abilityNum);
 /*-------------------------------------------------------------------*/
-
-extern const char *cross_names[];
 
 #define MENU_OPT(i) ((i) ? grn : "\tD"), ((i) ? nrm : "\tD")
 

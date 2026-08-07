@@ -14,10 +14,12 @@
 #ifndef _SPEC_PROCS_H_
 #define _SPEC_PROCS_H_
 
+#include "character/abilities.h"
+#include "character/skill_lists.h"
+#include "magic/spell_lists.h"
 #include "magic/spells.h"
 
 extern int prisoner_heads;
-extern int spell_sort_info[TOP_SKILL_DEFINE];
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
@@ -41,21 +43,9 @@ SPECIAL_DECL(*find_spec_func_by_name(const char *name));
 SPECIAL_DECL(moving_rooms);
 
 /*****************************************************************************
- * Begin Functions and defines for spec_procs.c
+ * Compatibility functions still implemented by special-procedure modules
  ****************************************************************************/
-#define ABILITY_TYPE_ALL 0
-#define ABILITY_TYPE_GENERAL 1
-#define ABILITY_TYPE_CRAFT 2
-#define ABILITY_TYPE_KNOWLEDGE 3
-/* Utility functions */
-void sort_spells(void);
-void list_crafting_skills(struct char_data *ch);
-void list_skills(struct char_data *ch);
-void list_spells(struct char_data *ch, int mode, int class, int circle);
-void list_abilities(struct char_data *ch, int ability_type);
 bool is_wearing(struct char_data *ch, obj_vnum vnum);
-int compute_ability(struct char_data *ch, int abilityNum);
-int compute_ability_full(struct char_data *ch, int abilityNum, bool recursive);
 void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
                     struct char_data *ch, struct char_data *vict, struct obj_data *obj, int spl);
 

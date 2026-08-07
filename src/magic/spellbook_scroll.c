@@ -21,8 +21,8 @@
 #include "mud_event.h"
 #include "constants.h"
 #include "act.h"
-#include "handler.h"    // for obj_from_char()
-#include "spec_procs.h" // for compute_ability
+#include "handler.h" // for obj_from_char()
+#include "character/abilities.h"
 #include "spell_prep.h"
 #include "obj/item.h"
 
