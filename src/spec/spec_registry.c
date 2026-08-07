@@ -10,6 +10,11 @@
 
 #include "spec/spec_registry.h"
 #include "spec_procs.h"
+#include "character/guild_services.h"
+#include "magic/spellbook_scroll.h"
+#include "obj/vendor.h"
+#include "spec/spec_mobiles.h"
+#include "spec/spec_rooms.h"
 
 #include <ctype.h>
 #include <limits.h>
@@ -18,10 +23,7 @@
 SPECIAL_DECL(bazaar);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
-SPECIAL_DECL(buyarmor);
-SPECIAL_DECL(buyweapons);
 SPECIAL_DECL(huntsmaster);
-SPECIAL_DECL(identify_mob);
 SPECIAL_DECL(new_supply_orders);
 SPECIAL_DECL(temple);
 SPECIAL_DECL(vampire_cloak);

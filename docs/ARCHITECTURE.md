@@ -60,8 +60,10 @@ Player shops, commerce, crafting molds, vampire-cloak customization,
 quest reward replacement, and the Neverwinter puzzle now live with their feature owners.
 Character ability calculation and skill listing/training now live in
 `src/character/abilities.c` and `src/character/skill_lists.c`; spell sorting and
-display live in `src/magic/spell_lists.c`. `src/spec_procs.h` retains compatibility
-includes while direct consumers migrate to those owner APIs.
+display live in `src/magic/spell_lists.c`. General legacy mobile and room callbacks live in
+`src/spec/spec_mobiles.c` and `src/spec/spec_rooms.c`; guild services, wizard research, and pet-shop
+commerce live with their character, magic, and object owners. `src/spec_procs.h` retains
+compatibility includes while direct consumers migrate to those owner APIs.
 See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

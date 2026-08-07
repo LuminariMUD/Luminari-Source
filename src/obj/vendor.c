@@ -15,6 +15,7 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
+#include "vendor.h"
 #include "spec_procs.h"
 #include "character/class.h"
 #include "combat/fight.h"
@@ -614,6 +615,132 @@ SPECIAL(buyarmor)
   send_to_char(ch, "You purchase %s for %d gold coins.\r\n", obj->short_description, cost);
 
   return 1;
+}
+
+#define PET_PRICE(pet) (GET_LEVEL(pet) * 300)
+
+SPECIAL(pet_shops)
+{
+  char buf[MAX_STRING_LENGTH] = {'\0'}, pet_name[MEDIUM_STRING] = {'\0'};
+  room_rnum pet_room;
+  struct char_data *pet;
+
+  /* Gross. */
+  pet_room = IN_ROOM(ch) + 1;
+
+  if (CMD_IS("list"))
+  {
+    send_to_char(ch, "Available pets are:\r\n");
+    for (pet = world[pet_room].people; pet; pet = pet->next_in_room)
+    {
+      /* No, you can't have the Implementor as a pet if he's in there. */
+      if (!IS_NPC(pet))
+        continue;
+      send_to_char(ch, "%8d - %s\r\n", PET_PRICE(pet), GET_NAME(pet));
+    }
+    return (TRUE);
+  }
+  else if (CMD_IS("buy"))
+  {
+    two_arguments(argument, buf, sizeof(buf), pet_name, sizeof(pet_name));
+
+    /* disqualifiers */
+    if (!(pet = get_char_room(buf, NULL, pet_room)) || !IS_NPC(pet))
+    {
+      send_to_char(ch, "There is no such pet!\r\n");
+      return (TRUE);
+    }
+    if (GET_GOLD(ch) < PET_PRICE(pet))
+    {
+      send_to_char(ch, "You don't have enough gold!\r\n");
+      return (TRUE);
+    }
+    // if (check_npc_followers(ch, NPC_MODE_SPARE, 0) <= 0)
+    if (!can_add_follower(ch, GET_MOB_VNUM(pet)))
+    {
+      send_to_char(ch, "You can't have any more pets!\r\n");
+      return (TRUE);
+    }
+
+    /* success! */
+    decrease_gold(ch, PET_PRICE(pet));
+
+    pet = read_mobile(GET_MOB_RNUM(pet), REAL);
+    GET_EXP(pet) = 0;
+    SET_BIT_AR(AFF_FLAGS(pet), AFF_CHARM);
+    if (GET_LEVEL(pet) <= 10)
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_1_10_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_1_10_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_1_10_HIT_DAM / 100;
+    }
+    else if (GET_LEVEL(pet) <= 20)
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_11_20_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_11_20_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_11_20_HIT_DAM / 100;
+    }
+    else
+    {
+      GET_REAL_MAX_HIT(pet) = GET_MAX_HIT(pet) =
+          GET_MAX_HIT(pet) * CONFIG_SUMMON_LEVEL_21_30_HP / 100;
+      GET_REAL_AC(pet) = GET_REAL_AC(pet) * CONFIG_SUMMON_LEVEL_21_30_AC / 100;
+      GET_HITROLL(pet) = GET_HITROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      GET_DAMROLL(pet) = GET_DAMROLL(pet) * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damnodice =
+          pet->mob_specials.damnodice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+      pet->mob_specials.damsizedice =
+          pet->mob_specials.damsizedice * CONFIG_SUMMON_LEVEL_21_30_HIT_DAM / 100;
+    }
+    GET_HIT(pet) = GET_MAX_HIT(pet);
+
+    if (*pet_name)
+    {
+      snprintf(buf, sizeof(buf), "%s %s", pet->player.name, pet_name);
+      /* free(pet->player.name); don't free the prototype! */
+      pet->player.name = strdup(buf);
+
+      snprintf(buf, sizeof(buf),
+               "%sA small sign on a chain around the neck says 'My name is %s'\r\n",
+               pet->player.description, pet_name);
+      /* free(pet->player.description); don't free the prototype! */
+      pet->player.description = strdup(buf);
+    }
+
+    if (ZONE_FLAGGED(GET_ROOM_ZONE(IN_ROOM(ch)), ZONE_WILDERNESS))
+    {
+      X_LOC(pet) = world[IN_ROOM(ch)].coords[0];
+      Y_LOC(pet) = world[IN_ROOM(ch)].coords[1];
+    }
+
+    char_to_room(pet, IN_ROOM(ch));
+
+    add_follower(pet, ch);
+
+    /* Be certain that pets can't get/carry/use/wield/wear items */
+    IS_CARRYING_W(pet) = 1000;
+    IS_CARRYING_N(pet) = 100;
+
+    send_to_char(ch, "May you enjoy your pet.\r\n");
+    act("$n buys $N as a pet.", FALSE, ch, 0, pet, TO_ROOM);
+
+    return (TRUE);
+  }
+
+  /* All commands except list and buy */
+  return (FALSE);
 }
 
 SPECIAL(buyweapons)

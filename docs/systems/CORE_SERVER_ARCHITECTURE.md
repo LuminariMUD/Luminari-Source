@@ -354,10 +354,12 @@ scheduling, relocation helpers, and callback live together in
 `src/vessels/vessels_moving_rooms.c`. Player shops, commerce and item services, crafting molds,
 vampire-cloak customization, quest reward replacement, and the Neverwinter control puzzle live with
 their respective feature owners. Ability calculations and skill list/training behavior live under
-`src/character/`, and spell sorting and list display live under `src/magic/`. The public names,
-callback ABI, world grammar, pulse position, assignment and registry references, initialization
-order, calculations, and display behavior remain unchanged. The current ownership inventory and
-evidence are in
+`src/character/`, and spell sorting and list display live under `src/magic/`. General legacy mobile
+and room callbacks live under `src/spec/`; class guild services, wizard spellbook research, and
+pet-shop commerce live with their character, magic, and object owners. The public names, callback
+ABI, world grammar, pulse position, assignment and registry references, initialization order,
+calculations, and display behavior remain unchanged. The current ownership inventory and evidence
+are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest

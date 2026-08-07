@@ -93,7 +93,7 @@ Shops can restrict customers based on:
 
 ### Weapon Vendors (buyweapons)
 
-Located in `src/spec_procs.c:10631`
+Located in `src/obj/vendor.c`
 
 Specialized vendors that sell weapons based on vendor level:
 - **Level 1-10**: Mundane and masterwork weapons
@@ -113,7 +113,7 @@ Specialized vendors that sell weapons based on vendor level:
 
 ### Armor Vendors (buyarmor)
 
-Located in `src/spec_procs.c:10450`
+Located in `src/obj/vendor.c`
 
 Similar to weapon vendors but for armor:
 - Sells body, arms, legs, head armor and shields
@@ -126,7 +126,7 @@ Similar to weapon vendors but for armor:
 
 ### Crafting Mold Vendors (buymolds)
 
-Located in `src/spec_procs.c:10910`
+Located in `src/craft/crafting_molds.c`
 
 Sell crafting molds for the crafting system:
 - **Weapon molds** - For crafting weapons
@@ -141,7 +141,7 @@ Sell crafting molds for the crafting system:
 
 ### Pet Shop Special Procedure
 
-Located in `src/spec_procs.c:5906`
+Located in `src/obj/vendor.c`
 
 Pet shops allow players to purchase animal companions. The shop reads available pets from the room adjacent to the shop (room + 1).
 
@@ -165,7 +165,7 @@ These modifiers apply to:
 
 ### Pet Object System (bought_pet)
 
-Located in `src/spec_procs.c:9991`
+Located in `src/obj/vendor.c`
 
 Alternative pet system using objects that convert to mobile followers when purchased through regular shops.
 
@@ -178,7 +178,7 @@ Alternative pet system using objects that convert to mobile followers when purch
 
 ## Player-Owned Shops
 
-Located in `src/spec_procs.c:1703`
+Located in `src/obj/player_shop.c`
 
 Player-owned shops are tied to the house system, allowing players to sell items from their house storage.
 

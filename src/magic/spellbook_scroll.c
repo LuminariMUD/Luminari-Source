@@ -16,9 +16,11 @@
 #include "utils.h"
 #include "interpreter.h"
 #include "spells.h"
+#include "spellbook_scroll.h"
 #include "db.h"
 #include "comm.h"
 #include "mud_event.h"
+#include "actions.h"
 #include "constants.h"
 #include "act.h"
 #include "handler.h" // for obj_from_char()
@@ -412,3 +414,171 @@ ACMD(do_scribe)
 
 /***  end command functions ***/
 #undef TERMINATE
+
+/* research spells for wizard - this is meant to fill the gap in the game we
+   have for lack of scroll placement, special thanks to Stephen Squires for
+   parts of the code */
+SPECIAL(wizard_library)
+{
+  bool found = FALSE, full_spellbook = TRUE;
+  struct obj_data *obj = NULL;
+  int spellnum = SPELL_RESERVED_DBC, spell_level = 0, spell_circle = 0, cost = 100, i = 0;
+  int class_level = 0;
+
+  if (CMD_IS("research"))
+  {
+    if (!CLASS_LEVEL(ch, CLASS_WIZARD))
+    {
+      send_to_char(ch, "You are not a wizard!\r\n");
+      return TRUE;
+    }
+
+    skip_spaces(&argument);
+
+    if (!*argument)
+    {
+      send_to_char(ch, "You need to indicate which spell you want to research.\r\n");
+      return TRUE;
+    }
+
+    spellnum = find_skill_num(argument);
+
+    if (spellnum <= SPELL_RESERVED_DBC || spellnum >= NUM_SPELLS)
+    {
+      send_to_char(ch, "Invalid spell!\r\n");
+      return TRUE;
+    }
+
+    spell_level = spell_info[spellnum].min_level[CLASS_WIZARD];
+    spell_circle = (spell_level + 1) / 2;
+    class_level = CLASS_LEVEL(ch, CLASS_WIZARD) + BONUS_CASTER_LEVEL(ch, CLASS_WIZARD);
+
+    if (spell_level <= 0 || spell_level >= LVL_IMMORT || spell_circle <= 0 ||
+        spell_circle > TOP_CIRCLE)
+    {
+      send_to_char(ch, "That spell is not available to wizards.\r\n");
+      return TRUE;
+    }
+
+    /* Check if spell is flagged as no_player (not available to players) */
+    if (spell_info[spellnum].no_player)
+    {
+      send_to_char(ch, "That spell cannot be researched by wizards.\r\n");
+      return TRUE;
+    }
+
+    if (spell_circle < 7)
+    {
+      cost = (spell_circle * 50) * (spell_circle);
+    }
+    else
+      cost = (spell_circle * 300) * (spell_circle);
+
+    if (GET_GOLD(ch) < cost)
+    {
+      send_to_char(ch,
+                   "You do not have enough coins to research this spell, you "
+                   "need %d coins.\r\n",
+                   cost);
+      return TRUE;
+    }
+
+    if (class_level >= spell_level && GET_SKILL(ch, spellnum))
+    {
+      /* 1st make sure we have a spellbook handy */
+      /* for-loop for inventory */
+      for (obj = ch->carrying; obj && !found; obj = obj->next_content)
+      {
+        if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+        {
+          if (spell_in_book(obj, spellnum))
+          {
+            send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
+                         spell_info[spellnum].name);
+            return TRUE;
+          }
+          /* found a spellbook that doesn't have the spell! */
+          found = TRUE;
+          break; /* our obj variable is now pointing to this spellbook */
+        }
+      }
+
+      /* for-loop for gear */
+      if (!found)
+      {
+        for (i = 0; i < NUM_WEARS; i++)
+        {
+          if (GET_EQ(ch, i))
+            obj = GET_EQ(ch, i);
+          else
+            continue;
+
+          if (GET_OBJ_TYPE(obj) == ITEM_SPELLBOOK)
+          {
+            if (spell_in_book(obj, spellnum))
+            {
+              send_to_char(ch, "You already have the spell '%s' in this spellbook.\r\n",
+                           spell_info[spellnum].name);
+              return TRUE;
+            }
+            /* found a spellbook that doesn't have the spell! */
+            found = TRUE;
+            break; /* our obj variable is now pointing to this spellbook */
+          }
+        }
+      }
+    }
+    else
+    {
+      send_to_char(ch, "You are not powerful enough to scribe that spell! (or this spell is from a "
+                       "restricted school)\r\n");
+      return TRUE;
+    }
+
+    if (!found)
+    {
+      send_to_char(ch, "No ready spellbook found in your inventory or equipped...\r\n");
+      return TRUE;
+    }
+
+    /* ok obj variable pointing to spellbook, let's make sure it has space */
+    if (!obj->sbinfo)
+    { /* un-initialized spellbook, allocate memory */
+      CREATE(obj->sbinfo, struct obj_spellbook_spell, SPELLBOOK_SIZE);
+      memset((char *)obj->sbinfo, 0, SPELLBOOK_SIZE * sizeof(struct obj_spellbook_spell));
+    }
+    for (i = 0; i < SPELLBOOK_SIZE; i++)
+    { /* check for space */
+      if (obj->sbinfo[i].spellname == 0)
+      {
+        full_spellbook = FALSE;
+        break;
+      }
+      else
+      {
+        continue;
+      }
+    } /* i = location in spellbook */
+
+    if (full_spellbook)
+    {
+      send_to_char(ch, "There is not enough space in that spellbook!\r\n");
+      return TRUE;
+    }
+
+    /* we made it! */
+    GET_GOLD(ch) -= cost;
+    obj->sbinfo[i].spellname = spellnum;
+    obj->sbinfo[i].pages = MAX(1, lowest_spell_level(spellnum) / 2);
+    send_to_char(ch,
+                 "Your research is successful and you scribe the spell '%s' "
+                 "into your spellbook, which takes up %d pages and cost %d coins.\r\n",
+                 spell_info[spellnum].name, obj->sbinfo[i].pages, cost);
+
+    USE_FULL_ROUND_ACTION(ch);
+    return TRUE;
+  }
+
+  /* they did not type research */
+  return FALSE;
+}

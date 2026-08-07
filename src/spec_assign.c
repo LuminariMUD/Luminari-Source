@@ -15,6 +15,11 @@
 #include "db.h"
 #include "interpreter.h"
 #include "spec_procs.h"
+#include "character/guild_services.h"
+#include "magic/spellbook_scroll.h"
+#include "obj/vendor.h"
+#include "spec/spec_mobiles.h"
+#include "spec/spec_rooms.h"
 #include "ban.h" /* for SPECIAL(gen_board) */
 #include "comms/boards.h"
 #include "comms/mail.h"
@@ -28,13 +33,10 @@
 
 SPECIAL_DECL(questmaster);
 SPECIAL_DECL(shop_keeper);
-SPECIAL_DECL(buyweapons);
-SPECIAL_DECL(buyarmor);
 SPECIAL_DECL(buymolds);
 SPECIAL_DECL(faction_mission);
 SPECIAL_DECL(eqstats);
 SPECIAL_DECL(vampire_cloak);
-SPECIAL_DECL(identify_mob);
 SPECIAL_DECL(replace_quest_item);
 SPECIAL_DECL(temple);
 

@@ -179,9 +179,49 @@ lines and from the Phase 03 baseline of 12,212 lines by 8,192 lines.
 | complete exported global-symbol comparison against Checkpoint 3 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 5 - General Mobiles, Rooms, and Feature Services
+
+Checkpoint 5 completes the traced general mobile and room slice while keeping feature-specific
+services with their primary systems:
+
+- `src/spec/spec_mobiles.c` and `.h` own `mayor`, `snake`, `hound`, `thief`, `wizard`, `wall`,
+  `puff`, `fido`, and `janitor`, plus the private `npc_steal()` helper;
+- `src/spec/spec_rooms.c` and `.h` own the general `dump` room callback;
+- `src/character/guild_services.c` and `.h` own class training through `guild` and entrance policy
+  through `guild_guard`;
+- `src/magic/spellbook_scroll.c` and its new owner header own `wizard_library` research; and
+- `src/obj/vendor.c` and its new owner header own room-based `pet_shops` commerce alongside the
+  existing pet-object and equipment-vendor services.
+
+Assignment and registry code include the owner headers directly. `src/spec_procs.h` retains those
+headers as a compatibility surface and no longer redeclares the moved callbacks. Both build
+manifests add the same three new implementation files; the existing magic and vendor sources were
+already linked by both systems.
+
+This checkpoint preserves callback bodies, static state, signatures, registry identities,
+assignments, command matching, player-visible messages, costs, rewards, spellbook mutation, pet
+scaling and follower setup, guild rules, and mobile pulse behavior. System documentation now points
+pet and vendor ownership at the feature files. No player helpfile changed because no command or
+behavior contract changed.
+
+The checkpoint removes 1,005 more lines from `src/spec_procs.c`, reducing it from 4,020 to 3,015
+lines and from the Phase 03 baseline of 12,212 lines by 9,197 lines.
+
+### Checkpoint 5 verification
+
+| Gate | Result |
+|------|--------|
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 4 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Extract reusable mobile and room procedures to coherent general or feature owners.
+1. Finish the traced ownership audit for common archetypes, guards, clan services, and named mobile
+   packages still in `src/spec_procs.c`.
 2. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
    static state with each package.
 3. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
@@ -191,8 +231,7 @@ lines and from the Phase 03 baseline of 12,212 lines by 8,192 lines.
 
 ## Resume Point
 
-Trace the remaining reusable mobile and room callbacks before moving them. General candidates begin
-with `mayor`, `snake`, `hound`, `thief`, `magic_user`, `guild_guard`, `puff`, `fido`, `janitor`,
-`dump`, `pet_shops`, and `wizard_library`, but ownership must follow behavior rather than the legacy
-section order. Keep zone-specific callbacks with the cohesive packages that will move from
-`src/zone_procs.c`.
+Trace the remaining mobile callbacks by assignment and shared state. Likely general candidates are
+the reusable monster archetypes, `cityguard`, `dog`, and `practice_dummy`; clan services belong with
+the clan subsystem, while named encounters and guards must move with their cohesive zone packages.
+Keep private encounter state beside its callbacks when splitting `src/zone_procs.c`.

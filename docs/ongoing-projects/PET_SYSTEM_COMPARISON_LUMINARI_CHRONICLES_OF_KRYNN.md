@@ -69,7 +69,7 @@ The primary traces used in this comparison are:
 | Pet base persistence | `src/players.c` | `src/players.c` |
 | Pet object persistence | `src/obj/objsave.c` | `src/objsave.c` |
 | Schema creation and startup | `src/db_init.c`, `src/db_startup_init.c`, `sql/master_schema.sql` | `src/db_init.c`, `src/db_startup_init.c`, `sql/master_schema.sql` |
-| Golems, shops, and special followers | `src/craft/crafting_new.c`, `src/obj/shop.c`, `src/spec_procs.c` | `src/crafting_new.c`, `src/shop.c`, `src/spec_procs.c` |
+| Golems, shops, and special followers | `src/craft/crafting_new.c`, `src/obj/shop.c`, `src/obj/vendor.c` | `src/crafting_new.c`, `src/shop.c`, `src/spec_procs.c` |
 | Focused tests | `unittests/CuTest/test_database_persistence.c`, `unittests/CuTest/test_upstream_regressions.c` | No focused pet persistence or admission tests found |
 
 Paths in the right column are relative to

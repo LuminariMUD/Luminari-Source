@@ -259,7 +259,7 @@ struct greyhawk_ship_data {
 };
 ```
 
-**Critical Linkages** (established during boarding in `spec_procs.c`):
+**Critical Linkages** (established during boarding in `src/vessels/vessels_legacy.c`):
 
 | Linkage | Purpose |
 |---------|---------|
@@ -1627,7 +1627,7 @@ and the trigger was removed.
 |------|---------|
 | `src/wilderness/wilderness.c` | Coordinate system and room allocation |
 | `src/weather.c` | Weather integration via `get_weather()` |
-| `src/spec_procs.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
+| `src/vessels/vessels_legacy.c` | Boarding special procedure (`greyhawk_ship_object`), establishes critical linkages |
 | `src/interpreter.c` | Command registration |
 | `src/db.c` | Boot sequence integration |
 | `src/dgscript/dg_scripts.c/h` | Trigger integration for interior movement |
@@ -1672,7 +1672,7 @@ and the trigger was removed.
 | Interior nav fails | Room connections | `ship_rooms` to verify, regenerate if needed |
 | Autopilot paused at blocked route | Route waypoints and hull speed | `listwaypoints`, correct unreachable terrain/Z, set speed, then `autopilot resume` |
 | Vehicle terrain blocked | Vehicle type | Use MOUNT for hills/mountains |
-| Coordinate desync | shipobj linkage | `greyhawk_shipload` (admin), check spec_procs.c |
+| Coordinate desync | shipobj linkage | `greyhawk_shipload` (admin), check `src/vessels/vessels_legacy.c` |
 | Disembark fails | Interior room link | Verify `world[room].ship` is set |
 | Ship object doesn't move | shipobj not linked | Set `greyhawk_ships[idx].shipobj = obj` |
 

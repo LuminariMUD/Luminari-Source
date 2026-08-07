@@ -456,6 +456,7 @@ set(SRC_C_FILES
     src/combat/assign_wpn_armor.c
     src/character/abilities.c
     src/character/backgrounds.c
+    src/character/guild_services.c
     src/character/character_creation.c
     src/character/character_creation_content.c
     src/ban.c
@@ -596,7 +597,9 @@ set(SRC_C_FILES
     src/spec/spec_binding.c
     src/spec/spec_dispatch.c
     src/spec/spec_effective_binding.c
+    src/spec/spec_mobiles.c
     src/spec/spec_objects.c
+    src/spec/spec_rooms.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_registry.c
     src/spec_assign.c

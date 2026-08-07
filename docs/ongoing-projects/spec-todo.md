@@ -121,18 +121,20 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-4 extracted the complete audited general object section to
+Checkpoints 1-5 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
 callback, not vessel behavior. Ability calculations and skill display/training now live under
 `src/character/`; spell sorting and display live under `src/magic/`. The legacy moving-room `M`
 loader, runtime list, zone-pulse scheduler, relocation helpers, and callback now form one package in
-`src/vessels/vessels_moving_rooms.c`. The Celestial Leviathan stub remains with the legacy file until
-its encounter package moves from `zone_procs.c`. Autotools and CMake link every new source for
-production and CuTest. The callback ABI, exported symbols, registry identities, assignments, world
-grammar, scheduling, and behavior remain unchanged. `src/spec_procs.c` is 4,020 lines, down 8,192
-lines from the Phase 03 baseline.
+`src/vessels/vessels_moving_rooms.c`. General legacy mobiles and rooms now live in
+`src/spec/spec_mobiles.c` and `src/spec/spec_rooms.c`; class guild services, wizard spellbook
+research, and pet-shop commerce live with `src/character/`, `src/magic/`, and `src/obj/`. The
+Celestial Leviathan stub remains with the legacy file until its encounter package moves from
+`zone_procs.c`. Autotools and CMake link every new source for production and CuTest. The callback
+ABI, exported symbols, registry identities, assignments, world grammar, scheduling, and behavior
+remain unchanged. `src/spec_procs.c` is 3,015 lines, down 9,197 lines from the Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.
@@ -232,8 +234,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 4 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 4. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 5 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 5. |
 
 ## Risks and Guardrails
 
@@ -434,11 +436,10 @@ events need an explicit lifecycle interface, not a zone pointer hidden in `void 
 
 At the Phase 03 baseline, `spec_procs.c` also held work owned elsewhere: spell/skill/ability listing
 and calculation; moving-room and legacy ship behavior; vendor item construction and naming; and
-crafting-mold purchase and construction. Checkpoints 1-3 have moved every item in that list except
-moving-room behavior. Splitting the remaining callbacks by owner type alone into
-`mob_specs.c`/`obj_specs.c`/`room_specs.c` would still preserve zone-ownership mistakes. Moving rooms
-should retain their temporary gateway, then gain a direct typed hook in the moving-room or vessel
-subsystem in a later behavior-changing phase.
+crafting-mold purchase and construction. Checkpoints 1-5 have moved every item in that list and the
+traced general mobile/room slice. Splitting the remaining callbacks by owner type alone would still
+preserve zone-ownership mistakes. Moving rooms retain their temporary gateway and now live in the
+vessel subsystem; a direct typed hook remains a later behavior-changing phase.
 
 ## Design Principles
 
@@ -484,18 +485,23 @@ src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
-Shipped content ownership (Phase 03 Checkpoints 1-3):
+Shipped content ownership (Phase 03 Checkpoints 1-5):
 
 ```text
 src/spec/spec_objects.c
+src/spec/spec_mobiles.c|.h
+src/spec/spec_rooms.c|.h
 src/spec/spec_zone_neverwinter.c
 src/vessels/vessels_legacy.c
+src/vessels/vessels_moving_rooms.c|.h
 src/obj/player_shop.c
-src/obj/vendor.c
+src/obj/vendor.c|.h
 src/craft/crafting_molds.c
 src/character/abilities.c|.h
+src/character/guild_services.c|.h
 src/character/skill_lists.c|.h
 src/character/vampire_cloak.c
+src/magic/spellbook_scroll.c|.h
 src/magic/spell_lists.c|.h
 src/quest/quest_services.c
 ```
@@ -505,8 +511,6 @@ Proposed for the remainder of Phase 03 and later phases, subject to traced owner
 ```text
 src/spec/spec_cooldown.c|.h        (needs two real consumers)
 src/spec/spec_effects.c|.h         (needs two real consumers)
-src/spec/spec_mobiles.c
-src/spec/spec_rooms.c
 src/spec/spec_zone_<package>.c     (King's Castle, Abyss, Crimson Flame, The Prisoner,
                                     Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF)
 ```
