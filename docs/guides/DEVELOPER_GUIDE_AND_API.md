@@ -184,7 +184,9 @@ research, and pet-shop commerce use their owner headers under `src/character/`, 
 `src/obj/`. Reusable combat/companion callbacks use `src/spec/spec_mobile_archetypes.h`; clan-hall
 services use `src/clan_services.h`. King's Castle assignments and mobile behavior use
 `src/spec/spec_zone_kings_castle.h`; keep its relative-VNUM helpers and private runtime state with
-that cohesive zone package.
+that cohesive zone package. Abyss and Crimson Flame procedures use `src/spec/spec_zone_abyss.h` and
+`src/spec/spec_zone_crimson_flame.h`; their room/mobile conversion helpers remain with their zone
+owners.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 

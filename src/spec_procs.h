@@ -25,6 +25,8 @@
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
+#include "spec/spec_zone_abyss.h"
+#include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "vessels/vessels_moving_rooms.h"
 
@@ -61,7 +63,6 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /** Procedures exposed through world persistence or OLC also need registry metadata. **/
 
 /* a-c */
-SPECIAL_DECL(abyss_randomizer);
 SPECIAL_DECL(abyssal_vortex);
 SPECIAL_DECL(acidstaff);
 SPECIAL_DECL(acidsword);
@@ -78,8 +79,6 @@ SPECIAL_DECL(bloodaxe);
 SPECIAL_DECL(bolthammer);
 SPECIAL_DECL(stability_boots);
 SPECIAL_DECL(celestial_leviathan);
-SPECIAL_DECL(cf_alathar);
-SPECIAL_DECL(cf_trainingmaster);
 SPECIAL_DECL(chan);
 SPECIAL_DECL(ches);
 SPECIAL_DECL(chionthar_ferry);

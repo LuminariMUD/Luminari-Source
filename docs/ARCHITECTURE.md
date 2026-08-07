@@ -65,8 +65,10 @@ display live in `src/magic/spell_lists.c`. General legacy mobile and room callba
 in `src/spec/spec_mobile_archetypes.c`. Guild services, clan-hall services, wizard research, and
 pet-shop commerce live with their character, clan, magic, and object owners. The complete King's
 Castle assignment and mobile package lives in `src/spec/spec_zone_kings_castle.c`, including its
-private helpers and runtime state. `src/spec_procs.h` retains compatibility includes while direct
-consumers migrate to those owner APIs.
+private helpers and runtime state. Abyss exit randomization and Crimson Flame encounter behavior
+likewise live in `src/spec/spec_zone_abyss.c` and `src/spec/spec_zone_crimson_flame.c`.
+`src/spec_procs.h` retains compatibility includes while direct consumers migrate to those owner
+APIs.
 See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

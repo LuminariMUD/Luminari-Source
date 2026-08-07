@@ -295,6 +295,43 @@ The new cohesive implementation is 851 lines, below the 1,000-line review prompt
 | complete exported global-symbol comparison against Checkpoint 6 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 8 - Abyss and Crimson Flame Zone Packages
+
+Checkpoint 8 moves the next two complete package boundaries from `src/zone_procs.c`:
+
+- `src/spec/spec_zone_abyss.c` and `.h` own `abyss_randomizer` and its private room-number
+  conversion helper; and
+- `src/spec/spec_zone_crimson_flame.c` and `.h` own `cf_trainingmaster`, `cf_alathar`, and the
+  exported `cf_converter()` helper used to resolve their zone-relative mobile VNUMs.
+
+`src/spec_assign.c` and `src/spec/spec_registry.c` include both owner headers directly.
+`src/spec_procs.h` retains them as compatibility includes and no longer redeclares the three moved
+callbacks. Both build manifests link both implementations for production and CuTest. The Crimson
+Flame source explicitly includes `magic/spells.h` for the combat type and damage constants that the
+legacy monolith supplied indirectly.
+
+The ownership trace confirms that `tia_rapier` is object VNUM 132125 in The Prisoner package, not
+Crimson Flame content, so it remains with the following Prisoner boundary. This checkpoint preserves
+callback bodies, signatures, global symbol names, zone-number conversion, assignment order,
+registry identity, hunting and follower behavior, combat calls, messages, and pulse behavior. No
+player or builder helpfile changed because no command, authored-data, or behavior contract changed.
+
+The checkpoint removes another 261 lines from `src/zone_procs.c`, reducing it from 3,384 to 3,123
+lines and by 1,079 lines from the Phase 03 baseline. The new Abyss and Crimson Flame implementations
+are 158 and 124 lines respectively.
+
+### Checkpoint 8 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 7 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
@@ -307,8 +344,9 @@ The new cohesive implementation is 851 lines, below the 1,000-line review prompt
 
 ## Resume Point
 
-Continue the `src/zone_procs.c` split with the self-contained Abyss package, followed by Crimson
-Flame. Move the Abyss room-number helper with `abyss_randomizer`, then trace the Crimson Flame
-training, Alathar, and rapier procedures and their private state as one package. Preserve all global
-names, static state, and assignment references, and compare the complete exported symbol set at the
-next checkpoint.
+Move The Prisoner package beginning with `tia_rapier` and ending with `prisoner_dracolich`. Keep
+`prisoner_heads`, `eq_loaded`, death-transition logic, attack and rejuvenation helpers, treasury gear
+loading, and every associated macro in the same owner. Publish `prisoner_heads` and
+`prisoner_on_death()` for the existing staff-event and combat consumers. Then move the currently
+unused Celestial Leviathan helpers together with its no-op callback from `src/spec_procs.c`, retaining
+their existing dependency on Prisoner state until a separately tested behavior change addresses it.

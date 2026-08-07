@@ -208,6 +208,8 @@ circle_SOURCES = \
 	src/spec/spec_mobiles.c \
 	src/spec/spec_objects.c \
 	src/spec/spec_rooms.c \
+	src/spec/spec_zone_abyss.c \
+	src/spec/spec_zone_crimson_flame.c \
 	src/spec/spec_zone_kings_castle.c \
 	src/spec/spec_zone_neverwinter.c \
 	src/spec/spec_registry.c \

@@ -16,6 +16,8 @@
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
+#include "spec/spec_zone_abyss.h"
+#include "spec/spec_zone_crimson_flame.h"
 
 #include <ctype.h>
 #include <limits.h>
