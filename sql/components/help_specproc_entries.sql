@@ -31,6 +31,12 @@ shop, and quest contributions. SPEC_BIND_FINAL shows the authored request,
 chosen callback, source, and collision count. In -s mode only sources that
 actually run are reported; -s is not a global callback-disable switch.
 
+Immortal staff can inspect the same recorded post-boot chain on a live server
+with SPECBIND <mob|obj|room> <vnum>. The command reports the effective callback,
+every ordered contribution and outcome, source locations, collision count,
+saved shop or quest secondary, and the chosen source. SPECBIND is read-only and
+does not change the prototype or rebuild history after a later OLC edit.
+
 A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.
@@ -39,7 +45,7 @@ Use trigedit when a script is sufficient. Ask a coder when the needed behavior
 is not present in the SpecProc menu. Shops, quests, pet shops, and boards have
 additional setup requirements beyond choosing a callback.
 
-See also: OLC, MEDIT, OEDIT, REDIT, TRIGEDIT, PETSHOP, BOARDS', 31, FALSE)
+See also: SPECBIND, OLC, MEDIT, OEDIT, REDIT, TRIGEDIT, PETSHOP, BOARDS', 31, FALSE)
 ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
   auto_generated = VALUES(auto_generated);
 
@@ -48,13 +54,14 @@ ON DUPLICATE KEY UPDATE entry = VALUES(entry), min_level = VALUES(min_level),
 -- make the maintained result nondeterministic.
 DELETE FROM help_keywords
 WHERE UPPER(keyword) IN (
-  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECPROC'
+  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC'
 );
 
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPEC-PROC');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIAL-PROCEDURE');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECIALS');
+INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECBIND');
 INSERT IGNORE INTO help_keywords (help_tag, keyword) VALUES ('spec-proc', 'SPECPROC');
 
 COMMIT;

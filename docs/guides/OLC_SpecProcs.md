@@ -9,7 +9,8 @@ editors for mobs, objects, and rooms.
 - Select from the centralized registry defined in `src/spec/spec_registry.c`.
 - Each editor lists only builder-visible definitions compatible with that mobile, object, or room.
 - Selections apply at save time and now persist across reboots via world files.
-- In game, `HELP SPECIALS` provides the shorter builder and staff reference.
+- In game, `HELP SPECIALS` provides the shorter builder and staff reference, including the
+  staff-only `specbind` diagnostic.
 
 Three states are intentionally separate:
 
@@ -111,6 +112,17 @@ the authored name, contribution and collision counts, and final source and handl
 
 This report is a boot-time snapshot. Later OLC reassignment does not rewrite the recorded chain.
 
+Immortal staff can inspect that snapshot without searching the boot log:
+
+```text
+specbind <mob|obj|room> <vnum>
+```
+
+The command shows the prototype's current effective callback, every ordered contribution and its
+outcome, the source location recorded at boot, collision count, saved shop or quest secondary, and
+the chosen source. `mob`/`mobile` and `obj`/`object` are accepted. The command is read-only: it does
+not change the callback, authored request, or recorded history.
+
 Contribution outcomes have these meanings:
 
 - `selected`: the contribution installed the first resolved callback after no callback was active.
@@ -125,28 +137,32 @@ Normal boot reports every source that actually contributed. With `-s`, named wor
 parser records are still reported, while the guarded legacy, shop, and quest assignment sources are
 absent. This describes the existing boot path; it does not add a new runtime dispatch switch.
 
-These lines are operator diagnostics, not world-file input and not an OLC command. The prototype
-callback pointer remains runtime authority. A collision count reports that more than one source
-contributed; it does not create a multiple-handler chain.
+The boot-log lines and `specbind` output are diagnostics, not world-file input or OLC mutations. The
+prototype callback pointer remains runtime authority. A collision count reports that more than one
+source contributed; it does not create a multiple-handler chain.
 
-## Phase 00 Compatibility Boundary
+## Compatibility Boundary Through Phase 02
 
-Phase 00 changes registration, selection, persistence safety, and observability. It does not change
-the `SPECIAL` callback ABI, command-owner traversal, heartbeat positions, caller-specific return
-handling, activation flags, world-file grammar, or established assignment precedence. Shop and
-quest wrappers keep their existing saved-secondary behavior.
+Phases 00-02 change registration, selection, persistence safety, observability, call-site routing,
+and two eligible legacy assignments. They do not change the `SPECIAL` callback ABI, command-owner
+traversal, heartbeat positions, caller-specific return handling, activation flags, world-file
+grammar, or established assignment precedence. Shop and quest wrappers keep their existing
+saved-secondary behavior.
 
 Event-specific gateways and typed event context are implemented, but they are an engine-side
 concern: nothing a builder selects, sees, or saves in OLC changed, and every procedure still runs
-with its existing behavior. Declarative assignment conversion, content extraction, shared mechanics,
-typed handlers, and general multiple-procedure composition remain later-phase proposals. Do not
-document or build content as though those proposals are active.
+with its existing behavior. A validated declarative table now owns the two Luminari assignments
+whose handlers are registered and whose VNUMs are symbolic. Unsupported numeric, computed, and
+campaign-compatibility assignments stay on the legacy path and remain visible through the same
+effective-binding diagnostics. Content extraction, shared mechanics, typed handlers, and general
+multiple-procedure composition remain later-phase proposals.
 
 For the implementation boundaries, see
 [Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
 production-linked evidence, see
 [Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) and
-[Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
+[Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
+[Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
 
 ## Notes and Tips
 
@@ -174,6 +190,9 @@ production-linked evidence, see
   before assigning a named room procedure.
 - Persistence missing after reboot: verify the saved name is a canonical name or alias in the
   definition registry and has not been renamed.
+- `specbind` reports no contributions: the prototype received no world, parser, legacy, shop, or
+  quest callback write during this boot. Confirm the VNUM and whether the server was started with
+  `-s`.
 - File merge conflicts: the `SpecProc`/`Z` entries are safe to keep; ensure the SpecProc name remains on its own line as shown above.
 
 ## Examples

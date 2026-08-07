@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00 and 01 are complete. Phases 02-06 are not started.
+Phases 00-02 are complete. Phases 03-06 are not started.
 
 ## Goals
 
@@ -49,7 +49,7 @@ Phases 00 and 01 are complete. Phases 02-06 are not started.
 |-------|------|--------|
 | 00 | Registry Safety and Observability | Complete (2026-08-07) |
 | 01 | Call-Site Gateway Compatibility | Complete (2026-08-07) |
-| 02 | Declarative Legacy Assignments | Not Started |
+| 02 | Declarative Legacy Assignments | Complete (2026-08-07) |
 | 03 | Behavior-Preserving Content Extraction | Not Started |
 | 04 | Narrow Shared Mechanics | Not Started |
 | 05 | Incremental Typed Handlers | Not Started |
@@ -93,16 +93,31 @@ precedence, and `-s` behavior are unchanged.
 Acceptance evidence:
 [Special Procedure Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
 
-### Phase 02 - Declarative Legacy Assignments
+### Phase 02 - Declarative Legacy Assignments (Complete)
 
-1. Convert repetitive direct owner/VNUM/name assignments to validated owner-typed tables.
-2. Use traced symbolic VNUM constants; leave unsupported numeric rows unconverted.
-3. Keep computed assignments and special setup with their owning systems.
-4. Preserve and diagnose named-world, parser-hook, hard-coded, shop, and quest precedence.
-5. Move a binding to world data only after comparing complete effective behavior.
+Delivered owner-specific mobile, object, and room row contracts plus registry-backed validation in
+`src/spec/spec_assign_table.c`. Boot validates every declarative row after the definition registry
+and before world parsing. The Luminari table converts the two assignments that meet both required
+prerequisites: `NOOB_CRAFTING_KIT` / `Crafting Kit` and `VAMPIRE_CLOAK_OBJ_VNUM` / `Vampire Cloak`.
+Both use the same assignment and effective-provenance path as direct compatibility calls.
 
-Exit when compatibility assignments and collisions are traceable and tested without flattening an
-intentional shop or quest chain.
+The source inventory explains the intentionally narrow conversion. After those two rows moved, 783
+`ASSIGNMOB` / `ASSIGNOBJ` / `ASSIGNROOM` tokens remain in `src/spec_assign.c`; 777 carry numeric
+literals. The other non-literal occurrences are macro definitions, computed setup, or
+campaign-compatibility branches. Unsupported rows remain direct as required: inventing literals in a
+table would not make them traceable, and adding hundreds of registry identities or local VNUM
+configuration changes is outside this phase. Every direct callback write still records ordered
+effective provenance and collisions.
+
+Immortal staff can inspect the full recorded post-boot chain with
+`specbind <mob|obj|room> <vnum>`, including source locations, outcomes, collision count, shop/quest
+saved secondaries, and final source. The established named-world, parser-hook, legacy-assignment,
+shop, and quest precedence is unchanged and no binding moved to world data. Eleven new
+production-linked tests cover row resolution, aliases, owner/source rejection, table diagnostics,
+null handling, and stable source labels.
+
+Acceptance evidence:
+[Special Procedure Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
@@ -201,8 +216,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 00 close. |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 00. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 02 close (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 02. |
 
 ## Risks and Guardrails
 
@@ -251,9 +266,9 @@ persistence (`src/spec_assign.c`, `src/db.c`, `src/olc/`); shop and quest compos
 (`src/obj/shop.c`, `src/quest/quest.c`, `src/olc/genqst.c`); cooldown, affect, damage, and
 object-save contracts; artifact code and tests; and persisted bindings under `lib/world/`.
 
-Phase 00 has since changed the registry, OLC, and provenance behavior described in that baseline.
-Statements below are marked where Phase 00 superseded them. Dated counts are snapshots, not
-invariants; re-trace symbols during implementation.
+Phases 00-02 have since changed registry, OLC, dispatch, provenance, and eligible assignment behavior
+described in that baseline. Statements below are marked where a completed phase superseded them.
+Dated counts are snapshots, not invariants; re-trace symbols during implementation.
 
 ### Source Inventory
 
@@ -440,13 +455,14 @@ procedure is bound.
 
 ### Layout
 
-Shipped (Phases 00-01):
+Shipped (Phases 00-02):
 
 ```text
 src/spec/spec_registry.c|.h
 src/spec/spec_binding.c|.h
 src/spec/spec_effective_binding.c|.h
 src/spec/spec_dispatch.c|.h
+src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
@@ -548,7 +564,7 @@ array; unresolved names require explicit copy and free ownership. Writers consul
 first and reverse pointer lookup only as a legacy fallback. A world binding overwritten by a legacy
 assignment produces one structured diagnostic naming both sources and the chosen result.
 
-### Declarative Assignment Contract
+### Declarative Assignment Contract (Implemented for Eligible Rows)
 
 Hard-coded assignments may become validated data holding owner type, a typed VNUM, and canonical
 definition name. Prefer owner-typed tables or a tagged VNUM union so a room constant cannot enter a
@@ -558,8 +574,9 @@ builder-selectable.
 
 Use traced symbolic VNUM constants, never literals. Computed assignments and special setup stay with
 their owning systems. If no symbolic constant exists, defer conversion or separately change
-`src/vnums.example.h`. Audit complete effective post-boot bindings before deciding which hard-coded
-entries move to world data.
+`src/vnums.example.h`. Phase 02 therefore converted two eligible Luminari object rows and left the
+unsupported numeric and computed inventory on the observable compatibility path. Audit complete
+effective post-boot bindings before deciding which hard-coded entries move to world data.
 
 ## Reusable Mechanics Contracts
 
@@ -700,8 +717,9 @@ Use the root production-linked CuTest suite for behavior touching real game stru
 covers registry identity and validation, accessor bounds, owner-aware OLC, authored round trips,
 effective precedence, moving-room rejection, command/pulse/combat characterization, and `-s` mode
 (78 tests). Phase 01 adds gateway translation exactness, gateway-local flow, null-safety, secondary
-forwarding, and both successor-caching corrections (12 tests). Remaining coverage required as later
-phases land:
+forwarding, and both successor-caching corrections (12 tests). Phase 02 adds declarative-row,
+owner/source, table-diagnostic, and source-label coverage (11 tests). Remaining coverage required as
+later phases land:
 
 - Exact equipped-object pointer identity with duplicate-VNUM instances.
 - Cooldown units, slot bounds, reboot and persistence behavior, and intended spending outcomes.

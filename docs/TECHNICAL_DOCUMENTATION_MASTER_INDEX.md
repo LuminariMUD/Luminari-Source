@@ -122,6 +122,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
 - **[Special Procedure Phase 00 Validation](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)** - Registry-safety acceptance, 78-test ownership, evidence matrix, and reproducible phase gates
 - **[Special Procedure Phase 01 Validation](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md)** - Call-site gateway acceptance, event/flow contracts, extraction-safety corrections, and 12-test ownership
+- **[Special Procedure Phase 02 Validation](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md)** - Declarative-assignment inventory, live binding diagnostics, help acceptance, and 11-test ownership
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
@@ -144,7 +145,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Building Guides
 - **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
-- **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, prerequisites, authored persistence, effective diagnostics, and moving-room safety
+- **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, authored persistence, `specbind` diagnostics, and moving-room safety
 - **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - Read-only world parsing, validation, typed lookup, flags, and documentation checks
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 
@@ -194,8 +195,8 @@ This master index provides a comprehensive guide to all technical documentation 
   conversation history, SKORE phases 3-4, event-system merge, and in-game
   backlogs
 - **[Special Procedure Refactor PRD](ongoing-projects/spec-todo.md)** -
-  Phase 00 delivered; gateway, assignment, extraction, shared-mechanics,
-  typed-handler, and conditional-composition phases remain planned
+  Phases 00-02 delivered; extraction, shared-mechanics, typed-handler, and
+  conditional-composition phases remain planned
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item

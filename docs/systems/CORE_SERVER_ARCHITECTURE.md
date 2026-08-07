@@ -324,6 +324,7 @@ The relevant `boot_db()` sequence is:
 
 ```text
 spec_registry_boot_validate()
+  -> spec_assign_table_boot_validate()
   -> boot_world()
        -> named world bindings
        -> moving-room parser hooks
@@ -336,9 +337,15 @@ spec_registry_boot_validate()
   -> report_effective_spec_bindings()
 ```
 
-Registry validation is a programmer-error boundary and runs before any world file is parsed.
-Unknown or owner/source-incompatible world names are content errors: the owned authored record and
-source location remain available, but no callback is installed.
+Registry and declarative-table validation are programmer-error boundaries and run before any world
+file is parsed. Every table row must resolve to a definition compatible with its owner and permitted
+for legacy assignment. Unknown or owner/source-incompatible world names are content errors: the
+owned authored record and source location remain available, but no callback is installed.
+
+The Phase 02 table contains the two Luminari assignments that have both a traced symbolic VNUM and a
+registered definition. Numeric, computed, and campaign-compatibility assignments remain direct
+calls, but both forms use the same owner-specific assignment helpers and effective-history recorder.
+The table is a validated compatibility source, not a new precedence level.
 
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
@@ -351,6 +358,9 @@ request, contribution and collision counts, and final source/handler. `SPEC_BIND
 the report and provides aggregate counts. Text inputs are owned, single-line validated, and escaped
 before formatting.
 
+Immortal staff can inspect one prototype's recorded post-boot history with
+`specbind <mob|obj|room> <vnum>`. The command is read-only and does not recompute the boot snapshot.
+
 Authored and effective records follow prototype lifetimes. Database shutdown, prototype deletion,
 OLC scratch cleanup, room insertion, and room copying use explicit deep-copy/free operations. World
 writers consult authored identity first and use reverse handler lookup only for a legacy prototype
@@ -361,9 +371,9 @@ It cannot share the room callback slot with a named `Z` binding. Boot rejects bo
 REdit blocks selection and defensive internal save, and the room writer preflights the complete zone
 before opening output or mutating mover state.
 
-Phase 00 does not introduce event gateways, typed invocation contexts, invalidation results,
-declarative assignments, or multiple-handler dispatch. Those remain later architecture phases and
-must preserve the characterized scheduling, traversal, activation, return, and precedence rules.
+Phases 00-02 do not convert a legacy handler or introduce multiple-handler dispatch. Later content
+extraction, shared mechanics, typed handlers, and optional composition must preserve the
+characterized scheduling, traversal, activation, return, and precedence rules.
 
 ## Performance Monitoring
 

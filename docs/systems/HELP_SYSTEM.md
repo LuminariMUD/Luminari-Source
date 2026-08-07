@@ -108,7 +108,7 @@ runtime export. Use this workflow for new or changed topics:
 `help_specproc_entries.sql` and `verify_help_specproc_entries.sql` are the maintained sources for the
 builder/staff `SPECIALS` topic. They cover canonical names and aliases, owner-aware OLC,
 prerequisites, authored-name preservation, explicit replace/clear, boot provenance, `-s` behavior,
-and moving-room exclusivity.
+moving-room exclusivity, and the read-only `SPECBIND` live diagnostic.
 
 The optional import/export commands are operational compatibility and backup tools. An exported
 `lib/text/help/help.hlp` may be useful to a deployment, but editing that ignored file is not a

@@ -1,8 +1,8 @@
 # LuminariMUD Developer Guide and API Reference
 
 Use [docs/development.md](../development.md) for the verified build, test,
-source-map, and style entry point. This reference documents the Phase 00
-special-procedure control plane; other subsystem APIs remain in their
+source-map, and style entry point. This reference documents the special-procedure
+control plane delivered through Phase 02; other subsystem APIs remain in their
 source-linked system documents.
 
 ## Quick Start
@@ -109,6 +109,29 @@ assignment, shop wrapping, object assignment, room assignment, and quest
 wrapping. Under `-s`, world/parser records still load while the guarded
 assignment block does not run; reporting remains outside the guard.
 
+`specbind <mob|obj|room> <vnum>` exposes the same prototype-owned history to
+immortal staff after boot. It reports every contribution, outcome, location,
+saved secondary, collision count, and final source without mutating the slot or
+recomputing history after an OLC edit.
+
+### Declarative Legacy Assignment API
+
+`src/spec/spec_assign_table.h` defines separate mobile, object, and room row
+types. A row holds the corresponding VNUM type and a canonical definition name
+or explicit alias. `spec_assign_table_resolve()` requires a registered
+definition that supports the row owner and permits legacy assignment;
+owner-specific table validators identify the first failing index and VNUM.
+`spec_assign_table_boot_validate()` runs immediately after registry validation
+and before world parsing, so invalid source data is a boot-fatal programmer
+error.
+
+Convert a direct `ASSIGNMOB`, `ASSIGNOBJ`, or `ASSIGNROOM` call only when its
+VNUM has a traced symbolic constant and its handler has registry metadata.
+Keep numeric, computed, campaign-compatibility, and special-setup assignments
+on the legacy path until those prerequisites exist. Both paths call the same
+owner-specific assignment helpers and therefore preserve callback writes,
+source provenance, and collision reporting.
+
 ### OLC and Persistence
 
 `src/olc/spec_menu.c` provides an owner-filtered, one-based view of
@@ -144,11 +167,12 @@ zone before opening output or mutating mover state.
 
 ## Compatibility Boundary
 
-Phases 00 and 01 preserve the single callback slot, `SPECIAL` ABI, world
-grammar, command traversal, heartbeat timing, caller-specific returns,
-activation flags, shop/quest nesting, and boot precedence. Declarative
-assignments, content extraction, shared mechanics, typed-handler conversion, and
-general chains remain future work.
+Phases 00-02 preserve the single callback slot, `SPECIAL` ABI, world grammar,
+command traversal, heartbeat timing, caller-specific returns, activation flags,
+shop/quest nesting, and boot precedence. Declarative validation applies to the
+two currently eligible Luminari rows; unsupported assignments remain on the
+observable compatibility path. Content extraction, shared mechanics,
+typed-handler conversion, and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -160,4 +184,6 @@ See [OLC SpecProc Editing](OLC_SpecProcs.md), the
 [Phase 00 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
 the
 [Phase 01 gateway matrix](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
+the
+[Phase 02 assignment matrix](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

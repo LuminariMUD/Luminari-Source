@@ -27,19 +27,22 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'Select a menu entry to replace') > 0
   AND INSTR(entry, '0 to clear the authored procedure') > 0
   AND INSTR(entry, 'SPEC_BIND_FINAL') > 0
+  AND INSTR(entry, 'SPECBIND <mob|obj|room> <vnum>') > 0
+  AND INSTR(entry, 'SPECBIND is read-only') > 0
   AND INSTR(entry, '-s is not a global callback-disable switch') > 0;
 
 SELECT
   'required_keywords' AS check_name,
   COUNT(*) AS actual,
-  5 AS expected,
-  IF(COUNT(*) = 5, 'PASS', 'FAIL') AS result
+  6 AS expected,
+  IF(COUNT(*) = 6, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE (help_tag, keyword) IN (
   ('spec-proc', 'SPEC'),
   ('spec-proc', 'SPEC-PROC'),
   ('spec-proc', 'SPECIAL-PROCEDURE'),
   ('spec-proc', 'SPECIALS'),
+  ('spec-proc', 'SPECBIND'),
   ('spec-proc', 'SPECPROC')
 );
 
@@ -50,6 +53,6 @@ SELECT
   IF(COUNT(*) = 0, 'PASS', 'FAIL') AS result
 FROM help_keywords
 WHERE UPPER(keyword) IN (
-  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECPROC'
+  '<SPEC>', 'SPEC', 'SPEC-PROC', 'SPECIAL-PROCEDURE', 'SPECIALS', 'SPECBIND', 'SPECPROC'
 )
 AND BINARY help_tag <> 'spec-proc';

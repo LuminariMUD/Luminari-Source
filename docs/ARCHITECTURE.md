@@ -38,6 +38,8 @@ MariaDB <-> mysql.c and subsystem persistence <-> accounts and runtime data
 ```
 
 World boot validates special-procedure definitions before parsing world files.
+It also validates the owner-typed declarative compatibility table against those
+definitions before any assignment can run.
 Definitions, exact authored binding intent, and ordered effective boot
 provenance are separate state layers; the existing callback slot remains the
 runtime dispatch authority. Every engine call site now reaches that slot through
@@ -46,7 +48,9 @@ where complete data still exists and then performs the exact legacy `SPECIAL`
 translation. Handlers themselves are still legacy. See the
 [Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)
 and the
-[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
+[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
+the
+[Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
 
 ## Operational Boundary
 

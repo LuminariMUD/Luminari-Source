@@ -46,10 +46,10 @@ This retains the tested binary and matching symbols under its immutable
 and removes the root-level `circle` artifact that the test build may leave
 behind.
 
-## Special Procedure Phase 00 Regression Ownership
+## Special Procedure Regression Ownership
 
-Phase 00 registry safety and observability is owned by eight production-linked test sources plus
-one shared fixture source:
+Phase 00 registry safety and observability is owned by eight production-linked test sources plus one
+shared fixture source:
 
 - `test_spec_registry_persistence.c` - 10 registry, persistence, loader, and baseline OLC tests;
 - `test_spec_command_pulse.c` - 13 command, activity, auto-pulse, moving-room, and schedule tests;
@@ -60,9 +60,12 @@ one shared fixture source:
 - `test_spec_binding_round_trip.c` - 7 writer-to-loader identity and explicit-action tests; and
 - `test_spec_effective_binding.c` - 7 provenance, precedence, mode, secondary, and room-safety tests.
 
-The exact inventory is 78 dedicated `Test` functions. `test_spec_fixtures.c` is production-linked
-support and is not counted as a test owner. CuTest has no per-function filter, so the supported
-focused development run is still the complete production-linked executable:
+Phase 01 adds `test_spec_dispatch.c` with 12 gateway and extraction-safety tests. Phase 02 adds
+`test_spec_assign_table.c` with 11 declarative-row, owner/source validation, diagnostic, and stable
+source-label tests. The exact inventory through Phase 02 is 101 dedicated `Test` functions.
+`test_spec_fixtures.c` is production-linked support and is not counted as a test owner. CuTest has
+no per-function filter, so the supported focused development run is still the complete
+production-linked executable:
 
 ```sh
 make -j"$(nproc)" cutest
@@ -78,9 +81,11 @@ idempotency and verifier gate.
 See [Special Procedure Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) for
 the requirement-to-test map, exact manifest contract, SQL procedure, and integrity checks, and
 [Special Procedure Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md) for the
-gateway translation, flow, and extraction-safety coverage. Later cooldown, affect, content
-extraction, and general composition coverage remains explicitly deferred to its owning
-implementation phases.
+gateway translation, flow, and extraction-safety coverage, and
+[Special Procedure Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md) for the
+declarative-assignment inventory, binding-chain diagnostics, and help verification. Later cooldown,
+affect, content extraction, and general composition coverage remains explicitly deferred to its
+owning implementation phases.
 
 ## Bardic Performance Regression Ownership
 

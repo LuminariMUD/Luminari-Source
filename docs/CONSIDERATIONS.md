@@ -8,21 +8,24 @@ previously maintained in the retired workflow records.
 
 ## Special Procedure Architecture Refactor
 
-**Status:** Phase 00 complete; Phases 01-06 remain planned
+**Status:** Phases 00-02 complete; Phases 03-06 remain planned
 
 Use the [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) for the
 remaining roadmap and the
-[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)
+[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
+[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
+[Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md)
 for delivered behavior and evidence.
 
 ### Active Concerns
 
 #### Technical Debt
 
-- **Legacy dispatch remains authoritative:** Definitions, authored state, and effective provenance
-  are safe, but event gateways, typed contexts, and invalidation outcomes remain deferred.
-- **Imperative assignments remain:** Legacy owner/VNUM assignments are observable but are not yet
-  validated declarative data; preserve their exact order until Phase 02 migrates them.
+- **Legacy handlers remain authoritative:** Event gateways and typed contexts are shipped, but
+  handlers still use the legacy callback ABI and cannot report typed invalidation outcomes.
+- **Imperative assignment inventory remains:** The two eligible Luminari rows are declarative and
+  boot-validated. Numeric, computed, and campaign-compatibility rows remain on the observable direct
+  path until they gain traced VNUMs and registered identities; preserve their exact order.
 - **Shutdown leak baseline is incomplete:** Live ASan validation found existing process-lifetime
   allocations outside the health work; disabled leak detection is not proof of cleanup.
 
@@ -104,8 +107,9 @@ for delivered behavior and evidence.
   freeing an argument-vector pointer caused an ASan-detected invalid free at shutdown.
 - **Using production paths in validation:** Test setup must reject protected `lib/`, broad cleanup
   targets, non-loopback database hosts, and database names without a test/CI marker.
-- **Claiming future architecture as delivered:** Keep typed gateways, declarative assignments,
-  shared mechanics, extraction, and composition labeled deferred until tested implementation lands.
+- **Claiming future architecture as delivered:** Gateways and eligible declarative assignments are
+  shipped. Keep shared mechanics, extraction, typed-handler conversion, and composition labeled
+  deferred until tested implementation lands.
 
 #### Tool and Library Notes
 
