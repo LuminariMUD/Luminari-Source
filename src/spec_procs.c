@@ -216,68 +216,6 @@ SPECIAL(olhydra)
 /* General guild and mobile procedures are implemented by their feature owners. */
 
 /* from homeland */
-SPECIAL(duergar_guard)
-{
-  const char *buf = "$N steps into the opening and blocks your path.\r\n";
-  const char *buf2 = "$N steps into the opening blocking it.";
-
-  if (!IS_MOVE(cmd))
-    return FALSE;
-
-  if (cmd == SCMD_DOWN)
-  {
-    act(buf, FALSE, ch, 0, (struct char_data *)me, TO_CHAR);
-    act(buf2, FALSE, ch, 0, (struct char_data *)me, TO_ROOM);
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/* from homeland */
-SPECIAL(bandit_guard)
-{
-  const char *buf = "$N blocks your access into the castle.\r\n";
-  const char *buf2 = "$N blocks $n's access into the castle..";
-
-  if (!IS_MOVE(cmd))
-    return FALSE;
-
-  if (GET_LEVEL(ch) < 12)
-    return FALSE;
-
-  if (cmd == SCMD_EAST || cmd == SCMD_SOUTH || cmd == SCMD_WEST)
-  {
-    act(buf, FALSE, ch, 0, (struct char_data *)me, TO_CHAR);
-    act(buf2, FALSE, ch, 0, (struct char_data *)me, TO_ROOM);
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/* from homeland */
-SPECIAL(secomber_guard)
-{
-  const char *buf =
-      "\tLThe doorguard steps before you, blocking your way with an upraised hand.\tn\r\n";
-  const char *buf2 =
-      "\tLThe doorguard blocks \tn$n\tL's way, placing one meaty hand on $s chest.\tn";
-
-  if (!IS_MOVE(cmd))
-    return FALSE;
-
-  if (cmd == SCMD_EAST)
-  {
-    send_to_char(ch, "%s", buf);
-    act(buf2, FALSE, ch, 0, 0, TO_ROOM);
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/* from homeland */
 /*
 SPECIAL(guild_golem) {
   bool found = TRUE;

@@ -606,6 +606,7 @@ set(SRC_C_FILES
     src/spec/spec_zone_abyssal_vortex.c
     src/spec/spec_zone_agrach_dyrr.c
     src/spec/spec_zone_air_plane.c
+    src/spec/spec_zone_bandit_castle.c
     src/spec/spec_zone_banshee.c
     src/spec/spec_zone_celestial_leviathan.c
     src/spec/spec_zone_crimson_flame.c
@@ -617,11 +618,13 @@ set(SRC_C_FILES
     src/spec/spec_zone_jot.c
     src/spec/spec_zone_kenjin_tower.c
     src/spec/spec_zone_kings_castle.c
+    src/spec/spec_zone_kobold_caverns.c
     src/spec/spec_zone_mad_drow.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_zone_orc_ruins.c
     src/spec/spec_zone_prisoner.c
     src/spec/spec_zone_quicksand.c
+    src/spec/spec_zone_secomber.c
     src/spec/spec_zone_shadow_dragon.c
     src/spec/spec_zone_shobalar.c
     src/spec/spec_zone_ttf.c

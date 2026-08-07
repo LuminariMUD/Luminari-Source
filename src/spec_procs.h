@@ -29,6 +29,7 @@
 #include "spec/spec_zone_abyssal_vortex.h"
 #include "spec/spec_zone_agrach_dyrr.h"
 #include "spec/spec_zone_air_plane.h"
+#include "spec/spec_zone_bandit_castle.h"
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
@@ -40,10 +41,12 @@
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
+#include "spec/spec_zone_kobold_caverns.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_orc_ruins.h"
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
+#include "spec/spec_zone_secomber.h"
 #include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_shobalar.h"
 #include "spec/spec_zone_ttf.h"
@@ -81,7 +84,6 @@ SPECIAL_DECL(air_sphere);
 SPECIAL_DECL(alandor_ferry);
 SPECIAL_DECL(angel_leggings);
 SPECIAL_DECL(dragon_robes);
-SPECIAL_DECL(bandit_guard);
 SPECIAL_DECL(battlemaze_guard);
 SPECIAL_DECL(beltush);
 SPECIAL_DECL(bloodaxe);
@@ -100,7 +102,6 @@ SPECIAL_DECL(disruption_mace);
 SPECIAL_DECL(dorfaxe);
 SPECIAL_DECL(dragonbone_hammer);
 SPECIAL_DECL(drow_scimitar);
-SPECIAL_DECL(duergar_guard);
 SPECIAL_DECL(etherealness);
 SPECIAL_DECL(flaming_scimitar);
 SPECIAL_DECL(flamingwhip);
@@ -157,7 +158,6 @@ SPECIAL_DECL(rughnark);
 SPECIAL_DECL(sarn);
 SPECIAL_DECL(rune_scimitar);
 SPECIAL_DECL(shop_keeper);
-SPECIAL_DECL(secomber_guard);
 SPECIAL_DECL(skullsmasher);
 SPECIAL_DECL(snakewhip);
 SPECIAL_DECL(sparksword);

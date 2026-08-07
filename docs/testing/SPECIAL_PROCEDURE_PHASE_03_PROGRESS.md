@@ -988,6 +988,44 @@ player or builder helpfile changed because no command, authored-data, or behavio
 | both build manifests include `src/spec/spec_zone_illithid_enclave.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 29 - Zone Access Guard Package Batch
+
+Checkpoint 29 moves three independent access-control callbacks to their zone owners in one batched
+checkpoint:
+
+- `duergar_guard` moves to `src/spec/spec_zone_kobold_caverns.c` and remains assigned to mobile
+  VNUM 114721;
+- `bandit_guard` moves to `src/spec/spec_zone_bandit_castle.c` and remains assigned to mobile VNUM
+  143304; and
+- `secomber_guard` moves to `src/spec/spec_zone_secomber.c` and remains assigned to mobile VNUM
+  125064.
+
+Each owner publishes a dedicated header. None of the callbacks has a registry definition or
+authored world binding. `src/spec_assign.c` includes each owner header directly, while
+`src/spec_procs.h` retains the owner includes as a compatibility surface.
+
+This is an ownership-only batch. All 59 legacy implementation lines are unchanged, including the
+movement-command guards, direction and level checks, messages and targets, and return values. Each
+owner directly includes `movement/movement.h` for the existing `IS_MOVE` macro's `do_move`
+dependency. Removing the three adjacent separator lines reduces `src/spec_procs.c` from 980 to 918
+lines. Both build manifests link the 35-line Kobold Caverns, 38-line Bandit Castle, and 37-line
+Secomber owner sources. No player or builder helpfile changed because no command, authored-data, or
+behavior contract changed.
+
+### Checkpoint 29 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 28 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 59 moved legacy lines | PASS, no content drift |
+| both build manifests include all three zone owner sources | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -997,9 +1035,9 @@ player or builder helpfile changed because no command, authored-data, or behavio
 
 ## Resume Point
 
-Move the 18-line Kobold Caverns block at `src/spec_procs.c:218-235` to a dedicated owner. The
-`duergar_guard` callback remains assigned to mobile VNUM 114721 and has no registry definition or
-authored world binding. Preserve the global name and type, movement-command guard, down-direction
-match, both messages and targets, return values, and exported-symbol parity. Add the implementation
-to both build manifests and make `src/spec_assign.c` include the owner header directly. The
-following `bandit_guard` belongs to a different zone package.
+Batch the next independent zone boundaries from `src/spec_procs.c`: `harpell` for Longsaddle;
+`wallach` and `beltush` for the Flaming Tower; `mereshaman` and `willowisp` for the Mere of Dead
+Men; and `battlemaze_guard` for the Battlemaze. Preserve the computed Harpell assignment loop and
+the direct mobile assignments at VNUMs 112600, 112607, 126717, 126707, 126715, and 135603. Keep
+each zone's callbacks together, retain every global name and callback type, compare the complete
+exported symbol table, and validate the batch once through both build systems and full test suites.
