@@ -714,6 +714,37 @@ command, authored-data, or behavior contract changed.
 | both build manifests include `src/spec/spec_zone_hive_of_passion.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 20 - Fey-Branche Zone Procedure
+
+Checkpoint 20 moves the `feybranche` mobile callback from `src/spec_procs.c` to
+`src/spec/spec_zone_feybranche.c`, with its declaration published through
+`src/spec/spec_zone_feybranche.h`. Its only direct assignment remains mobile VNUM 135530 in the
+Menzo block of `src/spec_assign.c`; it has no registry definition or authored world binding. The
+assignment source includes the owner header directly, while `src/spec_procs.h` retains the owner
+include as a compatibility surface.
+
+This is an ownership-only move. All 50 legacy implementation lines are unchanged, including the
+command and position guards, `PROC_FIRED` reset and one-shot state, master targeting, shout text and
+zone delivery, all six helper-mobile VNUMs, hunt-versus-teleport branch, direct attack, and return
+values. The owner explicitly includes the existing spell, combat, world-list, and pathfinding APIs.
+Removing the adjacent separator line reduces `src/spec_procs.c` from 1,670 to 1,619 lines. Both
+build manifests link the 70-line owner source. No player or builder helpfile changed because no
+command, authored-data, or behavior contract changed.
+
+### Checkpoint 20 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 19 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 50 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_feybranche.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -723,11 +754,11 @@ command, authored-data, or behavior contract changed.
 
 ## Resume Point
 
-Move the 50-line Homeland/Menzo `feybranche` boundary at `src/spec_procs.c:454-503`, beginning with
-its procedure comment and ending after the callback, to a dedicated zone owner. Its only assignment
-is mobile VNUM 135530 in `src/spec_assign.c`; it has no registry definition or authored world
-binding. Preserve the callback name and type, command and position guards, `PROC_FIRED` state,
-master targeting, shout text and delivery, the six helper-mobile VNUMs, hunt versus teleport
-branch, direct attack, assignment order, return values, and exported-symbol parity. Add the new
-implementation to both build manifests and make `src/spec_assign.c` include the owner header
+Move the 28-line Abyssal Vortex room boundary at `src/spec_procs.c:454-481`, beginning with its
+procedure comment and ending after `abyssal_vortex`, to a dedicated zone owner. Its 51 direct room
+assignment rows remain VNUMs 139200 through 139250 in `src/spec_assign.c`, including the historical
+duplicate 139210 row and absent 139220 row; it has no registry definition or authored world binding.
+Preserve the callback name and type, command and NPC/pet guards, one-in-eight chance, exact six-exit
+rotation order, room message, assignment order, return values, and exported-symbol parity. Add the
+new implementation to both build manifests and make `src/spec_assign.c` include the owner header
 directly.

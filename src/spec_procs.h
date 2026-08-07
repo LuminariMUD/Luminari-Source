@@ -29,6 +29,7 @@
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
+#include "spec/spec_zone_feybranche.h"
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_hive_of_passion.h"
 #include "spec/spec_zone_jot.h"
@@ -96,7 +97,6 @@ SPECIAL_DECL(dragonbone_hammer);
 SPECIAL_DECL(drow_scimitar);
 SPECIAL_DECL(duergar_guard);
 SPECIAL_DECL(etherealness);
-SPECIAL_DECL(feybranche);
 SPECIAL_DECL(flaming_scimitar);
 SPECIAL_DECL(flamingwhip);
 SPECIAL_DECL(floating_teleport);
