@@ -41,6 +41,7 @@
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
 #include "spec/spec_zone_shadow_dragon.h"
+#include "spec/spec_zone_shobalar.h"
 #include "spec/spec_zone_ttf.h"
 #include "vessels/vessels_moving_rooms.h"
 
@@ -156,7 +157,6 @@ SPECIAL_DECL(sarn);
 SPECIAL_DECL(shar_heart);
 SPECIAL_DECL(shar_statue);
 SPECIAL_DECL(rune_scimitar);
-SPECIAL_DECL(shobalar);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(secomber_guard);
 SPECIAL_DECL(skullsmasher);

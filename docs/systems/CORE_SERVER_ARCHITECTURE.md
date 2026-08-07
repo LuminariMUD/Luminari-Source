@@ -378,7 +378,8 @@ together in `src/spec/spec_zone_kenjin_tower.c`, while the Hive of Passion death
 in `src/spec/spec_zone_hive_of_passion.c`. Fey-Branche combat coordination lives in
 `src/spec/spec_zone_feybranche.c`, and Abyssal Vortex exit rotation lives in
 `src/spec/spec_zone_abyssal_vortex.c`. House Agrach-Dyrr combat coordination lives in
-`src/spec/spec_zone_agrach_dyrr.c`; all eight packages have dedicated owner APIs.
+`src/spec/spec_zone_agrach_dyrr.c`, and House Shobalar coordination lives in
+`src/spec/spec_zone_shobalar.c`; all nine packages have dedicated owner APIs.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in

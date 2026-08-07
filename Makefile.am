@@ -225,6 +225,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_prisoner.c \
 	src/spec/spec_zone_quicksand.c \
 	src/spec/spec_zone_shadow_dragon.c \
+	src/spec/spec_zone_shobalar.c \
 	src/spec/spec_zone_ttf.c \
 	src/spec/spec_registry.c \
 	src/spec_assign.c \

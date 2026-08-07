@@ -202,7 +202,8 @@ mutation order in that owner. TTF AOE encounters, follower summoning, and patrol
 `src/spec/spec_zone_hive_of_passion.h` for the Hive of Passion death callback. Fey-Branche combat
 coordination uses `src/spec/spec_zone_feybranche.h`, and Abyssal Vortex exit rotation uses
 `src/spec/spec_zone_abyssal_vortex.h`. House Agrach-Dyrr combat coordination uses
-`src/spec/spec_zone_agrach_dyrr.h`. Use
+`src/spec/spec_zone_agrach_dyrr.h`, and House Shobalar coordination uses
+`src/spec/spec_zone_shobalar.h`. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.

@@ -806,6 +806,36 @@ contract changed.
 | both build manifests include `src/spec/spec_zone_agrach_dyrr.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 23 - House Shobalar Zone Procedure
+
+Checkpoint 23 moves the `shobalar` mobile callback from `src/spec_procs.c` to
+`src/spec/spec_zone_shobalar.c`, with its declaration published through
+`src/spec/spec_zone_shobalar.h`. Its two direct assignments remain mobile VNUMs 135500 and 135504
+in the Menzo block of `src/spec_assign.c`; it has no registry definition or authored world binding.
+The assignment source includes the owner header directly, while `src/spec_procs.h` retains the owner
+include as a compatibility surface.
+
+This is an ownership-only move. All 50 legacy implementation lines are unchanged, including the
+command and position guards, `PROC_FIRED` state, master targeting, shout text and delivery, all four
+helper-mobile VNUMs, hunt-versus-teleport branch for mobile VNUM 135506, null spell-object argument,
+direct attack, and return values. Removing the adjacent separator line reduces `src/spec_procs.c`
+from 1,523 to 1,472 lines. Both build manifests link the 70-line owner source. No player or builder
+helpfile changed because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 23 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 22 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 50 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_shobalar.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -815,11 +845,11 @@ contract changed.
 
 ## Resume Point
 
-Move the 50-line House Shobalar boundary at `src/spec_procs.c:454-503`, beginning with its procedure
-comment and ending after `shobalar`, to a dedicated zone owner. Its two assignments remain mobile
-VNUMs 135500 and 135504 in `src/spec_assign.c`; it has no registry definition or authored world
-binding. Preserve the callback name and type, command and position guards, `PROC_FIRED` state,
-master targeting, shout text and delivery, all four helper-mobile VNUMs, hunt versus teleport branch
-for mobile VNUM 135506, the existing null spell-object argument, direct attack, assignment order,
-return values, and exported-symbol parity. Add the new implementation to both build manifests and
-make `src/spec_assign.c` include the owner header directly.
+Move the 88-line Earth Plane/Ogremoch boundary at `src/spec_procs.c:454-541`, beginning with its
+procedure comment and ending after `ogremoch`, to a dedicated zone owner. Its only assignment is
+mobile VNUM 136702 in `src/spec_assign.c`; it has no registry definition or authored world binding.
+Preserve the callback name and type, command and position guards, `PROC_FIRED` state, descriptor-list
+broadcast, room-range resolution and error log, VNUMs 136700 through 136802, all seven reinforcement
+mobile VNUMs, same-room attack, one-in-ten rock-melt branch, hunting branch, assignment order, return
+values, and exported-symbol parity. Add the new implementation to both build manifests and make
+`src/spec_assign.c` include the owner header directly.
