@@ -121,7 +121,7 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoints 1-13 extracted the complete audited general object section to
+Checkpoints 1-14 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
@@ -138,7 +138,9 @@ dedicated `src/spec/spec_zone_*` owners. The final TTF move retired all 4,202 ba
 removed `src/zone_procs.c` from both build manifests. Autotools and CMake link every new source for
 production and CuTest. The callback ABI, exported symbols, registry identities, assignments, world
 grammar, scheduling, and behavior remain unchanged.
-`src/spec_procs.c` is 1,943 lines, down 10,269 lines from the Phase 03 baseline.
+The cross-file `is_wearing()` equipment predicate now lives with `equip_char()` and
+`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 1,929 lines, down 10,283 lines from the
+Phase 03 baseline.
 
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.
@@ -238,8 +240,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 13 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 13. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 14 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 14. |
 
 ## Risks and Guardrails
 
@@ -441,11 +443,12 @@ zone events still need an explicit lifecycle interface, not a zone pointer hidde
 
 At the Phase 03 baseline, `spec_procs.c` also held work owned elsewhere: spell/skill/ability listing
 and calculation; moving-room and legacy ship behavior; vendor item construction and naming; and
-crafting-mold purchase and construction. Checkpoints 1-13 have moved every item in that list, the
+crafting-mold purchase and construction. Checkpoints 1-14 have moved every item in that list, the
 traced general mobile/room slice, reusable combat/companion archetypes, and clan services. The
 King's Castle, Abyss, Crimson Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, and
 TTF packages have also moved intact from the legacy files. The remaining legacy callbacks in
-`src/spec_procs.c` are cohesive zone content.
+`src/spec_procs.c` are cohesive zone content; its former cross-file equipment predicate now lives
+in `src/handler.c`.
 Splitting them by owner type alone would still preserve zone-ownership mistakes. Moving rooms
 retain their temporary gateway and now live in the vessel subsystem; a direct typed hook remains a
 later behavior-changing phase.
@@ -494,7 +497,7 @@ src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
-Shipped content ownership (Phase 03 Checkpoints 1-13):
+Shipped content ownership (Phase 03 Checkpoints 1-14):
 
 ```text
 src/spec/spec_objects.c

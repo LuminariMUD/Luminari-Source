@@ -2255,6 +2255,20 @@ int invalid_prof(struct char_data *ch, struct obj_data *obj)
   return TRUE;
 }
 
+/* another hl port, checks if object with given vnum is being worn */
+bool is_wearing(struct char_data *ch, obj_vnum vnum)
+{
+  int i;
+
+  for (i = 0; i < NUM_WEARS; i++)
+  {
+    if (GET_EQ(ch, i))
+      if (GET_OBJ_VNUM(GET_EQ(ch, i)) == vnum)
+        return TRUE;
+  }
+  return FALSE;
+}
+
 void equip_char(struct char_data *ch, struct obj_data *obj, int pos)
 {
   int j;

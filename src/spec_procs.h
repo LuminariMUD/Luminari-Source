@@ -52,7 +52,6 @@ SPECIAL_DECL(*find_spec_func_by_name(const char *name));
 /*****************************************************************************
  * Compatibility functions still implemented by special-procedure modules
  ****************************************************************************/
-bool is_wearing(struct char_data *ch, obj_vnum vnum);
 void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
                     struct char_data *ch, struct char_data *vict, struct obj_data *obj, int spl);
 

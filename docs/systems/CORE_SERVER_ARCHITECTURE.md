@@ -371,6 +371,8 @@ encounters, follower summoning, patrol route, and per-mobile path scheduling liv
 `src/spec/spec_zone_ttf.c`; that final package retired `src/zone_procs.c`. The public names, callback
 ABI, world grammar, pulse position, assignment and registry references, initialization order,
 calculations, and display behavior remain unchanged.
+The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
+operations; its legacy same-VNUM semantics are unchanged.
 The current ownership inventory and evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

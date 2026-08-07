@@ -36,7 +36,6 @@
 #include "magic/domains_schools.h"
 #include "encounters.h"
 #include "constants.h"
-#include "spec_procs.h" /* for is_wearing() */
 #include "character/evolutions.h"
 #include "character/perks.h"
 

@@ -120,20 +120,6 @@ static void zone_yell(struct char_data *ch, const char *buf)
   PROC_FIRED(ch) = TRUE;
 }
 
-/* another hl port, checks if object with given vnum is being worn */
-bool is_wearing(struct char_data *ch, obj_vnum vnum)
-{
-  int i;
-
-  for (i = 0; i < NUM_WEARS; i++)
-  {
-    if (GET_EQ(ch, i))
-      if (GET_OBJ_VNUM(GET_EQ(ch, i)) == vnum)
-        return TRUE;
-  }
-  return FALSE;
-}
-
 /* call allies to help yan */
 bool yan_yell(struct char_data *ch)
 {

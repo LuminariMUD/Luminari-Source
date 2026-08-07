@@ -532,21 +532,47 @@ command, authored-data, or behavior contract changed.
 | both build manifests omit the retired `src/zone_procs.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 14 - Equipment Predicate Ownership
+
+Checkpoint 14 moves the exported `is_wearing()` predicate from `src/spec_procs.c` to
+`src/handler.c` and publishes it beside `equip_char()` and `unequip_char()` in `src/handler.h`.
+Its consumers in general object procedures, Jot objects, offensive combat, and core combat already
+include that equipment-owner header. The redundant `spec_procs.h` declaration and the duplicate
+special-procedure include in `src/combat/act.offensive.c` are removed.
+
+This is an ownership-only move. All 13 helper lines are unchanged, including the exported name,
+`bool` return type, `obj_vnum` parameter, ascending wear-slot traversal, empty-slot handling,
+same-VNUM comparison, and early success return. The move removes one adjacent separator line and
+reduces `src/spec_procs.c` from 1,943 to 1,929 lines. No build-manifest entry is needed because
+`handler.c` is already linked by production and CuTest. No player or builder helpfile changed
+because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 14 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 13 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 13 moved helper lines | PASS, no content drift |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Relocate the remaining cross-file equipment helper, then move the cohesive zone-specific content
-   from `src/spec_procs.c` with its packages.
+1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
 2. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
 3. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Move the 13-line `is_wearing()` equipment predicate beginning with its legacy comment at
-`src/spec_procs.c:123` to `src/handler.c` and publish it from `src/handler.h`, alongside the existing
-equipment manipulation API. Preserve its exported name, `bool` return type, `obj_vnum` parameter,
-wear-slot traversal order, null-slot handling, and symbol type. Its traced consumers are
-`src/spec/spec_objects.c`, `src/spec/spec_zone_jot.c`, `src/combat/act.offensive.c`, and
-`src/combat/fight.c`; all already include `handler.h`. Remove only the compatibility declaration
-from `src/spec_procs.h`, then verify complete symbol parity before beginning the remaining authored
-zone packages in `src/spec_procs.c`.
+Move the 36-line Shadow Dragon boundary at `src/spec_procs.c:369-404`, beginning with its procedure
+comment and ending after `shadowdragon`, to a dedicated zone owner. Its only assignment is mobile
+VNUM 110600 in `src/spec_assign.c`; it has no registry definition. Preserve the callback name and
+type, one-in-five pulse chance, room traversal and successor caching, player/pet eligibility,
+message targets, direct move-point subtraction, darkness spell call and arguments, assignment
+order, return values, and exported-symbol parity. Add the new implementation to both build
+manifests and make `src/spec_assign.c` include the owner header directly.
