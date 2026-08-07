@@ -190,7 +190,9 @@ owners. The Prisoner raid API and shared event state use `src/spec/spec_zone_pri
 Celestial Leviathan owner explicitly includes that header for its existing `prisoner_heads`
 dependency. Fire Giant invasion loading and the transforming instrument use
 `src/spec/spec_zone_fire_giant.h`; keep their shared load definitions and transformation cost with
-that package.
+that package. Jot invasion state, relative-VNUM conversion, mobile encounters, and zone-specific
+objects use `src/spec/spec_zone_jot.h`; the owner intentionally remains cohesive even though its
+implementation is just over the file-size review prompt.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 

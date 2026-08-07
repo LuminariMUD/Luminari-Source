@@ -29,6 +29,7 @@
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
+#include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_prisoner.h"
 #include "vessels/vessels_moving_rooms.h"
@@ -96,22 +97,18 @@ SPECIAL_DECL(drow_scimitar);
 SPECIAL_DECL(duergar_guard);
 SPECIAL_DECL(etherealness);
 SPECIAL_DECL(feybranche);
-SPECIAL_DECL(fake_twilight);
 SPECIAL_DECL(flaming_scimitar);
 SPECIAL_DECL(flamingwhip);
 SPECIAL_DECL(floating_teleport);
 SPECIAL_DECL(fog_dagger);
 SPECIAL_DECL(forest_idol);
 SPECIAL_DECL(fp_invoker);
-SPECIAL_DECL(frostbite);
 SPECIAL_DECL(frosty_scimitar);
 SPECIAL_DECL(fzoul);
 
 /* g-i */
-SPECIAL_DECL(gatehouse_guard);
 SPECIAL_DECL(speed_gaunts);
 SPECIAL_DECL(gen_board);
-SPECIAL_DECL(giantslayer);
 SPECIAL_DECL(greatsword);
 SPECIAL_DECL(gromph);
 SPECIAL_DECL(guild_golem);
@@ -125,7 +122,6 @@ SPECIAL_DECL(illithid_gguard);
 SPECIAL_DECL(imix);
 
 /* j-l */
-SPECIAL_DECL(jot_invasion_loader);
 SPECIAL_DECL(kt_kenjin);
 SPECIAL_DECL(kt_shadowmaker);
 SPECIAL_DECL(kt_twister);
@@ -137,7 +133,6 @@ SPECIAL_DECL(malevolence);
 SPECIAL_DECL(md_carpet);
 SPECIAL_DECL(menzo_chokers);
 SPECIAL_DECL(mereshaman);
-SPECIAL_DECL(mistweave);
 SPECIAL_DECL(mithril_rapier);
 SPECIAL_DECL(monk_glove);
 SPECIAL_DECL(monk_glove_cold);
@@ -151,8 +146,6 @@ SPECIAL_DECL(ogremoch);
 SPECIAL_DECL(olhydra);
 
 /* p-r */
-SPECIAL_DECL(planetar);
-SPECIAL_DECL(planetar_sword);
 SPECIAL_DECL(player_owned_shops);
 SPECIAL_DECL(postmaster);
 SPECIAL_DECL(prismorb);
@@ -179,7 +172,6 @@ SPECIAL_DECL(spikeshield);
 SPECIAL_DECL(star_circlet);
 SPECIAL_DECL(storage_chest);
 SPECIAL_DECL(celestial_sword);
-SPECIAL_DECL(thrym);
 SPECIAL_DECL(tormblade);
 SPECIAL_DECL(trade_bandit);
 SPECIAL_DECL(trade_master);
@@ -189,12 +181,9 @@ SPECIAL_DECL(ttf_abomination);
 SPECIAL_DECL(ttf_monstrosity);
 SPECIAL_DECL(ttf_patrol);
 SPECIAL_DECL(ttf_rotbringer);
-SPECIAL_DECL(twilight);
 SPECIAL_DECL(tyrantseye);
 
 /* v-z */
-SPECIAL_DECL(valkyrie_sword);
-SPECIAL_DECL(vaprak_claws);
 SPECIAL_DECL(vengeance);
 SPECIAL_DECL(viperdagger);
 SPECIAL_DECL(wallach);
@@ -205,8 +194,6 @@ SPECIAL_DECL(witherdirk);
 SPECIAL_DECL(xvim_artifact);
 SPECIAL_DECL(xvim_normal);
 SPECIAL_DECL(yan);
-SPECIAL_DECL(ymir);
-SPECIAL_DECL(ymir_cloak);
 
 /* Vessel/Ship Special Procedures */
 SPECIAL_DECL(greyhawk_ship_object);

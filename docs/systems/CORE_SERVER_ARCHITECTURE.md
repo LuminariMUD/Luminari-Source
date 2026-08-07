@@ -363,9 +363,10 @@ Flame encounter behavior live in their corresponding `src/spec/spec_zone_*` owne
 raid state, death transition, treasury loader, and callbacks live in `src/spec/spec_zone_prisoner.c`;
 the Celestial Leviathan no-op callback and dormant helpers live in their own adjacent owner. Fire
 Giant invasion construction and the transforming instrument live together in
-`src/spec/spec_zone_fire_giant.c`. The public names, callback ABI, world grammar, pulse position,
-assignment and registry references, initialization order, calculations, and display behavior remain
-unchanged.
+`src/spec/spec_zone_fire_giant.c`. Jot invasion state, position tables, relative-VNUM conversion,
+group and equipment loading, mobile encounters, and zone-specific objects live together in
+`src/spec/spec_zone_jot.c`. The public names, callback ABI, world grammar, pulse position, assignment
+and registry references, initialization order, calculations, and display behavior remain unchanged.
 The current ownership inventory and evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

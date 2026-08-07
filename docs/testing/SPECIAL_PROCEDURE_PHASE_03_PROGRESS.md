@@ -411,6 +411,50 @@ lines and by 2,594 lines from the Phase 03 baseline. The new cohesive implementa
 | complete exported global-symbol comparison against Checkpoint 9 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 11 - Jot Zone Package
+
+Checkpoint 11 moves the complete Jot boundary to `src/spec/spec_zone_jot.c` and `.h`. The owner now
+contains:
+
+- `jot_inv_check`, the Fire Giant, Smoking Beard, and Frost Giant position tables,
+  `jot_converter()`, and the currently unused `jot_invasion()` state transition;
+- `jot_invasion_loader`, including stored-mobile relocation, group construction, treasure and
+  equipment loading, distributed invasion forces, the Valkyrie arrival, and Brunnhilde removal;
+- `thrym`, `ymir`, `planetar`, and `gatehouse_guard`; and
+- `ymir_cloak`, `mistweave`, `frostbite`, `vaprak_claws`, `fake_twilight`, `twilight`,
+  `valkyrie_sword`, `planetar_sword`, and `giantslayer`.
+
+`src/spec_assign.c` and `src/spec/spec_registry.c` include the owner header directly.
+`src/spec_procs.h` retains it as a compatibility include and no longer redeclares the fourteen moved
+callbacks. The Jot owner still includes `spec_procs.h` for the existing cross-file `is_wearing()`
+and `weapons_spells()` helpers; relocating that compatibility API remains the final Phase 03 shared
+ownership task. Both build manifests link the new implementation for production and CuTest.
+
+This is an ownership-only move. The 983 legacy package lines are unchanged, including exported
+state and helper symbols, callback names and types, position-table order, relative-VNUM conversion,
+load and grouping order, assignments, registry references, combat checks, spell levels, affects,
+cooldowns, messages, and pulse behavior. No player or builder helpfile changed because no command,
+authored-data, or behavior contract changed.
+
+The new owner is 1,009 lines after file documentation and direct includes. It exceeds the 1,000-line
+review prompt by nine lines, but the review confirms that splitting the loader, mutable invasion
+state, mobile encounters, or their zone-specific objects would weaken the cohesive Jot boundary.
+The checkpoint moves 983 package lines and removes one redundant separator line from
+`src/zone_procs.c`, reducing it from 1,608 to 624 lines and by 3,578 lines from the Phase 03
+baseline.
+
+### Checkpoint 11 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 10 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
@@ -423,10 +467,10 @@ lines and by 2,594 lines from the Phase 03 baseline. The new cohesive implementa
 
 ## Resume Point
 
-Move the complete Jot boundary beginning with `JOT_VNUM` and ending after `giantslayer` and the Jot
-end marker. Keep invasion state and position counters, the converter and loader, mobile callbacks,
-object callbacks, path table, package constants, and private helpers together. The boundary is
-approximately 983 legacy lines and may cross the 1,000-line review prompt after owner includes and
-file documentation; review its cohesion rather than splitting shared encounter state by owner type.
-Preserve all exported names, callback signatures, assignment and registry references, and compare
-the complete symbol set before proceeding to the Mad Drow package.
+Move the complete Mad Drow boundary beginning with `open_msg` and `close_msg` and ending after
+`cube_slider` and the Mad Drow end marker. Keep both message flags, every slider-row table, exit
+opening and closing helpers, cube broadcast helper, row toggle logic, and the assigned callback
+together. The boundary is 419 legacy lines; the earlier proposed separate Cube Slider owner is
+superseded by the trace showing that it is the only callback over the Mad Drow package's private
+tables and state. Preserve all exported names and types, assignment and registry references, room
+and exit mutation order, messages, and symbol parity before proceeding to TTF.
