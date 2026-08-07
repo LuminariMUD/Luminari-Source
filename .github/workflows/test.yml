@@ -6,6 +6,7 @@ on:
       - 'src/**'
       - 'unittests/**'
       - 'scripts/world/**'
+      - 'scripts/ci/**'
       - 'scripts/development/generate-web-guides.sh'
       - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
@@ -28,6 +29,7 @@ on:
       - 'src/**'
       - 'unittests/**'
       - 'scripts/world/**'
+      - 'scripts/ci/**'
       - 'scripts/development/generate-web-guides.sh'
       - 'lib/world/validate-zone.sh'
       - 'lib/world/artifacts/**'
@@ -47,6 +49,9 @@ on:
 
 permissions:
   contents: read
+
+env:
+  LUMINARI_TEST_SPEC_WORLD_ROOT: ${{ github.workspace }}/unittests/CuTest/fixtures/spec_world_inventory
 
 jobs:
   world-tools:
@@ -99,6 +104,30 @@ jobs:
   build:
     name: Behavioral tests (Luminari)
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,7 +137,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             autoconf automake build-essential libcurl4-openssl-dev libgd-dev \
-            libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
+            libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Copy config headers
         run: |
@@ -124,6 +153,9 @@ jobs:
       - name: Build
         run: make -j"$(nproc)"
 
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
       - name: Run production-linked behavioral tests
         run: |
           make test
@@ -134,6 +166,30 @@ jobs:
   unit-tests:
     name: Production-linked tests
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test_root_password
+          MARIADB_DATABASE: luminari_test
+          MARIADB_USER: luminari_test
+          MARIADB_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari_test
+      LUMINARI_TEST_MYSQL_PASSWORD: test_password
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -157,12 +213,17 @@ jobs:
           autoreconf -fvi
           ./configure
 
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
+
       - name: Run the authoritative test entry point
         run: make test-all
 
   sanitizers:
     name: ASan, UBSan, and protocol fuzzing
     runs-on: ubuntu-latest
+    env:
+      LUMINARI_TEST_SKIP_SYNTAX_BOOT: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -201,6 +262,8 @@ jobs:
   memory-check:
     name: Memory check
     runs-on: ubuntu-latest
+    env:
+      LUMINARI_TEST_SKIP_SYNTAX_BOOT: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -259,6 +322,8 @@ jobs:
       LUMINARI_TEST_MYSQL_PASSWORD: test_password
       LUMINARI_TEST_MYSQL_DATABASE: luminari_test
       LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -273,7 +338,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             autoconf automake build-essential libcurl4-openssl-dev \
-            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool zlib1g-dev
+            libgd-dev libjson-c-dev libmariadb-dev libssl-dev libtool mariadb-client zlib1g-dev
 
       - name: Install coverage tool
         run: python -m pip install 'gcovr==8.6'
@@ -288,6 +353,9 @@ jobs:
         run: |
           autoreconf -fvi
           ./configure CFLAGS='--coverage -O0 -g' LDFLAGS='--coverage'
+
+      - name: Prepare isolated test runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
       - name: Run production-linked tests against MariaDB
         run: |

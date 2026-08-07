@@ -135,6 +135,20 @@ existing ignored `log/` runtime directory. The record includes the immutable
 release identity and exact core/backtrace paths without copying configuration
 or credential values.
 
+## CI/CD
+
+| Bundle | Workflow / Config | Enforced Contract |
+|--------|-------------------|-------------------|
+| Quality | `.github/workflows/quality.yml` | clang-format, clang-tidy, and warning-clean build |
+| Tests | `.github/workflows/test.yml` | production-linked CuTest, world tools, sanitizers, Valgrind, MariaDB, and coverage |
+| Security | `.github/workflows/security.yml` | secret scanning, CodeQL, and dependency review |
+| Integration | `.github/workflows/integration.yml` | schema dry-run, minimal-world validation, and network startup smoke test |
+| Operations | `.github/workflows/release.yml`, `.github/workflows/pages.yml`, `.github/dependabot.yml` | release artifacts, documentation publishing, and dependency updates |
+
+CI test boots use `scripts/ci/prepare_test_runtime.sh` with a local isolated
+MariaDB service and `.ci-runtime/lib`. The preparer refuses the protected
+repository `lib/` tree and non-local database hosts.
+
 ## When In Doubt
 
 - Decide from traced repository evidence and document material assumptions.

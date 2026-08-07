@@ -68,6 +68,11 @@ All eight test owners and the fixture source appear twice in `Makefile.am` (`cut
 `src/spec/spec_registry.c`, `src/spec/spec_binding.c`, `src/spec/spec_effective_binding.c`, and
 `src/olc/spec_menu.c` appear once in each server build manifest.
 
+`Test_spec_world_binding_source_inventory` scans the ignored development world during local
+acceptance. Clean CI jobs point the same scanner at the tracked five-binding snapshot in
+`unittests/CuTest/fixtures/spec_world_inventory/`; this preserves the verified Phase 00 inventory
+without adding builder-owned world files to source control.
+
 ## Required Coverage Matrix
 
 ### Phase 00 Coverage

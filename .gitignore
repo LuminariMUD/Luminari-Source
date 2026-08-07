@@ -400,6 +400,7 @@ venv/
 *.backup.*
 
 # Compiled test binaries
+/.ci-runtime*/
 unittests/CuTest/autopilot_tests
 unittests/CuTest/autopilot_pathfinding_tests
 unittests/CuTest/npc_pilot_tests

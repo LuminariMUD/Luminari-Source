@@ -356,6 +356,10 @@ build_identity.h: FORCE_BUILD_IDENTITY scripts/deployment/generate_build_identit
 	$(AM_V_GEN)$(SHELL) $(abs_top_srcdir)/scripts/deployment/generate_build_identity.sh \
 		$@ $(abs_top_srcdir)
 
+# Direct parallel targets such as `make -j cutest` do not receive Automake's
+# BUILT_SOURCES ordering.  Both variants of constants.o include this header.
+src/constants.$(OBJEXT) src/cutest-constants.$(OBJEXT): build_identity.h
+
 # Stage the server away from the mutable launch alias. The install hook below
 # promotes it into an immutable build-ID release and updates bin/circle.
 bindir = $(top_builddir)/bin/.circle-install
@@ -508,6 +512,9 @@ EXTRA_DIST = \
 	unittests/CuTest/fuzz_corpus/plain_command.txt \
 	unittests/CuTest/fuzz_corpus/gmcp_like.txt \
 	unittests/CuTest/fuzz_corpus/output_unicode.txt \
+	unittests/CuTest/fixtures/spec_world_inventory/mob/inventory.mob \
+	unittests/CuTest/fixtures/spec_world_inventory/obj/inventory.obj \
+	unittests/CuTest/fixtures/spec_world_inventory/wld/inventory.wld \
 	unittests/CuTest/make-tests.sh \
 	unittests/CuTest/test_protocol_parser.c \
 	autorun-watchdog.sh \
@@ -522,6 +529,7 @@ EXTRA_DIST = \
 	scripts/character-rename/test_character_rename_static.sh \
 	scripts/copyover/copyover_watchdog.sh \
 	scripts/copyover/enhanced_copyover_diagnostic.sh \
+	scripts/ci/prepare_test_runtime.sh \
 	scripts/debugging/debug_game.sh \
 	scripts/debugging/verify_core_capture.sh \
 	scripts/debugging/vgrind.sh \

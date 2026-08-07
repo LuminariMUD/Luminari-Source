@@ -85,7 +85,7 @@ jobs:
 
       - name: Build with strict warnings
         run: |
-          make -j$(nproc) CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare" 2>&1 | tee build.log
+          make -j"$(nproc)" CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare" 2>&1 | tee build.log
           # Report warning count but don't fail (legacy codebase)
           WARN_COUNT=$(grep -c ": warning:" build.log || echo 0)
           echo "::notice::Compiler warnings: $WARN_COUNT"

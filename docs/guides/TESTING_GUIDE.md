@@ -224,6 +224,36 @@ The test creates a connection-local temporary table, performs an insert and
 select through the production prepared-statement wrappers, and closes the
 connection. Never point these variables at a production database.
 
+## Isolated CI Boot Runtime
+
+The behavioral, production-linked, coverage, and integration jobs prepare a
+minimal runtime under `.ci-runtime/lib` with
+`scripts/ci/prepare_test_runtime.sh`. The script accepts only a local database
+host, requires a database name containing `test` or `ci`, and refuses to write
+under the repository's protected `lib/` directory. It applies
+`sql/master_schema.sql`, seeds one encounter-event row, copies the tracked
+minimal world bundle, and creates test-only configuration and text files in
+the isolated directory.
+
+The syntax-check boot test uses these CI-only overrides:
+
+```sh
+LUMINARI_TEST_DATA_DIR="$PWD/.ci-runtime/lib"
+LUMINARI_TEST_CONFIG_FILE=.ci-runtime/lib/etc/config
+```
+
+An ordinary development run continues to boot from `lib/`. ASan and Valgrind
+set `LUMINARI_TEST_SKIP_SYNTAX_BOOT=1` because their production-linked suites
+run inside specialized instrumentation; the behavioral, authoritative,
+coverage, and integration jobs retain the real boot gate.
+
+The named SpecProc inventory test scans the ignored development world by
+default. Clean CI checkouts set `LUMINARI_TEST_SPEC_WORLD_ROOT` to the tracked
+five-binding snapshot under
+`unittests/CuTest/fixtures/spec_world_inventory/`. This keeps the parser and
+inventory contract reproducible without treating builder-owned world data as
+source-controlled content.
+
 ## Coverage
 
 The GitHub Actions coverage job:
@@ -320,6 +350,11 @@ must not be added to the enforced suite.
 - ASan, UBSan, and bounded protocol fuzzing;
 - Valgrind on the production-linked suite;
 - MariaDB-backed fixed gcovr floors and coverage-artifact upload.
+
+The behavioral, authoritative, and coverage jobs also run the syntax-check
+boot against an isolated MariaDB service and tracked minimal world. The
+integration workflow independently starts the network server and proves that
+it accepts a TCP connection.
 
 Any change to test sources, build lists, covered documentation, or the
 workflow triggers this pipeline.

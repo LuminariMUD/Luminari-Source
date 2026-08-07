@@ -42,6 +42,14 @@ static const char *spec_test_source_root(void)
   return root != NULL && *root != '\0' ? root : ".";
 }
 
+static const char *spec_test_world_root(void)
+{
+  const char *root;
+
+  root = getenv("LUMINARI_TEST_SPEC_WORLD_ROOT");
+  return root != NULL && *root != '\0' ? root : NULL;
+}
+
 static void spec_test_strip_line_end(char *line)
 {
   size_t length;
@@ -80,7 +88,7 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
   file = fopen(path, "r");
   if (file == NULL)
   {
-    spec_test_set_error(error, error_size, "unable to open a checked-in world file");
+    spec_test_set_error(error, error_size, "unable to open a world inventory file");
     return false;
   }
 
@@ -120,7 +128,7 @@ static bool spec_test_scan_binding_file(const char *path, enum spec_test_owner o
   close_result = fclose(file);
   if (read_error || expect_name || close_result != 0)
   {
-    spec_test_set_error(error, error_size, "unable to read a complete checked-in world file");
+    spec_test_set_error(error, error_size, "unable to read a complete world inventory file");
     success = false;
   }
 
@@ -138,17 +146,26 @@ static bool spec_test_scan_binding_directory(const char *relative, const char *s
   char file_path[PATH_MAX];
   bool success;
 
-  if (snprintf(directory_path, sizeof(directory_path), "%s/%s", spec_test_source_root(),
-               relative) >= (int)sizeof(directory_path))
+  if (spec_test_world_root() != NULL)
   {
-    spec_test_set_error(error, error_size, "checked-in world directory path is too long");
+    if (snprintf(directory_path, sizeof(directory_path), "%s/%s", spec_test_world_root(),
+                 relative) >= (int)sizeof(directory_path))
+    {
+      spec_test_set_error(error, error_size, "world inventory fixture path is too long");
+      return false;
+    }
+  }
+  else if (snprintf(directory_path, sizeof(directory_path), "%s/lib/world/%s",
+                    spec_test_source_root(), relative) >= (int)sizeof(directory_path))
+  {
+    spec_test_set_error(error, error_size, "development world directory path is too long");
     return false;
   }
 
   directory = opendir(directory_path);
   if (directory == NULL)
   {
-    spec_test_set_error(error, error_size, "unable to open a checked-in world directory");
+    spec_test_set_error(error, error_size, "unable to open a world inventory directory");
     return false;
   }
 
@@ -164,7 +181,7 @@ static bool spec_test_scan_binding_directory(const char *relative, const char *s
     if (snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, entry->d_name) >=
         (int)sizeof(file_path))
     {
-      spec_test_set_error(error, error_size, "checked-in world file path is too long");
+      spec_test_set_error(error, error_size, "world inventory file path is too long");
       success = false;
       break;
     }
@@ -177,12 +194,12 @@ static bool spec_test_scan_binding_directory(const char *relative, const char *s
 
   if (success && errno != 0)
   {
-    spec_test_set_error(error, error_size, "unable to enumerate a checked-in world directory");
+    spec_test_set_error(error, error_size, "unable to enumerate a world inventory directory");
     success = false;
   }
   if (closedir(directory) != 0 && success)
   {
-    spec_test_set_error(error, error_size, "unable to close a checked-in world directory");
+    spec_test_set_error(error, error_size, "unable to close a world inventory directory");
     success = false;
   }
 
@@ -492,12 +509,12 @@ void Test_spec_world_binding_source_inventory(CuTest *tc)
 
   memset(&inventory, 0, sizeof(inventory));
   error[0] = '\0';
-  scanned = spec_test_scan_binding_directory("lib/world/mob", ".mob", SPEC_TEST_OWNER_MOBILE,
-                                             &inventory, error, sizeof(error)) &&
-            spec_test_scan_binding_directory("lib/world/obj", ".obj", SPEC_TEST_OWNER_OBJECT,
-                                             &inventory, error, sizeof(error)) &&
-            spec_test_scan_binding_directory("lib/world/wld", ".wld", SPEC_TEST_OWNER_ROOM,
-                                             &inventory, error, sizeof(error));
+  scanned = spec_test_scan_binding_directory("mob", ".mob", SPEC_TEST_OWNER_MOBILE, &inventory,
+                                             error, sizeof(error)) &&
+            spec_test_scan_binding_directory("obj", ".obj", SPEC_TEST_OWNER_OBJECT, &inventory,
+                                             error, sizeof(error)) &&
+            spec_test_scan_binding_directory("wld", ".wld", SPEC_TEST_OWNER_ROOM, &inventory, error,
+                                             sizeof(error));
 
   CuAssert(tc, error, scanned);
   CuAssertIntEquals(tc, 1, inventory.total[SPEC_TEST_OWNER_MOBILE]);

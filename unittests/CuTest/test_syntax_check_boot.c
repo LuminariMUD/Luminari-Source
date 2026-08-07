@@ -27,6 +27,22 @@ static const char *syntax_check_test_root(void)
   return root != NULL && *root != '\0' ? root : ".";
 }
 
+static const char *syntax_check_data_dir(void)
+{
+  const char *data_dir;
+
+  data_dir = getenv("LUMINARI_TEST_DATA_DIR");
+  return data_dir != NULL && *data_dir != '\0' ? data_dir : NULL;
+}
+
+static const char *syntax_check_config_file(void)
+{
+  const char *config_file;
+
+  config_file = getenv("LUMINARI_TEST_CONFIG_FILE");
+  return config_file != NULL && *config_file != '\0' ? config_file : NULL;
+}
+
 static unsigned int syntax_check_timeout_seconds(void)
 {
   const char *timeout_text;
@@ -62,7 +78,9 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
 {
   char data_dir[PATH_MAX];
   char output[SYNTAX_CHECK_OUTPUT_SIZE];
-  char *argv[7];
+  char *argv[10];
+  const char *config_file;
+  const char *configured_data_dir;
   const char *root;
   ssize_t bytes_read;
   char discard[4096];
@@ -71,9 +89,21 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
   int child_status;
   pid_t child_pid;
 
-  root = syntax_check_test_root();
-  CuAssert(tc, "syntax-check data path is too long",
-           snprintf(data_dir, sizeof(data_dir), "%s/lib", root) < (int)sizeof(data_dir));
+  if (getenv("LUMINARI_TEST_SKIP_SYNTAX_BOOT") != NULL)
+    return;
+
+  configured_data_dir = syntax_check_data_dir();
+  if (configured_data_dir != NULL)
+    CuAssert(tc, "syntax-check data path is too long",
+             snprintf(data_dir, sizeof(data_dir), "%s", configured_data_dir) <
+                 (int)sizeof(data_dir));
+  else
+  {
+    root = syntax_check_test_root();
+    CuAssert(tc, "syntax-check data path is too long",
+             snprintf(data_dir, sizeof(data_dir), "%s/lib", root) < (int)sizeof(data_dir));
+  }
+  config_file = syntax_check_config_file();
   CuAssertIntEquals(tc, 0, pipe(output_pipe));
 
   child_pid = fork();
@@ -89,16 +119,34 @@ void Test_syntax_check_encounter_world_boots_and_cleans_up_once(CuTest *tc)
     close(output_pipe[1]);
 
     argv[0] = (char *)"circle";
-    argv[1] = (char *)"-c";
-    argv[2] = (char *)"-q";
-    argv[3] = (char *)"-d";
-    argv[4] = data_dir;
-    argv[5] = NULL;
-    argv[6] = NULL;
+    if (config_file != NULL)
+    {
+      argv[1] = (char *)"-f";
+      argv[2] = (char *)config_file;
+      argv[3] = (char *)"-c";
+      argv[4] = (char *)"-q";
+      argv[5] = (char *)"-d";
+      argv[6] = data_dir;
+      argv[7] = NULL;
+      argv[8] = NULL;
+      argv[9] = NULL;
+    }
+    else
+    {
+      argv[1] = (char *)"-c";
+      argv[2] = (char *)"-q";
+      argv[3] = (char *)"-d";
+      argv[4] = data_dir;
+      argv[5] = NULL;
+      argv[6] = NULL;
+      argv[7] = NULL;
+      argv[8] = NULL;
+      argv[9] = NULL;
+    }
 
     alarm(syntax_check_timeout_seconds());
     event_test_reset_lifecycle_counts();
-    result = luminari_main(5, argv);
+    result = luminari_main(config_file != NULL ? 7 : 5, argv);
     if (result != EXIT_SUCCESS)
       _exit(21);
     if (event_test_init_call_count() != 1)

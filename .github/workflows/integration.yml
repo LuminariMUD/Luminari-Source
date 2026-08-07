@@ -1,6 +1,7 @@
 name: Integration
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [master, main]
     paths:
@@ -206,6 +207,15 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+    env:
+      LUMINARI_TEST_MYSQL_ENABLE: '1'
+      LUMINARI_TEST_MYSQL_HOST: 127.0.0.1
+      LUMINARI_TEST_MYSQL_USER: luminari
+      LUMINARI_TEST_MYSQL_PASSWORD: testpass
+      LUMINARI_TEST_MYSQL_DATABASE: luminari_test
+      LUMINARI_TEST_MYSQL_PORT: '3306'
+      LUMINARI_TEST_DATA_DIR: ${{ github.workspace }}/.ci-runtime/lib
+      LUMINARI_TEST_CONFIG_FILE: .ci-runtime/lib/etc/config
 
     steps:
       - name: Checkout
@@ -215,7 +225,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libmariadb-dev libssl-dev zlib1g-dev \
-            autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev netcat-openbsd
+            autoconf automake libtool libgd-dev libcurl4-openssl-dev libjson-c-dev \
+            mariadb-client netcat-openbsd
 
       - name: Copy config headers
         run: |
@@ -230,100 +241,24 @@ jobs:
           make -j"$(nproc)"
           test -f circle && echo "Build successful: circle binary created"
 
-      - name: Wait for MariaDB
-        run: |
-          for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent 2>/dev/null; then
-              echo "MariaDB is ready"
-              break
-            fi
-            echo "Waiting for MariaDB... ($i/30)"
-            sleep 2
-          done
-          mysqladmin ping -h 127.0.0.1 -u luminari -ptestpass --silent
-
-      - name: Setup database
-        run: |
-          test -f sql/master_schema.sql
-          mysql -h 127.0.0.1 -u luminari -ptestpass \
-            luminari_test < sql/master_schema.sql
-
-      - name: Setup MySQL config
-        run: |
-          cat > lib/mysql_config <<EOF
-          mysql_host = 127.0.0.1
-          mysql_database = luminari_test
-          mysql_username = luminari
-          mysql_password = testpass
-          EOF
-
-      - name: Initialize world data
-        run: |
-          # Create world directories
-          mkdir -p lib/world/{zon,wld,mob,obj,shp,trg,qst,hlq}
-
-          # Copy every required index and the minimal data files.
-          for type in zon wld mob obj shp trg qst hlq; do
-            cp "lib/world/minimal/index.$type" "lib/world/$type/index"
-          done
-          cp lib/world/minimal/*.zon lib/world/zon/
-          cp lib/world/minimal/*.wld lib/world/wld/
-          cp lib/world/minimal/*.mob lib/world/mob/
-          cp lib/world/minimal/*.obj lib/world/obj/
-
-          # The regular config points at production-world rooms. Use rooms
-          # provided by the minimal fixture so the smoke boot is meaningful.
-          sed -i \
-            -e 's/^mortal_start_room = .*/mortal_start_room = 3001/' \
-            -e 's/^immort_start_room = .*/immort_start_room = 3002/' \
-            -e 's/^frozen_start_room = .*/frozen_start_room = 3000/' \
-            lib/etc/config
-          grep -qx 'mortal_start_room = 3001' lib/etc/config
-          grep -qx 'immort_start_room = 3002' lib/etc/config
-          grep -qx 'frozen_start_room = 3000' lib/etc/config
-
-          echo "World data initialized"
-
-      - name: Create required directories
-        run: |
-          mkdir -p lib/plrfiles/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-          mkdir -p lib/plrobjs/{A-E,F-J,K-O,P-T,U-Z,ZZZ}
-          mkdir -p lib/house lib/mudmail lib/etc log
-
-      - name: Create minimal text files
-        run: |
-          mkdir -p lib/text/help
-          echo "Welcome to LuminariMUD" > lib/text/news
-          echo "LuminariMUD Credits" > lib/text/credits
-          echo "Message of the Day" > lib/text/motd
-          echo "Immortal MOTD" > lib/text/imotd
-          echo "Welcome" > lib/text/greetings
-          echo "Help System" > lib/text/help/help
-          echo '$' > lib/text/help/index
-          echo "Info" > lib/text/info
-          echo "Wizlist" > lib/text/wizlist
-          echo "Immlist" > lib/text/immlist
-          echo "Policies" > lib/text/policies
-          echo "Handbook" > lib/text/handbook
-          echo "Background" > lib/text/background
-          mkdir -p lib/misc
-          echo '*' > lib/misc/messages
-          echo '$' > lib/misc/socials.new
+      - name: Prepare isolated integration runtime
+        run: scripts/ci/prepare_test_runtime.sh "$LUMINARI_TEST_DATA_DIR"
 
       - name: Server startup smoke test
         run: |
           set -euo pipefail
           echo "Starting server for smoke test..."
-          server_log=log/integration-syslog
+          server_log="$RUNNER_TEMP/luminari-integration-syslog"
 
           # The minimal fixture intentionally omits production special-procedure
           # targets, so suppress special assignment while testing the real boot.
-          ./circle -o "$server_log" -q -s 4100 &
+          ./circle -f "$LUMINARI_TEST_CONFIG_FILE" -d "$LUMINARI_TEST_DATA_DIR" \
+            -o "$server_log" -q -s 4100 &
           server_pid=$!
           cleanup_server()
           {
             kill "$server_pid" 2>/dev/null || true
-            for attempt in {1..10}; do
+            for _attempt in {1..10}; do
               kill -0 "$server_pid" 2>/dev/null || break
               sleep 0.2
             done
@@ -333,7 +268,7 @@ jobs:
           trap cleanup_server EXIT
 
           listening=0
-          for attempt in {1..20}; do
+          for _attempt in {1..20}; do
             if ! kill -0 "$server_pid" 2>/dev/null; then
               break
             fi

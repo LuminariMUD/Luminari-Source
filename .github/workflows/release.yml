@@ -41,7 +41,7 @@ jobs:
         run: |
           autoreconf -fvi
           ./configure
-          make -j$(nproc)
+          make -j"$(nproc)"
 
       - name: Generate changelog
         id: changelog
