@@ -1940,21 +1940,4 @@ SPECIAL(emporium) {
 /* end room procedures */
 /***********************/
 
-/********************************************************************/
-/******************** Object Procs    *******************************/
-/********************************************************************/
-
-/* General object procedures are implemented in spec/spec_objects.c.
- * Commerce, crafting, vampire, quest, and zone procedures live with their owners.
- * The Celestial Leviathan stub remains here until its zone package is extracted. */
-
-SPECIAL(celestial_leviathan)
-{
-  return 0;
-}
-
-/*************************/
-/* end object procedures */
-/*************************/
-
 /* EoF */

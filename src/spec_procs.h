@@ -26,16 +26,15 @@
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
+#include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_kings_castle.h"
+#include "spec/spec_zone_prisoner.h"
 #include "vessels/vessels_moving_rooms.h"
-
-extern int prisoner_heads;
 
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
  ****************************************************************************/
-void prisoner_on_death(struct char_data *ch);
 
 /*****************************************************************************
  * Begin Functions and defines for spec_assign.c
@@ -78,7 +77,6 @@ SPECIAL_DECL(beltush);
 SPECIAL_DECL(bloodaxe);
 SPECIAL_DECL(bolthammer);
 SPECIAL_DECL(stability_boots);
-SPECIAL_DECL(celestial_leviathan);
 SPECIAL_DECL(chan);
 SPECIAL_DECL(ches);
 SPECIAL_DECL(chionthar_ferry);
@@ -92,7 +90,6 @@ SPECIAL_DECL(cube_slider);
 /* d-f */
 SPECIAL_DECL(disruption_mace);
 SPECIAL_DECL(dorfaxe);
-SPECIAL_DECL(prisoner_dracolich);
 SPECIAL_DECL(dragonbone_hammer);
 SPECIAL_DECL(drow_scimitar);
 SPECIAL_DECL(duergar_guard);
@@ -184,8 +181,6 @@ SPECIAL_DECL(star_circlet);
 SPECIAL_DECL(storage_chest);
 SPECIAL_DECL(celestial_sword);
 SPECIAL_DECL(thrym);
-SPECIAL_DECL(tia_rapier);
-SPECIAL_DECL(the_prisoner);
 SPECIAL_DECL(tormblade);
 SPECIAL_DECL(trade_bandit);
 SPECIAL_DECL(trade_master);

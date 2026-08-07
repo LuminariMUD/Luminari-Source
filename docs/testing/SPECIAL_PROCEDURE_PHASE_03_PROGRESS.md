@@ -332,21 +332,63 @@ are 158 and 124 lines respectively.
 | complete exported global-symbol comparison against Checkpoint 7 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 9 - Prisoner and Celestial Leviathan Packages
+
+Checkpoint 9 moves two adjacent, explicitly coupled encounter packages:
+
+- `src/spec/spec_zone_prisoner.c` and `.h` own `tia_rapier`, `the_prisoner`,
+  `prisoner_dracolich`, `prisoner_heads`, `eq_loaded`, the death and form transition, attack and
+  rejuvenation helpers, treasury gear loading, item transfer, and all package-local VNUM and loot
+  definitions; and
+- `src/spec/spec_zone_celestial_leviathan.c` and `.h` own the existing no-op
+  `celestial_leviathan` callback plus its currently unused rejuvenation and attack helpers.
+
+Combat and staff-event code include the Prisoner owner header directly for
+`prisoner_on_death()` and `prisoner_heads`. Assignment and registry code include both owner headers
+directly. `src/spec_procs.h` retains both as compatibility includes and no longer redeclares the
+moved state, API, or callbacks. Both build manifests link both implementations for production and
+CuTest.
+
+The Celestial attack helper already selected breath attacks from `prisoner_heads`; this checkpoint
+preserves that dormant behavior and makes the dependency explicit by including the Prisoner owner
+header. It does not activate either unused helper or change the assigned callback's no-op result.
+All callback bodies, exported names and types, state initialization, assignment and registry
+identity, death timing, loot construction, combat calls, messages, and event completion behavior
+remain unchanged. No player or builder helpfile changed because no command, authored-data, or
+behavior contract changed.
+
+The checkpoint removes another 881 lines from `src/zone_procs.c`, reducing it from 3,123 to 2,242
+lines and by 1,960 lines from the Phase 03 baseline. It also removes the final 17-line zone stub
+section from `src/spec_procs.c`, reducing that file from 1,960 to 1,943 lines and by 10,269 lines
+from its Phase 03 baseline. The new Prisoner and Celestial Leviathan implementations are 790 and
+144 lines respectively.
+
+### Checkpoint 9 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 8 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
    private static state with each package.
-2. Move the remaining cohesive zone-specific content and the Celestial Leviathan stub from
-   `src/spec_procs.c` with their packages, then relocate the remaining cross-file equipment helper.
+2. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages,
+   then relocate the remaining cross-file equipment helper.
 3. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
 4. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Move The Prisoner package beginning with `tia_rapier` and ending with `prisoner_dracolich`. Keep
-`prisoner_heads`, `eq_loaded`, death-transition logic, attack and rejuvenation helpers, treasury gear
-loading, and every associated macro in the same owner. Publish `prisoner_heads` and
-`prisoner_on_death()` for the existing staff-event and combat consumers. Then move the currently
-unused Celestial Leviathan helpers together with its no-op callback from `src/spec_procs.c`, retaining
-their existing dependency on Prisoner state until a separately tested behavior change addresses it.
+Move the complete Fire Giant boundary beginning with its invasion limits and loader and ending with
+`flamekissed_instrument` and the package undefines. Keep the invasion room/mobile tables, treasure
+VNUMs, loader state, instrument subtype parser, and hit-point cost together. Preserve all exported
+names, callback signatures, assignment and registry references, and compare the complete symbol set
+before proceeding to the much larger Jot package.

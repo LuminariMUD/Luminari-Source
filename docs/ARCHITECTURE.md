@@ -67,8 +67,10 @@ pet-shop commerce live with their character, clan, magic, and object owners. The
 Castle assignment and mobile package lives in `src/spec/spec_zone_kings_castle.c`, including its
 private helpers and runtime state. Abyss exit randomization and Crimson Flame encounter behavior
 likewise live in `src/spec/spec_zone_abyss.c` and `src/spec/spec_zone_crimson_flame.c`.
-`src/spec_procs.h` retains compatibility includes while direct consumers migrate to those owner
-APIs.
+The Prisoner raid state, item and mobile callbacks, death transition, and treasury loading live in
+`src/spec/spec_zone_prisoner.c`; the dormant Celestial Leviathan helpers and no-op callback live in
+`src/spec/spec_zone_celestial_leviathan.c`. `src/spec_procs.h` retains compatibility includes while
+direct consumers migrate to those owner APIs.
 See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

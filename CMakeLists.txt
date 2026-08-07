@@ -603,9 +603,11 @@ set(SRC_C_FILES
     src/spec/spec_objects.c
     src/spec/spec_rooms.c
     src/spec/spec_zone_abyss.c
+    src/spec/spec_zone_celestial_leviathan.c
     src/spec/spec_zone_crimson_flame.c
     src/spec/spec_zone_kings_castle.c
     src/spec/spec_zone_neverwinter.c
+    src/spec/spec_zone_prisoner.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c

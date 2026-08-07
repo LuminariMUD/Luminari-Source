@@ -21,7 +21,7 @@
 #include "wilderness/wilderness.h"
 #include "dgscript/dg_scripts.h"
 #include "staff_events.h"
-#include "spec_procs.h" /* external variable for prisoner heads */
+#include "spec/spec_zone_prisoner.h"
 /* end includes */
 
 /*****************************************************************************/

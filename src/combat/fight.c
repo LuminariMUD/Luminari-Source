@@ -30,6 +30,7 @@
 #include "quest/quest.h"
 #include "mud_event.h"
 #include "spec_procs.h"
+#include "spec/spec_zone_prisoner.h"
 #include "clan.h"
 #include "obj/treasure.h"
 #include "mudlim.h"

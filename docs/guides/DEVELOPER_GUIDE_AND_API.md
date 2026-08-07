@@ -186,7 +186,9 @@ services use `src/clan_services.h`. King's Castle assignments and mobile behavio
 `src/spec/spec_zone_kings_castle.h`; keep its relative-VNUM helpers and private runtime state with
 that cohesive zone package. Abyss and Crimson Flame procedures use `src/spec/spec_zone_abyss.h` and
 `src/spec/spec_zone_crimson_flame.h`; their room/mobile conversion helpers remain with their zone
-owners.
+owners. The Prisoner raid API and shared event state use `src/spec/spec_zone_prisoner.h`; the
+Celestial Leviathan owner explicitly includes that header for its existing `prisoner_heads`
+dependency.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 
