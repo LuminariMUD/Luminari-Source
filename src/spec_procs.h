@@ -30,6 +30,7 @@
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
+#include "spec/spec_zone_hive_of_passion.h"
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
@@ -116,7 +117,6 @@ SPECIAL_DECL(harpell);
 SPECIAL_DECL(haste_bracers);
 SPECIAL_DECL(hellfire);
 SPECIAL_DECL(helmblade);
-SPECIAL_DECL(hive_death);
 SPECIAL_DECL(illithid_gguard);
 SPECIAL_DECL(imix);
 

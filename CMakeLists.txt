@@ -607,6 +607,7 @@ set(SRC_C_FILES
     src/spec/spec_zone_celestial_leviathan.c
     src/spec/spec_zone_crimson_flame.c
     src/spec/spec_zone_fire_giant.c
+    src/spec/spec_zone_hive_of_passion.c
     src/spec/spec_zone_jot.c
     src/spec/spec_zone_kenjin_tower.c
     src/spec/spec_zone_kings_castle.c

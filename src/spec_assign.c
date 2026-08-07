@@ -26,6 +26,7 @@
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
 #include "spec/spec_zone_fire_giant.h"
+#include "spec/spec_zone_hive_of_passion.h"
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"

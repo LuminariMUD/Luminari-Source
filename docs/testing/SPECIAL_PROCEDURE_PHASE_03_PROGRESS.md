@@ -684,6 +684,36 @@ no command, authored-data, or behavior contract changed.
 | both build manifests include `src/spec/spec_zone_kenjin_tower.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 19 - Hive of Passion Zone Procedure
+
+Checkpoint 19 moves the `hive_death` room callback from `src/spec_procs.c` to
+`src/spec/spec_zone_hive_of_passion.c`, with its declaration published through
+`src/spec/spec_zone_hive_of_passion.h`. Its only direct assignment remains room VNUM 139300 in
+`src/spec_assign.c`; it has no registry definition or authored world binding. The assignment source
+includes the owner header directly, while `src/spec_procs.h` retains the owner include as a
+compatibility surface.
+
+This is an ownership-only move. All 26 legacy implementation lines are unchanged, including the
+command and null-character guards, death and destination messages, the two-stage moves through room
+VNUMs 129500 and 139328, both room-look calls, the dormant corpse comment, and return values.
+Removing the adjacent separator line reduces `src/spec_procs.c` from 1,697 to 1,670 lines. Both
+build manifests link the 45-line owner source. No player or builder helpfile changed because no
+command, authored-data, or behavior contract changed.
+
+### Checkpoint 19 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 18 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 26 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_hive_of_passion.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -693,10 +723,11 @@ no command, authored-data, or behavior contract changed.
 
 ## Resume Point
 
-Move the 26-line Hive of Passion death boundary at `src/spec_procs.c:454-479`, beginning with its
-procedure comment and ending after `hive_death`, to a dedicated zone owner. Its only assignment is
-room VNUM 139300 in `src/spec_assign.c`; it has no registry definition. Preserve the callback name
-and type, command and null-character guards, all messages, the two-stage moves through room VNUMs
-129500 and 139328, both room-look calls, the dormant corpse comment, assignment order, return
-values, and exported-symbol parity. Add the new implementation to both build manifests and make
-`src/spec_assign.c` include the owner header directly.
+Move the 50-line Homeland/Menzo `feybranche` boundary at `src/spec_procs.c:454-503`, beginning with
+its procedure comment and ending after the callback, to a dedicated zone owner. Its only assignment
+is mobile VNUM 135530 in `src/spec_assign.c`; it has no registry definition or authored world
+binding. Preserve the callback name and type, command and position guards, `PROC_FIRED` state,
+master targeting, shout text and delivery, the six helper-mobile VNUMs, hunt versus teleport
+branch, direct attack, assignment order, return values, and exported-symbol parity. Add the new
+implementation to both build manifests and make `src/spec_assign.c` include the owner header
+directly.
