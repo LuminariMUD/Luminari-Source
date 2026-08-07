@@ -215,6 +215,7 @@ if (!mysql_connection)
 | Linter | clang-tidy | .clang-tidy |
 | Type Safety | GCC/Clang -Wall -Wextra | Makefile/CMakeLists.txt |
 | Testing | CuTest | unittests/CuTest/Makefile |
+| Observability | Autorun structured crash capture | scripts/autorun/autorun.sh, log/last_error_*.json |
 | Git Hooks | pre-commit (.venv) | .pre-commit-config.yaml |
 
 **NOTE**: pre-commit is installed in the project virtualenv at `.venv/bin/pre-commit`, NOT globally.
@@ -237,7 +238,7 @@ To run manually: `.venv/bin/pre-commit run --all-files`
 |-----------|----------|---------|
 | Platform | Native C | MUD server binary (bin/circle) |
 | Database | MySQL/MariaDB | Required, config in lib/mysql_config |
-| Process Mgmt | scripts/autorun/autorun.sh | Auto-restart, crash tracking, log rotation |
+| Process Mgmt | scripts/autorun/autorun.sh | Auto-restart, structured crash capture, log rotation |
 | Health Monitor | scripts/copyover/copyover_watchdog.sh | Process monitoring, state analysis |
 | Security | ban.c, comm.c | Site banning, input buffer limits, connection throttling |
 | Deployment | scripts/deployment/deploy.sh | Full setup automation, systemd service |

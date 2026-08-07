@@ -615,6 +615,14 @@ given the immutable executable recorded when that PID launched, never the
 current `bin/circle` alias. Preserve the corresponding
 `bin/releases/<ELF-build-ID>/` directory until the incident is retired.
 
+Every abnormal MUD exit also creates an atomic, mode `0600` record at
+`log/last_error_<UTC-timestamp>.json`. The record contains the exit code,
+uptime, crash count, immutable release identity, and paths to the captured core
+and backtrace when available. It deliberately excludes environment values and
+credentials. This is the first incident artifact to inspect or attach to an
+automated diagnosis; follow its `context.backtrace` path for the full GDB
+output.
+
 Then check database integrity and restart through the managed service:
 
 ```bash

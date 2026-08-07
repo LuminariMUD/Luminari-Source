@@ -121,11 +121,19 @@
 |----------|------|--------|
 | Compiler | GNU-compatible C23 compiler | `configure.ac`, `CMakeLists.txt` |
 | Formatter | clang-format | `.clang-format` |
-| Static analysis | clang-tidy | `.clang-tidy` |
+| Linter / static analysis | clang-tidy | `.clang-tidy` |
+| Type safety | GCC/Clang `-Wall -Wextra` | `Makefile.am`, `CMakeLists.txt` |
 | Testing | CuTest and protocol parser harness | `Makefile.am`, `unittests/CuTest/Makefile` |
 | Build | Autotools/Automake and CMake | `Makefile.am`, `CMakeLists.txt` |
+| Dev startup | `./bin/circle -c -d lib` syntax-check boot | `lib/config` |
+| Observability | Autorun structured crash capture | `scripts/autorun/autorun.sh`, `log/last_error_*.json` |
 | Git hooks | pre-commit | `.pre-commit-config.yaml` |
 | Database | MariaDB/MySQL C client | `src/mysql.c`, `sql/`, `lib/mysql_config` |
+
+Autorun writes abnormal-exit context atomically as mode `0600` JSON under the
+existing ignored `log/` runtime directory. The record includes the immutable
+release identity and exact core/backtrace paths without copying configuration
+or credential values.
 
 ## When In Doubt
 

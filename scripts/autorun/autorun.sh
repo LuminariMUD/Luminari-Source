@@ -145,6 +145,126 @@ log_info() { log "INFO" "$@"; }
 log_warn() { log "WARN" "$@"; }
 log_error() { log "ERROR" "$@"; }
 
+# Escape a string for inclusion in a JSON string value without depending on
+# optional runtime tools such as jq or Python.
+json_escape() {
+    local char
+    local code
+    local escaped=""
+    local index
+    local LC_ALL=C
+    local value="${1-}"
+
+    for ((index = 0; index < ${#value}; index++)); do
+        char="${value:index:1}"
+        case "$char" in
+            '"') escaped+='\"' ;;
+            \\) escaped="${escaped}\\\\" ;;
+            $'\b') escaped+='\b' ;;
+            $'\f') escaped+='\f' ;;
+            $'\n') escaped+='\n' ;;
+            $'\r') escaped+='\r' ;;
+            $'\t') escaped+='\t' ;;
+            *)
+                printf -v code '%d' "'$char"
+                if ((code < 32)); then
+                    printf -v char '\\u%04x' "$code"
+                fi
+                escaped+="$char"
+                ;;
+        esac
+    done
+
+    printf '%s' "$escaped"
+}
+
+# Publish a machine-readable crash record atomically. The file contains only
+# process and immutable build identity; configuration and credentials are
+# deliberately excluded.
+write_last_error() {
+    local backtrace="${LAST_CORE_BACKTRACE:-}"
+    local core_dump="${LAST_CORE_DUMP:-}"
+    local crash_count="${5:-0}"
+    local error_type="${1:-MudProcessExit}"
+    local exit_code="${3:-0}"
+    local last_error_file
+    local last_error_tmp
+    local message="${2:-MUD process exited unexpectedly}"
+    local pid_json=null
+    local stack="No backtrace was captured"
+    local timestamp
+    local uptime_seconds="${4:-0}"
+
+    if [[ ! "$exit_code" =~ ^[0-9]+$ ]]; then
+        exit_code=0
+    fi
+    if [[ ! "$uptime_seconds" =~ ^[0-9]+$ ]]; then
+        uptime_seconds=0
+    fi
+    if [[ ! "$crash_count" =~ ^[0-9]+$ ]]; then
+        crash_count=0
+    fi
+    if [[ "${LAST_MUD_PID:-}" =~ ^[1-9][0-9]*$ ]]; then
+        pid_json="$LAST_MUD_PID"
+    fi
+    if [[ -n "$backtrace" ]]; then
+        stack="$backtrace"
+    elif [[ -n "$core_dump" ]]; then
+        stack="Core captured at ${core_dump}; no text backtrace is available"
+    fi
+
+    timestamp=$(date -u '+%Y-%m-%dT%H:%M:%S.%3NZ')
+    if ! mkdir -p "$LOG_DIR"; then
+        log_error "Unable to create structured error log directory: $LOG_DIR"
+        return 1
+    fi
+    last_error_file="${LOG_DIR}/last_error_${timestamp}.json"
+    last_error_tmp=$(mktemp "${LOG_DIR}/.last_error.XXXXXX") || {
+        log_error "Unable to create temporary structured error record"
+        return 1
+    }
+
+    if ! cat > "$last_error_tmp" <<EOF
+{
+  "timestamp": "$(json_escape "$timestamp")",
+  "level": "error",
+  "msg": "$(json_escape "$message")",
+  "error": {
+    "type": "$(json_escape "$error_type")",
+    "message": "$(json_escape "$message")",
+    "stack": "$(json_escape "$stack")"
+  },
+  "context": {
+    "pid": $pid_json,
+    "exit_code": $exit_code,
+    "uptime_seconds": $uptime_seconds,
+    "crash_count": $crash_count,
+    "executable": "$(json_escape "${LAST_MUD_EXECUTABLE:-unknown}")",
+    "git_commit": "$(json_escape "${LAST_MUD_GIT_COMMIT:-unknown}")",
+    "git_dirty": "$(json_escape "${LAST_MUD_GIT_DIRTY:-unknown}")",
+    "elf_build_id": "$(json_escape "${LAST_MUD_BUILD_ID:-unavailable}")",
+    "sha256": "$(json_escape "${LAST_MUD_SHA256:-unavailable}")",
+    "core_dump": "$(json_escape "$core_dump")",
+    "backtrace": "$(json_escape "$backtrace")"
+  }
+}
+EOF
+    then
+        log_error "Unable to write structured error record"
+        rm -f -- "$last_error_tmp"
+        return 1
+    fi
+
+    chmod 600 "$last_error_tmp" 2>/dev/null || true
+    if ! mv -f -- "$last_error_tmp" "$last_error_file"; then
+        log_error "Unable to publish structured error record: $last_error_file"
+        rm -f -- "$last_error_tmp"
+        return 1
+    fi
+
+    log_info "Structured error context written to $last_error_file"
+}
+
 # Error handling function - NEVER actually die!
 die() {
     log_error "ERROR (but not dying): $*"
@@ -626,6 +746,9 @@ archive_core_dump() {
     local system_info_tmp
     local -a possible_cores=()
 
+    LAST_CORE_DUMP=""
+    LAST_CORE_BACKTRACE=""
+
     shopt -s nullglob
     possible_cores=(
         "${LIB_DIR}"/core
@@ -675,6 +798,7 @@ archive_core_dump() {
 
     if [[ "$core_file" == "$dump_path" ]] || mv "$core_file" "$dump_path" 2>/dev/null; then
         log_info "Core dump archived successfully"
+        LAST_CORE_DUMP="$dump_path"
 
         identity_file="${DUMPS_DIR}/identity.${dump_name}.txt"
         {
@@ -734,6 +858,7 @@ EOF
             } > "$system_info_tmp" && mv -f -- "$system_info_tmp" "$bt_file"
 
             log_info "Backtrace generated successfully"
+            LAST_CORE_BACKTRACE="$bt_file"
         else
             log_warn "gdb not found - cannot generate backtrace"
         fi
@@ -853,9 +978,12 @@ cleanup_old_logs() {
 
     # Find and remove old log files
     if command -v find >/dev/null 2>&1; then
-        find "$LOG_DIR" -name "syslog.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
-        find "$DUMPS_DIR" -name "core.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
-        find "$DUMPS_DIR" -name "backtrace.*" -type f -mtime +$LOG_RETENTION_DAYS -delete 2>/dev/null || true
+        find "$LOG_DIR" -name "syslog.*" -type f -mtime +"$LOG_RETENTION_DAYS" -delete 2>/dev/null || true
+        find "$LOG_DIR" -name "last_error_*.json" -type f \
+            -mtime +"$LOG_RETENTION_DAYS" -delete 2>/dev/null || true
+        find "$DUMPS_DIR" -name "core.*" -type f -mtime +"$LOG_RETENTION_DAYS" -delete 2>/dev/null || true
+        find "$DUMPS_DIR" -name "backtrace.*" -type f \
+            -mtime +"$LOG_RETENTION_DAYS" -delete 2>/dev/null || true
     fi
 }
 
@@ -1608,6 +1736,8 @@ LAST_MUD_GIT_COMMIT="unknown"
 LAST_MUD_GIT_DIRTY="unknown"
 LAST_MUD_BUILD_ID="unavailable"
 LAST_MUD_SHA256="unavailable"
+LAST_CORE_DUMP=""
+LAST_CORE_BACKTRACE=""
 
 # Autorun health tracking
 AUTORUN_START_TIME=$(date +%s)
@@ -1789,16 +1919,24 @@ while true; do
     # Log exit status for monitoring
     log_info "MUD ran for $mud_uptime seconds ($mud_uptime_hours hours)"
 
+    mud_error_type=""
+    mud_error_message=""
     if [[ $mud_exit_code -eq 0 ]]; then
         log_info "MUD exited cleanly"
     elif [[ $mud_exit_code -eq 139 ]]; then
-        log_error "MUD crashed with segmentation fault (SIGSEGV)"
+        mud_error_type="SegmentationFault"
+        mud_error_message="MUD crashed with segmentation fault (SIGSEGV)"
+        log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
     elif [[ $mud_exit_code -eq 134 ]]; then
-        log_error "MUD aborted (SIGABRT)"
+        mud_error_type="AbortSignal"
+        mud_error_message="MUD aborted (SIGABRT)"
+        log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
     else
-        log_error "MUD exited with unexpected code: $mud_exit_code"
+        mud_error_type="MudProcessExit"
+        mud_error_message="MUD exited with unexpected code: $mud_exit_code"
+        log_error "$mud_error_message"
         CRASH_COUNT=$((CRASH_COUNT + 1))
     fi
 
@@ -1811,6 +1949,11 @@ while true; do
 
     # Archive any core dump
     archive_core_dump "$mud_exit_code" "$mud_start_time"
+
+    if [[ $mud_exit_code -ne 0 ]]; then
+        write_last_error "$mud_error_type" "$mud_error_message" \
+            "$mud_exit_code" "$mud_uptime" "$CRASH_COUNT" || true
+    fi
 
     # Process logs
     proc_syslog

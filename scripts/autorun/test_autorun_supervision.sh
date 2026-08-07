@@ -155,6 +155,7 @@ test_autorun_startup_and_locking()
   local initial_update
   local inode_after
   local inode_before
+  local last_error
   local port
   local second_status
   local state_pid
@@ -327,6 +328,39 @@ EOF
     "EXECUTABLE=$daemon_dir/bin/test-release-one/circle" \
     "$identity_dump" ||
     fail "core identity report does not name the active release"
+  last_error=$(find "$daemon_dir/log" -maxdepth 1 \
+    -type f -name 'last_error_*.json' -print -quit)
+  [[ -n "$last_error" ]] || fail "structured error context was not captured"
+  [[ "$(stat -c '%a' "$last_error")" == 600 ]] ||
+    fail "structured error context is not restricted to mode 0600"
+  if ! python3 - "$last_error" \
+    "$daemon_dir/bin/test-release-one/circle" "$circle_pid" <<'PY'
+import json
+import pathlib
+import sys
+
+error_path = pathlib.Path(sys.argv[1])
+expected_executable = sys.argv[2]
+expected_pid = int(sys.argv[3])
+with error_path.open(encoding="ascii") as error_file:
+    record = json.load(error_file)
+
+assert record["timestamp"].endswith("Z")
+assert record["level"] == "error"
+assert record["msg"] == "MUD aborted (SIGABRT)"
+assert record["error"]["type"] == "AbortSignal"
+assert record["error"]["message"] == record["msg"]
+assert record["error"]["stack"] == record["context"]["backtrace"]
+assert record["context"]["pid"] == expected_pid
+assert record["context"]["exit_code"] == 134
+assert record["context"]["crash_count"] == 1
+assert record["context"]["executable"] == expected_executable
+assert pathlib.Path(record["context"]["core_dump"]).name.startswith("core.")
+assert pathlib.Path(record["context"]["backtrace"]).name.startswith("backtrace.core.")
+PY
+  then
+    fail "structured error context is not valid or complete"
+  fi
   kill -0 "$unrelated_pid" 2>/dev/null ||
     fail "stop command signaled another checkout's autorun process"
   [[ ! -e "$daemon_dir/.mud.pid" ]] ||
