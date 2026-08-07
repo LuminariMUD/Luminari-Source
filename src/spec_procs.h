@@ -37,6 +37,7 @@
 #include "spec/spec_zone_earth_plane.h"
 #include "spec/spec_zone_feybranche.h"
 #include "spec/spec_zone_fire_giant.h"
+#include "spec/spec_zone_fire_plane.h"
 #include "spec/spec_zone_flaming_tower.h"
 #include "spec/spec_zone_hive_of_passion.h"
 #include "spec/spec_zone_illithid_enclave.h"
@@ -47,13 +48,16 @@
 #include "spec/spec_zone_longsaddle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_mere_of_dead_men.h"
+#include "spec/spec_zone_menzoberranzan.h"
 #include "spec/spec_zone_orc_ruins.h"
 #include "spec/spec_zone_prisoner.h"
 #include "spec/spec_zone_quicksand.h"
 #include "spec/spec_zone_secomber.h"
 #include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_shobalar.h"
+#include "spec/spec_zone_snake_pit.h"
 #include "spec/spec_zone_ttf.h"
+#include "spec/spec_zone_water_plane.h"
 #include "spec/spec_zone_zusuk.h"
 #include "vessels/vessels_moving_rooms.h"
 
@@ -110,20 +114,16 @@ SPECIAL_DECL(flamingwhip);
 SPECIAL_DECL(floating_teleport);
 SPECIAL_DECL(fog_dagger);
 SPECIAL_DECL(forest_idol);
-SPECIAL_DECL(fp_invoker);
 SPECIAL_DECL(frosty_scimitar);
 
 /* g-i */
 SPECIAL_DECL(speed_gaunts);
 SPECIAL_DECL(gen_board);
 SPECIAL_DECL(greatsword);
-SPECIAL_DECL(gromph);
-SPECIAL_DECL(guild_golem);
 SPECIAL_DECL(halberd);
 SPECIAL_DECL(haste_bracers);
 SPECIAL_DECL(hellfire);
 SPECIAL_DECL(helmblade);
-SPECIAL_DECL(imix);
 
 /* j-l */
 SPECIAL_DECL(kt_shadowmaker);
@@ -138,12 +138,9 @@ SPECIAL_DECL(mithril_rapier);
 SPECIAL_DECL(monk_glove);
 SPECIAL_DECL(monk_glove_cold);
 SPECIAL_DECL(ancient_moonblade);
-SPECIAL_DECL(naga);
-SPECIAL_DECL(naga_golem);
 SPECIAL_DECL(neverwinter_button_control);
 SPECIAL_DECL(neverwinter_valve_control);
 SPECIAL_DECL(nutty_bracer);
-SPECIAL_DECL(olhydra);
 
 /* p-r */
 SPECIAL_DECL(player_owned_shops);

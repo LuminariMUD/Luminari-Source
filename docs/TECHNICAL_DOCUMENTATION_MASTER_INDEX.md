@@ -123,7 +123,8 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Special Procedure Phase 00 Validation](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)** - Registry-safety acceptance, 78-test ownership, evidence matrix, and reproducible phase gates
 - **[Special Procedure Phase 01 Validation](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md)** - Call-site gateway acceptance, event/flow contracts, extraction-safety corrections, and 12-test ownership
 - **[Special Procedure Phase 02 Validation](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md)** - Declarative-assignment inventory, live binding diagnostics, help acceptance, and 11-test ownership
-- **[Special Procedure Phase 03 Progress](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md)** - In-progress content-ownership extraction inventory, validation evidence, and durable resume point
+- **[Special Procedure Phase 03 Validation](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md)** - Completed content-ownership extraction, legacy-source retirement, compatibility evidence, and reproducible gates
+- **[Special Procedure Phase 03 Checkpoint History](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md)** - Detailed ownership moves and per-checkpoint validation record
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test

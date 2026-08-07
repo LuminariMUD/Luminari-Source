@@ -69,10 +69,13 @@ private helpers and runtime state. Abyss exit randomization and Crimson Flame en
 likewise live in `src/spec/spec_zone_abyss.c` and `src/spec/spec_zone_crimson_flame.c`.
 The Prisoner raid state, item and mobile callbacks, death transition, and treasury loading live in
 `src/spec/spec_zone_prisoner.c`; the dormant Celestial Leviathan helpers and no-op callback live in
-`src/spec/spec_zone_celestial_leviathan.c`. `src/spec_procs.h` retains compatibility includes while
-direct consumers migrate to those owner APIs.
+`src/spec/spec_zone_celestial_leviathan.c`. All other cohesive zone packages likewise live under
+`src/spec/`; Fire Plane, Water Plane, and Snake Pit share `spec_zone_alarm_group.c` only to keep
+their common helper private, while publishing separate owner headers. Both legacy
+`src/spec_procs.c` and `src/zone_procs.c` are retired. `src/spec_procs.h` retains compatibility
+includes while direct consumers migrate to owner APIs.
 See the
-[Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
+[Phase 03 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
 ## Operational Boundary
 

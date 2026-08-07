@@ -212,6 +212,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_abyssal_vortex.c \
 	src/spec/spec_zone_agrach_dyrr.c \
 	src/spec/spec_zone_air_plane.c \
+	src/spec/spec_zone_alarm_group.c \
 	src/spec/spec_zone_bandit_castle.c \
 	src/spec/spec_zone_battlemaze.c \
 	src/spec/spec_zone_banshee.c \
@@ -230,6 +231,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_longsaddle.c \
 	src/spec/spec_zone_mad_drow.c \
 	src/spec/spec_zone_mere_of_dead_men.c \
+	src/spec/spec_zone_menzoberranzan.c \
 	src/spec/spec_zone_neverwinter.c \
 	src/spec/spec_zone_orc_ruins.c \
 	src/spec/spec_zone_prisoner.c \
@@ -241,7 +243,6 @@ circle_SOURCES = \
 	src/spec/spec_zone_zusuk.c \
 	src/spec/spec_registry.c \
 	src/spec_assign.c \
-	src/spec_procs.c \
 	src/obj/spec_artifacts.c \
 	src/magic/casting_visuals.c \
 	src/magic/spell_parser.c \

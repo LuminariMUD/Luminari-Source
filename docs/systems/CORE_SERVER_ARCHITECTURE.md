@@ -388,12 +388,18 @@ in `src/spec/spec_zone_hive_of_passion.c`. Fey-Branche combat coordination lives
 live in `src/spec/spec_zone_kobold_caverns.c`, `src/spec/spec_zone_bandit_castle.c`, and
 `src/spec/spec_zone_secomber.c`. Longsaddle, Flaming Tower, Mere of Dead Men, and Battlemaze
 behavior lives in `src/spec/spec_zone_longsaddle.c`, `src/spec/spec_zone_flaming_tower.c`,
-`src/spec/spec_zone_mere_of_dead_men.c`, and `src/spec/spec_zone_battlemaze.c`; all twenty-one
-packages have dedicated owner APIs.
+`src/spec/spec_zone_mere_of_dead_men.c`, and `src/spec/spec_zone_battlemaze.c`. Fire Plane, Water
+Plane, and Snake Pit publish distinct owner APIs while deliberately sharing
+`src/spec/spec_zone_alarm_group.c`, which keeps `zone_yell()` private beside all three consumers.
+Menzoberranzan movement and Narbondel state live in `src/spec/spec_zone_menzoberranzan.c`. All
+twenty-five post-TTF packages have dedicated owner APIs, and the final four retire the last compiled
+callbacks from `src/spec_procs.c`.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
-The current ownership inventory and evidence are in
-[Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
+After a residual dormant-code audit, `src/spec_procs.c` was removed from both build manifests;
+`src/spec_procs.h` remains the compatibility include surface. The completed ownership inventory and
+evidence are in
+[Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a

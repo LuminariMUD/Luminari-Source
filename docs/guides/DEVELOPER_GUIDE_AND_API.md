@@ -2,8 +2,8 @@
 
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
-control plane delivered through Phase 02 and the Phase 03 extraction now in
-progress; other subsystem APIs remain in their source-linked system documents.
+control plane delivered through Phase 02 and the completed Phase 03 ownership
+extraction; other subsystem APIs remain in their source-linked system documents.
 
 ## Quick Start
 
@@ -167,12 +167,12 @@ zone before opening output or mutating mover state.
 
 ## Compatibility Boundary
 
-Phases 00-02 preserve the single callback slot, `SPECIAL` ABI, world grammar,
+Phases 00-03 preserve the single callback slot, `SPECIAL` ABI, world grammar,
 command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
-observable compatibility path. Behavior-preserving content extraction is in
-progress: general object callbacks are under `src/spec/`; vessel callbacks are
+observable compatibility path. Behavior-preserving content extraction is
+complete: general object callbacks are under `src/spec/`; vessel callbacks are
 under `src/vessels/`, including the complete legacy moving-room loader,
 scheduler, relocation, and callback package. Player-shop, vendor, crafting,
 vampire-cloak, quest-service, and Neverwinter callbacks are now owned by their feature
@@ -214,10 +214,14 @@ use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`,
 `src/spec/spec_zone_longsaddle.h`; Flaming Tower load-room and mirror behavior uses
 `src/spec/spec_zone_flaming_tower.h`; Mere of Dead Men summoning and daylight relocation use
 `src/spec/spec_zone_mere_of_dead_men.h`; and Battlemaze access control uses
-`src/spec/spec_zone_battlemaze.h`. Use
+`src/spec/spec_zone_battlemaze.h`. Fire Plane, Water Plane, and Snake Pit publish
+`src/spec/spec_zone_fire_plane.h`, `src/spec/spec_zone_water_plane.h`, and
+`src/spec/spec_zone_snake_pit.h`. Their callbacks deliberately share
+`src/spec/spec_zone_alarm_group.c` so `zone_yell()` remains private beside all three consumers.
+Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranzan.h`. The final
+move retired `src/spec_procs.c`; its header remains the compatibility include surface. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
-`src/spec_procs.h` retains compatibility includes for older consumers. Shared
-mechanics, typed-handler conversion, and general chains remain future work.
+Shared mechanics, typed-handler conversion, and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -232,5 +236,5 @@ the
 the
 [Phase 02 assignment matrix](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
 the
-[Phase 03 progress record](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md),
+[Phase 03 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

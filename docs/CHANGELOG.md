@@ -41,7 +41,7 @@
 - Added production-linked route-contract coverage, shell probe regressions,
   and an isolated MariaDB-backed curl smoke test.
 
-### Special-procedure registry safety and observability
+### Special-procedure architecture Phases 00-03
 
 #### Changed
 
@@ -51,18 +51,27 @@
   aliases and unresolved content; and authored-first mobile, object, and room persistence.
 - Added ordered effective boot provenance for world, parser-hook, legacy, shop, and quest sources,
   including collision outcomes, saved wrapper secondaries, and normal or `-s` startup summaries.
+- Routed every invocation category through event-specific compatibility gateways with explicit
+  flow and pointer-invalidation contracts while preserving the legacy callback ABI.
+- Added boot-validated declarative assignment rows for the two traced eligible Luminari objects and
+  the read-only `specbind` command for inspecting effective assignment history.
 - Rejected moving-room `M` plus named room `Z` ownership during either loader order, REdit selection
   and save, and whole-zone writer preflight.
+- Split the 12,212-line `spec_procs.c` and 4,202-line `zone_procs.c` baselines among general,
+  feature, vessel, and cohesive zone owners, then retired both legacy source files from Autotools
+  and CMake.
 - Reconciled database-first `SPECIALS` help and builder, developer, architecture, help-system, and
-  testing documentation with the delivered Phase 00 behavior.
+  testing documentation with the delivered Phase 00-03 behavior.
 
 #### Verification
 
-- Added 78 dedicated production-linked tests across eight suite owners for registry, invocation,
-  metadata, OLC, authored identity, round-trip persistence, effective precedence, secondaries,
-  diagnostics, and moving-room safety.
+- Added 101 dedicated production-linked Phase 00-02 tests across registry, invocation, metadata,
+  OLC, authored identity, round-trip persistence, effective precedence, assignment validation,
+  secondaries, diagnostics, and moving-room safety.
 - The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
   verifier, dual-build manifest comparison, and documentation/integrity gates pass.
+- The Phase 03 close passes 574 root tests and 12/12 CTest targets; exact moved-body checks and a
+  complete exported-symbol comparison show no behavior or linkage drift.
 
 ### Pet persistence and crash observability
 

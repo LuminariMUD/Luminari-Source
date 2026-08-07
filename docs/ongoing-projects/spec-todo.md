@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00-02 are complete. Phase 03 is in progress. Phases 04-06 are not started.
+Phases 00-03 are complete. Phases 04-06 are not started.
 
 ## Goals
 
@@ -50,7 +50,7 @@ Phases 00-02 are complete. Phase 03 is in progress. Phases 04-06 are not started
 | 00 | Registry Safety and Observability | Complete (2026-08-07) |
 | 01 | Call-Site Gateway Compatibility | Complete (2026-08-07) |
 | 02 | Declarative Legacy Assignments | Complete (2026-08-07) |
-| 03 | Behavior-Preserving Content Extraction | In Progress (2026-08-07) |
+| 03 | Behavior-Preserving Content Extraction | Complete (2026-08-07) |
 | 04 | Narrow Shared Mechanics | Not Started |
 | 05 | Incremental Typed Handlers | Not Started |
 | 06 | Conditional Composition and Lifecycle Hooks | Not Started |
@@ -119,9 +119,9 @@ null handling, and stable source labels.
 Acceptance evidence:
 [Special Procedure Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
 
-### Phase 03 - Behavior-Preserving Content Extraction
+### Phase 03 - Behavior-Preserving Content Extraction (Complete)
 
-Checkpoints 1-30 extracted the complete audited general object section to
+Checkpoints 1-31 extracted the complete audited general object section to
 `src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
 `src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
 quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
@@ -136,15 +136,16 @@ cleric and guard services live in `src/clan_services.c`. The complete King's Cas
 Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF, Shadow Dragon, Banshee,
 Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, Abyssal Vortex, House Agrach-Dyrr, House
 Shobalar, Earth Plane, Air Plane, Zusuk, Orc Ruins, Illithid Enclave, Kobold Caverns, Bandit
-Castle, Secomber, Longsaddle, Flaming Tower, Mere of Dead Men, and Battlemaze packages now live in
-dedicated `src/spec/spec_zone_*` owners. The
+Castle, Secomber, Longsaddle, Flaming Tower, Mere of Dead Men, Battlemaze, Fire Plane, Water Plane,
+Snake Pit, and Menzoberranzan packages now live in dedicated `src/spec/spec_zone_*` owners. The
 final TTF move retired all 4,202 baseline lines and removed `src/zone_procs.c` from both build
-manifests. Autotools and CMake link every new source for production and CuTest. The callback ABI,
-exported symbols,
-registry identities and assignments, world grammar, scheduling, and behavior remain unchanged.
+manifests. The final alarm-group and Menzoberranzan move retired all 12,212 baseline lines and
+removed `src/spec_procs.c` from both manifests after auditing its residual commented blocks as
+dormant. Autotools and CMake link every new source for production and CuTest. The callback ABI,
+exported symbols, registry identities and assignments, world grammar, scheduling, and behavior
+remain unchanged.
 The cross-file `is_wearing()` equipment predicate now lives with `equip_char()` and
-`unequip_char()` in `src/handler.c`. `src/spec_procs.c` is 749 lines, down 11,463 lines from the
-Phase 03 baseline.
+`unequip_char()` in `src/handler.c`. `src/spec_procs.h` remains the compatibility include surface.
 
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.
@@ -155,8 +156,8 @@ Phase 03 baseline.
 Exit when responsibilities are coherent, characterization is unchanged, and both build manifests
 list identical production and test sources.
 
-Current evidence and the interruption-safe resume point are recorded in
-[Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
+Acceptance evidence:
+[Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
 ### Phase 04 - Narrow Shared Mechanics
 
@@ -243,9 +244,9 @@ land.
 | Effective bindings and sources are inspectable for every mob, object, and room prototype. | Met by Phase 00. |
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
-| File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 28 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 28. |
+| File organization follows primary responsibility, with both build systems synchronized. | Met by Phase 03. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 31 (574 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 31. |
 
 ## Risks and Guardrails
 
@@ -447,14 +448,11 @@ zone events still need an explicit lifecycle interface, not a zone pointer hidde
 
 At the Phase 03 baseline, `spec_procs.c` also held work owned elsewhere: spell/skill/ability listing
 and calculation; moving-room and legacy ship behavior; vendor item construction and naming; and
-crafting-mold purchase and construction. Checkpoints 1-24 have moved every item in that list, the
-traced general mobile/room slice, reusable combat/companion archetypes, and clan services. The
-King's Castle, Abyss, Crimson Flame, Prisoner, Celestial Leviathan, Fire Giant, Jot, Mad Drow, TTF,
-Shadow Dragon, Banshee, Quicksand, Tower of Kenjin, Hive of Passion, Fey-Branche, Abyssal Vortex,
-House Agrach-Dyrr, House Shobalar, and Earth Plane packages have also moved intact from the legacy
-files. The remaining callbacks in `src/spec_procs.c` are cohesive zone content; its former
-cross-file equipment predicate now lives in `src/handler.c`.
-Splitting them by owner type alone would still preserve zone-ownership mistakes. Moving rooms
+crafting-mold purchase and construction. Checkpoints 1-31 moved every item in that list, the traced
+general mobile/room slice, reusable combat/companion archetypes, clan services, and every cohesive
+zone package intact from the legacy files. The final residual audit found only dormant commented
+guild and Emporium blocks after the compiled callbacks moved, so `src/spec_procs.c` was retired from
+both manifests. Its former cross-file equipment predicate now lives in `src/handler.c`. Moving rooms
 retain their temporary gateway and now live in the vessel subsystem; a direct typed hook remains a
 later behavior-changing phase.
 
@@ -502,7 +500,7 @@ src/spec/spec_assign_table.c|.h
 src/olc/spec_menu.c|.h
 ```
 
-Shipped content ownership (Phase 03 Checkpoints 1-24):
+Shipped content ownership (Phase 03):
 
 ```text
 src/spec/spec_objects.c
@@ -512,23 +510,39 @@ src/spec/spec_rooms.c|.h
 src/spec/spec_zone_abyss.c|.h
 src/spec/spec_zone_abyssal_vortex.c|.h
 src/spec/spec_zone_agrach_dyrr.c|.h
+src/spec/spec_zone_air_plane.c|.h
+src/spec/spec_zone_alarm_group.c
+src/spec/spec_zone_bandit_castle.c|.h
 src/spec/spec_zone_banshee.c|.h
+src/spec/spec_zone_battlemaze.c|.h
 src/spec/spec_zone_celestial_leviathan.c|.h
 src/spec/spec_zone_crimson_flame.c|.h
 src/spec/spec_zone_earth_plane.c|.h
 src/spec/spec_zone_feybranche.c|.h
 src/spec/spec_zone_fire_giant.c|.h
+src/spec/spec_zone_fire_plane.h
+src/spec/spec_zone_flaming_tower.c|.h
 src/spec/spec_zone_hive_of_passion.c|.h
+src/spec/spec_zone_illithid_enclave.c|.h
 src/spec/spec_zone_jot.c|.h
 src/spec/spec_zone_kenjin_tower.c|.h
 src/spec/spec_zone_kings_castle.c|.h
+src/spec/spec_zone_kobold_caverns.c|.h
+src/spec/spec_zone_longsaddle.c|.h
 src/spec/spec_zone_mad_drow.c|.h
+src/spec/spec_zone_menzoberranzan.c|.h
+src/spec/spec_zone_mere_of_dead_men.c|.h
 src/spec/spec_zone_neverwinter.c
+src/spec/spec_zone_orc_ruins.c|.h
 src/spec/spec_zone_prisoner.c|.h
 src/spec/spec_zone_quicksand.c|.h
+src/spec/spec_zone_secomber.c|.h
 src/spec/spec_zone_shadow_dragon.c|.h
 src/spec/spec_zone_shobalar.c|.h
+src/spec/spec_zone_snake_pit.h
 src/spec/spec_zone_ttf.c|.h
+src/spec/spec_zone_water_plane.h
+src/spec/spec_zone_zusuk.c|.h
 src/vessels/vessels_legacy.c
 src/vessels/vessels_moving_rooms.c|.h
 src/obj/player_shop.c
@@ -544,15 +558,17 @@ src/magic/spell_lists.c|.h
 src/quest/quest_services.c
 ```
 
-Proposed for the remainder of Phase 03 and later phases, subject to traced ownership:
+Proposed for Phase 04 and later phases, subject to traced ownership:
 
 ```text
 src/spec/spec_cooldown.c|.h        (needs two real consumers)
 src/spec/spec_effects.c|.h         (needs two real consumers)
 ```
 
-This is a responsibility map, not permission to create empty modules. Top-level `spec_procs.c` and
-`spec_procs.h` remain compatibility surfaces and shrink over time. External includes are
+This is a responsibility map, not permission to create empty modules. Top-level `spec_procs.c` is
+retired; `spec_procs.h` remains a compatibility include surface and shrinks over time. The private
+`zone_yell()` helper and its Fire Plane, Water Plane, and Snake Pit consumers deliberately share
+`spec_zone_alarm_group.c`, while each zone publishes its own header. External includes are
 path-qualified (`#include "spec/spec_registry.h"`). Every source addition or removal updates both
 build manifests.
 
@@ -745,16 +761,16 @@ If separately scheduled, an artifact split under `src/obj/` may use `artifact_re
 - **Mobiles**: guards, pets, janitors, practice targets, common undead, service NPCs are candidates
   for `spec_mobiles.c` or their true owning subsystem. Shop and quest entry points stay with those
   systems even though mobiles own them.
-- **Objects**: the contiguous object-procedure section of `src/spec_procs.c` is the first extraction
-  candidate after gateway coverage; it already has the partial `obj_proc_ready()` helper and repeats
-  cooldown, combat, chance, affect, and messaging patterns. Artifacts stay under `src/obj/`; vessel
-  objects and controls under `src/vessels/`; shop and trade under `src/obj/`; crafting purchase and
-  construction under `src/craft/`.
+- **Objects**: the former contiguous object-procedure section now lives under its reusable or true
+  feature owner. Its `obj_proc_ready()` helper still exposes the same-VNUM identity contract that
+  Phase 04 must characterize before changing. Artifacts stay under `src/obj/`; vessel objects and
+  controls under `src/vessels/`; shop and trade under `src/obj/`; crafting purchase and construction
+  under `src/craft/`.
 - **Rooms**: general room behavior may share a room-procedure module. Moving rooms and vessel control
   rooms belong to the vessel subsystem.
-- **Zones**: the natural packages formerly in `zone_procs.c` now live intact under `src/spec/` with
-  their private helpers and encounter state. Extract shared mechanics only when two packages need
-  the same contract.
+- **Zones**: the natural packages formerly in `zone_procs.c` and `spec_procs.c` now live intact under
+  `src/spec/` with their private helpers and encounter state. Extract shared mechanics only when two
+  packages need the same contract.
 
 ## Conditional Composition and Lifecycle Hooks
 

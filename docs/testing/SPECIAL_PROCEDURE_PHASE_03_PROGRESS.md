@@ -1,14 +1,15 @@
 # Special Procedure Phase 03 Progress
 
-Status: In progress  
+Status: Complete
 Last updated: 2026-08-07  
 Baseline: Phase 02 completion commit `9acda0ec`
 
 ## Purpose
 
-This document is the durable handoff for Phase 03 while behavior-preserving source extraction is
-underway. Phase 03 is not accepted yet. Each checkpoint records exact ownership moves and validation
-so work can resume without repeating the source audit.
+This document is the checkpoint history for Phase 03 behavior-preserving source extraction. Phase 03
+is accepted; each checkpoint records exact ownership moves and validation so later work does not
+need to repeat the source audit. Final acceptance is summarized in
+[Special Procedure Phase 03 Validation](SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
 ## Checkpoint 1 - General Objects and Legacy Vessels
 
@@ -1065,19 +1066,54 @@ command, authored-data, or behavior contract changed.
 | both build manifests include all four zone owner sources | PASS |
 | `git diff --check` | PASS |
 
-## Remaining Phase 03 Work
+## Checkpoint 31 - Final Zone Batch and Legacy Source Retirement
 
-1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
-2. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
-3. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
-   complete.
+Checkpoint 31 moves all remaining compiled callbacks from `src/spec_procs.c` in one batch:
 
-## Resume Point
+- `imix` and `fp_invoker` publish the Fire Plane API through
+  `src/spec/spec_zone_fire_plane.h`;
+- `olhydra` publishes the Water Plane API through `src/spec/spec_zone_water_plane.h`;
+- `naga_golem` and `naga` publish the Snake Pit API through
+  `src/spec/spec_zone_snake_pit.h`; and
+- `gromph` moves to `src/spec/spec_zone_menzoberranzan.c` and `.h`.
 
-Batch the remaining compiled zone callbacks from `src/spec_procs.c`: Fire Plane `imix` and
-`fp_invoker`, Water Plane `olhydra`, Snake Pit `naga_golem` and `naga`, and Menzoberranzan `gromph`.
-Keep the private `zone_yell()` helper with all three of its consumers without adding a global
-symbol, and keep private `gr_stalled` state with `gromph`. Preserve the direct assignments, callback
-names and types, helper body, ordering, and complete exported symbol table. The dormant commented
-guild and Emporium blocks are not compiled callbacks and should remain untouched until the final
-legacy-file retirement boundary is audited.
+Fire Plane, Water Plane, and Snake Pit deliberately share the 272-line
+`src/spec/spec_zone_alarm_group.c` translation unit. This keeps `zone_yell()` private while retaining
+all three consumers and avoids introducing an exported helper symbol merely to satisfy source
+organization. Menzoberranzan uses its own 90-line source and keeps `gr_stalled` private beside
+`gromph`. The alarm-group source also includes the traced movement-position header directly for the
+unchanged Water Plane and Snake Pit bodies.
+
+All 310 legacy helper, state, and callback lines compare exactly with the Checkpoint 30 source.
+Assignments remain at the same mobile VNUMs, callback names and types are unchanged, and no callback
+gains a registry definition or authored binding. `src/spec_assign.c` includes each zone API directly,
+while `src/spec_procs.h` retains them as compatibility includes.
+
+After the compiled move, the residual legacy file contained no production code: the `guild_golem`
+assignment and implementation were both commented and no definition existed; the commented
+`guild_guard` body duplicated behavior already compiled from `src/character/guild_services.c`; and
+the Emporium block was wholly commented. The audit therefore removes the stale undefined
+`guild_golem` declaration and retires all 749 Checkpoint 30 lines of `src/spec_procs.c` from both
+build manifests. The deletion is source-controlled and recoverable through Git.
+
+### Checkpoint 31 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build after legacy-source retirement | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| independent CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 30 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 310 moved legacy helper, state, and callback lines | PASS, no content drift |
+| both build manifests add both final owner sources and remove `src/spec_procs.c` | PASS |
+| residual compiled-code and dormant-block ownership audit | PASS |
+| `git diff --check` | PASS |
+
+## Phase 03 Completion
+
+All 12,212 baseline lines of `src/spec_procs.c` and all 4,202 baseline lines of
+`src/zone_procs.c` are now retired. General procedures, feature services, shared legacy vessel
+behavior, and cohesive zone packages live with their traced owners. Phase 04 may now characterize
+and introduce narrow shared mechanics without reopening the Phase 03 ownership audit.
