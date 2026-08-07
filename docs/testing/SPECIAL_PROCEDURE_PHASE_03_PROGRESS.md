@@ -257,10 +257,48 @@ lines and from the Phase 03 baseline of 12,212 lines by 10,252 lines.
 | complete exported global-symbol comparison against Checkpoint 5 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 7 - King's Castle Zone Package
+
+Checkpoint 7 begins the `src/zone_procs.c` split by moving the complete King's Castle package to
+`src/spec/spec_zone_kings_castle.c` and `.h`. The owner now contains:
+
+- `assign_kings_castle()` and its recorded mobile-assignment helper;
+- `king_welmar`, `training_master`, `tom`, `tim`, `James`, `cleaning`, `CastleGuard`,
+  `DicknDavid`, `peter`, and `jerry`;
+- the exported `do_npc_rescue()` helper; and
+- all castle-private VNUM conversion, guard and staff predicates, target selection, entrance
+  blocking, cleaning, twin, combat, movement-path, and function-local static state.
+
+`src/spec_assign.c` includes the owner header directly, while `src/spec_procs.h` retains it as a
+compatibility include and no longer redeclares the two exported owner functions. Both build
+manifests link the new implementation for production and CuTest. The recorded assignment source
+label now names `src/spec/spec_zone_kings_castle.c`, its actual source owner; assignment order,
+handler selection, and effective-binding outcomes are unchanged.
+
+This checkpoint preserves callback bodies, signatures, global symbol names, castle-relative VNUM
+calculation, initialization order, command and pulse behavior, movement paths, combat decisions,
+messages, and static state. No player or builder helpfile changed because no command, authored-data,
+or behavior contract changed.
+
+The checkpoint removes 818 lines from `src/zone_procs.c`, reducing it from 4,202 to 3,384 lines.
+The new cohesive implementation is 851 lines, below the 1,000-line review prompt.
+
+### Checkpoint 7 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 6 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
-   static state with each package.
+1. Continue splitting `src/zone_procs.c` along its existing zone-package boundaries while retaining
+   private static state with each package.
 2. Move the remaining cohesive zone-specific content and the Celestial Leviathan stub from
    `src/spec_procs.c` with their packages, then relocate the remaining cross-file equipment helper.
 3. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
@@ -269,8 +307,8 @@ lines and from the Phase 03 baseline of 12,212 lines by 10,252 lines.
 
 ## Resume Point
 
-Begin the `src/zone_procs.c` split with the self-contained King's Castle package: its assignment
-entry point, VNUM-offset helpers, guard/staff predicates, rescue and blocking helpers, cleaners,
-twins, training master, and named castle mobiles occupy the first package boundary. Keep every
-private helper and static state beside that package, preserve `assign_kings_castle()` initialization
-order, and compare the complete exported symbol set before proceeding to Abyss and Crimson Flame.
+Continue the `src/zone_procs.c` split with the self-contained Abyss package, followed by Crimson
+Flame. Move the Abyss room-number helper with `abyss_randomizer`, then trace the Crimson Flame
+training, Alathar, and rapier procedures and their private state as one package. Preserve all global
+names, static state, and assignment references, and compare the complete exported symbol set at the
+next checkpoint.

@@ -357,8 +357,10 @@ their respective feature owners. Ability calculations and skill list/training be
 `src/character/`, and spell sorting and list display live under `src/magic/`. General legacy mobile
 and room callbacks plus reusable combat/companion archetypes live under `src/spec/`; class guild,
 clan-hall, wizard spellbook research, and pet-shop services live with their character, clan, magic,
-and object owners. The public names, callback ABI, world grammar, pulse position, assignment and
-registry references, initialization order, calculations, and display behavior remain unchanged.
+and object owners. The King's Castle assignment, mobile callbacks, private helpers, and runtime
+state live together in `src/spec/spec_zone_kings_castle.c`. The public names, callback ABI, world
+grammar, pulse position, assignment and registry references, initialization order, calculations,
+and display behavior remain unchanged.
 The current ownership inventory and evidence are in
 [Special Procedure Phase 03 Progress](../testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 

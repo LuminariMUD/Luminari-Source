@@ -25,6 +25,7 @@
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
+#include "spec/spec_zone_kings_castle.h"
 #include "vessels/vessels_moving_rooms.h"
 
 extern int prisoner_heads;
@@ -32,8 +33,6 @@ extern int prisoner_heads;
 /*****************************************************************************
  * Begin Functions and defines for zone_procs.c
  ****************************************************************************/
-void assign_kings_castle(void);
-int do_npc_rescue(struct char_data *ch, struct char_data *friend);
 void prisoner_on_death(struct char_data *ch);
 
 /*****************************************************************************

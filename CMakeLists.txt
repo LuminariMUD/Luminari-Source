@@ -602,6 +602,7 @@ set(SRC_C_FILES
     src/spec/spec_mobiles.c
     src/spec/spec_objects.c
     src/spec/spec_rooms.c
+    src/spec/spec_zone_kings_castle.c
     src/spec/spec_zone_neverwinter.c
     src/spec/spec_registry.c
     src/spec_assign.c

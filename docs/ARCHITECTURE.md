@@ -63,8 +63,10 @@ Character ability calculation and skill listing/training now live in
 display live in `src/magic/spell_lists.c`. General legacy mobile and room callbacks live in
 `src/spec/spec_mobiles.c` and `src/spec/spec_rooms.c`; reusable combat and companion callbacks live
 in `src/spec/spec_mobile_archetypes.c`. Guild services, clan-hall services, wizard research, and
-pet-shop commerce live with their character, clan, magic, and object owners. `src/spec_procs.h`
-retains compatibility includes while direct consumers migrate to those owner APIs.
+pet-shop commerce live with their character, clan, magic, and object owners. The complete King's
+Castle assignment and mobile package lives in `src/spec/spec_zone_kings_castle.c`, including its
+private helpers and runtime state. `src/spec_procs.h` retains compatibility includes while direct
+consumers migrate to those owner APIs.
 See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
