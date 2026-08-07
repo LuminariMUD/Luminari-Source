@@ -26,6 +26,7 @@
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
 #include "spec/spec_zone_abyss.h"
+#include "spec/spec_zone_abyssal_vortex.h"
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
@@ -67,7 +68,6 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /** Procedures exposed through world persistence or OLC also need registry metadata. **/
 
 /* a-c */
-SPECIAL_DECL(abyssal_vortex);
 SPECIAL_DECL(acidstaff);
 SPECIAL_DECL(acidsword);
 SPECIAL_DECL(agrachdyrr);

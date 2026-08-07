@@ -745,6 +745,36 @@ command, authored-data, or behavior contract changed.
 | both build manifests include `src/spec/spec_zone_feybranche.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 21 - Abyssal Vortex Zone Procedure
+
+Checkpoint 21 moves the `abyssal_vortex` room callback from `src/spec_procs.c` to
+`src/spec/spec_zone_abyssal_vortex.c`, with its declaration published through
+`src/spec/spec_zone_abyssal_vortex.h`. Its 51 direct room assignment rows remain VNUMs 139200
+through 139250 in `src/spec_assign.c`, including the historical duplicate 139210 row and absent
+139220 row. It has no registry definition or authored world binding. The assignment source includes
+the owner header directly, while `src/spec_procs.h` retains the owner include as a compatibility
+surface.
+
+This is an ownership-only move. All 28 legacy implementation lines are unchanged, including the
+command and NPC/pet guards, one-in-eight chance, exact six-exit rotation order, room message, and
+return values. Removing the adjacent separator line reduces `src/spec_procs.c` from 1,619 to 1,590
+lines. Both build manifests link the 45-line owner source. No player or builder helpfile changed
+because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 21 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 20 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 28 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_abyssal_vortex.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -754,11 +784,11 @@ command, authored-data, or behavior contract changed.
 
 ## Resume Point
 
-Move the 28-line Abyssal Vortex room boundary at `src/spec_procs.c:454-481`, beginning with its
-procedure comment and ending after `abyssal_vortex`, to a dedicated zone owner. Its 51 direct room
-assignment rows remain VNUMs 139200 through 139250 in `src/spec_assign.c`, including the historical
-duplicate 139210 row and absent 139220 row; it has no registry definition or authored world binding.
-Preserve the callback name and type, command and NPC/pet guards, one-in-eight chance, exact six-exit
-rotation order, room message, assignment order, return values, and exported-symbol parity. Add the
-new implementation to both build manifests and make `src/spec_assign.c` include the owner header
-directly.
+Move the 66-line House Agrach-Dyrr boundary at `src/spec_procs.c:454-519`, beginning with its
+procedure comment and ending after `agrachdyrr`, to a dedicated zone owner. Its only assignment is
+mobile VNUM 135518 in `src/spec_assign.c`; it has no registry definition or authored world binding.
+Preserve the callback name and type, command and position guards, `PROC_FIRED` state, the one-in-five
+follower summon using mobile VNUM 135523, master targeting, shout text and delivery, all six
+helper-mobile VNUMs, hunt versus teleport branch for mobile VNUM 135522, direct attack, assignment
+order, return values, and exported-symbol parity. Add the new implementation to both build manifests
+and make `src/spec_assign.c` include the owner header directly.

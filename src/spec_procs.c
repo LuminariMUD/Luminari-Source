@@ -452,35 +452,6 @@ SPECIAL(olhydra)
 }
 
 /* from homeland */
-SPECIAL(abyssal_vortex)
-{
-  int temp;
-
-  if (cmd)
-    return FALSE;
-
-  if (IS_NPC(ch) && !IS_PET(ch))
-    return FALSE;
-
-  if (!rand_number(0, 7))
-  {
-    temp = world[ch->in_room].dir_option[0]->to_room;
-    world[ch->in_room].dir_option[0]->to_room = world[ch->in_room].dir_option[1]->to_room;
-    world[ch->in_room].dir_option[1]->to_room = world[ch->in_room].dir_option[4]->to_room;
-    world[ch->in_room].dir_option[4]->to_room = world[ch->in_room].dir_option[3]->to_room;
-    world[ch->in_room].dir_option[3]->to_room = world[ch->in_room].dir_option[5]->to_room;
-    world[ch->in_room].dir_option[5]->to_room = world[ch->in_room].dir_option[2]->to_room;
-    world[ch->in_room].dir_option[2]->to_room = temp;
-
-    send_to_room(ch->in_room,
-                 "\tLThe reality seems to \tCshift\tL as madness descends in the \tcvortex\tn\r\n");
-
-    return TRUE;
-  }
-  return FALSE;
-}
-
-/* from homeland */
 SPECIAL(agrachdyrr)
 {
   struct char_data *i = NULL;
