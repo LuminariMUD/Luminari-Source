@@ -469,13 +469,10 @@ void free_room(struct room_data *room)
     extract_script(&room->script);
   free_proto_script(&room->proto_script);
 
-  /* Free trails. */
-  if (CONFIG_WILDERNESS_SYSTEM == 2)
-  {
-    free_trail_data_list(room->trail_tracks);
-    // free_trail_data_list(room->trail_scent);
-    // free_trail_data_list(room->trail_blood);
-  }
+  /* Trail lists are allocated for every room, independent of wilderness mode. */
+  free_trail_data_list(room->trail_tracks);
+  // free_trail_data_list(room->trail_scent);
+  // free_trail_data_list(room->trail_blood);
 
   /* Free the room. */
   free(room); /* XXX ? */
