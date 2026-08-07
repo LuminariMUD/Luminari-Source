@@ -13,6 +13,7 @@
 #include "character/guild_services.h"
 #include "magic/spellbook_scroll.h"
 #include "obj/vendor.h"
+#include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
 

@@ -218,20 +218,59 @@ lines and from the Phase 03 baseline of 12,212 lines by 9,197 lines.
 | complete exported global-symbol comparison against Checkpoint 4 | PASS, no symbol added, removed, or retyped |
 | `git diff --check` | PASS |
 
+## Checkpoint 6 - Reusable Mobile Archetypes and Clan Services
+
+Checkpoint 6 completes the reusable combat/companion archetype slice and moves clan-hall behavior
+to the clan subsystem:
+
+- `src/spec/spec_mobile_archetypes.c` and `.h` own `dracolich_mob`, `vampire_mob`, `lich_mob`,
+  `cityguard`, `dog`, `practice_dummy`, `planewalker`, `phantom`, `mercenary`, `ethereal_pet`, and
+  the summoned-companion callbacks `wraith`, `skeleton_zombie`, `vampire`, `totemanimal`, `shades`,
+  `solid_elemental`, `wraith_elemental`, and `bonedancer`;
+- the legacy `perform_lichdrain()` helper moves with the lich archetype while retaining its global
+  name and type; and
+- `src/clan_services.c` and `.h` own `clan_cleric` and `clan_guard`, including clan-hall lookup,
+  membership policy, spell pricing, and entrance blocking.
+
+The dedicated archetype file keeps both general mobile sources below the 1,000-line review prompt.
+Assignment and registry code include the archetype owner header directly. `src/spec_procs.h` keeps
+the owner headers as compatibility includes and no longer redeclares the moved callbacks. Both build
+manifests link the two new implementation files for production and CuTest.
+
+This checkpoint preserves callback bodies, function-local static state, signatures, assignments,
+registry identities, command and pulse behavior, player-visible messages, spell and combat effects,
+follower lifecycle, clan prices, and access rules. No player helpfile changed because no command or
+behavior contract changed.
+
+The checkpoint removes 1,055 more lines from `src/spec_procs.c`, reducing it from 3,015 to 1,960
+lines and from the Phase 03 baseline of 12,212 lines by 10,252 lines.
+
+### Checkpoint 6 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 5 | PASS, no symbol added, removed, or retyped |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
-1. Finish the traced ownership audit for common archetypes, guards, clan services, and named mobile
-   packages still in `src/spec_procs.c`.
-2. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
+1. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
    static state with each package.
-3. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
-4. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
-5. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
+2. Move the remaining cohesive zone-specific content and the Celestial Leviathan stub from
+   `src/spec_procs.c` with their packages, then relocate the remaining cross-file equipment helper.
+3. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
+4. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Trace the remaining mobile callbacks by assignment and shared state. Likely general candidates are
-the reusable monster archetypes, `cityguard`, `dog`, and `practice_dummy`; clan services belong with
-the clan subsystem, while named encounters and guards must move with their cohesive zone packages.
-Keep private encounter state beside its callbacks when splitting `src/zone_procs.c`.
+Begin the `src/zone_procs.c` split with the self-contained King's Castle package: its assignment
+entry point, VNUM-offset helpers, guard/staff predicates, rescue and blocking helpers, cleaners,
+twins, training master, and named castle mobiles occupy the first package boundary. Keep every
+private helper and static state beside that package, preserve `assign_kings_castle()` initialization
+order, and compare the complete exported symbol set before proceeding to Abyss and Crimson Flame.

@@ -181,7 +181,8 @@ declared by `src/character/abilities.h` and `src/character/skill_lists.h`;
 spell sorting and display are declared by `src/magic/spell_lists.h`. General legacy mobile and room
 callbacks use `src/spec/spec_mobiles.h` and `src/spec/spec_rooms.h`; guild services, wizard
 research, and pet-shop commerce use their owner headers under `src/character/`, `src/magic/`, and
-`src/obj/`.
+`src/obj/`. Reusable combat/companion callbacks use `src/spec/spec_mobile_archetypes.h`; clan-hall
+services use `src/clan_services.h`.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.
 

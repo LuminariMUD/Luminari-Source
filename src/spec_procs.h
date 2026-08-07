@@ -17,10 +17,12 @@
 #include "character/abilities.h"
 #include "character/guild_services.h"
 #include "character/skill_lists.h"
+#include "clan_services.h"
 #include "magic/spellbook_scroll.h"
 #include "magic/spell_lists.h"
 #include "magic/spells.h"
 #include "obj/vendor.h"
+#include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
 #include "vessels/vessels_moving_rooms.h"
@@ -75,7 +77,6 @@ SPECIAL_DECL(battlemaze_guard);
 SPECIAL_DECL(beltush);
 SPECIAL_DECL(bloodaxe);
 SPECIAL_DECL(bolthammer);
-SPECIAL_DECL(bonedancer);
 SPECIAL_DECL(stability_boots);
 SPECIAL_DECL(celestial_leviathan);
 SPECIAL_DECL(cf_alathar);
@@ -83,7 +84,6 @@ SPECIAL_DECL(cf_trainingmaster);
 SPECIAL_DECL(chan);
 SPECIAL_DECL(ches);
 SPECIAL_DECL(chionthar_ferry);
-SPECIAL_DECL(cityguard);
 SPECIAL_DECL(clang_bracer);
 SPECIAL_DECL(courage);
 SPECIAL_DECL(crafting_kit);
@@ -93,14 +93,11 @@ SPECIAL_DECL(cube_slider);
 
 /* d-f */
 SPECIAL_DECL(disruption_mace);
-SPECIAL_DECL(dog);
 SPECIAL_DECL(dorfaxe);
 SPECIAL_DECL(prisoner_dracolich);
-SPECIAL_DECL(dracolich_mob);
 SPECIAL_DECL(dragonbone_hammer);
 SPECIAL_DECL(drow_scimitar);
 SPECIAL_DECL(duergar_guard);
-SPECIAL_DECL(ethereal_pet);
 SPECIAL_DECL(etherealness);
 SPECIAL_DECL(feybranche);
 SPECIAL_DECL(fake_twilight);
@@ -138,7 +135,6 @@ SPECIAL_DECL(jot_invasion_loader);
 SPECIAL_DECL(kt_kenjin);
 SPECIAL_DECL(kt_shadowmaker);
 SPECIAL_DECL(kt_twister);
-SPECIAL_DECL(lich_mob);
 
 /* m-o */
 SPECIAL_DECL(magi_staff);
@@ -146,7 +142,6 @@ SPECIAL_DECL(magma);
 SPECIAL_DECL(malevolence);
 SPECIAL_DECL(md_carpet);
 SPECIAL_DECL(menzo_chokers);
-SPECIAL_DECL(mercenary);
 SPECIAL_DECL(mereshaman);
 SPECIAL_DECL(mistweave);
 SPECIAL_DECL(mithril_rapier);
@@ -162,13 +157,10 @@ SPECIAL_DECL(ogremoch);
 SPECIAL_DECL(olhydra);
 
 /* p-r */
-SPECIAL_DECL(phantom);
 SPECIAL_DECL(planetar);
 SPECIAL_DECL(planetar_sword);
-SPECIAL_DECL(planewalker);
 SPECIAL_DECL(player_owned_shops);
 SPECIAL_DECL(postmaster);
-SPECIAL_DECL(practice_dummy);
 SPECIAL_DECL(prismorb);
 SPECIAL_DECL(purity);
 SPECIAL_DECL(questmaster);
@@ -178,7 +170,6 @@ SPECIAL_DECL(rughnark);
 
 /* s-u */
 SPECIAL_DECL(sarn);
-SPECIAL_DECL(shades);
 SPECIAL_DECL(shadowdragon);
 SPECIAL_DECL(shar_heart);
 SPECIAL_DECL(shar_statue);
@@ -186,10 +177,8 @@ SPECIAL_DECL(rune_scimitar);
 SPECIAL_DECL(shobalar);
 SPECIAL_DECL(shop_keeper);
 SPECIAL_DECL(secomber_guard);
-SPECIAL_DECL(skeleton_zombie);
 SPECIAL_DECL(skullsmasher);
 SPECIAL_DECL(snakewhip);
-SPECIAL_DECL(solid_elemental);
 SPECIAL_DECL(sparksword);
 SPECIAL_DECL(spiderdagger);
 SPECIAL_DECL(spikeshield);
@@ -200,7 +189,6 @@ SPECIAL_DECL(thrym);
 SPECIAL_DECL(tia_rapier);
 SPECIAL_DECL(the_prisoner);
 SPECIAL_DECL(tormblade);
-SPECIAL_DECL(totemanimal);
 SPECIAL_DECL(trade_bandit);
 SPECIAL_DECL(trade_master);
 SPECIAL_DECL(trade_object);
@@ -214,8 +202,6 @@ SPECIAL_DECL(tyrantseye);
 
 /* v-z */
 SPECIAL_DECL(valkyrie_sword);
-SPECIAL_DECL(vampire);
-SPECIAL_DECL(vampire_mob);
 SPECIAL_DECL(vaprak_claws);
 SPECIAL_DECL(vengeance);
 SPECIAL_DECL(viperdagger);
@@ -224,8 +210,6 @@ SPECIAL_DECL(warbow);
 SPECIAL_DECL(whisperwind);
 SPECIAL_DECL(willowisp);
 SPECIAL_DECL(witherdirk);
-SPECIAL_DECL(wraith);
-SPECIAL_DECL(wraith_elemental);
 SPECIAL_DECL(xvim_artifact);
 SPECIAL_DECL(xvim_normal);
 SPECIAL_DECL(yan);

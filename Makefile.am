@@ -57,6 +57,7 @@ circle_SOURCES = \
 	src/olc/cedit.c \
 	src/char_descs.c \
 	src/clan.c \
+	src/clan_services.c \
 	src/clan_economy.c \
 	src/olc/clan_edit.c \
 	src/clan_transactions.c \
@@ -203,6 +204,7 @@ circle_SOURCES = \
 	src/spec/spec_binding.c \
 	src/spec/spec_dispatch.c \
 	src/spec/spec_effective_binding.c \
+	src/spec/spec_mobile_archetypes.c \
 	src/spec/spec_mobiles.c \
 	src/spec/spec_objects.c \
 	src/spec/spec_rooms.c \
