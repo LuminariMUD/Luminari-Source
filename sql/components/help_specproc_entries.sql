@@ -15,6 +15,22 @@ required flags or placement. Enter a menu number to select it or 0 to clear it,
 then save normally. The selected name is stored in the world file and restored
 at boot.
 
+The menu lists canonical names only. Explicit aliases remain load-compatible,
+but selecting an entry writes its canonical name. Selecting a procedure does
+not add runtime prerequisites such as MOB_SPEC, ITEM_AUTOPROC, equipped,
+carried, or combat state; review the entry description and configure those
+requirements separately.
+
+World loading preserves the exact authored request even when a name is unknown
+or incompatible and installs no callback. Merely opening and saving OLC keeps
+that request. Select a menu entry to replace it with a canonical name, or enter
+0 to clear the authored procedure and omit it on the next zone save.
+
+At boot, SPEC_BIND lines show ordered world, parser-hook, legacy-assignment,
+shop, and quest contributions. SPEC_BIND_FINAL shows the authored request,
+chosen callback, source, and collision count. In -s mode only sources that
+actually run are reported; -s is not a global callback-disable switch.
+
 A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.

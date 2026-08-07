@@ -9,7 +9,7 @@
     "0": {
       "name": "Registry Safety and Observability",
       "description": "Make special-procedure definitions and bindings safe and observable.",
-      "status": "in_progress",
+      "status": "complete",
       "session_count": 9
     }
   },
@@ -21,26 +21,12 @@
     "phase00-session05-owner-aware-olc",
     "phase00-session06-authored-binding-model",
     "phase00-session07-binding-round-trip-persistence",
-    "phase00-session08-effective-binding-observability"
+    "phase00-session08-effective-binding-observability",
+    "phase00-session09-documentation-and-phase-validation"
   ],
   "next_session_history": [
     {
       "date": "2026-08-06",
-      "session": "phase00-session02-command-and-pulse-characterization",
-      "status": "validated"
-    },
-    {
-      "date": "2026-08-06",
-      "session": "phase00-session02-command-and-pulse-characterization",
-      "status": "completed"
-    },
-    {
-      "date": "2026-08-06",
-      "session": "phase00-session03-combat-and-secondary-characterization",
-      "status": "planned"
-    },
-    {
-      "date": "2026-08-06",
       "session": "phase00-session03-combat-and-secondary-characterization",
       "status": "validated"
     },
@@ -122,6 +108,21 @@
     {
       "date": "2026-08-07",
       "session": "phase00-session08-effective-binding-observability",
+      "status": "completed"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session09-documentation-and-phase-validation",
+      "status": "planned"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session09-documentation-and-phase-validation",
+      "status": "validated"
+    },
+    {
+      "date": "2026-08-07",
+      "session": "phase00-session09-documentation-and-phase-validation",
       "status": "completed"
     }
   ]

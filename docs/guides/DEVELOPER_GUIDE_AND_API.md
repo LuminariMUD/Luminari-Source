@@ -24,7 +24,9 @@ The `--dev` flag enables:
 
 This guide provides comprehensive information for developers working on LuminariMUD, including coding standards, architecture patterns, API references, and contribution workflows. It covers both core engine development and content creation.
 
-## Special-Procedure Definition Registry
+## Special-Procedure Control Plane
+
+### Definition Registry
 
 Special procedures registered for world data and OLC are defined in
 `src/spec/spec_registry.c`. Public metadata and accessors are declared in
@@ -97,6 +99,95 @@ event contracts in `src/spec/spec_registry.c`; update the compatibility projecti
 persisted/OLC name is required. Add production-linked validation coverage and update both
 `Makefile.am` and `CMakeLists.txt` if any source file is added or removed. Do not rename a canonical
 identity without a separately tested content migration.
+
+### Authored Binding API
+
+`src/spec/spec_binding.h` defines the owned world-authoring record. A `struct spec_binding` retains
+the owner type, prototype VNUM, exact requested text, resolved immutable definition when available,
+one source bit, source location, and resolution status. Its four possible results are resolved,
+unknown name, incompatible owner, and incompatible binding source.
+
+Use `spec_binding_replace()` to resolve and transactionally replace a record. Unknown and
+incompatible content is a valid owned result rather than an allocation failure. The callback
+returned by `spec_binding_legacy_handler()` is non-null only for a fully resolved record.
+`spec_binding_copy()` and `spec_binding_free()` own the prototype and OLC-copy lifetimes.
+
+World writers call `spec_binding_persisted_name()` first. This accessor returns the exact loaded
+name only for a valid world-authored record, so aliases, unknown names, and incompatible names
+survive an unrelated OLC save. Reverse handler lookup is a compatibility fallback only when no
+authored record exists. Explicit OLC selection replaces the record with the canonical definition
+name; explicit clear frees it and removes the persisted field.
+
+Never infer authored intent from the current callback pointer. A hard-coded assignment, shop, or
+quest may replace or wrap that pointer after world loading without changing what the builder wrote.
+
+### Effective Binding API
+
+`src/spec/spec_effective_binding.h` defines a separate owned observation of boot-time callback
+writes. `spec_effective_binding_contribute()` appends validated source, requested and installed
+identities, location, handler, outcome, and optional saved secondary state. The record tracks the
+current effective contribution and collision count, but it never dispatches a callback and is never
+serialized as world content.
+
+The five contribution sources are:
+
+1. `world` for mobile `SpecProc`, object `Z`, and room `Z` authored fields;
+2. `parser-hook` for moving-room `M` callback ownership;
+3. `legacy-assignment` for hard-coded mobile, object, room, death-trap, and castle writes;
+4. `shop` for `shop_keeper` and its actual saved `SHOP_FUNC`; and
+5. `quest` for `questmaster` and its actual saved `QST_FUNC`.
+
+Outcomes are selected, unresolved, overridden, reasserted, or wrapped. Contribution and final
+formatters produce bounded `SPEC_BIND` and `SPEC_BIND_FINAL` lines; `boot_db()` surrounds them with
+`SPEC_BIND_SUMMARY`. A provenance allocation or formatting failure is observable but cannot
+suppress an established callback assignment.
+
+With specials enabled, the preserved write order is world/parser loading, mobile assignments, shop
+wrappers, object assignments, room assignments, and quest wrappers. With `-s`, world and parser
+records still load while the guarded assignment block does not run. Reporting is outside that
+guard. This is path-specific compatibility behavior, not a new global dispatch gate.
+
+### OLC And Persistence Integration
+
+`src/olc/spec_menu.c` exposes an owner-filtered, one-based view of builder-visible world-bindable
+definitions. The menu renders description, event, prototype-flag, and placement metadata. Invalid
+or out-of-range input leaves state unchanged, and selection does not mutate `MOB_SPEC`,
+`ITEM_AUTOPROC`, equipment, carried state, or combat state.
+
+Mobile, object, and room loaders attach authored and effective records to their prototype index or
+room. Prototype deletion, database shutdown, OLC scratch cleanup, room insertion, and room copying
+must use the matching copy/free APIs. Do not shallow-copy either owned record.
+
+A moving room and a named room definition cannot share `room_data.func`: the moving-room caller
+passes `struct moving_room_data *` through the legacy `me` parameter. The production parser rejects
+`M` plus `Z` in either order, REdit blocks selection and internal save, and `save_rooms()` preflights
+the entire zone before opening output or mutating mover state.
+
+### Adding Or Changing A Registered Procedure
+
+1. Characterize every applicable invocation path and exact legacy arguments before changing
+   behavior.
+2. Add or update the immutable definition and event contracts in `src/spec/spec_registry.c`.
+3. Preserve a stable canonical persisted name; add an explicit alias for compatible historical
+   input instead of another canonical row.
+4. Set owner, binding-source, visibility, flag, and placement metadata from traced callers. OLC does
+   not establish runtime prerequisites automatically.
+5. Add production-linked registry, owner, OLC, persistence, and invocation coverage as applicable.
+6. When a source or CuTest file is added or removed, update both `Makefile.am` and `CMakeLists.txt`.
+7. Update builder help and documentation. Database-first help changes belong in a checked-in
+   migration and read-only verifier under `sql/components/`.
+
+### Phase 00 Boundary
+
+The delivered control plane preserves the single callback slot, `SPECIAL` ABI, world-file grammar,
+command traversal, heartbeat timing, caller-specific return interpretation, activation flags, shop
+and quest nesting, and boot precedence. Event gateways, typed contexts and invalidation, declarative
+assignments, content extraction, shared mechanics, typed-handler conversion, and general handler
+chains remain future work. Current code must not depend on those proposed interfaces.
+
+See [OLC SpecProc Editing](OLC_SpecProcs.md) for the builder workflow and
+[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) for the exact evidence
+matrix.
 
 ## Development Environment Setup
 

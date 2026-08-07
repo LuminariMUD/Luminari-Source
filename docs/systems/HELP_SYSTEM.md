@@ -2,17 +2,18 @@
 
 ## Table of Contents
 1. [System Overview](#system-overview)
-2. [Database Architecture](#database-architecture)
-3. [Core Components](#core-components)
-4. [User Commands](#user-commands)
-5. [Search Algorithms](#search-algorithms)
-6. [Caching System](#caching-system)
-7. [OLC Help Editor (hedit)](#olc-help-editor-hedit)
-8. [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
-9. [Help Content Generation](#help-content-generation)
-10. [Migration & Backup](#migration--backup)
-11. [Troubleshooting](#troubleshooting)
-12. [Best Practices](#best-practices)
+2. [Maintained Content Workflow](#maintained-content-workflow)
+3. [Database Architecture](#database-architecture)
+4. [Core Components](#core-components)
+5. [User Commands](#user-commands)
+6. [Search Algorithms](#search-algorithms)
+7. [Caching System](#caching-system)
+8. [OLC Help Editor (hedit)](#olc-help-editor-hedit)
+9. [Chain of Responsibility Pattern](#chain-of-responsibility-pattern)
+10. [Help Content Generation](#help-content-generation)
+11. [Migration & Backup](#migration--backup)
+12. [Troubleshooting](#troubleshooting)
+13. [Best Practices](#best-practices)
 
 ---
 
@@ -20,7 +21,7 @@
 
 > ### Adding help content: read this first
 >
-> The help system runs in **dual mode** (`src/db.c:4361`), and the file half has a
+> The help system runs in **dual mode** (`load_help()` in `src/db.c`), and the file half has a
 > trap that silently swallows new content.
 >
 > **The file loader does not scan `lib/text/help/`.** It reads
@@ -47,9 +48,9 @@
 > commands. Set this for anything that should not be publicly readable.
 >
 > **The database is authoritative.** `.gitignore` excludes `lib/text/help/*`
-> precisely because content belongs in MySQL now. `hedit import` loads
-> `help.hlp` into the database, but it is hardcoded to that one path
-> (`hedit.c:2545`, `:3218`) and cannot read arbitrary files. For repeatable,
+> precisely because content belongs in MySQL now. `helpgen import` loads
+> `help.hlp` into the database, but it is hardcoded to that one path in `src/olc/hedit.c` and cannot
+> read arbitrary files. For repeatable,
 > reviewable imports, commit a SQL migration under `sql/components/` instead -
 > see `help_vessel_entries.sql` for a worked example covering 31 maintained
 > entries and 77 exact command keywords.
@@ -84,6 +85,35 @@ The LuminariMUD help system is a sophisticated, multi-layered documentation fram
 - **5-minute cache TTL** with 50-entry cache size
 - **Real-time editing** via OLC hedit interface
 - **Automatic content generation** for game elements
+
+---
+
+## Maintained Content Workflow
+
+The source-controlled authority for maintained help is an idempotent SQL component, not the ignored
+runtime export. Use this workflow for new or changed topics:
+
+1. Add or update `sql/components/help_<feature>_entries.sql`. Use a stable tag, an explicit
+   `min_level`, `INSERT ... ON DUPLICATE KEY UPDATE` for the entry, and deterministic keyword rows.
+2. Add or update `sql/components/verify_help_<feature>_entries.sql`. Verification must be read-only
+   and assert content, access level, required keywords, and conflicting keyword ownership.
+3. Classify the migration as `apply` and the verifier as `skip` in
+   `sql/components/ci_schema_manifest.txt`. Every component SQL file must appear exactly once.
+4. Package both files in `Makefile.am` `EXTRA_DIST` when they are new.
+5. Test idempotency by applying the migration twice against connection-local temporary tables, then
+   run the verifier. Apply to a persistent development database only through the normal deployment
+   or migration process.
+6. Reload or restart help and exercise the exact search keywords in a development game.
+
+`help_specproc_entries.sql` and `verify_help_specproc_entries.sql` are the maintained sources for the
+builder/staff `SPECIALS` topic. They cover canonical names and aliases, owner-aware OLC,
+prerequisites, authored-name preservation, explicit replace/clear, boot provenance, `-s` behavior,
+and moving-room exclusivity.
+
+The optional import/export commands are operational compatibility and backup tools. An exported
+`lib/text/help/help.hlp` may be useful to a deployment, but editing that ignored file is not a
+reviewable source change and must not replace a migration. Never place credentials or unescaped
+player input in a help SQL component.
 
 ---
 

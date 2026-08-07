@@ -1,7 +1,7 @@
 # Session 09: Documentation and Phase Validation
 
 **Session ID**: `phase00-session09-documentation-and-phase-validation`
-**Status**: Not Started
+**Status**: Complete
 **Estimated Tasks**: ~14-18
 **Estimated Duration**: 2-4 hours
 
@@ -20,8 +20,8 @@ and prove the complete phase against both supported build manifests and producti
 
 - Update docs/guides/OLC_SpecProcs.md for canonical names, aliases, owner filtering, prerequisites,
   provenance, unresolved names, explicit clear or replace, and collision diagnostics.
-- Update the SPECIALS help entry in lib/text/help/help.hlp for implemented builder and staff
-  behavior.
+- Update the database-first SPECIALS help migration and verifier for implemented builder and staff
+  behavior; leave the ignored runtime help export untouched.
 - Update architecture and developer documentation for definition, authored binding, effective
   binding, validation, and compatibility boundaries.
 - Update the technical documentation index if a new long-lived document is introduced.
@@ -40,8 +40,8 @@ and prove the complete phase against both supported build manifests and producti
 
 ## Prerequisites
 
-- [ ] Sessions 01 through 08 are completed and their behavior is stable.
-- [ ] All session-specific production-linked tests pass independently.
+- [x] Sessions 01 through 08 are completed and their behavior is stable.
+- [x] All session-specific production-linked tests pass independently.
 
 ---
 
@@ -56,8 +56,8 @@ and prove the complete phase against both supported build manifests and producti
 
 ## Success Criteria
 
-- [ ] Documentation distinguishes delivered Phase 00 behavior from later proposals.
-- [ ] Every Phase 00 requirement maps to passing production-linked evidence.
-- [ ] Automake and CMake list every added production and test source consistently.
-- [ ] make test and make install pass, bin/circle is current, and no root-level circle remains.
-- [ ] Changed documentation and helpfiles are ASCII-only UTF-8 with LF endings.
+- [x] Documentation distinguishes delivered Phase 00 behavior from later proposals.
+- [x] Every Phase 00 requirement maps to passing production-linked evidence.
+- [x] Automake and CMake list every added production and test source consistently.
+- [x] make test and make install pass, bin/circle is current, and no root-level circle remains.
+- [x] Changed documentation and helpfiles are ASCII-only UTF-8 with LF endings.

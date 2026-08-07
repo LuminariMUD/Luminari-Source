@@ -1,7 +1,7 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-04
-Version: 1.2
+Last Updated: 2026-08-07
+Version: 1.3
 
 ## Documentation Overview
 
@@ -39,12 +39,14 @@ This master index provides a comprehensive guide to all technical documentation 
 ### System Architecture
 - **[ARCHITECTURE.md](systems/ARCHITECTURE.md)** - Overall system design and module organization
 - **[CORE_SERVER_ARCHITECTURE.md](systems/CORE_SERVER_ARCHITECTURE.md)** - Game loop, networking, and core engine
+- **[Special-Procedure Boot Control Plane](systems/CORE_SERVER_ARCHITECTURE.md#special-procedure-boot-control-plane)** - Definition, authored/effective binding, boot precedence, diagnostics, and compatibility boundaries
 - **[DATA_STRUCTURES_AND_MEMORY.md](development/DATA_STRUCTURES_AND_MEMORY.md)** - Memory management and data structures
 - **[COMMAND_SYSTEM_AND_INTERPRETER.md](systems/COMMAND_SYSTEM_AND_INTERPRETER.md)** - Command parsing and execution
 
 ### Database & Persistence
 - **[DATABASE_INTEGRATION.md](systems/DATABASE_INTEGRATION.md)** - MySQL integration and schema
 - **[SAVE_SYSTEMS_BREAKDOWN.md](systems/SAVE_SYSTEMS_BREAKDOWN.md)** - Save file formats and persistence
+- **[HELP_SYSTEM.md](systems/HELP_SYSTEM.md)** - Database-first help content, SQL migration, verification, and legacy import/export workflow
 
 ### Communication & Protocols
 - **[PROTOCOL_SYSTEMS.md](systems/PROTOCOL_SYSTEMS.md)** - Telnet, MSDP, GMCP, and client protocols
@@ -112,6 +114,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[PHASE_4_INSTALLATION.md](guides/PHASE_4_INSTALLATION.md)** - Phase 4 region effects system setup and testing guide
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
+- **[Special Procedure Phase 00 Validation](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)** - Registry-safety acceptance, 78-test ownership, evidence matrix, and reproducible phase gates
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
@@ -134,6 +137,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Building Guides
 - **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
+- **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, prerequisites, authored persistence, effective diagnostics, and moving-room safety
 - **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - Read-only world parsing, validation, typed lookup, flags, and documentation checks
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 

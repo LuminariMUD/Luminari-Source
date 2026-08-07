@@ -9,6 +9,19 @@ editors for mobs, objects, and rooms.
 - Select from the centralized registry defined in `src/spec/spec_registry.c`.
 - Each editor lists only builder-visible definitions compatible with that mobile, object, or room.
 - Selections apply at save time and now persist across reboots via world files.
+- In game, `HELP SPECIALS` provides the shorter builder and staff reference.
+
+Three states are intentionally separate:
+
+- A **definition** is immutable registry metadata: canonical name, aliases, compatible owners,
+  supported events, prerequisites, category, description, and allowed binding sources.
+- An **authored binding** is the exact name requested by a world file or explicit OLC action. It is
+  preserved even when the name is unknown or incompatible and installs no callback.
+- An **effective binding** is the callback left in the prototype slot after world loading, parser
+  hooks, legacy assignments, shops, and quests contribute in their established boot order.
+
+OLC edits authored state. Startup diagnostics observe effective state. Neither surface changes the
+legacy callback dispatch rules.
 
 ## Usage (medit/oedit/redit)
 
@@ -72,6 +85,11 @@ canonical name. Entering `0` clears both the authored record and callback, so th
 on the next zone save. Merely opening and saving an editor preserves the existing requested name,
 including unresolved content that a builder may need to repair later.
 
+To repair an unresolved or incompatible authored name, select a compatible definition from the
+current editor. That explicit action replaces the old request with the selected canonical name.
+Use `0` only when the intended result is no authored procedure. OLC does not offer free-form entry
+of an unregistered name.
+
 ## Moving Rooms
 
 A moving room's `M` data and a named room SpecProc both own the room's single callback slot. They
@@ -104,6 +122,26 @@ The `source` field distinguishes `world`, `parser-hook`, `legacy-assignment`, `s
 Normal boot reports every source that actually contributed. With `-s`, named world and moving-room
 parser records are still reported, while the guarded legacy, shop, and quest assignment sources are
 absent. This describes the existing boot path; it does not add a new runtime dispatch switch.
+
+These lines are operator diagnostics, not world-file input and not an OLC command. The prototype
+callback pointer remains runtime authority. A collision count reports that more than one source
+contributed; it does not create a multiple-handler chain.
+
+## Phase 00 Compatibility Boundary
+
+Phase 00 changes registration, selection, persistence safety, and observability. It does not change
+the `SPECIAL` callback ABI, command-owner traversal, heartbeat positions, caller-specific return
+handling, activation flags, world-file grammar, or established assignment precedence. Shop and
+quest wrappers keep their existing saved-secondary behavior.
+
+Event-specific gateways, typed contexts, invalidation results, declarative assignment conversion,
+content extraction, shared mechanics, typed handlers, and general multiple-procedure composition
+are later-phase proposals. Do not document or build content as though those proposals are active.
+
+For the implementation boundaries, see
+[Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
+production-linked evidence, see
+[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
 
 ## Notes and Tips
 

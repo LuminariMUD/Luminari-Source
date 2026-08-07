@@ -179,7 +179,7 @@ sessions with 12-25 tasks each.
 
 | Phase | Name | Sessions | Status |
 |-------|------|----------|--------|
-| 00 | Registry Safety and Observability | 9 | In Progress |
+| 00 | Registry Safety and Observability | 9 | Complete |
 | 01 | Call-Site Gateway Compatibility | TBD | Not Started |
 | 02 | Declarative Legacy Assignments | TBD | Not Started |
 | 03 | Behavior-Preserving Content Extraction | TBD | Not Started |
@@ -214,6 +214,14 @@ sessions with 12-25 tasks each.
 7. Binding Round-Trip Persistence
 8. Effective Binding Observability
 9. Documentation and Phase Validation
+
+### Completion
+
+Phase 00 completed on 2026-08-07 with all nine sessions validated. The delivered MVP retains the
+legacy runtime ABI and precedence while adding validated definitions, owner-aware OLC, owned
+authored identity, effective boot provenance, moving-room collision safety, database-first help,
+and 78 dedicated production-linked tests. The durable acceptance evidence is in
+[Special Procedure Phase 00 Validation](../../docs/testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
 
 ## Technical Stack
 
@@ -295,15 +303,19 @@ sessions with 12-25 tasks each.
   narrative is retained as a prioritization guardrail that forbids object extraction before gateway
   characterization but does not require it to precede assignment observability work.
 
+## Resolved Decisions
+
+- Phase 00 retains owned unresolved raw names through unrelated OLC saves. Builders explicitly
+  replace the request with a canonical selection or clear it; the effective callback remains empty
+  until the content resolves.
+
 ## Open Decisions
 
-1. Whether the first binding implementation retains owned unresolved raw names or temporarily blocks
-   OLC save until a builder explicitly replaces or clears the unresolved binding.
-2. Whether concrete content needs eventually justify multiple procedures on one prototype; Phase 06
+1. Whether concrete content needs eventually justify multiple procedures on one prototype; Phase 06
    remains conditional until ordering and persistence requirements have a real consumer.
-3. Which zone or world lifecycle hooks, if any, approved content needs after direct typed hooks
+2. Which zone or world lifecycle hooks, if any, approved content needs after direct typed hooks
    prove a shared contract.
-4. Whether the independent artifact implementation split should be scheduled alongside or outside
+3. Whether the independent artifact implementation split should be scheduled alongside or outside
    this core special-procedure initiative.
 
 ## Consolidated Current-State Evidence

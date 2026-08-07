@@ -1,6 +1,29 @@
 # Changelog
 
-## [Unreleased] - August 6, 2026
+## [Unreleased] - August 7, 2026
+
+### Special-procedure registry safety and observability
+
+#### Changed
+
+- Added validated immutable procedure definitions with stable canonical names, explicit aliases,
+  owner and event contracts, prerequisites, visibility, category, and builder descriptions.
+- Added owner-filtered Medit, OEdit, and REdit selection; owned authored identity that preserves
+  aliases and unresolved content; and authored-first mobile, object, and room persistence.
+- Added ordered effective boot provenance for world, parser-hook, legacy, shop, and quest sources,
+  including collision outcomes, saved wrapper secondaries, and normal or `-s` startup summaries.
+- Rejected moving-room `M` plus named room `Z` ownership during either loader order, REdit selection
+  and save, and whole-zone writer preflight.
+- Reconciled database-first `SPECIALS` help and builder, developer, architecture, help-system, and
+  testing documentation with the delivered Phase 00 behavior.
+
+#### Verification
+
+- Added 78 dedicated production-linked tests across eight suite owners for registry, invocation,
+  metadata, OLC, authored identity, round-trip persistence, effective precedence, secondaries,
+  diagnostics, and moving-room safety.
+- The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
+  verifier, dual-build manifest comparison, and documentation/integrity gates pass.
 
 ### Pet persistence and crash observability
 

@@ -46,6 +46,40 @@ This retains the tested binary and matching symbols under its immutable
 and removes the root-level `circle` artifact that the test build may leave
 behind.
 
+## Special Procedure Phase 00 Regression Ownership
+
+Phase 00 registry safety and observability is owned by eight production-linked test sources plus
+one shared fixture source:
+
+- `test_spec_registry_persistence.c` - 10 registry, persistence, loader, and baseline OLC tests;
+- `test_spec_command_pulse.c` - 13 command, activity, auto-pulse, moving-room, and schedule tests;
+- `test_spec_combat_secondary.c` - 14 combat-token, ignored-return, shop, and quest tests;
+- `test_spec_registry_validation.c` - 13 immutable metadata, bounds, and boot-failure tests;
+- `test_spec_owner_aware_olc.c` - 7 filtered-menu, description, selection, and flag tests;
+- `test_spec_authored_bindings.c` - 7 owned authored-state, loader, diagnostic, and lifecycle tests;
+- `test_spec_binding_round_trip.c` - 7 writer-to-loader identity and explicit-action tests; and
+- `test_spec_effective_binding.c` - 7 provenance, precedence, mode, secondary, and room-safety tests.
+
+The exact inventory is 78 dedicated `Test` functions. `test_spec_fixtures.c` is production-linked
+support and is not counted as a test owner. CuTest has no per-function filter, so the supported
+focused development run is still the complete production-linked executable:
+
+```sh
+make -j"$(nproc)" cutest
+./cutest
+```
+
+Before Phase 00 or a later special-procedure change is released, run `make test`, immediately run
+`make install`, and run the complete independent CTest matrix. The CTest pass includes the Python
+world-tool consumer of `src/spec/spec_registry.c`; this protects source-inspection tooling as well
+as the compiled server. Database-first `SPECIALS` help changes also require the temporary-table SQL
+idempotency and verifier gate.
+
+See [Special Procedure Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) for
+the requirement-to-test map, exact manifest contract, SQL procedure, and integrity checks. Later
+gateway, cooldown, affect, extraction, and general composition coverage remains explicitly deferred
+to its owning implementation phases.
+
 ## Bardic Performance Regression Ownership
 
 `unittests/CuTest/test_bardic_performance.c` is the production-linked owner for

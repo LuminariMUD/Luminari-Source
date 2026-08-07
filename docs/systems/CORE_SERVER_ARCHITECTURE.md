@@ -289,6 +289,66 @@ void boot_world(void)
 }
 ```
 
+### Special-Procedure Boot Control Plane
+
+Special-procedure setup is a compatibility control plane around the existing single callback slot
+on mobile, object, and room prototypes. It has three separate state layers:
+
+| Layer | Owner | Authority |
+|-------|-------|-----------|
+| Immutable definition | `src/spec/spec_registry.c` | Stable identity, aliases, owners, events, prerequisites, visibility, and allowed sources. |
+| Authored binding | Prototype-owned `struct spec_binding` | Exact world or explicit OLC request used by persistence and content diagnostics. |
+| Effective history | Prototype-owned `struct spec_effective_binding` | Ordered observation of boot callback writes, collisions, wrappers, and final slot. |
+
+The actual function pointer on `room_data` or mobile/object `index_data` remains runtime dispatch
+authority. Neither metadata record invokes callbacks, changes return handling, or creates a handler
+chain.
+
+The relevant `boot_db()` sequence is:
+
+```text
+spec_registry_boot_validate()
+  -> boot_world()
+       -> named world bindings
+       -> moving-room parser hooks
+  -> if specials are enabled:
+       assign_mobiles()
+       assign_the_shopkeepers()
+       assign_objects()
+       assign_rooms()
+       assign_the_quests()
+  -> report_effective_spec_bindings()
+```
+
+Registry validation is a programmer-error boundary and runs before any world file is parsed.
+Unknown or owner/source-incompatible world names are content errors: the owned authored record and
+source location remain available, but no callback is installed.
+
+The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
+wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
+general chain. Under `-s`, world names and parser hooks still load while the assignment block is
+skipped. Effective reporting remains outside that block and labels the mode, so it describes the
+path that ran without becoming a new global dispatch gate.
+
+Each contribution emits a bounded `SPEC_BIND` line. `SPEC_BIND_FINAL` records the latest authored
+request, contribution and collision counts, and final source/handler. `SPEC_BIND_SUMMARY` brackets
+the report and provides aggregate counts. Text inputs are owned, single-line validated, and escaped
+before formatting.
+
+Authored and effective records follow prototype lifetimes. Database shutdown, prototype deletion,
+OLC scratch cleanup, room insertion, and room copying use explicit deep-copy/free operations. World
+writers consult authored identity first and use reverse handler lookup only for a legacy prototype
+that has no authored record.
+
+Moving-room `M` data is a parser-owned callback with a different `me` payload from room procedures.
+It cannot share the room callback slot with a named `Z` binding. Boot rejects both field orders,
+REdit blocks selection and defensive internal save, and the room writer preflights the complete zone
+before opening output or mutating mover state.
+
+Phase 00 does not introduce event gateways, typed invocation contexts, invalidation results,
+declarative assignments, or multiple-handler dispatch. Those remain later architecture phases and
+must preserve the characterized scheduling, traversal, activation, return, and precedence rules.
+
 ## Performance Monitoring
 
 The server includes built-in performance profiling through the `perfmon.c` system:

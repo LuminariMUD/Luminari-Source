@@ -13,6 +13,23 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'moving room cannot also have a named room SpecProc') > 0;
 
 SELECT
+  'content_contract' AS check_name,
+  COUNT(*) AS actual,
+  1 AS expected,
+  IF(COUNT(*) = 1, 'PASS', 'FAIL') AS result
+FROM help_entries
+WHERE BINARY tag = 'spec-proc'
+  AND INSTR(entry, 'canonical names only') > 0
+  AND INSTR(entry, 'Explicit aliases remain load-compatible') > 0
+  AND INSTR(entry, 'MOB_SPEC') > 0
+  AND INSTR(entry, 'ITEM_AUTOPROC') > 0
+  AND INSTR(entry, 'preserves the exact authored request') > 0
+  AND INSTR(entry, 'Select a menu entry to replace') > 0
+  AND INSTR(entry, '0 to clear the authored procedure') > 0
+  AND INSTR(entry, 'SPEC_BIND_FINAL') > 0
+  AND INSTR(entry, '-s is not a global callback-disable switch') > 0;
+
+SELECT
   'required_keywords' AS check_name,
   COUNT(*) AS actual,
   5 AS expected,
