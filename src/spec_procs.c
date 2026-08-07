@@ -216,26 +216,6 @@ SPECIAL(olhydra)
 /* General guild and mobile procedures are implemented by their feature owners. */
 
 /* from homeland */
-SPECIAL(illithid_gguard)
-{
-  const char *buf = "$N \tLsteps in front of you, blocking you from accessing the gate.\tn";
-  const char *buf2 = "$N \tLsteps in front of $n\tL, blocking access the gate.\tn";
-
-  if (!IS_MOVE(cmd))
-    return FALSE;
-
-  // if (cmd == SCMD_EAST && GET_RACE(ch) != RACE_ILLITHID) {
-  if (cmd == SCMD_EAST)
-  {
-    act(buf, FALSE, ch, 0, (struct char_data *)me, TO_CHAR);
-    act(buf2, FALSE, ch, 0, (struct char_data *)me, TO_ROOM);
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-/* from homeland */
 SPECIAL(duergar_guard)
 {
   const char *buf = "$N steps into the opening and blocks your path.\r\n";

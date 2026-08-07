@@ -207,7 +207,8 @@ coordination uses `src/spec/spec_zone_feybranche.h`, and Abyssal Vortex exit rot
 `src/spec/spec_zone_earth_plane.h`, and Air Plane combat and reinforcement behavior uses
 `src/spec/spec_zone_air_plane.h`. Zusuk's Fzoul command callback uses
 `src/spec/spec_zone_zusuk.h`, while the Orc Ruins Shar callbacks use
-`src/spec/spec_zone_orc_ruins.h`. Use
+`src/spec/spec_zone_orc_ruins.h`. Illithid Enclave access control uses
+`src/spec/spec_zone_illithid_enclave.h`. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
 `src/spec_procs.h` retains compatibility includes for older consumers. Shared
 mechanics, typed-handler conversion, and general chains remain future work.

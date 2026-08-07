@@ -959,6 +959,35 @@ player or builder helpfile changed because no command, authored-data, or behavio
 | both build manifests include `src/spec/spec_zone_orc_ruins.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 28 - Illithid Enclave Zone Procedure
+
+Checkpoint 28 moves the `illithid_gguard` mobile callback from `src/spec_procs.c` to
+`src/spec/spec_zone_illithid_enclave.c`, with its declaration published through
+`src/spec/spec_zone_illithid_enclave.h`. Its only direct assignment remains mobile VNUM 126928. It
+has no registry definition or authored world binding. The assignment source includes the owner
+header directly, while `src/spec_procs.h` retains the owner include as a compatibility surface.
+
+This is an ownership-only move. All 19 legacy implementation lines are unchanged, including the
+movement-command guard, east-direction match, messages and targets, dormant race-restriction
+comment, and return values. The owner directly includes `movement/movement.h` for the existing
+`IS_MOVE` macro's `do_move` dependency. Removing the adjacent separator line reduces
+`src/spec_procs.c` from 1,000 to 980 lines. Both build manifests link the 36-line owner source. No
+player or builder helpfile changed because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 28 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 27 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 19 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_illithid_enclave.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -968,10 +997,9 @@ player or builder helpfile changed because no command, authored-data, or behavio
 
 ## Resume Point
 
-Move the 19-line Illithid Enclave block at `src/spec_procs.c:218-236` to a dedicated owner. The
-`illithid_gguard` callback remains assigned to mobile VNUM 126928 and has no registry definition or
-authored world binding. Preserve the global name and type, movement-command guard, east-direction
-match, both messages and targets, dormant race-restriction comment, return values, and
-exported-symbol parity. Add the implementation to both build manifests and make `src/spec_assign.c`
-include the owner header directly. The following `duergar_guard` belongs to a different zone
-package.
+Move the 18-line Kobold Caverns block at `src/spec_procs.c:218-235` to a dedicated owner. The
+`duergar_guard` callback remains assigned to mobile VNUM 114721 and has no registry definition or
+authored world binding. Preserve the global name and type, movement-command guard, down-direction
+match, both messages and targets, return values, and exported-symbol parity. Add the implementation
+to both build manifests and make `src/spec_assign.c` include the owner header directly. The
+following `bandit_guard` belongs to a different zone package.

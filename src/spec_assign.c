@@ -32,6 +32,7 @@
 #include "spec/spec_zone_feybranche.h"
 #include "spec/spec_zone_fire_giant.h"
 #include "spec/spec_zone_hive_of_passion.h"
+#include "spec/spec_zone_illithid_enclave.h"
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_kenjin_tower.h"
 #include "spec/spec_zone_kings_castle.h"
