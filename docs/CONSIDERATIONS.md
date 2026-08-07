@@ -4,7 +4,7 @@
 
 This document preserves design and maintenance lessons that should survive the
 current backlog. It is the canonical destination for durable considerations
-previously maintained under `.spec_system/`.
+previously maintained in the retired workflow records.
 
 ## Special Procedure Architecture Refactor
 
@@ -55,6 +55,8 @@ for delivered behavior and evidence.
   activation gates, wrapper nesting, and `no_specials` behavior must survive gateway extraction.
 - **Moving rooms own the room callback slot:** A room `M` record and named `Z` procedure are
   mutually exclusive until relocation receives a separately specified typed hook.
+- **Hard-coded room assignments remain a legacy exception:** They retain post-load precedence and
+  can replace a moving-room callback. The `M` plus `Z` guard is not general callback arbitration.
 - **Compatibility inventory is asymmetric:** The registry has 28 canonical definitions but 29
   indexed compatibility names because `Guildmaster` is an alias of canonical `Guild`.
 - **Persistence remains single-handler:** Existing world syntax stores one authored name per

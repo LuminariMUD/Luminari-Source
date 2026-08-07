@@ -109,6 +109,8 @@ handler, outcome, source location, and saved secondary handler. A `SPEC_BIND_FIN
 the authored name, contribution and collision counts, and final source and handler. The surrounding
 `SPEC_BIND_SUMMARY` lines provide aggregate prototype, contribution, and collision counts.
 
+This report is a boot-time snapshot. Later OLC reassignment does not rewrite the recorded chain.
+
 Contribution outcomes have these meanings:
 
 - `selected`: the contribution installed the first resolved callback after no callback was active.

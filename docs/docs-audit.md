@@ -2,7 +2,7 @@
 
 This is the canonical repository documentation-audit ledger. It preserves the current Phase 00
 transition audit and the earlier vessel-documentation consolidation audit without requiring a
-second report under `.spec_system/`.
+second workflow-local report.
 
 ## Phase 00 Transition Documentation Audit
 
@@ -24,6 +24,10 @@ used the first-session base commit to establish the phase manifest. The Phase 00
 health infrastructure surfaces received the deep audit; required root and standard documentation
 entry points were also checked.
 
+The session workflow artifacts were later removed after their enduring content was consolidated
+into the maintained documents named in this ledger. Git history retains the original execution
+records.
+
 The audit did not claim a full behavioral review of every historical or subsystem document under
 `docs/`. Unchanged legacy catalogs route readers to current entry points or carry an explicit
 legacy warning where they remain linked.
@@ -38,9 +42,9 @@ legacy warning where they remain linked.
 | ADR support | 1 | 2 | Template plus accepted vessel ADR present |
 | Active subdirectory overview naming | 0 legacy names allowed | 0 `README.md` violations | PASS outside archived `EXAMPLE/` trees |
 | Monorepo package READMEs | 0 | 0 | N/A; analyzer reports `monorepo=false` |
-| Phase 00 implementation notes | 9 | 9 | Read |
-| Phase 00 implementation summaries | 9 | 9 | Read during carryforward and used for sync |
-| Phase 00 security reports | 9 | 9 | Read during carryforward and used for security/deployment wording |
+| Phase 00 implementation notes | 9 | 9 | Read before consolidation |
+| Phase 00 implementation summaries | 9 | 9 | Read before consolidation and used for sync |
+| Phase 00 security reports | 9 | 9 | Read before consolidation and used for security/deployment wording |
 
 ### Files Created
 
@@ -129,10 +133,10 @@ example project snapshots rather than current project entry points.
 
 | Area | Document | Codebase or Spec Evidence | Result |
 |------|----------|---------------------------|--------|
-| Project state | This report | `bash .spec_system/scripts/analyze-project.sh --json` | P00 complete; 9 sessions; non-monorepo |
+| Project state | This report | Phase 00 closeout snapshot retained in Git history | P00 complete; 9 sessions; non-monorepo |
 | Phase manifest | Phase-focused docs | First session `Base Commit` plus `git diff --name-only fced8f85..HEAD` | Authoritative transition manifest established |
-| Phase semantics | Phase 00 docs | Nine `implementation-notes.md` and `IMPLEMENTATION_SUMMARY.md` files | Read and synchronized |
-| Carryforward inputs | Operations/security docs | `docs/CONSIDERATIONS.md`, Phase 00 validation security section, and `.spec_system/audit/known-issues.md` | Consolidated without claiming production activation |
+| Phase semantics | Phase 00 docs | Nine implementation records, retained in Git history after consolidation | Read and synchronized |
+| Carryforward inputs | Operations/security docs | `docs/CONSIDERATIONS.md`, `docs/known-issues.md`, and the Phase 00 validation security section | Consolidated without claiming production activation |
 | Quick start | `README.md`, onboarding/build docs | `deploy.sh --help`; deploy build/database/world functions inspected | Updated |
 | Build/test commands | Development and contributing docs | `Makefile.am` test/test-all/install targets; dry-run target inspection | Verified |
 | CMake commands | Development/build docs | `CMakeLists.txt` `BUILD_TESTS` and install blocks | Verified |
@@ -160,18 +164,17 @@ example project snapshots rather than current project entry points.
 
 - The approved production release still needs the canonical systemd unit installed/restarted and
   the readiness endpoint probed. Repository policy prohibited that production mutation from this
-  development checkout; the local equivalent passed and the exception remains in
-  `.spec_system/audit/known-issues.md`.
+  development checkout; the local equivalent passed and the exception remains in the
+  [known-issues ledger](known-issues.md).
 - The repository has no single general application rollback command. Current docs state that
   constraint and require identified immutable release, database, world-data, and component-runbook
   evidence before production rollback.
 
 ### Next Action
 
-The [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) defines unfinished Phases 01
-through 06 even though the analyzer reports only completed Phase 00 in state tracking. Under the
-two-source workflow rule, `phasebuild` owns reconciliation and is the next Apex workflow command.
-It was not run by this documentation consolidation.
+The [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) remains the maintained source
+for unfinished Phases 01 through 06. Future work should use that roadmap and the repository's
+standard development workflow; retired workflow state no longer schedules a follow-up command.
 
 ## Vessel Documentation Consolidation Audit
 

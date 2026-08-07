@@ -8,7 +8,7 @@ Branch: `master`
 
 Selected bundle: Health
 
-The required analyzer ran before infrastructure inspection. This is a
+Repository and build-manifest inspection ran before infrastructure inspection. This is a
 single-package GNU C23 MUD server deployed through the repository's systemd
 unit and autorun supervisor. The highest-priority missing bundle was Health:
 the existing loopback Terrain API supported newline-delimited JSON but did not
@@ -46,14 +46,13 @@ The repository is a development checkout. Validation used an isolated local
 runtime, a disposable MariaDB 10.11 container bound to loopback, game port
 4199, and health port 4182. No protected runtime configuration or credentials
 were changed. Production application is intentionally deferred by repository
-policy and is recorded in the
-[Apex known-issues ledger](../../.spec_system/audit/known-issues.md).
+policy and is recorded in the [known-issues ledger](../known-issues.md).
 
 ## Evidence Ledger
 
 | Bundle | Component | Package | Command | Result | Fixes Applied | Remaining / Blocker |
 |--------|-----------|---------|---------|--------|---------------|---------------------|
-| Health | Project detection | root | `bash .spec_system/scripts/analyze-project.sh --json` | PASS | None | None |
+| Health | Project detection | root | `git rev-parse --show-toplevel` plus build-manifest inspection | PASS | None | None |
 | Health | Route contracts | root | `LUMINARI_TEST_ROOT="$PWD" ./cutest` | PASS; 551/551 | Added readiness, liveness, 404, and 405 cases | None |
 | Health | Probe script | root | `scripts/operations/test_healthcheck.sh` | PASS | Added fail-closed payload checks | None |
 | Health | Live readiness | root | `LUMINARI_HEALTH_URL=http://127.0.0.1:4182/health scripts/operations/healthcheck.sh --wait` | PASS (local); HTTP 200, game loop healthy, MariaDB healthy | None | Production probe deferred by repository policy |
@@ -86,6 +85,7 @@ The endpoint is loopback-only, reports required database readiness, has a
 separate liveness route, and is enforced during systemd startup and CI smoke
 testing. No credential-bearing file was modified.
 
-## Next command
+## Follow-up
 
-`carryforward`
+The production activation exception remains tracked in the
+[known-issues ledger](../known-issues.md).

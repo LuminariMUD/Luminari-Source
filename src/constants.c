@@ -40,7 +40,7 @@
  *   - CMakeLists.txt (project VERSION for CMake build)
  *   - README.md (documentation)
  * When updating version, update ALL locations above. */
-cpp_extern const char *const luminari_version = "LuminariMUD 2.5051-beta (tbaMUD 3.64)";
+cpp_extern const char *const luminari_version = "LuminariMUD 2.5052-beta (tbaMUD 3.64)";
 cpp_extern const char *const luminari_build_git_commit = LUMINARI_BUILD_GIT_COMMIT;
 cpp_extern const bool luminari_build_git_dirty = LUMINARI_BUILD_GIT_DIRTY != 0;
 

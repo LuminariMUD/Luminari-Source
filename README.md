@@ -4,7 +4,7 @@ LuminariMUD is a text-based multiplayer game server implementing Pathfinder and
 D&D 3.5 mechanics on the tbaMUD/CircleMUD foundation. The supported server is
 written in GNU C23 and requires MariaDB or MySQL at runtime.
 
-Current version: `2.5051-beta` (tbaMUD 3.64).
+Current version: `2.5052-beta` (tbaMUD 3.64).
 
 ## Quick Start
 
@@ -52,8 +52,7 @@ removes the root-level `circle` artifact.
 |-- sql/          # Master schema and component migrations/verifiers
 |-- scripts/      # Deployment, operations, debugging, and world tools
 |-- unittests/    # Production-linked CuTest and focused harnesses
-|-- docs/         # Maintained developer, builder, and operator documentation
-`-- .spec_system/ # Specification, validation, and phase evidence
+`-- docs/         # Maintained developer, builder, and operator documentation
 ```
 
 MariaDB stores accounts, characters, help, and subsystem data. Flat files under

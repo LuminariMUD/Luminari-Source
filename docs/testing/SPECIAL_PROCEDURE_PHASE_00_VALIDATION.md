@@ -6,9 +6,9 @@ This document is the durable acceptance and test-ownership matrix for Phase 00: 
 Observability. It maps the phase exit criteria to production source, dedicated production-linked
 tests, builder/operator documentation, and reproducible validation commands.
 
-The dated execution record for the final run is
-`.spec_system/specs/phase00-session09-documentation-and-phase-validation/validation.md`. This
-document defines what must be proven; the workflow validation report records the exact run result.
+Phase 00 was fully completed and verified on 2026-08-07. This is the durable closeout record;
+per-session workflow artifacts were removed after their enduring contracts and evidence were
+consolidated into maintained project documentation. Git history retains the original execution logs.
 
 ## Delivered Boundary
 
@@ -35,7 +35,7 @@ cooldown mechanics, typed-handler conversion, or general multiple-handler compos
 
 | Phase 00 Criterion | Implementation Evidence | Production-Linked Evidence |
 |--------------------|-------------------------|----------------------------|
-| All nine sessions are complete and validated. | Phase PRD tracker plus Session 01-09 validation reports. | Each session `validation.md` has `Result: PASS`; final state is checked by Apex validation/audit. |
+| Phase 00 is fully complete and verified. | The delivered control plane is identified below by production owner. | All 78 dedicated tests and every reproducible closeout gate passed on 2026-08-07. |
 | Every verified invocation category and registry compatibility behavior is characterized. | Existing callers in `src/interpreter.c`, `src/mob/mob_act.c`, `src/comm.c`, `src/combat/`, `src/obj/act.item.c`, shops, quests, and moving rooms remain unchanged. | `test_spec_registry_persistence.c` (10), `test_spec_command_pulse.c` (13), and `test_spec_combat_secondary.c` (14). |
 | Every definition has valid identity and complete metadata. | `src/spec/spec_registry.c` immutable definition table. | `Test_spec_registry_production_metadata_validates`, `Test_spec_registry_canonical_inventory_and_metadata`, and event/owner contract tests in `test_spec_registry_validation.c`. |
 | Invalid metadata fails before world parsing and accessors are bounds-safe. | `spec_registry_boot_validate()` precedes `boot_world()` in `src/db.c`; registry accessors validate indices and one-bit masks. | `Test_spec_registry_accessors_reject_extreme_inputs`, all malformed-definition tests, and `Test_spec_registry_boot_validation_precedes_world_parsing`. |
