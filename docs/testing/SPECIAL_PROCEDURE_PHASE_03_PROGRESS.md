@@ -622,6 +622,36 @@ contract changed.
 | both build manifests include `src/spec/spec_zone_banshee.c` | PASS |
 | `git diff --check` | PASS |
 
+## Checkpoint 17 - Quicksand Zone Procedures
+
+Checkpoint 17 moves the `quicksand` room callback from `src/spec_procs.c` to
+`src/spec/spec_zone_quicksand.c` and publishes its callback declaration through
+`src/spec/spec_zone_quicksand.h`. Its 15 direct room assignments remain unchanged in
+`src/spec_assign.c`; no registry definition or authored world binding changed. The assignment
+source now includes the owner header directly, while `src/spec_procs.h` retains the owner include as
+a compatibility surface.
+
+This is an ownership-only move. All 40 legacy implementation lines are unchanged, including the
+command guard, NPC and pet eligibility, flying, paralysis, and level exemptions, Dexterity roll
+comparison, message targets, hold-person affect construction, paralysis bit, three-pulse duration,
+`affect_join()` arguments, and return values. Removing the adjacent separator line reduces
+`src/spec_procs.c` from 1,860 to 1,819 lines. Both build manifests link the 58-line owner source. No
+player or builder helpfile changed because no command, authored-data, or behavior contract changed.
+
+### Checkpoint 17 verification
+
+| Gate | Result |
+|------|--------|
+| warning-clean Autotools production build | PASS |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 16 | PASS, no symbol added, removed, or retyped |
+| exact comparison of all 40 moved legacy lines | PASS, no content drift |
+| both build manifests include `src/spec/spec_zone_quicksand.c` | PASS |
+| `git diff --check` | PASS |
+
 ## Remaining Phase 03 Work
 
 1. Move the remaining cohesive zone-specific content from `src/spec_procs.c` with its packages.
@@ -631,12 +661,12 @@ contract changed.
 
 ## Resume Point
 
-Move the 40-line Quicksand boundary at `src/spec_procs.c:454-493`, beginning with its procedure
-comment and ending after `quicksand`, to a dedicated zone owner. Its 15 direct room assignments in
-`src/spec_assign.c` are VNUMs 126771, 126776, 126752, 126710, 126716, 126731, 126870, 126871,
-126887, 126831, 126840, 126848, 126788, 126793, and 126800; it has no registry definition. Preserve
-the callback name and type, command guard, NPC/pet eligibility, flying/paralysis/level exemptions,
-Dexterity roll comparison, message targets, hold-person affect construction, paralysis bit,
-three-pulse duration, `affect_join()` arguments, assignment order, return values, and
-exported-symbol parity. Add the new implementation to both build manifests and make
-`src/spec_assign.c` include the owner header directly.
+Move the 121-line Tower of Kenjin package at `src/spec_procs.c:454-574`, beginning with the Kenjin
+procedure comment and ending after `kt_twister`, to a dedicated zone owner. `kt_kenjin` is assigned
+to mobile VNUM 132910; `kt_twister` is assigned to room VNUMs 132902 through 132905. Neither has a
+registry definition. Preserve both callback names and types, target selection and three-way effect
+choice, affect construction, teleport and mobile-load VNUMs, room exit rotation including the
+existing mixed 132901/32901 references, dynamically allocated shadow descriptions, copied level and
+class values, assignment order, messages, returns, and exported-symbol parity. Leave the dormant
+`kt_shadowmaker` declaration and commented assignment unchanged. Add the new implementation to both
+build manifests and make `src/spec_assign.c` include the owner header directly.

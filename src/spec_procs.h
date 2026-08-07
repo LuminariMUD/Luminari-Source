@@ -34,6 +34,7 @@
 #include "spec/spec_zone_kings_castle.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
+#include "spec/spec_zone_quicksand.h"
 #include "spec/spec_zone_shadow_dragon.h"
 #include "spec/spec_zone_ttf.h"
 #include "vessels/vessels_moving_rooms.h"
@@ -148,7 +149,6 @@ SPECIAL_DECL(postmaster);
 SPECIAL_DECL(prismorb);
 SPECIAL_DECL(purity);
 SPECIAL_DECL(questmaster);
-SPECIAL_DECL(quicksand);
 SPECIAL_DECL(receptionist);
 SPECIAL_DECL(rughnark);
 

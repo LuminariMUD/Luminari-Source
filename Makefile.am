@@ -218,6 +218,7 @@ circle_SOURCES = \
 	src/spec/spec_zone_mad_drow.c \
 	src/spec/spec_zone_neverwinter.c \
 	src/spec/spec_zone_prisoner.c \
+	src/spec/spec_zone_quicksand.c \
 	src/spec/spec_zone_shadow_dragon.c \
 	src/spec/spec_zone_ttf.c \
 	src/spec/spec_registry.c \
