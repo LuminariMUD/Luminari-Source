@@ -76,9 +76,11 @@ as the compiled server. Database-first `SPECIALS` help changes also require the 
 idempotency and verifier gate.
 
 See [Special Procedure Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) for
-the requirement-to-test map, exact manifest contract, SQL procedure, and integrity checks. Later
-gateway, cooldown, affect, extraction, and general composition coverage remains explicitly deferred
-to its owning implementation phases.
+the requirement-to-test map, exact manifest contract, SQL procedure, and integrity checks, and
+[Special Procedure Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md) for the
+gateway translation, flow, and extraction-safety coverage. Later cooldown, affect, content
+extraction, and general composition coverage remains explicitly deferred to its owning
+implementation phases.
 
 ## Bardic Performance Regression Ownership
 

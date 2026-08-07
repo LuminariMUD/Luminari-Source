@@ -40,8 +40,13 @@ MariaDB <-> mysql.c and subsystem persistence <-> accounts and runtime data
 World boot validates special-procedure definitions before parsing world files.
 Definitions, exact authored binding intent, and ordered effective boot
 provenance are separate state layers; the existing callback slot remains the
-runtime dispatch authority until later gateway phases are implemented. See the
-[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
+runtime dispatch authority. Every engine call site now reaches that slot through
+an event gateway in `src/spec/spec_dispatch.c`, which builds typed event context
+where complete data still exists and then performs the exact legacy `SPECIAL`
+translation. Handlers themselves are still legacy. See the
+[Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)
+and the
+[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
 
 ## Operational Boundary
 

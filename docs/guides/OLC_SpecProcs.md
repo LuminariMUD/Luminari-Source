@@ -136,14 +136,17 @@ the `SPECIAL` callback ABI, command-owner traversal, heartbeat positions, caller
 handling, activation flags, world-file grammar, or established assignment precedence. Shop and
 quest wrappers keep their existing saved-secondary behavior.
 
-Event-specific gateways, typed contexts, invalidation results, declarative assignment conversion,
-content extraction, shared mechanics, typed handlers, and general multiple-procedure composition
-are later-phase proposals. Do not document or build content as though those proposals are active.
+Event-specific gateways and typed event context are implemented, but they are an engine-side
+concern: nothing a builder selects, sees, or saves in OLC changed, and every procedure still runs
+with its existing behavior. Declarative assignment conversion, content extraction, shared mechanics,
+typed handlers, and general multiple-procedure composition remain later-phase proposals. Do not
+document or build content as though those proposals are active.
 
 For the implementation boundaries, see
 [Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
 production-linked evidence, see
-[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
+[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) and
+[Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
 
 ## Notes and Tips
 

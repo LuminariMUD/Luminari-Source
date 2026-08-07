@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phase 00 is complete. Phases 01-06 are not started.
+Phases 00 and 01 are complete. Phases 02-06 are not started.
 
 ## Goals
 
@@ -48,7 +48,7 @@ Phase 00 is complete. Phases 01-06 are not started.
 | Phase | Name | Status |
 |-------|------|--------|
 | 00 | Registry Safety and Observability | Complete (2026-08-07) |
-| 01 | Call-Site Gateway Compatibility | Not Started |
+| 01 | Call-Site Gateway Compatibility | Complete (2026-08-07) |
 | 02 | Declarative Legacy Assignments | Not Started |
 | 03 | Behavior-Preserving Content Extraction | Not Started |
 | 04 | Narrow Shared Mechanics | Not Started |
@@ -71,17 +71,27 @@ content extraction, shared mechanics, typed-handler conversion, or composition.
 Acceptance evidence:
 [Special Procedure Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md).
 
-### Phase 01 - Call-Site Gateway Compatibility
+### Phase 01 - Call-Site Gateway Compatibility (Complete)
 
-1. Define contexts, gateway-local flow, and independent invalidation for every current event.
-2. Route command, pulse, identification, combat, maneuver, charge, moving-room, shop, and quest
-   callers through gateways without converting handlers.
-3. Translate exactly to current `ch`, `me`, `cmd`, argument, and return behavior.
-4. Cache iteration state before callbacks; remove unsafe post-call dereferences where extraction is
-   an established contract.
+Delivered one testable seam between every engine call site and the unchanged `SPECIAL` ABI:
+`struct spec_event_context` with gateway-local flow and independent invalidation
+(`src/spec/spec_dispatch.h`); fourteen gateways covering command, mobile activity, mobile combat
+turn, object auto-pulse, item identify, weapon hit, defense reaction, combat maneuver, mount charge,
+moving-room relocation, and shop/quest secondary forwarding (`src/spec/spec_dispatch.c`); exact
+translation of every `ch`, `me`, `cmd`, argument token, and caller-specific return; typed target
+payloads captured at the call site rather than inferred from `FIGHTING()`; and 12 dedicated
+production-linked tests.
 
-Exit when characterized non-extraction behavior is unchanged, complete event data reaches one
-testable seam at every caller, and each intentional extraction-safety correction is tested.
+Two intentional extraction-safety corrections shipped with the routing: `special()` and
+`proc_update()` now cache the iteration successor before invoking a callback, so a handler that
+extracts its owner and returns zero can no longer leave the caller following cleared storage.
+
+Phase 01 converted no handlers and registered no typed handler, so the notification-only contract
+error has no producer yet. Traversal order, stop rules, pulse scheduling, activation flags, boot
+precedence, and `-s` behavior are unchanged.
+
+Acceptance evidence:
+[Special Procedure Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md).
 
 ### Phase 02 - Declarative Legacy Assignments
 
@@ -183,12 +193,12 @@ land.
 
 | Criterion | Status |
 |-----------|--------|
-| Every invocation category has characterization coverage before its gateway migration changes flow. | Registry, command, pulse, and combat paths characterized in Phase 00; recheck per gateway. |
+| Every invocation category has characterization coverage before its gateway migration changes flow. | Met: all 12 categories characterized in Phase 00 and re-verified against their Phase 01 gateways. |
 | Every persisted definition has one canonical identity, aliases, owner/event metadata, visibility, prerequisites, category, and description. | Met by Phase 00. |
 | Unknown or incompatible names are diagnosable and cannot be silently erased by unrelated OLC saves. | Met by Phase 00. |
 | OLC writers preserve authored provenance instead of serializing an effective override via reverse pointer lookup. | Met by Phase 00. |
 | Effective bindings and sources are inspectable for every mob, object, and room prototype. | Met by Phase 00. |
-| Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Open (Phase 01). |
+| Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
 | File organization follows primary responsibility, with both build systems synchronized. | Open (Phase 03). |
 | Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 00 close. |
@@ -305,9 +315,10 @@ typed context must be built at each call site.
 The integer return is not a universal contract: command consumed, mobile activity skipped, carried
 fallback skipped, or nothing. Typed flow must stay gateway-specific.
 
-Command and auto-proc traversals do not consistently cache successors before a callback. A handler
-that extracts its owner and returns zero can leave the caller following freed storage. Character
-pending-extraction flags may be inspected where available; no safe post-free object probe exists.
+**Superseded by Phase 01 for the command and auto-proc traversals**, which now cache successors
+before every callback. The general rule still holds elsewhere: a handler that extracts its owner and
+returns zero can leave a caller following freed storage. Character pending-extraction flags may be
+inspected where available; no safe post-free object probe exists.
 
 ### Single-Handler Storage and Compatibility Composition
 
@@ -429,20 +440,19 @@ procedure is bound.
 
 ### Layout
 
-Shipped (Phase 00):
+Shipped (Phases 00-01):
 
 ```text
 src/spec/spec_registry.c|.h
 src/spec/spec_binding.c|.h
 src/spec/spec_effective_binding.c|.h
+src/spec/spec_dispatch.c|.h
 src/olc/spec_menu.c|.h
 ```
 
 Proposed for later phases, subject to session planning:
 
 ```text
-src/spec/spec_dispatch.c|.h
-src/spec/spec_context.c|.h
 src/spec/spec_cooldown.c|.h        (needs two real consumers)
 src/spec/spec_effects.c|.h         (needs two real consumers)
 src/spec/spec_mobiles.c
@@ -689,11 +699,10 @@ consumer proves a shared contract. Do not build a broad asynchronous event bus.
 Use the root production-linked CuTest suite for behavior touching real game structures. Phase 00
 covers registry identity and validation, accessor bounds, owner-aware OLC, authored round trips,
 effective precedence, moving-room rejection, command/pulse/combat characterization, and `-s` mode
-(78 tests). Remaining coverage required as later phases land:
+(78 tests). Phase 01 adds gateway translation exactness, gateway-local flow, null-safety, secondary
+forwarding, and both successor-caching corrections (12 tests). Remaining coverage required as later
+phases land:
 
-- Exact translation for every magic string and empty-argument invocation at each gateway.
-- Notification-only legacy calls whose return value is intentionally ignored.
-- Worn-then-carried auto-proc fallback with null actor and return variations, post-gateway.
 - Exact equipped-object pointer identity with duplicate-VNUM instances.
 - Cooldown units, slot bounds, reboot and persistence behavior, and intended spending outcomes.
 - Target death, character pending extraction, and immediate object extraction during execution.

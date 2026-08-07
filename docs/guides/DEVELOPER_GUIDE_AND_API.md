@@ -144,12 +144,20 @@ zone before opening output or mutating mover state.
 
 ## Compatibility Boundary
 
-Phase 00 preserves the single callback slot, `SPECIAL` ABI, world grammar,
-command traversal, heartbeat timing, caller-specific returns, activation flags,
-shop/quest nesting, and boot precedence. Event gateways, typed invalidation,
-declarative assignments, content extraction, shared mechanics, typed-handler
-conversion, and general chains remain future work.
+Phases 00 and 01 preserve the single callback slot, `SPECIAL` ABI, world
+grammar, command traversal, heartbeat timing, caller-specific returns,
+activation flags, shop/quest nesting, and boot precedence. Declarative
+assignments, content extraction, shared mechanics, typed-handler conversion, and
+general chains remain future work.
+
+New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
+rather than calling a prototype's callback slot directly. Each gateway names
+what its STOP aborts, and a caller that iterates a list must cache the successor
+before invoking one: context pointers are borrowed for exactly one synchronous
+call and may be invalidated by the handler.
 
 See [OLC SpecProc Editing](OLC_SpecProcs.md), the
 [Phase 00 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
+the
+[Phase 01 gateway matrix](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

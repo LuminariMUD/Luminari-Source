@@ -121,6 +121,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[CLAUDE.md](../CLAUDE.md)** - AI assistant guidelines and codebase patterns
 - **[TESTING_GUIDE.md](guides/TESTING_GUIDE.md)** - Testing procedures and frameworks
 - **[Special Procedure Phase 00 Validation](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md)** - Registry-safety acceptance, 78-test ownership, evidence matrix, and reproducible phase gates
+- **[Special Procedure Phase 01 Validation](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md)** - Call-site gateway acceptance, event/flow contracts, extraction-safety corrections, and 12-test ownership
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
