@@ -401,6 +401,22 @@ After a residual dormant-code audit, `src/spec_procs.c` was removed from both bu
 evidence are in
 [Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
+Phase 04 adds narrow mechanics below the gateway and above existing engine primitives. Typed
+payload validation in `src/spec/spec_context.c` rejects malformed owner/event shapes before legacy
+translation and provides shared exact-worn-object and live-combat checks. `spec_phrase.c` preserves
+the characterized byte-exact phrases of its opt-in consumers. `spec_cooldown.c` names the legacy
+object `spec_timer[]` clock as MUD-hour, instance-owned, bounded, and nonpersistent.
+`spec_combat.c` retains the raw `damage()` result while classifying no effect, applied damage, and
+possible target invalidation. `spec_effects.c` stores stable negative source ownership in
+`affected_type.source_id` and a separate spell-scoped stacking group in `specific`; artifact
+passives and temporary powers are its first consumers. Artifact progression and persistence remain
+owned by `src/obj/spec_artifacts.c`.
+
+The weapon-hit caller passes its actual victim into the gateway instead of reconstructing it from
+ambient combat state. Legacy callback translation remains synchronous and ABI-compatible. The
+complete mechanic, lifetime, and consumer matrix is in
+[Special Procedure Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
+
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
 general chain. Under `-s`, world names and parser hooks still load while the assignment block is
@@ -425,9 +441,9 @@ It cannot share the room callback slot with a named `Z` binding. Boot rejects bo
 REdit blocks selection and defensive internal save, and the room writer preflights the complete zone
 before opening output or mutating mover state.
 
-Phases 00-02 do not convert a legacy handler or introduce multiple-handler dispatch. Later content
-extraction, shared mechanics, typed handlers, and optional composition must preserve the
-characterized scheduling, traversal, activation, return, and precedence rules.
+Phases 00-04 do not convert a legacy handler or introduce multiple-handler dispatch. Later typed
+handlers and optional composition must preserve the characterized scheduling, traversal,
+activation, return, and precedence rules.
 
 ## Performance Monitoring
 

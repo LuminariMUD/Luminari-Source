@@ -13,11 +13,11 @@
  *     registry IS the membership test: an object is an artifact iff its vnum
  *     resolves in art_index.  One structure instead of two.
  *
- *  2. Affect sourcing.  Each stat affect carries `af.specific = index + 1`
- *     so removing one artifact strips only that artifact's affects.  ROL
- *     keyed affects by spell type alone and therefore wiped every artifact's
- *     bonuses whenever any one was removed.  `specific` is only otherwise
- *     consulted for APPLY_SKILL affects in affect_join(), so this is safe.
+ *  2. Affect sourcing.  Each artifact receives a stable namespaced source ID,
+ *     so removing one artifact strips only that artifact's affects.  Temporary
+ *     powers use `specific` independently for their explicit stacking group.
+ *     ROL keyed affects by spell type alone and therefore wiped every
+ *     artifact's bonuses whenever any one was removed.
  *
  *  3. Ownership across logout.  Rent extraction is explicitly scoped by
  *     objsave.c.  Actual destruction clears ownership even when the object is
@@ -50,6 +50,7 @@
 #include "campaign.h"
 #include "magic/domains_schools.h"
 #include "spec_artifacts.h"
+#include "spec/spec_effects.h"
 
 /* --------------------------------------------------------------------------
  * Global state
@@ -2311,8 +2312,8 @@ void artifact_remove_bonuses(struct char_data *ch, struct obj_data *obj)
  *
  * Senses, speed, protections, and saving-throw grants are affects owned by
  * the artifact, not bits on the object prototype.  They unlock by artifact
- * level, carry the artifact's own tag so removal is exact, and are reapplied
- * whenever the artifact levels up.
+ * level, carry the artifact's source identity so removal is exact, and are
+ * reapplied whenever the artifact levels up.
  *
  * Do not split one power between here and the prototype.  If a power is in
  * this table it must not also be an ITEM_AFF bit, or unequipping will strip
@@ -2322,13 +2323,14 @@ void artifact_remove_bonuses(struct char_data *ch, struct obj_data *obj)
 void artifact_apply_passives(struct char_data *ch, struct artifact_data *art)
 {
   struct affected_type af;
-  sh_int tag = 0;
+  long source_id = 0;
   int i = 0;
 
   if (!ch || !art)
     return;
 
-  tag = (sh_int)(artifact_search(art->vnum) + 1);
+  if (!spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, art->vnum, &source_id))
+    return;
 
   for (i = 0; artifact_passives[i].vnum != -1; i++)
   {
@@ -2344,12 +2346,11 @@ void artifact_apply_passives(struct char_data *ch, struct artifact_data *art)
     af.location = artifact_passives[i].location;
     af.modifier = artifact_passives[i].modifier;
     af.bonus_type = BONUS_TYPE_ENHANCEMENT;
-    af.specific = tag;
 
     if (artifact_passives[i].aff_flag != 0)
       SET_BIT_AR(af.bitvector, artifact_passives[i].aff_flag);
 
-    affect_to_char(ch, &af);
+    affect_to_char_source(ch, &af, source_id);
   }
 }
 
@@ -2357,17 +2358,23 @@ void artifact_remove_passives(struct char_data *ch, struct artifact_data *art)
 {
   struct affected_type *af = NULL, *af_next = NULL;
   sh_int tag = 0;
+  long source_id = 0;
 
   if (!ch || !art)
     return;
 
   tag = (sh_int)(artifact_search(art->vnum) + 1);
+  if (!spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, art->vnum, &source_id))
+    return;
 
+  affect_from_char_source(ch, SPELL_ARTIFACT_PASSIVE, source_id);
+
+  /* Remove pre-Phase-04 passives that persisted with the old specific tag. */
   for (af = ch->affected; af; af = af_next)
   {
     af_next = af->next;
 
-    if (af->spell == SPELL_ARTIFACT_PASSIVE && af->specific == tag)
+    if (af->spell == SPELL_ARTIFACT_PASSIVE && af->source_id == 0 && af->specific == tag)
       affect_remove(ch, af);
   }
 
@@ -2385,16 +2392,7 @@ void artifact_remove_passives(struct char_data *ch, struct artifact_data *art)
 
 int artifact_stack_active(struct char_data *ch, int group)
 {
-  struct affected_type *af = NULL;
-
-  if (!ch || group == ART_STACK_NONE)
-    return FALSE;
-
-  for (af = ch->affected; af; af = af->next)
-    if (af->spell == SPELL_ARTIFACT_SURGE && af->specific == (sh_int)group)
-      return TRUE;
-
-  return FALSE;
+  return spec_effect_stack_active(ch, SPELL_ARTIFACT_SURGE, group);
 }
 
 void artifact_stack_clear(struct char_data *ch, int group)
@@ -2420,28 +2418,17 @@ void artifact_stack_clear(struct char_data *ch, int group)
     affect_total(ch);
 }
 
-/* Apply one bounded, source-tagged, group-exclusive temporary modifier.  The
- * caller checks artifact_stack_active() first; this just stamps the affect. */
-static void artifact_add_temp_affect(struct char_data *ch, int group, int location, int modifier,
-                                     int bonus_type, int duration, int aff_flag)
+static enum spec_effect_result
+artifact_apply_temp_group(struct char_data *ch, struct artifact_data *art, int group,
+                          const struct spec_effect_modifier *modifiers, size_t modifier_count)
 {
-  struct affected_type af;
+  long source_id = 0;
 
-  if (!ch)
-    return;
+  if (art == NULL || !spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, art->vnum, &source_id))
+    return SPEC_EFFECT_INVALID;
 
-  new_affect(&af);
-  af.spell = SPELL_ARTIFACT_SURGE;
-  af.duration = duration;
-  af.location = location;
-  af.modifier = modifier;
-  af.bonus_type = bonus_type;
-  af.specific = (sh_int)group;
-
-  if (aff_flag != 0)
-    SET_BIT_AR(af.bitvector, aff_flag);
-
-  affect_to_char(ch, &af);
+  return spec_effect_apply_group(ch, SPELL_ARTIFACT_SURGE, source_id, group, modifiers,
+                                 modifier_count);
 }
 
 /* --------------------------------------------------------------------------
@@ -3725,19 +3712,19 @@ static int artifact_proc_lifesteal(struct char_data *ch, struct char_data *victi
 static int artifact_proc_ward(struct char_data *ch, struct char_data *victim,
                               struct obj_data *weapon, struct artifact_data *art, int is_critical)
 {
+  struct spec_effect_modifier modifiers[2] = {{APPLY_AC, -(2 + art->level), BONUS_TYPE_DEFLECTION,
+                                               2 + (art->level / 2), SPEC_EFFECT_NO_AFF_FLAG},
+                                              {APPLY_SAVING_WILL, 1 + (art->level / 2),
+                                               BONUS_TYPE_DEFLECTION, 2 + (art->level / 2),
+                                               SPEC_EFFECT_NO_AFF_FLAG}};
+
   if (!artifact_align_ok(ch, victim, art->sig_align))
     return FALSE;
 
   if (is_critical)
   {
-    if (artifact_stack_active(ch, ART_STACK_WARD))
+    if (artifact_apply_temp_group(ch, art, ART_STACK_WARD, modifiers, 2) != SPEC_EFFECT_APPLIED)
       return FALSE;
-
-    artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_AC, -(2 + art->level), BONUS_TYPE_DEFLECTION,
-                             2 + (art->level / 2), 0);
-    artifact_add_temp_affect(ch, ART_STACK_WARD, APPLY_SAVING_WILL, 1 + (art->level / 2),
-                             BONUS_TYPE_DEFLECTION, 2 + (art->level / 2), 0);
-    affect_total(ch);
 
     act("\tW$p answers the blow and closes around you.\tn", FALSE, ch, weapon, NULL, TO_CHAR);
     act("\tW$p answers the blow and closes around $n.\tn", FALSE, ch, weapon, NULL, TO_ROOM);
@@ -3814,16 +3801,15 @@ static int artifact_proc_weighted(struct char_data *ch, struct char_data *victim
 static int artifact_proc_surge(struct char_data *ch, struct obj_data *weapon,
                                struct artifact_data *art)
 {
-  if (artifact_stack_active(ch, ART_STACK_COMBAT_SURGE))
-    return FALSE;
+  struct spec_effect_modifier modifiers[2] = {
+      {APPLY_HITROLL, ARTIFACT_SURGE_HITROLL * art->level, BONUS_TYPE_MORALE,
+       ARTIFACT_SURGE_DURATION, SPEC_EFFECT_NO_AFF_FLAG},
+      {APPLY_DAMROLL, ARTIFACT_SURGE_DAMROLL * art->level, BONUS_TYPE_MORALE,
+       ARTIFACT_SURGE_DURATION, SPEC_EFFECT_NO_AFF_FLAG}};
 
-  artifact_add_temp_affect(ch, ART_STACK_COMBAT_SURGE, APPLY_HITROLL,
-                           ARTIFACT_SURGE_HITROLL * art->level, BONUS_TYPE_MORALE,
-                           ARTIFACT_SURGE_DURATION, 0);
-  artifact_add_temp_affect(ch, ART_STACK_COMBAT_SURGE, APPLY_DAMROLL,
-                           ARTIFACT_SURGE_DAMROLL * art->level, BONUS_TYPE_MORALE,
-                           ARTIFACT_SURGE_DURATION, 0);
-  affect_total(ch);
+  if (artifact_apply_temp_group(ch, art, ART_STACK_COMBAT_SURGE, modifiers, 2) !=
+      SPEC_EFFECT_APPLIED)
+    return FALSE;
 
   act("\tD$p goes cold in your hand and everything gets easier.\tn", FALSE, ch, weapon, NULL,
       TO_CHAR);
@@ -4328,7 +4314,15 @@ static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
                                 struct artifact_data *art, int stack_group)
 {
   struct char_data *targets[ARTIFACT_VALOR_MAX_TARGETS];
+  struct spec_effect_modifier modifiers[3] = {
+      {APPLY_HITROLL, ARTIFACT_VALOR_HITROLL + art->level, BONUS_TYPE_MORALE,
+       ARTIFACT_VALOR_DURATION, SPEC_EFFECT_NO_AFF_FLAG},
+      {APPLY_SAVING_WILL, ARTIFACT_VALOR_SAVES + (art->level / 2), BONUS_TYPE_MORALE,
+       ARTIFACT_VALOR_DURATION, SPEC_EFFECT_NO_AFF_FLAG},
+      {APPLY_HIT, ARTIFACT_VALOR_HP_PER_LEVEL * art->level, BONUS_TYPE_MORALE,
+       ARTIFACT_VALOR_DURATION, SPEC_EFFECT_NO_AFF_FLAG}};
   room_rnum origin = IN_ROOM(ch);
+  enum spec_effect_result effect_result;
   int count = 0, reached = 0, i = 0;
 
   if (origin == NOWHERE)
@@ -4345,22 +4339,14 @@ static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
 
     /* Morale does not stack with itself, and a refusal for one person is not
      * a refusal for the group. */
-    if (artifact_stack_active(targets[i], stack_group))
+    effect_result = artifact_apply_temp_group(targets[i], art, stack_group, modifiers, 3);
+    if (effect_result == SPEC_EFFECT_STACKING_CONFLICT)
     {
       send_to_char(targets[i], "You are already as brave as you are going to get.\r\n");
       continue;
     }
-
-    artifact_add_temp_affect(targets[i], stack_group, APPLY_HITROLL,
-                             ARTIFACT_VALOR_HITROLL + art->level, BONUS_TYPE_MORALE,
-                             ARTIFACT_VALOR_DURATION, 0);
-    artifact_add_temp_affect(targets[i], stack_group, APPLY_SAVING_WILL,
-                             ARTIFACT_VALOR_SAVES + (art->level / 2), BONUS_TYPE_MORALE,
-                             ARTIFACT_VALOR_DURATION, 0);
-    artifact_add_temp_affect(targets[i], stack_group, APPLY_HIT,
-                             ARTIFACT_VALOR_HP_PER_LEVEL * art->level, BONUS_TYPE_MORALE,
-                             ARTIFACT_VALOR_DURATION, 0);
-    affect_total(targets[i]);
+    if (effect_result != SPEC_EFFECT_APPLIED)
+      continue;
 
     send_to_char(targets[i], "\tYSomething goes through you, and you stop being afraid.\tn\r\n");
     reached++;
@@ -4383,17 +4369,21 @@ static int artifact_group_valor(struct char_data *ch, struct obj_data *obj,
 static int artifact_frost_ward(struct char_data *ch, struct obj_data *obj,
                                struct artifact_data *art, int stack_group)
 {
-  if (artifact_stack_active(ch, stack_group))
+  struct spec_effect_modifier modifiers[2] = {{APPLY_RES_COLD, 10 + (art->level * 5),
+                                               BONUS_TYPE_DEFLECTION, 5 + art->level,
+                                               SPEC_EFFECT_NO_AFF_FLAG},
+                                              {APPLY_AC, -(1 + art->level), BONUS_TYPE_DEFLECTION,
+                                               5 + art->level, SPEC_EFFECT_NO_AFF_FLAG}};
+  enum spec_effect_result effect_result;
+
+  effect_result = artifact_apply_temp_group(ch, art, stack_group, modifiers, 2);
+  if (effect_result == SPEC_EFFECT_STACKING_CONFLICT)
   {
     send_to_char(ch, "You are already wearing one ward; a second will not settle.\r\n");
     return FALSE;
   }
-
-  artifact_add_temp_affect(ch, stack_group, APPLY_RES_COLD, 10 + (art->level * 5),
-                           BONUS_TYPE_DEFLECTION, 5 + art->level, 0);
-  artifact_add_temp_affect(ch, stack_group, APPLY_AC, -(1 + art->level), BONUS_TYPE_DEFLECTION,
-                           5 + art->level, 0);
-  affect_total(ch);
+  if (effect_result != SPEC_EFFECT_APPLIED)
+    return FALSE;
 
   act("\tCFrost crawls up $n and settles into a shell.\tn", FALSE, ch, obj, NULL, TO_ROOM);
   send_to_char(ch, "\tCYou breathe the word and rime closes over you.\tn\r\n");
@@ -4405,17 +4395,20 @@ static int artifact_frost_ward(struct char_data *ch, struct obj_data *obj,
 static int artifact_dragon_sight(struct char_data *ch, struct obj_data *obj,
                                  struct artifact_data *art, int stack_group)
 {
-  if (artifact_stack_active(ch, stack_group))
+  struct spec_effect_modifier modifiers[2] = {
+      {APPLY_NONE, 0, BONUS_TYPE_ENHANCEMENT, 5 + (art->level * 2), AFF_DETECT_ALIGN},
+      {APPLY_HITROLL, 1 + (art->level / 2), BONUS_TYPE_ENHANCEMENT, 5 + (art->level * 2),
+       SPEC_EFFECT_NO_AFF_FLAG}};
+  enum spec_effect_result effect_result;
+
+  effect_result = artifact_apply_temp_group(ch, art, stack_group, modifiers, 2);
+  if (effect_result == SPEC_EFFECT_STACKING_CONFLICT)
   {
     send_to_char(ch, "The spear is already showing you everything it intends to.\r\n");
     return FALSE;
   }
-
-  artifact_add_temp_affect(ch, stack_group, APPLY_NONE, 0, BONUS_TYPE_ENHANCEMENT,
-                           5 + (art->level * 2), AFF_DETECT_ALIGN);
-  artifact_add_temp_affect(ch, stack_group, APPLY_HITROLL, 1 + (art->level / 2),
-                           BONUS_TYPE_ENHANCEMENT, 5 + (art->level * 2), 0);
-  affect_total(ch);
+  if (effect_result != SPEC_EFFECT_APPLIED)
+    return FALSE;
 
   act("\tG$n levels $p and goes very still.\tn", FALSE, ch, obj, NULL, TO_ROOM);
   send_to_char(ch, "\tGThe spear shows you what is worth killing.\tn\r\n");
@@ -4669,23 +4662,24 @@ static int artifact_black_lightning(struct char_data *ch, struct obj_data *obj,
 static int artifact_enrage(struct char_data *ch, struct obj_data *obj, struct artifact_data *art,
                            int stack_group)
 {
-  int i = 0;
-  const int locations[3] = {APPLY_HITROLL, APPLY_DAMROLL, APPLY_STR};
-  const int modifiers[3] = {4, 6, 4};
+  struct spec_effect_modifier modifiers[3] = {{APPLY_HITROLL, 4 + art->level, BONUS_TYPE_MORALE,
+                                               ARTIFACT_ENRAGE_DURATION, SPEC_EFFECT_NO_AFF_FLAG},
+                                              {APPLY_DAMROLL, 6 + art->level, BONUS_TYPE_MORALE,
+                                               ARTIFACT_ENRAGE_DURATION, SPEC_EFFECT_NO_AFF_FLAG},
+                                              {APPLY_STR, 4 + art->level, BONUS_TYPE_MORALE,
+                                               ARTIFACT_ENRAGE_DURATION, SPEC_EFFECT_NO_AFF_FLAG}};
+  enum spec_effect_result effect_result;
 
   /* Rage and Twilight's surge are the same kind of thing happening to the
    * same person, so they share a group and the first one wins. */
-  if (artifact_stack_active(ch, stack_group))
+  effect_result = artifact_apply_temp_group(ch, art, stack_group, modifiers, 3);
+  if (effect_result == SPEC_EFFECT_STACKING_CONFLICT)
   {
     send_to_char(ch, "You are already as far gone as the blade can take you.\r\n");
     return FALSE;
   }
-
-  for (i = 0; i < 3; i++)
-    artifact_add_temp_affect(ch, stack_group, locations[i], modifiers[i] + art->level,
-                             BONUS_TYPE_MORALE, ARTIFACT_ENRAGE_DURATION, 0);
-
-  affect_total(ch);
+  if (effect_result != SPEC_EFFECT_APPLIED)
+    return FALSE;
 
   act("\tR$n's eyes go flat and $e stops looking like $e knows you.\tn", FALSE, ch, obj, NULL,
       TO_ROOM);

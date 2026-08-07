@@ -15,6 +15,7 @@
 #include "structs.h"
 #include "utils.h"
 #include "db.h"
+#include "spec/spec_context.h"
 #include "spec/spec_dispatch.h"
 
 #include <string.h>
@@ -58,6 +59,7 @@ static bool spec_event_uses_flow(spec_event_mask event)
 
 int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler handler)
 {
+  enum spec_context_result context_result;
   int result = 0;
 
   if (context == NULL)
@@ -73,10 +75,11 @@ int spec_dispatch_legacy(struct spec_event_context *context, spec_legacy_handler
   if (handler == NULL)
     return 0;
 
-  if (context->owner == NULL && context->event != SPEC_EVENT_MOVING_ROOM_RELOCATION)
+  context_result = spec_context_validate_event(context);
+  if (context_result != SPEC_CONTEXT_VALID)
   {
-    log("SYSERR: spec_dispatch_legacy: %s event dispatched without an owner.",
-        spec_event_name(context->event));
+    log("SYSERR: spec_dispatch_legacy rejected invalid context: %s.",
+        spec_context_result_name(context_result));
     return 0;
   }
 

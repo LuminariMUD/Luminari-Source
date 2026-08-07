@@ -8,7 +8,7 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00-03 are complete. Phases 04-06 are not started.
+Phases 00-04 are complete. Phases 05-06 are not started.
 
 ## Goals
 
@@ -51,7 +51,7 @@ Phases 00-03 are complete. Phases 04-06 are not started.
 | 01 | Call-Site Gateway Compatibility | Complete (2026-08-07) |
 | 02 | Declarative Legacy Assignments | Complete (2026-08-07) |
 | 03 | Behavior-Preserving Content Extraction | Complete (2026-08-07) |
-| 04 | Narrow Shared Mechanics | Not Started |
+| 04 | Narrow Shared Mechanics | Complete (2026-08-07) |
 | 05 | Incremental Typed Handlers | Not Started |
 | 06 | Conditional Composition and Lifecycle Hooks | Not Started |
 
@@ -159,16 +159,26 @@ list identical production and test sources.
 Acceptance evidence:
 [Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
-### Phase 04 - Narrow Shared Mechanics
+### Phase 04 - Narrow Shared Mechanics (Complete)
 
-1. Pointer-identity context validation for representative object and mobile procedures.
-2. Opt-in phrase/command parsing, only after accepted-input characterization.
-3. Cooldown operations with explicit clock, units, storage, bounds, persistence, and commit rules.
-4. Safe target and combat-result contracts wrapping existing primitives.
-5. Affect helpers built on `source_id`, keeping stacking identity separate.
+Delivered five focused modules under `src/spec/`: typed event, exact-worn-instance, and live combat
+context validation (`spec_context`); opt-in exact command/phrase matching that preserves case,
+punctuation, tabs, and trailing whitespace (`spec_phrase`); instance-owned legacy `spec_timer[]`
+operations with explicit MUD-hour and restart semantics (`spec_cooldown`); a current-target damage
+wrapper preserving and classifying `damage()` results (`spec_combat`); and negative namespaced
+`source_id` ownership with spell-scoped stacking groups and atomic modifier batches
+(`spec_effects`).
 
-Exit when every helper names a documented rule, has at least two consumers, and has focused tests.
-Do not mechanically convert every procedure.
+Real consumers establish every contract. `stability_boots` and `hellfire` share exact phrase,
+exact-instance, and cooldown behavior; `monk_glove` and `monk_glove_cold` share safe damage handling;
+`snake` and `wizard` share live combat validation; all gateway events pass typed payload validation;
+and artifact passives plus six temporary-power paths use source ownership independently from stacking
+identity. Weapon-hit dispatch now carries the actual combat victim instead of reconstructing it from
+ambient `FIGHTING()` state. Nine focused production-linked tests cover the helpers and their
+representative callbacks without mechanically converting the remaining procedures.
+
+Acceptance evidence:
+[Special Procedure Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
 
 ### Phase 05 - Incremental Typed Handlers
 
@@ -243,10 +253,10 @@ land.
 | OLC writers preserve authored provenance instead of serializing an effective override via reverse pointer lookup. | Met by Phase 00. |
 | Effective bindings and sources are inspectable for every mob, object, and room prototype. | Met by Phase 00. |
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
-| Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Open (Phase 04). |
+| Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Met by Phase 04. |
 | File organization follows primary responsibility, with both build systems synchronized. | Met by Phase 03. |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 03 Checkpoint 31 (574 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 03 Checkpoint 31. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 04 (583 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 04. |
 
 ## Risks and Guardrails
 
@@ -558,11 +568,14 @@ src/magic/spell_lists.c|.h
 src/quest/quest_services.c
 ```
 
-Proposed for Phase 04 and later phases, subject to traced ownership:
+Implemented in Phase 04 after tracing real consumers:
 
 ```text
-src/spec/spec_cooldown.c|.h        (needs two real consumers)
-src/spec/spec_effects.c|.h         (needs two real consumers)
+src/spec/spec_combat.c|.h
+src/spec/spec_context.c|.h
+src/spec/spec_cooldown.c|.h
+src/spec/spec_effects.c|.h
+src/spec/spec_phrase.c|.h
 ```
 
 This is a responsibility map, not permission to create empty modules. Top-level `spec_procs.c` is
@@ -669,28 +682,30 @@ effective post-boot bindings before deciding which hard-coded entries move to wo
 
 ## Reusable Mechanics Contracts
 
-These are Phase 04 targets. Each helper needs at least two real consumers before it is written.
+These contracts were delivered in Phase 04 after each helper had at least two traced consumers.
 
 ### Context Validation
 
 Validators reject owner/event mismatches, missing actors or targets, invalid rooms, absent combat
 state, missing flags, and unsupported placement.
 
-The existing `obj_proc_ready()` matches equipment by VNUM through `is_wearing()` and does not prove
-the invoking instance is worn. General validation must use pointer identity (`obj->worn_by ==
-actor`). No validator may claim to recognize an object after it is freed.
+The former `obj_proc_ready()` matched equipment by VNUM through `is_wearing()` and did not prove the
+invoking instance was worn. It now uses `spec_context_validate_worn_object()`, which requires both
+`obj->worn_by == actor` and the actor's wear slot to point to that exact object. Character validation
+rejects dead or pending-extraction actors and invalid rooms. No validator claims to recognize an
+object after it is freed.
 
 ### Command and Phrase Matching
 
-Shared parsing may cover exact command matching, argument splitting, case and punctuation
-normalization, target-bearing prefix phrases, and handled-versus-unrelated input. The artifact
-called-effect dispatcher is precedent for one data row owning phrase, channel, target rule, recharge,
-description, and effect dispatch. Normalization is opt-in: every migrated procedure characterizes its
-current abbreviation, punctuation, and case behavior before accepting a shared matcher.
+`spec_phrase_match()` compares one resolved canonical command and phrase. Leading ASCII spaces are
+skipped only when requested; case, punctuation, tabs, and trailing whitespace remain exact. Its
+result distinguishes matched, unrelated, and invalid input. `stability_boots` and `hellfire` retain
+their characterized accepted input through this opt-in contract. Broader splitting or normalization
+remains unimplemented until real consumers require it.
 
 ### Cooldowns
 
-Two incompatible models exist:
+Two incompatible models remain:
 
 - Legacy object `spec_timer[]` counters decrement once per `point_update()`, currently once per MUD
   hour (`SECS_PER_MUD_HOUR` is 75 real seconds). They belong to the object instance, are not
@@ -698,11 +713,11 @@ Two incompatible models exist:
 - Artifact `time_t` stamps use wall-clock seconds and are persisted and restored by artifact
   persistence.
 
-Event-backed and character-specific mechanisms also exist and are not interchangeable. Every shared
-cooldown contract names its clock and units, storage owner and slot bounds, persistence and reboot
-behavior, commit point, and remaining-time display. Validation and successful execution normally
-precede spending; target failure, stacking rejection, immunity, or another no-effect result does not
-spend cooldown unless explicitly required.
+`spec_object_cooldown_read()` and `spec_object_cooldown_commit()` implement only the first model.
+They validate `[0, SPEC_TIMER_MAX)` slots, expose remaining MUD hours, and commit a positive duration
+only after the caller's effect succeeds. `stability_boots` and `hellfire` are the initial consumers.
+Artifact, event-backed, and character-specific mechanisms remain separate and are not
+interchangeable.
 
 ### Combat and Target Safety
 
@@ -713,21 +728,25 @@ damage, death, and extraction as existing primitives expose them; multi-target l
 next pointer before effects can remove an entry; extra-attack procedures cannot recursively trigger
 themselves without a bound.
 
-Helpers wrap existing combat primitives rather than build a second combat engine. Preserve the result
-of `damage()` and name the exact caller action that must stop.
+`spec_context_validate_combat_target()` checks live and pending-extraction state, room validity,
+colocation, and optional current-opponent identity. `spec_damage_current_target()` then wraps the
+existing `damage()` primitive and classifies invalid input, no effect, applied damage, and possible
+target invalidation while preserving the raw return. The two monk-glove procedures consume the
+damage result contract; snake and wizard consume combat validation. Weapon-hit dispatch carries the
+caller's actual victim into the typed context. No second combat engine was introduced.
 
 ### Temporary Affects and Stacking
 
 Build on `affect_to_char_source()`, `affect_from_char_source()`, `affected_by_spell_source()`, and
 `affect_join_source()` with `affected_type.source_id`; do not add a second general source field.
 
-Artifact code uses `affected_type.specific` for two concepts: a registry-derived tag on passive or
-permanent affects, and a stacking group on temporary surge affects. A general contract must keep
-source ownership and stacking group separate and provide a namespaced source identity with documented
-lifetime; an explicit stacking group whose namespace and range are coordinated with spell and
-artifact use; bonus type, location, modifier, duration, and flags; removal by source without
-stripping unrelated effects; and an explicit result when another effect occupies the stacking group.
-Artifact XP and progression stay outside this helper.
+`spec_effect_source_id()` assigns stable negative identities as
+`-(namespace * 1000000 + owner_key)` for keys 1 through 999999, leaving positive runtime identities
+separate. `spec_effect_apply_group()` stores source ownership in `source_id`, the spell-scoped
+stacking group in `specific`, and atomically rejects a conflicting group before inserting any of up
+to eight validated modifiers. Artifact passives now remove by source, with backward cleanup for the
+old persisted tag; six temporary artifact paths use the grouped helper. Artifact XP, progression,
+custody, and persistence remain outside the general module.
 
 ### Chance and Proc Policy
 
@@ -762,8 +781,9 @@ If separately scheduled, an artifact split under `src/obj/` may use `artifact_re
   for `spec_mobiles.c` or their true owning subsystem. Shop and quest entry points stay with those
   systems even though mobiles own them.
 - **Objects**: the former contiguous object-procedure section now lives under its reusable or true
-  feature owner. Its `obj_proc_ready()` helper still exposes the same-VNUM identity contract that
-  Phase 04 must characterize before changing. Artifacts stay under `src/obj/`; vessel objects and
+  feature owner. Its `obj_proc_ready()` helper now requires the invoking object instance itself to be
+  worn; the generic `is_wearing()` predicate retains same-VNUM semantics for callers that want that
+  policy. Artifacts stay under `src/obj/`; vessel objects and
   controls under `src/vessels/`; shop and trade under `src/obj/`; crafting purchase and construction
   under `src/craft/`.
 - **Rooms**: general room behavior may share a room-procedure module. Moving rooms and vessel control

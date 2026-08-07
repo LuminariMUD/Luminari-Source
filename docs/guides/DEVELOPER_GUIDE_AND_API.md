@@ -2,8 +2,9 @@
 
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
-control plane delivered through Phase 02 and the completed Phase 03 ownership
-extraction; other subsystem APIs remain in their source-linked system documents.
+control plane delivered through Phase 02, the completed Phase 03 ownership
+extraction, and the Phase 04 shared mechanics; other subsystem APIs remain in
+their source-linked system documents.
 
 ## Quick Start
 
@@ -149,6 +150,33 @@ A moving-room `M` record and named room `Z` procedure cannot share
 orders, REdit rejects selection/save, and `save_rooms()` validates the entire
 zone before opening output or mutating mover state.
 
+### Shared Mechanics API
+
+Phase 04 exposes five narrow APIs. They supplement the gateway and production engines; they do not
+replace combat, affects, artifact ownership, or the legacy callback ABI.
+
+- `src/spec/spec_context.h` validates one typed gateway payload, an exact worn object, or live
+  colocated combat participants. Worn validation requires both `obj->worn_by == actor` and the
+  actor's wear slot to point to that object. `DEAD()` flags count as pending extraction. Pointers are
+  borrowed and must not be retained after an effect.
+- `src/spec/spec_phrase.h` compares a resolved canonical command and exact phrase. Only leading
+  spaces may be skipped, and only when the rule requests it; case, punctuation, tabs, and trailing
+  whitespace remain significant. Treat `SPEC_PHRASE_UNRELATED` as normal fallthrough.
+- `src/spec/spec_cooldown.h` serves only legacy object `spec_timer[]` counters. Slots are
+  `[0, SPEC_TIMER_MAX)`, values are MUD hours decremented by `point_update()`, storage belongs to the
+  instance, and objsave does not persist it. Validate and execute first, then commit a positive
+  duration.
+- `src/spec/spec_combat.h` applies damage only to a live colocated current opponent. Preserve the
+  returned `legacy_result`; after `SPEC_DAMAGE_TARGET_INVALIDATED`, do not dereference the target.
+- `src/spec/spec_effects.h` creates stable negative source identities from a namespace and key, then
+  applies up to eight temporary modifiers atomically. Source ownership belongs in `source_id`;
+  stacking identity belongs in `specific` and is scoped by spell. A stacking conflict spends no
+  caller cooldown.
+
+Use `is_wearing()` when same-VNUM membership is intentionally the policy. Use
+`spec_context_validate_worn_object()` when the callback must prove that its own object instance is
+equipped. Do not invent a second affect source field or use pointer values as source keys.
+
 ## Adding or Changing a Registered Procedure
 
 1. Characterize every affected invocation and exact legacy argument before
@@ -167,7 +195,7 @@ zone before opening output or mutating mover state.
 
 ## Compatibility Boundary
 
-Phases 00-03 preserve the single callback slot, `SPECIAL` ABI, world grammar,
+Phases 00-04 preserve the single callback slot, `SPECIAL` ABI, world grammar,
 command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
@@ -220,8 +248,9 @@ use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`,
 `src/spec/spec_zone_alarm_group.c` so `zone_yell()` remains private beside all three consumers.
 Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranzan.h`. The final
 move retired `src/spec_procs.c`; its header remains the compatibility include surface. Use
-`is_wearing()` from `handler.h` for the established same-VNUM equipment predicate.
-Shared mechanics, typed-handler conversion, and general chains remain future work.
+`is_wearing()` from `handler.h` for the established same-VNUM equipment predicate, and use the
+Phase 04 context API when exact pointer identity is required. Typed-handler conversion and general
+chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -237,4 +266,6 @@ the
 [Phase 02 assignment matrix](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
 the
 [Phase 03 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
+the
+[Phase 04 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

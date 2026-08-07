@@ -202,11 +202,16 @@ circle_SOURCES = \
 	src/combat/spec_abilities.c \
 	src/spec/spec_assign_table.c \
 	src/spec/spec_binding.c \
+	src/spec/spec_combat.c \
+	src/spec/spec_context.c \
+	src/spec/spec_cooldown.c \
 	src/spec/spec_dispatch.c \
+	src/spec/spec_effects.c \
 	src/spec/spec_effective_binding.c \
 	src/spec/spec_mobile_archetypes.c \
 	src/spec/spec_mobiles.c \
 	src/spec/spec_objects.c \
+	src/spec/spec_phrase.c \
 	src/spec/spec_rooms.c \
 	src/spec/spec_zone_abyss.c \
 	src/spec/spec_zone_abyssal_vortex.c \
@@ -344,6 +349,7 @@ cutest_SOURCES = \
 	unittests/CuTest/test_spec_command_pulse.c \
 	unittests/CuTest/test_spec_assign_table.c \
 	unittests/CuTest/test_spec_dispatch.c \
+	unittests/CuTest/test_spec_mechanics.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c \
 	unittests/CuTest/AllTests.c \
@@ -390,6 +396,7 @@ cutest_test_files = \
 	unittests/CuTest/test_spec_command_pulse.c \
 	unittests/CuTest/test_spec_assign_table.c \
 	unittests/CuTest/test_spec_dispatch.c \
+	unittests/CuTest/test_spec_mechanics.c \
 	unittests/CuTest/test_spec_combat_secondary.c \
 	unittests/CuTest/test_gameplay_e2e.c
 

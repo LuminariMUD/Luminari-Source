@@ -41,7 +41,7 @@
 - Added production-linked route-contract coverage, shell probe regressions,
   and an isolated MariaDB-backed curl smoke test.
 
-### Special-procedure architecture Phases 00-03
+### Special-procedure architecture Phases 00-04
 
 #### Changed
 
@@ -60,18 +60,30 @@
 - Split the 12,212-line `spec_procs.c` and 4,202-line `zone_procs.c` baselines among general,
   feature, vessel, and cohesive zone owners, then retired both legacy source files from Autotools
   and CMake.
+- Added typed context, exact phrase, instance cooldown, safe damage-result, and source-owned affect
+  helpers after tracing multiple real consumers for each contract.
+- Changed `obj_proc_ready()`, two monk gloves, two invoked objects, snake, and wizard to share the
+  new validation and result rules; weapon-hit dispatch now carries the caller's actual victim.
+- Kept artifact affect ownership in namespaced `source_id` values and stacking identity in
+  `specific`; passive removal retains backward cleanup for old persisted tags, while six temporary
+  power paths use atomic modifier batches.
 - Reconciled database-first `SPECIALS` help and builder, developer, architecture, help-system, and
-  testing documentation with the delivered Phase 00-03 behavior.
+  testing documentation with the delivered Phase 00-04 behavior.
 
 #### Verification
 
 - Added 101 dedicated production-linked Phase 00-02 tests across registry, invocation, metadata,
   OLC, authored identity, round-trip persistence, effective precedence, assignment validation,
   secondaries, diagnostics, and moving-room safety.
+- Added nine focused Phase 04 tests for typed payload rejection, exact instance and combat context,
+  phrase compatibility, cooldown bounds, damage outcomes, source-selective affect removal, atomic
+  stacking conflicts, and representative invoked-object behavior.
 - The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
   verifier, dual-build manifest comparison, and documentation/integrity gates pass.
 - The Phase 03 close passes 574 root tests and 12/12 CTest targets; exact moved-body checks and a
   complete exported-symbol comparison show no behavior or linkage drift.
+- The Phase 04 close passes 583 root tests and 12/12 CTest targets with both build manifests
+  synchronized and a warning-clean production build.
 
 ### Pet persistence and crash observability
 

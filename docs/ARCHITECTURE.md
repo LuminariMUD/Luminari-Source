@@ -21,7 +21,7 @@ subsystems are indexed in the
 | World boot and persistence | `src/db.c`, `src/mysql.c`, `lib/world/`, `sql/` | Flat-file world loading and required MariaDB state |
 | Core data and mutation | `src/structs.h`, `src/utils.h`, `src/handler.c` | Shared structures, macros, and object/character lifecycle |
 | Game systems | `src/combat/`, `src/magic/`, `src/character/`, `src/obj/` | Combat, spells and skills, characters, items, shops, and trade |
-| Content behavior | `src/dgscript/`, `src/spec/`, `src/spec_procs.c`, feature owners | DG Scripts, special-procedure control/runtime compatibility, and extracted feature-owned callbacks |
+| Content behavior | `src/dgscript/`, `src/spec/`, feature owners | DG Scripts, special-procedure control/runtime compatibility, and feature-owned callbacks |
 | Online creation | `src/olc/` | In-game room, mobile, object, zone, and related editors |
 | Wilderness and transport | `src/wilderness/`, `src/vessels/`, `src/movement/` | Overworld, spatial support, vessels, vehicles, and movement |
 | Operations | `scripts/autorun/`, `scripts/deployment/`, `scripts/operations/` | Supervision, immutable installation, deployment, and readiness |
@@ -51,7 +51,7 @@ and the
 [Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
 the
 [Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
-Phase 03 is moving unchanged legacy callbacks to coherent owners:
+Phase 03 moved unchanged legacy callbacks to coherent owners:
 `src/spec/spec_objects.c` contains the audited general object procedures, while
 `src/vessels/vessels_legacy.c` contains legacy route, ferry, and Greyhawk ship
 behavior. `src/vessels/vessels_moving_rooms.c` owns legacy world `M` loading, the
@@ -76,6 +76,12 @@ their common helper private, while publishing separate owner headers. Both legac
 includes while direct consumers migrate to owner APIs.
 See the
 [Phase 03 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
+
+Phase 04 adds focused context, exact phrase, object cooldown, safe damage-result, and source-owned
+affect helpers under `src/spec/`. The helpers retain the production combat and affect engines,
+separate `source_id` ownership from spell-scoped stacking identity, and have multiple object, mobile,
+gateway, and artifact consumers. Weapon-hit context now receives the actual combat victim. See the
+[Phase 04 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
 
 ## Operational Boundary
 

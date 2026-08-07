@@ -41,6 +41,7 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "spec/spec_context.h"
 
 static void npc_steal(struct char_data *ch, struct char_data *victim);
 
@@ -170,15 +171,22 @@ SPECIAL(mayor)
 /* Quite lethal to low-level characters. */
 SPECIAL(snake)
 {
-  if (cmd || !FIGHTING(ch))
+  struct char_data *victim;
+
+  if (ch == NULL || cmd)
     return (FALSE);
 
-  if (IN_ROOM(FIGHTING(ch)) != IN_ROOM(ch) || rand_number(0, GET_LEVEL(ch)) != 0)
+  victim = FIGHTING(ch);
+  if (victim == NULL)
     return (FALSE);
 
-  act("$n bites $N!", 1, ch, 0, FIGHTING(ch), TO_NOTVICT);
-  act("$n bites you!", 1, ch, 0, FIGHTING(ch), TO_VICT);
-  call_magic(ch, FIGHTING(ch), 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
+  if (spec_context_validate_combat_target(ch, victim, true) != SPEC_CONTEXT_VALID ||
+      rand_number(0, GET_LEVEL(ch)) != 0)
+    return (FALSE);
+
+  act("$n bites $N!", 1, ch, 0, victim, TO_NOTVICT);
+  act("$n bites you!", 1, ch, 0, victim, TO_VICT);
+  call_magic(ch, victim, 0, SPELL_POISON, 0, GET_LEVEL(ch), CAST_WEAPON_SPELL);
   return (TRUE);
 }
 
@@ -233,9 +241,15 @@ SPECIAL(thief)
 
 SPECIAL(wizard)
 {
+  struct char_data *current;
   struct char_data *vict;
 
-  if (cmd || !FIGHTING(ch))
+  if (ch == NULL || cmd)
+    return (FALSE);
+
+  current = FIGHTING(ch);
+  if (current == NULL ||
+      spec_context_validate_combat_target(ch, current, true) != SPEC_CONTEXT_VALID)
     return (FALSE);
 
   /* pseudo-randomly choose someone in the room who is fighting me */
@@ -244,8 +258,11 @@ SPECIAL(wizard)
       break;
 
   /* if I didn't pick any of those, then just slam the guy I'm fighting */
-  if (vict == NULL && IN_ROOM(FIGHTING(ch)) == IN_ROOM(ch))
-    vict = FIGHTING(ch);
+  if (vict == NULL)
+    vict = current;
+
+  if (spec_context_validate_combat_target(ch, vict, false) != SPEC_CONTEXT_VALID)
+    vict = NULL;
 
   /* Hm...didn't pick anyone...I'll wait a round. */
   if (vict == NULL)

@@ -1,0 +1,437 @@
+/**
+ * @file test_spec_mechanics.c
+ * Phase 04 characterization for reusable special-procedure mechanics.
+ */
+
+#include "CuTest.h"
+
+#include "../../src/conf.h"
+#include "../../src/sysdep.h"
+#include "../../src/structs.h"
+#include "../../src/utils.h"
+
+#include "../../src/combat/fight.h"
+#include "../../src/db.h"
+#include "../../src/handler.h"
+#include "../../src/interpreter.h"
+#include "../../src/magic/spells.h"
+#include "../../src/spec/spec_combat.h"
+#include "../../src/spec/spec_context.h"
+#include "../../src/spec/spec_cooldown.h"
+#include "../../src/spec/spec_dispatch.h"
+#include "../../src/spec/spec_effects.h"
+#include "../../src/spec/spec_phrase.h"
+#include "../../src/spec_procs.h"
+
+#include <string.h>
+
+struct spec_mechanics_fixture
+{
+  struct room_data rooms[2];
+  struct zone_data zones[1];
+  struct index_data mobile_indexes[1];
+  struct index_data object_indexes[1];
+  struct char_data actor;
+  struct char_data target;
+  struct obj_data worn;
+  struct obj_data copy;
+
+  struct room_data *saved_world;
+  struct zone_data *saved_zone_table;
+  struct index_data *saved_mob_index;
+  struct index_data *saved_obj_index;
+  room_rnum saved_top_of_world;
+  zone_rnum saved_top_of_zone_table;
+  mob_rnum saved_top_of_mobt;
+  obj_rnum saved_top_of_objt;
+};
+
+static void spec_mechanics_initialize_npc(struct char_data *ch, const char *name, room_rnum room)
+{
+  clear_char(ch);
+  SET_BIT_AR(MOB_FLAGS(ch), MOB_ISNPC);
+  ch->player_specials = &dummy_mob;
+  ch->player.short_descr = (char *)name;
+  GET_LEVEL(ch) = 10;
+  GET_POS(ch) = POS_STANDING;
+  GET_HIT(ch) = 100;
+  GET_MAX_HIT(ch) = 100;
+  GET_MOVE(ch) = 100;
+  GET_MAX_MOVE(ch) = 100;
+  IN_ROOM(ch) = room;
+}
+
+static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
+{
+  memset(fixture, 0, sizeof(*fixture));
+
+  fixture->saved_world = world;
+  fixture->saved_zone_table = zone_table;
+  fixture->saved_mob_index = mob_index;
+  fixture->saved_obj_index = obj_index;
+  fixture->saved_top_of_world = top_of_world;
+  fixture->saved_top_of_zone_table = top_of_zone_table;
+  fixture->saved_top_of_mobt = top_of_mobt;
+  fixture->saved_top_of_objt = top_of_objt;
+
+  fixture->rooms[0].number = 6100;
+  fixture->rooms[0].zone = 0;
+  fixture->rooms[0].sector_type = SECT_INSIDE;
+  fixture->rooms[0].name = "Special mechanic origin";
+  fixture->rooms[1].number = 6101;
+  fixture->rooms[1].zone = 0;
+  fixture->rooms[1].sector_type = SECT_INSIDE;
+  fixture->rooms[1].name = "Special mechanic destination";
+  fixture->zones[0].number = 61;
+  fixture->zones[0].bot = 6100;
+  fixture->zones[0].top = 6199;
+  fixture->zones[0].min_level = -1;
+  fixture->zones[0].max_level = LVL_IMPL;
+  fixture->mobile_indexes[0].vnum = 6200;
+  fixture->object_indexes[0].vnum = 6300;
+
+  world = fixture->rooms;
+  zone_table = fixture->zones;
+  mob_index = fixture->mobile_indexes;
+  obj_index = fixture->object_indexes;
+  top_of_world = 1;
+  top_of_zone_table = 0;
+  top_of_mobt = 0;
+  top_of_objt = 0;
+
+  spec_mechanics_initialize_npc(&fixture->actor, "special mechanic actor", 0);
+  spec_mechanics_initialize_npc(&fixture->target, "special mechanic target", 0);
+  fixture->rooms[0].people = &fixture->actor;
+  fixture->actor.next_in_room = &fixture->target;
+
+  clear_object(&fixture->worn);
+  clear_object(&fixture->copy);
+  GET_OBJ_RNUM(&fixture->worn) = 0;
+  GET_OBJ_RNUM(&fixture->copy) = 0;
+}
+
+static void spec_mechanics_end(struct spec_mechanics_fixture *fixture)
+{
+  FIGHTING(&fixture->actor) = NULL;
+  FIGHTING(&fixture->target) = NULL;
+  GET_EQ(&fixture->actor, WEAR_FEET) = NULL;
+  fixture->worn.worn_by = NULL;
+  fixture->copy.worn_by = NULL;
+  fixture->rooms[0].people = NULL;
+  fixture->actor.next_in_room = NULL;
+  fixture->target.next_in_room = NULL;
+
+  while (fixture->actor.affected != NULL)
+    affect_remove_no_total(&fixture->actor, fixture->actor.affected);
+  while (fixture->target.affected != NULL)
+    affect_remove_no_total(&fixture->target, fixture->target.affected);
+
+  world = fixture->saved_world;
+  zone_table = fixture->saved_zone_table;
+  mob_index = fixture->saved_mob_index;
+  obj_index = fixture->saved_obj_index;
+  top_of_world = fixture->saved_top_of_world;
+  top_of_zone_table = fixture->saved_top_of_zone_table;
+  top_of_mobt = fixture->saved_top_of_mobt;
+  top_of_objt = fixture->saved_top_of_objt;
+}
+
+static void spec_mechanics_wear(struct spec_mechanics_fixture *fixture, struct obj_data *obj)
+{
+  obj->worn_by = &fixture->actor;
+  obj->worn_on = WEAR_FEET;
+  GET_EQ(&fixture->actor, WEAR_FEET) = obj;
+}
+
+static int spec_mechanics_affect_count(const struct char_data *ch)
+{
+  const struct affected_type *af;
+  int count = 0;
+
+  for (af = ch->affected; af != NULL; af = af->next)
+    count++;
+
+  return count;
+}
+
+void Test_spec_context_validates_event_payload_shape(CuTest *tc)
+{
+  struct spec_event_context context;
+  struct moving_room_data mover;
+  struct moving_room_data other_mover;
+  struct char_data actor;
+  struct obj_data object;
+
+  memset(&context, 0, sizeof(context));
+  memset(&mover, 0, sizeof(mover));
+  memset(&other_mover, 0, sizeof(other_mover));
+  memset(&actor, 0, sizeof(actor));
+  memset(&object, 0, sizeof(object));
+
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_COMMAND;
+  context.owner = &object;
+  context.actor = &actor;
+  context.argument = "";
+  CuAssertIntEquals(tc, SPEC_CONTEXT_VALID, spec_context_validate_event(&context));
+
+  context.owner_type = SPEC_OWNER_OBJECT | SPEC_OWNER_MOBILE;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_INVALID_OWNER_TYPE, spec_context_validate_event(&context));
+
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_INVALID_EVENT, spec_context_validate_event(&context));
+
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_OWNER_EVENT_MISMATCH, spec_context_validate_event(&context));
+
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_MISSING_TARGET, spec_context_validate_event(&context));
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_ROOM;
+  context.event = SPEC_EVENT_MOVING_ROOM_RELOCATION;
+  context.owner = &mover;
+  context.moving_room = &mover;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_VALID, spec_context_validate_event(&context));
+
+  context.moving_room = &other_mover;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_INVALID_MOVING_ROOM, spec_context_validate_event(&context));
+}
+
+void Test_spec_context_requires_exact_worn_object_instance(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+  spec_mechanics_wear(&fixture, &fixture.worn);
+
+  CuAssertIntEquals(tc, SPEC_CONTEXT_VALID,
+                    spec_context_validate_worn_object(&fixture.actor, &fixture.worn));
+
+  fixture.copy.worn_by = &fixture.actor;
+  fixture.copy.worn_on = WEAR_FEET;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_OBJECT_SLOT_MISMATCH,
+                    spec_context_validate_worn_object(&fixture.actor, &fixture.copy));
+
+  fixture.copy.worn_by = NULL;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_OBJECT_NOT_WORN,
+                    spec_context_validate_worn_object(&fixture.actor, &fixture.copy));
+
+  IN_ROOM(&fixture.actor) = NOWHERE;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_INVALID_ACTOR_ROOM,
+                    spec_context_validate_worn_object(&fixture.actor, &fixture.worn));
+  IN_ROOM(&fixture.actor) = 0;
+
+  GET_POS(&fixture.actor) = POS_DEAD;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_ACTOR_UNAVAILABLE,
+                    spec_context_validate_worn_object(&fixture.actor, &fixture.worn));
+
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_context_validates_live_colocated_current_target(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+
+  spec_mechanics_begin(&fixture);
+  FIGHTING(&fixture.actor) = &fixture.target;
+
+  CuAssertIntEquals(tc, SPEC_CONTEXT_VALID,
+                    spec_context_validate_combat_target(&fixture.actor, &fixture.target, true));
+
+  FIGHTING(&fixture.actor) = NULL;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_NOT_CURRENT_TARGET,
+                    spec_context_validate_combat_target(&fixture.actor, &fixture.target, true));
+  FIGHTING(&fixture.actor) = &fixture.target;
+
+  IN_ROOM(&fixture.target) = 1;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_DIFFERENT_ROOMS,
+                    spec_context_validate_combat_target(&fixture.actor, &fixture.target, false));
+  IN_ROOM(&fixture.target) = 0;
+
+  GET_POS(&fixture.target) = POS_DEAD;
+  CuAssertIntEquals(tc, SPEC_CONTEXT_TARGET_UNAVAILABLE,
+                    spec_context_validate_combat_target(&fixture.actor, &fixture.target, false));
+
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_phrase_matching_preserves_exact_legacy_text(CuTest *tc)
+{
+  struct spec_phrase_rule rule = {"say", "whirlwind", SPEC_PHRASE_SKIP_LEADING_SPACES};
+  struct spec_phrase_rule exact_rule = {"say", "whirlwind", SPEC_PHRASE_EXACT};
+
+  CuAssertIntEquals(tc, SPEC_PHRASE_MATCHED, spec_phrase_match("say", "whirlwind", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_MATCHED, spec_phrase_match("say", "  whirlwind", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_UNRELATED, spec_phrase_match("say", "\twhirlwind", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_UNRELATED, spec_phrase_match("say", "Whirlwind", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_UNRELATED, spec_phrase_match("say", "whirlwind ", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_UNRELATED, spec_phrase_match("whisper", "whirlwind", &rule));
+  CuAssertIntEquals(tc, SPEC_PHRASE_UNRELATED, spec_phrase_match("say", " whirlwind", &exact_rule));
+
+  rule.flags = SPEC_PHRASE_ALL | (1U << 8);
+  CuAssertIntEquals(tc, SPEC_PHRASE_INVALID, spec_phrase_match("say", "whirlwind", &rule));
+}
+
+void Test_spec_object_cooldown_is_instance_scoped_and_explicit(CuTest *tc)
+{
+  struct obj_data object;
+  struct spec_object_cooldown_state state;
+
+  clear_object(&object);
+  state = spec_object_cooldown_read(&object, 0);
+  CuAssertIntEquals(tc, SPEC_OBJECT_COOLDOWN_READY, state.status);
+  CuAssertIntEquals(tc, 0, state.remaining_mud_hours);
+
+  CuAssertTrue(tc, spec_object_cooldown_commit(&object, 0, 12));
+  state = spec_object_cooldown_read(&object, 0);
+  CuAssertIntEquals(tc, SPEC_OBJECT_COOLDOWN_ACTIVE, state.status);
+  CuAssertIntEquals(tc, 12, state.remaining_mud_hours);
+
+  CuAssertIntEquals(tc, SPEC_OBJECT_COOLDOWN_INVALID, spec_object_cooldown_read(NULL, 0).status);
+  CuAssertIntEquals(tc, SPEC_OBJECT_COOLDOWN_INVALID,
+                    spec_object_cooldown_read(&object, SPEC_TIMER_MAX).status);
+  CuAssertTrue(tc, !spec_object_cooldown_commit(&object, -1, 1));
+  CuAssertTrue(tc, !spec_object_cooldown_commit(&object, 0, 0));
+}
+
+void Test_spec_damage_reports_validation_and_legacy_outcome(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_damage_result result;
+
+  spec_mechanics_begin(&fixture);
+  FIGHTING(&fixture.actor) = &fixture.target;
+  FIGHTING(&fixture.target) = &fixture.actor;
+  GET_POS(&fixture.actor) = POS_FIGHTING;
+  GET_POS(&fixture.target) = POS_FIGHTING;
+
+  result = spec_damage_current_target(&fixture.actor, &fixture.target, -1, TYPE_HIT, DAM_BLUDGEON,
+                                      FALSE);
+  CuAssertIntEquals(tc, SPEC_DAMAGE_INVALID_AMOUNT, result.status);
+  CuAssertIntEquals(tc, 100, GET_HIT(&fixture.target));
+
+  FIGHTING(&fixture.actor) = NULL;
+  result =
+      spec_damage_current_target(&fixture.actor, &fixture.target, 5, TYPE_HIT, DAM_BLUDGEON, FALSE);
+  CuAssertIntEquals(tc, SPEC_DAMAGE_INVALID_CONTEXT, result.status);
+  CuAssertIntEquals(tc, SPEC_CONTEXT_NOT_CURRENT_TARGET, result.context_result);
+
+  FIGHTING(&fixture.actor) = &fixture.target;
+  result =
+      spec_damage_current_target(&fixture.actor, &fixture.target, 0, TYPE_HIT, DAM_BLUDGEON, FALSE);
+  CuAssertIntEquals(tc, SPEC_DAMAGE_NO_EFFECT, result.status);
+  CuAssertIntEquals(tc, 0, result.legacy_result);
+  CuAssertIntEquals(tc, 100, GET_HIT(&fixture.target));
+
+  result =
+      spec_damage_current_target(&fixture.actor, &fixture.target, 7, TYPE_HIT, DAM_BLUDGEON, FALSE);
+  CuAssertIntEquals(tc, SPEC_DAMAGE_APPLIED, result.status);
+  CuAssertTrue(tc, result.legacy_result > 0);
+  CuAssertTrue(tc, GET_HIT(&fixture.target) < 100);
+
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_effect_groups_are_atomic_and_source_owned(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct spec_effect_modifier modifiers[2] = {
+      {APPLY_HITROLL, 2, BONUS_TYPE_MORALE, 3, SPEC_EFFECT_NO_AFF_FLAG},
+      {APPLY_DAMROLL, 3, BONUS_TYPE_MORALE, 3, SPEC_EFFECT_NO_AFF_FLAG}};
+  const struct affected_type *af;
+  long artifact_source = 0;
+  long repeated_source = 0;
+  long legacy_source = 0;
+  bool first_group_owned = true;
+  bool remaining_group_owned = true;
+
+  spec_mechanics_begin(&fixture);
+
+  CuAssertTrue(tc, spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, 42, &artifact_source));
+  CuAssertTrue(tc, spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, 42, &repeated_source));
+  CuAssertTrue(tc, spec_effect_source_id(SPEC_EFFECT_SOURCE_LEGACY_PROCEDURE, 42, &legacy_source));
+  CuAssertTrue(tc, artifact_source < 0);
+  CuAssertTrue(tc, artifact_source == repeated_source);
+  CuAssertTrue(tc, artifact_source != legacy_source);
+  CuAssertTrue(tc, !spec_effect_source_id(SPEC_EFFECT_SOURCE_INVALID, 42, &repeated_source));
+
+  CuAssertIntEquals(tc, SPEC_EFFECT_APPLIED,
+                    spec_effect_apply_group(&fixture.actor, SPELL_ARTIFACT_SURGE, artifact_source,
+                                            11, modifiers, 2));
+  CuAssertIntEquals(tc, 2, spec_mechanics_affect_count(&fixture.actor));
+  for (af = fixture.actor.affected; af != NULL; af = af->next)
+    if (af->source_id != artifact_source || af->specific != 11)
+      first_group_owned = false;
+  CuAssertTrue(tc, first_group_owned);
+
+  CuAssertIntEquals(tc, SPEC_EFFECT_STACKING_CONFLICT,
+                    spec_effect_apply_group(&fixture.actor, SPELL_ARTIFACT_SURGE, legacy_source, 11,
+                                            modifiers, 2));
+  CuAssertIntEquals(tc, 2, spec_mechanics_affect_count(&fixture.actor));
+
+  CuAssertIntEquals(tc, SPEC_EFFECT_APPLIED,
+                    spec_effect_apply_group(&fixture.actor, SPELL_ARTIFACT_SURGE, legacy_source, 12,
+                                            modifiers, 2));
+  CuAssertIntEquals(tc, 4, spec_mechanics_affect_count(&fixture.actor));
+  CuAssertTrue(tc, spec_effect_stack_active(&fixture.actor, SPELL_ARTIFACT_SURGE, 11));
+  CuAssertTrue(tc, spec_effect_stack_active(&fixture.actor, SPELL_ARTIFACT_SURGE, 12));
+
+  CuAssertIntEquals(
+      tc, SPEC_EFFECT_INVALID,
+      spec_effect_apply_group(&fixture.actor, SPELL_ARTIFACT_SURGE, 7, 13, modifiers, 2));
+  CuAssertIntEquals(tc, 4, spec_mechanics_affect_count(&fixture.actor));
+
+  affect_from_char_source(&fixture.actor, SPELL_ARTIFACT_SURGE, artifact_source);
+  CuAssertIntEquals(tc, 2, spec_mechanics_affect_count(&fixture.actor));
+  for (af = fixture.actor.affected; af != NULL; af = af->next)
+    if (af->source_id != legacy_source || af->specific != 12)
+      remaining_group_owned = false;
+  CuAssertTrue(tc, remaining_group_owned);
+
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_invoked_objects_share_exact_phrase_and_cooldown_contracts(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+  bool stability_matched;
+  bool hellfire_matched;
+  bool case_rejected;
+  bool trailing_space_rejected;
+  bool tab_rejected;
+  bool copied_instance_rejected;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "say";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  spec_mechanics_wear(&fixture, &fixture.worn);
+  fixture.copy.worn_by = &fixture.actor;
+  fixture.copy.worn_on = WEAR_FEET;
+  (void)spec_object_cooldown_commit(&fixture.worn, 0, 3);
+  (void)spec_object_cooldown_commit(&fixture.copy, 0, 3);
+
+  stability_matched = stability_boots(&fixture.actor, &fixture.worn, 1, "  whirlwind") == TRUE;
+  hellfire_matched = hellfire(&fixture.actor, &fixture.worn, 1, " hellfire") == TRUE;
+  case_rejected = stability_boots(&fixture.actor, &fixture.worn, 1, "Whirlwind") == FALSE;
+  trailing_space_rejected = hellfire(&fixture.actor, &fixture.worn, 1, "hellfire ") == FALSE;
+  tab_rejected = stability_boots(&fixture.actor, &fixture.worn, 1, "\twhirlwind") == FALSE;
+  copied_instance_rejected =
+      stability_boots(&fixture.actor, &fixture.copy, 1, "whirlwind") == FALSE;
+
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+
+  CuAssertTrue(tc, stability_matched);
+  CuAssertTrue(tc, hellfire_matched);
+  CuAssertTrue(tc, case_rejected);
+  CuAssertTrue(tc, trailing_space_rejected);
+  CuAssertTrue(tc, tab_rejected);
+  CuAssertTrue(tc, copied_instance_rejected);
+}

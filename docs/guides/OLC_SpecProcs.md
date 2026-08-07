@@ -143,8 +143,9 @@ source contributed; it does not create a multiple-handler chain.
 
 ## Compatibility Boundary Through Phase 02
 
-Phases 00-02 change registration, selection, persistence safety, observability, call-site routing,
-and two eligible legacy assignments. They do not change the `SPECIAL` callback ABI, command-owner
+Phases 00-04 change registration, selection, persistence safety, observability, call-site routing,
+two eligible legacy assignments, source ownership, and narrow runtime safety mechanics. They do not
+change the `SPECIAL` callback ABI, command-owner
 traversal, heartbeat positions, caller-specific return handling, activation flags, world-file
 grammar, or established assignment precedence. Shop and quest wrappers keep their existing
 saved-secondary behavior.
@@ -154,15 +155,17 @@ concern: nothing a builder selects, sees, or saves in OLC changed, and every pro
 with its existing behavior. A validated declarative table now owns the two Luminari assignments
 whose handlers are registered and whose VNUMs are symbolic. Unsupported numeric, computed, and
 campaign-compatibility assignments stay on the legacy path and remain visible through the same
-effective-binding diagnostics. Content extraction, shared mechanics, typed handlers, and general
-multiple-procedure composition remain later-phase proposals.
+effective-binding diagnostics. Content extraction and shared mechanics are complete; typed handlers
+and general multiple-procedure composition remain later-phase proposals.
 
 For the implementation boundaries, see
 [Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
 production-linked evidence, see
 [Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) and
 [Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
-[Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
+[Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
+[Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md), and
+[Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md).
 
 ## Notes and Tips
 

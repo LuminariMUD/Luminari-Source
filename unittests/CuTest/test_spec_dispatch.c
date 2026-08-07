@@ -215,6 +215,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
   context.owner = &fixture.objects[0];
+  context.actor = &fixture.actor;
   context.argument = "";
 
   context.event = SPEC_EVENT_COMMAND;
@@ -222,18 +223,26 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   command_stops = context.flow == SPEC_FLOW_STOP && context.legacy_return == 1;
 
   context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  context.owner_type = SPEC_OWNER_MOBILE;
+  context.owner = &fixture.mobiles[0];
+  context.actor = &fixture.mobiles[0];
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   activity_stops = context.flow == SPEC_FLOW_STOP;
 
   context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.owner = &fixture.objects[0];
+  context.actor = NULL;
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   auto_pulse_stops = context.flow == SPEC_FLOW_STOP;
 
   context.event = SPEC_EVENT_ITEM_IDENTIFY;
+  context.actor = &fixture.actor;
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   identify_continues = context.flow == SPEC_FLOW_CONTINUE && context.legacy_return == 1;
 
   context.event = SPEC_EVENT_WEAPON_HIT;
+  context.target = &fixture.target;
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   weapon_hit_continues = context.flow == SPEC_FLOW_CONTINUE && context.legacy_return == 1;
 
@@ -281,6 +290,46 @@ void Test_spec_dispatch_legacy_tolerates_missing_handler_context_and_owner(CuTes
   CuAssertTrue(tc, null_handler_safe);
   CuAssertTrue(tc, null_owner_safe);
   CuAssertTrue(tc, null_context_safe);
+}
+
+void Test_spec_dispatch_legacy_rejects_typed_context_mismatches(CuTest *tc)
+{
+  struct spec_dispatch_fixture fixture;
+  struct spec_event_context context;
+  bool invalid_owner_type_rejected;
+  bool owner_event_mismatch_rejected;
+  bool missing_target_rejected;
+
+  if (!spec_dispatch_begin(&fixture))
+  {
+    CuFail(tc, "unable to initialize dispatch fixture");
+    return;
+  }
+
+  memset(&context, 0, sizeof(context));
+  context.owner_type = SPEC_OWNER_OBJECT | SPEC_OWNER_MOBILE;
+  context.event = SPEC_EVENT_COMMAND;
+  context.owner = &fixture.objects[0];
+  context.actor = &fixture.actor;
+  context.argument = "";
+  invalid_owner_type_rejected = spec_dispatch_legacy(&context, spec_dispatch_record) == 0 &&
+                                context.flow == SPEC_FLOW_CONTINUE && fixture.call_count == 0;
+
+  context.owner_type = SPEC_OWNER_OBJECT;
+  context.event = SPEC_EVENT_MOBILE_ACTIVITY;
+  owner_event_mismatch_rejected =
+      spec_dispatch_legacy(&context, spec_dispatch_record) == 0 && fixture.call_count == 0;
+
+  context.event = SPEC_EVENT_WEAPON_HIT;
+  context.target = NULL;
+  missing_target_rejected =
+      spec_dispatch_legacy(&context, spec_dispatch_record) == 0 && fixture.call_count == 0;
+
+  spec_dispatch_end(&fixture);
+
+  CuAssertTrue(tc, invalid_owner_type_rejected);
+  CuAssertTrue(tc, owner_event_mismatch_rejected);
+  CuAssertTrue(tc, missing_target_rejected);
 }
 
 void Test_spec_dispatch_command_gateways_translate_exactly(CuTest *tc)

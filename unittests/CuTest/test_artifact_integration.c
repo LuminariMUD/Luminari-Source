@@ -36,6 +36,7 @@
 #include "../../src/magic/spells.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/spec_artifacts.h"
+#include "../../src/spec/spec_effects.h"
 
 /* Production look helper exercised by Wyrmfang's danger-sense contract. */
 void check_dangersense(struct char_data *ch, room_rnum room);
@@ -1149,11 +1150,13 @@ void Test_artifact_integration_resistance_takes_the_highest_not_the_sum(CuTest *
 void Test_artifact_integration_wyrmfang_unlocks_source_danger_sense_at_level_five(CuTest *tc)
 {
   struct artint_fixture fixture;
+  struct affected_type *af;
   struct obj_data obj;
   struct artifact_data *art = NULL;
+  long expected_source = 0;
   int locked_at_four = FALSE, silent_at_four = FALSE;
   int active_at_five = FALSE, sensed_danger = FALSE;
-  int info_described = FALSE, removed_cleanly = FALSE;
+  int info_described = FALSE, removed_cleanly = FALSE, source_owned = FALSE;
 
   if (!artint_begin(&fixture))
   {
@@ -1183,6 +1186,11 @@ void Test_artifact_integration_wyrmfang_unlocks_source_danger_sense_at_level_fiv
   art->level = ARTIFACT_MAX_LEVEL;
   artifact_apply_passives(&fixture.actor, art);
   active_at_five = !!AFF_FLAGGED(&fixture.actor, AFF_DANGERSENSE);
+  if (spec_effect_source_id(SPEC_EFFECT_SOURCE_ARTIFACT, art->vnum, &expected_source))
+    for (af = fixture.actor.affected; af != NULL; af = af->next)
+      if (af->spell == SPELL_ARTIFACT_PASSIVE && af->source_id == expected_source &&
+          af->specific == 0)
+        source_owned = TRUE;
   artint_clear_output(&fixture);
   check_dangersense(&fixture.actor, 1);
   sensed_danger = artint_said(&fixture, "You feel danger there");
@@ -1205,6 +1213,7 @@ void Test_artifact_integration_wyrmfang_unlocks_source_danger_sense_at_level_fiv
   CuAssertIntEquals(tc, TRUE, locked_at_four);
   CuAssertIntEquals(tc, TRUE, silent_at_four);
   CuAssertIntEquals(tc, TRUE, active_at_five);
+  CuAssertIntEquals(tc, TRUE, source_owned);
   CuAssertIntEquals(tc, TRUE, sensed_danger);
   CuAssertIntEquals(tc, TRUE, info_described);
   CuAssertIntEquals(tc, TRUE, removed_cleanly);

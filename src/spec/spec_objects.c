@@ -41,6 +41,10 @@
 #include "quest/quest.h"
 #include "character/backgrounds.h"
 #include "character/perks.h"
+#include "spec/spec_combat.h"
+#include "spec/spec_context.h"
+#include "spec/spec_cooldown.h"
+#include "spec/spec_phrase.h"
 
 /*****************************************/
 /****  object procs general functions ****/
@@ -49,8 +53,8 @@
 /* this function will check the basic parameters for whether an item is ready to proc in combat */
 bool obj_proc_ready(struct char_data *ch, struct obj_data *obj, int cmd)
 {
-  /* do we have this item equipped? */
-  if (!is_wearing(ch, GET_OBJ_VNUM(obj)))
+  /* Require the invoking instance, not merely another copy of its VNUM. */
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
     return FALSE;
 
   /* valid conditions for combat? */
@@ -105,6 +109,8 @@ void weapons_spells(const char *to_ch, const char *to_vict, const char *to_room,
 /* testing glove procs for monks, obj vnum 224 */
 SPECIAL(monk_glove)
 {
+  struct char_data *vict;
+
   if (!ch)
     return FALSE;
 
@@ -114,9 +120,12 @@ SPECIAL(monk_glove)
     return TRUE;
   }
 
-  struct char_data *vict = FIGHTING(ch);
+  vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 15))
+    return FALSE;
+  if (spec_context_validate_worn_object(ch, (struct obj_data *)me) != SPEC_CONTEXT_VALID ||
+      spec_context_validate_combat_target(ch, vict, true) != SPEC_CONTEXT_VALID)
     return FALSE;
 
   weapons_spells("\twYour $p\tw \tWsparks\tw as you hit $N causing $M to shudder violently from "
@@ -126,13 +135,15 @@ SPECIAL(monk_glove)
                  "$n\tw's $p\tw \tWsparks\tw as $e hits $N causing $M to shudder violently from "
                  "the \tYshock\tw!\tn",
                  ch, vict, (struct obj_data *)me, 0);
-  damage(ch, vict, dice(2, 8), -1, DAM_ELECTRIC, FALSE);
+  (void)spec_damage_current_target(ch, vict, dice(2, 8), -1, DAM_ELECTRIC, FALSE);
 
   return TRUE;
 }
 
 SPECIAL(monk_glove_cold)
 {
+  struct char_data *vict;
+
   if (!ch)
     return FALSE;
 
@@ -142,9 +153,12 @@ SPECIAL(monk_glove_cold)
     return TRUE;
   }
 
-  struct char_data *vict = FIGHTING(ch);
+  vict = FIGHTING(ch);
 
   if (cmd || !vict || rand_number(0, 15))
+    return FALSE;
+  if (spec_context_validate_worn_object(ch, (struct obj_data *)me) != SPEC_CONTEXT_VALID ||
+      spec_context_validate_combat_target(ch, vict, true) != SPEC_CONTEXT_VALID)
     return FALSE;
 
   weapons_spells("\twYour $p\tw \tWfrosts\tw as you hit $N causing $M to shudder violently from "
@@ -154,7 +168,7 @@ SPECIAL(monk_glove_cold)
                  "$n\tw's $p\tw \tWfrosts\tw as $e hits $N causing $M to shudder violently from "
                  "the \tBcold\tw!\tn",
                  ch, vict, (struct obj_data *)me, 0);
-  damage(ch, vict, dice(2, 8), -1, DAM_COLD, FALSE);
+  (void)spec_damage_current_target(ch, vict, dice(2, 8), -1, DAM_COLD, FALSE);
 
   return TRUE;
 }
@@ -3374,17 +3388,24 @@ SPECIAL(clanportal)
   return TRUE;
 }
 
+static const struct spec_phrase_rule stability_boots_phrase = {"say", "whirlwind",
+                                                               SPEC_PHRASE_SKIP_LEADING_SPACES};
+static const struct spec_phrase_rule hellfire_phrase = {"say", "hellfire",
+                                                        SPEC_PHRASE_SKIP_LEADING_SPACES};
+
 /* re-written...  will now give fireshield/haste -zusuk */
 SPECIAL(stability_boots)
 {
-  int timer = 0;
+  struct obj_data *obj = (struct obj_data *)me;
+  struct spec_object_cooldown_state cooldown;
+  char *normalized_argument;
 
-  skip_spaces(&argument);
-
-  if (!ch)
+  if (ch == NULL || argument == NULL)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  normalized_argument = argument;
+  skip_spaces(&normalized_argument);
+  if (!cmd && !strcmp(normalized_argument, "identify"))
   {
     send_to_char(ch, "Flurry of buffs by saying 'whirlwind'.\r\n");
     return TRUE;
@@ -3392,22 +3413,19 @@ SPECIAL(stability_boots)
 
   if (!cmd)
     return FALSE;
-  if (!argument)
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
     return FALSE;
 
-  skip_spaces(&argument);
-
-  if (!is_wearing(ch, 132133))
-    return FALSE;
-
-  if (cmd && CMD_IS("say") && !strcmp(argument, "whirlwind"))
+  if (spec_phrase_match(CMD_NAME, argument, &stability_boots_phrase) == SPEC_PHRASE_MATCHED)
   {
-    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
-    if (timer > 0)
+    cooldown = spec_object_cooldown_read(obj, 0);
+    if (cooldown.status == SPEC_OBJECT_COOLDOWN_ACTIVE)
     {
-      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", cooldown.remaining_mud_hours);
       return TRUE;
     }
+    if (cooldown.status != SPEC_OBJECT_COOLDOWN_READY)
+      return FALSE;
 
     act("\twSmall eddies of wind begin to form around the edges of the area, \tn\r\n"
         "\twswirling about in tiny patterns focused at $p.  Gradually, the wind picks \tn\r\n"
@@ -3427,7 +3445,7 @@ SPECIAL(stability_boots)
     call_magic(ch, ch, 0, SPELL_HASTE, 0, 30, CAST_WEAPON_SPELL);
     call_magic(ch, ch, 0, SPELL_SHADOW_SHIELD, 0, 30, CAST_WEAPON_SPELL);
 
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+    (void)spec_object_cooldown_commit(obj, 0, 12);
     return TRUE;
   }
   return FALSE;
@@ -3436,14 +3454,16 @@ SPECIAL(stability_boots)
 /* re-written...  will now give fireshield/haste -zusuk */
 SPECIAL(hellfire)
 {
-  int timer = 0;
+  struct obj_data *obj = (struct obj_data *)me;
+  struct spec_object_cooldown_state cooldown;
+  char *normalized_argument;
 
-  skip_spaces(&argument);
-
-  if (!ch)
+  if (ch == NULL || argument == NULL)
     return FALSE;
 
-  if (!cmd && !strcmp(argument, "identify"))
+  normalized_argument = argument;
+  skip_spaces(&normalized_argument);
+  if (!cmd && !strcmp(normalized_argument, "identify"))
   {
     send_to_char(ch, "Invoke haste and fireshield on armor by saying 'Hellfire'.\r\n");
     return TRUE;
@@ -3451,22 +3471,19 @@ SPECIAL(hellfire)
 
   if (!cmd)
     return FALSE;
-  if (!argument)
+  if (spec_context_validate_worn_object(ch, obj) != SPEC_CONTEXT_VALID)
     return FALSE;
 
-  skip_spaces(&argument);
-
-  if (!is_wearing(ch, 132102))
-    return FALSE;
-
-  if (cmd && CMD_IS("say") && !strcmp(argument, "hellfire"))
+  if (spec_phrase_match(CMD_NAME, argument, &hellfire_phrase) == SPEC_PHRASE_MATCHED)
   {
-    timer = GET_OBJ_SPECTIMER((struct obj_data *)me, 0);
-    if (timer > 0)
+    cooldown = spec_object_cooldown_read(obj, 0);
+    if (cooldown.status == SPEC_OBJECT_COOLDOWN_ACTIVE)
     {
-      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", timer);
+      send_to_char(ch, "Nothing happens (recharge in %d hours).\r\n", cooldown.remaining_mud_hours);
       return TRUE;
     }
+    if (cooldown.status != SPEC_OBJECT_COOLDOWN_READY)
+      return FALSE;
 
     act("\tLThe pure flames of your $p\tL is invoked.\tn\r\n"
         "\tLThe flames rise and protects YOU!\tn\r\n",
@@ -3479,7 +3496,7 @@ SPECIAL(hellfire)
     call_magic(ch, ch, 0, SPELL_FIRE_SHIELD, 0, 26, CAST_WEAPON_SPELL);
     call_magic(ch, ch, 0, SPELL_HASTE, 0, 26, CAST_WEAPON_SPELL);
 
-    GET_OBJ_SPECTIMER((struct obj_data *)me, 0) = 12;
+    (void)spec_object_cooldown_commit(obj, 0, 12);
     return TRUE;
   }
   return FALSE;
