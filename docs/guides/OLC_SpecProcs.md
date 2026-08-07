@@ -140,9 +140,9 @@ The boot-log lines and `specbind` output are diagnostics, not world-file input o
 prototype callback pointer remains runtime authority. A collision count reports that more than one
 source contributed; it does not create a multiple-handler chain.
 
-## Compatibility Boundary Through Phase 05
+## Compatibility Boundary Through Phase 06
 
-Phases 00-05 change registration, selection, persistence safety, observability, call-site routing,
+Phases 00-06 change registration, selection, persistence safety, observability, call-site routing,
 two eligible legacy assignments, source ownership, narrow runtime safety mechanics, and two typed
 implementations. They do not
 change the `SPECIAL` callback ABI, command-owner
@@ -157,18 +157,23 @@ compatibility dispatch; across the source tree, 194 legacy behavior implementati
 validated declarative table
 owns the two Luminari assignments whose handlers are registered and whose VNUMs are symbolic.
 Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the
-same effective-binding diagnostics. General multiple-procedure composition remains a later-phase
-proposal.
+same effective-binding diagnostics. Phase 06 deliberately closed without general
+multiple-procedure composition: no current content needs a second persisted handler, so OLC still
+selects, clears, and saves zero or one authored name. Shop and quest saved secondaries are
+runtime-only compatibility pointers, not additional builder-editable rows. Any future chain requires
+an approved consumer plus versioned loading, deterministic order, and complete OLC reorder, clear,
+unresolved-name, and save semantics.
 
 For the implementation boundaries, see
 [Developer Guide and API](DEVELOPER_GUIDE_AND_API.md#special-procedure-control-plane). For the exact
 production-linked evidence, see
-[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md) and
-[Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
+[Phase 00 Validation](../testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
+[Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
 [Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
-[Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md), and
-[Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md), and
-[Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
+[Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
+[Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
+[Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md), and
+[Phase 06 Validation](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
 
 ## Notes and Tips
 

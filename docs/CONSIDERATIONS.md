@@ -8,21 +8,25 @@ previously maintained in the retired workflow records.
 
 ## Special Procedure Architecture Refactor
 
-**Status:** Phases 00-02 complete; Phases 03-06 remain planned
+**Status:** Complete; Phases 00-06 delivered on August 7, 2026
 
-Use the [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) for the
-remaining roadmap and the
+Use the [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) for the completed scope and
+conditional reopen criteria. Delivered behavior and evidence live in the
 [Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
-[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md), and
-[Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md)
-for delivered behavior and evidence.
+[Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
+[Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
+[Phase 03 ownership matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
+[Phase 04 mechanics matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
+[Phase 05 typed-handler matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md), and
+[Phase 06 composition/lifecycle audit](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
 
 ### Active Concerns
 
 #### Technical Debt
 
-- **Legacy handlers remain authoritative:** Event gateways and typed contexts are shipped, but
-  handlers still use the legacy callback ABI and cannot report typed invalidation outcomes.
+- **Compatibility handlers remain substantial:** Bank and Vampire Cloak dispatch typed context
+  behind stable adapters, but 194 source-level legacy behavior implementations remain. Convert only
+  when the handler benefits from typed targets, events, flow, or invalidation.
 - **Imperative assignment inventory remains:** The two eligible Luminari rows are declarative and
   boot-validated. Numeric, computed, and campaign-compatibility rows remain on the observable direct
   path until they gain traced VNUMs and registered identities; preserve their exact order.
@@ -63,8 +67,11 @@ for delivered behavior and evidence.
 - **Compatibility inventory is asymmetric:** The registry has 28 canonical definitions but 29
   indexed compatibility names because `Guildmaster` is an alias of canonical `Guild`.
 - **Persistence remains single-handler:** Existing world syntax stores one authored name per
-  prototype. Do not add chains until ordering, duplication, invalidation, and wrapper rules are
-  proven.
+  prototype. Phase 06 found no second consumer for a general chain. Do not add one until ordering,
+  duplication, invalidation, wrapper migration, OLC operations, and versioned loading are proven.
+- **Lifecycle hooks stay owner-local:** DG Scripts cover localized content lifecycle behavior, while
+  stateful artifact and vessel hooks call their owners directly. Do not create a general event
+  registry before multiple consumers prove the same ordering and lifetime contract.
 
 ### Lessons Learned
 

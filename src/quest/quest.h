@@ -91,7 +91,7 @@ struct aq_data
 
   qst_vnum prev_quest; /* Link to prev quest, NOTHING is open  */
   qst_vnum next_quest; /* Link to next quest, NOTHING is end   */
-  SPECIAL_DECL(*func); /* secondary spec_proc for the QM       */
+  SPECIAL_DECL(*func); /* Runtime-only saved questmaster callback */
   qst_vnum
       dialogue_alternative_quest; // If the quest is set as a dialogue quest, and the dialogue skill check fails, we'll give them this quest instead
   int diplomacy_dc;

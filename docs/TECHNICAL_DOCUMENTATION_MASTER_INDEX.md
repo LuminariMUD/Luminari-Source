@@ -127,6 +127,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Special Procedure Phase 03 Checkpoint History](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md)** - Detailed ownership moves and per-checkpoint validation record
 - **[Special Procedure Phase 04 Validation](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md)** - Shared context, phrase, cooldown, combat, and affect contracts with consumer and gate evidence
 - **[Special Procedure Phase 05 Validation](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md)** - Mixed typed/legacy dispatch, Bank and Vampire Cloak conversion, compatibility inventory, and reproducible gates
+- **[Special Procedure Phase 06 Validation](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md)** - Final composition/lifecycle consumer audit, explicit wrapper boundary, typed nesting regression, and reopen criteria
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
@@ -195,11 +196,12 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Project Documents
 - **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
-  Active work: special-procedure architecture, artifact placement handoff, AI
-  conversation history, SKORE phases 3-4, event-system merge, and in-game
-  backlogs
+  Active work and retained handoffs: artifact placement, AI conversation history, SKORE phases 3-4,
+  event-system merge, and in-game backlogs; the completed special-procedure record is retained there
+  pending archival
 - **[Special Procedure Refactor PRD](ongoing-projects/spec-todo.md)** -
-  Phases 00-05 delivered; conditional composition and lifecycle hooks remain under review
+  Phases 00-06 delivered; optional general composition and lifecycle events closed unimplemented
+  until approved consumers meet the recorded reopen criteria
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item

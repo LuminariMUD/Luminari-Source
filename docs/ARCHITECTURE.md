@@ -91,6 +91,13 @@ definitions; 194 source-level legacy behavior implementations remain, so compati
 still required. See the
 [Phase 05 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
+Phase 06 retains the runtime-only `questmaster -> shop_keeper -> original callback` composition and
+closes without a persisted general procedure chain. The single callback slot and single-name mobile,
+object, and room formats remain authoritative. No new zone/world procedure event was added: DG
+Scripts own localized lifecycle content, while stateful artifact and vessel lifecycles call their
+owning subsystem directly. See the
+[Phase 06 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
+
 ## Operational Boundary
 
 The existing Terrain API listener shares the main game loop and binds only to
@@ -105,7 +112,6 @@ membership must remain synchronized in `Makefile.am` and `CMakeLists.txt`.
 Production-linked regression tests compile against the real server sources;
 the required root gate is `make test` followed by `make install`.
 
-Architectural decisions with long-term tradeoffs belong in [ADRs](adr/).
-Planned behavior remains in the
-[special-procedure refactor PRD](ongoing-projects/spec-todo.md), not in this
-current-state reference.
+Architectural decisions with long-term tradeoffs belong in [ADRs](adr/). The completed phase record
+and the conditions for reopening optional composition or lifecycle work remain in the
+[special-procedure refactor PRD](ongoing-projects/spec-todo.md).

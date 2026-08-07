@@ -41,7 +41,7 @@
 - Added production-linked route-contract coverage, shell probe regressions,
   and an isolated MariaDB-backed curl smoke test.
 
-### Special-procedure architecture Phases 00-05
+### Special-procedure architecture Phases 00-06
 
 #### Changed
 
@@ -68,13 +68,19 @@
   `specific`; passive removal retains backward cleanup for old persisted tags, while six temporary
   power paths use atomic modifier batches.
 - Reconciled database-first `SPECIALS` help and builder, developer, architecture, help-system, and
-  testing documentation with the delivered Phase 00-05 behavior.
+  testing documentation with the delivered Phase 00-06 behavior.
 - Added mixed typed/legacy registry dispatch behind unchanged callback slots; Bank and Vampire
   Cloak now consume explicit event context instead of inferring identification from a magic string.
 - Made Vampire Cloak command handling validate the exact invoking cloak instance while preserving
   its persisted identity, assignment, accepted command, and output.
 - Recorded 2 typed and 26 legacy registry definitions plus 194 remaining source-level legacy
   behavior implementations, retaining compatibility dispatch and direct assignments deliberately.
+- Closed the conditional composition audit without adding a speculative persisted chain. The
+  runtime-only quest-over-shop-over-original order remains explicit, secondary-first, and separate
+  from outer command-owner traversal.
+- Closed the lifecycle audit without new zone/world procedure events: DG Scripts retain localized
+  lifecycle content, and artifact/vessel requirements retain direct owning-subsystem hooks. No
+  persistence version changed because no format or schema changed.
 
 #### Verification
 
@@ -86,6 +92,8 @@
   stacking conflicts, and representative invoked-object behavior.
 - Added five focused Phase 05 tests for typed registry identity, flow/invalidation rules,
   notification-only STOP rejection, explicit identify events, and exact Vampire Cloak ownership.
+- Added one Phase 06 regression proving the typed Bank handler consumes a command through the full
+  quest/shop compatibility nesting without changing the boot or `no_specials` contract.
 - The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
   verifier, dual-build manifest comparison, and documentation/integrity gates pass.
 - The Phase 03 close passes 574 root tests and 12/12 CTest targets; exact moved-body checks and a
@@ -94,6 +102,8 @@
   synchronized and a warning-clean production build.
 - The Phase 05 close passes 588 root tests and 12/12 CTest targets with persisted callback
   identities unchanged and 2 typed definitions dispatched through existing gateways.
+- The Phase 06 close passes 589 root tests and 12/12 CTest targets with the single-name persistence
+  boundary, explicit wrapper nesting, and all protected local files unchanged.
 
 ### Pet persistence and crash observability
 

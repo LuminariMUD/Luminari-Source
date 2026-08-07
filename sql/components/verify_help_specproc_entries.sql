@@ -29,6 +29,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'SPEC_BIND_FINAL') > 0
   AND INSTR(entry, 'SPECBIND <mob|obj|room> <vnum>') > 0
   AND INSTR(entry, 'SPECBIND is read-only') > 0
+  AND INSTR(entry, 'not a persisted multiple-procedure dispatch chain') > 0
   AND INSTR(entry, '-s is not a global callback-disable switch') > 0;
 
 SELECT

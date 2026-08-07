@@ -227,15 +227,21 @@ struct shop_data {
     int close1, close2;         // Closing hours
     int bankAccount;            // Banked gold
     int lastsort;               // Inventory sort counter
-    SPECIAL(*func);             // Secondary special procedure
+    SPECIAL(*func);             // Runtime-only saved callback
 };
 ```
 
 ### Shop Loading Process
 
-1. **boot_the_shops()** (`src/obj/shop.c:1424`) - Loads shop definitions from files
-2. **assign_the_shopkeepers()** (`src/obj/shop.c:1500`) - Assigns shop_keeper spec_proc to mobs
+1. **boot_the_shops()** (`src/obj/shop.c:1587`) - Loads shop definitions from files
+2. **assign_the_shopkeepers()** (`src/obj/shop.c:1668`) - Assigns `shop_keeper` to keeper mobiles
 3. Shop data stored in global `shop_index` array
+
+If the keeper already has a callback, assignment saves it in `SHOP_FUNC` before installing
+`shop_keeper`. The saved callback runs first; nonzero consumes the command and zero falls through to
+shop behavior. Quest assignment runs later and may wrap the shop callback, producing the explicit
+runtime order `questmaster -> shop_keeper -> original`. These saved pointers are boot-time
+compatibility composition, not a persisted multiple-procedure chain.
 
 ### Shop File Format
 
@@ -339,7 +345,7 @@ The shop system integrates with the clan economy (`src/clan_economy.c`):
 ### Creating a Standard Shop
 
 1. Create shop definition in world files
-2. Assign `shop_keeper` spec_proc to mob
+2. Set the shopkeeper mob VNUM in the shop definition; boot assigns `shop_keeper` automatically
 3. Configure shop parameters (hours, restrictions, messages)
 4. Add items to produce or buy lists
 

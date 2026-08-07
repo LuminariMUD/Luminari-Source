@@ -172,9 +172,10 @@ example project snapshots rather than current project entry points.
 
 ### Next Action
 
-The [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) remains the maintained source
-for unfinished Phases 01 through 06. Future work should use that roadmap and the repository's
-standard development workflow; retired workflow state no longer schedules a follow-up command.
+The [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) is the completed Phase 00-06
+decision record. No scheduled special-procedure phase remains. Future composition or lifecycle work
+must satisfy its consumer, ordering, lifetime, OLC, and persistence reopen criteria and use the
+repository's standard development workflow.
 
 ## Vessel Documentation Consolidation Audit
 

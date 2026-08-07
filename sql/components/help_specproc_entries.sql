@@ -36,6 +36,9 @@ with SPECBIND <mob|obj|room> <vnum>. The command reports the effective callback,
 every ordered contribution and outcome, source locations, collision count,
 saved shop or quest secondary, and the chosen source. SPECBIND is read-only and
 does not change the prototype or rebuild history after a later OLC edit.
+This history is diagnostic, not a persisted multiple-procedure dispatch chain.
+Each prototype still stores zero or one authored procedure name; shop and quest
+secondaries are reconstructed compatibility state.
 
 A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot

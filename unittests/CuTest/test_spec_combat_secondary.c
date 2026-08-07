@@ -11,6 +11,7 @@
 #include "../../src/interpreter.h"
 #include "../../src/obj/item.h"
 #include "../../src/obj/shop.h"
+#include "../../src/obj/vendor.h"
 #include "../../src/quest/quest.h"
 
 #include <limits.h>
@@ -891,6 +892,47 @@ void Test_spec_quest_shop_original_nesting_propagates_context(CuTest *tc)
   handled = questmaster(actor, keeper, 0, argument);
   nesting_matches = handled == TRUE && fixture.recorder.call_count == 1 &&
                     spec_combat_call_matches(&fixture, 0, actor, keeper, 0, argument);
+  spec_combat_fixture_end(&fixture);
+
+  CuAssertTrue(tc, nesting_matches);
+}
+
+void Test_spec_typed_bank_survives_quest_shop_compatibility_nesting(CuTest *tc)
+{
+  struct spec_combat_fixture fixture;
+  struct char_data *actor;
+  struct char_data *keeper;
+  bool setup_ok;
+  bool nesting_matches;
+  int handled;
+
+  setup_ok = spec_combat_fixture_begin(&fixture);
+  if (!setup_ok)
+  {
+    CuFail(tc, "unable to initialize typed nested secondary fixture");
+    return;
+  }
+
+  actor = &fixture.characters[0];
+  keeper = &fixture.characters[1];
+  actor->player.name = "phase six depositor";
+  keeper->player.short_descr = "phase six shopkeeper";
+  spec_combat_set_mobile_flags(keeper, false);
+  keeper->nr = 0;
+  IN_ROOM(actor) = 0;
+  IN_ROOM(keeper) = 0;
+  actor->next_in_room = keeper;
+  fixture.rooms[0].people = actor;
+  fixture.commands[0].command = "deposit";
+  fixture.commands[0].sort_as = "deposit";
+  fixture.shops[0].func = bank;
+  fixture.quests[0].func = shop_keeper;
+  GET_GOLD(actor) = 125;
+  GET_BANK_GOLD(actor) = 75;
+  no_specials = 1;
+
+  handled = questmaster(actor, keeper, 0, "all");
+  nesting_matches = handled == TRUE && GET_GOLD(actor) == 0 && GET_BANK_GOLD(actor) == 200;
   spec_combat_fixture_end(&fixture);
 
   CuAssertTrue(tc, nesting_matches);

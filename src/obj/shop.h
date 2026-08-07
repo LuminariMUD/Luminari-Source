@@ -54,7 +54,7 @@ struct shop_data
   int close1, close2;         /* When does the shop close?		*/
   int bankAccount;            /* Store all gold over 15000 (disabled)	*/
   int lastsort;               /* How many items are sorted in inven?	*/
-  SPECIAL_DECL(*func);        /* Secondary spec_proc for shopkeeper	*/
+  SPECIAL_DECL(*func);        /* Runtime-only saved shopkeeper callback */
 };
 
 #define MAX_TRADE 5         /* List maximums for compatibility	*/

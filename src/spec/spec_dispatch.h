@@ -141,8 +141,11 @@ void spec_gateway_mount_charge(struct char_data *ch, struct char_data *mount,
                                struct char_data *target);
 
 /* --------------------------------------------------------------------------
- * Compatibility composition. Shops and quests forward the incoming context
- * unchanged to a saved secondary callback; nonzero propagates to the caller.
+ * Compatibility composition. Boot wraps an original mobile callback with the
+ * shop callback and then the quest callback. Each wrapper forwards the incoming
+ * context unchanged to its runtime-only saved secondary; nonzero propagates to
+ * the caller. This quest -> shop -> original nesting is not a persisted general
+ * procedure chain.
  * -------------------------------------------------------------------------- */
 
 int spec_gateway_shop_secondary(spec_legacy_handler secondary, struct char_data *ch, void *me,

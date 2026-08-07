@@ -182,7 +182,8 @@ and `MOB_NO_AI` on it, along with 100,000 gold.
 Two consequences worth knowing:
 
 - **You do not assign a spec-proc to a shopkeeper yourself.** It is done for
-  you, and any spec-proc the mob already had is preserved and chained.
+  you. Any callback the mob already had is saved as one runtime-only secondary and runs before shop
+  behavior. This compatibility wrapper is not a persisted multiple-procedure chain.
 - **The shopkeeper's gold in the `.mob` file is ignored.** It is overwritten at
   boot.
 

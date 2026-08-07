@@ -102,6 +102,11 @@ several fields.
 | dialogue DCs | Diplomacy, intimidate, and bluff thresholds; `-1` disables a check. |
 | `alternative-quest` | Dialogue failure/alternative quest; `-1` means none. |
 
+At boot, `assign_the_quests()` saves the questmaster mobile's current callback as one runtime-only
+secondary before installing `questmaster`. Because shop assignment runs first, an overlapping mobile
+uses `questmaster -> shop_keeper -> original callback`. The `.qst` file persists the questmaster VNUM,
+not a special-procedure chain.
+
 ## Quest Types Reference
 
 This table is checked against `src/quest/quest.h` and the display table in

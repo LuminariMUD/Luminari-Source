@@ -53,7 +53,8 @@ shared fixture source:
 
 - `test_spec_registry_persistence.c` - 10 registry, persistence, loader, and baseline OLC tests;
 - `test_spec_command_pulse.c` - 13 command, activity, auto-pulse, moving-room, and schedule tests;
-- `test_spec_combat_secondary.c` - 14 combat-token, ignored-return, shop, and quest tests;
+- `test_spec_combat_secondary.c` - 15 combat-token, ignored-return, shop, quest, and typed-nesting
+  tests;
 - `test_spec_registry_validation.c` - 13 immutable metadata, bounds, and boot-failure tests;
 - `test_spec_owner_aware_olc.c` - 7 filtered-menu, description, selection, and flag tests;
 - `test_spec_authored_bindings.c` - 7 owned authored-state, loader, diagnostic, and lifecycle tests;
@@ -63,6 +64,9 @@ shared fixture source:
 Phase 01 adds `test_spec_dispatch.c` with 12 gateway and extraction-safety tests. Phase 02 adds
 `test_spec_assign_table.c` with 11 declarative-row, owner/source validation, diagnostic, and stable
 source-label tests. The exact inventory through Phase 02 is 101 dedicated `Test` functions.
+Phase 04 adds nine mechanics/context tests, Phase 05 adds five typed-handler tests, and Phase 06
+adds one typed-through-secondary test. The completed Phase 00-06 inventory is 116 dedicated `Test`
+functions across the files above plus `test_spec_mechanics.c` and `test_spec_typed_handlers.c`.
 `test_spec_fixtures.c` is production-linked support and is not counted as a test owner. CuTest has
 no per-function filter, so the supported focused development run is still the complete
 production-linked executable:
@@ -83,9 +87,15 @@ the requirement-to-test map, exact manifest contract, SQL procedure, and integri
 [Special Procedure Phase 01 Validation](../testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md) for the
 gateway translation, flow, and extraction-safety coverage, and
 [Special Procedure Phase 02 Validation](../testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md) for the
-declarative-assignment inventory, binding-chain diagnostics, and help verification. Later cooldown,
-affect, content extraction, and general composition coverage remains explicitly deferred to its
-owning implementation phases.
+declarative-assignment inventory, binding-chain diagnostics, and help verification,
+[Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md) for
+content extraction,
+[Special Procedure Phase 04 Validation](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md) for
+shared mechanics,
+[Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md) for
+typed handlers, and
+[Special Procedure Phase 06 Validation](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md) for the
+composition/lifecycle audit and final compatibility boundary.
 
 ## Bardic Performance Regression Ownership
 

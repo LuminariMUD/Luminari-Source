@@ -8,7 +8,8 @@ differently. This initiative makes special-procedure behavior observable and inc
 while preserving the callback ABI, persisted names, world-file formats, boot precedence, activation
 flags, traversal order, and runtime scheduling until a separately tested migration changes them.
 
-Phases 00-05 are complete. Phase 06 is not started.
+Phases 00-06 are complete. The project closed on 2026-08-07 with optional general composition and
+zone/world lifecycle events intentionally unimplemented after a concrete-consumer audit.
 
 ## Goals
 
@@ -53,7 +54,7 @@ Phases 00-05 are complete. Phase 06 is not started.
 | 03 | Behavior-Preserving Content Extraction | Complete (2026-08-07) |
 | 04 | Narrow Shared Mechanics | Complete (2026-08-07) |
 | 05 | Incremental Typed Handlers | Complete (2026-08-07) |
-| 06 | Conditional Composition and Lifecycle Hooks | Not Started |
+| 06 | Conditional Composition and Lifecycle Hooks | Complete (2026-08-07) |
 
 ### Phase 00 - Registry Safety and Observability (Complete)
 
@@ -203,16 +204,29 @@ tests bring the root suite to 588 tests.
 Acceptance evidence:
 [Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
-### Phase 06 - Conditional Composition and Lifecycle Hooks
+### Phase 06 - Conditional Composition and Lifecycle Hooks (Complete)
 
-1. Gather concrete prototype-composition and lifecycle use cases.
-2. Design and test inner-chain order without changing outer command-owner traversal.
-3. Migrate shop and quest secondaries deliberately.
-4. Add only zone and world hooks required by approved content.
-5. Version affected persistence; retain backward-compatible loading.
+The final audit found one concrete composition contract: the existing runtime-only
+`questmaster -> shop_keeper -> original callback` nesting. Mobile, object, and room prototypes still
+persist at most one authored procedure name, and no approved content needs a second general handler
+on one prototype. Shop and quest secondaries therefore remain deliberate compatibility wrappers,
+not entries in a new chain. Their save-before-install boot order, secondary-first flow, nonzero stop,
+zero fallthrough, and exact context forwarding remain covered by production-linked tests. A new
+test proves the Phase 05 typed Bank handler also works through the full quest/shop nesting.
 
-Exit when each abstraction has a real consumer with complete ordering, lifetime, and compatibility
-coverage. This phase may close with composition or lifecycle events intentionally unimplemented.
+The lifecycle audit likewise found no approved need for a new C-level zone or world procedure hook.
+DG Scripts already cover localized room reset, enter, leave, login, time, mobile/object load, death,
+timer, and related behavior. Strong artifact and vessel lifecycle requirements call direct APIs at
+their owning subsystem. No event catalog, registry, or asynchronous bus was added.
+
+Because no chain or lifecycle persistence changed, there is no format or schema version to bump.
+The single-name mobile `SpecProc`, object `Z`, and room `Z` formats remain backward-compatible as-is;
+`SHOP_FUNC` and `QST_FUNC` are reconstructed runtime pointers and are not serialized. General
+composition or a shared C lifecycle registry may reopen only when approved content supplies the
+required consumer and all ordering, lifetime, OLC, and versioning contracts.
+
+Acceptance evidence:
+[Special Procedure Phase 06 Validation](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
 
 ### Sequencing Guardrail
 
@@ -268,8 +282,8 @@ land.
 | Gateway callers honor flow and pointer-lifetime contracts while preserving scheduling, traversal, activation, and returns. | Met by Phase 01. |
 | Shared helpers state clock, ownership, persistence, stacking, and invalidation rules and have at least two real consumers with tests. | Met by Phase 04. |
 | File organization follows primary responsibility, with both build systems synchronized. | Met by Phase 03. |
-| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 04 (583 tests). |
-| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 04. |
+| Root `make test` and `make install` pass with the server installed at `bin/circle`. | Standing gate; passed at Phase 06 (589 tests). |
+| Builder, help, system, and architecture documentation matches every implemented phase. | Standing gate; met through Phase 06. |
 
 ## Risks and Guardrails
 
@@ -300,13 +314,14 @@ land.
 - **Persistence incompatibility**: preserve canonical names and single-name formats; version any
   later composition format with backward-compatible loading.
 
-## Open Decisions
+## Resolved Decisions
 
-1. Whether content needs justify multiple procedures on one prototype; Phase 06 stays conditional
-   until ordering and persistence requirements have a real consumer.
-2. Which zone or world lifecycle hooks, if any, approved content needs after direct typed hooks
-   prove a shared contract.
-3. Whether the independent artifact file split is scheduled inside or outside this initiative.
+1. Current content does not justify a persisted multiple-procedure prototype chain. Preserve the
+   explicit quest/shop compatibility nesting and reopen only for an approved additional consumer.
+2. No new zone or world special-procedure lifecycle hook is required. Use DG Scripts for localized
+   content and direct owning-subsystem hooks for strong engine lifecycle guarantees.
+3. Artifact file decomposition is outside this initiative. Artifact identity, custody, progression,
+   persistence, and future source maintenance remain owned by the artifact subsystem.
 
 ## Current-State Evidence
 
@@ -318,8 +333,9 @@ persistence (`src/spec_assign.c`, `src/db.c`, `src/olc/`); shop and quest compos
 (`src/obj/shop.c`, `src/quest/quest.c`, `src/olc/genqst.c`); cooldown, affect, damage, and
 object-save contracts; artifact code and tests; and persisted bindings under `lib/world/`.
 
-Phases 00-02 have since changed registry, OLC, dispatch, provenance, and eligible assignment behavior
-described in that baseline. Statements below are marked where a completed phase superseded them.
+Phases 00-06 have since changed registry, OLC, dispatch, provenance, eligible assignment behavior,
+source ownership, shared mechanics, and typed-handler implementation described in that baseline.
+Statements below are marked where a completed phase superseded them.
 Dated counts are snapshots, not invariants; re-trace symbols during implementation.
 
 ### Source Inventory
@@ -807,32 +823,32 @@ If separately scheduled, an artifact split under `src/obj/` may use `artifact_re
 
 ## Conditional Composition and Lifecycle Hooks
 
-A future chain is internal to one prototype and must not change outer command traversal. Current
-shop and quest secondaries are explicit compatibility composition, not a general chain.
+Phase 06 closed without a general prototype chain. Current shop and quest secondaries are explicit
+runtime compatibility composition, not persisted entries in a general chain. Boot deliberately
+produces quest-over-shop-over-original nesting, and each wrapper invokes its saved secondary before
+its own behavior. This remains internal to one mobile and does not change outer command traversal.
 
-Before a chain ships, define and test: deterministic order from persisted definition IDs and explicit
-policy (never function addresses or registry order); binding source and collision behavior per entry;
-per-entry event compatibility; gateway-specific continue/stop semantics; owner, actor, and target
-invalidation including stable-snapshot versus live-chain behavior when a handler mutates bindings
-during dispatch; whether a command result stops only the inner chain or outer traversal too;
-duplicate-handler policy and bounded chain length; a versioned backward-compatible persistence format
-for multiple names; OLC display, reorder, clear, unresolved-name, and save behavior; and deliberate
-migration of quest-over-shop-over-original nesting.
+If approved content reopens a chain, define and test deterministic order from persisted definition
+IDs and explicit policy (never function addresses or registry order); binding source and collision
+behavior per entry; per-entry event compatibility; gateway-specific continue/stop semantics; owner,
+actor, and target invalidation including stable-snapshot versus live-chain behavior when a handler
+mutates bindings during dispatch; whether a command result stops only the inner chain or outer
+traversal too; duplicate-handler policy and bounded chain length; a versioned backward-compatible
+persistence format for multiple names; OLC display, reorder, clear, unresolved-name, and save
+behavior; and deliberate migration of quest-over-shop-over-original nesting.
 
 Composition touches `room_data`, mobile and object `index_data`, world parsers and writers, medit,
 oedit, redit, shop and quest secondaries, stat and diagnostic commands, reload behavior, and OLC
 saves. It follows registry typing and gateway extraction safety.
 
-No zone callback exists today, so zone and world lifecycle events are not initial event values.
-Potential zone events: zone boot; before and after reset; player enter and leave; periodic pulse;
-mobile death; object load or extraction; zone-empty or first-player arrival. Potential world events:
-world boot complete; periodic world pulse; day/night/weather/calendar transitions; global encounter
-lifecycle; shutdown preparation.
+No zone callback exists, and Phase 06 added no zone or world event values. The audit found that DG
+room/mobile/object triggers already serve localized reset, movement, load, death, login, and time
+content, while stateful artifact and vessel lifecycles already call direct owner APIs.
 
-Add only events backed by approved consumers. Start with a direct typed hook at the lifecycle owner,
-stating its ordering relative to reset commands and DG Scripts, whether failure can veto the step,
-whether re-entry is allowed, and which data stays valid. Generalize to a registry only after a second
-consumer proves a shared contract. Do not build a broad asynchronous event bus.
+If approved content reopens a C lifecycle hook, start with a direct typed hook at the lifecycle
+owner, stating its ordering relative to reset commands and DG Scripts, whether failure can veto the
+step, whether re-entry is allowed, and which data stays valid. Generalize to a registry only after a
+second consumer proves a shared contract. Do not build a broad asynchronous event bus.
 
 ## Test Coverage Requirements
 
@@ -845,9 +861,10 @@ owner/source, table-diagnostic, and source-label coverage (11 tests). Phase 04 a
 for typed context rejection, exact object and combat identity, phrase and cooldown behavior, damage
 results, and affect source/stacking separation. Phase 05 adds five tests for mixed dispatch, stable
 callback identities, flow/invalidation, explicit identify events, and exact Vampire Cloak ownership.
-Phase 06 requires multiple-handler ordering only if composition is introduced, shop and quest
-secondary coverage for any deliberate migration, and ordering/lifetime coverage for every approved
-lifecycle hook.
+Phase 06 adds one typed-through-secondary regression, bringing the root suite to 589 tests. Existing
+secondary tests retain exact forwarding, stop/fallthrough, nesting, boot-order, and `no_specials`
+coverage. No multiple-handler or lifecycle-hook tests were added because neither optional
+abstraction was implemented.
 
 After root `make test`, always run `make install` so the tested server is installed at `bin/circle`
 and no root-level `circle` artifact remains.

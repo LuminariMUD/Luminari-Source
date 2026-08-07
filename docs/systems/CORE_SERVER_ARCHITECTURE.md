@@ -427,6 +427,14 @@ unchanged. The registry reports 2 typed and 26 legacy definitions; the source tr
 194 legacy behavior implementations. See
 [Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md).
 
+Phase 06 audits optional composition and lifecycle expansion. It keeps the existing runtime-only
+`questmaster -> shop_keeper -> original callback` nesting and does not add a persisted general chain:
+each prototype and authored binding still has one callback identity. It also adds no zone/world
+special-procedure events. DG Scripts cover localized lifecycle content, while artifact and vessel
+boot/reset work remains a direct call into its owning subsystem. The complete decision and reopen
+criteria are in
+[Special Procedure Phase 06 Validation](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
+
 The guarded assignment order preserves quest-over-shop-over-original composition. Shop and quest
 wrappers record the actual callback saved in `SHOP_FUNC` or `QST_FUNC`; they are not flattened into a
 general chain. Under `-s`, world names and parser hooks still load while the assignment block is
@@ -451,9 +459,10 @@ It cannot share the room callback slot with a named `Z` binding. Boot rejects bo
 REdit blocks selection and defensive internal save, and the room writer preflights the complete zone
 before opening output or mutating mover state.
 
-Phases 00-05 do not introduce multiple-handler dispatch. Two handlers are typed behind stable
-adapters; remaining conversions and optional composition must preserve the characterized
-scheduling, traversal, activation, return, and precedence rules.
+Phases 00-06 do not introduce multiple-handler dispatch. Two handlers are typed behind stable
+adapters; remaining conversions must preserve the characterized scheduling, traversal, activation,
+return, and precedence rules. Optional composition or shared lifecycle events reopen only for an
+approved consumer with complete ordering, lifetime, OLC, and persistence coverage.
 
 ## Performance Monitoring
 

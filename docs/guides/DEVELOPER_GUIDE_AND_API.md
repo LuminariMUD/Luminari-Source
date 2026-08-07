@@ -3,8 +3,8 @@
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
 control plane delivered through Phase 02, the completed Phase 03 ownership
-extraction, the Phase 04 shared mechanics, and Phase 05 typed dispatch; other subsystem APIs remain in
-their source-linked system documents.
+extraction, the Phase 04 shared mechanics, Phase 05 typed dispatch, and the Phase 06
+composition/lifecycle boundary; other subsystem APIs remain in their source-linked system documents.
 
 ## Quick Start
 
@@ -203,6 +203,25 @@ pointers remain `Bank`/`bank` and `Vampire Cloak`/`vampire_cloak`. The productio
 2 typed and 26 legacy definitions; 194 source-level legacy behavior implementations still require
 the compatibility ABI.
 
+### Composition and Lifecycle Boundary
+
+Phase 06 retains one explicit compatibility composition. Boot installs the original mobile callback,
+then saves and wraps it with `shop_keeper`, then saves and wraps that result with `questmaster`.
+Runtime invocation is therefore `questmaster -> shop_keeper -> original`; each saved secondary runs
+first, nonzero consumes, and zero falls through. `SHOP_FUNC` and `QST_FUNC` are runtime-only pointers,
+not authored identities. `spec_dispatch()` allows either a typed adapter or a legacy callback to
+occupy the original position without changing the wrapper contract.
+
+Do not represent effective-binding history as an executable chain. Prototypes and OLC persist zero
+or one authored name. A general chain requires an approved additional consumer, deterministic
+persisted-ID ordering, per-entry compatibility and invalidation rules, bounded mutation semantics,
+complete OLC operations, and a versioned backward-compatible format.
+
+Do not add speculative zone/world events to the special-procedure registry. Use DG Scripts for
+localized reset, movement, load, death, login, and time content. Add strong engine lifecycle behavior
+as a direct typed call at its owner, with explicit ordering and lifetime rules; generalize only after
+a second consumer proves the same contract.
+
 ## Adding or Changing a Registered Procedure
 
 1. Characterize every affected invocation and exact legacy argument before
@@ -223,7 +242,7 @@ the compatibility ABI.
 
 ## Compatibility Boundary
 
-Phases 00-05 preserve the single callback slot, `SPECIAL` ABI, world grammar,
+Phases 00-06 preserve the single callback slot, `SPECIAL` ABI, world grammar,
 command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
@@ -278,7 +297,8 @@ Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranz
 move retired `src/spec_procs.c`; its header remains the compatibility include surface. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate, and use the
 Phase 04 context API when exact pointer identity is required. Bank and Vampire Cloak are typed
-behind unchanged adapters; additional conversions and general chains remain future work.
+behind unchanged adapters. Additional conversions remain incremental; Phase 06 found no current
+consumer for a general persisted chain or new zone/world lifecycle procedure event.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
@@ -298,4 +318,6 @@ the
 [Phase 04 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
 the
 [Phase 05 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
+the
+[Phase 06 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

@@ -87,10 +87,15 @@ compiler passes the required C23 keyword probe.
   procedure subsystem.
 - Prefer DG Scripts for localized narrative, dialogue, puzzles, and sequencing without
   engine-level lifecycle requirements.
+- Treat quest-over-shop-over-original dispatch as explicit runtime compatibility composition, not
+  as a persisted prototype chain. Do not generalize it without an approved second consumer and a
+  versioned OLC/persistence contract.
+- Add engine lifecycle behavior first as a direct typed call at its owning subsystem. Generalize
+  only after multiple consumers prove identical ordering, veto, re-entry, and lifetime rules.
 
 The enduring architecture and migration lessons are in
 [Project Considerations](CONSIDERATIONS.md#special-procedure-architecture-refactor). Current and
-planned scope is in the
+completed scope and conditional reopen criteria are in the
 [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md).
 
 ## Local Configuration and Credentials
