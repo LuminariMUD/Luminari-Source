@@ -28,6 +28,7 @@
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_abyssal_vortex.h"
 #include "spec/spec_zone_agrach_dyrr.h"
+#include "spec/spec_zone_air_plane.h"
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
@@ -83,7 +84,6 @@ SPECIAL_DECL(beltush);
 SPECIAL_DECL(bloodaxe);
 SPECIAL_DECL(bolthammer);
 SPECIAL_DECL(stability_boots);
-SPECIAL_DECL(chan);
 SPECIAL_DECL(ches);
 SPECIAL_DECL(chionthar_ferry);
 SPECIAL_DECL(clang_bracer);
@@ -184,7 +184,6 @@ SPECIAL_DECL(willowisp);
 SPECIAL_DECL(witherdirk);
 SPECIAL_DECL(xvim_artifact);
 SPECIAL_DECL(xvim_normal);
-SPECIAL_DECL(yan);
 
 /* Vessel/Ship Special Procedures */
 SPECIAL_DECL(greyhawk_ship_object);

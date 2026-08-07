@@ -24,6 +24,7 @@
 #include "spec/spec_zone_abyss.h"
 #include "spec/spec_zone_abyssal_vortex.h"
 #include "spec/spec_zone_agrach_dyrr.h"
+#include "spec/spec_zone_air_plane.h"
 #include "spec/spec_zone_banshee.h"
 #include "spec/spec_zone_celestial_leviathan.h"
 #include "spec/spec_zone_crimson_flame.h"
