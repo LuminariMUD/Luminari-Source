@@ -52,9 +52,11 @@ and the
 the
 [Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md).
 Phase 03 is moving unchanged legacy callbacks to coherent owners:
-`src/spec/spec_objects.c` contains the first general object group, while
+`src/spec/spec_objects.c` contains the audited general object procedures, while
 `src/vessels/vessels_legacy.c` contains legacy route, ferry, and Greyhawk ship
-behavior. See the
+behavior. Player shops, commerce, crafting molds, vampire-cloak customization,
+quest reward replacement, and the Neverwinter puzzle now live with their feature owners.
+See the
 [Phase 03 progress record](testing/SPECIAL_PROCEDURE_PHASE_03_PROGRESS.md).
 
 ## Operational Boundary

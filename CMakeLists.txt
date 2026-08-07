@@ -476,6 +476,7 @@ set(SRC_C_FILES
     src/constants.c
     src/copyover_diagnostic.c
     src/craft/craft.c
+    src/craft/crafting_molds.c
     src/craft/crafting_new.c
     src/craft/crafting_recipes.c
     src/craft/crafts.c
@@ -558,6 +559,7 @@ set(SRC_C_FILES
     src/olc/oasis_delete.c
     src/olc/oasis_list.c
     src/obj/objsave.c
+    src/obj/player_shop.c
     src/olc/oedit.c
     src/perfmon.c
     src/character/perks.c
@@ -573,6 +575,7 @@ set(SRC_C_FILES
     src/pubsub/pubsub.c
     src/olc/qedit.c
     src/quest/quest.c
+    src/quest/quest_services.c
     src/character/race.c
     src/random.c
     src/random_names.c
@@ -593,6 +596,7 @@ set(SRC_C_FILES
     src/spec/spec_dispatch.c
     src/spec/spec_effective_binding.c
     src/spec/spec_objects.c
+    src/spec/spec_zone_neverwinter.c
     src/spec/spec_registry.c
     src/spec_assign.c
     src/spec_procs.c
@@ -608,6 +612,8 @@ set(SRC_C_FILES
     src/olc/tedit.c
     src/character/templates.c
     src/obj/trade.c
+    src/obj/vendor.c
+    src/character/vampire_cloak.c
     src/vessels/transport.c
     src/vessels/transport_unified.c
     src/combat/traps_new.c

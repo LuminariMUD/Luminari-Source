@@ -39,9 +39,9 @@ pointer-identity issue remains a Phase 04 contract.
 - the Chionthar ferry, Alandor ferry, and Moonshae carpet procedures;
 - the Greyhawk boarding and bridge-command procedures.
 
-The Neverwinter button and valve controls remain in `src/spec_procs.c` because they are a cohesive
-zone puzzle, not general vessel mechanics. `floating_teleport` also remains pending its owning
-package decision.
+At this checkpoint the Neverwinter button and valve controls remained in `src/spec_procs.c`
+because they are a cohesive zone puzzle, not general vessel mechanics. `floating_teleport` also
+remained pending a traced ownership decision; Checkpoint 2 resolves both.
 
 ### Build manifests
 
@@ -53,7 +53,7 @@ Both production source manifests contain the same new implementation files:
 The root Autotools production binary and CuTest binary link both files. A fresh CMake build links
 both the `circle` and `cutest` targets.
 
-## Verification Evidence
+## Checkpoint 1 Verification Evidence
 
 Run from the repository root on 2026-08-07:
 
@@ -72,21 +72,59 @@ The symbol comparison covers all moved helpers, commands, object callbacks, ferr
 Greyhawk callbacks, and the legacy `ship_info` data symbol. Existing production-linked tests retain
 registry identity, dispatch, boarding, vessel, assignment, and world-loading coverage.
 
+## Checkpoint 2 - Complete Object and Feature-Owner Split
+
+Checkpoint 2 completes the contiguous object-section audit and moves each non-general group to its
+primary subsystem. `src/spec_procs.c` shrinks from 11,162 lines at Checkpoint 1 to 6,357 lines.
+The Phase 03 baseline was 12,212 lines.
+
+The resulting ownership is:
+
+- `src/spec/spec_objects.c`: the remaining reusable object callbacks, including `warbow` and the
+  traced, cross-zone `floating_teleport`;
+- `src/spec/spec_zone_neverwinter.c`: the button and valve halves of the Neverwinter sewage
+  control puzzle;
+- `src/obj/player_shop.c`: player-owned shop inventory, purchase, identification, and persistence;
+- `src/obj/vendor.c`: bank service, generated armor and weapon vendors, pet-object conversion,
+  and paid identification;
+- `src/craft/crafting_molds.c`: mold construction, listing, validation, purchase, and delivery;
+- `src/character/vampire_cloak.c`: vampire-only cloak customization;
+- `src/quest/quest_services.c`: completed-quest reward replacement.
+
+The no-op `celestial_leviathan` callback remains in `src/spec_procs.c` until it can move together
+with its actual encounter state and helpers from `src/zone_procs.c`. This preserves the cohesive
+zone-package rule. The historical commented `forest_idol` and `storage_chest` implementations
+remain beside general object procedures and are not compiled.
+
+Both build manifests add the same six new source files and continue to link
+`src/spec/spec_objects.c` for production and CuTest. No declaration, assignment, registry entry,
+or call site changes.
+
+### Checkpoint 2 verification
+
+| Gate | Result |
+|------|--------|
+| `make -j$(nproc)` | PASS with `-Wall -Wextra` |
+| `make test` | PASS, 574 tests plus all root script gates |
+| `make install` | PASS; `bin/circle` installed and root `circle` removed |
+| CMake production and `cutest` incremental rebuild | PASS |
+| CMake `ctest --output-on-failure` | PASS, 12/12 tests |
+| complete exported global-symbol comparison against Checkpoint 1 | PASS, no symbol added, removed, or retyped |
+
 ## Remaining Phase 03 Work
 
-1. Finish the contiguous general-object extraction without absorbing artifact, vessel, vendor,
-   crafting, or zone-owned behavior.
-2. Move vendor/trade and crafting-mold behavior to their actual subsystem owners.
-3. Extract reusable mobile and room procedures.
-4. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
+1. Move spell, skill, and ability calculation/listing work to its character-system owner.
+2. Extract reusable mobile and room procedures, and move legacy moving-room behavior to vessels.
+3. Split `src/zone_procs.c` along its existing zone-package boundaries while retaining private
    static state with each package.
+4. Move the remaining cohesive mobile content and the Celestial Leviathan stub with their packages.
 5. Re-run source ownership, exported-symbol, Autotools, CMake, and full test validation.
 6. Replace this progress record with final Phase 03 acceptance evidence and mark the PRD phase
    complete.
 
 ## Resume Point
 
-Start by inventorying the remaining `SPECIAL(...)` definitions in `src/spec_procs.c` by section
-and tracing every non-static helper before moving the next contiguous group. Do not classify the
-Neverwinter controls or `floating_teleport` as vessel-owned solely because they followed ferry code
-in the legacy file.
+Start with the spell, skill, and ability block at the top of `src/spec_procs.c`. Give it a direct
+character-system API while retaining compatibility for existing `spec_procs.h` consumers. Then
+extract reusable mobile and room groups; keep the moving-room state and callback together when
+moving them under `src/vessels/`.

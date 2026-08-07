@@ -121,11 +121,14 @@ Acceptance evidence:
 
 ### Phase 03 - Behavior-Preserving Content Extraction
 
-Checkpoint 1 extracted the first general object group to `src/spec/spec_objects.c` and moved the
-legacy route, ferry, and Greyhawk ship procedures to `src/vessels/vessels_legacy.c`. Both files
-are linked by Autotools and CMake for production and CuTest. Zone-specific Neverwinter controls and
-`floating_teleport` remain pending their cohesive ownership decision. The callback ABI, exported
-symbols, registry identities, assignments, and behavior remain unchanged.
+Checkpoints 1-2 extracted the complete audited general object section to
+`src/spec/spec_objects.c`, moved legacy route/ferry/Greyhawk behavior to
+`src/vessels/vessels_legacy.c`, and placed Neverwinter, vendor, crafting-mold, vampire-cloak, and
+quest-service callbacks with their true owners. `floating_teleport` is a reusable cross-zone object
+callback, not vessel behavior. The Celestial Leviathan stub remains with the legacy file until its
+encounter package moves from `zone_procs.c`. Autotools and CMake link every new source for
+production and CuTest. The callback ABI, exported symbols, registry identities, assignments, and
+behavior remain unchanged.
 
 1. Extract general object procedures first, after gateway coverage.
 2. Extract reusable mobile and room procedures.

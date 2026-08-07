@@ -172,9 +172,11 @@ command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
 observable compatibility path. Behavior-preserving content extraction is in
-progress: general object callbacks are moving under `src/spec/`, and vessel
-callbacks under `src/vessels/`. Shared mechanics, typed-handler conversion,
-and general chains remain future work.
+progress: general object callbacks are under `src/spec/`; vessel callbacks are
+under `src/vessels/`; and player-shop, vendor, crafting, vampire-cloak,
+quest-service, and Neverwinter callbacks are now owned by their feature
+directories. Shared
+mechanics, typed-handler conversion, and general chains remain future work.
 
 New engine call sites must go through a gateway in `src/spec/spec_dispatch.h`
 rather than calling a prototype's callback slot directly. Each gateway names
