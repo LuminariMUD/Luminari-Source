@@ -345,7 +345,9 @@ owned authored record and source location remain available, but no callback is i
 The Phase 02 table contains the two Luminari assignments that have both a traced symbolic VNUM and a
 registered definition. Numeric, computed, and campaign-compatibility assignments remain direct
 calls, but both forms use the same owner-specific assignment helpers and effective-history recorder.
-The table is a validated compatibility source, not a new precedence level.
+The table is a validated compatibility source, not a new precedence level. Phase 07 placed those
+helpers in `src/spec/spec_assign.c` and split the compiled inventory into mobile, object, and room
+owners. `src/spec/spec_assign.h` remains the only public assignment boot interface.
 
 Phase 03 source extraction does not change this control flow. General object callbacks now live in
 `src/spec/spec_objects.c`; legacy route, ferry, and Greyhawk ship callbacks live in
@@ -397,11 +399,11 @@ callbacks from `src/spec_procs.c`.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 After a residual dormant-code audit, `src/spec_procs.c` was removed from both build manifests;
-the transitional `src/spec_procs.h` umbrella still supplies compatibility declarations and includes.
-Its removal, together with relocation of `src/spec_assign.c`, is tracked in the
-[special-procedure todo](../ongoing-projects/spec-todo.md). The completed Phase 03 behavior
-inventory and evidence are in
-[Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
+Phase 07 then removed the top-level assignment source and declaration umbrella. All cross-module
+consumers include the narrow header owned by the assignment, registry, feature, vessel, or zone
+implementation they use. The completed ownership evidence is in
+[Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md) and
+[Special Procedure Phase 07 Validation](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 
 Phase 04 adds narrow mechanics below the gateway and above existing engine primitives. Typed
 payload validation in `src/spec/spec_context.c` rejects malformed owner/event shapes before legacy

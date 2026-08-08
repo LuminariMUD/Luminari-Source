@@ -1,5 +1,9 @@
 # Special Procedure Phase 02 Validation
 
+> Historical phase snapshot: source paths and inventory commands below record the Phase 02
+> baseline. Phase 07 moved compiled assignments under `src/spec/`; use the
+> [Phase 07 validation matrix](SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) for the current source map.
+
 ## Purpose
 
 This document is the durable acceptance and test-ownership record for Phase 02: Declarative Legacy

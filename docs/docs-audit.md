@@ -170,12 +170,13 @@ example project snapshots rather than current project entry points.
   constraint and require identified immutable release, database, world-data, and component-runbook
   evidence before production rollback.
 
-### Next Action
+### Special-Procedure Consolidation Closeout
 
-The [special-procedure todo](ongoing-projects/spec-todo.md) now contains only unfinished source
-consolidation: fold `src/spec_assign.c` into `src/spec/`, eliminate `src/spec_procs.h`, validate the
-result, then delete the todo. Completed behavior and decisions remain in maintained architecture,
-developer, builder, consideration, and validation documents.
+The Phase 07 consolidation removed the top-level assignment source and declaration umbrella,
+replaced them with shallow assignment owners and direct callback-owner includes, and reconciled the
+maintained architecture, developer, builder, consideration, source-map, and testing references. The
+[Phase 07 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) owns the final
+membership and build evidence.
 
 ## Vessel Documentation Consolidation Audit
 

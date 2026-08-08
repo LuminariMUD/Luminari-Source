@@ -65,14 +65,14 @@ are separate concerns.
 
 ### Reconcile Documentation and Verification
 
-- [ ] Update current architecture, developer, source-map, and testing documentation after the two
+- [x] Update current architecture, developer, source-map, and testing documentation after the two
   transitional files are removed. Remove every statement that either remains a compatibility
   surface.
 - [x] Preserve the database-first `SPECIALS` help contract unless behavior actually changes; run
   its verifier for any help text modification.
 - [x] Add or update production-linked tests for assignment module boundaries, boot ordering,
   effective source locations, direct includes, and any changed registry compatibility surface.
-- [ ] Compare production and CuTest source membership exactly across Automake and CMake.
+- [x] Compare production and CuTest source membership exactly across Automake and CMake.
 
 ## Implementation Checkpoints
 
@@ -122,6 +122,25 @@ are separate concerns.
   was removed.
 - Next implementation step: update maintained documentation, compare complete Automake/CMake source
   membership, and run clean warning-free Autotools and fresh CMake validation.
+
+### Checkpoint 3 - Documentation and manifest reconciliation (2026-08-08)
+
+- Maintained architecture, developer API, source-map, campaign, shop, mobile-flag, conventions,
+  consideration, testing, audit, changelog, and documentation-index references now describe the
+  four assignment modules and direct callback-owner interfaces. The generated mobile-flag HTML is
+  synchronized with its Markdown source.
+- `docs/testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md` records the final ownership model, narrow
+  interfaces, unchanged compatibility contracts, focused coverage, manifest inventory, and live
+  validation status. Earlier phase matrices remain historical evidence rather than current source
+  maps.
+- Exact compiled membership matches: 288 production C sources occur in both Automake and CMake, and
+  the same 41 CuTest owner files occur in `cutest_SOURCES`, `cutest_test_files`, and
+  `CUTEST_TEST_SOURCES`. Incidental header listings are explicitly excluded from compiled-source
+  parity.
+- The database-first `SPECIALS` help text and its migration/verifier SQL are unchanged, so the
+  established help contract is preserved without a new help migration.
+- Next implementation step: run the clean Autotools build/test/install gate, then fresh CMake/CTest,
+  documentation, text-integrity, and repository-hook gates.
 
 ## Acceptance Gates
 

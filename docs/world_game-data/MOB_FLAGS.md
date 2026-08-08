@@ -58,7 +58,7 @@ table is not an action flag, whatever it is called.
 - Executed during mobile activity updates
 - Used for quest NPCs, shopkeepers, trainers, etc.
 
-**Code References:** `src/spec/`, feature-owned procedure modules, `src/spec_assign.c`
+**Code References:** `src/spec/spec_assign_mobiles.c`, `src/spec/`, feature-owned procedure modules
 
 ### MOB_SENTINEL (Index: 1)
 **Effect:** Mobile will not move from its current location.

@@ -59,13 +59,15 @@ shared fixture source:
 - `test_spec_owner_aware_olc.c` - 7 filtered-menu, description, selection, and flag tests;
 - `test_spec_authored_bindings.c` - 7 owned authored-state, loader, diagnostic, and lifecycle tests;
 - `test_spec_binding_round_trip.c` - 7 writer-to-loader identity and explicit-action tests; and
-- `test_spec_effective_binding.c` - 7 provenance, precedence, mode, secondary, and room-safety tests.
+- `test_spec_effective_binding.c` - 8 provenance, precedence, module-boundary, mode, secondary, and
+  room-safety tests.
 
 Phase 01 adds `test_spec_dispatch.c` with 12 gateway and extraction-safety tests. Phase 02 adds
 `test_spec_assign_table.c` with 11 declarative-row, owner/source validation, diagnostic, and stable
 source-label tests. The exact inventory through Phase 02 is 101 dedicated `Test` functions.
-Phase 04 adds nine mechanics/context tests, Phase 05 adds five typed-handler tests, and Phase 06
-adds one typed-through-secondary test. The completed Phase 00-06 inventory is 116 dedicated `Test`
+Phase 04 adds nine mechanics/context tests, Phase 05 adds five typed-handler tests, Phase 06 adds
+one typed-through-secondary test, and Phase 07 adds one assignment-module boundary test. The
+completed Phase 00-07 inventory is 117 dedicated `Test`
 functions across the files above plus `test_spec_mechanics.c` and `test_spec_typed_handlers.c`.
 `test_spec_fixtures.c` is production-linked support and is not counted as a test owner. CuTest has
 no per-function filter, so the supported focused development run is still the complete
@@ -95,7 +97,14 @@ shared mechanics,
 [Special Procedure Phase 05 Validation](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md) for
 typed handlers, and
 [Special Procedure Phase 06 Validation](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md) for the
-composition/lifecycle audit and final compatibility boundary.
+composition/lifecycle audit and final compatibility boundary, and
+[Special Procedure Phase 07 Validation](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) for
+assignment ownership, direct-header boundaries, exact manifest membership, and final source
+consolidation.
+
+The manifest parity gate compares all compiled C paths, not incidental header listings. The current
+inventory is 288 production C sources in both `circle_SOURCES` and `SRC_C_FILES`, plus the same 41
+test-owner sources in `cutest_SOURCES`, `cutest_test_files`, and `CUTEST_TEST_SOURCES`.
 
 ## Bardic Performance Regression Ownership
 

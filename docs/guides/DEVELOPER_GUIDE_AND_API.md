@@ -4,7 +4,8 @@ Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
 control plane delivered through Phase 02, the Phase 03 behavior extraction, the Phase 04 shared
 mechanics, Phase 05 typed dispatch, and the Phase 06
-composition/lifecycle boundary; other subsystem APIs remain in their source-linked system documents.
+composition/lifecycle boundary, and the Phase 07 source consolidation; other subsystem APIs remain
+in their source-linked system documents.
 
 ## Quick Start
 
@@ -22,8 +23,10 @@ required.
 ### Definition Registry
 
 World/OLC special procedures are defined in `src/spec/spec_registry.c`, with
-public metadata and accessors in `src/spec/spec_registry.h`. Assignment remains
-in `src/spec_assign.c`. Prototype callback slots retain the legacy-shaped ABI:
+public metadata, compatibility projections, and accessors in `src/spec/spec_registry.h`. Shared
+owner-typed assignment machinery lives in `src/spec/spec_assign.c`; the mobile, object, and room
+inventories live in `src/spec/spec_assign_mobiles.c`, `src/spec/spec_assign_objects.c`, and
+`src/spec/spec_assign_rooms.c`. Prototype callback slots retain the legacy-shaped ABI:
 
 ```c
 int handler(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -155,6 +158,12 @@ saved secondary, collision count, and final source without mutating the slot or
 recomputing history after an OLC edit.
 
 ### Declarative Legacy Assignment API
+
+`src/spec/spec_assign.h` is the narrow public boot interface. It exposes
+`spec_assign_table_boot_validate()`, `assign_mobiles()`, `assign_objects()`, and `assign_rooms()`.
+The private `src/spec/spec_assign_internal.h` interface is only for the three compiled inventory
+modules; it preserves owner-specific VNUM types while routing every callback write through the same
+effective-provenance recorder. Source-location diagnostics name the actual inventory file and line.
 
 `src/spec/spec_assign_table.h` defines separate mobile, object, and room row
 types. A row holds the corresponding VNUM type and a canonical definition name
@@ -331,9 +340,9 @@ use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`,
 `src/spec/spec_zone_snake_pit.h`. Their callbacks deliberately share
 `src/spec/spec_zone_alarm_group.c` so `zone_yell()` remains private beside all three consumers.
 Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranzan.h`. The final
-move retired `src/spec_procs.c`. The transitional `src/spec_procs.h` umbrella still exists while
-direct consumers migrate to narrow owner headers; its removal is tracked in the
-[special-procedure todo](../ongoing-projects/spec-todo.md). Use
+move retired `src/spec_procs.c`. Phase 07 removed the top-level assignment source and declaration
+umbrella. Cross-module consumers now include the narrow assignment, registry, subsystem, vessel, or
+zone owner that declares the symbol they use; do not recreate an all-procedure aggregation header. Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate, and use the
 Phase 04 context API when exact pointer identity is required. Bank and Vampire Cloak are typed
 behind unchanged adapters. Additional conversions remain incremental; Phase 06 found no current
@@ -359,4 +368,6 @@ the
 [Phase 05 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
 the
 [Phase 06 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md),
+the
+[Phase 07 validation matrix](../testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md),
 and [architecture](../ARCHITECTURE.md).

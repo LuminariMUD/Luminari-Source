@@ -1,5 +1,9 @@
 # Special Procedure Phase 03 Progress
 
+> Historical checkpoint log: each batch describes the repository state when that batch landed.
+> Phase 07 later removed the transitional assignment source and declaration umbrella; use the
+> [Phase 07 validation matrix](SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) for current ownership.
+
 Status: Complete
 Last updated: 2026-08-07  
 Baseline: Phase 02 completion commit `9acda0ec`

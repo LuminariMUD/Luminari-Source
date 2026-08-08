@@ -181,15 +181,19 @@ Campaign-specific administrative tools:
 
 ## Special Procedures and NPCs
 
-### Special Assignments (spec_assign.c)
+### Special Assignments (`src/spec/spec_assign_*.c`)
+
+The supported build is Luminari. The compiled assignment inventories retain legacy campaign
+compatibility branches in their mobile, object, and room owner modules:
+
 ```c
 #ifdef CAMPAIGN_FR
-  // Forgotten Realms specific NPC behaviors
-  // FR-themed special procedures
+  /* Retained Forgotten Realms compatibility assignments. */
 #endif
 ```
 
-Campaign-specific NPC behaviors and special room/object procedures ensure thematic consistency.
+Shared callback writes and effective-binding provenance are owned by `src/spec/spec_assign.c`; the
+public boot interface is `src/spec/spec_assign.h`.
 
 ## Protocol and Network Integration
 

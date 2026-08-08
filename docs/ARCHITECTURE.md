@@ -73,8 +73,7 @@ The Prisoner raid state, item and mobile callbacks, death transition, and treasu
 `src/spec/spec_zone_celestial_leviathan.c`. All other cohesive zone packages likewise live under
 `src/spec/`; Fire Plane, Water Plane, and Snake Pit share `spec_zone_alarm_group.c` only to keep
 their common helper private, while publishing separate owner headers. Both legacy
-`src/spec_procs.c` and `src/zone_procs.c` are retired. `src/spec_procs.h` retains compatibility
-includes while direct consumers migrate to owner APIs.
+`src/spec_procs.c` and `src/zone_procs.c` are retired.
 See the
 [Phase 03 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
@@ -98,6 +97,13 @@ Scripts own localized lifecycle content, while stateful artifact and vessel life
 owning subsystem directly. See the
 [Phase 06 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
 
+Phase 07 completes source ownership. Shared owner-typed binding and provenance helpers live in
+`src/spec/spec_assign.c`; mobile, object, and room inventories live in the matching
+`src/spec/spec_assign_*.c` modules. `src/spec/spec_assign.h` exposes only the four boot entry points,
+and callback consumers include their actual subsystem or `src/spec/` owner headers directly. The
+former top-level assignment source and procedure umbrella no longer exist. See the
+[Phase 07 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
+
 ## Operational Boundary
 
 The existing Terrain API listener shares the main game loop and binds only to
@@ -114,6 +120,4 @@ the required root gate is `make test` followed by `make install`.
 
 Architectural decisions with long-term tradeoffs belong in [ADRs](adr/). Durable special-procedure
 contracts live in the [developer API](guides/DEVELOPER_GUIDE_AND_API.md),
-[project considerations](CONSIDERATIONS.md), and phase validation matrices. Only the unfinished
-top-level source consolidation remains in the
-[special-procedure todo](ongoing-projects/spec-todo.md).
+[project considerations](CONSIDERATIONS.md), and phase validation matrices.

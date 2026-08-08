@@ -1,5 +1,9 @@
 # Special Procedure Phase 03 Validation
 
+> Historical phase snapshot: compatibility-header and assignment-source statements below record
+> the Phase 03 close. Phase 07 removed both transitional files; use the
+> [Phase 07 validation matrix](SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md) for current ownership.
+
 ## Purpose
 
 This document is the durable acceptance and test-ownership record for Phase 03:

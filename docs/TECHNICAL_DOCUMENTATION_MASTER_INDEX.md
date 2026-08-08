@@ -128,6 +128,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Special Procedure Phase 04 Validation](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md)** - Shared context, phrase, cooldown, combat, and affect contracts with consumer and gate evidence
 - **[Special Procedure Phase 05 Validation](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md)** - Mixed typed/legacy dispatch, Bank and Vampire Cloak conversion, compatibility inventory, and reproducible gates
 - **[Special Procedure Phase 06 Validation](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md)** - Final composition/lifecycle consumer audit, explicit wrapper boundary, typed nesting regression, and reopen criteria
+- **[Special Procedure Phase 07 Validation](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md)** - Final assignment-source ownership, direct-header consolidation, manifest parity, and reproducible closeout gates
 - **[RESOURCE_SYSTEM_TESTING.md](testing/RESOURCE_SYSTEM_TESTING.md)** - Resource system testing guide
 - **[VESSEL_SYSTEM_TESTING.md](testing/VESSEL_SYSTEM_TESTING.md)** - Vessel system manual regression script (30 steps)
 - **[LOCAL_DEV_LOGIN_QUICK_GUIDE.md](testing/LOCAL_DEV_LOGIN_QUICK_GUIDE.md)** - Credential-safe local boot, Kohdee login, and character/account logout smoke test
@@ -196,11 +197,8 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Project Documents
 - **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
-  Active work and retained handoffs: special-procedure source consolidation, artifact placement, AI
-  conversation history, SKORE phases 3-4, event-system merge, and in-game backlogs
-- **[Special Procedure Source Consolidation](ongoing-projects/spec-todo.md)** -
-  Remaining work to fold `src/spec_assign.c` into `src/spec/`, eliminate `src/spec_procs.h`, and
-  delete the todo after the validated finish line is reached
+  Active work and retained handoffs: artifact placement, AI conversation history, SKORE phases 3-4,
+  event-system merge, and in-game backlogs
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item

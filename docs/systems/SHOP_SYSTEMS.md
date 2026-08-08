@@ -294,7 +294,9 @@ Located in `src/obj/shop.h:186-195`:
 
 ### Shop Assignment
 
-Shops are assigned to mobs in `src/spec_assign.c`:
+Specialized vendor callbacks are assigned to mobiles in
+`src/spec/spec_assign_mobiles.c`; pet-shop room callbacks are assigned in
+`src/spec/spec_assign_rooms.c`:
 
 ```c
 // Standard shops use shop files

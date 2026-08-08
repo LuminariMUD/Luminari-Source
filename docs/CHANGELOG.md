@@ -41,7 +41,7 @@
 - Added production-linked route-contract coverage, shell probe regressions,
   and an isolated MariaDB-backed curl smoke test.
 
-### Special-procedure architecture Phases 00-06
+### Special-procedure architecture Phases 00-07
 
 #### Changed
 
@@ -81,9 +81,12 @@
 - Closed the lifecycle audit without new zone/world procedure events: DG Scripts retain localized
   lifecycle content, and artifact/vessel requirements retain direct owning-subsystem hooks. No
   persistence version changed because no format or schema changed.
-- Corrected the project closeout boundary: delivered runtime phases do not finish the source
-  refactor while `src/spec_assign.c` and `src/spec_procs.h` remain. Distilled their unfinished
-  removal into the ongoing todo and moved the enduring invocation contract into the developer API.
+- Completed source ownership by splitting assignment helpers and mobile, object, and room
+  inventories into shallow `src/spec/` modules, removing the transitional top-level assignment
+  source, and replacing the procedure umbrella with direct owner interfaces.
+- Preserved the four-function public assignment boot API, owner-typed internal helpers, real-source
+  effective provenance, registry compatibility projections, exact boot order, and all legacy
+  callback and persistence contracts.
 
 #### Verification
 
@@ -97,6 +100,9 @@
   notification-only STOP rejection, explicit identify events, and exact Vampire Cloak ownership.
 - Added one Phase 06 regression proving the typed Bank handler consumes a command through the full
   quest/shop compatibility nesting without changing the boot or `no_specials` contract.
+- Added one Phase 07 regression for assignment-module boundaries, direct boot/registry interfaces,
+  real provenance labels, dual-manifest membership, and transitional-file removal. The complete
+  production-linked suite now contains 590 passing tests.
 - The full Autotools test/install path, independent CMake/CTest matrix, temporary-table help SQL
   verifier, dual-build manifest comparison, and documentation/integrity gates pass.
 - The Phase 03 close passes 574 root tests and 12/12 CTest targets; exact moved-body checks and a

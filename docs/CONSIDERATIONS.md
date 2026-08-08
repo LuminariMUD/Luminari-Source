@@ -1,6 +1,6 @@
 # Project Considerations
 
-**Last updated:** August 7, 2026
+**Last updated:** August 8, 2026
 
 This document preserves design and maintenance lessons that should survive the
 current backlog. It is the canonical destination for durable considerations
@@ -8,7 +8,7 @@ previously maintained in the retired workflow records.
 
 ## Special Procedure Architecture Refactor
 
-**Status:** Phases 00-06 delivered; final source consolidation remains open
+**Status:** Phases 00-07 delivered
 
 Durable behavior and evidence live in the
 [Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
@@ -16,10 +16,9 @@ Durable behavior and evidence live in the
 [Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
 [Phase 03 ownership matrix](testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md),
 [Phase 04 mechanics matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
-[Phase 05 typed-handler matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md), and
-[Phase 06 composition/lifecycle audit](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
-Only the remaining removal of the transitional top-level assignment source and umbrella header is
-tracked in the [special-procedure todo](ongoing-projects/spec-todo.md).
+[Phase 05 typed-handler matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md),
+[Phase 06 composition/lifecycle audit](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md), and
+[Phase 07 source-consolidation matrix](testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md).
 
 ### Active Concerns
 
@@ -30,7 +29,11 @@ tracked in the [special-procedure todo](ongoing-projects/spec-todo.md).
   when the handler benefits from typed targets, events, flow, or invalidation.
 - **Imperative assignment inventory remains:** The two eligible Luminari rows are declarative and
   boot-validated. Numeric, computed, and campaign-compatibility rows remain on the observable direct
-  path until they gain traced VNUMs and registered identities; preserve their exact order.
+  path in the owner-specific assignment modules until they gain traced VNUMs and registered
+  identities; preserve their exact order.
+- **Assignment interfaces are intentionally narrow:** Boot callers include `spec/spec_assign.h`;
+  inventory modules alone use `spec_assign_internal.h`; callback consumers include their actual
+  feature, vessel, zone, or registry owner. Do not recreate a general procedure umbrella.
 - **Shutdown leak baseline is incomplete:** Live ASan validation found existing process-lifetime
   allocations outside the health work; disabled leak detection is not proof of cleanup.
 
