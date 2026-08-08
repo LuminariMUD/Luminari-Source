@@ -24,10 +24,10 @@ are separate concerns.
 
 ### Fold `src/spec_assign.c` into `src/spec/`
 
-- [ ] Trace every compiled assignment, helper, public function, campaign-compatibility branch, and
+- [x] Trace every compiled assignment, helper, public function, campaign-compatibility branch, and
   direct callback declaration in `src/spec_assign.c`; distinguish live code from commented or
   dormant inventory.
-- [ ] Define a shallow `src/spec/` ownership split with a narrow public assignment header. Keep the
+- [x] Define a shallow `src/spec/` ownership split with a narrow public assignment header. Keep the
   public boot entry points `spec_assign_table_boot_validate()`, `assign_mobiles()`,
   `assign_objects()`, and `assign_rooms()` unless a separately tested caller migration replaces
   them.
@@ -47,7 +47,7 @@ are separate concerns.
 
 ### Eliminate `src/spec_procs.h`
 
-- [ ] Trace every direct and transitive include of `src/spec_procs.h` and every declaration it
+- [x] Trace every direct and transitive include of `src/spec_procs.h` and every declaration it
   supplies before changing an include.
 - [ ] Put the assignment boot API in the new narrow `src/spec/` assignment header.
 - [ ] Move legacy registry projection declarations to `src/spec/spec_registry.h`, or migrate their
@@ -73,6 +73,35 @@ are separate concerns.
 - [ ] Add or update production-linked tests for assignment module boundaries, boot ordering,
   effective source locations, direct includes, and any changed registry compatibility surface.
 - [ ] Compare production and CuTest source membership exactly across Automake and CMake.
+
+## Implementation Checkpoints
+
+### Checkpoint 1 - Baseline trace and ownership plan (2026-08-08)
+
+- Environment: `APP_ENV=development`; clean `master` matched `origin/master` at `39a1888d` before
+  this work began. Protected local configuration files were not changed.
+- Assignment inventory: `src/spec_assign.c` is 1,324 lines. After comment stripping it contains
+  three assignment macros and 669 live `ASSIGNMOB`, `ASSIGNOBJ`, or `ASSIGNROOM` calls across the
+  preserved Luminari, `CAMPAIGN_FR`, and `CAMPAIGN_DL` branches. Another 111 calls are commented
+  dormant inventory. The file owns one declarative Luminari object table, five private provenance
+  or table helpers, four public boot entry points, and seven local callback declarations.
+- Assignment split: `src/spec/spec_assign.c` will own shared owner-typed binding helpers;
+  `src/spec/spec_assign_mobiles.c`, `src/spec/spec_assign_objects.c`, and
+  `src/spec/spec_assign_rooms.c` will own their inventories. `src/spec/spec_assign.h` will expose
+  only the four boot entry points, and `src/spec/spec_assign_internal.h` will expose only the three
+  typed helpers used by those inventory modules. Source-location macros remain local to each
+  inventory so diagnostics name the real file and line.
+- Umbrella inventory: `src/spec_procs.h` directly includes 46 headers and is directly included by
+  52 production files and 10 production-linked CuTest files. It carries the four assignment entry
+  points, five registry projection declarations, `weapons_spells()`, and 80 callback declarations.
+- Declaration ownership: registry projections move to `src/spec/spec_registry.h`; general object
+  callbacks and `weapons_spells()` move to `src/spec/spec_objects.h`; Neverwinter controls and
+  legacy vessel callbacks receive narrow owner headers; crafting, trade, player-shop, mail, board,
+  shop, quest, and object-save callbacks use their actual subsystem headers. The five declarations
+  with no implementation (`drow_scimitar`, `kt_shadowmaker`, `magi_staff`, `mithril_rapier`, and
+  `treantshield`) are dormant and will be removed rather than republished.
+- Next implementation step: add the narrow headers and split the assignment source without
+  changing boot order or assignment inventory.
 
 ## Acceptance Gates
 
