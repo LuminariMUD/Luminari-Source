@@ -192,7 +192,7 @@ Never run this acceptance procedure against production.
 git diff --check
 test "$(rg -l '[^ -~]' \
   docs/testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md \
-  docs/ongoing-projects/spec-todo.md \
+  docs/testing/SPECIAL_PROCEDURE_PHASE_07_VALIDATION.md \
   docs/guides/OLC_SpecProcs.md \
   docs/guides/DEVELOPER_GUIDE_AND_API.md \
   docs/guides/TESTING_GUIDE.md \

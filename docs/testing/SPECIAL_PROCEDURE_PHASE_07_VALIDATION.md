@@ -1,7 +1,6 @@
 # Special Procedure Phase 07 Validation
 
-**Status:** Implementation and Autotools validation complete; final CMake validation in progress
-(2026-08-08)
+**Status:** Complete (2026-08-08)
 
 ## Scope
 
@@ -101,8 +100,17 @@ CMake lists `src/net/msdp_json.h`. They are excluded from the C-source parity co
 | `make install`; executable `bin/circle`; no root `circle` | PASS |
 | Exact production and CuTest C-source manifest parity | PASS - 288 production, 41 test owners |
 | Clean warning-free Autotools build and repeat test/install | PASS - zero warnings, 590 tests, installed binary active |
-| Fresh CMake `circle`, `cutest`, and complete CTest matrix | Pending final gate |
-| Documentation links, generated guides, ASCII/LF, diff hygiene, and hooks | Pending final gate |
+| Fresh CMake `circle`, `cutest`, and complete CTest matrix | PASS - Debug builds; 12 of 12 CTest targets |
+| Documentation links, generated guides, ASCII/LF, diff hygiene, and hooks | PASS |
 
 The database-first `SPECIALS` help contract is unchanged. Neither the help text nor its migration
 and verifier SQL was modified, so no help-content migration is part of Phase 07.
+
+## Final Result
+
+The clean Autotools build emitted no compiler warning, the root suite passed all 590 tests, and the
+immediate install activated an executable `bin/circle` without leaving a root build artifact. A
+fresh external CMake Debug tree built both targets without warnings and passed all 12 CTest targets.
+World-documentation and generated-guide checks, local Markdown targets, changed-text ASCII/LF,
+repository diff hygiene, and hooks passed. Protected local configuration and credential files were
+unchanged, and the temporary CMake tree was removed.
