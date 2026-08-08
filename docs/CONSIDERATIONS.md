@@ -8,10 +8,9 @@ previously maintained in the retired workflow records.
 
 ## Special Procedure Architecture Refactor
 
-**Status:** Complete; Phases 00-06 delivered on August 7, 2026
+**Status:** Phases 00-06 delivered; final source consolidation remains open
 
-Use the [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) for the completed scope and
-conditional reopen criteria. Delivered behavior and evidence live in the
+Durable behavior and evidence live in the
 [Phase 00 validation matrix](testing/SPECIAL_PROCEDURE_PHASE_00_VALIDATION.md),
 [Phase 01 gateway matrix](testing/SPECIAL_PROCEDURE_PHASE_01_VALIDATION.md),
 [Phase 02 assignment matrix](testing/SPECIAL_PROCEDURE_PHASE_02_VALIDATION.md),
@@ -19,6 +18,8 @@ conditional reopen criteria. Delivered behavior and evidence live in the
 [Phase 04 mechanics matrix](testing/SPECIAL_PROCEDURE_PHASE_04_VALIDATION.md),
 [Phase 05 typed-handler matrix](testing/SPECIAL_PROCEDURE_PHASE_05_VALIDATION.md), and
 [Phase 06 composition/lifecycle audit](testing/SPECIAL_PROCEDURE_PHASE_06_VALIDATION.md).
+Only the remaining removal of the transitional top-level assignment source and umbrella header is
+tracked in the [special-procedure todo](ongoing-projects/spec-todo.md).
 
 ### Active Concerns
 
@@ -114,9 +115,9 @@ conditional reopen criteria. Delivered behavior and evidence live in the
   freeing an argument-vector pointer caused an ASan-detected invalid free at shutdown.
 - **Using production paths in validation:** Test setup must reject protected `lib/`, broad cleanup
   targets, non-loopback database hosts, and database names without a test/CI marker.
-- **Claiming future architecture as delivered:** Gateways and eligible declarative assignments are
-  shipped. Keep shared mechanics, extraction, typed-handler conversion, and composition labeled
-  deferred until tested implementation lands.
+- **Redefining completion around transitional files:** Delivered runtime phases do not complete a
+  source-ownership refactor while its explicitly targeted top-level assignment source and umbrella
+  header remain. Keep the original structural finish line visible until deletion and full validation.
 
 #### Tool and Library Notes
 

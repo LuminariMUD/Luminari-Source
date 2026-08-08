@@ -112,6 +112,8 @@ membership must remain synchronized in `Makefile.am` and `CMakeLists.txt`.
 Production-linked regression tests compile against the real server sources;
 the required root gate is `make test` followed by `make install`.
 
-Architectural decisions with long-term tradeoffs belong in [ADRs](adr/). The completed phase record
-and the conditions for reopening optional composition or lifecycle work remain in the
-[special-procedure refactor PRD](ongoing-projects/spec-todo.md).
+Architectural decisions with long-term tradeoffs belong in [ADRs](adr/). Durable special-procedure
+contracts live in the [developer API](guides/DEVELOPER_GUIDE_AND_API.md),
+[project considerations](CONSIDERATIONS.md), and phase validation matrices. Only the unfinished
+top-level source consolidation remains in the
+[special-procedure todo](ongoing-projects/spec-todo.md).

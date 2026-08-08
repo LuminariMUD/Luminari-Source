@@ -397,8 +397,10 @@ callbacks from `src/spec_procs.c`.
 The shared `is_wearing()` equipment predicate now lives in `src/handler.c` beside equip and unequip
 operations; its legacy same-VNUM semantics are unchanged.
 After a residual dormant-code audit, `src/spec_procs.c` was removed from both build manifests;
-`src/spec_procs.h` remains the compatibility include surface. The completed ownership inventory and
-evidence are in
+the transitional `src/spec_procs.h` umbrella still supplies compatibility declarations and includes.
+Its removal, together with relocation of `src/spec_assign.c`, is tracked in the
+[special-procedure todo](../ongoing-projects/spec-todo.md). The completed Phase 03 behavior
+inventory and evidence are in
 [Special Procedure Phase 03 Validation](../testing/SPECIAL_PROCEDURE_PHASE_03_VALIDATION.md).
 
 Phase 04 adds narrow mechanics below the gateway and above existing engine primitives. Typed

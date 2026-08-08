@@ -196,12 +196,11 @@ This master index provides a comprehensive guide to all technical documentation 
 
 ### Project Documents
 - **[Ongoing projects](ongoing-projects/README_ongoing-projects.md)** -
-  Active work and retained handoffs: artifact placement, AI conversation history, SKORE phases 3-4,
-  event-system merge, and in-game backlogs; the completed special-procedure record is retained there
-  pending archival
-- **[Special Procedure Refactor PRD](ongoing-projects/spec-todo.md)** -
-  Phases 00-06 delivered; optional general composition and lifecycle events closed unimplemented
-  until approved consumers meet the recorded reopen criteria
+  Active work and retained handoffs: special-procedure source consolidation, artifact placement, AI
+  conversation history, SKORE phases 3-4, event-system merge, and in-game backlogs
+- **[Special Procedure Source Consolidation](ongoing-projects/spec-todo.md)** -
+  Remaining work to fold `src/spec_assign.c` into `src/spec/`, eliminate `src/spec_procs.h`, and
+  delete the todo after the validated finish line is reached
 - **[artifact-placement-plan.md](ongoing-projects/artifact-placement-plan.md)** -
   World-building brief for placing artifacts in player-facing content, the
   artifact system's one remaining open item

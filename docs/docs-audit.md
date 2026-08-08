@@ -172,10 +172,10 @@ example project snapshots rather than current project entry points.
 
 ### Next Action
 
-The [Special Procedure Refactor PRD](ongoing-projects/spec-todo.md) is the completed Phase 00-06
-decision record. No scheduled special-procedure phase remains. Future composition or lifecycle work
-must satisfy its consumer, ordering, lifetime, OLC, and persistence reopen criteria and use the
-repository's standard development workflow.
+The [special-procedure todo](ongoing-projects/spec-todo.md) now contains only unfinished source
+consolidation: fold `src/spec_assign.c` into `src/spec/`, eliminate `src/spec_procs.h`, validate the
+result, then delete the todo. Completed behavior and decisions remain in maintained architecture,
+developer, builder, consideration, and validation documents.
 
 ## Vessel Documentation Consolidation Audit
 

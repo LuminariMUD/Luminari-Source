@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - August 7, 2026
+## [Unreleased] - August 8, 2026
 
 ### Documentation entry points and operator safety
 
@@ -81,6 +81,9 @@
 - Closed the lifecycle audit without new zone/world procedure events: DG Scripts retain localized
   lifecycle content, and artifact/vessel requirements retain direct owning-subsystem hooks. No
   persistence version changed because no format or schema changed.
+- Corrected the project closeout boundary: delivered runtime phases do not finish the source
+  refactor while `src/spec_assign.c` and `src/spec_procs.h` remain. Distilled their unfinished
+  removal into the ongoing todo and moved the enduring invocation contract into the developer API.
 
 #### Verification
 

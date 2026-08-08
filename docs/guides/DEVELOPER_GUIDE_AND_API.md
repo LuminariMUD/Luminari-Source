@@ -2,8 +2,8 @@
 
 Use [docs/development.md](../development.md) for the verified build, test,
 source-map, and style entry point. This reference documents the special-procedure
-control plane delivered through Phase 02, the completed Phase 03 ownership
-extraction, the Phase 04 shared mechanics, Phase 05 typed dispatch, and the Phase 06
+control plane delivered through Phase 02, the Phase 03 behavior extraction, the Phase 04 shared
+mechanics, Phase 05 typed dispatch, and the Phase 06
 composition/lifecycle boundary; other subsystem APIs remain in their source-linked system documents.
 
 ## Quick Start
@@ -44,6 +44,42 @@ initialization or world parsing. Validation rejects missing text,
 case-insensitive collisions, invalid masks, incompatible owner/event pairs,
 missing prerequisites, duplicate events, invalid visibility, and invalid
 handler shape.
+
+### Invocation Compatibility
+
+The legacy callback shape is shared, but its payload and result are caller-specific. Gateways retain
+these contracts until an individually tested migration changes one:
+
+| Invocation | Legacy signal | Caller interpretation |
+|------------|---------------|-----------------------|
+| Command | Command number and argument | Nonzero consumes the command. |
+| Mobile activity | `cmd == 0`, empty argument | Nonzero skips remaining default AI for that mobile. |
+| Mobile combat turn | `cmd == 0`, empty argument | Return ignored. |
+| Object auto-pulse | `cmd == 0`, empty argument | Nonzero skips the carried-object fallback. |
+| Item identification | `cmd == 0`, `identify` | Return ignored. |
+| Weapon hit | `cmd == 0`, hit token | Return ignored. |
+| Defense reaction | `cmd == 0`, reaction token | Return ignored. |
+| Combat maneuver | `cmd == 0`, maneuver token | Return ignored. |
+| Mounted charge | `cmd == 0`, `charge` | Return ignored. |
+| Moving room | Null character values and moving-room state in `me` | Return ignored. |
+| Shop secondary | Incoming context unchanged | Nonzero propagates to the wrapper caller. |
+| Quest secondary | Incoming context unchanged | Nonzero propagates to the wrapper caller. |
+
+Defense reaction tokens are `shieldblock`, `parry`, `glance`, and `dodge`; maneuver tokens are
+`shieldpunch`, `shieldcharge`, and `shieldslam`.
+
+Command traversal remains room, equipped objects in wear-slot order, carried objects, mobiles in
+room-list order, then room contents; the first nonzero result stops later owners. On
+`PULSE_MOBILE`, mobile activity runs before object auto-pulses, and a mobile combat callback runs
+after that combatant's attacks and cleave handling. Object auto-pulse may first run with a null actor
+and then with `carried_by` only after zero fallthrough. Moving rooms update every ten seconds.
+
+Activation is also caller-specific. Mobile activity and combat turns require `MOB_SPEC`, while
+mobile command dispatch uses the callback slot directly. Periodic object auto-pulse requires
+`ITEM_AUTOPROC`; object commands, identification, and combat notifications use the callback slot
+directly. `no_specials` is not a global callback switch: syntax-check mode skips guarded legacy,
+shop, and quest assignment paths and command/mobile-activity dispatch, while world parsing and
+ungated internal callers retain their established behavior.
 
 ### Lookup API
 
@@ -247,7 +283,8 @@ command traversal, heartbeat timing, caller-specific returns, activation flags,
 shop/quest nesting, and boot precedence. Declarative validation applies to the
 two currently eligible Luminari rows; unsupported assignments remain on the
 observable compatibility path. Behavior-preserving content extraction is
-complete: general object callbacks are under `src/spec/`; vessel callbacks are
+complete for the implementations formerly in `spec_procs.c` and `zone_procs.c`: general object
+callbacks are under `src/spec/`; vessel callbacks are
 under `src/vessels/`, including the complete legacy moving-room loader,
 scheduler, relocation, and callback package. Player-shop, vendor, crafting,
 vampire-cloak, quest-service, and Neverwinter callbacks are now owned by their feature
@@ -294,7 +331,9 @@ use `src/spec/spec_zone_kobold_caverns.h`, `src/spec/spec_zone_bandit_castle.h`,
 `src/spec/spec_zone_snake_pit.h`. Their callbacks deliberately share
 `src/spec/spec_zone_alarm_group.c` so `zone_yell()` remains private beside all three consumers.
 Menzoberranzan movement and Narbondel state use `src/spec/spec_zone_menzoberranzan.h`. The final
-move retired `src/spec_procs.c`; its header remains the compatibility include surface. Use
+move retired `src/spec_procs.c`. The transitional `src/spec_procs.h` umbrella still exists while
+direct consumers migrate to narrow owner headers; its removal is tracked in the
+[special-procedure todo](../ongoing-projects/spec-todo.md). Use
 `is_wearing()` from `handler.h` for the established same-VNUM equipment predicate, and use the
 Phase 04 context API when exact pointer identity is required. Bank and Vampire Cloak are typed
 behind unchanged adapters. Additional conversions remain incremental; Phase 06 found no current

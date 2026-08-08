@@ -94,9 +94,10 @@ compiler passes the required C23 keyword probe.
   only after multiple consumers prove identical ordering, veto, re-entry, and lifetime rules.
 
 The enduring architecture and migration lessons are in
-[Project Considerations](CONSIDERATIONS.md#special-procedure-architecture-refactor). Current and
-completed scope and conditional reopen criteria are in the
-[Special Procedure Refactor PRD](ongoing-projects/spec-todo.md).
+[Project Considerations](CONSIDERATIONS.md#special-procedure-architecture-refactor), with current
+interfaces in the [Developer Guide and API](guides/DEVELOPER_GUIDE_AND_API.md). The
+[special-procedure todo](ongoing-projects/spec-todo.md) contains only unfinished source
+consolidation work.
 
 ## Local Configuration and Credentials
 
