@@ -15,7 +15,6 @@
 #include "vessels.h"
 #include "constants.h"
 #include "act.h"
-#include "spec_procs.h"
 #include "modify.h"
 #include "dgscript/dg_scripts.h"
 #include "mysql.h"

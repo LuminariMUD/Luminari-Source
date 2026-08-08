@@ -14,11 +14,11 @@
 #include "../../src/comm.h"
 #include "../../src/db.h"
 #include "../../src/interpreter.h"
+#include "../../src/magic/spells.h"
 #include "../../src/obj/vendor.h"
 #include "../../src/spec/spec_binding.h"
 #include "../../src/spec/spec_dispatch.h"
 #include "../../src/spec/spec_registry.h"
-#include "../../src/spec_procs.h"
 
 #include <string.h>
 

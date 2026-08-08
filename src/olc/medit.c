@@ -30,7 +30,7 @@
 #include "character/feats.h"
 #include "modify.h" /* for smash_tilde */
 #include "spec/spec_binding.h"
-#include "spec_procs.h"
+#include "spec/spec_registry.h"
 #include "spec_menu.h"
 
 /* local functions */

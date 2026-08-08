@@ -6,8 +6,11 @@
 #include "../../src/utils.h"
 
 #include "../../src/obj/treasure.h"
+#include "../../src/character/guild_services.h"
+#include "../../src/comms/mail.h"
+#include "../../src/obj/vendor.h"
 #include "../../src/spec/spec_binding.h"
-#include "../../src/spec_procs.h"
+#include "../../src/vessels/vessels_legacy.h"
 #include "test_spec_fixtures.h"
 
 #include <errno.h>

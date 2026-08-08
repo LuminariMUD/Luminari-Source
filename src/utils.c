@@ -25,8 +25,7 @@
 #include "character/race.h"
 #include "act.h"
 #include "character/abilities.h"
-#include "spec_procs.h" /* crafting_kit callback identity */
-#include "mud_event.h"  // for purgemob event
+#include "mud_event.h" // for purgemob event
 #include "character/feats.h"
 #include "combat/spec_abilities.h"
 #include "combat/assign_wpn_armor.h"

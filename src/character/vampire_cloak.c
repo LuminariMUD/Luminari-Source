@@ -17,7 +17,6 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
-#include "spec_procs.h"
 #include "character/class.h"
 #include "combat/fight.h"
 #include "modify.h"

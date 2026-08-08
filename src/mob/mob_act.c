@@ -23,7 +23,6 @@
 #include "act.h"
 #include "graph.h"
 #include "combat/fight.h"
-#include "spec_procs.h"
 #include "mud_event.h" /* for eSTUNNED */
 #include "modify.h"
 #include "obj/shop.h"
@@ -91,8 +90,8 @@ void mobile_activity(void)
         log("MOB ERROR: Mobile '%s' (vnum #%d) has the SPEC flag set but no special procedure "
             "assigned.",
             GET_NAME(ch), GET_MOB_VNUM(ch));
-        log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR assign a special "
-            "procedure in the code (spec_assign.c).");
+        log("MOB FIX: Either remove the SPEC flag from this mob in medit, OR add it to the "
+            "appropriate src/spec assignment inventory.");
         log("MOB FIX: Common spec procs: shop_keeper, guild_guard, snake, cityguard, receptionist, "
             "cryogenicist, postmaster, bank.");
         log("MOB NOTE: The SPEC flag has been automatically removed to prevent further errors. Use "

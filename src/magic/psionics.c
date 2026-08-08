@@ -17,7 +17,6 @@
 #include "combat/fight.h"
 #include "constants.h"
 #include "mud_event.h"
-#include "spec_procs.h"
 #include "character/class.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"

@@ -53,3 +53,5 @@ struct background_data
 extern int background_sort_info[NUM_BACKGROUNDS];
 extern struct background_data background_list[NUM_BACKGROUNDS];
 extern int backgrounds_listed_alphabetically[NUM_BACKGROUNDS];
+
+int temple(struct char_data *ch, void *me, int cmd, const char *argument);

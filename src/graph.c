@@ -21,7 +21,6 @@
 #include "constants.h"
 #include "graph.h"
 #include "combat/fight.h"
-#include "spec_procs.h"
 #include "mud_event.h"
 #include "actions.h"
 #include "wilderness/wilderness.h"

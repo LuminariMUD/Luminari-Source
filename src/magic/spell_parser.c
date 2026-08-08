@@ -20,8 +20,8 @@
 #include "combat/fight.h" /* for hit() */
 #include "constants.h"
 #include "mud_event.h"
-#include "spec_procs.h"
 #include "character/class.h"
+#include "character/abilities.h"
 #include "character/feats.h"
 #include "actions.h"
 #include "combat/assign_wpn_armor.h"

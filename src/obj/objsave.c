@@ -25,6 +25,7 @@
 #include "craft/craft.h"
 #include "combat/spec_abilities.h"
 #include "spec_artifacts.h"
+#include "objsave.h"
 
 #define OBJSAVE_DB 1
 

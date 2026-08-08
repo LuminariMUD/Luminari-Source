@@ -24,8 +24,8 @@
 #include "wilderness/wilderness.h"
 #include "movement/movement_tracks.h" /* includes trail data structures */
 #include "spec/spec_binding.h"
+#include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "spec_procs.h"
 #include "spec_menu.h"
 
 /* local functions */

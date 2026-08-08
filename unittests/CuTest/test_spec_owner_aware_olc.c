@@ -5,8 +5,10 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 
+#include "../../src/obj/vendor.h"
 #include "../../src/olc/spec_menu.h"
-#include "../../src/spec_procs.h"
+#include "../../src/spec/spec_mobile_archetypes.h"
+#include "../../src/spec/spec_mobiles.h"
 #include "test_spec_fixtures.h"
 
 #include <limits.h>

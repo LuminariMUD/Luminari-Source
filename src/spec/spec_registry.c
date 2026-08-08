@@ -8,12 +8,22 @@
 #include "structs.h"
 #include "utils.h"
 
+#include "act.h"
+#include "character/backgrounds.h"
 #include "spec/spec_registry.h"
-#include "spec_procs.h"
+#include "comms/mail.h"
+#include "craft/craft.h"
+#include "craft/crafting_new.h"
 #include "character/guild_services.h"
 #include "character/vampire_cloak.h"
 #include "magic/spellbook_scroll.h"
+#include "obj/objsave.h"
+#include "obj/player_shop.h"
+#include "obj/treasure.h"
 #include "obj/vendor.h"
+#include "quest/hunts.h"
+#include "quest/missions.h"
+#include "quest/quest.h"
 #include "spec/spec_mobile_archetypes.h"
 #include "spec/spec_mobiles.h"
 #include "spec/spec_rooms.h"
@@ -24,17 +34,11 @@
 #include "spec/spec_zone_jot.h"
 #include "spec/spec_zone_mad_drow.h"
 #include "spec/spec_zone_prisoner.h"
+#include "vessels/vessels_legacy.h"
 
 #include <ctype.h>
 #include <limits.h>
 #include <stdarg.h>
-
-SPECIAL_DECL(bazaar);
-SPECIAL_DECL(faction_mission);
-SPECIAL_DECL(eqstats);
-SPECIAL_DECL(huntsmaster);
-SPECIAL_DECL(new_supply_orders);
-SPECIAL_DECL(temple);
 
 #define SPEC_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -1226,7 +1230,7 @@ const char *get_spec_func_name_by_index(int idx)
   return spec_compatibility_name_at((size_t)idx);
 }
 
-SPECIAL_DECL(*get_spec_func_by_index(int idx))
+spec_legacy_handler get_spec_func_by_index(int idx)
 {
   const struct spec_compatibility_name *entry;
 
@@ -1240,7 +1244,7 @@ SPECIAL_DECL(*get_spec_func_by_index(int idx))
   return spec_definition_callback(&spec_definitions[entry->definition_index]);
 }
 
-SPECIAL_DECL(*find_spec_func_by_name(const char *name))
+spec_legacy_handler find_spec_func_by_name(const char *name)
 {
   const struct spec_definition *definition;
 
@@ -1248,7 +1252,7 @@ SPECIAL_DECL(*find_spec_func_by_name(const char *name))
   return spec_definition_callback(definition);
 }
 
-const char *get_spec_func_name(SPECIAL_DECL(*func))
+const char *get_spec_func_name(spec_legacy_handler func)
 {
   const struct spec_definition *definition;
 

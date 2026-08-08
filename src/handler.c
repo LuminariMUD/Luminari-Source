@@ -30,7 +30,6 @@
 #include "constants.h"
 #include "lists.h"
 #include "combat/spec_abilities.h"
-#include "spec_procs.h"
 #include "craft/crafting_new.h"
 #include "wilderness/resource_system.h"
 #include "obj/spec_artifacts.h"

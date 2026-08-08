@@ -17,7 +17,6 @@
 #include "magic/domains_schools.h"
 #include "bardic_performance.h"
 #include "combat/fight.h"
-#include "spec_procs.h"
 #include "actions.h"
 #include "lists.h"
 #include "character/feats.h"

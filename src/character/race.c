@@ -19,12 +19,12 @@
 #include "handler.h"
 #include "comm.h"
 #include "race.h"
+#include "abilities.h"
 #include "feats.h"
 #include "class.h"
 #include "backgrounds.h"
 #include "character_creation_content.h"
 #include "obj/treasure.h"
-#include "spec_procs.h"
 
 /* defines */
 #define Y TRUE

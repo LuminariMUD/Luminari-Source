@@ -16,6 +16,7 @@
 #include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
 #include "character/class.h"
+#include "character/abilities.h"
 #include "character/race.h"
 #include "combat/fight.h"
 #include "modify.h"
@@ -34,7 +35,6 @@
 #include "character/premadebuilds.h"
 #include "missions.h"
 #include "random_names.h"
-#include "spec_procs.h"
 #include "olc/oasis.h"
 #include "mudlim.h"
 #include "olc/genmob.h"

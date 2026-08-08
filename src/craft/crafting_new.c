@@ -19,7 +19,6 @@
 #include "modify.h" // for parse_at()
 #include "obj/treasure.h"
 #include "mudlim.h"
-#include "spec_procs.h" /* For GET_ABILITY() */
 #include "obj/item.h"
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"

@@ -179,4 +179,11 @@ bool spec_registry_validate(char *error, size_t error_size);
 /** Fail process startup with a SYSERR diagnostic when production metadata is invalid. */
 void spec_registry_boot_validate(void);
 
+/** Legacy registry projection retained for OLC and persisted-name compatibility. */
+const char *get_spec_func_name(spec_legacy_handler func);
+int get_spec_func_count(void);
+const char *get_spec_func_name_by_index(int idx);
+spec_legacy_handler get_spec_func_by_index(int idx);
+spec_legacy_handler find_spec_func_by_name(const char *name);
+
 #endif /* LUMINARI_SPEC_REGISTRY_H */

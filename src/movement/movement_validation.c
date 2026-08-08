@@ -19,12 +19,12 @@
 #include "magic/spells.h"
 #include "constants.h"
 #include "act.h"
+#include "character/abilities.h"
 #include "combat/fight.h"
 #include "character/feats.h"
 #include "mud_event.h"
 #include "actions.h"
 #include "character/class.h"
-#include "spec_procs.h"
 #include "movement_validation.h"
 
 /* Functions moved from movement.c */

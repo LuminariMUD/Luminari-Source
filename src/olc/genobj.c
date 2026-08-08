@@ -22,8 +22,8 @@
 #include "craft/craft.h"
 #include "magic/spells.h"
 #include "spec/spec_binding.h"
+#include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "spec_procs.h"
 
 /* local functions */
 static int update_all_objects(struct obj_data *obj);

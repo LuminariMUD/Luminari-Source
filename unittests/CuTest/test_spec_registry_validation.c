@@ -5,8 +5,26 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 
+#include "../../src/act.h"
+#include "../../src/character/backgrounds.h"
+#include "../../src/character/guild_services.h"
+#include "../../src/character/vampire_cloak.h"
+#include "../../src/comms/mail.h"
+#include "../../src/craft/craft.h"
+#include "../../src/craft/crafting_new.h"
+#include "../../src/magic/spellbook_scroll.h"
+#include "../../src/obj/objsave.h"
+#include "../../src/obj/player_shop.h"
+#include "../../src/obj/treasure.h"
+#include "../../src/obj/vendor.h"
+#include "../../src/quest/hunts.h"
+#include "../../src/quest/missions.h"
+#include "../../src/quest/quest.h"
+#include "../../src/spec/spec_mobile_archetypes.h"
+#include "../../src/spec/spec_mobiles.h"
 #include "../../src/spec/spec_registry.h"
-#include "../../src/spec_procs.h"
+#include "../../src/spec/spec_rooms.h"
+#include "../../src/vessels/vessels_legacy.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -14,17 +32,6 @@
 #include <string.h>
 
 #define SPEC_REGISTRY_SOURCE_LIMIT (1024L * 1024L)
-
-SPECIAL_DECL(bazaar);
-SPECIAL_DECL(faction_mission);
-SPECIAL_DECL(eqstats);
-SPECIAL_DECL(buyarmor);
-SPECIAL_DECL(buyweapons);
-SPECIAL_DECL(huntsmaster);
-SPECIAL_DECL(identify_mob);
-SPECIAL_DECL(new_supply_orders);
-SPECIAL_DECL(temple);
-SPECIAL_DECL(vampire_cloak);
 
 struct spec_expected_definition
 {

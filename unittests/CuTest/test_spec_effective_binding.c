@@ -7,10 +7,15 @@
 
 #include "../../src/db.h"
 #include "../../src/interpreter.h"
+#include "../../src/character/guild_services.h"
+#include "../../src/comms/mail.h"
 #include "../../src/obj/shop.h"
+#include "../../src/obj/vendor.h"
 #include "../../src/quest/quest.h"
+#include "../../src/spec/spec_assign.h"
 #include "../../src/spec/spec_effective_binding.h"
-#include "../../src/spec_procs.h"
+#include "../../src/spec/spec_registry.h"
+#include "../../src/vessels/vessels_moving_rooms.h"
 #include "test_spec_fixtures.h"
 
 #include <limits.h>
@@ -58,7 +63,7 @@ void TestSpecEffectiveBindingOutcomesAndDiagnostics(CuTest *tc)
   success = success && spec_effective_test_contribute(
                            &binding, SPEC_OWNER_MOBILE, 1201, SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT,
                            "postmaster", "Postmaster", postmaster, false, NULL, NULL,
-                           "src/spec_assign.c:283", error, sizeof(error));
+                           "src/spec/spec_assign_mobiles.c:283", error, sizeof(error));
   success = success && spec_effective_test_contribute(
                            &binding, SPEC_OWNER_MOBILE, 1201, SPEC_BINDING_SOURCE_SHOP,
                            "shop_keeper", "shop_keeper", shop_keeper, true, postmaster,
@@ -167,10 +172,10 @@ void TestSpecEffectiveBindingValidationCopyAndEscaping(CuTest *tc)
     return;
   }
   CuAssertIntEquals(tc, SPEC_EFFECTIVE_UNRESOLVED, binding->first->outcome);
-  CuAssertTrue(tc, spec_effective_test_contribute(&binding, SPEC_OWNER_OBJECT, 1402,
-                                                  SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT, "bank",
-                                                  "Bank", bank, false, NULL, NULL,
-                                                  "src/spec_assign.c:1", error, sizeof(error)));
+  CuAssertTrue(tc, spec_effective_test_contribute(
+                       &binding, SPEC_OWNER_OBJECT, 1402, SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT,
+                       "bank", "Bank", bank, false, NULL, NULL, "src/spec/spec_assign_objects.c:1",
+                       error, sizeof(error)));
   CuAssertIntEquals(tc, SPEC_EFFECTIVE_SELECTED, binding->last->outcome);
   spec_effective_binding_free(&binding);
 
@@ -395,24 +400,24 @@ void TestSpecEffectiveBindingProductionPrecedenceAndSecondaries(CuTest *tc)
   legacy_contribution = spec_effective_binding_get(binding, 1);
   shop_contribution = spec_effective_binding_get(binding, 2);
   quest_contribution = spec_effective_binding_get(binding, 3);
-  matches = matches && binding != NULL && binding->contribution_count == 4 &&
-            binding->collision_count == 3 && fixture.mob_indexes[1].func == questmaster &&
-            fixture.shops[0].func == postmaster && fixture.quests[0].func == shop_keeper &&
-            legacy_contribution != NULL && shop_contribution != NULL &&
-            quest_contribution != NULL && legacy_contribution->requested_name != NULL &&
-            legacy_contribution->source_location != NULL &&
-            legacy_contribution->source == SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT &&
-            strcmp(legacy_contribution->requested_name, "postmaster") == 0 &&
-            strncmp(legacy_contribution->source_location,
-                    "src/spec_assign.c:", strlen("src/spec_assign.c:")) == 0 &&
-            shop_contribution->source == SPEC_BINDING_SOURCE_SHOP &&
-            shop_contribution->secondary_handler == postmaster &&
-            shop_contribution->secondary_name != NULL &&
-            strcmp(shop_contribution->secondary_name, "Postmaster") == 0 &&
-            quest_contribution->source == SPEC_BINDING_SOURCE_QUEST &&
-            quest_contribution->secondary_handler == shop_keeper &&
-            quest_contribution->secondary_name != NULL &&
-            strcmp(quest_contribution->secondary_name, "shop_keeper") == 0;
+  matches =
+      matches && binding != NULL && binding->contribution_count == 4 &&
+      binding->collision_count == 3 && fixture.mob_indexes[1].func == questmaster &&
+      fixture.shops[0].func == postmaster && fixture.quests[0].func == shop_keeper &&
+      legacy_contribution != NULL && shop_contribution != NULL && quest_contribution != NULL &&
+      legacy_contribution->requested_name != NULL && legacy_contribution->source_location != NULL &&
+      legacy_contribution->source == SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT &&
+      strcmp(legacy_contribution->requested_name, "postmaster") == 0 &&
+      strncmp(legacy_contribution->source_location,
+              "src/spec/spec_assign_mobiles.c:", strlen("src/spec/spec_assign_mobiles.c:")) == 0 &&
+      shop_contribution->source == SPEC_BINDING_SOURCE_SHOP &&
+      shop_contribution->secondary_handler == postmaster &&
+      shop_contribution->secondary_name != NULL &&
+      strcmp(shop_contribution->secondary_name, "Postmaster") == 0 &&
+      quest_contribution->source == SPEC_BINDING_SOURCE_QUEST &&
+      quest_contribution->secondary_handler == shop_keeper &&
+      quest_contribution->secondary_name != NULL &&
+      strcmp(quest_contribution->secondary_name, "shop_keeper") == 0;
 
   spec_effective_precedence_end(&fixture);
   CuAssert(tc, error, matches);
@@ -551,6 +556,117 @@ static bool spec_effective_read_source(const char *relative_path, char **text)
   buffer[bytes_read] = '\0';
   *text = buffer;
   return true;
+}
+
+static size_t spec_effective_count_text(const char *source, const char *needle)
+{
+  const char *cursor;
+  size_t count;
+  size_t needle_length;
+
+  if (source == NULL || needle == NULL || *needle == '\0')
+    return 0;
+
+  count = 0;
+  needle_length = strlen(needle);
+  for (cursor = source; (cursor = strstr(cursor, needle)) != NULL; cursor += needle_length)
+    count++;
+  return count;
+}
+
+void TestSpecAssignmentModulesExposeNarrowBoundaries(CuTest *tc)
+{
+  static const char *const assignment_sources[] = {
+      "src/spec/spec_assign.c",
+      "src/spec/spec_assign_mobiles.c",
+      "src/spec/spec_assign_objects.c",
+      "src/spec/spec_assign_rooms.c",
+  };
+  static const char removed_assignment_path[] = "src/spec_"
+                                                "assign.c";
+  static const char removed_umbrella_path[] = "src/spec_"
+                                              "procs.h";
+  char *shared;
+  char *mobiles;
+  char *objects;
+  char *rooms;
+  char *assignment_header;
+  char *registry_header;
+  char *database;
+  char *automake;
+  char *cmake;
+  char *removed;
+  size_t index;
+  size_t assignment_tokens;
+  bool loaded;
+  bool matches;
+
+  shared = NULL;
+  mobiles = NULL;
+  objects = NULL;
+  rooms = NULL;
+  assignment_header = NULL;
+  registry_header = NULL;
+  database = NULL;
+  automake = NULL;
+  cmake = NULL;
+  removed = NULL;
+
+  loaded = spec_effective_read_source(assignment_sources[0], &shared) &&
+           spec_effective_read_source(assignment_sources[1], &mobiles) &&
+           spec_effective_read_source(assignment_sources[2], &objects) &&
+           spec_effective_read_source(assignment_sources[3], &rooms) &&
+           spec_effective_read_source("src/spec/spec_assign.h", &assignment_header) &&
+           spec_effective_read_source("src/spec/spec_registry.h", &registry_header) &&
+           spec_effective_read_source("src/db.c", &database) &&
+           spec_effective_read_source("Makefile.am", &automake) &&
+           spec_effective_read_source("CMakeLists.txt", &cmake);
+
+  assignment_tokens = spec_effective_count_text(mobiles, "ASSIGNMOB(") +
+                      spec_effective_count_text(mobiles, "ASSIGNOBJ(") +
+                      spec_effective_count_text(objects, "ASSIGNOBJ(") +
+                      spec_effective_count_text(rooms, "ASSIGNROOM(");
+  matches = loaded && strstr(shared, "void spec_assign_mobile(") != NULL &&
+            strstr(shared, "void spec_assign_object(") != NULL &&
+            strstr(shared, "void spec_assign_room(") != NULL &&
+            strstr(shared, "void assign_mobiles(") == NULL &&
+            strstr(mobiles, "void assign_mobiles(") != NULL &&
+            strstr(mobiles, "src/spec/spec_assign_mobiles.c:") != NULL &&
+            strstr(objects, "void spec_assign_table_boot_validate(") != NULL &&
+            strstr(objects, "void assign_objects(") != NULL &&
+            strstr(objects, "src/spec/spec_assign_objects.c:") != NULL &&
+            strstr(rooms, "void assign_rooms(") != NULL &&
+            strstr(rooms, "src/spec/spec_assign_rooms.c:") != NULL && assignment_tokens == 784 &&
+            strstr(assignment_header, "spec_assign_table_boot_validate") != NULL &&
+            strstr(assignment_header, "spec_registry") == NULL &&
+            strstr(registry_header, "get_spec_func_name(spec_legacy_handler func)") != NULL &&
+            strstr(registry_header, "find_spec_func_by_name(const char *name)") != NULL &&
+            strstr(database, "#include \"spec/spec_assign.h\"") != NULL &&
+            strstr(database, "#include \"spec/spec_registry.h\"") != NULL;
+
+  for (index = 0; loaded && index < sizeof(assignment_sources) / sizeof(assignment_sources[0]);
+       index++)
+    matches = matches && strstr(automake, assignment_sources[index]) != NULL &&
+              strstr(cmake, assignment_sources[index]) != NULL;
+
+  matches = matches && !spec_effective_read_source(removed_assignment_path, &removed) &&
+            removed == NULL && !spec_effective_read_source(removed_umbrella_path, &removed) &&
+            removed == NULL && strstr(automake, removed_assignment_path) == NULL &&
+            strstr(cmake, removed_assignment_path) == NULL;
+
+  free(shared);
+  free(mobiles);
+  free(objects);
+  free(rooms);
+  free(assignment_header);
+  free(registry_header);
+  free(database);
+  free(automake);
+  free(cmake);
+  free(removed);
+
+  CuAssertTrue(tc, loaded);
+  CuAssertTrue(tc, matches);
 }
 
 void TestSpecEffectiveBindingReportFollowsNoSpecialsAssignmentGate(CuTest *tc)

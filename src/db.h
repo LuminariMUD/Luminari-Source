@@ -328,10 +328,6 @@ int objsave_save_obj_record_db(struct obj_data *obj, struct char_data *ch, room_
 #ifdef LUMINARI_CUTEST
 void test_auto_equip_loaded_object(struct char_data *ch, struct obj_data *obj, int location);
 #endif
-/* Special functions */
-SPECIAL_DECL(receptionist);
-SPECIAL_DECL(cryogenicist);
-
 /* Functions from players.c */
 void tag_argument(char *argument, char *tag);
 int load_char(const char *name, struct char_data *ch);

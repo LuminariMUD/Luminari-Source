@@ -14,9 +14,9 @@
 #include "db.h"
 #include "vessels.h"
 #include "act.h"
+#include "character/abilities.h"
 #include "combat/fight.h"
 #include "magic/spells.h"
-#include "spec_procs.h"
 
 /* External variables */
 extern struct greyhawk_ship_data greyhawk_ships[GREYHAWK_MAXSHIPS];

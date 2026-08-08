@@ -58,10 +58,10 @@
 #include "comm.h"
 #include "handler.h"
 #include "constants.h"
-#include "spec_procs.h"
 #include "mud_event.h"
-#include "character/class.h"
 #include "spells.h"
+#include "character/class.h"
+#include "character/abilities.h"
 #include "spell_prep.h"
 #include "domains_schools.h"
 #include "character/perks.h"   /* For divine metamagic reduction */

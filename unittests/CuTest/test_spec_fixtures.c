@@ -4,6 +4,7 @@
 #include "../../src/utils.h"
 
 #include "../../src/db.h"
+#include "../../src/comms/mail.h"
 #include "../../src/olc/genmob.h"
 #include "../../src/olc/genobj.h"
 #include "../../src/olc/genwld.h"
@@ -12,7 +13,7 @@
 #include "../../src/net/protocol.h"
 #include "../../src/spec/spec_binding.h"
 #include "../../src/spec/spec_effective_binding.h"
-#include "../../src/spec_procs.h"
+#include "../../src/vessels/vessels_moving_rooms.h"
 #include "test_spec_fixtures.h"
 
 #include <errno.h>

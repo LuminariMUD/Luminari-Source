@@ -17,7 +17,6 @@
 #include "modify.h"
 #include "obj/treasure.h"
 #include "mudlim.h"
-#include "spec_procs.h"
 #include "obj/item.h"
 #include "quest/quest.h"
 #include "combat/assign_wpn_armor.h"

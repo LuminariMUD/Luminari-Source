@@ -139,7 +139,7 @@ static room_rnum castle_real_room(room_vnum roomoffset)
 }
 
 /* Routine: assign_kings_castle. Used to assign function pointers to all mobiles
- * in the Kings Castle. Called from spec_assign.c. */
+ * in the Kings Castle. Called from the mobile assignment inventory. */
 void assign_kings_castle(void)
 {
   castle_mob_spec(0, CastleGuard);      /* Gwydion */

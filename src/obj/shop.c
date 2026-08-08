@@ -24,11 +24,12 @@
 #include "olc/genshp.h"
 #include "constants.h"
 #include "act.h"
+#include "character/abilities.h"
+#include "vendor.h"
 #include "modify.h"
 #include "magic/spells.h" /* for skill_name() */
 #include "screen.h"
 #include "character/race.h"
-#include "spec_procs.h"
 #include "mudlim.h"
 #include "item.h"
 #include "character/backgrounds.h"

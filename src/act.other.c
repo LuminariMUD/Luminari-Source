@@ -30,7 +30,8 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "act.h"
-#include "spec_procs.h"
+#include "character/abilities.h"
+#include "character/skill_lists.h"
 #include "character/class.h"
 #include "combat/fight.h"
 #include "comms/mail.h" /* for has_mail() */
@@ -53,6 +54,7 @@
 #include "magic/domains_schools.h"
 #include "magic/spells.h"
 #include "magic/spell_prep.h"
+#include "magic/spell_lists.h"
 #include "character/premadebuilds.h"
 #include "quest/staff_events.h"
 #include "account.h"

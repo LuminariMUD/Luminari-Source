@@ -20,8 +20,8 @@
 #include "../../src/spec/spec_cooldown.h"
 #include "../../src/spec/spec_dispatch.h"
 #include "../../src/spec/spec_effects.h"
+#include "../../src/spec/spec_objects.h"
 #include "../../src/spec/spec_phrase.h"
-#include "../../src/spec_procs.h"
 
 #include <string.h>
 

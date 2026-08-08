@@ -26,7 +26,7 @@
  * 	  board (but you can always remove your own message).
  * 	Filename of this board, in quotes.
  * 	Last field must always be 0.
- * 4 - In spec_assign.c, find the section which assigns the special procedure
+ * 4 - In spec/spec_assign_objects.c, find the board assignment section
  *     gen_board to the other bulletin boards, and add your new one in a
  *     similar fashion. */
 

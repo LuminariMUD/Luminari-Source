@@ -21,8 +21,8 @@
 #include "wilderness/wilderness.h"
 #include "oasis.h"
 #include "spec/spec_binding.h"
+#include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "spec_procs.h"
 #include "vessels/vessels.h"
 #include "vessels/vessels_moving_rooms.h"
 

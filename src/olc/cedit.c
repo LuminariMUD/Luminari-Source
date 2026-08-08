@@ -12,6 +12,7 @@
 #include "comm.h"
 #include "interpreter.h"
 #include "db.h"
+#include "spec/spec_assign.h"
 #include "constants.h"
 #include "genolc.h"
 #include "oasis.h"
@@ -3707,7 +3708,6 @@ void cedit_parse(struct descriptor_data *d, char *arg)
 
 static void reassign_rooms(void)
 {
-  void assign_rooms(void);
   int i;
 
   /* remove old funcs */

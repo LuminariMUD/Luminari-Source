@@ -19,7 +19,6 @@
 #include "fight.h"
 #include "mud_event.h"
 #include "constants.h"
-#include "spec_procs.h"
 #include "character/class.h"
 #include "mudlim.h"
 #include "actions.h"

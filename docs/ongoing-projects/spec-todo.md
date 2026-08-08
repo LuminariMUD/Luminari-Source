@@ -31,36 +31,36 @@ are separate concerns.
   public boot entry points `spec_assign_table_boot_validate()`, `assign_mobiles()`,
   `assign_objects()`, and `assign_rooms()` unless a separately tested caller migration replaces
   them.
-- [ ] Move shared owner-typed assignment and effective-provenance helpers under `src/spec/` without
+- [x] Move shared owner-typed assignment and effective-provenance helpers under `src/spec/` without
   weakening VNUM types, diagnostics, collision history, or assignment failure behavior.
-- [ ] Move mobile, object, and room assignment inventories into coherent `src/spec/` sources.
+- [x] Move mobile, object, and room assignment inventories into coherent `src/spec/` sources.
   Cohesive zone assignment blocks may live beside their existing zone owners; reusable and
   feature-owned handlers must retain explicit owner-header dependencies.
-- [ ] Preserve the exact effective boot order: named world and parser bindings, mobile assignments,
+- [x] Preserve the exact effective boot order: named world and parser bindings, mobile assignments,
   shop wrapping, object assignments, room assignments, then quest wrapping.
-- [ ] Preserve normal and `no_specials` behavior, direct-assignment precedence, shop and quest saved
+- [x] Preserve normal and `no_specials` behavior, direct-assignment precedence, shop and quest saved
   secondaries, callback results, and bounded effective-binding diagnostics.
-- [ ] Make assignment source locations report their real new files and update focused expectations;
+- [x] Make assignment source locations report their real new files and update focused expectations;
   do not retain a false `src/spec_assign.c` diagnostic label after the file is gone.
-- [ ] Remove `src/spec_assign.c` and update both `Makefile.am` and `CMakeLists.txt` for every added or
+- [x] Remove `src/spec_assign.c` and update both `Makefile.am` and `CMakeLists.txt` for every added or
   removed source.
 
 ### Eliminate `src/spec_procs.h`
 
 - [x] Trace every direct and transitive include of `src/spec_procs.h` and every declaration it
   supplies before changing an include.
-- [ ] Put the assignment boot API in the new narrow `src/spec/` assignment header.
-- [ ] Move legacy registry projection declarations to `src/spec/spec_registry.h`, or migrate their
+- [x] Put the assignment boot API in the new narrow `src/spec/` assignment header.
+- [x] Move legacy registry projection declarations to `src/spec/spec_registry.h`, or migrate their
   callers to the canonical registry API and remove the compatibility functions when no caller
   remains.
-- [ ] Give `weapons_spells()` a narrow owner interface under `src/spec/` for its real cross-module
+- [x] Give `weapons_spells()` a narrow owner interface under `src/spec/` for its real cross-module
   consumers.
-- [ ] Move each remaining `SPECIAL_DECL()` to its actual owner header. Use existing subsystem and
+- [x] Move each remaining `SPECIAL_DECL()` to its actual owner header. Use existing subsystem and
   `src/spec/` headers where they already own the implementation; add a narrow header only when a
   real cross-file consumer requires one.
-- [ ] Replace umbrella inclusion with direct, path-qualified owner includes. Do not create a renamed
+- [x] Replace umbrella inclusion with direct, path-qualified owner includes. Do not create a renamed
   all-procedure aggregation header.
-- [ ] Remove `src/spec_procs.h` after the compiler and repository search prove no include or stale
+- [x] Remove `src/spec_procs.h` after the compiler and repository search prove no include or stale
   declaration depends on it.
 
 ### Reconcile Documentation and Verification
@@ -68,9 +68,9 @@ are separate concerns.
 - [ ] Update current architecture, developer, source-map, and testing documentation after the two
   transitional files are removed. Remove every statement that either remains a compatibility
   surface.
-- [ ] Preserve the database-first `SPECIALS` help contract unless behavior actually changes; run
+- [x] Preserve the database-first `SPECIALS` help contract unless behavior actually changes; run
   its verifier for any help text modification.
-- [ ] Add or update production-linked tests for assignment module boundaries, boot ordering,
+- [x] Add or update production-linked tests for assignment module boundaries, boot ordering,
   effective source locations, direct includes, and any changed registry compatibility surface.
 - [ ] Compare production and CuTest source membership exactly across Automake and CMake.
 
@@ -103,11 +103,31 @@ are separate concerns.
 - Next implementation step: add the narrow headers and split the assignment source without
   changing boot order or assignment inventory.
 
+### Checkpoint 2 - Source and interface consolidation (2026-08-08)
+
+- Assignment ownership now lives in four shallow modules: shared binding helpers in
+  `src/spec/spec_assign.c` and the mobile, object, and room inventories in their matching
+  `src/spec/spec_assign_*.c` sources. The public assignment header exposes only the four boot entry
+  points; the internal header exposes only owner-typed helpers.
+- `src/spec_assign.c` and `src/spec_procs.h` are removed. All former umbrella consumers now include
+  the assignment, registry, object, zone, vessel, crafting, trade, player-shop, object-save, quest,
+  spell-list, skill-list, or ability owner that supplies the symbols they use. Repository search of
+  production and test sources finds no transitional-path reference.
+- Effective-binding provenance now names the actual mobile, object, or room inventory source.
+  Focused production-linked coverage validates the new module boundaries, manifest membership,
+  boot ordering, source locations, narrow public surface, and removed transitional files.
+- Both build manifests contain all four new assignment sources and omit the removed top-level
+  source. The incremental Autotools build passed, followed by all 590 production-linked CuTest
+  cases and `make install`; the installed `bin/circle` was refreshed and the root build artifact
+  was removed.
+- Next implementation step: update maintained documentation, compare complete Automake/CMake source
+  membership, and run clean warning-free Autotools and fresh CMake validation.
+
 ## Acceptance Gates
 
-- [ ] `src/spec_assign.c` does not exist.
-- [ ] `src/spec_procs.h` does not exist, and repository search finds no reference to it.
-- [ ] No replacement umbrella header recreates the removed dependency fan-out.
+- [x] `src/spec_assign.c` does not exist.
+- [x] `src/spec_procs.h` does not exist, and repository search finds no reference to it.
+- [x] No replacement umbrella header recreates the removed dependency fan-out.
 - [ ] The legacy `SPECIAL` ABI, persisted names, world-file grammar, callback slots, traversal,
   scheduling, activation flags, return handling, boot precedence, and single-name persistence remain
   unchanged unless an explicit tested migration says otherwise.

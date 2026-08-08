@@ -210,6 +210,8 @@
 void reset_harvesting_rooms(void);
 extern int assembly_skills[NUM_CRAFT];
 void reset_acraft(struct char_data *ch);
+int crafting_kit(struct char_data *ch, void *me, int cmd, const char *argument);
+int crafting_quest(struct char_data *ch, void *me, int cmd, const char *argument);
 
 /* end external functions */
 

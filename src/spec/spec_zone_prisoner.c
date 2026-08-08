@@ -17,7 +17,7 @@
 #include "constants.h"
 #include "magic/spells.h"
 #include "act.h"
-#include "spec_procs.h"
+#include "spec_objects.h"
 #include "spec_zone_prisoner.h"
 #include "combat/fight.h"
 #include "actions.h"

@@ -5,8 +5,12 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 
+#include "../../src/character/guild_services.h"
+#include "../../src/comms/mail.h"
+#include "../../src/obj/vendor.h"
 #include "../../src/olc/spec_menu.h"
-#include "../../src/spec_procs.h"
+#include "../../src/spec/spec_registry.h"
+#include "../../src/vessels/vessels_legacy.h"
 #include "test_spec_fixtures.h"
 
 #include <dirent.h>

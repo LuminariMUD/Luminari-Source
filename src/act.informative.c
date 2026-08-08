@@ -26,6 +26,7 @@
 #include "mud_event.h"
 #include "comms/mail.h" /**< For the has_mail function */
 #include "act.h"
+#include "character/abilities.h"
 #include "character/class.h"
 #include "character/race.h"
 #include "mob/mob_spellslots.h"
@@ -45,7 +46,6 @@
 #include "character/premadebuilds.h"
 #include "quest/staff_events.h"
 #include "quest/missions.h"
-#include "spec_procs.h"
 #include "vessels/transport.h"
 #include "combat/encounters.h"
 #include "character/deities.h"
@@ -61,6 +61,7 @@
 #include "vessels/routing.h"
 #include "character/perks.h"
 #include "magic/moon_bonus_spells.h"
+#include "magic/spell_lists.h"
 
 /* Phase 7: Cascade system integration */
 #ifdef WILDERNESS_RESOURCE_DEPLETION_SYSTEM

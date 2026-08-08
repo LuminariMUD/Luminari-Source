@@ -21,9 +21,9 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
+#include "character/abilities.h"
 #include "combat/fight.h"
 #include "olc/oasis.h" /* for buildwalk */
-#include "spec_procs.h"
 #include "mud_event.h"
 #include "quest/hlquest.h"
 #include "mudlim.h"

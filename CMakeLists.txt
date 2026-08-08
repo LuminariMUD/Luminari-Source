@@ -641,7 +641,10 @@ set(SRC_C_FILES
     src/spec/spec_zone_ttf.c
     src/spec/spec_zone_zusuk.c
     src/spec/spec_registry.c
-    src/spec_assign.c
+    src/spec/spec_assign.c
+    src/spec/spec_assign_mobiles.c
+    src/spec/spec_assign_objects.c
+    src/spec/spec_assign_rooms.c
     src/obj/spec_artifacts.c
     src/magic/casting_visuals.c
     src/magic/spell_parser.c

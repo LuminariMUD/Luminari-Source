@@ -19,8 +19,8 @@
 #include "magic/spells.h"
 #include "actionqueues.h"
 #include "spec/spec_binding.h"
+#include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
-#include "spec_procs.h"
 
 /* local functions */
 static void extract_mobile_all(mob_vnum vnum);

@@ -37,7 +37,7 @@
 #include "character/evolutions.h"
 #include "character/class.h"
 #include "character/perks.h"
-#include "spec_procs.h"
+#include "spec/spec_mobile_archetypes.h"
 #include "olc/oasis.h"
 #include "craft/crafting_new.h"
 #include "wilderness/resource_system.h"

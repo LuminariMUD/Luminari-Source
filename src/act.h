@@ -1245,4 +1245,6 @@ ACMD_DECL(do_devote);
 ACMD_DECL(do_temote);
 
 ACMD_DECL(do_dialogue_quest);
+
+int eqstats(struct char_data *ch, void *me, int cmd, const char *argument);
 #endif /* _ACT_H_ */

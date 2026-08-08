@@ -9,6 +9,7 @@
 #include "../../src/act.h"
 #include "../../src/bardic_performance.h"
 #include "../../src/character/feats.h"
+#include "../../src/character/abilities.h"
 #include "../../src/character/perks.h"
 #include "../../src/combat/fight.h"
 #include "../../src/constants.h"
@@ -25,7 +26,7 @@
 #include "../../src/mud_event.h"
 #include "../../src/net/protocol.h"
 #include "../../src/obj/item.h"
-#include "../../src/spec_procs.h"
+#include "../../src/spec/spec_zone_fire_giant.h"
 
 #include <arpa/telnet.h>
 #include <string.h>

@@ -42,6 +42,12 @@ extern "C"
 
 extern char *trade_name[NUM_TRADE_GOODS];
 
+struct char_data;
+
+int trade_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
+int trade_master(struct char_data *ch, void *me, int cmd, const char *argument);
+int trade_object(struct char_data *ch, void *me, int cmd, const char *argument);
+
 /*****************************************************************************/
 #ifdef __cplusplus
 }
