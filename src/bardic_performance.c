@@ -19,6 +19,7 @@
 #include "combat/fight.h"
 #include "actions.h"
 #include "lists.h"
+#include "character/abilities.h"
 #include "character/feats.h"
 #include "character/perks.h"
 #include "magic/spell_prep.h"

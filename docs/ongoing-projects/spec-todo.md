@@ -142,15 +142,30 @@ are separate concerns.
 - Next implementation step: run the clean Autotools build/test/install gate, then fresh CMake/CTest,
   documentation, text-integrity, and repository-hook gates.
 
+### Checkpoint 4 - Clean Autotools validation (2026-08-08)
+
+- The first clean build exposed six remaining callers that had received `compute_ability()` through
+  the removed umbrella. `bardic_performance.c`, `character/backgrounds.c`,
+  `combat/act.offensive.c`, `combat/fight.c`, `graph.c`, and `handler.c` now include
+  `character/abilities.h` directly (or `abilities.h` within `src/character/`).
+- A second `make clean` plus `make -j"$(nproc)"` compiled all production sources with
+  `-Wall -Wextra` and no warnings.
+- Root `make test` passed all 590 cases, including the new module-boundary regression and auxiliary
+  supervision, install, health, background-help, and vessel checks.
+- The immediately following `make install` activated the tested release under `bin/releases/`, left
+  `bin/circle` executable, and removed the root-level `circle` artifact.
+- Next implementation step: run fresh CMake `circle` and `cutest` builds plus every CTest target,
+  then finish documentation/integrity gates and retire this todo.
+
 ## Acceptance Gates
 
 - [x] `src/spec_assign.c` does not exist.
 - [x] `src/spec_procs.h` does not exist, and repository search finds no reference to it.
 - [x] No replacement umbrella header recreates the removed dependency fan-out.
-- [ ] The legacy `SPECIAL` ABI, persisted names, world-file grammar, callback slots, traversal,
+- [x] The legacy `SPECIAL` ABI, persisted names, world-file grammar, callback slots, traversal,
   scheduling, activation flags, return handling, boot precedence, and single-name persistence remain
   unchanged unless an explicit tested migration says otherwise.
-- [ ] A clean warning-free Autotools build passes, followed by root `make test` and `make install`;
+- [x] A clean warning-free Autotools build passes, followed by root `make test` and `make install`;
   `bin/circle` is executable and no root-level `circle` artifact remains.
 - [ ] Fresh CMake builds of `circle` and `cutest` pass with `BUILD_TESTS=ON`, followed by all CTest
   targets.

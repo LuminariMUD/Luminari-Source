@@ -20,6 +20,7 @@
 #include "act.h" /* for the do_say command */
 #include "constants.h"
 #include "graph.h"
+#include "character/abilities.h"
 #include "combat/fight.h"
 #include "mud_event.h"
 #include "actions.h"

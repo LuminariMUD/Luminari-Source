@@ -1,6 +1,7 @@
 # Special Procedure Phase 07 Validation
 
-**Status:** Implementation complete; final cross-build validation in progress (2026-08-08)
+**Status:** Implementation and Autotools validation complete; final CMake validation in progress
+(2026-08-08)
 
 ## Scope
 
@@ -99,7 +100,7 @@ CMake lists `src/net/msdp_json.h`. They are excluded from the C-source parity co
 | Root production-linked suite | PASS - 590 tests |
 | `make install`; executable `bin/circle`; no root `circle` | PASS |
 | Exact production and CuTest C-source manifest parity | PASS - 288 production, 41 test owners |
-| Clean warning-free Autotools build and repeat test/install | Pending final gate |
+| Clean warning-free Autotools build and repeat test/install | PASS - zero warnings, 590 tests, installed binary active |
 | Fresh CMake `circle`, `cutest`, and complete CTest matrix | Pending final gate |
 | Documentation links, generated guides, ASCII/LF, diff hygiene, and hooks | Pending final gate |
 

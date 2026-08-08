@@ -21,6 +21,7 @@
 #include "dgscript/dg_scripts.h"
 #include "dgscript/dg_event.h"
 #include "act.h"
+#include "character/abilities.h"
 #include "character/class.h"
 #include "combat/fight.h"
 #include "quest/quest.h"

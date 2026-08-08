@@ -24,6 +24,7 @@
 #include "constants.h"
 #include "dgscript/dg_scripts.h"
 #include "act.h"
+#include "character/abilities.h"
 #include "character/class.h"
 #include "fight.h"
 #include "obj/shop.h"

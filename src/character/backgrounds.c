@@ -12,6 +12,7 @@
 #include "interpreter.h"
 #include "constants.h"
 #include "backgrounds.h"
+#include "abilities.h"
 #include "obj/treasure.h"
 #include "handler.h"
 #include "combat/fight.h"

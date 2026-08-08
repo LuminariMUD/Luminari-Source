@@ -26,6 +26,7 @@
 #include "fight.h"
 #include "mud_event.h"
 #include "constants.h"
+#include "character/abilities.h"
 #include "character/class.h"
 #include "mudlim.h"
 #include "actions.h"
