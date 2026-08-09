@@ -189,7 +189,7 @@ bool has_fortune_of_many_bonus(struct char_data *ch);
 bool has_authoritative_bonus(struct char_data *ch);
 bool can_add_follower(struct char_data *ch, int mob_vnum);
 bool can_add_follower_by_flag(struct char_data *ch, int flag);
-char *apply_types_lowercase(int apply_type);
+const char *apply_types_lowercase(int apply_type);
 bool can_learn_blackguard_cruelty(struct char_data *ch, int mercy);
 bool can_speak_language(struct char_data *ch, int language);
 int num_blackguard_cruelties_known(struct char_data *ch);

@@ -9090,9 +9090,9 @@ bool is_covered(struct char_data *ch)
   return true;
 }
 
-char *apply_types_lowercase(int apply_type)
+const char *apply_types_lowercase(int apply_type)
 {
-  char apply_text[100];
+  static char apply_text[100];
   int i = 0;
 
   if (apply_type >= NUM_APPLIES || apply_type < 0)
@@ -9107,7 +9107,7 @@ char *apply_types_lowercase(int apply_type)
       apply_text[i] = ' ';
   }
 
-  return strdup(apply_text);
+  return apply_text;
 }
 
 bool valid_vampire_cloak_apply(int type)
