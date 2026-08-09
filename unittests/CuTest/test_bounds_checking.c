@@ -1,4 +1,5 @@
 #include "CuTest.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/magic/spells.h"
+#include "../../src/wilderness/wilderness.h"
 
 /* External function declaration */
 extern const char *get_wearoff(int abilnum);
@@ -103,6 +105,105 @@ void Test_snprintf_append_saturates_offset(CuTest *tc)
   CuAssertStrEquals(tc, "1234567", buffer);
 }
 
+void Test_strfrmt_truncates_oversized_input_and_dimensions(CuTest *tc)
+{
+  size_t input_size = (size_t)MAX_STRING_LENGTH * 2;
+  char *long_word;
+  char *result;
+
+  long_word = malloc(input_size);
+  CuAssertPtrNotNull(tc, long_word);
+  if (!long_word)
+    return;
+
+  memset(long_word, 'A', input_size - 1);
+  long_word[input_size - 1] = '\0';
+
+  result = strfrmt(long_word, 59, 21, FALSE, TRUE, TRUE);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertTrue(tc, strlen(result) < MAX_STRING_LENGTH);
+
+  result = strfrmt("word", INT_MAX, INT_MAX, FALSE, TRUE, TRUE);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertTrue(tc, strlen(result) < MAX_STRING_LENGTH);
+
+  CuAssertStrEquals(tc, "", strfrmt(NULL, 59, 21, FALSE, TRUE, TRUE));
+  CuAssertStrEquals(tc, "", strfrmt("", 59, 0, FALSE, FALSE, FALSE));
+  free(long_word);
+}
+
+void Test_strfrmt_preserves_wrapping_and_color_behavior(CuTest *tc)
+{
+  CuAssertStrEquals(
+      tc,
+      "The quick brown fox \tn\r\n"
+      "jumps over the lazy \tn\r\n"
+      "dog.                \r\n",
+      strfrmt("The quick brown fox jumps over the lazy dog.", 20, 3, FALSE, TRUE, TRUE));
+  CuAssertStrEquals(tc,
+                    "\tgGreen words\tn\r\n"
+                    "\tgcontinue across\tn\r\n"
+                    "\tgseveral lines and\tn\r\n"
+                    "\tgstay green\tn.\r\n",
+                    strfrmt("\tgGreen words continue across several lines and stay green\tn.", 18,
+                            0, FALSE, FALSE, FALSE));
+  CuAssertStrEquals(tc, "first\r\nsecond\r\n",
+                    strfrmt("first\\\\second", 20, 0, FALSE, FALSE, FALSE));
+}
+
+void Test_strpaste_rejects_an_oversized_joiner(CuTest *tc)
+{
+  size_t joiner_size = (size_t)MAX_STRING_LENGTH * 2;
+  char *joiner;
+  const char *result;
+
+  joiner = malloc(joiner_size);
+  CuAssertPtrNotNull(tc, joiner);
+  if (!joiner)
+    return;
+
+  memset(joiner, '-', joiner_size - 1);
+  joiner[joiner_size - 1] = '\0';
+
+  result = strpaste("left", "right", joiner);
+  CuAssertStrEquals(tc, "left", result);
+  CuAssertStrEquals(tc, "", strpaste(NULL, NULL, NULL));
+  free(joiner);
+}
+
+void Test_wilderness_map_truncates_an_oversized_glyph(CuTest *tc)
+{
+  size_t glyph_size = (size_t)MAX_STRING_LENGTH * 2;
+  struct wild_map_tile tile_data[4];
+  struct wild_map_tile *map[2];
+  char *glyph;
+  const char *result;
+  int i;
+
+  glyph = malloc(glyph_size);
+  CuAssertPtrNotNull(tc, glyph);
+  if (!glyph)
+    return;
+
+  memset(glyph, 'G', glyph_size - 1);
+  glyph[glyph_size - 1] = '\0';
+  memset(tile_data, 0, sizeof(tile_data));
+  map[0] = &tile_data[0];
+  map[1] = &tile_data[2];
+  for (i = 0; i < 4; i++)
+  {
+    tile_data[i].vis = 1;
+    tile_data[i].sector_type = SECT_FIELD;
+    tile_data[i].glyph = glyph;
+  }
+
+  result = wilderness_test_map_to_string(map, 2);
+  CuAssertPtrNotNull(tc, result);
+  CuAssertTrue(tc, strlen(result) < glyph_size - 1);
+  CuAssertTrue(tc, strlen(result) > 0);
+  free(glyph);
+}
+
 void Test_path_component_validation(CuTest *tc)
 {
   char filename[MAX_FILEPATH];
@@ -158,6 +259,10 @@ CuSuite *BoundsCheckingSuite(void)
   SUITE_ADD_TEST(suite, Test_get_wearoff_bounds_checking);
   SUITE_ADD_TEST(suite, Test_dr_spell_bounds_validation);
   SUITE_ADD_TEST(suite, Test_snprintf_append_saturates_offset);
+  SUITE_ADD_TEST(suite, Test_strfrmt_truncates_oversized_input_and_dimensions);
+  SUITE_ADD_TEST(suite, Test_strfrmt_preserves_wrapping_and_color_behavior);
+  SUITE_ADD_TEST(suite, Test_strpaste_rejects_an_oversized_joiner);
+  SUITE_ADD_TEST(suite, Test_wilderness_map_truncates_an_oversized_glyph);
   SUITE_ADD_TEST(suite, Test_path_component_validation);
   SUITE_ADD_TEST(suite, Test_fopen_restricted_blocks_world_write);
   return suite;

@@ -842,6 +842,7 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
   struct resource_state state;
   struct environmental_context context;
   char *base_desc;
+  int len;
 
   /* Initialize the static buffer to prevent corruption */
   memset(description, 0, sizeof(description));
@@ -863,8 +864,8 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
   }
 
   /* Initialize description buffer safely */
-  description[0] = '\0';
-  strncat(description, base_desc, MAX_STRING_LENGTH - 1);
+  snprintf(description, sizeof(description), "%s", base_desc);
+  free(base_desc);
 
   /* Add layered details - avoid redundant water descriptions for water terrains */
   if (context.terrain_type != SECT_WATER_SWIM && context.terrain_type != SECT_WATER_NOSWIM &&
@@ -890,7 +891,7 @@ char *generate_resource_aware_description(struct char_data *ch, room_rnum room)
   }
 
   /* Ensure proper ending */
-  int len = strlen(description);
+  len = strlen(description);
   if (len > 0 && description[len - 1] != '.')
   {
     if (len < MAX_STRING_LENGTH - 2)

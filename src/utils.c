@@ -4499,6 +4499,54 @@ IDXTYPE atoidx(const char *str_to_conv)
     return (IDXTYPE)result;
 }
 
+static void strfrmt_append(char **cursor, size_t *remaining, const char *text, size_t text_length)
+{
+  size_t copy_length;
+
+  if (!cursor || !remaining || !text || *remaining == 0)
+    return;
+
+  copy_length = text_length;
+  if (copy_length >= *remaining)
+    copy_length = *remaining - 1;
+
+  if (copy_length > 0)
+  {
+    memcpy(*cursor, text, copy_length);
+    *cursor += copy_length;
+    *remaining -= copy_length;
+  }
+  **cursor = '\0';
+}
+
+static void strfrmt_append_char(char **cursor, size_t *remaining, char value)
+{
+  strfrmt_append(cursor, remaining, &value, 1);
+}
+
+static void strfrmt_emit_line(char *line, size_t line_size, char **line_cursor,
+                              size_t *line_remaining, size_t *line_length, size_t width, int hpad,
+                              int reset_color, char **output_cursor, size_t *output_remaining,
+                              size_t *line_count)
+{
+  while (hpad && *line_length < width && *line_remaining > 1)
+  {
+    strfrmt_append_char(line_cursor, line_remaining, ' ');
+    (*line_length)++;
+  }
+
+  if (reset_color)
+    strfrmt_append(line_cursor, line_remaining, "\tn", 2);
+  strfrmt_append(line_cursor, line_remaining, "\r\n", 2);
+  strfrmt_append(output_cursor, output_remaining, line, strlen(line));
+
+  line[0] = '\0';
+  *line_cursor = line;
+  *line_remaining = line_size;
+  *line_length = 0;
+  (*line_count)++;
+}
+
 /*
    strfrmt (String Format) function
    Used by automap/map system
@@ -4507,141 +4555,151 @@ IDXTYPE atoidx(const char *str_to_conv)
    next line will start with the same color.
    Ends every line with \tn to prevent color bleeds.
  */
-char *strfrmt(char *str, int w, int h, int justify __attribute__((unused)), int hpad, int vpad)
+char *strfrmt(const char *str, int w, int h, int justify __attribute__((unused)), int hpad,
+              int vpad)
 {
   static char ret[MAX_STRING_LENGTH] = {'\0'};
   char line[MAX_INPUT_LENGTH] = {'\0'};
-  char *sp = str;
-  char *lp = line;
-  char *rp = ret;
-  char *wp = NULL;
-  int wlen = 0, llen = 0, lcount = 0;
-  char last_color = 'n';
-  bool new_line_started = FALSE;
+  const char *sp;
+  const char *wp;
+  char *lp;
+  char *rp;
+  size_t line_remaining;
+  size_t output_remaining;
+  size_t width;
+  size_t target_lines;
+  size_t word_length;
+  size_t line_length;
+  size_t line_count;
+  size_t separator_length;
+  char last_color;
+  bool new_line_started;
 
-  memset(line, '\0', MAX_INPUT_LENGTH);
-  /* Nomalize spaces and newlines */
-  /* Split into lines, including convert \\ into \r\n */
+  ret[0] = '\0';
+  if (!str)
+    return ret;
+
+  width = w > 0 ? (size_t)w : 0;
+  if (width > sizeof(line) - 6)
+    width = sizeof(line) - 6;
+  target_lines = h > 0 ? (size_t)h : 0;
+
+  sp = str;
+  wp = NULL;
+  lp = line;
+  rp = ret;
+  line_remaining = sizeof(line);
+  output_remaining = sizeof(ret);
+  word_length = 0;
+  line_length = 0;
+  line_count = 0;
+  last_color = 'n';
+  new_line_started = FALSE;
+
+  /* Normalize spaces and newlines. Split into lines, converting \\ into CRLF. */
   while (*sp)
   {
-    /* eat leading space */
-    while (*sp && isspace_ignoretabs(*sp))
+    while (*sp && isspace_ignoretabs((unsigned char)*sp))
       sp++;
-    /* word begins */
+
     wp = sp;
-    wlen = 0;
+    word_length = 0;
     while (*sp)
-    { /* Find the end of the word */
-      if (isspace_ignoretabs(*sp))
+    {
+      char mxp_code;
+
+      if (isspace_ignoretabs((unsigned char)*sp))
         break;
-      if (*sp == '\\' && sp[1] && sp[1] == '\\')
+      if (*sp == '\\' && sp[1] == '\\')
       {
         if (sp != wp)
-          break; /* Finish dealing with the current word */
-        sp += 2; /* Eat the marker and any trailing space */
-        while (*sp && isspace_ignoretabs(*sp))
+          break;
+
+        sp += 2;
+        while (*sp && isspace_ignoretabs((unsigned char)*sp))
           sp++;
         wp = sp;
-        /* Start a new line */
-        if (hpad)
-          for (; llen < w; llen++)
-            *lp++ = ' ';
-        *lp++ = '\r';
-        *lp++ = '\n';
-        *lp++ = '\0';
-        rp += sprintf(rp, "%s", line);
-        llen = 0;
-        lcount++;
-        lp = line;
+        strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad,
+                          FALSE, &rp, &output_remaining, &line_count);
       }
       else if (*sp == '`' || *sp == '$' || *sp == '#')
       {
-        if (sp[1] && (sp[1] == *sp))
-          wlen++; /* One printable char here */
-        sp += 2;  /* Eat the whole code regardless */
+        if (sp[1])
+        {
+          if (sp[1] == *sp)
+            word_length++;
+          sp += 2;
+        }
+        else
+        {
+          word_length++;
+          sp++;
+        }
       }
       else if (*sp == '\t' && sp[1])
       {
-        char MXPcode = (sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0');
-
-        if (!MXPcode)
+        mxp_code = sp[1] == '[' ? ']' : sp[1] == '<' ? '>' : '\0';
+        if (!mxp_code)
           last_color = sp[1];
 
-        sp += 2; /* Eat the code */
-        if (MXPcode)
+        sp += 2;
+        if (mxp_code)
         {
-          while (*sp != '\0' && *sp != MXPcode)
-            ++sp; /* Eat the rest of the code */
+          while (*sp && *sp != mxp_code)
+            sp++;
         }
       }
       else
       {
-        wlen++;
+        word_length++;
         sp++;
       }
     }
-    if (llen + wlen + (lp == line ? 0 : 1) > w)
+
+    separator_length = lp == line ? 0 : 1;
+    if (line_length + word_length + separator_length > width)
     {
-      /* Start a new line */
-      if (hpad)
-        for (; llen < w; llen++)
-          *lp++ = ' ';
-      *lp++ = '\t'; /* 'normal' color */
-      *lp++ = 'n';
-      *lp++ = '\r'; /* New line */
-      *lp++ = '\n';
-      *lp++ = '\0';
-      sprintf(rp, "%s", line);
-      rp += strlen(line);
-      llen = 0;
-      lcount++;
-      lp = line;
+      strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad, TRUE,
+                        &rp, &output_remaining, &line_count);
       if (last_color != 'n')
       {
-        *lp++ = '\t'; /* restore previous color */
-        *lp++ = last_color;
+        strfrmt_append_char(&lp, &line_remaining, '\t');
+        strfrmt_append_char(&lp, &line_remaining, last_color);
         new_line_started = TRUE;
       }
     }
-    /* add word to line */
-    if (lp != line && new_line_started != TRUE)
+
+    if (lp != line && !new_line_started)
     {
-      *lp++ = ' ';
-      llen++;
+      strfrmt_append_char(&lp, &line_remaining, ' ');
+      line_length++;
     }
     new_line_started = FALSE;
-    llen += wlen;
-    for (; wp != sp; *lp++ = *wp++)
-      ;
+    line_length += word_length;
+    strfrmt_append(&lp, &line_remaining, wp, (size_t)(sp - wp));
   }
-  /* Copy over the last line */
+
   if (lp != line)
   {
-    if (hpad)
-      for (; llen < w; llen++)
-        *lp++ = ' ';
-    *lp++ = '\r';
-    *lp++ = '\n';
-    *lp++ = '\0';
-    sprintf(rp, "%s", line);
-    rp += strlen(line);
-    lcount++;
+    strfrmt_emit_line(line, sizeof(line), &lp, &line_remaining, &line_length, width, hpad, FALSE,
+                      &rp, &output_remaining, &line_count);
   }
+
   if (vpad)
   {
-    while (lcount < h)
+    while (line_count < target_lines && output_remaining > 2)
     {
-      if (hpad)
+      line_length = 0;
+      while (hpad && line_length < width && output_remaining > 2)
       {
-        memset(rp, ' ', w);
-        rp += w;
+        strfrmt_append_char(&rp, &output_remaining, ' ');
+        line_length++;
       }
-      *rp++ = '\r';
-      *rp++ = '\n';
-      lcount++;
+      strfrmt_append(&rp, &output_remaining, "\r\n", 2);
+      line_count++;
     }
-    *rp = '\0';
   }
+
   return ret;
 }
 
@@ -4656,10 +4714,12 @@ char *strfrmt(char *str, int w, int h, int justify __attribute__((unused)), int 
 const char *strpaste(const char *str1, const char *str2, const char *joiner)
 {
   static char ret[MAX_STRING_LENGTH + 1];
-  const char *sp1 = str1;
-  const char *sp2 = str2;
+  const char *sp1 = str1 ? str1 : "";
+  const char *sp2 = str2 ? str2 : "";
+  const char *separator = joiner ? joiner : "";
   char *rp = ret;
-  int jlen = strlen(joiner);
+  size_t joiner_length = strlen(separator);
+  size_t used;
 
   while ((rp - ret) < MAX_STRING_LENGTH && (*sp1 || *sp2))
   {
@@ -4675,10 +4735,11 @@ const char *strpaste(const char *str1, const char *str2, const char *joiner)
     }
 
     /* Add the joiner */
-    if ((rp - ret) + jlen >= MAX_STRING_LENGTH)
+    used = (size_t)(rp - ret);
+    if (joiner_length >= MAX_STRING_LENGTH - used)
       break;
-    strcpy(rp, joiner);
-    rp += jlen;
+    memcpy(rp, separator, joiner_length);
+    rp += joiner_length;
 
     /* Copy line from str2 */
     while ((rp - ret) < MAX_STRING_LENGTH && *sp2 && !ISNEWL(*sp2))
@@ -4692,7 +4753,8 @@ const char *strpaste(const char *str1, const char *str2, const char *joiner)
     }
 
     /* Add the newline */
-    if ((rp - ret) + 2 >= MAX_STRING_LENGTH)
+    used = (size_t)(rp - ret);
+    if (used + 2 >= MAX_STRING_LENGTH)
       break;
     *rp++ = '\r';
     *rp++ = '\n';

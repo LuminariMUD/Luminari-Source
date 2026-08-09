@@ -126,6 +126,9 @@
   and every query or commit failure preserves the prior linked snapshot.
 - Corrected partial socket-write accounting that could make a descriptor's
   next output append address memory before its output buffer.
+- Bounded wilderness map glyph rendering and side-by-side description
+  formatting, including oversized words, dimensions, and joiners, and released
+  each temporary terrain base description after composing the displayed text.
 - Synchronized incident-window I3 connection state, bounded terrain batch
   parsing, and made timed-affect wear-off dispatch safe when callbacks mutate
   the affect list.

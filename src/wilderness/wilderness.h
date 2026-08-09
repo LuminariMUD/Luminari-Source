@@ -241,6 +241,9 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y);
 void save_map_to_file(const char *fn, int xsize, int ysize);
 void save_noise_to_file(int idx, const char *fn, int xsize, int ysize, int zoom);
 char *gen_ascii_wilderness_map(int size, int x, int y, int map_type);
+#if defined(LUMINARI_CUTEST)
+const char *wilderness_test_map_to_string(struct wild_map_tile **map, int size);
+#endif
 void generate_river(struct char_data *ch, int dir, region_vnum vnum, const char *name);
 int get_modified_sector_type(zone_rnum zone, int x, int y);
 

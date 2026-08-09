@@ -1372,12 +1372,17 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
 {
   static char strmap[WILDERNESS_MAP_BUFFER_SIZE];
   char *mp = strmap;
+  size_t remaining = sizeof(strmap);
   int x, y, i;
   bool region_colored = FALSE;
   int centerx = ((size - 1) / 2);
   int centery = ((size - 1) / 2);
 
   int weather_value = 0;
+
+  strmap[0] = '\0';
+  if (!map || size <= 0)
+    return strmap;
 
   for (y = size - 1; y >= 0; y--)
   {
@@ -1391,8 +1396,7 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
         if ((x == centerx) && (y == centery))
         {
           /* Force ASCII-only for player marker to maintain alignment */
-          strcpy(mp, "\tM*\tn");
-          mp += strlen("\tM*\tn");
+          append_wilderness_map_fragment(&mp, &remaining, "\tM*\tn");
         }
         else
         {
@@ -1404,8 +1408,7 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
             {
               /* Geographic region */
               /* Pick a color */
-              strcpy(mp, "\033[1;46m");
-              mp += strlen("\033[1;46m");
+              append_wilderness_map_fragment(&mp, &remaining, "\033[1;46m");
               region_colored = TRUE;
               break;
             }
@@ -1428,8 +1431,7 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
               /* Get ASCII-only symbol to avoid UTF-8 alignment issues */
               symbol_to_use = get_ascii_wilderness_symbol(map[x][y].sector_type);
             }
-            strcpy(mp, symbol_to_use);
-            mp += strlen(symbol_to_use);
+            append_wilderness_map_fragment(&mp, &remaining, symbol_to_use);
           }
 
           /* Check the map_type - if this is a weather map then overlay weather glyphs on the map */
@@ -1438,48 +1440,50 @@ static char *wilderness_map_to_string(struct wild_map_tile **map, int size, int 
             weather_value = map[x][y].weather;
             if (weather_value >= 225)
             {
-              strcpy(mp, "\tYL\tn");
-              mp += strlen("\tYL\tn");
+              append_wilderness_map_fragment(&mp, &remaining, "\tYL\tn");
             }
             else if (weather_value >= 200)
             {
-              strcpy(mp, "\tBR\tn");
-              mp += strlen("\tBR\tn");
+              append_wilderness_map_fragment(&mp, &remaining, "\tBR\tn");
             }
             else if (weather_value >= 178)
             {
-              strcpy(mp, "\tbR\tn");
-              mp += strlen("\tbR\tn");
+              append_wilderness_map_fragment(&mp, &remaining, "\tbR\tn");
             }
           }
 
           if (region_colored == TRUE)
           {
             /* Set the background color back */
-            strcpy(mp, "\033[1;40m");
-            mp += strlen("\033[1;40m");
+            append_wilderness_map_fragment(&mp, &remaining, "\033[1;40m");
             region_colored = FALSE;
           }
         }
       }
       else
       {
-        strcpy(mp, " ");
-        mp += 1;
+        append_wilderness_map_fragment(&mp, &remaining, " ");
       }
     }
-    strcpy(mp, "\r\n");
-    mp += 2;
+    append_wilderness_map_fragment(&mp, &remaining, "\r\n");
   }
 
-  *mp = '\0';
   return strmap;
 }
+
+#if defined(LUMINARI_CUTEST)
+const char *wilderness_test_map_to_string(struct wild_map_tile **map, int size)
+{
+  return wilderness_map_to_string(map, size, WILD_MAP_SHAPE_RECT, MAP_TYPE_NORMAL);
+}
+#endif
 
 /* Print a map with size 'size', centered on (x,y) */
 void show_wilderness_map(struct char_data *ch, int size, int x, int y)
 {
   struct wild_map_tile **map;
+  struct wild_map_tile *data;
+  size_t tile_count;
   int i;
   //int j;
   char *generated_desc = NULL;
@@ -1489,9 +1493,23 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
   int centerx = ((xsize - 1) / 2);
   int centery = ((ysize - 1) / 2);
 
-  struct wild_map_tile *data = malloc(sizeof(struct wild_map_tile) * xsize * ysize);
+  if (!ch || xsize <= 0 || ysize <= 0 || (size_t)xsize > SIZE_MAX / (size_t)ysize)
+    return;
 
+  tile_count = (size_t)xsize * (size_t)ysize;
+  if (tile_count > SIZE_MAX / sizeof(*data) || (size_t)xsize > SIZE_MAX / sizeof(*map))
+    return;
+
+  data = malloc(sizeof(*data) * tile_count);
   map = malloc(sizeof(struct wild_map_tile *) * xsize);
+  if (!data || !map)
+  {
+    log("SYSERR: Unable to allocate a %dx%d wilderness map", xsize, ysize);
+    free(data);
+    free(map);
+    send_to_char(ch, "The wilderness map is temporarily unavailable.\r\n");
+    return;
+  }
 
   for (i = 0; i < xsize; i++)
   {
@@ -1584,10 +1602,7 @@ void show_wilderness_map(struct char_data *ch, int size, int x, int y)
                      sector_types[world[IN_ROOM(ch)].sector_type]);
    */
 
-  if (map[0])
-  {
-    free(map[0]);
-  }
+  free(data);
   free(map);
 }
 
