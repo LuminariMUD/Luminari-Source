@@ -2270,6 +2270,7 @@ bool save_char_checked(struct char_data *ch, int mode)
 {
   FILE *fl;
   bool save_ok = TRUE;
+  bool old_mute_equip_messages = FALSE;
   const char *account_name = NULL;
   char filename[40] = {'\0'}, bits[127] = {'\0'}, bits2[127] = {'\0'}, bits3[127] = {'\0'},
        bits4[127] = {'\0'};
@@ -2360,7 +2361,11 @@ bool save_char_checked(struct char_data *ch, int mode)
     return FALSE;
   }
 
-  /* Unaffect everything a character can be affected by. */
+  /* Unaffect everything a character can be affected by.  This is save-file
+   * bookkeeping, not a visible equipment change, so suppress both removal
+   * and wear messages while the equipment hooks run. */
+  old_mute_equip_messages = ch->mute_equip_messages;
+  ch->mute_equip_messages = TRUE;
   for (i = 0; i < NUM_WEARS; i++)
   {
     if (GET_EQ(ch, i))
@@ -2373,6 +2378,7 @@ bool save_char_checked(struct char_data *ch, int mode)
     else
       char_eq[i] = NULL;
   }
+  ch->mute_equip_messages = old_mute_equip_messages;
 
   for (aff = ch->affected, i = 0; i < MAX_AFFECT; i++)
   {
@@ -4103,8 +4109,8 @@ bool save_char_checked(struct char_data *ch, int mode)
     GET_DR(ch) = tmp_dr;
   }
 
-  // This will prevent things like item special abilities that send messages to the character
-  // when they equip it, since equipment is removed then re-equipped when saving character
+  /* Keep the matching re-equip pass silent as well. */
+  old_mute_equip_messages = ch->mute_equip_messages;
   ch->mute_equip_messages = TRUE;
 
   for (i = 0; i < NUM_WEARS; i++)
@@ -4120,7 +4126,7 @@ bool save_char_checked(struct char_data *ch, int mode)
 #endif
   }
 
-  ch->mute_equip_messages = FALSE;
+  ch->mute_equip_messages = old_mute_equip_messages;
 
   /* end char_to_store code */
 

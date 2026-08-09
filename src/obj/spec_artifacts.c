@@ -2573,6 +2573,7 @@ static void artifact_refresh_bonuses(struct artifact_data *art)
 {
   struct char_data *ch = art->ch;
   struct obj_data *obj = NULL;
+  bool old_mute_equip_messages = FALSE;
   int i = 0;
 
   if (!ch)
@@ -2583,8 +2584,13 @@ static void artifact_refresh_bonuses(struct artifact_data *art)
     obj = GET_EQ(ch, i);
     if (obj && (int)GET_OBJ_VNUM(obj) == art->vnum)
     {
+      /* A level change refreshes affects in place; it is not an unequip or a
+       * second equip and must not announce either action to the room. */
+      old_mute_equip_messages = ch->mute_equip_messages;
+      ch->mute_equip_messages = TRUE;
       artifact_remove_bonuses(ch, obj);
       artifact_apply_bonuses(ch, obj);
+      ch->mute_equip_messages = old_mute_equip_messages;
       return;
     }
   }

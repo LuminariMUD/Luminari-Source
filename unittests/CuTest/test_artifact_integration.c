@@ -1046,6 +1046,62 @@ static int artint_affect_modifier(struct char_data *ch, int location)
   return total;
 }
 
+void Test_artifact_integration_levelup_refresh_is_silent_to_room(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  struct artifact_data *art = NULL;
+  int bonuses_refreshed = FALSE, room_silent = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_instance(&fixture, &obj, ART_VNUM_EARTHCRIER);
+  artint_carry(&fixture, &obj);
+  artifact_obj_to_char(&obj, &fixture.actor);
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = &obj;
+  obj.worn_by = &fixture.actor;
+  obj.worn_on = WEAR_WIELD_1;
+
+  art = artifact_by_vnum(ART_VNUM_EARTHCRIER);
+  CuAssertPtrNotNull(tc, art);
+  art->level = 1;
+  art->experience = 0;
+  artifact_on_equip(&fixture.actor, &obj, WEAR_WIELD_1);
+
+  /* Listen as another player in the room.  The affect refresh must happen,
+   * but it must not claim that the wielder removed or donned the artifact. */
+  fixture.actor.desc = NULL;
+  fixture.bystander.desc = &fixture.descriptor;
+  fixture.descriptor.character = &fixture.bystander;
+  artint_clear_output(&fixture);
+
+  art->experience = artifact_xp_to_next(art->level);
+  artifact_check_levelup(art);
+
+  bonuses_refreshed = art->level == 2 && artint_affect_modifier(&fixture.actor, APPLY_STR) == 6;
+  room_silent = fixture.descriptor.bufptr == 0;
+
+  fixture.bystander.desc = NULL;
+  fixture.descriptor.character = &fixture.actor;
+  fixture.actor.desc = &fixture.descriptor;
+  fixture.actor.mute_equip_messages = TRUE;
+  artifact_on_unequip(&fixture.actor, &obj);
+  fixture.actor.mute_equip_messages = FALSE;
+  GET_EQ(&fixture.actor, WEAR_WIELD_1) = NULL;
+  obj.worn_by = NULL;
+  obj.worn_on = -1;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, bonuses_refreshed);
+  CuAssertIntEquals(tc, TRUE, room_silent);
+}
+
 void Test_artifact_integration_bonuses_scale_with_artifact_level(CuTest *tc)
 {
   struct artint_fixture fixture;

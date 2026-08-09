@@ -340,8 +340,8 @@
  *
  * Status grants live in artifact_passives[], not in object prototype affect
  * bits, so one power has exactly one source of truth and can unlock as the
- * artifact grows.  Applied as source-tagged affects on equip, refreshed on
- * level-up, and removed cleanly on unequip.
+ * artifact grows.  Applied as source-tagged affects on equip, refreshed
+ * silently on level-up, and removed cleanly on unequip.
  * -------------------------------------------------------------------------- */
 #define ART_PASSIVE_MAX_PER_ARTIFACT 6
 
