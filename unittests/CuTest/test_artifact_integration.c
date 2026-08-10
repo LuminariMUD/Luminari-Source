@@ -1046,6 +1046,46 @@ static int artint_affect_modifier(struct char_data *ch, int location)
   return total;
 }
 
+void Test_artifact_integration_bonus_fade_is_private_to_wearer(CuTest *tc)
+{
+  struct artint_fixture fixture;
+  struct obj_data obj;
+  int wearer_notified = FALSE, room_silent = FALSE;
+
+  if (!artint_begin(&fixture))
+  {
+    artint_end(&fixture);
+    CuFail(tc, "could not boot the artifact integration fixture");
+    return;
+  }
+
+  artint_instance(&fixture, &obj, ART_VNUM_AEGIS);
+  artint_carry(&fixture, &obj);
+
+  artifact_apply_bonuses(&fixture.actor, &obj);
+  artint_clear_output(&fixture);
+  artifact_remove_bonuses(&fixture.actor, &obj);
+  wearer_notified = artint_said(&fixture, "The artifact's power fades.");
+
+  artifact_apply_bonuses(&fixture.actor, &obj);
+  fixture.actor.desc = NULL;
+  fixture.bystander.desc = &fixture.descriptor;
+  fixture.descriptor.character = &fixture.bystander;
+  artint_clear_output(&fixture);
+
+  artifact_remove_bonuses(&fixture.actor, &obj);
+  room_silent = fixture.descriptor.bufptr == 0;
+
+  fixture.bystander.desc = NULL;
+  fixture.descriptor.character = &fixture.actor;
+  fixture.actor.desc = &fixture.descriptor;
+  artint_uncarry(&fixture, &obj);
+  artint_end(&fixture);
+
+  CuAssertIntEquals(tc, TRUE, wearer_notified);
+  CuAssertIntEquals(tc, TRUE, room_silent);
+}
+
 void Test_artifact_integration_levelup_refresh_is_silent_to_room(CuTest *tc)
 {
   struct artint_fixture fixture;

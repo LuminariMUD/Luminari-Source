@@ -2300,10 +2300,7 @@ void artifact_remove_bonuses(struct char_data *ch, struct obj_data *obj)
   {
     affect_total(ch);
     if (!ch->mute_equip_messages)
-    {
       send_to_char(ch, "\tYThe artifact's power fades.\tn\r\n");
-      act("The glow fades from $p as $n removes it.", TRUE, ch, obj, NULL, TO_ROOM);
-    }
   }
 }
 

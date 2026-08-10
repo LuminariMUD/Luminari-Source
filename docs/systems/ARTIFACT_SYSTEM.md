@@ -241,6 +241,9 @@ immediately without requiring re-equip. These bonuses use the Universal bonus
 type, so bonuses to the same location from multiple artifacts stack with one
 another and with bonuses from other sources.
 
+Bonus-removal feedback is private to the wearer. The affect cleanup never
+announces an equipment-removal action to other characters in the room.
+
 Physical, magical, and elemental resistance values are percentages and do
 not scale with artifact level. When multiple equipped artifacts apply, only
 the highest resistance for the incoming damage type is used.
