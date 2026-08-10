@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Variables and Fields | LuminariMUD DG Scripts</title>
+  <meta name="description" content="DG Script variable substitution, lifetime, contexts, UIDs, entity fields, text fields, and special values in LuminariMUD.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html" aria-current="page">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html" aria-current="location">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#syntax">Substitution</a></li><li><a href="#lifetime">Lifetime</a></li><li><a href="#uids">UIDs</a></li><li><a href="#text">Text fields</a></li><li><a href="#special">Special values</a></li><li><a href="#character-fields">Character fields</a></li><li><a href="#object-fields">Object fields</a></li><li><a href="#room-fields">Room fields</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Variables</span></nav>
+      <h1>Variables and fields</h1>
+      <p class="dg-article__lede">Variables carry text. Fields interpret that text as an entity, a text operation, or a special runtime value. Resolution starts with the trigger run, then checks owner-global state.</p>
+      <div class="dg-provenance"><strong>Source of truth</strong><span>Resolution and field handlers: <code>src/dgscript/dg_variables.c</code>. State operations: <code>src/dgscript/dg_scripts.c</code>.</span></div>
+
+      <section class="dg-article-section" id="syntax">
+        <h2>Substitution syntax</h2>
+        <ul class="dg-syntax-list">
+          <li><code>%name%</code><span>Replace a local, visible owner-global, event, or special variable with its value.</span></li>
+          <li><code>%name.field%</code><span>Interpret the value and read a field, such as <code>%actor.name%</code>.</span></li>
+          <li><code>%name.field(argument)%</code><span>Pass a subfield argument, such as <code>%eye.contains('%arg%)%</code>.</span></li>
+          <li><code>%name.field.more%</code><span>Chain fields when the prior field resolves to an entity or value understood by the next handler.</span></li>
+          <li><code>%%name%%</code><span>Emit literal percent delimiters through the current substitution pass, enabling controlled indirection in a later pass.</span></li>
+        </ul>
+        <p>When a name exists in both places, the trigger-local value wins. Owner globals are visible when their context is <code>0</code> or matches the script's current context. Missing names normally substitute an empty string, which can silently broaden a condition if it is not guarded.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Live indirect lookup: Dollhouse trigger 11843</span><button class="dg-copy" type="button">Copy</button></div><pre><code>eval max %random.21%
+set txt[1] PATRIS
+set txt[2] PRODITIO
+* entries 3 through 20 omitted
+set txt[21] RAPIO
+set word %%txt[%max%]%%
+eval word %word%</code></pre></div>
+        <p>The doubled percent signs preserve a reference such as <code>%txt[7]%</code> as text; the later <code>eval</code> resolves it. Use indirection sparingly and keep the index bounded.</p>
+      </section>
+
+      <section class="dg-article-section" id="lifetime">
+        <h2>Lifetime, scope, and context</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Storage</th><th>Created by</th><th>Lifetime and visibility</th></tr></thead><tbody>
+          <tr><td>Event/local</td><td>Event hook, <code>set</code>, <code>eval</code>, <code>makeuid</code></td><td>Lives on this trigger instance during the run, including a wait resume; freed when the run ends.</td></tr>
+          <tr><td>Owner global</td><td><code>global &lt;name&gt;</code></td><td>Stored on the owner's <code>script_data</code>; visible in context 0 or the matching current context.</td></tr>
+          <tr><td>Remote global</td><td><code>remote &lt;name&gt; &lt;numeric-id&gt;</code></td><td>Copied to the target entity's <code>script_data</code> using the source variable's context.</td></tr>
+          <tr><td>Staff player variable</td><td><code>set &lt;player&gt; variable ...</code></td><td>Written to the player's script globals in context 0.</td></tr>
+        </tbody></table></div>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">State operations</span><button class="dg-copy" type="button">Copy</button></div><pre><code>set clue candle
+global clue
+
+context 118
+set stage 2
+global stage
+
+set solved 1
+remote solved %actor.id%
+rdelete solved %actor.id%</code></pre></div>
+        <p>A new trigger run resets the owner's current context to <code>0</code>. <code>context N</code> changes it for subsequent operations. <code>unset</code> first attempts to remove an owner global, then a local variable; <code>rdelete</code> targets another entity.</p>
+        <div class="dg-callout"><h3>Remote copies; it does not move</h3><p><code>remote</code> finds an existing local or visible global and adds its name, value, and context to the target. The source variable remains. By contrast, <code>global</code> adds the owner-global value and removes the local.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="uids">
+        <h2>Entity UIDs and numeric IDs</h2>
+        <p>Entity references stored in event variables and returned by many fields use the internal UID marker. Pass those references directly to commands that resolve an entity, such as <code>%send% %actor%</code> or <code>%teleport% %people% 11871</code>.</p>
+        <p><code>remote</code> and <code>rdelete</code> parse a positive numeric target ID. Use an entity's <code>.id</code> field, as the live Dollhouse scripts do:</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Live persistent player state: trigger 11807</span><button class="dg-copy" type="button">Copy</button></div><pre><code>set zn118_a 1
+remote zn118_a %actor.id%</code></pre></div>
+        <ul class="dg-checklist">
+          <li>Use event variables such as <code>actor</code>, <code>victim</code>, or <code>object</code> when the hook supplies them.</li>
+          <li>Use <code>makeuid &lt;variable&gt; &lt;numeric-id&gt;</code>, or <code>makeuid &lt;variable&gt; mob|obj|room &lt;name&gt;</code> to resolve a nearby entity for UID-based commands.</li>
+          <li>Use <code>%entity.id%</code> when an operation explicitly expects the numeric script ID.</li>
+          <li>Never guess or manually prepend the internal UID marker.</li>
+        </ul>
+      </section>
+
+      <section class="dg-article-section" id="text">
+        <h2>Text fields</h2>
+        <p>When a variable is plain text rather than a resolvable entity, these fields operate on its stored value.</p>
+        <div class="dg-field-cloud" data-dg-field-cloud="text"></div>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Field</th><th>Behavior</th><th>Example</th></tr></thead><tbody>
+          <tr><td>strlen</td><td>Returns the byte length of the text.</td><td><code>%arg.strlen%</code></td></tr>
+          <tr><td>toupper</td><td>Uppercases the first character only.</td><td><code>%word.toupper%</code></td></tr>
+          <tr><td>trim</td><td>Removes leading and trailing whitespace.</td><td><code>%arg.trim%</code></td></tr>
+          <tr><td>contains</td><td>Case-insensitive substring test; returns <code>1</code> or <code>0</code>.</td><td><code>%eye.contains('%arg%)%</code></td></tr>
+          <tr><td>car</td><td>Returns the first whitespace-delimited word.</td><td><code>%arg.car%</code></td></tr>
+          <tr><td>cdr</td><td>Returns everything after the first word and following whitespace.</td><td><code>%arg.cdr%</code></td></tr>
+          <tr><td>charat</td><td>Returns the 1-based character at the supplied index, or empty when out of range.</td><td><code>%word.charat(3)%</code></td></tr>
+          <tr><td>mudcommand</td><td>Expands an abbreviated command to the matching canonical game command, or empty when no command matches.</td><td><code>%cmd.mudcommand%</code></td></tr>
+        </tbody></table></div>
+        <div class="dg-callout dg-callout--info"><h3><code>dg_letter</code> is deprecated</h3><p>The runtime logs every use. Replace <code>dg_letter out 3 %word%</code> with <code>set out %word.charat(3)%</code>.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="special">
+        <h2>Special values and command fields</h2>
+        <div class="dg-field-cloud" data-dg-field-cloud="special"></div>
+        <ul class="dg-syntax-list">
+          <li><code>%self%</code><span>The current mobile, object, or room UID.</span></li>
+          <li><code>%random.N%</code><span>A random integer from <code>1</code> through positive <code>N</code>; returns <code>0</code> for a non-positive bound.</span></li>
+          <li><code>%random.char%</code><span>A random valid character in the owner's room; mobile owners exclude self and require visibility.</span></li>
+          <li><code>%random.dir%</code><span>A random direction that has an exit from the owner's room, or empty when none exists.</span></li>
+          <li><code>%time.hour%</code><span>Current in-game hour. <code>day</code>, <code>month</code>, and <code>year</code> are also available.</span></li>
+          <li><code>%findmob.11870(11830)%</code><span>Count mobiles with VNUM 11830 in room 11870.</span></li>
+          <li><code>%findobj.11870(11856)%</code><span>Count matching objects, including objects inside containers, in room 11870.</span></li>
+        </ul>
+        <p>Names such as <code>send</code>, <code>echo</code>, <code>load</code>, and <code>teleport</code> resolve to owner-specific command strings. They are documented under <a href="commands.html#pseudo-commands">owner-neutral pseudo-commands</a>.</p>
+      </section>
+
+      <section class="dg-article-section" id="character-fields">
+        <h2>Character field catalog</h2>
+        <p>These names are handled by the character branch in <code>find_replacement()</code>. Some read values, some take a subfield, and mutators such as <code>skillset</code> should be used only with their expected argument form.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="character-field-filter">Filter character fields</label><input id="character-field-filter" type="search" placeholder="Filter character fields..." data-dg-filter-for="character-field-cloud"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-field-cloud" id="character-field-cloud" data-dg-field-cloud="character"></div>
+      </section>
+
+      <section class="dg-article-section" id="object-fields">
+        <h2>Object field catalog</h2>
+        <p>Object fields expose ownership, containment, location, values, flags, timer state, and object-specific mutation helpers.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="object-field-filter">Filter object fields</label><input id="object-field-filter" type="search" placeholder="Filter object fields..." data-dg-filter-for="object-field-cloud"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-field-cloud" id="object-field-cloud" data-dg-field-cloud="object"></div>
+      </section>
+
+      <section class="dg-article-section" id="room-fields">
+        <h2>Room field catalog</h2>
+        <p>Room fields expose exits, occupants, contents, flags, sector, coordinates, zone identity, weather, and the room's numeric script ID.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="room-field-filter">Filter room fields</label><input id="room-field-filter" type="search" placeholder="Filter room fields..." data-dg-filter-for="room-field-cloud"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-field-cloud" id="room-field-cloud" data-dg-field-cloud="room"></div>
+        <div class="dg-callout dg-callout--dark"><h3>Field chains can recurse</h3><p>A field that returns an entity reference can feed another field, but a scalar such as intelligence or a numeric count cannot become an entity merely because another dot follows it. Keep chains short and inspect empty-result behavior.</p></div>
+      </section>
+
+      <div class="dg-related"><a href="trigger-types.html"><strong>Event variables</strong><span>See which hook creates each value.</span></a><a href="commands.html"><strong>State commands</strong><span>Set, global, remote, and rdelete.</span></a><a href="staff-commands.html"><strong>Inspect state</strong><span>Use stat, set variable, and vdelete.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="commands.html"><small>Previous</small><strong>Commands</strong></a><a href="trigedit.html"><small>Next</small><strong>TRIGEDIT</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Field names mirror handlers in src/dgscript/dg_variables.c.</div></div></footer>
+</body>
+</html>

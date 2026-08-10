@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Testing and Debugging | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Validate, exercise, inspect, and debug DG Scripts with wtool, in-game staff tools, clean state, and runtime limits.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html" aria-current="location">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#layers">Test in layers</a></li><li><a href="#static">Static validation</a></li><li><a href="#runtime">Runtime setup</a></li><li><a href="#matrix">Event matrix</a></li><li><a href="#state">State and waits</a></li><li><a href="#limits">Runtime limits</a></li><li><a href="#diagnose">Symptom guide</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Testing</span></nav>
+      <h1>Testing and debugging</h1>
+      <p class="dg-article__lede">Separate structural validation, prototype inspection, event execution, and persistent-state verification. Each layer catches a different class of failure.</p>
+      <div class="dg-provenance"><strong>Implementation trail</strong><span>Static world tooling: <code>scripts/world/wtool.py</code>. Runtime diagnostics and limits: <code>src/dgscript/dg_scripts.c</code>.</span></div>
+
+      <section class="dg-article-section" id="layers">
+        <h2>Test in five layers</h2>
+        <div class="dg-flow" aria-label="DG Script test layers">
+          <div class="dg-flow__node"><strong>Record</strong><small>wtool validate</small></div>
+          <div class="dg-flow__node"><strong>Prototype</strong><small>tlist + tstat</small></div>
+          <div class="dg-flow__node"><strong>Attachment</strong><small>owner stat</small></div>
+          <div class="dg-flow__node"><strong>Event</strong><small>positive + negative</small></div>
+          <div class="dg-flow__node"><strong>State</strong><small>globals + reset</small></div>
+        </div>
+        <ol class="dg-checklist">
+          <li>Validate the world records and references.</li>
+          <li>Confirm the saved trigger type, Numeric Arg, Arguments, and body.</li>
+          <li>Confirm the right trigger is attached to the right owner type.</li>
+          <li>Cause the exact game event under controlled conditions.</li>
+          <li>Inspect local effects, owner globals, player globals, and repeat behavior.</li>
+        </ol>
+      </section>
+
+      <section class="dg-article-section" id="static">
+        <h2>Static world validation</h2>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Repository root</span><button class="dg-copy" type="button">Copy</button></div><pre><code>python3 scripts/world/wtool.py validate --zone 118</code></pre></div>
+        <p>Use <code>--zone &lt;number&gt;</code> for one or more zones, <code>--paths</code> for selected files, <code>--mini</code> for the mini world, or <code>--all</code> for the full indexed world. Add <code>--strict</code> when warnings must fail the run.</p>
+        <p>The validator can catch malformed flat-file records, bad flags, and indexed reference problems. It does not execute DG command bodies or prove that a command-trigger condition is reachable.</p>
+        <div class="dg-callout dg-callout--info"><h3>Read-only lookup is useful before boot</h3><p><code>wtool show trigger &lt;vnum&gt;</code> displays a normalized trigger record, and <code>wtool refs trigger &lt;vnum&gt;</code> can help trace incoming and outgoing world references supported by the tool.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="runtime">
+        <h2>Prepare a clean runtime test</h2>
+        <ul class="dg-checklist">
+          <li>Save TRIGEDIT and the owning MEDIT, OEDIT, or REDIT session.</li>
+          <li>Use <code>tstat &lt;vnum&gt;</code> to read back the prototype.</li>
+          <li>Load or reset a fresh mobile/object instance when attachments or load behavior changed.</li>
+          <li>Inspect the live owner and verify the trigger is attached once and has the correct intended type.</li>
+          <li>Use a test character whose quest variables and inventory state are known.</li>
+          <li>Keep a second observer present for <code>echoaround</code>, room messages, and visibility-sensitive events.</li>
+        </ul>
+        <p>For command triggers, test the full command, abbreviations that the Arguments prefix accepts, a different command with the same prefix, empty arguments, wrong targets, and a valid target. Confirm whether the command falls through or is consumed.</p>
+      </section>
+
+      <section class="dg-article-section" id="matrix">
+        <h2>Event-specific test matrix</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Event family</th><th>Positive case</th><th>Negative and boundary cases</th></tr></thead><tbody>
+          <tr><td>Chance</td><td>Temporarily test at 100 when safe, then restore the designed value.</td><td>Zero, repeated rolls, empty zone, and Global behavior.</td></tr>
+          <tr><td>Command</td><td>Exact canonical command and intended argument.</td><td>Abbreviation, unrelated prefix match, empty arg, hidden command token, return 0 path.</td></tr>
+          <tr><td>Speech / Act</td><td>Expected word, phrase, or substring.</td><td>Case changes, embedded substring, multiple phrases, actor visibility.</td></tr>
+          <tr><td>Enter / Greet / Leave</td><td>Each intended direction with a valid actor.</td><td>Wrong direction, teleport arrival, staff target rules, movement veto.</td></tr>
+          <tr><td>Object action</td><td>Get, drop, give, wear, remove, or consume normally.</td><td>Owner purges itself, return false, wrong inventory/equipment/room mask.</td></tr>
+          <tr><td>Combat</td><td>Start combat and cross configured threshold.</td><td>Damage replacement of 0, negative, and expected positive values; actor/victim roles.</td></tr>
+          <tr><td>Timer / Time</td><td>Fresh object timer expiry or exact in-game hour.</td><td>Object extracted early, timer reset, hour wrap, duplicate instances.</td></tr>
+          <tr><td>Zone Reset / Login / Load</td><td>Cause a real hook with a clean instance.</td><td>Repeated reset/load, recursion chain, and state already present.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="state">
+        <h2>Verify state, waits, and interruption</h2>
+        <p>A successful message does not prove the state machine. After every state-changing path, inspect the player or owner and then retest:</p>
+        <ul class="dg-checklist">
+          <li>Before the first run, confirm the variable is absent or has the intended starting value.</li>
+          <li>After <code>global</code>, confirm the value lives on the owner and survives a new trigger run.</li>
+          <li>After <code>remote</code>, confirm the target's numeric ID, variable name, value, and context.</li>
+          <li>After <code>rdelete</code> or <code>vdelete</code>, confirm only the intended state was removed.</li>
+          <li>Disconnect and reconnect when testing player-persisted variables.</li>
+        </ul>
+        <p>For a waiting trigger, test the normal resume, owner extraction during the wait, actor movement, target disappearance, and overlapping attempts to fire the same trigger while it is already running. A trigger with nonzero depth is not started again by the normal trigger check.</p>
+        <div class="dg-callout"><h3>Reset deliberately</h3><p>Do not use broad variable deletion as a casual test reset. Record the exact variables a flow owns, remove only those, and restore any inventory or room population prerequisites.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="limits">
+        <h2>Runtime limits and scheduling</h2>
+        <dl class="dg-fact-ledger">
+          <div><dt>DG pulse</dt><dd><code>PULSE_DG_SCRIPT</code> is <code>13 RL_SEC</code>, intentionally offset from the mobile pulse.</dd></div>
+          <div><dt>Recursion</dt><dd><code>MAX_SCRIPT_DEPTH</code> is 10; exceeding it logs the chain and extracts the owner's script.</dd></div>
+          <div><dt>Loop yield</dt><dd>At 30 loop iterations, the driver inserts <code>wait 1</code> and resumes later.</dd></div>
+          <div><dt>Loop stop</dt><dd>At 100 total iterations, the driver logs the runaway loop and breaks.</dd></div>
+          <div><dt>Editor/body buffer</dt><dd><code>MAX_CMD_LENGTH</code> is 16384 bytes.</dd></div>
+          <div><dt>Substituted line buffer</dt><dd><code>MAX_INPUT_LENGTH</code> is 512 bytes for each runtime command line.</dd></div>
+        </dl>
+        <p>These guards prevent one trigger from monopolizing the game loop, but hitting one is still a script defect unless the yield is explicitly part of a bounded design.</p>
+      </section>
+
+      <section class="dg-article-section" id="diagnose">
+        <h2>Diagnose by symptom</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Symptom</th><th>Evidence to collect</th><th>Likely direction</th></tr></thead><tbody>
+          <tr><td>No output</td><td><code>tstat</code>, owner attachment, event variables, chance and direction.</td><td>Wrong hook, owner mismatch, no fresh instance, empty-zone periodic check.</td></tr>
+          <tr><td>Unknown command</td><td>Owner type and substituted command line.</td><td>Wrong <code>m*</code>/<code>o*</code>/<code>w*</code> family or malformed pseudo-command arguments.</td></tr>
+          <tr><td>Condition always true/false</td><td>Actual substituted values, missing names, text versus numeric comparison.</td><td>Empty substitution, broad contains/prefix match, field typo.</td></tr>
+          <tr><td>Stops after wait</td><td>Owner still exists, resume target, script log.</td><td>Owner extracted, target stale, invalid wait format.</td></tr>
+          <tr><td>Quest cannot repeat</td><td>Player globals and inventory before entry.</td><td>Completion/start variable not cleared or wrong namespace.</td></tr>
+          <tr><td>Duplicates or loops</td><td>Attachment count, load chain, hidden-command path, log recursion warning.</td><td>Repeated trigger attachment, recursive load/force, unbounded while.</td></tr>
+          <tr><td>Movement corrupts iteration</td><td>Loop body around teleport/purge.</td><td>Next pointer was read after moving the current character.</td></tr>
+        </tbody></table></div>
+        <p>Script errors are reported through <code>script_log()</code>, including malformed blocks, invalid UIDs, bad wait syntax, missing variables for global/remote, unknown affect properties, recursion, and runaway loops. Search by trigger VNUM first.</p>
+      </section>
+
+      <div class="dg-related"><a href="staff-commands.html"><strong>Staff commands</strong><span>Inspect prototypes and runtime state.</span></a><a href="architecture.html"><strong>Architecture</strong><span>Understand waits, depth, and dispatch.</span></a><a href="dollhouse.html"><strong>Dollhouse</strong><span>Apply the matrix to a live zone.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="staff-commands.html"><small>Previous</small><strong>Staff commands</strong></a><a href="architecture.html"><small>Next</small><strong>Architecture</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Validation scope and runtime limits are stated explicitly.</div></div></footer>
+</body>
+</html>

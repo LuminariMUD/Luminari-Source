@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Dollhouse Case Study | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Public, code-backed DG Script patterns from LuminariMUD zone 118: The Dollhouse.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html" aria-current="page">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html" aria-current="location">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">Patterns</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#zone">Zone ledger</a></li><li><a href="#staging">Staged dialogue</a></li><li><a href="#gateway">Gateway and followers</a></li><li><a href="#handshake">Owner handshake</a></li><li><a href="#indirection">Indirect variables</a></li><li><a href="#space">Scripted space</a></li><li><a href="#timers">Object timers</a></li><li><a href="#journal">Progressive journal</a></li><li><a href="#lessons">Review lessons</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>The Dollhouse</span></nav>
+      <h1>The Dollhouse</h1>
+      <p class="dg-article__lede">Zone 118 turns a compact world into a stateful narrative system. These public excerpts come directly from its live trigger file and are presented as engineering patterns, not starter boilerplate.</p>
+      <div class="dg-provenance"><strong>Public source set</strong><span><code>lib/world/trg/118.trg</code>, with attachments in zone 118 mobile, object, and room files. Authored by Detta, Zusuk, Fizban, and Havamal.</span></div>
+
+      <section class="dg-article-section" id="zone">
+        <h2>Zone ledger</h2>
+        <dl class="dg-fact-ledger">
+          <div><dt>Name</dt><dd>The Dollhouse</dd></div>
+          <div><dt>VNUM range</dt><dd>11800-11899</dd></div>
+          <div><dt>Rooms</dt><dd>99</dd></div>
+          <div><dt>Mobiles</dt><dd>50</dd></div>
+          <div><dt>Objects</dt><dd>79</dd></div>
+          <div><dt>Shops</dt><dd>2</dd></div>
+          <div><dt>Triggers</dt><dd>95 prototypes</dd></div>
+          <div><dt>Quest</dt><dd>1 zone quest</dd></div>
+          <div><dt>Lifespan</dt><dd>8 minutes</dd></div>
+          <div><dt>Level range</dt><dd>5-10</dd></div>
+        </dl>
+        <p>The zone uses a consistent <code>zn118_</code> player-variable namespace for start, quest, done, and clue state. Scripts split responsibility across owners: rooms detect place events, mobiles deliver character behavior, objects carry commands and timers, and player globals connect the episodes.</p>
+        <div class="dg-map" aria-label="Selected Dollhouse scripted locations">
+          <span class="dg-map__room">11802<br>shop</span>
+          <span class="dg-map__room">11804<br>girl</span>
+          <span class="dg-map__room dg-map__room--active">11822<br>gateway</span>
+          <span class="dg-map__room">11870<br>bedroom</span>
+          <span class="dg-map__room dg-map__room--active">11871<br>under bed</span>
+          <span class="dg-map__room">11896<br>focus</span>
+        </div>
+      </section>
+
+      <section class="dg-article-section" id="staging">
+        <h2>Pattern 1: stage dialogue with local state</h2>
+        <p>Trigger 11800 is a mobile Greet trigger with a 100 percent Numeric Arg. It derives one local word, then spaces dialogue across real-time waits.</p>
+        <div class="dg-pattern">
+          <div class="dg-code" data-live-trigger="11800"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11800 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>set gender one
+if %actor.sex% == male
+set gender lad
+elseif %actor.sex% == female
+set gender lady
+end
+wait 2 s
+emote looks up and peers at you keenly as she smiles in greeting.
+wait 2 s
+say Why hello little %gender%.
+wait 2 s
+say Have a look around if it pleases you.
+wait 2 s
+say I hope you find what you are looking for.
+wait 2 s
+emote smiles strangely at you as she turns back to her work.</code></pre></div>
+          <dl class="dg-pattern-notes">
+            <div><dt>Owner</dt><dd>Mobile; normal <code>say</code> and <code>emote</code> reach the character interpreter.</dd></div>
+            <div><dt>State</dt><dd><code>gender</code> is local and needs no cleanup.</dd></div>
+            <div><dt>Timing</dt><dd>Each <code>wait 2 s</code> resumes the same trigger instance.</dd></div>
+            <div><dt>Tradeoff</dt><dd>A long greeting cannot start that same instance again while it has nonzero depth.</dd></div>
+          </dl>
+        </div>
+        <p>The script's indentation is historical, but its block boundaries are explicit. New scripts should indent branch bodies for review clarity.</p>
+      </section>
+
+      <section class="dg-article-section" id="gateway">
+        <h2>Pattern 2: make a guarded gateway</h2>
+        <p>Trigger 11805 is an object Command trigger. Numeric Arg <code>3</code> enables the worn and inventory command locations; Arguments <code>o</code> catches an open-command prefix. The body then resolves the canonical command, checks the object keyword, clears prior cycle state, and moves the player and followers.</p>
+        <div class="dg-code" data-live-trigger="11805"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11805 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>set eye 'eye
+if %cmd.mudcommand% == open && %eye.contains('%arg%)% && %arg%
+  if %actor.varexists(zn118_knifestart)%
+    rdelete zn118_knifestart %actor.id%
+  end
+  if %actor.varexists(zn118_gravedone)%
+    rdelete zn118_gravedone %actor.id%
+  end
+  %teleport% %actor% 11822
+  set room %actor.room%
+  set people %room.people%
+  while %people%
+    set next %people.next_in_room%
+    if %people.master% == %actor%
+      %teleport% %people% %actor%
+    end
+    set people %next%
+  done
+  %send% %actor% You open the eye.
+  wait 1 s
+  %send% %actor% A hazy mist swirls up and around you, blurring your vision for a second before clearing away.
+  wait 1 s
+  %force% %actor% look
+  wait 1 s
+  %send% %actor% The voice of a young girl whispers: Please recover what I left there.
+  wait 1 s
+  %load% obj 11807
+  %send% %actor% A leather-strapped journal suddenly materializes on the ground.
+  wait 1 s
+  %send% %actor% The voice of a young girl whispers: Give the journal to the ones you meet there, they will know what to do with it.
+  %purge% self
+else
+  return 0
+end</code></pre></div>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Design move</th><th>Why it works</th></tr></thead><tbody>
+          <tr><td>Canonical command guard</td><td><code>%cmd.mudcommand%</code> distinguishes <code>open</code> from unrelated input caught by a short prefix.</td></tr>
+          <tr><td>Keyword contains test</td><td>The local <code>eye</code> text validates the player's target wording.</td></tr>
+          <tr><td>Explicit cycle reset</td><td>Only the variables that would corrupt a new run are deleted.</td></tr>
+          <tr><td>Cache <code>next_in_room</code></td><td>Teleporting a follower mutates the room list; caching prevents traversal corruption.</td></tr>
+          <tr><td>False fallthrough</td><td><code>return 0</code> gives irrelevant commands back to normal command handling.</td></tr>
+          <tr><td>Self-purge at the end</td><td>The gateway object is single-use after all timed narrative and loading finishes.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="handshake">
+        <h2>Pattern 3: hand work from a room to a mobile</h2>
+        <p>Trigger 11808 is a room Enter trigger. It loads a mobile, then forces the entering actor to issue a private token. Trigger 11807, attached to that mobile, catches the token as a mobile Command trigger.</p>
+        <div class="dg-code" data-live-trigger="11808"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11808 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>wait 1 s
+%load% mob 11804
+%force% %actor% xx118xx</code></pre></div>
+        <div class="dg-code" data-live-trigger="11807"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11807 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>eval room %self.room%
+if (%room.vnum% == 11804)
+  if !(%actor.varexists(zn118_a)%)
+    emote walks into the room and peers at you.
+    wait 2 s
+    say You cant talk to the shadow-ones, they're not real...
+    wait 2 s
+    say at least not any more.
+    wait 2 s
+    say The others here aren't real either...
+    wait 2 s
+    say but then they never were.
+    wait 1 s
+    emote giggles as she runs off.
+    set zn118_a 1
+    remote zn118_a %actor.id%
+  end
+end
+drop journal
+%purge% %self%</code></pre></div>
+        <p>This is a message-passing pattern: the room owns entry detection, while the mobile owns dialogue and normal character commands. The private token is coupling, so it must remain uncommon, documented, and consistent on both sides.</p>
+        <div class="dg-callout"><h3>Guard every hidden command</h3><p>The mobile verifies its room and the player's prior state before narrating. A token alone should never be sufficient authorization for a quest transition.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="indirection">
+        <h2>Pattern 4: choose from a local variable table</h2>
+        <p>Trigger 11843 is a room Command trigger that assigns 21 local values, rolls a 1-based index, builds the selected variable name with escaped percent signs, then evaluates that reference.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11843 / abridged; table entries 3-20 omitted</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %cmd.mudcommand% == examine
+  if walls /= %arg%
+    eval max %random.21%
+    set txt[1] PATRIS
+    set txt[2] PRODITIO
+    * txt[3] through txt[20] use the same local-table pattern
+    set txt[21] RAPIO
+    set word %%txt[%max%]%%
+    eval word %word%
+    %send% %actor% Your eyes scan the glowing walls and alight upon the word %word%.
+    if !%actor.varexists(zn118_blinddone)%
+      set zn118_blindquest %word%
+      remote zn118_blindquest %actor.id%
+    end
+  else
+    return 0
+  end
+end</code></pre></div>
+        <p><code>%random.21%</code> returns 1 through 21, so every possible index has a value. The doubled percent signs preserve the selected reference for the later <code>eval</code> pass. The state write is conditional: completed players can still see a word without replacing their quest clue.</p>
+        <div class="dg-callout dg-callout--info"><h3>Abridgment note</h3><p>The displayed message has its in-game color controls removed, and the middle table entries are omitted for teaching. The control flow and variable mechanism follow trigger 11843.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="space">
+        <h2>Pattern 5: turn a command into spatial movement</h2>
+        <p>A room Enter trigger advertises an affordance only from the west. A paired room Command trigger makes <code>crawl</code> a bidirectional connection between rooms 11870 and 11871.</p>
+        <div class="dg-code" data-live-trigger="11868"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11868 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %direction% == west
+  wait 1 s
+  %send% %actor% You hear a shuffling sound from under the bed.
+  wait 1 s
+  %send% %actor% A child's voice whispers: Quick, crawl in here!
+end</code></pre></div>
+        <div class="dg-code" data-live-trigger="11869"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11869 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %self.vnum% == 11870
+  %send% %actor% You drop to your knees and crawl under the bed.
+  %echoaround% %actor% %actor.name% drops to %actor.hisher% knees and crawls under the bed.
+  wait 1 s
+  %at% 11871 %echo% %actor.name% crawls under the bed.
+  %teleport% %actor% 11871
+elseif %self.vnum% == 11871
+  %send% %actor% You crawl awkwardly out from under the bed.
+  %echoaround% %actor% %actor.name% crawls awkwardly out from under the bed.
+  %at% 11870 %echo% %actor.name% crawls out from under the bed.
+  wait 1 s
+  %teleport% %actor% 11870
+end
+%force% %actor% look</code></pre></div>
+        <p>The same prototype works on both rooms by branching on <code>%self.vnum%</code>. <code>%at%</code> announces arrival at the destination before teleport, while <code>%echoaround%</code> excludes the actor from the departure message. The final forced look restores orientation.</p>
+      </section>
+
+      <section class="dg-article-section" id="timers">
+        <h2>Pattern 6: initialize, expire, and purge an object</h2>
+        <p>Object Load trigger 11897 assigns different timer lengths by object VNUM. Object Timer trigger 11865 supplies the terminal world message and purges the expired object.</p>
+        <div class="dg-code" data-live-trigger="11897"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11897 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>wait 2 s
+if %self.vnum% == 11862
+  otimer 3
+elseif %self.vnum% == 11865
+  otimer 1
+elseif %self.vnum% == 11833
+  otimer 1
+end</code></pre></div>
+        <div class="dg-code" data-live-trigger="11865"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11865 / exact command body</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %self.vnum% == 11870
+%echo% %self.shortdesc% decays away, a few traces of dust blowing in the wind.
+else
+%echo% A quivering horde of maggots consumes %self.shortdesc%.
+end
+%purge% self</code></pre></div>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Phase</th><th>Owner event</th><th>Responsibility</th></tr></thead><tbody>
+          <tr><td>Initialization</td><td>Object Load</td><td>Wait until placement is settled, then set the object timer.</td></tr>
+          <tr><td>Lifetime</td><td>Object runtime</td><td>The core object timer counts down.</td></tr>
+          <tr><td>Expiry</td><td>Object Timer</td><td>Describe decay from the object's location and purge self.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="journal">
+        <h2>Pattern 7: render progress instead of duplicating objects</h2>
+        <p>Object Command trigger 11891 turns one journal into a progress view. Each section checks a completion variable, plus late-cycle overrides, and prints either revealed text or a placeholder.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Trigger 11891 / shortened structural excerpt</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %self.name% /= %arg%
+  if %actor.varexists(zn118_crayondone)% || %actor.varexists(zn118_gravedone)% || %actor.varexists(zn118_gravequest)%
+    %send% %actor% .  I drew you the pictures, if only you'd see,
+    %send% %actor% .  crayons instead of a voice.
+  else
+    %send% %actor% .  - - - - - - - - - - - - - - - - - - - - - - -
+  end
+
+  * Additional sections repeat this reveal-or-placeholder structure.
+
+  if %actor.varexists(zn118_gravedone)%
+    %send% %actor% .  The ghosts shall be buried, I choose to forget,
+    %send% %actor% .  and learn to forgive myself.
+  else
+    %send% %actor% .  - - - - - - - - - - - - - - - - - - - - - - -
+  end
+else
+  return 0
+end</code></pre></div>
+        <p>This keeps the journal object stateless and makes the player globals the projection source. The three-way OR also lets a current quest phase or completed cycle reveal material consistently.</p>
+        <div class="dg-callout dg-callout--info"><h3>Abridgment note</h3><p>Trigger 11891 contains many more reveal sections. This excerpt preserves two representative branches and marks the omitted repetition explicitly.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="lessons">
+        <h2>What to carry into a new zone</h2>
+        <div class="dg-check-grid">
+          <div class="dg-check"><h3>Namespace player state</h3><p><code>zn118_</code> makes ownership and cleanup discoverable.</p></div>
+          <div class="dg-check"><h3>Put events on natural owners</h3><p>Rooms detect place, mobiles perform character behavior, objects own use and time.</p></div>
+          <div class="dg-check"><h3>Guard broad command triggers</h3><p>Resolve canonical command and target, then return false for unrelated input.</p></div>
+          <div class="dg-check"><h3>Cache mutable traversals</h3><p>Save the next pointer before teleporting or purging from a linked list.</p></div>
+          <div class="dg-check"><h3>Separate start and completion</h3><p>Distinct variables make interruption, repetition, and recovery testable.</p></div>
+          <div class="dg-check"><h3>Make progress visible</h3><p>The journal projects state into content the player can re-read.</p></div>
+        </div>
+        <h3>What not to copy blindly</h3>
+        <ul class="dg-checklist">
+          <li>Do not reuse the <code>zn118_</code> namespace or Dollhouse VNUMs outside this zone.</li>
+          <li>Do not copy hidden tokens without both endpoints and all owner/location guards.</li>
+          <li>Do not assume historical indentation or naming is the preferred style for new work.</li>
+          <li>Do not extract one trigger from a cooperative flow without tracing its attachments and remote state.</li>
+          <li>Do not treat a static validator pass as proof that the narrative state machine is reachable.</li>
+        </ul>
+      </section>
+
+      <div class="dg-related"><a href="getting-started.html"><strong>Build the first one</strong><span>Reduce these patterns to a small exercise.</span></a><a href="architecture.html"><strong>Trace the runtime</strong><span>See why each pattern behaves this way.</span></a><a href="testing.html"><strong>Test the flow</strong><span>Validate positive, negative, and reset paths.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="architecture.html"><small>Previous</small><strong>Architecture</strong></a><a href="index.html"><small>Back to</small><strong>DG Scripts home</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>The Dollhouse</h2><p class="dg-footer-note">Public teaching excerpts from zone 118, paired with their runtime contracts.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Exact bodies are labeled; shortened examples identify every omission or normalization.</div></div></footer>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Runtime Architecture | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Trace LuminariMUD DG Script prototypes, attachments, event hooks, variable substitution, command dispatch, waits, and persistence through the C codebase.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html" aria-current="location">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#model">Data model</a></li><li><a href="#boot">Boot and instances</a></li><li><a href="#hooks">Event hooks</a></li><li><a href="#driver">Script driver</a></li><li><a href="#resolution">Variable resolution</a></li><li><a href="#waits">Wait events</a></li><li><a href="#persistence">Persistence</a></li><li><a href="#source-map">Source map</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Architecture</span></nav>
+      <h1>Runtime architecture</h1>
+      <p class="dg-article__lede">DG Scripts sits between game event hooks and three owner-specific command interpreters. Prototypes are reusable definitions; live owners carry runnable instances and mutable state.</p>
+      <div class="dg-provenance"><strong>Primary headers</strong><span><code>src/dgscript/dg_scripts.h</code> defines runtime state. <code>src/structs.h</code> embeds prototype and live script pointers in game entities.</span></div>
+
+      <section class="dg-article-section" id="model">
+        <h2>Data model</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Structure</th><th>Important fields</th><th>Role</th></tr></thead><tbody>
+          <tr><td>trig_data</td><td><code>attach_type</code>, <code>trigger_type</code>, <code>cmdlist</code>, <code>narg</code>, <code>arglist</code></td><td>Defines a prototype and, when copied, a runnable trigger instance.</td></tr>
+          <tr><td>trig_data runtime</td><td><code>curr_state</code>, <code>depth</code>, <code>loops</code>, <code>wait_event</code>, <code>var_list</code></td><td>Tracks execution, resumption, guards, and locals for one instance.</td></tr>
+          <tr><td>script_data</td><td><code>types</code>, <code>trig_list</code>, <code>global_vars</code>, <code>context</code></td><td>Aggregates all trigger instances and owner-global state on one entity.</td></tr>
+          <tr><td>trig_var_data</td><td><code>name</code>, <code>value</code>, <code>context</code></td><td>A linked-list variable record; every value is stored as text.</td></tr>
+          <tr><td>trig_proto_list</td><td><code>vnum</code>, <code>next</code></td><td>The default attachment list saved on mobile, object, and room prototypes.</td></tr>
+          <tr><td>wait_event_data</td><td><code>trigger</code>, <code>go</code>, <code>type</code></td><td>Reconnects a scheduled event to the waiting trigger and its owner.</td></tr>
+        </tbody></table></div>
+        <p><code>script_data.types</code> is the OR of attached trigger flags. Event hooks use it as a fast owner-level check before walking the trigger list.</p>
+      </section>
+
+      <section class="dg-article-section" id="boot">
+        <h2>From flat file to live instance</h2>
+        <div class="dg-flow" aria-label="DG trigger load path">
+          <div class="dg-flow__node"><strong>.trg record</strong><small>parse_trigger()</small></div>
+          <div class="dg-flow__node"><strong>trig_index</strong><small>prototype by rnum</small></div>
+          <div class="dg-flow__node"><strong>T attachment</strong><small>proto_script VNUM</small></div>
+          <div class="dg-flow__node"><strong>read_trigger()</strong><small>copy instance</small></div>
+          <div class="dg-flow__node"><strong>script_data</strong><small>add_trigger()</small></div>
+        </div>
+        <p><code>parse_trigger()</code> reads the attach type, ASCII flag bitvector, Numeric Arg, Arguments, and tilde-terminated command body. It tokenizes the body into a linked command list and registers the prototype in <code>trig_index</code>.</p>
+        <p>World entity prototypes keep only attached trigger VNUMs. When a mobile, object, or room script is instantiated, <code>read_trigger()</code> allocates a <code>trig_data</code> copy, duplicates mutable strings, shares the prototype command-list pointer, and <code>add_trigger()</code> adds it to the owner's <code>script_data</code>.</p>
+        <div class="dg-callout dg-callout--info"><h3>Why fresh instances matter</h3><p>Saving an existing trigger refreshes matching live trigger nodes, cancels their waits, clears their locals, and resets depth. It does not rebuild an already-loaded owner's attachment list, aggregate event flags, globals, or other entity state. Reload mobiles and objects when attachment or event behavior changes.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="hooks">
+        <h2>Game code calls typed event hooks</h2>
+        <p>DG Scripts does not infer most events. Game systems explicitly call functions such as <code>command_mtrigger()</code>, <code>get_otrigger()</code>, <code>enter_wtrigger()</code>, and <code>damage_mtrigger()</code>. Each hook:</p>
+        <ol class="dg-checklist">
+          <li>Checks that the owner has a script and the relevant flag in its aggregate type bitvector.</li>
+          <li>Walks attached trigger instances and skips any instance already running.</li>
+          <li>Tests chance, match text, threshold, time, direction, visibility, or location mask.</li>
+          <li>Adds event-local variables such as <code>actor</code>, <code>object</code>, <code>cmd</code>, or <code>direction</code>.</li>
+          <li>Calls <code>script_driver()</code> with owner address, instance, owner type, and <code>TRIG_NEW</code>.</li>
+          <li>Consumes or ignores the returned integer according to the hook contract.</li>
+        </ol>
+        <p>The main heartbeat calls <code>script_trigger_check()</code> every <code>PULSE_DG_SCRIPT</code> for periodic checks; Time triggers also compare the in-game hour.</p>
+      </section>
+
+      <section class="dg-article-section" id="driver">
+        <h2>The script driver</h2>
+        <p><code>script_driver()</code> rejects or attempts to recover an out-of-range incoming owner type before interpreting the owner pointer. A separate actual-type-versus-trigger-flags diagnostic is compiled only under <code>SCRIPT_DEBUG</code>. The driver then enforces recursion depth, initializes new-run state, and walks command nodes until completion, wait, halt, owner purge, or error.</p>
+        <div class="dg-flow" aria-label="Inside script_driver">
+          <div class="dg-flow__node"><strong>Validate</strong><small>owner + depth</small></div>
+          <div class="dg-flow__node"><strong>Control</strong><small>if / while / switch</small></div>
+          <div class="dg-flow__node"><strong>Substitute</strong><small>var_subst()</small></div>
+          <div class="dg-flow__node"><strong>Core</strong><small>set / wait / remote</small></div>
+          <div class="dg-flow__node"><strong>Dispatch</strong><small>mob / obj / room</small></div>
+        </div>
+        <p>Control lines are recognized before normal variable substitution so block navigation can evaluate only the necessary conditions. Other lines pass through <code>var_subst()</code>, then through the core command chain. Remaining lines go to:</p>
+        <ul class="dg-source-list">
+          <li><code>script_command_interpreter()</code><span>Mobile DG commands, then the normal character interpreter if unmatched.</span></li>
+          <li><code>obj_command_interpreter()</code><span>Object DG command table only.</span></li>
+          <li><code>wld_command_interpreter()</code><span>Room DG command table only.</span></li>
+        </ul>
+        <p>At normal completion the driver frees the trigger's local variable list, clears current state and depth, and returns the current integer result.</p>
+      </section>
+
+      <section class="dg-article-section" id="resolution">
+        <h2>Variable resolution</h2>
+        <p><code>find_replacement()</code> looks for a matching trigger local first, then an owner global whose context is 0 or the current context. If the value resolves to a character, object, or room UID, the corresponding field branch handles it. Otherwise text processing and special names provide additional fields.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Conceptual resolution order</span></div><pre><code>%actor.name%
+    |
+    +-- local variable actor = internal character UID
+    +-- resolve UID through the character lookup table
+    +-- character field "name"
+    +-- copy replacement into the command buffer</code></pre></div>
+        <p>Subfields inside parentheses are themselves passed through <code>var_subst()</code>. Chained fields can recurse when an earlier field returns another meaningful value. The output buffer is bounded by the command input size.</p>
+        <p>Character and object UIDs are maintained in a lookup table initialized by the DG subsystem. Room IDs use the room VNUM plus <code>ROOM_ID_BASE</code>.</p>
+      </section>
+
+      <section class="dg-article-section" id="waits">
+        <h2>Wait events and resumption</h2>
+        <p><code>process_wait()</code> converts pulses, real seconds, in-game hours, or a clock target into an event delay. It records the next command in <code>curr_state</code>, creates a <code>wait_event_data</code> record, and returns from the driver without final cleanup.</p>
+        <p>When the event fires, the runtime verifies that the stored owner pointer still appears in the relevant character, object, or room collection, then invokes the driver with <code>TRIG_RESTART</code>. Execution resumes from <code>curr_state</code>, retaining the trigger instance's locals and control depth.</p>
+        <div class="dg-callout"><h3>The owner is the resume anchor</h3><p>If the owner cannot be resolved, the restart is logged and cannot proceed. A stored actor or object variable may also point to an entity that no longer exists, so post-wait commands must tolerate empty field resolution.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="persistence">
+        <h2>Persistence boundaries</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Data</th><th>Persistence mechanism</th><th>Boundary</th></tr></thead><tbody>
+          <tr><td>Trigger prototype</td><td>Zone <code>.trg</code> file written by TRIGEDIT.</td><td>Survives reboot.</td></tr>
+          <tr><td>Default attachment</td><td><code>T &lt;vnum&gt;</code> on entity world records.</td><td>Applied when instances are created.</td></tr>
+          <tr><td>Runtime attach/detach</td><td>Live <code>script_data</code> only.</td><td>Lost with the instance or reboot.</td></tr>
+          <tr><td>Trigger locals</td><td><code>trig_data.var_list</code>.</td><td>Freed at run completion; retained across wait resume.</td></tr>
+          <tr><td>Mobile/object/room globals</td><td>Live owner <code>script_data.global_vars</code>.</td><td>Generally tied to that runtime owner.</td></tr>
+          <tr><td>Player globals</td><td>Saved and loaded with character variable persistence.</td><td>Survive logout/reboot through player storage.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="source-map">
+        <h2>Source map</h2>
+        <ul class="dg-source-list">
+          <li><code>src/dgscript/dg_scripts.h</code><span>Flags, runtime structures, limits, macros, and public DG API.</span></li>
+          <li><code>src/dgscript/dg_db_scripts.c</code><span>Trigger parsing, instance copying, and attachment loading.</span></li>
+          <li><code>src/dgscript/dg_triggers.c</code><span>Typed game-event hooks and injected event variables.</span></li>
+          <li><code>src/dgscript/dg_scripts.c</code><span>Driver, control flow, state commands, UIDs, stats, attach/detach, and waits.</span></li>
+          <li><code>src/dgscript/dg_variables.c</code><span>Substitution, entity fields, text fields, special values, and pseudo-commands.</span></li>
+          <li><code>src/dgscript/dg_misc.c</code><span><code>dg_cast</code> and <code>dg_affect</code>.</span></li>
+          <li><code>src/dgscript/dg_mobcmd.c</code><span>Mobile DG command implementations; table registration is in <code>src/interpreter.c</code>.</span></li>
+          <li><code>src/dgscript/dg_objcmd.c</code><span>Object command implementations and table.</span></li>
+          <li><code>src/dgscript/dg_wldcmd.c</code><span>Room command implementations and table.</span></li>
+          <li><code>src/dgscript/dg_olc.c</code><span>TRIGEDIT, disk save, and shared attachment menu.</span></li>
+          <li><code>src/dgscript/dg_event.c</code><span>Event integration used by trigger waits.</span></li>
+          <li><code>src/constants.c</code><span>Builder-facing mobile, object, and room trigger type names.</span></li>
+        </ul>
+      </section>
+
+      <div class="dg-related"><a href="trigger-types.html"><strong>Hooks</strong><span>See each event contract.</span></a><a href="commands.html"><strong>Dispatch</strong><span>Inspect the command layers.</span></a><a href="testing.html"><strong>Runtime proof</strong><span>Test instances, waits, and state.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="testing.html"><small>Previous</small><strong>Testing</strong></a><a href="dollhouse.html"><small>Next</small><strong>Dollhouse case study</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Architecture traced from flat-file parse to event dispatch and cleanup.</div></div></footer>
+</body>
+</html>

@@ -6,6 +6,10 @@ on:
     branches: ["master"]
     paths:
       - 'docs/**'
+      - 'scripts/development/check-dg-docs.py'
+      - 'src/constants.c'
+      - 'src/interpreter.c'
+      - 'src/dgscript/**'
       - '.github/workflows/pages.yml'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -30,6 +34,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+
+      - name: Check DG Scripts documentation
+        run: python3 scripts/development/check-dg-docs.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commands | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Complete DG Script control, mobile, object, room, and owner-neutral command reference for LuminariMUD.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html" aria-current="page">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html" aria-current="location">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#dispatch">Dispatch order</a></li><li><a href="#core">Core commands</a></li><li><a href="#control-flow">Control flow</a></li><li><a href="#wait">Wait</a></li><li><a href="#entity">Entity commands</a></li><li><a href="#pseudo-commands">Pseudo-commands</a></li><li><a href="#magic">Magic and affects</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Commands</span></nav>
+      <h1>Commands</h1>
+      <p class="dg-article__lede">Every line passes through the core driver first. Anything it does not consume is sent to the command interpreter for the trigger owner.</p>
+      <div class="dg-provenance"><strong>Source of truth</strong><span>Core: <code>src/dgscript/dg_scripts.c</code>. Mobile: <code>src/interpreter.c</code>. Object and room: <code>src/dgscript/dg_objcmd.c</code> and <code>dg_wldcmd.c</code>.</span></div>
+
+      <section class="dg-article-section" id="dispatch">
+        <h2>Command dispatch order</h2>
+        <div class="dg-flow" aria-label="DG command dispatch order">
+          <div class="dg-flow__node"><strong>Raw line</strong><small>leading spaces skipped</small></div>
+          <div class="dg-flow__node"><strong>Control structure</strong><small>if, while, switch</small></div>
+          <div class="dg-flow__node"><strong>Variable substitution</strong><small>%name.field%</small></div>
+          <div class="dg-flow__node"><strong>Core command</strong><small>set, wait, remote...</small></div>
+          <div class="dg-flow__node"><strong>Owner interpreter</strong><small>m*, o*, or w*</small></div>
+        </div>
+        <p>A line whose first non-space character is <code>*</code> is a comment. Control-flow lines are recognized before variable substitution. Other lines are substituted into a command buffer, checked against core commands, then dispatched by owner type.</p>
+        <div class="dg-callout"><h3>Mobile owners have one extra fallback</h3><p>If a line is not a mobile DG command, the normal character command interpreter receives it. That is why a mobile script can use commands such as <code>say</code>, <code>emote</code>, <code>give</code>, or <code>drop</code>. Object and room owners do not get that fallback.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="core">
+        <h2>Core commands</h2>
+        <p>These commands are available to all three owner types. Prefix matching in the driver makes correct spelling and spacing important; follow the forms below.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="core-command-filter">Filter core commands</label><input id="core-command-filter" type="search" placeholder="Filter core commands..." data-dg-filter-for="core-command-table"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-table-wrap" id="core-command-table"><table class="dg-table" data-dg-core-commands><thead><tr><th>Command</th><th>Form</th><th>Purpose</th></tr></thead><tbody></tbody></table></div>
+        <div class="dg-callout dg-callout--info"><h3>Local state comes first</h3><p><code>set</code> and <code>eval</code> write trigger-local variables. <code>global</code> moves an existing local into owner-global storage. <code>remote</code> copies an existing local, or a visible owner-global value, into another entity's globals. See <a href="variables.html#lifetime">variable lifetime</a>.</p></div>
+        <div class="dg-callout"><h3>Script attach syntax differs from the staff command</h3><p>Inside a script, use <code>attach &lt;trigger-vnum&gt; &lt;numeric-id&gt;</code> or <code>detach &lt;trigger-selector|all&gt; &lt;numeric-id&gt;</code>. The handler discovers whether that ID belongs to a character, object, or room. The interactive staff <code>attach</code>/<code>detach</code> commands use the owner keywords documented on the <a href="staff-commands.html#attach">staff commands page</a>.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="control-flow">
+        <h2>Control flow</h2>
+        <h3>Conditionals</h3>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Condition shape</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %actor.varexists(clue)%
+  %send% %actor% You already know the answer.
+elseif %actor.level% &gt;= 10
+  %send% %actor% You recognize the symbol.
+else
+  %send% %actor% The mark means nothing to you.
+end</code></pre></div>
+        <p>The expression evaluator handles numeric and string comparisons, Boolean composition, arithmetic through <code>eval</code>, and DG's substring-style operator used by existing world scripts. Parentheses make compound conditions easier to audit.</p>
+        <h3>Loops</h3>
+        <p><code>while</code> repeats through its matching <code>done</code>. <code>break</code> jumps to that boundary. The driver yields after 30 iterations with an internal <code>wait 1</code> and stops after 100 total iterations, logging the runaway trigger.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Safe room iteration pattern</span><button class="dg-copy" type="button">Copy</button></div><pre><code>set room %actor.room%
+set people %room.people%
+while %people%
+  set next %people.next_in_room%
+  if %people.master% == %actor%
+    %teleport% %people% %actor%
+  end
+  set people %next%
+done</code></pre></div>
+        <p>Cache the next node before moving or purging the current entity. Trigger 11805 uses this exact pattern to move followers safely.</p>
+        <h3>Switches</h3>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Selection pattern</span><button class="dg-copy" type="button">Copy</button></div><pre><code>switch %choice%
+  case red
+    set result flame
+    break
+  case blue
+    set result frost
+    break
+  default
+    set result unknown
+done</code></pre></div>
+      </section>
+
+      <section class="dg-article-section" id="wait">
+        <h2>Wait and resumption</h2>
+        <p><code>wait</code> schedules a DG event, stores the next command as the trigger's resume point, and returns from the driver. The same trigger instance resumes later.</p>
+        <ul class="dg-syntax-list">
+          <li><code>wait 10</code><span>Wait 10 game pulses.</span></li>
+          <li><code>wait 2 s</code><span>Wait 2 real-time seconds.</span></li>
+          <li><code>wait 3 t</code><span>Wait 3 in-game hours.</span></li>
+          <li><code>wait until 14:30</code><span>Resume at the next in-game 14:30; <code>1430</code> is also accepted.</span></li>
+        </ul>
+        <div class="dg-callout"><h3>Plan for a changed world</h3><p>Characters may move, objects may be extracted, and variables on other entities may change while a trigger waits. Resolve current locations and validate targets again after long waits.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="entity">
+        <h2>Entity command inventories</h2>
+        <p>The lists below are read from the command tables in this codebase. Many commands share a verb family: send targeted text, echo locally, gecho globally, load or purge entities, teleport targets, affect doors, and log diagnostics. Use the owner-prefixed implementation unless a pseudo-command makes the script intentionally portable.</p>
+        <h3>Mobile commands</h3>
+        <div class="dg-field-cloud" id="mobile-command-cloud" data-dg-command-cloud="mobile"></div>
+        <p>Mobile-only capabilities include combat (<code>mkill</code>, <code>mdamage</code>), inventory cleanup (<code>mjunk</code>), movement and remote execution (<code>mgoto</code>, <code>mat</code>), hunting and memory, following, transformation, and clan state.</p>
+        <h3>Object commands</h3>
+        <div class="dg-field-cloud" id="object-command-cloud" data-dg-command-cloud="object"></div>
+        <p>Object-only capabilities include binding, timer control, object value mutation, transformation, and moving an object to another room.</p>
+        <h3>Room commands</h3>
+        <div class="dg-field-cloud" id="room-command-cloud" data-dg-command-cloud="room"></div>
+        <p>Room commands operate from a location rather than a character or object. <code>wat</code> executes another room command at a target room; <code>wmove</code> moves a character or object.</p>
+      </section>
+
+      <section class="dg-article-section" id="pseudo-commands">
+        <h2>Owner-neutral pseudo-commands</h2>
+        <p>DG variable substitution recognizes command-like special fields. A line such as <code>%send% %actor% text</code> resolves <code>%send%</code> to <code>msend</code>, <code>osend</code>, or <code>wsend</code> according to the owner. This keeps a common pattern readable across trigger types.</p>
+        <div class="dg-field-cloud" data-dg-command-cloud="pseudo"></div>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Pattern</th><th>Purpose</th><th>Availability note</th></tr></thead><tbody>
+          <tr><td>Communication</td><td><code>%send%</code>, <code>%echo%</code>, <code>%gecho%</code>, <code>%echoaround%</code>, <code>%recho%</code>, <code>%zoneecho%</code>, <code>%asound%</code></td><td>Mapped for each owner family.</td></tr>
+          <tr><td>World mutation</td><td><code>%load%</code>, <code>%purge%</code>, <code>%teleport%</code>, <code>%damage%</code>, <code>%door%</code></td><td>Syntax is still the mapped command's syntax.</td></tr>
+          <tr><td>Remote action</td><td><code>%force%</code>, <code>%at%</code>, <code>%move%</code></td><td><code>%move%</code> maps to <code>omove</code>/<code>wmove</code>, but to <code>mecho</code> for a mobile owner.</td></tr>
+          <tr><td>Owner mutation</td><td><code>%transform%</code>, <code>%bind%</code>, <code>%log%</code></td><td>Room <code>%transform%</code> maps to <code>wecho</code>. Only object <code>%bind%</code> maps to <code>obind</code>; mobile and room owners get echo fallbacks.</td></tr>
+        </tbody></table></div>
+        <p>The pseudo-command does not normalize the remaining arguments. Check the mapped function when using a less common form.</p>
+      </section>
+
+      <section class="dg-article-section" id="magic">
+        <h2>Magic and affects</h2>
+        <h3><code>dg_cast</code></h3>
+        <p>Use <code>dg_cast '&lt;spell name&gt;' &lt;target&gt;</code>. The spell name must be quoted. A supplied non-empty target must resolve to an allowed character or object unless the spell has <code>TAR_IGNORE</code>, and group spells are rejected. The current implementation still reaches <code>call_magic()</code> with null targets when no target text is supplied, so give every non-<code>TAR_IGNORE</code> spell an explicit target. Mobile owners cast directly; object and room owners create a temporary proxy caster in their room.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Live Dollhouse use in trigger 11899</span><button class="dg-copy" type="button">Copy</button></div><pre><code>dg_cast 'cure blind' %actor%
+dg_cast 'remove curse' %actor%
+dg_cast 'remove poison' %actor%
+dg_cast 'remove disease' %actor%</code></pre></div>
+        <h3><code>dg_affect</code></h3>
+        <p>Use <code>dg_affect &lt;target&gt; &lt;property&gt; &lt;value|off&gt; &lt;duration&gt;</code>. The property must match an apply type or affect flag. Duration must be positive. <code>off</code> removes the DG affect record from the target.</p>
+        <div class="dg-callout dg-callout--dark"><h3>Two different size limits</h3><p><code>MAX_CMD_LENGTH</code>, currently 16384 bytes, bounds the stored TRIGEDIT command body. Each substituted runtime line uses <code>MAX_INPUT_LENGTH</code>, currently 512 bytes. Both are safety ceilings, not readability targets; split complex behavior into clear lines and cooperating triggers.</p></div>
+      </section>
+
+      <div class="dg-related"><a href="variables.html"><strong>Variables</strong><span>Understand substitution and fields.</span></a><a href="dollhouse.html"><strong>Dollhouse</strong><span>See these commands in live scripts.</span></a><a href="testing.html"><strong>Testing</strong><span>Prove effects and catch runtime failures.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="trigger-types.html"><small>Previous</small><strong>Trigger types</strong></a><a href="variables.html"><small>Next</small><strong>Variables</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Command names mirror the runtime tables in this repository.</div></div></footer>
+</body>
+</html>

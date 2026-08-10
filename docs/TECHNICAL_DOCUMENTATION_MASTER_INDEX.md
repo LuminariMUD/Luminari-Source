@@ -1,6 +1,6 @@
 # LuminariMUD Technical Documentation Master Index
 
-Last Updated: 2026-08-07
+Last Updated: 2026-08-10
 Version: 1.4
 
 ## Documentation Overview
@@ -104,6 +104,7 @@ This master index provides a comprehensive guide to all technical documentation 
 ### Building & Scripting
 - **[OLC_ONLINE_CREATION_SYSTEM.md](systems/OLC_ONLINE_CREATION_SYSTEM.md)** - Online building tools
 - **[SCRIPTING_SYSTEM_DG.md](systems/SCRIPTING_SYSTEM_DG.md)** - DG Scripts documentation
+- **[DG Scripts Web Guide](web/dg-scripts/index.html)** - Source-backed builder path, complete trigger and command references, TRIGEDIT, testing, architecture, and public Dollhouse examples
 
 ### Utility Systems
 - **[UTILITY_SYSTEMS.md](systems/UTILITY_SYSTEMS.md)** - Helper systems and utilities

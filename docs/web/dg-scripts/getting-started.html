@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting Started with DG Scripts | LuminariMUD</title>
+  <meta name="description" content="Build, attach, and test a first LuminariMUD DG Script using the real trigger execution model.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html" aria-current="page">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span>
+      <nav aria-label="Guide pages"><ul><li><a href="getting-started.html" aria-current="location">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#mental-model">Mental model</a></li><li><a href="#owner">Choose an owner</a></li><li><a href="#first-trigger">First trigger</a></li><li><a href="#variables">Event variables</a></li><li><a href="#attach">Attach and test</a></li><li><a href="#mistakes">Common mistakes</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Getting started</span></nav>
+      <h1>Getting started</h1>
+      <p class="dg-article__lede">Build one small, observable behavior first. The goal is to understand which event starts a script, who owns it, and which state survives after it stops.</p>
+      <div class="dg-provenance"><strong>Implementation trail</strong><span>Event hooks: <code>src/dgscript/dg_triggers.c</code>. Execution: <code>src/dgscript/dg_scripts.c</code>. Editing: <code>src/dgscript/dg_olc.c</code>.</span></div>
+
+      <section class="dg-article-section" id="mental-model">
+        <h2>The runtime in one pass</h2>
+        <div class="dg-flow" aria-label="DG Script execution flow">
+          <div class="dg-flow__node"><strong>Game event</strong><small>enter, say, get...</small></div>
+          <div class="dg-flow__node"><strong>Trigger hook</strong><small>type + chance</small></div>
+          <div class="dg-flow__node"><strong>Event variables</strong><small>actor, direction...</small></div>
+          <div class="dg-flow__node"><strong>Script driver</strong><small>substitute + run</small></div>
+          <div class="dg-flow__node"><strong>World effect</strong><small>send, load, state...</small></div>
+        </div>
+        <p>A trigger prototype has a VNUM, name, intended owner type, event flags, Numeric Arg, Arguments string, and command list. Attaching that prototype gives an entity a runnable trigger instance. When a matching hook fires, the driver substitutes <code>%variables%</code> and sends non-control commands to the interpreter for the owner type.</p>
+        <div class="dg-callout dg-callout--info"><h3>A trigger is not a polling script</h3><p>Most triggers run only because a specific game hook calls them. Random and Time triggers are the periodic exceptions, and their Global flag changes whether empty-zone checks are allowed.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="owner">
+        <h2>1. Choose the owner that receives the event</h2>
+        <p>Ownership is structural, not cosmetic. It selects the available trigger types, the meaning of <code>%self%</code>, and the command interpreter used after control commands are handled.</p>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Owner</th><th>Use it when</th><th>Commands</th><th>Typical events</th></tr></thead><tbody>
+          <tr><td>Mobile</td><td>An NPC acts, fights, speaks, remembers, receives, or reacts as a character.</td><td><code>m*</code> plus normal character commands</td><td>Greet, Speech, Fight, Bribe, Damage</td></tr>
+          <tr><td>Object</td><td>The behavior belongs to a carried, worn, room, timed, or consumed object.</td><td><code>o*</code></td><td>Get, Give, Wear, Timer, Consume</td></tr>
+          <tr><td>Room</td><td>The location observes entrants, speech, doors, drops, login, or zone reset.</td><td><code>w*</code></td><td>Enter, Command, Zone Reset, Login</td></tr>
+        </tbody></table></div>
+        <p>Do not choose a room owner merely because an effect happens in a room. Choose it when the room receives the relevant hook. The <a href="trigger-types.html">trigger matrix</a> shows every owner/event combination.</p>
+      </section>
+
+      <section class="dg-article-section" id="first-trigger">
+        <h2>2. Rebuild a small live trigger</h2>
+        <p>The Dollhouse room trigger below reacts only when someone enters from the west. It is useful as a first exercise because the trigger has one event variable, short waits, and visible output.</p>
+        <dl class="dg-fact-ledger">
+          <div><dt>VNUM</dt><dd>Use a free VNUM in your assigned zone</dd></div>
+          <div><dt>Name</dt><dd><code>Hiding girl beckons</code></dd></div>
+          <div><dt>Intended for</dt><dd>Rooms</dd></div>
+          <div><dt>Trigger type</dt><dd>Enter</dd></div>
+          <div><dt>Numeric Arg</dt><dd><code>100</code> (100 percent chance)</dd></div>
+          <div><dt>Arguments</dt><dd>Empty</dd></div>
+        </dl>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Live pattern: lib/world/trg/118.trg, trigger 11868</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %direction% == west
+  wait 1 s
+  %send% %actor% You hear a shuffling sound from under the bed.
+  wait 1 s
+  %send% %actor% A child's voice whispers: Quick, crawl in here!
+end</code></pre></div>
+        <ol class="dg-checklist">
+          <li>Enter <code>trigedit &lt;vnum&gt;</code> and fill the fields above.</li>
+          <li>Open the Commands editor, enter the body, save, and quit.</li>
+          <li>Open REDIT for a test room, choose <code>S</code>, then attach the trigger by VNUM.</li>
+          <li>Save the room, leave it, and enter from west and from a different direction.</li>
+        </ol>
+        <p><code>%send%</code> is an owner-neutral pseudo-command. On a room owner it resolves to the room implementation of send; the <a href="commands.html#pseudo-commands">command guide</a> explains the mapping.</p>
+      </section>
+
+      <section class="dg-article-section" id="variables">
+        <h2>3. Know where values come from</h2>
+        <p>The Enter hook creates <code>actor</code> and <code>direction</code> for this run. <code>%actor%</code> substitutes the actor's internal UID where a command needs an entity target; <code>%actor.name%</code> reads a field. Trigger-local variables created with <code>set</code> disappear when the run finishes.</p>
+        <ul class="dg-syntax-list">
+          <li><code>set clue red</code><span>Local to this trigger run.</span></li>
+          <li><code>global clue</code><span>Moves that local value into the owner's script-global state, under the current context.</span></li>
+          <li><code>remote clue %actor.id%</code><span>Copies the local value to the actor's script-global state.</span></li>
+          <li><code>rdelete clue %actor.id%</code><span>Deletes that remote global value.</span></li>
+        </ul>
+        <div class="dg-callout"><h3>UID rule</h3><p>Pass event-supplied UIDs directly to entity commands. Use an entity's <code>.id</code> only where a command explicitly asks for a numeric script ID, such as <code>remote</code> or <code>rdelete</code>. Use <code>makeuid</code> when a marked UID must be built from an ID or nearby name; never construct or guess its prefix.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="attach">
+        <h2>4. Attach, reload, and test both paths</h2>
+        <p>Permanent attachments are edited from the <code>S</code> scripts menu in MEDIT, OEDIT, or REDIT and written as <code>T &lt;trigger-vnum&gt;</code> records in world files. The staff <code>attach</code> command affects a runtime instance and is best used for controlled inspection.</p>
+        <ul class="dg-checklist">
+          <li>Save both the trigger and its owning prototype or room.</li>
+          <li>Load a fresh mobile or object instance after changing attachments.</li>
+          <li>Exercise the matching case and at least one non-matching case.</li>
+          <li>Check visible output, owner state, player state, and logs.</li>
+          <li>Run <code>python3 scripts/world/wtool.py validate --zone &lt;zone&gt;</code>.</li>
+        </ul>
+        <p>See <a href="testing.html">Testing and debugging</a> for a repeatable verification sequence and runtime limits.</p>
+      </section>
+
+      <section class="dg-article-section" id="mistakes">
+        <h2>Common first-script mistakes</h2>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Symptom</th><th>Likely cause</th><th>Correction</th></tr></thead><tbody>
+          <tr><td>Never fires</td><td>Wrong owner/event pairing, no attachment, failed chance roll, or zone is empty for a periodic trigger.</td><td>Use <code>tstat</code>, inspect the owner, and temporarily make the condition observable.</td></tr>
+          <tr><td>Intercepts too much</td><td>Command prefix or wildcard is broad, and the body does not reject unrelated commands.</td><td>Compare <code>%cmd.mudcommand%</code> and <code>%arg%</code>; use <code>return 0</code> on the non-match path.</td></tr>
+          <tr><td>State vanishes</td><td><code>set</code> created only a local variable.</td><td>Use <code>global</code> for owner state or <code>remote</code> for target state.</td></tr>
+          <tr><td>Wrong command family</td><td>An <code>m*</code>, <code>o*</code>, or <code>w*</code> command was used on another owner.</td><td>Use the matching family or an owner-neutral pseudo-command.</td></tr>
+          <tr><td>Old behavior remains</td><td>A live owner still has an older attachment set, aggregate event flags, or owner-global state.</td><td>Save both editors, reload the owner, and retest from a clean state.</td></tr>
+        </tbody></table></div>
+        <div class="dg-callout dg-callout--dark"><h3>Return values are hook-specific</h3><p><code>return N</code> sets an integer result, but only event hooks that read that result give it gameplay meaning. Receive can veto a transfer, and Damage uses the returned value as replacement damage. Do not assume every trigger type consumes it.</p></div>
+      </section>
+
+      <div class="dg-related"><a href="trigger-types.html"><strong>Trigger types</strong><span>Choose the correct event and arguments.</span></a><a href="trigedit.html"><strong>TRIGEDIT</strong><span>Map the model to the in-game editor.</span></a><a href="dollhouse.html"><strong>Dollhouse</strong><span>Study cooperating production scripts.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="index.html"><small>Previous</small><strong>DG Scripts home</strong></a><a href="trigger-types.html"><small>Next</small><strong>Trigger types</strong></a></nav>
+    </main>
+  </div>
+
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Behavior traced to this repository's runtime and world data.</div></div></footer>
+</body>
+</html>

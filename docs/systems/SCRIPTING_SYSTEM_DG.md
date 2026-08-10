@@ -1,5 +1,12 @@
 # LuminariMUD DG Scripting System
 
+> **Builder web guide:** The maintained, source-backed guide is available at
+> [DG Scripts](../web/dg-scripts/index.html). It includes complete runtime
+> inventories, TRIGEDIT and staff workflows, testing guidance, architecture,
+> and public examples from The Dollhouse (zone 118). This document remains the
+> long-form system reference; when details conflict, verify the C source paths
+> cited by the web guide.
+
 ## Overview
 
 The DG (DikuMUD Scripting) system in LuminariMUD provides a powerful, event-driven scripting language that allows builders to create dynamic, interactive content. Scripts can be attached to mobiles (NPCs), objects, and rooms to respond to player actions, create complex behaviors, and implement sophisticated game mechanics.

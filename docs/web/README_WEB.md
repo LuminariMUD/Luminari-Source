@@ -29,13 +29,24 @@ docs/web/
 │   └── room_flags.html     # Room Flags Reference - room property flags
 ├── dg-scripts/
 │   ├── index.html          # DG Scripts landing page and documentation hub
-│   └── staff-commands.html # Staff commands for DG script variable management
+│   ├── getting-started.html # First-trigger tutorial and execution model
+│   ├── trigger-types.html  # Complete mobile/object/room event matrix
+│   ├── commands.html       # Core and owner-specific command reference
+│   ├── variables.html      # Scope, UIDs, fields, and substitution reference
+│   ├── trigedit.html       # Trigger editing and permanent attachment workflow
+│   ├── staff-commands.html # Runtime inspection and repair commands
+│   ├── testing.html        # Static and in-game verification workflow
+│   ├── architecture.html   # Runtime data flow and source map
+│   └── dollhouse.html      # Public case study from zone 118
 ├── data/
 │   └── objects.json        # Object database data (generated from MySQL)
 └── assets/
     ├── css/
-    │   └── style.css           # Shared stylesheet for all pages
-    ├── js/                     # JavaScript files (future)
+    │   ├── style.css           # Shared portal stylesheet
+    │   └── dg-scripts.css      # DG Scripts editorial documentation theme
+    ├── js/
+    │   ├── dg-reference.js     # Source-backed DG inventories
+    │   └── dg-docs.js          # Navigation, filters, tables, and copy controls
     ├── img/                    # Images and graphics (future)
     └── pandoc-template.html    # Template for markdown→HTML conversion
 ```
@@ -65,6 +76,11 @@ The stylesheet includes:
 - Responsive grid system
 - Typography scales
 - Mobile-friendly breakpoints
+
+The DG Scripts section is a purpose-built documentation surface. Its pages use
+`assets/css/dg-scripts.css`, `assets/js/dg-reference.js`, and
+`assets/js/dg-docs.js`. Keep its reference inventories centralized rather than
+duplicating trigger, command, or field lists in individual pages.
 
 ---
 
@@ -204,6 +220,21 @@ anything - useful before a commit or in CI:
 
 `--check` exits non-zero and names each stale page. Commit the regenerated HTML
 in the same commit as the Markdown change so the two never drift apart.
+
+### Checking the DG Scripts Guide
+
+The DG Scripts pages are hand-authored against the runtime rather than generated
+from Markdown. Run their source-consistency check from the repository root:
+
+```bash
+python3 scripts/development/check-dg-docs.py
+```
+
+The check verifies all ten pages, internal links and anchors, ASCII/LF format,
+trigger-type and entity-command inventories against C source, and exact
+Dollhouse code blocks against `lib/world/trg/118.trg` when local world data is
+available. GitHub Pages CI runs the same check; zone 118 comparison is skipped
+there when private world files are absent.
 
 ### Adding Another Generated Guide
 
@@ -486,12 +517,23 @@ https://luminarimud.github.io/Luminari-Source/web/guides/room_flags.html
 ### DG Scripts
 ```
 https://luminarimud.github.io/Luminari-Source/web/dg-scripts/
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/getting-started.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/trigger-types.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/commands.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/variables.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/trigedit.html
 https://luminarimud.github.io/Luminari-Source/web/dg-scripts/staff-commands.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/testing.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/architecture.html
+https://luminarimud.github.io/Luminari-Source/web/dg-scripts/dollhouse.html
 ```
 
 ### Assets
 ```
 https://luminarimud.github.io/Luminari-Source/web/assets/css/style.css
+https://luminarimud.github.io/Luminari-Source/web/assets/css/dg-scripts.css
+https://luminarimud.github.io/Luminari-Source/web/assets/js/dg-reference.js
+https://luminarimud.github.io/Luminari-Source/web/assets/js/dg-docs.js
 https://luminarimud.github.io/Luminari-Source/web/assets/img/logo.png
 ```
 

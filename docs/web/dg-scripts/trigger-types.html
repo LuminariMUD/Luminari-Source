@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trigger Types | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Complete source-backed reference for mobile, object, and room DG Script trigger types and event variables.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html" aria-current="page">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html" aria-current="location">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#reading">Read the fields</a></li><li><a href="#mobile">Mobile types</a></li><li><a href="#object">Object types</a></li><li><a href="#room">Room types</a></li><li><a href="#matching">Matching rules</a></li><li><a href="#returns">Return values</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>Trigger types</span></nav>
+      <h1>Trigger types</h1>
+      <p class="dg-article__lede">Trigger flags are owner-specific event subscriptions. Their Numeric Arg, Arguments string, injected variables, and return handling change with the event hook.</p>
+      <div class="dg-provenance"><strong>Source of truth</strong><span>Names: <code>src/constants.c</code>. Flag definitions: <code>src/dgscript/dg_scripts.h</code>. Runtime semantics: <code>src/dgscript/dg_triggers.c</code>.</span></div>
+
+      <section class="dg-article-section" id="reading">
+        <h2>How to read the reference</h2>
+        <p>The columns below describe what TRIGEDIT calls <strong>Numeric Arg</strong> and <strong>Arguments</strong>. A dash means the hook does not use that field for its primary behavior. Event variables exist only for a run started by that hook.</p>
+        <div class="dg-callout" id="numeric-arg"><h3>Numeric Arg is overloaded</h3><p>It is commonly a 1-100 chance, but it can be a minimum bribe amount, hit-point threshold, exact game hour, speech match mode, or object command location bitmask. Always interpret it by trigger type.</p></div>
+        <ul class="dg-syntax-list">
+          <li><code>Chance percent</code><span>The code rolls <code>rand_number(1, 100)</code> and runs when the roll is at or below the value.</span></li>
+          <li><code>Game hour</code><span>Exact equality with <code>time_info.hours</code>, not a chance.</span></li>
+          <li><code>Location mask</code><span>Object Command uses bits: worn <code>1</code>, inventory <code>2</code>, room <code>4</code>; add values to enable more than one.</span></li>
+          <li><code>Global flag</code><span>Its own Numeric Arg is unused. On mobiles and rooms it allows Random and Time checks in empty zones; Object Global is explicitly unused.</span></li>
+        </ul>
+      </section>
+
+      <section class="dg-article-section" id="mobile">
+        <h2>Mobile trigger types</h2>
+        <p>Mobile triggers run with a character as <code>%self%</code>. After core DG commands, unmatched lines can use the mobile script command table or the normal character command interpreter.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="mobile-trigger-filter">Filter mobile trigger types</label><input id="mobile-trigger-filter" type="search" placeholder="Filter mobile triggers..." data-dg-filter-for="mobile-trigger-table"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-table-wrap" id="mobile-trigger-table"><table class="dg-table" data-dg-trigger-table="mobile"><thead><tr><th>Type</th><th>Numeric Arg</th><th>Arguments</th><th>Event variables</th><th>Runtime behavior</th></tr></thead><tbody></tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="object">
+        <h2>Object trigger types</h2>
+        <p>Object triggers run with an object as <code>%self%</code>. Get, Drop, Give, Wear, Remove, and Consume return a value to action code; a false result can prevent the action.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="object-trigger-filter">Filter object trigger types</label><input id="object-trigger-filter" type="search" placeholder="Filter object triggers..." data-dg-filter-for="object-trigger-table"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-table-wrap" id="object-trigger-table"><table class="dg-table" data-dg-trigger-table="object"><thead><tr><th>Type</th><th>Numeric Arg</th><th>Arguments</th><th>Event variables</th><th>Runtime behavior</th></tr></thead><tbody></tbody></table></div>
+        <div class="dg-callout dg-callout--info"><h3>Object Leave scope</h3><p>The hook scans objects in the room being left. It does not scan the actor's inventory or equipment in this implementation.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="room">
+        <h2>Room trigger types</h2>
+        <p>Room triggers run with a room as <code>%self%</code>. They are the natural owner for location-wide observation and can coordinate other owners through UIDs, hidden commands, and global variables.</p>
+        <div class="dg-filter"><label class="dg-visually-hidden" for="room-trigger-filter">Filter room trigger types</label><input id="room-trigger-filter" type="search" placeholder="Filter room triggers..." data-dg-filter-for="room-trigger-table"><span class="dg-filter__count" aria-live="polite"></span></div>
+        <div class="dg-table-wrap" id="room-trigger-table"><table class="dg-table" data-dg-trigger-table="room"><thead><tr><th>Type</th><th>Numeric Arg</th><th>Arguments</th><th>Event variables</th><th>Runtime behavior</th></tr></thead><tbody></tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="matching">
+        <h2>Command, speech, and act matching</h2>
+        <h3>Command prefix matching</h3>
+        <p>The Arguments string is compared with the start of the command word, without case sensitivity. An asterisk matches any command. That means <code>ex</code> can catch <code>examine</code>, but the script should still verify <code>%cmd.mudcommand%</code> and its arguments before consuming the command.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Live gate from Dollhouse trigger 11843</span><button class="dg-copy" type="button">Copy</button></div><pre><code>if %cmd.mudcommand% == examine
+  if walls /= %arg%
+    * matching body omitted here
+  else
+    return 0
+  end
+end</code></pre></div>
+        <h3>Speech and Act matching</h3>
+        <p>With Numeric Arg <code>0</code>, the hook performs a case-insensitive substring search. With a nonzero Numeric Arg, it uses word-list or phrase matching against the Arguments text. Use the mode intentionally: substring matching is broad and can fire inside a longer word.</p>
+        <h3>Direction values</h3>
+        <p>Enter/Greet receive the direction from which the actor arrived, while Leave receives the direction being taken. When no valid direction exists, hooks that supply the value use <code>none</code>.</p>
+      </section>
+
+      <section class="dg-article-section" id="returns">
+        <h2>Return values are part of the hook contract</h2>
+        <p>The driver starts with a true result and <code>return N</code> changes it with integer parsing. The caller decides whether that value matters.</p>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Hook family</th><th>Effect of return</th></tr></thead><tbody>
+          <tr><td>Mobile Receive</td><td>The result can accept or reject the object transfer.</td></tr>
+          <tr><td>Mobile Damage</td><td>The returned integer replaces the pending damage amount. A driver error preserves the original damage; values below <code>-1</code> are rejected and become <code>-1</code>.</td></tr>
+          <tr><td>Object actions</td><td>Get, Drop, Give, Wear, Remove, and Consume return into action code and can veto the action.</td></tr>
+          <tr><td>Arrival hooks</td><td>In the standard movement path, Mobile Entry, Mobile Greet/Greet-All, and Room Enter can return false and send the mover back.</td></tr>
+          <tr><td>Leave and Door hooks</td><td>Callers combine trigger results to decide whether movement or the door action continues.</td></tr>
+          <tr><td>Cast hooks</td><td>Room, object, and mobile Cast run before <code>call_magic()</code>; a false result cancels the spell.</td></tr>
+          <tr><td>Command hooks</td><td>A true result reports that the command trigger handled the command; <code>return 0</code> lets non-matching paths fall through.</td></tr>
+          <tr><td>Mobile Death</td><td>When there is a killer, a false result suppresses the default death cry; it does not cancel the death.</td></tr>
+          <tr><td>Other notifications</td><td>The body still runs, but the caller may ignore the integer result.</td></tr>
+        </tbody></table></div>
+        <div class="dg-callout dg-callout--dark"><h3>Multiple flags require compatible semantics</h3><p>A single prototype can carry more than one trigger flag, but Numeric Arg and Arguments are shared fields. Combine flags only when one configuration makes sense for every selected hook.</p></div>
+      </section>
+
+      <div class="dg-related"><a href="commands.html"><strong>Commands</strong><span>See what each owner can execute.</span></a><a href="variables.html"><strong>Variables</strong><span>Resolve event values and entity fields.</span></a><a href="architecture.html"><strong>Architecture</strong><span>Trace hooks into the script driver.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="getting-started.html"><small>Previous</small><strong>Getting started</strong></a><a href="commands.html"><small>Next</small><strong>Commands</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">Trigger inventory generated from repository-backed reference data.</div></div></footer>
+</body>
+</html>

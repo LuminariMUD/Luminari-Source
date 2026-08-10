@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRIGEDIT Builder Workflow | LuminariMUD DG Scripts</title>
+  <meta name="description" content="Create, edit, copy, attach, save, and inspect LuminariMUD DG Script triggers with TRIGEDIT and Oasis OLC.">
+  <link rel="stylesheet" href="../assets/css/dg-scripts.css">
+  <script defer src="../assets/js/dg-reference.js"></script>
+  <script defer src="../assets/js/dg-docs.js"></script>
+</head>
+<body class="dg-docs">
+  <a class="dg-skip-link" href="#main-content">Skip to content</a>
+  <header class="dg-site-header"><div class="dg-site-header__inner">
+    <a class="dg-brand" href="index.html" aria-label="DG Scripts home"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M4 4h10v10H4zM18 4h10v10H18zM4 18h10v10H4zM18 18h10v10H18z"/><path fill="#ef4454" d="M9 9h14v14H9z"/></svg>DG <span class="dg-brand__mud">Scripts</span></a>
+    <button class="dg-nav-toggle" type="button" aria-expanded="false" aria-controls="dg-primary-nav" aria-label="Toggle guide navigation"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="dg-nav" id="dg-primary-nav" aria-label="DG Scripts guide"><a href="getting-started.html">Start</a><a href="trigger-types.html">Triggers</a><a href="commands.html">Commands</a><a href="variables.html">Variables</a><a href="trigedit.html" aria-current="page">TRIGEDIT</a><a href="dollhouse.html">Examples</a></nav>
+  </div></header>
+
+  <div class="dg-article-shell">
+    <aside class="dg-sidebar">
+      <span class="dg-sidebar__label">In this guide</span><nav aria-label="Guide pages"><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li><li><a href="trigedit.html" aria-current="location">TRIGEDIT</a></li><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li><li><a href="architecture.html">Architecture</a></li><li><a href="dollhouse.html">Dollhouse</a></li></ul></nav>
+      <div class="dg-sidebar__section"><span class="dg-sidebar__label">On this page</span><nav data-dg-toc aria-label="Page sections"><ul><li><a href="#open">Open the editor</a></li><li><a href="#menu">Main menu</a></li><li><a href="#configure">Configure fields</a></li><li><a href="#commands-editor">Commands editor</a></li><li><a href="#attach">Attach in OLC</a></li><li><a href="#save">Save and reload</a></li><li><a href="#disk">Disk format</a></li></ul></nav></div>
+    </aside>
+
+    <main class="dg-article" id="main-content">
+      <nav class="dg-breadcrumb" aria-label="Breadcrumb"><a href="../index.html">Docs</a><span>/</span><a href="index.html">DG Scripts</a><span>/</span><span>TRIGEDIT</span></nav>
+      <h1>TRIGEDIT</h1>
+      <p class="dg-article__lede">TRIGEDIT edits trigger prototypes. MEDIT, OEDIT, and REDIT attach those prototypes to mobiles, objects, and rooms.</p>
+      <div class="dg-provenance"><strong>Source of truth</strong><span>Editor, save path, and shared scripts menu: <code>src/dgscript/dg_olc.c</code>. Oasis routing: <code>src/olc/oasis.c</code>.</span></div>
+
+      <section class="dg-article-section" id="open">
+        <h2>Open or create a trigger</h2>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Builder command</span><button class="dg-copy" type="button">Copy</button></div><pre><code>trigedit &lt;vnum&gt;</code></pre></div>
+        <p>The argument must begin with a number. If the VNUM exists, the editor opens a copy of that prototype; otherwise it initializes a new trigger. The VNUM must belong to a real zone, and non-implementors must be assigned permission for that zone.</p>
+        <ul class="dg-checklist">
+          <li>You must be a connected player character in normal play state; switched or forced NPC editing is rejected.</li>
+          <li>Only one descriptor can edit a given trigger VNUM at a time.</li>
+          <li>Use a VNUM inside your assigned zone and confirm it is not already allocated with <code>tstat</code> or <code>tlist</code>.</li>
+        </ul>
+      </section>
+
+      <section class="dg-article-section" id="menu">
+        <h2>The main menu</h2>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Rendered by trigedit_disp_menu()</span></div><pre><code>Trigger Editor [&lt;vnum&gt;]
+
+1) Name         : &lt;name&gt;
+2) Intended for : Objects | Rooms | Mobiles
+3) Trigger types: &lt;selected flags&gt;
+4) Numeric Arg  : &lt;number&gt;
+5) Arguments    : &lt;text&gt;
+6) Commands:
+&lt;script body&gt;
+W) Copy Trigger
+Q) Quit
+Enter Choice :</code></pre></div>
+        <div class="dg-table-wrap"><table class="dg-table"><thead><tr><th>Choice</th><th>What it changes</th><th>Builder decision</th></tr></thead><tbody>
+          <tr><td>1 Name</td><td>Prototype name shown by OLC, lists, and stats.</td><td>Include location or purpose, not only the event name.</td></tr>
+          <tr><td>2 Intended for</td><td>Sets the attach type and selects the owner-specific type list.</td><td>Choose before trigger types.</td></tr>
+          <tr><td>3 Trigger types</td><td>Toggles one or more flags from the current owner list.</td><td>Combine only compatible flags.</td></tr>
+          <tr><td>4 Numeric Arg</td><td>Stores one integer, clamped by TRIGEDIT to <code>0</code>-<code>100</code>, and interpreted by the selected hook.</td><td>Chance, hour, mask, threshold, or mode.</td></tr>
+          <tr><td>5 Arguments</td><td>Stores event match text.</td><td>Mostly Command, Speech, and Act triggers.</td></tr>
+          <tr><td>6 Commands</td><td>Opens the multiline command editor.</td><td>Write one command or control line per line.</td></tr>
+          <tr><td>W Copy Trigger</td><td>Loads another trigger as the working copy.</td><td>Review owner, flags, and embedded VNUMs after copying.</td></tr>
+          <tr><td>Q Quit</td><td>Prompts to save when the working copy changed.</td><td>Save only after rechecking all shared fields.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="dg-article-section" id="configure">
+        <h2>Configure owner, types, and arguments</h2>
+        <p>Changing <strong>Intended for</strong> changes the list presented by choice 3. The type selector displays a fixed flag table, including entries marked UNUSED. Do not select an UNUSED flag simply because it is displayed.</p>
+        <div class="dg-callout"><h3>Catch attachment mismatches before runtime</h3><p>The attached-triggers OLC menu labels a mismatched intended owner, and <code>wtool validate</code> reports the bad reference. The driver contains an additional type-versus-flag diagnostic abort only in builds compiled with <code>SCRIPT_DEBUG</code>; normal builds must not rely on it. Fix the attachment rather than guarding around a mismatch in the body.</p></div>
+        <p>Before opening the command editor, write down the event contract:</p>
+        <ol class="dg-checklist">
+          <li>Which exact hook invokes this type?</li>
+          <li>What does Numeric Arg mean for this hook?</li>
+          <li>Does Arguments use prefix, substring, word, or phrase matching?</li>
+          <li>Which event variables are guaranteed?</li>
+          <li>Does the caller consume the return value?</li>
+        </ol>
+        <p>The complete answers are in the <a href="trigger-types.html">trigger type reference</a>.</p>
+      </section>
+
+      <section class="dg-article-section" id="commands-editor">
+        <h2>Edit the command list</h2>
+        <p>Choice 6 enters the multiline string editor. The stored command list is split into lines when the prototype is parsed. Indentation is optional to the driver but valuable for nested structure.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Builder-friendly formatting</span><button class="dg-copy" type="button">Copy</button></div><pre><code>* Trigger-local guard
+if %cmd.mudcommand% == examine && walls /= %arg%
+  set clue ash
+  %send% %actor% A single word glows in the plaster.
+else
+  return 0
+end</code></pre></div>
+        <ul class="dg-checklist">
+          <li>Pair every <code>if</code> with <code>end</code>.</li>
+          <li>Pair every <code>while</code> or <code>switch</code> with <code>done</code>.</li>
+          <li>Use <code>*</code> as the first non-space character for comments.</li>
+          <li>Keep command-trigger guards at the top and return false on irrelevant input.</li>
+          <li>Use owner-neutral pseudo-commands only when their mapped syntax is valid for this owner.</li>
+        </ul>
+      </section>
+
+      <section class="dg-article-section" id="attach">
+        <h2>Attach the prototype in MEDIT, OEDIT, or REDIT</h2>
+        <p>Open the owning entity in the appropriate OLC editor and choose <code>S</code> for its scripts menu:</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Shared attached-triggers menu</span></div><pre><code>Triggers Attached:
+  1) [&lt;vnum&gt;] &lt;trigger name&gt;
+
+N) Attach trigger
+X) Detach trigger
+Q) Quit</code></pre></div>
+        <p>Choose <code>N</code>, then enter either a VNUM or <code>position, vnum</code>, such as <code>1, 11868</code>. A VNUM by itself appends the trigger. The menu warns when the prototype's intended owner does not match the edited entity.</p>
+        <p>Choose <code>X</code> and select the numbered attachment entry to remove it. Save the parent MEDIT, OEDIT, or REDIT session after leaving the scripts menu.</p>
+        <div class="dg-callout dg-callout--info"><h3>Prototype order matters</h3><p>Hooks walk the attached trigger list. Put narrow interceptors before broader command triggers when both could handle the same event, and document intentional ordering.</p></div>
+      </section>
+
+      <section class="dg-article-section" id="save">
+        <h2>Save, reload, and prove the edit</h2>
+        <p>TRIGEDIT saves the trigger prototype and writes its zone trigger file. When an existing prototype is saved, matching live trigger instances receive the new body and fields; their waits are canceled, locals are cleared, and depth is reset. The owner editor saves the attachment list separately, and TRIGEDIT does not rebuild each owner's attachment set, aggregate event flags, owner globals, or broader entity state. Test changed attachment or event behavior with a fresh mobile or object instance.</p>
+        <ul class="dg-checklist">
+          <li>Quit TRIGEDIT and answer yes to save the prototype.</li>
+          <li>Attach it through the correct owner editor and save that editor.</li>
+          <li>Use <code>tstat &lt;vnum&gt;</code> to confirm the stored fields.</li>
+          <li>Reload the mobile or object, or revisit/reset the room as appropriate.</li>
+          <li>Exercise positive, negative, repeated, and interrupted paths.</li>
+          <li>Run zone validation and check the game log.</li>
+        </ul>
+        <p>See <a href="testing.html">Testing and debugging</a> for the full sequence.</p>
+      </section>
+
+      <section class="dg-article-section" id="disk">
+        <h2>What OLC writes to disk</h2>
+        <p>Use OLC for normal editing. The disk format is useful for review and recovery, but the ASCII type flags are positional and owner-specific.</p>
+        <div class="dg-code"><div class="dg-code__bar"><span class="dg-code__source">Trigger record shape in lib/world/trg/&lt;zone&gt;.trg</span></div><pre><code>#&lt;vnum&gt;
+&lt;name&gt;~
+&lt;attach-type&gt; &lt;ASCII type flags&gt; &lt;numeric-arg&gt;
+&lt;arguments&gt;~
+&lt;command body&gt;~
+$~</code></pre></div>
+        <p>Attach types are <code>0</code> mobile, <code>1</code> object, and <code>2</code> room. Mobile, object, and room prototype records store each permanent attachment on a line shaped <code>T &lt;trigger-vnum&gt;</code>.</p>
+        <div class="dg-callout dg-callout--dark"><h3>Do not hand-invent flag strings</h3><p>TRIGEDIT and the source arrays own that encoding. Hand editing can silently shift a trigger to a different event when an ASCII flag position is misunderstood.</p></div>
+      </section>
+
+      <div class="dg-related"><a href="trigger-types.html"><strong>Trigger types</strong><span>Configure Numeric Arg correctly.</span></a><a href="staff-commands.html"><strong>Staff commands</strong><span>Inspect and attach runtime instances.</span></a><a href="testing.html"><strong>Testing</strong><span>Verify saved behavior and references.</span></a></div>
+      <nav class="dg-article-nav" aria-label="Article navigation"><a href="variables.html"><small>Previous</small><strong>Variables</strong></a><a href="staff-commands.html"><small>Next</small><strong>Staff commands</strong></a></nav>
+    </main>
+  </div>
+  <footer class="dg-site-footer"><div class="dg-container"><div class="dg-footer-grid"><div><h2>DG Scripts</h2><p class="dg-footer-note">Code-backed builder documentation for LuminariMUD.</p></div><div><h3>Learn</h3><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="trigedit.html">TRIGEDIT</a></li></ul></div><div><h3>Reference</h3><ul><li><a href="trigger-types.html">Trigger types</a></li><li><a href="commands.html">Commands</a></li><li><a href="variables.html">Variables</a></li></ul></div><div><h3>Operate</h3><ul><li><a href="staff-commands.html">Staff commands</a></li><li><a href="testing.html">Testing</a></li></ul></div></div><div class="dg-footer-bottom">TRIGEDIT behavior traced to src/dgscript/dg_olc.c.</div></div></footer>
+</body>
+</html>
