@@ -1,0 +1,5 @@
+* Human-readable comment
+alpha 100
+split 200,201
+companion 300
+*disabled 400

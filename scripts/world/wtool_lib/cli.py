@@ -32,6 +32,7 @@ from .lookup import (
 )
 from .models import JSON_SCHEMA_VERSION, TOOL_VERSION
 from .reporting import exit_status, render_human, render_json
+from .rol_inventory import build_rol_inventory, render_rol_inventory_human
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
 
@@ -39,10 +40,14 @@ def _default_world_root() -> Path:
   return default_repo_root() / "lib/world"
 
 
+def _default_rol_source_root() -> Path:
+  return default_repo_root() / "EXAMPLE/RealmsOfLuminari"
+
+
 def _parser() -> argparse.ArgumentParser:
   parser = argparse.ArgumentParser(
       prog="wtool",
-      description="Read-only validation and lookup tools for Luminari world data.",
+      description="Read-only validation, lookup, and source inventory tools for world data.",
   )
   parser.add_argument("--version", action="version", version=f"wtool {TOOL_VERSION}")
   parser.add_argument("--world-root", type=Path, default=_default_world_root())
@@ -102,6 +107,12 @@ def _parser() -> argparse.ArgumentParser:
 
   docs = commands.add_parser("docs", help="check world-building documentation drift")
   docs.add_argument("--check", action="store_true", required=True)
+
+  rol_inventory = commands.add_parser(
+      "rol-inventory",
+      help="inventory Realms of Luminari source manifests and data files",
+  )
+  rol_inventory.add_argument("--source-root", type=Path, default=_default_rol_source_root())
   return parser
 
 
@@ -330,6 +341,18 @@ def _run_docs(args: argparse.Namespace) -> int:
   return exit_status(result, ignored_codes=ignored_codes)
 
 
+def _run_rol_inventory(args: argparse.Namespace) -> int:
+  source_root = args.source_root.resolve()
+  if not source_root.is_dir():
+    raise ConfigError(f"requested RoL source root is inaccessible: {source_root}")
+  inventory = build_rol_inventory(source_root, default_repo_root())
+  if args.json_output:
+    _print_json(inventory)
+  else:
+    sys.stdout.write(render_rol_inventory_human(inventory))
+  return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -346,6 +369,8 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_refs(args)
     if args.command == "docs":
       return _run_docs(args)
+    if args.command == "rol-inventory":
+      return _run_rol_inventory(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

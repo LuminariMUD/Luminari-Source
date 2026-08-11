@@ -462,6 +462,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/parsing.py \
 	scripts/world/wtool_lib/quests.py \
 	scripts/world/wtool_lib/reporting.py \
+	scripts/world/wtool_lib/rol_inventory.py \
 	scripts/world/wtool_lib/rooms.py \
 	scripts/world/wtool_lib/semantics.py \
 	scripts/world/wtool_lib/shops.py \
@@ -482,6 +483,7 @@ world_tool_sources = \
 	scripts/world/tests/test_objects.py \
 	scripts/world/tests/test_quests.py \
 	scripts/world/tests/test_reporting.py \
+	scripts/world/tests/test_rol_inventory.py \
 	scripts/world/tests/test_rooms.py \
 	scripts/world/tests/test_semantics.py \
 	scripts/world/tests/test_shops.py \
@@ -489,6 +491,34 @@ world_tool_sources = \
 	scripts/world/tests/test_triggers.py \
 	scripts/world/tests/test_wrapper.py \
 	scripts/world/tests/test_zones.py \
+	scripts/world/tests/fixtures/rol_inventory/malformed/areas/AREA \
+	scripts/world/tests/fixtures/rol_inventory/malformed/areas/AREA.mobobj \
+	scripts/world/tests/fixtures/rol_inventory/malformed/areas/QUEST \
+	scripts/world/tests/fixtures/rol_inventory/malformed/areas/SHOP \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/AREA \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/AREA.mobobj \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/QUEST \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/SHOP \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/mob/alpha.mob \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/mob/disabled.mob \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/mob/orphan.mob \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/alpha.obj \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/companion.obj \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/disabled.obj \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/obj/orphan.obj \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/qst/alpha.qst \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/qst/companion.qst \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/qst/disabled.qst \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/shp/alpha.shp \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/soc/alpha.soc \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/wld/alpha.wld \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/wld/disabled.wld \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/wld/orphan.wld \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/wld/split.wld \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/zon/alpha.zon \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/zon/disabled.zon \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/zon/orphan.zon \
+	scripts/world/tests/fixtures/rol_inventory/valid/areas/zon/split.zon \
 	scripts/world/tests/fixtures/phase1/valid/100.zon \
 	scripts/world/tests/fixtures/phase1/valid/100.wld \
 	scripts/world/tests/fixtures/phase1/broken/diagonal.wld \
