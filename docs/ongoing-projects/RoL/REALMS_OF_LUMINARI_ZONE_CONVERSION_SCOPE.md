@@ -454,7 +454,7 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 0 | Development baseline, source aggregate reconciliation, and diagnostics | 1-2 |
+| 0 | Remaining typed active dependency closure | concurrent with Phase 1 |
 | 1 | Source grammar, target lineage, typed graph, action/capability ledgers | 6-9 |
 | 2 | Parsers, IR, reconciliation, identity, bundles, and validation | 5-7 |
 | 3 | Walking skeleton: reuse, idempotency, and no-clobber behavior | 2-4 |
@@ -537,9 +537,8 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Begin with Phase 0: inventory the writable development baseline, reconcile the
-source-list inventory against source aggregates, capture diagnostics, reserve candidate
-ranges, and verify a small prior-lineage seed. Phase 1 completes the typed active/target
-dependency closure. Then prove one walking-skeleton package and run the 3-5 package
-pilot. Its measured reuse, ambiguity, exception, and behavior-gap rates produce the
-first evidence-based forecast without another decision round.
+Begin Phase 1 grammar, typed-reference, binding, and lineage discovery, completing the
+remaining Phase 0 dependency closure from the same evidence. Then establish the
+deterministic planner and prove one walking-skeleton package. The later 3-5 package
+pilot begins only in Phase 4 and produces the first evidence-based forecast without
+another decision round.

@@ -533,15 +533,11 @@ below are planning envelopes, not delivery promises. Phase 4 must reforecast the
 remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
 import estimate is not credible enough to sum into a project total.
 
-### Phase 0: Development baseline and source reconciliation (1-2 sessions)
+### Phase 0: Active dependency closure (remaining)
 
-1. Inventory the writable development world, revision, indexes, hashes, and baseline
-   diagnostics.
-2. Reconcile the source-list inventory against the assembled source aggregates,
-   record its source revision, and resolve the active dependency closure. Exclude
-   non-working content once, without deeper conversion analysis.
-3. Reserve candidate VNUM ranges and version the fixed behavior, staging, bundle, and
-   apply rules.
+1. Resolve the active source/target dependency closure through the typed grammar and
+   binding discovery performed in Phase 1. Exclude non-working content once, without
+   deeper conversion analysis.
 
 Exit gate: another operator can reproduce the source and target inventory evidence,
 active dependency closure, exclusions, and every locked policy without asking for

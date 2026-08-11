@@ -3,88 +3,58 @@
 - Updated: 2026-08-11
 - Environment: development
 - Branch: `master`
-- Current task: deterministic `wtool rol-inventory` source inventory
+- Current task: Phase 1 grammar, typed dependency, binding, and lineage discovery
+- Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 
-## Locked inventory contract
+## Current committed checkpoint
 
-The command reads the RoL authoring root without modifying it. It follows the
-selection behavior traced in `EXAMPLE/RealmsOfLuminari/src/build_areas.c`:
-
-- `AREA` selects `zon`, `wld`, and `soc` inputs.
-- `AREA.mobobj` selects `mob` and `obj` inputs.
-- `SHOP` selects `shp` inputs.
-- `QUEST` selects `qst` inputs.
-- Only a column-zero `*` makes a source manifest line a comment.
-- The first whitespace-delimited token is the basename; later columns are
-  annotations and order remains significant in the manifest record.
-- Missing selected companions are reported rather than invented.
-
-The JSON form contains hashes, manifest source lines, file and package
-classifications, zone header identities, and aggregate counts. The human form
-is a stable compact summary of the same inventory.
-
-## 2026-08-11 implementation checkpoint
-
-Core implementation checkpoint `56af654d` was pushed to `origin/master`.
-Documentation and verification checkpoint `380eb353` was also pushed to
-`origin/master`.
-
-Implemented:
-
-- Added `scripts/world/wtool_lib/rol_inventory.py` and the `rol-inventory`
-  command with `--source-root` plus the existing global `--json` switch.
-- Added active, disabled, unlisted, missing-companion, and multi-zone
-  classifications across all seven source kinds.
-- Added source-located manifest errors for blank active lines, unsafe or
-  non-ASCII basenames, overlong lines and names, and duplicate active entries.
-- Added deterministic fixture coverage and a local ignored-corpus acceptance
-  test.
-- Added the new module, test, and fixtures to both `Makefile.am` and
-  `CMakeLists.txt`.
-- Bumped the command version to 0.3.0.
-- Added permanent CLI, testing, documentation-index, utilities-index, and
-  changelog coverage. Updated both conversion plans without claiming that the
-  broader target inventory or grammar inventory is finished.
-
-Verified evidence:
+The Phase 0 evidence implementation is committed and pushed at `1619ccd8`.
+The authoritative local baseline run is:
 
 ```text
-Active zone scope: 252 files, 255 records
-Excluded zone files: 30 disabled, 2 unlisted
-Active basenames without .zon: 6
-Active multi-zone files: 2
-Included active companion-only files: 9
-Python suite: 178 tests passed
+Run ID: rol-phase0-02a84b2da28503c1
+Run directory: lib/rol-conversion/runs/phase0-1619ccd8
+Target revision: 1619ccd869934b8e0eeadd1effca91f3088e347c
+Source revision: 3f57e70c45327335187fd123c991388e8bab2661
+Policy: rol-conversion-policy-1
 ```
 
-The six missing-zone basenames are `foggy_woods2`, `god_items`,
-`northern_highroad2`, `northern_highroad3`, `quest_1`, and `quest_2`. The
-multi-zone inputs are `foggy_woods.zon` with records 900 and 901, and
-`northern_highroad.zon` with records 902, 903, and 904.
+The run directory is intentionally ignored because its 17 MB validation payload and
+world hashes describe builder-owned data. All six artifact hashes listed in
+`run-manifest.json` were independently rechecked after generation.
 
-Final verification evidence:
+## Current evidence state
 
-```text
-make test-world-tools: passed
-cmake --build build --target test-world-tools: passed
-Autotools/CMake world-tool source lists: identical, 114 paths each
-Documentation findings: 0 errors, 0 warnings, 0 info
-Repeated human output SHA-256: 00d88a81519b1606742a95d2088119f128b7121f16a7df1e69a4a734afb36cd8
-Repeated JSON output SHA-256: 39416e3fedf5b8794004b928748913cc6d2e35803726e000dd053626854c32bb
-Source tree before/after SHA-256: 40c671dcb0e5144ea00b1ca4db66e338b094aa617a647cbd1125f12d0f2f1d8b
-```
+- All seven source aggregates reproduce byte for byte from the active per-area files.
+- The target inventory has 3,738 files: 3,352 indexed, 386 orphaned, and no missing
+  normal-index entry.
+- Candidate entity range `2000000-2999999` and zone range `20000-29999` have no
+  typed world, VNUM-binding, or database collision. Fifty numeric database VNUM
+  columns were checked.
+- The target baseline has 41,468 pre-existing findings: 3,849 errors, 37,413 warnings,
+  and 206 info findings. Parse completeness is false and is preserved as evidence.
+- The source C aggregate builder drops unterminated tails in `bloodtusk.soc`,
+  `swift.obj`, and `derro.qst`; the reconciliation report records their hashes.
+- `make test-world-tools` and the CMake `test-world-tools` target pass all 183 tests.
+- Documentation validation is clean.
 
-The malformed fixture returned status 2, no standard output, and explicit
-diagnostics for unsafe `areas/AREA:2`, blank `areas/AREA:3`, and the non-column-zero
-asterisk on `areas/AREA:4`. ASCII, LF, Python compilation, and `git diff --check`
-checks passed.
+## Remaining Phase 0 exit-gate item
 
-## Next actions
+Resolve the active dependency closure from grammar-aware typed references and traced
+source/target bindings. This work is shared with Phase 1; disabled and unlisted content
+must not enter the record ledger unless an active target dependency is independently
+owned by the target world.
 
-The `rol-inventory` task is complete. The final committed-tree audit repeated
-`make test-world-tools`, confirmed an 883,711-byte JSON payload was byte-identical
-across two live-corpus runs, rechecked every locked count and identity, and confirmed
-local `HEAD` equaled `origin/master` at `380eb353` before this handoff-only update.
+## Immediate next actions
 
-Continue Phase 0 with the separate development-target inventory and baseline
-   diagnostics; do not expand `rol-inventory` into that later deliverable.
+1. Implement source-located typed parsers and normalized records for all seven active
+   RoL kinds, preserving every observed token and malformed edge case.
+2. Reconcile parser counts and build order against the exact active aggregates.
+3. Extract typed references and classify missing/excluded dependencies.
+4. Inventory target definitions plus code, configuration, database, and special-procedure
+   bindings by type.
+5. Seed lineage candidates without automatic overwrite decisions, then emit the
+   record-action and capability discovery ledgers.
+
+Do not begin Phase 4 pilot work. Phase 2 planning/bundle foundations and the single
+Phase 3 walking skeleton must be accepted first.
