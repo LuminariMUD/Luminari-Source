@@ -2,6 +2,27 @@
 
 ## [Unreleased] - August 11, 2026
 
+### Realms of Luminari grammar discovery and action planning
+
+#### Added
+
+- Added grammar-aware parsing for all seven active Realms of Luminari source
+  kinds, including compact quest syntax, source-loader defaults, typed references,
+  and explicit malformed-unit exclusions.
+- Added `wtool rol-discover` for hashed Phase 1 grammar, dependency-closure,
+  lineage-candidate, command, special-procedure, persistent-binding, capability,
+  and aggregate-oracle evidence.
+- Added `wtool rol-plan` for verified Phase 2 identity maps and complete
+  `KEEP/PATCH/ADD/MERGE/EXCLUDE` record-action ledgers without live target writes.
+- Added deterministic schemas, canonical ASCII JSON/JSONL output, collision hard
+  failures, ambiguity-preserving `ADD` behavior, fixtures, and synchronized build
+  manifests.
+
+#### Changed
+
+- Bumped `wtool` to 0.5.0 while retaining schema version 1 for existing
+  validation and lookup payloads and using dedicated conversion schema versions.
+
 ### Realms of Luminari Phase 0 baseline
 
 #### Added

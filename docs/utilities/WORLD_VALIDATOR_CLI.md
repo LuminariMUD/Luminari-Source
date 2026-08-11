@@ -1,6 +1,6 @@
 # World Validator, Lookup, and RoL Reconciliation CLI
 
-`wtool` is the standalone validator, lookup, source-inventory, and RoL baseline utility for
+`wtool` is the standalone validator, lookup, source-inventory, and RoL reconciliation utility for
 LuminariMUD flat world data. It parses the same eight formats used by the server
 without starting the game, connecting to MariaDB, or compiling `circle`:
 
@@ -14,7 +14,8 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - high-level quests (`.hlq`)
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. `rol-baseline` writes a new, explicit evidence directory but
+are read-only. `rol-baseline`, `rol-discover`, and `rol-plan` write new, explicit
+evidence directories but
 never writes the source corpus or target world. The maintainer operation
 `constants sync --write` replaces the checked-in derived constants manifest.
 
@@ -27,7 +28,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.4.0`.
+The current release reports `wtool 0.5.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -72,6 +73,14 @@ aggregate builder byte for byte, checks typed candidate ranges in world, code,
 and database stores, captures full target diagnostics, and writes a unique
 evidence bundle. Its versioned policy is
 `scripts/world/rol_conversion_policy.json`.
+
+The Phase 1 discovery path parses all seven active source grammars, resolves
+typed dependencies, extracts command and special-procedure bindings, inventories
+persistent VNUM values, generates non-destructive lineage candidates, and records
+an owned capability disposition for every observed construct. The Phase 2 planner
+verifies those artifacts before assigning every active record a deterministic
+`KEEP`, `PATCH`, `ADD`, `MERGE`, or `EXCLUDE` action. Neither command writes
+`lib/world/`.
 
 `scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
 extractor reads explicit C tables and bounded define blocks instead of broad
@@ -187,6 +196,47 @@ The aggregate comparison mirrors the source C reader, including its behavior
 of dropping an unterminated final fragment. It records the path, size, and
 hash of each such fragment rather than silently treating a naive
 concatenation as authoritative.
+
+## Realms of Luminari Phase 1 Discovery
+
+Generate grammar, closure, binding, lineage, and capability evidence:
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-discover \
+  --source-root EXAMPLE/RealmsOfLuminari \
+  --output-dir lib/rol-conversion/runs/phase1-YYYYMMDD \
+  --database-config lib/mysql_config
+```
+
+The unique output contains source and target inventories, the grammar summary,
+all normalized source records, one lineage-candidate row per active record, one
+resolution row per typed reference, source/target special bindings, persistent
+VNUM bindings, the capability matrix, byte and semantic aggregate reconciliation,
+the locked policy, and a manifest hashing every artifact. Credentials are read
+only by the database client and never serialized.
+
+Unknown syntax is an operational error. Known source-loader losses remain explicit
+warnings or smallest-unit exclusions. Aggregate semantic differences are accepted
+only when they are bounded by a recorded unterminated tail from the exact byte
+reconciliation.
+
+## Realms of Luminari Phase 2 Planning
+
+Build a complete, non-writing action and identity plan from a verified discovery run:
+
+```sh
+python3 scripts/world/wtool.py rol-plan \
+  --discovery-dir lib/rol-conversion/runs/phase1-YYYYMMDD \
+  --output-dir lib/rol-conversion/runs/phase2-YYYYMMDD
+```
+
+The planner verifies every input hash and discovery acceptance gate. It emits the
+record-action ledger, canonical identity map, capability rows, apply-oriented change
+plan, schemas, summary, and run manifest. A documented seed plus broad package-level
+formula and exact-identity evidence may confirm non-destructive `KEEP` lineage.
+Ambiguous candidates are never patched: the planner preserves them and assigns a
+collision-checked reserved `ADD` identity. Duplicate source identities become
+deterministic `MERGE` actions, and known malformed records become `EXCLUDE` actions.
 
 ## Validation Modes
 

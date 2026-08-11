@@ -17,7 +17,7 @@ from .source import SourceFile, SourceLine
 ROL_SOURCE_SCHEMA_VERSION = 1
 _HEADER = re.compile(br"#(\d+)\s*$")
 _INTEGER = re.compile(rb"[+-]?\d+")
-_COLOR = re.compile(r"&\+[A-Za-z]|&[Nn]")
+_COLOR = re.compile(r"&\+[A-Za-z]|&[Nn]|@[A-Za-z]")
 _SHOP_HEADER = re.compile(br"SHOP\s*:\s*([+-]?\d+)", re.IGNORECASE)
 _SOC_HEADER = re.compile(
     br"MOB\s*:\s*([+-]?\d+)\s+(PERIODIC|TRIGGER|TIMED|LIST|PATH)\b",
@@ -964,6 +964,22 @@ _PARSERS = {
 }
 
 
+def parse_rol_source_file(
+    path: Path,
+    display_path: str,
+    kind: str,
+    basename: str,
+    corpus: RolSourceCorpus | None = None,
+) -> tuple[list[RolRecord], RolSourceCorpus]:
+  """Parse one physical or assembled source file with the selected grammar."""
+
+  if kind not in _PARSERS:
+    raise ValueError(f"unknown RoL source kind {kind!r}")
+  selected_corpus = corpus if corpus is not None else RolSourceCorpus()
+  source = SourceFile.from_path(path, display_path)
+  return _PARSERS[kind](source, basename, selected_corpus), selected_corpus
+
+
 def parse_active_rol_corpus(source_root: Path, repo_root: Path) -> RolSourceCorpus:
   """Parse every active physical source input into normalized typed records."""
 
@@ -976,8 +992,13 @@ def parse_active_rol_corpus(source_root: Path, repo_root: Path) -> RolSourceCorp
   )
   for file_record in active_files:
     kind = file_record["kind"]
-    source = SourceFile.from_path(source_root / file_record["path"], file_record["path"])
-    records = _PARSERS[kind](source, file_record["basename"], corpus)
+    records, _ = parse_rol_source_file(
+        source_root / file_record["path"],
+        file_record["path"],
+        kind,
+        file_record["basename"],
+        corpus,
+    )
     corpus.records.extend(records)
   return corpus
 

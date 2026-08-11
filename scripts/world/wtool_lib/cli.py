@@ -33,7 +33,9 @@ from .lookup import (
 from .models import JSON_SCHEMA_VERSION, TOOL_VERSION
 from .reporting import exit_status, render_human, render_json
 from .rol_baseline import render_rol_baseline_human, write_baseline_bundle
+from .rol_discovery import render_rol_discovery_human, write_discovery_bundle
 from .rol_inventory import build_rol_inventory, render_rol_inventory_human
+from .rol_planner import render_rol_plan_human, write_plan_bundle
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
 
@@ -123,6 +125,23 @@ def _parser() -> argparse.ArgumentParser:
   rol_baseline.add_argument("--output-dir", type=Path, required=True)
   rol_baseline.add_argument("--database-config", type=Path)
   rol_baseline.add_argument("--created-at")
+
+  rol_discover = commands.add_parser(
+      "rol-discover",
+      help="write Realms of Luminari Phase 1 grammar and reconciliation evidence",
+  )
+  rol_discover.add_argument("--source-root", type=Path, default=_default_rol_source_root())
+  rol_discover.add_argument("--output-dir", type=Path, required=True)
+  rol_discover.add_argument("--database-config", type=Path)
+  rol_discover.add_argument("--created-at")
+
+  rol_plan = commands.add_parser(
+      "rol-plan",
+      help="write a deterministic Realms of Luminari Phase 2 record-action plan",
+  )
+  rol_plan.add_argument("--discovery-dir", type=Path, required=True)
+  rol_plan.add_argument("--output-dir", type=Path, required=True)
+  rol_plan.add_argument("--created-at")
   return parser
 
 
@@ -388,6 +407,35 @@ def _run_rol_baseline(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_discover(args: argparse.Namespace) -> int:
+  summary = write_discovery_bundle(
+      args.source_root,
+      args.world_root,
+      args.output_dir,
+      default_repo_root(),
+      database_config=args.database_config,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_discovery_human(summary))
+  return 0
+
+
+def _run_rol_plan(args: argparse.Namespace) -> int:
+  summary = write_plan_bundle(
+      args.discovery_dir,
+      args.output_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_plan_human(summary))
+  return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -408,6 +456,10 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_inventory(args)
     if args.command == "rol-baseline":
       return _run_rol_baseline(args)
+    if args.command == "rol-discover":
+      return _run_rol_discover(args)
+    if args.command == "rol-plan":
+      return _run_rol_plan(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

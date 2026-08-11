@@ -39,6 +39,7 @@ def parse_fixture(kind: str, data: bytes):
 class RolSourceTests(unittest.TestCase):
   def test_identity_normalization_strips_legacy_color_and_punctuation(self) -> None:
     self.assertEqual("the old trail", normalize_identity("&+LThe Old-Trail&N\r\n"))
+    self.assertEqual("jotunheim", normalize_identity("@WJotunheim@n"))
 
   def test_room_parser_types_exit_key_and_destination(self) -> None:
     records, corpus = parse_fixture(
