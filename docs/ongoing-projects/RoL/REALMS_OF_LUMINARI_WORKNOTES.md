@@ -3,7 +3,7 @@
 - Updated: 2026-08-11
 - Environment: development
 - Branch: `master`
-- Current task: Remaining Phase 4 capability, bundling, validation, and reforecast work
+- Current task: Phase 4 SOC, special bindings, bundling, validation, and reforecast work
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 
 ## Current committed checkpoint
@@ -21,6 +21,8 @@ Phase 4 selection checkpoint commit: a0b54009
 Phase 4 payload preservation commit: 0e869fda
 Phase 4 record transform commit: 3a6b7602
 Phase 4 reset compatibility commit: 72c2ef24
+Phase 4 shop conversion commit: 10a30cf2
+Phase 4 quest conversion commit: d5609b1c
 ```
 
 The authoritative ignored runs are:
@@ -58,6 +60,9 @@ Policy:  rol-conversion-policy-1
 - Pilot room/mobile/object/zone emitters and reset compatibility are implemented. The
   focused conversion/parser suite passes 44 tests; the production CuTest suite passes
   598 tests; and `make install` leaves no root-level `circle` artifact.
+- All 15 pilot shops and 57 non-reused pilot quest hosts emit parser-clean target
+  records. Native shop roaming and HLQ exact-coin/duplicate-item compatibility are
+  tested; the production CuTest suite now passes 600 tests.
 - The source reset oracle no longer treats numeric comment text as reset arguments.
   The corrected Phase 1, Phase 2, and selection runs retain every headline count and
   coverage check; all 29 listed artifacts pass independent hash verification.
@@ -70,8 +75,8 @@ It covers all five SOC modes, all five special SOC action codes, all three custo
 settlement, and a compact conventional-reset oracle. The corrected run
 `rol-phase4-select-6f7ae16e5df665ec` is the current numeric evidence.
 
-1. Implement only the shop, quest, SOC, and special-procedure capabilities that block
-   these five packages.
+1. Implement only the SOC and special-procedure capabilities that block these five
+   packages.
 2. Generate and stage deterministic pilot bundles with explicit record actions.
 3. Run source-oracle, structural, reset-observation, walkthrough, reference, and
    record-action evidence for each pilot.

@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Phase 4 shops, quests, SOC, special bindings, and pilot validation in progress
+- Status: Phase 4 SOC, special bindings, and pilot validation in progress
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -460,12 +460,12 @@ calendar time.
 | 7 | Action-based batches, zone QA, and validation bundles | 20-60 provisional |
 | 8 | Isolated integration, development apply, and documentation | 5-8 |
 
-Completed Phases 0-3, the Phase 4 package selection, and the pilot record/reset
-capability tranche have been removed from this active scope; their delivery and
-acceptance evidence is in [RoL-Changelog.md](RoL-Changelog.md). The remaining Phase 4
-work is limited to pilot-blocking shops, quests, SOC behavior, special bindings,
-deterministic bundles, staged validation, walkthroughs, and reforecasting. It must not
-expand into broad Phase 5+ implementation.
+Completed Phases 0-3, the Phase 4 package selection, and the pilot record/reset, shop,
+and quest capability tranches have been removed from this active scope; their delivery
+and acceptance evidence is in [RoL-Changelog.md](RoL-Changelog.md). The remaining
+Phase 4 work is limited to pilot-blocking SOC behavior, special bindings, deterministic
+bundles, staged validation, walkthroughs, and reforecasting. It must not expand into
+broad Phase 5+ implementation.
 
 Phase 4 must replace provisional later-phase ranges with a forecast based on measured
 target reuse, ambiguous matches, runtime gaps, and review throughput.
@@ -531,7 +531,7 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 4 with the remaining shop, quest, SOC, and special-binding capabilities
-for the locked five-package pilot. Generate deterministic no-clobber bundles, stage and
-validate them, collect reset and walkthrough evidence, and use the measured results to
-produce the first evidence-based architecture and effort reforecast.
+Continue Phase 4 with the remaining SOC and special-binding capabilities for the locked
+five-package pilot. Generate deterministic no-clobber bundles, stage and validate them,
+collect reset and walkthrough evidence, and use the measured results to produce the
+first evidence-based architecture and effort reforecast.

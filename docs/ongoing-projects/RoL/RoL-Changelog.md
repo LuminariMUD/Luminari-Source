@@ -5,6 +5,48 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-11 - Phase 4 pilot shop and quest capabilities
+
+Status: Completed sub-milestone; Phase 4 implementation in progress
+
+### Delivered
+
+- Added semantic conversion for all 15 selected source shops: 14 Hulburg records and
+  one Muspel record. Products, keepers, rooms, buy types, prices, messages, hours, and
+  source killability/roaming behavior emit as parser-clean native target shops.
+- Added a native roaming-shop flag with runtime room-access, OLC persistence, format
+  documentation, and production tests. Source-only shop AI fields remain explicit
+  conversion diagnostics rather than silent losses.
+- Added source `.qst` to canonical target HLQ compilation for all 57 selected
+  non-reused quest hosts. Ask and completion entries, item/coin inputs, item/coin
+  rewards, room object/mobile loads, disappearance, list-prepend ordering, and the
+  mandatory `!` approval marker are preserved.
+- Adapted native HLQ completion to consume the exact configured coin amount, accept
+  coin values through `MAX_GOLD`, require every repeated copy of a duplicate item
+  input, and extract consumed items as the source completion contract does.
+- Preserved the text of source disappearance messages by folding it into the target
+  completion reply before executing the native disappear output. Unsupported broader
+  quest directions remain explicit smallest-direction exclusions and were not needed
+  by the locked pilot.
+- Removed the completed pilot shop and quest capability work from the active plan and
+  scope. SOC behavior, special bindings, deterministic bundling, staged validation,
+  walkthroughs, and reforecasting remain active.
+
+### Acceptance evidence
+
+```text
+Delivery commits: 10a30cf2, d5609b1c
+Selected shops emitted and parsed: 15 of 15
+Selected added quest hosts emitted and parsed: 57 of 57
+Quest entries emitted pre-approved: 100 percent
+Focused Python conversion/semantic tests: 23 passed
+Production CuTest suite after shops: 599 passed
+Production CuTest suite after quests: 600 passed
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+Live target writes: 0
+```
+
 ## 2026-08-11 - Phase 4 pilot record and reset capabilities
 
 Status: Completed sub-milestone; Phase 4 implementation in progress
