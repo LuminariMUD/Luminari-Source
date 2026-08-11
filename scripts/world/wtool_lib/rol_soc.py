@@ -639,6 +639,7 @@ def compile_soc_records(
     trigger_start: int,
     resolve: IdentityResolver,
     source_commands: dict[int, str],
+    trigger_vnums: Iterable[int] | None = None,
 ) -> SocCompilation:
   """Compile source SOC records into deterministic, attachable DG triggers."""
 
@@ -698,8 +699,15 @@ def compile_soc_records(
 
   work.sort(key=lambda item: (item[0], _MODE_ORDER[item[1]], item[2]))
   triggers: list[SocTrigger] = []
+  allocated_vnums = iter(trigger_vnums) if trigger_vnums is not None else None
   for offset, (host, kind, qualifier, payload) in enumerate(work):
-    vnum = trigger_start + offset
+    if allocated_vnums is None:
+      vnum = trigger_start + offset
+    else:
+      try:
+        vnum = next(allocated_vnums)
+      except StopIteration as error:
+        raise ValueError("SOC trigger VNUM allocator was exhausted") from error
     source_mobile = source_mobile_by_host[host]
     if kind == "ACTION":
       assert isinstance(payload, list)

@@ -1169,6 +1169,7 @@ mremember <target>               - Remember target for memory triggers
 mforget <target>                 - Forget target from memory
 mtransform <vnum>                - Transform into different mobile
 mzoneecho <room> <message>       - Send message to awake players in the room's zone
+mrolalert <target> <mob-vnum...> - Make loaded helper prototypes hunt a target
 mrolzoneecho <filter> <room> <message>
                                 - Send a converted RoL all/indoors/outdoors zone echo
 mrolwalkto <room>                - Move one route-aware step toward a room for converted RoL paths
@@ -1182,6 +1183,8 @@ indoor test intentionally uses `ROOM_INDOORS`, matching the legacy SOC data
 contract. `mrolwalkto` opens and relocks usable doors around one pathfinding
 step. These two bounded commands support compiler-generated Realms of Luminari
 SOC triggers; ordinary authored scripts should prefer the standard DG commands.
+`mrolalert` is likewise reserved for compiler-generated RoL alarm families; helper
+prototype VNUMs are supplied by generated scripts rather than embedded in the runtime.
 
 ### Object Commands (prefix: o)
 ```
@@ -1210,6 +1213,10 @@ omove <target> <room>            - Move object to room
 wasound <message>                - Send message to adjacent rooms
 wat <room> <command>             - Execute command at different room
 wdamage <target> <amount>        - Deal damage to target
+wroldamage all-pcs <count> <size>
+                                - Roll exact environmental damage for every PC in room
+wrolroomflag <room> <magic-darkness> <on|off>
+                                - Toggle converted temporary magical darkness
 wdoor <room> <dir> <flags>       - Modify door flags
 wecho <message>                  - Send message to room
 wgecho <message>                 - Send message to entire game world

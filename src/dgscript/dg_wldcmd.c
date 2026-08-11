@@ -617,6 +617,77 @@ WCMD(do_wdamage)
   script_damage(ch, dam);
 }
 
+/* Toggle the temporary room flag used by converted RoL environmental scripts. */
+WCMD(do_wrolroomflag)
+{
+  char state[MAX_INPUT_LENGTH] = {'\0'};
+  char target[MAX_INPUT_LENGTH] = {'\0'};
+  char flag[MAX_INPUT_LENGTH] = {'\0'};
+  room_data *rm;
+  room_rnum rnum;
+
+  argument = two_arguments_u(argument, target, flag);
+  one_argument(argument, state, sizeof(state));
+  if (!*target || !*flag || !*state || (rm = get_room(target)) == NULL)
+  {
+    wld_log(room, "wrolroomflag usage: <room> <magic-darkness> <on|off>");
+    return;
+  }
+  if (str_cmp(flag, "magic-darkness") && str_cmp(flag, "magical-darkness"))
+  {
+    wld_log(room, "wrolroomflag rejected unsupported flag '%s'", flag);
+    return;
+  }
+
+  rnum = real_room(rm->number);
+  if (rnum == NOWHERE)
+  {
+    wld_log(room, "wrolroomflag could not resolve room %s", target);
+    return;
+  }
+  if (!str_cmp(state, "on"))
+    SET_BIT_AR(ROOM_FLAGS(rnum), ROOM_MAGICDARK);
+  else if (!str_cmp(state, "off"))
+    REMOVE_BIT_AR(ROOM_FLAGS(rnum), ROOM_MAGICDARK);
+  else
+    wld_log(room, "wrolroomflag state must be on or off");
+}
+
+/* Apply exact dice damage to all PCs in the converted environmental room. */
+WCMD(do_wroldamage)
+{
+  struct char_data *next;
+  struct char_data *victim;
+  char count_argument[MAX_INPUT_LENGTH] = {'\0'};
+  char selector[MAX_INPUT_LENGTH] = {'\0'};
+  char size_argument[MAX_INPUT_LENGTH] = {'\0'};
+  int count;
+  int size;
+
+  argument = two_arguments_u(argument, selector, count_argument);
+  one_argument(argument, size_argument, sizeof(size_argument));
+  if (str_cmp(selector, "all-pcs") || !is_number(count_argument) || !is_number(size_argument))
+  {
+    wld_log(room, "wroldamage usage: all-pcs <dice-count> <dice-size>");
+    return;
+  }
+
+  count = atoi(count_argument);
+  size = atoi(size_argument);
+  if (count < 1 || count > 100 || size < 1 || size > 1000)
+  {
+    wld_log(room, "wroldamage rejected dice outside 1d1 through 100d1000");
+    return;
+  }
+
+  for (victim = room->people; victim != NULL; victim = next)
+  {
+    next = victim->next_in_room;
+    if (!IS_NPC(victim))
+      script_damage(victim, dice(count, size));
+  }
+}
+
 WCMD(do_wat)
 {
   room_rnum loc = NOWHERE;
@@ -716,6 +787,8 @@ const struct wld_command_info wld_cmd_info[] = {
     {"wzoneecho ", do_wzoneecho, 0},
     {"wgecho ", do_wgecho, 0},
     {"wdamage ", do_wdamage, 0},
+    {"wroldamage ", do_wroldamage, 0},
+    {"wrolroomflag ", do_wrolroomflag, 0},
     {"wat ", do_wat, 0},
     {"wmove ", do_wmove, 0},
     {"wlog ", do_wlog, 0},

@@ -505,12 +505,19 @@ def emit_shop(
   """Emit one modern target shop record without the file header or terminator."""
 
   diagnostics: list[str] = []
-  products = [
-      resolve("obj", int(value))
-      for directive in _directive_rows(record, "PO")
-      for value in directive.get("arguments", [])
-      if int(value) > 0
-  ]
+  products: list[int] = []
+  for directive in _directive_rows(record, "PO"):
+    for value in directive.get("arguments", []):
+      source_product = int(value)
+      if source_product <= 0:
+        continue
+      try:
+        products.append(resolve("obj", source_product))
+      except (KeyError, ValueError) as error:
+        diagnostics.append(
+            f"excluded unresolved shop product {source_product} at source line "
+            f"{directive['line']}: {error}"
+        )
   buy_types: list[int] = []
   for directive in _directive_rows(record, "BT"):
     for value in directive.get("arguments", []):
@@ -560,12 +567,19 @@ def emit_shop(
     shop_flags |= 1 << 5
 
   keeper = resolve("mob", record.vnum)
-  rooms = [
-      resolve("wld", int(value))
-      for directive in _directive_rows(record, "ROOM")
-      for value in directive.get("arguments", [])
-      if int(value) > 0
-  ]
+  rooms: list[int] = []
+  for directive in _directive_rows(record, "ROOM"):
+    for value in directive.get("arguments", []):
+      source_room = int(value)
+      if source_room <= 0:
+        continue
+      try:
+        rooms.append(resolve("wld", source_room))
+      except (KeyError, ValueError) as error:
+        diagnostics.append(
+            f"excluded unresolved shop room {source_room} at source line "
+            f"{directive['line']}: {error}"
+        )
   hour_rows = _directive_rows(record, "HOURS")
   intervals = _shop_open_intervals(str(hour_rows[-1].get("text", ""))) if hour_rows else []
   if not intervals:
@@ -620,7 +634,11 @@ def _quest_command(
   location = arguments[1] if len(arguments) > 1 else 0
 
   if token == "G" and subtype == "I":
-    return f"{direction} I {resolve('obj', value)} 0\n", None
+    try:
+      target = resolve("obj", value)
+    except (KeyError, ValueError) as error:
+      return None, f"excluded unresolved required item {value} at source line {line}: {error}"
+    return f"{direction} I {target} 0\n", None
   if token == "G" and subtype == "C":
     return f"{direction} C {value} 0\n", None
   if token == "R" and subtype == "I":
@@ -630,13 +648,23 @@ def _quest_command(
           f"excluded random item reward {value}-{location} at source line {line}; "
           "the target HLQ item command has no range contract",
       )
-    return f"{direction} I {resolve('obj', value)} 0\n", None
+    try:
+      target = resolve("obj", value)
+    except (KeyError, ValueError) as error:
+      return None, f"excluded unresolved item reward {value} at source line {line}: {error}"
+    return f"{direction} I {target} 0\n", None
   if token == "R" and subtype == "C":
     return f"{direction} C {value} 0\n", None
   if token == "R" and subtype in {"M", "O"}:
     target_kind = "mob" if subtype == "M" else "obj"
-    target_value = resolve(target_kind, value)
-    target_location = resolve("wld", location) if location > 0 else 0
+    try:
+      target_value = resolve(target_kind, value)
+      target_location = resolve("wld", location) if location > 0 else 0
+    except (KeyError, ValueError) as error:
+      return (
+          None,
+          f"excluded unresolved {subtype} reward at source line {line}: {error}",
+      )
     return f"{direction} {subtype} {target_value} {target_location}\n", None
   return (
       None,
@@ -690,6 +718,16 @@ def emit_hlquest(
 
     assert isinstance(payload, list)
     completion = payload[0]
+    inputs = [directive for directive in payload[1:] if directive["token"] == "G"]
+    compiled_inputs = [_quest_command(directive, resolve) for directive in inputs]
+    input_diagnostics = [item[1] for item in compiled_inputs if item[1] is not None]
+    if any(command is None for command, _ in compiled_inputs):
+      diagnostics.extend(str(item) for item in input_diagnostics)
+      diagnostics.append(
+          f"excluded completion at source line {completion['line']} because a required "
+          "input cannot be staged"
+      )
+      continue
     reply = str(completion.get("message", ""))
     disappear_messages = [
         str(directive.get("message", ""))
@@ -706,12 +744,10 @@ def emit_hlquest(
     diagnostics.extend(text_diagnostics)
     lines.extend(["Q!\n", reply_text])
 
-    inputs = [directive for directive in payload[1:] if directive["token"] == "G"]
     rewards = [directive for directive in payload[1:] if directive["token"] == "R"]
-    for directive in inputs:
-      command, command_diagnostic = _quest_command(directive, resolve)
-      if command is not None:
-        lines.append(command)
+    for command, command_diagnostic in compiled_inputs:
+      assert command is not None
+      lines.append(command)
       if command_diagnostic is not None:
         diagnostics.append(command_diagnostic)
     for directive in reversed(rewards):
@@ -742,6 +778,7 @@ def emit_room(
     destination_vnum: int,
     destination_zone: int,
     resolve: IdentityResolver,
+    attachments: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one modern target room record."""
 
@@ -777,8 +814,22 @@ def emit_room(
       diagnostics.extend(text_diagnostics)
       keyword, text_diagnostics = _tilde(directive.get("keyword"))
       diagnostics.extend(text_diagnostics)
-      key = resolve("obj", arguments[1]) if arguments[1] > 0 else -1
-      destination = resolve("wld", arguments[2]) if arguments[2] > 0 else -1
+      try:
+        key = resolve("obj", arguments[1]) if arguments[1] > 0 else -1
+      except (KeyError, ValueError) as error:
+        key = -1
+        diagnostics.append(
+            f"removed unresolved exit key {arguments[1]} at source line "
+            f"{directive['line']}: {error}"
+        )
+      try:
+        destination = resolve("wld", arguments[2]) if arguments[2] > 0 else -1
+      except (KeyError, ValueError) as error:
+        diagnostics.append(
+            f"excluded exit with unresolved destination {arguments[2]} at source line "
+            f"{directive['line']}: {error}"
+        )
+        continue
       lines.extend(
           [
               f"D{directive['direction']}\n",
@@ -802,6 +853,7 @@ def emit_room(
           f"legacy room extension {token} requires a bounded adapter at source line {directive['line']}"
       )
   lines.extend(["C\n", "0 0\n", "S\n"])
+  lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
   return TransformResult("".join(lines), diagnostics)
 
 
@@ -853,7 +905,12 @@ def _money_row(tokens: list[str]) -> tuple[int, int]:
   return money, int(tokens[1]) if len(tokens) > 1 else 0
 
 
-def emit_mobile(record: RolRecord, destination_vnum: int) -> TransformResult:
+def emit_mobile(
+    record: RolRecord,
+    destination_vnum: int,
+    special_proc: str | None = None,
+    attachments: tuple[int, ...] = (),
+) -> TransformResult:
   """Emit one enhanced target mobile record."""
 
   diagnostics: list[str] = []
@@ -874,6 +931,8 @@ def emit_mobile(record: RolRecord, destination_vnum: int) -> TransformResult:
       affect_mask2, 33
   )
   target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3}
+  if special_proc is not None:
+    target_actions.add(0)
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
   missing_actions = _unmapped(source_actions, MOB_ACTION_MAP)
   missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
@@ -904,7 +963,11 @@ def emit_mobile(record: RolRecord, destination_vnum: int) -> TransformResult:
   target_race = RACE_CODE_MAP.get(race_code, 0)
   if race_code not in RACE_CODE_MAP:
     diagnostics.append(f"unknown source race code {race_code!r}; used target human")
-  lines.extend([f"Class: {target_class}\n", f"Race: {target_race}\n", "E\n"])
+  lines.extend([f"Class: {target_class}\n", f"Race: {target_race}\n"])
+  if special_proc is not None:
+    lines.append(f"SpecProc: {special_proc}\n")
+  lines.append("E\n")
+  lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
   return TransformResult("".join(lines), diagnostics)
 
 
@@ -913,18 +976,45 @@ def _object_values(
     source_type: int,
     target_type: int,
     resolve: IdentityResolver,
+    diagnostics: list[str],
 ) -> list[int]:
   values = list(record.values.get("values", []))
   values = (values + [0] * 16)[:16]
   if source_type == 15 and values[2] > 0:
-    values[2] = resolve("obj", values[2])
+    source_key = values[2]
+    try:
+      values[2] = resolve("obj", source_key)
+    except (KeyError, ValueError) as error:
+      values[2] = -1
+      diagnostics.append(f"removed unresolved container key {source_key}: {error}")
   elif source_type == 25:
-    destination = resolve("wld", values[0]) if values[0] > 0 else 0
+    source_destination = values[0]
+    try:
+      destination = resolve("wld", source_destination) if source_destination > 0 else 0
+    except (KeyError, ValueError) as error:
+      destination = 0
+      diagnostics.append(
+          f"disabled portal with unresolved room {source_destination}: {error}"
+      )
     values = [0, destination, destination, 0] + [0] * 12
   elif source_type == 27 and values[1] > 0:
-    values[1] = resolve("mob", values[1])
+    source_mobile = values[1]
+    try:
+      values[1] = resolve("mob", source_mobile)
+    except (KeyError, ValueError) as error:
+      values[1] = 0
+      diagnostics.append(
+          f"disabled summon reference to unresolved mobile {source_mobile}: {error}"
+      )
   elif source_type == 29 and values[1] > 0:
-    values[1] = resolve("wld", values[1])
+    source_destination = values[1]
+    try:
+      values[1] = resolve("wld", source_destination)
+    except (KeyError, ValueError) as error:
+      values[1] = 0
+      diagnostics.append(
+          f"disabled vehicle destination to unresolved room {source_destination}: {error}"
+      )
   if target_type == 15 and values[2] == 65535:
     values[2] = -1
   return values
@@ -934,6 +1024,9 @@ def emit_object(
     record: RolRecord,
     destination_vnum: int,
     resolve: IdentityResolver,
+    special_proc: str | None = None,
+    attachments: tuple[int, ...] = (),
+    required_extra_bits: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one modern target object record."""
 
@@ -954,7 +1047,7 @@ def emit_object(
   wear_mask = source_flags[2] if len(source_flags) > 2 else 0
   source_extra = _source_mask_bits(extra_mask, 0)
   source_wear = _source_mask_bits(wear_mask, 0)
-  target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP)
+  target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
   target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
   missing_extra = _unmapped(source_extra, OBJECT_EXTRA_MAP)
   missing_wear = _unmapped(source_wear, OBJECT_WEAR_MAP)
@@ -977,7 +1070,7 @@ def emit_object(
       f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
       f"{_encoded(target_affects)} {_encoded(set())}\n"
   )
-  values = _object_values(record, source_type, target_type, resolve)
+  values = _object_values(record, source_type, target_type, resolve, diagnostics)
   lines.append(" ".join(str(value) for value in values) + "\n")
   economy = list(record.values.get("economy", []))
   economy = (economy + [0, 1, 0])[:5]
@@ -1016,6 +1109,9 @@ def emit_object(
       diagnostics.append(
           f"legacy object trap requires target trap classification at source line {directive['line']}"
       )
+  if special_proc is not None:
+    lines.extend(["Z\n", f"{special_proc}\n"])
+  lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
   return TransformResult("".join(lines), diagnostics)
 
 
@@ -1174,12 +1270,21 @@ def emit_zone(
   else:
     lines.append(f"{destination_bottom} {destination_top} {lifespan} {reset_mode}\n")
 
+  current_mobile = False
   for directive in record.directives:
     if directive["token"] not in {"M", "O", "P", "G", "E", "D", "R", "F", "X", "T"}:
+      continue
+    if directive["token"] in {"G", "E"} and not current_mobile:
+      diagnostics.append(
+          f"excluded {directive['token']} reset without a staged mobile host at "
+          f"source line {directive['line']}"
+      )
       continue
     emitted, reset_diagnostics = _emit_reset(directive, resolve)
     diagnostics.extend(reset_diagnostics)
     if emitted is not None:
       lines.append(emitted)
+    if directive["token"] == "M":
+      current_mobile = emitted is not None
   lines.extend(["S\n", "$\n"])
   return TransformResult("".join(lines), diagnostics)

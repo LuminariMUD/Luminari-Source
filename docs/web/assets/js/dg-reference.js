@@ -84,9 +84,9 @@
       mobile: [
         "masound", "mkill", "mjunk", "mdamage", "mdoor", "mecho", "mgecho", "mrecho",
         "mechoaround", "msend", "mload", "mpurge", "mgoto", "mat", "mteleport", "mforce",
-        "mhunt", "mremember", "mforget", "mtransform", "mzoneecho", "mrolzoneecho",
-        "mrolwalkto", "mfollow", "mlog", "mclanset", "mclanrank", "mclangold",
-        "mclanwar", "mclanally"
+        "mhunt", "mremember", "mforget", "mtransform", "mzoneecho", "mrolalert",
+        "mrolzoneecho", "mrolwalkto", "mfollow", "mlog", "mclanset", "mclanrank",
+        "mclangold", "mclanwar", "mclanally"
       ],
       object: [
         "oasound", "oat", "obind", "objbind", "odoor", "odamage", "oecho", "ogecho",
@@ -95,7 +95,8 @@
       ],
       room: [
         "wasound", "wdoor", "wecho", "wechoaround", "wforce", "wload", "wpurge", "wrecho",
-        "wsend", "wteleport", "wzoneecho", "wgecho", "wdamage", "wat", "wmove", "wlog"
+        "wsend", "wteleport", "wzoneecho", "wgecho", "wdamage", "wroldamage",
+        "wrolroomflag", "wat", "wmove", "wlog"
       ],
       pseudo: [
         "%send%", "%echo%", "%gecho%", "%echoaround%", "%door%", "%force%", "%load%", "%purge%",

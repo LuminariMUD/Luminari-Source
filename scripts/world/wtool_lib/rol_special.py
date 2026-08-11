@@ -1,0 +1,778 @@
+"""Compile Phase 4 Realms of Luminari special-procedure bindings."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Callable, Iterable
+
+from .flags import encode_bits
+from .rol_source import RolRecord
+
+
+IdentityResolver = Callable[[str, int], int]
+
+NATIVE_HANDLERS = frozenset(
+    {
+        "breath_attack_fire",
+        "cemetary_black_blade",
+        "cemetary_cloakMeteors",
+        "cemetary_disruption",
+        "cemetary_gleaming_blade",
+        "cemetary_lightsaber",
+        "cemetary_skeletal_hand",
+        "flaming_tanthorian",
+        "hulburg_beholder_major",
+        "hulburg_beholder_minor",
+        "longsword_tanthorian",
+        "money_changer",
+        "murlynds_spoon",
+        "muspel_bec_de_corbin",
+        "muspel_crystal_scimitar",
+        "muspel_dagger_whispers",
+        "muspel_dragon_lance",
+        "muspel_duergar_battlehammer",
+        "muspel_recurve_bow",
+        "muspel_spider_dagger",
+        "obj_drain",
+        "plant_attacks_blindness",
+        "plant_attacks_paralysis",
+        "thorn_shield",
+    }
+)
+
+_OWNER_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
+_DIRECTIONS = (
+    "north",
+    "east",
+    "south",
+    "west",
+    "up",
+    "down",
+    "northwest",
+    "northeast",
+    "southeast",
+    "southwest",
+)
+_REVERSE_DIRECTION = (2, 3, 0, 1, 5, 4, 8, 9, 6, 7)
+
+_INSTRUMENT_REPLACEMENTS = {
+    55318: 55337,
+    55328: 55335,
+    55329: 55338,
+    55330: 55334,
+    55331: 55336,
+    55332: 55319,
+    55333: 55339,
+}
+
+_SHOUT_FAMILIES = {
+    "m58806": {
+        "handlers": {
+            "muspel_giant_shout_m58806",
+            "muspel_lookout_shout_m58806",
+        },
+        "helpers": (58806,),
+        "lookout_handler": "muspel_lookout_shout_m58806",
+        "lookout_rooms": (58861, 58867, 58868, 58875),
+        "giant_message": "@R%actor.name% @n@rsighted!  Intruder alert!!@n",
+        "lookout_message": (
+            "@rYe're in trouble now @R%actor.name%@n@w' and pushes the @Walarm!@n"
+        ),
+    },
+    "m58708_m58709": {
+        "handlers": {
+            "muspel_giant_shout_m58708_m58709",
+            "muspel_lookout_shout_m58708_m58709",
+        },
+        "helpers": (58708, 58709),
+        "lookout_handler": "muspel_lookout_shout_m58708_m58709",
+        "lookout_rooms": (58898, 58901, 58902, 58905),
+        "giant_message": "@Y%actor.name% @n@ysighted!  Intruder alert!!@n",
+        "lookout_message": (
+            "@yYe're in trouble now @Y%actor.name%@n@w' and pushes the @Walarm!@n"
+        ),
+    },
+    "m58833": {
+        "handlers": {
+            "muspel_giant_shout_m58833",
+            "muspel_lookout_shout_m58833",
+        },
+        "helpers": (58833,),
+        "lookout_handler": "muspel_lookout_shout_m58833",
+        "lookout_rooms": (58997, 59006, 59002, 59001),
+        "giant_message": "@R%actor.name% @n@rsighted!  Intruder alert!!@n",
+        "lookout_message": (
+            "@rYe're in trouble now @R%actor.name%@n@w' and pushes the @Walarm!@n"
+        ),
+    },
+}
+
+
+@dataclass(frozen=True, slots=True)
+class NativeSpecialBinding:
+  """One selected binding persisted through the target special registry."""
+
+  source_record_type: str
+  source_vnum: int
+  target_kind: str
+  target_vnum: int
+  persisted_name: str
+  required_flag_bits: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class SpecialTrigger:
+  """One shared DG trigger emitted for a VNUM-dependent behavior family."""
+
+  vnum: int
+  owner_kind: str
+  owner_vnums: tuple[int, ...]
+  source_handlers: tuple[str, ...]
+  text: str
+
+
+@dataclass(slots=True)
+class SpecialCompilation:
+  """Deterministic result for every selected Phase 4 special binding."""
+
+  native_bindings: list[NativeSpecialBinding]
+  triggers: list[SpecialTrigger]
+  attachments: dict[tuple[str, int], list[int]]
+  dispositions: list[dict[str, object]]
+  diagnostics: list[str] = field(default_factory=list)
+  source_bindings: int = 0
+
+  @property
+  def trigger_text(self) -> str:
+    return "".join(trigger.text for trigger in self.triggers) + "$~\n"
+
+
+def _trigger_text(
+    vnum: int,
+    name: str,
+    attach_type: int,
+    flags: set[int],
+    numeric_argument: int,
+    argument: str,
+    body: list[str],
+) -> str:
+  encoded = encode_bits(flags)[0]
+  return (
+      f"#{vnum}\n{name}~\n{attach_type} {encoded} {numeric_argument}\n{argument}~\n"
+      + "\n".join(body)
+      + "\n~\n"
+  )
+
+
+def _source_exit(record: RolRecord, direction: int) -> dict[str, object] | None:
+  for directive in record.directives:
+    if directive["token"] == "D" and int(directive["direction"]) == direction:
+      return directive
+  return None
+
+
+def _target_runtime_exit_flags(source_flags: int, blocked: bool | None = None) -> int:
+  is_door = bool(source_flags & 0x1FF)
+  pickproof = bool(source_flags & (1 << 8))
+  hidden = bool(source_flags & (1 << 6))
+  source_blocked = bool(source_flags & (1 << 7))
+  effective_blocked = source_blocked if blocked is None else blocked
+  result = 0
+  if is_door:
+    result |= 1
+  if pickproof:
+    result |= 1 << 3
+  if hidden:
+    result |= 1 << 4
+  if effective_blocked:
+    result |= 1 << 11
+  return result
+
+
+def _door_line(
+    prefix: str,
+    room: int,
+    direction: int,
+    flags: int,
+) -> str:
+  return f"{prefix}door {room} {_DIRECTIONS[direction]} flags {flags}"
+
+
+def _disposition(
+    row: dict[str, object],
+    strategy: str,
+    target_vnum: int,
+    trigger_vnum: int | None = None,
+) -> dict[str, object]:
+  result: dict[str, object] = {
+      "basename": row["basename"],
+      "source_record_type": row["record_type"],
+      "source_vnum": int(row["source_vnum"]),
+      "source_handler": row["source_handler"],
+      "target_vnum": target_vnum,
+      "strategy": strategy,
+  }
+  if trigger_vnum is not None:
+    result["trigger_vnum"] = trigger_vnum
+  return result
+
+
+def _add_trigger(
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    owner_kind: str,
+    owners: Iterable[int],
+    handlers: Iterable[str],
+    text: str,
+    trigger_vnum: int,
+) -> None:
+  owner_vnums = tuple(sorted(set(owners)))
+  source_handlers = tuple(sorted(set(handlers)))
+  triggers.append(
+      SpecialTrigger(
+          vnum=trigger_vnum,
+          owner_kind=owner_kind,
+          owner_vnums=owner_vnums,
+          source_handlers=source_handlers,
+          text=text,
+      )
+  )
+  for owner_vnum in owner_vnums:
+    attachments[(owner_kind, owner_vnum)].append(trigger_vnum)
+
+
+def _compile_instruments(
+    rows: list[dict[str, object]],
+    trigger_start: int,
+    resolve: IdentityResolver,
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+) -> int:
+  next_trigger = trigger_start
+  for row in sorted(rows, key=lambda item: int(item["source_vnum"])):
+    source_vnum = int(row["source_vnum"])
+    owner = resolve("obj", source_vnum)
+    replacement = resolve("obj", _INSTRUMENT_REPLACEMENTS[source_vnum])
+    body = [
+        f"* RoL cemetery instrument transform for source object {source_vnum}.",
+        "if %actor.eq(hold)% != %self.id% && %actor.eq(wield)% != %self.id%",
+        "  return 0",
+        "end",
+        "if !%arg% || !(%self.name% /= %arg.car%)",
+        "  return 0",
+        "end",
+        "osend %actor% You slowly rub $p, and a small cloud of smoke surrounds it.",
+        "oechoaround %actor% $n slowly rubs $p, and a small cloud of smoke surrounds it.",
+        f"oload obj {replacement}",
+        "osend %actor% As the smoke dissipates, $p appears to have vanished!",
+        "oechoaround %actor% As the smoke dissipates, $p appears to have vanished!",
+        "opurge %self%",
+        "return 1",
+    ]
+    text = _trigger_text(
+        next_trigger,
+        f"RoL cemetery instrument {source_vnum}",
+        1,
+        {2},
+        1,
+        "rub",
+        body,
+    )
+    _add_trigger(
+        triggers,
+        attachments,
+        "obj",
+        (owner,),
+        ("cemetary_instrument_rub",),
+        text,
+        next_trigger,
+    )
+    dispositions.append(_disposition(row, "DG_OBJECT_TRANSFORM", owner, next_trigger))
+    next_trigger += 1
+  return next_trigger
+
+
+def _compile_chieftain(
+    row: dict[str, object],
+    trigger_vnum: int,
+    resolve: IdentityResolver,
+    rooms: dict[int, RolRecord],
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+) -> int:
+  owner = resolve("obj", int(row["source_vnum"]))
+  room = rooms[58826]
+  door_rows = []
+  for direction in (0, 3):
+    directive = _source_exit(room, direction)
+    if directive is None:
+      raise ValueError(f"source room 58826 lacks {_DIRECTIONS[direction]} exit")
+    source_flags = int(directive["arguments"][0])
+    door_rows.append(
+        (
+            _door_line(
+                "o",
+                resolve("wld", 58826),
+                direction,
+                _target_runtime_exit_flags(source_flags, False),
+            ),
+            _door_line(
+                "o",
+                resolve("wld", 58826),
+                direction,
+                _target_runtime_exit_flags(source_flags, True),
+            ),
+        )
+    )
+  body = [
+      "* RoL Muspel seasonal chieftain doors; target months are one-based.",
+      "if %time.month% == 9",
+      f"  {door_rows[0][0]}",
+      f"  {door_rows[1][0]}",
+      "elseif %time.month% == 10",
+      f"  {door_rows[0][1]}",
+      f"  {door_rows[1][1]}",
+      "end",
+  ]
+  text = _trigger_text(
+      trigger_vnum,
+      "RoL Muspel seasonal chieftain doors",
+      1,
+      {1},
+      100,
+      "",
+      body,
+  )
+  _add_trigger(
+      triggers,
+      attachments,
+      "obj",
+      (owner,),
+      ("muspel_chieftain_open",),
+      text,
+      trigger_vnum,
+  )
+  dispositions.append(_disposition(row, "DG_SEASONAL_DOORS", owner, trigger_vnum))
+  return trigger_vnum + 1
+
+
+def _compile_chimney(
+    rows: list[dict[str, object]],
+    trigger_vnum: int,
+    resolve: IdentityResolver,
+    rooms: dict[int, RolRecord],
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+    diagnostics: list[str],
+) -> int:
+  roof_exit = _source_exit(rooms[59059], 5)
+  forge_exit = _source_exit(rooms[58992], 0)
+  if roof_exit is None or forge_exit is None:
+    raise ValueError("source Muspel chimney dependency exits are incomplete")
+  roof_room = resolve("wld", 59059)
+  forge_approach = resolve("wld", 58992)
+  dark_room = resolve("wld", 58991)
+  roof_flags = int(roof_exit["arguments"][0])
+  forge_flags = int(forge_exit["arguments"][0])
+  fuel = resolve("obj", 58957)
+  explosive_fuel = resolve("obj", 58958)
+  body = [
+      "* RoL Muspel chimney smoke and door behavior.",
+      "if !%arg% || %arg.car% != out",
+      "  return 0",
+      "end",
+      "set rol_fuel %actor.eq(hold)%",
+      "if !%rol_fuel%",
+      "  return 0",
+      "end",
+      f"if %rol_fuel.vnum% != {fuel} && %rol_fuel.vnum% != {explosive_fuel}",
+      "  wecho Nothing happens.",
+      "  return 0",
+      "end",
+      "wecho The room fills with smoke.",
+      _door_line("w", roof_room, 5, _target_runtime_exit_flags(roof_flags, False)),
+      _door_line(
+          "w", forge_approach, 0, _target_runtime_exit_flags(forge_flags, False)
+      ),
+      f"wrolroomflag {dark_room} magic-darkness on",
+      f"wat {dark_room} wecho @LThe room is blanketed with thick, blackening smoke!@n",
+      f"if %rol_fuel.vnum% == {explosive_fuel}",
+      f"  wat {dark_room} wroldamage all-pcs 50 10",
+      "end",
+      "wait 60 s",
+      f"wrolroomflag {dark_room} magic-darkness off",
+      (
+          f"wat {dark_room} wecho @LThe smoke begins to thin, and light begins to "
+          "shine through.@n"
+      ),
+      "return 1",
+  ]
+  owners = [resolve("wld", int(row["source_vnum"])) for row in rows]
+  text = _trigger_text(
+      trigger_vnum,
+      "RoL Muspel chimney smoke",
+      2,
+      {2},
+      100,
+      "pour",
+      body,
+  )
+  _add_trigger(
+      triggers,
+      attachments,
+      "wld",
+      owners,
+      ("muspel_chimney_pour",),
+      text,
+      trigger_vnum,
+  )
+  for row, owner in zip(rows, owners):
+    dispositions.append(_disposition(row, "DG_CHIMNEY", owner, trigger_vnum))
+  diagnostics.append(
+      "repaired muspel_chimney_pour's impossible fuel predicate and redirected its "
+      "missing 58991 north exit to the reciprocal 58992 north forge door"
+  )
+  return trigger_vnum + 1
+
+
+def _compile_shout_family(
+    rows: list[dict[str, object]],
+    family_name: str,
+    family: dict[str, object],
+    trigger_vnum: int,
+    resolve: IdentityResolver,
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+) -> int:
+  lookout_handler = str(family["lookout_handler"])
+  lookout_owners = sorted(
+      resolve("mob", int(row["source_vnum"]))
+      for row in rows
+      if row["source_handler"] == lookout_handler
+  )
+  lookout_rooms = [resolve("wld", int(room)) for room in family["lookout_rooms"]]
+  owners = [resolve("mob", int(row["source_vnum"])) for row in rows]
+  helpers = [resolve("mob", int(helper)) for helper in family["helpers"]]
+  lookout_owner_condition = " || ".join(
+      f"%self.vnum% == {owner}" for owner in lookout_owners
+  )
+  lookout_room_condition = " && ".join(
+      f"%self.room.vnum% != {room}" for room in lookout_rooms
+  )
+  body = [f"* RoL Muspel alarm group {family_name}."]
+  if lookout_owners:
+    body.extend(
+        [
+            f"if {lookout_owner_condition}",
+            f"  if {lookout_room_condition}",
+            "    return 0",
+            "  end",
+            f"  mecho {family['lookout_message']}",
+            "else",
+            f"  mecho {family['giant_message']}",
+            "end",
+        ]
+    )
+  else:
+    body.append(f"mecho {family['giant_message']}")
+  body.extend([f"mrolalert %actor% {' '.join(str(item) for item in helpers)}", "return 1"])
+  text = _trigger_text(
+      trigger_vnum,
+      f"RoL Muspel alarm {family_name}",
+      0,
+      {10},
+      100,
+      "",
+      body,
+  )
+  _add_trigger(
+      triggers,
+      attachments,
+      "mob",
+      owners,
+      family["handlers"],
+      text,
+      trigger_vnum,
+  )
+  for row, owner in zip(rows, owners):
+    dispositions.append(_disposition(row, "DG_ALARM_GROUP", owner, trigger_vnum))
+  return trigger_vnum + 1
+
+
+def _resolved_river_lines(
+    source_room: int,
+    record: RolRecord,
+    rooms: dict[int, RolRecord],
+    resolve: IdentityResolver,
+    blocked: bool,
+    diagnostics: list[str],
+) -> list[str]:
+  lines: list[str] = []
+  for directive in record.directives:
+    if directive["token"] != "D":
+      continue
+    arguments = directive.get("arguments", [])
+    direction = int(directive["direction"])
+    if len(arguments) < 3 or int(arguments[2]) <= 0 or direction >= len(_REVERSE_DIRECTION):
+      continue
+    neighbor_vnum = int(arguments[2])
+    neighbor_record = rooms.get(neighbor_vnum)
+    reverse_direction = _REVERSE_DIRECTION[direction]
+    reverse_exit = (
+        _source_exit(neighbor_record, reverse_direction)
+        if neighbor_record is not None
+        else None
+    )
+    if reverse_exit is None:
+      diagnostics.append(
+          f"river room {source_room} exit {_DIRECTIONS[direction]} has no reciprocal "
+          f"source exit in room {neighbor_vnum}"
+      )
+      continue
+    flags = _target_runtime_exit_flags(int(reverse_exit["arguments"][0]), blocked)
+    lines.append(_door_line("w", resolve("wld", neighbor_vnum), reverse_direction, flags))
+  return lines
+
+
+def _river_switch(
+    rows: list[dict[str, object]],
+    rooms: dict[int, RolRecord],
+    resolve: IdentityResolver,
+    blocked: bool,
+    diagnostics: list[str],
+) -> list[str]:
+  lines = ["switch %self.vnum%"]
+  for row in sorted(rows, key=lambda item: int(item["source_vnum"])):
+    source_room = int(row["source_vnum"])
+    record = rooms[source_room]
+    lines.append(f"case {resolve('wld', source_room)}")
+    door_lines = _resolved_river_lines(
+        source_room, record, rooms, resolve, blocked, diagnostics
+    )
+    lines.extend(f"  {line}" for line in door_lines)
+    lines.append("  break")
+  lines.append("done")
+  return lines
+
+
+def _compile_ice_river(
+    rows: list[dict[str, object]],
+    trigger_vnum: int,
+    resolve: IdentityResolver,
+    rooms: dict[int, RolRecord],
+    triggers: list[SpecialTrigger],
+    attachments: defaultdict[tuple[str, int], list[int]],
+    dispositions: list[dict[str, object]],
+    diagnostics: list[str],
+) -> int:
+  owners = [resolve("wld", int(row["source_vnum"])) for row in rows]
+  freeze_lines = _river_switch(rows, rooms, resolve, False, diagnostics)
+  thaw_lines = _river_switch(rows, rooms, resolve, True, diagnostics)
+  cold_condition = (
+      "%spellname% == ice storm || %spellname% == hailstorm || "
+      "%spellname% == icewave"
+  )
+  fire_condition = (
+      "%spellname% == fire storm || %spellname% == inferno || "
+      "%spellname% == firewave"
+  )
+  body = [
+      "* RoL Muspel lava-river freeze/thaw state machine.",
+      f"if {cold_condition}",
+      "  if %rol_river_frozen%",
+      "    return 1",
+      "  end",
+      "  set rol_river_frozen 1",
+      "  global rol_river_frozen",
+      "  wait 40 s",
+      "  wecho @LMagical @cc@Co@cld @Lsolidifies the molten lava into a bridge.@n",
+      *[f"  {line}" for line in freeze_lines],
+      "  wait 1200 s",
+      "  if !%rol_river_frozen%",
+      "    return 1",
+      "  end",
+      "  wecho @LIntense heat melts the frosted bridge; it falls with a tremendous crash!@n",
+      *[f"  {line}" for line in thaw_lines],
+      "  wroldamage all-pcs 50 10",
+      "  set rol_river_frozen 0",
+      "  global rol_river_frozen",
+      "  return 1",
+      "end",
+      f"if {fire_condition}",
+      "  if !%rol_river_frozen%",
+      "    return 1",
+      "  end",
+      "  wait 40 s",
+      "  wecho @LFlame magic melts the frosted bridge; it falls with a tremendous crash!@n",
+      *[f"  {line}" for line in thaw_lines],
+      "  wroldamage all-pcs 50 10",
+      "  set rol_river_frozen 0",
+      "  global rol_river_frozen",
+      "end",
+      "return 1",
+  ]
+  text = _trigger_text(
+      trigger_vnum,
+      "RoL Muspel lava river",
+      2,
+      {15},
+      100,
+      "",
+      body,
+  )
+  _add_trigger(
+      triggers,
+      attachments,
+      "wld",
+      owners,
+      ("muspel_ice_river",),
+      text,
+      trigger_vnum,
+  )
+  for row, owner in zip(rows, owners):
+    dispositions.append(_disposition(row, "DG_LAVA_RIVER", owner, trigger_vnum))
+  diagnostics.append(
+      "muspel_ice_river recognizes current ice storm/fire storm plus the four "
+      "legacy-only spell names retained by the source contract"
+  )
+  return trigger_vnum + 1
+
+
+def compile_special_bindings(
+    binding_rows: Iterable[dict[str, object]],
+    trigger_start: int,
+    resolve: IdentityResolver,
+    room_records: Iterable[RolRecord],
+) -> SpecialCompilation:
+  """Compile every selected binding into native persistence or a DG trigger."""
+
+  rows = sorted(
+      binding_rows,
+      key=lambda item: (
+          str(item["source_handler"]),
+          str(item["record_type"]),
+          int(item["source_vnum"]),
+      ),
+  )
+  rooms = {record.vnum: record for record in room_records}
+  native_bindings: list[NativeSpecialBinding] = []
+  triggers: list[SpecialTrigger] = []
+  attachments: defaultdict[tuple[str, int], list[int]] = defaultdict(list)
+  dispositions: list[dict[str, object]] = []
+  diagnostics: list[str] = []
+  grouped: defaultdict[str, list[dict[str, object]]] = defaultdict(list)
+
+  for row in rows:
+    handler = str(row["source_handler"])
+    record_type = str(row["record_type"])
+    try:
+      target_kind = _OWNER_KIND[record_type]
+    except KeyError as error:
+      raise ValueError(f"unsupported special owner type {record_type!r}") from error
+    source_vnum = int(row["source_vnum"])
+    target_vnum = resolve(target_kind, source_vnum)
+    if handler in NATIVE_HANDLERS:
+      required_bits = (44,) if handler == "obj_drain" else ()
+      native_bindings.append(
+          NativeSpecialBinding(
+              source_record_type=record_type,
+              source_vnum=source_vnum,
+              target_kind=target_kind,
+              target_vnum=target_vnum,
+              persisted_name=handler,
+              required_flag_bits=required_bits,
+          )
+      )
+      dispositions.append(_disposition(row, "NATIVE_PERSISTED", target_vnum))
+    else:
+      grouped[handler].append(row)
+
+  next_trigger = trigger_start
+  next_trigger = _compile_instruments(
+      grouped.pop("cemetary_instrument_rub", []),
+      next_trigger,
+      resolve,
+      triggers,
+      attachments,
+      dispositions,
+  )
+  chieftain = grouped.pop("muspel_chieftain_open", [])
+  if len(chieftain) != 1:
+    raise ValueError(f"expected one muspel_chieftain_open binding, found {len(chieftain)}")
+  next_trigger = _compile_chieftain(
+      chieftain[0],
+      next_trigger,
+      resolve,
+      rooms,
+      triggers,
+      attachments,
+      dispositions,
+  )
+  chimney = grouped.pop("muspel_chimney_pour", [])
+  next_trigger = _compile_chimney(
+      chimney,
+      next_trigger,
+      resolve,
+      rooms,
+      triggers,
+      attachments,
+      dispositions,
+      diagnostics,
+  )
+  for family_name, family in _SHOUT_FAMILIES.items():
+    family_rows: list[dict[str, object]] = []
+    for handler in family["handlers"]:
+      family_rows.extend(grouped.pop(handler, []))
+    next_trigger = _compile_shout_family(
+        sorted(family_rows, key=lambda item: int(item["source_vnum"])),
+        family_name,
+        family,
+        next_trigger,
+        resolve,
+        triggers,
+        attachments,
+        dispositions,
+    )
+  river = grouped.pop("muspel_ice_river", [])
+  next_trigger = _compile_ice_river(
+      river,
+      next_trigger,
+      resolve,
+      rooms,
+      triggers,
+      attachments,
+      dispositions,
+      diagnostics,
+  )
+
+  if grouped:
+    names = ", ".join(sorted(grouped))
+    raise ValueError(f"unclassified selected special handlers: {names}")
+  if len(dispositions) != len(rows):
+    raise ValueError(
+        f"special disposition coverage mismatch: {len(dispositions)} of {len(rows)}"
+    )
+
+  native_bindings.sort(
+      key=lambda item: (item.target_kind, item.target_vnum, item.persisted_name)
+  )
+  dispositions.sort(
+      key=lambda item: (
+          str(item["source_handler"]),
+          str(item["source_record_type"]),
+          int(item["source_vnum"]),
+      )
+  )
+  return SpecialCompilation(
+      native_bindings=native_bindings,
+      triggers=triggers,
+      attachments={key: sorted(value) for key, value in sorted(attachments.items())},
+      dispositions=dispositions,
+      diagnostics=diagnostics,
+      source_bindings=len(rows),
+  )

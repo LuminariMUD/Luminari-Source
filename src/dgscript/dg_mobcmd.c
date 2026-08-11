@@ -1089,6 +1089,65 @@ ACMD(do_mhunt)
   HUNTING(ch) = victim;
 }
 
+/* Alert every loaded mobile matching one of the converted RoL helper prototypes. */
+ACMD(do_mrolalert)
+{
+  struct char_data *helper;
+  struct char_data *victim;
+  const char *cursor;
+  mob_vnum helper_vnums[16];
+  char argument_word[MAX_INPUT_LENGTH] = {'\0'};
+  char victim_argument[MAX_INPUT_LENGTH] = {'\0'};
+  size_t helper_count;
+  size_t helper_index;
+
+  if (!MOB_OR_IMPL(ch) || AFF_FLAGGED(ch, AFF_CHARM) || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  cursor = any_one_arg_c(argument, victim_argument, sizeof(victim_argument));
+  if (!*victim_argument || (victim = get_char(victim_argument)) == NULL)
+  {
+    mob_log(ch, "mrolalert called with an invalid victim");
+    return;
+  }
+
+  helper_count = 0;
+  while (helper_count < sizeof(helper_vnums) / sizeof(helper_vnums[0]))
+  {
+    cursor = any_one_arg_c(cursor, argument_word, sizeof(argument_word));
+    if (!*argument_word)
+      break;
+    if (!is_number(argument_word) || atoi(argument_word) <= 0)
+    {
+      mob_log(ch, "mrolalert called with invalid helper vnum '%s'", argument_word);
+      return;
+    }
+    helper_vnums[helper_count++] = atoi(argument_word);
+  }
+  skip_spaces_c(&cursor);
+  if (helper_count == 0 || *cursor)
+  {
+    mob_log(ch, "mrolalert requires one to 16 helper vnums");
+    return;
+  }
+
+  for (helper = character_list; helper != NULL; helper = helper->next)
+  {
+    if (!IS_NPC(helper) || helper == ch || IN_ROOM(helper) == NOWHERE || !AWAKE(helper) ||
+        FIGHTING(helper) != NULL || HUNTING(helper) != NULL || AFF_FLAGGED(helper, AFF_CHARM) ||
+        MOB_FLAGGED(helper, MOB_NOKILL) || world[IN_ROOM(helper)].zone != world[IN_ROOM(ch)].zone)
+      continue;
+
+    for (helper_index = 0; helper_index < helper_count; helper_index++)
+      if (GET_MOB_VNUM(helper) == helper_vnums[helper_index])
+        break;
+    if (helper_index == helper_count || !ok_damage_shopkeeper(victim, helper))
+      continue;
+
+    HUNTING(helper) = victim;
+  }
+}
+
 /* place someone into the mob's memory list */
 ACMD(do_mremember)
 {

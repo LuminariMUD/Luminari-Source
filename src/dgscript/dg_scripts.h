@@ -405,6 +405,7 @@ ACMD_DECL(do_mremember);
 ACMD_DECL(do_msend);
 ACMD_DECL(do_mteleport);
 ACMD_DECL(do_mtransform);
+ACMD_DECL(do_mrolalert);
 ACMD_DECL(do_mrolwalkto);
 ACMD_DECL(do_mrolzoneecho);
 ACMD_DECL(do_mzoneecho);

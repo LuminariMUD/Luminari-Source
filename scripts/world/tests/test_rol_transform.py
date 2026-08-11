@@ -13,6 +13,7 @@ from wtool_lib.rol_source import parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
+from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
     convert_text,
     emit_mobile,
@@ -121,7 +122,7 @@ class RolTransformTests(unittest.TestCase):
         b"#100\nfile~\nPilot~\n199 30 2 64\n"
         b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
         b"D 0 100 1 8\nD 0 100 2 3\nR 0 100 200 35\nF 2 100 300 301\n"
-        b"E 1 200 1 24\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
+        b"M 0 300 1 100\nE 1 200 1 24\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
     )
     emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
     temporary = tempfile.TemporaryDirectory()
@@ -133,12 +134,12 @@ class RolTransformTests(unittest.TestCase):
     self.assertTrue(result.complete)
     self.assertEqual([], result.findings)
     self.assertEqual(
-        ["K", "K", "R", "F", "C", "X"],
+        ["K", "K", "R", "F", "M", "C", "X"],
         [command.command for command in result.records[0].commands],
     )
     self.assertEqual(35, result.records[0].commands[2].probability)
     self.assertEqual(2, result.records[0].commands[3].dependency)
-    self.assertEqual(25, result.records[0].commands[5].probability)
+    self.assertEqual(25, result.records[0].commands[6].probability)
     self.assertIn("unsupported equipment position 24", " ".join(emitted.diagnostics))
 
   def test_emitted_shop_maps_products_prices_hours_and_roaming(self) -> None:
@@ -377,6 +378,68 @@ class RolTransformTests(unittest.TestCase):
         {1000: 7, 1001: 31, 1002: 2, 1003: 394, 1004: 14},
         comparison["measured_source"]["special_actions"],
     )
+
+  def test_all_pilot_special_bindings_have_valid_native_or_dg_output(self) -> None:
+    selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
+    bindings = [
+        json.loads(line)
+        for line in (selection / "pilot-special-bindings.jsonl")
+        .read_text(encoding="ascii")
+        .splitlines()
+    ]
+    identities = [
+        json.loads(line)
+        for line in (
+            self.root / "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl"
+        )
+        .read_text(encoding="ascii")
+        .splitlines()
+    ]
+    identity_map = {
+        (row["source_kind"], row["source_vnum"]): row["destination_vnum"]
+        for row in identities
+    }
+
+    def resolver(kind: str, vnum: int) -> int:
+      return identity_map[(kind, vnum)]
+
+    rooms = []
+    for basename in PILOT_BASENAMES:
+      source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/wld/{basename}.wld"
+      parsed, corpus = parse_rol_source_file(
+          source_path, f"areas/wld/{basename}.wld", "wld", basename
+      )
+      self.assertTrue(corpus.complete)
+      rooms.extend(parsed)
+
+    compiled = compile_special_bindings(bindings, 2_055_481, resolver, rooms)
+    self.assertEqual(91, compiled.source_bindings)
+    self.assertEqual(46, len(compiled.native_bindings))
+    self.assertEqual(13, len(compiled.triggers))
+    self.assertEqual(45, len(compiled.attachments))
+    self.assertEqual(91, len(compiled.dispositions))
+    self.assertEqual(
+        46,
+        sum(row["strategy"] == "NATIVE_PERSISTED" for row in compiled.dispositions),
+    )
+    self.assertIn("wrolroomflag", compiled.trigger_text)
+    self.assertIn("wroldamage all-pcs 50 10", compiled.trigger_text)
+    self.assertIn("mrolalert %actor%", compiled.trigger_text)
+    self.assertIn("flags 2049", compiled.trigger_text)
+
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    target_path = Path(temporary.name) / "20554.trg"
+    target_path.write_text(compiled.trigger_text, encoding="ascii", newline="\n")
+    result = parse_trigger_file(target_path, "trg/20554.trg", self.manifest)
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    self.assertEqual(13, len(result.records))
+
+    native = next(
+        item for item in compiled.native_bindings if item.persisted_name == "obj_drain"
+    )
+    self.assertEqual((44,), native.required_flag_bits)
 
 
 if __name__ == "__main__":
