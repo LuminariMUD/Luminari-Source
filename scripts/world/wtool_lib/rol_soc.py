@@ -168,6 +168,8 @@ def _parse_action_groups(
   state: dict[str, int] = {}
   for directive in record.directives:
     token = str(directive["token"])
+    if token == "LISTDONE":
+      break
     if token in {"FLAG", "CHANCE", "DELAY", "HOUR", "TRIGGER"}:
       state[token] = _single(directive)
       continue

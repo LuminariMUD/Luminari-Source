@@ -22,6 +22,7 @@
 #include "mud_event.h"
 #include "actions.h"
 #include "magic/spell_prep.h"
+#include "mudlim.h"
 
 /* cheesy lich hack */
 #define LICH_QUEST 9999
@@ -141,6 +142,14 @@ void show_quest_to_player(struct char_data *ch, struct quest_entry *quest)
         break;
       case QUEST_COMMAND_COINS:
         snprintf(buf, sizeof(buf), "\tcRECEIVE\tn %d coins\r\n", qcom->value);
+        send_to_char(ch, "%s", buf);
+        break;
+      case QUEST_COMMAND_QUEST_POINTS:
+        snprintf(buf, sizeof(buf), "\tcRECEIVE\tn %d quest points\r\n", qcom->value);
+        send_to_char(ch, "%s", buf);
+        break;
+      case QUEST_COMMAND_EXPERIENCE:
+        snprintf(buf, sizeof(buf), "\tcRECEIVE\tn %d experience points\r\n", qcom->value);
         send_to_char(ch, "%s", buf);
         break;
       case QUEST_COMMAND_LOAD_OBJECT_INROOM:
@@ -336,6 +345,7 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
   struct char_data *homie = NULL, *nexth = NULL;
   struct obj_data *obj = NULL;
   char buf[MAX_INPUT_LENGTH] = {'\0'};
+  long long quest_points_total = 0;
   int i = 0;
 
   // heh.. give stuff..
@@ -351,6 +361,20 @@ void perform_out_chain(struct char_data *ch, struct char_data *victim, struct qu
       else
         GET_GOLD(ch) = MAX_GOLD;
       send_to_char(ch, "You receive %d \tYcoins\tn.\r\n", qcom->value);
+      break;
+    case QUEST_COMMAND_QUEST_POINTS:
+      quest_points_total = (long long)GET_QUESTPOINTS(ch) + qcom->value;
+      if (quest_points_total > HLQUEST_MAX_QUEST_POINTS)
+        GET_QUESTPOINTS(ch) = HLQUEST_MAX_QUEST_POINTS;
+      else if (quest_points_total < 0)
+        GET_QUESTPOINTS(ch) = 0;
+      else
+        GET_QUESTPOINTS(ch) = (int)quest_points_total;
+      send_to_char(ch, "Your quest-point balance changes by %d.\r\n", qcom->value);
+      break;
+    case QUEST_COMMAND_EXPERIENCE:
+      gain_exp(ch, qcom->value, GAIN_EXP_MODE_QUEST);
+      send_to_char(ch, "You receive %d experience points.\r\n", qcom->value);
       break;
     case QUEST_COMMAND_ITEM:
       obj = read_object(qcom->value, VIRTUAL);
@@ -848,6 +872,8 @@ int quest_value_vnum(struct quest_command *qcom)
   {
   case QUEST_COMMAND_TEACH_SPELL:
   case QUEST_COMMAND_COINS:
+  case QUEST_COMMAND_QUEST_POINTS:
+  case QUEST_COMMAND_EXPERIENCE:
     return qcom->value;
   case QUEST_COMMAND_ITEM:
   case QUEST_COMMAND_LOAD_OBJECT_INROOM:
@@ -988,6 +1014,12 @@ void boot_the_quests(FILE *quest_f, char *filename, int rec_count __attribute__(
           break;
         case 'S':
           qcom->type = QUEST_COMMAND_CAST_SPELL;
+          break;
+        case 'P':
+          qcom->type = QUEST_COMMAND_QUEST_POINTS;
+          break;
+        case 'E':
+          qcom->type = QUEST_COMMAND_EXPERIENCE;
           break;
         }
         /* Check if we've hit the terminator before processing direction */
@@ -1143,6 +1175,16 @@ ACMD(do_qinfo)
                 else if (qcmd->type == QUEST_COMMAND_TEACH_SPELL)
                 {
                   snprintf(buf2, sizeof(buf2), " and teaches you %s", spell_info[qcmd->value].name);
+                  strlcat(buf, buf2, sizeof(buf));
+                }
+                else if (qcmd->type == QUEST_COMMAND_QUEST_POINTS)
+                {
+                  snprintf(buf2, sizeof(buf2), " and awards %d quest points", qcmd->value);
+                  strlcat(buf, buf2, sizeof(buf));
+                }
+                else if (qcmd->type == QUEST_COMMAND_EXPERIENCE)
+                {
+                  snprintf(buf2, sizeof(buf2), " and awards %d experience points", qcmd->value);
                   strlcat(buf, buf2, sizeof(buf));
                 }
                 else if (qcmd->type == QUEST_COMMAND_OPEN_DOOR)

@@ -252,6 +252,24 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(["C", "I", "D"], [item.code for item in give.output_commands])
     self.assertIn("vanishes", give.reply_message)
 
+  def test_emitted_hlquest_adapts_extended_reward_contracts(self) -> None:
+    source = self._source_record(
+        "qst",
+        b"#300\nQ\ncomplete\n~\n"
+        b"R\nA\nR\nE 1000\nR\nP -100\nR\nS 72\nS\n",
+    )
+    emitted = emit_hlquest(source, 2_000_300, _resolver)
+    path = self._target_path("hlq", emitted.text)
+    result = parse_hlquest_file(path, "hlq/20000.hlq", self.manifest)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    give = result.records[0].entries[0]
+    self.assertEqual(["T", "P", "E", "A"], [item.code for item in give.output_commands])
+    self.assertEqual([74, -100, 1000, 0], [item.value for item in give.output_commands])
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("meteor swarm", diagnostics)
+
   def test_selected_pilot_quests_all_emit_valid_target_records(self) -> None:
     selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
     actions = [

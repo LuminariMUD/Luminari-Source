@@ -59,10 +59,10 @@ class ConstantsTests(unittest.TestCase):
         [entry["macro"] for entry in entry_types["entries"]],
     )
     commands = self.manifest["tables"]["hlquest-commands"]
-    self.assertEqual("CIOMADTXFKUS", "".join(entry["code"] for entry in commands["entries"]))
-    self.assertEqual(12, len(commands["entries"]))
+    self.assertEqual("CIOMADTXFKUSPE", "".join(entry["code"] for entry in commands["entries"]))
+    self.assertEqual(14, len(commands["entries"]))
     self.assertEqual("QUEST_COMMAND_COINS", commands["entries"][0]["macro"])
-    self.assertEqual("QUEST_COMMAND_CAST_SPELL", commands["entries"][-1]["macro"])
+    self.assertEqual("QUEST_COMMAND_EXPERIENCE", commands["entries"][-1]["macro"])
 
   def test_mission_difficulties_and_quest_limits_match_source(self) -> None:
     difficulties = self.manifest["tables"]["mission-difficulties"]["entries"]

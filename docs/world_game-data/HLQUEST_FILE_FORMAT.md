@@ -102,6 +102,8 @@ persisted code table in `src/olc/hlqedit.c`.
 | 9 | QUEST_COMMAND_KIT | `K` | Change kit or perform lich transition | Output only. |
 | 10 | QUEST_COMMAND_CHURCH | `U` | Set church | Output only. |
 | 11 | QUEST_COMMAND_CAST_SPELL | `S` | Cast spell | Output only. |
+| 12 | QUEST_COMMAND_QUEST_POINTS | `P` | Award or deduct quest points | Output only. |
+| 13 | QUEST_COMMAND_EXPERIENCE | `E` | Award experience | Output only. |
 
 Only COINS and ITEM input commands on GIVE entries are consumed by the
 runtime. Other input commands, and all ROOM input commands, are ignored and
@@ -158,6 +160,8 @@ first-match and execution behavior in the runtime view.
 | `K` | Target class `0..37`, or `9999` for the lich transition. | Prerequisite class `0..37`, or `9999` for the lich transition. |
 | `U` | Church `0..12`. | Unused; canonical value is `0`. |
 | `S` | Runtime-safe spell/skill `1..527`. | Unused; canonical value is `0`. |
+| `P` | Signed quest-point delta `-100000000..100000000`. | Unused; canonical value is `0`. |
+| `E` | Non-negative experience through `2140000000`. | Unused; canonical value is `0`. |
 
 The numeric values shown above are the current generated manifest values.
 `wtool` reads their source-derived limits and direction count; run
@@ -167,10 +171,12 @@ smaller `NUM_SPELLS` table. The validator uses the runtime-safe range as the
 error boundary.
 
 Coin values above `MAX_GOLD`, negative coins, unsafe spell or class indexes,
-invalid directions, missing door exits, invalid churches, and negative load
-locations are errors. Unused nonzero parameters are warnings. GIVE completion
-consumes the exact configured coin amount and counts repeated ITEM inputs as
-separate required copies.
+invalid directions, missing door exits, invalid churches, out-of-range
+quest-point deltas or experience awards, and negative load locations are errors.
+Unused nonzero parameters are warnings. Quest-point awards saturate the player's
+balance at `0..100000000`; experience awards use the normal quest-mode experience
+path. GIVE completion consumes the exact configured coin amount and counts
+repeated ITEM inputs as separate required copies.
 
 ## Typed References
 

@@ -28,7 +28,7 @@
 /*. Function prototypes / Globals / Externals. */
 /*---------------------------------------------*/
 
-const char *const hlqedit_command = "CIOMADTXFKUS";
+const char *const hlqedit_command = "CIOMADTXFKUSPE";
 
 /*****************************************************************************/
 
@@ -410,9 +410,11 @@ void hlqedit_disp_outcommand_menu(struct descriptor_data *d)
            "%sF%s) Follow questor\r\n"
            "%sU%s) Set Church (not yet implemented)\r\n"
            "%sK%s) Change Kit (not yet implemented)\r\n"
-           "%sS%s) Cast Spell\r\n",
+           "%sS%s) Cast Spell\r\n"
+           "%sP%s) Award quest points\r\n"
+           "%sE%s) Award experience\r\n",
            grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
-           grn, nrm, grn, nrm, grn, nrm);
+           grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm);
 
   strlcat(buf, "Enter choice (0 to end/quit):  ", sizeof(buf));
   send_to_char(d->character, "%s", buf);
@@ -801,9 +803,26 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
       break;
 
-    case '0':
-    case 'E':
+    case 'p':
+    case 'P':
+      CREATE(qcom, struct quest_command, 1);
+      hlqedit_addtoout(d, qcom);
+      qcom->type = QUEST_COMMAND_QUEST_POINTS;
+      OLC_MODE(d) = HLQEDIT_OUT_QUEST_POINTS;
+      send_to_char(d->character, "How many quest points? (-%d - %d):  ", HLQUEST_MAX_QUEST_POINTS,
+                   HLQUEST_MAX_QUEST_POINTS);
+      return;
+
     case 'e':
+    case 'E':
+      CREATE(qcom, struct quest_command, 1);
+      hlqedit_addtoout(d, qcom);
+      qcom->type = QUEST_COMMAND_EXPERIENCE;
+      OLC_MODE(d) = HLQEDIT_OUT_EXPERIENCE;
+      send_to_char(d->character, "How much experience? (0 - %d):  ", MAX_GOLD);
+      return;
+
+    case '0':
       hlqedit_init_replymsg(d);
       return;
 
@@ -823,6 +842,29 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
     return;
 
     break;
+
+  case HLQEDIT_OUT_QUEST_POINTS:
+    number = atoi(arg);
+    if (number < -HLQUEST_MAX_QUEST_POINTS || number > HLQUEST_MAX_QUEST_POINTS)
+      send_to_char(d->character, "That is not a valid choice! (-%d - %d)\r\n",
+                   HLQUEST_MAX_QUEST_POINTS, HLQUEST_MAX_QUEST_POINTS);
+    else
+    {
+      OLC_QCOM(d)->value = number;
+      hlqedit_disp_outcommand_menu(d);
+    }
+    return;
+
+  case HLQEDIT_OUT_EXPERIENCE:
+    number = atoi(arg);
+    if (number < 0 || number > MAX_GOLD)
+      send_to_char(d->character, "That is not a valid choice! (0 - %d)\r\n", MAX_GOLD);
+    else
+    {
+      OLC_QCOM(d)->value = number;
+      hlqedit_disp_outcommand_menu(d);
+    }
+    return;
 
   case HLQEDIT_OUT_ITEM:
     if ((number = real_object(atoi(arg))) != (int)NOTHING)

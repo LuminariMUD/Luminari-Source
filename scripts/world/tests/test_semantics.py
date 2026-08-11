@@ -626,6 +626,26 @@ class SemanticTests(unittest.TestCase):
     )
     self.assertEqual("error", high_coin.severity)
 
+    quest_points = command_types["QUEST_COMMAND_QUEST_POINTS"]
+    for value in (-100000000, -1, 0, 1, 100000000):
+      self.assertNotIn(
+          "SEM032", {item.code for item in findings(hlq_command(quest_points, value, 0))}
+      )
+    for value in (-100000001, 100000001):
+      self.assertIn(
+          "SEM032", {item.code for item in findings(hlq_command(quest_points, value, 0))}
+      )
+
+    experience = command_types["QUEST_COMMAND_EXPERIENCE"]
+    for value in (0, 1000, 2140000000):
+      self.assertNotIn(
+          "SEM032", {item.code for item in findings(hlq_command(experience, value, 0))}
+      )
+    for value in (-1, 2140000001):
+      self.assertIn(
+          "SEM032", {item.code for item in findings(hlq_command(experience, value, 0))}
+      )
+
     for macro in ("QUEST_COMMAND_TEACH_SPELL", "QUEST_COMMAND_CAST_SPELL"):
       command_type = command_types[macro]
       for value in (1, 527):

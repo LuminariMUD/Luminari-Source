@@ -1347,6 +1347,22 @@
           "macro": "QUEST_COMMAND_CAST_SPELL",
           "name": "Cast Spell",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "P",
+          "index": 12,
+          "macro": "QUEST_COMMAND_QUEST_POINTS",
+          "name": "Quest Points",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "code": "E",
+          "index": 13,
+          "macro": "QUEST_COMMAND_EXPERIENCE",
+          "name": "Experience",
+          "reserved": false
         }
       ],
       "source_codes": "src/olc/hlqedit.c:hlqedit_command",

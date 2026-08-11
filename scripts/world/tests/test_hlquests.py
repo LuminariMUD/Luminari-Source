@@ -79,11 +79,11 @@ class HlQuestContractTests(unittest.TestCase):
         [command.effective_runtime_ordinal for command in give.input_commands],
     )
     self.assertEqual(
-        list(range(12)),
+        list(range(14)),
         [command.command_type for command in give.output_commands],
     )
     self.assertEqual(
-        list(range(1, 13)),
+        list(range(1, 15)),
         [command.effective_runtime_ordinal for command in give.output_commands],
     )
     self.assertGreater(give.commands[0].field_spans["value"].column, 1)

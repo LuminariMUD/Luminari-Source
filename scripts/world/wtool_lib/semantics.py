@@ -1072,6 +1072,8 @@ def _validate_hlquest_semantics(
   valid_entry_types = set(entry_types.values())
   valid_command_types = set(command_types.values())
   coin_type = command_types["QUEST_COMMAND_COINS"]
+  quest_points_type = command_types["QUEST_COMMAND_QUEST_POINTS"]
+  experience_type = command_types["QUEST_COMMAND_EXPERIENCE"]
   item_type = command_types["QUEST_COMMAND_ITEM"]
   load_types = {
       command_types["QUEST_COMMAND_LOAD_OBJECT_INROOM"],
@@ -1089,7 +1091,14 @@ def _validate_hlquest_semantics(
   open_door_type = command_types["QUEST_COMMAND_OPEN_DOOR"]
   kit_type = command_types["QUEST_COMMAND_KIT"]
   church_type = command_types["QUEST_COMMAND_CHURCH"]
-  location_unused = {coin_type, item_type, church_type, *spell_types}
+  location_unused = {
+      coin_type,
+      quest_points_type,
+      experience_type,
+      item_type,
+      church_type,
+      *spell_types,
+  }
   num_spells = _limit(manifest, "NUM_SPELLS")
   reserved_spell = _limit(manifest, "SPELL_RESERVED_DBC")
   num_classes = _limit(manifest, "NUM_CLASSES")
@@ -1223,6 +1232,22 @@ def _validate_hlquest_semantics(
                 f"{context} coin value {value} exceeds MAX_GOLD 2140000000",
                 span=value_span,
             )
+        elif command_type == quest_points_type and not -100000000 <= value <= 100000000:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM032",
+              f"{context} quest-point delta {value} is outside -100000000..100000000",
+              span=value_span,
+          )
+        elif command_type == experience_type and not 0 <= value <= 2140000000:
+          _hlquest_finding(
+              findings,
+              quest,
+              "SEM032",
+              f"{context} experience value {value} is outside 0..2140000000",
+              span=value_span,
+          )
         elif command_type in spell_types and not reserved_spell < value < num_spells:
           _hlquest_finding(
               findings,

@@ -12,7 +12,7 @@ from .rol_source import RolRecord
 
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
 _TARGET_MAX_OBJECT_SPELL_LEVEL = 34
-_PILOT_SPELL_MAP: dict[int, tuple[str, int | None]] = {
+_SOURCE_SPELL_MAP: dict[int, tuple[str, int | None]] = {
     9: ("full heal", 28),
     36: ("stone skin", 56),
     41: ("haste", 120),
@@ -22,6 +22,38 @@ _PILOT_SPELL_MAP: dict[int, tuple[str, int | None]] = {
     194: ("globe of invulnerability", 172),
     236: ("barkskin", 263),
     453: ("mud to rock", None),
+}
+
+_SOURCE_QUEST_REWARD_MAP: dict[int, tuple[str, int | None]] = {
+    72: ("meteor swarm", 74),
+    73: ("creeping doom", 292),
+    94: ("relocate", 2),
+    111: ("plane shift", 239),
+    112: ("gate", 205),
+    113: ("resurrect", 319),
+    172: ("vampiric curse", 113),
+    194: ("globe of invulnerability", 172),
+    237: ("moonwell", 443),
+    239: ("group heal", 48),
+    264: ("battle trance", 305),
+    267: ("ultrablast", None),
+    279: ("planar rift", 239),
+    285: ("globe of darkness", 93),
+    325: ("mind blank", 200),
+    327: ("dragonscales", 56),
+    329: ("sandstorm", None),
+    330: ("inferno", 293),
+    359: ("dimension shift", 239),
+    363: ("shadow walk", 392),
+    437: ("spirit walk", 392),
+    438: ("ancestral shield", 89),
+    465: ("scry remains", 294),
+    477: ("nightmare", 154),
+    483: ("elemental fire embodiment", 132),
+    484: ("elemental earth embodiment", 56),
+    504: ("time stop", 213),
+    517: ("phantasmal tendrils", 174),
+    521: ("song of recovery", 440),
 }
 
 
@@ -643,6 +675,8 @@ def _quest_command(
   line = int(directive["line"])
   direction = "I" if token == "G" else "O"
 
+  if token == "R" and subtype == "A":
+    return f"{direction} A 0 0\n", None
   if not arguments:
     return None, f"excluded incomplete {token}:{subtype} quest direction at source line {line}"
   value = arguments[0]
@@ -670,6 +704,31 @@ def _quest_command(
     return f"{direction} I {target} 0\n", None
   if token == "R" and subtype == "C":
     return f"{direction} C {value} 0\n", None
+  if token == "R" and subtype == "E":
+    return f"{direction} E {value} 0\n", None
+  if token == "R" and subtype == "P":
+    return f"{direction} P {value} 0\n", None
+  if token == "R" and subtype == "S":
+    mapped = _SOURCE_QUEST_REWARD_MAP.get(value)
+    if mapped is None:
+      return (
+          "",
+          f"omitted unmapped source spell or skill reward {value} at source line {line}",
+      )
+    source_name, target_spell = mapped
+    if target_spell is None:
+      return (
+          "",
+          f"omitted source-only quest reward {value} ({source_name}) at source line {line}; "
+          "the target has no equivalent teachable spell contract",
+      )
+    diagnostic = None
+    if value != target_spell:
+      diagnostic = (
+          f"mapped source quest reward {value} ({source_name}) to target spell "
+          f"{target_spell} at source line {line}"
+      )
+    return f"{direction} T {target_spell} 0\n", diagnostic
   if token == "R" and subtype in {"M", "O"}:
     target_kind = "mob" if subtype == "M" else "obj"
     try:
@@ -1011,7 +1070,7 @@ def _object_values(
     source_spell = values[slot]
     if source_spell <= 0:
       continue
-    mapped = _PILOT_SPELL_MAP.get(source_spell)
+    mapped = _SOURCE_SPELL_MAP.get(source_spell)
     if mapped is None:
       values[slot] = 0
       diagnostics.append(
