@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phases 0-3 and Phase 4 pilot selection complete; Phase 4 implementation in progress
+- Status: Phase 4 shops, quests, SOC, special bindings, and pilot validation in progress
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -533,16 +533,20 @@ below are planning envelopes, not delivery promises. Phase 4 must reforecast the
 remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
 import estimate is not credible enough to sum into a project total.
 
-Phases 0-3 are complete and have been removed from this active plan. Their delivered
+Phases 0-3, the Phase 4 package selection, and the pilot record/reset capability
+tranche are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, and commits are recorded in
-[RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes at Phase 4.
+[RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes with the remaining
+Phase 4 blockers and validation work.
 
 ### Phase 4: Representative vertical pilot (8-14 sessions)
 
-The evidence-based package selection and coverage proof are complete and recorded in
-[RoL-Changelog.md](RoL-Changelog.md). Convert and validate the locked pilot set while
-implementing only capabilities that block it. Run the SOC proof-of-concept here, not
-after all generic mechanics have been built.
+The evidence-based package selection plus pilot room/mobile/object/zone emitters and
+reset runtime adapters are complete and recorded in
+[RoL-Changelog.md](RoL-Changelog.md). Complete only the remaining shop, quest, SOC, and
+special-binding capabilities needed by the locked pilot. Then generate deterministic
+bundles, stage them without implicit target overwrites, and validate them. Run the SOC
+proof-of-concept here, not after all generic mechanics have been built.
 
 Each pilot receives source-oracle tests, structural validation, reset observation,
 walkthrough evidence, reference reconciliation, and explicit record actions.

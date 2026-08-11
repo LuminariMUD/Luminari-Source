@@ -5,6 +5,39 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-11 - Phase 4 pilot record and reset capabilities
+
+Status: Completed sub-milestone; Phase 4 implementation in progress
+
+### Delivered
+
+- Added semantic target emitters for selected room, mobile, object, and zone records,
+  including target-syntax parsing and structural validation fixtures.
+- Corrected the source reset oracle so numeric comment text cannot be interpreted as
+  reset arguments.
+- Added conversion and native runtime support for source base resets, legacy door
+  bitmasks and chance, follow/group/mount relationships, mobile removal, calendar
+  predicates, and chance-qualified object removal.
+- Added blocked-exit persistence and movement enforcement, plus OLC save, display,
+  export, and prototype-renumbering support for the conversion reset commands.
+- Preserved unsupported source tail equipment slots and legacy door-trap extensions as
+  explicit smallest-instruction exclusions with diagnostics instead of emitting unsafe
+  or semantically false target data.
+- Removed the completed record/reset capability work from the active Phase 4 plan and
+  scope. Shops, quests, SOC behavior, special bindings, pilot bundling, staged runtime
+  validation, walkthroughs, and the evidence-based reforecast remain active.
+
+### Acceptance evidence
+
+```text
+Delivery commits: 3a6b7602, 72c2ef24
+Focused conversion and parser tests: 44 passed
+Production CuTest suite: 598 passed
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+Live target writes: 0
+```
+
 ## 2026-08-11 - Phase 4 representative pilot selection
 
 Status: Completed sub-milestone; Phase 4 implementation in progress
@@ -39,6 +72,10 @@ SOC special action codes covered: 5 of 5
 Custom reset families covered: F, T, X
 Live target writes: 0
 ```
+
+The package lock remains in force. Numeric reset arguments, reference counts, and any
+selection totals derived from them are superseded by the source-oracle correction in
+`72c2ef24` and must be regenerated before they are cited as current evidence.
 
 ## 2026-08-11 - Phases 1-3 conversion foundation and walking skeleton
 
