@@ -5,6 +5,62 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 room, zone, and affect compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Completed symbolic ownership for every active source room flag and zone flag. All
+  53,987 room-flag observations and all 83 zone-flag observations now have traced
+  target behavior or an explicit source-only disposition.
+- Preserved source zone restrictions on each emitted room, including peaceful,
+  soundproof, no-teleport, no-magic, no-recall, and no-summon behavior. A source
+  `MAGIC_OK` room removes an inherited no-magic restriction.
+- Added bounded room compatibility for underwater sectors, arenas, no-precipitation
+  rooms, the RoL jail marker, psionic-regeneration rooms, healing rooms, and solid or
+  fire fog. Arena flags participate in arena death rules and PvP without widening the
+  target's legacy PvP VNUM range; no-precipitation rooms suppress weather without
+  suppressing daylight; psionic-regeneration rooms double positive PSP tick gain.
+- Corrected the high RoL affect-number offset and resolved 3,517 previously unmapped
+  mobile and object affect observations. The remaining 177 observations are confined
+  to seven transient or source-only affect identities awaiting explicit dispositions.
+- Rebuilt the five-zone pilot from the new converter. All 3,001 selected actions,
+  73 preserved-mobile patches, 14 shops, 181 SOC triggers, 13 special triggers, and
+  46 retained native bindings remain represented with zero live target writes.
+
+### Acceptance evidence
+
+```text
+Delivery commit: f0fb9d8f
+Full-corpus audit path: lib/rol-conversion/runs/phase5-room-zone-df35cb1f
+Full-corpus audit run: rol-phase5-audit-719a67acc4cb6b01
+Pilot build path: lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f
+Pilot build run: rol-phase4-build-e5d61111edbfcd9d
+Convertible records emitted: 69,920
+Emitted target bytes: 42,078,584
+Converter exceptions: 0
+Previous unmapped symbolic observations: 26,006
+Current unmapped symbolic observations: 17,287
+Reduction: 8,719
+Unmapped room-flag observations: 0
+Unmapped zone-flag observations: 0
+Unmapped mobile and object affect observations: 177
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 236 passed
+Production-linked CuTest suite: 607 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+make install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass addresses mobile actions, object extra flags and applies, the
+remaining item-type and wear rows, the one malformed sector, and explicit dispositions
+for the remaining transient affects.
+
 ## 2026-08-12 - Phase 5 full-corpus capability audit
 
 Status: Completed sub-milestone; Phase 5 implementation in progress

@@ -171,7 +171,6 @@ and different optional record types.
 Required work:
 
 - Remap room VNUMs, exit destinations, door keys, and all external room references.
-- Translate room flags and sectors by symbolic meaning, never by numeric position.
 - Convert descriptions, exits, extra descriptions, moving-room data, and named
   special-procedure bindings.
 - Define a documented policy for legacy length/width/height values. The target does
@@ -522,9 +521,10 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with the measured room, mobile, object, affect, apply, item-type,
-wear, and sector symbolic families from the completed full-corpus audit. The completed
-quest/SOC, rare room, object-trap, and audit checkpoints are recorded in
+Continue Phase 5 with the measured mobile-action, object extra/apply/item-type/wear,
+malformed-sector, and remaining transient-affect dispositions from the full-corpus
+audit. The completed quest/SOC, rare room, object-trap, room/zone/affect, and audit
+checkpoints are recorded in
 [RoL-Changelog.md](RoL-Changelog.md).
 Preserve the six explicit source-defect or ignored content rows as logged smallest-unit
 exclusions, then regenerate a capability-complete bundle and repeat the pilot's

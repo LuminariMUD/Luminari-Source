@@ -542,7 +542,7 @@ Phase 5.
 
 Expand by frequency, pilot blockers, and reuse:
 
-1. remaining room/mobile/object grammar and enum families;
+1. remaining mobile/object grammar and enum families;
 2. reset transforms and required missing reset mechanics;
 3. reconciled core and extended shop behavior;
 4. per-direction quest-to-HLQ contracts;

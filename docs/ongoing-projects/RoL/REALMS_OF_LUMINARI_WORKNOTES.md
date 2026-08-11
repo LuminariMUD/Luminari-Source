@@ -33,6 +33,7 @@ Phase 5 quest/SOC compatibility commit: 7bbfba3d
 Phase 5 rare room compatibility commit: e100bdff
 Phase 5 object-trap compatibility commit: 6a1ddb6d
 Phase 5 full-corpus audit commit: 51b7bd13
+Phase 5 room/zone/affect compatibility commit: f0fb9d8f
 ```
 
 The authoritative ignored runs are:
@@ -51,10 +52,10 @@ Phase 4 selection: lib/rol-conversion/runs/phase4-select-e6ea7982
                    rol-phase4-select-6f7ae16e5df665ec
 Phase 4 build: lib/rol-conversion/runs/phase4-build-e6ea7982
                rol-phase4-build-a2c341dfaa743b26
-Phase 5 room restage: lib/rol-conversion/runs/phase5-room-e100bdff
-                      rol-phase4-build-1dc8a681fa1595d5
-Phase 5 capability audit: lib/rol-conversion/runs/phase5-audit-88edf75e
-                          rol-phase5-audit-13d7727804344e9a
+Phase 5 room/zone/affect audit: lib/rol-conversion/runs/phase5-room-zone-df35cb1f
+                                rol-phase5-audit-719a67acc4cb6b01
+Phase 5 room/zone/affect pilot: lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f
+                                rol-phase4-build-e5d61111edbfcd9d
 Policy:  rol-conversion-policy-1
 ```
 
@@ -83,7 +84,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 232 tests; the production-linked CuTest suite passes 605;
+- The world-tool suite passes 236 tests; the production-linked CuTest suite passes 607;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -95,19 +96,22 @@ Policy:  rol-conversion-policy-1
   diagnostics after source runtime tracing.
 - Phase 5 now converts all 29 valid active object-trap payloads into persistent target
   object values and runtime behavior. Four empty source rows are omitted explicitly.
-  The five pilots contain no active object traps, so their verified restage remains
-  byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
-- The Phase 5 full-corpus audit emits all 69,920 convertible active records, totaling
-  42,075,289 bytes, with zero transform exceptions and zero writes. It inventories
-  26,006 unmapped symbolic observations for the remaining compatibility passes.
+  The five pilots contain no active object traps; the trap-only checkpoint's restage
+  was byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
+- The current Phase 5 full-corpus audit emits all 69,920 convertible active records,
+  totaling 42,078,584 bytes, with zero transform exceptions and zero writes. Complete
+  room and zone ownership plus corrected high affect mappings reduce unmapped symbolic
+  observations from 26,006 to 17,287. No room or zone observations remain unmapped;
+  177 transient or source-only mobile and object affect observations remain.
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
 
 ## Immediate next actions
 
-1. Resolve the measured room, mobile, object, affect, apply, item-type, wear, and sector
-   symbolic gaps by traced equivalence, bounded adapters, or explicit dispositions.
+1. Resolve the measured mobile-action, object extra/apply/item-type/wear,
+   malformed-sector, and remaining transient-affect gaps by traced equivalence, bounded
+   adapters, or explicit dispositions.
 2. Separate record-specific missing-reference repairs from reusable capability work and
    attach those repairs to their Phase 7 dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

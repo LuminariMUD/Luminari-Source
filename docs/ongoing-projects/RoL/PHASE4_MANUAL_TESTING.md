@@ -2,8 +2,8 @@
 
 - Status: Phase 4 complete
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-room-e100bdff/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-room-e100bdff/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -48,6 +48,20 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   above`. A level 14 test character and a level 14 mount must be refused; a level 15
   character without an under-level mount may enter. Portal and teleport attempts obey
   the same range.
+- At Swamp room 2040906 or 2040969, use `stat room` to confirm the underwater sector,
+  then verify the target's underwater movement and breathing rules.
+- Use `stat room` to inspect the inherited zone restrictions. Swamp Two room 2026050
+  must be no-recall, no-teleport, and no-summon; Cemetery rooms must be no-teleport and
+  no-summon; Muspel rooms must be no-recall, with additional local restrictions where
+  the source supplies them.
+- Compare normal recovery with healing rooms 2040934, 2040968, 2040969, 2040976,
+  2040996, or 2055363. Each must carry the target regeneration flag.
+- At Swamp Two room 2026051, rest or sit with a psionic character below maximum PSP.
+  Its positive PSP tick gain must be twice the equivalent gain in an otherwise normal
+  room and must not exceed maximum PSP.
+- During active precipitation, confirm that flagged Muspel rooms 2059044-2059049 do
+  not receive precipitation messages. Their daylight and room-light behavior must
+  remain independent of the weather suppression.
 
 ### Resets and spawned content
 
@@ -72,8 +86,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   churches, and spell or skill teaching where the selected quest uses them.
 - Phase 5 has added runtime support for configured experience rewards, signed quest-point
   changes, argument-free attacks, and all mapped source spell or skill rewards. Those
-  additions are built and unit-tested, but a new full-corpus Phase 5 data bundle has not
-  yet been staged for broad manual testing.
+  additions are built and unit-tested. The five-zone pilot has been restaged with the
+  current converter, but a capability-complete full-corpus Phase 5 bundle has not yet
+  been staged for broad manual testing.
 
 ### SOC actions and special procedures
 
@@ -92,6 +107,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   magic-item spells.
 - Confirm high source magic-item spell levels are capped at target level 34 and that the
   source-only `mud to rock` spell is disabled rather than mis-mapped.
+- Inspect high-number mobile and object affects in the restaged pilot. The current
+  converter uses traced RoL identities rather than treating those source values as
+  target numeric positions.
 
 Phase 5 also provides converted object-trap behavior for movement, get and put, open,
 and lock-pick events, including finite charges, area effects, status effects, damage,
@@ -104,8 +122,12 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- Random quest item rewards and remaining full-corpus symbolic mappings are Phase 5
-  work in progress.
+- Remaining mobile/object symbolic mappings and transient-affect dispositions are
+  Phase 5 work in progress. The active quest corpus uses fixed item rewards; no random
+  item-reward range remains to implement.
+- Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
+  built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
+  room, so those two behaviors cannot yet be exercised from this staged bundle.
 - The remaining source special-procedure corpus is Phase 6 work.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
