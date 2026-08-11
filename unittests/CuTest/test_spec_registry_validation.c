@@ -23,6 +23,7 @@
 #include "../../src/spec/spec_mobile_archetypes.h"
 #include "../../src/spec/spec_mobiles.h"
 #include "../../src/spec/spec_registry.h"
+#include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/spec/spec_rooms.h"
 #include "../../src/vessels/vessels_legacy.h"
 
@@ -175,8 +176,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 28, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 26, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 52, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 50, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -265,6 +266,54 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"Greyhawk Ship Commands", greyhawk_ship_commands, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
+      {"breath_attack_fire", rol_breath_attack_fire, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"hulburg_beholder_major", rol_hulburg_beholder_major, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"hulburg_beholder_minor", rol_hulburg_beholder_minor, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"money_changer", rol_money_changer, SPEC_OWNER_MOBILE, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"plant_attacks_blindness", rol_plant_attacks_blindness, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"plant_attacks_paralysis", rol_plant_attacks_paralysis, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_black_blade", rol_cemetery_black_blade, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_cloakMeteors", rol_cemetery_cloak_meteors, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_disruption", rol_cemetery_disruption, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_gleaming_blade", rol_cemetery_gleaming_blade, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_lightsaber", rol_cemetery_lightsaber, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"cemetary_skeletal_hand", rol_cemetery_skeletal_hand, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY, SPEC_BINDING_SOURCE_WORLD},
+      {"flaming_tanthorian", rol_flaming_tanthorian, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"longsword_tanthorian", rol_longsword_tanthorian, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"murlynds_spoon", rol_murlynds_spoon, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_COMMAND | SPEC_EVENT_ITEM_IDENTIFY, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_bec_de_corbin", rol_muspel_bec_de_corbin, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_crystal_scimitar", rol_muspel_crystal_scimitar, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_dagger_whispers", rol_muspel_dagger_whispers, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_dragon_lance", rol_muspel_dragon_lance, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_duergar_battlehammer", rol_muspel_duergar_battlehammer, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_recurve_bow", rol_muspel_recurve_bow, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"muspel_spider_dagger", rol_muspel_spider_dagger, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_WEAPON_HIT, SPEC_BINDING_SOURCE_WORLD},
+      {"obj_drain", rol_obj_drain, SPEC_OWNER_OBJECT, SPEC_EVENT_OBJECT_AUTO_PULSE,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"thorn_shield", rol_thorn_shield, SPEC_OWNER_OBJECT,
+       SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_DEFENSE_REACTION, SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
   size_t definition_index;

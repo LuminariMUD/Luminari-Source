@@ -10,6 +10,7 @@
 #include "../../src/obj/vendor.h"
 #include "../../src/olc/spec_menu.h"
 #include "../../src/spec/spec_registry.h"
+#include "../../src/spec/spec_rol_pilot.h"
 #include "../../src/vessels/vessels_legacy.h"
 #include "test_spec_fixtures.h"
 
@@ -429,12 +430,36 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "Vampire Cloak",
                                                "Wizard Library",
                                                "Greyhawk Ship",
-                                               "Greyhawk Ship Commands"};
+                                               "Greyhawk Ship Commands",
+                                               "breath_attack_fire",
+                                               "hulburg_beholder_major",
+                                               "hulburg_beholder_minor",
+                                               "money_changer",
+                                               "plant_attacks_blindness",
+                                               "plant_attacks_paralysis",
+                                               "cemetary_black_blade",
+                                               "cemetary_cloakMeteors",
+                                               "cemetary_disruption",
+                                               "cemetary_gleaming_blade",
+                                               "cemetary_lightsaber",
+                                               "cemetary_skeletal_hand",
+                                               "flaming_tanthorian",
+                                               "longsword_tanthorian",
+                                               "murlynds_spoon",
+                                               "muspel_bec_de_corbin",
+                                               "muspel_crystal_scimitar",
+                                               "muspel_dagger_whispers",
+                                               "muspel_dragon_lance",
+                                               "muspel_duergar_battlehammer",
+                                               "muspel_recurve_bow",
+                                               "muspel_spider_dagger",
+                                               "obj_drain",
+                                               "thorn_shield"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 29, expected_count);
+  CuAssertIntEquals(tc, 53, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -474,8 +499,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "Greyhawk Ship Commands", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == greyhawk_ship_commands);
+  CuAssertStrEquals(tc, "thorn_shield", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_thorn_shield);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

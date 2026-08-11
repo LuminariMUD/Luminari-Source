@@ -26,14 +26,56 @@ struct spec_owner_expected_view
 };
 
 static const char *const spec_mobile_names[] = {
-    "Bank",         "Bounty Missions",   "Bulk Identify", "Buy Armor",    "Buy Weapons",
-    "Cryogenicist", "Guild Guard",       "Guild",         "Hunts Master", "Identify Mob",
-    "Janitor",      "New Supply Orders", "Player Shop",   "Postmaster",   "Practice Dummy",
-    "Questmaster",  "Receptionist",      "Temple Healer",
+    "Bank",
+    "Bounty Missions",
+    "Bulk Identify",
+    "Buy Armor",
+    "Buy Weapons",
+    "Cryogenicist",
+    "Guild Guard",
+    "Guild",
+    "Hunts Master",
+    "Identify Mob",
+    "Janitor",
+    "New Supply Orders",
+    "Player Shop",
+    "Postmaster",
+    "Practice Dummy",
+    "Questmaster",
+    "Receptionist",
+    "Temple Healer",
+    "breath_attack_fire",
+    "hulburg_beholder_major",
+    "hulburg_beholder_minor",
+    "money_changer",
+    "plant_attacks_blindness",
+    "plant_attacks_paralysis",
 };
 
 static const char *const spec_object_names[] = {
-    "Bank", "Crafting Kit", "Pet Object", "Vampire Cloak", "Greyhawk Ship",
+    "Bank",
+    "Crafting Kit",
+    "Pet Object",
+    "Vampire Cloak",
+    "Greyhawk Ship",
+    "cemetary_black_blade",
+    "cemetary_cloakMeteors",
+    "cemetary_disruption",
+    "cemetary_gleaming_blade",
+    "cemetary_lightsaber",
+    "cemetary_skeletal_hand",
+    "flaming_tanthorian",
+    "longsword_tanthorian",
+    "murlynds_spoon",
+    "muspel_bec_de_corbin",
+    "muspel_crystal_scimitar",
+    "muspel_dagger_whispers",
+    "muspel_dragon_lance",
+    "muspel_duergar_battlehammer",
+    "muspel_recurve_bow",
+    "muspel_spider_dagger",
+    "obj_drain",
+    "thorn_shield",
 };
 
 static const char *const spec_room_names[] = {
@@ -298,7 +340,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "19", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "25", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,
