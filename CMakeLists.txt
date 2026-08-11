@@ -920,11 +920,15 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/quests.py
     scripts/world/wtool_lib/reporting.py
     scripts/world/wtool_lib/rol_baseline.py
+    scripts/world/wtool_lib/rol_capability_audit.py
     scripts/world/wtool_lib/rol_discovery.py
     scripts/world/wtool_lib/rol_inventory.py
     scripts/world/wtool_lib/rol_planner.py
     scripts/world/wtool_lib/rol_pilot.py
+    scripts/world/wtool_lib/rol_pilot_build.py
     scripts/world/wtool_lib/rol_skeleton.py
+    scripts/world/wtool_lib/rol_soc.py
+    scripts/world/wtool_lib/rol_special.py
     scripts/world/wtool_lib/rol_source.py
     scripts/world/wtool_lib/rol_transform.py
     scripts/world/wtool_lib/rooms.py
@@ -948,12 +952,15 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_quests.py
     scripts/world/tests/test_reporting.py
     scripts/world/tests/test_rol_baseline.py
+    scripts/world/tests/test_rol_capability_audit.py
     scripts/world/tests/test_rol_discovery.py
     scripts/world/tests/test_rol_inventory.py
     scripts/world/tests/test_rol_planner.py
     scripts/world/tests/test_rol_pilot.py
+    scripts/world/tests/test_rol_pilot_build.py
     scripts/world/tests/test_rol_skeleton.py
     scripts/world/tests/test_rol_source.py
+    scripts/world/tests/test_rol_transform.py
     scripts/world/tests/test_rooms.py
     scripts/world/tests/test_semantics.py
     scripts/world/tests/test_shops.py
