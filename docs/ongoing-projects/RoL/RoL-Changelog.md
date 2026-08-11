@@ -26,6 +26,9 @@ Status: Completed sub-milestone; Phase 4 implementation in progress
 - Removed the completed record/reset capability work from the active Phase 4 plan and
   scope. Shops, quests, SOC behavior, special bindings, pilot bundling, staged runtime
   validation, walkthroughs, and the evidence-based reforecast remain active.
+- Regenerated Phase 1, Phase 2, and pilot-selection evidence after the reset-oracle
+  correction. All package, record, reference, binding, coverage, and action totals
+  remained unchanged.
 
 ### Acceptance evidence
 
@@ -35,6 +38,10 @@ Focused conversion and parser tests: 44 passed
 Production CuTest suite: 598 passed
 Autotools build and install: passed
 Root-level circle build artifact after install: absent
+Corrected Phase 1 run: rol-phase1-1c287d5073293f7c
+Corrected Phase 2 run: rol-phase2-39a6d6d253950dff
+Corrected selection run: rol-phase4-select-6f7ae16e5df665ec
+Regenerated artifact hash failures: 0
 Live target writes: 0
 ```
 
@@ -62,8 +69,9 @@ Status: Completed sub-milestone; Phase 4 implementation in progress
 
 ```text
 Delivery commits: fe523532, a0b54009
-Run directory: lib/rol-conversion/runs/phase4-select-fe523532
-Run ID: rol-phase4-select-821d842548312f9f
+Evidence refresh revision: e6ea7982
+Run directory: lib/rol-conversion/runs/phase4-select-e6ea7982
+Run ID: rol-phase4-select-6f7ae16e5df665ec
 Packages selected: 5
 Records selected and planned: 3,001 of 3,001
 Selection coverage checks: 9 of 9
@@ -73,9 +81,10 @@ Custom reset families covered: F, T, X
 Live target writes: 0
 ```
 
-The package lock remains in force. Numeric reset arguments, reference counts, and any
-selection totals derived from them are superseded by the source-oracle correction in
-`72c2ef24` and must be regenerated before they are cited as current evidence.
+This run supersedes `rol-phase4-select-821d842548312f9f`. The corrected source reset
+arguments changed the canonical record/action payload hashes but did not change the
+locked packages, selected records, reference totals, binding totals, coverage checks,
+or action counts.
 
 ## 2026-08-11 - Phases 1-3 conversion foundation and walking skeleton
 
@@ -106,8 +115,9 @@ Status: Completed; Phase 4 not started
 
 ```text
 Delivery commits: e6101445, 0c3753ee
-Run directory: lib/rol-conversion/runs/phase1-0c3753ee
-Run ID: rol-phase1-d1957e3cf91b8aa2
+Evidence refresh revision: e6ea7982
+Run directory: lib/rol-conversion/runs/phase1-e6ea7982
+Run ID: rol-phase1-1c287d5073293f7c
 Active records with candidate or explicit absence: 71,680 of 71,680
 Dependency closure complete: yes
 Source parse complete: yes
@@ -132,9 +142,10 @@ Target parse complete: no, preserved pre-existing baseline
 
 ```text
 Delivery commit: 0c3753ee
-Run directory: lib/rol-conversion/runs/phase2-0c3753ee
-Run ID: rol-phase2-befefd85d1ceee35
-Discovery input: rol-phase1-d1957e3cf91b8aa2
+Evidence refresh revision: e6ea7982
+Run directory: lib/rol-conversion/runs/phase2-e6ea7982
+Run ID: rol-phase2-39a6d6d253950dff
+Discovery input: rol-phase1-1c287d5073293f7c
 Records planned: 71,680 of 71,680
 Final actions: 71,680 of 71,680
 Emission-ready KEEP/EXCLUDE records: 2,464

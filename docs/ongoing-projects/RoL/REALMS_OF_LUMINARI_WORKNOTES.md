@@ -28,16 +28,15 @@ The authoritative ignored runs are:
 ```text
 Phase 0: lib/rol-conversion/runs/phase0-1619ccd8
          rol-phase0-02a84b2da28503c1
-Phase 1: lib/rol-conversion/runs/phase1-0c3753ee
-         rol-phase1-d1957e3cf91b8aa2
-Phase 2: lib/rol-conversion/runs/phase2-0c3753ee
-         rol-phase2-befefd85d1ceee35
+Phase 1: lib/rol-conversion/runs/phase1-e6ea7982
+         rol-phase1-1c287d5073293f7c
+Phase 2: lib/rol-conversion/runs/phase2-e6ea7982
+         rol-phase2-39a6d6d253950dff
 Phase 3: lib/rol-conversion/runs/phase3-a5419818-a
          lib/rol-conversion/runs/phase3-a5419818-b
          rol-phase3-11336f1832d8765c
-Phase 4 selection (superseded numeric evidence):
-                   lib/rol-conversion/runs/phase4-select-fe523532
-                   rol-phase4-select-821d842548312f9f
+Phase 4 selection: lib/rol-conversion/runs/phase4-select-e6ea7982
+                   rol-phase4-select-6f7ae16e5df665ec
 Policy:  rol-conversion-policy-1
 ```
 
@@ -60,24 +59,23 @@ Policy:  rol-conversion-policy-1
   focused conversion/parser suite passes 44 tests; the production CuTest suite passes
   598 tests; and `make install` leaves no root-level `circle` artifact.
 - The source reset oracle no longer treats numeric comment text as reset arguments.
-  Consequently, the prior Phase 4 selection run remains evidence for the package lock
-  but its numeric reset/reference totals must be regenerated before further use.
+  The corrected Phase 1, Phase 2, and selection runs retain every headline count and
+  coverage check; all 29 listed artifacts pass independent hash verification.
 
 ## Immediate next actions
 
 The locked selection is `swamp_two`, `hulburg`, `muspel`, `theswamp`, and `cemetery`.
 It covers all five SOC modes, all five special SOC action codes, all three custom
 `F/T/X` reset families, uncommon object/room extensions, a confirmed-lineage
-settlement, and a compact conventional-reset oracle. Regenerate its source-oracle and
-selection totals after `72c2ef24` before citing numeric evidence.
+settlement, and a compact conventional-reset oracle. The corrected run
+`rol-phase4-select-6f7ae16e5df665ec` is the current numeric evidence.
 
-1. Regenerate Phase 1, Phase 2, and pilot-selection evidence with the corrected parser.
-2. Implement only the shop, quest, SOC, and special-procedure capabilities that block
+1. Implement only the shop, quest, SOC, and special-procedure capabilities that block
    these five packages.
-3. Generate and stage deterministic pilot bundles with explicit record actions.
-4. Run source-oracle, structural, reset-observation, walkthrough, reference, and
+2. Generate and stage deterministic pilot bundles with explicit record actions.
+3. Run source-oracle, structural, reset-observation, walkthrough, reference, and
    record-action evidence for each pilot.
-5. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
+4. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
    and review throughput.
 
 Do not start broad Phase 5+ capability or corpus work before the Phase 4 pilot and its
