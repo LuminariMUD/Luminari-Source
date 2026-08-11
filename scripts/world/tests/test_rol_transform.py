@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
 from wtool_lib.constants import default_repo_root, load_manifest
+from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_rol_source_file
 from wtool_lib.rol_transform import (
     convert_text,
     emit_mobile,
+    emit_hlquest,
     emit_object,
     emit_room,
     emit_shop,
@@ -177,6 +180,79 @@ class RolTransformTests(unittest.TestCase):
     emitted = emit_shop(source, 2_000_300, _resolver)
     lines = emitted.text.splitlines()
     self.assertEqual("32", lines[-8])
+
+  def test_emitted_hlquest_preserves_runtime_direction_order(self) -> None:
+    source = self._source_record(
+        "qst",
+        b"#300\nM\nquestion~\nanswer~\nQ\ncomplete\n~\n"
+        b"G\nI 201\nG\nI 201\nG\nC 5000000\n"
+        b"R\nI 202\nR\nC 25\nD\nvanishes\n~\nS\n",
+    )
+    emitted = emit_hlquest(source, 2_000_300, _resolver)
+    path = self._target_path("hlq", emitted.text)
+    result = parse_hlquest_file(path, "hlq/20000.hlq", self.manifest)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    record = result.records[0]
+    self.assertEqual(2_000_300, record.host_mobile_vnum)
+    self.assertTrue(all(entry.approved for entry in record.entries))
+    give = record.entries[1]
+    self.assertEqual([2_000_201, 2_000_201, 5000000], [item.value for item in give.commands[:3]])
+    self.assertEqual(["C", "I", "D"], [item.code for item in give.output_commands])
+    self.assertIn("vanishes", give.reply_message)
+
+  def test_selected_pilot_quests_all_emit_valid_target_records(self) -> None:
+    selection = self.root / "lib/rol-conversion/runs/phase4-select-e6ea7982"
+    actions = [
+        json.loads(line)
+        for line in (selection / "pilot-actions.jsonl").read_text(encoding="ascii").splitlines()
+    ]
+    identities = [
+        json.loads(line)
+        for line in (
+            self.root / "lib/rol-conversion/runs/phase2-e6ea7982/identity-map.jsonl"
+        ).read_text(encoding="ascii").splitlines()
+    ]
+    identity_map = {
+        (row["source_kind"], row["source_vnum"]): row["destination_vnum"]
+        for row in identities
+    }
+    selected = {
+        (row["basename"], row["source_vnum"]): row["destination_vnum"]
+        for row in actions
+        if row["source_kind"] == "qst" and row["action"] == "ADD"
+    }
+
+    def resolver(kind: str, vnum: int) -> int:
+      source_kind = {"wld": "wld", "mob": "mob", "obj": "obj"}[kind]
+      return identity_map[(source_kind, vnum)]
+
+    emitted_count = 0
+    for basename in sorted({basename for basename, _ in selected}):
+      source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/qst/{basename}.qst"
+      records, corpus = parse_rol_source_file(
+          source_path, f"areas/qst/{basename}.qst", "qst", basename
+      )
+      self.assertTrue(corpus.complete)
+      text = ""
+      for record in records:
+        destination = selected.get((basename, record.vnum))
+        if destination is None:
+          continue
+        converted = emit_hlquest(record, destination, resolver)
+        self.assertFalse(any("excluded" in item for item in converted.diagnostics))
+        text += converted.text
+        emitted_count += 1
+      temporary = tempfile.TemporaryDirectory()
+      self.addCleanup(temporary.cleanup)
+      target_path = Path(temporary.name) / f"{basename}.hlq"
+      target_path.write_text(text + "$~\n", encoding="ascii", newline="\n")
+      result = parse_hlquest_file(target_path, f"hlq/{basename}.hlq", self.manifest)
+      self.assertTrue(result.complete)
+      self.assertEqual([], result.findings)
+
+    self.assertEqual(57, emitted_count)
 
   def test_selected_pilot_shops_all_emit_valid_target_records(self) -> None:
     cases = (("hulburg", 100_000), ("muspel", 2_000_000))

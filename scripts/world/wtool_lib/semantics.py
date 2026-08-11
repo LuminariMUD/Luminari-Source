@@ -1215,14 +1215,13 @@ def _validate_hlquest_semantics(
                 f"{context} coin value {value} must be non-negative",
                 span=value_span,
             )
-          elif value > 100000:
+          elif value > 2140000000:
             _hlquest_finding(
                 findings,
                 quest,
                 "SEM032",
-                f"{context} coin value {value} exceeds the editor maximum 100000",
-                "warning",
-                value_span,
+                f"{context} coin value {value} exceeds MAX_GOLD 2140000000",
+                span=value_span,
             )
         elif command_type in spell_types and not reserved_spell < value < num_spells:
           _hlquest_finding(

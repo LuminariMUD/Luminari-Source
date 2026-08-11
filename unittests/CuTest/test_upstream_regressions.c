@@ -11,11 +11,41 @@
 #include "../../src/character/class.h"
 #include "../../src/dgscript/dg_olc.h"
 #include "../../src/net/protocol.h"
+#include "../../src/quest/hlquest.h"
 #include "../../src/wilderness/terrain_bridge.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+void Test_hlquest_exact_coin_and_duplicate_item_contracts(CuTest *tc)
+{
+  struct char_data quest_mob;
+  struct quest_entry quest;
+  struct quest_command first;
+  struct quest_command second;
+
+  memset(&quest_mob, 0, sizeof(quest_mob));
+  memset(&quest, 0, sizeof(quest));
+  memset(&first, 0, sizeof(first));
+  memset(&second, 0, sizeof(second));
+
+  GET_GOLD(&quest_mob) = 500;
+  CuAssertTrue(tc, hlquest_consume_coins(&quest_mob, 125));
+  CuAssertIntEquals(tc, 375, GET_GOLD(&quest_mob));
+  CuAssertTrue(tc, !hlquest_consume_coins(&quest_mob, 400));
+  CuAssertIntEquals(tc, 375, GET_GOLD(&quest_mob));
+  CuAssertTrue(tc, !hlquest_consume_coins(&quest_mob, -1));
+
+  first.type = QUEST_COMMAND_ITEM;
+  first.value = 1234;
+  first.next = &second;
+  second.type = QUEST_COMMAND_ITEM;
+  second.value = 1234;
+  quest.in = &first;
+  CuAssertIntEquals(tc, 2, hlquest_required_item_count(&quest, 1234));
+  CuAssertIntEquals(tc, 0, hlquest_required_item_count(&quest, 9999));
+}
 
 void Test_partial_output_writes_preserve_buffer_accounting(CuTest *tc)
 {

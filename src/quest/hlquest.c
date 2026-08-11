@@ -676,6 +676,30 @@ void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword)
   }
 }
 
+bool hlquest_consume_coins(struct char_data *quest_mob, int amount)
+{
+  if (!quest_mob || amount < 0 || GET_GOLD(quest_mob) < amount)
+    return FALSE;
+
+  GET_GOLD(quest_mob) -= amount;
+  return TRUE;
+}
+
+int hlquest_required_item_count(const struct quest_entry *quest, int object_vnum)
+{
+  const struct quest_command *qcom;
+  int required = 0;
+
+  if (!quest)
+    return 0;
+
+  for (qcom = quest->in; qcom; qcom = qcom->next)
+    if (qcom->type == QUEST_COMMAND_ITEM && qcom->value == object_vnum)
+      required++;
+
+  return required;
+}
+
 /* this function will determine whether the quest-out will fire when
  * the quest mob receives items/coins
  */
@@ -685,6 +709,7 @@ void quest_give(struct char_data *ch, struct char_data *victim)
   struct quest_command *qcom = NULL;
   bool fullfilled = FALSE;
   struct obj_data *obj = NULL;
+  int available;
 
   if (!ch || !victim)
     return;
@@ -710,14 +735,21 @@ void quest_give(struct char_data *ch, struct char_data *victim)
           switch (qcom->type)
           {
           case QUEST_COMMAND_COINS:
-            if (GET_GOLD(victim) < qcom->value)
+            if (qcom->value < 0 || GET_GOLD(victim) < qcom->value)
               fullfilled = FALSE;
             break;
           case QUEST_COMMAND_ITEM:
             /* if object doesn't exist, we can't ask for it */
             if (NOTHING == real_object(qcom->value))
-              continue;
-            if (!get_obj_in_list_num(real_object(qcom->value), victim->carrying))
+            {
+              fullfilled = FALSE;
+              break;
+            }
+            available = 0;
+            for (obj = victim->carrying; obj; obj = obj->next_content)
+              if (GET_OBJ_RNUM(obj) == real_object(qcom->value))
+                available++;
+            if (available < hlquest_required_item_count(quest, qcom->value))
               fullfilled = FALSE;
             break;
           }
@@ -731,14 +763,14 @@ void quest_give(struct char_data *ch, struct char_data *victim)
           switch (qcom->type)
           {
           case QUEST_COMMAND_COINS:
-            GET_GOLD(victim) = 0;
+            hlquest_consume_coins(victim, qcom->value);
             break;
           case QUEST_COMMAND_ITEM:
             obj = get_obj_in_list_num(real_object(qcom->value), victim->carrying);
             if (obj)
             {
               obj_from_char(obj);
-              obj_to_room(obj, real_room(1));
+              extract_obj(obj);
             }
             break;
           }

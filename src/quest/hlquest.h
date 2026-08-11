@@ -66,6 +66,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg);
 void boot_the_quests(FILE *quest_f, char *filename, int rec_count);
 void quest_ask(struct char_data *ch, struct char_data *victim, char *keyword);
 void quest_give(struct char_data *ch, struct char_data *victim);
+bool hlquest_consume_coins(struct char_data *quest_mob, int amount);
+int hlquest_required_item_count(const struct quest_entry *quest, int object_vnum);
 void quest_room(struct char_data *ch);
 bool is_object_in_a_quest(struct obj_data *obj);
 void hlqedit_save_to_disk(zone_rnum zone_num);

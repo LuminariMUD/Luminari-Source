@@ -618,13 +618,13 @@ class SemanticTests(unittest.TestCase):
       return self.hlquest_findings(entry)
 
     coin = command_types["QUEST_COMMAND_COINS"]
-    for value in (0, 100000):
+    for value in (0, 100000, 2140000000):
       self.assertNotIn("SEM032", {item.code for item in findings(hlq_command(coin, value, 0))})
     self.assertIn("SEM032", {item.code for item in findings(hlq_command(coin, -1, 0))})
     high_coin = next(
-        item for item in findings(hlq_command(coin, 100001, 0)) if item.code == "SEM032"
+        item for item in findings(hlq_command(coin, 2140000001, 0)) if item.code == "SEM032"
     )
-    self.assertEqual("warning", high_coin.severity)
+    self.assertEqual("error", high_coin.severity)
 
     for macro in ("QUEST_COMMAND_TEACH_SPELL", "QUEST_COMMAND_CAST_SPELL"):
       command_type = command_types[macro]

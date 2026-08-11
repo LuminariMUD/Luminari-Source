@@ -146,7 +146,7 @@ first-match and execution behavior in the runtime view.
 
 | Code | `value` contract | `location` contract |
 |------|------------------|---------------------|
-| `C` | Non-negative coins; HLQEDIT maximum is 100000. Runtime output also obeys `MAX_GOLD`. | Unused; canonical value is `0`. |
+| `C` | Non-negative coins through `MAX_GOLD` (2140000000). | Unused; canonical value is `0`. |
 | `I` | Existing object VNUM. | Unused; canonical value is `0`. |
 | `O` | Existing object VNUM. | Existing room VNUM, or `0` for the current room. |
 | `M` | Existing mobile VNUM. | Existing room VNUM, or `0` for the current room. |
@@ -166,10 +166,11 @@ values up to a wider editor constant, but runtime execution indexes the
 smaller `NUM_SPELLS` table. The validator uses the runtime-safe range as the
 error boundary.
 
-Coin values above 100000 are warnings because they are outside the editor's
-contract but remain non-negative. Negative coins, unsafe spell or class
-indexes, invalid directions, missing door exits, invalid churches, and
-negative load locations are errors. Unused nonzero parameters are warnings.
+Coin values above `MAX_GOLD`, negative coins, unsafe spell or class indexes,
+invalid directions, missing door exits, invalid churches, and negative load
+locations are errors. Unused nonzero parameters are warnings. GIVE completion
+consumes the exact configured coin amount and counts repeated ITEM inputs as
+separate required copies.
 
 ## Typed References
 

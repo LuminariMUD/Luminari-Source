@@ -657,8 +657,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   case HLQEDIT_IN_COIN:
     number = atoi(arg);
-    if (number < 0 || number > 100000)
-      send_to_char(d->character, "Invalid choice! (0-100000)\r\n");
+    if (number < 0 || number > MAX_GOLD)
+      send_to_char(d->character, "Invalid choice! (0-%d)\r\n", MAX_GOLD);
     else
     {
       OLC_QUESTENTRY(d)->in->value = number;
@@ -813,8 +813,8 @@ void hlqedit_parse(struct descriptor_data *d, char *arg)
 
   case HLQEDIT_OUT_COIN:
     number = atoi(arg);
-    if (number < 0 || number > 100000)
-      send_to_char(d->character, "That is not a valid choice! (0 - 100000)\r\n");
+    if (number < 0 || number > MAX_GOLD)
+      send_to_char(d->character, "That is not a valid choice! (0 - %d)\r\n", MAX_GOLD);
     else
     {
       OLC_QCOM(d)->value = number;

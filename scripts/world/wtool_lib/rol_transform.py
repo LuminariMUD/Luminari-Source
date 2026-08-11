@@ -604,6 +604,129 @@ def emit_shop(
   return TransformResult("".join(lines), diagnostics)
 
 
+def _quest_command(
+    directive: dict[str, object],
+    resolve: IdentityResolver,
+) -> tuple[str | None, str | None]:
+  token = str(directive["token"])
+  subtype = str(directive.get("subtype", ""))
+  arguments = [int(value) for value in directive.get("arguments", [])]
+  line = int(directive["line"])
+  direction = "I" if token == "G" else "O"
+
+  if not arguments:
+    return None, f"excluded incomplete {token}:{subtype} quest direction at source line {line}"
+  value = arguments[0]
+  location = arguments[1] if len(arguments) > 1 else 0
+
+  if token == "G" and subtype == "I":
+    return f"{direction} I {resolve('obj', value)} 0\n", None
+  if token == "G" and subtype == "C":
+    return f"{direction} C {value} 0\n", None
+  if token == "R" and subtype == "I":
+    if location > value and location - value < 100:
+      return (
+          None,
+          f"excluded random item reward {value}-{location} at source line {line}; "
+          "the target HLQ item command has no range contract",
+      )
+    return f"{direction} I {resolve('obj', value)} 0\n", None
+  if token == "R" and subtype == "C":
+    return f"{direction} C {value} 0\n", None
+  if token == "R" and subtype in {"M", "O"}:
+    target_kind = "mob" if subtype == "M" else "obj"
+    target_value = resolve(target_kind, value)
+    target_location = resolve("wld", location) if location > 0 else 0
+    return f"{direction} {subtype} {target_value} {target_location}\n", None
+  return (
+      None,
+      f"excluded unsupported {token}:{subtype} quest direction at source line {line}",
+  )
+
+
+def emit_hlquest(
+    record: RolRecord,
+    destination_vnum: int,
+    resolve: IdentityResolver,
+) -> TransformResult:
+  """Compile one source quest-host block into canonical target HLQ entries."""
+
+  diagnostics: list[str] = []
+  entries: list[tuple[int, str, dict[str, object] | list[dict[str, object]]]] = []
+  current_completion: list[dict[str, object]] | None = None
+  resolved_host = resolve("mob", record.vnum)
+  if resolved_host != destination_vnum:
+    diagnostics.append(
+        f"quest action destination {destination_vnum} differs from resolved host "
+        f"{resolved_host}; used the resolved host identity"
+    )
+
+  for directive in record.directives:
+    token = str(directive["token"])
+    if token == "M":
+      entries.append((int(directive["line"]), "M", directive))
+    elif token == "Q":
+      current_completion = [directive]
+      entries.append((int(directive["line"]), "Q", current_completion))
+    elif token in {"G", "R", "D"}:
+      if current_completion is None:
+        diagnostics.append(
+            f"excluded {token} quest direction before any completion at source line "
+            f"{directive['line']}"
+        )
+      else:
+        current_completion.append(directive)
+
+  lines = [f"#{resolved_host}\n"]
+  for _, entry_type, payload in sorted(entries, key=lambda item: item[0]):
+    if entry_type == "M":
+      assert isinstance(payload, dict)
+      keyword, text_diagnostics = _tilde(str(payload.get("keyword", "")))
+      diagnostics.extend(text_diagnostics)
+      message, text_diagnostics = _tilde(str(payload.get("message", "")))
+      diagnostics.extend(text_diagnostics)
+      lines.extend(["A!\n", keyword, message])
+      continue
+
+    assert isinstance(payload, list)
+    completion = payload[0]
+    reply = str(completion.get("message", ""))
+    disappear_messages = [
+        str(directive.get("message", ""))
+        for directive in payload[1:]
+        if directive["token"] == "D"
+    ]
+    if disappear_messages:
+      reply += "".join(disappear_messages)
+      diagnostics.append(
+          f"folded {len(disappear_messages)} disappear message(s) into the completion "
+          f"reply at source line {completion['line']}"
+      )
+    reply_text, text_diagnostics = _tilde(reply)
+    diagnostics.extend(text_diagnostics)
+    lines.extend(["Q!\n", reply_text])
+
+    inputs = [directive for directive in payload[1:] if directive["token"] == "G"]
+    rewards = [directive for directive in payload[1:] if directive["token"] == "R"]
+    for directive in inputs:
+      command, command_diagnostic = _quest_command(directive, resolve)
+      if command is not None:
+        lines.append(command)
+      if command_diagnostic is not None:
+        diagnostics.append(command_diagnostic)
+    for directive in reversed(rewards):
+      command, command_diagnostic = _quest_command(directive, resolve)
+      if command is not None:
+        lines.append(command)
+      if command_diagnostic is not None:
+        diagnostics.append(command_diagnostic)
+    if disappear_messages:
+      lines.append("O D 0 0\n")
+    lines.append("S\n")
+
+  return TransformResult("".join(lines), diagnostics)
+
+
 def _exit_flags(source_flags: int) -> int:
   is_door = bool(source_flags & 0x1FF)
   pickproof = bool(source_flags & (1 << 8))
