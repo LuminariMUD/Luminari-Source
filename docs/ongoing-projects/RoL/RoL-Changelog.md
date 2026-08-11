@@ -5,6 +5,54 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 full-corpus capability audit
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Added `rol-capability-audit`, a deterministic, non-mutating pass over every active
+  record and every Phase 2 disposition. It reparses the authoritative physical source,
+  verifies the Phase 2 bundle, emits every non-SOC record that is not already excluded,
+  inventories symbolic values, and records transform diagnostics and exceptions.
+- Emitted all 69,920 convertible records, representing 42,075,289 bytes of target text,
+  with zero converter exceptions and zero live target writes.
+- Reconciled the source quest runtime's optional second `R:I` integer against all 1,467
+  active item-reward directions. No active direction supplies a random-object range;
+  every active item reward is a fixed VNUM. The unsupported hypothetical form therefore
+  blocks no active content.
+- Quantified 26,006 as-yet-unmapped symbolic observations across room, mobile, object,
+  affect, apply, item-type, wear, and sector families. These are now exact owned Phase 5
+  work rather than unmeasured pilot risk.
+- Repaired the Automake/CMake world-tool source manifests to include the Phase 4 build,
+  SOC, special-procedure, transform-test, and pilot-build modules added by earlier
+  checkpoints, and kept the new audit modules synchronized in both build systems.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 51b7bd13
+Audit run: rol-phase5-audit-13d7727804344e9a
+Active source records: 71,680
+Final Phase 2 dispositions: 71,680
+Convertible records emitted: 69,920
+SOC records deferred to the Phase 6 reconciler: 1,754
+Locked malformed record exclusions: 6
+Emitted target bytes: 42,075,289
+Converter exceptions: 0
+Active qst R:I directions: 1,467
+Active random item-reward ranges: 0
+Unmapped symbolic observations: 26,006
+Complete world-tool suite: 234 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Live target writes: 0
+```
+
+The next Phase 5 pass resolves the measured symbolic families by traced equivalence,
+bounded compatibility adapters, or explicit smallest-unit dispositions. Record-specific
+missing references remain attached to their Phase 7 packages rather than being mistaken
+for generic converter failures.
+
 ## 2026-08-12 - Phase 5 object-trap compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
@@ -54,8 +102,7 @@ Autotools build and install: passed
 Root-level circle build artifact after install: absent
 ```
 
-The next Phase 5 compatibility pass begins with random quest item-reward `R:I`
-ranges and a full-corpus dry build for symbolic values not exercised by the pilot.
+The next Phase 5 compatibility pass begins with the full-corpus symbolic-value audit.
 
 ## 2026-08-12 - Phase 5 rare room extension compatibility
 

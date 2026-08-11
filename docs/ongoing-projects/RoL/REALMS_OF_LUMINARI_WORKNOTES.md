@@ -32,6 +32,7 @@ Phase 4 runtime validation commit: 3fe7015f
 Phase 5 quest/SOC compatibility commit: 7bbfba3d
 Phase 5 rare room compatibility commit: e100bdff
 Phase 5 object-trap compatibility commit: 6a1ddb6d
+Phase 5 full-corpus audit commit: 51b7bd13
 ```
 
 The authoritative ignored runs are:
@@ -52,6 +53,8 @@ Phase 4 build: lib/rol-conversion/runs/phase4-build-e6ea7982
                rol-phase4-build-a2c341dfaa743b26
 Phase 5 room restage: lib/rol-conversion/runs/phase5-room-e100bdff
                       rol-phase4-build-1dc8a681fa1595d5
+Phase 5 capability audit: lib/rol-conversion/runs/phase5-audit-88edf75e
+                          rol-phase5-audit-13d7727804344e9a
 Policy:  rol-conversion-policy-1
 ```
 
@@ -94,14 +97,20 @@ Policy:  rol-conversion-policy-1
   object values and runtime behavior. Four empty source rows are omitted explicitly.
   The five pilots contain no active object traps, so their verified restage remains
   byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
+- The Phase 5 full-corpus audit emits all 69,920 convertible active records, totaling
+  42,075,289 bytes, with zero transform exceptions and zero writes. It inventories
+  26,006 unmapped symbolic observations for the remaining compatibility passes.
+- All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
+  engine's optional random-range upper bound is unused by active content and blocks no
+  record.
 
 ## Immediate next actions
 
-1. Run a full-corpus dry build to inventory unobserved symbolic flag, spell, skill,
-   command, race, item, and sector values.
-2. Resolve random `qst:R:I` reward ranges in the full-corpus quest pass, then implement
-   any remaining functional capability rows exposed by the dry build.
-3. Preserve the five excluded/ignored source-defect rows as explicit, logged
+1. Resolve the measured room, mobile, object, affect, apply, item-type, wear, and sector
+   symbolic gaps by traced equivalence, bounded adapters, or explicit dispositions.
+2. Separate record-specific missing-reference repairs from reusable capability work and
+   attach those repairs to their Phase 7 dependency-closure batches.
+3. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
 4. Regenerate a deterministic capability-complete bundle and repeat structural,
    syntax-boot, isolated behavioral, reset, and walkthrough gates.

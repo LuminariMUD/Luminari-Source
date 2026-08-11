@@ -522,10 +522,10 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with random `R:I` reward ranges in the full-corpus quest pass, then
-run the full-corpus symbolic-value dry build. The completed quest/SOC, rare room, and
-object-trap compatibility checkpoints are recorded in
+Continue Phase 5 with the measured room, mobile, object, affect, apply, item-type,
+wear, and sector symbolic families from the completed full-corpus audit. The completed
+quest/SOC, rare room, object-trap, and audit checkpoints are recorded in
 [RoL-Changelog.md](RoL-Changelog.md).
-Preserve the five explicit source-defect or ignored content rows as logged smallest-unit
+Preserve the six explicit source-defect or ignored content rows as logged smallest-unit
 exclusions, then regenerate a capability-complete bundle and repeat the pilot's
 structural and runtime gates before beginning Phase 6.
