@@ -1,6 +1,6 @@
-# World Validator, Lookup, and RoL Inventory CLI
+# World Validator, Lookup, and RoL Reconciliation CLI
 
-`wtool` is the standalone validator, lookup, and source-inventory utility for
+`wtool` is the standalone validator, lookup, source-inventory, and RoL baseline utility for
 LuminariMUD flat world data. It parses the same eight formats used by the server
 without starting the game, connecting to MariaDB, or compiling `circle`:
 
@@ -14,9 +14,9 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - high-level quests (`.hlq`)
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. The only writing command is the explicit maintainer operation
-`constants sync --write`, which replaces the checked-in derived constants
-manifest; it never writes world data.
+are read-only. `rol-baseline` writes a new, explicit evidence directory but
+never writes the source corpus or target world. The maintainer operation
+`constants sync --write` replaces the checked-in derived constants manifest.
 
 ## Requirements and Entry Point
 
@@ -27,7 +27,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.3.0`.
+The current release reports `wtool 0.4.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -66,6 +66,12 @@ The tool follows a staged pipeline:
 The RoL inventory path reuses the byte-preserving source reader for source
 manifest lines and zone headers. It then hashes and classifies physical files
 without invoking a source or target game runtime.
+
+The RoL baseline path hashes target indexes and files, reproduces the source
+aggregate builder byte for byte, checks typed candidate ranges in world, code,
+and database stores, captures full target diagnostics, and writes a unique
+evidence bundle. Its versioned policy is
+`scripts/world/rol_conversion_policy.json`.
 
 `scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
 extractor reads explicit C tables and bounded define blocks instead of broad
@@ -141,6 +147,46 @@ No timestamp, modification time, absolute in-repository path, or directory
 enumeration order enters the payload. Identical bytes therefore produce
 identical human and JSON output. The command never creates an aggregate,
 repairs a companion, or writes source data.
+
+## Realms of Luminari Phase 0 Baseline
+
+Generate the complete Phase 0 evidence bundle against the writable
+development target:
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-baseline \
+  --source-root EXAMPLE/RealmsOfLuminari \
+  --output-dir lib/rol-conversion/runs/phase0-YYYYMMDD \
+  --database-config lib/mysql_config
+```
+
+The output directory must not already exist. Generated runs are ignored by
+Git because their inventories and diagnostics describe builder-owned world
+data. The command reads database credentials only when `--database-config` is
+given, never includes them in output, and identifies the database by a SHA-256
+digest of its host/database pair. A complete range-reservation gate requires
+database evidence.
+
+Use `--created-at` with an ISO-8601 timestamp when reproducing a run manifest
+with a controlled creation time. All other artifact content is derived from
+input bytes, policy, tool version, source revision, or target revision.
+
+The bundle contains:
+
+| Path | Evidence |
+|------|----------|
+| `run-manifest.json` | Run identity, revisions, policy, artifact hashes, and acceptance summary |
+| `source-inventory.json` | Active source manifests, packages, hashes, and exclusions |
+| `target-inventory.json` | Target indexes, hashes, missing entries, and orphaned files |
+| `source-aggregate-reconciliation.json` | Exact per-kind rebuild and aggregate comparison |
+| `collision-evidence.json` | Typed world, code-binding, and database range checks |
+| `policies.json` | The exact versioned conversion policy used by the run |
+| `validation/baseline.json` | Full `validate --all` result, finding identities, and parse state |
+
+The aggregate comparison mirrors the source C reader, including its behavior
+of dropping an unterminated final fragment. It records the path, size, and
+hash of each such fragment rather than silently treating a naive
+concatenation as authoritative.
 
 ## Validation Modes
 

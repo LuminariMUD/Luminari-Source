@@ -1,0 +1,71 @@
+{
+  "apply": {
+    "allow_world_writes": true,
+    "implicit_overwrite": false,
+    "permitted_actions": [
+      "KEEP",
+      "PATCH",
+      "ADD",
+      "MERGE",
+      "EXCLUDE"
+    ],
+    "repeat_application": "no-op"
+  },
+  "behavior": {
+    "resolution_order": [
+      "equivalent_luminari_behavior",
+      "clear_source_intent",
+      "obvious_source_repair",
+      "smallest_unit_exclusion"
+    ],
+    "unknown_or_ambiguous_syntax": "stop_emission",
+    "unsafe_behavior": "never_reproduce"
+  },
+  "bundle": {
+    "required_paths": [
+      "run-manifest.json",
+      "source-inventory.json",
+      "target-inventory.json",
+      "source-aggregate-reconciliation.json",
+      "collision-evidence.json",
+      "policies.json",
+      "validation/baseline.json"
+    ],
+    "staging": "unique_run_directory",
+    "world_output": "output/world"
+  },
+  "encoding": {
+    "character_set": "ASCII",
+    "line_endings": "LF",
+    "serialization": "canonical_sorted_json"
+  },
+  "identity": {
+    "new_entity_range": {
+      "end": 2999999,
+      "offset": 2000000,
+      "start": 2000000
+    },
+    "new_zone_range": {
+      "end": 29999,
+      "offset": 20000,
+      "start": 20000
+    },
+    "resolution_order": [
+      "confirmed_target_lineage",
+      "deterministic_merge_or_exception",
+      "reserved_new_allocation",
+      "smallest_unit_exclusion"
+    ]
+  },
+  "policy_version": "rol-conversion-policy-1",
+  "quest": {
+    "approval_marker": "!",
+    "builder_approval_required": false
+  },
+  "schema_version": 1,
+  "scope": {
+    "active_dependency_closure_only": true,
+    "disabled_unlisted_nonworking": "excluded_without_conversion_analysis",
+    "excluded_dependency": "disable_and_log_smallest_dependent_instruction"
+  }
+}

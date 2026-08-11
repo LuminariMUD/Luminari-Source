@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 
-TOOL_VERSION = "0.3.0"
+TOOL_VERSION = "0.4.0"
 JSON_SCHEMA_VERSION = 1
 
 

@@ -163,6 +163,12 @@ and legacy QST grammar, malformed recovery, all HLQ entry/command types,
 physical versus runtime order, reference roles, semantic boundaries, lookup
 aliases, and unchanged JSON for the original six record types.
 
+RoL baseline tests cover exact source aggregate reconstruction, including the
+source C reader's unterminated-tail behavior, deterministic target index/hash
+inventory, missing and orphaned target paths, and the versioned conversion
+policy. Live database collision evidence is an operational Phase 0 gate and
+is not exercised against CI credentials.
+
 Equivalent CMake and CTest entry points are:
 
 ```sh
@@ -205,7 +211,7 @@ bundles. CI cannot validate the ignored builder-owned files under the live
 `lib/world/` type directories; a green workflow verifies the parser, fixtures,
 constants, documentation, and wrapper contracts only. See the
 [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for validation,
-lookup, RoL inventory, JSON, and exit-status usage, and the
+lookup, RoL inventory and baseline evidence, JSON, and exit-status usage, and the
 [QST](../world_game-data/QUEST_FILE_FORMAT.md) and
 [HLQ](../world_game-data/HLQUEST_FILE_FORMAT.md) references for their exact
 test contracts.

@@ -447,6 +447,7 @@ src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 world_tool_sources = \
 	scripts/world/wtool.py \
 	scripts/world/wtool_constants.json \
+	scripts/world/rol_conversion_policy.json \
 	scripts/world/wtool_lib/__init__.py \
 	scripts/world/wtool_lib/cli.py \
 	scripts/world/wtool_lib/config.py \
@@ -462,6 +463,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/parsing.py \
 	scripts/world/wtool_lib/quests.py \
 	scripts/world/wtool_lib/reporting.py \
+	scripts/world/wtool_lib/rol_baseline.py \
 	scripts/world/wtool_lib/rol_inventory.py \
 	scripts/world/wtool_lib/rooms.py \
 	scripts/world/wtool_lib/semantics.py \
@@ -483,6 +485,7 @@ world_tool_sources = \
 	scripts/world/tests/test_objects.py \
 	scripts/world/tests/test_quests.py \
 	scripts/world/tests/test_reporting.py \
+	scripts/world/tests/test_rol_baseline.py \
 	scripts/world/tests/test_rol_inventory.py \
 	scripts/world/tests/test_rooms.py \
 	scripts/world/tests/test_semantics.py \

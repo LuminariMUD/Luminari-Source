@@ -21,7 +21,7 @@ class LookupTests(unittest.TestCase):
       self.assertEqual("", stderr)
       payload = json.loads(stdout)
       self.assertEqual(1, payload["schema_version"])
-      self.assertEqual("0.3.0", payload["tool_version"])
+      self.assertEqual("0.4.0", payload["tool_version"])
       self.assertEqual("quest", payload["record_type"])
       self.assertEqual("Test Quest", payload["matches"][0]["name"])
       self.assertEqual(100, payload["matches"][0]["questmaster_vnum"])
@@ -210,7 +210,7 @@ class LookupTests(unittest.TestCase):
         self.assertEqual("", stderr)
         payload = json.loads(stdout)
         self.assertEqual(1, payload["schema_version"])
-        self.assertEqual("0.3.0", payload["tool_version"])
+        self.assertEqual("0.4.0", payload["tool_version"])
         actual[payload["record_type"]] = payload["matches"][0]
       self.assertEqual(expected, actual)
 

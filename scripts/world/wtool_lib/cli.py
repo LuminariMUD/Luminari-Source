@@ -32,6 +32,7 @@ from .lookup import (
 )
 from .models import JSON_SCHEMA_VERSION, TOOL_VERSION
 from .reporting import exit_status, render_human, render_json
+from .rol_baseline import render_rol_baseline_human, write_baseline_bundle
 from .rol_inventory import build_rol_inventory, render_rol_inventory_human
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
@@ -113,6 +114,15 @@ def _parser() -> argparse.ArgumentParser:
       help="inventory Realms of Luminari source manifests and data files",
   )
   rol_inventory.add_argument("--source-root", type=Path, default=_default_rol_source_root())
+
+  rol_baseline = commands.add_parser(
+      "rol-baseline",
+      help="write Realms of Luminari Phase 0 source and target evidence",
+  )
+  rol_baseline.add_argument("--source-root", type=Path, default=_default_rol_source_root())
+  rol_baseline.add_argument("--output-dir", type=Path, required=True)
+  rol_baseline.add_argument("--database-config", type=Path)
+  rol_baseline.add_argument("--created-at")
   return parser
 
 
@@ -353,6 +363,31 @@ def _run_rol_inventory(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_baseline(args: argparse.Namespace) -> int:
+  source_root = args.source_root.resolve()
+  world_root = args.world_root.resolve()
+  if not source_root.is_dir():
+    raise ConfigError(f"requested RoL source root is inaccessible: {source_root}")
+  if not world_root.is_dir():
+    raise ConfigError(f"requested world root is inaccessible: {world_root}")
+  database_config = args.database_config.resolve() if args.database_config is not None else None
+  if database_config is not None and not database_config.is_file():
+    raise ConfigError(f"requested database configuration is inaccessible: {database_config}")
+  summary = write_baseline_bundle(
+      source_root,
+      world_root,
+      args.output_dir,
+      default_repo_root(),
+      database_config=database_config,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_baseline_human(summary))
+  return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -371,6 +406,8 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_docs(args)
     if args.command == "rol-inventory":
       return _run_rol_inventory(args)
+    if args.command == "rol-baseline":
+      return _run_rol_baseline(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

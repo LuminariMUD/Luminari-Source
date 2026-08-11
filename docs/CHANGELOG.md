@@ -2,6 +2,30 @@
 
 ## [Unreleased] - August 11, 2026
 
+### Realms of Luminari Phase 0 baseline
+
+#### Added
+
+- Added `wtool rol-baseline`, which writes a unique source/target evidence
+  bundle without modifying either input tree.
+- Added deterministic target index and file hashing, exact source aggregate
+  reconstruction, full baseline validation capture, typed candidate-range
+  checks across world definitions and VNUM-related code, and optional
+  credential-safe database collision evidence.
+- Added the versioned `rol-conversion-policy-1` contract for active scope,
+  behavior fallback, identity reservation, staging, bundle contents, explicit
+  record actions, apply behavior, encoding, and HLQ pre-approval.
+- Added tests for active-order aggregate reconstruction, unterminated source
+  tails, target indexed/missing/orphan classification, deterministic output,
+  and policy loading.
+
+#### Changed
+
+- Bumped `wtool` to 0.4.0 while retaining schema version 1 for existing
+  validation and lookup payloads and using a dedicated Phase 0 schema version.
+- Ignored `lib/rol-conversion/` so generated evidence can contain hashes and
+  diagnostics for builder-owned world data without exposing that data in Git.
+
 ### Realms of Luminari source inventory
 
 #### Added

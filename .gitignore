@@ -306,6 +306,9 @@ lib/world/*/index
 lib/world/*/index.mini
 lib/world/*/index.backup
 
+# Generated RoL reconciliation runs contain ignored world-data evidence.
+lib/rol-conversion/
+
 # EXCEPTION: Keep minimal world files (required for deployment)
 !lib/world/minimal/
 !lib/world/minimal/*

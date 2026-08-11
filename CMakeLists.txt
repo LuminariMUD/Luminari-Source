@@ -902,6 +902,7 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 set(WORLD_TOOL_SOURCES
     scripts/world/wtool.py
     scripts/world/wtool_constants.json
+    scripts/world/rol_conversion_policy.json
     scripts/world/wtool_lib/__init__.py
     scripts/world/wtool_lib/cli.py
     scripts/world/wtool_lib/config.py
@@ -917,6 +918,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/parsing.py
     scripts/world/wtool_lib/quests.py
     scripts/world/wtool_lib/reporting.py
+    scripts/world/wtool_lib/rol_baseline.py
     scripts/world/wtool_lib/rol_inventory.py
     scripts/world/wtool_lib/rooms.py
     scripts/world/wtool_lib/semantics.py
@@ -938,6 +940,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/tests/test_objects.py
     scripts/world/tests/test_quests.py
     scripts/world/tests/test_reporting.py
+    scripts/world/tests/test_rol_baseline.py
     scripts/world/tests/test_rol_inventory.py
     scripts/world/tests/test_rooms.py
     scripts/world/tests/test_semantics.py
