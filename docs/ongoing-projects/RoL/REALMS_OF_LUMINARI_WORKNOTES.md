@@ -3,58 +3,66 @@
 - Updated: 2026-08-11
 - Environment: development
 - Branch: `master`
-- Current task: Phase 1 grammar, typed dependency, binding, and lineage discovery
+- Current task: Phase 4 representative vertical pilot, not started
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 
 ## Current committed checkpoint
 
-The Phase 0 evidence implementation is committed and pushed at `1619ccd8`.
-The authoritative local baseline run is:
+Phases 0-3 are implemented, committed, and pushed:
 
 ```text
-Run ID: rol-phase0-02a84b2da28503c1
-Run directory: lib/rol-conversion/runs/phase0-1619ccd8
-Target revision: 1619ccd869934b8e0eeadd1effca91f3088e347c
-Source revision: 3f57e70c45327335187fd123c991388e8bab2661
-Policy: rol-conversion-policy-1
+Phase 0 baseline commit: 1619ccd8
+Phase 0 checkpoint commit: 57f29005
+Phase 1 grammar commit: e6101445
+Phase 1/2 discovery and planning commit: 0c3753ee
+Phase 3 walking-skeleton commit: a5419818
 ```
 
-The run directory is intentionally ignored because its 17 MB validation payload and
-world hashes describe builder-owned data. All six artifact hashes listed in
-`run-manifest.json` were independently rechecked after generation.
+The authoritative ignored runs are:
+
+```text
+Phase 0: lib/rol-conversion/runs/phase0-1619ccd8
+         rol-phase0-02a84b2da28503c1
+Phase 1: lib/rol-conversion/runs/phase1-0c3753ee
+         rol-phase1-d1957e3cf91b8aa2
+Phase 2: lib/rol-conversion/runs/phase2-0c3753ee
+         rol-phase2-befefd85d1ceee35
+Phase 3: lib/rol-conversion/runs/phase3-a5419818-a
+         lib/rol-conversion/runs/phase3-a5419818-b
+         rol-phase3-11336f1832d8765c
+Policy:  rol-conversion-policy-1
+```
 
 ## Current evidence state
 
-- All seven source aggregates reproduce byte for byte from the active per-area files.
-- The target inventory has 3,738 files: 3,352 indexed, 386 orphaned, and no missing
-  normal-index entry.
-- Candidate entity range `2000000-2999999` and zone range `20000-29999` have no
-  typed world, VNUM-binding, or database collision. Fifty numeric database VNUM
-  columns were checked.
-- The target baseline has 41,468 pre-existing findings: 3,849 errors, 37,413 warnings,
-  and 206 info findings. Parse completeness is false and is preserved as evidence.
-- The source C aggregate builder drops unterminated tails in `bloodtusk.soc`,
-  `swift.obj`, and `derro.qst`; the reconciliation report records their hashes.
-- `make test-world-tools` and the CMake `test-world-tools` target pass all 183 tests.
-- Documentation validation is clean.
-
-## Remaining Phase 0 exit-gate item
-
-Resolve the active dependency closure from grammar-aware typed references and traced
-source/target bindings. This work is shared with Phase 1; disabled and unlisted content
-must not enter the record ledger unless an active target dependency is independently
-owned by the target world.
+- Phase 0 reproduces all seven source aggregates byte for byte, reserves the candidate
+  entity and zone ranges across world, code, and 50 database columns, and freezes the
+  41,468-finding pre-existing target baseline.
+- Phase 1 parses all 71,680 active records and 420,124 directives, types 355,042
+  references, owns the full active dependency closure, inventories runtime and
+  persistent bindings, and gives all 89 capabilities a disposition.
+- Phase 2 gives every active record a final action: 68,146 `ADD`, 2,458 `KEEP`, 1,070
+  `MERGE`, and six `EXCLUDE`, with zero live target writes.
+- Phase 3 preserves Jotun source zone 960 as target zone 1960 through a real `KEEP`,
+  stages the complete target, validates equivalence, applies twice with zero writes,
+  and proves the authoritative target tree is unchanged.
+- The two controlled Phase 3 runs have identical manifests, all 12 hashed artifacts
+  are byte-identical, and both produce run ID `rol-phase3-11336f1832d8765c`.
+- The Python world-tool suite passes all 198 tests and documentation validation is
+  clean. The selected target baseline remains pre-existing and parse-incomplete; Phase
+  3 adds no finding.
 
 ## Immediate next actions
 
-1. Implement source-located typed parsers and normalized records for all seven active
-   RoL kinds, preserving every observed token and malformed edge case.
-2. Reconcile parser counts and build order against the exact active aggregates.
-3. Extract typed references and classify missing/excluded dependencies.
-4. Inventory target definitions plus code, configuration, database, and special-procedure
-   bindings by type.
-5. Seed lineage candidates without automatic overwrite decisions, then emit the
-   record-action and capability discovery ledgers.
+1. Select the representative 3-5 package Phase 4 pilot set from measured Phase 1/2
+   evidence.
+2. Cover conventional resets, a shop/quest settlement, SOC modes, custom resets, and
+   significant special-procedure dependencies across that set.
+3. Implement only the capabilities that block the pilot packages.
+4. Run source-oracle, structural, reset-observation, walkthrough, reference, and
+   record-action evidence for each pilot.
+5. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
+   and review throughput.
 
-Do not begin Phase 4 pilot work. Phase 2 planning/bundle foundations and the single
-Phase 3 walking skeleton must be accepted first.
+Do not start broad Phase 5+ capability or corpus work before the Phase 4 pilot and its
+evidence-based reforecast are complete.

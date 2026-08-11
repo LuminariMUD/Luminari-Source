@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Implementation underway
+- Status: Phases 0-3 complete; Phase 4 not started
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -303,8 +303,8 @@ CANDIDATE_NEW_ENTITY_OFFSET = 2000000
 CANDIDATE_NEW_ZONE_OFFSET   =   20000
 ```
 
-Its assessed span was empty on 2026-08-11, but Phase 0 must reserve it against the
-current development target. Revalidate it before every batch and again at apply time.
+Its assessed span was empty and reserved against the development target on 2026-08-11.
+Revalidate it before every batch and again at apply time.
 Collision discovery must cover world records, zone ranges, hardcoded assignments,
 configuration, and persistent database references that participate at runtime.
 
@@ -533,56 +533,9 @@ below are planning envelopes, not delivery promises. Phase 4 must reforecast the
 remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
 import estimate is not credible enough to sum into a project total.
 
-### Phase 0: Active dependency closure (remaining)
-
-1. Resolve the active source/target dependency closure through the typed grammar and
-   binding discovery performed in Phase 1. Exclude non-working content once, without
-   deeper conversion analysis.
-
-Exit gate: another operator can reproduce the source and target inventory evidence,
-active dependency closure, exclusions, and every locked policy without asking for
-authority or product input.
-
-### Phase 1: Grammar, dependency, and lineage discovery (6-9 sessions)
-
-1. Inventory grammar versions, directives, terminators, headers, and reset streams.
-2. Trace room, mobile, object, zone, shop, quest, SOC, and reference semantics.
-3. Inventory the development target and hardcoded/persistent bindings by type.
-4. Seed and verify target-lineage candidates, including prior special-procedure ports.
-5. Build the typed reference graph, record-action ledger, and capability matrix.
-6. Finalize the active/target dependency closure and minimally disable references whose
-   only source target is excluded.
-7. Reconcile per-area inputs against source aggregates as a regression oracle.
-
-Exit gate: every in-scope token is known; every active record has candidates or an
-explicit absence; engineering owns every identity and behavior resolution.
-
-### Phase 2: Reconciliation and conversion foundation (5-7 sessions)
-
-1. Establish converter structure, fixtures, deterministic logging, and schemas.
-2. Implement typed parsers and normalized intermediate representations.
-3. Implement lineage scoring without automatic destructive decisions.
-4. Implement the identity resolver, typed graph, collision checks, and hard failures.
-5. Implement `KEEP/PATCH/ADD/MERGE/EXCLUDE` plans and provenance reports.
-6. Implement isolated output, index/terminator support, and validation
-   command integration.
-
-Exit gate: the complete selected corpus parses, target candidates are reportable, and
-the system can plan changes without guessing or writing to the live target.
-
-### Phase 3: End-to-end walking skeleton (2-4 sessions)
-
-Select one small package with a credible prior-lineage match and uncomplicated runtime
-behavior. Exercise inventory -> parse -> reconcile -> map -> bundle -> stage -> validate.
-Demonstrate:
-
-- preservation of an existing mapped identity;
-- a real `KEEP` or bounded `PATCH` action;
-- `ADD` only if an actually absent record exists;
-- deterministic second-run output;
-- no change after applying the same planned bundle twice.
-
-Exit gate: the delivery path works end to end without overwriting builder-owned data.
+Phases 0-3 are complete and have been removed from this active plan. Their delivered
+scope, run identities, counts, acceptance evidence, and commits are recorded in
+[RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes at Phase 4.
 
 ### Phase 4: Representative vertical pilot (8-14 sessions)
 
@@ -821,17 +774,3 @@ The locked active conversion scope is complete only when:
 
 No unresolved decision or `BLOCKED` action is permitted at completion. Engineering must
 trace it to a final action or apply the locked smallest-unit fallback.
-
-## First implementation session
-
-The first session establishes the active-scope and writable-development inventories,
-not an emitter. Its single objective is to produce the exact deterministic input set for
-conversion.
-
-It produces source and target hash manifests, active source-list and aggregate input roots,
-one-time excluded counts, target index coverage, baseline diagnostics, candidate-range
-collision evidence, and an independently verified lineage seed containing the examples
-above.
-
-The next session begins grammar-aware inventory immediately after these reproducibility
-artifacts pass their checks; no authority, rights, builder, or product decision remains.

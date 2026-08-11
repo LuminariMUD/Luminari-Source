@@ -5,9 +5,118 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-11 - Phases 1-3 conversion foundation and walking skeleton
+
+Status: Completed; Phase 4 not started
+
+### Phase 1 delivered
+
+- Added grammar-aware parsers for every active `zon`, `wld`, `mob`, `obj`, `shp`,
+  `qst`, and `soc` source record, including loader defaults, compact syntax, typed
+  references, known source defects, and smallest-unit exclusions.
+- Parsed 71,680 active records, classified 420,124 directives, and extracted 355,042
+  typed references. Source parsing completed with 113 warnings and six explicit
+  malformed-record exclusions rather than silent data loss.
+- Produced a complete owned dependency graph: 239,051 active-source resolutions,
+  112,708 exact target resolutions, 100 target-lineage candidates, 2,547 source-command
+  resolutions, 237 sentinels, 25 excluded-source resolutions, and 374 explicit
+  smallest-dependent-instruction exclusions for otherwise unresolved references.
+- Inventoried 1,017 commands, five SOC special action codes, 1,234 active source
+  special-procedure bindings, 50 numeric persistent VNUM columns containing 6,286
+  distinct values, and 89 capability rows. Every capability and reference received an
+  engineering-owned disposition.
+- Reconciled all seven source aggregates byte for byte and accepted the two semantic
+  tail differences only through their exact Phase 0 loss evidence. Confirmed three
+  prior-lineage packages through a documented seed plus broad formula and normalized
+  identity evidence.
+
+### Phase 1 acceptance evidence
+
+```text
+Delivery commits: e6101445, 0c3753ee
+Run directory: lib/rol-conversion/runs/phase1-0c3753ee
+Run ID: rol-phase1-d1957e3cf91b8aa2
+Active records with candidate or explicit absence: 71,680 of 71,680
+Dependency closure complete: yes
+Source parse complete: yes
+Source aggregate semantics reconciled: yes
+Persistent bindings captured: yes
+Capability dispositions owned: 89 of 89
+Target parse complete: no, preserved pre-existing baseline
+```
+
+### Phase 2 delivered
+
+- Added verified Phase 2 action planning with canonical identity maps, capability rows,
+  apply-oriented change plans, schemas, collision hard failures, deterministic reserved
+  allocations, and zero live target writes.
+- Assigned a final action to all 71,680 active records: 68,146 `ADD`, 2,458 `KEEP`,
+  1,070 `MERGE`, zero `PATCH`, and six `EXCLUDE` actions.
+- Preserved ambiguous target candidates and allocated them in the reserved range rather
+  than patching a possible lineage match. Confirmed lineage was limited to the three
+  packages meeting the measured evidence threshold.
+
+### Phase 2 acceptance evidence
+
+```text
+Delivery commit: 0c3753ee
+Run directory: lib/rol-conversion/runs/phase2-0c3753ee
+Run ID: rol-phase2-befefd85d1ceee35
+Discovery input: rol-phase1-d1957e3cf91b8aa2
+Records planned: 71,680 of 71,680
+Final actions: 71,680 of 71,680
+Emission-ready KEEP/EXCLUDE records: 2,464
+Live target writes: 0
+```
+
+### Phase 3 delivered
+
+- Added `wtool rol-skeleton` and exercised the complete inventory, parse,
+  reconciliation, identity, bundle, staging, validation, and apply path for the
+  smallest confirmed prior-lineage zone slice.
+- Selected source zone 960 from the Jotun package and preserved confirmed target zone
+  1960 with a real hash-guarded `KEEP`. No `ADD` was needed or attempted.
+- Copied the complete development world into isolated staging, validated the selected
+  package with the same target grammar configuration, and proved zero new findings.
+- Applied the action twice. Both applies performed zero writes, retained the exact
+  target file hash, and left the 3,808-file authoritative tree hash unchanged.
+- Repeated the operational run independently with the same controlled creation time.
+  Both manifests and all 12 hashed artifacts were byte-identical and produced the same
+  deterministic run ID.
+
+### Phase 3 acceptance evidence
+
+```text
+Delivery commit: a5419818
+Run directories: lib/rol-conversion/runs/phase3-a5419818-a
+                 lib/rol-conversion/runs/phase3-a5419818-b
+Run ID: rol-phase3-11336f1832d8765c
+Plan input: rol-phase2-befefd85d1ceee35
+Action: KEEP zon/1960.zon
+First apply writes: 0; no-op: yes
+Second apply writes: 0; no-op: yes
+Authoritative target tree unchanged: yes
+Staged validation equals target validation: yes
+New validation findings: 0
+Independent-run artifacts byte-identical: 12 of 12
+Builder-owned files written: 0
+Python suite: 198 tests passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+```
+
+The selected target baseline remains parse-incomplete with five pre-existing errors
+and 112 warnings. Those findings occur equally in the authoritative and staged results;
+the walking skeleton does not waive, hide, or add to them.
+
+### Active boundary after this milestone
+
+The active plans now begin at Phase 4. No representative vertical pilot, runtime
+capability rollout, special-procedure port, broad corpus batch, or live world mutation
+was started as part of Phases 1-3.
+
 ## 2026-08-11 - Phase 0 baseline evidence foundation
 
-Status: Completed milestone; typed dependency closure remains active
+Status: Completed milestone; typed dependency closure subsequently completed in Phase 1
 
 ### Delivered
 
@@ -65,9 +174,8 @@ python3 scripts/world/wtool.py --world-root lib/world rol-baseline \
   --created-at 2026-08-11T00:00:00+03:00
 ```
 
-The output directory must be unique. Phase 1 must still parse and type every active
-reference and source/runtime binding before the Phase 0 dependency-closure exit gate
-is satisfied.
+The output directory must be unique. Phase 1 subsequently parsed and typed every active
+reference and source/runtime binding, satisfying the Phase 0 dependency-closure gate.
 
 ### Delivery commit
 
@@ -132,9 +240,10 @@ offending manifest lines.
 - `380eb353` - permanent documentation and verification coverage
 - `e94a9a07` - final handoff record
 
-### Remaining project boundary
+### Subsequent project boundary
 
 This milestone inventories source build-list membership. The later Phase 0 baseline
 milestone completed target inventory, diagnostics, aggregate regression, range
-reservation, and policy versioning. Grammar-token inventory, typed dependency closure,
-lineage reconciliation, and the conversion pipeline remain active in the two plans.
+reservation, and policy versioning. Phases 1-3 subsequently completed grammar-token
+inventory, typed dependency closure, lineage reconciliation, deterministic planning,
+and the no-clobber walking skeleton; Phase 4 remains active in the two plans.

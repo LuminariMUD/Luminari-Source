@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Implementation underway
+- Status: Phases 0-3 complete; Phase 4 not started
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -454,18 +454,15 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 0 | Remaining typed active dependency closure | concurrent with Phase 1 |
-| 1 | Source grammar, target lineage, typed graph, action/capability ledgers | 6-9 |
-| 2 | Parsers, IR, reconciliation, identity, bundles, and validation | 5-7 |
-| 3 | Walking skeleton: reuse, idempotency, and no-clobber behavior | 2-4 |
 | 4 | Representative 3-5 package vertical pilot and evidence-based reforecast | 8-14 |
 | 5 | Shared record, reset, shop, quest, SOC, trap, and extension capabilities | 12-24 provisional |
 | 6 | Reconcile/reuse/patch/port special procedures | 12-40 provisional |
 | 7 | Action-based batches, zone QA, and validation bundles | 20-60 provisional |
 | 8 | Isolated integration, development apply, and documentation | 5-8 |
 
-The Phase 3 walking skeleton must precede broad runtime work. The Phase 4 pilot should
-then include:
+Completed Phases 0-3 have been removed from this active scope; their delivery and
+acceptance evidence is in [RoL-Changelog.md](RoL-Changelog.md). The Phase 4 pilot should
+include:
 
 - one simple zone with only conventional resets;
 - one shop- and quest-heavy settlement;
@@ -537,8 +534,6 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Begin Phase 1 grammar, typed-reference, binding, and lineage discovery, completing the
-remaining Phase 0 dependency closure from the same evidence. Then establish the
-deterministic planner and prove one walking-skeleton package. The later 3-5 package
-pilot begins only in Phase 4 and produces the first evidence-based forecast without
-another decision round.
+Begin the Phase 4 representative 3-5 package vertical pilot. It must produce the first
+evidence-based architecture and effort reforecast from measured reuse, ambiguity,
+runtime gaps, and review throughput. Phase 4 has not started in the current checkpoint.
