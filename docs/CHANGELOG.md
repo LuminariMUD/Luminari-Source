@@ -2,6 +2,22 @@
 
 ## [Unreleased] - August 11, 2026
 
+### Realms of Luminari Phase 3 walking skeleton
+
+#### Added
+
+- Added `wtool rol-skeleton`, which verifies a Phase 2 bundle and exercises the
+  full inventory, reconciliation, identity, bundle, staging, validation, and
+  apply path for a confirmed prior-lineage `KEEP`.
+- Added deterministic target-tree manifests, stable staged validation evidence,
+  two hash-guarded zero-write apply reports, no-clobber acceptance gates, and
+  unit coverage for repeatability and unsafe target paths.
+
+#### Changed
+
+- Registered the Phase 3 implementation and tests in both Autotools and CMake
+  world-tool manifests and documented the operational two-run proof.
+
 ### Realms of Luminari grammar discovery and action planning
 
 #### Added

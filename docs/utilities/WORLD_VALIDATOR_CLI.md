@@ -14,9 +14,9 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - high-level quests (`.hlq`)
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. `rol-baseline`, `rol-discover`, and `rol-plan` write new, explicit
-evidence directories but
-never writes the source corpus or target world. The maintainer operation
+are read-only. `rol-baseline`, `rol-discover`, `rol-plan`, and `rol-skeleton`
+write new, explicit evidence directories but never write the source corpus or
+target world. The maintainer operation
 `constants sync --write` replaces the checked-in derived constants manifest.
 
 ## Requirements and Entry Point
@@ -80,7 +80,9 @@ persistent VNUM values, generates non-destructive lineage candidates, and record
 an owned capability disposition for every observed construct. The Phase 2 planner
 verifies those artifacts before assigning every active record a deterministic
 `KEEP`, `PATCH`, `ADD`, `MERGE`, or `EXCLUDE` action. Neither command writes
-`lib/world/`.
+`lib/world/`. The Phase 3 walking skeleton verifies a confirmed `KEEP`, copies
+the target into an isolated staging tree, validates both trees with the same
+configuration, and proves two applies are zero-write no-ops.
 
 `scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
 extractor reads explicit C tables and bounded define blocks instead of broad
@@ -237,6 +239,31 @@ formula and exact-identity evidence may confirm non-destructive `KEEP` lineage.
 Ambiguous candidates are never patched: the planner preserves them and assigns a
 collision-checked reserved `ADD` identity. Duplicate source identities become
 deterministic `MERGE` actions, and known malformed records become `EXCLUDE` actions.
+
+## Realms of Luminari Phase 3 Walking Skeleton
+
+Exercise the complete no-clobber delivery path for the smallest confirmed
+prior-lineage zone slice:
+
+```sh
+python3 scripts/world/wtool.py --world-root lib/world rol-skeleton \
+  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
+  --output-dir lib/rol-conversion/runs/phase3-REVISION
+```
+
+The default `--basename jotun` selects the confirmed source zone 960 to target
+zone 1960 `KEEP`. The command verifies the Phase 2 artifact hashes and target
+file precondition, inventories the target tree, creates an isolated full staging
+copy, and validates both trees for the selected package with identical grammar
+configuration. It then applies the real `KEEP` action twice. Both applies must
+perform zero writes, the authoritative target tree hash must remain unchanged,
+and staged validation must add no findings.
+
+Use a different `--basename` only when the Phase 2 reconciliation contains
+exactly one confirmed zone `KEEP` for that package. The output directory must
+not exist. `--created-at` controls only the manifest timestamp; with the same
+inputs and timestamp, independent runs produce byte-identical evidence artifacts
+and the same run ID.
 
 ## Validation Modes
 

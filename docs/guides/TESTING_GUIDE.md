@@ -176,6 +176,13 @@ actions, reserved identity allocation, collision failures, and complete
 non-writing action ledgers. Operational discovery captures live persistent
 VNUM bindings only when an explicit database configuration is supplied.
 
+RoL walking-skeleton tests cover deterministic target-tree inventories, unsafe
+path rejection, hash-guarded `KEEP` preconditions, and repeatable zero-write
+applies. The operational Phase 3 gate additionally runs the command twice with
+the same controlled timestamp and compares every hashed artifact, stages the
+complete target world, validates the selected package in both trees, and proves
+the authoritative tree hash is unchanged.
+
 Equivalent CMake and CTest entry points are:
 
 ```sh
