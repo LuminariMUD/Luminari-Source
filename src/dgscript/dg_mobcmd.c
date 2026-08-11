@@ -19,6 +19,8 @@
 #include "comm.h"
 #include "magic/spells.h"
 #include "constants.h"
+#include "graph.h"
+#include "movement/movement.h"
 #include "olc/genzon.h" /* for real_zone_by_thing */
 #include "act.h"
 #include "combat/fight.h"
@@ -375,6 +377,114 @@ ACMD(do_mzoneecho)
   {
     snprintf(buf, sizeof(buf), "%s\r\n", msg);
     send_to_zone(buf, zone);
+  }
+}
+
+/* Send a legacy RoL zone echo with its original indoor/outdoor room filter. */
+ACMD(do_mrolzoneecho)
+{
+  struct descriptor_data *descriptor;
+  char filter[MAX_INPUT_LENGTH] = {'\0'}, room_number[MAX_INPUT_LENGTH] = {'\0'};
+  char buf[MAX_INPUT_LENGTH] = {'\0'};
+  const char *msg;
+  zone_rnum zone;
+  bool want_indoors;
+  bool want_outdoors;
+
+  if (!MOB_OR_IMPL(ch))
+  {
+    send_to_char(ch, "%s", CONFIG_HUH);
+    return;
+  }
+
+  msg = any_one_arg_c(argument, filter, sizeof(filter));
+  msg = any_one_arg_c(msg, room_number, sizeof(room_number));
+  skip_spaces_c(&msg);
+  want_indoors = !str_cmp(filter, "indoors");
+  want_outdoors = !str_cmp(filter, "outdoors");
+
+  if ((!want_indoors && !want_outdoors && str_cmp(filter, "all")) || !*room_number || !*msg)
+  {
+    mob_log(ch, "mrolzoneecho usage: <all|indoors|outdoors> <room-vnum> <message>");
+    return;
+  }
+  if ((zone = real_zone_by_thing(atoi(room_number))) == NOWHERE)
+  {
+    mob_log(ch, "mrolzoneecho called for nonexistant zone");
+    return;
+  }
+
+  snprintf(buf, sizeof(buf), "%s\r\n", msg);
+  for (descriptor = descriptor_list; descriptor; descriptor = descriptor->next)
+  {
+    bool is_indoors;
+
+    if (STATE(descriptor) != CON_PLAYING || !descriptor->character ||
+        IN_ROOM(descriptor->character) == NOWHERE ||
+        GET_ROOM_ZONE(IN_ROOM(descriptor->character)) != zone)
+      continue;
+    is_indoors = ROOM_FLAGGED(IN_ROOM(descriptor->character), ROOM_INDOORS);
+    if ((want_indoors && !is_indoors) || (want_outdoors && is_indoors))
+      continue;
+    write_to_output(descriptor, "%s", buf);
+  }
+}
+
+/* Move one room toward a target, preserving the legacy RoL path door behavior. */
+ACMD(do_mrolwalkto)
+{
+  char room_number[MAX_INPUT_LENGTH] = {'\0'};
+  char door_argument[MAX_INPUT_LENGTH] = {'\0'};
+  room_rnum destination;
+  room_rnum origin;
+  int direction;
+  bool was_closed;
+  bool was_locked;
+
+  if (!MOB_OR_IMPL(ch))
+  {
+    send_to_char(ch, "%s", CONFIG_HUH);
+    return;
+  }
+  if (AFF_FLAGGED(ch, AFF_CHARM) || FIGHTING(ch) || IN_ROOM(ch) == NOWHERE)
+    return;
+
+  one_argument(argument, room_number, sizeof(room_number));
+  if (!*room_number || (destination = real_room(atoi(room_number))) == NOWHERE)
+  {
+    mob_log(ch, "mrolwalkto called with an invalid room");
+    return;
+  }
+  direction = find_first_step(IN_ROOM(ch), destination);
+  if (direction == BFS_ALREADY_THERE)
+    return;
+  if (direction < 0 || !EXIT(ch, direction) || EXIT(ch, direction)->to_room == NOWHERE)
+  {
+    mob_log(ch, "mrolwalkto cannot find a route to room %s", room_number);
+    return;
+  }
+
+  was_closed = EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED);
+  was_locked = DOOR_IS_LOCKED(ch, (struct obj_data *)NULL, direction);
+  snprintf(door_argument, sizeof(door_argument), "%s", dirs[direction]);
+  if (was_locked)
+    do_gen_door(ch, door_argument, 0, SCMD_UNLOCK);
+  if (EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+    do_gen_door(ch, door_argument, 0, SCMD_OPEN);
+  if (EXIT_FLAGGED(EXIT(ch, direction), EX_CLOSED))
+    return;
+
+  origin = IN_ROOM(ch);
+  if (!perform_move(ch, direction, 1) || IN_ROOM(ch) == origin)
+    return;
+
+  if (was_closed || was_locked)
+  {
+    snprintf(door_argument, sizeof(door_argument), "%s", dirs[rev_dir[direction]]);
+    if (was_closed)
+      do_gen_door(ch, door_argument, 0, SCMD_CLOSE);
+    if (was_locked)
+      do_gen_door(ch, door_argument, 0, SCMD_LOCK);
   }
 }
 

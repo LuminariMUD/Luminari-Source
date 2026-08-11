@@ -1168,11 +1168,20 @@ mhunt <target>                   - Make mobile hunt target
 mremember <target>               - Remember target for memory triggers
 mforget <target>                 - Forget target from memory
 mtransform <vnum>                - Transform into different mobile
-mzoneecho <message>              - Send message to entire zone
+mzoneecho <room> <message>       - Send message to awake players in the room's zone
+mrolzoneecho <filter> <room> <message>
+                                - Send a converted RoL all/indoors/outdoors zone echo
+mrolwalkto <room>                - Move one route-aware step toward a room for converted RoL paths
 mfollow <target>                 - Make mobile follow target
 mkill <target>                   - Attack target
 mjunk <object>                   - Destroy object in inventory
 ```
+
+`mrolzoneecho` accepts `all`, `indoors`, or `outdoors` as its filter. Its
+indoor test intentionally uses `ROOM_INDOORS`, matching the legacy SOC data
+contract. `mrolwalkto` opens and relocks usable doors around one pathfinding
+step. These two bounded commands support compiler-generated Realms of Luminari
+SOC triggers; ordinary authored scripts should prefer the standard DG commands.
 
 ### Object Commands (prefix: o)
 ```

@@ -10,6 +10,9 @@ from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_rol_source_file
+from wtool_lib.rol_discovery import extract_source_commands
+from wtool_lib.rol_pilot import PILOT_BASENAMES
+from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_transform import (
     convert_text,
     emit_mobile,
@@ -21,6 +24,7 @@ from wtool_lib.rol_transform import (
 )
 from wtool_lib.rooms import parse_room_file
 from wtool_lib.shops import parse_shop_file
+from wtool_lib.triggers import parse_trigger_file
 from wtool_lib.zones import parse_zone_file
 
 
@@ -282,6 +286,97 @@ class RolTransformTests(unittest.TestCase):
         self.assertTrue(result.complete)
         self.assertEqual([], result.findings)
         self.assertEqual(len(records), len(result.records))
+
+  def test_soc_compiler_emits_exact_chance_flags_paths_and_filtered_echoes(self) -> None:
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    source_path = Path(temporary.name) / "sample.soc"
+    source_path.write_bytes(
+        b"MOB: 300 PATH\nID: 1\nTYPE: 1\nDELAY: 2\n"
+        b"ROOMS: 100 101\nDIRS: 1\nDONE\n"
+        b"MOB: 300 TRIGGER\nTRIGGER: 23\nFLAG: 165\nCHANCE: 3\nDELAY: 0\n"
+        b"ACTION: 1000\nAn indoor echo.\n~\nFLAG: 0\nCHANCE: 0\nDELAY: 4\n"
+        b"ACTION: 1004\n1\n~\nDONE\n"
+    )
+    records, corpus = parse_rol_source_file(
+        source_path, "areas/soc/sample.soc", "soc", "sample"
+    )
+    self.assertTrue(corpus.complete)
+    compiled = compile_soc_records(
+        records,
+        2_030_000,
+        _resolver,
+        {23: "smile"},
+    )
+
+    self.assertEqual(2, compiled.source_records)
+    self.assertEqual(2, compiled.source_actions)
+    self.assertEqual(1, len(compiled.triggers))
+    text = compiled.trigger_text
+    self.assertIn("if %random.4% == 1", text)
+    self.assertIn("if !%arg% || !(%self.name% /= %arg.car%)", text)
+    self.assertIn("if %actor.is_pc%", text)
+    self.assertIn("mrolzoneecho indoors %self.room.vnum% An indoor echo.", text)
+    self.assertIn("wait 4", text)
+    self.assertIn("wait 5 s\n        mrolwalkto 2000101", text)
+
+  def test_all_pilot_soc_compiles_to_valid_target_triggers(self) -> None:
+    records = []
+    for basename in PILOT_BASENAMES:
+      source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/soc/{basename}.soc"
+      if not source_path.is_file():
+        continue
+      parsed, corpus = parse_rol_source_file(
+          source_path, f"areas/soc/{basename}.soc", "soc", basename
+      )
+      self.assertTrue(corpus.complete)
+      records.extend(parsed)
+
+    command_evidence = extract_source_commands(
+        self.root / "EXAMPLE/RealmsOfLuminari"
+    )
+    commands = {
+        row["action_code"]: row["command"]
+        for row in command_evidence["commands"]
+    }
+    compiled = compile_soc_records(records, 2_055_300, _resolver, commands)
+    self.assertEqual(245, compiled.source_records)
+    self.assertEqual(553, compiled.source_actions)
+    self.assertEqual(181, len(compiled.triggers))
+    self.assertEqual(163, len(compiled.attachments))
+    self.assertFalse(
+        any(
+            word in diagnostic
+            for diagnostic in compiled.diagnostics
+            for word in ("lacks", "invalid", "missing", "unmapped")
+        )
+    )
+
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    target_path = Path(temporary.name) / "20553.trg"
+    target_path.write_text(compiled.trigger_text, encoding="ascii", newline="\n")
+    result = parse_trigger_file(
+        target_path, "trg/20553.trg", self.manifest
+    )
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    self.assertEqual(181, len(result.records))
+
+    comparison = build_soc_prototype_comparison(records, compiled)
+    self.assertEqual("dg_compilation", comparison["selection"])
+    self.assertEqual(
+        245,
+        comparison["native_compatibility_projection"]["persisted_behavior_records"],
+    )
+    self.assertEqual(
+        26.122449,
+        comparison["dg_compilation_pilot"]["record_reduction_percent"],
+    )
+    self.assertEqual(
+        {1000: 7, 1001: 31, 1002: 2, 1003: 394, 1004: 14},
+        comparison["measured_source"]["special_actions"],
+    )
 
 
 if __name__ == "__main__":
