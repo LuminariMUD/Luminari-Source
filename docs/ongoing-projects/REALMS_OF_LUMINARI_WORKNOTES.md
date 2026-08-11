@@ -26,6 +26,8 @@ is a stable compact summary of the same inventory.
 ## 2026-08-11 implementation checkpoint
 
 Core implementation checkpoint `56af654d` was pushed to `origin/master`.
+Documentation and verification checkpoint `380eb353` was also pushed to
+`origin/master`.
 
 Implemented:
 
@@ -79,7 +81,10 @@ checks passed.
 
 ## Next actions
 
-1. Commit and push the documentation/verification checkpoint.
-2. Confirm the final worktree and remote branch state.
-3. Continue Phase 0 with the separate development-target inventory and baseline
+The `rol-inventory` task is complete. The final committed-tree audit repeated
+`make test-world-tools`, confirmed an 883,711-byte JSON payload was byte-identical
+across two live-corpus runs, rechecked every locked count and identity, and confirmed
+local `HEAD` equaled `origin/master` at `380eb353` before this handoff-only update.
+
+Continue Phase 0 with the separate development-target inventory and baseline
    diagnostics; do not expand `rol-inventory` into that later deliverable.
