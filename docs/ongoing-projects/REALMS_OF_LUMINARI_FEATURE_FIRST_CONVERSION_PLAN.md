@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Decisions locked; implementation has not started
+- Status: Implementation underway; deterministic source-list inventory complete
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -534,6 +534,12 @@ remaining work using measured reuse, ambiguity, and exception rates; the earlier
 import estimate is not credible enough to sum into a project total.
 
 ### Phase 0: Active input inventory and development baseline (1-2 sessions)
+
+Progress on 2026-08-11: `wtool rol-inventory` now reproduces the source build-list
+selection, hashes every physical input, classifies exclusions and missing companions,
+and locks the 252-file/255-record active zone scope. The development-target inventory,
+baseline diagnostics, aggregate regression comparison, and candidate reservations remain
+open before this phase exit gate is satisfied.
 
 1. Inventory the current RoL source and writable development world, revisions, indexes,
    hashes, and baseline diagnostics.

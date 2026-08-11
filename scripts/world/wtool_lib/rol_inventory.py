@@ -458,6 +458,9 @@ def render_rol_inventory_human(inventory: dict[str, Any]) -> str:
   summary = inventory["summary"]
   zones = summary["zones"]
   classified = inventory["classifications"]
+  multi_zone_names = ", ".join(
+      item["basename"] for item in classified["active_multi_zone_files"]
+  )
   lines = [
       f"Realms of Luminari source inventory: {inventory['root']}",
       "",
@@ -478,7 +481,7 @@ def render_rol_inventory_human(inventory: dict[str, Any]) -> str:
           f"Active basenames without .zon: {zones['active_basenames_without_zone']} "
           f"({', '.join(classified['active_basenames_without_zone']) or 'none'})",
           f"Active multi-zone files: {zones['active_multi_zone_files']} "
-          f"({', '.join(item['basename'] for item in classified['active_multi_zone_files']) or 'none'})",
+          f"({multi_zone_names or 'none'})",
           f"Included active companion-only files: {zones['active_companion_only_files']}",
       )
   )

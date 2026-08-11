@@ -153,7 +153,7 @@ This master index provides a comprehensive guide to all technical documentation 
 - **[Builder Quickstart](world_game-data/BUILDER_QUICKSTART.md)** - One zone from empty to bootable; start here
 - **[Builder's Manual](world_game-data/builder_manual.md)** - Overview of building tools and processes
 - **[OLC SpecProc Editing](guides/OLC_SpecProcs.md)** - Owner-aware selection, authored persistence, `specbind` diagnostics, and moving-room safety
-- **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - Read-only world parsing, validation, typed lookup, flags, and documentation checks
+- **[World Validator CLI](utilities/WORLD_VALIDATOR_CLI.md)** - Read-only world parsing, validation, typed lookup, RoL source inventory, flags, and documentation checks
 - **[ultimate-mud-writing-guide.md](guides/ultimate-mud-writing-guide.md)** - Writing compelling MUD content
 
 ### World File Formats

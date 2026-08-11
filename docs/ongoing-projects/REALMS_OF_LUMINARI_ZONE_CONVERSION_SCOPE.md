@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Decisions locked; implementation not started
+- Status: Implementation underway; deterministic source-list inventory complete
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -409,6 +409,12 @@ validation, then may apply a validated bundle directly to the writable developme
 It is not embedded in server boot logic.
 
 Required deliverables:
+
+Source-inventory progress on 2026-08-11: `wtool rol-inventory` now parses the four
+source build lists, enumerates and hashes all seven physical input kinds, classifies
+active/disabled/unlisted membership, missing companions, and multi-zone packages, and
+reproduces the locked 252 active files and 255 active records. The broader grammar-token,
+duplicate-record, format-variant, and target-inventory work below remains open.
 
 - Source and development-target input inventory manifests.
 - A baseline validation report with finding identities and parse completeness.

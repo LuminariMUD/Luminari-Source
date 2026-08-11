@@ -25,7 +25,9 @@ is a stable compact summary of the same inventory.
 
 ## 2026-08-11 implementation checkpoint
 
-Implemented locally:
+Core implementation checkpoint `56af654d` was pushed to `origin/master`.
+
+Implemented:
 
 - Added `scripts/world/wtool_lib/rol_inventory.py` and the `rol-inventory`
   command with `--source-root` plus the existing global `--json` switch.
@@ -37,8 +39,10 @@ Implemented locally:
   test.
 - Added the new module, test, and fixtures to both `Makefile.am` and
   `CMakeLists.txt`.
-- Bumped the command version to 0.3.0; permanent documentation still needs its
-  0.3.0 command section and acceptance record.
+- Bumped the command version to 0.3.0.
+- Added permanent CLI, testing, documentation-index, utilities-index, and
+  changelog coverage. Updated both conversion plans without claiming that the
+  broader target inventory or grammar inventory is finished.
 
 Verified evidence:
 
@@ -56,11 +60,26 @@ The six missing-zone basenames are `foggy_woods2`, `god_items`,
 multi-zone inputs are `foggy_woods.zon` with records 900 and 901, and
 `northern_highroad.zon` with records 902, 903, and 904.
 
+Final verification evidence:
+
+```text
+make test-world-tools: passed
+cmake --build build --target test-world-tools: passed
+Autotools/CMake world-tool source lists: identical, 114 paths each
+Documentation findings: 0 errors, 0 warnings, 0 info
+Repeated human output SHA-256: 00d88a81519b1606742a95d2088119f128b7121f16a7df1e69a4a734afb36cd8
+Repeated JSON output SHA-256: 39416e3fedf5b8794004b928748913cc6d2e35803726e000dd053626854c32bb
+Source tree before/after SHA-256: 40c671dcb0e5144ea00b1ca4db66e338b094aa617a647cbd1125f12d0f2f1d8b
+```
+
+The malformed fixture returned status 2, no standard output, and explicit
+diagnostics for unsafe `areas/AREA:2`, blank `areas/AREA:3`, and the non-column-zero
+asterisk on `areas/AREA:4`. ASCII, LF, Python compilation, and `git diff --check`
+checks passed.
+
 ## Next actions
 
-1. Complete the permanent CLI documentation, testing guide note, index wording,
-   and changelog entry.
-2. Audit the implementation and build-list synchronization.
-3. Run `make test-world-tools`, deterministic full-corpus comparisons, ASCII/LF
-   checks, and the completion-criteria audit.
-4. Commit and push the documentation/verification checkpoint.
+1. Commit and push the documentation/verification checkpoint.
+2. Confirm the final worktree and remote branch state.
+3. Continue Phase 0 with the separate development-target inventory and baseline
+   diagnostics; do not expand `rol-inventory` into that later deliverable.

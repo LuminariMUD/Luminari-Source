@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import redirect_stderr, redirect_stdout
+import hashlib
 from io import StringIO
 import json
 from pathlib import Path
@@ -15,6 +16,14 @@ from wtool_lib.rol_inventory import (
     parse_rol_manifest,
     render_rol_inventory_human,
 )
+
+
+def tree_hash(root: Path) -> str:
+  digest = hashlib.sha256()
+  for path in sorted(item for item in root.rglob("*") if item.is_file()):
+    digest.update(path.relative_to(root).as_posix().encode("ascii"))
+    digest.update(path.read_bytes())
+  return digest.hexdigest()
 
 
 class RolInventoryTests(unittest.TestCase):
@@ -79,6 +88,7 @@ class RolInventoryTests(unittest.TestCase):
     self.assertIn("'*not-a-column-zero-comment'", message)
 
   def test_cli_emits_clean_json_and_explicit_operational_errors(self) -> None:
+    before = tree_hash(self.fixture_root)
     stdout = StringIO()
     stderr = StringIO()
     with redirect_stdout(stdout), redirect_stderr(stderr):
@@ -88,6 +98,18 @@ class RolInventoryTests(unittest.TestCase):
     self.assertEqual(0, status)
     self.assertEqual("", stderr.getvalue())
     self.assertEqual(3, json.loads(stdout.getvalue())["summary"]["zones"]["active_records"])
+    first_json = stdout.getvalue()
+
+    stdout = StringIO()
+    stderr = StringIO()
+    with redirect_stdout(stdout), redirect_stderr(stderr):
+      status = main(
+          ["--json", "rol-inventory", "--source-root", str(self.fixture_root)]
+      )
+    self.assertEqual(0, status)
+    self.assertEqual("", stderr.getvalue())
+    self.assertEqual(first_json, stdout.getvalue())
+    self.assertEqual(before, tree_hash(self.fixture_root))
 
     malformed = self.repo_root / "scripts/world/tests/fixtures/rol_inventory/malformed"
     stdout = StringIO()

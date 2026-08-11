@@ -1,8 +1,8 @@
-# World Validator and Lookup CLI
+# World Validator, Lookup, and RoL Inventory CLI
 
-`wtool` is the standalone validator and lookup utility for LuminariMUD flat
-world data. It parses the same eight formats used by the server without starting
-the game, connecting to MariaDB, or compiling `circle`:
+`wtool` is the standalone validator, lookup, and source-inventory utility for
+LuminariMUD flat world data. It parses the same eight formats used by the server
+without starting the game, connecting to MariaDB, or compiling `circle`:
 
 - zones (`.zon`)
 - rooms (`.wld`)
@@ -13,8 +13,8 @@ the game, connecting to MariaDB, or compiling `circle`:
 - quests (`.qst`)
 - high-level quests (`.hlq`)
 
-Validation, lookup, flag conversion, and documentation checks are read-only.
-The only writing command is the explicit maintainer operation
+Validation, lookup, RoL inventory, flag conversion, and documentation checks
+are read-only. The only writing command is the explicit maintainer operation
 `constants sync --write`, which replaces the checked-in derived constants
 manifest; it never writes world data.
 
@@ -27,7 +27,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.2.0`.
+The current release reports `wtool 0.3.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -63,6 +63,10 @@ The tool follows a staged pipeline:
 5. Human and JSON reporters sort findings deterministically and apply the same
    exit policy.
 
+The RoL inventory path reuses the byte-preserving source reader for source
+manifest lines and zone headers. It then hashes and classifies physical files
+without invoking a source or target game runtime.
+
 `scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
 extractor reads explicit C tables and bounded define blocks instead of broad
 name prefixes, which prevents unrelated constants such as mobile vnums from
@@ -74,6 +78,69 @@ writers. The validator intentionally diagnoses several cases that the loader
 silently drops or rewrites, including omitted index entries, dangling exits,
 unsafe short object extensions, invalid typed references, unpersistable
 multi-kill quests, ignored HLQ input commands, and unsafe HLQ runtime indexes.
+
+## Realms of Luminari Source Inventory
+
+Inventory the ignored reference corpus at its default repository location:
+
+```sh
+python3 scripts/world/wtool.py rol-inventory
+python3 scripts/world/wtool.py --json rol-inventory > /tmp/rol-inventory.json
+```
+
+Use another checkout or a tracked fixture with an explicit source root:
+
+```sh
+python3 scripts/world/wtool.py --json rol-inventory \
+  --source-root /srv/reference/RealmsOfLuminari
+```
+
+The source root must contain `areas/`. The command follows the selection paths
+in `EXAMPLE/RealmsOfLuminari/src/build_areas.c`:
+
+| Manifest | Selected kinds |
+|----------|----------------|
+| `areas/AREA` | `zon`, `wld`, `soc` |
+| `areas/AREA.mobobj` | `mob`, `obj` |
+| `areas/SHOP` | `shp` |
+| `areas/QUEST` | `qst` |
+
+These are source build-list rules, not Luminari index rules. A `*` is a comment
+marker only in column zero. The first whitespace-delimited token on every
+other line is the basename, and later columns are annotations. File order and
+manifest source lines are retained in the inventory. Blank active lines,
+unsafe or non-ASCII basenames, duplicate active entries, and entries too long
+for the source build buffers return status 2 with exact manifest paths and line
+numbers.
+
+Every physical file has one primary status:
+
+| Status | Meaning |
+|--------|---------|
+| `active` | Its kind-specific manifest selects the basename; the file is included. |
+| `disabled` | A column-zero disabled entry names the file; it is inventoried but excluded. |
+| `unlisted` | No active or disabled entry names the file; it is inventoried but excluded. |
+
+Package records add `missing-companion` when an active selection has no file
+of that kind, and `multi-zone` when a physical `.zon` contains more than one
+zone header. Missing companions are reported rather than invented. An active
+object, quest, or other companion remains included even when its basename has
+no physical `.zon`.
+
+JSON output is deterministic and contains:
+
+- inventory and tool schema versions plus a normalized root label;
+- all four manifest hashes, selected kinds, basename order, and source lines;
+- all seven data kinds with path, byte size, SHA-256, manifest membership,
+  inclusion state, and zone header identities where applicable;
+- package-level present, selected, included, missing, disabled, and unlisted
+  kind sets; and
+- direct classification lists and aggregate counts used by conversion gates.
+
+No timestamp, modification time, absolute in-repository path, or directory
+enumeration order enters the payload. Identical bytes therefore produce
+identical human and JSON output. The command never creates an aggregate,
+repairs a companion, or writes source data.
 
 ## Validation Modes
 
@@ -238,8 +305,9 @@ parse completeness, sorted findings, and active/suppressed counts by severity
 and code. Standard output contains only the JSON document. Operational errors
 go to standard error and return status 2.
 
-Version 0.2.0 keeps JSON schema version 1. Quest and HLQ records, references,
-and findings are additive; the payloads for the original six record types are
+Version 0.3.0 keeps validation JSON schema version 1 and gives the RoL inventory
+its own schema version 1 payload. Quest and HLQ records, references, and
+findings remain additive; the payloads for the original six record types are
 unchanged.
 
 ## Typed Record and Reference Lookup
@@ -376,6 +444,30 @@ model dynamic references assembled by scripts. It also does not execute quest
 dialogue rolls, rewards, combat, spell effects, ROOM triggers, or input/output
 command chains. Static validation cannot prove that player-facing text,
 difficulty, event sequencing, or intended gameplay is correct.
+
+## Version 0.3.0 RoL Inventory Acceptance
+
+The 2026-08-11 development-corpus acceptance result is:
+
+```text
+Active zone scope: 252 files, 255 records
+Excluded zone files: 30 disabled, 2 unlisted
+Active basenames without .zon: 6
+Active multi-zone files: 2
+Included active companion-only files: 9
+```
+
+The missing-zone basenames are `foggy_woods2`, `god_items`,
+`northern_highroad2`, `northern_highroad3`, `quest_1`, and `quest_2`.
+`foggy_woods.zon` supplies records 900 and 901;
+`northern_highroad.zon` supplies records 902, 903, and 904. The nine included
+companion-only inputs are three object files and six quest files spread across
+those six basenames.
+
+The tracked fixtures cover all five classification labels and malformed
+manifest entries. The ignored reference-corpus test locks the counts above
+when `EXAMPLE/RealmsOfLuminari` is installed and skips only when that ignored
+corpus is absent, such as in a source-only CI checkout.
 
 ## Version 0.2.0 Acceptance Snapshot
 

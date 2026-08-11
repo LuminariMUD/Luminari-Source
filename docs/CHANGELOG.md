@@ -1,6 +1,27 @@
 # Changelog
 
-## [Unreleased] - August 8, 2026
+## [Unreleased] - August 11, 2026
+
+### Realms of Luminari source inventory
+
+#### Added
+
+- Added deterministic `wtool rol-inventory` human and JSON reporting for the
+  seven RoL authoring kinds selected through `AREA`, `AREA.mobobj`, `SHOP`, and
+  `QUEST`.
+- Added file hashes, source-line provenance, active/disabled/unlisted scope,
+  missing-companion and multi-zone classifications, plus tracked valid and
+  malformed fixtures.
+- Added exact ignored-corpus acceptance coverage for 252 active zone files,
+  255 active zone records, 30 disabled files, two unlisted files, six active
+  basenames without a `.zon`, and nine included companion-only files.
+
+#### Changed
+
+- Bumped `wtool` to 0.3.0 while retaining schema version 1 for existing
+  validation payloads and assigning schema version 1 to the new inventory.
+- Registered the implementation, unit tests, and every fixture in both
+  Autotools and CMake distribution manifests.
 
 ### Documentation entry points and operator safety
 

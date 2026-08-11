@@ -155,10 +155,13 @@ generated HTML, and smoke-tests `lib/world/validate-zone.sh`. Python 3.10 or
 newer and Pandoc are required.
 
 The tracked complete fixture covers all eight validator datasets: `.zon`,
-`.wld`, `.mob`, `.obj`, `.shp`, `.trg`, `.qst`, and `.hlq`. Quest tests lock
-canonical and legacy QST grammar, malformed recovery, all HLQ entry/command
-types, physical versus runtime order, reference roles, semantic boundaries,
-lookup aliases, and unchanged JSON for the original six record types.
+`.wld`, `.mob`, `.obj`, `.shp`, `.trg`, `.qst`, and `.hlq`. The RoL inventory
+fixtures separately cover the four source manifests, all seven source kinds,
+active/disabled/unlisted membership, missing companions, multi-zone inputs,
+stable JSON, and malformed manifest diagnostics. Quest tests lock canonical
+and legacy QST grammar, malformed recovery, all HLQ entry/command types,
+physical versus runtime order, reference roles, semantic boundaries, lookup
+aliases, and unchanged JSON for the original six record types.
 
 Equivalent CMake and CTest entry points are:
 
@@ -173,6 +176,8 @@ Focused checks are also available:
 make check-world-docs
 python3 scripts/world/wtool.py constants sync --check
 python3 scripts/world/wtool.py docs --check
+python3 scripts/world/wtool.py --json rol-inventory \
+  --source-root scripts/world/tests/fixtures/rol_inventory/valid >/dev/null
 lib/world/validate-zone.sh 100 \
   --world-root scripts/world/tests/fixtures/phase2/complete
 ```
@@ -200,7 +205,7 @@ bundles. CI cannot validate the ignored builder-owned files under the live
 `lib/world/` type directories; a green workflow verifies the parser, fixtures,
 constants, documentation, and wrapper contracts only. See the
 [World Validator CLI](../utilities/WORLD_VALIDATOR_CLI.md) for validation,
-lookup, JSON, and exit-status usage, and the
+lookup, RoL inventory, JSON, and exit-status usage, and the
 [QST](../world_game-data/QUEST_FILE_FORMAT.md) and
 [HLQ](../world_game-data/HLQUEST_FILE_FORMAT.md) references for their exact
 test contracts.
