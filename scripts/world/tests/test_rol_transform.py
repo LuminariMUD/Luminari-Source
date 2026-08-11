@@ -152,6 +152,29 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(9, obj.affects[0].modifier)
     self.assertEqual(1, len(obj.extra_descriptions))
 
+  def test_emitted_object_preserves_rol_compatibility_flags(self) -> None:
+    source_bits = (1, 2, 4, 16, 17, 20, 21, 22, 24, 29, 30)
+    source_mask = sum(1 << bit for bit in source_bits)
+    source = self._source_record(
+        "obj",
+        (
+            "#200\ncompatibility item~\na compatibility item~\n"
+            "A compatibility item is here.~\n~\n"
+            f"12 {source_mask} 1\n0 0 0 0\n1 1 0\n0\n0\n"
+        ).encode("ascii"),
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    flags = decode_tokens(result.records[0].extra_flags).bits
+    self.assertEqual({39, *range(116, 125)}, flags)
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("omitted source-inert object DARK flag", diagnostics)
+    self.assertNotIn("object extra flags without direct equivalents", diagnostics)
+
   def test_emitted_object_preserves_source_trap_without_colliding_with_dg_trigger(self) -> None:
     source = self._source_record(
         "obj",

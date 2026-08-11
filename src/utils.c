@@ -5748,6 +5748,8 @@ bool sleep_immunity(struct char_data *ch)
 {
   if (!ch)
     return FALSE;
+  if (char_has_object_flag(ch, ITEM_ROL_NO_SLEEP))
+    return TRUE;
   if (HAS_FEAT(ch, FEAT_DRACONIC_HERITAGE_POWER_OF_WYRMS))
     return TRUE;
   if (HAS_FEAT(ch, FEAT_SLEEP_ENCHANTMENT_IMMUNITY))
@@ -5759,6 +5761,36 @@ bool sleep_immunity(struct char_data *ch)
     return TRUE;
 
   return FALSE;
+}
+
+bool char_has_worn_object_flag(struct char_data *ch, int flag)
+{
+  int i;
+
+  if (!ch || flag < 0 || flag >= NUM_ITEM_FLAGS)
+    return false;
+
+  for (i = 0; i < NUM_WEARS; i++)
+    if (GET_EQ(ch, i) && OBJ_FLAGGED(GET_EQ(ch, i), flag))
+      return true;
+
+  return false;
+}
+
+bool char_has_object_flag(struct char_data *ch, int flag)
+{
+  struct obj_data *obj;
+
+  if (char_has_worn_object_flag(ch, flag))
+    return true;
+  if (!ch || flag < 0 || flag >= NUM_ITEM_FLAGS)
+    return false;
+
+  for (obj = ch->carrying; obj; obj = obj->next_content)
+    if (OBJ_FLAGGED(obj, flag))
+      return true;
+
+  return false;
 }
 
 sbyte is_immune_death_magic(struct char_data *ch, struct char_data *victim, sbyte display)
@@ -11868,6 +11900,9 @@ bool is_weapon_wielded_two_handed(struct obj_data *obj, struct char_data *ch)
   if (GET_OBJ_TYPE(obj) != ITEM_WEAPON)
     return false;
 
+  if (OBJ_FLAGGED(obj, ITEM_ROL_TWO_HANDED))
+    return true;
+
   wsize = GET_OBJ_SIZE(obj);
   csize = GET_SIZE(ch);
 
@@ -11997,6 +12032,44 @@ bool valid_luminari_race(int race)
     return false;
 
   return true;
+}
+
+bool rol_race_is_good(int race)
+{
+  switch (race)
+  {
+  case RACE_HUMAN:
+  case RACE_ELF:
+  case RACE_HIGH_ELF:
+  case RACE_WOOD_ELF:
+  case RACE_DWARF:
+  case RACE_GOLD_DWARF:
+  case RACE_GOLIATH:
+  case RACE_GNOME:
+  case RACE_FOREST_GNOME:
+  case RACE_HALFLING:
+  case RACE_STOUT_HALFLING:
+  case RACE_H_ELF:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool rol_race_is_evil(int race)
+{
+  switch (race)
+  {
+  case RACE_DROW:
+  case RACE_DUERGAR:
+  case RACE_HALF_OGRE:
+  case RACE_HALF_TROLL:
+  case RACE_H_ORC:
+  case RACE_LICH:
+    return true;
+  default:
+    return false;
+  }
 }
 
 int get_account_experience(struct char_data *ch)

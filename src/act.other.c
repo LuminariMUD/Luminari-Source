@@ -5576,6 +5576,13 @@ int can_lore_target(struct char_data *ch, struct char_data *target_ch, struct ob
   int lore_bonus = 0, lore_skill;
   int skill, dc, roll;
 
+  if (target_obj && OBJ_FLAGGED(target_obj, ITEM_ROL_NO_IDENTIFY) && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    if (!silent)
+      send_to_char(ch, "Your senses boggle; you are unable to identify that item.\r\n");
+    return FALSE;
+  }
+
   // if the object was already identified, it can always be identified again
   if (target_obj && OBJ_FLAGGED(target_obj, ITEM_IDENTIFIED))
     return TRUE;
@@ -7816,6 +7823,11 @@ ACMD(do_use)
     if (GET_OBJ_TYPE(mag_item) != ITEM_SCROLL)
     {
       send_to_char(ch, "You can only recite scrolls.\r\n");
+      return;
+    }
+    if (GET_LEVEL(ch) < LVL_IMMORT && invalid_align(ch, mag_item))
+    {
+      send_to_char(ch, "You have no idea how to recite that.\r\n");
       return;
     }
     break;

@@ -298,7 +298,9 @@ OBJECT_TYPE_MAP = {
 
 OBJECT_EXTRA_MAP = {
     0: 0,
+    1: 39,
     3: 16,
+    4: 116,
     5: 5,
     6: 6,
     7: 7,
@@ -310,14 +312,26 @@ OBJECT_EXTRA_MAP = {
     13: 38,
     14: 42,
     15: 41,
+    16: 117,
+    17: 118,
     18: 40,
     19: 43,
+    20: 119,
+    21: 120,
+    22: 121,
     23: 2,
+    24: 122,
     25: 15,
     26: 13,
     27: 14,
     28: 12,
+    29: 123,
+    30: 124,
 }
+
+# ITEM_DARK participates in RoL light recalculation, but the source light
+# counters never consume it. Persisting target darkness would invent behavior.
+OBJECT_SOURCE_ONLY_FLAGS = frozenset({2})
 
 ROL_OBJECT_TRAP_EXTRA_BIT = 113
 ROL_OBJECT_TRAP_EFFECT_MASK = 0xFFF
@@ -1354,10 +1368,16 @@ def emit_object(
   source_wear = _source_mask_bits(wear_mask, 0)
   target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP) | set(required_extra_bits)
   target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
-  missing_extra = _unmapped(source_extra, OBJECT_EXTRA_MAP)
+  missing_extra = [
+      flag
+      for flag in _unmapped(source_extra, OBJECT_EXTRA_MAP)
+      if flag not in OBJECT_SOURCE_ONLY_FLAGS
+  ]
   missing_wear = _unmapped(source_wear, OBJECT_WEAR_MAP)
   if missing_extra:
     diagnostics.append(f"object extra flags without direct equivalents: {missing_extra}")
+  if source_extra & OBJECT_SOURCE_ONLY_FLAGS:
+    diagnostics.append("omitted source-inert object DARK flag")
   if missing_wear:
     diagnostics.append(f"object wear flags without direct equivalents: {missing_wear}")
 

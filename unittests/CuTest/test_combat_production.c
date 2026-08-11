@@ -37,19 +37,19 @@ void Test_rol_room_flags_drive_arena_and_weather_compatibility(CuTest *tc)
   room.sector_type = SECT_FIELD;
   IN_ROOM(&ch) = 0;
 
-  CuAssertTrue(tc, !IS_ARENA(0));
-  CuAssertTrue(tc, !IS_PVP_ARENA(0));
+  CuAssertTrue(tc, !IS_ARENA(IN_ROOM(&ch)));
+  CuAssertTrue(tc, !IS_PVP_ARENA(IN_ROOM(&ch)));
   CuAssertTrue(tc, !sect_no_weather(&ch));
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_ARENA);
   SET_BIT_AR(ROOM_FLAGS(0), ROOM_NO_PRECIP);
-  CuAssertTrue(tc, IS_ARENA(0));
-  CuAssertTrue(tc, IS_PVP_ARENA(0));
+  CuAssertTrue(tc, IS_ARENA(IN_ROOM(&ch)));
+  CuAssertTrue(tc, IS_PVP_ARENA(IN_ROOM(&ch)));
   CuAssertTrue(tc, sect_no_weather(&ch));
 
   REMOVE_BIT_AR(ROOM_FLAGS(0), ROOM_ARENA);
   room.number = 138650;
-  CuAssertTrue(tc, IS_ARENA(0));
-  CuAssertTrue(tc, !IS_PVP_ARENA(0));
+  CuAssertTrue(tc, IS_ARENA(IN_ROOM(&ch)));
+  CuAssertTrue(tc, !IS_PVP_ARENA(IN_ROOM(&ch)));
 
   world = saved_world;
   top_of_world = saved_top_of_world;

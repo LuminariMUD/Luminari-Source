@@ -351,6 +351,8 @@ void free_affect(struct affected_type *af);
 int get_class_by_name(char *classname);
 int can_carry_weight_limit(struct char_data *ch);
 bool valid_luminari_race(int race);
+bool rol_race_is_good(int race);
+bool rol_race_is_evil(int race);
 int get_race_by_name(char *racename);
 int get_subrace_by_name(char *racename);
 char *convert_from_tabs(char *string);
@@ -382,6 +384,8 @@ int add_draconic_claws_elemental_damage(struct char_data *ch, struct char_data *
 int calculate_cp(struct obj_data *obj);
 bool paralysis_immunity(struct char_data *ch);
 bool sleep_immunity(struct char_data *ch);
+bool char_has_worn_object_flag(struct char_data *ch, int flag);
+bool char_has_object_flag(struct char_data *ch, int flag);
 int get_levelup_sorcerer_bloodline_type(struct char_data *ch);
 void do_study_spell_help(struct char_data *ch, int spellnum);
 int get_daily_uses(struct char_data *ch, int featnum);
@@ -418,6 +422,7 @@ int is_spell_or_power(int spellnum);
 sbyte isSpecialFeat(int feat);
 sbyte isRacialFeat(int feat);
 int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats);
+bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int where);
 int warlock_spell_type(int spellnum);
 int get_number_of_spellcasting_classes(struct char_data *ch);
 struct char_data *get_mob_follower(struct char_data *ch, int mob_type);
@@ -2401,9 +2406,8 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 #define GET_SETCLOAK_TIMER(ch) (ch->player_specials->saved.setcloak_timer)
 
 #define GET_PVP_TIMER(ch) (ch->player_specials->saved.pvp_timer)
-#define GET_VESSEL_INSURANCE_CLAIM(ch)                                                        \
-  (ch->player_specials->saved.vessel_insurance_claim_id)
-#define GET_VESSEL_MERCHANT_CONSEQUENCE(ch)                                                    \
+#define GET_VESSEL_INSURANCE_CLAIM(ch) (ch->player_specials->saved.vessel_insurance_claim_id)
+#define GET_VESSEL_MERCHANT_CONSEQUENCE(ch)                                                        \
   (ch->player_specials->saved.vessel_merchant_consequence_id)
 
 #define PIXIE_DUST_USES(ch) (ch->player_specials->saved.pixie_dust_uses)

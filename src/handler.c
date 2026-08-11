@@ -2190,6 +2190,12 @@ int invalid_align(struct char_data *ch, struct obj_data *obj)
     return TRUE;
   if (OBJ_FLAGGED(obj, ITEM_ANTI_CHAOTIC) && IS_CHAOTIC(ch))
     return TRUE;
+  if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT && OBJ_FLAGGED(obj, ITEM_ROL_ANTI_GOOD_RACE) &&
+      rol_race_is_good(GET_RACE(ch)))
+    return TRUE;
+  if (!IS_NPC(ch) && GET_LEVEL(ch) < LVL_IMMORT && OBJ_FLAGGED(obj, ITEM_ROL_ANTI_EVIL_RACE) &&
+      rol_race_is_evil(GET_RACE(ch)))
+    return TRUE;
   return FALSE;
 }
 

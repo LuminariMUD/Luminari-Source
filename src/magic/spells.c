@@ -362,6 +362,12 @@ void effect_charm(struct char_data *ch, struct char_data *victim, int spellnum, 
 
   if (victim == ch)
     send_to_char(ch, "You like yourself even better!\r\n");
+  else if (char_has_object_flag(victim, ITEM_ROL_NO_CHARM))
+  {
+    send_to_char(ch, "Your victim is protected from this enchantment by carried equipment!\r\n");
+    if (IS_NPC(victim))
+      hit(victim, ch, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, FALSE);
+  }
   else if (MOB_FLAGGED(victim, MOB_NOCHARM))
   {
     send_to_char(ch, "Your victim doesn't seem vulnerable to this "
@@ -1792,7 +1798,7 @@ ASPELL(spell_group_summon)
     if (ch == tch)
       continue;
 
-    if (MOB_FLAGGED(tch, MOB_NOSUMMON))
+    if (MOB_FLAGGED(tch, MOB_NOSUMMON) || char_has_worn_object_flag(tch, ITEM_ROL_NO_SUMMON))
       continue;
 
     if (IN_ROOM(tch) == IN_ROOM(ch))
@@ -1826,6 +1832,11 @@ ASPELL(spell_identify) // divination
 {
   if (obj)
   {
+    if (OBJ_FLAGGED(obj, ITEM_ROL_NO_IDENTIFY) && GET_LEVEL(ch) < LVL_IMMORT)
+    {
+      send_to_char(ch, "Your senses boggle; you are unable to identify that item.\r\n");
+      return;
+    }
     SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_IDENTIFIED);
     do_stat_object(ch, obj, ITEM_STAT_MODE_IDENTIFY_SPELL);
   }
@@ -3078,7 +3089,7 @@ ASPELL(spell_summon)
     }
   }
 
-  if (MOB_FLAGGED(victim, MOB_NOSUMMON))
+  if (MOB_FLAGGED(victim, MOB_NOSUMMON) || char_has_worn_object_flag(victim, ITEM_ROL_NO_SUMMON))
   {
     send_to_char(ch, "Your victim seems unsummonable.");
     return;
@@ -4319,6 +4330,11 @@ ASPELL(spell_mass_identify)
     if (GET_EQ(ch, i))
     {
       item = GET_EQ(ch, i);
+      if (OBJ_FLAGGED(item, ITEM_ROL_NO_IDENTIFY) && GET_LEVEL(orig) < LVL_IMMORT)
+      {
+        send_to_char(ch, "%-30s cannot be identified.\r\n", wear_where[i]);
+        continue;
+      }
       if (CAN_SEE_OBJ(ch, GET_EQ(ch, i)))
       {
         send_to_char(ch, "%-30s", wear_where[i]);

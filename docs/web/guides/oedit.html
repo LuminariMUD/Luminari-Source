@@ -1457,14 +1457,84 @@ rather than gold</td>
 <td>Item is eligible for the reforging path, which rerolls or upgrades
 its stats through the crafting system</td>
 </tr>
+<tr class="odd">
+<td>116</td>
+<td>RoL-Anti-Good-Race</td>
+<td>ITEM_ROL_ANTI_GOOD_RACE</td>
+<td>RoL compatibility restriction; prevents mortal members of the source
+good-race family from equipping the item or reciting it as a scroll</td>
+</tr>
+<tr class="even">
+<td>117</td>
+<td>RoL-No-Identify</td>
+<td>ITEM_ROL_NO_IDENTIFY</td>
+<td>RoL compatibility restriction; blocks identify, mass identify, lore,
+and greater lore for mortals</td>
+</tr>
+<tr class="odd">
+<td>118</td>
+<td>RoL-No-Summon</td>
+<td>ITEM_ROL_NO_SUMMON</td>
+<td>RoL compatibility protection; prevents the wearer from being moved
+by summon and group summon</td>
+</tr>
+<tr class="even">
+<td>119</td>
+<td>RoL-No-Sleep</td>
+<td>ITEM_ROL_NO_SLEEP</td>
+<td>RoL compatibility protection; prevents sleep effects while the item
+is carried or worn</td>
+</tr>
+<tr class="odd">
+<td>120</td>
+<td>RoL-No-Charm</td>
+<td>ITEM_ROL_NO_CHARM</td>
+<td>RoL compatibility protection; prevents charm effects while the item
+is carried or worn</td>
+</tr>
+<tr class="even">
+<td>121</td>
+<td>RoL-Two-Handed</td>
+<td>ITEM_ROL_TWO_HANDED</td>
+<td>RoL compatibility equipment rule; the item always requires two hands
+regardless of its size</td>
+</tr>
+<tr class="odd">
+<td>122</td>
+<td>RoL-Anti-Evil-Race</td>
+<td>ITEM_ROL_ANTI_EVIL_RACE</td>
+<td>RoL compatibility restriction; prevents mortal members of the source
+evil-race family from equipping the item or reciting it as a scroll</td>
+</tr>
+<tr class="even">
+<td>123</td>
+<td>RoL-Whole-Body</td>
+<td>ITEM_ROL_WHOLE_BODY</td>
+<td>RoL compatibility equipment rule; body armor also occupies the
+conceptual arm and leg coverage, so arm and leg gear cannot overlap
+it</td>
+</tr>
+<tr class="odd">
+<td>124</td>
+<td>RoL-Whole-Head</td>
+<td>ITEM_ROL_WHOLE_HEAD</td>
+<td>RoL compatibility equipment rule; head gear also occupies the
+conceptual face and eye coverage, so face and eye gear cannot overlap
+it</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Total: 116 flags (bits 0-115,
+<p><strong>Total: 125 flags (bits 0-124,
 <code>NUM_ITEM_FLAGS</code>)</strong></p>
 <p><strong>Note:</strong> These flags are defined in
 <code>src/structs.h</code> as the <code>ITEM_*</code> define block
-ending at <code>ITEM_REFORGEABLE</code>, and their display names in the
-<code>extra_bits[]</code> table in <code>src/constants.c</code>.</p>
+ending at <code>ITEM_ROL_WHOLE_HEAD</code>, and their display names in
+the <code>extra_bits[]</code> table in <code>src/constants.c</code>.</p>
+<p>The RoL source <code>DARK</code> object flag is intentionally not
+persisted. Source tracing confirmed that it requested light
+recalculation but was never consumed by the source light counters;
+making it darken target rooms would add behavior that the source game
+did not have.</p>
 <h2 id="item-types-reference">Item Types Reference</h2>
 <p><code>5) Type</code> accepts a number from this list. The number you
 type at the menu is the same as the type constant - unlike the flag

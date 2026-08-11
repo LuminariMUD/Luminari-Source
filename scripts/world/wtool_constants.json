@@ -3413,6 +3413,69 @@
           "macro": "ITEM_REFORGEABLE",
           "name": "Can-Be-Reforged",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 116,
+          "macro": "ITEM_ROL_ANTI_GOOD_RACE",
+          "name": "RoL-Anti-Good-Race",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 117,
+          "macro": "ITEM_ROL_NO_IDENTIFY",
+          "name": "RoL-No-Identify",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 118,
+          "macro": "ITEM_ROL_NO_SUMMON",
+          "name": "RoL-No-Summon",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 119,
+          "macro": "ITEM_ROL_NO_SLEEP",
+          "name": "RoL-No-Sleep",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 120,
+          "macro": "ITEM_ROL_NO_CHARM",
+          "name": "RoL-No-Charm",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 121,
+          "macro": "ITEM_ROL_TWO_HANDED",
+          "name": "RoL-Two-Handed",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 122,
+          "macro": "ITEM_ROL_ANTI_EVIL_RACE",
+          "name": "RoL-Anti-Evil-Race",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 123,
+          "macro": "ITEM_ROL_WHOLE_BODY",
+          "name": "RoL-Whole-Body",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 124,
+          "macro": "ITEM_ROL_WHOLE_HEAD",
+          "name": "RoL-Whole-Head",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

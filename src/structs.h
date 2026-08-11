@@ -4835,11 +4835,20 @@
 #define ITEM_CRAFTING_JEWELCRAFTING_STATION 110
 #define ITEM_CRAFTING_TANNERY 111
 #define ITEM_CRAFTING_CARPENTRY_TABLE 112
-#define ITEM_TRAPPED 113     // This object has a trap attached
-#define ITEM_ACCOUNT_EXP 114 // item is bought for account exp
-#define ITEM_REFORGEABLE 115 // item can be reforged
+#define ITEM_TRAPPED 113            // This object has a trap attached
+#define ITEM_ACCOUNT_EXP 114        // item is bought for account exp
+#define ITEM_REFORGEABLE 115        // item can be reforged
+#define ITEM_ROL_ANTI_GOOD_RACE 116 /* RoL compatibility: barred to good-aligned races */
+#define ITEM_ROL_NO_IDENTIFY 117    /* RoL compatibility: resists identification */
+#define ITEM_ROL_NO_SUMMON 118      /* RoL compatibility: blocks summoning while worn */
+#define ITEM_ROL_NO_SLEEP 119       /* RoL compatibility: protects bearer from sleep */
+#define ITEM_ROL_NO_CHARM 120       /* RoL compatibility: protects bearer from charm */
+#define ITEM_ROL_TWO_HANDED 121     /* RoL compatibility: always occupies two hands */
+#define ITEM_ROL_ANTI_EVIL_RACE 122 /* RoL compatibility: barred to evil-aligned races */
+#define ITEM_ROL_WHOLE_BODY 123     /* RoL compatibility: also covers arms and legs */
+#define ITEM_ROL_WHOLE_HEAD 124     /* RoL compatibility: also covers face and eyes */
 /** Total number of item flags */
-#define NUM_ITEM_FLAGS 116
+#define NUM_ITEM_FLAGS 125
 
 /* homeland-port */
 /*

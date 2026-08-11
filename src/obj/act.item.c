@@ -4124,6 +4124,9 @@ int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats)
    *           tiny dagger,  medium human, size = -2 */
   int size = GET_OBJ_SIZE(obj) - GET_SIZE(ch);
 
+  if (OBJ_FLAGGED(obj, ITEM_ROL_TWO_HANDED))
+    return 2;
+
   // if this is turned on it will use any feats that reduce or otherwise
   // affect what size weapons can be wielded.  We have this option so
   // that we can calculate penalties associated with such feat uses
@@ -4142,6 +4145,31 @@ int hands_needed_full(struct char_data *ch, struct obj_data *obj, int use_feats)
     return -1;
 
   return 1; /* items is equal or smaller than char size, easily used with 1 hand */
+}
+
+bool rol_object_wear_conflicts(struct char_data *ch, struct obj_data *obj, int where)
+{
+  struct obj_data *body;
+  struct obj_data *head;
+
+  if (!ch || !obj)
+    return false;
+
+  body = GET_EQ(ch, WEAR_BODY);
+  head = GET_EQ(ch, WEAR_HEAD);
+
+  if (where == WEAR_BODY && OBJ_FLAGGED(obj, ITEM_ROL_WHOLE_BODY) &&
+      (GET_EQ(ch, WEAR_ARMS) || GET_EQ(ch, WEAR_LEGS)))
+    return true;
+  if ((where == WEAR_ARMS || where == WEAR_LEGS) && body && OBJ_FLAGGED(body, ITEM_ROL_WHOLE_BODY))
+    return true;
+  if (where == WEAR_HEAD && OBJ_FLAGGED(obj, ITEM_ROL_WHOLE_HEAD) &&
+      (GET_EQ(ch, WEAR_FACE) || GET_EQ(ch, WEAR_EYES)))
+    return true;
+  if ((where == WEAR_FACE || where == WEAR_EYES) && head && OBJ_FLAGGED(head, ITEM_ROL_WHOLE_HEAD))
+    return true;
+
+  return false;
 }
 
 int is_wielding_type(struct char_data *ch)
@@ -4283,6 +4311,12 @@ void perform_wear(struct char_data *ch, struct obj_data *obj, int where)
   if (is_class_anti_object(ch, obj, true))
   {
     // fail message sent by above function
+    return;
+  }
+
+  if (rol_object_wear_conflicts(ch, obj, where))
+  {
+    send_to_char(ch, "That item overlaps equipment you are already wearing.\r\n");
     return;
   }
 

@@ -306,12 +306,26 @@ menu uses the same offset. Below is the complete list:
 | 113 | Trapped | ITEM_TRAPPED | Indicates object has trap mechanism attached via trap system; used to mark trapped chests/doors for comprehensive trap system (not currently actively used for runtime trap behavior) |
 | 114 | Costs-Account-Experience | ITEM_ACCOUNT_EXP | Purchasing or acquiring the item is paid for in account experience rather than gold |
 | 115 | Can-Be-Reforged | ITEM_REFORGEABLE | Item is eligible for the reforging path, which rerolls or upgrades its stats through the crafting system |
+| 116 | RoL-Anti-Good-Race | ITEM_ROL_ANTI_GOOD_RACE | RoL compatibility restriction; prevents mortal members of the source good-race family from equipping the item or reciting it as a scroll |
+| 117 | RoL-No-Identify | ITEM_ROL_NO_IDENTIFY | RoL compatibility restriction; blocks identify, mass identify, lore, and greater lore for mortals |
+| 118 | RoL-No-Summon | ITEM_ROL_NO_SUMMON | RoL compatibility protection; prevents the wearer from being moved by summon and group summon |
+| 119 | RoL-No-Sleep | ITEM_ROL_NO_SLEEP | RoL compatibility protection; prevents sleep effects while the item is carried or worn |
+| 120 | RoL-No-Charm | ITEM_ROL_NO_CHARM | RoL compatibility protection; prevents charm effects while the item is carried or worn |
+| 121 | RoL-Two-Handed | ITEM_ROL_TWO_HANDED | RoL compatibility equipment rule; the item always requires two hands regardless of its size |
+| 122 | RoL-Anti-Evil-Race | ITEM_ROL_ANTI_EVIL_RACE | RoL compatibility restriction; prevents mortal members of the source evil-race family from equipping the item or reciting it as a scroll |
+| 123 | RoL-Whole-Body | ITEM_ROL_WHOLE_BODY | RoL compatibility equipment rule; body armor also occupies the conceptual arm and leg coverage, so arm and leg gear cannot overlap it |
+| 124 | RoL-Whole-Head | ITEM_ROL_WHOLE_HEAD | RoL compatibility equipment rule; head gear also occupies the conceptual face and eye coverage, so face and eye gear cannot overlap it |
 
-**Total: 116 flags (bits 0-115, `NUM_ITEM_FLAGS`)**
+**Total: 125 flags (bits 0-124, `NUM_ITEM_FLAGS`)**
 
 **Note:** These flags are defined in `src/structs.h` as the `ITEM_*` define block
-ending at `ITEM_REFORGEABLE`, and their display names in the `extra_bits[]`
+ending at `ITEM_ROL_WHOLE_HEAD`, and their display names in the `extra_bits[]`
 table in `src/constants.c`.
+
+The RoL source `DARK` object flag is intentionally not persisted. Source tracing
+confirmed that it requested light recalculation but was never consumed by the
+source light counters; making it darken target rooms would add behavior that the
+source game did not have.
 
 ## Item Types Reference
 

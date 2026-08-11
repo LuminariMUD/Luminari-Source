@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/handler.h"
 #include "../../src/dgscript/dg_scripts.h"
 #include "../../src/movement/movement_validation.h"
 
@@ -177,4 +178,96 @@ void Test_world_loading_production_room_level_entry_contract(CuTest *tc)
 
   world = saved_world;
   top_of_world = saved_top_of_world;
+}
+
+void Test_world_loading_production_rol_object_flag_capacity(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 125, NUM_ITEM_FLAGS);
+  CuAssertTrue(tc, NUM_ITEM_FLAGS <= EF_ARRAY_MAX * 32);
+}
+
+void Test_world_loading_production_rol_bearer_protection_flags(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data carried;
+  struct obj_data worn;
+
+  clear_char(&ch);
+  clear_object(&carried);
+  clear_object(&worn);
+  ch.carrying = &carried;
+  GET_EQ(&ch, WEAR_BODY) = &worn;
+  SET_OBJ_FLAG(&carried, ITEM_ROL_NO_SLEEP);
+  SET_OBJ_FLAG(&carried, ITEM_ROL_NO_CHARM);
+  SET_OBJ_FLAG(&worn, ITEM_ROL_NO_SUMMON);
+
+  CuAssertTrue(tc, sleep_immunity(&ch));
+  CuAssertTrue(tc, char_has_object_flag(&ch, ITEM_ROL_NO_CHARM));
+  CuAssertTrue(tc, char_has_worn_object_flag(&ch, ITEM_ROL_NO_SUMMON));
+  CuAssertTrue(tc, !char_has_worn_object_flag(&ch, ITEM_ROL_NO_CHARM));
+}
+
+void Test_world_loading_production_rol_two_handed_flag_overrides_size(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data weapon;
+
+  clear_char(&ch);
+  clear_object(&weapon);
+  ch.points.size = SIZE_MEDIUM;
+  GET_OBJ_SIZE(&weapon) = SIZE_TINY;
+  GET_OBJ_TYPE(&weapon) = ITEM_WEAPON;
+  SET_OBJ_FLAG(&weapon, ITEM_ROL_TWO_HANDED);
+
+  CuAssertIntEquals(tc, 2, hands_needed_full(&ch, &weapon, FALSE));
+  CuAssertTrue(tc, is_weapon_wielded_two_handed(&weapon, &ch));
+}
+
+void Test_world_loading_production_rol_race_item_restrictions(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data item;
+
+  clear_char(&ch);
+  clear_object(&item);
+  GET_LEVEL(&ch) = 1;
+  ch.player.race = RACE_HUMAN;
+  SET_OBJ_FLAG(&item, ITEM_ROL_ANTI_GOOD_RACE);
+  CuAssertTrue(tc, invalid_align(&ch, &item));
+
+  ch.player.race = RACE_DROW;
+  CuAssertTrue(tc, !invalid_align(&ch, &item));
+  REMOVE_OBJ_FLAG(&item, ITEM_ROL_ANTI_GOOD_RACE);
+  SET_OBJ_FLAG(&item, ITEM_ROL_ANTI_EVIL_RACE);
+  CuAssertTrue(tc, invalid_align(&ch, &item));
+}
+
+void Test_world_loading_production_rol_whole_armor_conflicts(CuTest *tc)
+{
+  struct char_data ch;
+  struct obj_data body;
+  struct obj_data arms;
+  struct obj_data head;
+  struct obj_data face;
+
+  clear_char(&ch);
+  clear_object(&body);
+  clear_object(&arms);
+  clear_object(&head);
+  clear_object(&face);
+  SET_OBJ_FLAG(&body, ITEM_ROL_WHOLE_BODY);
+  SET_OBJ_FLAG(&head, ITEM_ROL_WHOLE_HEAD);
+
+  GET_EQ(&ch, WEAR_ARMS) = &arms;
+  CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &body, WEAR_BODY));
+  GET_EQ(&ch, WEAR_ARMS) = NULL;
+  GET_EQ(&ch, WEAR_BODY) = &body;
+  CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &arms, WEAR_ARMS));
+
+  GET_EQ(&ch, WEAR_BODY) = NULL;
+  GET_EQ(&ch, WEAR_FACE) = &face;
+  CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &head, WEAR_HEAD));
+  GET_EQ(&ch, WEAR_FACE) = NULL;
+  GET_EQ(&ch, WEAR_HEAD) = &head;
+  CuAssertTrue(tc, rol_object_wear_conflicts(&ch, &face, WEAR_FACE));
 }
