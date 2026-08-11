@@ -1414,11 +1414,39 @@ def _validate_object_values(
       _limit(manifest, "PORTAL_NORMAL"),
       _limit(manifest, "PORTAL_CHECKFLAGS"),
   }
+  rol_trap_bit = _table_index(manifest, "obj-extra", "ITEM_TRAPPED")
+  rol_trap_damage_types = {*range(1, 8), *range(11, 17), 30, 31}
 
   for obj in objects:
     if not _selected(obj, selected_packages) or obj.item_type is None or len(obj.values) < 4:
       continue
     values = obj.values
+    extra_bits = _decoded_bits(obj.extra_flags, manifest["tables"]["obj-extra"])
+    if rol_trap_bit in extra_bits:
+      trap_valid = len(values) >= 16
+      if trap_valid:
+        effect, damage_type, charges, trap_level, dice_count, dice_size = values[10:16]
+        trap_valid = (
+            effect > 0
+            and effect & ~0xFFF == 0
+            and damage_type in rol_trap_damage_types
+            and -1 <= charges <= 32767
+            and 0 <= trap_level <= 100
+            and 0 <= dice_count <= 32767
+            and 0 <= dice_size <= 32767
+            and bool(dice_count) == bool(dice_size)
+        )
+      if not trap_valid:
+        payload = values[10:16] if len(values) >= 16 else values[10:]
+        _object_finding(
+            findings,
+            obj,
+            "SEM035",
+            "ITEM_TRAPPED requires values[10..15] as effect 1..4095, supported "
+            "damage type, charges -1..32767, level 0..100, and either 0d0 or "
+            f"positive dice; found {payload}",
+            "error",
+        )
     if obj.item_type in {item_types["ITEM_SCROLL"], item_types["ITEM_POTION"]}:
       if not 0 <= values[0] <= max_level:
         _object_finding(

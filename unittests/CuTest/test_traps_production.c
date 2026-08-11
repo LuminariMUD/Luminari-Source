@@ -5,6 +5,7 @@
 #include "../../src/structs.h"
 #include "../../src/utils.h"
 #include "../../src/db.h"
+#include "../../src/handler.h"
 #include "../../src/combat/traps.h"
 
 #include <string.h>
@@ -100,4 +101,90 @@ void Test_traps_light_step_rolls_for_an_active_leave_trap(CuTest *tc)
   CuAssertTrue(tc, !triggered);
   CuAssertTrue(tc, !trap_was_triggered);
   CuAssertIntEquals(tc, expected_next_roll, actual_next_roll);
+}
+
+static void initialize_rol_object_trap(struct obj_data *obj, int effect, int damage_type,
+                                       int charges)
+{
+  clear_object(obj);
+  obj->name = "test trapped object";
+  obj->short_description = "a test trapped object";
+  SET_BIT_AR(GET_OBJ_EXTRA(obj), ITEM_TRAPPED);
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT) = effect;
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DAMAGE) = damage_type;
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) = charges;
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_LEVEL) = 4;
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_COUNT) = 1;
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_SIZE) = 1;
+}
+
+void Test_traps_rol_object_payload_and_event_matching(CuTest *tc)
+{
+  struct obj_data obj;
+
+  initialize_rol_object_trap(&obj,
+                             ROL_OBJECT_TRAP_EFFECT_MOVE | ROL_OBJECT_TRAP_EFFECT_NORTH |
+                                 ROL_OBJECT_TRAP_EFFECT_OBJECT,
+                             1, 2);
+
+  CuAssertTrue(tc, rol_object_trap_values_are_valid(&obj));
+  CuAssertTrue(tc, is_rol_object_trap(&obj));
+  CuAssertTrue(tc, rol_object_trap_matches_event(&obj, ROL_OBJECT_TRAP_EVENT_MOVE, NORTH));
+  CuAssertTrue(tc, !rol_object_trap_matches_event(&obj, ROL_OBJECT_TRAP_EVENT_MOVE, SOUTH));
+  CuAssertTrue(tc, rol_object_trap_matches_event(&obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0));
+  CuAssertTrue(tc, !rol_object_trap_matches_event(&obj, ROL_OBJECT_TRAP_EVENT_OPEN, 0));
+
+  GET_OBJ_VAL(&obj, ROL_OBJECT_TRAP_VALUE_DICE_SIZE) = 0;
+  CuAssertTrue(tc, !rol_object_trap_values_are_valid(&obj));
+}
+
+void Test_traps_rol_object_trigger_consumes_charge_and_applies_sleep(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct obj_data obj;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  bool triggered;
+
+  memset(&ch, 0, sizeof(ch));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.player.name = "trap tester";
+  GET_LEVEL(&ch) = 1;
+  GET_POS(&ch) = POS_STANDING;
+  IN_ROOM(&ch) = 0;
+  initialize_rol_object_trap(&obj, ROL_OBJECT_TRAP_EFFECT_OBJECT, 11, 2);
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  triggered = check_rol_object_trap(&ch, &obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0);
+
+  CuAssertTrue(tc, triggered);
+  CuAssertIntEquals(tc, 1, GET_OBJ_VAL(&obj, ROL_OBJECT_TRAP_VALUE_CHARGES));
+  CuAssertTrue(tc, AFF_FLAGGED(&ch, AFF_SLEEP));
+  CuAssertIntEquals(tc, POS_SLEEPING, GET_POS(&ch));
+
+  while (ch.affected)
+    affect_remove(&ch, ch.affected);
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+}
+
+void Test_traps_rol_object_trigger_bypasses_staff_without_consuming_charge(CuTest *tc)
+{
+  struct char_data ch;
+  struct player_special_data player_specials;
+  struct obj_data obj;
+
+  initialize_light_step_staff(&ch, &player_specials);
+  initialize_rol_object_trap(&obj, ROL_OBJECT_TRAP_EFFECT_OBJECT, 1, 2);
+
+  CuAssertTrue(tc, !check_rol_object_trap(&ch, &obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0));
+  CuAssertIntEquals(tc, 2, GET_OBJ_VAL(&obj, ROL_OBJECT_TRAP_VALUE_CHARGES));
 }

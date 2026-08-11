@@ -20,6 +20,7 @@
 #include "mudlim.h"
 #include "constants.h"
 #include "fight.h"
+#include "dgscript/dg_scripts.h"
 #include "magic/spells.h"
 #include "act.h"
 #include "character/perks.h"
@@ -1270,6 +1271,385 @@ void recover_trap_components(struct char_data *ch, struct trap_data *trap)
 }
 
 /* ============================================================================ */
+/* Converted Realms of Luminari Object Traps                                    */
+/* ============================================================================ */
+
+static bool rol_object_trap_damage_type_is_valid(int damage_type)
+{
+  return (damage_type >= 1 && damage_type <= 7) || (damage_type >= 11 && damage_type <= 16) ||
+         damage_type == 30 || damage_type == 31;
+}
+
+bool rol_object_trap_values_are_valid(const struct obj_data *obj)
+{
+  int effect, charges, level, dice_count, dice_size;
+
+  if (!obj)
+    return FALSE;
+
+  effect = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT);
+  charges = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES);
+  level = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_LEVEL);
+  dice_count = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_COUNT);
+  dice_size = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_SIZE);
+
+  if (effect <= 0 || (effect & ~ROL_OBJECT_TRAP_EFFECT_MASK))
+    return FALSE;
+  if (!rol_object_trap_damage_type_is_valid(GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DAMAGE)))
+    return FALSE;
+  if (charges < -1 || charges > SHRT_MAX || level < 0 || level > 100)
+    return FALSE;
+  if (dice_count < 0 || dice_count > SHRT_MAX || dice_size < 0 || dice_size > SHRT_MAX)
+    return FALSE;
+  if (!!dice_count != !!dice_size)
+    return FALSE;
+
+  return TRUE;
+}
+
+bool is_rol_object_trap(const struct obj_data *obj)
+{
+  return obj && OBJ_FLAGGED(obj, ITEM_TRAPPED) && rol_object_trap_values_are_valid(obj);
+}
+
+static int rol_object_trap_direction_effect(int direction)
+{
+  switch (direction)
+  {
+  case NORTH:
+    return ROL_OBJECT_TRAP_EFFECT_NORTH;
+  case EAST:
+    return ROL_OBJECT_TRAP_EFFECT_EAST;
+  case SOUTH:
+    return ROL_OBJECT_TRAP_EFFECT_SOUTH;
+  case WEST:
+    return ROL_OBJECT_TRAP_EFFECT_WEST;
+  case UP:
+    return ROL_OBJECT_TRAP_EFFECT_UP;
+  case DOWN:
+    return ROL_OBJECT_TRAP_EFFECT_DOWN;
+  default:
+    return 0;
+  }
+}
+
+bool rol_object_trap_matches_event(const struct obj_data *obj, int event, int direction)
+{
+  int effect, direction_effect;
+
+  if (!is_rol_object_trap(obj))
+    return FALSE;
+
+  effect = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT);
+  switch (event)
+  {
+  case ROL_OBJECT_TRAP_EVENT_MOVE:
+    direction_effect = rol_object_trap_direction_effect(direction);
+    return direction_effect && IS_SET(effect, ROL_OBJECT_TRAP_EFFECT_MOVE) &&
+           IS_SET(effect, direction_effect);
+  case ROL_OBJECT_TRAP_EVENT_OBJECT:
+    return IS_SET(effect, ROL_OBJECT_TRAP_EFFECT_OBJECT);
+  case ROL_OBJECT_TRAP_EVENT_OPEN:
+    return IS_SET(effect, ROL_OBJECT_TRAP_EFFECT_OPEN);
+  case ROL_OBJECT_TRAP_EVENT_PICK:
+    return IS_SET(effect, ROL_OBJECT_TRAP_EFFECT_PICK);
+  default:
+    return FALSE;
+  }
+}
+
+static bool rol_object_trap_target_is_exempt(struct char_data *ch)
+{
+  return !ch || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT;
+}
+
+static room_rnum rol_object_trap_teleport_destination(struct char_data *ch)
+{
+  room_rnum room, selected = NOWHERE;
+  zone_rnum zone;
+  int candidates = 0;
+
+  if (!ch || IN_ROOM(ch) == NOWHERE || IN_ROOM(ch) > top_of_world ||
+      !valid_mortal_tele_dest(ch, IN_ROOM(ch), TRUE))
+    return NOWHERE;
+
+  zone = GET_ROOM_ZONE(IN_ROOM(ch));
+  for (room = 0; room <= top_of_world; room++)
+  {
+    if (GET_ROOM_ZONE(room) != zone || !valid_mortal_tele_dest(ch, room, TRUE))
+      continue;
+    candidates++;
+    if (rand_number(1, candidates) == 1)
+      selected = room;
+  }
+
+  return selected;
+}
+
+static void rol_object_trap_teleport(struct char_data *ch)
+{
+  room_rnum destination;
+
+  destination = rol_object_trap_teleport_destination(ch);
+  if (destination == NOWHERE)
+  {
+    send_to_char(ch, "The trap's teleportation magic flashes and dies.\r\n");
+    return;
+  }
+
+  send_to_char(ch, "You hear a strange... POP!\r\n");
+  act("$n vanishes with a sharp pop.", FALSE, ch, 0, 0, TO_ROOM);
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[destination].coords[0];
+    Y_LOC(ch) = world[destination].coords[1];
+  }
+  char_to_room(ch, destination);
+  act("$n appears with a sharp pop.", FALSE, ch, 0, 0, TO_ROOM);
+  look_at_room(ch, 0);
+  entry_memory_mtrigger(ch);
+  greet_mtrigger(ch, -1);
+  greet_memory_mtrigger(ch);
+}
+
+static void rol_object_trap_sleep(struct char_data *ch, int duration)
+{
+  struct affected_type af;
+
+  if (AFF_FLAGGED(ch, AFF_SLEEP))
+    return;
+
+  new_affect(&af);
+  af.spell = SPELL_SLEEP;
+  af.duration = MAX(1, duration);
+  SET_BIT_AR(af.bitvector, AFF_SLEEP);
+  affect_join(ch, &af, FALSE, FALSE, FALSE, FALSE);
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+  if (GET_POS(ch) > POS_SLEEPING)
+    GET_POS(ch) = POS_SLEEPING;
+  send_to_char(ch, "A strange gas makes you fall asleep.\r\n");
+}
+
+static void rol_object_trap_poison(struct char_data *ch, int damage_type, int level)
+{
+  struct affected_type af;
+  int duration;
+
+  if (!can_poison(ch) || affected_by_spell(ch, SPELL_POISON))
+    return;
+  if (savingthrow(NULL, ch, SAVING_FORT, 0, CAST_INNATE, MIN(level, LVL_IMPL), NOSCHOOL))
+  {
+    send_to_char(ch, "The trap's toxins dissolve harmlessly in your bloodstream.\r\n");
+    return;
+  }
+
+  duration = damage_type == 4 ? 10 : damage_type == 5 ? 5 : 2;
+  new_affect(&af);
+  af.spell = SPELL_POISON;
+  af.duration = duration;
+  af.location = APPLY_CON;
+  af.modifier = -2;
+  SET_BIT_AR(af.bitvector, AFF_POISON);
+  affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+  send_to_char(ch, "You shudder as the trap's toxins enter your bloodstream.\r\n");
+}
+
+static void rol_object_trap_apply_to_target(struct char_data *ch, int damage_type, int level,
+                                            int damage_amount, bool area)
+{
+  int target_damage_type = DAM_FORCE;
+
+  if (rol_object_trap_target_is_exempt(ch))
+    return;
+
+  switch (damage_type)
+  {
+  case 11:
+    rol_object_trap_sleep(ch, level / (area ? 2 : 4));
+    return;
+  case 12:
+    rol_object_trap_teleport(ch);
+    return;
+  case 4:
+  case 5:
+  case 6:
+    rol_object_trap_poison(ch, damage_type, level);
+    return;
+  case 1:
+    target_damage_type = DAM_BLUDGEON;
+    break;
+  case 2:
+    target_damage_type = DAM_PUNCTURE;
+    break;
+  case 3:
+    target_damage_type = DAM_SLICE;
+    break;
+  case 7:
+    target_damage_type = DAM_FORCE;
+    break;
+  case 13:
+    target_damage_type = DAM_FIRE;
+    break;
+  case 14:
+    target_damage_type = DAM_COLD;
+    break;
+  case 15:
+    target_damage_type = DAM_ACID;
+    break;
+  case 16:
+    target_damage_type = DAM_ELECTRIC;
+    break;
+  }
+
+  if (damage_type >= 13 && damage_type <= 16 &&
+      savingthrow(NULL, ch, SAVING_REFL, 0, CAST_INNATE, MIN(level, LVL_IMPL), NOSCHOOL))
+    damage_amount /= 2;
+  if (damage_amount > 0)
+    damage(ch, ch, damage_amount, -1, target_damage_type, -1);
+}
+
+static void trigger_rol_object_trap(struct char_data *ch, struct obj_data *obj)
+{
+  struct char_data *victim, *next_victim;
+  int damage_type, level, damage_amount, dice_count, dice_size;
+  bool area;
+
+  if (!ch || !is_rol_object_trap(obj) || GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) == 0 ||
+      rol_object_trap_target_is_exempt(ch))
+    return;
+
+  if (GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) > 0)
+    GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES)--;
+
+  level = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_LEVEL);
+  if (level == 0)
+    level = 25;
+  dice_count = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_COUNT);
+  dice_size = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DICE_SIZE);
+  damage_amount = dice_count && dice_size ? dice(dice_count, dice_size) : dice(level / 2, 10);
+  damage_type = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DAMAGE);
+  if (damage_type == 30)
+    damage_type = rand_number(1, 7);
+  else if (damage_type == 31)
+    damage_type = rand_number(11, 16);
+  GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_DAMAGE) = damage_type;
+
+  area = IS_SET(GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT), ROL_OBJECT_TRAP_EFFECT_AREA);
+  if (area)
+  {
+    act("A trap on $p erupts, engulfing the room!", FALSE, ch, obj, 0, TO_CHAR);
+    act("A trap on $p erupts, engulfing the room!", FALSE, ch, obj, 0, TO_ROOM);
+    for (victim = world[IN_ROOM(ch)].people; victim; victim = next_victim)
+    {
+      next_victim = victim->next_in_room;
+      rol_object_trap_apply_to_target(victim, damage_type, level, damage_amount, TRUE);
+    }
+  }
+  else
+  {
+    act("You trigger a trap on $p!", FALSE, ch, obj, 0, TO_CHAR);
+    act("$n triggers a trap on $p!", FALSE, ch, obj, 0, TO_ROOM);
+    rol_object_trap_apply_to_target(ch, damage_type, level, damage_amount, FALSE);
+  }
+}
+
+bool check_rol_object_trap(struct char_data *ch, struct obj_data *obj, int event, int direction)
+{
+  if (rol_object_trap_target_is_exempt(ch) || !obj ||
+      GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) == 0 ||
+      !rol_object_trap_matches_event(obj, event, direction))
+    return FALSE;
+
+  trigger_rol_object_trap(ch, obj);
+  return TRUE;
+}
+
+bool check_rol_movement_traps(struct char_data *ch, room_rnum room, int direction)
+{
+  struct obj_data *obj, *next_obj;
+
+  if (rol_object_trap_target_is_exempt(ch) || room == NOWHERE || room > top_of_world)
+    return FALSE;
+
+  for (obj = world[room].contents; obj; obj = next_obj)
+  {
+    next_obj = obj->next_content;
+    if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_MOVE, direction))
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+static int rol_object_trap_dc(const struct obj_data *obj, bool disarm)
+{
+  int level, dc;
+
+  level = GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_LEVEL);
+  if (level == 0)
+    level = 25;
+  dc = 10 + level / 4;
+  if (disarm && GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_EFFECT) > 10)
+    dc += 5;
+  return MIN(40, dc);
+}
+
+static bool detect_rol_object_trap(struct char_data *ch, struct obj_data *obj)
+{
+  int dc;
+
+  if (!is_rol_object_trap(obj) || GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) == 0)
+  {
+    act("You don't detect anything strange on $p.", FALSE, ch, obj, 0, TO_CHAR);
+    return FALSE;
+  }
+
+  dc = rol_object_trap_dc(obj, FALSE);
+  if (GET_LEVEL(ch) >= LVL_IMMORT || skill_check(ch, ABILITY_PERCEPTION, dc))
+  {
+    act("You detect a trap on $p!", FALSE, ch, obj, 0, TO_CHAR);
+    act("$n detects a trap on $p!", FALSE, ch, obj, 0, TO_ROOM);
+    return TRUE;
+  }
+
+  act("You don't detect anything strange on $p.", FALSE, ch, obj, 0, TO_CHAR);
+  return FALSE;
+}
+
+static void disable_rol_object_trap(struct char_data *ch, struct obj_data *obj)
+{
+  int dc, roll;
+
+  if (!is_rol_object_trap(obj) || GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) == 0)
+  {
+    act("Nothing seems to happen as you examine $p.", FALSE, ch, obj, 0, TO_CHAR);
+    return;
+  }
+
+  dc = rol_object_trap_dc(obj, TRUE);
+  roll = GET_LEVEL(ch) >= LVL_IMMORT ? dc : skill_roll(ch, ABILITY_DISABLE_DEVICE);
+  if (roll >= dc)
+  {
+    GET_OBJ_VAL(obj, ROL_OBJECT_TRAP_VALUE_CHARGES) = 0;
+    act("You disarm the trap on $p!", FALSE, ch, obj, 0, TO_CHAR);
+    act("$n disarms a trap on $p!", FALSE, ch, obj, 0, TO_ROOM);
+  }
+  else if (roll <= dc - 5)
+  {
+    act("Your attempt triggers the trap on $p!", FALSE, ch, obj, 0, TO_CHAR);
+    trigger_rol_object_trap(ch, obj);
+  }
+  else
+  {
+    act("Nothing seems to happen as you work on $p.", FALSE, ch, obj, 0, TO_CHAR);
+  }
+}
+
+/* ============================================================================ */
 /* Player Commands                                                              */
 /* ============================================================================ */
 
@@ -1371,11 +1751,26 @@ void perform_autosearch(struct char_data *ch)
 ACMD(do_disabletrap)
 {
   struct trap_data *trap = NULL;
+  struct char_data *unused_victim = NULL;
+  struct obj_data *obj = NULL;
   int exp, result;
 
   if (!GET_ABILITY(ch, ABILITY_DISABLE_DEVICE))
   {
     send_to_char(ch, "You don't know how to disable traps.\r\n");
+    return;
+  }
+
+  skip_spaces_c(&argument);
+  if (*argument)
+  {
+    if (!generic_find(argument, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &unused_victim, &obj))
+    {
+      send_to_char(ch, "You don't see that object here.\r\n");
+      return;
+    }
+    disable_rol_object_trap(ch, obj);
+    USE_FULL_ROUND_ACTION(ch);
     return;
   }
 
@@ -1530,9 +1925,25 @@ int perform_detecttrap(struct char_data *ch, bool silent)
  */
 ACMD(do_detecttrap)
 {
+  struct char_data *unused_victim = NULL;
+  struct obj_data *obj = NULL;
+
   if (!GET_ABILITY(ch, ABILITY_PERCEPTION))
   {
     send_to_char(ch, "You don't know how to detect traps.\r\n");
+    return;
+  }
+
+  skip_spaces_c(&argument);
+  if (*argument)
+  {
+    if (!generic_find(argument, FIND_OBJ_INV | FIND_OBJ_ROOM, ch, &unused_victim, &obj))
+    {
+      send_to_char(ch, "You don't see that object here.\r\n");
+      return;
+    }
+    detect_rol_object_trap(ch, obj);
+    USE_FULL_ROUND_ACTION(ch);
     return;
   }
 

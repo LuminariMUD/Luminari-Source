@@ -358,6 +358,33 @@ class SemanticTests(unittest.TestCase):
         <= codes
     )
 
+  def test_rol_object_trap_value_contract(self) -> None:
+    trapped_bit = next(
+        entry["index"]
+        for entry in self.manifest["tables"]["obj-extra"]["entries"]
+        if entry["macro"] == "ITEM_TRAPPED"
+    )
+    trap_flags = list(encode_bits({trapped_bit}))
+    valid = obj(
+        310,
+        self.item_types["ITEM_CONTAINER"],
+        [0] * 10 + [516, 30, -1, 40, 15, 15],
+        extra_flags=trap_flags,
+    )
+    invalid = obj(
+        311,
+        self.item_types["ITEM_CONTAINER"],
+        [0] * 10 + [8192, 99, -2, 101, 1, 0],
+        extra_flags=trap_flags,
+    )
+
+    findings = self.validate(
+        [zone(1, 100, 199)], [room(100, 1)], objects=[valid, invalid]
+    )
+    trap_findings = [item for item in findings if item.code == "SEM035"]
+
+    self.assertEqual([311], [item.vnum for item in trap_findings])
+
   def test_qst_editor_scalar_and_string_boundaries(self) -> None:
     base = quest_record(100, self.quest_types["AQ_HOUSE_FIND"])
     scalar_cases = (

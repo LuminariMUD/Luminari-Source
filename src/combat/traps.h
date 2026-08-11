@@ -37,6 +37,37 @@ struct trap_type_template
   int default_area_radius;      /* Default area radius for AoE traps */
 };
 
+/* Converted Realms of Luminari object traps use the otherwise unused high
+ * object value slots so they survive prototype, player, and house saves. */
+#define ROL_OBJECT_TRAP_VALUE_EFFECT 10
+#define ROL_OBJECT_TRAP_VALUE_DAMAGE 11
+#define ROL_OBJECT_TRAP_VALUE_CHARGES 12
+#define ROL_OBJECT_TRAP_VALUE_LEVEL 13
+#define ROL_OBJECT_TRAP_VALUE_DICE_COUNT 14
+#define ROL_OBJECT_TRAP_VALUE_DICE_SIZE 15
+
+#define ROL_OBJECT_TRAP_EFFECT_MOVE (1 << 0)
+#define ROL_OBJECT_TRAP_EFFECT_OBJECT (1 << 1)
+#define ROL_OBJECT_TRAP_EFFECT_AREA (1 << 2)
+#define ROL_OBJECT_TRAP_EFFECT_NORTH (1 << 3)
+#define ROL_OBJECT_TRAP_EFFECT_EAST (1 << 4)
+#define ROL_OBJECT_TRAP_EFFECT_SOUTH (1 << 5)
+#define ROL_OBJECT_TRAP_EFFECT_WEST (1 << 6)
+#define ROL_OBJECT_TRAP_EFFECT_UP (1 << 7)
+#define ROL_OBJECT_TRAP_EFFECT_DOWN (1 << 8)
+#define ROL_OBJECT_TRAP_EFFECT_OPEN (1 << 9)
+#define ROL_OBJECT_TRAP_EFFECT_SEARCH (1 << 10)
+#define ROL_OBJECT_TRAP_EFFECT_PICK (1 << 11)
+#define ROL_OBJECT_TRAP_EFFECT_MASK 0xFFF
+
+enum rol_object_trap_event
+{
+  ROL_OBJECT_TRAP_EVENT_MOVE = 0,
+  ROL_OBJECT_TRAP_EVENT_OBJECT,
+  ROL_OBJECT_TRAP_EVENT_OPEN,
+  ROL_OBJECT_TRAP_EVENT_PICK
+};
+
 /* ============================================================================ */
 /* Function Prototypes                                                          */
 /* ============================================================================ */
@@ -75,6 +106,13 @@ void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room);
 void apply_trap_damage(struct char_data *ch, struct trap_data *trap);
 void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap);
 void apply_trap_to_area(struct trap_data *trap, room_rnum room, struct char_data *triggerer);
+
+/* Converted Realms of Luminari object-trap compatibility. */
+bool rol_object_trap_values_are_valid(const struct obj_data *obj);
+bool is_rol_object_trap(const struct obj_data *obj);
+bool rol_object_trap_matches_event(const struct obj_data *obj, int event, int direction);
+bool check_rol_object_trap(struct char_data *ch, struct obj_data *obj, int event, int direction);
+bool check_rol_movement_traps(struct char_data *ch, room_rnum room, int direction);
 
 /* Trap information and utility */
 const char *get_trap_name(struct trap_data *trap);

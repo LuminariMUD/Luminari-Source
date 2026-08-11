@@ -39,6 +39,7 @@
 #include "olc/genwld.h" /* for free_trail_data_list */
 #include "config.h"     /* for the default config values. */
 #include "combat/fight.h"
+#include "combat/traps.h"
 #include "modify.h"
 #include "obj/shop.h"
 #include "quest/quest.h"
@@ -7534,6 +7535,13 @@ static int check_object(struct obj_data *obj)
         check_bitvector_names(GET_OBJ_EXTRA(obj)[y], extra_bits_count, objname, "object extra");
     error |= check_bitvector_names(GET_OBJ_AFFECT(obj)[y], affected_bits_count, objname,
                                    "object affect");
+  }
+
+  if (OBJ_FLAGGED(obj, ITEM_TRAPPED) && !rol_object_trap_values_are_valid(obj))
+  {
+    error = TRUE;
+    log("SYSERR: Object #%d (%s) has an invalid ITEM_TRAPPED payload in values 10..15.",
+        GET_OBJ_VNUM(obj), buf1);
   }
 
   switch (GET_OBJ_TYPE(obj))

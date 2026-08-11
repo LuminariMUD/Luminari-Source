@@ -1510,6 +1510,17 @@ void do_stat_object(struct char_data *ch, struct obj_data *j, int mode)
       send_to_char(ch, "SpecTimer %d: %d | ", i, GET_OBJ_SPECTIMER(j, i));
     }
     send_to_char(ch, "\r\n");
+    if (OBJ_FLAGGED(j, ITEM_TRAPPED))
+    {
+      send_to_char(ch, "RoL trap: effect=%d damage=%d charges=%d level=%d dice=%dd%d (%s)\r\n",
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_EFFECT),
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_DAMAGE),
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_CHARGES),
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_LEVEL),
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_DICE_COUNT),
+                   GET_OBJ_VAL(j, ROL_OBJECT_TRAP_VALUE_DICE_SIZE),
+                   rol_object_trap_values_are_valid(j) ? "valid" : "INVALID");
+    }
   }
   else
   {
@@ -1985,6 +1996,9 @@ static void perform_put(struct char_data *ch, struct obj_data *obj, struct obj_d
   char buf[MEDIUM_STRING] = {'\0'};
   long object_id = obj_script_id(obj);
 
+  if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0))
+    return;
+
   if (!drop_otrigger(obj, ch))
     return;
 
@@ -2293,6 +2307,9 @@ static void perform_get_from_container(struct char_data *ch, struct obj_data *ob
     return;
   }
 
+  if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0))
+    return;
+
   if ((GET_OBJ_BOUND_ID(cont) != (int)NOBODY) && (GET_OBJ_BOUND_ID(cont) != GET_IDNUM(ch)))
   {
     if (get_name_by_id(GET_OBJ_BOUND_ID(cont)) != NULL)
@@ -2453,6 +2470,9 @@ void get_from_container(struct char_data *ch, struct obj_data *cont, char *arg, 
 
 static int perform_get_from_room(struct char_data *ch, struct obj_data *obj)
 {
+  if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0))
+    return 0;
+
   if (check_trap(ch, TRAP_TRIGGER_GET_OBJECT, ch->in_room, obj, 0))
     return 0;
 

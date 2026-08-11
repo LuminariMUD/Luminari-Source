@@ -364,6 +364,7 @@ Room level-range records use two additional stable findings:
 |------|----------|----------|
 | `WLD036` | Error | Room `R` record is malformed or repeated. |
 | `SEM034` | Error | Room entry level bounds are outside `-1` or `1..LVL_IMPL`, or reversed. |
+| `SEM035` | Error | An `ITEM_TRAPPED` RoL compatibility payload in object values 10-15 is invalid. |
 
 Quest-system finding codes added in version 0.2.0 are stable. A code marked
 "mixed" has a warning for safe noncanonical input and an error for a related

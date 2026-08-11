@@ -341,6 +341,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
   case SCMD_OPEN:
     if (obj)
     {
+      if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_OPEN, 0))
+        return;
       if (check_trap(ch, TRAP_TRIGGER_OPEN_CONTAINER, ch->in_room, obj, 0))
         return;
     }
@@ -404,6 +406,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
         send_to_char(ch, "That item cannot be picked.\r\n");
         return;
       }
+      if (check_rol_object_trap(ch, obj, ROL_OBJECT_TRAP_EVENT_PICK, 0))
+        return;
       if (check_trap(ch, TRAP_TRIGGER_UNLOCK_CONTAINER, ch->in_room, obj, 0))
         return;
       if (DOOR_IS_PICKPROOF(ch, obj, door))

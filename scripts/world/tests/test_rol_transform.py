@@ -9,7 +9,7 @@ from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
-from wtool_lib.rol_source import parse_rol_source_file
+from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
@@ -121,6 +121,78 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2_000_201, obj.values[2])
     self.assertEqual(9, obj.affects[0].modifier)
     self.assertEqual(1, len(obj.extra_descriptions))
+
+  def test_emitted_object_preserves_source_trap_without_colliding_with_dg_trigger(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\ntrapped chest~\na trapped chest~\nA trapped chest is here.~\n~\n"
+        b"15 0 1\n0 0 -1 0\n10 100 0\n0\n0\n"
+        b"T\n2562 11 3 25 2 6\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver, attachments=(2_100_001,))
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    obj = result.records[0]
+    self.assertEqual([2562, 11, 3, 25, 2, 6], obj.values[10:16])
+    self.assertEqual([2_100_001], [attachment.trigger_vnum for attachment in obj.attachments])
+    self.assertEqual(["0", "0", "0", "r"], obj.extra_flags)
+    self.assertIn("converted source object trap", " ".join(emitted.diagnostics))
+
+  def test_emitted_object_excludes_empty_source_trap(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nplain box~\na plain box~\nA plain box is here.~\n~\n"
+        b"15 0 1\n0 0 -1 0\n10 100 0\n0\n0\nT\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual([0] * 6, result.records[0].values[10:16])
+    self.assertNotEqual(["0", "0", "0", "r"], result.records[0].extra_flags)
+    self.assertIn("inactive/malformed source object trap", " ".join(emitted.diagnostics))
+
+  def test_emitted_object_rejects_invalid_source_trap_damage_type(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\ntrapped box~\na trapped box~\nA trapped box is here.~\n~\n"
+        b"15 0 1\n0 0 -1 0\n10 100 0\n0\n0\nT 2 99 1 10 1 6\n",
+    )
+
+    with self.assertRaisesRegex(ValueError, "invalid damage type 99"):
+      emit_object(source, 2_000_200, _resolver)
+
+  def test_all_active_source_object_traps_have_explicit_dispositions(self) -> None:
+    corpus = parse_active_rol_corpus(self.root / "EXAMPLE/RealmsOfLuminari", self.root)
+    trapped = [
+        record
+        for record in corpus.records
+        if record.kind == "obj" and any(row["token"] == "T" for row in record.directives)
+    ]
+    converted = 0
+    excluded = 0
+
+    for ordinal, record in enumerate(trapped):
+      emitted = emit_object(record, 2_500_000 + ordinal, _resolver)
+      path = self._target_path("obj", emitted.text)
+      parsed = parse_object_file(path, "obj/25000.obj", self.manifest, set())
+      self.assertTrue(parsed.complete, record.record_id)
+      diagnostics = " ".join(emitted.diagnostics)
+      if "converted source object trap" in diagnostics:
+        converted += 1
+        self.assertNotEqual([0] * 6, parsed.records[0].values[10:16])
+      else:
+        excluded += 1
+        self.assertIn("inactive/malformed", diagnostics)
+
+    self.assertEqual(33, len(trapped))
+    self.assertEqual(29, converted)
+    self.assertEqual(4, excluded)
 
   def test_emitted_magic_item_caps_source_level_at_target_maximum(self) -> None:
     source = self._source_record(

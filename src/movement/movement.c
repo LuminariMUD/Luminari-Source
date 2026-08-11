@@ -613,6 +613,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
     }
   }
 
+  if (check_rol_movement_traps(ch, IN_ROOM(ch), dir))
+    return (0);
+
   /* Check for leave traps using modular function */
   process_leave_traps(ch);
 

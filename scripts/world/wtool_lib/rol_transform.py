@@ -262,6 +262,11 @@ OBJECT_EXTRA_MAP = {
     28: 12,
 }
 
+ROL_OBJECT_TRAP_EXTRA_BIT = 113
+ROL_OBJECT_TRAP_EFFECT_MASK = 0xFFF
+ROL_OBJECT_TRAP_DAMAGE_TYPES = frozenset((*range(1, 8), *range(11, 17), 30, 31))
+ROL_OBJECT_TRAP_VALUE_OFFSET = 10
+
 OBJECT_WEAR_MAP = {
     0: 0,
     1: 1,
@@ -502,6 +507,80 @@ def _room_size_bits(base: list[int]) -> set[int]:
 
 def _directive_rows(record: RolRecord, token: str) -> list[dict[str, object]]:
   return [directive for directive in record.directives if directive["token"] == token]
+
+
+def _object_trap_values(
+    record: RolRecord,
+    values: list[int],
+    diagnostics: list[str],
+) -> tuple[int, int, int, int, int, int] | None:
+  """Validate and normalize the source object's optional six-field trap payload."""
+
+  valid_rows: list[tuple[dict[str, object], list[int]]] = []
+  for directive in _directive_rows(record, "T"):
+    arguments = [int(value) for value in directive.get("arguments", [])]
+    if len(arguments) != 6:
+      diagnostics.append(
+          "excluded inactive/malformed source object trap at source line "
+          f"{directive['line']} ({len(arguments)} of 6 fields)"
+      )
+      continue
+    valid_rows.append((directive, arguments))
+
+  if not valid_rows:
+    return None
+  if len(valid_rows) > 1:
+    lines = [int(directive["line"]) for directive, _ in valid_rows]
+    raise ValueError(f"source object has multiple active trap rows at lines {lines}")
+  if any(values[ROL_OBJECT_TRAP_VALUE_OFFSET:ROL_OBJECT_TRAP_VALUE_OFFSET + 6]):
+    raise ValueError("source object trap conflicts with occupied target values 10..15")
+
+  directive, arguments = valid_rows[0]
+  effect, damage_type, charges, level, dice_count, dice_size = arguments
+  if effect <= 0 or effect & ~ROL_OBJECT_TRAP_EFFECT_MASK:
+    raise ValueError(
+        f"source object trap at line {directive['line']} has invalid effect mask {effect}"
+    )
+  if damage_type not in ROL_OBJECT_TRAP_DAMAGE_TYPES:
+    raise ValueError(
+        f"source object trap at line {directive['line']} has invalid damage type {damage_type}"
+    )
+  if charges < -1:
+    diagnostics.append(
+        f"normalized source object trap charges {charges} to unlimited (-1) at source line "
+        f"{directive['line']}"
+    )
+    charges = -1
+  if charges > 32767:
+    raise ValueError(
+        f"source object trap at line {directive['line']} has out-of-range charges {charges}"
+    )
+  if level < 0:
+    raise ValueError(
+        f"source object trap at line {directive['line']} has negative level {level}"
+    )
+  if level > 100:
+    diagnostics.append(
+        f"capped source object trap level {level} at 100 at source line {directive['line']}"
+    )
+    level = 100
+  if dice_count < 0 or dice_size < 0 or dice_count > 32767 or dice_size > 32767:
+    raise ValueError(
+        f"source object trap at line {directive['line']} has invalid dice "
+        f"{dice_count}d{dice_size}"
+    )
+  if bool(dice_count) != bool(dice_size):
+    diagnostics.append(
+        f"normalized incomplete source object trap dice {dice_count}d{dice_size} to the "
+        f"level-derived default at source line {directive['line']}"
+    )
+    dice_count = 0
+    dice_size = 0
+
+  diagnostics.append(
+      f"converted source object trap at line {directive['line']} into ITEM_TRAPPED values 10..15"
+  )
+  return effect, damage_type, charges, level, dice_count, dice_size
 
 
 def _shop_open_intervals(value: str) -> list[tuple[int, int]]:
@@ -1218,14 +1297,19 @@ def emit_object(
   missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
   if missing_affects:
     diagnostics.append(f"object affect flags without persistent equivalents: {missing_affects}")
+  values = _object_values(record, source_type, target_type, resolve, diagnostics)
+  trap_values = _object_trap_values(record, values, diagnostics)
+  if trap_values is not None:
+    target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)
+    values[ROL_OBJECT_TRAP_VALUE_OFFSET:ROL_OBJECT_TRAP_VALUE_OFFSET + 6] = trap_values
   lines.append(
       f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
       f"{_encoded(target_affects)} {_encoded(set())}\n"
   )
-  values = _object_values(record, source_type, target_type, resolve, diagnostics)
   lines.append(" ".join(str(value) for value in values) + "\n")
   economy = list(record.values.get("economy", []))
-  economy = (economy + [0, 1, 0])[:5]
+  economy_defaults = [0, 1, 0, 1, 1]
+  economy = economy[:5] + economy_defaults[len(economy[:5]):]
   economy[0] = max(0, economy[0])
   economy[2] = max(0, economy[2])
   if economy[3] <= 0:
@@ -1257,10 +1341,6 @@ def emit_object(
       if 1 <= arguments[0] <= 5:
         modifier = (modifier * 45) // 10
       lines.extend(["A\n", f"{location} {modifier} 0 0\n"])
-    elif token == "T":
-      diagnostics.append(
-          f"legacy object trap requires target trap classification at source line {directive['line']}"
-      )
   if special_proc is not None:
     lines.extend(["Z\n", f"{special_proc}\n"])
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
