@@ -325,6 +325,8 @@ i added this trying to debug issues with qedit-copy -zusuk
 #define REDIT_X_COORD 19
 #define REDIT_Y_COORD 20
 #define REDIT_SPEC_PROC 21
+#define REDIT_MIN_LEVEL 22
+#define REDIT_MAX_LEVEL 23
 
 /* Submodes of ZEDIT connectedness. */
 #define ZEDIT_MAIN_MENU 0

@@ -200,6 +200,8 @@ class RoomRecord:
   file_zone: int | None = None
   flags: list[str] = field(default_factory=list)
   sector: int | None = None
+  minimum_level: int = -1
+  maximum_level: int = -1
   exits: list[ExitRecord] = field(default_factory=list)
   extra_descriptions: list[ExtraDescriptionRecord] = field(default_factory=list)
   attachments: list[AttachmentRecord] = field(default_factory=list)

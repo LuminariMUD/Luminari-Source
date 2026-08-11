@@ -243,6 +243,9 @@ int do_simple_move(struct char_data *ch, int dir, int need_specials_check)
   if (going_to == NOWHERE)
     return 0;
 
+  if (!room_level_allows_entry(ch, going_to, true))
+    return 0;
+
   was_in = IN_ROOM(ch);
   /* end dummy checks */
 
@@ -1287,6 +1290,9 @@ ACMD(do_enter)
         return;
       }
 
+      if (!room_level_allows_entry(ch, real_dest, true))
+        return;
+
       /* All checks passed, except checking the destination, so let's do that now */
       /* this function needs a vnum, not rnum */
       if (ch && !House_can_enter(ch, portal_dest))
@@ -1346,6 +1352,8 @@ ACMD(do_enter)
       {
         if ((IN_ROOM(k->follower) == was_in) && (GET_POS(k->follower) >= POS_STANDING))
         {
+          if (!room_level_allows_entry(k->follower, real_dest, true))
+            continue;
           act("You follow $N.\r\n", FALSE, k->follower, 0, ch, TO_CHAR);
           act("$n enters $p, and vanishes!", FALSE, k->follower, portal, 0, TO_ROOM);
           char_from_room(k->follower);

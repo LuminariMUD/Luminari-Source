@@ -418,6 +418,37 @@ def _validate_exit_topology(
   return exits_by_room
 
 
+def _validate_room_level_ranges(
+    rooms: list[RoomRecord],
+    findings: list[Finding],
+    selected_packages: set[int] | None,
+    manifest: dict[str, Any],
+) -> None:
+  maximum = _limit(manifest, "LVL_IMPL")
+  for room in rooms:
+    if not _selected(room, selected_packages):
+      continue
+    minimum_level = room.minimum_level
+    maximum_level = room.maximum_level
+    invalid_minimum = minimum_level != -1 and not 1 <= minimum_level <= maximum
+    invalid_maximum = maximum_level != -1 and not 1 <= maximum_level <= maximum
+    reversed_range = (
+        minimum_level > 0 and maximum_level > 0 and minimum_level > maximum_level
+    )
+    if invalid_minimum or invalid_maximum or reversed_range:
+      findings.append(
+          Finding(
+              "SEM034",
+              "error",
+              f"room level range {minimum_level}..{maximum_level} must use -1 or "
+              f"1..{maximum}, with the finite bounds ordered",
+              room.span,
+              record_type="room",
+              vnum=room.vnum,
+          )
+      )
+
+
 def _validate_reachability(
     zones: list[ZoneRecord],
     rooms: list[RoomRecord],
@@ -1600,6 +1631,7 @@ def validate_semantics(
   _validate_placeholder_text(
       zones, rooms, mobiles, objects, triggers, findings, selected_packages
   )
+  _validate_room_level_ranges(rooms, findings, selected_packages, manifest)
   exits_by_room = _validate_exit_topology(
       rooms, findings, selected_packages, manifest, direction_count
   )

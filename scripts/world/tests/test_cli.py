@@ -118,8 +118,10 @@ class CliTests(unittest.TestCase):
     status, stdout, stderr = run_cli(["constants", "list", "hlquest-commands"])
     self.assertEqual(0, status)
     self.assertEqual("", stderr)
-    self.assertEqual(12, len(stdout.splitlines()))
+    self.assertEqual(14, len(stdout.splitlines()))
     self.assertIn("QUEST_COMMAND_CAST_SPELL", stdout)
+    self.assertIn("QUEST_COMMAND_QUEST_POINTS", stdout)
+    self.assertIn("QUEST_COMMAND_EXPERIENCE", stdout)
     self.assertIn("code=S", stdout)
 
   def test_validate_is_read_only_and_json_is_repeatable(self) -> None:

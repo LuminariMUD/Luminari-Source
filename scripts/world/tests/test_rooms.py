@@ -63,6 +63,19 @@ class RoomParserTests(unittest.TestCase):
       result = parse_room_file(path, "122.wld", self.manifest, False, self.spec_names)
       self.assertEqual([], result.findings)
 
+  def test_level_range_record_parses_and_rejects_malformed_or_duplicate_rows(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      path = Path(directory) / "123.wld"
+      path.write_text(
+          "#12300\nValid~\nA bounded room.~\n123 0 0 0 0 0\nR 15 -1\nS\n"
+          "#12301\nBroken~\nA malformed range.~\n123 0 0 0 0 0\n"
+          "R 1 10 trailing\nR 1 10\nR 2 9\nS\n$~\n",
+          encoding="ascii",
+      )
+      result = parse_room_file(path, "123.wld", self.manifest, False, self.spec_names)
+      self.assertEqual((15, -1), (result.records[0].minimum_level, result.records[0].maximum_level))
+      self.assertEqual(2, sum(item.code == "WLD036" for item in result.findings))
+
   def test_disabled_diagonal_consumes_block_but_reports_desync(self) -> None:
     disabled = self.parse("broken/diagonal.wld", diagonal_dirs=False)
     enabled = self.parse("broken/diagonal.wld", diagonal_dirs=True)

@@ -477,6 +477,7 @@ def parse_room_file(
       )
 
     found_room_end = False
+    level_range_seen = False
     while True:
       line = cursor.read_significant()
       if line is None:
@@ -518,6 +519,34 @@ def parse_room_file(
         room.extra_descriptions.append(
             ExtraDescriptionRecord(keywords or None, description or None, keyword_span)
         )
+      elif kind == "R":
+        values, consumed, error = scan_integers(line.text[1:], 2)
+        trailing = line.text[1:][consumed:].strip()
+        if error is not None or len(values) != 2 or trailing:
+          result.findings.append(
+              finding(
+                  "WLD036",
+                  "error",
+                  "room level-range R record requires exactly two integers",
+                  line.span,
+                  "room",
+                  vnum,
+              )
+          )
+        elif level_range_seen:
+          result.findings.append(
+              finding(
+                  "WLD036",
+                  "error",
+                  "room has more than one level-range R record",
+                  line.span,
+                  "room",
+                  vnum,
+              )
+          )
+        else:
+          room.minimum_level, room.maximum_level = values
+          level_range_seen = True
       elif kind == "M":
         if room.moving_room is not None:
           result.findings.append(

@@ -16,6 +16,7 @@ int has_boat(struct char_data *ch, room_rnum going_to);
 int has_flight(struct char_data *ch);
 int has_scuba(struct char_data *ch, room_rnum destination);
 int can_climb(struct char_data *ch);
+bool room_level_allows_entry(struct char_data *ch, room_rnum destination, bool show_message);
 
 /* Single-file room functions */
 bool is_top_of_room_for_singlefile(struct char_data *ch, int dir);

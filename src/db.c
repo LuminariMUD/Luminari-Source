@@ -2145,6 +2145,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct extra_descr_data *new_descr = NULL;
   char letter = '\0';
+  bool level_range_seen = false;
 
   /* This really had better fit or there are other problems. */
   snprintf(buf2, sizeof(buf2), "room #%d", virtual_nr);
@@ -2284,6 +2285,8 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   world[room_nr].people = NULL;
   world[room_nr].light = 0; /* Zero light sources */
   world[room_nr].globe = 0; /* Zero darkness sources */
+  world[room_nr].minimum_level = -1;
+  world[room_nr].maximum_level = -1;
 
   for (i = 0; i < NUM_OF_DIRS; i++) /* NUM_OF_DIRS here, not DIR_COUNT */
     world[room_nr].dir_option[i] = NULL;
@@ -2347,6 +2350,35 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
           log("SYSERR: Unable to record moving-room parser-hook binding: %s", effective_error);
       }
       break;
+    case 'R': /* Optional room entry level range. */
+    {
+      int minimum_level;
+      int maximum_level;
+      char trailing;
+
+      if (level_range_seen)
+      {
+        log("SYSERR: Room #%d has more than one level-range R record.", virtual_nr);
+        exit(1);
+      }
+      if (sscanf(line + 1, " %d %d %c", &minimum_level, &maximum_level, &trailing) != 2)
+      {
+        log("SYSERR: Room #%d level-range R record requires exactly two integers.", virtual_nr);
+        exit(1);
+      }
+      if ((minimum_level != -1 && (minimum_level < 1 || minimum_level > LVL_IMPL)) ||
+          (maximum_level != -1 && (maximum_level < 1 || maximum_level > LVL_IMPL)) ||
+          (minimum_level > 0 && maximum_level > 0 && minimum_level > maximum_level))
+      {
+        log("SYSERR: Room #%d has invalid level range %d..%d (valid bound: -1 or 1..%d).",
+            virtual_nr, minimum_level, maximum_level, LVL_IMPL);
+        exit(1);
+      }
+      world[room_nr].minimum_level = minimum_level;
+      world[room_nr].maximum_level = maximum_level;
+      level_range_seen = true;
+      break;
+    }
     case 'Z': /* SpecProc name for room */
     {
       char source_location[READ_SIZE];

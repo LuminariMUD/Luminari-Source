@@ -291,6 +291,17 @@ class SemanticTests(unittest.TestCase):
     self.assertIn("roots [100]", target.message)
     self.assertFalse(any(item.code == "SEM010" and item.vnum == 2 for item in findings))
 
+  def test_room_level_range_bounds_and_order(self) -> None:
+    valid = room(100, 1, minimum_level=15, maximum_level=-1)
+    invalid_low = room(101, 1, minimum_level=0, maximum_level=20)
+    invalid_high = room(102, 1, minimum_level=1, maximum_level=35)
+    reversed_range = room(103, 1, minimum_level=20, maximum_level=10)
+    findings = self.validate(
+        [zone(1, 100, 199)], [valid, invalid_low, invalid_high, reversed_range]
+    )
+    level_findings = [item for item in findings if item.code == "SEM034"]
+    self.assertEqual({101, 102, 103}, {item.vnum for item in level_findings})
+
   def test_reset_level_band_and_open_dangerous_room(self) -> None:
     death_bit = next(
         entry["index"]

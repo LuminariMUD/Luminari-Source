@@ -69,7 +69,7 @@ class RolTransformTests(unittest.TestCase):
         "wld",
         b"<*> File Version 1 <*>\n#100\n&+RRoom&N~\nDescription~\n"
         b"1 26 2 5 5 5 0\nD0\nDoor~\nkey~\n449 200 101\n"
-        b"E\nsign~\nA sign.~\nS\n",
+        b"E\nsign~\nA sign.~\nR 15 35\nF 30\nM 0 20\nS\n",
     )
     emitted = emit_room(source, 2_000_100, 20_001, _resolver)
     path = self._target_path("wld", emitted.text)
@@ -81,6 +81,12 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2_000_101, room.exits[0].destination_vnum)
     self.assertEqual(2_000_200, room.exits[0].key_vnum)
     self.assertEqual(8, room.exits[0].door_flags)
+    self.assertEqual(15, room.minimum_level)
+    self.assertEqual(-1, room.maximum_level)
+    diagnostics = " ".join(emitted.diagnostics)
+    self.assertIn("fall chance", diagnostics)
+    self.assertIn("obsolete source room mana", diagnostics)
+    self.assertIn("target maximum level is 34", diagnostics)
 
   def test_emitted_mobile_maps_flags_position_class_and_race(self) -> None:
     source = self._source_record(

@@ -6136,6 +6136,8 @@ struct room_data
   zone_rnum zone;                                      /**< Room zone (for resetting) */
   int coords[2];                                       /**< Room coordinates (for wilderness) */
   int sector_type;                                     /**< sector type (move/hide) */
+  int minimum_level;                                   /**< Minimum entry level; <= 0 is open */
+  int maximum_level;                                   /**< Maximum entry level; <= 0 is open */
   int room_flags[RF_ARRAY_MAX];                        /**< INDOORS, DARK, etc */
   long room_affections;                                /* bitvector for spells/skills */
   char *name;                                          /**< Room name */

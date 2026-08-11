@@ -11,7 +11,8 @@ from .rol_source import RolRecord
 
 
 _TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
-_TARGET_MAX_OBJECT_SPELL_LEVEL = 34
+_TARGET_MAX_LEVEL = 34
+_TARGET_MAX_OBJECT_SPELL_LEVEL = _TARGET_MAX_LEVEL
 _SOURCE_SPELL_MAP: dict[int, tuple[str, int | None]] = {
     9: ("full heal", 28),
     36: ("stone skin", 56),
@@ -922,9 +923,50 @@ def emit_room(
       extra, text_diagnostics = _tilde(directive.get("description"))
       diagnostics.extend(text_diagnostics)
       lines.extend(["E\n", keyword, extra])
-    elif token in {"R", "F", "M"}:
+    elif token == "R":
+      arguments = directive.get("arguments", [])
+      if len(arguments) < 2:
+        diagnostics.append(
+            f"excluded incomplete room level range at source line {directive['line']}"
+        )
+        continue
+      minimum_level, maximum_level = arguments[:2]
+      if minimum_level < 1:
+        if minimum_level != -1:
+          diagnostics.append(
+              f"normalized source room minimum level {minimum_level} to unrestricted at "
+              f"source line {directive['line']}"
+          )
+        minimum_level = -1
+      elif minimum_level > _TARGET_MAX_LEVEL:
+        raise ValueError(
+            f"source room minimum level {minimum_level} exceeds target maximum "
+            f"{_TARGET_MAX_LEVEL} at "
+            f"source line {directive['line']}"
+        )
+      if maximum_level < 1 or maximum_level > _TARGET_MAX_LEVEL:
+        if maximum_level != -1:
+          diagnostics.append(
+              f"normalized source room maximum level {maximum_level} to unrestricted at "
+              f"source line {directive['line']} because the target maximum level is "
+              f"{_TARGET_MAX_LEVEL}"
+          )
+        maximum_level = -1
+      if minimum_level > 0 and maximum_level > 0 and minimum_level > maximum_level:
+        raise ValueError(
+            f"source room level range {minimum_level}..{maximum_level} is reversed at "
+            f"source line {directive['line']}"
+        )
+      lines.append(f"R {minimum_level} {maximum_level}\n")
+    elif token == "F":
       diagnostics.append(
-          f"legacy room extension {token} requires a bounded adapter at source line {directive['line']}"
+          f"omitted source-inert room fall chance at source line {directive['line']}; "
+          "the source loader stores and validates it but no runtime path consumes it"
+      )
+    elif token == "M":
+      diagnostics.append(
+          f"omitted obsolete source room mana at source line {directive['line']}; the "
+          "source runtime never consumes it and target M is reserved for moving rooms"
       )
   lines.extend(["C\n", "0 0\n", "S\n"])
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)

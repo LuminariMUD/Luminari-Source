@@ -31,6 +31,49 @@
 
 #define ZONE_MINLVL(rnum) (zone_table[(rnum)].min_level)
 
+bool room_level_allows_entry(struct char_data *ch, room_rnum destination, bool show_message)
+{
+  struct char_data *mount;
+  int minimum_level;
+  int maximum_level;
+
+  if (ch == NULL || destination == NOWHERE || destination > top_of_world)
+    return false;
+
+  minimum_level = world[destination].minimum_level;
+  maximum_level = world[destination].maximum_level;
+  mount = RIDING(ch);
+
+  if (minimum_level > 0 && GET_LEVEL(ch) < minimum_level)
+  {
+    if (show_message)
+      send_to_char(ch, "You change your mind. You must be at least level %d to enter.\r\n",
+                   minimum_level);
+    return false;
+  }
+  if (minimum_level > 0 && mount != NULL && GET_LEVEL(mount) < minimum_level)
+  {
+    if (show_message)
+      send_to_char(ch, "Your mount refuses to enter.\r\n");
+    return false;
+  }
+  if (maximum_level > 0 && GET_LEVEL(ch) > maximum_level &&
+      (IS_NPC(ch) || GET_LEVEL(ch) < LVL_IMMORT))
+  {
+    if (show_message)
+      send_to_char(ch, "That place is forbidden to characters above level %d.\r\n", maximum_level);
+    return false;
+  }
+  if (maximum_level > 0 && mount != NULL && GET_LEVEL(mount) > maximum_level)
+  {
+    if (show_message)
+      send_to_char(ch, "Your mount refuses to enter.\r\n");
+    return false;
+  }
+
+  return true;
+}
+
 int has_boat(struct char_data *ch, room_rnum going_to)
 {
   struct obj_data *obj;

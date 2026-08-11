@@ -496,6 +496,9 @@ int save_rooms(zone_rnum rzone)
       fprintf(sf, "%d %d %d %d %d %d\n", zone_table[room->zone].number, room->room_flags[0],
               room->room_flags[1], room->room_flags[2], room->room_flags[3], room->sector_type);
 
+      if (room->minimum_level > 0 || room->maximum_level > 0)
+        fprintf(sf, "R %d %d\n", room->minimum_level, room->maximum_level);
+
       /* Done saving, reset the flag. */
       if (occupied)
       {

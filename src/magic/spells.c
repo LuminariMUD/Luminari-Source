@@ -39,6 +39,7 @@
 #include "character/evolutions.h"
 #include "character/feats.h"
 #include "vessels/routing.h"
+#include "movement/movement_validation.h"
 
 /************************************************************/
 /*  Functions, Events, etc needed to perform manual spells  */
@@ -256,6 +257,9 @@ void create_wall(struct char_data *ch, int room, int dir, int type, int level)
 int valid_mortal_tele_dest(struct char_data *ch, room_rnum dest, bool dim_lock)
 {
   if (dest == NOWHERE)
+    return FALSE;
+
+  if (ch && !room_level_allows_entry(ch, dest, false))
     return FALSE;
 
   /* if dim_lock is TRUE, we are checking for dim_lock, requires ch data */

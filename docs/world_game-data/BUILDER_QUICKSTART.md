@@ -108,6 +108,7 @@ D0
 The hall continues north.~
 ~
 0 -1 3001
+R 5 -1
 S
 #3001
 The Inner Chamber~
@@ -126,6 +127,12 @@ Per record: vnum, name, description (terminated by a lone `~`), then the
 numeric line - **zone number, then four room-flag bitvector fields, then the
 sector type**. Each `D<n>` block is an exit: description, keyword list, then
 door flags, key vnum, destination vnum. `S` ends the record.
+
+An optional one-line `R <minimum-level> <maximum-level>` record restricts room
+entry. Each bound is `-1` for unrestricted or a level from 1 through 34; if both
+are finite, the minimum cannot exceed the maximum. In the example, characters
+below level 5 cannot enter room 3000. REdit exposes the same values under
+`L) Level range` and preserves them when the zone is saved.
 
 Directions are `D0` north, `D1` east, `D2` south, `D3` west, `D4` up, `D5`
 down.

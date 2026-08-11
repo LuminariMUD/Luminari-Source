@@ -209,6 +209,8 @@ static void redit_setup_new(struct descriptor_data *d)
   OLC_ROOM(d)->name = strdup("An unfinished room");
   OLC_ROOM(d)->description = strdup("You are in an unfinished room.\r\n");
   OLC_ROOM(d)->number = NOWHERE;
+  OLC_ROOM(d)->minimum_level = -1;
+  OLC_ROOM(d)->maximum_level = -1;
   OLC_ITEM_TYPE(d) = WLD_TRIGGER;
 
   /* Initialize the coordinates. Used only in wilderness. */
@@ -654,6 +656,7 @@ static void redit_disp_menu(struct descriptor_data *d)
                   "%sF%s) Extra descriptions menu\r\n"
                   "%sS%s) Script      : %s%s\r\n"
                   "%sG%s) Coordinates : (%s%d%s, %s%d%s)\r\n"
+                  "%sL%s) Level range : %s%d%s to %s%d%s (-1 is unrestricted)\r\n"
                   "%sZ%s) SpecProc    : %s%s\r\n"
                   "%sW%s) Copy Room\r\n"
                   "%sX%s) Delete Room\r\n"
@@ -662,8 +665,9 @@ static void redit_disp_menu(struct descriptor_data *d)
                   grn, nrm, cyn, redit_exit_vnum(room->dir_option[UP]), grn, nrm, cyn,
                   redit_exit_vnum(room->dir_option[DOWN]), grn, nrm, grn, nrm, cyn,
                   OLC_SCRIPT(d) ? "Set." : "Not Set.", grn, nrm, cyn, room->coords[0], nrm, cyn,
-                  room->coords[1], nrm, grn, nrm, cyn, specname ? specname : "None", grn, nrm, grn,
-                  nrm, grn, nrm);
+                  room->coords[1], nrm, grn, nrm, cyn, room->minimum_level, nrm, cyn,
+                  room->maximum_level, nrm, grn, nrm, cyn, specname ? specname : "None", grn, nrm,
+                  grn, nrm, grn, nrm);
 
   OLC_MODE(d) = REDIT_MAIN_MENU;
 }
@@ -911,6 +915,11 @@ void redit_parse(struct descriptor_data *d, char *arg)
       /* Set the ioordinate location for this room. */
       write_to_output(d, "Enter new x-coordinate :");
       OLC_MODE(d) = REDIT_X_COORD;
+      break;
+    case 'l':
+    case 'L':
+      write_to_output(d, "Minimum entry level (-1 for unrestricted, 1-%d): ", LVL_IMPL);
+      OLC_MODE(d) = REDIT_MIN_LEVEL;
       break;
     case 'w':
     case 'W':
@@ -1241,6 +1250,37 @@ void redit_parse(struct descriptor_data *d, char *arg)
     //      write_to_output(d, "Invalid y-coordinate, try again : ");
     //      break;
     //    }
+  case REDIT_MIN_LEVEL:
+  {
+    char trailing;
+
+    if (sscanf(arg, " %d %c", &number, &trailing) != 1 ||
+        (number != -1 && (number < 1 || number > LVL_IMPL)))
+    {
+      write_to_output(d, "Enter -1 or a level from 1 to %d: ", LVL_IMPL);
+      return;
+    }
+    OLC_ROOM(d)->minimum_level = number;
+    write_to_output(d, "Maximum entry level (-1 for unrestricted, 1-%d): ", LVL_IMPL);
+    OLC_MODE(d) = REDIT_MAX_LEVEL;
+    return;
+  }
+
+  case REDIT_MAX_LEVEL:
+  {
+    char trailing;
+
+    if (sscanf(arg, " %d %c", &number, &trailing) != 1 ||
+        (number != -1 && (number < 1 || number > LVL_IMPL)) ||
+        (OLC_ROOM(d)->minimum_level > 0 && number > 0 && OLC_ROOM(d)->minimum_level > number))
+    {
+      write_to_output(d, "Enter -1 or an ordered level from 1 to %d: ", LVL_IMPL);
+      return;
+    }
+    OLC_ROOM(d)->maximum_level = number;
+    break;
+  }
+
   default:
     /* We should never get here. */
     mudlog(BRF, LVL_BUILDER, TRUE, "SYSERR: Reached default case in parse_redit");

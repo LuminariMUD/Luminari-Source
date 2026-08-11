@@ -302,6 +302,8 @@ ACMD(do_dig)
     OLC_ROOM(d)->description = strdup("You are in an unfinished room.\r\n");
     OLC_ROOM(d)->zone = OLC_ZNUM(d);
     OLC_ROOM(d)->number = NOWHERE;
+    OLC_ROOM(d)->minimum_level = -1;
+    OLC_ROOM(d)->maximum_level = -1;
 
     /* Save the new room to memory. redit_save_internally handles adding the
      * room in the right place, etc. */
@@ -446,6 +448,8 @@ int buildwalk(struct char_data *ch, int dir)
       OLC_ROOM(d)->description = strdup(buf);
       OLC_ROOM(d)->zone = OLC_ZNUM(d);
       OLC_ROOM(d)->number = NOWHERE;
+      OLC_ROOM(d)->minimum_level = -1;
+      OLC_ROOM(d)->maximum_level = -1;
       OLC_ROOM(d)->sector_type = GET_BUILDWALK_SECTOR(ch);
       OLC_ROOM(d)->room_flags[0] = ch->player_specials->buildwalk_flags[0];
       OLC_ROOM(d)->room_flags[1] = ch->player_specials->buildwalk_flags[1];

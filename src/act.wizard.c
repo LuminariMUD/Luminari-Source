@@ -985,6 +985,15 @@ static void do_stat_room(struct char_data *ch, struct room_data *rm)
                real_room(rm->number), (long)rm->number + ROOM_ID_BASE, buf2);
   send_to_char(ch, "Coordinate Location (Wilderness only): (%d, %d)\r\n", rm->coords[0],
                rm->coords[1]);
+  if (rm->minimum_level > 0 || rm->maximum_level > 0)
+  {
+    if (rm->minimum_level > 0 && rm->maximum_level > 0)
+      send_to_char(ch, "Entry level range: %d to %d\r\n", rm->minimum_level, rm->maximum_level);
+    else if (rm->minimum_level > 0)
+      send_to_char(ch, "Entry level range: %d and above\r\n", rm->minimum_level);
+    else
+      send_to_char(ch, "Entry level range: up to %d\r\n", rm->maximum_level);
+  }
   sprintbitarray(rm->room_flags, room_bits, RF_ARRAY_MAX, buf2);
   send_to_char(ch, "SpecProc: %s, Flags: %s\r\n",
                rm->func == NULL ? "None" : get_spec_func_name(rm->func), buf2);

@@ -6,6 +6,7 @@
 #include "../../src/utils.h"
 #include "../../src/db.h"
 #include "../../src/dgscript/dg_scripts.h"
+#include "../../src/movement/movement_validation.h"
 
 #include <string.h>
 
@@ -132,4 +133,48 @@ void Test_world_loading_production_rol_legacy_door_flags(CuTest *tc)
   CuAssertTrue(tc, IS_SET(flags, EX_LOCKED_EASY));
   CuAssertTrue(tc, IS_SET(flags, EX_BLOCKED));
   CuAssertTrue(tc, !IS_SET(flags, EX_HIDDEN));
+}
+
+void Test_world_loading_production_room_level_entry_contract(CuTest *tc)
+{
+  struct room_data fixture[1];
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  struct char_data rider;
+  struct char_data mount;
+
+  memset(fixture, 0, sizeof(fixture));
+  clear_char(&rider);
+  clear_char(&mount);
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = fixture;
+  top_of_world = 0;
+
+  GET_LEVEL(&rider) = 14;
+  fixture[0].minimum_level = 15;
+  fixture[0].maximum_level = -1;
+  CuAssertTrue(tc, !room_level_allows_entry(&rider, 0, false));
+  GET_LEVEL(&rider) = 15;
+  CuAssertTrue(tc, room_level_allows_entry(&rider, 0, false));
+
+  fixture[0].minimum_level = -1;
+  fixture[0].maximum_level = 20;
+  GET_LEVEL(&rider) = 21;
+  CuAssertTrue(tc, !room_level_allows_entry(&rider, 0, false));
+  GET_LEVEL(&rider) = LVL_IMMORT;
+  CuAssertTrue(tc, room_level_allows_entry(&rider, 0, false));
+
+  GET_LEVEL(&mount) = 21;
+  RIDING(&rider) = &mount;
+  CuAssertTrue(tc, !room_level_allows_entry(&rider, 0, false));
+  RIDING(&rider) = NULL;
+
+  fixture[0].minimum_level = 0;
+  fixture[0].maximum_level = 0;
+  GET_LEVEL(&rider) = 1;
+  CuAssertTrue(tc, room_level_allows_entry(&rider, 0, false));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
 }

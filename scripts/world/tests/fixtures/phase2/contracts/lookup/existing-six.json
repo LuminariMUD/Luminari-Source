@@ -138,6 +138,8 @@
       "0"
     ],
     "moving_connections": [],
+    "maximum_level": -1,
+    "minimum_level": -1,
     "name": "Test Room",
     "owner_zone_vnum": 1,
     "record_type": "room",
