@@ -150,12 +150,12 @@ Seven tilde-terminated strings, in this fixed order:
 | 1 | The shop does not stock the requested item |
 | 2 | The player does not have the item they are trying to sell |
 | 3 | The shop will not buy this kind of item |
-| 4 | The player cannot afford the purchase |
-| 5 | The shop cannot afford the purchase |
+| 4 | The shop cannot afford the purchase |
+| 5 | The player cannot afford the purchase |
 | 6 | A purchase succeeds |
 | 7 | A sale succeeds |
 
-`%s` expands to the shopkeeper's name. Messages 6 and 7 additionally take a
+`%s` expands to the player's name. Messages 6 and 7 additionally take a
 `%d` for the coin amount. Getting the count or order wrong shifts every
 subsequent numeric field, so count your tildes.
 
@@ -171,6 +171,14 @@ A bitvector controlling shopkeeper behavior:
 |-----------|----------|--------|
 | 1 | `WILL_START_FIGHT` | The shopkeeper will attack thieves |
 | 2 | `WILL_BANK_MONEY` | Excess gold is moved to the shop's bank |
+| 4 | `HAS_UNLIMITED_CASH` | Reserved; unlimited-cash behavior is disabled |
+| 8 | `BLACK_MARKET_SHOP` | Requires the criminal background |
+| 16 | `NOBLE_SHOP` | Requires the noble background |
+| 32 | `ROAMING_SHOP` | Operates wherever the shopkeeper currently is |
+
+`ROAMING_SHOP` is a conversion compatibility flag for legacy shops that follow their
+keeper instead of operating in a fixed room. Such a shop may have an empty room list;
+`sedit` displays and persists the flag like the other shop flags.
 
 ### Shopkeeper mob vnum
 

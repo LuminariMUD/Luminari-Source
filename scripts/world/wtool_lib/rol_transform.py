@@ -452,6 +452,158 @@ def _room_size_bits(base: list[int]) -> set[int]:
   return set()
 
 
+def _directive_rows(record: RolRecord, token: str) -> list[dict[str, object]]:
+  return [directive for directive in record.directives if directive["token"] == token]
+
+
+def _shop_open_intervals(value: str) -> list[tuple[int, int]]:
+  stripped = value.strip()
+  open_hours: set[int] = set()
+  if len(stripped) >= 24 and all(character.upper() in {"O", "C"} for character in stripped[:24]):
+    open_hours = {
+        hour for hour, character in enumerate(stripped[:24]) if character.upper() == "C"
+    }
+  else:
+    for match in re.finditer(r"(\d+)\s*[-,]\s*(\d+)", stripped):
+      first, last = (int(part) for part in match.groups())
+      if first > last or first > 23:
+        continue
+      open_hours.update(range(first, min(last, 23) + 1))
+
+  intervals: list[tuple[int, int]] = []
+  for hour in sorted(open_hours):
+    if intervals and hour == intervals[-1][1] + 1:
+      intervals[-1] = (intervals[-1][0], hour)
+    else:
+      intervals.append((hour, hour))
+  return intervals
+
+
+def _shop_message(value: str, monetary: bool = False) -> tuple[str, list[str]]:
+  text, diagnostics = convert_text(value)
+  text = text.strip()
+  wrapper = re.fullmatch(r"\$n\s+says\s+(['\"])(.*)\1", text, flags=re.DOTALL | re.IGNORECASE)
+  if wrapper is not None:
+    text = wrapper.group(2)
+  if monetary:
+    text = text.replace("%s", "%d coins")
+  text = text.replace("%N", "%s").replace("$N", "%s")
+  text = text.replace("$p", "that item").replace("$n", "I")
+  if "%s" not in text:
+    text = f"%s, {text}" if text else "%s."
+  first_name = text.find("%s")
+  text = text[: first_name + 2] + text[first_name + 2 :].replace("%s", "you")
+  text = re.sub(r"%(?![%sd])", "%%", text)
+  return text, diagnostics
+
+
+def emit_shop(
+    record: RolRecord,
+    destination_vnum: int,
+    resolve: IdentityResolver,
+) -> TransformResult:
+  """Emit one modern target shop record without the file header or terminator."""
+
+  diagnostics: list[str] = []
+  products = [
+      resolve("obj", int(value))
+      for directive in _directive_rows(record, "PO")
+      for value in directive.get("arguments", [])
+      if int(value) > 0
+  ]
+  buy_types: list[int] = []
+  for directive in _directive_rows(record, "BT"):
+    for value in directive.get("arguments", []):
+      source_type = int(value)
+      target_type = OBJECT_TYPE_MAP.get(source_type)
+      if target_type is None:
+        diagnostics.append(
+            f"excluded unsupported shop buy type {source_type} at source line {directive['line']}"
+        )
+      elif target_type not in buy_types:
+        buy_types.append(target_type)
+
+  greed_rows = _directive_rows(record, "GREED")
+  profit_rows = _directive_rows(record, "PROFIT")
+  greed = int(greed_rows[-1].get("arguments", [100])[0]) if greed_rows else 100
+  source_profit = int(profit_rows[-1].get("arguments", [100])[0]) if profit_rows else 100
+  profit_buy = max(0.01, greed / 100.0)
+  profit_sell = 100.0 / max(1, 100 + source_profit)
+
+  source_messages = {
+      token: str(rows[-1].get("text", ""))
+      for token in ("MSHAVE", "MBHAVE", "MNBUY", "MSCASH", "MBCASH", "MSELL", "MBUY")
+      if (rows := _directive_rows(record, token))
+  }
+  message_defaults = {
+      "MSHAVE": "I do not have that item.",
+      "MBHAVE": "You do not have that item.",
+      "MNBUY": "I do not buy that kind of item.",
+      "MSCASH": "I cannot afford that item.",
+      "MBCASH": "You cannot afford that item.",
+      "MSELL": "Your purchase costs %s.",
+      "MBUY": "I will pay you %s.",
+  }
+  messages: list[str] = []
+  for token in ("MSHAVE", "MBHAVE", "MNBUY", "MSCASH", "MBCASH", "MSELL", "MBUY"):
+    message, message_diagnostics = _shop_message(
+        source_messages.get(token, message_defaults[token]),
+        monetary=token in {"MSELL", "MBUY"},
+    )
+    diagnostics.extend(message_diagnostics)
+    messages.append(message)
+
+  shop_flags = 0
+  if _directive_rows(record, "KILLABLE"):
+    shop_flags |= 1
+  if _directive_rows(record, "ROAMING"):
+    shop_flags |= 1 << 5
+
+  keeper = resolve("mob", record.vnum)
+  rooms = [
+      resolve("wld", int(value))
+      for directive in _directive_rows(record, "ROOM")
+      for value in directive.get("arguments", [])
+      if int(value) > 0
+  ]
+  hour_rows = _directive_rows(record, "HOURS")
+  intervals = _shop_open_intervals(str(hour_rows[-1].get("text", ""))) if hour_rows else []
+  if not intervals:
+    intervals = [(0, 28)]
+    diagnostics.append("source shop has no effective open-hour interval; used always-open target hours")
+  if len(intervals) > 2:
+    diagnostics.append(
+        f"source shop has {len(intervals)} disjoint open intervals; merged intervals after the first"
+    )
+    intervals = [intervals[0], (intervals[1][0], intervals[-1][1])]
+  intervals.extend([(0, 0)] * (2 - len(intervals)))
+
+  unsupported = sorted(
+      {
+          directive["token"]
+          for directive in record.directives
+          if directive["token"] in {"CHEATS", "HATES", "DEADBEAT", "OFFENSE", "MOPEN", "MCLOSE", "MBIGOT"}
+      }
+  )
+  if unsupported:
+    diagnostics.append(
+        "source-only shop behavior retained as conversion evidence: " + ", ".join(unsupported)
+    )
+
+  lines = [f"#{destination_vnum}~\n"]
+  lines.extend(f"{value}\n" for value in products)
+  lines.extend(["-1\n", f"{profit_buy:.4f}\n", f"{profit_sell:.4f}\n"])
+  lines.extend(f"{value}\n" for value in buy_types)
+  lines.append("-1\n")
+  lines.extend(f"{message}~\n" for message in messages)
+  lines.extend(["0\n", f"{shop_flags}\n", f"{keeper}\n", "0\n"])
+  lines.extend(f"{value}\n" for value in rooms)
+  lines.append("-1\n")
+  for first, last in intervals:
+    lines.extend([f"{first}\n", f"{last}\n"])
+  return TransformResult("".join(lines), diagnostics)
+
+
 def _exit_flags(source_flags: int) -> int:
   is_door = bool(source_flags & 0x1FF)
   pickproof = bool(source_flags & (1 << 8))

@@ -436,6 +436,13 @@ void TestBackgroundShopAccessAndHometownPricingAreExact(CuTest *tc)
   CuAssertTrue(tc, shop_background_hometown_price_multiplier(TRUE, FALSE, FALSE) == 1.0f);
 }
 
+void TestRoamingShopRoomAccessIsExplicit(CuTest *tc)
+{
+  CuAssertTrue(tc, shop_room_access_allowed(0, TRUE));
+  CuAssertTrue(tc, !shop_room_access_allowed(0, FALSE));
+  CuAssertTrue(tc, shop_room_access_allowed(ROAMING_SHOP, FALSE));
+}
+
 void TestWebOnboardingCapabilityNegotiation(CuTest *tc)
 {
   struct descriptor_data d;

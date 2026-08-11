@@ -8,8 +8,16 @@ from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_rol_source_file
-from wtool_lib.rol_transform import convert_text, emit_mobile, emit_object, emit_room, emit_zone
+from wtool_lib.rol_transform import (
+    convert_text,
+    emit_mobile,
+    emit_object,
+    emit_room,
+    emit_shop,
+    emit_zone,
+)
 from wtool_lib.rooms import parse_room_file
+from wtool_lib.shops import parse_shop_file
 from wtool_lib.zones import parse_zone_file
 
 
@@ -22,6 +30,7 @@ class RolTransformTests(unittest.TestCase):
   @classmethod
   def setUpClass(cls) -> None:
     root = default_repo_root()
+    cls.root = root
     cls.manifest = load_manifest(root / "scripts/world/wtool_constants.json")
 
   def _source_record(self, kind: str, data: bytes):
@@ -124,6 +133,79 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2, result.records[0].commands[3].dependency)
     self.assertEqual(25, result.records[0].commands[5].probability)
     self.assertIn("unsupported equipment position 24", " ".join(emitted.diagnostics))
+
+  def test_emitted_shop_maps_products_prices_hours_and_roaming(self) -> None:
+    source = self._source_record(
+        "shp",
+        b"SHOP: 300\nHOURS: 8-12 13-17 18-20\nROOM: 100\nGREED: 140\n"
+        b"PROFIT: 90\nCASTING:\nDEADBEAT: 1\nOFFENSE: 2\nCHEATS: GOODS\n"
+        b"HATES: NPC\nPO: 200\nBT: 5 11\nMBCASH: $n says 'No cash, $N.'\n"
+        b"MBHAVE: $n says '$N does not have that.'\nMBIGOT: Go away.\n"
+        b"MBUY: $n says 'Here is your %s.'\nMCLOSE: Closed.\n"
+        b"MNBUY: $n says 'I do not buy $p.'\nMOPEN: Open.\n"
+        b"MSCASH: $n says 'I cannot afford $p, $N.'\n"
+        b"MSELL: $n says 'Sold to $N for %s.'\nMSHAVE: $n says 'I do not have $p.'\n",
+    )
+    emitted = emit_shop(source, 2_000_300, _resolver)
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / "20003.shp"
+    path.write_text(
+        "CircleMUD v3.0 Shop File~\n" + emitted.text + "$~\n",
+        encoding="ascii",
+        newline="\n",
+    )
+    result = parse_shop_file(path, "shp/20003.shp", self.manifest)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    shop = result.records[0]
+    self.assertEqual([2_000_200], shop.product_vnums)
+    self.assertEqual([5, 11], [entry.item_type for entry in shop.buy_types])
+    self.assertEqual([2_000_100], shop.room_vnums)
+    self.assertEqual([8, 20, 0, 0], shop.open_hours)
+    self.assertEqual(1.4, shop.profit_buy)
+    self.assertAlmostEqual(0.5263, shop.profit_sell or 0.0, places=4)
+    self.assertIn("%d coins", shop.messages[5])
+    self.assertIn("source-only shop behavior", " ".join(emitted.diagnostics))
+
+  def test_emitted_roaming_shop_sets_native_compatibility_flag(self) -> None:
+    source = self._source_record(
+        "shp",
+        b"SHOP: 300\nROAMING:\nHOURS: 1-23\nGREED: 100\nPROFIT: 100\n",
+    )
+    emitted = emit_shop(source, 2_000_300, _resolver)
+    lines = emitted.text.splitlines()
+    self.assertEqual("32", lines[-8])
+
+  def test_selected_pilot_shops_all_emit_valid_target_records(self) -> None:
+    cases = (("hulburg", 100_000), ("muspel", 2_000_000))
+    for basename, offset in cases:
+      with self.subTest(basename=basename):
+        source_path = self.root / f"EXAMPLE/RealmsOfLuminari/areas/shp/{basename}.shp"
+        records, corpus = parse_rol_source_file(
+            source_path,
+            f"areas/shp/{basename}.shp",
+            "shp",
+            basename,
+        )
+        self.assertTrue(corpus.complete)
+
+        def resolver(kind: str, vnum: int) -> int:
+          del kind
+          return vnum + offset
+
+        text = "CircleMUD v3.0 Shop File~\n"
+        text += "".join(emit_shop(record, record.vnum + offset, resolver).text for record in records)
+        text += "$~\n"
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        target_path = Path(temporary.name) / f"{basename}.shp"
+        target_path.write_text(text, encoding="ascii", newline="\n")
+        result = parse_shop_file(target_path, f"shp/{basename}.shp", self.manifest)
+        self.assertTrue(result.complete)
+        self.assertEqual([], result.findings)
+        self.assertEqual(len(records), len(result.records))
 
 
 if __name__ == "__main__":

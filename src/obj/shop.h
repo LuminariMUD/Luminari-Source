@@ -21,6 +21,7 @@ int ok_damage_shopkeeper(struct char_data *ch, struct char_data *victim);
 void destroy_shops(void);
 bool shop_background_access_allowed(bitvector_t shop_flags, bool has_criminal, bool has_noble);
 float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown, bool buying);
+bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed);
 
 struct shop_buy_data
 {
@@ -176,8 +177,9 @@ struct stack_data
 #define HAS_UNLIMITED_CASH (1 << 2) /*zusuk disabled*/
 #define BLACK_MARKET_SHOP (1 << 3)
 #define NOBLE_SHOP (1 << 4)
+#define ROAMING_SHOP (1 << 5) /* RoL conversion: shop follows its keeper */
 /** Total number of shop flags */
-#define NUM_SHOP_FLAGS 5
+#define NUM_SHOP_FLAGS 6
 
 #define SHOP_KILL_CHARS(i) (IS_SET(SHOP_BITVECTOR(i), WILL_START_FIGHT))
 #define SHOP_USES_BANK(i) (IS_SET(SHOP_BITVECTOR(i), WILL_BANK_MONEY))

@@ -67,8 +67,9 @@ const char *trade_letters[] = {"Good", /* First, the alignment based ones */
                                "Duergar",
                                "\n"};
 
-const char *shop_bits[] = {"WILL_FIGHT",        "USES_BANK",       "UNLIMITED_CASH",
-                           "BLACK_MARKET_SHOP", "NOBLE_ONLY_SHOP", "\n"};
+const char *shop_bits[] = {
+    "WILL_FIGHT",   "USES_BANK", "UNLIMITED_CASH", "BLACK_MARKET_SHOP", "NOBLE_ONLY_SHOP",
+    "ROAMING_SHOP", "\n"};
 
 /* local (file scope) function prototypes  */
 static void push(struct stack_data *stack, int pushval); /**< @todo Move to utils.c */
@@ -189,6 +190,11 @@ float shop_background_hometown_price_multiplier(bool eligible, bool in_hometown,
   if (!eligible || !in_hometown)
     return 1.0f;
   return buying ? 0.90f : 1.10f;
+}
+
+bool shop_room_access_allowed(bitvector_t shop_flags, bool room_listed)
+{
+  return room_listed || IS_SET(shop_flags, ROAMING_SHOP);
 }
 
 static int is_ok_char(struct char_data *keeper, struct char_data *ch, int shop_nr)
@@ -1310,8 +1316,8 @@ static int ok_shop_room(int shop_nr, room_vnum room)
 
   for (mindex = 0; SHOP_ROOM(shop_nr, mindex) != NOWHERE; mindex++)
     if (SHOP_ROOM(shop_nr, mindex) == room)
-      return (TRUE);
-  return (FALSE);
+      return shop_room_access_allowed(SHOP_BITVECTOR(shop_nr), TRUE);
+  return shop_room_access_allowed(SHOP_BITVECTOR(shop_nr), FALSE);
 }
 
 SPECIAL(shop_keeper)
