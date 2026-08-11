@@ -2,8 +2,8 @@
 
 - Status: Phase 4 complete
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -111,6 +111,30 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   converter uses traced RoL identities rather than treating those source values as
   target numeric positions.
 
+### RoL object-property compatibility
+
+- Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
+  2040907-2040909, 2040911-2040913, 2040915-2040917, 2040923, 2040924,
+  2040926, 2040928, or 2040929. A mortal must receive the no-identify refusal; an
+  immortal may inspect the item. Mass identify must report the worn item as unable to
+  be identified without exposing its properties.
+- Wield Theswamp object 2040916 or 2040930, Cemetery object 2055349 or 2055350, or a
+  flagged Muspel weapon such as 2058657. Each must consume two hands regardless of
+  size and must receive the target's two-handed combat treatment.
+- Attempt to equip Cemetery objects 2055305 or 2055306 as a drow or duergar and as a
+  source-good analogue such as a human or elf. The evil-race character must be refused;
+  the good-race character must be allowed. Reverse the expectation for Cemetery objects
+  2055312 or 2055313 and Muspel objects 2058662, 2058952, or 2058961.
+- Equip Muspel whole-body armor 2058913 or 2058917. It must be refused while arm or leg
+  gear is worn; after equipping it, new arm or leg gear must be refused.
+- Equip Muspel helm 2058921, then have another character attempt summon and group
+  summon. Both must leave the wearer in place. Removing the helm restores ordinary
+  summon eligibility, subject to normal room and preference restrictions.
+- Sleep protection, charm protection, and whole-head overlap support are built and
+  production-tested, but none of the five current pilot packages contains an object
+  with those flags. Exercise them only when a later staged package supplies a source
+  example; do not hand-edit this pilot.
+
 Phase 5 also provides converted object-trap behavior for movement, get and put, open,
 and lock-pick events, including finite charges, area effects, status effects, damage,
 and same-zone teleport. Staff can inspect the payload with `stat object`; players can
@@ -122,9 +146,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- Remaining mobile/object symbolic mappings and transient-affect dispositions are
-  Phase 5 work in progress. The active quest corpus uses fixed item rewards; no random
-  item-reward range remains to implement.
+- Remaining mobile actions, object applies/types/wear flags, the malformed sector, and
+  transient-affect dispositions are Phase 5 work in progress. The active quest corpus
+  uses fixed item rewards; no random item-reward range remains to implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.

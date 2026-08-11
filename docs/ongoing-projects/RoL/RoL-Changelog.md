@@ -5,6 +5,63 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 object-property compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Completed dispositions for all 1,556 active source object-extra-flag observations.
+  Every observed flag now maps to target behavior or has a traced source-inert
+  disposition.
+- Added nine explicit RoL compatibility flags for good-race and evil-race equipment
+  restrictions, identify resistance, summon protection, sleep protection, charm
+  protection, forced two-handed use, whole-body armor, and whole-head equipment.
+- Enforced the flags through equipment and scroll restrictions; identify, mass
+  identify, lore, charm, sleep, summon, group summon, hand-use, combat modifier, and
+  overlapping armor paths. Immortals retain the source administrative bypass for
+  identify and restricted scroll use.
+- Mapped source `NOSHOW` to the target hidden-object flag. Traced source `DARK` through
+  its light-recalculation call sites and confirmed that the source light counters never
+  consume it; it is omitted explicitly instead of inventing target darkness.
+- Extended OEdit constants, generated constants, builder documentation, converter
+  fixtures, and production-linked behavior tests. The four-chunk object bit array has
+  capacity for all 125 target flags.
+- Rebuilt the five-zone staged pilot. It contains testable no-identify, two-handed,
+  race-restricted, whole-body, and no-summon objects while preserving all earlier
+  structural, reset, and walkthrough gates.
+
+### Acceptance evidence
+
+```text
+Delivery commit: ca037b15
+Full-corpus audit path: lib/rol-conversion/runs/phase5-object-flags-e5b998bd
+Full-corpus audit run: rol-phase5-audit-fb713f798161a78b
+Pilot build path: lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot
+Pilot build run: rol-phase4-build-4e6f5f9a132e06cc
+Active source object-extra observations: 1,556
+Unmapped object-extra observations: 0
+Previous unmapped symbolic observations: 17,287
+Current unmapped symbolic observations: 15,731
+Reduction: 1,556
+Convertible records emitted: 69,920
+Emitted target bytes: 42,078,773
+Converter exceptions: 0
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 237 passed
+Production-linked CuTest suite: 607 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass addresses mobile actions, object applies, the remaining item-type
+and wear rows, the one malformed sector, and explicit dispositions for the remaining
+transient affects.
+
 ## 2026-08-12 - Phase 5 room, zone, and affect compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
@@ -57,9 +114,8 @@ Root-level circle artifact: absent
 Live target writes: 0
 ```
 
-The next Phase 5 pass addresses mobile actions, object extra flags and applies, the
-remaining item-type and wear rows, the one malformed sector, and explicit dispositions
-for the remaining transient affects.
+The next recorded Phase 5 pass completed object-property compatibility; its evidence is
+the milestone immediately above.
 
 ## 2026-08-12 - Phase 5 full-corpus capability audit
 

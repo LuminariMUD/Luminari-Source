@@ -521,10 +521,10 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with the measured mobile-action, object extra/apply/item-type/wear,
+Continue Phase 5 with the measured mobile-action, object apply/item-type/wear,
 malformed-sector, and remaining transient-affect dispositions from the full-corpus
-audit. The completed quest/SOC, rare room, object-trap, room/zone/affect, and audit
-checkpoints are recorded in
+audit. The completed quest/SOC, rare room, object-trap, object-property,
+room/zone/affect, and audit checkpoints are recorded in
 [RoL-Changelog.md](RoL-Changelog.md).
 Preserve the six explicit source-defect or ignored content rows as logged smallest-unit
 exclusions, then regenerate a capability-complete bundle and repeat the pilot's

@@ -34,6 +34,7 @@ Phase 5 rare room compatibility commit: e100bdff
 Phase 5 object-trap compatibility commit: 6a1ddb6d
 Phase 5 full-corpus audit commit: 51b7bd13
 Phase 5 room/zone/affect compatibility commit: f0fb9d8f
+Phase 5 object-property compatibility commit: ca037b15
 ```
 
 The authoritative ignored runs are:
@@ -56,6 +57,10 @@ Phase 5 room/zone/affect audit: lib/rol-conversion/runs/phase5-room-zone-df35cb1
                                 rol-phase5-audit-719a67acc4cb6b01
 Phase 5 room/zone/affect pilot: lib/rol-conversion/runs/phase5-room-flags-f0fb9d8f
                                 rol-phase4-build-e5d61111edbfcd9d
+Phase 5 object-property audit: lib/rol-conversion/runs/phase5-object-flags-e5b998bd
+                                 rol-phase5-audit-fb713f798161a78b
+Phase 5 object-property pilot: lib/rol-conversion/runs/phase5-object-flags-e5b998bd-pilot
+                                 rol-phase4-build-4e6f5f9a132e06cc
 Policy:  rol-conversion-policy-1
 ```
 
@@ -99,19 +104,24 @@ Policy:  rol-conversion-policy-1
   The five pilots contain no active object traps; the trap-only checkpoint's restage
   was byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
 - The current Phase 5 full-corpus audit emits all 69,920 convertible active records,
-  totaling 42,078,584 bytes, with zero transform exceptions and zero writes. Complete
-  room and zone ownership plus corrected high affect mappings reduce unmapped symbolic
-  observations from 26,006 to 17,287. No room or zone observations remain unmapped;
-  177 transient or source-only mobile and object affect observations remain.
+  totaling 42,078,773 bytes, with zero transform exceptions and zero writes. Complete
+  room, zone, and object-extra ownership plus corrected high affect mappings reduce
+  unmapped symbolic observations from 26,006 to 15,731. No room, zone, or object-extra
+  observations remain unmapped; 177 transient or source-only mobile and object affect
+  observations remain.
+- Nine appended object flags preserve RoL identify, summon, sleep, charm, two-handed,
+  race-restriction, whole-body, and whole-head behavior. Source `NOSHOW` maps to hidden;
+  source-inert `DARK` is explicitly omitted. The refreshed five-zone pilot exposes five
+  of these behavior families for manual testing.
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
 
 ## Immediate next actions
 
-1. Resolve the measured mobile-action, object extra/apply/item-type/wear,
-   malformed-sector, and remaining transient-affect gaps by traced equivalence, bounded
-   adapters, or explicit dispositions.
+1. Resolve the measured mobile-action, object apply/item-type/wear, malformed-sector,
+   and remaining transient-affect gaps by traced equivalence, bounded adapters, or
+   explicit dispositions.
 2. Separate record-specific missing-reference repairs from reusable capability work and
    attach those repairs to their Phase 7 dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged
