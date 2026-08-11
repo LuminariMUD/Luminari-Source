@@ -16,6 +16,7 @@ Phase 0 checkpoint commit: 57f29005
 Phase 1 grammar commit: e6101445
 Phase 1/2 discovery and planning commit: 0c3753ee
 Phase 3 walking-skeleton commit: a5419818
+Phase 4 selection commit: fe523532
 ```
 
 The authoritative ignored runs are:
@@ -30,6 +31,8 @@ Phase 2: lib/rol-conversion/runs/phase2-0c3753ee
 Phase 3: lib/rol-conversion/runs/phase3-a5419818-a
          lib/rol-conversion/runs/phase3-a5419818-b
          rol-phase3-11336f1832d8765c
+Phase 4 selection: lib/rol-conversion/runs/phase4-select-fe523532
+                   rol-phase4-select-821d842548312f9f
 Policy:  rol-conversion-policy-1
 ```
 
@@ -61,14 +64,12 @@ custom `F/T/X` reset families, uncommon object/room extensions, a confirmed-line
 settlement, and a compact conventional-reset oracle. Its Phase 2 actions are 1,408
 `ADD`, 1,465 `KEEP`, 127 `MERGE`, and one `EXCLUDE`.
 
-1. Commit the reproducible Phase 4 selection command and generate its authoritative
-   ignored evidence run.
-2. Implement only the record, reset, shop, quest, SOC, and special-procedure
+1. Implement only the record, reset, shop, quest, SOC, and special-procedure
    capabilities that block these five packages.
-3. Generate and stage deterministic pilot bundles with explicit record actions.
-4. Run source-oracle, structural, reset-observation, walkthrough, reference, and
+2. Generate and stage deterministic pilot bundles with explicit record actions.
+3. Run source-oracle, structural, reset-observation, walkthrough, reference, and
    record-action evidence for each pilot.
-5. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
+4. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
    and review throughput.
 
 Do not start broad Phase 5+ capability or corpus work before the Phase 4 pilot and its
