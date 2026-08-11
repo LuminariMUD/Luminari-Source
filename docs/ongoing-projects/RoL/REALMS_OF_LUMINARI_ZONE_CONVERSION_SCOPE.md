@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Implementation underway; deterministic source-list inventory complete
+- Status: Implementation underway
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -229,9 +229,9 @@ silently change gameplay.
 Source quest blocks are keyed by a host mobile and contain keyword/reply,
 completion, disappearance, required-give, and reward directives. They are
 semantically closer to the current high-level quest system documented in
-[HLQUEST_FILE_FORMAT.md](../world_game-data/HLQUEST_FILE_FORMAT.md) than to the
+[HLQUEST_FILE_FORMAT.md](../../world_game-data/HLQUEST_FILE_FORMAT.md) than to the
 AutoQuest format documented in
-[QUEST_FILE_FORMAT.md](../world_game-data/QUEST_FILE_FORMAT.md).
+[QUEST_FILE_FORMAT.md](../../world_game-data/QUEST_FILE_FORMAT.md).
 
 Required work:
 
@@ -263,7 +263,7 @@ Required work:
   resolve to source mobiles.
 - Remap keepers, rooms, products, buy types, messages, profit values, and hours into
   the target format documented in
-  [SHOP_FILE_FORMAT.md](../world_game-data/SHOP_FILE_FORMAT.md).
+  [SHOP_FILE_FORMAT.md](../../world_game-data/SHOP_FILE_FORMAT.md).
 - Emit the load-bearing literal shop format tag `v3.0`.
 - Validate the three apparent shops without a normal one-to-one `ROOM` declaration.
 - Decide how to preserve source `HATES`, `CHEATS`, `DEADBEAT`, `GREED`, `KILLABLE`,
@@ -410,12 +410,6 @@ It is not embedded in server boot logic.
 
 Required deliverables:
 
-Source-inventory progress on 2026-08-11: `wtool rol-inventory` now parses the four
-source build lists, enumerates and hashes all seven physical input kinds, classifies
-active/disabled/unlisted membership, missing companions, and multi-zone packages, and
-reproduces the locked 252 active files and 255 active records. The broader grammar-token,
-duplicate-record, format-variant, and target-inventory work below remains open.
-
 - Source and development-target input inventory manifests.
 - A baseline validation report with finding identities and parse completeness.
 - A grammar-aware corpus inventory command that produces counts, duplicates,
@@ -460,7 +454,7 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 0 | Active input inventory, development baseline, and diagnostics | 1-2 |
+| 0 | Development baseline, source aggregate reconciliation, and diagnostics | 1-2 |
 | 1 | Source grammar, target lineage, typed graph, action/capability ledgers | 6-9 |
 | 2 | Parsers, IR, reconciliation, identity, bundles, and validation | 5-7 |
 | 3 | Walking skeleton: reuse, idempotency, and no-clobber behavior | 2-4 |
@@ -543,9 +537,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Begin with Phase 0: inventory the current RoL source and writable development baseline,
-derive the exact active input roots, capture diagnostics, reserve candidate ranges, and
-verify a small prior-lineage seed. Phase 1 completes the typed active/target dependency
-closure. Then prove one walking-skeleton package and run the 3-5 package pilot. Its
-measured reuse, ambiguity, exception, and behavior-gap rates produce the first
-evidence-based forecast without another decision round.
+Begin with Phase 0: inventory the writable development baseline, reconcile the
+source-list inventory against source aggregates, capture diagnostics, reserve candidate
+ranges, and verify a small prior-lineage seed. Phase 1 completes the typed active/target
+dependency closure. Then prove one walking-skeleton package and run the 3-5 package
+pilot. Its measured reuse, ambiguity, exception, and behavior-gap rates produce the
+first evidence-based forecast without another decision round.

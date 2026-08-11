@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Implementation underway; deterministic source-list inventory complete
+- Status: Implementation underway
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -533,24 +533,19 @@ below are planning envelopes, not delivery promises. Phase 4 must reforecast the
 remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
 import estimate is not credible enough to sum into a project total.
 
-### Phase 0: Active input inventory and development baseline (1-2 sessions)
+### Phase 0: Development baseline and source reconciliation (1-2 sessions)
 
-Progress on 2026-08-11: `wtool rol-inventory` now reproduces the source build-list
-selection, hashes every physical input, classifies exclusions and missing companions,
-and locks the 252-file/255-record active zone scope. The development-target inventory,
-baseline diagnostics, aggregate regression comparison, and candidate reservations remain
-open before this phase exit gate is satisfied.
-
-1. Inventory the current RoL source and writable development world, revisions, indexes,
-   hashes, and baseline diagnostics.
-2. Derive the exact active input roots from uncommented source manifests and assembled
-   aggregates. Exclude disabled, unlisted, and non-working content once, without deeper
-   conversion analysis.
+1. Inventory the writable development world, revision, indexes, hashes, and baseline
+   diagnostics.
+2. Reconcile the source-list inventory against the assembled source aggregates,
+   record its source revision, and resolve the active dependency closure. Exclude
+   non-working content once, without deeper conversion analysis.
 3. Reserve candidate VNUM ranges and version the fixed behavior, staging, bundle, and
    apply rules.
 
-Exit gate: another operator can reproduce both inventories, active input roots, exclusions,
-and every locked policy without asking for authority or product input.
+Exit gate: another operator can reproduce the source and target inventory evidence,
+active dependency closure, exclusions, and every locked policy without asking for
+authority or product input.
 
 ### Phase 1: Grammar, dependency, and lineage discovery (6-9 sessions)
 
