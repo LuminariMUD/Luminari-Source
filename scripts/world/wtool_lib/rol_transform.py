@@ -79,9 +79,14 @@ ROOM_FLAG_MAP = {
     8: 7,   # NO_MAGIC
     9: 8,   # TUNNEL
     10: 9,  # PRIVATE
+    11: 43,  # ARENA
     12: 4,  # SAFE_ZONE
+    13: 42,  # NO_PRECIP
     14: 20, # SINGLE_FILE
+    15: 44,  # JAIL (RoL compatibility marker)
     16: 21, # NO_TELEPORT
+    17: 10,  # RESERVED_OLC -> STAFFROOM
+    18: 17,  # HEAL
     19: 25, # NO_HEAL
     20: 33, # HAS_TRAP
     21: 41, # DOCKABLE
@@ -89,9 +94,29 @@ ROOM_FLAG_MAP = {
     23: 23, # MAGIC_LIGHT
     24: 24, # NO_SUMMON
     30: 28, # AIRY_WATER
+    31: 27,  # SOLID_FOG
     33: 11, # ROOM_HOUSE
     34: 13, # ROOM_ATRIUM
+    36: 45,  # PSPREGEN
+    48: 27,  # FIRE_FOG (also adds MAGIC_LIGHT below)
 }
+
+# Source zone behavior is persisted on every emitted room because the target
+# zone format has no separate flags for silence, safety, magic, recall, or
+# summon restrictions. Keys are source bit ordinals, not flag masks.
+ZONE_ROOM_FLAG_MAP = {
+    0: 5,   # ZONE_SILENT -> ROOM_SOUNDPROOF
+    1: 4,   # ZONE_SAFE -> ROOM_PEACEFUL
+    4: 21,  # ZONE_NO_TELE -> ROOM_NOTELEPORT
+    5: 7,   # ZONE_NO_MAGIC -> ROOM_NOMAGIC
+    6: 19,  # ZONE_NO_RECALL -> ROOM_NORECALL
+    7: 24,  # ZONE_NO_SUMMON -> ROOM_NOSUMMON
+}
+
+# These source flags are handled by transform logic rather than a one-to-one
+# persisted room flag.
+ROOM_TRANSFORMED_FLAGS = frozenset({6, 32})
+ZONE_SOURCE_ONLY_FLAGS = frozenset({2, 3, 8})
 
 SECTOR_MAP = {
     0: 0,
@@ -155,44 +180,76 @@ MOB_AFFECT_MAP = {
     7: 42,  # MINOR_GLOBE
     8: 97,  # STONE_SKIN -> WARDED
     9: 92,  # CHARGING
+    11: 77,  # WRAITHFORM -> IMMATERIAL
     12: 18, # WATERBREATH
     13: 31, # KNOCKED_OUT -> STUN
     14: 13, # PROTECT_EVIL
+    15: 32,  # BOUND -> PARALYZED
     17: 14, # PROTECT_GOOD
     18: 15, # SLEEP
+    19: 101, # SKILL_AWARE -> AWARE
     20: 19, # SNEAK
     21: 20, # HIDE
     22: 30, # FEAR
     23: 22, # CHARM
+    25: 97,  # BARKSKIN -> WARDED
     26: 11, # INFRAVISION
     27: 103,# LEVITATE
     28: 17, # FLY
+    29: 101, # AWARE
     30: 28, # PROTECT_FIRE -> ELEMENT_PROT
     33: 40, # FIRE_SHIELD
     34: 33, # ULTRAVISION
+    35: 3,  # DETECT_EVIL -> DETECT_ALIGN
+    36: 3,  # DETECT_GOOD -> DETECT_ALIGN
     37: 5,  # DETECT_MAGIC
-    40: 28, # PROTECT_COLD -> ELEMENT_PROT
+    38: 97,  # MAJOR_PHYSICAL -> WARDED
+    39: 28,  # PROTECT_COLD -> ELEMENT_PROT
+    40: 28,  # PROTECT_LIGHTNING -> ELEMENT_PROT
+    41: 32,  # MINOR_PARALYSIS
+    42: 32,  # MAJOR_PARALYSIS
     43: 39, # SLOW
     44: 51, # GLOBE
+    45: 28,  # PROTECT_GAS -> ELEMENT_PROT
     46: 28, # PROTECT_ACID -> ELEMENT_PROT
+    49: 101, # MISSILE_AWARE -> AWARE
+    50: 98, # MISSILE_SNARE -> ENTANGLED
+    51: 112, # MISSILE_SHIELD -> WIND_WALL
     52: 31, # STUNNED
-    65: 69, # VAMP_TOUCH
-    72: 23, # BLUR
-    74: 117,# REPULSION
-    75: 58, # MIND_BLANK
-    76: 97, # DRAGONSCALES -> WARDED
-    77: 96, # MIRROR_IMAGE
-    79: 38, # NONDETECTION
-    80: 53, # DISPLACEMENT
-    82: 93, # MORPH -> WILD_SHAPE
-    83: 79, # MAGE_FLAME
-    84: 73, # TOWER
+    60: 16, # PASS_WITHOUT_TRACE -> NOTRACK
+    64: 69, # VAMPIRIC_TOUCH
+    65: 72, # CATFALL -> SAFEFALL
+    69: 51, # METAGLOBE -> GLOBE_OF_INVULN
+    70: 123, # ICE_TOMB -> ENCASED_IN_ICE
+    71: 23, # BLUR
+    72: 118, # BURNING -> ON_FIRE
+    73: 117, # REPULSION
+    74: 58, # MIND_BLANK
+    75: 97, # DRAGONSCALES -> WARDED
+    76: 96, # MIRROR_IMAGE
+    77: 56, # SEQUESTER -> REFUGE
+    78: 38, # NONDETECTION
+    79: 53, # DISPLACEMENT
+    81: 93, # MORPH -> WILD_SHAPE
+    82: 79, # MAGE_FLAME
+    83: 73, # TOWER_OF_IRON_WILL
     93: 70, # BLACKMANTLE
-    98: 110,# SILENCE_PERSON
-    100: 98,# ENTANGLE
-    101: 45,# TRUE_SIGHT
-    119: 60,# TIME_STOP
-    121: 36,# PATH -> CLIMB (closest persistent movement state)
+    95: 10, # HEX -> CURSE
+    96: 97, # ANCESTRAL_SHIELD -> WARDED
+    98: 110, # SILENCE_PERSON
+    100: 98, # ENTANGLE
+    101: 45, # TRUE_SIGHT
+    102: 93, # DOPPELGANGER -> WILD_SHAPE
+    103: 75, # PLANT_ANCHOR -> NOTELEPORT
+    110: 97, # ELEMENTAL_WARD -> WARDED
+    112: 97, # CASTER_STONE_SKIN -> WARDED
+    118: 97, # CASTER_DRAGONSCALES -> WARDED
+    119: 60, # TIME_STOP
+    122: 45, # REVELATION -> TRUE_SIGHT
+    123: 97, # PROTECTION -> WARDED
+    127: 20, # CAMO -> HIDE
+    128: 61, # NOFEAR -> BRAVERY
+    129: 8, # SANCTUARY
 }
 
 OBJECT_TYPE_MAP = {
@@ -933,6 +990,7 @@ def emit_room(
     destination_zone: int,
     resolve: IdentityResolver,
     attachments: tuple[int, ...] = (),
+    source_zone_flags: int = 0,
 ) -> TransformResult:
   """Emit one modern target room record."""
 
@@ -947,10 +1005,26 @@ def emit_room(
   second_mask = base[6] if len(base) > 6 else 0
   source_flags = _source_mask_bits(first_mask, 1) | _source_mask_bits(second_mask, 33)
   target_flags = _mapped_bits(source_flags, ROOM_FLAG_MAP) | _room_size_bits(base)
-  missing = _unmapped(source_flags, ROOM_FLAG_MAP)
+  source_zone_bits = _source_mask_bits(source_zone_flags, 0)
+  target_flags.update(_mapped_bits(source_zone_bits, ZONE_ROOM_FLAG_MAP))
+  if 32 in source_flags:
+    target_flags.discard(7)
+  if 48 in source_flags:
+    target_flags.add(23)
+  missing = sorted(source_flags - ROOM_FLAG_MAP.keys() - ROOM_TRANSFORMED_FLAGS)
   if missing:
     diagnostics.append(f"room flags without target persistence: {missing}")
+  missing_zone = sorted(source_zone_bits - ZONE_ROOM_FLAG_MAP.keys() - ZONE_SOURCE_ONLY_FLAGS)
+  if missing_zone:
+    diagnostics.append(f"zone flags without room compatibility: {missing_zone}")
+  if source_zone_bits & ZONE_SOURCE_ONLY_FLAGS:
+    diagnostics.append(
+        "preserved source-only zone metadata outside room flags: "
+        f"{sorted(source_zone_bits & ZONE_SOURCE_ONLY_FLAGS)}"
+    )
   sector = SECTOR_MAP.get(base[2] if len(base) > 2 else 0, 0)
+  if 6 in source_flags:
+    sector = 9
   lines = [
       f"#{destination_vnum}\n",
       name,

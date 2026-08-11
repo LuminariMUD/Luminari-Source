@@ -32,6 +32,7 @@ bool death_check(struct char_data *ch);
 int graf(int grafage, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
 void regen_update(struct char_data *ch);
 int psp_gain(struct char_data *ch);
+void regen_psp(void);
 int hit_gain(struct char_data *ch);
 int move_gain(struct char_data *ch);
 void set_title(struct char_data *ch, char *title);

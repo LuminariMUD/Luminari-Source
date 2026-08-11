@@ -2150,7 +2150,9 @@ int ACTUAL_BAB(struct char_data *ch);
 #define ARENA_VNUM_END 138699
 #define CONFIG_ARENA_DEATH 138610
 #define IS_ARENA(rnum)                                                                             \
-  ((world[rnum].number >= ARENA_VNUM_START) && (world[rnum].number <= ARENA_VNUM_END))
+  (VALID_ROOM_RNUM(rnum) &&                                                                        \
+   (ROOM_FLAGGED((rnum), ROOM_ARENA) ||                                                            \
+    ((world[rnum].number >= ARENA_VNUM_START) && (world[rnum].number <= ARENA_VNUM_END))))
 #define IN_ARENA(ch) (IS_ARENA(IN_ROOM(ch)))
 
 /* handy macros for dealing with class_list[] */
@@ -2879,6 +2881,10 @@ bool can_blood_drain_target(struct char_data *ch, struct char_data *vict);
 
 #define ARENA_START 138600
 #define ARENA_END 138608
+#define IS_PVP_ARENA(rnum)                                                                         \
+  (VALID_ROOM_RNUM(rnum) &&                                                                        \
+   (ROOM_FLAGGED((rnum), ROOM_ARENA) ||                                                            \
+    ((world[rnum].number >= ARENA_START) && (world[rnum].number <= ARENA_END))))
 
 #define STORED_POTIONS(ch, snum) (ch->player_specials->saved.potions[snum])
 #define STORED_SCROLLS(ch, snum) (ch->player_specials->saved.scrolls[snum])

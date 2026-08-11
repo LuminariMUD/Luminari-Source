@@ -210,7 +210,7 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Room flags are bitflags defined in <code>src/structs.h</code> and are
 checked throughout the codebase using the <code>ROOM_FLAGGED()</code>
-macro. There are currently 42 room flags (indices 0-41) that control
+macro. There are currently 46 room flags (indices 0-45) that control
 everything from movement restrictions to magical effects.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>ROOM_FLAGGED<span class="op">(</span>room_rnum<span class="op">,</span> ROOM_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -363,6 +363,17 @@ Grappling prevention (<code>do_grapple()</code>) -
 <code>do_aciddart()</code>) - <code>src/magic/spell_parser.c</code> -
 Spell casting restrictions (<code>call_magic()</code>,
 <code>do_gen_cast()</code>)</p>
+<h3 id="room_arena-index-43">ROOM_ARENA (Index: 43)</h3>
+<p><strong>Effect:</strong> Applies arena combat, PvP, and death
+handling to a room regardless of its VNUM. - Allows PvP actions under
+the same rules as the legacy arena VNUM range - Uses arena-specific
+death handling instead of ordinary character death - Added for converted
+Realms of Luminari rooms whose arena identity is flag-based</p>
+<p><strong>Code References:</strong> - <code>src/utils.h</code> -
+Arena-room classification (<code>IS_ARENA()</code>,
+<code>IN_ARENA()</code>) - <code>src/utils.c</code> - Arena bypass for
+PvP eligibility (<code>pvp_ok()</code>, <code>pvp_ok_single()</code>) -
+<code>src/combat/fight.c</code> - Arena combat and death handling</p>
 <h3 id="room_death-index-1">ROOM_DEATH (Index: 1)</h3>
 <p><strong>Effect:</strong> Kills characters or deals severe damage when
 entering/remaining in room. - Used for death traps and hazardous zones -
@@ -414,6 +425,22 @@ and rest areas</p>
 regeneration doubling (<code>regen_hps()</code>) -
 <code>src/magic/spell_prep.c</code> - Spell preparation bonus
 (<code>compute_spells_prep_time()</code>)</p>
+<h3 id="room_no_precip-index-42">ROOM_NO_PRECIP (Index: 42)</h3>
+<p><strong>Effect:</strong> Suppresses ordinary weather and
+precipitation messages while leaving the room outdoors. - Does not make
+the room indoors - Does not suppress sunrise, sunset, or other
+outdoor-only mechanics - Used by converted Realms of Luminari
+<code>NO_PRECIP</code> rooms</p>
+<p><strong>Code References:</strong> - <code>src/weather.c</code> -
+Weather-message filtering (<code>sect_no_weather()</code>)</p>
+<h3 id="room_psp_regen-index-45">ROOM_PSP_REGEN (Index: 45)</h3>
+<p><strong>Effect:</strong> Doubles the net PSP gained during each
+non-combat regeneration tick. - Applies after the normal PSP, feat,
+position, and psionic-level bonuses - Caps the resulting PSP at the
+character’s maximum - Used by converted Realms of Luminari
+<code>PSPREGEN</code> rooms</p>
+<p><strong>Code References:</strong> - <code>src/limits.c</code> - PSP
+tick acceleration (<code>regen_psp()</code>)</p>
 <h3 id="room_noheal-index-25">ROOM_NOHEAL (Index: 25)</h3>
 <p><strong>Effect:</strong> Prevents natural healing and regeneration. -
 Blocks HP regeneration tick - Similar to Blackmantle spell effect - Used
@@ -570,6 +597,15 @@ by zone builders for thematic purposes or planned features.</p>
 <hr />
 <h2 id="system-administrative-flags">System &amp; Administrative
 Flags</h2>
+<h3 id="room_rol_jail-index-44">ROOM_ROL_JAIL (Index: 44)</h3>
+<p><strong>Effect:</strong> Persists the jail identity of a converted
+Realms of Luminari room. - Reserved for the RoL conversion and its
+justice/special-procedure adapters - Does not create a generic jail
+mechanic by itself - Builders should not set this flag outside imported
+RoL content</p>
+<p><strong>Code References:</strong> -
+<code>scripts/world/wtool_lib/rol_transform.py</code> - RoL room-flag
+conversion</p>
 <h3 id="room_olc-index-14">ROOM_OLC (Index: 14)</h3>
 <p><strong>Effect:</strong> Marks room as being edited in the Online
 Level Creator (OLC). - Used by building/editing system - Prevents
@@ -961,6 +997,34 @@ feature for vessel system expansion.</p>
 <td>Docking location</td>
 <td>Special</td>
 </tr>
+<tr class="odd">
+<td>42</td>
+<td>ROOM_NO_PRECIP</td>
+<td>No-Precipitation</td>
+<td>Suppress weather messages</td>
+<td>Environment</td>
+</tr>
+<tr class="even">
+<td>43</td>
+<td>ROOM_ARENA</td>
+<td>Arena</td>
+<td>Arena combat and death rules</td>
+<td>Combat</td>
+</tr>
+<tr class="odd">
+<td>44</td>
+<td>ROOM_ROL_JAIL</td>
+<td>RoL-Jail</td>
+<td>RoL justice compatibility marker</td>
+<td>System</td>
+</tr>
+<tr class="even">
+<td>45</td>
+<td>ROOM_PSP_REGEN</td>
+<td>Psionic-Regeneration</td>
+<td>Double PSP tick gain</td>
+<td>Environment</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -1017,7 +1081,7 @@ shutdown - ROOM_NOTELEPORT = prevents teleportation only - ROOM_NOSUMMON
 <h2 id="code-references">Code References</h2>
 <p><strong>Primary Files:</strong> - <code>src/structs.h</code> - Flag
 definitions (the <code>ROOM_*</code> define block ending at
-<code>ROOM_DOCKABLE</code>) - <code>src/movement/movement.c</code> -
+<code>ROOM_PSP_REGEN</code>) - <code>src/movement/movement.c</code> -
 Movement restriction checks - <code>src/magic/spell_parser.c</code> -
 Magic restriction checks - <code>src/combat/fight.c</code> - Combat
 restriction checks - <code>src/utils.c</code> - Light and vision

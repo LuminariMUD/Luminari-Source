@@ -19,7 +19,7 @@ This document provides comprehensive information about all room flags (ROOM_*) u
 
 ## Overview
 
-Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 42 room flags (indices 0-41) that control everything from movement restrictions to magical effects.
+Room flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `ROOM_FLAGGED()` macro. There are currently 46 room flags (indices 0-45) that control everything from movement restrictions to magical effects.
 
 **Usage Pattern:**
 ```c
@@ -175,6 +175,17 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 - `src/magic/domain_powers.c` - Domain power checks (`do_eviltouch()`, `do_lightningarc()`, `do_aciddart()`)
 - `src/magic/spell_parser.c` - Spell casting restrictions (`call_magic()`, `do_gen_cast()`)
 
+### ROOM_ARENA (Index: 43)
+**Effect:** Applies arena combat, PvP, and death handling to a room regardless of its VNUM.
+- Allows PvP actions under the same rules as the legacy arena VNUM range
+- Uses arena-specific death handling instead of ordinary character death
+- Added for converted Realms of Luminari rooms whose arena identity is flag-based
+
+**Code References:**
+- `src/utils.h` - Arena-room classification (`IS_ARENA()`, `IN_ARENA()`)
+- `src/utils.c` - Arena bypass for PvP eligibility (`pvp_ok()`, `pvp_ok_single()`)
+- `src/combat/fight.c` - Arena combat and death handling
+
 ### ROOM_DEATH (Index: 1)
 **Effect:** Kills characters or deals severe damage when entering/remaining in room.
 - Used for death traps and hazardous zones
@@ -227,6 +238,24 @@ if (ROOM_FLAGGED(room_rnum, ROOM_FLAGNAME)) {
 **Code References:**
 - `src/limits.c` - HP regeneration doubling (`regen_hps()`)
 - `src/magic/spell_prep.c` - Spell preparation bonus (`compute_spells_prep_time()`)
+
+### ROOM_NO_PRECIP (Index: 42)
+**Effect:** Suppresses ordinary weather and precipitation messages while leaving the room outdoors.
+- Does not make the room indoors
+- Does not suppress sunrise, sunset, or other outdoor-only mechanics
+- Used by converted Realms of Luminari `NO_PRECIP` rooms
+
+**Code References:**
+- `src/weather.c` - Weather-message filtering (`sect_no_weather()`)
+
+### ROOM_PSP_REGEN (Index: 45)
+**Effect:** Doubles the net PSP gained during each non-combat regeneration tick.
+- Applies after the normal PSP, feat, position, and psionic-level bonuses
+- Caps the resulting PSP at the character's maximum
+- Used by converted Realms of Luminari `PSPREGEN` rooms
+
+**Code References:**
+- `src/limits.c` - PSP tick acceleration (`regen_psp()`)
 
 ### ROOM_NOHEAL (Index: 25)
 **Effect:** Prevents natural healing and regeneration.
@@ -396,6 +425,15 @@ code, so do not expect to find it there.
 
 ## System & Administrative Flags
 
+### ROOM_ROL_JAIL (Index: 44)
+**Effect:** Persists the jail identity of a converted Realms of Luminari room.
+- Reserved for the RoL conversion and its justice/special-procedure adapters
+- Does not create a generic jail mechanic by itself
+- Builders should not set this flag outside imported RoL content
+
+**Code References:**
+- `scripts/world/wtool_lib/rol_transform.py` - RoL room-flag conversion
+
 ### ROOM_OLC (Index: 14)
 **Effect:** Marks room as being edited in the Online Level Creator (OLC).
 - Used by building/editing system
@@ -540,6 +578,10 @@ code, so do not expect to find it there.
 | 39 | ROOM_ROAD | Road | Road/path | Environment |
 | 40 | ROOM_VEHICLE | Vehicle | Vehicle room | Special |
 | 41 | ROOM_DOCKABLE | Dockable | Docking location | Special |
+| 42 | ROOM_NO_PRECIP | No-Precipitation | Suppress weather messages | Environment |
+| 43 | ROOM_ARENA | Arena | Arena combat and death rules | Combat |
+| 44 | ROOM_ROL_JAIL | RoL-Jail | RoL justice compatibility marker | System |
+| 45 | ROOM_PSP_REGEN | Psionic-Regeneration | Double PSP tick gain | Environment |
 
 ---
 
@@ -592,7 +634,7 @@ code, so do not expect to find it there.
 ## Code References
 
 **Primary Files:**
-- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_DOCKABLE`)
+- `src/structs.h` - Flag definitions (the `ROOM_*` define block ending at `ROOM_PSP_REGEN`)
 - `src/movement/movement.c` - Movement restriction checks
 - `src/magic/spell_parser.c` - Magic restriction checks
 - `src/combat/fight.c` - Combat restriction checks

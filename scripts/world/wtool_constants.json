@@ -4244,6 +4244,34 @@
           "macro": "ROOM_DOCKABLE",
           "name": "Dockable",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 42,
+          "macro": "ROOM_NO_PRECIP",
+          "name": "No-Precipitation",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 43,
+          "macro": "ROOM_ARENA",
+          "name": "Arena",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 44,
+          "macro": "ROOM_ROL_JAIL",
+          "name": "RoL-Jail",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 45,
+          "macro": "ROOM_PSP_REGEN",
+          "name": "Psionic-Regeneration",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

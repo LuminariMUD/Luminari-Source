@@ -899,6 +899,10 @@ const char *room_bits[] = {"Dark",
                            "Road",
                            "Vehicle",
                            "Dockable",
+                           "No-Precipitation",
+                           "Arena",
+                           "RoL-Jail",
+                           "Psionic-Regeneration",
                            "\n"};
 CHECK_TABLE_SIZE(room_bits, NUM_ROOM_FLAGS + 1);
 

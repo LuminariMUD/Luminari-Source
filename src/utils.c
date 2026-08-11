@@ -6891,8 +6891,7 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
   if (!CONFIG_PK_ALLOWED)
   {
     // Check if both are in the arena (arena bypasses all PVP restrictions)
-    if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
-        world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+    if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
       return true;
 
     if (display && !IS_NPC(ch) && !IS_NPC(target))
@@ -6917,9 +6916,7 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
       if (!PRF_FLAGGED(target, PRF_PVP))
       {
         // Check arena exception
-        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
-            world[IN_ROOM(target)].number >= ARENA_START &&
-            world[IN_ROOM(target)].number <= ARENA_END)
+        if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
           return true;
 
         if (display)
@@ -6942,9 +6939,7 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
       if (!PRF_FLAGGED(ch, PRF_PVP))
       {
         // Check arena exception
-        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
-            world[IN_ROOM(target)].number >= ARENA_START &&
-            world[IN_ROOM(target)].number <= ARENA_END)
+        if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
           return true;
 
         if (display)
@@ -6955,9 +6950,7 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
       if (!PRF_FLAGGED(target->master, PRF_PVP))
       {
         // Check arena exception
-        if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
-            world[IN_ROOM(target)].number >= ARENA_START &&
-            world[IN_ROOM(target)].number <= ARENA_END)
+        if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
           return true;
 
         if (display)
@@ -6976,8 +6969,7 @@ bool pvp_ok(struct char_data *ch, struct char_data *target, bool display)
   if (!IS_NPC(ch) && !IS_NPC(target))
   {
     // Check if both are in the arena (arena bypasses PVP flag requirements)
-    if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END &&
-        world[IN_ROOM(target)].number >= ARENA_START && world[IN_ROOM(target)].number <= ARENA_END)
+    if (IS_PVP_ARENA(IN_ROOM(ch)) && IS_PVP_ARENA(IN_ROOM(target)))
       return true;
 
     // Both must have PVP enabled
@@ -7019,7 +7011,7 @@ bool pvp_ok_single(struct char_data *ch, bool display)
     pvp_ok = false;
 
   // are they in the arena?
-  if (world[IN_ROOM(ch)].number >= ARENA_START && world[IN_ROOM(ch)].number <= ARENA_END)
+  if (IS_PVP_ARENA(IN_ROOM(ch)))
     pvp_ok = true;
 
   if (!pvp_ok && display)

@@ -579,6 +579,16 @@ def _target_zone_by_basename(actions: Iterable[dict[str, Any]]) -> dict[str, int
   return result
 
 
+def _source_zone_flags_by_basename(records: Iterable[RolRecord]) -> dict[str, int]:
+  result: dict[str, int] = {}
+  for record in records:
+    if record.kind != "zon":
+      continue
+    header = list(record.values.get("header", []))
+    result[record.basename] = int(header[3]) if len(header) > 3 else 0
+  return result
+
+
 def write_pilot_build_bundle(
     selection_dir: Path,
     plan_dir: Path,
@@ -674,6 +684,7 @@ def write_pilot_build_bundle(
     attachments[owner].extend(trigger_vnums)
   native, _ = _native_maps(specials)
   zone_by_basename = _target_zone_by_basename(actions)
+  source_zone_flags = _source_zone_flags_by_basename(selected_records)
   generated: defaultdict[tuple[str, int], list[tuple[int, str]]] = defaultdict(list)
   shop_appends: defaultdict[str, list[tuple[int, str]]] = defaultdict(list)
   diagnostics: list[dict[str, Any]] = []
@@ -713,6 +724,7 @@ def write_pilot_build_bundle(
           zone_by_basename[str(action["basename"])],
           stage_resolve,
           attachments=owner_attachments,
+          source_zone_flags=source_zone_flags[str(action["basename"])],
       )
     elif kind == "zon":
       room_destinations = [

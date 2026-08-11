@@ -10,6 +10,7 @@
 #include "../../src/handler.h"
 #include "../../src/modify.h"
 #include "../../src/mud_event.h"
+#include "../../src/mudlim.h"
 #include "../../src/net/protocol.h"
 #include "../../src/character/evolutions.h"
 #include "../../src/character/feats.h"
@@ -42,6 +43,53 @@ static void cleanup_test_descriptor(struct descriptor_data *descriptor)
   }
 
   descriptor->output = descriptor->small_outbuf;
+}
+
+void Test_rol_psionic_regeneration_room_doubles_tick_gain(CuTest *tc)
+{
+  struct char_data ch;
+  struct descriptor_data descriptor;
+  struct descriptor_data *saved_descriptor_list;
+  struct player_special_data player_specials;
+  struct room_data room;
+  struct room_data *saved_world;
+  room_rnum saved_top_of_world;
+  int normal_gain;
+  int accelerated_gain;
+
+  clear_char(&ch);
+  memset(&descriptor, 0, sizeof(descriptor));
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(&room, 0, sizeof(room));
+  ch.player_specials = &player_specials;
+  ch.desc = &descriptor;
+  descriptor.character = &ch;
+  descriptor.connected = CON_PLAYING;
+  GET_POS(&ch) = POS_STANDING;
+  GET_PSP(&ch) = 10;
+  GET_MAX_PSP(&ch) = 1000;
+  IN_ROOM(&ch) = 0;
+
+  saved_descriptor_list = descriptor_list;
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  descriptor_list = &descriptor;
+  world = &room;
+  top_of_world = 0;
+
+  regen_psp();
+  normal_gain = GET_PSP(&ch) - 10;
+  GET_PSP(&ch) = 10;
+  SET_BIT_AR(ROOM_FLAGS(0), ROOM_PSP_REGEN);
+  regen_psp();
+  accelerated_gain = GET_PSP(&ch) - 10;
+
+  descriptor_list = saved_descriptor_list;
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+
+  CuAssert(tc, "normal PSP tick must gain power", normal_gain > 0);
+  CuAssertIntEquals(tc, normal_gain * 2, accelerated_gain);
 }
 
 void Test_spells_production_classification_helpers(CuTest *tc)

@@ -7,6 +7,7 @@ import unittest
 
 from wtool_lib.constants import default_repo_root
 from wtool_lib.rol_capability_audit import (
+    build_symbolic_inventory,
     classify_transform_diagnostic,
     write_capability_audit_bundle,
 )
@@ -32,6 +33,26 @@ class RolCapabilityAuditTests(unittest.TestCase):
         "generic-capability-gap",
         classify_transform_diagnostic("room flags without target persistence: [13]"),
     )
+
+  def test_zone_flags_are_owned_by_room_compatibility_or_source_metadata(self) -> None:
+    from wtool_lib.rol_source import RolRecord
+
+    record = RolRecord(
+        kind="zon",
+        vnum=1,
+        basename="test",
+        path="areas/test.zon",
+        line=1,
+        end_line=2,
+        sha256="0" * 64,
+        identity="test",
+        values={"header": [199, 30, 2, 0x1FF]},
+        directives=[],
+    )
+    rows = [row for row in build_symbolic_inventory([record]) if row["family"] == "zone_flag"]
+
+    self.assertEqual(list(range(9)), [row["value"] for row in rows])
+    self.assertTrue(all(row["mapped"] for row in rows))
 
   def test_active_corpus_audit_emits_every_convertible_record(self) -> None:
     if not self.source_root.is_dir() or not self.plan_dir.is_dir():

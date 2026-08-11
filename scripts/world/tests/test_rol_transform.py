@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from wtool_lib.constants import default_repo_root, load_manifest
+from wtool_lib.flags import decode_tokens
 from wtool_lib.hlquests import parse_hlquest_file
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
@@ -87,6 +88,35 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("fall chance", diagnostics)
     self.assertIn("obsolete source room mana", diagnostics)
     self.assertIn("target maximum level is 34", diagnostics)
+
+  def test_emitted_room_preserves_room_and_zone_compatibility(self) -> None:
+    first_mask = sum(1 << (flag - 1) for flag in (6, 11, 13, 15, 18, 31, 32))
+    second_mask = sum(1 << (flag - 33) for flag in (36, 48))
+    source = self._source_record(
+        "wld",
+        (
+            "<*> File Version 1 <*>\n#100\nCompatibility room~\nDescription~\n"
+            f"1 {first_mask} 2 5 5 5 {second_mask}\nS\n"
+        ).encode("ascii"),
+    )
+    zone_flags = sum(1 << bit for bit in (0, 1, 4, 5, 6, 7))
+    emitted = emit_room(
+        source,
+        2_000_100,
+        20_001,
+        _resolver,
+        source_zone_flags=zone_flags,
+    )
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20001.wld", self.manifest, False, set())
+    self.assertTrue(result.complete)
+    room = result.records[0]
+    flags = decode_tokens(room.flags).bits
+
+    self.assertEqual(9, room.sector)
+    self.assertTrue({4, 5, 17, 19, 21, 23, 24, 27, 42, 43, 44, 45} <= flags)
+    self.assertNotIn(7, flags)
+    self.assertNotIn("room flags without target persistence", " ".join(emitted.diagnostics))
 
   def test_emitted_mobile_maps_flags_position_class_and_race(self) -> None:
     source = self._source_record(

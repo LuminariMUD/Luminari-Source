@@ -365,6 +365,9 @@ bool sect_no_weather(struct char_data *ch)
 {
   int s_type;
 
+  if (ch == NULL || !VALID_ROOM_RNUM(IN_ROOM(ch)) || ROOM_FLAGGED(IN_ROOM(ch), ROOM_NO_PRECIP))
+    return TRUE;
+
   s_type = world[IN_ROOM(ch)].sector_type;
 
   switch (s_type)

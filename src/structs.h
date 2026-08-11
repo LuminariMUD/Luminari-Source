@@ -272,12 +272,16 @@
 #define ROOM_RANDOM_CHEST 37 // a random treasure chest will load in this room
 #define ROOM_HARVEST_NODE 38 // this room will always load a harvest node
 #define ROOM_ROAD 39
-#define ROOM_VEHICLE 40  // Room that vehicles/ships can move through
-#define ROOM_DOCKABLE 41 // Room where ships can dock
+#define ROOM_VEHICLE 40   // Room that vehicles/ships can move through
+#define ROOM_DOCKABLE 41  // Room where ships can dock
+#define ROOM_NO_PRECIP 42 /* Suppress precipitation/weather messages */
+#define ROOM_ARENA 43     /* Arena combat and death rules */
+#define ROOM_ROL_JAIL 44  /* RoL justice-system compatibility marker */
+#define ROOM_PSP_REGEN 45 /* Double psionic power regeneration */
 /* idea:  possible room-flag for doing free memorization w/o spellbooks */
 /****/
 /** The total number of Room Flags */
-#define NUM_ROOM_FLAGS 42
+#define NUM_ROOM_FLAGS 46
 
 /* Room affects */
 /* Old room-affection system, could be replaced by room-events

@@ -17,6 +17,7 @@ from .rol_pilot_build import (
     _identity_resolver,
     _load_jsonl,
     _source_records,
+    _source_zone_flags_by_basename,
     _target_zone_by_basename,
     _verify_bundle,
 )
@@ -31,7 +32,10 @@ from .rol_transform import (
     OBJECT_WEAR_MAP,
     RACE_CODE_MAP,
     ROOM_FLAG_MAP,
+    ROOM_TRANSFORMED_FLAGS,
     SECTOR_MAP,
+    ZONE_ROOM_FLAG_MAP,
+    ZONE_SOURCE_ONLY_FLAGS,
     TransformResult,
     _source_mask_bits,
     emit_hlquest,
@@ -187,9 +191,14 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
             and arguments[1] - arguments[0] < 100
         ):
           random_item_ranges += 1
+    elif record.kind == "zon":
+      header = list(record.values.get("header", []))
+      counters["zone_flag"].update(
+          _source_mask_bits(int(header[3]) if len(header) > 3 else 0, 0)
+      )
 
   mapped: dict[str, set[int | str]] = {
-      "room_flag": set(ROOM_FLAG_MAP),
+      "room_flag": set(ROOM_FLAG_MAP) | set(ROOM_TRANSFORMED_FLAGS),
       "sector": set(SECTOR_MAP),
       "mobile_action_flag": set(MOB_ACTION_MAP),
       "mobile_affect_flag": set(MOB_AFFECT_MAP),
@@ -200,6 +209,7 @@ def build_symbolic_inventory(records: Iterable[RolRecord]) -> list[dict[str, Any
       "object_wear_flag": set(OBJECT_WEAR_MAP),
       "object_affect_flag": set(MOB_AFFECT_MAP),
       "object_apply": set(APPLY_MAP),
+      "zone_flag": set(ZONE_ROOM_FLAG_MAP) | set(ZONE_SOURCE_ONLY_FLAGS),
   }
   rows = [
       row
@@ -252,6 +262,7 @@ def _emit_record(
     resolve,
     zones: dict[str, int],
     rooms: dict[str, list[int]],
+    source_zone_flags: dict[str, int],
 ) -> TransformResult:
   kind = str(action["source_kind"])
   destination = int(action["destination_vnum"])
@@ -261,7 +272,13 @@ def _emit_record(
   if kind == "obj":
     return emit_object(record, destination, resolve)
   if kind == "wld":
-    return emit_room(record, destination, zones[basename], resolve)
+    return emit_room(
+        record,
+        destination,
+        zones[basename],
+        resolve,
+        source_zone_flags=source_zone_flags[basename],
+    )
   if kind == "qst":
     return emit_hlquest(record, destination, resolve)
   if kind == "shp":
@@ -303,6 +320,7 @@ def write_capability_audit_bundle(
   records, source_diagnostics = _source_records(repo_root, actions)
   resolve = _identity_resolver(plan_dir)
   zones = _target_zone_by_basename(actions)
+  source_zone_flags = _source_zone_flags_by_basename(records.values())
   rooms: defaultdict[str, list[int]] = defaultdict(list)
   for action in actions:
     if action["source_kind"] == "wld" and action["destination_vnum"] is not None:
@@ -320,7 +338,14 @@ def write_capability_audit_bundle(
       continue
     record = records[str(action["source_record_id"])]
     try:
-      emitted = _emit_record(action, record, resolve, zones, rooms)
+      emitted = _emit_record(
+          action,
+          record,
+          resolve,
+          zones,
+          rooms,
+          source_zone_flags,
+      )
       payload = emitted.text.encode("ascii")
     except (KeyError, TypeError, UnicodeError, ValueError) as error:
       exceptions.append(

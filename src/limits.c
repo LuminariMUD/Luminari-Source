@@ -963,6 +963,7 @@ void regen_update(struct char_data *ch)
 void regen_psp(void)
 {
   struct descriptor_data *d = NULL;
+  int psp_before;
 
   for (d = descriptor_list; d; d = d->next)
   {
@@ -974,6 +975,8 @@ void regen_psp(void)
       continue;
     if (FIGHTING(d->character))
       continue;
+
+    psp_before = GET_PSP(d->character);
 
     if (GET_PSP(d->character) < GET_MAX_PSP(d->character))
       GET_PSP(d->character)++;
@@ -1002,6 +1005,11 @@ void regen_psp(void)
     /* we also have a de-regen if over max in another function */
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
       GET_PSP(d->character)--;
+
+    if (ROOM_FLAGGED(IN_ROOM(d->character), ROOM_PSP_REGEN) && GET_PSP(d->character) > psp_before)
+    {
+      GET_PSP(d->character) += GET_PSP(d->character) - psp_before;
+    }
 
     if (GET_PSP(d->character) > GET_MAX_PSP(d->character))
       GET_PSP(d->character) = GET_MAX_PSP(d->character);
