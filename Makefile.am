@@ -465,6 +465,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/reporting.py \
 	scripts/world/wtool_lib/rol_baseline.py \
 	scripts/world/wtool_lib/rol_inventory.py \
+	scripts/world/wtool_lib/rol_source.py \
 	scripts/world/wtool_lib/rooms.py \
 	scripts/world/wtool_lib/semantics.py \
 	scripts/world/wtool_lib/shops.py \
@@ -487,6 +488,7 @@ world_tool_sources = \
 	scripts/world/tests/test_reporting.py \
 	scripts/world/tests/test_rol_baseline.py \
 	scripts/world/tests/test_rol_inventory.py \
+	scripts/world/tests/test_rol_source.py \
 	scripts/world/tests/test_rooms.py \
 	scripts/world/tests/test_semantics.py \
 	scripts/world/tests/test_shops.py \
