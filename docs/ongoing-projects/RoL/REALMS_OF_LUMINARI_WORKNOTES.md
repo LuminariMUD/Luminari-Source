@@ -1,14 +1,14 @@
 # Realms of Luminari Conversion Worknotes
 
-- Updated: 2026-08-11
+- Updated: 2026-08-12
 - Environment: development
 - Branch: `master`
-- Current task: Phase 4 SOC, special bindings, bundling, validation, and reforecast work
+- Current task: Phase 5 shared capability rollout
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 
 ## Current committed checkpoint
 
-Phases 0-3 are implemented, committed, and pushed:
+Phases 0-4 are implemented, committed, and pushed:
 
 ```text
 Phase 0 baseline commit: 1619ccd8
@@ -23,6 +23,11 @@ Phase 4 record transform commit: 3a6b7602
 Phase 4 reset compatibility commit: 72c2ef24
 Phase 4 shop conversion commit: 10a30cf2
 Phase 4 quest conversion commit: d5609b1c
+Phase 4 SOC compiler commit: 56393f8c
+Phase 4 native special commit: 8136c71b
+Phase 4 special archive commit: aeaf79d2
+Phase 4 complete pilot build commit: 694cf84f
+Phase 4 runtime validation commit: 3fe7015f
 ```
 
 The authoritative ignored runs are:
@@ -39,6 +44,8 @@ Phase 3: lib/rol-conversion/runs/phase3-a5419818-a
          rol-phase3-11336f1832d8765c
 Phase 4 selection: lib/rol-conversion/runs/phase4-select-e6ea7982
                    rol-phase4-select-6f7ae16e5df665ec
+Phase 4 build: lib/rol-conversion/runs/phase4-build-e6ea7982
+               rol-phase4-build-a2c341dfaa743b26
 Policy:  rol-conversion-policy-1
 ```
 
@@ -57,31 +64,30 @@ Policy:  rol-conversion-policy-1
   and proves the authoritative target tree is unchanged.
 - The two controlled Phase 3 runs have identical manifests, all 12 hashed artifacts
   are byte-identical, and both produce run ID `rol-phase3-11336f1832d8765c`.
-- Pilot room/mobile/object/zone emitters and reset compatibility are implemented. The
-  focused conversion/parser suite passes 44 tests; the production CuTest suite passes
-  598 tests; and `make install` leaves no root-level `circle` artifact.
-- All 15 pilot shops and 57 non-reused pilot quest hosts emit parser-clean target
-  records. Native shop roaming and HLQ exact-coin/duplicate-item compatibility are
-  tested; the production CuTest suite now passes 600 tests.
-- The source reset oracle no longer treats numeric comment text as reset arguments.
-  The corrected Phase 1, Phase 2, and selection runs retain every headline count and
-  coverage check; all 29 listed artifacts pass independent hash verification.
+- Phase 4 disposes all 3,001 selected actions, all 245 selected SOC records, and all 91
+  selected special bindings. It emits 25 files and 194 DG triggers, patches 73 preserved
+  mobiles, appends 14 shops, and performs zero implicit overwrites or live target writes.
+- The generated overlay parses completely and adds zero active staged errors. The 79
+  active staged errors are inherited target-baseline findings; they remain repair work
+  for the relevant Phase 7 batches and are not waived.
+- Reset-reference and scripted walkthrough evidence passes for all five pilot zones and
+  all 1,160 selected rooms. The isolated test-database boot enters the game loop,
+  observes eligible resets for zones 1591 and 20586, and terminates normally with no
+  pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
+- The world-tool suite passes 224 tests; the production-linked CuTest suite passes 601;
+  `make install` succeeds and leaves no root-level `circle` artifact.
+- The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
+  48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
 
 ## Immediate next actions
 
-The locked selection is `swamp_two`, `hulburg`, `muspel`, `theswamp`, and `cemetery`.
-It covers all five SOC modes, all five special SOC action codes, all three custom
-`F/T/X` reset families, uncommon object/room extensions, a confirmed-lineage
-settlement, and a compact conventional-reset oracle. The corrected run
-`rol-phase4-select-6f7ae16e5df665ec` is the current numeric evidence.
-
-1. Implement only the SOC and special-procedure capabilities that block these five
-   packages.
-2. Generate and stage deterministic pilot bundles with explicit record actions.
-3. Run source-oracle, structural, reset-observation, walkthrough, reference, and
-   record-action evidence for each pilot.
-4. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
-   and review throughput.
-
-Do not start broad Phase 5+ capability or corpus work before the Phase 4 pilot and its
-evidence-based reforecast are complete.
+1. Run a full-corpus dry build to inventory unobserved symbolic flag, spell, skill,
+   command, race, item, and sector values.
+2. Implement the functional capability rows absent from the pilot: `qst:R:E`,
+   `qst:R:P`, `qst:R:S`, `soc:LISTDONE`, `wld:M`, `wld:F`, and `obj:T`.
+3. Preserve the five excluded/ignored source-defect rows as explicit, logged
+   smallest-unit exclusions.
+4. Regenerate a deterministic capability-complete bundle and repeat structural,
+   syntax-boot, isolated behavioral, reset, and walkthrough gates.
+5. Begin Phase 6 only when no active record remains blocked by a generic shared
+   capability.

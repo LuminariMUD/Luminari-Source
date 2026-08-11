@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Phase 4 special-binding integration and pilot validation in progress
+- Status: Phase 5 shared capability rollout in progress
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -27,10 +27,11 @@ SOC behavior, traps, and required special procedures. Automated validation and s
 walkthroughs provide acceptance evidence. Disabled, unlisted, and demonstrably
 non-working RoL content is permanently out of scope.
 
-Existing target reuse may reduce implementation, while ambiguous or evolved target
-copies add engineering work. A responsible total cannot be estimated until the pilot
-measures reuse, ambiguity, and exception rates. Use the bounded phase envelopes in the
-companion plan, then reforecast after Phase 4. Earlier blind-import totals are withdrawn.
+The completed pilot measured target reuse, ambiguity, capability coverage, special
+binding density, and validation throughput. The remaining evidence-based forecast is
+104-170 sessions, or 208-680 focused engineering hours at 2-4 hours per session. This
+is a planning envelope rather than a calendar promise; the measured basis is recorded
+in [RoL-Changelog.md](RoL-Changelog.md).
 
 ## Locked project decisions
 
@@ -454,21 +455,16 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 4 | Representative 3-5 package vertical pilot and evidence-based reforecast | 8-14 |
-| 5 | Shared record, reset, shop, quest, SOC, trap, and extension capabilities | 12-24 provisional |
-| 6 | Reconcile/reuse/patch/port special procedures | 12-40 provisional |
-| 7 | Action-based batches, zone QA, and validation bundles | 20-60 provisional |
-| 8 | Isolated integration, development apply, and documentation | 5-8 |
+| 5 | Shared record, reset, shop, quest, SOC, trap, and extension capabilities | 8-14 |
+| 6 | Reconcile/reuse/patch/port special procedures | 48-80 |
+| 7 | Action-based batches, zone QA, and validation bundles | 42-66 |
+| 8 | Isolated integration, development apply, and documentation | 6-10 |
 
-Completed Phases 0-3, the Phase 4 package selection, and the pilot record/reset, shop,
-quest, SOC, and VNUM-independent native-special capability tranches have been removed
-from this active scope; their delivery and acceptance evidence is in
-[RoL-Changelog.md](RoL-Changelog.md). The remaining Phase 4 work is limited to
-special-binding integration, deterministic bundles, staged validation, walkthroughs,
-and reforecasting. It must not expand into broad Phase 5+ implementation.
-
-Phase 4 must replace provisional later-phase ranges with a forecast based on measured
-target reuse, ambiguous matches, runtime gaps, and review throughput.
+Completed Phases 0-4 have been removed from this active scope; their delivery,
+acceptance evidence, and reforecast basis are in
+[RoL-Changelog.md](RoL-Changelog.md). Active work starts with Phase 5 and must preserve
+the pilot's deterministic, no-clobber, structural, reset, walkthrough, and isolated
+runtime gates.
 
 ## Acceptance criteria
 
@@ -531,8 +527,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 4 by persisting the 46 selected native bindings and DG-compiling the
-remaining 45 bindings in seven VNUM-dependent behavior families. Generate deterministic
-no-clobber bundles, stage and validate them, collect reset and walkthrough evidence,
-and use the measured results to produce the first evidence-based architecture and
-effort reforecast.
+Start Phase 5 with a full-corpus dry build that inventories symbolic value variants and
+the 12 capability rows not exercised by the pilot. Implement the functional gaps first:
+quest reward directions `R:E`, `R:P`, and `R:S`; SOC `LISTDONE`; room extensions `M`
+and `F`; and object extension `T`. Preserve the five explicit source-defect or ignored
+content rows as logged smallest-unit exclusions, then repeat the pilot's structural and
+runtime gates before beginning Phase 6.

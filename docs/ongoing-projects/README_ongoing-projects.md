@@ -14,13 +14,13 @@ deleted.
 
 ## Current contents
 
-Statuses below were re-verified against the source tree on 2026-08-11.
+Statuses below were re-verified against the source tree on 2026-08-12.
 
 | Document | Status | What remains |
 |----------|--------|--------------|
-| [REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md](RoL/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md) | Phases 0-3 complete; Phase 4 next | Run the representative 3-5 package vertical pilot, then reforecast later phases from measured reuse, ambiguity, runtime gaps, and review throughput. |
-| [REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md](RoL/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) | Phases 0-3 complete; Phase 4 next | Convert active working content only, preserve equivalent Luminari/OLC work, auto-approve converted HLQs, and resolve technical branches through pilot tests. |
-| [RoL-Changelog.md](RoL/RoL-Changelog.md) | Completed milestone record | Preserve delivered RoL inventory and Phase 0-3 behavior, acceptance evidence, run identities, and delivery commits outside the active plans. |
+| [REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md](RoL/REALMS_OF_LUMINARI_FEATURE_FIRST_CONVERSION_PLAN.md) | Phases 0-4 complete; Phase 5 active | Finish shared capability and symbolic mapping coverage before special-procedure reconciliation. |
+| [REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md](RoL/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) | Phases 0-4 complete; Phase 5 active | Convert active working content only, preserve equivalent Luminari/OLC work, and retain the pilot's deterministic validation gates. |
+| [RoL-Changelog.md](RoL/RoL-Changelog.md) | Completed milestone record | Preserve delivered RoL inventory and Phase 0-4 behavior, acceptance evidence, run identities, delivery commits, and the measured reforecast outside the active plans. |
 | [REALMS_OF_LUMINARI_WORKNOTES.md](RoL/REALMS_OF_LUMINARI_WORKNOTES.md) | Active handoff log | Preserve the current run identity, verification state, checkpoints, and immediate continuation steps. |
 | [PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md](PET_SYSTEM_COMPARISON_LUMINARI_CHRONICLES_OF_KRYNN.md) | Comparison complete; P0 persistence repaired | Luminari now has fail-closed migrations and atomic snapshots. Admission policy, temporary lifetime, stable ownership, and full schema-source unification remain design work; the Chronicles sample is still reference-only. |
 | [artifact-placement-plan.md](artifact-placement-plan.md) | Handoff | Content brief for a world builder: acquisition routes for all seventeen artifacts, the single-instance reset contract, and verification steps. No code work outstanding. The artifact project's engineering sections are complete and its working notes have been retired; enduring content moved to [ARTIFACT_SYSTEM.md](../systems/ARTIFACT_SYSTEM.md). |

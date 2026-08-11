@@ -1,8 +1,8 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phase 4 special-binding integration and pilot validation in progress
+- Status: Phase 5 shared capability rollout in progress
 - Plan date: 2026-08-11
-- Evidence audit: 2026-08-11
+- Evidence audit: 2026-08-12
 - Companion scope:
   [REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md)
 - Source corpus root:
@@ -529,34 +529,16 @@ the supporting runtime lands.
 ## Phased session plan
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
-below are planning envelopes, not delivery promises. Phase 4 must reforecast the
-remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
-import estimate is not credible enough to sum into a project total.
+below are evidence-based planning envelopes, not delivery promises. The measured
+Phase 4 pilot replaced the provisional ranges and established a remaining total of
+104-170 sessions, or 208-680 focused engineering hours at the defined session size.
 
-Phases 0-3, the Phase 4 package selection, and the pilot record/reset, shop, quest, SOC,
-and VNUM-independent native-special capability tranches are complete and have been
-removed from this active plan. Their delivered scope, run identities, counts,
-acceptance evidence, and commits are recorded in
-[RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes with the remaining
-Phase 4 integration and validation work.
+Phases 0-4 are complete and have been removed from this active plan. Their delivered
+scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
+recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation begins with
+Phase 5.
 
-### Phase 4: Representative vertical pilot (8-14 sessions)
-
-The evidence-based package selection; pilot room/mobile/object/zone/shop/quest
-emitters; reset, shop, and HLQ runtime adapters; SOC compiler; and 24 VNUM-independent
-native special families are complete and recorded in
-[RoL-Changelog.md](RoL-Changelog.md). Complete the special-binding compiler by
-persisting the 46 selected native bindings and DG-compiling the remaining 45 bindings
-in seven VNUM-dependent behavior families. Then generate deterministic bundles, stage
-them without implicit target overwrites, and validate them.
-
-Each pilot receives source-oracle tests, structural validation, reset observation,
-walkthrough evidence, reference reconciliation, and explicit record actions.
-
-Exit gate: finalize or revise the technical architecture, reconciliation thresholds,
-batch size, and remaining estimates from measured results. No user approval is needed.
-
-### Phase 5: Shared capability rollout (12-24 sessions, provisional)
+### Phase 5: Shared capability rollout (8-14 sessions)
 
 Expand by frequency, pilot blockers, and reuse:
 
@@ -570,7 +552,7 @@ Expand by frequency, pilot blockers, and reuse:
 
 Exit gate: no active record is blocked by an unowned generic data/runtime capability.
 
-### Phase 6: Special-procedure reconciliation (12-40 sessions, provisional)
+### Phase 6: Special-procedure reconciliation (48-80 sessions)
 
 Process by shared behavior family and consuming package. Reuse equivalent target ports,
 patch bounded differences, adapt native systems, and port only remaining selected
@@ -579,7 +561,7 @@ behavior. A new source file must be added to both `Makefile.am` and `CMakeLists.
 Exit gate: every active binding is kept, patched, adapted, ported, or minimally excluded
 under the locked malformed-content rule, with behavioral evidence.
 
-### Phase 7: Action-based corpus batches (20-60 sessions, reforecast required)
+### Phase 7: Action-based corpus batches (42-66 sessions)
 
 Batch by dependency closure and record actions, not by blindly adding 5-10 numbered
 zones. Each batch includes deterministic regeneration, before/after hashes, capability
@@ -594,7 +576,7 @@ and other demonstrably non-working content, are permanently out of scope.
 Exit gate: every in-scope package has a disposition, every contained record has a
 resolved action, and every active companion-file mismatch has evidence.
 
-### Phase 8: Integration and release evidence (5-8 sessions)
+### Phase 8: Integration and release evidence (6-10 sessions)
 
 1. Validate a complete isolated target assembled from the development baseline and
    planned bundles.

@@ -5,6 +5,98 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 4 representative vertical pilot completed
+
+Status: Completed; Phase 5 is the active phase
+
+### Delivered
+
+- Completed all 3,001 selected record actions across `swamp_two`, `hulburg`, `muspel`,
+  `theswamp`, and `cemetery`: 1,408 `ADD`, 1,465 `KEEP`, 127 `MERGE`, and one
+  smallest-record `EXCLUDE`.
+- Added the deterministic `rol-pilot-build` pipeline. It reparses the source oracle,
+  transforms selected records, applies only explicit patches/appends to a disposable
+  copy of the target, updates indexes, and writes a hashed evidence bundle without
+  changing the live development world.
+- Generated 25 new world files, patched 73 preserved target mobiles, and appended 14
+  shops. The compiler disposed all 91 selected special bindings: 46 persisted native
+  bindings and 45 DG adaptations compiled into 13 triggers.
+- Combined the special triggers with 181 SOC triggers for 194 generated DG triggers.
+  Added the bounded runtime adapters and native handlers needed by the pilot before the
+  generated data was booted.
+- Added semantic source-to-target magic-item spell mapping, capped source spell levels
+  at the target limit, and explicitly disabled `mud to rock`, for which the target has
+  no equivalent. Unknown future source spell IDs fail closed to a logged disabled slot.
+- Corrected alphabetic bit-vector decoding at bit 31 so signed `int` promotion cannot
+  create false high bits, and made RoL mobile-removal resets ignore characters already
+  pending extraction.
+- Added a machine-readable pilot runtime contract. It verifies all reset references,
+  missing exit targets, connected-component traversal roots, and representative routes
+  for every selected target zone.
+- Completed the evidence-based reforecast and removed Phase 4 from both active plans.
+  The active project now begins at Phase 5.
+
+### Acceptance evidence
+
+```text
+Final integration commits: 694cf84f, 3fe7015f
+Build run directory: lib/rol-conversion/runs/phase4-build-e6ea7982
+Build run ID: rol-phase4-build-a2c341dfaa743b26
+Selected actions disposed: 3,001 of 3,001
+Generated world files: 25
+Preserved target mobiles patched: 73
+Shops appended: 14
+Special bindings disposed: 91 of 91
+SOC DG triggers: 181
+Special DG triggers: 13
+Generated overlay parse complete: yes
+New staged active errors: 0
+Implicit target overwrites: 0
+Live target writes: 0
+Reset-reference observations: 5 of 5 zones passed
+Walkthrough coverage: 1,160 of 1,160 rooms passed
+Focused world-tool tests: 224 passed
+Production CuTest suite: 601 passed
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+Isolated syntax boot: passed with no pilot-related SYSERR
+Isolated MariaDB behavioral boot: entered game loop and terminated normally
+Eligible boot-time pilot resets observed: zones 1591 and 20586
+Pilot-related spell/reference/reset/trigger/extraction boot errors: 0
+```
+
+The staged validator still reports 79 active errors inherited from the authoritative
+target baseline, including pre-existing Hulburg HLQ references and incomplete
+unselected HLQ files. Therefore global `staged_parse_complete` remains false. The pilot
+added zero active errors, and its generated overlay parses completely. Phase 7 package
+batches retain the requirement to repair selected/touched lineage findings before
+project completion; Phase 4 completion does not waive the final Definition of Done.
+
+### Measured reforecast
+
+The pilot covered 3,001 of 71,680 active records (4.19 percent), five of 252 active
+physical packages (1.98 percent), and 77 of 89 capability rows (86.52 percent). It was
+deliberately lineage-heavy: its action mix was 48.82 percent `KEEP`, while the complete
+plan is 95.07 percent `ADD`. After the pilot, 68,679 records and 247 physical packages
+remain for broad batching.
+
+Special procedures dominate uncertainty. The pilot covered 91 of 1,234 active source
+bindings and 34 of 605 source handler names. The remaining 1,143 bindings and 571
+handler names are why Phase 6 expands beyond its provisional range even though Phase 5
+shrinks after broad capability coverage in the pilot.
+
+| Phase | Evidence-based sessions | Focused hours at 2-4 hours/session |
+|------:|------------------------:|-----------------------------------:|
+| 5 | 8-14 | 16-56 |
+| 6 | 48-80 | 96-320 |
+| 7 | 42-66 | 84-264 |
+| 8 | 6-10 | 12-40 |
+| **Remaining total** | **104-170** | **208-680** |
+
+These are engineering planning envelopes, not calendar promises. Reforecast again
+after Phase 5 resolves the 12 capability rows absent from the pilot and inventories
+full-corpus symbolic value variants.
+
 ## 2026-08-11 - Phase 4 pilot SOC and native special capabilities
 
 Status: Completed sub-milestone; Phase 4 implementation in progress
