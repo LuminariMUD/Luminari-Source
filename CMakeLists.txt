@@ -925,6 +925,7 @@ set(WORLD_TOOL_SOURCES
     scripts/world/wtool_lib/rol_pilot.py
     scripts/world/wtool_lib/rol_skeleton.py
     scripts/world/wtool_lib/rol_source.py
+    scripts/world/wtool_lib/rol_transform.py
     scripts/world/wtool_lib/rooms.py
     scripts/world/wtool_lib/semantics.py
     scripts/world/wtool_lib/shops.py

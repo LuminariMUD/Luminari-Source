@@ -1,0 +1,733 @@
+"""Semantic transforms from Realms of Luminari records to Luminari data."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+import re
+from typing import Callable
+
+from .flags import encode_bits
+from .rol_source import RolRecord
+
+
+IdentityResolver = Callable[[str, int], int]
+
+
+@dataclass(slots=True)
+class TransformResult:
+  """One emitted target record plus explicit bounded-loss diagnostics."""
+
+  text: str
+  diagnostics: list[str] = field(default_factory=list)
+
+
+ROOM_FLAG_MAP = {
+    1: 0,   # DARK
+    2: 1,   # DEATH
+    3: 2,   # NO_MOB
+    4: 3,   # INDOORS
+    5: 5,   # ROOM_SILENT
+    7: 19,  # NORECALL
+    8: 7,   # NO_MAGIC
+    9: 8,   # TUNNEL
+    10: 9,  # PRIVATE
+    12: 4,  # SAFE_ZONE
+    14: 20, # SINGLE_FILE
+    16: 21, # NO_TELEPORT
+    19: 25, # NO_HEAL
+    20: 33, # HAS_TRAP
+    21: 41, # DOCKABLE
+    22: 22, # MAGIC_DARK
+    23: 23, # MAGIC_LIGHT
+    24: 24, # NO_SUMMON
+    30: 28, # AIRY_WATER
+    33: 11, # ROOM_HOUSE
+    34: 13, # ROOM_ATRIUM
+}
+
+SECTOR_MAP = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 9,
+    11: 25,
+    12: 15,
+    13: 19,
+    14: 20,
+    15: 21,
+    16: 22,
+    17: 23,
+    18: 24,
+    19: 18,
+    20: 18,
+    21: 18,
+    22: 18,
+    23: 18,
+    24: 31,
+    25: 23,
+    26: 29,
+    27: 5,
+    28: 1,
+    29: 35,
+    30: 18,
+    31: 25,
+}
+
+MOB_ACTION_MAP = {
+    2: 1,   # SENTINEL
+    3: 2,   # SCAVENGER
+    6: 5,   # AGGRESSIVE
+    7: 6,   # STAY_ZONE
+    8: 7,   # WIMPY
+    9: 8,   # AGGRESSIVE_EVIL
+    10: 9,  # AGGRESSIVE_GOOD
+    11: 10, # AGGRESSIVE_NEUTRAL
+    12: 11, # MEMORY
+    15: 12, # HELPER
+    18: 18, # NOKILL
+    25: 32, # CITIZEN/WITNESS
+    28: 21, # MOUNTABLE
+    31: 33, # HUNTER
+}
+
+MOB_AFFECT_MAP = {
+    1: 1,   # BLIND
+    2: 2,   # INVISIBLE
+    3: 82,  # FARSEE
+    4: 4,   # DETECT_INVISIBLE
+    5: 26,  # HASTE
+    6: 6,   # SENSE_LIFE
+    7: 42,  # MINOR_GLOBE
+    8: 97,  # STONE_SKIN -> WARDED
+    9: 92,  # CHARGING
+    12: 18, # WATERBREATH
+    13: 31, # KNOCKED_OUT -> STUN
+    14: 13, # PROTECT_EVIL
+    17: 14, # PROTECT_GOOD
+    18: 15, # SLEEP
+    20: 19, # SNEAK
+    21: 20, # HIDE
+    22: 30, # FEAR
+    23: 22, # CHARM
+    26: 11, # INFRAVISION
+    27: 103,# LEVITATE
+    28: 17, # FLY
+    30: 28, # PROTECT_FIRE -> ELEMENT_PROT
+    33: 40, # FIRE_SHIELD
+    34: 33, # ULTRAVISION
+    37: 5,  # DETECT_MAGIC
+    40: 28, # PROTECT_COLD -> ELEMENT_PROT
+    43: 39, # SLOW
+    44: 51, # GLOBE
+    46: 28, # PROTECT_ACID -> ELEMENT_PROT
+    52: 31, # STUNNED
+    65: 69, # VAMP_TOUCH
+    72: 23, # BLUR
+    74: 117,# REPULSION
+    75: 58, # MIND_BLANK
+    76: 97, # DRAGONSCALES -> WARDED
+    77: 96, # MIRROR_IMAGE
+    79: 38, # NONDETECTION
+    80: 53, # DISPLACEMENT
+    82: 93, # MORPH -> WILD_SHAPE
+    83: 79, # MAGE_FLAME
+    84: 73, # TOWER
+    93: 70, # BLACKMANTLE
+    98: 110,# SILENCE_PERSON
+    100: 98,# ENTANGLE
+    101: 45,# TRUE_SIGHT
+    119: 60,# TIME_STOP
+    121: 36,# PATH -> CLIMB (closest persistent movement state)
+}
+
+OBJECT_TYPE_MAP = {
+    0: 12,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 7,
+    7: 14,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 13,
+    14: 31,
+    15: 15,
+    16: 16,
+    17: 17,
+    18: 18,
+    19: 19,
+    20: 20,
+    21: 21,
+    22: 22,
+    23: 28,
+    24: 12,
+    25: 29,
+    26: 33,
+    27: 34,
+    28: 22,
+    29: 35,
+    30: 36,
+    31: 37,
+    32: 38,
+    33: 28,
+    34: 14,
+    35: 44,
+    36: 45,
+    37: 25,
+    38: 12,
+    39: 42,
+    40: 12,
+}
+
+OBJECT_EXTRA_MAP = {
+    0: 0,
+    3: 16,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 39,
+    13: 38,
+    14: 42,
+    15: 41,
+    18: 40,
+    19: 43,
+    23: 2,
+    25: 15,
+    26: 13,
+    27: 14,
+    28: 12,
+}
+
+OBJECT_WEAR_MAP = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 13,
+    14: 14,
+    15: 13,
+    16: 14,
+    17: 18,
+    18: 15,
+    19: 17,
+    20: 16,
+    21: 19,
+    22: 10,
+}
+
+APPLY_MAP = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 0,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 13,
+    14: 14,
+    15: 15,
+    16: 16,
+    17: 17,
+    18: 18,
+    19: 19,
+    20: 20,
+    21: 20,
+    22: 21,
+    23: 21,
+    24: 22,
+    25: 28,
+    28: 6,
+    51: 25,
+    52: 13,
+}
+
+CLASS_MAP = {
+    0: 0,
+    1: 3,
+    2: 9,
+    3: 6,
+    4: 8,
+    5: 24,
+    6: 1,
+    7: 4,
+    8: 5,
+    9: 1,
+    10: 7,
+    11: 29,
+    12: 0,
+    13: 2,
+    14: 25,
+    15: 3,
+    16: 10,
+    17: 21,
+    18: 29,
+    19: 0,
+    20: 0,
+    21: 0,
+    22: 10,
+    23: 2,
+    24: 0,
+    25: 3,
+}
+
+RACE_CODE_MAP = {
+    "A": 3,
+    "AA": 3,
+    "AB": 3,
+    "AC": 3,
+    "AD": 3,
+    "AE": 3,
+    "AF": 3,
+    "AH": 3,
+    "AP": 15,
+    "AS": 15,
+    "AY": 10,
+    "B": 3,
+    "BR": 3,
+    "D": 4,
+    "DK": 4,
+    "E1": 13,
+    "E2": 13,
+    "EA": 8,
+    "EE": 8,
+    "EF": 8,
+    "EW": 8,
+    "F": 3,
+    "G": 5,
+    "H": 1,
+    "H2": 1,
+    "HC": 11,
+    "HF": 9,
+    "HG": 1,
+    "HH": 1,
+    "HK": 1,
+    "HO": 1,
+    "HS": 11,
+    "HY": 13,
+    "I": 15,
+    "IX": 6,
+    "K": 10,
+    "L": 16,
+    "MH": 6,
+    "MS": 11,
+    "N": 0,
+    "OB": 6,
+    "OG": 7,
+    "OH": 11,
+    "OP": 13,
+    "OS": 12,
+    "OU": 14,
+    "P2": 1,
+    "PB": 1,
+    "PD": 1,
+    "PE": 1,
+    "PF": 1,
+    "PG": 1,
+    "PH": 1,
+    "PI": 6,
+    "PL": 1,
+    "PM": 1,
+    "PO": 1,
+    "PT": 1,
+    "PR": 1,
+    "PS": 14,
+    "PY": 11,
+    "PZ": 2,
+    "R": 3,
+    "RH": 11,
+    "RS": 3,
+    "RT": 11,
+    "U": 2,
+    "UG": 2,
+    "UH": 2,
+    "US": 2,
+    "UV": 2,
+    "VT": 14,
+    "X": 13,
+    "Y": 13,
+    "Z": 13,
+}
+
+
+_SOURCE_COLOR = re.compile(r"&\+([A-Za-z])|&([Nn])")
+
+
+def convert_text(value: str | None) -> tuple[str, list[str]]:
+  """Convert legacy colors and return canonical ASCII/LF target text."""
+
+  diagnostics: list[str] = []
+  text = value or ""
+  text = _SOURCE_COLOR.sub(
+      lambda match: "@n" if match.group(2) else f"@{match.group(1)}",
+      text,
+  )
+  text = text.replace("\r\n", "\n").replace("\r", "\n")
+  if "~" in text:
+    text = text.replace("~", "-")
+    diagnostics.append("embedded tilde replaced with '-' to preserve target framing")
+  encoded = text.encode("ascii", errors="replace")
+  if encoded.decode("ascii") != text:
+    diagnostics.append("non-ASCII source bytes replaced with '?' for target compatibility")
+  return encoded.decode("ascii"), diagnostics
+
+
+def _tilde(value: str | None) -> tuple[str, list[str]]:
+  text, diagnostics = convert_text(value)
+  return f"{text}~\n", diagnostics
+
+
+def _source_mask_bits(mask: int, logical_offset: int) -> set[int]:
+  return {
+      logical_offset + bit
+      for bit in range(32)
+      if mask & (1 << bit)
+  }
+
+
+def _mapped_bits(source_bits: set[int], mapping: dict[int, int]) -> set[int]:
+  return {mapping[bit] for bit in source_bits if bit in mapping}
+
+
+def _unmapped(source_bits: set[int], mapping: dict[int, int]) -> list[int]:
+  return sorted(source_bits - mapping.keys())
+
+
+def _encoded(bits: set[int]) -> str:
+  return " ".join(encode_bits(bits))
+
+
+def _room_size_bits(base: list[int]) -> set[int]:
+  if len(base) < 6:
+    return set()
+  length, width, height = (max(0, value) for value in base[3:6])
+  effective_height = (length + width) // 2 if height == 500 else height
+  volume = length * width * effective_height
+  if volume <= 27:
+    return {31}
+  if volume <= 125:
+    return {30}
+  if length < 6 or width < 6:
+    return {20}
+  return set()
+
+
+def _exit_flags(source_flags: int) -> int:
+  is_door = bool(source_flags & 0x1FF)
+  pickproof = bool(source_flags & (1 << 8))
+  hidden = bool(source_flags & (1 << 6))
+  if not is_door:
+    return 0
+  return 1 + int(pickproof) + (2 if hidden else 0)
+
+
+def emit_room(
+    record: RolRecord,
+    destination_vnum: int,
+    destination_zone: int,
+    resolve: IdentityResolver,
+) -> TransformResult:
+  """Emit one modern target room record."""
+
+  diagnostics: list[str] = []
+  strings = record.values.get("strings", {})
+  name, text_diagnostics = _tilde(strings.get("name"))
+  diagnostics.extend(text_diagnostics)
+  description, text_diagnostics = _tilde(strings.get("description"))
+  diagnostics.extend(text_diagnostics)
+  base = record.values.get("base", [])
+  first_mask = base[1] if len(base) > 1 else 0
+  second_mask = base[6] if len(base) > 6 else 0
+  source_flags = _source_mask_bits(first_mask, 1) | _source_mask_bits(second_mask, 33)
+  target_flags = _mapped_bits(source_flags, ROOM_FLAG_MAP) | _room_size_bits(base)
+  missing = _unmapped(source_flags, ROOM_FLAG_MAP)
+  if missing:
+    diagnostics.append(f"room flags without target persistence: {missing}")
+  sector = SECTOR_MAP.get(base[2] if len(base) > 2 else 0, 0)
+  lines = [
+      f"#{destination_vnum}\n",
+      name,
+      description,
+      f"{destination_zone} {_encoded(target_flags)} {sector}\n",
+  ]
+  for directive in record.directives:
+    token = directive["token"]
+    if token == "D":
+      arguments = directive.get("arguments", [])
+      if len(arguments) < 3 or directive.get("source_defaulted_destination"):
+        diagnostics.append(f"excluded incomplete exit at source line {directive['line']}")
+        continue
+      exit_description, text_diagnostics = _tilde(directive.get("description"))
+      diagnostics.extend(text_diagnostics)
+      keyword, text_diagnostics = _tilde(directive.get("keyword"))
+      diagnostics.extend(text_diagnostics)
+      key = resolve("obj", arguments[1]) if arguments[1] > 0 else -1
+      destination = resolve("wld", arguments[2]) if arguments[2] > 0 else -1
+      lines.extend(
+          [
+              f"D{directive['direction']}\n",
+              exit_description,
+              keyword,
+              f"{_exit_flags(arguments[0])} {key} {destination}\n",
+          ]
+      )
+      if len(arguments) > 3:
+        diagnostics.append(
+            f"legacy exit trap payload retained only as conversion evidence at source line {directive['line']}"
+        )
+    elif token == "E":
+      keyword, text_diagnostics = _tilde(directive.get("keyword"))
+      diagnostics.extend(text_diagnostics)
+      extra, text_diagnostics = _tilde(directive.get("description"))
+      diagnostics.extend(text_diagnostics)
+      lines.extend(["E\n", keyword, extra])
+    elif token in {"R", "F", "M"}:
+      diagnostics.append(
+          f"legacy room extension {token} requires a bounded adapter at source line {directive['line']}"
+      )
+  lines.extend(["C\n", "0 0\n", "S\n"])
+  return TransformResult("".join(lines), diagnostics)
+
+
+def _source_position(value: int) -> int:
+  if value & 4:
+    return 0
+  if value & 8:
+    return 1
+  if value & 16:
+    return 2
+  if value & 32:
+    return 4
+  if value & 64:
+    return 6
+  posture = value & 3
+  return {0: 5, 1: 7, 2: 7, 3: 9}.get(posture, 9)
+
+
+def _dice_row(tokens: list[str]) -> tuple[int, int, int, str, str]:
+  padded = tokens + ["0"] * max(0, 5 - len(tokens))
+  return (
+      int(padded[0]),
+      int(padded[1]),
+      int(padded[2]),
+      _normalize_dice(padded[3]),
+      _normalize_dice(padded[4]),
+  )
+
+
+def _normalize_dice(value: str) -> str:
+  match = re.fullmatch(r"([+-]?\d+)d([+-]?\d+)\+([+-]?\d+)", value)
+  if match is None:
+    return "1d1+0"
+  count, size, bonus = (int(item) for item in match.groups())
+  if count <= 0 or size <= 0:
+    return f"0d0+{bonus}"
+  return f"{count}d{size}+{bonus}"
+
+
+def _money_row(tokens: list[str]) -> tuple[int, int]:
+  if not tokens:
+    return 0, 0
+  if "." in tokens[0]:
+    pieces = [int(value) for value in tokens[0].split(".")]
+    pieces = (pieces + [0, 0, 0, 0])[:4]
+    money = pieces[0] + pieces[1] * 10 + pieces[2] * 100 + pieces[3] * 1000
+  else:
+    money = int(tokens[0])
+  return money, int(tokens[1]) if len(tokens) > 1 else 0
+
+
+def emit_mobile(record: RolRecord, destination_vnum: int) -> TransformResult:
+  """Emit one enhanced target mobile record."""
+
+  diagnostics: list[str] = []
+  strings = record.values.get("strings", {})
+  lines = [f"#{destination_vnum}\n"]
+  for key in ("aliases", "short_description", "long_description", "description"):
+    value, text_diagnostics = _tilde(strings.get(key))
+    diagnostics.extend(text_diagnostics)
+    lines.append(value)
+
+  flags = record.values.get("flags", [])
+  action_mask = int(flags[0]) if len(flags) > 0 else 0
+  affect_mask1 = int(flags[1]) if len(flags) > 1 else 0
+  affect_mask2 = int(flags[2]) if len(flags) > 2 else 0
+  alignment = int(flags[3]) if len(flags) > 3 else 0
+  source_actions = _source_mask_bits(action_mask, 1)
+  source_affects = _source_mask_bits(affect_mask1, 1) | _source_mask_bits(
+      affect_mask2, 33
+  )
+  target_actions = _mapped_bits(source_actions, MOB_ACTION_MAP) | {3}
+  target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
+  missing_actions = _unmapped(source_actions, MOB_ACTION_MAP)
+  missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
+  if missing_actions:
+    diagnostics.append(f"mobile action flags requiring behavior reconciliation: {missing_actions}")
+  if missing_affects:
+    diagnostics.append(f"mobile affect flags without persistent equivalents: {missing_affects}")
+  lines.append(f"{_encoded(target_actions)} {_encoded(target_affects)} {alignment} E\n")
+
+  rows = record.values.get("base_rows", [])
+  race_row = rows[0] if len(rows) > 0 else ["N", "0", "0"]
+  combat_row = rows[1] if len(rows) > 1 else ["1", "0", "0", "1d1+0", "1d1+0"]
+  money_row = rows[2] if len(rows) > 2 else ["0", "0"]
+  position_row = rows[3] if len(rows) > 3 else ["131", "131", "0", "0"]
+  level, hitroll, armor, hit_dice, damage_dice = _dice_row(combat_row)
+  level = min(34, max(1, level))
+  lines.append(f"{level} {hitroll} {armor} {hit_dice} {damage_dice}\n")
+  money, experience = _money_row(money_row)
+  lines.append(f"{money} {experience}\n")
+  position = _source_position(int(position_row[0]))
+  default_position = _source_position(int(position_row[1]))
+  sex = int(position_row[2]) if len(position_row) > 2 else 0
+  lines.append(f"{position} {default_position} {sex}\n")
+
+  source_class = int(position_row[3]) if len(position_row) > 3 else 0
+  target_class = CLASS_MAP.get(source_class, 0)
+  race_code = race_row[0].upper() if race_row else "N"
+  target_race = RACE_CODE_MAP.get(race_code, 0)
+  if race_code not in RACE_CODE_MAP:
+    diagnostics.append(f"unknown source race code {race_code!r}; used target human")
+  lines.extend([f"Class: {target_class}\n", f"Race: {target_race}\n", "E\n"])
+  return TransformResult("".join(lines), diagnostics)
+
+
+def _object_values(
+    record: RolRecord,
+    source_type: int,
+    target_type: int,
+    resolve: IdentityResolver,
+) -> list[int]:
+  values = list(record.values.get("values", []))
+  values = (values + [0] * 16)[:16]
+  if source_type == 15 and values[2] > 0:
+    values[2] = resolve("obj", values[2])
+  elif source_type == 25:
+    destination = resolve("wld", values[0]) if values[0] > 0 else 0
+    values = [0, destination, destination, 0] + [0] * 12
+  elif source_type == 27 and values[1] > 0:
+    values[1] = resolve("mob", values[1])
+  elif source_type == 29 and values[1] > 0:
+    values[1] = resolve("wld", values[1])
+  if target_type == 15 and values[2] == 65535:
+    values[2] = -1
+  return values
+
+
+def emit_object(
+    record: RolRecord,
+    destination_vnum: int,
+    resolve: IdentityResolver,
+) -> TransformResult:
+  """Emit one modern target object record."""
+
+  diagnostics: list[str] = []
+  strings = record.values.get("strings", {})
+  lines = [f"#{destination_vnum}\n"]
+  for key in ("aliases", "short_description", "description", "action_description"):
+    value, text_diagnostics = _tilde(strings.get(key))
+    diagnostics.extend(text_diagnostics)
+    lines.append(value)
+
+  source_type = int(record.values.get("item_type") or 0)
+  target_type = OBJECT_TYPE_MAP.get(source_type, 12)
+  if source_type not in OBJECT_TYPE_MAP:
+    diagnostics.append(f"unknown source item type {source_type}; used ITEM_OTHER")
+  source_flags = record.values.get("flags", [])
+  extra_mask = source_flags[1] if len(source_flags) > 1 else 0
+  wear_mask = source_flags[2] if len(source_flags) > 2 else 0
+  source_extra = _source_mask_bits(extra_mask, 0)
+  source_wear = _source_mask_bits(wear_mask, 0)
+  target_extra = _mapped_bits(source_extra, OBJECT_EXTRA_MAP)
+  target_wear = _mapped_bits(source_wear, OBJECT_WEAR_MAP)
+  missing_extra = _unmapped(source_extra, OBJECT_EXTRA_MAP)
+  missing_wear = _unmapped(source_wear, OBJECT_WEAR_MAP)
+  if missing_extra:
+    diagnostics.append(f"object extra flags without direct equivalents: {missing_extra}")
+  if missing_wear:
+    diagnostics.append(f"object wear flags without direct equivalents: {missing_wear}")
+
+  source_affects: set[int] = set()
+  for directive in record.directives:
+    if directive["token"] != "AFFECT_FLAGS":
+      continue
+    for ordinal, mask in enumerate(directive.get("arguments", [])):
+      source_affects.update(_source_mask_bits(mask, ordinal * 32 + 1))
+  target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
+  missing_affects = _unmapped(source_affects, MOB_AFFECT_MAP)
+  if missing_affects:
+    diagnostics.append(f"object affect flags without persistent equivalents: {missing_affects}")
+  lines.append(
+      f"{target_type} {_encoded(target_extra)} {_encoded(target_wear)} "
+      f"{_encoded(target_affects)} {_encoded(set())}\n"
+  )
+  values = _object_values(record, source_type, target_type, resolve)
+  lines.append(" ".join(str(value) for value in values) + "\n")
+  economy = list(record.values.get("economy", []))
+  economy = (economy + [0, 1, 0])[:5]
+  economy[0] = max(0, economy[0])
+  economy[2] = max(0, economy[2])
+  if economy[3] <= 0:
+    economy[3] = 1
+  if target_type in {17, 23} and 0 in target_wear and economy[0] < values[1]:
+    economy[0] = values[1] + 5
+  lines.append(" ".join(str(value) for value in economy) + "\n")
+
+  for directive in record.directives:
+    token = directive["token"]
+    if token == "E" and directive.get("source_disposition") != "EXCLUDE":
+      keyword, text_diagnostics = _tilde(directive.get("keyword"))
+      diagnostics.extend(text_diagnostics)
+      extra, text_diagnostics = _tilde(directive.get("description"))
+      diagnostics.extend(text_diagnostics)
+      lines.extend(["E\n", keyword, extra])
+    elif token == "A":
+      arguments = directive.get("arguments", [])
+      if len(arguments) < 2:
+        diagnostics.append(f"excluded incomplete object affect at source line {directive['line']}")
+        continue
+      location = APPLY_MAP.get(arguments[0])
+      if location is None or location == 0 and arguments[0] != 0:
+        diagnostics.append(
+            f"excluded unsupported object apply {arguments[0]} at source line {directive['line']}"
+        )
+        continue
+      modifier = arguments[1]
+      if 1 <= arguments[0] <= 5:
+        modifier = (modifier * 45) // 10
+      lines.extend(["A\n", f"{location} {modifier} 0 0\n"])
+    elif token == "T":
+      diagnostics.append(
+          f"legacy object trap requires target trap classification at source line {directive['line']}"
+      )
+  return TransformResult("".join(lines), diagnostics)
