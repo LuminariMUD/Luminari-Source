@@ -14,7 +14,7 @@ from typing import Any, Iterable
 from .config import resolve_config
 from .constants import default_repo_root, load_manifest
 from .flags import decode_tokens, encode_bits
-from .models import TOOL_VERSION
+from .models import TOOL_VERSION, WorldData
 from .reporting import result_payload
 from .rol_discovery import extract_source_commands
 from .rol_pilot import PILOT_BASENAMES
@@ -46,6 +46,18 @@ _FILE_KIND = {
     "zon": ("zon", "zon"),
 }
 _NEW_TRIGGER_ZONES = frozenset({20261, 20409, 20553, 20586})
+_DIRECTION_NAMES = (
+    "north",
+    "east",
+    "south",
+    "west",
+    "up",
+    "down",
+    "northwest",
+    "northeast",
+    "southeast",
+    "southwest",
+)
 
 
 class RolPilotBuildError(ValueError):
@@ -398,6 +410,153 @@ def _stage_overlay(
   }
 
 
+def _reset_references(command: Any) -> list[tuple[str, int]]:
+  arguments = command.arguments
+  if command.command == "M":
+    return [("mob", arguments[0]), ("wld", arguments[2])]
+  if command.command == "O":
+    return [("obj", arguments[0]), ("wld", arguments[2])]
+  if command.command == "P":
+    return [("obj", arguments[0]), ("obj", arguments[2])]
+  if command.command in {"G", "E"}:
+    return [("obj", arguments[0])]
+  if command.command in {"D", "K"}:
+    return [("wld", arguments[0])]
+  if command.command == "R":
+    return [("wld", arguments[0]), ("obj", arguments[1])]
+  if command.command == "F":
+    return [("wld", arguments[0]), ("mob", arguments[1]), ("mob", arguments[2])]
+  if command.command == "X":
+    references = [("mob", arguments[1])]
+    if arguments[0] >= 0:
+      references.append(("wld", arguments[0]))
+    return references
+  return []
+
+
+def _walkthrough_roots(
+    rooms: dict[int, Any], preferred_root: int | None
+) -> list[dict[str, Any]]:
+  covered: set[int] = set()
+  candidates = ([preferred_root] if preferred_root in rooms else []) + sorted(rooms)
+  walkthroughs: list[dict[str, Any]] = []
+  for root in candidates:
+    if root in covered:
+      continue
+    parent: dict[int, tuple[int, int] | None] = {root: None}
+    distance = {root: 0}
+    queue = [root]
+    for current in queue:
+      for exit_record in rooms[current].exits:
+        destination = exit_record.destination_vnum
+        if destination not in rooms or destination in parent:
+          continue
+        parent[destination] = (current, exit_record.direction)
+        distance[destination] = distance[current] + 1
+        queue.append(destination)
+    new_rooms = set(parent) - covered
+    covered.update(parent)
+    farthest = max(new_rooms, key=lambda item: (distance[item], item))
+    route: list[dict[str, Any]] = []
+    cursor = farthest
+    while parent[cursor] is not None:
+      previous, direction = parent[cursor]
+      route.append(
+          {
+              "from": previous,
+              "direction": _DIRECTION_NAMES[direction],
+              "to": cursor,
+          }
+      )
+      cursor = previous
+    route.reverse()
+    walkthroughs.append(
+        {
+            "root": root,
+            "new_rooms_covered": len(new_rooms),
+            "farthest_room": farthest,
+            "representative_route": route,
+        }
+    )
+  return walkthroughs
+
+
+def _pilot_runtime_contract(world: WorldData, zone_vnums: Iterable[int]) -> dict[str, Any]:
+  definitions = {
+      "mob": {record.vnum for record in world.mobiles},
+      "obj": {record.vnum for record in world.objects},
+      "wld": {record.vnum for record in world.rooms},
+  }
+  rooms_by_vnum = {record.vnum: record for record in world.rooms}
+  zones_by_vnum = {record.vnum: record for record in world.zones}
+  evidence: list[dict[str, Any]] = []
+  for zone_vnum in sorted(zone_vnums):
+    zone = zones_by_vnum.get(zone_vnum)
+    rooms = {
+        vnum: room
+        for vnum, room in rooms_by_vnum.items()
+        if room.file_zone == zone_vnum
+    }
+    unresolved_resets: list[dict[str, Any]] = []
+    reset_counts: Counter[str] = Counter()
+    if zone is not None:
+      for ordinal, command in enumerate(zone.commands, start=1):
+        reset_counts[command.command] += 1
+        for kind, target in _reset_references(command):
+          if target not in definitions[kind]:
+            unresolved_resets.append(
+                {
+                    "ordinal": ordinal,
+                    "command": command.command,
+                    "target_kind": kind,
+                    "target_vnum": target,
+                }
+            )
+    missing_exits = sorted(
+        {
+            exit_record.destination_vnum
+            for room in rooms.values()
+            for exit_record in room.exits
+            if exit_record.destination_vnum >= 0
+            and exit_record.destination_vnum not in rooms_by_vnum
+        }
+    )
+    walkthroughs = _walkthrough_roots(
+        rooms,
+        zone.bottom if zone is not None else None,
+    )
+    covered_rooms = sum(item["new_rooms_covered"] for item in walkthroughs)
+    evidence.append(
+        {
+            "zone_vnum": zone_vnum,
+            "zone_present": zone is not None,
+            "room_count": len(rooms),
+            "reset_command_count": len(zone.commands) if zone is not None else 0,
+            "reset_command_types": dict(sorted(reset_counts.items())),
+            "unresolved_reset_references": unresolved_resets,
+            "physical_exit_count": sum(len(room.exits) for room in rooms.values()),
+            "missing_exit_targets": missing_exits,
+            "walkthrough_root_count": len(walkthroughs),
+            "walkthrough_rooms_covered": covered_rooms,
+            "walkthroughs": walkthroughs,
+            "reset_observation_pass": zone is not None
+            and bool(zone.commands)
+            and not unresolved_resets,
+            "walkthrough_pass": bool(rooms)
+            and covered_rooms == len(rooms)
+            and not missing_exits,
+        }
+    )
+  return {
+      "schema_version": 1,
+      "zones": evidence,
+      "all_reset_observations_pass": all(
+          item["reset_observation_pass"] for item in evidence
+      ),
+      "all_walkthroughs_pass": all(item["walkthrough_pass"] for item in evidence),
+  }
+
+
 def _native_maps(
     compilation: SpecialCompilation,
 ) -> tuple[
@@ -700,6 +859,14 @@ def write_pilot_build_bundle(
       "python3 scripts/world/wtool.py --world-root <phase4-pilot-stage> "
       "--json validate --zone 1591 20261 20409 20553 20586"
   )
+  staged_model = load_indexed_world_data(
+      staging_world,
+      repo_root,
+      manifest,
+      validation_config,
+      selected_packages=selected_zones,
+  )
+  runtime_contract = _pilot_runtime_contract(staged_model, selected_zones)
   before_findings = Counter(
       json.dumps(item, ensure_ascii=True, sort_keys=True)
       for item in target_validation_data["findings"]
@@ -825,6 +992,7 @@ def write_pilot_build_bundle(
       "validation/staged.json": validation_data,
       "validation/delta.json": validation_delta,
       "validation/staged-tree.json": staged_tree,
+      "validation/pilot-runtime-contract.json": runtime_contract,
   }
   for relative, payload in evidence_payloads.items():
     path = output_dir / relative
@@ -874,6 +1042,8 @@ def write_pilot_build_bundle(
           "staged_without_new_errors": new_active_errors == 0,
           "no_implicit_overwrite": True,
           "live_target_writes": 0,
+          "reset_observations_pass": runtime_contract["all_reset_observations_pass"],
+          "walkthroughs_pass": runtime_contract["all_walkthroughs_pass"],
       },
   }
   manifest_path = output_dir / "run-manifest.json"
@@ -893,6 +1063,8 @@ def write_pilot_build_bundle(
       "generated_parse_complete": generated_validation_data["complete"],
       "staged_errors": active_errors,
       "staged_new_errors": new_active_errors,
+      "reset_observations_pass": runtime_contract["all_reset_observations_pass"],
+      "walkthroughs_pass": runtime_contract["all_walkthroughs_pass"],
       "artifacts": len(artifacts) + 1,
   }
 
@@ -912,6 +1084,8 @@ def render_rol_pilot_build_human(summary: dict[str, Any]) -> str:
       f"Staged parse complete: {str(summary['staged_parse_complete']).lower()}",
       f"Staged active errors: {summary['staged_errors']}",
       f"Staged new errors: {summary['staged_new_errors']}",
+      f"Reset observations pass: {str(summary['reset_observations_pass']).lower()}",
+      f"Walkthroughs pass: {str(summary['walkthroughs_pass']).lower()}",
       f"Artifacts written: {summary['artifacts']}",
   ]
   return "\n".join(lines) + "\n"

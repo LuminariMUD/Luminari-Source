@@ -98,6 +98,16 @@ void Test_world_loading_production_real_trigger_lookup(CuTest *tc)
   top_of_trigt = saved_top_of_trigt;
 }
 
+void Test_world_loading_production_alphabetic_bit_31_does_not_sign_extend(CuTest *tc)
+{
+  bitvector_t flags;
+
+  flags = asciiflag_conv("F");
+
+  CuAssertTrue(tc, flags == ((bitvector_t)1 << 31));
+  CuAssertTrue(tc, (flags >> 32) == 0);
+}
+
 void Test_world_loading_production_rol_calendar_predicates(CuTest *tc)
 {
   CuAssertTrue(tc, rol_reset_calendar_matches_at(2, 0, 0, 0, 2, 10, 4));

@@ -116,6 +116,51 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(9, obj.affects[0].modifier)
     self.assertEqual(1, len(obj.extra_descriptions))
 
+  def test_emitted_magic_item_caps_source_level_at_target_maximum(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\npotion~\na potion~\nA potion is here.~\n~\n"
+        b"10 0 1\n50 9 0 0\n1 1 0\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(34, result.records[0].values[0])
+    self.assertIn("capped source magic-item spell level 50", " ".join(emitted.diagnostics))
+
+  def test_emitted_magic_item_maps_spells_by_source_name(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\npotion~\na potion~\nA potion is here.~\n~\n"
+        b"10 0 1\n20 41 0 0\n1 1 0\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(120, result.records[0].values[1])
+    self.assertIn("source spell 41 (haste)", " ".join(emitted.diagnostics))
+
+  def test_emitted_magic_item_disables_spell_without_target_equivalent(self) -> None:
+    source = self._source_record(
+        "obj",
+        b"#200\nwand~\na wand~\nA wand is here.~\n~\n"
+        b"3 0 1\n20 2 2 453\n1 1 0\n0\n0\n",
+    )
+
+    emitted = emit_object(source, 2_000_200, _resolver)
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20001.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(0, result.records[0].values[3])
+    self.assertIn("mud to rock", " ".join(emitted.diagnostics))
+
   def test_emitted_zone_normalizes_extended_resets(self) -> None:
     source = self._source_record(
         "zon",

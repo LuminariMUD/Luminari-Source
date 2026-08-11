@@ -2070,9 +2070,9 @@ bitvector_t asciiflag_conv(const char *flag)
   for (p = flag; *p; p++)
   {
     if (islower(*p))
-      flags |= 1 << (*p - 'a');
+      flags |= (bitvector_t)1 << (*p - 'a');
     else if (isupper(*p))
-      flags |= 1 << (26 + (*p - 'A'));
+      flags |= (bitvector_t)1 << (26 + (*p - 'A'));
 
     /* Allow the first character to be a minus sign */
     if (!isdigit(*p) && (*p != '-' || p != flag))
@@ -5113,7 +5113,8 @@ static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool comba
     for (mobile = character_list; mobile; mobile = next_mobile)
     {
       next_mobile = mobile->next;
-      if (!IS_NPC(mobile) || GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
+      if (!IS_NPC(mobile) || MOB_FLAGGED(mobile, MOB_NOTDEADYET) ||
+          GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
         continue;
       extract_char(mobile);
       removed = TRUE;
@@ -5125,7 +5126,8 @@ static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool comba
     return FALSE;
   for (mobile = world[room].people; mobile; mobile = mobile->next_in_room)
   {
-    if (!IS_NPC(mobile) || GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
+    if (!IS_NPC(mobile) || MOB_FLAGGED(mobile, MOB_NOTDEADYET) || GET_MOB_RNUM(mobile) != mob_num ||
+        (combat_guard && FIGHTING(mobile)))
       continue;
     extract_char(mobile);
     removed = TRUE;
@@ -7626,6 +7628,10 @@ static int check_bitvector_names(bitvector_t bits, size_t namecount, const char 
   const size_t bit_count = sizeof(bitvector_t) * CHAR_BIT;
   unsigned int flagnum;
   bool error = FALSE;
+
+  /* Flag arrays store each serialized chunk as int.  Normalize a promoted bit
+   * 31 before checking so its sign extension is not mistaken for bits 32-63. */
+  bits = (bitvector_t)(unsigned int)bits;
 
   /* See if any bits are set above the ones we know about. */
   if (namecount >= bit_count || (bits >> namecount) == 0)

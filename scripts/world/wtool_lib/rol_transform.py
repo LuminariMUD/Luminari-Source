@@ -10,6 +10,21 @@ from .flags import encode_bits
 from .rol_source import RolRecord
 
 
+_TARGET_MAGIC_ITEM_TYPES = frozenset({2, 3, 4, 10})
+_TARGET_MAX_OBJECT_SPELL_LEVEL = 34
+_PILOT_SPELL_MAP: dict[int, tuple[str, int | None]] = {
+    9: ("full heal", 28),
+    36: ("stone skin", 56),
+    41: ("haste", 120),
+    108: ("fly", 53),
+    111: ("plane shift", 239),
+    121: ("protection from fire", 433),
+    194: ("globe of invulnerability", 172),
+    236: ("barkskin", 263),
+    453: ("mud to rock", None),
+}
+
+
 IdentityResolver = Callable[[str, int], int]
 
 
@@ -980,6 +995,42 @@ def _object_values(
 ) -> list[int]:
   values = list(record.values.get("values", []))
   values = (values + [0] * 16)[:16]
+  if target_type in _TARGET_MAGIC_ITEM_TYPES and values[0] > _TARGET_MAX_OBJECT_SPELL_LEVEL:
+    diagnostics.append(
+        f"capped source magic-item spell level {values[0]} at target maximum "
+        f"{_TARGET_MAX_OBJECT_SPELL_LEVEL}"
+    )
+    values[0] = _TARGET_MAX_OBJECT_SPELL_LEVEL
+  if source_type in {2, 10}:
+    spell_slots = (1, 2, 3)
+  elif source_type in {3, 4}:
+    spell_slots = (3,)
+  else:
+    spell_slots = ()
+  for slot in spell_slots:
+    source_spell = values[slot]
+    if source_spell <= 0:
+      continue
+    mapped = _PILOT_SPELL_MAP.get(source_spell)
+    if mapped is None:
+      values[slot] = 0
+      diagnostics.append(
+          f"disabled unresolved source spell {source_spell} in magic-item slot {slot}"
+      )
+      continue
+    spell_name, target_spell = mapped
+    if target_spell is None:
+      values[slot] = 0
+      diagnostics.append(
+          f"disabled source spell {source_spell} ({spell_name}) in magic-item slot "
+          f"{slot}; target has no equivalent"
+      )
+      continue
+    values[slot] = target_spell
+    diagnostics.append(
+        f"mapped source spell {source_spell} ({spell_name}) to target spell "
+        f"{target_spell} in magic-item slot {slot}"
+    )
   if source_type == 15 and values[2] > 0:
     source_key = values[2]
     try:
