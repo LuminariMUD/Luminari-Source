@@ -528,8 +528,10 @@ must resolve through the locked rules and tests rather than returning as questio
 ## Recommended next step
 
 Start Phase 5 with a full-corpus dry build that inventories symbolic value variants and
-the 12 capability rows not exercised by the pilot. Implement the functional gaps first:
-quest reward directions `R:E`, `R:P`, and `R:S`; SOC `LISTDONE`; room extensions `M`
-and `F`; and object extension `T`. Preserve the five explicit source-defect or ignored
-content rows as logged smallest-unit exclusions, then repeat the pilot's structural and
-runtime gates before beginning Phase 6.
+the capability rows not exercised by the pilot. Quest reward directions `R:E`, `R:P`,
+and `R:S`, the argument-free `R:A` reward, and SOC `LISTDONE` are complete and recorded
+in [RoL-Changelog.md](RoL-Changelog.md). Implement room extensions `M` and `F` and
+object extension `T`, then resolve random `R:I` reward ranges in the full-corpus quest
+pass. Preserve the five explicit source-defect or ignored content rows as logged
+smallest-unit exclusions, then repeat the pilot's structural and runtime gates before
+beginning Phase 6.

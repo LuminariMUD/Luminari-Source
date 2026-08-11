@@ -28,6 +28,7 @@ Phase 4 native special commit: 8136c71b
 Phase 4 special archive commit: aeaf79d2
 Phase 4 complete pilot build commit: 694cf84f
 Phase 4 runtime validation commit: 3fe7015f
+Phase 5 quest/SOC compatibility commit: 7bbfba3d
 ```
 
 The authoritative ignored runs are:
@@ -78,13 +79,17 @@ Policy:  rol-conversion-policy-1
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Phase 5 now handles argument-free quest attacks, configured experience, signed
+  quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
+  `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
 
 ## Immediate next actions
 
 1. Run a full-corpus dry build to inventory unobserved symbolic flag, spell, skill,
    command, race, item, and sector values.
-2. Implement the functional capability rows absent from the pilot: `qst:R:E`,
-   `qst:R:P`, `qst:R:S`, `soc:LISTDONE`, `wld:M`, `wld:F`, and `obj:T`.
+2. Implement the remaining functional capability rows absent from the pilot: `wld:M`,
+   `wld:F`, and `obj:T`; then resolve random `qst:R:I` reward ranges in the full-corpus
+   quest pass.
 3. Preserve the five excluded/ignored source-defect rows as explicit, logged
    smallest-unit exclusions.
 4. Regenerate a deterministic capability-complete bundle and repeat structural,

@@ -5,6 +5,54 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 quest reward and SOC terminator compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Extended the existing target HLQuest system with appended `P` quest-point and `E`
+  experience output commands. Existing command indexes `0..11` and their persisted
+  codes are unchanged.
+- Added loader, runtime, display, editor, canonical writer, source-derived constant,
+  validator, fixture, and builder-documentation coverage for both commands.
+- Adapted source reward direction `R:E` to the normal target quest-mode experience
+  path, as required by the locked conversion policy, instead of retaining the disabled
+  source implementation.
+- Adapted signed `R:P` prestige deltas to the target's persistent quest-point economy.
+  The target balance safely saturates at `0..100000000`.
+- Mapped all 29 spell/skill identities used by active `R:S` rows. Twenty-seven have a
+  target teachable equivalent; source-only ultrablast and sandstorm rewards are omitted
+  individually with explicit diagnostics because the HLQuest teaching contract has no
+  equivalent.
+- Added the argument-free `R:A` attack reward and made the SOC compiler recognize
+  `LISTDONE` as an explicit list terminator.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 7bbfba3d
+Active source qst records inspected: 5,078
+R:A rows: 10
+R:E rows: 56
+R:P rows: 12
+R:S rows: 33 across 29 unique source identities
+Mapped R:S identities: 29 of 29
+Target-equivalent R:S identities: 27
+Explicit source-only R:S identities: 2
+Targeted Python tests: 80 passed
+Production CuTest suite: 601 passed
+Source-derived constants: current
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+```
+
+This sub-milestone does not close the broader Phase 5 quest gate. Full-corpus
+conversion still has to resolve random item-reward ranges and prove every emitted host
+block against the complete identity map. Room `M`, room `F`, and object `T` are the
+next unimplemented shared grammar rows.
+
 ## 2026-08-12 - Phase 4 representative vertical pilot completed
 
 Status: Completed; Phase 5 is the active phase
