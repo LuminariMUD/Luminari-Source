@@ -36,10 +36,10 @@ class ReportingTests(unittest.TestCase):
     self.assertNotIn("timestamp", payload)
 
   def test_additive_record_types_bump_tool_but_not_json_schema(self) -> None:
-    self.assertEqual("0.5.0", TOOL_VERSION)
+    self.assertEqual("0.6.0", TOOL_VERSION)
     self.assertEqual(1, JSON_SCHEMA_VERSION)
     payload = json.loads(render_json(self.result()))
-    self.assertEqual("0.5.0", payload["tool_version"])
+    self.assertEqual("0.6.0", payload["tool_version"])
     self.assertEqual(1, payload["schema_version"])
 
   def test_human_output_omits_suppressed_findings(self) -> None:

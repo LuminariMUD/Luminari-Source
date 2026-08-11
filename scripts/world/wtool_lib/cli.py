@@ -36,6 +36,7 @@ from .rol_baseline import render_rol_baseline_human, write_baseline_bundle
 from .rol_discovery import render_rol_discovery_human, write_discovery_bundle
 from .rol_inventory import build_rol_inventory, render_rol_inventory_human
 from .rol_planner import render_rol_plan_human, write_plan_bundle
+from .rol_pilot import render_rol_pilot_selection_human, write_pilot_selection_bundle
 from .rol_skeleton import render_rol_skeleton_human, write_skeleton_bundle
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
@@ -152,6 +153,15 @@ def _parser() -> argparse.ArgumentParser:
   rol_skeleton.add_argument("--output-dir", type=Path, required=True)
   rol_skeleton.add_argument("--basename", default="jotun")
   rol_skeleton.add_argument("--created-at")
+
+  rol_pilot_select = commands.add_parser(
+      "rol-pilot-select",
+      help="write the measured Realms of Luminari Phase 4 pilot selection",
+  )
+  rol_pilot_select.add_argument("--discovery-dir", type=Path, required=True)
+  rol_pilot_select.add_argument("--plan-dir", type=Path, required=True)
+  rol_pilot_select.add_argument("--output-dir", type=Path, required=True)
+  rol_pilot_select.add_argument("--created-at")
   return parser
 
 
@@ -461,6 +471,20 @@ def _run_rol_skeleton(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_pilot_select(args: argparse.Namespace) -> int:
+  summary = write_pilot_selection_bundle(
+      args.discovery_dir,
+      args.plan_dir,
+      args.output_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_pilot_selection_human(summary))
+  return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -487,6 +511,8 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_plan(args)
     if args.command == "rol-skeleton":
       return _run_rol_skeleton(args)
+    if args.command == "rol-pilot-select":
+      return _run_rol_pilot_select(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

@@ -14,9 +14,9 @@ without starting the game, connecting to MariaDB, or compiling `circle`:
 - high-level quests (`.hlq`)
 
 Validation, lookup, RoL inventory, flag conversion, and documentation checks
-are read-only. `rol-baseline`, `rol-discover`, `rol-plan`, and `rol-skeleton`
-write new, explicit evidence directories but never write the source corpus or
-target world. The maintainer operation
+are read-only. `rol-baseline`, `rol-discover`, `rol-plan`, `rol-skeleton`, and
+`rol-pilot-select` write new, explicit evidence directories but never write the
+source corpus or target world. The maintainer operation
 `constants sync --write` replaces the checked-in derived constants manifest.
 
 ## Requirements and Entry Point
@@ -28,7 +28,7 @@ python3 scripts/world/wtool.py --help
 python3 scripts/world/wtool.py --version
 ```
 
-The current release reports `wtool 0.5.0`.
+The current release reports `wtool 0.6.0`.
 
 The default world root is `lib/world`. Override it for a staging tree or
 fixture with the global `--world-root` option. Global options precede the
@@ -83,6 +83,12 @@ verifies those artifacts before assigning every active record a deterministic
 `lib/world/`. The Phase 3 walking skeleton verifies a confirmed `KEEP`, copies
 the target into an isolated staging tree, validates both trees with the same
 configuration, and proves two applies are zero-write no-ops.
+
+The Phase 4 selection path verifies the Phase 1 and Phase 2 artifact chains before
+extracting the manually selected representative packages, their source hashes,
+record actions, identities, references, capabilities, SOC modes/action codes, and
+special-procedure bindings. It enforces the complete pilot coverage contract without
+automating the engineering priority decision.
 
 `scripts/world/wtool_constants.json` is a checked-in derived manifest. Its
 extractor reads explicit C tables and bounded define blocks instead of broad
@@ -264,6 +270,29 @@ exactly one confirmed zone `KEEP` for that package. The output directory must
 not exist. `--created-at` controls only the manifest timestamp; with the same
 inputs and timestamp, independent runs produce byte-identical evidence artifacts
 and the same run ID.
+
+## Realms of Luminari Phase 4 Pilot Selection
+
+Create the measured pilot selection from verified Phase 1 and Phase 2 evidence:
+
+```sh
+python3 scripts/world/wtool.py --json rol-pilot-select \
+  --discovery-dir lib/rol-conversion/runs/phase1-REVISION \
+  --plan-dir lib/rol-conversion/runs/phase2-REVISION \
+  --output-dir lib/rol-conversion/runs/phase4-select-REVISION
+```
+
+The locked selection contains `swamp_two`, `hulburg`, `muspel`, `theswamp`, and
+`cemetery`. It was chosen manually from measured coverage and is rejected unless it
+continues to cover a compact conventional-reset package, a shop/quest settlement,
+all five SOC modes, all five special SOC action codes, follow/calendar/removal
+resets, uncommon room/object extensions, significant special-procedure dependencies,
+and confirmed-lineage reuse.
+
+The bundle contains the selected source oracle, all selected normalized records,
+the exact Phase 2 actions and core identities, all outgoing reference resolutions,
+active special-binding candidates, aggregate coverage, and a manifest hashing every
+artifact. It performs zero live target writes.
 
 ## Validation Modes
 

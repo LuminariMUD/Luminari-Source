@@ -183,6 +183,12 @@ the same controlled timestamp and compares every hashed artifact, stages the
 complete target world, validates the selected package in both trees, and proves
 the authoritative tree hash is unchanged.
 
+RoL Phase 4 selection tests cover package-level action, reset, SOC mode/action,
+uncommon-extension, and binding metrics plus failure when any required pilot category
+is absent. The operational selection gate verifies every Phase 1/2 artifact hash and
+requires exactly 3-5 packages covering the conventional, settlement, SOC, custom-reset,
+extension, special-procedure, and prior-lineage roles before pilot emission can begin.
+
 Equivalent CMake and CTest entry points are:
 
 ```sh

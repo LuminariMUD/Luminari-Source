@@ -2,6 +2,22 @@
 
 ## [Unreleased] - August 11, 2026
 
+### Realms of Luminari Phase 4 pilot selection
+
+#### Added
+
+- Added `wtool rol-pilot-select`, which verifies the Phase 1/2 artifact chain and
+  writes the complete source, action, identity, reference, capability, SOC, and
+  special-binding evidence for the manually selected five-package vertical pilot.
+- Added hard coverage gates for the conventional-reset, shop/quest settlement, all
+  five SOC modes and special action codes, custom reset, uncommon extension,
+  significant special-procedure, and confirmed-lineage pilot roles.
+
+#### Changed
+
+- Bumped `wtool` to 0.6.0 for the Phase 4 evidence and pilot pipeline while retaining
+  the existing validation schema and dedicated conversion schema versions.
+
 ### Realms of Luminari Phase 3 walking skeleton
 
 #### Added

@@ -3,7 +3,7 @@
 - Updated: 2026-08-11
 - Environment: development
 - Branch: `master`
-- Current task: Phase 4 representative vertical pilot, not started
+- Current task: Phase 4 pilot selection evidence and blocking-capability implementation
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 
 ## Current committed checkpoint
@@ -48,17 +48,24 @@ Policy:  rol-conversion-policy-1
   and proves the authoritative target tree is unchanged.
 - The two controlled Phase 3 runs have identical manifests, all 12 hashed artifacts
   are byte-identical, and both produce run ID `rol-phase3-11336f1832d8765c`.
-- The Python world-tool suite passes all 198 tests and documentation validation is
+- The Python world-tool suite passes all 201 tests and documentation validation is
   clean. The selected target baseline remains pre-existing and parse-incomplete; Phase
   3 adds no finding.
 
 ## Immediate next actions
 
-1. Select the representative 3-5 package Phase 4 pilot set from measured Phase 1/2
-   evidence.
-2. Cover conventional resets, a shop/quest settlement, SOC modes, custom resets, and
-   significant special-procedure dependencies across that set.
-3. Implement only the capabilities that block the pilot packages.
+The measured selection is `swamp_two`, `hulburg`, `muspel`, `theswamp`, and
+`cemetery`. It contains 3,001 records, 14,103 typed references, 91 active source
+special bindings, all five SOC modes, all five special SOC action codes, all three
+custom `F/T/X` reset families, uncommon object/room extensions, a confirmed-lineage
+settlement, and a compact conventional-reset oracle. Its Phase 2 actions are 1,408
+`ADD`, 1,465 `KEEP`, 127 `MERGE`, and one `EXCLUDE`.
+
+1. Commit the reproducible Phase 4 selection command and generate its authoritative
+   ignored evidence run.
+2. Implement only the record, reset, shop, quest, SOC, and special-procedure
+   capabilities that block these five packages.
+3. Generate and stage deterministic pilot bundles with explicit record actions.
 4. Run source-oracle, structural, reset-observation, walkthrough, reference, and
    record-action evidence for each pilot.
 5. Reforecast Phases 5-8 from measured target reuse, ambiguous matches, runtime gaps,
