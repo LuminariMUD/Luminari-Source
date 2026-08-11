@@ -5,6 +5,56 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 rare room extension compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Added the optional target room `R <minimum> <maximum>` record with strict loader,
+  canonical writer, REdit, `stat room`, world-tool parser, lookup, semantic validation,
+  fixture, and builder-documentation coverage. `-1` is the canonical unrestricted
+  bound.
+- Enforced room entry ranges for physical movement, portal users and followers, mortal
+  teleport destinations, and mounts. Immortal player characters may bypass a finite
+  maximum but not a minimum; NPCs and mounts do not receive that bypass.
+- Converted all three active source level-range records. Source maxima 35 and 39 are
+  normalized to unrestricted because the target player-level ceiling is 34; finite
+  minimum bounds remain effective.
+- Traced the one active source `F` fall-chance extension from loader through runtime and
+  confirmed that the source stores and validates it without consuming it. It is omitted
+  with an explicit source-inert diagnostic.
+- Traced all 36 active source `M` mana extensions and confirmed that the source marks
+  them obsolete and never consumes them. They are omitted with explicit diagnostics;
+  target room `M` remains reserved for moving-room data.
+- Added a safe manual-test matrix for the completed Phase 4 pilot and restaged that
+  pilot with the Phase 5 quest and room compatibility checkpoints. No development-world
+  files were changed.
+
+### Acceptance evidence
+
+```text
+Delivery commit: e100bdff
+Active rare room-extension rows inspected: 40
+Source R rows converted: 3
+Source-inert F rows omitted with diagnostics: 1
+Obsolete M rows omitted with diagnostics: 36
+Targeted room/parser/semantic/transform tests: 44 passed
+Complete world-tool suite: 227 passed
+Production CuTest suite: 602 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Compatibility pilot run: rol-phase4-build-1dc8a681fa1595d5
+Selected pilot actions disposed: 3,001
+Staged active errors: 79 inherited, 0 new
+Live target writes: 0
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+```
+
+The remaining Phase 5 shared-extension work begins with source object `T` traps and
+random quest item reward `R:I` ranges. A capability-complete full-corpus bundle is not
+yet ready for development-world application.
+
 ## 2026-08-12 - Phase 5 quest reward and SOC terminator compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress

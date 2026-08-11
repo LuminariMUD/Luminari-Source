@@ -547,7 +547,7 @@ Expand by frequency, pilot blockers, and reuse:
 3. reconciled core and extended shop behavior;
 4. per-direction quest-to-HLQ contracts;
 5. the evidence-selected SOC implementation;
-6. traps, room extensions, and other shared gaps; and
+6. traps and other shared gaps; and
 7. color, command, spell, skill, and other symbolic mappings.
 
 Exit gate: no active record is blocked by an unowned generic data/runtime capability.

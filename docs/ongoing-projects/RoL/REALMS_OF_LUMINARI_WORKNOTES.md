@@ -5,6 +5,7 @@
 - Branch: `master`
 - Current task: Phase 5 shared capability rollout
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
+- Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
 ## Current committed checkpoint
 
@@ -29,6 +30,7 @@ Phase 4 special archive commit: aeaf79d2
 Phase 4 complete pilot build commit: 694cf84f
 Phase 4 runtime validation commit: 3fe7015f
 Phase 5 quest/SOC compatibility commit: 7bbfba3d
+Phase 5 rare room compatibility commit: e100bdff
 ```
 
 The authoritative ignored runs are:
@@ -47,6 +49,8 @@ Phase 4 selection: lib/rol-conversion/runs/phase4-select-e6ea7982
                    rol-phase4-select-6f7ae16e5df665ec
 Phase 4 build: lib/rol-conversion/runs/phase4-build-e6ea7982
                rol-phase4-build-a2c341dfaa743b26
+Phase 5 room restage: lib/rol-conversion/runs/phase5-room-e100bdff
+                      rol-phase4-build-1dc8a681fa1595d5
 Policy:  rol-conversion-policy-1
 ```
 
@@ -75,21 +79,24 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 224 tests; the production-linked CuTest suite passes 601;
+- The world-tool suite passes 227 tests; the production-linked CuTest suite passes 602;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
+- Phase 5 now handles all three active room level ranges. The one active fall-chance
+  row and 36 obsolete mana rows are source-inert and are omitted with explicit
+  diagnostics after source runtime tracing.
 
 ## Immediate next actions
 
 1. Run a full-corpus dry build to inventory unobserved symbolic flag, spell, skill,
    command, race, item, and sector values.
-2. Implement the remaining functional capability rows absent from the pilot: `wld:M`,
-   `wld:F`, and `obj:T`; then resolve random `qst:R:I` reward ranges in the full-corpus
-   quest pass.
+2. Implement the remaining functional capability rows absent from the pilot, beginning
+   with `obj:T`; then resolve random `qst:R:I` reward ranges in the full-corpus quest
+   pass.
 3. Preserve the five excluded/ignored source-defect rows as explicit, logged
    smallest-unit exclusions.
 4. Regenerate a deterministic capability-complete bundle and repeat structural,

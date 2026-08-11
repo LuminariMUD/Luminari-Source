@@ -177,9 +177,6 @@ Required work:
 - Define a documented policy for legacy length/width/height values. The target does
   not store those dimensions directly; target room-size flags are only an
   approximation.
-- Handle the rare legacy level-range, fall-chance, and obsolete mana room extensions.
-  The target `M` room extension means a moving room and cannot represent the old
-  mana record.
 - Add required target coordinates and file terminators.
 - Resolve the 18 duplicate room records before emission.
 
@@ -527,11 +524,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Start Phase 5 with a full-corpus dry build that inventories symbolic value variants and
-the capability rows not exercised by the pilot. Quest reward directions `R:E`, `R:P`,
-and `R:S`, the argument-free `R:A` reward, and SOC `LISTDONE` are complete and recorded
-in [RoL-Changelog.md](RoL-Changelog.md). Implement room extensions `M` and `F` and
-object extension `T`, then resolve random `R:I` reward ranges in the full-corpus quest
-pass. Preserve the five explicit source-defect or ignored content rows as logged
-smallest-unit exclusions, then repeat the pilot's structural and runtime gates before
-beginning Phase 6.
+Continue Phase 5 with the source object `T` trap extension, then resolve random `R:I`
+reward ranges in the full-corpus quest pass. The completed quest/SOC and rare room
+compatibility checkpoints are recorded in [RoL-Changelog.md](RoL-Changelog.md).
+Preserve the five explicit source-defect or ignored content rows as logged smallest-unit
+exclusions, then regenerate a capability-complete bundle and repeat the pilot's
+structural and runtime gates before beginning Phase 6.

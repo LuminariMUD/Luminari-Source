@@ -1,0 +1,112 @@
+# Realms of Luminari Phase 4 Manual Testing
+
+- Status: Phase 4 complete
+- Environment: disposable development runtime only
+- Staged world: `lib/rol-conversion/runs/phase5-room-e100bdff/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-room-e100bdff/validation/pilot-runtime-contract.json`
+- Live target writes: zero
+
+## Safety Boundary
+
+The five converted pilot packages are staged, not installed in `lib/world`. Do not
+copy them over the normal development world or start them against the development or
+production database for an exploratory test.
+
+Prepare a disposable lib root with `scripts/ci/prepare_test_runtime.sh`. That script
+requires an explicitly enabled, loopback-only MariaDB test database whose name contains
+`test` or `ci`. After it succeeds, replace the disposable root's `world` directory with
+a copy of the staged world above, run `bin/circle -c -d <isolated-lib-root>`, and then
+start `bin/circle -d <isolated-lib-root>`. Use a staff test character that exists only in
+that isolated database.
+
+The preparer loads `sql/master_schema.sql` into the named database. Treat that database
+as disposable. Never point its environment variables at an existing development or
+production database.
+
+## Pilot Packages and Entry VNUMs
+
+| Package | Target zone | Rooms | Suggested entry VNUMs |
+|---------|------------:|------:|-----------------------|
+| `hulburg` | 1591 | 492 | 159100, 159342, 159349, 159353, 159354, 159430, 159487, 159553, 159564 |
+| `swamp_two` | 20261 | 35 | 2026050, 2026084 |
+| `theswamp` | 20409 | 99 | 2040901, 2040998 |
+| `cemetery` | 20553 | 75 | 2055300, 2055311, 2055350, 2055373, 2055374 |
+| `muspel` | 20586 | 459 | 2058600, 2058825, 2059053, 2059061, 2059062, 2059063, 2059064 |
+
+The entry list contains one root for every disconnected physical-exit component. The
+automated walkthrough already reached all 1,160 pilot rooms from these roots.
+
+## Capabilities Available to Test
+
+### Navigation and room presentation
+
+- Move through every physical and vertical exit in the five packages.
+- Inspect converted room names, descriptions, sectors, size approximations, extra
+  descriptions, doors, door keywords, keys, hidden exits, and blocked exits.
+- Confirm that unresolved exits were excluded rather than becoming accidental links.
+- At Cemetery room 2055300, use `stat room` to confirm the level range is `15 and
+  above`. A level 14 test character and a level 14 mount must be refused; a level 15
+  character without an under-level mount may enter. Portal and teleport attempts obey
+  the same range.
+
+### Resets and spawned content
+
+- Force or wait for zone resets and inspect mobile and object population.
+- Check mobile load limits, percentage loads, equipment, inventory, container contents,
+  removals, followers, groups, mounts, door state changes, and calendar-conditioned
+  resets.
+- Exercise the converted `M`, `O`, `G`, `E`, `P`, `R`, `D`, `F`, `K`, `C`, and `X`
+  reset families where the selected zones use them.
+
+### Shops
+
+- Find the 14 appended shops in Hulburg and the converted shop in Muspel.
+- Test listing, buying, selling, opening hours, keeper messages, accepted item types,
+  price multipliers, and roaming-shop behavior.
+
+### High-level quests
+
+- Speak to converted quest-host mobiles and test ASK and GIVE entries.
+- Confirm required coins and duplicate required items are consumed exactly.
+- Test output commands for items, coins, attacks, disappear behavior, doors, kits,
+  churches, and spell or skill teaching where the selected quest uses them.
+- Phase 5 has added runtime support for configured experience rewards, signed quest-point
+  changes, argument-free attacks, and all mapped source spell or skill rewards. Those
+  additions are built and unit-tested, but a new full-corpus Phase 5 data bundle has not
+  yet been staged for broad manual testing.
+
+### SOC actions and special procedures
+
+- Trigger converted room, mobile, and object SOC actions through movement, speech,
+  commands, combat, object interaction, and time or random pulses as applicable.
+- Exercise the 46 retained native special bindings and the 45 adapted special bindings
+  represented by 13 generated DG triggers.
+- Verify command blocking, messages, movement, combat, object transfer, and pulse-driven
+  behavior against the source intent.
+
+### Converted data details
+
+- Inspect converted mobile flags, affects, positions, races, classes, attacks, dice,
+  money, and equipment positions.
+- Inspect object types, wear flags, affects, applies, containers and keys, and mapped
+  magic-item spells.
+- Confirm high source magic-item spell levels are capped at target level 34 and that the
+  source-only `mud to rock` spell is disabled rather than mis-mapped.
+
+## What Is Not Ready Yet
+
+- The pilot is not installed into the normal development world.
+- The remaining 247 source packages have not completed conversion.
+- Full shared handling for the remaining rare object/quest extensions is Phase 5 work
+  in progress.
+- The remaining source special-procedure corpus is Phase 6 work.
+- Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
+- Development-world application and final operational documentation are Phase 8.
+
+## Reporting a Manual Finding
+
+Record the package, target zone, room/mobile/object/quest VNUM, command or action,
+expected source behavior, observed target behavior, and relevant server log lines. Note
+whether the issue reproduces after a forced zone reset. Do not repair staged files by
+hand; fixes belong in the deterministic converter, runtime adapter, or explicit action
+ledger so the bundle remains reproducible.
