@@ -5,6 +5,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 object-trap compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Traced the source object-trap loader, all trigger call sites, damage and status
+  behavior, random-type mutation, charge persistence, detection, disarming, and
+  same-zone teleport behavior.
+- Added deterministic conversion of the source six-field object `T` payload into
+  target object values 10-15 plus `ITEM_TRAPPED`. This avoids colliding with the
+  target `T` DG-trigger attachment record and uses object fields already preserved by
+  prototype, player, house, pet, and sheath saves.
+- Added boot-time and world-tool validation for the compatibility payload. Invalid
+  effect masks, damage types, charges, levels, or dice fail closed instead of creating
+  an accidental live hazard.
+- Added runtime triggers for directional movement, get and put, open, and lock-pick
+  events; single-target and room-area delivery; physical, venom, explosion, sleep,
+  same-zone teleport, fire, cold, acid, lightning, and source random damage families;
+  finite and unlimited charges; and staff/NPC bypass behavior.
+- Extended `detecttrap <object>` and `disabletrap <object>`, immortal object stat
+  output, authoritative database help entries, and the local file fallback. The source
+  search-trigger bit is preserved for inspection but remains inert because the source
+  defines `checksearch()` without calling it from any command path.
+- Audited every active source object-trap record. All 29 valid payloads convert and
+  parse as target objects. Four empty source `T` rows are explicitly omitted as
+  inactive/malformed smallest units.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 6a1ddb6d
+Active source object T records: 33
+Valid payloads converted: 29
+Empty/inactive source rows omitted with diagnostics: 4
+Supported source event families: move, get/put, open, pick
+Supported damage/status families: 15
+Complete world-tool suite: 232 passed
+Production CuTest suite: 605 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Compatibility pilot run: rol-phase4-build-1dc8a681fa1595d5
+Pilot output change: none; the five pilots contain no active object T payload
+Selected pilot actions disposed: 3,001
+Staged active errors: 79 inherited, 0 new
+Live target writes: 0
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+```
+
+The next Phase 5 compatibility pass begins with random quest item-reward `R:I`
+ranges and a full-corpus dry build for symbolic values not exercised by the pilot.
+
 ## 2026-08-12 - Phase 5 rare room extension compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress

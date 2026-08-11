@@ -215,8 +215,6 @@ Required work:
   slots.
 - Map spell and skill references by registered name, not old numeric ID.
 - Convert extra descriptions and affects.
-- Manually classify the 17 legacy object trap records against the current trap
-  models; there is no safe one-letter copy.
 - Remap reset, shop, quest, container, key, and special-procedure references.
 
 Risk: **High**, because a syntactically valid but incorrectly mapped value array can
@@ -524,9 +522,10 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with the source object `T` trap extension, then resolve random `R:I`
-reward ranges in the full-corpus quest pass. The completed quest/SOC and rare room
-compatibility checkpoints are recorded in [RoL-Changelog.md](RoL-Changelog.md).
+Continue Phase 5 with random `R:I` reward ranges in the full-corpus quest pass, then
+run the full-corpus symbolic-value dry build. The completed quest/SOC, rare room, and
+object-trap compatibility checkpoints are recorded in
+[RoL-Changelog.md](RoL-Changelog.md).
 Preserve the five explicit source-defect or ignored content rows as logged smallest-unit
 exclusions, then regenerate a capability-complete bundle and repeat the pilot's
 structural and runtime gates before beginning Phase 6.

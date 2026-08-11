@@ -31,6 +31,7 @@ Phase 4 complete pilot build commit: 694cf84f
 Phase 4 runtime validation commit: 3fe7015f
 Phase 5 quest/SOC compatibility commit: 7bbfba3d
 Phase 5 rare room compatibility commit: e100bdff
+Phase 5 object-trap compatibility commit: 6a1ddb6d
 ```
 
 The authoritative ignored runs are:
@@ -79,7 +80,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 227 tests; the production-linked CuTest suite passes 602;
+- The world-tool suite passes 232 tests; the production-linked CuTest suite passes 605;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -89,14 +90,17 @@ Policy:  rol-conversion-policy-1
 - Phase 5 now handles all three active room level ranges. The one active fall-chance
   row and 36 obsolete mana rows are source-inert and are omitted with explicit
   diagnostics after source runtime tracing.
+- Phase 5 now converts all 29 valid active object-trap payloads into persistent target
+  object values and runtime behavior. Four empty source rows are omitted explicitly.
+  The five pilots contain no active object traps, so their verified restage remains
+  byte-identical with run ID `rol-phase4-build-1dc8a681fa1595d5`.
 
 ## Immediate next actions
 
 1. Run a full-corpus dry build to inventory unobserved symbolic flag, spell, skill,
    command, race, item, and sector values.
-2. Implement the remaining functional capability rows absent from the pilot, beginning
-   with `obj:T`; then resolve random `qst:R:I` reward ranges in the full-corpus quest
-   pass.
+2. Resolve random `qst:R:I` reward ranges in the full-corpus quest pass, then implement
+   any remaining functional capability rows exposed by the dry build.
 3. Preserve the five excluded/ignored source-defect rows as explicit, logged
    smallest-unit exclusions.
 4. Regenerate a deterministic capability-complete bundle and repeat structural,

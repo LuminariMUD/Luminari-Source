@@ -93,12 +93,19 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Confirm high source magic-item spell levels are capped at target level 34 and that the
   source-only `mud to rock` spell is disabled rather than mis-mapped.
 
+Phase 5 also provides converted object-trap behavior for movement, get and put, open,
+and lock-pick events, including finite charges, area effects, status effects, damage,
+and same-zone teleport. Staff can inspect the payload with `stat object`; players can
+use `detecttrap <object>` and `disabletrap <object>`. None of the five Phase 4 pilot
+packages contains an active source object trap, so test these commands only after a
+later staged batch includes one; do not invent or hand-edit a trap into this pilot.
+
 ## What Is Not Ready Yet
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- Full shared handling for the remaining rare object/quest extensions is Phase 5 work
-  in progress.
+- Random quest item rewards and remaining full-corpus symbolic mappings are Phase 5
+  work in progress.
 - The remaining source special-procedure corpus is Phase 6 work.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
