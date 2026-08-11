@@ -84,8 +84,9 @@
       mobile: [
         "masound", "mkill", "mjunk", "mdamage", "mdoor", "mecho", "mgecho", "mrecho",
         "mechoaround", "msend", "mload", "mpurge", "mgoto", "mat", "mteleport", "mforce",
-        "mhunt", "mremember", "mforget", "mtransform", "mzoneecho", "mfollow", "mlog",
-        "mclanset", "mclanrank", "mclangold", "mclanwar", "mclanally"
+        "mhunt", "mremember", "mforget", "mtransform", "mzoneecho", "mrolzoneecho",
+        "mrolwalkto", "mfollow", "mlog", "mclanset", "mclanrank", "mclangold",
+        "mclanwar", "mclanally"
       ],
       object: [
         "oasound", "oat", "obind", "objbind", "odoor", "odamage", "oecho", "ogecho",

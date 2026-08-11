@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phase 4 SOC, special bindings, and pilot validation in progress
+- Status: Phase 4 special-binding integration and pilot validation in progress
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -533,20 +533,22 @@ below are planning envelopes, not delivery promises. Phase 4 must reforecast the
 remaining work using measured reuse, ambiguity, and exception rates; the earlier blind
 import estimate is not credible enough to sum into a project total.
 
-Phases 0-3, the Phase 4 package selection, and the pilot record/reset, shop, and quest
-capability tranches are complete and have been removed from this active plan. Their
-delivered scope, run identities, counts, acceptance evidence, and commits are recorded
-in [RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes with the
-remaining Phase 4 blockers and validation work.
+Phases 0-3, the Phase 4 package selection, and the pilot record/reset, shop, quest, SOC,
+and VNUM-independent native-special capability tranches are complete and have been
+removed from this active plan. Their delivered scope, run identities, counts,
+acceptance evidence, and commits are recorded in
+[RoL-Changelog.md](RoL-Changelog.md). Active implementation resumes with the remaining
+Phase 4 integration and validation work.
 
 ### Phase 4: Representative vertical pilot (8-14 sessions)
 
-The evidence-based package selection plus pilot room/mobile/object/zone/shop/quest
-emitters and reset, shop, and HLQ runtime adapters are complete and recorded in
-[RoL-Changelog.md](RoL-Changelog.md). Complete only the remaining SOC and
-special-binding capabilities needed by the locked pilot. Then generate deterministic
-bundles, stage them without implicit target overwrites, and validate them. Run the SOC
-proof-of-concept here, not after all generic mechanics have been built.
+The evidence-based package selection; pilot room/mobile/object/zone/shop/quest
+emitters; reset, shop, and HLQ runtime adapters; SOC compiler; and 24 VNUM-independent
+native special families are complete and recorded in
+[RoL-Changelog.md](RoL-Changelog.md). Complete the special-binding compiler by
+persisting the 46 selected native bindings and DG-compiling the remaining 45 bindings
+in seven VNUM-dependent behavior families. Then generate deterministic bundles, stage
+them without implicit target overwrites, and validate them.
 
 Each pilot receives source-oracle tests, structural validation, reset observation,
 walkthrough evidence, reference reconciliation, and explicit record actions.

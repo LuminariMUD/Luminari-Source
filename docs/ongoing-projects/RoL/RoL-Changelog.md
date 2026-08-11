@@ -5,6 +5,50 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-11 - Phase 4 pilot SOC and native special capabilities
+
+Status: Completed sub-milestone; Phase 4 implementation in progress
+
+### Delivered
+
+- Added deterministic compilation for all 245 selected source SOC rows across all five
+  source modes and all five special action codes. The compiler emits 181 target DG
+  triggers, a 26.122449 percent reduction from safe grouping of equivalent actions.
+- Preserved command identity, chance, delay, actor restrictions, command arguments,
+  paths, flags, all-zone echo, and termination behavior. Added bounded
+  `mrolzoneecho` and `mrolwalkto` adapters for behavior DG could not otherwise express
+  faithfully.
+- Added 24 VNUM-independent native special-procedure families covering 46 of the 91
+  selected bindings: six mobile combat/command families and 18 object command, hit,
+  defense, and pulse families.
+- Registered the new handlers through the persisted named special-procedure registry,
+  including exact owner/event contracts, required prototype flags, OLC inventory, and
+  legacy compatibility accessors. No source VNUM is hardcoded in the native handlers.
+- Kept the source handler names as canonical persisted identities so generated world
+  bindings remain directly traceable to the source assignment inventory.
+- Removed completed SOC compilation and native special-family implementation from the
+  active plan and scope. The active special-binding compiler must persist the 46 native
+  bindings and DG-compile the remaining 45 bindings in seven VNUM-dependent behavior
+  families.
+
+### Acceptance evidence
+
+```text
+Delivery commits: 56393f8c, 8136c71b
+Selected SOC rows compiled: 245 of 245
+Generated target DG triggers: 181
+SOC modes covered: 5 of 5
+SOC special action codes covered: 5 of 5
+VNUM-independent special families implemented: 24
+Selected bindings covered by native families: 46 of 91
+Special registry definitions: 52 total; 50 legacy; 2 typed
+Focused SOC compiler tests: 21 passed
+Production CuTest suite: 600 passed
+Autotools build and install: passed
+Root-level circle build artifact after install: absent
+Live target writes: 0
+```
+
 ## 2026-08-11 - Phase 4 pilot shop and quest capabilities
 
 Status: Completed sub-milestone; Phase 4 implementation in progress
