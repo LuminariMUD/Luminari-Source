@@ -5,6 +5,41 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-11 - Phase 4 representative pilot selection
+
+Status: Completed sub-milestone; Phase 4 implementation in progress
+
+### Delivered
+
+- Selected `swamp_two`, `hulburg`, `muspel`, `theswamp`, and `cemetery` as the locked
+  five-package pilot from measured Phase 1 and Phase 2 evidence.
+- Covered a compact conventional-reset oracle, a confirmed-lineage settlement with
+  shops and quests, all five SOC modes and all five special SOC action codes, all three
+  custom `F`, `T`, and `X` reset families, uncommon object and room extensions, and
+  significant special-procedure dependencies.
+- Selected 3,001 records with 14,103 typed references and 91 active source special
+  bindings. Their record actions are 1,408 `ADD`, 1,465 `KEEP`, 127 `MERGE`, and one
+  `EXCLUDE`.
+- Produced a deterministic source oracle plus complete pilot record, identity,
+  reference, action, binding, and coverage artifacts without writing the live target.
+- Removed the completed selection requirements from the two active plans; Phase 4 now
+  contains only pilot conversion, validation, and reforecast work.
+
+### Acceptance evidence
+
+```text
+Delivery commits: fe523532, a0b54009
+Run directory: lib/rol-conversion/runs/phase4-select-fe523532
+Run ID: rol-phase4-select-821d842548312f9f
+Packages selected: 5
+Records selected and planned: 3,001 of 3,001
+Selection coverage checks: 9 of 9
+SOC modes covered: 5 of 5
+SOC special action codes covered: 5 of 5
+Custom reset families covered: F, T, X
+Live target writes: 0
+```
+
 ## 2026-08-11 - Phases 1-3 conversion foundation and walking skeleton
 
 Status: Completed; Phase 4 not started

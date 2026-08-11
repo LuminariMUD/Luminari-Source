@@ -374,7 +374,11 @@ def _parse_wld(
     record = _new_record(source, basename, "wld", start, end, vnum)
     position = start + 1
     position, record.identity, ok = _read_tilde(source.lines, position, end)
-    position, _, desc_ok = _read_tilde(source.lines, position, end)
+    position, description, desc_ok = _read_tilde(source.lines, position, end)
+    record.values["strings"] = {
+        "name": record.identity,
+        "description": description,
+    }
     record.complete = ok and desc_ok
     position, base_line = _next_content(source.lines, position, end)
     if base_line is None or len(_integers(base_line)) < 3:
@@ -401,8 +405,12 @@ def _parse_wld(
         break
       if re.fullmatch(r"D\d+", token):
         direction = int(token[1:])
-        position, _, first_ok = _read_tilde(source.lines, position, end)
-        position, _, second_ok = _read_tilde(source.lines, position, end)
+        position, exit_description, first_ok = _read_tilde(
+            source.lines, position, end
+        )
+        position, exit_keyword, second_ok = _read_tilde(
+            source.lines, position, end
+        )
         position, numeric = _next_content(source.lines, position, end)
         values = _integers(numeric) if numeric is not None else []
         if values and values[0] >= 16:
@@ -410,7 +418,14 @@ def _parse_wld(
               source.lines, position, end, values, 10
           )
         record.directives.append(
-            {"token": "D", "line": line.number, "direction": direction, "arguments": values}
+            {
+                "token": "D",
+                "line": line.number,
+                "direction": direction,
+                "arguments": values,
+                "description": exit_description,
+                "keyword": exit_keyword,
+            }
         )
         if numeric is None or len(values) < 3 or not first_ok or not second_ok:
           if numeric is not None and len(values) == 2 and first_ok and second_ok:
@@ -432,9 +447,18 @@ def _parse_wld(
           _reference(record, "room", values[2], "exit_destination", numeric)
         continue
       if token == "E":
-        position, _, first_ok = _read_tilde(source.lines, position, end)
-        position, _, second_ok = _read_tilde(source.lines, position, end)
-        record.directives.append({"token": "E", "line": line.number})
+        position, keyword, first_ok = _read_tilde(source.lines, position, end)
+        position, description, second_ok = _read_tilde(
+            source.lines, position, end
+        )
+        record.directives.append(
+            {
+                "token": "E",
+                "line": line.number,
+                "keyword": keyword,
+                "description": description,
+            }
+        )
         if not first_ok or not second_ok:
           record.complete = False
           _diagnostic(corpus, "ROLWLD003", "error", "extra-description block is incomplete", line, "wld", vnum)
@@ -494,6 +518,12 @@ def _parse_mob(
       strings_ok = strings_ok and ok
     record.identity = strings[1]
     record.format_version = version
+    record.values["strings"] = {
+        "aliases": strings[0],
+        "short_description": strings[1],
+        "long_description": strings[2],
+        "description": strings[3],
+    }
     position, flags_line = _next_content(source.lines, position, end)
     flag_tokens = flags_line.text.split() if flags_line is not None else []
     if not strings_ok or flags_line is None or len(flag_tokens) < 5:
@@ -503,6 +533,7 @@ def _parse_mob(
       continue
     letter = flag_tokens[4]
     record.values["format_letter"] = letter
+    record.values["flags"] = flag_tokens
     record.directives.append({"token": "FLAGS", "line": flags_line.number, "field_count": len(flag_tokens)})
     if letter != "S":
       record.complete = False
@@ -553,6 +584,12 @@ def _parse_obj(
       strings.append(value)
       strings_ok = strings_ok and ok
     record.identity = strings[1]
+    record.values["strings"] = {
+        "aliases": strings[0],
+        "short_description": strings[1],
+        "description": strings[2],
+        "action_description": strings[3],
+    }
     rows: list[SourceLine] = []
     for token in ("FLAGS", "VALUES", "ECONOMY"):
       position, line = _next_content(source.lines, position, end)
@@ -578,7 +615,15 @@ def _parse_obj(
     if len(rows) == 3:
       flags = _integers(rows[0])
       values = _integers(rows[1])
-      record.values.update({"item_type": flags[0] if flags else None, "values": values})
+      economy = _integers(rows[2])
+      record.values.update(
+          {
+              "item_type": flags[0] if flags else None,
+              "flags": flags,
+              "values": values,
+              "economy": economy,
+          }
+      )
       item_type = flags[0] if flags else None
       if item_type == 15 and len(values) >= 3:
         _reference(record, "object", values[2], "container_key", rows[1])
@@ -599,9 +644,18 @@ def _parse_obj(
         corpus.file_terminators[("obj", "present")] += 1
         break
       if token == "E":
-        position, _, first_ok = _read_tilde(source.lines, position, end)
-        position, _, second_ok = _read_tilde(source.lines, position, end)
-        record.directives.append({"token": "E", "line": line.number})
+        position, keyword, first_ok = _read_tilde(source.lines, position, end)
+        position, description, second_ok = _read_tilde(
+            source.lines, position, end
+        )
+        record.directives.append(
+            {
+                "token": "E",
+                "line": line.number,
+                "keyword": keyword,
+                "description": description,
+            }
+        )
         if not first_ok or not second_ok:
           record.directives[-1]["source_disposition"] = "EXCLUDE"
           _diagnostic(
@@ -626,7 +680,15 @@ def _parse_obj(
         )
         record.directives.append({"token": "T", "line": line.number, "arguments": values})
       elif re.fullmatch(br"[+-]?\d+(?:\s+[+-]?\d+)*", stripped):
-        record.directives.append({"token": "AFFECT_FLAGS", "line": line.number, "field_count": len(_integers(line))})
+        values = _integers(line)
+        record.directives.append(
+            {
+                "token": "AFFECT_FLAGS",
+                "line": line.number,
+                "field_count": len(values),
+                "arguments": values,
+            }
+        )
       else:
         record.directives.append(
             {"token": "IGNORED_SOURCE_CONTENT", "line": line.number}
@@ -680,13 +742,22 @@ def _parse_zon(
   for start, end, vnum in _segments(source):
     record = _new_record(source, basename, "zon", start, end, vnum)
     position = start + 1
-    position, _, first_ok = _read_tilde(source.lines, position, end)
+    position, filename, first_ok = _read_tilde(source.lines, position, end)
     position, second, second_ok = _read_tilde(source.lines, position, end)
     if second is not None and second.lstrip().startswith("<"):
       position, record.identity, third_ok = _read_tilde(source.lines, position, end)
+      record.values["strings"] = {
+          "filename": filename,
+          "coordinates": second,
+          "name": record.identity,
+      }
     else:
       record.identity = second
       third_ok = True
+      record.values["strings"] = {
+          "filename": filename,
+          "name": record.identity,
+      }
     if not first_ok or not second_ok or not third_ok:
       record.complete = False
       _diagnostic(corpus, "ROLZON001", "error", "zone string header is incomplete", source.lines[start], "zon", vnum)
@@ -774,15 +845,24 @@ def _parse_qst(
         terminated = True
         break
       if token == "M":
-        position, _, first_ok = _read_tilde(source.lines, position, end)
-        position, _, second_ok = _read_tilde(source.lines, position, end)
-        record.directives.append({"token": "M", "line": line.number})
+        position, keyword, first_ok = _read_tilde(source.lines, position, end)
+        position, message, second_ok = _read_tilde(source.lines, position, end)
+        record.directives.append(
+            {
+                "token": "M",
+                "line": line.number,
+                "keyword": keyword,
+                "message": message,
+            }
+        )
         if not first_ok or not second_ok:
           record.complete = False
         continue
       if token in {"Q", "D"}:
-        position, _, ok = _read_tilde(source.lines, position, end)
-        record.directives.append({"token": token, "line": line.number})
+        position, message, ok = _read_tilde(source.lines, position, end)
+        record.directives.append(
+            {"token": token, "line": line.number, "message": message}
+        )
         if not ok:
           record.complete = False
         continue
@@ -878,7 +958,16 @@ def _parse_shp(
         )
         record.directives.append({"token": "IGNORED_SOURCE_KEYWORD", "line": line.number})
         continue
-      record.directives.append({"token": key, "line": line.number, "arguments": values})
+      record.directives.append(
+          {
+              "token": key,
+              "line": line.number,
+              "arguments": values,
+              "text": raw_value.strip().decode(
+                  "utf-8", errors="surrogateescape"
+              ),
+          }
+      )
       if key == "ROOM":
         for value in values:
           _reference(record, "room", value, "shop_room", line)
@@ -945,7 +1034,8 @@ def _parse_soc(
       if key == "ACTION":
         if values:
           _reference(record, "command", values[0], "soc_action", line)
-        position, _, ok = _read_tilde(source.lines, position, end)
+        position, argument, ok = _read_tilde(source.lines, position, end)
+        record.directives[-1]["argument"] = argument
         if not ok:
           record.complete = False
           _diagnostic(corpus, "ROLSOC002", "error", "SOC action message is unterminated", line, "soc", vnum)

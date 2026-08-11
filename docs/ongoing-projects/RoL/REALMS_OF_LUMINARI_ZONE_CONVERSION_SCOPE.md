@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Phases 0-3 complete; Phase 4 not started
+- Status: Phases 0-3 and Phase 4 pilot selection complete; Phase 4 implementation in progress
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -460,15 +460,10 @@ calendar time.
 | 7 | Action-based batches, zone QA, and validation bundles | 20-60 provisional |
 | 8 | Isolated integration, development apply, and documentation | 5-8 |
 
-Completed Phases 0-3 have been removed from this active scope; their delivery and
-acceptance evidence is in [RoL-Changelog.md](RoL-Changelog.md). The Phase 4 pilot should
-include:
-
-- one simple zone with only conventional resets;
-- one shop- and quest-heavy settlement;
-- one zone with `.soc` actions;
-- one zone with custom reset commands; and
-- one zone with significant special-procedure dependencies.
+Completed Phases 0-3 and the Phase 4 package selection have been removed from this
+active scope; their delivery and acceptance evidence is in
+[RoL-Changelog.md](RoL-Changelog.md). The remaining Phase 4 work must convert and
+validate the locked pilot set without expanding into broad Phase 5+ implementation.
 
 Phase 4 must replace provisional later-phase ranges with a forecast based on measured
 target reuse, ambiguous matches, runtime gaps, and review throughput.
@@ -534,6 +529,6 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Begin the Phase 4 representative 3-5 package vertical pilot. It must produce the first
-evidence-based architecture and effort reforecast from measured reuse, ambiguity,
-runtime gaps, and review throughput. Phase 4 has not started in the current checkpoint.
+Continue Phase 4 by emitting, staging, and validating the locked five-package pilot.
+Use its measured reuse, ambiguity, runtime gaps, and review throughput to produce the
+first evidence-based architecture and effort reforecast.

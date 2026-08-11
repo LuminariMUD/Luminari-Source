@@ -52,6 +52,9 @@ class RolSourceTests(unittest.TestCase):
         [("object", 200), ("room", 101)],
         [(reference.target_type, reference.target_vnum) for reference in records[0].references],
     )
+    self.assertEqual("Room", records[0].values["strings"]["name"])
+    self.assertEqual("Door", records[0].directives[1]["description"])
+    self.assertEqual("key", records[0].directives[1]["keyword"])
 
   def test_object_parser_types_known_value_array_references(self) -> None:
     records, corpus = parse_fixture(
@@ -62,6 +65,8 @@ class RolSourceTests(unittest.TestCase):
     self.assertTrue(corpus.complete)
     self.assertEqual("container_key", records[0].references[0].role)
     self.assertEqual(201, records[0].references[0].target_vnum)
+    self.assertEqual([15, 0, 1], records[0].values["flags"])
+    self.assertEqual([1, 2, 3], records[0].values["economy"])
 
   def test_zone_parser_rejects_false_a_and_preserves_source_defects(self) -> None:
     records, corpus = parse_fixture(
@@ -101,6 +106,28 @@ class RolSourceTests(unittest.TestCase):
     )
     self.assertTrue(soc_corpus.complete)
     self.assertEqual(3, len(socials[0].references))
+
+  def test_quest_shop_and_soc_payloads_are_preserved(self) -> None:
+    quests, _ = parse_fixture(
+        "qst",
+        b"#300\nM\nhello~\nWelcome, traveler.~\nQ\nFarewell.~\nS\n",
+    )
+    self.assertEqual("hello", quests[0].directives[0]["keyword"])
+    self.assertEqual("Welcome, traveler.", quests[0].directives[0]["message"])
+    self.assertEqual("Farewell.", quests[0].directives[1]["message"])
+
+    shops, _ = parse_fixture(
+        "shp", b"SHOP: 300\nMOPEN: Welcome to my shop!\nPROFIT: 120 80\n"
+    )
+    self.assertEqual("Welcome to my shop!", shops[0].directives[1]["text"])
+
+    socials, _ = parse_fixture(
+        "soc",
+        b"MOB: 300 PERIODIC\nFLAG: 0\nCHANCE: 3\nDELAY: 0\n"
+        b"ACTION: 1003\nA room echo.\n~\nDONE\n",
+    )
+    action = next(item for item in socials[0].directives if item["token"] == "ACTION")
+    self.assertEqual("A room echo.\r\n", action["argument"])
 
   def test_summary_is_stable_and_counts_tokens(self) -> None:
     records, corpus = parse_fixture(

@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phases 0-3 complete; Phase 4 not started
+- Status: Phases 0-3 and Phase 4 pilot selection complete; Phase 4 implementation in progress
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-11
 - Companion scope:
@@ -539,10 +539,10 @@ scope, run identities, counts, acceptance evidence, and commits are recorded in
 
 ### Phase 4: Representative vertical pilot (8-14 sessions)
 
-Choose 3-5 packages that together cover a settlement with shops/quests, all relevant
-SOC modes, custom resets, uncommon record extensions, and significant special-procedure
-dependencies. Implement only capabilities that block those pilots. Run the SOC
-proof-of-concept here, not after all generic mechanics have been built.
+The evidence-based package selection and coverage proof are complete and recorded in
+[RoL-Changelog.md](RoL-Changelog.md). Convert and validate the locked pilot set while
+implementing only capabilities that block it. Run the SOC proof-of-concept here, not
+after all generic mechanics have been built.
 
 Each pilot receives source-oracle tests, structural validation, reset observation,
 walkthrough evidence, reference reconciliation, and explicit record actions.
