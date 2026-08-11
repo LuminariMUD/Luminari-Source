@@ -147,6 +147,26 @@ class RolSourceTests(unittest.TestCase):
     action = next(item for item in socials[0].directives if item["token"] == "ACTION")
     self.assertEqual("A room echo.\r\n", action["argument"])
 
+  def test_soc_list_continues_through_done_until_listdone(self) -> None:
+    socials, corpus = parse_fixture(
+        "soc",
+        b"MOB: 300 LIST\nFLAG: 0\nCHANCE: 3\nDELAY: 0\n"
+        b"ACTION: 1003\nFirst.\n~\nDONE\n"
+        b"FLAG: 0\nCHANCE: 4\nDELAY: 2\n"
+        b"ACTION: 1002\nSecond.\n~\nLISTDONE\n",
+    )
+
+    self.assertTrue(corpus.complete)
+    self.assertEqual(
+        [1003, 1002],
+        [
+            item["arguments"][0]
+            for item in socials[0].directives
+            if item["token"] == "ACTION"
+        ],
+    )
+    self.assertEqual("LISTDONE", socials[0].directives[-1]["token"])
+
   def test_summary_is_stable_and_counts_tokens(self) -> None:
     records, corpus = parse_fixture(
         "shp", b"SHOP: 300\nROOM: 100\nPO: 200\n"

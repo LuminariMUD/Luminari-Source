@@ -1039,7 +1039,7 @@ def _parse_soc(
         continue
       values = [int(value) for value in _INTEGER.findall(raw_value)]
       record.directives.append({"token": key, "line": line.number, "arguments": values})
-      if key in {"DONE", "LISTDONE"}:
+      if key == "LISTDONE" or key == "DONE" and mode != "LIST":
         break
       if key == "ROOMS":
         for value in values:
