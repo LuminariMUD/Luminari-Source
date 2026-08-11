@@ -411,9 +411,10 @@ void redit_save_internally(struct descriptor_data *d)
           OLC_ZONE(dsc)->cmd[j].arg3 += (OLC_ZONE(dsc)->cmd[j].arg3 >= (int)room_num);
           break;
         case 'D':
-          OLC_ZONE(dsc)->cmd[j].arg2 += (OLC_ZONE(dsc)->cmd[j].arg2 >= (int)room_num);
-          /* Fall through */
         case 'R':
+        case 'F':
+        case 'K':
+        case 'X':
           OLC_ZONE(dsc)->cmd[j].arg1 += (OLC_ZONE(dsc)->cmd[j].arg1 >= (int)room_num);
           break;
         }
@@ -522,6 +523,8 @@ static void redit_disp_exit_menu(struct descriptor_data *d)
       strncpy(door_buf, "Is a Hidden Door", sizeof(door_buf) - 1);
     else
       strncpy(door_buf, "Is a door", sizeof(door_buf) - 1);
+    if (IS_SET(OLC_EXIT(d)->exit_info, EX_BLOCKED))
+      strlcat(door_buf, " Blocked", sizeof(door_buf));
   }
   else
     strncpy(door_buf, "No door", sizeof(door_buf) - 1);
@@ -556,8 +559,13 @@ static void redit_disp_exit_flag_menu(struct descriptor_data *d)
                   "%s2%s) Pickproof Door\r\n"
                   "%s3%s) Hidden Door\r\n"
                   "%s4%s) Hidden, Pickproof Door\r\n"
+                  "%s5%s) Blocked Door\r\n"
+                  "%s6%s) Blocked, Pickproof Door\r\n"
+                  "%s7%s) Blocked, Hidden Door\r\n"
+                  "%s8%s) Blocked, Hidden, Pickproof Door\r\n"
                   "Enter choice : ",
-                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm);
+                  grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm, grn, nrm,
+                  grn, nrm);
 }
 
 /* For room flags. */
@@ -1079,7 +1087,7 @@ void redit_parse(struct descriptor_data *d, char *arg)
 
   case REDIT_EXIT_DOORFLAGS:
     number = atoi(arg);
-    if (number < 0 || number > 4)
+    if (number < 0 || number > 8)
     {
       write_to_output(d, "That's not a valid choice!\r\n");
       redit_disp_exit_flag_menu(d);
@@ -1087,16 +1095,18 @@ void redit_parse(struct descriptor_data *d, char *arg)
     else
     {
       /* Doors are a bit idiotic, don't you think? :) -- I agree. -gg */
-      OLC_EXIT(d)->exit_info =
-          (number == 0
-               ? 0
-               : (number == 1
-                      ? EX_ISDOOR
-                      : (number == 2
-                             ? EX_ISDOOR | EX_PICKPROOF
-                             : (number == 3
-                                    ? EX_ISDOOR | EX_HIDDEN
-                                    : (number == 4 ? EX_ISDOOR | EX_PICKPROOF | EX_HIDDEN : 0)))));
+      OLC_EXIT(d)->exit_info = 0;
+      if (number > 4)
+      {
+        SET_BIT(OLC_EXIT(d)->exit_info, EX_BLOCKED);
+        number -= 4;
+      }
+      if (number > 0)
+        SET_BIT(OLC_EXIT(d)->exit_info, EX_ISDOOR);
+      if (number == 2 || number == 4)
+        SET_BIT(OLC_EXIT(d)->exit_info, EX_PICKPROOF);
+      if (number == 3 || number == 4)
+        SET_BIT(OLC_EXIT(d)->exit_info, EX_HIDDEN);
       /* Jump back to the menu system. */
       redit_disp_exit_menu(d);
     }

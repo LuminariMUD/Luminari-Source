@@ -215,6 +215,10 @@ static void get_one_line(FILE *fl, char *buf);
 static void check_start_rooms(void);
 static void renum_zone_table(void);
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message);
+static bool rol_reset_calendar_matches(int hour, int day, int weekday, int month);
+static bool rol_reset_follow(int mode, room_rnum room, mob_rnum leader_num, mob_rnum follower_num);
+static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard);
+static void rol_reset_legacy_door(room_rnum room, int direction, int state);
 static void reset_time(void);
 static char fread_letter(FILE *fp);
 static void free_followers(struct follow_type *k);
@@ -2404,7 +2408,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
 /* read direction data */
 void setup_dir(FILE *fl, room_rnum room, int dir)
 {
-  int t[5];
+  int t[5], serialized_flag;
   char line[READ_SIZE], buf2[128];
 
   snprintf(buf2, sizeof(buf2), "room #%d, direction D%d", GET_ROOM_VNUM(room) + 1, dir);
@@ -2429,6 +2433,9 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
     log("SYSERR: Format error, %s", buf2);
     exit(1);
   }
+  serialized_flag = t[0];
+  if (serialized_flag >= 5 && serialized_flag <= 8)
+    t[0] -= 4;
   if (t[0] == 1)
     world[room].dir_option[dir]->exit_info = EX_ISDOOR;
   else if (t[0] == 2)
@@ -2439,6 +2446,9 @@ void setup_dir(FILE *fl, room_rnum room, int dir)
     world[room].dir_option[dir]->exit_info = EX_ISDOOR | EX_PICKPROOF | EX_HIDDEN;
   else
     world[room].dir_option[dir]->exit_info = 0;
+
+  if (serialized_flag >= 5 && serialized_flag <= 8)
+    SET_BIT(world[room].dir_option[dir]->exit_info, EX_BLOCKED);
 
   world[room].dir_option[dir]->key = ((t[1] == -1 || t[1] == 65535) ? NOTHING : (obj_vnum)t[1]);
   world[room].dir_option[dir]->to_room =
@@ -2626,6 +2636,21 @@ static void renum_zone_table(void)
         {
           ZCMD.arg2 = b;
         }
+        break;
+      case 'F':
+        a = ZCMD.arg1 = real_room(ZCMD.arg1);
+        b = ZCMD.arg2 = real_mobile(ZCMD.arg2);
+        c = ZCMD.arg3 = real_mobile(ZCMD.arg3);
+        break;
+      case 'K':
+        a = ZCMD.arg1 = real_room(ZCMD.arg1);
+        break;
+      case 'X':
+        if (ZCMD.arg1 != -1)
+          a = ZCMD.arg1 = real_room(ZCMD.arg1);
+        b = ZCMD.arg2 = real_mobile(ZCMD.arg2);
+        break;
+      case 'C':
         break;
       case 'T': /* a trigger */
         b = ZCMD.arg2 = real_trigger(ZCMD.arg2);
@@ -4059,7 +4084,7 @@ static void load_zones(FILE *fl, char *zonename)
    * a new zone command is added to reset_zone(), this string will need to be
    * updated to suit. - ae. */
   while (get_line(fl, buf))
-    if ((strchr("MOPGERDTVJIL", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
+    if ((strchr("MOPGERDTVJILFKXC", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
       num_of_cmds++;
 
   rewind(fl);
@@ -4204,7 +4229,7 @@ static void load_zones(FILE *fl, char *zonename)
       break;
     }
     error = 0;
-    if (strchr("MOGEPDTVJL", ZCMD.command) == NULL)
+    if (strchr("MOGEPDTVJLFKXC", ZCMD.command) == NULL)
     { /* a 3-arg command */
       if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
         error = 1;
@@ -4265,7 +4290,30 @@ static void load_zones(FILE *fl, char *zonename)
           error = 1;
         break;
       case 'R':
-        if (sscanf(ptr, " %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2) != 3)
+        arg_count = sscanf(ptr, " %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3);
+        if (arg_count == 3 || ZCMD.arg3 < 0)
+        {
+          ZCMD.arg3 = 100;
+          ZCMD.arg4 = 0;
+        }
+        else if (arg_count == 4)
+          ZCMD.arg4 = 1;
+        else if (arg_count != 4)
+          error = 1;
+        break;
+      case 'F':
+        arg_count =
+            sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4);
+        if (arg_count == 4 || ZCMD.arg4 < 0)
+          ZCMD.arg4 = 100;
+        else if (arg_count != 5)
+          error = 1;
+        break;
+      case 'K':
+      case 'X':
+      case 'C':
+        if (sscanf(ptr, " %d %d %d %d %d ", &tmp, &ZCMD.arg1, &ZCMD.arg2, &ZCMD.arg3, &ZCMD.arg4) !=
+            5)
           error = 1;
         break;
       default:
@@ -4943,6 +4991,158 @@ int check_max_existing(mob_rnum mob_num, int max, room_rnum room)
   return FALSE;
 }
 
+bool rol_reset_calendar_matches_at(int hour, int day, int weekday, int month, int current_hour,
+                                   int current_day, int current_month)
+{
+  int current_weekday;
+
+  current_weekday = ((35 * current_month) + current_day + 1) % 7;
+  if (hour > -1 && current_hour != hour)
+    return FALSE;
+  if (day && current_day + 1 != day)
+    return FALSE;
+  if (weekday && current_weekday + 1 != weekday)
+    return FALSE;
+  if (month && current_month + 1 != month)
+    return FALSE;
+  return TRUE;
+}
+
+bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state)
+{
+  REMOVE_BIT(flags, EX_CLOSED | EX_LOCKED | EX_LOCKED_EASY | EX_LOCKED_MEDIUM | EX_LOCKED_HARD |
+                        EX_HIDDEN | EX_HIDDEN_EASY | EX_HIDDEN_MEDIUM | EX_HIDDEN_HARD |
+                        EX_BLOCKED);
+  switch (state & 0x03)
+  {
+  case 0:
+    break;
+  case 1:
+    SET_BIT(flags, EX_CLOSED);
+    break;
+  case 2:
+  case 3:
+    SET_BIT(flags, EX_CLOSED | EX_LOCKED_EASY);
+    break;
+  }
+  if (state & 0x04)
+    SET_BIT(flags, EX_HIDDEN | EX_HIDDEN_EASY);
+  if (state & 0x08)
+    SET_BIT(flags, EX_BLOCKED);
+  return flags;
+}
+
+static bool rol_reset_calendar_matches(int hour, int day, int weekday, int month)
+{
+  return rol_reset_calendar_matches_at(hour, day, weekday, month, time_info.hours, time_info.day,
+                                       time_info.month);
+}
+
+static bool rol_reset_follow(int mode, room_rnum room, mob_rnum leader_num, mob_rnum follower_num)
+{
+  struct char_data *current, *leader = NULL, *follower = NULL;
+  bool changed = FALSE;
+
+  if (room == NOWHERE || room > top_of_world || leader_num == NOBODY || follower_num == NOBODY)
+    return FALSE;
+
+  if (mode == 0)
+  {
+    for (current = world[room].people; current; current = current->next_in_room)
+    {
+      if (!leader && IS_NPC(current) && GET_MOB_RNUM(current) == leader_num)
+        leader = current;
+      if (!follower && IS_NPC(current) && GET_MOB_RNUM(current) == follower_num &&
+          current != leader && !current->master)
+        follower = current;
+    }
+  }
+  else if (mode == 1 || mode == 3)
+  {
+    for (current = world[room].people; current; current = current->next_in_room)
+    {
+      if (!leader && IS_NPC(current) && GET_MOB_RNUM(current) == leader_num &&
+          !current->followers && !current->master)
+        leader = current;
+      if (!follower && IS_NPC(current) && GET_MOB_RNUM(current) == follower_num &&
+          current != leader && !current->followers && !current->master)
+        follower = current;
+    }
+  }
+  else if (mode == 2)
+  {
+    for (current = world[room].people; current; current = current->next_in_room)
+    {
+      if (!IS_NPC(current) || GET_MOB_RNUM(current) != leader_num)
+        continue;
+      if (!leader || (!leader->followers && current->followers))
+        leader = current;
+    }
+    if (!leader)
+      return FALSE;
+    for (current = world[room].people; current; current = current->next_in_room)
+    {
+      if (current == leader || !IS_NPC(current) || GET_MOB_RNUM(current) != follower_num ||
+          current->master)
+        continue;
+      add_follower(current, leader);
+      changed = TRUE;
+    }
+    return changed;
+  }
+  else
+    return FALSE;
+
+  if (!leader || !follower)
+    return FALSE;
+  add_follower(follower, leader);
+  if (mode == 3 && !RIDING(leader) && !RIDDEN_BY(follower))
+    mount_char(leader, follower);
+  return TRUE;
+}
+
+static bool rol_reset_remove_mobile(room_rnum room, mob_rnum mob_num, bool combat_guard)
+{
+  struct char_data *mobile, *next_mobile;
+  bool removed = FALSE;
+
+  if (mob_num == NOBODY || mob_num > top_of_mobt)
+    return FALSE;
+  if (room == NOWHERE)
+  {
+    for (mobile = character_list; mobile; mobile = next_mobile)
+    {
+      next_mobile = mobile->next;
+      if (!IS_NPC(mobile) || GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
+        continue;
+      extract_char(mobile);
+      removed = TRUE;
+    }
+    /* The source global-removal command succeeds even when no instance exists. */
+    return TRUE;
+  }
+  if (room > top_of_world)
+    return FALSE;
+  for (mobile = world[room].people; mobile; mobile = mobile->next_in_room)
+  {
+    if (!IS_NPC(mobile) || GET_MOB_RNUM(mobile) != mob_num || (combat_guard && FIGHTING(mobile)))
+      continue;
+    extract_char(mobile);
+    removed = TRUE;
+    break;
+  }
+  return removed;
+}
+
+static void rol_reset_legacy_door(room_rnum room, int direction, int state)
+{
+  if (room == NOWHERE || room > top_of_world || direction < 0 || direction >= DIR_COUNT ||
+      !world[room].dir_option[direction])
+    return;
+  world[room].dir_option[direction]->exit_info =
+      rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state);
+}
+
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
 {
   char cmd_explain[256];
@@ -4967,6 +5167,18 @@ static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)
     break;
   case 'D':
     snprintf(cmd_explain, sizeof(cmd_explain), "D = Set door state");
+    break;
+  case 'K':
+    snprintf(cmd_explain, sizeof(cmd_explain), "K = Set legacy door bitmask");
+    break;
+  case 'F':
+    snprintf(cmd_explain, sizeof(cmd_explain), "F = Establish mobile followers");
+    break;
+  case 'X':
+    snprintf(cmd_explain, sizeof(cmd_explain), "X = Remove mobile instances");
+    break;
+  case 'C':
+    snprintf(cmd_explain, sizeof(cmd_explain), "C = Test calendar predicate");
     break;
   case 'T':
     snprintf(cmd_explain, sizeof(cmd_explain), "T = Attach trigger");
@@ -5035,7 +5247,7 @@ void reset_zone(zone_rnum zone)
     }
 
     /* checking our if_flag if we need to jump around */
-    if (!test_result(ZCMD.if_flag, zone, cmd_no))
+    if (ZCMD.command != 'F' && !test_result(ZCMD.if_flag, zone, cmd_no))
     {
       push_result(0);
       continue;
@@ -5509,12 +5721,73 @@ void reset_zone(zone_rnum zone)
       break;
 
     case 'R': /* rem obj from room */
+      if (ZCMD.arg4)
+      {
+        if (rand_number(1, 100) > ZCMD.arg3)
+        {
+          push_result(0);
+          break;
+        }
+        if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
+        {
+          if (!vessel_hull_is_managed(obj))
+          {
+            extract_obj(obj);
+            push_result(1);
+          }
+          else
+            push_result(0);
+        }
+        else
+          push_result(0);
+        tmob = NULL;
+        tobj = NULL;
+        break;
+      }
       if ((obj = get_obj_in_list_num(ZCMD.arg2, world[ZCMD.arg1].contents)) != NULL)
       {
         if (!vessel_hull_is_managed(obj))
           extract_obj(obj);
       }
       push_result(1);
+      tmob = NULL;
+      tobj = NULL;
+      break;
+
+    case 'K': /* legacy door bitmask with probability */
+      if (ZCMD.arg1 == (int)NOWHERE || (room_rnum)ZCMD.arg1 > top_of_world || ZCMD.arg2 < 0 ||
+          ZCMD.arg2 >= DIR_COUNT || !world[ZCMD.arg1].dir_option[ZCMD.arg2])
+      {
+        ZONE_ERROR("legacy door does not exist");
+        break;
+      }
+      if (rand_number(1, 100) <= ZCMD.arg4)
+      {
+        rol_reset_legacy_door(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3);
+        push_result(1);
+      }
+      else
+        push_result(0);
+      tmob = NULL;
+      tobj = NULL;
+      break;
+
+    case 'F': /* source-compatible follow/group/mount command */
+      rol_reset_follow(ZCMD.if_flag, ZCMD.arg1, ZCMD.arg2, ZCMD.arg3);
+      /* Source F does not change the conditional result chain. */
+      break;
+
+    case 'X': /* source-compatible mobile removal */
+      if (rand_number(1, 100) <= ZCMD.arg4)
+        push_result(rol_reset_remove_mobile(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3 != 0));
+      else
+        push_result(0);
+      tmob = NULL;
+      tobj = NULL;
+      break;
+
+    case 'C': /* source calendar predicate; target T remains DG attachment */
+      push_result(rol_reset_calendar_matches(ZCMD.arg1, ZCMD.arg2, ZCMD.arg3, ZCMD.arg4));
       tmob = NULL;
       tobj = NULL;
       break;

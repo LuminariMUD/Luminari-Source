@@ -13,7 +13,7 @@ from .source import READ_SIZE, SourceCursor, SourceFile, parse_c_integer_token
 
 
 _HEADER_COUNTS = {4, 10, 11, 14}
-_COMMANDS = frozenset("MOEGPDRITVJL")
+_COMMANDS = frozenset("MOEGPDRITVJLFKXC")
 _FLEX_FIVE = frozenset("MOEP")
 
 
@@ -170,8 +170,14 @@ def _command_shape(command: str) -> tuple[int, int]:
     return 3, 4
   if command in {"D", "T"}:
     return 4, 4
-  if command in {"R", "I", "L"}:
+  if command == "R":
+    return 3, 4
+  if command in {"I", "L"}:
     return 3, 3
+  if command == "F":
+    return 4, 5
+  if command in {"K", "X", "C"}:
+    return 5, 5
   if command == "J":
     return 2, 3
   raise ValueError(command)
@@ -272,6 +278,12 @@ def _parse_command(
       probability = arguments[3] if len(arguments) == 4 else 100
     elif command == "G":
       probability = arguments[2] if len(arguments) == 3 else 100
+    elif command == "R":
+      probability = arguments[2] if len(arguments) == 3 else 100
+    elif command in {"K", "X"}:
+      probability = arguments[3]
+    elif command == "F":
+      probability = arguments[3] if len(arguments) == 4 else 100
     elif command == "J":
       probability = arguments[1] if len(arguments) == 2 else 100
     elif command == "I":
@@ -289,7 +301,7 @@ def _parse_command(
 
   if parsed is None:
     return None
-  if parsed.dependency < -127 or parsed.dependency > 127:
+  if parsed.command != "F" and (parsed.dependency < -127 or parsed.dependency > 127):
     result.findings.append(
         finding(
             "ZON026",
@@ -340,6 +352,60 @@ def _parse_command(
     if not 0 <= state <= 16:
       result.findings.append(
           finding("ZON030", "error", f"door state {state} is outside 0..16", line.span, "zone", zone_vnum)
+      )
+  if parsed.command == "K" and len(parsed.arguments) >= 3:
+    direction, state = parsed.arguments[1], parsed.arguments[2]
+    if not 0 <= direction < direction_count:
+      result.findings.append(
+          finding(
+              "ZON029",
+              "error",
+              f"door direction {direction} is outside the effective range 0..{direction_count - 1}",
+              line.span,
+              "zone",
+              zone_vnum,
+          )
+      )
+    if not 0 <= state <= 31:
+      result.findings.append(
+          finding(
+              "ZON045",
+              "error",
+              f"legacy door bitmask {state} is outside 0..31",
+              line.span,
+              "zone",
+              zone_vnum,
+          )
+      )
+  if parsed.command == "F":
+    if parsed.dependency not in {0, 1, 2, 3}:
+      result.findings.append(
+          finding(
+              "ZON046",
+              "error",
+              f"follow mode {parsed.dependency} is outside 0..3",
+              line.span,
+              "zone",
+              zone_vnum,
+          )
+      )
+  if parsed.command == "C" and len(parsed.arguments) >= 4:
+    hour, day, weekday, month = parsed.arguments[:4]
+    if (
+        not -1 <= hour <= 23
+        or not 0 <= day <= 35
+        or not 0 <= weekday <= 7
+        or not 0 <= month <= 17
+    ):
+      result.findings.append(
+          finding(
+              "ZON047",
+              "error",
+              "calendar predicate is outside source hour/day/weekday/month ranges",
+              line.span,
+              "zone",
+              zone_vnum,
+          )
       )
   if parsed.command in {"T", "V"} and parsed.arguments:
     attach_type = parsed.arguments[0]
@@ -408,6 +474,8 @@ def _analyze_command_flow(result: ParseResult[ZoneRecord], record: ZoneRecord) -
 
   for index, command in enumerate(record.commands):
     offset = abs(command.dependency)
+    if command.command == "F":
+      offset = 0
     if offset > queue_max:
       result.findings.append(
           finding(
@@ -461,6 +529,13 @@ def _analyze_command_flow(result: ParseResult[ZoneRecord], record: ZoneRecord) -
       state["tobj"] = {False}
       state["tmob_script"] = {False}
       state["tobj_script"] = {False}
+    elif command.command == "F":
+      push_min = push_max = 0
+    elif command.command in {"C", "K", "X"}:
+      state["tmob"] = {False}
+      state["tobj"] = {False}
+      state["tmob_script"] = {False}
+      state["tobj_script"] = {False}
     elif command.command == "T" and command.arguments:
       host_type = command.arguments[0]
       if host_type == 0:
@@ -486,7 +561,9 @@ def _analyze_command_flow(result: ParseResult[ZoneRecord], record: ZoneRecord) -
       elif host_type == 2:
         push_min, push_max = (1, 2)
 
-    may_not_execute = index in possible_skips or command.dependency != 0
+    may_not_execute = index in possible_skips or (
+        command.command != "F" and command.dependency != 0
+    )
     if may_not_execute:
       for name in state:
         state[name].update(before[name])

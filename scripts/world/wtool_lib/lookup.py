@@ -144,6 +144,11 @@ def _zone_edges(zone: ZoneRecord, edges: list[ReferenceEdge]) -> None:
       _add_edge(edges, zone, "object", arguments[2], "P reset container", command.span)
     elif command.command == "R" and len(arguments) >= 2:
       _add_edge(edges, zone, "object", arguments[1], "R reset object", command.span)
+    elif command.command == "F" and len(arguments) >= 3:
+      _add_edge(edges, zone, "mobile", arguments[1], "F reset leader", command.span)
+      _add_edge(edges, zone, "mobile", arguments[2], "F reset follower", command.span)
+    elif command.command == "X" and len(arguments) >= 2:
+      _add_edge(edges, zone, "mobile", arguments[1], "X reset mobile", command.span)
     if command.command in {"M", "O"} and len(arguments) >= 3:
       if command.command != "O" or arguments[2] >= 0:
         _add_edge(
@@ -154,7 +159,9 @@ def _zone_edges(zone: ZoneRecord, edges: list[ReferenceEdge]) -> None:
             f"{command.command} reset destination",
             command.span,
         )
-    elif command.command in {"D", "R"} and arguments:
+    elif command.command in {"D", "R", "K", "F", "X"} and arguments:
+      if command.command == "X" and arguments[0] < 0:
+        continue
       _add_edge(
           edges,
           zone,

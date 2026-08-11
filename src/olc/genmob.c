@@ -96,9 +96,23 @@ mob_rnum add_mobile(struct char_data *mob, mob_vnum vnum)
   /* Update zone table. */
   for (zone = 0; zone <= top_of_zone_table; zone++)
     for (cmd_no = 0; ZCMD(zone, cmd_no).command != 'S'; cmd_no++)
-      if (ZCMD(zone, cmd_no).command == 'M')
+      switch (ZCMD(zone, cmd_no).command)
+      {
+      case 'M':
         if (ZCMD(zone, cmd_no).arg1 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg1 >= found)
           ZCMD(zone, cmd_no).arg1++;
+        break;
+      case 'F':
+        if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 >= found)
+          ZCMD(zone, cmd_no).arg2++;
+        if (ZCMD(zone, cmd_no).arg3 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg3 >= found)
+          ZCMD(zone, cmd_no).arg3++;
+        break;
+      case 'X':
+        if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 >= found)
+          ZCMD(zone, cmd_no).arg2++;
+        break;
+      }
 
   /* Update shop keepers. */
   if (shop_index)
@@ -231,6 +245,29 @@ int delete_mobile(mob_rnum refpt)
         }
         if (ZCMD(zone, cmd_no).arg1 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg1 > refpt)
           ZCMD(zone, cmd_no).arg1--;
+      }
+      else if (ZCMD(zone, cmd_no).command == 'F')
+      {
+        if ((ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 == refpt) ||
+            (ZCMD(zone, cmd_no).arg3 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg3 == refpt))
+        {
+          delete_zone_command(&zone_table[zone], cmd_no);
+          continue;
+        }
+        if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 > refpt)
+          ZCMD(zone, cmd_no).arg2--;
+        if (ZCMD(zone, cmd_no).arg3 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg3 > refpt)
+          ZCMD(zone, cmd_no).arg3--;
+      }
+      else if (ZCMD(zone, cmd_no).command == 'X')
+      {
+        if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 == refpt)
+        {
+          delete_zone_command(&zone_table[zone], cmd_no);
+          continue;
+        }
+        if (ZCMD(zone, cmd_no).arg2 >= 0 && (mob_rnum)ZCMD(zone, cmd_no).arg2 > refpt)
+          ZCMD(zone, cmd_no).arg2--;
       }
       cmd_no++;
     }

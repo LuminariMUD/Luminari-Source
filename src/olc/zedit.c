@@ -303,6 +303,9 @@ static void zedit_setup(struct descriptor_data *d, int room_num)
       break;
     case 'D':
     case 'R':
+    case 'F':
+    case 'K':
+    case 'X':
       cmd_room = ZCMD(OLC_ZNUM(d), subcmd).arg1;
       break;
     default:
@@ -624,6 +627,24 @@ static void zedit_disp_menu(struct descriptor_data *d)
                       buf1, // MYCMD.if_flag ? " then " : "",
                       obj_proto[MYCMD.arg2].short_description, cyn, obj_index[MYCMD.arg2].vnum,
                       yel);
+      break;
+    case 'F':
+      write_to_output(d, "%sFollow mode %d: mobile [%s%d%s] follows [%s%d%s] in this room.", buf1,
+                      MYCMD.if_flag, cyn, mob_index[MYCMD.arg3].vnum, yel, cyn,
+                      mob_index[MYCMD.arg2].vnum, yel);
+      break;
+    case 'K':
+      write_to_output(d, "%sSet legacy door %s bitmask %d (%d%%).", buf1, dirs[MYCMD.arg2],
+                      MYCMD.arg3, MYCMD.arg4);
+      break;
+    case 'X':
+      write_to_output(d, "%sRemove mobile [%s%d%s] %s (%d%%).", buf1, cyn,
+                      mob_index[MYCMD.arg2].vnum, yel,
+                      MYCMD.arg1 == -1 ? "globally" : "from this room", MYCMD.arg4);
+      break;
+    case 'C':
+      write_to_output(d, "%sCalendar predicate hour=%d day=%d weekday=%d month=%d.", buf1,
+                      MYCMD.arg1, MYCMD.arg2, MYCMD.arg3, MYCMD.arg4);
       break;
     case 'D':
       /* Build the string for the reset - There are many possibilities. */

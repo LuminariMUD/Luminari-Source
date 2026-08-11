@@ -97,3 +97,29 @@ void Test_world_loading_production_real_trigger_lookup(CuTest *tc)
   trig_index = saved_trig_index;
   top_of_trigt = saved_top_of_trigt;
 }
+
+void Test_world_loading_production_rol_calendar_predicates(CuTest *tc)
+{
+  CuAssertTrue(tc, rol_reset_calendar_matches_at(2, 0, 0, 0, 2, 10, 4));
+  CuAssertTrue(tc, rol_reset_calendar_matches_at(-1, 11, 0, 5, 9, 10, 4));
+  CuAssertTrue(tc, rol_reset_calendar_matches_at(-1, 0, 5, 0, 9, 10, 4));
+  CuAssertTrue(tc, !rol_reset_calendar_matches_at(2, 0, 0, 0, 3, 10, 4));
+  CuAssertTrue(tc, !rol_reset_calendar_matches_at(-1, 12, 0, 0, 9, 10, 4));
+}
+
+void Test_world_loading_production_rol_legacy_door_flags(CuTest *tc)
+{
+  bitvector_t flags;
+
+  flags = rol_reset_legacy_door_flags(EX_ISDOOR | EX_PICKPROOF | EX_CLOSED, 4);
+  CuAssertTrue(tc, IS_SET(flags, EX_ISDOOR));
+  CuAssertTrue(tc, IS_SET(flags, EX_PICKPROOF));
+  CuAssertTrue(tc, IS_SET(flags, EX_HIDDEN));
+  CuAssertTrue(tc, !IS_SET(flags, EX_CLOSED));
+
+  flags = rol_reset_legacy_door_flags(flags, 10);
+  CuAssertTrue(tc, IS_SET(flags, EX_CLOSED));
+  CuAssertTrue(tc, IS_SET(flags, EX_LOCKED_EASY));
+  CuAssertTrue(tc, IS_SET(flags, EX_BLOCKED));
+  CuAssertTrue(tc, !IS_SET(flags, EX_HIDDEN));
+}

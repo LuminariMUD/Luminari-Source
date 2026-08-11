@@ -393,6 +393,9 @@ void parse_mobile(FILE *mob_f, int nr);
 const char *parse_object(FILE *obj_f, int nr);
 int is_empty(zone_rnum zone_nr);
 void reset_zone(zone_rnum zone);
+bool rol_reset_calendar_matches_at(int hour, int day, int weekday, int month, int current_hour,
+                                   int current_day, int current_month);
+bitvector_t rol_reset_legacy_door_flags(bitvector_t flags, int state);
 void reboot_wizlists(void);
 void boot_world(void);
 int count_hash_records(FILE *fl);

@@ -8,8 +8,9 @@ from wtool_lib.constants import default_repo_root, load_manifest
 from wtool_lib.mobiles import parse_mobile_file
 from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_rol_source_file
-from wtool_lib.rol_transform import convert_text, emit_mobile, emit_object, emit_room
+from wtool_lib.rol_transform import convert_text, emit_mobile, emit_object, emit_room, emit_zone
 from wtool_lib.rooms import parse_room_file
+from wtool_lib.zones import parse_zone_file
 
 
 def _resolver(kind: str, vnum: int) -> int:
@@ -50,7 +51,7 @@ class RolTransformTests(unittest.TestCase):
     source = self._source_record(
         "wld",
         b"<*> File Version 1 <*>\n#100\n&+RRoom&N~\nDescription~\n"
-        b"1 26 2 5 5 5 0\nD0\nDoor~\nkey~\n321 200 101\n"
+        b"1 26 2 5 5 5 0\nD0\nDoor~\nkey~\n449 200 101\n"
         b"E\nsign~\nA sign.~\nS\n",
     )
     emitted = emit_room(source, 2_000_100, 20_001, _resolver)
@@ -62,7 +63,7 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(20_001, room.file_zone)
     self.assertEqual(2_000_101, room.exits[0].destination_vnum)
     self.assertEqual(2_000_200, room.exits[0].key_vnum)
-    self.assertEqual(4, room.exits[0].door_flags)
+    self.assertEqual(8, room.exits[0].door_flags)
 
   def test_emitted_mobile_maps_flags_position_class_and_race(self) -> None:
     source = self._source_record(
@@ -97,6 +98,32 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(2_000_201, obj.values[2])
     self.assertEqual(9, obj.affects[0].modifier)
     self.assertEqual(1, len(obj.extra_descriptions))
+
+  def test_emitted_zone_normalizes_extended_resets(self) -> None:
+    source = self._source_record(
+        "zon",
+        b"#100\nfile~\nPilot~\n199 30 2 64\n"
+        b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
+        b"D 0 100 1 8\nD 0 100 2 3\nR 0 100 200 35\nF 2 100 300 301\n"
+        b"E 1 200 1 24\nT 0 2 0 0\nX 1 -1 300 1 25\nS\n",
+    )
+    emitted = emit_zone(source, 20_100, 2_000_100, _resolver)
+    temporary = tempfile.TemporaryDirectory()
+    self.addCleanup(temporary.cleanup)
+    path = Path(temporary.name) / "20100.zon"
+    path.write_text(emitted.text, encoding="ascii", newline="\n")
+    result = parse_zone_file(path, "zon/20100.zon", self.manifest, 6)
+
+    self.assertTrue(result.complete)
+    self.assertEqual([], result.findings)
+    self.assertEqual(
+        ["K", "K", "R", "F", "C", "X"],
+        [command.command for command in result.records[0].commands],
+    )
+    self.assertEqual(35, result.records[0].commands[2].probability)
+    self.assertEqual(2, result.records[0].commands[3].dependency)
+    self.assertEqual(25, result.records[0].commands[5].probability)
+    self.assertIn("unsupported equipment position 24", " ".join(emitted.diagnostics))
 
 
 if __name__ == "__main__":

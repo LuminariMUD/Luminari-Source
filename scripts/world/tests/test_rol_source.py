@@ -82,6 +82,24 @@ class RolSourceTests(unittest.TestCase):
     self.assertEqual([2, 100, 200, 201, 50], follow["arguments"])
     self.assertEqual("ROLZON003", corpus.diagnostics[0].code)
 
+  def test_zone_reset_arguments_stop_before_numeric_comments(self) -> None:
+    records, corpus = parse_fixture(
+        "zon",
+        b"#553\nfile~\nCemetery~\n55399 20 2 0\n"
+        b"0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n0 0 0 0\n"
+        b"D 0 55302 1 1 * East exit from room 55302\n"
+        b"R 1 55310 55301 35 * DC2 has a 5 percent chance\n"
+        b"T 0 2 0 0 * at 2am\nS\n",
+    )
+
+    commands = [
+        item for item in records[0].directives if item["token"] in {"D", "R", "T"}
+    ]
+    self.assertEqual([0, 55302, 1, 1], commands[0]["arguments"])
+    self.assertEqual([1, 55310, 55301, 35], commands[1]["arguments"])
+    self.assertEqual([0, 2, 0, 0], commands[2]["arguments"])
+    self.assertTrue(corpus.complete)
+
   def test_quest_shop_and_soc_references_are_typed(self) -> None:
     quests, quest_corpus = parse_fixture(
         "qst",

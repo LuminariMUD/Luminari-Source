@@ -865,6 +865,9 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
       break;
     case 'D':
     case 'R':
+    case 'F':
+    case 'K':
+    case 'X':
       cmd_room = ZOCMD.arg1;
       break;
     default:
@@ -919,6 +922,19 @@ static void list_zone_commands_room(struct char_data *ch, room_vnum rvnum)
         send_to_char(ch, "%sSet door %s as %s.\r\n", ZOCMD.if_flag ? " then " : "",
                      dirs[ZOCMD.arg2],
                      ZOCMD.arg3 ? ((ZOCMD.arg3 == 1) ? "closed" : "locked") : "open");
+        break;
+      case 'F':
+        send_to_char(ch, "Follow mode %d: mobile [%s%d%s] follows [%s%d%s] (%d%%).\r\n",
+                     ZOCMD.if_flag, cyn, mob_index[ZOCMD.arg3].vnum, yel, cyn,
+                     mob_index[ZOCMD.arg2].vnum, yel, ZOCMD.arg4);
+        break;
+      case 'K':
+        send_to_char(ch, "Set legacy door %s bitmask %d (%d%%).\r\n", dirs[ZOCMD.arg2], ZOCMD.arg3,
+                     ZOCMD.arg4);
+        break;
+      case 'X':
+        send_to_char(ch, "Remove mobile [%s%d%s] from this room (%d%%).\r\n", cyn,
+                     mob_index[ZOCMD.arg2].vnum, yel, ZOCMD.arg4);
         break;
       case 'T':
         send_to_char(ch, "%sAttach trigger %s%s%s [%s%d%s] to %s\r\n",

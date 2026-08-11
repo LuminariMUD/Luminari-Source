@@ -235,6 +235,17 @@ def _integers(line: SourceLine) -> list[int]:
   return [int(token) for token in _INTEGER.findall(line.raw)]
 
 
+def _leading_integers(line: SourceLine) -> list[int]:
+  """Return the scanf-style integer prefix, excluding trailing reset comments."""
+
+  values: list[int] = []
+  for token in line.raw.strip().split():
+    if re.fullmatch(br"[+-]?\d+", token) is None:
+      break
+    values.append(int(token))
+  return values
+
+
 def _numeric_line(line: SourceLine) -> bool:
   return re.fullmatch(br"[+-]?\d+(?:\s+[+-]?\d+)*", line.raw.strip()) is not None
 
@@ -793,7 +804,9 @@ def _parse_zon(
         terminated = True
         break
       if command in _RESET_COMMANDS:
-        values = _integers(SourceLine(line.number, stripped[1:], line.newline, line.display_path))
+        values = _leading_integers(
+            SourceLine(line.number, stripped[1:], line.newline, line.display_path)
+        )
         if command == "G" and stripped.startswith((b"GROUPING", b"GATE QUEST STUFF")):
           record.directives.append({"token": "G_SOURCE_DEFECT", "line": line.number})
           _diagnostic(corpus, "ROLZON003", "warning", "source heading is misread as a malformed G reset", line, "zon", vnum)

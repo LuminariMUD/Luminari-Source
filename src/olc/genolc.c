@@ -1403,10 +1403,38 @@ static int export_save_zone(zone_rnum zrnum)
               ZCMD(zrnum, subcmd).arg3, world[ZCMD(zrnum, subcmd).arg1].name);
       break;
     case 'R':
-      fprintf(zone_file, "R %d QQ%02d QQ%02d -1 \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
+      fprintf(zone_file, "R %d QQ%02d QQ%02d %d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
               world[ZCMD(zrnum, subcmd).arg1].number % 100,
               obj_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
+              ZCMD(zrnum, subcmd).arg4 ? ZCMD(zrnum, subcmd).arg3 : -1,
               obj_proto[ZCMD(zrnum, subcmd).arg2].short_description);
+      break;
+    case 'F':
+      fprintf(zone_file, "F %d QQ%02d QQ%02d QQ%02d %d \t(RoL follow/group/mount)\n",
+              ZCMD(zrnum, subcmd).if_flag, world[ZCMD(zrnum, subcmd).arg1].number % 100,
+              mob_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
+              mob_index[ZCMD(zrnum, subcmd).arg3].vnum % 100, ZCMD(zrnum, subcmd).arg4);
+      break;
+    case 'K':
+      fprintf(zone_file, "K %d QQ%02d %d %d %d \t(RoL legacy door state)\n",
+              ZCMD(zrnum, subcmd).if_flag, world[ZCMD(zrnum, subcmd).arg1].number % 100,
+              ZCMD(zrnum, subcmd).arg2, ZCMD(zrnum, subcmd).arg3, ZCMD(zrnum, subcmd).arg4);
+      break;
+    case 'X':
+      if (ZCMD(zrnum, subcmd).arg1 == -1)
+        fprintf(zone_file, "X %d -1 QQ%02d %d %d \t(RoL mobile removal)\n",
+                ZCMD(zrnum, subcmd).if_flag, mob_index[ZCMD(zrnum, subcmd).arg2].vnum % 100,
+                ZCMD(zrnum, subcmd).arg3, ZCMD(zrnum, subcmd).arg4);
+      else
+        fprintf(zone_file, "X %d QQ%02d QQ%02d %d %d \t(RoL mobile removal)\n",
+                ZCMD(zrnum, subcmd).if_flag, world[ZCMD(zrnum, subcmd).arg1].number % 100,
+                mob_index[ZCMD(zrnum, subcmd).arg2].vnum % 100, ZCMD(zrnum, subcmd).arg3,
+                ZCMD(zrnum, subcmd).arg4);
+      break;
+    case 'C':
+      fprintf(zone_file, "C %d %d %d %d %d \t(RoL calendar predicate)\n",
+              ZCMD(zrnum, subcmd).if_flag, ZCMD(zrnum, subcmd).arg1, ZCMD(zrnum, subcmd).arg2,
+              ZCMD(zrnum, subcmd).arg3, ZCMD(zrnum, subcmd).arg4);
       break;
     case 'T':
       fprintf(zone_file, "T %d %d QQ%02d QQ%02d \t(%s)\n", ZCMD(zrnum, subcmd).if_flag,
@@ -1611,6 +1639,10 @@ static int export_save_rooms(zone_rnum zrnum)
               dflag = 2;
             else
               dflag = 1;
+            if (IS_SET(R_EXIT(room, j)->exit_info, EX_HIDDEN))
+              dflag += 2;
+            if (IS_SET(R_EXIT(room, j)->exit_info, EX_BLOCKED))
+              dflag += 4;
           }
           else
             dflag = 0;

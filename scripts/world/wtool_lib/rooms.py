@@ -129,7 +129,7 @@ def _parse_exit(
     )
     return True
   door_flags, key_vnum, destination = values
-  if door_flags not in {0, 1, 2, 3, 4}:
+  if door_flags not in set(range(9)):
     result.findings.append(
         finding(
             "WLD013",

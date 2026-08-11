@@ -355,8 +355,9 @@
 #define EX_LOCKED_HARD (1 << 8)   /**< The door is locked, hard difficulty to pick. */
 #define EX_LOCKED_EASY (1 << 9)   /**< The door is locked, easy to pick */
 #define EX_HIDDEN_EASY (1 << 10)
+#define EX_BLOCKED (1 << 11) /**< Exit is blocked by a reset-controlled obstruction. */
 /** The total number of Exit Bits */
-#define NUM_EXIT_BITS 11
+#define NUM_EXIT_BITS 12
 
 /* Sector types: used in room_data.sector_type */
 #define SECT_INSIDE 0         /**< Indoors, connected to SECT macro. */

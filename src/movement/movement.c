@@ -1035,6 +1035,8 @@ int perform_move_full(struct char_data *ch, int dir, int need_specials_check, bo
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if ((!EXIT(ch, dir) && !buildwalk(ch, dir)) || EXIT(ch, dir)->to_room == NOWHERE)
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
+  else if (EXIT_FLAGGED(EXIT(ch, dir), EX_BLOCKED) && GET_LEVEL(ch) < LVL_IMMORT)
+    send_to_char(ch, "The way is blocked.\r\n");
   else if (EXIT_FLAGGED(EXIT(ch, dir), EX_HIDDEN) && GET_LEVEL(ch) < LVL_IMMORT)
     send_to_char(ch, "Alas, you cannot go that way...\r\n");
   else if (char_has_mud_event(ch, eFALLING))

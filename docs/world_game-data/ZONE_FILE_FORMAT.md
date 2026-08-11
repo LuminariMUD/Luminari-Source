@@ -142,12 +142,16 @@ document about rooms.
 | `G` | Give an object to the last mobile loaded | obj vnum, max existing, [load %] |
 | `E` | Equip the last mobile loaded | obj vnum, max existing, wear position, [load %] |
 | `D` | Set the state of a door | room vnum, direction, state |
-| `R` | Remove an object from a room | room vnum, obj vnum |
+| `R` | Remove an object from a room | room vnum, obj vnum, [remove %] |
 | `T` | Attach a trigger | trigger target type, trigger vnum, target vnum |
 | `V` | Assign a DG script variable | target type, context, var name, var value |
 | `J` | Jump over the following lines | number of lines, [chance %] |
 | `I` | Load random treasure onto a mobile | chance %, plus a third ignored number - see below |
 | `L` | Load random treasure into a container | non-functional, see below |
+| `K` | Apply an RoL legacy door bitmask | room vnum, direction, bitmask, chance % |
+| `F` | Set RoL mobile relationship | room vnum, leader mob vnum, follower mob vnum, ignored % |
+| `X` | Remove an RoL mobile instance | room vnum or `-1`, mob vnum, combat guard, chance % |
+| `C` | Test an RoL calendar predicate | hour, day, weekday, month |
 | `S` | End of command list | none |
 | `*` | Comment; the whole line is ignored | none |
 
@@ -159,6 +163,11 @@ number, it defaults to **100** - the command always runs.
 
 `max existing` caps how many of that prototype may exist world-wide before the
 command is skipped. A `0` here means "load only at boot time".
+
+`R` retains its historical three-number form. In that form it is unconditional
+and preserves the legacy target result-chain behavior. The optional fourth number
+is an explicit 0-100 removal chance used by converted RoL data; that form reports
+success to the dependency chain only when an object was actually removed.
 
 ### Door States
 
@@ -189,6 +198,29 @@ Directions are the standard `0` north, `1` east, `2` south, `3` west, `4` up,
 `5` down. A `D` command naming a direction with no exit logs a `ZONE ERROR` and
 is skipped - it does not abort the boot.
 
+### RoL conversion compatibility commands
+
+`K`, `F`, `X`, and `C` are deterministic converter output formats. They are
+preserved by zone saves and exports, but the interactive `zedit` command creator
+does not author them. Do not hand-add them to ordinary target zones.
+
+- `K <if> <room> <direction> <bitmask> <chance>` applies source-compatible door
+  state bits. Bits 0-1 select open, closed, or locked; bit 2 hides the exit; bit 3
+  blocks movement. Source trap-activation bit 4 is not represented by this command.
+- `F <mode> <room> <leader> <follower> <ignored-chance>` establishes follow,
+  group, or mount relationships. The first numeric field is mode 0-3, not an
+  ordinary dependency flag, and `F` does not alter the reset result chain.
+- `X <if> <room> <mobile> <combat-guard> <chance>` removes one matching mobile
+  from a room. Room `-1` removes all matching world instances. A nonzero guard
+  leaves fighting instances intact.
+- `C <if> <hour> <day> <weekday> <month>` pushes a calendar predicate result.
+  Hour `-1` and zero date fields are wildcards. This is deliberately distinct
+  from target `T`, which attaches a DG trigger.
+
+Room exit serialization also accepts door flag values 5-8. These are the usual
+door values 1-4 plus a blocked-movement marker and are used by converted source
+room exits.
+
 ## Parser Gotchas
 
 These are behaviors of `load_zones()` that are easy to trip over and produce
@@ -200,7 +232,8 @@ The parser reads the file twice. The first pass counts commands by testing
 `buf[0]` directly:
 
 ```c
-if ((strchr("MOPGERDTVJIL", buf[0]) && buf[1] == ' ') || (buf[0] == 'S' && buf[1] == '\0'))
+if ((strchr("MOPGERDTVJILFKXC", buf[0]) && buf[1] == ' ') ||
+    (buf[0] == 'S' && buf[1] == '\0'))
 ```
 
 The second pass calls `skip_spaces()` before reading the command character.
@@ -217,15 +250,14 @@ with nothing after it.
 
 ### `I` takes three arguments, not two
 
-`load_zones()` dispatches on `strchr("MOGEPDTVJL", command)`. Note that `I` and
-`R` are **absent** from that string, so both fall through to the generic
-three-argument branch before their `case` labels are ever reached. The
-`case 'I'` and `case 'R'` blocks in the switch are unreachable.
+`load_zones()` dispatches on `strchr("MOGEPDTVJLFKXC", command)`. Note that `I`
+is **absent** from that string, so it falls through to the generic three-argument
+branch before its `case` label is reached. The `case 'I'` block in the switch is
+unreachable.
 
-For `R` this is harmless - the generic branch parses exactly the three
-arguments `R` wants. For `I` it is not: the switch case expects two arguments,
-but the generic branch demands three, so a two-argument `I` line fails to parse
-and aborts the boot. Write `I` with three numbers.
+The `I` switch case expects two arguments, but the generic branch demands three,
+so a two-argument `I` line fails to parse and aborts the boot. Write `I` with
+three numbers.
 
 This is a source-level bug, not a documentation quirk. It is recorded in
 [known-issues.md](../known-issues.md).

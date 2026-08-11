@@ -272,6 +272,16 @@ APPLY_MAP = {
     52: 13,
 }
 
+EQUIPMENT_POSITION_MAP = {
+    **{position: position for position in range(18)},
+    18: 26,  # eyes
+    19: 22,  # face
+    20: 24,  # right ear
+    21: 25,  # left ear
+    22: 23,  # quiver/ammo pouch
+    23: 27,  # badge/insignia
+}
+
 CLASS_MAP = {
     0: 0,
     1: 3,
@@ -448,7 +458,8 @@ def _exit_flags(source_flags: int) -> int:
   hidden = bool(source_flags & (1 << 6))
   if not is_door:
     return 0
-  return 1 + int(pickproof) + (2 if hidden else 0)
+  blocked = bool(source_flags & (1 << 7))
+  return 1 + int(pickproof) + (2 if hidden else 0) + (4 if blocked else 0)
 
 
 def emit_room(
@@ -730,4 +741,170 @@ def emit_object(
       diagnostics.append(
           f"legacy object trap requires target trap classification at source line {directive['line']}"
       )
+  return TransformResult("".join(lines), diagnostics)
+
+
+def _reset_probability(command: str, arguments: list[int]) -> int:
+  if command in {"G", "R"}:
+    value = arguments[3] if len(arguments) >= 4 else 100
+  else:
+    value = arguments[4] if len(arguments) >= 5 else 100
+  return min(100, max(0, value))
+
+
+def _emit_reset(
+    directive: dict[str, object],
+    resolve: IdentityResolver,
+) -> tuple[str | None, list[str]]:
+  command = str(directive["token"])
+  arguments = [int(value) for value in directive.get("arguments", [])]
+  line = int(directive["line"])
+  diagnostics: list[str] = []
+
+  try:
+    if command in {"M", "O", "P", "E"}:
+      if len(arguments) < 4:
+        raise ValueError("requires four leading arguments")
+      dependency, prototype, maximum, destination = arguments[:4]
+      target_kind = "mob" if command == "M" else "obj"
+      prototype = resolve(target_kind, prototype)
+      if command in {"M", "O"}:
+        destination = resolve("wld", destination) if destination >= 0 else destination
+      elif command == "P":
+        destination = resolve("obj", destination)
+      else:
+        mapped_position = EQUIPMENT_POSITION_MAP.get(destination)
+        if mapped_position is None:
+          raise ValueError(f"has unsupported equipment position {destination}")
+        destination = mapped_position
+      probability = _reset_probability(command, arguments)
+      return (
+          f"{command} {dependency} {prototype} {maximum} {destination} {probability}\n",
+          diagnostics,
+      )
+
+    if command == "G":
+      if len(arguments) < 3:
+        raise ValueError("requires three leading arguments")
+      dependency, prototype, maximum = arguments[:3]
+      return (
+          f"G {dependency} {resolve('obj', prototype)} {maximum} "
+          f"{_reset_probability(command, arguments)}\n",
+          diagnostics,
+      )
+
+    if command == "D":
+      if len(arguments) < 4:
+        raise ValueError("requires four leading arguments")
+      dependency, room, direction, state = arguments[:4]
+      probability = _reset_probability(command, arguments)
+      if 0 <= state <= 2 and probability == 100:
+        return f"D {dependency} {resolve('wld', room)} {direction} {state}\n", diagnostics
+      if state & 0x10:
+        diagnostics.append(
+            f"excluded legacy door-trap activation bit at source line {line}; "
+            "the target exit trap runtime has no equivalent payload"
+        )
+        state &= ~0x10
+      return (
+          f"K {dependency} {resolve('wld', room)} {direction} {state} {probability}\n",
+          diagnostics,
+      )
+
+    if command == "R":
+      if len(arguments) < 3:
+        raise ValueError("requires three leading arguments")
+      dependency, room, prototype = arguments[:3]
+      return (
+          f"R {dependency} {resolve('wld', room)} {resolve('obj', prototype)} "
+          f"{_reset_probability(command, arguments)}\n",
+          diagnostics,
+      )
+
+    if command == "F":
+      if len(arguments) < 4:
+        raise ValueError("requires four leading arguments")
+      mode, room, leader, follower = arguments[:4]
+      if mode not in {0, 1, 2, 3}:
+        raise ValueError(f"has unsupported follow mode {mode}")
+      return (
+          f"F {mode} {resolve('wld', room)} {resolve('mob', leader)} "
+          f"{resolve('mob', follower)} 100\n",
+          diagnostics,
+      )
+
+    if command == "X":
+      if len(arguments) < 3:
+        raise ValueError("requires three leading arguments")
+      dependency, room, prototype = arguments[:3]
+      combat_guard = arguments[3] if len(arguments) >= 4 else 0
+      target_room = resolve("wld", room) if room >= 0 else -1
+      return (
+          f"X {dependency} {target_room} {resolve('mob', prototype)} "
+          f"{combat_guard} {_reset_probability(command, arguments)}\n",
+          diagnostics,
+      )
+
+    if command == "T":
+      if len(arguments) < 4:
+        raise ValueError("requires dependency, hour, day, and weekday")
+      dependency, hour, day, weekday = arguments[:4]
+      month = arguments[4] if len(arguments) >= 5 else 0
+      return f"C {dependency} {hour} {day} {weekday} {month}\n", diagnostics
+  except (KeyError, ValueError) as error:
+    diagnostics.append(f"excluded malformed {command} reset at source line {line}: {error}")
+    return None, diagnostics
+
+  diagnostics.append(f"excluded unsupported {command} reset at source line {line}")
+  return None, diagnostics
+
+
+def emit_zone(
+    record: RolRecord,
+    destination_vnum: int,
+    destination_bottom: int,
+    resolve: IdentityResolver,
+) -> TransformResult:
+  """Emit a target zone and its normalized reset stream."""
+
+  diagnostics: list[str] = []
+  strings = record.values.get("strings", {})
+  name, text_diagnostics = convert_text(strings.get("name") or record.identity or "RoL zone")
+  diagnostics.extend(text_diagnostics)
+  name = name.replace("~", "-")
+  header = list(record.values.get("header", []))
+  if len(header) < 4:
+    return TransformResult("", ["zone header has fewer than four numeric fields"])
+  destination_top = resolve("wld", int(header[0]))
+  lifespan = min(240, max(0, int(header[1])))
+  source_reset_mode = int(header[2])
+  reset_mode = source_reset_mode if source_reset_mode in {0, 1, 2} else 1
+  if source_reset_mode not in {0, 1, 2}:
+    diagnostics.append(
+        f"source reset mode {source_reset_mode} mapped to target occupied-zone mode 1"
+    )
+  source_flags = int(header[3])
+  target_flags = {5} if source_flags & (16 | 64 | 128) else set()
+  if source_flags & ~(16 | 64 | 128):
+    diagnostics.append(
+        f"source zone flags without target zone equivalents: {source_flags & ~(16 | 64 | 128)}"
+    )
+
+  lines = [f"#{destination_vnum}\n", "RoL conversion~\n", f"{name}~\n"]
+  if target_flags:
+    lines.append(
+        f"{destination_bottom} {destination_top} {lifespan} {reset_mode} "
+        f"{_encoded(target_flags)} -1 -1 1 0 0 0\n"
+    )
+  else:
+    lines.append(f"{destination_bottom} {destination_top} {lifespan} {reset_mode}\n")
+
+  for directive in record.directives:
+    if directive["token"] not in {"M", "O", "P", "G", "E", "D", "R", "F", "X", "T"}:
+      continue
+    emitted, reset_diagnostics = _emit_reset(directive, resolve)
+    diagnostics.extend(reset_diagnostics)
+    if emitted is not None:
+      lines.append(emitted)
+  lines.extend(["S\n", "$\n"])
   return TransformResult("".join(lines), diagnostics)

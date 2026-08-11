@@ -156,7 +156,11 @@ static room_rnum add_room_internal(struct room_data *room, bool persistent)
         break;
       case 'D':
       case 'R':
+      case 'F':
+      case 'K':
+      case 'X':
         ZCMD(i, j).arg1 += (ZCMD(i, j).arg1 != (int)NOWHERE && ZCMD(i, j).arg1 >= (int)found);
+        break;
       case 'G':
       case 'P':
       case 'E':
@@ -321,10 +325,14 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
         break;
       case 'D':
       case 'R':
+      case 'F':
+      case 'K':
+      case 'X':
         if (ZCMD(zone, j).arg1 == (int)rnum)
           ZCMD(zone, j).command = '*'; /* Cancel command. */
         else if (ZCMD(zone, j).arg1 > (int)rnum)
           ZCMD(zone, j).arg1 -= (ZCMD(zone, j).arg1 != (int)NOWHERE);
+        break;
       case 'G':
       case 'P':
       case 'E':
@@ -519,6 +527,8 @@ int save_rooms(zone_rnum rzone)
 
             if (IS_SET(R_EXIT(room, j)->exit_info, EX_HIDDEN))
               dflag += 2;
+            if (IS_SET(R_EXIT(room, j)->exit_info, EX_BLOCKED))
+              dflag += 4;
           }
           else
             dflag = 0;

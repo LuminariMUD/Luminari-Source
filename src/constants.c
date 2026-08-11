@@ -949,9 +949,19 @@ CHECK_TABLE_SIZE(zone_bits, NUM_ZONE_FLAGS + 1);
 /** Exit bits for doors.
  * @pre Must be in the same order as the defines.
  * Must end array with a single newline. */
-const char *exit_bits[] = {"Door",          "Closed",          "Locked",        "Pickproof",
-                           "Hidden",        "Hidden (medium)", "Hidden (hard)", "Locked (medium)",
-                           "Locked (hard)", "Locked (easy)",   "Hidden (easy)", "\n"};
+const char *exit_bits[] = {"Door",
+                           "Closed",
+                           "Locked",
+                           "Pickproof",
+                           "Hidden",
+                           "Hidden (medium)",
+                           "Hidden (hard)",
+                           "Locked (medium)",
+                           "Locked (hard)",
+                           "Locked (easy)",
+                           "Hidden (easy)",
+                           "Blocked",
+                           "\n"};
 CHECK_TABLE_SIZE(exit_bits, NUM_EXIT_BITS + 1);
 
 /** Description of the room sector type.

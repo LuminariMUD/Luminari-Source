@@ -392,6 +392,9 @@ void remove_room_zone_commands(zone_rnum zone, room_rnum room_num)
       break;
     case 'D':
     case 'R':
+    case 'F':
+    case 'K':
+    case 'X':
       cmd_room = zone_table[zone].cmd[subcmd].arg1;
       break;
     default:
@@ -574,8 +577,39 @@ int save_zone(zone_rnum zone_num)
       arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
       arg2 = obj_index[ZCMD(zone_num, subcmd).arg2].vnum;
       comment = obj_proto[ZCMD(zone_num, subcmd).arg2].short_description;
-      arg3 = -1;
+      arg3 = ZCMD(zone_num, subcmd).arg4 ? ZCMD(zone_num, subcmd).arg3 : -1;
       arg4 = -1;
+      break;
+    case 'F':
+      arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
+      arg2 = mob_index[ZCMD(zone_num, subcmd).arg2].vnum;
+      arg3 = mob_index[ZCMD(zone_num, subcmd).arg3].vnum;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = "RoL follow/group/mount";
+      break;
+    case 'K':
+      arg1 = world[ZCMD(zone_num, subcmd).arg1].number;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = "RoL legacy door state";
+      break;
+    case 'X':
+      if (ZCMD(zone_num, subcmd).arg1 == -1)
+        arg1 = -1;
+      else
+        arg1 = (int)world[ZCMD(zone_num, subcmd).arg1].number;
+      arg2 = mob_index[ZCMD(zone_num, subcmd).arg2].vnum;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = "RoL mobile removal";
+      break;
+    case 'C':
+      arg1 = ZCMD(zone_num, subcmd).arg1;
+      arg2 = ZCMD(zone_num, subcmd).arg2;
+      arg3 = ZCMD(zone_num, subcmd).arg3;
+      arg4 = ZCMD(zone_num, subcmd).arg4;
+      comment = "RoL calendar predicate";
       break;
     case 'T':
       arg1 = ZCMD(zone_num, subcmd).arg1;                   /* trigger type */
