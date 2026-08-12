@@ -6,6 +6,61 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted Ethereal floating pools
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all four active `floating_pool` bindings for converted Ethereal objects
+  2022706, 2022707, 2022710, and 2022711 through the persistent, object-owned
+  `RoL Floating Pool` procedure and required `ITEM_AUTOPROC` gateway.
+- Implemented the source-documented 12 percent movement chance rather than retaining
+  the source implementation's inverted predicate, which moved the pools 88 percent of
+  the time. This is an explicit repair of an obvious source defect under the locked
+  conversion policy.
+- Preserved random selection among eligible north, east, south, west, up, and down
+  exits. Invalid, closed, hidden, blocked, and `ROOM_NOMOB` destinations are excluded,
+  with source-style departure and arrival presentation around the object move.
+- Corrected the shared object auto-pulse gateway so room and contained objects dispatch
+  once per pulse with no actor; equipped and carried objects retain their existing
+  worn-first and carried-fallback contract.
+- Registered the procedure and persistence/index contracts, taught the converter its
+  canonical target name and required flag, and updated builder help, database-first
+  help, manual testing, OLC inventories, converter fixtures, and characterization tests.
+- Reconciliation now resolves 590 of 1,147 active direct bindings and 98 of 562 source
+  handlers; 557 bindings and 464 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 568 resolved / 280 pending because these are object-owned bindings.
+- Archived the twenty-fifth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 23-55 Phase 6 sessions and 71-131 total sessions
+  for Phases 6-8, or 142-524 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: e3600f16
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-floating-pool
+Reconciliation run: rol-phase6-special-c7ae6f16963a5f16
+Active direct bindings: 1,147
+Direct bindings resolved: 590
+Direct bindings pending: 557
+Source handlers resolved: 98
+Source handlers pending: 464
+Floating-pool bindings resolved: 4
+Native adapted bindings: 215
+ACT_SPEC records resolved: 568
+ACT_SPEC records pending: 280
+Complete world-tool suite: 277 passed
+Production-linked CuTest suite: 636 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 557 direct bindings across 464 source handlers.
+
 ## 2026-08-12 - Phase 6 converted Icecrag designated followers
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
