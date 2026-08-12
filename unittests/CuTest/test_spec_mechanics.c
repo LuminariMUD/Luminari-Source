@@ -26,11 +26,31 @@
 #include "../../src/spec/spec_phrase.h"
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_lavatubes.h"
+#include "../../src/spec/spec_rol_tarrasque.h"
 #include "../../src/spec/spec_rol_totem.h"
 #include "../../src/spec/spec_rol_utility_objects.h"
 
 #include <limits.h>
 #include <string.h>
+
+void Test_spec_rol_tarrasque_preserves_loot_weights_and_corpse_aliases(CuTest *tc)
+{
+  CuAssertIntEquals(tc, -1, rol_tarrasque_loot_vnum_for_roll(0));
+  CuAssertIntEquals(tc, 2002605, rol_tarrasque_loot_vnum_for_roll(1));
+  CuAssertIntEquals(tc, 2002605, rol_tarrasque_loot_vnum_for_roll(6));
+  CuAssertIntEquals(tc, 2002606, rol_tarrasque_loot_vnum_for_roll(7));
+  CuAssertIntEquals(tc, 2002606, rol_tarrasque_loot_vnum_for_roll(12));
+  CuAssertIntEquals(tc, 2002607, rol_tarrasque_loot_vnum_for_roll(13));
+  CuAssertIntEquals(tc, 2002607, rol_tarrasque_loot_vnum_for_roll(18));
+  CuAssertIntEquals(tc, 2002608, rol_tarrasque_loot_vnum_for_roll(19));
+  CuAssertIntEquals(tc, 2002608, rol_tarrasque_loot_vnum_for_roll(20));
+  CuAssertIntEquals(tc, -1, rol_tarrasque_loot_vnum_for_roll(21));
+
+  CuAssertTrue(tc, rol_tarrasque_corpse_keyword(" corpse", "corpse tarrasque remains"));
+  CuAssertTrue(tc, rol_tarrasque_corpse_keyword("tarrasque", "corpse tarrasque remains"));
+  CuAssertTrue(tc, !rol_tarrasque_corpse_keyword("dragon", "corpse tarrasque remains"));
+  CuAssertTrue(tc, !rol_tarrasque_corpse_keyword(NULL, "corpse tarrasque remains"));
+}
 
 struct spec_mechanics_fixture
 {

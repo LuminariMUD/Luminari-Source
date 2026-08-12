@@ -309,6 +309,10 @@ ADAPTED_HANDLER_NAMES = {
     "crystal_spike": "RoL Lavatubes Object",
     "skeleton_key": "RoL Lavatubes Object",
     "automaton_trapdoor": "RoL Lavatubes Room",
+    "tarrasque_swallow_smack": "RoL Tarrasque Encounter",
+    "tarrasque_die": "RoL Tarrasque Encounter",
+    "tarrasque_stomache": "RoL Tarrasque Encounter",
+    "tarrasque_corpse_enter": "RoL Tarrasque Encounter",
     "Tiamat_Crimson_Fury": "RoL Monster Combat",
     "barbarian_spiritist": "RoL Monster Combat",
     "dranum_jurtrem": "RoL Monster Combat",
@@ -1232,6 +1236,8 @@ def compile_special_bindings(
           "lighthouse_one",
           "lostTotemRestorer",
           "sister_knight",
+          "tarrasque_die",
+          "tarrasque_swallow_smack",
           "ticket_taker",
           "waterdeep_guard_three",
           "undead_ghast",
@@ -1248,6 +1254,7 @@ def compile_special_bindings(
           "fw_ruby_monocle",
           "item_loot_block",
           "obj_drain",
+          "tarrasque_stomache",
           "thp_necroChild",
       } or (
           persisted_name == "RoL Weapon Proc"

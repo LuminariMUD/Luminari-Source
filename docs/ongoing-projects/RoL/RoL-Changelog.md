@@ -9,6 +9,71 @@ superseded [feature-first plan](plan-archive/REALMS_OF_LUMINARI_FEATURE_FIRST_CO
 [zone conversion scope](plan-archive/REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md) are
 preserved in `plan-archive/`.
 
+## 2026-08-13 - Phase 6 Tarrasque encounter
+
+Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress
+
+### Delivered
+
+- Added the typed, builder-visible `RoL Tarrasque Encounter` procedure for source mobile 2601
+  and objects 2604 and 2610. The encounter preserves periodic healing, pet execution, ordered
+  swallow/tail-fling/tail-sweep combat, stomach acid, casting and preparation interruption,
+  corpse entry, special death loot, and the return portal.
+- Added a flow-bearing typed mobile-death event and invoked it from NPC death processing only
+  when a registered procedure advertises the event. A successful handler suppresses the
+  ordinary corpse and extracts the mobile after its replacement death behavior completes.
+- Preserved the source weighted 6/6/6/2 loot distribution and adapted the source portal's old
+  single-value destination to the target's normal portal schema. The return portal records the
+  death-room VNUM in both target destination fields.
+- Routed encounter damage, saves, acid resistance, stun eligibility, and random relocation
+  through target-native safety contracts. The source random-teleport meaning is implemented by
+  bounded valid-destination selection because the target `teleport` spell has different
+  semantics.
+- Added exact converter dispositions for `tarrasque_swallow_smack`, `tarrasque_die`,
+  `tarrasque_stomache`, and `tarrasque_corpse_enter`. The converter supplies `MOB_SPEC` to the
+  mobile and `ITEM_AUTOPROC` only to the stomach-acid object.
+- Added registry, persistence, owner-aware OLC, event-contract, dispatch, loot-weight,
+  corpse-alias, transformation, and reconciliation coverage. The production-linked suite now
+  contains 663 tests and the world-tool suite contains 319 tests.
+- Regenerated the corrected Phase 6 evidence. Resolution increases from 1,246 to 1,250 static
+  bindings and from 538 to 542 direct handlers, leaving 471 bindings across 253 handlers in 35
+  source files. The independent `ACT_SPEC` cross-check remains 798 resolved and 50 pending.
+- Retained the 18-30-session Phase 6 envelope. This encounter-specific four-handler closure is
+  the first corrected-denominator throughput sample; reforecast waits for at least three
+  corrected batches.
+
+### Acceptance evidence
+
+```text
+Delivery commit: PENDING_DELIVERY_COMMIT
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260813-tarrasque
+Reconciliation run: rol-phase6-special-de980a28a3be846e
+Active direct bindings: 1,721
+Direct bindings resolved: 1,250
+Direct bindings pending: 471
+Source handlers resolved: 542
+Source handlers pending: 253
+Additional handler families resolved: 4
+Additional direct bindings resolved: 4
+Native adapted bindings: 761
+Native adapted composable bindings: 165
+ACT_SPEC records resolved: 798
+ACT_SPEC records pending: 50
+Complete world-tool suite: 319 passed
+Production-linked CuTest suite: 663 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 1735ea1cadc25a1776aa09ec56f0ef3c6afde2e6
+Installed SHA-256: e303a922907e55964b8cde3d596fccff509d6f9cdf809c6224c4c31377f6c89e
+Evidence artifact hashes: 7 verified
+Repeat reconciliation generation: byte-identical
+Live target writes: 0
+```
+
+Phase 6 continues with a second source-local or behavior-shared batch from the remaining
+corrected inventory. The estimate will be recalibrated after at least three such batches.
+
 ## 2026-08-13 - Phase 6 special discovery repair
 
 Status: Completed checkpoint; corrected Phase 6 binding reconciliation in progress

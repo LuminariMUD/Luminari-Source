@@ -251,7 +251,7 @@ ledger measures:
 
 - 1,813 static candidates, of which 92 are preprocessor-excluded and 1,721 are live;
 - 1,098 mobile, 323 object, and 300 room bindings across 795 direct handler names;
-- 1,246 resolved and 475 pending live static bindings, with 538 resolved and 257 pending
+- 1,250 resolved and 471 pending live static bindings, with 542 resolved and 253 pending
   direct handler names;
 - two resolved dynamic paths representing 5,078 quest and 453 shop binding instances;
 - 7,252 total active static and dynamic binding instances across 797 handler names; and
@@ -261,7 +261,7 @@ ledger measures:
 The corrected dependent evidence is Phase 1 run `rol-phase1-237602d3ade48138`, Phase 2
 run `rol-phase2-c93b8c4610b36d1e`, Phase 5 run
 `rol-phase5-audit-cec58661a4f21a2a`, and Phase 6 run
-`rol-phase6-special-df585be75f0574e3`. The older 1,112/1,147 binding, 538/562 handler,
+`rol-phase6-special-de980a28a3be846e`. The older 1,112/1,147 binding, 538/562 handler,
 and 830/848 `ACT_SPEC` counts are historical checkpoints only.
 
 ## 4. Canonical identity and rehome contract
@@ -721,10 +721,10 @@ forecasts are in [RoL-Changelog.md](RoL-Changelog.md).
 
 The call-path-aware extractor, macro resolution, dynamic shop/quest dispositions,
 regression fixtures, and dependent Phase 1, 2, 5, and 6 regeneration are complete. The
-remaining measured scope is 475 live static bindings across 257 direct handler names in
-36 source files. Of those handlers, 190 have one binding, 67 have multiple bindings, and
-seven have at least ten bindings. Start with the Tarrasque encounter closure, then group
-the large Undermountain, planar, Avernus, guild, Scornubel, and Darkhold families by
+remaining measured scope is 471 live static bindings across 253 direct handler names in
+35 source files. The first corrected-denominator closure completed the four-handler,
+four-binding Tarrasque encounter and added the missing typed mobile-death gateway. Next,
+group the large Undermountain, planar, Avernus, guild, Scornubel, and Darkhold families by
 shared runtime behavior.
 
 Preserve the six already locked malformed or ignored rows as explicit, logged
@@ -738,9 +738,12 @@ gate at substantial checkpoints. Add a new source file to both `Makefile.am` and
 **Exit gate:** every active binding is kept, patched, adapted, ported, or minimally
 excluded with behavior evidence. The corrected Phase 6 planning envelope is 18-30
 sessions: the six-to-thirteen-session arithmetic minimum assumes every batch sustains
-20-45 related families, while the published range allows the 190 singleton handlers and
+20-45 related families, while the published range allows the 186 singleton handlers and
 encounter-specific closures to require smaller batches. Replace this envelope with
-measured throughput as the corrected families close.
+measured throughput as the corrected families close. The Tarrasque encounter is the
+first measured closure but is not representative of a regular shared-family batch, so
+the 18-30-session envelope remains unchanged until at least three corrected batches are
+complete.
 
 ### 8.2 Phase 6.5: Canonical VNUM rebase and reference closure
 

@@ -83,6 +83,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Source Periodic",
     "RoL Stateful Periodic",
     "RoL Lavatubes Mobile",
+    "RoL Tarrasque Encounter",
     "RoL Scheduled Mobile",
 };
 
@@ -122,6 +123,7 @@ static const char *const spec_object_names[] = {
     "RoL Ship Control",
     "RoL Weapon Proc",
     "RoL Lavatubes Object",
+    "RoL Tarrasque Encounter",
     "RoL Utility Object",
 };
 

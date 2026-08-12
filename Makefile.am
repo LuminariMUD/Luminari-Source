@@ -216,6 +216,7 @@ circle_SOURCES = \
 	src/spec/spec_rol_residual_mobile.c \
 	src/spec/spec_rol_conversion.c \
 	src/spec/spec_rol_lavatubes.c \
+	src/spec/spec_rol_tarrasque.c \
 	src/spec/spec_rol_utility_objects.c \
 	src/spec/spec_rol_periodic_profiles.inc \
 	src/spec/spec_rol_state_periodic_profiles.inc \

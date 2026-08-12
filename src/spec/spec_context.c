@@ -32,6 +32,7 @@ static bool spec_context_owner_supports_event(spec_owner_mask owner_type, spec_e
     return true;
   case SPEC_EVENT_MOBILE_ACTIVITY:
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
+  case SPEC_EVENT_MOBILE_DEATH:
   case SPEC_EVENT_MOUNT_CHARGE:
     return owner_type == SPEC_OWNER_MOBILE;
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
@@ -49,7 +50,8 @@ static bool spec_context_owner_supports_event(spec_owner_mask owner_type, spec_e
 
 static bool spec_context_event_requires_actor(spec_event_mask event)
 {
-  return event != SPEC_EVENT_OBJECT_AUTO_PULSE && event != SPEC_EVENT_MOVING_ROOM_RELOCATION;
+  return event != SPEC_EVENT_OBJECT_AUTO_PULSE && event != SPEC_EVENT_MOVING_ROOM_RELOCATION &&
+         event != SPEC_EVENT_MOBILE_DEATH;
 }
 
 static bool spec_context_event_requires_target(spec_event_mask event)

@@ -65,6 +65,61 @@ class RolTransformTests(unittest.TestCase):
     path.write_text(text + "$~\n", encoding="ascii", newline="\n")
     return path
 
+  def test_tarrasque_encounter_bindings_share_typed_contract(self) -> None:
+    bindings = [
+        {
+            "basename": "tarrasque",
+            "record_type": "mobile",
+            "source_vnum": 2601,
+            "source_handler": "tarrasque_swallow_smack",
+        },
+        {
+            "basename": "tarrasque",
+            "record_type": "mobile",
+            "source_vnum": 2601,
+            "source_handler": "tarrasque_die",
+        },
+        {
+            "basename": "tarrasque",
+            "record_type": "object",
+            "source_vnum": 2610,
+            "source_handler": "tarrasque_stomache",
+        },
+        {
+            "basename": "tarrasque",
+            "record_type": "object",
+            "source_vnum": 2604,
+            "source_handler": "tarrasque_corpse_enter",
+        },
+    ]
+
+    compiled = compile_special_bindings(bindings, 2_100_000, _resolver, [])
+    mobile_bindings = [
+        binding
+        for binding in compiled.native_bindings
+        if binding.source_record_type == "mobile"
+    ]
+    object_bindings = {
+        binding.source_vnum: binding
+        for binding in compiled.native_bindings
+        if binding.source_record_type == "object"
+    }
+
+    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Tarrasque Encounter"
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertEqual(2, len(mobile_bindings))
+    self.assertTrue(all(binding.required_flag_bits == (0,) for binding in mobile_bindings))
+    self.assertEqual((44,), object_bindings[2610].required_flag_bits)
+    self.assertEqual((), object_bindings[2604].required_flag_bits)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_color_and_line_endings_are_canonicalized(self) -> None:
     text, diagnostics = convert_text("&+RRed&N\r\nplain")
     self.assertEqual("@RRed@n\nplain", text)

@@ -3,7 +3,7 @@
 - Updated: 2026-08-13
 - Environment: development
 - Branch: `master`
-- Current task: reconcile the corrected Phase 6 pending inventory; Tarrasque closure first
+- Current task: reconcile the corrected Phase 6 pending inventory; shared-family batch two next
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -105,6 +105,7 @@ Phase 6 utility-service commit: 9d40694b
 Phase 6 scheduled-mobile commit: c8704d86
 Phase 6 Menden-fisherman commit: 33965efc
 Phase 6 special-discovery-repair commit: c2a677a8
+Phase 6 Tarrasque-encounter commit: PENDING_DELIVERY_COMMIT
 ```
 
 The authoritative ignored runs are:
@@ -155,8 +156,8 @@ Phase 5 policy-2 full audit:
   lib/rol-conversion/runs/phase5-policy2-20260813-special-discovery-audit
   rol-phase5-audit-cec58661a4f21a2a
 Phase 6 special reconciliation:
-  lib/rol-conversion/runs/phase6-special-20260813-discovery-repair
-  rol-phase6-special-df585be75f0574e3
+  lib/rol-conversion/runs/phase6-special-20260813-tarrasque
+  rol-phase6-special-de980a28a3be846e
 Phase 6 shared mobile: lib/rol-conversion/runs/phase6-special-20260812-shared-mobile
                        rol-phase6-special-0f4f1274d95a2941
 Phase 6 implicit race: lib/rol-conversion/runs/phase6-special-20260812-race-composition
@@ -662,9 +663,9 @@ Policy:  rol-conversion-policy-2
   preprocessor excludes 92 and leaves 1,721 live bindings. The live owner split is 1,098 mobile,
   323 object, and 300 room bindings across 795 direct handler names; all 795 definitions are
   located.
-- The corrected reconciler resolves 1,246 static bindings and leaves 475 pending. It resolves
-  538 direct handler names and leaves 257 pending across 36 source files. The pending set has
-  190 singleton handlers, 67 multi-binding handlers, and seven handlers with at least ten
+- The corrected reconciler resolves 1,250 static bindings and leaves 471 pending. It resolves
+  542 direct handler names and leaves 253 pending across 35 source files. The pending set has
+  186 singleton handlers, 67 multi-binding handlers, and seven handlers with at least ten
   bindings.
 - Dynamic registration is explicit rather than counted as an unresolved symbolic VNUM. The
   quester path accounts for 5,078 active quest blocks across 5,039 unique hosts, and the
@@ -676,17 +677,27 @@ Policy:  rol-conversion-policy-2
   direct binding and 162 are implicit-only.
 - The prior 1,112/1,147 binding, 538/562 handler, and 830/848 `ACT_SPEC` split is historical
   direct-only evidence and must not be used for progress or forecast claims.
-- The Tarrasque closure is now visible as four pending callbacks:
-  `tarrasque_swallow_smack` and `tarrasque_die` on source mobile 2601,
-  `tarrasque_corpse_enter` on object 2604, and `tarrasque_stomache` on object 2610.
+- The dependency-complete Tarrasque encounter is reconciled through one typed owner-aware
+  procedure. Mobile 2002601 preserves healing, pet execution, swallow, tail-fling, room sweep,
+  and special death behavior; objects 2002604 and 2002610 preserve corpse entry and stomach
+  acid. Death creates the special corpse, weighted internal loot, and a normal-schema return
+  portal while suppressing the ordinary NPC corpse.
+- Phase 6 now has a flow-bearing mobile-death event that is invoked only for registered
+  definitions that advertise that contract. Existing mobile procedures therefore do not gain
+  accidental death calls.
+- Source direct-hit mutation is routed through target-native typed damage, saves, acid
+  resistance, safe stun, and validated random teleport destinations. The source's obsolete
+  random `teleport` spell meaning is preserved by bounded destination selection because the
+  target spell now teleports its caster to a target character instead.
+- The Tarrasque batch closes four direct bindings and four handler names. It is the first
+  corrected-denominator closure, but one encounter-specific sample is not enough to revise the
+  18-30-session estimate; reforecast after at least three corrected batches.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
 1. Reconcile the corrected pending inventory in dependency-complete shared-runtime batches.
-   Treat the Tarrasque mobile, stomach, corpse, portal, and death behavior as one encounter
-   dependency closure rather than four isolated callbacks.
-2. Follow with source-local or behavior-shared groups from Undermountain, planar, Avernus,
+2. Select the next source-local or behavior-shared group from Undermountain, planar, Avernus,
    guild, Scornubel, and Darkhold; do not batch merely by handler name or VNUM proximity.
 3. Preserve record-specific missing-reference repairs for their Phase 7
    dependency-closure batches.
@@ -699,23 +710,23 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Repaired `extract_spec_bindings()` with active call-graph traversal, source-line preservation,
-  macro resolution, cycle-safe wrapper following, and explicit dynamic registrations. Added
-  direct, wrapped, symbolic, excluded, and dynamic regression coverage.
-- Regenerated and hash-verified the authoritative Phase 1, Phase 2, Phase 5, and Phase 6 ignored
-  bundles listed above. All reconciliation accounting gates pass and live target writes remain
-  zero.
-- Repeated the final Phase 6 reconciliation with the same inputs and timestamp; every artifact
-  and the run manifest are byte-identical and reproduce run ID
-  `rol-phase6-special-df585be75f0574e3`.
-- `make test-world-tools` passes 317 tests with zero documentation findings, `make test` passes
-  661 production-linked CuTests, and `make install` succeeds without warnings. The installed
-  binary has ELF build ID `232dd588da93e455de32b496c2ed5a92efa08951` and SHA-256
-  `59f8510f6e1379df99e6e4fef44745397bdc735f8a512c6bed7c07a3bc5c4a3f`; no root-level
-  `circle` remains.
-- The discovery blocker is closed. The corrected Phase 6 denominator is 1,721 live static plus
-  5,531 resolved dynamic binding instances; 475 static bindings across 257 handlers remain.
-- The repair is committed at `c2a677a8`; the archive/documentation checkpoint that records this
-  immutable delivery hash is the only expected follow-up before the Tarrasque batch begins.
-- Next, implement and behavior-test the dependency-complete Tarrasque encounter, regenerate the
-  corrected Phase 6 ledger, and publish the first handler checkpoint against the new denominator.
+- Added the typed `RoL Tarrasque Encounter` procedure and the narrowly advertised mobile-death
+  gateway. The implementation covers source mobile activity/combat/death, object auto-pulse and
+  corpse-entry command behavior, full dependency validation, and ordinary-corpse suppression.
+- Added converter dispositions and required prototype flags for all four Tarrasque callbacks;
+  registry, owner-aware OLC, persistence, event-contract, loot-weight, corpse-alias, gateway,
+  typed-handler, transformation, and reconciliation tests cover the new paths.
+- Regenerated and hash-verified the authoritative Phase 6 bundle at
+  `lib/rol-conversion/runs/phase6-special-20260813-tarrasque`. A same-timestamp repeat was
+  byte-identical and reproduced run ID `rol-phase6-special-de980a28a3be846e`.
+- The corrected Phase 6 denominator remains 1,721 live static plus 5,531 resolved dynamic
+  binding instances. The Tarrasque closure raises static resolution to 1,250 and handler
+  resolution to 542, leaving 471 bindings across 253 handlers in 35 source files.
+- Final validation passed: 319 world-tool tests, 663 production-linked CuTests, zero
+  documentation findings, a warning-free Autotools build/test/install, and no root-level
+  `circle`. Installed build ID `1735ea1cadc25a1776aa09ec56f0ef3c6afde2e6`; SHA-256
+  `e303a922907e55964b8cde3d596fccff509d6f9cdf809c6224c4c31377f6c89e`.
+- No player helpfile changed: the batch adds no new player command or syntax; the encounter's
+  existing `enter` behavior and staff verification contract are documented in the manual matrix.
+- Next, select and implement the second corrected-denominator source-local or behavior-shared
+  batch, then reforecast only after at least three corrected batches provide measured throughput.

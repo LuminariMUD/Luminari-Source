@@ -29,6 +29,7 @@
 #include "spec/spec_rol_conversion.h"
 #include "spec/spec_rol_lavatubes.h"
 #include "spec/spec_rol_pilot.h"
+#include "spec/spec_rol_tarrasque.h"
 #include "spec/spec_rol_totem.h"
 #include "spec/spec_rol_utility_objects.h"
 #include "spec/spec_rooms.h"
@@ -137,6 +138,14 @@ static const struct spec_event_contract rol_room_object_pulse_events[] = {{
     SPEC_PROTOTYPE_ITEM_AUTOPROC,
     SPEC_PLACEMENT_NONE,
 }};
+
+static const struct spec_event_contract rol_tarrasque_events[] = {
+    {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_ACTIVITY, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_COMBAT},
+    {SPEC_EVENT_MOBILE_DEATH, SPEC_PROTOTYPE_MOB_SPEC, SPEC_PLACEMENT_NONE},
+    {SPEC_EVENT_OBJECT_AUTO_PULSE, SPEC_PROTOTYPE_ITEM_AUTOPROC, SPEC_PLACEMENT_NONE},
+};
 
 static const struct spec_event_contract rol_utility_object_events[] = {
     {SPEC_EVENT_COMMAND, SPEC_PROTOTYPE_NONE, SPEC_PLACEMENT_NONE},
@@ -1575,6 +1584,20 @@ static const struct spec_definition spec_definitions[] = {
         .typed_handler = rol_lavatubes_room_typed,
     },
     {
+        .canonical_name = "RoL Tarrasque Encounter",
+        .display_name = "RoL Tarrasque Encounter",
+        .owner_mask = SPEC_OWNER_MOBILE | SPEC_OWNER_OBJECT,
+        .events = rol_tarrasque_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_tarrasque_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Runs the converted Tarrasque combat, stomach acid, special death loot, "
+                       "and corpse entrance as one encounter contract.",
+        .typed_adapter = rol_tarrasque,
+        .typed_handler = rol_tarrasque_typed,
+    },
+    {
         .canonical_name = "RoL Utility Object",
         .display_name = "RoL Utility Object",
         .owner_mask = SPEC_OWNER_OBJECT,
@@ -1727,6 +1750,7 @@ enum
   SPEC_DEFINITION_ROL_LAVATUBES_MOBILE,
   SPEC_DEFINITION_ROL_LAVATUBES_OBJECT,
   SPEC_DEFINITION_ROL_LAVATUBES_ROOM,
+  SPEC_DEFINITION_ROL_TARRASQUE_ENCOUNTER,
   SPEC_DEFINITION_ROL_UTILITY_OBJECT,
   SPEC_DEFINITION_ROL_UTILITY_ROOM,
   SPEC_DEFINITION_ROL_SCHEDULED_MOBILE,
@@ -1852,6 +1876,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_LAVATUBES_MOBILE, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_OBJECT, -1},
     {SPEC_DEFINITION_ROL_LAVATUBES_ROOM, -1},
+    {SPEC_DEFINITION_ROL_TARRASQUE_ENCOUNTER, -1},
     {SPEC_DEFINITION_ROL_UTILITY_OBJECT, -1},
     {SPEC_DEFINITION_ROL_UTILITY_ROOM, -1},
     {SPEC_DEFINITION_ROL_SCHEDULED_MOBILE, -1},
@@ -1943,6 +1968,7 @@ static spec_owner_mask spec_event_owner_mask(spec_event_mask event)
     return SPEC_OWNER_ALL;
   case SPEC_EVENT_MOBILE_ACTIVITY:
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
+  case SPEC_EVENT_MOBILE_DEATH:
   case SPEC_EVENT_MOUNT_CHARGE:
     return SPEC_OWNER_MOBILE;
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
@@ -1964,6 +1990,7 @@ static spec_prototype_flag_mask spec_event_required_prototype_flags(spec_event_m
   {
   case SPEC_EVENT_MOBILE_ACTIVITY:
   case SPEC_EVENT_MOBILE_COMBAT_TURN:
+  case SPEC_EVENT_MOBILE_DEATH:
     return SPEC_PROTOTYPE_MOB_SPEC;
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
     return SPEC_PROTOTYPE_ITEM_AUTOPROC;
@@ -2436,6 +2463,8 @@ const char *spec_event_name(spec_event_mask event)
     return "mounted charge";
   case SPEC_EVENT_MOVING_ROOM_RELOCATION:
     return "moving-room relocation";
+  case SPEC_EVENT_MOBILE_DEATH:
+    return "mobile death";
   default:
     return NULL;
   }

@@ -195,6 +195,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   struct spec_event_context context;
   bool command_stops;
   bool activity_stops;
+  bool death_stops;
   bool auto_pulse_stops;
   bool identify_continues;
   bool weapon_hit_continues;
@@ -211,6 +212,7 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   fixture.returns[2] = 1;
   fixture.returns[3] = 1;
   fixture.returns[4] = 1;
+  fixture.returns[5] = 1;
 
   memset(&context, 0, sizeof(context));
   context.owner_type = SPEC_OWNER_OBJECT;
@@ -228,6 +230,11 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
   context.actor = &fixture.mobiles[0];
   (void)spec_dispatch_legacy(&context, spec_dispatch_record);
   activity_stops = context.flow == SPEC_FLOW_STOP;
+
+  context.event = SPEC_EVENT_MOBILE_DEATH;
+  context.actor = NULL;
+  (void)spec_dispatch_legacy(&context, spec_dispatch_record);
+  death_stops = context.flow == SPEC_FLOW_STOP;
 
   context.event = SPEC_EVENT_OBJECT_AUTO_PULSE;
   context.owner_type = SPEC_OWNER_OBJECT;
@@ -250,9 +257,32 @@ void Test_spec_dispatch_legacy_reports_flow_only_for_flow_bearing_events(CuTest 
 
   CuAssertTrue(tc, command_stops);
   CuAssertTrue(tc, activity_stops);
+  CuAssertTrue(tc, death_stops);
   CuAssertTrue(tc, auto_pulse_stops);
   CuAssertTrue(tc, identify_continues);
   CuAssertTrue(tc, weapon_hit_continues);
+}
+
+void Test_spec_dispatch_mobile_death_skips_unadvertised_handlers(CuTest *tc)
+{
+  struct spec_dispatch_fixture fixture;
+  bool skipped;
+
+  if (!spec_dispatch_begin(&fixture))
+  {
+    CuFail(tc, "unable to initialize dispatch fixture");
+    return;
+  }
+
+  fixture.mob_indexes[0].func = spec_dispatch_record;
+  fixture.return_count = 1;
+  fixture.returns[0] = TRUE;
+  skipped = spec_gateway_mobile_death(&fixture.mobiles[0], &fixture.actor) == FALSE &&
+            fixture.call_count == 0;
+
+  spec_dispatch_end(&fixture);
+
+  CuAssertTrue(tc, skipped);
 }
 
 void Test_spec_dispatch_legacy_tolerates_missing_handler_context_and_owner(CuTest *tc)

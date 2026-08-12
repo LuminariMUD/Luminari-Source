@@ -2458,6 +2458,12 @@ void raw_kill(struct char_data *ch, struct char_data *killer)
   /* final handling, primary difference between npc/pc death */
   if (IS_NPC(ch))
   {
+    if (spec_gateway_mobile_death(ch, killer))
+    {
+      extract_char(ch);
+      return;
+    }
+
     /* added a switch here for special handling of special mobiles -zusuk */
     switch (GET_MOB_VNUM(ch))
     {

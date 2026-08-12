@@ -524,6 +524,20 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
       self.assertEqual("RoL Scheduled Mobile", disposition["target"])
 
+  def test_tarrasque_encounter_has_explicit_dispositions(self) -> None:
+    handlers = (
+        "tarrasque_swallow_smack",
+        "tarrasque_die",
+        "tarrasque_stomache",
+        "tarrasque_corpse_enter",
+    )
+
+    for handler in handlers:
+      disposition = handler_disposition(handler)
+      self.assertEqual("resolved", disposition["status"])
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+      self.assertEqual("RoL Tarrasque Encounter", disposition["target"])
+
   def test_residual_monster_combat_batch_has_explicit_dispositions(self) -> None:
     handlers = (
         "Tiamat_Crimson_Fury",
@@ -590,11 +604,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_246, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(475, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(538, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(257, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(757, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_250, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(471, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(542, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(253, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(761, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           165, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

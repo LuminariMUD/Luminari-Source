@@ -48,6 +48,7 @@ static bool spec_event_uses_flow(spec_event_mask event)
   {
   case SPEC_EVENT_COMMAND:
   case SPEC_EVENT_MOBILE_ACTIVITY:
+  case SPEC_EVENT_MOBILE_DEATH:
   case SPEC_EVENT_OBJECT_AUTO_PULSE:
     return TRUE;
   default:
@@ -282,6 +283,29 @@ void spec_gateway_mobile_combat_turn(struct char_data *mob)
   context.target = FIGHTING(mob);
 
   (void)spec_dispatch(&context, handler);
+}
+
+int spec_gateway_mobile_death(struct char_data *mob, struct char_data *killer)
+{
+  struct spec_event_context context;
+  const struct spec_definition *definition;
+  spec_legacy_handler handler = NULL;
+
+  if (mob == NULL)
+    return 0;
+
+  handler = GET_MOB_SPEC(mob);
+  if (handler == NULL)
+    return 0;
+  definition = spec_registry_find_by_handler(handler);
+  if (!spec_definition_supports_event(definition, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_DEATH))
+    return 0;
+
+  spec_context_init(&context, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_DEATH, mob, killer, 0,
+                    spec_empty_argument);
+  context.target = killer;
+
+  return (spec_dispatch(&context, handler) != 0);
 }
 
 void spec_gateway_object_auto_pulse(struct obj_data *obj)

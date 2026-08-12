@@ -1035,6 +1035,39 @@ These procedures are production-tested and reconciled, but the current five-zone
 does not contain their Lavatubes package. Exercise them only after a Phase 7 staged batch
 supplies the converted records; do not hand-edit them into the pilot.
 
+### Phase 6 converted Tarrasque encounter
+
+- In a dependency-complete Tarrasque stage, confirm mobile 2002601 and objects 2002604 and
+  2002610 all use `RoL Tarrasque Encounter`. The mobile must retain `MOB_SPEC`; stomach-acid
+  object 2002610 must retain `ITEM_AUTOPROC`.
+- Damage the Tarrasque below maximum hit points and observe its activity pulses. A healing
+  pulse adds 25 hit points using the source behavior, including a possible final overshoot.
+- Fight with a disposable player and pet. A pet engaged as the current target must be bitten
+  in half and heal the Tarrasque by 300. Player combat must exercise the ordered one-in-19
+  swallow, one-in-31 tail-fling, and one-in-16 room tail-sweep branches; an earlier branch
+  suppresses later branches for that turn.
+- A surviving swallowed player must stop fighting and casting, move to stomach room 2002661,
+  take the 10d15 impact, and heal the Tarrasque by 200. Stomach acid must pulse for 10d10
+  acid damage against mortal players and pets and independently have a one-in-three chance
+  to interrupt casting and spell preparation. Target-native acid resistance and protection
+  reduce this typed damage.
+- A tail-flung player must stop fighting and casting, move to a valid random mortal teleport
+  destination, become reclining, and receive a two-round stun when eligible. A tail sweep
+  must damage every mortal player and pet in the room with 20d12 bludgeoning damage; the
+  converted Reflex save at source modifier -2 halves the damage.
+- Kill the Tarrasque in a disposable stage. The death event must create special corpse
+  2002604 in the death room, suppress the ordinary NPC corpse, place exactly one weighted
+  loot object (2002605, 2002606, 2002607, or 2002608) in room 2002661, and place portal
+  2002609 there with the death room as its normal destination. Confirm the earthquake and
+  crash message occur.
+- From the death room, `enter corpse` or another valid corpse alias must move a player into
+  room 2002661. NPCs, unrelated objects, and unrelated `enter` arguments must not use the
+  encounter path.
+
+This encounter is production-tested and reconciled, but the current five-zone pilot does
+not contain its source package or dependencies. Exercise it only after a Phase 7 stage
+supplies the converted room, mobile, corpse, loot, acid, and portal records.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -1099,10 +1132,10 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
-  binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 1,112 are resolved and 35 remain. Of 562 distinct
-  source handlers, 538 are resolved and 24 remain. Of 848 `ACT_SPEC` records, 830 are
-  resolved and 18 remain. The automatic race procedures
+  binding count. Of 1,813 discovered candidates, 92 are source-preprocessor exclusions;
+  of the 1,721 active direct bindings, 1,250 are resolved and 471 remain. Of 795 distinct
+  direct source handlers, 542 are resolved and 253 remain. Of 848 `ACT_SPEC` records, 798
+  are resolved and 50 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

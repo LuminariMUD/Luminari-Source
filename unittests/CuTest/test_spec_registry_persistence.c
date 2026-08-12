@@ -516,6 +516,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Lavatubes Mobile",
                                                "RoL Lavatubes Object",
                                                "RoL Lavatubes Room",
+                                               "RoL Tarrasque Encounter",
                                                "RoL Utility Object",
                                                "RoL Utility Room",
                                                "RoL Scheduled Mobile"};
@@ -523,7 +524,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 112, expected_count);
+  CuAssertIntEquals(tc, 113, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
