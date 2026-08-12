@@ -222,7 +222,7 @@ retains its drunken ambient table and joins eligible fights against the
 aggressor. This procedure is converter-owned and should not be assigned to
 unrelated mobiles.
 
-RoL Weapon Proc is object-owned and must be equipped. Twenty converted weapon
+RoL Weapon Proc is object-owned and must be equipped. Forty-five converted weapon
 objects use identity-keyed profiles for their source critical, sneak-attack,
 random-hit, wielder-restriction, charge, extra-swing, damage, spell, and summon
 behavior. The hit gateway supplies exact damage, attack type, and critical

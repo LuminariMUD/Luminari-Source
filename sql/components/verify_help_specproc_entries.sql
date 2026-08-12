@@ -88,7 +88,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'drag the lowest-alignment aggressor') > 0
   AND INSTR(entry, 'Off-duty guard 2003229') > 0
   AND INSTR(entry, 'RoL Weapon Proc is object-owned') > 0
-  AND INSTR(entry, 'Twenty converted weapon') > 0
+  AND INSTR(entry, 'Forty-five converted weapon') > 0
   AND INSTR(entry, 'exact damage, attack type, and critical') > 0
   AND INSTR(entry, 'SAY LABELAS') > 0
   AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0

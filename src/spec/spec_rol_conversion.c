@@ -70,7 +70,26 @@ enum rol_weapon_effect
   ROL_WEAPON_JEWELED_FANG,
   ROL_WEAPON_BLACK_FLAMES,
   ROL_WEAPON_MOONBLADE_STARSONG,
-  ROL_WEAPON_CRIMSON_DAGGER
+  ROL_WEAPON_CRIMSON_DAGGER,
+  ROL_WEAPON_MIELIKKI_SCIMITAR,
+  ROL_WEAPON_FLAMBERGE,
+  ROL_WEAPON_ORB,
+  ROL_WEAPON_DOOMBRINGER,
+  ROL_WEAPON_TAHLSHARA,
+  ROL_WEAPON_ROCKCRUSHER,
+  ROL_WEAPON_CYMRIC_HUGH,
+  ROL_WEAPON_TORMENT,
+  ROL_WEAPON_PAHLURUK_ROOT,
+  ROL_WEAPON_REVERSE_DIRK,
+  ROL_WEAPON_FRULGHIEM,
+  ROL_WEAPON_SPHERE_LIGHTNING,
+  ROL_WEAPON_HALRUAA_ENCHANTER,
+  ROL_WEAPON_HALRUAA_ILLUSION,
+  ROL_WEAPON_HALRUAA_INVOKER,
+  ROL_WEAPON_HALRUAA_MAGEBANE,
+  ROL_WEAPON_HALRUAA_DWARVEN_HAMMER,
+  ROL_WEAPON_MYTH_DARKEN_AURA,
+  ROL_WEAPON_MYTH_GLEAMING_BURST
 };
 
 struct rol_weapon_profile
@@ -114,6 +133,41 @@ static const struct rol_weapon_profile rol_weapon_profiles[] = {
      "Nighttime star flare; say 'labelas' for weekly group barkskin."},
     {2098330, ROL_WEAPON_CRIMSON_DAGGER, 11, false,
      "Crimson critical strike or strength and agility drain."},
+    {2019933, ROL_WEAPON_MIELIKKI_SCIMITAR, 31, false,
+     "Ranger or Druid creeping-doom strike; rejects other wielders."},
+    {2025030, ROL_WEAPON_FLAMBERGE, 22, false,
+     "Flaming burst that heals Fire Elementals and Efreeti."},
+    {2009054, ROL_WEAPON_ORB, 26, false,
+     "Class-weighted cold burst; arcane criticals may raise a cold shield."},
+    {2025018, ROL_WEAPON_DOOMBRINGER, 26, false, "Five-strike Doombringer flurry."},
+    {2001010, ROL_WEAPON_TAHLSHARA, 26, false,
+     "Bladesong recovery, knockdown, and wielder healing."},
+    {2080034, ROL_WEAPON_ROCKCRUSHER, 29, false, "Grounded localized-earthquake knockdown."},
+    {2080038, ROL_WEAPON_ROCKCRUSHER, 29, false, "Grounded localized-earthquake knockdown."},
+    {2026233, ROL_WEAPON_CYMRIC_HUGH, 31, false, "Green beam carrying target-native harm."},
+    {2026248, ROL_WEAPON_CYMRIC_HUGH, 31, false, "Green beam carrying target-native harm."},
+    {2015116, ROL_WEAPON_TORMENT, 26, false, "Tormenting poison and blindness strike."},
+    {2013308, ROL_WEAPON_PAHLURUK_ROOT, 21, false, "Entangling root strike."},
+    {2097117, ROL_WEAPON_REVERSE_DIRK, 26, false, "Nonrecursive reverse strike."},
+    {2001005, ROL_WEAPON_FRULGHIEM, 31, false, "Clenched-fist strike."},
+    {2014023, ROL_WEAPON_SPHERE_LIGHTNING, 26, false, "Double lightning-bolt strike."},
+    {2024405, ROL_WEAPON_SPHERE_LIGHTNING, 26, false, "Double lightning-bolt strike."},
+    {2053266, ROL_WEAPON_HALRUAA_ENCHANTER, 27, false, "Halruaan enchanter debuff strike."},
+    {2053263, ROL_WEAPON_HALRUAA_ILLUSION, 27, false, "Halruaan illusion debuff strike."},
+    {2053259, ROL_WEAPON_HALRUAA_INVOKER, 26, false, "Halruaan flameheart burst."},
+    {2053289, ROL_WEAPON_HALRUAA_MAGEBANE, 22, false,
+     "NPC arcane-caster damage and casting interruption."},
+    {2053290, ROL_WEAPON_HALRUAA_MAGEBANE, 22, false,
+     "NPC arcane-caster damage and casting interruption."},
+    {2053291, ROL_WEAPON_HALRUAA_MAGEBANE, 22, false,
+     "NPC arcane-caster damage and casting interruption."},
+    {2053292, ROL_WEAPON_HALRUAA_MAGEBANE, 22, false,
+     "NPC arcane-caster damage and casting interruption."},
+    {2053243, ROL_WEAPON_HALRUAA_DWARVEN_HAMMER, 28, false, "Runic freezing-cold burst."},
+    {2083238, ROL_WEAPON_MYTH_DARKEN_AURA, 22, false,
+     "Evil-wielder negative burst, blindness, and withering."},
+    {2083235, ROL_WEAPON_MYTH_GLEAMING_BURST, 23, false,
+     "Good-wielder faerie outline and blindness burst."},
 };
 
 struct rol_undead_drain_profile
@@ -5629,12 +5683,12 @@ static struct spec_damage_result rol_weapon_damage(struct char_data *ch, struct 
   return spec_damage_current_target(ch, victim, MAX(0, amount), -1, damage_type, FALSE);
 }
 
-static void rol_weapon_cast(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
-                            int spell, int level)
+static int rol_weapon_cast(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                           int spell, int level)
 {
   if (ch == NULL || victim == NULL)
-    return;
-  call_magic(ch, victim, obj, spell, 0, MAX(1, level), CAST_WEAPON_SPELL);
+    return 0;
+  return call_magic(ch, victim, obj, spell, 0, MAX(1, level), CAST_WEAPON_SPELL);
 }
 
 static void rol_weapon_summon_reclaimer(struct char_data *ch, struct obj_data *obj)
@@ -5930,6 +5984,262 @@ static int rol_weapon_crimson_drain(struct char_data *ch, struct obj_data *obj,
   return TRUE;
 }
 
+static bool rol_weapon_arcane_caster(const struct char_data *ch)
+{
+  return IS_WIZARD(ch) || IS_SORCERER(ch) || IS_BARD(ch) || IS_NECROMANCER(ch) || IS_SUMMONER(ch) ||
+         CLASS_LEVEL(ch, CLASS_WARLOCK) > 0;
+}
+
+static bool rol_weapon_grounded_target(struct char_data *victim)
+{
+  int sector;
+
+  if (victim == NULL || IN_ROOM(victim) == NOWHERE || IS_DRAGON(victim) || IS_INCORPOREAL(victim) ||
+      AFF_FLAGGED(victim, AFF_FLYING))
+    return false;
+
+  sector = SECT(IN_ROOM(victim));
+  return sector != SECT_WATER_SWIM && sector != SECT_WATER_NOSWIM && sector != SECT_FLYING &&
+         sector != SECT_UNDERWATER && sector != SECT_OCEAN && sector != SECT_UD_WATER &&
+         sector != SECT_UD_NOSWIM && sector != SECT_UD_NOGROUND && sector != SECT_RIVER;
+}
+
+static int rol_weapon_mielikki(struct char_data *ch, struct obj_data *obj, struct char_data *victim,
+                               int slot)
+{
+  if (!IS_RANGER(ch) && !IS_DRUID(ch))
+  {
+    act("Your $p glows brightly and stings you, forcing you to drop it!", FALSE, ch, obj, NULL,
+        TO_CHAR);
+    act("$n cries out and drops $p!", FALSE, ch, obj, NULL, TO_ROOM);
+    if (GET_HIT(ch) > 50)
+      GET_HIT(ch) = 1;
+    obj_to_room(unequip_char(ch, slot), IN_ROOM(ch));
+    return TRUE;
+  }
+  if (rand_number(0, 30) != 0)
+    return FALSE;
+
+  act("Your $p glows brightly as a huge swarm of insects joins the attack!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  rol_weapon_cast(ch, obj, victim, SPELL_CREEPING_DOOM, 51);
+  return TRUE;
+}
+
+static int rol_weapon_flamberge(struct char_data *ch, struct obj_data *obj,
+                                struct char_data *victim)
+{
+  int amount;
+
+  if (rand_number(0, 21) != 0)
+    return FALSE;
+
+  amount = dice(35, 10);
+  if (GET_RACE(victim) == RACE_FIRE_ELEMENTAL || GET_RACE(victim) == RACE_EFREETI)
+  {
+    act("Your flaming $p sends soothing fire into $N's wounds.", FALSE, ch, obj, victim, TO_CHAR);
+    GET_HIT(victim) = MIN(GET_MAX_HIT(victim), GET_HIT(victim) + amount);
+  }
+  else
+  {
+    act("Your $p erupts and hurls a gigantic fireball into $N!", FALSE, ch, obj, victim, TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, amount, DAM_FIRE);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_orb(struct spec_event_context *context, struct char_data *ch,
+                          struct obj_data *obj, struct char_data *victim)
+{
+  bool arcane = rol_weapon_arcane_caster(ch) && !IS_BARD(ch);
+  int roll_sides = arcane ? 14 : (IS_BARD(ch) ? 20 : 25);
+  int triggered = FALSE;
+
+  if (context->critical && arcane && !affected_by_spell(ch, SPELL_COLD_SHIELD) &&
+      rand_number(0, 2) == 0)
+  {
+    act("Your $p erupts in dark light and raises a chilly aura around you.", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, ch, SPELL_COLD_SHIELD, 51);
+    triggered = TRUE;
+  }
+  if (rand_number(0, roll_sides) != 0)
+    return triggered;
+
+  act("Your $p radiates a black beam that chills $N's soul!", FALSE, ch, obj, victim, TO_CHAR);
+  (void)rol_weapon_damage(ch, victim, dice(20, 10), DAM_COLD);
+  return TRUE;
+}
+
+static int rol_weapon_tahlshara(struct char_data *ch, struct obj_data *obj,
+                                struct char_data *victim)
+{
+  int triggered = FALSE;
+
+  if (rand_number(0, 10) == 0)
+  {
+    act("You dance with elven grace, bladesinging to the rhythm of battle.", FALSE, ch, obj, victim,
+        TO_CHAR);
+    triggered = TRUE;
+  }
+  if (GET_POS(ch) < POS_STANDING)
+  {
+    act("You spin from the ground and flow back into a fighting stance!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    change_position(ch, POS_STANDING);
+    triggered = TRUE;
+  }
+  if (rand_number(0, 25) != 0)
+    return triggered;
+
+  act("Your bladesong becomes a frenzy that topples $N and restores your vitality!", FALSE, ch, obj,
+      victim, TO_CHAR);
+  if (can_stun(victim))
+  {
+    if (!char_has_mud_event(victim, eSTUNNED))
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE);
+    change_position(victim, POS_SITTING);
+  }
+  GET_HIT(ch) = MIN(GET_MAX_HIT(ch), GET_HIT(ch) + 250);
+  return TRUE;
+}
+
+static int rol_weapon_rockcrusher(struct char_data *ch, struct obj_data *obj,
+                                  struct char_data *victim)
+{
+  if (rand_number(0, 28) != 0 || !rol_weapon_grounded_target(victim))
+    return FALSE;
+
+  act("You crash your $p into the ground, and a localized earthquake topples $N!", FALSE, ch, obj,
+      victim, TO_CHAR);
+  if (can_stun(victim))
+  {
+    if (!char_has_mud_event(victim, eSTUNNED))
+      attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), PULSE_VIOLENCE * rand_number(1, 3));
+    change_position(victim, POS_SITTING);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_entangling_root(struct char_data *ch, struct obj_data *obj,
+                                      struct char_data *victim)
+{
+  struct affected_type affect;
+
+  if (rand_number(0, 20) != 0 || IS_INCORPOREAL(victim) ||
+      affected_by_spell(victim, SPELL_ENTANGLE) ||
+      char_has_mud_event(victim, eROL_YGGDRASIL_RELEASE) != NULL)
+    return FALSE;
+
+  act("Roots lash from your $p and coil around $N's feet!", FALSE, ch, obj, victim, TO_CHAR);
+  if (savingthrow(ch, victim, SAVING_REFL, GET_STR_BONUS(victim), CAST_WEAPON_SPELL,
+                  MIN(30, GET_LEVEL(ch)), TRANSMUTATION))
+  {
+    act("$N tears free of the grasping roots!", FALSE, ch, obj, victim, TO_CHAR);
+    return TRUE;
+  }
+
+  new_affect(&affect);
+  affect.spell = SPELL_ENTANGLE;
+  affect.duration = -1;
+  affect.location = APPLY_DEX;
+  affect.modifier = -2;
+  SET_BIT_AR(affect.bitvector, AFF_ENTANGLED);
+  affect_to_char(victim, &affect);
+  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, PULSE_VIOLENCE * 8);
+  return TRUE;
+}
+
+static int rol_weapon_halruaa_enchanter(struct char_data *ch, struct obj_data *obj,
+                                        struct char_data *victim)
+{
+  int choice;
+
+  if (rand_number(0, 26) != 0)
+    return FALSE;
+  choice = rand_number(0, 3);
+  act("Your $p releases a brilliant aquamarine beam at $N!", FALSE, ch, obj, victim, TO_CHAR);
+  if (choice == 0)
+    rol_weapon_cast(ch, obj, victim, SPELL_RAY_OF_ENFEEBLEMENT, GET_LEVEL(ch));
+  else
+    rol_weapon_cast(ch, obj, victim, SPELL_SLOW, GET_LEVEL(ch));
+  return TRUE;
+}
+
+static int rol_weapon_halruaa_illusion(struct char_data *ch, struct obj_data *obj,
+                                       struct char_data *victim)
+{
+  int choice;
+
+  if (rand_number(0, 26) != 0)
+    return FALSE;
+  choice = rand_number(0, 3);
+  act("Your $p writhes with living shadow and releases a spectral beam at $N!", FALSE, ch, obj,
+      victim, TO_CHAR);
+  if (choice == 0)
+    rol_weapon_cast(ch, obj, victim, SPELL_RAINBOW_PATTERN, GET_LEVEL(ch));
+  else if (choice == 1)
+    rol_weapon_cast(ch, obj, victim, SPELL_SLOW, GET_LEVEL(ch));
+  else
+    rol_weapon_cast(ch, obj, victim, SPELL_FAERIE_FIRE, GET_LEVEL(ch));
+  return TRUE;
+}
+
+static int rol_weapon_magebane(struct char_data *ch, struct obj_data *obj, struct char_data *victim)
+{
+  struct spec_damage_result result;
+
+  if (rand_number(0, 21) != 0 || !IS_NPC(victim) || !rol_weapon_arcane_caster(victim))
+    return FALSE;
+
+  act("Your $p surrounds $N in a red aura of disruptive energy!", FALSE, ch, obj, victim, TO_CHAR);
+  result = rol_weapon_damage(ch, victim, dice(8, 10), DAM_FORCE);
+  if (result.status != SPEC_DAMAGE_TARGET_INVALIDATED && IS_CASTING(victim) &&
+      rand_number(0, 2) == 0)
+  {
+    act("The pain shatters $N's concentration!", FALSE, ch, obj, victim, TO_CHAR);
+    resetCastingData(victim);
+  }
+  return TRUE;
+}
+
+static int rol_weapon_darken_aura(struct char_data *ch, struct obj_data *obj,
+                                  struct char_data *victim)
+{
+  if (!IS_EVIL(ch) || rand_number(0, 21) != 0)
+    return FALSE;
+
+  act("Your $p erupts in a suffocating burst of negative energy around $N!", FALSE, ch, obj, victim,
+      TO_CHAR);
+  if (!affected_by_spell(victim, SPELL_BLINDNESS))
+  {
+    rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 51);
+    return TRUE;
+  }
+  if (rand_number(0, 3) == 0)
+    rol_weapon_cast(ch, obj, victim, SPELL_RAY_OF_ENFEEBLEMENT, 51);
+  (void)rol_weapon_damage(ch, victim, dice(15, 10), DAM_NEGATIVE);
+  return TRUE;
+}
+
+static int rol_weapon_gleaming_burst(struct char_data *ch, struct obj_data *obj,
+                                     struct char_data *victim)
+{
+  bool outlined;
+
+  if (!IS_GOOD(ch) || rand_number(0, 22) != 0)
+    return FALSE;
+
+  act("A brilliant flash erupts from your $p and leaves a gleaming aura around $N!", FALSE, ch, obj,
+      victim, TO_CHAR);
+  outlined = affected_by_spell(victim, SPELL_FAERIE_FIRE);
+  if (outlined && rand_number(0, 5) == 0 && !affected_by_spell(victim, SPELL_BLINDNESS))
+    rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 51);
+  if (!outlined)
+    rol_weapon_cast(ch, obj, victim, SPELL_FAERIE_FIRE, 51);
+  return TRUE;
+}
+
 static int rol_weapon_hit(struct spec_event_context *context,
                           const struct rol_weapon_profile *profile, struct char_data *ch,
                           struct obj_data *obj, struct char_data *victim, int slot)
@@ -6072,6 +6382,84 @@ static int rol_weapon_hit(struct spec_event_context *context,
     if (!context->critical && rand_number(0, 2) == 0)
       return rol_weapon_crimson_drain(ch, obj, victim);
     return FALSE;
+  case ROL_WEAPON_MIELIKKI_SCIMITAR:
+    return rol_weapon_mielikki(ch, obj, victim, slot);
+  case ROL_WEAPON_FLAMBERGE:
+    return rol_weapon_flamberge(ch, obj, victim);
+  case ROL_WEAPON_ORB:
+    return rol_weapon_orb(context, ch, obj, victim);
+  case ROL_WEAPON_DOOMBRINGER:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p hums with power and strikes $N over and over!", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_extra_attacks(
+        ch, obj, victim, 5, slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND : ATTACK_TYPE_PRIMARY);
+    return TRUE;
+  case ROL_WEAPON_TAHLSHARA:
+    return rol_weapon_tahlshara(ch, obj, victim);
+  case ROL_WEAPON_ROCKCRUSHER:
+    return rol_weapon_rockcrusher(ch, obj, victim);
+  case ROL_WEAPON_CYMRIC_HUGH:
+    if (rand_number(0, 30) != 0)
+      return FALSE;
+    act("Your $p explodes with color and sends a green beam toward $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_HARM, 50);
+    return TRUE;
+  case ROL_WEAPON_TORMENT:
+    if (IS_DRAGON(victim) || rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your dark $p bites into $N's neck and releases a tormenting aura!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    if (rol_weapon_cast(ch, obj, victim, SPELL_POISON, 51) >= 0)
+      rol_weapon_cast(ch, obj, victim, SPELL_BLINDNESS, 51);
+    return TRUE;
+  case ROL_WEAPON_PAHLURUK_ROOT:
+    return rol_weapon_entangling_root(ch, obj, victim);
+  case ROL_WEAPON_REVERSE_DIRK:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p reverses its swing and strikes $N again!", FALSE, ch, obj, victim, TO_CHAR);
+    rol_weapon_extra_attacks(
+        ch, obj, victim, 1, slot == WEAR_WIELD_OFFHAND ? ATTACK_TYPE_OFFHAND : ATTACK_TYPE_PRIMARY);
+    return TRUE;
+  case ROL_WEAPON_FRULGHIEM:
+    if (rand_number(0, 30) != 0)
+      return FALSE;
+    act("A huge clenched fist surges from your glowing $p and crashes into $N!", FALSE, ch, obj,
+        victim, TO_CHAR);
+    rol_weapon_cast(ch, obj, victim, SPELL_CLENCHED_FIST, 60);
+    return TRUE;
+  case ROL_WEAPON_SPHERE_LIGHTNING:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("A huge sphere of lightning blasts from your $p and strikes $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    if (rol_weapon_cast(ch, obj, victim, SPELL_LIGHTNING_BOLT, 60) >= 0)
+      rol_weapon_cast(ch, obj, victim, SPELL_LIGHTNING_BOLT, 60);
+    return TRUE;
+  case ROL_WEAPON_HALRUAA_ENCHANTER:
+    return rol_weapon_halruaa_enchanter(ch, obj, victim);
+  case ROL_WEAPON_HALRUAA_ILLUSION:
+    return rol_weapon_halruaa_illusion(ch, obj, victim);
+  case ROL_WEAPON_HALRUAA_INVOKER:
+    if (rand_number(0, 25) != 0)
+      return FALSE;
+    act("Your $p releases a searing burst of flameheart energy at $N!", FALSE, ch, obj, victim,
+        TO_CHAR);
+    (void)rol_weapon_damage(ch, victim, dice((GET_LEVEL(ch) / 5) + 1, 12), DAM_FIRE);
+    return TRUE;
+  case ROL_WEAPON_HALRUAA_MAGEBANE:
+    return rol_weapon_magebane(ch, obj, victim);
+  case ROL_WEAPON_HALRUAA_DWARVEN_HAMMER:
+    if (rand_number(0, 27) != 0)
+      return FALSE;
+    return rol_weapon_cold_burst(ch, obj, victim, 8, 10,
+                                 "Runes flare along your $p and freezing cold engulfs $N!");
+  case ROL_WEAPON_MYTH_DARKEN_AURA:
+    return rol_weapon_darken_aura(ch, obj, victim);
+  case ROL_WEAPON_MYTH_GLEAMING_BURST:
+    return rol_weapon_gleaming_burst(ch, obj, victim);
   default:
     return FALSE;
   }

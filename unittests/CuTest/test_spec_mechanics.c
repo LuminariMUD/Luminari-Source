@@ -1424,8 +1424,11 @@ void Test_spec_rol_waterdeep_bouncer_routes_preserve_source_paths(CuTest *tc)
 void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
 {
   static const int vnums[] = {
-      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840, 2038025,
-      2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876, 2095878, 2098330,
+      2004505, 2013307, 2014837, 2019886, 2019900, 2019912, 2020075, 2026014, 2034840,
+      2038025, 2038095, 2040135, 2080547, 2089462, 2091305, 2095776, 2095851, 2095876,
+      2095878, 2098330, 2019933, 2025030, 2009054, 2025018, 2001010, 2080034, 2080038,
+      2026233, 2026248, 2015116, 2013308, 2097117, 2001005, 2014023, 2024405, 2053266,
+      2053263, 2053259, 2053289, 2053290, 2053291, 2053292, 2053243, 2083238, 2083235,
   };
   const char *description;
   bool critical_only;
@@ -1446,6 +1449,13 @@ void Test_spec_rol_weapon_profiles_cover_converted_bindings(CuTest *tc)
   CuAssertTrue(tc, rol_weapon_profile(2040135, &denominator, &critical_only, &description));
   CuAssertTrue(tc, critical_only);
   CuAssertIntEquals(tc, 1, denominator);
+  CuAssertTrue(tc, rol_weapon_profile(2025030, &denominator, &critical_only, &description));
+  CuAssertTrue(tc, !critical_only);
+  CuAssertIntEquals(tc, 22, denominator);
+  CuAssertStrEquals(tc, "Flaming burst that heals Fire Elementals and Efreeti.", description);
+  CuAssertTrue(tc, rol_weapon_profile(2053292, &denominator, &critical_only, &description));
+  CuAssertIntEquals(tc, 22, denominator);
+  CuAssertStrEquals(tc, "NPC arcane-caster damage and casting interruption.", description);
   CuAssertTrue(tc, !rol_weapon_profile(9999999, NULL, NULL, NULL));
 }
 
