@@ -7,6 +7,7 @@
 #define LUMINARI_SPEC_ROL_CONVERSION_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct char_data;
 struct obj_data;
@@ -53,6 +54,7 @@ int rol_alert_caller(struct char_data *ch, void *me, int cmd, const char *argume
 int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_waterdeep_ambient(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -92,6 +94,12 @@ const char *rol_waterdeep_ambient_message(int mobile_vnum, int roll, int message
 const char *rol_conversion_death_message(int vnum);
 long event_rol_yggdrasil_release(void *event_obj);
 const char *rol_bloodstone_critter_social(int roll);
+size_t rol_source_periodic_profile_count(void);
+bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
+                                        bool *suppresses_fighting);
+size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll);
+const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
+                                               bool *speech, bool *hide);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);

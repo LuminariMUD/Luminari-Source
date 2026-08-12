@@ -127,6 +127,38 @@ struct rol_ambient_action
   const char *message;
 };
 
+enum rol_source_periodic_action_kind
+{
+  ROL_SOURCE_PERIODIC_ROOM_ACTION = 0,
+  ROL_SOURCE_PERIODIC_SPEECH
+};
+
+struct rol_source_periodic_profile
+{
+  int mobile_vnum;
+  int profile_id;
+  int roll_min;
+  int roll_max;
+  bool suppress_fighting;
+};
+
+struct rol_source_periodic_outcome
+{
+  int profile_id;
+  int roll;
+  size_t first_action;
+  size_t action_count;
+};
+
+struct rol_source_periodic_action
+{
+  enum rol_source_periodic_action_kind kind;
+  bool hide;
+  const char *message;
+};
+
+#include "spec_rol_periodic_profiles.inc"
+
 static const int rol_demogorgon_helpers[] = {2019830, 2019850, 2019880};
 static const int rol_drisinil_helpers[] = {2059812, 2059815, 2059814};
 static const int rol_tukra_helpers[] = {2059832, 2059833, 2059834};
@@ -2525,6 +2557,147 @@ int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *
     return FALSE;
 
   do_action(ch, "", social_command, 0);
+  return TRUE;
+}
+
+static const struct rol_source_periodic_profile *rol_source_periodic_profile_for(int mobile_vnum)
+{
+  size_t high = sizeof(rol_source_periodic_profiles) / sizeof(rol_source_periodic_profiles[0]);
+  size_t low = 0;
+  size_t middle;
+
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    if (rol_source_periodic_profiles[middle].mobile_vnum < mobile_vnum)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+
+  if (low < sizeof(rol_source_periodic_profiles) / sizeof(rol_source_periodic_profiles[0]) &&
+      rol_source_periodic_profiles[low].mobile_vnum == mobile_vnum)
+    return &rol_source_periodic_profiles[low];
+
+  return NULL;
+}
+
+static const struct rol_source_periodic_outcome *rol_source_periodic_outcome_for(int profile_id,
+                                                                                 int roll)
+{
+  size_t high = sizeof(rol_source_periodic_outcomes) / sizeof(rol_source_periodic_outcomes[0]);
+  size_t low = 0;
+  size_t middle;
+  const struct rol_source_periodic_outcome *outcome;
+
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    outcome = &rol_source_periodic_outcomes[middle];
+    if (outcome->profile_id < profile_id ||
+        (outcome->profile_id == profile_id && outcome->roll < roll))
+      low = middle + 1;
+    else
+      high = middle;
+  }
+
+  if (low < sizeof(rol_source_periodic_outcomes) / sizeof(rol_source_periodic_outcomes[0]))
+  {
+    outcome = &rol_source_periodic_outcomes[low];
+    if (outcome->profile_id == profile_id && outcome->roll == roll)
+      return outcome;
+  }
+
+  return NULL;
+}
+
+size_t rol_source_periodic_profile_count(void)
+{
+  return sizeof(rol_source_periodic_profiles) / sizeof(rol_source_periodic_profiles[0]);
+}
+
+bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
+                                        bool *suppresses_fighting)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return false;
+  if (roll_min != NULL)
+    *roll_min = profile->roll_min;
+  if (roll_max != NULL)
+    *roll_max = profile->roll_max;
+  if (suppresses_fighting != NULL)
+    *suppresses_fighting = profile->suppress_fighting;
+  return true;
+}
+
+size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+  const struct rol_source_periodic_outcome *outcome;
+
+  if (profile == NULL)
+    return 0;
+  outcome = rol_source_periodic_outcome_for(profile->profile_id, roll);
+  return outcome != NULL ? outcome->action_count : 0;
+}
+
+const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
+                                               bool *speech, bool *hide)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+  const struct rol_source_periodic_outcome *outcome;
+  const struct rol_source_periodic_action *action;
+
+  if (profile == NULL)
+    return NULL;
+  outcome = rol_source_periodic_outcome_for(profile->profile_id, roll);
+  if (outcome == NULL || action_index >= outcome->action_count)
+    return NULL;
+  action = &rol_source_periodic_actions[outcome->first_action + action_index];
+  if (speech != NULL)
+    *speech = action->kind == ROL_SOURCE_PERIODIC_SPEECH;
+  if (hide != NULL)
+    *hide = action->hide;
+  return action->message;
+}
+
+int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *speaker = me;
+  const struct rol_source_periodic_profile *profile;
+  const struct rol_source_periodic_outcome *outcome;
+  const struct rol_source_periodic_action *action;
+  int roll;
+  size_t index;
+
+  (void)argument;
+
+  if (speaker == NULL && cmd == 0)
+    speaker = ch;
+  if (speaker == NULL || cmd != 0 || !IS_NPC(speaker) || !AWAKE(speaker) ||
+      IN_ROOM(speaker) == NOWHERE)
+    return FALSE;
+
+  profile = rol_source_periodic_profile_for(GET_MOB_VNUM(speaker));
+  if (profile == NULL || (profile->suppress_fighting && FIGHTING(speaker) != NULL))
+    return FALSE;
+
+  roll = rand_number(profile->roll_min, profile->roll_max);
+  outcome = rol_source_periodic_outcome_for(profile->profile_id, roll);
+  if (outcome == NULL)
+    return FALSE;
+
+  for (index = 0; index < outcome->action_count; index++)
+  {
+    action = &rol_source_periodic_actions[outcome->first_action + index];
+    if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
+      do_say(speaker, action->message, 0, 0);
+    else
+      act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+  }
+
   return TRUE;
 }
 

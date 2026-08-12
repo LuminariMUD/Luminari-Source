@@ -13,6 +13,7 @@ from wtool_lib.objects import parse_object_file
 from wtool_lib.rol_source import parse_active_rol_corpus, parse_rol_source_file
 from wtool_lib.rol_discovery import extract_source_commands
 from wtool_lib.rol_pilot import PILOT_BASENAMES
+from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
 from wtool_lib.rol_soc import build_soc_prototype_comparison, compile_soc_records
 from wtool_lib.rol_special import compile_special_bindings
 from wtool_lib.rol_transform import (
@@ -1011,6 +1012,36 @@ class RolTransformTests(unittest.TestCase):
         all(
             binding.persisted_name == "RoL Waterdeep Ambient"
             and binding.required_flag_bits == ()
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
+  def test_regular_periodic_handlers_share_generated_persistent_adapter(self) -> None:
+    handlers = tuple(PROFILE_SOURCES)[:6]
+    bindings = [
+        {
+            "basename": "regular-periodic",
+            "record_type": "mobile",
+            "source_vnum": 7100 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(6, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Source Periodic"
             for binding in compiled.native_bindings
         )
     )

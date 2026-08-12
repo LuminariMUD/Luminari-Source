@@ -213,6 +213,7 @@ circle_SOURCES = \
 	src/spec/spec_objects.c \
 	src/spec/spec_phrase.c \
 	src/spec/spec_rol_conversion.c \
+	src/spec/spec_rol_periodic_profiles.inc \
 	src/spec/spec_rol_pilot.c \
 	src/spec/spec_rol_totem.c \
 	src/spec/spec_rooms.c \
@@ -449,6 +450,7 @@ src/constants.c: $(filter-out src/constants.c,$(circle_SOURCES))
 # Standalone Python world-data tooling. Keep this list synchronized with
 # WORLD_TOOL_SOURCES in CMakeLists.txt.
 world_tool_sources = \
+	scripts/world/generate_rol_periodic_profiles.py \
 	scripts/world/wtool.py \
 	scripts/world/wtool_constants.json \
 	scripts/world/rol_conversion_policy.json \
@@ -474,6 +476,7 @@ world_tool_sources = \
 	scripts/world/wtool_lib/rol_planner.py \
 	scripts/world/wtool_lib/rol_pilot.py \
 	scripts/world/wtool_lib/rol_pilot_build.py \
+	scripts/world/wtool_lib/rol_periodic_profiles.py \
 	scripts/world/wtool_lib/rol_skeleton.py \
 	scripts/world/wtool_lib/rol_soc.py \
 	scripts/world/wtool_lib/rol_special.py \
@@ -506,6 +509,7 @@ world_tool_sources = \
 	scripts/world/tests/test_rol_planner.py \
 	scripts/world/tests/test_rol_pilot.py \
 	scripts/world/tests/test_rol_pilot_build.py \
+	scripts/world/tests/test_rol_periodic_profiles.py \
 	scripts/world/tests/test_rol_skeleton.py \
 	scripts/world/tests/test_rol_source.py \
 	scripts/world/tests/test_rol_transform.py \

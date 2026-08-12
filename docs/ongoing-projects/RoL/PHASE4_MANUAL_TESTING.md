@@ -539,6 +539,25 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   guard dialog must stop during combat and resume after combat, while other profiles
   retain their source position-driven behavior.
 
+### Phase 6 generated source-periodic profiles
+
+- Build dependency-complete Bloodstone, Icecrag, and Menden stages. Confirm the following 86
+  mobiles use `RoL Source Periodic` with `MOB_SPEC`: Bloodstone 2007100-2007105,
+  2007107-2007109, 2007113-2007120, 2007123-2007129, 2007142-2007144, 2007147,
+  2007152-2007154, 2007160-2007162, 2007164-2007167, 2007170, 2007172-2007180,
+  2007189, 2007191-2007195, 2007199-2007203, 2007205-2007206, 2007209, 2007220,
+  2007308, 2007311, 2007314, 2007317, and 2007321-2007326; Icecrag 2097000-2097002,
+  2097005, 2097007-2097008, 2097011, 2097014, 2097016, 2097021, 2097023, and
+  2097033; and Menden 2088806.
+- Observe repeated activity pulses while representative profiles are awake and idle. Their source
+  speech, social room text, and direct room actions should appear at the original random cadence.
+  Multi-action and fall-through outcomes must retain their source order. Nonmatching rolls must
+  remain quiet.
+- Put representatives to sleep and confirm the periodic behavior stops. Start combat and confirm
+  it also stops for every profile except Menden magus 2088806; that magus deliberately retains its
+  source behavior during combat. Unrelated mobiles must not receive any of these identity-keyed
+  profiles.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

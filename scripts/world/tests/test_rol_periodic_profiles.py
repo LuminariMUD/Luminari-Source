@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+from pathlib import Path
+import re
+import unittest
+
+from wtool_lib.constants import default_repo_root
+from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+
+
+class RolPeriodicProfileTests(unittest.TestCase):
+  @classmethod
+  def setUpClass(cls) -> None:
+    cls.root = default_repo_root()
+
+  def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
+    vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
+
+    self.assertEqual(82, len(PROFILE_SOURCES))
+    self.assertEqual(86, len(vnums))
+    self.assertEqual(len(vnums), len(set(vnums)))
+    self.assertEqual(
+        {"src/specs.bloodstone.c", "src/specs.icecrag.c", "src/specs.menden.c"},
+        {relative for relative, _vnums in PROFILE_SOURCES.values()},
+    )
+
+  def test_checked_in_profile_table_covers_manifest_exactly(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    enum_names = set(re.findall(r"^  ROL_SOURCE_PERIODIC_([A-Z0-9_]+),$", generated, re.MULTILINE))
+    expected_names = {re.sub(r"[^A-Za-z0-9]+", "_", name).upper() for name in PROFILE_SOURCES}
+    generated_vnums = {
+        int(value)
+        for value in re.findall(
+            r"^    \{(\d+), ROL_SOURCE_PERIODIC_[A-Z0-9_]+,", generated, re.MULTILINE
+        )
+    }
+    expected_vnums = {
+        vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums
+    }
+
+    self.assertEqual(expected_names, enum_names)
+    self.assertEqual(expected_vnums, generated_vnums)
+    self.assertRegex(generated, r"Source digest: [0-9a-f]{64}")
+
+  def test_generated_tables_are_sorted_for_binary_lookup(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+    profile_names = re.findall(
+        r"^  (ROL_SOURCE_PERIODIC_[A-Z0-9_]+),$", generated, re.MULTILINE
+    )
+    profile_order = {name: index for index, name in enumerate(profile_names)}
+    profile_vnums = [
+        int(value)
+        for value in re.findall(
+            r"^    \{(\d+), ROL_SOURCE_PERIODIC_[A-Z0-9_]+,", generated, re.MULTILINE
+        )
+    ]
+    outcomes = [
+        (profile_order[name], int(roll))
+        for name, roll in re.findall(
+            r"^    \{(ROL_SOURCE_PERIODIC_[A-Z0-9_]+), (\d+), \d+, \d+\},$",
+            generated,
+            re.MULTILINE,
+        )
+    ]
+    actions = re.findall(
+        r"^    \{ROL_SOURCE_PERIODIC_(?:SPEECH|ROOM_ACTION),", generated, re.MULTILINE
+    )
+
+    self.assertEqual(sorted(profile_vnums), profile_vnums)
+    self.assertEqual(sorted(outcomes), outcomes)
+    self.assertEqual(327, len(outcomes))
+    self.assertEqual(561, len(actions))
+
+
+if __name__ == "__main__":
+  unittest.main()

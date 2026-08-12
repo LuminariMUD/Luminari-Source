@@ -70,6 +70,9 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'four to twelve combat rounds') > 0
   AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
   AND INSTR(entry, 'casino-player fall-through') > 0
+  AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0
+  AND INSTR(entry, '82 source families use 327 source') > 0
+  AND INSTR(entry, 'except Menden magus 2088806 pauses during combat') > 0
   AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
   AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0

@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Iterable
 
 from .flags import encode_bits
+from .rol_periodic_profiles import PROFILE_SOURCES
 from .rol_source import RolRecord
 
 
@@ -149,6 +150,9 @@ ADAPTED_HANDLER_NAMES = {
     "waterdeep_guard_one": "RoL Waterdeep Ambient",
     "waterdeep_guard_two": "RoL Waterdeep Ambient",
 }
+ADAPTED_HANDLER_NAMES.update(
+    {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
+)
 
 # These callbacks return before their obsolete or apparent behavior. Binding
 # active target procedures would invent behavior that did not run in RoL.

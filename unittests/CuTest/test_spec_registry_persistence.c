@@ -495,12 +495,13 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Ship Navigator",
                                                "RoL Alert Caller",
                                                "RoL Yggdrasil Branch",
-                                               "RoL Waterdeep Ambient"};
+                                               "RoL Waterdeep Ambient",
+                                               "RoL Source Periodic"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 91, expected_count);
+  CuAssertIntEquals(tc, 92, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -540,8 +541,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "RoL Waterdeep Ambient", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_waterdeep_ambient);
+  CuAssertStrEquals(tc, "RoL Source Periodic", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_source_periodic);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

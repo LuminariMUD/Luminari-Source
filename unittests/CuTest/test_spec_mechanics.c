@@ -953,6 +953,39 @@ void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequence
   CuAssertTrue(tc, rol_waterdeep_ambient_message(9999999, 2, 0, &speech) == NULL);
 }
 
+void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuTest *tc)
+{
+  bool hide;
+  bool speech;
+  bool suppresses_fighting;
+  int roll_max;
+  int roll_min;
+
+  CuAssertIntEquals(tc, 86, (int)rol_source_periodic_profile_count());
+  CuAssertTrue(
+      tc, rol_source_periodic_profile_bounds(2007220, &roll_min, &roll_max, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 100, roll_max);
+  CuAssertTrue(tc, suppresses_fighting);
+  CuAssertTrue(
+      tc, rol_source_periodic_profile_bounds(2088806, &roll_min, &roll_max, &suppresses_fighting));
+  CuAssertIntEquals(tc, 0, roll_min);
+  CuAssertIntEquals(tc, 50, roll_max);
+  CuAssertTrue(tc, !suppresses_fighting);
+  CuAssertTrue(tc, !rol_source_periodic_profile_bounds(9999999, NULL, NULL, NULL));
+
+  CuAssertIntEquals(tc, 2, (int)rol_source_periodic_outcome_action_count(2007220, 2));
+  CuAssertStrEquals(tc, "$n looks around the room as if $e was bored.",
+                    rol_source_periodic_outcome_action(2007220, 2, 0, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, hide);
+  CuAssertStrEquals(tc, "$n smiles happily.",
+                    rol_source_periodic_outcome_action(2007220, 2, 1, &speech, &hide));
+  CuAssertTrue(tc, !speech);
+  CuAssertTrue(tc, !hide);
+  CuAssertTrue(tc, rol_source_periodic_outcome_action(2007220, 2, 2, NULL, NULL) == NULL);
+}
+
 void Test_spec_rol_bloodstone_critter_preserves_social_cadence(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;
