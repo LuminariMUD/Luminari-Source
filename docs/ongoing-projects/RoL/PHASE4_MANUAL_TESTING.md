@@ -270,13 +270,13 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
-  binding count. Of 1,234 direct bindings, 303 are resolved and 931 remain. Of 848
+  binding count. Of 1,234 direct bindings, 347 are resolved and 887 remain. Of 848
   `ACT_SPEC` records, 500 are resolved and 348 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
-  those additions remain automated evidence rather than manual-test claims for this
-  bundle.
+  it also has no selected `home_reset` room. Those additions remain automated evidence
+  rather than manual-test claims for this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 

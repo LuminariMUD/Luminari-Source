@@ -5,6 +5,48 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 home-reset room behavior
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 44 direct bindings for the shared `home_reset` room handler. The
+  reconciliation now resolves 347 of 1,234 direct bindings and 54 of 605 handlers;
+  887 bindings and 551 handlers remain.
+- Added persistent `ROOM_ROL_HOME_RESET` conversion metadata and a composition-safe
+  successful-movement hook. An NPC that walks out of a marked room now remembers the
+  destination as its home without consuming the room's named SpecProc slot.
+- Repaired the source callback's failed-movement edge case: blocked, invalid, or
+  trigger-rejected movement no longer changes the NPC's home before it has moved.
+- Extended room emission, constants extraction, generated builder documentation, and
+  reconciliation evidence. The independent `ACT_SPEC` cross-check remains at 500 of
+  848 resolved because `home_reset` is a room procedure rather than a mobile flag.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 2849e0a7
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-home-reset
+Reconciliation run: rol-phase6-special-1d2f58fe08372b1e
+Direct bindings resolved: 347
+Direct bindings pending: 887
+Source handlers resolved: 54
+Source handlers pending: 551
+Home-reset bindings resolved: 44
+ACT_SPEC records resolved: 500
+ACT_SPEC records pending: 348
+Complete world-tool suite: 258 passed
+Production-linked CuTest suite: 620 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Constants and generated-guide drift checks: passed
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 887 direct bindings across 551 source handlers.
+
 ## 2026-08-12 - Phase 6 shared combat and conjured-death procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

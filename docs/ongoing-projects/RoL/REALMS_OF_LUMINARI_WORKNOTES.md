@@ -47,6 +47,7 @@ Phase 6 automatic-race metadata commit: b58faaea
 Phase 6 automatic-race runtime commit: e5b81b14
 Phase 6 preserved-race patch commit: 2b55b265
 Phase 6 shared combat/conjured-death commit: d447a10b
+Phase 6 home-reset compatibility commit: 2849e0a7
 ```
 
 The authoritative ignored runs are:
@@ -105,6 +106,8 @@ Phase 6 race KEEP stage: lib/rol-conversion/runs/phase6-special-20260812-race-ke
                          rol-phase4-build-174249e9cd9cc337
 Phase 6 shared combat/death: lib/rol-conversion/runs/phase6-special-20260812-shared-combat-death
                              rol-phase6-special-dd7798f8ea4681cf
+Phase 6 home reset: lib/rol-conversion/runs/phase6-special-20260812-home-reset
+                    rol-phase6-special-1d2f58fe08372b1e
 Policy:  rol-conversion-policy-1
 ```
 
@@ -202,14 +205,17 @@ Policy:  rol-conversion-policy-1
   cadence, half-level single-target attacks, and full-level room-wide weapons. Three
   composition-safe conjured-death flags close another 45 bindings while preserving
   familiar, mount, and summoned-monster fade messages and suppressing corpses.
-- The current Phase 6 checkpoint resolves 303 of 1,234 direct bindings and 53 of 605
-  source handlers, leaving 931 bindings and 552 handlers. The independent `ACT_SPEC`
+- All 44 `home_reset` room bindings are complete through a composition-safe room flag
+  and successful-movement hook. Converted NPCs update their remembered home only after
+  leaving the marked room; blocked and trigger-rejected attempts do not retarget them.
+- The current Phase 6 checkpoint resolves 347 of 1,234 direct bindings and 54 of 605
+  source handlers, leaving 887 bindings and 551 handlers. The independent `ACT_SPEC`
   cross-check resolves 500 of 848 records and leaves 348 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 931 direct bindings by shared behavior family and
+1. Reconcile the remaining 887 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
