@@ -55,6 +55,7 @@ Phase 6 shadow-giant conversion commit: 96785da1
 Phase 6 converted-ship system commit: 215c0f13
 Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
+Phase 6 lost-totem-restorer commit: 3f773d78
 Phase 6 converted-major-beholder commit: 5536e463
 Phase 6 converted-trade-bandit commit: 7693ce00
 Phase 6 converted-lich-energy-drain commit: 72ba7c8e
@@ -293,6 +294,9 @@ Phase 6 scheduled mobiles:
 Phase 6 Menden fisherman:
   lib/rol-conversion/runs/phase6-special-20260812-menden-fisherman
   rol-phase6-special-aab827a742a51ca2
+Phase 6 lost totem restorer:
+  lib/rol-conversion/runs/phase6-special-20260812-totem-restorer
+  rol-phase6-special-9139221a800d60a0
 Policy:  rol-conversion-policy-2
 ```
 
@@ -627,18 +631,23 @@ Policy:  rol-conversion-policy-2
   source-targeted social room and victim messages for named room occupants and self-targets; this
   reusable path covers the fisherman's wench, magus, and self interactions. The source `CMD_SIP`
   call has no action-table record and therefore contributes no room-visible output.
+- The Outpost lost-totem restorer is complete through the builder-visible `RoL Totem Restorer`
+  mobile procedure. It preserves the exact phrase, established Shaman-to-Cleric mapping,
+  level-21 and saved-choice gates, source-equivalent 10,000-gold payment, exact persistent totem
+  identity, and character binding. The helper is consumed only after the mapped object validates
+  and loads.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,108 of 1,147 active direct bindings and 535 of
-  562 source handlers, leaving 39 bindings and 27 handlers. The independent `ACT_SPEC`
+- The current Phase 6 checkpoint resolves 1,109 of 1,147 active direct bindings and 536 of
+  562 source handlers, leaving 38 bindings and 26 handlers. The independent `ACT_SPEC`
   cross-check resolves 828 of 848 records and leaves 20 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 39 direct bindings across 27 handlers. Classify regular
+1. Reconcile the remaining 38 direct bindings across 26 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -650,17 +659,20 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `33965efc`, resolving the Menden fisherman and its
-  active binding through the existing source-hashed periodic gateway.
-- Extended the shared periodic generator and runtime to preserve named and self-targeted source
-  socials, including distinct room and victim messages. Preserved the fisherman's exact awake
-  gate, fighting behavior, random table, ambient sequence, and targeted interactions. No registry
-  definition or storage schema changed.
+- Completed and pushed implementation commit `3f773d78`, resolving the Outpost
+  `lostTotemRestorer` binding through `RoL Totem Restorer` in the existing totem subsystem.
+- Preserved the exact phrase, established Cleric mapping, level and persistent-choice gates,
+  source-equivalent payment, exact totem identity, player binding, and helper consumption order.
+  The converter also enforces `MOB_SPEC` for the persisted mobile procedure.
 - Ran all 315 world-tool tests and all 660 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-aab827a742a51ca2`; it records zero live target writes and the
-  1,108/39 direct-binding, 535/27 handler, and 828/20 `ACT_SPEC` split.
-- Unresolved blockers: none. Continue by grouping the largest compatible remaining
-  irregular mechanics into another dependency-complete shared typed batch.
+  `rol-phase6-special-9139221a800d60a0`; it records zero live target writes and the
+  1,109/38 direct-binding, 536/26 handler, and 828/20 `ACT_SPEC` split.
+- Traced the short transformation/restoration candidates before implementation. Wolfsbane and
+  lycan infection require a persistent lycanthropy state the target does not have; tithe requires
+  a defined source-prestige mapping; lich conversion requires a reviewed irreversible respec
+  contract. None were represented by lossy stand-ins.
+- Unresolved blockers: none. Continue with another dependency-complete family, retaining the
+  accelerated focused-check-per-batch and full-gate-per-published-checkpoint cadence.

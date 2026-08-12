@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 lost totem restorer
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted the active `lostTotemRestorer` binding through the new builder-visible
+  `RoL Totem Restorer` mobile procedure in the existing converted-totem subsystem.
+- Preserved the exact `say spiritworld` trigger, mapped source Shaman progression to the
+  established target Cleric progression, retained the level-21 and saved-spirit-choice gates,
+  and converted the source 1,000-platinum threshold to 10,000 target gold.
+- Recreates the exact good or evil totem selected by persistent `GET_ROL_TOTEM_CHOICE`, binds
+  it to the requesting character, and consumes the paid helper only after the object prototype
+  has been validated and loaded. Invalid choices and missing prototypes fail without consuming
+  the helper.
+- Added converter `MOB_SPEC` enforcement, registry and compatibility coverage, eligibility and
+  phrase regressions, reconciliation expectations, and manual testing instructions.
+- Reconciliation now resolves 1,109 of 1,147 active direct bindings and 536 of 562 source
+  handlers; 38 bindings and 26 handlers remain. The independent `ACT_SPEC` checkpoint remains
+  at 828 resolved records and 20 pending because this direct binding has no source `ACT_SPEC`
+  record.
+- Archived the sixtieth Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 3f773d78
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-totem-restorer
+Reconciliation run: rol-phase6-special-9139221a800d60a0
+Active direct bindings: 1,147
+Direct bindings resolved: 1,109
+Direct bindings pending: 38
+Source handlers resolved: 536
+Source handlers pending: 26
+Additional handler families resolved: 1
+Additional direct bindings resolved: 1
+Native adapted bindings: 651
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 828
+ACT_SPEC records pending: 20
+Special registry definitions: 110 total / 97 legacy / 13 typed
+Compatibility names: 111
+Complete world-tool suite: 315 passed
+Production-linked CuTest suite: 660 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 9e49f4696e6076b93d55806cc3ef2172379f6552
+Installed SHA-256: b437baa2005d7652d34f0703fd3d888f4907063475c0eff0b7fe78bbc60b0913
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 38 direct bindings across 26 source handlers. Continue
+using dependency-complete batches and reserve the full build/test/install gate for published
+checkpoints.
+
 ## 2026-08-12 - Phase 6 Menden fisherman
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
