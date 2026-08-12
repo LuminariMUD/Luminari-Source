@@ -355,6 +355,7 @@ def extract_spec_bindings(
     root: Path,
     relative_glob: str,
     runtime: str,
+    preprocess: bool = False,
 ) -> list[dict[str, Any]]:
   """Extract numeric and symbolic room/mobile/object special-procedure bindings."""
 
@@ -367,7 +368,33 @@ def extract_spec_bindings(
   for path in sorted(root.glob(relative_glob)):
     if not path.is_file():
       continue
+    active_lines: set[int] | None = None
+    if preprocess:
+      command = ["cc", "-E", f"-I{root / 'src'}", str(path)]
+      completed = subprocess.run(command, capture_output=True, check=False, text=True)
+      if completed.returncode != 0:
+        detail = completed.stderr.strip().splitlines()
+        raise RolDiscoveryError(
+            f"source preprocessor failed for {path.relative_to(root)}: "
+            f"{detail[-1] if detail else 'unknown error'}"
+        )
+      active_lines = set()
+      current_path: Path | None = None
+      current_line = 0
+      for preprocessed_line in completed.stdout.splitlines():
+        marker = re.match(r'^#\s+(\d+)\s+"([^"]+)"', preprocessed_line)
+        if marker is not None:
+          current_path = Path(marker.group(2)).resolve()
+          current_line = int(marker.group(1))
+          continue
+        if current_path == path.resolve() and any(
+            pattern.search(preprocessed_line) is not None for pattern in patterns
+        ):
+          active_lines.add(current_line)
+        current_line += 1
     for line_number, line in _strip_code_comments(path.read_text(encoding="utf-8").splitlines()):
+      if active_lines is not None and line_number not in active_lines:
+        continue
       for pattern in patterns:
         for match in pattern.finditer(line):
           token = match.group("vnum")
@@ -855,7 +882,9 @@ def write_discovery_bundle(
   catalog = build_target_catalog(world, world_root)
   host_identities = _source_host_identities(corpus)
   commands = extract_source_commands(source_root)
-  source_bindings = extract_spec_bindings(source_root, "src/specs.assign.c", "source")
+  source_bindings = extract_spec_bindings(
+      source_root, "src/specs.assign.c", "source", preprocess=True
+  )
   target_bindings = extract_spec_bindings(repo_root, "src/spec/spec_assign_*.c", "target")
   binding_candidates = build_binding_candidates(
       source_bindings, target_bindings, corpus

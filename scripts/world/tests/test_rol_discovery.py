@@ -8,6 +8,7 @@ from wtool_lib.models import SourceSpan, WorldData, ZoneRecord
 from wtool_lib.rol_discovery import (
     build_capability_matrix,
     build_target_catalog,
+    extract_spec_bindings,
     extract_source_commands,
     lineage_candidates,
     resolve_reference,
@@ -16,6 +17,29 @@ from wtool_lib.rol_source import RolRecord, RolReference, RolSourceCorpus
 
 
 class RolDiscoveryTests(unittest.TestCase):
+  def test_source_binding_extraction_respects_preprocessor_configuration(self) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+      root = Path(temporary)
+      (root / "src").mkdir()
+      (root / "src/specs.assign.c").write_text(
+          "#define ENABLED\n"
+          "#ifdef ENABLED\n"
+          'AddProcMob(100, active_handler, "active");\n'
+          "#endif\n"
+          "#if 0\n"
+          'AddProcMob(101, disabled_handler, "disabled");\n'
+          "#endif\n",
+          encoding="ascii",
+      )
+
+      raw = extract_spec_bindings(root, "src/specs.assign.c", "source")
+      active = extract_spec_bindings(
+          root, "src/specs.assign.c", "source", preprocess=True
+      )
+
+    self.assertEqual(["active_handler", "disabled_handler"], [row["handler"] for row in raw])
+    self.assertEqual(["active_handler"], [row["handler"] for row in active])
+
   def test_documented_formula_and_identity_seed_is_confirmed(self) -> None:
     with tempfile.TemporaryDirectory() as temporary:
       world_root = Path(temporary)

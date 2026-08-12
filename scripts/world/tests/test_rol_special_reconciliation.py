@@ -80,24 +80,26 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           created_at="2026-08-12T02:05:00Z",
       )
 
-      self.assertEqual(1_234, summary["active_direct_bindings"])
-      self.assertEqual(605, summary["source_handlers"])
-      self.assertEqual(605, summary["source_handler_definitions_located"])
+      self.assertEqual(1_234, summary["discovered_direct_binding_candidates"])
+      self.assertEqual(87, summary["source_preprocessor_excluded_bindings"])
+      self.assertEqual(1_147, summary["active_direct_bindings"])
+      self.assertEqual(562, summary["source_handlers"])
+      self.assertEqual(562, summary["source_handler_definitions_located"])
       self.assertEqual(247, summary["active_implicit_race_bindings"])
       self.assertEqual(
           {"standardDemon": 134, "standardDevil": 101, "standardUmberhulk": 12},
           summary["implicit_race_bindings_by_handler"],
       )
       self.assertEqual(
-          {"alongside-direct": 23, "implicit-only": 224},
+          {"alongside-direct": 22, "implicit-only": 225},
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(382, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(852, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(377, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(770, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(500, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(348, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(517, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(331, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )
@@ -107,8 +109,9 @@ class RolSpecialReconciliationTests(unittest.TestCase):
       expected_records = {
           "act-spec-ledger.jsonl": 848,
           "automatic-race-ledger.jsonl": 247,
-          "binding-ledger.jsonl": 1_234,
-          "handler-inventory.jsonl": 605,
+          "binding-ledger.jsonl": 1_147,
+          "handler-inventory.jsonl": 562,
+          "preprocessor-excluded-binding-ledger.jsonl": 87,
       }
       for artifact in manifest["artifacts"]:
         if artifact["path"] in expected_records:

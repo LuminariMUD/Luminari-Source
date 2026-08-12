@@ -14,6 +14,7 @@ from .constants import default_repo_root
 from .models import TOOL_VERSION
 from .rol_planner import verify_discovery_bundle
 from .rol_skeleton import verify_plan_bundle
+from .rol_discovery import extract_spec_bindings
 from .rol_special import (
     ADAPTED_HANDLER_NAMES,
     COMPOSABLE_MOBILE_HANDLER_FLAGS,
@@ -23,7 +24,7 @@ from .rol_special import (
 )
 
 
-ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 2
+ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 3
 _SOURCE_ROOT_PREFIX = "EXAMPLE/RealmsOfLuminari"
 _RECORD_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
 _AUTO_RACE_HANDLERS = {
@@ -367,17 +368,46 @@ def write_special_reconciliation_bundle(
     raise RolSpecialReconciliationError("Phase 5 audit and Phase 2 plan do not belong together")
 
   binding_input = _load_json(discovery_dir / "bindings.json")
-  bindings = list(binding_input["active_binding_candidates"])
+  discovered_bindings = list(binding_input["active_binding_candidates"])
+  active_source_bindings = {
+      (
+          str(row["record_type"]),
+          int(row["vnum"]),
+          str(row["handler"]),
+          str(row["path"]),
+          int(row["line"]),
+      )
+      for row in extract_spec_bindings(
+          source_root, "src/specs.assign.c", "source", preprocess=True
+      )
+      if row["vnum"] is not None
+  }
+  bindings = [
+      row
+      for row in discovered_bindings
+      if (
+          str(row["record_type"]),
+          int(row["source_vnum"]),
+          str(row["source_handler"]),
+          str(row["source_path"]),
+          int(row["source_line"]),
+      )
+      in active_source_bindings
+  ]
+  excluded_bindings = [row for row in discovered_bindings if row not in bindings]
   handlers = {str(row["source_handler"]) for row in bindings}
   definitions = source_handler_definitions(
-      source_root, handlers | set(_AUTO_RACE_HANDLERS.values())
+      source_root,
+      handlers
+      | {str(row["source_handler"]) for row in excluded_bindings}
+      | set(_AUTO_RACE_HANDLERS.values()),
   )
 
   consumers: defaultdict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
   record_by_id: dict[str, dict[str, Any]] = {}
   relevant_keys = {
       (_RECORD_KIND[str(row["record_type"])], int(row["source_vnum"]))
-      for row in bindings
+      for row in discovered_bindings
   }
   for record in _read_jsonl(discovery_dir / "source-records.jsonl"):
     key = (str(record["kind"]), int(record["vnum"]))
@@ -393,6 +423,7 @@ def write_special_reconciliation_bundle(
   }
 
   binding_rows: list[dict[str, Any]] = []
+  excluded_binding_rows: list[dict[str, Any]] = []
   bindings_by_mobile: defaultdict[int, list[int]] = defaultdict(list)
   for ordinal, binding in enumerate(bindings, start=1):
     record_type = str(binding["record_type"])
@@ -429,6 +460,46 @@ def write_special_reconciliation_bundle(
     binding_rows.append(row)
     if record_type == "mobile":
       bindings_by_mobile[source_vnum].append(ordinal - 1)
+
+  for binding in excluded_bindings:
+    record_type = str(binding["record_type"])
+    source_vnum = int(binding["source_vnum"])
+    consumer_rows = []
+    for record in sorted(
+        consumers.get((_RECORD_KIND[record_type], source_vnum), []),
+        key=lambda item: str(item["record_id"]),
+    ):
+      action = actions.get(str(record["record_id"]), {})
+      consumer_rows.append(
+          {
+              "source_record_id": record["record_id"],
+              "basename": record["basename"],
+              "planned_action": action.get("action"),
+              "destination_vnum": action.get("destination_vnum"),
+          }
+      )
+    excluded_binding_rows.append(
+        {
+            "binding_id": (
+                f"{record_type}:{source_vnum}:{binding['source_handler']}:"
+                f"{binding['source_line']}"
+            ),
+            "record_type": record_type,
+            "source_vnum": source_vnum,
+            "source_handler": binding["source_handler"],
+            "source_path": binding["source_path"],
+            "source_line": binding["source_line"],
+            "source_definition": definitions.get(str(binding["source_handler"])),
+            "consumers": consumer_rows,
+            "status": "excluded",
+            "strategy": "SOURCE_PREPROCESSOR_EXCLUDED",
+            "target": "none",
+            "reason": (
+                "source C preprocessor removes this assignment under the checked-in "
+                "src/config.h build configuration"
+            ),
+        }
+    )
 
   handler_counts = Counter(str(row["source_handler"]) for row in bindings)
   handler_owners: defaultdict[str, set[str]] = defaultdict(set)
@@ -553,6 +624,11 @@ def write_special_reconciliation_bundle(
       "discovery_run_id": discovery_manifest["run_id"],
       "plan_run_id": plan_manifest["run_id"],
       "capability_audit_run_id": audit_manifest["run_id"],
+      "discovered_direct_binding_candidates": len(discovered_bindings),
+      "source_preprocessor_excluded_bindings": len(excluded_binding_rows),
+      "source_preprocessor_excluded_bindings_by_handler": dict(
+          sorted(Counter(str(row["source_handler"]) for row in excluded_binding_rows).items())
+      ),
       "active_direct_bindings": len(binding_rows),
       "direct_bindings_by_owner": dict(
           sorted(Counter(row["record_type"] for row in binding_rows).items())
@@ -586,6 +662,14 @@ def write_special_reconciliation_bundle(
   artifacts.append(_artifact(summary_path, output_dir))
   binding_path = output_dir / "binding-ledger.jsonl"
   artifacts.append(_artifact(binding_path, output_dir, _write_jsonl(binding_path, binding_rows)))
+  excluded_binding_path = output_dir / "preprocessor-excluded-binding-ledger.jsonl"
+  artifacts.append(
+      _artifact(
+          excluded_binding_path,
+          output_dir,
+          _write_jsonl(excluded_binding_path, excluded_binding_rows),
+      )
+  )
   handler_path = output_dir / "handler-inventory.jsonl"
   artifacts.append(_artifact(handler_path, output_dir, _write_jsonl(handler_path, handler_rows)))
   automatic_path = output_dir / "automatic-race-ledger.jsonl"
@@ -612,7 +696,9 @@ def write_special_reconciliation_bundle(
       "stage": "special-procedure-reconciliation",
       "artifacts": sorted(artifacts, key=lambda item: item["path"]),
       "acceptance": {
-          "all_direct_bindings_accounted": len(binding_rows) == len(bindings),
+          "all_direct_bindings_accounted": (
+              len(binding_rows) + len(excluded_binding_rows) == len(discovered_bindings)
+          ),
           "all_handlers_accounted": len(handler_rows) == len(handlers),
           "all_automatic_race_bindings_accounted": len(automatic_race_rows)
           == sum(
@@ -639,6 +725,10 @@ def render_rol_special_reconciliation_human(summary: dict[str, Any]) -> str:
       (
           f"RoL Phase 6 special reconciliation: {summary['run_id']}",
           f"Output: {summary['output_dir']}",
+          f"Discovered direct-binding candidates: "
+          f"{summary['discovered_direct_binding_candidates']}",
+          f"Source-preprocessor exclusions: "
+          f"{summary['source_preprocessor_excluded_bindings']}",
           f"Direct bindings: {summary['active_direct_bindings']}",
           f"Resolved direct bindings: {summary['direct_bindings_by_status'].get('resolved', 0)}",
           f"Pending direct bindings: {summary['direct_bindings_by_status'].get('pending', 0)}",
