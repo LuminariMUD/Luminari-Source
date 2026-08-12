@@ -545,6 +545,63 @@ void Test_spec_rol_magic_pool_damages_and_transports_matching_entry(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_bloodstone_portal_transports_and_applies_stress(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "enter";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  fixture.worn.name = "shimmering portal";
+  fixture.worn.short_description = "a shimmering portal";
+  IN_ROOM(&fixture.worn) = 0;
+  fixture.rooms[0].contents = &fixture.worn;
+  GET_OBJ_VAL(&fixture.worn, 0) = 6101;
+
+  CuAssertIntEquals(tc, FALSE, rol_bloodstone_portal(&fixture.actor, &fixture.worn, 1, "door"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, TRUE, rol_bloodstone_portal(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertTrue(tc, GET_HIT(&fixture.actor) >= 80 && GET_HIT(&fixture.actor) <= 99);
+  CuAssertTrue(tc, GET_MOVE(&fixture.actor) >= 70 && GET_MOVE(&fixture.actor) <= 99);
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  GET_LEVEL(&fixture.actor) = LVL_IMMORT;
+  GET_HIT(&fixture.actor) = 100;
+  GET_MOVE(&fixture.actor) = 100;
+  CuAssertIntEquals(tc, TRUE, rol_bloodstone_portal(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 100, GET_HIT(&fixture.actor));
+  CuAssertIntEquals(tc, 100, GET_MOVE(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  SET_BIT_AR(ROOM_FLAGS(1), ROOM_DEATH);
+  CuAssertIntEquals(tc, TRUE, rol_bloodstone_portal(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  REMOVE_BIT_AR(ROOM_FLAGS(1), ROOM_DEATH);
+
+  GET_OBJ_VAL(&fixture.worn, 0) = 9999;
+  CuAssertIntEquals(tc, TRUE, rol_bloodstone_portal(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+
+  CuAssertTrue(tc, rol_bloodstone_portal_survives(10, 20));
+  CuAssertTrue(tc, !rol_bloodstone_portal_survives(9, 20));
+  CuAssertTrue(tc, rol_bloodstone_portal_survives(-10, 0));
+  CuAssertTrue(tc, !rol_bloodstone_portal_survives(-10, 1));
+
+  fixture.rooms[0].contents = NULL;
+  IN_ROOM(&fixture.worn) = NOWHERE;
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_auto_distributor_moves_mortal_within_zone(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

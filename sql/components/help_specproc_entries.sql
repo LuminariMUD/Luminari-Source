@@ -70,6 +70,12 @@ Ethereal pools left in rooms have a 12 percent chance per object pulse to move
 through one random open cardinal exit. Closed, hidden, blocked, invalid, and
 ROOM_NOMOB destinations are excluded. This procedure is converter-owned.
 
+RoL Bloodstone Portal is object-owned. Four converted portals remap object
+value 0 to the target destination room. Awake characters can enter the exact
+portal object when the destination passes target teleport admission. Mortals
+lose 1-20 hit points and 1-30 movement points after arrival and die only when
+the hit-point loss would leave them below -10. Staff are immune to this stress.
+
 RoL Item Blocker is object-owned and reads its blocked cardinal direction from
 object value 0. While an aggressive NPC occupies the room, it blocks mortal
 players and player pets from moving or unlocking a door in that direction.

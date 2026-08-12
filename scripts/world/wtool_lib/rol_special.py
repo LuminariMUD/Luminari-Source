@@ -65,6 +65,7 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 ADAPTED_HANDLER_NAMES = {
     "bandit": "RoL Trade Bandit",
     "bs_critter": "RoL Bloodstone Critter",
+    "bs_portal": "RoL Bloodstone Portal",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
     "guild_guard": "RoL Guild Guard",
@@ -798,7 +799,9 @@ def compile_special_bindings(
               target_vnum=target_vnum,
               persisted_name=persisted_name,
               required_flag_bits=required_bits,
-              value_reference_slots=((0, "wld"),) if handler == "magic_pool" else (),
+              value_reference_slots=(
+                  ((0, "wld"),) if handler in {"bs_portal", "magic_pool"} else ()
+              ),
           )
       )
       strategy = "NATIVE_ADAPTED" if handler in ADAPTED_HANDLER_NAMES else "NATIVE_PERSISTED"

@@ -263,6 +263,20 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   exclude that direction. It must remain in place when no eligible exit exists and
   must receive no more than one movement roll per object pulse.
 
+### Phase 6 converted Bloodstone portals
+
+- `RoL Bloodstone Portal` is implemented for converted objects 2007147-2007149
+  and 2022491. Their converted destinations are 2007250, 2007250, 2007109, and
+  2022569 respectively. Bloodstone remains outside the five-package staged pilot,
+  so test these only in a later dependency-complete stage.
+- With an awake mortal, `enter portal` should select the exact portal object, move
+  to its converted destination, remove 1-20 hit points and 1-30 movement points,
+  floor movement at zero, and show passage and weakened messages. A staff character
+  should move without either stress loss.
+- Confirm an invalid or target-forbidden destination consumes the matching command
+  without moving. At the low-hit boundary, a loss leaving exactly -10 hit points
+  survives; a loss leaving less than -10 invokes the normal target death path.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
@@ -510,8 +524,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 590 are resolved and 557 remain. Of 562 distinct
-  source handlers, 98 are resolved and 464 remain. Of 848 `ACT_SPEC` records, 568 are
+  of the 1,147 active direct bindings, 594 are resolved and 553 remain. Of 562 distinct
+  source handlers, 99 are resolved and 463 remain. Of 848 `ACT_SPEC` records, 568 are
   resolved and 280 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

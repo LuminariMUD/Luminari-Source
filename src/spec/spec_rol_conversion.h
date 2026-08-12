@@ -49,6 +49,7 @@ int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *a
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_critter(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -75,6 +76,7 @@ int rol_bandit_cargo_value(struct char_data *ch);
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold);
 bool rol_sister_knight_vnum(int vnum);
 const char *rol_bloodstone_critter_social(int roll);
+bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);

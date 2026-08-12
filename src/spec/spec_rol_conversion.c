@@ -632,6 +632,71 @@ int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument)
   return TRUE;
 }
 
+bool rol_bloodstone_portal_survives(int current_hit, int hit_loss)
+{
+  return current_hit - MAX(0, hit_loss) >= -10;
+}
+
+int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  struct obj_data *entered;
+  room_rnum destination;
+  char name[MAX_INPUT_LENGTH];
+  int hit_loss;
+
+  if (ch == NULL || obj == NULL || argument == NULL || !cmd || !CMD_IS("enter") || !AWAKE(ch) ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  one_argument(argument, name, sizeof(name));
+  if (!*name)
+    return FALSE;
+  entered = get_obj_in_list_vis(ch, name, NULL, world[IN_ROOM(ch)].contents);
+  if (entered != obj)
+    return FALSE;
+
+  destination = real_room(GET_OBJ_VAL(obj, 0));
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
+    log("SYSERR: RoL Bloodstone portal object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+        GET_OBJ_VAL(obj, 0));
+    return TRUE;
+  }
+  if (!valid_mortal_tele_dest(ch, destination, false))
+  {
+    send_to_char(ch, "An unseen force pushes you back!\r\n");
+    return TRUE;
+  }
+
+  act("$p suddenly glows brightly!", FALSE, ch, obj, NULL, TO_ROOM);
+  act("$n enters $p and fades into the ether.", TRUE, ch, obj, NULL, TO_ROOM);
+  send_to_char(ch, "Your mind and body are overcome with seizures of pain!\r\n"
+                   "In the blink of an eye you are whisked away...\r\n");
+  char_from_room(ch);
+  send_to_char(ch, "You enter the portal and reappear elsewhere.\r\n");
+  char_to_room(ch, destination);
+  act("$n slowly fades into view.", TRUE, ch, NULL, NULL, TO_ROOM);
+
+  if (GET_LEVEL(ch) >= LVL_IMMORT)
+    return TRUE;
+
+  hit_loss = rand_number(1, 20);
+  if (!rol_bloodstone_portal_survives(GET_HIT(ch), hit_loss))
+  {
+    send_to_char(ch, "The stress of the magic proves too much for you!\r\n");
+    raw_kill(ch, ch);
+    return TRUE;
+  }
+
+  GET_HIT(ch) -= hit_loss;
+  GET_MOVE(ch) = MAX(0, GET_MOVE(ch) - rand_number(1, 30));
+  update_pos(ch);
+  send_to_char(ch, "You feel weakened by your passage through the portal.\r\n");
+  return TRUE;
+}
+
 int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument)
 {
   struct obj_data *obj = me;

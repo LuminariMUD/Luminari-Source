@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 85, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 83, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 86, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 84, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -346,6 +346,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Thief", rol_thief, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Bloodstone Portal", rol_bloodstone_portal, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
       {"RoL Bloodstone Critter", rol_bloodstone_critter, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Designated Follower", rol_designated_follower, SPEC_OWNER_MOBILE,
@@ -495,6 +497,14 @@ void Test_spec_registry_event_contracts_and_prerequisites(CuTest *tc)
   if (event == NULL)
     return;
   CuAssertIntEquals(tc, SPEC_PROTOTYPE_ITEM_AUTOPROC, (int)event->required_prototype_flags);
+  CuAssertIntEquals(tc, SPEC_PLACEMENT_NONE, (int)event->required_placement);
+
+  definition = spec_registry_find_by_name("RoL Bloodstone Portal");
+  event = spec_definition_get_event(definition, SPEC_EVENT_COMMAND);
+  CuAssertPtrNotNull(tc, event);
+  if (event == NULL)
+    return;
+  CuAssertIntEquals(tc, SPEC_PROTOTYPE_NONE, (int)event->required_prototype_flags);
   CuAssertIntEquals(tc, SPEC_PLACEMENT_NONE, (int)event->required_placement);
 
   definition = spec_registry_find_by_name("Practice Dummy");
