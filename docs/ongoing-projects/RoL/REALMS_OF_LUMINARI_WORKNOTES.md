@@ -3,7 +3,7 @@
 - Updated: 2026-08-12
 - Environment: development
 - Branch: `master`
-- Current task: Phase 5 shared capability rollout
+- Current task: Phase 6 special-procedure reconciliation
 - Completed milestone record: [RoL-Changelog.md](RoL-Changelog.md)
 - Phase 4 manual test matrix: [PHASE4_MANUAL_TESTING.md](PHASE4_MANUAL_TESTING.md)
 
@@ -39,6 +39,7 @@ Phase 5 object-apply/affect compatibility commit: f7eabca4
 Phase 5 mobile-action compatibility commit: 1f6020de
 Phase 5 reset mobile-chain compatibility commit: afeea9d7
 Phase 5 exit-trap compatibility commit: c647c5f4
+Phase 5 shop compatibility commits: ec1a8cd8, fe38a56e
 ```
 
 The authoritative ignored runs are:
@@ -81,6 +82,10 @@ Phase 5 exit-trap audit: lib/rol-conversion/runs/phase5-exit-traps-20260812-audi
                          rol-phase5-audit-c6c7050ef434f7b8
 Phase 5 exit-trap pilot: lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot
                          rol-phase4-build-7e8fa263dff52098
+Phase 5 shop/final audit: lib/rol-conversion/runs/phase5-shop-20260812-audit
+                           rol-phase5-audit-3fb8de2d9afd067b
+Phase 5 shop/final pilot: lib/rol-conversion/runs/phase5-shop-20260812-pilot
+                           rol-phase4-build-35c9c879af63b8d1
 Policy:  rol-conversion-policy-1
 ```
 
@@ -109,10 +114,10 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 243 tests; the production-linked CuTest suite passes 615;
+- The world-tool suite passes 248 tests; the production-linked CuTest suite passes 619;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
-  48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
+- The measured remaining forecast is 96-156 sessions: Phase 6 is 48-80, Phase 7 is
+  42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -155,15 +160,21 @@ Policy:  rol-conversion-policy-1
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
+- Phase 5 is complete. The final audit emits all 453 active shops, preserves fixed and
+  roaming operation, exact source price formulas, authored customer restrictions,
+  adverse `CHEATS` pricing, and the converted `CASTING` policy. It reports zero generic
+  capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
+  zero live target writes.
+- The remaining diagnostics have explicit downstream owners: 848 special-binding gaps
+  belong to Phase 6 and 804 record-specific reference gaps belong to Phase 7 batches.
 
 ## Immediate next actions
 
-1. Resolve reconciled shop behavior and remaining reusable shared capability gaps.
-2. Separate record-specific missing-reference repairs from reusable capability work and
-   attach those repairs to their Phase 7 dependency-closure batches.
+1. Reconcile the 848 active special-binding diagnostics by shared behavior family and
+   consuming package, reusing current target procedures before adapting or porting.
+2. Preserve record-specific missing-reference repairs for their Phase 7
+   dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged
    smallest-unit exclusions.
-4. Regenerate a deterministic capability-complete bundle and repeat structural,
-   syntax-boot, isolated behavioral, reset, and walkthrough gates.
-5. Begin Phase 6 only when no active record remains blocked by a generic shared
-   capability.
+4. Regenerate the special-binding inventory after each shared-family checkpoint and
+   repeat structural, syntax-boot, isolated behavioral, reset, and walkthrough gates.

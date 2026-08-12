@@ -1,9 +1,9 @@
-# Realms of Luminari Phase 4 Manual Testing
+# Realms of Luminari Staged Pilot Manual Testing
 
-- Status: Phase 4 complete
+- Status: Phases 4-5 complete; Phase 6 in progress
 - Environment: disposable development runtime only
-- Staged world: `lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot/staging/world`
-- Runtime contract: `lib/rol-conversion/runs/phase5-exit-traps-20260812-pilot/validation/pilot-runtime-contract.json`
+- Staged world: `lib/rol-conversion/runs/phase5-shop-20260812-pilot/staging/world`
+- Runtime contract: `lib/rol-conversion/runs/phase5-shop-20260812-pilot/validation/pilot-runtime-contract.json`
 - Live target writes: zero
 
 ## Safety Boundary
@@ -80,6 +80,20 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Find the 14 appended shops in Hulburg and the converted shop in Muspel.
 - Test listing, buying, selling, opening hours, keeper messages, accepted item types,
   price multipliers, and roaming-shop behavior.
+- Muspel shop 2058829 is attached to its roaming keeper and deliberately has no fixed
+  room. It produces objects 2058639, 2058641, 2058651-2058654, and 2058657, operates
+  from hour 1 through 23, and uses normal buy/sell multipliers 1.25 and 0.5556.
+- Compare otherwise equivalent human or elf and non-matching customers at shop 2058829.
+  The human or elf must pay twice the post-GREED buy price and receive half the normal
+  sell return. The omitted illithid identity has no target player-race counterpart, and
+  the source `PZ` token was invalid in the source loader; neither should affect pricing.
+- Shop 2058829 has no source `CASTING` disposition. Its awake keeper must refuse `cast`,
+  `recite`, and `use` while permitting ordinary non-magic commands. Converted shops
+  with `CASTING` permit those commands; native shops without an RoL policy bit retain
+  their prior behavior.
+- Confirm normal shop save/export does not remove a converted shop's adverse-price
+  metadata. The optional `R <mask>~` record is not directly editable in `sedit`, but it
+  must survive saving an otherwise edited shop.
 
 ### High-level quests
 
@@ -89,9 +103,7 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   churches, and spell or skill teaching where the selected quest uses them.
 - Phase 5 has added runtime support for configured experience rewards, signed quest-point
   changes, argument-free attacks, and all mapped source spell or skill rewards. Those
-  additions are built and unit-tested. The five-zone pilot has been restaged with the
-  current converter, but a capability-complete full-corpus Phase 5 bundle has not yet
-  been staged for broad manual testing.
+  additions are built, unit-tested, and included in the current restaged pilot.
 
 ### SOC actions and special procedures
 
@@ -220,13 +232,13 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
-- All active symbolic families, including mobile actions, have explicit dispositions.
-  Phase 5 still has shop and other shared capability work. The active quest corpus uses
-  fixed item rewards; no random item-reward range remains to implement.
+- All active symbolic families and shared Phase 5 capabilities have explicit
+  dispositions. The active quest corpus uses fixed item rewards; no random item-reward
+  range remains to implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
-- The remaining source special-procedure corpus is Phase 6 work.
+- The remaining 848 active source special-binding diagnostics are Phase 6 work.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 

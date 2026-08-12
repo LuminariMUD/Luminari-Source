@@ -1,6 +1,6 @@
 # RealmsOfLuminari Zone Conversion Scope
 
-- Status: Phase 5 shared capability rollout in progress
+- Status: Phase 6 special-procedure reconciliation in progress
 - Assessment date: 2026-08-11
 - Source: `EXAMPLE/RealmsOfLuminari/areas/`
 - Target: this writable development checkout and its current `lib/world/`
@@ -245,28 +245,6 @@ Required work:
 Risk: **Very high**, because this is behavior compilation rather than record
 translation.
 
-### Shops (`shp`)
-
-The source contains 458 shops, 1,781 product entries, and 847 buy-type entries. Its
-keyword format includes products, profits, messages, keeper and room assignments,
-hours, and extra economic/AI behavior.
-
-Required work:
-
-- Reconcile existing target shops first. The source `SHOP` value identifies the
-  keeper, not a target-format shop VNUM; all 458 audited values are unique and
-  resolve to source mobiles.
-- Remap keepers, rooms, products, buy types, messages, profit values, and hours into
-  the target format documented in
-  [SHOP_FILE_FORMAT.md](../../world_game-data/SHOP_FILE_FORMAT.md).
-- Emit the load-bearing literal shop format tag `v3.0`.
-- Validate the three apparent shops without a normal one-to-one `ROOM` declaration.
-- Decide how to preserve source `HATES`, `CHEATS`, `DEADBEAT`, `GREED`, `KILLABLE`,
-  `OFFENSE`, `ROAMING`, and `CASTING` behavior. Options are a current equivalent,
-  DG/special-procedure support, or an explicitly accepted loss.
-
-Risk: **Medium for booting; high for behavioral parity**.
-
 ### Automated mobile actions (`soc`)
 
 The source has 1,758 mobile action lists and 4,284 actions using 144 numeric action
@@ -449,14 +427,13 @@ calendar time.
 
 | Phase | Scope | Sessions |
 |------:|-------|---------:|
-| 5 | Shared record, reset, shop, quest, SOC, trap, and extension capabilities | 8-14 |
 | 6 | Reconcile/reuse/patch/port special procedures | 48-80 |
 | 7 | Action-based batches, zone QA, and validation bundles | 42-66 |
 | 8 | Isolated integration, development apply, and documentation | 6-10 |
 
-Completed Phases 0-4 have been removed from this active scope; their delivery,
+Completed Phases 0-5 have been removed from this active scope; their delivery,
 acceptance evidence, and reforecast basis are in
-[RoL-Changelog.md](RoL-Changelog.md). Active work starts with Phase 5 and must preserve
+[RoL-Changelog.md](RoL-Changelog.md). Active work starts with Phase 6 and must preserve
 the pilot's deterministic, no-clobber, structural, reset, walkthrough, and isolated
 runtime gates.
 
@@ -521,10 +498,9 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 5 with reconciled shop behavior and the other shared capability gaps.
-The completed quest/SOC, rare room, object-trap, exit-trap, object-property,
-room/zone/affect, object-apply/affect, mobile-action, reset-chain, and audit checkpoints
-are recorded in [RoL-Changelog.md](RoL-Changelog.md).
-Preserve the six explicit source-defect or ignored content rows as logged smallest-unit
-exclusions, then regenerate a capability-complete bundle and repeat the pilot's
-structural and runtime gates before beginning Phase 6.
+Begin Phase 6 with the 848 active special-binding diagnostics already assigned to that
+owner. Reconcile them by shared behavior family and consuming package, reusing current
+target procedures before adapting or porting source behavior. Preserve the six explicit
+source-defect or ignored content rows as logged smallest-unit exclusions. Completed
+Phase 5 capability and shop evidence is recorded in
+[RoL-Changelog.md](RoL-Changelog.md).

@@ -1,6 +1,6 @@
 # RealmsOfLuminari Reconciliation-First, Feature-First Conversion Plan
 
-- Status: Phase 5 shared capability rollout in progress
+- Status: Phase 6 special-procedure reconciliation in progress
 - Plan date: 2026-08-11
 - Evidence audit: 2026-08-12
 - Companion scope:
@@ -355,8 +355,6 @@ assumption that ignored world data will yield useful Git diffs.
 | Follow `F` | No equivalent target opcode | `A` or `P` |
 | Removal `X` | No equivalent target opcode | `A` or `P` |
 | Time-predicate `T` | Target `T` attaches a trigger | `A` or `P`; never direct mapping |
-| Shops | Native shop records; prior target copies may exist | Reconcile, then `T` for core fields |
-| Extended shop AI | Partial or absent | `N`, `A`, or `P` per behavior |
 | Conversational `.qst` | Target HLQ is not identical | Per-direction `N/T/A/P/B` |
 | Five `.soc` modes | No like-for-like target kind | Measured native vs. DG selection |
 | Room extensions/dimensions | Partial or absent | `T`, `P`, `B`, or locked `X` |
@@ -416,16 +414,6 @@ otherwise merge distinct intended content and remove only proven duplicates.
 
 Every emitted entry is canonical and pre-approved with `!`. There is no builder review
 state or later approval batch.
-
-### Shops
-
-The audited corpus contains 458 distinct `SHOP:` keeper values, all resolving to source
-mobiles; regenerate this count from the current active source inventory. Target shop
-headers are separate shop identities, and the file must contain the load-bearing literal
-version tag `v3.0`.
-Core product, room, hours, profit, and message fields can be transformed only after
-existing shop lineage is reconciled. Hatred, cheating, roaming, casting, offense, and
-related behavior each receive their own capability disposition.
 
 ### SOC action lists
 
@@ -528,23 +516,14 @@ the supporting runtime lands.
 
 One session is one 2-4 hour spec with one objective and 12-25 tasks. Session ranges
 below are evidence-based planning envelopes, not delivery promises. The measured
-Phase 4 pilot replaced the provisional ranges and established a remaining total of
-104-170 sessions, or 208-680 focused engineering hours at the defined session size.
+Phase 4 pilot replaced the provisional ranges. Completion of Phase 5 leaves a remaining
+total of 96-156 sessions, or 192-624 focused engineering hours at the defined session
+size.
 
-Phases 0-4 are complete and have been removed from this active plan. Their delivered
+Phases 0-5 are complete and have been removed from this active plan. Their delivered
 scope, run identities, counts, acceptance evidence, commits, and reforecast basis are
 recorded in [RoL-Changelog.md](RoL-Changelog.md). Active implementation begins with
-Phase 5.
-
-### Phase 5: Shared capability rollout (8-14 sessions)
-
-Expand by frequency, pilot blockers, and reuse:
-
-1. reconciled core and extended shop behavior;
-2. other shared gaps; and
-3. remaining color, command, spell, skill, and symbolic mappings.
-
-Exit gate: no active record is blocked by an unowned generic data/runtime capability.
+Phase 6.
 
 ### Phase 6: Special-procedure reconciliation (48-80 sessions)
 

@@ -5,6 +5,69 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 shop compatibility and completion
+
+Status: Phase 5 completed; Phase 6 special-procedure reconciliation in progress
+
+### Delivered
+
+- Reconciled the active source inventory to 453 shops: 450 fixed-room shops and three
+  roaming-only shops. The earlier figure of 458 describes a provisional/raw inventory,
+  not the grammar-selected active records emitted by the final audit.
+- Preserved products, accepted item types, messages, keepers, resolved rooms, hours,
+  fixed and roaming operation, the load-bearing `v3.0` header, and exact source price
+  formulas. Player buy prices use `GREED / 100`; player sell prices use
+  `GREED / (100 + PROFIT)`.
+- Mapped authored `HATES` alignment, class, race, and NPC groups to target customer
+  restrictions. Closely related source-only identities use explicit bounded target
+  equivalents; real source identities without a target counterpart remain named losses.
+  Invalid source tokens such as the observed `PZ` and `NP` are recorded as source-inert
+  instead of being assigned invented behavior.
+- Added an optional persistent `R <mask>~` shop record for the source `CHEATS` contract.
+  Matching customers pay twice the normal buy price and receive half the normal sell
+  price. Boot, lookup, shop save, and world export paths preserve the record.
+- Added converter-owned magic-policy bits. Native shops remain unchanged; converted
+  shops permit `cast`, `recite`, and `use` only when the source authored `CASTING`.
+  `KILLABLE` and `ROAMING` use the existing target shopkeeper and roaming contracts.
+- Traced `DEADBEAT` as source-inert, bounded `OFFENSE` to the target refusal policy, and
+  retained source-only open, close, and bigotry messages as explicit conversion evidence.
+- Regenerated the full-corpus audit and five-zone pilot with zero generic capability
+  gaps, zero unmapped symbolic observations, zero transform exceptions, and zero live
+  target writes. The remaining 848 special-binding diagnostics are owned by Phase 6;
+  the 804 record-specific reference diagnostics are owned by Phase 7 batches.
+- Removed completed Phase 5 and shop requirements from the active plan and scope. The
+  remaining forecast is 96-156 sessions, or 192-624 focused engineering hours at the
+  defined 2-4 hour session size.
+
+### Acceptance evidence
+
+```text
+Delivery commits: ec1a8cd8, fe38a56e
+Full-corpus audit path: lib/rol-conversion/runs/phase5-shop-20260812-audit
+Full-corpus audit run: rol-phase5-audit-3fb8de2d9afd067b
+Pilot build path: lib/rol-conversion/runs/phase5-shop-20260812-pilot
+Pilot build run: rol-phase4-build-35c9c879af63b8d1
+Active source records: 71,680
+Convertible records emitted: 69,920
+Active shops emitted: 453
+Emitted target bytes: 42,099,580
+Converter exceptions: 0
+Unmapped symbolic observations: 0
+Generic capability gaps: 0
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 248 passed
+Production-linked CuTest suite: 619 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 starts from the already owned special-binding inventory; no generic shared
+capability remains as a prerequisite.
+
 ## 2026-08-12 - Phase 5 exit-trap compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
