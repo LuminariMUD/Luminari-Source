@@ -6,6 +6,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted lich energy drain
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all six active `lich_energy_drain` mobile bindings through the persistent,
+  mobile-owned `RoL Lich Energy Drain` procedure and the required `MOB_SPEC` activity
+  and combat-turn gateways.
+- Preserved room-list targeting of the current opponent and its party, the independent
+  one-in-five eligibility checks, the first-success rule, casting suppression, and the
+  source callback's deliberate fall-through to ordinary NPC activity.
+- Preserved the full-current-hit-point life transfer, Blackmantle healing suppression,
+  over-maximum healing, and cumulative two-combat-round stun. Target Death Ward maps
+  the unavailable source protection-from-undead spell and leaves the victim at zero
+  rather than minus five hit points.
+- Registered the procedure and event contract, taught the converter its canonical
+  target name and required action flag, and updated builder help, database-first help,
+  manual testing, converter fixtures, registry persistence and OLC inventories, and
+  production-linked characterization tests.
+- Reconciliation now resolves 552 of 1,147 active direct bindings and 88 of 562 source
+  handlers; 595 bindings and 474 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 554 resolved / 294 pending.
+- Archived the eighteenth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 30-62 Phase 6 sessions and 78-138 total sessions
+  for Phases 6-8, or 156-552 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 72ba7c8e
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-lich-energy-drain
+Reconciliation run: rol-phase6-special-8eaf63b5965118f6
+Active direct bindings: 1,147
+Direct bindings resolved: 552
+Direct bindings pending: 595
+Source handlers resolved: 88
+Source handlers pending: 474
+Lich-energy-drain bindings resolved: 6
+ACT_SPEC records resolved: 554
+ACT_SPEC records pending: 294
+Complete world-tool suite: 270 passed, 52 subtests passed
+Production-linked CuTest suite: 630 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 595 direct bindings across 474 source handlers.
+
 ## 2026-08-12 - Phase 6 converted trade bandits
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

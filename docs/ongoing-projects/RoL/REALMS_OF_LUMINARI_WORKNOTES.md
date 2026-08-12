@@ -57,6 +57,7 @@ Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
 Phase 6 converted-major-beholder commit: 5536e463
 Phase 6 converted-trade-bandit commit: 7693ce00
+Phase 6 converted-lich-energy-drain commit: 72ba7c8e
 ```
 
 The authoritative ignored runs are:
@@ -135,6 +136,8 @@ Phase 6 converted major beholders: lib/rol-conversion/runs/phase6-special-202608
                                    rol-phase6-special-e2050f070b43faf9
 Phase 6 converted trade bandits: lib/rol-conversion/runs/phase6-special-20260812-bandit
                                  rol-phase6-special-62a0531d50e3b71d
+Phase 6 converted lich energy drain: lib/rol-conversion/runs/phase6-special-20260812-lich-energy-drain
+                                     rol-phase6-special-8eaf63b5965118f6
 Policy:  rol-conversion-policy-1
 ```
 
@@ -163,11 +166,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 269 tests plus 52 subtests; the production-linked CuTest suite
-  passes 629;
+- The world-tool suite passes 270 tests plus 52 subtests; the production-linked CuTest suite
+  passes 630;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Seventeen bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 79-139 sessions: Phase 6 is 31-63, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Eighteen bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 78-138 sessions: Phase 6 is 30-62, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -269,18 +272,22 @@ Policy:  rol-conversion-policy-1
   variant-specific gold and wagon demands, underpayment hostility, successful-payment
   disappearance, repeat-attempt aggression, and lazy expiry while repairing the source
   missing-wagon null extraction defect.
+- All six active `lich_energy_drain` bindings are complete through the named
+  `RoL Lich Energy Drain` procedure. It preserves current-opponent party targeting,
+  independent one-in-five checks, full-current-hit-point transfer, Blackmantle healing
+  suppression, Death Ward protection mapping, cumulative stun, and casting suppression.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 546 of 1,147 active direct bindings and 87 of
-  562 source handlers, leaving 601 bindings and 475 handlers. The independent
-  `ACT_SPEC` cross-check resolves 552 of 848 records and leaves 296 pending.
+- The current Phase 6 checkpoint resolves 552 of 1,147 active direct bindings and 88 of
+  562 source handlers, leaving 595 bindings and 474 handlers. The independent
+  `ACT_SPEC` cross-check resolves 554 of 848 records and leaves 294 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 601 direct bindings by shared behavior family and
+1. Reconcile the remaining 595 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
