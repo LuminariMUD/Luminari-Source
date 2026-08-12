@@ -112,9 +112,13 @@ hull, interior, route, and navigator associations and do not configure arbitrary
 new ships.
 
 Guild is the mobile-owned training procedure. RoL Guild Room provides the
-same current training service for converted room-owned guild bindings and is
-available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,
-and Bank is available for compatible mobile and object prototypes.
+same current training service for unrestricted converted room-owned guild
+bindings. RoL Mage Guild Room, RoL Thief Guild Room, RoL Warrior Guild Room,
+and RoL Cleric Guild Room preserve source class-family admission while using
+the target multiclass model; any matching class level is sufficient. These
+five procedures are available only in redit. Pet Shop is room-owned,
+Postmaster is mobile-owned, and Bank is available for compatible mobile and
+object prototypes.
 
 Use trigedit when a script is sufficient. Ask a coder when the needed behavior
 is not present in the SpecProc menu. Shops, quests, pet shops, and boards have

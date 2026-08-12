@@ -10,6 +10,7 @@
 #include "utils.h"
 
 #include "act.h"
+#include "character/guild_services.h"
 #include "character/evolutions.h"
 #include "combat/fight.h"
 #include "comm.h"
@@ -744,6 +745,79 @@ static bool rol_guild_guard_has_class(const struct char_data *ch, unsigned long 
       return true;
 
   return false;
+}
+
+bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family family)
+{
+  if (ch == NULL || IS_NPC(ch))
+    return false;
+
+  switch (family)
+  {
+  case ROL_GUILD_FAMILY_MAGE:
+    return CLASS_LEVEL(ch, CLASS_WIZARD) > 0 || CLASS_LEVEL(ch, CLASS_SORCERER) > 0 ||
+           CLASS_LEVEL(ch, CLASS_SUMMONER) > 0 || CLASS_LEVEL(ch, CLASS_WARLOCK) > 0 ||
+           CLASS_LEVEL(ch, CLASS_NECROMANCER) > 0;
+  case ROL_GUILD_FAMILY_THIEF:
+    return CLASS_LEVEL(ch, CLASS_ROGUE) > 0 || CLASS_LEVEL(ch, CLASS_BARD) > 0 ||
+           CLASS_LEVEL(ch, CLASS_ASSASSIN) > 0 || CLASS_LEVEL(ch, CLASS_DUELIST) > 0 ||
+           CLASS_LEVEL(ch, CLASS_SHADOW_DANCER) > 0 || CLASS_LEVEL(ch, CLASS_ARCANE_SHADOW) > 0;
+  case ROL_GUILD_FAMILY_WARRIOR:
+    return CLASS_LEVEL(ch, CLASS_WARRIOR) > 0 || CLASS_LEVEL(ch, CLASS_MONK) > 0 ||
+           CLASS_LEVEL(ch, CLASS_BERSERKER) > 0 || CLASS_LEVEL(ch, CLASS_PALADIN) > 0 ||
+           CLASS_LEVEL(ch, CLASS_RANGER) > 0 || CLASS_LEVEL(ch, CLASS_BLACKGUARD) > 0 ||
+           CLASS_LEVEL(ch, CLASS_WEAPON_MASTER) > 0 ||
+           CLASS_LEVEL(ch, CLASS_STALWART_DEFENDER) > 0 ||
+           CLASS_LEVEL(ch, CLASS_ARCANE_ARCHER) > 0 || CLASS_LEVEL(ch, CLASS_SHIFTER) > 0 ||
+           CLASS_LEVEL(ch, CLASS_SACRED_FIST) > 0 || CLASS_LEVEL(ch, CLASS_ELDRITCH_KNIGHT) > 0 ||
+           CLASS_LEVEL(ch, CLASS_SPELLSWORD) > 0 || CLASS_LEVEL(ch, CLASS_KNIGHT_OF_SOLAMNIA) > 0 ||
+           CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_THORN) > 0 ||
+           CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_SKULL) > 0 ||
+           CLASS_LEVEL(ch, CLASS_KNIGHT_OF_THE_LILY) > 0 || CLASS_LEVEL(ch, CLASS_DRAGONRIDER) > 0;
+  case ROL_GUILD_FAMILY_CLERIC:
+    return CLASS_LEVEL(ch, CLASS_CLERIC) > 0 || CLASS_LEVEL(ch, CLASS_DRUID) > 0 ||
+           CLASS_LEVEL(ch, CLASS_INQUISITOR) > 0;
+  default:
+    return false;
+  }
+}
+
+static int rol_class_guild_room(struct char_data *ch, void *me, int cmd, const char *argument,
+                                enum rol_guild_family family)
+{
+  if (ch == NULL)
+    return FALSE;
+
+  if (IS_NPC(ch) || cmd == 0 || (!CMD_IS("practice") && !CMD_IS("train") && !CMD_IS("boosts")))
+    return guild(ch, me, cmd, argument);
+
+  if (!rol_class_guild_allows(ch, family))
+  {
+    send_to_char(ch, "You cannot practice here!\r\n");
+    return TRUE;
+  }
+
+  return guild(ch, me, cmd, argument);
+}
+
+int rol_mage_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_MAGE);
+}
+
+int rol_thief_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_THIEF);
+}
+
+int rol_warrior_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_WARRIOR);
+}
+
+int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  return rol_class_guild_room(ch, me, cmd, argument, ROL_GUILD_FAMILY_CLERIC);
 }
 
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch)

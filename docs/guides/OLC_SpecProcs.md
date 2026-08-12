@@ -245,7 +245,10 @@ production-linked evidence, see
 - The selector shows canonical definitions only. An alias such as `Guildmaster` still loads for
   compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
 - `Guild` is the mobile-owned training procedure. `RoL Guild Room` exposes the same current
-  training service through a converted room binding and is available only in `redit`.
+  training service through an unrestricted converted room binding. `RoL Mage Guild Room`,
+  `RoL Thief Guild Room`, `RoL Warrior Guild Room`, and `RoL Cleric Guild Room` expose it only
+  to matching class families; any qualifying class in a multiclass build is sufficient. All five
+  room procedures are available only in `redit`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
   owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error

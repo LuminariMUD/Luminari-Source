@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 76, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 74, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 80, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 78, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -332,6 +332,14 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"thorn_shield", rol_thorn_shield, SPEC_OWNER_OBJECT,
        SPEC_EVENT_ITEM_IDENTIFY | SPEC_EVENT_DEFENSE_REACTION, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Guild Room", guild, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Mage Guild Room", rol_mage_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Thief Guild Room", rol_thief_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Warrior Guild Room", rol_warrior_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Cleric Guild Room", rol_cleric_guild_room, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
       {"RoL Corpse Devourer", rol_corpse_devourer, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_ACTIVITY,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Poison Bite", rol_poison_bite, SPEC_OWNER_MOBILE,

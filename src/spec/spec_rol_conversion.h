@@ -18,6 +18,14 @@ enum rol_bandit_demand
   ROL_BANDIT_DEMAND_TAKE_WAGON = -3
 };
 
+enum rol_guild_family
+{
+  ROL_GUILD_FAMILY_MAGE = 0,
+  ROL_GUILD_FAMILY_THIEF,
+  ROL_GUILD_FAMILY_WARRIOR,
+  ROL_GUILD_FAMILY_CLERIC
+};
+
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_poison_bite(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -31,6 +39,10 @@ int rol_breath_attack_lightning(struct char_data *ch, void *me, int cmd, const c
 int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_mage_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_thief_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_warrior_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_cleric_guild_room(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -42,6 +54,7 @@ int rol_umberhulk_proc_chance(int level);
 int rol_shadow_giant_spook_damage(bool save_succeeded);
 bool rol_shadow_giant_spook_immune(struct char_data *target);
 bool rol_shadow_giant_stun_succeeds(int level, int chance_roll, int penalty_roll);
+bool rol_class_guild_allows(const struct char_data *ch, enum rol_guild_family family);
 bool rol_guild_guard_allows(int room_vnum, int direction, const struct char_data *ch);
 bool rol_guild_guard_protects(int room_vnum);
 int rol_major_beholder_eye_spell(int eye);

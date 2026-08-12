@@ -642,6 +642,42 @@ void Test_spec_rol_guild_guard_preserves_active_gate_rules(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct char_data *target;
+
+  spec_mechanics_begin(&fixture);
+  target = &fixture.target;
+  memset(&player_specials, 0, sizeof(player_specials));
+  REMOVE_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  target->player_specials = &player_specials;
+
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_MAGE));
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_THIEF));
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_WARRIOR));
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
+
+  CLASS_LEVEL(target, CLASS_WIZARD) = 1;
+  CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_MAGE));
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
+  CLASS_LEVEL(target, CLASS_BARD) = 1;
+  CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_THIEF));
+  CLASS_LEVEL(target, CLASS_PALADIN) = 1;
+  CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_WARRIOR));
+  CLASS_LEVEL(target, CLASS_DRUID) = 1;
+  CuAssertTrue(tc, rol_class_guild_allows(target, ROL_GUILD_FAMILY_CLERIC));
+
+  CuAssertTrue(tc, !rol_class_guild_allows(target, (enum rol_guild_family)99));
+  CuAssertTrue(tc, !rol_class_guild_allows(NULL, ROL_GUILD_FAMILY_MAGE));
+
+  target->player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(target), MOB_ISNPC);
+  CuAssertTrue(tc, !rol_class_guild_allows(target, ROL_GUILD_FAMILY_MAGE));
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

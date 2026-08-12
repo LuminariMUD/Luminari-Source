@@ -466,6 +466,10 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "obj_drain",
                                                "thorn_shield",
                                                "RoL Guild Room",
+                                               "RoL Mage Guild Room",
+                                               "RoL Thief Guild Room",
+                                               "RoL Warrior Guild Room",
+                                               "RoL Cleric Guild Room",
                                                "RoL Corpse Devourer",
                                                "RoL Poison Bite",
                                                "RoL Thief",
@@ -486,7 +490,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 77, expected_count);
+  CuAssertIntEquals(tc, 81, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

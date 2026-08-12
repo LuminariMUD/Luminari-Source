@@ -1214,6 +1214,40 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Guild Guard", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_class_type_guild_bindings_use_distinct_room_adapters(self) -> None:
+    expected = {
+        "guild_classtype_mage": "RoL Mage Guild Room",
+        "guild_classtype_thief": "RoL Thief Guild Room",
+        "guild_classtype_warrior": "RoL Warrior Guild Room",
+        "guild_classtype_cleric": "RoL Cleric Guild Room",
+    }
+    bindings = [
+        {
+            "basename": "guilds",
+            "record_type": "room",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in enumerate(expected, start=100)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual([], compiled.triggers)
+    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertEqual(
+        sorted(expected.values()),
+        sorted(binding.persisted_name for binding in compiled.native_bindings),
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_shaman_totem_and_spirit_death_bindings_share_converted_identity(self) -> None:
     bindings = [
         {

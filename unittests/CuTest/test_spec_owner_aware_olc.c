@@ -99,9 +99,20 @@ static const char *const spec_object_names[] = {
 };
 
 static const char *const spec_room_names[] = {
-    "Bazaar",         "Crafting Quest",         "Dump",           "Pet Shop",
-    "Wizard Library", "Greyhawk Ship Commands", "RoL Guild Room", "RoL Auto Distributor",
-    "RoL Ship Exit",  "RoL Ship Lookout",
+    "Bazaar",
+    "Crafting Quest",
+    "Dump",
+    "Pet Shop",
+    "Wizard Library",
+    "Greyhawk Ship Commands",
+    "RoL Guild Room",
+    "RoL Mage Guild Room",
+    "RoL Thief Guild Room",
+    "RoL Warrior Guild Room",
+    "RoL Cleric Guild Room",
+    "RoL Auto Distributor",
+    "RoL Ship Exit",
+    "RoL Ship Lookout",
 };
 
 static const struct spec_owner_expected_view spec_expected_views[] = {
@@ -223,6 +234,8 @@ static bool spec_owner_render_scenario(const char *sandbox, char *error, size_t 
       "Wizard Library [Magic]",
       "Greyhawk Ship Commands [Vessels]",
       "RoL Guild Room [RoL Conversion]",
+      "RoL Mage Guild Room [RoL Conversion]",
+      "RoL Cleric Guild Room [RoL Conversion]",
       "prerequisites: none",
   };
   static const char *const room_forbidden[] = {

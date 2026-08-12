@@ -58,6 +58,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Ship Control handles panel instruments') > 0
   AND INSTR(entry, 'converter-owned') > 0
   AND INSTR(entry, 'RoL Guild Room') > 0
+  AND INSTR(entry, 'RoL Mage Guild Room') > 0
+  AND INSTR(entry, 'target multiclass model') > 0
   AND INSTR(entry, 'available only in redit') > 0;
 
 SELECT
