@@ -6,6 +6,57 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted directional item blockers
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all six active `item_block` bindings for converted ATD objects
+  2000891-2000896 through the persistent, object-owned `RoL Item Blocker`
+  procedure.
+- Preserved each object's authored north, east, south, west, up, or down direction in
+  object value 0. While an aggressive NPC occupies the room, the object intercepts
+  mortal player and pet movement in that direction and matching door-unlock attempts.
+- Preserved the source exemptions for ordinary non-pet NPCs and trusted staff, the
+  source morphed-character exception, the hidden or blocked exit boundary, and inert
+  behavior when no aggressive NPC is present.
+- Registered the procedure and persistence/index contracts, taught the converter its
+  canonical target name, and updated builder help, database-first help, manual testing,
+  OLC inventories, converter fixtures, and production-linked characterization tests.
+- Reconciliation now resolves 581 of 1,147 active direct bindings and 96 of 562 source
+  handlers; 566 bindings and 466 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 563 resolved / 285 pending because these are object-owned bindings.
+- Archived the twenty-third bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 25-57 Phase 6 sessions and 73-133 total sessions
+  for Phases 6-8, or 146-532 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: acb858c1
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-item-blocker
+Reconciliation run: rol-phase6-special-d11cc60b4d4cd56e
+Active direct bindings: 1,147
+Direct bindings resolved: 581
+Direct bindings pending: 566
+Source handlers resolved: 96
+Source handlers pending: 466
+Item-blocker bindings resolved: 6
+Native adapted bindings: 206
+ACT_SPEC records resolved: 563
+ACT_SPEC records pending: 285
+Complete world-tool suite: 275 passed
+Production-linked CuTest suite: 634 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 566 direct bindings across 466 source handlers.
+
 ## 2026-08-12 - Phase 6 Bloodstone critter behavior
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
