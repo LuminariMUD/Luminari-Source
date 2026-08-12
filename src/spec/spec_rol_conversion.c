@@ -418,6 +418,13 @@ enum rol_source_periodic_action_kind
   ROL_SOURCE_PERIODIC_SPEECH
 };
 
+enum rol_source_periodic_devour_order
+{
+  ROL_SOURCE_PERIODIC_DEVOUR_NONE = 0,
+  ROL_SOURCE_PERIODIC_DEVOUR_BEFORE,
+  ROL_SOURCE_PERIODIC_DEVOUR_AFTER
+};
+
 struct rol_source_periodic_profile
 {
   int mobile_vnum;
@@ -429,6 +436,7 @@ struct rol_source_periodic_profile
   bool require_awake;
   bool require_sleeping;
   bool suppress_fighting;
+  enum rol_source_periodic_devour_order devour_order;
 };
 
 struct rol_source_periodic_outcome
@@ -3989,6 +3997,13 @@ bool rol_source_periodic_requires_sleeping(int mobile_vnum)
   return profile != NULL && profile->require_sleeping;
 }
 
+int rol_source_periodic_devour_order(int mobile_vnum)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+
+  return profile != NULL ? profile->devour_order : ROL_SOURCE_PERIODIC_DEVOUR_NONE;
+}
+
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll)
 {
   const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
@@ -4026,10 +4041,10 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
   const struct rol_source_periodic_profile *profile;
   const struct rol_source_periodic_outcome *outcome;
   const struct rol_source_periodic_action *action;
+  bool emitted = false;
+  bool devoured = false;
   int roll;
   size_t index;
-
-  (void)argument;
 
   if (speaker == NULL && cmd == 0)
     speaker = ch;
@@ -4042,24 +4057,32 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
       (profile->suppress_fighting && FIGHTING(speaker) != NULL))
     return FALSE;
 
+  if (profile->devour_order == ROL_SOURCE_PERIODIC_DEVOUR_BEFORE &&
+      rol_corpse_devourer(speaker, speaker, 0, argument))
+    return TRUE;
+
   if (profile->dice_count > 0 && profile->dice_sides > 0)
     roll = dice(profile->dice_count, profile->dice_sides);
   else
     roll = rand_number(profile->roll_min, profile->roll_max);
   outcome = rol_source_periodic_outcome_for(profile->profile_id, roll);
-  if (outcome == NULL)
-    return FALSE;
-
-  for (index = 0; index < outcome->action_count; index++)
+  if (outcome != NULL)
   {
-    action = &rol_source_periodic_actions[outcome->first_action + index];
-    if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
-      do_say(speaker, action->message, 0, 0);
-    else
-      act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+    for (index = 0; index < outcome->action_count; index++)
+    {
+      action = &rol_source_periodic_actions[outcome->first_action + index];
+      if (action->kind == ROL_SOURCE_PERIODIC_SPEECH)
+        do_say(speaker, action->message, 0, 0);
+      else
+        act(action->message, action->hide, speaker, NULL, NULL, TO_ROOM);
+    }
+    emitted = true;
   }
 
-  return TRUE;
+  if (profile->devour_order == ROL_SOURCE_PERIODIC_DEVOUR_AFTER)
+    devoured = rol_corpse_devourer(speaker, speaker, 0, argument) != FALSE;
+
+  return emitted || devoured;
 }
 
 static const struct rol_state_periodic_profile *rol_state_periodic_profile_for(int mobile_vnum)

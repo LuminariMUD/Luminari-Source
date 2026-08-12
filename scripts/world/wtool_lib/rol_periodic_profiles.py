@@ -3,6 +3,12 @@
 from __future__ import annotations
 
 
+DEVOUR_PROFILE_ORDER: dict[str, str] = {
+    "bs_wolf": "before",
+    "dog_one": "after",
+}
+
+
 PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "billthecat": ("src/specs.fun.c", (2001230,)),
     "bulette": ("src/specs.towerofsorc.c", (2015901,)),
@@ -13,6 +19,7 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "bs_armor": ("src/specs.bloodstone.c", (2007172,)),
     "bs_assmaster": ("src/specs.bloodstone.c", (2007317,)),
     "bs_assshop": ("src/specs.bloodstone.c", (2007323,)),
+    "bs_banker": ("src/specs.bloodstone.c", (2007190,)),
     "bs_baron": ("src/specs.bloodstone.c", (2007118,)),
     "bs_bear": ("src/specs.bloodstone.c", (2007142,)),
     "bs_boar": ("src/specs.bloodstone.c", (2007152,)),
@@ -75,16 +82,19 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "bs_watcher": ("src/specs.bloodstone.c", (2007106,)),
     "bs_weapon": ("src/specs.bloodstone.c", (2007175,)),
     "bs_wino": ("src/specs.bloodstone.c", (2007105, 2007308)),
+    "bs_wolf": ("src/specs.bloodstone.c", (2007140,)),
     "bs_youngm": ("src/specs.bloodstone.c", (2007178,)),
     "bs_youngw": ("src/specs.bloodstone.c", (2007179,)),
     "bs_zzzcitizen": ("src/specs.bloodstone.c", (2007206,)),
     "bs_zzzguard": ("src/specs.bloodstone.c", (2007205,)),
     "cricket": ("src/specs.realm.c", (2014048,)),
+    "dog_one": ("src/specs.waterdeep.c", (2003062,)),
     "ice_artist": ("src/specs.icecrag.c", (2097002,)),
     "ice_cleaning_crew": ("src/specs.icecrag.c", (2097001,)),
     "ice_commander": ("src/specs.icecrag.c", (2097021,)),
     "ice_garden_attendant": ("src/specs.icecrag.c", (2097011,)),
     "ice_impatient_guest": ("src/specs.icecrag.c", (2097033,)),
+    "ice_masha": ("src/specs.icecrag.c", (2097006,)),
     "ice_masonary_crew": ("src/specs.icecrag.c", (2097028,)),
     "ice_priest": ("src/specs.icecrag.c", (2097008,)),
     "ice_privates": ("src/specs.icecrag.c", (2097005,)),

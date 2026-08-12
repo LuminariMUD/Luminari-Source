@@ -473,11 +473,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(1_035, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(112, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(471, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(91, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(581, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_039, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(108, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(475, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(87, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(585, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           159, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
@@ -486,8 +486,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(801, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(47, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(805, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(43, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

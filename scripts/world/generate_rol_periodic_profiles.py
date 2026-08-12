@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 import re
 
-from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+from wtool_lib.rol_periodic_profiles import DEVOUR_PROFILE_ORDER, PROFILE_SOURCES
 
 _C_STRING = r'(?:"(?:\\.|[^"\\])*"\s*)+'
 _ACTION_CALL = re.compile(
@@ -46,6 +46,7 @@ class Profile:
   require_awake: bool
   require_sleeping: bool
   suppress_fighting: bool
+  devour_order: str
   outcomes: tuple[Outcome, ...]
 
 
@@ -147,6 +148,22 @@ def _parse_actions(segment: str, socials: dict[str, tuple[bool, str] | None]) ->
 def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int, ...],
                    socials: dict[str, tuple[bool, str] | None]) -> Profile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
+  devour_calls = len(re.findall(r"\bdevour\s*\(", body))
+  inline_devour = all(
+      marker in body
+      for marker in ("ITEM_FOOD", "ITEM_CORPSE", "obj_from_obj", "extract_obj")
+  )
+  devour_order = DEVOUR_PROFILE_ORDER.get(name, "none")
+  if devour_order not in {"none", "before", "after"}:
+    raise ValueError(f"{name}: invalid devour composition order: {devour_order}")
+  devour_shapes = devour_calls + int(inline_devour)
+  if (devour_order == "none" and devour_shapes != 0) or (
+      devour_order != "none" and devour_shapes != 1
+  ):
+    raise ValueError(
+        f"{name}: devour composition expected {0 if devour_order == 'none' else 1} source "
+        f"shape, found {devour_shapes}"
+    )
   switch = re.search(
       r"switch\s*\(\s*(number|dice)\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
       body,
@@ -208,6 +225,7 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
       "AWAKE(ch)" in body,
       "STAT_SLEEPING" in body,
       "IS_FIGHTING(ch)" in body,
+      devour_order,
       tuple(sorted(outcomes, key=lambda outcome: outcome.roll)),
   )
 
@@ -258,10 +276,15 @@ def render(source_root: Path) -> str:
     require_awake = "true" if profile.require_awake else "false"
     require_sleeping = "true" if profile.require_sleeping else "false"
     suppress = "true" if profile.suppress_fighting else "false"
+    devour = {
+        "none": "ROL_SOURCE_PERIODIC_DEVOUR_NONE",
+        "before": "ROL_SOURCE_PERIODIC_DEVOUR_BEFORE",
+        "after": "ROL_SOURCE_PERIODIC_DEVOUR_AFTER",
+    }[profile.devour_order]
     output.append(
         f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, "
         f"{profile.dice_count}, {profile.dice_sides}, {require_awake}, {require_sleeping}, "
-        f"{suppress}}},"
+        f"{suppress}, {devour}}},"
     )
   output.extend(["};", "", "static const struct rol_source_periodic_outcome rol_source_periodic_outcomes[] = {"])
 

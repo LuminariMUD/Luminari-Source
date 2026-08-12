@@ -5,7 +5,7 @@ import re
 import unittest
 
 from wtool_lib.constants import default_repo_root
-from wtool_lib.rol_periodic_profiles import PROFILE_SOURCES
+from wtool_lib.rol_periodic_profiles import DEVOUR_PROFILE_ORDER, PROFILE_SOURCES
 
 
 class RolPeriodicProfileTests(unittest.TestCase):
@@ -16,8 +16,8 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(94, len(PROFILE_SOURCES))
-    self.assertEqual(100, len(vnums))
+    self.assertEqual(98, len(PROFILE_SOURCES))
+    self.assertEqual(104, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
@@ -82,8 +82,25 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(367, len(outcomes))
-    self.assertEqual(601, len(actions))
+    self.assertEqual(380, len(outcomes))
+    self.assertEqual(621, len(actions))
+
+  def test_devour_composition_is_explicit_and_ordered(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+
+    self.assertEqual({"bs_wolf": "before", "dog_one": "after"}, DEVOUR_PROFILE_ORDER)
+    self.assertRegex(
+        generated,
+        r"\{2007140, ROL_SOURCE_PERIODIC_BS_WOLF, 0, 100, 0, 0, true, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_BEFORE\}",
+    )
+    self.assertRegex(
+        generated,
+        r"\{2003062, ROL_SOURCE_PERIODIC_DOG_ONE, 2, 8, 2, 4, true, false, false, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_AFTER\}",
+    )
 
   def test_dice_and_sleeping_profiles_preserve_source_gates(self) -> None:
     generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
@@ -92,11 +109,13 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertRegex(
         generated,
-        r"\{2003212, ROL_SOURCE_PERIODIC_GUARD_TWO, 2, 8, 2, 4, false, true, false\}",
+        r"\{2003212, ROL_SOURCE_PERIODIC_GUARD_TWO, 2, 8, 2, 4, false, true, false, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
     )
     self.assertRegex(
         generated,
-        r"\{2012000, ROL_SOURCE_PERIODIC_SNOWBEAST, 3, 18, 3, 6, false, false, true\}",
+        r"\{2012000, ROL_SOURCE_PERIODIC_SNOWBEAST, 3, 18, 3, 6, false, false, true, "
+        r"ROL_SOURCE_PERIODIC_DEVOUR_NONE\}",
     )
 
 

@@ -134,6 +134,7 @@ bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *rol
                                         bool *requires_awake, bool *suppresses_fighting);
 bool rol_source_periodic_dice_shape(int mobile_vnum, int *dice_count, int *dice_sides);
 bool rol_source_periodic_requires_sleeping(int mobile_vnum);
+int rol_source_periodic_devour_order(int mobile_vnum);
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll);
 const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
                                                bool *speech, bool *hide);

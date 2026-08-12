@@ -1321,7 +1321,11 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 100, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 104, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 1, rol_source_periodic_devour_order(2007140));
+  CuAssertIntEquals(tc, 2, rol_source_periodic_devour_order(2003062));
+  CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(2097006));
+  CuAssertIntEquals(tc, 0, rol_source_periodic_devour_order(9999999));
   CuAssertTrue(tc, rol_source_periodic_profile_bounds(2007220, &roll_min, &roll_max,
                                                       &requires_awake, &suppresses_fighting));
   CuAssertIntEquals(tc, 0, roll_min);
