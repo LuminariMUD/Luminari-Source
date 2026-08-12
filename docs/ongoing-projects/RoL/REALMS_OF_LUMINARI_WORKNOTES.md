@@ -37,6 +37,7 @@ Phase 5 room/zone/affect compatibility commit: f0fb9d8f
 Phase 5 object-property compatibility commit: ca037b15
 Phase 5 object-apply/affect compatibility commit: f7eabca4
 Phase 5 mobile-action compatibility commit: 1f6020de
+Phase 5 reset mobile-chain compatibility commit: afeea9d7
 ```
 
 The authoritative ignored runs are:
@@ -71,6 +72,10 @@ Phase 5 mobile-action audit: lib/rol-conversion/runs/phase5-mobile-actions-20260
                                rol-phase5-audit-fc1c1ddc402d3800
 Phase 5 mobile-action pilot: lib/rol-conversion/runs/phase5-mobile-actions-20260812-pilot
                                rol-phase4-build-f11ba7e2f3909645
+Phase 5 reset-chain audit: lib/rol-conversion/runs/phase5-reset-chain-20260812-audit
+                           rol-phase5-audit-ed84cba825215e4f
+Phase 5 reset-chain pilot: lib/rol-conversion/runs/phase5-reset-chain-20260812-pilot
+                           rol-phase4-build-0036becbb939e3ad
 Policy:  rol-conversion-policy-1
 ```
 
@@ -99,7 +104,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 242 tests; the production-linked CuTest suite passes 614;
+- The world-tool suite passes 243 tests; the production-linked CuTest suite passes 615;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 104-170 sessions: Phase 5 is 8-14, Phase 6 is
   48-80, Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -134,14 +139,18 @@ Policy:  rol-conversion-policy-1
   independent class-role, and race-aggression behavior; protector expands to existing
   helper/listener behavior. `ACT_SPEC` is explicitly owned by Phase 6 binding
   reconciliation, while relationship-only or source-inert flags are logged omissions.
+- Converted zones now carry `RoL-Reset-Compat`: their `E` and `G` chains remain bound
+  to the most recent successful `M`, matching the source even after an intermediate
+  equipment failure. Native zones retain result-offset behavior, and the three active
+  non-boolean source dependencies are normalized to the source's actual boolean rule.
 - All 1,467 active quest item-reward directions carry one fixed object VNUM. The source
   engine's optional random-range upper bound is unused by active content and blocks no
   record.
 
 ## Immediate next actions
 
-1. Resolve reset transforms, reconciled shop behavior, and remaining reusable shared
-   capability gaps.
+1. Persist the 34 valid active exit-trap payloads and reset rearming behavior, then
+   resolve reconciled shop behavior and remaining reusable shared capability gaps.
 2. Separate record-specific missing-reference repairs from reusable capability work and
    attach those repairs to their Phase 7 dependency-closure batches.
 3. Preserve the six locked malformed record exclusions as explicit, logged

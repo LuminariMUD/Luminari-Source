@@ -71,6 +71,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   resets.
 - Exercise the converted `M`, `O`, `G`, `E`, `P`, `R`, `D`, `F`, `K`, `C`, and `X`
   reset families where the selected zones use them.
+- In a reset chain with several inventory or equipment rows after one mobile load,
+  confirm that a failed percentage or occupied equipment slot does not suppress later
+  `E` or `G` rows for that same mobile.
 
 ### Shops
 
@@ -196,8 +199,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
 - The pilot is not installed into the normal development world.
 - The remaining 247 source packages have not completed conversion.
 - All active symbolic families, including mobile actions, have explicit dispositions.
-  Phase 5 still has reset, shop, and other shared capability work. The active quest
-  corpus uses fixed item rewards; no random item-reward range remains to implement.
+  Phase 5 still has exit-trap persistence, shop, and other shared capability work. The
+  active quest corpus uses fixed item rewards; no random item-reward range remains to
+  implement.
 - Flagged arena, no-precipitation, PSP-regeneration, and RoL-jail runtime support is
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.

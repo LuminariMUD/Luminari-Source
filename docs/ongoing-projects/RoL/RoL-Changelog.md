@@ -5,6 +5,54 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 5 reset mobile-chain compatibility
+
+Status: Completed sub-milestone; Phase 5 implementation in progress
+
+### Delivered
+
+- Traced all active source reset shapes and corrected the semantic mismatch between
+  source boolean dependencies and the target result-offset queue.
+- Added the converter-owned `RoL-Reset-Compat` zone flag. In flagged zones, all `E`
+  and `G` commands bind to the most recent successful `M` command even when an earlier
+  equipment or inventory load fails. Native zones retain their existing queue behavior.
+- Normalized every non-`F` source dependency to its actual boolean contract. The three
+  active non-boolean source values now emit as `1` with explicit diagnostics; `F`
+  continues to preserve its source follow-mode overload.
+- Regenerated the constants manifest and documented the new zone flag. Added converter
+  fixtures and a production-linked predicate test covering source and native behavior.
+- Rebuilt the full-corpus audit and five-zone staged pilot with zero live target writes.
+  The pilot still has no new active errors and passes reset observations and scripted
+  walkthroughs.
+
+### Acceptance evidence
+
+```text
+Delivery commit: afeea9d7
+Full-corpus audit path: lib/rol-conversion/runs/phase5-reset-chain-20260812-audit
+Full-corpus audit run: rol-phase5-audit-ed84cba825215e4f
+Pilot build path: lib/rol-conversion/runs/phase5-reset-chain-20260812-pilot
+Pilot build run: rol-phase4-build-0036becbb939e3ad
+Active source records: 71,680
+Convertible records emitted: 69,920
+Emitted target bytes: 42,094,939
+Converter exceptions: 0
+Unmapped symbolic observations: 0
+Pilot selected actions: 3,001
+Pilot active staged errors: 79 inherited, 0 new
+Pilot reset-reference and walkthrough gates: passed
+Complete world-tool suite: 243 passed
+Production-linked CuTest suite: 615 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+The next Phase 5 pass persists the 34 valid active exit-trap payloads and their reset
+rearming contract, then continues with reconciled shop behavior and remaining shared
+capability gaps.
+
 ## 2026-08-12 - Phase 5 mobile-action compatibility
 
 Status: Completed sub-milestone; Phase 5 implementation in progress
