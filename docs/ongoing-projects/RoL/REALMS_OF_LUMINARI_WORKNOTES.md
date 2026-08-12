@@ -56,6 +56,7 @@ Phase 6 converted-ship system commit: 215c0f13
 Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
 Phase 6 converted-major-beholder commit: 5536e463
+Phase 6 converted-trade-bandit commit: 7693ce00
 ```
 
 The authoritative ignored runs are:
@@ -132,6 +133,8 @@ Phase 6 converted shaman totems: lib/rol-conversion/runs/phase6-special-20260812
                                  rol-phase6-special-5b3c2b758537ad3a
 Phase 6 converted major beholders: lib/rol-conversion/runs/phase6-special-20260812-major-beholder
                                    rol-phase6-special-e2050f070b43faf9
+Phase 6 converted trade bandits: lib/rol-conversion/runs/phase6-special-20260812-bandit
+                                 rol-phase6-special-62a0531d50e3b71d
 Policy:  rol-conversion-policy-1
 ```
 
@@ -160,11 +163,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 268 tests plus 52 subtests; the production-linked CuTest suite
-  passes 628;
+- The world-tool suite passes 269 tests plus 52 subtests; the production-linked CuTest suite
+  passes 629;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Sixteen bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 80-140 sessions: Phase 6 is 32-64, Phase 7 is 42-66, and Phase 8 is 6-10.
+- Seventeen bounded Phase 6 delivery sessions are archived. The measured remaining
+  forecast is 79-139 sessions: Phase 6 is 31-63, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -261,18 +264,23 @@ Policy:  rol-conversion-policy-1
   three-turn per-eye cooldowns, player/pet targeting, and target-native spell mappings.
   The source-only all-unused-eyes critical burst is explicitly unavailable because the
   target gateway has no source weapon-critical event.
+- All seven active `bandit` bindings are complete through the named `RoL Trade Bandit`
+  procedure. It preserves player capture, movement and object-command interception,
+  variant-specific gold and wagon demands, underpayment hostility, successful-payment
+  disappearance, repeat-attempt aggression, and lazy expiry while repairing the source
+  missing-wagon null extraction defect.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 539 of 1,147 active direct bindings and 86 of
-  562 source handlers, leaving 608 bindings and 476 handlers. The independent
+- The current Phase 6 checkpoint resolves 546 of 1,147 active direct bindings and 87 of
+  562 source handlers, leaving 601 bindings and 475 handlers. The independent
   `ACT_SPEC` cross-check resolves 552 of 848 records and leaves 296 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 608 direct bindings by shared behavior family and
+1. Reconcile the remaining 601 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

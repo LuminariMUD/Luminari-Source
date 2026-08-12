@@ -6,6 +6,59 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted trade bandits
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all seven active `bandit` mobile bindings through the persistent,
+  mobile-owned `RoL Trade Bandit` procedure and the required `MOB_SPEC` command and
+  combat-turn gateway.
+- Preserved one-player capture, movement/flee/get interception, source demand variants,
+  ordinary give-command processing, underpayment followed by attack, successful
+  payment followed by disappearance, the repeat-attempt attack chance, and the lazy
+  ten-MUD-hour expiry when the bandit is alone.
+- Mapped source platinum demands to ten target gold per platinum and valued carried
+  resources plus cargo in the player's owned wagon. The wagon-seizure variant uses the
+  target `ITEM_WAGON` ownership model; a missing required wagon safely becomes an attack
+  instead of reproducing the source null extraction defect.
+- Registered the procedure and event contract, taught the converter its canonical
+  target name and required action flag, and updated builder help, database-first help,
+  manual testing, converter fixtures, registry persistence and OLC inventories, and
+  production-linked characterization tests.
+- Reconciliation now resolves 546 of 1,147 active direct bindings and 87 of 562 source
+  handlers; 601 bindings and 475 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 552 resolved / 296 pending.
+- Archived the seventeenth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 31-63 Phase 6 sessions and 79-139 total sessions
+  for Phases 6-8, or 158-556 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 7693ce00
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-bandit
+Reconciliation run: rol-phase6-special-62a0531d50e3b71d
+Active direct bindings: 1,147
+Direct bindings resolved: 546
+Direct bindings pending: 601
+Source handlers resolved: 87
+Source handlers pending: 475
+Trade-bandit bindings resolved: 7
+ACT_SPEC records resolved: 552
+ACT_SPEC records pending: 296
+Complete world-tool suite: 269 passed, 52 subtests passed
+Production-linked CuTest suite: 629 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 601 direct bindings across 475 source handlers.
+
 ## 2026-08-12 - Phase 6 converted major beholders
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
