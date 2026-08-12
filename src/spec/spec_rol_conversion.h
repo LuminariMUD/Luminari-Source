@@ -86,6 +86,7 @@ bool rol_yggdrasil_vnum(int vnum);
 int rol_yggdrasil_release_move(int current_move);
 int rol_waterdeep_ambient_roll_sides(int mobile_vnum);
 bool rol_waterdeep_ambient_room_allows(int mobile_vnum, int room_vnum);
+bool rol_waterdeep_ambient_fighting_allows(int mobile_vnum, bool fighting);
 const char *rol_waterdeep_ambient_message(int mobile_vnum, int roll, int message_index,
                                           bool *speech);
 const char *rol_conversion_death_message(int vnum);

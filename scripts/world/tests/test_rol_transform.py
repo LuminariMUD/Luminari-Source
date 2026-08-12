@@ -981,7 +981,14 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
   def test_waterdeep_ambient_handlers_share_one_persistent_adapter(self) -> None:
-    handlers = ("wanderer", "drunk_one", "casino_two", "youth_two")
+    handlers = (
+        "wanderer",
+        "drunk_one",
+        "casino_two",
+        "youth_two",
+        "tailor_one",
+        "waterdeep_guard_one",
+    )
     bindings = [
         {
             "basename": "waterdeep",
@@ -999,7 +1006,7 @@ class RolTransformTests(unittest.TestCase):
         [],
     )
 
-    self.assertEqual(4, len(compiled.native_bindings))
+    self.assertEqual(6, len(compiled.native_bindings))
     self.assertTrue(
         all(
             binding.persisted_name == "RoL Waterdeep Ambient"

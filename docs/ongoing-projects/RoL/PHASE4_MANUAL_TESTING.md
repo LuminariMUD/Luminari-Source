@@ -513,13 +513,18 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 converted Waterdeep ambient citizens
 
-- Build dependency-complete stages containing the 34 converted ambient citizens:
+- Build dependency-complete stages containing the first 34 converted ambient citizens:
   2002812-2002813, 2002815-2002816, 2002827, 2002829, 2002835-2002836,
   2003006-2003007, 2003009-2003012, 2003014, 2003018, 2003030,
   2003064-2003066, 2003090,
   2003201, 2003203-2003205, 2003210, 2003232, 2003236, 2003242-2003243,
   2004830, 2005310, 2005321, and 2066037. Confirm each uses
   `RoL Waterdeep Ambient` with `MOB_SPEC`.
+- Add the 22 converted tailor, shopper, assassin, brigand, fisherman, sailor, seaman,
+  naval worker, seabird, commoner, and guard profiles: 2002825, 2002830, 2002832-2002834,
+  2003035, 2003038, 2003059, 2003070, 2003234-2003235, 2003240, 2005300, 2005302-2005303,
+  2005305, 2005307-2005308, 2005316-2005318, and 2005320. Confirm these use the same
+  named procedure and bring the active profile set to 56 mobiles across 44 families.
 - While each mobile is standing, observe repeated activity pulses. Wanderer, drunk,
   homeless, cat, merchant, farmer, baker, mage, cleric, artillery, warrior, mercenary,
   casino, and youth profiles should emit their source-authored speech and room actions;
@@ -530,6 +535,9 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Move merchant 2005310 between target harbor room 2005400 and another room. Its
   ambient dialog should run only in 2005400. Sitting or sleeping ambient citizens and
   unrelated mobiles must not emit these profiles.
+- Start fights involving converted guards 2003035, 2003059, and 2003070. Their ambient
+  guard dialog must stop during combat and resume after combat, while other profiles
+  retain their source position-driven behavior.
 
 ### RoL object-property compatibility
 

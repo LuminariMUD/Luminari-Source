@@ -931,6 +931,10 @@ void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequence
   CuAssertTrue(tc, rol_waterdeep_ambient_room_allows(2005310, 2005400));
   CuAssertTrue(tc, !rol_waterdeep_ambient_room_allows(2005310, 2005401));
   CuAssertTrue(tc, !rol_waterdeep_ambient_room_allows(9999999, 2005400));
+  CuAssertTrue(tc, rol_waterdeep_ambient_fighting_allows(2003234, true));
+  CuAssertTrue(tc, rol_waterdeep_ambient_fighting_allows(2003059, false));
+  CuAssertTrue(tc, !rol_waterdeep_ambient_fighting_allows(2003059, true));
+  CuAssertTrue(tc, !rol_waterdeep_ambient_fighting_allows(9999999, false));
 
   CuAssertStrEquals(tc, "I'll raise 20.", rol_waterdeep_ambient_message(2003205, 2, 0, &speech));
   CuAssertTrue(tc, speech);
@@ -941,6 +945,11 @@ void Test_spec_rol_waterdeep_ambient_profiles_preserve_source_rolls_and_sequence
   CuAssertStrEquals(tc, "Know of any good places to gamble around here?",
                     rol_waterdeep_ambient_message(2003236, 2, 1, &speech));
   CuAssertTrue(tc, speech);
+  CuAssertStrEquals(tc, "$n looks at you and says, 'You could stand to loose a few pounds.'",
+                    rol_waterdeep_ambient_message(2003234, 4, 0, &speech));
+  CuAssertTrue(tc, !speech);
+  CuAssertStrEquals(tc, "$n winks at you in amusement.",
+                    rol_waterdeep_ambient_message(2003234, 4, 1, &speech));
   CuAssertTrue(tc, rol_waterdeep_ambient_message(9999999, 2, 0, &speech) == NULL);
 }
 

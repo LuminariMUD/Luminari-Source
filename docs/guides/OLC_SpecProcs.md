@@ -142,12 +142,13 @@ vulnerable group target. A failed Reflex save with the source -10 modifier entan
 four to twelve combat rounds. Release removes the entangle and halves current movement. The timed
 effect and its mobile association are converter-owned.
 
-`RoL Waterdeep Ambient` is mobile-owned and requires `MOB_SPEC`. Thirty-four converted citizens
-across 23 source families emit their authored speech and room actions on the original two-die
+`RoL Waterdeep Ambient` is mobile-owned and requires `MOB_SPEC`. Fifty-six converted citizens
+across 44 source families emit their authored speech and room actions on the original two-die
 periodic distributions while standing. Multi-line outcomes retain their ordering and the casino
 player retains its source fall-through outcome. Converted merchant 2005310 emits its harbor dialog
-only in room 2005400. The profiles are keyed to converted mobile identity; do not assign this
-procedure to unrelated mobiles.
+only in room 2005400; converted guards 2003035, 2003059, and 2003070 remain quiet while fighting.
+The profiles are keyed to converted mobile identity; do not assign this procedure to unrelated
+mobiles.
 
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per

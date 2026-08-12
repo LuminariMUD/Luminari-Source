@@ -107,6 +107,27 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             "warrior_one",
             "youth_one",
             "youth_two",
+            "assassin_one",
+            "brigand_one",
+            "commoner_five",
+            "commoner_four",
+            "commoner_one",
+            "commoner_six",
+            "commoner_three",
+            "fisherman_one",
+            "fisherman_two",
+            "naval_four",
+            "naval_one",
+            "naval_two",
+            "sailor_one",
+            "seabird_one",
+            "seabird_two",
+            "seaman_one",
+            "shopper_one",
+            "shopper_two",
+            "tailor_one",
+            "waterdeep_guard_one",
+            "waterdeep_guard_two",
         )
     ]
     major_beholder = handler_disposition("major_beholder")
@@ -265,17 +286,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(668, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(479, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(153, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(409, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(275, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(690, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(457, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(174, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(388, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(297, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           131, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(600, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(248, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(622, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(226, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )
