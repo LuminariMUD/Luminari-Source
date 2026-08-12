@@ -511,3 +511,31 @@ void Test_spec_rol_home_reset_updates_only_mobile_home_from_marked_room(CuTest *
 
   spec_mechanics_end(&fixture);
 }
+
+void Test_spec_rol_magic_pool_damages_and_transports_matching_entry(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct command_info commands[2];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "enter";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  fixture.worn.name = "ruby pool";
+  GET_OBJ_VAL(&fixture.worn, 0) = 6101;
+  GET_OBJ_VAL(&fixture.worn, 1) = 25;
+
+  CuAssertIntEquals(tc, FALSE, rol_magic_pool(&fixture.actor, &fixture.worn, 1, "door"));
+  CuAssertIntEquals(tc, 0, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, TRUE, rol_magic_pool(&fixture.actor, &fixture.worn, 1, "pool"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 75, GET_HIT(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}

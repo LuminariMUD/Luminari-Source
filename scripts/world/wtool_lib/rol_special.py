@@ -55,6 +55,7 @@ NATIVE_HANDLER_NAMES = {
     "breath_weapon_acid": "breath_weapon_acid",
     "breath_weapon_gas": "breath_weapon_gas",
     "breath_weapon_lightning": "breath_weapon_lightning",
+    "magic_pool": "RoL Magic Pool",
 }
 NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 
@@ -167,6 +168,7 @@ class NativeSpecialBinding:
   target_vnum: int
   persisted_name: str | None
   required_flag_bits: tuple[int, ...] = ()
+  value_reference_slots: tuple[tuple[int, str], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -739,6 +741,7 @@ def compile_special_bindings(
               target_vnum=target_vnum,
               persisted_name=persisted_name,
               required_flag_bits=required_bits,
+              value_reference_slots=((0, "wld"),) if handler == "magic_pool" else (),
           )
       )
       strategy = "NATIVE_ADAPTED" if handler in ADAPTED_HANDLER_NAMES else "NATIVE_PERSISTED"

@@ -25,6 +25,7 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     breath = handler_disposition("breath_weapon_fire")
     conjured = handler_disposition("conj_familiar_die")
     home_reset = handler_disposition("home_reset")
+    magic_pool = handler_disposition("magic_pool")
     unknown = handler_disposition("not_reviewed")
 
     self.assertEqual("RoL Guild Room", guild["target"])
@@ -39,6 +40,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", conjured["strategy"])
     self.assertEqual("room flag 46", home_reset["target"])
     self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", home_reset["strategy"])
+    self.assertEqual("RoL Magic Pool", magic_pool["target"])
+    self.assertEqual("NATIVE_PERSISTED", magic_pool["strategy"])
     self.assertEqual("pending", unknown["status"])
 
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
@@ -87,8 +90,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(347, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(887, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(360, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(874, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
       self.assertEqual(500, summary["act_spec_by_status"]["resolved"])
       self.assertEqual(348, summary["act_spec_by_status"]["pending"])

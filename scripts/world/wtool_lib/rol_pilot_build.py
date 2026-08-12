@@ -745,6 +745,9 @@ def write_pilot_build_bundle(
           special_proc=binding.persisted_name if binding is not None else None,
           attachments=owner_attachments,
           required_extra_bits=binding.required_flag_bits if binding is not None else (),
+          required_value_references=(
+              binding.value_reference_slots if binding is not None else ()
+          ),
       )
     elif kind == "wld":
       emitted = emit_room(

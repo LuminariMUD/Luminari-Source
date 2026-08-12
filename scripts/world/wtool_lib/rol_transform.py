@@ -1638,6 +1638,7 @@ def emit_object(
     special_proc: str | None = None,
     attachments: tuple[int, ...] = (),
     required_extra_bits: tuple[int, ...] = (),
+    required_value_references: tuple[tuple[int, str], ...] = (),
 ) -> TransformResult:
   """Emit one modern target object record."""
 
@@ -1702,6 +1703,18 @@ def emit_object(
         f"{sorted(source_affects & MOB_SOURCE_ONLY_AFFECTS)}"
     )
   values = _object_values(record, source_type, target_type, resolve, diagnostics)
+  for slot, target_kind in required_value_references:
+    source_value = values[slot]
+    if source_value <= 0:
+      continue
+    try:
+      values[slot] = resolve(target_kind, source_value)
+    except (KeyError, ValueError) as error:
+      values[slot] = 0
+      diagnostics.append(
+          f"disabled special-procedure reference {target_kind} {source_value} "
+          f"in object value slot {slot}: {error}"
+      )
   trap_values = _object_trap_values(record, values, diagnostics)
   if trap_values is not None:
     target_extra.add(ROL_OBJECT_TRAP_EXTRA_BIT)

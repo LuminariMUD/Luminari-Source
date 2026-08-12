@@ -86,6 +86,7 @@ static const char *const spec_object_names[] = {
     "muspel_spider_dagger",
     "obj_drain",
     "thorn_shield",
+    "RoL Magic Pool",
 };
 
 static const char *const spec_room_names[] = {

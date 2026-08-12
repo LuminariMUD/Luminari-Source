@@ -14,6 +14,7 @@
 #include "comm.h"
 #include "db.h"
 #include "handler.h"
+#include "interpreter.h"
 #include "magic/spells.h"
 #include "mudlim.h"
 #include "spec_combat.h"
@@ -542,6 +543,45 @@ int rol_thief(struct char_data *ch, void *me, int cmd, const char *argument)
     if (!IS_NPC(victim) && GET_LEVEL(victim) < LVL_IMMORT)
       rol_thief_steal(ch, victim);
 
+  return TRUE;
+}
+
+int rol_magic_pool(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  room_rnum destination;
+  char name[MAX_INPUT_LENGTH];
+  int damage_amount;
+
+  if (ch == NULL || obj == NULL || argument == NULL || !cmd || !CMD_IS("enter"))
+    return FALSE;
+
+  one_argument(argument, name, sizeof(name));
+  if (!*name || obj->name == NULL || !isname(name, obj->name))
+    return FALSE;
+
+  destination = real_room(GET_OBJ_VAL(obj, 0));
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    send_to_char(ch, "The pool leads nowhere. Please tell a staff member.\r\n");
+    log("SYSERR: RoL magic pool object %d has invalid destination %d", GET_OBJ_VNUM(obj),
+        GET_OBJ_VAL(obj, 0));
+    return TRUE;
+  }
+
+  act("As you step into $p, there is a blinding flash of light!", FALSE, ch, obj, NULL, TO_CHAR);
+  send_to_char(ch, "You are ripped through a dark and star-filled void; pain sears through\r\n"
+                   "your body. When you open your eyes, you are elsewhere...\r\n");
+  act("$n wades into $p.", FALSE, ch, obj, NULL, TO_ROOM);
+
+  damage_amount = MAX(0, GET_OBJ_VAL(obj, 1));
+  if (GET_LEVEL(ch) < LVL_IMMORT)
+    GET_HIT(ch) = MAX(0, GET_HIT(ch) - damage_amount);
+
+  act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  act("$n slowly fades into existence.", FALSE, ch, NULL, NULL, TO_ROOM);
   return TRUE;
 }
 

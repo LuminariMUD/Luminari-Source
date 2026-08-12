@@ -964,6 +964,18 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Attempts the RoL theft behavior against every eligible player each pulse.",
         .legacy_handler = rol_thief,
     },
+    {
+        .canonical_name = "RoL Magic Pool",
+        .display_name = "RoL Magic Pool",
+        .owner_mask = SPEC_OWNER_OBJECT,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Damages and transports characters that enter a converted RoL magic pool.",
+        .legacy_handler = rol_magic_pool,
+    },
 };
 
 enum
@@ -1031,6 +1043,7 @@ enum
   SPEC_DEFINITION_ROL_CORPSE_DEVOURER,
   SPEC_DEFINITION_ROL_POISON_BITE,
   SPEC_DEFINITION_ROL_THIEF,
+  SPEC_DEFINITION_ROL_MAGIC_POOL,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1108,6 +1121,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_CORPSE_DEVOURER, -1},
     {SPEC_DEFINITION_ROL_POISON_BITE, -1},
     {SPEC_DEFINITION_ROL_THIEF, -1},
+    {SPEC_DEFINITION_ROL_MAGIC_POOL, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

@@ -982,6 +982,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn(46, decode_tokens(result.records[0].flags).bits)
     self.assertIsNone(result.records[0].spec_proc)
 
+  def test_magic_pool_binding_remaps_destination_value(self) -> None:
+    binding = {
+        "basename": "astral_main",
+        "record_type": "object",
+        "source_vnum": 19710,
+        "source_handler": "magic_pool",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Magic Pool", native.persisted_name)
+    self.assertEqual(((0, "wld"),), native.value_reference_slots)
+
+    source = self._source_record(
+        "obj",
+        b"#19710\nruby pool~\na ruby pool~\nA ruby pool is here.~\n~\n"
+        b"12 0 0\n19946 200 0 0\n1 1 1\n",
+    )
+    emitted = emit_object(
+        source,
+        2_019_710,
+        _resolver,
+        special_proc=native.persisted_name,
+        required_value_references=native.value_reference_slots,
+    )
+    path = self._target_path("obj", emitted.text)
+    result = parse_object_file(path, "obj/20197.obj", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Magic Pool", result.records[0].spec_proc)
+    self.assertEqual(2_019_946, result.records[0].values[0])
+    self.assertEqual(200, result.records[0].values[1])
+
 
 if __name__ == "__main__":
   unittest.main()

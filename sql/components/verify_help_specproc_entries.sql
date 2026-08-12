@@ -35,6 +35,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'Independent compatibility hooks') > 0
   AND INSTR(entry, 'RoL conjured-death flags') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
+  AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0
+  AND INSTR(entry, 'fixed entry damage') > 0
   AND INSTR(entry, 'RoL Guild Room') > 0
   AND INSTR(entry, 'available only in redit') > 0;
 
