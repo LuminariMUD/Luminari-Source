@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 Waterdeep town crier
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted the active `crier_one` binding for northern Waterdeep mobile 2003008 through the
+  existing builder-visible `RoL Scheduled Mobile` procedure and enforced `MOB_SPEC`.
+- Preserved the standing-gated 2d42 ambient distribution, all 41 authored cases, ordered speech
+  and room actions, zone shouts, and the deliberately silent 43-84 half of the roll range.
+- Preserved both shared once-per-hour state gates and their source reset order: Moonshae and
+  Calimport ship warnings, the hour-5 shop-opening warning, and the source-normal suppression of
+  the hour-18 shop-closing warning until a reset or fresh load permits it.
+- Preserved the source combat help shout and outdoor-only city cheering, plus the outdoor-only
+  housewife response after the two welcome shouts. Target zone and indoor-room metadata replace
+  the source descriptor filter without broadening the audience.
+- Added converter, required-flag, schedule-boundary, exact-disposition, persistence, registry,
+  OLC, plan, and manual-test coverage without adding a second named procedure.
+- Reconciliation now resolves 1,112 of 1,147 active direct bindings and 538 of 562 source
+  handlers; 35 bindings and 24 handlers remain. The independent `ACT_SPEC` checkpoint resolves
+  830 records and leaves 18 pending.
+- Archived the sixty-second Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 6c64fba1
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-waterdeep-crier
+Reconciliation run: rol-phase6-special-e0e90cdd3f12895e
+Active direct bindings: 1,147
+Direct bindings resolved: 1,112
+Direct bindings pending: 35
+Source handlers resolved: 538
+Source handlers pending: 24
+Additional handler families resolved: 1
+Additional direct bindings resolved: 1
+Native adapted bindings: 654
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 830
+ACT_SPEC records pending: 18
+Special registry definitions: 111 total / 98 legacy / 13 typed
+Compatibility names: 112
+Complete world-tool suite: 316 passed
+Production-linked CuTest suite: 661 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: cbffe163e2dd9066d30e31e862938eecc9cc3438
+Installed SHA-256: e8782120146413ce2153376982b1c0b31995a7e247bde0a310be08677b373bf7
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 35 direct bindings across 24 source handlers. Continue
+using dependency-complete batches and reserve the full build/test/install gate for published
+checkpoints.
+
 ## 2026-08-12 - Phase 6 lich rite
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

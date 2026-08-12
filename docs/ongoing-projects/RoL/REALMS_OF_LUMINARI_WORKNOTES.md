@@ -57,6 +57,7 @@ Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
 Phase 6 lost-totem-restorer commit: 3f773d78
 Phase 6 lich-rite commit: 7d28382f
+Phase 6 Waterdeep-town-crier commit: 6c64fba1
 Phase 6 converted-major-beholder commit: 5536e463
 Phase 6 converted-trade-bandit commit: 7693ce00
 Phase 6 converted-lich-energy-drain commit: 72ba7c8e
@@ -301,6 +302,9 @@ Phase 6 lost totem restorer:
 Phase 6 lich rite:
   lib/rol-conversion/runs/phase6-special-20260812-lich-rite
   rol-phase6-special-ded69599851e733e
+Phase 6 Waterdeep town crier:
+  lib/rol-conversion/runs/phase6-special-20260812-waterdeep-crier
+  rol-phase6-special-e0e90cdd3f12895e
 Policy:  rol-conversion-policy-2
 ```
 
@@ -329,9 +333,9 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 315 tests; the production-linked CuTest suite passes 660;
+- The world-tool suite passes 316 tests; the production-linked CuTest suite passes 661;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Sixty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -622,13 +626,16 @@ Policy:  rol-conversion-policy-2
   The newbie room preserves source-race east routing and maps the unavailable source birthplace to
   the target saved load room with the mortal start as fallback. The weight trigger preserves the
   5,000-unit transition and source messages; its source body contains no implemented door effect.
-- Four scheduled-mobile handlers are complete through the builder-visible legacy `RoL Scheduled
+- Five scheduled-mobile handlers are complete through the builder-visible legacy `RoL Scheduled
   Mobile` gateway. The Waterdeep and Gloomhaven gate guards preserve their separate open, repair,
   and close windows, including the source's inactive 19-21 hour gap, gate-state corrections,
   speeches, glare, and ambient tables. The lighthouse keeper preserves its shared counter and the
   source hour-eight reset quirk. The naval combatant preserves the source standing-before-fighting
   branch order; the reachable defensive cast maps the source helper's actual stoneskin behavior,
   while the post-loop disarm remains excluded because the source loop makes it unreachable.
+  Waterdeep town crier 2003008 preserves its 2d42 ambient distribution, 41 authored cases,
+  source-shared hour gates, ship and shop warnings, zone shouts, combat alarm, and outdoor-only
+  city responses.
 - The Menden fisherman is complete through the source-hashed `RoL Source Periodic` gateway. Its
   awake gate, unrestricted fighting behavior, 1-80 roll table, 21 active outcomes, exact ambient
   messages, and room-visible socials are preserved. The generator and runtime now also preserve
@@ -649,14 +656,14 @@ Policy:  rol-conversion-policy-2
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,111 of 1,147 active direct bindings and 537 of
-  562 source handlers, leaving 36 bindings and 25 handlers. The independent `ACT_SPEC`
-  cross-check resolves 829 of 848 records and leaves 19 pending.
+- The current Phase 6 checkpoint resolves 1,112 of 1,147 active direct bindings and 538 of
+  562 source handlers, leaving 35 bindings and 24 handlers. The independent `ACT_SPEC`
+  cross-check resolves 830 of 848 records and leaves 18 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 36 direct bindings across 25 handlers. Classify regular
+1. Reconcile the remaining 35 direct bindings across 24 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -668,19 +675,19 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `7d28382f`, resolving both active
-  `lichConverter` bindings through the new `RoL Lich Rite` procedure.
-- Preserved the exact lowercase phrase, mapped maximum-mortal and Necromancer gates, two converted
-  offerings, source narrative, and helper consumption. Both offerings validate before mutation,
-  including when worn, and the irreversible change uses the target's established Lich race,
-  Wizard respec, zero-experience, evil-alignment, and no-group/follower contract.
+- Completed implementation commit `6c64fba1`, resolving the active `crier_one` binding for
+  Waterdeep mobile 2003008 through the existing `RoL Scheduled Mobile` procedure.
+- Preserved the standing-gated 2d42 ambient distribution, all authored action sequences, shared
+  hour-state reset quirks, ship and shop warnings, zone shouts, combat alarm, and outdoor-only
+  housewife and cheering responses. The converter supplies the required `MOB_SPEC` flag.
 - Ran all 316 world-tool tests and all 661 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-ded69599851e733e`; it records zero live target writes and the
-  1,111/36 direct-binding, 537/25 handler, and 829/19 `ACT_SPEC` split.
-- Remaining short candidates still need dependency-complete mechanics: wolfsbane and lycan
-  infection lack target persistent lycanthropy state, while tithe lacks a defined prestige map.
-  No lossy stand-in was introduced.
+  `rol-phase6-special-e0e90cdd3f12895e`; it records zero live target writes and the
+  1,112/35 direct-binding, 538/24 handler, and 830/18 `ACT_SPEC` split.
+- Next, trace the remaining Waterdeep civic or service candidate against target-native behavior;
+  `piergeiron_guard` is compact but its source follower charm and force-drop disarm need an exact
+  target mapping. Wolflike infection still lacks persistent target lycanthropy state, while tithe
+  still lacks a defined prestige map. No lossy stand-in was introduced.
 - Unresolved blockers: none. Continue with another dependency-complete family, retaining the
   accelerated focused-check-per-batch and full-gate-per-published-checkpoint cadence.
