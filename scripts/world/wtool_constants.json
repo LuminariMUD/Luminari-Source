@@ -2740,6 +2740,13 @@
           "macro": "MOB_ROL_TOTEM_SPIRIT",
           "name": "RoL-Totem-Spirit",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 124,
+          "macro": "MOB_ROL_BLACK_VAPOR_DEATH",
+          "name": "RoL-Black-Vapor-Death",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

@@ -91,10 +91,11 @@ INERT_HANDLERS = {
     "dump": "source dump callback returns before its command behavior",
 }
 
-# These source death callbacks coexist with other mobile behavior and suppress
-# corpses. Dedicated target flags preserve them without consuming the ordinary
-# persisted special-procedure slot.
+# These source death callbacks coexist with other mobile behavior. Dedicated
+# target flags preserve their death messaging and corpse policy without consuming
+# the ordinary persisted special-procedure slot.
 COMPOSABLE_MOBILE_HANDLER_FLAGS = {
+    "bs_undead_die": 124,
     "conj_familiar_die": 119,
     "conj_mount_die": 120,
     "conj_monster_die": 121,

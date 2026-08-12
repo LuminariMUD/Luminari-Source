@@ -479,6 +479,9 @@ void Test_spec_rol_shared_mobile_adapters_preserve_source_boundaries(CuTest *tc)
   CuAssertIntEquals(tc, 0, rol_planar_gate_cooldown_seconds(&fixture.actor));
 
   CuAssertTrue(tc, !rol_handle_conjured_death(&fixture.actor));
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_BLACK_VAPOR_DEATH);
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_BLACK_VAPOR_DEATH);
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_FADE_FAMILIAR);
   CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
 

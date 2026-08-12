@@ -33,7 +33,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, '-s is not a global callback-disable switch') > 0
   AND INSTR(entry, 'RoL-Demon') > 0
   AND INSTR(entry, 'Independent compatibility hooks') > 0
-  AND INSTR(entry, 'RoL conjured-death flags') > 0
+  AND INSTR(entry, 'RoL death flags') > 0
+  AND INSTR(entry, 'Bloodstone black-vapor') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
   AND INSTR(entry, 'RoL Magic Pool is object-owned') > 0
   AND INSTR(entry, 'fixed entry damage') > 0

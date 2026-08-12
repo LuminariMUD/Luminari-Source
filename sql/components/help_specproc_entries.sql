@@ -49,8 +49,10 @@ additional authored SpecProcs. Independent compatibility hooks run their
 source race behavior beside the one persistent mobile SpecProc slot. These
 flags are converter-owned and should not be added to unrelated new mobiles.
 
-Converted RoL conjured-death flags likewise run independently of the named
-SpecProc slot. The breath_attack and breath_weapon entries are named mobile
+Converted RoL death flags likewise run independently of the named SpecProc
+slot. Familiar, mount, summoned-monster, shaman-spirit, and Bloodstone black-vapor
+messages retain their target no-corpse policy without consuming that slot. The
+breath_attack and breath_weapon entries are named mobile
 combat SpecProcs; attack variants affect the current opponent, while weapon
 variants affect eligible targets across the room every fourth combat turn.
 

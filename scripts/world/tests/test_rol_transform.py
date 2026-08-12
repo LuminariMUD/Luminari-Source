@@ -944,6 +944,47 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
+  def test_bloodstone_undead_death_binding_uses_composable_mobile_flag(self) -> None:
+    binding = {
+        "basename": "bs1",
+        "record_type": "mobile",
+        "source_vnum": 7119,
+        "source_handler": "bs_undead_die",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(1, len(compiled.native_bindings))
+    native = compiled.native_bindings[0]
+    self.assertIsNone(native.persisted_name)
+    self.assertEqual((124,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"<*> File Version 1 <*>\n#7119\nundead~\nan undead~\n"
+        b"An undead waits.\n~\nAn undead.\n~\n1 0 0 0 S\n"
+        b"US 0 0\n10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_007_119,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20007.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertIn(124, decode_tokens(result.records[0].action_flags).bits)
+    self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
+    self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
+
   def test_home_reset_binding_uses_composable_room_flag(self) -> None:
     binding = {
         "basename": "gen-obj",

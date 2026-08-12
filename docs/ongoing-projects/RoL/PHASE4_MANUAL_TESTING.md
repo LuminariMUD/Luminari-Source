@@ -206,6 +206,17 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   Each must show its source-specific fade message, leave no corpse, and retain any
   independent named SpecProc or automatic-race behavior before death.
 
+### Phase 6 Bloodstone undead death procedure
+
+- The composition-safe `bs_undead_die` behavior is implemented for converted Bloodstone
+  mobiles 2007119, 2007162, 2007167, and 2007197. The package remains outside the five-package
+  staged pilot, so test this only in a later dependency-complete Bloodstone stage.
+- Kill each converted mobile. It must turn into black vapor and seep into the ground, must not
+  also show Luminari's generic undead-crumble message, and must leave no corpse under the target's
+  native undead policy.
+- Use `stat mobile` before combat to confirm `RoL-Black-Vapor-Death`. Mobiles 2007119, 2007162,
+  and 2007167 must retain their independent named Bloodstone procedure beside this flag.
+
 ### Phase 6 converted transport procedures
 
 - `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
@@ -453,8 +464,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 385 are resolved and 762 remain. Of 848
-  `ACT_SPEC` records, 517 are resolved and 331 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 571 are resolved and 576 remain. Of 562 distinct
+  source handlers, 94 are resolved and 468 remain. Of 848 `ACT_SPEC` records, 559 are
+  resolved and 289 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;

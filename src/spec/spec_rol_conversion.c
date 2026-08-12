@@ -417,7 +417,9 @@ bool rol_handle_conjured_death(struct char_data *ch)
   if (ch == NULL || !IS_NPC(ch))
     return false;
 
-  if (MOB_FLAGGED(ch, MOB_ROL_FADE_FAMILIAR))
+  if (MOB_FLAGGED(ch, MOB_ROL_BLACK_VAPOR_DEATH))
+    message = "$n turns into a black vapor and seeps into the ground.";
+  else if (MOB_FLAGGED(ch, MOB_ROL_FADE_FAMILIAR))
     message = "$n slowly fades away into the netherworld...";
   else if (MOB_FLAGGED(ch, MOB_ROL_FADE_MOUNT))
     message = "$n vanishes in a puff of white smoke!";

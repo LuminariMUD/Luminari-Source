@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **124 mobile flags** (indices 0-123, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **125 mobile flags** (indices 0-124, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -39,7 +39,7 @@ identifiers that happen to share the prefix:
 | `MOB_DIRE_RAT` | 9400 | A mobile vnum |
 | `MOB_MOUNT_SPELL` | 101320 | A summon identifier |
 
-Because bit numbers only run 0-115, values above that range are a reliable
+Because bit numbers only run 0-124, values above that range are a reliable
 tell - but the ranges also **collide**. `MOB_BLOCK_E` is bit 46 and
 `MOB_DIRE_SPIDER` is vnum 46; nothing in the name distinguishes them.
 
@@ -725,7 +725,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
-### RoL compatibility flags (Indices: 105-123)
+### RoL compatibility flags (Indices: 105-124)
 **Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
@@ -754,6 +754,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `MOB_ROL_TOTEM_SPIRIT` marks the 21 converted shaman spirit families. Their source-specific
   fade messages suppress corpses without consuming the persistent SpecProc slot, and newly
   summoned spirits receive the same flag at runtime.
+- `MOB_ROL_BLACK_VAPOR_DEATH` preserves the Bloodstone undead death message while retaining
+  Luminari's native no-corpse policy for the converted undead. It does not consume the mobile's
+  persistent SpecProc slot.
 - These flags are converter-owned compatibility data; builders should use native flags
   and classes for new content unless reproducing converted RoL behavior
 
@@ -902,6 +905,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 | 121 | MOB_ROL_FADE_MONSTER | RoL-Fade-Monster | Compatibility | Conjured monster fades without a corpse |
 | 122 | MOB_ROL_ANGEL | RoL-Angel | Compatibility | Preserves source angel identity |
 | 123 | MOB_ROL_TOTEM_SPIRIT | RoL-Totem-Spirit | Compatibility | Totem spirit fades without a corpse |
+| 124 | MOB_ROL_BLACK_VAPOR_DEATH | RoL-Black-Vapor-Death | Compatibility | Bloodstone undead becomes black vapor without a corpse |
 
 ---
 

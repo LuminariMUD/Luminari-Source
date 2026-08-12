@@ -48,6 +48,12 @@ single-SpecProc scheduling model. The converter writes `RoL-Demon`, `RoL-Devil`,
 behavior beside any ordinary persistent SpecProc. These converter-owned flags are not additional
 authored SpecProcs and should not be added to unrelated new mobiles.
 
+Converted RoL death flags also run outside the single named SpecProc slot. Familiar, mount,
+summoned-monster, and shaman-spirit flags provide their source fade messages and suppress corpses.
+`MOB_ROL_BLACK_VAPOR_DEATH` replaces Luminari's generic undead crumble message with the source
+Bloodstone vapor message while retaining the target's no-corpse policy. These flags are
+converter-owned and should not be assigned to unrelated mobiles.
+
 `RoL Magic Pool` is an object-owned conversion procedure. Its object value 0 is the destination
 room VNUM and value 1 is fixed entry damage. The converter remaps the destination; builders should
 not assign the procedure to an unrelated object without configuring both values deliberately.
