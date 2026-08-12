@@ -72,6 +72,7 @@ Phase 6 Waterdeep-ambient commit: 27bad343
 Phase 6 expanded-Waterdeep-ambient commit: 30132767
 Phase 6 generated source-periodic commit: c16e0fe9
 Phase 6 generated state-periodic commit: a67c1bfa
+Phase 6 cross-zone periodic expansion commit: 2844472f
 ```
 
 The authoritative ignored runs are:
@@ -180,6 +181,9 @@ Phase 6 generated source periodic: lib/rol-conversion/runs/phase6-special-202608
                                    rol-phase6-special-5d67954ff0a9adbc
 Phase 6 generated state periodic: lib/rol-conversion/runs/phase6-special-20260812-state-periodic
                                   rol-phase6-special-cb19c31118c1ce47
+Phase 6 cross-zone periodic expansion:
+  lib/rol-conversion/runs/phase6-special-20260812-periodic-expansion
+  rol-phase6-special-ebf492f80a4ac682
 Policy:  rol-conversion-policy-1
 ```
 
@@ -368,10 +372,11 @@ Policy:  rol-conversion-policy-1
 - A second Waterdeep ambient batch adds 22 active bindings across 21 source handler
   families to the same adapter. It preserves the source two-d5 outcome tables and
   multi-message ordering, plus the Waterdeep guards' combat-suppression gate.
-- One strict, source-hashed generator closes 82 regular source handler families and 86
-  active bindings through `RoL Source Periodic`. Its 86 converted mobile profiles retain
-  327 random outcomes and 561 ordered speech or room actions from Bloodstone, Icecrag,
-  and Menden source files. Sorted generated tables support binary runtime lookup.
+- One strict, source-hashed generator now closes 90 regular source handler families and 95
+  active bindings through `RoL Source Periodic`. Its 95 converted mobile profiles retain
+  354 random outcomes and 588 ordered speech or room actions from Bloodstone, Icecrag,
+  Menden, Fun, Mobile, and Realm source files. Sorted generated tables support binary
+  runtime lookup, and per-profile awake and combat gates retain source behavior.
 - A second strict, source-hashed generator closes 26 state-aware Waterdeep handler
   families and direct bindings through `RoL Stateful Periodic`. Its 26 converted mobile
   profiles retain 206 idle/fighting outcomes and 210 ordered speech or room actions.
@@ -382,14 +387,14 @@ Policy:  rol-conversion-policy-1
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 803 of 1,147 active direct bindings and 283 of
-  562 source handlers, leaving 344 bindings and 279 handlers. The independent
-  `ACT_SPEC` cross-check resolves 730 of 848 records and leaves 118 pending.
+- The current Phase 6 checkpoint resolves 812 of 1,147 active direct bindings and 291 of
+  562 source handlers, leaving 335 bindings and 271 handlers. The independent
+  `ACT_SPEC` cross-check resolves 738 of 848 records and leaves 110 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 344 direct bindings across 279 handlers. Classify regular
+1. Reconcile the remaining 335 direct bindings across 271 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

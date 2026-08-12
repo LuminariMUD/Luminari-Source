@@ -6,6 +6,69 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 cross-zone source-periodic expansion
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed eight additional source handler families and nine active direct bindings in one
+  cross-zone generator expansion through the existing mobile-owned
+  `RoL Source Periodic` procedure.
+- Bulk-screened pending `PROC_INITIALIZE` mobile callbacks across the active source tree,
+  then admitted only regular random speech, social, and room-action profiles. Command,
+  combat, teleport, quest, economy, and other mixed-mechanics callbacks remain pending.
+- Expanded the generated adapter from 82 to 90 source families and from 86 to 95
+  converted mobile profiles. The source-hashed tables now preserve 354 random outcomes
+  and 588 ordered speech or room-visible actions across Bloodstone, Icecrag, Menden,
+  Fun, Mobile, and Realm source files.
+- Made the awake precondition profile-specific. Fun mobile 2001230, jester 2003069, and
+  cricket 2014048 retain their source behavior without an awake gate; all previously
+  selected profiles retain their prior gates. Combat suppression also remains
+  profile-specific.
+- Updated converter reconciliation, production characterization, generated-table tests,
+  builder and database help, and the manual test matrix.
+- Reconciliation now resolves 812 of 1,147 active direct bindings and 291 of 562 source
+  handlers; 335 bindings and 271 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 738 resolved / 110 pending.
+- Archived the thirty-third Phase 6 delivery session. The 271 remaining handlers retain
+  the conservative 7-14 session Phase 6 envelope at 20-45 related families per batch;
+  the Phases 6-8 forecast remains 55-90 sessions, or 110-360 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 2844472f
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-periodic-expansion
+Reconciliation run: rol-phase6-special-ebf492f80a4ac682
+Active direct bindings: 1,147
+Direct bindings resolved: 812
+Direct bindings pending: 335
+Source handlers resolved: 291
+Source handlers pending: 271
+Additional handler families resolved: 8
+Additional direct bindings resolved: 9
+Generated profiles: 95
+Generated outcomes: 354
+Generated room-visible actions: 588
+Native adapted bindings: 418
+Native adapted composable bindings: 131
+ACT_SPEC records resolved: 738
+ACT_SPEC records pending: 110
+Complete world-tool suite: 290 passed
+Focused conversion/generator suite: 6 passed
+Production-linked CuTest suite: 643 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 335 direct bindings across 271 source handlers.
+The bulk classifier will continue grouping compatible mechanics before generator or
+shared-runtime implementation; full repository gates remain checkpoint-level work.
+
 ## 2026-08-12 - Phase 6 generated state-aware Waterdeep profiles
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

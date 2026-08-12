@@ -499,7 +499,7 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 6 with the 344 pending direct bindings across 279 source handlers and 118
+Continue Phase 6 with the 335 pending direct bindings across 271 source handlers and 110
 pending `ACT_SPEC` records. Classify regular source shapes in bulk and process related
 families through strict generated profiles where possible; keep irregular mechanics in
 dependency-complete shared-runtime batches. Preserve the six explicit source-defect or
