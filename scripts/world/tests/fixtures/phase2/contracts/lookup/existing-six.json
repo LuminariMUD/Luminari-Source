@@ -138,6 +138,7 @@
       "0"
     ],
     "moving_connections": [],
+    "rol_exit_traps": [],
     "maximum_level": -1,
     "minimum_level": -1,
     "name": "Test Room",

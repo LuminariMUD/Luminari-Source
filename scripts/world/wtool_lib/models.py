@@ -190,6 +190,19 @@ class MovingRoomRecord:
   span: SourceSpan
 
 
+@dataclass(frozen=True, slots=True)
+class RolExitTrapRecord:
+  direction: int
+  state: int
+  trap_type: int
+  minimum_damage: int
+  maximum_damage: int
+  area_effect: int
+  hardness: int
+  load_percent: int
+  span: SourceSpan
+
+
 @dataclass(slots=True)
 class RoomRecord:
   vnum: int
@@ -207,6 +220,7 @@ class RoomRecord:
   attachments: list[AttachmentRecord] = field(default_factory=list)
   moving_connections: list[MovingConnectionRecord] = field(default_factory=list)
   moving_room: MovingRoomRecord | None = None
+  rol_exit_traps: list[RolExitTrapRecord] = field(default_factory=list)
   spec_proc: str | None = None
   coordinates: tuple[int, int] | None = None
   owner_zone_vnum: int | None = None

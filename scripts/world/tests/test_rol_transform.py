@@ -89,6 +89,38 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("obsolete source room mana", diagnostics)
     self.assertIn("target maximum level is 34", diagnostics)
 
+  def test_emitted_room_adapts_valid_exit_trap_payload(self) -> None:
+    source = self._source_record(
+        "wld",
+        b"#100\nTrapped door~\nA trapped doorway.~\n1 0 0\n"
+        b"D0\nA dangerous door.~\ndoor~\n18 0 101 1 10 1 50 1 -40 100\nS\n",
+    )
+
+    emitted = emit_room(source, 2_000_100, 20_001, _resolver)
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20001.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual(1, len(result.records[0].rol_exit_traps))
+    trap = result.records[0].rol_exit_traps[0]
+    self.assertEqual((0, 1, 10), (trap.direction, trap.state, trap.trap_type))
+    self.assertEqual((1, 50, 1, -40, 100),
+                     (trap.minimum_damage, trap.maximum_damage, trap.area_effect,
+                      trap.hardness, trap.load_percent))
+    self.assertIn("adapted legacy exit trap payload", " ".join(emitted.diagnostics))
+
+  def test_emitted_room_excludes_malformed_exit_trap_payload(self) -> None:
+    source = self._source_record(
+        "wld",
+        b"#100\nBroken trap~\nA malformed doorway.~\n1 0 0\n"
+        b"D3\n~\n~\n0 0 101 20 20 20\nS\n",
+    )
+
+    emitted = emit_room(source, 2_000_100, 20_001, _resolver)
+
+    self.assertNotIn("\nY ", emitted.text)
+    self.assertIn("excluded malformed legacy exit trap payload", " ".join(emitted.diagnostics))
+
   def test_emitted_room_preserves_room_and_zone_compatibility(self) -> None:
     first_mask = sum(1 << (flag - 1) for flag in (6, 11, 13, 15, 18, 31, 32))
     second_mask = sum(1 << (flag - 33) for flag in (36, 48))

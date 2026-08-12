@@ -201,6 +201,8 @@
 #define TRAP_FLAG_ONE_SHOT (1 << 6)       /* Destroyed after triggering */
 #define TRAP_FLAG_MAGICAL (1 << 7)        /* Magical trap (detect magic works) */
 #define TRAP_FLAG_MECHANICAL (1 << 8)     /* Mechanical trap */
+#define TRAP_FLAG_ROL_EXIT (1 << 9)       /* Converted RoL persisted exit trap */
+#define TRAP_FLAG_REUSABLE (1 << 10)      /* Remains armed after triggering */
 
 /* Special Effects that traps can inflict */
 #define TRAP_SPECIAL_NONE 0
@@ -5997,6 +5999,12 @@ struct trap_data
   long flags;                 /* TRAP_FLAG_* bitvector */
   int trigger_vnum;           /* For object traps: vnum of triggering object/door */
   int trigger_direction;      /* For door traps: direction of the door */
+  int rol_initial_state;      /* Authored RoL enabled state */
+  int rol_source_type;        /* Original RoL exit-trap type */
+  int rol_minimum_damage;     /* Original flat damage lower bound */
+  int rol_maximum_damage;     /* Original flat damage upper bound */
+  int rol_hardness;           /* Original detection/disarm hardness */
+  int rol_load_percent;       /* Chance to arm at boot/reset */
   char *trap_name;            /* Custom name for the trap (optional) */
   char *trigger_message_char; /* Message to character when trap triggers */
   char *trigger_message_room; /* Message to room when trap triggers */

@@ -188,3 +188,59 @@ void Test_traps_rol_object_trigger_bypasses_staff_without_consuming_charge(CuTes
   CuAssertTrue(tc, !check_rol_object_trap(&ch, &obj, ROL_OBJECT_TRAP_EVENT_OBJECT, 0));
   CuAssertIntEquals(tc, 2, GET_OBJ_VAL(&obj, ROL_OBJECT_TRAP_VALUE_CHARGES));
 }
+
+void Test_traps_rol_exit_payload_creation_and_copy(CuTest *tc)
+{
+  struct trap_data *trap, *copy;
+
+  CuAssertTrue(tc, rol_exit_trap_values_are_valid(NORTH, 1, 10, 1, 50, 1, -40, 100));
+  CuAssertTrue(tc, !rol_exit_trap_values_are_valid(NORTH, 1, 10, 50, 1, 1, -40, 100));
+  CuAssertTrue(tc, !rol_exit_trap_values_are_valid(DIR_COUNT, 1, 10, 1, 50, 1, -40, 100));
+
+  trap = create_rol_exit_trap(NORTH, 1, 10, 1, 50, 1, -40, 100);
+  CuAssertPtrNotNull(tc, trap);
+  CuAssertTrue(tc, IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT));
+  CuAssertTrue(tc, IS_SET(trap->flags, TRAP_FLAG_REUSABLE));
+  CuAssertTrue(tc, IS_SET(trap->flags, TRAP_FLAG_AREA_EFFECT));
+  CuAssertIntEquals(tc, 10, trap->rol_source_type);
+  CuAssertIntEquals(tc, 1, trap->rol_minimum_damage);
+  CuAssertIntEquals(tc, 50, trap->rol_maximum_damage);
+  CuAssertIntEquals(tc, -40, trap->rol_hardness);
+
+  copy = copy_trap_list(trap);
+  CuAssertPtrNotNull(tc, copy);
+  CuAssertTrue(tc, copy != trap);
+  CuAssertTrue(tc, copy->trap_name != trap->trap_name);
+  CuAssertStrEquals(tc, trap->trap_name, copy->trap_name);
+  CuAssertIntEquals(tc, trap->rol_source_type, copy->rol_source_type);
+  free_trap_list(copy);
+  free_trap_list(trap);
+}
+
+void Test_traps_rol_exit_rearm_restores_a_disarmed_trap(CuTest *tc)
+{
+  struct room_data room;
+  struct room_data *saved_world;
+  struct trap_data *trap;
+  room_rnum saved_top_of_world;
+
+  memset(&room, 0, sizeof(room));
+  trap = create_rol_exit_trap(EAST, 1, 5, 10, 20, 0, 0, 100);
+  CuAssertPtrNotNull(tc, trap);
+  SET_BIT(trap->flags, TRAP_FLAG_DETECTED | TRAP_FLAG_DISARMED | TRAP_FLAG_TRIGGERED);
+  room.traps = trap;
+
+  saved_world = world;
+  saved_top_of_world = top_of_world;
+  world = &room;
+  top_of_world = 0;
+
+  CuAssertTrue(tc, rol_exit_trap_rearm(0, EAST));
+  CuAssertTrue(tc, !IS_SET(trap->flags, TRAP_FLAG_DETECTED));
+  CuAssertTrue(tc, !IS_SET(trap->flags, TRAP_FLAG_DISARMED));
+  CuAssertTrue(tc, !IS_SET(trap->flags, TRAP_FLAG_TRIGGERED));
+
+  world = saved_world;
+  top_of_world = saved_top_of_world;
+  free_trap_list(trap);
+}

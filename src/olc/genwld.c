@@ -25,6 +25,7 @@
 #include "spec/spec_effective_binding.h"
 #include "vessels/vessels.h"
 #include "vessels/vessels_moving_rooms.h"
+#include "combat/traps.h"
 
 static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
@@ -266,6 +267,8 @@ static int delete_room_internal(room_rnum rnum, bool persistent)
   }
 
   free_room_strings(room);
+  free_trap_list(room->traps);
+  room->traps = NULL;
   spec_binding_free(&room->spec_binding);
   spec_effective_binding_free(&room->effective_binding);
   if (SCRIPT(room))
@@ -649,6 +652,20 @@ int save_rooms(zone_rnum rzone)
         }
       }
 
+      {
+        struct trap_data *trap;
+
+        for (trap = room->traps; trap; trap = trap->next)
+        {
+          if (!IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT))
+            continue;
+          fprintf(sf, "Y %d %d %d %d %d %d %d %d\n", trap->trigger_direction,
+                  trap->rol_initial_state, trap->rol_source_type, trap->rol_minimum_damage,
+                  trap->rol_maximum_damage, IS_SET(trap->flags, TRAP_FLAG_AREA_EFFECT) ? 1 : 0,
+                  trap->rol_hardness, trap->rol_load_percent);
+        }
+      }
+
       fprintf(sf, "S\n"); /* Always the last. */
       script_save_to_disk(sf, room, WLD_TRIGGER);
     }
@@ -710,6 +727,10 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
                                    struct spec_binding *binding_copy,
                                    struct spec_effective_binding *effective_copy)
 {
+  struct trap_data *trap_copy;
+
+  trap_copy = copy_trap_list(from->traps);
+
   /* Trail data is runtime state and is never retained across an OLC copy. */
   if (to->trail_tracks)
   {
@@ -718,11 +739,13 @@ static int copy_room_with_bindings(struct room_data *to, struct room_data *from,
   }
 
   free_room_strings(to);
+  free_trap_list(to->traps);
   spec_binding_free(&to->spec_binding);
   spec_effective_binding_free(&to->effective_binding);
   *to = *from;
   to->spec_binding = binding_copy;
   to->effective_binding = effective_copy;
+  to->traps = trap_copy;
   copy_room_strings(to, from);
   to->events = from->events;
 

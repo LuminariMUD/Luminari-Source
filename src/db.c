@@ -2145,6 +2145,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   char buf[128] = {'\0'};
   char buf2[MAX_STRING_LENGTH] = {'\0'};
   struct extra_descr_data *new_descr = NULL;
+  struct trap_data *trap = NULL;
   char letter = '\0';
   bool level_range_seen = false;
 
@@ -2284,6 +2285,7 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
   world[room_nr].effective_binding = NULL;
   world[room_nr].contents = NULL;
   world[room_nr].people = NULL;
+  world[room_nr].traps = NULL;
   world[room_nr].light = 0; /* Zero light sources */
   world[room_nr].globe = 0; /* Zero darkness sources */
   world[room_nr].minimum_level = -1;
@@ -2378,6 +2380,42 @@ void parse_room(FILE *fl, int virtual_nr, const char *filename)
       world[room_nr].minimum_level = minimum_level;
       world[room_nr].maximum_level = maximum_level;
       level_range_seen = true;
+      break;
+    }
+    case 'Y': /* Persisted converted Realms of Luminari exit trap. */
+    {
+      int direction, state, trap_type, minimum_damage, maximum_damage;
+      int area_effect, hardness, load_percent;
+      char trailing;
+
+      if (sscanf(line + 1, " %d %d %d %d %d %d %d %d %c", &direction, &state, &trap_type,
+                 &minimum_damage, &maximum_damage, &area_effect, &hardness, &load_percent,
+                 &trailing) != 8 ||
+          !rol_exit_trap_values_are_valid(direction, state, trap_type, minimum_damage,
+                                          maximum_damage, area_effect, hardness, load_percent))
+      {
+        log("SYSERR: Room #%d has invalid RoL exit-trap Y record: %s", virtual_nr, line);
+        exit(1);
+      }
+      for (trap = world[room_nr].traps; trap; trap = trap->next)
+      {
+        if (IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT) && trap->trigger_direction == direction)
+        {
+          log("SYSERR: Room #%d has duplicate RoL exit trap for direction %d.", virtual_nr,
+              direction);
+          exit(1);
+        }
+      }
+      trap = create_rol_exit_trap(direction, state, trap_type, minimum_damage, maximum_damage,
+                                  area_effect, hardness, load_percent);
+      if (!trap)
+      {
+        log("SYSERR: Unable to create RoL exit trap in room #%d.", virtual_nr);
+        exit(1);
+      }
+      trap->next = world[room_nr].traps;
+      world[room_nr].traps = trap;
+      SET_BIT_AR(ROOM_FLAGS(room_nr), ROOM_HASTRAP);
       break;
     }
     case 'Z': /* SpecProc name for room */
@@ -5184,6 +5222,8 @@ static void rol_reset_legacy_door(room_rnum room, int direction, int state)
     return;
   world[room].dir_option[direction]->exit_info =
       rol_reset_legacy_door_flags(world[room].dir_option[direction]->exit_info, state);
+  if (state & 0x10)
+    rol_exit_trap_rearm(room, direction);
 }
 
 static void log_zone_error(zone_rnum zone, int cmd_no, const char *message)

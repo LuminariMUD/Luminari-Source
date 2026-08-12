@@ -27,6 +27,7 @@
 #include "spec/spec_registry.h"
 #include "spec/spec_effective_binding.h"
 #include "spec_menu.h"
+#include "combat/traps.h"
 
 /* local functions */
 static void redit_setup_new(struct descriptor_data *d);
@@ -465,6 +466,8 @@ void free_room(struct room_data *room)
 {
   /* Free the strings (Mythran). */
   free_room_strings(room);
+  free_trap_list(room->traps);
+  room->traps = NULL;
   spec_binding_free(&room->spec_binding);
   spec_effective_binding_free(&room->effective_binding);
 

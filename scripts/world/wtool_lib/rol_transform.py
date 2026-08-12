@@ -1175,9 +1175,29 @@ def emit_room(
           ]
       )
       if len(arguments) > 3:
-        diagnostics.append(
-            f"legacy exit trap payload retained only as conversion evidence at source line {directive['line']}"
+        valid_trap = (
+            len(arguments) == 10
+            and arguments[0] >= 16
+            and arguments[3] in {0, 1}
+            and arguments[4] in {1, 2, 3, 4, 5, 10, 11}
+            and 0 <= arguments[5] <= arguments[6] <= 32766
+            and arguments[7] in {0, 1}
+            and -100 <= arguments[8] <= 100
+            and 0 <= arguments[9] <= 100
         )
+        if valid_trap:
+          lines.append(
+              f"Y {directive['direction']} {arguments[3]} {arguments[4]} "
+              f"{arguments[5]} {arguments[6]} {arguments[7]} {arguments[8]} "
+              f"{arguments[9]}\n"
+          )
+          diagnostics.append(
+              f"adapted legacy exit trap payload at source line {directive['line']}"
+          )
+        else:
+          diagnostics.append(
+              f"excluded malformed legacy exit trap payload at source line {directive['line']}"
+          )
     elif token == "E":
       keyword, text_diagnostics = _tilde(directive.get("keyword"))
       diagnostics.extend(text_diagnostics)
@@ -1679,10 +1699,8 @@ def _emit_reset(
         return f"D {dependency} {resolve('wld', room)} {direction} {state}\n", diagnostics
       if state & 0x10:
         diagnostics.append(
-            f"excluded legacy door-trap activation bit at source line {line}; "
-            "the target exit trap runtime has no equivalent payload"
+            f"mapped legacy door-trap rearm bit at source line {line} to the RoL exit-trap runtime"
         )
-        state &= ~0x10
       return (
           f"K {dependency} {resolve('wld', room)} {direction} {state} {probability}\n",
           diagnostics,

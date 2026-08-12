@@ -295,7 +295,7 @@ void free_trap(struct trap_data *trap)
 /**
  * Creates a copy of a trap (deep copy).
  */
-struct trap_data *copy_trap(struct trap_data *source)
+struct trap_data *copy_trap(const struct trap_data *source)
 {
   struct trap_data *trap;
 
@@ -316,6 +316,177 @@ struct trap_data *copy_trap(struct trap_data *source)
   trap->next = NULL; // Don't copy the list link
 
   return trap;
+}
+
+struct trap_data *copy_trap_list(const struct trap_data *source)
+{
+  struct trap_data *head = NULL, *tail = NULL, *copy;
+
+  while (source)
+  {
+    copy = copy_trap(source);
+    if (!head)
+      head = copy;
+    else
+      tail->next = copy;
+    tail = copy;
+    source = source->next;
+  }
+  return head;
+}
+
+void free_trap_list(struct trap_data *trap)
+{
+  struct trap_data *next;
+
+  while (trap)
+  {
+    next = trap->next;
+    free_trap(trap);
+    trap = next;
+  }
+}
+
+bool rol_exit_trap_values_are_valid(int direction, int state, int trap_type, int minimum_damage,
+                                    int maximum_damage, int area_effect, int hardness,
+                                    int load_percent)
+{
+  return direction >= 0 && direction < DIR_COUNT && (state == 0 || state == 1) &&
+         (trap_type == 1 || trap_type == 2 || trap_type == 3 || trap_type == 4 || trap_type == 5 ||
+          trap_type == 10 || trap_type == 11) &&
+         minimum_damage >= 0 && maximum_damage >= minimum_damage && maximum_damage <= 32766 &&
+         (area_effect == 0 || area_effect == 1) && hardness >= -100 && hardness <= 100 &&
+         load_percent >= 0 && load_percent <= 100;
+}
+
+static int rol_exit_trap_target_type(int source_type)
+{
+  switch (source_type)
+  {
+  case 1:
+    return TRAP_TYPE_SPIKE;
+  case 2:
+    return TRAP_TYPE_DART;
+  case 3:
+    return TRAP_TYPE_BOULDER;
+  case 4:
+    return TRAP_TYPE_FIRE;
+  case 5:
+    return TRAP_TYPE_ELECTRICAL;
+  case 11:
+    return TRAP_TYPE_PIT;
+  default:
+    return TRAP_TYPE_SPIKE;
+  }
+}
+
+static void configure_rol_exit_trap_type(struct trap_data *trap, int source_type)
+{
+  if (!trap)
+    return;
+
+  trap->trap_type = rol_exit_trap_target_type(source_type);
+  trap->special_effect = TRAP_SPECIAL_NONE;
+  trap->special_duration = 0;
+  switch (source_type)
+  {
+  case 1:
+    trap->damage_type = DAM_SLICE;
+    trap->save_type = TRAP_SAVE_REFLEX;
+    break;
+  case 2:
+    trap->damage_type = DAM_POISON;
+    trap->save_type = TRAP_SAVE_FORTITUDE;
+    trap->special_effect = TRAP_SPECIAL_POISON;
+    trap->special_duration = 10;
+    break;
+  case 3:
+    trap->damage_type = DAM_BLUDGEON;
+    trap->save_type = TRAP_SAVE_REFLEX;
+    break;
+  case 4:
+    trap->damage_type = DAM_FIRE;
+    trap->save_type = TRAP_SAVE_REFLEX;
+    break;
+  case 5:
+    trap->damage_type = DAM_ELECTRIC;
+    trap->save_type = TRAP_SAVE_REFLEX;
+    break;
+  case 11:
+    trap->damage_type = DAM_FORCE;
+    trap->save_type = TRAP_SAVE_REFLEX;
+    break;
+  }
+}
+
+struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type, int minimum_damage,
+                                       int maximum_damage, int area_effect, int hardness,
+                                       int load_percent)
+{
+  struct trap_data *trap;
+  int initial_type, dc;
+
+  if (!rol_exit_trap_values_are_valid(direction, state, trap_type, minimum_damage, maximum_damage,
+                                      area_effect, hardness, load_percent))
+    return NULL;
+
+  initial_type = trap_type == 10 ? 1 : trap_type;
+  trap = create_trap(rol_exit_trap_target_type(initial_type), TRAP_SEVERITY_AVERAGE,
+                     TRAP_TRIGGER_OPEN_DOOR);
+  configure_rol_exit_trap_type(trap, initial_type);
+  dc = MAX(1, 15 + hardness / 5);
+  trap->detect_dc = dc;
+  trap->disarm_dc = dc;
+  trap->save_dc = dc;
+  trap->damage_dice_num = 0;
+  trap->damage_dice_size = 0;
+  trap->area_radius = area_effect ? 1 : 0;
+  trap->max_targets = area_effect ? 99 : 1;
+  trap->trigger_direction = direction;
+  trap->rol_initial_state = state;
+  trap->rol_source_type = trap_type;
+  trap->rol_minimum_damage = minimum_damage;
+  trap->rol_maximum_damage = maximum_damage;
+  trap->rol_hardness = hardness;
+  trap->rol_load_percent = load_percent;
+  REMOVE_BIT(trap->flags, TRAP_FLAG_ONE_SHOT | TRAP_FLAG_AREA_EFFECT);
+  SET_BIT(trap->flags, TRAP_FLAG_ROL_EXIT | TRAP_FLAG_REUSABLE);
+  if (area_effect)
+    SET_BIT(trap->flags, TRAP_FLAG_AREA_EFFECT);
+  if (trap_type == 4 || trap_type == 5)
+    SET_BIT(trap->flags, TRAP_FLAG_MAGICAL);
+  else
+    SET_BIT(trap->flags, TRAP_FLAG_MECHANICAL);
+  if (!state || rand_number(1, 100) > load_percent)
+    SET_BIT(trap->flags, TRAP_FLAG_TRIGGERED);
+
+  free(trap->trap_name);
+  free(trap->trigger_message_char);
+  free(trap->trigger_message_room);
+  trap->trap_name = strdup("door trap");
+  trap->trigger_message_char = strdup("\tRA hidden trap erupts from the doorway!\tn");
+  trap->trigger_message_room = strdup("\tRA hidden trap erupts around $n!\tn");
+  return trap;
+}
+
+bool rol_exit_trap_rearm(room_rnum room, int direction)
+{
+  struct trap_data *trap;
+  bool armed;
+
+  if (room == NOWHERE || room > top_of_world || direction < 0 || direction >= DIR_COUNT)
+    return FALSE;
+  for (trap = world[room].traps; trap; trap = trap->next)
+  {
+    if (!IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT) || trap->trigger_direction != direction)
+      continue;
+    armed = trap->rol_initial_state && rand_number(1, 100) <= trap->rol_load_percent;
+    REMOVE_BIT(trap->flags, TRAP_FLAG_DETECTED | TRAP_FLAG_DISARMED | TRAP_FLAG_TRIGGERED);
+    if (!armed)
+      SET_BIT(trap->flags, TRAP_FLAG_TRIGGERED);
+    return armed;
+  }
+  return FALSE;
 }
 
 /**
@@ -754,8 +925,8 @@ static bool light_step_avoids_trap(struct char_data *ch)
 /**
  * Check if trap should trigger based on action type.
  */
-bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
-                        struct obj_data *obj, int direction)
+static bool check_trap_trigger_internal(struct char_data *ch, int trigger_type, room_rnum room,
+                                        struct obj_data *obj, int direction, int rol_exit_mode)
 {
   struct trap_data *trap;
 
@@ -767,6 +938,12 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
   {
     for (trap = world[room].traps; trap; trap = trap->next)
     {
+      if (rol_exit_mode < 0 && IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT))
+        continue;
+      if (rol_exit_mode > 0 && !IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT))
+        continue;
+      if (IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT) && GET_LEVEL(ch) >= LVL_IMMORT)
+        continue;
       // Skip if already triggered or disarmed
       if (IS_SET(trap->flags, TRAP_FLAG_TRIGGERED) || IS_SET(trap->flags, TRAP_FLAG_DISARMED))
         continue;
@@ -808,22 +985,179 @@ bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
   return FALSE;
 }
 
+bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
+                        struct obj_data *obj, int direction)
+{
+  return check_trap_trigger_internal(ch, trigger_type, room, obj, direction, 0);
+}
+
+bool check_trap_trigger_excluding_rol_exit(struct char_data *ch, int trigger_type, room_rnum room,
+                                           struct obj_data *obj, int direction)
+{
+  return check_trap_trigger_internal(ch, trigger_type, room, obj, direction, -1);
+}
+
+bool check_rol_exit_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
+                                 int direction)
+{
+  return check_trap_trigger_internal(ch, trigger_type, room, NULL, direction, 1);
+}
+
+static bool rol_exit_trap_target_saves(struct char_data *ch, struct trap_data *trap)
+{
+  int save_type, effective_level;
+
+  if (!ch || !trap)
+    return TRUE;
+  save_type = trap->save_type == TRAP_SAVE_FORTITUDE ? SAVING_FORT : SAVING_REFL;
+  effective_level = MAX(1, trap->save_dc - get_trap_sense_bonus(ch) - 10);
+  return savingthrow(NULL, ch, save_type, 0, CAST_INNATE, effective_level, NOSCHOOL);
+}
+
+static void rol_exit_trap_poison(struct char_data *ch, struct trap_data *trap)
+{
+  struct affected_type af;
+
+  if (!ch || !trap || !can_poison(ch) || affected_by_spell(ch, SPELL_POISON))
+    return;
+  new_affect(&af);
+  af.spell = SPELL_POISON;
+  af.duration = MAX(1, trap->special_duration);
+  af.location = APPLY_CON;
+  af.modifier = -2;
+  SET_BIT_AR(af.bitvector, AFF_POISON);
+  affect_join(ch, &af, TRUE, FALSE, FALSE, FALSE);
+  send_to_char(ch, "You feel poison coursing through your veins!\r\n");
+}
+
+static bool rol_exit_trap_target_can_fall(struct char_data *ch)
+{
+  if (!ch || GET_LEVEL(ch) >= LVL_IMMORT || is_flying(ch) || AFF_FLAGGED(ch, AFF_LEVITATE))
+    return FALSE;
+  if (RIDING(ch) && (is_flying(RIDING(ch)) || AFF_FLAGGED(RIDING(ch), AFF_LEVITATE)))
+    return FALSE;
+  return TRUE;
+}
+
+static void rol_exit_trap_drop_target(struct char_data *ch, room_rnum room)
+{
+  room_rnum destination;
+
+  if (!rol_exit_trap_target_can_fall(ch) || room == NOWHERE || room > top_of_world ||
+      !world[room].dir_option[DOWN] || world[room].dir_option[DOWN]->to_room == NOWHERE)
+    return;
+  destination = world[room].dir_option[DOWN]->to_room;
+  if (destination > top_of_world)
+    return;
+  if (FIGHTING(ch))
+    stop_fighting(ch);
+  char_from_room(ch);
+  if (ZONE_FLAGGED(GET_ROOM_ZONE(destination), ZONE_WILDERNESS))
+  {
+    X_LOC(ch) = world[destination].coords[0];
+    Y_LOC(ch) = world[destination].coords[1];
+  }
+  char_to_room(ch, destination);
+  if (!IS_NPC(ch))
+    look_at_room(ch, 0);
+}
+
+static void apply_rol_exit_trap_to_target(struct char_data *ch, struct trap_data *trap,
+                                          room_rnum room, int source_type)
+{
+  int damage_amount;
+
+  if (!ch || !trap || IS_NPC(ch) || GET_LEVEL(ch) >= LVL_IMMORT)
+    return;
+  if (rol_exit_trap_target_saves(ch, trap))
+  {
+    send_to_char(ch, "You avoid the hidden trap's effects!\r\n");
+    return;
+  }
+  if (source_type == 11)
+  {
+    rol_exit_trap_drop_target(ch, room);
+    return;
+  }
+  if (source_type == 2)
+    rol_exit_trap_poison(ch, trap);
+  damage_amount = rand_number(trap->rol_minimum_damage, trap->rol_maximum_damage);
+  if (damage_amount > 0)
+    damage(ch, ch, damage_amount, -1, trap->damage_type, -1);
+}
+
+static void apply_rol_exit_trap(struct char_data *ch, struct trap_data *trap, room_rnum room,
+                                int source_type)
+{
+  struct char_data *victim, *next_victim;
+  struct obj_data *obj, *next_obj;
+  room_rnum destination;
+
+  if (!IS_SET(trap->flags, TRAP_FLAG_AREA_EFFECT))
+  {
+    apply_rol_exit_trap_to_target(ch, trap, room, source_type);
+    return;
+  }
+  if (source_type == 11)
+  {
+    destination = world[room].dir_option[DOWN] ? world[room].dir_option[DOWN]->to_room : NOWHERE;
+    for (victim = world[room].people; victim; victim = next_victim)
+    {
+      next_victim = victim->next_in_room;
+      rol_exit_trap_drop_target(victim, room);
+    }
+    if (destination != NOWHERE && destination <= top_of_world)
+    {
+      for (obj = world[room].contents; obj; obj = next_obj)
+      {
+        next_obj = obj->next_content;
+        if (OBJ_FLAGGED(obj, ITEM_FLOAT))
+          continue;
+        obj_from_room(obj);
+        obj_to_room(obj, destination);
+      }
+    }
+    return;
+  }
+  for (victim = world[room].people; victim; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    apply_rol_exit_trap_to_target(victim, trap, room, source_type);
+  }
+}
+
 /**
  * Trigger a trap - apply effects to character(s).
  */
 void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room)
 {
+  int source_type = 0;
+
   if (!ch || !trap)
     return;
 
-  // Mark as triggered
-  SET_BIT(trap->flags, TRAP_FLAG_TRIGGERED);
+  if (IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT))
+  {
+    source_type = trap->rol_source_type == 10 ? rand_number(1, 5) : trap->rol_source_type;
+    configure_rol_exit_trap_type(trap, source_type);
+  }
+  else
+  {
+    // Mark as triggered
+    SET_BIT(trap->flags, TRAP_FLAG_TRIGGERED);
+  }
 
   // Send trigger messages
   if (trap->trigger_message_char)
     act(trap->trigger_message_char, FALSE, ch, 0, 0, TO_CHAR);
   if (trap->trigger_message_room)
     act(trap->trigger_message_room, FALSE, ch, 0, 0, TO_ROOM);
+
+  if (IS_SET(trap->flags, TRAP_FLAG_ROL_EXIT))
+  {
+    apply_rol_exit_trap(ch, trap, room, source_type);
+    return;
+  }
 
   // Apply trap effects
   if (IS_SET(trap->flags, TRAP_FLAG_AREA_EFFECT))

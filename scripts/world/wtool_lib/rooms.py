@@ -13,6 +13,7 @@ from .models import (
     ExtraDescriptionRecord,
     MovingConnectionRecord,
     MovingRoomRecord,
+    RolExitTrapRecord,
     RoomRecord,
     SourceSpan,
 )
@@ -478,6 +479,7 @@ def parse_room_file(
 
     found_room_end = False
     level_range_seen = False
+    rol_exit_trap_directions: set[int] = set()
     while True:
       line = cursor.read_significant()
       if line is None:
@@ -547,6 +549,73 @@ def parse_room_file(
         else:
           room.minimum_level, room.maximum_level = values
           level_range_seen = True
+      elif kind == "Y":
+        values, consumed, error = scan_integers(line.text[1:], 8)
+        trailing = line.text[1:][consumed:].strip()
+        if error is not None or len(values) != 8 or trailing:
+          result.findings.append(
+              finding(
+                  "WLD037",
+                  "error",
+                  "RoL exit-trap Y record requires exactly eight integers",
+                  line.span,
+                  "room",
+                  vnum,
+              )
+          )
+          continue
+        direction, state, trap_type, minimum, maximum, area, hardness, load = values
+        if (
+            direction < 0
+            or direction >= direction_limit
+            or state not in {0, 1}
+            or trap_type not in {1, 2, 3, 4, 5, 10, 11}
+            or minimum < 0
+            or maximum < minimum
+            or maximum > 32766
+            or area not in {0, 1}
+            or hardness < -100
+            or hardness > 100
+            or load < 0
+            or load > 100
+        ):
+          result.findings.append(
+              finding(
+                  "WLD038",
+                  "error",
+                  "RoL exit-trap Y values are outside their supported bounds",
+                  line.span,
+                  "room",
+                  vnum,
+              )
+          )
+          continue
+        if direction in rol_exit_trap_directions:
+          result.findings.append(
+              finding(
+                  "WLD039",
+                  "error",
+                  f"room has more than one RoL exit trap for direction {direction}",
+                  line.span,
+                  "room",
+                  vnum,
+              )
+          )
+          continue
+        rol_exit_trap_directions.add(direction)
+        room.rol_exit_traps.append(
+            RolExitTrapRecord(
+                direction,
+                state,
+                trap_type,
+                minimum,
+                maximum,
+                area,
+                hardness,
+                load,
+                line.span,
+            )
+        )
       elif kind == "M":
         if room.moving_room is not None:
           result.findings.append(
@@ -595,7 +664,7 @@ def parse_room_file(
             finding(
                 "WLD031",
                 "error",
-                f"unknown room extension record {kind!r}; expected C, D, E, M, Z, or S",
+                f"unknown room extension record {kind!r}; expected C, D, E, M, R, Y, Z, or S",
                 line.span,
                 "room",
                 vnum,

@@ -76,6 +76,19 @@ class RoomParserTests(unittest.TestCase):
       self.assertEqual((15, -1), (result.records[0].minimum_level, result.records[0].maximum_level))
       self.assertEqual(2, sum(item.code == "WLD036" for item in result.findings))
 
+  def test_rol_exit_trap_record_parses_and_validates_bounds(self) -> None:
+    with tempfile.TemporaryDirectory() as directory:
+      path = Path(directory) / "124.wld"
+      path.write_text(
+          "#12400\nTrapped~\nA trapped room.~\n124 0 0 0 0 0\n"
+          "Y 0 1 10 1 50 1 -40 100\n"
+          "Y 0 1 5 10 5 0 0 100\nS\n$~\n",
+          encoding="ascii",
+      )
+      result = parse_room_file(path, "124.wld", self.manifest, False, self.spec_names)
+      self.assertEqual(1, len(result.records[0].rol_exit_traps))
+      self.assertEqual({"WLD038"}, {item.code for item in result.findings})
+
   def test_disabled_diagonal_consumes_block_but_reports_desync(self) -> None:
     disabled = self.parse("broken/diagonal.wld", diagonal_dirs=False)
     enabled = self.parse("broken/diagonal.wld", diagonal_dirs=True)

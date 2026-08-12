@@ -365,7 +365,7 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     }
     else
     {
-      if (check_trap(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
+      if (check_trap_trigger_excluding_rol_exit(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, 0, door))
         return;
     }
     CLOSE_DOOR(IN_ROOM(ch), obj, door);
@@ -435,8 +435,8 @@ static void do_doorcmd(struct char_data *ch, struct obj_data *obj, int door, int
     }
     else
     {
-      // if (check_trap(ch, TRAP_TRIGGER_UNLOCK_DOOR, ch->in_room, 0, door))
-      //   return;
+      if (check_rol_exit_trap_trigger(ch, TRAP_TRIGGER_OPEN_DOOR, ch->in_room, door))
+        return;
 
       if (!ok_pick(ch, 0, EXIT_FLAGGED(EXIT(ch, door), EX_PICKPROOF), SCMD_PICK, door))
       {

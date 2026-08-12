@@ -75,11 +75,22 @@ enum rol_object_trap_event
 /* Trap creation and management */
 struct trap_data *create_trap(int trap_type, int severity, int trigger_type);
 void free_trap(struct trap_data *trap);
-struct trap_data *copy_trap(struct trap_data *source);
+struct trap_data *copy_trap(const struct trap_data *source);
+struct trap_data *copy_trap_list(const struct trap_data *source);
+void free_trap_list(struct trap_data *trap);
 void attach_trap_to_room(struct trap_data *trap, room_rnum room);
 void attach_trap_to_object(struct trap_data *trap, struct obj_data *obj);
 void remove_trap_from_room(struct trap_data *trap, room_rnum room);
 void remove_trap_from_object(struct obj_data *obj);
+
+/* Converted Realms of Luminari persisted exit traps. */
+bool rol_exit_trap_values_are_valid(int direction, int state, int trap_type, int minimum_damage,
+                                    int maximum_damage, int area_effect, int hardness,
+                                    int load_percent);
+struct trap_data *create_rol_exit_trap(int direction, int state, int trap_type, int minimum_damage,
+                                       int maximum_damage, int area_effect, int hardness,
+                                       int load_percent);
+bool rol_exit_trap_rearm(room_rnum room, int direction);
 
 /* Trap generation */
 struct trap_data *generate_random_trap(int zone_level);
@@ -102,6 +113,10 @@ void perform_autosearch(struct char_data *ch);
 /* Trap triggering */
 bool check_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
                         struct obj_data *obj, int direction);
+bool check_trap_trigger_excluding_rol_exit(struct char_data *ch, int trigger_type, room_rnum room,
+                                           struct obj_data *obj, int direction);
+bool check_rol_exit_trap_trigger(struct char_data *ch, int trigger_type, room_rnum room,
+                                 int direction);
 void trigger_trap(struct char_data *ch, struct trap_data *trap, room_rnum room);
 void apply_trap_damage(struct char_data *ch, struct trap_data *trap);
 void apply_trap_special_effect(struct char_data *ch, struct trap_data *trap);
