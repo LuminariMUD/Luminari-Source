@@ -100,6 +100,7 @@ Phase 6 called-effect object commit: c334a648
 Phase 6 object-service commit: 1849d9ad
 Phase 6 utility-service commit: 9d40694b
 Phase 6 scheduled-mobile commit: c8704d86
+Phase 6 Menden-fisherman commit: 33965efc
 ```
 
 The authoritative ignored runs are:
@@ -289,6 +290,9 @@ Phase 6 utility services:
 Phase 6 scheduled mobiles:
   lib/rol-conversion/runs/phase6-special-20260812-scheduled-mobiles
   rol-phase6-special-c447dd6b4665cb7a
+Phase 6 Menden fisherman:
+  lib/rol-conversion/runs/phase6-special-20260812-menden-fisherman
+  rol-phase6-special-aab827a742a51ca2
 Policy:  rol-conversion-policy-2
 ```
 
@@ -317,9 +321,9 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 314 tests; the production-linked CuTest suite passes 660;
+- The world-tool suite passes 315 tests; the production-linked CuTest suite passes 660;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Fifty-eight bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Fifty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
   shape exists. The measured remaining forecast is 49-79 sessions: Phase 6 is 1-3,
   Phase 7 is 42-66, and Phase 8 is 6-10.
@@ -617,18 +621,24 @@ Policy:  rol-conversion-policy-2
   source hour-eight reset quirk. The naval combatant preserves the source standing-before-fighting
   branch order; the reachable defensive cast maps the source helper's actual stoneskin behavior,
   while the post-loop disarm remains excluded because the source loop makes it unreachable.
+- The Menden fisherman is complete through the source-hashed `RoL Source Periodic` gateway. Its
+  awake gate, unrestricted fighting behavior, 1-80 roll table, 21 active outcomes, exact ambient
+  messages, and room-visible socials are preserved. The generator and runtime now also preserve
+  source-targeted social room and victim messages for named room occupants and self-targets; this
+  reusable path covers the fisherman's wench, magus, and self interactions. The source `CMD_SIP`
+  call has no action-table record and therefore contributes no room-visible output.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,107 of 1,147 active direct bindings and 534 of
-  562 source handlers, leaving 40 bindings and 28 handlers. The independent `ACT_SPEC`
-  cross-check resolves 827 of 848 records and leaves 21 pending.
+- The current Phase 6 checkpoint resolves 1,108 of 1,147 active direct bindings and 535 of
+  562 source handlers, leaving 39 bindings and 27 handlers. The independent `ACT_SPEC`
+  cross-check resolves 828 of 848 records and leaves 20 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 40 direct bindings across 28 handlers. Classify regular
+1. Reconcile the remaining 39 direct bindings across 27 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -640,17 +650,17 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `c8704d86`, resolving four scheduled-mobile handlers
-  and four active bindings through one shared legacy mobile gateway.
-- Preserved both timed-gate state machines and ambient tables, the lighthouse shared-counter quirk,
-  and the naval branch ordering and reachable stoneskin defense. Added exact converted identities,
-  converter dispositions, reconciliation expectations, registry coverage, and behavioral tests.
-  Added the builder-visible `RoL Scheduled Mobile` definition; no storage schema changed.
-- Ran all 314 world-tool tests and all 660 production-linked CuTests. The warning-free
+- Completed and pushed implementation commit `33965efc`, resolving the Menden fisherman and its
+  active binding through the existing source-hashed periodic gateway.
+- Extended the shared periodic generator and runtime to preserve named and self-targeted source
+  socials, including distinct room and victim messages. Preserved the fisherman's exact awake
+  gate, fighting behavior, random table, ambient sequence, and targeted interactions. No registry
+  definition or storage schema changed.
+- Ran all 315 world-tool tests and all 660 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
 - Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-c447dd6b4665cb7a`; it records zero live target writes and the
-  1,107/40 direct-binding, 534/28 handler, and 827/21 `ACT_SPEC` split.
+  `rol-phase6-special-aab827a742a51ca2`; it records zero live target writes and the
+  1,108/39 direct-binding, 535/27 handler, and 828/20 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.

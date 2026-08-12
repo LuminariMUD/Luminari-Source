@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 Menden fisherman
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Converted `menden_fisherman` through the existing source-hashed `RoL Source Periodic`
+  gateway. No registry definition or storage schema changed.
+- Preserved the awake gate, absence of fighting suppression, `number(1, 80)` selection,
+  21 active outcomes, 40 generated actions, source message order, and exact room-visible text.
+- Extended the periodic source parser, generated profile schema, and runtime to preserve targeted
+  source socials. Named targets retain distinct room and victim messages, and `me` resolves to the
+  acting mobile; the fisherman exercises wench, magus, and self targets across five actions.
+- Preserved the source social-table boundary: `CMD_SIP` has no source action record and therefore
+  contributes no room-visible action. Required `MOB_SPEC` activity is now enforced for persisted
+  source-periodic bindings.
+- Added generator, reconciliation, and production-linked profile regressions. The checked-in
+  source-periodic and state-periodic tables remain reproducible from the assessed source tree.
+- Reconciliation now resolves 1,108 of 1,147 active direct bindings and 535 of 562 source handlers;
+  39 bindings and 27 handlers remain. The independent `ACT_SPEC` checkpoint resolves 828 records
+  and leaves 20 pending.
+- Archived the fifty-ninth Phase 6 delivery session. The remaining Phase 6 envelope remains 1-3
+  sessions, leaving the Phases 6-8 forecast at 49-79 sessions, or 98-316 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 33965efc
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-menden-fisherman
+Reconciliation run: rol-phase6-special-aab827a742a51ca2
+Active direct bindings: 1,147
+Direct bindings resolved: 1,108
+Direct bindings pending: 39
+Source handlers resolved: 535
+Source handlers pending: 27
+Additional handler families resolved: 1
+Additional direct bindings resolved: 1
+Native adapted bindings: 650
+Native adapted composable bindings: 159
+Source-inert excluded bindings: 26
+Source-unsafe excluded bindings: 18
+ACT_SPEC records resolved: 828
+ACT_SPEC records pending: 20
+Special registry definitions: 109 total / 96 legacy / 13 typed
+Compatibility names: 110
+Complete world-tool suite: 315 passed
+Production-linked CuTest suite: 660 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Installed ELF build ID: 271844a0d4ad97d0293cd1d6cd20668485efd214
+Installed SHA-256: fb560d3b5560bdce62c81b4eb9004872a821d832161955c2adfd08240b341f68
+Evidence manifest hashes: verified
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 39 direct bindings across 27 source handlers. Continue
+grouping compatible irregular mechanics behind shared gateways, and preserve the full
+build/test/install gate at each substantial commit boundary.
+
 ## 2026-08-12 - Phase 6 scheduled-mobile batch
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
