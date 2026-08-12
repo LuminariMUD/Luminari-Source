@@ -44,6 +44,7 @@ extern EVENTFUNC(event_device_creation);
 extern EVENTFUNC(event_device_progress);
 extern EVENTFUNC(event_radiant_aura);
 extern EVENTFUNC(event_fist_of_four_thunders);
+extern EVENTFUNC(event_rol_yggdrasil_release);
 
 /* The mud_event_index[] with extended data for table-driven handling
  * Format: {name, func, type, completion_msg, recovery_msg, feat, daily_uses} */
@@ -511,6 +512,8 @@ struct mud_event_list mud_event_index[] = {
      "One of your Healing Hands uses has recovered.", FEAT_AASIMAR_HEALING_HANDS, 0},
     {"Aasimar Light Bearer", event_daily_use_cooldown, EVENT_CHAR, NULL,
      "One of your Light Bearer uses has recovered.", FEAT_AASIMAR_LIGHT_BEARER, 0},
+    {"RoL Yggdrasil Release", event_rol_yggdrasil_release, EVENT_CHAR, NULL, NULL, FEAT_UNDEFINED,
+     0},
 };
 
 /* Expose registry count for validation */

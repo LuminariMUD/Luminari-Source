@@ -944,6 +944,75 @@ class RolTransformTests(unittest.TestCase):
     self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
     self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
 
+  def test_death_profile_binding_resolves_without_consuming_mobile_slot(self) -> None:
+    binding = {
+        "basename": "misc_code",
+        "record_type": "mobile",
+        "source_vnum": 907,
+        "source_handler": "fire_mephit_die",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(1, len(compiled.native_bindings))
+    native = compiled.native_bindings[0]
+    self.assertIsNone(native.persisted_name)
+    self.assertEqual((), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"])
+    self.assertEqual("converted mobile death profile", compiled.dispositions[0]["target"])
+
+    source = self._source_record(
+        "mob",
+        b"<*> File Version 1 <*>\n#907\nmephit~\na fire mephit~\n"
+        b"A fire mephit waits.\n~\nA fire mephit.\n~\n1 0 0 0 S\n"
+        b"N 0 0\n10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(source, 2_000_907, special_resolved=True)
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20000.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
+    self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
+
+  def test_composed_alert_keeps_existing_breath_binding(self) -> None:
+    bindings = [
+        {
+            "basename": "plane_fire",
+            "record_type": "mobile",
+            "source_vnum": 25406,
+            "source_handler": "breath_weapon_fire",
+        },
+        {
+            "basename": "plane_fire",
+            "record_type": "mobile",
+            "source_vnum": 25406,
+            "source_handler": "imix_shout",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(2, len(compiled.native_bindings))
+    self.assertEqual(
+        [None, "breath_weapon_fire"],
+        [binding.persisted_name for binding in compiled.native_bindings],
+    )
+    shout = next(
+        row for row in compiled.dispositions if row["source_handler"] == "imix_shout"
+    )
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", shout["strategy"])
+
   def test_bloodstone_undead_death_binding_uses_composable_mobile_flag(self) -> None:
     binding = {
         "basename": "bs1",

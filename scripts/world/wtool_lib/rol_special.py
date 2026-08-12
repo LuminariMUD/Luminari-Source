@@ -63,6 +63,8 @@ NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 # These shared source families need bounded target adapters because the nearest
 # legacy target callbacks have different eligibility or probability rules.
 ADAPTED_HANDLER_NAMES = {
+    "av_drisinil_shout": "RoL Alert Caller",
+    "av_tukra_shout": "RoL Alert Caller",
     "bandit": "RoL Trade Bandit",
     "bs_critter": "RoL Bloodstone Critter",
     "bs_portal": "RoL Bloodstone Portal",
@@ -89,6 +91,8 @@ ADAPTED_HANDLER_NAMES = {
     "floating_pool": "RoL Floating Pool",
     "lich_energy_drain": "RoL Lich Energy Drain",
     "item_block": "RoL Item Blocker",
+    "demogorgon_shout": "RoL Alert Caller",
+    "imix_pet_demon_shout": "RoL Alert Caller",
     "major_beholder": "RoL Major Beholder",
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
@@ -99,6 +103,7 @@ ADAPTED_HANDLER_NAMES = {
     "ship_exit_room": "RoL Ship Exit",
     "ship_look_out_room": "RoL Ship Lookout",
     "thief": "RoL Thief",
+    "yggdrasil_branch": "RoL Yggdrasil Branch",
 }
 
 # These callbacks return before their obsolete or apparent behavior. Binding
@@ -137,6 +142,27 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
     "spirit_viper_die": 123,
     "spirit_bat_die": 123,
     "spirit_raven_die": 123,
+}
+
+# These callbacks are composed by converted-VNUM runtime profiles. They do not
+# consume a second persisted mobile procedure slot and need no synthetic flag.
+# The two shout callbacks share mobiles with already-persisted breath weapons;
+# the death callbacks run from make_corpse() before the ordinary corpse path.
+COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
+    "imix_shout": "breath_weapon_fire plus RoL alert runtime profile",
+    "yancbin_shout": "breath_weapon_lightning plus RoL alert runtime profile",
+    "tentacle_die": "converted mobile death profile",
+    "fire_mephit_die": "converted mobile death profile",
+    "water_mephit_die": "converted mobile death profile",
+    "air_mephit_die": "converted mobile death profile",
+    "earth_mephit_die": "converted mobile death profile",
+    "fire_mental_die": "converted mobile death profile",
+    "water_mental_die": "converted mobile death profile",
+    "air_mental_die": "converted mobile death profile",
+    "earth_mental_die": "converted mobile death profile",
+    "treant_die": "converted mobile death profile",
+    "phantom_steed_die": "converted mobile death profile",
+    "dark_shade_die": "converted mobile death profile",
 }
 
 # Room-owned movement behavior also needs to coexist with ordinary persisted
@@ -832,6 +858,21 @@ def compile_special_bindings(
           )
       )
       dispositions.append(_disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum))
+    elif handler in COMPOSABLE_MOBILE_RUNTIME_HANDLERS:
+      if record_type != "mobile":
+        raise ValueError(f"composable mobile runtime handler {handler!r} owns {record_type!r}")
+      native_bindings.append(
+          NativeSpecialBinding(
+              source_record_type=record_type,
+              source_vnum=source_vnum,
+              target_kind=target_kind,
+              target_vnum=target_vnum,
+              persisted_name=None,
+          )
+      )
+      disposition = _disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum)
+      disposition["target"] = COMPOSABLE_MOBILE_RUNTIME_HANDLERS[handler]
+      dispositions.append(disposition)
     elif handler in COMPOSABLE_ROOM_HANDLER_FLAGS:
       if record_type != "room":
         raise ValueError(f"composable room handler {handler!r} owns {record_type!r}")

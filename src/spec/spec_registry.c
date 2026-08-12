@@ -607,8 +607,8 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "breath_weapon_fire",
         .display_name = "breath_weapon_fire",
         .owner_mask = SPEC_OWNER_MOBILE,
-        .events = rol_mobile_combat_events,
-        .event_count = SPEC_ARRAY_SIZE(rol_mobile_combat_events),
+        .events = rol_mobile_activity_combat_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_mobile_activity_combat_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
@@ -655,8 +655,8 @@ static const struct spec_definition spec_definitions[] = {
         .canonical_name = "breath_weapon_lightning",
         .display_name = "breath_weapon_lightning",
         .owner_mask = SPEC_OWNER_MOBILE,
-        .events = rol_mobile_combat_events,
-        .event_count = SPEC_ARRAY_SIZE(rol_mobile_combat_events),
+        .events = rol_mobile_activity_combat_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_mobile_activity_combat_events),
         .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
         .builder_visibility = SPEC_BUILDER_VISIBLE,
         .category = "RoL Conversion",
@@ -1276,6 +1276,32 @@ static const struct spec_definition spec_definitions[] = {
             "Protects ship orders, drives scheduled routes, and calls crew during combat.",
         .legacy_handler = rol_ship_navigator,
     },
+    {
+        .canonical_name = "RoL Alert Caller",
+        .display_name = "RoL Alert Caller",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_mobile_activity_combat_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_mobile_activity_combat_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Broadcasts a source-specific combat alert and sends eligible helpers in "
+                       "pursuit.",
+        .legacy_handler = rol_alert_caller,
+    },
+    {
+        .canonical_name = "RoL Yggdrasil Branch",
+        .display_name = "RoL Yggdrasil Branch",
+        .owner_mask = SPEC_OWNER_MOBILE,
+        .events = rol_mobile_combat_events,
+        .event_count = SPEC_ARRAY_SIZE(rol_mobile_combat_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Entangles a current or vulnerable opponent for four to twelve combat "
+                       "rounds.",
+        .legacy_handler = rol_yggdrasil_branch,
+    },
 };
 
 enum
@@ -1367,6 +1393,8 @@ enum
   SPEC_DEFINITION_ROL_SHIP_EXIT,
   SPEC_DEFINITION_ROL_SHIP_LOOKOUT,
   SPEC_DEFINITION_ROL_SHIP_NAVIGATOR,
+  SPEC_DEFINITION_ROL_ALERT_CALLER,
+  SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -1468,6 +1496,8 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_SHIP_EXIT, -1},
     {SPEC_DEFINITION_ROL_SHIP_LOOKOUT, -1},
     {SPEC_DEFINITION_ROL_SHIP_NAVIGATOR, -1},
+    {SPEC_DEFINITION_ROL_ALERT_CALLER, -1},
+    {SPEC_DEFINITION_ROL_YGGDRASIL_BRANCH, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

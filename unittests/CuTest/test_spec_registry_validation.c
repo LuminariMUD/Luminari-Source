@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 87, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 85, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 89, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 87, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -276,7 +276,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"breath_attack_lightning", rol_breath_attack_lightning, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"breath_weapon_fire", rol_breath_weapon_fire, SPEC_OWNER_MOBILE,
-       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+       SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"breath_weapon_cold", rol_breath_weapon_cold, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"breath_weapon_acid", rol_breath_weapon_acid, SPEC_OWNER_MOBILE,
@@ -284,7 +284,7 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"breath_weapon_gas", rol_breath_weapon_gas, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
        SPEC_BINDING_SOURCE_WORLD},
       {"breath_weapon_lightning", rol_breath_weapon_lightning, SPEC_OWNER_MOBILE,
-       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+       SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"hulburg_beholder_major", rol_hulburg_beholder_major, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"hulburg_beholder_minor", rol_hulburg_beholder_minor, SPEC_OWNER_MOBILE,
@@ -385,6 +385,10 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Ship Navigator", rol_ship_navigator, SPEC_OWNER_MOBILE,
        SPEC_EVENT_COMMAND | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Alert Caller", rol_alert_caller, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Yggdrasil Branch", rol_yggdrasil_branch, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
   };
   const struct spec_definition *definition;
   size_t definition_index;

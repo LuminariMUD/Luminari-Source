@@ -31,7 +31,7 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 43 mobile definitions,
+Numbers are specific to the filtered editor view. The current views contain 45 mobile definitions,
 30 object definitions, and 15 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
@@ -53,6 +53,11 @@ summoned-monster, and shaman-spirit flags provide their source fade messages and
 `MOB_ROL_BLACK_VAPOR_DEATH` replaces Luminari's generic undead crumble message with the source
 Bloodstone vapor message while retaining the target's no-corpse policy. These flags are
 converter-owned and should not be assigned to unrelated mobiles.
+
+Sixteen additional converted mobiles use VNUM-owned death profiles rather than flags. The tentacle,
+mephit, elemental, treant, phantom-steed, and dark-shade profiles preserve their source death
+message and suppress the ordinary corpse without consuming the named SpecProc slot. These profiles
+are converter-owned and do not make arbitrary mobiles corpse-free.
 
 `RoL Bloodstone Critter` is mobile-owned and requires `MOB_SPEC`. While awake and idle, the four
 converted Bloodstone critters use Luminari's current `snarl` and `growl` socials at the source
@@ -123,6 +128,19 @@ resource and wagon-content costs retain their source copper-scale threshold. Pay
 ordinary `give <amount> gold <bandit>` command. Some variants demand all carried gold and the
 owned wagon, vary by alignment, or attack immediately. Do not assign this procedure to unrelated
 mobiles: its behavior is keyed to converted mobile VNUMs 2099501-2099507.
+
+`RoL Alert Caller` is mobile-owned and requires `MOB_SPEC`. Seven converted callers broadcast their
+source-specific combat warning once per fight and send only their configured awake, idle helpers in
+the same zone to pursue a reachable attacker within 100 rooms. Soundproof rooms, silence,
+paralysis, casting, and sleep suppress the call. The Imix and Yancbin callers compose the same alert
+profile beside their existing fire or lightning breath procedure, so they retain both behaviors
+without a second persisted SpecProc.
+
+`RoL Yggdrasil Branch` is mobile-owned and requires `MOB_SPEC`. Converted mobiles 2062800-2062804
+make a 50 percent entangle attempt against either the current opponent or the source-style
+vulnerable group target. A failed Reflex save with the source -10 modifier entangles the target for
+four to twelve combat rounds. Release removes the entangle and halves current movement. The timed
+effect and its mobile association are converter-owned.
 
 `RoL Shaman Totem` is object-owned and must be held or wielded. It preserves the 21 converted
 totem identities, permanent player/object bonding, source-race gating, three summon attempts per
@@ -249,7 +267,7 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 65 registered definitions use
+their behavior receives explicit event context. The other 87 registered definitions use
 compatibility dispatch; across the source tree, 204 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.

@@ -56,6 +56,11 @@ breath_attack and breath_weapon entries are named mobile
 combat SpecProcs; attack variants affect the current opponent, while weapon
 variants affect eligible targets across the room every fourth combat turn.
 
+Sixteen additional converted tentacle, mephit, elemental, treant, phantom-steed,
+and dark-shade mobiles use converter-owned death profiles. Their source death
+messages and no-corpse outcomes run beside the one named SpecProc slot without
+requiring a builder-assigned flag.
+
 RoL Bloodstone Critter is mobile-owned and requires MOB_SPEC. While awake and
 idle, the four converted critters use the current snarl and growl socials with
 the source two-in-81 activity-pulse cadence. This procedure is converter-owned.
@@ -128,6 +133,17 @@ alignment-sensitive, or immediate-attack demands. Source platinum maps to ten
 target gold. Pay with GIVE <amount> GOLD <bandit>. Underpayment starts combat;
 sufficient payment lets the bandit disappear. Do not assign this procedure to
 unrelated mobiles.
+
+RoL Alert Caller is mobile-owned and requires MOB_SPEC. Seven converted callers
+shout their source warning once per fight and send only configured awake, idle,
+same-zone helpers within 100 reachable rooms to pursue the attacker. Soundproof
+rooms, silence, paralysis, casting, and sleep suppress the call. The Imix and
+Yancbin callers compose this alert beside their existing breath procedure.
+
+RoL Yggdrasil Branch is mobile-owned and requires MOB_SPEC. Converted mobiles
+2062800-2062804 make a 50 percent entangle attempt against the current opponent
+or a vulnerable group target. A failed Reflex save at the source -10 modifier
+entangles for four to twelve combat rounds; release halves current movement.
 
 RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
 converted Sister Knight prototypes enters combat, it shouts once across the zone

@@ -15,6 +15,7 @@
 #include "../../src/handler.h"
 #include "../../src/interpreter.h"
 #include "../../src/magic/spells.h"
+#include "../../src/mud_event.h"
 #include "../../src/spec/spec_combat.h"
 #include "../../src/spec/spec_context.h"
 #include "../../src/spec/spec_cooldown.h"
@@ -32,7 +33,7 @@ struct spec_mechanics_fixture
 {
   struct room_data rooms[2];
   struct zone_data zones[1];
-  struct index_data mobile_indexes[1];
+  struct index_data mobile_indexes[2];
   struct index_data object_indexes[1];
   struct char_data actor;
   struct char_data target;
@@ -91,6 +92,7 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   fixture->zones[0].min_level = -1;
   fixture->zones[0].max_level = LVL_IMPL;
   fixture->mobile_indexes[0].vnum = 6200;
+  fixture->mobile_indexes[1].vnum = 6201;
   fixture->object_indexes[0].vnum = 6300;
 
   world = fixture->rooms;
@@ -99,7 +101,7 @@ static void spec_mechanics_begin(struct spec_mechanics_fixture *fixture)
   obj_index = fixture->object_indexes;
   top_of_world = 1;
   top_of_zone_table = 0;
-  top_of_mobt = 0;
+  top_of_mobt = 1;
   top_of_objt = 0;
 
   spec_mechanics_initialize_npc(&fixture->actor, "special mechanic actor", 0);
@@ -822,6 +824,97 @@ void Test_spec_rol_sister_knight_preserves_family_identity_and_alert_guard(CuTes
   fixture.target.player_specials = &dummy_mob;
   SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
   character_list = saved_character_list;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_alert_callers_share_profiles_without_losing_composed_breaths(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct char_data helper;
+  struct char_data *saved_character_list;
+  struct player_special_data player_specials;
+
+  spec_mechanics_begin(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  spec_mechanics_initialize_npc(&helper, "a darkness helper", 0);
+  saved_character_list = character_list;
+  character_list = &helper;
+  fixture.mobile_indexes[0].vnum = 2019920;
+  fixture.mobile_indexes[1].vnum = 2019830;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&helper) = 1;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  fixture.target.player.name = "alert target";
+  fixture.target.player_specials = &player_specials;
+  FIGHTING(&fixture.actor) = &fixture.target;
+
+  CuAssertStrEquals(
+      tc,
+      "You will pay for attacking me mortal worms!  Denizens of Darkness, Come and Feast upon %s!",
+      rol_alert_message(2019920));
+  CuAssertTrue(tc, rol_alert_helper_matches(2019920, 2019830));
+  CuAssertTrue(tc, !rol_alert_helper_matches(2019920, 2019860));
+  CuAssertTrue(tc, rol_alert_message(9999999) == NULL);
+  CuAssertIntEquals(tc, TRUE, rol_alert_caller(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertTrue(tc, fixture.actor.mob_specials.rol_alert_fired);
+  CuAssertTrue(tc, HUNTING(&helper) == &fixture.target);
+  CuAssertIntEquals(tc, FALSE, rol_alert_caller(&fixture.actor, &fixture.actor, 0, ""));
+
+  FIGHTING(&fixture.actor) = NULL;
+  CuAssertIntEquals(tc, FALSE, rol_alert_caller(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertTrue(tc, !fixture.actor.mob_specials.rol_alert_fired);
+
+  fixture.mobile_indexes[0].vnum = 2025406;
+  fixture.actor.mob_specials.rol_alert_fired = true;
+  CuAssertIntEquals(tc, FALSE, rol_breath_weapon_fire(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertTrue(tc, !fixture.actor.mob_specials.rol_alert_fired);
+
+  HUNTING(&helper) = NULL;
+  fixture.target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  character_list = saved_character_list;
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct affected_type affect;
+  struct mud_event_data event;
+
+  spec_mechanics_begin(&fixture);
+
+  CuAssertTrue(tc, rol_yggdrasil_vnum(2062800));
+  CuAssertTrue(tc, rol_yggdrasil_vnum(2062804));
+  CuAssertTrue(tc, !rol_yggdrasil_vnum(2062799));
+  CuAssertTrue(tc, !rol_yggdrasil_vnum(2062805));
+  CuAssertIntEquals(tc, 50, rol_yggdrasil_release_move(101));
+
+  new_affect(&affect);
+  affect.spell = SPELL_ENTANGLE;
+  affect.duration = -1;
+  SET_BIT_AR(affect.bitvector, AFF_ENTANGLED);
+  affect_to_char(&fixture.target, &affect);
+  GET_MOVE(&fixture.target) = 101;
+  memset(&event, 0, sizeof(event));
+  event.pStruct = &fixture.target;
+  CuAssertIntEquals(tc, 0, (int)event_rol_yggdrasil_release(&event));
+  CuAssertTrue(tc, !affected_by_spell(&fixture.target, SPELL_ENTANGLE));
+  CuAssertIntEquals(tc, 50, GET_MOVE(&fixture.target));
+
+  CuAssertStrEquals(tc, "$n dissipates into a cloud of oily green smoke.",
+                    rol_conversion_death_message(2000202));
+  CuAssertStrEquals(tc, "A fire mephit blinks out of existence.",
+                    rol_conversion_death_message(2000907));
+  CuAssertStrEquals(
+      tc, "With a splash, the water elemental crashes to the ground leaving only a puddle behind.",
+      rol_conversion_death_message(2003053));
+  CuAssertTrue(tc, rol_conversion_death_message(9999999) == NULL);
+
+  fixture.mobile_indexes[0].vnum = 2000907;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
+
   spec_mechanics_end(&fixture);
 }
 

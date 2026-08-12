@@ -254,6 +254,7 @@ typedef enum
   ePERFECT_ADAPTATION_COOLDOWN, /* Inquisitor Perfect Adaptation 5-minute cooldown */
   eAASIMAR_HEALING_HANDS,       /* Aasimar Healing Hands daily uses */
   eAASIMAR_LIGHT_BEARER,        /* Aasimar Light Bearer daily uses */
+  eROL_YGGDRASIL_RELEASE,       /* Converted Yggdrasil branch entangle release */
 } event_id;
 
 /* probably a smart place to mention to not forget to update:

@@ -51,6 +51,36 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             "twelve",
         )
     ]
+    alert_callers = [
+        handler_disposition(name)
+        for name in (
+            "av_drisinil_shout",
+            "av_tukra_shout",
+            "demogorgon_shout",
+            "imix_pet_demon_shout",
+        )
+    ]
+    composed_alerts = [
+        handler_disposition(name) for name in ("imix_shout", "yancbin_shout")
+    ]
+    death_profiles = [
+        handler_disposition(name)
+        for name in (
+            "tentacle_die",
+            "fire_mephit_die",
+            "water_mephit_die",
+            "air_mephit_die",
+            "earth_mephit_die",
+            "fire_mental_die",
+            "water_mental_die",
+            "air_mental_die",
+            "earth_mental_die",
+            "treant_die",
+            "phantom_steed_die",
+            "dark_shade_die",
+        )
+    ]
+    yggdrasil = handler_disposition("yggdrasil_branch")
     major_beholder = handler_disposition("major_beholder")
     lich_energy_drain = handler_disposition("lich_energy_drain")
     bandit = handler_disposition("bandit")
@@ -98,6 +128,25 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             for row in (mage_guild, thief_guild, warrior_guild, cleric_guild)
         )
     )
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Alert Caller"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in alert_callers
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE" for row in composed_alerts)
+    )
+    self.assertTrue(
+        all(
+            row["target"] == "converted mobile death profile"
+            and row["strategy"] == "NATIVE_ADAPTED_COMPOSABLE"
+            for row in death_profiles
+        )
+    )
+    self.assertEqual("RoL Yggdrasil Branch", yggdrasil["target"])
+    self.assertEqual("NATIVE_ADAPTED", yggdrasil["strategy"])
     self.assertTrue(
         all(
             row["target"] == "RoL Waterdeep Guild Room"
@@ -181,13 +230,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(606, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(541, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(111, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(451, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(231, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(634, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(513, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(130, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(432, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(241, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          113, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          131, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
       self.assertEqual(568, summary["act_spec_by_status"]["resolved"])

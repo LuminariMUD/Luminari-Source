@@ -473,6 +473,44 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - Repeat while the caller is in a soundproof room, silenced, paralyzed, asleep, or
   casting. No shout or pursuit should begin until the suppressing condition is gone.
 
+### Phase 6 converted alert callers
+
+- Build dependency-complete stages for callers 2019920, 2019921, 2024440, 2025406,
+  2025409, 2059810, and 2059830. Confirm the five callers without an existing direct
+  procedure use `RoL Alert Caller`; 2024440 retains `breath_weapon_lightning`, and
+  2025406 retains `breath_weapon_fire` while both still alert.
+- Attack each caller and confirm one zone-wide, source-specific shout. Eligible helpers
+  are 2019830/2019850/2019880 for either Demogorgon caller, 2024410/2024415/2024420/2024450
+  for Yancbin, 2025402/2025404/2025405/2025408 for Imix, 2025410/2025405/2025404 for the
+  Imix pet, 2059812/2059815/2059814 for Drisinil, and 2059832/2059833/2059834 for Tukra.
+- Confirm helpers must be awake, idle, uncharmed, in the same zone, reachable within 100
+  rooms, and able to damage the attacker. End combat and allow an activity pulse before
+  attacking again; the caller should shout once in the new fight.
+- Repeat with the caller in a soundproof room, silenced, paralyzed, asleep, or casting.
+  No alert or pursuit should begin until the suppressing condition is gone.
+
+### Phase 6 converted Yggdrasil branches
+
+- Fight mobile 2062800, 2062801, 2062802, 2062803, or 2062804 with `MOB_SPEC` set and
+  `RoL Yggdrasil Branch` selected. Across repeated turns, confirm roughly half the turns
+  attempt no entangle and that attempts can select the current opponent or a more
+  vulnerable player in the opponent's group.
+- A successful Reflex save at the source -10 modifier reports an escape and applies no
+  effect. A failed save applies entangle, prevents a second simultaneous branch effect,
+  and releases after four to twelve combat rounds.
+- On timed release, confirm the entangle is removed, the release message appears, and the
+  target's current movement points are halved using integer truncation.
+
+### Phase 6 converted no-corpse death profiles
+
+- Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
+  and 2003050-2003053 in dependency-complete stages. Each must show its tentacle,
+  treant, phantom-steed, dark-shade, mephit, or elemental source-family death message
+  and create no corpse.
+- Confirm these VNUM-owned profiles coexist with any other converted direct or automatic
+  behavior on the same mobile and do not require a new mobile flag or second persisted
+  SpecProc. An unrelated mobile must retain the ordinary target death/corpse path.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

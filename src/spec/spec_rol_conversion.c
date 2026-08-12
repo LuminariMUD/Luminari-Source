@@ -51,6 +51,69 @@ struct rol_guild_guard_rule
   bool protects;
 };
 
+struct rol_alert_profile
+{
+  int caller_vnum;
+  const char *message;
+  const int *helper_vnums;
+  size_t helper_count;
+};
+
+struct rol_death_profile
+{
+  int mobile_vnum;
+  const char *message;
+};
+
+static const int rol_demogorgon_helpers[] = {2019830, 2019850, 2019880};
+static const int rol_drisinil_helpers[] = {2059812, 2059815, 2059814};
+static const int rol_tukra_helpers[] = {2059832, 2059833, 2059834};
+static const int rol_imix_helpers[] = {2025402, 2025404, 2025405, 2025408};
+static const int rol_imix_pet_helpers[] = {2025410, 2025405, 2025404};
+static const int rol_yancbin_helpers[] = {2024410, 2024415, 2024420, 2024450};
+
+static const struct rol_alert_profile rol_alert_profiles[] = {
+    {2019920,
+     "You will pay for attacking me mortal worms!  Denizens of Darkness, Come and Feast upon %s!",
+     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0])},
+    {2019921,
+     "You will pay for attacking me mortal worms!  Denizens of Darkness, Come and Feast upon %s!",
+     rol_demogorgon_helpers, sizeof(rol_demogorgon_helpers) / sizeof(rol_demogorgon_helpers[0])},
+    {2024440, "Denizens of air!  Come and destroy %s!", rol_yancbin_helpers,
+     sizeof(rol_yancbin_helpers) / sizeof(rol_yancbin_helpers[0])},
+    {2025406, "Denizens of fire!  Come and destroy %s!", rol_imix_helpers,
+     sizeof(rol_imix_helpers) / sizeof(rol_imix_helpers[0])},
+    {2025409, "Those loyal to Imix!  Come and destroy %s!", rol_imix_pet_helpers,
+     sizeof(rol_imix_pet_helpers) / sizeof(rol_imix_pet_helpers[0])},
+    {2059810, "Ssussun pholor dos %s!!  A'Quarthus Velg'Larn ulu ussa!!", rol_drisinil_helpers,
+     sizeof(rol_drisinil_helpers) / sizeof(rol_drisinil_helpers[0])},
+    {2059830, "(%s!! Ut baruk KneeCappers Ai-Menu!!", rol_tukra_helpers,
+     sizeof(rol_tukra_helpers) / sizeof(rol_tukra_helpers[0])},
+};
+
+static const struct rol_death_profile rol_death_profiles[] = {
+    {2000202, "$n dissipates into a cloud of oily green smoke."},
+    {2000902, "The treant crashes into the ground and melts into the earth."},
+    {2000903, "A phantom steed fades into nothingness."},
+    {2000905, "The dark shade melts back into the shadows."},
+    {2000906, "A water mephit blinks out of existence."},
+    {2000907, "A fire mephit blinks out of existence."},
+    {2000908, "An earth mephit blinks out of existence."},
+    {2000909, "An air mephit blinks out of existence."},
+    {2001250, "With a loud puffing sound, the fire elemental dissipates into smoke."},
+    {2001251, "With a loud crash, the elemental dives into the ground. Only small stones remain "
+              "where it once stood."},
+    {2001252, "With a gentle swooshing sound, the air elemental simply disappears."},
+    {2001253, "With a splash, the water elemental crashes to the ground leaving only a puddle "
+              "behind."},
+    {2003050, "With a loud puffing sound, the fire elemental dissipates into smoke."},
+    {2003051, "With a loud crash, the elemental dives into the ground. Only small stones remain "
+              "where it once stood."},
+    {2003052, "With a gentle swooshing sound, the air elemental simply disappears."},
+    {2003053, "With a splash, the water elemental crashes to the ground leaving only a puddle "
+              "behind."},
+};
+
 /* Only rooms reached by active converted guild_guard bindings are retained.
  * Target VNUMs are the source room VNUMs under the Phase 4 +2,000,000 offset. */
 static const struct rol_guild_guard_rule rol_guild_guard_rules[] = {
@@ -412,12 +475,255 @@ void rol_automatic_race_combat_turn(struct char_data *ch)
   }
 }
 
+static const struct rol_alert_profile *rol_alert_profile_for(int caller_vnum)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_alert_profiles) / sizeof(rol_alert_profiles[0]); index++)
+    if (rol_alert_profiles[index].caller_vnum == caller_vnum)
+      return &rol_alert_profiles[index];
+
+  return NULL;
+}
+
+const char *rol_alert_message(int caller_vnum)
+{
+  const struct rol_alert_profile *profile = rol_alert_profile_for(caller_vnum);
+
+  return profile != NULL ? profile->message : NULL;
+}
+
+bool rol_alert_helper_matches(int caller_vnum, int helper_vnum)
+{
+  const struct rol_alert_profile *profile = rol_alert_profile_for(caller_vnum);
+  size_t index;
+
+  if (profile == NULL)
+    return false;
+
+  for (index = 0; index < profile->helper_count; index++)
+    if (profile->helper_vnums[index] == helper_vnum)
+      return true;
+
+  return false;
+}
+
+static bool rol_alert_helper_can_answer(struct char_data *helper, struct char_data *caller,
+                                        struct char_data *victim)
+{
+  int distance;
+
+  if (helper == NULL || caller == NULL || victim == NULL || helper == caller || helper == victim ||
+      !IS_NPC(helper) || !rol_alert_helper_matches(GET_MOB_VNUM(caller), GET_MOB_VNUM(helper)) ||
+      IN_ROOM(helper) == NOWHERE || IN_ROOM(caller) == NOWHERE ||
+      GET_ROOM_ZONE(IN_ROOM(helper)) != GET_ROOM_ZONE(IN_ROOM(caller)) || !AWAKE(helper) ||
+      FIGHTING(helper) != NULL || HUNTING(helper) != NULL || AFF_FLAGGED(helper, AFF_CHARM) ||
+      MOB_FLAGGED(helper, MOB_NOKILL) || !ok_damage_shopkeeper(victim, helper))
+    return false;
+
+  distance = count_rooms_between(IN_ROOM(helper), IN_ROOM(caller));
+  return distance >= 0 && distance <= 100;
+}
+
+static int rol_alert_combat_turn(struct char_data *caller)
+{
+  const struct rol_alert_profile *profile;
+  struct char_data *helper;
+  struct char_data *victim;
+  const char *victim_name;
+  char alert[MAX_STRING_LENGTH];
+  char message[MAX_STRING_LENGTH];
+
+  if (caller == NULL || !IS_NPC(caller) || IN_ROOM(caller) == NOWHERE ||
+      (profile = rol_alert_profile_for(GET_MOB_VNUM(caller))) == NULL)
+    return FALSE;
+
+  victim = FIGHTING(caller);
+  if (victim == NULL)
+  {
+    caller->mob_specials.rol_alert_fired = false;
+    return FALSE;
+  }
+  if (caller->mob_specials.rol_alert_fired || ROOM_FLAGGED(IN_ROOM(caller), ROOM_SOUNDPROOF) ||
+      !AWAKE(caller) || IS_CASTING(caller) || AFF_FLAGGED(caller, AFF_SILENCED) ||
+      AFF_FLAGGED(caller, AFF_PARALYZED))
+    return FALSE;
+
+  victim_name = CAN_SEE(caller, victim) ? GET_NAME(victim) : "Someone";
+  snprintf(message, sizeof(message), profile->message, victim_name);
+  snprintf(alert, sizeof(alert), "\r\n%.256s shouts, '%.1024s'\r\n", GET_NAME(caller), message);
+  send_to_zone(alert, GET_ROOM_ZONE(IN_ROOM(caller)));
+
+  for (helper = character_list; helper != NULL; helper = helper->next)
+    if (rol_alert_helper_can_answer(helper, caller, victim))
+      HUNTING(helper) = victim;
+
+  caller->mob_specials.rol_alert_fired = true;
+  return TRUE;
+}
+
+int rol_alert_caller(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *caller = me;
+
+  (void)argument;
+
+  if (caller == NULL && cmd == 0)
+    caller = ch;
+  if (cmd != 0)
+    return FALSE;
+
+  return rol_alert_combat_turn(caller);
+}
+
+bool rol_yggdrasil_vnum(int vnum)
+{
+  return vnum >= 2062800 && vnum <= 2062804;
+}
+
+int rol_yggdrasil_release_move(int current_move)
+{
+  return current_move / 2;
+}
+
+static long rol_yggdrasil_tenderness(const struct char_data *candidate)
+{
+  long tenderness = GET_MAX_HIT(candidate);
+
+  if (IS_CLERIC(candidate))
+    tenderness *= 75;
+  else if (IS_WIZARD(candidate) || IS_SORCERER(candidate) || IS_PSI_TYPE(candidate) ||
+           IS_BARD(candidate))
+    tenderness *= 50;
+  else if (IS_ROGUE(candidate))
+    tenderness *= -1;
+  else if (IS_WARRIOR(candidate))
+    tenderness *= -10;
+
+  if (!AFF_FLAGGED(candidate, AFF_CHARM))
+    tenderness *= 2;
+
+  return tenderness;
+}
+
+static struct char_data *rol_yggdrasil_juiciest(struct char_data *caller)
+{
+  struct char_data *candidate;
+  struct char_data *tank;
+  struct char_data *juiciest = NULL;
+  long best_tenderness = LONG_MIN;
+  long tenderness;
+
+  if (caller == NULL || IN_ROOM(caller) == NOWHERE || (tank = FIGHTING(caller)) == NULL)
+    return NULL;
+
+  for (candidate = world[IN_ROOM(caller)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+  {
+    if (IS_NPC(candidate) || GET_LEVEL(candidate) >= LVL_IMMORT || !CAN_SEE(caller, candidate) ||
+        (FIGHTING(candidate) != caller &&
+         (GROUP(candidate) == NULL || GROUP(tank) == NULL || GROUP(candidate) != GROUP(tank))))
+      continue;
+
+    tenderness = rol_yggdrasil_tenderness(candidate);
+    if (juiciest == NULL || tenderness > best_tenderness)
+    {
+      juiciest = candidate;
+      best_tenderness = tenderness;
+    }
+  }
+
+  return juiciest;
+}
+
+EVENTFUNC(event_rol_yggdrasil_release)
+{
+  struct mud_event_data *event = event_obj;
+  struct char_data *victim;
+
+  if (event == NULL || (victim = event->pStruct) == NULL)
+    return 0;
+
+  act("You break free of the entangling branches!", FALSE, victim, NULL, victim, TO_CHAR);
+  act("$n breaks free of the entangling branches!", FALSE, victim, NULL, victim, TO_ROOM);
+  if (affected_by_spell(victim, SPELL_ENTANGLE))
+    affect_from_char(victim, SPELL_ENTANGLE);
+  GET_MOVE(victim) = rol_yggdrasil_release_move(GET_MOVE(victim));
+  return 0;
+}
+
+int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct affected_type affect;
+  struct char_data *caller = me;
+  struct char_data *victim;
+  int duration;
+
+  (void)argument;
+
+  if (caller == NULL && cmd == 0)
+    caller = ch;
+  if (caller == NULL || cmd != 0 || !IS_NPC(caller) || !rol_yggdrasil_vnum(GET_MOB_VNUM(caller)) ||
+      (victim = FIGHTING(caller)) == NULL)
+    return FALSE;
+
+  if (rand_number(0, 1) == 0)
+  {
+    struct char_data *juiciest = rol_yggdrasil_juiciest(caller);
+
+    if (juiciest != NULL)
+      victim = juiciest;
+  }
+  if (rand_number(0, 1) != 0 || AFF_FLAGGED(victim, AFF_ENTANGLED) ||
+      char_has_mud_event(victim, eROL_YGGDRASIL_RELEASE) != NULL)
+    return FALSE;
+
+  if (savingthrow(caller, victim, SAVING_REFL, -10, CAST_INNATE, GET_LEVEL(caller), TRANSMUTATION))
+  {
+    act("$N breaks free of the entangling branches!", FALSE, caller, NULL, victim, TO_CHAR);
+    act("You break free of the entangling branches!", FALSE, caller, NULL, victim, TO_VICT);
+    act("$N breaks free of the entangling branches!", FALSE, caller, NULL, victim, TO_NOTVICT);
+    return FALSE;
+  }
+
+  act("$N is secured by the entangling branches!", FALSE, caller, NULL, victim, TO_CHAR);
+  act("You are secured by branches and cannot escape!", FALSE, caller, NULL, victim, TO_VICT);
+  act("$N is secured by the entangling branches!", FALSE, caller, NULL, victim, TO_NOTVICT);
+  new_affect(&affect);
+  affect.spell = SPELL_ENTANGLE;
+  affect.duration = -1;
+  SET_BIT_AR(affect.bitvector, AFF_ENTANGLED);
+  affect_to_char(victim, &affect);
+
+  duration = rand_number(4, 12);
+  NEW_EVENT(eROL_YGGDRASIL_RELEASE, victim, NULL, PULSE_VIOLENCE * duration);
+  return FALSE;
+}
+
+const char *rol_conversion_death_message(int vnum)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_death_profiles) / sizeof(rol_death_profiles[0]); index++)
+    if (rol_death_profiles[index].mobile_vnum == vnum)
+      return rol_death_profiles[index].message;
+
+  return NULL;
+}
+
 bool rol_handle_conjured_death(struct char_data *ch)
 {
   const char *message = NULL;
 
   if (ch == NULL || !IS_NPC(ch))
     return false;
+
+  message = rol_conversion_death_message(GET_MOB_VNUM(ch));
+  if (message != NULL)
+  {
+    act(message, FALSE, ch, NULL, NULL, TO_ROOM);
+    return true;
+  }
 
   if (MOB_FLAGGED(ch, MOB_ROL_BLACK_VAPOR_DEATH))
     message = "$n turns into a black vapor and seeps into the ground.";
@@ -452,6 +758,7 @@ static bool rol_breath_ready(struct char_data *ch)
 
 static int rol_breath_weapon(struct char_data *ch, int spell)
 {
+  rol_alert_combat_turn(ch);
   if (!rol_breath_ready(ch))
     return FALSE;
 

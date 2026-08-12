@@ -35,6 +35,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'Independent compatibility hooks') > 0
   AND INSTR(entry, 'RoL death flags') > 0
   AND INSTR(entry, 'Bloodstone black-vapor') > 0
+  AND INSTR(entry, 'Sixteen additional converted tentacle') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
   AND INSTR(entry, 'RoL Bloodstone Critter is mobile-owned') > 0
   AND INSTR(entry, 'two-in-81 activity-pulse cadence') > 0
@@ -63,6 +64,10 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Trade Bandit is mobile-owned') > 0
   AND INSTR(entry, 'Source platinum maps to ten') > 0
   AND INSTR(entry, 'target gold. Pay with GIVE') > 0
+  AND INSTR(entry, 'RoL Alert Caller is mobile-owned') > 0
+  AND INSTR(entry, 'compose this alert beside their existing breath procedure') > 0
+  AND INSTR(entry, 'RoL Yggdrasil Branch is mobile-owned') > 0
+  AND INSTR(entry, 'four to twelve combat rounds') > 0
   AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
   AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0

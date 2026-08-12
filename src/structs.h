@@ -7213,6 +7213,7 @@ struct mob_special_data
   long rol_bandit_victim_id;      /* RoL trade-bandit toll target */
   int rol_bandit_fee_gold;        /* RoL trade-bandit toll in target gold */
   time_t rol_bandit_expire_at;    /* RoL trade-bandit one-shot cleanup deadline */
+  bool rol_alert_fired;           /* Converted alert caller has shouted this fight */
 };
 
 /** An affect structure. */
