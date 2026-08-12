@@ -71,6 +71,9 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Lich Energy Drain is mobile-owned') > 0
   AND INSTR(entry, 'one-in-five chance to lose all current hit points') > 0
   AND INSTR(entry, 'unless Blackmantled') > 0
+  AND INSTR(entry, 'RoL Undead Drain is mobile-owned') > 0
+  AND INSTR(entry, 'mobiles 2001256 through') > 0
+  AND INSTR(entry, 'protected by Death Ward are immune') > 0
   AND INSTR(entry, 'RoL Trade Bandit is mobile-owned') > 0
   AND INSTR(entry, 'Source platinum maps to ten') > 0
   AND INSTR(entry, 'target gold. Pay with GIVE') > 0

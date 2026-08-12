@@ -982,6 +982,56 @@ void Test_rol_banana_peel_outcomes_preserve_source_branches(CuTest *tc)
   CuAssertIntEquals(tc, ROL_BANANA_PEEL_DANCE, rol_banana_peel_classify(1, 11));
 }
 
+void Test_rol_undead_drain_profiles_preserve_source_variants(CuTest *tc)
+{
+  static const struct
+  {
+    int vnum;
+    int chance_sides;
+    int marker;
+    int armor;
+    int dexterity;
+    int strength;
+    int will;
+    int fortitude;
+    int slow;
+  } expected[] = {
+      {2001256, 16, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -1, -5, 0, 0, 0, 0},
+      {2001257, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -5, -1, 0, 0},
+      {2001258, 16, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -2, -10, 0, 0, 0, 0},
+      {2001259, 21, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -2, -15, 0, 0, 0, 2},
+      {2001260, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -10, -1, 0, 0},
+      {2001261, 21, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -3, -15, -15, 0, 0, -1},
+      {2001262, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -10, -1, -1, 0},
+  };
+  int chance_sides;
+  int marker;
+  int armor;
+  int dexterity;
+  int strength;
+  int will;
+  int fortitude;
+  int slow;
+  size_t index;
+
+  for (index = 0; index < sizeof(expected) / sizeof(expected[0]); index++)
+  {
+    CuAssertTrue(tc, rol_undead_drain_profile(expected[index].vnum, &chance_sides, &marker, &armor,
+                                              &dexterity, &strength, &will, &fortitude, &slow));
+    CuAssertIntEquals(tc, expected[index].chance_sides, chance_sides);
+    CuAssertIntEquals(tc, expected[index].marker, marker);
+    CuAssertIntEquals(tc, expected[index].armor, armor);
+    CuAssertIntEquals(tc, expected[index].dexterity, dexterity);
+    CuAssertIntEquals(tc, expected[index].strength, strength);
+    CuAssertIntEquals(tc, expected[index].will, will);
+    CuAssertIntEquals(tc, expected[index].fortitude, fortitude);
+    CuAssertIntEquals(tc, expected[index].slow, slow);
+  }
+
+  CuAssertTrue(tc,
+               !rol_undead_drain_profile(9999999, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL));
+}
+
 void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

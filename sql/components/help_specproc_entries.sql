@@ -173,6 +173,16 @@ The lich receives the victim\'s former current hit points unless Blackmantled,
 and each drain adds two combat rounds of stun. Casting suppresses the drain.
 This procedure is converter-owned.
 
+RoL Undead Drain is mobile-owned and requires MOB_SPEC. Converted ghoul,
+shadow, wight, ghast, wraith, spectre, and ghost mobiles 2001256 through
+2001262 use one identity-profiled combat adapter. Their one-in-16 or one-in-21
+combat-turn attacks apply the source-specific armor, Dexterity, Strength, save,
+and slow penalties for two to three affect ticks after a failed Will save.
+Undead victims and characters protected by Death Ward are immune. Melee-profile
+and spell-profile drains each have a shared cooldown marker, preserving the two
+source exclusion groups. This procedure is converter-owned and should not be
+assigned to unrelated mobiles.
+
 RoL Trade Bandit is mobile-owned and requires MOB_SPEC. It intercepts movement,
 FLEE, and GET when a merchant carries converted resources or owns a loaded wagon.
 Seven converter-owned VNUMs select fixed, cargo-relative, all-gold-and-wagon,

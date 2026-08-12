@@ -145,6 +145,13 @@ ADAPTED_HANDLER_NAMES = {
     "ship_exit_room": "RoL Ship Exit",
     "ship_look_out_room": "RoL Ship Lookout",
     "thief": "RoL Thief",
+    "undead_ghast": "RoL Undead Drain",
+    "undead_ghost": "RoL Undead Drain",
+    "undead_ghoul": "RoL Undead Drain",
+    "undead_shadow": "RoL Undead Drain",
+    "undead_spectre": "RoL Undead Drain",
+    "undead_wight": "RoL Undead Drain",
+    "undead_wraith": "RoL Undead Drain",
     "wanderer": "RoL Waterdeep Ambient",
     "warrior_one": "RoL Waterdeep Ambient",
     "yggdrasil_branch": "RoL Yggdrasil Branch",
@@ -1045,6 +1052,13 @@ def compile_special_bindings(
           "navagator",
           "sister_knight",
           "ticket_taker",
+          "undead_ghast",
+          "undead_ghost",
+          "undead_ghoul",
+          "undead_shadow",
+          "undead_spectre",
+          "undead_wight",
+          "undead_wraith",
       }:
         required_bits = (0,)
       elif handler in {"floating_pool", "obj_drain"}:

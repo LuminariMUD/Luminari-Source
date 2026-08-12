@@ -169,6 +169,18 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     rogue = handler_disposition("rogue_one")
     major_beholder = handler_disposition("major_beholder")
     lich_energy_drain = handler_disposition("lich_energy_drain")
+    undead_drains = [
+        handler_disposition(name)
+        for name in (
+            "undead_ghoul",
+            "undead_shadow",
+            "undead_wight",
+            "undead_ghast",
+            "undead_wraith",
+            "undead_spectre",
+            "undead_ghost",
+        )
+    ]
     bandit = handler_disposition("bandit")
     bloodstone_critter = handler_disposition("bs_critter")
     bloodstone_portal = handler_disposition("bs_portal")
@@ -314,6 +326,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", major_beholder["strategy"])
     self.assertEqual("RoL Lich Energy Drain", lich_energy_drain["target"])
     self.assertEqual("NATIVE_ADAPTED", lich_energy_drain["strategy"])
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Undead Drain"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in undead_drains
+        )
+    )
     self.assertEqual("RoL Trade Bandit", bandit["target"])
     self.assertEqual("NATIVE_ADAPTED", bandit["strategy"])
     self.assertEqual("RoL Bloodstone Critter", bloodstone_critter["target"])
@@ -394,11 +413,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(922, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(225, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(379, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(183, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(476, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(929, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(218, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(386, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(176, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(483, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
           151, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )

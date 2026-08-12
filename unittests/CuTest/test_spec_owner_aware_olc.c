@@ -69,6 +69,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Guild Guard",
     "RoL Major Beholder",
     "RoL Lich Energy Drain",
+    "RoL Undead Drain",
     "RoL Trade Bandit",
     "RoL Sister Knight",
     "RoL Ship Navigator",
@@ -375,6 +376,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
 {
   const struct spec_definition *definition;
   enum spec_olc_selection_result result;
+  char out_of_range_selection[32];
 
   definition = spec_registry_find_by_name("Bank");
   result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "0", &definition);
@@ -407,7 +409,9 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "52", &definition);
+  snprintf(out_of_range_selection, sizeof(out_of_range_selection), "%zu",
+           spec_olc_menu_count(SPEC_OWNER_MOBILE) + 1);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, out_of_range_selection, &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

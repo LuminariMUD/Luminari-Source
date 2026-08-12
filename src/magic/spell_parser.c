@@ -5949,6 +5949,10 @@ void mag_assign_spells(void)
   affecto(AFFECT_INTIMIDATING_PRESENCE, "berserker intimidating presence",
           "You shake off the intimidating presence.");
   affecto(AFFECT_BARD_WARBEAT, "bard warbeat", "The driving warbeat fades from you.");
+  affecto(AFFECT_ROL_UNDEAD_MELEE_DRAIN, "RoL undead melee drain",
+          "The undead creature's sickening touch releases you.");
+  affecto(AFFECT_ROL_UNDEAD_SPELL_DRAIN, "RoL undead spell drain",
+          "The undead creature's weakening touch releases you.");
 
   affecto(SKILL_BLEEDING_ATTACK, "bleeding attack", "The bleeding from the attack stops.");
   affecto(SKILL_CRIPPLING_STRIKE, "crippling strike", "Your movement is no longer crippled.");

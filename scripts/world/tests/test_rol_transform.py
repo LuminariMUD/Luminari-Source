@@ -1039,6 +1039,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual(17, len(unsafe))
     self.assertEqual(unsafe_handlers, {row["source_handler"] for row in unsafe})
 
+  def test_undead_drain_family_uses_one_profiled_mobile_adapter(self) -> None:
+    handlers = (
+        "undead_ghoul",
+        "undead_shadow",
+        "undead_wight",
+        "undead_ghast",
+        "undead_wraith",
+        "undead_spectre",
+        "undead_ghost",
+    )
+    bindings = [
+        {
+            "basename": "mobile",
+            "record_type": "mobile",
+            "source_vnum": 1256 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(7, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Undead Drain"
+            and binding.required_flag_bits == (0,)
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_conjured_death_binding_uses_composable_mobile_flag(self) -> None:
     binding = {
         "basename": "misc_code",

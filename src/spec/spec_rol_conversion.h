@@ -82,6 +82,7 @@ int rol_toll_keeper(struct char_data *ch, void *me, int cmd, const char *argumen
 int rol_toll_keeper_typed(struct spec_event_context *context);
 int rol_banana(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_banana_typed(struct spec_event_context *context);
+int rol_undead_drain(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);
@@ -153,6 +154,9 @@ bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum, int entered_
                                     int ticket_vnum);
 bool rol_toll_keeper_payment_syntax_valid(int mobile_vnum, const char *argument);
 enum rol_banana_peel_outcome rol_banana_peel_classify(int intelligence_roll, int dexterity_roll);
+bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_affect,
+                              int *armor_penalty, int *dexterity_penalty, int *strength_penalty,
+                              int *will_penalty, int *fortitude_penalty, int *slow_duration);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);

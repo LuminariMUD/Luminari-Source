@@ -46,6 +46,48 @@
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_MASK 3U
 #define ROL_MAJOR_BEHOLDER_COOLDOWN_ROUNDS 3
 
+struct rol_undead_drain_profile
+{
+  int mobile_vnum;
+  int chance_sides;
+  int marker_affect;
+  int armor_penalty;
+  int dexterity_penalty;
+  int strength_penalty;
+  int will_penalty;
+  int fortitude_penalty;
+  int slow_duration;
+  const char *victim_message;
+  const char *room_message;
+  const char *attacker_message;
+};
+
+static const struct rol_undead_drain_profile rol_undead_drain_profiles[] = {
+    {2001256, 16, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -1, -5, 0, 0, 0, 0,
+     "You feel sickened as $n digs $s claws into you.",
+     "$n digs $s claws into $N, who suddenly looks pale.", "$N pales as you rip into $S flesh."},
+    {2001257, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -5, -1, 0, 0,
+     "You feel weakened as $n draws on your life force.", "$n drains $N, who recoils in pain.",
+     "$N recoils as you drain some of $S life force."},
+    {2001258, 16, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -2, -10, 0, 0, 0, 0,
+     "You feel drained as $n touches you.", "$n touches $N, who suddenly looks drained.",
+     "You touch $N, draining $S life force."},
+    {2001259, 21, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -2, -15, 0, 0, 0, 2,
+     "As $n draws on your life force, your movements become sluggish.",
+     "As $n draws on $N's life force, $S movements become sluggish.",
+     "You draw on $N's life force, retarding $S movement."},
+    {2001260, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -10, -1, 0, 0,
+     "You feel weakened as $n draws on your life force.", "$n drains $N, who recoils in pain.",
+     "$N recoils as you drain some of $S life force."},
+    {2001261, 21, AFFECT_ROL_UNDEAD_MELEE_DRAIN, -3, -15, -15, 0, 0, -1,
+     "Your willpower leaves you as $n tears into your very being!",
+     "$n tears into $N, leaving $M quivering in fear!",
+     "You tear into $N, rending $S very essence!"},
+    {2001262, 21, AFFECT_ROL_UNDEAD_SPELL_DRAIN, 0, 0, -10, -1, -1, 0,
+     "You feel weakened as $n draws on your life force.", "$n drains $N, who recoils in pain.",
+     "$N recoils as you drain some of $S life force."},
+};
+
 struct rol_guild_guard_rule
 {
   int room_vnum;
@@ -4972,6 +5014,119 @@ int rol_banana_typed(struct spec_event_context *context)
   if (CMD_IS("eat"))
     return rol_banana_eat(context, obj, ch, context->argument);
   return rol_banana_move(obj, ch, cmd);
+}
+
+static const struct rol_undead_drain_profile *rol_undead_drain_profile_for(int mobile_vnum)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_undead_drain_profiles) / sizeof(rol_undead_drain_profiles[0]);
+       index++)
+    if (rol_undead_drain_profiles[index].mobile_vnum == mobile_vnum)
+      return &rol_undead_drain_profiles[index];
+
+  return NULL;
+}
+
+bool rol_undead_drain_profile(int mobile_vnum, int *chance_sides, int *marker_affect,
+                              int *armor_penalty, int *dexterity_penalty, int *strength_penalty,
+                              int *will_penalty, int *fortitude_penalty, int *slow_duration)
+{
+  const struct rol_undead_drain_profile *profile = rol_undead_drain_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return false;
+
+  if (chance_sides != NULL)
+    *chance_sides = profile->chance_sides;
+  if (marker_affect != NULL)
+    *marker_affect = profile->marker_affect;
+  if (armor_penalty != NULL)
+    *armor_penalty = profile->armor_penalty;
+  if (dexterity_penalty != NULL)
+    *dexterity_penalty = profile->dexterity_penalty;
+  if (strength_penalty != NULL)
+    *strength_penalty = profile->strength_penalty;
+  if (will_penalty != NULL)
+    *will_penalty = profile->will_penalty;
+  if (fortitude_penalty != NULL)
+    *fortitude_penalty = profile->fortitude_penalty;
+  if (slow_duration != NULL)
+    *slow_duration = profile->slow_duration;
+  return true;
+}
+
+static void rol_undead_drain_affect(struct char_data *victim, int marker_affect, int duration,
+                                    int location, int modifier, bool slows)
+{
+  struct affected_type af;
+
+  if (modifier == 0 && !slows)
+    return;
+
+  new_affect(&af);
+  af.spell = marker_affect;
+  af.duration = duration;
+  af.location = location;
+  af.modifier = modifier;
+  af.bonus_type = BONUS_TYPE_UNIVERSAL;
+  if (slows)
+    SET_BIT_AR(af.bitvector, AFF_SLOW);
+  affect_to_char(victim, &af);
+}
+
+static void rol_undead_drain_apply(const struct rol_undead_drain_profile *profile,
+                                   struct char_data *victim)
+{
+  struct affected_type slow;
+  int duration = rand_number(2, 3);
+
+  rol_undead_drain_affect(victim, profile->marker_affect, duration, APPLY_AC_NEW,
+                          profile->armor_penalty, false);
+  rol_undead_drain_affect(victim, profile->marker_affect, duration, APPLY_DEX,
+                          profile->dexterity_penalty, false);
+  rol_undead_drain_affect(victim, profile->marker_affect, duration, APPLY_STR,
+                          profile->strength_penalty, profile->slow_duration < 0);
+  rol_undead_drain_affect(victim, profile->marker_affect, duration, APPLY_SAVING_WILL,
+                          profile->will_penalty, false);
+  rol_undead_drain_affect(victim, profile->marker_affect, duration, APPLY_SAVING_FORT,
+                          profile->fortitude_penalty, false);
+
+  if (profile->slow_duration > 0)
+  {
+    new_affect(&slow);
+    slow.spell = SPELL_SLOW;
+    slow.duration = profile->slow_duration;
+    SET_BIT_AR(slow.bitvector, AFF_SLOW);
+    affect_to_char(victim, &slow);
+  }
+}
+
+int rol_undead_drain(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  const struct rol_undead_drain_profile *profile;
+  struct char_data *victim;
+
+  UNUSED(me);
+  UNUSED(argument);
+
+  if (ch == NULL || !IS_NPC(ch) || cmd != 0 || FIGHTING(ch) == NULL)
+    return FALSE;
+
+  profile = rol_undead_drain_profile_for(GET_MOB_VNUM(ch));
+  victim = FIGHTING(ch);
+  if (profile == NULL || IN_ROOM(victim) != IN_ROOM(ch) || IS_UNDEAD(victim) ||
+      affected_by_spell(victim, profile->marker_affect) ||
+      affected_by_spell(victim, SPELL_DEATH_WARD) ||
+      rand_number(0, profile->chance_sides - 1) != 0 ||
+      savingthrow(ch, victim, SAVING_WILL, -5, CAST_INNATE, GET_LEVEL(ch), ENCHANTMENT))
+    return FALSE;
+
+  rol_undead_drain_apply(profile, victim);
+  act(profile->victim_message, TRUE, ch, NULL, victim, TO_VICT);
+  act(profile->room_message, TRUE, ch, NULL, victim, TO_NOTVICT);
+  act(profile->attacker_message, TRUE, ch, NULL, victim, TO_CHAR);
+  return FALSE;
 }
 
 int rol_shadow_giant_spook_damage(bool save_succeeded)
