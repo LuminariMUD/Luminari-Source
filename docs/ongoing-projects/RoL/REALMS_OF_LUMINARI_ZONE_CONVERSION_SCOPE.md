@@ -498,7 +498,7 @@ must resolve through the locked rules and tests rather than returning as questio
 
 ## Recommended next step
 
-Continue Phase 6 with the 1,003 pending direct bindings and 353 pending `ACT_SPEC`
+Continue Phase 6 with the 931 pending direct bindings and 348 pending `ACT_SPEC`
 records. Process the next reusable families, then proceed by consuming package, reusing
 current target procedures before adapting or porting source behavior. Preserve the six
 explicit source-defect or ignored content rows as logged smallest-unit exclusions.

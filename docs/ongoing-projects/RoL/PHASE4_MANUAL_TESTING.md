@@ -193,6 +193,19 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   later dependency-complete stage. The runtime and its recipe/cooldown helpers already
   have production-linked automated coverage.
 
+### Phase 6 breath and conjured-death procedures
+
+- Seven named breath procedures and three composition-safe conjured-death behaviors
+  are implemented and production-tested. Their source consumers are outside the five
+  staged pilot packages, so this bundle does not yet provide an honest manual example.
+- A later dependency-complete stage should verify that `breath_attack_acid` and
+  `breath_attack_lightning` strike only the current opponent every fourth combat turn,
+  while the five `breath_weapon_*` procedures affect eligible room targets on the same
+  cadence.
+- That later stage should also kill a flagged familiar, mount, and summoned monster.
+  Each must show its source-specific fade message, leave no corpse, and retain any
+  independent named SpecProc or automatic-race behavior before death.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -257,12 +270,13 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
-  binding count. Of 1,234 direct bindings, 231 are resolved and 1,003 remain. Of 848
-  `ACT_SPEC` records, 495 are resolved and 353 remain. The automatic race procedures
+  binding count. Of 1,234 direct bindings, 303 are resolved and 931 remain. Of 848
+  `ACT_SPEC` records, 500 are resolved and 348 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
-  receptionist, corpse-devourer, poison-bite, or thief families; those additions remain
-  automated evidence rather than manual-test claims for this bundle.
+  receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
+  those additions remain automated evidence rather than manual-test claims for this
+  bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 

@@ -5,6 +5,55 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 shared combat and conjured-death procedures
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed 72 direct bindings across ten reusable source handlers. The reconciliation
+  now resolves 303 of 1,234 direct bindings and 53 of 605 handlers; 931 bindings and
+  552 handlers remain.
+- Registered seven named mobile combat procedures: acid and lightning single-target
+  breath attacks plus fire, cold, acid, gas, and lightning room-wide breath weapons.
+  Each preserves the source four-turn cadence; attack variants use half-level damage,
+  while weapon variants use the target's corresponding full-level area spell.
+- Added three persistent, composition-safe conjured-death flags for 25 familiars, ten
+  mounts, and ten summoned monsters. The flags preserve each source fade message and
+  suppress corpse creation without consuming the mobile's named SpecProc slot.
+- Extended converter emission and preserved-mobile patching to merge the new action
+  flags with existing flags, automatic-race behavior, trigger attachments, and named
+  procedures. The reconciler records these callbacks as
+  `NATIVE_ADAPTED_COMPOSABLE` rather than inventing a second persisted SpecProc slot.
+- Updated the owner-aware registry, builder documentation, generated web guide,
+  constants manifest, and database-first help source. The independent `ACT_SPEC`
+  cross-check now resolves 500 of 848 records and leaves 348 pending.
+
+### Acceptance evidence
+
+```text
+Delivery commit: d447a10b
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-shared-combat-death
+Reconciliation run: rol-phase6-special-dd7798f8ea4681cf
+Direct bindings resolved: 303
+Direct bindings pending: 931
+Source handlers resolved: 53
+Source handlers pending: 552
+Conjured-death bindings resolved: 45
+Breath-procedure bindings resolved: 27
+ACT_SPEC records resolved: 500
+ACT_SPEC records pending: 348
+Complete world-tool suite: 257 passed
+Production-linked CuTest suite: 620 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed twice
+Autotools build and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 931 direct bindings across 552 source handlers.
+
 ## 2026-08-12 - Phase 6 automatic race procedures
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

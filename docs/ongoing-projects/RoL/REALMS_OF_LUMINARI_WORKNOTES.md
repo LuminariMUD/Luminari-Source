@@ -46,6 +46,7 @@ Phase 6 implicit-race evidence commit: ae867c47
 Phase 6 automatic-race metadata commit: b58faaea
 Phase 6 automatic-race runtime commit: e5b81b14
 Phase 6 preserved-race patch commit: 2b55b265
+Phase 6 shared combat/conjured-death commit: d447a10b
 ```
 
 The authoritative ignored runs are:
@@ -102,6 +103,8 @@ Phase 6 automatic race: lib/rol-conversion/runs/phase6-special-20260812-automati
                          rol-phase6-special-519936c88c94c0da
 Phase 6 race KEEP stage: lib/rol-conversion/runs/phase6-special-20260812-race-keep-stage
                          rol-phase4-build-174249e9cd9cc337
+Phase 6 shared combat/death: lib/rol-conversion/runs/phase6-special-20260812-shared-combat-death
+                             rol-phase6-special-dd7798f8ea4681cf
 Policy:  rol-conversion-policy-1
 ```
 
@@ -130,7 +133,7 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 254 tests; the production-linked CuTest suite passes 620;
+- The world-tool suite passes 257 tests; the production-linked CuTest suite passes 620;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - The measured remaining forecast is 96-156 sessions: Phase 6 is 48-80, Phase 7 is
   42-66, and Phase 8 is 6-10.
@@ -182,25 +185,31 @@ Policy:  rol-conversion-policy-1
   capability gaps, zero unmapped symbolic observations, zero transform exceptions, and
   zero live target writes.
 - The Phase 6 inventory accounts for 1,234 active direct bindings across 605 source
-  handlers and locates all 605 source definitions. The current checkpoint resolves 231
-  bindings and 43 handlers, leaving 1,003 bindings and 562 handlers. Shared service
-  reuse accounts for 72 bindings; source-inert dump and cityguard callbacks account for
-  22; bounded corpse-devourer, poison-bite, and thief adapters account for 29.
-- The independent `ACT_SPEC` cross-check resolves 495 of 848 records. Source boot clears
-  444 unbound flags, 18 direct assignments are resolved, and all 33 `ACT_SPEC` records
-  whose remaining behavior was an automatic race procedure are resolved. The 353
-  pending records are 343 direct-only mobiles and 10 mobiles whose automatic race
+  handlers and locates all 605 source definitions. Shared service reuse accounts for
+  72 bindings; source-inert dump and cityguard callbacks account for 22; bounded
+  corpse-devourer, poison-bite, and thief adapters account for 29.
+- The independent `ACT_SPEC` cross-check resolves 500 of 848 records. Source boot clears
+  444 unbound flags, 23 direct assignments are resolved, and all 33 `ACT_SPEC` records
+  whose remaining behavior was an automatic race procedure are resolved. The 348
+  pending records are 338 direct-only mobiles and 10 mobiles whose automatic race
   behavior is complete but whose direct procedure remains pending.
 - All 247 source boot-time race procedures are complete through composition-safe mobile
   flags and activity/combat hooks: 134 demons, 101 devils, and 12 umber hulks. The
   converter emits the flags on 239 `ADD` records and deterministically patches the eight
   preserved target prototypes. A refreshed pilot proves all six Hulburg `KEEP` patches
   with zero new staged errors.
+- Seven named breath procedures close 27 direct bindings with the source four-turn
+  cadence, half-level single-target attacks, and full-level room-wide weapons. Three
+  composition-safe conjured-death flags close another 45 bindings while preserving
+  familiar, mount, and summoned-monster fade messages and suppressing corpses.
+- The current Phase 6 checkpoint resolves 303 of 1,234 direct bindings and 53 of 605
+  source handlers, leaving 931 bindings and 552 handlers. The independent `ACT_SPEC`
+  cross-check resolves 500 of 848 records and leaves 348 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 1,003 direct bindings by shared behavior family and
+1. Reconcile the remaining 931 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7
