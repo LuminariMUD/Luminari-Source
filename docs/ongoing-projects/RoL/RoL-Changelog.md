@@ -5,6 +5,53 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 auto-distributor room procedure
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all 22 active direct bindings for the shared `autoDistributor` room handler.
+  Reconciliation now resolves 382 of 1,234 direct bindings and 56 of 605 handlers;
+  852 bindings and 549 handlers remain.
+- Added the room-owned `RoL Auto Distributor` named procedure. Any command from a
+  non-staff character is intercepted and moves that character to a uniformly selected
+  loaded room in the same zone; staff remain exempt and an empty or invalid zone stops
+  safely with a diagnostic.
+- Preserved the source callback's effective command behavior without adding a periodic
+  scheduler. The source requested initialization pulses, but every pulse passed a null
+  character and returned without action.
+- Updated registry, owner-aware OLC, database-first help, converter, reconciliation, and
+  runtime tests. The independent `ACT_SPEC` cross-check remains at 500 of 848 resolved
+  because this family is room-owned.
+- Archived the tenth bounded Phase 6 delivery session since the Phase 5 closeout. The
+  forward-looking estimate is now 38-70 Phase 6 sessions and 86-146 total sessions for
+  Phases 6-8, or 172-584 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: ee096702
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-auto-distributor
+Reconciliation run: rol-phase6-special-053b6c0d19db7fdc
+Direct bindings resolved: 382
+Direct bindings pending: 852
+Source handlers resolved: 56
+Source handlers pending: 549
+Auto-distributor bindings resolved: 22
+ACT_SPEC records resolved: 500
+ACT_SPEC records pending: 348
+Complete world-tool suite: 260 passed
+Production-linked CuTest suite: 623 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 852 direct bindings across 549 source handlers.
+
 ## 2026-08-12 - Phase 6 magic-pool conversion
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

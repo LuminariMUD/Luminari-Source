@@ -49,6 +49,7 @@ Phase 6 preserved-race patch commit: 2b55b265
 Phase 6 shared combat/conjured-death commit: d447a10b
 Phase 6 home-reset compatibility commit: 2849e0a7
 Phase 6 magic-pool conversion commit: 4c084ea1
+Phase 6 auto-distributor conversion commit: ee096702
 ```
 
 The authoritative ignored runs are:
@@ -111,6 +112,8 @@ Phase 6 home reset: lib/rol-conversion/runs/phase6-special-20260812-home-reset
                     rol-phase6-special-1d2f58fe08372b1e
 Phase 6 magic pool: lib/rol-conversion/runs/phase6-special-20260812-magic-pool
                     rol-phase6-special-1b3f0ef7ec095814
+Phase 6 auto distributor: lib/rol-conversion/runs/phase6-special-20260812-auto-distributor
+                          rol-phase6-special-053b6c0d19db7fdc
 Policy:  rol-conversion-policy-1
 ```
 
@@ -141,8 +144,8 @@ Policy:  rol-conversion-policy-1
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
 - The world-tool suite passes 257 tests; the production-linked CuTest suite passes 620;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- The measured remaining forecast is 96-156 sessions: Phase 6 is 48-80, Phase 7 is
-  42-66, and Phase 8 is 6-10.
+- Ten bounded Phase 6 delivery sessions are archived. The measured remaining forecast
+  is 86-146 sessions: Phase 6 is 38-70, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -214,14 +217,18 @@ Policy:  rol-conversion-policy-1
 - All 13 active `magic_pool` bindings are complete through a named object procedure and
   converter-owned value-reference remapping. All 12 distinct destination rooms resolve
   through Phase 2 identities; fixed damage remains in object value 1.
-- The current Phase 6 checkpoint resolves 360 of 1,234 direct bindings and 55 of 605
-  source handlers, leaving 874 bindings and 550 handlers. The independent `ACT_SPEC`
+- All 22 active `autoDistributor` room bindings are complete through the named
+  `RoL Auto Distributor` procedure. Mortal commands move the actor to a random loaded
+  room in the same zone, staff are exempt, and the source's inert periodic callbacks
+  are not reproduced as unnecessary scheduling work.
+- The current Phase 6 checkpoint resolves 382 of 1,234 direct bindings and 56 of 605
+  source handlers, leaving 852 bindings and 549 handlers. The independent `ACT_SPEC`
   cross-check resolves 500 of 848 records and leaves 348 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 874 direct bindings by shared behavior family and
+1. Reconcile the remaining 852 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

@@ -206,6 +206,19 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   Each must show its source-specific fade message, leave no corpse, and retain any
   independent named SpecProc or automatic-race behavior before death.
 
+### Phase 6 converted transport procedures
+
+- `RoL Magic Pool` and `RoL Auto Distributor` are implemented and
+  production-tested, but their active source consumers are outside the five staged
+  pilot packages.
+- A later dependency-complete stage should enter a converted magic-pool object and
+  confirm its fixed damage and remapped destination. On an auto-distributor boundary
+  room, any command by a mortal must replace that command with a random transfer to a
+  loaded room in the same zone; the same command by staff must proceed normally.
+- Do not attach either procedure by hand to this staged pilot. Magic pools require
+  authored damage and destination object values, and distributor rooms deliberately
+  intercept every mortal command.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,
@@ -270,13 +283,14 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   built and unit-tested. The current five pilots contain no flagged arena or RoL-jail
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
-  binding count. Of 1,234 direct bindings, 360 are resolved and 874 remain. Of 848
+  binding count. Of 1,234 direct bindings, 382 are resolved and 852 remain. Of 848
   `ACT_SPEC` records, 500 are resolved and 348 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
-  it also has no selected `home_reset` room or `magic_pool` object. Those additions
-  remain automated evidence rather than manual-test claims for this bundle.
+  it also has no selected `home_reset` room, `magic_pool` object, or `autoDistributor`
+  room. Those additions remain automated evidence rather than manual-test claims for
+  this bundle.
 - Package-wide conversion, repair, balance review, and acceptance bundles are Phase 7.
 - Development-world application and final operational documentation are Phase 8.
 
