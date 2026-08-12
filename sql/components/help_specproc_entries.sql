@@ -96,6 +96,12 @@ target gold. Pay with GIVE <amount> GOLD <bandit>. Underpayment starts combat;
 sufficient payment lets the bandit disappear. Do not assign this procedure to
 unrelated mobiles.
 
+RoL Sister Knight is mobile-owned and requires MOB_SPEC. When one of the five
+converted Sister Knight prototypes enters combat, it shouts once across the zone
+and sends every awake, idle, reachable converted sister within 100 rooms to pursue
+the attacker. Soundproof rooms, silence, paralysis, casting, and repeat alerts in
+the same fight suppress the call. This procedure is converter-owned.
+
 RoL Shaman Totem is object-owned and must be held or wielded. It permanently
 bonds one of 21 converted totem identities to a Cleric and its original object.
 Summoning unlocks at Cleric level 21, uses a Cleric-level and Wisdom success

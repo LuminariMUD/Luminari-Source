@@ -76,6 +76,7 @@ ADAPTED_HANDLER_NAMES = {
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
     "shadow_giant": "RoL Shadow Giant",
+    "sister_knight": "RoL Sister Knight",
     "shaman_totem": "RoL Shaman Totem",
     "ship": "RoL Ship",
     "ship_exit_room": "RoL Ship Exit",
@@ -770,6 +771,7 @@ def compile_special_bindings(
           "lich_energy_drain",
           "major_beholder",
           "navagator",
+          "sister_knight",
       }:
         required_bits = (0,)
       elif handler == "obj_drain":

@@ -51,6 +51,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Trade Bandit is mobile-owned') > 0
   AND INSTR(entry, 'Source platinum maps to ten') > 0
   AND INSTR(entry, 'target gold. Pay with GIVE') > 0
+  AND INSTR(entry, 'RoL Sister Knight is mobile-owned') > 0
+  AND INSTR(entry, 'reachable converted sister within 100 rooms') > 0
   AND INSTR(entry, 'RoL Shaman Totem is object-owned') > 0
   AND INSTR(entry, 'three attempts per seven MUD days') > 0
   AND INSTR(entry, 'RoL-Totem-Spirit') > 0

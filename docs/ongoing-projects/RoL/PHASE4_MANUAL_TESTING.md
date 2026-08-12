@@ -370,6 +370,24 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   corpse is created. The spirit mobile must retain its other converted behavior beside the
   `RoL-Totem-Spirit` compatibility flag.
 
+### Phase 6 converted Sister Knights
+
+- `RoL Sister Knight` is implemented for all five active source bindings in the
+  Moonshae package. The affected mobiles are 2026218-2026222; each must retain
+  `MOB_SPEC`. Do not assign this converter-owned procedure to unrelated mobiles.
+- Place at least two of the converted Sisters in different connected rooms in the same
+  zone, no more than 100 rooms apart. Attack one. On its next activity pulse or combat
+  turn, confirm it shouts `Come, my sisters` across the zone and each awake, idle Sister
+  begins pursuing the attacker.
+- Confirm a Sister already fighting, already hunting, charmed, unable to damage the
+  attacker under shopkeeper protection, beyond 100 rooms, unreachable, or in another
+  zone does not answer. The attacked Sister and its attacker must not enlist themselves.
+- Let the original fight continue and confirm it does not shout repeatedly. End combat,
+  allow an activity pulse to reset the encounter guard, and attack again; one new alert
+  should occur.
+- Repeat while the caller is in a soundproof room, silenced, paralyzed, asleep, or
+  casting. No shout or pursuit should begin until the suppressing condition is gone.
+
 ### RoL object-property compatibility
 
 - Cast identify and use lore or greater lore on Theswamp objects 2040901, 2040903,

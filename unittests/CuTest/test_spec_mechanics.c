@@ -678,6 +678,50 @@ void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuT
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_sister_knight_preserves_family_identity_and_alert_guard(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct char_data helper;
+  struct char_data *saved_character_list;
+  struct player_special_data player_specials;
+
+  spec_mechanics_begin(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  spec_mechanics_initialize_npc(&helper, "another sister knight", 0);
+  saved_character_list = character_list;
+  character_list = &helper;
+  fixture.mobile_indexes[0].vnum = 2026218;
+  GET_MOB_RNUM(&fixture.actor) = 0;
+  GET_MOB_RNUM(&helper) = 0;
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  fixture.target.player.name = "sister attacker";
+  fixture.target.player_specials = &player_specials;
+  FIGHTING(&fixture.actor) = &fixture.target;
+
+  CuAssertTrue(tc, rol_sister_knight_vnum(2026218));
+  CuAssertTrue(tc, rol_sister_knight_vnum(2026219));
+  CuAssertTrue(tc, rol_sister_knight_vnum(2026220));
+  CuAssertTrue(tc, rol_sister_knight_vnum(2026221));
+  CuAssertTrue(tc, rol_sister_knight_vnum(2026222));
+  CuAssertTrue(tc, !rol_sister_knight_vnum(2026217));
+  CuAssertTrue(tc, !rol_sister_knight_vnum(2026223));
+
+  CuAssertIntEquals(tc, TRUE, rol_sister_knight(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertIntEquals(tc, TRUE, PROC_FIRED(&fixture.actor));
+  CuAssertTrue(tc, HUNTING(&helper) == &fixture.target);
+  CuAssertIntEquals(tc, FALSE, rol_sister_knight(&fixture.actor, &fixture.actor, 0, ""));
+
+  FIGHTING(&fixture.actor) = NULL;
+  CuAssertIntEquals(tc, FALSE, rol_sister_knight(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertIntEquals(tc, FALSE, PROC_FIRED(&fixture.actor));
+
+  HUNTING(&helper) = NULL;
+  fixture.target.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.target), MOB_ISNPC);
+  character_list = saved_character_list;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

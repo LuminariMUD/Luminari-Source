@@ -47,6 +47,7 @@ int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argumen
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);
@@ -67,6 +68,7 @@ int rol_lich_energy_drain_healer_hit(int current_hit, int drained_hit, bool blac
 long rol_lich_energy_drain_stun_duration(long remaining);
 int rol_bandit_cargo_value(struct char_data *ch);
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold);
+bool rol_sister_knight_vnum(int vnum);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);

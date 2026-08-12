@@ -16,6 +16,7 @@
 #include "comm.h"
 #include "db.h"
 #include "dgscript/dg_scripts.h"
+#include "graph.h"
 #include "handler.h"
 #include "interpreter.h"
 #include "magic/domains_schools.h"
@@ -23,6 +24,7 @@
 #include "mob/mob_utils.h"
 #include "mud_event.h"
 #include "mudlim.h"
+#include "obj/shop.h"
 #include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_rol_conversion.h"
@@ -1535,6 +1537,69 @@ int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument)
   }
 
   rol_bandit_announce_demand(bandit, target_vnum, fee_gold);
+  return TRUE;
+}
+
+bool rol_sister_knight_vnum(int vnum)
+{
+  return vnum >= 2026218 && vnum <= 2026222;
+}
+
+static bool rol_sister_knight_can_answer(struct char_data *helper, struct char_data *caller,
+                                         struct char_data *victim)
+{
+  int distance;
+
+  if (helper == NULL || caller == NULL || victim == NULL || helper == caller || helper == victim ||
+      !IS_NPC(helper) || !rol_sister_knight_vnum(GET_MOB_VNUM(helper)) ||
+      IN_ROOM(helper) == NOWHERE || IN_ROOM(caller) == NOWHERE ||
+      GET_ROOM_ZONE(IN_ROOM(helper)) != GET_ROOM_ZONE(IN_ROOM(caller)) || !AWAKE(helper) ||
+      FIGHTING(helper) != NULL || HUNTING(helper) != NULL || AFF_FLAGGED(helper, AFF_CHARM) ||
+      MOB_FLAGGED(helper, MOB_NOKILL) || !ok_damage_shopkeeper(victim, helper))
+    return false;
+
+  distance = count_rooms_between(IN_ROOM(helper), IN_ROOM(caller));
+  return distance >= 0 && distance <= 100;
+}
+
+int rol_sister_knight(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *caller = me;
+  struct char_data *helper;
+  struct char_data *victim;
+  const char *victim_name;
+  char message[MAX_STRING_LENGTH];
+
+  (void)argument;
+
+  if (caller == NULL && cmd == 0)
+    caller = ch;
+  if (caller == NULL || !IS_NPC(caller) || !rol_sister_knight_vnum(GET_MOB_VNUM(caller)) ||
+      IN_ROOM(caller) == NOWHERE)
+    return FALSE;
+
+  victim = FIGHTING(caller);
+  if (victim == NULL)
+  {
+    PROC_FIRED(caller) = FALSE;
+    return FALSE;
+  }
+  if (cmd != 0 || PROC_FIRED(caller) || ROOM_FLAGGED(IN_ROOM(caller), ROOM_SOUNDPROOF) ||
+      !AWAKE(caller) || IS_CASTING(caller) || AFF_FLAGGED(caller, AFF_SILENCED) ||
+      AFF_FLAGGED(caller, AFF_PARALYZED))
+    return FALSE;
+
+  victim_name = CAN_SEE(caller, victim) ? GET_NAME(victim) : "Someone";
+  snprintf(message, sizeof(message),
+           "\r\n%s shouts, 'Come, my sisters, we are under attack by %s!'\r\n", GET_NAME(caller),
+           victim_name);
+  send_to_zone(message, GET_ROOM_ZONE(IN_ROOM(caller)));
+
+  for (helper = character_list; helper != NULL; helper = helper->next)
+    if (rol_sister_knight_can_answer(helper, caller, victim))
+      HUNTING(helper) = victim;
+
+  PROC_FIRED(caller) = TRUE;
   return TRUE;
 }
 
