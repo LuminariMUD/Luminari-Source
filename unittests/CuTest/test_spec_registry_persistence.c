@@ -454,12 +454,13 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "muspel_recurve_bow",
                                                "muspel_spider_dagger",
                                                "obj_drain",
-                                               "thorn_shield"};
+                                               "thorn_shield",
+                                               "RoL Guild Room"};
   int expected_count;
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 53, expected_count);
+  CuAssertIntEquals(tc, 54, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)
@@ -499,8 +500,8 @@ void Test_spec_registry_legacy_accessor_boundaries(CuTest *tc)
   CuAssertTrue(tc, get_spec_func_by_index(-1) == NULL);
   CuAssertTrue(tc, get_spec_func_name_by_index(count) == NULL);
   CuAssertTrue(tc, get_spec_func_by_index(count) == NULL);
-  CuAssertStrEquals(tc, "thorn_shield", get_spec_func_name_by_index(count - 1));
-  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == rol_thorn_shield);
+  CuAssertStrEquals(tc, "RoL Guild Room", get_spec_func_name_by_index(count - 1));
+  CuAssertTrue(tc, get_spec_func_by_index(count - 1) == guild);
   CuAssertTrue(tc, get_spec_func_name(NULL) == NULL);
 }
 

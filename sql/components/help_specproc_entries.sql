@@ -44,6 +44,11 @@ A moving room cannot also have a named room SpecProc. Both features own the
 same callback slot, so redit refuses that selection and zone saving or boot
 rejects a room containing both forms of data.
 
+Guild is the mobile-owned training procedure. RoL Guild Room provides the
+same current training service for converted room-owned guild bindings and is
+available only in redit. Pet Shop is room-owned, Postmaster is mobile-owned,
+and Bank is available for compatible mobile and object prototypes.
+
 Use trigedit when a script is sufficient. Ask a coder when the needed behavior
 is not present in the SpecProc menu. Shops, quests, pet shops, and boards have
 additional setup requirements beyond choosing a callback.

@@ -43,6 +43,10 @@ from .rol_planner import render_rol_plan_human, write_plan_bundle
 from .rol_pilot import render_rol_pilot_selection_human, write_pilot_selection_bundle
 from .rol_pilot_build import render_rol_pilot_build_human, write_pilot_build_bundle
 from .rol_skeleton import render_rol_skeleton_human, write_skeleton_bundle
+from .rol_special_reconciliation import (
+    render_rol_special_reconciliation_human,
+    write_special_reconciliation_bundle,
+)
 from .world import load_indexed_world_data, validate_explicit_paths, validate_indexed_world
 
 
@@ -190,6 +194,21 @@ def _parser() -> argparse.ArgumentParser:
   )
   rol_capability_audit.add_argument("--output-dir", type=Path, required=True)
   rol_capability_audit.add_argument("--created-at")
+
+  rol_special_reconciliation = commands.add_parser(
+      "rol-special-reconcile",
+      help="write the full Phase 6 RoL special-procedure reconciliation ledger",
+  )
+  rol_special_reconciliation.add_argument("--discovery-dir", type=Path, required=True)
+  rol_special_reconciliation.add_argument("--plan-dir", type=Path, required=True)
+  rol_special_reconciliation.add_argument(
+      "--capability-audit-dir", type=Path, required=True
+  )
+  rol_special_reconciliation.add_argument(
+      "--source-root", type=Path, default=_default_rol_source_root()
+  )
+  rol_special_reconciliation.add_argument("--output-dir", type=Path, required=True)
+  rol_special_reconciliation.add_argument("--created-at")
   return parser
 
 
@@ -543,6 +562,22 @@ def _run_rol_capability_audit(args: argparse.Namespace) -> int:
   return 0
 
 
+def _run_rol_special_reconciliation(args: argparse.Namespace) -> int:
+  summary = write_special_reconciliation_bundle(
+      args.discovery_dir,
+      args.plan_dir,
+      args.capability_audit_dir,
+      args.source_root,
+      args.output_dir,
+      created_at=args.created_at,
+  )
+  if args.json_output:
+    _print_json(summary)
+  else:
+    sys.stdout.write(render_rol_special_reconciliation_human(summary))
+  return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
   parser = _parser()
   args = parser.parse_args(argv)
@@ -575,6 +610,8 @@ def main(argv: Sequence[str] | None = None) -> int:
       return _run_rol_pilot_build(args)
     if args.command == "rol-capability-audit":
       return _run_rol_capability_audit(args)
+    if args.command == "rol-special-reconcile":
+      return _run_rol_special_reconciliation(args)
   except (ConfigError, DocumentationError, ExtractionError, OSError, ValueError) as error:
     sys.stderr.write(f"wtool: error: {error}\n")
     return 2

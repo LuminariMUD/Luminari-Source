@@ -723,6 +723,7 @@ def write_pilot_build_bundle(
           destination,
           zone_by_basename[str(action["basename"])],
           stage_resolve,
+          special_proc=binding.persisted_name if binding is not None else None,
           attachments=owner_attachments,
           source_zone_flags=source_zone_flags[str(action["basename"])],
       )

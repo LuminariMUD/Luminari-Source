@@ -1196,6 +1196,7 @@ def emit_room(
     destination_vnum: int,
     destination_zone: int,
     resolve: IdentityResolver,
+    special_proc: str | None = None,
     attachments: tuple[int, ...] = (),
     source_zone_flags: int = 0,
 ) -> TransformResult:
@@ -1348,6 +1349,8 @@ def emit_room(
           f"omitted obsolete source room mana at source line {directive['line']}; the "
           "source runtime never consumes it and target M is reserved for moving rooms"
       )
+  if special_proc is not None:
+    lines.extend(["Z\n", f"{special_proc}\n"])
   lines.extend(["C\n", "0 0\n", "S\n"])
   lines.extend(f"T {trigger_vnum}\n" for trigger_vnum in attachments)
   return TransformResult("".join(lines), diagnostics)

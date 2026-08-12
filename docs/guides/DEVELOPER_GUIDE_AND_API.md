@@ -111,8 +111,11 @@ if (definition != NULL &&
 
 Definitions, event contracts, aliases, and strings have immutable
 process-lifetime storage and must not be modified or freed. The compatibility
-surface exposes 29 historical indexed names for 28 canonical definitions:
-`Guildmaster` is an alias of canonical `Guild`, and both resolve to `guild`.
+surface exposes 54 indexed names for 53 canonical definitions: `Guildmaster`
+is an alias of canonical `Guild`, and both resolve to `guild`. The separate
+canonical `RoL Guild Room` definition also resolves to `guild`, but permits
+room ownership so converted source room bindings persist without changing the
+mobile definition's owner contract.
 
 ### Authored Binding API
 

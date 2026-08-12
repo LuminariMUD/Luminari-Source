@@ -31,8 +31,8 @@ callback slot or event-gateway dispatch rules.
 - Enter a number to choose a SpecProc; enter `0` to clear.
 - The current selection is shown in the menu. Save as usual to apply.
 
-Numbers are specific to the filtered editor view. The current views contain 18 mobile definitions,
-5 object definitions, and 6 room definitions in canonical registry order. The saved world record
+Numbers are specific to the filtered editor view. The current views contain 24 mobile definitions,
+23 object definitions, and 7 room definitions in canonical registry order. The saved world record
 uses the procedure name, not the displayed number.
 
 Prerequisites describe runtime scheduling; selecting a procedure does not set them automatically:
@@ -152,10 +152,10 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 26 registered definitions use
+their behavior receives explicit event context. The other 51 registered definitions use
 compatibility dispatch; across the source tree, 194 legacy behavior implementations remain. A
-validated declarative table
-owns the two Luminari assignments whose handlers are registered and whose VNUMs are symbolic.
+validated declarative table owns the two Luminari assignments whose handlers are registered and
+whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.
 Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the
 same effective-binding diagnostics. Phase 06 deliberately closed without general
 multiple-procedure composition: no current content needs a second persisted handler, so OLC still
@@ -181,6 +181,8 @@ production-linked evidence, see
   remain persisted and diagnosable but do not install a callback.
 - The selector shows canonical definitions only. An alias such as `Guildmaster` still loads for
   compatibility but does not create a duplicate menu row; selecting the entry saves `Guild`.
+- `Guild` is the mobile-owned training procedure. `RoL Guild Room` exposes the same current
+  training service through a converted room binding and is available only in `redit`.
 - A procedure hidden from builders, disallowed for world binding, or incompatible with the edited
   owner is not selectable. Invalid and out-of-range input leaves the current selection unchanged.
 - Registry metadata is validated before world parsing. An invalid registry is a programmer error

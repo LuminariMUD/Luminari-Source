@@ -825,6 +825,18 @@ static const struct spec_definition spec_definitions[] = {
         .description = "Damages an attacker with thorns after a shield block.",
         .legacy_handler = rol_thorn_shield,
     },
+    {
+        .canonical_name = "RoL Guild Room",
+        .display_name = "RoL Guild Room",
+        .owner_mask = SPEC_OWNER_ROOM,
+        .events = command_events,
+        .event_count = SPEC_ARRAY_SIZE(command_events),
+        .binding_source_mask = SPEC_BINDING_SOURCE_WORLD,
+        .builder_visibility = SPEC_BUILDER_VISIBLE,
+        .category = "RoL Conversion",
+        .description = "Provides current training services from a converted RoL guild room.",
+        .legacy_handler = guild,
+    },
 };
 
 enum
@@ -881,6 +893,7 @@ enum
   SPEC_DEFINITION_ROL_MUSPEL_SPIDER_DAGGER,
   SPEC_DEFINITION_ROL_OBJ_DRAIN,
   SPEC_DEFINITION_ROL_THORN_SHIELD,
+  SPEC_DEFINITION_ROL_GUILD_ROOM,
   SPEC_DEFINITION_INDEX_COUNT
 };
 
@@ -947,6 +960,7 @@ static const struct spec_compatibility_name compatibility_names[] = {
     {SPEC_DEFINITION_ROL_MUSPEL_SPIDER_DAGGER, -1},
     {SPEC_DEFINITION_ROL_OBJ_DRAIN, -1},
     {SPEC_DEFINITION_ROL_THORN_SHIELD, -1},
+    {SPEC_DEFINITION_ROL_GUILD_ROOM, -1},
 };
 
 _Static_assert(SPEC_ARRAY_SIZE(compatibility_names) <= INT_MAX,

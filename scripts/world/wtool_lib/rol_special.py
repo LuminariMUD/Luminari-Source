@@ -12,34 +12,51 @@ from .rol_source import RolRecord
 
 IdentityResolver = Callable[[str, int], int]
 
-NATIVE_HANDLERS = frozenset(
-    {
-        "breath_attack_fire",
-        "cemetary_black_blade",
-        "cemetary_cloakMeteors",
-        "cemetary_disruption",
-        "cemetary_gleaming_blade",
-        "cemetary_lightsaber",
-        "cemetary_skeletal_hand",
-        "flaming_tanthorian",
-        "hulburg_beholder_major",
-        "hulburg_beholder_minor",
-        "longsword_tanthorian",
-        "money_changer",
-        "murlynds_spoon",
-        "muspel_bec_de_corbin",
-        "muspel_crystal_scimitar",
-        "muspel_dagger_whispers",
-        "muspel_dragon_lance",
-        "muspel_duergar_battlehammer",
-        "muspel_recurve_bow",
-        "muspel_spider_dagger",
-        "obj_drain",
-        "plant_attacks_blindness",
-        "plant_attacks_paralysis",
-        "thorn_shield",
-    }
-)
+_PILOT_NATIVE_HANDLERS = {
+    "breath_attack_fire",
+    "cemetary_black_blade",
+    "cemetary_cloakMeteors",
+    "cemetary_disruption",
+    "cemetary_gleaming_blade",
+    "cemetary_lightsaber",
+    "cemetary_skeletal_hand",
+    "flaming_tanthorian",
+    "hulburg_beholder_major",
+    "hulburg_beholder_minor",
+    "longsword_tanthorian",
+    "money_changer",
+    "murlynds_spoon",
+    "muspel_bec_de_corbin",
+    "muspel_crystal_scimitar",
+    "muspel_dagger_whispers",
+    "muspel_dragon_lance",
+    "muspel_duergar_battlehammer",
+    "muspel_recurve_bow",
+    "muspel_spider_dagger",
+    "obj_drain",
+    "plant_attacks_blindness",
+    "plant_attacks_paralysis",
+    "thorn_shield",
+}
+
+# These source callbacks have traced target equivalents whose canonical
+# persisted names differ from the source symbols.  Keep the mapping explicit:
+# matching names alone are not lineage evidence.
+NATIVE_HANDLER_NAMES = {
+    **{name: name for name in _PILOT_NATIVE_HANDLERS},
+    "guild": "RoL Guild Room",
+    "janitor": "Janitor",
+    "pet_shops": "Pet Shop",
+    "receptionist": "Receptionist",
+}
+NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
+
+# The source dump callback returns immediately after initialization, leaving
+# all of its apparent object-destruction code unreachable.  Binding the active
+# target Dump procedure would invent behavior that did not run in RoL.
+INERT_HANDLERS = {
+    "dump": "source dump callback returns before its command behavior",
+}
 
 _OWNER_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
 _DIRECTIONS = (
@@ -684,11 +701,15 @@ def compile_special_bindings(
               source_vnum=source_vnum,
               target_kind=target_kind,
               target_vnum=target_vnum,
-              persisted_name=handler,
+              persisted_name=NATIVE_HANDLER_NAMES[handler],
               required_flag_bits=required_bits,
           )
       )
       dispositions.append(_disposition(row, "NATIVE_PERSISTED", target_vnum))
+    elif handler in INERT_HANDLERS:
+      disposition = _disposition(row, "SOURCE_INERT_EXCLUDED", target_vnum)
+      disposition["reason"] = INERT_HANDLERS[handler]
+      dispositions.append(disposition)
     else:
       grouped[handler].append(row)
 
@@ -702,53 +723,57 @@ def compile_special_bindings(
       dispositions,
   )
   chieftain = grouped.pop("muspel_chieftain_open", [])
-  if len(chieftain) != 1:
-    raise ValueError(f"expected one muspel_chieftain_open binding, found {len(chieftain)}")
-  next_trigger = _compile_chieftain(
-      chieftain[0],
-      next_trigger,
-      resolve,
-      rooms,
-      triggers,
-      attachments,
-      dispositions,
-  )
-  chimney = grouped.pop("muspel_chimney_pour", [])
-  next_trigger = _compile_chimney(
-      chimney,
-      next_trigger,
-      resolve,
-      rooms,
-      triggers,
-      attachments,
-      dispositions,
-      diagnostics,
-  )
-  for family_name, family in _SHOUT_FAMILIES.items():
-    family_rows: list[dict[str, object]] = []
-    for handler in family["handlers"]:
-      family_rows.extend(grouped.pop(handler, []))
-    next_trigger = _compile_shout_family(
-        sorted(family_rows, key=lambda item: int(item["source_vnum"])),
-        family_name,
-        family,
+  if len(chieftain) > 1:
+    raise ValueError(f"expected at most one muspel_chieftain_open binding, found {len(chieftain)}")
+  if chieftain:
+    next_trigger = _compile_chieftain(
+        chieftain[0],
         next_trigger,
         resolve,
+        rooms,
         triggers,
         attachments,
         dispositions,
     )
+  chimney = grouped.pop("muspel_chimney_pour", [])
+  if chimney:
+    next_trigger = _compile_chimney(
+        chimney,
+        next_trigger,
+        resolve,
+        rooms,
+        triggers,
+        attachments,
+        dispositions,
+        diagnostics,
+    )
+  for family_name, family in _SHOUT_FAMILIES.items():
+    family_rows: list[dict[str, object]] = []
+    for handler in family["handlers"]:
+      family_rows.extend(grouped.pop(handler, []))
+    if family_rows:
+      next_trigger = _compile_shout_family(
+          sorted(family_rows, key=lambda item: int(item["source_vnum"])),
+          family_name,
+          family,
+          next_trigger,
+          resolve,
+          triggers,
+          attachments,
+          dispositions,
+      )
   river = grouped.pop("muspel_ice_river", [])
-  next_trigger = _compile_ice_river(
-      river,
-      next_trigger,
-      resolve,
-      rooms,
-      triggers,
-      attachments,
-      dispositions,
-      diagnostics,
-  )
+  if river:
+    next_trigger = _compile_ice_river(
+        river,
+        next_trigger,
+        resolve,
+        rooms,
+        triggers,
+        attachments,
+        dispositions,
+        diagnostics,
+    )
 
   if grouped:
     names = ", ".join(sorted(grouped))

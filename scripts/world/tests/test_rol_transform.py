@@ -89,6 +89,25 @@ class RolTransformTests(unittest.TestCase):
     self.assertIn("obsolete source room mana", diagnostics)
     self.assertIn("target maximum level is 34", diagnostics)
 
+  def test_emitted_room_persists_resolved_special_name(self) -> None:
+    source = self._source_record(
+        "wld",
+        b"#100\nGuild room~\nA trainer works here.~\n1 0 0\nS\n",
+    )
+
+    emitted = emit_room(
+        source,
+        2_000_100,
+        20_001,
+        _resolver,
+        special_proc="Guild",
+    )
+    path = self._target_path("wld", emitted.text)
+    result = parse_room_file(path, "wld/20001.wld", self.manifest, False, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("Guild", result.records[0].spec_proc)
+
   def test_emitted_room_adapts_valid_exit_trap_payload(self) -> None:
     source = self._source_record(
         "wld",
@@ -791,6 +810,45 @@ class RolTransformTests(unittest.TestCase):
         item for item in compiled.native_bindings if item.persisted_name == "obj_drain"
     )
     self.assertEqual((44,), native.required_flag_bits)
+
+  def test_shared_native_and_inert_special_dispositions_are_explicit(self) -> None:
+    bindings = [
+        {
+            "basename": "sample",
+            "record_type": "room",
+            "source_vnum": 10,
+            "source_handler": "guild",
+        },
+        {
+            "basename": "sample",
+            "record_type": "mobile",
+            "source_vnum": 20,
+            "source_handler": "janitor",
+        },
+        {
+            "basename": "sample",
+            "record_type": "room",
+            "source_vnum": 30,
+            "source_handler": "dump",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(
+        ["Janitor", "RoL Guild Room"],
+        sorted(binding.persisted_name for binding in compiled.native_bindings),
+    )
+    self.assertEqual([], compiled.triggers)
+    self.assertEqual(3, len(compiled.dispositions))
+    inert = next(row for row in compiled.dispositions if row["source_handler"] == "dump")
+    self.assertEqual("SOURCE_INERT_EXCLUDED", inert["strategy"])
+    self.assertIn("returns before", inert["reason"])
 
 
 if __name__ == "__main__":
