@@ -14,7 +14,12 @@ from .constants import default_repo_root
 from .models import TOOL_VERSION
 from .rol_planner import verify_discovery_bundle
 from .rol_skeleton import verify_plan_bundle
-from .rol_special import ADAPTED_HANDLER_NAMES, INERT_HANDLERS, NATIVE_HANDLER_NAMES
+from .rol_special import (
+    ADAPTED_HANDLER_NAMES,
+    COMPOSABLE_MOBILE_HANDLER_FLAGS,
+    INERT_HANDLERS,
+    NATIVE_HANDLER_NAMES,
+)
 
 
 ROL_SPECIAL_RECONCILIATION_SCHEMA_VERSION = 2
@@ -279,6 +284,12 @@ def handler_disposition(handler: str) -> dict[str, str]:
         "status": "resolved",
         "strategy": "NATIVE_ADAPTED",
         "target": ADAPTED_HANDLER_NAMES[handler],
+    }
+  if handler in COMPOSABLE_MOBILE_HANDLER_FLAGS:
+    return {
+        "status": "resolved",
+        "strategy": "NATIVE_ADAPTED_COMPOSABLE",
+        "target": f"mobile action flag {COMPOSABLE_MOBILE_HANDLER_FLAGS[handler]}",
     }
   if handler in INERT_HANDLERS:
     return {

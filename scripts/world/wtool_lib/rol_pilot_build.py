@@ -733,8 +733,9 @@ def write_pilot_build_bundle(
           record,
           destination,
           special_proc=binding.persisted_name if binding is not None else None,
-          special_resolved=("mobile", record.vnum) in inert_special_sources,
+          special_resolved=("mobile", record.vnum) in inert_special_sources or binding is not None,
           attachments=owner_attachments,
+          required_action_bits=(binding.required_flag_bits if binding is not None else ()),
       )
     elif kind == "obj":
       emitted = emit_object(
@@ -851,6 +852,8 @@ def write_pilot_build_bundle(
     required_actions, required_affects = automatic_race_flags_by_target.get(
         target_vnum, (frozenset(), frozenset())
     )
+    if binding is not None:
+      required_actions = frozenset(required_actions) | frozenset(binding.required_flag_bits)
     mobile_patches_by_file[relative][target_vnum] = (
         binding.persisted_name if binding is not None else None,
         tuple(sorted(attachments.get(("mob", target_vnum), []))),

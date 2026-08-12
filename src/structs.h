@@ -1308,8 +1308,11 @@
 #define MOB_ROL_DEMON 116          /**< RoL: implicit standard demon behavior */
 #define MOB_ROL_DEVIL 117          /**< RoL: implicit standard devil behavior */
 #define MOB_ROL_UMBERHULK 118      /**< RoL: implicit standard umber-hulk behavior */
+#define MOB_ROL_FADE_FAMILIAR 119  /**< RoL: familiar fades without a corpse */
+#define MOB_ROL_FADE_MOUNT 120     /**< RoL: conjured mount fades without a corpse */
+#define MOB_ROL_FADE_MONSTER 121   /**< RoL: conjured monster fades without a corpse */
 /**********************/
-#define NUM_MOB_FLAGS 119
+#define NUM_MOB_FLAGS 122
 /**********************/
 /**********************/
 

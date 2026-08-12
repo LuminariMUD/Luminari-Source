@@ -48,6 +48,13 @@ NATIVE_HANDLER_NAMES = {
     "janitor": "Janitor",
     "pet_shops": "Pet Shop",
     "receptionist": "Receptionist",
+    "breath_attack_acid": "breath_attack_acid",
+    "breath_attack_lightning": "breath_attack_lightning",
+    "breath_weapon_fire": "breath_weapon_fire",
+    "breath_weapon_cold": "breath_weapon_cold",
+    "breath_weapon_acid": "breath_weapon_acid",
+    "breath_weapon_gas": "breath_weapon_gas",
+    "breath_weapon_lightning": "breath_weapon_lightning",
 }
 NATIVE_HANDLERS = frozenset(NATIVE_HANDLER_NAMES)
 
@@ -64,6 +71,15 @@ ADAPTED_HANDLER_NAMES = {
 INERT_HANDLERS = {
     "cityguard": "source cityguard callback returns before its obsolete aggression code",
     "dump": "source dump callback returns before its command behavior",
+}
+
+# These source death callbacks coexist with other mobile behavior and suppress
+# corpses. Dedicated target flags preserve them without consuming the ordinary
+# persisted special-procedure slot.
+COMPOSABLE_MOBILE_HANDLER_FLAGS = {
+    "conj_familiar_die": 119,
+    "conj_mount_die": 120,
+    "conj_monster_die": 121,
 }
 
 _OWNER_KIND = {"mobile": "mob", "object": "obj", "room": "wld"}
@@ -142,7 +158,7 @@ class NativeSpecialBinding:
   source_vnum: int
   target_kind: str
   target_vnum: int
-  persisted_name: str
+  persisted_name: str | None
   required_flag_bits: tuple[int, ...] = ()
 
 
@@ -720,6 +736,20 @@ def compile_special_bindings(
       )
       strategy = "NATIVE_ADAPTED" if handler in ADAPTED_HANDLER_NAMES else "NATIVE_PERSISTED"
       dispositions.append(_disposition(row, strategy, target_vnum))
+    elif handler in COMPOSABLE_MOBILE_HANDLER_FLAGS:
+      if record_type != "mobile":
+        raise ValueError(f"composable mobile handler {handler!r} owns {record_type!r}")
+      native_bindings.append(
+          NativeSpecialBinding(
+              source_record_type=record_type,
+              source_vnum=source_vnum,
+              target_kind=target_kind,
+              target_vnum=target_vnum,
+              persisted_name=None,
+              required_flag_bits=(COMPOSABLE_MOBILE_HANDLER_FLAGS[handler],),
+          )
+      )
+      dispositions.append(_disposition(row, "NATIVE_ADAPTED_COMPOSABLE", target_vnum))
     elif handler in INERT_HANDLERS:
       disposition = _disposition(row, "SOURCE_INERT_EXCLUDED", target_vnum)
       disposition["reason"] = INERT_HANDLERS[handler]
@@ -798,7 +828,7 @@ def compile_special_bindings(
     )
 
   native_bindings.sort(
-      key=lambda item: (item.target_kind, item.target_vnum, item.persisted_name)
+      key=lambda item: (item.target_kind, item.target_vnum, item.persisted_name or "")
   )
   dispositions.sort(
       key=lambda item: (

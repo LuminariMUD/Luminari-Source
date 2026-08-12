@@ -2025,6 +2025,9 @@ static void make_corpse(struct char_data *ch)
   struct obj_data *money = NULL;
   int i = 0, x = 0, y = 0;
 
+  if (rol_handle_conjured_death(ch))
+    return;
+
 #if !defined(CAMPAIGN_DL)
   /* handle mobile death that should not leave a corpse */
   if (IS_NPC(ch))

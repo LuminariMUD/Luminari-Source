@@ -902,6 +902,47 @@ class RolTransformTests(unittest.TestCase):
     adapted = next(row for row in compiled.dispositions if row["source_handler"] == "poison")
     self.assertEqual("NATIVE_ADAPTED", adapted["strategy"])
 
+  def test_conjured_death_binding_uses_composable_mobile_flag(self) -> None:
+    binding = {
+        "basename": "misc_code",
+        "record_type": "mobile",
+        "source_vnum": 300,
+        "source_handler": "conj_familiar_die",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(1, len(compiled.native_bindings))
+    native = compiled.native_bindings[0]
+    self.assertIsNone(native.persisted_name)
+    self.assertEqual((119,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"<*> File Version 1 <*>\n#300\nfamiliar~\na familiar~\n"
+        b"A familiar waits.\n~\nA familiar.\n~\n1 0 0 0 S\n"
+        b"H 0 0\n10 0 50 2d8+5 1d4+1\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_000_300,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20001.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertIn(119, decode_tokens(result.records[0].action_flags).bits)
+    self.assertNotIn(0, decode_tokens(result.records[0].action_flags).bits)
+    self.assertNotIn("source ACT_SPEC deferred", " ".join(emitted.diagnostics))
+
 
 if __name__ == "__main__":
   unittest.main()

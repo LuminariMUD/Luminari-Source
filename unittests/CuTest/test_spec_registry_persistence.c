@@ -433,6 +433,13 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "Greyhawk Ship",
                                                "Greyhawk Ship Commands",
                                                "breath_attack_fire",
+                                               "breath_attack_acid",
+                                               "breath_attack_lightning",
+                                               "breath_weapon_fire",
+                                               "breath_weapon_cold",
+                                               "breath_weapon_acid",
+                                               "breath_weapon_gas",
+                                               "breath_weapon_lightning",
                                                "hulburg_beholder_major",
                                                "hulburg_beholder_minor",
                                                "money_changer",
@@ -464,7 +471,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 57, expected_count);
+  CuAssertIntEquals(tc, 64, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

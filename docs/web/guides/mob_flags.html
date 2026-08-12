@@ -213,8 +213,8 @@ Flags</a></li>
 <h2 id="overview">Overview</h2>
 <p>Mobile flags are bitflags defined in <code>src/structs.h</code> and
 are checked throughout the codebase using the <code>MOB_FLAGGED()</code>
-macro. There are currently <strong>116 mobile flags</strong> (indices
-0-115, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
+macro. There are currently <strong>122 mobile flags</strong> (indices
+0-121, <code>NUM_MOB_FLAGS</code>) that control everything from basic AI
 behavior to special monster abilities.</p>
 <p><strong>Usage Pattern:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>MOB_FLAGGED<span class="op">(</span>mob<span class="op">,</span> MOB_FLAGNAME<span class="op">))</span> <span class="op">{</span></span>
@@ -773,8 +773,8 @@ zone reset assumes stays put</p>
 Teleport target check (<code>spell_teleport()</code>) -
 <code>src/magic/magic.c</code> - Creation placement
 (<code>mag_creations()</code>)</p>
-<h3 id="rol-compatibility-flags-indices-105-118">RoL compatibility flags
-(Indices: 105-118)</h3>
+<h3 id="rol-compatibility-flags-indices-105-121">RoL compatibility flags
+(Indices: 105-121)</h3>
 <p><strong>Effect:</strong> Preserve shared Realms of Luminari mobile
 behaviors during deterministic conversion. -
 <code>MOB_ROL_NICE_THIEF</code> allows stealing but suppresses automatic
@@ -800,9 +800,13 @@ level-scaled confusion or extra mandible attack during combat. - The
 three automatic-race flags use independent activity and combat hooks.
 They do not consume <code>MOB_SPEC</code> or the prototype’s persistent
 SpecProc slot, so an authored direct procedure continues to run on the
-same mobile. - These flags are converter-owned compatibility data;
-builders should use native flags and classes for new content unless
-reproducing converted RoL behavior</p>
+same mobile. - <code>MOB_ROL_FADE_FAMILIAR</code>,
+<code>MOB_ROL_FADE_MOUNT</code>, and <code>MOB_ROL_FADE_MONSTER</code>
+preserve the three source conjured-creature death messages and suppress
+corpse creation. They are independent of the persisted SpecProc slot and
+safely compose with other behavior. - These flags are converter-owned
+compatibility data; builders should use native flags and classes for new
+content unless reproducing converted RoL behavior</p>
 <p><strong>Code References:</strong> - <code>src/mob/mob_act.c</code> -
 Movement, archery, and race aggression - <code>src/combat/fight.c</code>
 - Delayed hunter activation -
@@ -1666,6 +1670,27 @@ No longer functional - Reserved for future use - Do not use</p>
 <td>RoL-Umberhulk</td>
 <td>Compatibility</td>
 <td>Runs implicit source umber-hulk behavior</td>
+</tr>
+<tr class="even">
+<td>119</td>
+<td>MOB_ROL_FADE_FAMILIAR</td>
+<td>RoL-Fade-Familiar</td>
+<td>Compatibility</td>
+<td>Familiar fades without a corpse</td>
+</tr>
+<tr class="odd">
+<td>120</td>
+<td>MOB_ROL_FADE_MOUNT</td>
+<td>RoL-Fade-Mount</td>
+<td>Compatibility</td>
+<td>Conjured mount fades without a corpse</td>
+</tr>
+<tr class="even">
+<td>121</td>
+<td>MOB_ROL_FADE_MONSTER</td>
+<td>RoL-Fade-Monster</td>
+<td>Compatibility</td>
+<td>Conjured monster fades without a corpse</td>
 </tr>
 </tbody>
 </table>

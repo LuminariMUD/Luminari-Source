@@ -22,6 +22,8 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     guild = handler_disposition("guild")
     dump = handler_disposition("dump")
     poison = handler_disposition("poison")
+    breath = handler_disposition("breath_weapon_fire")
+    conjured = handler_disposition("conj_familiar_die")
     unknown = handler_disposition("not_reviewed")
 
     self.assertEqual("RoL Guild Room", guild["target"])
@@ -30,6 +32,10 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertIn("returns before", dump["reason"])
     self.assertEqual("RoL Poison Bite", poison["target"])
     self.assertEqual("NATIVE_ADAPTED", poison["strategy"])
+    self.assertEqual("breath_weapon_fire", breath["target"])
+    self.assertEqual("NATIVE_PERSISTED", breath["strategy"])
+    self.assertEqual("mobile action flag 119", conjured["target"])
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", conjured["strategy"])
     self.assertEqual("pending", unknown["status"])
 
   def test_source_definition_scanner_ignores_comment_and_string_decoys(self) -> None:
@@ -78,11 +84,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(231, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(1_003, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(303, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(931, summary["direct_bindings_by_status"]["pending"])
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(495, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(353, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(500, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(348, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

@@ -45,6 +45,13 @@ static const char *const spec_mobile_names[] = {
     "Receptionist",
     "Temple Healer",
     "breath_attack_fire",
+    "breath_attack_acid",
+    "breath_attack_lightning",
+    "breath_weapon_fire",
+    "breath_weapon_cold",
+    "breath_weapon_acid",
+    "breath_weapon_gas",
+    "breath_weapon_lightning",
     "hulburg_beholder_major",
     "hulburg_beholder_minor",
     "money_changer",
@@ -354,7 +361,7 @@ void Test_spec_owner_olc_selection_parser_is_strict_and_bounded(CuTest *tc)
     return;
   CuAssertStrEquals(tc, "Greyhawk Ship Commands", definition->canonical_name);
 
-  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "28", &definition);
+  result = spec_olc_parse_selection(SPEC_OWNER_MOBILE, "35", &definition);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID, result);
   CuAssertTrue(tc, definition == NULL);
   CuAssertIntEquals(tc, SPEC_OLC_SELECTION_INVALID,

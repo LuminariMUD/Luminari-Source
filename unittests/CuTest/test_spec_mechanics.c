@@ -471,10 +471,14 @@ void Test_spec_rol_shared_mobile_adapters_preserve_source_boundaries(CuTest *tc)
   CuAssertIntEquals(tc, 100, rol_umberhulk_proc_chance(70));
 
   SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_DEMON);
-  fixture.actor.player.name = "babau demon";
+  fixture.actor.player.short_descr = "babau demon";
   CuAssertIntEquals(tc, SECS_PER_MUD_DAY, rol_planar_gate_cooldown_seconds(&fixture.actor));
-  fixture.actor.player.name = "babau demon nogate";
+  fixture.actor.player.short_descr = "babau demon nogate";
   CuAssertIntEquals(tc, 0, rol_planar_gate_cooldown_seconds(&fixture.actor));
+
+  CuAssertTrue(tc, !rol_handle_conjured_death(&fixture.actor));
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ROL_FADE_FAMILIAR);
+  CuAssertTrue(tc, rol_handle_conjured_death(&fixture.actor));
 
   CuAssertIntEquals(tc, TRUE, rol_thief(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertIntEquals(tc, FALSE, rol_thief(&fixture.actor, &fixture.actor, 1, ""));

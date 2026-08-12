@@ -18,7 +18,7 @@ This document provides comprehensive information about all mobile flags (MOB_*) 
 
 ## Overview
 
-Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **116 mobile flags** (indices 0-115, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
+Mobile flags are bitflags defined in `src/structs.h` and are checked throughout the codebase using the `MOB_FLAGGED()` macro. There are currently **122 mobile flags** (indices 0-121, `NUM_MOB_FLAGS`) that control everything from basic AI behavior to special monster abilities.
 
 **Usage Pattern:**
 ```c
@@ -725,7 +725,7 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - `src/magic/spells.c` - Teleport target check (`spell_teleport()`)
 - `src/magic/magic.c` - Creation placement (`mag_creations()`)
 
-### RoL compatibility flags (Indices: 105-118)
+### RoL compatibility flags (Indices: 105-121)
 **Effect:** Preserve shared Realms of Luminari mobile behaviors during deterministic conversion.
 - `MOB_ROL_NICE_THIEF` allows stealing but suppresses automatic retaliation when caught
 - `MOB_ROL_STAY_SECTOR` restricts random wandering to the mobile's current sector
@@ -745,6 +745,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 - The three automatic-race flags use independent activity and combat hooks. They do not
   consume `MOB_SPEC` or the prototype's persistent SpecProc slot, so an authored direct
   procedure continues to run on the same mobile.
+- `MOB_ROL_FADE_FAMILIAR`, `MOB_ROL_FADE_MOUNT`, and `MOB_ROL_FADE_MONSTER` preserve
+  the three source conjured-creature death messages and suppress corpse creation. They
+  are independent of the persisted SpecProc slot and safely compose with other behavior.
 - These flags are converter-owned compatibility data; builders should use native flags
   and classes for new content unless reproducing converted RoL behavior
 
@@ -888,6 +891,9 @@ Characters cannot pass through in the blocked direction unless they meet bypass 
 | 116 | MOB_ROL_DEMON | RoL-Demon | Compatibility | Runs implicit source demon behavior |
 | 117 | MOB_ROL_DEVIL | RoL-Devil | Compatibility | Runs implicit source devil behavior |
 | 118 | MOB_ROL_UMBERHULK | RoL-Umberhulk | Compatibility | Runs implicit source umber-hulk behavior |
+| 119 | MOB_ROL_FADE_FAMILIAR | RoL-Fade-Familiar | Compatibility | Familiar fades without a corpse |
+| 120 | MOB_ROL_FADE_MOUNT | RoL-Fade-Mount | Compatibility | Conjured mount fades without a corpse |
+| 121 | MOB_ROL_FADE_MONSTER | RoL-Fade-Monster | Compatibility | Conjured monster fades without a corpse |
 
 ---
 

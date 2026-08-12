@@ -158,8 +158,8 @@ saved-secondary behavior.
 
 Typed dispatch is an engine-side implementation detail: nothing a builder selects, sees, or saves in
 OLC changed. Bank and Vampire Cloak retain their canonical rows and callback-slot identities while
-their behavior receives explicit event context. The other 54 registered definitions use
-compatibility dispatch; across the source tree, 194 legacy behavior implementations remain. A
+their behavior receives explicit event context. The other 61 registered definitions use
+compatibility dispatch; across the source tree, 201 legacy behavior implementations remain. A
 validated declarative table owns the two Luminari assignments whose handlers are registered and
 whose VNUMs are symbolic. Converted RoL definitions use explicit world-authored names.
 Unsupported numeric, computed, and campaign-compatibility assignments remain visible through the

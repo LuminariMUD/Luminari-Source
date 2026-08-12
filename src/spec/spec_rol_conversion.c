@@ -16,6 +16,7 @@
 #include "handler.h"
 #include "magic/spells.h"
 #include "mudlim.h"
+#include "spec_combat.h"
 #include "spec_context.h"
 #include "spec_rol_conversion.h"
 
@@ -330,6 +331,122 @@ void rol_automatic_race_combat_turn(struct char_data *ch)
     act("$n snaps at $N with crushing mandibles!", TRUE, ch, NULL, victim, TO_NOTVICT);
     hit(ch, victim, TYPE_UNDEFINED, DAM_RESERVED_DBC, 0, ATTACK_TYPE_PRIMARY);
   }
+}
+
+bool rol_handle_conjured_death(struct char_data *ch)
+{
+  const char *message = NULL;
+
+  if (ch == NULL || !IS_NPC(ch))
+    return false;
+
+  if (MOB_FLAGGED(ch, MOB_ROL_FADE_FAMILIAR))
+    message = "$n slowly fades away into the netherworld...";
+  else if (MOB_FLAGGED(ch, MOB_ROL_FADE_MOUNT))
+    message = "$n vanishes in a puff of white smoke!";
+  else if (MOB_FLAGGED(ch, MOB_ROL_FADE_MONSTER))
+    message = "$n disappears in a flash of bright light!";
+
+  if (message == NULL)
+    return false;
+
+  act(message, FALSE, ch, NULL, NULL, TO_ROOM);
+  return true;
+}
+
+static bool rol_breath_ready(struct char_data *ch)
+{
+  if (ch == NULL || !IS_NPC(ch) || FIGHTING(ch) == NULL)
+    return false;
+
+  ch->mob_specials.proc_fired = (ch->mob_specials.proc_fired + 1) % 4;
+  return ch->mob_specials.proc_fired == 0;
+}
+
+static int rol_breath_weapon(struct char_data *ch, int spell)
+{
+  if (!rol_breath_ready(ch))
+    return FALSE;
+
+  call_magic(ch, NULL, NULL, spell, 0, GET_LEVEL(ch), CAST_INNATE);
+  return FALSE;
+}
+
+static int rol_breath_attack(struct char_data *ch, int damage_type, const char *self_message,
+                             const char *victim_message, const char *room_message)
+{
+  struct char_data *victim;
+  struct spec_damage_result result;
+  int dice_count;
+
+  if (!rol_breath_ready(ch) || (victim = FIGHTING(ch)) == NULL)
+    return FALSE;
+
+  act(self_message, FALSE, ch, NULL, victim, TO_CHAR);
+  act(victim_message, FALSE, ch, NULL, victim, TO_VICT);
+  act(room_message, FALSE, ch, NULL, victim, TO_NOTVICT);
+  dice_count = MAX(1, GET_LEVEL(ch) / 2);
+  result = spec_damage_current_target(ch, victim, dice(dice_count, 6), -1, damage_type, FALSE);
+  return result.status == SPEC_DAMAGE_TARGET_INVALIDATED;
+}
+
+int rol_breath_weapon_fire(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_weapon(ch, SPELL_FIRE_BREATHE);
+}
+
+int rol_breath_weapon_cold(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_weapon(ch, SPELL_FROST_BREATHE);
+}
+
+int rol_breath_weapon_acid(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_weapon(ch, SPELL_ACID_BREATHE);
+}
+
+int rol_breath_weapon_gas(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_weapon(ch, SPELL_GAS_BREATHE);
+}
+
+int rol_breath_weapon_lightning(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_weapon(ch, SPELL_LIGHTNING_BREATHE);
+}
+
+int rol_breath_attack_acid(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_attack(ch, DAM_ACID, "You spray \tLacid\tn at $N!",
+                           "$n sprays \tLacid\tn at you!", "$n sprays \tLacid\tn at $N!");
+}
+
+int rol_breath_attack_lightning(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  UNUSED(me);
+  UNUSED(cmd);
+  UNUSED(argument);
+  return rol_breath_attack(ch, DAM_ELECTRIC, "You breathe \tBlightning\tn at $N!",
+                           "$n breathes \tBlightning\tn at you!",
+                           "$n breathes \tBlightning\tn at $N!");
 }
 
 int rol_corpse_devourer(struct char_data *ch, void *me, int cmd, const char *argument)

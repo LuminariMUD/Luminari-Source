@@ -2705,6 +2705,27 @@
           "macro": "MOB_ROL_UMBERHULK",
           "name": "RoL-Umberhulk",
           "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 119,
+          "macro": "MOB_ROL_FADE_FAMILIAR",
+          "name": "RoL-Fade-Familiar",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 120,
+          "macro": "MOB_ROL_FADE_MOUNT",
+          "name": "RoL-Fade-Mount",
+          "reserved": false
+        },
+        {
+          "aliases": [],
+          "index": 121,
+          "macro": "MOB_ROL_FADE_MONSTER",
+          "name": "RoL-Fade-Monster",
+          "reserved": false
         }
       ],
       "serialized_chunks": 4,

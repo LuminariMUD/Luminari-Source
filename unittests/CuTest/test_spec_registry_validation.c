@@ -177,8 +177,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 56, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 54, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 63, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 61, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 2, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -268,6 +268,20 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"Greyhawk Ship Commands", greyhawk_ship_commands, SPEC_OWNER_ROOM, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD | SPEC_BINDING_SOURCE_LEGACY_ASSIGNMENT},
       {"breath_attack_fire", rol_breath_attack_fire, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_attack_acid", rol_breath_attack_acid, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_attack_lightning", rol_breath_attack_lightning, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_weapon_fire", rol_breath_weapon_fire, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_weapon_cold", rol_breath_weapon_cold, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_weapon_acid", rol_breath_weapon_acid, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
+      {"breath_weapon_gas", rol_breath_weapon_gas, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"breath_weapon_lightning", rol_breath_weapon_lightning, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"hulburg_beholder_major", rol_hulburg_beholder_major, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},

@@ -1441,6 +1441,7 @@ def emit_mobile(
     special_proc: str | None = None,
     special_resolved: bool = False,
     attachments: tuple[int, ...] = (),
+    required_action_bits: tuple[int, ...] = (),
 ) -> TransformResult:
   """Emit one enhanced target mobile record."""
 
@@ -1470,6 +1471,7 @@ def emit_mobile(
       target_actions.update(expanded_actions)
   if special_proc is not None:
     target_actions.add(0)
+  target_actions.update(required_action_bits)
   automatic_actions, automatic_affects = mobile_automatic_race_flags(record)
   target_actions.update(automatic_actions)
   target_affects = _mapped_bits(source_affects, MOB_AFFECT_MAP)
