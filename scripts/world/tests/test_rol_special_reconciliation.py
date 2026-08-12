@@ -168,6 +168,29 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     ]
     rogue = handler_disposition("rogue_one")
     major_beholder = handler_disposition("major_beholder")
+    monster_combat = [
+        handler_disposition(name)
+        for name in (
+            "plant_attacks_poison",
+            "conj_lycan_tiger",
+            "conj_lycan_fox",
+            "spider_venom_medium",
+            "ashentoris",
+            "ryo_bansheeWail",
+            "ttf_fourarms",
+            "ttf_tentacles",
+            "ttf_rot_bringer",
+            "winged_deva",
+            "halruaa_small_prismatic_elem",
+            "halruaa_crit_prismatic_elem",
+            "halruaa_uber_prismatic_elem",
+            "et_fireBoss",
+            "et_earthBoss",
+            "et_airBoss",
+            "et_waterBoss",
+            "devil_pitFiendBite",
+        )
+    ]
     lich_energy_drain = handler_disposition("lich_energy_drain")
     undead_drains = [
         handler_disposition(name)
@@ -235,8 +258,11 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     self.assertEqual("NATIVE_ADAPTED", shadow_giant["strategy"])
     self.assertEqual("RoL Guild Guard", guild_guard["target"])
     self.assertEqual("NATIVE_ADAPTED", guild_guard["strategy"])
-    self.assertEqual("RoL Alert Caller", elemental_tower_alert["target"])
-    self.assertEqual("NATIVE_ADAPTED", elemental_tower_alert["strategy"])
+    self.assertEqual(
+        "RoL Monster Combat plus RoL alert runtime profile",
+        elemental_tower_alert["target"],
+    )
+    self.assertEqual("NATIVE_ADAPTED_COMPOSABLE", elemental_tower_alert["strategy"])
     self.assertEqual("RoL Fixed Bodyguard", fixed_bodyguard["target"])
     self.assertEqual("NATIVE_ADAPTED", fixed_bodyguard["strategy"])
     self.assertEqual("RoL Portal Door", portal_door["target"])
@@ -324,6 +350,13 @@ class RolSpecialReconciliationTests(unittest.TestCase):
     )
     self.assertEqual("RoL Major Beholder", major_beholder["target"])
     self.assertEqual("NATIVE_ADAPTED", major_beholder["strategy"])
+    self.assertTrue(
+        all(
+            row["target"] == "RoL Monster Combat"
+            and row["strategy"] == "NATIVE_ADAPTED"
+            for row in monster_combat
+        )
+    )
     self.assertEqual("RoL Lich Energy Drain", lich_energy_drain["target"])
     self.assertEqual("NATIVE_ADAPTED", lich_energy_drain["strategy"])
     self.assertTrue(
@@ -413,21 +446,21 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(986, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(161, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(436, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(126, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(540, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(1_010, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(137, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(454, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(108, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(560, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          151, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          155, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(11, summary["direct_bindings_by_strategy"]["NATIVE_RECONCILED"])
       self.assertEqual(
           18, summary["direct_bindings_by_strategy"]["SOURCE_UNSAFE_EXCLUDED"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(783, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(65, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(784, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(64, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

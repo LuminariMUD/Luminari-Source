@@ -179,9 +179,9 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 102, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 103, (int)spec_registry_count());
   CuAssertIntEquals(tc, 95, (int)spec_registry_legacy_count());
-  CuAssertIntEquals(tc, 7, (int)spec_registry_typed_count());
+  CuAssertIntEquals(tc, 8, (int)spec_registry_typed_count());
 
   alias_count = 0;
   for (definition_index = 0; definition_index < spec_registry_count(); definition_index++)
@@ -382,6 +382,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Major Beholder", rol_major_beholder, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,
        SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Monster Combat", rol_monster_combat, SPEC_OWNER_MOBILE,
+       SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Lich Energy Drain", rol_lich_energy_drain, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY | SPEC_EVENT_MOBILE_COMBAT_TURN, SPEC_BINDING_SOURCE_WORLD},
       {"RoL Undead Drain", rol_undead_drain, SPEC_OWNER_MOBILE, SPEC_EVENT_MOBILE_COMBAT_TURN,

@@ -84,7 +84,6 @@ ADAPTED_HANDLER_NAMES = {
     "cage_command_block": "RoL Command Sentinel",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
-    "elemental_tower_shout": "RoL Alert Caller",
     "guild_guard": "RoL Guild Guard",
     "guild_classtype_mage": "RoL Mage Guild Room",
     "guild_classtype_thief": "RoL Thief Guild Room",
@@ -124,6 +123,24 @@ ADAPTED_HANDLER_NAMES = {
     "demogorgon_shout": "RoL Alert Caller",
     "imix_pet_demon_shout": "RoL Alert Caller",
     "major_beholder": "RoL Major Beholder",
+    "plant_attacks_poison": "RoL Monster Combat",
+    "conj_lycan_tiger": "RoL Monster Combat",
+    "conj_lycan_fox": "RoL Monster Combat",
+    "spider_venom_medium": "RoL Monster Combat",
+    "ashentoris": "RoL Monster Combat",
+    "ryo_bansheeWail": "RoL Monster Combat",
+    "ttf_fourarms": "RoL Monster Combat",
+    "ttf_tentacles": "RoL Monster Combat",
+    "ttf_rot_bringer": "RoL Monster Combat",
+    "winged_deva": "RoL Monster Combat",
+    "halruaa_small_prismatic_elem": "RoL Monster Combat",
+    "halruaa_crit_prismatic_elem": "RoL Monster Combat",
+    "halruaa_uber_prismatic_elem": "RoL Monster Combat",
+    "et_fireBoss": "RoL Monster Combat",
+    "et_earthBoss": "RoL Monster Combat",
+    "et_airBoss": "RoL Monster Combat",
+    "et_waterBoss": "RoL Monster Combat",
+    "devil_pitFiendBite": "RoL Monster Combat",
     "mage_one": "RoL Waterdeep Ambient",
     "mercenary_one": "RoL Waterdeep Ambient",
     "mercenary_three": "RoL Waterdeep Ambient",
@@ -341,6 +358,7 @@ COMPOSABLE_MOBILE_HANDLER_FLAGS = {
 # The two shout callbacks share mobiles with already-persisted breath weapons;
 # the death callbacks run from make_corpse() before the ordinary corpse path.
 COMPOSABLE_MOBILE_RUNTIME_HANDLERS = {
+    "elemental_tower_shout": "RoL Monster Combat plus RoL alert runtime profile",
     "imix_shout": "breath_weapon_fire plus RoL alert runtime profile",
     "yancbin_shout": "breath_weapon_lightning plus RoL alert runtime profile",
     "tentacle_die": "converted mobile death profile",
@@ -1085,7 +1103,7 @@ def compile_special_bindings(
           if handler in NATIVE_HANDLER_NAMES
           else ADAPTED_HANDLER_NAMES[handler]
       )
-      if handler in {
+      if persisted_name == "RoL Monster Combat" or handler in {
           "bandit",
           "bouncer_four",
           "bouncer_one",

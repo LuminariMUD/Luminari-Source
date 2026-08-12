@@ -212,6 +212,7 @@ circle_SOURCES = \
 	src/spec/spec_mobiles.c \
 	src/spec/spec_objects.c \
 	src/spec/spec_phrase.c \
+	src/spec/spec_rol_combat.c \
 	src/spec/spec_rol_conversion.c \
 	src/spec/spec_rol_periodic_profiles.inc \
 	src/spec/spec_rol_state_periodic_profiles.inc \

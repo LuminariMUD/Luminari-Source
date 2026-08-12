@@ -2154,6 +2154,86 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Major Beholder", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_monster_combat_bindings_require_combat_gateway(self) -> None:
+    handlers = (
+        "plant_attacks_poison",
+        "conj_lycan_tiger",
+        "conj_lycan_fox",
+        "spider_venom_medium",
+        "ashentoris",
+        "ryo_bansheeWail",
+        "ttf_fourarms",
+        "ttf_tentacles",
+        "ttf_rot_bringer",
+        "winged_deva",
+        "halruaa_small_prismatic_elem",
+        "halruaa_crit_prismatic_elem",
+        "halruaa_uber_prismatic_elem",
+        "et_fireBoss",
+        "et_earthBoss",
+        "et_airBoss",
+        "et_waterBoss",
+        "devil_pitFiendBite",
+    )
+    bindings = [
+        {
+            "basename": "combat",
+            "record_type": "mobile",
+            "source_vnum": 10_000 + index,
+            "source_handler": handler,
+        }
+        for index, handler in enumerate(handlers)
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(len(handlers), len(compiled.native_bindings))
+    self.assertEqual(len(handlers), len(compiled.dispositions))
+    for native, disposition in zip(
+        compiled.native_bindings, compiled.dispositions, strict=True
+    ):
+      self.assertEqual("RoL Monster Combat", native.persisted_name)
+      self.assertEqual((0,), native.required_flag_bits)
+      self.assertEqual("NATIVE_ADAPTED", disposition["strategy"])
+
+  def test_elemental_tower_composes_alert_with_monster_combat(self) -> None:
+    bindings = [
+        {
+            "basename": "elemental_tower",
+            "record_type": "mobile",
+            "source_vnum": 62401,
+            "source_handler": "elemental_tower_shout",
+        },
+        {
+            "basename": "elemental_tower",
+            "record_type": "mobile",
+            "source_vnum": 62401,
+            "source_handler": "et_fireBoss",
+        },
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(2, len(compiled.native_bindings))
+    self.assertIsNone(compiled.native_bindings[0].persisted_name)
+    self.assertEqual(
+        "RoL Monster Combat", compiled.native_bindings[1].persisted_name
+    )
+    self.assertEqual(
+        "NATIVE_ADAPTED_COMPOSABLE", compiled.dispositions[0]["strategy"]
+    )
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[1]["strategy"])
+
   def test_trade_bandit_binding_requires_mobile_activity_gateway(self) -> None:
     binding = {
         "basename": "trade",

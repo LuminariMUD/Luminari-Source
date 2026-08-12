@@ -68,6 +68,7 @@ static const char *const spec_mobile_names[] = {
     "RoL Shadow Giant",
     "RoL Guild Guard",
     "RoL Major Beholder",
+    "RoL Monster Combat",
     "RoL Lich Energy Drain",
     "RoL Undead Drain",
     "RoL Trade Bandit",
