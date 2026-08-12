@@ -2261,6 +2261,16 @@ class RolTransformTests(unittest.TestCase):
         "ilshazone_canthus",
         "jotun_thrym",
         "jotun_utgard_loki",
+        "Tiamat_Crimson_Fury",
+        "barbarian_spiritist",
+        "dranum_jurtrem",
+        "ilshazone_kamerynn",
+        "jessica_summon_wisp",
+        "jotun_mimer",
+        "robyn_summon_servant",
+        "robyn_summon_wisp",
+        "tako_demon",
+        "werewolf_lycan",
     )
     bindings = [
         {

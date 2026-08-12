@@ -265,6 +265,9 @@ Phase 6 Lavatubes procedures:
 Phase 6 named guild and utility objects:
   lib/rol-conversion/runs/phase6-special-20260812-utility-objects-v2
   rol-phase6-special-35cfdfe1d528d25f
+Phase 6 residual monster-combat procedures:
+  lib/rol-conversion/runs/phase6-special-20260812-monster-combat-residual
+  rol-phase6-special-162570d805f14abd
 Policy:  rol-conversion-policy-2
 ```
 
@@ -293,7 +296,7 @@ Policy:  rol-conversion-policy-2
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 310 tests; the production-linked CuTest suite passes 656;
+- The world-tool suite passes 311 tests; the production-linked CuTest suite passes 656;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - Fifty-two bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
@@ -549,18 +552,24 @@ Policy:  rol-conversion-policy-2
   identities retain their source command or pulse behavior, with `ITEM_AUTOPROC` and the
   figurine mobile reference supplied only where required. `blackPlagueCure` and
   `craine_serpent` are source-inert because neither assigned callback registers an event.
+- Ten residual mobile-combat handlers covering 13 active bindings are complete through
+  the existing `RoL Monster Combat` gateway. Thirteen new identity profiles preserve the
+  bounded Moonshae summons, Jurtrem sanctuary removal, Kamerynn teleport strike, Crimson
+  Fury minion purge and fire blast, spiritist curse/disarm/cyclone branches, Tako pit
+  interception, werewolf activity, and Mimer gate and return behavior. Helper load triggers
+  run after setup so an extracting trigger cannot leave a subsequently dereferenced mobile.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 1,058 of 1,147 active direct bindings and 494 of
-  562 source handlers, leaving 89 bindings and 68 handlers. The independent `ACT_SPEC`
-  cross-check resolves 813 of 848 records and leaves 35 pending.
+- The current Phase 6 checkpoint resolves 1,071 of 1,147 active direct bindings and 504 of
+  562 source handlers, leaving 76 bindings and 58 handlers. The independent `ACT_SPEC`
+  cross-check resolves 819 of 848 records and leaves 29 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 89 direct bindings across 68 handlers. Classify regular
+1. Reconcile the remaining 76 direct bindings across 58 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7
@@ -572,16 +581,16 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed and pushed implementation commit `a13f74f7`, resolving six named Waterdeep
-  guild-guard handlers, five active utility-object handlers, and two source-inert callbacks.
-- Added `RoL Utility Object` to both build manifests and the typed registry, extended the
-  existing guild-guard rules, and covered converter flags, references, persistence, OLC,
-  source-inert dispositions, and command boundaries.
-- Ran all 310 world-tool tests and all 656 production-linked CuTests. The warning-free
+- Completed the residual monster-combat batch in the working tree, resolving ten handlers
+  and 13 active bindings through 13 new `RoL Monster Combat` identity profiles.
+- Preserved bounded summons, dispel, teleport, area damage, curse/disarm/cyclone, pit,
+  werewolf, and Jotun mechanics; added converter dispositions, required `MOB_SPEC` flags,
+  profile coverage, and explicit reconciliation tests.
+- Ran all 311 world-tool tests and all 656 production-linked CuTests. The warning-free
   `make test && make install` gate passed and removed the root-level `circle` artifact;
   the documentation checker reported zero findings.
-- Regenerated and hash-verified the ignored Phase 6 ledger as
-  `rol-phase6-special-35cfdfe1d528d25f`; it records zero live target writes and the
-  1,058/89 direct-binding, 494/68 handler, and 813/35 `ACT_SPEC` split.
+- Regenerated the ignored Phase 6 ledger as `rol-phase6-special-162570d805f14abd`; it
+  records zero live target writes and the 1,071/76 direct-binding, 504/58 handler, and
+  819/29 `ACT_SPEC` split.
 - Unresolved blockers: none. Continue by grouping the largest compatible remaining
   irregular mechanics into another dependency-complete shared typed batch.

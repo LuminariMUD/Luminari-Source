@@ -285,6 +285,16 @@ ADAPTED_HANDLER_NAMES = {
     "crystal_spike": "RoL Lavatubes Object",
     "skeleton_key": "RoL Lavatubes Object",
     "automaton_trapdoor": "RoL Lavatubes Room",
+    "Tiamat_Crimson_Fury": "RoL Monster Combat",
+    "barbarian_spiritist": "RoL Monster Combat",
+    "dranum_jurtrem": "RoL Monster Combat",
+    "ilshazone_kamerynn": "RoL Monster Combat",
+    "jessica_summon_wisp": "RoL Monster Combat",
+    "jotun_mimer": "RoL Monster Combat",
+    "robyn_summon_servant": "RoL Monster Combat",
+    "robyn_summon_wisp": "RoL Monster Combat",
+    "tako_demon": "RoL Monster Combat",
+    "werewolf_lycan": "RoL Monster Combat",
 }
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
