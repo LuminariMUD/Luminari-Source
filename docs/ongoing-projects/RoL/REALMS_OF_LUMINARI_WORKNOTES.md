@@ -56,6 +56,7 @@ Phase 6 converted-ship system commit: 215c0f13
 Phase 6 converted-guild-guard commit: 7102d82d
 Phase 6 converted-shaman-totem commit: 8159562d
 Phase 6 lost-totem-restorer commit: 3f773d78
+Phase 6 lich-rite commit: 7d28382f
 Phase 6 converted-major-beholder commit: 5536e463
 Phase 6 converted-trade-bandit commit: 7693ce00
 Phase 6 converted-lich-energy-drain commit: 72ba7c8e
@@ -667,8 +668,8 @@ Policy:  rol-conversion-policy-2
 
 ## Latest session handoff
 
-- Completed the two active `lichConverter` bindings through the new `RoL Lich Rite` procedure;
-  the checkpoint commit and push follow this worknote update.
+- Completed and pushed implementation commit `7d28382f`, resolving both active
+  `lichConverter` bindings through the new `RoL Lich Rite` procedure.
 - Preserved the exact lowercase phrase, mapped maximum-mortal and Necromancer gates, two converted
   offerings, source narrative, and helper consumption. Both offerings validate before mutation,
   including when worn, and the irreversible change uses the target's established Lich race,

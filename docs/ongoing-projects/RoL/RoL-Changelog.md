@@ -33,6 +33,7 @@ Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
 ### Acceptance evidence
 
 ```text
+Delivery commit: 7d28382f
 Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-lich-rite
 Reconciliation run: rol-phase6-special-ded69599851e733e
 Active direct bindings: 1,147
