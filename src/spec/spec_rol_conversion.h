@@ -68,6 +68,8 @@ int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argum
 int rol_item_blocker(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_command_sentinel(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_command_sentinel_typed(struct spec_event_context *context);
+int rol_toll_keeper(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_toll_keeper_typed(struct spec_event_context *context);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
 int rol_poison_bite_roll_ceiling(int level);
@@ -129,6 +131,11 @@ bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int dir
                                          const struct char_data *ch, int chance_roll);
 bool rol_command_sentinel_is_necromancer(const struct char_data *ch);
 int rol_command_sentinel_glyph_damage(const struct char_data *ch);
+int rol_toll_keeper_fee_gold(int mobile_vnum);
+int rol_toll_keeper_destination(int mobile_vnum, bool first_side);
+bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum, int entered_object_vnum,
+                                    int ticket_vnum);
+bool rol_toll_keeper_payment_syntax_valid(int mobile_vnum, const char *argument);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);
 bool rol_automatic_race_activity(struct char_data *ch);
 void rol_automatic_race_combat_turn(struct char_data *ch);

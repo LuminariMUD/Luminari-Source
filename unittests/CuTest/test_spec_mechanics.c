@@ -864,6 +864,39 @@ void Test_spec_rol_command_sentinel_preserves_passage_and_glyph_rules(CuTest *tc
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_toll_keeper_preserves_fees_destinations_and_tickets(CuTest *tc)
+{
+  CuAssertIntEquals(tc, 20, rol_toll_keeper_fee_gold(2007210));
+  CuAssertIntEquals(tc, 10, rol_toll_keeper_fee_gold(2007335));
+  CuAssertIntEquals(tc, 500, rol_toll_keeper_fee_gold(2011542));
+  CuAssertIntEquals(tc, 5, rol_toll_keeper_fee_gold(2001919));
+  CuAssertIntEquals(tc, 5, rol_toll_keeper_fee_gold(2014202));
+  CuAssertIntEquals(tc, 0, rol_toll_keeper_fee_gold(999999));
+
+  CuAssertIntEquals(tc, 2007681, rol_toll_keeper_destination(2007210, true));
+  CuAssertIntEquals(tc, 2001862, rol_toll_keeper_destination(2001919, true));
+  CuAssertIntEquals(tc, 2001864, rol_toll_keeper_destination(2001919, false));
+  CuAssertIntEquals(tc, 2014236, rol_toll_keeper_destination(2014202, true));
+  CuAssertIntEquals(tc, 2014238, rol_toll_keeper_destination(2014202, false));
+  CuAssertIntEquals(tc, -1, rol_toll_keeper_destination(999999, false));
+
+  CuAssertTrue(tc, rol_toll_keeper_ticket_matches(2011106, 2005313, 2011100, 2005341));
+  CuAssertTrue(tc, rol_toll_keeper_ticket_matches(2011306, 2005399, 2011300, 2005341));
+  CuAssertTrue(tc, rol_toll_keeper_ticket_matches(2098357, 2098425, 2098451, 2000046));
+  CuAssertTrue(tc, rol_toll_keeper_ticket_matches(2098358, 2014312, 2098451, 2000046));
+  CuAssertTrue(tc, !rol_toll_keeper_ticket_matches(2011106, 2005313, 2011300, 2005341));
+  CuAssertTrue(tc, !rol_toll_keeper_ticket_matches(2011106, 2005313, 2011100, 2000046));
+  CuAssertTrue(tc, !rol_toll_keeper_ticket_matches(2007210, 2007680, -1, -1));
+
+  CuAssertTrue(tc, rol_toll_keeper_payment_syntax_valid(2007210, "20 gold tax knight"));
+  CuAssertTrue(tc, rol_toll_keeper_payment_syntax_valid(2007210, "20 coins tax knight"));
+  CuAssertTrue(tc, !rol_toll_keeper_payment_syntax_valid(2007210, "2 platinum tax knight"));
+  CuAssertTrue(tc, !rol_toll_keeper_payment_syntax_valid(2007210, "sword tax knight"));
+  CuAssertTrue(tc, rol_toll_keeper_payment_syntax_valid(2007335, "anything"));
+  CuAssertTrue(tc, !rol_toll_keeper_payment_syntax_valid(2001919, "5 gold troll"));
+  CuAssertTrue(tc, !rol_toll_keeper_payment_syntax_valid(999999, "20 gold nobody"));
+}
+
 void Test_spec_rol_class_guilds_preserve_family_gates_for_multiclass_players(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

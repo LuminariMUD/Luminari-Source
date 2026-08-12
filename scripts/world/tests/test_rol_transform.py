@@ -1608,6 +1608,50 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Guild Guard", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_toll_keeper_handlers_share_mobile_adapter(self) -> None:
+    handlers = [
+        (1919, "bridge_troll"),
+        (7210, "bs_tax"),
+        (7335, "bs_bouncer"),
+        (7335, "bs_bouncer"),
+        (11106, "ticket_taker"),
+        (11306, "ticket_taker"),
+        (11542, "ghore_paradise"),
+        (14202, "bridge_troll"),
+        (98357, "ticket_taker"),
+        (98358, "ticket_taker"),
+    ]
+    bindings = [
+        {
+            "basename": "tolls",
+            "record_type": "mobile",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(10, len(compiled.native_bindings))
+    self.assertTrue(
+        all(
+            binding.persisted_name == "RoL Toll Keeper"
+            for binding in compiled.native_bindings
+        )
+    )
+    self.assertTrue(
+        all(binding.required_flag_bits == (0,) for binding in compiled.native_bindings)
+    )
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_class_type_guild_bindings_use_distinct_room_adapters(self) -> None:
     expected = {
         "guild_classtype_mage": "RoL Mage Guild Room",

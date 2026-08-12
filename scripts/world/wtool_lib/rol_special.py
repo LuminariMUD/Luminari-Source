@@ -77,6 +77,8 @@ ADAPTED_HANDLER_NAMES = {
     "bs_guildguard_sorcconj": "RoL Guild Guard",
     "bs_guildguard_thief": "RoL Guild Guard",
     "bs_portal": "RoL Bloodstone Portal",
+    "bs_bouncer": "RoL Toll Keeper",
+    "bs_tax": "RoL Toll Keeper",
     "cage_command_block": "RoL Command Sentinel",
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
@@ -164,9 +166,12 @@ ADAPTED_HANDLER_NAMES = {
     "waterdeep_guard_two": "RoL Waterdeep Ambient",
     "ancient_man": "RoL Command Sentinel",
     "gate_guard": "RoL Command Sentinel",
+    "ghore_paradise": "RoL Toll Keeper",
     "necro_passing_glyph": "RoL Command Sentinel",
     "shady_man": "RoL Command Sentinel",
     "stone_golem": "RoL Command Sentinel",
+    "bridge_troll": "RoL Toll Keeper",
+    "ticket_taker": "RoL Toll Keeper",
 }
 ADAPTED_HANDLER_NAMES.update(
     {handler_name: "RoL Source Periodic" for handler_name in PROFILE_SOURCES}
@@ -972,13 +977,18 @@ def compile_special_bindings(
           "bs_guildguard_necro",
           "bs_guildguard_sorcconj",
           "bs_guildguard_thief",
+          "bs_bouncer",
+          "bs_tax",
+          "bridge_troll",
           "follow_that_mob",
+          "ghore_paradise",
           "guild_guard",
           *COMPOSED_STATE_PROFILE_SOURCES,
           "lich_energy_drain",
           "major_beholder",
           "navagator",
           "sister_knight",
+          "ticket_taker",
       }:
         required_bits = (0,)
       elif handler in {"floating_pool", "obj_drain"}:

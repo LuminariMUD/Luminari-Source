@@ -85,6 +85,26 @@ struct rol_command_sentinel_profile
   const char *room_message;
 };
 
+enum rol_toll_keeper_kind
+{
+  ROL_TOLL_KEEPER_FEE_GATE = 0,
+  ROL_TOLL_KEEPER_BRIDGE,
+  ROL_TOLL_KEEPER_TICKET
+};
+
+struct rol_toll_keeper_profile
+{
+  int mobile_vnum;
+  int room_vnum;
+  enum rol_toll_keeper_kind kind;
+  int direction;
+  int destination_a;
+  int destination_b;
+  int fee_gold;
+  int ticket_vnum;
+  int entered_object_vnum;
+};
+
 enum rol_death_effect
 {
   ROL_DEATH_EFFECT_NONE = 0,
@@ -291,6 +311,18 @@ static const struct rol_command_sentinel_profile rol_command_sentinel_profiles[]
     {2081508, 2081596, SOUTH, 10, ROL_SENTINEL_GOOD_RACE_OVER_LEVEL,
      "$n lays a hand upon your shoulder and says, 'Ye may not pass.'",
      "$n lays a hand upon $N's shoulder and says, 'Ye may not pass.'"},
+};
+
+static const struct rol_toll_keeper_profile rol_toll_keeper_profiles[] = {
+    {2001919, 2001863, ROL_TOLL_KEEPER_BRIDGE, -1, 2001862, 2001864, 5, -1, -1},
+    {2007210, 2007680, ROL_TOLL_KEEPER_FEE_GATE, NORTH, 2007681, -1, 20, -1, -1},
+    {2007335, 2007431, ROL_TOLL_KEEPER_FEE_GATE, SOUTH, 2007432, -1, 10, -1, -1},
+    {2011106, 2005313, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2005341, 2011100},
+    {2011306, 2005399, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2005341, 2011300},
+    {2011542, 2011666, ROL_TOLL_KEEPER_FEE_GATE, UP, 2011667, -1, 500, -1, -1},
+    {2014202, 2014237, ROL_TOLL_KEEPER_BRIDGE, -1, 2014236, 2014238, 5, -1, -1},
+    {2098357, 2098425, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
+    {2098358, 2014312, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
@@ -3964,6 +3996,457 @@ int rol_command_sentinel_typed(struct spec_event_context *context)
     return rol_command_sentinel_mobile(context->actor, context->owner, context->command);
   if (context->owner_type == SPEC_OWNER_ROOM)
     return rol_command_sentinel_room(context->actor, context->owner, context->command);
+
+  return FALSE;
+}
+
+static const struct rol_toll_keeper_profile *rol_toll_keeper_profile_for(int mobile_vnum)
+{
+  size_t index;
+
+  for (index = 0; index < sizeof(rol_toll_keeper_profiles) / sizeof(rol_toll_keeper_profiles[0]);
+       index++)
+    if (rol_toll_keeper_profiles[index].mobile_vnum == mobile_vnum)
+      return &rol_toll_keeper_profiles[index];
+
+  return NULL;
+}
+
+int rol_toll_keeper_fee_gold(int mobile_vnum)
+{
+  const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
+
+  return profile != NULL ? profile->fee_gold : 0;
+}
+
+int rol_toll_keeper_destination(int mobile_vnum, bool first_side)
+{
+  const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
+
+  if (profile == NULL)
+    return -1;
+
+  return first_side || profile->destination_b < 0 ? profile->destination_a : profile->destination_b;
+}
+
+bool rol_toll_keeper_ticket_matches(int mobile_vnum, int room_vnum, int entered_object_vnum,
+                                    int ticket_vnum)
+{
+  const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->kind == ROL_TOLL_KEEPER_TICKET &&
+         profile->room_vnum == room_vnum && profile->entered_object_vnum == entered_object_vnum &&
+         profile->ticket_vnum == ticket_vnum;
+}
+
+bool rol_toll_keeper_payment_syntax_valid(int mobile_vnum, const char *argument)
+{
+  const struct rol_toll_keeper_profile *profile = rol_toll_keeper_profile_for(mobile_vnum);
+  char amount_text[MAX_INPUT_LENGTH];
+  char currency[MAX_INPUT_LENGTH];
+  const char *remainder;
+
+  if (profile == NULL || profile->kind != ROL_TOLL_KEEPER_FEE_GATE || argument == NULL)
+    return false;
+  if (profile->mobile_vnum != 2007210)
+    return true;
+
+  remainder = one_argument(argument, amount_text, sizeof(amount_text));
+  one_argument(remainder, currency, sizeof(currency));
+  return is_number(amount_text) &&
+         (!str_cmp(currency, "gold") || !str_cmp(currency, "coin") || !str_cmp(currency, "coins"));
+}
+
+static void rol_toll_keeper_social(struct char_data *keeper, const char *social)
+{
+  int command;
+
+  if (keeper == NULL || social == NULL || (command = find_command(social)) < 0)
+    return;
+
+  do_action(keeper, "", command, 0);
+}
+
+static int rol_toll_keeper_activity(struct char_data *keeper)
+{
+  const struct rol_toll_keeper_profile *profile;
+  int roll;
+
+  if (keeper == NULL || !IS_NPC(keeper) || !AWAKE(keeper) || FIGHTING(keeper) != NULL ||
+      !VALID_ROOM_RNUM(IN_ROOM(keeper)) ||
+      (profile = rol_toll_keeper_profile_for(GET_MOB_VNUM(keeper))) == NULL ||
+      (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum)
+    return FALSE;
+
+  switch (profile->mobile_vnum)
+  {
+  case 2007210:
+    roll = rand_number(0, 80);
+    switch (roll)
+    {
+    case 0:
+      do_say(keeper, "Welcome to the Barony of Bloodstone!", 0, 0);
+      rol_toll_keeper_social(keeper, "smile");
+      return TRUE;
+    case 1:
+      do_say(keeper, "I am the official tax collector of the Keep.", 0, 0);
+      do_say(keeper, "You must pay me 20 gold coins as tribute to enter.", 0, 0);
+      return TRUE;
+    case 2:
+      do_say(keeper, "I will not let you pass unless you pay the tribute!", 0, 0);
+      return TRUE;
+    case 3:
+      do_say(keeper, "The Keep is far to the north.", 0, 0);
+      rol_toll_keeper_social(keeper, "smile");
+      return TRUE;
+    case 4:
+      act("$n holds out $s hand for some coins.", TRUE, keeper, NULL, NULL, TO_ROOM);
+      return TRUE;
+    case 5:
+      do_say(keeper, "Pay now, or die now; 'tis a simple choice, is it not?", 0, 0);
+      rol_toll_keeper_social(keeper, "cackle");
+      return TRUE;
+    default:
+      return FALSE;
+    }
+  case 2007335:
+    roll = rand_number(0, 60);
+    switch (roll)
+    {
+    case 0:
+      do_say(keeper, "Wait a minute, you don't look old enough to enter!", 0, 0);
+      return TRUE;
+    case 1:
+      do_say(keeper, "If I hear any complaints, I'll come in after ya!", 0, 0);
+      return TRUE;
+    case 2:
+      do_say(keeper, "In or out! Don't crowd the alley.", 0, 0);
+      return TRUE;
+    case 3:
+      do_say(keeper, "HA! Laughter is what you will hear if you shed those clothes.", 0, 0);
+      return TRUE;
+    case 4:
+      do_say(keeper, "Be sure to carry a heavy purse.", 0, 0);
+      return TRUE;
+    default:
+      return FALSE;
+    }
+  case 2011542:
+    roll = rand_number(0, 80);
+    switch (roll)
+    {
+    case 0:
+      do_say(keeper, "Welcome to Paradise!", 0, 0);
+      rol_toll_keeper_social(keeper, "cackle");
+      return TRUE;
+    case 1:
+      rol_toll_keeper_social(keeper, "sing");
+      do_say(keeper, "Gimme lots of money, or I'm gonna eat you....", 0, 0);
+      return TRUE;
+    case 2:
+      do_say(keeper, "I will not let you pass unless you pay the tribute!", 0, 0);
+      return TRUE;
+    case 3:
+      do_say(keeper, "Paradise lies ahead...", 0, 0);
+      rol_toll_keeper_social(keeper, "smile");
+      return TRUE;
+    case 4:
+      act("$n holds out $s hand for some coins.", TRUE, keeper, NULL, NULL, TO_ROOM);
+      return TRUE;
+    case 5:
+      do_say(keeper, "Pay now, or die now; 'tis a simple choice, is it not?", 0, 0);
+      rol_toll_keeper_social(keeper, "cackle");
+      return TRUE;
+    default:
+      return FALSE;
+    }
+  default:
+    return FALSE;
+  }
+}
+
+static bool rol_toll_keeper_move(struct char_data *ch,
+                                 const struct rol_toll_keeper_profile *profile, bool first_side)
+{
+  room_rnum destination;
+  int destination_vnum;
+
+  destination_vnum =
+      first_side || profile->destination_b < 0 ? profile->destination_a : profile->destination_b;
+  destination = real_room(destination_vnum);
+  if (!VALID_ROOM_RNUM(destination))
+  {
+    log("SYSERR: RoL toll keeper %d has invalid destination %d", profile->mobile_vnum,
+        destination_vnum);
+    send_to_char(ch, "The way beyond is unavailable. Please tell a staff member.\r\n");
+    return false;
+  }
+
+  char_from_room(ch);
+  char_to_room(ch, destination);
+  switch (profile->mobile_vnum)
+  {
+  case 2007210:
+    act("$n arrives from the south.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 2007335:
+    act("$n enters from the north.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case 2011542:
+    act("$n arrives from the passage below.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  default:
+    act("$n lands in a pile here from the direction of the bridge!", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  }
+  return true;
+}
+
+static void rol_toll_keeper_demand(struct char_data *keeper,
+                                   const struct rol_toll_keeper_profile *profile)
+{
+  switch (profile->mobile_vnum)
+  {
+  case 2007210:
+    do_say(keeper, "You cannot enter the Baron's realm without paying homage to my lord!", 0, 0);
+    do_say(keeper, "The price to enter is 20 gold coins!", 0, 0);
+    break;
+  case 2007335:
+    do_say(keeper, "Sorry, friend, but you'll have to pay to enter!", 0, 0);
+    do_say(keeper, "The price is 10 gold coins.", 0, 0);
+    break;
+  case 2011542:
+    do_say(keeper, "Paradise is off limits to freeloaders!", 0, 0);
+    do_say(keeper, "The price to enter is 500 gold coins!", 0, 0);
+    break;
+  default:
+    break;
+  }
+}
+
+static void rol_toll_keeper_underpayment(struct char_data *keeper,
+                                         const struct rol_toll_keeper_profile *profile)
+{
+  char message[128];
+
+  snprintf(message, sizeof(message), "The entry fee is %d gold coins. Try again.",
+           profile->fee_gold);
+  do_say(keeper, message, 0, 0);
+}
+
+static void rol_toll_keeper_approve(struct char_data *keeper, struct char_data *ch,
+                                    const struct rol_toll_keeper_profile *profile, bool npc)
+{
+  switch (profile->mobile_vnum)
+  {
+  case 2007210:
+    do_say(keeper, "'Tis wise of you to part with your money instead of your head.", 0, 0);
+    do_say(keeper, "Welcome to the Barony of Bloodstone.", 0, 0);
+    act("$n steps aside to let you pass northwards.", FALSE, keeper, NULL, ch, TO_VICT);
+    act("$n steps aside to let $N pass northwards.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+    break;
+  case 2007335:
+    do_say(keeper, "That'll do!", 0, 0);
+    act(npc ? "$n steps aside to let $N enter." : "$n steps aside to let you enter.", FALSE, keeper,
+        NULL, ch, npc ? TO_NOTVICT : TO_VICT);
+    if (!npc)
+      act("$n steps aside to let $N enter.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+    break;
+  case 2011542:
+    do_say(keeper, "Welcome to Paradise.", 0, 0);
+    act(npc ? "$n steps aside to let $N up the passage."
+            : "$n steps aside to let you continue up the passage.",
+        FALSE, keeper, NULL, ch, npc ? TO_NOTVICT : TO_VICT);
+    if (!npc)
+      act("$n steps aside to let $N further up the passage.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+    break;
+  default:
+    break;
+  }
+}
+
+static int rol_toll_keeper_fee_gate(struct char_data *ch, struct char_data *keeper, int cmd,
+                                    const char *argument,
+                                    const struct rol_toll_keeper_profile *profile)
+{
+  int before_gold;
+  int paid;
+
+  if (!AWAKE(keeper) || FIGHTING(keeper) != NULL)
+    return FALSE;
+
+  if (IS_MOVE(cmd) && complete_cmd_info[cmd].subcmd == profile->direction)
+  {
+    if (IS_NPC(ch))
+    {
+      act("$N gives $n some money.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+      rol_toll_keeper_approve(keeper, ch, profile, true);
+      rol_toll_keeper_move(ch, profile, true);
+      return TRUE;
+    }
+    act("$n stops you.", FALSE, keeper, NULL, ch, TO_VICT);
+    act("$n stops $N.", TRUE, keeper, NULL, ch, TO_NOTVICT);
+    rol_toll_keeper_demand(keeper, profile);
+    return TRUE;
+  }
+
+  if (!CMD_IS("give"))
+    return FALSE;
+
+  if (!rol_toll_keeper_payment_syntax_valid(profile->mobile_vnum, argument))
+  {
+    do_say(keeper, "Are you mocking me? Pay the tribute in gold coins.", 0, 0);
+    rol_toll_keeper_social(keeper, "push");
+    return TRUE;
+  }
+
+  before_gold = GET_GOLD(keeper);
+  do_give(ch, argument, cmd, 0);
+  paid = GET_GOLD(keeper) - before_gold;
+  if (paid < profile->fee_gold)
+  {
+    rol_toll_keeper_underpayment(keeper, profile);
+    return TRUE;
+  }
+
+  rol_toll_keeper_approve(keeper, ch, profile, false);
+  rol_toll_keeper_move(ch, profile, true);
+  return TRUE;
+}
+
+static int rol_toll_keeper_bridge(struct char_data *ch, struct char_data *keeper, int cmd,
+                                  const char *argument,
+                                  const struct rol_toll_keeper_profile *profile)
+{
+  struct char_data *first;
+  int before_gold;
+  int paid;
+
+  if (!CMD_IS("give") || ch == keeper)
+    return FALSE;
+
+  before_gold = GET_GOLD(keeper);
+  do_give(ch, argument, cmd, 0);
+  paid = GET_GOLD(keeper) - before_gold;
+  if (paid == 0)
+    return TRUE;
+  if (paid < profile->fee_gold)
+  {
+    do_say(keeper, "You STILL need to pay me 5 gold coins, pal.", 0, 0);
+    return TRUE;
+  }
+
+  for (first = world[IN_ROOM(keeper)].people; first != NULL && first != keeper && first != ch;
+       first = first->next_in_room)
+    ;
+  rol_toll_keeper_social(keeper, "smile");
+  act("$N picks you up and tosses you to the other side of the bridge!", FALSE, ch, NULL, keeper,
+      TO_CHAR);
+  act("$N throws $n to the other side of the bridge!", TRUE, ch, NULL, keeper, TO_NOTVICT);
+  if (rol_toll_keeper_move(ch, profile, first == keeper))
+    GET_POS(ch) = POS_SITTING;
+  return TRUE;
+}
+
+static struct obj_data *rol_toll_keeper_ticket(struct char_data *ch, struct char_data *keeper,
+                                               const struct rol_toll_keeper_profile *profile)
+{
+  struct obj_data *ticket;
+
+  for (ticket = ch->carrying; ticket != NULL; ticket = ticket->next_content)
+    if ((int)GET_OBJ_VNUM(ticket) == profile->ticket_vnum)
+      return ticket;
+  for (ticket = keeper->carrying; ticket != NULL; ticket = ticket->next_content)
+    if ((int)GET_OBJ_VNUM(ticket) == profile->ticket_vnum)
+      return ticket;
+
+  return NULL;
+}
+
+static int rol_toll_keeper_ticket_taker(struct char_data *ch, struct char_data *keeper, int cmd,
+                                        const char *argument,
+                                        const struct rol_toll_keeper_profile *profile)
+{
+  struct obj_data *entered;
+  struct obj_data *ticket;
+  char name[MAX_INPUT_LENGTH];
+
+  if (!CMD_IS("enter") || !AWAKE(keeper) || !CAN_SEE(keeper, ch))
+    return FALSE;
+
+  one_argument(argument, name, sizeof(name));
+  if (!*name)
+    return FALSE;
+  entered = get_obj_in_list_vis(keeper, name, NULL, world[IN_ROOM(keeper)].contents);
+  if (entered == NULL || (int)GET_OBJ_VNUM(entered) != profile->entered_object_vnum)
+    return FALSE;
+
+  ticket = rol_toll_keeper_ticket(ch, keeper, profile);
+  if (ticket == NULL)
+  {
+    act("$N says, 'You must have a ticket to proceed.'", FALSE, ch, NULL, keeper, TO_CHAR);
+    return TRUE;
+  }
+
+  if (ticket->carried_by == ch)
+  {
+    act("$N tears up the ticket in your hand.", FALSE, ch, NULL, keeper, TO_CHAR);
+    act("$N tears up the ticket in $n's hand.", FALSE, ch, NULL, keeper, TO_ROOM);
+  }
+  else
+    act("$n tears up the ticket.", FALSE, keeper, NULL, NULL, TO_ROOM);
+  obj_from_char(ticket);
+  extract_obj(ticket);
+  act("Then $E says to you, 'You may proceed.'", FALSE, ch, NULL, keeper, TO_CHAR);
+  act("Then $E says to $n, 'You may proceed.'", FALSE, ch, NULL, keeper, TO_ROOM);
+  return FALSE;
+}
+
+static int rol_toll_keeper_command(struct char_data *ch, struct char_data *keeper, int cmd,
+                                   const char *argument)
+{
+  const struct rol_toll_keeper_profile *profile;
+
+  if (ch == NULL || keeper == NULL || !IS_NPC(keeper) || cmd <= 0 || argument == NULL ||
+      complete_cmd_info == NULL || !VALID_ROOM_RNUM(IN_ROOM(keeper)) ||
+      (profile = rol_toll_keeper_profile_for(GET_MOB_VNUM(keeper))) == NULL ||
+      (int)GET_ROOM_VNUM(IN_ROOM(keeper)) != profile->room_vnum)
+    return FALSE;
+
+  switch (profile->kind)
+  {
+  case ROL_TOLL_KEEPER_FEE_GATE:
+    return rol_toll_keeper_fee_gate(ch, keeper, cmd, argument, profile);
+  case ROL_TOLL_KEEPER_BRIDGE:
+    return rol_toll_keeper_bridge(ch, keeper, cmd, argument, profile);
+  case ROL_TOLL_KEEPER_TICKET:
+    return rol_toll_keeper_ticket_taker(ch, keeper, cmd, argument, profile);
+  default:
+    return FALSE;
+  }
+}
+
+int rol_toll_keeper(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  (void)ch;
+  (void)me;
+  (void)cmd;
+  (void)argument;
+
+  /* Typed dispatch supplies the owner/event distinction. */
+  return FALSE;
+}
+
+int rol_toll_keeper_typed(struct spec_event_context *context)
+{
+  if (context == NULL || context->owner_type != SPEC_OWNER_MOBILE)
+    return FALSE;
+
+  if (context->event == SPEC_EVENT_COMMAND)
+    return rol_toll_keeper_command(context->actor, context->owner, context->command,
+                                   context->argument);
+  if (context->event == SPEC_EVENT_MOBILE_ACTIVITY)
+    return rol_toll_keeper_activity(context->owner);
 
   return FALSE;
 }
