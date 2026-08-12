@@ -78,6 +78,7 @@ Phase 6 guild-family adapter commit: 99cb8aed
 Phase 6 Waterdeep-guard composition commit: ef0571bd
 Phase 6 death/periodic bulk-profile commit: 6a81b61e
 Phase 6 command-sentinel commit: 827d5f6d
+Phase 6 toll/ticket-keeper commit: cecbec9d
 ```
 
 The authoritative ignored runs are:
@@ -204,6 +205,9 @@ Phase 6 death/periodic bulk profiles:
 Phase 6 command sentinels:
   lib/rol-conversion/runs/phase6-special-20260812-command-sentinels
   rol-phase6-special-ab673270b393501a
+Phase 6 toll and ticket keepers:
+  lib/rol-conversion/runs/phase6-special-20260812-toll-keepers
+  rol-phase6-special-069b798651151c53
 Policy:  rol-conversion-policy-1
 ```
 
@@ -232,11 +236,11 @@ Policy:  rol-conversion-policy-1
   all 1,160 selected rooms. The isolated test-database boot enters the game loop,
   observes eligible resets for zones 1591 and 20586, and terminates normally with no
   pilot-related spell, reference, reset, trigger, extraction, or `SYSERR` diagnostics.
-- The world-tool suite passes 294 tests; the production-linked CuTest suite passes 646;
+- The world-tool suite passes 295 tests; the production-linked CuTest suite passes 647;
   `make install` succeeds and leaves no root-level `circle` artifact.
-- Thirty-eight bounded Phase 6 delivery sessions are archived. The generated regular-profile
+- Thirty-nine bounded Phase 6 delivery sessions are archived. The generated regular-profile
   checkpoints support a forward target of 20-45 related families per batch where a shared
-  shape exists. The measured remaining forecast is 53-88 sessions: Phase 6 is 5-12,
+  shape exists. The measured remaining forecast is 53-87 sessions: Phase 6 is 5-11,
   Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
@@ -412,18 +416,23 @@ Policy:  rol-conversion-policy-1
   owner-aware `RoL Command Sentinel`. The converted rules preserve source race, class,
   level, direction, room, chance, staff, and glyph-damage behavior. Three Foggy Woods
   warning rooms share one generated entry trigger with their source warning sequence.
+- Five toll, bridge, and ticket handler families covering ten active bindings are complete
+  through `RoL Toll Keeper`. Nine converted mobile profiles preserve three fixed-fee
+  passages, two bridge throws, four ticketed ship entries, target-currency conversion,
+  underpayment retention, NPC passage, source periodic speech, exact rooms, destinations,
+  ticket identities, and entered ship identities.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 872 of 1,147 active direct bindings and 339 of
-  562 source handlers, leaving 275 bindings and 223 handlers. The independent
-  `ACT_SPEC` cross-check resolves 770 of 848 records and leaves 78 pending.
+- The current Phase 6 checkpoint resolves 882 of 1,147 active direct bindings and 344 of
+  562 source handlers, leaving 265 bindings and 218 handlers. The independent
+  `ACT_SPEC` cross-check resolves 776 of 848 records and leaves 72 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 275 direct bindings across 223 handlers. Classify regular
+1. Reconcile the remaining 265 direct bindings across 218 handlers. Classify regular
    shapes in bulk, then use strict generated profiles or dependency-complete shared
    runtime batches before individual adaptations.
 2. Preserve record-specific missing-reference repairs for their Phase 7

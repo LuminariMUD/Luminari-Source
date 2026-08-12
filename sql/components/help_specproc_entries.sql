@@ -116,6 +116,13 @@ source behavior of dealing 25 damage through Minor Globe or Globe of
 Invulnerability, versus one damage otherwise, and never lowers hit points below
 one. Do not assign this identity-keyed procedure to unrelated prototypes.
 
+RoL Toll Keeper is mobile-owned and requires MOB_SPEC. Nine converter-owned
+profiles preserve three fixed-fee passages and two bridge throws, plus four
+ticketed ship entries. Source platinum and copper fees map to target gold: use GIVE
+<amount> GOLD <keeper>. Ticket takers accept the configured ticket from the
+player or keeper, destroy one, and then allow ENTER to continue. Do not assign
+this identity-keyed procedure to unrelated mobiles.
+
 RoL Shadow Giant is mobile-owned and requires MOB_SPEC. While fighting, each
 mobile-activity pulse has the source one-in-21 chance to spook every player and
 charmed pet in the room for mental damage and a possible short stun. It is

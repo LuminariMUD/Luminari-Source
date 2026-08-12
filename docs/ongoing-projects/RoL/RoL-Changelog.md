@@ -6,6 +6,69 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 toll and ticket keepers
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed ten active direct bindings across five source handler families as one passage
+  and admission batch. The duplicate `bs_bouncer` source assignment remains visible in
+  the evidence ledger while sharing one converted prototype behavior.
+- Added the typed, mobile-owned `RoL Toll Keeper` procedure for nine converted keeper
+  profiles. All profiles use the target-required `MOB_SPEC` flag for periodic activity.
+- Preserved the Bloodstone tax knight's 20-target-gold north passage, the Bloodstone
+  bouncer's 10-gold south passage, and Ghore's 500-gold up passage. Source platinum maps
+  to ten target gold, NPCs pass directly, underpayments remain with the keeper, and the
+  three authored periodic speech tables retain their exact random ranges.
+- Preserved the two bridge trolls' five-target-gold fee, source room-list side selection,
+  destination pairs, throw messages, sitting landing position, underpayment behavior,
+  and silent zero-transfer GIVE edge case.
+- Preserved four ticket takers across the Realms Master, Silver Lady, and Havenport
+  routes. The procedure matches the exact room and ship, consumes one configured ticket
+  from the player or keeper, blocks the configured ship without a ticket, and lets the
+  ship procedure continue boarding after successful admission.
+- Extended the canonical registry, owner-aware OLC, persisted-name inventory, typed
+  dispatch, converter, reconciliation, mechanic characterization, manual testing, and
+  builder help coverage.
+- Reconciliation now resolves 882 of 1,147 active direct bindings and 344 of 562 source
+  handlers; 265 bindings and 218 handlers remain. The independent `ACT_SPEC` checkpoint
+  advances to 776 resolved / 72 pending.
+- Archived the thirty-ninth Phase 6 delivery session. At the measured 20-45-family bulk
+  target, the remaining Phase 6 envelope is 5-11 sessions and the Phases 6-8 forecast is
+  53-87 sessions, or 106-348 focused engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: cecbec9d
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-toll-keepers
+Reconciliation run: rol-phase6-special-069b798651151c53
+Active direct bindings: 1,147
+Direct bindings resolved: 882
+Direct bindings pending: 265
+Source handlers resolved: 344
+Source handlers pending: 218
+Additional handler families resolved: 5
+Additional direct bindings resolved: 10
+Native adapted bindings: 465
+Native adapted composable bindings: 151
+DG-compiled bindings: 48
+ACT_SPEC records resolved: 776
+ACT_SPEC records pending: 72
+Complete world-tool suite: 295 passed
+Focused converter/reconciliation tests: 2 passed
+Production-linked CuTest suite: 647 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL checks: 4 passed after applying the migration twice
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 265 direct bindings across 218 source handlers.
+The next batch continues prioritizing shared behavior shapes and high binding yield.
+
 ## 2026-08-12 - Phase 6 command sentinels and entry warnings
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

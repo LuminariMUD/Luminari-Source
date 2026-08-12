@@ -566,6 +566,25 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   Foggy Woods barbarian warning through one shared entry trigger; unrelated rooms should
   not deliver it.
 
+### Phase 6 converted toll and ticket keepers
+
+- Build dependency-complete stages for the nine converted keeper mobiles. Confirm all
+  use `RoL Toll Keeper` with `MOB_SPEC`; the duplicate Bloodstone bouncer assignment
+  still produces one prototype behavior.
+- At Bloodstone tax knight 2007210 in room 2007680, NORTH is blocked until the player
+  gives 20 target gold, then moves the player to 2007681. A non-gold GIVE is rejected
+  before transfer. At bouncer 2007335 in room 2007431, 10 gold permits SOUTH to 2007432.
+  At Ghore keeper 2011542 in room 2011666, 500 gold permits UP to 2011667. Underpayments
+  remain with the keeper as in the source; NPCs pass the guarded direction directly.
+- Give 5 gold to bridge troll 2001919 in room 2001863 and troll 2014202 in room 2014237.
+  The actor should be thrown sitting to one of 2001862/2001864 or 2014236/2014238,
+  respectively, according to source room-list ordering. An underpayment is retained and
+  refused; a GIVE that transfers no gold is silently consumed.
+- At ticket takers 2011106/2011306, ENTER the matching ship 2011100/2011300 while carrying
+  ticket 2005341, or after giving it to the taker. At 2098357/2098358, use ticket 2000046
+  to ENTER ship 2098451. One ticket is destroyed and boarding continues. The matching
+  ship is blocked without a ticket, while ENTER for an unrelated room object is ignored.
+
 ### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
@@ -742,9 +761,9 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 872 are resolved and 275 remain. Of 562 distinct
-  source handlers, 339 are resolved and 223 remain. Of 848 `ACT_SPEC` records, 770 are
-  resolved and 78 remain. The automatic race procedures
+  of the 1,147 active direct bindings, 882 are resolved and 265 remain. Of 562 distinct
+  source handlers, 344 are resolved and 218 remain. Of 848 `ACT_SPEC` records, 776 are
+  resolved and 72 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,
   receptionist, corpse-devourer, poison-bite, thief, breath, or conjured-death families;
