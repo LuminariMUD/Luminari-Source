@@ -443,6 +443,26 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   victim stops at zero hit points instead of minus five, while the life transfer and stun remain.
   A non-party bystander must never be selected.
 
+### Phase 6 converted undead drain family
+
+- `RoL Undead Drain` is implemented for converted mobiles 2001256-2001262. These
+  mobiles are outside the five-package staged pilot, so test them only in a later
+  dependency-complete stage and do not assign the converter-owned procedure elsewhere.
+- Confirm all seven mobiles have `MOB_SPEC` and the named procedure. Fight each with a
+  mortal over repeated combat turns: 2001256 and 2001258 use a one-in-16 check; the
+  other five use one-in-21. The target combat-turn cadence is the explicit adaptation
+  for the source NPC-hit and NPC-critical callbacks, which have no target registry event.
+- After a failed Will save, confirm 2001256 applies -1 armor and -5 Dexterity; 2001257
+  applies -5 Strength and -1 Will; 2001258 applies -2 armor and -10 Dexterity; 2001259
+  applies -2 armor, -15 Dexterity, and two ticks of slow; 2001260 applies -10 Strength
+  and -1 Will; 2001261 applies -3 armor, -15 Dexterity, -15 Strength, and slow; and
+  2001262 applies -10 Strength, -1 Will, and -1 Fortitude. Profile affects last two to
+  three ticks except the fixed two-tick ghast slow.
+- While one melee-profile effect is active, another melee-profile mobile must not add
+  its drain; spell-profile effects behave the same within their separate shared group.
+  One melee and one spell profile may coexist. Undead victims and targets protected by
+  Death Ward must remain immune.
+
 ### Phase 6 converted trade bandits
 
 - `RoL Trade Bandit` is implemented for all seven active source bindings. The affected
@@ -833,8 +853,8 @@ later staged batch includes one; do not invent or hand-edit a trap into this pil
   room, so those two behaviors cannot yet be exercised from this staged bundle.
 - Phase 6 now has an exact inventory rather than treating `ACT_SPEC` as the direct
   binding count. Of 1,234 discovered candidates, 87 are source-preprocessor exclusions;
-  of the 1,147 active direct bindings, 903 are resolved and 244 remain. Of 562 distinct
-  source handlers, 361 are resolved and 201 remain. Of 848 `ACT_SPEC` records, 776 are
+  of the 1,147 active direct bindings, 929 are resolved and 218 remain. Of 562 distinct
+  source handlers, 386 are resolved and 176 remain. Of 848 `ACT_SPEC` records, 776 are
   resolved and 72 remain. The automatic race procedures
   are complete and the Hulburg subset is exposed above. The current five-zone pilot
   still has no selected source example from the newly shared guild, janitor, pet-shop,

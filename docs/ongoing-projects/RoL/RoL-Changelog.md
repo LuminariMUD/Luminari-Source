@@ -6,6 +6,66 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 converted undead drain family
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed seven active mobile bindings across the consecutive `undead_ghoul`,
+  `undead_shadow`, `undead_wight`, `undead_ghast`, `undead_wraith`, `undead_spectre`,
+  and `undead_ghost` handler family with one identity-profiled adapter.
+- Added the mobile-owned, builder-visible `RoL Undead Drain` procedure. The converter
+  persists that canonical name on mobiles 2001256-2001262 and adds the target-required
+  `MOB_SPEC` flag even though the source dispatcher did not require an authored flag.
+- Preserved the one-in-16 ghoul/wight and one-in-21 remaining trigger chances, the
+  failed-Will gate, undead immunity, Death Ward mapping, two-to-three-tick durations,
+  and the source-specific armor, Dexterity, Strength, Will, Fortitude, and slow profiles.
+  Shared melee and spell markers retain the source's two independent exclusion groups.
+- Adapted the source NPC-hit and NPC-critical callback cadence to the target's available
+  combat-turn registry event. This intentionally preserves the random effect profiles
+  without inventing a target hit event or bypassing the owner-aware procedure gateway.
+- Added registered affect identities and wear-off text, owner-aware registry and
+  persistence coverage, strict converter/reconciliation tests, exact seven-profile
+  production-linked tests, builder help, and a bounded OLC selection regression check.
+- Reconciliation now resolves 929 of 1,147 active direct bindings and 386 of 562 source
+  handlers; 218 bindings and 176 handlers remain. The independent `ACT_SPEC` checkpoint
+  remains 776 resolved / 72 pending because its source records are unchanged; the
+  converter supplies the target-required flag.
+- Archived the forty-third Phase 6 delivery session. The remaining bulk envelope stays
+  at 5-10 sessions, leaving the Phases 6-8 forecast at 53-86 sessions, or 106-344 focused
+  engineering hours.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 1f3e5172
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-undead-drain
+Reconciliation run: rol-phase6-special-3571b059181f795c
+Active direct bindings: 1,147
+Direct bindings resolved: 929
+Direct bindings pending: 218
+Source handlers resolved: 386
+Source handlers pending: 176
+Additional handler families resolved: 7
+Additional direct bindings resolved: 7
+Native adapted bindings: 483
+ACT_SPEC records resolved: 776
+ACT_SPEC records pending: 72
+Special registry definitions: 100 total / 94 legacy / 6 typed
+Compatibility names: 101
+Focused world-tool suite: 71 passed
+Complete world-tool suite: 300 passed
+Production-linked CuTest suite: 650 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Warning-free Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 218 direct bindings across 176 source handlers.
+The next bulk batch continues prioritizing shared mechanics and source-file families.
+
 ## 2026-08-12 - Phase 6 converted banana and isolated god toys
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress

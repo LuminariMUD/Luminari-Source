@@ -529,7 +529,7 @@ the remaining Phase 6 families.
 
 ### Phase 6: Special-procedure reconciliation (5-10 remaining sessions)
 
-The current reconciliation leaves 225 active direct bindings across 183 source handlers
+The current reconciliation leaves 218 active direct bindings across 176 source handlers
 and 72 pending `ACT_SPEC` records.
 
 Process dependency-complete batches of roughly 20-45 related source handler families by
