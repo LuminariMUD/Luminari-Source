@@ -105,6 +105,24 @@ struct rol_toll_keeper_profile
   int entered_object_vnum;
 };
 
+enum rol_travel_portal_kind
+{
+  ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD = 0,
+  ROL_TRAVEL_PORTAL_WATERDEEP,
+  ROL_TRAVEL_PORTAL_ELF_GATE,
+  ROL_TRAVEL_PORTAL_SHAMAN_SPORES,
+  ROL_TRAVEL_PORTAL_BLIP,
+  ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN
+};
+
+struct rol_travel_portal_profile
+{
+  int object_vnum;
+  enum rol_travel_portal_kind kind;
+  int fixed_destination_vnum;
+  int reward_vnum;
+};
+
 enum rol_death_effect
 {
   ROL_DEATH_EFFECT_NONE = 0,
@@ -323,6 +341,18 @@ static const struct rol_toll_keeper_profile rol_toll_keeper_profiles[] = {
     {2014202, 2014237, ROL_TOLL_KEEPER_BRIDGE, -1, 2014236, 2014238, 5, -1, -1},
     {2098357, 2098425, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
     {2098358, 2014312, ROL_TOLL_KEEPER_TICKET, -1, -1, -1, 0, 2000046, 2098451},
+};
+
+static const struct rol_travel_portal_profile rol_travel_portal_profiles[] = {
+    {2000882, ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD, -1, -1},
+    {2003088, ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN, 2005582, -1},
+    {2005515, ROL_TRAVEL_PORTAL_WATERDEEP, -1, -1},
+    {2005516, ROL_TRAVEL_PORTAL_WATERDEEP, -1, -1},
+    {2008112, ROL_TRAVEL_PORTAL_ELF_GATE, -1, -1},
+    {2008113, ROL_TRAVEL_PORTAL_ELF_GATE, -1, -1},
+    {2021500, ROL_TRAVEL_PORTAL_SHAMAN_SPORES, -1, -1},
+    {2021501, ROL_TRAVEL_PORTAL_SHAMAN_SPORES, -1, -1},
+    {2041941, ROL_TRAVEL_PORTAL_BLIP, -1, 2041900},
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
@@ -1981,6 +2011,315 @@ bool rol_bloodstone_portal_survives(int current_hit, int hit_loss)
 bool rol_portal_door_race_allows(bool rejects_good, int race)
 {
   return rejects_good ? !rol_race_is_good(race) : !rol_race_is_evil(race);
+}
+
+static const struct rol_travel_portal_profile *rol_travel_portal_profile_for(int object_vnum)
+{
+  size_t index;
+
+  for (index = 0;
+       index < sizeof(rol_travel_portal_profiles) / sizeof(rol_travel_portal_profiles[0]); index++)
+    if (rol_travel_portal_profiles[index].object_vnum == object_vnum)
+      return &rol_travel_portal_profiles[index];
+
+  return NULL;
+}
+
+int rol_travel_portal_destination_slot(int object_vnum, int roll)
+{
+  const struct rol_travel_portal_profile *profile = rol_travel_portal_profile_for(object_vnum);
+
+  if (profile == NULL || profile->fixed_destination_vnum >= 0)
+    return -1;
+  if (profile->kind == ROL_TRAVEL_PORTAL_ELF_GATE)
+    return roll >= 0 && roll < 4 ? roll : -1;
+  return 0;
+}
+
+int rol_travel_portal_fixed_destination(int object_vnum)
+{
+  const struct rol_travel_portal_profile *profile = rol_travel_portal_profile_for(object_vnum);
+
+  return profile != NULL ? profile->fixed_destination_vnum : -1;
+}
+
+int rol_travel_portal_reward_vnum(int object_vnum)
+{
+  const struct rol_travel_portal_profile *profile = rol_travel_portal_profile_for(object_vnum);
+
+  return profile != NULL ? profile->reward_vnum : -1;
+}
+
+bool rol_travel_portal_actor_allowed(int object_vnum, const struct char_data *ch)
+{
+  const struct rol_travel_portal_profile *profile = rol_travel_portal_profile_for(object_vnum);
+
+  if (profile == NULL || ch == NULL)
+    return false;
+
+  switch (profile->kind)
+  {
+  case ROL_TRAVEL_PORTAL_ELF_GATE:
+    return GET_RACE(ch) == RACE_ELF && GET_LEVEL(ch) >= 20;
+  case ROL_TRAVEL_PORTAL_SHAMAN_SPORES:
+    return !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_CLERIC) > 0;
+  case ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN:
+    return !IS_NPC(ch) && CLASS_LEVEL(ch, CLASS_WIZARD) > 0;
+  default:
+    return true;
+  }
+}
+
+static struct obj_data *rol_travel_portal_selected_object(struct char_data *ch,
+                                                          struct obj_data *obj,
+                                                          const char *argument,
+                                                          bitvector_t locations)
+{
+  struct char_data *dummy = NULL;
+  struct obj_data *selected = NULL;
+  char name[MAX_INPUT_LENGTH];
+
+  one_argument(argument, name, sizeof(name));
+  if (!*name || !generic_find(name, locations, ch, &dummy, &selected) || selected != obj)
+    return NULL;
+  return selected;
+}
+
+static room_rnum rol_travel_portal_destination(const struct rol_travel_portal_profile *profile,
+                                               const struct obj_data *obj)
+{
+  int destination_vnum;
+  int slot;
+
+  if (profile->fixed_destination_vnum >= 0)
+    destination_vnum = profile->fixed_destination_vnum;
+  else
+  {
+    slot = rol_travel_portal_destination_slot(
+        profile->object_vnum, profile->kind == ROL_TRAVEL_PORTAL_ELF_GATE ? rand_number(0, 3) : 0);
+    if (slot < 0)
+      return NOWHERE;
+    destination_vnum = GET_OBJ_VAL(obj, slot);
+  }
+
+  return real_room(destination_vnum);
+}
+
+static bool rol_travel_portal_destination_allows(struct char_data *ch, room_rnum destination,
+                                                 bool arena_parity)
+{
+  if (!VALID_ROOM_RNUM(destination) || !valid_mortal_tele_dest(ch, destination, false))
+    return false;
+  return !arena_parity ||
+         ROOM_FLAGGED(IN_ROOM(ch), ROOM_ARENA) == ROOM_FLAGGED(destination, ROOM_ARENA);
+}
+
+static void rol_travel_portal_move(struct char_data *ch, struct obj_data *obj,
+                                   room_rnum destination, enum rol_travel_portal_kind kind)
+{
+  switch (kind)
+  {
+  case ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD:
+    act("$n enters the dimensional fold and reappears elsewhere...", FALSE, ch, obj, NULL, TO_ROOM);
+    send_to_char(ch, "You enter the dimensional fold and reappear elsewhere...\r\n");
+    break;
+  case ROL_TRAVEL_PORTAL_WATERDEEP:
+    send_to_char(ch, "You step into the portal.\r\n"
+                     "Multi-colored lights flash and dance all about you!\r\n"
+                     "You feel yourself stretch and twist across an extra-dimensional plane, "
+                     "then...\r\n");
+    act("$n steps through the portal.", FALSE, ch, obj, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_ELF_GATE:
+    act("As you step into $p, there is a blinding flash of light!", FALSE, ch, obj, NULL, TO_CHAR);
+    send_to_char(ch, "You are ripped through a dark and star-filled void; pain sears through\r\n"
+                     "your body! When you again open your eyes, you are elsewhere...\r\n");
+    act("$n wades into $p.", FALSE, ch, obj, NULL, TO_ROOM);
+    act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_SHAMAN_SPORES:
+    send_to_char(
+        ch, "As you inhale the mushroom spores your vision blurs and a warm numb feeling\r\n"
+            "overwhelms your mind. Color and sound blend into one strange sense and you\r\n"
+            "feel your soul leaving your body with a slightly painful stretching sensation.\r\n"
+            "Your vision fades to black and then blazes outward in a million vivid textures.\r\n");
+    act("As $n inhales the spores, the flames from the fire roar higher and higher, and\r\n"
+        "swirling mists blanket the area. When they clear $n is gone.",
+        FALSE, ch, obj, NULL, TO_ROOM);
+    act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_BLIP:
+    if (obj->carried_by == ch)
+    {
+      act("$p in $n's hands suddenly glows brightly!", FALSE, ch, obj, NULL, TO_ROOM);
+      act("$p in your hands suddenly glows brightly!", FALSE, ch, obj, NULL, TO_CHAR);
+    }
+    else
+      act("$p suddenly glows brightly!", FALSE, ch, obj, NULL, TO_ROOM);
+    act("$n slowly fades out of existence.", FALSE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN:
+    act("$n wades into the fountain's waters and disappears!", TRUE, ch, obj, NULL, TO_ROOM);
+    send_to_char(ch, "You wade into the illusory waters and appear elsewhere!\r\n");
+    break;
+  }
+
+  char_from_room(ch);
+  char_to_room(ch, destination);
+
+  switch (kind)
+  {
+  case ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD:
+    act("$n steps out of a dimensional fold.", FALSE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_ELF_GATE:
+  case ROL_TRAVEL_PORTAL_SHAMAN_SPORES:
+  case ROL_TRAVEL_PORTAL_BLIP:
+  case ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN:
+    act("$n slowly fades into existence.", TRUE, ch, NULL, NULL, TO_ROOM);
+    break;
+  case ROL_TRAVEL_PORTAL_WATERDEEP:
+    break;
+  }
+}
+
+static void rol_travel_portal_consume(struct char_data *ch, struct obj_data *obj)
+{
+  if (obj->carried_by == ch)
+    act("$p in your hands shatters and the pieces disappear in smoke.", TRUE, ch, obj, NULL,
+        TO_CHAR);
+  else
+    act("$p shatters and the pieces disappear in smoke.", TRUE, ch, obj, NULL, TO_ROOM);
+  extract_obj(obj);
+}
+
+int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct obj_data *obj = me;
+  const struct rol_travel_portal_profile *profile;
+  struct obj_data *reward;
+  room_rnum destination;
+  const char *look_argument;
+  bitvector_t locations;
+  bool looking;
+
+  if (ch == NULL || obj == NULL || argument == NULL || !cmd || !VALID_ROOM_RNUM(IN_ROOM(ch)) ||
+      (profile = rol_travel_portal_profile_for(GET_OBJ_VNUM(obj))) == NULL)
+    return FALSE;
+
+  looking = profile->kind == ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD && CMD_IS("look");
+  if (!looking)
+  {
+    if (profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES)
+    {
+      if (!CMD_IS("use"))
+        return FALSE;
+    }
+    else if (!CMD_IS("enter"))
+      return FALSE;
+  }
+
+  look_argument = argument;
+  if (looking)
+  {
+    skip_spaces_c(&look_argument);
+    if (strn_cmp(look_argument, "in ", 3) != 0)
+      return FALSE;
+    look_argument += 3;
+  }
+
+  locations = profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES ? FIND_OBJ_INV
+              : profile->kind == ROL_TRAVEL_PORTAL_BLIP
+                  ? FIND_OBJ_INV | FIND_OBJ_EQUIP | FIND_OBJ_ROOM
+                  : FIND_OBJ_ROOM;
+  if (rol_travel_portal_selected_object(ch, obj, look_argument, locations) == NULL)
+    return FALSE;
+
+  if ((profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES ||
+       profile->kind == ROL_TRAVEL_PORTAL_BLIP) &&
+      GET_OBJ_VAL(obj, 2) == 0)
+  {
+    send_to_char(ch, "Nothing happens.\r\n");
+    return TRUE;
+  }
+
+  destination = rol_travel_portal_destination(profile, obj);
+  if (looking)
+  {
+    if (!VALID_ROOM_RNUM(destination))
+    {
+      send_to_char(ch, "The portal leads nowhere. Please tell a staff member.\r\n");
+      return TRUE;
+    }
+    act("You peer into $p and see...", FALSE, ch, obj, NULL, TO_CHAR);
+    look_at_room_number(ch, 0, destination);
+    return TRUE;
+  }
+
+  if (profile->kind == ROL_TRAVEL_PORTAL_ELF_GATE &&
+      !rol_travel_portal_actor_allowed(profile->object_vnum, ch))
+  {
+    if (GET_RACE(ch) != RACE_ELF)
+      send_to_char(ch, "You are not of true elf blood; you may not enter this gate.\r\n");
+    else
+      send_to_char(ch, "The gate flares briefly, but refuses to transport someone of your "
+                       "level.\r\n");
+    return FALSE;
+  }
+
+  if (profile->kind == ROL_TRAVEL_PORTAL_ILLUSION_FOUNTAIN &&
+      !rol_travel_portal_actor_allowed(profile->object_vnum, ch))
+    return FALSE;
+
+  if (!rol_travel_portal_destination_allows(ch, destination,
+                                            profile->kind == ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD ||
+                                                profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES))
+  {
+    if (profile->kind == ROL_TRAVEL_PORTAL_DIMENSIONAL_FOLD)
+      send_to_char(ch, "A strong force pushes you back!\r\n");
+    else
+      send_to_char(ch, "Nothing happens.\r\n");
+    return TRUE;
+  }
+
+  if (profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES &&
+      !rol_travel_portal_actor_allowed(profile->object_vnum, ch))
+  {
+    act("$n snorts $p up $s nose, then sneezes explosively, covering the room in a thin layer "
+        "of speckled slime.",
+        TRUE, ch, obj, NULL, TO_ROOM);
+    send_to_char(ch, "You inhale the spores and suddenly your face feels like it is on fire!\r\n"
+                     "You sneeze violently and stagger...\r\n");
+    attach_mud_event(new_mud_event(eSTUNNED, ch, NULL), 10 * PULSE_VIOLENCE);
+    extract_obj(obj);
+    return TRUE;
+  }
+
+  rol_travel_portal_move(ch, obj, destination, profile->kind);
+
+  if (profile->kind == ROL_TRAVEL_PORTAL_WATERDEEP && GET_LEVEL(ch) < LVL_IMMORT)
+  {
+    GET_HIT(ch) = MAX(0, GET_HIT(ch) - MAX(0, GET_OBJ_VAL(obj, 1)));
+    update_pos(ch);
+  }
+  else if (profile->kind == ROL_TRAVEL_PORTAL_SHAMAN_SPORES)
+    extract_obj(obj);
+  else if (profile->kind == ROL_TRAVEL_PORTAL_BLIP)
+  {
+    reward = read_object(profile->reward_vnum, VIRTUAL);
+    if (reward == NULL)
+    {
+      send_to_char(ch, "The portal's reward is unavailable. Please tell a staff member.\r\n");
+      log("SYSERR: RoL travel portal object %d cannot load reward %d", profile->object_vnum,
+          profile->reward_vnum);
+      return TRUE;
+    }
+    obj_to_char(reward, ch);
+    if (GET_OBJ_VAL(obj, 2) > 0 && --GET_OBJ_VAL(obj, 2) == 0)
+      rol_travel_portal_consume(ch, obj);
+  }
+
+  return TRUE;
 }
 
 int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argument)

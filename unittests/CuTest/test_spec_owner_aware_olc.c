@@ -105,6 +105,7 @@ static const char *const spec_object_names[] = {
     "thorn_shield",
     "RoL Bloodstone Portal",
     "RoL Portal Door",
+    "RoL Travel Portal",
     "RoL Floating Pool",
     "RoL Item Blocker",
     "RoL Magic Pool",

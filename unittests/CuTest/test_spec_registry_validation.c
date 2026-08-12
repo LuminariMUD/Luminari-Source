@@ -179,8 +179,8 @@ void Test_spec_registry_production_metadata_validates(CuTest *tc)
   error[0] = '\0';
   CuAssert(tc, error, spec_registry_validate(error, sizeof(error)));
   CuAssertStrEquals(tc, "", error);
-  CuAssertIntEquals(tc, 97, (int)spec_registry_count());
-  CuAssertIntEquals(tc, 92, (int)spec_registry_legacy_count());
+  CuAssertIntEquals(tc, 98, (int)spec_registry_count());
+  CuAssertIntEquals(tc, 93, (int)spec_registry_legacy_count());
   CuAssertIntEquals(tc, 5, (int)spec_registry_typed_count());
 
   alias_count = 0;
@@ -353,6 +353,8 @@ void Test_spec_registry_canonical_inventory_and_metadata(CuTest *tc)
       {"RoL Bloodstone Portal", rol_bloodstone_portal, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Portal Door", rol_portal_door, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
+       SPEC_BINDING_SOURCE_WORLD},
+      {"RoL Travel Portal", rol_travel_portal, SPEC_OWNER_OBJECT, SPEC_EVENT_COMMAND,
        SPEC_BINDING_SOURCE_WORLD},
       {"RoL Bloodstone Critter", rol_bloodstone_critter, SPEC_OWNER_MOBILE,
        SPEC_EVENT_MOBILE_ACTIVITY, SPEC_BINDING_SOURCE_WORLD},

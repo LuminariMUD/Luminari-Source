@@ -1652,6 +1652,44 @@ class RolTransformTests(unittest.TestCase):
         all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
     )
 
+  def test_travel_portal_handlers_share_object_adapter_and_remap_destinations(self) -> None:
+    handlers = [
+        (882, "dim_fold", ((0, "wld"),)),
+        (3088, "waterdeep_fountain_teleport", ()),
+        (5515, "waterdeep_portal", ((0, "wld"),)),
+        (5516, "waterdeep_portal", ((0, "wld"),)),
+        (8112, "elfgate", ((0, "wld"), (1, "wld"), (2, "wld"), (3, "wld"))),
+        (8113, "elfgate", ((0, "wld"), (1, "wld"), (2, "wld"), (3, "wld"))),
+        (21500, "shaman_quest_teleport", ((0, "wld"),)),
+        (21501, "shaman_quest_teleport", ((0, "wld"),)),
+        (41941, "blip_portal", ((0, "wld"),)),
+    ]
+    bindings = [
+        {
+            "basename": "travel-portals",
+            "record_type": "object",
+            "source_vnum": source_vnum,
+            "source_handler": handler,
+        }
+        for source_vnum, handler, _ in handlers
+    ]
+
+    compiled = compile_special_bindings(
+        bindings,
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    self.assertEqual(9, len(compiled.native_bindings))
+    by_vnum = {binding.source_vnum: binding for binding in compiled.native_bindings}
+    for source_vnum, _, expected_slots in handlers:
+      self.assertEqual("RoL Travel Portal", by_vnum[source_vnum].persisted_name)
+      self.assertEqual(expected_slots, by_vnum[source_vnum].value_reference_slots)
+    self.assertTrue(
+        all(row["strategy"] == "NATIVE_ADAPTED" for row in compiled.dispositions)
+    )
+
   def test_class_type_guild_bindings_use_distinct_room_adapters(self) -> None:
     expected = {
         "guild_classtype_mage": "RoL Mage Guild Room",

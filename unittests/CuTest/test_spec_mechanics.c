@@ -653,6 +653,80 @@ void Test_spec_rol_portal_door_preserves_destination_and_race_gates(CuTest *tc)
   spec_mechanics_end(&fixture);
 }
 
+void Test_spec_rol_travel_portal_preserves_profiles_and_common_transit(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct player_special_data player_specials;
+  struct command_info commands[3];
+  struct command_info *saved_complete_cmd_info;
+
+  spec_mechanics_begin(&fixture);
+  memset(&player_specials, 0, sizeof(player_specials));
+  memset(commands, 0, sizeof(commands));
+  commands[1].command = "enter";
+  commands[2].command = "use";
+  saved_complete_cmd_info = complete_cmd_info;
+  complete_cmd_info = commands;
+
+  CuAssertIntEquals(tc, 0, rol_travel_portal_destination_slot(2000882, 0));
+  CuAssertIntEquals(tc, 0, rol_travel_portal_destination_slot(2005515, 3));
+  CuAssertIntEquals(tc, 0, rol_travel_portal_destination_slot(2021500, 0));
+  CuAssertIntEquals(tc, 0, rol_travel_portal_destination_slot(2041941, 0));
+  CuAssertIntEquals(tc, 0, rol_travel_portal_destination_slot(2008112, 0));
+  CuAssertIntEquals(tc, 3, rol_travel_portal_destination_slot(2008113, 3));
+  CuAssertIntEquals(tc, -1, rol_travel_portal_destination_slot(2008113, 4));
+  CuAssertIntEquals(tc, -1, rol_travel_portal_destination_slot(2003088, 0));
+  CuAssertIntEquals(tc, -1, rol_travel_portal_destination_slot(999999, 0));
+  CuAssertIntEquals(tc, 2005582, rol_travel_portal_fixed_destination(2003088));
+  CuAssertIntEquals(tc, -1, rol_travel_portal_fixed_destination(2000882));
+  CuAssertIntEquals(tc, 2041900, rol_travel_portal_reward_vnum(2041941));
+  CuAssertIntEquals(tc, -1, rol_travel_portal_reward_vnum(2005515));
+  CuAssertTrue(tc, rol_travel_portal_actor_allowed(2000882, &fixture.actor));
+  CuAssertTrue(tc, !rol_travel_portal_actor_allowed(2021500, &fixture.actor));
+
+  fixture.worn.name = "dimensional fold";
+  fixture.worn.short_description = "a dimensional fold";
+  fixture.object_indexes[0].vnum = 2000882;
+  GET_OBJ_VAL(&fixture.worn, 0) = 6101;
+  IN_ROOM(&fixture.worn) = 0;
+  fixture.rooms[0].contents = &fixture.worn;
+  CuAssertIntEquals(tc, FALSE, rol_travel_portal(&fixture.actor, &fixture.worn, 2, "fold"));
+  CuAssertIntEquals(tc, TRUE, rol_travel_portal(&fixture.actor, &fixture.worn, 1, "fold"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  fixture.worn.name = "glowing portal";
+  fixture.worn.short_description = "the glowing portal";
+  fixture.object_indexes[0].vnum = 2005515;
+  GET_OBJ_VAL(&fixture.worn, 0) = 6101;
+  GET_OBJ_VAL(&fixture.worn, 1) = 25;
+  GET_HIT(&fixture.actor) = 100;
+  CuAssertIntEquals(tc, TRUE, rol_travel_portal(&fixture.actor, &fixture.worn, 1, "portal"));
+  CuAssertIntEquals(tc, 1, IN_ROOM(&fixture.actor));
+  CuAssertIntEquals(tc, 75, GET_HIT(&fixture.actor));
+
+  char_from_room(&fixture.actor);
+  char_to_room(&fixture.actor, 0);
+  REMOVE_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.actor.player_specials = &player_specials;
+  GET_LEVEL(&fixture.actor) = 20;
+  GET_REAL_RACE(&fixture.actor) = RACE_ELF;
+  player_specials.saved.class_level[CLASS_CLERIC] = 1;
+  CuAssertTrue(tc, rol_travel_portal_actor_allowed(2008112, &fixture.actor));
+  CuAssertTrue(tc, rol_travel_portal_actor_allowed(2021500, &fixture.actor));
+  CuAssertTrue(tc, !rol_travel_portal_actor_allowed(2003088, &fixture.actor));
+  player_specials.saved.class_level[CLASS_WIZARD] = 1;
+  CuAssertTrue(tc, rol_travel_portal_actor_allowed(2003088, &fixture.actor));
+
+  fixture.actor.player_specials = &dummy_mob;
+  SET_BIT_AR(MOB_FLAGS(&fixture.actor), MOB_ISNPC);
+  fixture.rooms[0].contents = NULL;
+  IN_ROOM(&fixture.worn) = NOWHERE;
+  complete_cmd_info = saved_complete_cmd_info;
+  spec_mechanics_end(&fixture);
+}
+
 void Test_spec_rol_auto_distributor_moves_mortal_within_zone(CuTest *tc)
 {
   struct spec_mechanics_fixture fixture;

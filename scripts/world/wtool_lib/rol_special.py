@@ -77,6 +77,7 @@ ADAPTED_HANDLER_NAMES = {
     "bs_guildguard_sorcconj": "RoL Guild Guard",
     "bs_guildguard_thief": "RoL Guild Guard",
     "bs_portal": "RoL Bloodstone Portal",
+    "blip_portal": "RoL Travel Portal",
     "bs_bouncer": "RoL Toll Keeper",
     "bs_tax": "RoL Toll Keeper",
     "cage_command_block": "RoL Command Sentinel",
@@ -131,6 +132,11 @@ ADAPTED_HANDLER_NAMES = {
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
     "portal_door": "RoL Portal Door",
+    "dim_fold": "RoL Travel Portal",
+    "elfgate": "RoL Travel Portal",
+    "shaman_quest_teleport": "RoL Travel Portal",
+    "waterdeep_fountain_teleport": "RoL Travel Portal",
+    "waterdeep_portal": "RoL Travel Portal",
     "shadow_giant": "RoL Shadow Giant",
     "sister_knight": "RoL Sister Knight",
     "shaman_totem": "RoL Shaman Totem",
@@ -1009,8 +1015,19 @@ def compile_special_bindings(
               persisted_name=persisted_name,
               required_flag_bits=required_bits,
               value_reference_slots=(
-                  ((0, "wld"),)
-                  if handler in {"bs_portal", "magic_pool", "portal_door"}
+                  tuple((slot, "wld") for slot in range(4))
+                  if handler == "elfgate"
+                  else ((0, "wld"),)
+                  if handler
+                  in {
+                      "blip_portal",
+                      "bs_portal",
+                      "dim_fold",
+                      "magic_pool",
+                      "portal_door",
+                      "shaman_quest_teleport",
+                      "waterdeep_portal",
+                  }
                   else ()
               ),
           )

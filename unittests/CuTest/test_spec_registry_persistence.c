@@ -477,6 +477,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
                                                "RoL Thief",
                                                "RoL Bloodstone Portal",
                                                "RoL Portal Door",
+                                               "RoL Travel Portal",
                                                "RoL Bloodstone Critter",
                                                "RoL Designated Follower",
                                                "RoL Fixed Bodyguard",
@@ -507,7 +508,7 @@ void Test_spec_registry_current_name_inventory(CuTest *tc)
   int index;
 
   expected_count = (int)(sizeof(expected_names) / sizeof(expected_names[0]));
-  CuAssertIntEquals(tc, 98, expected_count);
+  CuAssertIntEquals(tc, 99, expected_count);
   CuAssertIntEquals(tc, expected_count, get_spec_func_count());
 
   for (index = 0; index < expected_count; index++)

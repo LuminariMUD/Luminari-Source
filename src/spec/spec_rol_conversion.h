@@ -62,6 +62,7 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
 int rol_state_periodic(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bloodstone_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_portal_door(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_travel_portal(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_designated_follower(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_fixed_bodyguard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_floating_pool(struct char_data *ch, void *me, int cmd, const char *argument);
@@ -126,6 +127,10 @@ const char *rol_state_periodic_outcome_action(int mobile_vnum, bool fighting, in
                                               size_t action_index, bool *speech, bool *hide);
 bool rol_bloodstone_portal_survives(int current_hit, int hit_loss);
 bool rol_portal_door_race_allows(bool rejects_good, int race);
+int rol_travel_portal_destination_slot(int object_vnum, int roll);
+int rol_travel_portal_fixed_destination(int object_vnum);
+int rol_travel_portal_reward_vnum(int object_vnum);
+bool rol_travel_portal_actor_allowed(int object_vnum, const struct char_data *ch);
 bool rol_fixed_bodyguard_protects(int bodyguard_vnum, int protected_vnum);
 bool rol_command_sentinel_blocks_passage(int mobile_vnum, int room_vnum, int direction,
                                          const struct char_data *ch, int chance_roll);
