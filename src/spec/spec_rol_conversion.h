@@ -101,11 +101,17 @@ bool rol_waterdeep_ambient_fighting_allows(int mobile_vnum, bool fighting);
 const char *rol_waterdeep_ambient_message(int mobile_vnum, int roll, int message_index,
                                           bool *speech);
 const char *rol_conversion_death_message(int vnum);
+bool rol_conversion_death_suppresses_corpse(int vnum);
+int rol_conversion_death_replacement_vnum(int vnum);
+int rol_conversion_death_object_vnum(int vnum);
+bool rol_conversion_death_retargets_clerics(int vnum);
 long event_rol_yggdrasil_release(void *event_obj);
 const char *rol_bloodstone_critter_social(int roll);
 size_t rol_source_periodic_profile_count(void);
 bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *roll_max,
                                         bool *requires_awake, bool *suppresses_fighting);
+bool rol_source_periodic_dice_shape(int mobile_vnum, int *dice_count, int *dice_sides);
+bool rol_source_periodic_requires_sleeping(int mobile_vnum);
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll);
 const char *rol_source_periodic_outcome_action(int mobile_vnum, int roll, size_t action_index,
                                                bool *speech, bool *hide);

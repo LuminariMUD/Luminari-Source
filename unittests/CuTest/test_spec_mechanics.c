@@ -1020,6 +1020,19 @@ void Test_spec_rol_yggdrasil_release_and_death_profiles_preserve_source_outcomes
       tc, "With a splash, the water elemental crashes to the ground leaving only a puddle behind.",
       rol_conversion_death_message(2003053));
   CuAssertTrue(tc, rol_conversion_death_message(9999999) == NULL);
+  CuAssertStrEquals(tc, "As $n dies, $e disintegrates in a flash of bright light!",
+                    rol_conversion_death_message(2088815));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(2088815));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2053268));
+  CuAssertIntEquals(tc, 2053269, rol_conversion_death_replacement_vnum(2053268));
+  CuAssertIntEquals(tc, 2053254, rol_conversion_death_object_vnum(2053270));
+  CuAssertIntEquals(tc, 2001438, rol_conversion_death_object_vnum(2001433));
+  CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2053268));
+  CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2053269));
+  CuAssertTrue(tc, rol_conversion_death_retargets_clerics(2097003));
+  CuAssertTrue(tc, !rol_conversion_death_retargets_clerics(2088815));
+  CuAssertTrue(tc, rol_conversion_death_suppresses_corpse(2092613));
+  CuAssertTrue(tc, !rol_conversion_death_suppresses_corpse(9999999));
 
   fixture.mobile_indexes[0].vnum = 2000907;
   GET_MOB_RNUM(&fixture.actor) = 0;
@@ -1072,7 +1085,7 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   int roll_max;
   int roll_min;
 
-  CuAssertIntEquals(tc, 95, (int)rol_source_periodic_profile_count());
+  CuAssertIntEquals(tc, 100, (int)rol_source_periodic_profile_count());
   CuAssertTrue(tc, rol_source_periodic_profile_bounds(2007220, &roll_min, &roll_max,
                                                       &requires_awake, &suppresses_fighting));
   CuAssertIntEquals(tc, 0, roll_min);
@@ -1088,6 +1101,12 @@ void Test_spec_rol_source_periodic_profiles_preserve_generated_source_tables(CuT
   CuAssertTrue(tc, rol_source_periodic_profile_bounds(2001230, NULL, NULL, &requires_awake, NULL));
   CuAssertTrue(tc, !requires_awake);
   CuAssertTrue(tc, !rol_source_periodic_profile_bounds(9999999, NULL, NULL, NULL, NULL));
+  CuAssertTrue(tc, rol_source_periodic_dice_shape(2003212, &roll_min, &roll_max));
+  CuAssertIntEquals(tc, 2, roll_min);
+  CuAssertIntEquals(tc, 4, roll_max);
+  CuAssertTrue(tc, rol_source_periodic_requires_sleeping(2003212));
+  CuAssertTrue(tc, !rol_source_periodic_requires_sleeping(2012000));
+  CuAssertTrue(tc, !rol_source_periodic_dice_shape(2007220, NULL, NULL));
 
   CuAssertIntEquals(tc, 2, (int)rol_source_periodic_outcome_action_count(2007220, 2));
   CuAssertStrEquals(tc, "$n looks around the room as if $e was bored.",

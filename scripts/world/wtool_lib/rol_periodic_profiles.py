@@ -5,6 +5,7 @@ from __future__ import annotations
 
 PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "billthecat": ("src/specs.fun.c", (2001230,)),
+    "bulette": ("src/specs.towerofsorc.c", (2015901,)),
     "bs_acolyte": ("src/specs.bloodstone.c", (2007220,)),
     "bs_antibrothel": ("src/specs.bloodstone.c", (2007203,)),
     "bs_antimaster": ("src/specs.bloodstone.c", (2007201,)),
@@ -94,4 +95,7 @@ PROFILE_SOURCES: dict[str, tuple[str, tuple[int, ...]]] = {
     "ice_viscount": ("src/specs.icecrag.c", (2097023,)),
     "jester": ("src/specs.mobile.c", (2003069,)),
     "menden_magus": ("src/specs.menden.c", (2088806,)),
+    "guard_two": ("src/specs.waterdeep.c", (2003212,)),
+    "snowbeast": ("src/specs.lavatubes.c", (2012000,)),
+    "spiny": ("src/specs.lavatubes.c", (2012002, 2012003)),
 }

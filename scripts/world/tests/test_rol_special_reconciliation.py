@@ -90,6 +90,25 @@ class RolSpecialReconciliationTests(unittest.TestCase):
             "treant_die",
             "phantom_steed_die",
             "dark_shade_die",
+            "crystal_golem_die",
+            "halruaa_fleshdoll",
+            "halruaa_transmuter1",
+            "halruaa_transmuter2",
+            "halruaa_transmuter_itemdrop",
+            "hippogriff_die",
+            "ice_malice",
+            "jotun_balor",
+            "menden_figurine_die",
+            "menden_inv_serv_die",
+            "pure_blood_90812",
+            "pure_blood_90819",
+            "pure_blood_90837",
+            "pure_blood_90866",
+            "shadow_demon_of_torm",
+            "spore_ball",
+            "stone_crumble",
+            "um2_blackPuddingSplit",
+            "unseen_servant_die",
         )
     ]
     yggdrasil = handler_disposition("yggdrasil_branch")
@@ -351,17 +370,17 @@ class RolSpecialReconciliationTests(unittest.TestCase):
           summary["implicit_race_bindings_by_composition"],
       )
       self.assertEqual(3, summary["implicit_race_handler_definitions_located"])
-      self.assertEqual(838, summary["direct_bindings_by_status"]["resolved"])
-      self.assertEqual(309, summary["direct_bindings_by_status"]["pending"])
-      self.assertEqual(309, summary["source_handlers_by_status"]["resolved"])
-      self.assertEqual(253, summary["source_handlers_by_status"]["pending"])
-      self.assertEqual(444, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
+      self.assertEqual(863, summary["direct_bindings_by_status"]["resolved"])
+      self.assertEqual(284, summary["direct_bindings_by_status"]["pending"])
+      self.assertEqual(332, summary["source_handlers_by_status"]["resolved"])
+      self.assertEqual(230, summary["source_handlers_by_status"]["pending"])
+      self.assertEqual(449, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED"])
       self.assertEqual(
-          131, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
+          151, summary["direct_bindings_by_strategy"]["NATIVE_ADAPTED_COMPOSABLE"]
       )
       self.assertEqual(848, summary["act_spec_records"])
-      self.assertEqual(753, summary["act_spec_by_status"]["resolved"])
-      self.assertEqual(95, summary["act_spec_by_status"]["pending"])
+      self.assertEqual(766, summary["act_spec_by_status"]["resolved"])
+      self.assertEqual(82, summary["act_spec_by_status"]["pending"])
       self.assertEqual(
           {"resolved": 247}, summary["implicit_race_bindings_by_status"]
       )

@@ -54,10 +54,12 @@ summoned-monster, and shaman-spirit flags provide their source fade messages and
 Bloodstone vapor message while retaining the target's no-corpse policy. These flags are
 converter-owned and should not be assigned to unrelated mobiles.
 
-Sixteen additional converted mobiles use VNUM-owned death profiles rather than flags. The tentacle,
-mephit, elemental, treant, phantom-steed, and dark-shade profiles preserve their source death
-message and suppress the ordinary corpse without consuming the named SpecProc slot. These profiles
-are converter-owned and do not make arbitrary mobiles corpse-free.
+Thirty-six converted mobiles use VNUM-owned death profiles rather than flags. In addition to the
+tentacle, mephit, elemental, treant, phantom-steed, and dark-shade no-corpse profiles, the table
+preserves source death bursts, darkness, poison gas, returned possessions, stone-pile inventory,
+replacement forms, dropped objects, and ordinary-corpse messages. Three replacement families also
+retain their source cleric-retargeting activity. These profiles run without consuming the named
+SpecProc slot, are converter-owned, and do not change arbitrary mobiles' death behavior.
 
 `RoL Bloodstone Critter` is mobile-owned and requires `MOB_SPEC`. While awake and idle, the four
 converted Bloodstone critters use Luminari's current `snarl` and `growl` socials at the source
@@ -165,14 +167,15 @@ only in room 2005400; converted guards 2003035, 2003059, and 2003070 remain quie
 The profiles are keyed to converted mobile identity; do not assign this procedure to unrelated
 mobiles.
 
-`RoL Source Periodic` is mobile-owned and requires `MOB_SPEC`. Ninety-five converted Bloodstone,
-Icecrag, Menden, Fun, Mobile, and Realm mobiles across 90 source families use 354 source random
-outcomes containing 588 ordered speech or room-visible actions. The generated profiles preserve
-each source random range, fall-through order, room text, visibility setting, awake gate, and combat
-gate. Fun mobile 2001230, jester 2003069, and cricket 2014048 retain source profiles that do not
-require an awake mobile. Fun mobile 2001230, jester 2003069, and Menden magus 2088806 also retain
-source profiles that continue during combat. The profiles are keyed to converted mobile identity;
-do not assign this converter-owned procedure to unrelated mobiles.
+`RoL Source Periodic` is mobile-owned and requires `MOB_SPEC`. One hundred converted Bloodstone,
+Icecrag, Menden, Fun, Mobile, Realm, Lavatubes, Tower of Sorcery, and Waterdeep mobiles across 94
+source families use 367 source random outcomes containing 601 ordered speech or room-visible
+actions. The generated profiles preserve each source random range or dice expression, fall-through
+order, room text, visibility setting, awake or sleeping gate, and combat gate. Fun mobile 2001230,
+jester 2003069, and cricket 2014048 retain source profiles that do not require an awake mobile.
+Waterdeep guard 2003212 runs only while sleeping. Fun mobile 2001230, jester 2003069, and Menden
+magus 2088806 also retain source profiles that continue during combat. The profiles are keyed to
+converted mobile identity; do not assign this converter-owned procedure to unrelated mobiles.
 
 `RoL Stateful Periodic` is mobile-owned and requires `MOB_SPEC`. Thirty-three converted Waterdeep
 mobiles have generated idle and fighting profiles containing 258 source outcomes and 266 ordered

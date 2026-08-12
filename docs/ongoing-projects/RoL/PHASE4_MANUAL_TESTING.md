@@ -541,12 +541,36 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 - On timed release, confirm the entangle is removed, the release message appears, and the
   target's current movement points are halved using integer truncation.
 
-### Phase 6 converted no-corpse death profiles
+### Phase 6 converted death-event profiles
 
 - Kill converted mobiles 2000202, 2000902, 2000903, 2000905-2000909, 2001250-2001253,
   and 2003050-2003053 in dependency-complete stages. Each must show its tentacle,
   treant, phantom-steed, dark-shade, mephit, or elemental source-family death message
   and create no corpse.
+- Exercise the 20 expanded profiles in dependency-complete stages:
+
+  - Balor 196030 explodes, blinds darkvision or infravision users in a dark room, deals
+    150 damage through elemental protection or 250 otherwise, and leaves no corpse.
+  - Shadow demon 2000200 adds darkness when it melts into the shadows. Unseen servant
+    2000499 returns gold, equipment, and inventory to its master, or drops them in the
+    room if it has no master. Neither leaves a corpse.
+  - Stone creature 2001433 moves carried and equipped objects into stone pile 2001438
+    and retains its source ordinary-corpse path. Spore balls 2012022-2012023 poison
+    other occupants unless the room is peaceful and also retain ordinary corpses.
+  - Halruaa transmuters 2053268 and 2053269 replace themselves with 2053269 and
+    2053270, transfer equipment and inventory, apply the target-equivalent permanent
+    buff package, and leave no corpse. Form 2053270 drops eye object 2053254 and keeps
+    the ordinary corpse. Forms 2053268-2053269 must retarget a visible cleric secondary
+    attacker when more than one attacker is present.
+  - Fleshdoll 2053362 and Menden mobiles 2088812-2088815 emit their authored death
+    messages and keep ordinary corpses.
+  - Pure bloods 2090812, 2090819, 2090837, and 2090866 replace themselves with
+    2090914-2090917 respectively, transferring equipment, inventory, and mobile memory
+    without leaving a corpse. Ice malice 2097003 likewise replaces itself with 2097056,
+    transfers equipment and inventory, leaves no corpse, and retains cleric retargeting.
+  - Black pudding 2092613 leaves no corpse and does not split. This deliberately
+    preserves the bound source branch's malformed real-mobile comparison rather than
+    inventing the intended split behavior.
 - Confirm these VNUM-owned profiles coexist with any other converted direct or automatic
   behavior on the same mobile and do not require a new mobile flag or second persisted
   SpecProc. An unrelated mobile must retain the ordinary target death/corpse path.
@@ -581,7 +605,7 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
 
 ### Phase 6 generated source-periodic profiles
 
-- Build dependency-complete source-profile stages. Confirm the following 95 mobiles use
+- Build dependency-complete source-profile stages. Confirm the following 100 mobiles use
   `RoL Source Periodic` with `MOB_SPEC`: Bloodstone 2007100-2007109, 2007113-2007129,
   2007142-2007144, 2007147, 2007152-2007154, 2007156, 2007160-2007162,
   2007164-2007167, 2007170, 2007172-2007180,
@@ -589,11 +613,16 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   2007221, 2007308, 2007311, 2007314, 2007317, and 2007321-2007326; Fun 2001230;
   Mobile 2003069; Realm 2014048; Icecrag 2097000-2097002,
   2097005, 2097007-2097008, 2097011, 2097014, 2097016, 2097021, 2097023, and
-  2097028, 2097033; and Menden 2088806.
+  2097028, 2097033; Menden 2088806; Tower of Sorcery 2015901; Waterdeep 2003212;
+  and Lavatubes 2012000, 2012002, and 2012003.
 - Observe repeated activity pulses while representative profiles are idle. Their source speech,
   social room text, and direct room actions should appear at the original random cadence.
   Multi-action and fall-through outcomes must retain their source order. Nonmatching rolls must
   remain quiet.
+- Confirm the added Lavatubes profiles retain their source dice distributions: snowbeast 2012000
+  rolls three-d6, and spiny creatures 2012002-2012003 roll three-d2. Their behavior must stop in
+  combat. Waterdeep guard 2003212 rolls two-d4 and emits its profile only while sleeping. Bulette
+  2015901 retains its zero-to-40 random range without an awake or combat gate.
 - Put ordinary representatives to sleep and confirm their periodic behavior stops. Fun mobile
   2001230, jester 2003069, and cricket 2014048 deliberately retain source profiles without an awake
   gate. Start combat and confirm ordinary profiles stop; Fun mobile 2001230, jester 2003069, and

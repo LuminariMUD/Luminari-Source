@@ -41,7 +41,10 @@ class Profile:
   vnums: tuple[int, ...]
   roll_min: int
   roll_max: int
+  dice_count: int
+  dice_sides: int
   require_awake: bool
+  require_sleeping: bool
   suppress_fighting: bool
   outcomes: tuple[Outcome, ...]
 
@@ -145,10 +148,11 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
                    socials: dict[str, tuple[bool, str] | None]) -> Profile:
   body = _function_body((source_root / relative).read_text(encoding="ascii"), name)
   switch = re.search(
-      r"switch\s*\(\s*number\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{", body
+      r"switch\s*\(\s*(number|dice)\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*\)\s*\{",
+      body,
   )
   if switch is None:
-    raise ValueError(f"{name}: expected one switch(number(low, high))")
+    raise ValueError(f"{name}: expected one switch(number(low, high)) or switch(dice(count, sides))")
   opening = body.find("{", switch.start())
   switch_body = body[opening + 1 : _matching_brace(body, opening)]
   labels = list(re.finditer(r"\b(case\s+(-?\d+)\s*:|default\s*:)", switch_body))
@@ -177,8 +181,21 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
   if pending_rolls:
     raise ValueError(f"{name}: unresolved trailing fall-through cases")
 
-  roll_min = int(switch.group(1))
-  roll_max = int(switch.group(2))
+  random_kind = switch.group(1)
+  first_value = int(switch.group(2))
+  second_value = int(switch.group(3))
+  if random_kind == "dice":
+    if first_value <= 0 or second_value <= 0:
+      raise ValueError(f"{name}: dice values must be positive")
+    roll_min = first_value
+    roll_max = first_value * second_value
+    dice_count = first_value
+    dice_sides = second_value
+  else:
+    roll_min = first_value
+    roll_max = second_value
+    dice_count = 0
+    dice_sides = 0
   if any(outcome.roll < roll_min or outcome.roll > roll_max for outcome in outcomes):
     raise ValueError(f"{name}: case outside random range")
   return Profile(
@@ -186,7 +203,10 @@ def _parse_profile(source_root: Path, name: str, relative: str, vnums: tuple[int
       vnums,
       roll_min,
       roll_max,
+      dice_count,
+      dice_sides,
       "AWAKE(ch)" in body,
+      "STAT_SLEEPING" in body,
       "IS_FIGHTING(ch)" in body,
       tuple(sorted(outcomes, key=lambda outcome: outcome.roll)),
   )
@@ -236,10 +256,12 @@ def render(source_root: Path) -> str:
   )
   for vnum, profile in profile_rows:
     require_awake = "true" if profile.require_awake else "false"
+    require_sleeping = "true" if profile.require_sleeping else "false"
     suppress = "true" if profile.suppress_fighting else "false"
     output.append(
         f"    {{{vnum}, {_identifier(profile.name)}, {profile.roll_min}, {profile.roll_max}, "
-        f"{require_awake}, {suppress}}},"
+        f"{profile.dice_count}, {profile.dice_sides}, {require_awake}, {require_sleeping}, "
+        f"{suppress}}},"
     )
   output.extend(["};", "", "static const struct rol_source_periodic_outcome rol_source_periodic_outcomes[] = {"])
 

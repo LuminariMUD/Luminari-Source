@@ -16,17 +16,20 @@ class RolPeriodicProfileTests(unittest.TestCase):
   def test_selected_manifest_has_unique_converted_mobile_coverage(self) -> None:
     vnums = [vnum for _relative, handler_vnums in PROFILE_SOURCES.values() for vnum in handler_vnums]
 
-    self.assertEqual(90, len(PROFILE_SOURCES))
-    self.assertEqual(95, len(vnums))
+    self.assertEqual(94, len(PROFILE_SOURCES))
+    self.assertEqual(100, len(vnums))
     self.assertEqual(len(vnums), len(set(vnums)))
     self.assertEqual(
         {
             "src/specs.bloodstone.c",
             "src/specs.fun.c",
             "src/specs.icecrag.c",
+            "src/specs.lavatubes.c",
             "src/specs.menden.c",
             "src/specs.mobile.c",
             "src/specs.realm.c",
+            "src/specs.towerofsorc.c",
+            "src/specs.waterdeep.c",
         },
         {relative for relative, _vnums in PROFILE_SOURCES.values()},
     )
@@ -79,8 +82,22 @@ class RolPeriodicProfileTests(unittest.TestCase):
 
     self.assertEqual(sorted(profile_vnums), profile_vnums)
     self.assertEqual(sorted(outcomes), outcomes)
-    self.assertEqual(354, len(outcomes))
-    self.assertEqual(588, len(actions))
+    self.assertEqual(367, len(outcomes))
+    self.assertEqual(601, len(actions))
+
+  def test_dice_and_sleeping_profiles_preserve_source_gates(self) -> None:
+    generated = (self.root / "src/spec/spec_rol_periodic_profiles.inc").read_text(
+        encoding="ascii"
+    )
+
+    self.assertRegex(
+        generated,
+        r"\{2003212, ROL_SOURCE_PERIODIC_GUARD_TWO, 2, 8, 2, 4, false, true, false\}",
+    )
+    self.assertRegex(
+        generated,
+        r"\{2012000, ROL_SOURCE_PERIODIC_SNOWBEAST, 3, 18, 3, 6, false, false, true\}",
+    )
 
 
 if __name__ == "__main__":

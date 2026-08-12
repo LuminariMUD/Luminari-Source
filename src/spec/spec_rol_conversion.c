@@ -66,10 +66,28 @@ struct rol_fixed_bodyguard_profile
   int protected_vnum;
 };
 
+enum rol_death_effect
+{
+  ROL_DEATH_EFFECT_NONE = 0,
+  ROL_DEATH_EFFECT_REPLACE,
+  ROL_DEATH_EFFECT_REPLACE_SPELLUP,
+  ROL_DEATH_EFFECT_DROP_OBJECT,
+  ROL_DEATH_EFFECT_RETURN_TO_MASTER,
+  ROL_DEATH_EFFECT_SHADOW_DARKNESS,
+  ROL_DEATH_EFFECT_SPORE_POISON,
+  ROL_DEATH_EFFECT_BALOR_BURST,
+  ROL_DEATH_EFFECT_STONE_CRUMBLE
+};
+
 struct rol_death_profile
 {
   int mobile_vnum;
   const char *message;
+  const char *secondary_message;
+  int replacement_vnum;
+  int object_vnum;
+  enum rol_death_effect effect;
+  bool suppress_corpse;
 };
 
 enum rol_ambient_profile_id
@@ -146,7 +164,10 @@ struct rol_source_periodic_profile
   int profile_id;
   int roll_min;
   int roll_max;
+  int dice_count;
+  int dice_sides;
   bool require_awake;
+  bool require_sleeping;
   bool suppress_fighting;
 };
 
@@ -239,26 +260,80 @@ static const struct rol_fixed_bodyguard_profile rol_fixed_bodyguard_profiles[] =
 };
 
 static const struct rol_death_profile rol_death_profiles[] = {
-    {2000202, "$n dissipates into a cloud of oily green smoke."},
-    {2000902, "The treant crashes into the ground and melts into the earth."},
-    {2000903, "A phantom steed fades into nothingness."},
-    {2000905, "The dark shade melts back into the shadows."},
-    {2000906, "A water mephit blinks out of existence."},
-    {2000907, "A fire mephit blinks out of existence."},
-    {2000908, "An earth mephit blinks out of existence."},
-    {2000909, "An air mephit blinks out of existence."},
-    {2001250, "With a loud puffing sound, the fire elemental dissipates into smoke."},
-    {2001251, "With a loud crash, the elemental dives into the ground. Only small stones remain "
-              "where it once stood."},
-    {2001252, "With a gentle swooshing sound, the air elemental simply disappears."},
-    {2001253, "With a splash, the water elemental crashes to the ground leaving only a puddle "
-              "behind."},
-    {2003050, "With a loud puffing sound, the fire elemental dissipates into smoke."},
-    {2003051, "With a loud crash, the elemental dives into the ground. Only small stones remain "
-              "where it once stood."},
-    {2003052, "With a gentle swooshing sound, the air elemental simply disappears."},
-    {2003053, "With a splash, the water elemental crashes to the ground leaving only a puddle "
-              "behind."},
+    {196030, "$n explodes in a mass of fire and energy!", NULL, 0, 0, ROL_DEATH_EFFECT_BALOR_BURST,
+     true},
+    {2000200, "As $n dies, $e melts into the shadows of the room.",
+     "Suddenly shadows seem to cover a lot more of the room than before.", 0, 0,
+     ROL_DEATH_EFFECT_SHADOW_DARKNESS, true},
+    {2000202, "$n dissipates into a cloud of oily green smoke.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE,
+     true},
+    {2000499, "$n slowly fades away out of existence...", NULL, 0, 0,
+     ROL_DEATH_EFFECT_RETURN_TO_MASTER, true},
+    {2000902, "The treant crashes into the ground and melts into the earth.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2000903, "A phantom steed fades into nothingness.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2000905, "The dark shade melts back into the shadows.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE,
+     true},
+    {2000906, "A water mephit blinks out of existence.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2000907, "A fire mephit blinks out of existence.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2000908, "An earth mephit blinks out of existence.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2000909, "An air mephit blinks out of existence.", NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2001250, "With a loud puffing sound, the fire elemental dissipates into smoke.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2001251,
+     "With a loud crash, the elemental dives into the ground. Only small stones remain "
+     "where it once stood.",
+     NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2001252, "With a gentle swooshing sound, the air elemental simply disappears.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2001253,
+     "With a splash, the water elemental crashes to the ground leaving only a puddle "
+     "behind.",
+     NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2001433, "$n stops fighting and silently crumbles into a pile of stones.", NULL, 0, 2001438,
+     ROL_DEATH_EFFECT_STONE_CRUMBLE, false},
+    {2003050, "With a loud puffing sound, the fire elemental dissipates into smoke.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2003051,
+     "With a loud crash, the elemental dives into the ground. Only small stones remain "
+     "where it once stood.",
+     NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2003052, "With a gentle swooshing sound, the air elemental simply disappears.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, true},
+    {2003053,
+     "With a splash, the water elemental crashes to the ground leaving only a puddle "
+     "behind.",
+     NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2012022, "$n crumples, a noxious gas escaping its interior.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_SPORE_POISON, false},
+    {2012023, "$n crumples, a noxious gas escaping its interior.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_SPORE_POISON, false},
+    {2053268, "$n's form shimmers and changes. A mighty demonic creature appears in $s place.",
+     NULL, 2053269, 0, ROL_DEATH_EFFECT_REPLACE_SPELLUP, true},
+    {2053269, "$n's form shimmers and changes. A shifting creature appears in $s place.", NULL,
+     2053270, 0, ROL_DEATH_EFFECT_REPLACE_SPELLUP, true},
+    {2053270, "As $n falls dead, one of $s eyes pops out and rolls around.", NULL, 0, 2053254,
+     ROL_DEATH_EFFECT_DROP_OBJECT, false},
+    {2053362, "$n falls to the ground, $s body rapidly disintegrating into dust.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, false},
+    {2088812, "$n, vanquished, dissolves into ethereal vapors and disappears.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, false},
+    {2088813, "$n dies, crumbling into powder which a sudden breeze sweeps away.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, false},
+    {2088814, "As $n dies, $e shatters into crystal dust which quickly dissipates.", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, false},
+    {2088815, "As $n dies, $e disintegrates in a flash of bright light!", NULL, 0, 0,
+     ROL_DEATH_EFFECT_NONE, false},
+    {2090812, "The pure blood scholar screams as $e transforms into a wraith!", NULL, 2090914, 0,
+     ROL_DEATH_EFFECT_REPLACE, true},
+    {2090819, "The pure blood apprentice screams as $e transforms into a wraith!", NULL, 2090915, 0,
+     ROL_DEATH_EFFECT_REPLACE, true},
+    {2090837, "The pure blood apprentice screams as $e transforms into a wraith!", NULL, 2090916, 0,
+     ROL_DEATH_EFFECT_REPLACE, true},
+    {2090866, "The pure blood sorcerer screams as $e transforms into a lich!", NULL, 2090917, 0,
+     ROL_DEATH_EFFECT_REPLACE, true},
+    {2092613, NULL, NULL, 0, 0, ROL_DEATH_EFFECT_NONE, true},
+    {2097003, NULL, NULL, 2097056, 0, ROL_DEATH_EFFECT_REPLACE, true},
 };
 
 static const struct rol_ambient_mobile_profile rol_ambient_mobile_profiles[] = {
@@ -882,6 +957,42 @@ int rol_planar_gate_cooldown_seconds(const struct char_data *ch)
   return recipe != NULL ? recipe->cooldown_seconds : 0;
 }
 
+bool rol_conversion_death_retargets_clerics(int vnum)
+{
+  return vnum == 2053268 || vnum == 2053269 || vnum == 2097003;
+}
+
+static bool rol_death_replacement_activity(struct char_data *ch)
+{
+  struct char_data *candidate;
+  struct char_data *cleric = NULL;
+  int attacker_count = 0;
+  int vnum;
+
+  if (ch == NULL || !IS_NPC(ch) || !AWAKE(ch) || FIGHTING(ch) == NULL ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return false;
+  vnum = GET_MOB_VNUM(ch);
+  if (!rol_conversion_death_retargets_clerics(vnum))
+    return false;
+
+  for (candidate = world[IN_ROOM(ch)].people; candidate != NULL;
+       candidate = candidate->next_in_room)
+  {
+    if (FIGHTING(candidate) != ch)
+      continue;
+    attacker_count++;
+    if (candidate != FIGHTING(ch) && IS_CLERIC(candidate) && CAN_SEE(ch, candidate))
+      cleric = candidate;
+  }
+  if (attacker_count <= 1 || cleric == NULL)
+    return false;
+
+  stop_fighting(ch);
+  set_fighting(ch, cleric);
+  return true;
+}
+
 bool rol_automatic_race_activity(struct char_data *ch)
 {
   if (ch == NULL || !IS_NPC(ch))
@@ -898,6 +1009,9 @@ bool rol_automatic_race_activity(struct char_data *ch)
 
   if (MOB_FLAGGED(ch, MOB_ROL_UMBERHULK))
     rol_equip_umberhulk_claws(ch);
+
+  if (rol_death_replacement_activity(ch))
+    return true;
 
   return false;
 }
@@ -1265,29 +1379,318 @@ int rol_yggdrasil_branch(struct char_data *ch, void *me, int cmd, const char *ar
   return FALSE;
 }
 
-const char *rol_conversion_death_message(int vnum)
+static const struct rol_death_profile *rol_death_profile_for(int vnum)
 {
-  size_t index;
+  size_t high = sizeof(rol_death_profiles) / sizeof(rol_death_profiles[0]);
+  size_t low = 0;
+  size_t middle;
 
-  for (index = 0; index < sizeof(rol_death_profiles) / sizeof(rol_death_profiles[0]); index++)
-    if (rol_death_profiles[index].mobile_vnum == vnum)
-      return rol_death_profiles[index].message;
+  while (low < high)
+  {
+    middle = low + (high - low) / 2;
+    if (rol_death_profiles[middle].mobile_vnum < vnum)
+      low = middle + 1;
+    else
+      high = middle;
+  }
+  if (low < sizeof(rol_death_profiles) / sizeof(rol_death_profiles[0]) &&
+      rol_death_profiles[low].mobile_vnum == vnum)
+    return &rol_death_profiles[low];
 
   return NULL;
 }
 
+const char *rol_conversion_death_message(int vnum)
+{
+  const struct rol_death_profile *profile = rol_death_profile_for(vnum);
+
+  return profile != NULL ? profile->message : NULL;
+}
+
+bool rol_conversion_death_suppresses_corpse(int vnum)
+{
+  const struct rol_death_profile *profile = rol_death_profile_for(vnum);
+
+  return profile != NULL && profile->suppress_corpse;
+}
+
+int rol_conversion_death_replacement_vnum(int vnum)
+{
+  const struct rol_death_profile *profile = rol_death_profile_for(vnum);
+
+  return profile != NULL ? profile->replacement_vnum : 0;
+}
+
+int rol_conversion_death_object_vnum(int vnum)
+{
+  const struct rol_death_profile *profile = rol_death_profile_for(vnum);
+
+  return profile != NULL ? profile->object_vnum : 0;
+}
+
+static void rol_death_transfer_to_mobile(struct char_data *source, struct char_data *replacement)
+{
+  struct obj_data *item;
+  struct obj_data *next_item;
+  int wear;
+
+  for (item = source->carrying; item != NULL; item = next_item)
+  {
+    next_item = item->next_content;
+    obj_from_char(item);
+    obj_to_char(item, replacement);
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(source, wear) != NULL)
+      equip_char(replacement, unequip_char(source, wear), wear);
+}
+
+static void rol_add_permanent_affect(struct char_data *ch, int spell, int affect_flag)
+{
+  struct affected_type affect;
+
+  if (affected_by_spell(ch, spell))
+    return;
+  new_affect(&affect);
+  affect.spell = spell;
+  affect.duration = -1;
+  SET_BIT_AR(affect.bitvector, affect_flag);
+  affect_to_char(ch, &affect);
+}
+
+static void rol_death_apply_transmuter_spellup(struct char_data *ch)
+{
+  rol_add_permanent_affect(ch, SPELL_ENDURE_ELEMENTS, AFF_ELEMENT_PROT);
+  rol_add_permanent_affect(ch, SPELL_DETECT_INVIS, AFF_DETECT_INVIS);
+  SET_BIT_AR(AFF_FLAGS(ch), AFF_FARSEE);
+  rol_add_permanent_affect(ch, SPELL_SENSE_LIFE, AFF_SENSE_LIFE);
+  rol_add_permanent_affect(ch, SPELL_INFRAVISION, AFF_INFRAVISION);
+  rol_add_permanent_affect(ch, SPELL_FIRE_SHIELD, AFF_FSHIELD);
+  rol_add_permanent_affect(ch, SPELL_GLOBE_OF_INVULN, AFF_GLOBE_OF_INVULN);
+  rol_add_permanent_affect(ch, SPELL_HASTE, AFF_HASTE);
+  rol_add_permanent_affect(ch, SPELL_PROT_FROM_GOOD, AFF_PROTECT_GOOD);
+  rol_add_permanent_affect(ch, SPELL_VAMPIRIC_TOUCH, AFF_VAMPIRIC_TOUCH);
+  rol_add_permanent_affect(ch, SPELL_FLY, AFF_FLYING);
+}
+
+static void rol_death_replace_mobile(struct char_data *ch, const struct rol_death_profile *profile)
+{
+  struct char_data *replacement;
+
+  if (profile->replacement_vnum <= 0 ||
+      (replacement = read_mobile(profile->replacement_vnum, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: RoL death replacement %d for mobile %d is unavailable", profile->replacement_vnum,
+        GET_MOB_VNUM(ch));
+    return;
+  }
+
+  char_to_room(replacement, IN_ROOM(ch));
+  GET_MOB_LOADROOM(replacement) = IN_ROOM(ch);
+  rol_death_transfer_to_mobile(ch, replacement);
+  if (profile->effect == ROL_DEATH_EFFECT_REPLACE_SPELLUP)
+    rol_death_apply_transmuter_spellup(replacement);
+  if (profile->mobile_vnum >= 2090812 && profile->mobile_vnum <= 2090866)
+  {
+    MEMORY(replacement) = MEMORY(ch);
+    MEMORY(ch) = NULL;
+  }
+}
+
+static void rol_death_drop_object(struct char_data *ch, int object_vnum)
+{
+  struct obj_data *obj;
+
+  if (object_vnum <= 0 || (obj = read_object(object_vnum, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: RoL death object %d for mobile %d is unavailable", object_vnum, GET_MOB_VNUM(ch));
+    return;
+  }
+  obj_to_room(obj, IN_ROOM(ch));
+}
+
+static void rol_death_return_to_master(struct char_data *ch)
+{
+  struct char_data *master = ch->master;
+  struct obj_data *item;
+  struct obj_data *next_item;
+  struct obj_data *money;
+  int wear;
+
+  if (master != NULL)
+  {
+    send_to_char(master, "A shadowy hole opens and deposits your servant's possessions into your "
+                         "inventory.\r\n");
+    GET_GOLD(master) += GET_GOLD(ch);
+    GET_GOLD(ch) = 0;
+    for (wear = 0; wear < NUM_WEARS; wear++)
+      if (GET_EQ(ch, wear) != NULL)
+        obj_to_char(unequip_char(ch, wear), master);
+    for (item = ch->carrying; item != NULL; item = next_item)
+    {
+      next_item = item->next_content;
+      obj_from_char(item);
+      obj_to_char(item, master);
+    }
+    return;
+  }
+
+  if (GET_GOLD(ch) > 0)
+  {
+    money = create_money(GET_GOLD(ch));
+    GET_GOLD(ch) = 0;
+    obj_to_room(money, IN_ROOM(ch));
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(ch, wear) != NULL)
+      obj_to_room(unequip_char(ch, wear), IN_ROOM(ch));
+  for (item = ch->carrying; item != NULL; item = next_item)
+  {
+    next_item = item->next_content;
+    obj_from_char(item);
+    obj_to_room(item, IN_ROOM(ch));
+  }
+}
+
+static void rol_death_spore_poison(struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next_victim;
+
+  if (ROOM_FLAGGED(IN_ROOM(ch), ROOM_PEACEFUL))
+  {
+    act("The gas dissipates harmlessly.", FALSE, ch, NULL, NULL, TO_ROOM);
+    return;
+  }
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    if (victim != ch)
+      call_magic(ch, victim, NULL, SPELL_POISON, 0, 24, CAST_INNATE);
+  }
+}
+
+static void rol_death_heat_blind(struct char_data *victim)
+{
+  struct affected_type affect;
+
+  if (AFF_FLAGGED(victim, AFF_BLIND) || !IS_DARK(IN_ROOM(victim)) ||
+      GET_LEVEL(victim) >= LVL_IMMORT ||
+      (!AFF_FLAGGED(victim, AFF_INFRAVISION) && !AFF_FLAGGED(victim, AFF_DARKVISION)))
+    return;
+  send_to_char(victim, "Aaarrrggghhh! The heat blinds you!\r\n");
+  new_affect(&affect);
+  affect.spell = SPELL_BLINDNESS;
+  affect.duration = rand_number(1, 4);
+  SET_BIT_AR(affect.bitvector, AFF_BLIND);
+  affect_to_char(victim, &affect);
+}
+
+static void rol_death_balor_burst(struct char_data *ch)
+{
+  struct char_data *victim;
+  struct char_data *next_victim;
+  int damage_amount;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = next_victim)
+  {
+    next_victim = victim->next_in_room;
+    if (victim == ch || GET_LEVEL(victim) >= LVL_IMMORT)
+      continue;
+    rol_death_heat_blind(victim);
+    damage_amount = AFF_FLAGGED(victim, AFF_ELEMENT_PROT) ? 150 : 250;
+    GET_HIT(victim) -= damage_amount;
+    update_pos(victim);
+    if (GET_HIT(victim) < -10)
+      die(victim, ch);
+  }
+}
+
+static void rol_death_stone_crumble(struct char_data *ch, int object_vnum)
+{
+  struct obj_data *pile;
+  struct obj_data *item;
+  struct obj_data *next_item;
+  struct obj_data *money;
+  int wear;
+
+  if (object_vnum <= 0 || (pile = read_object(object_vnum, VIRTUAL)) == NULL)
+  {
+    log("SYSERR: RoL stone-crumble object %d for mobile %d is unavailable", object_vnum,
+        GET_MOB_VNUM(ch));
+    return;
+  }
+  if (GET_OBJ_TYPE(pile) != ITEM_CONTAINER)
+  {
+    log("SYSERR: RoL stone-crumble object %d is not a container", object_vnum);
+    extract_obj(pile);
+    return;
+  }
+  for (item = ch->carrying; item != NULL; item = next_item)
+  {
+    next_item = item->next_content;
+    obj_from_char(item);
+    obj_to_obj(item, pile);
+  }
+  for (wear = 0; wear < NUM_WEARS; wear++)
+    if (GET_EQ(ch, wear) != NULL)
+      obj_to_obj(unequip_char(ch, wear), pile);
+  if (GET_GOLD(ch) > 0)
+  {
+    money = create_money(GET_GOLD(ch));
+    obj_to_obj(money, pile);
+  }
+  obj_to_room(pile, IN_ROOM(ch));
+}
+
+static void rol_apply_death_effect(struct char_data *ch, const struct rol_death_profile *profile)
+{
+  switch (profile->effect)
+  {
+  case ROL_DEATH_EFFECT_REPLACE:
+  case ROL_DEATH_EFFECT_REPLACE_SPELLUP:
+    rol_death_replace_mobile(ch, profile);
+    break;
+  case ROL_DEATH_EFFECT_DROP_OBJECT:
+    rol_death_drop_object(ch, profile->object_vnum);
+    break;
+  case ROL_DEATH_EFFECT_RETURN_TO_MASTER:
+    rol_death_return_to_master(ch);
+    break;
+  case ROL_DEATH_EFFECT_SHADOW_DARKNESS:
+    call_magic(ch, NULL, NULL, SPELL_DARKNESS, 0, 20, CAST_INNATE);
+    break;
+  case ROL_DEATH_EFFECT_SPORE_POISON:
+    rol_death_spore_poison(ch);
+    break;
+  case ROL_DEATH_EFFECT_BALOR_BURST:
+    rol_death_balor_burst(ch);
+    break;
+  case ROL_DEATH_EFFECT_STONE_CRUMBLE:
+    rol_death_stone_crumble(ch, profile->object_vnum);
+    break;
+  case ROL_DEATH_EFFECT_NONE:
+    break;
+  }
+}
+
 bool rol_handle_conjured_death(struct char_data *ch)
 {
+  const struct rol_death_profile *profile;
   const char *message = NULL;
 
   if (ch == NULL || !IS_NPC(ch))
     return false;
 
-  message = rol_conversion_death_message(GET_MOB_VNUM(ch));
-  if (message != NULL)
+  profile = rol_death_profile_for(GET_MOB_VNUM(ch));
+  if (profile != NULL)
   {
-    act(message, FALSE, ch, NULL, NULL, TO_ROOM);
-    return true;
+    if (profile->message != NULL)
+      act(profile->message, FALSE, ch, NULL, NULL, TO_ROOM);
+    if (profile->secondary_message != NULL)
+      act(profile->secondary_message, FALSE, ch, NULL, NULL, TO_ROOM);
+    rol_apply_death_effect(ch, profile);
+    return profile->suppress_corpse;
   }
 
   if (MOB_FLAGGED(ch, MOB_ROL_BLACK_VAPOR_DEATH))
@@ -2883,6 +3286,26 @@ bool rol_source_periodic_profile_bounds(int mobile_vnum, int *roll_min, int *rol
   return true;
 }
 
+bool rol_source_periodic_dice_shape(int mobile_vnum, int *dice_count, int *dice_sides)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+
+  if (profile == NULL || profile->dice_count <= 0 || profile->dice_sides <= 0)
+    return false;
+  if (dice_count != NULL)
+    *dice_count = profile->dice_count;
+  if (dice_sides != NULL)
+    *dice_sides = profile->dice_sides;
+  return true;
+}
+
+bool rol_source_periodic_requires_sleeping(int mobile_vnum)
+{
+  const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
+
+  return profile != NULL && profile->require_sleeping;
+}
+
 size_t rol_source_periodic_outcome_action_count(int mobile_vnum, int roll)
 {
   const struct rol_source_periodic_profile *profile = rol_source_periodic_profile_for(mobile_vnum);
@@ -2932,10 +3355,14 @@ int rol_source_periodic(struct char_data *ch, void *me, int cmd, const char *arg
 
   profile = rol_source_periodic_profile_for(GET_MOB_VNUM(speaker));
   if (profile == NULL || (profile->require_awake && !AWAKE(speaker)) ||
+      (profile->require_sleeping && GET_POS(speaker) != POS_SLEEPING) ||
       (profile->suppress_fighting && FIGHTING(speaker) != NULL))
     return FALSE;
 
-  roll = rand_number(profile->roll_min, profile->roll_max);
+  if (profile->dice_count > 0 && profile->dice_sides > 0)
+    roll = dice(profile->dice_count, profile->dice_sides);
+  else
+    roll = rand_number(profile->roll_min, profile->roll_max);
   outcome = rol_source_periodic_outcome_for(profile->profile_id, roll);
   if (outcome == NULL)
     return FALSE;

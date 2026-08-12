@@ -35,7 +35,7 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'Independent compatibility hooks') > 0
   AND INSTR(entry, 'RoL death flags') > 0
   AND INSTR(entry, 'Bloodstone black-vapor') > 0
-  AND INSTR(entry, 'Sixteen additional converted tentacle') > 0
+  AND INSTR(entry, 'Thirty-six converted mobiles use converter-owned death profiles') > 0
   AND INSTR(entry, 'breath_attack and breath_weapon') > 0
   AND INSTR(entry, 'RoL Bloodstone Critter is mobile-owned') > 0
   AND INSTR(entry, 'two-in-81 activity-pulse cadence') > 0
@@ -74,7 +74,8 @@ WHERE BINARY tag = 'spec-proc'
   AND INSTR(entry, 'RoL Waterdeep Ambient is mobile-owned') > 0
   AND INSTR(entry, 'casino-player fall-through') > 0
   AND INSTR(entry, 'RoL Source Periodic is mobile-owned') > 0
-  AND INSTR(entry, '90 source') > 0
+  AND INSTR(entry, '94 source') > 0
+  AND INSTR(entry, 'Waterdeep guard 2003212 runs only while sleeping') > 0
   AND INSTR(entry, 'jester 2003069, and cricket 2014048 do not require') > 0
   AND INSTR(entry, 'Menden magus 2088806 continue') > 0
   AND INSTR(entry, 'RoL Stateful Periodic is mobile-owned') > 0
