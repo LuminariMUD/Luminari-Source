@@ -1062,6 +1062,124 @@ int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argu
   return fired;
 }
 
+bool rol_lich_energy_drain_together(const struct char_data *candidate,
+                                    const struct char_data *primary)
+{
+  if (candidate == NULL || primary == NULL)
+    return false;
+
+  if (candidate == primary || candidate->master == primary || primary->master == candidate)
+    return true;
+  if (candidate->master != NULL && candidate->master == primary->master)
+    return true;
+  if (GROUP(candidate) != NULL && GROUP(candidate) == GROUP(primary))
+    return true;
+  if (candidate->master != NULL && GROUP(candidate->master) != NULL &&
+      GROUP(candidate->master) == GROUP(primary))
+    return true;
+  if (primary->master != NULL && GROUP(primary->master) != NULL &&
+      GROUP(candidate) == GROUP(primary->master))
+    return true;
+
+  return false;
+}
+
+int rol_lich_energy_drain_victim_hit(int current_hit, bool death_warded)
+{
+  if (current_hit <= 0)
+    return current_hit;
+
+  return death_warded ? 0 : -5;
+}
+
+int rol_lich_energy_drain_healer_hit(int current_hit, int drained_hit, bool blackmantled)
+{
+  if (blackmantled || drained_hit <= 0)
+    return current_hit;
+  if (current_hit > INT_MAX - drained_hit)
+    return INT_MAX;
+
+  return current_hit + drained_hit;
+}
+
+long rol_lich_energy_drain_stun_duration(long remaining)
+{
+  long duration = PULSE_VIOLENCE * 2;
+
+  if (remaining <= 0)
+    return duration;
+  if (remaining > LONG_MAX - duration)
+    return LONG_MAX;
+
+  return remaining + duration;
+}
+
+static void rol_lich_energy_drain_stun(struct char_data *victim)
+{
+  struct mud_event_data *stun_event;
+  long duration;
+  long remaining;
+
+  if (!can_stun(victim))
+    return;
+
+  stun_event = char_has_mud_event(victim, eSTUNNED);
+  if (stun_event == NULL)
+  {
+    attach_mud_event(new_mud_event(eSTUNNED, victim, NULL), rol_lich_energy_drain_stun_duration(0));
+    return;
+  }
+
+  remaining = stun_event->pEvent != NULL ? event_time(stun_event->pEvent) : 0;
+  duration = rol_lich_energy_drain_stun_duration(remaining);
+  change_event_duration(victim, eSTUNNED, duration);
+}
+
+int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument)
+{
+  struct char_data *primary;
+  struct char_data *victim;
+  int drained_hit;
+
+  UNUSED(me);
+  UNUSED(argument);
+
+  if (ch == NULL || !IS_NPC(ch) || cmd || IS_CASTING(ch) || (primary = FIGHTING(ch)) == NULL ||
+      !VALID_ROOM_RNUM(IN_ROOM(ch)))
+    return FALSE;
+
+  for (victim = world[IN_ROOM(ch)].people; victim != NULL; victim = victim->next_in_room)
+  {
+    if (GET_HIT(victim) <= 0 ||
+        (victim != primary && !rol_lich_energy_drain_together(victim, primary)) ||
+        rand_number(0, 4) != 0)
+      continue;
+
+    act("\tWYou reach out and suck the life force away from $N!\tn", TRUE, ch, NULL, victim,
+        TO_CHAR);
+    act("$n \trturns and gazes at you wickedly, and you freeze in place.\tn\r\n"
+        "$n \tWreaches out with a skeletal hand and touches you!\tn\r\n"
+        "\tWYou scream as your life force flows away from you.\tn",
+        FALSE, ch, NULL, victim, TO_VICT);
+    act("$n \trturns and gazes at $N, who freezes in place.\tn\r\n"
+        "$n \tWreaches out and sucks the life force from $N!\tn",
+        TRUE, ch, NULL, victim, TO_NOTVICT);
+
+    drained_hit = GET_HIT(victim);
+    GET_HIT(ch) = rol_lich_energy_drain_healer_hit(GET_HIT(ch), drained_hit,
+                                                   AFF_FLAGGED(ch, AFF_BLACKMANTLE));
+    GET_HIT(victim) =
+        rol_lich_energy_drain_victim_hit(drained_hit, AFF_FLAGGED(victim, AFF_DEATH_WARD));
+    update_pos(victim);
+
+    rol_lich_energy_drain_stun(victim);
+    break;
+  }
+
+  /* The source callback deliberately allows the ordinary NPC action to continue. */
+  return FALSE;
+}
+
 static struct obj_data *rol_bandit_owned_wagon(struct char_data *ch)
 {
   struct obj_data *obj;

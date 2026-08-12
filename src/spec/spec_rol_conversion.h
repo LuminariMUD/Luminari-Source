@@ -33,6 +33,7 @@ int rol_auto_distributor(struct char_data *ch, void *me, int cmd, const char *ar
 int rol_shadow_giant(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_guild_guard(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_major_beholder(struct char_data *ch, void *me, int cmd, const char *argument);
+int rol_lich_energy_drain(struct char_data *ch, void *me, int cmd, const char *argument);
 int rol_bandit(struct char_data *ch, void *me, int cmd, const char *argument);
 
 bool rol_corpse_devourer_can_consume(const struct obj_data *obj);
@@ -46,6 +47,11 @@ bool rol_guild_guard_protects(int room_vnum);
 int rol_major_beholder_eye_spell(int eye);
 int rol_major_beholder_eye_cooldown(int state, int eye);
 int rol_major_beholder_advance_cooldowns(int state, unsigned int fired_eye_mask);
+bool rol_lich_energy_drain_together(const struct char_data *candidate,
+                                    const struct char_data *primary);
+int rol_lich_energy_drain_victim_hit(int current_hit, bool death_warded);
+int rol_lich_energy_drain_healer_hit(int current_hit, int drained_hit, bool blackmantled);
+long rol_lich_energy_drain_stun_duration(long remaining);
 int rol_bandit_cargo_value(struct char_data *ch);
 int rol_bandit_fee_gold(int target_vnum, int cargo_value, int alignment, int carried_gold);
 int rol_planar_gate_cooldown_seconds(const struct char_data *ch);

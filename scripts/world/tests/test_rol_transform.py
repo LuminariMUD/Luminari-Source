@@ -1361,6 +1361,45 @@ class RolTransformTests(unittest.TestCase):
     self.assertEqual("RoL Trade Bandit", result.records[0].spec_proc)
     self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
 
+  def test_lich_energy_drain_binding_requires_mobile_activity_gateway(self) -> None:
+    binding = {
+        "basename": "rib",
+        "record_type": "mobile",
+        "source_vnum": 9040,
+        "source_handler": "lich_energy_drain",
+    }
+
+    compiled = compile_special_bindings(
+        [binding],
+        2_100_000,
+        lambda kind, vnum: 2_000_000 + vnum,
+        [],
+    )
+
+    native = compiled.native_bindings[0]
+    self.assertEqual("RoL Lich Energy Drain", native.persisted_name)
+    self.assertEqual((0,), native.required_flag_bits)
+    self.assertEqual("NATIVE_ADAPTED", compiled.dispositions[0]["strategy"])
+
+    source = self._source_record(
+        "mob",
+        b"#9040\nlich~\na skeletal lich~\nA skeletal lich waits here.~\n~\n"
+        b"0 0 0 0 S\nN 0 0\n35 0 0 1d1+0 1d1+0\n0 0\n131 131 0 0\n",
+    )
+    emitted = emit_mobile(
+        source,
+        2_009_040,
+        special_proc=native.persisted_name,
+        special_resolved=True,
+        required_action_bits=native.required_flag_bits,
+    )
+    path = self._target_path("mob", emitted.text)
+    result = parse_mobile_file(path, "mob/20090.mob", self.manifest, set())
+
+    self.assertTrue(result.complete)
+    self.assertEqual("RoL Lich Energy Drain", result.records[0].spec_proc)
+    self.assertIn(0, decode_tokens(result.records[0].action_flags).bits)
+
 
 if __name__ == "__main__":
   unittest.main()

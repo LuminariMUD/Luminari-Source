@@ -289,6 +289,25 @@ automated walkthrough already reached all 1,160 pilot rooms from these roots.
   target special-procedure gateway provides combat-turn events, not source weapon-critical
   callbacks.
 
+### Phase 6 converted lich energy drain
+
+- `RoL Lich Energy Drain` is implemented for all six active source bindings. The affected
+  packages remain outside the five-package staged pilot; do not assign this converter-owned
+  procedure to unrelated mobiles.
+- In a later dependency-complete stage, fight converted mobile 2001098, 2001104, 2009040,
+  2019701, 2070603, or 2083253. Confirm it has `MOB_SPEC`, and that no drain occurs while the
+  lich is casting.
+- Group a second character or pet with the lich's current opponent. Across activity pulses and
+  combat turns, confirm each eligible current opponent or party member receives an independent
+  one-in-five check in room-list order and that the first successful target is drained.
+- On a successful drain, an unwarded target must lose its current hit points plus five, the lich
+  must gain the target's former current hit points even above its normal maximum, and the target
+  must gain two combat rounds of cumulative stun. Blackmantle on the lich suppresses only the
+  healing.
+- Repeat with Death Ward on the target. It maps the source protection-from-undead spell: the
+  victim stops at zero hit points instead of minus five, while the life transfer and stun remain.
+  A non-party bystander must never be selected.
+
 ### Phase 6 converted trade bandits
 
 - `RoL Trade Bandit` is implemented for all seven active source bindings. The affected

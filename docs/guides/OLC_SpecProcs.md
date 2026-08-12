@@ -74,6 +74,14 @@ in the room. The source engine's critical-hit callback has no target combat-turn
 all-unused-eyes critical burst is not available. Use this converter-owned procedure only for the
 converted `major_beholder` family.
 
+`RoL Lich Energy Drain` is mobile-owned and requires `MOB_SPEC`. On both activity pulses and
+combat turns, each eligible current opponent or party member has the source one-in-five chance to
+lose all current hit points plus five; target Death Ward maps the source protection-from-undead
+case and leaves the victim at zero instead. The lich receives the victim's former current hit
+points unless Blackmantled, and each drain adds two combat rounds of stun. The callback does
+not fire while the lich is casting. Use this converter-owned procedure only for the converted
+`lich_energy_drain` family.
+
 `RoL Trade Bandit` is mobile-owned and requires `MOB_SPEC`. It intercepts movement, `flee`, and
 `get` for a merchant carrying converted resources or owning a loaded wagon, then applies one of
 seven converter-owned toll personalities. Source platinum tolls use ten target gold per platinum;

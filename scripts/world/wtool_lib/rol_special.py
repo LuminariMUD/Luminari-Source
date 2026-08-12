@@ -67,6 +67,7 @@ ADAPTED_HANDLER_NAMES = {
     "control_panel": "RoL Ship Control",
     "devour": "RoL Corpse Devourer",
     "guild_guard": "RoL Guild Guard",
+    "lich_energy_drain": "RoL Lich Energy Drain",
     "major_beholder": "RoL Major Beholder",
     "navagator": "RoL Ship Navigator",
     "poison": "RoL Poison Bite",
@@ -759,7 +760,13 @@ def compile_special_bindings(
     source_vnum = int(row["source_vnum"])
     target_vnum = resolve(target_kind, source_vnum)
     if handler in NATIVE_HANDLERS or handler in ADAPTED_HANDLER_NAMES:
-      if handler in {"bandit", "guild_guard", "major_beholder", "navagator"}:
+      if handler in {
+          "bandit",
+          "guild_guard",
+          "lich_energy_drain",
+          "major_beholder",
+          "navagator",
+      }:
         required_bits = (0,)
       elif handler == "obj_drain":
         required_bits = (44,)

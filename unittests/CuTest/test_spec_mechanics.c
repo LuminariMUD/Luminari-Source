@@ -25,6 +25,7 @@
 #include "../../src/spec/spec_rol_conversion.h"
 #include "../../src/spec/spec_rol_totem.h"
 
+#include <limits.h>
 #include <string.h>
 
 struct spec_mechanics_fixture
@@ -677,6 +678,44 @@ void Test_spec_rol_major_beholder_preserves_eye_mapping_and_cooldowns(CuTest *tc
   fixture.actor.mob_specials.proc_fired = 0xFFFFF;
   CuAssertIntEquals(tc, FALSE, rol_major_beholder(&fixture.actor, &fixture.actor, 0, ""));
   CuAssertIntEquals(tc, 0xAAAAA, fixture.actor.mob_specials.proc_fired);
+
+  spec_mechanics_end(&fixture);
+}
+
+void Test_spec_rol_lich_energy_drain_preserves_party_targeting_and_life_transfer(CuTest *tc)
+{
+  struct spec_mechanics_fixture fixture;
+  struct char_data leader;
+
+  spec_mechanics_begin(&fixture);
+  spec_mechanics_initialize_npc(&leader, "party leader", 0);
+
+  CuAssertTrue(tc, rol_lich_energy_drain_together(&fixture.target, &fixture.target));
+  CuAssertTrue(tc, !rol_lich_energy_drain_together(&fixture.actor, &fixture.target));
+  fixture.actor.master = &fixture.target;
+  CuAssertTrue(tc, rol_lich_energy_drain_together(&fixture.actor, &fixture.target));
+  fixture.actor.master = NULL;
+  fixture.actor.master = &leader;
+  fixture.target.master = &leader;
+  CuAssertTrue(tc, rol_lich_energy_drain_together(&fixture.actor, &fixture.target));
+  fixture.actor.master = NULL;
+  fixture.target.master = NULL;
+
+  CuAssertIntEquals(tc, -5, rol_lich_energy_drain_victim_hit(137, false));
+  CuAssertIntEquals(tc, 0, rol_lich_energy_drain_victim_hit(137, true));
+  CuAssertIntEquals(tc, -2, rol_lich_energy_drain_victim_hit(-2, false));
+  CuAssertIntEquals(tc, 237, rol_lich_energy_drain_healer_hit(100, 137, false));
+  CuAssertIntEquals(tc, 100, rol_lich_energy_drain_healer_hit(100, 137, true));
+  CuAssertIntEquals(tc, INT_MAX, rol_lich_energy_drain_healer_hit(INT_MAX - 2, 137, false));
+  CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(0) == PULSE_VIOLENCE * 2);
+  CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(7) == (PULSE_VIOLENCE * 2) + 7);
+  CuAssertTrue(tc, rol_lich_energy_drain_stun_duration(LONG_MAX) == LONG_MAX);
+
+  FIGHTING(&fixture.actor) = &fixture.target;
+  IS_CASTING(&fixture.actor) = TRUE;
+  CuAssertIntEquals(tc, FALSE, rol_lich_energy_drain(&fixture.actor, &fixture.actor, 0, ""));
+  CuAssertIntEquals(tc, 100, GET_HIT(&fixture.target));
+  IS_CASTING(&fixture.actor) = FALSE;
 
   spec_mechanics_end(&fixture);
 }

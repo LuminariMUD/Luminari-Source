@@ -80,6 +80,14 @@ monster, harm, and finger of death. Pet targets redirect to an eligible master
 in the room. The source-only all-eyes weapon-critical burst has no target
 combat-turn event equivalent. This procedure is converter-owned.
 
+RoL Lich Energy Drain is mobile-owned and requires MOB_SPEC. On activity
+pulses and combat turns, each eligible current opponent or party member has a
+one-in-five chance to lose all current hit points plus five. Death Ward maps
+the source protection-from-undead case and leaves the victim at zero instead.
+The lich receives the victim\'s former current hit points unless Blackmantled,
+and each drain adds two combat rounds of stun. Casting suppresses the drain.
+This procedure is converter-owned.
+
 RoL Trade Bandit is mobile-owned and requires MOB_SPEC. It intercepts movement,
 FLEE, and GET when a merchant carries converted resources or owns a loaded wagon.
 Seven converter-owned VNUMs select fixed, cargo-relative, all-gold-and-wagon,
