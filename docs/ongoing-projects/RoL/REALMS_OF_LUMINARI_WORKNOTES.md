@@ -148,7 +148,7 @@ Policy:  rol-conversion-policy-1
 - The world-tool suite passes 257 tests; the production-linked CuTest suite passes 620;
   `make install` succeeds and leaves no root-level `circle` artifact.
 - Eleven bounded Phase 6 delivery sessions are archived. The measured remaining
-  forecast is 85-145 sessions: Phase 6 is 37-69, Phase 7 is 42-66, and Phase 8 is 6-10.
+  forecast is 84-144 sessions: Phase 6 is 36-68, Phase 7 is 42-66, and Phase 8 is 6-10.
 - Phase 5 now handles argument-free quest attacks, configured experience, signed
   quest-point deltas, all 29 active spell/skill reward identities, and explicit SOC
   `LISTDONE` termination. Existing HLQuest persisted command indexes remain stable.
@@ -224,18 +224,22 @@ Policy:  rol-conversion-policy-1
   `RoL Auto Distributor` procedure. Mortal commands move the actor to a random loaded
   room in the same zone, staff are exempt, and the source's inert periodic callbacks
   are not reproduced as unnecessary scheduling work.
+- All eight active `shadow_giant` bindings are complete through the named
+  `RoL Shadow Giant` procedure. Its periodic 1-in-21 pulse applies source-equivalent
+  level-30 `spook` damage, save, and stun behavior to players and pets; converted angel
+  identity remains distinct for the source immunity list.
 - The source C preprocessor removes 87 of the 1,234 discovered binding candidates under
   the checked-in RoL configuration. The active denominator is 1,147 bindings across 562
   handlers; a separate ledger preserves every exclusion, and none affected the current
   five-package staged pilot.
-- The current Phase 6 checkpoint resolves 377 of 1,147 active direct bindings and 56 of
-  562 source handlers, leaving 770 bindings and 506 handlers. The independent
+- The current Phase 6 checkpoint resolves 385 of 1,147 active direct bindings and 57 of
+  562 source handlers, leaving 762 bindings and 505 handlers. The independent
   `ACT_SPEC` cross-check resolves 517 of 848 records and leaves 331 pending.
 - The 804 record-specific reference gaps remain owned by Phase 7 dependency batches.
 
 ## Immediate next actions
 
-1. Reconcile the remaining 770 direct bindings by shared behavior family and
+1. Reconcile the remaining 762 direct bindings by shared behavior family and
    consuming package; continue with the next high-reuse families and reuse current
    target procedures before adapting or porting.
 2. Preserve record-specific missing-reference repairs for their Phase 7

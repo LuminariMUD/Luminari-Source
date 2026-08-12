@@ -5,6 +5,58 @@ This file records completed milestones removed from the active
 and [zone conversion scope](REALMS_OF_LUMINARI_ZONE_CONVERSION_SCOPE.md). The plans
 retain only forward-looking requirements, decisions, phases, and acceptance gates.
 
+## 2026-08-12 - Phase 6 shadow-giant procedure
+
+Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
+
+### Delivered
+
+- Closed all eight active `shadow_giant` mobile bindings in the `abandon` package.
+  Reconciliation now resolves 385 of 1,147 active direct bindings and 57 of 562
+  handlers; 762 bindings and 505 handlers remain.
+- Added the mobile-owned `RoL Shadow Giant` procedure on the source periodic activity
+  cadence. While fighting, its 1-in-21 trigger applies level-30 `spook` behavior to
+  every player and charmed pet in the room: 25d8 mental damage, a Will save for half,
+  and the source level-based chance for a one-to-three-round stun.
+- Preserved the source immunity list for undead, dragons, demons, devils, and angels.
+  Added the converter-owned `RoL-Angel` identity flag because source angels otherwise
+  collapse into the target's broader outsider race and cannot be distinguished from
+  other outsider pets.
+- Repaired the source face-removal messages to use the actual fighting target rather
+  than the source callback's null local pointer. Ordinary non-pet NPCs remain excluded.
+- Updated the registry, owner-aware OLC, converter, constants manifest, database-first
+  help, builder references, manual-test guidance, and production-linked tests. The
+  independent `ACT_SPEC` checkpoint remains 517 resolved / 331 pending because none of
+  these eight assignment-table consumers carried the source `ACT_SPEC` flag.
+- Archived the twelfth bounded Phase 6 delivery session since the Phase 5 closeout.
+  The forward-looking estimate is now 36-68 Phase 6 sessions and 84-144 total sessions
+  for Phases 6-8, or 168-576 focused engineering hours at 2-4 hours per session.
+
+### Acceptance evidence
+
+```text
+Delivery commit: 96785da1
+Reconciliation path: lib/rol-conversion/runs/phase6-special-20260812-shadow-giant
+Reconciliation run: rol-phase6-special-989f5d0c8b5ac5c6
+Active direct bindings: 1,147
+Direct bindings resolved: 385
+Direct bindings pending: 762
+Source handlers resolved: 57
+Source handlers pending: 505
+Shadow-giant bindings resolved: 8
+ACT_SPEC records resolved: 517
+ACT_SPEC records pending: 331
+Complete world-tool suite: 262 passed
+Production-linked CuTest suite: 624 passed
+Documentation findings: 0 errors, 0 warnings, 0 info
+Help SQL idempotency checks: 4 passed twice
+Autotools build, test, and install: passed
+Root-level circle artifact: absent
+Live target writes: 0
+```
+
+Phase 6 continues with the remaining 762 direct bindings across 505 source handlers.
+
 ## 2026-08-12 - Phase 6 source-preprocessor binding correction
 
 Status: Completed checkpoint; Phase 6 direct-binding reconciliation in progress
